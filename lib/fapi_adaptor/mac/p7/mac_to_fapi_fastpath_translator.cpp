@@ -17,6 +17,7 @@
 #include "pdu_translators/pusch.h"
 #include "pdu_translators/srs.h"
 #include "pdu_translators/ssb.h"
+#include "ocudu/fapi/common/error_indication_notifier.h"
 #include "ocudu/fapi/p7/builders/dl_tti_request_builder.h"
 #include "ocudu/fapi/p7/builders/tx_data_request_builder.h"
 #include "ocudu/fapi/p7/builders/ul_dci_request_builder.h"
@@ -50,7 +51,26 @@ struct pdcch_group {
   }
 };
 
+/// Dummy MAC cell slot handler.
+class mac_cell_slot_handler_dummy : public mac_cell_slot_handler
+{
+public:
+  void handle_slot_indication(const mac_cell_timing_context& context) override
+  {
+    report_error("Dummy MAC cell slot handler cannot handle slot indication");
+  }
+
+  void handle_error_indication(slot_point sl_tx, error_event event) override
+  {
+    report_error("Dummy MAC cell slot handler cannot handle error indication");
+  }
+
+  void handle_stop_indication() override { report_error("Dummy MAC cell slot handler cannot handle stop indication"); }
+};
+
 } // namespace
+
+static mac_cell_slot_handler_dummy dummy_cell_handler;
 
 mac_to_fapi_fastpath_translator::mac_to_fapi_fastpath_translator(
     const mac_to_fapi_fastpath_translator_config& config,
@@ -59,7 +79,8 @@ mac_to_fapi_fastpath_translator::mac_to_fapi_fastpath_translator(
   p7_gateway(dependencies.p7_gateway),
   p7_last_req_notifier(dependencies.p7_last_req_notifier),
   pm_mapper(std::move(dependencies.pm_mapper)),
-  part2_mapper(std::move(dependencies.part2_mapper))
+  part2_mapper(std::move(dependencies.part2_mapper)),
+  mac_slot_handler(&dummy_cell_handler)
 {
   ocudu_assert(pm_mapper, "Invalid precoding matrix mapper");
   ocudu_assert(part2_mapper, "Invalid Part2 mapper");
@@ -76,8 +97,12 @@ void mac_to_fapi_fastpath_translator::stop()
   stop_manager.stop();
 }
 
+/// \brief Adds a PDCCH PDU to the given builder.
+//
+/// In case the PDU is not valid it wont be added and false will be returned, otherwise it will be added and true will
+/// be returned.
 template <typename builder_type, typename pdu_type>
-static void add_pdcch_pdus_to_builder(builder_type&                  builder,
+static bool add_pdcch_pdus_to_builder(builder_type&                  builder,
                                       span<const pdu_type>           pdcch_info,
                                       span<const dci_payload>        payloads,
                                       const precoding_matrix_mapper& pm_mapper,
@@ -86,33 +111,22 @@ static void add_pdcch_pdus_to_builder(builder_type&                  builder,
   ocudu_assert(pdcch_info.size() == payloads.size(), "Size mismatch");
 
   if (pdcch_info.empty()) {
-    return;
+    return true;
   }
 
-  static_vector<pdcch_group, MAX_DL_PDUS_PER_SLOT> groups;
   for (unsigned i = 0, e = pdcch_info.size(); i != e; ++i) {
-    groups.emplace_back(&pdcch_info[i].ctx, &payloads[i]);
-  }
+    const coreset_configuration& coreset_cfg = *pdcch_info[i].ctx.coreset_cfg;
 
-  // Group DCIs into FAPI PDCCH PDUs.
-  std::sort(groups.begin(), groups.end());
-  auto* pivot = groups.begin();
-  auto* end   = groups.end();
-  while (pivot != end) {
-    auto* i = pivot;
-    pivot   = std::lower_bound(pivot, end, *pivot, std::equal_to<>{});
-
-    mac_pdcch_pdu pdu;
-    pdu.bwp_cfg      = i->info->bwp_cfg;
-    pdu.coreset_cfg  = i->info->coreset_cfg;
-    pdu.start_symbol = i->info->starting_symbol;
-    for (; i != pivot; ++i) {
-      pdu.dcis.emplace_back(i->info, i->payload);
+    // CORESET 0 must always be inerleaved.
+    if (coreset_cfg.id == to_coreset_id(0) && !coreset_cfg.interleaved.has_value()) {
+      return false;
     }
 
-    fapi::dl_pdcch_pdu_builder pdcch_builder = builder.add_pdcch_pdu(pdu.dcis.size());
-    convert_pdcch_mac_to_fapi(pdcch_builder, pdu, pm_mapper, cell_nof_prbs);
+    fapi::dl_pdcch_pdu_builder pdcch_builder = builder.add_pdcch_pdu();
+    convert_pdcch_mac_to_fapi(pdcch_builder, pdcch_info[i].ctx, payloads[i], pm_mapper, cell_nof_prbs);
   }
+
+  return true;
 }
 
 static void
@@ -176,30 +190,37 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const ma
   builder.set_basic_parameters(dl_res.slot);
 
   // Add PDCCH PDUs to the DL_TTI.request message.
-  add_pdcch_pdus_to_builder(builder,
-                            span<const pdcch_dl_information>(dl_res.dl_res->dl_pdcchs),
-                            dl_res.dl_pdcch_pdus,
-                            *pm_mapper,
-                            cell_nof_prbs);
+  if (add_pdcch_pdus_to_builder(builder,
+                                span<const pdcch_dl_information>(dl_res.dl_res->dl_pdcchs),
+                                dl_res.dl_pdcch_pdus,
+                                *pm_mapper,
+                                cell_nof_prbs)) {
+    // Add SSB PDUs to the DL_TTI.request message.
+    add_ssb_pdus_to_dl_request(builder, dl_res.ssb_pdus, dl_res.slot);
 
-  // Add SSB PDUs to the DL_TTI.request message.
-  add_ssb_pdus_to_dl_request(builder, dl_res.ssb_pdus, dl_res.slot);
+    // Add CSI-RS PDUs to the DL_TTI.request message.
+    add_csi_rs_pdus_to_dl_request(builder, dl_res.dl_res->csi_rs);
 
-  // Add CSI-RS PDUs to the DL_TTI.request message.
-  add_csi_rs_pdus_to_dl_request(builder, dl_res.dl_res->csi_rs);
+    // Add PDSCH PDUs to the DL_TTI.request message.
+    add_pdsch_pdus_to_dl_request(builder,
+                                 dl_res.dl_res->bc.sibs,
+                                 dl_res.dl_res->rar_grants,
+                                 dl_res.dl_res->ue_grants,
+                                 dl_res.dl_res->paging_grants,
+                                 dl_res.dl_res->csi_rs.size(),
+                                 *pm_mapper,
+                                 cell_nof_prbs);
 
-  // Add PDSCH PDUs to the DL_TTI.request message.
-  add_pdsch_pdus_to_dl_request(builder,
-                               dl_res.dl_res->bc.sibs,
-                               dl_res.dl_res->rar_grants,
-                               dl_res.dl_res->ue_grants,
-                               dl_res.dl_res->paging_grants,
-                               dl_res.dl_res->csi_rs.size(),
-                               *pm_mapper,
-                               cell_nof_prbs);
+    // Send the message.
+    p7_gateway.send_dl_tti_request(msg);
+  } else {
+    mac_cell_slot_handler::error_event error;
+    error.pdcch_discarded           = true;
+    error.pdsch_discarded           = true;
+    error.pusch_and_pucch_discarded = false;
 
-  // Send the message.
-  p7_gateway.send_dl_tti_request(msg);
+    mac_slot_handler->handle_error_indication(dl_res.slot, error);
+  }
 
   handle_ul_dci_request(dl_res.dl_res->ul_pdcchs, dl_res.ul_pdcch_pdus, dl_res.slot);
 }
@@ -316,7 +337,17 @@ void mac_to_fapi_fastpath_translator::handle_ul_dci_request(span<const pdcch_ul_
   fapi::ul_dci_request_builder builder(msg);
 
   builder.set_basic_parameters(slot);
-  add_pdcch_pdus_to_builder(builder, pdcch_info, payloads, *pm_mapper, cell_nof_prbs);
+
+  if (!add_pdcch_pdus_to_builder(builder, pdcch_info, payloads, *pm_mapper, cell_nof_prbs)) {
+    mac_cell_slot_handler::error_event error;
+    error.pdcch_discarded           = true;
+    error.pdsch_discarded           = true;
+    error.pusch_and_pucch_discarded = false;
+
+    mac_slot_handler->handle_error_indication(slot, error);
+
+    return;
+  }
 
   // Send the message.
   p7_gateway.send_ul_dci_request(msg);

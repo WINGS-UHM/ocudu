@@ -126,11 +126,11 @@ static void fill_precoding_and_beamforming(fapi::dl_pdsch_pdu_builder&          
                                            unsigned                                   cell_nof_prbs)
 {
   fapi::tx_precoding_and_beamforming_pdu_builder pm_bf_builder = builder.get_tx_precoding_and_beamforming_pdu_builder();
-  pm_bf_builder.set_basic_parameters((mac_info) ? mac_info->nof_rbs_per_prg : cell_nof_prbs, 0);
+  pm_bf_builder.set_prg_parameters((mac_info) ? mac_info->nof_rbs_per_prg : cell_nof_prbs);
 
   if (!mac_info) {
     mac_pdsch_precoding_info info;
-    pm_bf_builder.add_prg(pm_mapper.map(info, nof_layers), {});
+    pm_bf_builder.set_pmi(pm_mapper.map(info, nof_layers));
 
     return;
   }
@@ -138,7 +138,7 @@ static void fill_precoding_and_beamforming(fapi::dl_pdsch_pdu_builder&          
   for (const auto& prg : mac_info->prg_infos) {
     mac_pdsch_precoding_info info;
     info.report = prg;
-    pm_bf_builder.add_prg(pm_mapper.map(info, nof_layers), {});
+    pm_bf_builder.set_pmi(pm_mapper.map(info, nof_layers));
   }
 }
 
@@ -148,8 +148,8 @@ static void fill_omnidirectional_precoding(fapi::dl_pdsch_pdu_builder&    builde
                                            unsigned                       cell_nof_prbs)
 {
   fapi::tx_precoding_and_beamforming_pdu_builder pm_bf_builder = builder.get_tx_precoding_and_beamforming_pdu_builder();
-  pm_bf_builder.set_basic_parameters(cell_nof_prbs, 0);
-  pm_bf_builder.add_prg(pm_mapper.map({}, nof_layers), {});
+  pm_bf_builder.set_prg_parameters(cell_nof_prbs);
+  pm_bf_builder.set_pmi(pm_mapper.map({}, nof_layers));
 }
 
 static void fill_pdsch_information(fapi::dl_pdsch_pdu_builder& builder, const pdsch_information& pdsch_cfg)

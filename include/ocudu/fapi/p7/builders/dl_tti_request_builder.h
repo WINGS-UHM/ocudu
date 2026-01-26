@@ -40,20 +40,14 @@ public:
 
   /// Adds a PDCCH PDU to the message, fills its basic parameters using the given arguments and returns a PDCCH PDU
   /// builder.
-  /// \param[in] nof_dci_in_pdu Number of DCIs in the PDCCH PDU.
-  dl_pdcch_pdu_builder add_pdcch_pdu(unsigned nof_dci_in_pdu)
+  dl_pdcch_pdu_builder add_pdcch_pdu()
   {
     // Add a new pdu.
     dl_tti_request_pdu& pdu = msg.pdus.emplace_back();
 
-    // Fill the PDCCH PDU index value. The index value will be the index of the pdu in the array of PDCCH PDUs.
-    dl_pdcch_pdu_maintenance_v3& info          = pdu.pdcch_pdu.maintenance_v3;
-    auto&                        num_pdcch_pdu = msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::PDCCH)];
-    info.pdcch_pdu_index                       = num_pdcch_pdu;
-
     // Increase the number of PDCCH pdus in the request.
-    ++num_pdcch_pdu;
-    msg.num_pdus_of_each_type[dl_tti_request::DL_DCI_INDEX] += nof_dci_in_pdu;
+    ++msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::PDCCH)];
+    ++msg.num_pdus_of_each_type[dl_tti_request::DL_DCI_INDEX];
 
     pdu.pdu_type = dl_pdu_type::PDCCH;
 

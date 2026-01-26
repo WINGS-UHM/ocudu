@@ -16,12 +16,13 @@ using namespace ocudu;
 using namespace fapi_adaptor;
 
 void ocudu::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu&            fapi_pdu,
-                                                    const mac_pdcch_pdu&           mac_pdu,
+                                                    const dci_context_information& context_information,
+                                                    const dci_payload&             payload,
                                                     const precoding_matrix_mapper& pm_mapper,
                                                     unsigned                       cell_nof_prbs)
 {
   fapi::dl_pdcch_pdu_builder builder(fapi_pdu);
-  convert_pdcch_mac_to_fapi(builder, mac_pdu, pm_mapper, cell_nof_prbs);
+  convert_pdcch_mac_to_fapi(builder, context_information, payload, pm_mapper, cell_nof_prbs);
 }
 
 static void fill_bwp_parameters(fapi::dl_pdcch_pdu_builder&  builder,
@@ -49,19 +50,7 @@ static void fill_coreset_parameters(fapi::dl_pdcch_pdu_builder&  builder,
                                     const coreset_configuration& coreset_cfg,
                                     unsigned                     start_symbol_index)
 {
-  builder.set_coreset_parameters(
-      start_symbol_index,
-      coreset_cfg.duration,
-      (coreset_cfg.id == to_coreset_id(0)) ? calculate_coreset0_freq_res_bitmap(coreset_cfg)
-                                           : coreset_cfg.freq_domain_resources(),
-      coreset_cfg.interleaved.has_value() ? fapi::cce_to_reg_mapping_type::interleaved
-                                          : fapi::cce_to_reg_mapping_type::non_interleaved,
-      coreset_cfg.interleaved.has_value() ? coreset_cfg.interleaved.value().reg_bundle_sz : 6U,
-      coreset_cfg.interleaved.has_value() ? coreset_cfg.interleaved.value().interleaver_sz : 0U,
-      (coreset_cfg.id == to_coreset_id(0)) ? fapi::pdcch_coreset_type::pbch_or_coreset0
-                                           : fapi::pdcch_coreset_type::other,
-      coreset_cfg.interleaved.has_value() ? coreset_cfg.interleaved.value().shift_index : 0U,
-      coreset_cfg.precoder_granurality);
+  builder.set_coreset_parameters(start_symbol_index, coreset_cfg.duration, coreset_cfg.precoder_granurality);
 }
 
 static void fill_precoding_and_beamforming(fapi::dl_dci_pdu_builder&      builder,
@@ -69,48 +58,46 @@ static void fill_precoding_and_beamforming(fapi::dl_dci_pdu_builder&      builde
                                            unsigned                       cell_nof_prbs)
 {
   fapi::tx_precoding_and_beamforming_pdu_builder pm_bf_builder = builder.get_tx_precoding_and_beamforming_pdu_builder();
-  pm_bf_builder.set_basic_parameters(cell_nof_prbs, 0);
+  pm_bf_builder.set_prg_parameters(cell_nof_prbs);
 
   mac_pdcch_precoding_info info;
-  pm_bf_builder.add_prg(pm_mapper.map(info), {});
+  pm_bf_builder.set_pmi(pm_mapper.map(info));
 }
 
 void ocudu::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu_builder&    builder,
-                                                    const mac_pdcch_pdu&           mac_pdu,
+                                                    const dci_context_information& context_information,
+                                                    const dci_payload&             payload,
                                                     const precoding_matrix_mapper& pm_mapper,
                                                     unsigned                       cell_nof_prbs)
 {
-  const static_vector<mac_pdcch_pdu::dci_info, fapi::MAX_NUM_DCIS_PER_PDCCH_PDU>& dcis = mac_pdu.dcis;
-  ocudu_assert(!dcis.empty(), "No DCIs to add into the PDCCH PDU");
-
-  const coreset_configuration& coreset_cfg = *mac_pdu.coreset_cfg;
+  const coreset_configuration& coreset_cfg = *context_information.coreset_cfg;
 
   // Fill BWP parameters.
-  fill_bwp_parameters(builder, *mac_pdu.bwp_cfg, coreset_cfg);
+  fill_bwp_parameters(builder, *context_information.bwp_cfg, coreset_cfg);
 
   // Fill CORESET parameters.
-  fill_coreset_parameters(builder, *mac_pdu.coreset_cfg, mac_pdu.start_symbol);
+  fill_coreset_parameters(builder, coreset_cfg, context_information.starting_symbol);
 
-  // Fill the DCIs.
-  for (const auto& dci : dcis) {
-    fapi::dl_dci_pdu_builder dci_builder = builder.add_dl_dci();
-
-    dci_builder.set_basic_parameters(dci.info->rnti,
-                                     dci.info->n_id_pdcch_data,
-                                     dci.info->n_rnti_pdcch_data,
-                                     dci.info->cces.ncce,
-                                     to_nof_cces(dci.info->cces.aggr_lvl));
-
-    dci_builder.set_profile_nr_tx_power_info_parameters(dci.info->tx_pwr.pwr_ctrl_offset_ss);
-
-    fill_precoding_and_beamforming(dci_builder, pm_mapper, cell_nof_prbs);
-
-    dci_builder.set_parameters_v4_dci(dci.info->n_id_pdcch_dmrs);
-
-    dci_builder.set_payload(*dci.payload);
-
-    // Set DCI context for logging.
-    dci_builder.set_context_vendor_specific(
-        dci.info->context.ss_id, dci.info->context.dci_format, dci.info->context.harq_feedback_timing);
+  if (coreset_cfg.id == to_coreset_id(0)) {
+    builder.set_coreset_0_parameters(*coreset_cfg.interleaved, calculate_coreset0_freq_res_bitmap(coreset_cfg));
+  } else if (coreset_cfg.interleaved.has_value()) {
+    builder.set_interleaver_parameters(*coreset_cfg.interleaved, coreset_cfg.freq_domain_resources());
+  } else {
+    builder.set_non_interleaver_parameters(coreset_cfg.freq_domain_resources());
   }
+
+  // Fill the DCI.
+  fapi::dl_dci_pdu_builder dci_builder = builder.get_dl_dci();
+
+  fill_precoding_and_beamforming(dci_builder, pm_mapper, cell_nof_prbs);
+
+  dci_builder.set_ue_specific_parameters(context_information.rnti)
+      .set_control_channel_parameters(context_information.cces.ncce, context_information.cces.aggr_lvl)
+      .set_data_scrambling_parameters(context_information.n_id_pdcch_data, context_information.n_rnti_pdcch_data)
+      .set_profile_nr_tx_power_info_parameters(context_information.tx_pwr.pwr_ctrl_offset_ss)
+      .set_dmrs_parameters(context_information.n_id_pdcch_dmrs)
+      .set_payload(payload)
+      .set_context_parameters(context_information.context.ss_id,
+                              context_information.context.dci_format,
+                              context_information.context.harq_feedback_timing);
 }

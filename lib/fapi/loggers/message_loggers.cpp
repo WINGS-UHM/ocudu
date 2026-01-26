@@ -97,15 +97,70 @@ void ocudu::fapi::log_crc_indication(const crc_indication& msg, unsigned sector_
   logger.debug("{}", to_c_str(buffer));
 }
 
+/// Converts the given FAPI CRC RSRP to dB as per SCF-222 v4.0 section 3.4.8.
+static float to_power_sss_ul_dci(float power_offset)
+{
+  return power_offset * 0.001;
+}
+
+static void log_dl_dci_pdu(const dl_dci_pdu& dci_pdu, fmt::memory_buffer& buffer)
+{
+  fmt::format_to(std::back_inserter(buffer),
+                 " DCI rnti={} nid_pdcch_data={} nid_pdcch_dmrs={} nrnti_pdcch_data={} cce_index={} "
+                 "dci_aggregation_level={} payload_size={}",
+                 dci_pdu.rnti,
+                 dci_pdu.nid_pdcch_data,
+                 dci_pdu.nid_pdcch_dmrs,
+                 dci_pdu.nrnti_pdcch_data,
+                 dci_pdu.cce_index,
+                 fmt::underlying(dci_pdu.dci_aggregation_level),
+                 dci_pdu.payload.size());
+
+  if (const auto* power_profile_nr_in_pdu = std::get_if<dl_dci_pdu::power_profile_nr>(&dci_pdu.power_config)) {
+    fmt::format_to(
+        std::back_inserter(buffer), " power_control_offset_ss={}", power_profile_nr_in_pdu->power_control_offset_ss);
+  } else if (const auto* power_profile_sss_in_pdu = std::get_if<dl_dci_pdu::power_profile_sss>(&dci_pdu.power_config)) {
+    fmt::format_to(std::back_inserter(buffer),
+                   " dmrs_power_offset_db={} data_power_offset_db={}",
+                   to_power_sss_ul_dci(power_profile_sss_in_pdu->dmrs_power_offset_db),
+                   to_power_sss_ul_dci(power_profile_sss_in_pdu->data_power_offset_db));
+  }
+
+  if (dci_pdu.context.has_value()) {
+    fmt::format_to(std::back_inserter(buffer), " with context");
+  }
+}
+
 static void log_pdcch_pdu(const dl_pdcch_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PDCCH bwp={}:{} symb={}:{} nof_dcis={}",
+                 "\n\t- PDCCH bwp={}:{} symb={}:{} freq_domain_resource={} precoder_granularity={}",
                  pdu.coreset_bwp_start,
                  pdu.coreset_bwp_size,
                  pdu.start_symbol_index,
                  pdu.duration_symbols,
-                 pdu.dl_dci.size());
+                 pdu.freq_domain_resource,
+                 fmt::underlying(pdu.precoder_granularity));
+
+  log_dl_dci_pdu(pdu.dl_dci, buffer);
+
+  if (const auto* dci_coreset_0 = std::get_if<fapi::dl_pdcch_pdu::mapping_coreset_0>(&pdu.mapping)) {
+    fmt::format_to(std::back_inserter(buffer),
+                   " CORESET0 reg_bundle_sz={} interleaver_sz={} shift_index={}",
+                   dci_coreset_0->interleaved.reg_bundle_sz,
+                   dci_coreset_0->interleaved.interleaver_sz,
+                   dci_coreset_0->interleaved.shift_index);
+
+  } else if (const auto* dci_interleaved = std::get_if<fapi::dl_pdcch_pdu::mapping_interleaved>(&pdu.mapping)) {
+    fmt::format_to(std::back_inserter(buffer),
+                   " INTERLEAVED reg_bundle_sz={} interleaver_sz={} shift_index={}",
+                   dci_interleaved->interleaved.reg_bundle_sz,
+                   dci_interleaved->interleaved.interleaver_sz,
+                   dci_interleaved->interleaved.shift_index);
+
+  } else if (const auto* dci_non_interleaved = std::get_if<fapi::dl_pdcch_pdu::mapping_non_interleaved>(&pdu.mapping)) {
+    fmt::format_to(std::back_inserter(buffer), " NON INTERLEAVED reg_bundle_sz={}", dci_non_interleaved->reg_bundle_sz);
+  }
 }
 
 static void log_ssb_pdu(const dl_ssb_pdu& pdu, fmt::memory_buffer& buffer)

@@ -217,20 +217,17 @@ static expected<downlink_pdus> translate_dl_tti_pdus_to_phy_pdus(const fapi::dl_
         break;
       }
       case fapi::dl_pdu_type::PDCCH: {
-        // For each DCI in the PDCCH PDU, create a pdcch_processor::pdu_t.
-        for (unsigned i_dci = 0, i_dci_end = pdu.pdcch_pdu.dl_dci.size(); i_dci != i_dci_end; ++i_dci) {
-          pdcch_processor::pdu_t& pdcch_pdu = pdus.pdcch.emplace_back();
-          convert_pdcch_fapi_to_phy(pdcch_pdu, pdu.pdcch_pdu, msg.slot, i_dci, pm_repo);
-          error_type<std::string> phy_pdsch_validator = dl_pdu_validator.is_valid(pdcch_pdu);
-          if (!phy_pdsch_validator.has_value()) {
-            logger.warning("Sector#{}: Skipping DL_TTI.request: DL DCI PDU with index '{}' flagged as invalid by the "
-                           "Upper PHY with the following error\n    {}",
-                           sector_id,
-                           i_dci,
-                           phy_pdsch_validator.error());
+        // Create a pdcch_processor::pdu_t for the DCI in the PDCCH PDU.
+        pdcch_processor::pdu_t& pdcch_pdu = pdus.pdcch.emplace_back();
+        convert_pdcch_fapi_to_phy(pdcch_pdu, pdu.pdcch_pdu, msg.slot, pm_repo);
+        error_type<std::string> phy_pdsch_validator = dl_pdu_validator.is_valid(pdcch_pdu);
+        if (!phy_pdsch_validator.has_value()) {
+          logger.warning("Sector#{}: Skipping DL_TTI.request: DL DCI PDU flagged as invalid by the "
+                         "Upper PHY with the following error\n    {}",
+                         sector_id,
+                         phy_pdsch_validator.error());
 
-            return make_unexpected(default_error_t{});
-          }
+          return make_unexpected(default_error_t{});
         }
         break;
       }
@@ -606,19 +603,14 @@ void fapi_to_phy_fastpath_translator::send_ul_dci_request(const fapi::ul_dci_req
 
   static_vector<pdcch_processor::pdu_t, MAX_PUCCH_PDUS_PER_SLOT> pdus;
   for (const auto& pdu : msg.pdus) {
-    // For each DCI in the PDCCH PDU, create a pdcch_processor::pdu_t.
-    for (unsigned i_dci = 0, i_dci_end = pdu.pdu.dl_dci.size(); i_dci != i_dci_end; ++i_dci) {
-      pdcch_processor::pdu_t& pdcch_pdu = pdus.emplace_back();
-      convert_pdcch_fapi_to_phy(pdcch_pdu, pdu.pdu, msg.slot, i_dci, *pm_repo);
-      if (!dl_pdu_validator.is_valid(pdcch_pdu)) {
-        logger.warning(
-            "Sector#{}: Skipping UL_DCI.request: UL DCI PDU with index '{}' flagged as invalid by the Upper PHY",
-            sector_id,
-            i_dci);
-        // Raise invalid format error.
-        error_notifier->on_error_indication(fapi::build_msg_ul_dci_error_indication(msg.slot));
-        return;
-      }
+    // Create a pdcch_processor::pdu_t for the DCI in the PDCCH PDU.
+    pdcch_processor::pdu_t& pdcch_pdu = pdus.emplace_back();
+    convert_pdcch_fapi_to_phy(pdcch_pdu, pdu.pdu, msg.slot, *pm_repo);
+    if (!dl_pdu_validator.is_valid(pdcch_pdu)) {
+      logger.warning("Sector#{}: Skipping UL_DCI.request: UL DCI PDU flagged as invalid by the Upper PHY", sector_id);
+      // Raise invalid format error.
+      error_notifier->on_error_indication(fapi::build_msg_ul_dci_error_indication(msg.slot));
+      return;
     }
   }
 

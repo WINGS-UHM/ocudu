@@ -132,6 +132,13 @@ static bool generate_bool()
   return dist(gen);
 }
 
+static coreset_id generate_coreset_id()
+{
+  std::uniform_int_distribution<unsigned> dist(0, 11);
+
+  return static_cast<coreset_id>(dist(gen));
+}
+
 dl_ssb_pdu unittest::build_valid_dl_ssb_pdu()
 {
   dl_ssb_pdu pdu;
@@ -153,43 +160,36 @@ dl_pdcch_pdu unittest::build_valid_dl_pdcch_pdu()
 {
   dl_pdcch_pdu pdu;
 
-  pdu.coreset_bwp_size               = generate_bwp_size();
-  pdu.coreset_bwp_start              = generate_bwp_start();
-  pdu.scs                            = subcarrier_spacing::kHz240;
-  pdu.cp                             = generate_cyclic_prefix();
-  pdu.start_symbol_index             = generate_start_symbol_index();
-  pdu.duration_symbols               = 2;
-  pdu.cce_reg_mapping_type           = cce_to_reg_mapping_type::interleaved;
-  pdu.reg_bundle_size                = 2;
-  pdu.interleaver_size               = 3;
-  pdu.coreset_type                   = static_cast<pdcch_coreset_type>(generate_bool());
-  pdu.shift_index                    = 129;
-  pdu.precoder_granularity           = static_cast<coreset_configuration::precoder_granularity_type>(generate_bool());
-  pdu.maintenance_v3.pdcch_pdu_index = generate_uint16();
+  pdu.coreset_bwp_size        = generate_bwp_size();
+  pdu.coreset_bwp_start       = generate_bwp_start();
+  pdu.scs                     = subcarrier_spacing::kHz240;
+  pdu.cp                      = generate_cyclic_prefix();
+  pdu.start_symbol_index      = generate_start_symbol_index();
+  pdu.duration_symbols        = 2;
+  unsigned   reg_bundle_size  = 2;
+  unsigned   interleaver_size = 3;
+  unsigned   shift_index      = 129;
+  coreset_id id               = generate_coreset_id();
+  if (id == to_coreset_id(0)) {
+    pdu.mapping = dl_pdcch_pdu::mapping_coreset_0{reg_bundle_size, interleaver_size, shift_index};
+  } else {
+    pdu.mapping = dl_pdcch_pdu::mapping_interleaved{reg_bundle_size, interleaver_size, shift_index};
+  }
+  pdu.precoder_granularity = static_cast<coreset_configuration::precoder_granularity_type>(generate_bool());
 
   pdu.freq_domain_resource.resize(pdu.freq_domain_resource.max_size());
   for (unsigned i = 0, e = pdu.freq_domain_resource.max_size(); i != e; ++i) {
     pdu.freq_domain_resource.set(i, generate_bool());
   }
-  // Add a DCI.
-  pdu.dl_dci.emplace_back();
-  dl_dci_pdu& dci                                                                        = pdu.dl_dci.back();
-  dci.rnti                                                                               = generate_rnti();
-  dci.nid_pdcch_data                                                                     = generate_uint16();
-  dci.nrnti_pdcch_data                                                                   = generate_uint16();
-  dci.aggregation_level                                                                  = 12;
-  dci.aggregation_level                                                                  = 2;
-  dci.power_config.emplace<fapi::dl_dci_pdu::power_profile_nr>().power_control_offset_ss = 0;
-  dci.payload                   = {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0};
-  dci.precoding_and_beamforming = build_valid_tx_precoding_and_beamforming_pdu();
-
-  pdu.maintenance_v3.info.emplace_back();
-  dl_pdcch_pdu_maintenance_v3::maintenance_info& dci_v3 = pdu.maintenance_v3.info.back();
-  dci_v3.dci_index                                      = 2;
-  dci_v3.collocated_AL16_candidate                      = generate_bool();
-
-  pdu.parameters_v4.params.emplace_back();
-  pdu.parameters_v4.params.back().nid_pdcch_dmrs = generate_uint16();
+  // Add the DCI.
+  pdu.dl_dci.rnti                                                                               = generate_rnti();
+  pdu.dl_dci.nid_pdcch_data                                                                     = generate_uint16();
+  pdu.dl_dci.nrnti_pdcch_data                                                                   = generate_uint16();
+  pdu.dl_dci.dci_aggregation_level                                                              = aggregation_level::n2;
+  pdu.dl_dci.power_config.emplace<fapi::dl_dci_pdu::power_profile_nr>().power_control_offset_ss = 0;
+  pdu.dl_dci.payload                   = {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0};
+  pdu.dl_dci.precoding_and_beamforming = build_valid_tx_precoding_and_beamforming_pdu();
+  pdu.dl_dci.nid_pdcch_dmrs            = generate_uint16();
 
   return pdu;
 }
@@ -264,9 +264,8 @@ ocudu::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
 
   // Precoding.
   pdu.precoding_and_beamforming.prg_size = 276;
-  auto& prg                              = pdu.precoding_and_beamforming.prgs.emplace_back();
   // Use identity matrix
-  prg.pm_index = 0;
+  pdu.precoding_and_beamforming.prg.pm_index = 0;
 
   return pdu;
 }
@@ -1250,10 +1249,8 @@ ocudu::fapi::tx_precoding_and_beamforming_pdu unittest::build_valid_tx_precoding
 {
   ocudu::fapi::tx_precoding_and_beamforming_pdu pdu;
 
-  pdu.trp_scheme        = 0U;
-  pdu.prg_size          = 1U;
-  pdu.dig_bf_interfaces = 2U;
-  pdu.prgs              = {{3U, {5U, 6U}}};
+  pdu.prg_size = 1U;
+  pdu.prg      = {3U};
 
   return pdu;
 }

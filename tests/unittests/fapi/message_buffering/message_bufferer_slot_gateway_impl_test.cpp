@@ -23,18 +23,12 @@ namespace fapi {
 static bool operator==(const tx_precoding_and_beamforming_pdu::prgs_info& lhs,
                        const tx_precoding_and_beamforming_pdu::prgs_info& rhs)
 {
-  return lhs.pm_index == rhs.pm_index && lhs.beam_index == rhs.beam_index;
+  return lhs.pm_index == rhs.pm_index;
 }
 
 static bool operator==(const tx_precoding_and_beamforming_pdu& lhs, const tx_precoding_and_beamforming_pdu& rhs)
 {
-  return lhs.prgs == rhs.prgs && lhs.prg_size == rhs.prg_size;
-}
-
-static bool operator==(const dl_pdcch_pdu_maintenance_v3& lhs, const dl_pdcch_pdu_maintenance_v3& rhs)
-{
-  // As the maintenance_info struct contains PODs, check only that the size matches.
-  return lhs.pdcch_pdu_index == rhs.pdcch_pdu_index && lhs.info.size() == rhs.info.size();
+  return lhs.prg == rhs.prg && lhs.prg_size == rhs.prg_size;
 }
 
 static bool operator==(const dl_dci_pdu& lhs, const dl_dci_pdu& rhs)
@@ -44,7 +38,7 @@ static bool operator==(const dl_dci_pdu& lhs, const dl_dci_pdu& rhs)
 
 static bool operator==(const dl_pdcch_pdu& lhs, const dl_pdcch_pdu& rhs)
 {
-  return lhs.dl_dci == rhs.dl_dci && lhs.maintenance_v3 == rhs.maintenance_v3;
+  return lhs.dl_dci == rhs.dl_dci;
 }
 
 static bool operator==(const dl_pdsch_codeword& lhs, const dl_pdsch_codeword& rhs)

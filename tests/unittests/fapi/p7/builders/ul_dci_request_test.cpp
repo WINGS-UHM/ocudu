@@ -28,10 +28,9 @@ TEST(ul_dci_request_builder, valid_basic_parameters_passes)
   builder.set_basic_parameters(slot);
 
   for (unsigned i = 0, e = 10; i != e; ++i) {
-    unsigned dci = i;
-    nof_dcis += dci;
+    ++nof_dcis;
 
-    builder.add_pdcch_pdu(dci);
+    builder.add_pdcch_pdu();
 
     ASSERT_EQ(i + 1, msg.pdus.size());
     ASSERT_EQ(i + 1, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_dci_pdu_type::PDCCH)]);

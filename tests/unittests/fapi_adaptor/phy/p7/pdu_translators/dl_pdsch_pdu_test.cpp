@@ -227,7 +227,7 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
 
                       builder.set_maintenance_v3_bwp_parameters(trans_type, coreset_start, initial_bwp_size);
                       builder.set_maintenance_v3_codeword_parameters(ldpc_graph, tb_size_lbrm_bytes, 0, 0);
-                      builder.get_tx_precoding_and_beamforming_pdu_builder().add_prg(0, {}).set_basic_parameters(51, 0);
+                      builder.get_tx_precoding_and_beamforming_pdu_builder().set_pmi(0).set_prg_parameters(51);
 
                       pdsch_processor::pdu_t proc_pdu;
                       convert_pdsch_fapi_to_phy(proc_pdu, pdu, slot, {}, pm_repo);

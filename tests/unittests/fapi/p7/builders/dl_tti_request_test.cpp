@@ -38,14 +38,12 @@ TEST(dl_ssb_pdu_builder, add_pdcch_pdu_passes)
   ASSERT_TRUE(msg.pdus.empty());
   ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::PDCCH)]);
 
-  unsigned nof_dci_in_pdu = 3;
-
-  builder.add_pdcch_pdu(nof_dci_in_pdu);
+  builder.add_pdcch_pdu();
 
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::PDCCH)]);
   ASSERT_EQ(1U, msg.pdus.size());
   ASSERT_EQ(dl_pdu_type::PDCCH, msg.pdus.back().pdu_type);
-  ASSERT_EQ(nof_dci_in_pdu, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_tti_request::DL_DCI_INDEX)]);
+  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_tti_request::DL_DCI_INDEX)]);
 }
 
 TEST(dl_ssb_pdu_builder, add_pdsch_pdu_passes)

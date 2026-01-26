@@ -64,6 +64,7 @@ void mac_fapi_p7_sector_fastpath_adaptor_impl::set_cell_slot_handler(mac_cell_sl
 {
   fapi_time_translator.set_cell_slot_handler(mac_slot_handler);
   fapi_error_translator.set_cell_slot_handler(mac_slot_handler);
+  mac_translator.set_cell_slot_handler(mac_slot_handler);
 }
 
 void mac_fapi_p7_sector_fastpath_adaptor_impl::set_cell_rach_handler(mac_cell_rach_handler& mac_rach_handler)

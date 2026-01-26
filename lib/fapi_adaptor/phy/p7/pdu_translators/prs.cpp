@@ -31,5 +31,5 @@ void ocudu::fapi_adaptor::convert_prs_fapi_to_phy(prs_generator_configuration&  
   generator_config.freq_alloc      = interval<uint16_t>::start_and_len(fapi_pdu.start_rb, fapi_pdu.num_rbs);
   generator_config.power_offset_dB = fapi_pdu.prs_power_offset.has_value() ? fapi_pdu.prs_power_offset.value() : 0.f;
   generator_config.precoding       = precoding_configuration::make_wideband(
-      pm_repo.get_precoding_matrix(fapi_pdu.precoding_and_beamforming.prgs.front().pm_index));
+      pm_repo.get_precoding_matrix(fapi_pdu.precoding_and_beamforming.prg.pm_index));
 }

@@ -18,20 +18,18 @@ using namespace fapi_adaptor;
 /// Fills the DL DCI parameters of the PDCCH processor PDU.
 static void fill_dci(pdcch_processor::pdu_t&            proc_pdu,
                      const fapi::dl_pdcch_pdu&          fapi_pdu,
-                     uint16_t                           i_dci,
                      const precoding_matrix_repository& pm_repo)
 {
-  const auto& fapi_dci    = fapi_pdu.dl_dci[i_dci];
-  const auto& fapi_dci_v4 = fapi_pdu.parameters_v4.params[i_dci];
+  const auto& fapi_dci = fapi_pdu.dl_dci;
 
   pdcch_processor::dci_description& dci = proc_pdu.dci;
 
   dci.rnti              = to_value(fapi_dci.rnti);
   dci.n_id_pdcch_data   = fapi_dci.nid_pdcch_data;
-  dci.n_id_pdcch_dmrs   = fapi_dci_v4.nid_pdcch_dmrs;
+  dci.n_id_pdcch_dmrs   = fapi_dci.nid_pdcch_dmrs;
   dci.n_rnti            = fapi_dci.nrnti_pdcch_data;
   dci.cce_index         = fapi_dci.cce_index;
-  dci.aggregation_level = fapi_dci.aggregation_level;
+  dci.aggregation_level = to_nof_cces(fapi_dci.dci_aggregation_level);
 
   if (const auto* profile_nr = std::get_if<fapi::dl_dci_pdu::power_profile_nr>(&fapi_dci.power_config)) {
     dci.dmrs_power_offset_dB = profile_nr->power_control_offset_ss;
@@ -47,14 +45,11 @@ static void fill_dci(pdcch_processor::pdu_t&            proc_pdu,
   dci.payload.resize(fapi_dci.payload.size());
   fapi_dci.payload.to_unpacked_bits(span<uint8_t>{dci.payload.data(), dci.payload.size()});
 
-  ocudu_assert(fapi_dci.precoding_and_beamforming.prgs.size() == 1U,
-               "Unsupported number of PRGs={}",
-               fapi_dci.precoding_and_beamforming.prgs.size());
   dci.precoding = precoding_configuration::make_wideband(
-      pm_repo.get_precoding_matrix(fapi_dci.precoding_and_beamforming.prgs.front().pm_index));
+      pm_repo.get_precoding_matrix(fapi_dci.precoding_and_beamforming.prg.pm_index));
 
   // Fill PDCCH context for logging.
-  proc_pdu.context = fapi_pdu.dl_dci[i_dci].context;
+  proc_pdu.context = fapi_pdu.dl_dci.context;
 }
 
 /// Fills the CORESET parameters of the PDCCH processor PDU.
@@ -66,20 +61,24 @@ static void fill_coreset(pdcch_processor::coreset_description& coreset, const fa
   coreset.duration            = fapi_pdu.duration_symbols;
   coreset.frequency_resources = fapi_pdu.freq_domain_resource;
 
-  // Configure CCE-to-REG mapping depending on PDCCH CORESET.
-  if (fapi_pdu.coreset_type == fapi::pdcch_coreset_type::pbch_or_coreset0) {
+  if (const auto* dci_coreset_0 = std::get_if<fapi::dl_pdcch_pdu::mapping_coreset_0>(&fapi_pdu.mapping)) {
     // The PDCCH is located in CORESET0.
     coreset.cce_to_reg_mapping = pdcch_processor::cce_to_reg_mapping_type::CORESET0;
 
-    // The REG bundle size and interleaver size are ignored.
+    // The REG bundle size and interleaver size are ignored and CORESET 0 is always interleaved.
     coreset.reg_bundle_size  = 0;
     coreset.interleaver_size = 0;
-    coreset.shift_index      = fapi_pdu.shift_index;
-    return;
-  }
+    coreset.shift_index      = dci_coreset_0->interleaved.shift_index;
 
-  // The PDCCH is NOT located in CORESET0 and non interleaved.
-  if (fapi_pdu.cce_reg_mapping_type == fapi::cce_to_reg_mapping_type::non_interleaved) {
+  } else if (const auto* dci_interleaved = std::get_if<fapi::dl_pdcch_pdu::mapping_interleaved>(&fapi_pdu.mapping)) {
+    // The PDCCH is NOT located in CORESET0 and is interleaved.
+    coreset.cce_to_reg_mapping = pdcch_processor::cce_to_reg_mapping_type::INTERLEAVED;
+
+    coreset.reg_bundle_size  = dci_interleaved->interleaved.reg_bundle_sz;
+    coreset.interleaver_size = dci_interleaved->interleaved.interleaver_sz;
+    coreset.shift_index      = dci_interleaved->interleaved.shift_index;
+
+  } else if (std::get_if<fapi::dl_pdcch_pdu::mapping_non_interleaved>(&fapi_pdu.mapping)) {
     // Non-interleaved case.
     coreset.cce_to_reg_mapping = pdcch_processor::cce_to_reg_mapping_type::NON_INTERLEAVED;
 
@@ -87,22 +86,12 @@ static void fill_coreset(pdcch_processor::coreset_description& coreset, const fa
     coreset.reg_bundle_size  = 0;
     coreset.interleaver_size = 0;
     coreset.shift_index      = 0;
-    return;
   }
-
-  // The PDCCH is NOT located in CORESET0 and is interleaved.
-  coreset.cce_to_reg_mapping = pdcch_processor::cce_to_reg_mapping_type::INTERLEAVED;
-
-  // The REG bundle size and interleaver size are ignored.
-  coreset.reg_bundle_size  = fapi_pdu.reg_bundle_size;
-  coreset.interleaver_size = fapi_pdu.interleaver_size;
-  coreset.shift_index      = fapi_pdu.shift_index;
 }
 
 void ocudu::fapi_adaptor::convert_pdcch_fapi_to_phy(pdcch_processor::pdu_t&            proc_pdu,
                                                     const fapi::dl_pdcch_pdu&          fapi_pdu,
                                                     slot_point                         slot,
-                                                    uint16_t                           i_dci,
                                                     const precoding_matrix_repository& pm_repo)
 {
   proc_pdu.slot = slot;
@@ -110,5 +99,5 @@ void ocudu::fapi_adaptor::convert_pdcch_fapi_to_phy(pdcch_processor::pdu_t&     
 
   fill_coreset(proc_pdu.coreset, fapi_pdu);
 
-  fill_dci(proc_pdu, fapi_pdu, i_dci, pm_repo);
+  fill_dci(proc_pdu, fapi_pdu, pm_repo);
 }

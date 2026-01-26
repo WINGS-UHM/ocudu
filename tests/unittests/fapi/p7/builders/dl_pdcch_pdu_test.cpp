@@ -37,72 +37,113 @@ TEST(dl_pdcch_pdu_builder, valid_coreset_parameters_passes)
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
 
-  unsigned                                         start_symb_id    = 7;
-  unsigned                                         symb_duration    = 2;
-  unsigned                                         reg_size         = 3;
-  unsigned                                         interleaver_size = 3;
-  unsigned                                         shift_index      = 100;
-  cce_to_reg_mapping_type                          mapping_type     = cce_to_reg_mapping_type::interleaved;
-  pdcch_coreset_type                               coreset_type     = pdcch_coreset_type::pbch_or_coreset0;
+  unsigned                                         start_symb_id = 7;
+  unsigned                                         symb_duration = 2;
   coreset_configuration::precoder_granularity_type granularity =
       coreset_configuration::precoder_granularity_type::same_as_reg_bundle;
+
+  builder.set_coreset_parameters(start_symb_id, symb_duration, granularity);
+
+  ASSERT_EQ(start_symb_id, pdu.start_symbol_index);
+  ASSERT_EQ(symb_duration, pdu.duration_symbols);
+  ASSERT_EQ(granularity, pdu.precoder_granularity);
+}
+
+TEST(dl_pdcch_pdu_builder, valid_coreset_0_parameters_passes)
+{
+  dl_pdcch_pdu         pdu;
+  dl_pdcch_pdu_builder builder(pdu);
+
+  unsigned                                        reg_size         = 3;
+  unsigned                                        interleaver_size = 3;
+  unsigned                                        shift_index      = 100;
+  coreset_configuration::interleaved_mapping_type interleaved      = {reg_size, interleaver_size, shift_index};
 
   freq_resource_bitmap freq_domain = {1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1,
                                       1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1};
 
-  builder.set_coreset_parameters(start_symb_id,
-                                 symb_duration,
-                                 freq_domain,
-                                 mapping_type,
-                                 reg_size,
-                                 interleaver_size,
-                                 coreset_type,
-                                 shift_index,
-                                 granularity);
+  builder.set_coreset_0_parameters(interleaved, freq_domain);
 
-  ASSERT_EQ(start_symb_id, pdu.start_symbol_index);
-  ASSERT_EQ(symb_duration, pdu.duration_symbols);
-  ASSERT_EQ(mapping_type, pdu.cce_reg_mapping_type);
-  ASSERT_EQ(reg_size, pdu.reg_bundle_size);
-  ASSERT_EQ(interleaver_size, pdu.interleaver_size);
-  ASSERT_EQ(coreset_type, pdu.coreset_type);
-  ASSERT_EQ(shift_index, pdu.shift_index);
-  ASSERT_EQ(granularity, pdu.precoder_granularity);
+  ASSERT_TRUE(std::holds_alternative<dl_pdcch_pdu::mapping_coreset_0>(pdu.mapping));
+  ASSERT_EQ(interleaved, std::get<dl_pdcch_pdu::mapping_coreset_0>(pdu.mapping).interleaved);
   ASSERT_EQ(freq_domain, pdu.freq_domain_resource);
 }
 
-TEST(dl_pdcch_pdu_builder, add_dl_dci)
+TEST(dl_pdcch_pdu_builder, valid_interleaver_parameters_passes)
 {
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
 
-  ASSERT_TRUE(pdu.parameters_v4.params.empty());
+  unsigned                                        reg_size         = 3;
+  unsigned                                        interleaver_size = 3;
+  unsigned                                        shift_index      = 100;
+  coreset_configuration::interleaved_mapping_type interleaved      = {reg_size, interleaver_size, shift_index};
 
-  builder.add_dl_dci();
-  ASSERT_EQ(1, pdu.dl_dci.size());
-  ASSERT_EQ(1, pdu.maintenance_v3.info.size());
-  ASSERT_EQ(1, pdu.parameters_v4.params.size());
-  ASSERT_EQ(0, pdu.maintenance_v3.info[0].dci_index);
+  freq_resource_bitmap freq_domain = {1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1};
+
+  builder.set_interleaver_parameters(interleaved, freq_domain);
+
+  ASSERT_TRUE(std::holds_alternative<dl_pdcch_pdu::mapping_interleaved>(pdu.mapping));
+  ASSERT_EQ(interleaved, std::get<dl_pdcch_pdu::mapping_interleaved>(pdu.mapping).interleaved);
+  ASSERT_EQ(freq_domain, pdu.freq_domain_resource);
 }
 
-TEST(dl_pdcch_pdu_builder, valid_dci_basic_parameters_passes)
+TEST(dl_pdcch_pdu_builder, valid_non_interleaver_parameters_passes)
 {
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
-  dl_dci_pdu_builder   builder_dci = builder.add_dl_dci();
 
-  rnti_t   rnti              = to_rnti(100);
-  unsigned nid_pdcch_data    = 200;
-  unsigned nrnti_pdcch_data  = 200;
-  unsigned cce_index         = 100;
-  unsigned aggregation_level = 4;
-  builder_dci.set_basic_parameters(rnti, nid_pdcch_data, nrnti_pdcch_data, cce_index, aggregation_level);
+  unsigned reg_size = 6U;
 
-  ASSERT_EQ(rnti, pdu.dl_dci[0].rnti);
-  ASSERT_EQ(nid_pdcch_data, pdu.dl_dci[0].nid_pdcch_data);
-  ASSERT_EQ(nrnti_pdcch_data, pdu.dl_dci[0].nrnti_pdcch_data);
-  ASSERT_EQ(cce_index, pdu.dl_dci[0].cce_index);
-  ASSERT_EQ(aggregation_level, pdu.dl_dci[0].aggregation_level);
+  freq_resource_bitmap freq_domain = {1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1,
+                                      1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1};
+
+  builder.set_non_interleaver_parameters(freq_domain);
+
+  ASSERT_TRUE(std::holds_alternative<dl_pdcch_pdu::mapping_non_interleaved>(pdu.mapping));
+  ASSERT_EQ(reg_size, std::get<dl_pdcch_pdu::mapping_non_interleaved>(pdu.mapping).reg_bundle_sz);
+  ASSERT_EQ(freq_domain, pdu.freq_domain_resource);
+}
+
+TEST(dl_pdcch_pdu_builder, valid_dci_ue_specific_parameters_passes)
+{
+  dl_pdcch_pdu         pdu;
+  dl_pdcch_pdu_builder builder(pdu);
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+
+  rnti_t rnti = to_rnti(100);
+  builder_dci.set_ue_specific_parameters(rnti);
+
+  ASSERT_EQ(rnti, pdu.dl_dci.rnti);
+}
+
+TEST(dl_pdcch_pdu_builder, valid_dci_control_channel_parameters_passes)
+{
+  dl_pdcch_pdu         pdu;
+  dl_pdcch_pdu_builder builder(pdu);
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+
+  unsigned          cce_index             = 100;
+  aggregation_level dci_aggregation_level = aggregation_level::n4;
+  builder_dci.set_control_channel_parameters(cce_index, dci_aggregation_level);
+
+  ASSERT_EQ(cce_index, pdu.dl_dci.cce_index);
+  ASSERT_EQ(dci_aggregation_level, pdu.dl_dci.dci_aggregation_level);
+}
+
+TEST(dl_pdcch_pdu_builder, valid_dci_data_scrambling_parameters_passes)
+{
+  dl_pdcch_pdu         pdu;
+  dl_pdcch_pdu_builder builder(pdu);
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+
+  unsigned nid_pdcch_data   = 200;
+  unsigned nrnti_pdcch_data = 200;
+  builder_dci.set_data_scrambling_parameters(nid_pdcch_data, nrnti_pdcch_data);
+
+  ASSERT_EQ(nid_pdcch_data, pdu.dl_dci.nid_pdcch_data);
+  ASSERT_EQ(nrnti_pdcch_data, pdu.dl_dci.nrnti_pdcch_data);
 }
 
 TEST(dl_pdcch_pdu_builder, valid_dci_tx_power_parameters_passes)
@@ -110,11 +151,11 @@ TEST(dl_pdcch_pdu_builder, valid_dci_tx_power_parameters_passes)
   for (int i = -8; i != 9; ++i) {
     dl_pdcch_pdu         pdu;
     dl_pdcch_pdu_builder builder(pdu);
-    dl_dci_pdu_builder   builder_dci = builder.add_dl_dci();
+    dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
 
     builder_dci.set_profile_nr_tx_power_info_parameters(i);
 
-    const auto* profile = std::get_if<dl_dci_pdu::power_profile_nr>(&pdu.dl_dci[0].power_config);
+    const auto* profile = std::get_if<dl_dci_pdu::power_profile_nr>(&pdu.dl_dci.power_config);
     ASSERT_TRUE(profile);
     ASSERT_EQ(i, profile->power_control_offset_ss);
   }
@@ -125,37 +166,37 @@ TEST(dl_pdcch_pdu_builder, valid_dci_profile_sss_tx_power_parameters_passes)
   for (int i = -8; i != 9; ++i) {
     dl_pdcch_pdu         pdu;
     dl_pdcch_pdu_builder builder(pdu);
-    dl_dci_pdu_builder   builder_dci = builder.add_dl_dci();
+    dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
 
     builder_dci.set_profile_sss_tx_power_info_parameters(i, i - 10);
 
-    const auto* profile = std::get_if<dl_dci_pdu::power_profile_sss>(&pdu.dl_dci[0].power_config);
+    const auto* profile = std::get_if<dl_dci_pdu::power_profile_sss>(&pdu.dl_dci.power_config);
     ASSERT_TRUE(profile);
     ASSERT_FLOAT_EQ(i, profile->dmrs_power_offset_db);
     ASSERT_FLOAT_EQ(i - 10, profile->data_power_offset_db);
   }
 }
 
-TEST(dl_pdcch_pdu_builder, valid_dci_v4_parameters_passes)
+TEST(dl_pdcch_pdu_builder, valid_dmrs_parameters_passes)
 {
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
-  dl_dci_pdu_builder   builder_dci = builder.add_dl_dci();
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
 
   unsigned nid = 100;
-  builder_dci.set_parameters_v4_dci(nid);
+  builder_dci.set_dmrs_parameters(nid);
 
-  ASSERT_EQ(nid, pdu.parameters_v4.params[0].nid_pdcch_dmrs);
+  ASSERT_EQ(nid, pdu.dl_dci.nid_pdcch_dmrs);
 }
 
 TEST(dl_pdcch_pdu_builder, add_valid_dci_payload_passes)
 {
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
-  dl_dci_pdu_builder   builder_dci = builder.add_dl_dci();
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
 
   dci_payload payload = {1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1};
   builder_dci.set_payload(payload);
 
-  ASSERT_EQ(payload, pdu.dl_dci.back().payload);
+  ASSERT_EQ(payload, pdu.dl_dci.payload);
 }

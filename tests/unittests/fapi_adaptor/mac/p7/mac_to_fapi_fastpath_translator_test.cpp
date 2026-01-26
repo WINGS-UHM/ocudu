@@ -139,12 +139,10 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_sched_results_generate_correct_d
 
   ASSERT_TRUE(gateway_spy.has_dl_tti_request_method_called());
   const fapi::dl_tti_request& msg = gateway_spy.dl_tti_request_msg();
-  ASSERT_EQ(msg.pdus.size(), 5U);
+  ASSERT_EQ(msg.pdus.size(), 7U);
   ASSERT_EQ((msg.pdus.begin() + 1)->pdu_type, fapi::dl_pdu_type::PDCCH);
   ASSERT_EQ(msg.pdus.back().pdu_type, fapi::dl_pdu_type::PDSCH);
   ASSERT_EQ(msg.pdus.front().pdu_type, fapi::dl_pdu_type::PDCCH);
-  ASSERT_EQ(msg.pdus.front().pdcch_pdu.dl_dci.size(), 1U);
-  ASSERT_EQ((msg.pdus.begin() + 1)->pdcch_pdu.dl_dci.size(), 3U);
   ASSERT_EQ((msg.pdus.end() - 2)->pdu_type, fapi::dl_pdu_type::SSB);
   ASSERT_EQ((msg.pdus.end() - 3)->pdu_type, fapi::dl_pdu_type::SSB);
   ASSERT_FALSE(slot_handler_spy.has_error_been_notified());

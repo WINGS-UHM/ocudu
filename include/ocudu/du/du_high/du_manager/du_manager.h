@@ -99,8 +99,6 @@ public:
   virtual ~du_manager_time_mapper_accessor() = default;
   /// Get DU MAC subframe-time mapper.
   virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
-  /// Get MAC cell time-slot mapper.
-  virtual mac_cell_time_mapper& get_time_mapper() = 0;
 };
 
 class du_manager_controller

@@ -51,7 +51,6 @@ public:
   }
 
   mac_subframe_time_mapper& get_subframe_time_mapper() override;
-  mac_cell_time_mapper&     get_time_mapper(du_cell_index_t cell_index) override;
 
   /// Creates UE in MAC and scheduler.
   async_task<mac_ue_create_response> handle_ue_create_request(const mac_ue_create_request& msg) override;

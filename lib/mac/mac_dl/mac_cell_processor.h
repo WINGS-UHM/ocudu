@@ -12,7 +12,6 @@
 
 #include "cell_dl_harq_buffer_pool.h"
 #include "dl_sch_pdu_assembler.h"
-#include "mac_cell_time_mapper_impl.h"
 #include "mac_dl_metric_handler.h"
 #include "mac_dl_ue_repository.h"
 #include "mac_scheduler_cell_info_handler.h"
@@ -50,8 +49,6 @@ public:
   async_task<void> stop() override;
 
   async_task<mac_cell_reconfig_response> reconfigure(const mac_cell_reconfig_request& request) override;
-
-  mac_cell_time_mapper_impl& get_time_mapper() { return slot_time_mapper; }
 
   void handle_slot_indication(const mac_cell_timing_context& context) noexcept override;
   void handle_error_indication(slot_point sl_tx, error_event event) noexcept override;
@@ -130,8 +127,6 @@ private:
   manual_event_flag stop_completed;
 
   mac_pcap& pcap;
-
-  mac_cell_time_mapper_impl slot_time_mapper;
 
   /// Reference to the subframe time mapper shared across all cells.
   mac_slot_time_handler& sfn_time_mapper;

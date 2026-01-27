@@ -52,10 +52,7 @@ public:
   /// \brief Remove an existing UE in the MAC DL processor.
   virtual async_task<void> remove_ue(const mac_ue_delete_request& msg) = 0;
 
-  /// Fetch MAC cell time-slot mapper.
-  virtual mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) = 0;
-
-  /// Fetch MAC cell time-slot mapper.
+  /// Fetch MAC subframe time-slot mapper.
   virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
 };
 

@@ -75,11 +75,6 @@ mac_subframe_time_mapper& mac_controller::get_subframe_time_mapper()
   return dl_unit.get_subframe_time_mapper();
 }
 
-mac_cell_time_mapper& mac_controller::get_time_mapper(du_cell_index_t cell_index)
-{
-  return dl_unit.get_time_mapper(cell_index);
-}
-
 async_task<mac_ue_create_response> mac_controller::handle_ue_create_request(const mac_ue_create_request& msg)
 {
   return launch_async<mac_ue_create_request_procedure>(msg, cfg, *this, ul_unit, dl_unit, sched_cfg);

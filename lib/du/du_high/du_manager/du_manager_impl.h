@@ -67,7 +67,6 @@ public:
 
   size_t                    nof_ues() override;
   mac_subframe_time_mapper& get_subframe_time_mapper() override;
-  mac_cell_time_mapper&     get_time_mapper() override;
 
   async_task<du_mac_sched_control_config_response>
   configure_ue_mac_scheduler(du_mac_sched_control_config reconf) override;

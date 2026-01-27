@@ -79,37 +79,6 @@ public:
   virtual async_task<mac_cell_reconfig_response> reconfigure(const mac_cell_reconfig_request& request) = 0;
 };
 
-/// Contains the mapping between slot_point and time_point.
-struct mac_cell_slot_time_info {
-  /// Indicates the current slot.
-  slot_point sl_tx;
-  /// Indicates the system time point associated to the current slot.
-  std::chrono::time_point<std::chrono::system_clock> time_point;
-};
-
-/// Interface used to retrieve slot_point-to-time_point mapping.
-class mac_cell_time_mapper
-{
-public:
-  using time_point                = std::chrono::time_point<std::chrono::system_clock>;
-  virtual ~mac_cell_time_mapper() = default;
-
-  /// \brief Provides the last slot point to time point mapping.
-  /// This function returns empty optional if the mapping is not available.
-  /// \return Mapping between slot point and time point or empty.
-  virtual std::optional<mac_cell_slot_time_info> get_last_mapping() const = 0;
-
-  /// \brief Provides time point for the given slot point.
-  /// This function returns empty optional if the mapping is not available or if the slot point is not initialized.
-  /// \return Time point for the given slot point or empty.
-  virtual std::optional<time_point> get_time_point(slot_point slot) const = 0;
-
-  /// \brief Provides slot point for the given time point.
-  /// This function returns empty optional if the mapping is not available or if the time point is not initialized.
-  /// \return Slot point for the given time point or empty.
-  virtual std::optional<slot_point> get_slot_point(time_point time) const = 0;
-};
-
 /// Class used to setup the MAC cells and slices.
 class mac_cell_manager
 {
@@ -127,9 +96,6 @@ public:
 
   /// Fetch MAC subframe-time mapper.
   virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
-
-  /// Fetch MAC cell time-slot mapper.
-  virtual mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) = 0;
 };
 
 } // namespace ocudu

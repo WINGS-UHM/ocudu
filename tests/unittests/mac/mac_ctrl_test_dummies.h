@@ -66,14 +66,6 @@ public:
   }
 };
 
-class mac_cell_dummy_time_mapper final : public mac_cell_time_mapper
-{
-public:
-  std::optional<mac_cell_slot_time_info> get_last_mapping() const override { return std::nullopt; }
-  std::optional<time_point>              get_time_point(slot_point slot) const override { return std::nullopt; }
-  std::optional<slot_point>              get_slot_point(time_point time) const override { return std::nullopt; }
-};
-
 class mac_dl_dummy_configurer final : public mac_dl_configurator
 {
 public:
@@ -84,7 +76,6 @@ public:
   std::optional<std::pair<du_ue_index_t, std::vector<mac_logical_channel_config>>> last_ue_bearers_added;
   std::optional<std::pair<du_ue_index_t, std::vector<lcid_t>>>                     last_ue_bearers_rem;
   mac_cell_dummy_controller                                                        cell_ctrl;
-  mac_cell_dummy_time_mapper                                                       time_mapper;
   test_helpers::dummy_mac_sfn_time_mapper                                          sfn_time_mapper;
 
   async_task<bool> add_ue(const mac_ue_create_request& msg) override;
@@ -101,7 +92,6 @@ public:
   }
   void                      remove_cell(du_cell_index_t cell_index) override {}
   mac_cell_controller&      get_cell_controller(du_cell_index_t cell_index) override { return cell_ctrl; }
-  mac_cell_time_mapper&     get_time_mapper(du_cell_index_t cell_index) override { return time_mapper; }
   mac_subframe_time_mapper& get_subframe_time_mapper() override { return sfn_time_mapper; }
 };
 

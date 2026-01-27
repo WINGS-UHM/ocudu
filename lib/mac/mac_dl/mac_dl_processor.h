@@ -51,11 +51,6 @@ public:
 
   mac_subframe_time_mapper& get_subframe_time_mapper() override { return sfn_time_mapper; }
 
-  mac_cell_time_mapper& get_time_mapper(du_cell_index_t cell_index) override
-  {
-    return cells[cell_index]->get_time_mapper();
-  }
-
   /// Creates new UE DL context, updates logical channel MUX, adds UE in scheduler.
   async_task<bool> add_ue(const mac_ue_create_request& request) override;
 

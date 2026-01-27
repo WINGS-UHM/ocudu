@@ -231,11 +231,6 @@ mac_subframe_time_mapper& du_manager_impl::get_subframe_time_mapper()
   return params.mac.mgr.get_subframe_time_mapper();
 }
 
-mac_cell_time_mapper& du_manager_impl::get_time_mapper()
-{
-  return params.mac.mgr.get_cell_manager().get_time_mapper(to_du_cell_index(0));
-}
-
 async_task<du_mac_sched_control_config_response>
 du_manager_impl::configure_ue_mac_scheduler(du_mac_sched_control_config reconf)
 {

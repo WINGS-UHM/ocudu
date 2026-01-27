@@ -65,7 +65,6 @@ mac_cell_processor::mac_cell_processor(const mac_cell_creation_request& cell_cfg
   time_source(std::move(dependencies.timer_source)),
   metrics(cell_cfg.pci, cell_cfg.scs_common, dependencies.notifier),
   pcap(pcap_),
-  slot_time_mapper(to_numerology_value(cell_cfg_req_.scs_common)),
   sfn_time_mapper(sfn_time_mapper_),
   sib1_pcap_dumped_version(std::numeric_limits<unsigned>::max())
 {
@@ -194,7 +193,6 @@ async_task<mac_cell_reconfig_response> mac_cell_processor::reconfigure(const mac
 
 void mac_cell_processor::handle_slot_indication(const mac_cell_timing_context& context) noexcept OCUDU_RTSAN_NONBLOCKING
 {
-  slot_time_mapper.handle_slot_indication(context);
   sfn_time_mapper.handle_slot_indication(context);
   trace_point slot_ind_enqueue_tp = metric_clock::now();
   // Change execution context to slot indication executor.

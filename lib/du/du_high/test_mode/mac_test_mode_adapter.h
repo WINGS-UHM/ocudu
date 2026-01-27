@@ -130,7 +130,6 @@ public:
   mac_cell_controller& get_cell_controller(du_cell_index_t cell_index) override;
 
   mac_subframe_time_mapper& get_subframe_time_mapper() override;
-  mac_cell_time_mapper&     get_time_mapper(du_cell_index_t cell_index) override;
 
   mac_cell_slot_handler& get_slot_handler(du_cell_index_t cell_index) override
   {

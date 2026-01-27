@@ -232,7 +232,7 @@ public:
     get_du(du_idx).push_ul_pdu(init_ul_rrc_msg);
     report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
                               "Failed to receive UE Context Setup Request");
-    report_fatal_error_if_not(test_helpers::is_valid_ue_context_setup_request(f1ap_pdu),
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_setup_request(f1ap_pdu, true),
                               "Invalid UE Context Setup Request");
 
     return true;
@@ -397,7 +397,7 @@ public:
     get_du(du_idx).push_ul_pdu(init_ul_rrc_msg);
     report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
                               "Failed to receive UE Context Setup Request");
-    report_fatal_error_if_not(test_helpers::is_valid_ue_context_setup_request(f1ap_pdu),
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_setup_request(f1ap_pdu, true),
                               "Invalid UE Context Setup Request");
 
     // Inject UE Context Setup Response and wait for Bearer Context Modification Request.

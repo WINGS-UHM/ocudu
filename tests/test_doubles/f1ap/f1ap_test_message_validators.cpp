@@ -189,10 +189,24 @@ bool ocudu::test_helpers::is_ul_rrc_msg_transfer_valid(const f1ap_message& msg, 
   return true;
 }
 
-bool ocudu::test_helpers::is_valid_ue_context_setup_request(const f1ap_message& msg)
+bool ocudu::test_helpers::is_valid_ue_context_setup_request(const f1ap_message& msg, bool cell_group_config_present)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_UE_CONTEXT_SETUP);
+
+  const ue_context_setup_request_s& req = msg.pdu.init_msg().value.ue_context_setup_request();
+
+  if (cell_group_config_present) {
+    TRUE_OR_RETURN(req->cu_to_du_rrc_info.ie_exts_present);
+    TRUE_OR_RETURN(req->cu_to_du_rrc_info.ie_exts.cell_group_cfg_present);
+    TRUE_OR_RETURN(not req->cu_to_du_rrc_info.ie_exts.cell_group_cfg.empty());
+  } else {
+    if (req->cu_to_du_rrc_info.ie_exts_present) {
+      TRUE_OR_RETURN(not req->cu_to_du_rrc_info.ie_exts.cell_group_cfg_present);
+      TRUE_OR_RETURN(req->cu_to_du_rrc_info.ie_exts.cell_group_cfg.empty());
+    }
+  }
+
   TRUE_OR_RETURN(is_packable(msg));
 
   return true;

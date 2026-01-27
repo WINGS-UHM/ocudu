@@ -874,7 +874,9 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
         // The number of symbols per PUCCH resource is not exposed to the DU user interface; for PUCCH F3, we use all
         // symbols available for PUCCH within a slot.
         const unsigned max_nof_srs_symbols =
-            cell.cell.srs_cfg.srs_type_enabled != srs_type::disabled ? cell.cell.srs_cfg.max_nof_symbols_per_slot : 0U;
+            cell.cell.srs_cfg.srs_type_enabled == "periodic" or cell.cell.srs_cfg.srs_type_enabled != "aperiodic"
+                ? cell.cell.srs_cfg.max_nof_symbols_per_slot
+                : 0U;
         const unsigned max_nof_pucch_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - max_nof_srs_symbols;
         const unsigned pucch_f3_nof_symbols  = max_nof_pucch_symbols;
         auto&          f3_params             = du_pucch_cfg.f2_or_f3_or_f4_params.emplace<pucch_f3_params>();
@@ -909,7 +911,15 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     // Parameters for SRS-Config.
     srs_builder_params&            du_srs_cfg   = out_cell.srs_cfg;
     const du_high_unit_srs_config& user_srs_cfg = base_cell.srs_cfg;
-    du_srs_cfg.srs_type_enabled                 = base_cell.srs_cfg.srs_type_enabled;
+    du_srs_cfg.srs_type_enabled                 = [](const std::string& str) {
+      if (str == "periodic") {
+        return srs_type::periodic;
+      }
+      if (str == "aperiodic") {
+        return srs_type::aperiodic;
+      }
+      return srs_type::disabled;
+    }(user_srs_cfg.srs_type_enabled);
     const auto srs_period_slots =
         static_cast<unsigned>(static_cast<float>(get_nof_slots_per_subframe(base_cell.common_scs)) *
                               user_srs_cfg.srs_period_prohibit_time_ms);
@@ -1002,7 +1012,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     // the configuration; therefore, the maximum number of symbols for PUCCH resources is computed only for periodic
     // SRS.
     du_pucch_cfg.max_nof_symbols = config_helpers::compute_max_nof_pucch_symbols(du_srs_cfg);
-    if (user_srs_cfg.srs_type_enabled != srs_type::disabled) {
+    if (user_srs_cfg.srs_type_enabled == "periodic" or user_srs_cfg.srs_type_enabled == "aperiodic") {
       if (std::holds_alternative<pucch_f1_params>(du_pucch_cfg.f0_or_f1_params)) {
         auto& f1_params       = std::get<pucch_f1_params>(du_pucch_cfg.f0_or_f1_params);
         f1_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.value(), f1_params.nof_symbols.value());

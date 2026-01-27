@@ -85,16 +85,24 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
 
   const unsigned tdd_period_slots = nof_slots_per_tdd_period(tdd_cfg);
 
-  // Tuple { DL slot index, slot_offset, is_for_DL_DCI }.
-  // DL slot index = slot index of the DL slot, from 0 to TDD period in slots - 1.
-  // slot_offset = parameter for SRS config or \c slotOffset, as per \c SRS-ResourceSet, \c SRS-Config, TS 38.331.
-  // is_for_DL_DCI = true if this offset is used to allocate SRS through DL DCI, false for UL DCI.
-  using dl_sl_idx_sl_offset_is_dl_tuple = std::tuple<uint8_t, uint8_t, bool>;
+  struct offset_info {
+    offset_info(uint8_t dl_sl_idx, uint8_t sl_offset, bool is_dl) :
+      dl_slot_idx(dl_sl_idx), slot_offset(sl_offset), is_dl_dci(is_dl)
+    {
+    }
+
+    // Slot index of the DL slot, from 0 to TDD period in slots - 1.
+    uint8_t dl_slot_idx;
+    // \c slotOffset, as per \c SRS-ResourceSet, \c SRS-Config, TS 38.331.
+    uint8_t slot_offset;
+    // true if this offset is used to allocate SRS through DL DCI, false for UL DCI.
+    bool is_dl_dci;
+  };
 
   // Find the candidate UL slot offsets, i.e., the slot offsets that can be used to trigger aperiodic SRS with UL DCIs.
   // These UL slot offsets only exist for DL slots that has at least a k2 value (otherwise, the DL slot can't be used
   // for UL DCIs).
-  std::vector<dl_sl_idx_sl_offset_is_dl_tuple> candidate_slot_offsets;
+  std::vector<offset_info> candidate_slot_offsets;
   for (unsigned dl_sl_idx = 0, sz = pusch_td_list_per_slot.size(); dl_sl_idx != sz; ++dl_sl_idx) {
     // Skip UL slots.
     if (pusch_td_list_per_slot[dl_sl_idx].empty()) {
@@ -139,88 +147,88 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
     }
   }
 
-  std::vector<dl_sl_idx_sl_offset_is_dl_tuple> optimal_tuples;
-  auto weight_function = [&optimal_tuples, &tdd_cfg, &target_ul_slots_idx, tdd_period_slots](
-                             const dl_sl_idx_sl_offset_is_dl_tuple& offset) {
-    // The logic of this function can be summarized as follows:
-    // - Provide at least 1 UL slot offset and 1 DL slot offset.
-    // - If a third one is required, then provide an extra UL(DL) slot offset for UL(DL)-heavy configuration.
-    // - If possible, provide a slot offset that reaches the UL target slot from different DL slot (if another slot
-    // offset exits).
-    // - Don't consider an offset that has already been chosen, even if the metric is good; the goal is to provide a
-    // list of offsets that are different, so the scheduler has more option when it comes to find a possible DL slot for
-    // the DCI that triggers the SRS transmission.
-    const bool         ul_heavy = nof_dl_slots_per_tdd_period(tdd_cfg) > nof_full_ul_slots_per_tdd_period(tdd_cfg);
-    constexpr unsigned exclude_element_penalty = 1000;
-    // Always start the search from an UL slot offset, first, as in DL-heavy the search space for UL slot offset is
-    // smaller than for DL slot offsets.
-    if (optimal_tuples.empty()) {
-      const unsigned is_dl_penalty = std::get<2>(offset) ? exclude_element_penalty : 0U;
-      return std::get<1>(offset) + is_dl_penalty;
-    }
-    // Penalty to force the choice of a slot offset starting from a different DL slot index.
-    const unsigned existing_dl_slot_penalty = std::find_if(optimal_tuples.begin(),
-                                                           optimal_tuples.end(),
-                                                           [offset](const dl_sl_idx_sl_offset_is_dl_tuple& tuple) {
-                                                             return std::get<0>(tuple) == std::get<0>(offset);
-                                                           }) != optimal_tuples.end()
-                                                  ? 2 * srs_constants::MAX_SRS_SLOT_OFFSET
-                                                  : 0U;
-    // Penalty to force the choice of a different slot offset.
-    const unsigned existing_offset_penalty = std::find_if(optimal_tuples.begin(),
-                                                          optimal_tuples.end(),
-                                                          [offset](const dl_sl_idx_sl_offset_is_dl_tuple& tuple) {
-                                                            return std::get<1>(tuple) == std::get<1>(offset);
-                                                          }) != optimal_tuples.end()
-                                                 ? exclude_element_penalty
-                                                 : 0U;
-    // Penalty to force the choice of a different UL slot target (only needed if the TDD patterns has 2 special slots).
-    const unsigned same_target_ul_slot_penalty =
-        target_ul_slots_idx.size() == 2 and
-                std::find_if(optimal_tuples.begin(),
-                             optimal_tuples.end(),
-                             [offset, tdd_period_slots](const dl_sl_idx_sl_offset_is_dl_tuple& tuple) {
-                               return (std::get<0>(tuple) + std::get<1>(tuple)) % tdd_period_slots ==
-                                      (std::get<0>(offset) + std::get<1>(offset)) % tdd_period_slots;
-                             }) != optimal_tuples.end()
-            ? srs_constants::MAX_SRS_SLOT_OFFSET
-            : 0U;
-    // Choose a DL slot offset as second value.
-    if (optimal_tuples.size() == 1) {
-      const unsigned is_ul_penalty = std::get<2>(offset) ? 0U : exclude_element_penalty;
-      const unsigned weight = std::get<1>(offset) + existing_dl_slot_penalty + existing_offset_penalty + is_ul_penalty +
-                              same_target_ul_slot_penalty;
-      return weight;
-    }
-    // Choose a DL/UL slot offset as second value, depending on DL-UL heavy config.
-    if (optimal_tuples.size() == 2) {
-      // If UL heavy then we add a penalty for DL slots offsets. If DL heavy, we add a penalty for UL.
-      const unsigned dl_ul_penalty = exclude_element_penalty * static_cast<unsigned>(ul_heavy != std::get<2>(offset));
-      const unsigned weight = std::get<1>(offset) + dl_ul_penalty + existing_dl_slot_penalty + existing_offset_penalty +
-                              same_target_ul_slot_penalty;
-      return weight;
-    }
+  std::vector<offset_info> optimal_tuples;
+  auto                     weight_function =
+      [&optimal_tuples, &tdd_cfg, &target_ul_slots_idx, tdd_period_slots](const offset_info& offset) {
+        // The logic of this function can be summarized as follows:
+        // - Provide at least 1 UL slot offset and 1 DL slot offset.
+        // - If a third one is required, then provide an extra UL(DL) slot offset for UL(DL)-heavy configuration.
+        // - If possible, provide a slot offset that reaches the UL target slot from different DL slot (if another slot
+        // offset exits).
+        // - Don't consider an offset that has already been chosen, even if the metric is good; the goal is to provide a
+        // list of offsets that are different, so the scheduler has more option when it comes to find a possible DL slot
+        // for the DCI that triggers the SRS transmission.
+        const bool         ul_heavy = nof_dl_slots_per_tdd_period(tdd_cfg) > nof_full_ul_slots_per_tdd_period(tdd_cfg);
+        constexpr unsigned exclude_element_penalty = 1000;
+        // Always start the search from an UL slot offset, first, as in DL-heavy the search space for UL slot offset is
+        // smaller than for DL slot offsets.
+        if (optimal_tuples.empty()) {
+          const unsigned is_dl_penalty = offset.is_dl_dci ? exclude_element_penalty : 0U;
+          return offset.slot_offset + is_dl_penalty;
+        }
+        // Penalty to force the choice of a slot offset starting from a different DL slot index.
+        const unsigned existing_dl_slot_penalty = std::find_if(optimal_tuples.begin(),
+                                                               optimal_tuples.end(),
+                                                               [offset](const offset_info& tuple) {
+                                                                 return tuple.dl_slot_idx == offset.dl_slot_idx;
+                                                               }) != optimal_tuples.end()
+                                                      ? 2 * srs_constants::MAX_SRS_SLOT_OFFSET
+                                                      : 0U;
+        // Penalty to force the choice of a different slot offset.
+        const unsigned existing_offset_penalty = std::find_if(optimal_tuples.begin(),
+                                                              optimal_tuples.end(),
+                                                              [offset](const offset_info& tuple) {
+                                                                return tuple.slot_offset == offset.slot_offset;
+                                                              }) != optimal_tuples.end()
+                                                     ? exclude_element_penalty
+                                                     : 0U;
+        // Penalty to force the choice of a different UL slot target (only needed if the TDD patterns has 2 special
+        // slots).
+        const unsigned same_target_ul_slot_penalty =
+            target_ul_slots_idx.size() == 2 and
+                    std::find_if(optimal_tuples.begin(),
+                                 optimal_tuples.end(),
+                                 [offset, tdd_period_slots](const offset_info& tuple) {
+                                   return (tuple.dl_slot_idx + tuple.slot_offset) % tdd_period_slots ==
+                                          (offset.dl_slot_idx + offset.slot_offset) % tdd_period_slots;
+                                 }) != optimal_tuples.end()
+                ? srs_constants::MAX_SRS_SLOT_OFFSET
+                : 0U;
+        // Choose a DL slot offset as second value.
+        if (optimal_tuples.size() == 1) {
+          const unsigned is_ul_penalty = offset.is_dl_dci ? 0U : exclude_element_penalty;
+          const unsigned weight        = offset.slot_offset + existing_dl_slot_penalty + existing_offset_penalty +
+                                  is_ul_penalty + same_target_ul_slot_penalty;
+          return weight;
+        }
+        // Choose a DL/UL slot offset as second value, depending on DL-UL heavy config.
+        if (optimal_tuples.size() == 2) {
+          // If UL heavy then we add a penalty for DL slots offsets. If DL heavy, we add a penalty for UL.
+          const unsigned dl_ul_penalty = exclude_element_penalty * static_cast<unsigned>(ul_heavy != offset.is_dl_dci);
+          const unsigned weight        = offset.slot_offset + dl_ul_penalty + existing_dl_slot_penalty +
+                                  existing_offset_penalty + same_target_ul_slot_penalty;
+          return weight;
+        }
 
-    return 0U;
-  };
+        return 0U;
+      };
 
   // We consider max 3 slots offsets, as many as the possible activation states defined in Table 7.3.1.1.2-24,
   // TS 38.212. NOTE, if the TDD configuration only has 2 DL slot, then the 3rd slot offset wouldn't be used.
   const unsigned nof_slot_offset = std::min(3U, nof_dl_slots_per_tdd_period(tdd_cfg));
   for (unsigned n = 0; n != nof_slot_offset; ++n) {
-    auto min_it = std::min_element(
-        candidate_slot_offsets.begin(),
-        candidate_slot_offsets.end(),
-        [&weight_function](const dl_sl_idx_sl_offset_is_dl_tuple& lhs, const dl_sl_idx_sl_offset_is_dl_tuple& rhs) {
-          return weight_function(lhs) < weight_function(rhs);
-        });
+    auto min_it = std::min_element(candidate_slot_offsets.begin(),
+                                   candidate_slot_offsets.end(),
+                                   [&weight_function](const offset_info& lhs, const offset_info& rhs) {
+                                     return weight_function(lhs) < weight_function(rhs);
+                                   });
     ocudu_assert(min_it != optimal_tuples.end(), "");
     optimal_tuples.emplace_back(*min_it);
   }
 
   std::vector<unsigned> slot_offsets;
   for (const auto& tuple : optimal_tuples) {
-    slot_offsets.emplace_back(std::get<1>(tuple));
+    slot_offsets.emplace_back(tuple.slot_offset);
   }
   std::sort(slot_offsets.begin(), slot_offsets.end());
   return slot_offsets;

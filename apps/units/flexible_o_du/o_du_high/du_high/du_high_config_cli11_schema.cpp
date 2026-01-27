@@ -1267,19 +1267,7 @@ static void configure_cli11_pucch_args(CLI::App& app, du_high_unit_pucch_config&
 
 static void configure_cli11_srs_args(CLI::App& app, du_high_unit_srs_config& srs_params)
 {
-  add_option_function<std::string>(
-      app,
-      "--srs_type_enabled",
-      [&srs_params](const std::string& value) {
-        if (value == "periodic") {
-          srs_params.srs_type_enabled = srs_type::periodic;
-        } else if (value == "aperiodic") {
-          srs_params.srs_type_enabled = srs_type::periodic;
-        } else {
-          srs_params.srs_type_enabled = srs_type::disabled;
-        }
-      },
-      "Enable/disable SRS and set resource type")
+  add_option(app, "--srs_type_enabled", srs_params.srs_type_enabled, "Enable/disable SRS and set resource type")
       ->default_str("disabled")
       ->check(CLI::IsMember({"disabled", "periodic", "aperiodic"}, CLI::ignore_case));
   add_option(app,

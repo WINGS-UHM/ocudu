@@ -8,7 +8,7 @@
  *
  */
 
-#include "../../../../include/ocudu/scheduler/config/pusch_td_resource_indices.h"
+#include "ocudu/scheduler/config/pusch_td_resource_indices.h"
 #include "../../config/ue_configuration.h"
 #include "pusch_default_time_allocation.h"
 #include "ocudu/ocudulog/logger.h"

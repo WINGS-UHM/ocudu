@@ -509,7 +509,8 @@ struct du_high_unit_pucch_config {
 
 struct du_high_unit_srs_config {
   /// Enables and sets the Sounding Reference Signals (SRS) type to be used.
-  srs_type srs_type_enabled = srs_type::disabled;
+  /// Values: {"disabled", "periodic", "aperiodic"}.
+  std::string srs_type_enabled = "disabled";
   /// For periodic SRS, defines the SRS period in milliseconds.
   /// For aperiodic SRS, defines the prohibit time in milliseconds (the SRS is not transmitted more often than the
   /// prohibit time).

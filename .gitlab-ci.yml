@@ -383,7 +383,7 @@ unit coverage:
     - job: intermediate commits clean
       optional: true
       artifacts: true
-    - job: smoke release update cache
+    - job: smoke coverage
       optional: true
       artifacts: true
 

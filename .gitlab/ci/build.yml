@@ -140,7 +140,7 @@ variables:
 
 # Basic builds (MR and update cache on Nightly)
 
-.smoke release:
+.smoke coverage:
   extends: .build_and_unit
   variables:
     OS: ubuntu-24.04
@@ -353,7 +353,7 @@ smoke pretty printers clean:
 # Intermediate commits
 
 intermediate commits cached:
-  extends: .smoke release
+  extends: .smoke coverage
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -424,6 +424,11 @@ intermediate commits clean:
 #################
 # Build Nightly #
 #################
+smoke coverage:
+  extends: .smoke coverage
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
+  tags: [saas-linux-large-amd64]
 
 smoke asan:
   extends: .build_and_unit

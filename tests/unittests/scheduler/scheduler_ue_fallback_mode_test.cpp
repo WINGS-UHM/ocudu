@@ -19,7 +19,9 @@
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/ran/duplex_mode.h"
+#include <functional>
 #include <gtest/gtest.h>
+#include <tuple>
 
 using namespace ocudu;
 
@@ -43,16 +45,80 @@ public:
 
   const pucch_info* run_until_common_pucch_with_harq(rnti_t rnti_to_find)
   {
-    const pucch_info* first_msg4_pucch = nullptr;
-    run_slot_until([this, &first_msg4_pucch, rnti_to_find]() {
+    const pucch_info* first_conres_msg4_pucch = nullptr;
+    run_slot_until([this, &first_conres_msg4_pucch, rnti_to_find]() {
       return std::any_of(this->last_sched_result()->ul.pucchs.begin(),
                          this->last_sched_result()->ul.pucchs.end(),
-                         [&first_msg4_pucch, rnti_to_find](const pucch_info& pucch) mutable {
-                           first_msg4_pucch = &pucch;
+                         [&first_conres_msg4_pucch, rnti_to_find](const pucch_info& pucch) mutable {
+                           first_conres_msg4_pucch = &pucch;
                            return pucch.crnti == rnti_to_find and is_f1_pucch_with_harq_bits(pucch, true, false);
                          });
     });
-    return first_msg4_pucch;
+    return first_conres_msg4_pucch;
+  }
+
+  bool run_until_conres_msg4_scheduled(rnti_t rnti_to_find, lcid_dl_sch_t grant_lcid)
+  {
+    bool grant_allocated = false;
+    this->run_slot_until([this, &grant_allocated, rnti_to_find, grant_lcid]() {
+      const pdcch_dl_information* dl_pdcch = find_ue_dl_pdcch(rnti_to_find);
+      if (dl_pdcch != nullptr) {
+        const dl_msg_alloc* pdsch_alloc = find_ue_pdsch(rnti_to_find, *this->last_sched_result());
+        // These conditions must be verified to consider the ConRes correctly scheduled.
+        const bool conres_tc_rnti_check =
+            grant_lcid != lcid_dl_sch_t::UE_CON_RES_ID or dl_pdcch->dci.type == dci_dl_rnti_config_type::tc_rnti_f1_0;
+        if (not conres_tc_rnti_check or pdsch_alloc == nullptr or not pdsch_alloc->pdsch_cfg.codewords[0].new_data or
+            pdsch_alloc->tb_list.size() != 1) {
+          return false;
+        }
+        for (auto& lg_ch : pdsch_alloc->tb_list[0].lc_chs_to_sched) {
+          if (lg_ch.lcid == grant_lcid) {
+            grant_allocated = true;
+            return true;
+          }
+        }
+      }
+
+      return false;
+    });
+    return grant_allocated;
+  }
+
+  bool run_until_pucch_scheduled_and_received(rnti_t rnti_to_find, du_ue_index_t ue_index, bool ack)
+  {
+    // Check whether PUCCH (i) has been allocated and (ii) on common resources.
+    const pucch_info* first_conres_pucch = run_until_common_pucch_with_harq(rnti_to_find);
+    if (first_conres_pucch == nullptr) {
+      return false;
+    }
+
+    // If only the ConRes was scheduled, we need to wait for the PUCCH to be sent and inject an ACK, to confirm the
+    // ConRes was received by the UE. Without this, the scheduler won't allocate any other PDSCH grant.
+    uci_indication uci =
+        test_helper::create_uci_indication(next_slot.without_hyper_sfn() - 1, ue_index, *first_conres_pucch);
+    std::get<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(uci.ucis[0].pdu).harqs[0] =
+        ack ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack;
+    this->sched->handle_uci_indication(uci);
+
+    return true;
+  }
+
+  const dl_msg_lc_info* get_msg4_msg_lc_info(rnti_t rnti_to_find, lcid_t msg4_lcid) const
+  {
+    const dl_msg_alloc* pdsch_alloc = find_ue_pdsch(rnti_to_find, *this->last_sched_result());
+    if (pdsch_alloc == nullptr or not pdsch_alloc->pdsch_cfg.codewords[0].new_data or
+        pdsch_alloc->tb_list.size() != 1) {
+      return nullptr;
+    }
+
+    for (auto& lg_ch : pdsch_alloc->tb_list[0].lc_chs_to_sched) {
+      if (lg_ch.lcid == msg4_lcid) {
+        if (lg_ch.lcid == LCID_SRB0 or lg_ch.lcid == LCID_SRB1) {
+          return &lg_ch;
+        }
+      }
+    }
+    return nullptr;
   }
 
   cell_config_builder_params builder_params{};
@@ -132,7 +198,7 @@ public:
     rach_indication_message rach_ind{to_du_cell_index(0), next_slot_rx(), {{0, 0, {}}}};
     auto                    nof_preambles = test_rgen::uniform_int<unsigned>(1, 10);
     for (unsigned i = 0; i != nof_preambles; ++i) {
-      rach_ind.occasions[0].preambles.push_back({i, to_rnti((uint16_t)rnti + 1 + i), phy_time_unit{}});
+      rach_ind.occasions[0].preambles.push_back({i, to_rnti(static_cast<uint16_t>(rnti) + 1 + i), phy_time_unit{}});
     }
     this->sched->handle_rach_indication(rach_ind);
   }
@@ -157,47 +223,59 @@ TEST_P(scheduler_con_res_msg4_test,
   // Enqueue Msg4 in SRB0/SRB1.
   this->push_dl_buffer_state(dl_buffer_state_indication_message{this->ue_index, params.msg4_lcid, msg4_size});
 
-  // Msg4 should be scheduled together with the ConRes CE.
-  ASSERT_TRUE(this->run_slot_until([this]() { return find_ue_pdsch(rnti, *this->last_sched_result()) != nullptr; }));
-  const dl_msg_alloc* msg4_alloc = find_ue_pdsch(rnti, *this->last_sched_result());
-  ASSERT_EQ(msg4_alloc->tb_list.size(), 1);
-  ASSERT_EQ(msg4_alloc->tb_list[0].lc_chs_to_sched.size(), 2);
-  ASSERT_EQ(msg4_alloc->tb_list[0].lc_chs_to_sched[0].lcid, lcid_dl_sch_t::UE_CON_RES_ID);
-  ASSERT_EQ(msg4_alloc->tb_list[0].lc_chs_to_sched[1].lcid, params.msg4_lcid);
+  // Wait for ConRes (and optionally Msg4) to be scheduled.
+  ASSERT_TRUE(run_until_conres_msg4_scheduled(rnti, lcid_dl_sch_t::UE_CON_RES_ID)) << "ConRes not scheduled";
+  const dl_msg_alloc* conres_alloc = find_ue_pdsch(rnti, *this->last_sched_result());
+  ASSERT_EQ(conres_alloc->tb_list.size(), 1);
+  ASSERT_FALSE(conres_alloc->tb_list[0].lc_chs_to_sched.empty());
+  ASSERT_EQ(conres_alloc->tb_list[0].lc_chs_to_sched[0].lcid, lcid_dl_sch_t::UE_CON_RES_ID);
+  ASSERT_TRUE(this->last_sched_result()->dl.csi_rs.empty());
 
-  // In case of Msg4 with SRB0, ensure that enough bytes are scheduled to fit the full Msg4, as RLC-TM doesn't support
-  // segmentation.
-  if (params.msg4_lcid == LCID_SRB0) {
-    ASSERT_GE(msg4_alloc->tb_list[0].lc_chs_to_sched[1].sched_bytes, msg4_size);
+  // If the allocation is done in a slot where the SSB is also allocated, then there is only space for ConRes. The Msg4
+  // will be sent in a separate PDSCH grant.
+  auto msg4_lc_info = get_msg4_msg_lc_info(rnti, params.msg4_lcid);
+  if (msg4_lc_info == nullptr) {
+    // If only the ConRes was scheduled, we need to wait for the PUCCH to be sent and inject an ACK, to confirm the
+    // ConRes was received by the UE. Without this, the scheduler won't allocate any other PDSCH grant.
+    ASSERT_TRUE(run_until_pucch_scheduled_and_received(rnti, ue_index, /* ACK */ true));
+    ASSERT_TRUE(run_until_conres_msg4_scheduled(rnti, GetParam().msg4_lcid)) << "Msg4 not scheduled";
+    msg4_lc_info = get_msg4_msg_lc_info(rnti, params.msg4_lcid);
+    ASSERT_TRUE(msg4_lc_info != nullptr);
+    ASSERT_TRUE(this->last_sched_result()->dl.csi_rs.empty());
   }
 
-  // Ensure TC-RNTI is used for Msg4.
-  ASSERT_EQ(find_ue_dl_pdcch(rnti)->dci.type, dci_dl_rnti_config_type::tc_rnti_f1_0);
-
-  // Ensure no PDSCH multiplexing with CSI-RS.
-  ASSERT_TRUE(this->last_sched_result()->dl.csi_rs.empty());
+  if (params.msg4_lcid == LCID_SRB0) {
+    ASSERT_GE(msg4_lc_info->sched_bytes, msg4_size);
+  }
 }
 
 TEST_P(scheduler_con_res_msg4_test, while_ue_is_in_fallback_then_common_pucch_is_used)
 {
   // TODO: Increase the crnti message size, once PUCCH scheduler handles multiple HARQ-ACKs falling in the same slot
   //  in fallback mode.
-  static const unsigned crnti_msg_size = 8;
+  static constexpr unsigned crnti_msg_size = 8;
 
   // Enqueue ConRes CE + Msg4.
   this->sched->handle_dl_mac_ce_indication(dl_mac_ce_indication{ue_index, lcid_dl_sch_t::UE_CON_RES_ID});
   this->push_dl_buffer_state(dl_buffer_state_indication_message{this->ue_index, params.msg4_lcid, msg4_size});
 
-  // Wait for ConRes + Msg4 PDCCH, PDSCH and PUCCH to be scheduled.
-  const pucch_info* first_msg4_pucch = run_until_common_pucch_with_harq(rnti);
-  ASSERT_NE(first_msg4_pucch, nullptr)
-      << "Failed to schedule ConRes CE and Msg4 PDCCH, PDSCH and PUCCH for UE in fallback mode";
+  ASSERT_TRUE(run_until_conres_msg4_scheduled(rnti, lcid_dl_sch_t::UE_CON_RES_ID)) << "ConRes not scheduled";
+  const dl_msg_alloc* conres_alloc = find_ue_pdsch(rnti, *this->last_sched_result());
+  ASSERT_EQ(conres_alloc->tb_list.size(), 1);
+  ASSERT_FALSE(conres_alloc->tb_list[0].lc_chs_to_sched.empty());
+  ASSERT_EQ(conres_alloc->tb_list[0].lc_chs_to_sched[0].lcid, lcid_dl_sch_t::UE_CON_RES_ID);
 
-  // Push an ACK to trigger the Contention Resolution completion in the scheduler.
-  uci_indication uci =
-      test_helper::create_uci_indication(next_slot.without_hyper_sfn() - 1, ue_index, *first_msg4_pucch);
-  this->sched->handle_uci_indication(uci);
-  run_slot();
+  // If the allocation is done in a slot where the SSB is also allocated, then there is only space for ConRes. The Msg4
+  // will be sent in a separate PDSCH grant.
+  const auto* msg4_lc_info = get_msg4_msg_lc_info(rnti, params.msg4_lcid);
+  if (msg4_lc_info == nullptr) {
+    // If only the ConRes was scheduled, we need to wait for the PUCCH to be sent and inject an ACK, to confirm the
+    // ConRes was received by the UE. Without this, the scheduler won't allocate any other PDSCH grant.
+    ASSERT_TRUE(run_until_pucch_scheduled_and_received(rnti, ue_index, /* ACK */ true));
+    ASSERT_TRUE(run_until_conres_msg4_scheduled(rnti, GetParam().msg4_lcid)) << "Msg4 not scheduled";
+  }
+
+  ASSERT_TRUE(run_until_pucch_scheduled_and_received(rnti, ue_index, /* ACK */ true));
 
   // Enqueue SRB1 data; with the UE in fallback mode, and after the MSG4 has been delivered, both common and dedicated
   // resources should be used.
@@ -335,10 +413,10 @@ TEST_P(scheduler_con_res_msg4_test, when_msg4_gets_retxed_then_tc_rnti_is_used_a
   ASSERT_TRUE(found_common_pucch) << "Failed to schedule Msg4 retransmission PUCCH using common resources";
 }
 
-INSTANTIATE_TEST_SUITE_P(scheduler_con_res_msg4_test,
+INSTANTIATE_TEST_SUITE_P(scheduler_con_res_msg4_test_with_different_srb,
                          scheduler_con_res_msg4_test,
-                         ::testing::Values(conres_test_params{LCID_SRB0, duplex_mode::FDD},
-                                           conres_test_params{LCID_SRB0, duplex_mode::TDD},
+                         ::testing::Values(conres_test_params{LCID_SRB0, duplex_mode::TDD},
+                                           conres_test_params{LCID_SRB0, duplex_mode::FDD},
                                            conres_test_params{LCID_SRB1, duplex_mode::FDD},
                                            conres_test_params{LCID_SRB1, duplex_mode::TDD}));
 
@@ -444,7 +522,7 @@ TEST_P(scheduler_conres_expiry_test, when_conres_retx_goes_after_conres_timer_ex
 
 TEST_P(scheduler_conres_expiry_test, when_ntn_cell_conres_timer_extended_with_rtt)
 {
-  static const unsigned msg4_size = 128;
+  static constexpr unsigned msg4_size = 128;
   auto pdsch_is_sched = [this]() { return find_ue_pdsch(rnti, *this->last_sched_result(cell_index)) != nullptr; };
 
   // Advance by link RTT.
@@ -497,24 +575,25 @@ TEST_F(scheduler_ue_no_config_test, when_ue_has_no_serv_cell_cfg_then_msg4_and_c
   this->sched->handle_dl_mac_ce_indication(dl_mac_ce_indication{ue_index, lcid_dl_sch_t::UE_CON_RES_ID});
   this->push_dl_buffer_state(dl_buffer_state_indication_message{this->ue_index, LCID_SRB0, msg4_size});
 
-  // Wait for ConRes + Msg4 PDCCH to be scheduled.
-  ASSERT_TRUE(this->run_slot_until([this]() { return find_ue_dl_pdcch(rnti) != nullptr; }));
-  const dl_msg_alloc* msg4_alloc = find_ue_pdsch(rnti, *this->last_sched_result());
-  ASSERT_TRUE(msg4_alloc->pdsch_cfg.codewords[0].new_data);
-  ASSERT_EQ(msg4_alloc->tb_list.size(), 1);
-  ASSERT_EQ(msg4_alloc->tb_list[0].lc_chs_to_sched.size(), 2);
-  ASSERT_EQ(msg4_alloc->tb_list[0].lc_chs_to_sched[0].lcid, lcid_dl_sch_t::UE_CON_RES_ID);
-  ASSERT_EQ(msg4_alloc->tb_list[0].lc_chs_to_sched[1].lcid, LCID_SRB0);
+  // Wait for ConRes (and optionally Msg4) to be scheduled.
+  ASSERT_TRUE(run_until_conres_msg4_scheduled(rnti, lcid_dl_sch_t::UE_CON_RES_ID)) << "ConRes not scheduled";
+  const dl_msg_alloc* conres_alloc = find_ue_pdsch(rnti, *this->last_sched_result());
+  ASSERT_EQ(conres_alloc->tb_list.size(), 1);
+  ASSERT_FALSE(conres_alloc->tb_list[0].lc_chs_to_sched.empty());
+  ASSERT_EQ(conres_alloc->tb_list[0].lc_chs_to_sched[0].lcid, lcid_dl_sch_t::UE_CON_RES_ID);
+
+  // If the allocation is done in a slot where the SSB is also allocated, then there is only space for ConRes. The Msg4
+  // will be sent in a separate PDSCH grant.
+  const auto* msg4_lc_info = get_msg4_msg_lc_info(rnti, LCID_SRB0);
+  if (msg4_lc_info == nullptr) {
+    // If only the ConRes was scheduled, we need to wait for the PUCCH to be sent and inject an ACK, to confirm the
+    // ConRes was received by the UE. Without this, the scheduler won't allocate any other PDSCH grant.
+    ASSERT_TRUE(run_until_pucch_scheduled_and_received(rnti, ue_index, /* ACK */ true));
+    ASSERT_TRUE(run_until_conres_msg4_scheduled(rnti, LCID_SRB0)) << "Msg4 not scheduled";
+  }
 
   // Enqueue HARQ NACK for Msg4.
-  const pucch_info* first_msg4_pucch = run_until_common_pucch_with_harq(rnti);
-  ASSERT_NE(first_msg4_pucch, nullptr)
-      << "Failed to schedule ConRes CE and Msg4 PDCCH, PDSCH and PUCCH for UE in fallback mode";
-  uci_indication uci =
-      test_helper::create_uci_indication(next_slot.without_hyper_sfn() - 1, ue_index, *first_msg4_pucch);
-  std::get<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(uci.ucis[0].pdu).harqs[0] =
-      mac_harq_ack_report_status::nack;
-  this->sched->handle_uci_indication(uci);
+  ASSERT_TRUE(run_until_pucch_scheduled_and_received(rnti, ue_index, /* ACK */ false));
 
   // Wait for Msg4 re-transmission to be scheduled.
   ASSERT_TRUE(this->run_slot_until([this]() { return find_ue_dl_pdcch(rnti) != nullptr; }));

@@ -155,11 +155,13 @@ private:
   void create_main_worker_pool(const worker_manager_config& worker_cfg);
 
   /// Helper method to create workers with non zero priority.
-  void create_prio_worker(const std::string&               name,
-                          const std::string&               exec_name,
-                          unsigned                         queue_size,
-                          const os_sched_affinity_bitmask& mask,
-                          os_thread_realtime_priority      prio = os_thread_realtime_priority::no_realtime());
+  void create_prio_worker(const std::string&                       name,
+                          const std::string&                       exec_name,
+                          unsigned                                 queue_size,
+                          concurrent_queue_policy                  queue_policy,
+                          std::optional<std::chrono::microseconds> sleep_time,
+                          const os_sched_affinity_bitmask&         mask,
+                          os_thread_realtime_priority              prio = os_thread_realtime_priority::no_realtime());
 
   /// Helper method to create worker pool.
   void create_worker_pool(const std::string&                    name,

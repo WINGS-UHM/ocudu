@@ -95,8 +95,8 @@ private:
   mac_cell_slot_handler* mac_slot_handler;
   /// Stop manager.
   stop_event_source stop_manager;
-  /// Stop token. This token is used to track the when a slot is being used. It is set on new scheduler results
-  /// (downlink, uplink or downlink data) and reset on results completion.
+  /// Stop token. This token is used to track when a slot is being used. It is set on new scheduler results (downlink,
+  /// uplink or downlink data) and reset on results completion.
   stop_event_token stop_token;
 };
 

@@ -196,16 +196,17 @@ void worker_manager::create_worker_pool(const std::string&                    na
   }
 }
 
-void worker_manager::create_prio_worker(const std::string&               name,
-                                        const std::string&               exec_name,
-                                        unsigned                         queue_size,
-                                        const os_sched_affinity_bitmask& mask,
-                                        os_thread_realtime_priority      prio)
+void worker_manager::create_prio_worker(const std::string&                       name,
+                                        const std::string&                       exec_name,
+                                        unsigned                                 queue_size,
+                                        concurrent_queue_policy                  queue_policy,
+                                        std::optional<std::chrono::microseconds> sleep_time,
+                                        const os_sched_affinity_bitmask&         mask,
+                                        os_thread_realtime_priority              prio)
 {
   using namespace execution_config_helper;
 
-  const single_worker worker_desc{
-      name, {exec_name, concurrent_queue_policy::locking_mpsc, queue_size}, std::nullopt, prio, mask};
+  const single_worker worker_desc{name, {exec_name, queue_policy, queue_size}, sleep_time, prio, mask};
   if (not exec_mng.add_execution_context(create_execution_context(worker_desc))) {
     report_fatal_error("Failed to instantiate {} execution context", worker_desc.name);
   }
@@ -446,6 +447,8 @@ void worker_manager::create_du_low_executors(const worker_manager_config::du_low
     create_prio_worker("phy_worker",
                        "phy_exec",
                        task_worker_queue_size,
+                       concurrent_queue_policy::locking_mpsc,
+                       std::nullopt,
                        main_pool_affinity_mng.calcute_affinity_mask(sched_affinity_mask_types::main),
                        os_thread_realtime_priority::no_realtime());
 
@@ -586,6 +589,8 @@ void worker_manager::create_lower_phy_executors(const worker_manager_config::ru_
   create_prio_worker("radio",
                      "radio_exec",
                      task_worker_queue_size,
+                     concurrent_queue_policy::lockfree_mpmc,
+                     std::chrono::microseconds{50},
                      affinity_mng.front().calcute_affinity_mask(sched_affinity_mask_types::ru));
 
   switch (config.profile) {
@@ -614,6 +619,8 @@ void worker_manager::create_lower_phy_executors(const worker_manager_config::ru_
         create_prio_worker(name,
                            exec_name,
                            128,
+                           concurrent_queue_policy::lockfree_mpmc,
+                           std::chrono::microseconds{10},
                            affinity_mng[cell_id].calcute_affinity_mask(sched_affinity_mask_types::ru),
                            os_thread_realtime_priority::max());
 
@@ -638,11 +645,15 @@ void worker_manager::create_lower_phy_executors(const worker_manager_config::ru_
         create_prio_worker(name_tx,
                            exec_tx,
                            128,
+                           concurrent_queue_policy::lockfree_mpmc,
+                           std::chrono::microseconds{10},
                            affinity_mng[cell_id].calcute_affinity_mask(sched_affinity_mask_types::ru),
                            os_thread_realtime_priority::max());
         create_prio_worker(name_rx,
                            exec_rx,
                            2,
+                           concurrent_queue_policy::lockfree_mpmc,
+                           std::chrono::microseconds{10},
                            affinity_mng[cell_id].calcute_affinity_mask(sched_affinity_mask_types::ru),
                            os_thread_realtime_priority::max() - 1);
 
@@ -669,16 +680,22 @@ void worker_manager::create_lower_phy_executors(const worker_manager_config::ru_
         create_prio_worker(name_tx,
                            exec_tx,
                            128,
+                           concurrent_queue_policy::lockfree_mpmc,
+                           std::chrono::microseconds{10},
                            affinity_mng[cell_id].calcute_affinity_mask(sched_affinity_mask_types::ru),
                            os_thread_realtime_priority::max());
         create_prio_worker(name_rx,
                            exec_rx,
                            1,
+                           concurrent_queue_policy::lockfree_mpmc,
+                           std::chrono::microseconds{10},
                            affinity_mng[cell_id].calcute_affinity_mask(sched_affinity_mask_types::ru),
                            os_thread_realtime_priority::max() - 2);
         create_prio_worker(name_ul,
                            exec_ul,
                            128,
+                           concurrent_queue_policy::lockfree_mpmc,
+                           std::chrono::microseconds{10},
                            affinity_mng[cell_id].calcute_affinity_mask(sched_affinity_mask_types::ru),
                            os_thread_realtime_priority::max() - 1);
 
@@ -697,10 +714,13 @@ void worker_manager::create_lower_phy_executors(const worker_manager_config::ru_
 
 void worker_manager::create_ru_dummy_executors()
 {
-  // Use the first cell of the affinity manager for the dummy RU.
   create_prio_worker("ru_dummy",
                      "ru_dummy_exec",
                      task_worker_queue_size,
+                     concurrent_queue_policy::lockfree_spsc,
+                     // The RU dummy implementation already sleeps between calls.
+                     std::chrono::microseconds{0},
+                     // Use the first cell of the affinity manager for the dummy RU.
                      affinity_mng.front().calcute_affinity_mask(sched_affinity_mask_types::ru),
                      os_thread_realtime_priority::max());
   dummy_exec_mapper = create_ru_dummy_executor_mapper(*exec_mng.executors().at("ru_dummy_exec"));

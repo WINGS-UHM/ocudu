@@ -16,6 +16,7 @@
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <chrono>
 #include <optional>
+#include <vector>
 
 namespace ocudu {
 

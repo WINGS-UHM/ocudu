@@ -40,7 +40,7 @@ public:
   virtual std::map<nr_cell_global_id_t, rrc_cell_info>
   get_cell_info(const std::vector<cu_cp_du_served_cells_item>& served_cell_list) const = 0;
 
-  virtual std::map<nr_cell_identity, rrc_cell_info> get_cell_info_db() = 0;
+  virtual std::vector<rrc_plmn_ran_area_cell_t> get_ran_area_cells() = 0;
 
   virtual void store_cell_info_db(const std::map<nr_cell_global_id_t, rrc_cell_info>& cell_infos) = 0;
 };

@@ -136,6 +136,28 @@ rrc_du_impl::get_cell_info(const std::vector<cu_cp_du_served_cells_item>& served
   return cell_info_map;
 }
 
+std::vector<rrc_plmn_ran_area_cell_t> rrc_du_impl::get_ran_area_cells()
+{
+  // Map PLMN IDs to their cells.
+  std::map<plmn_identity, std::vector<nr_cell_identity>> plmn_to_cells;
+  for (const auto& [cell_id, cell_info] : cell_info_db) {
+    for (const auto& plmn : cell_info.plmn_identity_list) {
+      plmn_to_cells[plmn].push_back(cell_id);
+    }
+  }
+
+  // Fill RAN area cells.
+  std::vector<rrc_plmn_ran_area_cell_t> ran_area_cells;
+  for (const auto& [plmn, cell_ids] : plmn_to_cells) {
+    rrc_plmn_ran_area_cell_t ran_area_cell{};
+    ran_area_cell.plmn_id        = plmn;
+    ran_area_cell.ran_area_cells = cell_ids;
+    ran_area_cells.push_back(ran_area_cell);
+  }
+
+  return ran_area_cells;
+}
+
 void rrc_du_impl::store_cell_info_db(const std::map<nr_cell_global_id_t, rrc_cell_info>& cell_infos)
 {
   for (const auto& [cgi, cell_info] : cell_infos) {

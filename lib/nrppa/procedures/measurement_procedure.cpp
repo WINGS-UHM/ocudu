@@ -389,8 +389,9 @@ asn1::nrppa::nr_ppa_pdu_c measurement_procedure::create_measurement_response()
           asn1_trp_meas_result_item.measured_results_value.set_ul_srs_rsrp() =
               std::get<uint8_t>(trp_meas_result_item.measured_results_value);
         } else if (std::holds_alternative<ul_rtoa_t>(trp_meas_result_item.measured_results_value)) {
-          ul_rtoa_t                   ul_rtoa      = std::get<ul_rtoa_t>(trp_meas_result_item.measured_results_value);
-          asn1::nrppa::ul_rtoameas_s& asn1_ul_rtoa = asn1_trp_meas_result_item.measured_results_value.set_ul_rtoa();
+          ul_rtoa_t ul_rtoa = std::get<ul_rtoa_t>(trp_meas_result_item.measured_results_value);
+          asn1::nrppa::ul_rtoa_measurement_s& asn1_ul_rtoa =
+              asn1_trp_meas_result_item.measured_results_value.set_ul_rtoa();
 
           // Fill UL RTOA meas.
           if (ul_rtoa.ul_rtoa_meas.type == ul_rtoa_meas_t::type_t::k0) {

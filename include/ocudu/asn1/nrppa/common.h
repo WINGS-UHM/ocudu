@@ -10,7 +10,7 @@
 
 /*******************************************************************************
  *
- *                     3GPP TS ASN1 NRPPA v17.8.0 (2024-08)
+ *                     3GPP TS ASN1 NRPPA v17.4.0 (2023-03)
  *
  ******************************************************************************/
 
@@ -25,6 +25,9 @@ namespace nrppa {
  *                             Constant Definitions
  ******************************************************************************/
 
+#define ASN1_NRPPA_MAX_PRIVATE_IES 65535
+#define ASN1_NRPPA_MAX_PROTOCOL_EXTS 65535
+#define ASN1_NRPPA_MAX_PROTOCOL_IES 65535
 #define ASN1_NRPPA_ID_ERROR_IND 0
 #define ASN1_NRPPA_ID_PRIVATE_MSG 1
 #define ASN1_NRPPA_ID_E_C_ID_MEAS_INITIATION 2
@@ -122,7 +125,7 @@ namespace nrppa {
 #define ASN1_NRPPA_ID_ASSIST_INFO 23
 #define ASN1_NRPPA_ID_BROADCAST 24
 #define ASN1_NRPPA_ID_ASSIST_INFO_FAIL_LIST 25
-#define ASN1_NRPPA_ID_SRSCFG 26
+#define ASN1_NRPPA_ID_SRS_CFG 26
 #define ASN1_NRPPA_ID_MEAS_RESULT 27
 #define ASN1_NRPPA_ID_TRP_ID 28
 #define ASN1_NRPPA_ID_TRP_INFO_TYPE_LIST_TRP_REQ 29
@@ -203,16 +206,6 @@ namespace nrppa {
 #define ASN1_NRPPA_ID_UE_TX_TIMING_ERROR_MARGIN 104
 #define ASN1_NRPPA_ID_MEAS_PERIODICITY_NR_AO_A 105
 #define ASN1_NRPPA_ID_SRS_TX_STATUS 106
-#define ASN1_NRPPA_ID_NROF_SYMBOLS_EXTENDED 107
-#define ASN1_NRPPA_ID_REPEAT_FACTOR_EXTENDED 108
-#define ASN1_NRPPA_ID_START_RB_HOP 109
-#define ASN1_NRPPA_ID_START_RB_IDX 110
-#define ASN1_NRPPA_ID_TX_COMBN8 111
-#define ASN1_NRPPA_ID_SCS_480 119
-#define ASN1_NRPPA_ID_SCS_960 120
-#define ASN1_NRPPA_MAX_PRIVATE_IES 65535
-#define ASN1_NRPPA_MAX_PROTOCOL_EXTS 65535
-#define ASN1_NRPPA_MAX_PROTOCOL_IES 65535
 
 /*******************************************************************************
  *                              Struct Definitions
@@ -265,7 +258,8 @@ struct private_ie_field_s {
   void          to_json(json_writer& j) const;
 };
 
-// PrivateIE-Container{NRPPA-PRIVATE-IES : IEsSetParam} ::= SEQUENCE (SIZE (1..65535)) OF PrivateIE-Field
+// PrivateIE-Container{NRPPA-PRIVATE-IES : IEsSetParam} ::= SEQUENCE (SIZE (1..65535)) OF
+// PrivateIE-Field{NRPPA-PRIVATE-IES : IEsSetParam}
 template <class ies_set_paramT_>
 using private_ie_container_l = dyn_seq_of<private_ie_field_s<ies_set_paramT_>, 1, 65535, true>;
 

@@ -145,9 +145,9 @@ byte_buffer ocudu::ocucp::generate_valid_positioning_activation_request()
   return pack_into_pdu(pdu, "PositioningActivationRequest");
 }
 
-static inline asn1::nrppa::srscfg_s generate_srscfg()
+static inline asn1::nrppa::srs_configuration_s generate_srscfg()
 {
-  asn1::nrppa::srscfg_s srs_configuration;
+  asn1::nrppa::srs_configuration_s srs_configuration;
 
   asn1::nrppa::srs_carrier_list_item_s srs_carrier_item;
   srs_carrier_item.point_a = 632016;
@@ -228,8 +228,8 @@ byte_buffer ocudu::ocucp::generate_valid_nrppa_measurement_request(
     req->trp_meas_quantities.push_back(trp_meas_quantities_list_item_to_asn1(trp_meas_quant));
   }
 
-  req->srscfg_present = true;
-  req->srscfg         = generate_srscfg();
+  req->srs_configuration_present = true;
+  req->srs_configuration         = generate_srscfg();
 
   return pack_into_pdu(pdu, "MeasurementRequest");
 }

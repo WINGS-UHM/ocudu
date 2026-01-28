@@ -429,8 +429,8 @@ inline void fill_measurement_request(measurement_request_t& request, const asn1:
   }
 
   // Fill SRS configuration.
-  if (asn1_request->srscfg_present) {
-    request.srs_config = asn1_to_srs_configuration(asn1_request->srscfg);
+  if (asn1_request->srs_configuration_present) {
+    request.srs_config = asn1_to_srs_configuration(asn1_request->srs_configuration);
   }
 
   // Fill measurement beam info request.

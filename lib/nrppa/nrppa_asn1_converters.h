@@ -1158,7 +1158,7 @@ asn1_to_requested_srs_tx_characteristics(const asn1::nrppa::requested_srs_tx_cha
   return req;
 }
 
-inline srs_configuration_t asn1_to_srs_configuration(const asn1::nrppa::srscfg_s& asn1_srs_cfg)
+inline srs_configuration_t asn1_to_srs_configuration(const asn1::nrppa::srs_configuration_s& asn1_srs_cfg)
 {
   srs_configuration_t srs_cfg;
   // Fill SRS carrier list.

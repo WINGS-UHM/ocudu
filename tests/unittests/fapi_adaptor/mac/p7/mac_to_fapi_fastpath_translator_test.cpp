@@ -125,8 +125,6 @@ protected:
                {gateway_spy, notifier_spy, std::move(std::get<0>(pm_tools)), std::move(std::get<0>(uci_part2_tools))})
   {
   }
-
-  void configure_handler() { translator.set_cell_slot_handler(slot_handler_spy); }
 };
 
 } // namespace

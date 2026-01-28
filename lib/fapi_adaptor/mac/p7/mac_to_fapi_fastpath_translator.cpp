@@ -49,26 +49,7 @@ struct pdcch_group {
   }
 };
 
-/// Dummy MAC cell slot handler.
-class mac_cell_slot_handler_dummy : public mac_cell_slot_handler
-{
-public:
-  void handle_slot_indication(const mac_cell_timing_context& context) override
-  {
-    report_error("Dummy MAC cell slot handler cannot handle slot indication");
-  }
-
-  void handle_error_indication(slot_point sl_tx, error_event event) override
-  {
-    report_error("Dummy MAC cell slot handler cannot handle error indication");
-  }
-
-  void handle_stop_indication() override { report_error("Dummy MAC cell slot handler cannot handle stop indication"); }
-};
-
 } // namespace
-
-static mac_cell_slot_handler_dummy dummy_cell_handler;
 
 mac_to_fapi_fastpath_translator::mac_to_fapi_fastpath_translator(
     const mac_to_fapi_fastpath_translator_config& config,
@@ -77,8 +58,7 @@ mac_to_fapi_fastpath_translator::mac_to_fapi_fastpath_translator(
   p7_gateway(dependencies.p7_gateway),
   p7_last_req_notifier(dependencies.p7_last_req_notifier),
   pm_mapper(std::move(dependencies.pm_mapper)),
-  part2_mapper(std::move(dependencies.part2_mapper)),
-  mac_slot_handler(&dummy_cell_handler)
+  part2_mapper(std::move(dependencies.part2_mapper))
 {
   ocudu_assert(pm_mapper, "Invalid precoding matrix mapper");
   ocudu_assert(part2_mapper, "Invalid Part2 mapper");

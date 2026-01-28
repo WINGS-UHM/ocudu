@@ -17,7 +17,9 @@ ue_channel_state_manager::ue_channel_state_manager(const scheduler_ue_expert_con
   nof_dl_ports(nof_dl_ports_),
   pusch_snr_db(expert_cfg.initial_ul_sinr),
   average_pusch_sinr_dB(alpha_ema_sinr),
-  wideband_cqi(expert_cfg.initial_cqi)
+  wideband_cqi(expert_cfg.initial_cqi),
+  // Only relevant if the srs_prohibit_time has a value.
+  srs_prohibit_window(expert_cfg.srs_prohibit_time.value_or(srs_periodicity::sl40))
 {
   // Set initial precoding value when no CSI has yet been received.
   if (nof_dl_ports == 2) {
@@ -68,8 +70,8 @@ void ue_channel_state_manager::update_srs_channel_matrix(const srs_channel_matri
                                                          tx_scheme_codebook        codebook_cfg)
 {
   // [Implementation-defined] Assume noise variance is 30dB below the average received power.
-  float norm      = channel_matrix.frobenius_norm();
-  float noise_var = norm * norm / (1000 * channel_matrix.get_nof_tx_ports());
+  const float norm      = channel_matrix.frobenius_norm();
+  const float noise_var = norm * norm / (1000 * channel_matrix.get_nof_tx_ports());
 
   // Calculate TPMI information.
   last_pusch_tpmi_select_info =
@@ -112,10 +114,10 @@ unsigned ue_channel_state_manager::get_nof_ul_layers() const
     const pusch_tpmi_select_info::tpmi_info& info = last_pusch_tpmi_select_info->get_tpmi_select(nof_layers);
 
     // Get the minimum SINR.
-    float min_sinr_dB = *std::min_element(info.sinr_dB_layer.begin(), info.sinr_dB_layer.end());
+    const float min_sinr_dB = *std::min_element(info.sinr_dB_layer.begin(), info.sinr_dB_layer.end());
 
     // Get the maximum SINR.
-    float max_sinr_dB = *std::max_element(info.sinr_dB_layer.begin(), info.sinr_dB_layer.end());
+    const float max_sinr_dB = *std::max_element(info.sinr_dB_layer.begin(), info.sinr_dB_layer.end());
 
     // If the minimum SINR is above the threshold, use this number of layers.
     if (min_sinr_dB > sinr_dB_threshold) {

@@ -80,7 +80,7 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
     // Reserve the size of the vector and set the SRS counter of each offset to 0.
     cell.slot_resource_cnt.reserve(srs_period_slots);
     cell.slot_resource_cnt.assign(srs_period_slots, 0U);
-    cell.srs_res_offset_free_list.reserve(du_srs_policy_max_ul_rate::cell_context::max_nof_srs_res);
+    cell.srs_res_offset_free_list.reserve(MAX_NOF_CELL_SRS_RES);
     cell.nof_res_per_symb_interval =
         static_cast<unsigned>(cell.cell_cfg.init_bwp_builder.srs_cfg.tx_comb) *
         static_cast<unsigned>(cell.cell_cfg.init_bwp_builder.srs_cfg.cyclic_shift_reuse_factor) *
@@ -88,7 +88,7 @@ du_srs_policy_max_ul_rate::du_srs_policy_max_ul_rate(span<const du_cell_config> 
 
     for (unsigned offset = 0; offset != srs_period_slots; ++offset) {
       // We don't generate more than the maximum number of SRS resources per cell.
-      if (cell.srs_res_offset_free_list.size() >= du_srs_policy_max_ul_rate::cell_context::max_nof_srs_res) {
+      if (cell.srs_res_offset_free_list.size() >= MAX_NOF_CELL_SRS_RES) {
         break;
       }
 

@@ -12,6 +12,7 @@
 
 #include "../cell/resource_grid.h"
 #include "../pdcch_scheduling/pdcch_resource_allocator.h"
+#include "../srs/srs_allocator.h"
 #include "../uci_scheduling/uci_allocator.h"
 #include "../ue_context/ue_repository.h"
 #include "grant_params_selector.h"
@@ -195,6 +196,7 @@ public:
                          ue_repository&                    ues_,
                          pdcch_resource_allocator&         pdcch_sched_,
                          uci_allocator&                    uci_alloc_,
+                         srs_allocator&                    srs_alloc_,
                          cell_resource_allocator&          cell_alloc_,
                          ocudulog::basic_logger&           logger_);
 
@@ -256,6 +258,7 @@ private:
   ue_repository&                    ues;
   pdcch_resource_allocator&         pdcch_sched;
   uci_allocator&                    uci_alloc;
+  srs_allocator&                    srs_alloc;
   cell_resource_allocator&          cell_alloc;
   ocudulog::basic_logger&           logger;
 

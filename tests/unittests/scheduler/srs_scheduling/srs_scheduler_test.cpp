@@ -20,23 +20,12 @@
 
 using namespace ocudu;
 
-namespace {
-
-class dummy_harq_timeout_notifier : public harq_timeout_notifier
-{
-public:
-  void on_harq_timeout(du_ue_index_t ue_idx, bool is_dl, bool ack) override {}
-  void on_feedback_disabled_harq_timeout(du_ue_index_t ue_idx, bool is_dl, units::bytes tbs) override {}
-};
-
-} // namespace
-
 static unsigned compute_c_srs(unsigned nof_ul_crbs)
 {
   // In this test, we only consider the case where B_SRS is 0.
-  const uint8_t b_srs           = 0U;
-  unsigned      candidate_c_srs = 0U;
-  unsigned      candidate_m_srs = 0U;
+  constexpr uint8_t b_srs           = 0U;
+  unsigned          candidate_c_srs = 0U;
+  unsigned          candidate_m_srs = 0U;
   // Spans over Table 6.4.1.4.3-1 in TS 38.211 and find the smallest C_SRS that maximizes m_srs_0 under the
   // constraint of m_SRS <= nof_BW_RBs.
   for (unsigned c_srs_it = 0; c_srs_it != 64; ++c_srs_it) {
@@ -57,10 +46,10 @@ static bool is_ul_slot(unsigned offset, const tdd_ul_dl_config_common& tdd_cfg)
 }
 
 static sched_ue_creation_request_message
-create_sched_ue_creation_request_for_srs_cfg(const sched_ue_creation_request_message&     base_ue_req,
-                                             srs_periodicity                              srs_period,
-                                             unsigned                                     nof_ul_crbs,
-                                             const std::optional<tdd_ul_dl_config_common> tdd_cfg)
+create_sched_ue_creation_request_for_srs_cfg(const sched_ue_creation_request_message&      base_ue_req,
+                                             srs_periodicity                               srs_period,
+                                             unsigned                                      nof_ul_crbs,
+                                             const std::optional<tdd_ul_dl_config_common>& tdd_cfg)
 {
   sched_ue_creation_request_message ue_req = base_ue_req;
   auto& ue_srs_cfg = ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
@@ -108,7 +97,7 @@ create_sched_ue_creation_request_for_srs_cfg(const sched_ue_creation_request_mes
   srs_res.freq_domain_shift = (nof_ul_crbs - srs_bw_cfg->m_srs) / 2U;
 
   // Select a non-zero sequence identifier that requires more than 8 bits.
-  srs_res.sequence_id = 666U;
+  srs_res.sequence_id = 667U;
 
   return ue_req;
 }
@@ -145,10 +134,10 @@ std::ostream& operator<<(std::ostream& os, const srs_test_params& params)
 
 using namespace srs_periodicity_test;
 
-class test_bench
+class srs_sched_test_bench
 {
 public:
-  test_bench(srs_test_params params) :
+  srs_sched_test_bench(const srs_test_params& params) :
     expert_cfg{config_helpers::make_default_scheduler_expert_config()},
     cfg_mng{cell_config_builder_profiles::create(params.is_tdd ? duplex_mode::TDD : duplex_mode::FDD), expert_cfg},
     cell_cfg(*cfg_mng.add_cell(cfg_mng.get_default_cell_config_request())),
@@ -281,15 +270,15 @@ public:
   }
 };
 
-class srs_scheduler_tester : public ::testing::TestWithParam<srs_test_params>, public test_bench
+class srs_scheduler_tester : public ::testing::TestWithParam<srs_test_params>, public srs_sched_test_bench
 {
 protected:
-  srs_scheduler_tester() : test_bench(GetParam()) {}
+  srs_scheduler_tester() : srs_sched_test_bench(GetParam()) {}
 };
 
 TEST_P(srs_scheduler_tester, test_different_periods)
 {
-  auto srs_period_uint = static_cast<unsigned>(GetParam().period);
+  const auto srs_period_uint = static_cast<unsigned>(GetParam().period);
 
   const auto add_ue_slot = test_rgen::uniform_int<unsigned>(0, res_grid.RING_ALLOCATOR_SIZE);
   // Check at the allocation for at least 4 the size of the resource grid.
@@ -336,10 +325,10 @@ INSTANTIATE_TEST_SUITE_P(test_srs_scheduler_for_different_periods,
                                          srs_test_params{.is_tdd = true, .period = srs_periodicity::sl320},
                                          srs_test_params{.is_tdd = true, .period = srs_periodicity::sl640}));
 
-class srs_positioning_scheduler_test : public test_bench, public ::testing::Test
+class srs_positioning_scheduler_test : public srs_sched_test_bench, public ::testing::Test
 {
 public:
-  srs_positioning_scheduler_test() : test_bench(srs_test_params{true, srs_periodicity::sl20}) {}
+  srs_positioning_scheduler_test() : srs_sched_test_bench(srs_test_params{true, srs_periodicity::sl20}) {}
 
   const srs_info* next_srs_info(rnti_t rnti, unsigned max_slots = 0)
   {
@@ -371,7 +360,7 @@ public:
 TEST_F(srs_positioning_scheduler_test, when_connected_ue_positioning_is_requested_then_srs_pdu_contains_request)
 {
   add_ue(srs_period);
-  rnti_t rnti = to_rnti(0x4601);
+  constexpr rnti_t rnti = to_rnti(0x4601);
 
   auto is_positioning_being_requested = [&]() -> bool {
     const auto* pdu = this->next_srs_info(rnti);
@@ -395,7 +384,7 @@ TEST_F(srs_positioning_scheduler_test, when_connected_ue_positioning_is_requeste
 
 TEST_F(srs_positioning_scheduler_test, when_neighbor_cell_ue_positioning_is_requested_then_srs_pdu_contains_request)
 {
-  rnti_t pos_rnti = rnti_t::MIN_RESERVED_RNTI;
+  constexpr rnti_t pos_rnti = rnti_t::MIN_RESERVED_RNTI;
 
   // Initiate Positioning measurement.
   sched_ue_creation_request_message dummy_ue_req =
@@ -418,8 +407,8 @@ TEST_F(srs_positioning_scheduler_test, when_neighbor_cell_ue_positioning_is_requ
   // Positioning stops being requested.
   // Note: given that some SRS were already scheduled in the grid, we have a transition period where SRSs are scheduled
   // but without positioning.
-  const unsigned max_pdu_count = 6;
-  unsigned       count         = 0;
+  constexpr unsigned max_pdu_count = 6;
+  unsigned           count         = 0;
   for (; count != max_pdu_count; ++count) {
     pdu = this->next_srs_info(pos_rnti);
     if (pdu != nullptr) {

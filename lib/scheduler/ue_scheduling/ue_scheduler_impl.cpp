@@ -227,6 +227,7 @@ ue_scheduler_impl::cell_context::cell_context(ue_scheduler_impl&                
                     parent.ue_db,
                     *params.pdcch_sched,
                     *params.uci_alloc,
+                    *params.srs_alloc,
                     *params.cell_res_alloc,
                     *params.cell_metrics,
                     ocudulog::fetch_basic_logger("SCHED")),

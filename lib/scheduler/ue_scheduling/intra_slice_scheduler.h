@@ -28,6 +28,7 @@ public:
                         ue_repository&                    ues,
                         pdcch_resource_allocator&         pdcch_alloc,
                         uci_allocator&                    uci_alloc,
+                        srs_allocator&                    srs_alloc_,
                         cell_resource_allocator&          cell_alloc,
                         cell_metrics_handler&             cell_metrics_,
                         ocudulog::basic_logger&           logger_);
@@ -112,6 +113,7 @@ private:
   cell_metrics_handler&             cell_metrics;
   cell_harq_manager&                cell_harqs;
   uci_allocator&                    uci_alloc;
+  srs_allocator&                    srs_alloc;
   ue_repository&                    ues;
   ocudulog::basic_logger&           logger;
 

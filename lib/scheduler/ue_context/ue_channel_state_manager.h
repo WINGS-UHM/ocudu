@@ -13,6 +13,7 @@
 #include "ocudu/ran/csi_report/csi_report_data.h"
 #include "ocudu/ran/pusch/pusch_tpmi_select.h"
 #include "ocudu/ran/srs/srs_channel_matrix.h"
+#include "ocudu/ran/srs/srs_configuration.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/result/pdsch_info.h"
 #include "ocudu/support/math/exponential_averager.h"
@@ -86,6 +87,11 @@ public:
   /// Records the slot of the latest scheduled aperiodic CSI report.
   void on_scheduled_aperiodic_csi_pusch(slot_point pusch_slot) { last_aperiodic_slot = pusch_slot; }
 
+  void on_scheduled_aperiodic_srs(slot_point srs_slot) { last_aperiodic_slot = srs_slot; }
+
+  /// Slot of the latest aperiodic SRS report scheduled.
+  slot_point last_aperiodic_srs_slot;
+
 private:
   /// \brief Number of indexes -> nof_layers for precoding (Options: 1, 2, 3, 4 layers).
   static constexpr size_t NOF_LAYER_CHOICES = 4;
@@ -106,6 +112,8 @@ private:
 
   /// \brief Recommended CQI to be used to derive the DL MCS.
   csi_report_wideband_cqi_type wideband_cqi;
+
+  const srs_periodicity srs_prohibit_window;
 
   /// \brief Recommended nof layers based on reports.
   unsigned recommended_dl_layers = 1;

@@ -94,7 +94,7 @@ std::optional<unsigned> ocudu::find_next_tdd_dl_slot(const tdd_ul_dl_config_comm
   const unsigned period = nof_slots_per_tdd_period(cfg);
 
   std::optional<unsigned> ret;
-  for (unsigned i = start_slot_index; i < period; ++i) {
+  for (unsigned i = start_slot_index; i != period; ++i) {
     if (has_active_tdd_dl_symbols(cfg, i)) {
       ret = i;
       break;
@@ -108,7 +108,7 @@ std::optional<unsigned> ocudu::find_next_tdd_full_dl_slot(const tdd_ul_dl_config
   const unsigned period = nof_slots_per_tdd_period(cfg);
 
   std::optional<unsigned> ret;
-  for (unsigned i = start_slot_index; i < period; ++i) {
+  for (unsigned i = start_slot_index; i != period; ++i) {
     if (get_active_tdd_dl_symbols(cfg, i, cyclic_prefix::NORMAL).length() == NOF_OFDM_SYM_PER_SLOT_NORMAL_CP) {
       ret = i;
       break;
@@ -122,7 +122,7 @@ std::optional<unsigned> ocudu::find_next_tdd_ul_slot(const tdd_ul_dl_config_comm
   const unsigned period = nof_slots_per_tdd_period(cfg);
 
   std::optional<unsigned> ret;
-  for (unsigned i = start_slot_index; i < period; ++i) {
+  for (unsigned i = start_slot_index; i != period; ++i) {
     if (has_active_tdd_ul_symbols(cfg, i)) {
       ret = i;
       break;
@@ -136,7 +136,7 @@ std::optional<unsigned> ocudu::find_next_tdd_full_ul_slot(const tdd_ul_dl_config
   const unsigned period = nof_slots_per_tdd_period(cfg);
 
   std::optional<unsigned> ret;
-  for (unsigned i = start_slot_index; i < period; ++i) {
+  for (unsigned i = start_slot_index; i != period; ++i) {
     if (get_active_tdd_ul_symbols(cfg, i, cyclic_prefix::NORMAL).length() == NOF_OFDM_SYM_PER_SLOT_NORMAL_CP) {
       ret = i;
       break;

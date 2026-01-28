@@ -32,6 +32,8 @@ struct ue_cell_scheduler_creation_request {
   pucch_allocator* pucch_alloc;
   /// UCI allocator for the cell.
   uci_allocator* uci_alloc;
+  /// UCI allocator for the cell.
+  srs_allocator* srs_alloc;
   /// Resource grid for the cell.
   cell_resource_allocator* cell_res_alloc;
   /// Cell metrics handler for the cell.

@@ -21,12 +21,14 @@ ue_cell_grid_allocator::ue_cell_grid_allocator(const scheduler_ue_expert_config&
                                                ue_repository&                    ues_,
                                                pdcch_resource_allocator&         pdcch_sched_,
                                                uci_allocator&                    uci_alloc_,
+                                               srs_allocator&                    srs_alloc_,
                                                cell_resource_allocator&          cell_alloc_,
                                                ocudulog::basic_logger&           logger_) :
   expert_cfg(expert_cfg_),
   ues(ues_),
   pdcch_sched(pdcch_sched_),
   uci_alloc(uci_alloc_),
+  srs_alloc(srs_alloc_),
   cell_alloc(cell_alloc_),
   logger(logger_)
 {
@@ -296,10 +298,23 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
   uint8_t tpc = ue_cc.get_pucch_power_controller().compute_tpc_command(pdsch_alloc.slot + k1 +
                                                                        ue_cell_cfg.cell_cfg_common.ntn_cs_koffset);
 
+  // Check if is possible to allocate an aperiodic SRS.
+  // NOTE: if the prohibit time is not set, the scheduler doesn't allocate any aperiodic SRS.
+  unsigned aperiodic_srs_res_trigger = 0U;
+  if (expert_cfg.srs_prohibit_time.has_value() and ss_info.get_dl_dci_format() == dci_dl_format::f1_1) {
+    const auto [srs_res_trigger, slot_offset] = srs_alloc.allocate_aperiodic_srs(
+        cell_alloc, ue_cc.channel_state_manager().last_aperiodic_srs_slot, ue_cell_cfg);
+    if (srs_res_trigger != 0) {
+      ue_cc.channel_state_manager().on_scheduled_aperiodic_srs(pdcch_alloc.slot + slot_offset +
+                                                               cell_cfg.ntn_cs_koffset);
+      aperiodic_srs_res_trigger = srs_res_trigger;
+    }
+  }
+
   // Fill DL PDCCH DCI PDU.
   // Number of possible Downlink Assignment Indexes {0, ..., 3} as per TS38.213 Section 9.1.3.
   static constexpr unsigned DAI_MOD = 4U;
-  uint8_t                   rv      = ue_cc.get_pdsch_rv(grant.h_dl.nof_retxs());
+  const uint8_t             rv      = ue_cc.get_pdsch_rv(grant.h_dl.nof_retxs());
   // For allocation on PUSCH, we use a PUCCH resource indicator set to 0, as it will get ignored by the UE.
   const unsigned pucch_res_indicator = grant.uci_alloc.pucch_res_indicator.value_or(0);
   switch (ss_info.get_dl_dci_format()) {
@@ -330,7 +345,8 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
                             grant.h_dl,
                             nof_layers,
                             tpc,
-                            enable_interleaving);
+                            enable_interleaving,
+                            aperiodic_srs_res_trigger);
       break;
     default:
       report_fatal_error("Unsupported RNTI type for PDSCH allocation");
@@ -698,6 +714,19 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
   const uint8_t tpc_command = ue_cc.get_pusch_power_controller().compute_tpc_command(
       pdcch_alloc.slot + pusch_td_cfg.k2 + cell_cfg.ntn_cs_koffset);
 
+  // Check if is possible to allocate an aperiodic SRS.
+  // NOTE: if the prohibit time is not set, the scheduler doesn't allocate any aperiodic SRS.
+  unsigned aperiodic_srs_res_trigger = 0U;
+  if (expert_cfg.srs_prohibit_time.has_value() and dci_type == dci_ul_rnti_config_type::c_rnti_f0_1) {
+    const auto [srs_res_trigger, slot_offset] = srs_alloc.allocate_aperiodic_srs(
+        cell_alloc, ue_cc.channel_state_manager().last_aperiodic_srs_slot, ue_cell_cfg);
+    if (aperiodic_srs_res_trigger != 0) {
+      ue_cc.channel_state_manager().on_scheduled_aperiodic_srs(pdcch_alloc.slot + slot_offset +
+                                                               cell_cfg.ntn_cs_koffset);
+      aperiodic_srs_res_trigger = srs_res_trigger;
+    }
+  }
+
   // Fill UL PDCCH DCI.
   uint8_t rv = ue_cc.get_pusch_rv(grant.h_ul.nof_retxs());
   switch (dci_type) {
@@ -727,7 +756,8 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
                             tpc_command,
                             grant.cfg.pusch_cfg.aperiodic_csi
                                 ? std::optional<bool>(grant.cfg.pusch_cfg.nof_csi_part1_bits != 0)
-                                : std::nullopt);
+                                : std::nullopt,
+                            aperiodic_srs_res_trigger);
       break;
     default:
       report_fatal_error("Unsupported PDCCH UL DCI format");

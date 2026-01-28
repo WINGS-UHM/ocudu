@@ -7,7 +7,8 @@
 #
 
 add_executable(srs_sched_test
-        srs_scheduler_test.cpp)
+        srs_scheduler_test.cpp
+        srs_allocator_test.cpp)
 target_link_libraries(srs_sched_test
         ocudu_sched
         scheduler_test_suite

@@ -21,6 +21,7 @@
 #include "ocudu/ran/sch/sch_mcs.h"
 #include "ocudu/ran/sib/sib_configuration.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
+#include "ocudu/ran/srs/srs_configuration.h"
 #include <chrono>
 #include <variant>
 #include <vector>
@@ -212,6 +213,9 @@ struct scheduler_ue_expert_config {
   ul_power_control ul_power_ctrl = ul_power_control{};
   /// TA control parameters.
   scheduler_ta_control_config ta_control;
+  /// \bierf Defines a time window starting from the last sent aperiodic SRS within which any new allocation of
+  /// aperiodic SRS is not allowed. Only applies to aperiodic SRS.
+  std::optional<srs_periodicity> srs_prohibit_time;
 };
 
 /// \brief System Information scheduling statically configurable expert parameters.

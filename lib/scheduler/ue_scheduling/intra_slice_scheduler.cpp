@@ -130,6 +130,7 @@ intra_slice_scheduler::intra_slice_scheduler(const scheduler_ue_expert_config& e
                                              ue_repository&                    ues_,
                                              pdcch_resource_allocator&         pdcch_alloc,
                                              uci_allocator&                    uci_alloc_,
+                                             srs_allocator&                    srs_alloc_,
                                              cell_resource_allocator&          cell_alloc_,
                                              cell_metrics_handler&             cell_metrics_,
                                              ocudulog::basic_logger&           logger_) :
@@ -138,10 +139,11 @@ intra_slice_scheduler::intra_slice_scheduler(const scheduler_ue_expert_config& e
   cell_metrics(cell_metrics_),
   cell_harqs(ues_.cell(cell_alloc_.cell_index()).get_cell_harqs()),
   uci_alloc(uci_alloc_),
+  srs_alloc(srs_alloc_),
   ues(ues_),
   logger(logger_),
   expected_pdschs_per_slot(compute_expected_pdschs_per_slot(cell_alloc.cfg)),
-  ue_alloc(expert_cfg, ues, pdcch_alloc, uci_alloc, cell_alloc_, logger_)
+  ue_alloc(expert_cfg, ues, pdcch_alloc, uci_alloc, srs_alloc, cell_alloc_, logger_)
 {
   // Pre-reserve memory for UE candidates.
   newtx_candidates.reserve(MAX_NOF_DU_UES);

@@ -22,6 +22,7 @@
 #include "logging/scheduler_result_logger.h"
 #include "pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "pucch_scheduling/pucch_allocator_impl.h"
+#include "srs/srs_allocator_impl.h"
 #include "uci_scheduling/uci_allocator_impl.h"
 #include "ue_scheduling/ue_scheduler.h"
 
@@ -94,6 +95,7 @@ private:
   prach_scheduler               prach_sch;
   pucch_allocator_impl          pucch_alloc;
   uci_allocator_impl            uci_alloc;
+  srs_allocator_impl            srs_alloc;
   paging_scheduler              pg_sch;
 
   /// Reference to UE scheduler whose DU cell group contains this cell.

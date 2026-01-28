@@ -84,7 +84,8 @@ void build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
                            const dl_harq_process_handle& h_dl,
                            unsigned                      nof_layers,
                            uint8_t                       tpc,
-                           bool                          enable_interleaving);
+                           bool                          enable_interleaving,
+                           unsigned                      srs_request);
 
 /// Builds DCI f0_0 for TC-RNTI, used in Msg3 retxs.
 void build_dci_f0_0_tc_rnti(dci_ul_info&               dci,
@@ -119,6 +120,7 @@ void build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
                            unsigned                      nof_layers,
                            unsigned                      tpmi,
                            uint8_t                       tpc_command,
-                           std::optional<bool>           csi_request);
+                           std::optional<bool>           csi_request,
+                           unsigned                      srs_request);
 
 } // namespace ocudu

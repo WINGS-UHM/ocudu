@@ -34,7 +34,8 @@ set(SOURCES
         scheduler_factory.cpp
         scheduler_impl.cpp
         support/csi_rs_helper.cpp
-        support/pusch/pusch_td_resource_indices.cpp)
+        support/pusch/pusch_td_resource_indices.cpp
+        srs/srs_allocator_impl.cpp)
 
 add_library(ocudu_sched STATIC ${SOURCES}
         $<TARGET_OBJECTS:sched_config_manager>

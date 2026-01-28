@@ -33,11 +33,13 @@ cell_scheduler::cell_scheduler(const scheduler_expert_config&                  s
   prach_sch(cell_cfg),
   pucch_alloc(cell_cfg, sched_cfg.ue.max_pucchs_per_slot, sched_cfg.ue.max_ul_grants_per_slot),
   uci_alloc(pucch_alloc),
+  // The SRS allocator is only used if srs_prohibit_time is set.
+  srs_alloc(cell_cfg, sched_cfg.ue.srs_prohibit_time.value_or(srs_periodicity::sl40)),
   pg_sch(cell_cfg, pdcch_sch)
 {
   // Register new cell in the UE scheduler.
   ue_sched = ue_sched_.add_cell(ue_cell_scheduler_creation_request{
-      msg.cell_index, &pdcch_sch, &pucch_alloc, &uci_alloc, &res_grid, &metrics, &event_logger});
+      msg.cell_index, &pdcch_sch, &pucch_alloc, &uci_alloc, &srs_alloc, &res_grid, &metrics, &event_logger});
 }
 
 void cell_scheduler::handle_si_update_request(const si_scheduling_update_request& msg)
@@ -153,6 +155,9 @@ void cell_scheduler::reset_resource_grid(slot_point sl_tx)
 
   // Reset UCI slot context.
   uci_alloc.slot_indication(sl_tx);
+
+  // Reset SRS slot context.
+  srs_alloc.slot_indication(sl_tx);
 }
 
 void cell_scheduler::start()

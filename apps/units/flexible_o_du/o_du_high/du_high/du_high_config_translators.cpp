@@ -1305,6 +1305,11 @@ static scheduler_expert_config generate_scheduler_expert_config(const du_high_un
   out_cfg.ue.ta_control.update_measurement_ul_sinr_threshold = cell.ta_cfg.ta_update_measurement_ul_sinr_threshold;
   out_cfg.ue.ta_control.outlier_detection_zscore_threshold   = cell.ta_cfg.ta_outlier_detection_zscore_threshold;
   out_cfg.ue.pre_policy_rr_ue_group_size                     = app_sched_expert_cfg.nof_preselected_newtx_ues;
+  const srs_periodicity srs_prohibit_time                    = static_cast<srs_periodicity>(static_cast<unsigned>(
+      static_cast<float>(get_nof_slots_per_subframe(cell.common_scs)) * cell.srs_cfg.srs_period_prohibit_time_ms));
+  // This is only set with aperiodic SRS.
+  out_cfg.ue.srs_prohibit_time =
+      cell.srs_cfg.srs_type_enabled == "aperiodic" ? std::optional<srs_periodicity>(srs_prohibit_time) : std::nullopt;
 
   // PUCCH and scheduler expert parameters.
   out_cfg.ue.max_ul_grants_per_slot                   = cell.ul_common_cfg.max_ul_grants_per_slot;

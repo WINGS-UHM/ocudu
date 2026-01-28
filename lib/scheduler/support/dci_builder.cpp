@@ -224,7 +224,8 @@ void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
                                   const dl_harq_process_handle& h_dl,
                                   unsigned                      nof_layers,
                                   uint8_t                       tpc,
-                                  bool                          enable_interleaving)
+                                  bool                          enable_interleaving,
+                                  unsigned                      srs_request)
 {
   const search_space_info& ss_info = ue_cell_cfg.search_space(ss_id);
   ocudu_assert(not ss_info.cfg->is_common_search_space(), "SearchSpace must be of type UE-Specific SearchSpace");
@@ -241,7 +242,7 @@ void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   dci_1_1_configuration& f1_1 = dci.c_rnti_f1_1;
 
   f1_1.tpc_command             = static_cast<unsigned>(tpc);
-  f1_1.srs_request             = 0;
+  f1_1.srs_request             = srs_request;
   f1_1.dmrs_seq_initialization = 0;
   ocudu_assert(ss_info.bwp->dl_ded.value()->pdsch_cfg->pdsch_mapping_type_a_dmrs.has_value(),
                "No DMRS configured in PDSCH configuration");
@@ -316,7 +317,7 @@ void ocudu::build_dci_f0_0_tc_rnti(dci_ul_info&               dci,
       init_dl_bwp.pdcch_common.coreset0.has_value() ? init_dl_bwp.pdcch_common.coreset0->coreset0_crbs().length() : 0,
       false};
   ocudu_assert(validate_dci_size_config(dci_sz_cfg), "Invalid DCI size configuration for DCI Format 0_0 (TC-RNTI)");
-  dci_sizes dci_sz        = get_dci_sizes(dci_sz_cfg);
+  const dci_sizes dci_sz  = get_dci_sizes(dci_sz_cfg);
   f0_0.payload_size       = dci_sz.format0_0_common_size;
   const vrb_interval vrbs = rb_helper::crb_to_vrb_ul_non_interleaved(crbs, ul_bwp.crbs.start());
   f0_0.frequency_resource =
@@ -387,7 +388,8 @@ void ocudu::build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
                                   unsigned                      nof_layers,
                                   unsigned                      tpmi,
                                   uint8_t                       tpc_command,
-                                  std::optional<bool>           csi_request)
+                                  std::optional<bool>           csi_request,
+                                  unsigned                      srs_request)
 {
   const search_space_info& ss_info = ue_cell_cfg.search_space(ss_id);
   ocudu_assert(not ss_info.cfg->is_common_search_space(), "SearchSpace must be of type UE-Specific SearchSpace");
@@ -404,7 +406,6 @@ void ocudu::build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
 
   f0_1.ul_sul_indicator        = {};
   f0_1.tpc_command             = tpc_command;
-  f0_1.srs_request             = 0;
   f0_1.dmrs_seq_initialization = 0;
   bool use_transform_precoder  = ue_cell_cfg.use_pusch_transform_precoding_dci_0_1();
   f0_1.antenna_ports           = get_pusch_antenna_port_mapping_row_index(
@@ -441,4 +442,6 @@ void ocudu::build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
     // CSI request value of 1 corresponds to the first entry in aperiodicTriggerStateList.
     f0_1.csi_request = *csi_request ? 1 : 0;
   }
+
+  f0_1.srs_request = srs_request;
 }

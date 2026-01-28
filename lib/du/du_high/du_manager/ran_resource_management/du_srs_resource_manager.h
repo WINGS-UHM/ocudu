@@ -19,6 +19,10 @@ namespace odu {
 
 struct cell_group_config;
 
+// Maximum number of SRS resources that can be generated in a cell.
+// [Implementation-defined] We assume each UE has one and only one resource.
+static constexpr unsigned MAX_NOF_CELL_SRS_RES = MAX_NOF_DU_UES;
+
 /// This abstract class defines the methods that the DU SRS resource manager must implement. The implementation of this
 /// class defines different policies for the SRS allocation.
 class du_srs_resource_manager

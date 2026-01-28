@@ -17,6 +17,11 @@
 
 namespace ocudu {
 
+/// Maximum number of slots that can be contained in a TDD period.
+/// \remark This is based on the maximum pattern periodicity (10ms, as per \c TDD-UL-DL-ConfigCommon, TS 38.331),
+/// 2 patterns, and SCS 240kHz.
+constexpr unsigned MAX_NOF_SLOTS_IN_TDD_PERIOD = 320;
+
 /// \remark See TS 38.331, "TDD-UL-DL-Pattern".
 struct tdd_ul_dl_pattern {
   /// Periodicity of the DL-UL pattern.

@@ -92,7 +92,6 @@ public:
   void                                    update_c_rnti(rnti_t crnti) override;
   rrc_cell_context                        get_cell_context() const override { return context.cell; }
   std::optional<cu_cp_five_g_s_tmsi>      get_five_g_s_tmsi() const override { return context.five_g_s_tmsi; }
-  std::optional<rrc_inactivity_context>   get_inactivity_context() const override { return context.inactivity_context; }
   void                                    update_cell_group_config(byte_buffer cell_group_config) override;
   byte_buffer&                            get_cell_group_config() override { return context.cell_group_config; }
 

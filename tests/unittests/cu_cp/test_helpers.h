@@ -804,12 +804,6 @@ public:
     return cu_cp_five_g_s_tmsi{};
   }
 
-  std::optional<rrc_inactivity_context> get_inactivity_context() const override
-  {
-    logger.info("Received a new request to get RRC UE inactivity context");
-    return std::nullopt;
-  }
-
   void update_cell_group_config(byte_buffer cell_group_config) override
   {
     logger.info("Received a new request to update packed cell group config");

@@ -473,10 +473,6 @@ public:
   /// \returns The 5G-S-TMSI.
   virtual std::optional<cu_cp_five_g_s_tmsi> get_five_g_s_tmsi() const = 0;
 
-  /// \brief Get the inactivity context of the RRC UE.
-  /// \returns The inactivity context.
-  virtual std::optional<rrc_inactivity_context> get_inactivity_context() const = 0;
-
   /// \brief Update the packed RRC cell group config.
   /// \param[in] cell_group_config The new packed RRC cell group config.
   virtual void update_cell_group_config(byte_buffer cell_group_config) = 0;

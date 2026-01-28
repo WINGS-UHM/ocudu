@@ -216,20 +216,36 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
     ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", msg.ue_index);
 
     if (ue->get_handover_ue_release_timer().is_running()) {
-      logger.debug("ue={}: Ignoring UE inactivity. Cause: Ongoing handover for this UE", msg.ue_index);
+      logger.debug("ue={}: Ignoring Bearer Context Inactivity Notification. Cause: Ongoing handover for this UE",
+                   msg.ue_index);
       return;
     }
 
-    if (cfg.ue.enable_rrc_inactive && ue->get_rrc_ue()->is_rrc_inactive_supported()) {
+    auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+    if (ngap == nullptr) {
+      logger.warning("ue={}: Dropping Bearer Context Inactivity Notification. NGAP not found for plmn={}",
+                     msg.ue_index,
+                     ue->get_ue_context().plmn);
+      return;
+    }
+
+    // Get Core Network Assist Info for Inactive if present.
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive =
+        ngap->get_cn_assist_info_for_inactive(msg.ue_index);
+
+    // Get 5G-S-TMSI if present.
+    std::optional<cu_cp_five_g_s_tmsi> five_g_s_tmsi = ue->get_rrc_ue()->get_five_g_s_tmsi();
+
+    // To set the UE as inactive, the following conditions must be met:
+    // 1. RRC Inactive must be configured in CU-CP.
+    // 2. RRC Inactive must be supported by the UE.
+    // 3. Either a 5G-S-TMSI from the UE must have been received during RRC Setup or the Core Network Assist Info for
+    //    Inactive from the AMF must be present. Otherwise the RAN Paging procedure cannot be performed.
+    if (cfg.ue.enable_rrc_inactive && ue->get_rrc_ue()->is_rrc_inactive_supported() &&
+        (cn_assist_info_for_inactive.has_value() || five_g_s_tmsi.has_value())) {
       // Set UE as inactive.
       std::optional<i_rntis_t> i_rntis = ue_mng.set_inactive(ue->get_ue_index());
       if (i_rntis.has_value()) {
-        auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
-        if (ngap == nullptr) {
-          logger.warning("NGAP not found for plmn={}", ue->get_ue_context().plmn);
-          return;
-        }
-
         logger.debug("ue={}: Set UE as inactive with {} {}",
                      msg.ue_index,
                      i_rntis.value().short_i_rnti,
@@ -262,9 +278,15 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
       }
     } else {
       // Inactivity is not possible, so the UE must be released.
-      logger.debug("ue={}: Releasing UE due to inactivity notification. RRC Inactive is not {}",
-                   msg.ue_index,
-                   cfg.ue.enable_rrc_inactive ? "supported by the UE" : "configured");
+      if (!cfg.ue.enable_rrc_inactive || !ue->get_rrc_ue()->is_rrc_inactive_supported()) {
+        logger.debug("ue={}: Releasing UE due to inactivity notification. RRC Inactive is not {}",
+                     msg.ue_index,
+                     cfg.ue.enable_rrc_inactive ? "supported by the UE" : "configured");
+      } else {
+        logger.debug("ue={}: Releasing UE due to inactivity notification. RRC Inactive is not possible without "
+                     "5G-S-TMSI or Core Network Assist Info for Inactive",
+                     msg.ue_index);
+      }
 
       cu_cp_ue_context_release_request req;
       req.ue_index = msg.ue_index;
@@ -294,34 +316,52 @@ void cu_cp_impl::handle_dl_data_notification(ue_index_t ue_index)
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
   ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
 
-  std::optional<rrc_inactivity_context> inactivity_context = ue->get_rrc_ue()->get_inactivity_context();
-
-  if (!inactivity_context.has_value()) {
-    logger.warning("ue={}: Dropping DL Data Notification. Inactivity context not available", ue_index);
+  std::optional<full_i_rnti_t> full_i_rnti = ue_mng.get_full_i_rnti(ue_index);
+  if (!full_i_rnti.has_value()) {
+    logger.warning("ue={}: Dropping DL Data Notification. I-RNTI for UE not found", ue_index);
     return;
   }
 
-  if (!std::holds_alternative<std::vector<rrc_plmn_ran_area_cell_t>>(inactivity_context->ran_notification_area_info)) {
-    logger.warning("ue={}: Dropping DL Data Notification. RAN notification area info not available", ue_index);
+  auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+  if (ngap == nullptr) {
+    logger.warning(
+        "ue={}: Dropping DL Data Notification. NGAP not found for plmn={}", ue_index, ue->get_ue_context().plmn);
     return;
   }
+
+  // Get Core Network Assist Info for Inactive if present.
+  std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive =
+      ngap->get_cn_assist_info_for_inactive(ue_index);
 
   // Fill paging message.
   cu_cp_paging_message cu_cp_paging_msg;
 
-  std::optional<cu_cp_five_g_s_tmsi> five_g_s_tmsi = ue->get_rrc_ue()->get_five_g_s_tmsi();
-  if (five_g_s_tmsi.has_value()) {
-    // UE Identity Index value is defined as: UE_ID 5G-S-TMSI mod 1024 (see TS 38.304 section 7.1).
-    cu_cp_paging_msg.ue_id_idx_value = five_g_s_tmsi->to_number() % 1024;
+  if (cn_assist_info_for_inactive.has_value()) {
+    cu_cp_paging_msg.ue_id_idx_value = cn_assist_info_for_inactive->ue_id_idx_value;
+    cu_cp_paging_msg.paging_drx      = cn_assist_info_for_inactive->ue_specific_drx;
+  } else {
+    std::optional<cu_cp_five_g_s_tmsi> five_g_s_tmsi = ue->get_rrc_ue()->get_five_g_s_tmsi();
+    if (five_g_s_tmsi.has_value()) {
+      // UE Identity Index value is defined as: UE_ID 5G-S-TMSI mod 1024 (see TS 38.304 section 7.1).
+      cu_cp_paging_msg.ue_id_idx_value = five_g_s_tmsi->to_number() % 1024;
+    }
   }
-  cu_cp_paging_msg.ue_paging_id = inactivity_context->i_rntis.full_i_rnti;
-  cu_cp_paging_msg.paging_drx   = inactivity_context->ran_paging_cycle;
+
+  cu_cp_paging_msg.ue_paging_id = full_i_rnti.value();
+
+  if (!cu_cp_paging_msg.paging_drx.has_value()) {
+    // Use RAN configured paging DRX if not available from CN assist info.
+    cu_cp_paging_msg.paging_drx = cfg.ue.ran_paging_cycle;
+  }
+
   cu_cp_paging_msg.assist_data_for_paging.emplace();
   cu_cp_paging_msg.assist_data_for_paging->assist_data_for_recommended_cells.emplace();
 
+  du_processor& du_proc = du_db.get_du_processor(ue->get_du_index());
+
   // Add recommended cells for paging.
-  for (const auto& ran_area_cell :
-       std::get<std::vector<rrc_plmn_ran_area_cell_t>>(inactivity_context->ran_notification_area_info)) {
+  // Note: Currently only RAN area cells are supported.
+  for (const auto& ran_area_cell : du_proc.get_rrc_du_handler().get_ran_area_cells()) {
     if (!ran_area_cell.plmn_id.has_value()) {
       logger.warning("ue={}: Dropping DL Data Notification. PLMN ID not available in RAN area cell", ue_index);
       continue;

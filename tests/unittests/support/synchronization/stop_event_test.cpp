@@ -14,28 +14,33 @@
 
 using namespace ocudu;
 
+template <typename T>
 class stop_event_test : public ::testing::Test
 {
 protected:
+  using Type = T;
   std::vector<std::unique_ptr<std::thread>> workers;
-  stop_event_source                         ev;
+  Type                                      ev;
 };
 
-TEST_F(stop_event_test, no_observers_stop_is_noop)
+using stop_event_types = ::testing::Types<stop_event_source, rt_stop_event_source>;
+TYPED_TEST_SUITE(stop_event_test, stop_event_types);
+
+TYPED_TEST(stop_event_test, no_observers_stop_is_noop)
 {
-  ev.stop();
+  this->ev.stop();
 }
 
-TEST_F(stop_event_test, stop_blocks_until_observer_is_reset)
+TYPED_TEST(stop_event_test, stop_blocks_until_observer_is_reset)
 {
-  auto obs = ev.get_token();
+  auto obs = this->ev.get_token();
 
   ASSERT_FALSE(obs.is_stop_requested());
 
   // Call stop from another thread to avoid deadlock.
   std::atomic<bool> finished{false};
-  workers.push_back(std::make_unique<std::thread>([this, &finished]() {
-    ev.stop();
+  this->workers.push_back(std::make_unique<std::thread>([this, &finished]() {
+    this->ev.stop();
     finished = true;
   }));
 
@@ -47,23 +52,23 @@ TEST_F(stop_event_test, stop_blocks_until_observer_is_reset)
 
   // Now stop() will unlock.
   obs.reset();
-  workers[0]->join();
+  this->workers[0]->join();
   ASSERT_TRUE(finished);
 }
 
-TEST_F(stop_event_test, multiple_stop_block_until_all_observers_are_reset)
+TYPED_TEST(stop_event_test, multiple_stop_block_until_all_observers_are_reset)
 {
-  std::vector<stop_event_token> observers;
-  const int                     num_observers = 10;
-  const int                     num_stoppers  = 5;
+  std::vector<std::invoke_result_t<decltype(&TestFixture::Type::get_token), typename TestFixture::Type>> observers;
+  const int num_observers = 10;
+  const int num_stoppers  = 5;
 
   for (int i = 0; i < num_observers; i++) {
-    observers.emplace_back(ev.get_token());
+    observers.emplace_back(this->ev.get_token());
   }
   std::vector<std::atomic<bool>> finished(num_stoppers);
   for (int i = 0; i < num_stoppers; i++) {
-    workers.push_back(std::make_unique<std::thread>([this, &finished, i]() {
-      ev.stop();
+    this->workers.push_back(std::make_unique<std::thread>([this, &finished, i]() {
+      this->ev.stop();
       finished[i] = true;
     }));
   }
@@ -90,42 +95,42 @@ TEST_F(stop_event_test, multiple_stop_block_until_all_observers_are_reset)
   // All stoppers should unlock now.
   observers[num_observers - 1].reset();
   for (int i = 0; i != num_stoppers; i++) {
-    workers[i]->join();
+    this->workers[i]->join();
     ASSERT_TRUE(finished[i]) << "All stoppers should have finished now";
   }
 }
 
-TEST_F(stop_event_test, reset_on_event_not_stopped_is_noop)
+TYPED_TEST(stop_event_test, reset_on_event_not_stopped_is_noop)
 {
-  auto obs = ev.get_token();
-  ASSERT_EQ(ev.nof_tokens_approx(), 1);
-  ev.reset();
-  ASSERT_EQ(ev.nof_tokens_approx(), 1);
+  auto obs = this->ev.get_token();
+  ASSERT_EQ(this->ev.nof_tokens_approx(), 1);
+  this->ev.reset();
+  ASSERT_EQ(this->ev.nof_tokens_approx(), 1);
 }
 
-TEST_F(stop_event_test, reset_waits_for_ungoing_stop)
+TYPED_TEST(stop_event_test, reset_waits_for_ungoing_stop)
 {
-  auto obs = ev.get_token();
-  workers.push_back(std::make_unique<std::thread>([this]() { ev.stop(); }));
+  auto obs = this->ev.get_token();
+  this->workers.push_back(std::make_unique<std::thread>([this]() { this->ev.stop(); }));
   while (not obs.is_stop_requested()) {
     std::this_thread::sleep_for(std::chrono::microseconds(10));
   }
 
   std::atomic<bool> reset_finished{false};
-  workers.push_back(std::make_unique<std::thread>([this, &reset_finished]() {
-    ev.reset();
+  this->workers.push_back(std::make_unique<std::thread>([this, &reset_finished]() {
+    this->ev.reset();
     reset_finished = true;
   }));
 
   ASSERT_FALSE(reset_finished);
   obs.reset();
-  workers[0]->join();
-  workers[1]->join();
+  this->workers[0]->join();
+  this->workers[1]->join();
 }
 
-TEST_F(stop_event_test, token_to_already_stopped_event_is_empty)
+TYPED_TEST(stop_event_test, token_to_already_stopped_event_is_empty)
 {
-  ev.stop();
-  auto obs = ev.get_token();
+  this->ev.stop();
+  auto obs = this->ev.get_token();
   ASSERT_TRUE(obs.is_stop_requested());
 }

@@ -16,15 +16,67 @@
 #include <utility>
 
 namespace ocudu {
+namespace detail {
 
-class stop_event_token;
+/// \brief Blocking policy based on Linux futexes.
+///
+/// This implementation provides a minimal synchronization primitive that allows a waiting thread to block on an atomic
+/// state value and be woken by another thread via a futex wake.
+struct futex_blocker {
+  /// Blocks the calling thread while state == expected.
+  static void wait(std::atomic<uint32_t>& state, uint32_t expected) { futex_util::wait(state, expected); }
+
+  /// Wakes the thread currently waiting on state.
+  static void wake(std::atomic<uint32_t>& state) { futex_util::wake_all(state); }
+
+  void acquire_dtor_guard() { dtor_guard.store(true, std::memory_order_release); }
+  void release_dtor_guard() { dtor_guard.store(false, std::memory_order_release); }
+  void wait_on_dtor_guard()
+  {
+    // Polite spinning in case the token got preempted between the fetch_sub and futex wake.
+    while (dtor_guard.load(std::memory_order_acquire)) {
+      std::this_thread::yield();
+    }
+  }
+
+private:
+  /// Variable used to protect token_count from destruction when token still has to call futex wake.
+  std::atomic<bool> dtor_guard{false};
+};
+
+/// \brief Blocking policy based on busy waiting.
+///
+/// This implementation is a blocking policy that avoids OS-level synchronization primitives. Instead of truly blocking,
+/// waiting threads periodically sleep for a short, fixed duration to reduce CPU consumption while polling for progress.
+///
+/// \note This implementation provides the same interface as other blocking polcies but does not require any wake-up
+/// coordination or destructor-safety mechanisms.
+struct busy_wait_blocker {
+  /// Waits for progress by sleeping for a fixed duration.
+  static void wait(std::atomic<uint32_t>& state, uint32_t expected)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds{1});
+  }
+
+  /// No-op wake operation.
+  static void wake(std::atomic<uint32_t>& state) {}
+
+  /// No-op operations.
+  void acquire_dtor_guard() {}
+  void release_dtor_guard() {}
+  void wait_on_dtor_guard() {}
+};
+
+template <typename BlockPolicy>
+class stop_event_token_impl;
 
 /// \brief Event to signal stop to multiple observers.
 ///
 /// The stop_event blocks on stop() until all observers are gone.
 /// This class is similar to \c sync_event. However, it also supports the ability to notify a stop request that is
 /// visible to the tokens and allows checking if a stop was requested.
-class stop_event_source
+template <typename BlockPolicy>
+class stop_event_source_impl
 {
   static constexpr uint32_t stop_bit   = 1U << 31U;
   static constexpr uint32_t count_mask = stop_bit - 1;
@@ -32,17 +84,14 @@ class stop_event_source
   [[nodiscard]] bool was_stop_requested() const { return token_count.load(std::memory_order_acquire) >= stop_bit; }
 
 public:
-  ~stop_event_source()
+  ~stop_event_source_impl()
   {
     stop();
-    // Polite spinning in case the token got preempted between the fetch_sub and futex wake.
-    while (dtor_guard.load(std::memory_order_acquire)) {
-      std::this_thread::yield();
-    }
+    blocker.wait_on_dtor_guard();
   }
 
   /// Creates a new observer of stop() requests.
-  [[nodiscard]] stop_event_token get_token();
+  [[nodiscard]] stop_event_token_impl<BlockPolicy> get_token();
 
   /// Requests all tokens to stop and blocks until all tokens are reset.
   void stop()
@@ -52,7 +101,7 @@ public:
 
     // Block waiting until all observers are gone.
     while (cur > stop_bit) {
-      futex_util::wait(token_count, cur);
+      BlockPolicy::wait(token_count, cur);
       cur = token_count.load(std::memory_order_acquire);
     }
   }
@@ -64,7 +113,7 @@ public:
     while (cur >= stop_bit) {
       // In case a stop is ongoing (cur > stop_bit), we need to wait until it completes before resetting.
       while (cur > stop_bit) {
-        futex_util::wait(token_count, cur);
+        BlockPolicy::wait(token_count, cur);
         cur = token_count.load(std::memory_order_acquire);
       }
       // cur <= stop_bit, which means that the stop() either completed or was not requested.
@@ -81,32 +130,33 @@ public:
   [[nodiscard]] uint32_t nof_tokens_approx() const { return token_count.load(std::memory_order_relaxed) & count_mask; }
 
 private:
-  friend stop_event_token;
+  friend stop_event_token_impl<BlockPolicy>;
 
   /// State variable composed by 1 MSB bit for signalling stop and 31 LSB bits for counting observers.
   std::atomic<uint32_t> token_count{0};
-  /// Variable used to protect token_count from destruction when token still has to call futex wake.
-  std::atomic<bool> dtor_guard{false};
+  /// Blocking policy implementation.
+  BlockPolicy blocker;
 };
 
 /// \brief Observer of calls to stop() on the associated stop_event_source.
 ///
 /// When it gets reset or destroyed, it notifies the stop_event_source that one observer is gone.
-class stop_event_token
+template <typename BlockPolicy>
+class stop_event_token_impl
 {
   static constexpr uint32_t stop_bit   = 1U << 31U;
   static constexpr uint32_t count_mask = stop_bit - 1;
 
-  friend class stop_event_source;
-  explicit stop_event_token(stop_event_source& parent_) : parent(&parent_) { inc_token(); }
+  friend class stop_event_source_impl<BlockPolicy>;
+  explicit stop_event_token_impl(stop_event_source_impl<BlockPolicy>& parent_) : parent(&parent_) { inc_token(); }
 
 public:
-  stop_event_token() = default;
+  stop_event_token_impl() = default;
 
-  stop_event_token(const stop_event_token& other) : parent(other.parent) { inc_token(); }
-  stop_event_token(stop_event_token&& other) noexcept : parent(std::exchange(other.parent, nullptr)) {}
+  stop_event_token_impl(const stop_event_token_impl& other) : parent(other.parent) { inc_token(); }
+  stop_event_token_impl(stop_event_token_impl&& other) noexcept : parent(std::exchange(other.parent, nullptr)) {}
 
-  stop_event_token& operator=(const stop_event_token& other)
+  stop_event_token_impl& operator=(const stop_event_token_impl& other)
   {
     if (this != &other) {
       reset();
@@ -115,23 +165,23 @@ public:
     }
     return *this;
   }
-  stop_event_token& operator=(stop_event_token&& other) noexcept
+  stop_event_token_impl& operator=(stop_event_token_impl&& other) noexcept
   {
     reset();
     parent = std::exchange(other.parent, nullptr);
     return *this;
   }
 
-  ~stop_event_token()
+  ~stop_event_token_impl()
   {
     if (parent != nullptr) {
       auto cur = parent->token_count.fetch_sub(1, std::memory_order_acq_rel) - 1;
       if ((cur & count_mask) == 0) {
-        // count reached zero.
+        // Count reached zero.
         // Wake all stoppers.
-        futex_util::wake_all(parent->token_count);
+        BlockPolicy::wake(parent->token_count);
         // Update dtor guard.
-        parent->dtor_guard.store(false, std::memory_order_release);
+        parent->blocker.release_dtor_guard();
       }
       parent = nullptr;
     }
@@ -144,9 +194,9 @@ public:
   }
 
   /// Destroys the observer.
-  void reset() { stop_event_token{}.swap(*this); }
+  void reset() { stop_event_token_impl{}.swap(*this); }
 
-  void swap(stop_event_token& other) noexcept { std::swap(parent, other.parent); }
+  void swap(stop_event_token_impl& other) noexcept { std::swap(parent, other.parent); }
 
 private:
   void inc_token()
@@ -157,7 +207,7 @@ private:
     auto prev = parent->token_count.fetch_add(1, std::memory_order_relaxed);
     if ((prev & count_mask) == 0) {
       // Transition from 0 to 1. Update dtor guard.
-      parent->dtor_guard.store(true, std::memory_order_release);
+      parent->blocker.acquire_dtor_guard();
     }
     if (prev & stop_bit) {
       // Stop was already requested. Release token.
@@ -165,12 +215,32 @@ private:
     }
   }
 
-  stop_event_source* parent = nullptr;
+  stop_event_source_impl<BlockPolicy>* parent = nullptr;
 };
 
-inline stop_event_token stop_event_source::get_token()
+template <typename BlockPolicy>
+inline stop_event_token_impl<BlockPolicy> stop_event_source_impl<BlockPolicy>::get_token()
 {
-  return was_stop_requested() ? stop_event_token{} : stop_event_token{*this};
+  return was_stop_requested() ? stop_event_token_impl<BlockPolicy>{} : stop_event_token_impl{*this};
 }
+
+} // namespace detail
+
+/// Type alias for the stop event source when using the futex_blocker blocking policy.
+///
+/// \note Use this type in non realtime contexts where performing syscalls is allowed.
+using stop_event_source = detail::stop_event_source_impl<detail::futex_blocker>;
+
+/// Type alias for the stop event token when using the futex_blocker blocking policy.
+using stop_event_token = detail::stop_event_token_impl<detail::futex_blocker>;
+
+/// Type alias for the stop event source when using the busy_wait_blocker blocking policy.
+///
+/// \note Use this type in realtime contexts where a more lightweight blocking mechanism is desired without requiring
+/// OS-level synchronization primitives.
+using rt_stop_event_source = detail::stop_event_source_impl<detail::busy_wait_blocker>;
+
+/// Type alias for the stop event token when using the busy_wait_blocker blocking policy.
+using rt_stop_event_token = detail::stop_event_token_impl<detail::busy_wait_blocker>;
 
 } // namespace ocudu

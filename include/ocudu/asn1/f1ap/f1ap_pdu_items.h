@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "f1ap_ies.h"
+#include "ocudu/asn1/f1ap/f1ap_ies.h"
 
 namespace asn1 {
 namespace f1ap {
@@ -57,7 +57,7 @@ struct associated_scell_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Associated-SCell-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// Associated-SCell-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using associated_scell_list_l = bounded_array<protocol_ie_single_container_s<associated_scell_item_ies_o>, 32>;
 
 // BAP-Header-Rewriting-Added-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -92,8 +92,7 @@ struct bap_hdr_rewriting_added_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BAP-Header-Rewriting-Added-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BAP-Header-Rewriting-Added-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bap_hdr_rewriting_added_list_l =
     dyn_array<protocol_ie_single_container_s<bap_hdr_rewriting_added_list_item_ies_o>>;
 
@@ -129,8 +128,7 @@ struct bap_hdr_rewriting_remd_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BAP-Header-Rewriting-Removed-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BAP-Header-Rewriting-Removed-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bap_hdr_rewriting_remd_list_l = dyn_array<protocol_ie_single_container_s<bap_hdr_rewriting_remd_list_item_ies_o>>;
 
 // BH-Routing-Information-Added-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -165,6 +163,9 @@ struct bh_routing_info_added_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// BH-Routing-Information-Added-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using bh_routing_info_added_list_l = dyn_array<protocol_ie_single_container_s<bh_routing_info_added_list_item_ies_o>>;
+
 // BH-Routing-Information-Removed-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct bh_routing_info_remd_list_item_ies_o {
   // Value ::= OPEN TYPE
@@ -197,11 +198,7 @@ struct bh_routing_info_remd_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BH-Routing-Information-Added-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using bh_routing_info_added_list_l = dyn_array<protocol_ie_single_container_s<bh_routing_info_added_list_item_ies_o>>;
-
-// BH-Routing-Information-Removed-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
+// BH-Routing-Information-Removed-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
 // IEsSetParam}
 using bh_routing_info_remd_list_l = dyn_array<protocol_ie_single_container_s<bh_routing_info_remd_list_item_ies_o>>;
 
@@ -237,7 +234,7 @@ struct bh_chs_failed_to_be_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-FailedToBeModified-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
+// BHChannels-FailedToBeModified-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
 // IEsSetParam}
 using bh_chs_failed_to_be_modified_list_l =
     dyn_array<protocol_ie_single_container_s<bh_chs_failed_to_be_modified_item_ies_o>>;
@@ -274,8 +271,7 @@ struct bh_chs_failed_to_be_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BHChannels-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bh_chs_failed_to_be_setup_list_l =
     dyn_array<protocol_ie_single_container_s<bh_chs_failed_to_be_setup_item_ies_o>>;
 
@@ -311,7 +307,7 @@ struct bh_chs_failed_to_be_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
+// BHChannels-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
 // IEsSetParam}
 using bh_chs_failed_to_be_setup_mod_list_l =
     dyn_array<protocol_ie_single_container_s<bh_chs_failed_to_be_setup_mod_item_ies_o>>;
@@ -348,8 +344,7 @@ struct bh_chs_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-Modified-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BHChannels-Modified-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bh_chs_modified_list_l = dyn_array<protocol_ie_single_container_s<bh_chs_modified_item_ies_o>>;
 
 // BHChannels-Required-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -384,8 +379,8 @@ struct bh_chs_required_to_be_released_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-Required-ToBeReleased-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES
-// : IEsSetParam}
+// BHChannels-Required-ToBeReleased-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
 using bh_chs_required_to_be_released_list_l =
     dyn_array<protocol_ie_single_container_s<bh_chs_required_to_be_released_item_ies_o>>;
 
@@ -421,7 +416,7 @@ struct bh_chs_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-Setup-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// BHChannels-Setup-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bh_chs_setup_list_l = dyn_array<protocol_ie_single_container_s<bh_chs_setup_item_ies_o>>;
 
 // BHChannels-SetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -456,8 +451,7 @@ struct bh_chs_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-SetupMod-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BHChannels-SetupMod-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bh_chs_setup_mod_list_l = dyn_array<protocol_ie_single_container_s<bh_chs_setup_mod_item_ies_o>>;
 
 // BHChannels-ToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -492,8 +486,7 @@ struct bh_chs_to_be_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-ToBeModified-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BHChannels-ToBeModified-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bh_chs_to_be_modified_list_l = dyn_array<protocol_ie_single_container_s<bh_chs_to_be_modified_item_ies_o>>;
 
 // BHChannels-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -528,8 +521,7 @@ struct bh_chs_to_be_released_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-ToBeReleased-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BHChannels-ToBeReleased-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bh_chs_to_be_released_list_l = dyn_array<protocol_ie_single_container_s<bh_chs_to_be_released_item_ies_o>>;
 
 // BHChannels-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -564,8 +556,7 @@ struct bh_chs_to_be_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-ToBeSetup-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BHChannels-ToBeSetup-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bh_chs_to_be_setup_list_l = dyn_array<protocol_ie_single_container_s<bh_chs_to_be_setup_item_ies_o>>;
 
 // BHChannels-ToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -600,8 +591,7 @@ struct bh_chs_to_be_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BHChannels-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BHChannels-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using bh_chs_to_be_setup_mod_list_l = dyn_array<protocol_ie_single_container_s<bh_chs_to_be_setup_mod_item_ies_o>>;
 
 // Broadcast-To-Be-Cancelled-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -636,74 +626,9 @@ struct broadcast_to_be_cancelled_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Broadcast-To-Be-Cancelled-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// Broadcast-To-Be-Cancelled-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using broadcast_to_be_cancelled_list_l =
     dyn_array<protocol_ie_single_container_s<broadcast_to_be_cancelled_list_item_ies_o>>;
-
-// BroadcastMRBs-ToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct broadcast_m_rbs_to_be_modified_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { broadcast_m_rbs_to_be_modified_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::broadcast_m_rbs_to_be_modified_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    broadcast_m_rbs_to_be_modified_item_s&       broadcast_m_rbs_to_be_modified_item() { return c; }
-    const broadcast_m_rbs_to_be_modified_item_s& broadcast_m_rbs_to_be_modified_item() const { return c; }
-
-  private:
-    broadcast_m_rbs_to_be_modified_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// BroadcastMRBs-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct broadcast_m_rbs_to_be_released_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { broadcast_m_rbs_to_be_released_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::broadcast_m_rbs_to_be_released_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    broadcast_m_rbs_to_be_released_item_s&       broadcast_m_rbs_to_be_released_item() { return c; }
-    const broadcast_m_rbs_to_be_released_item_s& broadcast_m_rbs_to_be_released_item() const { return c; }
-
-  private:
-    broadcast_m_rbs_to_be_released_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
 
 // BroadcastMRBs-ToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct broadcast_m_rbs_to_be_setup_mod_item_ies_o {
@@ -737,43 +662,32 @@ struct broadcast_m_rbs_to_be_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BroadcastMRBs-ToBeModified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using broadcast_m_rbs_to_be_modified_list_l =
-    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_to_be_modified_item_ies_o>, 32>;
-
-// BroadcastMRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using broadcast_m_rbs_to_be_released_list_l =
-    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_to_be_released_item_ies_o>, 32>;
-
-// BroadcastMRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BroadcastMRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using broadcast_m_rbs_to_be_setup_mod_list_l =
     bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_to_be_setup_mod_item_ies_o>, 32>;
 
-// BroadcastMRBs-FailedToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct broadcast_m_rbs_failed_to_be_modified_item_ies_o {
+// BroadcastMRBs-ToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct broadcast_m_rbs_to_be_modified_item_ies_o {
   // Value ::= OPEN TYPE
   struct value_c {
     struct types_opts {
-      enum options { broadcast_m_rbs_failed_to_be_modified_item, nulltype } value;
+      enum options { broadcast_m_rbs_to_be_modified_item, nulltype } value;
 
       const char* to_string() const;
     };
     using types = enumerated<types_opts>;
 
     // choice methods
-    types         type() const { return types::broadcast_m_rbs_failed_to_be_modified_item; }
+    types         type() const { return types::broadcast_m_rbs_to_be_modified_item; }
     OCUDUASN_CODE pack(bit_ref& bref) const;
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    broadcast_m_rbs_failed_to_be_modified_item_s&       broadcast_m_rbs_failed_to_be_modified_item() { return c; }
-    const broadcast_m_rbs_failed_to_be_modified_item_s& broadcast_m_rbs_failed_to_be_modified_item() const { return c; }
+    broadcast_m_rbs_to_be_modified_item_s&       broadcast_m_rbs_to_be_modified_item() { return c; }
+    const broadcast_m_rbs_to_be_modified_item_s& broadcast_m_rbs_to_be_modified_item() const { return c; }
 
   private:
-    broadcast_m_rbs_failed_to_be_modified_item_s c;
+    broadcast_m_rbs_to_be_modified_item_s c;
   };
 
   // members lookup methods
@@ -783,6 +697,82 @@ struct broadcast_m_rbs_failed_to_be_modified_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// BroadcastMRBs-ToBeModified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using broadcast_m_rbs_to_be_modified_list_l =
+    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_to_be_modified_item_ies_o>, 32>;
+
+// BroadcastMRBs-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct broadcast_m_rbs_to_be_released_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { broadcast_m_rbs_to_be_released_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::broadcast_m_rbs_to_be_released_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    broadcast_m_rbs_to_be_released_item_s&       broadcast_m_rbs_to_be_released_item() { return c; }
+    const broadcast_m_rbs_to_be_released_item_s& broadcast_m_rbs_to_be_released_item() const { return c; }
+
+  private:
+    broadcast_m_rbs_to_be_released_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// BroadcastMRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using broadcast_m_rbs_to_be_released_list_l =
+    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_to_be_released_item_ies_o>, 32>;
+
+// BroadcastMRBs-SetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct broadcast_m_rbs_setup_mod_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { broadcast_m_rbs_setup_mod_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::broadcast_m_rbs_setup_mod_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    broadcast_m_rbs_setup_mod_item_s&       broadcast_m_rbs_setup_mod_item() { return c; }
+    const broadcast_m_rbs_setup_mod_item_s& broadcast_m_rbs_setup_mod_item() const { return c; }
+
+  private:
+    broadcast_m_rbs_setup_mod_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// BroadcastMRBs-SetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using broadcast_m_rbs_setup_mod_list_l =
+    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_setup_mod_item_ies_o>, 32>;
 
 // BroadcastMRBs-FailedToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o {
@@ -819,6 +809,11 @@ struct broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// BroadcastMRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using broadcast_m_rbs_failed_to_be_setup_mod_list_l =
+    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o>, 32>;
+
 // BroadcastMRBs-Modified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct broadcast_m_rbs_modified_item_ies_o {
   // Value ::= OPEN TYPE
@@ -851,28 +846,32 @@ struct broadcast_m_rbs_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BroadcastMRBs-SetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct broadcast_m_rbs_setup_mod_item_ies_o {
+// BroadcastMRBs-Modified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using broadcast_m_rbs_modified_list_l =
+    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_modified_item_ies_o>, 32>;
+
+// BroadcastMRBs-FailedToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct broadcast_m_rbs_failed_to_be_modified_item_ies_o {
   // Value ::= OPEN TYPE
   struct value_c {
     struct types_opts {
-      enum options { broadcast_m_rbs_setup_mod_item, nulltype } value;
+      enum options { broadcast_m_rbs_failed_to_be_modified_item, nulltype } value;
 
       const char* to_string() const;
     };
     using types = enumerated<types_opts>;
 
     // choice methods
-    types         type() const { return types::broadcast_m_rbs_setup_mod_item; }
+    types         type() const { return types::broadcast_m_rbs_failed_to_be_modified_item; }
     OCUDUASN_CODE pack(bit_ref& bref) const;
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    broadcast_m_rbs_setup_mod_item_s&       broadcast_m_rbs_setup_mod_item() { return c; }
-    const broadcast_m_rbs_setup_mod_item_s& broadcast_m_rbs_setup_mod_item() const { return c; }
+    broadcast_m_rbs_failed_to_be_modified_item_s&       broadcast_m_rbs_failed_to_be_modified_item() { return c; }
+    const broadcast_m_rbs_failed_to_be_modified_item_s& broadcast_m_rbs_failed_to_be_modified_item() const { return c; }
 
   private:
-    broadcast_m_rbs_setup_mod_item_s c;
+    broadcast_m_rbs_failed_to_be_modified_item_s c;
   };
 
   // members lookup methods
@@ -883,25 +882,10 @@ struct broadcast_m_rbs_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BroadcastMRBs-FailedToBeModified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
+// BroadcastMRBs-FailedToBeModified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
 // IEsSetParam}
 using broadcast_m_rbs_failed_to_be_modified_list_l =
     bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_failed_to_be_modified_item_ies_o>, 32>;
-
-// BroadcastMRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using broadcast_m_rbs_failed_to_be_setup_mod_list_l =
-    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o>, 32>;
-
-// BroadcastMRBs-Modified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using broadcast_m_rbs_modified_list_l =
-    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_modified_item_ies_o>, 32>;
-
-// BroadcastMRBs-SetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using broadcast_m_rbs_setup_mod_list_l =
-    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_setup_mod_item_ies_o>, 32>;
 
 // BroadcastMRBs-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct broadcast_m_rbs_to_be_setup_item_ies_o {
@@ -935,42 +919,9 @@ struct broadcast_m_rbs_to_be_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BroadcastMRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// BroadcastMRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using broadcast_m_rbs_to_be_setup_list_l =
     bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_to_be_setup_item_ies_o>, 32>;
-
-// BroadcastMRBs-FailedToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct broadcast_m_rbs_failed_to_be_setup_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { broadcast_m_rbs_failed_to_be_setup_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::broadcast_m_rbs_failed_to_be_setup_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    broadcast_m_rbs_failed_to_be_setup_item_s&       broadcast_m_rbs_failed_to_be_setup_item() { return c; }
-    const broadcast_m_rbs_failed_to_be_setup_item_s& broadcast_m_rbs_failed_to_be_setup_item() const { return c; }
-
-  private:
-    broadcast_m_rbs_failed_to_be_setup_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
 
 // BroadcastMRBs-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct broadcast_m_rbs_setup_item_ies_o {
@@ -1004,14 +955,45 @@ struct broadcast_m_rbs_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// BroadcastMRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using broadcast_m_rbs_failed_to_be_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_failed_to_be_setup_item_ies_o>, 32>;
-
-// BroadcastMRBs-Setup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// BroadcastMRBs-Setup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using broadcast_m_rbs_setup_list_l =
     bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_setup_item_ies_o>, 32>;
+
+// BroadcastMRBs-FailedToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct broadcast_m_rbs_failed_to_be_setup_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { broadcast_m_rbs_failed_to_be_setup_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::broadcast_m_rbs_failed_to_be_setup_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    broadcast_m_rbs_failed_to_be_setup_item_s&       broadcast_m_rbs_failed_to_be_setup_item() { return c; }
+    const broadcast_m_rbs_failed_to_be_setup_item_s& broadcast_m_rbs_failed_to_be_setup_item() const { return c; }
+
+  private:
+    broadcast_m_rbs_failed_to_be_setup_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// BroadcastMRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using broadcast_m_rbs_failed_to_be_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<broadcast_m_rbs_failed_to_be_setup_item_ies_o>, 32>;
 
 // Candidate-SpCell-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct candidate_sp_cell_item_ies_o {
@@ -1045,7 +1027,7 @@ struct candidate_sp_cell_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Candidate-SpCell-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// Candidate-SpCell-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using candidate_sp_cell_list_l = dyn_array<protocol_ie_single_container_s<candidate_sp_cell_item_ies_o>>;
 
 // Cells-Broadcast-Cancelled-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1080,8 +1062,7 @@ struct cells_broadcast_cancelled_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Cells-Broadcast-Cancelled-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// Cells-Broadcast-Cancelled-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using cells_broadcast_cancelled_list_l =
     dyn_array<protocol_ie_single_container_s<cells_broadcast_cancelled_list_item_ies_o>>;
 
@@ -1117,8 +1098,7 @@ struct cells_broadcast_completed_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Cells-Broadcast-Completed-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// Cells-Broadcast-Completed-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using cells_broadcast_completed_list_l =
     dyn_array<protocol_ie_single_container_s<cells_broadcast_completed_list_item_ies_o>>;
 
@@ -1154,8 +1134,7 @@ struct cells_failed_to_be_activ_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Cells-Failed-to-be-Activated-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// Cells-Failed-to-be-Activated-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using cells_failed_to_be_activ_list_l =
     dyn_array<protocol_ie_single_container_s<cells_failed_to_be_activ_list_item_ies_o>>;
 
@@ -1191,7 +1170,7 @@ struct cells_status_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Cells-Status-List ::= SEQUENCE (SIZE (0..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// Cells-Status-List ::= SEQUENCE (SIZE (0..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using cells_status_list_l = dyn_array<protocol_ie_single_container_s<cells_status_item_ies_o>>;
 
 // Cells-To-Be-Broadcast-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1226,8 +1205,7 @@ struct cells_to_be_broadcast_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Cells-To-Be-Broadcast-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// Cells-To-Be-Broadcast-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using cells_to_be_broadcast_list_l = dyn_array<protocol_ie_single_container_s<cells_to_be_broadcast_list_item_ies_o>>;
 
 // Cells-to-be-Activated-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1262,8 +1240,7 @@ struct cells_to_be_activ_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Cells-to-be-Activated-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// Cells-to-be-Activated-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using cells_to_be_activ_list_l = dyn_array<protocol_ie_single_container_s<cells_to_be_activ_list_item_ies_o>>;
 
 // Cells-to-be-Barred-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1298,7 +1275,7 @@ struct cells_to_be_barred_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Cells-to-be-Barred-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// Cells-to-be-Barred-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using cells_to_be_barred_list_l = dyn_array<protocol_ie_single_container_s<cells_to_be_barred_item_ies_o>>;
 
 // Cells-to-be-Deactivated-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1333,8 +1310,7 @@ struct cells_to_be_deactiv_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Cells-to-be-Deactivated-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// Cells-to-be-Deactivated-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using cells_to_be_deactiv_list_l = dyn_array<protocol_ie_single_container_s<cells_to_be_deactiv_list_item_ies_o>>;
 
 // DL-UP-TNL-Address-to-Update-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1369,8 +1345,7 @@ struct dl_up_tnl_address_to_upd_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DL-UP-TNL-Address-to-Update-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// DL-UP-TNL-Address-to-Update-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using dl_up_tnl_address_to_upd_list_l =
     bounded_array<protocol_ie_single_container_s<dl_up_tnl_address_to_upd_list_item_ies_o>, 8>;
 
@@ -1406,7 +1381,7 @@ struct drb_activity_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRB-Activity-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRB-Activity-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drb_activity_list_l = dyn_array<protocol_ie_single_container_s<drb_activity_item_ies_o>>;
 
 // DRB-Notify-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1441,7 +1416,7 @@ struct drb_notify_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRB-Notify-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRB-Notify-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drb_notify_list_l = dyn_array<protocol_ie_single_container_s<drb_notify_item_ies_o>>;
 
 // DRBs-FailedToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1476,8 +1451,7 @@ struct drbs_failed_to_be_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-FailedToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// DRBs-FailedToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_failed_to_be_modified_list_l =
     dyn_array<protocol_ie_single_container_s<drbs_failed_to_be_modified_item_ies_o>>;
 
@@ -1513,7 +1487,7 @@ struct drbs_failed_to_be_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_failed_to_be_setup_list_l = dyn_array<protocol_ie_single_container_s<drbs_failed_to_be_setup_item_ies_o>>;
 
 // DRBs-FailedToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1548,8 +1522,7 @@ struct drbs_failed_to_be_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// DRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_failed_to_be_setup_mod_list_l =
     dyn_array<protocol_ie_single_container_s<drbs_failed_to_be_setup_mod_item_ies_o>>;
 
@@ -1585,7 +1558,7 @@ struct drbs_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-Modified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRBs-Modified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_modified_list_l = dyn_array<protocol_ie_single_container_s<drbs_modified_item_ies_o>>;
 
 // DRBs-ModifiedConf-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1620,7 +1593,7 @@ struct drbs_modified_conf_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-ModifiedConf-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRBs-ModifiedConf-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_modified_conf_list_l = dyn_array<protocol_ie_single_container_s<drbs_modified_conf_item_ies_o>>;
 
 // DRBs-Required-ToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1655,8 +1628,7 @@ struct drbs_required_to_be_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-Required-ToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// DRBs-Required-ToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_required_to_be_modified_list_l =
     dyn_array<protocol_ie_single_container_s<drbs_required_to_be_modified_item_ies_o>>;
 
@@ -1692,8 +1664,7 @@ struct drbs_required_to_be_released_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-Required-ToBeReleased-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
+// DRBs-Required-ToBeReleased-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_required_to_be_released_list_l =
     dyn_array<protocol_ie_single_container_s<drbs_required_to_be_released_item_ies_o>>;
 
@@ -1729,7 +1700,7 @@ struct drbs_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-Setup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRBs-Setup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_setup_list_l = dyn_array<protocol_ie_single_container_s<drbs_setup_item_ies_o>>;
 
 // DRBs-SetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1764,7 +1735,7 @@ struct drbs_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-SetupMod-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRBs-SetupMod-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_setup_mod_list_l = dyn_array<protocol_ie_single_container_s<drbs_setup_mod_item_ies_o>>;
 
 // DRBs-ToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1799,7 +1770,7 @@ struct drbs_to_be_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-ToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRBs-ToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_to_be_modified_list_l = dyn_array<protocol_ie_single_container_s<drbs_to_be_modified_item_ies_o>>;
 
 // DRBs-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1834,7 +1805,7 @@ struct drbs_to_be_released_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_to_be_released_list_l = dyn_array<protocol_ie_single_container_s<drbs_to_be_released_item_ies_o>>;
 
 // DRBs-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1869,7 +1840,7 @@ struct drbs_to_be_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_to_be_setup_list_l = dyn_array<protocol_ie_single_container_s<drbs_to_be_setup_item_ies_o>>;
 
 // DRBs-ToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1904,7 +1875,7 @@ struct drbs_to_be_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// DRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
+// DRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using drbs_to_be_setup_mod_list_l = dyn_array<protocol_ie_single_container_s<drbs_to_be_setup_mod_item_ies_o>>;
 
 // Dedicated-SIDelivery-NeededUE-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1939,170 +1910,10 @@ struct ded_si_delivery_needed_ue_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Dedicated-SIDelivery-NeededUE-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
+// Dedicated-SIDelivery-NeededUE-List ::= SEQUENCE (SIZE (1..65536)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
 // IEsSetParam}
 using ded_si_delivery_needed_ue_list_l =
     dyn_array<protocol_ie_single_container_s<ded_si_delivery_needed_ue_item_ies_o>>;
-
-// GNB-CU-TNL-Association-Failed-To-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct gnb_cu_tnl_assoc_failed_to_setup_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { gnb_cu_tnl_assoc_failed_to_setup_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::gnb_cu_tnl_assoc_failed_to_setup_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    gnb_cu_tnl_assoc_failed_to_setup_item_s&       gnb_cu_tnl_assoc_failed_to_setup_item() { return c; }
-    const gnb_cu_tnl_assoc_failed_to_setup_item_s& gnb_cu_tnl_assoc_failed_to_setup_item() const { return c; }
-
-  private:
-    gnb_cu_tnl_assoc_failed_to_setup_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// GNB-CU-TNL-Association-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct gnb_cu_tnl_assoc_setup_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { gnb_cu_tnl_assoc_setup_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::gnb_cu_tnl_assoc_setup_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    gnb_cu_tnl_assoc_setup_item_s&       gnb_cu_tnl_assoc_setup_item() { return c; }
-    const gnb_cu_tnl_assoc_setup_item_s& gnb_cu_tnl_assoc_setup_item() const { return c; }
-
-  private:
-    gnb_cu_tnl_assoc_setup_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// GNB-CU-TNL-Association-To-Add-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct gnb_cu_tnl_assoc_to_add_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { gnb_cu_tnl_assoc_to_add_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::gnb_cu_tnl_assoc_to_add_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    gnb_cu_tnl_assoc_to_add_item_s&       gnb_cu_tnl_assoc_to_add_item() { return c; }
-    const gnb_cu_tnl_assoc_to_add_item_s& gnb_cu_tnl_assoc_to_add_item() const { return c; }
-
-  private:
-    gnb_cu_tnl_assoc_to_add_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// GNB-CU-TNL-Association-To-Remove-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct gnb_cu_tnl_assoc_to_rem_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { gnb_cu_tnl_assoc_to_rem_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::gnb_cu_tnl_assoc_to_rem_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    gnb_cu_tnl_assoc_to_rem_item_s&       gnb_cu_tnl_assoc_to_rem_item() { return c; }
-    const gnb_cu_tnl_assoc_to_rem_item_s& gnb_cu_tnl_assoc_to_rem_item() const { return c; }
-
-  private:
-    gnb_cu_tnl_assoc_to_rem_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// GNB-CU-TNL-Association-To-Update-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct gnb_cu_tnl_assoc_to_upd_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { gnb_cu_tnl_assoc_to_upd_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::gnb_cu_tnl_assoc_to_upd_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    gnb_cu_tnl_assoc_to_upd_item_s&       gnb_cu_tnl_assoc_to_upd_item() { return c; }
-    const gnb_cu_tnl_assoc_to_upd_item_s& gnb_cu_tnl_assoc_to_upd_item() const { return c; }
-
-  private:
-    gnb_cu_tnl_assoc_to_upd_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
 
 // GNB-DU-Served-Cells-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct gnb_du_served_cells_item_ies_o {
@@ -2136,6 +1947,192 @@ struct gnb_du_served_cells_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// GNB-DU-Served-Cells-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using gnb_du_served_cells_list_l = dyn_array<protocol_ie_single_container_s<gnb_du_served_cells_item_ies_o>>;
+
+// GNB-CU-TNL-Association-Failed-To-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct gnb_cu_tnl_assoc_failed_to_setup_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_tnl_assoc_failed_to_setup_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::gnb_cu_tnl_assoc_failed_to_setup_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    gnb_cu_tnl_assoc_failed_to_setup_item_s&       gnb_cu_tnl_assoc_failed_to_setup_item() { return c; }
+    const gnb_cu_tnl_assoc_failed_to_setup_item_s& gnb_cu_tnl_assoc_failed_to_setup_item() const { return c; }
+
+  private:
+    gnb_cu_tnl_assoc_failed_to_setup_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// GNB-CU-TNL-Association-Failed-To-Setup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using gnb_cu_tnl_assoc_failed_to_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_failed_to_setup_item_ies_o>, 32>;
+
+// GNB-CU-TNL-Association-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct gnb_cu_tnl_assoc_setup_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_tnl_assoc_setup_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::gnb_cu_tnl_assoc_setup_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    gnb_cu_tnl_assoc_setup_item_s&       gnb_cu_tnl_assoc_setup_item() { return c; }
+    const gnb_cu_tnl_assoc_setup_item_s& gnb_cu_tnl_assoc_setup_item() const { return c; }
+
+  private:
+    gnb_cu_tnl_assoc_setup_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// GNB-CU-TNL-Association-Setup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using gnb_cu_tnl_assoc_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_setup_item_ies_o>, 32>;
+
+// GNB-CU-TNL-Association-To-Add-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct gnb_cu_tnl_assoc_to_add_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_tnl_assoc_to_add_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::gnb_cu_tnl_assoc_to_add_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    gnb_cu_tnl_assoc_to_add_item_s&       gnb_cu_tnl_assoc_to_add_item() { return c; }
+    const gnb_cu_tnl_assoc_to_add_item_s& gnb_cu_tnl_assoc_to_add_item() const { return c; }
+
+  private:
+    gnb_cu_tnl_assoc_to_add_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// GNB-CU-TNL-Association-To-Add-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using gnb_cu_tnl_assoc_to_add_list_l =
+    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_to_add_item_ies_o>, 32>;
+
+// GNB-CU-TNL-Association-To-Remove-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct gnb_cu_tnl_assoc_to_rem_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_tnl_assoc_to_rem_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::gnb_cu_tnl_assoc_to_rem_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    gnb_cu_tnl_assoc_to_rem_item_s&       gnb_cu_tnl_assoc_to_rem_item() { return c; }
+    const gnb_cu_tnl_assoc_to_rem_item_s& gnb_cu_tnl_assoc_to_rem_item() const { return c; }
+
+  private:
+    gnb_cu_tnl_assoc_to_rem_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// GNB-CU-TNL-Association-To-Remove-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using gnb_cu_tnl_assoc_to_rem_list_l =
+    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_to_rem_item_ies_o>, 32>;
+
+// GNB-CU-TNL-Association-To-Update-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct gnb_cu_tnl_assoc_to_upd_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_tnl_assoc_to_upd_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::gnb_cu_tnl_assoc_to_upd_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    gnb_cu_tnl_assoc_to_upd_item_s&       gnb_cu_tnl_assoc_to_upd_item() { return c; }
+    const gnb_cu_tnl_assoc_to_upd_item_s& gnb_cu_tnl_assoc_to_upd_item() const { return c; }
+
+  private:
+    gnb_cu_tnl_assoc_to_upd_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// GNB-CU-TNL-Association-To-Update-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using gnb_cu_tnl_assoc_to_upd_list_l =
+    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_to_upd_item_ies_o>, 32>;
+
 // GNB-DU-TNL-Association-To-Remove-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct gnb_du_tnl_assoc_to_rem_item_ies_o {
   // Value ::= OPEN TYPE
@@ -2167,6 +2164,186 @@ struct gnb_du_tnl_assoc_to_rem_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// GNB-DU-TNL-Association-To-Remove-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using gnb_du_tnl_assoc_to_rem_list_l =
+    bounded_array<protocol_ie_single_container_s<gnb_du_tnl_assoc_to_rem_item_ies_o>, 32>;
+
+// Protected-EUTRA-Resources-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct protected_eutra_res_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { protected_eutra_res_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::protected_eutra_res_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    protected_eutra_res_item_s&       protected_eutra_res_item() { return c; }
+    const protected_eutra_res_item_s& protected_eutra_res_item() const { return c; }
+
+  private:
+    protected_eutra_res_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// Protected-EUTRA-Resources-List ::= SEQUENCE (SIZE (1..256)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using protected_eutra_res_list_l = dyn_array<protocol_ie_single_container_s<protected_eutra_res_item_ies_o>>;
+
+// Neighbour-Cell-Information-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct neighbour_cell_info_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { neighbour_cell_info_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::neighbour_cell_info_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    neighbour_cell_info_item_s&       neighbour_cell_info_item() { return c; }
+    const neighbour_cell_info_item_s& neighbour_cell_info_item() const { return c; }
+
+  private:
+    neighbour_cell_info_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// Neighbour-Cell-Information-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using neighbour_cell_info_list_l = dyn_array<protocol_ie_single_container_s<neighbour_cell_info_item_ies_o>>;
+
+// Served-Cells-To-Add-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct served_cells_to_add_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { served_cells_to_add_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::served_cells_to_add_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    served_cells_to_add_item_s&       served_cells_to_add_item() { return c; }
+    const served_cells_to_add_item_s& served_cells_to_add_item() const { return c; }
+
+  private:
+    served_cells_to_add_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// Served-Cells-To-Add-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using served_cells_to_add_list_l = dyn_array<protocol_ie_single_container_s<served_cells_to_add_item_ies_o>>;
+
+// Served-Cells-To-Modify-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct served_cells_to_modify_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { served_cells_to_modify_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::served_cells_to_modify_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    served_cells_to_modify_item_s&       served_cells_to_modify_item() { return c; }
+    const served_cells_to_modify_item_s& served_cells_to_modify_item() const { return c; }
+
+  private:
+    served_cells_to_modify_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// Served-Cells-To-Modify-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using served_cells_to_modify_list_l = dyn_array<protocol_ie_single_container_s<served_cells_to_modify_item_ies_o>>;
+
+// Served-Cells-To-Delete-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct served_cells_to_delete_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { served_cells_to_delete_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::served_cells_to_delete_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    served_cells_to_delete_item_s&       served_cells_to_delete_item() { return c; }
+    const served_cells_to_delete_item_s& served_cells_to_delete_item() const { return c; }
+
+  private:
+    served_cells_to_delete_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// Served-Cells-To-Delete-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using served_cells_to_delete_list_l = dyn_array<protocol_ie_single_container_s<served_cells_to_delete_item_ies_o>>;
 
 // IAB-Allocated-TNL-Address-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct iab_allocated_tnl_address_list_item_ies_o {
@@ -2200,6 +2377,10 @@ struct iab_allocated_tnl_address_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// IAB-Allocated-TNL-Address-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using iab_allocated_tnl_address_list_l =
+    dyn_array<protocol_ie_single_container_s<iab_allocated_tnl_address_list_item_ies_o>>;
+
 // IAB-TNL-Addresses-To-Remove-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct iab_tnl_addresses_to_rem_item_ies_o {
   // Value ::= OPEN TYPE
@@ -2232,6 +2413,81 @@ struct iab_tnl_addresses_to_rem_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// IAB-TNL-Addresses-To-Remove-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using iab_tnl_addresses_to_rem_list_l = dyn_array<protocol_ie_single_container_s<iab_tnl_addresses_to_rem_item_ies_o>>;
+
+// UL-UP-TNL-Information-to-Update-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct ul_up_tnl_info_to_upd_list_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { ul_up_tnl_info_to_upd_list_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::ul_up_tnl_info_to_upd_list_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    ul_up_tnl_info_to_upd_list_item_s&       ul_up_tnl_info_to_upd_list_item() { return c; }
+    const ul_up_tnl_info_to_upd_list_item_s& ul_up_tnl_info_to_upd_list_item() const { return c; }
+
+  private:
+    ul_up_tnl_info_to_upd_list_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// UL-UP-TNL-Information-to-Update-List ::= SEQUENCE (SIZE (1..32678)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using ul_up_tnl_info_to_upd_list_l = dyn_array<protocol_ie_single_container_s<ul_up_tnl_info_to_upd_list_item_ies_o>>;
+
+// UL-UP-TNL-Address-to-Update-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct ul_up_tnl_address_to_upd_list_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { ul_up_tnl_address_to_upd_list_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::ul_up_tnl_address_to_upd_list_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    ul_up_tnl_address_to_upd_list_item_s&       ul_up_tnl_address_to_upd_list_item() { return c; }
+    const ul_up_tnl_address_to_upd_list_item_s& ul_up_tnl_address_to_upd_list_item() const { return c; }
+
+  private:
+    ul_up_tnl_address_to_upd_list_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// UL-UP-TNL-Address-to-Update-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using ul_up_tnl_address_to_upd_list_l =
+    bounded_array<protocol_ie_single_container_s<ul_up_tnl_address_to_upd_list_item_ies_o>, 8>;
+
 // MC-PagingCell-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct mc_paging_cell_item_ies_o {
   // Value ::= OPEN TYPE
@@ -2254,402 +2510,6 @@ struct mc_paging_cell_item_ies_o {
 
   private:
     mc_paging_cell_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastF1UContext-FailedToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_f1_u_context_failed_to_be_setup_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_f1_u_context_failed_to_be_setup_item, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_f1_u_context_failed_to_be_setup_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_f1_u_context_failed_to_be_setup_item_s& multicast_f1_u_context_failed_to_be_setup_item() { return c; }
-    const multicast_f1_u_context_failed_to_be_setup_item_s& multicast_f1_u_context_failed_to_be_setup_item() const
-    {
-      return c;
-    }
-
-  private:
-    multicast_f1_u_context_failed_to_be_setup_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastF1UContext-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_f1_u_context_setup_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_f1_u_context_setup_item, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_f1_u_context_setup_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_f1_u_context_setup_item_s&       multicast_f1_u_context_setup_item() { return c; }
-    const multicast_f1_u_context_setup_item_s& multicast_f1_u_context_setup_item() const { return c; }
-
-  private:
-    multicast_f1_u_context_setup_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastF1UContext-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_f1_u_context_to_be_setup_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_f1_u_context_to_be_setup_item, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_f1_u_context_to_be_setup_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_f1_u_context_to_be_setup_item_s&       multicast_f1_u_context_to_be_setup_item() { return c; }
-    const multicast_f1_u_context_to_be_setup_item_s& multicast_f1_u_context_to_be_setup_item() const { return c; }
-
-  private:
-    multicast_f1_u_context_to_be_setup_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastMRBs-FailedToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_m_rbs_failed_to_be_modified_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_m_rbs_failed_to_be_modified_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_m_rbs_failed_to_be_modified_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_m_rbs_failed_to_be_modified_item_s&       multicast_m_rbs_failed_to_be_modified_item() { return c; }
-    const multicast_m_rbs_failed_to_be_modified_item_s& multicast_m_rbs_failed_to_be_modified_item() const { return c; }
-
-  private:
-    multicast_m_rbs_failed_to_be_modified_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastMRBs-FailedToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_m_rbs_failed_to_be_setup_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_m_rbs_failed_to_be_setup_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_m_rbs_failed_to_be_setup_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_m_rbs_failed_to_be_setup_item_s&       multicast_m_rbs_failed_to_be_setup_item() { return c; }
-    const multicast_m_rbs_failed_to_be_setup_item_s& multicast_m_rbs_failed_to_be_setup_item() const { return c; }
-
-  private:
-    multicast_m_rbs_failed_to_be_setup_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastMRBs-FailedToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_m_rbs_failed_to_be_setup_mod_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_m_rbs_failed_to_be_setup_mod_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_m_rbs_failed_to_be_setup_mod_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_m_rbs_failed_to_be_setup_mod_item_s&       multicast_m_rbs_failed_to_be_setup_mod_item() { return c; }
-    const multicast_m_rbs_failed_to_be_setup_mod_item_s& multicast_m_rbs_failed_to_be_setup_mod_item() const
-    {
-      return c;
-    }
-
-  private:
-    multicast_m_rbs_failed_to_be_setup_mod_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastMRBs-Modified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_m_rbs_modified_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_m_rbs_modified_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_m_rbs_modified_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_m_rbs_modified_item_s&       multicast_m_rbs_modified_item() { return c; }
-    const multicast_m_rbs_modified_item_s& multicast_m_rbs_modified_item() const { return c; }
-
-  private:
-    multicast_m_rbs_modified_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastMRBs-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_m_rbs_setup_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_m_rbs_setup_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_m_rbs_setup_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_m_rbs_setup_item_s&       multicast_m_rbs_setup_item() { return c; }
-    const multicast_m_rbs_setup_item_s& multicast_m_rbs_setup_item() const { return c; }
-
-  private:
-    multicast_m_rbs_setup_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastMRBs-SetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_m_rbs_setup_mod_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_m_rbs_setup_mod_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_m_rbs_setup_mod_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_m_rbs_setup_mod_item_s&       multicast_m_rbs_setup_mod_item() { return c; }
-    const multicast_m_rbs_setup_mod_item_s& multicast_m_rbs_setup_mod_item() const { return c; }
-
-  private:
-    multicast_m_rbs_setup_mod_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastMRBs-ToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_m_rbs_to_be_modified_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_m_rbs_to_be_modified_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_m_rbs_to_be_modified_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_m_rbs_to_be_modified_item_s&       multicast_m_rbs_to_be_modified_item() { return c; }
-    const multicast_m_rbs_to_be_modified_item_s& multicast_m_rbs_to_be_modified_item() const { return c; }
-
-  private:
-    multicast_m_rbs_to_be_modified_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastMRBs-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_m_rbs_to_be_released_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_m_rbs_to_be_released_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_m_rbs_to_be_released_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_m_rbs_to_be_released_item_s&       multicast_m_rbs_to_be_released_item() { return c; }
-    const multicast_m_rbs_to_be_released_item_s& multicast_m_rbs_to_be_released_item() const { return c; }
-
-  private:
-    multicast_m_rbs_to_be_released_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// MulticastMRBs-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct multicast_m_rbs_to_be_setup_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { multicast_m_rbs_to_be_setup_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::multicast_m_rbs_to_be_setup_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    multicast_m_rbs_to_be_setup_item_s&       multicast_m_rbs_to_be_setup_item() { return c; }
-    const multicast_m_rbs_to_be_setup_item_s& multicast_m_rbs_to_be_setup_item() const { return c; }
-
-  private:
-    multicast_m_rbs_to_be_setup_item_s c;
   };
 
   // members lookup methods
@@ -2692,6 +2552,492 @@ struct multicast_m_rbs_to_be_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// MulticastMRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_m_rbs_to_be_setup_mod_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_to_be_setup_mod_item_ies_o>, 32>;
+
+// MulticastMRBs-ToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_m_rbs_to_be_modified_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_m_rbs_to_be_modified_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_m_rbs_to_be_modified_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_m_rbs_to_be_modified_item_s&       multicast_m_rbs_to_be_modified_item() { return c; }
+    const multicast_m_rbs_to_be_modified_item_s& multicast_m_rbs_to_be_modified_item() const { return c; }
+
+  private:
+    multicast_m_rbs_to_be_modified_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastMRBs-ToBeModified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_m_rbs_to_be_modified_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_to_be_modified_item_ies_o>, 32>;
+
+// MulticastMRBs-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_m_rbs_to_be_released_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_m_rbs_to_be_released_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_m_rbs_to_be_released_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_m_rbs_to_be_released_item_s&       multicast_m_rbs_to_be_released_item() { return c; }
+    const multicast_m_rbs_to_be_released_item_s& multicast_m_rbs_to_be_released_item() const { return c; }
+
+  private:
+    multicast_m_rbs_to_be_released_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastMRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_m_rbs_to_be_released_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_to_be_released_item_ies_o>, 32>;
+
+// MulticastMRBs-SetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_m_rbs_setup_mod_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_m_rbs_setup_mod_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_m_rbs_setup_mod_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_m_rbs_setup_mod_item_s&       multicast_m_rbs_setup_mod_item() { return c; }
+    const multicast_m_rbs_setup_mod_item_s& multicast_m_rbs_setup_mod_item() const { return c; }
+
+  private:
+    multicast_m_rbs_setup_mod_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastMRBs-SetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_m_rbs_setup_mod_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_setup_mod_item_ies_o>, 32>;
+
+// MulticastMRBs-FailedToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_m_rbs_failed_to_be_setup_mod_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_m_rbs_failed_to_be_setup_mod_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_m_rbs_failed_to_be_setup_mod_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_m_rbs_failed_to_be_setup_mod_item_s&       multicast_m_rbs_failed_to_be_setup_mod_item() { return c; }
+    const multicast_m_rbs_failed_to_be_setup_mod_item_s& multicast_m_rbs_failed_to_be_setup_mod_item() const
+    {
+      return c;
+    }
+
+  private:
+    multicast_m_rbs_failed_to_be_setup_mod_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastMRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using multicast_m_rbs_failed_to_be_setup_mod_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_failed_to_be_setup_mod_item_ies_o>, 32>;
+
+// MulticastMRBs-Modified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_m_rbs_modified_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_m_rbs_modified_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_m_rbs_modified_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_m_rbs_modified_item_s&       multicast_m_rbs_modified_item() { return c; }
+    const multicast_m_rbs_modified_item_s& multicast_m_rbs_modified_item() const { return c; }
+
+  private:
+    multicast_m_rbs_modified_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastMRBs-Modified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_m_rbs_modified_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_modified_item_ies_o>, 32>;
+
+// MulticastMRBs-FailedToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_m_rbs_failed_to_be_modified_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_m_rbs_failed_to_be_modified_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_m_rbs_failed_to_be_modified_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_m_rbs_failed_to_be_modified_item_s&       multicast_m_rbs_failed_to_be_modified_item() { return c; }
+    const multicast_m_rbs_failed_to_be_modified_item_s& multicast_m_rbs_failed_to_be_modified_item() const { return c; }
+
+  private:
+    multicast_m_rbs_failed_to_be_modified_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastMRBs-FailedToBeModified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using multicast_m_rbs_failed_to_be_modified_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_failed_to_be_modified_item_ies_o>, 32>;
+
+// MulticastMRBs-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_m_rbs_to_be_setup_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_m_rbs_to_be_setup_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_m_rbs_to_be_setup_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_m_rbs_to_be_setup_item_s&       multicast_m_rbs_to_be_setup_item() { return c; }
+    const multicast_m_rbs_to_be_setup_item_s& multicast_m_rbs_to_be_setup_item() const { return c; }
+
+  private:
+    multicast_m_rbs_to_be_setup_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastMRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_m_rbs_to_be_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_to_be_setup_item_ies_o>, 32>;
+
+// MulticastMRBs-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_m_rbs_setup_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_m_rbs_setup_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_m_rbs_setup_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_m_rbs_setup_item_s&       multicast_m_rbs_setup_item() { return c; }
+    const multicast_m_rbs_setup_item_s& multicast_m_rbs_setup_item() const { return c; }
+
+  private:
+    multicast_m_rbs_setup_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastMRBs-Setup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_m_rbs_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_setup_item_ies_o>, 32>;
+
+// MulticastMRBs-FailedToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_m_rbs_failed_to_be_setup_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_m_rbs_failed_to_be_setup_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_m_rbs_failed_to_be_setup_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_m_rbs_failed_to_be_setup_item_s&       multicast_m_rbs_failed_to_be_setup_item() { return c; }
+    const multicast_m_rbs_failed_to_be_setup_item_s& multicast_m_rbs_failed_to_be_setup_item() const { return c; }
+
+  private:
+    multicast_m_rbs_failed_to_be_setup_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastMRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_m_rbs_failed_to_be_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_failed_to_be_setup_item_ies_o>, 32>;
+
+// MulticastF1UContext-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_f1_u_context_to_be_setup_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_f1_u_context_to_be_setup_item, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_f1_u_context_to_be_setup_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_f1_u_context_to_be_setup_item_s&       multicast_f1_u_context_to_be_setup_item() { return c; }
+    const multicast_f1_u_context_to_be_setup_item_s& multicast_f1_u_context_to_be_setup_item() const { return c; }
+
+  private:
+    multicast_f1_u_context_to_be_setup_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastF1UContext-ToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_f1_u_context_to_be_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_f1_u_context_to_be_setup_item_ies_o>, 32>;
+
+// MulticastF1UContext-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_f1_u_context_setup_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_f1_u_context_setup_item, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_f1_u_context_setup_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_f1_u_context_setup_item_s&       multicast_f1_u_context_setup_item() { return c; }
+    const multicast_f1_u_context_setup_item_s& multicast_f1_u_context_setup_item() const { return c; }
+
+  private:
+    multicast_f1_u_context_setup_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastF1UContext-Setup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using multicast_f1_u_context_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_f1_u_context_setup_item_ies_o>, 32>;
+
+// MulticastF1UContext-FailedToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_f1_u_context_failed_to_be_setup_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { multicast_f1_u_context_failed_to_be_setup_item, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::multicast_f1_u_context_failed_to_be_setup_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    multicast_f1_u_context_failed_to_be_setup_item_s& multicast_f1_u_context_failed_to_be_setup_item() { return c; }
+    const multicast_f1_u_context_failed_to_be_setup_item_s& multicast_f1_u_context_failed_to_be_setup_item() const
+    {
+      return c;
+    }
+
+  private:
+    multicast_f1_u_context_failed_to_be_setup_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// MulticastF1UContext-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using multicast_f1_u_context_failed_to_be_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<multicast_f1_u_context_failed_to_be_setup_item_ies_o>, 32>;
+
+// UEIdentity-List-For-Paging-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct ue_id_list_for_paging_item_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { ue_id_list_for_paging_item, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::ue_id_list_for_paging_item; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    ue_id_list_for_paging_item_s&       ue_id_list_for_paging_item() { return c; }
+    const ue_id_list_for_paging_item_s& ue_id_list_for_paging_item() const { return c; }
+
+  private:
+    ue_id_list_for_paging_item_s c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+// UEIdentity-List-For-Paging-List ::= SEQUENCE (SIZE (1..4096)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using ue_id_list_for_paging_list_l = dyn_array<protocol_ie_single_container_s<ue_id_list_for_paging_item_ies_o>>;
+
 // NR-CGI-List-For-Restart-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct nr_cgi_list_for_restart_list_item_ies_o {
   // Value ::= OPEN TYPE
@@ -2724,37 +3070,9 @@ struct nr_cgi_list_for_restart_list_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Neighbour-Cell-Information-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct neighbour_cell_info_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { neighbour_cell_info_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::neighbour_cell_info_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    neighbour_cell_info_item_s&       neighbour_cell_info_item() { return c; }
-    const neighbour_cell_info_item_s& neighbour_cell_info_item() const { return c; }
-
-  private:
-    neighbour_cell_info_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
+// NR-CGI-List-For-Restart-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using nr_cgi_list_for_restart_list_l =
+    dyn_array<protocol_ie_single_container_s<nr_cgi_list_for_restart_list_item_ies_o>>;
 
 // PWS-Failed-NR-CGI-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct pws_failed_nr_cgi_list_item_ies_o {
@@ -2787,6 +3105,9 @@ struct pws_failed_nr_cgi_list_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// PWS-Failed-NR-CGI-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using pws_failed_nr_cgi_list_l = dyn_array<protocol_ie_single_container_s<pws_failed_nr_cgi_list_item_ies_o>>;
 
 // PagingCell-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct paging_cell_item_ies_o {
@@ -2852,37 +3173,8 @@ struct potential_sp_cell_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Protected-EUTRA-Resources-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct protected_eutra_res_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { protected_eutra_res_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::protected_eutra_res_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    protected_eutra_res_item_s&       protected_eutra_res_item() { return c; }
-    const protected_eutra_res_item_s& protected_eutra_res_item() const { return c; }
-
-  private:
-    protected_eutra_res_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
+// Potential-SpCell-List ::= SEQUENCE (SIZE (0..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using potential_sp_cell_list_l = dyn_array<protocol_ie_single_container_s<potential_sp_cell_item_ies_o>>;
 
 // SCell-FailedtoSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct scell_failedto_setup_item_ies_o {
@@ -2916,6 +3208,9 @@ struct scell_failedto_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SCell-FailedtoSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using scell_failedto_setup_list_l = bounded_array<protocol_ie_single_container_s<scell_failedto_setup_item_ies_o>, 32>;
+
 // SCell-FailedtoSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct scell_failedto_setup_mod_item_ies_o {
   // Value ::= OPEN TYPE
@@ -2947,6 +3242,10 @@ struct scell_failedto_setup_mod_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SCell-FailedtoSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using scell_failedto_setup_mod_list_l =
+    bounded_array<protocol_ie_single_container_s<scell_failedto_setup_mod_item_ies_o>, 32>;
 
 // SCell-ToBeRemoved-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct scell_to_be_remd_item_ies_o {
@@ -2980,6 +3279,9 @@ struct scell_to_be_remd_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SCell-ToBeRemoved-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using scell_to_be_remd_list_l = bounded_array<protocol_ie_single_container_s<scell_to_be_remd_item_ies_o>, 32>;
+
 // SCell-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct scell_to_be_setup_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3011,6 +3313,9 @@ struct scell_to_be_setup_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SCell-ToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using scell_to_be_setup_list_l = bounded_array<protocol_ie_single_container_s<scell_to_be_setup_item_ies_o>, 32>;
 
 // SCell-ToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct scell_to_be_setup_mod_item_ies_o {
@@ -3044,6 +3349,10 @@ struct scell_to_be_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SCell-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using scell_to_be_setup_mod_list_l =
+    bounded_array<protocol_ie_single_container_s<scell_to_be_setup_mod_item_ies_o>, 32>;
+
 // SLDRBs-FailedToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_failed_to_be_modified_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3075,6 +3384,10 @@ struct sl_drbs_failed_to_be_modified_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SLDRBs-FailedToBeModified-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_failed_to_be_modified_list_l =
+    dyn_array<protocol_ie_single_container_s<sl_drbs_failed_to_be_modified_item_ies_o>>;
 
 // SLDRBs-FailedToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_failed_to_be_setup_item_ies_o {
@@ -3108,6 +3421,10 @@ struct sl_drbs_failed_to_be_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SLDRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_failed_to_be_setup_list_l =
+    dyn_array<protocol_ie_single_container_s<sl_drbs_failed_to_be_setup_item_ies_o>>;
+
 // SLDRBs-FailedToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_failed_to_be_setup_mod_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3139,6 +3456,10 @@ struct sl_drbs_failed_to_be_setup_mod_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SLDRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_failed_to_be_setup_mod_list_l =
+    dyn_array<protocol_ie_single_container_s<sl_drbs_failed_to_be_setup_mod_item_ies_o>>;
 
 // SLDRBs-Modified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_modified_item_ies_o {
@@ -3172,6 +3493,9 @@ struct sl_drbs_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SLDRBs-Modified-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_modified_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_modified_item_ies_o>>;
+
 // SLDRBs-ModifiedConf-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_modified_conf_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3203,6 +3527,9 @@ struct sl_drbs_modified_conf_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SLDRBs-ModifiedConf-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_modified_conf_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_modified_conf_item_ies_o>>;
 
 // SLDRBs-Required-ToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_required_to_be_modified_item_ies_o {
@@ -3236,6 +3563,10 @@ struct sl_drbs_required_to_be_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SLDRBs-Required-ToBeModified-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_required_to_be_modified_list_l =
+    dyn_array<protocol_ie_single_container_s<sl_drbs_required_to_be_modified_item_ies_o>>;
+
 // SLDRBs-Required-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_required_to_be_released_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3267,6 +3598,10 @@ struct sl_drbs_required_to_be_released_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SLDRBs-Required-ToBeReleased-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_required_to_be_released_list_l =
+    dyn_array<protocol_ie_single_container_s<sl_drbs_required_to_be_released_item_ies_o>>;
 
 // SLDRBs-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_setup_item_ies_o {
@@ -3300,6 +3635,9 @@ struct sl_drbs_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SLDRBs-Setup-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_setup_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_setup_item_ies_o>>;
+
 // SLDRBs-SetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_setup_mod_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3331,6 +3669,9 @@ struct sl_drbs_setup_mod_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SLDRBs-SetupMod-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_setup_mod_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_setup_mod_item_ies_o>>;
 
 // SLDRBs-ToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_to_be_modified_item_ies_o {
@@ -3364,6 +3705,9 @@ struct sl_drbs_to_be_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SLDRBs-ToBeModified-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_to_be_modified_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_to_be_modified_item_ies_o>>;
+
 // SLDRBs-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_to_be_released_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3395,6 +3739,9 @@ struct sl_drbs_to_be_released_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SLDRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_to_be_released_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_to_be_released_item_ies_o>>;
 
 // SLDRBs-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_to_be_setup_item_ies_o {
@@ -3428,6 +3775,9 @@ struct sl_drbs_to_be_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SLDRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_to_be_setup_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_to_be_setup_item_ies_o>>;
+
 // SLDRBs-ToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sl_drbs_to_be_setup_mod_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3459,6 +3809,9 @@ struct sl_drbs_to_be_setup_mod_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SLDRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using sl_drbs_to_be_setup_mod_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_to_be_setup_mod_item_ies_o>>;
 
 // SRBs-FailedToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct srbs_failed_to_be_setup_item_ies_o {
@@ -3492,6 +3845,10 @@ struct srbs_failed_to_be_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using srbs_failed_to_be_setup_list_l =
+    bounded_array<protocol_ie_single_container_s<srbs_failed_to_be_setup_item_ies_o>, 8>;
+
 // SRBs-FailedToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct srbs_failed_to_be_setup_mod_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3523,6 +3880,10 @@ struct srbs_failed_to_be_setup_mod_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using srbs_failed_to_be_setup_mod_list_l =
+    bounded_array<protocol_ie_single_container_s<srbs_failed_to_be_setup_mod_item_ies_o>, 8>;
 
 // SRBs-Modified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct srbs_modified_item_ies_o {
@@ -3556,6 +3917,9 @@ struct srbs_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SRBs-Modified-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using srbs_modified_list_l = bounded_array<protocol_ie_single_container_s<srbs_modified_item_ies_o>, 8>;
+
 // SRBs-Required-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct srbs_required_to_be_released_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3587,6 +3951,10 @@ struct srbs_required_to_be_released_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SRBs-Required-ToBeReleased-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using srbs_required_to_be_released_list_l =
+    bounded_array<protocol_ie_single_container_s<srbs_required_to_be_released_item_ies_o>, 8>;
 
 // SRBs-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct srbs_setup_item_ies_o {
@@ -3620,6 +3988,9 @@ struct srbs_setup_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SRBs-Setup-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using srbs_setup_list_l = bounded_array<protocol_ie_single_container_s<srbs_setup_item_ies_o>, 8>;
+
 // SRBs-SetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct srbs_setup_mod_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3651,6 +4022,9 @@ struct srbs_setup_mod_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SRBs-SetupMod-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using srbs_setup_mod_list_l = bounded_array<protocol_ie_single_container_s<srbs_setup_mod_item_ies_o>, 8>;
 
 // SRBs-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct srbs_to_be_released_item_ies_o {
@@ -3684,6 +4058,9 @@ struct srbs_to_be_released_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// SRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using srbs_to_be_released_list_l = bounded_array<protocol_ie_single_container_s<srbs_to_be_released_item_ies_o>, 8>;
+
 // SRBs-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct srbs_to_be_setup_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3715,6 +4092,9 @@ struct srbs_to_be_setup_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// SRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using srbs_to_be_setup_list_l = bounded_array<protocol_ie_single_container_s<srbs_to_be_setup_item_ies_o>, 8>;
 
 // SRBs-ToBeSetupMod-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct srbs_to_be_setup_mod_item_ies_o {
@@ -3748,101 +4128,8 @@ struct srbs_to_be_setup_mod_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// Served-Cells-To-Add-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct served_cells_to_add_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { served_cells_to_add_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::served_cells_to_add_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    served_cells_to_add_item_s&       served_cells_to_add_item() { return c; }
-    const served_cells_to_add_item_s& served_cells_to_add_item() const { return c; }
-
-  private:
-    served_cells_to_add_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// Served-Cells-To-Delete-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct served_cells_to_delete_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { served_cells_to_delete_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::served_cells_to_delete_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    served_cells_to_delete_item_s&       served_cells_to_delete_item() { return c; }
-    const served_cells_to_delete_item_s& served_cells_to_delete_item() const { return c; }
-
-  private:
-    served_cells_to_delete_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// Served-Cells-To-Modify-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct served_cells_to_modify_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { served_cells_to_modify_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::served_cells_to_modify_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    served_cells_to_modify_item_s&       served_cells_to_modify_item() { return c; }
-    const served_cells_to_modify_item_s& served_cells_to_modify_item() const { return c; }
-
-  private:
-    served_cells_to_modify_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
+// SRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using srbs_to_be_setup_mod_list_l = bounded_array<protocol_ie_single_container_s<srbs_to_be_setup_mod_item_ies_o>, 8>;
 
 // ServingCellMO-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct serving_cell_mo_list_item_ies_o {
@@ -3875,6 +4162,9 @@ struct serving_cell_mo_list_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// ServingCellMO-List ::= SEQUENCE (SIZE (1..16)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using serving_cell_mo_list_l = bounded_array<protocol_ie_single_container_s<serving_cell_mo_list_item_ies_o>, 16>;
 
 // UE-MulticastMRBs-ConfirmedToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o {
@@ -3911,6 +4201,11 @@ struct ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// UE-MulticastMRBs-ConfirmedToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using ue_multicast_m_rbs_confirmed_to_be_modified_list_l =
+    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o>>;
+
 // UE-MulticastMRBs-RequiredToBeModified-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_multicast_m_rbs_required_to_be_modified_item_ies_o {
   // Value ::= OPEN TYPE
@@ -3945,6 +4240,11 @@ struct ue_multicast_m_rbs_required_to_be_modified_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// UE-MulticastMRBs-RequiredToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using ue_multicast_m_rbs_required_to_be_modified_list_l =
+    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_required_to_be_modified_item_ies_o>>;
 
 // UE-MulticastMRBs-RequiredToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_multicast_m_rbs_required_to_be_released_item_ies_o {
@@ -3981,6 +4281,11 @@ struct ue_multicast_m_rbs_required_to_be_released_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// UE-MulticastMRBs-RequiredToBeReleased-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
+// IEsSetParam}
+using ue_multicast_m_rbs_required_to_be_released_list_l =
+    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_required_to_be_released_item_ies_o>>;
+
 // UE-MulticastMRBs-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_multicast_m_rbs_setup_item_ies_o {
   // Value ::= OPEN TYPE
@@ -4012,6 +4317,9 @@ struct ue_multicast_m_rbs_setup_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// UE-MulticastMRBs-Setup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using ue_multicast_m_rbs_setup_list_l = dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_setup_item_ies_o>>;
 
 // UE-MulticastMRBs-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_multicast_m_rbs_to_be_released_item_ies_o {
@@ -4045,6 +4353,10 @@ struct ue_multicast_m_rbs_to_be_released_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+// UE-MulticastMRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using ue_multicast_m_rbs_to_be_released_list_l =
+    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_to_be_released_item_ies_o>>;
+
 // UE-MulticastMRBs-ToBeSetup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_multicast_m_rbs_to_be_setup_item_ies_o {
   // Value ::= OPEN TYPE
@@ -4076,6 +4388,10 @@ struct ue_multicast_m_rbs_to_be_setup_item_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+// UE-MulticastMRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
+using ue_multicast_m_rbs_to_be_setup_list_l =
+    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_to_be_setup_item_ies_o>>;
 
 // UE-MulticastMRBs-ToBeSetup-atModify-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o {
@@ -4112,517 +4428,10 @@ struct ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// UEIdentity-List-For-Paging-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct ue_id_list_for_paging_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { ue_id_list_for_paging_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::ue_id_list_for_paging_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    ue_id_list_for_paging_item_s&       ue_id_list_for_paging_item() { return c; }
-    const ue_id_list_for_paging_item_s& ue_id_list_for_paging_item() const { return c; }
-
-  private:
-    ue_id_list_for_paging_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// UL-UP-TNL-Address-to-Update-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct ul_up_tnl_address_to_upd_list_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { ul_up_tnl_address_to_upd_list_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::ul_up_tnl_address_to_upd_list_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    ul_up_tnl_address_to_upd_list_item_s&       ul_up_tnl_address_to_upd_list_item() { return c; }
-    const ul_up_tnl_address_to_upd_list_item_s& ul_up_tnl_address_to_upd_list_item() const { return c; }
-
-  private:
-    ul_up_tnl_address_to_upd_list_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// UL-UP-TNL-Information-to-Update-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct ul_up_tnl_info_to_upd_list_item_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { ul_up_tnl_info_to_upd_list_item, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    types         type() const { return types::ul_up_tnl_info_to_upd_list_item; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    ul_up_tnl_info_to_upd_list_item_s&       ul_up_tnl_info_to_upd_list_item() { return c; }
-    const ul_up_tnl_info_to_upd_list_item_s& ul_up_tnl_info_to_upd_list_item() const { return c; }
-
-  private:
-    ul_up_tnl_info_to_upd_list_item_s c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// GNB-CU-TNL-Association-Failed-To-Setup-List ::= SEQUENCE (SIZE (1..32)) OF
-// ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using gnb_cu_tnl_assoc_failed_to_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_failed_to_setup_item_ies_o>, 32>;
-
-// GNB-CU-TNL-Association-Setup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
+// UE-MulticastMRBs-ToBeSetup-atModify-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES :
 // IEsSetParam}
-using gnb_cu_tnl_assoc_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_setup_item_ies_o>, 32>;
-
-// GNB-CU-TNL-Association-To-Add-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using gnb_cu_tnl_assoc_to_add_list_l =
-    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_to_add_item_ies_o>, 32>;
-
-// GNB-CU-TNL-Association-To-Remove-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using gnb_cu_tnl_assoc_to_rem_list_l =
-    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_to_rem_item_ies_o>, 32>;
-
-// GNB-CU-TNL-Association-To-Update-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using gnb_cu_tnl_assoc_to_upd_list_l =
-    bounded_array<protocol_ie_single_container_s<gnb_cu_tnl_assoc_to_upd_item_ies_o>, 32>;
-
-// GNB-DU-Served-Cells-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using gnb_du_served_cells_list_l = dyn_array<protocol_ie_single_container_s<gnb_du_served_cells_item_ies_o>>;
-
-// GNB-DU-TNL-Association-To-Remove-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using gnb_du_tnl_assoc_to_rem_list_l =
-    bounded_array<protocol_ie_single_container_s<gnb_du_tnl_assoc_to_rem_item_ies_o>, 32>;
-
-// IAB-Allocated-TNL-Address-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using iab_allocated_tnl_address_list_l =
-    dyn_array<protocol_ie_single_container_s<iab_allocated_tnl_address_list_item_ies_o>>;
-
-// IAB-TNL-Addresses-To-Remove-List ::= SEQUENCE (SIZE (1..1024)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using iab_tnl_addresses_to_rem_list_l = dyn_array<protocol_ie_single_container_s<iab_tnl_addresses_to_rem_item_ies_o>>;
-
-// MulticastF1UContext-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES
-// : IEsSetParam}
-using multicast_f1_u_context_failed_to_be_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_f1_u_context_failed_to_be_setup_item_ies_o>, 32>;
-
-// MulticastF1UContext-Setup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_f1_u_context_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_f1_u_context_setup_item_ies_o>, 32>;
-
-// MulticastF1UContext-ToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_f1_u_context_to_be_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_f1_u_context_to_be_setup_item_ies_o>, 32>;
-
-// MulticastMRBs-FailedToBeModified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_m_rbs_failed_to_be_modified_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_failed_to_be_modified_item_ies_o>, 32>;
-
-// MulticastMRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_m_rbs_failed_to_be_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_failed_to_be_setup_item_ies_o>, 32>;
-
-// MulticastMRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_m_rbs_failed_to_be_setup_mod_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_failed_to_be_setup_mod_item_ies_o>, 32>;
-
-// MulticastMRBs-Modified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_m_rbs_modified_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_modified_item_ies_o>, 32>;
-
-// MulticastMRBs-Setup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using multicast_m_rbs_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_setup_item_ies_o>, 32>;
-
-// MulticastMRBs-SetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_m_rbs_setup_mod_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_setup_mod_item_ies_o>, 32>;
-
-// MulticastMRBs-ToBeModified-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_m_rbs_to_be_modified_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_to_be_modified_item_ies_o>, 32>;
-
-// MulticastMRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_m_rbs_to_be_released_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_to_be_released_item_ies_o>, 32>;
-
-// MulticastMRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_m_rbs_to_be_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_to_be_setup_item_ies_o>, 32>;
-
-// MulticastMRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using multicast_m_rbs_to_be_setup_mod_list_l =
-    bounded_array<protocol_ie_single_container_s<multicast_m_rbs_to_be_setup_mod_item_ies_o>, 32>;
-
-// NR-CGI-List-For-Restart-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using nr_cgi_list_for_restart_list_l =
-    dyn_array<protocol_ie_single_container_s<nr_cgi_list_for_restart_list_item_ies_o>>;
-
-// Neighbour-Cell-Information-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using neighbour_cell_info_list_l = dyn_array<protocol_ie_single_container_s<neighbour_cell_info_item_ies_o>>;
-
-// PWS-Failed-NR-CGI-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using pws_failed_nr_cgi_list_l = dyn_array<protocol_ie_single_container_s<pws_failed_nr_cgi_list_item_ies_o>>;
-
-// Potential-SpCell-List ::= SEQUENCE (SIZE (0..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using potential_sp_cell_list_l = dyn_array<protocol_ie_single_container_s<potential_sp_cell_item_ies_o>>;
-
-// Protected-EUTRA-Resources-List ::= SEQUENCE (SIZE (1..256)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using protected_eutra_res_list_l = dyn_array<protocol_ie_single_container_s<protected_eutra_res_item_ies_o>>;
-
-// SCell-FailedtoSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using scell_failedto_setup_list_l = bounded_array<protocol_ie_single_container_s<scell_failedto_setup_item_ies_o>, 32>;
-
-// SCell-FailedtoSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using scell_failedto_setup_mod_list_l =
-    bounded_array<protocol_ie_single_container_s<scell_failedto_setup_mod_item_ies_o>, 32>;
-
-// SCell-ToBeRemoved-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using scell_to_be_remd_list_l = bounded_array<protocol_ie_single_container_s<scell_to_be_remd_item_ies_o>, 32>;
-
-// SCell-ToBeSetup-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using scell_to_be_setup_list_l = bounded_array<protocol_ie_single_container_s<scell_to_be_setup_item_ies_o>, 32>;
-
-// SCell-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..32)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using scell_to_be_setup_mod_list_l =
-    bounded_array<protocol_ie_single_container_s<scell_to_be_setup_mod_item_ies_o>, 32>;
-
-// SLDRBs-FailedToBeModified-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using sl_drbs_failed_to_be_modified_list_l =
-    dyn_array<protocol_ie_single_container_s<sl_drbs_failed_to_be_modified_item_ies_o>>;
-
-// SLDRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using sl_drbs_failed_to_be_setup_list_l =
-    dyn_array<protocol_ie_single_container_s<sl_drbs_failed_to_be_setup_item_ies_o>>;
-
-// SLDRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using sl_drbs_failed_to_be_setup_mod_list_l =
-    dyn_array<protocol_ie_single_container_s<sl_drbs_failed_to_be_setup_mod_item_ies_o>>;
-
-// SLDRBs-Modified-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using sl_drbs_modified_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_modified_item_ies_o>>;
-
-// SLDRBs-ModifiedConf-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using sl_drbs_modified_conf_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_modified_conf_item_ies_o>>;
-
-// SLDRBs-Required-ToBeModified-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using sl_drbs_required_to_be_modified_list_l =
-    dyn_array<protocol_ie_single_container_s<sl_drbs_required_to_be_modified_item_ies_o>>;
-
-// SLDRBs-Required-ToBeReleased-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using sl_drbs_required_to_be_released_list_l =
-    dyn_array<protocol_ie_single_container_s<sl_drbs_required_to_be_released_item_ies_o>>;
-
-// SLDRBs-Setup-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using sl_drbs_setup_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_setup_item_ies_o>>;
-
-// SLDRBs-SetupMod-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using sl_drbs_setup_mod_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_setup_mod_item_ies_o>>;
-
-// SLDRBs-ToBeModified-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using sl_drbs_to_be_modified_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_to_be_modified_item_ies_o>>;
-
-// SLDRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using sl_drbs_to_be_released_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_to_be_released_item_ies_o>>;
-
-// SLDRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using sl_drbs_to_be_setup_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_to_be_setup_item_ies_o>>;
-
-// SLDRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using sl_drbs_to_be_setup_mod_list_l = dyn_array<protocol_ie_single_container_s<sl_drbs_to_be_setup_mod_item_ies_o>>;
-
-// SRBs-FailedToBeSetup-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using srbs_failed_to_be_setup_list_l =
-    bounded_array<protocol_ie_single_container_s<srbs_failed_to_be_setup_item_ies_o>, 8>;
-
-// SRBs-FailedToBeSetupMod-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using srbs_failed_to_be_setup_mod_list_l =
-    bounded_array<protocol_ie_single_container_s<srbs_failed_to_be_setup_mod_item_ies_o>, 8>;
-
-// SRBs-Modified-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using srbs_modified_list_l = bounded_array<protocol_ie_single_container_s<srbs_modified_item_ies_o>, 8>;
-
-// SRBs-Required-ToBeReleased-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using srbs_required_to_be_released_list_l =
-    bounded_array<protocol_ie_single_container_s<srbs_required_to_be_released_item_ies_o>, 8>;
-
-// SRBs-Setup-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using srbs_setup_list_l = bounded_array<protocol_ie_single_container_s<srbs_setup_item_ies_o>, 8>;
-
-// SRBs-SetupMod-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using srbs_setup_mod_list_l = bounded_array<protocol_ie_single_container_s<srbs_setup_mod_item_ies_o>, 8>;
-
-// SRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using srbs_to_be_released_list_l = bounded_array<protocol_ie_single_container_s<srbs_to_be_released_item_ies_o>, 8>;
-
-// SRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using srbs_to_be_setup_list_l = bounded_array<protocol_ie_single_container_s<srbs_to_be_setup_item_ies_o>, 8>;
-
-// SRBs-ToBeSetupMod-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using srbs_to_be_setup_mod_list_l = bounded_array<protocol_ie_single_container_s<srbs_to_be_setup_mod_item_ies_o>, 8>;
-
-// Served-Cells-To-Add-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using served_cells_to_add_list_l = dyn_array<protocol_ie_single_container_s<served_cells_to_add_item_ies_o>>;
-
-// Served-Cells-To-Delete-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using served_cells_to_delete_list_l = dyn_array<protocol_ie_single_container_s<served_cells_to_delete_item_ies_o>>;
-
-// Served-Cells-To-Modify-List ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using served_cells_to_modify_list_l = dyn_array<protocol_ie_single_container_s<served_cells_to_modify_item_ies_o>>;
-
-// ServingCellMO-List ::= SEQUENCE (SIZE (1..16)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using serving_cell_mo_list_l = bounded_array<protocol_ie_single_container_s<serving_cell_mo_list_item_ies_o>, 16>;
-
-// UE-MulticastMRBs-ConfirmedToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF
-// ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using ue_multicast_m_rbs_confirmed_to_be_modified_list_l =
-    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o>>;
-
-// UE-MulticastMRBs-RequiredToBeModified-List ::= SEQUENCE (SIZE (1..64)) OF
-// ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using ue_multicast_m_rbs_required_to_be_modified_list_l =
-    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_required_to_be_modified_item_ies_o>>;
-
-// UE-MulticastMRBs-RequiredToBeReleased-List ::= SEQUENCE (SIZE (1..64)) OF
-// ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES : IEsSetParam}
-using ue_multicast_m_rbs_required_to_be_released_list_l =
-    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_required_to_be_released_item_ies_o>>;
-
-// UE-MulticastMRBs-Setup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using ue_multicast_m_rbs_setup_list_l = dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_setup_item_ies_o>>;
-
-// UE-MulticastMRBs-ToBeReleased-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using ue_multicast_m_rbs_to_be_released_list_l =
-    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_to_be_released_item_ies_o>>;
-
-// UE-MulticastMRBs-ToBeSetup-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using ue_multicast_m_rbs_to_be_setup_list_l =
-    dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_to_be_setup_item_ies_o>>;
-
-// UE-MulticastMRBs-ToBeSetup-atModify-List ::= SEQUENCE (SIZE (1..64)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES
-// : IEsSetParam}
 using ue_multicast_m_rbs_to_be_setup_at_modify_list_l =
     dyn_array<protocol_ie_single_container_s<ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o>>;
 
-// UEIdentity-List-For-Paging-List ::= SEQUENCE (SIZE (1..4096)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using ue_id_list_for_paging_list_l = dyn_array<protocol_ie_single_container_s<ue_id_list_for_paging_item_ies_o>>;
-
-// UL-UP-TNL-Address-to-Update-List ::= SEQUENCE (SIZE (1..8)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using ul_up_tnl_address_to_upd_list_l =
-    bounded_array<protocol_ie_single_container_s<ul_up_tnl_address_to_upd_list_item_ies_o>, 8>;
-
-// UL-UP-TNL-Information-to-Update-List ::= SEQUENCE (SIZE (1..32678)) OF ProtocolIE-SingleContainer{F1AP-PROTOCOL-IES :
-// IEsSetParam}
-using ul_up_tnl_info_to_upd_list_l = dyn_array<protocol_ie_single_container_s<ul_up_tnl_info_to_upd_list_item_ies_o>>;
-
 } // namespace f1ap
 } // namespace asn1
-
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::associated_scell_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bap_hdr_rewriting_added_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bap_hdr_rewriting_remd_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_routing_info_added_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_routing_info_remd_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_failed_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_failed_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_failed_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_required_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::bh_chs_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::broadcast_to_be_cancelled_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::broadcast_m_rbs_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::broadcast_m_rbs_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::broadcast_m_rbs_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<
-    asn1::f1ap::broadcast_m_rbs_failed_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<
-    asn1::f1ap::broadcast_m_rbs_failed_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::broadcast_m_rbs_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::broadcast_m_rbs_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::broadcast_m_rbs_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::broadcast_m_rbs_failed_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::broadcast_m_rbs_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::candidate_sp_cell_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::cells_broadcast_cancelled_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::cells_broadcast_completed_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::cells_failed_to_be_activ_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::cells_status_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::cells_to_be_broadcast_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::cells_to_be_activ_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::cells_to_be_barred_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::cells_to_be_deactiv_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::dl_up_tnl_address_to_upd_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drb_activity_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drb_notify_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_failed_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_failed_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_failed_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_modified_conf_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_required_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_required_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::drbs_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::ded_si_delivery_needed_ue_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::gnb_cu_tnl_assoc_failed_to_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::gnb_cu_tnl_assoc_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::gnb_cu_tnl_assoc_to_add_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::gnb_cu_tnl_assoc_to_rem_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::gnb_cu_tnl_assoc_to_upd_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::gnb_du_served_cells_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::gnb_du_tnl_assoc_to_rem_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::iab_allocated_tnl_address_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::iab_tnl_addresses_to_rem_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<
-    asn1::f1ap::multicast_f1_u_context_failed_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_f1_u_context_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_f1_u_context_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<
-    asn1::f1ap::multicast_m_rbs_failed_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_m_rbs_failed_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<
-    asn1::f1ap::multicast_m_rbs_failed_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_m_rbs_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_m_rbs_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_m_rbs_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_m_rbs_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_m_rbs_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_m_rbs_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::multicast_m_rbs_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::nr_cgi_list_for_restart_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::neighbour_cell_info_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::pws_failed_nr_cgi_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::potential_sp_cell_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::protected_eutra_res_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::scell_failedto_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::scell_failedto_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::scell_to_be_remd_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::scell_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::scell_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_failed_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_failed_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_failed_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_modified_conf_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_required_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_required_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::sl_drbs_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::srbs_failed_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::srbs_failed_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::srbs_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::srbs_required_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::srbs_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::srbs_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::srbs_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::srbs_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::srbs_to_be_setup_mod_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::served_cells_to_add_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::served_cells_to_delete_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::served_cells_to_modify_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::serving_cell_mo_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<
-    asn1::f1ap::ue_multicast_m_rbs_confirmed_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<
-    asn1::f1ap::ue_multicast_m_rbs_required_to_be_modified_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<
-    asn1::f1ap::ue_multicast_m_rbs_required_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::ue_multicast_m_rbs_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::ue_multicast_m_rbs_to_be_released_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::ue_multicast_m_rbs_to_be_setup_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<
-    asn1::f1ap::ue_multicast_m_rbs_to_be_setup_at_modify_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::ue_id_list_for_paging_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::ul_up_tnl_address_to_upd_list_item_ies_o>;
-extern template struct asn1::protocol_ie_single_container_s<asn1::f1ap::ul_up_tnl_info_to_upd_list_item_ies_o>;

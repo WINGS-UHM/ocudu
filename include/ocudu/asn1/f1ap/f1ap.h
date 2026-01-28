@@ -306,6 +306,26 @@ using meas_precfg_refuse_s = elementary_procedure_option<meas_precfg_refuse_ies_
  *                              Struct Definitions
  ******************************************************************************/
 
+// ProtocolIE-FieldPair{F1AP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE{{F1AP-PROTOCOL-IES-PAIR}}
+template <class ies_set_paramT_>
+struct protocol_ie_field_pair_s {
+  uint32_t                                 id = 0;
+  crit_e                                   first_crit;
+  typename ies_set_paramT_::first_value_c  first_value;
+  crit_e                                   second_crit;
+  typename ies_set_paramT_::second_value_c second_value;
+
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+  bool          load_info_obj(const uint32_t& id_);
+};
+
+// ProtocolIE-ContainerPair{F1AP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE (SIZE (0..65535)) OF
+// ProtocolIE-FieldPair{F1AP-PROTOCOL-IES-PAIR : IEsSetParam}
+template <class ies_set_paramT_>
+using protocol_ie_container_pair_l = dyn_seq_of<protocol_ie_field_pair_s<ies_set_paramT_>, 0, 65535, true>;
+
 // F1AP-ELEMENTARY-PROCEDURES ::= OBJECT SET OF F1AP-ELEMENTARY-PROCEDURE
 struct f1ap_elem_procs_o {
   // InitiatingMessage ::= OPEN TYPE
@@ -798,9 +818,6 @@ struct f1ap_elem_procs_o {
   static crit_e                 get_crit(const uint16_t& proc_code);
 };
 
-// F1AP-PDU-ExtIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-using f1ap_pdu_ext_ies_o = protocol_ies_empty_o;
-
 // InitiatingMessage ::= SEQUENCE{{F1AP-ELEMENTARY-PROCEDURE}}
 struct init_msg_s {
   uint16_t                      proc_code = 0;
@@ -836,6 +853,9 @@ struct unsuccessful_outcome_s {
   void          to_json(json_writer& j) const;
   bool          load_info_obj(const uint16_t& proc_code_);
 };
+
+// F1AP-PDU-ExtIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+using f1ap_pdu_ext_ies_o = protocol_ies_empty_o;
 
 // F1AP-PDU ::= CHOICE
 struct f1ap_pdu_c {
@@ -912,25 +932,6 @@ private:
 
   void destroy_();
 };
-
-// ProtocolIE-FieldPair{F1AP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE{{F1AP-PROTOCOL-IES-PAIR}}
-template <class ies_set_paramT_>
-struct protocol_ie_field_pair_s {
-  uint32_t                                 id = 0;
-  crit_e                                   first_crit;
-  typename ies_set_paramT_::first_value_c  first_value;
-  crit_e                                   second_crit;
-  typename ies_set_paramT_::second_value_c second_value;
-
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-  bool          load_info_obj(const uint32_t& id_);
-};
-
-// ProtocolIE-ContainerPair{F1AP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE (SIZE (0..65535)) OF ProtocolIE-FieldPair
-template <class ies_set_paramT_>
-using protocol_ie_container_pair_l = dyn_seq_of<protocol_ie_field_pair_s<ies_set_paramT_>, 0, 65535, true>;
 
 } // namespace f1ap
 } // namespace asn1

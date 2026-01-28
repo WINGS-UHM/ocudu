@@ -17,6 +17,57 @@ using namespace asn1::f1ap;
  *                                Struct Methods
  ******************************************************************************/
 
+// ProtocolIE-FieldPair{F1AP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE{{F1AP-PROTOCOL-IES-PAIR}}
+template <class ies_set_paramT_>
+OCUDUASN_CODE protocol_ie_field_pair_s<ies_set_paramT_>::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(pack_integer(bref, id, (uint32_t)0u, (uint32_t)65535u, false, true));
+  warn_assert(first_crit != ies_set_paramT_::get_first_crit(id), __func__, __LINE__);
+  HANDLE_CODE(first_crit.pack(bref));
+  HANDLE_CODE(first_value.pack(bref));
+  warn_assert(second_crit != ies_set_paramT_::get_second_crit(id), __func__, __LINE__);
+  HANDLE_CODE(second_crit.pack(bref));
+  HANDLE_CODE(second_value.pack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+template <class ies_set_paramT_>
+OCUDUASN_CODE protocol_ie_field_pair_s<ies_set_paramT_>::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+  HANDLE_CODE(first_crit.unpack(bref));
+  first_value = ies_set_paramT_::get_first_value(id);
+  HANDLE_CODE(first_value.unpack(bref));
+  HANDLE_CODE(second_crit.unpack(bref));
+  second_value = ies_set_paramT_::get_second_value(id);
+  HANDLE_CODE(second_value.unpack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+template <class ies_set_paramT_>
+void protocol_ie_field_pair_s<ies_set_paramT_>::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", id);
+  j.write_str("firstCriticality", first_crit.to_string());
+  j.write_str("secondCriticality", second_crit.to_string());
+  j.end_obj();
+}
+template <class ies_set_paramT_>
+bool protocol_ie_field_pair_s<ies_set_paramT_>::load_info_obj(const uint32_t& id_)
+{
+  if (not ies_set_paramT_::is_id_valid(id_)) {
+    return false;
+  }
+  id           = id_;
+  first_crit   = ies_set_paramT_::get_first_crit(id);
+  first_value  = ies_set_paramT_::get_first_value(id);
+  second_crit  = ies_set_paramT_::get_second_crit(id);
+  second_value = ies_set_paramT_::get_second_value(id);
+  return first_value.type().value != ies_set_paramT_::first_value_c::types_opts::nulltype and
+         second_value.type().value != ies_set_paramT_::second_value_c::types_opts::nulltype;
+}
+
 // F1AP-ELEMENTARY-PROCEDURES ::= OBJECT SET OF F1AP-ELEMENTARY-PROCEDURE
 uint16_t f1ap_elem_procs_o::idx_to_proc_code(uint32_t idx)
 {
@@ -4353,55 +4404,4 @@ const char* f1ap_pdu_c::types_opts::to_string() const
 {
   static const char* names[] = {"initiatingMessage", "successfulOutcome", "unsuccessfulOutcome", "choice-extension"};
   return convert_enum_idx(names, 4, value, "f1ap_pdu_c::types");
-}
-
-// ProtocolIE-FieldPair{F1AP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE{{F1AP-PROTOCOL-IES-PAIR}}
-template <class ies_set_paramT_>
-OCUDUASN_CODE protocol_ie_field_pair_s<ies_set_paramT_>::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(pack_integer(bref, id, (uint32_t)0u, (uint32_t)65535u, false, true));
-  warn_assert(first_crit != ies_set_paramT_::get_first_crit(id), __func__, __LINE__);
-  HANDLE_CODE(first_crit.pack(bref));
-  HANDLE_CODE(first_value.pack(bref));
-  warn_assert(second_crit != ies_set_paramT_::get_second_crit(id), __func__, __LINE__);
-  HANDLE_CODE(second_crit.pack(bref));
-  HANDLE_CODE(second_value.pack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-template <class ies_set_paramT_>
-OCUDUASN_CODE protocol_ie_field_pair_s<ies_set_paramT_>::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
-  HANDLE_CODE(first_crit.unpack(bref));
-  first_value = ies_set_paramT_::get_first_value(id);
-  HANDLE_CODE(first_value.unpack(bref));
-  HANDLE_CODE(second_crit.unpack(bref));
-  second_value = ies_set_paramT_::get_second_value(id);
-  HANDLE_CODE(second_value.unpack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-template <class ies_set_paramT_>
-void protocol_ie_field_pair_s<ies_set_paramT_>::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_int("id", id);
-  j.write_str("firstCriticality", first_crit.to_string());
-  j.write_str("secondCriticality", second_crit.to_string());
-  j.end_obj();
-}
-template <class ies_set_paramT_>
-bool protocol_ie_field_pair_s<ies_set_paramT_>::load_info_obj(const uint32_t& id_)
-{
-  if (not ies_set_paramT_::is_id_valid(id_)) {
-    return false;
-  }
-  id           = id_;
-  first_crit   = ies_set_paramT_::get_first_crit(id);
-  first_value  = ies_set_paramT_::get_first_value(id);
-  second_crit  = ies_set_paramT_::get_second_crit(id);
-  second_value = ies_set_paramT_::get_second_value(id);
-  return first_value.type().value != ies_set_paramT_::first_value_c::types_opts::nulltype and
-         second_value.type().value != ies_set_paramT_::second_value_c::types_opts::nulltype;
 }

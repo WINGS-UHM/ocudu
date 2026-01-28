@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "f1ap_pdu_items.h"
+#include "ocudu/asn1/f1ap/f1ap_pdu_items.h"
 
 namespace asn1 {
 namespace f1ap {
@@ -208,6 +208,36 @@ struct init_ul_rrc_msg_transfer_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+struct init_ul_rrc_msg_transfer_ies_container {
+  bool                      du_to_cu_rrc_container_present           = false;
+  bool                      sul_access_ind_present                   = false;
+  bool                      ran_ue_id_present                        = false;
+  bool                      rrc_container_rrc_setup_complete_present = false;
+  bool                      nr_red_cap_ue_ind_present                = false;
+  bool                      sdt_info_present                         = false;
+  bool                      sidelink_relay_cfg_present               = false;
+  uint64_t                  gnb_du_ue_f1ap_id;
+  nr_cgi_s                  nr_cgi;
+  uint32_t                  c_rnti;
+  unbounded_octstring<true> rrc_container;
+  unbounded_octstring<true> du_to_cu_rrc_container;
+  sul_access_ind_e          sul_access_ind;
+  uint16_t                  transaction_id;
+  fixed_octstring<8, true>  ran_ue_id;
+  unbounded_octstring<true> rrc_container_rrc_setup_complete;
+  nr_red_cap_ue_ind_e       nr_red_cap_ue_ind;
+  sdt_info_s                sdt_info;
+  sidelink_relay_cfg_s      sidelink_relay_cfg;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// InitialULRRCMessageTransfer ::= SEQUENCE
+using init_ul_rrc_msg_transfer_s = elementary_procedure_option<init_ul_rrc_msg_transfer_ies_container>;
+
 // UEContextModificationConfirmIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_mod_confirm_ies_o {
   // Value ::= OPEN TYPE
@@ -279,6 +309,39 @@ struct ue_context_mod_confirm_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+struct ue_context_mod_confirm_ies_container {
+  bool                                               res_coordination_transfer_container_present              = false;
+  bool                                               drbs_modified_conf_list_present                          = false;
+  bool                                               rrc_container_present                                    = false;
+  bool                                               crit_diagnostics_present                                 = false;
+  bool                                               execute_dupl_present                                     = false;
+  bool                                               res_coordination_transfer_info_present                   = false;
+  bool                                               sl_drbs_modified_conf_list_present                       = false;
+  bool                                               uu_rlc_ch_modified_list_present                          = false;
+  bool                                               pc5_rlc_ch_modified_list_present                         = false;
+  bool                                               ue_multicast_m_rbs_confirmed_to_be_modified_list_present = false;
+  uint64_t                                           gnb_cu_ue_f1ap_id;
+  uint64_t                                           gnb_du_ue_f1ap_id;
+  unbounded_octstring<true>                          res_coordination_transfer_container;
+  drbs_modified_conf_list_l                          drbs_modified_conf_list;
+  unbounded_octstring<true>                          rrc_container;
+  crit_diagnostics_s                                 crit_diagnostics;
+  execute_dupl_e                                     execute_dupl;
+  res_coordination_transfer_info_s                   res_coordination_transfer_info;
+  sl_drbs_modified_conf_list_l                       sl_drbs_modified_conf_list;
+  uu_rlc_ch_modified_list_l                          uu_rlc_ch_modified_list;
+  pc5_rlc_ch_modified_list_l                         pc5_rlc_ch_modified_list;
+  ue_multicast_m_rbs_confirmed_to_be_modified_list_l ue_multicast_m_rbs_confirmed_to_be_modified_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextModificationConfirm ::= SEQUENCE
+using ue_context_mod_confirm_s = elementary_procedure_option<ue_context_mod_confirm_ies_container>;
+
 // UEContextModificationFailureIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_mod_fail_ies_o {
   // Value ::= OPEN TYPE
@@ -329,6 +392,24 @@ struct ue_context_mod_fail_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+struct ue_context_mod_fail_ies_container {
+  bool               crit_diagnostics_present                = false;
+  bool               requested_target_cell_global_id_present = false;
+  uint64_t           gnb_cu_ue_f1ap_id;
+  uint64_t           gnb_du_ue_f1ap_id;
+  cause_c            cause;
+  crit_diagnostics_s crit_diagnostics;
+  nr_cgi_s           requested_target_cell_global_id;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextModificationFailure ::= SEQUENCE
+using ue_context_mod_fail_s = elementary_procedure_option<ue_context_mod_fail_ies_container>;
+
 // UEContextModificationRefuseIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_mod_refuse_ies_o {
   // Value ::= OPEN TYPE
@@ -369,6 +450,22 @@ struct ue_context_mod_refuse_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+struct ue_context_mod_refuse_ies_container {
+  bool               crit_diagnostics_present = false;
+  uint64_t           gnb_cu_ue_f1ap_id;
+  uint64_t           gnb_du_ue_f1ap_id;
+  cause_c            cause;
+  crit_diagnostics_s crit_diagnostics;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextModificationRefuse ::= SEQUENCE
+using ue_context_mod_refuse_s = elementary_procedure_option<ue_context_mod_refuse_ies_container>;
 
 // UEContextModificationRequestIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_mod_request_ies_o {
@@ -633,6 +730,167 @@ struct ue_context_mod_request_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+struct ue_context_mod_request_ies_container {
+  bool                                            sp_cell_id_present                                    = false;
+  bool                                            serv_cell_idx_present                                 = false;
+  bool                                            sp_cell_ul_cfg_present                                = false;
+  bool                                            drx_cycle_present                                     = false;
+  bool                                            cu_to_du_rrc_info_present                             = false;
+  bool                                            tx_action_ind_present                                 = false;
+  bool                                            res_coordination_transfer_container_present           = false;
+  bool                                            rrc_recfg_complete_ind_present                        = false;
+  bool                                            rrc_container_present                                 = false;
+  bool                                            scell_to_be_setup_mod_list_present                    = false;
+  bool                                            scell_to_be_remd_list_present                         = false;
+  bool                                            srbs_to_be_setup_mod_list_present                     = false;
+  bool                                            drbs_to_be_setup_mod_list_present                     = false;
+  bool                                            drbs_to_be_modified_list_present                      = false;
+  bool                                            srbs_to_be_released_list_present                      = false;
+  bool                                            drbs_to_be_released_list_present                      = false;
+  bool                                            inactivity_monitoring_request_present                 = false;
+  bool                                            rat_freq_prio_info_present                            = false;
+  bool                                            drx_cfg_ind_present                                   = false;
+  bool                                            rlc_fail_ind_present                                  = false;
+  bool                                            ul_tx_direct_current_list_info_present                = false;
+  bool                                            gnb_du_cfg_query_present                              = false;
+  bool                                            gnb_du_ue_ambr_ul_present                             = false;
+  bool                                            execute_dupl_present                                  = false;
+  bool                                            rrc_delivery_status_request_present                   = false;
+  bool                                            res_coordination_transfer_info_present                = false;
+  bool                                            serving_cell_mo_present                               = false;
+  bool                                            needfor_gap_present                                   = false;
+  bool                                            full_cfg_present                                      = false;
+  bool                                            add_rrm_prio_idx_present                              = false;
+  bool                                            lower_layer_presence_status_change_present            = false;
+  bool                                            bh_chs_to_be_setup_mod_list_present                   = false;
+  bool                                            bh_chs_to_be_modified_list_present                    = false;
+  bool                                            bh_chs_to_be_released_list_present                    = false;
+  bool                                            nr_v2x_services_authorized_present                    = false;
+  bool                                            ltev2x_services_authorized_present                    = false;
+  bool                                            nr_ue_sidelink_aggr_max_bitrate_present               = false;
+  bool                                            lte_ue_sidelink_aggr_max_bitrate_present              = false;
+  bool                                            pc5_link_ambr_present                                 = false;
+  bool                                            sl_drbs_to_be_setup_mod_list_present                  = false;
+  bool                                            sl_drbs_to_be_modified_list_present                   = false;
+  bool                                            sl_drbs_to_be_released_list_present                   = false;
+  bool                                            conditional_intra_du_mob_info_present                 = false;
+  bool                                            f1_c_transfer_path_present                            = false;
+  bool                                            scg_ind_present                                       = false;
+  bool                                            ul_tx_direct_current_two_carrier_list_info_present    = false;
+  bool                                            iab_conditional_rrc_msg_delivery_ind_present          = false;
+  bool                                            f1_c_transfer_path_nr_dc_present                      = false;
+  bool                                            mdt_polluted_meas_ind_present                         = false;
+  bool                                            scg_activation_request_present                        = false;
+  bool                                            cg_sdt_query_ind_present                              = false;
+  bool                                            five_g_pro_se_authorized_present                      = false;
+  bool                                            five_g_pro_se_ue_pc5_aggr_max_bitrate_present         = false;
+  bool                                            five_g_pro_se_pc5_link_ambr_present                   = false;
+  bool                                            upd_remote_ue_local_id_present                        = false;
+  bool                                            uu_rlc_ch_to_be_setup_list_present                    = false;
+  bool                                            uu_rlc_ch_to_be_modified_list_present                 = false;
+  bool                                            uu_rlc_ch_to_be_released_list_present                 = false;
+  bool                                            pc5_rlc_ch_to_be_setup_list_present                   = false;
+  bool                                            pc5_rlc_ch_to_be_modified_list_present                = false;
+  bool                                            pc5_rlc_ch_to_be_released_list_present                = false;
+  bool                                            path_switch_cfg_present                               = false;
+  bool                                            gnb_du_ue_slice_max_bit_rate_list_present             = false;
+  bool                                            multicast_mbs_session_setup_list_present              = false;
+  bool                                            multicast_mbs_session_rem_list_present                = false;
+  bool                                            ue_multicast_m_rbs_to_be_setup_at_modify_list_present = false;
+  bool                                            ue_multicast_m_rbs_to_be_released_list_present        = false;
+  bool                                            sldrx_cycle_list_present                              = false;
+  bool                                            management_based_mdt_plmn_mod_list_present            = false;
+  bool                                            sdt_bearer_cfg_query_ind_present                      = false;
+  bool                                            daps_ho_status_present                                = false;
+  bool                                            serving_cell_mo_list_present                          = false;
+  bool                                            ul_tx_direct_current_more_carrier_info_present        = false;
+  bool                                            cp_acmcg_info_present                                 = false;
+  uint64_t                                        gnb_cu_ue_f1ap_id;
+  uint64_t                                        gnb_du_ue_f1ap_id;
+  nr_cgi_s                                        sp_cell_id;
+  uint8_t                                         serv_cell_idx;
+  cell_ul_cfg_e                                   sp_cell_ul_cfg;
+  drx_cycle_s                                     drx_cycle;
+  cu_to_du_rrc_info_s                             cu_to_du_rrc_info;
+  tx_action_ind_e                                 tx_action_ind;
+  unbounded_octstring<true>                       res_coordination_transfer_container;
+  rrc_recfg_complete_ind_e                        rrc_recfg_complete_ind;
+  unbounded_octstring<true>                       rrc_container;
+  scell_to_be_setup_mod_list_l                    scell_to_be_setup_mod_list;
+  scell_to_be_remd_list_l                         scell_to_be_remd_list;
+  srbs_to_be_setup_mod_list_l                     srbs_to_be_setup_mod_list;
+  drbs_to_be_setup_mod_list_l                     drbs_to_be_setup_mod_list;
+  drbs_to_be_modified_list_l                      drbs_to_be_modified_list;
+  srbs_to_be_released_list_l                      srbs_to_be_released_list;
+  drbs_to_be_released_list_l                      drbs_to_be_released_list;
+  inactivity_monitoring_request_e                 inactivity_monitoring_request;
+  rat_freq_prio_info_c                            rat_freq_prio_info;
+  drx_cfg_ind_e                                   drx_cfg_ind;
+  rlc_fail_ind_s                                  rlc_fail_ind;
+  unbounded_octstring<true>                       ul_tx_direct_current_list_info;
+  gnb_du_cfg_query_e                              gnb_du_cfg_query;
+  uint64_t                                        gnb_du_ue_ambr_ul;
+  execute_dupl_e                                  execute_dupl;
+  rrc_delivery_status_request_e                   rrc_delivery_status_request;
+  res_coordination_transfer_info_s                res_coordination_transfer_info;
+  uint8_t                                         serving_cell_mo;
+  needfor_gap_e                                   needfor_gap;
+  full_cfg_e                                      full_cfg;
+  fixed_bitstring<32, false, true>                add_rrm_prio_idx;
+  lower_layer_presence_status_change_e            lower_layer_presence_status_change;
+  bh_chs_to_be_setup_mod_list_l                   bh_chs_to_be_setup_mod_list;
+  bh_chs_to_be_modified_list_l                    bh_chs_to_be_modified_list;
+  bh_chs_to_be_released_list_l                    bh_chs_to_be_released_list;
+  nr_v2x_services_authorized_s                    nr_v2x_services_authorized;
+  ltev2x_services_authorized_s                    ltev2x_services_authorized;
+  nr_ue_sidelink_aggr_max_bitrate_s               nr_ue_sidelink_aggr_max_bitrate;
+  lte_ue_sidelink_aggr_max_bitrate_s              lte_ue_sidelink_aggr_max_bitrate;
+  uint64_t                                        pc5_link_ambr;
+  sl_drbs_to_be_setup_mod_list_l                  sl_drbs_to_be_setup_mod_list;
+  sl_drbs_to_be_modified_list_l                   sl_drbs_to_be_modified_list;
+  sl_drbs_to_be_released_list_l                   sl_drbs_to_be_released_list;
+  conditional_intra_du_mob_info_s                 conditional_intra_du_mob_info;
+  f1_c_transfer_path_s                            f1_c_transfer_path;
+  scg_ind_e                                       scg_ind;
+  unbounded_octstring<true>                       ul_tx_direct_current_two_carrier_list_info;
+  iab_conditional_rrc_msg_delivery_ind_e          iab_conditional_rrc_msg_delivery_ind;
+  f1_c_transfer_path_nr_dc_s                      f1_c_transfer_path_nr_dc;
+  mdt_polluted_meas_ind_e                         mdt_polluted_meas_ind;
+  scg_activation_request_e                        scg_activation_request;
+  cg_sdt_query_ind_e                              cg_sdt_query_ind;
+  five_g_pro_se_authorized_s                      five_g_pro_se_authorized;
+  nr_ue_sidelink_aggr_max_bitrate_s               five_g_pro_se_ue_pc5_aggr_max_bitrate;
+  uint64_t                                        five_g_pro_se_pc5_link_ambr;
+  uint16_t                                        upd_remote_ue_local_id;
+  uu_rlc_ch_to_be_setup_list_l                    uu_rlc_ch_to_be_setup_list;
+  uu_rlc_ch_to_be_modified_list_l                 uu_rlc_ch_to_be_modified_list;
+  uu_rlc_ch_to_be_released_list_l                 uu_rlc_ch_to_be_released_list;
+  pc5_rlc_ch_to_be_setup_list_l                   pc5_rlc_ch_to_be_setup_list;
+  pc5_rlc_ch_to_be_modified_list_l                pc5_rlc_ch_to_be_modified_list;
+  pc5_rlc_ch_to_be_released_list_l                pc5_rlc_ch_to_be_released_list;
+  path_switch_cfg_s                               path_switch_cfg;
+  gnb_du_ue_slice_max_bit_rate_list_l             gnb_du_ue_slice_max_bit_rate_list;
+  multicast_mbs_session_list_l                    multicast_mbs_session_setup_list;
+  multicast_mbs_session_list_l                    multicast_mbs_session_rem_list;
+  ue_multicast_m_rbs_to_be_setup_at_modify_list_l ue_multicast_m_rbs_to_be_setup_at_modify_list;
+  ue_multicast_m_rbs_to_be_released_list_l        ue_multicast_m_rbs_to_be_released_list;
+  sldrx_cycle_list_l                              sldrx_cycle_list;
+  mdt_plmn_mod_list_l                             management_based_mdt_plmn_mod_list;
+  sdt_bearer_cfg_query_ind_e                      sdt_bearer_cfg_query_ind;
+  daps_ho_status_e                                daps_ho_status;
+  serving_cell_mo_list_l                          serving_cell_mo_list;
+  unbounded_octstring<true>                       ul_tx_direct_current_more_carrier_info;
+  cp_acmcg_info_s                                 cp_acmcg_info;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextModificationRequest ::= SEQUENCE
+using ue_context_mod_request_s = elementary_procedure_option<ue_context_mod_request_ies_container>;
+
 // UEContextModificationRequiredIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_mod_required_ies_o {
   // Value ::= OPEN TYPE
@@ -721,6 +979,50 @@ struct ue_context_mod_required_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+struct ue_context_mod_required_ies_container {
+  bool                                              res_coordination_transfer_container_present             = false;
+  bool                                              du_to_cu_rrc_info_present                               = false;
+  bool                                              drbs_required_to_be_modified_list_present               = false;
+  bool                                              srbs_required_to_be_released_list_present               = false;
+  bool                                              drbs_required_to_be_released_list_present               = false;
+  bool                                              bh_chs_required_to_be_released_list_present             = false;
+  bool                                              sl_drbs_required_to_be_modified_list_present            = false;
+  bool                                              sl_drbs_required_to_be_released_list_present            = false;
+  bool                                              target_cells_to_cancel_present                          = false;
+  bool                                              uu_rlc_ch_required_to_be_modified_list_present          = false;
+  bool                                              uu_rlc_ch_required_to_be_released_list_present          = false;
+  bool                                              pc5_rlc_ch_required_to_be_modified_list_present         = false;
+  bool                                              pc5_rlc_ch_required_to_be_released_list_present         = false;
+  bool                                              ue_multicast_m_rbs_required_to_be_modified_list_present = false;
+  bool                                              ue_multicast_m_rbs_required_to_be_released_list_present = false;
+  uint64_t                                          gnb_cu_ue_f1ap_id;
+  uint64_t                                          gnb_du_ue_f1ap_id;
+  unbounded_octstring<true>                         res_coordination_transfer_container;
+  du_to_cu_rrc_info_s                               du_to_cu_rrc_info;
+  drbs_required_to_be_modified_list_l               drbs_required_to_be_modified_list;
+  srbs_required_to_be_released_list_l               srbs_required_to_be_released_list;
+  drbs_required_to_be_released_list_l               drbs_required_to_be_released_list;
+  cause_c                                           cause;
+  bh_chs_required_to_be_released_list_l             bh_chs_required_to_be_released_list;
+  sl_drbs_required_to_be_modified_list_l            sl_drbs_required_to_be_modified_list;
+  sl_drbs_required_to_be_released_list_l            sl_drbs_required_to_be_released_list;
+  target_cell_list_l                                target_cells_to_cancel;
+  uu_rlc_ch_required_to_be_modified_list_l          uu_rlc_ch_required_to_be_modified_list;
+  uu_rlc_ch_required_to_be_released_list_l          uu_rlc_ch_required_to_be_released_list;
+  pc5_rlc_ch_required_to_be_modified_list_l         pc5_rlc_ch_required_to_be_modified_list;
+  pc5_rlc_ch_required_to_be_released_list_l         pc5_rlc_ch_required_to_be_released_list;
+  ue_multicast_m_rbs_required_to_be_modified_list_l ue_multicast_m_rbs_required_to_be_modified_list;
+  ue_multicast_m_rbs_required_to_be_released_list_l ue_multicast_m_rbs_required_to_be_released_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextModificationRequired ::= SEQUENCE
+using ue_context_mod_required_s = elementary_procedure_option<ue_context_mod_required_ies_container>;
 
 // UEContextModificationResponseIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_mod_resp_ies_o {
@@ -871,6 +1173,91 @@ struct ue_context_mod_resp_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+struct ue_context_mod_resp_ies_container {
+  bool                                    res_coordination_transfer_container_present   = false;
+  bool                                    du_to_cu_rrc_info_present                     = false;
+  bool                                    drbs_setup_mod_list_present                   = false;
+  bool                                    drbs_modified_list_present                    = false;
+  bool                                    srbs_failed_to_be_setup_mod_list_present      = false;
+  bool                                    drbs_failed_to_be_setup_mod_list_present      = false;
+  bool                                    scell_failedto_setup_mod_list_present         = false;
+  bool                                    drbs_failed_to_be_modified_list_present       = false;
+  bool                                    inactivity_monitoring_resp_present            = false;
+  bool                                    crit_diagnostics_present                      = false;
+  bool                                    c_rnti_present                                = false;
+  bool                                    associated_scell_list_present                 = false;
+  bool                                    srbs_setup_mod_list_present                   = false;
+  bool                                    srbs_modified_list_present                    = false;
+  bool                                    full_cfg_present                              = false;
+  bool                                    bh_chs_setup_mod_list_present                 = false;
+  bool                                    bh_chs_modified_list_present                  = false;
+  bool                                    bh_chs_failed_to_be_setup_mod_list_present    = false;
+  bool                                    bh_chs_failed_to_be_modified_list_present     = false;
+  bool                                    sl_drbs_setup_mod_list_present                = false;
+  bool                                    sl_drbs_modified_list_present                 = false;
+  bool                                    sl_drbs_failed_to_be_setup_mod_list_present   = false;
+  bool                                    sl_drbs_failed_to_be_modified_list_present    = false;
+  bool                                    requested_target_cell_global_id_present       = false;
+  bool                                    scg_activation_status_present                 = false;
+  bool                                    uu_rlc_ch_setup_list_present                  = false;
+  bool                                    uu_rlc_ch_failed_to_be_setup_list_present     = false;
+  bool                                    uu_rlc_ch_modified_list_present               = false;
+  bool                                    uu_rlc_ch_failed_to_be_modified_list_present  = false;
+  bool                                    pc5_rlc_ch_setup_list_present                 = false;
+  bool                                    pc5_rlc_ch_failed_to_be_setup_list_present    = false;
+  bool                                    pc5_rlc_ch_modified_list_present              = false;
+  bool                                    pc5_rlc_ch_failed_to_be_modified_list_present = false;
+  bool                                    sdt_bearer_cfg_info_present                   = false;
+  bool                                    ue_multicast_m_rbs_setup_list_present         = false;
+  bool                                    serving_cell_mo_encoded_in_cgc_list_present   = false;
+  uint64_t                                gnb_cu_ue_f1ap_id;
+  uint64_t                                gnb_du_ue_f1ap_id;
+  unbounded_octstring<true>               res_coordination_transfer_container;
+  du_to_cu_rrc_info_s                     du_to_cu_rrc_info;
+  drbs_setup_mod_list_l                   drbs_setup_mod_list;
+  drbs_modified_list_l                    drbs_modified_list;
+  srbs_failed_to_be_setup_mod_list_l      srbs_failed_to_be_setup_mod_list;
+  drbs_failed_to_be_setup_mod_list_l      drbs_failed_to_be_setup_mod_list;
+  scell_failedto_setup_mod_list_l         scell_failedto_setup_mod_list;
+  drbs_failed_to_be_modified_list_l       drbs_failed_to_be_modified_list;
+  inactivity_monitoring_resp_e            inactivity_monitoring_resp;
+  crit_diagnostics_s                      crit_diagnostics;
+  uint32_t                                c_rnti;
+  associated_scell_list_l                 associated_scell_list;
+  srbs_setup_mod_list_l                   srbs_setup_mod_list;
+  srbs_modified_list_l                    srbs_modified_list;
+  full_cfg_e                              full_cfg;
+  bh_chs_setup_mod_list_l                 bh_chs_setup_mod_list;
+  bh_chs_modified_list_l                  bh_chs_modified_list;
+  bh_chs_failed_to_be_setup_mod_list_l    bh_chs_failed_to_be_setup_mod_list;
+  bh_chs_failed_to_be_modified_list_l     bh_chs_failed_to_be_modified_list;
+  sl_drbs_setup_mod_list_l                sl_drbs_setup_mod_list;
+  sl_drbs_modified_list_l                 sl_drbs_modified_list;
+  sl_drbs_failed_to_be_setup_mod_list_l   sl_drbs_failed_to_be_setup_mod_list;
+  sl_drbs_failed_to_be_modified_list_l    sl_drbs_failed_to_be_modified_list;
+  nr_cgi_s                                requested_target_cell_global_id;
+  scg_activation_status_e                 scg_activation_status;
+  uu_rlc_ch_setup_list_l                  uu_rlc_ch_setup_list;
+  uu_rlc_ch_failed_to_be_setup_list_l     uu_rlc_ch_failed_to_be_setup_list;
+  uu_rlc_ch_modified_list_l               uu_rlc_ch_modified_list;
+  uu_rlc_ch_failed_to_be_modified_list_l  uu_rlc_ch_failed_to_be_modified_list;
+  pc5_rlc_ch_setup_list_l                 pc5_rlc_ch_setup_list;
+  pc5_rlc_ch_failed_to_be_setup_list_l    pc5_rlc_ch_failed_to_be_setup_list;
+  pc5_rlc_ch_modified_list_l              pc5_rlc_ch_modified_list;
+  pc5_rlc_ch_failed_to_be_modified_list_l pc5_rlc_ch_failed_to_be_modified_list;
+  sdt_bearer_cfg_info_s                   sdt_bearer_cfg_info;
+  ue_multicast_m_rbs_setup_list_l         ue_multicast_m_rbs_setup_list;
+  serving_cell_mo_encoded_in_cgc_list_l   serving_cell_mo_encoded_in_cgc_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextModificationResponse ::= SEQUENCE
+using ue_context_mod_resp_s = elementary_procedure_option<ue_context_mod_resp_ies_container>;
+
 // UEContextReleaseCommandIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_release_cmd_ies_o {
   // Value ::= OPEN TYPE
@@ -939,6 +1326,36 @@ struct ue_context_release_cmd_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+struct ue_context_release_cmd_ies_container {
+  bool                          rrc_container_present               = false;
+  bool                          srb_id_present                      = false;
+  bool                          old_gnb_du_ue_f1ap_id_present       = false;
+  bool                          execute_dupl_present                = false;
+  bool                          rrc_delivery_status_request_present = false;
+  bool                          target_cells_to_cancel_present      = false;
+  bool                          pos_conext_rev_ind_present          = false;
+  bool                          cg_sdt_kept_ind_present             = false;
+  uint64_t                      gnb_cu_ue_f1ap_id;
+  uint64_t                      gnb_du_ue_f1ap_id;
+  cause_c                       cause;
+  unbounded_octstring<true>     rrc_container;
+  uint8_t                       srb_id;
+  uint64_t                      old_gnb_du_ue_f1ap_id;
+  execute_dupl_e                execute_dupl;
+  rrc_delivery_status_request_e rrc_delivery_status_request;
+  target_cell_list_l            target_cells_to_cancel;
+  pos_conext_rev_ind_e          pos_conext_rev_ind;
+  cg_sdt_kept_ind_e             cg_sdt_kept_ind;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextReleaseCommand ::= SEQUENCE
+using ue_context_release_cmd_s = elementary_procedure_option<ue_context_release_cmd_ies_container>;
+
 // UEContextReleaseCompleteIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_release_complete_ies_o {
   // Value ::= OPEN TYPE
@@ -977,6 +1394,21 @@ struct ue_context_release_complete_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+struct ue_context_release_complete_ies_container {
+  bool               crit_diagnostics_present = false;
+  uint64_t           gnb_cu_ue_f1ap_id;
+  uint64_t           gnb_du_ue_f1ap_id;
+  crit_diagnostics_s crit_diagnostics;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextReleaseComplete ::= SEQUENCE
+using ue_context_release_complete_s = elementary_procedure_option<ue_context_release_complete_ies_container>;
 
 // UEContextReleaseRequestIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_release_request_ies_o {
@@ -1018,6 +1450,22 @@ struct ue_context_release_request_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+struct ue_context_release_request_ies_container {
+  bool               target_cells_to_cancel_present = false;
+  uint64_t           gnb_cu_ue_f1ap_id;
+  uint64_t           gnb_du_ue_f1ap_id;
+  cause_c            cause;
+  target_cell_list_l target_cells_to_cancel;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextReleaseRequest ::= SEQUENCE
+using ue_context_release_request_s = elementary_procedure_option<ue_context_release_request_ies_container>;
 
 // UEContextSetupFailureIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_setup_fail_ies_o {
@@ -1071,6 +1519,27 @@ struct ue_context_setup_fail_ies_o {
   static value_c    get_value(const uint32_t& id);
   static presence_e get_presence(const uint32_t& id);
 };
+
+struct ue_context_setup_fail_ies_container {
+  bool                     gnb_du_ue_f1ap_id_present               = false;
+  bool                     crit_diagnostics_present                = false;
+  bool                     potential_sp_cell_list_present          = false;
+  bool                     requested_target_cell_global_id_present = false;
+  uint64_t                 gnb_cu_ue_f1ap_id;
+  uint64_t                 gnb_du_ue_f1ap_id;
+  cause_c                  cause;
+  crit_diagnostics_s       crit_diagnostics;
+  potential_sp_cell_list_l potential_sp_cell_list;
+  nr_cgi_s                 requested_target_cell_global_id;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEContextSetupFailure ::= SEQUENCE
+using ue_context_setup_fail_s = elementary_procedure_option<ue_context_setup_fail_ies_container>;
 
 // UEContextSetupRequestIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ue_context_setup_request_ies_o {
@@ -1260,676 +1729,6 @@ struct ue_context_setup_request_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
-// UEContextSetupResponseIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct ue_context_setup_resp_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options {
-        gnb_cu_ue_f1ap_id,
-        gnb_du_ue_f1ap_id,
-        du_to_cu_rrc_info,
-        c_rnti,
-        res_coordination_transfer_container,
-        full_cfg,
-        drbs_setup_list,
-        srbs_failed_to_be_setup_list,
-        drbs_failed_to_be_setup_list,
-        scell_failedto_setup_list,
-        inactivity_monitoring_resp,
-        crit_diagnostics,
-        srbs_setup_list,
-        bh_chs_setup_list,
-        bh_chs_failed_to_be_setup_list,
-        sl_drbs_setup_list,
-        sl_drbs_failed_to_be_setup_list,
-        requested_target_cell_global_id,
-        scg_activation_status,
-        uu_rlc_ch_setup_list,
-        uu_rlc_ch_failed_to_be_setup_list,
-        pc5_rlc_ch_setup_list,
-        pc5_rlc_ch_failed_to_be_setup_list,
-        serving_cell_mo_encoded_in_cgc_list,
-        nulltype
-      } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    value_c() = default;
-    void          set(types::options e = types::nulltype);
-    types         type() const { return type_; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    uint64_t&                                    gnb_cu_ue_f1ap_id();
-    uint64_t&                                    gnb_du_ue_f1ap_id();
-    du_to_cu_rrc_info_s&                         du_to_cu_rrc_info();
-    uint32_t&                                    c_rnti();
-    unbounded_octstring<true>&                   res_coordination_transfer_container();
-    full_cfg_e&                                  full_cfg();
-    drbs_setup_list_l&                           drbs_setup_list();
-    srbs_failed_to_be_setup_list_l&              srbs_failed_to_be_setup_list();
-    drbs_failed_to_be_setup_list_l&              drbs_failed_to_be_setup_list();
-    scell_failedto_setup_list_l&                 scell_failedto_setup_list();
-    inactivity_monitoring_resp_e&                inactivity_monitoring_resp();
-    crit_diagnostics_s&                          crit_diagnostics();
-    srbs_setup_list_l&                           srbs_setup_list();
-    bh_chs_setup_list_l&                         bh_chs_setup_list();
-    bh_chs_failed_to_be_setup_list_l&            bh_chs_failed_to_be_setup_list();
-    sl_drbs_setup_list_l&                        sl_drbs_setup_list();
-    sl_drbs_failed_to_be_setup_list_l&           sl_drbs_failed_to_be_setup_list();
-    nr_cgi_s&                                    requested_target_cell_global_id();
-    scg_activation_status_e&                     scg_activation_status();
-    uu_rlc_ch_setup_list_l&                      uu_rlc_ch_setup_list();
-    uu_rlc_ch_failed_to_be_setup_list_l&         uu_rlc_ch_failed_to_be_setup_list();
-    pc5_rlc_ch_setup_list_l&                     pc5_rlc_ch_setup_list();
-    pc5_rlc_ch_failed_to_be_setup_list_l&        pc5_rlc_ch_failed_to_be_setup_list();
-    serving_cell_mo_encoded_in_cgc_list_l&       serving_cell_mo_encoded_in_cgc_list();
-    const uint64_t&                              gnb_cu_ue_f1ap_id() const;
-    const uint64_t&                              gnb_du_ue_f1ap_id() const;
-    const du_to_cu_rrc_info_s&                   du_to_cu_rrc_info() const;
-    const uint32_t&                              c_rnti() const;
-    const unbounded_octstring<true>&             res_coordination_transfer_container() const;
-    const full_cfg_e&                            full_cfg() const;
-    const drbs_setup_list_l&                     drbs_setup_list() const;
-    const srbs_failed_to_be_setup_list_l&        srbs_failed_to_be_setup_list() const;
-    const drbs_failed_to_be_setup_list_l&        drbs_failed_to_be_setup_list() const;
-    const scell_failedto_setup_list_l&           scell_failedto_setup_list() const;
-    const inactivity_monitoring_resp_e&          inactivity_monitoring_resp() const;
-    const crit_diagnostics_s&                    crit_diagnostics() const;
-    const srbs_setup_list_l&                     srbs_setup_list() const;
-    const bh_chs_setup_list_l&                   bh_chs_setup_list() const;
-    const bh_chs_failed_to_be_setup_list_l&      bh_chs_failed_to_be_setup_list() const;
-    const sl_drbs_setup_list_l&                  sl_drbs_setup_list() const;
-    const sl_drbs_failed_to_be_setup_list_l&     sl_drbs_failed_to_be_setup_list() const;
-    const nr_cgi_s&                              requested_target_cell_global_id() const;
-    const scg_activation_status_e&               scg_activation_status() const;
-    const uu_rlc_ch_setup_list_l&                uu_rlc_ch_setup_list() const;
-    const uu_rlc_ch_failed_to_be_setup_list_l&   uu_rlc_ch_failed_to_be_setup_list() const;
-    const pc5_rlc_ch_setup_list_l&               pc5_rlc_ch_setup_list() const;
-    const pc5_rlc_ch_failed_to_be_setup_list_l&  pc5_rlc_ch_failed_to_be_setup_list() const;
-    const serving_cell_mo_encoded_in_cgc_list_l& serving_cell_mo_encoded_in_cgc_list() const;
-
-  private:
-    types             type_;
-    choice_buffer_ptr c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// UEInactivityNotificationIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct ue_inactivity_notif_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options { gnb_cu_ue_f1ap_id, gnb_du_ue_f1ap_id, drb_activity_list, sdt_termination_request, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    value_c() = default;
-    void          set(types::options e = types::nulltype);
-    types         type() const { return type_; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    uint64_t&                        gnb_cu_ue_f1ap_id();
-    uint64_t&                        gnb_du_ue_f1ap_id();
-    drb_activity_list_l&             drb_activity_list();
-    sdt_termination_request_e&       sdt_termination_request();
-    const uint64_t&                  gnb_cu_ue_f1ap_id() const;
-    const uint64_t&                  gnb_du_ue_f1ap_id() const;
-    const drb_activity_list_l&       drb_activity_list() const;
-    const sdt_termination_request_e& sdt_termination_request() const;
-
-  private:
-    types             type_;
-    choice_buffer_ptr c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-// ULRRCMessageTransferIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
-struct ul_rrc_msg_transfer_ies_o {
-  // Value ::= OPEN TYPE
-  struct value_c {
-    struct types_opts {
-      enum options {
-        gnb_cu_ue_f1ap_id,
-        gnb_du_ue_f1ap_id,
-        srb_id,
-        rrc_container,
-        sel_plmn_id,
-        new_gnb_du_ue_f1ap_id,
-        nulltype
-      } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    value_c() = default;
-    void          set(types::options e = types::nulltype);
-    types         type() const { return type_; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    uint64_t&                        gnb_cu_ue_f1ap_id();
-    uint64_t&                        gnb_du_ue_f1ap_id();
-    uint8_t&                         srb_id();
-    unbounded_octstring<true>&       rrc_container();
-    fixed_octstring<3, true>&        sel_plmn_id();
-    uint64_t&                        new_gnb_du_ue_f1ap_id();
-    const uint64_t&                  gnb_cu_ue_f1ap_id() const;
-    const uint64_t&                  gnb_du_ue_f1ap_id() const;
-    const uint8_t&                   srb_id() const;
-    const unbounded_octstring<true>& rrc_container() const;
-    const fixed_octstring<3, true>&  sel_plmn_id() const;
-    const uint64_t&                  new_gnb_du_ue_f1ap_id() const;
-
-  private:
-    types             type_;
-    choice_buffer_ptr c;
-  };
-
-  // members lookup methods
-  static uint32_t   idx_to_id(uint32_t idx);
-  static bool       is_id_valid(const uint32_t& id);
-  static crit_e     get_crit(const uint32_t& id);
-  static value_c    get_value(const uint32_t& id);
-  static presence_e get_presence(const uint32_t& id);
-};
-
-struct init_ul_rrc_msg_transfer_ies_container {
-  bool                      du_to_cu_rrc_container_present           = false;
-  bool                      sul_access_ind_present                   = false;
-  bool                      ran_ue_id_present                        = false;
-  bool                      rrc_container_rrc_setup_complete_present = false;
-  bool                      nr_red_cap_ue_ind_present                = false;
-  bool                      sdt_info_present                         = false;
-  bool                      sidelink_relay_cfg_present               = false;
-  uint64_t                  gnb_du_ue_f1ap_id;
-  nr_cgi_s                  nr_cgi;
-  uint32_t                  c_rnti;
-  unbounded_octstring<true> rrc_container;
-  unbounded_octstring<true> du_to_cu_rrc_container;
-  sul_access_ind_e          sul_access_ind;
-  uint16_t                  transaction_id;
-  fixed_octstring<8, true>  ran_ue_id;
-  unbounded_octstring<true> rrc_container_rrc_setup_complete;
-  nr_red_cap_ue_ind_e       nr_red_cap_ue_ind;
-  sdt_info_s                sdt_info;
-  sidelink_relay_cfg_s      sidelink_relay_cfg;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// InitialULRRCMessageTransfer ::= SEQUENCE
-using init_ul_rrc_msg_transfer_s = elementary_procedure_option<init_ul_rrc_msg_transfer_ies_container>;
-
-struct ue_context_mod_confirm_ies_container {
-  bool                                               res_coordination_transfer_container_present              = false;
-  bool                                               drbs_modified_conf_list_present                          = false;
-  bool                                               rrc_container_present                                    = false;
-  bool                                               crit_diagnostics_present                                 = false;
-  bool                                               execute_dupl_present                                     = false;
-  bool                                               res_coordination_transfer_info_present                   = false;
-  bool                                               sl_drbs_modified_conf_list_present                       = false;
-  bool                                               uu_rlc_ch_modified_list_present                          = false;
-  bool                                               pc5_rlc_ch_modified_list_present                         = false;
-  bool                                               ue_multicast_m_rbs_confirmed_to_be_modified_list_present = false;
-  uint64_t                                           gnb_cu_ue_f1ap_id;
-  uint64_t                                           gnb_du_ue_f1ap_id;
-  unbounded_octstring<true>                          res_coordination_transfer_container;
-  drbs_modified_conf_list_l                          drbs_modified_conf_list;
-  unbounded_octstring<true>                          rrc_container;
-  crit_diagnostics_s                                 crit_diagnostics;
-  execute_dupl_e                                     execute_dupl;
-  res_coordination_transfer_info_s                   res_coordination_transfer_info;
-  sl_drbs_modified_conf_list_l                       sl_drbs_modified_conf_list;
-  uu_rlc_ch_modified_list_l                          uu_rlc_ch_modified_list;
-  pc5_rlc_ch_modified_list_l                         pc5_rlc_ch_modified_list;
-  ue_multicast_m_rbs_confirmed_to_be_modified_list_l ue_multicast_m_rbs_confirmed_to_be_modified_list;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextModificationConfirm ::= SEQUENCE
-using ue_context_mod_confirm_s = elementary_procedure_option<ue_context_mod_confirm_ies_container>;
-
-struct ue_context_mod_fail_ies_container {
-  bool               crit_diagnostics_present                = false;
-  bool               requested_target_cell_global_id_present = false;
-  uint64_t           gnb_cu_ue_f1ap_id;
-  uint64_t           gnb_du_ue_f1ap_id;
-  cause_c            cause;
-  crit_diagnostics_s crit_diagnostics;
-  nr_cgi_s           requested_target_cell_global_id;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextModificationFailure ::= SEQUENCE
-using ue_context_mod_fail_s = elementary_procedure_option<ue_context_mod_fail_ies_container>;
-
-struct ue_context_mod_refuse_ies_container {
-  bool               crit_diagnostics_present = false;
-  uint64_t           gnb_cu_ue_f1ap_id;
-  uint64_t           gnb_du_ue_f1ap_id;
-  cause_c            cause;
-  crit_diagnostics_s crit_diagnostics;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextModificationRefuse ::= SEQUENCE
-using ue_context_mod_refuse_s = elementary_procedure_option<ue_context_mod_refuse_ies_container>;
-
-struct ue_context_mod_request_ies_container {
-  bool                                            sp_cell_id_present                                    = false;
-  bool                                            serv_cell_idx_present                                 = false;
-  bool                                            sp_cell_ul_cfg_present                                = false;
-  bool                                            drx_cycle_present                                     = false;
-  bool                                            cu_to_du_rrc_info_present                             = false;
-  bool                                            tx_action_ind_present                                 = false;
-  bool                                            res_coordination_transfer_container_present           = false;
-  bool                                            rrc_recfg_complete_ind_present                        = false;
-  bool                                            rrc_container_present                                 = false;
-  bool                                            scell_to_be_setup_mod_list_present                    = false;
-  bool                                            scell_to_be_remd_list_present                         = false;
-  bool                                            srbs_to_be_setup_mod_list_present                     = false;
-  bool                                            drbs_to_be_setup_mod_list_present                     = false;
-  bool                                            drbs_to_be_modified_list_present                      = false;
-  bool                                            srbs_to_be_released_list_present                      = false;
-  bool                                            drbs_to_be_released_list_present                      = false;
-  bool                                            inactivity_monitoring_request_present                 = false;
-  bool                                            rat_freq_prio_info_present                            = false;
-  bool                                            drx_cfg_ind_present                                   = false;
-  bool                                            rlc_fail_ind_present                                  = false;
-  bool                                            ul_tx_direct_current_list_info_present                = false;
-  bool                                            gnb_du_cfg_query_present                              = false;
-  bool                                            gnb_du_ue_ambr_ul_present                             = false;
-  bool                                            execute_dupl_present                                  = false;
-  bool                                            rrc_delivery_status_request_present                   = false;
-  bool                                            res_coordination_transfer_info_present                = false;
-  bool                                            serving_cell_mo_present                               = false;
-  bool                                            needfor_gap_present                                   = false;
-  bool                                            full_cfg_present                                      = false;
-  bool                                            add_rrm_prio_idx_present                              = false;
-  bool                                            lower_layer_presence_status_change_present            = false;
-  bool                                            bh_chs_to_be_setup_mod_list_present                   = false;
-  bool                                            bh_chs_to_be_modified_list_present                    = false;
-  bool                                            bh_chs_to_be_released_list_present                    = false;
-  bool                                            nr_v2x_services_authorized_present                    = false;
-  bool                                            ltev2x_services_authorized_present                    = false;
-  bool                                            nr_ue_sidelink_aggr_max_bitrate_present               = false;
-  bool                                            lte_ue_sidelink_aggr_max_bitrate_present              = false;
-  bool                                            pc5_link_ambr_present                                 = false;
-  bool                                            sl_drbs_to_be_setup_mod_list_present                  = false;
-  bool                                            sl_drbs_to_be_modified_list_present                   = false;
-  bool                                            sl_drbs_to_be_released_list_present                   = false;
-  bool                                            conditional_intra_du_mob_info_present                 = false;
-  bool                                            f1_c_transfer_path_present                            = false;
-  bool                                            scg_ind_present                                       = false;
-  bool                                            ul_tx_direct_current_two_carrier_list_info_present    = false;
-  bool                                            iab_conditional_rrc_msg_delivery_ind_present          = false;
-  bool                                            f1_c_transfer_path_nr_dc_present                      = false;
-  bool                                            mdt_polluted_meas_ind_present                         = false;
-  bool                                            scg_activation_request_present                        = false;
-  bool                                            cg_sdt_query_ind_present                              = false;
-  bool                                            five_g_pro_se_authorized_present                      = false;
-  bool                                            five_g_pro_se_ue_pc5_aggr_max_bitrate_present         = false;
-  bool                                            five_g_pro_se_pc5_link_ambr_present                   = false;
-  bool                                            upd_remote_ue_local_id_present                        = false;
-  bool                                            uu_rlc_ch_to_be_setup_list_present                    = false;
-  bool                                            uu_rlc_ch_to_be_modified_list_present                 = false;
-  bool                                            uu_rlc_ch_to_be_released_list_present                 = false;
-  bool                                            pc5_rlc_ch_to_be_setup_list_present                   = false;
-  bool                                            pc5_rlc_ch_to_be_modified_list_present                = false;
-  bool                                            pc5_rlc_ch_to_be_released_list_present                = false;
-  bool                                            path_switch_cfg_present                               = false;
-  bool                                            gnb_du_ue_slice_max_bit_rate_list_present             = false;
-  bool                                            multicast_mbs_session_setup_list_present              = false;
-  bool                                            multicast_mbs_session_rem_list_present                = false;
-  bool                                            ue_multicast_m_rbs_to_be_setup_at_modify_list_present = false;
-  bool                                            ue_multicast_m_rbs_to_be_released_list_present        = false;
-  bool                                            sldrx_cycle_list_present                              = false;
-  bool                                            management_based_mdt_plmn_mod_list_present            = false;
-  bool                                            sdt_bearer_cfg_query_ind_present                      = false;
-  bool                                            daps_ho_status_present                                = false;
-  bool                                            serving_cell_mo_list_present                          = false;
-  bool                                            ul_tx_direct_current_more_carrier_info_present        = false;
-  bool                                            cp_acmcg_info_present                                 = false;
-  uint64_t                                        gnb_cu_ue_f1ap_id;
-  uint64_t                                        gnb_du_ue_f1ap_id;
-  nr_cgi_s                                        sp_cell_id;
-  uint8_t                                         serv_cell_idx;
-  cell_ul_cfg_e                                   sp_cell_ul_cfg;
-  drx_cycle_s                                     drx_cycle;
-  cu_to_du_rrc_info_s                             cu_to_du_rrc_info;
-  tx_action_ind_e                                 tx_action_ind;
-  unbounded_octstring<true>                       res_coordination_transfer_container;
-  rrc_recfg_complete_ind_e                        rrc_recfg_complete_ind;
-  unbounded_octstring<true>                       rrc_container;
-  scell_to_be_setup_mod_list_l                    scell_to_be_setup_mod_list;
-  scell_to_be_remd_list_l                         scell_to_be_remd_list;
-  srbs_to_be_setup_mod_list_l                     srbs_to_be_setup_mod_list;
-  drbs_to_be_setup_mod_list_l                     drbs_to_be_setup_mod_list;
-  drbs_to_be_modified_list_l                      drbs_to_be_modified_list;
-  srbs_to_be_released_list_l                      srbs_to_be_released_list;
-  drbs_to_be_released_list_l                      drbs_to_be_released_list;
-  inactivity_monitoring_request_e                 inactivity_monitoring_request;
-  rat_freq_prio_info_c                            rat_freq_prio_info;
-  drx_cfg_ind_e                                   drx_cfg_ind;
-  rlc_fail_ind_s                                  rlc_fail_ind;
-  unbounded_octstring<true>                       ul_tx_direct_current_list_info;
-  gnb_du_cfg_query_e                              gnb_du_cfg_query;
-  uint64_t                                        gnb_du_ue_ambr_ul;
-  execute_dupl_e                                  execute_dupl;
-  rrc_delivery_status_request_e                   rrc_delivery_status_request;
-  res_coordination_transfer_info_s                res_coordination_transfer_info;
-  uint8_t                                         serving_cell_mo;
-  needfor_gap_e                                   needfor_gap;
-  full_cfg_e                                      full_cfg;
-  fixed_bitstring<32, false, true>                add_rrm_prio_idx;
-  lower_layer_presence_status_change_e            lower_layer_presence_status_change;
-  bh_chs_to_be_setup_mod_list_l                   bh_chs_to_be_setup_mod_list;
-  bh_chs_to_be_modified_list_l                    bh_chs_to_be_modified_list;
-  bh_chs_to_be_released_list_l                    bh_chs_to_be_released_list;
-  nr_v2x_services_authorized_s                    nr_v2x_services_authorized;
-  ltev2x_services_authorized_s                    ltev2x_services_authorized;
-  nr_ue_sidelink_aggr_max_bitrate_s               nr_ue_sidelink_aggr_max_bitrate;
-  lte_ue_sidelink_aggr_max_bitrate_s              lte_ue_sidelink_aggr_max_bitrate;
-  uint64_t                                        pc5_link_ambr;
-  sl_drbs_to_be_setup_mod_list_l                  sl_drbs_to_be_setup_mod_list;
-  sl_drbs_to_be_modified_list_l                   sl_drbs_to_be_modified_list;
-  sl_drbs_to_be_released_list_l                   sl_drbs_to_be_released_list;
-  conditional_intra_du_mob_info_s                 conditional_intra_du_mob_info;
-  f1_c_transfer_path_s                            f1_c_transfer_path;
-  scg_ind_e                                       scg_ind;
-  unbounded_octstring<true>                       ul_tx_direct_current_two_carrier_list_info;
-  iab_conditional_rrc_msg_delivery_ind_e          iab_conditional_rrc_msg_delivery_ind;
-  f1_c_transfer_path_nr_dc_s                      f1_c_transfer_path_nr_dc;
-  mdt_polluted_meas_ind_e                         mdt_polluted_meas_ind;
-  scg_activation_request_e                        scg_activation_request;
-  cg_sdt_query_ind_e                              cg_sdt_query_ind;
-  five_g_pro_se_authorized_s                      five_g_pro_se_authorized;
-  nr_ue_sidelink_aggr_max_bitrate_s               five_g_pro_se_ue_pc5_aggr_max_bitrate;
-  uint64_t                                        five_g_pro_se_pc5_link_ambr;
-  uint16_t                                        upd_remote_ue_local_id;
-  uu_rlc_ch_to_be_setup_list_l                    uu_rlc_ch_to_be_setup_list;
-  uu_rlc_ch_to_be_modified_list_l                 uu_rlc_ch_to_be_modified_list;
-  uu_rlc_ch_to_be_released_list_l                 uu_rlc_ch_to_be_released_list;
-  pc5_rlc_ch_to_be_setup_list_l                   pc5_rlc_ch_to_be_setup_list;
-  pc5_rlc_ch_to_be_modified_list_l                pc5_rlc_ch_to_be_modified_list;
-  pc5_rlc_ch_to_be_released_list_l                pc5_rlc_ch_to_be_released_list;
-  path_switch_cfg_s                               path_switch_cfg;
-  gnb_du_ue_slice_max_bit_rate_list_l             gnb_du_ue_slice_max_bit_rate_list;
-  multicast_mbs_session_list_l                    multicast_mbs_session_setup_list;
-  multicast_mbs_session_list_l                    multicast_mbs_session_rem_list;
-  ue_multicast_m_rbs_to_be_setup_at_modify_list_l ue_multicast_m_rbs_to_be_setup_at_modify_list;
-  ue_multicast_m_rbs_to_be_released_list_l        ue_multicast_m_rbs_to_be_released_list;
-  sldrx_cycle_list_l                              sldrx_cycle_list;
-  mdt_plmn_mod_list_l                             management_based_mdt_plmn_mod_list;
-  sdt_bearer_cfg_query_ind_e                      sdt_bearer_cfg_query_ind;
-  daps_ho_status_e                                daps_ho_status;
-  serving_cell_mo_list_l                          serving_cell_mo_list;
-  unbounded_octstring<true>                       ul_tx_direct_current_more_carrier_info;
-  cp_acmcg_info_s                                 cp_acmcg_info;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextModificationRequest ::= SEQUENCE
-using ue_context_mod_request_s = elementary_procedure_option<ue_context_mod_request_ies_container>;
-
-struct ue_context_mod_required_ies_container {
-  bool                                              res_coordination_transfer_container_present             = false;
-  bool                                              du_to_cu_rrc_info_present                               = false;
-  bool                                              drbs_required_to_be_modified_list_present               = false;
-  bool                                              srbs_required_to_be_released_list_present               = false;
-  bool                                              drbs_required_to_be_released_list_present               = false;
-  bool                                              bh_chs_required_to_be_released_list_present             = false;
-  bool                                              sl_drbs_required_to_be_modified_list_present            = false;
-  bool                                              sl_drbs_required_to_be_released_list_present            = false;
-  bool                                              target_cells_to_cancel_present                          = false;
-  bool                                              uu_rlc_ch_required_to_be_modified_list_present          = false;
-  bool                                              uu_rlc_ch_required_to_be_released_list_present          = false;
-  bool                                              pc5_rlc_ch_required_to_be_modified_list_present         = false;
-  bool                                              pc5_rlc_ch_required_to_be_released_list_present         = false;
-  bool                                              ue_multicast_m_rbs_required_to_be_modified_list_present = false;
-  bool                                              ue_multicast_m_rbs_required_to_be_released_list_present = false;
-  uint64_t                                          gnb_cu_ue_f1ap_id;
-  uint64_t                                          gnb_du_ue_f1ap_id;
-  unbounded_octstring<true>                         res_coordination_transfer_container;
-  du_to_cu_rrc_info_s                               du_to_cu_rrc_info;
-  drbs_required_to_be_modified_list_l               drbs_required_to_be_modified_list;
-  srbs_required_to_be_released_list_l               srbs_required_to_be_released_list;
-  drbs_required_to_be_released_list_l               drbs_required_to_be_released_list;
-  cause_c                                           cause;
-  bh_chs_required_to_be_released_list_l             bh_chs_required_to_be_released_list;
-  sl_drbs_required_to_be_modified_list_l            sl_drbs_required_to_be_modified_list;
-  sl_drbs_required_to_be_released_list_l            sl_drbs_required_to_be_released_list;
-  target_cell_list_l                                target_cells_to_cancel;
-  uu_rlc_ch_required_to_be_modified_list_l          uu_rlc_ch_required_to_be_modified_list;
-  uu_rlc_ch_required_to_be_released_list_l          uu_rlc_ch_required_to_be_released_list;
-  pc5_rlc_ch_required_to_be_modified_list_l         pc5_rlc_ch_required_to_be_modified_list;
-  pc5_rlc_ch_required_to_be_released_list_l         pc5_rlc_ch_required_to_be_released_list;
-  ue_multicast_m_rbs_required_to_be_modified_list_l ue_multicast_m_rbs_required_to_be_modified_list;
-  ue_multicast_m_rbs_required_to_be_released_list_l ue_multicast_m_rbs_required_to_be_released_list;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextModificationRequired ::= SEQUENCE
-using ue_context_mod_required_s = elementary_procedure_option<ue_context_mod_required_ies_container>;
-
-struct ue_context_mod_resp_ies_container {
-  bool                                    res_coordination_transfer_container_present   = false;
-  bool                                    du_to_cu_rrc_info_present                     = false;
-  bool                                    drbs_setup_mod_list_present                   = false;
-  bool                                    drbs_modified_list_present                    = false;
-  bool                                    srbs_failed_to_be_setup_mod_list_present      = false;
-  bool                                    drbs_failed_to_be_setup_mod_list_present      = false;
-  bool                                    scell_failedto_setup_mod_list_present         = false;
-  bool                                    drbs_failed_to_be_modified_list_present       = false;
-  bool                                    inactivity_monitoring_resp_present            = false;
-  bool                                    crit_diagnostics_present                      = false;
-  bool                                    c_rnti_present                                = false;
-  bool                                    associated_scell_list_present                 = false;
-  bool                                    srbs_setup_mod_list_present                   = false;
-  bool                                    srbs_modified_list_present                    = false;
-  bool                                    full_cfg_present                              = false;
-  bool                                    bh_chs_setup_mod_list_present                 = false;
-  bool                                    bh_chs_modified_list_present                  = false;
-  bool                                    bh_chs_failed_to_be_setup_mod_list_present    = false;
-  bool                                    bh_chs_failed_to_be_modified_list_present     = false;
-  bool                                    sl_drbs_setup_mod_list_present                = false;
-  bool                                    sl_drbs_modified_list_present                 = false;
-  bool                                    sl_drbs_failed_to_be_setup_mod_list_present   = false;
-  bool                                    sl_drbs_failed_to_be_modified_list_present    = false;
-  bool                                    requested_target_cell_global_id_present       = false;
-  bool                                    scg_activation_status_present                 = false;
-  bool                                    uu_rlc_ch_setup_list_present                  = false;
-  bool                                    uu_rlc_ch_failed_to_be_setup_list_present     = false;
-  bool                                    uu_rlc_ch_modified_list_present               = false;
-  bool                                    uu_rlc_ch_failed_to_be_modified_list_present  = false;
-  bool                                    pc5_rlc_ch_setup_list_present                 = false;
-  bool                                    pc5_rlc_ch_failed_to_be_setup_list_present    = false;
-  bool                                    pc5_rlc_ch_modified_list_present              = false;
-  bool                                    pc5_rlc_ch_failed_to_be_modified_list_present = false;
-  bool                                    sdt_bearer_cfg_info_present                   = false;
-  bool                                    ue_multicast_m_rbs_setup_list_present         = false;
-  bool                                    serving_cell_mo_encoded_in_cgc_list_present   = false;
-  uint64_t                                gnb_cu_ue_f1ap_id;
-  uint64_t                                gnb_du_ue_f1ap_id;
-  unbounded_octstring<true>               res_coordination_transfer_container;
-  du_to_cu_rrc_info_s                     du_to_cu_rrc_info;
-  drbs_setup_mod_list_l                   drbs_setup_mod_list;
-  drbs_modified_list_l                    drbs_modified_list;
-  srbs_failed_to_be_setup_mod_list_l      srbs_failed_to_be_setup_mod_list;
-  drbs_failed_to_be_setup_mod_list_l      drbs_failed_to_be_setup_mod_list;
-  scell_failedto_setup_mod_list_l         scell_failedto_setup_mod_list;
-  drbs_failed_to_be_modified_list_l       drbs_failed_to_be_modified_list;
-  inactivity_monitoring_resp_e            inactivity_monitoring_resp;
-  crit_diagnostics_s                      crit_diagnostics;
-  uint32_t                                c_rnti;
-  associated_scell_list_l                 associated_scell_list;
-  srbs_setup_mod_list_l                   srbs_setup_mod_list;
-  srbs_modified_list_l                    srbs_modified_list;
-  full_cfg_e                              full_cfg;
-  bh_chs_setup_mod_list_l                 bh_chs_setup_mod_list;
-  bh_chs_modified_list_l                  bh_chs_modified_list;
-  bh_chs_failed_to_be_setup_mod_list_l    bh_chs_failed_to_be_setup_mod_list;
-  bh_chs_failed_to_be_modified_list_l     bh_chs_failed_to_be_modified_list;
-  sl_drbs_setup_mod_list_l                sl_drbs_setup_mod_list;
-  sl_drbs_modified_list_l                 sl_drbs_modified_list;
-  sl_drbs_failed_to_be_setup_mod_list_l   sl_drbs_failed_to_be_setup_mod_list;
-  sl_drbs_failed_to_be_modified_list_l    sl_drbs_failed_to_be_modified_list;
-  nr_cgi_s                                requested_target_cell_global_id;
-  scg_activation_status_e                 scg_activation_status;
-  uu_rlc_ch_setup_list_l                  uu_rlc_ch_setup_list;
-  uu_rlc_ch_failed_to_be_setup_list_l     uu_rlc_ch_failed_to_be_setup_list;
-  uu_rlc_ch_modified_list_l               uu_rlc_ch_modified_list;
-  uu_rlc_ch_failed_to_be_modified_list_l  uu_rlc_ch_failed_to_be_modified_list;
-  pc5_rlc_ch_setup_list_l                 pc5_rlc_ch_setup_list;
-  pc5_rlc_ch_failed_to_be_setup_list_l    pc5_rlc_ch_failed_to_be_setup_list;
-  pc5_rlc_ch_modified_list_l              pc5_rlc_ch_modified_list;
-  pc5_rlc_ch_failed_to_be_modified_list_l pc5_rlc_ch_failed_to_be_modified_list;
-  sdt_bearer_cfg_info_s                   sdt_bearer_cfg_info;
-  ue_multicast_m_rbs_setup_list_l         ue_multicast_m_rbs_setup_list;
-  serving_cell_mo_encoded_in_cgc_list_l   serving_cell_mo_encoded_in_cgc_list;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextModificationResponse ::= SEQUENCE
-using ue_context_mod_resp_s = elementary_procedure_option<ue_context_mod_resp_ies_container>;
-
-struct ue_context_release_cmd_ies_container {
-  bool                          rrc_container_present               = false;
-  bool                          srb_id_present                      = false;
-  bool                          old_gnb_du_ue_f1ap_id_present       = false;
-  bool                          execute_dupl_present                = false;
-  bool                          rrc_delivery_status_request_present = false;
-  bool                          target_cells_to_cancel_present      = false;
-  bool                          pos_conext_rev_ind_present          = false;
-  bool                          cg_sdt_kept_ind_present             = false;
-  uint64_t                      gnb_cu_ue_f1ap_id;
-  uint64_t                      gnb_du_ue_f1ap_id;
-  cause_c                       cause;
-  unbounded_octstring<true>     rrc_container;
-  uint8_t                       srb_id;
-  uint64_t                      old_gnb_du_ue_f1ap_id;
-  execute_dupl_e                execute_dupl;
-  rrc_delivery_status_request_e rrc_delivery_status_request;
-  target_cell_list_l            target_cells_to_cancel;
-  pos_conext_rev_ind_e          pos_conext_rev_ind;
-  cg_sdt_kept_ind_e             cg_sdt_kept_ind;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextReleaseCommand ::= SEQUENCE
-using ue_context_release_cmd_s = elementary_procedure_option<ue_context_release_cmd_ies_container>;
-
-struct ue_context_release_complete_ies_container {
-  bool               crit_diagnostics_present = false;
-  uint64_t           gnb_cu_ue_f1ap_id;
-  uint64_t           gnb_du_ue_f1ap_id;
-  crit_diagnostics_s crit_diagnostics;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextReleaseComplete ::= SEQUENCE
-using ue_context_release_complete_s = elementary_procedure_option<ue_context_release_complete_ies_container>;
-
-struct ue_context_release_request_ies_container {
-  bool               target_cells_to_cancel_present = false;
-  uint64_t           gnb_cu_ue_f1ap_id;
-  uint64_t           gnb_du_ue_f1ap_id;
-  cause_c            cause;
-  target_cell_list_l target_cells_to_cancel;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextReleaseRequest ::= SEQUENCE
-using ue_context_release_request_s = elementary_procedure_option<ue_context_release_request_ies_container>;
-
-struct ue_context_setup_fail_ies_container {
-  bool                     gnb_du_ue_f1ap_id_present               = false;
-  bool                     crit_diagnostics_present                = false;
-  bool                     potential_sp_cell_list_present          = false;
-  bool                     requested_target_cell_global_id_present = false;
-  uint64_t                 gnb_cu_ue_f1ap_id;
-  uint64_t                 gnb_du_ue_f1ap_id;
-  cause_c                  cause;
-  crit_diagnostics_s       crit_diagnostics;
-  potential_sp_cell_list_l potential_sp_cell_list;
-  nr_cgi_s                 requested_target_cell_global_id;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEContextSetupFailure ::= SEQUENCE
-using ue_context_setup_fail_s = elementary_procedure_option<ue_context_setup_fail_ies_container>;
-
 struct ue_context_setup_request_ies_container {
   bool                                  gnb_du_ue_f1ap_id_present                     = false;
   bool                                  sp_cell_ul_cfg_present                        = false;
@@ -2039,6 +1838,113 @@ struct ue_context_setup_request_ies_container {
 // UEContextSetupRequest ::= SEQUENCE
 using ue_context_setup_request_s = elementary_procedure_option<ue_context_setup_request_ies_container>;
 
+// UEContextSetupResponseIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct ue_context_setup_resp_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options {
+        gnb_cu_ue_f1ap_id,
+        gnb_du_ue_f1ap_id,
+        du_to_cu_rrc_info,
+        c_rnti,
+        res_coordination_transfer_container,
+        full_cfg,
+        drbs_setup_list,
+        srbs_failed_to_be_setup_list,
+        drbs_failed_to_be_setup_list,
+        scell_failedto_setup_list,
+        inactivity_monitoring_resp,
+        crit_diagnostics,
+        srbs_setup_list,
+        bh_chs_setup_list,
+        bh_chs_failed_to_be_setup_list,
+        sl_drbs_setup_list,
+        sl_drbs_failed_to_be_setup_list,
+        requested_target_cell_global_id,
+        scg_activation_status,
+        uu_rlc_ch_setup_list,
+        uu_rlc_ch_failed_to_be_setup_list,
+        pc5_rlc_ch_setup_list,
+        pc5_rlc_ch_failed_to_be_setup_list,
+        serving_cell_mo_encoded_in_cgc_list,
+        nulltype
+      } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&                                    gnb_cu_ue_f1ap_id();
+    uint64_t&                                    gnb_du_ue_f1ap_id();
+    du_to_cu_rrc_info_s&                         du_to_cu_rrc_info();
+    uint32_t&                                    c_rnti();
+    unbounded_octstring<true>&                   res_coordination_transfer_container();
+    full_cfg_e&                                  full_cfg();
+    drbs_setup_list_l&                           drbs_setup_list();
+    srbs_failed_to_be_setup_list_l&              srbs_failed_to_be_setup_list();
+    drbs_failed_to_be_setup_list_l&              drbs_failed_to_be_setup_list();
+    scell_failedto_setup_list_l&                 scell_failedto_setup_list();
+    inactivity_monitoring_resp_e&                inactivity_monitoring_resp();
+    crit_diagnostics_s&                          crit_diagnostics();
+    srbs_setup_list_l&                           srbs_setup_list();
+    bh_chs_setup_list_l&                         bh_chs_setup_list();
+    bh_chs_failed_to_be_setup_list_l&            bh_chs_failed_to_be_setup_list();
+    sl_drbs_setup_list_l&                        sl_drbs_setup_list();
+    sl_drbs_failed_to_be_setup_list_l&           sl_drbs_failed_to_be_setup_list();
+    nr_cgi_s&                                    requested_target_cell_global_id();
+    scg_activation_status_e&                     scg_activation_status();
+    uu_rlc_ch_setup_list_l&                      uu_rlc_ch_setup_list();
+    uu_rlc_ch_failed_to_be_setup_list_l&         uu_rlc_ch_failed_to_be_setup_list();
+    pc5_rlc_ch_setup_list_l&                     pc5_rlc_ch_setup_list();
+    pc5_rlc_ch_failed_to_be_setup_list_l&        pc5_rlc_ch_failed_to_be_setup_list();
+    serving_cell_mo_encoded_in_cgc_list_l&       serving_cell_mo_encoded_in_cgc_list();
+    const uint64_t&                              gnb_cu_ue_f1ap_id() const;
+    const uint64_t&                              gnb_du_ue_f1ap_id() const;
+    const du_to_cu_rrc_info_s&                   du_to_cu_rrc_info() const;
+    const uint32_t&                              c_rnti() const;
+    const unbounded_octstring<true>&             res_coordination_transfer_container() const;
+    const full_cfg_e&                            full_cfg() const;
+    const drbs_setup_list_l&                     drbs_setup_list() const;
+    const srbs_failed_to_be_setup_list_l&        srbs_failed_to_be_setup_list() const;
+    const drbs_failed_to_be_setup_list_l&        drbs_failed_to_be_setup_list() const;
+    const scell_failedto_setup_list_l&           scell_failedto_setup_list() const;
+    const inactivity_monitoring_resp_e&          inactivity_monitoring_resp() const;
+    const crit_diagnostics_s&                    crit_diagnostics() const;
+    const srbs_setup_list_l&                     srbs_setup_list() const;
+    const bh_chs_setup_list_l&                   bh_chs_setup_list() const;
+    const bh_chs_failed_to_be_setup_list_l&      bh_chs_failed_to_be_setup_list() const;
+    const sl_drbs_setup_list_l&                  sl_drbs_setup_list() const;
+    const sl_drbs_failed_to_be_setup_list_l&     sl_drbs_failed_to_be_setup_list() const;
+    const nr_cgi_s&                              requested_target_cell_global_id() const;
+    const scg_activation_status_e&               scg_activation_status() const;
+    const uu_rlc_ch_setup_list_l&                uu_rlc_ch_setup_list() const;
+    const uu_rlc_ch_failed_to_be_setup_list_l&   uu_rlc_ch_failed_to_be_setup_list() const;
+    const pc5_rlc_ch_setup_list_l&               pc5_rlc_ch_setup_list() const;
+    const pc5_rlc_ch_failed_to_be_setup_list_l&  pc5_rlc_ch_failed_to_be_setup_list() const;
+    const serving_cell_mo_encoded_in_cgc_list_l& serving_cell_mo_encoded_in_cgc_list() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
 struct ue_context_setup_resp_ies_container {
   bool                                  c_rnti_present                              = false;
   bool                                  res_coordination_transfer_container_present = false;
@@ -2095,6 +2001,47 @@ struct ue_context_setup_resp_ies_container {
 // UEContextSetupResponse ::= SEQUENCE
 using ue_context_setup_resp_s = elementary_procedure_option<ue_context_setup_resp_ies_container>;
 
+// UEInactivityNotificationIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct ue_inactivity_notif_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_ue_f1ap_id, gnb_du_ue_f1ap_id, drb_activity_list, sdt_termination_request, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&                        gnb_cu_ue_f1ap_id();
+    uint64_t&                        gnb_du_ue_f1ap_id();
+    drb_activity_list_l&             drb_activity_list();
+    sdt_termination_request_e&       sdt_termination_request();
+    const uint64_t&                  gnb_cu_ue_f1ap_id() const;
+    const uint64_t&                  gnb_du_ue_f1ap_id() const;
+    const drb_activity_list_l&       drb_activity_list() const;
+    const sdt_termination_request_e& sdt_termination_request() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
 struct ue_inactivity_notif_ies_container {
   bool                      sdt_termination_request_present = false;
   uint64_t                  gnb_cu_ue_f1ap_id;
@@ -2110,6 +2057,59 @@ struct ue_inactivity_notif_ies_container {
 
 // UEInactivityNotification ::= SEQUENCE
 using ue_inactivity_notif_s = elementary_procedure_option<ue_inactivity_notif_ies_container>;
+
+// ULRRCMessageTransferIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct ul_rrc_msg_transfer_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options {
+        gnb_cu_ue_f1ap_id,
+        gnb_du_ue_f1ap_id,
+        srb_id,
+        rrc_container,
+        sel_plmn_id,
+        new_gnb_du_ue_f1ap_id,
+        nulltype
+      } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&                        gnb_cu_ue_f1ap_id();
+    uint64_t&                        gnb_du_ue_f1ap_id();
+    uint8_t&                         srb_id();
+    unbounded_octstring<true>&       rrc_container();
+    fixed_octstring<3, true>&        sel_plmn_id();
+    uint64_t&                        new_gnb_du_ue_f1ap_id();
+    const uint64_t&                  gnb_cu_ue_f1ap_id() const;
+    const uint64_t&                  gnb_du_ue_f1ap_id() const;
+    const uint8_t&                   srb_id() const;
+    const unbounded_octstring<true>& rrc_container() const;
+    const fixed_octstring<3, true>&  sel_plmn_id() const;
+    const uint64_t&                  new_gnb_du_ue_f1ap_id() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
 
 struct ul_rrc_msg_transfer_ies_container {
   bool                      sel_plmn_id_present           = false;

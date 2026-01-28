@@ -9,6 +9,7 @@
  */
 
 #include "e1ap_cu_up_reset_procedure.h"
+#include "ocudu/asn1/e1ap/common.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include <utility>
 

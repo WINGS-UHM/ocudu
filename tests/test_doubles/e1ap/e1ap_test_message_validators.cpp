@@ -9,6 +9,7 @@
  */
 
 #include "e1ap_test_message_validators.h"
+#include "ocudu/asn1/e1ap/common.h"
 #include "ocudu/asn1/e1ap/e1ap.h"
 #include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
 #include "ocudu/e1ap/common/e1ap_message.h"

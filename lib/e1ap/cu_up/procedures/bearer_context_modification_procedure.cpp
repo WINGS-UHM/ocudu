@@ -11,6 +11,7 @@
 #include "bearer_context_modification_procedure.h"
 #include "common/e1ap_asn1_converters.h"
 #include "cu_up/e1ap_cu_up_asn1_helpers.h"
+#include "ocudu/asn1/e1ap/common.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include "ocudu/e1ap/cu_up/e1ap_cu_up_bearer_context_update.h"
 

@@ -9,6 +9,7 @@
  */
 
 #include "e1ap_cu_up_test_messages.h"
+#include "ocudu/asn1/e1ap/common.h"
 #include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 

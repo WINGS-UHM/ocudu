@@ -10,6 +10,7 @@
 
 #include "cu_cp_e1_reset_procedure.h"
 #include "common/e1ap_asn1_converters.h"
+#include "ocudu/asn1/e1ap/common.h"
 #include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"
 
 using namespace ocudu;

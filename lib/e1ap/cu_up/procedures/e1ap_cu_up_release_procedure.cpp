@@ -10,6 +10,7 @@
 
 #include "e1ap_cu_up_release_procedure.h"
 #include "common/e1ap_common_messages.h"
+#include "ocudu/asn1/e1ap/common.h"
 #include "ocudu/asn1/e1ap/e1ap.h"
 #include "ocudu/asn1/e1ap/e1ap_ies.h"
 #include "ocudu/asn1/e1ap/e1ap_pdu_contents.h"

@@ -9,6 +9,7 @@
  */
 
 #include "e1ap_cu_cp_test_messages.h"
+#include "ocudu/asn1/e1ap/common.h"
 #include "ocudu/asn1/e1ap/e1ap.h"
 
 using namespace ocudu;

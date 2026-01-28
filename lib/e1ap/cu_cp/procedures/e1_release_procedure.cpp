@@ -10,7 +10,7 @@
 
 #include "e1_release_procedure.h"
 #include "../ue_context/e1ap_cu_cp_ue_context.h"
-#include "cu_cp/ue_context/e1ap_cu_cp_ue_context.h"
+#include "ocudu/asn1/e1ap/common.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include "ocudu/e1ap/cu_cp/e1ap_cu_cp.h"
 #include "ocudu/ran/cause/ngap_cause.h"

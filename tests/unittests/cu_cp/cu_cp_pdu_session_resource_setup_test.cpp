@@ -50,7 +50,7 @@ public:
     // Connect UE 0x4601.
     EXPECT_TRUE(connect_new_ue(du_idx, du_ue_id, crnti));
     EXPECT_TRUE(authenticate_ue(du_idx, du_ue_id, amf_ue_id));
-    EXPECT_TRUE(setup_ue_security(du_idx, du_ue_id));
+    EXPECT_TRUE(setup_ue_security_and_ue_capabilies(du_idx, du_ue_id));
     ue_ctx = this->find_ue_context(du_idx, du_ue_id);
 
     EXPECT_TRUE(finish_ue_registration(du_idx, cu_up_idx, du_ue_id));

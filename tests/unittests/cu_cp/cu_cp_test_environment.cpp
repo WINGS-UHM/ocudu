@@ -521,9 +521,9 @@ bool cu_cp_test_environment::authenticate_ue(unsigned du_idx, gnb_du_ue_f1ap_id_
   return result;
 }
 
-bool cu_cp_test_environment::setup_ue_security(unsigned            du_idx,
-                                               gnb_du_ue_f1ap_id_t du_ue_id,
-                                               bool                rrc_inactive_supported)
+bool cu_cp_test_environment::setup_ue_security_and_ue_capabilies(unsigned            du_idx,
+                                                                 gnb_du_ue_f1ap_id_t du_ue_id,
+                                                                 bool                rrc_inactive_supported)
 {
   ngap_message ngap_pdu;
   ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
@@ -921,7 +921,7 @@ bool cu_cp_test_environment::attach_ue(unsigned               du_idx,
   if (not authenticate_ue(du_idx, du_ue_id, amf_ue_id)) {
     return false;
   }
-  if (not setup_ue_security(du_idx, du_ue_id, rrc_inactive_supported)) {
+  if (not setup_ue_security_and_ue_capabilies(du_idx, du_ue_id, rrc_inactive_supported)) {
     return false;
   }
   if (not finish_ue_registration(du_idx, cu_up_idx, du_ue_id)) {

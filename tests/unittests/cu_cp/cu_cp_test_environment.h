@@ -119,8 +119,9 @@ public:
   /// Runs the NAS Authentication for a given UE.
   [[nodiscard]] bool authenticate_ue(unsigned du_idx, gnb_du_ue_f1ap_id_t du_ue_id, amf_ue_id_t amf_ue_id);
   /// Runs the Security Mode procedure for a given UE.
-  [[nodiscard]] bool
-  setup_ue_security(unsigned du_idx, gnb_du_ue_f1ap_id_t du_ue_id, bool rrc_inactive_supported = true);
+  [[nodiscard]] bool setup_ue_security_and_ue_capabilies(unsigned            du_idx,
+                                                         gnb_du_ue_f1ap_id_t du_ue_id,
+                                                         bool                rrc_inactive_supported = true);
   /// Finishes the registration for a given UE.
   [[nodiscard]] bool finish_ue_registration(unsigned du_idx, unsigned cu_up_idx, gnb_du_ue_f1ap_id_t du_ue_id);
   /// Requests PDU Session Resource Setup

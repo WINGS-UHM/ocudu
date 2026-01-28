@@ -79,7 +79,7 @@ public:
     if (!authenticate_ue(du_idx, du_ue_id, amf_ue_id)) {
       return false;
     }
-    if (!setup_ue_security(du_idx, du_ue_id)) {
+    if (!setup_ue_security_and_ue_capabilies(du_idx, du_ue_id)) {
       return false;
     }
     ue_ctx = this->find_ue_context(du_idx, du_ue_id);

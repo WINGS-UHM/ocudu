@@ -449,7 +449,7 @@ TEST_F(cu_cp_reestablishment_test,
   // Connect UE 0x4601.
   EXPECT_TRUE(connect_new_ue(du_idx, old_du_ue_id, old_crnti));
   EXPECT_TRUE(authenticate_ue(du_idx, old_du_ue_id, amf_ue_id));
-  EXPECT_TRUE(setup_ue_security(du_idx, old_du_ue_id));
+  EXPECT_TRUE(setup_ue_security_and_ue_capabilies(du_idx, old_du_ue_id));
 
   // Run Reestablishment.
   gnb_du_ue_f1ap_id_t new_du_ue_id = int_to_gnb_du_ue_f1ap_id(1);

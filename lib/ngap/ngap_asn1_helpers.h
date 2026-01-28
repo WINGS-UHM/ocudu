@@ -418,6 +418,12 @@ inline bool fill_ngap_initial_context_setup_request(ngap_init_context_setup_requ
         asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul;
   }
 
+  // Fill core network assist info for inactive.
+  if (asn1_request->core_network_assist_info_for_inactive_present) {
+    request.core_network_assist_info_for_inactive =
+        asn1_to_core_network_assist_info_for_inactive(asn1_request->core_network_assist_info_for_inactive);
+  }
+
   // Fill GUAMI.
   request.guami = asn1_to_guami(asn1_request->guami);
 

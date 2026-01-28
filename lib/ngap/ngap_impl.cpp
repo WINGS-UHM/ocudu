@@ -455,7 +455,7 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
     ue_ctxt.request_pdu_session_timer.stop();
   }
 
-  // Update AMF ID and use the one from this Context Setup as per TS 38.413 v16.2 page 38.
+  // Update AMF ID and use the one from this Context Setup as per 3GPP TS 38.413 section 8.3.1.2.
   if (ue_ctxt.ue_ids.amf_ue_id != uint_to_amf_ue_id(request->amf_ue_ngap_id)) {
     ue_ctxt_list.update_amf_ue_id(ue_ctxt.ue_ids.ran_ue_id, uint_to_amf_ue_id(request->amf_ue_ngap_id));
   }
@@ -467,6 +467,11 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
     ue_ctxt.logger.log_warning("Conversion of PDUSessionResourceSetupRequest failed");
     send_error_indication(tx_pdu_notifier, logger, ue_ctxt.ue_ids.ran_ue_id, ue_ctxt.ue_ids.amf_ue_id);
     return;
+  }
+
+  // Store Core Network Assist Info for Inactive if present.
+  if (init_ctxt_setup_req.core_network_assist_info_for_inactive.has_value()) {
+    ue_ctxt.core_network_assist_info_for_inactive = init_ctxt_setup_req.core_network_assist_info_for_inactive.value();
   }
 
   // Store serving PLMN.

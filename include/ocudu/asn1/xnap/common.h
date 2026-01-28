@@ -10,7 +10,7 @@
 
 /*******************************************************************************
  *
- *                     3GPP TS ASN1 XNAP v17.4.0 (2023-03)
+ *                     3GPP TS ASN1 XNAP v17.4.1 (2023-04)
  *
  ******************************************************************************/
 
@@ -25,6 +25,9 @@ namespace xnap {
  *                             Constant Definitions
  ******************************************************************************/
 
+#define ASN1_XNAP_MAX_PRIVATE_IES 65535
+#define ASN1_XNAP_MAX_PROTOCOL_EXTS 65535
+#define ASN1_XNAP_MAX_PROTOCOL_IES 65535
 #define ASN1_XNAP_ID_HO_PREP 0
 #define ASN1_XNAP_ID_S_N_STATUS_TRANSFER 1
 #define ASN1_XNAP_ID_HO_CANCEL 2
@@ -556,9 +559,6 @@ namespace xnap {
 #define ASN1_XNAP_ID_ADD_LISTOF_PDU_SESSION_RES_CHANGE_CONFIRM_INFO_SN_TERMINATED 369
 #define ASN1_XNAP_ID_UE_RLF_REPORT_CONTAINER_LTE_EXT 370
 #define ASN1_XNAP_ID_EXCESS_PACKET_DELAY_THRES_CFG 371
-#define ASN1_XNAP_MAX_PRIVATE_IES 65535
-#define ASN1_XNAP_MAX_PROTOCOL_EXTS 65535
-#define ASN1_XNAP_MAX_PROTOCOL_IES 65535
 
 /*******************************************************************************
  *                              Struct Definitions
@@ -611,7 +611,8 @@ struct private_ie_field_s {
   void          to_json(json_writer& j) const;
 };
 
-// PrivateIE-Container{XNAP-PRIVATE-IES : IEsSetParam} ::= SEQUENCE (SIZE (1..65535)) OF PrivateIE-Field
+// PrivateIE-Container{XNAP-PRIVATE-IES : IEsSetParam} ::= SEQUENCE (SIZE (1..65535)) OF
+// PrivateIE-Field{XNAP-PRIVATE-IES : IEsSetParam}
 template <class ies_set_paramT_>
 using private_ie_container_l = dyn_seq_of<private_ie_field_s<ies_set_paramT_>, 1, 65535, true>;
 

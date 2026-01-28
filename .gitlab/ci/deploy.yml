@@ -1,0 +1,101 @@
+#
+# Copyright 2021-2026 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
+################################################################################
+# Deploy Docker images
+################################################################################
+
+ocudu image:
+  extends: .docker-builder
+  stage: deploy
+  rules:
+    - if: $CI_DESCRIPTION =~ /Nightly/
+    - if: $ON_MR
+  retry: 2
+  variables:
+    # CI & Infrastructure
+    KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
+    KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
+    KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
+    KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
+    # Docker
+    REGISTRY_URI: ${OCUDU_REGISTRY_URI}
+    REGISTRY_ORG: /${OCUDU_IMAGE_PREFIX}
+    CONTEXT: ${CI_PROJECT_DIR}
+    DOCKERFILE: docker
+    MODE: publish
+    ATTESTATION_FILE: /usr/local/etc/ocudu_image.spdx
+    # Arguments
+    DOCKER_UHD_VERSION: "4.9.0.0"
+    DOCKER_DPDK_VERSION: "24.11.2"
+  timeout: 2 hours
+  tags:
+    - saas-linux-medium-${PLATFORM}
+  before_script:
+    # Set variables
+    - |
+      export CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
+      export NAME="ocudu_nightly_${SUFFIX}"
+      export VERSION="$(date +%Y%m%d)_${CI_COMMIT_SHORT_SHA}"
+      export BUILD_ARGS="UHD_VERSION=${DOCKER_UHD_VERSION};DPDK_VERSION=${DOCKER_DPDK_VERSION};MARCH=${MARCH};NUM_JOBS=${KUBERNETES_CPU_LIMIT};EXTRA_CMAKE_ARGS=\"${EXTRA_CMAKE_ARGS}\""
+  parallel: &matrix-ocudu-image-variants
+    matrix:
+      # AMD AVX2
+      - SUFFIX: avx2
+        MARCH: x86-64-v3
+        TAG: amd64-avx2
+        PLATFORM: amd64
+      - SUFFIX: avx2_debug
+        EXTRA_CMAKE_ARGS: -DFORCE_DEBUG_INFO=On
+        MARCH: x86-64-v3
+        TAG: amd64-avx2
+        PLATFORM: amd64
+      # AMD AVX512
+      - SUFFIX: avx512
+        MARCH: x86-64-v4
+        TAG: amd64-avx2-avx512
+        PLATFORM: amd64
+      - SUFFIX: avx512_debug
+        EXTRA_CMAKE_ARGS: -DFORCE_DEBUG_INFO=On
+        MARCH: x86-64-v4
+        TAG: amd64-avx2-avx512
+        PLATFORM: amd64
+      # ARM
+      - SUFFIX: arm64
+        MARCH: armv8.2-a+crypto+fp16+dotprod
+        TAG: arm64
+        PLATFORM: arm64
+      - SUFFIX: arm64_debug
+        EXTRA_CMAKE_ARGS: -DFORCE_DEBUG_INFO=On
+        MARCH: armv8.2-a+crypto+fp16+dotprod
+        TAG: arm64
+        PLATFORM: arm64
+  needs: []
+
+ocudu image update latest:
+  extends: .docker manifest
+  stage: deploy
+  rules:
+    - if: $CI_DESCRIPTION =~ /Nightly/
+    - if: $ON_MR
+  retry: 2
+  variables:
+    REGISTRY_URI: ${OCUDU_REGISTRY_URI}
+    REGISTRY_ORG: /${OCUDU_IMAGE_PREFIX}
+  script:
+    - |
+      export NAME="ocudu_nightly_${SUFFIX}"
+      export VERSION="$(date +%Y%m%d)_${CI_COMMIT_SHORT_SHA}"
+      docker manifest create ${REGISTRY_URI}/${NAME}:latest --amend ${REGISTRY_URI}/${NAME}:${VERSION}
+      docker manifest push ${REGISTRY_URI}/${NAME}:latest
+      echo "Image ${RETINA_REGISTRY_URI}/${NAME}:latest pushed"
+
+  parallel: *matrix-ocudu-image-variants
+  needs:
+    - job: ocudu image
+      artifacts: false

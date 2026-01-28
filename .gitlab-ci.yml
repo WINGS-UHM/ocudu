@@ -12,6 +12,7 @@ include:
   - local: .gitlab/ci-shared/static.yml
   - local: .gitlab/ci/doxygen/version.yml
   - local: .gitlab/ci/build.yml
+  - local: .gitlab/ci/deploy.yml
 
 stages:
   - ci
@@ -19,6 +20,7 @@ stages:
   - build and unit tests
   - manual
   - documentation
+  - deploy
 
 ################################################################################
 ## CI MR

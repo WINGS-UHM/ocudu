@@ -11,6 +11,7 @@
 #include "scheduler_configuration_helpers.h"
 #include "../du_ue/du_ue.h"
 #include "ocudu/du/du_cell_config.h"
+#include "ocudu/ran/qos/five_qi_qos_mapping.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 
@@ -130,10 +131,15 @@ sched_ue_config_request ocudu::odu::create_scheduler_ue_config_request(const du_
     sched_lc_ch.sr_id.emplace(drb.mac_cfg.sr_id);
     sched_lc_ch.rrm_policy.s_nssai = drb.s_nssai;
     sched_lc_ch.rrm_policy.plmn_id = ue_ctx.nr_cgi.plmn_id;
-    sched_lc_ch.qos.emplace();
-    sched_lc_ch.qos->qos          = *get_5qi_to_qos_characteristics_mapping(drb.qos.qos_desc.get_5qi());
-    sched_lc_ch.qos->arp_priority = drb.qos.alloc_retention_prio.prio_level_arp;
-    sched_lc_ch.qos->gbr_qos_info = drb.qos.gbr_qos_info;
+
+    const standardized_qos_characteristics* mapping =
+        get_5qi_to_qos_characteristics_mapping(drb.qos.qos_desc.get_5qi());
+    if (mapping != nullptr) {
+      sched_lc_ch.qos.emplace();
+      sched_lc_ch.qos->qos          = *mapping;
+      sched_lc_ch.qos->arp_priority = drb.qos.alloc_retention_prio.prio_level_arp;
+      sched_lc_ch.qos->gbr_qos_info = drb.qos.gbr_qos_info;
+    }
   }
   sched_cfg.drx_cfg      = ue_res_cfg.cell_group.mcg_cfg.drx_cfg;
   sched_cfg.meas_gap_cfg = ue_res_cfg.meas_gap;

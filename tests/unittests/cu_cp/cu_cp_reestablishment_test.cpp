@@ -317,7 +317,7 @@ public:
   [[nodiscard]] bool ue_sends_rrc_setup_complete(gnb_du_ue_f1ap_id_t du_ue_id, gnb_cu_ue_f1ap_id_t cu_ue_id)
   {
     // Generate RRC Setup Complete.
-    byte_buffer pdu = test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete());
+    byte_buffer pdu = test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete(1, 0x0040c000011b));
 
     // Prepend PDCP header and append MAC.
     if (!pdu.prepend(std::array<uint8_t, 2>{0x00U, 0x00U})) {

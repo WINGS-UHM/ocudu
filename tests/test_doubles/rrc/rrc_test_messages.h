@@ -38,7 +38,8 @@ asn1::rrc_nr::ul_ccch_msg_s create_rrc_resume_request(uint64_t           resume_
 asn1::rrc_nr::ul_dcch_msg_s create_rrc_resume_complete(uint8_t transaction_id = 0, uint8_t sel_plmn_id = 1);
 
 /// \brief Generates a dummy RRC Setup Complete message.
-asn1::rrc_nr::ul_dcch_msg_s create_rrc_setup_complete(uint8_t sel_plmn_id = 1);
+asn1::rrc_nr::ul_dcch_msg_s create_rrc_setup_complete(uint8_t                 sel_plmn_id  = 1,
+                                                      std::optional<uint64_t> ng_5g_s_tmsi = std::nullopt);
 
 /// \brief Generates a dummy UE Capability Info message.
 asn1::rrc_nr::ul_dcch_msg_s create_ue_capability_info(uint8_t transaction_id = 0, bool rrc_inactive_supported = true);

@@ -16,6 +16,7 @@
 #include "test_doubles/mock_cu_up.h"
 #include "test_doubles/mock_du.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
+#include "tests/test_doubles/rrc/rrc_test_messages.h"
 #include "ocudu/cu_cp/cu_cp.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/ran/plmn_identity.h"
@@ -112,16 +113,20 @@ public:
   bool run_e1_setup(unsigned cu_up_idx);
 
   /// Connect a new UE to CU-CP through a provided DU. It runs the full RRC setup procedure.
-  [[nodiscard]] bool connect_new_ue(unsigned            du_idx,
-                                    gnb_du_ue_f1ap_id_t du_ue_id,
-                                    rnti_t              crnti,
-                                    plmn_identity       plmn = plmn_identity::test_value());
+  [[nodiscard]] bool connect_new_ue(
+      unsigned            du_idx,
+      gnb_du_ue_f1ap_id_t du_ue_id,
+      rnti_t              crnti,
+      plmn_identity       plmn       = plmn_identity::test_value(),
+      byte_buffer rrc_setup_complete = test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete()));
   /// Runs the NAS Authentication for a given UE.
   [[nodiscard]] bool authenticate_ue(unsigned du_idx, gnb_du_ue_f1ap_id_t du_ue_id, amf_ue_id_t amf_ue_id);
   /// Runs the Security Mode procedure for a given UE.
-  [[nodiscard]] bool setup_ue_security_and_ue_capabilies(unsigned            du_idx,
-                                                         gnb_du_ue_f1ap_id_t du_ue_id,
-                                                         bool                rrc_inactive_supported = true);
+  [[nodiscard]] bool setup_ue_security_and_ue_capabilies(
+      unsigned                                                  du_idx,
+      gnb_du_ue_f1ap_id_t                                       du_ue_id,
+      std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
+      bool                                                      rrc_inactive_supported      = true);
   /// Finishes the registration for a given UE.
   [[nodiscard]] bool finish_ue_registration(unsigned du_idx, unsigned cu_up_idx, gnb_du_ue_f1ap_id_t du_ue_id);
   /// Requests PDU Session Resource Setup
@@ -140,17 +145,21 @@ public:
                     byte_buffer            rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
                     bool                   is_initial_session           = true);
   /// Runs RRC setup, authentication, security, RRC Reconfiguration, PDU session setup for a given UE.
-  [[nodiscard]] bool attach_ue(unsigned               du_idx,
-                               unsigned               cu_up_idx,
-                               gnb_du_ue_f1ap_id_t    du_ue_id,
-                               rnti_t                 crnti,
-                               amf_ue_id_t            amf_ue_id,
-                               gnb_cu_up_ue_e1ap_id_t cu_up_e1ap_id,
-                               pdu_session_id_t       psi               = pdu_session_id_t::min,
-                               drb_id_t               drb_id            = drb_id_t::drb1,
-                               qos_flow_id_t          qfi               = qos_flow_id_t::min,
-                               byte_buffer rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
-                               bool        rrc_inactive_supported       = true);
+
+  [[nodiscard]] bool
+  attach_ue(unsigned               du_idx,
+            unsigned               cu_up_idx,
+            gnb_du_ue_f1ap_id_t    du_ue_id,
+            rnti_t                 crnti,
+            amf_ue_id_t            amf_ue_id,
+            gnb_cu_up_ue_e1ap_id_t cu_up_e1ap_id,
+            pdu_session_id_t       psi     = pdu_session_id_t::min,
+            drb_id_t               drb_id  = drb_id_t::drb1,
+            qos_flow_id_t          qfi     = qos_flow_id_t::min,
+            byte_buffer rrc_setup_complete = test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete()),
+            byte_buffer rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
+            std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
+            bool                                                      rrc_inactive_supported      = true);
   /// Reestablishes a UE connection, including RRC Reestablishment and RRC Reconfiguration procedures.
   /// \return True if the reestablishment was successful, false if RRC Setup/Reject was performed instead.
   [[nodiscard]] bool reestablish_ue(unsigned            du_idx,

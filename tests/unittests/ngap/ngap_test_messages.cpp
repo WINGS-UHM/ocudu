@@ -10,6 +10,7 @@
 
 #include "ngap_test_messages.h"
 #include "lib/ngap/ngap_asn1_converters.h"
+#include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/asn1/ngap/common.h"
 #include "ocudu/asn1/ngap/ngap_ies.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
@@ -250,10 +251,32 @@ ngap_message ocudu::ocucp::generate_initial_context_setup_request_base(amf_ue_id
   return ngap_msg;
 }
 
-ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message(amf_ue_id_t amf_ue_id,
-                                                                                ran_ue_id_t ran_ue_id)
+ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message(
+    amf_ue_id_t                                               amf_ue_id,
+    ran_ue_id_t                                               ran_ue_id,
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive)
 {
   ngap_message ngap_msg = generate_initial_context_setup_request_base(amf_ue_id, ran_ue_id);
+
+  if (cn_assist_info_for_inactive.has_value()) {
+    auto& init_context_setup_req = ngap_msg.pdu.init_msg().value.init_context_setup_request();
+    init_context_setup_req->core_network_assist_info_for_inactive_present = true;
+    init_context_setup_req->core_network_assist_info_for_inactive.ue_id_idx_value.set_idx_len10().from_number(
+        cn_assist_info_for_inactive->ue_id_idx_value);
+    if (cn_assist_info_for_inactive->ue_specific_drx.has_value()) {
+      init_context_setup_req->core_network_assist_info_for_inactive.ue_specific_drx_present = true;
+      asn1::number_to_enum(init_context_setup_req->core_network_assist_info_for_inactive.ue_specific_drx,
+                           cn_assist_info_for_inactive->ue_specific_drx.value());
+    }
+    init_context_setup_req->core_network_assist_info_for_inactive.periodic_regist_upd_timer.from_number(190);
+    init_context_setup_req->core_network_assist_info_for_inactive.mico_mode_ind_present = false;
+    for (const auto& tai : cn_assist_info_for_inactive->tai_list_for_inactive) {
+      tai_list_for_inactive_item_s asn1_tai;
+      asn1_tai.tai.plmn_id = tai.plmn_id.to_bytes();
+      asn1_tai.tai.tac.from_number(tai.tac);
+      init_context_setup_req->core_network_assist_info_for_inactive.tai_list_for_inactive.push_back(asn1_tai);
+    }
+  }
 
   auto& init_context_setup_req = ngap_msg.pdu.init_msg().value.init_context_setup_request();
   init_context_setup_req->ue_security_cap.nr_encryption_algorithms.from_number(49152);

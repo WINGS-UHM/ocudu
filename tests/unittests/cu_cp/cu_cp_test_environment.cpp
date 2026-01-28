@@ -404,7 +404,8 @@ bool cu_cp_test_environment::run_e1_setup(unsigned cu_up_idx)
 bool cu_cp_test_environment::connect_new_ue(unsigned            du_idx,
                                             gnb_du_ue_f1ap_id_t du_ue_id,
                                             rnti_t              crnti,
-                                            plmn_identity       plmn)
+                                            plmn_identity       plmn,
+                                            byte_buffer         rrc_setup_complete)
 {
   ngap_message ngap_pdu;
   ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
@@ -431,10 +432,7 @@ bool cu_cp_test_environment::connect_new_ue(unsigned            du_idx,
   report_error_if_not(int_to_srb_id(dl_rrc_msg.srb_id) == srb_id_t::srb0, "invalid SRB-Id");
 
   // Send RRC Setup Complete.
-  // > Generate UL DCCH message (containing RRC Setup Complete).
-  byte_buffer pdu = test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete());
-  // > Generate UL RRC Message (containing RRC Setup Complete) with PDCP SN=0.
-  get_du(du_idx).push_rrc_ul_dcch_message(du_ue_id, srb_id_t::srb1, std::move(pdu));
+  get_du(du_idx).push_rrc_ul_dcch_message(du_ue_id, srb_id_t::srb1, std::move(rrc_setup_complete));
 
   // CU-CP should send an NGAP Initial UE Message.
   result = this->wait_for_ngap_tx_pdu(ngap_pdu);
@@ -521,9 +519,11 @@ bool cu_cp_test_environment::authenticate_ue(unsigned du_idx, gnb_du_ue_f1ap_id_
   return result;
 }
 
-bool cu_cp_test_environment::setup_ue_security_and_ue_capabilies(unsigned            du_idx,
-                                                                 gnb_du_ue_f1ap_id_t du_ue_id,
-                                                                 bool                rrc_inactive_supported)
+bool cu_cp_test_environment::setup_ue_security_and_ue_capabilies(
+    unsigned                                                  du_idx,
+    gnb_du_ue_f1ap_id_t                                       du_ue_id,
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
+    bool                                                      rrc_inactive_supported)
 {
   ngap_message ngap_pdu;
   ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
@@ -533,8 +533,8 @@ bool cu_cp_test_environment::setup_ue_security_and_ue_capabilies(unsigned       
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
   // Inject NGAP Initial Context Setup Request.
-  ngap_message init_ctxt_setup_req =
-      generate_valid_initial_context_setup_request_message(ue_ctx.amf_ue_id.value(), ue_ctx.ran_ue_id.value());
+  ngap_message init_ctxt_setup_req = generate_valid_initial_context_setup_request_message(
+      ue_ctx.amf_ue_id.value(), ue_ctx.ran_ue_id.value(), std::move(cn_assist_info_for_inactive));
   get_amf().push_tx_pdu(init_ctxt_setup_req);
 
   // Wait for F1AP UE Context Setup Request (containing Security Mode Command).
@@ -903,25 +903,29 @@ bool cu_cp_test_environment::setup_pdu_session(unsigned               du_idx,
   return true;
 }
 
-bool cu_cp_test_environment::attach_ue(unsigned               du_idx,
-                                       unsigned               cu_up_idx,
-                                       gnb_du_ue_f1ap_id_t    du_ue_id,
-                                       rnti_t                 crnti,
-                                       amf_ue_id_t            amf_ue_id,
-                                       gnb_cu_up_ue_e1ap_id_t cu_up_e1ap_id,
-                                       pdu_session_id_t       psi,
-                                       drb_id_t               drb_id,
-                                       qos_flow_id_t          qfi,
-                                       byte_buffer            rrc_reconfiguration_complete,
-                                       bool                   rrc_inactive_supported)
+bool cu_cp_test_environment::attach_ue(
+    unsigned                                                  du_idx,
+    unsigned                                                  cu_up_idx,
+    gnb_du_ue_f1ap_id_t                                       du_ue_id,
+    rnti_t                                                    crnti,
+    amf_ue_id_t                                               amf_ue_id,
+    gnb_cu_up_ue_e1ap_id_t                                    cu_up_e1ap_id,
+    pdu_session_id_t                                          psi,
+    drb_id_t                                                  drb_id,
+    qos_flow_id_t                                             qfi,
+    byte_buffer                                               rrc_setup_complete,
+    byte_buffer                                               rrc_reconfiguration_complete,
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
+    bool                                                      rrc_inactive_supported)
 {
-  if (not connect_new_ue(du_idx, du_ue_id, crnti)) {
+  if (not connect_new_ue(du_idx, du_ue_id, crnti, plmn_identity::test_value(), std::move(rrc_setup_complete))) {
     return false;
   }
   if (not authenticate_ue(du_idx, du_ue_id, amf_ue_id)) {
     return false;
   }
-  if (not setup_ue_security_and_ue_capabilies(du_idx, du_ue_id, rrc_inactive_supported)) {
+  if (not setup_ue_security_and_ue_capabilies(
+          du_idx, du_ue_id, std::move(cn_assist_info_for_inactive), rrc_inactive_supported)) {
     return false;
   }
   if (not finish_ue_registration(du_idx, cu_up_idx, du_ue_id)) {

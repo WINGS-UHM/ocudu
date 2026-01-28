@@ -598,7 +598,8 @@ struct private_ie_field_s {
   void          to_json(json_writer& j) const;
 };
 
-// PrivateIE-Container{NGAP-PRIVATE-IES : IEsSetParam} ::= SEQUENCE (SIZE (1..65535)) OF PrivateIE-Field
+// PrivateIE-Container{NGAP-PRIVATE-IES : IEsSetParam} ::= SEQUENCE (SIZE (1..65535)) OF
+// PrivateIE-Field{NGAP-PRIVATE-IES : IEsSetParam}
 template <class ies_set_paramT_>
 using private_ie_container_l = dyn_seq_of<private_ie_field_s<ies_set_paramT_>, 1, 65535, true>;
 

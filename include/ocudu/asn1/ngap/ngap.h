@@ -275,6 +275,26 @@ using ue_context_suspend_fail_s = elementary_procedure_option<ue_context_suspend
  *                              Struct Definitions
  ******************************************************************************/
 
+// ProtocolIE-FieldPair{NGAP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE{{NGAP-PROTOCOL-IES-PAIR}}
+template <class ies_set_paramT_>
+struct protocol_ie_field_pair_s {
+  uint32_t                                 id = 0;
+  crit_e                                   first_crit;
+  typename ies_set_paramT_::first_value_c  first_value;
+  crit_e                                   second_crit;
+  typename ies_set_paramT_::second_value_c second_value;
+
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+  bool          load_info_obj(const uint32_t& id_);
+};
+
+// ProtocolIE-ContainerPair{NGAP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE (SIZE (0..65535)) OF
+// ProtocolIE-FieldPair{NGAP-PROTOCOL-IES-PAIR : IEsSetParam}
+template <class ies_set_paramT_>
+using protocol_ie_container_pair_l = dyn_seq_of<protocol_ie_field_pair_s<ies_set_paramT_>, 0, 65535, true>;
+
 // NGAP-ELEMENTARY-PROCEDURES ::= OBJECT SET OF NGAP-ELEMENTARY-PROCEDURE
 struct ngap_elem_procs_o {
   // InitiatingMessage ::= OPEN TYPE
@@ -815,25 +835,6 @@ private:
 
   void destroy_();
 };
-
-// ProtocolIE-FieldPair{NGAP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE{{NGAP-PROTOCOL-IES-PAIR}}
-template <class ies_set_paramT_>
-struct protocol_ie_field_pair_s {
-  uint32_t                                 id = 0;
-  crit_e                                   first_crit;
-  typename ies_set_paramT_::first_value_c  first_value;
-  crit_e                                   second_crit;
-  typename ies_set_paramT_::second_value_c second_value;
-
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-  bool          load_info_obj(const uint32_t& id_);
-};
-
-// ProtocolIE-ContainerPair{NGAP-PROTOCOL-IES-PAIR : IEsSetParam} ::= SEQUENCE (SIZE (0..65535)) OF ProtocolIE-FieldPair
-template <class ies_set_paramT_>
-using protocol_ie_container_pair_l = dyn_seq_of<protocol_ie_field_pair_s<ies_set_paramT_>, 0, 65535, true>;
 
 } // namespace ngap
 } // namespace asn1

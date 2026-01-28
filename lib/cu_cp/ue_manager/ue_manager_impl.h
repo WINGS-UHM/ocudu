@@ -76,6 +76,11 @@ public:
   /// \param[in] ue_index Index of the UE to be set to active.
   void set_active(ue_index_t ue_index);
 
+  /// \brief Get the Full-I-RNTI assigned to the UE with the given UE index.
+  /// \param[in] ue_index Index of the UE.
+  /// \return The Full-I-RNTI assigned to the UE, or std::nullopt if not applicable.
+  std::optional<full_i_rnti_t> get_full_i_rnti(ue_index_t ue_index);
+
   /// \brief Get the CU-CP UE configuration stored in the UE manager.
   /// \return The CU-CP UE configuration.
   const ue_configuration& get_ue_config() const { return ue_config; }

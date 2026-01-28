@@ -289,6 +289,32 @@ void ue_manager::set_active(ue_index_t ue_index)
   }
 }
 
+std::optional<full_i_rnti_t> ue_manager::get_full_i_rnti(ue_index_t ue_index)
+{
+  if (ue_index == ue_index_t::invalid) {
+    logger.warning("Can't get I-RNTIs for UE with invalid UE index");
+    return std::nullopt;
+  }
+
+  if (ues.find(ue_index) == ues.end()) {
+    logger.warning("ue={}: Get I-RNTIs called for inexistent UE", ue_index);
+    return std::nullopt;
+  }
+
+  auto& ue = ues.at(ue_index);
+  if (ue.get_rrc_ue()->get_rrc_state() != rrc_state::connected_inactive) {
+    logger.warning("ue={}: Get I-RNTIs called for active UE", ue_index);
+    return std::nullopt;
+  }
+
+  for (auto it = full_i_rnti_to_ue_index.begin(); it != full_i_rnti_to_ue_index.end();) {
+    if (it->second == ue_index) {
+      return it->first;
+    }
+  }
+  return std::nullopt;
+}
+
 // Common.
 
 cu_cp_ue* ue_manager::find_ue(ue_index_t ue_index)

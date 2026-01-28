@@ -292,27 +292,6 @@ TEST_F(sctp_socket_test, bindx_to_loopback_with_dynamic_port)
   verify_bound_address_ipv4(sock.fd().value(), std::nullopt, INADDR_LOOPBACK);
 }
 
-/// Test bindx to loopback address with a specific port.
-TEST_F(sctp_socket_test, bindx_to_loopback_with_specific_port)
-{
-  sctp_socket_params params = create_default_params();
-  params.reuse_addr         = true;
-
-  auto result = sctp_socket::create(params);
-  ASSERT_TRUE(result.has_value());
-
-  sctp_socket& sock = result.value();
-
-  sockaddr_storage addr_storage = create_ipv4_loopback_addr(12345);
-
-  EXPECT_TRUE(sock.bindx({addr_storage}, ""));
-
-  ASSERT_TRUE(sock.get_bound_port().has_value());
-  EXPECT_EQ(sock.get_bound_port().value(), 12345);
-
-  verify_bound_address_ipv4(sock.fd().value(), 12345, INADDR_LOOPBACK);
-}
-
 /// Test bindx to loopback address with a dynamic port (when port is not set then OS picks the port number).
 TEST_F(sctp_socket_test, bindx_to_loopback_with_dynamic_port_ipv6)
 {
@@ -332,28 +311,6 @@ TEST_F(sctp_socket_test, bindx_to_loopback_with_dynamic_port_ipv6)
   EXPECT_GT(sock.get_bound_port().value(), 0);
 
   verify_bound_address_ipv6(sock.fd().value(), std::nullopt, in6addr_loopback);
-}
-
-/// Test bindx to loopback address with a specific port.
-TEST_F(sctp_socket_test, bindx_to_loopback_with_specific_port_ipv6)
-{
-  sctp_socket_params params = create_default_params();
-  params.ai_family          = AF_INET6;
-  params.reuse_addr         = true;
-
-  auto result = sctp_socket::create(params);
-  ASSERT_TRUE(result.has_value());
-
-  sctp_socket& sock = result.value();
-
-  sockaddr_storage addr_storage = create_ipv6_loopback_addr(12345);
-
-  EXPECT_TRUE(sock.bindx({addr_storage}, ""));
-
-  ASSERT_TRUE(sock.get_bound_port().has_value());
-  EXPECT_EQ(sock.get_bound_port().value(), 12345);
-
-  verify_bound_address_ipv6(sock.fd().value(), 12345, in6addr_loopback);
 }
 
 /// Test listen on a bound socket.

@@ -235,6 +235,35 @@ static bool sctp_set_nodelay(const unique_fd& fd, std::optional<bool> nodelay)
   return ::setsockopt(fd.value(), IPPROTO_SCTP, SCTP_NODELAY, &optval, sizeof(optval)) == 0;
 }
 
+/// \brief Pack addresses into contiguous buffer with correct sizes for each address family.
+/// sctp_bindx/sctp_connectx expect addresses to be packed based on their actual size (sockaddr_in or sockaddr_in6),
+/// not sockaddr_storage which is 128 bytes and causes offset issues when reading multiple addresses.
+static bool pack_addresses(const std::vector<sockaddr_storage>& addrs, std::vector<uint8_t>& packed_addrs)
+{
+  size_t total_size = 0;
+  for (const auto& addr : addrs) {
+    sa_family_t family = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
+    if (family == AF_INET) {
+      total_size += sizeof(sockaddr_in);
+    } else if (family == AF_INET6) {
+      total_size += sizeof(sockaddr_in6);
+    } else {
+      return false;
+    }
+  }
+
+  packed_addrs.resize(total_size);
+  size_t offset = 0;
+  for (const auto& addr : addrs) {
+    sa_family_t family    = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
+    size_t      addr_size = (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+    std::memcpy(packed_addrs.data() + offset, &addr, addr_size);
+    offset += addr_size;
+  }
+
+  return true;
+}
+
 /// Disable IPV6_V6ONLY for IPv6 sockets to allow both IPv4 and IPv6 addresses in case of multihoming.
 /// This allows IPv4-mapped IPv6 addresses to work on IPv6 sockets.
 static bool
@@ -346,29 +375,10 @@ bool sctp_socket::bindx(const std::vector<sockaddr_storage>& addrs, const std::s
 
   logger.debug("{}: Binding {} address(es) using sctp_bindx()...", if_name, addrs.size());
 
-  // Pack addresses into contiguous buffer with correct sizes for each address family.
-  // sctp_bindx expects addresses to be packed based on their actual size (sockaddr_in or sockaddr_in6),
-  // not sockaddr_storage which is 128 bytes and causes offset issues when reading multiple addresses.
-  size_t total_size = 0;
-  for (const auto& addr : addrs) {
-    sa_family_t family = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
-    if (family == AF_INET) {
-      total_size += sizeof(sockaddr_in);
-    } else if (family == AF_INET6) {
-      total_size += sizeof(sockaddr_in6);
-    } else {
-      logger.error("{}: Unknown address family: {}", if_name, family);
-      return false;
-    }
-  }
-
-  std::vector<uint8_t> packed_addrs(total_size);
-  size_t               offset = 0;
-  for (const auto& addr : addrs) {
-    sa_family_t family    = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
-    size_t      addr_size = (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
-    std::memcpy(packed_addrs.data() + offset, &addr, addr_size);
-    offset += addr_size;
+  std::vector<uint8_t> packed_addrs;
+  if (!pack_addresses(addrs, packed_addrs)) {
+    logger.error("{}: Unknown address family in sctp_bindx address list", if_name);
+    return false;
   }
 
   int result =
@@ -405,29 +415,10 @@ bool sctp_socket::connectx(const std::vector<sockaddr_storage>& addrs, sctp_asso
 
   logger.debug("{}: Connecting to {} address(es) using sctp_connectx()...", if_name, addrs.size());
 
-  // Pack addresses into contiguous buffer with correct sizes for each address family.
-  // sctp_connectx expects addresses to be packed based on their actual size (sockaddr_in or sockaddr_in6),
-  // not sockaddr_storage which is 128 bytes and causes offset issues when reading multiple addresses.
-  size_t total_size = 0;
-  for (const auto& addr : addrs) {
-    sa_family_t family = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
-    if (family == AF_INET) {
-      total_size += sizeof(sockaddr_in);
-    } else if (family == AF_INET6) {
-      total_size += sizeof(sockaddr_in6);
-    } else {
-      logger.error("{}: Unknown address family: {}", if_name, family);
-      return false;
-    }
-  }
-
-  std::vector<uint8_t> packed_addrs(total_size);
-  size_t               offset = 0;
-  for (const auto& addr : addrs) {
-    sa_family_t family    = reinterpret_cast<const sockaddr*>(&addr)->sa_family;
-    size_t      addr_size = (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
-    std::memcpy(packed_addrs.data() + offset, &addr, addr_size);
-    offset += addr_size;
+  std::vector<uint8_t> packed_addrs;
+  if (!pack_addresses(addrs, packed_addrs)) {
+    logger.error("{}: Unknown address family in sctp_connectx address list", if_name);
+    return false;
   }
 
   int result =

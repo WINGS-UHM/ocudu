@@ -86,11 +86,11 @@ struct ngap_source_ngran_node_to_target_ngran_node_transparent_container {
 };
 
 struct ngap_handover_request {
-  ue_index_t                ue_index = ue_index_t::invalid;
-  ngap_handov_type          handov_type;
-  ngap_cause_t              cause;
-  ngap_ue_aggr_max_bit_rate ue_aggr_max_bit_rate;
-  // TODO: Add optional core_network_assist_info_for_inactive
+  ue_index_t                                                            ue_index = ue_index_t::invalid;
+  ngap_handov_type                                                      handov_type;
+  ngap_cause_t                                                          cause;
+  ngap_ue_aggr_max_bit_rate                                             ue_aggr_max_bit_rate;
+  std::optional<ngap_core_network_assist_info_for_inactive>             core_network_assist_info_for_inactive;
   security::security_context                                            security_context;
   std::optional<bool>                                                   new_security_context_ind;
   byte_buffer                                                           nasc;

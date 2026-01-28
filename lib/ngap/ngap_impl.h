@@ -39,6 +39,8 @@ public:
 
   bool
   update_ue_index(ue_index_t new_ue_index, ue_index_t old_ue_index, ngap_cu_cp_ue_notifier& new_ue_notifier) override;
+  std::optional<ngap_core_network_assist_info_for_inactive>
+  get_cn_assist_info_for_inactive(ue_index_t ue_index) override;
 
   // NGAP connection manager functions.
   bool                             handle_amf_tnl_connection_request() override;

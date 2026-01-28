@@ -83,6 +83,17 @@ bool ngap_impl::update_ue_index(ue_index_t              new_ue_index,
   return true;
 }
 
+std::optional<ngap_core_network_assist_info_for_inactive>
+ngap_impl::get_cn_assist_info_for_inactive(ue_index_t ue_index)
+{
+  if (!ue_ctxt_list.contains(ue_index)) {
+    logger.warning("ue={}: Cannot get core network assist info for inactive. UE context does not exist", ue_index);
+    return std::nullopt;
+  }
+  ngap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
+  return ue_ctxt.core_network_assist_info_for_inactive;
+}
+
 bool ngap_impl::handle_amf_tnl_connection_request()
 {
   // This could be a reconnection, so make sure the tx_pdu_notifier is released before creating a new one.

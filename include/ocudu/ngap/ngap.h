@@ -124,12 +124,12 @@ public:
   /// \brief Get the RRC UE notifier of the UE.
   virtual ngap_rrc_ue_notifier& get_ngap_rrc_ue_notifier() = 0;
 
-  /// \brief Notify the CU-CP about a security context
-  /// \param[in] sec_ctxt The received security context
-  /// \return True if the security context was successfully initialized, false otherwise
+  /// \brief Notify the CU-CP about a security context.
+  /// \param[in] sec_ctxt The received security context.
+  /// \return True if the security context was successfully initialized, false otherwise.
   virtual bool init_security_context(const security::security_context& sec_ctxt) = 0;
 
-  /// \brief Check if security is enabled
+  /// \brief Check if security is enabled.
   [[nodiscard]] virtual bool is_security_enabled() const = 0;
 };
 
@@ -305,6 +305,12 @@ public:
   /// \returns True if the update was successful, false otherwise.
   virtual bool
   update_ue_index(ue_index_t new_ue_index, ue_index_t old_ue_index, ngap_cu_cp_ue_notifier& new_ue_notifier) = 0;
+
+  /// \brief Get the core network assist info for inactive.
+  /// \param[in] ue_index The index of the UE.
+  /// \returns The core network assist info for inactive if available.
+  virtual std::optional<ngap_core_network_assist_info_for_inactive>
+  get_cn_assist_info_for_inactive(ue_index_t ue_index) = 0;
 };
 
 /// Interface to map between ue_index and amf_ue_id.

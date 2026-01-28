@@ -16,19 +16,6 @@ using namespace asn1::rrc_nr;
  *                                Struct Methods
  ******************************************************************************/
 
-// SubcarrierSpacing ::= ENUMERATED
-const char* subcarrier_spacing_opts::to_string() const
-{
-  static const char* names[] = {
-      "kHz15", "kHz30", "kHz60", "kHz120", "kHz240", "kHz480-v1700", "kHz960-v1700", "spare1"};
-  return convert_enum_idx(names, 8, value, "subcarrier_spacing_e");
-}
-uint16_t subcarrier_spacing_opts::to_number() const
-{
-  static const uint16_t numbers[] = {15, 30, 60, 120, 240, 480, 960};
-  return map_enum_number(numbers, 7, value, "subcarrier_spacing_e");
-}
-
 // PLMN-Identity ::= SEQUENCE
 OCUDUASN_CODE plmn_id_s::pack(bit_ref& bref) const
 {
@@ -67,6 +54,42 @@ void plmn_id_s::to_json(json_writer& j) const
     j.write_int(e1);
   }
   j.end_array();
+  j.end_obj();
+}
+
+// SubcarrierSpacing ::= ENUMERATED
+const char* subcarrier_spacing_opts::to_string() const
+{
+  static const char* names[] = {
+      "kHz15", "kHz30", "kHz60", "kHz120", "kHz240", "kHz480-v1700", "kHz960-v1700", "spare1"};
+  return convert_enum_idx(names, 8, value, "subcarrier_spacing_e");
+}
+uint16_t subcarrier_spacing_opts::to_number() const
+{
+  static const uint16_t numbers[] = {15, 30, 60, 120, 240, 480, 960};
+  return map_enum_number(numbers, 7, value, "subcarrier_spacing_e");
+}
+
+// ServingCellAndBWP-Id-r17 ::= SEQUENCE
+OCUDUASN_CODE serving_cell_and_bwp_id_r17_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(pack_integer(bref, servingcell_r17, (uint8_t)0u, (uint8_t)31u));
+  HANDLE_CODE(pack_integer(bref, bwp_r17, (uint8_t)0u, (uint8_t)4u));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE serving_cell_and_bwp_id_r17_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(unpack_integer(servingcell_r17, bref, (uint8_t)0u, (uint8_t)31u));
+  HANDLE_CODE(unpack_integer(bwp_r17, bref, (uint8_t)0u, (uint8_t)4u));
+
+  return OCUDUASN_SUCCESS;
+}
+void serving_cell_and_bwp_id_r17_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("servingcell-r17", servingcell_r17);
+  j.write_int("bwp-r17", bwp_r17);
   j.end_obj();
 }
 
@@ -685,29 +708,6 @@ const char* srs_spatial_relation_info_s::ref_sig_c_::types_opts::to_string() con
 {
   static const char* names[] = {"ssb-Index", "csi-RS-Index", "srs"};
   return convert_enum_idx(names, 3, value, "srs_spatial_relation_info_s::ref_sig_c_::types");
-}
-
-// ServingCellAndBWP-Id-r17 ::= SEQUENCE
-OCUDUASN_CODE serving_cell_and_bwp_id_r17_s::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(pack_integer(bref, servingcell_r17, (uint8_t)0u, (uint8_t)31u));
-  HANDLE_CODE(pack_integer(bref, bwp_r17, (uint8_t)0u, (uint8_t)4u));
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE serving_cell_and_bwp_id_r17_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(unpack_integer(servingcell_r17, bref, (uint8_t)0u, (uint8_t)31u));
-  HANDLE_CODE(unpack_integer(bwp_r17, bref, (uint8_t)0u, (uint8_t)4u));
-
-  return OCUDUASN_SUCCESS;
-}
-void serving_cell_and_bwp_id_r17_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_int("servingcell-r17", servingcell_r17);
-  j.write_int("bwp-r17", bwp_r17);
-  j.end_obj();
 }
 
 // SpatialRelationInfo-PDC-r17 ::= SEQUENCE
@@ -1813,6 +1813,96 @@ const char* srs_res_s::srs_tci_state_r17_c_::types_opts::to_string() const
   return convert_enum_idx(names, 2, value, "srs_res_s::srs_tci_state_r17_c_::types");
 }
 
+// SRS-PosResources-r16 ::= SEQUENCE
+OCUDUASN_CODE srs_pos_resources_r16_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(max_num_srs_pos_res_set_per_bwp_r16.pack(bref));
+  HANDLE_CODE(max_num_srs_pos_res_per_bwp_r16.pack(bref));
+  HANDLE_CODE(max_num_srs_res_per_bwp_per_slot_r16.pack(bref));
+  HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_r16.pack(bref));
+  HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_per_slot_r16.pack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_pos_resources_r16_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(max_num_srs_pos_res_set_per_bwp_r16.unpack(bref));
+  HANDLE_CODE(max_num_srs_pos_res_per_bwp_r16.unpack(bref));
+  HANDLE_CODE(max_num_srs_res_per_bwp_per_slot_r16.unpack(bref));
+  HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_r16.unpack(bref));
+  HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_per_slot_r16.unpack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+void srs_pos_resources_r16_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("maxNumberSRS-PosResourceSetPerBWP-r16", max_num_srs_pos_res_set_per_bwp_r16.to_string());
+  j.write_str("maxNumberSRS-PosResourcesPerBWP-r16", max_num_srs_pos_res_per_bwp_r16.to_string());
+  j.write_str("maxNumberSRS-ResourcesPerBWP-PerSlot-r16", max_num_srs_res_per_bwp_per_slot_r16.to_string());
+  j.write_str("maxNumberPeriodicSRS-PosResourcesPerBWP-r16", max_num_periodic_srs_pos_res_per_bwp_r16.to_string());
+  j.write_str("maxNumberPeriodicSRS-PosResourcesPerBWP-PerSlot-r16",
+              max_num_periodic_srs_pos_res_per_bwp_per_slot_r16.to_string());
+  j.end_obj();
+}
+
+const char* srs_pos_resources_r16_s::max_num_srs_pos_res_set_per_bwp_r16_opts::to_string() const
+{
+  static const char* names[] = {"n1", "n2", "n4", "n8", "n12", "n16"};
+  return convert_enum_idx(names, 6, value, "srs_pos_resources_r16_s::max_num_srs_pos_res_set_per_bwp_r16_e_");
+}
+uint8_t srs_pos_resources_r16_s::max_num_srs_pos_res_set_per_bwp_r16_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2, 4, 8, 12, 16};
+  return map_enum_number(numbers, 6, value, "srs_pos_resources_r16_s::max_num_srs_pos_res_set_per_bwp_r16_e_");
+}
+
+const char* srs_pos_resources_r16_s::max_num_srs_pos_res_per_bwp_r16_opts::to_string() const
+{
+  static const char* names[] = {"n1", "n2", "n4", "n8", "n16", "n32", "n64"};
+  return convert_enum_idx(names, 7, value, "srs_pos_resources_r16_s::max_num_srs_pos_res_per_bwp_r16_e_");
+}
+uint8_t srs_pos_resources_r16_s::max_num_srs_pos_res_per_bwp_r16_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2, 4, 8, 16, 32, 64};
+  return map_enum_number(numbers, 7, value, "srs_pos_resources_r16_s::max_num_srs_pos_res_per_bwp_r16_e_");
+}
+
+const char* srs_pos_resources_r16_s::max_num_srs_res_per_bwp_per_slot_r16_opts::to_string() const
+{
+  static const char* names[] = {"n1", "n2", "n3", "n4", "n5", "n6", "n8", "n10", "n12", "n14"};
+  return convert_enum_idx(names, 10, value, "srs_pos_resources_r16_s::max_num_srs_res_per_bwp_per_slot_r16_e_");
+}
+uint8_t srs_pos_resources_r16_s::max_num_srs_res_per_bwp_per_slot_r16_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2, 3, 4, 5, 6, 8, 10, 12, 14};
+  return map_enum_number(numbers, 10, value, "srs_pos_resources_r16_s::max_num_srs_res_per_bwp_per_slot_r16_e_");
+}
+
+const char* srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_r16_opts::to_string() const
+{
+  static const char* names[] = {"n1", "n2", "n4", "n8", "n16", "n32", "n64"};
+  return convert_enum_idx(names, 7, value, "srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_r16_e_");
+}
+uint8_t srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_r16_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2, 4, 8, 16, 32, 64};
+  return map_enum_number(numbers, 7, value, "srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_r16_e_");
+}
+
+const char* srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_per_slot_r16_opts::to_string() const
+{
+  static const char* names[] = {"n1", "n2", "n3", "n4", "n5", "n6", "n8", "n10", "n12", "n14"};
+  return convert_enum_idx(
+      names, 10, value, "srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_per_slot_r16_e_");
+}
+uint8_t srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_per_slot_r16_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2, 3, 4, 5, 6, 8, 10, 12, 14};
+  return map_enum_number(
+      numbers, 10, value, "srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_per_slot_r16_e_");
+}
+
 // SRS-PosResourceAP-r16 ::= SEQUENCE
 OCUDUASN_CODE srs_pos_res_ap_r16_s::pack(bit_ref& bref) const
 {
@@ -1903,96 +1993,6 @@ uint8_t srs_pos_res_sp_r16_s::max_num_sp_srs_pos_res_per_bwp_per_slot_r16_opts::
 {
   static const uint8_t numbers[] = {1, 2, 3, 4, 5, 6, 8, 10, 12, 14};
   return map_enum_number(numbers, 10, value, "srs_pos_res_sp_r16_s::max_num_sp_srs_pos_res_per_bwp_per_slot_r16_e_");
-}
-
-// SRS-PosResources-r16 ::= SEQUENCE
-OCUDUASN_CODE srs_pos_resources_r16_s::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(max_num_srs_pos_res_set_per_bwp_r16.pack(bref));
-  HANDLE_CODE(max_num_srs_pos_res_per_bwp_r16.pack(bref));
-  HANDLE_CODE(max_num_srs_res_per_bwp_per_slot_r16.pack(bref));
-  HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_r16.pack(bref));
-  HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_per_slot_r16.pack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_pos_resources_r16_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(max_num_srs_pos_res_set_per_bwp_r16.unpack(bref));
-  HANDLE_CODE(max_num_srs_pos_res_per_bwp_r16.unpack(bref));
-  HANDLE_CODE(max_num_srs_res_per_bwp_per_slot_r16.unpack(bref));
-  HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_r16.unpack(bref));
-  HANDLE_CODE(max_num_periodic_srs_pos_res_per_bwp_per_slot_r16.unpack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-void srs_pos_resources_r16_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_str("maxNumberSRS-PosResourceSetPerBWP-r16", max_num_srs_pos_res_set_per_bwp_r16.to_string());
-  j.write_str("maxNumberSRS-PosResourcesPerBWP-r16", max_num_srs_pos_res_per_bwp_r16.to_string());
-  j.write_str("maxNumberSRS-ResourcesPerBWP-PerSlot-r16", max_num_srs_res_per_bwp_per_slot_r16.to_string());
-  j.write_str("maxNumberPeriodicSRS-PosResourcesPerBWP-r16", max_num_periodic_srs_pos_res_per_bwp_r16.to_string());
-  j.write_str("maxNumberPeriodicSRS-PosResourcesPerBWP-PerSlot-r16",
-              max_num_periodic_srs_pos_res_per_bwp_per_slot_r16.to_string());
-  j.end_obj();
-}
-
-const char* srs_pos_resources_r16_s::max_num_srs_pos_res_set_per_bwp_r16_opts::to_string() const
-{
-  static const char* names[] = {"n1", "n2", "n4", "n8", "n12", "n16"};
-  return convert_enum_idx(names, 6, value, "srs_pos_resources_r16_s::max_num_srs_pos_res_set_per_bwp_r16_e_");
-}
-uint8_t srs_pos_resources_r16_s::max_num_srs_pos_res_set_per_bwp_r16_opts::to_number() const
-{
-  static const uint8_t numbers[] = {1, 2, 4, 8, 12, 16};
-  return map_enum_number(numbers, 6, value, "srs_pos_resources_r16_s::max_num_srs_pos_res_set_per_bwp_r16_e_");
-}
-
-const char* srs_pos_resources_r16_s::max_num_srs_pos_res_per_bwp_r16_opts::to_string() const
-{
-  static const char* names[] = {"n1", "n2", "n4", "n8", "n16", "n32", "n64"};
-  return convert_enum_idx(names, 7, value, "srs_pos_resources_r16_s::max_num_srs_pos_res_per_bwp_r16_e_");
-}
-uint8_t srs_pos_resources_r16_s::max_num_srs_pos_res_per_bwp_r16_opts::to_number() const
-{
-  static const uint8_t numbers[] = {1, 2, 4, 8, 16, 32, 64};
-  return map_enum_number(numbers, 7, value, "srs_pos_resources_r16_s::max_num_srs_pos_res_per_bwp_r16_e_");
-}
-
-const char* srs_pos_resources_r16_s::max_num_srs_res_per_bwp_per_slot_r16_opts::to_string() const
-{
-  static const char* names[] = {"n1", "n2", "n3", "n4", "n5", "n6", "n8", "n10", "n12", "n14"};
-  return convert_enum_idx(names, 10, value, "srs_pos_resources_r16_s::max_num_srs_res_per_bwp_per_slot_r16_e_");
-}
-uint8_t srs_pos_resources_r16_s::max_num_srs_res_per_bwp_per_slot_r16_opts::to_number() const
-{
-  static const uint8_t numbers[] = {1, 2, 3, 4, 5, 6, 8, 10, 12, 14};
-  return map_enum_number(numbers, 10, value, "srs_pos_resources_r16_s::max_num_srs_res_per_bwp_per_slot_r16_e_");
-}
-
-const char* srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_r16_opts::to_string() const
-{
-  static const char* names[] = {"n1", "n2", "n4", "n8", "n16", "n32", "n64"};
-  return convert_enum_idx(names, 7, value, "srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_r16_e_");
-}
-uint8_t srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_r16_opts::to_number() const
-{
-  static const uint8_t numbers[] = {1, 2, 4, 8, 16, 32, 64};
-  return map_enum_number(numbers, 7, value, "srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_r16_e_");
-}
-
-const char* srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_per_slot_r16_opts::to_string() const
-{
-  static const char* names[] = {"n1", "n2", "n3", "n4", "n5", "n6", "n8", "n10", "n12", "n14"};
-  return convert_enum_idx(
-      names, 10, value, "srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_per_slot_r16_e_");
-}
-uint8_t srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_per_slot_r16_opts::to_number() const
-{
-  static const uint8_t numbers[] = {1, 2, 3, 4, 5, 6, 8, 10, 12, 14};
-  return map_enum_number(
-      numbers, 10, value, "srs_pos_resources_r16_s::max_num_periodic_srs_pos_res_per_bwp_per_slot_r16_e_");
 }
 
 // SRS-AllPosResources-r16 ::= SEQUENCE

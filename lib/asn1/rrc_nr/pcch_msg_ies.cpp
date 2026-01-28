@@ -16,28 +16,6 @@ using namespace asn1::rrc_nr;
  *                                Struct Methods
  ******************************************************************************/
 
-// PagingRecord-v1700 ::= SEQUENCE
-OCUDUASN_CODE paging_record_v1700_s::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(bref.pack(paging_cause_r17_present, 1));
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE paging_record_v1700_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(bref.unpack(paging_cause_r17_present, 1));
-
-  return OCUDUASN_SUCCESS;
-}
-void paging_record_v1700_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  if (paging_cause_r17_present) {
-    j.write_str("pagingCause-r17", "voice");
-  }
-  j.end_obj();
-}
-
 // PagingUE-Identity ::= CHOICE
 void paging_ue_id_c::destroy_()
 {
@@ -203,6 +181,28 @@ void paging_record_s::to_json(json_writer& j) const
   ue_id.to_json(j);
   if (access_type_present) {
     j.write_str("accessType", "non3GPP");
+  }
+  j.end_obj();
+}
+
+// PagingRecord-v1700 ::= SEQUENCE
+OCUDUASN_CODE paging_record_v1700_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(paging_cause_r17_present, 1));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE paging_record_v1700_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(paging_cause_r17_present, 1));
+
+  return OCUDUASN_SUCCESS;
+}
+void paging_record_v1700_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (paging_cause_r17_present) {
+    j.write_str("pagingCause-r17", "voice");
   }
   j.end_obj();
 }

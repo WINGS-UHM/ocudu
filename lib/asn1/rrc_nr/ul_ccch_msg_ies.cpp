@@ -177,6 +177,29 @@ int8_t init_ue_id_c::types_opts::to_number() const
   return map_enum_number(numbers, 1, value, "init_ue_id_c::types");
 }
 
+// RRC-PosSystemInfoRequest-r16-IEs ::= SEQUENCE
+OCUDUASN_CODE rrc_pos_sys_info_request_r16_ies_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(requested_pos_si_list.pack(bref));
+  HANDLE_CODE(spare.pack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE rrc_pos_sys_info_request_r16_ies_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(requested_pos_si_list.unpack(bref));
+  HANDLE_CODE(spare.unpack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+void rrc_pos_sys_info_request_r16_ies_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("requestedPosSI-List", requested_pos_si_list.to_string());
+  j.write_str("spare", spare.to_string());
+  j.end_obj();
+}
+
 // ReestabUE-Identity ::= SEQUENCE
 OCUDUASN_CODE reestab_ue_id_s::pack(bit_ref& bref) const
 {
@@ -210,51 +233,6 @@ const char* reest_cause_opts::to_string() const
   return convert_enum_idx(names, 4, value, "reest_cause_e");
 }
 
-// ResumeCause ::= ENUMERATED
-const char* resume_cause_opts::to_string() const
-{
-  static const char* names[] = {"emergency",
-                                "highPriorityAccess",
-                                "mt-Access",
-                                "mo-Signalling",
-                                "mo-Data",
-                                "mo-VoiceCall",
-                                "mo-VideoCall",
-                                "mo-SMS",
-                                "rna-Update",
-                                "mps-PriorityAccess",
-                                "mcs-PriorityAccess",
-                                "spare1",
-                                "spare2",
-                                "spare3",
-                                "spare4",
-                                "spare5"};
-  return convert_enum_idx(names, 16, value, "resume_cause_e");
-}
-
-// RRC-PosSystemInfoRequest-r16-IEs ::= SEQUENCE
-OCUDUASN_CODE rrc_pos_sys_info_request_r16_ies_s::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(requested_pos_si_list.pack(bref));
-  HANDLE_CODE(spare.pack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE rrc_pos_sys_info_request_r16_ies_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(requested_pos_si_list.unpack(bref));
-  HANDLE_CODE(spare.unpack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-void rrc_pos_sys_info_request_r16_ies_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_str("requestedPosSI-List", requested_pos_si_list.to_string());
-  j.write_str("spare", spare.to_string());
-  j.end_obj();
-}
-
 // RRCReestablishmentRequest-IEs ::= SEQUENCE
 OCUDUASN_CODE rrc_reest_request_ies_s::pack(bit_ref& bref) const
 {
@@ -280,6 +258,49 @@ void rrc_reest_request_ies_s::to_json(json_writer& j) const
   j.write_str("reestablishmentCause", reest_cause.to_string());
   j.write_str("spare", spare.to_string());
   j.end_obj();
+}
+
+// RRCReestablishmentRequest ::= SEQUENCE
+OCUDUASN_CODE rrc_reest_request_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(rrc_reest_request.pack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE rrc_reest_request_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(rrc_reest_request.unpack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+void rrc_reest_request_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("rrcReestablishmentRequest");
+  rrc_reest_request.to_json(j);
+  j.end_obj();
+}
+
+// ResumeCause ::= ENUMERATED
+const char* resume_cause_opts::to_string() const
+{
+  static const char* names[] = {"emergency",
+                                "highPriorityAccess",
+                                "mt-Access",
+                                "mo-Signalling",
+                                "mo-Data",
+                                "mo-VoiceCall",
+                                "mo-VideoCall",
+                                "mo-SMS",
+                                "rna-Update",
+                                "mps-PriorityAccess",
+                                "mcs-PriorityAccess",
+                                "spare1",
+                                "spare2",
+                                "spare3",
+                                "spare4",
+                                "spare5"};
+  return convert_enum_idx(names, 16, value, "resume_cause_e");
 }
 
 // RRCResumeRequest-IEs ::= SEQUENCE
@@ -311,6 +332,27 @@ void rrc_resume_request_ies_s::to_json(json_writer& j) const
   j.end_obj();
 }
 
+// RRCResumeRequest ::= SEQUENCE
+OCUDUASN_CODE rrc_resume_request_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(rrc_resume_request.pack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE rrc_resume_request_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(rrc_resume_request.unpack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+void rrc_resume_request_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("rrcResumeRequest");
+  rrc_resume_request.to_json(j);
+  j.end_obj();
+}
+
 // RRCSetupRequest-IEs ::= SEQUENCE
 OCUDUASN_CODE rrc_setup_request_ies_s::pack(bit_ref& bref) const
 {
@@ -338,6 +380,27 @@ void rrc_setup_request_ies_s::to_json(json_writer& j) const
   j.end_obj();
 }
 
+// RRCSetupRequest ::= SEQUENCE
+OCUDUASN_CODE rrc_setup_request_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(rrc_setup_request.pack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE rrc_setup_request_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(rrc_setup_request.unpack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+void rrc_setup_request_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("rrcSetupRequest");
+  rrc_setup_request.to_json(j);
+  j.end_obj();
+}
+
 // RRCSystemInfoRequest-IEs ::= SEQUENCE
 OCUDUASN_CODE rrc_sys_info_request_ies_s::pack(bit_ref& bref) const
 {
@@ -358,69 +421,6 @@ void rrc_sys_info_request_ies_s::to_json(json_writer& j) const
   j.start_obj();
   j.write_str("requested-SI-List", requested_si_list.to_string());
   j.write_str("spare", spare.to_string());
-  j.end_obj();
-}
-
-// RRCReestablishmentRequest ::= SEQUENCE
-OCUDUASN_CODE rrc_reest_request_s::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(rrc_reest_request.pack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE rrc_reest_request_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(rrc_reest_request.unpack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-void rrc_reest_request_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_fieldname("rrcReestablishmentRequest");
-  rrc_reest_request.to_json(j);
-  j.end_obj();
-}
-
-// RRCResumeRequest ::= SEQUENCE
-OCUDUASN_CODE rrc_resume_request_s::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(rrc_resume_request.pack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE rrc_resume_request_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(rrc_resume_request.unpack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-void rrc_resume_request_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_fieldname("rrcResumeRequest");
-  rrc_resume_request.to_json(j);
-  j.end_obj();
-}
-
-// RRCSetupRequest ::= SEQUENCE
-OCUDUASN_CODE rrc_setup_request_s::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(rrc_setup_request.pack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE rrc_setup_request_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(rrc_setup_request.unpack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-void rrc_setup_request_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_fieldname("rrcSetupRequest");
-  rrc_setup_request.to_json(j);
   j.end_obj();
 }
 

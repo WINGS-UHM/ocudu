@@ -435,6 +435,17 @@ struct var_mob_history_report_r17_s {
   void          to_json(json_writer& j) const;
 };
 
+// VarPendingRNA-Update ::= SEQUENCE
+struct var_pending_rna_upd_s {
+  bool pending_rna_upd_present = false;
+  bool pending_rna_upd         = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // VarRA-Report-r16 ::= SEQUENCE
 struct var_ra_report_r16_s {
   ra_report_list_r16_l ra_report_list_r16;

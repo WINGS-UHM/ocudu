@@ -16,59 +16,6 @@ using namespace asn1::rrc_nr;
  *                                Struct Methods
  ******************************************************************************/
 
-// SL-BWP-DiscPoolConfigCommon-r17 ::= SEQUENCE
-OCUDUASN_CODE sl_bwp_disc_pool_cfg_common_r17_s::pack(bit_ref& bref) const
-{
-  bref.pack(ext, 1);
-  HANDLE_CODE(bref.pack(sl_disc_rx_pool_r17.size() > 0, 1));
-  HANDLE_CODE(bref.pack(sl_disc_tx_pool_sel_r17.size() > 0, 1));
-
-  if (sl_disc_rx_pool_r17.size() > 0) {
-    HANDLE_CODE(pack_dyn_seq_of(bref, sl_disc_rx_pool_r17, 1, 16));
-  }
-  if (sl_disc_tx_pool_sel_r17.size() > 0) {
-    HANDLE_CODE(pack_dyn_seq_of(bref, sl_disc_tx_pool_sel_r17, 1, 8));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE sl_bwp_disc_pool_cfg_common_r17_s::unpack(cbit_ref& bref)
-{
-  bref.unpack(ext, 1);
-  bool sl_disc_rx_pool_r17_present;
-  HANDLE_CODE(bref.unpack(sl_disc_rx_pool_r17_present, 1));
-  bool sl_disc_tx_pool_sel_r17_present;
-  HANDLE_CODE(bref.unpack(sl_disc_tx_pool_sel_r17_present, 1));
-
-  if (sl_disc_rx_pool_r17_present) {
-    HANDLE_CODE(unpack_dyn_seq_of(sl_disc_rx_pool_r17, bref, 1, 16));
-  }
-  if (sl_disc_tx_pool_sel_r17_present) {
-    HANDLE_CODE(unpack_dyn_seq_of(sl_disc_tx_pool_sel_r17, bref, 1, 8));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-void sl_bwp_disc_pool_cfg_common_r17_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  if (sl_disc_rx_pool_r17.size() > 0) {
-    j.start_array("sl-DiscRxPool-r17");
-    for (const auto& e1 : sl_disc_rx_pool_r17) {
-      e1.to_json(j);
-    }
-    j.end_array();
-  }
-  if (sl_disc_tx_pool_sel_r17.size() > 0) {
-    j.start_array("sl-DiscTxPoolSelected-r17");
-    for (const auto& e1 : sl_disc_tx_pool_sel_r17) {
-      e1.to_json(j);
-    }
-    j.end_array();
-  }
-  j.end_obj();
-}
-
 // SL-BWP-PoolConfigCommon-r16 ::= SEQUENCE
 OCUDUASN_CODE sl_bwp_pool_cfg_common_r16_s::pack(bit_ref& bref) const
 {
@@ -128,6 +75,59 @@ void sl_bwp_pool_cfg_common_r16_s::to_json(json_writer& j) const
   if (sl_tx_pool_exceptional_r16_present) {
     j.write_fieldname("sl-TxPoolExceptional-r16");
     sl_tx_pool_exceptional_r16.to_json(j);
+  }
+  j.end_obj();
+}
+
+// SL-BWP-DiscPoolConfigCommon-r17 ::= SEQUENCE
+OCUDUASN_CODE sl_bwp_disc_pool_cfg_common_r17_s::pack(bit_ref& bref) const
+{
+  bref.pack(ext, 1);
+  HANDLE_CODE(bref.pack(sl_disc_rx_pool_r17.size() > 0, 1));
+  HANDLE_CODE(bref.pack(sl_disc_tx_pool_sel_r17.size() > 0, 1));
+
+  if (sl_disc_rx_pool_r17.size() > 0) {
+    HANDLE_CODE(pack_dyn_seq_of(bref, sl_disc_rx_pool_r17, 1, 16));
+  }
+  if (sl_disc_tx_pool_sel_r17.size() > 0) {
+    HANDLE_CODE(pack_dyn_seq_of(bref, sl_disc_tx_pool_sel_r17, 1, 8));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE sl_bwp_disc_pool_cfg_common_r17_s::unpack(cbit_ref& bref)
+{
+  bref.unpack(ext, 1);
+  bool sl_disc_rx_pool_r17_present;
+  HANDLE_CODE(bref.unpack(sl_disc_rx_pool_r17_present, 1));
+  bool sl_disc_tx_pool_sel_r17_present;
+  HANDLE_CODE(bref.unpack(sl_disc_tx_pool_sel_r17_present, 1));
+
+  if (sl_disc_rx_pool_r17_present) {
+    HANDLE_CODE(unpack_dyn_seq_of(sl_disc_rx_pool_r17, bref, 1, 16));
+  }
+  if (sl_disc_tx_pool_sel_r17_present) {
+    HANDLE_CODE(unpack_dyn_seq_of(sl_disc_tx_pool_sel_r17, bref, 1, 8));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void sl_bwp_disc_pool_cfg_common_r17_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (sl_disc_rx_pool_r17.size() > 0) {
+    j.start_array("sl-DiscRxPool-r17");
+    for (const auto& e1 : sl_disc_rx_pool_r17) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (sl_disc_tx_pool_sel_r17.size() > 0) {
+    j.start_array("sl-DiscTxPoolSelected-r17");
+    for (const auto& e1 : sl_disc_tx_pool_sel_r17) {
+      e1.to_json(j);
+    }
+    j.end_array();
   }
   j.end_obj();
 }
@@ -457,14 +457,6 @@ void sl_precfg_general_r16_s::to_json(json_writer& j) const
   j.end_obj();
 }
 
-// SL-TxProfile-r17 ::= ENUMERATED
-const char* sl_tx_profile_r17_opts::to_string() const
-{
-  static const char* names[] = {
-      "drx-Compatible", "drx-Incompatible", "spare6", "spare5", "spare4", "spare3", "spare2", "spare1"};
-  return convert_enum_idx(names, 8, value, "sl_tx_profile_r17_e");
-}
-
 // SL-RoHC-Profiles-r16 ::= SEQUENCE
 OCUDUASN_CODE sl_ro_hc_profiles_r16_s::pack(bit_ref& bref) const
 {
@@ -507,6 +499,14 @@ void sl_ro_hc_profiles_r16_s::to_json(json_writer& j) const
   j.write_bool("profile0x0103-r16", profile0x0103_r16);
   j.write_bool("profile0x0104-r16", profile0x0104_r16);
   j.end_obj();
+}
+
+// SL-TxProfile-r17 ::= ENUMERATED
+const char* sl_tx_profile_r17_opts::to_string() const
+{
+  static const char* names[] = {
+      "drx-Compatible", "drx-Incompatible", "spare6", "spare5", "spare4", "spare3", "spare2", "spare1"};
+  return convert_enum_idx(names, 8, value, "sl_tx_profile_r17_e");
 }
 
 // SidelinkPreconfigNR-r16 ::= SEQUENCE

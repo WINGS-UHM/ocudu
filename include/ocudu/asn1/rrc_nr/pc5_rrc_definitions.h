@@ -25,6 +25,16 @@ namespace rrc_nr {
  *                              Struct Definitions
  ******************************************************************************/
 
+// AccessStratumReleaseSidelink-r16 ::= ENUMERATED
+struct access_stratum_release_sidelink_r16_opts {
+  enum options { rel16, rel17, spare6, spare5, spare4, spare3, spare2, spare1, /*...*/ nulltype } value;
+  typedef uint8_t number_type;
+
+  const char* to_string() const;
+  uint8_t     to_number() const;
+};
+using access_stratum_release_sidelink_r16_e = enumerated<access_stratum_release_sidelink_r16_opts, true>;
+
 // BandCombinationParametersSidelinkNR-r16 ::= SEQUENCE (SIZE (1..32)) OF BandParametersSidelink-r16
 using band_combination_params_sidelink_nr_r16_l = dyn_array<band_params_sidelink_r16_s>;
 
@@ -200,6 +210,32 @@ struct band_sidelink_pc5_r16_s {
   void          to_json(json_writer& j) const;
 };
 
+// MAC-ParametersSidelink-r17 ::= SEQUENCE
+struct mac_params_sidelink_r17_s {
+  bool ext                         = false;
+  bool drx_on_sidelink_r17_present = false;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MasterInformationBlockSidelink ::= SEQUENCE
+struct mib_sidelink_s {
+  fixed_bitstring<12> sl_tdd_cfg_r16;
+  bool                in_coverage_r16 = false;
+  fixed_bitstring<10> direct_frame_num_r16;
+  fixed_bitstring<7>  slot_idx_r16;
+  fixed_bitstring<2>  reserved_bits_r16;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // SL-MeasQuantityResult-r16 ::= SEQUENCE
 struct sl_meas_quant_result_r16_s {
   bool    ext                 = false;
@@ -362,6 +398,18 @@ struct notif_msg_sidelink_r17_s {
   void          to_json(json_writer& j) const;
 };
 
+// PDCP-ParametersSidelink-r16 ::= SEQUENCE
+struct pdcp_params_sidelink_r16_s {
+  bool ext                                        = false;
+  bool out_of_order_delivery_sidelink_r16_present = false;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // RRCReconfigurationCompleteSidelink-v1720-IEs ::= SEQUENCE
 struct rrc_recfg_complete_sidelink_v1720_ies_s {
   bool sl_drx_cfg_reject_v1720_present = false;
@@ -499,10 +547,46 @@ struct rrc_recfg_fail_sidelink_s {
   void          to_json(json_writer& j) const;
 };
 
-// SL-LogicalChannelConfigPC5-r16 ::= SEQUENCE
-struct sl_lc_ch_cfg_pc5_r16_s {
-  bool    ext             = false;
-  uint8_t sl_lc_ch_id_r16 = 1;
+// SL-SDAP-ConfigPC5-r16 ::= SEQUENCE
+struct sl_sdap_cfg_pc5_r16_s {
+  using sl_mapped_qos_flows_to_add_list_r16_l_     = dyn_array<uint8_t>;
+  using sl_mapped_qos_flows_to_release_list_r16_l_ = dyn_array<uint8_t>;
+  struct sl_sdap_hdr_r16_opts {
+    enum options { present, absent, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using sl_sdap_hdr_r16_e_ = enumerated<sl_sdap_hdr_r16_opts>;
+
+  // member variables
+  bool                                       ext = false;
+  sl_mapped_qos_flows_to_add_list_r16_l_     sl_mapped_qos_flows_to_add_list_r16;
+  sl_mapped_qos_flows_to_release_list_r16_l_ sl_mapped_qos_flows_to_release_list_r16;
+  sl_sdap_hdr_r16_e_                         sl_sdap_hdr_r16;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SL-PDCP-ConfigPC5-r16 ::= SEQUENCE
+struct sl_pdcp_cfg_pc5_r16_s {
+  struct sl_pdcp_sn_size_r16_opts {
+    enum options { len12bits, len18bits, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using sl_pdcp_sn_size_r16_e_ = enumerated<sl_pdcp_sn_size_r16_opts>;
+
+  // member variables
+  bool                   ext                                  = false;
+  bool                   sl_pdcp_sn_size_r16_present          = false;
+  bool                   sl_out_of_order_delivery_r16_present = false;
+  sl_pdcp_sn_size_r16_e_ sl_pdcp_sn_size_r16;
   // ...
 
   // sequence methods
@@ -590,22 +674,10 @@ private:
   void destroy_();
 };
 
-// SL-PDCP-ConfigPC5-r16 ::= SEQUENCE
-struct sl_pdcp_cfg_pc5_r16_s {
-  struct sl_pdcp_sn_size_r16_opts {
-    enum options { len12bits, len18bits, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using sl_pdcp_sn_size_r16_e_ = enumerated<sl_pdcp_sn_size_r16_opts>;
-
-  // member variables
-  bool                   ext                                  = false;
-  bool                   sl_pdcp_sn_size_r16_present          = false;
-  bool                   sl_out_of_order_delivery_r16_present = false;
-  sl_pdcp_sn_size_r16_e_ sl_pdcp_sn_size_r16;
+// SL-LogicalChannelConfigPC5-r16 ::= SEQUENCE
+struct sl_lc_ch_cfg_pc5_r16_s {
+  bool    ext             = false;
+  uint8_t sl_lc_ch_id_r16 = 1;
   // ...
 
   // sequence methods
@@ -614,59 +686,19 @@ struct sl_pdcp_cfg_pc5_r16_s {
   void          to_json(json_writer& j) const;
 };
 
-// SL-RLC-ChannelConfigPC5-r17 ::= SEQUENCE
-struct sl_rlc_ch_cfg_pc5_r17_s {
+// SLRB-Config-r16 ::= SEQUENCE
+struct slrb_cfg_r16_s {
   bool                   ext                              = false;
-  bool                   sl_rlc_cfg_pc5_r17_present       = false;
-  bool                   sl_mac_lc_ch_cfg_pc5_r17_present = false;
-  uint16_t               sl_rlc_ch_id_pc5_r17             = 1;
-  sl_rlc_cfg_pc5_r16_c   sl_rlc_cfg_pc5_r17;
-  sl_lc_ch_cfg_pc5_r16_s sl_mac_lc_ch_cfg_pc5_r17;
+  bool                   sl_sdap_cfg_pc5_r16_present      = false;
+  bool                   sl_pdcp_cfg_pc5_r16_present      = false;
+  bool                   sl_rlc_cfg_pc5_r16_present       = false;
+  bool                   sl_mac_lc_ch_cfg_pc5_r16_present = false;
+  uint16_t               slrb_pc5_cfg_idx_r16             = 1;
+  sl_sdap_cfg_pc5_r16_s  sl_sdap_cfg_pc5_r16;
+  sl_pdcp_cfg_pc5_r16_s  sl_pdcp_cfg_pc5_r16;
+  sl_rlc_cfg_pc5_r16_c   sl_rlc_cfg_pc5_r16;
+  sl_lc_ch_cfg_pc5_r16_s sl_mac_lc_ch_cfg_pc5_r16;
   // ...
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SL-SDAP-ConfigPC5-r16 ::= SEQUENCE
-struct sl_sdap_cfg_pc5_r16_s {
-  using sl_mapped_qos_flows_to_add_list_r16_l_     = dyn_array<uint8_t>;
-  using sl_mapped_qos_flows_to_release_list_r16_l_ = dyn_array<uint8_t>;
-  struct sl_sdap_hdr_r16_opts {
-    enum options { present, absent, nulltype } value;
-
-    const char* to_string() const;
-  };
-  using sl_sdap_hdr_r16_e_ = enumerated<sl_sdap_hdr_r16_opts>;
-
-  // member variables
-  bool                                       ext = false;
-  sl_mapped_qos_flows_to_add_list_r16_l_     sl_mapped_qos_flows_to_add_list_r16;
-  sl_mapped_qos_flows_to_release_list_r16_l_ sl_mapped_qos_flows_to_release_list_r16;
-  sl_sdap_hdr_r16_e_                         sl_sdap_hdr_r16;
-  // ...
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// RRCReconfigurationSidelink-v1700-IEs ::= SEQUENCE
-struct rrc_recfg_sidelink_v1700_ies_s {
-  using sl_rlc_ch_to_release_list_pc5_r17_l_ = dyn_array<uint16_t>;
-  using sl_rlc_ch_to_add_mod_list_pc5_r17_l_ = dyn_array<sl_rlc_ch_cfg_pc5_r17_s>;
-
-  // member variables
-  bool                                      sl_drx_cfg_uc_pc5_r17_present           = false;
-  bool                                      sl_latency_bound_iuc_report_r17_present = false;
-  bool                                      non_crit_ext_present                    = false;
-  setup_release_c<sl_drx_cfg_uc_r17_s>      sl_drx_cfg_uc_pc5_r17;
-  setup_release_c<integer<uint8_t, 3, 160>> sl_latency_bound_iuc_report_r17;
-  sl_rlc_ch_to_release_list_pc5_r17_l_      sl_rlc_ch_to_release_list_pc5_r17;
-  sl_rlc_ch_to_add_mod_list_pc5_r17_l_      sl_rlc_ch_to_add_mod_list_pc5_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -739,19 +771,35 @@ struct sl_csi_rs_cfg_r16_s {
   void          to_json(json_writer& j) const;
 };
 
-// SLRB-Config-r16 ::= SEQUENCE
-struct slrb_cfg_r16_s {
+// SL-RLC-ChannelConfigPC5-r17 ::= SEQUENCE
+struct sl_rlc_ch_cfg_pc5_r17_s {
   bool                   ext                              = false;
-  bool                   sl_sdap_cfg_pc5_r16_present      = false;
-  bool                   sl_pdcp_cfg_pc5_r16_present      = false;
-  bool                   sl_rlc_cfg_pc5_r16_present       = false;
-  bool                   sl_mac_lc_ch_cfg_pc5_r16_present = false;
-  uint16_t               slrb_pc5_cfg_idx_r16             = 1;
-  sl_sdap_cfg_pc5_r16_s  sl_sdap_cfg_pc5_r16;
-  sl_pdcp_cfg_pc5_r16_s  sl_pdcp_cfg_pc5_r16;
-  sl_rlc_cfg_pc5_r16_c   sl_rlc_cfg_pc5_r16;
-  sl_lc_ch_cfg_pc5_r16_s sl_mac_lc_ch_cfg_pc5_r16;
+  bool                   sl_rlc_cfg_pc5_r17_present       = false;
+  bool                   sl_mac_lc_ch_cfg_pc5_r17_present = false;
+  uint16_t               sl_rlc_ch_id_pc5_r17             = 1;
+  sl_rlc_cfg_pc5_r16_c   sl_rlc_cfg_pc5_r17;
+  sl_lc_ch_cfg_pc5_r16_s sl_mac_lc_ch_cfg_pc5_r17;
   // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RRCReconfigurationSidelink-v1700-IEs ::= SEQUENCE
+struct rrc_recfg_sidelink_v1700_ies_s {
+  using sl_rlc_ch_to_release_list_pc5_r17_l_ = dyn_array<uint16_t>;
+  using sl_rlc_ch_to_add_mod_list_pc5_r17_l_ = dyn_array<sl_rlc_ch_cfg_pc5_r17_s>;
+
+  // member variables
+  bool                                      sl_drx_cfg_uc_pc5_r17_present           = false;
+  bool                                      sl_latency_bound_iuc_report_r17_present = false;
+  bool                                      non_crit_ext_present                    = false;
+  setup_release_c<sl_drx_cfg_uc_r17_s>      sl_drx_cfg_uc_pc5_r17;
+  setup_release_c<integer<uint8_t, 3, 160>> sl_latency_bound_iuc_report_r17;
+  sl_rlc_ch_to_release_list_pc5_r17_l_      sl_rlc_ch_to_release_list_pc5_r17;
+  sl_rlc_ch_to_add_mod_list_pc5_r17_l_      sl_rlc_ch_to_add_mod_list_pc5_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -873,6 +921,9 @@ struct sl_sib_req_info_r17_opts {
 };
 using sl_sib_req_info_r17_e = enumerated<sl_sib_req_info_r17_opts, true>;
 
+// SL-RequestedSIB-List-r17 ::= SEQUENCE (SIZE (33)) OF SL-SIB-ReqInfo-r17
+using sl_requested_sib_list_r17_l = std::array<sl_sib_req_info_r17_e, 33>;
+
 // SL-PagingInfo-RemoteUE-r17 ::= SEQUENCE
 struct sl_paging_info_remote_ue_r17_s {
   bool                         sl_paging_cycle_remote_ue_r17_present = false;
@@ -884,9 +935,6 @@ struct sl_paging_info_remote_ue_r17_s {
   OCUDUASN_CODE unpack(cbit_ref& bref);
   void          to_json(json_writer& j) const;
 };
-
-// SL-RequestedSIB-List-r17 ::= SEQUENCE (SIZE (33)) OF SL-SIB-ReqInfo-r17
-using sl_requested_sib_list_r17_l = std::array<sl_sib_req_info_r17_e, 33>;
 
 // RemoteUEInformationSidelink-r17-IEs ::= SEQUENCE
 struct remote_ue_info_sidelink_r17_ies_s {
@@ -941,20 +989,6 @@ struct remote_ue_info_sidelink_r17_s {
 
   // member variables
   crit_exts_c_ crit_exts;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// MasterInformationBlockSidelink ::= SEQUENCE
-struct mib_sidelink_s {
-  fixed_bitstring<12> sl_tdd_cfg_r16;
-  bool                in_coverage_r16 = false;
-  fixed_bitstring<10> direct_frame_num_r16;
-  fixed_bitstring<7>  slot_idx_r16;
-  fixed_bitstring<2>  reserved_bits_r16;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1042,156 +1076,12 @@ struct sbcch_sl_bch_msg_s {
   void          to_json(json_writer& j) const;
 };
 
-// MAC-ParametersSidelink-r17 ::= SEQUENCE
-struct mac_params_sidelink_r17_s {
-  bool ext                         = false;
-  bool drx_on_sidelink_r17_present = false;
-  // ...
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// AccessStratumReleaseSidelink-r16 ::= ENUMERATED
-struct access_stratum_release_sidelink_r16_opts {
-  enum options { rel16, rel17, spare6, spare5, spare4, spare3, spare2, spare1, /*...*/ nulltype } value;
-  typedef uint8_t number_type;
-
-  const char* to_string() const;
-  uint8_t     to_number() const;
-};
-using access_stratum_release_sidelink_r16_e = enumerated<access_stratum_release_sidelink_r16_opts, true>;
-
-// PDCP-ParametersSidelink-r16 ::= SEQUENCE
-struct pdcp_params_sidelink_r16_s {
-  bool ext                                        = false;
-  bool out_of_order_delivery_sidelink_r16_present = false;
-  // ...
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UECapabilityInformationSidelink-v1700-IEs ::= SEQUENCE
-struct ue_cap_info_sidelink_v1700_ies_s {
-  bool                                      mac_params_sidelink_r17_present = false;
-  bool                                      non_crit_ext_present            = false;
-  mac_params_sidelink_r17_s                 mac_params_sidelink_r17;
-  band_combination_list_sidelink_nr_v1710_l supported_band_combination_list_sidelink_nr_v1710;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEAssistanceInformationSidelink-r17-IEs ::= SEQUENCE
-struct ue_assist_info_sidelink_r17_ies_s {
-  using sl_preferred_drx_cfg_list_r17_l_ = dyn_array<sl_drx_cfg_uc_semi_static_r17_s>;
-
-  // member variables
-  bool                             non_crit_ext_present = false;
-  sl_preferred_drx_cfg_list_r17_l_ sl_preferred_drx_cfg_list_r17;
-  dyn_octstring                    late_non_crit_ext;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // UECapabilityEnquirySidelink-r16-IEs ::= SEQUENCE
 struct ue_cap_enquiry_sidelink_r16_ies_s {
   bool             non_crit_ext_present = false;
   freq_band_list_l freq_band_list_filt_sidelink_r16;
   dyn_octstring    ue_cap_info_sidelink_r16;
   dyn_octstring    late_non_crit_ext;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UECapabilityInformationSidelink-r16-IEs ::= SEQUENCE
-struct ue_cap_info_sidelink_r16_ies_s {
-  using supported_band_list_sidelink_r16_l_ = dyn_array<band_sidelink_pc5_r16_s>;
-
-  // member variables
-  bool                                    pdcp_params_sidelink_r16_present = false;
-  bool                                    rlc_params_sidelink_r16_present  = false;
-  bool                                    non_crit_ext_present             = false;
-  access_stratum_release_sidelink_r16_e   access_stratum_release_sidelink_r16;
-  pdcp_params_sidelink_r16_s              pdcp_params_sidelink_r16;
-  rlc_params_sidelink_r16_s               rlc_params_sidelink_r16;
-  band_combination_list_sidelink_nr_r16_l supported_band_combination_list_sidelink_nr_r16;
-  supported_band_list_sidelink_r16_l_     supported_band_list_sidelink_r16;
-  freq_band_list_l                        applied_freq_band_list_filt_r16;
-  dyn_octstring                           late_non_crit_ext;
-  ue_cap_info_sidelink_v1700_ies_s        non_crit_ext;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UuMessageTransferSidelink-r17-IEs ::= SEQUENCE
-struct uu_msg_transfer_sidelink_r17_ies_s {
-  bool          non_crit_ext_present = false;
-  dyn_octstring sl_paging_delivery_r17;
-  dyn_octstring sl_sib1_delivery_r17;
-  dyn_octstring sl_sys_info_delivery_r17;
-  dyn_octstring late_non_crit_ext;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UEAssistanceInformationSidelink-r17 ::= SEQUENCE
-struct ue_assist_info_sidelink_r17_s {
-  struct crit_exts_c_ {
-    struct types_opts {
-      enum options { ue_assist_info_sidelink_r17, crit_exts_future, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using types = enumerated<types_opts>;
-
-    // choice methods
-    crit_exts_c_() = default;
-    void          set(types::options e = types::nulltype);
-    types         type() const { return type_; }
-    OCUDUASN_CODE pack(bit_ref& bref) const;
-    OCUDUASN_CODE unpack(cbit_ref& bref);
-    void          to_json(json_writer& j) const;
-    // getters
-    ue_assist_info_sidelink_r17_ies_s& ue_assist_info_sidelink_r17()
-    {
-      assert_choice_type(types::ue_assist_info_sidelink_r17, type_, "criticalExtensions");
-      return c;
-    }
-    const ue_assist_info_sidelink_r17_ies_s& ue_assist_info_sidelink_r17() const
-    {
-      assert_choice_type(types::ue_assist_info_sidelink_r17, type_, "criticalExtensions");
-      return c;
-    }
-    ue_assist_info_sidelink_r17_ies_s& set_ue_assist_info_sidelink_r17();
-    void                               set_crit_exts_future();
-
-  private:
-    types                             type_;
-    ue_assist_info_sidelink_r17_ies_s c;
-  };
-
-  // member variables
-  crit_exts_c_ crit_exts;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1245,6 +1135,42 @@ struct ue_cap_enquiry_sidelink_s {
   void          to_json(json_writer& j) const;
 };
 
+// UECapabilityInformationSidelink-v1700-IEs ::= SEQUENCE
+struct ue_cap_info_sidelink_v1700_ies_s {
+  bool                                      mac_params_sidelink_r17_present = false;
+  bool                                      non_crit_ext_present            = false;
+  mac_params_sidelink_r17_s                 mac_params_sidelink_r17;
+  band_combination_list_sidelink_nr_v1710_l supported_band_combination_list_sidelink_nr_v1710;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UECapabilityInformationSidelink-r16-IEs ::= SEQUENCE
+struct ue_cap_info_sidelink_r16_ies_s {
+  using supported_band_list_sidelink_r16_l_ = dyn_array<band_sidelink_pc5_r16_s>;
+
+  // member variables
+  bool                                    pdcp_params_sidelink_r16_present = false;
+  bool                                    rlc_params_sidelink_r16_present  = false;
+  bool                                    non_crit_ext_present             = false;
+  access_stratum_release_sidelink_r16_e   access_stratum_release_sidelink_r16;
+  pdcp_params_sidelink_r16_s              pdcp_params_sidelink_r16;
+  rlc_params_sidelink_r16_s               rlc_params_sidelink_r16;
+  band_combination_list_sidelink_nr_r16_l supported_band_combination_list_sidelink_nr_r16;
+  supported_band_list_sidelink_r16_l_     supported_band_list_sidelink_r16;
+  freq_band_list_l                        applied_freq_band_list_filt_r16;
+  dyn_octstring                           late_non_crit_ext;
+  ue_cap_info_sidelink_v1700_ies_s        non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // UECapabilityInformationSidelink ::= SEQUENCE
 struct ue_cap_info_sidelink_s {
   struct crit_exts_c_ {
@@ -1291,6 +1217,20 @@ struct ue_cap_info_sidelink_s {
   void          to_json(json_writer& j) const;
 };
 
+// UuMessageTransferSidelink-r17-IEs ::= SEQUENCE
+struct uu_msg_transfer_sidelink_r17_ies_s {
+  bool          non_crit_ext_present = false;
+  dyn_octstring sl_paging_delivery_r17;
+  dyn_octstring sl_sib1_delivery_r17;
+  dyn_octstring sl_sys_info_delivery_r17;
+  dyn_octstring late_non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // UuMessageTransferSidelink-r17 ::= SEQUENCE
 struct uu_msg_transfer_sidelink_r17_s {
   struct crit_exts_c_ {
@@ -1325,6 +1265,66 @@ struct uu_msg_transfer_sidelink_r17_s {
   private:
     types                              type_;
     uu_msg_transfer_sidelink_r17_ies_s c;
+  };
+
+  // member variables
+  crit_exts_c_ crit_exts;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEAssistanceInformationSidelink-r17-IEs ::= SEQUENCE
+struct ue_assist_info_sidelink_r17_ies_s {
+  using sl_preferred_drx_cfg_list_r17_l_ = dyn_array<sl_drx_cfg_uc_semi_static_r17_s>;
+
+  // member variables
+  bool                             non_crit_ext_present = false;
+  sl_preferred_drx_cfg_list_r17_l_ sl_preferred_drx_cfg_list_r17;
+  dyn_octstring                    late_non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UEAssistanceInformationSidelink-r17 ::= SEQUENCE
+struct ue_assist_info_sidelink_r17_s {
+  struct crit_exts_c_ {
+    struct types_opts {
+      enum options { ue_assist_info_sidelink_r17, crit_exts_future, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    crit_exts_c_() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    ue_assist_info_sidelink_r17_ies_s& ue_assist_info_sidelink_r17()
+    {
+      assert_choice_type(types::ue_assist_info_sidelink_r17, type_, "criticalExtensions");
+      return c;
+    }
+    const ue_assist_info_sidelink_r17_ies_s& ue_assist_info_sidelink_r17() const
+    {
+      assert_choice_type(types::ue_assist_info_sidelink_r17, type_, "criticalExtensions");
+      return c;
+    }
+    ue_assist_info_sidelink_r17_ies_s& set_ue_assist_info_sidelink_r17();
+    void                               set_crit_exts_future();
+
+  private:
+    types                             type_;
+    ue_assist_info_sidelink_r17_ies_s c;
   };
 
   // member variables

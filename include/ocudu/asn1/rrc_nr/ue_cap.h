@@ -45,6 +45,83 @@ struct mimo_layers_ul_opts {
 };
 using mimo_layers_ul_e = enumerated<mimo_layers_ul_opts>;
 
+// AccessStratumRelease ::= ENUMERATED
+struct access_stratum_release_opts {
+  enum options { rel15, rel16, rel17, spare5, spare4, spare3, spare2, spare1, /*...*/ nulltype } value;
+  typedef uint8_t number_type;
+
+  const char* to_string() const;
+  uint8_t     to_number() const;
+};
+using access_stratum_release_e = enumerated<access_stratum_release_opts, true>;
+
+// AggregatedBandwidth ::= ENUMERATED
+struct aggr_bw_opts {
+  enum options {
+    mhz50,
+    mhz100,
+    mhz150,
+    mhz200,
+    mhz250,
+    mhz300,
+    mhz350,
+    mhz400,
+    mhz450,
+    mhz500,
+    mhz550,
+    mhz600,
+    mhz650,
+    mhz700,
+    mhz750,
+    mhz800,
+    nulltype
+  } value;
+  typedef uint16_t number_type;
+
+  const char* to_string() const;
+  uint16_t    to_number() const;
+};
+using aggr_bw_e = enumerated<aggr_bw_opts>;
+
+// AppLayerMeasParameters-r17 ::= SEQUENCE
+struct app_layer_meas_params_r17_s {
+  bool ext                                                = false;
+  bool qoe_streaming_meas_report_r17_present              = false;
+  bool qoe_mt_si_meas_report_r17_present                  = false;
+  bool qoe_vr_meas_report_r17_present                     = false;
+  bool ran_visible_qo_e_streaming_meas_report_r17_present = false;
+  bool ran_visible_qo_e_vr_meas_report_r17_present        = false;
+  bool ul_meas_report_app_layer_seg_r17_present           = false;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BAP-Parameters-r16 ::= SEQUENCE
+struct bap_params_r16_s {
+  bool flow_ctrl_bh_rlc_ch_based_r16_present  = false;
+  bool flow_ctrl_routing_id_based_r16_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BAP-Parameters-v1700 ::= SEQUENCE
+struct bap_params_v1700_s {
+  bool bap_hdr_rewriting_rerouting_r17_present = false;
+  bool bap_hdr_rewriting_routing_r17_present   = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // CA-BandwidthClassEUTRA ::= ENUMERATED
 struct ca_bw_class_eutra_opts {
   enum options { a, b, c, d, e, f, /*...*/ nulltype } value;
@@ -277,126 +354,30 @@ struct band_combination_s {
   void          to_json(json_writer& j) const;
 };
 
-// CA-ParametersNR-v1540 ::= SEQUENCE
-struct ca_params_nr_v1540_s {
-  struct csi_rs_im_reception_for_feedback_per_band_comb_s_ {
-    bool     max_num_simul_nzp_csi_rs_act_bwp_all_cc_present         = false;
-    bool     total_num_ports_simul_nzp_csi_rs_act_bwp_all_cc_present = false;
-    uint8_t  max_num_simul_nzp_csi_rs_act_bwp_all_cc                 = 1;
-    uint16_t total_num_ports_simul_nzp_csi_rs_act_bwp_all_cc         = 2;
+// SRS-SwitchingTimeNR ::= SEQUENCE
+struct srs_switching_time_nr_s {
+  struct switching_time_dl_opts {
+    enum options { n0us, n30us, n100us, n140us, n200us, n300us, n500us, n900us, nulltype } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
   };
+  using switching_time_dl_e_ = enumerated<switching_time_dl_opts>;
+  struct switching_time_ul_opts {
+    enum options { n0us, n30us, n100us, n140us, n200us, n300us, n500us, n900us, nulltype } value;
+    typedef uint16_t number_type;
 
-  // member variables
-  bool                                              simul_srs_assoc_csi_rs_all_cc_present                  = false;
-  bool                                              csi_rs_im_reception_for_feedback_per_band_comb_present = false;
-  bool                                              simul_csi_reports_all_cc_present                       = false;
-  bool                                              dual_pa_architecture_present                           = false;
-  uint8_t                                           simul_srs_assoc_csi_rs_all_cc                          = 5;
-  csi_rs_im_reception_for_feedback_per_band_comb_s_ csi_rs_im_reception_for_feedback_per_band_comb;
-  uint8_t                                           simul_csi_reports_all_cc = 5;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// CA-ParametersNR-v1550 ::= SEQUENCE
-struct ca_params_nr_v1550_s {
-  bool dummy_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// CA-ParametersNR-v1560 ::= SEQUENCE
-struct ca_params_nr_v1560_s {
-  bool diff_numerology_within_pucch_group_larger_scs_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// CodebookComboParametersAdditionPerBC-r16 ::= SEQUENCE
-struct codebook_combo_params_addition_per_bc_r16_s {
-  using type1_sp_type2_null_r16_l_         = bounded_array<uint16_t, 16>;
-  using type1_sp_type2_ps_null_r16_l_      = bounded_array<uint16_t, 16>;
-  using type1_sp_e_type2_r1_null_r16_l_    = bounded_array<uint16_t, 16>;
-  using type1_sp_e_type2_r2_null_r16_l_    = bounded_array<uint16_t, 16>;
-  using type1_sp_e_type2_r1_ps_null_r16_l_ = bounded_array<uint16_t, 16>;
-  using type1_sp_e_type2_r2_ps_null_r16_l_ = bounded_array<uint16_t, 16>;
-  using type1_sp_type2_type2_ps_r16_l_     = bounded_array<uint16_t, 16>;
-  using type1_mp_type2_null_r16_l_         = bounded_array<uint16_t, 16>;
-  using type1_mp_type2_ps_null_r16_l_      = bounded_array<uint16_t, 16>;
-  using type1_mp_e_type2_r1_null_r16_l_    = bounded_array<uint16_t, 16>;
-  using type1_mp_e_type2_r2_null_r16_l_    = bounded_array<uint16_t, 16>;
-  using type1_mp_e_type2_r1_ps_null_r16_l_ = bounded_array<uint16_t, 16>;
-  using type1_mp_e_type2_r2_ps_null_r16_l_ = bounded_array<uint16_t, 16>;
-  using type1_mp_type2_type2_ps_r16_l_     = bounded_array<uint16_t, 16>;
-
-  // member variables
-  type1_sp_type2_null_r16_l_         type1_sp_type2_null_r16;
-  type1_sp_type2_ps_null_r16_l_      type1_sp_type2_ps_null_r16;
-  type1_sp_e_type2_r1_null_r16_l_    type1_sp_e_type2_r1_null_r16;
-  type1_sp_e_type2_r2_null_r16_l_    type1_sp_e_type2_r2_null_r16;
-  type1_sp_e_type2_r1_ps_null_r16_l_ type1_sp_e_type2_r1_ps_null_r16;
-  type1_sp_e_type2_r2_ps_null_r16_l_ type1_sp_e_type2_r2_ps_null_r16;
-  type1_sp_type2_type2_ps_r16_l_     type1_sp_type2_type2_ps_r16;
-  type1_mp_type2_null_r16_l_         type1_mp_type2_null_r16;
-  type1_mp_type2_ps_null_r16_l_      type1_mp_type2_ps_null_r16;
-  type1_mp_e_type2_r1_null_r16_l_    type1_mp_e_type2_r1_null_r16;
-  type1_mp_e_type2_r2_null_r16_l_    type1_mp_e_type2_r2_null_r16;
-  type1_mp_e_type2_r1_ps_null_r16_l_ type1_mp_e_type2_r1_ps_null_r16;
-  type1_mp_e_type2_r2_ps_null_r16_l_ type1_mp_e_type2_r2_ps_null_r16;
-  type1_mp_type2_type2_ps_r16_l_     type1_mp_type2_type2_ps_r16;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// CodebookParameters-v1610 ::= SEQUENCE
-struct codebook_params_v1610_s {
-  struct supported_csi_rs_res_list_alt_r16_s_ {
-    using type1_single_panel_r16_l_ = bounded_array<uint16_t, 7>;
-    using type1_multi_panel_r16_l_  = bounded_array<uint16_t, 7>;
-    using type2_r16_l_              = bounded_array<uint16_t, 7>;
-    using type2_port_sel_r16_l_     = bounded_array<uint16_t, 7>;
-
-    // member variables
-    type1_single_panel_r16_l_ type1_single_panel_r16;
-    type1_multi_panel_r16_l_  type1_multi_panel_r16;
-    type2_r16_l_              type2_r16;
-    type2_port_sel_r16_l_     type2_port_sel_r16;
+    const char* to_string() const;
+    uint16_t    to_number() const;
   };
+  using switching_time_ul_e_ = enumerated<switching_time_ul_opts>;
 
   // member variables
-  bool                                 supported_csi_rs_res_list_alt_r16_present = false;
-  supported_csi_rs_res_list_alt_r16_s_ supported_csi_rs_res_list_alt_r16;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// CodebookParametersAdditionPerBC-r16 ::= SEQUENCE
-struct codebook_params_addition_per_bc_r16_s {
-  using etype2_r1_r16_l_          = bounded_array<uint16_t, 16>;
-  using etype2_r2_r16_l_          = bounded_array<uint16_t, 16>;
-  using etype2_r1_port_sel_r16_l_ = bounded_array<uint16_t, 16>;
-  using etype2_r2_port_sel_r16_l_ = bounded_array<uint16_t, 16>;
-
-  // member variables
-  etype2_r1_r16_l_          etype2_r1_r16;
-  etype2_r2_r16_l_          etype2_r2_r16;
-  etype2_r1_port_sel_r16_l_ etype2_r1_port_sel_r16;
-  etype2_r2_port_sel_r16_l_ etype2_r2_port_sel_r16;
+  bool                 switching_time_dl_present = false;
+  bool                 switching_time_ul_present = false;
+  switching_time_dl_e_ switching_time_dl;
+  switching_time_ul_e_ switching_time_ul;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -456,37 +437,6 @@ struct srs_switching_time_eutra_s {
     const char* to_string() const;
     float       to_number() const;
     const char* to_number_string() const;
-  };
-  using switching_time_ul_e_ = enumerated<switching_time_ul_opts>;
-
-  // member variables
-  bool                 switching_time_dl_present = false;
-  bool                 switching_time_ul_present = false;
-  switching_time_dl_e_ switching_time_dl;
-  switching_time_ul_e_ switching_time_ul;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SRS-SwitchingTimeNR ::= SEQUENCE
-struct srs_switching_time_nr_s {
-  struct switching_time_dl_opts {
-    enum options { n0us, n30us, n100us, n140us, n200us, n300us, n500us, n900us, nulltype } value;
-    typedef uint16_t number_type;
-
-    const char* to_string() const;
-    uint16_t    to_number() const;
-  };
-  using switching_time_dl_e_ = enumerated<switching_time_dl_opts>;
-  struct switching_time_ul_opts {
-    enum options { n0us, n30us, n100us, n140us, n200us, n300us, n500us, n900us, nulltype } value;
-    typedef uint16_t number_type;
-
-    const char* to_string() const;
-    uint16_t    to_number() const;
   };
   using switching_time_ul_e_ = enumerated<switching_time_ul_opts>;
 
@@ -592,6 +542,174 @@ struct band_params_v1540_s {
   void          to_json(json_writer& j) const;
 };
 
+// CA-ParametersNR-v1540 ::= SEQUENCE
+struct ca_params_nr_v1540_s {
+  struct csi_rs_im_reception_for_feedback_per_band_comb_s_ {
+    bool     max_num_simul_nzp_csi_rs_act_bwp_all_cc_present         = false;
+    bool     total_num_ports_simul_nzp_csi_rs_act_bwp_all_cc_present = false;
+    uint8_t  max_num_simul_nzp_csi_rs_act_bwp_all_cc                 = 1;
+    uint16_t total_num_ports_simul_nzp_csi_rs_act_bwp_all_cc         = 2;
+  };
+
+  // member variables
+  bool                                              simul_srs_assoc_csi_rs_all_cc_present                  = false;
+  bool                                              csi_rs_im_reception_for_feedback_per_band_comb_present = false;
+  bool                                              simul_csi_reports_all_cc_present                       = false;
+  bool                                              dual_pa_architecture_present                           = false;
+  uint8_t                                           simul_srs_assoc_csi_rs_all_cc                          = 5;
+  csi_rs_im_reception_for_feedback_per_band_comb_s_ csi_rs_im_reception_for_feedback_per_band_comb;
+  uint8_t                                           simul_csi_reports_all_cc = 5;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandCombination-v1540 ::= SEQUENCE
+struct band_combination_v1540_s {
+  using band_list_v1540_l_ = dyn_array<band_params_v1540_s>;
+
+  // member variables
+  bool                 ca_params_nr_v1540_present = false;
+  band_list_v1540_l_   band_list_v1540;
+  ca_params_nr_v1540_s ca_params_nr_v1540;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CA-ParametersNR-v1550 ::= SEQUENCE
+struct ca_params_nr_v1550_s {
+  bool dummy_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CA-ParametersNR-v1560 ::= SEQUENCE
+struct ca_params_nr_v1560_s {
+  bool diff_numerology_within_pucch_group_larger_scs_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CA-ParametersNRDC ::= SEQUENCE
+struct ca_params_nrdc_s {
+  bool                 ca_params_nr_for_dc_present        = false;
+  bool                 ca_params_nr_for_dc_v1540_present  = false;
+  bool                 ca_params_nr_for_dc_v1550_present  = false;
+  bool                 ca_params_nr_for_dc_v1560_present  = false;
+  bool                 feature_set_combination_dc_present = false;
+  ca_params_nr_s       ca_params_nr_for_dc;
+  ca_params_nr_v1540_s ca_params_nr_for_dc_v1540;
+  ca_params_nr_v1550_s ca_params_nr_for_dc_v1550;
+  ca_params_nr_v1560_s ca_params_nr_for_dc_v1560;
+  uint16_t             feature_set_combination_dc = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CA-ParametersEUTRA-v1560 ::= SEQUENCE
+struct ca_params_eutra_v1560_s {
+  bool    fd_mimo_total_weighted_layers_present = false;
+  uint8_t fd_mimo_total_weighted_layers         = 2;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandCombination-v1560 ::= SEQUENCE
+struct band_combination_v1560_s {
+  bool                    ne_dc_bc_present              = false;
+  bool                    ca_params_nrdc_present        = false;
+  bool                    ca_params_eutra_v1560_present = false;
+  bool                    ca_params_nr_v1560_present    = false;
+  ca_params_nrdc_s        ca_params_nrdc;
+  ca_params_eutra_v1560_s ca_params_eutra_v1560;
+  ca_params_nr_v1560_s    ca_params_nr_v1560;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CA-ParametersEUTRA-v1570 ::= SEQUENCE
+struct ca_params_eutra_v1570_s {
+  bool    dl_1024_qam_total_weighted_layers_present = false;
+  uint8_t dl_1024_qam_total_weighted_layers         = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandCombination-v1570 ::= SEQUENCE
+struct band_combination_v1570_s {
+  ca_params_eutra_v1570_s ca_params_eutra_v1570;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MRDC-Parameters-v1580 ::= SEQUENCE
+struct mrdc_params_v1580_s {
+  bool dyn_pwr_sharing_nedc_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandCombination-v1580 ::= SEQUENCE
+struct band_combination_v1580_s {
+  mrdc_params_v1580_s mrdc_params_v1580;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MRDC-Parameters-v1590 ::= SEQUENCE
+struct mrdc_params_v1590_s {
+  bool inter_band_contiguous_mrdc_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandCombination-v1590 ::= SEQUENCE
+struct band_combination_v1590_s {
+  bool                     supported_bw_combination_set_intra_endc_present = false;
+  bounded_bitstring<1, 32> supported_bw_combination_set_intra_endc;
+  mrdc_params_v1590_s      mrdc_params_v1590;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // BandParameters-v1610 ::= SEQUENCE
 struct band_params_v1610_s {
   struct srs_tx_switch_v1610_s_ {
@@ -624,10 +742,24 @@ struct band_params_v1610_s {
   void          to_json(json_writer& j) const;
 };
 
-// CA-ParametersEUTRA-v1560 ::= SEQUENCE
-struct ca_params_eutra_v1560_s {
-  bool    fd_mimo_total_weighted_layers_present = false;
-  uint8_t fd_mimo_total_weighted_layers         = 2;
+// CodebookParameters-v1610 ::= SEQUENCE
+struct codebook_params_v1610_s {
+  struct supported_csi_rs_res_list_alt_r16_s_ {
+    using type1_single_panel_r16_l_ = bounded_array<uint16_t, 7>;
+    using type1_multi_panel_r16_l_  = bounded_array<uint16_t, 7>;
+    using type2_r16_l_              = bounded_array<uint16_t, 7>;
+    using type2_port_sel_r16_l_     = bounded_array<uint16_t, 7>;
+
+    // member variables
+    type1_single_panel_r16_l_ type1_single_panel_r16;
+    type1_multi_panel_r16_l_  type1_multi_panel_r16;
+    type2_r16_l_              type2_r16;
+    type2_port_sel_r16_l_     type2_port_sel_r16;
+  };
+
+  // member variables
+  bool                                 supported_csi_rs_res_list_alt_r16_present = false;
+  supported_csi_rs_res_list_alt_r16_s_ supported_csi_rs_res_list_alt_r16;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -635,10 +767,57 @@ struct ca_params_eutra_v1560_s {
   void          to_json(json_writer& j) const;
 };
 
-// CA-ParametersEUTRA-v1570 ::= SEQUENCE
-struct ca_params_eutra_v1570_s {
-  bool    dl_1024_qam_total_weighted_layers_present = false;
-  uint8_t dl_1024_qam_total_weighted_layers         = 0;
+// CodebookParametersAdditionPerBC-r16 ::= SEQUENCE
+struct codebook_params_addition_per_bc_r16_s {
+  using etype2_r1_r16_l_          = bounded_array<uint16_t, 16>;
+  using etype2_r2_r16_l_          = bounded_array<uint16_t, 16>;
+  using etype2_r1_port_sel_r16_l_ = bounded_array<uint16_t, 16>;
+  using etype2_r2_port_sel_r16_l_ = bounded_array<uint16_t, 16>;
+
+  // member variables
+  etype2_r1_r16_l_          etype2_r1_r16;
+  etype2_r2_r16_l_          etype2_r2_r16;
+  etype2_r1_port_sel_r16_l_ etype2_r1_port_sel_r16;
+  etype2_r2_port_sel_r16_l_ etype2_r2_port_sel_r16;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CodebookComboParametersAdditionPerBC-r16 ::= SEQUENCE
+struct codebook_combo_params_addition_per_bc_r16_s {
+  using type1_sp_type2_null_r16_l_         = bounded_array<uint16_t, 16>;
+  using type1_sp_type2_ps_null_r16_l_      = bounded_array<uint16_t, 16>;
+  using type1_sp_e_type2_r1_null_r16_l_    = bounded_array<uint16_t, 16>;
+  using type1_sp_e_type2_r2_null_r16_l_    = bounded_array<uint16_t, 16>;
+  using type1_sp_e_type2_r1_ps_null_r16_l_ = bounded_array<uint16_t, 16>;
+  using type1_sp_e_type2_r2_ps_null_r16_l_ = bounded_array<uint16_t, 16>;
+  using type1_sp_type2_type2_ps_r16_l_     = bounded_array<uint16_t, 16>;
+  using type1_mp_type2_null_r16_l_         = bounded_array<uint16_t, 16>;
+  using type1_mp_type2_ps_null_r16_l_      = bounded_array<uint16_t, 16>;
+  using type1_mp_e_type2_r1_null_r16_l_    = bounded_array<uint16_t, 16>;
+  using type1_mp_e_type2_r2_null_r16_l_    = bounded_array<uint16_t, 16>;
+  using type1_mp_e_type2_r1_ps_null_r16_l_ = bounded_array<uint16_t, 16>;
+  using type1_mp_e_type2_r2_ps_null_r16_l_ = bounded_array<uint16_t, 16>;
+  using type1_mp_type2_type2_ps_r16_l_     = bounded_array<uint16_t, 16>;
+
+  // member variables
+  type1_sp_type2_null_r16_l_         type1_sp_type2_null_r16;
+  type1_sp_type2_ps_null_r16_l_      type1_sp_type2_ps_null_r16;
+  type1_sp_e_type2_r1_null_r16_l_    type1_sp_e_type2_r1_null_r16;
+  type1_sp_e_type2_r2_null_r16_l_    type1_sp_e_type2_r2_null_r16;
+  type1_sp_e_type2_r1_ps_null_r16_l_ type1_sp_e_type2_r1_ps_null_r16;
+  type1_sp_e_type2_r2_ps_null_r16_l_ type1_sp_e_type2_r2_ps_null_r16;
+  type1_sp_type2_type2_ps_r16_l_     type1_sp_type2_type2_ps_r16;
+  type1_mp_type2_null_r16_l_         type1_mp_type2_null_r16;
+  type1_mp_type2_ps_null_r16_l_      type1_mp_type2_ps_null_r16;
+  type1_mp_e_type2_r1_null_r16_l_    type1_mp_e_type2_r1_null_r16;
+  type1_mp_e_type2_r2_null_r16_l_    type1_mp_e_type2_r2_null_r16;
+  type1_mp_e_type2_r1_ps_null_r16_l_ type1_mp_e_type2_r1_ps_null_r16;
+  type1_mp_e_type2_r2_ps_null_r16_l_ type1_mp_e_type2_r2_ps_null_r16;
+  type1_mp_type2_type2_ps_r16_l_     type1_mp_type2_type2_ps_r16;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -779,25 +958,6 @@ struct ca_params_nr_v1610_s {
   void          to_json(json_writer& j) const;
 };
 
-// CA-ParametersNRDC ::= SEQUENCE
-struct ca_params_nrdc_s {
-  bool                 ca_params_nr_for_dc_present        = false;
-  bool                 ca_params_nr_for_dc_v1540_present  = false;
-  bool                 ca_params_nr_for_dc_v1550_present  = false;
-  bool                 ca_params_nr_for_dc_v1560_present  = false;
-  bool                 feature_set_combination_dc_present = false;
-  ca_params_nr_s       ca_params_nr_for_dc;
-  ca_params_nr_v1540_s ca_params_nr_for_dc_v1540;
-  ca_params_nr_v1550_s ca_params_nr_for_dc_v1550;
-  ca_params_nr_v1560_s ca_params_nr_for_dc_v1560;
-  uint16_t             feature_set_combination_dc = 0;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // CA-ParametersNRDC-v1610 ::= SEQUENCE
 struct ca_params_nrdc_v1610_s {
   struct intra_fr_nr_dc_dyn_pwr_sharing_r16_opts {
@@ -813,26 +973,6 @@ struct ca_params_nrdc_v1610_s {
   bool                                  intra_fr_nr_dc_dyn_pwr_sharing_r16_present   = false;
   bool                                  async_nrdc_r16_present                       = false;
   intra_fr_nr_dc_dyn_pwr_sharing_r16_e_ intra_fr_nr_dc_dyn_pwr_sharing_r16;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// MRDC-Parameters-v1580 ::= SEQUENCE
-struct mrdc_params_v1580_s {
-  bool dyn_pwr_sharing_nedc_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// MRDC-Parameters-v1590 ::= SEQUENCE
-struct mrdc_params_v1590_s {
-  bool inter_band_contiguous_mrdc_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -924,69 +1064,6 @@ struct mrdc_params_v1620_s {
   bool                                             single_ul_harq_offset_tdd_pcell_r16_present           = false;
   bool                                             tdm_restrict_dual_tx_fdd_endc_r16_present             = false;
   max_ul_duty_cycle_inter_band_endc_tdd_pc2_r16_s_ max_ul_duty_cycle_inter_band_endc_tdd_pc2_r16;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// BandCombination-v1540 ::= SEQUENCE
-struct band_combination_v1540_s {
-  using band_list_v1540_l_ = dyn_array<band_params_v1540_s>;
-
-  // member variables
-  bool                 ca_params_nr_v1540_present = false;
-  band_list_v1540_l_   band_list_v1540;
-  ca_params_nr_v1540_s ca_params_nr_v1540;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// BandCombination-v1560 ::= SEQUENCE
-struct band_combination_v1560_s {
-  bool                    ne_dc_bc_present              = false;
-  bool                    ca_params_nrdc_present        = false;
-  bool                    ca_params_eutra_v1560_present = false;
-  bool                    ca_params_nr_v1560_present    = false;
-  ca_params_nrdc_s        ca_params_nrdc;
-  ca_params_eutra_v1560_s ca_params_eutra_v1560;
-  ca_params_nr_v1560_s    ca_params_nr_v1560;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// BandCombination-v1570 ::= SEQUENCE
-struct band_combination_v1570_s {
-  ca_params_eutra_v1570_s ca_params_eutra_v1570;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// BandCombination-v1580 ::= SEQUENCE
-struct band_combination_v1580_s {
-  mrdc_params_v1580_s mrdc_params_v1580;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// BandCombination-v1590 ::= SEQUENCE
-struct band_combination_v1590_s {
-  bool                     supported_bw_combination_set_intra_endc_present = false;
-  bounded_bitstring<1, 32> supported_bw_combination_set_intra_endc;
-  mrdc_params_v1590_s      mrdc_params_v1590;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1534,21 +1611,16 @@ struct band_combination_ul_tx_switch_v1690_s {
   void          to_json(json_writer& j) const;
 };
 
-// CSI-MultiTRP-SupportedCombinations-r17 ::= SEQUENCE
-struct csi_multi_trp_supported_combinations_r17_s {
-  struct max_num_tx_ports_r17_opts {
-    enum options { n2, n4, n8, n12, n16, n24, n32, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_tx_ports_r17_e_ = enumerated<max_num_tx_ports_r17_opts>;
+// CodebookParametersfetype2PerBC-r17 ::= SEQUENCE
+struct codebook_paramsfetype2_per_bc_r17_s {
+  using fetype2basic_r17_l_ = bounded_array<uint16_t, 16>;
+  using fetype2_r1_r17_l_   = bounded_array<uint16_t, 8>;
+  using fetype2_r2_r17_l_   = bounded_array<uint16_t, 8>;
 
   // member variables
-  max_num_tx_ports_r17_e_ max_num_tx_ports_r17;
-  uint8_t                 max_total_num_cmr_r17                 = 2;
-  uint16_t                max_total_num_tx_ports_nzp_csi_rs_r17 = 2;
+  fetype2basic_r17_l_ fetype2basic_r17;
+  fetype2_r1_r17_l_   fetype2_r1_r17;
+  fetype2_r2_r17_l_   fetype2_r2_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1588,6 +1660,28 @@ struct codebook_combo_param_mixed_type_per_bc_r17_s {
   type1_mp_type2_fe_type2_ps_m2_r1_r17_l_      type1_mp_type2_fe_type2_ps_m2_r1_r17;
   type1_mp_e_type2_r1_fe_type2_ps_m1_r17_l_    type1_mp_e_type2_r1_fe_type2_ps_m1_r17;
   type1_mp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ type1_mp_e_type2_r1_fe_type2_ps_m2_r1_r17;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CSI-MultiTRP-SupportedCombinations-r17 ::= SEQUENCE
+struct csi_multi_trp_supported_combinations_r17_s {
+  struct max_num_tx_ports_r17_opts {
+    enum options { n2, n4, n8, n12, n16, n24, n32, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_tx_ports_r17_e_ = enumerated<max_num_tx_ports_r17_opts>;
+
+  // member variables
+  max_num_tx_ports_r17_e_ max_num_tx_ports_r17;
+  uint8_t                 max_total_num_cmr_r17                 = 2;
+  uint16_t                max_total_num_tx_ports_nzp_csi_rs_r17 = 2;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1666,23 +1760,6 @@ struct codebook_combo_param_multi_trp_per_bc_r17_s {
   void          to_json(json_writer& j) const;
 };
 
-// CodebookParametersfetype2PerBC-r17 ::= SEQUENCE
-struct codebook_paramsfetype2_per_bc_r17_s {
-  using fetype2basic_r17_l_ = bounded_array<uint16_t, 16>;
-  using fetype2_r1_r17_l_   = bounded_array<uint16_t, 8>;
-  using fetype2_r2_r17_l_   = bounded_array<uint16_t, 8>;
-
-  // member variables
-  fetype2basic_r17_l_ fetype2basic_r17;
-  fetype2_r1_r17_l_   fetype2_r1_r17;
-  fetype2_r2_r17_l_   fetype2_r2_r17;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // CrossCarrierSchedulingSCell-SpCell-r17 ::= SEQUENCE
 struct cross_carrier_sched_scell_sp_cell_r17_s {
   struct supported_scs_combinations_r17_s_ {
@@ -1708,26 +1785,6 @@ struct cross_carrier_sched_scell_sp_cell_r17_s {
   // member variables
   supported_scs_combinations_r17_s_ supported_scs_combinations_r17;
   pdcch_monitoring_occasion_r17_e_  pdcch_monitoring_occasion_r17;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// BandParameters-v1710 ::= SEQUENCE
-struct band_params_v1710_s {
-  struct srs_ant_switching_beyond4_rx_r17_s_ {
-    bool                entry_num_affect_beyond4_rx_r17_present = false;
-    bool                entry_num_switch_beyond4_rx_r17_present = false;
-    fixed_bitstring<11> supported_srs_tx_port_switch_beyond4_rx_r17;
-    uint8_t             entry_num_affect_beyond4_rx_r17 = 1;
-    uint8_t             entry_num_switch_beyond4_rx_r17 = 1;
-  };
-
-  // member variables
-  bool                                srs_ant_switching_beyond4_rx_r17_present = false;
-  srs_ant_switching_beyond4_rx_r17_s_ srs_ant_switching_beyond4_rx_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1869,6 +1926,26 @@ struct mrdc_params_v1700_s {
   void          to_json(json_writer& j) const;
 };
 
+// BandParameters-v1710 ::= SEQUENCE
+struct band_params_v1710_s {
+  struct srs_ant_switching_beyond4_rx_r17_s_ {
+    bool                entry_num_affect_beyond4_rx_r17_present = false;
+    bool                entry_num_switch_beyond4_rx_r17_present = false;
+    fixed_bitstring<11> supported_srs_tx_port_switch_beyond4_rx_r17;
+    uint8_t             entry_num_affect_beyond4_rx_r17 = 1;
+    uint8_t             entry_num_switch_beyond4_rx_r17 = 1;
+  };
+
+  // member variables
+  bool                                srs_ant_switching_beyond4_rx_r17_present = false;
+  srs_ant_switching_beyond4_rx_r17_s_ srs_ant_switching_beyond4_rx_r17;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // BandCombination-v1700 ::= SEQUENCE
 struct band_combination_v1700_s {
   using band_list_v1710_l_ = dyn_array<band_params_v1710_s>;
@@ -1951,6 +2028,40 @@ struct band_combination_ul_tx_switch_v1700_s {
   void          to_json(json_writer& j) const;
 };
 
+// PUCCH-Group-Config-r17 ::= SEQUENCE
+struct pucch_group_cfg_r17_s {
+  bool fr1_fr1_non_shared_tdd_r17_present = false;
+  bool fr2_fr2_non_shared_tdd_r17_present = false;
+  bool fr1_fr2_non_shared_tdd_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// TwoPUCCH-Grp-Configurations-r17 ::= SEQUENCE
+struct two_pucch_grp_cfgs_r17_s {
+  pucch_group_cfg_r17_s primary_pucch_group_cfg_r17;
+  pucch_group_cfg_r17_s secondary_pucch_group_cfg_r17;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// PDCCH-BlindDetectionMCG-SCG-r17 ::= SEQUENCE
+struct pdcch_blind_detection_mcg_scg_r17_s {
+  uint8_t pdcch_blind_detection_mcg_ue_r17 = 1;
+  uint8_t pdcch_blind_detection_scg_ue_r17 = 1;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // PDCCH-BlindDetectionCA-Mixed-r17 ::= SEQUENCE
 struct pdcch_blind_detection_ca_mixed_r17_s {
   bool    pdcch_blind_detection_ca1_r17_present = false;
@@ -1964,60 +2075,10 @@ struct pdcch_blind_detection_ca_mixed_r17_s {
   void          to_json(json_writer& j) const;
 };
 
-// PDCCH-BlindDetectionCA-Mixed1-r17 ::= SEQUENCE
-struct pdcch_blind_detection_ca_mixed1_r17_s {
-  bool    pdcch_blind_detection_ca1_r17_present = false;
-  bool    pdcch_blind_detection_ca2_r17_present = false;
-  bool    pdcch_blind_detection_ca3_r17_present = false;
-  uint8_t pdcch_blind_detection_ca1_r17         = 1;
-  uint8_t pdcch_blind_detection_ca2_r17         = 1;
-  uint8_t pdcch_blind_detection_ca3_r17         = 1;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // PDCCH-BlindDetectionCG-UE-Mixed-r17 ::= SEQUENCE
 struct pdcch_blind_detection_cg_ue_mixed_r17_s {
   uint8_t pdcch_blind_detection_cg_ue1_r17 = 0;
   uint8_t pdcch_blind_detection_cg_ue2_r17 = 0;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// PDCCH-BlindDetectionCG-UE-Mixed1-r17 ::= SEQUENCE
-struct pdcch_blind_detection_cg_ue_mixed1_r17_s {
-  uint8_t pdcch_blind_detection_cg_ue1_r17 = 0;
-  uint8_t pdcch_blind_detection_cg_ue2_r17 = 0;
-  uint8_t pdcch_blind_detection_cg_ue3_r17 = 0;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// PUCCH-Group-Config-r17 ::= SEQUENCE
-struct pucch_group_cfg_r17_s {
-  bool fr1_fr1_non_shared_tdd_r17_present = false;
-  bool fr2_fr2_non_shared_tdd_r17_present = false;
-  bool fr1_fr2_non_shared_tdd_r17_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// PDCCH-BlindDetectionMCG-SCG-r17 ::= SEQUENCE
-struct pdcch_blind_detection_mcg_scg_r17_s {
-  uint8_t pdcch_blind_detection_mcg_ue_r17 = 1;
-  uint8_t pdcch_blind_detection_scg_ue_r17 = 1;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2044,6 +2105,33 @@ struct pdcch_blind_detection_mixed_r17_s {
   void          to_json(json_writer& j) const;
 };
 
+// PDCCH-BlindDetectionCA-Mixed1-r17 ::= SEQUENCE
+struct pdcch_blind_detection_ca_mixed1_r17_s {
+  bool    pdcch_blind_detection_ca1_r17_present = false;
+  bool    pdcch_blind_detection_ca2_r17_present = false;
+  bool    pdcch_blind_detection_ca3_r17_present = false;
+  uint8_t pdcch_blind_detection_ca1_r17         = 1;
+  uint8_t pdcch_blind_detection_ca2_r17         = 1;
+  uint8_t pdcch_blind_detection_ca3_r17         = 1;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// PDCCH-BlindDetectionCG-UE-Mixed1-r17 ::= SEQUENCE
+struct pdcch_blind_detection_cg_ue_mixed1_r17_s {
+  uint8_t pdcch_blind_detection_cg_ue1_r17 = 0;
+  uint8_t pdcch_blind_detection_cg_ue2_r17 = 0;
+  uint8_t pdcch_blind_detection_cg_ue3_r17 = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // PDCCH-BlindDetectionMixed1-r17 ::= SEQUENCE
 struct pdcch_blind_detection_mixed1_r17_s {
   struct pdcch_blind_detection_cg_ue_mixed1_r17_s_ {
@@ -2056,17 +2144,6 @@ struct pdcch_blind_detection_mixed1_r17_s {
   bool                                      pdcch_blind_detection_cg_ue_mixed1_r17_present = false;
   pdcch_blind_detection_ca_mixed1_r17_s     pdcch_blind_detection_ca_mixed1_r17;
   pdcch_blind_detection_cg_ue_mixed1_r17_s_ pdcch_blind_detection_cg_ue_mixed1_r17;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// TwoPUCCH-Grp-Configurations-r17 ::= SEQUENCE
-struct two_pucch_grp_cfgs_r17_s {
-  pucch_group_cfg_r17_s primary_pucch_group_cfg_r17;
-  pucch_group_cfg_r17_s secondary_pucch_group_cfg_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2225,12 +2302,10 @@ struct ca_params_nr_v1730_s {
   void          to_json(json_writer& j) const;
 };
 
-// BandParameters-v1730 ::= SEQUENCE
-struct band_params_v1730_s {
-  using srs_switching_affected_bands_list_nr_r17_l_ = bounded_array<bounded_bitstring<1, 32>, 32>;
-
-  // member variables
-  srs_switching_affected_bands_list_nr_r17_l_ srs_switching_affected_bands_list_nr_r17;
+// CA-ParametersNRDC-v1730 ::= SEQUENCE
+struct ca_params_nrdc_v1730_s {
+  bool                 ca_params_nr_for_dc_v1730_present = false;
+  ca_params_nr_v1730_s ca_params_nr_for_dc_v1730;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2238,10 +2313,12 @@ struct band_params_v1730_s {
   void          to_json(json_writer& j) const;
 };
 
-// CA-ParametersNRDC-v1730 ::= SEQUENCE
-struct ca_params_nrdc_v1730_s {
-  bool                 ca_params_nr_for_dc_v1730_present = false;
-  ca_params_nr_v1730_s ca_params_nr_for_dc_v1730;
+// BandParameters-v1730 ::= SEQUENCE
+struct band_params_v1730_s {
+  using srs_switching_affected_bands_list_nr_r17_l_ = bounded_array<bounded_bitstring<1, 32>, 32>;
+
+  // member variables
+  srs_switching_affected_bands_list_nr_r17_l_ srs_switching_affected_bands_list_nr_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2797,21 +2874,131 @@ using band_combination_params_sidelink_eutra_nr_v1710_l = dyn_array<band_params_
 // BandCombinationParametersSidelinkEUTRA-NR-v1710
 using band_combination_list_sidelink_eutra_nr_v1710_l = dyn_array<band_combination_params_sidelink_eutra_nr_v1710_l>;
 
-// SupportedCSI-RS-Resource ::= SEQUENCE
-struct supported_csi_rs_res_s {
-  struct max_num_tx_ports_per_res_opts {
-    enum options { p2, p4, p8, p12, p16, p24, p32, nulltype } value;
+// DummyG ::= SEQUENCE
+struct dummy_g_s {
+  struct max_num_ssb_csi_rs_res_one_tx_opts {
+    enum options { n8, n16, n32, n64, nulltype } value;
     typedef uint8_t number_type;
 
     const char* to_string() const;
     uint8_t     to_number() const;
   };
-  using max_num_tx_ports_per_res_e_ = enumerated<max_num_tx_ports_per_res_opts>;
+  using max_num_ssb_csi_rs_res_one_tx_e_ = enumerated<max_num_ssb_csi_rs_res_one_tx_opts>;
+  struct max_num_ssb_csi_rs_res_two_tx_opts {
+    enum options { n0, n4, n8, n16, n32, n64, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_ssb_csi_rs_res_two_tx_e_ = enumerated<max_num_ssb_csi_rs_res_two_tx_opts>;
+  struct supported_csi_rs_density_opts {
+    enum options { one, three, one_and_three, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using supported_csi_rs_density_e_ = enumerated<supported_csi_rs_density_opts>;
 
   // member variables
-  max_num_tx_ports_per_res_e_ max_num_tx_ports_per_res;
-  uint8_t                     max_num_res_per_band        = 1;
-  uint16_t                    total_num_tx_ports_per_band = 2;
+  max_num_ssb_csi_rs_res_one_tx_e_ max_num_ssb_csi_rs_res_one_tx;
+  max_num_ssb_csi_rs_res_two_tx_e_ max_num_ssb_csi_rs_res_two_tx;
+  supported_csi_rs_density_e_      supported_csi_rs_density;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SRS-Resources ::= SEQUENCE
+struct srs_res_features_s {
+  struct max_num_aperiodic_srs_per_bwp_opts {
+    enum options { n1, n2, n4, n8, n16, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_aperiodic_srs_per_bwp_e_ = enumerated<max_num_aperiodic_srs_per_bwp_opts>;
+  struct max_num_periodic_srs_per_bwp_opts {
+    enum options { n1, n2, n4, n8, n16, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_periodic_srs_per_bwp_e_ = enumerated<max_num_periodic_srs_per_bwp_opts>;
+  struct max_num_semi_persistent_srs_per_bwp_opts {
+    enum options { n1, n2, n4, n8, n16, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_semi_persistent_srs_per_bwp_e_ = enumerated<max_num_semi_persistent_srs_per_bwp_opts>;
+  struct max_num_srs_ports_per_res_opts {
+    enum options { n1, n2, n4, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_srs_ports_per_res_e_ = enumerated<max_num_srs_ports_per_res_opts>;
+
+  // member variables
+  max_num_aperiodic_srs_per_bwp_e_       max_num_aperiodic_srs_per_bwp;
+  uint8_t                                max_num_aperiodic_srs_per_bwp_per_slot = 1;
+  max_num_periodic_srs_per_bwp_e_        max_num_periodic_srs_per_bwp;
+  uint8_t                                max_num_periodic_srs_per_bwp_per_slot = 1;
+  max_num_semi_persistent_srs_per_bwp_e_ max_num_semi_persistent_srs_per_bwp;
+  uint8_t                                max_num_semi_persistent_srs_per_bwp_per_slot = 1;
+  max_num_srs_ports_per_res_e_           max_num_srs_ports_per_res;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// PTRS-DensityRecommendationDL ::= SEQUENCE
+struct ptrs_density_recommendation_dl_s {
+  uint16_t freq_density1 = 1;
+  uint16_t freq_density2 = 1;
+  uint8_t  time_density1 = 0;
+  uint8_t  time_density2 = 0;
+  uint8_t  time_density3 = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// PTRS-DensityRecommendationUL ::= SEQUENCE
+struct ptrs_density_recommendation_ul_s {
+  uint16_t freq_density1   = 1;
+  uint16_t freq_density2   = 1;
+  uint8_t  time_density1   = 0;
+  uint8_t  time_density2   = 0;
+  uint8_t  time_density3   = 0;
+  uint16_t sample_density1 = 1;
+  uint16_t sample_density2 = 1;
+  uint16_t sample_density3 = 1;
+  uint16_t sample_density4 = 1;
+  uint16_t sample_density5 = 1;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// DummyH ::= SEQUENCE
+struct dummy_h_s {
+  uint8_t burst_len                 = 1;
+  uint8_t max_simul_res_sets_per_cc = 1;
+  uint8_t max_cfg_res_sets_per_cc   = 1;
+  uint8_t max_cfg_res_sets_all_cc   = 1;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2874,12 +3061,112 @@ struct beam_management_ssb_csi_rs_s {
   void          to_json(json_writer& j) const;
 };
 
-// CSI-RS-ForTracking ::= SEQUENCE
-struct csi_rs_for_tracking_s {
-  uint8_t  max_burst_len             = 1;
-  uint8_t  max_simul_res_sets_per_cc = 1;
-  uint8_t  max_cfg_res_sets_per_cc   = 1;
-  uint16_t max_cfg_res_sets_all_cc   = 1;
+// SupportedCSI-RS-Resource ::= SEQUENCE
+struct supported_csi_rs_res_s {
+  struct max_num_tx_ports_per_res_opts {
+    enum options { p2, p4, p8, p12, p16, p24, p32, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_tx_ports_per_res_e_ = enumerated<max_num_tx_ports_per_res_opts>;
+
+  // member variables
+  max_num_tx_ports_per_res_e_ max_num_tx_ports_per_res;
+  uint8_t                     max_num_res_per_band        = 1;
+  uint16_t                    total_num_tx_ports_per_band = 2;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CodebookParameters ::= SEQUENCE
+struct codebook_params_s {
+  struct type1_s_ {
+    struct single_panel_s_ {
+      using supported_csi_rs_res_list_l_ = dyn_array<supported_csi_rs_res_s>;
+      struct modes_opts {
+        enum options { mode1, mode1and_mode2, nulltype } value;
+
+        const char* to_string() const;
+      };
+      using modes_e_ = enumerated<modes_opts>;
+
+      // member variables
+      supported_csi_rs_res_list_l_ supported_csi_rs_res_list;
+      modes_e_                     modes;
+      uint8_t                      max_num_csi_rs_per_res_set = 1;
+    };
+    struct multi_panel_s_ {
+      using supported_csi_rs_res_list_l_ = dyn_array<supported_csi_rs_res_s>;
+      struct modes_opts {
+        enum options { mode1, mode2, both, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using modes_e_ = enumerated<modes_opts>;
+      struct nrof_panels_opts {
+        enum options { n2, n4, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using nrof_panels_e_ = enumerated<nrof_panels_opts>;
+
+      // member variables
+      supported_csi_rs_res_list_l_ supported_csi_rs_res_list;
+      modes_e_                     modes;
+      nrof_panels_e_               nrof_panels;
+      uint8_t                      max_num_csi_rs_per_res_set = 1;
+    };
+
+    // member variables
+    bool            multi_panel_present = false;
+    single_panel_s_ single_panel;
+    multi_panel_s_  multi_panel;
+  };
+  struct type2_s_ {
+    using supported_csi_rs_res_list_l_ = dyn_array<supported_csi_rs_res_s>;
+    struct amplitude_scaling_type_opts {
+      enum options { wideband, wideband_and_subband, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using amplitude_scaling_type_e_ = enumerated<amplitude_scaling_type_opts>;
+
+    // member variables
+    bool                         amplitude_subset_restrict_present = false;
+    supported_csi_rs_res_list_l_ supported_csi_rs_res_list;
+    uint8_t                      param_lx = 2;
+    amplitude_scaling_type_e_    amplitude_scaling_type;
+  };
+  struct type2_port_sel_s_ {
+    using supported_csi_rs_res_list_l_ = dyn_array<supported_csi_rs_res_s>;
+    struct amplitude_scaling_type_opts {
+      enum options { wideband, wideband_and_subband, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using amplitude_scaling_type_e_ = enumerated<amplitude_scaling_type_opts>;
+
+    // member variables
+    supported_csi_rs_res_list_l_ supported_csi_rs_res_list;
+    uint8_t                      param_lx = 2;
+    amplitude_scaling_type_e_    amplitude_scaling_type;
+  };
+
+  // member variables
+  bool              type2_present          = false;
+  bool              type2_port_sel_present = false;
+  type1_s_          type1;
+  type2_s_          type2;
+  type2_port_sel_s_ type2_port_sel;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2951,6 +3238,58 @@ struct csi_report_framework_s {
   void          to_json(json_writer& j) const;
 };
 
+// CSI-RS-ForTracking ::= SEQUENCE
+struct csi_rs_for_tracking_s {
+  uint8_t  max_burst_len             = 1;
+  uint8_t  max_simul_res_sets_per_cc = 1;
+  uint8_t  max_cfg_res_sets_per_cc   = 1;
+  uint16_t max_cfg_res_sets_all_cc   = 1;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SpatialRelations ::= SEQUENCE
+struct spatial_relations_s {
+  struct max_num_cfg_spatial_relations_opts {
+    enum options { n4, n8, n16, n32, n64, n96, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_cfg_spatial_relations_e_ = enumerated<max_num_cfg_spatial_relations_opts>;
+  struct max_num_active_spatial_relations_opts {
+    enum options { n1, n2, n4, n8, n14, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_active_spatial_relations_e_ = enumerated<max_num_active_spatial_relations_opts>;
+  struct max_num_dl_rs_qcl_type_d_opts {
+    enum options { n1, n2, n4, n8, n14, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_dl_rs_qcl_type_d_e_ = enumerated<max_num_dl_rs_qcl_type_d_opts>;
+
+  // member variables
+  bool                                add_active_spatial_relation_pucch_present = false;
+  max_num_cfg_spatial_relations_e_    max_num_cfg_spatial_relations;
+  max_num_active_spatial_relations_e_ max_num_active_spatial_relations;
+  max_num_dl_rs_qcl_type_d_e_         max_num_dl_rs_qcl_type_d;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // CSI-ReportFrameworkExt-r16 ::= SEQUENCE
 struct csi_report_framework_ext_r16_s {
   uint8_t max_num_aperiodic_csi_per_bwp_for_csi_report_ext_r16 = 5;
@@ -2961,109 +3300,56 @@ struct csi_report_framework_ext_r16_s {
   void          to_json(json_writer& j) const;
 };
 
-// CodebookComboParameterMixedType-r17 ::= SEQUENCE
-struct codebook_combo_param_mixed_type_r17_s {
-  using type1_sp_fe_type2_ps_null_r17_l_             = bounded_array<uint16_t, 16>;
-  using type1_sp_fe_type2_ps_m2_r1_null_r17_l_       = bounded_array<uint16_t, 16>;
-  using type1_sp_fe_type2_ps_m2_r2_null_r1_l_        = bounded_array<uint16_t, 16>;
-  using type1_sp_type2_fe_type2_ps_m1_r17_l_         = bounded_array<uint16_t, 16>;
-  using type1_sp_type2_fe_type2_ps_m2_r1_r17_l_      = bounded_array<uint16_t, 16>;
-  using type1_sp_e_type2_r1_fe_type2_ps_m1_r17_l_    = bounded_array<uint16_t, 16>;
-  using type1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ = bounded_array<uint16_t, 16>;
-  using type1_mp_fe_type2_ps_null_r17_l_             = bounded_array<uint16_t, 16>;
-  using type1_mp_fe_type2_ps_m2_r1_null_r17_l_       = bounded_array<uint16_t, 16>;
-  using type1_mp_fe_type2_ps_m2_r2_null_r17_l_       = bounded_array<uint16_t, 16>;
-  using type1_mp_type2_fe_type2_ps_m1_r17_l_         = bounded_array<uint16_t, 16>;
-  using type1_mp_type2_fe_type2_ps_m2_r1_r17_l_      = bounded_array<uint16_t, 16>;
-  using type1_mp_e_type2_r1_fe_type2_ps_m1_r17_l_    = bounded_array<uint16_t, 16>;
-  using type1_mp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ = bounded_array<uint16_t, 16>;
+// CodebookParametersAddition-r16 ::= SEQUENCE
+struct codebook_params_addition_r16_s {
+  struct etype2_r16_s_ {
+    struct etype2_r1_r16_s_ {
+      using supported_csi_rs_res_list_add_r16_l_ = bounded_array<uint16_t, 16>;
+
+      // member variables
+      supported_csi_rs_res_list_add_r16_l_ supported_csi_rs_res_list_add_r16;
+    };
+    struct etype2_r2_r16_s_ {
+      using supported_csi_rs_res_list_add_r16_l_ = bounded_array<uint16_t, 16>;
+
+      // member variables
+      supported_csi_rs_res_list_add_r16_l_ supported_csi_rs_res_list_add_r16;
+    };
+
+    // member variables
+    bool             etype2_r2_r16_present                 = false;
+    bool             param_comb7_8_r16_present             = false;
+    bool             rank3_4_r16_present                   = false;
+    bool             amplitude_subset_restrict_r16_present = false;
+    etype2_r1_r16_s_ etype2_r1_r16;
+    etype2_r2_r16_s_ etype2_r2_r16;
+  };
+  struct etype2_ps_r16_s_ {
+    struct etype2_r1_port_sel_r16_s_ {
+      using supported_csi_rs_res_list_add_r16_l_ = bounded_array<uint16_t, 16>;
+
+      // member variables
+      supported_csi_rs_res_list_add_r16_l_ supported_csi_rs_res_list_add_r16;
+    };
+    struct etype2_r2_port_sel_r16_s_ {
+      using supported_csi_rs_res_list_add_r16_l_ = bounded_array<uint16_t, 16>;
+
+      // member variables
+      supported_csi_rs_res_list_add_r16_l_ supported_csi_rs_res_list_add_r16;
+    };
+
+    // member variables
+    bool                      etype2_r2_port_sel_r16_present = false;
+    bool                      rank3_4_r16_present            = false;
+    etype2_r1_port_sel_r16_s_ etype2_r1_port_sel_r16;
+    etype2_r2_port_sel_r16_s_ etype2_r2_port_sel_r16;
+  };
 
   // member variables
-  type1_sp_fe_type2_ps_null_r17_l_             type1_sp_fe_type2_ps_null_r17;
-  type1_sp_fe_type2_ps_m2_r1_null_r17_l_       type1_sp_fe_type2_ps_m2_r1_null_r17;
-  type1_sp_fe_type2_ps_m2_r2_null_r1_l_        type1_sp_fe_type2_ps_m2_r2_null_r1;
-  type1_sp_type2_fe_type2_ps_m1_r17_l_         type1_sp_type2_fe_type2_ps_m1_r17;
-  type1_sp_type2_fe_type2_ps_m2_r1_r17_l_      type1_sp_type2_fe_type2_ps_m2_r1_r17;
-  type1_sp_e_type2_r1_fe_type2_ps_m1_r17_l_    type1_sp_e_type2_r1_fe_type2_ps_m1_r17;
-  type1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ type1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17;
-  type1_mp_fe_type2_ps_null_r17_l_             type1_mp_fe_type2_ps_null_r17;
-  type1_mp_fe_type2_ps_m2_r1_null_r17_l_       type1_mp_fe_type2_ps_m2_r1_null_r17;
-  type1_mp_fe_type2_ps_m2_r2_null_r17_l_       type1_mp_fe_type2_ps_m2_r2_null_r17;
-  type1_mp_type2_fe_type2_ps_m1_r17_l_         type1_mp_type2_fe_type2_ps_m1_r17;
-  type1_mp_type2_fe_type2_ps_m2_r1_r17_l_      type1_mp_type2_fe_type2_ps_m2_r1_r17;
-  type1_mp_e_type2_r1_fe_type2_ps_m1_r17_l_    type1_mp_e_type2_r1_fe_type2_ps_m1_r17;
-  type1_mp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ type1_mp_e_type2_r1_fe_type2_ps_m2_r1_r17;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// CodebookComboParameterMultiTRP-r17 ::= SEQUENCE
-struct codebook_combo_param_multi_trp_r17_s {
-  using ncjt_null_null_l_                            = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_null_null_l_                        = bounded_array<uint16_t, 16>;
-  using ncjt_type2_null_r16_l_                       = bounded_array<uint16_t, 16>;
-  using ncjt_type2_ps_null_r16_l_                    = bounded_array<uint16_t, 16>;
-  using ncjt_e_type2_r1_null_r16_l_                  = bounded_array<uint16_t, 16>;
-  using ncjt_e_type2_r2_null_r16_l_                  = bounded_array<uint16_t, 16>;
-  using ncjt_e_type2_r1_ps_null_r16_l_               = bounded_array<uint16_t, 16>;
-  using ncjt_e_type2_r2_ps_null_r16_l_               = bounded_array<uint16_t, 16>;
-  using ncjt_type2_type2_ps_r16_l_                   = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_type2_null_r16_l_                   = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_type2_ps_null_r16_l_                = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_e_type2_r1_null_r16_l_              = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_e_type2_r2_null_r16_l_              = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_e_type2_r1_ps_null_r16_l_           = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_e_type2_r2_ps_null_r16_l_           = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_type2_type2_ps_r16_l_               = bounded_array<uint16_t, 16>;
-  using ncjt_fe_type2_ps_null_r17_l_                 = bounded_array<uint16_t, 16>;
-  using ncjt_fe_type2_ps_m2_r1_null_r17_l_           = bounded_array<uint16_t, 16>;
-  using ncjt_fe_type2_ps_m2_r2_null_r17_l_           = bounded_array<uint16_t, 16>;
-  using ncjt_type2_fe_type2_ps_m1_r17_l_             = bounded_array<uint16_t, 16>;
-  using ncjt_type2_fe_type2_ps_m2_r1_r17_l_          = bounded_array<uint16_t, 16>;
-  using ncjt_e_type2_r1_fe_type2_ps_m1_r17_l_        = bounded_array<uint16_t, 16>;
-  using ncjt_e_type2_r1_fe_type2_ps_m2_r1_r17_l_     = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_fe_type2_ps_null_r17_l_             = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_fe_type2_ps_m2_r1_null_r17_l_       = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_fe_type2_ps_m2_r2_null_r1_l_        = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_type2_fe_type2_ps_m1_r17_l_         = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_type2_fe_type2_ps_m2_r1_r17_l_      = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_e_type2_r1_fe_type2_ps_m1_r17_l_    = bounded_array<uint16_t, 16>;
-  using ncjt1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ = bounded_array<uint16_t, 16>;
-
-  // member variables
-  ncjt_null_null_l_                            ncjt_null_null;
-  ncjt1_sp_null_null_l_                        ncjt1_sp_null_null;
-  ncjt_type2_null_r16_l_                       ncjt_type2_null_r16;
-  ncjt_type2_ps_null_r16_l_                    ncjt_type2_ps_null_r16;
-  ncjt_e_type2_r1_null_r16_l_                  ncjt_e_type2_r1_null_r16;
-  ncjt_e_type2_r2_null_r16_l_                  ncjt_e_type2_r2_null_r16;
-  ncjt_e_type2_r1_ps_null_r16_l_               ncjt_e_type2_r1_ps_null_r16;
-  ncjt_e_type2_r2_ps_null_r16_l_               ncjt_e_type2_r2_ps_null_r16;
-  ncjt_type2_type2_ps_r16_l_                   ncjt_type2_type2_ps_r16;
-  ncjt1_sp_type2_null_r16_l_                   ncjt1_sp_type2_null_r16;
-  ncjt1_sp_type2_ps_null_r16_l_                ncjt1_sp_type2_ps_null_r16;
-  ncjt1_sp_e_type2_r1_null_r16_l_              ncjt1_sp_e_type2_r1_null_r16;
-  ncjt1_sp_e_type2_r2_null_r16_l_              ncjt1_sp_e_type2_r2_null_r16;
-  ncjt1_sp_e_type2_r1_ps_null_r16_l_           ncjt1_sp_e_type2_r1_ps_null_r16;
-  ncjt1_sp_e_type2_r2_ps_null_r16_l_           ncjt1_sp_e_type2_r2_ps_null_r16;
-  ncjt1_sp_type2_type2_ps_r16_l_               ncjt1_sp_type2_type2_ps_r16;
-  ncjt_fe_type2_ps_null_r17_l_                 ncjt_fe_type2_ps_null_r17;
-  ncjt_fe_type2_ps_m2_r1_null_r17_l_           ncjt_fe_type2_ps_m2_r1_null_r17;
-  ncjt_fe_type2_ps_m2_r2_null_r17_l_           ncjt_fe_type2_ps_m2_r2_null_r17;
-  ncjt_type2_fe_type2_ps_m1_r17_l_             ncjt_type2_fe_type2_ps_m1_r17;
-  ncjt_type2_fe_type2_ps_m2_r1_r17_l_          ncjt_type2_fe_type2_ps_m2_r1_r17;
-  ncjt_e_type2_r1_fe_type2_ps_m1_r17_l_        ncjt_e_type2_r1_fe_type2_ps_m1_r17;
-  ncjt_e_type2_r1_fe_type2_ps_m2_r1_r17_l_     ncjt_e_type2_r1_fe_type2_ps_m2_r1_r17;
-  ncjt1_sp_fe_type2_ps_null_r17_l_             ncjt1_sp_fe_type2_ps_null_r17;
-  ncjt1_sp_fe_type2_ps_m2_r1_null_r17_l_       ncjt1_sp_fe_type2_ps_m2_r1_null_r17;
-  ncjt1_sp_fe_type2_ps_m2_r2_null_r1_l_        ncjt1_sp_fe_type2_ps_m2_r2_null_r1;
-  ncjt1_sp_type2_fe_type2_ps_m1_r17_l_         ncjt1_sp_type2_fe_type2_ps_m1_r17;
-  ncjt1_sp_type2_fe_type2_ps_m2_r1_r17_l_      ncjt1_sp_type2_fe_type2_ps_m2_r1_r17;
-  ncjt1_sp_e_type2_r1_fe_type2_ps_m1_r17_l_    ncjt1_sp_e_type2_r1_fe_type2_ps_m1_r17;
-  ncjt1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ ncjt1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17;
+  bool             etype2_r16_present    = false;
+  bool             etype2_ps_r16_present = false;
+  etype2_r16_s_    etype2_r16;
+  etype2_ps_r16_s_ etype2_ps_r16;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -3194,154 +3480,6 @@ struct codebook_combo_params_addition_r16_s {
   void          to_json(json_writer& j) const;
 };
 
-// CodebookParameters ::= SEQUENCE
-struct codebook_params_s {
-  struct type1_s_ {
-    struct single_panel_s_ {
-      using supported_csi_rs_res_list_l_ = dyn_array<supported_csi_rs_res_s>;
-      struct modes_opts {
-        enum options { mode1, mode1and_mode2, nulltype } value;
-
-        const char* to_string() const;
-      };
-      using modes_e_ = enumerated<modes_opts>;
-
-      // member variables
-      supported_csi_rs_res_list_l_ supported_csi_rs_res_list;
-      modes_e_                     modes;
-      uint8_t                      max_num_csi_rs_per_res_set = 1;
-    };
-    struct multi_panel_s_ {
-      using supported_csi_rs_res_list_l_ = dyn_array<supported_csi_rs_res_s>;
-      struct modes_opts {
-        enum options { mode1, mode2, both, nulltype } value;
-        typedef uint8_t number_type;
-
-        const char* to_string() const;
-        uint8_t     to_number() const;
-      };
-      using modes_e_ = enumerated<modes_opts>;
-      struct nrof_panels_opts {
-        enum options { n2, n4, nulltype } value;
-        typedef uint8_t number_type;
-
-        const char* to_string() const;
-        uint8_t     to_number() const;
-      };
-      using nrof_panels_e_ = enumerated<nrof_panels_opts>;
-
-      // member variables
-      supported_csi_rs_res_list_l_ supported_csi_rs_res_list;
-      modes_e_                     modes;
-      nrof_panels_e_               nrof_panels;
-      uint8_t                      max_num_csi_rs_per_res_set = 1;
-    };
-
-    // member variables
-    bool            multi_panel_present = false;
-    single_panel_s_ single_panel;
-    multi_panel_s_  multi_panel;
-  };
-  struct type2_s_ {
-    using supported_csi_rs_res_list_l_ = dyn_array<supported_csi_rs_res_s>;
-    struct amplitude_scaling_type_opts {
-      enum options { wideband, wideband_and_subband, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using amplitude_scaling_type_e_ = enumerated<amplitude_scaling_type_opts>;
-
-    // member variables
-    bool                         amplitude_subset_restrict_present = false;
-    supported_csi_rs_res_list_l_ supported_csi_rs_res_list;
-    uint8_t                      param_lx = 2;
-    amplitude_scaling_type_e_    amplitude_scaling_type;
-  };
-  struct type2_port_sel_s_ {
-    using supported_csi_rs_res_list_l_ = dyn_array<supported_csi_rs_res_s>;
-    struct amplitude_scaling_type_opts {
-      enum options { wideband, wideband_and_subband, nulltype } value;
-
-      const char* to_string() const;
-    };
-    using amplitude_scaling_type_e_ = enumerated<amplitude_scaling_type_opts>;
-
-    // member variables
-    supported_csi_rs_res_list_l_ supported_csi_rs_res_list;
-    uint8_t                      param_lx = 2;
-    amplitude_scaling_type_e_    amplitude_scaling_type;
-  };
-
-  // member variables
-  bool              type2_present          = false;
-  bool              type2_port_sel_present = false;
-  type1_s_          type1;
-  type2_s_          type2;
-  type2_port_sel_s_ type2_port_sel;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// CodebookParametersAddition-r16 ::= SEQUENCE
-struct codebook_params_addition_r16_s {
-  struct etype2_r16_s_ {
-    struct etype2_r1_r16_s_ {
-      using supported_csi_rs_res_list_add_r16_l_ = bounded_array<uint16_t, 16>;
-
-      // member variables
-      supported_csi_rs_res_list_add_r16_l_ supported_csi_rs_res_list_add_r16;
-    };
-    struct etype2_r2_r16_s_ {
-      using supported_csi_rs_res_list_add_r16_l_ = bounded_array<uint16_t, 16>;
-
-      // member variables
-      supported_csi_rs_res_list_add_r16_l_ supported_csi_rs_res_list_add_r16;
-    };
-
-    // member variables
-    bool             etype2_r2_r16_present                 = false;
-    bool             param_comb7_8_r16_present             = false;
-    bool             rank3_4_r16_present                   = false;
-    bool             amplitude_subset_restrict_r16_present = false;
-    etype2_r1_r16_s_ etype2_r1_r16;
-    etype2_r2_r16_s_ etype2_r2_r16;
-  };
-  struct etype2_ps_r16_s_ {
-    struct etype2_r1_port_sel_r16_s_ {
-      using supported_csi_rs_res_list_add_r16_l_ = bounded_array<uint16_t, 16>;
-
-      // member variables
-      supported_csi_rs_res_list_add_r16_l_ supported_csi_rs_res_list_add_r16;
-    };
-    struct etype2_r2_port_sel_r16_s_ {
-      using supported_csi_rs_res_list_add_r16_l_ = bounded_array<uint16_t, 16>;
-
-      // member variables
-      supported_csi_rs_res_list_add_r16_l_ supported_csi_rs_res_list_add_r16;
-    };
-
-    // member variables
-    bool                      etype2_r2_port_sel_r16_present = false;
-    bool                      rank3_4_r16_present            = false;
-    etype2_r1_port_sel_r16_s_ etype2_r1_port_sel_r16;
-    etype2_r2_port_sel_r16_s_ etype2_r2_port_sel_r16;
-  };
-
-  // member variables
-  bool             etype2_r16_present    = false;
-  bool             etype2_ps_r16_present = false;
-  etype2_r16_s_    etype2_r16;
-  etype2_ps_r16_s_ etype2_ps_r16;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // CodebookParametersfetype2-r17 ::= SEQUENCE
 struct codebook_paramsfetype2_r17_s {
   using fetype2basic_r17_l_ = bounded_array<uint16_t, 16>;
@@ -3360,35 +3498,38 @@ struct codebook_paramsfetype2_r17_s {
   void          to_json(json_writer& j) const;
 };
 
-// DummyG ::= SEQUENCE
-struct dummy_g_s {
-  struct max_num_ssb_csi_rs_res_one_tx_opts {
-    enum options { n8, n16, n32, n64, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_ssb_csi_rs_res_one_tx_e_ = enumerated<max_num_ssb_csi_rs_res_one_tx_opts>;
-  struct max_num_ssb_csi_rs_res_two_tx_opts {
-    enum options { n0, n4, n8, n16, n32, n64, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_ssb_csi_rs_res_two_tx_e_ = enumerated<max_num_ssb_csi_rs_res_two_tx_opts>;
-  struct supported_csi_rs_density_opts {
-    enum options { one, three, one_and_three, nulltype } value;
-
-    const char* to_string() const;
-  };
-  using supported_csi_rs_density_e_ = enumerated<supported_csi_rs_density_opts>;
+// CodebookComboParameterMixedType-r17 ::= SEQUENCE
+struct codebook_combo_param_mixed_type_r17_s {
+  using type1_sp_fe_type2_ps_null_r17_l_             = bounded_array<uint16_t, 16>;
+  using type1_sp_fe_type2_ps_m2_r1_null_r17_l_       = bounded_array<uint16_t, 16>;
+  using type1_sp_fe_type2_ps_m2_r2_null_r1_l_        = bounded_array<uint16_t, 16>;
+  using type1_sp_type2_fe_type2_ps_m1_r17_l_         = bounded_array<uint16_t, 16>;
+  using type1_sp_type2_fe_type2_ps_m2_r1_r17_l_      = bounded_array<uint16_t, 16>;
+  using type1_sp_e_type2_r1_fe_type2_ps_m1_r17_l_    = bounded_array<uint16_t, 16>;
+  using type1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ = bounded_array<uint16_t, 16>;
+  using type1_mp_fe_type2_ps_null_r17_l_             = bounded_array<uint16_t, 16>;
+  using type1_mp_fe_type2_ps_m2_r1_null_r17_l_       = bounded_array<uint16_t, 16>;
+  using type1_mp_fe_type2_ps_m2_r2_null_r17_l_       = bounded_array<uint16_t, 16>;
+  using type1_mp_type2_fe_type2_ps_m1_r17_l_         = bounded_array<uint16_t, 16>;
+  using type1_mp_type2_fe_type2_ps_m2_r1_r17_l_      = bounded_array<uint16_t, 16>;
+  using type1_mp_e_type2_r1_fe_type2_ps_m1_r17_l_    = bounded_array<uint16_t, 16>;
+  using type1_mp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ = bounded_array<uint16_t, 16>;
 
   // member variables
-  max_num_ssb_csi_rs_res_one_tx_e_ max_num_ssb_csi_rs_res_one_tx;
-  max_num_ssb_csi_rs_res_two_tx_e_ max_num_ssb_csi_rs_res_two_tx;
-  supported_csi_rs_density_e_      supported_csi_rs_density;
+  type1_sp_fe_type2_ps_null_r17_l_             type1_sp_fe_type2_ps_null_r17;
+  type1_sp_fe_type2_ps_m2_r1_null_r17_l_       type1_sp_fe_type2_ps_m2_r1_null_r17;
+  type1_sp_fe_type2_ps_m2_r2_null_r1_l_        type1_sp_fe_type2_ps_m2_r2_null_r1;
+  type1_sp_type2_fe_type2_ps_m1_r17_l_         type1_sp_type2_fe_type2_ps_m1_r17;
+  type1_sp_type2_fe_type2_ps_m2_r1_r17_l_      type1_sp_type2_fe_type2_ps_m2_r1_r17;
+  type1_sp_e_type2_r1_fe_type2_ps_m1_r17_l_    type1_sp_e_type2_r1_fe_type2_ps_m1_r17;
+  type1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ type1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17;
+  type1_mp_fe_type2_ps_null_r17_l_             type1_mp_fe_type2_ps_null_r17;
+  type1_mp_fe_type2_ps_m2_r1_null_r17_l_       type1_mp_fe_type2_ps_m2_r1_null_r17;
+  type1_mp_fe_type2_ps_m2_r2_null_r17_l_       type1_mp_fe_type2_ps_m2_r2_null_r17;
+  type1_mp_type2_fe_type2_ps_m1_r17_l_         type1_mp_type2_fe_type2_ps_m1_r17;
+  type1_mp_type2_fe_type2_ps_m2_r1_r17_l_      type1_mp_type2_fe_type2_ps_m2_r1_r17;
+  type1_mp_e_type2_r1_fe_type2_ps_m1_r17_l_    type1_mp_e_type2_r1_fe_type2_ps_m1_r17;
+  type1_mp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ type1_mp_e_type2_r1_fe_type2_ps_m2_r1_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -3396,189 +3537,70 @@ struct dummy_g_s {
   void          to_json(json_writer& j) const;
 };
 
-// DummyH ::= SEQUENCE
-struct dummy_h_s {
-  uint8_t burst_len                 = 1;
-  uint8_t max_simul_res_sets_per_cc = 1;
-  uint8_t max_cfg_res_sets_per_cc   = 1;
-  uint8_t max_cfg_res_sets_all_cc   = 1;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// PTRS-DensityRecommendationDL ::= SEQUENCE
-struct ptrs_density_recommendation_dl_s {
-  uint16_t freq_density1 = 1;
-  uint16_t freq_density2 = 1;
-  uint8_t  time_density1 = 0;
-  uint8_t  time_density2 = 0;
-  uint8_t  time_density3 = 0;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// PTRS-DensityRecommendationUL ::= SEQUENCE
-struct ptrs_density_recommendation_ul_s {
-  uint16_t freq_density1   = 1;
-  uint16_t freq_density2   = 1;
-  uint8_t  time_density1   = 0;
-  uint8_t  time_density2   = 0;
-  uint8_t  time_density3   = 0;
-  uint16_t sample_density1 = 1;
-  uint16_t sample_density2 = 1;
-  uint16_t sample_density3 = 1;
-  uint16_t sample_density4 = 1;
-  uint16_t sample_density5 = 1;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SRS-Resources ::= SEQUENCE
-struct srs_res_features_s {
-  struct max_num_aperiodic_srs_per_bwp_opts {
-    enum options { n1, n2, n4, n8, n16, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_aperiodic_srs_per_bwp_e_ = enumerated<max_num_aperiodic_srs_per_bwp_opts>;
-  struct max_num_periodic_srs_per_bwp_opts {
-    enum options { n1, n2, n4, n8, n16, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_periodic_srs_per_bwp_e_ = enumerated<max_num_periodic_srs_per_bwp_opts>;
-  struct max_num_semi_persistent_srs_per_bwp_opts {
-    enum options { n1, n2, n4, n8, n16, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_semi_persistent_srs_per_bwp_e_ = enumerated<max_num_semi_persistent_srs_per_bwp_opts>;
-  struct max_num_srs_ports_per_res_opts {
-    enum options { n1, n2, n4, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_srs_ports_per_res_e_ = enumerated<max_num_srs_ports_per_res_opts>;
+// CodebookComboParameterMultiTRP-r17 ::= SEQUENCE
+struct codebook_combo_param_multi_trp_r17_s {
+  using ncjt_null_null_l_                            = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_null_null_l_                        = bounded_array<uint16_t, 16>;
+  using ncjt_type2_null_r16_l_                       = bounded_array<uint16_t, 16>;
+  using ncjt_type2_ps_null_r16_l_                    = bounded_array<uint16_t, 16>;
+  using ncjt_e_type2_r1_null_r16_l_                  = bounded_array<uint16_t, 16>;
+  using ncjt_e_type2_r2_null_r16_l_                  = bounded_array<uint16_t, 16>;
+  using ncjt_e_type2_r1_ps_null_r16_l_               = bounded_array<uint16_t, 16>;
+  using ncjt_e_type2_r2_ps_null_r16_l_               = bounded_array<uint16_t, 16>;
+  using ncjt_type2_type2_ps_r16_l_                   = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_type2_null_r16_l_                   = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_type2_ps_null_r16_l_                = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_e_type2_r1_null_r16_l_              = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_e_type2_r2_null_r16_l_              = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_e_type2_r1_ps_null_r16_l_           = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_e_type2_r2_ps_null_r16_l_           = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_type2_type2_ps_r16_l_               = bounded_array<uint16_t, 16>;
+  using ncjt_fe_type2_ps_null_r17_l_                 = bounded_array<uint16_t, 16>;
+  using ncjt_fe_type2_ps_m2_r1_null_r17_l_           = bounded_array<uint16_t, 16>;
+  using ncjt_fe_type2_ps_m2_r2_null_r17_l_           = bounded_array<uint16_t, 16>;
+  using ncjt_type2_fe_type2_ps_m1_r17_l_             = bounded_array<uint16_t, 16>;
+  using ncjt_type2_fe_type2_ps_m2_r1_r17_l_          = bounded_array<uint16_t, 16>;
+  using ncjt_e_type2_r1_fe_type2_ps_m1_r17_l_        = bounded_array<uint16_t, 16>;
+  using ncjt_e_type2_r1_fe_type2_ps_m2_r1_r17_l_     = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_fe_type2_ps_null_r17_l_             = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_fe_type2_ps_m2_r1_null_r17_l_       = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_fe_type2_ps_m2_r2_null_r1_l_        = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_type2_fe_type2_ps_m1_r17_l_         = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_type2_fe_type2_ps_m2_r1_r17_l_      = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_e_type2_r1_fe_type2_ps_m1_r17_l_    = bounded_array<uint16_t, 16>;
+  using ncjt1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ = bounded_array<uint16_t, 16>;
 
   // member variables
-  max_num_aperiodic_srs_per_bwp_e_       max_num_aperiodic_srs_per_bwp;
-  uint8_t                                max_num_aperiodic_srs_per_bwp_per_slot = 1;
-  max_num_periodic_srs_per_bwp_e_        max_num_periodic_srs_per_bwp;
-  uint8_t                                max_num_periodic_srs_per_bwp_per_slot = 1;
-  max_num_semi_persistent_srs_per_bwp_e_ max_num_semi_persistent_srs_per_bwp;
-  uint8_t                                max_num_semi_persistent_srs_per_bwp_per_slot = 1;
-  max_num_srs_ports_per_res_e_           max_num_srs_ports_per_res;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SpatialRelations ::= SEQUENCE
-struct spatial_relations_s {
-  struct max_num_cfg_spatial_relations_opts {
-    enum options { n4, n8, n16, n32, n64, n96, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_cfg_spatial_relations_e_ = enumerated<max_num_cfg_spatial_relations_opts>;
-  struct max_num_active_spatial_relations_opts {
-    enum options { n1, n2, n4, n8, n14, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_active_spatial_relations_e_ = enumerated<max_num_active_spatial_relations_opts>;
-  struct max_num_dl_rs_qcl_type_d_opts {
-    enum options { n1, n2, n4, n8, n14, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_dl_rs_qcl_type_d_e_ = enumerated<max_num_dl_rs_qcl_type_d_opts>;
-
-  // member variables
-  bool                                add_active_spatial_relation_pucch_present = false;
-  max_num_cfg_spatial_relations_e_    max_num_cfg_spatial_relations;
-  max_num_active_spatial_relations_e_ max_num_active_spatial_relations;
-  max_num_dl_rs_qcl_type_d_e_         max_num_dl_rs_qcl_type_d;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// FR2-2-AccessParamsPerBand-r17 ::= SEQUENCE
-struct fr2_2_access_params_per_band_r17_s {
-  struct enhanced_pdcch_monitoring_scs_960k_hz_r17_s_ {
-    bool pdcch_monitoring4_1_r17_present = false;
-    bool pdcch_monitoring4_2_r17_present = false;
-    bool pdcch_monitoring8_4_r17_present = false;
-  };
-  struct support32_dl_harq_process_per_scs_r17_s_ {
-    bool scs_120k_hz_r17_present = false;
-    bool scs_480k_hz_r17_present = false;
-    bool scs_960k_hz_r17_present = false;
-  };
-  struct support32_ul_harq_process_per_scs_r17_s_ {
-    bool scs_120k_hz_r17_present = false;
-    bool scs_480k_hz_r17_present = false;
-    bool scs_960k_hz_r17_present = false;
-  };
-
-  // member variables
-  bool                                         ext                                                  = false;
-  bool                                         dl_fr2_2_scs_120k_hz_r17_present                     = false;
-  bool                                         ul_fr2_2_scs_120k_hz_r17_present                     = false;
-  bool                                         init_access_ssb_120k_hz_r17_present                  = false;
-  bool                                         wideband_prach_scs_120k_hz_r17_present               = false;
-  bool                                         multi_rb_pucch_scs_120k_hz_r17_present               = false;
-  bool                                         multi_pdsch_single_dci_fr2_2_scs_120k_hz_r17_present = false;
-  bool                                         multi_pusch_single_dci_fr2_2_scs_120k_hz_r17_present = false;
-  bool                                         dl_fr2_2_scs_480k_hz_r17_present                     = false;
-  bool                                         ul_fr2_2_scs_480k_hz_r17_present                     = false;
-  bool                                         init_access_ssb_480k_hz_r17_present                  = false;
-  bool                                         wideband_prach_scs_480k_hz_r17_present               = false;
-  bool                                         multi_rb_pucch_scs_480k_hz_r17_present               = false;
-  bool                                         enhanced_pdcch_monitoring_scs_480k_hz_r17_present    = false;
-  bool                                         dl_fr2_2_scs_960k_hz_r17_present                     = false;
-  bool                                         ul_fr2_2_scs_960k_hz_r17_present                     = false;
-  bool                                         multi_rb_pucch_scs_960k_hz_r17_present               = false;
-  bool                                         enhanced_pdcch_monitoring_scs_960k_hz_r17_present    = false;
-  bool                                         type1_ch_access_fr2_2_r17_present                    = false;
-  bool                                         type2_ch_access_fr2_2_r17_present                    = false;
-  bool                                         reduced_beam_switch_timing_fr2_2_r17_present         = false;
-  bool                                         support32_dl_harq_process_per_scs_r17_present        = false;
-  bool                                         support32_ul_harq_process_per_scs_r17_present        = false;
-  enhanced_pdcch_monitoring_scs_960k_hz_r17_s_ enhanced_pdcch_monitoring_scs_960k_hz_r17;
-  support32_dl_harq_process_per_scs_r17_s_     support32_dl_harq_process_per_scs_r17;
-  support32_ul_harq_process_per_scs_r17_s_     support32_ul_harq_process_per_scs_r17;
-  // ...
-  // group 0
-  bool mod64_qam_pusch_fr2_2_r17_present = false;
+  ncjt_null_null_l_                            ncjt_null_null;
+  ncjt1_sp_null_null_l_                        ncjt1_sp_null_null;
+  ncjt_type2_null_r16_l_                       ncjt_type2_null_r16;
+  ncjt_type2_ps_null_r16_l_                    ncjt_type2_ps_null_r16;
+  ncjt_e_type2_r1_null_r16_l_                  ncjt_e_type2_r1_null_r16;
+  ncjt_e_type2_r2_null_r16_l_                  ncjt_e_type2_r2_null_r16;
+  ncjt_e_type2_r1_ps_null_r16_l_               ncjt_e_type2_r1_ps_null_r16;
+  ncjt_e_type2_r2_ps_null_r16_l_               ncjt_e_type2_r2_ps_null_r16;
+  ncjt_type2_type2_ps_r16_l_                   ncjt_type2_type2_ps_r16;
+  ncjt1_sp_type2_null_r16_l_                   ncjt1_sp_type2_null_r16;
+  ncjt1_sp_type2_ps_null_r16_l_                ncjt1_sp_type2_ps_null_r16;
+  ncjt1_sp_e_type2_r1_null_r16_l_              ncjt1_sp_e_type2_r1_null_r16;
+  ncjt1_sp_e_type2_r2_null_r16_l_              ncjt1_sp_e_type2_r2_null_r16;
+  ncjt1_sp_e_type2_r1_ps_null_r16_l_           ncjt1_sp_e_type2_r1_ps_null_r16;
+  ncjt1_sp_e_type2_r2_ps_null_r16_l_           ncjt1_sp_e_type2_r2_ps_null_r16;
+  ncjt1_sp_type2_type2_ps_r16_l_               ncjt1_sp_type2_type2_ps_r16;
+  ncjt_fe_type2_ps_null_r17_l_                 ncjt_fe_type2_ps_null_r17;
+  ncjt_fe_type2_ps_m2_r1_null_r17_l_           ncjt_fe_type2_ps_m2_r1_null_r17;
+  ncjt_fe_type2_ps_m2_r2_null_r17_l_           ncjt_fe_type2_ps_m2_r2_null_r17;
+  ncjt_type2_fe_type2_ps_m1_r17_l_             ncjt_type2_fe_type2_ps_m1_r17;
+  ncjt_type2_fe_type2_ps_m2_r1_r17_l_          ncjt_type2_fe_type2_ps_m2_r1_r17;
+  ncjt_e_type2_r1_fe_type2_ps_m1_r17_l_        ncjt_e_type2_r1_fe_type2_ps_m1_r17;
+  ncjt_e_type2_r1_fe_type2_ps_m2_r1_r17_l_     ncjt_e_type2_r1_fe_type2_ps_m2_r1_r17;
+  ncjt1_sp_fe_type2_ps_null_r17_l_             ncjt1_sp_fe_type2_ps_null_r17;
+  ncjt1_sp_fe_type2_ps_m2_r1_null_r17_l_       ncjt1_sp_fe_type2_ps_m2_r1_null_r17;
+  ncjt1_sp_fe_type2_ps_m2_r2_null_r1_l_        ncjt1_sp_fe_type2_ps_m2_r2_null_r1;
+  ncjt1_sp_type2_fe_type2_ps_m1_r17_l_         ncjt1_sp_type2_fe_type2_ps_m1_r17;
+  ncjt1_sp_type2_fe_type2_ps_m2_r1_r17_l_      ncjt1_sp_type2_fe_type2_ps_m2_r1_r17;
+  ncjt1_sp_e_type2_r1_fe_type2_ps_m1_r17_l_    ncjt1_sp_e_type2_r1_fe_type2_ps_m1_r17;
+  ncjt1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17_l_ ncjt1_sp_e_type2_r1_fe_type2_ps_m2_r1_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -4688,6 +4710,58 @@ struct mimo_params_per_band_s {
   void          to_json(json_writer& j) const;
 };
 
+// SharedSpectrumChAccessParamsPerBand-r16 ::= SEQUENCE
+struct shared_spec_ch_access_params_per_band_r16_s {
+  bool    ul_dyn_ch_access_r16_present                    = false;
+  bool    ul_semi_static_ch_access_r16_present            = false;
+  bool    ssb_rrm_dyn_ch_access_r16_present               = false;
+  bool    ssb_rrm_semi_static_ch_access_r16_present       = false;
+  bool    mib_acquisition_r16_present                     = false;
+  bool    ssb_rlm_dyn_ch_access_r16_present               = false;
+  bool    ssb_rlm_semi_static_ch_access_r16_present       = false;
+  bool    sib1_acquisition_r16_present                    = false;
+  bool    ext_ra_resp_win_r16_present                     = false;
+  bool    ssb_bfd_cbd_dyn_ch_access_r16_present           = false;
+  bool    ssb_bfd_cbd_semi_static_ch_access_r16_present   = false;
+  bool    csi_rs_bfd_cbd_r16_present                      = false;
+  bool    ul_ch_bw_scell_10mhz_r16_present                = false;
+  bool    rssi_ch_occupancy_report_r16_present            = false;
+  bool    srs_start_any_ofdm_symbol_r16_present           = false;
+  bool    search_space_freq_monitor_location_r16_present  = false;
+  bool    coreset_rb_offset_r16_present                   = false;
+  bool    cgi_acquisition_r16_present                     = false;
+  bool    cfg_ul_tx_r16_present                           = false;
+  bool    prach_wideband_r16_present                      = false;
+  bool    dci_available_rb_set_r16_present                = false;
+  bool    dci_ch_occupancy_dur_r16_present                = false;
+  bool    type_b_pdsch_len_r16_present                    = false;
+  bool    search_space_switch_with_dci_r16_present        = false;
+  bool    search_space_switch_without_dci_r16_present     = false;
+  bool    search_space_switch_cap2_r16_present            = false;
+  bool    non_numerical_pdsch_harq_timing_r16_present     = false;
+  bool    enhanced_dyn_harq_codebook_r16_present          = false;
+  bool    one_shot_harq_feedback_r16_present              = false;
+  bool    multi_pusch_ul_grant_r16_present                = false;
+  bool    csi_rs_rlm_r16_present                          = false;
+  bool    dummy_present                                   = false;
+  bool    periodic_and_semi_persistent_csi_rs_r16_present = false;
+  bool    pusch_prb_interlace_r16_present                 = false;
+  bool    pucch_f0_f1_prb_interlace_r16_present           = false;
+  bool    occ_prb_pf2_pf3_r16_present                     = false;
+  bool    ext_cp_range_cg_pusch_r16_present               = false;
+  bool    cfg_grant_with_re_tx_r16_present                = false;
+  bool    ed_thres_r16_present                            = false;
+  bool    ul_dl_cot_sharing_r16_present                   = false;
+  bool    mux_cg_uci_harq_ack_r16_present                 = false;
+  bool    cg_res_cfg_r16_present                          = false;
+  uint8_t search_space_freq_monitor_location_r16          = 1;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // OLPC-SRS-Pos-r16 ::= SEQUENCE
 struct olpc_srs_pos_r16_s {
   struct max_num_path_loss_estimate_per_serving_r16_opts {
@@ -4705,6 +4779,341 @@ struct olpc_srs_pos_r16_s {
   bool                                          olpc_srs_pos_based_on_prs_neigh_r16_present        = false;
   bool                                          max_num_path_loss_estimate_per_serving_r16_present = false;
   max_num_path_loss_estimate_per_serving_r16_e_ max_num_path_loss_estimate_per_serving_r16;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SpatialRelationsSRS-Pos-r16 ::= SEQUENCE
+struct spatial_relations_srs_pos_r16_s {
+  bool spatial_relation_srs_pos_based_on_ssb_serving_r16_present    = false;
+  bool spatial_relation_srs_pos_based_on_csi_rs_serving_r16_present = false;
+  bool spatial_relation_srs_pos_based_on_prs_serving_r16_present    = false;
+  bool spatial_relation_srs_pos_based_on_srs_r16_present            = false;
+  bool spatial_relation_srs_pos_based_on_ssb_neigh_r16_present      = false;
+  bool spatial_relation_srs_pos_based_on_prs_neigh_r16_present      = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SharedSpectrumChAccessParamsPerBand-v1630 ::= SEQUENCE
+struct shared_spec_ch_access_params_per_band_v1630_s {
+  bool dl_reception_intra_cell_guardband_r16_present = false;
+  bool dl_reception_lbt_subset_rb_r16_present        = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SharedSpectrumChAccessParamsPerBand-v1640 ::= SEQUENCE
+struct shared_spec_ch_access_params_per_band_v1640_s {
+  bool csi_rsrp_and_rsrq_meas_with_ssb_r16_present    = false;
+  bool csi_rsrp_and_rsrq_meas_without_ssb_r16_present = false;
+  bool csi_sinr_meas_r16_present                      = false;
+  bool ssb_and_csi_rs_rlm_r16_present                 = false;
+  bool csi_rs_cfra_for_ho_r16_present                 = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SharedSpectrumChAccessParamsPerBand-v1650 ::= SEQUENCE
+struct shared_spec_ch_access_params_per_band_v1650_s {
+  bool extended_search_space_switch_with_dci_r16_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FR2-2-AccessParamsPerBand-r17 ::= SEQUENCE
+struct fr2_2_access_params_per_band_r17_s {
+  struct enhanced_pdcch_monitoring_scs_960k_hz_r17_s_ {
+    bool pdcch_monitoring4_1_r17_present = false;
+    bool pdcch_monitoring4_2_r17_present = false;
+    bool pdcch_monitoring8_4_r17_present = false;
+  };
+  struct support32_dl_harq_process_per_scs_r17_s_ {
+    bool scs_120k_hz_r17_present = false;
+    bool scs_480k_hz_r17_present = false;
+    bool scs_960k_hz_r17_present = false;
+  };
+  struct support32_ul_harq_process_per_scs_r17_s_ {
+    bool scs_120k_hz_r17_present = false;
+    bool scs_480k_hz_r17_present = false;
+    bool scs_960k_hz_r17_present = false;
+  };
+
+  // member variables
+  bool                                         ext                                                  = false;
+  bool                                         dl_fr2_2_scs_120k_hz_r17_present                     = false;
+  bool                                         ul_fr2_2_scs_120k_hz_r17_present                     = false;
+  bool                                         init_access_ssb_120k_hz_r17_present                  = false;
+  bool                                         wideband_prach_scs_120k_hz_r17_present               = false;
+  bool                                         multi_rb_pucch_scs_120k_hz_r17_present               = false;
+  bool                                         multi_pdsch_single_dci_fr2_2_scs_120k_hz_r17_present = false;
+  bool                                         multi_pusch_single_dci_fr2_2_scs_120k_hz_r17_present = false;
+  bool                                         dl_fr2_2_scs_480k_hz_r17_present                     = false;
+  bool                                         ul_fr2_2_scs_480k_hz_r17_present                     = false;
+  bool                                         init_access_ssb_480k_hz_r17_present                  = false;
+  bool                                         wideband_prach_scs_480k_hz_r17_present               = false;
+  bool                                         multi_rb_pucch_scs_480k_hz_r17_present               = false;
+  bool                                         enhanced_pdcch_monitoring_scs_480k_hz_r17_present    = false;
+  bool                                         dl_fr2_2_scs_960k_hz_r17_present                     = false;
+  bool                                         ul_fr2_2_scs_960k_hz_r17_present                     = false;
+  bool                                         multi_rb_pucch_scs_960k_hz_r17_present               = false;
+  bool                                         enhanced_pdcch_monitoring_scs_960k_hz_r17_present    = false;
+  bool                                         type1_ch_access_fr2_2_r17_present                    = false;
+  bool                                         type2_ch_access_fr2_2_r17_present                    = false;
+  bool                                         reduced_beam_switch_timing_fr2_2_r17_present         = false;
+  bool                                         support32_dl_harq_process_per_scs_r17_present        = false;
+  bool                                         support32_ul_harq_process_per_scs_r17_present        = false;
+  enhanced_pdcch_monitoring_scs_960k_hz_r17_s_ enhanced_pdcch_monitoring_scs_960k_hz_r17;
+  support32_dl_harq_process_per_scs_r17_s_     support32_dl_harq_process_per_scs_r17;
+  support32_ul_harq_process_per_scs_r17_s_     support32_ul_harq_process_per_scs_r17;
+  // ...
+  // group 0
+  bool mod64_qam_pusch_fr2_2_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SRS-AllPosResourcesRRC-Inactive-r17 ::= SEQUENCE
+struct srs_all_pos_res_rrc_inactive_r17_s {
+  struct srs_pos_res_rrc_inactive_r17_s_ {
+    struct max_num_srs_pos_res_set_per_bwp_r17_opts {
+      enum options { n1, n2, n4, n8, n12, n16, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using max_num_srs_pos_res_set_per_bwp_r17_e_ = enumerated<max_num_srs_pos_res_set_per_bwp_r17_opts>;
+    struct max_num_srs_pos_res_per_bwp_r17_opts {
+      enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using max_num_srs_pos_res_per_bwp_r17_e_ = enumerated<max_num_srs_pos_res_per_bwp_r17_opts>;
+    struct max_num_srs_res_per_bwp_per_slot_r17_opts {
+      enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using max_num_srs_res_per_bwp_per_slot_r17_e_ = enumerated<max_num_srs_res_per_bwp_per_slot_r17_opts>;
+    struct max_num_periodic_srs_pos_res_per_bwp_r17_opts {
+      enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using max_num_periodic_srs_pos_res_per_bwp_r17_e_ = enumerated<max_num_periodic_srs_pos_res_per_bwp_r17_opts>;
+    struct max_num_periodic_srs_pos_res_per_bwp_per_slot_r17_opts {
+      enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using max_num_periodic_srs_pos_res_per_bwp_per_slot_r17_e_ =
+        enumerated<max_num_periodic_srs_pos_res_per_bwp_per_slot_r17_opts>;
+    struct dummy1_opts {
+      enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using dummy1_e_ = enumerated<dummy1_opts>;
+    struct dummy2_opts {
+      enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using dummy2_e_ = enumerated<dummy2_opts>;
+
+    // member variables
+    max_num_srs_pos_res_set_per_bwp_r17_e_               max_num_srs_pos_res_set_per_bwp_r17;
+    max_num_srs_pos_res_per_bwp_r17_e_                   max_num_srs_pos_res_per_bwp_r17;
+    max_num_srs_res_per_bwp_per_slot_r17_e_              max_num_srs_res_per_bwp_per_slot_r17;
+    max_num_periodic_srs_pos_res_per_bwp_r17_e_          max_num_periodic_srs_pos_res_per_bwp_r17;
+    max_num_periodic_srs_pos_res_per_bwp_per_slot_r17_e_ max_num_periodic_srs_pos_res_per_bwp_per_slot_r17;
+    dummy1_e_                                            dummy1;
+    dummy2_e_                                            dummy2;
+  };
+
+  // member variables
+  srs_pos_res_rrc_inactive_r17_s_ srs_pos_res_rrc_inactive_r17;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SharedSpectrumChAccessParamsPerBand-v1710 ::= SEQUENCE
+struct shared_spec_ch_access_params_per_band_v1710_s {
+  bool ul_semi_static_ch_access_dependent_cfg_r17_present   = false;
+  bool ul_semi_static_ch_access_independent_cfg_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// PosSRS-RRC-Inactive-OutsideInitialUL-BWP-r17 ::= SEQUENCE
+struct pos_srs_rrc_inactive_outside_init_ul_bwp_r17_s {
+  struct max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_opts {
+    enum options {
+      bw5,
+      bw10,
+      bw15,
+      bw20,
+      bw25,
+      bw30,
+      bw35,
+      bw40,
+      bw45,
+      bw50,
+      bw60,
+      bw70,
+      bw80,
+      bw90,
+      bw100,
+      nulltype
+    } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_e_ =
+      enumerated<max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_opts>;
+  struct max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_opts {
+    enum options { bw50, bw100, bw200, bw400, nulltype } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_e_ =
+      enumerated<max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_opts>;
+  struct max_num_of_srs_pos_res_sets_r17_opts {
+    enum options { n1, n2, n4, n8, n12, n16, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_of_srs_pos_res_sets_r17_e_ = enumerated<max_num_of_srs_pos_res_sets_r17_opts>;
+  struct max_num_of_periodic_srs_pos_res_r17_opts {
+    enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_of_periodic_srs_pos_res_r17_e_ = enumerated<max_num_of_periodic_srs_pos_res_r17_opts>;
+  struct max_num_of_periodic_srs_pos_res_per_slot_r17_opts {
+    enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_of_periodic_srs_pos_res_per_slot_r17_e_ = enumerated<max_num_of_periodic_srs_pos_res_per_slot_r17_opts>;
+  struct max_num_of_periodic_and_semipersistent_srs_pos_res_r17_opts {
+    enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_of_periodic_and_semipersistent_srs_pos_res_r17_e_ =
+      enumerated<max_num_of_periodic_and_semipersistent_srs_pos_res_r17_opts>;
+  struct max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_opts {
+    enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_e_ =
+      enumerated<max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_opts>;
+  struct switching_time_srs_tx_other_tx_r17_opts {
+    enum options { us100, us140, us200, us300, us500, nulltype } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using switching_time_srs_tx_other_tx_r17_e_ = enumerated<switching_time_srs_tx_other_tx_r17_opts>;
+  struct max_num_of_semi_persistent_srs_pos_res_r17_opts {
+    enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_of_semi_persistent_srs_pos_res_r17_e_ = enumerated<max_num_of_semi_persistent_srs_pos_res_r17_opts>;
+  struct max_num_of_semi_persistent_srs_pos_res_per_slot_r17_opts {
+    enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_of_semi_persistent_srs_pos_res_per_slot_r17_e_ =
+      enumerated<max_num_of_semi_persistent_srs_pos_res_per_slot_r17_opts>;
+
+  // member variables
+  bool ext                                                                     = false;
+  bool max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_present                   = false;
+  bool max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_present                   = false;
+  bool max_num_of_srs_pos_res_sets_r17_present                                 = false;
+  bool max_num_of_periodic_srs_pos_res_r17_present                             = false;
+  bool max_num_of_periodic_srs_pos_res_per_slot_r17_present                    = false;
+  bool different_numerology_between_srs_pos_and_init_bwp_r17_present           = false;
+  bool srs_pos_without_restrict_on_bwp_r17_present                             = false;
+  bool max_num_of_periodic_and_semipersistent_srs_pos_res_r17_present          = false;
+  bool max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_present = false;
+  bool different_center_freq_between_srs_pos_and_init_bwp_r17_present          = false;
+  bool switching_time_srs_tx_other_tx_r17_present                              = false;
+  bool max_num_of_semi_persistent_srs_pos_res_r17_present                      = false;
+  bool max_num_of_semi_persistent_srs_pos_res_per_slot_r17_present             = false;
+  max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_e_          max_srs_pos_bw_for_each_scs_within_cc_fr1_r17;
+  max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_e_          max_srs_pos_bw_for_each_scs_within_cc_fr2_r17;
+  max_num_of_srs_pos_res_sets_r17_e_                        max_num_of_srs_pos_res_sets_r17;
+  max_num_of_periodic_srs_pos_res_r17_e_                    max_num_of_periodic_srs_pos_res_r17;
+  max_num_of_periodic_srs_pos_res_per_slot_r17_e_           max_num_of_periodic_srs_pos_res_per_slot_r17;
+  max_num_of_periodic_and_semipersistent_srs_pos_res_r17_e_ max_num_of_periodic_and_semipersistent_srs_pos_res_r17;
+  max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_e_
+                                                max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17;
+  switching_time_srs_tx_other_tx_r17_e_         switching_time_srs_tx_other_tx_r17;
+  max_num_of_semi_persistent_srs_pos_res_r17_e_ max_num_of_semi_persistent_srs_pos_res_r17;
+  max_num_of_semi_persistent_srs_pos_res_per_slot_r17_e_ max_num_of_semi_persistent_srs_pos_res_per_slot_r17;
+  // ...
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -4959,338 +5368,6 @@ struct prs_processing_cap_outside_m_gin_ppw_per_type_r17_s {
   ppw_dur_of_prs_processing_r17_c_                    ppw_dur_of_prs_processing_r17;
   ppw_max_num_of_dl_prs_res_processed_per_slot_r17_s_ ppw_max_num_of_dl_prs_res_processed_per_slot_r17;
   ppw_max_num_of_dl_bw_r17_c_                         ppw_max_num_of_dl_bw_r17;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// PosSRS-RRC-Inactive-OutsideInitialUL-BWP-r17 ::= SEQUENCE
-struct pos_srs_rrc_inactive_outside_init_ul_bwp_r17_s {
-  struct max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_opts {
-    enum options {
-      bw5,
-      bw10,
-      bw15,
-      bw20,
-      bw25,
-      bw30,
-      bw35,
-      bw40,
-      bw45,
-      bw50,
-      bw60,
-      bw70,
-      bw80,
-      bw90,
-      bw100,
-      nulltype
-    } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_e_ =
-      enumerated<max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_opts>;
-  struct max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_opts {
-    enum options { bw50, bw100, bw200, bw400, nulltype } value;
-    typedef uint16_t number_type;
-
-    const char* to_string() const;
-    uint16_t    to_number() const;
-  };
-  using max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_e_ =
-      enumerated<max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_opts>;
-  struct max_num_of_srs_pos_res_sets_r17_opts {
-    enum options { n1, n2, n4, n8, n12, n16, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_of_srs_pos_res_sets_r17_e_ = enumerated<max_num_of_srs_pos_res_sets_r17_opts>;
-  struct max_num_of_periodic_srs_pos_res_r17_opts {
-    enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_of_periodic_srs_pos_res_r17_e_ = enumerated<max_num_of_periodic_srs_pos_res_r17_opts>;
-  struct max_num_of_periodic_srs_pos_res_per_slot_r17_opts {
-    enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_of_periodic_srs_pos_res_per_slot_r17_e_ = enumerated<max_num_of_periodic_srs_pos_res_per_slot_r17_opts>;
-  struct max_num_of_periodic_and_semipersistent_srs_pos_res_r17_opts {
-    enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_of_periodic_and_semipersistent_srs_pos_res_r17_e_ =
-      enumerated<max_num_of_periodic_and_semipersistent_srs_pos_res_r17_opts>;
-  struct max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_opts {
-    enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_e_ =
-      enumerated<max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_opts>;
-  struct switching_time_srs_tx_other_tx_r17_opts {
-    enum options { us100, us140, us200, us300, us500, nulltype } value;
-    typedef uint16_t number_type;
-
-    const char* to_string() const;
-    uint16_t    to_number() const;
-  };
-  using switching_time_srs_tx_other_tx_r17_e_ = enumerated<switching_time_srs_tx_other_tx_r17_opts>;
-  struct max_num_of_semi_persistent_srs_pos_res_r17_opts {
-    enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_of_semi_persistent_srs_pos_res_r17_e_ = enumerated<max_num_of_semi_persistent_srs_pos_res_r17_opts>;
-  struct max_num_of_semi_persistent_srs_pos_res_per_slot_r17_opts {
-    enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_of_semi_persistent_srs_pos_res_per_slot_r17_e_ =
-      enumerated<max_num_of_semi_persistent_srs_pos_res_per_slot_r17_opts>;
-
-  // member variables
-  bool ext                                                                     = false;
-  bool max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_present                   = false;
-  bool max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_present                   = false;
-  bool max_num_of_srs_pos_res_sets_r17_present                                 = false;
-  bool max_num_of_periodic_srs_pos_res_r17_present                             = false;
-  bool max_num_of_periodic_srs_pos_res_per_slot_r17_present                    = false;
-  bool different_numerology_between_srs_pos_and_init_bwp_r17_present           = false;
-  bool srs_pos_without_restrict_on_bwp_r17_present                             = false;
-  bool max_num_of_periodic_and_semipersistent_srs_pos_res_r17_present          = false;
-  bool max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_present = false;
-  bool different_center_freq_between_srs_pos_and_init_bwp_r17_present          = false;
-  bool switching_time_srs_tx_other_tx_r17_present                              = false;
-  bool max_num_of_semi_persistent_srs_pos_res_r17_present                      = false;
-  bool max_num_of_semi_persistent_srs_pos_res_per_slot_r17_present             = false;
-  max_srs_pos_bw_for_each_scs_within_cc_fr1_r17_e_          max_srs_pos_bw_for_each_scs_within_cc_fr1_r17;
-  max_srs_pos_bw_for_each_scs_within_cc_fr2_r17_e_          max_srs_pos_bw_for_each_scs_within_cc_fr2_r17;
-  max_num_of_srs_pos_res_sets_r17_e_                        max_num_of_srs_pos_res_sets_r17;
-  max_num_of_periodic_srs_pos_res_r17_e_                    max_num_of_periodic_srs_pos_res_r17;
-  max_num_of_periodic_srs_pos_res_per_slot_r17_e_           max_num_of_periodic_srs_pos_res_per_slot_r17;
-  max_num_of_periodic_and_semipersistent_srs_pos_res_r17_e_ max_num_of_periodic_and_semipersistent_srs_pos_res_r17;
-  max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17_e_
-                                                max_num_of_periodic_and_semipersistent_srs_pos_res_per_slot_r17;
-  switching_time_srs_tx_other_tx_r17_e_         switching_time_srs_tx_other_tx_r17;
-  max_num_of_semi_persistent_srs_pos_res_r17_e_ max_num_of_semi_persistent_srs_pos_res_r17;
-  max_num_of_semi_persistent_srs_pos_res_per_slot_r17_e_ max_num_of_semi_persistent_srs_pos_res_per_slot_r17;
-  // ...
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SRS-AllPosResourcesRRC-Inactive-r17 ::= SEQUENCE
-struct srs_all_pos_res_rrc_inactive_r17_s {
-  struct srs_pos_res_rrc_inactive_r17_s_ {
-    struct max_num_srs_pos_res_set_per_bwp_r17_opts {
-      enum options { n1, n2, n4, n8, n12, n16, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using max_num_srs_pos_res_set_per_bwp_r17_e_ = enumerated<max_num_srs_pos_res_set_per_bwp_r17_opts>;
-    struct max_num_srs_pos_res_per_bwp_r17_opts {
-      enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using max_num_srs_pos_res_per_bwp_r17_e_ = enumerated<max_num_srs_pos_res_per_bwp_r17_opts>;
-    struct max_num_srs_res_per_bwp_per_slot_r17_opts {
-      enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using max_num_srs_res_per_bwp_per_slot_r17_e_ = enumerated<max_num_srs_res_per_bwp_per_slot_r17_opts>;
-    struct max_num_periodic_srs_pos_res_per_bwp_r17_opts {
-      enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using max_num_periodic_srs_pos_res_per_bwp_r17_e_ = enumerated<max_num_periodic_srs_pos_res_per_bwp_r17_opts>;
-    struct max_num_periodic_srs_pos_res_per_bwp_per_slot_r17_opts {
-      enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using max_num_periodic_srs_pos_res_per_bwp_per_slot_r17_e_ =
-        enumerated<max_num_periodic_srs_pos_res_per_bwp_per_slot_r17_opts>;
-    struct dummy1_opts {
-      enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using dummy1_e_ = enumerated<dummy1_opts>;
-    struct dummy2_opts {
-      enum options { n1, n2, n3, n4, n5, n6, n8, n10, n12, n14, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using dummy2_e_ = enumerated<dummy2_opts>;
-
-    // member variables
-    max_num_srs_pos_res_set_per_bwp_r17_e_               max_num_srs_pos_res_set_per_bwp_r17;
-    max_num_srs_pos_res_per_bwp_r17_e_                   max_num_srs_pos_res_per_bwp_r17;
-    max_num_srs_res_per_bwp_per_slot_r17_e_              max_num_srs_res_per_bwp_per_slot_r17;
-    max_num_periodic_srs_pos_res_per_bwp_r17_e_          max_num_periodic_srs_pos_res_per_bwp_r17;
-    max_num_periodic_srs_pos_res_per_bwp_per_slot_r17_e_ max_num_periodic_srs_pos_res_per_bwp_per_slot_r17;
-    dummy1_e_                                            dummy1;
-    dummy2_e_                                            dummy2;
-  };
-
-  // member variables
-  srs_pos_res_rrc_inactive_r17_s_ srs_pos_res_rrc_inactive_r17;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SharedSpectrumChAccessParamsPerBand-r16 ::= SEQUENCE
-struct shared_spec_ch_access_params_per_band_r16_s {
-  bool    ul_dyn_ch_access_r16_present                    = false;
-  bool    ul_semi_static_ch_access_r16_present            = false;
-  bool    ssb_rrm_dyn_ch_access_r16_present               = false;
-  bool    ssb_rrm_semi_static_ch_access_r16_present       = false;
-  bool    mib_acquisition_r16_present                     = false;
-  bool    ssb_rlm_dyn_ch_access_r16_present               = false;
-  bool    ssb_rlm_semi_static_ch_access_r16_present       = false;
-  bool    sib1_acquisition_r16_present                    = false;
-  bool    ext_ra_resp_win_r16_present                     = false;
-  bool    ssb_bfd_cbd_dyn_ch_access_r16_present           = false;
-  bool    ssb_bfd_cbd_semi_static_ch_access_r16_present   = false;
-  bool    csi_rs_bfd_cbd_r16_present                      = false;
-  bool    ul_ch_bw_scell_10mhz_r16_present                = false;
-  bool    rssi_ch_occupancy_report_r16_present            = false;
-  bool    srs_start_any_ofdm_symbol_r16_present           = false;
-  bool    search_space_freq_monitor_location_r16_present  = false;
-  bool    coreset_rb_offset_r16_present                   = false;
-  bool    cgi_acquisition_r16_present                     = false;
-  bool    cfg_ul_tx_r16_present                           = false;
-  bool    prach_wideband_r16_present                      = false;
-  bool    dci_available_rb_set_r16_present                = false;
-  bool    dci_ch_occupancy_dur_r16_present                = false;
-  bool    type_b_pdsch_len_r16_present                    = false;
-  bool    search_space_switch_with_dci_r16_present        = false;
-  bool    search_space_switch_without_dci_r16_present     = false;
-  bool    search_space_switch_cap2_r16_present            = false;
-  bool    non_numerical_pdsch_harq_timing_r16_present     = false;
-  bool    enhanced_dyn_harq_codebook_r16_present          = false;
-  bool    one_shot_harq_feedback_r16_present              = false;
-  bool    multi_pusch_ul_grant_r16_present                = false;
-  bool    csi_rs_rlm_r16_present                          = false;
-  bool    dummy_present                                   = false;
-  bool    periodic_and_semi_persistent_csi_rs_r16_present = false;
-  bool    pusch_prb_interlace_r16_present                 = false;
-  bool    pucch_f0_f1_prb_interlace_r16_present           = false;
-  bool    occ_prb_pf2_pf3_r16_present                     = false;
-  bool    ext_cp_range_cg_pusch_r16_present               = false;
-  bool    cfg_grant_with_re_tx_r16_present                = false;
-  bool    ed_thres_r16_present                            = false;
-  bool    ul_dl_cot_sharing_r16_present                   = false;
-  bool    mux_cg_uci_harq_ack_r16_present                 = false;
-  bool    cg_res_cfg_r16_present                          = false;
-  uint8_t search_space_freq_monitor_location_r16          = 1;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SharedSpectrumChAccessParamsPerBand-v1630 ::= SEQUENCE
-struct shared_spec_ch_access_params_per_band_v1630_s {
-  bool dl_reception_intra_cell_guardband_r16_present = false;
-  bool dl_reception_lbt_subset_rb_r16_present        = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SharedSpectrumChAccessParamsPerBand-v1640 ::= SEQUENCE
-struct shared_spec_ch_access_params_per_band_v1640_s {
-  bool csi_rsrp_and_rsrq_meas_with_ssb_r16_present    = false;
-  bool csi_rsrp_and_rsrq_meas_without_ssb_r16_present = false;
-  bool csi_sinr_meas_r16_present                      = false;
-  bool ssb_and_csi_rs_rlm_r16_present                 = false;
-  bool csi_rs_cfra_for_ho_r16_present                 = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SharedSpectrumChAccessParamsPerBand-v1650 ::= SEQUENCE
-struct shared_spec_ch_access_params_per_band_v1650_s {
-  bool extended_search_space_switch_with_dci_r16_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SharedSpectrumChAccessParamsPerBand-v1710 ::= SEQUENCE
-struct shared_spec_ch_access_params_per_band_v1710_s {
-  bool ul_semi_static_ch_access_dependent_cfg_r17_present   = false;
-  bool ul_semi_static_ch_access_independent_cfg_r17_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// SpatialRelationsSRS-Pos-r16 ::= SEQUENCE
-struct spatial_relations_srs_pos_r16_s {
-  bool spatial_relation_srs_pos_based_on_ssb_serving_r16_present    = false;
-  bool spatial_relation_srs_pos_based_on_csi_rs_serving_r16_present = false;
-  bool spatial_relation_srs_pos_based_on_prs_serving_r16_present    = false;
-  bool spatial_relation_srs_pos_based_on_srs_r16_present            = false;
-  bool spatial_relation_srs_pos_based_on_ssb_neigh_r16_present      = false;
-  bool spatial_relation_srs_pos_based_on_prs_neigh_r16_present      = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -6668,123 +6745,40 @@ struct band_sidelink_eutra_r16_s {
   void          to_json(json_writer& j) const;
 };
 
+// CRS-InterfMitigation-r17 ::= SEQUENCE
+struct crs_interf_mitigation_r17_s {
+  bool crs_im_dss_15k_hz_scs_r17_present         = false;
+  bool crs_im_non_dss_15k_hz_scs_r17_present     = false;
+  bool crs_im_non_dss_nwa_15k_hz_scs_r17_present = false;
+  bool crs_im_non_dss_30k_hz_scs_r17_present     = false;
+  bool crs_im_non_dss_nwa_30k_hz_scs_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CarrierAggregationVariant ::= SEQUENCE
+struct carrier_aggregation_variant_s {
+  bool fr1fdd_fr1_tdd_ca_sp_cell_on_fr1_fdd_present         = false;
+  bool fr1fdd_fr1_tdd_ca_sp_cell_on_fr1_tdd_present         = false;
+  bool fr1fdd_fr2_tdd_ca_sp_cell_on_fr1_fdd_present         = false;
+  bool fr1fdd_fr2_tdd_ca_sp_cell_on_fr2_tdd_present         = false;
+  bool fr1tdd_fr2_tdd_ca_sp_cell_on_fr1_tdd_present         = false;
+  bool fr1tdd_fr2_tdd_ca_sp_cell_on_fr2_tdd_present         = false;
+  bool fr1fdd_fr1_tdd_fr2_tdd_ca_sp_cell_on_fr1_fdd_present = false;
+  bool fr1fdd_fr1_tdd_fr2_tdd_ca_sp_cell_on_fr1_tdd_present = false;
+  bool fr1fdd_fr1_tdd_fr2_tdd_ca_sp_cell_on_fr2_tdd_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // CodebookVariantsList-r16 ::= SEQUENCE (SIZE (1..512)) OF SupportedCSI-RS-Resource
 using codebook_variants_list_r16_l = dyn_array<supported_csi_rs_res_s>;
-
-// EUTRA-ParametersCommon ::= SEQUENCE
-struct eutra_params_common_s {
-  bool                ext                                 = false;
-  bool                mfbi_eutra_present                  = false;
-  bool                modified_mpr_behavior_eutra_present = false;
-  bool                multi_ns_pmax_eutra_present         = false;
-  bool                rs_sinr_meas_eutra_present          = false;
-  fixed_bitstring<32> modified_mpr_behavior_eutra;
-  // ...
-  // group 0
-  bool ne_dc_present = false;
-  // group 1
-  bool nr_ho_to_en_dc_r16_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// EUTRA-ParametersXDD-Diff ::= SEQUENCE
-struct eutra_params_xdd_diff_s {
-  bool ext                              = false;
-  bool rsrq_meas_wideband_eutra_present = false;
-  // ...
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// EUTRA-Parameters ::= SEQUENCE
-struct eutra_params_s {
-  using supported_band_list_eutra_l_ = dyn_array<uint16_t>;
-
-  // member variables
-  bool                         ext                           = false;
-  bool                         eutra_params_common_present   = false;
-  bool                         eutra_params_xdd_diff_present = false;
-  supported_band_list_eutra_l_ supported_band_list_eutra;
-  eutra_params_common_s        eutra_params_common;
-  eutra_params_xdd_diff_s      eutra_params_xdd_diff;
-  // ...
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// FeatureSet ::= CHOICE
-struct feature_set_c {
-  struct eutra_s_ {
-    uint16_t dl_set_eutra = 0;
-    uint16_t ul_set_eutra = 0;
-  };
-  struct nr_s_ {
-    uint16_t dl_set_nr = 0;
-    uint16_t ul_set_nr = 0;
-  };
-  struct types_opts {
-    enum options { eutra, nr, nulltype } value;
-
-    const char* to_string() const;
-  };
-  using types = enumerated<types_opts>;
-
-  // choice methods
-  feature_set_c() = default;
-  feature_set_c(const feature_set_c& other);
-  feature_set_c& operator=(const feature_set_c& other);
-  ~feature_set_c() { destroy_(); }
-  void          set(types::options e = types::nulltype);
-  types         type() const { return type_; }
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-  // getters
-  eutra_s_& eutra()
-  {
-    assert_choice_type(types::eutra, type_, "FeatureSet");
-    return c.get<eutra_s_>();
-  }
-  nr_s_& nr()
-  {
-    assert_choice_type(types::nr, type_, "FeatureSet");
-    return c.get<nr_s_>();
-  }
-  const eutra_s_& eutra() const
-  {
-    assert_choice_type(types::eutra, type_, "FeatureSet");
-    return c.get<eutra_s_>();
-  }
-  const nr_s_& nr() const
-  {
-    assert_choice_type(types::nr, type_, "FeatureSet");
-    return c.get<nr_s_>();
-  }
-  eutra_s_& set_eutra();
-  nr_s_&    set_nr();
-
-private:
-  types                            type_;
-  choice_buffer_t<eutra_s_, nr_s_> c;
-
-  void destroy_();
-};
-
-// FeatureSetsPerBand ::= SEQUENCE (SIZE (1..128)) OF FeatureSet
-using feature_sets_per_band_l = dyn_array<feature_set_c>;
-
-// FeatureSetCombination ::= SEQUENCE (SIZE (1..32)) OF FeatureSetsPerBand
-using feature_set_combination_l = dyn_array<feature_sets_per_band_l>;
 
 // DummyA ::= SEQUENCE
 struct dummy_a_s {
@@ -7075,6 +7069,153 @@ struct dummy_e_s {
   void          to_json(json_writer& j) const;
 };
 
+// DummyF ::= SEQUENCE
+struct dummy_f_s {
+  uint8_t max_num_periodic_csi_report_per_bwp        = 1;
+  uint8_t max_num_aperiodic_csi_report_per_bwp       = 1;
+  uint8_t max_num_semi_persistent_csi_report_per_bwp = 0;
+  uint8_t simul_csi_reports_all_cc                   = 5;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// DummyI ::= SEQUENCE
+struct dummy_i_s {
+  struct supported_srs_tx_port_switch_opts {
+    enum options { t1r2, t1r4, t2r4, t1r4_t2r4, tr_equal, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using supported_srs_tx_port_switch_e_ = enumerated<supported_srs_tx_port_switch_opts>;
+
+  // member variables
+  bool                            tx_switch_impact_to_rx_present = false;
+  supported_srs_tx_port_switch_e_ supported_srs_tx_port_switch;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// EUTRA-ParametersCommon ::= SEQUENCE
+struct eutra_params_common_s {
+  bool                ext                                 = false;
+  bool                mfbi_eutra_present                  = false;
+  bool                modified_mpr_behavior_eutra_present = false;
+  bool                multi_ns_pmax_eutra_present         = false;
+  bool                rs_sinr_meas_eutra_present          = false;
+  fixed_bitstring<32> modified_mpr_behavior_eutra;
+  // ...
+  // group 0
+  bool ne_dc_present = false;
+  // group 1
+  bool nr_ho_to_en_dc_r16_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// EUTRA-ParametersXDD-Diff ::= SEQUENCE
+struct eutra_params_xdd_diff_s {
+  bool ext                              = false;
+  bool rsrq_meas_wideband_eutra_present = false;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// EUTRA-Parameters ::= SEQUENCE
+struct eutra_params_s {
+  using supported_band_list_eutra_l_ = dyn_array<uint16_t>;
+
+  // member variables
+  bool                         ext                           = false;
+  bool                         eutra_params_common_present   = false;
+  bool                         eutra_params_xdd_diff_present = false;
+  supported_band_list_eutra_l_ supported_band_list_eutra;
+  eutra_params_common_s        eutra_params_common;
+  eutra_params_xdd_diff_s      eutra_params_xdd_diff;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSet ::= CHOICE
+struct feature_set_c {
+  struct eutra_s_ {
+    uint16_t dl_set_eutra = 0;
+    uint16_t ul_set_eutra = 0;
+  };
+  struct nr_s_ {
+    uint16_t dl_set_nr = 0;
+    uint16_t ul_set_nr = 0;
+  };
+  struct types_opts {
+    enum options { eutra, nr, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using types = enumerated<types_opts>;
+
+  // choice methods
+  feature_set_c() = default;
+  feature_set_c(const feature_set_c& other);
+  feature_set_c& operator=(const feature_set_c& other);
+  ~feature_set_c() { destroy_(); }
+  void          set(types::options e = types::nulltype);
+  types         type() const { return type_; }
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+  // getters
+  eutra_s_& eutra()
+  {
+    assert_choice_type(types::eutra, type_, "FeatureSet");
+    return c.get<eutra_s_>();
+  }
+  nr_s_& nr()
+  {
+    assert_choice_type(types::nr, type_, "FeatureSet");
+    return c.get<nr_s_>();
+  }
+  const eutra_s_& eutra() const
+  {
+    assert_choice_type(types::eutra, type_, "FeatureSet");
+    return c.get<eutra_s_>();
+  }
+  const nr_s_& nr() const
+  {
+    assert_choice_type(types::nr, type_, "FeatureSet");
+    return c.get<nr_s_>();
+  }
+  eutra_s_& set_eutra();
+  nr_s_&    set_nr();
+
+private:
+  types                            type_;
+  choice_buffer_t<eutra_s_, nr_s_> c;
+
+  void destroy_();
+};
+
+// FeatureSetsPerBand ::= SEQUENCE (SIZE (1..128)) OF FeatureSet
+using feature_sets_per_band_l = dyn_array<feature_set_c>;
+
+// FeatureSetCombination ::= SEQUENCE (SIZE (1..32)) OF FeatureSetsPerBand
+using feature_set_combination_l = dyn_array<feature_sets_per_band_l>;
+
 // FreqSeparationClass ::= ENUMERATED
 struct freq_separation_class_opts {
   enum options { mhz800, mhz1200, mhz1400, /*...*/ mhz400_v1650, mhz600_v1650, nulltype } value;
@@ -7337,16 +7478,6 @@ struct feature_set_dl_v15a0_s {
   void          to_json(json_writer& j) const;
 };
 
-// FreqSeparationClassDL-Only-r16 ::= ENUMERATED
-struct freq_separation_class_dl_only_r16_opts {
-  enum options { mhz200, mhz400, mhz600, mhz800, mhz1000, mhz1200, nulltype } value;
-  typedef uint16_t number_type;
-
-  const char* to_string() const;
-  uint16_t    to_number() const;
-};
-using freq_separation_class_dl_only_r16_e = enumerated<freq_separation_class_dl_only_r16_opts>;
-
 // FreqSeparationClassDL-v1620 ::= ENUMERATED
 struct freq_separation_class_dl_v1620_opts {
   enum options { mhz1000, mhz1600, mhz1800, mhz2000, mhz2200, mhz2400, nulltype } value;
@@ -7356,6 +7487,16 @@ struct freq_separation_class_dl_v1620_opts {
   uint16_t    to_number() const;
 };
 using freq_separation_class_dl_v1620_e = enumerated<freq_separation_class_dl_v1620_opts>;
+
+// FreqSeparationClassDL-Only-r16 ::= ENUMERATED
+struct freq_separation_class_dl_only_r16_opts {
+  enum options { mhz200, mhz400, mhz600, mhz800, mhz1000, mhz1200, nulltype } value;
+  typedef uint16_t number_type;
+
+  const char* to_string() const;
+  uint16_t    to_number() const;
+};
+using freq_separation_class_dl_only_r16_e = enumerated<freq_separation_class_dl_only_r16_opts>;
 
 // PDCCH-MonitoringOccasions-r16 ::= SEQUENCE
 struct pdcch_monitoring_occasions_r16_s {
@@ -7673,16 +7814,88 @@ struct feature_set_dl_v1700_s {
   void          to_json(json_writer& j) const;
 };
 
-// ModulationOrder ::= ENUMERATED
-struct mod_order_opts {
-  enum options { bpsk_halfpi, bpsk, qpsk, qam16, qam64, qam256, nulltype } value;
-  typedef float number_type;
+// FeatureSetDownlink-v1720 ::= SEQUENCE
+struct feature_set_dl_v1720_s {
+  struct rtt_based_pdc_prs_r17_s_ {
+    struct max_num_prs_res_r17_opts {
+      enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
+      typedef uint8_t number_type;
 
-  const char* to_string() const;
-  float       to_number() const;
-  const char* to_number_string() const;
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using max_num_prs_res_r17_e_ = enumerated<max_num_prs_res_r17_opts>;
+    struct max_num_prs_res_processed_per_slot_r17_s_ {
+      struct scs_15k_hz_r17_opts {
+        enum options { n1, n2, n4, n6, n8, n12, n16, n24, n32, n48, n64, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using scs_15k_hz_r17_e_ = enumerated<scs_15k_hz_r17_opts>;
+      struct scs_30k_hz_r17_opts {
+        enum options { n1, n2, n4, n6, n8, n12, n16, n24, n32, n48, n64, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using scs_30k_hz_r17_e_ = enumerated<scs_30k_hz_r17_opts>;
+      struct scs_60k_hz_r17_opts {
+        enum options { n1, n2, n4, n6, n8, n12, n16, n24, n32, n48, n64, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using scs_60k_hz_r17_e_ = enumerated<scs_60k_hz_r17_opts>;
+      struct scs_120k_hz_r17_opts {
+        enum options { n1, n2, n4, n6, n8, n12, n16, n24, n32, n48, n64, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using scs_120k_hz_r17_e_ = enumerated<scs_120k_hz_r17_opts>;
+
+      // member variables
+      bool               scs_15k_hz_r17_present  = false;
+      bool               scs_30k_hz_r17_present  = false;
+      bool               scs_60k_hz_r17_present  = false;
+      bool               scs_120k_hz_r17_present = false;
+      scs_15k_hz_r17_e_  scs_15k_hz_r17;
+      scs_30k_hz_r17_e_  scs_30k_hz_r17;
+      scs_60k_hz_r17_e_  scs_60k_hz_r17;
+      scs_120k_hz_r17_e_ scs_120k_hz_r17;
+    };
+
+    // member variables
+    max_num_prs_res_r17_e_                    max_num_prs_res_r17;
+    max_num_prs_res_processed_per_slot_r17_s_ max_num_prs_res_processed_per_slot_r17;
+  };
+
+  // member variables
+  bool                     rtt_based_pdc_csi_rs_for_tracking_r17_present = false;
+  bool                     rtt_based_pdc_prs_r17_present                 = false;
+  bool                     sps_multicast_r17_present                     = false;
+  rtt_based_pdc_prs_r17_s_ rtt_based_pdc_prs_r17;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
 };
-using mod_order_e = enumerated<mod_order_opts>;
+
+// FeatureSetDownlink-v1730 ::= SEQUENCE
+struct feature_set_dl_v1730_s {
+  bool prs_as_spatial_relation_rs_for_srs_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
 
 // SupportedBandwidth ::= CHOICE
 struct supported_bw_c {
@@ -7752,6 +7965,17 @@ private:
   void destroy_();
 };
 
+// ModulationOrder ::= ENUMERATED
+struct mod_order_opts {
+  enum options { bpsk_halfpi, bpsk, qpsk, qam16, qam64, qam256, nulltype } value;
+  typedef float number_type;
+
+  const char* to_string() const;
+  float       to_number() const;
+  const char* to_number_string() const;
+};
+using mod_order_e = enumerated<mod_order_opts>;
+
 // FeatureSetDownlinkPerCC ::= SEQUENCE
 struct feature_set_dl_per_cc_s {
   bool                 ch_bw_90mhz_present               = false;
@@ -7803,20 +8027,6 @@ struct feature_set_dl_per_cc_v1620_s {
   bool                      multi_dci_multi_trp_r16_present  = false;
   bool                      support_fdm_scheme_b_r16_present = false;
   multi_dci_multi_trp_r16_s multi_dci_multi_trp_r16;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// CRS-InterfMitigation-r17 ::= SEQUENCE
-struct crs_interf_mitigation_r17_s {
-  bool crs_im_dss_15k_hz_scs_r17_present         = false;
-  bool crs_im_non_dss_15k_hz_scs_r17_present     = false;
-  bool crs_im_non_dss_nwa_15k_hz_scs_r17_present = false;
-  bool crs_im_non_dss_30k_hz_scs_r17_present     = false;
-  bool crs_im_non_dss_nwa_30k_hz_scs_r17_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -7938,12 +8148,23 @@ struct feature_set_dl_per_cc_v1700_s {
   void          to_json(json_writer& j) const;
 };
 
-// DummyF ::= SEQUENCE
-struct dummy_f_s {
-  uint8_t max_num_periodic_csi_report_per_bwp        = 1;
-  uint8_t max_num_aperiodic_csi_report_per_bwp       = 1;
-  uint8_t max_num_semi_persistent_csi_report_per_bwp = 0;
-  uint8_t simul_csi_reports_all_cc                   = 5;
+// FeatureSetDownlinkPerCC-v1720 ::= SEQUENCE
+struct feature_set_dl_per_cc_v1720_s {
+  struct max_mod_order_for_multicast_data_rate_calculation_r17_opts {
+    enum options { qam64, qam256, qam1024, nulltype } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using max_mod_order_for_multicast_data_rate_calculation_r17_e_ =
+      enumerated<max_mod_order_for_multicast_data_rate_calculation_r17_opts>;
+
+  // member variables
+  bool max_mod_order_for_multicast_data_rate_calculation_r17_present = false;
+  bool fdm_broadcast_unicast_r17_present                             = false;
+  bool fdm_multicast_unicast_r17_present                             = false;
+  max_mod_order_for_multicast_data_rate_calculation_r17_e_ max_mod_order_for_multicast_data_rate_calculation_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -7951,18 +8172,23 @@ struct dummy_f_s {
   void          to_json(json_writer& j) const;
 };
 
-// DummyI ::= SEQUENCE
-struct dummy_i_s {
-  struct supported_srs_tx_port_switch_opts {
-    enum options { t1r2, t1r4, t2r4, t1r4_t2r4, tr_equal, nulltype } value;
+// FeatureSetDownlinkPerCC-v1730 ::= SEQUENCE
+struct feature_set_dl_per_cc_v1730_s {
+  struct intra_slot_tdm_unicast_group_common_pdsch_r17_opts {
+    enum options { yes, no, nulltype } value;
 
     const char* to_string() const;
   };
-  using supported_srs_tx_port_switch_e_ = enumerated<supported_srs_tx_port_switch_opts>;
+  using intra_slot_tdm_unicast_group_common_pdsch_r17_e_ =
+      enumerated<intra_slot_tdm_unicast_group_common_pdsch_r17_opts>;
 
   // member variables
-  bool                            tx_switch_impact_to_rx_present = false;
-  supported_srs_tx_port_switch_e_ supported_srs_tx_port_switch;
+  bool                                             intra_slot_tdm_unicast_group_common_pdsch_r17_present = false;
+  bool                                             sps_multicast_scell_r17_present                       = false;
+  bool                                             sps_multicast_scell_multi_cfg_r17_present             = false;
+  bool                                             dci_broadcast_with16_repeats_r17_present              = false;
+  intra_slot_tdm_unicast_group_common_pdsch_r17_e_ intra_slot_tdm_unicast_group_common_pdsch_r17;
+  uint8_t                                          sps_multicast_scell_multi_cfg_r17 = 1;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -8375,6 +8601,21 @@ struct feature_set_ul_v1610_s {
   void          to_json(json_writer& j) const;
 };
 
+// FeatureSetUplink-v1630 ::= SEQUENCE
+struct feature_set_ul_v1630_s {
+  bool offset_srs_cb_pusch_ant_switch_fr1_r16_present                        = false;
+  bool offset_srs_cb_pusch_pdcch_monitor_single_occ_fr1_r16_present          = false;
+  bool offset_srs_cb_pusch_pdcch_monitor_any_occ_without_gap_fr1_r16_present = false;
+  bool offset_srs_cb_pusch_pdcch_monitor_any_occ_with_gap_fr1_r16_present    = false;
+  bool dummy_present                                                         = false;
+  bool partial_cancellation_pucch_pusch_prach_tx_r16_present                 = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // SubSlot-Config-r16 ::= SEQUENCE
 struct sub_slot_cfg_r16_s {
   struct sub_slot_cfg_n_cp_r16_opts {
@@ -8451,212 +8692,6 @@ struct feature_set_ul_v1640_s {
   sub_slot_cfg_r16_s two_harq_ack_codebook_type2_r16;
   offset_srs_cb_pusch_pdcch_monitor_any_occ_with_span_gap_fr1_r16_s_
       offset_srs_cb_pusch_pdcch_monitor_any_occ_with_span_gap_fr1_r16;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// FeatureSetUplinkPerCC ::= SEQUENCE
-struct feature_set_ul_per_cc_s {
-  struct mimo_cb_pusch_s_ {
-    bool             max_num_mimo_layers_cb_pusch_present = false;
-    mimo_layers_ul_e max_num_mimo_layers_cb_pusch;
-    uint8_t          max_num_srs_res_per_set = 1;
-  };
-
-  // member variables
-  bool                 ch_bw_90mhz_present                      = false;
-  bool                 mimo_cb_pusch_present                    = false;
-  bool                 max_num_mimo_layers_non_cb_pusch_present = false;
-  bool                 supported_mod_order_ul_present           = false;
-  subcarrier_spacing_e supported_subcarrier_spacing_ul;
-  supported_bw_c       supported_bw_ul;
-  mimo_cb_pusch_s_     mimo_cb_pusch;
-  mimo_layers_ul_e     max_num_mimo_layers_non_cb_pusch;
-  mod_order_e          supported_mod_order_ul;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// FeatureSetUplinkPerCC-v1700 ::= SEQUENCE
-struct feature_set_ul_per_cc_v1700_s {
-  struct mtrp_pusch_repeat_type_b_r17_opts {
-    enum options { n1, n2, n3, n4, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using mtrp_pusch_repeat_type_b_r17_e_ = enumerated<mtrp_pusch_repeat_type_b_r17_opts>;
-  struct mtrp_pusch_type_b_cb_r17_opts {
-    enum options { n1, n2, n4, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using mtrp_pusch_type_b_cb_r17_e_ = enumerated<mtrp_pusch_type_b_cb_r17_opts>;
-
-  // member variables
-  bool                            supported_min_bw_ul_r17_present      = false;
-  bool                            mtrp_pusch_repeat_type_b_r17_present = false;
-  bool                            mtrp_pusch_type_b_cb_r17_present     = false;
-  bool                            supported_bw_ul_v1710_present        = false;
-  supported_bw_v1700_c            supported_min_bw_ul_r17;
-  mtrp_pusch_repeat_type_b_r17_e_ mtrp_pusch_repeat_type_b_r17;
-  mtrp_pusch_type_b_cb_r17_e_     mtrp_pusch_type_b_cb_r17;
-  supported_bw_v1700_c            supported_bw_ul_v1710;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// FeatureSetDownlink-v1720 ::= SEQUENCE
-struct feature_set_dl_v1720_s {
-  struct rtt_based_pdc_prs_r17_s_ {
-    struct max_num_prs_res_r17_opts {
-      enum options { n1, n2, n4, n8, n16, n32, n64, nulltype } value;
-      typedef uint8_t number_type;
-
-      const char* to_string() const;
-      uint8_t     to_number() const;
-    };
-    using max_num_prs_res_r17_e_ = enumerated<max_num_prs_res_r17_opts>;
-    struct max_num_prs_res_processed_per_slot_r17_s_ {
-      struct scs_15k_hz_r17_opts {
-        enum options { n1, n2, n4, n6, n8, n12, n16, n24, n32, n48, n64, nulltype } value;
-        typedef uint8_t number_type;
-
-        const char* to_string() const;
-        uint8_t     to_number() const;
-      };
-      using scs_15k_hz_r17_e_ = enumerated<scs_15k_hz_r17_opts>;
-      struct scs_30k_hz_r17_opts {
-        enum options { n1, n2, n4, n6, n8, n12, n16, n24, n32, n48, n64, nulltype } value;
-        typedef uint8_t number_type;
-
-        const char* to_string() const;
-        uint8_t     to_number() const;
-      };
-      using scs_30k_hz_r17_e_ = enumerated<scs_30k_hz_r17_opts>;
-      struct scs_60k_hz_r17_opts {
-        enum options { n1, n2, n4, n6, n8, n12, n16, n24, n32, n48, n64, nulltype } value;
-        typedef uint8_t number_type;
-
-        const char* to_string() const;
-        uint8_t     to_number() const;
-      };
-      using scs_60k_hz_r17_e_ = enumerated<scs_60k_hz_r17_opts>;
-      struct scs_120k_hz_r17_opts {
-        enum options { n1, n2, n4, n6, n8, n12, n16, n24, n32, n48, n64, nulltype } value;
-        typedef uint8_t number_type;
-
-        const char* to_string() const;
-        uint8_t     to_number() const;
-      };
-      using scs_120k_hz_r17_e_ = enumerated<scs_120k_hz_r17_opts>;
-
-      // member variables
-      bool               scs_15k_hz_r17_present  = false;
-      bool               scs_30k_hz_r17_present  = false;
-      bool               scs_60k_hz_r17_present  = false;
-      bool               scs_120k_hz_r17_present = false;
-      scs_15k_hz_r17_e_  scs_15k_hz_r17;
-      scs_30k_hz_r17_e_  scs_30k_hz_r17;
-      scs_60k_hz_r17_e_  scs_60k_hz_r17;
-      scs_120k_hz_r17_e_ scs_120k_hz_r17;
-    };
-
-    // member variables
-    max_num_prs_res_r17_e_                    max_num_prs_res_r17;
-    max_num_prs_res_processed_per_slot_r17_s_ max_num_prs_res_processed_per_slot_r17;
-  };
-
-  // member variables
-  bool                     rtt_based_pdc_csi_rs_for_tracking_r17_present = false;
-  bool                     rtt_based_pdc_prs_r17_present                 = false;
-  bool                     sps_multicast_r17_present                     = false;
-  rtt_based_pdc_prs_r17_s_ rtt_based_pdc_prs_r17;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// FeatureSetDownlink-v1730 ::= SEQUENCE
-struct feature_set_dl_v1730_s {
-  bool prs_as_spatial_relation_rs_for_srs_r17_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// FeatureSetDownlinkPerCC-v1720 ::= SEQUENCE
-struct feature_set_dl_per_cc_v1720_s {
-  struct max_mod_order_for_multicast_data_rate_calculation_r17_opts {
-    enum options { qam64, qam256, qam1024, nulltype } value;
-    typedef uint16_t number_type;
-
-    const char* to_string() const;
-    uint16_t    to_number() const;
-  };
-  using max_mod_order_for_multicast_data_rate_calculation_r17_e_ =
-      enumerated<max_mod_order_for_multicast_data_rate_calculation_r17_opts>;
-
-  // member variables
-  bool max_mod_order_for_multicast_data_rate_calculation_r17_present = false;
-  bool fdm_broadcast_unicast_r17_present                             = false;
-  bool fdm_multicast_unicast_r17_present                             = false;
-  max_mod_order_for_multicast_data_rate_calculation_r17_e_ max_mod_order_for_multicast_data_rate_calculation_r17;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// FeatureSetDownlinkPerCC-v1730 ::= SEQUENCE
-struct feature_set_dl_per_cc_v1730_s {
-  struct intra_slot_tdm_unicast_group_common_pdsch_r17_opts {
-    enum options { yes, no, nulltype } value;
-
-    const char* to_string() const;
-  };
-  using intra_slot_tdm_unicast_group_common_pdsch_r17_e_ =
-      enumerated<intra_slot_tdm_unicast_group_common_pdsch_r17_opts>;
-
-  // member variables
-  bool                                             intra_slot_tdm_unicast_group_common_pdsch_r17_present = false;
-  bool                                             sps_multicast_scell_r17_present                       = false;
-  bool                                             sps_multicast_scell_multi_cfg_r17_present             = false;
-  bool                                             dci_broadcast_with16_repeats_r17_present              = false;
-  intra_slot_tdm_unicast_group_common_pdsch_r17_e_ intra_slot_tdm_unicast_group_common_pdsch_r17;
-  uint8_t                                          sps_multicast_scell_multi_cfg_r17 = 1;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// FeatureSetUplink-v1630 ::= SEQUENCE
-struct feature_set_ul_v1630_s {
-  bool offset_srs_cb_pusch_ant_switch_fr1_r16_present                        = false;
-  bool offset_srs_cb_pusch_pdcch_monitor_single_occ_fr1_r16_present          = false;
-  bool offset_srs_cb_pusch_pdcch_monitor_any_occ_without_gap_fr1_r16_present = false;
-  bool offset_srs_cb_pusch_pdcch_monitor_any_occ_with_gap_fr1_r16_present    = false;
-  bool dummy_present                                                         = false;
-  bool partial_cancellation_pucch_pusch_prach_tx_r16_present                 = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -8816,6 +8851,31 @@ struct feature_set_ul_v1720_s {
   void          to_json(json_writer& j) const;
 };
 
+// FeatureSetUplinkPerCC ::= SEQUENCE
+struct feature_set_ul_per_cc_s {
+  struct mimo_cb_pusch_s_ {
+    bool             max_num_mimo_layers_cb_pusch_present = false;
+    mimo_layers_ul_e max_num_mimo_layers_cb_pusch;
+    uint8_t          max_num_srs_res_per_set = 1;
+  };
+
+  // member variables
+  bool                 ch_bw_90mhz_present                      = false;
+  bool                 mimo_cb_pusch_present                    = false;
+  bool                 max_num_mimo_layers_non_cb_pusch_present = false;
+  bool                 supported_mod_order_ul_present           = false;
+  subcarrier_spacing_e supported_subcarrier_spacing_ul;
+  supported_bw_c       supported_bw_ul;
+  mimo_cb_pusch_s_     mimo_cb_pusch;
+  mimo_layers_ul_e     max_num_mimo_layers_non_cb_pusch;
+  mod_order_e          supported_mod_order_ul;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // FeatureSetUplinkPerCC-v1540 ::= SEQUENCE
 struct feature_set_ul_per_cc_v1540_s {
   struct mimo_non_cb_pusch_s_ {
@@ -8826,6 +8886,41 @@ struct feature_set_ul_per_cc_v1540_s {
   // member variables
   bool                 mimo_non_cb_pusch_present = false;
   mimo_non_cb_pusch_s_ mimo_non_cb_pusch;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSetUplinkPerCC-v1700 ::= SEQUENCE
+struct feature_set_ul_per_cc_v1700_s {
+  struct mtrp_pusch_repeat_type_b_r17_opts {
+    enum options { n1, n2, n3, n4, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using mtrp_pusch_repeat_type_b_r17_e_ = enumerated<mtrp_pusch_repeat_type_b_r17_opts>;
+  struct mtrp_pusch_type_b_cb_r17_opts {
+    enum options { n1, n2, n4, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using mtrp_pusch_type_b_cb_r17_e_ = enumerated<mtrp_pusch_type_b_cb_r17_opts>;
+
+  // member variables
+  bool                            supported_min_bw_ul_r17_present      = false;
+  bool                            mtrp_pusch_repeat_type_b_r17_present = false;
+  bool                            mtrp_pusch_type_b_cb_r17_present     = false;
+  bool                            supported_bw_ul_v1710_present        = false;
+  supported_bw_v1700_c            supported_min_bw_ul_r17;
+  mtrp_pusch_repeat_type_b_r17_e_ mtrp_pusch_repeat_type_b_r17;
+  mtrp_pusch_type_b_cb_r17_e_     mtrp_pusch_type_b_cb_r17;
+  supported_bw_v1700_c            supported_bw_ul_v1710;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -8897,34 +8992,6 @@ struct feature_sets_s {
   OCUDUASN_CODE unpack(cbit_ref& bref);
   void          to_json(json_writer& j) const;
 };
-
-// AggregatedBandwidth ::= ENUMERATED
-struct aggr_bw_opts {
-  enum options {
-    mhz50,
-    mhz100,
-    mhz150,
-    mhz200,
-    mhz250,
-    mhz300,
-    mhz350,
-    mhz400,
-    mhz450,
-    mhz500,
-    mhz550,
-    mhz600,
-    mhz650,
-    mhz700,
-    mhz750,
-    mhz800,
-    nulltype
-  } value;
-  typedef uint16_t number_type;
-
-  const char* to_string() const;
-  uint16_t    to_number() const;
-};
-using aggr_bw_e = enumerated<aggr_bw_opts>;
 
 // FreqBandInformationEUTRA ::= SEQUENCE
 struct freq_band_info_eutra_s {
@@ -9010,6 +9077,77 @@ private:
 
 // FreqBandList ::= SEQUENCE (SIZE (1..1280)) OF FreqBandInformation
 using freq_band_list_l = dyn_array<freq_band_info_c>;
+
+// GeneralParametersMRDC-XDD-Diff ::= SEQUENCE
+struct general_params_mrdc_xdd_diff_s {
+  bool ext                                    = false;
+  bool split_srb_with_one_ul_path_present     = false;
+  bool split_drb_with_ul_both_mcg_scg_present = false;
+  bool srb3_present                           = false;
+  bool dummy_present                          = false;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// GeneralParametersMRDC-v1610 ::= SEQUENCE
+struct general_params_mrdc_v1610_s {
+  bool f1c_over_eutra_r16_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// HighSpeedParameters-r16 ::= SEQUENCE
+struct high_speed_params_r16_s {
+  bool meas_enhancement_r16_present  = false;
+  bool demod_enhancement_r16_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// HighSpeedParameters-v1650 ::= CHOICE
+struct high_speed_params_v1650_c {
+  struct types_opts {
+    enum options { intra_nr_meas_enhancement_r16, inter_rat_meas_enhancement_r16, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using types = enumerated<types_opts>;
+
+  // choice methods
+  high_speed_params_v1650_c() = default;
+  void          set(types::options e = types::nulltype);
+  types         type() const { return type_; }
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+  // getters
+  void set_intra_nr_meas_enhancement_r16();
+  void set_inter_rat_meas_enhancement_r16();
+
+private:
+  types type_;
+};
+
+// HighSpeedParameters-v1700 ::= SEQUENCE
+struct high_speed_params_v1700_s {
+  bool meas_enhancement_ca_r17_present         = false;
+  bool meas_enhancement_inter_freq_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
 
 // IMS-ParametersCommon ::= SEQUENCE
 struct ims_params_common_s {
@@ -9437,6 +9575,17 @@ struct mac_params_sidelink_r16_s {
   void          to_json(json_writer& j) const;
 };
 
+// MBS-Parameters-r17 ::= SEQUENCE
+struct mbs_params_r17_s {
+  bool    max_mrb_add_r17_present = false;
+  uint8_t max_mrb_add_r17         = 1;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // MeasAndMobParametersCommon ::= SEQUENCE
 struct meas_and_mob_params_common_s {
   struct max_num_csi_rs_rrm_rs_sinr_opts {
@@ -9595,6 +9744,28 @@ struct meas_and_mob_params_common_s {
   void          to_json(json_writer& j) const;
 };
 
+// MeasAndMobParametersXDD-Diff ::= SEQUENCE
+struct meas_and_mob_params_xdd_diff_s {
+  bool ext                                       = false;
+  bool intra_and_inter_f_meas_and_report_present = false;
+  bool event_a_meas_and_report_present           = false;
+  // ...
+  // group 0
+  bool ho_inter_f_present  = false;
+  bool ho_lte_epc_present  = false;
+  bool ho_lte_5_gc_present = false;
+  // group 1
+  bool sftd_meas_nr_neigh_present     = false;
+  bool sftd_meas_nr_neigh_drx_present = false;
+  // group 2
+  bool dummy_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // MeasAndMobParametersFRX-Diff ::= SEQUENCE
 struct meas_and_mob_params_frx_diff_s {
   struct max_num_res_csi_rs_rlm_opts {
@@ -9637,28 +9808,6 @@ struct meas_and_mob_params_frx_diff_s {
   bool idle_inactive_nr_meas_beam_report_r16_present       = false;
   // group 4
   bool increased_numof_csi_rs_per_mo_r16_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// MeasAndMobParametersXDD-Diff ::= SEQUENCE
-struct meas_and_mob_params_xdd_diff_s {
-  bool ext                                       = false;
-  bool intra_and_inter_f_meas_and_report_present = false;
-  bool event_a_meas_and_report_present           = false;
-  // ...
-  // group 0
-  bool ho_inter_f_present  = false;
-  bool ho_lte_epc_present  = false;
-  bool ho_lte_5_gc_present = false;
-  // group 1
-  bool sftd_meas_nr_neigh_present     = false;
-  bool sftd_meas_nr_neigh_drx_present = false;
-  // group 2
-  bool dummy_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -9717,9 +9866,10 @@ struct meas_and_mob_params_mrdc_common_s {
   void          to_json(json_writer& j) const;
 };
 
-// MeasAndMobParametersMRDC-FRX-Diff ::= SEQUENCE
-struct meas_and_mob_params_mrdc_frx_diff_s {
-  bool simul_rx_data_ssb_diff_numerology_present = false;
+// MeasAndMobParametersMRDC-XDD-Diff ::= SEQUENCE
+struct meas_and_mob_params_mrdc_xdd_diff_s {
+  bool sftd_meas_pscell_present  = false;
+  bool sftd_meas_nr_cell_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -9727,10 +9877,9 @@ struct meas_and_mob_params_mrdc_frx_diff_s {
   void          to_json(json_writer& j) const;
 };
 
-// MeasAndMobParametersMRDC-XDD-Diff ::= SEQUENCE
-struct meas_and_mob_params_mrdc_xdd_diff_s {
-  bool sftd_meas_pscell_present  = false;
-  bool sftd_meas_nr_cell_present = false;
+// MeasAndMobParametersMRDC-FRX-Diff ::= SEQUENCE
+struct meas_and_mob_params_mrdc_frx_diff_s {
+  bool simul_rx_data_ssb_diff_numerology_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -9753,27 +9902,6 @@ struct meas_and_mob_params_mrdc_s {
   void          to_json(json_writer& j) const;
 };
 
-// MeasAndMobParametersMRDC-XDD-Diff-v1560 ::= SEQUENCE
-struct meas_and_mob_params_mrdc_xdd_diff_v1560_s {
-  bool sftd_meas_pscell_nedc_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// MeasAndMobParametersMRDC-v1560 ::= SEQUENCE
-struct meas_and_mob_params_mrdc_v1560_s {
-  bool                                      meas_and_mob_params_mrdc_xdd_diff_v1560_present = false;
-  meas_and_mob_params_mrdc_xdd_diff_v1560_s meas_and_mob_params_mrdc_xdd_diff_v1560;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // MeasAndMobParametersMRDC-Common-v1610 ::= SEQUENCE
 struct meas_and_mob_params_mrdc_common_v1610_s {
   struct cond_pscell_change_params_common_r16_s_ {
@@ -9785,18 +9913,6 @@ struct meas_and_mob_params_mrdc_common_v1610_s {
   bool                                    cond_pscell_change_params_common_r16_present = false;
   bool                                    pscell_t312_r16_present                      = false;
   cond_pscell_change_params_common_r16_s_ cond_pscell_change_params_common_r16;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// MeasAndMobParametersMRDC-v1610 ::= SEQUENCE
-struct meas_and_mob_params_mrdc_v1610_s {
-  bool                                    meas_and_mob_params_mrdc_common_v1610_present = false;
-  bool                                    inter_nr_meas_eutra_iab_r16_present           = false;
-  meas_and_mob_params_mrdc_common_v1610_s meas_and_mob_params_mrdc_common_v1610;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -9831,17 +9947,6 @@ struct meas_and_mob_params_mrdc_common_v1700_s {
   void          to_json(json_writer& j) const;
 };
 
-// MeasAndMobParametersMRDC-v1700 ::= SEQUENCE
-struct meas_and_mob_params_mrdc_v1700_s {
-  bool                                    meas_and_mob_params_mrdc_common_v1700_present = false;
-  meas_and_mob_params_mrdc_common_v1700_s meas_and_mob_params_mrdc_common_v1700;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // MeasAndMobParametersMRDC-Common-v1730 ::= SEQUENCE
 struct meas_and_mob_params_mrdc_common_v1730_s {
   struct independent_gap_cfg_max_cc_r17_s_ {
@@ -9862,6 +9967,50 @@ struct meas_and_mob_params_mrdc_common_v1730_s {
   void          to_json(json_writer& j) const;
 };
 
+// MeasAndMobParametersMRDC-XDD-Diff-v1560 ::= SEQUENCE
+struct meas_and_mob_params_mrdc_xdd_diff_v1560_s {
+  bool sftd_meas_pscell_nedc_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MeasAndMobParametersMRDC-v1560 ::= SEQUENCE
+struct meas_and_mob_params_mrdc_v1560_s {
+  bool                                      meas_and_mob_params_mrdc_xdd_diff_v1560_present = false;
+  meas_and_mob_params_mrdc_xdd_diff_v1560_s meas_and_mob_params_mrdc_xdd_diff_v1560;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MeasAndMobParametersMRDC-v1610 ::= SEQUENCE
+struct meas_and_mob_params_mrdc_v1610_s {
+  bool                                    meas_and_mob_params_mrdc_common_v1610_present = false;
+  bool                                    inter_nr_meas_eutra_iab_r16_present           = false;
+  meas_and_mob_params_mrdc_common_v1610_s meas_and_mob_params_mrdc_common_v1610;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MeasAndMobParametersMRDC-v1700 ::= SEQUENCE
+struct meas_and_mob_params_mrdc_v1700_s {
+  bool                                    meas_and_mob_params_mrdc_common_v1700_present = false;
+  meas_and_mob_params_mrdc_common_v1700_s meas_and_mob_params_mrdc_common_v1700;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // MeasAndMobParametersMRDC-v1730 ::= SEQUENCE
 struct meas_and_mob_params_mrdc_v1730_s {
   bool                                    meas_and_mob_params_mrdc_common_v1730_present = false;
@@ -9873,24 +10022,40 @@ struct meas_and_mob_params_mrdc_v1730_s {
   void          to_json(json_writer& j) const;
 };
 
-// GeneralParametersMRDC-XDD-Diff ::= SEQUENCE
-struct general_params_mrdc_xdd_diff_s {
-  bool ext                                    = false;
-  bool split_srb_with_one_ul_path_present     = false;
-  bool split_drb_with_ul_both_mcg_scg_present = false;
-  bool srb3_present                           = false;
-  bool dummy_present                          = false;
+// NAICS-Capability-Entry ::= SEQUENCE
+struct naics_cap_entry_s {
+  struct nof_aggr_prb_opts {
+    enum options {
+      n50,
+      n75,
+      n100,
+      n125,
+      n150,
+      n175,
+      n200,
+      n225,
+      n250,
+      n275,
+      n300,
+      n350,
+      n400,
+      n450,
+      n500,
+      spare,
+      nulltype
+    } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using nof_aggr_prb_e_ = enumerated<nof_aggr_prb_opts>;
+
+  // member variables
+  bool            ext                  = false;
+  uint8_t         nof_naics_capable_cc = 1;
+  nof_aggr_prb_e_ nof_aggr_prb;
   // ...
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UE-MRDC-CapabilityAddFRX-Mode ::= SEQUENCE
-struct ue_mrdc_cap_add_frx_mode_s {
-  meas_and_mob_params_mrdc_frx_diff_s meas_and_mob_params_mrdc_frx_diff;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -9904,6 +10069,16 @@ struct ue_mrdc_cap_add_xdd_mode_s {
   bool                                general_params_mrdc_xdd_diff_present      = false;
   meas_and_mob_params_mrdc_xdd_diff_s meas_and_mob_params_mrdc_xdd_diff;
   general_params_mrdc_xdd_diff_s      general_params_mrdc_xdd_diff;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UE-MRDC-CapabilityAddFRX-Mode ::= SEQUENCE
+struct ue_mrdc_cap_add_frx_mode_s {
+  meas_and_mob_params_mrdc_frx_diff_s meas_and_mob_params_mrdc_frx_diff;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -9934,6 +10109,16 @@ struct nrdc_params_s {
   void          to_json(json_writer& j) const;
 };
 
+// NRDC-Parameters-v1570 ::= SEQUENCE
+struct nrdc_params_v1570_s {
+  bool sfn_sync_nrdc_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // NRDC-Parameters-v1610 ::= SEQUENCE
 struct nrdc_params_v1610_s {
   bool                             meas_and_mob_params_nrdc_v1610_present = false;
@@ -9949,24 +10134,6 @@ struct nrdc_params_v1610_s {
 struct nrdc_params_v1700_s {
   bool                             f1c_over_nr_rrc_r17_present = false;
   meas_and_mob_params_mrdc_v1700_s meas_and_mob_params_nrdc_v1700;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// CarrierAggregationVariant ::= SEQUENCE
-struct carrier_aggregation_variant_s {
-  bool fr1fdd_fr1_tdd_ca_sp_cell_on_fr1_fdd_present         = false;
-  bool fr1fdd_fr1_tdd_ca_sp_cell_on_fr1_tdd_present         = false;
-  bool fr1fdd_fr2_tdd_ca_sp_cell_on_fr1_fdd_present         = false;
-  bool fr1fdd_fr2_tdd_ca_sp_cell_on_fr2_tdd_present         = false;
-  bool fr1tdd_fr2_tdd_ca_sp_cell_on_fr1_tdd_present         = false;
-  bool fr1tdd_fr2_tdd_ca_sp_cell_on_fr2_tdd_present         = false;
-  bool fr1fdd_fr1_tdd_fr2_tdd_ca_sp_cell_on_fr1_fdd_present = false;
-  bool fr1fdd_fr1_tdd_fr2_tdd_ca_sp_cell_on_fr1_tdd_present = false;
-  bool fr1fdd_fr1_tdd_fr2_tdd_ca_sp_cell_on_fr2_tdd_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -10330,124 +10497,18 @@ struct phy_params_common_s {
   void          to_json(json_writer& j) const;
 };
 
-// Phy-ParametersFR1 ::= SEQUENCE
-struct phy_params_fr1_s {
-  struct pdsch_re_map_fr1_per_symbol_opts {
-    enum options { n10, n20, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using pdsch_re_map_fr1_per_symbol_e_ = enumerated<pdsch_re_map_fr1_per_symbol_opts>;
-  struct pdsch_re_map_fr1_per_slot_opts {
-    enum options {
-      n16,
-      n32,
-      n48,
-      n64,
-      n80,
-      n96,
-      n112,
-      n128,
-      n144,
-      n160,
-      n176,
-      n192,
-      n208,
-      n224,
-      n240,
-      n256,
-      nulltype
-    } value;
-    typedef uint16_t number_type;
-
-    const char* to_string() const;
-    uint16_t    to_number() const;
-  };
-  using pdsch_re_map_fr1_per_slot_e_ = enumerated<pdsch_re_map_fr1_per_slot_opts>;
-
-  // member variables
-  bool                           ext                                      = false;
-  bool                           pdcch_monitoring_single_occasion_present = false;
-  bool                           scs_60k_hz_present                       = false;
-  bool                           pdsch_256_qam_fr1_present                = false;
-  bool                           pdsch_re_map_fr1_per_symbol_present      = false;
-  pdsch_re_map_fr1_per_symbol_e_ pdsch_re_map_fr1_per_symbol;
+// Phy-ParametersXDD-Diff ::= SEQUENCE
+struct phy_params_xdd_diff_s {
+  bool ext                                   = false;
+  bool dyn_sfi_present                       = false;
+  bool two_pucch_f0_2_consec_symbols_present = false;
+  bool two_different_tpc_loop_pusch_present  = false;
+  bool two_different_tpc_loop_pucch_present  = false;
   // ...
   // group 0
-  bool                         pdsch_re_map_fr1_per_slot_present = false;
-  pdsch_re_map_fr1_per_slot_e_ pdsch_re_map_fr1_per_slot;
-  // group 1
-  bool pdcch_monitoring_single_span_first4_sym_r16_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// Phy-ParametersFR2 ::= SEQUENCE
-struct phy_params_fr2_s {
-  struct pdsch_re_map_fr2_per_symbol_opts {
-    enum options { n6, n20, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using pdsch_re_map_fr2_per_symbol_e_ = enumerated<pdsch_re_map_fr2_per_symbol_opts>;
-  struct pdsch_re_map_fr2_per_slot_opts {
-    enum options {
-      n16,
-      n32,
-      n48,
-      n64,
-      n80,
-      n96,
-      n112,
-      n128,
-      n144,
-      n160,
-      n176,
-      n192,
-      n208,
-      n224,
-      n240,
-      n256,
-      nulltype
-    } value;
-    typedef uint16_t number_type;
-
-    const char* to_string() const;
-    uint16_t    to_number() const;
-  };
-  using pdsch_re_map_fr2_per_slot_e_ = enumerated<pdsch_re_map_fr2_per_slot_opts>;
-  struct max_num_srs_pos_spatial_relations_all_serving_cells_r16_opts {
-    enum options { n0, n1, n2, n4, n8, n16, nulltype } value;
-    typedef uint8_t number_type;
-
-    const char* to_string() const;
-    uint8_t     to_number() const;
-  };
-  using max_num_srs_pos_spatial_relations_all_serving_cells_r16_e_ =
-      enumerated<max_num_srs_pos_spatial_relations_all_serving_cells_r16_opts>;
-
-  // member variables
-  bool                           ext                                 = false;
-  bool                           dummy_present                       = false;
-  bool                           pdsch_re_map_fr2_per_symbol_present = false;
-  pdsch_re_map_fr2_per_symbol_e_ pdsch_re_map_fr2_per_symbol;
-  // ...
-  // group 0
-  bool                         pcell_fr2_present                 = false;
-  bool                         pdsch_re_map_fr2_per_slot_present = false;
-  pdsch_re_map_fr2_per_slot_e_ pdsch_re_map_fr2_per_slot;
-  // group 1
-  bool default_spatial_relation_pathloss_rs_r16_present                = false;
-  bool spatial_relation_upd_ap_srs_r16_present                         = false;
-  bool max_num_srs_pos_spatial_relations_all_serving_cells_r16_present = false;
-  max_num_srs_pos_spatial_relations_all_serving_cells_r16_e_ max_num_srs_pos_spatial_relations_all_serving_cells_r16;
+  bool dl_sched_offset_pdsch_type_a_present = false;
+  bool dl_sched_offset_pdsch_type_b_present = false;
+  bool ul_sched_offset_present              = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -10594,18 +10655,124 @@ struct phy_params_frx_diff_s {
   void          to_json(json_writer& j) const;
 };
 
-// Phy-ParametersXDD-Diff ::= SEQUENCE
-struct phy_params_xdd_diff_s {
-  bool ext                                   = false;
-  bool dyn_sfi_present                       = false;
-  bool two_pucch_f0_2_consec_symbols_present = false;
-  bool two_different_tpc_loop_pusch_present  = false;
-  bool two_different_tpc_loop_pucch_present  = false;
+// Phy-ParametersFR1 ::= SEQUENCE
+struct phy_params_fr1_s {
+  struct pdsch_re_map_fr1_per_symbol_opts {
+    enum options { n10, n20, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using pdsch_re_map_fr1_per_symbol_e_ = enumerated<pdsch_re_map_fr1_per_symbol_opts>;
+  struct pdsch_re_map_fr1_per_slot_opts {
+    enum options {
+      n16,
+      n32,
+      n48,
+      n64,
+      n80,
+      n96,
+      n112,
+      n128,
+      n144,
+      n160,
+      n176,
+      n192,
+      n208,
+      n224,
+      n240,
+      n256,
+      nulltype
+    } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using pdsch_re_map_fr1_per_slot_e_ = enumerated<pdsch_re_map_fr1_per_slot_opts>;
+
+  // member variables
+  bool                           ext                                      = false;
+  bool                           pdcch_monitoring_single_occasion_present = false;
+  bool                           scs_60k_hz_present                       = false;
+  bool                           pdsch_256_qam_fr1_present                = false;
+  bool                           pdsch_re_map_fr1_per_symbol_present      = false;
+  pdsch_re_map_fr1_per_symbol_e_ pdsch_re_map_fr1_per_symbol;
   // ...
   // group 0
-  bool dl_sched_offset_pdsch_type_a_present = false;
-  bool dl_sched_offset_pdsch_type_b_present = false;
-  bool ul_sched_offset_present              = false;
+  bool                         pdsch_re_map_fr1_per_slot_present = false;
+  pdsch_re_map_fr1_per_slot_e_ pdsch_re_map_fr1_per_slot;
+  // group 1
+  bool pdcch_monitoring_single_span_first4_sym_r16_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// Phy-ParametersFR2 ::= SEQUENCE
+struct phy_params_fr2_s {
+  struct pdsch_re_map_fr2_per_symbol_opts {
+    enum options { n6, n20, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using pdsch_re_map_fr2_per_symbol_e_ = enumerated<pdsch_re_map_fr2_per_symbol_opts>;
+  struct pdsch_re_map_fr2_per_slot_opts {
+    enum options {
+      n16,
+      n32,
+      n48,
+      n64,
+      n80,
+      n96,
+      n112,
+      n128,
+      n144,
+      n160,
+      n176,
+      n192,
+      n208,
+      n224,
+      n240,
+      n256,
+      nulltype
+    } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using pdsch_re_map_fr2_per_slot_e_ = enumerated<pdsch_re_map_fr2_per_slot_opts>;
+  struct max_num_srs_pos_spatial_relations_all_serving_cells_r16_opts {
+    enum options { n0, n1, n2, n4, n8, n16, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using max_num_srs_pos_spatial_relations_all_serving_cells_r16_e_ =
+      enumerated<max_num_srs_pos_spatial_relations_all_serving_cells_r16_opts>;
+
+  // member variables
+  bool                           ext                                 = false;
+  bool                           dummy_present                       = false;
+  bool                           pdsch_re_map_fr2_per_symbol_present = false;
+  pdsch_re_map_fr2_per_symbol_e_ pdsch_re_map_fr2_per_symbol;
+  // ...
+  // group 0
+  bool                         pcell_fr2_present                 = false;
+  bool                         pdsch_re_map_fr2_per_slot_present = false;
+  pdsch_re_map_fr2_per_slot_e_ pdsch_re_map_fr2_per_slot;
+  // group 1
+  bool default_spatial_relation_pathloss_rs_r16_present                = false;
+  bool spatial_relation_upd_ap_srs_r16_present                         = false;
+  bool max_num_srs_pos_spatial_relations_all_serving_cells_r16_present = false;
+  max_num_srs_pos_spatial_relations_all_serving_cells_r16_e_ max_num_srs_pos_spatial_relations_all_serving_cells_r16;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -10632,18 +10799,27 @@ struct phy_params_s {
   void          to_json(json_writer& j) const;
 };
 
-// SON-Parameters-r16 ::= SEQUENCE
-struct son_params_r16_s {
-  bool ext                     = false;
-  bool rach_report_r16_present = false;
-  // ...
-  // group 0
-  bool rlf_report_cho_r17_present       = false;
-  bool rlf_report_daps_r17_present      = false;
-  bool success_ho_report_r17_present    = false;
-  bool two_step_rach_report_r17_present = false;
-  bool pscell_mhi_report_r17_present    = false;
-  bool on_demand_si_report_r17_present  = false;
+// UE-NR-CapabilityAddXDD-Mode ::= SEQUENCE
+struct ue_nr_cap_add_xdd_mode_s {
+  bool                           phy_params_xdd_diff_present          = false;
+  bool                           mac_params_xdd_diff_present          = false;
+  bool                           meas_and_mob_params_xdd_diff_present = false;
+  phy_params_xdd_diff_s          phy_params_xdd_diff;
+  mac_params_xdd_diff_s          mac_params_xdd_diff;
+  meas_and_mob_params_xdd_diff_s meas_and_mob_params_xdd_diff;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UE-NR-CapabilityAddFRX-Mode ::= SEQUENCE
+struct ue_nr_cap_add_frx_mode_s {
+  bool                           phy_params_frx_diff_present          = false;
+  bool                           meas_and_mob_params_frx_diff_present = false;
+  phy_params_frx_diff_s          phy_params_frx_diff;
+  meas_and_mob_params_frx_diff_s meas_and_mob_params_frx_diff;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -10677,27 +10853,18 @@ struct ue_based_perf_meas_params_r16_s {
   void          to_json(json_writer& j) const;
 };
 
-// UE-NR-CapabilityAddFRX-Mode ::= SEQUENCE
-struct ue_nr_cap_add_frx_mode_s {
-  bool                           phy_params_frx_diff_present          = false;
-  bool                           meas_and_mob_params_frx_diff_present = false;
-  phy_params_frx_diff_s          phy_params_frx_diff;
-  meas_and_mob_params_frx_diff_s meas_and_mob_params_frx_diff;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UE-NR-CapabilityAddXDD-Mode ::= SEQUENCE
-struct ue_nr_cap_add_xdd_mode_s {
-  bool                           phy_params_xdd_diff_present          = false;
-  bool                           mac_params_xdd_diff_present          = false;
-  bool                           meas_and_mob_params_xdd_diff_present = false;
-  phy_params_xdd_diff_s          phy_params_xdd_diff;
-  mac_params_xdd_diff_s          mac_params_xdd_diff;
-  meas_and_mob_params_xdd_diff_s meas_and_mob_params_xdd_diff;
+// SON-Parameters-r16 ::= SEQUENCE
+struct son_params_r16_s {
+  bool ext                     = false;
+  bool rach_report_r16_present = false;
+  // ...
+  // group 0
+  bool rlf_report_cho_r17_present       = false;
+  bool rlf_report_daps_r17_present      = false;
+  bool success_ho_report_r17_present    = false;
+  bool two_step_rach_report_r17_present = false;
+  bool pscell_mhi_report_r17_present    = false;
+  bool on_demand_si_report_r17_present  = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -10851,40 +11018,20 @@ struct pdcp_params_s {
   void          to_json(json_writer& j) const;
 };
 
-// NAICS-Capability-Entry ::= SEQUENCE
-struct naics_cap_entry_s {
-  struct nof_aggr_prb_opts {
-    enum options {
-      n50,
-      n75,
-      n100,
-      n125,
-      n150,
-      n175,
-      n200,
-      n225,
-      n250,
-      n275,
-      n300,
-      n350,
-      n400,
-      n450,
-      n500,
-      spare,
-      nulltype
-    } value;
-    typedef uint16_t number_type;
+// PDCP-ParametersMRDC ::= SEQUENCE
+struct pdcp_params_mrdc_s {
+  bool pdcp_dupl_split_srb_present = false;
+  bool pdcp_dupl_split_drb_present = false;
 
-    const char* to_string() const;
-    uint16_t    to_number() const;
-  };
-  using nof_aggr_prb_e_ = enumerated<nof_aggr_prb_opts>;
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
 
-  // member variables
-  bool            ext                  = false;
-  uint8_t         nof_naics_capable_cc = 1;
-  nof_aggr_prb_e_ nof_aggr_prb;
-  // ...
+// PDCP-ParametersMRDC-v1610 ::= SEQUENCE
+struct pdcp_params_mrdc_v1610_s {
+  bool scg_drb_nr_iab_r16_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -10905,6 +11052,41 @@ struct phy_params_mrdc_s {
   // group 1
   bool tdd_pcell_ul_tx_all_ul_sf_r16_present = false;
   bool fdd_pcell_ul_tx_all_ul_sf_r16_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// Phy-ParametersSharedSpectrumChAccess-r16 ::= SEQUENCE
+struct phy_params_shared_spec_ch_access_r16_s {
+  struct mux_sr_harq_ack_csi_pucch_once_per_slot_r16_s_ {
+    bool same_symbol_r16_present = false;
+    bool diff_symbol_r16_present = false;
+  };
+
+  // member variables
+  bool                                           ext                                                  = false;
+  bool                                           ss_sinr_meas_r16_present                             = false;
+  bool                                           sp_csi_report_pucch_r16_present                      = false;
+  bool                                           sp_csi_report_pusch_r16_present                      = false;
+  bool                                           dyn_sfi_r16_present                                  = false;
+  bool                                           mux_sr_harq_ack_csi_pucch_once_per_slot_r16_present  = false;
+  bool                                           mux_sr_harq_ack_pucch_r16_present                    = false;
+  bool                                           mux_sr_harq_ack_csi_pucch_multi_per_slot_r16_present = false;
+  bool                                           mux_harq_ack_pusch_diff_symbol_r16_present           = false;
+  bool                                           pucch_repeat_f1_3_4_r16_present                      = false;
+  bool                                           type1_pusch_repeat_multi_slots_r16_present           = false;
+  bool                                           type2_pusch_repeat_multi_slots_r16_present           = false;
+  bool                                           pusch_repeat_multi_slots_r16_present                 = false;
+  bool                                           pdsch_repeat_multi_slots_r16_present                 = false;
+  bool                                           dl_sps_r16_present                                   = false;
+  bool                                           cfg_ul_grant_type1_r16_present                       = false;
+  bool                                           cfg_ul_grant_type2_r16_present                       = false;
+  bool                                           pre_empt_ind_dl_r16_present                          = false;
+  mux_sr_harq_ack_csi_pucch_once_per_slot_r16_s_ mux_sr_harq_ack_csi_pucch_once_per_slot_r16;
+  // ...
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11129,12 +11311,52 @@ struct rf_params_mrdc_v15g0_s {
   void          to_json(json_writer& j) const;
 };
 
+// RLC-Parameters ::= SEQUENCE
+struct rlc_params_s {
+  bool ext                      = false;
+  bool am_with_short_sn_present = false;
+  bool um_with_short_sn_present = false;
+  bool um_with_long_sn_present  = false;
+  // ...
+  // group 0
+  bool extended_t_poll_retx_r16_present       = false;
+  bool extended_t_status_prohibit_r16_present = false;
+  // group 1
+  bool am_with_long_sn_red_cap_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // RLC-ParametersSidelink-r16 ::= SEQUENCE
 struct rlc_params_sidelink_r16_s {
   bool ext                                  = false;
   bool am_with_long_sn_sidelink_r16_present = false;
   bool um_with_long_sn_sidelink_r16_present = false;
   // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RedCapParameters-r17 ::= SEQUENCE
+struct red_cap_params_r17_s {
+  bool support_of_red_cap_r17_present       = false;
+  bool support_of16_drb_red_cap_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RedCapParameters-v1740 ::= SEQUENCE
+struct red_cap_params_v1740_s {
+  bool ncd_ssb_for_red_cap_init_bwp_sdt_r17_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11156,10 +11378,14 @@ struct relay_params_r17_s {
   void          to_json(json_writer& j) const;
 };
 
-// UE-SidelinkCapabilityAddXDD-Mode-r16 ::= SEQUENCE
-struct ue_sidelink_cap_add_xdd_mode_r16_s {
-  bool                               mac_params_sidelink_xdd_diff_r16_present = false;
-  mac_params_sidelink_xdd_diff_r16_s mac_params_sidelink_xdd_diff_r16;
+// SDAP-Parameters ::= SEQUENCE
+struct sdap_params_s {
+  bool ext                       = false;
+  bool as_reflective_qos_present = false;
+  // ...
+  // group 0
+  bool sdap_qos_iab_r16_present = false;
+  bool sdap_hdr_iab_r16_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11167,17 +11393,10 @@ struct ue_sidelink_cap_add_xdd_mode_r16_s {
   void          to_json(json_writer& j) const;
 };
 
-// SidelinkParametersEUTRA-r16 ::= SEQUENCE
-struct sidelink_params_eutra_r16_s {
-  using supported_band_list_sidelink_eutra_r16_l_ = dyn_array<band_sidelink_eutra_r16_s>;
-
-  // member variables
-  bool                                      ext = false;
-  dyn_octstring                             sl_params_eutra1_r16;
-  dyn_octstring                             sl_params_eutra2_r16;
-  dyn_octstring                             sl_params_eutra3_r16;
-  supported_band_list_sidelink_eutra_r16_l_ supported_band_list_sidelink_eutra_r16;
-  // ...
+// UE-SidelinkCapabilityAddXDD-Mode-r16 ::= SEQUENCE
+struct ue_sidelink_cap_add_xdd_mode_r16_s {
+  bool                               mac_params_sidelink_xdd_diff_r16_present = false;
+  mac_params_sidelink_xdd_diff_r16_s mac_params_sidelink_xdd_diff_r16;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11212,6 +11431,24 @@ struct sidelink_params_nr_r16_s {
   void          to_json(json_writer& j) const;
 };
 
+// SidelinkParametersEUTRA-r16 ::= SEQUENCE
+struct sidelink_params_eutra_r16_s {
+  using supported_band_list_sidelink_eutra_r16_l_ = dyn_array<band_sidelink_eutra_r16_s>;
+
+  // member variables
+  bool                                      ext = false;
+  dyn_octstring                             sl_params_eutra1_r16;
+  dyn_octstring                             sl_params_eutra2_r16;
+  dyn_octstring                             sl_params_eutra3_r16;
+  supported_band_list_sidelink_eutra_r16_l_ supported_band_list_sidelink_eutra_r16;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // SidelinkParameters-r16 ::= SEQUENCE
 struct sidelink_params_r16_s {
   bool                        sidelink_params_nr_r16_present    = false;
@@ -11225,31 +11462,22 @@ struct sidelink_params_r16_s {
   void          to_json(json_writer& j) const;
 };
 
+// UE-MRDC-CapabilityAddXDD-Mode-v1560 ::= SEQUENCE
+struct ue_mrdc_cap_add_xdd_mode_v1560_s {
+  bool                                      meas_and_mob_params_mrdc_xdd_diff_v1560_present = false;
+  meas_and_mob_params_mrdc_xdd_diff_v1560_s meas_and_mob_params_mrdc_xdd_diff_v1560;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // UE-MRDC-Capability-v1730 ::= SEQUENCE
 struct ue_mrdc_cap_v1730_s {
   bool                             meas_and_mob_params_mrdc_v1730_present = false;
   bool                             non_crit_ext_present                   = false;
   meas_and_mob_params_mrdc_v1730_s meas_and_mob_params_mrdc_v1730;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// GeneralParametersMRDC-v1610 ::= SEQUENCE
-struct general_params_mrdc_v1610_s {
-  bool f1c_over_eutra_r16_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// PDCP-ParametersMRDC-v1610 ::= SEQUENCE
-struct pdcp_params_mrdc_v1610_s {
-  bool scg_drb_nr_iab_r16_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11279,28 +11507,6 @@ struct ue_mrdc_cap_v1610_s {
   general_params_mrdc_v1610_s      general_params_mrdc_v1610;
   pdcp_params_mrdc_v1610_s         pdcp_params_mrdc_v1610;
   ue_mrdc_cap_v1700_s              non_crit_ext;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UE-MRDC-CapabilityAddXDD-Mode-v1560 ::= SEQUENCE
-struct ue_mrdc_cap_add_xdd_mode_v1560_s {
-  bool                                      meas_and_mob_params_mrdc_xdd_diff_v1560_present = false;
-  meas_and_mob_params_mrdc_xdd_diff_v1560_s meas_and_mob_params_mrdc_xdd_diff_v1560;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// PDCP-ParametersMRDC ::= SEQUENCE
-struct pdcp_params_mrdc_s {
-  bool pdcp_dupl_split_srb_present = false;
-  bool pdcp_dupl_split_drb_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11371,9 +11577,9 @@ struct ue_mrdc_cap_v15g0_s {
   void          to_json(json_writer& j) const;
 };
 
-// RedCapParameters-v1740 ::= SEQUENCE
-struct red_cap_params_v1740_s {
-  bool ncd_ssb_for_red_cap_init_bwp_sdt_r17_present = false;
+// UE-NR-CapabilityAddXDD-Mode-v1530 ::= SEQUENCE
+struct ue_nr_cap_add_xdd_mode_v1530_s {
+  eutra_params_xdd_diff_s eutra_params_xdd_diff;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11381,16 +11587,10 @@ struct red_cap_params_v1740_s {
   void          to_json(json_writer& j) const;
 };
 
-// AppLayerMeasParameters-r17 ::= SEQUENCE
-struct app_layer_meas_params_r17_s {
-  bool ext                                                = false;
-  bool qoe_streaming_meas_report_r17_present              = false;
-  bool qoe_mt_si_meas_report_r17_present                  = false;
-  bool qoe_vr_meas_report_r17_present                     = false;
-  bool ran_visible_qo_e_streaming_meas_report_r17_present = false;
-  bool ran_visible_qo_e_vr_meas_report_r17_present        = false;
-  bool ul_meas_report_app_layer_seg_r17_present           = false;
-  // ...
+// UE-NR-CapabilityAddFRX-Mode-v1540 ::= SEQUENCE
+struct ue_nr_cap_add_frx_mode_v1540_s {
+  bool                  ims_params_frx_diff_present = false;
+  ims_params_frx_diff_s ims_params_frx_diff;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11398,54 +11598,12 @@ struct app_layer_meas_params_r17_s {
   void          to_json(json_writer& j) const;
 };
 
-// BAP-Parameters-v1700 ::= SEQUENCE
-struct bap_params_v1700_s {
-  bool bap_hdr_rewriting_rerouting_r17_present = false;
-  bool bap_hdr_rewriting_routing_r17_present   = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// HighSpeedParameters-v1700 ::= SEQUENCE
-struct high_speed_params_v1700_s {
-  bool meas_enhancement_ca_r17_present         = false;
-  bool meas_enhancement_inter_freq_r17_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// MBS-Parameters-r17 ::= SEQUENCE
-struct mbs_params_r17_s {
-  bool    max_mrb_add_r17_present = false;
-  uint8_t max_mrb_add_r17         = 1;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// RedCapParameters-r17 ::= SEQUENCE
-struct red_cap_params_r17_s {
-  bool support_of_red_cap_r17_present       = false;
-  bool support_of16_drb_red_cap_r17_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UE-NR-Capability-v1740 ::= SEQUENCE
-struct ue_nr_cap_v1740_s {
-  bool                   non_crit_ext_present = false;
-  red_cap_params_v1740_s red_cap_params_v1740;
+// UE-NR-CapabilityAddFRX-Mode-v1610 ::= SEQUENCE
+struct ue_nr_cap_add_frx_mode_v1610_s {
+  bool                          pow_sav_params_frx_diff_r16_present = false;
+  bool                          mac_params_frx_diff_r16_present     = false;
+  pow_sav_params_frx_diff_r16_s pow_sav_params_frx_diff_r16;
+  mac_params_frx_diff_r16_s     mac_params_frx_diff_r16;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11461,6 +11619,17 @@ struct ue_radio_paging_info_r17_s {
   bool                                     ext = false;
   pei_subgrouping_support_band_list_r17_l_ pei_subgrouping_support_band_list_r17;
   // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UE-NR-Capability-v1740 ::= SEQUENCE
+struct ue_nr_cap_v1740_s {
+  bool                   non_crit_ext_present = false;
+  red_cap_params_v1740_s red_cap_params_v1740;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11522,70 +11691,11 @@ struct ue_nr_cap_v1700_s {
   void          to_json(json_writer& j) const;
 };
 
-// HighSpeedParameters-v1650 ::= CHOICE
-struct high_speed_params_v1650_c {
-  struct types_opts {
-    enum options { intra_nr_meas_enhancement_r16, inter_rat_meas_enhancement_r16, nulltype } value;
-
-    const char* to_string() const;
-  };
-  using types = enumerated<types_opts>;
-
-  // choice methods
-  high_speed_params_v1650_c() = default;
-  void          set(types::options e = types::nulltype);
-  types         type() const { return type_; }
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-  // getters
-  void set_intra_nr_meas_enhancement_r16();
-  void set_inter_rat_meas_enhancement_r16();
-
-private:
-  types type_;
-};
-
 // UE-NR-Capability-v1690 ::= SEQUENCE
 struct ue_nr_cap_v1690_s {
   bool              ul_rrc_segmentation_r16_present = false;
   bool              non_crit_ext_present            = false;
   ue_nr_cap_v1700_s non_crit_ext;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// Phy-ParametersSharedSpectrumChAccess-r16 ::= SEQUENCE
-struct phy_params_shared_spec_ch_access_r16_s {
-  struct mux_sr_harq_ack_csi_pucch_once_per_slot_r16_s_ {
-    bool same_symbol_r16_present = false;
-    bool diff_symbol_r16_present = false;
-  };
-
-  // member variables
-  bool                                           ext                                                  = false;
-  bool                                           ss_sinr_meas_r16_present                             = false;
-  bool                                           sp_csi_report_pucch_r16_present                      = false;
-  bool                                           sp_csi_report_pusch_r16_present                      = false;
-  bool                                           dyn_sfi_r16_present                                  = false;
-  bool                                           mux_sr_harq_ack_csi_pucch_once_per_slot_r16_present  = false;
-  bool                                           mux_sr_harq_ack_pucch_r16_present                    = false;
-  bool                                           mux_sr_harq_ack_csi_pucch_multi_per_slot_r16_present = false;
-  bool                                           mux_harq_ack_pusch_diff_symbol_r16_present           = false;
-  bool                                           pucch_repeat_f1_3_4_r16_present                      = false;
-  bool                                           type1_pusch_repeat_multi_slots_r16_present           = false;
-  bool                                           type2_pusch_repeat_multi_slots_r16_present           = false;
-  bool                                           pusch_repeat_multi_slots_r16_present                 = false;
-  bool                                           pdsch_repeat_multi_slots_r16_present                 = false;
-  bool                                           dl_sps_r16_present                                   = false;
-  bool                                           cfg_ul_grant_type1_r16_present                       = false;
-  bool                                           cfg_ul_grant_type2_r16_present                       = false;
-  bool                                           pre_empt_ind_dl_r16_present                          = false;
-  mux_sr_harq_ack_csi_pucch_once_per_slot_r16_s_ mux_sr_harq_ack_csi_pucch_once_per_slot_r16;
-  // ...
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11607,28 +11717,6 @@ struct ue_nr_cap_v1650_s {
   void          to_json(json_writer& j) const;
 };
 
-// BAP-Parameters-r16 ::= SEQUENCE
-struct bap_params_r16_s {
-  bool flow_ctrl_bh_rlc_ch_based_r16_present  = false;
-  bool flow_ctrl_routing_id_based_r16_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// HighSpeedParameters-r16 ::= SEQUENCE
-struct high_speed_params_r16_s {
-  bool meas_enhancement_r16_present  = false;
-  bool demod_enhancement_r16_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // UE-NR-Capability-v1640 ::= SEQUENCE
 struct ue_nr_cap_v1640_s {
   bool                                   redirect_at_resume_by_nas_r16_present        = false;
@@ -11636,29 +11724,6 @@ struct ue_nr_cap_v1640_s {
   bool                                   non_crit_ext_present                         = false;
   phy_params_shared_spec_ch_access_r16_s phy_params_shared_spec_ch_access_r16;
   ue_nr_cap_v1650_s                      non_crit_ext;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UE-NR-CapabilityAddFRX-Mode-v1610 ::= SEQUENCE
-struct ue_nr_cap_add_frx_mode_v1610_s {
-  bool                          pow_sav_params_frx_diff_r16_present = false;
-  bool                          mac_params_frx_diff_r16_present     = false;
-  pow_sav_params_frx_diff_r16_s pow_sav_params_frx_diff_r16;
-  mac_params_frx_diff_r16_s     mac_params_frx_diff_r16;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// NRDC-Parameters-v1570 ::= SEQUENCE
-struct nrdc_params_v1570_s {
-  bool sfn_sync_nrdc_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11734,37 +11799,11 @@ struct ue_nr_cap_v1560_s {
   void          to_json(json_writer& j) const;
 };
 
-// SDAP-Parameters ::= SEQUENCE
-struct sdap_params_s {
-  bool ext                       = false;
-  bool as_reflective_qos_present = false;
-  // ...
-  // group 0
-  bool sdap_qos_iab_r16_present = false;
-  bool sdap_hdr_iab_r16_present = false;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // UE-NR-Capability-v1550 ::= SEQUENCE
 struct ue_nr_cap_v1550_s {
   bool              reduced_cp_latency_present = false;
   bool              non_crit_ext_present       = false;
   ue_nr_cap_v1560_s non_crit_ext;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UE-NR-CapabilityAddFRX-Mode-v1540 ::= SEQUENCE
-struct ue_nr_cap_add_frx_mode_v1540_s {
-  bool                  ims_params_frx_diff_present = false;
-  ims_params_frx_diff_s ims_params_frx_diff;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -11787,45 +11826,6 @@ struct ue_nr_cap_v1540_s {
   ue_nr_cap_add_frx_mode_v1540_s fr2_add_ue_nr_cap_v1540;
   ue_nr_cap_add_frx_mode_s       fr1_fr2_add_ue_nr_cap;
   ue_nr_cap_v1550_s              non_crit_ext;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// UE-NR-CapabilityAddXDD-Mode-v1530 ::= SEQUENCE
-struct ue_nr_cap_add_xdd_mode_v1530_s {
-  eutra_params_xdd_diff_s eutra_params_xdd_diff;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// AccessStratumRelease ::= ENUMERATED
-struct access_stratum_release_opts {
-  enum options { rel15, rel16, rel17, spare5, spare4, spare3, spare2, spare1, /*...*/ nulltype } value;
-  typedef uint8_t number_type;
-
-  const char* to_string() const;
-  uint8_t     to_number() const;
-};
-using access_stratum_release_e = enumerated<access_stratum_release_opts, true>;
-
-// RLC-Parameters ::= SEQUENCE
-struct rlc_params_s {
-  bool ext                      = false;
-  bool am_with_short_sn_present = false;
-  bool um_with_short_sn_present = false;
-  bool um_with_long_sn_present  = false;
-  // ...
-  // group 0
-  bool extended_t_poll_retx_r16_present       = false;
-  bool extended_t_status_prohibit_r16_present = false;
-  // group 1
-  bool am_with_long_sn_red_cap_r17_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;

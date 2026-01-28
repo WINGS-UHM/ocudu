@@ -103,6 +103,17 @@ private:
   void destroy_();
 };
 
+// RRC-PosSystemInfoRequest-r16-IEs ::= SEQUENCE
+struct rrc_pos_sys_info_request_r16_ies_s {
+  fixed_bitstring<32> requested_pos_si_list;
+  fixed_bitstring<11> spare;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // ReestabUE-Identity ::= SEQUENCE
 struct reestab_ue_id_s {
   uint32_t            c_rnti = 0;
@@ -122,6 +133,28 @@ struct reest_cause_opts {
   const char* to_string() const;
 };
 using reest_cause_e = enumerated<reest_cause_opts>;
+
+// RRCReestablishmentRequest-IEs ::= SEQUENCE
+struct rrc_reest_request_ies_s {
+  reestab_ue_id_s    ue_id;
+  reest_cause_e      reest_cause;
+  fixed_bitstring<1> spare;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RRCReestablishmentRequest ::= SEQUENCE
+struct rrc_reest_request_s {
+  rrc_reest_request_ies_s rrc_reest_request;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
 
 // ResumeCause ::= ENUMERATED
 struct resume_cause_opts {
@@ -149,35 +182,22 @@ struct resume_cause_opts {
 };
 using resume_cause_e = enumerated<resume_cause_opts>;
 
-// RRC-PosSystemInfoRequest-r16-IEs ::= SEQUENCE
-struct rrc_pos_sys_info_request_r16_ies_s {
-  fixed_bitstring<32> requested_pos_si_list;
-  fixed_bitstring<11> spare;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// RRCReestablishmentRequest-IEs ::= SEQUENCE
-struct rrc_reest_request_ies_s {
-  reestab_ue_id_s    ue_id;
-  reest_cause_e      reest_cause;
-  fixed_bitstring<1> spare;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // RRCResumeRequest-IEs ::= SEQUENCE
 struct rrc_resume_request_ies_s {
   fixed_bitstring<24> resume_id;
   fixed_bitstring<16> resume_mac_i;
   resume_cause_e      resume_cause;
   fixed_bitstring<1>  spare;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RRCResumeRequest ::= SEQUENCE
+struct rrc_resume_request_s {
+  rrc_resume_request_ies_s rrc_resume_request;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -197,40 +217,20 @@ struct rrc_setup_request_ies_s {
   void          to_json(json_writer& j) const;
 };
 
+// RRCSetupRequest ::= SEQUENCE
+struct rrc_setup_request_s {
+  rrc_setup_request_ies_s rrc_setup_request;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // RRCSystemInfoRequest-IEs ::= SEQUENCE
 struct rrc_sys_info_request_ies_s {
   fixed_bitstring<32> requested_si_list;
   fixed_bitstring<12> spare;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// RRCReestablishmentRequest ::= SEQUENCE
-struct rrc_reest_request_s {
-  rrc_reest_request_ies_s rrc_reest_request;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// RRCResumeRequest ::= SEQUENCE
-struct rrc_resume_request_s {
-  rrc_resume_request_ies_s rrc_resume_request;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// RRCSetupRequest ::= SEQUENCE
-struct rrc_setup_request_s {
-  rrc_setup_request_ies_s rrc_setup_request;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;

@@ -25,23 +25,6 @@ namespace rrc_nr {
  *                              Struct Definitions
  ******************************************************************************/
 
-// SL-BWP-DiscPoolConfigCommon-r17 ::= SEQUENCE
-struct sl_bwp_disc_pool_cfg_common_r17_s {
-  using sl_disc_rx_pool_r17_l_     = dyn_array<sl_res_pool_r16_s>;
-  using sl_disc_tx_pool_sel_r17_l_ = dyn_array<sl_res_pool_cfg_r16_s>;
-
-  // member variables
-  bool                       ext = false;
-  sl_disc_rx_pool_r17_l_     sl_disc_rx_pool_r17;
-  sl_disc_tx_pool_sel_r17_l_ sl_disc_tx_pool_sel_r17;
-  // ...
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // SL-BWP-PoolConfigCommon-r16 ::= SEQUENCE
 struct sl_bwp_pool_cfg_common_r16_s {
   using sl_rx_pool_r16_l_            = dyn_array<sl_res_pool_r16_s>;
@@ -52,6 +35,23 @@ struct sl_bwp_pool_cfg_common_r16_s {
   sl_rx_pool_r16_l_            sl_rx_pool_r16;
   sl_tx_pool_sel_normal_r16_l_ sl_tx_pool_sel_normal_r16;
   sl_res_pool_cfg_r16_s        sl_tx_pool_exceptional_r16;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SL-BWP-DiscPoolConfigCommon-r17 ::= SEQUENCE
+struct sl_bwp_disc_pool_cfg_common_r17_s {
+  using sl_disc_rx_pool_r17_l_     = dyn_array<sl_res_pool_r16_s>;
+  using sl_disc_tx_pool_sel_r17_l_ = dyn_array<sl_res_pool_cfg_r16_s>;
+
+  // member variables
+  bool                       ext = false;
+  sl_disc_rx_pool_r17_l_     sl_disc_rx_pool_r17;
+  sl_disc_tx_pool_sel_r17_l_ sl_disc_tx_pool_sel_r17;
+  // ...
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -76,9 +76,6 @@ struct sl_bwp_cfg_common_r16_s {
   OCUDUASN_CODE unpack(cbit_ref& bref);
   void          to_json(json_writer& j) const;
 };
-
-// SL-EUTRA-AnchorCarrierFreqList-r16 ::= SEQUENCE (SIZE (1..8)) OF INTEGER (0..262143)
-using sl_eutra_anchor_carrier_freq_list_r16_l = bounded_array<uint32_t, 8>;
 
 // SL-FreqConfigCommon-r16 ::= SEQUENCE
 struct sl_freq_cfg_common_r16_s {
@@ -113,6 +110,12 @@ struct sl_freq_cfg_common_r16_s {
   void          to_json(json_writer& j) const;
 };
 
+// SL-NR-AnchorCarrierFreqList-r16 ::= SEQUENCE (SIZE (1..8)) OF INTEGER (0..3279165)
+using sl_nr_anchor_carrier_freq_list_r16_l = bounded_array<uint32_t, 8>;
+
+// SL-EUTRA-AnchorCarrierFreqList-r16 ::= SEQUENCE (SIZE (1..8)) OF INTEGER (0..262143)
+using sl_eutra_anchor_carrier_freq_list_r16_l = bounded_array<uint32_t, 8>;
+
 // SL-MeasConfigCommon-r16 ::= SEQUENCE
 struct sl_meas_cfg_common_r16_s {
   bool                     ext                             = false;
@@ -129,9 +132,6 @@ struct sl_meas_cfg_common_r16_s {
   void          to_json(json_writer& j) const;
 };
 
-// SL-NR-AnchorCarrierFreqList-r16 ::= SEQUENCE (SIZE (1..8)) OF INTEGER (0..3279165)
-using sl_nr_anchor_carrier_freq_list_r16_l = bounded_array<uint32_t, 8>;
-
 // SL-PreconfigGeneral-r16 ::= SEQUENCE
 struct sl_precfg_general_r16_s {
   bool                   ext                       = false;
@@ -146,14 +146,6 @@ struct sl_precfg_general_r16_s {
   OCUDUASN_CODE unpack(cbit_ref& bref);
   void          to_json(json_writer& j) const;
 };
-
-// SL-TxProfile-r17 ::= ENUMERATED
-struct sl_tx_profile_r17_opts {
-  enum options { drx_compatible, drx_incompatible, spare6, spare5, spare4, spare3, spare2, spare1, nulltype } value;
-
-  const char* to_string() const;
-};
-using sl_tx_profile_r17_e = enumerated<sl_tx_profile_r17_opts>;
 
 // SL-RoHC-Profiles-r16 ::= SEQUENCE
 struct sl_ro_hc_profiles_r16_s {
@@ -172,6 +164,14 @@ struct sl_ro_hc_profiles_r16_s {
   OCUDUASN_CODE unpack(cbit_ref& bref);
   void          to_json(json_writer& j) const;
 };
+
+// SL-TxProfile-r17 ::= ENUMERATED
+struct sl_tx_profile_r17_opts {
+  enum options { drx_compatible, drx_incompatible, spare6, spare5, spare4, spare3, spare2, spare1, nulltype } value;
+
+  const char* to_string() const;
+};
+using sl_tx_profile_r17_e = enumerated<sl_tx_profile_r17_opts>;
 
 // SL-TxProfileList-r17 ::= SEQUENCE (SIZE (1..256)) OF SL-TxProfile-r17
 using sl_tx_profile_list_r17_l = dyn_array<sl_tx_profile_r17_e>;

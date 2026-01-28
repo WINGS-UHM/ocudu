@@ -1225,6 +1225,36 @@ void var_mob_history_report_r17_s::to_json(json_writer& j) const
   j.end_obj();
 }
 
+// VarPendingRNA-Update ::= SEQUENCE
+OCUDUASN_CODE var_pending_rna_upd_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(pending_rna_upd_present, 1));
+
+  if (pending_rna_upd_present) {
+    HANDLE_CODE(bref.pack(pending_rna_upd, 1));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE var_pending_rna_upd_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(pending_rna_upd_present, 1));
+
+  if (pending_rna_upd_present) {
+    HANDLE_CODE(bref.unpack(pending_rna_upd, 1));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void var_pending_rna_upd_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (pending_rna_upd_present) {
+    j.write_bool("pendingRNA-Update", pending_rna_upd);
+  }
+  j.end_obj();
+}
+
 // VarRA-Report-r16 ::= SEQUENCE
 OCUDUASN_CODE var_ra_report_r16_s::pack(bit_ref& bref) const
 {

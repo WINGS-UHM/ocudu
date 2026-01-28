@@ -820,11 +820,11 @@ byte_buffer asn1_packer::pack_sib19(const sib19_info& sib19_params, std::string*
   return buf;
 }
 
-static std::vector<asn1::rrc_nr::sys_info_ies_s::sib_type_and_info_item_c_> make_asn1_rrc_sib_item(const sib_info& sib)
+static std::vector<asn1::rrc_nr::sys_info_ies_s::item_c_> make_asn1_rrc_sib_item(const sib_info& sib)
 {
   using namespace asn1::rrc_nr;
 
-  std::vector<sys_info_ies_s::sib_type_and_info_item_c_> ret(1);
+  std::vector<sys_info_ies_s::item_c_> ret(1);
 
   switch (get_sib_info_type(sib)) {
     case sib_type::sib2: {
@@ -930,8 +930,7 @@ static void pack_si_message(byte_buffer& buffer, const asn1::rrc_nr::bcch_dl_sch
 }
 
 /// Packs an SI message from the contents of a single SIB.
-static void pack_si_message(bcch_dl_sch_payload_type&                                      buffer,
-                            const asn1::rrc_nr::sys_info_ies_s::sib_type_and_info_item_c_& sib)
+static void pack_si_message(bcch_dl_sch_payload_type& buffer, const asn1::rrc_nr::sys_info_ies_s::item_c_& sib)
 {
   // Fill the SI message with the contents of a single SIB.
   asn1::rrc_nr::bcch_dl_sch_msg_s msg;

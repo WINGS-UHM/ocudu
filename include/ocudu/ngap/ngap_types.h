@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ran/plmn_identity.h"
 
 namespace ocudu::ocucp {
@@ -51,6 +52,16 @@ enum class ngap_rrc_inactive_transition_report_request : uint8_t {
   single_rrc_connected_state_report,
   // Stop sending RRC Inactive Transition Reports.
   cancel_report
+};
+
+struct ngap_core_network_assist_info_for_inactive {
+  uint64_t                            ue_id_idx_value = 0;
+  std::optional<uint16_t>             ue_specific_drx;
+  std::optional<std::chrono::seconds> periodic_registration_update_timer;
+  // If mico_mode_ind is true, the NG-RAN node shall, if supported, consider that the registration area
+  // for the UE is the full PLMN and ignore the TAI List for RRC Inactive IE, see 3GPP TS 38.413 section 8.3.1.2.
+  bool                   mico_mode_ind = false;
+  std::vector<cu_cp_tai> tai_list_for_inactive;
 };
 
 } // namespace ocudu::ocucp

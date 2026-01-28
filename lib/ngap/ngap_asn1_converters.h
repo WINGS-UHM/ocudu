@@ -981,4 +981,97 @@ inline ngap_rrc_inactive_transition_report_request asn1_to_rrc_inactive_transiti
   }
 }
 
+/// \brief Convert ASN.1 periodic registration update timer to common type.
+/// \param[in] asn1_periodic_registration_update_timer The ASN.1 periodic registration update timer.
+/// \return The common type periodic registration update timer. If the timer is deactivated, an empty optional is
+/// returned.
+inline std::optional<std::chrono::seconds>
+asn1_to_periodic_registration_update_timer(uint8_t asn1_periodic_registration_update_timer)
+{
+  std::chrono::seconds periodic_registration_update_timer;
+
+  // 3GPP TS 38.413 section 9.3.3.24:
+  // Bits 5 to 1 represent the binary coded timer value.
+  // Bits 6 to 8 define the timer value unit for the Periodic Registration Update Timer as follows:
+  //
+  // Bits
+  // 8 7 6
+  // 0 0 0 value is incremented in multiples of 10 minutes
+  // 0 0 1 value is incremented in multiples of 1 hour
+  // 0 1 0 value is incremented in multiples of 10 hours
+  // 0 1 1 value is incremented in multiples of 2 seconds
+  // 1 0 0 value is incremented in multiples of 30 seconds
+  // 1 0 1 value is incremented in multiples of 1 minute
+  // 1 1 1 value indicates that the timer is deactivated.
+  // 1 1 0 value is incremented in multiples of 1 hour in this version of the protocol.
+
+  // Bits 5-1.
+  uint8_t timer_value = asn1_periodic_registration_update_timer & 0x1f;
+
+  // Bits 6-8.
+  switch ((asn1_periodic_registration_update_timer >> 5) & 0x07) {
+    case 0b000:
+      // Timer value unit 10 minutes.
+      periodic_registration_update_timer = std::chrono::seconds(timer_value * 600);
+      break;
+    case 0b001:
+      // Timer value unit 1 hour.
+      periodic_registration_update_timer = std::chrono::seconds(timer_value * 3600);
+      break;
+    case 0b010:
+      // Timer value unit 10 hours.
+      periodic_registration_update_timer = std::chrono::seconds(timer_value * 36000);
+      break;
+    case 0b011:
+      // Timer value unit 2 seconds.
+      periodic_registration_update_timer = std::chrono::seconds(timer_value * 2);
+      break;
+    case 0b100:
+      // Timer value unit 30 seconds.
+      periodic_registration_update_timer = std::chrono::seconds(timer_value * 30);
+      break;
+    case 0b101:
+      // Timer value unit 1 minute.
+      periodic_registration_update_timer = std::chrono::seconds(timer_value * 60);
+      break;
+    case 0b110:
+      // Timer value unit 1 hour.
+      periodic_registration_update_timer = std::chrono::seconds(timer_value * 3600);
+      break;
+    case 0b111:
+      // Timer is deactivated.
+      return std::nullopt;
+    default:
+      // Timer is deactivated.
+      return std::nullopt;
+  }
+
+  return periodic_registration_update_timer;
+}
+
+inline ngap_core_network_assist_info_for_inactive asn1_to_core_network_assist_info_for_inactive(
+    const asn1::ngap::core_network_assist_info_for_inactive_s& asn1_cn_assist_info_for_inactive)
+{
+  ngap_core_network_assist_info_for_inactive cn_assist_info_for_inactive;
+
+  if (asn1_cn_assist_info_for_inactive.ue_id_idx_value.type() ==
+      asn1::ngap::ue_id_idx_value_c::types_opts::options::idx_len10) {
+    cn_assist_info_for_inactive.ue_id_idx_value =
+        asn1_cn_assist_info_for_inactive.ue_id_idx_value.idx_len10().to_number();
+  }
+  if (asn1_cn_assist_info_for_inactive.ue_specific_drx_present) {
+    cn_assist_info_for_inactive.ue_specific_drx = asn1_cn_assist_info_for_inactive.ue_specific_drx.to_number();
+  }
+  cn_assist_info_for_inactive.periodic_registration_update_timer = asn1_to_periodic_registration_update_timer(
+      asn1_cn_assist_info_for_inactive.periodic_regist_upd_timer.to_number());
+  cn_assist_info_for_inactive.mico_mode_ind =
+      asn1_cn_assist_info_for_inactive.mico_mode_ind_present &&
+      (asn1_cn_assist_info_for_inactive.mico_mode_ind == asn1::ngap::mico_mode_ind_opts::options::true_value);
+  for (const auto& tai_list_for_inactive_item : asn1_cn_assist_info_for_inactive.tai_list_for_inactive) {
+    cn_assist_info_for_inactive.tai_list_for_inactive.push_back(ngap_asn1_to_tai(tai_list_for_inactive_item.tai));
+  }
+
+  return cn_assist_info_for_inactive;
+}
+
 } // namespace ocudu::ocucp

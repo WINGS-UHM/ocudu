@@ -345,7 +345,18 @@ f1ap_ue_context_update_response ue_configuration_procedure::make_ue_config_respo
     // In case of source cell group configuration is passed, a delta configuration should be generated with it.
     // TODO: Apply diff using sourceCellGroup. For now, we use fullConfig.
     calculate_cell_group_config_diff(asn1_cell_group, {}, ue->resources.value());
-    resp.full_config_present = true;
+    resp.full_config_present = false;
+    auto* it                 = std::find_if(asn1_cell_group.rlc_bearer_to_add_mod_list.begin(),
+                            asn1_cell_group.rlc_bearer_to_add_mod_list.end(),
+                            [](const auto& b) { return b.lc_ch_id == LCID_SRB1; });
+    if (it != asn1_cell_group.rlc_bearer_to_add_mod_list.end()) {
+      asn1_cell_group.rlc_bearer_to_add_mod_list.erase(it);
+    }
+    for (auto& b : asn1_cell_group.rlc_bearer_to_add_mod_list) {
+      b.rlc_cfg_present         = false;
+      b.mac_lc_ch_cfg_present   = false;
+      b.reestablish_rlc_present = true;
+    }
 
   } else {
     calculate_cell_group_config_diff(asn1_cell_group, prev_ue_res_cfg, ue->resources.value());

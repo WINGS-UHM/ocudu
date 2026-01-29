@@ -14,6 +14,7 @@
 #include "ocudu/f1u/cu_up/f1u_bearer_factory.h"
 #include "ocudu/gtpu/gtpu_tunnel_ngu_factory.h"
 #include "ocudu/pdcp/pdcp_factory.h"
+#include "ocudu/rohc/rohc_support.h"
 #include "ocudu/sdap/sdap_factory.h"
 #include "ocudu/support/ocudu_assert.h"
 #include "ocudu/support/rate_limiting/token_bucket_config.h"
@@ -193,6 +194,12 @@ drb_setup_result pdu_session_manager_impl::handle_drb_to_setup_item(pdu_session&
   five_qi_t five_qi = drb_to_setup.qos_flow_info_to_be_setup.begin()->qos_flow_level_qos_params.qos_desc.get_5qi();
   if (qos_cfg.find(five_qi) == qos_cfg.end()) {
     drb_result.cause = e1ap_cause_radio_network_t::not_supported_5qi_value;
+    return drb_result;
+  }
+
+  // Make sure ROHC is supported when requested
+  if (drb_to_setup.pdcp_cfg.rohc_config.has_value() && !rohc::rohc_supported()) {
+    drb_result.cause = e1ap_cause_radio_network_t::pdcp_cfg_not_supported;
     return drb_result;
   }
 

@@ -29,6 +29,7 @@ target_link_libraries(ocudu_cu_up
         ocudu_f1u_cu_up
         ocudu_gateway
         e1ap_asn1
+        ocudu_rohc
         ocudu_sdap
         ocudu_security
         ocudu_support

@@ -93,8 +93,13 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
   }
 
   // Update UE context with new C-RNTI.
-  ue->get_ue_context().crnti = request.new_c_rnti;
-  ue->get_rrc_ue()->update_c_rnti(request.new_c_rnti);
+  if (ue_context_setup_response.c_rnti.has_value()) {
+    ue->get_ue_context().crnti = ue_context_setup_response.c_rnti.value();
+    ue->get_rrc_ue()->update_c_rnti(ue_context_setup_response.c_rnti.value());
+  } else {
+    ue->get_ue_context().crnti = request.new_c_rnti;
+    ue->get_rrc_ue()->update_c_rnti(request.new_c_rnti);
+  }
 
   {
     // Prepare update for UP resource manager.
@@ -217,7 +222,7 @@ bool rrc_resume_routine::handle_ue_context_setup_response()
         "Inconsistent C-RNTI in Initial UL RRC Message and UE Context Setup Response. init_c_rnti={} resp_c_rnti={}",
         request.new_c_rnti,
         ue_context_setup_response.c_rnti);
-    return false;
+    // Intentionaly continue. Will update the C-RNTI with the latest one provided by the DU.
   }
 
   // Create bearer context mod request.

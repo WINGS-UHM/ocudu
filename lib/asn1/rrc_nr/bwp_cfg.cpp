@@ -16,6 +16,2783 @@ using namespace asn1::rrc_nr;
  *                                Struct Methods
  ******************************************************************************/
 
+// Alpha ::= ENUMERATED
+const char* alpha_opts::to_string() const
+{
+  static const char* names[] = {"alpha0", "alpha04", "alpha05", "alpha06", "alpha07", "alpha08", "alpha09", "alpha1"};
+  return convert_enum_idx(names, 8, value, "alpha_e");
+}
+float alpha_opts::to_number() const
+{
+  static const float numbers[] = {0.0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+  return map_enum_number(numbers, 8, value, "alpha_e");
+}
+const char* alpha_opts::to_number_string() const
+{
+  static const char* number_strs[] = {"0", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1"};
+  return convert_enum_idx(number_strs, 8, value, "alpha_e");
+}
+
+// SSB-Configuration-r16 ::= SEQUENCE
+OCUDUASN_CODE ssb_cfg_r16_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(ssb_periodicity_r16_present, 1));
+  HANDLE_CODE(bref.pack(sfn0_offset_r16_present, 1));
+  HANDLE_CODE(bref.pack(ss_pbch_block_pwr_r16_present, 1));
+
+  HANDLE_CODE(pack_integer(bref, ssb_freq_r16, (uint32_t)0u, (uint32_t)3279165u));
+  HANDLE_CODE(half_frame_idx_r16.pack(bref));
+  HANDLE_CODE(ssb_subcarrier_spacing_r16.pack(bref));
+  if (ssb_periodicity_r16_present) {
+    HANDLE_CODE(ssb_periodicity_r16.pack(bref));
+  }
+  if (sfn0_offset_r16_present) {
+    HANDLE_CODE(bref.pack(sfn0_offset_r16.integer_sf_offset_r16_present, 1));
+    HANDLE_CODE(pack_integer(bref, sfn0_offset_r16.sfn_offset_r16, (uint16_t)0u, (uint16_t)1023u));
+    if (sfn0_offset_r16.integer_sf_offset_r16_present) {
+      HANDLE_CODE(pack_integer(bref, sfn0_offset_r16.integer_sf_offset_r16, (uint8_t)0u, (uint8_t)9u));
+    }
+  }
+  HANDLE_CODE(pack_integer(bref, sfn_ssb_offset_r16, (uint8_t)0u, (uint8_t)15u));
+  if (ss_pbch_block_pwr_r16_present) {
+    HANDLE_CODE(pack_integer(bref, ss_pbch_block_pwr_r16, (int8_t)-60, (int8_t)50));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE ssb_cfg_r16_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(ssb_periodicity_r16_present, 1));
+  HANDLE_CODE(bref.unpack(sfn0_offset_r16_present, 1));
+  HANDLE_CODE(bref.unpack(ss_pbch_block_pwr_r16_present, 1));
+
+  HANDLE_CODE(unpack_integer(ssb_freq_r16, bref, (uint32_t)0u, (uint32_t)3279165u));
+  HANDLE_CODE(half_frame_idx_r16.unpack(bref));
+  HANDLE_CODE(ssb_subcarrier_spacing_r16.unpack(bref));
+  if (ssb_periodicity_r16_present) {
+    HANDLE_CODE(ssb_periodicity_r16.unpack(bref));
+  }
+  if (sfn0_offset_r16_present) {
+    HANDLE_CODE(bref.unpack(sfn0_offset_r16.integer_sf_offset_r16_present, 1));
+    HANDLE_CODE(unpack_integer(sfn0_offset_r16.sfn_offset_r16, bref, (uint16_t)0u, (uint16_t)1023u));
+    if (sfn0_offset_r16.integer_sf_offset_r16_present) {
+      HANDLE_CODE(unpack_integer(sfn0_offset_r16.integer_sf_offset_r16, bref, (uint8_t)0u, (uint8_t)9u));
+    }
+  }
+  HANDLE_CODE(unpack_integer(sfn_ssb_offset_r16, bref, (uint8_t)0u, (uint8_t)15u));
+  if (ss_pbch_block_pwr_r16_present) {
+    HANDLE_CODE(unpack_integer(ss_pbch_block_pwr_r16, bref, (int8_t)-60, (int8_t)50));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void ssb_cfg_r16_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("ssb-Freq-r16", ssb_freq_r16);
+  j.write_str("halfFrameIndex-r16", half_frame_idx_r16.to_string());
+  j.write_str("ssbSubcarrierSpacing-r16", ssb_subcarrier_spacing_r16.to_string());
+  if (ssb_periodicity_r16_present) {
+    j.write_str("ssb-Periodicity-r16", ssb_periodicity_r16.to_string());
+  }
+  if (sfn0_offset_r16_present) {
+    j.write_fieldname("sfn0-Offset-r16");
+    j.start_obj();
+    j.write_int("sfn-Offset-r16", sfn0_offset_r16.sfn_offset_r16);
+    if (sfn0_offset_r16.integer_sf_offset_r16_present) {
+      j.write_int("integerSubframeOffset-r16", sfn0_offset_r16.integer_sf_offset_r16);
+    }
+    j.end_obj();
+  }
+  j.write_int("sfn-SSB-Offset-r16", sfn_ssb_offset_r16);
+  if (ss_pbch_block_pwr_r16_present) {
+    j.write_int("ss-PBCH-BlockPower-r16", ss_pbch_block_pwr_r16);
+  }
+  j.end_obj();
+}
+
+const char* ssb_cfg_r16_s::half_frame_idx_r16_opts::to_string() const
+{
+  static const char* names[] = {"zero", "one"};
+  return convert_enum_idx(names, 2, value, "ssb_cfg_r16_s::half_frame_idx_r16_e_");
+}
+uint8_t ssb_cfg_r16_s::half_frame_idx_r16_opts::to_number() const
+{
+  static const uint8_t numbers[] = {0, 1};
+  return map_enum_number(numbers, 2, value, "ssb_cfg_r16_s::half_frame_idx_r16_e_");
+}
+
+const char* ssb_cfg_r16_s::ssb_periodicity_r16_opts::to_string() const
+{
+  static const char* names[] = {"ms5", "ms10", "ms20", "ms40", "ms80", "ms160", "spare2", "spare1"};
+  return convert_enum_idx(names, 8, value, "ssb_cfg_r16_s::ssb_periodicity_r16_e_");
+}
+uint8_t ssb_cfg_r16_s::ssb_periodicity_r16_opts::to_number() const
+{
+  static const uint8_t numbers[] = {5, 10, 20, 40, 80, 160};
+  return map_enum_number(numbers, 6, value, "ssb_cfg_r16_s::ssb_periodicity_r16_e_");
+}
+
+// SSB-InfoNcell-r16 ::= SEQUENCE
+OCUDUASN_CODE ssb_info_ncell_r16_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(ssb_idx_ncell_r16_present, 1));
+  HANDLE_CODE(bref.pack(ssb_cfg_r16_present, 1));
+
+  HANDLE_CODE(pack_integer(bref, phys_cell_id_r16, (uint16_t)0u, (uint16_t)1007u));
+  if (ssb_idx_ncell_r16_present) {
+    HANDLE_CODE(pack_integer(bref, ssb_idx_ncell_r16, (uint8_t)0u, (uint8_t)63u));
+  }
+  if (ssb_cfg_r16_present) {
+    HANDLE_CODE(ssb_cfg_r16.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE ssb_info_ncell_r16_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(ssb_idx_ncell_r16_present, 1));
+  HANDLE_CODE(bref.unpack(ssb_cfg_r16_present, 1));
+
+  HANDLE_CODE(unpack_integer(phys_cell_id_r16, bref, (uint16_t)0u, (uint16_t)1007u));
+  if (ssb_idx_ncell_r16_present) {
+    HANDLE_CODE(unpack_integer(ssb_idx_ncell_r16, bref, (uint8_t)0u, (uint8_t)63u));
+  }
+  if (ssb_cfg_r16_present) {
+    HANDLE_CODE(ssb_cfg_r16.unpack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void ssb_info_ncell_r16_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("physicalCellId-r16", phys_cell_id_r16);
+  if (ssb_idx_ncell_r16_present) {
+    j.write_int("ssb-IndexNcell-r16", ssb_idx_ncell_r16);
+  }
+  if (ssb_cfg_r16_present) {
+    j.write_fieldname("ssb-Configuration-r16");
+    ssb_cfg_r16.to_json(j);
+  }
+  j.end_obj();
+}
+
+// DL-PRS-Info-r16 ::= SEQUENCE
+OCUDUASN_CODE dl_prs_info_r16_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(dl_prs_res_id_r16_present, 1));
+
+  HANDLE_CODE(pack_integer(bref, dl_prs_id_r16, (uint16_t)0u, (uint16_t)255u));
+  HANDLE_CODE(pack_integer(bref, dl_prs_res_set_id_r16, (uint8_t)0u, (uint8_t)7u));
+  if (dl_prs_res_id_r16_present) {
+    HANDLE_CODE(pack_integer(bref, dl_prs_res_id_r16, (uint8_t)0u, (uint8_t)63u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE dl_prs_info_r16_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(dl_prs_res_id_r16_present, 1));
+
+  HANDLE_CODE(unpack_integer(dl_prs_id_r16, bref, (uint16_t)0u, (uint16_t)255u));
+  HANDLE_CODE(unpack_integer(dl_prs_res_set_id_r16, bref, (uint8_t)0u, (uint8_t)7u));
+  if (dl_prs_res_id_r16_present) {
+    HANDLE_CODE(unpack_integer(dl_prs_res_id_r16, bref, (uint8_t)0u, (uint8_t)63u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void dl_prs_info_r16_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("dl-PRS-ID-r16", dl_prs_id_r16);
+  j.write_int("dl-PRS-ResourceSetId-r16", dl_prs_res_set_id_r16);
+  if (dl_prs_res_id_r16_present) {
+    j.write_int("dl-PRS-ResourceId-r16", dl_prs_res_id_r16);
+  }
+  j.end_obj();
+}
+
+// SRS-PosResourceSet-r16 ::= SEQUENCE
+OCUDUASN_CODE srs_pos_res_set_r16_s::pack(bit_ref& bref) const
+{
+  bref.pack(ext, 1);
+  HANDLE_CODE(bref.pack(srs_pos_res_id_list_r16.size() > 0, 1));
+  HANDLE_CODE(bref.pack(alpha_r16_present, 1));
+  HANDLE_CODE(bref.pack(p0_r16_present, 1));
+  HANDLE_CODE(bref.pack(pathloss_ref_rs_pos_r16_present, 1));
+
+  HANDLE_CODE(pack_integer(bref, srs_pos_res_set_id_r16, (uint8_t)0u, (uint8_t)15u));
+  if (srs_pos_res_id_list_r16.size() > 0) {
+    HANDLE_CODE(pack_dyn_seq_of(bref, srs_pos_res_id_list_r16, 1, 16, integer_packer<uint8_t>(0, 63)));
+  }
+  HANDLE_CODE(res_type_r16.pack(bref));
+  if (alpha_r16_present) {
+    HANDLE_CODE(alpha_r16.pack(bref));
+  }
+  if (p0_r16_present) {
+    HANDLE_CODE(pack_integer(bref, p0_r16, (int16_t)-202, (int16_t)24));
+  }
+  if (pathloss_ref_rs_pos_r16_present) {
+    HANDLE_CODE(pathloss_ref_rs_pos_r16.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_pos_res_set_r16_s::unpack(cbit_ref& bref)
+{
+  bref.unpack(ext, 1);
+  bool srs_pos_res_id_list_r16_present;
+  HANDLE_CODE(bref.unpack(srs_pos_res_id_list_r16_present, 1));
+  HANDLE_CODE(bref.unpack(alpha_r16_present, 1));
+  HANDLE_CODE(bref.unpack(p0_r16_present, 1));
+  HANDLE_CODE(bref.unpack(pathloss_ref_rs_pos_r16_present, 1));
+
+  HANDLE_CODE(unpack_integer(srs_pos_res_set_id_r16, bref, (uint8_t)0u, (uint8_t)15u));
+  if (srs_pos_res_id_list_r16_present) {
+    HANDLE_CODE(unpack_dyn_seq_of(srs_pos_res_id_list_r16, bref, 1, 16, integer_packer<uint8_t>(0, 63)));
+  }
+  HANDLE_CODE(res_type_r16.unpack(bref));
+  if (alpha_r16_present) {
+    HANDLE_CODE(alpha_r16.unpack(bref));
+  }
+  if (p0_r16_present) {
+    HANDLE_CODE(unpack_integer(p0_r16, bref, (int16_t)-202, (int16_t)24));
+  }
+  if (pathloss_ref_rs_pos_r16_present) {
+    HANDLE_CODE(pathloss_ref_rs_pos_r16.unpack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void srs_pos_res_set_r16_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("srs-PosResourceSetId-r16", srs_pos_res_set_id_r16);
+  if (srs_pos_res_id_list_r16.size() > 0) {
+    j.start_array("srs-PosResourceIdList-r16");
+    for (const auto& e1 : srs_pos_res_id_list_r16) {
+      j.write_int(e1);
+    }
+    j.end_array();
+  }
+  j.write_fieldname("resourceType-r16");
+  res_type_r16.to_json(j);
+  if (alpha_r16_present) {
+    j.write_str("alpha-r16", alpha_r16.to_string());
+  }
+  if (p0_r16_present) {
+    j.write_int("p0-r16", p0_r16);
+  }
+  if (pathloss_ref_rs_pos_r16_present) {
+    j.write_fieldname("pathlossReferenceRS-Pos-r16");
+    pathloss_ref_rs_pos_r16.to_json(j);
+  }
+  j.end_obj();
+}
+
+void srs_pos_res_set_r16_s::res_type_r16_c_::destroy_()
+{
+  switch (type_) {
+    case types::aperiodic_r16:
+      c.destroy<aperiodic_r16_s_>();
+      break;
+    case types::semi_persistent_r16:
+      c.destroy<semi_persistent_r16_s_>();
+      break;
+    case types::periodic_r16:
+      c.destroy<periodic_r16_s_>();
+      break;
+    default:
+      break;
+  }
+}
+void srs_pos_res_set_r16_s::res_type_r16_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::aperiodic_r16:
+      c.init<aperiodic_r16_s_>();
+      break;
+    case types::semi_persistent_r16:
+      c.init<semi_persistent_r16_s_>();
+      break;
+    case types::periodic_r16:
+      c.init<periodic_r16_s_>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
+  }
+}
+srs_pos_res_set_r16_s::res_type_r16_c_::res_type_r16_c_(const srs_pos_res_set_r16_s::res_type_r16_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::aperiodic_r16:
+      c.init(other.c.get<aperiodic_r16_s_>());
+      break;
+    case types::semi_persistent_r16:
+      c.init(other.c.get<semi_persistent_r16_s_>());
+      break;
+    case types::periodic_r16:
+      c.init(other.c.get<periodic_r16_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
+  }
+}
+srs_pos_res_set_r16_s::res_type_r16_c_&
+srs_pos_res_set_r16_s::res_type_r16_c_::operator=(const srs_pos_res_set_r16_s::res_type_r16_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::aperiodic_r16:
+      c.set(other.c.get<aperiodic_r16_s_>());
+      break;
+    case types::semi_persistent_r16:
+      c.set(other.c.get<semi_persistent_r16_s_>());
+      break;
+    case types::periodic_r16:
+      c.set(other.c.get<periodic_r16_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
+  }
+
+  return *this;
+}
+srs_pos_res_set_r16_s::res_type_r16_c_::aperiodic_r16_s_& srs_pos_res_set_r16_s::res_type_r16_c_::set_aperiodic_r16()
+{
+  set(types::aperiodic_r16);
+  return c.get<aperiodic_r16_s_>();
+}
+srs_pos_res_set_r16_s::res_type_r16_c_::semi_persistent_r16_s_&
+srs_pos_res_set_r16_s::res_type_r16_c_::set_semi_persistent_r16()
+{
+  set(types::semi_persistent_r16);
+  return c.get<semi_persistent_r16_s_>();
+}
+srs_pos_res_set_r16_s::res_type_r16_c_::periodic_r16_s_& srs_pos_res_set_r16_s::res_type_r16_c_::set_periodic_r16()
+{
+  set(types::periodic_r16);
+  return c.get<periodic_r16_s_>();
+}
+void srs_pos_res_set_r16_s::res_type_r16_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::aperiodic_r16:
+      j.write_fieldname("aperiodic-r16");
+      j.start_obj();
+      if (c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16.size() > 0) {
+        j.start_array("aperiodicSRS-ResourceTriggerList-r16");
+        for (const auto& e1 : c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16) {
+          j.write_int(e1);
+        }
+        j.end_array();
+      }
+      j.end_obj();
+      break;
+    case types::semi_persistent_r16:
+      j.write_fieldname("semi-persistent-r16");
+      j.start_obj();
+      j.end_obj();
+      break;
+    case types::periodic_r16:
+      j.write_fieldname("periodic-r16");
+      j.start_obj();
+      j.end_obj();
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE srs_pos_res_set_r16_s::res_type_r16_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::aperiodic_r16:
+      bref.pack(c.get<aperiodic_r16_s_>().ext, 1);
+      HANDLE_CODE(bref.pack(c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16.size() > 0, 1));
+      if (c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16.size() > 0) {
+        HANDLE_CODE(pack_dyn_seq_of(
+            bref, c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16, 1, 3, integer_packer<uint8_t>(1, 3)));
+      }
+      break;
+    case types::semi_persistent_r16:
+      bref.pack(c.get<semi_persistent_r16_s_>().ext, 1);
+      break;
+    case types::periodic_r16:
+      bref.pack(c.get<periodic_r16_s_>().ext, 1);
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_pos_res_set_r16_s::res_type_r16_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::aperiodic_r16:
+      bref.unpack(c.get<aperiodic_r16_s_>().ext, 1);
+      bool aperiodic_srs_res_trigger_list_r16_present;
+      HANDLE_CODE(bref.unpack(aperiodic_srs_res_trigger_list_r16_present, 1));
+      if (aperiodic_srs_res_trigger_list_r16_present) {
+        HANDLE_CODE(unpack_dyn_seq_of(
+            c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16, bref, 1, 3, integer_packer<uint8_t>(1, 3)));
+      }
+      break;
+    case types::semi_persistent_r16:
+      bref.unpack(c.get<semi_persistent_r16_s_>().ext, 1);
+      break;
+    case types::periodic_r16:
+      bref.unpack(c.get<periodic_r16_s_>().ext, 1);
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* srs_pos_res_set_r16_s::res_type_r16_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"aperiodic-r16", "semi-persistent-r16", "periodic-r16"};
+  return convert_enum_idx(names, 3, value, "srs_pos_res_set_r16_s::res_type_r16_c_::types");
+}
+
+void srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::destroy_()
+{
+  switch (type_) {
+    case types::ssb_ncell_r16:
+      c.destroy<ssb_info_ncell_r16_s>();
+      break;
+    case types::dl_prs_r16:
+      c.destroy<dl_prs_info_r16_s>();
+      break;
+    default:
+      break;
+  }
+}
+void srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      break;
+    case types::ssb_ncell_r16:
+      c.init<ssb_info_ncell_r16_s>();
+      break;
+    case types::dl_prs_r16:
+      c.init<dl_prs_info_r16_s>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
+  }
+}
+srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::pathloss_ref_rs_pos_r16_c_(
+    const srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::ssb_ncell_r16:
+      c.init(other.c.get<ssb_info_ncell_r16_s>());
+      break;
+    case types::dl_prs_r16:
+      c.init(other.c.get<dl_prs_info_r16_s>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
+  }
+}
+srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_& srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::operator=(
+    const srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::ssb_ncell_r16:
+      c.set(other.c.get<ssb_info_ncell_r16_s>());
+      break;
+    case types::dl_prs_r16:
+      c.set(other.c.get<dl_prs_info_r16_s>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
+  }
+
+  return *this;
+}
+uint8_t& srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::set_ssb_idx_serving_r16()
+{
+  set(types::ssb_idx_serving_r16);
+  return c.get<uint8_t>();
+}
+ssb_info_ncell_r16_s& srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::set_ssb_ncell_r16()
+{
+  set(types::ssb_ncell_r16);
+  return c.get<ssb_info_ncell_r16_s>();
+}
+dl_prs_info_r16_s& srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::set_dl_prs_r16()
+{
+  set(types::dl_prs_r16);
+  return c.get<dl_prs_info_r16_s>();
+}
+void srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      j.write_int("ssb-IndexServing-r16", c.get<uint8_t>());
+      break;
+    case types::ssb_ncell_r16:
+      j.write_fieldname("ssb-Ncell-r16");
+      c.get<ssb_info_ncell_r16_s>().to_json(j);
+      break;
+    case types::dl_prs_r16:
+      j.write_fieldname("dl-PRS-r16");
+      c.get<dl_prs_info_r16_s>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
+      break;
+    case types::ssb_ncell_r16:
+      HANDLE_CODE(c.get<ssb_info_ncell_r16_s>().pack(bref));
+      break;
+    case types::dl_prs_r16:
+      HANDLE_CODE(c.get<dl_prs_info_r16_s>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
+      break;
+    case types::ssb_ncell_r16:
+      HANDLE_CODE(c.get<ssb_info_ncell_r16_s>().unpack(bref));
+      break;
+    case types::dl_prs_r16:
+      HANDLE_CODE(c.get<dl_prs_info_r16_s>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"ssb-IndexServing-r16", "ssb-Ncell-r16", "dl-PRS-r16"};
+  return convert_enum_idx(names, 3, value, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::types");
+}
+
+// SRS-PeriodicityAndOffset-r16 ::= CHOICE
+void srs_periodicity_and_offset_r16_c::destroy_() {}
+void srs_periodicity_and_offset_r16_c::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+}
+srs_periodicity_and_offset_r16_c::srs_periodicity_and_offset_r16_c(const srs_periodicity_and_offset_r16_c& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::sl1:
+      break;
+    case types::sl2:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl4:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl5:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl8:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl10:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl16:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl20:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl32:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl40:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl64:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl80:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl160:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl320:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::sl640:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::sl1280:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::sl2560:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::sl5120:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::sl10240:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::sl40960:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::sl81920:
+      c.init(other.c.get<uint32_t>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
+  }
+}
+srs_periodicity_and_offset_r16_c&
+srs_periodicity_and_offset_r16_c::operator=(const srs_periodicity_and_offset_r16_c& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::sl1:
+      break;
+    case types::sl2:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl4:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl5:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl8:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl10:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl16:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl20:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl32:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl40:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl64:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl80:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl160:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl320:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::sl640:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::sl1280:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::sl2560:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::sl5120:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::sl10240:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::sl40960:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::sl81920:
+      c.set(other.c.get<uint32_t>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
+  }
+
+  return *this;
+}
+void srs_periodicity_and_offset_r16_c::set_sl1()
+{
+  set(types::sl1);
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl2()
+{
+  set(types::sl2);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl4()
+{
+  set(types::sl4);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl5()
+{
+  set(types::sl5);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl8()
+{
+  set(types::sl8);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl10()
+{
+  set(types::sl10);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl16()
+{
+  set(types::sl16);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl20()
+{
+  set(types::sl20);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl32()
+{
+  set(types::sl32);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl40()
+{
+  set(types::sl40);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl64()
+{
+  set(types::sl64);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl80()
+{
+  set(types::sl80);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_periodicity_and_offset_r16_c::set_sl160()
+{
+  set(types::sl160);
+  return c.get<uint8_t>();
+}
+uint16_t& srs_periodicity_and_offset_r16_c::set_sl320()
+{
+  set(types::sl320);
+  return c.get<uint16_t>();
+}
+uint16_t& srs_periodicity_and_offset_r16_c::set_sl640()
+{
+  set(types::sl640);
+  return c.get<uint16_t>();
+}
+uint16_t& srs_periodicity_and_offset_r16_c::set_sl1280()
+{
+  set(types::sl1280);
+  return c.get<uint16_t>();
+}
+uint16_t& srs_periodicity_and_offset_r16_c::set_sl2560()
+{
+  set(types::sl2560);
+  return c.get<uint16_t>();
+}
+uint16_t& srs_periodicity_and_offset_r16_c::set_sl5120()
+{
+  set(types::sl5120);
+  return c.get<uint16_t>();
+}
+uint16_t& srs_periodicity_and_offset_r16_c::set_sl10240()
+{
+  set(types::sl10240);
+  return c.get<uint16_t>();
+}
+uint16_t& srs_periodicity_and_offset_r16_c::set_sl40960()
+{
+  set(types::sl40960);
+  return c.get<uint16_t>();
+}
+uint32_t& srs_periodicity_and_offset_r16_c::set_sl81920()
+{
+  set(types::sl81920);
+  return c.get<uint32_t>();
+}
+void srs_periodicity_and_offset_r16_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::sl1:
+      break;
+    case types::sl2:
+      j.write_int("sl2", c.get<uint8_t>());
+      break;
+    case types::sl4:
+      j.write_int("sl4", c.get<uint8_t>());
+      break;
+    case types::sl5:
+      j.write_int("sl5", c.get<uint8_t>());
+      break;
+    case types::sl8:
+      j.write_int("sl8", c.get<uint8_t>());
+      break;
+    case types::sl10:
+      j.write_int("sl10", c.get<uint8_t>());
+      break;
+    case types::sl16:
+      j.write_int("sl16", c.get<uint8_t>());
+      break;
+    case types::sl20:
+      j.write_int("sl20", c.get<uint8_t>());
+      break;
+    case types::sl32:
+      j.write_int("sl32", c.get<uint8_t>());
+      break;
+    case types::sl40:
+      j.write_int("sl40", c.get<uint8_t>());
+      break;
+    case types::sl64:
+      j.write_int("sl64", c.get<uint8_t>());
+      break;
+    case types::sl80:
+      j.write_int("sl80", c.get<uint8_t>());
+      break;
+    case types::sl160:
+      j.write_int("sl160", c.get<uint8_t>());
+      break;
+    case types::sl320:
+      j.write_int("sl320", c.get<uint16_t>());
+      break;
+    case types::sl640:
+      j.write_int("sl640", c.get<uint16_t>());
+      break;
+    case types::sl1280:
+      j.write_int("sl1280", c.get<uint16_t>());
+      break;
+    case types::sl2560:
+      j.write_int("sl2560", c.get<uint16_t>());
+      break;
+    case types::sl5120:
+      j.write_int("sl5120", c.get<uint16_t>());
+      break;
+    case types::sl10240:
+      j.write_int("sl10240", c.get<uint16_t>());
+      break;
+    case types::sl40960:
+      j.write_int("sl40960", c.get<uint16_t>());
+      break;
+    case types::sl81920:
+      j.write_int("sl81920", c.get<uint32_t>());
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE srs_periodicity_and_offset_r16_c::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::sl1:
+      break;
+    case types::sl2:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)1u));
+      break;
+    case types::sl4:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)3u));
+      break;
+    case types::sl5:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)4u));
+      break;
+    case types::sl8:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)7u));
+      break;
+    case types::sl10:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)9u));
+      break;
+    case types::sl16:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)15u));
+      break;
+    case types::sl20:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)19u));
+      break;
+    case types::sl32:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)31u));
+      break;
+    case types::sl40:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)39u));
+      break;
+    case types::sl64:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
+      break;
+    case types::sl80:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)79u));
+      break;
+    case types::sl160:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)159u));
+      break;
+    case types::sl320:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)319u));
+      break;
+    case types::sl640:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)639u));
+      break;
+    case types::sl1280:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)1279u));
+      break;
+    case types::sl2560:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)2559u));
+      break;
+    case types::sl5120:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)5119u));
+      break;
+    case types::sl10240:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)10239u));
+      break;
+    case types::sl40960:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)40959u));
+      break;
+    case types::sl81920:
+      HANDLE_CODE(pack_integer(bref, c.get<uint32_t>(), (uint32_t)0u, (uint32_t)81919u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_periodicity_and_offset_r16_c::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::sl1:
+      break;
+    case types::sl2:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)1u));
+      break;
+    case types::sl4:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)3u));
+      break;
+    case types::sl5:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)4u));
+      break;
+    case types::sl8:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)7u));
+      break;
+    case types::sl10:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)9u));
+      break;
+    case types::sl16:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)15u));
+      break;
+    case types::sl20:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)19u));
+      break;
+    case types::sl32:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)31u));
+      break;
+    case types::sl40:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)39u));
+      break;
+    case types::sl64:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
+      break;
+    case types::sl80:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)79u));
+      break;
+    case types::sl160:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)159u));
+      break;
+    case types::sl320:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)319u));
+      break;
+    case types::sl640:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)639u));
+      break;
+    case types::sl1280:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)1279u));
+      break;
+    case types::sl2560:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)2559u));
+      break;
+    case types::sl5120:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)5119u));
+      break;
+    case types::sl10240:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)10239u));
+      break;
+    case types::sl40960:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)40959u));
+      break;
+    case types::sl81920:
+      HANDLE_CODE(unpack_integer(c.get<uint32_t>(), bref, (uint32_t)0u, (uint32_t)81919u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* srs_periodicity_and_offset_r16_c::types_opts::to_string() const
+{
+  static const char* names[] = {"sl1",   "sl2",    "sl4",    "sl5",    "sl8",     "sl10",    "sl16",
+                                "sl20",  "sl32",   "sl40",   "sl64",   "sl80",    "sl160",   "sl320",
+                                "sl640", "sl1280", "sl2560", "sl5120", "sl10240", "sl40960", "sl81920"};
+  return convert_enum_idx(names, 21, value, "srs_periodicity_and_offset_r16_c::types");
+}
+uint32_t srs_periodicity_and_offset_r16_c::types_opts::to_number() const
+{
+  static const uint32_t numbers[] = {1,  2,   4,   5,   8,    10,   16,   20,    32,    40,   64,
+                                     80, 160, 320, 640, 1280, 2560, 5120, 10240, 40960, 81920};
+  return map_enum_number(numbers, 21, value, "srs_periodicity_and_offset_r16_c::types");
+}
+
+// SRS-PeriodicityAndOffsetExt-r16 ::= CHOICE
+void srs_periodicity_and_offset_ext_r16_c::destroy_() {}
+void srs_periodicity_and_offset_ext_r16_c::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+}
+srs_periodicity_and_offset_ext_r16_c::srs_periodicity_and_offset_ext_r16_c(
+    const srs_periodicity_and_offset_ext_r16_c& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::sl128:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::sl256:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::sl512:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::sl20480:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
+  }
+}
+srs_periodicity_and_offset_ext_r16_c&
+srs_periodicity_and_offset_ext_r16_c::operator=(const srs_periodicity_and_offset_ext_r16_c& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::sl128:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::sl256:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::sl512:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::sl20480:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
+  }
+
+  return *this;
+}
+uint8_t& srs_periodicity_and_offset_ext_r16_c::set_sl128()
+{
+  set(types::sl128);
+  return c.get<uint8_t>();
+}
+uint16_t& srs_periodicity_and_offset_ext_r16_c::set_sl256()
+{
+  set(types::sl256);
+  return c.get<uint16_t>();
+}
+uint16_t& srs_periodicity_and_offset_ext_r16_c::set_sl512()
+{
+  set(types::sl512);
+  return c.get<uint16_t>();
+}
+uint16_t& srs_periodicity_and_offset_ext_r16_c::set_sl20480()
+{
+  set(types::sl20480);
+  return c.get<uint16_t>();
+}
+void srs_periodicity_and_offset_ext_r16_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::sl128:
+      j.write_int("sl128", c.get<uint8_t>());
+      break;
+    case types::sl256:
+      j.write_int("sl256", c.get<uint16_t>());
+      break;
+    case types::sl512:
+      j.write_int("sl512", c.get<uint16_t>());
+      break;
+    case types::sl20480:
+      j.write_int("sl20480", c.get<uint16_t>());
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE srs_periodicity_and_offset_ext_r16_c::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::sl128:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)127u));
+      break;
+    case types::sl256:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)255u));
+      break;
+    case types::sl512:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)511u));
+      break;
+    case types::sl20480:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)20479u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_periodicity_and_offset_ext_r16_c::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::sl128:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)127u));
+      break;
+    case types::sl256:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)255u));
+      break;
+    case types::sl512:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)511u));
+      break;
+    case types::sl20480:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)20479u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* srs_periodicity_and_offset_ext_r16_c::types_opts::to_string() const
+{
+  static const char* names[] = {"sl128", "sl256", "sl512", "sl20480"};
+  return convert_enum_idx(names, 4, value, "srs_periodicity_and_offset_ext_r16_c::types");
+}
+uint16_t srs_periodicity_and_offset_ext_r16_c::types_opts::to_number() const
+{
+  static const uint16_t numbers[] = {128, 256, 512, 20480};
+  return map_enum_number(numbers, 4, value, "srs_periodicity_and_offset_ext_r16_c::types");
+}
+
+// SRS-SpatialRelationInfoPos-r16 ::= CHOICE
+void srs_spatial_relation_info_pos_r16_c::destroy_()
+{
+  switch (type_) {
+    case types::serving_rs_r16:
+      c.destroy<serving_rs_r16_s_>();
+      break;
+    case types::ssb_ncell_r16:
+      c.destroy<ssb_info_ncell_r16_s>();
+      break;
+    case types::dl_prs_r16:
+      c.destroy<dl_prs_info_r16_s>();
+      break;
+    default:
+      break;
+  }
+}
+void srs_spatial_relation_info_pos_r16_c::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::serving_rs_r16:
+      c.init<serving_rs_r16_s_>();
+      break;
+    case types::ssb_ncell_r16:
+      c.init<ssb_info_ncell_r16_s>();
+      break;
+    case types::dl_prs_r16:
+      c.init<dl_prs_info_r16_s>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
+  }
+}
+srs_spatial_relation_info_pos_r16_c::srs_spatial_relation_info_pos_r16_c(
+    const srs_spatial_relation_info_pos_r16_c& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::serving_rs_r16:
+      c.init(other.c.get<serving_rs_r16_s_>());
+      break;
+    case types::ssb_ncell_r16:
+      c.init(other.c.get<ssb_info_ncell_r16_s>());
+      break;
+    case types::dl_prs_r16:
+      c.init(other.c.get<dl_prs_info_r16_s>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
+  }
+}
+srs_spatial_relation_info_pos_r16_c&
+srs_spatial_relation_info_pos_r16_c::operator=(const srs_spatial_relation_info_pos_r16_c& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::serving_rs_r16:
+      c.set(other.c.get<serving_rs_r16_s_>());
+      break;
+    case types::ssb_ncell_r16:
+      c.set(other.c.get<ssb_info_ncell_r16_s>());
+      break;
+    case types::dl_prs_r16:
+      c.set(other.c.get<dl_prs_info_r16_s>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
+  }
+
+  return *this;
+}
+srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_& srs_spatial_relation_info_pos_r16_c::set_serving_rs_r16()
+{
+  set(types::serving_rs_r16);
+  return c.get<serving_rs_r16_s_>();
+}
+ssb_info_ncell_r16_s& srs_spatial_relation_info_pos_r16_c::set_ssb_ncell_r16()
+{
+  set(types::ssb_ncell_r16);
+  return c.get<ssb_info_ncell_r16_s>();
+}
+dl_prs_info_r16_s& srs_spatial_relation_info_pos_r16_c::set_dl_prs_r16()
+{
+  set(types::dl_prs_r16);
+  return c.get<dl_prs_info_r16_s>();
+}
+void srs_spatial_relation_info_pos_r16_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::serving_rs_r16:
+      j.write_fieldname("servingRS-r16");
+      j.start_obj();
+      if (c.get<serving_rs_r16_s_>().serving_cell_id_present) {
+        j.write_int("servingCellId", c.get<serving_rs_r16_s_>().serving_cell_id);
+      }
+      j.write_fieldname("referenceSignal-r16");
+      c.get<serving_rs_r16_s_>().ref_sig_r16.to_json(j);
+      j.end_obj();
+      break;
+    case types::ssb_ncell_r16:
+      j.write_fieldname("ssb-Ncell-r16");
+      c.get<ssb_info_ncell_r16_s>().to_json(j);
+      break;
+    case types::dl_prs_r16:
+      j.write_fieldname("dl-PRS-r16");
+      c.get<dl_prs_info_r16_s>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::serving_rs_r16:
+      HANDLE_CODE(bref.pack(c.get<serving_rs_r16_s_>().serving_cell_id_present, 1));
+      if (c.get<serving_rs_r16_s_>().serving_cell_id_present) {
+        HANDLE_CODE(pack_integer(bref, c.get<serving_rs_r16_s_>().serving_cell_id, (uint8_t)0u, (uint8_t)31u));
+      }
+      HANDLE_CODE(c.get<serving_rs_r16_s_>().ref_sig_r16.pack(bref));
+      break;
+    case types::ssb_ncell_r16:
+      HANDLE_CODE(c.get<ssb_info_ncell_r16_s>().pack(bref));
+      break;
+    case types::dl_prs_r16:
+      HANDLE_CODE(c.get<dl_prs_info_r16_s>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::serving_rs_r16:
+      HANDLE_CODE(bref.unpack(c.get<serving_rs_r16_s_>().serving_cell_id_present, 1));
+      if (c.get<serving_rs_r16_s_>().serving_cell_id_present) {
+        HANDLE_CODE(unpack_integer(c.get<serving_rs_r16_s_>().serving_cell_id, bref, (uint8_t)0u, (uint8_t)31u));
+      }
+      HANDLE_CODE(c.get<serving_rs_r16_s_>().ref_sig_r16.unpack(bref));
+      break;
+    case types::ssb_ncell_r16:
+      HANDLE_CODE(c.get<ssb_info_ncell_r16_s>().unpack(bref));
+      break;
+    case types::dl_prs_r16:
+      HANDLE_CODE(c.get<dl_prs_info_r16_s>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::destroy_()
+{
+  switch (type_) {
+    case types::srs_spatial_relation_r16:
+      c.destroy<srs_spatial_relation_r16_s_>();
+      break;
+    default:
+      break;
+  }
+}
+void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      break;
+    case types::csi_rs_idx_serving_r16:
+      break;
+    case types::srs_spatial_relation_r16:
+      c.init<srs_spatial_relation_r16_s_>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
+  }
+}
+srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::ref_sig_r16_c_(
+    const srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::csi_rs_idx_serving_r16:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::srs_spatial_relation_r16:
+      c.init(other.c.get<srs_spatial_relation_r16_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
+  }
+}
+srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_&
+srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::operator=(
+    const srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::csi_rs_idx_serving_r16:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::srs_spatial_relation_r16:
+      c.set(other.c.get<srs_spatial_relation_r16_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
+  }
+
+  return *this;
+}
+uint8_t& srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::set_ssb_idx_serving_r16()
+{
+  set(types::ssb_idx_serving_r16);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::set_csi_rs_idx_serving_r16()
+{
+  set(types::csi_rs_idx_serving_r16);
+  return c.get<uint8_t>();
+}
+srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_&
+srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::set_srs_spatial_relation_r16()
+{
+  set(types::srs_spatial_relation_r16);
+  return c.get<srs_spatial_relation_r16_s_>();
+}
+void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      j.write_int("ssb-IndexServing-r16", c.get<uint8_t>());
+      break;
+    case types::csi_rs_idx_serving_r16:
+      j.write_int("csi-RS-IndexServing-r16", c.get<uint8_t>());
+      break;
+    case types::srs_spatial_relation_r16:
+      j.write_fieldname("srs-SpatialRelation-r16");
+      j.start_obj();
+      j.write_fieldname("resourceSelection-r16");
+      c.get<srs_spatial_relation_r16_s_>().res_sel_r16.to_json(j);
+      j.write_int("uplinkBWP-r16", c.get<srs_spatial_relation_r16_s_>().ul_bwp_r16);
+      j.end_obj();
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
+      break;
+    case types::csi_rs_idx_serving_r16:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)191u));
+      break;
+    case types::srs_spatial_relation_r16:
+      HANDLE_CODE(c.get<srs_spatial_relation_r16_s_>().res_sel_r16.pack(bref));
+      HANDLE_CODE(pack_integer(bref, c.get<srs_spatial_relation_r16_s_>().ul_bwp_r16, (uint8_t)0u, (uint8_t)4u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::ssb_idx_serving_r16:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
+      break;
+    case types::csi_rs_idx_serving_r16:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)191u));
+      break;
+    case types::srs_spatial_relation_r16:
+      HANDLE_CODE(c.get<srs_spatial_relation_r16_s_>().res_sel_r16.unpack(bref));
+      HANDLE_CODE(unpack_integer(c.get<srs_spatial_relation_r16_s_>().ul_bwp_r16, bref, (uint8_t)0u, (uint8_t)4u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
+    res_sel_r16_c_::destroy_()
+{
+}
+void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
+    res_sel_r16_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+}
+srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::res_sel_r16_c_::
+    res_sel_r16_c_(const srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::
+                       srs_spatial_relation_r16_s_::res_sel_r16_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::srs_res_id_r16:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::srs_pos_res_id_r16:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_,
+                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
+                            "relation_r16_s_::res_sel_r16_c_");
+  }
+}
+srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::res_sel_r16_c_&
+srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::res_sel_r16_c_::
+operator=(const srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
+              res_sel_r16_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::srs_res_id_r16:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::srs_pos_res_id_r16:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_,
+                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
+                            "relation_r16_s_::res_sel_r16_c_");
+  }
+
+  return *this;
+}
+uint8_t& srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
+    res_sel_r16_c_::set_srs_res_id_r16()
+{
+  set(types::srs_res_id_r16);
+  return c.get<uint8_t>();
+}
+uint8_t& srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
+    res_sel_r16_c_::set_srs_pos_res_id_r16()
+{
+  set(types::srs_pos_res_id_r16);
+  return c.get<uint8_t>();
+}
+void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
+    res_sel_r16_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::srs_res_id_r16:
+      j.write_int("srs-ResourceId-r16", c.get<uint8_t>());
+      break;
+    case types::srs_pos_res_id_r16:
+      j.write_int("srs-PosResourceId-r16", c.get<uint8_t>());
+      break;
+    default:
+      log_invalid_choice_id(type_,
+                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
+                            "relation_r16_s_::res_sel_r16_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
+    res_sel_r16_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::srs_res_id_r16:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
+      break;
+    case types::srs_pos_res_id_r16:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
+      break;
+    default:
+      log_invalid_choice_id(type_,
+                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
+                            "relation_r16_s_::res_sel_r16_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
+    res_sel_r16_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::srs_res_id_r16:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
+      break;
+    case types::srs_pos_res_id_r16:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
+      break;
+    default:
+      log_invalid_choice_id(type_,
+                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
+                            "relation_r16_s_::res_sel_r16_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
+    res_sel_r16_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"srs-ResourceId-r16", "srs-PosResourceId-r16"};
+  return convert_enum_idx(names,
+                          2,
+                          value,
+                          "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
+                          "relation_r16_s_::res_sel_r16_c_::types");
+}
+
+const char* srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"ssb-IndexServing-r16", "csi-RS-IndexServing-r16", "srs-SpatialRelation-r16"};
+  return convert_enum_idx(
+      names, 3, value, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::types");
+}
+
+const char* srs_spatial_relation_info_pos_r16_c::types_opts::to_string() const
+{
+  static const char* names[] = {"servingRS-r16", "ssb-Ncell-r16", "dl-PRS-r16"};
+  return convert_enum_idx(names, 3, value, "srs_spatial_relation_info_pos_r16_c::types");
+}
+
+// SlotOffsetForRemainingHops-r18 ::= SEQUENCE
+OCUDUASN_CODE slot_offset_for_remaining_hops_r18_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(slot_offset_remaining_hops_r18.pack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE slot_offset_for_remaining_hops_r18_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(slot_offset_remaining_hops_r18.unpack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+void slot_offset_for_remaining_hops_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("slotOffsetRemainingHops-r18");
+  slot_offset_remaining_hops_r18.to_json(j);
+  j.end_obj();
+}
+
+void slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::destroy_()
+{
+  switch (type_) {
+    case types::aperiodic_r18:
+      c.destroy<aperiodic_r18_s_>();
+      break;
+    case types::semi_persistent_r18:
+      c.destroy<semi_persistent_r18_s_>();
+      break;
+    case types::periodic_r18:
+      c.destroy<periodic_r18_s_>();
+      break;
+    default:
+      break;
+  }
+}
+void slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::aperiodic_r18:
+      c.init<aperiodic_r18_s_>();
+      break;
+    case types::semi_persistent_r18:
+      c.init<semi_persistent_r18_s_>();
+      break;
+    case types::periodic_r18:
+      c.init<periodic_r18_s_>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_");
+  }
+}
+slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::slot_offset_remaining_hops_r18_c_(
+    const slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::aperiodic_r18:
+      c.init(other.c.get<aperiodic_r18_s_>());
+      break;
+    case types::semi_persistent_r18:
+      c.init(other.c.get<semi_persistent_r18_s_>());
+      break;
+    case types::periodic_r18:
+      c.init(other.c.get<periodic_r18_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_");
+  }
+}
+slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_&
+slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::operator=(
+    const slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::aperiodic_r18:
+      c.set(other.c.get<aperiodic_r18_s_>());
+      break;
+    case types::semi_persistent_r18:
+      c.set(other.c.get<semi_persistent_r18_s_>());
+      break;
+    case types::periodic_r18:
+      c.set(other.c.get<periodic_r18_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_");
+  }
+
+  return *this;
+}
+slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::aperiodic_r18_s_&
+slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::set_aperiodic_r18()
+{
+  set(types::aperiodic_r18);
+  return c.get<aperiodic_r18_s_>();
+}
+slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::semi_persistent_r18_s_&
+slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::set_semi_persistent_r18()
+{
+  set(types::semi_persistent_r18);
+  return c.get<semi_persistent_r18_s_>();
+}
+slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::periodic_r18_s_&
+slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::set_periodic_r18()
+{
+  set(types::periodic_r18);
+  return c.get<periodic_r18_s_>();
+}
+void slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::aperiodic_r18:
+      j.write_fieldname("aperiodic-r18");
+      j.start_obj();
+      if (c.get<aperiodic_r18_s_>().slot_offset_r18_present) {
+        j.write_int("slotOffset-r18", c.get<aperiodic_r18_s_>().slot_offset_r18);
+      }
+      if (c.get<aperiodic_r18_s_>().start_position_r18_present) {
+        j.write_int("startPosition-r18", c.get<aperiodic_r18_s_>().start_position_r18);
+      }
+      j.end_obj();
+      break;
+    case types::semi_persistent_r18:
+      j.write_fieldname("semi-persistent-r18");
+      j.start_obj();
+      if (c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_r18_present) {
+        j.write_fieldname("periodicityAndOffset-sp-r18");
+        c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_r18.to_json(j);
+      }
+      if (c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_ext_r18_present) {
+        j.write_fieldname("periodicityAndOffset-sp-Ext-r18");
+        c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_ext_r18.to_json(j);
+      }
+      if (c.get<semi_persistent_r18_s_>().start_position_r18_present) {
+        j.write_int("startPosition-r18", c.get<semi_persistent_r18_s_>().start_position_r18);
+      }
+      j.end_obj();
+      break;
+    case types::periodic_r18:
+      j.write_fieldname("periodic-r18");
+      j.start_obj();
+      if (c.get<periodic_r18_s_>().periodicity_and_offset_p_r18_present) {
+        j.write_fieldname("periodicityAndOffset-p-r18");
+        c.get<periodic_r18_s_>().periodicity_and_offset_p_r18.to_json(j);
+      }
+      if (c.get<periodic_r18_s_>().periodicity_and_offset_p_ext_r18_present) {
+        j.write_fieldname("periodicityAndOffset-p-Ext-r18");
+        c.get<periodic_r18_s_>().periodicity_and_offset_p_ext_r18.to_json(j);
+      }
+      if (c.get<periodic_r18_s_>().start_position_r18_present) {
+        j.write_int("startPosition-r18", c.get<periodic_r18_s_>().start_position_r18);
+      }
+      j.end_obj();
+      break;
+    default:
+      log_invalid_choice_id(type_, "slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::aperiodic_r18:
+      bref.pack(c.get<aperiodic_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.pack(c.get<aperiodic_r18_s_>().slot_offset_r18_present, 1));
+      HANDLE_CODE(bref.pack(c.get<aperiodic_r18_s_>().start_position_r18_present, 1));
+      if (c.get<aperiodic_r18_s_>().slot_offset_r18_present) {
+        HANDLE_CODE(pack_integer(bref, c.get<aperiodic_r18_s_>().slot_offset_r18, (uint8_t)1u, (uint8_t)32u));
+      }
+      if (c.get<aperiodic_r18_s_>().start_position_r18_present) {
+        HANDLE_CODE(pack_integer(bref, c.get<aperiodic_r18_s_>().start_position_r18, (uint8_t)0u, (uint8_t)13u));
+      }
+      break;
+    case types::semi_persistent_r18:
+      bref.pack(c.get<semi_persistent_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.pack(c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_r18_present, 1));
+      HANDLE_CODE(bref.pack(c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_ext_r18_present, 1));
+      HANDLE_CODE(bref.pack(c.get<semi_persistent_r18_s_>().start_position_r18_present, 1));
+      if (c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_r18_present) {
+        HANDLE_CODE(c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_r18.pack(bref));
+      }
+      if (c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_ext_r18_present) {
+        HANDLE_CODE(c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_ext_r18.pack(bref));
+      }
+      if (c.get<semi_persistent_r18_s_>().start_position_r18_present) {
+        HANDLE_CODE(pack_integer(bref, c.get<semi_persistent_r18_s_>().start_position_r18, (uint8_t)0u, (uint8_t)13u));
+      }
+      break;
+    case types::periodic_r18:
+      bref.pack(c.get<periodic_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.pack(c.get<periodic_r18_s_>().periodicity_and_offset_p_r18_present, 1));
+      HANDLE_CODE(bref.pack(c.get<periodic_r18_s_>().periodicity_and_offset_p_ext_r18_present, 1));
+      HANDLE_CODE(bref.pack(c.get<periodic_r18_s_>().start_position_r18_present, 1));
+      if (c.get<periodic_r18_s_>().periodicity_and_offset_p_r18_present) {
+        HANDLE_CODE(c.get<periodic_r18_s_>().periodicity_and_offset_p_r18.pack(bref));
+      }
+      if (c.get<periodic_r18_s_>().periodicity_and_offset_p_ext_r18_present) {
+        HANDLE_CODE(c.get<periodic_r18_s_>().periodicity_and_offset_p_ext_r18.pack(bref));
+      }
+      if (c.get<periodic_r18_s_>().start_position_r18_present) {
+        HANDLE_CODE(pack_integer(bref, c.get<periodic_r18_s_>().start_position_r18, (uint8_t)0u, (uint8_t)13u));
+      }
+      break;
+    default:
+      log_invalid_choice_id(type_, "slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::aperiodic_r18:
+      bref.unpack(c.get<aperiodic_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.unpack(c.get<aperiodic_r18_s_>().slot_offset_r18_present, 1));
+      HANDLE_CODE(bref.unpack(c.get<aperiodic_r18_s_>().start_position_r18_present, 1));
+      if (c.get<aperiodic_r18_s_>().slot_offset_r18_present) {
+        HANDLE_CODE(unpack_integer(c.get<aperiodic_r18_s_>().slot_offset_r18, bref, (uint8_t)1u, (uint8_t)32u));
+      }
+      if (c.get<aperiodic_r18_s_>().start_position_r18_present) {
+        HANDLE_CODE(unpack_integer(c.get<aperiodic_r18_s_>().start_position_r18, bref, (uint8_t)0u, (uint8_t)13u));
+      }
+      break;
+    case types::semi_persistent_r18:
+      bref.unpack(c.get<semi_persistent_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.unpack(c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_r18_present, 1));
+      HANDLE_CODE(bref.unpack(c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_ext_r18_present, 1));
+      HANDLE_CODE(bref.unpack(c.get<semi_persistent_r18_s_>().start_position_r18_present, 1));
+      if (c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_r18_present) {
+        HANDLE_CODE(c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_r18.unpack(bref));
+      }
+      if (c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_ext_r18_present) {
+        HANDLE_CODE(c.get<semi_persistent_r18_s_>().periodicity_and_offset_sp_ext_r18.unpack(bref));
+      }
+      if (c.get<semi_persistent_r18_s_>().start_position_r18_present) {
+        HANDLE_CODE(
+            unpack_integer(c.get<semi_persistent_r18_s_>().start_position_r18, bref, (uint8_t)0u, (uint8_t)13u));
+      }
+      break;
+    case types::periodic_r18:
+      bref.unpack(c.get<periodic_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.unpack(c.get<periodic_r18_s_>().periodicity_and_offset_p_r18_present, 1));
+      HANDLE_CODE(bref.unpack(c.get<periodic_r18_s_>().periodicity_and_offset_p_ext_r18_present, 1));
+      HANDLE_CODE(bref.unpack(c.get<periodic_r18_s_>().start_position_r18_present, 1));
+      if (c.get<periodic_r18_s_>().periodicity_and_offset_p_r18_present) {
+        HANDLE_CODE(c.get<periodic_r18_s_>().periodicity_and_offset_p_r18.unpack(bref));
+      }
+      if (c.get<periodic_r18_s_>().periodicity_and_offset_p_ext_r18_present) {
+        HANDLE_CODE(c.get<periodic_r18_s_>().periodicity_and_offset_p_ext_r18.unpack(bref));
+      }
+      if (c.get<periodic_r18_s_>().start_position_r18_present) {
+        HANDLE_CODE(unpack_integer(c.get<periodic_r18_s_>().start_position_r18, bref, (uint8_t)0u, (uint8_t)13u));
+      }
+      break;
+    default:
+      log_invalid_choice_id(type_, "slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"aperiodic-r18", "semi-persistent-r18", "periodic-r18"};
+  return convert_enum_idx(
+      names, 3, value, "slot_offset_for_remaining_hops_r18_s::slot_offset_remaining_hops_r18_c_::types");
+}
+
+// TxHoppingConfig-r18 ::= SEQUENCE
+OCUDUASN_CODE tx_hop_cfg_r18_s::pack(bit_ref& bref) const
+{
+  bref.pack(ext, 1);
+  HANDLE_CODE(overlap_value_r18.pack(bref));
+  HANDLE_CODE(pack_integer(bref, nof_hops_r18, (uint8_t)1u, (uint8_t)6u));
+  HANDLE_CODE(pack_dyn_seq_of(bref, slot_offset_for_remaining_hops_list_r18, 1, 5));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE tx_hop_cfg_r18_s::unpack(cbit_ref& bref)
+{
+  bref.unpack(ext, 1);
+  HANDLE_CODE(overlap_value_r18.unpack(bref));
+  HANDLE_CODE(unpack_integer(nof_hops_r18, bref, (uint8_t)1u, (uint8_t)6u));
+  HANDLE_CODE(unpack_dyn_seq_of(slot_offset_for_remaining_hops_list_r18, bref, 1, 5));
+
+  return OCUDUASN_SUCCESS;
+}
+void tx_hop_cfg_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("overlapValue-r18", overlap_value_r18.to_string());
+  j.write_int("numberOfHops-r18", nof_hops_r18);
+  j.start_array("slotOffsetForRemainingHopsList-r18");
+  for (const auto& e1 : slot_offset_for_remaining_hops_list_r18) {
+    e1.to_json(j);
+  }
+  j.end_array();
+  j.end_obj();
+}
+
+const char* tx_hop_cfg_r18_s::overlap_value_r18_opts::to_string() const
+{
+  static const char* names[] = {"zeroRB", "oneRB", "twoRB", "fourRB"};
+  return convert_enum_idx(names, 4, value, "tx_hop_cfg_r18_s::overlap_value_r18_e_");
+}
+uint8_t tx_hop_cfg_r18_s::overlap_value_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {0, 1, 2, 4};
+  return map_enum_number(numbers, 4, value, "tx_hop_cfg_r18_s::overlap_value_r18_e_");
+}
+
+// SRS-PosResource-r16 ::= SEQUENCE
+OCUDUASN_CODE srs_pos_res_r16_s::pack(bit_ref& bref) const
+{
+  bref.pack(ext, 1);
+  HANDLE_CODE(bref.pack(spatial_relation_info_pos_r16_present, 1));
+
+  HANDLE_CODE(pack_integer(bref, srs_pos_res_id_r16, (uint8_t)0u, (uint8_t)63u));
+  HANDLE_CODE(tx_comb_r16.pack(bref));
+  HANDLE_CODE(pack_integer(bref, res_map_r16.start_position_r16, (uint8_t)0u, (uint8_t)13u));
+  HANDLE_CODE(res_map_r16.nrof_symbols_r16.pack(bref));
+  HANDLE_CODE(pack_integer(bref, freq_domain_shift_r16, (uint16_t)0u, (uint16_t)268u));
+  bref.pack(freq_hop_r16.ext, 1);
+  HANDLE_CODE(pack_integer(bref, freq_hop_r16.c_srs_r16, (uint8_t)0u, (uint8_t)63u));
+  HANDLE_CODE(group_or_seq_hop_r16.pack(bref));
+  HANDLE_CODE(res_type_r16.pack(bref));
+  HANDLE_CODE(pack_integer(bref, seq_id_r16, (uint32_t)0u, (uint32_t)65535u));
+  if (spatial_relation_info_pos_r16_present) {
+    HANDLE_CODE(spatial_relation_info_pos_r16.pack(bref));
+  }
+
+  if (ext) {
+    ext_groups_packer_guard group_flags;
+    group_flags[0] |= tx_hop_cfg_r18.is_present();
+    group_flags.pack(bref);
+
+    if (group_flags[0]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(tx_hop_cfg_r18.is_present(), 1));
+      if (tx_hop_cfg_r18.is_present()) {
+        HANDLE_CODE(tx_hop_cfg_r18->pack(bref));
+      }
+    }
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_pos_res_r16_s::unpack(cbit_ref& bref)
+{
+  bref.unpack(ext, 1);
+  HANDLE_CODE(bref.unpack(spatial_relation_info_pos_r16_present, 1));
+
+  HANDLE_CODE(unpack_integer(srs_pos_res_id_r16, bref, (uint8_t)0u, (uint8_t)63u));
+  HANDLE_CODE(tx_comb_r16.unpack(bref));
+  HANDLE_CODE(unpack_integer(res_map_r16.start_position_r16, bref, (uint8_t)0u, (uint8_t)13u));
+  HANDLE_CODE(res_map_r16.nrof_symbols_r16.unpack(bref));
+  HANDLE_CODE(unpack_integer(freq_domain_shift_r16, bref, (uint16_t)0u, (uint16_t)268u));
+  bref.unpack(freq_hop_r16.ext, 1);
+  HANDLE_CODE(unpack_integer(freq_hop_r16.c_srs_r16, bref, (uint8_t)0u, (uint8_t)63u));
+  HANDLE_CODE(group_or_seq_hop_r16.unpack(bref));
+  HANDLE_CODE(res_type_r16.unpack(bref));
+  HANDLE_CODE(unpack_integer(seq_id_r16, bref, (uint32_t)0u, (uint32_t)65535u));
+  if (spatial_relation_info_pos_r16_present) {
+    HANDLE_CODE(spatial_relation_info_pos_r16.unpack(bref));
+  }
+
+  if (ext) {
+    ext_groups_unpacker group_unpacker(bref);
+
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      unpack_presence_flag(tx_hop_cfg_r18, bref);
+      if (tx_hop_cfg_r18.is_present()) {
+        HANDLE_CODE(tx_hop_cfg_r18->unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
+  }
+  return OCUDUASN_SUCCESS;
+}
+void srs_pos_res_r16_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("srs-PosResourceId-r16", srs_pos_res_id_r16);
+  j.write_fieldname("transmissionComb-r16");
+  tx_comb_r16.to_json(j);
+  j.write_fieldname("resourceMapping-r16");
+  j.start_obj();
+  j.write_int("startPosition-r16", res_map_r16.start_position_r16);
+  j.write_str("nrofSymbols-r16", res_map_r16.nrof_symbols_r16.to_string());
+  j.end_obj();
+  j.write_int("freqDomainShift-r16", freq_domain_shift_r16);
+  j.write_fieldname("freqHopping-r16");
+  j.start_obj();
+  j.write_int("c-SRS-r16", freq_hop_r16.c_srs_r16);
+  j.end_obj();
+  j.write_str("groupOrSequenceHopping-r16", group_or_seq_hop_r16.to_string());
+  j.write_fieldname("resourceType-r16");
+  res_type_r16.to_json(j);
+  j.write_int("sequenceId-r16", seq_id_r16);
+  if (spatial_relation_info_pos_r16_present) {
+    j.write_fieldname("spatialRelationInfoPos-r16");
+    spatial_relation_info_pos_r16.to_json(j);
+  }
+  if (ext) {
+    if (tx_hop_cfg_r18.is_present()) {
+      j.write_fieldname("txHoppingConfig-r18");
+      tx_hop_cfg_r18->to_json(j);
+    }
+  }
+  j.end_obj();
+}
+
+void srs_pos_res_r16_s::tx_comb_r16_c_::destroy_()
+{
+  switch (type_) {
+    case types::n2_r16:
+      c.destroy<n2_r16_s_>();
+      break;
+    case types::n4_r16:
+      c.destroy<n4_r16_s_>();
+      break;
+    case types::n8_r16:
+      c.destroy<n8_r16_s_>();
+      break;
+    default:
+      break;
+  }
+}
+void srs_pos_res_r16_s::tx_comb_r16_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::n2_r16:
+      c.init<n2_r16_s_>();
+      break;
+    case types::n4_r16:
+      c.init<n4_r16_s_>();
+      break;
+    case types::n8_r16:
+      c.init<n8_r16_s_>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
+  }
+}
+srs_pos_res_r16_s::tx_comb_r16_c_::tx_comb_r16_c_(const srs_pos_res_r16_s::tx_comb_r16_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::n2_r16:
+      c.init(other.c.get<n2_r16_s_>());
+      break;
+    case types::n4_r16:
+      c.init(other.c.get<n4_r16_s_>());
+      break;
+    case types::n8_r16:
+      c.init(other.c.get<n8_r16_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
+  }
+}
+srs_pos_res_r16_s::tx_comb_r16_c_&
+srs_pos_res_r16_s::tx_comb_r16_c_::operator=(const srs_pos_res_r16_s::tx_comb_r16_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::n2_r16:
+      c.set(other.c.get<n2_r16_s_>());
+      break;
+    case types::n4_r16:
+      c.set(other.c.get<n4_r16_s_>());
+      break;
+    case types::n8_r16:
+      c.set(other.c.get<n8_r16_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
+  }
+
+  return *this;
+}
+srs_pos_res_r16_s::tx_comb_r16_c_::n2_r16_s_& srs_pos_res_r16_s::tx_comb_r16_c_::set_n2_r16()
+{
+  set(types::n2_r16);
+  return c.get<n2_r16_s_>();
+}
+srs_pos_res_r16_s::tx_comb_r16_c_::n4_r16_s_& srs_pos_res_r16_s::tx_comb_r16_c_::set_n4_r16()
+{
+  set(types::n4_r16);
+  return c.get<n4_r16_s_>();
+}
+srs_pos_res_r16_s::tx_comb_r16_c_::n8_r16_s_& srs_pos_res_r16_s::tx_comb_r16_c_::set_n8_r16()
+{
+  set(types::n8_r16);
+  return c.get<n8_r16_s_>();
+}
+void srs_pos_res_r16_s::tx_comb_r16_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::n2_r16:
+      j.write_fieldname("n2-r16");
+      j.start_obj();
+      j.write_int("combOffset-n2-r16", c.get<n2_r16_s_>().comb_offset_n2_r16);
+      j.write_int("cyclicShift-n2-r16", c.get<n2_r16_s_>().cyclic_shift_n2_r16);
+      j.end_obj();
+      break;
+    case types::n4_r16:
+      j.write_fieldname("n4-r16");
+      j.start_obj();
+      j.write_int("combOffset-n4-r16", c.get<n4_r16_s_>().comb_offset_n4_r16);
+      j.write_int("cyclicShift-n4-r16", c.get<n4_r16_s_>().cyclic_shift_n4_r16);
+      j.end_obj();
+      break;
+    case types::n8_r16:
+      j.write_fieldname("n8-r16");
+      j.start_obj();
+      j.write_int("combOffset-n8-r16", c.get<n8_r16_s_>().comb_offset_n8_r16);
+      j.write_int("cyclicShift-n8-r16", c.get<n8_r16_s_>().cyclic_shift_n8_r16);
+      j.end_obj();
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE srs_pos_res_r16_s::tx_comb_r16_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::n2_r16:
+      HANDLE_CODE(pack_integer(bref, c.get<n2_r16_s_>().comb_offset_n2_r16, (uint8_t)0u, (uint8_t)1u));
+      HANDLE_CODE(pack_integer(bref, c.get<n2_r16_s_>().cyclic_shift_n2_r16, (uint8_t)0u, (uint8_t)7u));
+      break;
+    case types::n4_r16:
+      HANDLE_CODE(pack_integer(bref, c.get<n4_r16_s_>().comb_offset_n4_r16, (uint8_t)0u, (uint8_t)3u));
+      HANDLE_CODE(pack_integer(bref, c.get<n4_r16_s_>().cyclic_shift_n4_r16, (uint8_t)0u, (uint8_t)11u));
+      break;
+    case types::n8_r16:
+      HANDLE_CODE(pack_integer(bref, c.get<n8_r16_s_>().comb_offset_n8_r16, (uint8_t)0u, (uint8_t)7u));
+      HANDLE_CODE(pack_integer(bref, c.get<n8_r16_s_>().cyclic_shift_n8_r16, (uint8_t)0u, (uint8_t)5u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_pos_res_r16_s::tx_comb_r16_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::n2_r16:
+      HANDLE_CODE(unpack_integer(c.get<n2_r16_s_>().comb_offset_n2_r16, bref, (uint8_t)0u, (uint8_t)1u));
+      HANDLE_CODE(unpack_integer(c.get<n2_r16_s_>().cyclic_shift_n2_r16, bref, (uint8_t)0u, (uint8_t)7u));
+      break;
+    case types::n4_r16:
+      HANDLE_CODE(unpack_integer(c.get<n4_r16_s_>().comb_offset_n4_r16, bref, (uint8_t)0u, (uint8_t)3u));
+      HANDLE_CODE(unpack_integer(c.get<n4_r16_s_>().cyclic_shift_n4_r16, bref, (uint8_t)0u, (uint8_t)11u));
+      break;
+    case types::n8_r16:
+      HANDLE_CODE(unpack_integer(c.get<n8_r16_s_>().comb_offset_n8_r16, bref, (uint8_t)0u, (uint8_t)7u));
+      HANDLE_CODE(unpack_integer(c.get<n8_r16_s_>().cyclic_shift_n8_r16, bref, (uint8_t)0u, (uint8_t)5u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* srs_pos_res_r16_s::tx_comb_r16_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"n2-r16", "n4-r16", "n8-r16"};
+  return convert_enum_idx(names, 3, value, "srs_pos_res_r16_s::tx_comb_r16_c_::types");
+}
+uint8_t srs_pos_res_r16_s::tx_comb_r16_c_::types_opts::to_number() const
+{
+  static const uint8_t numbers[] = {2, 4, 8};
+  return map_enum_number(numbers, 3, value, "srs_pos_res_r16_s::tx_comb_r16_c_::types");
+}
+
+const char* srs_pos_res_r16_s::res_map_r16_s_::nrof_symbols_r16_opts::to_string() const
+{
+  static const char* names[] = {"n1", "n2", "n4", "n8", "n12"};
+  return convert_enum_idx(names, 5, value, "srs_pos_res_r16_s::res_map_r16_s_::nrof_symbols_r16_e_");
+}
+uint8_t srs_pos_res_r16_s::res_map_r16_s_::nrof_symbols_r16_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2, 4, 8, 12};
+  return map_enum_number(numbers, 5, value, "srs_pos_res_r16_s::res_map_r16_s_::nrof_symbols_r16_e_");
+}
+
+const char* srs_pos_res_r16_s::group_or_seq_hop_r16_opts::to_string() const
+{
+  static const char* names[] = {"neither", "groupHopping", "sequenceHopping"};
+  return convert_enum_idx(names, 3, value, "srs_pos_res_r16_s::group_or_seq_hop_r16_e_");
+}
+
+void srs_pos_res_r16_s::res_type_r16_c_::destroy_()
+{
+  switch (type_) {
+    case types::aperiodic_r16:
+      c.destroy<aperiodic_r16_s_>();
+      break;
+    case types::semi_persistent_r16:
+      c.destroy<semi_persistent_r16_s_>();
+      break;
+    case types::periodic_r16:
+      c.destroy<periodic_r16_s_>();
+      break;
+    default:
+      break;
+  }
+}
+void srs_pos_res_r16_s::res_type_r16_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::aperiodic_r16:
+      c.init<aperiodic_r16_s_>();
+      break;
+    case types::semi_persistent_r16:
+      c.init<semi_persistent_r16_s_>();
+      break;
+    case types::periodic_r16:
+      c.init<periodic_r16_s_>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
+  }
+}
+srs_pos_res_r16_s::res_type_r16_c_::res_type_r16_c_(const srs_pos_res_r16_s::res_type_r16_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::aperiodic_r16:
+      c.init(other.c.get<aperiodic_r16_s_>());
+      break;
+    case types::semi_persistent_r16:
+      c.init(other.c.get<semi_persistent_r16_s_>());
+      break;
+    case types::periodic_r16:
+      c.init(other.c.get<periodic_r16_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
+  }
+}
+srs_pos_res_r16_s::res_type_r16_c_&
+srs_pos_res_r16_s::res_type_r16_c_::operator=(const srs_pos_res_r16_s::res_type_r16_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::aperiodic_r16:
+      c.set(other.c.get<aperiodic_r16_s_>());
+      break;
+    case types::semi_persistent_r16:
+      c.set(other.c.get<semi_persistent_r16_s_>());
+      break;
+    case types::periodic_r16:
+      c.set(other.c.get<periodic_r16_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
+  }
+
+  return *this;
+}
+srs_pos_res_r16_s::res_type_r16_c_::aperiodic_r16_s_& srs_pos_res_r16_s::res_type_r16_c_::set_aperiodic_r16()
+{
+  set(types::aperiodic_r16);
+  return c.get<aperiodic_r16_s_>();
+}
+srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_&
+srs_pos_res_r16_s::res_type_r16_c_::set_semi_persistent_r16()
+{
+  set(types::semi_persistent_r16);
+  return c.get<semi_persistent_r16_s_>();
+}
+srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_& srs_pos_res_r16_s::res_type_r16_c_::set_periodic_r16()
+{
+  set(types::periodic_r16);
+  return c.get<periodic_r16_s_>();
+}
+void srs_pos_res_r16_s::res_type_r16_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::aperiodic_r16:
+      j.write_fieldname("aperiodic-r16");
+      j.start_obj();
+      if (c.get<aperiodic_r16_s_>().slot_offset_r16_present) {
+        j.write_int("slotOffset-r16", c.get<aperiodic_r16_s_>().slot_offset_r16);
+      }
+      j.end_obj();
+      break;
+    case types::semi_persistent_r16:
+      j.write_fieldname("semi-persistent-r16");
+      c.get<semi_persistent_r16_s_>().to_json(j);
+      break;
+    case types::periodic_r16:
+      j.write_fieldname("periodic-r16");
+      c.get<periodic_r16_s_>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::aperiodic_r16:
+      bref.pack(c.get<aperiodic_r16_s_>().ext, 1);
+      HANDLE_CODE(bref.pack(c.get<aperiodic_r16_s_>().slot_offset_r16_present, 1));
+      if (c.get<aperiodic_r16_s_>().slot_offset_r16_present) {
+        HANDLE_CODE(pack_integer(bref, c.get<aperiodic_r16_s_>().slot_offset_r16, (uint8_t)1u, (uint8_t)32u));
+      }
+      break;
+    case types::semi_persistent_r16:
+      HANDLE_CODE(c.get<semi_persistent_r16_s_>().pack(bref));
+      break;
+    case types::periodic_r16:
+      HANDLE_CODE(c.get<periodic_r16_s_>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::aperiodic_r16:
+      bref.unpack(c.get<aperiodic_r16_s_>().ext, 1);
+      HANDLE_CODE(bref.unpack(c.get<aperiodic_r16_s_>().slot_offset_r16_present, 1));
+      if (c.get<aperiodic_r16_s_>().slot_offset_r16_present) {
+        HANDLE_CODE(unpack_integer(c.get<aperiodic_r16_s_>().slot_offset_r16, bref, (uint8_t)1u, (uint8_t)32u));
+      }
+      break;
+    case types::semi_persistent_r16:
+      HANDLE_CODE(c.get<semi_persistent_r16_s_>().unpack(bref));
+      break;
+    case types::periodic_r16:
+      HANDLE_CODE(c.get<periodic_r16_s_>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::pack(bit_ref& bref) const
+{
+  bref.pack(ext, 1);
+  HANDLE_CODE(periodicity_and_offset_sp_r16.pack(bref));
+
+  if (ext) {
+    ext_groups_packer_guard group_flags;
+    group_flags[0] |= periodicity_and_offset_sp_ext_r16.is_present();
+    group_flags[1] |= srs_pos_periodic_cfg_hyper_sfn_idx_r18_present;
+    group_flags.pack(bref);
+
+    if (group_flags[0]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(periodicity_and_offset_sp_ext_r16.is_present(), 1));
+      if (periodicity_and_offset_sp_ext_r16.is_present()) {
+        HANDLE_CODE(periodicity_and_offset_sp_ext_r16->pack(bref));
+      }
+    }
+    if (group_flags[1]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(srs_pos_periodic_cfg_hyper_sfn_idx_r18_present, 1));
+      if (srs_pos_periodic_cfg_hyper_sfn_idx_r18_present) {
+        HANDLE_CODE(srs_pos_periodic_cfg_hyper_sfn_idx_r18.pack(bref));
+      }
+    }
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::unpack(cbit_ref& bref)
+{
+  bref.unpack(ext, 1);
+  HANDLE_CODE(periodicity_and_offset_sp_r16.unpack(bref));
+
+  if (ext) {
+    ext_groups_unpacker group_unpacker(bref);
+
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      unpack_presence_flag(periodicity_and_offset_sp_ext_r16, bref);
+      if (periodicity_and_offset_sp_ext_r16.is_present()) {
+        HANDLE_CODE(periodicity_and_offset_sp_ext_r16->unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(srs_pos_periodic_cfg_hyper_sfn_idx_r18_present, 1));
+      if (srs_pos_periodic_cfg_hyper_sfn_idx_r18_present) {
+        HANDLE_CODE(srs_pos_periodic_cfg_hyper_sfn_idx_r18.unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
+  }
+  return OCUDUASN_SUCCESS;
+}
+void srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("periodicityAndOffset-sp-r16");
+  periodicity_and_offset_sp_r16.to_json(j);
+  if (ext) {
+    if (periodicity_and_offset_sp_ext_r16.is_present()) {
+      j.write_fieldname("periodicityAndOffset-sp-Ext-r16");
+      periodicity_and_offset_sp_ext_r16->to_json(j);
+    }
+    if (srs_pos_periodic_cfg_hyper_sfn_idx_r18_present) {
+      j.write_str("srs-PosPeriodicConfigHyperSFN-Index-r18", srs_pos_periodic_cfg_hyper_sfn_idx_r18.to_string());
+    }
+  }
+  j.end_obj();
+}
+
+const char*
+srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::srs_pos_periodic_cfg_hyper_sfn_idx_r18_opts::to_string()
+    const
+{
+  static const char* names[] = {"even0", "odd1"};
+  return convert_enum_idx(
+      names,
+      2,
+      value,
+      "srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::srs_pos_periodic_cfg_hyper_sfn_idx_r18_e_");
+}
+uint8_t
+srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::srs_pos_periodic_cfg_hyper_sfn_idx_r18_opts::to_number()
+    const
+{
+  static const uint8_t numbers[] = {0, 1};
+  return map_enum_number(
+      numbers,
+      2,
+      value,
+      "srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::srs_pos_periodic_cfg_hyper_sfn_idx_r18_e_");
+}
+
+OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::pack(bit_ref& bref) const
+{
+  bref.pack(ext, 1);
+  HANDLE_CODE(periodicity_and_offset_p_r16.pack(bref));
+
+  if (ext) {
+    ext_groups_packer_guard group_flags;
+    group_flags[0] |= periodicity_and_offset_p_ext_r16.is_present();
+    group_flags[1] |= srs_pos_periodic_cfg_hyper_sfn_idx_r18_present;
+    group_flags.pack(bref);
+
+    if (group_flags[0]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(periodicity_and_offset_p_ext_r16.is_present(), 1));
+      if (periodicity_and_offset_p_ext_r16.is_present()) {
+        HANDLE_CODE(periodicity_and_offset_p_ext_r16->pack(bref));
+      }
+    }
+    if (group_flags[1]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(srs_pos_periodic_cfg_hyper_sfn_idx_r18_present, 1));
+      if (srs_pos_periodic_cfg_hyper_sfn_idx_r18_present) {
+        HANDLE_CODE(srs_pos_periodic_cfg_hyper_sfn_idx_r18.pack(bref));
+      }
+    }
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::unpack(cbit_ref& bref)
+{
+  bref.unpack(ext, 1);
+  HANDLE_CODE(periodicity_and_offset_p_r16.unpack(bref));
+
+  if (ext) {
+    ext_groups_unpacker group_unpacker(bref);
+
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      unpack_presence_flag(periodicity_and_offset_p_ext_r16, bref);
+      if (periodicity_and_offset_p_ext_r16.is_present()) {
+        HANDLE_CODE(periodicity_and_offset_p_ext_r16->unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(srs_pos_periodic_cfg_hyper_sfn_idx_r18_present, 1));
+      if (srs_pos_periodic_cfg_hyper_sfn_idx_r18_present) {
+        HANDLE_CODE(srs_pos_periodic_cfg_hyper_sfn_idx_r18.unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
+  }
+  return OCUDUASN_SUCCESS;
+}
+void srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("periodicityAndOffset-p-r16");
+  periodicity_and_offset_p_r16.to_json(j);
+  if (ext) {
+    if (periodicity_and_offset_p_ext_r16.is_present()) {
+      j.write_fieldname("periodicityAndOffset-p-Ext-r16");
+      periodicity_and_offset_p_ext_r16->to_json(j);
+    }
+    if (srs_pos_periodic_cfg_hyper_sfn_idx_r18_present) {
+      j.write_str("srs-PosPeriodicConfigHyperSFN-Index-r18", srs_pos_periodic_cfg_hyper_sfn_idx_r18.to_string());
+    }
+  }
+  j.end_obj();
+}
+
+const char*
+srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::srs_pos_periodic_cfg_hyper_sfn_idx_r18_opts::to_string() const
+{
+  static const char* names[] = {"even0", "odd1"};
+  return convert_enum_idx(
+      names,
+      2,
+      value,
+      "srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::srs_pos_periodic_cfg_hyper_sfn_idx_r18_e_");
+}
+uint8_t
+srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::srs_pos_periodic_cfg_hyper_sfn_idx_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {0, 1};
+  return map_enum_number(
+      numbers,
+      2,
+      value,
+      "srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::srs_pos_periodic_cfg_hyper_sfn_idx_r18_e_");
+}
+
+const char* srs_pos_res_r16_s::res_type_r16_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"aperiodic-r16", "semi-persistent-r16", "periodic-r16"};
+  return convert_enum_idx(names, 3, value, "srs_pos_res_r16_s::res_type_r16_c_::types");
+}
+
+// BWP ::= SEQUENCE
+OCUDUASN_CODE bwp_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(cp_present, 1));
+
+  HANDLE_CODE(pack_integer(bref, location_and_bw, (uint16_t)0u, (uint16_t)37949u));
+  HANDLE_CODE(subcarrier_spacing.pack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE bwp_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(cp_present, 1));
+
+  HANDLE_CODE(unpack_integer(location_and_bw, bref, (uint16_t)0u, (uint16_t)37949u));
+  HANDLE_CODE(subcarrier_spacing.unpack(bref));
+
+  return OCUDUASN_SUCCESS;
+}
+void bwp_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("locationAndBandwidth", location_and_bw);
+  j.write_str("subcarrierSpacing", subcarrier_spacing.to_string());
+  if (cp_present) {
+    j.write_str("cyclicPrefix", "extended");
+  }
+  j.end_obj();
+}
+
 // RACH-ConfigGeneric ::= SEQUENCE
 OCUDUASN_CODE rach_cfg_generic_s::pack(bit_ref& bref) const
 {
@@ -354,8 +3131,8 @@ OCUDUASN_CODE feature_combination_r17_s::pack(bit_ref& bref) const
   HANDLE_CODE(bref.pack(small_data_r17_present, 1));
   HANDLE_CODE(bref.pack(nsag_r17.size() > 0, 1));
   HANDLE_CODE(bref.pack(msg3_repeats_r17_present, 1));
-  HANDLE_CODE(bref.pack(spare4_present, 1));
-  HANDLE_CODE(bref.pack(spare3_present, 1));
+  HANDLE_CODE(bref.pack(msg1_repeats_r18_present, 1));
+  HANDLE_CODE(bref.pack(ered_cap_r18_present, 1));
   HANDLE_CODE(bref.pack(spare2_present, 1));
   HANDLE_CODE(bref.pack(spare1_present, 1));
 
@@ -372,8 +3149,8 @@ OCUDUASN_CODE feature_combination_r17_s::unpack(cbit_ref& bref)
   bool nsag_r17_present;
   HANDLE_CODE(bref.unpack(nsag_r17_present, 1));
   HANDLE_CODE(bref.unpack(msg3_repeats_r17_present, 1));
-  HANDLE_CODE(bref.unpack(spare4_present, 1));
-  HANDLE_CODE(bref.unpack(spare3_present, 1));
+  HANDLE_CODE(bref.unpack(msg1_repeats_r18_present, 1));
+  HANDLE_CODE(bref.unpack(ered_cap_r18_present, 1));
   HANDLE_CODE(bref.unpack(spare2_present, 1));
   HANDLE_CODE(bref.unpack(spare1_present, 1));
 
@@ -402,11 +3179,11 @@ void feature_combination_r17_s::to_json(json_writer& j) const
   if (msg3_repeats_r17_present) {
     j.write_str("msg3-Repetitions-r17", "true");
   }
-  if (spare4_present) {
-    j.write_str("spare4", "true");
+  if (msg1_repeats_r18_present) {
+    j.write_str("msg1-Repetitions-r18", "true");
   }
-  if (spare3_present) {
-    j.write_str("spare3", "true");
+  if (ered_cap_r18_present) {
+    j.write_str("eRedCap-r18", "true");
   }
   if (spare2_present) {
     j.write_str("spare2", "true");
@@ -813,6 +3590,25 @@ OCUDUASN_CODE feature_combination_preambs_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, delta_preamb_r17, (int8_t)-1, (int8_t)6));
   }
 
+  if (ext) {
+    ext_groups_packer_guard group_flags;
+    group_flags[0] |= msg1_repeat_num_r18_present;
+    group_flags[0] |= msg1_repeat_time_offset_ro_group_r18_present;
+    group_flags.pack(bref);
+
+    if (group_flags[0]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(msg1_repeat_num_r18_present, 1));
+      HANDLE_CODE(bref.pack(msg1_repeat_time_offset_ro_group_r18_present, 1));
+      if (msg1_repeat_num_r18_present) {
+        HANDLE_CODE(msg1_repeat_num_r18.pack(bref));
+      }
+      if (msg1_repeat_time_offset_ro_group_r18_present) {
+        HANDLE_CODE(msg1_repeat_time_offset_ro_group_r18.pack(bref));
+      }
+    }
+  }
   return OCUDUASN_SUCCESS;
 }
 OCUDUASN_CODE feature_combination_preambs_r17_s::unpack(cbit_ref& bref)
@@ -849,6 +3645,22 @@ OCUDUASN_CODE feature_combination_preambs_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(delta_preamb_r17, bref, (int8_t)-1, (int8_t)6));
   }
 
+  if (ext) {
+    ext_groups_unpacker group_unpacker(bref);
+
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(msg1_repeat_num_r18_present, 1));
+      HANDLE_CODE(bref.unpack(msg1_repeat_time_offset_ro_group_r18_present, 1));
+      if (msg1_repeat_num_r18_present) {
+        HANDLE_CODE(msg1_repeat_num_r18.unpack(bref));
+      }
+      if (msg1_repeat_time_offset_ro_group_r18_present) {
+        HANDLE_CODE(msg1_repeat_time_offset_ro_group_r18.unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
+  }
   return OCUDUASN_SUCCESS;
 }
 void feature_combination_preambs_r17_s::to_json(json_writer& j) const
@@ -881,6 +3693,14 @@ void feature_combination_preambs_r17_s::to_json(json_writer& j) const
   }
   if (delta_preamb_r17_present) {
     j.write_int("deltaPreamble-r17", delta_preamb_r17);
+  }
+  if (ext) {
+    if (msg1_repeat_num_r18_present) {
+      j.write_str("msg1-RepetitionNum-r18", msg1_repeat_num_r18.to_string());
+    }
+    if (msg1_repeat_time_offset_ro_group_r18_present) {
+      j.write_str("msg1-RepetitionTimeOffsetROGroup-r18", msg1_repeat_time_offset_ro_group_r18.to_string());
+    }
   }
   j.end_obj();
 }
@@ -924,6 +3744,30 @@ int8_t feature_combination_preambs_r17_s::group_bcfg_r17_s_::msg_pwr_offset_grou
   static const int8_t numbers[] = {-1, 0, 5, 8, 10, 12, 15, 18};
   return map_enum_number(
       numbers, 8, value, "feature_combination_preambs_r17_s::group_bcfg_r17_s_::msg_pwr_offset_group_b_r17_e_");
+}
+
+const char* feature_combination_preambs_r17_s::msg1_repeat_num_r18_opts::to_string() const
+{
+  static const char* names[] = {"n2", "n4", "n8", "spare1"};
+  return convert_enum_idx(names, 4, value, "feature_combination_preambs_r17_s::msg1_repeat_num_r18_e_");
+}
+uint8_t feature_combination_preambs_r17_s::msg1_repeat_num_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {2, 4, 8};
+  return map_enum_number(numbers, 3, value, "feature_combination_preambs_r17_s::msg1_repeat_num_r18_e_");
+}
+
+const char* feature_combination_preambs_r17_s::msg1_repeat_time_offset_ro_group_r18_opts::to_string() const
+{
+  static const char* names[] = {"n4", "n8", "n16", "spare1"};
+  return convert_enum_idx(
+      names, 4, value, "feature_combination_preambs_r17_s::msg1_repeat_time_offset_ro_group_r18_e_");
+}
+uint8_t feature_combination_preambs_r17_s::msg1_repeat_time_offset_ro_group_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {4, 8, 16};
+  return map_enum_number(
+      numbers, 3, value, "feature_combination_preambs_r17_s::msg1_repeat_time_offset_ro_group_r18_e_");
 }
 
 // RACH-ConfigCommon ::= SEQUENCE
@@ -1931,30 +4775,30 @@ uint16_t rach_cfg_generic_two_step_ra_r16_s::msg_b_resp_win_v1700_opts::to_numbe
 // GroupB-ConfiguredTwoStepRA-r16 ::= SEQUENCE
 OCUDUASN_CODE group_b_cfg_two_step_ra_r16_s::pack(bit_ref& bref) const
 {
-  HANDLE_CODE(ra_msg_a_size_group_a.pack(bref));
-  HANDLE_CODE(msg_pwr_offset_group_b.pack(bref));
-  HANDLE_CODE(pack_integer(bref, nof_ra_preambs_group_a, (uint8_t)1u, (uint8_t)64u));
+  HANDLE_CODE(ra_msg_a_size_group_a_r16.pack(bref));
+  HANDLE_CODE(msg_pwr_offset_group_b_r16.pack(bref));
+  HANDLE_CODE(pack_integer(bref, nof_ra_preambs_group_a_r16, (uint8_t)1u, (uint8_t)64u));
 
   return OCUDUASN_SUCCESS;
 }
 OCUDUASN_CODE group_b_cfg_two_step_ra_r16_s::unpack(cbit_ref& bref)
 {
-  HANDLE_CODE(ra_msg_a_size_group_a.unpack(bref));
-  HANDLE_CODE(msg_pwr_offset_group_b.unpack(bref));
-  HANDLE_CODE(unpack_integer(nof_ra_preambs_group_a, bref, (uint8_t)1u, (uint8_t)64u));
+  HANDLE_CODE(ra_msg_a_size_group_a_r16.unpack(bref));
+  HANDLE_CODE(msg_pwr_offset_group_b_r16.unpack(bref));
+  HANDLE_CODE(unpack_integer(nof_ra_preambs_group_a_r16, bref, (uint8_t)1u, (uint8_t)64u));
 
   return OCUDUASN_SUCCESS;
 }
 void group_b_cfg_two_step_ra_r16_s::to_json(json_writer& j) const
 {
   j.start_obj();
-  j.write_str("ra-MsgA-SizeGroupA", ra_msg_a_size_group_a.to_string());
-  j.write_str("messagePowerOffsetGroupB", msg_pwr_offset_group_b.to_string());
-  j.write_int("numberOfRA-PreamblesGroupA", nof_ra_preambs_group_a);
+  j.write_str("ra-MsgA-SizeGroupA-r16", ra_msg_a_size_group_a_r16.to_string());
+  j.write_str("messagePowerOffsetGroupB-r16", msg_pwr_offset_group_b_r16.to_string());
+  j.write_int("numberOfRA-PreamblesGroupA-r16", nof_ra_preambs_group_a_r16);
   j.end_obj();
 }
 
-const char* group_b_cfg_two_step_ra_r16_s::ra_msg_a_size_group_a_opts::to_string() const
+const char* group_b_cfg_two_step_ra_r16_s::ra_msg_a_size_group_a_r16_opts::to_string() const
 {
   static const char* names[] = {"b56",
                                 "b144",
@@ -1972,23 +4816,23 @@ const char* group_b_cfg_two_step_ra_r16_s::ra_msg_a_size_group_a_opts::to_string
                                 "spare3",
                                 "spare2",
                                 "spare1"};
-  return convert_enum_idx(names, 16, value, "group_b_cfg_two_step_ra_r16_s::ra_msg_a_size_group_a_e_");
+  return convert_enum_idx(names, 16, value, "group_b_cfg_two_step_ra_r16_s::ra_msg_a_size_group_a_r16_e_");
 }
-uint16_t group_b_cfg_two_step_ra_r16_s::ra_msg_a_size_group_a_opts::to_number() const
+uint16_t group_b_cfg_two_step_ra_r16_s::ra_msg_a_size_group_a_r16_opts::to_number() const
 {
   static const uint16_t numbers[] = {56, 144, 208, 256, 282, 480, 640, 800, 1000, 72};
-  return map_enum_number(numbers, 10, value, "group_b_cfg_two_step_ra_r16_s::ra_msg_a_size_group_a_e_");
+  return map_enum_number(numbers, 10, value, "group_b_cfg_two_step_ra_r16_s::ra_msg_a_size_group_a_r16_e_");
 }
 
-const char* group_b_cfg_two_step_ra_r16_s::msg_pwr_offset_group_b_opts::to_string() const
+const char* group_b_cfg_two_step_ra_r16_s::msg_pwr_offset_group_b_r16_opts::to_string() const
 {
   static const char* names[] = {"minusinfinity", "dB0", "dB5", "dB8", "dB10", "dB12", "dB15", "dB18"};
-  return convert_enum_idx(names, 8, value, "group_b_cfg_two_step_ra_r16_s::msg_pwr_offset_group_b_e_");
+  return convert_enum_idx(names, 8, value, "group_b_cfg_two_step_ra_r16_s::msg_pwr_offset_group_b_r16_e_");
 }
-int8_t group_b_cfg_two_step_ra_r16_s::msg_pwr_offset_group_b_opts::to_number() const
+int8_t group_b_cfg_two_step_ra_r16_s::msg_pwr_offset_group_b_r16_opts::to_number() const
 {
   static const int8_t numbers[] = {-1, 0, 5, 8, 10, 12, 15, 18};
-  return map_enum_number(numbers, 8, value, "group_b_cfg_two_step_ra_r16_s::msg_pwr_offset_group_b_e_");
+  return map_enum_number(numbers, 8, value, "group_b_cfg_two_step_ra_r16_s::msg_pwr_offset_group_b_r16_e_");
 }
 
 // RACH-ConfigCommonTwoStepRA-r16 ::= SEQUENCE
@@ -2871,21 +5715,74 @@ void add_rach_cfg_r17_s::to_json(json_writer& j) const
   j.end_obj();
 }
 
-// Alpha ::= ENUMERATED
-const char* alpha_opts::to_string() const
+// AdvancedReceiver-MU-MIMO-r18 ::= SEQUENCE
+OCUDUASN_CODE advanced_receiver_mu_mimo_r18_s::pack(bit_ref& bref) const
 {
-  static const char* names[] = {"alpha0", "alpha04", "alpha05", "alpha06", "alpha07", "alpha08", "alpha09", "alpha1"};
-  return convert_enum_idx(names, 8, value, "alpha_e");
+  bref.pack(ext, 1);
+  HANDLE_CODE(bref.pack(precoding_and_res_alloc_r18_present, 1));
+  HANDLE_CODE(bref.pack(pdsch_time_domain_alloc_r18_present, 1));
+  HANDLE_CODE(bref.pack(mcs_table_r18_present, 1));
+  HANDLE_CODE(bref.pack(adv_receiver_mu_mimo_dci_1_1_r18_present, 1));
+
+  if (precoding_and_res_alloc_r18_present) {
+    HANDLE_CODE(bref.pack(precoding_and_res_alloc_r18, 1));
+  }
+  if (pdsch_time_domain_alloc_r18_present) {
+    HANDLE_CODE(bref.pack(pdsch_time_domain_alloc_r18, 1));
+  }
+  if (mcs_table_r18_present) {
+    HANDLE_CODE(mcs_table_r18.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
 }
-float alpha_opts::to_number() const
+OCUDUASN_CODE advanced_receiver_mu_mimo_r18_s::unpack(cbit_ref& bref)
 {
-  static const float numbers[] = {0.0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
-  return map_enum_number(numbers, 8, value, "alpha_e");
+  bref.unpack(ext, 1);
+  HANDLE_CODE(bref.unpack(precoding_and_res_alloc_r18_present, 1));
+  HANDLE_CODE(bref.unpack(pdsch_time_domain_alloc_r18_present, 1));
+  HANDLE_CODE(bref.unpack(mcs_table_r18_present, 1));
+  HANDLE_CODE(bref.unpack(adv_receiver_mu_mimo_dci_1_1_r18_present, 1));
+
+  if (precoding_and_res_alloc_r18_present) {
+    HANDLE_CODE(bref.unpack(precoding_and_res_alloc_r18, 1));
+  }
+  if (pdsch_time_domain_alloc_r18_present) {
+    HANDLE_CODE(bref.unpack(pdsch_time_domain_alloc_r18, 1));
+  }
+  if (mcs_table_r18_present) {
+    HANDLE_CODE(mcs_table_r18.unpack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
 }
-const char* alpha_opts::to_number_string() const
+void advanced_receiver_mu_mimo_r18_s::to_json(json_writer& j) const
 {
-  static const char* number_strs[] = {"0", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1"};
-  return convert_enum_idx(number_strs, 8, value, "alpha_e");
+  j.start_obj();
+  if (precoding_and_res_alloc_r18_present) {
+    j.write_bool("precodingAndResourceAllocation-r18", precoding_and_res_alloc_r18);
+  }
+  if (pdsch_time_domain_alloc_r18_present) {
+    j.write_bool("pdsch-TimeDomainAllocation-r18", pdsch_time_domain_alloc_r18);
+  }
+  if (mcs_table_r18_present) {
+    j.write_str("mcs-Table-r18", mcs_table_r18.to_string());
+  }
+  if (adv_receiver_mu_mimo_dci_1_1_r18_present) {
+    j.write_str("advReceiver-MU-MIMO-DCI-1-1-r18", "enabled");
+  }
+  j.end_obj();
+}
+
+const char* advanced_receiver_mu_mimo_r18_s::mcs_table_r18_opts::to_string() const
+{
+  static const char* names[] = {"qam1024", "qam256", "qam64", "spare1"};
+  return convert_enum_idx(names, 4, value, "advanced_receiver_mu_mimo_r18_s::mcs_table_r18_e_");
+}
+uint16_t advanced_receiver_mu_mimo_r18_s::mcs_table_r18_opts::to_number() const
+{
+  static const uint16_t numbers[] = {1024, 256, 64};
+  return map_enum_number(numbers, 3, value, "advanced_receiver_mu_mimo_r18_s::mcs_table_r18_e_");
 }
 
 // PDSCH-TimeDomainResourceAllocation-r16 ::= SEQUENCE
@@ -3692,6 +6589,7 @@ OCUDUASN_CODE coreset_s::pack(bit_ref& bref) const
     group_flags[0] |= coreset_pool_idx_r16_present;
     group_flags[0] |= coreset_id_v1610_present;
     group_flags[1] |= follow_unified_tci_state_r17_present;
+    group_flags[2] |= apply_indicated_tci_state_r18_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -3718,6 +6616,14 @@ OCUDUASN_CODE coreset_s::pack(bit_ref& bref) const
       varlength_field_pack_guard varlen_scope(bref, false);
 
       HANDLE_CODE(bref.pack(follow_unified_tci_state_r17_present, 1));
+    }
+    if (group_flags[2]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(apply_indicated_tci_state_r18_present, 1));
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.pack(bref));
+      }
     }
   }
   return OCUDUASN_SUCCESS;
@@ -3773,6 +6679,13 @@ OCUDUASN_CODE coreset_s::unpack(cbit_ref& bref)
     if (group_unpacker.get_last_group_range(bref)) {
       HANDLE_CODE(bref.unpack(follow_unified_tci_state_r17_present, 1));
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(apply_indicated_tci_state_r18_present, 1));
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.unpack(bref));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -3821,6 +6734,9 @@ void coreset_s::to_json(json_writer& j) const
     }
     if (follow_unified_tci_state_r17_present) {
       j.write_str("followUnifiedTCI-State-r17", "enabled");
+    }
+    if (apply_indicated_tci_state_r18_present) {
+      j.write_str("applyIndicatedTCI-State-r18", apply_indicated_tci_state_r18.to_string());
     }
   }
   j.end_obj();
@@ -3937,34 +6853,18 @@ const char* coreset_s::precoder_granularity_opts::to_string() const
   return convert_enum_idx(names, 2, value, "coreset_s::precoder_granularity_e_");
 }
 
-// BWP ::= SEQUENCE
-OCUDUASN_CODE bwp_s::pack(bit_ref& bref) const
+const char* coreset_s::apply_indicated_tci_state_r18_opts::to_string() const
 {
-  HANDLE_CODE(bref.pack(cp_present, 1));
-
-  HANDLE_CODE(pack_integer(bref, location_and_bw, (uint16_t)0u, (uint16_t)37949u));
-  HANDLE_CODE(subcarrier_spacing.pack(bref));
-
-  return OCUDUASN_SUCCESS;
+  static const char* names[] = {"first", "second", "both", "none"};
+  return convert_enum_idx(names, 4, value, "coreset_s::apply_indicated_tci_state_r18_e_");
 }
-OCUDUASN_CODE bwp_s::unpack(cbit_ref& bref)
+uint8_t coreset_s::apply_indicated_tci_state_r18_opts::to_number() const
 {
-  HANDLE_CODE(bref.unpack(cp_present, 1));
-
-  HANDLE_CODE(unpack_integer(location_and_bw, bref, (uint16_t)0u, (uint16_t)37949u));
-  HANDLE_CODE(subcarrier_spacing.unpack(bref));
-
-  return OCUDUASN_SUCCESS;
-}
-void bwp_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_int("locationAndBandwidth", location_and_bw);
-  j.write_str("subcarrierSpacing", subcarrier_spacing.to_string());
-  if (cp_present) {
-    j.write_str("cyclicPrefix", "extended");
+  if (value == none) {
+    return 1;
   }
-  j.end_obj();
+  invalid_enum_number(value, "coreset_s::apply_indicated_tci_state_r18_e_");
+  return 0;
 }
 
 // SearchSpace ::= SEQUENCE
@@ -4924,6 +7824,8 @@ OCUDUASN_CODE search_space_s::search_space_type_c_::ue_specific_s_::pack(bit_ref
     group_flags[0] |= dci_formats_mt_r16_present;
     group_flags[0] |= dci_formats_sl_r16_present;
     group_flags[0] |= dci_formats_ext_r16_present;
+    group_flags[1] |= dci_formats_ncr_r18_present;
+    group_flags[1] |= dci_formats_sl_prs_r18_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -4937,6 +7839,15 @@ OCUDUASN_CODE search_space_s::search_space_type_c_::ue_specific_s_::pack(bit_ref
       }
       if (dci_formats_ext_r16_present) {
         HANDLE_CODE(dci_formats_ext_r16.pack(bref));
+      }
+    }
+    if (group_flags[1]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(dci_formats_ncr_r18_present, 1));
+      HANDLE_CODE(bref.pack(dci_formats_sl_prs_r18_present, 1));
+      if (dci_formats_sl_prs_r18_present) {
+        HANDLE_CODE(dci_formats_sl_prs_r18.pack(bref));
       }
     }
   }
@@ -4962,6 +7873,14 @@ OCUDUASN_CODE search_space_s::search_space_type_c_::ue_specific_s_::unpack(cbit_
         HANDLE_CODE(dci_formats_ext_r16.unpack(bref));
       }
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(dci_formats_ncr_r18_present, 1));
+      HANDLE_CODE(bref.unpack(dci_formats_sl_prs_r18_present, 1));
+      if (dci_formats_sl_prs_r18_present) {
+        HANDLE_CODE(dci_formats_sl_prs_r18.unpack(bref));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -4979,6 +7898,12 @@ void search_space_s::search_space_type_c_::ue_specific_s_::to_json(json_writer& 
     }
     if (dci_formats_ext_r16_present) {
       j.write_str("dci-FormatsExt-r16", dci_formats_ext_r16.to_string());
+    }
+    if (dci_formats_ncr_r18_present) {
+      j.write_str("dci-FormatsNCR-r18", "formats2-8");
+    }
+    if (dci_formats_sl_prs_r18_present) {
+      j.write_str("dci-FormatsSL-PRS-r18", dci_formats_sl_prs_r18.to_string());
     }
   }
   j.end_obj();
@@ -5003,6 +7928,13 @@ const char* search_space_s::search_space_type_c_::ue_specific_s_::dci_formats_ex
   static const char* names[] = {"formats0-2-And-1-2", "formats0-1-And-1-1And-0-2-And-1-2"};
   return convert_enum_idx(
       names, 2, value, "search_space_s::search_space_type_c_::ue_specific_s_::dci_formats_ext_r16_e_");
+}
+
+const char* search_space_s::search_space_type_c_::ue_specific_s_::dci_formats_sl_prs_r18_opts::to_string() const
+{
+  static const char* names[] = {"formats3-2", "formats3-0-And-3-2", "formats3-0-And-3-1-And-3-2", "formats3-1-And-3-2"};
+  return convert_enum_idx(
+      names, 4, value, "search_space_s::search_space_type_c_::ue_specific_s_::dci_formats_sl_prs_r18_e_");
 }
 
 const char* search_space_s::search_space_type_c_::types_opts::to_string() const
@@ -6173,6 +9105,210 @@ uint8_t search_space_ext_v1700_s::search_space_type_r17_s_::common_r17_s_::dci_f
                          "nrof_candidates_pei_r17_s_::aggregation_level16_r17_e_");
 }
 
+// SearchSpaceExt-v1800 ::= SEQUENCE
+OCUDUASN_CODE search_space_ext_v1800_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(search_space_type_r18_present, 1));
+
+  if (search_space_type_r18_present) {
+    HANDLE_CODE(search_space_type_r18.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE search_space_ext_v1800_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(search_space_type_r18_present, 1));
+
+  if (search_space_type_r18_present) {
+    HANDLE_CODE(search_space_type_r18.unpack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void search_space_ext_v1800_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (search_space_type_r18_present) {
+    j.write_fieldname("searchSpaceType-r18");
+    search_space_type_r18.to_json(j);
+  }
+  j.end_obj();
+}
+
+void search_space_ext_v1800_s::search_space_type_r18_c_::destroy_()
+{
+  switch (type_) {
+    case types::common_r18:
+      c.destroy<common_r18_s_>();
+      break;
+    case types::ue_specific_r18:
+      c.destroy<ue_specific_r18_s_>();
+      break;
+    default:
+      break;
+  }
+}
+void search_space_ext_v1800_s::search_space_type_r18_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::common_r18:
+      c.init<common_r18_s_>();
+      break;
+    case types::ue_specific_r18:
+      c.init<ue_specific_r18_s_>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "search_space_ext_v1800_s::search_space_type_r18_c_");
+  }
+}
+search_space_ext_v1800_s::search_space_type_r18_c_::search_space_type_r18_c_(
+    const search_space_ext_v1800_s::search_space_type_r18_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::common_r18:
+      c.init(other.c.get<common_r18_s_>());
+      break;
+    case types::ue_specific_r18:
+      c.init(other.c.get<ue_specific_r18_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "search_space_ext_v1800_s::search_space_type_r18_c_");
+  }
+}
+search_space_ext_v1800_s::search_space_type_r18_c_& search_space_ext_v1800_s::search_space_type_r18_c_::operator=(
+    const search_space_ext_v1800_s::search_space_type_r18_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::common_r18:
+      c.set(other.c.get<common_r18_s_>());
+      break;
+    case types::ue_specific_r18:
+      c.set(other.c.get<ue_specific_r18_s_>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "search_space_ext_v1800_s::search_space_type_r18_c_");
+  }
+
+  return *this;
+}
+search_space_ext_v1800_s::search_space_type_r18_c_::common_r18_s_&
+search_space_ext_v1800_s::search_space_type_r18_c_::set_common_r18()
+{
+  set(types::common_r18);
+  return c.get<common_r18_s_>();
+}
+search_space_ext_v1800_s::search_space_type_r18_c_::ue_specific_r18_s_&
+search_space_ext_v1800_s::search_space_type_r18_c_::set_ue_specific_r18()
+{
+  set(types::ue_specific_r18);
+  return c.get<ue_specific_r18_s_>();
+}
+void search_space_ext_v1800_s::search_space_type_r18_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::common_r18:
+      j.write_fieldname("common-r18");
+      j.start_obj();
+      if (c.get<common_r18_s_>().dci_format2_9_r18_present) {
+        j.write_fieldname("dci-Format2-9-r18");
+        j.start_obj();
+        j.end_obj();
+      }
+      j.end_obj();
+      break;
+    case types::ue_specific_r18:
+      j.write_fieldname("ue-Specific-r18");
+      j.start_obj();
+      if (c.get<ue_specific_r18_s_>().dci_formats_mc_r18_present) {
+        j.write_str("dci-FormatsMC-r18", c.get<ue_specific_r18_s_>().dci_formats_mc_r18.to_string());
+      }
+      j.end_obj();
+      break;
+    default:
+      log_invalid_choice_id(type_, "search_space_ext_v1800_s::search_space_type_r18_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE search_space_ext_v1800_s::search_space_type_r18_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::common_r18:
+      bref.pack(c.get<common_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.pack(c.get<common_r18_s_>().dci_format2_9_r18_present, 1));
+      if (c.get<common_r18_s_>().dci_format2_9_r18_present) {
+        bref.pack(c.get<common_r18_s_>().dci_format2_9_r18.ext, 1);
+      }
+      break;
+    case types::ue_specific_r18:
+      bref.pack(c.get<ue_specific_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.pack(c.get<ue_specific_r18_s_>().dci_formats_mc_r18_present, 1));
+      if (c.get<ue_specific_r18_s_>().dci_formats_mc_r18_present) {
+        HANDLE_CODE(c.get<ue_specific_r18_s_>().dci_formats_mc_r18.pack(bref));
+      }
+      break;
+    default:
+      log_invalid_choice_id(type_, "search_space_ext_v1800_s::search_space_type_r18_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE search_space_ext_v1800_s::search_space_type_r18_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::common_r18:
+      bref.unpack(c.get<common_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.unpack(c.get<common_r18_s_>().dci_format2_9_r18_present, 1));
+      if (c.get<common_r18_s_>().dci_format2_9_r18_present) {
+        bref.unpack(c.get<common_r18_s_>().dci_format2_9_r18.ext, 1);
+      }
+      break;
+    case types::ue_specific_r18:
+      bref.unpack(c.get<ue_specific_r18_s_>().ext, 1);
+      HANDLE_CODE(bref.unpack(c.get<ue_specific_r18_s_>().dci_formats_mc_r18_present, 1));
+      if (c.get<ue_specific_r18_s_>().dci_formats_mc_r18_present) {
+        HANDLE_CODE(c.get<ue_specific_r18_s_>().dci_formats_mc_r18.unpack(bref));
+      }
+      break;
+    default:
+      log_invalid_choice_id(type_, "search_space_ext_v1800_s::search_space_type_r18_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char*
+search_space_ext_v1800_s::search_space_type_r18_c_::ue_specific_r18_s_::dci_formats_mc_r18_opts::to_string() const
+{
+  static const char* names[] = {"formats0-3", "formats1-3", "formats0-3-And-1-3"};
+  return convert_enum_idx(
+      names, 3, value, "search_space_ext_v1800_s::search_space_type_r18_c_::ue_specific_r18_s_::dci_formats_mc_r18_e_");
+}
+
+const char* search_space_ext_v1800_s::search_space_type_r18_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"common-r18", "ue-Specific-r18"};
+  return convert_enum_idx(names, 2, value, "search_space_ext_v1800_s::search_space_type_r18_c_::types");
+}
+
 // PDCCH-ConfigCommon ::= SEQUENCE
 OCUDUASN_CODE pdcch_cfg_common_s::pack(bit_ref& bref) const
 {
@@ -6222,6 +9358,10 @@ OCUDUASN_CODE pdcch_cfg_common_s::pack(bit_ref& bref) const
     group_flags[2] |= first_pdcch_monitoring_occasion_of_po_v1710.is_present();
     group_flags[2] |= pei_cfg_bwp_r17.is_present();
     group_flags[3] |= follow_unified_tci_state_v1720_present;
+    group_flags[4] |= apply_indicated_tci_state_r18_present;
+    group_flags[4] |= common_search_space_list_ext_r18.is_present();
+    group_flags[4] |= search_space_multicast_mcch_r18_present;
+    group_flags[4] |= search_space_multicast_mtch_r18_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -6273,6 +9413,26 @@ OCUDUASN_CODE pdcch_cfg_common_s::pack(bit_ref& bref) const
       varlength_field_pack_guard varlen_scope(bref, false);
 
       HANDLE_CODE(bref.pack(follow_unified_tci_state_v1720_present, 1));
+    }
+    if (group_flags[4]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(apply_indicated_tci_state_r18_present, 1));
+      HANDLE_CODE(bref.pack(common_search_space_list_ext_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(search_space_multicast_mcch_r18_present, 1));
+      HANDLE_CODE(bref.pack(search_space_multicast_mtch_r18_present, 1));
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.pack(bref));
+      }
+      if (common_search_space_list_ext_r18.is_present()) {
+        HANDLE_CODE(pack_dyn_seq_of(bref, *common_search_space_list_ext_r18, 1, 4));
+      }
+      if (search_space_multicast_mcch_r18_present) {
+        HANDLE_CODE(pack_integer(bref, search_space_multicast_mcch_r18, (uint8_t)0u, (uint8_t)39u));
+      }
+      if (search_space_multicast_mtch_r18_present) {
+        HANDLE_CODE(pack_integer(bref, search_space_multicast_mtch_r18, (uint8_t)0u, (uint8_t)39u));
+      }
     }
   }
   return OCUDUASN_SUCCESS;
@@ -6364,6 +9524,25 @@ OCUDUASN_CODE pdcch_cfg_common_s::unpack(cbit_ref& bref)
     if (group_unpacker.get_last_group_range(bref)) {
       HANDLE_CODE(bref.unpack(follow_unified_tci_state_v1720_present, 1));
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(apply_indicated_tci_state_r18_present, 1));
+      unpack_presence_flag(common_search_space_list_ext_r18, bref);
+      HANDLE_CODE(bref.unpack(search_space_multicast_mcch_r18_present, 1));
+      HANDLE_CODE(bref.unpack(search_space_multicast_mtch_r18_present, 1));
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.unpack(bref));
+      }
+      if (common_search_space_list_ext_r18.is_present()) {
+        HANDLE_CODE(unpack_dyn_seq_of(*common_search_space_list_ext_r18, bref, 1, 4));
+      }
+      if (search_space_multicast_mcch_r18_present) {
+        HANDLE_CODE(unpack_integer(search_space_multicast_mcch_r18, bref, (uint8_t)0u, (uint8_t)39u));
+      }
+      if (search_space_multicast_mtch_r18_present) {
+        HANDLE_CODE(unpack_integer(search_space_multicast_mtch_r18, bref, (uint8_t)0u, (uint8_t)39u));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -6443,6 +9622,22 @@ void pdcch_cfg_common_s::to_json(json_writer& j) const
     }
     if (follow_unified_tci_state_v1720_present) {
       j.write_str("followUnifiedTCI-State-v1720", "enabled");
+    }
+    if (apply_indicated_tci_state_r18_present) {
+      j.write_str("applyIndicatedTCI-State-r18", apply_indicated_tci_state_r18.to_string());
+    }
+    if (common_search_space_list_ext_r18.is_present()) {
+      j.start_array("commonSearchSpaceListExt-r18");
+      for (const auto& e1 : *common_search_space_list_ext_r18) {
+        e1.to_json(j);
+      }
+      j.end_array();
+    }
+    if (search_space_multicast_mcch_r18_present) {
+      j.write_int("searchSpaceMulticastMCCH-r18", search_space_multicast_mcch_r18);
+    }
+    if (search_space_multicast_mtch_r18_present) {
+      j.write_int("searchSpaceMulticastMTCH-r18", search_space_multicast_mtch_r18);
     }
   }
   j.end_obj();
@@ -7611,6 +10806,20 @@ pdcch_cfg_common_s::pei_cfg_bwp_r17_s_::first_pdcch_monitoring_occasion_of_pei_o
       "pdcch_cfg_common_s::pei_cfg_bwp_r17_s_::first_pdcch_monitoring_occasion_of_pei_o_r17_c_::types");
 }
 
+const char* pdcch_cfg_common_s::apply_indicated_tci_state_r18_opts::to_string() const
+{
+  static const char* names[] = {"first", "second", "both", "none"};
+  return convert_enum_idx(names, 4, value, "pdcch_cfg_common_s::apply_indicated_tci_state_r18_e_");
+}
+uint8_t pdcch_cfg_common_s::apply_indicated_tci_state_r18_opts::to_number() const
+{
+  if (value == none) {
+    return 1;
+  }
+  invalid_enum_number(value, "pdcch_cfg_common_s::apply_indicated_tci_state_r18_e_");
+  return 0;
+}
+
 // PDSCH-TimeDomainResourceAllocation ::= SEQUENCE
 OCUDUASN_CODE pdsch_time_domain_res_alloc_s::pack(bit_ref& bref) const
 {
@@ -8004,6 +11213,269 @@ uint8_t nof_msg3_repeats_r17_opts::to_number() const
   return map_enum_number(numbers, 8, value, "nof_msg3_repeats_r17_e");
 }
 
+// RACH-ConfigTwoTA-r18 ::= SEQUENCE
+OCUDUASN_CODE rach_cfg_two_ta_r18_s::pack(bit_ref& bref) const
+{
+  bref.pack(ext, 1);
+  HANDLE_CODE(bref.pack(ssb_per_rach_occasion_r18_present, 1));
+  HANDLE_CODE(bref.pack(msg1_subcarrier_spacing_r18_present, 1));
+
+  HANDLE_CODE(pack_integer(bref, add_pci_and_rach_idx_r18, (uint8_t)1u, (uint8_t)7u));
+  HANDLE_CODE(rach_cfg_generic_r18.pack(bref));
+  if (ssb_per_rach_occasion_r18_present) {
+    HANDLE_CODE(ssb_per_rach_occasion_r18.pack(bref));
+  }
+  HANDLE_CODE(prach_root_seq_idx_r18.pack(bref));
+  if (msg1_subcarrier_spacing_r18_present) {
+    HANDLE_CODE(msg1_subcarrier_spacing_r18.pack(bref));
+  }
+
+  if (ext) {
+    ext_groups_packer_guard group_flags;
+    group_flags[0] |= two_ta_restricted_set_cfg_r18_present;
+    group_flags.pack(bref);
+
+    if (group_flags[0]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(two_ta_restricted_set_cfg_r18_present, 1));
+      if (two_ta_restricted_set_cfg_r18_present) {
+        HANDLE_CODE(two_ta_restricted_set_cfg_r18.pack(bref));
+      }
+    }
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE rach_cfg_two_ta_r18_s::unpack(cbit_ref& bref)
+{
+  bref.unpack(ext, 1);
+  HANDLE_CODE(bref.unpack(ssb_per_rach_occasion_r18_present, 1));
+  HANDLE_CODE(bref.unpack(msg1_subcarrier_spacing_r18_present, 1));
+
+  HANDLE_CODE(unpack_integer(add_pci_and_rach_idx_r18, bref, (uint8_t)1u, (uint8_t)7u));
+  HANDLE_CODE(rach_cfg_generic_r18.unpack(bref));
+  if (ssb_per_rach_occasion_r18_present) {
+    HANDLE_CODE(ssb_per_rach_occasion_r18.unpack(bref));
+  }
+  HANDLE_CODE(prach_root_seq_idx_r18.unpack(bref));
+  if (msg1_subcarrier_spacing_r18_present) {
+    HANDLE_CODE(msg1_subcarrier_spacing_r18.unpack(bref));
+  }
+
+  if (ext) {
+    ext_groups_unpacker group_unpacker(bref);
+
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(two_ta_restricted_set_cfg_r18_present, 1));
+      if (two_ta_restricted_set_cfg_r18_present) {
+        HANDLE_CODE(two_ta_restricted_set_cfg_r18.unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
+  }
+  return OCUDUASN_SUCCESS;
+}
+void rach_cfg_two_ta_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("additionalPCI-andRACH-Index-r18", add_pci_and_rach_idx_r18);
+  j.write_fieldname("rach-ConfigGeneric-r18");
+  rach_cfg_generic_r18.to_json(j);
+  if (ssb_per_rach_occasion_r18_present) {
+    j.write_str("ssb-perRACH-Occasion-r18", ssb_per_rach_occasion_r18.to_string());
+  }
+  j.write_fieldname("prach-RootSequenceIndex-r18");
+  prach_root_seq_idx_r18.to_json(j);
+  if (msg1_subcarrier_spacing_r18_present) {
+    j.write_str("msg1-SubcarrierSpacing-r18", msg1_subcarrier_spacing_r18.to_string());
+  }
+  if (ext) {
+    if (two_ta_restricted_set_cfg_r18_present) {
+      j.write_str("twoTA-restrictedSetConfig-r18", two_ta_restricted_set_cfg_r18.to_string());
+    }
+  }
+  j.end_obj();
+}
+
+const char* rach_cfg_two_ta_r18_s::ssb_per_rach_occasion_r18_opts::to_string() const
+{
+  static const char* names[] = {"oneEighth", "oneFourth", "oneHalf", "one", "two", "four", "eight", "sixteen"};
+  return convert_enum_idx(names, 8, value, "rach_cfg_two_ta_r18_s::ssb_per_rach_occasion_r18_e_");
+}
+float rach_cfg_two_ta_r18_s::ssb_per_rach_occasion_r18_opts::to_number() const
+{
+  static const float numbers[] = {0.125, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 6.0};
+  return map_enum_number(numbers, 8, value, "rach_cfg_two_ta_r18_s::ssb_per_rach_occasion_r18_e_");
+}
+const char* rach_cfg_two_ta_r18_s::ssb_per_rach_occasion_r18_opts::to_number_string() const
+{
+  static const char* number_strs[] = {"1/8", "1/4", "1/2", "1", "2", "4", "8", "6"};
+  return convert_enum_idx(number_strs, 8, value, "rach_cfg_two_ta_r18_s::ssb_per_rach_occasion_r18_e_");
+}
+
+void rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::destroy_() {}
+void rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+}
+rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::prach_root_seq_idx_r18_c_(
+    const rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::l839:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::l139:
+      c.init(other.c.get<uint8_t>());
+      break;
+    case types::l571:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::l1151:
+      c.init(other.c.get<uint16_t>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_");
+  }
+}
+rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_& rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::operator=(
+    const rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::l839:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::l139:
+      c.set(other.c.get<uint8_t>());
+      break;
+    case types::l571:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::l1151:
+      c.set(other.c.get<uint16_t>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_");
+  }
+
+  return *this;
+}
+uint16_t& rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::set_l839()
+{
+  set(types::l839);
+  return c.get<uint16_t>();
+}
+uint8_t& rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::set_l139()
+{
+  set(types::l139);
+  return c.get<uint8_t>();
+}
+uint16_t& rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::set_l571()
+{
+  set(types::l571);
+  return c.get<uint16_t>();
+}
+uint16_t& rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::set_l1151()
+{
+  set(types::l1151);
+  return c.get<uint16_t>();
+}
+void rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::l839:
+      j.write_int("l839", c.get<uint16_t>());
+      break;
+    case types::l139:
+      j.write_int("l139", c.get<uint8_t>());
+      break;
+    case types::l571:
+      j.write_int("l571", c.get<uint16_t>());
+      break;
+    case types::l1151:
+      j.write_int("l1151", c.get<uint16_t>());
+      break;
+    default:
+      log_invalid_choice_id(type_, "rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::l839:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)837u));
+      break;
+    case types::l139:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)137u));
+      break;
+    case types::l571:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)569u));
+      break;
+    case types::l1151:
+      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)1149u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::l839:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)837u));
+      break;
+    case types::l139:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)137u));
+      break;
+    case types::l571:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)569u));
+      break;
+    case types::l1151:
+      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)1149u));
+      break;
+    default:
+      log_invalid_choice_id(type_, "rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"l839", "l139", "l571", "l1151"};
+  return convert_enum_idx(names, 4, value, "rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::types");
+}
+uint16_t rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::types_opts::to_number() const
+{
+  static const uint16_t numbers[] = {839, 139, 571, 1151};
+  return map_enum_number(numbers, 4, value, "rach_cfg_two_ta_r18_s::prach_root_seq_idx_r18_c_::types");
+}
+
+const char* rach_cfg_two_ta_r18_s::two_ta_restricted_set_cfg_r18_opts::to_string() const
+{
+  static const char* names[] = {"unrestrictedSet", "restrictedSetTypeA", "restrictedSetTypeB"};
+  return convert_enum_idx(names, 3, value, "rach_cfg_two_ta_r18_s::two_ta_restricted_set_cfg_r18_e_");
+}
+
 // BWP-UplinkCommon ::= SEQUENCE
 OCUDUASN_CODE bwp_ul_common_s::pack(bit_ref& bref) const
 {
@@ -8033,6 +11505,12 @@ OCUDUASN_CODE bwp_ul_common_s::pack(bit_ref& bref) const
     group_flags[1] |= rsrp_thres_msg3_r17_present;
     group_flags[1] |= nof_msg3_repeats_list_r17.is_present();
     group_flags[1] |= mcs_msg3_repeats_r17.is_present();
+    group_flags[2] |= add_rach_per_pci_to_add_mod_list_r18.is_present();
+    group_flags[2] |= add_rach_per_pci_to_release_list_r18.is_present();
+    group_flags[2] |= rsrp_thres_msg1_repeat_num2_r18_present;
+    group_flags[2] |= rsrp_thres_msg1_repeat_num4_r18_present;
+    group_flags[2] |= rsrp_thres_msg1_repeat_num8_r18_present;
+    group_flags[2] |= preamb_trans_max_msg1_repeat_r18_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -8071,6 +11549,34 @@ OCUDUASN_CODE bwp_ul_common_s::pack(bit_ref& bref) const
       if (mcs_msg3_repeats_r17.is_present()) {
         HANDLE_CODE(pack_fixed_seq_of(
             bref, *mcs_msg3_repeats_r17, mcs_msg3_repeats_r17->size(), integer_packer<uint8_t>(0, 31)));
+      }
+    }
+    if (group_flags[2]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(add_rach_per_pci_to_add_mod_list_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(add_rach_per_pci_to_release_list_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(rsrp_thres_msg1_repeat_num2_r18_present, 1));
+      HANDLE_CODE(bref.pack(rsrp_thres_msg1_repeat_num4_r18_present, 1));
+      HANDLE_CODE(bref.pack(rsrp_thres_msg1_repeat_num8_r18_present, 1));
+      HANDLE_CODE(bref.pack(preamb_trans_max_msg1_repeat_r18_present, 1));
+      if (add_rach_per_pci_to_add_mod_list_r18.is_present()) {
+        HANDLE_CODE(pack_dyn_seq_of(bref, *add_rach_per_pci_to_add_mod_list_r18, 1, 7));
+      }
+      if (add_rach_per_pci_to_release_list_r18.is_present()) {
+        HANDLE_CODE(pack_dyn_seq_of(bref, *add_rach_per_pci_to_release_list_r18, 1, 7, integer_packer<uint8_t>(1, 7)));
+      }
+      if (rsrp_thres_msg1_repeat_num2_r18_present) {
+        HANDLE_CODE(pack_integer(bref, rsrp_thres_msg1_repeat_num2_r18, (uint8_t)0u, (uint8_t)127u));
+      }
+      if (rsrp_thres_msg1_repeat_num4_r18_present) {
+        HANDLE_CODE(pack_integer(bref, rsrp_thres_msg1_repeat_num4_r18, (uint8_t)0u, (uint8_t)127u));
+      }
+      if (rsrp_thres_msg1_repeat_num8_r18_present) {
+        HANDLE_CODE(pack_integer(bref, rsrp_thres_msg1_repeat_num8_r18, (uint8_t)0u, (uint8_t)127u));
+      }
+      if (preamb_trans_max_msg1_repeat_r18_present) {
+        HANDLE_CODE(preamb_trans_max_msg1_repeat_r18.pack(bref));
       }
     }
   }
@@ -8133,6 +11639,34 @@ OCUDUASN_CODE bwp_ul_common_s::unpack(cbit_ref& bref)
             *mcs_msg3_repeats_r17, bref, mcs_msg3_repeats_r17->size(), integer_packer<uint8_t>(0, 31)));
       }
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      unpack_presence_flag(add_rach_per_pci_to_add_mod_list_r18, bref);
+      unpack_presence_flag(add_rach_per_pci_to_release_list_r18, bref);
+      HANDLE_CODE(bref.unpack(rsrp_thres_msg1_repeat_num2_r18_present, 1));
+      HANDLE_CODE(bref.unpack(rsrp_thres_msg1_repeat_num4_r18_present, 1));
+      HANDLE_CODE(bref.unpack(rsrp_thres_msg1_repeat_num8_r18_present, 1));
+      HANDLE_CODE(bref.unpack(preamb_trans_max_msg1_repeat_r18_present, 1));
+      if (add_rach_per_pci_to_add_mod_list_r18.is_present()) {
+        HANDLE_CODE(unpack_dyn_seq_of(*add_rach_per_pci_to_add_mod_list_r18, bref, 1, 7));
+      }
+      if (add_rach_per_pci_to_release_list_r18.is_present()) {
+        HANDLE_CODE(
+            unpack_dyn_seq_of(*add_rach_per_pci_to_release_list_r18, bref, 1, 7, integer_packer<uint8_t>(1, 7)));
+      }
+      if (rsrp_thres_msg1_repeat_num2_r18_present) {
+        HANDLE_CODE(unpack_integer(rsrp_thres_msg1_repeat_num2_r18, bref, (uint8_t)0u, (uint8_t)127u));
+      }
+      if (rsrp_thres_msg1_repeat_num4_r18_present) {
+        HANDLE_CODE(unpack_integer(rsrp_thres_msg1_repeat_num4_r18, bref, (uint8_t)0u, (uint8_t)127u));
+      }
+      if (rsrp_thres_msg1_repeat_num8_r18_present) {
+        HANDLE_CODE(unpack_integer(rsrp_thres_msg1_repeat_num8_r18, bref, (uint8_t)0u, (uint8_t)127u));
+      }
+      if (preamb_trans_max_msg1_repeat_r18_present) {
+        HANDLE_CODE(preamb_trans_max_msg1_repeat_r18.unpack(bref));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -8190,8 +11724,45 @@ void bwp_ul_common_s::to_json(json_writer& j) const
       }
       j.end_array();
     }
+    if (add_rach_per_pci_to_add_mod_list_r18.is_present()) {
+      j.start_array("additionalRACH-perPCI-ToAddModList-r18");
+      for (const auto& e1 : *add_rach_per_pci_to_add_mod_list_r18) {
+        e1.to_json(j);
+      }
+      j.end_array();
+    }
+    if (add_rach_per_pci_to_release_list_r18.is_present()) {
+      j.start_array("additionalRACH-perPCI-ToReleaseList-r18");
+      for (const auto& e1 : *add_rach_per_pci_to_release_list_r18) {
+        j.write_int(e1);
+      }
+      j.end_array();
+    }
+    if (rsrp_thres_msg1_repeat_num2_r18_present) {
+      j.write_int("rsrp-ThresholdMsg1-RepetitionNum2-r18", rsrp_thres_msg1_repeat_num2_r18);
+    }
+    if (rsrp_thres_msg1_repeat_num4_r18_present) {
+      j.write_int("rsrp-ThresholdMsg1-RepetitionNum4-r18", rsrp_thres_msg1_repeat_num4_r18);
+    }
+    if (rsrp_thres_msg1_repeat_num8_r18_present) {
+      j.write_int("rsrp-ThresholdMsg1-RepetitionNum8-r18", rsrp_thres_msg1_repeat_num8_r18);
+    }
+    if (preamb_trans_max_msg1_repeat_r18_present) {
+      j.write_str("preambleTransMax-Msg1-Repetition-r18", preamb_trans_max_msg1_repeat_r18.to_string());
+    }
   }
   j.end_obj();
+}
+
+const char* bwp_ul_common_s::preamb_trans_max_msg1_repeat_r18_opts::to_string() const
+{
+  static const char* names[] = {"n1", "n2", "n4", "n6", "n8", "n10", "n20", "n50", "n100", "n200"};
+  return convert_enum_idx(names, 10, value, "bwp_ul_common_s::preamb_trans_max_msg1_repeat_r18_e_");
+}
+uint8_t bwp_ul_common_s::preamb_trans_max_msg1_repeat_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2, 4, 6, 8, 10, 20, 50, 100, 200};
+  return map_enum_number(numbers, 10, value, "bwp_ul_common_s::preamb_trans_max_msg1_repeat_r18_e_");
 }
 
 // BFR-CSIRS-Resource ::= SEQUENCE
@@ -8841,6 +12412,8 @@ OCUDUASN_CODE pdcch_cfg_s::pack(bit_ref& bref) const
     group_flags[1] |= monitoring_cap_cfg_v1710_present;
     group_flags[1] |= search_space_switch_cfg_r17.is_present();
     group_flags[1] |= pdcch_skipping_dur_list_r17.is_present();
+    group_flags[2] |= pdcch_monitoring_resumption_after_nack_r18_present;
+    group_flags[2] |= search_spaces_to_add_mod_list_ext_v1800.is_present();
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -8886,6 +12459,15 @@ OCUDUASN_CODE pdcch_cfg_s::pack(bit_ref& bref) const
       }
       if (pdcch_skipping_dur_list_r17.is_present()) {
         HANDLE_CODE(pack_dyn_seq_of(bref, *pdcch_skipping_dur_list_r17, 1, 3, integer_packer<uint8_t>(1, 166)));
+      }
+    }
+    if (group_flags[2]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(pdcch_monitoring_resumption_after_nack_r18_present, 1));
+      HANDLE_CODE(bref.pack(search_spaces_to_add_mod_list_ext_v1800.is_present(), 1));
+      if (search_spaces_to_add_mod_list_ext_v1800.is_present()) {
+        HANDLE_CODE(pack_dyn_seq_of(bref, *search_spaces_to_add_mod_list_ext_v1800, 1, 10));
       }
     }
   }
@@ -8977,6 +12559,14 @@ OCUDUASN_CODE pdcch_cfg_s::unpack(cbit_ref& bref)
       }
       if (pdcch_skipping_dur_list_r17.is_present()) {
         HANDLE_CODE(unpack_dyn_seq_of(*pdcch_skipping_dur_list_r17, bref, 1, 3, integer_packer<uint8_t>(1, 166)));
+      }
+    }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(pdcch_monitoring_resumption_after_nack_r18_present, 1));
+      unpack_presence_flag(search_spaces_to_add_mod_list_ext_v1800, bref);
+      if (search_spaces_to_add_mod_list_ext_v1800.is_present()) {
+        HANDLE_CODE(unpack_dyn_seq_of(*search_spaces_to_add_mod_list_ext_v1800, bref, 1, 10));
       }
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
@@ -9081,6 +12671,16 @@ void pdcch_cfg_s::to_json(json_writer& j) const
       j.start_array("pdcch-SkippingDurationList-r17");
       for (const auto& e1 : *pdcch_skipping_dur_list_r17) {
         j.write_int(e1);
+      }
+      j.end_array();
+    }
+    if (pdcch_monitoring_resumption_after_nack_r18_present) {
+      j.write_str("pdcch-MonitoringResumptionAfterNack-r18", "true");
+    }
+    if (search_spaces_to_add_mod_list_ext_v1800.is_present()) {
+      j.start_array("searchSpacesToAddModListExt-v1800");
+      for (const auto& e1 : *search_spaces_to_add_mod_list_ext_v1800) {
+        e1.to_json(j);
       }
       j.end_array();
     }
@@ -9257,12 +12857,18 @@ OCUDUASN_CODE dmrs_dl_cfg_s::pack(bit_ref& bref) const
   if (ext) {
     ext_groups_packer_guard group_flags;
     group_flags[0] |= dmrs_dl_r16_present;
+    group_flags[1] |= dmrs_type_enh_r18_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
       varlength_field_pack_guard varlen_scope(bref, false);
 
       HANDLE_CODE(bref.pack(dmrs_dl_r16_present, 1));
+    }
+    if (group_flags[1]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(dmrs_type_enh_r18_present, 1));
     }
   }
   return OCUDUASN_SUCCESS;
@@ -9297,6 +12903,10 @@ OCUDUASN_CODE dmrs_dl_cfg_s::unpack(cbit_ref& bref)
     if (group_unpacker.get_last_group_range(bref)) {
       HANDLE_CODE(bref.unpack(dmrs_dl_r16_present, 1));
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(dmrs_type_enh_r18_present, 1));
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -9326,6 +12936,9 @@ void dmrs_dl_cfg_s::to_json(json_writer& j) const
   if (ext) {
     if (dmrs_dl_r16_present) {
       j.write_str("dmrs-Downlink-r16", "enabled");
+    }
+    if (dmrs_type_enh_r18_present) {
+      j.write_str("dmrs-TypeEnh-r18", "enabled");
     }
   }
   j.end_obj();
@@ -9524,6 +13137,7 @@ OCUDUASN_CODE tci_state_s::pack(bit_ref& bref) const
     group_flags[0] |= add_pci_r17_present;
     group_flags[0] |= pathloss_ref_rs_id_r17_present;
     group_flags[0] |= ul_pwr_ctrl_r17_present;
+    group_flags[1] |= tag_id_ptr_r18_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -9540,6 +13154,14 @@ OCUDUASN_CODE tci_state_s::pack(bit_ref& bref) const
       }
       if (ul_pwr_ctrl_r17_present) {
         HANDLE_CODE(pack_integer(bref, ul_pwr_ctrl_r17, (uint8_t)1u, (uint8_t)64u));
+      }
+    }
+    if (group_flags[1]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(tag_id_ptr_r18_present, 1));
+      if (tag_id_ptr_r18_present) {
+        HANDLE_CODE(tag_id_ptr_r18.pack(bref));
       }
     }
   }
@@ -9574,6 +13196,13 @@ OCUDUASN_CODE tci_state_s::unpack(cbit_ref& bref)
         HANDLE_CODE(unpack_integer(ul_pwr_ctrl_r17, bref, (uint8_t)1u, (uint8_t)64u));
       }
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(tag_id_ptr_r18_present, 1));
+      if (tag_id_ptr_r18_present) {
+        HANDLE_CODE(tag_id_ptr_r18.unpack(bref));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -9598,8 +13227,22 @@ void tci_state_s::to_json(json_writer& j) const
     if (ul_pwr_ctrl_r17_present) {
       j.write_int("ul-powerControl-r17", ul_pwr_ctrl_r17);
     }
+    if (tag_id_ptr_r18_present) {
+      j.write_str("tag-Id-ptr-r18", tag_id_ptr_r18.to_string());
+    }
   }
   j.end_obj();
+}
+
+const char* tci_state_s::tag_id_ptr_r18_opts::to_string() const
+{
+  static const char* names[] = {"n0", "n1"};
+  return convert_enum_idx(names, 2, value, "tci_state_s::tag_id_ptr_r18_e_");
+}
+uint8_t tci_state_s::tag_id_ptr_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {0, 1};
+  return map_enum_number(numbers, 2, value, "tci_state_s::tag_id_ptr_r18_e_");
 }
 
 void rate_match_pattern_group_item_c_::destroy_() {}
@@ -10806,6 +14449,129 @@ void multi_pdsch_tdra_r17_s::to_json(json_writer& j) const
   j.end_obj();
 }
 
+// PDSCH-ConfigDCI-1-3-r18 ::= SEQUENCE
+OCUDUASN_CODE pdsch_cfg_dci_1_3_r18_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(res_alloc_dci_1_3_r18_present, 1));
+  HANDLE_CODE(bref.pack(rbg_size_dci_1_3_r18_present, 1));
+  HANDLE_CODE(bref.pack(res_alloc_type1_granularity_dci_1_3_r18_present, 1));
+  HANDLE_CODE(bref.pack(nof_bits_for_rv_dci_1_3_r18_present, 1));
+  HANDLE_CODE(bref.pack(harq_process_num_size_dci_1_3_r18_present, 1));
+
+  if (res_alloc_dci_1_3_r18_present) {
+    HANDLE_CODE(res_alloc_dci_1_3_r18.pack(bref));
+  }
+  if (rbg_size_dci_1_3_r18_present) {
+    HANDLE_CODE(rbg_size_dci_1_3_r18.pack(bref));
+  }
+  if (res_alloc_type1_granularity_dci_1_3_r18_present) {
+    HANDLE_CODE(res_alloc_type1_granularity_dci_1_3_r18.pack(bref));
+  }
+  if (nof_bits_for_rv_dci_1_3_r18_present) {
+    HANDLE_CODE(pack_integer(bref, nof_bits_for_rv_dci_1_3_r18, (uint8_t)0u, (uint8_t)2u));
+  }
+  if (harq_process_num_size_dci_1_3_r18_present) {
+    HANDLE_CODE(pack_integer(bref, harq_process_num_size_dci_1_3_r18, (uint8_t)0u, (uint8_t)5u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE pdsch_cfg_dci_1_3_r18_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(res_alloc_dci_1_3_r18_present, 1));
+  HANDLE_CODE(bref.unpack(rbg_size_dci_1_3_r18_present, 1));
+  HANDLE_CODE(bref.unpack(res_alloc_type1_granularity_dci_1_3_r18_present, 1));
+  HANDLE_CODE(bref.unpack(nof_bits_for_rv_dci_1_3_r18_present, 1));
+  HANDLE_CODE(bref.unpack(harq_process_num_size_dci_1_3_r18_present, 1));
+
+  if (res_alloc_dci_1_3_r18_present) {
+    HANDLE_CODE(res_alloc_dci_1_3_r18.unpack(bref));
+  }
+  if (rbg_size_dci_1_3_r18_present) {
+    HANDLE_CODE(rbg_size_dci_1_3_r18.unpack(bref));
+  }
+  if (res_alloc_type1_granularity_dci_1_3_r18_present) {
+    HANDLE_CODE(res_alloc_type1_granularity_dci_1_3_r18.unpack(bref));
+  }
+  if (nof_bits_for_rv_dci_1_3_r18_present) {
+    HANDLE_CODE(unpack_integer(nof_bits_for_rv_dci_1_3_r18, bref, (uint8_t)0u, (uint8_t)2u));
+  }
+  if (harq_process_num_size_dci_1_3_r18_present) {
+    HANDLE_CODE(unpack_integer(harq_process_num_size_dci_1_3_r18, bref, (uint8_t)0u, (uint8_t)5u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void pdsch_cfg_dci_1_3_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (res_alloc_dci_1_3_r18_present) {
+    j.write_str("resourceAllocationDCI-1-3-r18", res_alloc_dci_1_3_r18.to_string());
+  }
+  if (rbg_size_dci_1_3_r18_present) {
+    j.write_str("rbg-SizeDCI-1-3-r18", rbg_size_dci_1_3_r18.to_string());
+  }
+  if (res_alloc_type1_granularity_dci_1_3_r18_present) {
+    j.write_str("resourceAllocationType1GranularityDCI-1-3-r18", res_alloc_type1_granularity_dci_1_3_r18.to_string());
+  }
+  if (nof_bits_for_rv_dci_1_3_r18_present) {
+    j.write_int("numberOfBitsForRV-DCI-1-3-r18", nof_bits_for_rv_dci_1_3_r18);
+  }
+  if (harq_process_num_size_dci_1_3_r18_present) {
+    j.write_int("harq-ProcessNumberSizeDCI-1-3-r18", harq_process_num_size_dci_1_3_r18);
+  }
+  j.end_obj();
+}
+
+const char* pdsch_cfg_dci_1_3_r18_s::res_alloc_dci_1_3_r18_opts::to_string() const
+{
+  static const char* names[] = {"resourceAllocationType0", "resourceAllocationType1", "dynamicSwitch"};
+  return convert_enum_idx(names, 3, value, "pdsch_cfg_dci_1_3_r18_s::res_alloc_dci_1_3_r18_e_");
+}
+uint8_t pdsch_cfg_dci_1_3_r18_s::res_alloc_dci_1_3_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {0, 1};
+  return map_enum_number(numbers, 2, value, "pdsch_cfg_dci_1_3_r18_s::res_alloc_dci_1_3_r18_e_");
+}
+
+const char* pdsch_cfg_dci_1_3_r18_s::rbg_size_dci_1_3_r18_opts::to_string() const
+{
+  static const char* names[] = {"config1", "config2", "config3", "spare1"};
+  return convert_enum_idx(names, 4, value, "pdsch_cfg_dci_1_3_r18_s::rbg_size_dci_1_3_r18_e_");
+}
+uint8_t pdsch_cfg_dci_1_3_r18_s::rbg_size_dci_1_3_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2, 3};
+  return map_enum_number(numbers, 3, value, "pdsch_cfg_dci_1_3_r18_s::rbg_size_dci_1_3_r18_e_");
+}
+
+const char* pdsch_cfg_dci_1_3_r18_s::res_alloc_type1_granularity_dci_1_3_r18_opts::to_string() const
+{
+  static const char* names[] = {"n2", "n4", "n8", "n16"};
+  return convert_enum_idx(names, 4, value, "pdsch_cfg_dci_1_3_r18_s::res_alloc_type1_granularity_dci_1_3_r18_e_");
+}
+uint8_t pdsch_cfg_dci_1_3_r18_s::res_alloc_type1_granularity_dci_1_3_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {2, 4, 8, 16};
+  return map_enum_number(numbers, 4, value, "pdsch_cfg_dci_1_3_r18_s::res_alloc_type1_granularity_dci_1_3_r18_e_");
+}
+
+// PDSCH-ConfigDCI-1-3-v1860 ::= SEQUENCE
+OCUDUASN_CODE pdsch_cfg_dci_1_3_v1860_s::pack(bit_ref& bref) const
+{
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE pdsch_cfg_dci_1_3_v1860_s::unpack(cbit_ref& bref)
+{
+  return OCUDUASN_SUCCESS;
+}
+void pdsch_cfg_dci_1_3_v1860_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("enabledDefaultBeamForMultiCellScheduling-r18", "enabled");
+  j.end_obj();
+}
+
 // PDSCH-Config ::= SEQUENCE
 OCUDUASN_CODE pdsch_cfg_s::pack(bit_ref& bref) const
 {
@@ -10945,6 +14711,9 @@ OCUDUASN_CODE pdsch_cfg_s::pack(bit_ref& bref) const
     group_flags[2] |= prio_ind_dci_4_2_r17_present;
     group_flags[2] |= size_dci_4_2_r17_present;
     group_flags[3] |= pdsch_time_domain_alloc_list_for_multi_pdsch_r17.is_present();
+    group_flags[4] |= advanced_receiver_mu_mimo_r18.is_present();
+    group_flags[4] |= pdsch_cfg_dci_1_3_r18.is_present();
+    group_flags[5] |= pdsch_cfg_dci_1_3_v1860.is_present();
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -11092,6 +14861,26 @@ OCUDUASN_CODE pdsch_cfg_s::pack(bit_ref& bref) const
       HANDLE_CODE(bref.pack(pdsch_time_domain_alloc_list_for_multi_pdsch_r17.is_present(), 1));
       if (pdsch_time_domain_alloc_list_for_multi_pdsch_r17.is_present()) {
         HANDLE_CODE(pdsch_time_domain_alloc_list_for_multi_pdsch_r17->pack(bref));
+      }
+    }
+    if (group_flags[4]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(advanced_receiver_mu_mimo_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(pdsch_cfg_dci_1_3_r18.is_present(), 1));
+      if (advanced_receiver_mu_mimo_r18.is_present()) {
+        HANDLE_CODE(advanced_receiver_mu_mimo_r18->pack(bref));
+      }
+      if (pdsch_cfg_dci_1_3_r18.is_present()) {
+        HANDLE_CODE(pdsch_cfg_dci_1_3_r18->pack(bref));
+      }
+    }
+    if (group_flags[5]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(pdsch_cfg_dci_1_3_v1860.is_present(), 1));
+      if (pdsch_cfg_dci_1_3_v1860.is_present()) {
+        HANDLE_CODE(pdsch_cfg_dci_1_3_v1860->pack(bref));
       }
     }
   }
@@ -11346,6 +15135,24 @@ OCUDUASN_CODE pdsch_cfg_s::unpack(cbit_ref& bref)
       unpack_presence_flag(pdsch_time_domain_alloc_list_for_multi_pdsch_r17, bref);
       if (pdsch_time_domain_alloc_list_for_multi_pdsch_r17.is_present()) {
         HANDLE_CODE(pdsch_time_domain_alloc_list_for_multi_pdsch_r17->unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      unpack_presence_flag(advanced_receiver_mu_mimo_r18, bref);
+      unpack_presence_flag(pdsch_cfg_dci_1_3_r18, bref);
+      if (advanced_receiver_mu_mimo_r18.is_present()) {
+        HANDLE_CODE(advanced_receiver_mu_mimo_r18->unpack(bref));
+      }
+      if (pdsch_cfg_dci_1_3_r18.is_present()) {
+        HANDLE_CODE(pdsch_cfg_dci_1_3_r18->unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      unpack_presence_flag(pdsch_cfg_dci_1_3_v1860, bref);
+      if (pdsch_cfg_dci_1_3_v1860.is_present()) {
+        HANDLE_CODE(pdsch_cfg_dci_1_3_v1860->unpack(bref));
       }
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
@@ -11632,6 +15439,18 @@ void pdsch_cfg_s::to_json(json_writer& j) const
     if (pdsch_time_domain_alloc_list_for_multi_pdsch_r17.is_present()) {
       j.write_fieldname("pdsch-TimeDomainAllocationListForMultiPDSCH-r17");
       pdsch_time_domain_alloc_list_for_multi_pdsch_r17->to_json(j);
+    }
+    if (advanced_receiver_mu_mimo_r18.is_present()) {
+      j.write_fieldname("advancedReceiver-MU-MIMO-r18");
+      advanced_receiver_mu_mimo_r18->to_json(j);
+    }
+    if (pdsch_cfg_dci_1_3_r18.is_present()) {
+      j.write_fieldname("pdsch-ConfigDCI-1-3-r18");
+      pdsch_cfg_dci_1_3_r18->to_json(j);
+    }
+    if (pdsch_cfg_dci_1_3_v1860.is_present()) {
+      j.write_fieldname("pdsch-ConfigDCI-1-3-v1860");
+      pdsch_cfg_dci_1_3_v1860->to_json(j);
     }
   }
   j.end_obj();
@@ -15529,6 +19348,47 @@ uint8_t non_cell_defining_ssb_r17_s::ssb_time_offset_r17_opts::to_number() const
   return map_enum_number(numbers, 6, value, "non_cell_defining_ssb_r17_s::ssb_time_offset_r17_e_");
 }
 
+// TCI-InDCI-r18 ::= SEQUENCE
+OCUDUASN_CODE tci_in_dci_r18_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(tci_sel_present_in_dci_r18_present, 1));
+  HANDLE_CODE(bref.pack(apply_indicated_tci_state_dci_1_0_r18_present, 1));
+
+  if (apply_indicated_tci_state_dci_1_0_r18_present) {
+    HANDLE_CODE(apply_indicated_tci_state_dci_1_0_r18.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE tci_in_dci_r18_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(tci_sel_present_in_dci_r18_present, 1));
+  HANDLE_CODE(bref.unpack(apply_indicated_tci_state_dci_1_0_r18_present, 1));
+
+  if (apply_indicated_tci_state_dci_1_0_r18_present) {
+    HANDLE_CODE(apply_indicated_tci_state_dci_1_0_r18.unpack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void tci_in_dci_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (tci_sel_present_in_dci_r18_present) {
+    j.write_str("tci-SelectionPresentInDCI-r18", "enabled");
+  }
+  if (apply_indicated_tci_state_dci_1_0_r18_present) {
+    j.write_str("applyIndicatedTCI-StateDCI-1-0-r18", apply_indicated_tci_state_dci_1_0_r18.to_string());
+  }
+  j.end_obj();
+}
+
+const char* tci_in_dci_r18_s::apply_indicated_tci_state_dci_1_0_r18_opts::to_string() const
+{
+  static const char* names[] = {"first", "second", "both", "spare1"};
+  return convert_enum_idx(names, 4, value, "tci_in_dci_r18_s::apply_indicated_tci_state_dci_1_0_r18_e_");
+}
+
 // BWP-DownlinkDedicated ::= SEQUENCE
 OCUDUASN_CODE bwp_dl_ded_s::pack(bit_ref& bref) const
 {
@@ -15567,6 +19427,7 @@ OCUDUASN_CODE bwp_dl_ded_s::pack(bit_ref& bref) const
     group_flags[1] |= dl_ppw_pre_cfg_to_release_list_r17.is_present();
     group_flags[1] |= non_cell_defining_ssb_r17.is_present();
     group_flags[1] |= serving_cell_mo_r17_present;
+    group_flags[2] |= tci_in_dci_r18.is_present();
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -15635,6 +19496,14 @@ OCUDUASN_CODE bwp_dl_ded_s::pack(bit_ref& bref) const
       }
       if (serving_cell_mo_r17_present) {
         HANDLE_CODE(pack_integer(bref, serving_cell_mo_r17, (uint8_t)1u, (uint8_t)64u));
+      }
+    }
+    if (group_flags[2]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(tci_in_dci_r18.is_present(), 1));
+      if (tci_in_dci_r18.is_present()) {
+        HANDLE_CODE(tci_in_dci_r18->pack(bref));
       }
     }
   }
@@ -15728,6 +19597,13 @@ OCUDUASN_CODE bwp_dl_ded_s::unpack(cbit_ref& bref)
       }
       if (serving_cell_mo_r17_present) {
         HANDLE_CODE(unpack_integer(serving_cell_mo_r17, bref, (uint8_t)1u, (uint8_t)64u));
+      }
+    }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      unpack_presence_flag(tci_in_dci_r18, bref);
+      if (tci_in_dci_r18.is_present()) {
+        HANDLE_CODE(tci_in_dci_r18->unpack(bref));
       }
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
@@ -15825,6 +19701,10 @@ void bwp_dl_ded_s::to_json(json_writer& j) const
     }
     if (serving_cell_mo_r17_present) {
       j.write_int("servingCellMO-r17", serving_cell_mo_r17);
+    }
+    if (tci_in_dci_r18.is_present()) {
+      j.write_fieldname("tci-InDCI-r18");
+      tci_in_dci_r18->to_json(j);
     }
   }
   j.end_obj();
@@ -17580,6 +21460,10 @@ OCUDUASN_CODE pucch_res_ext_v1610_s::pack(bit_ref& bref) const
     ext_groups_packer_guard group_flags;
     group_flags[0] |= format_v1700.is_present();
     group_flags[0] |= pucch_repeat_nrof_slots_r17_present;
+    group_flags[1] |= apply_indicated_tci_state_r18_present;
+    group_flags[1] |= multipanel_sfn_scheme_r18_present;
+    group_flags[1] |= dl_data_to_ul_ack_r18.is_present();
+    group_flags[1] |= dl_data_to_ul_ack_dci_1_2_r18.is_present();
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -17592,6 +21476,23 @@ OCUDUASN_CODE pucch_res_ext_v1610_s::pack(bit_ref& bref) const
       }
       if (pucch_repeat_nrof_slots_r17_present) {
         HANDLE_CODE(pucch_repeat_nrof_slots_r17.pack(bref));
+      }
+    }
+    if (group_flags[1]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(apply_indicated_tci_state_r18_present, 1));
+      HANDLE_CODE(bref.pack(multipanel_sfn_scheme_r18_present, 1));
+      HANDLE_CODE(bref.pack(dl_data_to_ul_ack_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(dl_data_to_ul_ack_dci_1_2_r18.is_present(), 1));
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.pack(bref));
+      }
+      if (dl_data_to_ul_ack_r18.is_present()) {
+        HANDLE_CODE(dl_data_to_ul_ack_r18->pack(bref));
+      }
+      if (dl_data_to_ul_ack_dci_1_2_r18.is_present()) {
+        HANDLE_CODE(dl_data_to_ul_ack_dci_1_2_r18->pack(bref));
       }
     }
   }
@@ -17625,6 +21526,22 @@ OCUDUASN_CODE pucch_res_ext_v1610_s::unpack(cbit_ref& bref)
         HANDLE_CODE(pucch_repeat_nrof_slots_r17.unpack(bref));
       }
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(apply_indicated_tci_state_r18_present, 1));
+      HANDLE_CODE(bref.unpack(multipanel_sfn_scheme_r18_present, 1));
+      unpack_presence_flag(dl_data_to_ul_ack_r18, bref);
+      unpack_presence_flag(dl_data_to_ul_ack_dci_1_2_r18, bref);
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.unpack(bref));
+      }
+      if (dl_data_to_ul_ack_r18.is_present()) {
+        HANDLE_CODE(dl_data_to_ul_ack_r18->unpack(bref));
+      }
+      if (dl_data_to_ul_ack_dci_1_2_r18.is_present()) {
+        HANDLE_CODE(dl_data_to_ul_ack_dci_1_2_r18->unpack(bref));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -17653,6 +21570,20 @@ void pucch_res_ext_v1610_s::to_json(json_writer& j) const
     }
     if (pucch_repeat_nrof_slots_r17_present) {
       j.write_str("pucch-RepetitionNrofSlots-r17", pucch_repeat_nrof_slots_r17.to_string());
+    }
+    if (apply_indicated_tci_state_r18_present) {
+      j.write_str("applyIndicatedTCI-State-r18", apply_indicated_tci_state_r18.to_string());
+    }
+    if (multipanel_sfn_scheme_r18_present) {
+      j.write_str("multipanelSFN-Scheme-r18", "enabled");
+    }
+    if (dl_data_to_ul_ack_r18.is_present()) {
+      j.write_fieldname("dl-DataToUL-ACK-r18");
+      dl_data_to_ul_ack_r18->to_json(j);
+    }
+    if (dl_data_to_ul_ack_dci_1_2_r18.is_present()) {
+      j.write_fieldname("dl-DataToUL-ACK-DCI-1-2-r18");
+      dl_data_to_ul_ack_dci_1_2_r18->to_json(j);
     }
   }
   j.end_obj();
@@ -17963,6 +21894,12 @@ uint8_t pucch_res_ext_v1610_s::pucch_repeat_nrof_slots_r17_opts::to_number() con
 {
   static const uint8_t numbers[] = {1, 2, 4, 8};
   return map_enum_number(numbers, 4, value, "pucch_res_ext_v1610_s::pucch_repeat_nrof_slots_r17_e_");
+}
+
+const char* pucch_res_ext_v1610_s::apply_indicated_tci_state_r18_opts::to_string() const
+{
+  static const char* names[] = {"first", "second", "both", "spare1"};
+  return convert_enum_idx(names, 4, value, "pucch_res_ext_v1610_s::apply_indicated_tci_state_r18_e_");
 }
 
 // PUCCH-SpatialRelationInfoExt-r16 ::= SEQUENCE
@@ -19304,6 +23241,20 @@ OCUDUASN_CODE ptrs_ul_cfg_s::pack(bit_ref& bref) const
                                   integer_packer<uint16_t>(1, 276)));
   }
 
+  if (ext) {
+    ext_groups_packer_guard group_flags;
+    group_flags[0] |= max_nrof_ports_sdm_r18_present;
+    group_flags.pack(bref);
+
+    if (group_flags[0]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(max_nrof_ports_sdm_r18_present, 1));
+      if (max_nrof_ports_sdm_r18_present) {
+        HANDLE_CODE(max_nrof_ports_sdm_r18.pack(bref));
+      }
+    }
+  }
   return OCUDUASN_SUCCESS;
 }
 OCUDUASN_CODE ptrs_ul_cfg_s::unpack(cbit_ref& bref)
@@ -19342,6 +23293,18 @@ OCUDUASN_CODE ptrs_ul_cfg_s::unpack(cbit_ref& bref)
                                     integer_packer<uint16_t>(1, 276)));
   }
 
+  if (ext) {
+    ext_groups_unpacker group_unpacker(bref);
+
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(max_nrof_ports_sdm_r18_present, 1));
+      if (max_nrof_ports_sdm_r18_present) {
+        HANDLE_CODE(max_nrof_ports_sdm_r18.unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
+  }
   return OCUDUASN_SUCCESS;
 }
 void ptrs_ul_cfg_s::to_json(json_writer& j) const
@@ -19383,6 +23346,11 @@ void ptrs_ul_cfg_s::to_json(json_writer& j) const
       j.write_str("timeDensityTransformPrecoding", "d2");
     }
     j.end_obj();
+  }
+  if (ext) {
+    if (max_nrof_ports_sdm_r18_present) {
+      j.write_str("maxNrofPorts-SDM-r18", max_nrof_ports_sdm_r18.to_string());
+    }
   }
   j.end_obj();
 }
@@ -19428,6 +23396,17 @@ const char* ptrs_ul_cfg_s::transform_precoder_disabled_s_::ptrs_pwr_opts::to_num
 {
   static const char* number_strs[] = {"0.0", "0.1", "1.0", "1.1"};
   return convert_enum_idx(number_strs, 4, value, "ptrs_ul_cfg_s::transform_precoder_disabled_s_::ptrs_pwr_e_");
+}
+
+const char* ptrs_ul_cfg_s::max_nrof_ports_sdm_r18_opts::to_string() const
+{
+  static const char* names[] = {"n1", "n2"};
+  return convert_enum_idx(names, 2, value, "ptrs_ul_cfg_s::max_nrof_ports_sdm_r18_e_");
+}
+uint8_t ptrs_ul_cfg_s::max_nrof_ports_sdm_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2};
+  return map_enum_number(numbers, 2, value, "ptrs_ul_cfg_s::max_nrof_ports_sdm_r18_e_");
 }
 
 // DMRS-UplinkTransformPrecoding-r16 ::= SEQUENCE
@@ -19495,6 +23474,17 @@ OCUDUASN_CODE dmrs_ul_cfg_s::pack(bit_ref& bref) const
     HANDLE_CODE(transform_precoding_enabled.pack(bref));
   }
 
+  if (ext) {
+    ext_groups_packer_guard group_flags;
+    group_flags[0] |= dmrs_type_enh_r18_present;
+    group_flags.pack(bref);
+
+    if (group_flags[0]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(dmrs_type_enh_r18_present, 1));
+    }
+  }
   return OCUDUASN_SUCCESS;
 }
 OCUDUASN_CODE dmrs_ul_cfg_s::unpack(cbit_ref& bref)
@@ -19520,6 +23510,15 @@ OCUDUASN_CODE dmrs_ul_cfg_s::unpack(cbit_ref& bref)
     HANDLE_CODE(transform_precoding_enabled.unpack(bref));
   }
 
+  if (ext) {
+    ext_groups_unpacker group_unpacker(bref);
+
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(dmrs_type_enh_r18_present, 1));
+    }
+    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
+  }
   return OCUDUASN_SUCCESS;
 }
 void dmrs_ul_cfg_s::to_json(json_writer& j) const
@@ -19545,6 +23544,11 @@ void dmrs_ul_cfg_s::to_json(json_writer& j) const
   if (transform_precoding_enabled_present) {
     j.write_fieldname("transformPrecodingEnabled");
     transform_precoding_enabled.to_json(j);
+  }
+  if (ext) {
+    if (dmrs_type_enh_r18_present) {
+      j.write_str("dmrs-TypeEnh-r18", "enabled");
+    }
   }
   j.end_obj();
 }
@@ -22427,6 +26431,305 @@ const char* mpe_res_r17_s::mpe_ref_sig_r17_c_::types_opts::to_string() const
   return convert_enum_idx(names, 2, value, "mpe_res_r17_s::mpe_ref_sig_r17_c_::types");
 }
 
+// SDM-Scheme-r18 ::= SEQUENCE
+OCUDUASN_CODE sdm_scheme_r18_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(max_rank_sdm_r18_present, 1));
+  HANDLE_CODE(bref.pack(max_rank_sdm_dci_0_2_r18_present, 1));
+
+  if (max_rank_sdm_r18_present) {
+    HANDLE_CODE(pack_integer(bref, max_rank_sdm_r18, (uint8_t)1u, (uint8_t)2u));
+  }
+  if (max_rank_sdm_dci_0_2_r18_present) {
+    HANDLE_CODE(pack_integer(bref, max_rank_sdm_dci_0_2_r18, (uint8_t)1u, (uint8_t)2u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE sdm_scheme_r18_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(max_rank_sdm_r18_present, 1));
+  HANDLE_CODE(bref.unpack(max_rank_sdm_dci_0_2_r18_present, 1));
+
+  if (max_rank_sdm_r18_present) {
+    HANDLE_CODE(unpack_integer(max_rank_sdm_r18, bref, (uint8_t)1u, (uint8_t)2u));
+  }
+  if (max_rank_sdm_dci_0_2_r18_present) {
+    HANDLE_CODE(unpack_integer(max_rank_sdm_dci_0_2_r18, bref, (uint8_t)1u, (uint8_t)2u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void sdm_scheme_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (max_rank_sdm_r18_present) {
+    j.write_int("maxRankSDM-r18", max_rank_sdm_r18);
+  }
+  if (max_rank_sdm_dci_0_2_r18_present) {
+    j.write_int("maxRankSDM-DCI-0-2-r18", max_rank_sdm_dci_0_2_r18);
+  }
+  j.end_obj();
+}
+
+// SFN-Scheme-r18 ::= SEQUENCE
+OCUDUASN_CODE sfn_scheme_r18_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(max_rank_sfn_r18_present, 1));
+  HANDLE_CODE(bref.pack(max_rank_sfn_dci_0_2_r18_present, 1));
+
+  if (max_rank_sfn_r18_present) {
+    HANDLE_CODE(pack_integer(bref, max_rank_sfn_r18, (uint8_t)1u, (uint8_t)2u));
+  }
+  if (max_rank_sfn_dci_0_2_r18_present) {
+    HANDLE_CODE(pack_integer(bref, max_rank_sfn_dci_0_2_r18, (uint8_t)1u, (uint8_t)2u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE sfn_scheme_r18_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(max_rank_sfn_r18_present, 1));
+  HANDLE_CODE(bref.unpack(max_rank_sfn_dci_0_2_r18_present, 1));
+
+  if (max_rank_sfn_r18_present) {
+    HANDLE_CODE(unpack_integer(max_rank_sfn_r18, bref, (uint8_t)1u, (uint8_t)2u));
+  }
+  if (max_rank_sfn_dci_0_2_r18_present) {
+    HANDLE_CODE(unpack_integer(max_rank_sfn_dci_0_2_r18, bref, (uint8_t)1u, (uint8_t)2u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void sfn_scheme_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (max_rank_sfn_r18_present) {
+    j.write_int("maxRankSFN-r18", max_rank_sfn_r18);
+  }
+  if (max_rank_sfn_dci_0_2_r18_present) {
+    j.write_int("maxRankSFN-DCI-0-2-r18", max_rank_sfn_dci_0_2_r18);
+  }
+  j.end_obj();
+}
+
+// CodebookTypeUL-r18 ::= CHOICE
+void codebook_type_ul_r18_c::set(types::options e)
+{
+  type_ = e;
+}
+codebook_type_ul_r18_c::codebook1_r18_e_& codebook_type_ul_r18_c::set_codebook1_r18()
+{
+  set(types::codebook1_r18);
+  return c;
+}
+void codebook_type_ul_r18_c::set_codebook2_r18()
+{
+  set(types::codebook2_r18);
+}
+void codebook_type_ul_r18_c::set_codebook3_r18()
+{
+  set(types::codebook3_r18);
+}
+void codebook_type_ul_r18_c::set_codebook4_r18()
+{
+  set(types::codebook4_r18);
+}
+void codebook_type_ul_r18_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::codebook1_r18:
+      j.write_str("codebook1-r18", c.to_string());
+      break;
+    case types::codebook2_r18:
+      break;
+    case types::codebook3_r18:
+      break;
+    case types::codebook4_r18:
+      break;
+    default:
+      log_invalid_choice_id(type_, "codebook_type_ul_r18_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE codebook_type_ul_r18_c::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::codebook1_r18:
+      HANDLE_CODE(c.pack(bref));
+      break;
+    case types::codebook2_r18:
+      break;
+    case types::codebook3_r18:
+      break;
+    case types::codebook4_r18:
+      break;
+    default:
+      log_invalid_choice_id(type_, "codebook_type_ul_r18_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE codebook_type_ul_r18_c::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::codebook1_r18:
+      HANDLE_CODE(c.unpack(bref));
+      break;
+    case types::codebook2_r18:
+      break;
+    case types::codebook3_r18:
+      break;
+    case types::codebook4_r18:
+      break;
+    default:
+      log_invalid_choice_id(type_, "codebook_type_ul_r18_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* codebook_type_ul_r18_c::codebook1_r18_opts::to_string() const
+{
+  static const char* names[] = {"ng1n4n1", "ng1n2n2"};
+  return convert_enum_idx(names, 2, value, "codebook_type_ul_r18_c::codebook1_r18_e_");
+}
+
+const char* codebook_type_ul_r18_c::types_opts::to_string() const
+{
+  static const char* names[] = {"codebook1-r18", "codebook2-r18", "codebook3-r18", "codebook4-r18"};
+  return convert_enum_idx(names, 4, value, "codebook_type_ul_r18_c::types");
+}
+uint8_t codebook_type_ul_r18_c::types_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2, 3, 4};
+  return map_enum_number(numbers, 4, value, "codebook_type_ul_r18_c::types");
+}
+
+// PUSCH-ConfigDCI-0-3-r18 ::= SEQUENCE
+OCUDUASN_CODE pusch_cfg_dci_0_3_r18_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(res_alloc_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.pack(rbg_size_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.pack(res_alloc_type1_granularity_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.pack(nof_bits_for_rv_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.pack(harq_process_num_size_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.pack(uci_on_pusch_list_dci_0_3_r18_present, 1));
+
+  if (res_alloc_dci_0_3_r18_present) {
+    HANDLE_CODE(res_alloc_dci_0_3_r18.pack(bref));
+  }
+  if (rbg_size_dci_0_3_r18_present) {
+    HANDLE_CODE(rbg_size_dci_0_3_r18.pack(bref));
+  }
+  if (res_alloc_type1_granularity_dci_0_3_r18_present) {
+    HANDLE_CODE(res_alloc_type1_granularity_dci_0_3_r18.pack(bref));
+  }
+  if (nof_bits_for_rv_dci_0_3_r18_present) {
+    HANDLE_CODE(pack_integer(bref, nof_bits_for_rv_dci_0_3_r18, (uint8_t)0u, (uint8_t)2u));
+  }
+  if (harq_process_num_size_dci_0_3_r18_present) {
+    HANDLE_CODE(pack_integer(bref, harq_process_num_size_dci_0_3_r18, (uint8_t)0u, (uint8_t)5u));
+  }
+  if (uci_on_pusch_list_dci_0_3_r18_present) {
+    HANDLE_CODE(uci_on_pusch_list_dci_0_3_r18.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE pusch_cfg_dci_0_3_r18_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(res_alloc_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.unpack(rbg_size_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.unpack(res_alloc_type1_granularity_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.unpack(nof_bits_for_rv_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.unpack(harq_process_num_size_dci_0_3_r18_present, 1));
+  HANDLE_CODE(bref.unpack(uci_on_pusch_list_dci_0_3_r18_present, 1));
+
+  if (res_alloc_dci_0_3_r18_present) {
+    HANDLE_CODE(res_alloc_dci_0_3_r18.unpack(bref));
+  }
+  if (rbg_size_dci_0_3_r18_present) {
+    HANDLE_CODE(rbg_size_dci_0_3_r18.unpack(bref));
+  }
+  if (res_alloc_type1_granularity_dci_0_3_r18_present) {
+    HANDLE_CODE(res_alloc_type1_granularity_dci_0_3_r18.unpack(bref));
+  }
+  if (nof_bits_for_rv_dci_0_3_r18_present) {
+    HANDLE_CODE(unpack_integer(nof_bits_for_rv_dci_0_3_r18, bref, (uint8_t)0u, (uint8_t)2u));
+  }
+  if (harq_process_num_size_dci_0_3_r18_present) {
+    HANDLE_CODE(unpack_integer(harq_process_num_size_dci_0_3_r18, bref, (uint8_t)0u, (uint8_t)5u));
+  }
+  if (uci_on_pusch_list_dci_0_3_r18_present) {
+    HANDLE_CODE(uci_on_pusch_list_dci_0_3_r18.unpack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void pusch_cfg_dci_0_3_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (res_alloc_dci_0_3_r18_present) {
+    j.write_str("resourceAllocationDCI-0-3-r18", res_alloc_dci_0_3_r18.to_string());
+  }
+  if (rbg_size_dci_0_3_r18_present) {
+    j.write_str("rbg-SizeDCI-0-3-r18", rbg_size_dci_0_3_r18.to_string());
+  }
+  if (res_alloc_type1_granularity_dci_0_3_r18_present) {
+    j.write_str("resourceAllocationType1GranularityDCI-0-3-r18", res_alloc_type1_granularity_dci_0_3_r18.to_string());
+  }
+  if (nof_bits_for_rv_dci_0_3_r18_present) {
+    j.write_int("numberOfBitsForRV-DCI-0-3-r18", nof_bits_for_rv_dci_0_3_r18);
+  }
+  if (harq_process_num_size_dci_0_3_r18_present) {
+    j.write_int("harq-ProcessNumberSizeDCI-0-3-r18", harq_process_num_size_dci_0_3_r18);
+  }
+  if (uci_on_pusch_list_dci_0_3_r18_present) {
+    j.write_fieldname("uci-OnPUSCH-ListDCI-0-3-r18");
+    uci_on_pusch_list_dci_0_3_r18.to_json(j);
+  }
+  j.end_obj();
+}
+
+const char* pusch_cfg_dci_0_3_r18_s::res_alloc_dci_0_3_r18_opts::to_string() const
+{
+  static const char* names[] = {"resourceAllocationType0", "resourceAllocationType1", "dynamicSwitch"};
+  return convert_enum_idx(names, 3, value, "pusch_cfg_dci_0_3_r18_s::res_alloc_dci_0_3_r18_e_");
+}
+uint8_t pusch_cfg_dci_0_3_r18_s::res_alloc_dci_0_3_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {0, 1};
+  return map_enum_number(numbers, 2, value, "pusch_cfg_dci_0_3_r18_s::res_alloc_dci_0_3_r18_e_");
+}
+
+const char* pusch_cfg_dci_0_3_r18_s::rbg_size_dci_0_3_r18_opts::to_string() const
+{
+  static const char* names[] = {"config2", "config3"};
+  return convert_enum_idx(names, 2, value, "pusch_cfg_dci_0_3_r18_s::rbg_size_dci_0_3_r18_e_");
+}
+uint8_t pusch_cfg_dci_0_3_r18_s::rbg_size_dci_0_3_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {2, 3};
+  return map_enum_number(numbers, 2, value, "pusch_cfg_dci_0_3_r18_s::rbg_size_dci_0_3_r18_e_");
+}
+
+const char* pusch_cfg_dci_0_3_r18_s::res_alloc_type1_granularity_dci_0_3_r18_opts::to_string() const
+{
+  static const char* names[] = {"n2", "n4", "n8", "n16"};
+  return convert_enum_idx(names, 4, value, "pusch_cfg_dci_0_3_r18_s::res_alloc_type1_granularity_dci_0_3_r18_e_");
+}
+uint8_t pusch_cfg_dci_0_3_r18_s::res_alloc_type1_granularity_dci_0_3_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {2, 4, 8, 16};
+  return map_enum_number(numbers, 4, value, "pusch_cfg_dci_0_3_r18_s::res_alloc_type1_granularity_dci_0_3_r18_e_");
+}
+
 // PUSCH-Config ::= SEQUENCE
 OCUDUASN_CODE pusch_cfg_s::pack(bit_ref& bref) const
 {
@@ -22547,6 +26850,15 @@ OCUDUASN_CODE pusch_cfg_s::pack(bit_ref& bref) const
     group_flags[1] |= harq_process_num_size_dci_0_1_r17_present;
     group_flags[1] |= mpe_res_pool_to_add_mod_list_r17.is_present();
     group_flags[1] |= mpe_res_pool_to_release_list_r17.is_present();
+    group_flags[2] |= max_rank_v1810_present;
+    group_flags[2] |= stx_2_panel_r18_present;
+    group_flags[2] |= multipanel_scheme_sdm_r18.is_present();
+    group_flags[2] |= multipanel_scheme_sfn_r18.is_present();
+    group_flags[2] |= codebook_type_ul_r18.is_present();
+    group_flags[2] |= apply_indicated_tci_state_r18_present;
+    group_flags[2] |= dyn_transform_precoder_field_presence_dci_0_1_r18_present;
+    group_flags[2] |= dyn_transform_precoder_field_presence_dci_0_2_r18_present;
+    group_flags[2] |= pusch_cfg_dci_0_3_r18.is_present();
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -22724,6 +27036,37 @@ OCUDUASN_CODE pusch_cfg_s::pack(bit_ref& bref) const
       }
       if (mpe_res_pool_to_release_list_r17.is_present()) {
         HANDLE_CODE(pack_dyn_seq_of(bref, *mpe_res_pool_to_release_list_r17, 1, 64, integer_packer<uint8_t>(1, 64)));
+      }
+    }
+    if (group_flags[2]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(max_rank_v1810_present, 1));
+      HANDLE_CODE(bref.pack(stx_2_panel_r18_present, 1));
+      HANDLE_CODE(bref.pack(multipanel_scheme_sdm_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(multipanel_scheme_sfn_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(codebook_type_ul_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(apply_indicated_tci_state_r18_present, 1));
+      HANDLE_CODE(bref.pack(dyn_transform_precoder_field_presence_dci_0_1_r18_present, 1));
+      HANDLE_CODE(bref.pack(dyn_transform_precoder_field_presence_dci_0_2_r18_present, 1));
+      HANDLE_CODE(bref.pack(pusch_cfg_dci_0_3_r18.is_present(), 1));
+      if (max_rank_v1810_present) {
+        HANDLE_CODE(pack_integer(bref, max_rank_v1810, (uint8_t)5u, (uint8_t)8u));
+      }
+      if (multipanel_scheme_sdm_r18.is_present()) {
+        HANDLE_CODE(multipanel_scheme_sdm_r18->pack(bref));
+      }
+      if (multipanel_scheme_sfn_r18.is_present()) {
+        HANDLE_CODE(multipanel_scheme_sfn_r18->pack(bref));
+      }
+      if (codebook_type_ul_r18.is_present()) {
+        HANDLE_CODE(codebook_type_ul_r18->pack(bref));
+      }
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.pack(bref));
+      }
+      if (pusch_cfg_dci_0_3_r18.is_present()) {
+        HANDLE_CODE(pusch_cfg_dci_0_3_r18->pack(bref));
       }
     }
   }
@@ -22976,6 +27319,36 @@ OCUDUASN_CODE pusch_cfg_s::unpack(cbit_ref& bref)
         HANDLE_CODE(unpack_dyn_seq_of(*mpe_res_pool_to_release_list_r17, bref, 1, 64, integer_packer<uint8_t>(1, 64)));
       }
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(max_rank_v1810_present, 1));
+      HANDLE_CODE(bref.unpack(stx_2_panel_r18_present, 1));
+      unpack_presence_flag(multipanel_scheme_sdm_r18, bref);
+      unpack_presence_flag(multipanel_scheme_sfn_r18, bref);
+      unpack_presence_flag(codebook_type_ul_r18, bref);
+      HANDLE_CODE(bref.unpack(apply_indicated_tci_state_r18_present, 1));
+      HANDLE_CODE(bref.unpack(dyn_transform_precoder_field_presence_dci_0_1_r18_present, 1));
+      HANDLE_CODE(bref.unpack(dyn_transform_precoder_field_presence_dci_0_2_r18_present, 1));
+      unpack_presence_flag(pusch_cfg_dci_0_3_r18, bref);
+      if (max_rank_v1810_present) {
+        HANDLE_CODE(unpack_integer(max_rank_v1810, bref, (uint8_t)5u, (uint8_t)8u));
+      }
+      if (multipanel_scheme_sdm_r18.is_present()) {
+        HANDLE_CODE(multipanel_scheme_sdm_r18->unpack(bref));
+      }
+      if (multipanel_scheme_sfn_r18.is_present()) {
+        HANDLE_CODE(multipanel_scheme_sfn_r18->unpack(bref));
+      }
+      if (codebook_type_ul_r18.is_present()) {
+        HANDLE_CODE(codebook_type_ul_r18->unpack(bref));
+      }
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.unpack(bref));
+      }
+      if (pusch_cfg_dci_0_3_r18.is_present()) {
+        HANDLE_CODE(pusch_cfg_dci_0_3_r18->unpack(bref));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -23220,6 +27593,37 @@ void pusch_cfg_s::to_json(json_writer& j) const
         j.write_int(e1);
       }
       j.end_array();
+    }
+    if (max_rank_v1810_present) {
+      j.write_int("maxRank-v1810", max_rank_v1810);
+    }
+    if (stx_2_panel_r18_present) {
+      j.write_str("sTx-2Panel-r18", "enabled");
+    }
+    if (multipanel_scheme_sdm_r18.is_present()) {
+      j.write_fieldname("multipanelSchemeSDM-r18");
+      multipanel_scheme_sdm_r18->to_json(j);
+    }
+    if (multipanel_scheme_sfn_r18.is_present()) {
+      j.write_fieldname("multipanelSchemeSFN-r18");
+      multipanel_scheme_sfn_r18->to_json(j);
+    }
+    if (codebook_type_ul_r18.is_present()) {
+      j.write_fieldname("codebookTypeUL-r18");
+      codebook_type_ul_r18->to_json(j);
+    }
+    if (apply_indicated_tci_state_r18_present) {
+      j.write_str("applyIndicatedTCI-State-r18", apply_indicated_tci_state_r18.to_string());
+    }
+    if (dyn_transform_precoder_field_presence_dci_0_1_r18_present) {
+      j.write_str("dynamicTransformPrecoderFieldPresenceDCI-0-1-r18", "enabled");
+    }
+    if (dyn_transform_precoder_field_presence_dci_0_2_r18_present) {
+      j.write_str("dynamicTransformPrecoderFieldPresenceDCI-0-2-r18", "enabled");
+    }
+    if (pusch_cfg_dci_0_3_r18.is_present()) {
+      j.write_fieldname("pusch-ConfigDCI-0-3-r18");
+      pusch_cfg_dci_0_3_r18->to_json(j);
     }
   }
   j.end_obj();
@@ -23505,6 +27909,12 @@ const char* pusch_cfg_s::map_pattern_r17_opts::to_string() const
 {
   static const char* names[] = {"cyclicMapping", "sequentialMapping"};
   return convert_enum_idx(names, 2, value, "pusch_cfg_s::map_pattern_r17_e_");
+}
+
+const char* pusch_cfg_s::apply_indicated_tci_state_r18_opts::to_string() const
+{
+  static const char* names[] = {"first", "second"};
+  return convert_enum_idx(names, 2, value, "pusch_cfg_s::apply_indicated_tci_state_r18_e_");
 }
 
 // CG-UCI-OnPUSCH ::= CHOICE
@@ -24075,6 +28485,448 @@ uint8_t cg_sdt_cfg_r17_s::sdt_dmrs_ports_r17_c_::types_opts::to_number() const
   return map_enum_number(numbers, 2, value, "cg_sdt_cfg_r17_s::sdt_dmrs_ports_r17_c_::types");
 }
 
+// CG-RRC-Configuration-r18 ::= SEQUENCE
+OCUDUASN_CODE cg_rrc_cfg_r18_s::pack(bit_ref& bref) const
+{
+  bref.pack(ext, 1);
+  HANDLE_CODE(bref.pack(cg_rrc_retx_timer_r18_present, 1));
+  HANDLE_CODE(bref.pack(cg_rrc_rsrp_thres_ssb_r18_present, 1));
+  HANDLE_CODE(bref.pack(rrc_ssb_subset_r18_present, 1));
+  HANDLE_CODE(bref.pack(rrc_ssb_per_cg_pusch_r18_present, 1));
+  HANDLE_CODE(bref.pack(rrc_p0_pusch_r18_present, 1));
+  HANDLE_CODE(bref.pack(rrc_alpha_r18_present, 1));
+  HANDLE_CODE(bref.pack(rrc_dmrs_ports_r18_present, 1));
+  HANDLE_CODE(bref.pack(rrc_nrof_dmrs_seqs_r18_present, 1));
+
+  if (cg_rrc_retx_timer_r18_present) {
+    HANDLE_CODE(pack_integer(bref, cg_rrc_retx_timer_r18, (uint16_t)1u, (uint16_t)288u));
+  }
+  if (cg_rrc_rsrp_thres_ssb_r18_present) {
+    HANDLE_CODE(pack_integer(bref, cg_rrc_rsrp_thres_ssb_r18, (uint8_t)0u, (uint8_t)127u));
+  }
+  if (rrc_ssb_subset_r18_present) {
+    HANDLE_CODE(rrc_ssb_subset_r18.pack(bref));
+  }
+  if (rrc_ssb_per_cg_pusch_r18_present) {
+    HANDLE_CODE(rrc_ssb_per_cg_pusch_r18.pack(bref));
+  }
+  if (rrc_p0_pusch_r18_present) {
+    HANDLE_CODE(pack_integer(bref, rrc_p0_pusch_r18, (int8_t)-16, (int8_t)15));
+  }
+  if (rrc_alpha_r18_present) {
+    HANDLE_CODE(rrc_alpha_r18.pack(bref));
+  }
+  if (rrc_dmrs_ports_r18_present) {
+    HANDLE_CODE(rrc_dmrs_ports_r18.pack(bref));
+  }
+  if (rrc_nrof_dmrs_seqs_r18_present) {
+    HANDLE_CODE(pack_integer(bref, rrc_nrof_dmrs_seqs_r18, (uint8_t)1u, (uint8_t)2u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE cg_rrc_cfg_r18_s::unpack(cbit_ref& bref)
+{
+  bref.unpack(ext, 1);
+  HANDLE_CODE(bref.unpack(cg_rrc_retx_timer_r18_present, 1));
+  HANDLE_CODE(bref.unpack(cg_rrc_rsrp_thres_ssb_r18_present, 1));
+  HANDLE_CODE(bref.unpack(rrc_ssb_subset_r18_present, 1));
+  HANDLE_CODE(bref.unpack(rrc_ssb_per_cg_pusch_r18_present, 1));
+  HANDLE_CODE(bref.unpack(rrc_p0_pusch_r18_present, 1));
+  HANDLE_CODE(bref.unpack(rrc_alpha_r18_present, 1));
+  HANDLE_CODE(bref.unpack(rrc_dmrs_ports_r18_present, 1));
+  HANDLE_CODE(bref.unpack(rrc_nrof_dmrs_seqs_r18_present, 1));
+
+  if (cg_rrc_retx_timer_r18_present) {
+    HANDLE_CODE(unpack_integer(cg_rrc_retx_timer_r18, bref, (uint16_t)1u, (uint16_t)288u));
+  }
+  if (cg_rrc_rsrp_thres_ssb_r18_present) {
+    HANDLE_CODE(unpack_integer(cg_rrc_rsrp_thres_ssb_r18, bref, (uint8_t)0u, (uint8_t)127u));
+  }
+  if (rrc_ssb_subset_r18_present) {
+    HANDLE_CODE(rrc_ssb_subset_r18.unpack(bref));
+  }
+  if (rrc_ssb_per_cg_pusch_r18_present) {
+    HANDLE_CODE(rrc_ssb_per_cg_pusch_r18.unpack(bref));
+  }
+  if (rrc_p0_pusch_r18_present) {
+    HANDLE_CODE(unpack_integer(rrc_p0_pusch_r18, bref, (int8_t)-16, (int8_t)15));
+  }
+  if (rrc_alpha_r18_present) {
+    HANDLE_CODE(rrc_alpha_r18.unpack(bref));
+  }
+  if (rrc_dmrs_ports_r18_present) {
+    HANDLE_CODE(rrc_dmrs_ports_r18.unpack(bref));
+  }
+  if (rrc_nrof_dmrs_seqs_r18_present) {
+    HANDLE_CODE(unpack_integer(rrc_nrof_dmrs_seqs_r18, bref, (uint8_t)1u, (uint8_t)2u));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void cg_rrc_cfg_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (cg_rrc_retx_timer_r18_present) {
+    j.write_int("cg-RRC-RetransmissionTimer-r18", cg_rrc_retx_timer_r18);
+  }
+  if (cg_rrc_rsrp_thres_ssb_r18_present) {
+    j.write_int("cg-RRC-RSRP-ThresholdSSB-r18", cg_rrc_rsrp_thres_ssb_r18);
+  }
+  if (rrc_ssb_subset_r18_present) {
+    j.write_fieldname("rrc-SSB-Subset-r18");
+    rrc_ssb_subset_r18.to_json(j);
+  }
+  if (rrc_ssb_per_cg_pusch_r18_present) {
+    j.write_str("rrc-SSB-PerCG-PUSCH-r18", rrc_ssb_per_cg_pusch_r18.to_string());
+  }
+  if (rrc_p0_pusch_r18_present) {
+    j.write_int("rrc-P0-PUSCH-r18", rrc_p0_pusch_r18);
+  }
+  if (rrc_alpha_r18_present) {
+    j.write_str("rrc-Alpha-r18", rrc_alpha_r18.to_string());
+  }
+  if (rrc_dmrs_ports_r18_present) {
+    j.write_fieldname("rrc-DMRS-Ports-r18");
+    rrc_dmrs_ports_r18.to_json(j);
+  }
+  if (rrc_nrof_dmrs_seqs_r18_present) {
+    j.write_int("rrc-NrofDMRS-Sequences-r18", rrc_nrof_dmrs_seqs_r18);
+  }
+  j.end_obj();
+}
+
+void cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::destroy_()
+{
+  switch (type_) {
+    case types::short_bitmap_r18:
+      c.destroy<fixed_bitstring<4>>();
+      break;
+    case types::medium_bitmap_r18:
+      c.destroy<fixed_bitstring<8>>();
+      break;
+    case types::long_bitmap_r18:
+      c.destroy<fixed_bitstring<64>>();
+      break;
+    default:
+      break;
+  }
+}
+void cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::short_bitmap_r18:
+      c.init<fixed_bitstring<4>>();
+      break;
+    case types::medium_bitmap_r18:
+      c.init<fixed_bitstring<8>>();
+      break;
+    case types::long_bitmap_r18:
+      c.init<fixed_bitstring<64>>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_");
+  }
+}
+cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::rrc_ssb_subset_r18_c_(const cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::short_bitmap_r18:
+      c.init(other.c.get<fixed_bitstring<4>>());
+      break;
+    case types::medium_bitmap_r18:
+      c.init(other.c.get<fixed_bitstring<8>>());
+      break;
+    case types::long_bitmap_r18:
+      c.init(other.c.get<fixed_bitstring<64>>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_");
+  }
+}
+cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_&
+cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::operator=(const cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::short_bitmap_r18:
+      c.set(other.c.get<fixed_bitstring<4>>());
+      break;
+    case types::medium_bitmap_r18:
+      c.set(other.c.get<fixed_bitstring<8>>());
+      break;
+    case types::long_bitmap_r18:
+      c.set(other.c.get<fixed_bitstring<64>>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_");
+  }
+
+  return *this;
+}
+fixed_bitstring<4>& cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::set_short_bitmap_r18()
+{
+  set(types::short_bitmap_r18);
+  return c.get<fixed_bitstring<4>>();
+}
+fixed_bitstring<8>& cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::set_medium_bitmap_r18()
+{
+  set(types::medium_bitmap_r18);
+  return c.get<fixed_bitstring<8>>();
+}
+fixed_bitstring<64>& cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::set_long_bitmap_r18()
+{
+  set(types::long_bitmap_r18);
+  return c.get<fixed_bitstring<64>>();
+}
+void cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::short_bitmap_r18:
+      j.write_str("shortBitmap-r18", c.get<fixed_bitstring<4>>().to_string());
+      break;
+    case types::medium_bitmap_r18:
+      j.write_str("mediumBitmap-r18", c.get<fixed_bitstring<8>>().to_string());
+      break;
+    case types::long_bitmap_r18:
+      j.write_str("longBitmap-r18", c.get<fixed_bitstring<64>>().to_string());
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::short_bitmap_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<4>>().pack(bref));
+      break;
+    case types::medium_bitmap_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<8>>().pack(bref));
+      break;
+    case types::long_bitmap_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<64>>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::short_bitmap_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<4>>().unpack(bref));
+      break;
+    case types::medium_bitmap_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<8>>().unpack(bref));
+      break;
+    case types::long_bitmap_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<64>>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"shortBitmap-r18", "mediumBitmap-r18", "longBitmap-r18"};
+  return convert_enum_idx(names, 3, value, "cg_rrc_cfg_r18_s::rrc_ssb_subset_r18_c_::types");
+}
+
+const char* cg_rrc_cfg_r18_s::rrc_ssb_per_cg_pusch_r18_opts::to_string() const
+{
+  static const char* names[] = {"oneEighth", "oneFourth", "half", "one", "two", "four", "eight", "sixteen"};
+  return convert_enum_idx(names, 8, value, "cg_rrc_cfg_r18_s::rrc_ssb_per_cg_pusch_r18_e_");
+}
+float cg_rrc_cfg_r18_s::rrc_ssb_per_cg_pusch_r18_opts::to_number() const
+{
+  static const float numbers[] = {0.125, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 6.0};
+  return map_enum_number(numbers, 8, value, "cg_rrc_cfg_r18_s::rrc_ssb_per_cg_pusch_r18_e_");
+}
+const char* cg_rrc_cfg_r18_s::rrc_ssb_per_cg_pusch_r18_opts::to_number_string() const
+{
+  static const char* number_strs[] = {"1/8", "1/4", "0.5", "1", "2", "4", "8", "6"};
+  return convert_enum_idx(number_strs, 8, value, "cg_rrc_cfg_r18_s::rrc_ssb_per_cg_pusch_r18_e_");
+}
+
+const char* cg_rrc_cfg_r18_s::rrc_alpha_r18_opts::to_string() const
+{
+  static const char* names[] = {"alpha0", "alpha04", "alpha05", "alpha06", "alpha07", "alpha08", "alpha09", "alpha1"};
+  return convert_enum_idx(names, 8, value, "cg_rrc_cfg_r18_s::rrc_alpha_r18_e_");
+}
+float cg_rrc_cfg_r18_s::rrc_alpha_r18_opts::to_number() const
+{
+  static const float numbers[] = {0.0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+  return map_enum_number(numbers, 8, value, "cg_rrc_cfg_r18_s::rrc_alpha_r18_e_");
+}
+const char* cg_rrc_cfg_r18_s::rrc_alpha_r18_opts::to_number_string() const
+{
+  static const char* number_strs[] = {"0", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1"};
+  return convert_enum_idx(number_strs, 8, value, "cg_rrc_cfg_r18_s::rrc_alpha_r18_e_");
+}
+
+void cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::destroy_()
+{
+  switch (type_) {
+    case types::dmrs_type1_r18:
+      c.destroy<fixed_bitstring<8>>();
+      break;
+    case types::dmrs_type2_r18:
+      c.destroy<fixed_bitstring<12>>();
+      break;
+    default:
+      break;
+  }
+}
+void cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::set(types::options e)
+{
+  destroy_();
+  type_ = e;
+  switch (type_) {
+    case types::dmrs_type1_r18:
+      c.init<fixed_bitstring<8>>();
+      break;
+    case types::dmrs_type2_r18:
+      c.init<fixed_bitstring<12>>();
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_");
+  }
+}
+cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::rrc_dmrs_ports_r18_c_(const cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_& other)
+{
+  type_ = other.type();
+  switch (type_) {
+    case types::dmrs_type1_r18:
+      c.init(other.c.get<fixed_bitstring<8>>());
+      break;
+    case types::dmrs_type2_r18:
+      c.init(other.c.get<fixed_bitstring<12>>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_");
+  }
+}
+cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_&
+cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::operator=(const cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_& other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  set(other.type());
+  switch (type_) {
+    case types::dmrs_type1_r18:
+      c.set(other.c.get<fixed_bitstring<8>>());
+      break;
+    case types::dmrs_type2_r18:
+      c.set(other.c.get<fixed_bitstring<12>>());
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_");
+  }
+
+  return *this;
+}
+fixed_bitstring<8>& cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::set_dmrs_type1_r18()
+{
+  set(types::dmrs_type1_r18);
+  return c.get<fixed_bitstring<8>>();
+}
+fixed_bitstring<12>& cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::set_dmrs_type2_r18()
+{
+  set(types::dmrs_type2_r18);
+  return c.get<fixed_bitstring<12>>();
+}
+void cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::dmrs_type1_r18:
+      j.write_str("dmrsType1-r18", c.get<fixed_bitstring<8>>().to_string());
+      break;
+    case types::dmrs_type2_r18:
+      j.write_str("dmrsType2-r18", c.get<fixed_bitstring<12>>().to_string());
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::pack(bit_ref& bref) const
+{
+  type_.pack(bref);
+  switch (type_) {
+    case types::dmrs_type1_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<8>>().pack(bref));
+      break;
+    case types::dmrs_type2_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<12>>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::unpack(cbit_ref& bref)
+{
+  types e;
+  e.unpack(bref);
+  set(e);
+  switch (type_) {
+    case types::dmrs_type1_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<8>>().unpack(bref));
+      break;
+    case types::dmrs_type2_r18:
+      HANDLE_CODE(c.get<fixed_bitstring<12>>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::types_opts::to_string() const
+{
+  static const char* names[] = {"dmrsType1-r18", "dmrsType2-r18"};
+  return convert_enum_idx(names, 2, value, "cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::types");
+}
+uint8_t cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::types_opts::to_number() const
+{
+  static const uint8_t numbers[] = {1, 2};
+  return map_enum_number(numbers, 2, value, "cg_rrc_cfg_r18_s::rrc_dmrs_ports_r18_c_::types");
+}
+
 // CG-StartingOffsets-r16 ::= SEQUENCE
 OCUDUASN_CODE cg_start_offsets_r16_s::pack(bit_ref& bref) const
 {
@@ -24539,6 +29391,11 @@ OCUDUASN_CODE cfg_grant_cfg_s::pack(bit_ref& bref) const
     group_flags[1] |= cg_min_dfi_delay_v1710_present;
     group_flags[2] |= harq_proc_id_offset_v1730_present;
     group_flags[2] |= cg_nrof_slots_r17_present;
+    group_flags[3] |= disable_cg_retx_monitoring_r18_present;
+    group_flags[3] |= nrof_slots_in_cg_period_r18_present;
+    group_flags[3] |= uto_uci_cfg_r18.is_present();
+    group_flags[4] |= precoding_and_nof_layers_v1850_present;
+    group_flags[4] |= srs_res_ind_v1850_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -24673,6 +29530,33 @@ OCUDUASN_CODE cfg_grant_cfg_s::pack(bit_ref& bref) const
       }
       if (cg_nrof_slots_r17_present) {
         HANDLE_CODE(pack_integer(bref, cg_nrof_slots_r17, (uint16_t)1u, (uint16_t)320u));
+      }
+    }
+    if (group_flags[3]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(disable_cg_retx_monitoring_r18_present, 1));
+      HANDLE_CODE(bref.pack(nrof_slots_in_cg_period_r18_present, 1));
+      HANDLE_CODE(bref.pack(uto_uci_cfg_r18.is_present(), 1));
+      if (nrof_slots_in_cg_period_r18_present) {
+        HANDLE_CODE(pack_integer(bref, nrof_slots_in_cg_period_r18, (uint8_t)2u, (uint8_t)32u));
+      }
+      if (uto_uci_cfg_r18.is_present()) {
+        bref.pack(uto_uci_cfg_r18->ext, 1);
+        HANDLE_CODE(pack_integer(bref, uto_uci_cfg_r18->nrof_bits_in_uto_uci_r18, (uint8_t)3u, (uint8_t)8u));
+        HANDLE_CODE(pack_integer(bref, uto_uci_cfg_r18->beta_offset_uto_uci_r18, (uint8_t)0u, (uint8_t)31u));
+      }
+    }
+    if (group_flags[4]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(precoding_and_nof_layers_v1850_present, 1));
+      HANDLE_CODE(bref.pack(srs_res_ind_v1850_present, 1));
+      if (precoding_and_nof_layers_v1850_present) {
+        HANDLE_CODE(pack_integer(bref, precoding_and_nof_layers_v1850, (uint16_t)64u, (uint16_t)1023u));
+      }
+      if (srs_res_ind_v1850_present) {
+        HANDLE_CODE(pack_integer(bref, srs_res_ind_v1850, (uint16_t)16u, (uint16_t)255u));
       }
     }
   }
@@ -24857,6 +29741,31 @@ OCUDUASN_CODE cfg_grant_cfg_s::unpack(cbit_ref& bref)
         HANDLE_CODE(unpack_integer(cg_nrof_slots_r17, bref, (uint16_t)1u, (uint16_t)320u));
       }
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(disable_cg_retx_monitoring_r18_present, 1));
+      HANDLE_CODE(bref.unpack(nrof_slots_in_cg_period_r18_present, 1));
+      unpack_presence_flag(uto_uci_cfg_r18, bref);
+      if (nrof_slots_in_cg_period_r18_present) {
+        HANDLE_CODE(unpack_integer(nrof_slots_in_cg_period_r18, bref, (uint8_t)2u, (uint8_t)32u));
+      }
+      if (uto_uci_cfg_r18.is_present()) {
+        bref.unpack(uto_uci_cfg_r18->ext, 1);
+        HANDLE_CODE(unpack_integer(uto_uci_cfg_r18->nrof_bits_in_uto_uci_r18, bref, (uint8_t)3u, (uint8_t)8u));
+        HANDLE_CODE(unpack_integer(uto_uci_cfg_r18->beta_offset_uto_uci_r18, bref, (uint8_t)0u, (uint8_t)31u));
+      }
+    }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(precoding_and_nof_layers_v1850_present, 1));
+      HANDLE_CODE(bref.unpack(srs_res_ind_v1850_present, 1));
+      if (precoding_and_nof_layers_v1850_present) {
+        HANDLE_CODE(unpack_integer(precoding_and_nof_layers_v1850, bref, (uint16_t)64u, (uint16_t)1023u));
+      }
+      if (srs_res_ind_v1850_present) {
+        HANDLE_CODE(unpack_integer(srs_res_ind_v1850, bref, (uint16_t)16u, (uint16_t)255u));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -25009,6 +29918,25 @@ void cfg_grant_cfg_s::to_json(json_writer& j) const
     if (cg_nrof_slots_r17_present) {
       j.write_int("cg-nrofSlots-r17", cg_nrof_slots_r17);
     }
+    if (disable_cg_retx_monitoring_r18_present) {
+      j.write_str("disableCG-RetransmissionMonitoring-r18", "true");
+    }
+    if (nrof_slots_in_cg_period_r18_present) {
+      j.write_int("nrofSlotsInCG-Period-r18", nrof_slots_in_cg_period_r18);
+    }
+    if (uto_uci_cfg_r18.is_present()) {
+      j.write_fieldname("uto-UCI-Config-r18");
+      j.start_obj();
+      j.write_int("nrofBitsInUTO-UCI-r18", uto_uci_cfg_r18->nrof_bits_in_uto_uci_r18);
+      j.write_int("betaOffsetUTO-UCI-r18", uto_uci_cfg_r18->beta_offset_uto_uci_r18);
+      j.end_obj();
+    }
+    if (precoding_and_nof_layers_v1850_present) {
+      j.write_int("precodingAndNumberOfLayers-v1850", precoding_and_nof_layers_v1850);
+    }
+    if (srs_res_ind_v1850_present) {
+      j.write_int("srs-ResourceIndicator-v1850", srs_res_ind_v1850);
+    }
   }
   j.end_obj();
 }
@@ -25138,6 +30066,12 @@ OCUDUASN_CODE cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::pack(bit_ref& bref) const
     group_flags[1] |= time_domain_alloc_v1710_present;
     group_flags[1] |= time_domain_offset_r17_present;
     group_flags[1] |= cg_sdt_cfg_r17.is_present();
+    group_flags[2] |= srs_res_set_id_r18_present;
+    group_flags[2] |= cg_ltm_cfg_r18.is_present();
+    group_flags[2] |= cg_sdt_periodicity_ext_r18_present;
+    group_flags[2] |= time_ref_hyper_sfn_r18_present;
+    group_flags[2] |= cg_rrc_cfg_r18.is_present();
+    group_flags[2] |= apply_indicated_tci_state_r18_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -25179,6 +30113,34 @@ OCUDUASN_CODE cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::pack(bit_ref& bref) const
       }
       if (cg_sdt_cfg_r17.is_present()) {
         HANDLE_CODE(cg_sdt_cfg_r17->pack(bref));
+      }
+    }
+    if (group_flags[2]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(srs_res_set_id_r18_present, 1));
+      HANDLE_CODE(bref.pack(cg_ltm_cfg_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(cg_sdt_periodicity_ext_r18_present, 1));
+      HANDLE_CODE(bref.pack(time_ref_hyper_sfn_r18_present, 1));
+      HANDLE_CODE(bref.pack(cg_rrc_cfg_r18.is_present(), 1));
+      HANDLE_CODE(bref.pack(apply_indicated_tci_state_r18_present, 1));
+      if (srs_res_set_id_r18_present) {
+        HANDLE_CODE(pack_integer(bref, srs_res_set_id_r18, (uint8_t)0u, (uint8_t)15u));
+      }
+      if (cg_ltm_cfg_r18.is_present()) {
+        HANDLE_CODE(cg_ltm_cfg_r18->pack(bref));
+      }
+      if (cg_sdt_periodicity_ext_r18_present) {
+        HANDLE_CODE(cg_sdt_periodicity_ext_r18.pack(bref));
+      }
+      if (time_ref_hyper_sfn_r18_present) {
+        HANDLE_CODE(pack_integer(bref, time_ref_hyper_sfn_r18, (uint16_t)0u, (uint16_t)1023u));
+      }
+      if (cg_rrc_cfg_r18.is_present()) {
+        HANDLE_CODE(cg_rrc_cfg_r18->pack(bref));
+      }
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.pack(bref));
       }
     }
   }
@@ -25250,6 +30212,33 @@ OCUDUASN_CODE cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::unpack(cbit_ref& bref)
         HANDLE_CODE(cg_sdt_cfg_r17->unpack(bref));
       }
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(srs_res_set_id_r18_present, 1));
+      unpack_presence_flag(cg_ltm_cfg_r18, bref);
+      HANDLE_CODE(bref.unpack(cg_sdt_periodicity_ext_r18_present, 1));
+      HANDLE_CODE(bref.unpack(time_ref_hyper_sfn_r18_present, 1));
+      unpack_presence_flag(cg_rrc_cfg_r18, bref);
+      HANDLE_CODE(bref.unpack(apply_indicated_tci_state_r18_present, 1));
+      if (srs_res_set_id_r18_present) {
+        HANDLE_CODE(unpack_integer(srs_res_set_id_r18, bref, (uint8_t)0u, (uint8_t)15u));
+      }
+      if (cg_ltm_cfg_r18.is_present()) {
+        HANDLE_CODE(cg_ltm_cfg_r18->unpack(bref));
+      }
+      if (cg_sdt_periodicity_ext_r18_present) {
+        HANDLE_CODE(cg_sdt_periodicity_ext_r18.unpack(bref));
+      }
+      if (time_ref_hyper_sfn_r18_present) {
+        HANDLE_CODE(unpack_integer(time_ref_hyper_sfn_r18, bref, (uint16_t)0u, (uint16_t)1023u));
+      }
+      if (cg_rrc_cfg_r18.is_present()) {
+        HANDLE_CODE(cg_rrc_cfg_r18->unpack(bref));
+      }
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.unpack(bref));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -25302,6 +30291,26 @@ void cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::to_json(json_writer& j) const
       j.write_fieldname("cg-SDT-Configuration-r17");
       cg_sdt_cfg_r17->to_json(j);
     }
+    if (srs_res_set_id_r18_present) {
+      j.write_int("srs-ResourceSetId-r18", srs_res_set_id_r18);
+    }
+    if (cg_ltm_cfg_r18.is_present()) {
+      j.write_fieldname("cg-LTM-Configuration-r18");
+      cg_ltm_cfg_r18->to_json(j);
+    }
+    if (cg_sdt_periodicity_ext_r18_present) {
+      j.write_str("cg-SDT-PeriodicityExt-r18", cg_sdt_periodicity_ext_r18.to_string());
+    }
+    if (time_ref_hyper_sfn_r18_present) {
+      j.write_int("timeReferenceHyperSFN-r18", time_ref_hyper_sfn_r18);
+    }
+    if (cg_rrc_cfg_r18.is_present()) {
+      j.write_fieldname("cg-RRC-Configuration-r18");
+      cg_rrc_cfg_r18->to_json(j);
+    }
+    if (apply_indicated_tci_state_r18_present) {
+      j.write_str("applyIndicatedTCI-State-r18", apply_indicated_tci_state_r18.to_string());
+    }
   }
   j.end_obj();
 }
@@ -25316,6 +30325,33 @@ const char* cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::freq_hop_pusch_rep_type_b_r16_
 {
   static const char* names[] = {"interRepetition", "interSlot"};
   return convert_enum_idx(names, 2, value, "cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::freq_hop_pusch_rep_type_b_r16_e_");
+}
+
+const char* cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::cg_sdt_periodicity_ext_r18_opts::to_string() const
+{
+  static const char* names[] = {"sym1x14x1280",     "sym2x14x1280",     "sym4x14x1280",     "sym8x14x1280",
+                                "sym16x14x1280",    "sym32x14x1280",    "sym48x14x1280",    "sym64x14x1280",
+                                "sym96x14x1280",    "sym128x14x1280",   "sym192x14x1280",   "sym240x14x1280",
+                                "sym256x14x1280",   "sym384x14x1280",   "sym472x14x1280",   "sym480x14x1280",
+                                "sym512x14x1280",   "sym768x14x1280",   "sym944x14x1280",   "sym960x14x1280",
+                                "sym1408x14x1280",  "sym1536x14x1280",  "sym1888x14x1280",  "sym1920x14x1280",
+                                "sym2816x14x1280",  "sym3072x14x1280",  "sym3776x14x1280",  "sym5632x14x1280",
+                                "sym6144x14x1280",  "sym7552x14x1280",  "sym7680x14x1280",  "sym11264x14x1280",
+                                "sym15104x14x1280", "sym15360x14x1280", "sym22528x14x1280", "sym30208x14x1280",
+                                "sym45056x14x1280", "sym60416x14x1280", "sym90112x14x1280", "sym180224x14x1280",
+                                "sym4x12x1280",     "sym8x12x1280",     "sym16x12x1280",    "sym32x12x1280",
+                                "sym192x12x1280",   "sym384x12x1280",   "sym960x12x1280",   "sym1888x12x1280",
+                                "sym3776x12x1280",  "sym5632x12x1280",  "sym11264x12x1280", "spare13",
+                                "spare12",          "spare11",          "spare10",          "spare9",
+                                "spare8",           "spare7",           "spare6",           "spare5",
+                                "spare4",           "spare3",           "spare2",           "spare1"};
+  return convert_enum_idx(names, 64, value, "cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::cg_sdt_periodicity_ext_r18_e_");
+}
+
+const char* cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::apply_indicated_tci_state_r18_opts::to_string() const
+{
+  static const char* names[] = {"first", "second", "both", "spare1"};
+  return convert_enum_idx(names, 4, value, "cfg_grant_cfg_s::rrc_cfg_ul_grant_s_::apply_indicated_tci_state_r18_e_");
 }
 
 const char* cfg_grant_cfg_s::cg_min_dfi_delay_r16_opts::to_string() const
@@ -25554,6 +30590,7 @@ OCUDUASN_CODE srs_res_set_s::pack(bit_ref& bref) const
     group_flags[1] |= usage_pdc_r17_present;
     group_flags[1] |= available_slot_offset_list_r17.is_present();
     group_flags[1] |= follow_unified_tci_state_srs_r17_present;
+    group_flags[2] |= apply_indicated_tci_state_r18_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -25572,6 +30609,14 @@ OCUDUASN_CODE srs_res_set_s::pack(bit_ref& bref) const
       HANDLE_CODE(bref.pack(follow_unified_tci_state_srs_r17_present, 1));
       if (available_slot_offset_list_r17.is_present()) {
         HANDLE_CODE(pack_dyn_seq_of(bref, *available_slot_offset_list_r17, 1, 4, integer_packer<uint8_t>(0, 7)));
+      }
+    }
+    if (group_flags[2]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(apply_indicated_tci_state_r18_present, 1));
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.pack(bref));
       }
     }
   }
@@ -25625,6 +30670,13 @@ OCUDUASN_CODE srs_res_set_s::unpack(cbit_ref& bref)
         HANDLE_CODE(unpack_dyn_seq_of(*available_slot_offset_list_r17, bref, 1, 4, integer_packer<uint8_t>(0, 7)));
       }
     }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(apply_indicated_tci_state_r18_present, 1));
+      if (apply_indicated_tci_state_r18_present) {
+        HANDLE_CODE(apply_indicated_tci_state_r18.unpack(bref));
+      }
+    }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
   return OCUDUASN_SUCCESS;
@@ -25673,6 +30725,9 @@ void srs_res_set_s::to_json(json_writer& j) const
     }
     if (follow_unified_tci_state_srs_r17_present) {
       j.write_str("followUnifiedTCI-StateSRS-r17", "enabled");
+    }
+    if (apply_indicated_tci_state_r18_present) {
+      j.write_str("applyIndicatedTCI-State-r18", apply_indicated_tci_state_r18.to_string());
     }
   }
   j.end_obj();
@@ -25961,2291 +31016,10 @@ uint8_t srs_res_set_s::srs_pwr_ctrl_adjustment_states_opts::to_number() const
   return map_enum_number(numbers, 1, value, "srs_res_set_s::srs_pwr_ctrl_adjustment_states_e_");
 }
 
-// SSB-Configuration-r16 ::= SEQUENCE
-OCUDUASN_CODE ssb_cfg_r16_s::pack(bit_ref& bref) const
+const char* srs_res_set_s::apply_indicated_tci_state_r18_opts::to_string() const
 {
-  HANDLE_CODE(bref.pack(ssb_periodicity_r16_present, 1));
-  HANDLE_CODE(bref.pack(sfn0_offset_r16_present, 1));
-  HANDLE_CODE(bref.pack(ss_pbch_block_pwr_r16_present, 1));
-
-  HANDLE_CODE(pack_integer(bref, ssb_freq_r16, (uint32_t)0u, (uint32_t)3279165u));
-  HANDLE_CODE(half_frame_idx_r16.pack(bref));
-  HANDLE_CODE(ssb_subcarrier_spacing_r16.pack(bref));
-  if (ssb_periodicity_r16_present) {
-    HANDLE_CODE(ssb_periodicity_r16.pack(bref));
-  }
-  if (sfn0_offset_r16_present) {
-    HANDLE_CODE(bref.pack(sfn0_offset_r16.integer_sf_offset_r16_present, 1));
-    HANDLE_CODE(pack_integer(bref, sfn0_offset_r16.sfn_offset_r16, (uint16_t)0u, (uint16_t)1023u));
-    if (sfn0_offset_r16.integer_sf_offset_r16_present) {
-      HANDLE_CODE(pack_integer(bref, sfn0_offset_r16.integer_sf_offset_r16, (uint8_t)0u, (uint8_t)9u));
-    }
-  }
-  HANDLE_CODE(pack_integer(bref, sfn_ssb_offset_r16, (uint8_t)0u, (uint8_t)15u));
-  if (ss_pbch_block_pwr_r16_present) {
-    HANDLE_CODE(pack_integer(bref, ss_pbch_block_pwr_r16, (int8_t)-60, (int8_t)50));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE ssb_cfg_r16_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(bref.unpack(ssb_periodicity_r16_present, 1));
-  HANDLE_CODE(bref.unpack(sfn0_offset_r16_present, 1));
-  HANDLE_CODE(bref.unpack(ss_pbch_block_pwr_r16_present, 1));
-
-  HANDLE_CODE(unpack_integer(ssb_freq_r16, bref, (uint32_t)0u, (uint32_t)3279165u));
-  HANDLE_CODE(half_frame_idx_r16.unpack(bref));
-  HANDLE_CODE(ssb_subcarrier_spacing_r16.unpack(bref));
-  if (ssb_periodicity_r16_present) {
-    HANDLE_CODE(ssb_periodicity_r16.unpack(bref));
-  }
-  if (sfn0_offset_r16_present) {
-    HANDLE_CODE(bref.unpack(sfn0_offset_r16.integer_sf_offset_r16_present, 1));
-    HANDLE_CODE(unpack_integer(sfn0_offset_r16.sfn_offset_r16, bref, (uint16_t)0u, (uint16_t)1023u));
-    if (sfn0_offset_r16.integer_sf_offset_r16_present) {
-      HANDLE_CODE(unpack_integer(sfn0_offset_r16.integer_sf_offset_r16, bref, (uint8_t)0u, (uint8_t)9u));
-    }
-  }
-  HANDLE_CODE(unpack_integer(sfn_ssb_offset_r16, bref, (uint8_t)0u, (uint8_t)15u));
-  if (ss_pbch_block_pwr_r16_present) {
-    HANDLE_CODE(unpack_integer(ss_pbch_block_pwr_r16, bref, (int8_t)-60, (int8_t)50));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-void ssb_cfg_r16_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_int("ssb-Freq-r16", ssb_freq_r16);
-  j.write_str("halfFrameIndex-r16", half_frame_idx_r16.to_string());
-  j.write_str("ssbSubcarrierSpacing-r16", ssb_subcarrier_spacing_r16.to_string());
-  if (ssb_periodicity_r16_present) {
-    j.write_str("ssb-Periodicity-r16", ssb_periodicity_r16.to_string());
-  }
-  if (sfn0_offset_r16_present) {
-    j.write_fieldname("sfn0-Offset-r16");
-    j.start_obj();
-    j.write_int("sfn-Offset-r16", sfn0_offset_r16.sfn_offset_r16);
-    if (sfn0_offset_r16.integer_sf_offset_r16_present) {
-      j.write_int("integerSubframeOffset-r16", sfn0_offset_r16.integer_sf_offset_r16);
-    }
-    j.end_obj();
-  }
-  j.write_int("sfn-SSB-Offset-r16", sfn_ssb_offset_r16);
-  if (ss_pbch_block_pwr_r16_present) {
-    j.write_int("ss-PBCH-BlockPower-r16", ss_pbch_block_pwr_r16);
-  }
-  j.end_obj();
-}
-
-const char* ssb_cfg_r16_s::half_frame_idx_r16_opts::to_string() const
-{
-  static const char* names[] = {"zero", "one"};
-  return convert_enum_idx(names, 2, value, "ssb_cfg_r16_s::half_frame_idx_r16_e_");
-}
-uint8_t ssb_cfg_r16_s::half_frame_idx_r16_opts::to_number() const
-{
-  static const uint8_t numbers[] = {0, 1};
-  return map_enum_number(numbers, 2, value, "ssb_cfg_r16_s::half_frame_idx_r16_e_");
-}
-
-const char* ssb_cfg_r16_s::ssb_periodicity_r16_opts::to_string() const
-{
-  static const char* names[] = {"ms5", "ms10", "ms20", "ms40", "ms80", "ms160", "spare2", "spare1"};
-  return convert_enum_idx(names, 8, value, "ssb_cfg_r16_s::ssb_periodicity_r16_e_");
-}
-uint8_t ssb_cfg_r16_s::ssb_periodicity_r16_opts::to_number() const
-{
-  static const uint8_t numbers[] = {5, 10, 20, 40, 80, 160};
-  return map_enum_number(numbers, 6, value, "ssb_cfg_r16_s::ssb_periodicity_r16_e_");
-}
-
-// SSB-InfoNcell-r16 ::= SEQUENCE
-OCUDUASN_CODE ssb_info_ncell_r16_s::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(bref.pack(ssb_idx_ncell_r16_present, 1));
-  HANDLE_CODE(bref.pack(ssb_cfg_r16_present, 1));
-
-  HANDLE_CODE(pack_integer(bref, phys_cell_id_r16, (uint16_t)0u, (uint16_t)1007u));
-  if (ssb_idx_ncell_r16_present) {
-    HANDLE_CODE(pack_integer(bref, ssb_idx_ncell_r16, (uint8_t)0u, (uint8_t)63u));
-  }
-  if (ssb_cfg_r16_present) {
-    HANDLE_CODE(ssb_cfg_r16.pack(bref));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE ssb_info_ncell_r16_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(bref.unpack(ssb_idx_ncell_r16_present, 1));
-  HANDLE_CODE(bref.unpack(ssb_cfg_r16_present, 1));
-
-  HANDLE_CODE(unpack_integer(phys_cell_id_r16, bref, (uint16_t)0u, (uint16_t)1007u));
-  if (ssb_idx_ncell_r16_present) {
-    HANDLE_CODE(unpack_integer(ssb_idx_ncell_r16, bref, (uint8_t)0u, (uint8_t)63u));
-  }
-  if (ssb_cfg_r16_present) {
-    HANDLE_CODE(ssb_cfg_r16.unpack(bref));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-void ssb_info_ncell_r16_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_int("physicalCellId-r16", phys_cell_id_r16);
-  if (ssb_idx_ncell_r16_present) {
-    j.write_int("ssb-IndexNcell-r16", ssb_idx_ncell_r16);
-  }
-  if (ssb_cfg_r16_present) {
-    j.write_fieldname("ssb-Configuration-r16");
-    ssb_cfg_r16.to_json(j);
-  }
-  j.end_obj();
-}
-
-// DL-PRS-Info-r16 ::= SEQUENCE
-OCUDUASN_CODE dl_prs_info_r16_s::pack(bit_ref& bref) const
-{
-  HANDLE_CODE(bref.pack(dl_prs_res_id_r16_present, 1));
-
-  HANDLE_CODE(pack_integer(bref, dl_prs_id_r16, (uint16_t)0u, (uint16_t)255u));
-  HANDLE_CODE(pack_integer(bref, dl_prs_res_set_id_r16, (uint8_t)0u, (uint8_t)7u));
-  if (dl_prs_res_id_r16_present) {
-    HANDLE_CODE(pack_integer(bref, dl_prs_res_id_r16, (uint8_t)0u, (uint8_t)63u));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE dl_prs_info_r16_s::unpack(cbit_ref& bref)
-{
-  HANDLE_CODE(bref.unpack(dl_prs_res_id_r16_present, 1));
-
-  HANDLE_CODE(unpack_integer(dl_prs_id_r16, bref, (uint16_t)0u, (uint16_t)255u));
-  HANDLE_CODE(unpack_integer(dl_prs_res_set_id_r16, bref, (uint8_t)0u, (uint8_t)7u));
-  if (dl_prs_res_id_r16_present) {
-    HANDLE_CODE(unpack_integer(dl_prs_res_id_r16, bref, (uint8_t)0u, (uint8_t)63u));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-void dl_prs_info_r16_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_int("dl-PRS-ID-r16", dl_prs_id_r16);
-  j.write_int("dl-PRS-ResourceSetId-r16", dl_prs_res_set_id_r16);
-  if (dl_prs_res_id_r16_present) {
-    j.write_int("dl-PRS-ResourceId-r16", dl_prs_res_id_r16);
-  }
-  j.end_obj();
-}
-
-// SRS-PosResourceSet-r16 ::= SEQUENCE
-OCUDUASN_CODE srs_pos_res_set_r16_s::pack(bit_ref& bref) const
-{
-  bref.pack(ext, 1);
-  HANDLE_CODE(bref.pack(srs_pos_res_id_list_r16.size() > 0, 1));
-  HANDLE_CODE(bref.pack(alpha_r16_present, 1));
-  HANDLE_CODE(bref.pack(p0_r16_present, 1));
-  HANDLE_CODE(bref.pack(pathloss_ref_rs_pos_r16_present, 1));
-
-  HANDLE_CODE(pack_integer(bref, srs_pos_res_set_id_r16, (uint8_t)0u, (uint8_t)15u));
-  if (srs_pos_res_id_list_r16.size() > 0) {
-    HANDLE_CODE(pack_dyn_seq_of(bref, srs_pos_res_id_list_r16, 1, 16, integer_packer<uint8_t>(0, 63)));
-  }
-  HANDLE_CODE(res_type_r16.pack(bref));
-  if (alpha_r16_present) {
-    HANDLE_CODE(alpha_r16.pack(bref));
-  }
-  if (p0_r16_present) {
-    HANDLE_CODE(pack_integer(bref, p0_r16, (int16_t)-202, (int16_t)24));
-  }
-  if (pathloss_ref_rs_pos_r16_present) {
-    HANDLE_CODE(pathloss_ref_rs_pos_r16.pack(bref));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_pos_res_set_r16_s::unpack(cbit_ref& bref)
-{
-  bref.unpack(ext, 1);
-  bool srs_pos_res_id_list_r16_present;
-  HANDLE_CODE(bref.unpack(srs_pos_res_id_list_r16_present, 1));
-  HANDLE_CODE(bref.unpack(alpha_r16_present, 1));
-  HANDLE_CODE(bref.unpack(p0_r16_present, 1));
-  HANDLE_CODE(bref.unpack(pathloss_ref_rs_pos_r16_present, 1));
-
-  HANDLE_CODE(unpack_integer(srs_pos_res_set_id_r16, bref, (uint8_t)0u, (uint8_t)15u));
-  if (srs_pos_res_id_list_r16_present) {
-    HANDLE_CODE(unpack_dyn_seq_of(srs_pos_res_id_list_r16, bref, 1, 16, integer_packer<uint8_t>(0, 63)));
-  }
-  HANDLE_CODE(res_type_r16.unpack(bref));
-  if (alpha_r16_present) {
-    HANDLE_CODE(alpha_r16.unpack(bref));
-  }
-  if (p0_r16_present) {
-    HANDLE_CODE(unpack_integer(p0_r16, bref, (int16_t)-202, (int16_t)24));
-  }
-  if (pathloss_ref_rs_pos_r16_present) {
-    HANDLE_CODE(pathloss_ref_rs_pos_r16.unpack(bref));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-void srs_pos_res_set_r16_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_int("srs-PosResourceSetId-r16", srs_pos_res_set_id_r16);
-  if (srs_pos_res_id_list_r16.size() > 0) {
-    j.start_array("srs-PosResourceIdList-r16");
-    for (const auto& e1 : srs_pos_res_id_list_r16) {
-      j.write_int(e1);
-    }
-    j.end_array();
-  }
-  j.write_fieldname("resourceType-r16");
-  res_type_r16.to_json(j);
-  if (alpha_r16_present) {
-    j.write_str("alpha-r16", alpha_r16.to_string());
-  }
-  if (p0_r16_present) {
-    j.write_int("p0-r16", p0_r16);
-  }
-  if (pathloss_ref_rs_pos_r16_present) {
-    j.write_fieldname("pathlossReferenceRS-Pos-r16");
-    pathloss_ref_rs_pos_r16.to_json(j);
-  }
-  j.end_obj();
-}
-
-void srs_pos_res_set_r16_s::res_type_r16_c_::destroy_()
-{
-  switch (type_) {
-    case types::aperiodic_r16:
-      c.destroy<aperiodic_r16_s_>();
-      break;
-    case types::semi_persistent_r16:
-      c.destroy<semi_persistent_r16_s_>();
-      break;
-    case types::periodic_r16:
-      c.destroy<periodic_r16_s_>();
-      break;
-    default:
-      break;
-  }
-}
-void srs_pos_res_set_r16_s::res_type_r16_c_::set(types::options e)
-{
-  destroy_();
-  type_ = e;
-  switch (type_) {
-    case types::aperiodic_r16:
-      c.init<aperiodic_r16_s_>();
-      break;
-    case types::semi_persistent_r16:
-      c.init<semi_persistent_r16_s_>();
-      break;
-    case types::periodic_r16:
-      c.init<periodic_r16_s_>();
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
-  }
-}
-srs_pos_res_set_r16_s::res_type_r16_c_::res_type_r16_c_(const srs_pos_res_set_r16_s::res_type_r16_c_& other)
-{
-  type_ = other.type();
-  switch (type_) {
-    case types::aperiodic_r16:
-      c.init(other.c.get<aperiodic_r16_s_>());
-      break;
-    case types::semi_persistent_r16:
-      c.init(other.c.get<semi_persistent_r16_s_>());
-      break;
-    case types::periodic_r16:
-      c.init(other.c.get<periodic_r16_s_>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
-  }
-}
-srs_pos_res_set_r16_s::res_type_r16_c_&
-srs_pos_res_set_r16_s::res_type_r16_c_::operator=(const srs_pos_res_set_r16_s::res_type_r16_c_& other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  set(other.type());
-  switch (type_) {
-    case types::aperiodic_r16:
-      c.set(other.c.get<aperiodic_r16_s_>());
-      break;
-    case types::semi_persistent_r16:
-      c.set(other.c.get<semi_persistent_r16_s_>());
-      break;
-    case types::periodic_r16:
-      c.set(other.c.get<periodic_r16_s_>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
-  }
-
-  return *this;
-}
-srs_pos_res_set_r16_s::res_type_r16_c_::aperiodic_r16_s_& srs_pos_res_set_r16_s::res_type_r16_c_::set_aperiodic_r16()
-{
-  set(types::aperiodic_r16);
-  return c.get<aperiodic_r16_s_>();
-}
-srs_pos_res_set_r16_s::res_type_r16_c_::semi_persistent_r16_s_&
-srs_pos_res_set_r16_s::res_type_r16_c_::set_semi_persistent_r16()
-{
-  set(types::semi_persistent_r16);
-  return c.get<semi_persistent_r16_s_>();
-}
-srs_pos_res_set_r16_s::res_type_r16_c_::periodic_r16_s_& srs_pos_res_set_r16_s::res_type_r16_c_::set_periodic_r16()
-{
-  set(types::periodic_r16);
-  return c.get<periodic_r16_s_>();
-}
-void srs_pos_res_set_r16_s::res_type_r16_c_::to_json(json_writer& j) const
-{
-  j.start_obj();
-  switch (type_) {
-    case types::aperiodic_r16:
-      j.write_fieldname("aperiodic-r16");
-      j.start_obj();
-      if (c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16.size() > 0) {
-        j.start_array("aperiodicSRS-ResourceTriggerList-r16");
-        for (const auto& e1 : c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16) {
-          j.write_int(e1);
-        }
-        j.end_array();
-      }
-      j.end_obj();
-      break;
-    case types::semi_persistent_r16:
-      j.write_fieldname("semi-persistent-r16");
-      j.start_obj();
-      j.end_obj();
-      break;
-    case types::periodic_r16:
-      j.write_fieldname("periodic-r16");
-      j.start_obj();
-      j.end_obj();
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
-  }
-  j.end_obj();
-}
-OCUDUASN_CODE srs_pos_res_set_r16_s::res_type_r16_c_::pack(bit_ref& bref) const
-{
-  type_.pack(bref);
-  switch (type_) {
-    case types::aperiodic_r16:
-      bref.pack(c.get<aperiodic_r16_s_>().ext, 1);
-      HANDLE_CODE(bref.pack(c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16.size() > 0, 1));
-      if (c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16.size() > 0) {
-        HANDLE_CODE(pack_dyn_seq_of(
-            bref, c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16, 1, 3, integer_packer<uint8_t>(1, 3)));
-      }
-      break;
-    case types::semi_persistent_r16:
-      bref.pack(c.get<semi_persistent_r16_s_>().ext, 1);
-      break;
-    case types::periodic_r16:
-      bref.pack(c.get<periodic_r16_s_>().ext, 1);
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
-      return OCUDUASN_ERROR_ENCODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_pos_res_set_r16_s::res_type_r16_c_::unpack(cbit_ref& bref)
-{
-  types e;
-  e.unpack(bref);
-  set(e);
-  switch (type_) {
-    case types::aperiodic_r16:
-      bref.unpack(c.get<aperiodic_r16_s_>().ext, 1);
-      bool aperiodic_srs_res_trigger_list_r16_present;
-      HANDLE_CODE(bref.unpack(aperiodic_srs_res_trigger_list_r16_present, 1));
-      if (aperiodic_srs_res_trigger_list_r16_present) {
-        HANDLE_CODE(unpack_dyn_seq_of(
-            c.get<aperiodic_r16_s_>().aperiodic_srs_res_trigger_list_r16, bref, 1, 3, integer_packer<uint8_t>(1, 3)));
-      }
-      break;
-    case types::semi_persistent_r16:
-      bref.unpack(c.get<semi_persistent_r16_s_>().ext, 1);
-      break;
-    case types::periodic_r16:
-      bref.unpack(c.get<periodic_r16_s_>().ext, 1);
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::res_type_r16_c_");
-      return OCUDUASN_ERROR_DECODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-
-const char* srs_pos_res_set_r16_s::res_type_r16_c_::types_opts::to_string() const
-{
-  static const char* names[] = {"aperiodic-r16", "semi-persistent-r16", "periodic-r16"};
-  return convert_enum_idx(names, 3, value, "srs_pos_res_set_r16_s::res_type_r16_c_::types");
-}
-
-void srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::destroy_()
-{
-  switch (type_) {
-    case types::ssb_ncell_r16:
-      c.destroy<ssb_info_ncell_r16_s>();
-      break;
-    case types::dl_prs_r16:
-      c.destroy<dl_prs_info_r16_s>();
-      break;
-    default:
-      break;
-  }
-}
-void srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::set(types::options e)
-{
-  destroy_();
-  type_ = e;
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      break;
-    case types::ssb_ncell_r16:
-      c.init<ssb_info_ncell_r16_s>();
-      break;
-    case types::dl_prs_r16:
-      c.init<dl_prs_info_r16_s>();
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
-  }
-}
-srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::pathloss_ref_rs_pos_r16_c_(
-    const srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_& other)
-{
-  type_ = other.type();
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::ssb_ncell_r16:
-      c.init(other.c.get<ssb_info_ncell_r16_s>());
-      break;
-    case types::dl_prs_r16:
-      c.init(other.c.get<dl_prs_info_r16_s>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
-  }
-}
-srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_& srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::operator=(
-    const srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_& other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  set(other.type());
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::ssb_ncell_r16:
-      c.set(other.c.get<ssb_info_ncell_r16_s>());
-      break;
-    case types::dl_prs_r16:
-      c.set(other.c.get<dl_prs_info_r16_s>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
-  }
-
-  return *this;
-}
-uint8_t& srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::set_ssb_idx_serving_r16()
-{
-  set(types::ssb_idx_serving_r16);
-  return c.get<uint8_t>();
-}
-ssb_info_ncell_r16_s& srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::set_ssb_ncell_r16()
-{
-  set(types::ssb_ncell_r16);
-  return c.get<ssb_info_ncell_r16_s>();
-}
-dl_prs_info_r16_s& srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::set_dl_prs_r16()
-{
-  set(types::dl_prs_r16);
-  return c.get<dl_prs_info_r16_s>();
-}
-void srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::to_json(json_writer& j) const
-{
-  j.start_obj();
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      j.write_int("ssb-IndexServing-r16", c.get<uint8_t>());
-      break;
-    case types::ssb_ncell_r16:
-      j.write_fieldname("ssb-Ncell-r16");
-      c.get<ssb_info_ncell_r16_s>().to_json(j);
-      break;
-    case types::dl_prs_r16:
-      j.write_fieldname("dl-PRS-r16");
-      c.get<dl_prs_info_r16_s>().to_json(j);
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
-  }
-  j.end_obj();
-}
-OCUDUASN_CODE srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::pack(bit_ref& bref) const
-{
-  type_.pack(bref);
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
-      break;
-    case types::ssb_ncell_r16:
-      HANDLE_CODE(c.get<ssb_info_ncell_r16_s>().pack(bref));
-      break;
-    case types::dl_prs_r16:
-      HANDLE_CODE(c.get<dl_prs_info_r16_s>().pack(bref));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
-      return OCUDUASN_ERROR_ENCODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::unpack(cbit_ref& bref)
-{
-  types e;
-  e.unpack(bref);
-  set(e);
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
-      break;
-    case types::ssb_ncell_r16:
-      HANDLE_CODE(c.get<ssb_info_ncell_r16_s>().unpack(bref));
-      break;
-    case types::dl_prs_r16:
-      HANDLE_CODE(c.get<dl_prs_info_r16_s>().unpack(bref));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_");
-      return OCUDUASN_ERROR_DECODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-
-const char* srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::types_opts::to_string() const
-{
-  static const char* names[] = {"ssb-IndexServing-r16", "ssb-Ncell-r16", "dl-PRS-r16"};
-  return convert_enum_idx(names, 3, value, "srs_pos_res_set_r16_s::pathloss_ref_rs_pos_r16_c_::types");
-}
-
-// SRS-PeriodicityAndOffset-r16 ::= CHOICE
-void srs_periodicity_and_offset_r16_c::destroy_() {}
-void srs_periodicity_and_offset_r16_c::set(types::options e)
-{
-  destroy_();
-  type_ = e;
-}
-srs_periodicity_and_offset_r16_c::srs_periodicity_and_offset_r16_c(const srs_periodicity_and_offset_r16_c& other)
-{
-  type_ = other.type();
-  switch (type_) {
-    case types::sl1:
-      break;
-    case types::sl2:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl4:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl5:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl8:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl10:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl16:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl20:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl32:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl40:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl64:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl80:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl160:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl320:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::sl640:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::sl1280:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::sl2560:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::sl5120:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::sl10240:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::sl40960:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::sl81920:
-      c.init(other.c.get<uint32_t>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
-  }
-}
-srs_periodicity_and_offset_r16_c&
-srs_periodicity_and_offset_r16_c::operator=(const srs_periodicity_and_offset_r16_c& other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  set(other.type());
-  switch (type_) {
-    case types::sl1:
-      break;
-    case types::sl2:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl4:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl5:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl8:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl10:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl16:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl20:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl32:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl40:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl64:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl80:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl160:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl320:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::sl640:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::sl1280:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::sl2560:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::sl5120:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::sl10240:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::sl40960:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::sl81920:
-      c.set(other.c.get<uint32_t>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
-  }
-
-  return *this;
-}
-void srs_periodicity_and_offset_r16_c::set_sl1()
-{
-  set(types::sl1);
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl2()
-{
-  set(types::sl2);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl4()
-{
-  set(types::sl4);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl5()
-{
-  set(types::sl5);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl8()
-{
-  set(types::sl8);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl10()
-{
-  set(types::sl10);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl16()
-{
-  set(types::sl16);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl20()
-{
-  set(types::sl20);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl32()
-{
-  set(types::sl32);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl40()
-{
-  set(types::sl40);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl64()
-{
-  set(types::sl64);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl80()
-{
-  set(types::sl80);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_periodicity_and_offset_r16_c::set_sl160()
-{
-  set(types::sl160);
-  return c.get<uint8_t>();
-}
-uint16_t& srs_periodicity_and_offset_r16_c::set_sl320()
-{
-  set(types::sl320);
-  return c.get<uint16_t>();
-}
-uint16_t& srs_periodicity_and_offset_r16_c::set_sl640()
-{
-  set(types::sl640);
-  return c.get<uint16_t>();
-}
-uint16_t& srs_periodicity_and_offset_r16_c::set_sl1280()
-{
-  set(types::sl1280);
-  return c.get<uint16_t>();
-}
-uint16_t& srs_periodicity_and_offset_r16_c::set_sl2560()
-{
-  set(types::sl2560);
-  return c.get<uint16_t>();
-}
-uint16_t& srs_periodicity_and_offset_r16_c::set_sl5120()
-{
-  set(types::sl5120);
-  return c.get<uint16_t>();
-}
-uint16_t& srs_periodicity_and_offset_r16_c::set_sl10240()
-{
-  set(types::sl10240);
-  return c.get<uint16_t>();
-}
-uint16_t& srs_periodicity_and_offset_r16_c::set_sl40960()
-{
-  set(types::sl40960);
-  return c.get<uint16_t>();
-}
-uint32_t& srs_periodicity_and_offset_r16_c::set_sl81920()
-{
-  set(types::sl81920);
-  return c.get<uint32_t>();
-}
-void srs_periodicity_and_offset_r16_c::to_json(json_writer& j) const
-{
-  j.start_obj();
-  switch (type_) {
-    case types::sl1:
-      break;
-    case types::sl2:
-      j.write_int("sl2", c.get<uint8_t>());
-      break;
-    case types::sl4:
-      j.write_int("sl4", c.get<uint8_t>());
-      break;
-    case types::sl5:
-      j.write_int("sl5", c.get<uint8_t>());
-      break;
-    case types::sl8:
-      j.write_int("sl8", c.get<uint8_t>());
-      break;
-    case types::sl10:
-      j.write_int("sl10", c.get<uint8_t>());
-      break;
-    case types::sl16:
-      j.write_int("sl16", c.get<uint8_t>());
-      break;
-    case types::sl20:
-      j.write_int("sl20", c.get<uint8_t>());
-      break;
-    case types::sl32:
-      j.write_int("sl32", c.get<uint8_t>());
-      break;
-    case types::sl40:
-      j.write_int("sl40", c.get<uint8_t>());
-      break;
-    case types::sl64:
-      j.write_int("sl64", c.get<uint8_t>());
-      break;
-    case types::sl80:
-      j.write_int("sl80", c.get<uint8_t>());
-      break;
-    case types::sl160:
-      j.write_int("sl160", c.get<uint8_t>());
-      break;
-    case types::sl320:
-      j.write_int("sl320", c.get<uint16_t>());
-      break;
-    case types::sl640:
-      j.write_int("sl640", c.get<uint16_t>());
-      break;
-    case types::sl1280:
-      j.write_int("sl1280", c.get<uint16_t>());
-      break;
-    case types::sl2560:
-      j.write_int("sl2560", c.get<uint16_t>());
-      break;
-    case types::sl5120:
-      j.write_int("sl5120", c.get<uint16_t>());
-      break;
-    case types::sl10240:
-      j.write_int("sl10240", c.get<uint16_t>());
-      break;
-    case types::sl40960:
-      j.write_int("sl40960", c.get<uint16_t>());
-      break;
-    case types::sl81920:
-      j.write_int("sl81920", c.get<uint32_t>());
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
-  }
-  j.end_obj();
-}
-OCUDUASN_CODE srs_periodicity_and_offset_r16_c::pack(bit_ref& bref) const
-{
-  type_.pack(bref);
-  switch (type_) {
-    case types::sl1:
-      break;
-    case types::sl2:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)1u));
-      break;
-    case types::sl4:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)3u));
-      break;
-    case types::sl5:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)4u));
-      break;
-    case types::sl8:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)7u));
-      break;
-    case types::sl10:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)9u));
-      break;
-    case types::sl16:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)15u));
-      break;
-    case types::sl20:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)19u));
-      break;
-    case types::sl32:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)31u));
-      break;
-    case types::sl40:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)39u));
-      break;
-    case types::sl64:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
-      break;
-    case types::sl80:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)79u));
-      break;
-    case types::sl160:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)159u));
-      break;
-    case types::sl320:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)319u));
-      break;
-    case types::sl640:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)639u));
-      break;
-    case types::sl1280:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)1279u));
-      break;
-    case types::sl2560:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)2559u));
-      break;
-    case types::sl5120:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)5119u));
-      break;
-    case types::sl10240:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)10239u));
-      break;
-    case types::sl40960:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)40959u));
-      break;
-    case types::sl81920:
-      HANDLE_CODE(pack_integer(bref, c.get<uint32_t>(), (uint32_t)0u, (uint32_t)81919u));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
-      return OCUDUASN_ERROR_ENCODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_periodicity_and_offset_r16_c::unpack(cbit_ref& bref)
-{
-  types e;
-  e.unpack(bref);
-  set(e);
-  switch (type_) {
-    case types::sl1:
-      break;
-    case types::sl2:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)1u));
-      break;
-    case types::sl4:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)3u));
-      break;
-    case types::sl5:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)4u));
-      break;
-    case types::sl8:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)7u));
-      break;
-    case types::sl10:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)9u));
-      break;
-    case types::sl16:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)15u));
-      break;
-    case types::sl20:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)19u));
-      break;
-    case types::sl32:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)31u));
-      break;
-    case types::sl40:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)39u));
-      break;
-    case types::sl64:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
-      break;
-    case types::sl80:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)79u));
-      break;
-    case types::sl160:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)159u));
-      break;
-    case types::sl320:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)319u));
-      break;
-    case types::sl640:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)639u));
-      break;
-    case types::sl1280:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)1279u));
-      break;
-    case types::sl2560:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)2559u));
-      break;
-    case types::sl5120:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)5119u));
-      break;
-    case types::sl10240:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)10239u));
-      break;
-    case types::sl40960:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)40959u));
-      break;
-    case types::sl81920:
-      HANDLE_CODE(unpack_integer(c.get<uint32_t>(), bref, (uint32_t)0u, (uint32_t)81919u));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_r16_c");
-      return OCUDUASN_ERROR_DECODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-
-const char* srs_periodicity_and_offset_r16_c::types_opts::to_string() const
-{
-  static const char* names[] = {"sl1",   "sl2",    "sl4",    "sl5",    "sl8",     "sl10",    "sl16",
-                                "sl20",  "sl32",   "sl40",   "sl64",   "sl80",    "sl160",   "sl320",
-                                "sl640", "sl1280", "sl2560", "sl5120", "sl10240", "sl40960", "sl81920"};
-  return convert_enum_idx(names, 21, value, "srs_periodicity_and_offset_r16_c::types");
-}
-uint32_t srs_periodicity_and_offset_r16_c::types_opts::to_number() const
-{
-  static const uint32_t numbers[] = {1,  2,   4,   5,   8,    10,   16,   20,    32,    40,   64,
-                                     80, 160, 320, 640, 1280, 2560, 5120, 10240, 40960, 81920};
-  return map_enum_number(numbers, 21, value, "srs_periodicity_and_offset_r16_c::types");
-}
-
-// SRS-PeriodicityAndOffsetExt-r16 ::= CHOICE
-void srs_periodicity_and_offset_ext_r16_c::destroy_() {}
-void srs_periodicity_and_offset_ext_r16_c::set(types::options e)
-{
-  destroy_();
-  type_ = e;
-}
-srs_periodicity_and_offset_ext_r16_c::srs_periodicity_and_offset_ext_r16_c(
-    const srs_periodicity_and_offset_ext_r16_c& other)
-{
-  type_ = other.type();
-  switch (type_) {
-    case types::sl128:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::sl256:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::sl512:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::sl20480:
-      c.init(other.c.get<uint16_t>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
-  }
-}
-srs_periodicity_and_offset_ext_r16_c&
-srs_periodicity_and_offset_ext_r16_c::operator=(const srs_periodicity_and_offset_ext_r16_c& other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  set(other.type());
-  switch (type_) {
-    case types::sl128:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::sl256:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::sl512:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::sl20480:
-      c.set(other.c.get<uint16_t>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
-  }
-
-  return *this;
-}
-uint8_t& srs_periodicity_and_offset_ext_r16_c::set_sl128()
-{
-  set(types::sl128);
-  return c.get<uint8_t>();
-}
-uint16_t& srs_periodicity_and_offset_ext_r16_c::set_sl256()
-{
-  set(types::sl256);
-  return c.get<uint16_t>();
-}
-uint16_t& srs_periodicity_and_offset_ext_r16_c::set_sl512()
-{
-  set(types::sl512);
-  return c.get<uint16_t>();
-}
-uint16_t& srs_periodicity_and_offset_ext_r16_c::set_sl20480()
-{
-  set(types::sl20480);
-  return c.get<uint16_t>();
-}
-void srs_periodicity_and_offset_ext_r16_c::to_json(json_writer& j) const
-{
-  j.start_obj();
-  switch (type_) {
-    case types::sl128:
-      j.write_int("sl128", c.get<uint8_t>());
-      break;
-    case types::sl256:
-      j.write_int("sl256", c.get<uint16_t>());
-      break;
-    case types::sl512:
-      j.write_int("sl512", c.get<uint16_t>());
-      break;
-    case types::sl20480:
-      j.write_int("sl20480", c.get<uint16_t>());
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
-  }
-  j.end_obj();
-}
-OCUDUASN_CODE srs_periodicity_and_offset_ext_r16_c::pack(bit_ref& bref) const
-{
-  type_.pack(bref);
-  switch (type_) {
-    case types::sl128:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)127u));
-      break;
-    case types::sl256:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)255u));
-      break;
-    case types::sl512:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)511u));
-      break;
-    case types::sl20480:
-      HANDLE_CODE(pack_integer(bref, c.get<uint16_t>(), (uint16_t)0u, (uint16_t)20479u));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
-      return OCUDUASN_ERROR_ENCODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_periodicity_and_offset_ext_r16_c::unpack(cbit_ref& bref)
-{
-  types e;
-  e.unpack(bref);
-  set(e);
-  switch (type_) {
-    case types::sl128:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)127u));
-      break;
-    case types::sl256:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)255u));
-      break;
-    case types::sl512:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)511u));
-      break;
-    case types::sl20480:
-      HANDLE_CODE(unpack_integer(c.get<uint16_t>(), bref, (uint16_t)0u, (uint16_t)20479u));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_periodicity_and_offset_ext_r16_c");
-      return OCUDUASN_ERROR_DECODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-
-const char* srs_periodicity_and_offset_ext_r16_c::types_opts::to_string() const
-{
-  static const char* names[] = {"sl128", "sl256", "sl512", "sl20480"};
-  return convert_enum_idx(names, 4, value, "srs_periodicity_and_offset_ext_r16_c::types");
-}
-uint16_t srs_periodicity_and_offset_ext_r16_c::types_opts::to_number() const
-{
-  static const uint16_t numbers[] = {128, 256, 512, 20480};
-  return map_enum_number(numbers, 4, value, "srs_periodicity_and_offset_ext_r16_c::types");
-}
-
-// SRS-SpatialRelationInfoPos-r16 ::= CHOICE
-void srs_spatial_relation_info_pos_r16_c::destroy_()
-{
-  switch (type_) {
-    case types::serving_rs_r16:
-      c.destroy<serving_rs_r16_s_>();
-      break;
-    case types::ssb_ncell_r16:
-      c.destroy<ssb_info_ncell_r16_s>();
-      break;
-    case types::dl_prs_r16:
-      c.destroy<dl_prs_info_r16_s>();
-      break;
-    default:
-      break;
-  }
-}
-void srs_spatial_relation_info_pos_r16_c::set(types::options e)
-{
-  destroy_();
-  type_ = e;
-  switch (type_) {
-    case types::serving_rs_r16:
-      c.init<serving_rs_r16_s_>();
-      break;
-    case types::ssb_ncell_r16:
-      c.init<ssb_info_ncell_r16_s>();
-      break;
-    case types::dl_prs_r16:
-      c.init<dl_prs_info_r16_s>();
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
-  }
-}
-srs_spatial_relation_info_pos_r16_c::srs_spatial_relation_info_pos_r16_c(
-    const srs_spatial_relation_info_pos_r16_c& other)
-{
-  type_ = other.type();
-  switch (type_) {
-    case types::serving_rs_r16:
-      c.init(other.c.get<serving_rs_r16_s_>());
-      break;
-    case types::ssb_ncell_r16:
-      c.init(other.c.get<ssb_info_ncell_r16_s>());
-      break;
-    case types::dl_prs_r16:
-      c.init(other.c.get<dl_prs_info_r16_s>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
-  }
-}
-srs_spatial_relation_info_pos_r16_c&
-srs_spatial_relation_info_pos_r16_c::operator=(const srs_spatial_relation_info_pos_r16_c& other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  set(other.type());
-  switch (type_) {
-    case types::serving_rs_r16:
-      c.set(other.c.get<serving_rs_r16_s_>());
-      break;
-    case types::ssb_ncell_r16:
-      c.set(other.c.get<ssb_info_ncell_r16_s>());
-      break;
-    case types::dl_prs_r16:
-      c.set(other.c.get<dl_prs_info_r16_s>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
-  }
-
-  return *this;
-}
-srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_& srs_spatial_relation_info_pos_r16_c::set_serving_rs_r16()
-{
-  set(types::serving_rs_r16);
-  return c.get<serving_rs_r16_s_>();
-}
-ssb_info_ncell_r16_s& srs_spatial_relation_info_pos_r16_c::set_ssb_ncell_r16()
-{
-  set(types::ssb_ncell_r16);
-  return c.get<ssb_info_ncell_r16_s>();
-}
-dl_prs_info_r16_s& srs_spatial_relation_info_pos_r16_c::set_dl_prs_r16()
-{
-  set(types::dl_prs_r16);
-  return c.get<dl_prs_info_r16_s>();
-}
-void srs_spatial_relation_info_pos_r16_c::to_json(json_writer& j) const
-{
-  j.start_obj();
-  switch (type_) {
-    case types::serving_rs_r16:
-      j.write_fieldname("servingRS-r16");
-      j.start_obj();
-      if (c.get<serving_rs_r16_s_>().serving_cell_id_present) {
-        j.write_int("servingCellId", c.get<serving_rs_r16_s_>().serving_cell_id);
-      }
-      j.write_fieldname("referenceSignal-r16");
-      c.get<serving_rs_r16_s_>().ref_sig_r16.to_json(j);
-      j.end_obj();
-      break;
-    case types::ssb_ncell_r16:
-      j.write_fieldname("ssb-Ncell-r16");
-      c.get<ssb_info_ncell_r16_s>().to_json(j);
-      break;
-    case types::dl_prs_r16:
-      j.write_fieldname("dl-PRS-r16");
-      c.get<dl_prs_info_r16_s>().to_json(j);
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
-  }
-  j.end_obj();
-}
-OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::pack(bit_ref& bref) const
-{
-  type_.pack(bref);
-  switch (type_) {
-    case types::serving_rs_r16:
-      HANDLE_CODE(bref.pack(c.get<serving_rs_r16_s_>().serving_cell_id_present, 1));
-      if (c.get<serving_rs_r16_s_>().serving_cell_id_present) {
-        HANDLE_CODE(pack_integer(bref, c.get<serving_rs_r16_s_>().serving_cell_id, (uint8_t)0u, (uint8_t)31u));
-      }
-      HANDLE_CODE(c.get<serving_rs_r16_s_>().ref_sig_r16.pack(bref));
-      break;
-    case types::ssb_ncell_r16:
-      HANDLE_CODE(c.get<ssb_info_ncell_r16_s>().pack(bref));
-      break;
-    case types::dl_prs_r16:
-      HANDLE_CODE(c.get<dl_prs_info_r16_s>().pack(bref));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
-      return OCUDUASN_ERROR_ENCODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::unpack(cbit_ref& bref)
-{
-  types e;
-  e.unpack(bref);
-  set(e);
-  switch (type_) {
-    case types::serving_rs_r16:
-      HANDLE_CODE(bref.unpack(c.get<serving_rs_r16_s_>().serving_cell_id_present, 1));
-      if (c.get<serving_rs_r16_s_>().serving_cell_id_present) {
-        HANDLE_CODE(unpack_integer(c.get<serving_rs_r16_s_>().serving_cell_id, bref, (uint8_t)0u, (uint8_t)31u));
-      }
-      HANDLE_CODE(c.get<serving_rs_r16_s_>().ref_sig_r16.unpack(bref));
-      break;
-    case types::ssb_ncell_r16:
-      HANDLE_CODE(c.get<ssb_info_ncell_r16_s>().unpack(bref));
-      break;
-    case types::dl_prs_r16:
-      HANDLE_CODE(c.get<dl_prs_info_r16_s>().unpack(bref));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c");
-      return OCUDUASN_ERROR_DECODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-
-void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::destroy_()
-{
-  switch (type_) {
-    case types::srs_spatial_relation_r16:
-      c.destroy<srs_spatial_relation_r16_s_>();
-      break;
-    default:
-      break;
-  }
-}
-void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::set(types::options e)
-{
-  destroy_();
-  type_ = e;
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      break;
-    case types::csi_rs_idx_serving_r16:
-      break;
-    case types::srs_spatial_relation_r16:
-      c.init<srs_spatial_relation_r16_s_>();
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
-  }
-}
-srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::ref_sig_r16_c_(
-    const srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_& other)
-{
-  type_ = other.type();
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::csi_rs_idx_serving_r16:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::srs_spatial_relation_r16:
-      c.init(other.c.get<srs_spatial_relation_r16_s_>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
-  }
-}
-srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_&
-srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::operator=(
-    const srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_& other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  set(other.type());
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::csi_rs_idx_serving_r16:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::srs_spatial_relation_r16:
-      c.set(other.c.get<srs_spatial_relation_r16_s_>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
-  }
-
-  return *this;
-}
-uint8_t& srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::set_ssb_idx_serving_r16()
-{
-  set(types::ssb_idx_serving_r16);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::set_csi_rs_idx_serving_r16()
-{
-  set(types::csi_rs_idx_serving_r16);
-  return c.get<uint8_t>();
-}
-srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_&
-srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::set_srs_spatial_relation_r16()
-{
-  set(types::srs_spatial_relation_r16);
-  return c.get<srs_spatial_relation_r16_s_>();
-}
-void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::to_json(json_writer& j) const
-{
-  j.start_obj();
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      j.write_int("ssb-IndexServing-r16", c.get<uint8_t>());
-      break;
-    case types::csi_rs_idx_serving_r16:
-      j.write_int("csi-RS-IndexServing-r16", c.get<uint8_t>());
-      break;
-    case types::srs_spatial_relation_r16:
-      j.write_fieldname("srs-SpatialRelation-r16");
-      j.start_obj();
-      j.write_fieldname("resourceSelection-r16");
-      c.get<srs_spatial_relation_r16_s_>().res_sel_r16.to_json(j);
-      j.write_int("uplinkBWP-r16", c.get<srs_spatial_relation_r16_s_>().ul_bwp_r16);
-      j.end_obj();
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
-  }
-  j.end_obj();
-}
-OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::pack(bit_ref& bref) const
-{
-  type_.pack(bref);
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
-      break;
-    case types::csi_rs_idx_serving_r16:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)191u));
-      break;
-    case types::srs_spatial_relation_r16:
-      HANDLE_CODE(c.get<srs_spatial_relation_r16_s_>().res_sel_r16.pack(bref));
-      HANDLE_CODE(pack_integer(bref, c.get<srs_spatial_relation_r16_s_>().ul_bwp_r16, (uint8_t)0u, (uint8_t)4u));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
-      return OCUDUASN_ERROR_ENCODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::unpack(cbit_ref& bref)
-{
-  types e;
-  e.unpack(bref);
-  set(e);
-  switch (type_) {
-    case types::ssb_idx_serving_r16:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
-      break;
-    case types::csi_rs_idx_serving_r16:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)191u));
-      break;
-    case types::srs_spatial_relation_r16:
-      HANDLE_CODE(c.get<srs_spatial_relation_r16_s_>().res_sel_r16.unpack(bref));
-      HANDLE_CODE(unpack_integer(c.get<srs_spatial_relation_r16_s_>().ul_bwp_r16, bref, (uint8_t)0u, (uint8_t)4u));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_");
-      return OCUDUASN_ERROR_DECODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-
-void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
-    res_sel_r16_c_::destroy_()
-{
-}
-void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
-    res_sel_r16_c_::set(types::options e)
-{
-  destroy_();
-  type_ = e;
-}
-srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::res_sel_r16_c_::
-    res_sel_r16_c_(const srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::
-                       srs_spatial_relation_r16_s_::res_sel_r16_c_& other)
-{
-  type_ = other.type();
-  switch (type_) {
-    case types::srs_res_id_r16:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::srs_pos_res_id_r16:
-      c.init(other.c.get<uint8_t>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_,
-                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
-                            "relation_r16_s_::res_sel_r16_c_");
-  }
-}
-srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::res_sel_r16_c_&
-srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::res_sel_r16_c_::
-operator=(const srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
-              res_sel_r16_c_& other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  set(other.type());
-  switch (type_) {
-    case types::srs_res_id_r16:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::srs_pos_res_id_r16:
-      c.set(other.c.get<uint8_t>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_,
-                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
-                            "relation_r16_s_::res_sel_r16_c_");
-  }
-
-  return *this;
-}
-uint8_t& srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
-    res_sel_r16_c_::set_srs_res_id_r16()
-{
-  set(types::srs_res_id_r16);
-  return c.get<uint8_t>();
-}
-uint8_t& srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
-    res_sel_r16_c_::set_srs_pos_res_id_r16()
-{
-  set(types::srs_pos_res_id_r16);
-  return c.get<uint8_t>();
-}
-void srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
-    res_sel_r16_c_::to_json(json_writer& j) const
-{
-  j.start_obj();
-  switch (type_) {
-    case types::srs_res_id_r16:
-      j.write_int("srs-ResourceId-r16", c.get<uint8_t>());
-      break;
-    case types::srs_pos_res_id_r16:
-      j.write_int("srs-PosResourceId-r16", c.get<uint8_t>());
-      break;
-    default:
-      log_invalid_choice_id(type_,
-                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
-                            "relation_r16_s_::res_sel_r16_c_");
-  }
-  j.end_obj();
-}
-OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
-    res_sel_r16_c_::pack(bit_ref& bref) const
-{
-  type_.pack(bref);
-  switch (type_) {
-    case types::srs_res_id_r16:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
-      break;
-    case types::srs_pos_res_id_r16:
-      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)0u, (uint8_t)63u));
-      break;
-    default:
-      log_invalid_choice_id(type_,
-                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
-                            "relation_r16_s_::res_sel_r16_c_");
-      return OCUDUASN_ERROR_ENCODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
-    res_sel_r16_c_::unpack(cbit_ref& bref)
-{
-  types e;
-  e.unpack(bref);
-  set(e);
-  switch (type_) {
-    case types::srs_res_id_r16:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
-      break;
-    case types::srs_pos_res_id_r16:
-      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)0u, (uint8_t)63u));
-      break;
-    default:
-      log_invalid_choice_id(type_,
-                            "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
-                            "relation_r16_s_::res_sel_r16_c_");
-      return OCUDUASN_ERROR_DECODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-
-const char* srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_relation_r16_s_::
-    res_sel_r16_c_::types_opts::to_string() const
-{
-  static const char* names[] = {"srs-ResourceId-r16", "srs-PosResourceId-r16"};
-  return convert_enum_idx(names,
-                          2,
-                          value,
-                          "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::srs_spatial_"
-                          "relation_r16_s_::res_sel_r16_c_::types");
-}
-
-const char* srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::types_opts::to_string() const
-{
-  static const char* names[] = {"ssb-IndexServing-r16", "csi-RS-IndexServing-r16", "srs-SpatialRelation-r16"};
-  return convert_enum_idx(
-      names, 3, value, "srs_spatial_relation_info_pos_r16_c::serving_rs_r16_s_::ref_sig_r16_c_::types");
-}
-
-const char* srs_spatial_relation_info_pos_r16_c::types_opts::to_string() const
-{
-  static const char* names[] = {"servingRS-r16", "ssb-Ncell-r16", "dl-PRS-r16"};
-  return convert_enum_idx(names, 3, value, "srs_spatial_relation_info_pos_r16_c::types");
-}
-
-// SRS-PosResource-r16 ::= SEQUENCE
-OCUDUASN_CODE srs_pos_res_r16_s::pack(bit_ref& bref) const
-{
-  bref.pack(ext, 1);
-  HANDLE_CODE(bref.pack(spatial_relation_info_pos_r16_present, 1));
-
-  HANDLE_CODE(pack_integer(bref, srs_pos_res_id_r16, (uint8_t)0u, (uint8_t)63u));
-  HANDLE_CODE(tx_comb_r16.pack(bref));
-  HANDLE_CODE(pack_integer(bref, res_map_r16.start_position_r16, (uint8_t)0u, (uint8_t)13u));
-  HANDLE_CODE(res_map_r16.nrof_symbols_r16.pack(bref));
-  HANDLE_CODE(pack_integer(bref, freq_domain_shift_r16, (uint16_t)0u, (uint16_t)268u));
-  bref.pack(freq_hop_r16.ext, 1);
-  HANDLE_CODE(pack_integer(bref, freq_hop_r16.c_srs_r16, (uint8_t)0u, (uint8_t)63u));
-  HANDLE_CODE(group_or_seq_hop_r16.pack(bref));
-  HANDLE_CODE(res_type_r16.pack(bref));
-  HANDLE_CODE(pack_integer(bref, seq_id_r16, (uint32_t)0u, (uint32_t)65535u));
-  if (spatial_relation_info_pos_r16_present) {
-    HANDLE_CODE(spatial_relation_info_pos_r16.pack(bref));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_pos_res_r16_s::unpack(cbit_ref& bref)
-{
-  bref.unpack(ext, 1);
-  HANDLE_CODE(bref.unpack(spatial_relation_info_pos_r16_present, 1));
-
-  HANDLE_CODE(unpack_integer(srs_pos_res_id_r16, bref, (uint8_t)0u, (uint8_t)63u));
-  HANDLE_CODE(tx_comb_r16.unpack(bref));
-  HANDLE_CODE(unpack_integer(res_map_r16.start_position_r16, bref, (uint8_t)0u, (uint8_t)13u));
-  HANDLE_CODE(res_map_r16.nrof_symbols_r16.unpack(bref));
-  HANDLE_CODE(unpack_integer(freq_domain_shift_r16, bref, (uint16_t)0u, (uint16_t)268u));
-  bref.unpack(freq_hop_r16.ext, 1);
-  HANDLE_CODE(unpack_integer(freq_hop_r16.c_srs_r16, bref, (uint8_t)0u, (uint8_t)63u));
-  HANDLE_CODE(group_or_seq_hop_r16.unpack(bref));
-  HANDLE_CODE(res_type_r16.unpack(bref));
-  HANDLE_CODE(unpack_integer(seq_id_r16, bref, (uint32_t)0u, (uint32_t)65535u));
-  if (spatial_relation_info_pos_r16_present) {
-    HANDLE_CODE(spatial_relation_info_pos_r16.unpack(bref));
-  }
-
-  return OCUDUASN_SUCCESS;
-}
-void srs_pos_res_r16_s::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_int("srs-PosResourceId-r16", srs_pos_res_id_r16);
-  j.write_fieldname("transmissionComb-r16");
-  tx_comb_r16.to_json(j);
-  j.write_fieldname("resourceMapping-r16");
-  j.start_obj();
-  j.write_int("startPosition-r16", res_map_r16.start_position_r16);
-  j.write_str("nrofSymbols-r16", res_map_r16.nrof_symbols_r16.to_string());
-  j.end_obj();
-  j.write_int("freqDomainShift-r16", freq_domain_shift_r16);
-  j.write_fieldname("freqHopping-r16");
-  j.start_obj();
-  j.write_int("c-SRS-r16", freq_hop_r16.c_srs_r16);
-  j.end_obj();
-  j.write_str("groupOrSequenceHopping-r16", group_or_seq_hop_r16.to_string());
-  j.write_fieldname("resourceType-r16");
-  res_type_r16.to_json(j);
-  j.write_int("sequenceId-r16", seq_id_r16);
-  if (spatial_relation_info_pos_r16_present) {
-    j.write_fieldname("spatialRelationInfoPos-r16");
-    spatial_relation_info_pos_r16.to_json(j);
-  }
-  j.end_obj();
-}
-
-void srs_pos_res_r16_s::tx_comb_r16_c_::destroy_()
-{
-  switch (type_) {
-    case types::n2_r16:
-      c.destroy<n2_r16_s_>();
-      break;
-    case types::n4_r16:
-      c.destroy<n4_r16_s_>();
-      break;
-    case types::n8_r16:
-      c.destroy<n8_r16_s_>();
-      break;
-    default:
-      break;
-  }
-}
-void srs_pos_res_r16_s::tx_comb_r16_c_::set(types::options e)
-{
-  destroy_();
-  type_ = e;
-  switch (type_) {
-    case types::n2_r16:
-      c.init<n2_r16_s_>();
-      break;
-    case types::n4_r16:
-      c.init<n4_r16_s_>();
-      break;
-    case types::n8_r16:
-      c.init<n8_r16_s_>();
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
-  }
-}
-srs_pos_res_r16_s::tx_comb_r16_c_::tx_comb_r16_c_(const srs_pos_res_r16_s::tx_comb_r16_c_& other)
-{
-  type_ = other.type();
-  switch (type_) {
-    case types::n2_r16:
-      c.init(other.c.get<n2_r16_s_>());
-      break;
-    case types::n4_r16:
-      c.init(other.c.get<n4_r16_s_>());
-      break;
-    case types::n8_r16:
-      c.init(other.c.get<n8_r16_s_>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
-  }
-}
-srs_pos_res_r16_s::tx_comb_r16_c_&
-srs_pos_res_r16_s::tx_comb_r16_c_::operator=(const srs_pos_res_r16_s::tx_comb_r16_c_& other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  set(other.type());
-  switch (type_) {
-    case types::n2_r16:
-      c.set(other.c.get<n2_r16_s_>());
-      break;
-    case types::n4_r16:
-      c.set(other.c.get<n4_r16_s_>());
-      break;
-    case types::n8_r16:
-      c.set(other.c.get<n8_r16_s_>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
-  }
-
-  return *this;
-}
-srs_pos_res_r16_s::tx_comb_r16_c_::n2_r16_s_& srs_pos_res_r16_s::tx_comb_r16_c_::set_n2_r16()
-{
-  set(types::n2_r16);
-  return c.get<n2_r16_s_>();
-}
-srs_pos_res_r16_s::tx_comb_r16_c_::n4_r16_s_& srs_pos_res_r16_s::tx_comb_r16_c_::set_n4_r16()
-{
-  set(types::n4_r16);
-  return c.get<n4_r16_s_>();
-}
-srs_pos_res_r16_s::tx_comb_r16_c_::n8_r16_s_& srs_pos_res_r16_s::tx_comb_r16_c_::set_n8_r16()
-{
-  set(types::n8_r16);
-  return c.get<n8_r16_s_>();
-}
-void srs_pos_res_r16_s::tx_comb_r16_c_::to_json(json_writer& j) const
-{
-  j.start_obj();
-  switch (type_) {
-    case types::n2_r16:
-      j.write_fieldname("n2-r16");
-      j.start_obj();
-      j.write_int("combOffset-n2-r16", c.get<n2_r16_s_>().comb_offset_n2_r16);
-      j.write_int("cyclicShift-n2-r16", c.get<n2_r16_s_>().cyclic_shift_n2_r16);
-      j.end_obj();
-      break;
-    case types::n4_r16:
-      j.write_fieldname("n4-r16");
-      j.start_obj();
-      j.write_int("combOffset-n4-r16", c.get<n4_r16_s_>().comb_offset_n4_r16);
-      j.write_int("cyclicShift-n4-r16", c.get<n4_r16_s_>().cyclic_shift_n4_r16);
-      j.end_obj();
-      break;
-    case types::n8_r16:
-      j.write_fieldname("n8-r16");
-      j.start_obj();
-      j.write_int("combOffset-n8-r16", c.get<n8_r16_s_>().comb_offset_n8_r16);
-      j.write_int("cyclicShift-n8-r16", c.get<n8_r16_s_>().cyclic_shift_n8_r16);
-      j.end_obj();
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
-  }
-  j.end_obj();
-}
-OCUDUASN_CODE srs_pos_res_r16_s::tx_comb_r16_c_::pack(bit_ref& bref) const
-{
-  type_.pack(bref);
-  switch (type_) {
-    case types::n2_r16:
-      HANDLE_CODE(pack_integer(bref, c.get<n2_r16_s_>().comb_offset_n2_r16, (uint8_t)0u, (uint8_t)1u));
-      HANDLE_CODE(pack_integer(bref, c.get<n2_r16_s_>().cyclic_shift_n2_r16, (uint8_t)0u, (uint8_t)7u));
-      break;
-    case types::n4_r16:
-      HANDLE_CODE(pack_integer(bref, c.get<n4_r16_s_>().comb_offset_n4_r16, (uint8_t)0u, (uint8_t)3u));
-      HANDLE_CODE(pack_integer(bref, c.get<n4_r16_s_>().cyclic_shift_n4_r16, (uint8_t)0u, (uint8_t)11u));
-      break;
-    case types::n8_r16:
-      HANDLE_CODE(pack_integer(bref, c.get<n8_r16_s_>().comb_offset_n8_r16, (uint8_t)0u, (uint8_t)7u));
-      HANDLE_CODE(pack_integer(bref, c.get<n8_r16_s_>().cyclic_shift_n8_r16, (uint8_t)0u, (uint8_t)5u));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
-      return OCUDUASN_ERROR_ENCODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_pos_res_r16_s::tx_comb_r16_c_::unpack(cbit_ref& bref)
-{
-  types e;
-  e.unpack(bref);
-  set(e);
-  switch (type_) {
-    case types::n2_r16:
-      HANDLE_CODE(unpack_integer(c.get<n2_r16_s_>().comb_offset_n2_r16, bref, (uint8_t)0u, (uint8_t)1u));
-      HANDLE_CODE(unpack_integer(c.get<n2_r16_s_>().cyclic_shift_n2_r16, bref, (uint8_t)0u, (uint8_t)7u));
-      break;
-    case types::n4_r16:
-      HANDLE_CODE(unpack_integer(c.get<n4_r16_s_>().comb_offset_n4_r16, bref, (uint8_t)0u, (uint8_t)3u));
-      HANDLE_CODE(unpack_integer(c.get<n4_r16_s_>().cyclic_shift_n4_r16, bref, (uint8_t)0u, (uint8_t)11u));
-      break;
-    case types::n8_r16:
-      HANDLE_CODE(unpack_integer(c.get<n8_r16_s_>().comb_offset_n8_r16, bref, (uint8_t)0u, (uint8_t)7u));
-      HANDLE_CODE(unpack_integer(c.get<n8_r16_s_>().cyclic_shift_n8_r16, bref, (uint8_t)0u, (uint8_t)5u));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::tx_comb_r16_c_");
-      return OCUDUASN_ERROR_DECODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-
-const char* srs_pos_res_r16_s::tx_comb_r16_c_::types_opts::to_string() const
-{
-  static const char* names[] = {"n2-r16", "n4-r16", "n8-r16"};
-  return convert_enum_idx(names, 3, value, "srs_pos_res_r16_s::tx_comb_r16_c_::types");
-}
-uint8_t srs_pos_res_r16_s::tx_comb_r16_c_::types_opts::to_number() const
-{
-  static const uint8_t numbers[] = {2, 4, 8};
-  return map_enum_number(numbers, 3, value, "srs_pos_res_r16_s::tx_comb_r16_c_::types");
-}
-
-const char* srs_pos_res_r16_s::res_map_r16_s_::nrof_symbols_r16_opts::to_string() const
-{
-  static const char* names[] = {"n1", "n2", "n4", "n8", "n12"};
-  return convert_enum_idx(names, 5, value, "srs_pos_res_r16_s::res_map_r16_s_::nrof_symbols_r16_e_");
-}
-uint8_t srs_pos_res_r16_s::res_map_r16_s_::nrof_symbols_r16_opts::to_number() const
-{
-  static const uint8_t numbers[] = {1, 2, 4, 8, 12};
-  return map_enum_number(numbers, 5, value, "srs_pos_res_r16_s::res_map_r16_s_::nrof_symbols_r16_e_");
-}
-
-const char* srs_pos_res_r16_s::group_or_seq_hop_r16_opts::to_string() const
-{
-  static const char* names[] = {"neither", "groupHopping", "sequenceHopping"};
-  return convert_enum_idx(names, 3, value, "srs_pos_res_r16_s::group_or_seq_hop_r16_e_");
-}
-
-void srs_pos_res_r16_s::res_type_r16_c_::destroy_()
-{
-  switch (type_) {
-    case types::aperiodic_r16:
-      c.destroy<aperiodic_r16_s_>();
-      break;
-    case types::semi_persistent_r16:
-      c.destroy<semi_persistent_r16_s_>();
-      break;
-    case types::periodic_r16:
-      c.destroy<periodic_r16_s_>();
-      break;
-    default:
-      break;
-  }
-}
-void srs_pos_res_r16_s::res_type_r16_c_::set(types::options e)
-{
-  destroy_();
-  type_ = e;
-  switch (type_) {
-    case types::aperiodic_r16:
-      c.init<aperiodic_r16_s_>();
-      break;
-    case types::semi_persistent_r16:
-      c.init<semi_persistent_r16_s_>();
-      break;
-    case types::periodic_r16:
-      c.init<periodic_r16_s_>();
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
-  }
-}
-srs_pos_res_r16_s::res_type_r16_c_::res_type_r16_c_(const srs_pos_res_r16_s::res_type_r16_c_& other)
-{
-  type_ = other.type();
-  switch (type_) {
-    case types::aperiodic_r16:
-      c.init(other.c.get<aperiodic_r16_s_>());
-      break;
-    case types::semi_persistent_r16:
-      c.init(other.c.get<semi_persistent_r16_s_>());
-      break;
-    case types::periodic_r16:
-      c.init(other.c.get<periodic_r16_s_>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
-  }
-}
-srs_pos_res_r16_s::res_type_r16_c_&
-srs_pos_res_r16_s::res_type_r16_c_::operator=(const srs_pos_res_r16_s::res_type_r16_c_& other)
-{
-  if (this == &other) {
-    return *this;
-  }
-  set(other.type());
-  switch (type_) {
-    case types::aperiodic_r16:
-      c.set(other.c.get<aperiodic_r16_s_>());
-      break;
-    case types::semi_persistent_r16:
-      c.set(other.c.get<semi_persistent_r16_s_>());
-      break;
-    case types::periodic_r16:
-      c.set(other.c.get<periodic_r16_s_>());
-      break;
-    case types::nulltype:
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
-  }
-
-  return *this;
-}
-srs_pos_res_r16_s::res_type_r16_c_::aperiodic_r16_s_& srs_pos_res_r16_s::res_type_r16_c_::set_aperiodic_r16()
-{
-  set(types::aperiodic_r16);
-  return c.get<aperiodic_r16_s_>();
-}
-srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_&
-srs_pos_res_r16_s::res_type_r16_c_::set_semi_persistent_r16()
-{
-  set(types::semi_persistent_r16);
-  return c.get<semi_persistent_r16_s_>();
-}
-srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_& srs_pos_res_r16_s::res_type_r16_c_::set_periodic_r16()
-{
-  set(types::periodic_r16);
-  return c.get<periodic_r16_s_>();
-}
-void srs_pos_res_r16_s::res_type_r16_c_::to_json(json_writer& j) const
-{
-  j.start_obj();
-  switch (type_) {
-    case types::aperiodic_r16:
-      j.write_fieldname("aperiodic-r16");
-      j.start_obj();
-      if (c.get<aperiodic_r16_s_>().slot_offset_r16_present) {
-        j.write_int("slotOffset-r16", c.get<aperiodic_r16_s_>().slot_offset_r16);
-      }
-      j.end_obj();
-      break;
-    case types::semi_persistent_r16:
-      j.write_fieldname("semi-persistent-r16");
-      c.get<semi_persistent_r16_s_>().to_json(j);
-      break;
-    case types::periodic_r16:
-      j.write_fieldname("periodic-r16");
-      c.get<periodic_r16_s_>().to_json(j);
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
-  }
-  j.end_obj();
-}
-OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::pack(bit_ref& bref) const
-{
-  type_.pack(bref);
-  switch (type_) {
-    case types::aperiodic_r16:
-      bref.pack(c.get<aperiodic_r16_s_>().ext, 1);
-      HANDLE_CODE(bref.pack(c.get<aperiodic_r16_s_>().slot_offset_r16_present, 1));
-      if (c.get<aperiodic_r16_s_>().slot_offset_r16_present) {
-        HANDLE_CODE(pack_integer(bref, c.get<aperiodic_r16_s_>().slot_offset_r16, (uint8_t)1u, (uint8_t)32u));
-      }
-      break;
-    case types::semi_persistent_r16:
-      HANDLE_CODE(c.get<semi_persistent_r16_s_>().pack(bref));
-      break;
-    case types::periodic_r16:
-      HANDLE_CODE(c.get<periodic_r16_s_>().pack(bref));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
-      return OCUDUASN_ERROR_ENCODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::unpack(cbit_ref& bref)
-{
-  types e;
-  e.unpack(bref);
-  set(e);
-  switch (type_) {
-    case types::aperiodic_r16:
-      bref.unpack(c.get<aperiodic_r16_s_>().ext, 1);
-      HANDLE_CODE(bref.unpack(c.get<aperiodic_r16_s_>().slot_offset_r16_present, 1));
-      if (c.get<aperiodic_r16_s_>().slot_offset_r16_present) {
-        HANDLE_CODE(unpack_integer(c.get<aperiodic_r16_s_>().slot_offset_r16, bref, (uint8_t)1u, (uint8_t)32u));
-      }
-      break;
-    case types::semi_persistent_r16:
-      HANDLE_CODE(c.get<semi_persistent_r16_s_>().unpack(bref));
-      break;
-    case types::periodic_r16:
-      HANDLE_CODE(c.get<periodic_r16_s_>().unpack(bref));
-      break;
-    default:
-      log_invalid_choice_id(type_, "srs_pos_res_r16_s::res_type_r16_c_");
-      return OCUDUASN_ERROR_DECODE_FAIL;
-  }
-  return OCUDUASN_SUCCESS;
-}
-
-OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::pack(bit_ref& bref) const
-{
-  bref.pack(ext, 1);
-  HANDLE_CODE(periodicity_and_offset_sp_r16.pack(bref));
-
-  if (ext) {
-    ext_groups_packer_guard group_flags;
-    group_flags[0] |= periodicity_and_offset_sp_ext_r16.is_present();
-    group_flags.pack(bref);
-
-    if (group_flags[0]) {
-      varlength_field_pack_guard varlen_scope(bref, false);
-
-      HANDLE_CODE(bref.pack(periodicity_and_offset_sp_ext_r16.is_present(), 1));
-      if (periodicity_and_offset_sp_ext_r16.is_present()) {
-        HANDLE_CODE(periodicity_and_offset_sp_ext_r16->pack(bref));
-      }
-    }
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::unpack(cbit_ref& bref)
-{
-  bref.unpack(ext, 1);
-  HANDLE_CODE(periodicity_and_offset_sp_r16.unpack(bref));
-
-  if (ext) {
-    ext_groups_unpacker group_unpacker(bref);
-
-    HANDLE_CODE(group_unpacker.unpack_next_group());
-    if (group_unpacker.get_last_group_range(bref)) {
-      unpack_presence_flag(periodicity_and_offset_sp_ext_r16, bref);
-      if (periodicity_and_offset_sp_ext_r16.is_present()) {
-        HANDLE_CODE(periodicity_and_offset_sp_ext_r16->unpack(bref));
-      }
-    }
-    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
-  }
-  return OCUDUASN_SUCCESS;
-}
-void srs_pos_res_r16_s::res_type_r16_c_::semi_persistent_r16_s_::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_fieldname("periodicityAndOffset-sp-r16");
-  periodicity_and_offset_sp_r16.to_json(j);
-  if (ext) {
-    if (periodicity_and_offset_sp_ext_r16.is_present()) {
-      j.write_fieldname("periodicityAndOffset-sp-Ext-r16");
-      periodicity_and_offset_sp_ext_r16->to_json(j);
-    }
-  }
-  j.end_obj();
-}
-
-OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::pack(bit_ref& bref) const
-{
-  bref.pack(ext, 1);
-  HANDLE_CODE(periodicity_and_offset_p_r16.pack(bref));
-
-  if (ext) {
-    ext_groups_packer_guard group_flags;
-    group_flags[0] |= periodicity_and_offset_p_ext_r16.is_present();
-    group_flags.pack(bref);
-
-    if (group_flags[0]) {
-      varlength_field_pack_guard varlen_scope(bref, false);
-
-      HANDLE_CODE(bref.pack(periodicity_and_offset_p_ext_r16.is_present(), 1));
-      if (periodicity_and_offset_p_ext_r16.is_present()) {
-        HANDLE_CODE(periodicity_and_offset_p_ext_r16->pack(bref));
-      }
-    }
-  }
-  return OCUDUASN_SUCCESS;
-}
-OCUDUASN_CODE srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::unpack(cbit_ref& bref)
-{
-  bref.unpack(ext, 1);
-  HANDLE_CODE(periodicity_and_offset_p_r16.unpack(bref));
-
-  if (ext) {
-    ext_groups_unpacker group_unpacker(bref);
-
-    HANDLE_CODE(group_unpacker.unpack_next_group());
-    if (group_unpacker.get_last_group_range(bref)) {
-      unpack_presence_flag(periodicity_and_offset_p_ext_r16, bref);
-      if (periodicity_and_offset_p_ext_r16.is_present()) {
-        HANDLE_CODE(periodicity_and_offset_p_ext_r16->unpack(bref));
-      }
-    }
-    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
-  }
-  return OCUDUASN_SUCCESS;
-}
-void srs_pos_res_r16_s::res_type_r16_c_::periodic_r16_s_::to_json(json_writer& j) const
-{
-  j.start_obj();
-  j.write_fieldname("periodicityAndOffset-p-r16");
-  periodicity_and_offset_p_r16.to_json(j);
-  if (ext) {
-    if (periodicity_and_offset_p_ext_r16.is_present()) {
-      j.write_fieldname("periodicityAndOffset-p-Ext-r16");
-      periodicity_and_offset_p_ext_r16->to_json(j);
-    }
-  }
-  j.end_obj();
-}
-
-const char* srs_pos_res_r16_s::res_type_r16_c_::types_opts::to_string() const
-{
-  static const char* names[] = {"aperiodic-r16", "semi-persistent-r16", "periodic-r16"};
-  return convert_enum_idx(names, 3, value, "srs_pos_res_r16_s::res_type_r16_c_::types");
+  static const char* names[] = {"first", "second"};
+  return convert_enum_idx(names, 2, value, "srs_res_set_s::apply_indicated_tci_state_r18_e_");
 }
 
 // SRS-Config ::= SEQUENCE
@@ -28281,6 +31055,7 @@ OCUDUASN_CODE srs_cfg_s::pack(bit_ref& bref) const
     group_flags[0] |= srs_pos_res_set_to_add_mod_list_r16.is_present();
     group_flags[0] |= srs_pos_res_to_release_list_r16.is_present();
     group_flags[0] |= srs_pos_res_to_add_mod_list_r16.is_present();
+    group_flags[1] |= dci_trigger_pos_res_set_link_r18_present;
     group_flags.pack(bref);
 
     if (group_flags[0]) {
@@ -28319,6 +31094,11 @@ OCUDUASN_CODE srs_cfg_s::pack(bit_ref& bref) const
       if (srs_pos_res_to_add_mod_list_r16.is_present()) {
         HANDLE_CODE(pack_dyn_seq_of(bref, *srs_pos_res_to_add_mod_list_r16, 1, 64));
       }
+    }
+    if (group_flags[1]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(dci_trigger_pos_res_set_link_r18_present, 1));
     }
   }
   return OCUDUASN_SUCCESS;
@@ -28388,6 +31168,10 @@ OCUDUASN_CODE srs_cfg_s::unpack(cbit_ref& bref)
       if (srs_pos_res_to_add_mod_list_r16.is_present()) {
         HANDLE_CODE(unpack_dyn_seq_of(*srs_pos_res_to_add_mod_list_r16, bref, 1, 64));
       }
+    }
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(dci_trigger_pos_res_set_link_r18_present, 1));
     }
     HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
   }
@@ -28475,6 +31259,9 @@ void srs_cfg_s::to_json(json_writer& j) const
         e1.to_json(j);
       }
       j.end_array();
+    }
+    if (dci_trigger_pos_res_set_link_r18_present) {
+      j.write_str("dci-TriggeringPosResourceSetLink-r18", "enabled");
     }
   }
   j.end_obj();
@@ -28922,6 +31709,20 @@ OCUDUASN_CODE tci_ul_state_r17_s::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, pathloss_ref_rs_id_r17, (uint8_t)0u, (uint8_t)63u));
   }
 
+  if (ext) {
+    ext_groups_packer_guard group_flags;
+    group_flags[0] |= tag_id_ptr_r18_present;
+    group_flags.pack(bref);
+
+    if (group_flags[0]) {
+      varlength_field_pack_guard varlen_scope(bref, false);
+
+      HANDLE_CODE(bref.pack(tag_id_ptr_r18_present, 1));
+      if (tag_id_ptr_r18_present) {
+        HANDLE_CODE(tag_id_ptr_r18.pack(bref));
+      }
+    }
+  }
   return OCUDUASN_SUCCESS;
 }
 OCUDUASN_CODE tci_ul_state_r17_s::unpack(cbit_ref& bref)
@@ -28951,6 +31752,18 @@ OCUDUASN_CODE tci_ul_state_r17_s::unpack(cbit_ref& bref)
     HANDLE_CODE(unpack_integer(pathloss_ref_rs_id_r17, bref, (uint8_t)0u, (uint8_t)63u));
   }
 
+  if (ext) {
+    ext_groups_unpacker group_unpacker(bref);
+
+    HANDLE_CODE(group_unpacker.unpack_next_group());
+    if (group_unpacker.get_last_group_range(bref)) {
+      HANDLE_CODE(bref.unpack(tag_id_ptr_r18_present, 1));
+      if (tag_id_ptr_r18_present) {
+        HANDLE_CODE(tag_id_ptr_r18.unpack(bref));
+      }
+    }
+    HANDLE_CODE(group_unpacker.consume_remaining_groups(bref));
+  }
   return OCUDUASN_SUCCESS;
 }
 void tci_ul_state_r17_s::to_json(json_writer& j) const
@@ -28973,6 +31786,11 @@ void tci_ul_state_r17_s::to_json(json_writer& j) const
   }
   if (pathloss_ref_rs_id_r17_present) {
     j.write_int("pathlossReferenceRS-Id-r17", pathloss_ref_rs_id_r17);
+  }
+  if (ext) {
+    if (tag_id_ptr_r18_present) {
+      j.write_str("tag-Id-ptr-r18", tag_id_ptr_r18.to_string());
+    }
   }
   j.end_obj();
 }
@@ -29105,6 +31923,17 @@ const char* tci_ul_state_r17_s::ref_sig_r17_c_::types_opts::to_string() const
 {
   static const char* names[] = {"ssb-Index-r17", "csi-RS-Index-r17", "srs-r17"};
   return convert_enum_idx(names, 3, value, "tci_ul_state_r17_s::ref_sig_r17_c_::types");
+}
+
+const char* tci_ul_state_r17_s::tag_id_ptr_r18_opts::to_string() const
+{
+  static const char* names[] = {"n0", "n1"};
+  return convert_enum_idx(names, 2, value, "tci_ul_state_r17_s::tag_id_ptr_r18_e_");
+}
+uint8_t tci_ul_state_r17_s::tag_id_ptr_r18_opts::to_number() const
+{
+  static const uint8_t numbers[] = {0, 1};
+  return map_enum_number(numbers, 2, value, "tci_ul_state_r17_s::tag_id_ptr_r18_e_");
 }
 
 // PathlossReferenceRS-r17 ::= SEQUENCE

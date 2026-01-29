@@ -281,7 +281,7 @@ asn1::nrppa::nr_ppa_pdu_c positioning_information_exchange_procedure::create_pos
           ocudu_assert(pos_srs_res_item.periodicity_and_offset.has_value(),
                        "Periodicity and offset must be set for periodic resources.");
           asn1::nrppa::res_type_periodic_pos_s asn1_res_type_pos_periodic;
-          asn1::number_to_enum(asn1_res_type_pos_periodic.periodicity,
+          asn1::number_to_enum(asn1_res_type_pos_periodic.srs_periodicity,
                                (uint16_t)pos_srs_res_item.periodicity_and_offset->period);
           asn1_res_type_pos_periodic.offset                 = pos_srs_res_item.periodicity_and_offset->offset;
           asn1_pos_srs_res_item.res_type_pos.set_periodic() = asn1_res_type_pos_periodic;
@@ -289,7 +289,7 @@ asn1::nrppa::nr_ppa_pdu_c positioning_information_exchange_procedure::create_pos
           ocudu_assert(pos_srs_res_item.periodicity_and_offset.has_value(),
                        "Periodicity and offset must be set for periodic resources.");
           asn1::nrppa::res_type_semi_persistent_pos_s asn1_res_type_semi_persisten_pos;
-          asn1::number_to_enum(asn1_res_type_semi_persisten_pos.periodicity,
+          asn1::number_to_enum(asn1_res_type_semi_persisten_pos.srs_periodicity,
                                (uint16_t)pos_srs_res_item.periodicity_and_offset->period);
           asn1_res_type_semi_persisten_pos.offset                  = pos_srs_res_item.periodicity_and_offset->offset;
           asn1_pos_srs_res_item.res_type_pos.set_semi_persistent() = asn1_res_type_semi_persisten_pos;
@@ -335,7 +335,7 @@ asn1::nrppa::nr_ppa_pdu_c positioning_information_exchange_procedure::create_pos
       // >> Fill SRS res set list.
       for (const auto& srs_res_set : srs_carrier_item.active_ul_bwp.srs_cfg.srs_res_set_list) {
         asn1::nrppa::srs_res_set_s asn1_srs_res_set;
-        asn1_srs_res_set.srs_res_set_id = srs_res_set.id;
+        asn1_srs_res_set.srs_res_set_id1 = srs_res_set.id;
         for (const auto& srs_res_id : srs_res_set.srs_res_id_list) {
           asn1_srs_res_set.srs_res_id_list.push_back(srs_res_id);
         }

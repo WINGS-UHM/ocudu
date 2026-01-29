@@ -19,12 +19,12 @@ using namespace asn1::ngap;
 // AMFCPRelocationIndicationIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t amf_cp_relocation_ind_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10, 85, 148, 0};
-  return map_enum_number(names, 4, idx, "id");
+  static const uint32_t names[] = {10, 85, 148, 0, 414};
+  return map_enum_number(names, 5, idx, "id");
 }
 bool amf_cp_relocation_ind_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10, 85, 148, 0};
+  static const uint32_t names[] = {10, 85, 148, 0, 414};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -42,6 +42,8 @@ crit_e amf_cp_relocation_ind_ies_o::get_crit(const uint32_t& id)
     case 148:
       return crit_e::ignore;
     case 0:
+      return crit_e::ignore;
+    case 414:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -64,6 +66,9 @@ amf_cp_relocation_ind_ies_o::value_c amf_cp_relocation_ind_ies_o::get_value(cons
     case 0:
       ret.set(value_c::types::allowed_nssai);
       break;
+    case 414:
+      ret.set(value_c::types::partially_allowed_nssai);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -79,6 +84,8 @@ presence_e amf_cp_relocation_ind_ies_o::get_presence(const uint32_t& id)
     case 148:
       return presence_e::optional;
     case 0:
+      return presence_e::optional;
+    case 414:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -102,6 +109,9 @@ void amf_cp_relocation_ind_ies_o::value_c::set(types::options e)
       break;
     case types::allowed_nssai:
       c = allowed_nssai_l{};
+      break;
+    case types::partially_allowed_nssai:
+      c = partially_allowed_nssai_l{};
       break;
     case types::nulltype:
       break;
@@ -129,6 +139,11 @@ allowed_nssai_l& amf_cp_relocation_ind_ies_o::value_c::allowed_nssai()
   assert_choice_type(types::allowed_nssai, type_, "Value");
   return c.get<allowed_nssai_l>();
 }
+partially_allowed_nssai_l& amf_cp_relocation_ind_ies_o::value_c::partially_allowed_nssai()
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
 const uint64_t& amf_cp_relocation_ind_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -149,6 +164,11 @@ const allowed_nssai_l& amf_cp_relocation_ind_ies_o::value_c::allowed_nssai() con
   assert_choice_type(types::allowed_nssai, type_, "Value");
   return c.get<allowed_nssai_l>();
 }
+const partially_allowed_nssai_l& amf_cp_relocation_ind_ies_o::value_c::partially_allowed_nssai() const
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
 void amf_cp_relocation_ind_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -166,6 +186,13 @@ void amf_cp_relocation_ind_ies_o::value_c::to_json(json_writer& j) const
     case types::allowed_nssai:
       j.start_array("AllowedNSSAI");
       for (const auto& e1 : c.get<allowed_nssai_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::partially_allowed_nssai:
+      j.start_array("Partially-Allowed-NSSAI");
+      for (const auto& e1 : c.get<partially_allowed_nssai_l>()) {
         e1.to_json(j);
       }
       j.end_array();
@@ -191,6 +218,9 @@ OCUDUASN_CODE amf_cp_relocation_ind_ies_o::value_c::pack(bit_ref& bref) const
     case types::allowed_nssai:
       HANDLE_CODE(pack_dyn_seq_of(bref, c.get<allowed_nssai_l>(), 1, 8, true));
       break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<partially_allowed_nssai_l>(), 1, 8, true));
+      break;
     default:
       log_invalid_choice_id(type_, "amf_cp_relocation_ind_ies_o::value_c");
       return OCUDUASN_ERROR_ENCODE_FAIL;
@@ -213,6 +243,9 @@ OCUDUASN_CODE amf_cp_relocation_ind_ies_o::value_c::unpack(cbit_ref& bref)
     case types::allowed_nssai:
       HANDLE_CODE(unpack_dyn_seq_of(c.get<allowed_nssai_l>(), bref, 1, 8, true));
       break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<partially_allowed_nssai_l>(), bref, 1, 8, true));
+      break;
     default:
       log_invalid_choice_id(type_, "amf_cp_relocation_ind_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -222,8 +255,9 @@ OCUDUASN_CODE amf_cp_relocation_ind_ies_o::value_c::unpack(cbit_ref& bref)
 
 const char* amf_cp_relocation_ind_ies_o::value_c::types_opts::to_string() const
 {
-  static const char* names[] = {"INTEGER (0..1099511627775)", "INTEGER (0..4294967295)", "S-NSSAI", "AllowedNSSAI"};
-  return convert_enum_idx(names, 4, value, "amf_cp_relocation_ind_ies_o::value_c::types");
+  static const char* names[] = {
+      "INTEGER (0..1099511627775)", "INTEGER (0..4294967295)", "S-NSSAI", "AllowedNSSAI", "Partially-Allowed-NSSAI"};
+  return convert_enum_idx(names, 5, value, "amf_cp_relocation_ind_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<amf_cp_relocation_ind_ies_o>;
@@ -233,6 +267,7 @@ OCUDUASN_CODE amf_cp_relocation_ind_ies_container::pack(bit_ref& bref) const
   uint32_t nof_ies = 2;
   nof_ies += s_nssai_present ? 1 : 0;
   nof_ies += allowed_nssai_present ? 1 : 0;
+  nof_ies += partially_allowed_nssai_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -258,6 +293,12 @@ OCUDUASN_CODE amf_cp_relocation_ind_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(pack_dyn_seq_of(bref, allowed_nssai, 1, 8, true));
+  }
+  if (partially_allowed_nssai_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)414, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, partially_allowed_nssai, 1, 8, true));
   }
 
   return OCUDUASN_SUCCESS;
@@ -300,6 +341,12 @@ OCUDUASN_CODE amf_cp_relocation_ind_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(unpack_dyn_seq_of(allowed_nssai, bref, 1, 8, true));
         break;
       }
+      case 414: {
+        partially_allowed_nssai_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(partially_allowed_nssai, bref, 1, 8, true));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -331,6 +378,15 @@ void amf_cp_relocation_ind_ies_container::to_json(json_writer& j) const
     j.write_str("criticality", "ignore");
     j.start_array("Value");
     for (const auto& e1 : allowed_nssai) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (partially_allowed_nssai_present) {
+    j.write_int("id", 414);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : partially_allowed_nssai) {
       e1.to_json(j);
     }
     j.end_array();
@@ -1536,7 +1592,7 @@ crit_e broadcast_session_mod_fail_ies_o::get_crit(const uint32_t& id)
     case 299:
       return crit_e::reject;
     case 348:
-      return crit_e::reject;
+      return crit_e::ignore;
     case 15:
       return crit_e::ignore;
     case 19:
@@ -1739,7 +1795,7 @@ OCUDUASN_CODE broadcast_session_mod_fail_ies_container::pack(bit_ref& bref) cons
   }
   if (mbs_session_mod_fail_transfer_present) {
     HANDLE_CODE(pack_integer(bref, (uint32_t)348, (uint32_t)0u, (uint32_t)65535u, false, true));
-    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(mbs_session_mod_fail_transfer.pack(bref));
   }
@@ -1816,7 +1872,7 @@ void broadcast_session_mod_fail_ies_container::to_json(json_writer& j) const
   mbs_session_id.to_json(j);
   if (mbs_session_mod_fail_transfer_present) {
     j.write_int("id", 348);
-    j.write_str("criticality", "reject");
+    j.write_str("criticality", "ignore");
     j.write_str("Value", mbs_session_mod_fail_transfer.to_string());
   }
   j.write_int("id", 15);
@@ -3109,7 +3165,7 @@ crit_e broadcast_session_setup_fail_ies_o::get_crit(const uint32_t& id)
     case 299:
       return crit_e::reject;
     case 314:
-      return crit_e::reject;
+      return crit_e::ignore;
     case 15:
       return crit_e::ignore;
     case 19:
@@ -3312,7 +3368,7 @@ OCUDUASN_CODE broadcast_session_setup_fail_ies_container::pack(bit_ref& bref) co
   }
   if (mbs_session_setup_fail_transfer_present) {
     HANDLE_CODE(pack_integer(bref, (uint32_t)314, (uint32_t)0u, (uint32_t)65535u, false, true));
-    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(mbs_session_setup_fail_transfer.pack(bref));
   }
@@ -3389,7 +3445,7 @@ void broadcast_session_setup_fail_ies_container::to_json(json_writer& j) const
   mbs_session_id.to_json(j);
   if (mbs_session_setup_fail_transfer_present) {
     j.write_int("id", 314);
-    j.write_str("criticality", "reject");
+    j.write_str("criticality", "ignore");
     j.write_str("Value", mbs_session_setup_fail_transfer.to_string());
   }
   j.write_int("id", 15);
@@ -3406,12 +3462,12 @@ void broadcast_session_setup_fail_ies_container::to_json(json_writer& j) const
 // BroadcastSessionSetupRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t broadcast_session_setup_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {299, 148, 298, 315};
-  return map_enum_number(names, 4, idx, "id");
+  static const uint32_t names[] = {299, 148, 298, 315, 415};
+  return map_enum_number(names, 5, idx, "id");
 }
 bool broadcast_session_setup_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {299, 148, 298, 315};
+  static const uint32_t names[] = {299, 148, 298, 315, 415};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -3430,6 +3486,8 @@ crit_e broadcast_session_setup_request_ies_o::get_crit(const uint32_t& id)
       return crit_e::reject;
     case 315:
       return crit_e::reject;
+    case 415:
+      return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -3451,6 +3509,9 @@ broadcast_session_setup_request_ies_o::value_c broadcast_session_setup_request_i
     case 315:
       ret.set(value_c::types::mbs_session_setup_request_transfer);
       break;
+    case 415:
+      ret.set(value_c::types::associated_session_id);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -3467,6 +3528,8 @@ presence_e broadcast_session_setup_request_ies_o::get_presence(const uint32_t& i
       return presence_e::mandatory;
     case 315:
       return presence_e::mandatory;
+    case 415:
+      return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -3488,6 +3551,9 @@ void broadcast_session_setup_request_ies_o::value_c::set(types::options e)
       c = mbs_service_area_c{};
       break;
     case types::mbs_session_setup_request_transfer:
+      c = unbounded_octstring<true>{};
+      break;
+    case types::associated_session_id:
       c = unbounded_octstring<true>{};
       break;
     case types::nulltype:
@@ -3516,6 +3582,11 @@ unbounded_octstring<true>& broadcast_session_setup_request_ies_o::value_c::mbs_s
   assert_choice_type(types::mbs_session_setup_request_transfer, type_, "Value");
   return c.get<unbounded_octstring<true>>();
 }
+unbounded_octstring<true>& broadcast_session_setup_request_ies_o::value_c::associated_session_id()
+{
+  assert_choice_type(types::associated_session_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
 const mbs_session_id_s& broadcast_session_setup_request_ies_o::value_c::mbs_session_id() const
 {
   assert_choice_type(types::mbs_session_id, type_, "Value");
@@ -3537,6 +3608,11 @@ broadcast_session_setup_request_ies_o::value_c::mbs_session_setup_request_transf
   assert_choice_type(types::mbs_session_setup_request_transfer, type_, "Value");
   return c.get<unbounded_octstring<true>>();
 }
+const unbounded_octstring<true>& broadcast_session_setup_request_ies_o::value_c::associated_session_id() const
+{
+  assert_choice_type(types::associated_session_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
 void broadcast_session_setup_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -3554,6 +3630,9 @@ void broadcast_session_setup_request_ies_o::value_c::to_json(json_writer& j) con
       c.get<mbs_service_area_c>().to_json(j);
       break;
     case types::mbs_session_setup_request_transfer:
+      j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
+      break;
+    case types::associated_session_id:
       j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
       break;
     default:
@@ -3575,6 +3654,9 @@ OCUDUASN_CODE broadcast_session_setup_request_ies_o::value_c::pack(bit_ref& bref
       HANDLE_CODE(c.get<mbs_service_area_c>().pack(bref));
       break;
     case types::mbs_session_setup_request_transfer:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
+      break;
+    case types::associated_session_id:
       HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
       break;
     default:
@@ -3599,6 +3681,9 @@ OCUDUASN_CODE broadcast_session_setup_request_ies_o::value_c::unpack(cbit_ref& b
     case types::mbs_session_setup_request_transfer:
       HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
       break;
+    case types::associated_session_id:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "broadcast_session_setup_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -3608,8 +3693,8 @@ OCUDUASN_CODE broadcast_session_setup_request_ies_o::value_c::unpack(cbit_ref& b
 
 const char* broadcast_session_setup_request_ies_o::value_c::types_opts::to_string() const
 {
-  static const char* names[] = {"MBS-SessionID", "S-NSSAI", "MBS-ServiceArea", "OCTET STRING"};
-  return convert_enum_idx(names, 4, value, "broadcast_session_setup_request_ies_o::value_c::types");
+  static const char* names[] = {"MBS-SessionID", "S-NSSAI", "MBS-ServiceArea", "OCTET STRING", "OCTET STRING"};
+  return convert_enum_idx(names, 5, value, "broadcast_session_setup_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<broadcast_session_setup_request_ies_o>;
@@ -3617,6 +3702,7 @@ template struct asn1::protocol_ie_field_s<broadcast_session_setup_request_ies_o>
 OCUDUASN_CODE broadcast_session_setup_request_ies_container::pack(bit_ref& bref) const
 {
   uint32_t nof_ies = 4;
+  nof_ies += associated_session_id_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -3642,6 +3728,12 @@ OCUDUASN_CODE broadcast_session_setup_request_ies_container::pack(bit_ref& bref)
     HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(mbs_session_setup_request_transfer.pack(bref));
+  }
+  if (associated_session_id_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)415, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(associated_session_id.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -3684,6 +3776,12 @@ OCUDUASN_CODE broadcast_session_setup_request_ies_container::unpack(cbit_ref& br
         HANDLE_CODE(mbs_session_setup_request_transfer.unpack(bref));
         break;
       }
+      case 415: {
+        associated_session_id_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(associated_session_id.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -3711,6 +3809,11 @@ void broadcast_session_setup_request_ies_container::to_json(json_writer& j) cons
   j.write_int("id", 315);
   j.write_str("criticality", "reject");
   j.write_str("Value", mbs_session_setup_request_transfer.to_string());
+  if (associated_session_id_present) {
+    j.write_int("id", 415);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", associated_session_id.to_string());
+  }
   j.end_obj();
 }
 
@@ -3977,6 +4080,811 @@ void broadcast_session_setup_resp_ies_container::to_json(json_writer& j) const
     j.write_str("criticality", "reject");
     j.write_str("Value", mbs_session_setup_resp_transfer.to_string());
   }
+  if (crit_diagnostics_present) {
+    j.write_int("id", 19);
+    j.write_str("criticality", "ignore");
+    crit_diagnostics.to_json(j);
+  }
+  j.end_obj();
+}
+
+// BroadcastSessionTransportFailureIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t broadcast_session_transport_fail_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {299, 417, 15, 19};
+  return map_enum_number(names, 4, idx, "id");
+}
+bool broadcast_session_transport_fail_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {299, 417, 15, 19};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e broadcast_session_transport_fail_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 299:
+      return crit_e::reject;
+    case 417:
+      return crit_e::ignore;
+    case 15:
+      return crit_e::ignore;
+    case 19:
+      return crit_e::ignore;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+broadcast_session_transport_fail_ies_o::value_c broadcast_session_transport_fail_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 299:
+      ret.set(value_c::types::mbs_session_id);
+      break;
+    case 417:
+      ret.set(value_c::types::broadcast_transport_fail_transfer);
+      break;
+    case 15:
+      ret.set(value_c::types::cause);
+      break;
+    case 19:
+      ret.set(value_c::types::crit_diagnostics);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e broadcast_session_transport_fail_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 299:
+      return presence_e::mandatory;
+    case 417:
+      return presence_e::mandatory;
+    case 15:
+      return presence_e::mandatory;
+    case 19:
+      return presence_e::optional;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void broadcast_session_transport_fail_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::mbs_session_id:
+      c = mbs_session_id_s{};
+      break;
+    case types::broadcast_transport_fail_transfer:
+      c = unbounded_octstring<true>{};
+      break;
+    case types::cause:
+      c = cause_c{};
+      break;
+    case types::crit_diagnostics:
+      c = crit_diagnostics_s{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_fail_ies_o::value_c");
+  }
+}
+mbs_session_id_s& broadcast_session_transport_fail_ies_o::value_c::mbs_session_id()
+{
+  assert_choice_type(types::mbs_session_id, type_, "Value");
+  return c.get<mbs_session_id_s>();
+}
+unbounded_octstring<true>& broadcast_session_transport_fail_ies_o::value_c::broadcast_transport_fail_transfer()
+{
+  assert_choice_type(types::broadcast_transport_fail_transfer, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+cause_c& broadcast_session_transport_fail_ies_o::value_c::cause()
+{
+  assert_choice_type(types::cause, type_, "Value");
+  return c.get<cause_c>();
+}
+crit_diagnostics_s& broadcast_session_transport_fail_ies_o::value_c::crit_diagnostics()
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+const mbs_session_id_s& broadcast_session_transport_fail_ies_o::value_c::mbs_session_id() const
+{
+  assert_choice_type(types::mbs_session_id, type_, "Value");
+  return c.get<mbs_session_id_s>();
+}
+const unbounded_octstring<true>&
+broadcast_session_transport_fail_ies_o::value_c::broadcast_transport_fail_transfer() const
+{
+  assert_choice_type(types::broadcast_transport_fail_transfer, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+const cause_c& broadcast_session_transport_fail_ies_o::value_c::cause() const
+{
+  assert_choice_type(types::cause, type_, "Value");
+  return c.get<cause_c>();
+}
+const crit_diagnostics_s& broadcast_session_transport_fail_ies_o::value_c::crit_diagnostics() const
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+void broadcast_session_transport_fail_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::mbs_session_id:
+      j.write_fieldname("MBS-SessionID");
+      c.get<mbs_session_id_s>().to_json(j);
+      break;
+    case types::broadcast_transport_fail_transfer:
+      j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
+      break;
+    case types::cause:
+      j.write_fieldname("Cause");
+      c.get<cause_c>().to_json(j);
+      break;
+    case types::crit_diagnostics:
+      j.write_fieldname("CriticalityDiagnostics");
+      c.get<crit_diagnostics_s>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_fail_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE broadcast_session_transport_fail_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::mbs_session_id:
+      HANDLE_CODE(c.get<mbs_session_id_s>().pack(bref));
+      break;
+    case types::broadcast_transport_fail_transfer:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
+      break;
+    case types::cause:
+      HANDLE_CODE(c.get<cause_c>().pack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_fail_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE broadcast_session_transport_fail_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::mbs_session_id:
+      HANDLE_CODE(c.get<mbs_session_id_s>().unpack(bref));
+      break;
+    case types::broadcast_transport_fail_transfer:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
+      break;
+    case types::cause:
+      HANDLE_CODE(c.get<cause_c>().unpack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_fail_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* broadcast_session_transport_fail_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"MBS-SessionID", "OCTET STRING", "Cause", "CriticalityDiagnostics"};
+  return convert_enum_idx(names, 4, value, "broadcast_session_transport_fail_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<broadcast_session_transport_fail_ies_o>;
+
+OCUDUASN_CODE broadcast_session_transport_fail_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 3;
+  nof_ies += crit_diagnostics_present ? 1 : 0;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)299, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mbs_session_id.pack(bref));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)417, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(broadcast_transport_fail_transfer.pack(bref));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)15, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(cause.pack(bref));
+  }
+  if (crit_diagnostics_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)19, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(crit_diagnostics.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE broadcast_session_transport_fail_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 3;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 299: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mbs_session_id.unpack(bref));
+        break;
+      }
+      case 417: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(broadcast_transport_fail_transfer.unpack(bref));
+        break;
+      }
+      case 15: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(cause.unpack(bref));
+        break;
+      }
+      case 19: {
+        crit_diagnostics_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(crit_diagnostics.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void broadcast_session_transport_fail_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 299);
+  j.write_str("criticality", "reject");
+  mbs_session_id.to_json(j);
+  j.write_int("id", 417);
+  j.write_str("criticality", "ignore");
+  j.write_str("Value", broadcast_transport_fail_transfer.to_string());
+  j.write_int("id", 15);
+  j.write_str("criticality", "ignore");
+  cause.to_json(j);
+  if (crit_diagnostics_present) {
+    j.write_int("id", 19);
+    j.write_str("criticality", "ignore");
+    crit_diagnostics.to_json(j);
+  }
+  j.end_obj();
+}
+
+// BroadcastSessionTransportRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t broadcast_session_transport_request_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {299, 418};
+  return map_enum_number(names, 2, idx, "id");
+}
+bool broadcast_session_transport_request_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {299, 418};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e broadcast_session_transport_request_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 299:
+      return crit_e::reject;
+    case 418:
+      return crit_e::reject;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+broadcast_session_transport_request_ies_o::value_c
+broadcast_session_transport_request_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 299:
+      ret.set(value_c::types::mbs_session_id);
+      break;
+    case 418:
+      ret.set(value_c::types::broadcast_transport_request_transfer);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e broadcast_session_transport_request_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 299:
+      return presence_e::mandatory;
+    case 418:
+      return presence_e::mandatory;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void broadcast_session_transport_request_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::mbs_session_id:
+      c = mbs_session_id_s{};
+      break;
+    case types::broadcast_transport_request_transfer:
+      c = unbounded_octstring<true>{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_request_ies_o::value_c");
+  }
+}
+mbs_session_id_s& broadcast_session_transport_request_ies_o::value_c::mbs_session_id()
+{
+  assert_choice_type(types::mbs_session_id, type_, "Value");
+  return c.get<mbs_session_id_s>();
+}
+unbounded_octstring<true>& broadcast_session_transport_request_ies_o::value_c::broadcast_transport_request_transfer()
+{
+  assert_choice_type(types::broadcast_transport_request_transfer, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+const mbs_session_id_s& broadcast_session_transport_request_ies_o::value_c::mbs_session_id() const
+{
+  assert_choice_type(types::mbs_session_id, type_, "Value");
+  return c.get<mbs_session_id_s>();
+}
+const unbounded_octstring<true>&
+broadcast_session_transport_request_ies_o::value_c::broadcast_transport_request_transfer() const
+{
+  assert_choice_type(types::broadcast_transport_request_transfer, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+void broadcast_session_transport_request_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::mbs_session_id:
+      j.write_fieldname("MBS-SessionID");
+      c.get<mbs_session_id_s>().to_json(j);
+      break;
+    case types::broadcast_transport_request_transfer:
+      j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_request_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE broadcast_session_transport_request_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::mbs_session_id:
+      HANDLE_CODE(c.get<mbs_session_id_s>().pack(bref));
+      break;
+    case types::broadcast_transport_request_transfer:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_request_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE broadcast_session_transport_request_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::mbs_session_id:
+      HANDLE_CODE(c.get<mbs_session_id_s>().unpack(bref));
+      break;
+    case types::broadcast_transport_request_transfer:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_request_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* broadcast_session_transport_request_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"MBS-SessionID", "OCTET STRING"};
+  return convert_enum_idx(names, 2, value, "broadcast_session_transport_request_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<broadcast_session_transport_request_ies_o>;
+
+OCUDUASN_CODE broadcast_session_transport_request_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 2;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)299, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mbs_session_id.pack(bref));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)418, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(broadcast_transport_request_transfer.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE broadcast_session_transport_request_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 2;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 299: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mbs_session_id.unpack(bref));
+        break;
+      }
+      case 418: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(broadcast_transport_request_transfer.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void broadcast_session_transport_request_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 299);
+  j.write_str("criticality", "reject");
+  mbs_session_id.to_json(j);
+  j.write_int("id", 418);
+  j.write_str("criticality", "reject");
+  j.write_str("Value", broadcast_transport_request_transfer.to_string());
+  j.end_obj();
+}
+
+// BroadcastSessionTransportResponseIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t broadcast_session_transport_resp_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {299, 419, 19};
+  return map_enum_number(names, 3, idx, "id");
+}
+bool broadcast_session_transport_resp_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {299, 419, 19};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e broadcast_session_transport_resp_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 299:
+      return crit_e::reject;
+    case 419:
+      return crit_e::reject;
+    case 19:
+      return crit_e::ignore;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+broadcast_session_transport_resp_ies_o::value_c broadcast_session_transport_resp_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 299:
+      ret.set(value_c::types::mbs_session_id);
+      break;
+    case 419:
+      ret.set(value_c::types::broadcast_transport_resp_transfer);
+      break;
+    case 19:
+      ret.set(value_c::types::crit_diagnostics);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e broadcast_session_transport_resp_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 299:
+      return presence_e::mandatory;
+    case 419:
+      return presence_e::mandatory;
+    case 19:
+      return presence_e::optional;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void broadcast_session_transport_resp_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::mbs_session_id:
+      c = mbs_session_id_s{};
+      break;
+    case types::broadcast_transport_resp_transfer:
+      c = unbounded_octstring<true>{};
+      break;
+    case types::crit_diagnostics:
+      c = crit_diagnostics_s{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_resp_ies_o::value_c");
+  }
+}
+mbs_session_id_s& broadcast_session_transport_resp_ies_o::value_c::mbs_session_id()
+{
+  assert_choice_type(types::mbs_session_id, type_, "Value");
+  return c.get<mbs_session_id_s>();
+}
+unbounded_octstring<true>& broadcast_session_transport_resp_ies_o::value_c::broadcast_transport_resp_transfer()
+{
+  assert_choice_type(types::broadcast_transport_resp_transfer, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+crit_diagnostics_s& broadcast_session_transport_resp_ies_o::value_c::crit_diagnostics()
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+const mbs_session_id_s& broadcast_session_transport_resp_ies_o::value_c::mbs_session_id() const
+{
+  assert_choice_type(types::mbs_session_id, type_, "Value");
+  return c.get<mbs_session_id_s>();
+}
+const unbounded_octstring<true>&
+broadcast_session_transport_resp_ies_o::value_c::broadcast_transport_resp_transfer() const
+{
+  assert_choice_type(types::broadcast_transport_resp_transfer, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+const crit_diagnostics_s& broadcast_session_transport_resp_ies_o::value_c::crit_diagnostics() const
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+void broadcast_session_transport_resp_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::mbs_session_id:
+      j.write_fieldname("MBS-SessionID");
+      c.get<mbs_session_id_s>().to_json(j);
+      break;
+    case types::broadcast_transport_resp_transfer:
+      j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
+      break;
+    case types::crit_diagnostics:
+      j.write_fieldname("CriticalityDiagnostics");
+      c.get<crit_diagnostics_s>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_resp_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE broadcast_session_transport_resp_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::mbs_session_id:
+      HANDLE_CODE(c.get<mbs_session_id_s>().pack(bref));
+      break;
+    case types::broadcast_transport_resp_transfer:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_resp_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE broadcast_session_transport_resp_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::mbs_session_id:
+      HANDLE_CODE(c.get<mbs_session_id_s>().unpack(bref));
+      break;
+    case types::broadcast_transport_resp_transfer:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "broadcast_session_transport_resp_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* broadcast_session_transport_resp_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"MBS-SessionID", "OCTET STRING", "CriticalityDiagnostics"};
+  return convert_enum_idx(names, 3, value, "broadcast_session_transport_resp_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<broadcast_session_transport_resp_ies_o>;
+
+OCUDUASN_CODE broadcast_session_transport_resp_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 2;
+  nof_ies += crit_diagnostics_present ? 1 : 0;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)299, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mbs_session_id.pack(bref));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)419, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(broadcast_transport_resp_transfer.pack(bref));
+  }
+  if (crit_diagnostics_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)19, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(crit_diagnostics.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE broadcast_session_transport_resp_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 2;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 299: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mbs_session_id.unpack(bref));
+        break;
+      }
+      case 419: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(broadcast_transport_resp_transfer.unpack(bref));
+        break;
+      }
+      case 19: {
+        crit_diagnostics_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(crit_diagnostics.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void broadcast_session_transport_resp_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 299);
+  j.write_str("criticality", "reject");
+  mbs_session_id.to_json(j);
+  j.write_int("id", 419);
+  j.write_str("criticality", "reject");
+  j.write_str("Value", broadcast_transport_resp_transfer.to_string());
   if (crit_diagnostics_present) {
     j.write_int("id", 19);
     j.write_str("criticality", "ignore");
@@ -4442,12 +5350,12 @@ void cell_traffic_trace_ies_container::to_json(json_writer& j) const
 // ConnectionEstablishmentIndicationIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t conn_establishment_ind_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10, 85, 117, 226, 148, 0, 209, 212, 210, 205, 222, 264, 34};
-  return map_enum_number(names, 13, idx, "id");
+  static const uint32_t names[] = {10, 85, 117, 226, 148, 0, 209, 212, 210, 205, 222, 264, 34, 48, 414, 443};
+  return map_enum_number(names, 16, idx, "id");
 }
 bool conn_establishment_ind_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10, 85, 117, 226, 148, 0, 209, 212, 210, 205, 222, 264, 34};
+  static const uint32_t names[] = {10, 85, 117, 226, 148, 0, 209, 212, 210, 205, 222, 264, 34, 48, 414, 443};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -4483,6 +5391,12 @@ crit_e conn_establishment_ind_ies_o::get_crit(const uint32_t& id)
     case 264:
       return crit_e::reject;
     case 34:
+      return crit_e::ignore;
+    case 48:
+      return crit_e::reject;
+    case 414:
+      return crit_e::ignore;
+    case 443:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -4532,6 +5446,15 @@ conn_establishment_ind_ies_o::value_c conn_establishment_ind_ies_o::get_value(co
     case 34:
       ret.set(value_c::types::masked_imeisv);
       break;
+    case 48:
+      ret.set(value_c::types::old_amf);
+      break;
+    case 414:
+      ret.set(value_c::types::partially_allowed_nssai);
+      break;
+    case 443:
+      ret.set(value_c::types::extended_old_amf);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -4565,6 +5488,12 @@ presence_e conn_establishment_ind_ies_o::get_presence(const uint32_t& id)
     case 264:
       return presence_e::optional;
     case 34:
+      return presence_e::optional;
+    case 48:
+      return presence_e::optional;
+    case 414:
+      return presence_e::optional;
+    case 443:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -4615,6 +5544,15 @@ void conn_establishment_ind_ies_o::value_c::set(types::options e)
       break;
     case types::masked_imeisv:
       c = fixed_bitstring<64, false, true>{};
+      break;
+    case types::old_amf:
+      c = printable_string<1, 150, true, true>{};
+      break;
+    case types::partially_allowed_nssai:
+      c = partially_allowed_nssai_l{};
+      break;
+    case types::extended_old_amf:
+      c = extended_amf_name_s{};
       break;
     case types::nulltype:
       break;
@@ -4687,6 +5625,21 @@ fixed_bitstring<64, false, true>& conn_establishment_ind_ies_o::value_c::masked_
   assert_choice_type(types::masked_imeisv, type_, "Value");
   return c.get<fixed_bitstring<64, false, true>>();
 }
+printable_string<1, 150, true, true>& conn_establishment_ind_ies_o::value_c::old_amf()
+{
+  assert_choice_type(types::old_amf, type_, "Value");
+  return c.get<printable_string<1, 150, true, true>>();
+}
+partially_allowed_nssai_l& conn_establishment_ind_ies_o::value_c::partially_allowed_nssai()
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+extended_amf_name_s& conn_establishment_ind_ies_o::value_c::extended_old_amf()
+{
+  assert_choice_type(types::extended_old_amf, type_, "Value");
+  return c.get<extended_amf_name_s>();
+}
 const uint64_t& conn_establishment_ind_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -4752,6 +5705,21 @@ const fixed_bitstring<64, false, true>& conn_establishment_ind_ies_o::value_c::m
   assert_choice_type(types::masked_imeisv, type_, "Value");
   return c.get<fixed_bitstring<64, false, true>>();
 }
+const printable_string<1, 150, true, true>& conn_establishment_ind_ies_o::value_c::old_amf() const
+{
+  assert_choice_type(types::old_amf, type_, "Value");
+  return c.get<printable_string<1, 150, true, true>>();
+}
+const partially_allowed_nssai_l& conn_establishment_ind_ies_o::value_c::partially_allowed_nssai() const
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+const extended_amf_name_s& conn_establishment_ind_ies_o::value_c::extended_old_amf() const
+{
+  assert_choice_type(types::extended_old_amf, type_, "Value");
+  return c.get<extended_amf_name_s>();
+}
 void conn_establishment_ind_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -4802,6 +5770,20 @@ void conn_establishment_ind_ies_o::value_c::to_json(json_writer& j) const
     case types::masked_imeisv:
       j.write_str("BIT STRING", c.get<fixed_bitstring<64, false, true>>().to_string());
       break;
+    case types::old_amf:
+      j.write_str("PrintableString", c.get<printable_string<1, 150, true, true>>().to_string());
+      break;
+    case types::partially_allowed_nssai:
+      j.start_array("Partially-Allowed-NSSAI");
+      for (const auto& e1 : c.get<partially_allowed_nssai_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::extended_old_amf:
+      j.write_fieldname("Extended-AMFName");
+      c.get<extended_amf_name_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "conn_establishment_ind_ies_o::value_c");
   }
@@ -4849,6 +5831,15 @@ OCUDUASN_CODE conn_establishment_ind_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::masked_imeisv:
       HANDLE_CODE((c.get<fixed_bitstring<64, false, true>>().pack(bref)));
+      break;
+    case types::old_amf:
+      HANDLE_CODE((c.get<printable_string<1, 150, true, true>>().pack(bref)));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<partially_allowed_nssai_l>(), 1, 8, true));
+      break;
+    case types::extended_old_amf:
+      HANDLE_CODE(c.get<extended_amf_name_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "conn_establishment_ind_ies_o::value_c");
@@ -4899,6 +5890,15 @@ OCUDUASN_CODE conn_establishment_ind_ies_o::value_c::unpack(cbit_ref& bref)
     case types::masked_imeisv:
       HANDLE_CODE((c.get<fixed_bitstring<64, false, true>>().unpack(bref)));
       break;
+    case types::old_amf:
+      HANDLE_CODE((c.get<printable_string<1, 150, true, true>>().unpack(bref)));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<partially_allowed_nssai_l>(), bref, 1, 8, true));
+      break;
+    case types::extended_old_amf:
+      HANDLE_CODE(c.get<extended_amf_name_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "conn_establishment_ind_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -4920,8 +5920,11 @@ const char* conn_establishment_ind_ies_o::value_c::types_opts::to_string() const
                                 "Enhanced-CoverageRestriction",
                                 "CEmodeBrestricted",
                                 "OCTET STRING",
-                                "BIT STRING"};
-  return convert_enum_idx(names, 13, value, "conn_establishment_ind_ies_o::value_c::types");
+                                "BIT STRING",
+                                "PrintableString",
+                                "Partially-Allowed-NSSAI",
+                                "Extended-AMFName"};
+  return convert_enum_idx(names, 16, value, "conn_establishment_ind_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<conn_establishment_ind_ies_o>;
@@ -4940,6 +5943,9 @@ OCUDUASN_CODE conn_establishment_ind_ies_container::pack(bit_ref& bref) const
   nof_ies += ce_mode_brestricted_present ? 1 : 0;
   nof_ies += ue_radio_cap_id_present ? 1 : 0;
   nof_ies += masked_imeisv_present ? 1 : 0;
+  nof_ies += old_amf_present ? 1 : 0;
+  nof_ies += partially_allowed_nssai_present ? 1 : 0;
+  nof_ies += extended_old_amf_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -5019,6 +6025,24 @@ OCUDUASN_CODE conn_establishment_ind_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(masked_imeisv.pack(bref));
+  }
+  if (old_amf_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)48, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(old_amf.pack(bref));
+  }
+  if (partially_allowed_nssai_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)414, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, partially_allowed_nssai, 1, 8, true));
+  }
+  if (extended_old_amf_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)443, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(extended_old_amf.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -5115,6 +6139,24 @@ OCUDUASN_CODE conn_establishment_ind_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(masked_imeisv.unpack(bref));
         break;
       }
+      case 48: {
+        old_amf_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(old_amf.unpack(bref));
+        break;
+      }
+      case 414: {
+        partially_allowed_nssai_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(partially_allowed_nssai, bref, 1, 8, true));
+        break;
+      }
+      case 443: {
+        extended_old_amf_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(extended_old_amf.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -5194,6 +6236,25 @@ void conn_establishment_ind_ies_container::to_json(json_writer& j) const
     j.write_int("id", 34);
     j.write_str("criticality", "ignore");
     j.write_str("Value", masked_imeisv.to_string());
+  }
+  if (old_amf_present) {
+    j.write_int("id", 48);
+    j.write_str("criticality", "reject");
+    j.write_str("Value", old_amf.to_string());
+  }
+  if (partially_allowed_nssai_present) {
+    j.write_int("id", 414);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : partially_allowed_nssai) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (extended_old_amf_present) {
+    j.write_int("id", 443);
+    j.write_str("criticality", "ignore");
+    extended_old_amf.to_json(j);
   }
   j.end_obj();
 }
@@ -7033,14 +8094,14 @@ void distribution_setup_resp_ies_container::to_json(json_writer& j) const
 // DownlinkNASTransport-IEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t dl_nas_transport_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10,  85,  48,  83,  38,  36,  31,  110, 0,   177,
-                                   205, 206, 209, 222, 117, 228, 226, 264, 334, 34};
-  return map_enum_number(names, 20, idx, "id");
+  static const uint32_t names[] = {10,  85,  48,  83,  38,  36,  31,  110, 0,   177, 205, 206,
+                                   209, 222, 117, 228, 226, 264, 334, 34,  414, 400, 443};
+  return map_enum_number(names, 23, idx, "id");
 }
 bool dl_nas_transport_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10,  85,  48,  83,  38,  36,  31,  110, 0,   177,
-                                   205, 206, 209, 222, 117, 228, 226, 264, 334, 34};
+  static const uint32_t names[] = {10,  85,  48,  83,  38,  36,  31,  110, 0,   177, 205, 206,
+                                   209, 222, 117, 228, 226, 264, 334, 34,  414, 400, 443};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -7090,6 +8151,12 @@ crit_e dl_nas_transport_ies_o::get_crit(const uint32_t& id)
     case 334:
       return crit_e::ignore;
     case 34:
+      return crit_e::ignore;
+    case 414:
+      return crit_e::ignore;
+    case 400:
+      return crit_e::ignore;
+    case 443:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -7160,6 +8227,15 @@ dl_nas_transport_ies_o::value_c dl_nas_transport_ies_o::get_value(const uint32_t
     case 34:
       ret.set(value_c::types::masked_imeisv);
       break;
+    case 414:
+      ret.set(value_c::types::partially_allowed_nssai);
+      break;
+    case 400:
+      ret.set(value_c::types::mobile_iab_authorized);
+      break;
+    case 443:
+      ret.set(value_c::types::extended_old_amf);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -7207,6 +8283,12 @@ presence_e dl_nas_transport_ies_o::get_presence(const uint32_t& id)
     case 334:
       return presence_e::optional;
     case 34:
+      return presence_e::optional;
+    case 414:
+      return presence_e::optional;
+    case 400:
+      return presence_e::optional;
+    case 443:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -7278,6 +8360,15 @@ void dl_nas_transport_ies_o::value_c::set(types::options e)
       break;
     case types::masked_imeisv:
       c = fixed_bitstring<64, false, true>{};
+      break;
+    case types::partially_allowed_nssai:
+      c = partially_allowed_nssai_l{};
+      break;
+    case types::mobile_iab_authorized:
+      c = mobile_iab_authorized_e{};
+      break;
+    case types::extended_old_amf:
+      c = extended_amf_name_s{};
       break;
     case types::nulltype:
       break;
@@ -7385,6 +8476,21 @@ fixed_bitstring<64, false, true>& dl_nas_transport_ies_o::value_c::masked_imeisv
   assert_choice_type(types::masked_imeisv, type_, "Value");
   return c.get<fixed_bitstring<64, false, true>>();
 }
+partially_allowed_nssai_l& dl_nas_transport_ies_o::value_c::partially_allowed_nssai()
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+mobile_iab_authorized_e& dl_nas_transport_ies_o::value_c::mobile_iab_authorized()
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+extended_amf_name_s& dl_nas_transport_ies_o::value_c::extended_old_amf()
+{
+  assert_choice_type(types::extended_old_amf, type_, "Value");
+  return c.get<extended_amf_name_s>();
+}
 const uint64_t& dl_nas_transport_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -7485,6 +8591,21 @@ const fixed_bitstring<64, false, true>& dl_nas_transport_ies_o::value_c::masked_
   assert_choice_type(types::masked_imeisv, type_, "Value");
   return c.get<fixed_bitstring<64, false, true>>();
 }
+const partially_allowed_nssai_l& dl_nas_transport_ies_o::value_c::partially_allowed_nssai() const
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+const mobile_iab_authorized_e& dl_nas_transport_ies_o::value_c::mobile_iab_authorized() const
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+const extended_amf_name_s& dl_nas_transport_ies_o::value_c::extended_old_amf() const
+{
+  assert_choice_type(types::extended_old_amf, type_, "Value");
+  return c.get<extended_amf_name_s>();
+}
 void dl_nas_transport_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -7557,6 +8678,20 @@ void dl_nas_transport_ies_o::value_c::to_json(json_writer& j) const
     case types::masked_imeisv:
       j.write_str("BIT STRING", c.get<fixed_bitstring<64, false, true>>().to_string());
       break;
+    case types::partially_allowed_nssai:
+      j.start_array("Partially-Allowed-NSSAI");
+      for (const auto& e1 : c.get<partially_allowed_nssai_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::mobile_iab_authorized:
+      j.write_str("MobileIAB-Authorized", c.get<mobile_iab_authorized_e>().to_string());
+      break;
+    case types::extended_old_amf:
+      j.write_fieldname("Extended-AMFName");
+      c.get<extended_amf_name_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "dl_nas_transport_ies_o::value_c");
   }
@@ -7625,6 +8760,15 @@ OCUDUASN_CODE dl_nas_transport_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::masked_imeisv:
       HANDLE_CODE((c.get<fixed_bitstring<64, false, true>>().pack(bref)));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<partially_allowed_nssai_l>(), 1, 8, true));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().pack(bref));
+      break;
+    case types::extended_old_amf:
+      HANDLE_CODE(c.get<extended_amf_name_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "dl_nas_transport_ies_o::value_c");
@@ -7696,6 +8840,15 @@ OCUDUASN_CODE dl_nas_transport_ies_o::value_c::unpack(cbit_ref& bref)
     case types::masked_imeisv:
       HANDLE_CODE((c.get<fixed_bitstring<64, false, true>>().unpack(bref)));
       break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<partially_allowed_nssai_l>(), bref, 1, 8, true));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().unpack(bref));
+      break;
+    case types::extended_old_amf:
+      HANDLE_CODE(c.get<extended_amf_name_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "dl_nas_transport_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -7724,8 +8877,11 @@ const char* dl_nas_transport_ies_o::value_c::types_opts::to_string() const
                                 "EndIndication",
                                 "OCTET STRING",
                                 "TargetNSSAIInformation",
-                                "BIT STRING"};
-  return convert_enum_idx(names, 20, value, "dl_nas_transport_ies_o::value_c::types");
+                                "BIT STRING",
+                                "Partially-Allowed-NSSAI",
+                                "MobileIAB-Authorized",
+                                "Extended-AMFName"};
+  return convert_enum_idx(names, 23, value, "dl_nas_transport_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<dl_nas_transport_ies_o>;
@@ -7750,6 +8906,9 @@ OCUDUASN_CODE dl_nas_transport_ies_container::pack(bit_ref& bref) const
   nof_ies += ue_radio_cap_id_present ? 1 : 0;
   nof_ies += target_nssai_info_present ? 1 : 0;
   nof_ies += masked_imeisv_present ? 1 : 0;
+  nof_ies += partially_allowed_nssai_present ? 1 : 0;
+  nof_ies += mobile_iab_authorized_present ? 1 : 0;
+  nof_ies += extended_old_amf_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -7871,6 +9030,24 @@ OCUDUASN_CODE dl_nas_transport_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(masked_imeisv.pack(bref));
+  }
+  if (partially_allowed_nssai_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)414, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, partially_allowed_nssai, 1, 8, true));
+  }
+  if (mobile_iab_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)400, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mobile_iab_authorized.pack(bref));
+  }
+  if (extended_old_amf_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)443, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(extended_old_amf.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -8009,6 +9186,24 @@ OCUDUASN_CODE dl_nas_transport_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(masked_imeisv.unpack(bref));
         break;
       }
+      case 414: {
+        partially_allowed_nssai_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(partially_allowed_nssai, bref, 1, 8, true));
+        break;
+      }
+      case 400: {
+        mobile_iab_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mobile_iab_authorized.unpack(bref));
+        break;
+      }
+      case 443: {
+        extended_old_amf_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(extended_old_amf.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -8121,6 +9316,25 @@ void dl_nas_transport_ies_container::to_json(json_writer& j) const
     j.write_int("id", 34);
     j.write_str("criticality", "ignore");
     j.write_str("Value", masked_imeisv.to_string());
+  }
+  if (partially_allowed_nssai_present) {
+    j.write_int("id", 414);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : partially_allowed_nssai) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (mobile_iab_authorized_present) {
+    j.write_int("id", 400);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", mobile_iab_authorized.to_string());
+  }
+  if (extended_old_amf_present) {
+    j.write_int("id", 443);
+    j.write_str("criticality", "ignore");
+    extended_old_amf.to_json(j);
   }
   j.end_obj();
 }
@@ -11926,16 +13140,16 @@ void ho_prep_fail_ies_container::to_json(json_writer& j) const
 // HandoverRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t ho_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10,  29,  15,  110, 18,  119, 93,  41,  37,  73,  0,   108, 34,
-                                   101, 36,  33,  91,  28,  146, 165, 177, 199, 205, 209, 216, 215,
-                                   218, 217, 219, 222, 234, 254, 264, 206, 326, 335, 345, 346, 347};
-  return map_enum_number(names, 39, idx, "id");
+  static const uint32_t names[] = {10,  29,  15,  110, 18,  119, 93,  41,  37,  73,  0,   108, 34,  101, 36,  33,  91,
+                                   28,  146, 165, 177, 199, 205, 209, 216, 215, 218, 217, 219, 222, 234, 254, 264, 206,
+                                   326, 335, 345, 346, 347, 373, 374, 375, 376, 377, 378, 400, 403, 414, 430};
+  return map_enum_number(names, 49, idx, "id");
 }
 bool ho_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10,  29,  15,  110, 18,  119, 93,  41,  37,  73,  0,   108, 34,
-                                   101, 36,  33,  91,  28,  146, 165, 177, 199, 205, 209, 216, 215,
-                                   218, 217, 219, 222, 234, 254, 264, 206, 326, 335, 345, 346, 347};
+  static const uint32_t names[] = {10,  29,  15,  110, 18,  119, 93,  41,  37,  73,  0,   108, 34,  101, 36,  33,  91,
+                                   28,  146, 165, 177, 199, 205, 209, 216, 215, 218, 217, 219, 222, 234, 254, 264, 206,
+                                   326, 335, 345, 346, 347, 373, 374, 375, 376, 377, 378, 400, 403, 414, 430};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -12023,6 +13237,26 @@ crit_e ho_request_ies_o::get_crit(const uint32_t& id)
     case 346:
       return crit_e::ignore;
     case 347:
+      return crit_e::ignore;
+    case 373:
+      return crit_e::ignore;
+    case 374:
+      return crit_e::ignore;
+    case 375:
+      return crit_e::ignore;
+    case 376:
+      return crit_e::ignore;
+    case 377:
+      return crit_e::ignore;
+    case 378:
+      return crit_e::ignore;
+    case 400:
+      return crit_e::ignore;
+    case 403:
+      return crit_e::ignore;
+    case 414:
+      return crit_e::ignore;
+    case 430:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -12150,6 +13384,36 @@ ho_request_ies_o::value_c ho_request_ies_o::get_value(const uint32_t& id)
     case 347:
       ret.set(value_c::types::five_g_pro_se_pc5_qos_params);
       break;
+    case 373:
+      ret.set(value_c::types::aerial_ue_sub_info);
+      break;
+    case 374:
+      ret.set(value_c::types::nr_a2_x_services_authorized);
+      break;
+    case 375:
+      ret.set(value_c::types::lte_a2_x_services_authorized);
+      break;
+    case 376:
+      ret.set(value_c::types::nr_a2_x_ue_pc5_aggr_max_bit_rate);
+      break;
+    case 377:
+      ret.set(value_c::types::lte_a2_x_ue_pc5_aggr_max_bit_rate);
+      break;
+    case 378:
+      ret.set(value_c::types::a2_x_pc5_qos_params);
+      break;
+    case 400:
+      ret.set(value_c::types::mobile_iab_authorized);
+      break;
+    case 403:
+      ret.set(value_c::types::no_pdu_session_ind);
+      break;
+    case 414:
+      ret.set(value_c::types::partially_allowed_nssai);
+      break;
+    case 430:
+      ret.set(value_c::types::sl_positioning_ranging_service_info);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -12235,6 +13499,26 @@ presence_e ho_request_ies_o::get_presence(const uint32_t& id)
     case 346:
       return presence_e::optional;
     case 347:
+      return presence_e::optional;
+    case 373:
+      return presence_e::optional;
+    case 374:
+      return presence_e::optional;
+    case 375:
+      return presence_e::optional;
+    case 376:
+      return presence_e::optional;
+    case 377:
+      return presence_e::optional;
+    case 378:
+      return presence_e::optional;
+    case 400:
+      return presence_e::optional;
+    case 403:
+      return presence_e::optional;
+    case 414:
+      return presence_e::optional;
+    case 430:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -12363,6 +13647,36 @@ void ho_request_ies_o::value_c::set(types::options e)
       break;
     case types::five_g_pro_se_pc5_qos_params:
       c = five_g_pro_se_pc5_qos_params_s{};
+      break;
+    case types::aerial_ue_sub_info:
+      c = aerial_ue_sub_info_e{};
+      break;
+    case types::nr_a2_x_services_authorized:
+      c = nr_a2_x_services_authorized_s{};
+      break;
+    case types::lte_a2_x_services_authorized:
+      c = lte_a2_x_services_authorized_s{};
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      c = nr_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      c = lte_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::a2_x_pc5_qos_params:
+      c = a2_x_pc5_qos_params_s{};
+      break;
+    case types::mobile_iab_authorized:
+      c = mobile_iab_authorized_e{};
+      break;
+    case types::no_pdu_session_ind:
+      c = no_pdu_session_ind_e{};
+      break;
+    case types::partially_allowed_nssai:
+      c = partially_allowed_nssai_l{};
+      break;
+    case types::sl_positioning_ranging_service_info:
+      c = sl_positioning_ranging_service_info_s{};
       break;
     case types::nulltype:
       break;
@@ -12565,6 +13879,56 @@ five_g_pro_se_pc5_qos_params_s& ho_request_ies_o::value_c::five_g_pro_se_pc5_qos
   assert_choice_type(types::five_g_pro_se_pc5_qos_params, type_, "Value");
   return c.get<five_g_pro_se_pc5_qos_params_s>();
 }
+aerial_ue_sub_info_e& ho_request_ies_o::value_c::aerial_ue_sub_info()
+{
+  assert_choice_type(types::aerial_ue_sub_info, type_, "Value");
+  return c.get<aerial_ue_sub_info_e>();
+}
+nr_a2_x_services_authorized_s& ho_request_ies_o::value_c::nr_a2_x_services_authorized()
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+lte_a2_x_services_authorized_s& ho_request_ies_o::value_c::lte_a2_x_services_authorized()
+{
+  assert_choice_type(types::lte_a2_x_services_authorized, type_, "Value");
+  return c.get<lte_a2_x_services_authorized_s>();
+}
+nr_ue_sidelink_aggr_max_bitrate_s& ho_request_ies_o::value_c::nr_a2_x_ue_pc5_aggr_max_bit_rate()
+{
+  assert_choice_type(types::nr_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+lte_ue_sidelink_aggr_max_bitrate_s& ho_request_ies_o::value_c::lte_a2_x_ue_pc5_aggr_max_bit_rate()
+{
+  assert_choice_type(types::lte_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+a2_x_pc5_qos_params_s& ho_request_ies_o::value_c::a2_x_pc5_qos_params()
+{
+  assert_choice_type(types::a2_x_pc5_qos_params, type_, "Value");
+  return c.get<a2_x_pc5_qos_params_s>();
+}
+mobile_iab_authorized_e& ho_request_ies_o::value_c::mobile_iab_authorized()
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+no_pdu_session_ind_e& ho_request_ies_o::value_c::no_pdu_session_ind()
+{
+  assert_choice_type(types::no_pdu_session_ind, type_, "Value");
+  return c.get<no_pdu_session_ind_e>();
+}
+partially_allowed_nssai_l& ho_request_ies_o::value_c::partially_allowed_nssai()
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+sl_positioning_ranging_service_info_s& ho_request_ies_o::value_c::sl_positioning_ranging_service_info()
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
 const uint64_t& ho_request_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -12761,6 +14125,56 @@ const five_g_pro_se_pc5_qos_params_s& ho_request_ies_o::value_c::five_g_pro_se_p
   assert_choice_type(types::five_g_pro_se_pc5_qos_params, type_, "Value");
   return c.get<five_g_pro_se_pc5_qos_params_s>();
 }
+const aerial_ue_sub_info_e& ho_request_ies_o::value_c::aerial_ue_sub_info() const
+{
+  assert_choice_type(types::aerial_ue_sub_info, type_, "Value");
+  return c.get<aerial_ue_sub_info_e>();
+}
+const nr_a2_x_services_authorized_s& ho_request_ies_o::value_c::nr_a2_x_services_authorized() const
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+const lte_a2_x_services_authorized_s& ho_request_ies_o::value_c::lte_a2_x_services_authorized() const
+{
+  assert_choice_type(types::lte_a2_x_services_authorized, type_, "Value");
+  return c.get<lte_a2_x_services_authorized_s>();
+}
+const nr_ue_sidelink_aggr_max_bitrate_s& ho_request_ies_o::value_c::nr_a2_x_ue_pc5_aggr_max_bit_rate() const
+{
+  assert_choice_type(types::nr_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+const lte_ue_sidelink_aggr_max_bitrate_s& ho_request_ies_o::value_c::lte_a2_x_ue_pc5_aggr_max_bit_rate() const
+{
+  assert_choice_type(types::lte_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+const a2_x_pc5_qos_params_s& ho_request_ies_o::value_c::a2_x_pc5_qos_params() const
+{
+  assert_choice_type(types::a2_x_pc5_qos_params, type_, "Value");
+  return c.get<a2_x_pc5_qos_params_s>();
+}
+const mobile_iab_authorized_e& ho_request_ies_o::value_c::mobile_iab_authorized() const
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+const no_pdu_session_ind_e& ho_request_ies_o::value_c::no_pdu_session_ind() const
+{
+  assert_choice_type(types::no_pdu_session_ind, type_, "Value");
+  return c.get<no_pdu_session_ind_e>();
+}
+const partially_allowed_nssai_l& ho_request_ies_o::value_c::partially_allowed_nssai() const
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+const sl_positioning_ranging_service_info_s& ho_request_ies_o::value_c::sl_positioning_ranging_service_info() const
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
 void ho_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -12918,6 +14332,46 @@ void ho_request_ies_o::value_c::to_json(json_writer& j) const
       j.write_fieldname("FiveG-ProSePC5QoSParameters");
       c.get<five_g_pro_se_pc5_qos_params_s>().to_json(j);
       break;
+    case types::aerial_ue_sub_info:
+      j.write_str("AerialUEsubscriptionInformation", c.get<aerial_ue_sub_info_e>().to_string());
+      break;
+    case types::nr_a2_x_services_authorized:
+      j.write_fieldname("NR-A2X-ServicesAuthorized");
+      c.get<nr_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::lte_a2_x_services_authorized:
+      j.write_fieldname("LTE-A2X-ServicesAuthorized");
+      c.get<lte_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      j.write_fieldname("NRUESidelinkAggregateMaximumBitrate");
+      c.get<nr_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      j.write_fieldname("LTEUESidelinkAggregateMaximumBitrate");
+      c.get<lte_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::a2_x_pc5_qos_params:
+      j.write_fieldname("A2X-PC5-QoS-Parameters");
+      c.get<a2_x_pc5_qos_params_s>().to_json(j);
+      break;
+    case types::mobile_iab_authorized:
+      j.write_str("MobileIAB-Authorized", c.get<mobile_iab_authorized_e>().to_string());
+      break;
+    case types::no_pdu_session_ind:
+      j.write_str("NoPDUSessionIndication", "true");
+      break;
+    case types::partially_allowed_nssai:
+      j.start_array("Partially-Allowed-NSSAI");
+      for (const auto& e1 : c.get<partially_allowed_nssai_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::sl_positioning_ranging_service_info:
+      j.write_fieldname("SLPositioningRangingServiceInfo");
+      c.get<sl_positioning_ranging_service_info_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "ho_request_ies_o::value_c");
   }
@@ -13043,6 +14497,36 @@ OCUDUASN_CODE ho_request_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::five_g_pro_se_pc5_qos_params:
       HANDLE_CODE(c.get<five_g_pro_se_pc5_qos_params_s>().pack(bref));
+      break;
+    case types::aerial_ue_sub_info:
+      HANDLE_CODE(c.get<aerial_ue_sub_info_e>().pack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::lte_a2_x_services_authorized:
+      HANDLE_CODE(c.get<lte_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::a2_x_pc5_qos_params:
+      HANDLE_CODE(c.get<a2_x_pc5_qos_params_s>().pack(bref));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().pack(bref));
+      break;
+    case types::no_pdu_session_ind:
+      HANDLE_CODE(c.get<no_pdu_session_ind_e>().pack(bref));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<partially_allowed_nssai_l>(), 1, 8, true));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ho_request_ies_o::value_c");
@@ -13171,6 +14655,36 @@ OCUDUASN_CODE ho_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::five_g_pro_se_pc5_qos_params:
       HANDLE_CODE(c.get<five_g_pro_se_pc5_qos_params_s>().unpack(bref));
       break;
+    case types::aerial_ue_sub_info:
+      HANDLE_CODE(c.get<aerial_ue_sub_info_e>().unpack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::lte_a2_x_services_authorized:
+      HANDLE_CODE(c.get<lte_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::a2_x_pc5_qos_params:
+      HANDLE_CODE(c.get<a2_x_pc5_qos_params_s>().unpack(bref));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().unpack(bref));
+      break;
+    case types::no_pdu_session_ind:
+      HANDLE_CODE(c.get<no_pdu_session_ind_e>().unpack(bref));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<partially_allowed_nssai_l>(), bref, 1, 8, true));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ho_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -13218,8 +14732,18 @@ const char* ho_request_ies_o::value_c::types_opts::to_string() const
                                 "UESliceMaximumBitRateList",
                                 "FiveG-ProSeAuthorized",
                                 "NRUESidelinkAggregateMaximumBitrate",
-                                "FiveG-ProSePC5QoSParameters"};
-  return convert_enum_idx(names, 39, value, "ho_request_ies_o::value_c::types");
+                                "FiveG-ProSePC5QoSParameters",
+                                "AerialUEsubscriptionInformation",
+                                "NR-A2X-ServicesAuthorized",
+                                "LTE-A2X-ServicesAuthorized",
+                                "NRUESidelinkAggregateMaximumBitrate",
+                                "LTEUESidelinkAggregateMaximumBitrate",
+                                "A2X-PC5-QoS-Parameters",
+                                "MobileIAB-Authorized",
+                                "NoPDUSessionIndication",
+                                "Partially-Allowed-NSSAI",
+                                "SLPositioningRangingServiceInfo"};
+  return convert_enum_idx(names, 49, value, "ho_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ho_request_ies_o>;
@@ -13256,6 +14780,16 @@ OCUDUASN_CODE ho_request_ies_container::pack(bit_ref& bref) const
   nof_ies += five_g_pro_se_authorized_present ? 1 : 0;
   nof_ies += five_g_pro_se_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
   nof_ies += five_g_pro_se_pc5_qos_params_present ? 1 : 0;
+  nof_ies += aerial_ue_sub_info_present ? 1 : 0;
+  nof_ies += nr_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += lte_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += nr_a2_x_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
+  nof_ies += lte_a2_x_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
+  nof_ies += a2_x_pc5_qos_params_present ? 1 : 0;
+  nof_ies += mobile_iab_authorized_present ? 1 : 0;
+  nof_ies += no_pdu_session_ind_present ? 1 : 0;
+  nof_ies += partially_allowed_nssai_present ? 1 : 0;
+  nof_ies += sl_positioning_ranging_service_info_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -13491,6 +15025,66 @@ OCUDUASN_CODE ho_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(five_g_pro_se_pc5_qos_params.pack(bref));
+  }
+  if (aerial_ue_sub_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)373, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(aerial_ue_sub_info.pack(bref));
+  }
+  if (nr_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)374, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_services_authorized.pack(bref));
+  }
+  if (lte_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)375, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_a2_x_services_authorized.pack(bref));
+  }
+  if (nr_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)376, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_ue_pc5_aggr_max_bit_rate.pack(bref));
+  }
+  if (lte_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)377, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_a2_x_ue_pc5_aggr_max_bit_rate.pack(bref));
+  }
+  if (a2_x_pc5_qos_params_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)378, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(a2_x_pc5_qos_params.pack(bref));
+  }
+  if (mobile_iab_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)400, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mobile_iab_authorized.pack(bref));
+  }
+  if (no_pdu_session_ind_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)403, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(no_pdu_session_ind.pack(bref));
+  }
+  if (partially_allowed_nssai_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)414, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, partially_allowed_nssai, 1, 8, true));
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)430, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(sl_positioning_ranging_service_info.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -13743,6 +15337,66 @@ OCUDUASN_CODE ho_request_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(five_g_pro_se_pc5_qos_params.unpack(bref));
         break;
       }
+      case 373: {
+        aerial_ue_sub_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(aerial_ue_sub_info.unpack(bref));
+        break;
+      }
+      case 374: {
+        nr_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 375: {
+        lte_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 376: {
+        nr_a2_x_ue_pc5_aggr_max_bit_rate_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_ue_pc5_aggr_max_bit_rate.unpack(bref));
+        break;
+      }
+      case 377: {
+        lte_a2_x_ue_pc5_aggr_max_bit_rate_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_a2_x_ue_pc5_aggr_max_bit_rate.unpack(bref));
+        break;
+      }
+      case 378: {
+        a2_x_pc5_qos_params_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(a2_x_pc5_qos_params.unpack(bref));
+        break;
+      }
+      case 400: {
+        mobile_iab_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mobile_iab_authorized.unpack(bref));
+        break;
+      }
+      case 403: {
+        no_pdu_session_ind_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(no_pdu_session_ind.unpack(bref));
+        break;
+      }
+      case 414: {
+        partially_allowed_nssai_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(partially_allowed_nssai, bref, 1, 8, true));
+        break;
+      }
+      case 430: {
+        sl_positioning_ranging_service_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(sl_positioning_ranging_service_info.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -13949,18 +15603,72 @@ void ho_request_ies_container::to_json(json_writer& j) const
     j.write_str("criticality", "ignore");
     five_g_pro_se_pc5_qos_params.to_json(j);
   }
+  if (aerial_ue_sub_info_present) {
+    j.write_int("id", 373);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", aerial_ue_sub_info.to_string());
+  }
+  if (nr_a2_x_services_authorized_present) {
+    j.write_int("id", 374);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_services_authorized.to_json(j);
+  }
+  if (lte_a2_x_services_authorized_present) {
+    j.write_int("id", 375);
+    j.write_str("criticality", "ignore");
+    lte_a2_x_services_authorized.to_json(j);
+  }
+  if (nr_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    j.write_int("id", 376);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_ue_pc5_aggr_max_bit_rate.to_json(j);
+  }
+  if (lte_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    j.write_int("id", 377);
+    j.write_str("criticality", "ignore");
+    lte_a2_x_ue_pc5_aggr_max_bit_rate.to_json(j);
+  }
+  if (a2_x_pc5_qos_params_present) {
+    j.write_int("id", 378);
+    j.write_str("criticality", "ignore");
+    a2_x_pc5_qos_params.to_json(j);
+  }
+  if (mobile_iab_authorized_present) {
+    j.write_int("id", 400);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", mobile_iab_authorized.to_string());
+  }
+  if (no_pdu_session_ind_present) {
+    j.write_int("id", 403);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
+  }
+  if (partially_allowed_nssai_present) {
+    j.write_int("id", 414);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : partially_allowed_nssai) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    j.write_int("id", 430);
+    j.write_str("criticality", "ignore");
+    sl_positioning_ranging_service_info.to_json(j);
+  }
   j.end_obj();
 }
 
 // HandoverRequestAcknowledgeIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t ho_request_ack_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10, 85, 53, 56, 106, 19, 259, 333};
-  return map_enum_number(names, 8, idx, "id");
+  static const uint32_t names[] = {10, 85, 53, 56, 106, 19, 259, 333, 427};
+  return map_enum_number(names, 9, idx, "id");
 }
 bool ho_request_ack_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10, 85, 53, 56, 106, 19, 259, 333};
+  static const uint32_t names[] = {10, 85, 53, 56, 106, 19, 259, 333, 427};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -13986,6 +15694,8 @@ crit_e ho_request_ack_ies_o::get_crit(const uint32_t& id)
     case 259:
       return crit_e::reject;
     case 333:
+      return crit_e::ignore;
+    case 427:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -14020,6 +15730,9 @@ ho_request_ack_ies_o::value_c ho_request_ack_ies_o::get_value(const uint32_t& id
     case 333:
       ret.set(value_c::types::red_cap_ind);
       break;
+    case 427:
+      ret.set(value_c::types::e_red_cap_ind);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -14043,6 +15756,8 @@ presence_e ho_request_ack_ies_o::get_presence(const uint32_t& id)
     case 259:
       return presence_e::optional;
     case 333:
+      return presence_e::optional;
+    case 427:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -14078,6 +15793,9 @@ void ho_request_ack_ies_o::value_c::set(types::options e)
       break;
     case types::red_cap_ind:
       c = red_cap_ind_e{};
+      break;
+    case types::e_red_cap_ind:
+      c = e_red_cap_ind_e{};
       break;
     case types::nulltype:
       break;
@@ -14126,6 +15844,11 @@ red_cap_ind_e& ho_request_ack_ies_o::value_c::red_cap_ind()
   assert_choice_type(types::red_cap_ind, type_, "Value");
   return c.get<red_cap_ind_e>();
 }
+e_red_cap_ind_e& ho_request_ack_ies_o::value_c::e_red_cap_ind()
+{
+  assert_choice_type(types::e_red_cap_ind, type_, "Value");
+  return c.get<e_red_cap_ind_e>();
+}
 const uint64_t& ho_request_ack_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -14167,6 +15890,11 @@ const red_cap_ind_e& ho_request_ack_ies_o::value_c::red_cap_ind() const
   assert_choice_type(types::red_cap_ind, type_, "Value");
   return c.get<red_cap_ind_e>();
 }
+const e_red_cap_ind_e& ho_request_ack_ies_o::value_c::e_red_cap_ind() const
+{
+  assert_choice_type(types::e_red_cap_ind, type_, "Value");
+  return c.get<e_red_cap_ind_e>();
+}
 void ho_request_ack_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -14205,6 +15933,9 @@ void ho_request_ack_ies_o::value_c::to_json(json_writer& j) const
     case types::red_cap_ind:
       j.write_str("RedCapIndication", "redcap");
       break;
+    case types::e_red_cap_ind:
+      j.write_str("ERedCapIndication", "true");
+      break;
     default:
       log_invalid_choice_id(type_, "ho_request_ack_ies_o::value_c");
   }
@@ -14237,6 +15968,9 @@ OCUDUASN_CODE ho_request_ack_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::red_cap_ind:
       HANDLE_CODE(c.get<red_cap_ind_e>().pack(bref));
+      break;
+    case types::e_red_cap_ind:
+      HANDLE_CODE(c.get<e_red_cap_ind_e>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ho_request_ack_ies_o::value_c");
@@ -14272,6 +16006,9 @@ OCUDUASN_CODE ho_request_ack_ies_o::value_c::unpack(cbit_ref& bref)
     case types::red_cap_ind:
       HANDLE_CODE(c.get<red_cap_ind_e>().unpack(bref));
       break;
+    case types::e_red_cap_ind:
+      HANDLE_CODE(c.get<e_red_cap_ind_e>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ho_request_ack_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -14288,8 +16025,9 @@ const char* ho_request_ack_ies_o::value_c::types_opts::to_string() const
                                 "OCTET STRING",
                                 "CriticalityDiagnostics",
                                 "NPN-AccessInformation",
-                                "RedCapIndication"};
-  return convert_enum_idx(names, 8, value, "ho_request_ack_ies_o::value_c::types");
+                                "RedCapIndication",
+                                "ERedCapIndication"};
+  return convert_enum_idx(names, 9, value, "ho_request_ack_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ho_request_ack_ies_o>;
@@ -14301,6 +16039,7 @@ OCUDUASN_CODE ho_request_ack_ies_container::pack(bit_ref& bref) const
   nof_ies += crit_diagnostics_present ? 1 : 0;
   nof_ies += npn_access_info_present ? 1 : 0;
   nof_ies += red_cap_ind_present ? 1 : 0;
+  nof_ies += e_red_cap_ind_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -14350,6 +16089,12 @@ OCUDUASN_CODE ho_request_ack_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(red_cap_ind.pack(bref));
+  }
+  if (e_red_cap_ind_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)427, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(e_red_cap_ind.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -14416,6 +16161,12 @@ OCUDUASN_CODE ho_request_ack_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(red_cap_ind.unpack(bref));
         break;
       }
+      case 427: {
+        e_red_cap_ind_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(e_red_cap_ind.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -14470,6 +16221,11 @@ void ho_request_ack_ies_container::to_json(json_writer& j) const
     j.write_int("id", 333);
     j.write_str("criticality", "ignore");
     j.write_str("Value", "redcap");
+  }
+  if (e_red_cap_ind_present) {
+    j.write_int("id", 427);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
   }
   j.end_obj();
 }
@@ -15572,16 +17328,18 @@ void init_context_setup_fail_ies_container::to_json(json_writer& j) const
 // InitialContextSetupRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t init_context_setup_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10,  85,  48,  110, 18,  28,  71,  0,   119, 94,  108, 36,  117, 31,  34,
-                                   38,  24,  91,  118, 146, 33,  165, 177, 199, 205, 206, 209, 216, 215, 218,
-                                   217, 219, 222, 234, 238, 254, 264, 326, 328, 334, 335, 345, 346, 347};
-  return map_enum_number(names, 44, idx, "id");
+  static const uint32_t names[] = {10,  85,  48,  110, 18,  28,  71,  0,   119, 94,  108, 36,  117, 31,
+                                   34,  38,  24,  91,  118, 146, 33,  165, 177, 199, 205, 206, 209, 216,
+                                   215, 218, 217, 219, 222, 234, 238, 254, 264, 326, 328, 334, 335, 345,
+                                   346, 347, 367, 373, 374, 375, 376, 377, 378, 400, 414, 430, 443};
+  return map_enum_number(names, 55, idx, "id");
 }
 bool init_context_setup_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10,  85,  48,  110, 18,  28,  71,  0,   119, 94,  108, 36,  117, 31,  34,
-                                   38,  24,  91,  118, 146, 33,  165, 177, 199, 205, 206, 209, 216, 215, 218,
-                                   217, 219, 222, 234, 238, 254, 264, 326, 328, 334, 335, 345, 346, 347};
+  static const uint32_t names[] = {10,  85,  48,  110, 18,  28,  71,  0,   119, 94,  108, 36,  117, 31,
+                                   34,  38,  24,  91,  118, 146, 33,  165, 177, 199, 205, 206, 209, 216,
+                                   215, 218, 217, 219, 222, 234, 238, 254, 264, 326, 328, 334, 335, 345,
+                                   346, 347, 367, 373, 374, 375, 376, 377, 378, 400, 414, 430, 443};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -15679,6 +17437,28 @@ crit_e init_context_setup_request_ies_o::get_crit(const uint32_t& id)
     case 346:
       return crit_e::ignore;
     case 347:
+      return crit_e::ignore;
+    case 367:
+      return crit_e::ignore;
+    case 373:
+      return crit_e::ignore;
+    case 374:
+      return crit_e::ignore;
+    case 375:
+      return crit_e::ignore;
+    case 376:
+      return crit_e::ignore;
+    case 377:
+      return crit_e::ignore;
+    case 378:
+      return crit_e::ignore;
+    case 400:
+      return crit_e::ignore;
+    case 414:
+      return crit_e::ignore;
+    case 430:
+      return crit_e::ignore;
+    case 443:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -15821,6 +17601,39 @@ init_context_setup_request_ies_o::value_c init_context_setup_request_ies_o::get_
     case 347:
       ret.set(value_c::types::five_g_pro_se_pc5_qos_params);
       break;
+    case 367:
+      ret.set(value_c::types::network_ctrl_repeater_authorized);
+      break;
+    case 373:
+      ret.set(value_c::types::aerial_ue_sub_info);
+      break;
+    case 374:
+      ret.set(value_c::types::nr_a2_x_services_authorized);
+      break;
+    case 375:
+      ret.set(value_c::types::lte_a2_x_services_authorized);
+      break;
+    case 376:
+      ret.set(value_c::types::nr_a2_x_ue_pc5_aggr_max_bit_rate);
+      break;
+    case 377:
+      ret.set(value_c::types::lte_a2_x_ue_pc5_aggr_max_bit_rate);
+      break;
+    case 378:
+      ret.set(value_c::types::a2_x_pc5_qos_params);
+      break;
+    case 400:
+      ret.set(value_c::types::mobile_iab_authorized);
+      break;
+    case 414:
+      ret.set(value_c::types::partially_allowed_nssai);
+      break;
+    case 430:
+      ret.set(value_c::types::sl_positioning_ranging_service_info);
+      break;
+    case 443:
+      ret.set(value_c::types::extended_old_amf);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -15916,6 +17729,28 @@ presence_e init_context_setup_request_ies_o::get_presence(const uint32_t& id)
     case 346:
       return presence_e::optional;
     case 347:
+      return presence_e::optional;
+    case 367:
+      return presence_e::optional;
+    case 373:
+      return presence_e::optional;
+    case 374:
+      return presence_e::optional;
+    case 375:
+      return presence_e::optional;
+    case 376:
+      return presence_e::optional;
+    case 377:
+      return presence_e::optional;
+    case 378:
+      return presence_e::optional;
+    case 400:
+      return presence_e::optional;
+    case 414:
+      return presence_e::optional;
+    case 430:
+      return presence_e::optional;
+    case 443:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -16059,6 +17894,39 @@ void init_context_setup_request_ies_o::value_c::set(types::options e)
       break;
     case types::five_g_pro_se_pc5_qos_params:
       c = five_g_pro_se_pc5_qos_params_s{};
+      break;
+    case types::network_ctrl_repeater_authorized:
+      c = network_ctrl_repeater_authorized_e{};
+      break;
+    case types::aerial_ue_sub_info:
+      c = aerial_ue_sub_info_e{};
+      break;
+    case types::nr_a2_x_services_authorized:
+      c = nr_a2_x_services_authorized_s{};
+      break;
+    case types::lte_a2_x_services_authorized:
+      c = lte_a2_x_services_authorized_s{};
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      c = nr_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      c = lte_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::a2_x_pc5_qos_params:
+      c = a2_x_pc5_qos_params_s{};
+      break;
+    case types::mobile_iab_authorized:
+      c = mobile_iab_authorized_e{};
+      break;
+    case types::partially_allowed_nssai:
+      c = partially_allowed_nssai_l{};
+      break;
+    case types::sl_positioning_ranging_service_info:
+      c = sl_positioning_ranging_service_info_s{};
+      break;
+    case types::extended_old_amf:
+      c = extended_amf_name_s{};
       break;
     case types::nulltype:
       break;
@@ -16288,6 +18156,61 @@ five_g_pro_se_pc5_qos_params_s& init_context_setup_request_ies_o::value_c::five_
   assert_choice_type(types::five_g_pro_se_pc5_qos_params, type_, "Value");
   return c.get<five_g_pro_se_pc5_qos_params_s>();
 }
+network_ctrl_repeater_authorized_e& init_context_setup_request_ies_o::value_c::network_ctrl_repeater_authorized()
+{
+  assert_choice_type(types::network_ctrl_repeater_authorized, type_, "Value");
+  return c.get<network_ctrl_repeater_authorized_e>();
+}
+aerial_ue_sub_info_e& init_context_setup_request_ies_o::value_c::aerial_ue_sub_info()
+{
+  assert_choice_type(types::aerial_ue_sub_info, type_, "Value");
+  return c.get<aerial_ue_sub_info_e>();
+}
+nr_a2_x_services_authorized_s& init_context_setup_request_ies_o::value_c::nr_a2_x_services_authorized()
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+lte_a2_x_services_authorized_s& init_context_setup_request_ies_o::value_c::lte_a2_x_services_authorized()
+{
+  assert_choice_type(types::lte_a2_x_services_authorized, type_, "Value");
+  return c.get<lte_a2_x_services_authorized_s>();
+}
+nr_ue_sidelink_aggr_max_bitrate_s& init_context_setup_request_ies_o::value_c::nr_a2_x_ue_pc5_aggr_max_bit_rate()
+{
+  assert_choice_type(types::nr_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+lte_ue_sidelink_aggr_max_bitrate_s& init_context_setup_request_ies_o::value_c::lte_a2_x_ue_pc5_aggr_max_bit_rate()
+{
+  assert_choice_type(types::lte_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+a2_x_pc5_qos_params_s& init_context_setup_request_ies_o::value_c::a2_x_pc5_qos_params()
+{
+  assert_choice_type(types::a2_x_pc5_qos_params, type_, "Value");
+  return c.get<a2_x_pc5_qos_params_s>();
+}
+mobile_iab_authorized_e& init_context_setup_request_ies_o::value_c::mobile_iab_authorized()
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+partially_allowed_nssai_l& init_context_setup_request_ies_o::value_c::partially_allowed_nssai()
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+sl_positioning_ranging_service_info_s& init_context_setup_request_ies_o::value_c::sl_positioning_ranging_service_info()
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
+extended_amf_name_s& init_context_setup_request_ies_o::value_c::extended_old_amf()
+{
+  assert_choice_type(types::extended_old_amf, type_, "Value");
+  return c.get<extended_amf_name_s>();
+}
 const uint64_t& init_context_setup_request_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -16515,6 +18438,65 @@ const five_g_pro_se_pc5_qos_params_s& init_context_setup_request_ies_o::value_c:
   assert_choice_type(types::five_g_pro_se_pc5_qos_params, type_, "Value");
   return c.get<five_g_pro_se_pc5_qos_params_s>();
 }
+const network_ctrl_repeater_authorized_e&
+init_context_setup_request_ies_o::value_c::network_ctrl_repeater_authorized() const
+{
+  assert_choice_type(types::network_ctrl_repeater_authorized, type_, "Value");
+  return c.get<network_ctrl_repeater_authorized_e>();
+}
+const aerial_ue_sub_info_e& init_context_setup_request_ies_o::value_c::aerial_ue_sub_info() const
+{
+  assert_choice_type(types::aerial_ue_sub_info, type_, "Value");
+  return c.get<aerial_ue_sub_info_e>();
+}
+const nr_a2_x_services_authorized_s& init_context_setup_request_ies_o::value_c::nr_a2_x_services_authorized() const
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+const lte_a2_x_services_authorized_s& init_context_setup_request_ies_o::value_c::lte_a2_x_services_authorized() const
+{
+  assert_choice_type(types::lte_a2_x_services_authorized, type_, "Value");
+  return c.get<lte_a2_x_services_authorized_s>();
+}
+const nr_ue_sidelink_aggr_max_bitrate_s&
+init_context_setup_request_ies_o::value_c::nr_a2_x_ue_pc5_aggr_max_bit_rate() const
+{
+  assert_choice_type(types::nr_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+const lte_ue_sidelink_aggr_max_bitrate_s&
+init_context_setup_request_ies_o::value_c::lte_a2_x_ue_pc5_aggr_max_bit_rate() const
+{
+  assert_choice_type(types::lte_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+const a2_x_pc5_qos_params_s& init_context_setup_request_ies_o::value_c::a2_x_pc5_qos_params() const
+{
+  assert_choice_type(types::a2_x_pc5_qos_params, type_, "Value");
+  return c.get<a2_x_pc5_qos_params_s>();
+}
+const mobile_iab_authorized_e& init_context_setup_request_ies_o::value_c::mobile_iab_authorized() const
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+const partially_allowed_nssai_l& init_context_setup_request_ies_o::value_c::partially_allowed_nssai() const
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+const sl_positioning_ranging_service_info_s&
+init_context_setup_request_ies_o::value_c::sl_positioning_ranging_service_info() const
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
+const extended_amf_name_s& init_context_setup_request_ies_o::value_c::extended_old_amf() const
+{
+  assert_choice_type(types::extended_old_amf, type_, "Value");
+  return c.get<extended_amf_name_s>();
+}
 void init_context_setup_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -16689,6 +18671,50 @@ void init_context_setup_request_ies_o::value_c::to_json(json_writer& j) const
       j.write_fieldname("FiveG-ProSePC5QoSParameters");
       c.get<five_g_pro_se_pc5_qos_params_s>().to_json(j);
       break;
+    case types::network_ctrl_repeater_authorized:
+      j.write_str("NetworkControlledRepeaterAuthorized", c.get<network_ctrl_repeater_authorized_e>().to_string());
+      break;
+    case types::aerial_ue_sub_info:
+      j.write_str("AerialUEsubscriptionInformation", c.get<aerial_ue_sub_info_e>().to_string());
+      break;
+    case types::nr_a2_x_services_authorized:
+      j.write_fieldname("NR-A2X-ServicesAuthorized");
+      c.get<nr_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::lte_a2_x_services_authorized:
+      j.write_fieldname("LTE-A2X-ServicesAuthorized");
+      c.get<lte_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      j.write_fieldname("NRUESidelinkAggregateMaximumBitrate");
+      c.get<nr_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      j.write_fieldname("LTEUESidelinkAggregateMaximumBitrate");
+      c.get<lte_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::a2_x_pc5_qos_params:
+      j.write_fieldname("A2X-PC5-QoS-Parameters");
+      c.get<a2_x_pc5_qos_params_s>().to_json(j);
+      break;
+    case types::mobile_iab_authorized:
+      j.write_str("MobileIAB-Authorized", c.get<mobile_iab_authorized_e>().to_string());
+      break;
+    case types::partially_allowed_nssai:
+      j.start_array("Partially-Allowed-NSSAI");
+      for (const auto& e1 : c.get<partially_allowed_nssai_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::sl_positioning_ranging_service_info:
+      j.write_fieldname("SLPositioningRangingServiceInfo");
+      c.get<sl_positioning_ranging_service_info_s>().to_json(j);
+      break;
+    case types::extended_old_amf:
+      j.write_fieldname("Extended-AMFName");
+      c.get<extended_amf_name_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "init_context_setup_request_ies_o::value_c");
   }
@@ -16829,6 +18855,39 @@ OCUDUASN_CODE init_context_setup_request_ies_o::value_c::pack(bit_ref& bref) con
       break;
     case types::five_g_pro_se_pc5_qos_params:
       HANDLE_CODE(c.get<five_g_pro_se_pc5_qos_params_s>().pack(bref));
+      break;
+    case types::network_ctrl_repeater_authorized:
+      HANDLE_CODE(c.get<network_ctrl_repeater_authorized_e>().pack(bref));
+      break;
+    case types::aerial_ue_sub_info:
+      HANDLE_CODE(c.get<aerial_ue_sub_info_e>().pack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::lte_a2_x_services_authorized:
+      HANDLE_CODE(c.get<lte_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::a2_x_pc5_qos_params:
+      HANDLE_CODE(c.get<a2_x_pc5_qos_params_s>().pack(bref));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().pack(bref));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<partially_allowed_nssai_l>(), 1, 8, true));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().pack(bref));
+      break;
+    case types::extended_old_amf:
+      HANDLE_CODE(c.get<extended_amf_name_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "init_context_setup_request_ies_o::value_c");
@@ -16972,6 +19031,39 @@ OCUDUASN_CODE init_context_setup_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::five_g_pro_se_pc5_qos_params:
       HANDLE_CODE(c.get<five_g_pro_se_pc5_qos_params_s>().unpack(bref));
       break;
+    case types::network_ctrl_repeater_authorized:
+      HANDLE_CODE(c.get<network_ctrl_repeater_authorized_e>().unpack(bref));
+      break;
+    case types::aerial_ue_sub_info:
+      HANDLE_CODE(c.get<aerial_ue_sub_info_e>().unpack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::lte_a2_x_services_authorized:
+      HANDLE_CODE(c.get<lte_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::a2_x_pc5_qos_params:
+      HANDLE_CODE(c.get<a2_x_pc5_qos_params_s>().unpack(bref));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().unpack(bref));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<partially_allowed_nssai_l>(), bref, 1, 8, true));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().unpack(bref));
+      break;
+    case types::extended_old_amf:
+      HANDLE_CODE(c.get<extended_amf_name_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "init_context_setup_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -17024,8 +19116,19 @@ const char* init_context_setup_request_ies_o::value_c::types_opts::to_string() c
                                 "UESliceMaximumBitRateList",
                                 "FiveG-ProSeAuthorized",
                                 "NRUESidelinkAggregateMaximumBitrate",
-                                "FiveG-ProSePC5QoSParameters"};
-  return convert_enum_idx(names, 44, value, "init_context_setup_request_ies_o::value_c::types");
+                                "FiveG-ProSePC5QoSParameters",
+                                "NetworkControlledRepeaterAuthorized",
+                                "AerialUEsubscriptionInformation",
+                                "NR-A2X-ServicesAuthorized",
+                                "LTE-A2X-ServicesAuthorized",
+                                "NRUESidelinkAggregateMaximumBitrate",
+                                "LTEUESidelinkAggregateMaximumBitrate",
+                                "A2X-PC5-QoS-Parameters",
+                                "MobileIAB-Authorized",
+                                "Partially-Allowed-NSSAI",
+                                "SLPositioningRangingServiceInfo",
+                                "Extended-AMFName"};
+  return convert_enum_idx(names, 55, value, "init_context_setup_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<init_context_setup_request_ies_o>;
@@ -17071,6 +19174,17 @@ OCUDUASN_CODE init_context_setup_request_ies_container::pack(bit_ref& bref) cons
   nof_ies += five_g_pro_se_authorized_present ? 1 : 0;
   nof_ies += five_g_pro_se_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
   nof_ies += five_g_pro_se_pc5_qos_params_present ? 1 : 0;
+  nof_ies += network_ctrl_repeater_authorized_present ? 1 : 0;
+  nof_ies += aerial_ue_sub_info_present ? 1 : 0;
+  nof_ies += nr_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += lte_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += nr_a2_x_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
+  nof_ies += lte_a2_x_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
+  nof_ies += a2_x_pc5_qos_params_present ? 1 : 0;
+  nof_ies += mobile_iab_authorized_present ? 1 : 0;
+  nof_ies += partially_allowed_nssai_present ? 1 : 0;
+  nof_ies += sl_positioning_ranging_service_info_present ? 1 : 0;
+  nof_ies += extended_old_amf_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -17336,6 +19450,72 @@ OCUDUASN_CODE init_context_setup_request_ies_container::pack(bit_ref& bref) cons
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(five_g_pro_se_pc5_qos_params.pack(bref));
+  }
+  if (network_ctrl_repeater_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)367, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(network_ctrl_repeater_authorized.pack(bref));
+  }
+  if (aerial_ue_sub_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)373, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(aerial_ue_sub_info.pack(bref));
+  }
+  if (nr_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)374, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_services_authorized.pack(bref));
+  }
+  if (lte_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)375, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_a2_x_services_authorized.pack(bref));
+  }
+  if (nr_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)376, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_ue_pc5_aggr_max_bit_rate.pack(bref));
+  }
+  if (lte_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)377, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_a2_x_ue_pc5_aggr_max_bit_rate.pack(bref));
+  }
+  if (a2_x_pc5_qos_params_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)378, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(a2_x_pc5_qos_params.pack(bref));
+  }
+  if (mobile_iab_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)400, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mobile_iab_authorized.pack(bref));
+  }
+  if (partially_allowed_nssai_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)414, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, partially_allowed_nssai, 1, 8, true));
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)430, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(sl_positioning_ranging_service_info.pack(bref));
+  }
+  if (extended_old_amf_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)443, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(extended_old_amf.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -17618,6 +19798,72 @@ OCUDUASN_CODE init_context_setup_request_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(five_g_pro_se_pc5_qos_params.unpack(bref));
         break;
       }
+      case 367: {
+        network_ctrl_repeater_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(network_ctrl_repeater_authorized.unpack(bref));
+        break;
+      }
+      case 373: {
+        aerial_ue_sub_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(aerial_ue_sub_info.unpack(bref));
+        break;
+      }
+      case 374: {
+        nr_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 375: {
+        lte_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 376: {
+        nr_a2_x_ue_pc5_aggr_max_bit_rate_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_ue_pc5_aggr_max_bit_rate.unpack(bref));
+        break;
+      }
+      case 377: {
+        lte_a2_x_ue_pc5_aggr_max_bit_rate_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_a2_x_ue_pc5_aggr_max_bit_rate.unpack(bref));
+        break;
+      }
+      case 378: {
+        a2_x_pc5_qos_params_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(a2_x_pc5_qos_params.unpack(bref));
+        break;
+      }
+      case 400: {
+        mobile_iab_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mobile_iab_authorized.unpack(bref));
+        break;
+      }
+      case 414: {
+        partially_allowed_nssai_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(partially_allowed_nssai, bref, 1, 8, true));
+        break;
+      }
+      case 430: {
+        sl_positioning_ranging_service_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(sl_positioning_ranging_service_info.unpack(bref));
+        break;
+      }
+      case 443: {
+        extended_old_amf_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(extended_old_amf.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -17856,6 +20102,65 @@ void init_context_setup_request_ies_container::to_json(json_writer& j) const
     j.write_int("id", 347);
     j.write_str("criticality", "ignore");
     five_g_pro_se_pc5_qos_params.to_json(j);
+  }
+  if (network_ctrl_repeater_authorized_present) {
+    j.write_int("id", 367);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", network_ctrl_repeater_authorized.to_string());
+  }
+  if (aerial_ue_sub_info_present) {
+    j.write_int("id", 373);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", aerial_ue_sub_info.to_string());
+  }
+  if (nr_a2_x_services_authorized_present) {
+    j.write_int("id", 374);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_services_authorized.to_json(j);
+  }
+  if (lte_a2_x_services_authorized_present) {
+    j.write_int("id", 375);
+    j.write_str("criticality", "ignore");
+    lte_a2_x_services_authorized.to_json(j);
+  }
+  if (nr_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    j.write_int("id", 376);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_ue_pc5_aggr_max_bit_rate.to_json(j);
+  }
+  if (lte_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    j.write_int("id", 377);
+    j.write_str("criticality", "ignore");
+    lte_a2_x_ue_pc5_aggr_max_bit_rate.to_json(j);
+  }
+  if (a2_x_pc5_qos_params_present) {
+    j.write_int("id", 378);
+    j.write_str("criticality", "ignore");
+    a2_x_pc5_qos_params.to_json(j);
+  }
+  if (mobile_iab_authorized_present) {
+    j.write_int("id", 400);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", mobile_iab_authorized.to_string());
+  }
+  if (partially_allowed_nssai_present) {
+    j.write_int("id", 414);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : partially_allowed_nssai) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    j.write_int("id", 430);
+    j.write_str("criticality", "ignore");
+    sl_positioning_ranging_service_info.to_json(j);
+  }
+  if (extended_old_amf_present) {
+    j.write_int("id", 443);
+    j.write_str("criticality", "ignore");
+    extended_old_amf.to_json(j);
   }
   j.end_obj();
 }
@@ -18247,12 +20552,14 @@ void init_context_setup_resp_ies_container::to_json(json_writer& j) const
 // InitialUEMessage-IEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t init_ue_msg_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {85, 38, 121, 90, 26, 3, 112, 0, 171, 174, 201, 224, 225, 227, 245, 259, 333};
-  return map_enum_number(names, 17, idx, "id");
+  static const uint32_t names[] = {85,  38,  121, 90,  26,  3,   112, 0,   171, 174, 201,
+                                   224, 225, 227, 245, 259, 333, 371, 402, 414, 427, 440};
+  return map_enum_number(names, 22, idx, "id");
 }
 bool init_ue_msg_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {85, 38, 121, 90, 26, 3, 112, 0, 171, 174, 201, 224, 225, 227, 245, 259, 333};
+  static const uint32_t names[] = {85,  38,  121, 90,  26,  3,   112, 0,   171, 174, 201,
+                                   224, 225, 227, 245, 259, 333, 371, 402, 414, 427, 440};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -18296,6 +20603,16 @@ crit_e init_ue_msg_ies_o::get_crit(const uint32_t& id)
     case 259:
       return crit_e::reject;
     case 333:
+      return crit_e::ignore;
+    case 371:
+      return crit_e::ignore;
+    case 402:
+      return crit_e::reject;
+    case 414:
+      return crit_e::ignore;
+    case 427:
+      return crit_e::ignore;
+    case 440:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -18357,6 +20674,21 @@ init_ue_msg_ies_o::value_c init_ue_msg_ies_o::get_value(const uint32_t& id)
     case 333:
       ret.set(value_c::types::red_cap_ind);
       break;
+    case 371:
+      ret.set(value_c::types::sel_n_id);
+      break;
+    case 402:
+      ret.set(value_c::types::mobile_iab_node_ind);
+      break;
+    case 414:
+      ret.set(value_c::types::partially_allowed_nssai);
+      break;
+    case 427:
+      ret.set(value_c::types::e_red_cap_ind);
+      break;
+    case 440:
+      ret.set(value_c::types::aun3_dev_access_info);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -18398,6 +20730,16 @@ presence_e init_ue_msg_ies_o::get_presence(const uint32_t& id)
     case 259:
       return presence_e::optional;
     case 333:
+      return presence_e::optional;
+    case 371:
+      return presence_e::optional;
+    case 402:
+      return presence_e::optional;
+    case 414:
+      return presence_e::optional;
+    case 427:
+      return presence_e::optional;
+    case 440:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -18460,6 +20802,21 @@ void init_ue_msg_ies_o::value_c::set(types::options e)
       break;
     case types::red_cap_ind:
       c = red_cap_ind_e{};
+      break;
+    case types::sel_n_id:
+      c = fixed_bitstring<44, false, true>{};
+      break;
+    case types::mobile_iab_node_ind:
+      c = mobile_iab_node_ind_e{};
+      break;
+    case types::partially_allowed_nssai:
+      c = partially_allowed_nssai_l{};
+      break;
+    case types::e_red_cap_ind:
+      c = e_red_cap_ind_e{};
+      break;
+    case types::aun3_dev_access_info:
+      c = aun3_dev_access_info_s{};
       break;
     case types::nulltype:
       break;
@@ -18552,6 +20909,31 @@ red_cap_ind_e& init_ue_msg_ies_o::value_c::red_cap_ind()
   assert_choice_type(types::red_cap_ind, type_, "Value");
   return c.get<red_cap_ind_e>();
 }
+fixed_bitstring<44, false, true>& init_ue_msg_ies_o::value_c::sel_n_id()
+{
+  assert_choice_type(types::sel_n_id, type_, "Value");
+  return c.get<fixed_bitstring<44, false, true>>();
+}
+mobile_iab_node_ind_e& init_ue_msg_ies_o::value_c::mobile_iab_node_ind()
+{
+  assert_choice_type(types::mobile_iab_node_ind, type_, "Value");
+  return c.get<mobile_iab_node_ind_e>();
+}
+partially_allowed_nssai_l& init_ue_msg_ies_o::value_c::partially_allowed_nssai()
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+e_red_cap_ind_e& init_ue_msg_ies_o::value_c::e_red_cap_ind()
+{
+  assert_choice_type(types::e_red_cap_ind, type_, "Value");
+  return c.get<e_red_cap_ind_e>();
+}
+aun3_dev_access_info_s& init_ue_msg_ies_o::value_c::aun3_dev_access_info()
+{
+  assert_choice_type(types::aun3_dev_access_info, type_, "Value");
+  return c.get<aun3_dev_access_info_s>();
+}
 const uint64_t& init_ue_msg_ies_o::value_c::ran_ue_ngap_id() const
 {
   assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
@@ -18637,6 +21019,31 @@ const red_cap_ind_e& init_ue_msg_ies_o::value_c::red_cap_ind() const
   assert_choice_type(types::red_cap_ind, type_, "Value");
   return c.get<red_cap_ind_e>();
 }
+const fixed_bitstring<44, false, true>& init_ue_msg_ies_o::value_c::sel_n_id() const
+{
+  assert_choice_type(types::sel_n_id, type_, "Value");
+  return c.get<fixed_bitstring<44, false, true>>();
+}
+const mobile_iab_node_ind_e& init_ue_msg_ies_o::value_c::mobile_iab_node_ind() const
+{
+  assert_choice_type(types::mobile_iab_node_ind, type_, "Value");
+  return c.get<mobile_iab_node_ind_e>();
+}
+const partially_allowed_nssai_l& init_ue_msg_ies_o::value_c::partially_allowed_nssai() const
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+const e_red_cap_ind_e& init_ue_msg_ies_o::value_c::e_red_cap_ind() const
+{
+  assert_choice_type(types::e_red_cap_ind, type_, "Value");
+  return c.get<e_red_cap_ind_e>();
+}
+const aun3_dev_access_info_s& init_ue_msg_ies_o::value_c::aun3_dev_access_info() const
+{
+  assert_choice_type(types::aun3_dev_access_info, type_, "Value");
+  return c.get<aun3_dev_access_info_s>();
+}
 void init_ue_msg_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -18700,6 +21107,26 @@ void init_ue_msg_ies_o::value_c::to_json(json_writer& j) const
     case types::red_cap_ind:
       j.write_str("RedCapIndication", "redcap");
       break;
+    case types::sel_n_id:
+      j.write_str("BIT STRING", c.get<fixed_bitstring<44, false, true>>().to_string());
+      break;
+    case types::mobile_iab_node_ind:
+      j.write_str("MobileIABNodeIndication", "true");
+      break;
+    case types::partially_allowed_nssai:
+      j.start_array("Partially-Allowed-NSSAI");
+      for (const auto& e1 : c.get<partially_allowed_nssai_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::e_red_cap_ind:
+      j.write_str("ERedCapIndication", "true");
+      break;
+    case types::aun3_dev_access_info:
+      j.write_fieldname("AUN3DeviceAccessInfo");
+      c.get<aun3_dev_access_info_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "init_ue_msg_ies_o::value_c");
   }
@@ -18759,6 +21186,21 @@ OCUDUASN_CODE init_ue_msg_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::red_cap_ind:
       HANDLE_CODE(c.get<red_cap_ind_e>().pack(bref));
+      break;
+    case types::sel_n_id:
+      HANDLE_CODE((c.get<fixed_bitstring<44, false, true>>().pack(bref)));
+      break;
+    case types::mobile_iab_node_ind:
+      HANDLE_CODE(c.get<mobile_iab_node_ind_e>().pack(bref));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<partially_allowed_nssai_l>(), 1, 8, true));
+      break;
+    case types::e_red_cap_ind:
+      HANDLE_CODE(c.get<e_red_cap_ind_e>().pack(bref));
+      break;
+    case types::aun3_dev_access_info:
+      HANDLE_CODE(c.get<aun3_dev_access_info_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "init_ue_msg_ies_o::value_c");
@@ -18821,6 +21263,21 @@ OCUDUASN_CODE init_ue_msg_ies_o::value_c::unpack(cbit_ref& bref)
     case types::red_cap_ind:
       HANDLE_CODE(c.get<red_cap_ind_e>().unpack(bref));
       break;
+    case types::sel_n_id:
+      HANDLE_CODE((c.get<fixed_bitstring<44, false, true>>().unpack(bref)));
+      break;
+    case types::mobile_iab_node_ind:
+      HANDLE_CODE(c.get<mobile_iab_node_ind_e>().unpack(bref));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<partially_allowed_nssai_l>(), bref, 1, 8, true));
+      break;
+    case types::e_red_cap_ind:
+      HANDLE_CODE(c.get<e_red_cap_ind_e>().unpack(bref));
+      break;
+    case types::aun3_dev_access_info:
+      HANDLE_CODE(c.get<aun3_dev_access_info_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "init_ue_msg_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -18846,13 +21303,25 @@ const char* init_ue_msg_ies_o::value_c::types_opts::to_string() const
                                 "EDT-Session",
                                 "AuthenticatedIndication",
                                 "NPN-AccessInformation",
-                                "RedCapIndication"};
-  return convert_enum_idx(names, 17, value, "init_ue_msg_ies_o::value_c::types");
+                                "RedCapIndication",
+                                "BIT STRING",
+                                "MobileIABNodeIndication",
+                                "Partially-Allowed-NSSAI",
+                                "ERedCapIndication",
+                                "AUN3DeviceAccessInfo"};
+  return convert_enum_idx(names, 22, value, "init_ue_msg_ies_o::value_c::types");
 }
 uint8_t init_ue_msg_ies_o::value_c::types_opts::to_number() const
 {
-  static const uint8_t numbers[] = {0};
-  return map_enum_number(numbers, 1, value, "init_ue_msg_ies_o::value_c::types");
+  switch (value) {
+    case ran_ue_ngap_id:
+      return 0;
+    case aun3_dev_access_info:
+      return 3;
+    default:
+      invalid_enum_number(value, "init_ue_msg_ies_o::value_c::types");
+  }
+  return 0;
 }
 
 template struct asn1::protocol_ie_field_s<init_ue_msg_ies_o>;
@@ -18873,6 +21342,11 @@ OCUDUASN_CODE init_ue_msg_ies_container::pack(bit_ref& bref) const
   nof_ies += authenticated_ind_present ? 1 : 0;
   nof_ies += npn_access_info_present ? 1 : 0;
   nof_ies += red_cap_ind_present ? 1 : 0;
+  nof_ies += sel_n_id_present ? 1 : 0;
+  nof_ies += mobile_iab_node_ind_present ? 1 : 0;
+  nof_ies += partially_allowed_nssai_present ? 1 : 0;
+  nof_ies += e_red_cap_ind_present ? 1 : 0;
+  nof_ies += aun3_dev_access_info_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -18976,6 +21450,36 @@ OCUDUASN_CODE init_ue_msg_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(red_cap_ind.pack(bref));
+  }
+  if (sel_n_id_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)371, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(sel_n_id.pack(bref));
+  }
+  if (mobile_iab_node_ind_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)402, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mobile_iab_node_ind.pack(bref));
+  }
+  if (partially_allowed_nssai_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)414, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, partially_allowed_nssai, 1, 8, true));
+  }
+  if (e_red_cap_ind_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)427, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(e_red_cap_ind.pack(bref));
+  }
+  if (aun3_dev_access_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)440, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(aun3_dev_access_info.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -19096,6 +21600,36 @@ OCUDUASN_CODE init_ue_msg_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(red_cap_ind.unpack(bref));
         break;
       }
+      case 371: {
+        sel_n_id_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(sel_n_id.unpack(bref));
+        break;
+      }
+      case 402: {
+        mobile_iab_node_ind_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mobile_iab_node_ind.unpack(bref));
+        break;
+      }
+      case 414: {
+        partially_allowed_nssai_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(partially_allowed_nssai, bref, 1, 8, true));
+        break;
+      }
+      case 427: {
+        e_red_cap_ind_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(e_red_cap_ind.unpack(bref));
+        break;
+      }
+      case 440: {
+        aun3_dev_access_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(aun3_dev_access_info.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -19191,6 +21725,35 @@ void init_ue_msg_ies_container::to_json(json_writer& j) const
     j.write_int("id", 333);
     j.write_str("criticality", "ignore");
     j.write_str("Value", "redcap");
+  }
+  if (sel_n_id_present) {
+    j.write_int("id", 371);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", sel_n_id.to_string());
+  }
+  if (mobile_iab_node_ind_present) {
+    j.write_int("id", 402);
+    j.write_str("criticality", "reject");
+    j.write_str("Value", "true");
+  }
+  if (partially_allowed_nssai_present) {
+    j.write_int("id", 414);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : partially_allowed_nssai) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (e_red_cap_ind_present) {
+    j.write_int("id", 427);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
+  }
+  if (aun3_dev_access_info_present) {
+    j.write_int("id", 440);
+    j.write_str("criticality", "ignore");
+    aun3_dev_access_info.to_json(j);
   }
   j.end_obj();
 }
@@ -20090,6 +22653,904 @@ void location_report_fail_ind_ies_container::to_json(json_writer& j) const
   j.write_int("id", 15);
   j.write_str("criticality", "ignore");
   cause.to_json(j);
+  j.end_obj();
+}
+
+// MTCommunicationHandlingFailureIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t mt_communication_handling_fail_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {10, 85, 15, 19};
+  return map_enum_number(names, 4, idx, "id");
+}
+bool mt_communication_handling_fail_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {10, 85, 15, 19};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e mt_communication_handling_fail_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 10:
+      return crit_e::reject;
+    case 85:
+      return crit_e::reject;
+    case 15:
+      return crit_e::ignore;
+    case 19:
+      return crit_e::ignore;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+mt_communication_handling_fail_ies_o::value_c mt_communication_handling_fail_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 10:
+      ret.set(value_c::types::amf_ue_ngap_id);
+      break;
+    case 85:
+      ret.set(value_c::types::ran_ue_ngap_id);
+      break;
+    case 15:
+      ret.set(value_c::types::cause);
+      break;
+    case 19:
+      ret.set(value_c::types::crit_diagnostics);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e mt_communication_handling_fail_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 10:
+      return presence_e::mandatory;
+    case 85:
+      return presence_e::mandatory;
+    case 15:
+      return presence_e::mandatory;
+    case 19:
+      return presence_e::optional;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void mt_communication_handling_fail_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      c = uint64_t{};
+      break;
+    case types::ran_ue_ngap_id:
+      c = uint64_t{};
+      break;
+    case types::cause:
+      c = cause_c{};
+      break;
+    case types::crit_diagnostics:
+      c = crit_diagnostics_s{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_fail_ies_o::value_c");
+  }
+}
+uint64_t& mt_communication_handling_fail_ies_o::value_c::amf_ue_ngap_id()
+{
+  assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+uint64_t& mt_communication_handling_fail_ies_o::value_c::ran_ue_ngap_id()
+{
+  assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+cause_c& mt_communication_handling_fail_ies_o::value_c::cause()
+{
+  assert_choice_type(types::cause, type_, "Value");
+  return c.get<cause_c>();
+}
+crit_diagnostics_s& mt_communication_handling_fail_ies_o::value_c::crit_diagnostics()
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+const uint64_t& mt_communication_handling_fail_ies_o::value_c::amf_ue_ngap_id() const
+{
+  assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+const uint64_t& mt_communication_handling_fail_ies_o::value_c::ran_ue_ngap_id() const
+{
+  assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+const cause_c& mt_communication_handling_fail_ies_o::value_c::cause() const
+{
+  assert_choice_type(types::cause, type_, "Value");
+  return c.get<cause_c>();
+}
+const crit_diagnostics_s& mt_communication_handling_fail_ies_o::value_c::crit_diagnostics() const
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+void mt_communication_handling_fail_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      j.write_int("INTEGER (0..1099511627775)", c.get<uint64_t>());
+      break;
+    case types::ran_ue_ngap_id:
+      j.write_int("INTEGER (0..4294967295)", c.get<uint64_t>());
+      break;
+    case types::cause:
+      j.write_fieldname("Cause");
+      c.get<cause_c>().to_json(j);
+      break;
+    case types::crit_diagnostics:
+      j.write_fieldname("CriticalityDiagnostics");
+      c.get<crit_diagnostics_s>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_fail_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE mt_communication_handling_fail_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      HANDLE_CODE(pack_integer(bref, c.get<uint64_t>(), (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+      break;
+    case types::ran_ue_ngap_id:
+      HANDLE_CODE(pack_integer(bref, c.get<uint64_t>(), (uint64_t)0u, (uint64_t)4294967295u, false, true));
+      break;
+    case types::cause:
+      HANDLE_CODE(c.get<cause_c>().pack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_fail_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE mt_communication_handling_fail_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      HANDLE_CODE(unpack_integer(c.get<uint64_t>(), bref, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+      break;
+    case types::ran_ue_ngap_id:
+      HANDLE_CODE(unpack_integer(c.get<uint64_t>(), bref, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+      break;
+    case types::cause:
+      HANDLE_CODE(c.get<cause_c>().unpack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_fail_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* mt_communication_handling_fail_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {
+      "INTEGER (0..1099511627775)", "INTEGER (0..4294967295)", "Cause", "CriticalityDiagnostics"};
+  return convert_enum_idx(names, 4, value, "mt_communication_handling_fail_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<mt_communication_handling_fail_ies_o>;
+
+OCUDUASN_CODE mt_communication_handling_fail_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 3;
+  nof_ies += crit_diagnostics_present ? 1 : 0;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)10, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, amf_ue_ngap_id, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)85, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, ran_ue_ngap_id, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)15, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(cause.pack(bref));
+  }
+  if (crit_diagnostics_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)19, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(crit_diagnostics.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE mt_communication_handling_fail_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 3;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 10: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(amf_ue_ngap_id, bref, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+        break;
+      }
+      case 85: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(ran_ue_ngap_id, bref, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+        break;
+      }
+      case 15: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(cause.unpack(bref));
+        break;
+      }
+      case 19: {
+        crit_diagnostics_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(crit_diagnostics.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void mt_communication_handling_fail_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 10);
+  j.write_str("criticality", "reject");
+  j.write_int("Value", amf_ue_ngap_id);
+  j.write_int("id", 85);
+  j.write_str("criticality", "reject");
+  j.write_int("Value", ran_ue_ngap_id);
+  j.write_int("id", 15);
+  j.write_str("criticality", "ignore");
+  cause.to_json(j);
+  if (crit_diagnostics_present) {
+    j.write_int("id", 19);
+    j.write_str("criticality", "ignore");
+    crit_diagnostics.to_json(j);
+  }
+  j.end_obj();
+}
+
+// MTCommunicationHandlingRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t mt_communication_handling_request_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {10, 85, 406, 431};
+  return map_enum_number(names, 4, idx, "id");
+}
+bool mt_communication_handling_request_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {10, 85, 406, 431};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e mt_communication_handling_request_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 10:
+      return crit_e::reject;
+    case 85:
+      return crit_e::reject;
+    case 406:
+      return crit_e::reject;
+    case 431:
+      return crit_e::reject;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+mt_communication_handling_request_ies_o::value_c mt_communication_handling_request_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 10:
+      ret.set(value_c::types::amf_ue_ngap_id);
+      break;
+    case 85:
+      ret.set(value_c::types::ran_ue_ngap_id);
+      break;
+    case 406:
+      ret.set(value_c::types::five_gc_action);
+      break;
+    case 431:
+      ret.set(value_c::types::pdu_session_list_mt_comm_h_req);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e mt_communication_handling_request_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 10:
+      return presence_e::mandatory;
+    case 85:
+      return presence_e::mandatory;
+    case 406:
+      return presence_e::mandatory;
+    case 431:
+      return presence_e::mandatory;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void mt_communication_handling_request_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      c = uint64_t{};
+      break;
+    case types::ran_ue_ngap_id:
+      c = uint64_t{};
+      break;
+    case types::five_gc_action:
+      c = five_gc_action_c{};
+      break;
+    case types::pdu_session_list_mt_comm_h_req:
+      c = pdu_session_list_mt_comm_h_req_l{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_request_ies_o::value_c");
+  }
+}
+uint64_t& mt_communication_handling_request_ies_o::value_c::amf_ue_ngap_id()
+{
+  assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+uint64_t& mt_communication_handling_request_ies_o::value_c::ran_ue_ngap_id()
+{
+  assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+five_gc_action_c& mt_communication_handling_request_ies_o::value_c::five_gc_action()
+{
+  assert_choice_type(types::five_gc_action, type_, "Value");
+  return c.get<five_gc_action_c>();
+}
+pdu_session_list_mt_comm_h_req_l& mt_communication_handling_request_ies_o::value_c::pdu_session_list_mt_comm_h_req()
+{
+  assert_choice_type(types::pdu_session_list_mt_comm_h_req, type_, "Value");
+  return c.get<pdu_session_list_mt_comm_h_req_l>();
+}
+const uint64_t& mt_communication_handling_request_ies_o::value_c::amf_ue_ngap_id() const
+{
+  assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+const uint64_t& mt_communication_handling_request_ies_o::value_c::ran_ue_ngap_id() const
+{
+  assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+const five_gc_action_c& mt_communication_handling_request_ies_o::value_c::five_gc_action() const
+{
+  assert_choice_type(types::five_gc_action, type_, "Value");
+  return c.get<five_gc_action_c>();
+}
+const pdu_session_list_mt_comm_h_req_l&
+mt_communication_handling_request_ies_o::value_c::pdu_session_list_mt_comm_h_req() const
+{
+  assert_choice_type(types::pdu_session_list_mt_comm_h_req, type_, "Value");
+  return c.get<pdu_session_list_mt_comm_h_req_l>();
+}
+void mt_communication_handling_request_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      j.write_int("INTEGER (0..1099511627775)", c.get<uint64_t>());
+      break;
+    case types::ran_ue_ngap_id:
+      j.write_int("INTEGER (0..4294967295)", c.get<uint64_t>());
+      break;
+    case types::five_gc_action:
+      j.write_fieldname("FiveGCAction");
+      c.get<five_gc_action_c>().to_json(j);
+      break;
+    case types::pdu_session_list_mt_comm_h_req:
+      j.start_array("PDUSessionListMTCommHReq");
+      for (const auto& e1 : c.get<pdu_session_list_mt_comm_h_req_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_request_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE mt_communication_handling_request_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      HANDLE_CODE(pack_integer(bref, c.get<uint64_t>(), (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+      break;
+    case types::ran_ue_ngap_id:
+      HANDLE_CODE(pack_integer(bref, c.get<uint64_t>(), (uint64_t)0u, (uint64_t)4294967295u, false, true));
+      break;
+    case types::five_gc_action:
+      HANDLE_CODE(c.get<five_gc_action_c>().pack(bref));
+      break;
+    case types::pdu_session_list_mt_comm_h_req:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<pdu_session_list_mt_comm_h_req_l>(), 1, 256, true));
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_request_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE mt_communication_handling_request_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      HANDLE_CODE(unpack_integer(c.get<uint64_t>(), bref, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+      break;
+    case types::ran_ue_ngap_id:
+      HANDLE_CODE(unpack_integer(c.get<uint64_t>(), bref, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+      break;
+    case types::five_gc_action:
+      HANDLE_CODE(c.get<five_gc_action_c>().unpack(bref));
+      break;
+    case types::pdu_session_list_mt_comm_h_req:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<pdu_session_list_mt_comm_h_req_l>(), bref, 1, 256, true));
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_request_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* mt_communication_handling_request_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {
+      "INTEGER (0..1099511627775)", "INTEGER (0..4294967295)", "FiveGCAction", "PDUSessionListMTCommHReq"};
+  return convert_enum_idx(names, 4, value, "mt_communication_handling_request_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<mt_communication_handling_request_ies_o>;
+
+OCUDUASN_CODE mt_communication_handling_request_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 4;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)10, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, amf_ue_ngap_id, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)85, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, ran_ue_ngap_id, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)406, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(five_gc_action.pack(bref));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)431, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, pdu_session_list_mt_comm_h_req, 1, 256, true));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE mt_communication_handling_request_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 4;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 10: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(amf_ue_ngap_id, bref, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+        break;
+      }
+      case 85: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(ran_ue_ngap_id, bref, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+        break;
+      }
+      case 406: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(five_gc_action.unpack(bref));
+        break;
+      }
+      case 431: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(pdu_session_list_mt_comm_h_req, bref, 1, 256, true));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void mt_communication_handling_request_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 10);
+  j.write_str("criticality", "reject");
+  j.write_int("Value", amf_ue_ngap_id);
+  j.write_int("id", 85);
+  j.write_str("criticality", "reject");
+  j.write_int("Value", ran_ue_ngap_id);
+  j.write_int("id", 406);
+  j.write_str("criticality", "reject");
+  five_gc_action.to_json(j);
+  j.write_int("id", 431);
+  j.write_str("criticality", "reject");
+  j.start_array("Value");
+  for (const auto& e1 : pdu_session_list_mt_comm_h_req) {
+    e1.to_json(j);
+  }
+  j.end_array();
+  j.end_obj();
+}
+
+// MTCommunicationHandlingResponseIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t mt_communication_handling_resp_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {10, 85, 19};
+  return map_enum_number(names, 3, idx, "id");
+}
+bool mt_communication_handling_resp_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {10, 85, 19};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e mt_communication_handling_resp_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 10:
+      return crit_e::reject;
+    case 85:
+      return crit_e::reject;
+    case 19:
+      return crit_e::ignore;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+mt_communication_handling_resp_ies_o::value_c mt_communication_handling_resp_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 10:
+      ret.set(value_c::types::amf_ue_ngap_id);
+      break;
+    case 85:
+      ret.set(value_c::types::ran_ue_ngap_id);
+      break;
+    case 19:
+      ret.set(value_c::types::crit_diagnostics);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e mt_communication_handling_resp_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 10:
+      return presence_e::mandatory;
+    case 85:
+      return presence_e::mandatory;
+    case 19:
+      return presence_e::optional;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void mt_communication_handling_resp_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      c = uint64_t{};
+      break;
+    case types::ran_ue_ngap_id:
+      c = uint64_t{};
+      break;
+    case types::crit_diagnostics:
+      c = crit_diagnostics_s{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_resp_ies_o::value_c");
+  }
+}
+uint64_t& mt_communication_handling_resp_ies_o::value_c::amf_ue_ngap_id()
+{
+  assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+uint64_t& mt_communication_handling_resp_ies_o::value_c::ran_ue_ngap_id()
+{
+  assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+crit_diagnostics_s& mt_communication_handling_resp_ies_o::value_c::crit_diagnostics()
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+const uint64_t& mt_communication_handling_resp_ies_o::value_c::amf_ue_ngap_id() const
+{
+  assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+const uint64_t& mt_communication_handling_resp_ies_o::value_c::ran_ue_ngap_id() const
+{
+  assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+const crit_diagnostics_s& mt_communication_handling_resp_ies_o::value_c::crit_diagnostics() const
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+void mt_communication_handling_resp_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      j.write_int("INTEGER (0..1099511627775)", c.get<uint64_t>());
+      break;
+    case types::ran_ue_ngap_id:
+      j.write_int("INTEGER (0..4294967295)", c.get<uint64_t>());
+      break;
+    case types::crit_diagnostics:
+      j.write_fieldname("CriticalityDiagnostics");
+      c.get<crit_diagnostics_s>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_resp_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE mt_communication_handling_resp_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      HANDLE_CODE(pack_integer(bref, c.get<uint64_t>(), (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+      break;
+    case types::ran_ue_ngap_id:
+      HANDLE_CODE(pack_integer(bref, c.get<uint64_t>(), (uint64_t)0u, (uint64_t)4294967295u, false, true));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_resp_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE mt_communication_handling_resp_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      HANDLE_CODE(unpack_integer(c.get<uint64_t>(), bref, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+      break;
+    case types::ran_ue_ngap_id:
+      HANDLE_CODE(unpack_integer(c.get<uint64_t>(), bref, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "mt_communication_handling_resp_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* mt_communication_handling_resp_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"INTEGER (0..1099511627775)", "INTEGER (0..4294967295)", "CriticalityDiagnostics"};
+  return convert_enum_idx(names, 3, value, "mt_communication_handling_resp_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<mt_communication_handling_resp_ies_o>;
+
+OCUDUASN_CODE mt_communication_handling_resp_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 2;
+  nof_ies += crit_diagnostics_present ? 1 : 0;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)10, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, amf_ue_ngap_id, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)85, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, ran_ue_ngap_id, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+  }
+  if (crit_diagnostics_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)19, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(crit_diagnostics.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE mt_communication_handling_resp_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 2;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 10: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(amf_ue_ngap_id, bref, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+        break;
+      }
+      case 85: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(ran_ue_ngap_id, bref, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+        break;
+      }
+      case 19: {
+        crit_diagnostics_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(crit_diagnostics.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void mt_communication_handling_resp_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 10);
+  j.write_str("criticality", "reject");
+  j.write_int("Value", amf_ue_ngap_id);
+  j.write_int("id", 85);
+  j.write_str("criticality", "reject");
+  j.write_int("Value", ran_ue_ngap_id);
+  if (crit_diagnostics_present) {
+    j.write_int("id", 19);
+    j.write_str("criticality", "ignore");
+    crit_diagnostics.to_json(j);
+  }
   j.end_obj();
 }
 
@@ -23911,12 +27372,12 @@ void ng_setup_request_ies_container::to_json(json_writer& j) const
 // NGSetupResponseIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t ng_setup_resp_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {1, 96, 86, 80, 19, 147, 200, 274};
-  return map_enum_number(names, 8, idx, "id");
+  static const uint32_t names[] = {1, 96, 86, 80, 19, 147, 200, 274, 404};
+  return map_enum_number(names, 9, idx, "id");
 }
 bool ng_setup_resp_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {1, 96, 86, 80, 19, 147, 200, 274};
+  static const uint32_t names[] = {1, 96, 86, 80, 19, 147, 200, 274, 404};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -23942,6 +27403,8 @@ crit_e ng_setup_resp_ies_o::get_crit(const uint32_t& id)
     case 200:
       return crit_e::ignore;
     case 274:
+      return crit_e::ignore;
+    case 404:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -23976,6 +27439,9 @@ ng_setup_resp_ies_o::value_c ng_setup_resp_ies_o::get_value(const uint32_t& id)
     case 274:
       ret.set(value_c::types::extended_amf_name);
       break;
+    case 404:
+      ret.set(value_c::types::mobile_iab_supported);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -23999,6 +27465,8 @@ presence_e ng_setup_resp_ies_o::get_presence(const uint32_t& id)
     case 200:
       return presence_e::optional;
     case 274:
+      return presence_e::optional;
+    case 404:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -24034,6 +27502,9 @@ void ng_setup_resp_ies_o::value_c::set(types::options e)
       break;
     case types::extended_amf_name:
       c = extended_amf_name_s{};
+      break;
+    case types::mobile_iab_supported:
+      c = mobile_iab_supported_e{};
       break;
     case types::nulltype:
       break;
@@ -24081,6 +27552,11 @@ extended_amf_name_s& ng_setup_resp_ies_o::value_c::extended_amf_name()
   assert_choice_type(types::extended_amf_name, type_, "Value");
   return c.get<extended_amf_name_s>();
 }
+mobile_iab_supported_e& ng_setup_resp_ies_o::value_c::mobile_iab_supported()
+{
+  assert_choice_type(types::mobile_iab_supported, type_, "Value");
+  return c.get<mobile_iab_supported_e>();
+}
 const printable_string<1, 150, true, true>& ng_setup_resp_ies_o::value_c::amf_name() const
 {
   assert_choice_type(types::amf_name, type_, "Value");
@@ -24121,6 +27597,11 @@ const extended_amf_name_s& ng_setup_resp_ies_o::value_c::extended_amf_name() con
   assert_choice_type(types::extended_amf_name, type_, "Value");
   return c.get<extended_amf_name_s>();
 }
+const mobile_iab_supported_e& ng_setup_resp_ies_o::value_c::mobile_iab_supported() const
+{
+  assert_choice_type(types::mobile_iab_supported, type_, "Value");
+  return c.get<mobile_iab_supported_e>();
+}
 void ng_setup_resp_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -24159,6 +27640,9 @@ void ng_setup_resp_ies_o::value_c::to_json(json_writer& j) const
       j.write_fieldname("Extended-AMFName");
       c.get<extended_amf_name_s>().to_json(j);
       break;
+    case types::mobile_iab_supported:
+      j.write_str("MobileIAB-Supported", "true");
+      break;
     default:
       log_invalid_choice_id(type_, "ng_setup_resp_ies_o::value_c");
   }
@@ -24191,6 +27675,9 @@ OCUDUASN_CODE ng_setup_resp_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::extended_amf_name:
       HANDLE_CODE(c.get<extended_amf_name_s>().pack(bref));
+      break;
+    case types::mobile_iab_supported:
+      HANDLE_CODE(c.get<mobile_iab_supported_e>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ng_setup_resp_ies_o::value_c");
@@ -24226,6 +27713,9 @@ OCUDUASN_CODE ng_setup_resp_ies_o::value_c::unpack(cbit_ref& bref)
     case types::extended_amf_name:
       HANDLE_CODE(c.get<extended_amf_name_s>().unpack(bref));
       break;
+    case types::mobile_iab_supported:
+      HANDLE_CODE(c.get<mobile_iab_supported_e>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ng_setup_resp_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -24242,8 +27732,9 @@ const char* ng_setup_resp_ies_o::value_c::types_opts::to_string() const
                                 "CriticalityDiagnostics",
                                 "UERetentionInformation",
                                 "IAB-Supported",
-                                "Extended-AMFName"};
-  return convert_enum_idx(names, 8, value, "ng_setup_resp_ies_o::value_c::types");
+                                "Extended-AMFName",
+                                "MobileIAB-Supported"};
+  return convert_enum_idx(names, 9, value, "ng_setup_resp_ies_o::value_c::types");
 }
 uint8_t ng_setup_resp_ies_o::value_c::types_opts::to_number() const
 {
@@ -24263,6 +27754,7 @@ OCUDUASN_CODE ng_setup_resp_ies_container::pack(bit_ref& bref) const
   nof_ies += ue_retention_info_present ? 1 : 0;
   nof_ies += iab_supported_present ? 1 : 0;
   nof_ies += extended_amf_name_present ? 1 : 0;
+  nof_ies += mobile_iab_supported_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -24312,6 +27804,12 @@ OCUDUASN_CODE ng_setup_resp_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(extended_amf_name.pack(bref));
+  }
+  if (mobile_iab_supported_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)404, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mobile_iab_supported.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -24378,6 +27876,12 @@ OCUDUASN_CODE ng_setup_resp_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(extended_amf_name.unpack(bref));
         break;
       }
+      case 404: {
+        mobile_iab_supported_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mobile_iab_supported.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -24432,6 +27936,11 @@ void ng_setup_resp_ies_container::to_json(json_writer& j) const
     j.write_int("id", 274);
     j.write_str("criticality", "ignore");
     extended_amf_name.to_json(j);
+  }
+  if (mobile_iab_supported_present) {
+    j.write_int("id", 404);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
   }
   j.end_obj();
 }
@@ -30307,12 +33816,12 @@ void paging_ies_container::to_json(json_writer& j) const
 // PathSwitchRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t path_switch_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {85, 100, 121, 119, 76, 57, 237, 333};
-  return map_enum_number(names, 8, idx, "id");
+  static const uint32_t names[] = {85, 100, 121, 119, 76, 57, 237, 333, 427};
+  return map_enum_number(names, 9, idx, "id");
 }
 bool path_switch_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {85, 100, 121, 119, 76, 57, 237, 333};
+  static const uint32_t names[] = {85, 100, 121, 119, 76, 57, 237, 333, 427};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -30338,6 +33847,8 @@ crit_e path_switch_request_ies_o::get_crit(const uint32_t& id)
     case 237:
       return crit_e::ignore;
     case 333:
+      return crit_e::ignore;
+    case 427:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -30372,6 +33883,9 @@ path_switch_request_ies_o::value_c path_switch_request_ies_o::get_value(const ui
     case 333:
       ret.set(value_c::types::red_cap_ind);
       break;
+    case 427:
+      ret.set(value_c::types::e_red_cap_ind);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -30395,6 +33909,8 @@ presence_e path_switch_request_ies_o::get_presence(const uint32_t& id)
     case 237:
       return presence_e::optional;
     case 333:
+      return presence_e::optional;
+    case 427:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -30430,6 +33946,9 @@ void path_switch_request_ies_o::value_c::set(types::options e)
       break;
     case types::red_cap_ind:
       c = red_cap_ind_e{};
+      break;
+    case types::e_red_cap_ind:
+      c = e_red_cap_ind_e{};
       break;
     case types::nulltype:
       break;
@@ -30478,6 +33997,11 @@ red_cap_ind_e& path_switch_request_ies_o::value_c::red_cap_ind()
   assert_choice_type(types::red_cap_ind, type_, "Value");
   return c.get<red_cap_ind_e>();
 }
+e_red_cap_ind_e& path_switch_request_ies_o::value_c::e_red_cap_ind()
+{
+  assert_choice_type(types::e_red_cap_ind, type_, "Value");
+  return c.get<e_red_cap_ind_e>();
+}
 const uint64_t& path_switch_request_ies_o::value_c::ran_ue_ngap_id() const
 {
   assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
@@ -30520,6 +34044,11 @@ const red_cap_ind_e& path_switch_request_ies_o::value_c::red_cap_ind() const
   assert_choice_type(types::red_cap_ind, type_, "Value");
   return c.get<red_cap_ind_e>();
 }
+const e_red_cap_ind_e& path_switch_request_ies_o::value_c::e_red_cap_ind() const
+{
+  assert_choice_type(types::e_red_cap_ind, type_, "Value");
+  return c.get<e_red_cap_ind_e>();
+}
 void path_switch_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -30558,6 +34087,9 @@ void path_switch_request_ies_o::value_c::to_json(json_writer& j) const
     case types::red_cap_ind:
       j.write_str("RedCapIndication", "redcap");
       break;
+    case types::e_red_cap_ind:
+      j.write_str("ERedCapIndication", "true");
+      break;
     default:
       log_invalid_choice_id(type_, "path_switch_request_ies_o::value_c");
   }
@@ -30590,6 +34122,9 @@ OCUDUASN_CODE path_switch_request_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::red_cap_ind:
       HANDLE_CODE(c.get<red_cap_ind_e>().pack(bref));
+      break;
+    case types::e_red_cap_ind:
+      HANDLE_CODE(c.get<e_red_cap_ind_e>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "path_switch_request_ies_o::value_c");
@@ -30625,6 +34160,9 @@ OCUDUASN_CODE path_switch_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::red_cap_ind:
       HANDLE_CODE(c.get<red_cap_ind_e>().unpack(bref));
       break;
+    case types::e_red_cap_ind:
+      HANDLE_CODE(c.get<e_red_cap_ind_e>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "path_switch_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -30641,8 +34179,9 @@ const char* path_switch_request_ies_o::value_c::types_opts::to_string() const
                                 "PDUSessionResourceToBeSwitchedDLList",
                                 "PDUSessionResourceFailedToSetupListPSReq",
                                 "RRCEstablishmentCause",
-                                "RedCapIndication"};
-  return convert_enum_idx(names, 8, value, "path_switch_request_ies_o::value_c::types");
+                                "RedCapIndication",
+                                "ERedCapIndication"};
+  return convert_enum_idx(names, 9, value, "path_switch_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<path_switch_request_ies_o>;
@@ -30653,6 +34192,7 @@ OCUDUASN_CODE path_switch_request_ies_container::pack(bit_ref& bref) const
   nof_ies += pdu_session_res_failed_to_setup_list_ps_req_present ? 1 : 0;
   nof_ies += rrc_resume_cause_present ? 1 : 0;
   nof_ies += red_cap_ind_present ? 1 : 0;
+  nof_ies += e_red_cap_ind_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -30702,6 +34242,12 @@ OCUDUASN_CODE path_switch_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(red_cap_ind.pack(bref));
+  }
+  if (e_red_cap_ind_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)427, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(e_red_cap_ind.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -30768,6 +34314,12 @@ OCUDUASN_CODE path_switch_request_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(red_cap_ind.unpack(bref));
         break;
       }
+      case 427: {
+        e_red_cap_ind_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(e_red_cap_ind.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -30821,20 +34373,27 @@ void path_switch_request_ies_container::to_json(json_writer& j) const
     j.write_str("criticality", "ignore");
     j.write_str("Value", "redcap");
   }
+  if (e_red_cap_ind_present) {
+    j.write_int("id", 427);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
+  }
   j.end_obj();
 }
 
 // PathSwitchRequestAcknowledgeIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t path_switch_request_ack_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10,  85,  119, 93,  41,  77,  68,  0,   18,  91,  19,  146, 165, 177, 205, 206,
-                                   209, 216, 215, 218, 217, 219, 222, 234, 264, 254, 326, 345, 346, 347, 359};
-  return map_enum_number(names, 31, idx, "id");
+  static const uint32_t names[] = {10,  85,  119, 93,  41,  77,  68,  0,   18,  91,  19,  146, 165, 177,
+                                   205, 206, 209, 216, 215, 218, 217, 219, 222, 234, 264, 254, 326, 345,
+                                   346, 347, 359, 199, 373, 374, 375, 376, 377, 378, 400, 414, 430};
+  return map_enum_number(names, 41, idx, "id");
 }
 bool path_switch_request_ack_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10,  85,  119, 93,  41,  77,  68,  0,   18,  91,  19,  146, 165, 177, 205, 206,
-                                   209, 216, 215, 218, 217, 219, 222, 234, 264, 254, 326, 345, 346, 347, 359};
+  static const uint32_t names[] = {10,  85,  119, 93,  41,  77,  68,  0,   18,  91,  19,  146, 165, 177,
+                                   205, 206, 209, 216, 215, 218, 217, 219, 222, 234, 264, 254, 326, 345,
+                                   346, 347, 359, 199, 373, 374, 375, 376, 377, 378, 400, 414, 430};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -30906,6 +34465,26 @@ crit_e path_switch_request_ack_ies_o::get_crit(const uint32_t& id)
     case 347:
       return crit_e::ignore;
     case 359:
+      return crit_e::ignore;
+    case 199:
+      return crit_e::ignore;
+    case 373:
+      return crit_e::ignore;
+    case 374:
+      return crit_e::ignore;
+    case 375:
+      return crit_e::ignore;
+    case 376:
+      return crit_e::ignore;
+    case 377:
+      return crit_e::ignore;
+    case 378:
+      return crit_e::ignore;
+    case 400:
+      return crit_e::ignore;
+    case 414:
+      return crit_e::ignore;
+    case 430:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -31009,6 +34588,36 @@ path_switch_request_ack_ies_o::value_c path_switch_request_ack_ies_o::get_value(
     case 359:
       ret.set(value_c::types::management_based_mdt_plmn_mod_list);
       break;
+    case 199:
+      ret.set(value_c::types::iab_authorized);
+      break;
+    case 373:
+      ret.set(value_c::types::aerial_ue_sub_info);
+      break;
+    case 374:
+      ret.set(value_c::types::nr_a2_x_services_authorized);
+      break;
+    case 375:
+      ret.set(value_c::types::lte_a2_x_services_authorized);
+      break;
+    case 376:
+      ret.set(value_c::types::nr_a2_x_ue_pc5_aggr_max_bit_rate);
+      break;
+    case 377:
+      ret.set(value_c::types::lte_a2_x_ue_pc5_aggr_max_bit_rate);
+      break;
+    case 378:
+      ret.set(value_c::types::a2_x_pc5_qos_params);
+      break;
+    case 400:
+      ret.set(value_c::types::mobile_iab_authorized);
+      break;
+    case 414:
+      ret.set(value_c::types::partially_allowed_nssai);
+      break;
+    case 430:
+      ret.set(value_c::types::sl_positioning_ranging_service_info);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -31078,6 +34687,26 @@ presence_e path_switch_request_ack_ies_o::get_presence(const uint32_t& id)
     case 347:
       return presence_e::optional;
     case 359:
+      return presence_e::optional;
+    case 199:
+      return presence_e::optional;
+    case 373:
+      return presence_e::optional;
+    case 374:
+      return presence_e::optional;
+    case 375:
+      return presence_e::optional;
+    case 376:
+      return presence_e::optional;
+    case 377:
+      return presence_e::optional;
+    case 378:
+      return presence_e::optional;
+    case 400:
+      return presence_e::optional;
+    case 414:
+      return presence_e::optional;
+    case 430:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -31182,6 +34811,36 @@ void path_switch_request_ack_ies_o::value_c::set(types::options e)
       break;
     case types::management_based_mdt_plmn_mod_list:
       c = mdt_plmn_mod_list_l{};
+      break;
+    case types::iab_authorized:
+      c = iab_authorized_e{};
+      break;
+    case types::aerial_ue_sub_info:
+      c = aerial_ue_sub_info_e{};
+      break;
+    case types::nr_a2_x_services_authorized:
+      c = nr_a2_x_services_authorized_s{};
+      break;
+    case types::lte_a2_x_services_authorized:
+      c = lte_a2_x_services_authorized_s{};
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      c = nr_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      c = lte_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::a2_x_pc5_qos_params:
+      c = a2_x_pc5_qos_params_s{};
+      break;
+    case types::mobile_iab_authorized:
+      c = mobile_iab_authorized_e{};
+      break;
+    case types::partially_allowed_nssai:
+      c = partially_allowed_nssai_l{};
+      break;
+    case types::sl_positioning_ranging_service_info:
+      c = sl_positioning_ranging_service_info_s{};
       break;
     case types::nulltype:
       break;
@@ -31345,6 +35004,56 @@ mdt_plmn_mod_list_l& path_switch_request_ack_ies_o::value_c::management_based_md
   assert_choice_type(types::management_based_mdt_plmn_mod_list, type_, "Value");
   return c.get<mdt_plmn_mod_list_l>();
 }
+iab_authorized_e& path_switch_request_ack_ies_o::value_c::iab_authorized()
+{
+  assert_choice_type(types::iab_authorized, type_, "Value");
+  return c.get<iab_authorized_e>();
+}
+aerial_ue_sub_info_e& path_switch_request_ack_ies_o::value_c::aerial_ue_sub_info()
+{
+  assert_choice_type(types::aerial_ue_sub_info, type_, "Value");
+  return c.get<aerial_ue_sub_info_e>();
+}
+nr_a2_x_services_authorized_s& path_switch_request_ack_ies_o::value_c::nr_a2_x_services_authorized()
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+lte_a2_x_services_authorized_s& path_switch_request_ack_ies_o::value_c::lte_a2_x_services_authorized()
+{
+  assert_choice_type(types::lte_a2_x_services_authorized, type_, "Value");
+  return c.get<lte_a2_x_services_authorized_s>();
+}
+nr_ue_sidelink_aggr_max_bitrate_s& path_switch_request_ack_ies_o::value_c::nr_a2_x_ue_pc5_aggr_max_bit_rate()
+{
+  assert_choice_type(types::nr_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+lte_ue_sidelink_aggr_max_bitrate_s& path_switch_request_ack_ies_o::value_c::lte_a2_x_ue_pc5_aggr_max_bit_rate()
+{
+  assert_choice_type(types::lte_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+a2_x_pc5_qos_params_s& path_switch_request_ack_ies_o::value_c::a2_x_pc5_qos_params()
+{
+  assert_choice_type(types::a2_x_pc5_qos_params, type_, "Value");
+  return c.get<a2_x_pc5_qos_params_s>();
+}
+mobile_iab_authorized_e& path_switch_request_ack_ies_o::value_c::mobile_iab_authorized()
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+partially_allowed_nssai_l& path_switch_request_ack_ies_o::value_c::partially_allowed_nssai()
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+sl_positioning_ranging_service_info_s& path_switch_request_ack_ies_o::value_c::sl_positioning_ranging_service_info()
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
 const uint64_t& path_switch_request_ack_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -31505,6 +35214,59 @@ const mdt_plmn_mod_list_l& path_switch_request_ack_ies_o::value_c::management_ba
   assert_choice_type(types::management_based_mdt_plmn_mod_list, type_, "Value");
   return c.get<mdt_plmn_mod_list_l>();
 }
+const iab_authorized_e& path_switch_request_ack_ies_o::value_c::iab_authorized() const
+{
+  assert_choice_type(types::iab_authorized, type_, "Value");
+  return c.get<iab_authorized_e>();
+}
+const aerial_ue_sub_info_e& path_switch_request_ack_ies_o::value_c::aerial_ue_sub_info() const
+{
+  assert_choice_type(types::aerial_ue_sub_info, type_, "Value");
+  return c.get<aerial_ue_sub_info_e>();
+}
+const nr_a2_x_services_authorized_s& path_switch_request_ack_ies_o::value_c::nr_a2_x_services_authorized() const
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+const lte_a2_x_services_authorized_s& path_switch_request_ack_ies_o::value_c::lte_a2_x_services_authorized() const
+{
+  assert_choice_type(types::lte_a2_x_services_authorized, type_, "Value");
+  return c.get<lte_a2_x_services_authorized_s>();
+}
+const nr_ue_sidelink_aggr_max_bitrate_s&
+path_switch_request_ack_ies_o::value_c::nr_a2_x_ue_pc5_aggr_max_bit_rate() const
+{
+  assert_choice_type(types::nr_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+const lte_ue_sidelink_aggr_max_bitrate_s&
+path_switch_request_ack_ies_o::value_c::lte_a2_x_ue_pc5_aggr_max_bit_rate() const
+{
+  assert_choice_type(types::lte_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+const a2_x_pc5_qos_params_s& path_switch_request_ack_ies_o::value_c::a2_x_pc5_qos_params() const
+{
+  assert_choice_type(types::a2_x_pc5_qos_params, type_, "Value");
+  return c.get<a2_x_pc5_qos_params_s>();
+}
+const mobile_iab_authorized_e& path_switch_request_ack_ies_o::value_c::mobile_iab_authorized() const
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+const partially_allowed_nssai_l& path_switch_request_ack_ies_o::value_c::partially_allowed_nssai() const
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
+const sl_positioning_ranging_service_info_s&
+path_switch_request_ack_ies_o::value_c::sl_positioning_ranging_service_info() const
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
 void path_switch_request_ack_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -31637,6 +35399,46 @@ void path_switch_request_ack_ies_o::value_c::to_json(json_writer& j) const
       }
       j.end_array();
       break;
+    case types::iab_authorized:
+      j.write_str("IAB-Authorized", c.get<iab_authorized_e>().to_string());
+      break;
+    case types::aerial_ue_sub_info:
+      j.write_str("AerialUEsubscriptionInformation", c.get<aerial_ue_sub_info_e>().to_string());
+      break;
+    case types::nr_a2_x_services_authorized:
+      j.write_fieldname("NR-A2X-ServicesAuthorized");
+      c.get<nr_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::lte_a2_x_services_authorized:
+      j.write_fieldname("LTE-A2X-ServicesAuthorized");
+      c.get<lte_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      j.write_fieldname("NRUESidelinkAggregateMaximumBitrate");
+      c.get<nr_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      j.write_fieldname("LTEUESidelinkAggregateMaximumBitrate");
+      c.get<lte_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::a2_x_pc5_qos_params:
+      j.write_fieldname("A2X-PC5-QoS-Parameters");
+      c.get<a2_x_pc5_qos_params_s>().to_json(j);
+      break;
+    case types::mobile_iab_authorized:
+      j.write_str("MobileIAB-Authorized", c.get<mobile_iab_authorized_e>().to_string());
+      break;
+    case types::partially_allowed_nssai:
+      j.start_array("Partially-Allowed-NSSAI");
+      for (const auto& e1 : c.get<partially_allowed_nssai_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::sl_positioning_ranging_service_info:
+      j.write_fieldname("SLPositioningRangingServiceInfo");
+      c.get<sl_positioning_ranging_service_info_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "path_switch_request_ack_ies_o::value_c");
   }
@@ -31738,6 +35540,36 @@ OCUDUASN_CODE path_switch_request_ack_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::management_based_mdt_plmn_mod_list:
       HANDLE_CODE(pack_dyn_seq_of(bref, c.get<mdt_plmn_mod_list_l>(), 0, 16, true));
+      break;
+    case types::iab_authorized:
+      HANDLE_CODE(c.get<iab_authorized_e>().pack(bref));
+      break;
+    case types::aerial_ue_sub_info:
+      HANDLE_CODE(c.get<aerial_ue_sub_info_e>().pack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::lte_a2_x_services_authorized:
+      HANDLE_CODE(c.get<lte_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::a2_x_pc5_qos_params:
+      HANDLE_CODE(c.get<a2_x_pc5_qos_params_s>().pack(bref));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().pack(bref));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<partially_allowed_nssai_l>(), 1, 8, true));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "path_switch_request_ack_ies_o::value_c");
@@ -31842,6 +35674,36 @@ OCUDUASN_CODE path_switch_request_ack_ies_o::value_c::unpack(cbit_ref& bref)
     case types::management_based_mdt_plmn_mod_list:
       HANDLE_CODE(unpack_dyn_seq_of(c.get<mdt_plmn_mod_list_l>(), bref, 0, 16, true));
       break;
+    case types::iab_authorized:
+      HANDLE_CODE(c.get<iab_authorized_e>().unpack(bref));
+      break;
+    case types::aerial_ue_sub_info:
+      HANDLE_CODE(c.get<aerial_ue_sub_info_e>().unpack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::lte_a2_x_services_authorized:
+      HANDLE_CODE(c.get<lte_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::a2_x_pc5_qos_params:
+      HANDLE_CODE(c.get<a2_x_pc5_qos_params_s>().unpack(bref));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().unpack(bref));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<partially_allowed_nssai_l>(), bref, 1, 8, true));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "path_switch_request_ack_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -31881,8 +35743,18 @@ const char* path_switch_request_ack_ies_o::value_c::types_opts::to_string() cons
                                 "FiveG-ProSeAuthorized",
                                 "NRUESidelinkAggregateMaximumBitrate",
                                 "FiveG-ProSePC5QoSParameters",
-                                "MDTPLMNModificationList"};
-  return convert_enum_idx(names, 31, value, "path_switch_request_ack_ies_o::value_c::types");
+                                "MDTPLMNModificationList",
+                                "IAB-Authorized",
+                                "AerialUEsubscriptionInformation",
+                                "NR-A2X-ServicesAuthorized",
+                                "LTE-A2X-ServicesAuthorized",
+                                "NRUESidelinkAggregateMaximumBitrate",
+                                "LTEUESidelinkAggregateMaximumBitrate",
+                                "A2X-PC5-QoS-Parameters",
+                                "MobileIAB-Authorized",
+                                "Partially-Allowed-NSSAI",
+                                "SLPositioningRangingServiceInfo"};
+  return convert_enum_idx(names, 41, value, "path_switch_request_ack_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<path_switch_request_ack_ies_o>;
@@ -31916,6 +35788,16 @@ OCUDUASN_CODE path_switch_request_ack_ies_container::pack(bit_ref& bref) const
   nof_ies += five_g_pro_se_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
   nof_ies += five_g_pro_se_pc5_qos_params_present ? 1 : 0;
   nof_ies += management_based_mdt_plmn_mod_list_present ? 1 : 0;
+  nof_ies += iab_authorized_present ? 1 : 0;
+  nof_ies += aerial_ue_sub_info_present ? 1 : 0;
+  nof_ies += nr_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += lte_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += nr_a2_x_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
+  nof_ies += lte_a2_x_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
+  nof_ies += a2_x_pc5_qos_params_present ? 1 : 0;
+  nof_ies += mobile_iab_authorized_present ? 1 : 0;
+  nof_ies += partially_allowed_nssai_present ? 1 : 0;
+  nof_ies += sl_positioning_ranging_service_info_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -32103,6 +35985,66 @@ OCUDUASN_CODE path_switch_request_ack_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(pack_dyn_seq_of(bref, management_based_mdt_plmn_mod_list, 0, 16, true));
+  }
+  if (iab_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)199, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(iab_authorized.pack(bref));
+  }
+  if (aerial_ue_sub_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)373, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(aerial_ue_sub_info.pack(bref));
+  }
+  if (nr_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)374, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_services_authorized.pack(bref));
+  }
+  if (lte_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)375, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_a2_x_services_authorized.pack(bref));
+  }
+  if (nr_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)376, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_ue_pc5_aggr_max_bit_rate.pack(bref));
+  }
+  if (lte_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)377, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_a2_x_ue_pc5_aggr_max_bit_rate.pack(bref));
+  }
+  if (a2_x_pc5_qos_params_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)378, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(a2_x_pc5_qos_params.pack(bref));
+  }
+  if (mobile_iab_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)400, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mobile_iab_authorized.pack(bref));
+  }
+  if (partially_allowed_nssai_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)414, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, partially_allowed_nssai, 1, 8, true));
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)430, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(sl_positioning_ranging_service_info.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -32307,6 +36249,66 @@ OCUDUASN_CODE path_switch_request_ack_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(unpack_dyn_seq_of(management_based_mdt_plmn_mod_list, bref, 0, 16, true));
         break;
       }
+      case 199: {
+        iab_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(iab_authorized.unpack(bref));
+        break;
+      }
+      case 373: {
+        aerial_ue_sub_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(aerial_ue_sub_info.unpack(bref));
+        break;
+      }
+      case 374: {
+        nr_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 375: {
+        lte_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 376: {
+        nr_a2_x_ue_pc5_aggr_max_bit_rate_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_ue_pc5_aggr_max_bit_rate.unpack(bref));
+        break;
+      }
+      case 377: {
+        lte_a2_x_ue_pc5_aggr_max_bit_rate_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_a2_x_ue_pc5_aggr_max_bit_rate.unpack(bref));
+        break;
+      }
+      case 378: {
+        a2_x_pc5_qos_params_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(a2_x_pc5_qos_params.unpack(bref));
+        break;
+      }
+      case 400: {
+        mobile_iab_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mobile_iab_authorized.unpack(bref));
+        break;
+      }
+      case 414: {
+        partially_allowed_nssai_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(partially_allowed_nssai, bref, 1, 8, true));
+        break;
+      }
+      case 430: {
+        sl_positioning_ranging_service_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(sl_positioning_ranging_service_info.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -32486,6 +36488,60 @@ void path_switch_request_ack_ies_container::to_json(json_writer& j) const
       j.write_str(e1.to_string());
     }
     j.end_array();
+  }
+  if (iab_authorized_present) {
+    j.write_int("id", 199);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", iab_authorized.to_string());
+  }
+  if (aerial_ue_sub_info_present) {
+    j.write_int("id", 373);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", aerial_ue_sub_info.to_string());
+  }
+  if (nr_a2_x_services_authorized_present) {
+    j.write_int("id", 374);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_services_authorized.to_json(j);
+  }
+  if (lte_a2_x_services_authorized_present) {
+    j.write_int("id", 375);
+    j.write_str("criticality", "ignore");
+    lte_a2_x_services_authorized.to_json(j);
+  }
+  if (nr_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    j.write_int("id", 376);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_ue_pc5_aggr_max_bit_rate.to_json(j);
+  }
+  if (lte_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    j.write_int("id", 377);
+    j.write_str("criticality", "ignore");
+    lte_a2_x_ue_pc5_aggr_max_bit_rate.to_json(j);
+  }
+  if (a2_x_pc5_qos_params_present) {
+    j.write_int("id", 378);
+    j.write_str("criticality", "ignore");
+    a2_x_pc5_qos_params.to_json(j);
+  }
+  if (mobile_iab_authorized_present) {
+    j.write_int("id", 400);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", mobile_iab_authorized.to_string());
+  }
+  if (partially_allowed_nssai_present) {
+    j.write_int("id", 414);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : partially_allowed_nssai) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    j.write_int("id", 430);
+    j.write_str("criticality", "ignore");
+    sl_positioning_ranging_service_info.to_json(j);
   }
   j.end_obj();
 }
@@ -34062,6 +38118,321 @@ void ran_cfg_upd_fail_ies_container::to_json(json_writer& j) const
   j.end_obj();
 }
 
+// RANPagingRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t ran_paging_request_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {10, 85, 407, 408};
+  return map_enum_number(names, 4, idx, "id");
+}
+bool ran_paging_request_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {10, 85, 407, 408};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e ran_paging_request_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 10:
+      return crit_e::ignore;
+    case 85:
+      return crit_e::ignore;
+    case 407:
+      return crit_e::ignore;
+    case 408:
+      return crit_e::ignore;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+ran_paging_request_ies_o::value_c ran_paging_request_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 10:
+      ret.set(value_c::types::amf_ue_ngap_id);
+      break;
+    case 85:
+      ret.set(value_c::types::ran_ue_ngap_id);
+      break;
+    case 407:
+      ret.set(value_c::types::paging_policy_diff);
+      break;
+    case 408:
+      ret.set(value_c::types::dl_sig);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e ran_paging_request_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 10:
+      return presence_e::mandatory;
+    case 85:
+      return presence_e::mandatory;
+    case 407:
+      return presence_e::optional;
+    case 408:
+      return presence_e::optional;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void ran_paging_request_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      c = uint64_t{};
+      break;
+    case types::ran_ue_ngap_id:
+      c = uint64_t{};
+      break;
+    case types::paging_policy_diff:
+      c = paging_policy_diff_s{};
+      break;
+    case types::dl_sig:
+      c = dl_sig_e{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "ran_paging_request_ies_o::value_c");
+  }
+}
+uint64_t& ran_paging_request_ies_o::value_c::amf_ue_ngap_id()
+{
+  assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+uint64_t& ran_paging_request_ies_o::value_c::ran_ue_ngap_id()
+{
+  assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+paging_policy_diff_s& ran_paging_request_ies_o::value_c::paging_policy_diff()
+{
+  assert_choice_type(types::paging_policy_diff, type_, "Value");
+  return c.get<paging_policy_diff_s>();
+}
+dl_sig_e& ran_paging_request_ies_o::value_c::dl_sig()
+{
+  assert_choice_type(types::dl_sig, type_, "Value");
+  return c.get<dl_sig_e>();
+}
+const uint64_t& ran_paging_request_ies_o::value_c::amf_ue_ngap_id() const
+{
+  assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+const uint64_t& ran_paging_request_ies_o::value_c::ran_ue_ngap_id() const
+{
+  assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
+  return c.get<uint64_t>();
+}
+const paging_policy_diff_s& ran_paging_request_ies_o::value_c::paging_policy_diff() const
+{
+  assert_choice_type(types::paging_policy_diff, type_, "Value");
+  return c.get<paging_policy_diff_s>();
+}
+const dl_sig_e& ran_paging_request_ies_o::value_c::dl_sig() const
+{
+  assert_choice_type(types::dl_sig, type_, "Value");
+  return c.get<dl_sig_e>();
+}
+void ran_paging_request_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      j.write_int("INTEGER (0..1099511627775)", c.get<uint64_t>());
+      break;
+    case types::ran_ue_ngap_id:
+      j.write_int("INTEGER (0..4294967295)", c.get<uint64_t>());
+      break;
+    case types::paging_policy_diff:
+      j.write_fieldname("PagingPolicyDifferentiation");
+      c.get<paging_policy_diff_s>().to_json(j);
+      break;
+    case types::dl_sig:
+      j.write_str("DL-Signalling", "true");
+      break;
+    default:
+      log_invalid_choice_id(type_, "ran_paging_request_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE ran_paging_request_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      HANDLE_CODE(pack_integer(bref, c.get<uint64_t>(), (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+      break;
+    case types::ran_ue_ngap_id:
+      HANDLE_CODE(pack_integer(bref, c.get<uint64_t>(), (uint64_t)0u, (uint64_t)4294967295u, false, true));
+      break;
+    case types::paging_policy_diff:
+      HANDLE_CODE(c.get<paging_policy_diff_s>().pack(bref));
+      break;
+    case types::dl_sig:
+      HANDLE_CODE(c.get<dl_sig_e>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "ran_paging_request_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE ran_paging_request_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::amf_ue_ngap_id:
+      HANDLE_CODE(unpack_integer(c.get<uint64_t>(), bref, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+      break;
+    case types::ran_ue_ngap_id:
+      HANDLE_CODE(unpack_integer(c.get<uint64_t>(), bref, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+      break;
+    case types::paging_policy_diff:
+      HANDLE_CODE(c.get<paging_policy_diff_s>().unpack(bref));
+      break;
+    case types::dl_sig:
+      HANDLE_CODE(c.get<dl_sig_e>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "ran_paging_request_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* ran_paging_request_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {
+      "INTEGER (0..1099511627775)", "INTEGER (0..4294967295)", "PagingPolicyDifferentiation", "DL-Signalling"};
+  return convert_enum_idx(names, 4, value, "ran_paging_request_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<ran_paging_request_ies_o>;
+
+OCUDUASN_CODE ran_paging_request_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 2;
+  nof_ies += paging_policy_diff_present ? 1 : 0;
+  nof_ies += dl_sig_present ? 1 : 0;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)10, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, amf_ue_ngap_id, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)85, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, ran_ue_ngap_id, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+  }
+  if (paging_policy_diff_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)407, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(paging_policy_diff.pack(bref));
+  }
+  if (dl_sig_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)408, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(dl_sig.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE ran_paging_request_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 2;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 10: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(amf_ue_ngap_id, bref, (uint64_t)0u, (uint64_t)1099511627775u, false, true));
+        break;
+      }
+      case 85: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(ran_ue_ngap_id, bref, (uint64_t)0u, (uint64_t)4294967295u, false, true));
+        break;
+      }
+      case 407: {
+        paging_policy_diff_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(paging_policy_diff.unpack(bref));
+        break;
+      }
+      case 408: {
+        dl_sig_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(dl_sig.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void ran_paging_request_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 10);
+  j.write_str("criticality", "ignore");
+  j.write_int("Value", amf_ue_ngap_id);
+  j.write_int("id", 85);
+  j.write_str("criticality", "ignore");
+  j.write_int("Value", ran_ue_ngap_id);
+  if (paging_policy_diff_present) {
+    j.write_int("id", 407);
+    j.write_str("criticality", "ignore");
+    paging_policy_diff.to_json(j);
+  }
+  if (dl_sig_present) {
+    j.write_int("id", 408);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
+  }
+  j.end_obj();
+}
+
 // RRCInactiveTransitionReportIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t rrc_inactive_transition_report_ies_o::idx_to_id(uint32_t idx)
 {
@@ -34374,12 +38745,12 @@ void rrc_inactive_transition_report_ies_container::to_json(json_writer& j) const
 // RerouteNASRequest-IEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t reroute_nas_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {85, 10, 42, 3, 0, 171};
-  return map_enum_number(names, 6, idx, "id");
+  static const uint32_t names[] = {85, 10, 42, 3, 0, 171, 414};
+  return map_enum_number(names, 7, idx, "id");
 }
 bool reroute_nas_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {85, 10, 42, 3, 0, 171};
+  static const uint32_t names[] = {85, 10, 42, 3, 0, 171, 414};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -34401,6 +38772,8 @@ crit_e reroute_nas_request_ies_o::get_crit(const uint32_t& id)
     case 0:
       return crit_e::reject;
     case 171:
+      return crit_e::ignore;
+    case 414:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -34429,6 +38802,9 @@ reroute_nas_request_ies_o::value_c reroute_nas_request_ies_o::get_value(const ui
     case 171:
       ret.set(value_c::types::source_to_target_amf_info_reroute);
       break;
+    case 414:
+      ret.set(value_c::types::partially_allowed_nssai);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -34448,6 +38824,8 @@ presence_e reroute_nas_request_ies_o::get_presence(const uint32_t& id)
     case 0:
       return presence_e::optional;
     case 171:
+      return presence_e::optional;
+    case 414:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -34477,6 +38855,9 @@ void reroute_nas_request_ies_o::value_c::set(types::options e)
       break;
     case types::source_to_target_amf_info_reroute:
       c = source_to_target_amf_info_reroute_s{};
+      break;
+    case types::partially_allowed_nssai:
+      c = partially_allowed_nssai_l{};
       break;
     case types::nulltype:
       break;
@@ -34514,6 +38895,11 @@ source_to_target_amf_info_reroute_s& reroute_nas_request_ies_o::value_c::source_
   assert_choice_type(types::source_to_target_amf_info_reroute, type_, "Value");
   return c.get<source_to_target_amf_info_reroute_s>();
 }
+partially_allowed_nssai_l& reroute_nas_request_ies_o::value_c::partially_allowed_nssai()
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
 const uint64_t& reroute_nas_request_ies_o::value_c::ran_ue_ngap_id() const
 {
   assert_choice_type(types::ran_ue_ngap_id, type_, "Value");
@@ -34544,6 +38930,11 @@ const source_to_target_amf_info_reroute_s& reroute_nas_request_ies_o::value_c::s
   assert_choice_type(types::source_to_target_amf_info_reroute, type_, "Value");
   return c.get<source_to_target_amf_info_reroute_s>();
 }
+const partially_allowed_nssai_l& reroute_nas_request_ies_o::value_c::partially_allowed_nssai() const
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
 void reroute_nas_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -34571,6 +38962,13 @@ void reroute_nas_request_ies_o::value_c::to_json(json_writer& j) const
       j.write_fieldname("SourceToTarget-AMFInformationReroute");
       c.get<source_to_target_amf_info_reroute_s>().to_json(j);
       break;
+    case types::partially_allowed_nssai:
+      j.start_array("Partially-Allowed-NSSAI");
+      for (const auto& e1 : c.get<partially_allowed_nssai_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
     default:
       log_invalid_choice_id(type_, "reroute_nas_request_ies_o::value_c");
   }
@@ -34597,6 +38995,9 @@ OCUDUASN_CODE reroute_nas_request_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::source_to_target_amf_info_reroute:
       HANDLE_CODE(c.get<source_to_target_amf_info_reroute_s>().pack(bref));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<partially_allowed_nssai_l>(), 1, 8, true));
       break;
     default:
       log_invalid_choice_id(type_, "reroute_nas_request_ies_o::value_c");
@@ -34626,6 +39027,9 @@ OCUDUASN_CODE reroute_nas_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::source_to_target_amf_info_reroute:
       HANDLE_CODE(c.get<source_to_target_amf_info_reroute_s>().unpack(bref));
       break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<partially_allowed_nssai_l>(), bref, 1, 8, true));
+      break;
     default:
       log_invalid_choice_id(type_, "reroute_nas_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -34640,8 +39044,9 @@ const char* reroute_nas_request_ies_o::value_c::types_opts::to_string() const
                                 "OCTET STRING",
                                 "BIT STRING",
                                 "AllowedNSSAI",
-                                "SourceToTarget-AMFInformationReroute"};
-  return convert_enum_idx(names, 6, value, "reroute_nas_request_ies_o::value_c::types");
+                                "SourceToTarget-AMFInformationReroute",
+                                "Partially-Allowed-NSSAI"};
+  return convert_enum_idx(names, 7, value, "reroute_nas_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<reroute_nas_request_ies_o>;
@@ -34652,6 +39057,7 @@ OCUDUASN_CODE reroute_nas_request_ies_container::pack(bit_ref& bref) const
   nof_ies += amf_ue_ngap_id_present ? 1 : 0;
   nof_ies += allowed_nssai_present ? 1 : 0;
   nof_ies += source_to_target_amf_info_reroute_present ? 1 : 0;
+  nof_ies += partially_allowed_nssai_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -34689,6 +39095,12 @@ OCUDUASN_CODE reroute_nas_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(source_to_target_amf_info_reroute.pack(bref));
+  }
+  if (partially_allowed_nssai_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)414, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, partially_allowed_nssai, 1, 8, true));
   }
 
   return OCUDUASN_SUCCESS;
@@ -34743,6 +39155,12 @@ OCUDUASN_CODE reroute_nas_request_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(source_to_target_amf_info_reroute.unpack(bref));
         break;
       }
+      case 414: {
+        partially_allowed_nssai_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(partially_allowed_nssai, bref, 1, 8, true));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -34785,6 +39203,15 @@ void reroute_nas_request_ies_container::to_json(json_writer& j) const
     j.write_int("id", 171);
     j.write_str("criticality", "ignore");
     source_to_target_amf_info_reroute.to_json(j);
+  }
+  if (partially_allowed_nssai_present) {
+    j.write_int("id", 414);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : partially_allowed_nssai) {
+      e1.to_json(j);
+    }
+    j.end_array();
   }
   j.end_obj();
 }
@@ -35219,6 +39646,987 @@ void secondary_rat_data_usage_report_ies_container::to_json(json_writer& j) cons
     j.write_int("id", 121);
     j.write_str("criticality", "ignore");
     user_location_info.to_json(j);
+  }
+  j.end_obj();
+}
+
+// TimingSynchronisationStatusFailureIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t timing_synchronisation_status_fail_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {89, 15, 19};
+  return map_enum_number(names, 3, idx, "id");
+}
+bool timing_synchronisation_status_fail_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {89, 15, 19};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e timing_synchronisation_status_fail_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 89:
+      return crit_e::ignore;
+    case 15:
+      return crit_e::ignore;
+    case 19:
+      return crit_e::ignore;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+timing_synchronisation_status_fail_ies_o::value_c
+timing_synchronisation_status_fail_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 89:
+      ret.set(value_c::types::routing_id);
+      break;
+    case 15:
+      ret.set(value_c::types::cause);
+      break;
+    case 19:
+      ret.set(value_c::types::crit_diagnostics);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e timing_synchronisation_status_fail_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 89:
+      return presence_e::mandatory;
+    case 15:
+      return presence_e::mandatory;
+    case 19:
+      return presence_e::optional;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void timing_synchronisation_status_fail_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::routing_id:
+      c = unbounded_octstring<true>{};
+      break;
+    case types::cause:
+      c = cause_c{};
+      break;
+    case types::crit_diagnostics:
+      c = crit_diagnostics_s{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_fail_ies_o::value_c");
+  }
+}
+unbounded_octstring<true>& timing_synchronisation_status_fail_ies_o::value_c::routing_id()
+{
+  assert_choice_type(types::routing_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+cause_c& timing_synchronisation_status_fail_ies_o::value_c::cause()
+{
+  assert_choice_type(types::cause, type_, "Value");
+  return c.get<cause_c>();
+}
+crit_diagnostics_s& timing_synchronisation_status_fail_ies_o::value_c::crit_diagnostics()
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+const unbounded_octstring<true>& timing_synchronisation_status_fail_ies_o::value_c::routing_id() const
+{
+  assert_choice_type(types::routing_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+const cause_c& timing_synchronisation_status_fail_ies_o::value_c::cause() const
+{
+  assert_choice_type(types::cause, type_, "Value");
+  return c.get<cause_c>();
+}
+const crit_diagnostics_s& timing_synchronisation_status_fail_ies_o::value_c::crit_diagnostics() const
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+void timing_synchronisation_status_fail_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::routing_id:
+      j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
+      break;
+    case types::cause:
+      j.write_fieldname("Cause");
+      c.get<cause_c>().to_json(j);
+      break;
+    case types::crit_diagnostics:
+      j.write_fieldname("CriticalityDiagnostics");
+      c.get<crit_diagnostics_s>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_fail_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE timing_synchronisation_status_fail_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::routing_id:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
+      break;
+    case types::cause:
+      HANDLE_CODE(c.get<cause_c>().pack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_fail_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE timing_synchronisation_status_fail_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::routing_id:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
+      break;
+    case types::cause:
+      HANDLE_CODE(c.get<cause_c>().unpack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_fail_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* timing_synchronisation_status_fail_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"OCTET STRING", "Cause", "CriticalityDiagnostics"};
+  return convert_enum_idx(names, 3, value, "timing_synchronisation_status_fail_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<timing_synchronisation_status_fail_ies_o>;
+
+OCUDUASN_CODE timing_synchronisation_status_fail_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 2;
+  nof_ies += crit_diagnostics_present ? 1 : 0;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)89, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(routing_id.pack(bref));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)15, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(cause.pack(bref));
+  }
+  if (crit_diagnostics_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)19, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(crit_diagnostics.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE timing_synchronisation_status_fail_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 2;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 89: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(routing_id.unpack(bref));
+        break;
+      }
+      case 15: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(cause.unpack(bref));
+        break;
+      }
+      case 19: {
+        crit_diagnostics_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(crit_diagnostics.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void timing_synchronisation_status_fail_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 89);
+  j.write_str("criticality", "ignore");
+  j.write_str("Value", routing_id.to_string());
+  j.write_int("id", 15);
+  j.write_str("criticality", "ignore");
+  cause.to_json(j);
+  if (crit_diagnostics_present) {
+    j.write_int("id", 19);
+    j.write_str("criticality", "ignore");
+    crit_diagnostics.to_json(j);
+  }
+  j.end_obj();
+}
+
+// TimingSynchronisationStatusReportIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t timing_synchronisation_status_report_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {89, 387, 389};
+  return map_enum_number(names, 3, idx, "id");
+}
+bool timing_synchronisation_status_report_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {89, 387, 389};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e timing_synchronisation_status_report_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 89:
+      return crit_e::ignore;
+    case 387:
+      return crit_e::ignore;
+    case 389:
+      return crit_e::ignore;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+timing_synchronisation_status_report_ies_o::value_c
+timing_synchronisation_status_report_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 89:
+      ret.set(value_c::types::routing_id);
+      break;
+    case 387:
+      ret.set(value_c::types::ran_timing_synchronisation_status_info);
+      break;
+    case 389:
+      ret.set(value_c::types::ran_tss_scope);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e timing_synchronisation_status_report_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 89:
+      return presence_e::mandatory;
+    case 387:
+      return presence_e::mandatory;
+    case 389:
+      return presence_e::mandatory;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void timing_synchronisation_status_report_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::routing_id:
+      c = unbounded_octstring<true>{};
+      break;
+    case types::ran_timing_synchronisation_status_info:
+      c = ran_timing_synchronisation_status_info_s{};
+      break;
+    case types::ran_tss_scope:
+      c = ran_tss_scope_c{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_report_ies_o::value_c");
+  }
+}
+unbounded_octstring<true>& timing_synchronisation_status_report_ies_o::value_c::routing_id()
+{
+  assert_choice_type(types::routing_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+ran_timing_synchronisation_status_info_s&
+timing_synchronisation_status_report_ies_o::value_c::ran_timing_synchronisation_status_info()
+{
+  assert_choice_type(types::ran_timing_synchronisation_status_info, type_, "Value");
+  return c.get<ran_timing_synchronisation_status_info_s>();
+}
+ran_tss_scope_c& timing_synchronisation_status_report_ies_o::value_c::ran_tss_scope()
+{
+  assert_choice_type(types::ran_tss_scope, type_, "Value");
+  return c.get<ran_tss_scope_c>();
+}
+const unbounded_octstring<true>& timing_synchronisation_status_report_ies_o::value_c::routing_id() const
+{
+  assert_choice_type(types::routing_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+const ran_timing_synchronisation_status_info_s&
+timing_synchronisation_status_report_ies_o::value_c::ran_timing_synchronisation_status_info() const
+{
+  assert_choice_type(types::ran_timing_synchronisation_status_info, type_, "Value");
+  return c.get<ran_timing_synchronisation_status_info_s>();
+}
+const ran_tss_scope_c& timing_synchronisation_status_report_ies_o::value_c::ran_tss_scope() const
+{
+  assert_choice_type(types::ran_tss_scope, type_, "Value");
+  return c.get<ran_tss_scope_c>();
+}
+void timing_synchronisation_status_report_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::routing_id:
+      j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
+      break;
+    case types::ran_timing_synchronisation_status_info:
+      j.write_fieldname("RANTimingSynchronisationStatusInfo");
+      c.get<ran_timing_synchronisation_status_info_s>().to_json(j);
+      break;
+    case types::ran_tss_scope:
+      j.write_fieldname("RAN-TSSScope");
+      c.get<ran_tss_scope_c>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_report_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE timing_synchronisation_status_report_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::routing_id:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
+      break;
+    case types::ran_timing_synchronisation_status_info:
+      HANDLE_CODE(c.get<ran_timing_synchronisation_status_info_s>().pack(bref));
+      break;
+    case types::ran_tss_scope:
+      HANDLE_CODE(c.get<ran_tss_scope_c>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_report_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE timing_synchronisation_status_report_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::routing_id:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
+      break;
+    case types::ran_timing_synchronisation_status_info:
+      HANDLE_CODE(c.get<ran_timing_synchronisation_status_info_s>().unpack(bref));
+      break;
+    case types::ran_tss_scope:
+      HANDLE_CODE(c.get<ran_tss_scope_c>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_report_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* timing_synchronisation_status_report_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"OCTET STRING", "RANTimingSynchronisationStatusInfo", "RAN-TSSScope"};
+  return convert_enum_idx(names, 3, value, "timing_synchronisation_status_report_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<timing_synchronisation_status_report_ies_o>;
+
+OCUDUASN_CODE timing_synchronisation_status_report_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 3;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)89, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(routing_id.pack(bref));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)387, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ran_timing_synchronisation_status_info.pack(bref));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)389, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ran_tss_scope.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE timing_synchronisation_status_report_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 3;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 89: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(routing_id.unpack(bref));
+        break;
+      }
+      case 387: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ran_timing_synchronisation_status_info.unpack(bref));
+        break;
+      }
+      case 389: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ran_tss_scope.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void timing_synchronisation_status_report_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 89);
+  j.write_str("criticality", "ignore");
+  j.write_str("Value", routing_id.to_string());
+  j.write_int("id", 387);
+  j.write_str("criticality", "ignore");
+  ran_timing_synchronisation_status_info.to_json(j);
+  j.write_int("id", 389);
+  j.write_str("criticality", "ignore");
+  ran_tss_scope.to_json(j);
+  j.end_obj();
+}
+
+// TimingSynchronisationStatusRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t timing_synchronisation_status_request_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {89, 388};
+  return map_enum_number(names, 2, idx, "id");
+}
+bool timing_synchronisation_status_request_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {89, 388};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e timing_synchronisation_status_request_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 89:
+      return crit_e::reject;
+    case 388:
+      return crit_e::reject;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+timing_synchronisation_status_request_ies_o::value_c
+timing_synchronisation_status_request_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 89:
+      ret.set(value_c::types::routing_id);
+      break;
+    case 388:
+      ret.set(value_c::types::ran_tss_request_type);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e timing_synchronisation_status_request_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 89:
+      return presence_e::mandatory;
+    case 388:
+      return presence_e::mandatory;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void timing_synchronisation_status_request_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::routing_id:
+      c = unbounded_octstring<true>{};
+      break;
+    case types::ran_tss_request_type:
+      c = ran_tss_request_type_e{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_request_ies_o::value_c");
+  }
+}
+unbounded_octstring<true>& timing_synchronisation_status_request_ies_o::value_c::routing_id()
+{
+  assert_choice_type(types::routing_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+ran_tss_request_type_e& timing_synchronisation_status_request_ies_o::value_c::ran_tss_request_type()
+{
+  assert_choice_type(types::ran_tss_request_type, type_, "Value");
+  return c.get<ran_tss_request_type_e>();
+}
+const unbounded_octstring<true>& timing_synchronisation_status_request_ies_o::value_c::routing_id() const
+{
+  assert_choice_type(types::routing_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+const ran_tss_request_type_e& timing_synchronisation_status_request_ies_o::value_c::ran_tss_request_type() const
+{
+  assert_choice_type(types::ran_tss_request_type, type_, "Value");
+  return c.get<ran_tss_request_type_e>();
+}
+void timing_synchronisation_status_request_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::routing_id:
+      j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
+      break;
+    case types::ran_tss_request_type:
+      j.write_str("RAN-TSSRequestType", c.get<ran_tss_request_type_e>().to_string());
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_request_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE timing_synchronisation_status_request_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::routing_id:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
+      break;
+    case types::ran_tss_request_type:
+      HANDLE_CODE(c.get<ran_tss_request_type_e>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_request_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE timing_synchronisation_status_request_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::routing_id:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
+      break;
+    case types::ran_tss_request_type:
+      HANDLE_CODE(c.get<ran_tss_request_type_e>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_request_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* timing_synchronisation_status_request_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"OCTET STRING", "RAN-TSSRequestType"};
+  return convert_enum_idx(names, 2, value, "timing_synchronisation_status_request_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<timing_synchronisation_status_request_ies_o>;
+
+OCUDUASN_CODE timing_synchronisation_status_request_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 2;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)89, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(routing_id.pack(bref));
+  }
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)388, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ran_tss_request_type.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE timing_synchronisation_status_request_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 2;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 89: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(routing_id.unpack(bref));
+        break;
+      }
+      case 388: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ran_tss_request_type.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void timing_synchronisation_status_request_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 89);
+  j.write_str("criticality", "reject");
+  j.write_str("Value", routing_id.to_string());
+  j.write_int("id", 388);
+  j.write_str("criticality", "reject");
+  j.write_str("Value", ran_tss_request_type.to_string());
+  j.end_obj();
+}
+
+// TimingSynchronisationStatusResponseIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
+uint32_t timing_synchronisation_status_resp_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {89, 19};
+  return map_enum_number(names, 2, idx, "id");
+}
+bool timing_synchronisation_status_resp_ies_o::is_id_valid(const uint32_t& id)
+{
+  static const uint32_t names[] = {89, 19};
+  for (const auto& o : names) {
+    if (o == id) {
+      return true;
+    }
+  }
+  return false;
+}
+crit_e timing_synchronisation_status_resp_ies_o::get_crit(const uint32_t& id)
+{
+  switch (id) {
+    case 89:
+      return crit_e::ignore;
+    case 19:
+      return crit_e::ignore;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+timing_synchronisation_status_resp_ies_o::value_c
+timing_synchronisation_status_resp_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  switch (id) {
+    case 89:
+      ret.set(value_c::types::routing_id);
+      break;
+    case 19:
+      ret.set(value_c::types::crit_diagnostics);
+      break;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e timing_synchronisation_status_resp_ies_o::get_presence(const uint32_t& id)
+{
+  switch (id) {
+    case 89:
+      return presence_e::mandatory;
+    case 19:
+      return presence_e::optional;
+    default:
+      asn1::log_error("The id={} is not recognized", id);
+  }
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void timing_synchronisation_status_resp_ies_o::value_c::set(types::options e)
+{
+  type_ = e;
+  switch (type_) {
+    case types::routing_id:
+      c = unbounded_octstring<true>{};
+      break;
+    case types::crit_diagnostics:
+      c = crit_diagnostics_s{};
+      break;
+    case types::nulltype:
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_resp_ies_o::value_c");
+  }
+}
+unbounded_octstring<true>& timing_synchronisation_status_resp_ies_o::value_c::routing_id()
+{
+  assert_choice_type(types::routing_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+crit_diagnostics_s& timing_synchronisation_status_resp_ies_o::value_c::crit_diagnostics()
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+const unbounded_octstring<true>& timing_synchronisation_status_resp_ies_o::value_c::routing_id() const
+{
+  assert_choice_type(types::routing_id, type_, "Value");
+  return c.get<unbounded_octstring<true>>();
+}
+const crit_diagnostics_s& timing_synchronisation_status_resp_ies_o::value_c::crit_diagnostics() const
+{
+  assert_choice_type(types::crit_diagnostics, type_, "Value");
+  return c.get<crit_diagnostics_s>();
+}
+void timing_synchronisation_status_resp_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  switch (type_) {
+    case types::routing_id:
+      j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
+      break;
+    case types::crit_diagnostics:
+      j.write_fieldname("CriticalityDiagnostics");
+      c.get<crit_diagnostics_s>().to_json(j);
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_resp_ies_o::value_c");
+  }
+  j.end_obj();
+}
+OCUDUASN_CODE timing_synchronisation_status_resp_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::routing_id:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().pack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_resp_ies_o::value_c");
+      return OCUDUASN_ERROR_ENCODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE timing_synchronisation_status_resp_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  switch (type_) {
+    case types::routing_id:
+      HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
+      break;
+    case types::crit_diagnostics:
+      HANDLE_CODE(c.get<crit_diagnostics_s>().unpack(bref));
+      break;
+    default:
+      log_invalid_choice_id(type_, "timing_synchronisation_status_resp_ies_o::value_c");
+      return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+
+const char* timing_synchronisation_status_resp_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"OCTET STRING", "CriticalityDiagnostics"};
+  return convert_enum_idx(names, 2, value, "timing_synchronisation_status_resp_ies_o::value_c::types");
+}
+
+template struct asn1::protocol_ie_field_s<timing_synchronisation_status_resp_ies_o>;
+
+OCUDUASN_CODE timing_synchronisation_status_resp_ies_container::pack(bit_ref& bref) const
+{
+  uint32_t nof_ies = 1;
+  nof_ies += crit_diagnostics_present ? 1 : 0;
+  pack_length(bref, nof_ies, 0u, 65535u, true);
+
+  {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)89, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(routing_id.pack(bref));
+  }
+  if (crit_diagnostics_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)19, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(crit_diagnostics.pack(bref));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE timing_synchronisation_status_resp_ies_container::unpack(cbit_ref& bref)
+{
+  uint32_t nof_ies = 0;
+  unpack_length(nof_ies, bref, 0u, 65535u, true);
+
+  uint32_t nof_mandatory_ies = 1;
+
+  for (; nof_ies > 0; --nof_ies) {
+    uint32_t id;
+    HANDLE_CODE(unpack_integer(id, bref, (uint32_t)0u, (uint32_t)65535u, false, true));
+    crit_e crit;
+    HANDLE_CODE(crit.unpack(bref));
+
+    switch (id) {
+      case 89: {
+        nof_mandatory_ies--;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(routing_id.unpack(bref));
+        break;
+      }
+      case 19: {
+        crit_diagnostics_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(crit_diagnostics.unpack(bref));
+        break;
+      }
+      default:
+        asn1::log_error("Unpacked object ID={} is not recognized\n", id);
+        return OCUDUASN_ERROR_DECODE_FAIL;
+    }
+  }
+  if (nof_mandatory_ies > 0) {
+    asn1::log_error("Mandatory fields are missing\n");
+
+    return OCUDUASN_ERROR_DECODE_FAIL;
+  }
+  return OCUDUASN_SUCCESS;
+}
+void timing_synchronisation_status_resp_ies_container::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("id", 89);
+  j.write_str("criticality", "ignore");
+  j.write_str("Value", routing_id.to_string());
+  if (crit_diagnostics_present) {
+    j.write_int("id", 19);
+    j.write_str("criticality", "ignore");
+    crit_diagnostics.to_json(j);
   }
   j.end_obj();
 }
@@ -36111,14 +41519,16 @@ void ue_context_mod_fail_ies_container::to_json(json_writer& j) const
 // UEContextModificationRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t ue_context_mod_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10,  85,  83,  94,  31,  110, 119, 18,  24,  40,  91,  162, 165, 177, 199,
-                                   216, 215, 218, 217, 219, 264, 238, 326, 328, 329, 335, 359, 345, 346, 347};
-  return map_enum_number(names, 30, idx, "id");
+  static const uint32_t names[] = {10,  85,  83,  94,  31,  110, 119, 18,  24,  40,  91,  162, 165,
+                                   177, 199, 216, 215, 218, 217, 219, 264, 238, 326, 328, 329, 335,
+                                   359, 345, 346, 347, 367, 373, 374, 375, 376, 377, 378, 400, 430};
+  return map_enum_number(names, 39, idx, "id");
 }
 bool ue_context_mod_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10,  85,  83,  94,  31,  110, 119, 18,  24,  40,  91,  162, 165, 177, 199,
-                                   216, 215, 218, 217, 219, 264, 238, 326, 328, 329, 335, 359, 345, 346, 347};
+  static const uint32_t names[] = {10,  85,  83,  94,  31,  110, 119, 18,  24,  40,  91,  162, 165,
+                                   177, 199, 216, 215, 218, 217, 219, 264, 238, 326, 328, 329, 335,
+                                   359, 345, 346, 347, 367, 373, 374, 375, 376, 377, 378, 400, 430};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -36188,6 +41598,24 @@ crit_e ue_context_mod_request_ies_o::get_crit(const uint32_t& id)
     case 346:
       return crit_e::ignore;
     case 347:
+      return crit_e::ignore;
+    case 367:
+      return crit_e::ignore;
+    case 373:
+      return crit_e::ignore;
+    case 374:
+      return crit_e::ignore;
+    case 375:
+      return crit_e::ignore;
+    case 376:
+      return crit_e::ignore;
+    case 377:
+      return crit_e::ignore;
+    case 378:
+      return crit_e::ignore;
+    case 400:
+      return crit_e::ignore;
+    case 430:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -36288,6 +41716,33 @@ ue_context_mod_request_ies_o::value_c ue_context_mod_request_ies_o::get_value(co
     case 347:
       ret.set(value_c::types::five_g_pro_se_pc5_qos_params);
       break;
+    case 367:
+      ret.set(value_c::types::network_ctrl_repeater_authorized);
+      break;
+    case 373:
+      ret.set(value_c::types::aerial_ue_sub_info);
+      break;
+    case 374:
+      ret.set(value_c::types::nr_a2_x_services_authorized);
+      break;
+    case 375:
+      ret.set(value_c::types::lte_a2_x_services_authorized);
+      break;
+    case 376:
+      ret.set(value_c::types::nr_a2_x_ue_pc5_aggr_max_bit_rate);
+      break;
+    case 377:
+      ret.set(value_c::types::lte_a2_x_ue_pc5_aggr_max_bit_rate);
+      break;
+    case 378:
+      ret.set(value_c::types::a2_x_pc5_qos_params);
+      break;
+    case 400:
+      ret.set(value_c::types::mobile_iab_authorized);
+      break;
+    case 430:
+      ret.set(value_c::types::sl_positioning_ranging_service_info);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -36355,6 +41810,24 @@ presence_e ue_context_mod_request_ies_o::get_presence(const uint32_t& id)
     case 346:
       return presence_e::optional;
     case 347:
+      return presence_e::optional;
+    case 367:
+      return presence_e::optional;
+    case 373:
+      return presence_e::optional;
+    case 374:
+      return presence_e::optional;
+    case 375:
+      return presence_e::optional;
+    case 376:
+      return presence_e::optional;
+    case 377:
+      return presence_e::optional;
+    case 378:
+      return presence_e::optional;
+    case 400:
+      return presence_e::optional;
+    case 430:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -36456,6 +41929,33 @@ void ue_context_mod_request_ies_o::value_c::set(types::options e)
       break;
     case types::five_g_pro_se_pc5_qos_params:
       c = five_g_pro_se_pc5_qos_params_s{};
+      break;
+    case types::network_ctrl_repeater_authorized:
+      c = network_ctrl_repeater_authorized_e{};
+      break;
+    case types::aerial_ue_sub_info:
+      c = aerial_ue_sub_info_e{};
+      break;
+    case types::nr_a2_x_services_authorized:
+      c = nr_a2_x_services_authorized_s{};
+      break;
+    case types::lte_a2_x_services_authorized:
+      c = lte_a2_x_services_authorized_s{};
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      c = nr_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      c = lte_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::a2_x_pc5_qos_params:
+      c = a2_x_pc5_qos_params_s{};
+      break;
+    case types::mobile_iab_authorized:
+      c = mobile_iab_authorized_e{};
+      break;
+    case types::sl_positioning_ranging_service_info:
+      c = sl_positioning_ranging_service_info_s{};
       break;
     case types::nulltype:
       break;
@@ -36614,6 +42114,51 @@ five_g_pro_se_pc5_qos_params_s& ue_context_mod_request_ies_o::value_c::five_g_pr
   assert_choice_type(types::five_g_pro_se_pc5_qos_params, type_, "Value");
   return c.get<five_g_pro_se_pc5_qos_params_s>();
 }
+network_ctrl_repeater_authorized_e& ue_context_mod_request_ies_o::value_c::network_ctrl_repeater_authorized()
+{
+  assert_choice_type(types::network_ctrl_repeater_authorized, type_, "Value");
+  return c.get<network_ctrl_repeater_authorized_e>();
+}
+aerial_ue_sub_info_e& ue_context_mod_request_ies_o::value_c::aerial_ue_sub_info()
+{
+  assert_choice_type(types::aerial_ue_sub_info, type_, "Value");
+  return c.get<aerial_ue_sub_info_e>();
+}
+nr_a2_x_services_authorized_s& ue_context_mod_request_ies_o::value_c::nr_a2_x_services_authorized()
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+lte_a2_x_services_authorized_s& ue_context_mod_request_ies_o::value_c::lte_a2_x_services_authorized()
+{
+  assert_choice_type(types::lte_a2_x_services_authorized, type_, "Value");
+  return c.get<lte_a2_x_services_authorized_s>();
+}
+nr_ue_sidelink_aggr_max_bitrate_s& ue_context_mod_request_ies_o::value_c::nr_a2_x_ue_pc5_aggr_max_bit_rate()
+{
+  assert_choice_type(types::nr_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+lte_ue_sidelink_aggr_max_bitrate_s& ue_context_mod_request_ies_o::value_c::lte_a2_x_ue_pc5_aggr_max_bit_rate()
+{
+  assert_choice_type(types::lte_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+a2_x_pc5_qos_params_s& ue_context_mod_request_ies_o::value_c::a2_x_pc5_qos_params()
+{
+  assert_choice_type(types::a2_x_pc5_qos_params, type_, "Value");
+  return c.get<a2_x_pc5_qos_params_s>();
+}
+mobile_iab_authorized_e& ue_context_mod_request_ies_o::value_c::mobile_iab_authorized()
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+sl_positioning_ranging_service_info_s& ue_context_mod_request_ies_o::value_c::sl_positioning_ranging_service_info()
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
 const uint64_t& ue_context_mod_request_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -36768,6 +42313,54 @@ const five_g_pro_se_pc5_qos_params_s& ue_context_mod_request_ies_o::value_c::fiv
   assert_choice_type(types::five_g_pro_se_pc5_qos_params, type_, "Value");
   return c.get<five_g_pro_se_pc5_qos_params_s>();
 }
+const network_ctrl_repeater_authorized_e&
+ue_context_mod_request_ies_o::value_c::network_ctrl_repeater_authorized() const
+{
+  assert_choice_type(types::network_ctrl_repeater_authorized, type_, "Value");
+  return c.get<network_ctrl_repeater_authorized_e>();
+}
+const aerial_ue_sub_info_e& ue_context_mod_request_ies_o::value_c::aerial_ue_sub_info() const
+{
+  assert_choice_type(types::aerial_ue_sub_info, type_, "Value");
+  return c.get<aerial_ue_sub_info_e>();
+}
+const nr_a2_x_services_authorized_s& ue_context_mod_request_ies_o::value_c::nr_a2_x_services_authorized() const
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+const lte_a2_x_services_authorized_s& ue_context_mod_request_ies_o::value_c::lte_a2_x_services_authorized() const
+{
+  assert_choice_type(types::lte_a2_x_services_authorized, type_, "Value");
+  return c.get<lte_a2_x_services_authorized_s>();
+}
+const nr_ue_sidelink_aggr_max_bitrate_s& ue_context_mod_request_ies_o::value_c::nr_a2_x_ue_pc5_aggr_max_bit_rate() const
+{
+  assert_choice_type(types::nr_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+const lte_ue_sidelink_aggr_max_bitrate_s&
+ue_context_mod_request_ies_o::value_c::lte_a2_x_ue_pc5_aggr_max_bit_rate() const
+{
+  assert_choice_type(types::lte_a2_x_ue_pc5_aggr_max_bit_rate, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+const a2_x_pc5_qos_params_s& ue_context_mod_request_ies_o::value_c::a2_x_pc5_qos_params() const
+{
+  assert_choice_type(types::a2_x_pc5_qos_params, type_, "Value");
+  return c.get<a2_x_pc5_qos_params_s>();
+}
+const mobile_iab_authorized_e& ue_context_mod_request_ies_o::value_c::mobile_iab_authorized() const
+{
+  assert_choice_type(types::mobile_iab_authorized, type_, "Value");
+  return c.get<mobile_iab_authorized_e>();
+}
+const sl_positioning_ranging_service_info_s&
+ue_context_mod_request_ies_o::value_c::sl_positioning_ranging_service_info() const
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
 void ue_context_mod_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -36887,6 +42480,39 @@ void ue_context_mod_request_ies_o::value_c::to_json(json_writer& j) const
       j.write_fieldname("FiveG-ProSePC5QoSParameters");
       c.get<five_g_pro_se_pc5_qos_params_s>().to_json(j);
       break;
+    case types::network_ctrl_repeater_authorized:
+      j.write_str("NetworkControlledRepeaterAuthorized", c.get<network_ctrl_repeater_authorized_e>().to_string());
+      break;
+    case types::aerial_ue_sub_info:
+      j.write_str("AerialUEsubscriptionInformation", c.get<aerial_ue_sub_info_e>().to_string());
+      break;
+    case types::nr_a2_x_services_authorized:
+      j.write_fieldname("NR-A2X-ServicesAuthorized");
+      c.get<nr_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::lte_a2_x_services_authorized:
+      j.write_fieldname("LTE-A2X-ServicesAuthorized");
+      c.get<lte_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      j.write_fieldname("NRUESidelinkAggregateMaximumBitrate");
+      c.get<nr_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      j.write_fieldname("LTEUESidelinkAggregateMaximumBitrate");
+      c.get<lte_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::a2_x_pc5_qos_params:
+      j.write_fieldname("A2X-PC5-QoS-Parameters");
+      c.get<a2_x_pc5_qos_params_s>().to_json(j);
+      break;
+    case types::mobile_iab_authorized:
+      j.write_str("MobileIAB-Authorized", c.get<mobile_iab_authorized_e>().to_string());
+      break;
+    case types::sl_positioning_ranging_service_info:
+      j.write_fieldname("SLPositioningRangingServiceInfo");
+      c.get<sl_positioning_ranging_service_info_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_request_ies_o::value_c");
   }
@@ -36985,6 +42611,33 @@ OCUDUASN_CODE ue_context_mod_request_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::five_g_pro_se_pc5_qos_params:
       HANDLE_CODE(c.get<five_g_pro_se_pc5_qos_params_s>().pack(bref));
+      break;
+    case types::network_ctrl_repeater_authorized:
+      HANDLE_CODE(c.get<network_ctrl_repeater_authorized_e>().pack(bref));
+      break;
+    case types::aerial_ue_sub_info:
+      HANDLE_CODE(c.get<aerial_ue_sub_info_e>().pack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::lte_a2_x_services_authorized:
+      HANDLE_CODE(c.get<lte_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::a2_x_pc5_qos_params:
+      HANDLE_CODE(c.get<a2_x_pc5_qos_params_s>().pack(bref));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().pack(bref));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_request_ies_o::value_c");
@@ -37086,6 +42739,33 @@ OCUDUASN_CODE ue_context_mod_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::five_g_pro_se_pc5_qos_params:
       HANDLE_CODE(c.get<five_g_pro_se_pc5_qos_params_s>().unpack(bref));
       break;
+    case types::network_ctrl_repeater_authorized:
+      HANDLE_CODE(c.get<network_ctrl_repeater_authorized_e>().unpack(bref));
+      break;
+    case types::aerial_ue_sub_info:
+      HANDLE_CODE(c.get<aerial_ue_sub_info_e>().unpack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::lte_a2_x_services_authorized:
+      HANDLE_CODE(c.get<lte_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::nr_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::lte_a2_x_ue_pc5_aggr_max_bit_rate:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::a2_x_pc5_qos_params:
+      HANDLE_CODE(c.get<a2_x_pc5_qos_params_s>().unpack(bref));
+      break;
+    case types::mobile_iab_authorized:
+      HANDLE_CODE(c.get<mobile_iab_authorized_e>().unpack(bref));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -37124,8 +42804,17 @@ const char* ue_context_mod_request_ies_o::value_c::types_opts::to_string() const
                                 "MDTPLMNModificationList",
                                 "FiveG-ProSeAuthorized",
                                 "NRUESidelinkAggregateMaximumBitrate",
-                                "FiveG-ProSePC5QoSParameters"};
-  return convert_enum_idx(names, 30, value, "ue_context_mod_request_ies_o::value_c::types");
+                                "FiveG-ProSePC5QoSParameters",
+                                "NetworkControlledRepeaterAuthorized",
+                                "AerialUEsubscriptionInformation",
+                                "NR-A2X-ServicesAuthorized",
+                                "LTE-A2X-ServicesAuthorized",
+                                "NRUESidelinkAggregateMaximumBitrate",
+                                "LTEUESidelinkAggregateMaximumBitrate",
+                                "A2X-PC5-QoS-Parameters",
+                                "MobileIAB-Authorized",
+                                "SLPositioningRangingServiceInfo"};
+  return convert_enum_idx(names, 39, value, "ue_context_mod_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_request_ies_o>;
@@ -37161,6 +42850,15 @@ OCUDUASN_CODE ue_context_mod_request_ies_container::pack(bit_ref& bref) const
   nof_ies += five_g_pro_se_authorized_present ? 1 : 0;
   nof_ies += five_g_pro_se_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
   nof_ies += five_g_pro_se_pc5_qos_params_present ? 1 : 0;
+  nof_ies += network_ctrl_repeater_authorized_present ? 1 : 0;
+  nof_ies += aerial_ue_sub_info_present ? 1 : 0;
+  nof_ies += nr_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += lte_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += nr_a2_x_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
+  nof_ies += lte_a2_x_ue_pc5_aggr_max_bit_rate_present ? 1 : 0;
+  nof_ies += a2_x_pc5_qos_params_present ? 1 : 0;
+  nof_ies += mobile_iab_authorized_present ? 1 : 0;
+  nof_ies += sl_positioning_ranging_service_info_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -37342,6 +43040,60 @@ OCUDUASN_CODE ue_context_mod_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(five_g_pro_se_pc5_qos_params.pack(bref));
+  }
+  if (network_ctrl_repeater_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)367, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(network_ctrl_repeater_authorized.pack(bref));
+  }
+  if (aerial_ue_sub_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)373, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(aerial_ue_sub_info.pack(bref));
+  }
+  if (nr_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)374, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_services_authorized.pack(bref));
+  }
+  if (lte_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)375, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_a2_x_services_authorized.pack(bref));
+  }
+  if (nr_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)376, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_ue_pc5_aggr_max_bit_rate.pack(bref));
+  }
+  if (lte_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)377, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_a2_x_ue_pc5_aggr_max_bit_rate.pack(bref));
+  }
+  if (a2_x_pc5_qos_params_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)378, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(a2_x_pc5_qos_params.pack(bref));
+  }
+  if (mobile_iab_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)400, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(mobile_iab_authorized.pack(bref));
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)430, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(sl_positioning_ranging_service_info.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -37540,6 +43292,60 @@ OCUDUASN_CODE ue_context_mod_request_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(five_g_pro_se_pc5_qos_params.unpack(bref));
         break;
       }
+      case 367: {
+        network_ctrl_repeater_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(network_ctrl_repeater_authorized.unpack(bref));
+        break;
+      }
+      case 373: {
+        aerial_ue_sub_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(aerial_ue_sub_info.unpack(bref));
+        break;
+      }
+      case 374: {
+        nr_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 375: {
+        lte_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 376: {
+        nr_a2_x_ue_pc5_aggr_max_bit_rate_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_ue_pc5_aggr_max_bit_rate.unpack(bref));
+        break;
+      }
+      case 377: {
+        lte_a2_x_ue_pc5_aggr_max_bit_rate_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_a2_x_ue_pc5_aggr_max_bit_rate.unpack(bref));
+        break;
+      }
+      case 378: {
+        a2_x_pc5_qos_params_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(a2_x_pc5_qos_params.unpack(bref));
+        break;
+      }
+      case 400: {
+        mobile_iab_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(mobile_iab_authorized.unpack(bref));
+        break;
+      }
+      case 430: {
+        sl_positioning_ranging_service_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(sl_positioning_ranging_service_info.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -37708,6 +43514,51 @@ void ue_context_mod_request_ies_container::to_json(json_writer& j) const
     j.write_int("id", 347);
     j.write_str("criticality", "ignore");
     five_g_pro_se_pc5_qos_params.to_json(j);
+  }
+  if (network_ctrl_repeater_authorized_present) {
+    j.write_int("id", 367);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", network_ctrl_repeater_authorized.to_string());
+  }
+  if (aerial_ue_sub_info_present) {
+    j.write_int("id", 373);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", aerial_ue_sub_info.to_string());
+  }
+  if (nr_a2_x_services_authorized_present) {
+    j.write_int("id", 374);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_services_authorized.to_json(j);
+  }
+  if (lte_a2_x_services_authorized_present) {
+    j.write_int("id", 375);
+    j.write_str("criticality", "ignore");
+    lte_a2_x_services_authorized.to_json(j);
+  }
+  if (nr_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    j.write_int("id", 376);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_ue_pc5_aggr_max_bit_rate.to_json(j);
+  }
+  if (lte_a2_x_ue_pc5_aggr_max_bit_rate_present) {
+    j.write_int("id", 377);
+    j.write_str("criticality", "ignore");
+    lte_a2_x_ue_pc5_aggr_max_bit_rate.to_json(j);
+  }
+  if (a2_x_pc5_qos_params_present) {
+    j.write_int("id", 378);
+    j.write_str("criticality", "ignore");
+    a2_x_pc5_qos_params.to_json(j);
+  }
+  if (mobile_iab_authorized_present) {
+    j.write_int("id", 400);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", mobile_iab_authorized.to_string());
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    j.write_int("id", 430);
+    j.write_str("criticality", "ignore");
+    sl_positioning_ranging_service_info.to_json(j);
   }
   j.end_obj();
 }
@@ -39412,12 +45263,12 @@ void ue_context_resume_fail_ies_container::to_json(json_writer& j) const
 // UEContextResumeRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t ue_context_resume_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10, 85, 237, 232, 229, 235, 32, 207};
-  return map_enum_number(names, 8, idx, "id");
+  static const uint32_t names[] = {10, 85, 237, 232, 229, 235, 32, 207, 121};
+  return map_enum_number(names, 9, idx, "id");
 }
 bool ue_context_resume_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10, 85, 237, 232, 229, 235, 32, 207};
+  static const uint32_t names[] = {10, 85, 237, 232, 229, 235, 32, 207, 121};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -39443,6 +45294,8 @@ crit_e ue_context_resume_request_ies_o::get_crit(const uint32_t& id)
     case 32:
       return crit_e::ignore;
     case 207:
+      return crit_e::ignore;
+    case 121:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -39477,6 +45330,9 @@ ue_context_resume_request_ies_o::value_c ue_context_resume_request_ies_o::get_va
     case 207:
       ret.set(value_c::types::paging_assis_datafor_c_ecapab_ue);
       break;
+    case 121:
+      ret.set(value_c::types::user_location_info);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -39500,6 +45356,8 @@ presence_e ue_context_resume_request_ies_o::get_presence(const uint32_t& id)
     case 32:
       return presence_e::optional;
     case 207:
+      return presence_e::optional;
+    case 121:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -39535,6 +45393,9 @@ void ue_context_resume_request_ies_o::value_c::set(types::options e)
       break;
     case types::paging_assis_datafor_c_ecapab_ue:
       c = paging_assis_datafor_c_ecapab_ue_s{};
+      break;
+    case types::user_location_info:
+      c = user_location_info_c{};
       break;
     case types::nulltype:
       break;
@@ -39584,6 +45445,11 @@ paging_assis_datafor_c_ecapab_ue_s& ue_context_resume_request_ies_o::value_c::pa
   assert_choice_type(types::paging_assis_datafor_c_ecapab_ue, type_, "Value");
   return c.get<paging_assis_datafor_c_ecapab_ue_s>();
 }
+user_location_info_c& ue_context_resume_request_ies_o::value_c::user_location_info()
+{
+  assert_choice_type(types::user_location_info, type_, "Value");
+  return c.get<user_location_info_c>();
+}
 const uint64_t& ue_context_resume_request_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -39628,6 +45494,11 @@ ue_context_resume_request_ies_o::value_c::paging_assis_datafor_c_ecapab_ue() con
   assert_choice_type(types::paging_assis_datafor_c_ecapab_ue, type_, "Value");
   return c.get<paging_assis_datafor_c_ecapab_ue_s>();
 }
+const user_location_info_c& ue_context_resume_request_ies_o::value_c::user_location_info() const
+{
+  assert_choice_type(types::user_location_info, type_, "Value");
+  return c.get<user_location_info_c>();
+}
 void ue_context_resume_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -39666,6 +45537,10 @@ void ue_context_resume_request_ies_o::value_c::to_json(json_writer& j) const
       j.write_fieldname("PagingAssisDataforCEcapabUE");
       c.get<paging_assis_datafor_c_ecapab_ue_s>().to_json(j);
       break;
+    case types::user_location_info:
+      j.write_fieldname("UserLocationInformation");
+      c.get<user_location_info_c>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_resume_request_ies_o::value_c");
   }
@@ -39698,6 +45573,9 @@ OCUDUASN_CODE ue_context_resume_request_ies_o::value_c::pack(bit_ref& bref) cons
       break;
     case types::paging_assis_datafor_c_ecapab_ue:
       HANDLE_CODE(c.get<paging_assis_datafor_c_ecapab_ue_s>().pack(bref));
+      break;
+    case types::user_location_info:
+      HANDLE_CODE(c.get<user_location_info_c>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_resume_request_ies_o::value_c");
@@ -39733,6 +45611,9 @@ OCUDUASN_CODE ue_context_resume_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::paging_assis_datafor_c_ecapab_ue:
       HANDLE_CODE(c.get<paging_assis_datafor_c_ecapab_ue_s>().unpack(bref));
       break;
+    case types::user_location_info:
+      HANDLE_CODE(c.get<user_location_info_c>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_resume_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -39749,8 +45630,9 @@ const char* ue_context_resume_request_ies_o::value_c::types_opts::to_string() co
                                 "PDUSessionResourceFailedToResumeListRESReq",
                                 "Suspend-Request-Indication",
                                 "InfoOnRecommendedCellsAndRANNodesForPaging",
-                                "PagingAssisDataforCEcapabUE"};
-  return convert_enum_idx(names, 8, value, "ue_context_resume_request_ies_o::value_c::types");
+                                "PagingAssisDataforCEcapabUE",
+                                "UserLocationInformation"};
+  return convert_enum_idx(names, 9, value, "ue_context_resume_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_resume_request_ies_o>;
@@ -39763,6 +45645,7 @@ OCUDUASN_CODE ue_context_resume_request_ies_container::pack(bit_ref& bref) const
   nof_ies += suspend_request_ind_present ? 1 : 0;
   nof_ies += info_on_recommended_cells_and_ran_nodes_for_paging_present ? 1 : 0;
   nof_ies += paging_assis_datafor_c_ecapab_ue_present ? 1 : 0;
+  nof_ies += user_location_info_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -39812,6 +45695,12 @@ OCUDUASN_CODE ue_context_resume_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(paging_assis_datafor_c_ecapab_ue.pack(bref));
+  }
+  if (user_location_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)121, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(user_location_info.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -39878,6 +45767,12 @@ OCUDUASN_CODE ue_context_resume_request_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(paging_assis_datafor_c_ecapab_ue.unpack(bref));
         break;
       }
+      case 121: {
+        user_location_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(user_location_info.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -39934,6 +45829,11 @@ void ue_context_resume_request_ies_container::to_json(json_writer& j) const
     j.write_int("id", 207);
     j.write_str("criticality", "ignore");
     paging_assis_datafor_c_ecapab_ue.to_json(j);
+  }
+  if (user_location_info_present) {
+    j.write_int("id", 121);
+    j.write_str("criticality", "ignore");
+    user_location_info.to_json(j);
   }
   j.end_obj();
 }
@@ -40783,12 +46683,12 @@ void ue_context_suspend_fail_ies_container::to_json(json_writer& j) const
 // UEContextSuspendRequestIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t ue_context_suspend_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10, 85, 32, 207, 231};
-  return map_enum_number(names, 5, idx, "id");
+  static const uint32_t names[] = {10, 85, 32, 207, 231, 121};
+  return map_enum_number(names, 6, idx, "id");
 }
 bool ue_context_suspend_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10, 85, 32, 207, 231};
+  static const uint32_t names[] = {10, 85, 32, 207, 231, 121};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -40809,6 +46709,8 @@ crit_e ue_context_suspend_request_ies_o::get_crit(const uint32_t& id)
       return crit_e::ignore;
     case 231:
       return crit_e::reject;
+    case 121:
+      return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -40833,6 +46735,9 @@ ue_context_suspend_request_ies_o::value_c ue_context_suspend_request_ies_o::get_
     case 231:
       ret.set(value_c::types::pdu_session_res_suspend_list_sus_req);
       break;
+    case 121:
+      ret.set(value_c::types::user_location_info);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -40850,6 +46755,8 @@ presence_e ue_context_suspend_request_ies_o::get_presence(const uint32_t& id)
     case 207:
       return presence_e::optional;
     case 231:
+      return presence_e::optional;
+    case 121:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -40876,6 +46783,9 @@ void ue_context_suspend_request_ies_o::value_c::set(types::options e)
       break;
     case types::pdu_session_res_suspend_list_sus_req:
       c = pdu_session_res_suspend_list_sus_req_l{};
+      break;
+    case types::user_location_info:
+      c = user_location_info_c{};
       break;
     case types::nulltype:
       break;
@@ -40910,6 +46820,11 @@ ue_context_suspend_request_ies_o::value_c::pdu_session_res_suspend_list_sus_req(
   assert_choice_type(types::pdu_session_res_suspend_list_sus_req, type_, "Value");
   return c.get<pdu_session_res_suspend_list_sus_req_l>();
 }
+user_location_info_c& ue_context_suspend_request_ies_o::value_c::user_location_info()
+{
+  assert_choice_type(types::user_location_info, type_, "Value");
+  return c.get<user_location_info_c>();
+}
 const uint64_t& ue_context_suspend_request_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -40938,6 +46853,11 @@ ue_context_suspend_request_ies_o::value_c::pdu_session_res_suspend_list_sus_req(
   assert_choice_type(types::pdu_session_res_suspend_list_sus_req, type_, "Value");
   return c.get<pdu_session_res_suspend_list_sus_req_l>();
 }
+const user_location_info_c& ue_context_suspend_request_ies_o::value_c::user_location_info() const
+{
+  assert_choice_type(types::user_location_info, type_, "Value");
+  return c.get<user_location_info_c>();
+}
 void ue_context_suspend_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -40963,6 +46883,10 @@ void ue_context_suspend_request_ies_o::value_c::to_json(json_writer& j) const
       }
       j.end_array();
       break;
+    case types::user_location_info:
+      j.write_fieldname("UserLocationInformation");
+      c.get<user_location_info_c>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_suspend_request_ies_o::value_c");
   }
@@ -40986,6 +46910,9 @@ OCUDUASN_CODE ue_context_suspend_request_ies_o::value_c::pack(bit_ref& bref) con
       break;
     case types::pdu_session_res_suspend_list_sus_req:
       HANDLE_CODE(pack_dyn_seq_of(bref, c.get<pdu_session_res_suspend_list_sus_req_l>(), 1, 256, true));
+      break;
+    case types::user_location_info:
+      HANDLE_CODE(c.get<user_location_info_c>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_suspend_request_ies_o::value_c");
@@ -41012,6 +46939,9 @@ OCUDUASN_CODE ue_context_suspend_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::pdu_session_res_suspend_list_sus_req:
       HANDLE_CODE(unpack_dyn_seq_of(c.get<pdu_session_res_suspend_list_sus_req_l>(), bref, 1, 256, true));
       break;
+    case types::user_location_info:
+      HANDLE_CODE(c.get<user_location_info_c>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_suspend_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -41025,8 +46955,9 @@ const char* ue_context_suspend_request_ies_o::value_c::types_opts::to_string() c
                                 "INTEGER (0..4294967295)",
                                 "InfoOnRecommendedCellsAndRANNodesForPaging",
                                 "PagingAssisDataforCEcapabUE",
-                                "PDUSessionResourceSuspendListSUSReq"};
-  return convert_enum_idx(names, 5, value, "ue_context_suspend_request_ies_o::value_c::types");
+                                "PDUSessionResourceSuspendListSUSReq",
+                                "UserLocationInformation"};
+  return convert_enum_idx(names, 6, value, "ue_context_suspend_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_suspend_request_ies_o>;
@@ -41037,6 +46968,7 @@ OCUDUASN_CODE ue_context_suspend_request_ies_container::pack(bit_ref& bref) cons
   nof_ies += info_on_recommended_cells_and_ran_nodes_for_paging_present ? 1 : 0;
   nof_ies += paging_assis_datafor_c_ecapab_ue_present ? 1 : 0;
   nof_ies += pdu_session_res_suspend_list_sus_req_present ? 1 : 0;
+  nof_ies += user_location_info_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -41068,6 +47000,12 @@ OCUDUASN_CODE ue_context_suspend_request_ies_container::pack(bit_ref& bref) cons
     HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(pack_dyn_seq_of(bref, pdu_session_res_suspend_list_sus_req, 1, 256, true));
+  }
+  if (user_location_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)121, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(user_location_info.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -41116,6 +47054,12 @@ OCUDUASN_CODE ue_context_suspend_request_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(unpack_dyn_seq_of(pdu_session_res_suspend_list_sus_req, bref, 1, 256, true));
         break;
       }
+      case 121: {
+        user_location_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(user_location_info.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -41155,6 +47099,11 @@ void ue_context_suspend_request_ies_container::to_json(json_writer& j) const
       e1.to_json(j);
     }
     j.end_array();
+  }
+  if (user_location_info_present) {
+    j.write_int("id", 121);
+    j.write_str("criticality", "ignore");
+    user_location_info.to_json(j);
   }
   j.end_obj();
 }
@@ -41478,12 +47427,12 @@ void ue_context_suspend_resp_ies_container::to_json(json_writer& j) const
 // UEInformationTransferIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t ue_info_transfer_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {26, 210, 117, 148, 0, 209, 34};
-  return map_enum_number(names, 7, idx, "id");
+  static const uint32_t names[] = {26, 210, 117, 148, 0, 209, 34, 414};
+  return map_enum_number(names, 8, idx, "id");
 }
 bool ue_info_transfer_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {26, 210, 117, 148, 0, 209, 34};
+  static const uint32_t names[] = {26, 210, 117, 148, 0, 209, 34, 414};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -41507,6 +47456,8 @@ crit_e ue_info_transfer_ies_o::get_crit(const uint32_t& id)
     case 209:
       return crit_e::ignore;
     case 34:
+      return crit_e::ignore;
+    case 414:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -41538,6 +47489,9 @@ ue_info_transfer_ies_o::value_c ue_info_transfer_ies_o::get_value(const uint32_t
     case 34:
       ret.set(value_c::types::masked_imeisv);
       break;
+    case 414:
+      ret.set(value_c::types::partially_allowed_nssai);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -41559,6 +47513,8 @@ presence_e ue_info_transfer_ies_o::get_presence(const uint32_t& id)
     case 209:
       return presence_e::optional;
     case 34:
+      return presence_e::optional;
+    case 414:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -41591,6 +47547,9 @@ void ue_info_transfer_ies_o::value_c::set(types::options e)
       break;
     case types::masked_imeisv:
       c = fixed_bitstring<64, false, true>{};
+      break;
+    case types::partially_allowed_nssai:
+      c = partially_allowed_nssai_l{};
       break;
     case types::nulltype:
       break;
@@ -41633,6 +47592,11 @@ fixed_bitstring<64, false, true>& ue_info_transfer_ies_o::value_c::masked_imeisv
   assert_choice_type(types::masked_imeisv, type_, "Value");
   return c.get<fixed_bitstring<64, false, true>>();
 }
+partially_allowed_nssai_l& ue_info_transfer_ies_o::value_c::partially_allowed_nssai()
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
 const five_g_s_tmsi_s& ue_info_transfer_ies_o::value_c::five_g_s_tmsi() const
 {
   assert_choice_type(types::five_g_s_tmsi, type_, "Value");
@@ -41668,6 +47632,11 @@ const fixed_bitstring<64, false, true>& ue_info_transfer_ies_o::value_c::masked_
   assert_choice_type(types::masked_imeisv, type_, "Value");
   return c.get<fixed_bitstring<64, false, true>>();
 }
+const partially_allowed_nssai_l& ue_info_transfer_ies_o::value_c::partially_allowed_nssai() const
+{
+  assert_choice_type(types::partially_allowed_nssai, type_, "Value");
+  return c.get<partially_allowed_nssai_l>();
+}
 void ue_info_transfer_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -41700,6 +47669,13 @@ void ue_info_transfer_ies_o::value_c::to_json(json_writer& j) const
     case types::masked_imeisv:
       j.write_str("BIT STRING", c.get<fixed_bitstring<64, false, true>>().to_string());
       break;
+    case types::partially_allowed_nssai:
+      j.start_array("Partially-Allowed-NSSAI");
+      for (const auto& e1 : c.get<partially_allowed_nssai_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
     default:
       log_invalid_choice_id(type_, "ue_info_transfer_ies_o::value_c");
   }
@@ -41729,6 +47705,9 @@ OCUDUASN_CODE ue_info_transfer_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::masked_imeisv:
       HANDLE_CODE((c.get<fixed_bitstring<64, false, true>>().pack(bref)));
+      break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<partially_allowed_nssai_l>(), 1, 8, true));
       break;
     default:
       log_invalid_choice_id(type_, "ue_info_transfer_ies_o::value_c");
@@ -41761,6 +47740,9 @@ OCUDUASN_CODE ue_info_transfer_ies_o::value_c::unpack(cbit_ref& bref)
     case types::masked_imeisv:
       HANDLE_CODE((c.get<fixed_bitstring<64, false, true>>().unpack(bref)));
       break;
+    case types::partially_allowed_nssai:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<partially_allowed_nssai_l>(), bref, 1, 8, true));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_info_transfer_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -41776,8 +47758,9 @@ const char* ue_info_transfer_ies_o::value_c::types_opts::to_string() const
                                 "S-NSSAI",
                                 "AllowedNSSAI",
                                 "UE-DifferentiationInfo",
-                                "BIT STRING"};
-  return convert_enum_idx(names, 7, value, "ue_info_transfer_ies_o::value_c::types");
+                                "BIT STRING",
+                                "Partially-Allowed-NSSAI"};
+  return convert_enum_idx(names, 8, value, "ue_info_transfer_ies_o::value_c::types");
 }
 uint8_t ue_info_transfer_ies_o::value_c::types_opts::to_number() const
 {
@@ -41799,6 +47782,7 @@ OCUDUASN_CODE ue_info_transfer_ies_container::pack(bit_ref& bref) const
   nof_ies += allowed_nssai_present ? 1 : 0;
   nof_ies += ue_diff_info_present ? 1 : 0;
   nof_ies += masked_imeisv_present ? 1 : 0;
+  nof_ies += partially_allowed_nssai_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -41842,6 +47826,12 @@ OCUDUASN_CODE ue_info_transfer_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(masked_imeisv.pack(bref));
+  }
+  if (partially_allowed_nssai_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)414, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, partially_allowed_nssai, 1, 8, true));
   }
 
   return OCUDUASN_SUCCESS;
@@ -41902,6 +47892,12 @@ OCUDUASN_CODE ue_info_transfer_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(masked_imeisv.unpack(bref));
         break;
       }
+      case 414: {
+        partially_allowed_nssai_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(partially_allowed_nssai, bref, 1, 8, true));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -41953,6 +47949,15 @@ void ue_info_transfer_ies_container::to_json(json_writer& j) const
     j.write_int("id", 34);
     j.write_str("criticality", "ignore");
     j.write_str("Value", masked_imeisv.to_string());
+  }
+  if (partially_allowed_nssai_present) {
+    j.write_int("id", 414);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : partially_allowed_nssai) {
+      e1.to_json(j);
+    }
+    j.end_array();
   }
   j.end_obj();
 }
@@ -42914,12 +48919,12 @@ void ue_radio_cap_id_map_resp_ies_container::to_json(json_writer& j) const
 // UERadioCapabilityInfoIndicationIEs ::= OBJECT SET OF NGAP-PROTOCOL-IES
 uint32_t ue_radio_cap_info_ind_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {10, 85, 117, 118, 265};
-  return map_enum_number(names, 5, idx, "id");
+  static const uint32_t names[] = {10, 85, 117, 118, 265, 428};
+  return map_enum_number(names, 6, idx, "id");
 }
 bool ue_radio_cap_info_ind_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {10, 85, 117, 118, 265};
+  static const uint32_t names[] = {10, 85, 117, 118, 265, 428};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -42939,6 +48944,8 @@ crit_e ue_radio_cap_info_ind_ies_o::get_crit(const uint32_t& id)
     case 118:
       return crit_e::ignore;
     case 265:
+      return crit_e::ignore;
+    case 428:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -42964,6 +48971,9 @@ ue_radio_cap_info_ind_ies_o::value_c ue_radio_cap_info_ind_ies_o::get_value(cons
     case 265:
       ret.set(value_c::types::ue_radio_cap_eutra_format);
       break;
+    case 428:
+      ret.set(value_c::types::xr_dev_with2_rx);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -42981,6 +48991,8 @@ presence_e ue_radio_cap_info_ind_ies_o::get_presence(const uint32_t& id)
     case 118:
       return presence_e::optional;
     case 265:
+      return presence_e::optional;
+    case 428:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -43007,6 +49019,9 @@ void ue_radio_cap_info_ind_ies_o::value_c::set(types::options e)
       break;
     case types::ue_radio_cap_eutra_format:
       c = unbounded_octstring<true>{};
+      break;
+    case types::xr_dev_with2_rx:
+      c = xr_dev_with2_rx_e{};
       break;
     case types::nulltype:
       break;
@@ -43039,6 +49054,11 @@ unbounded_octstring<true>& ue_radio_cap_info_ind_ies_o::value_c::ue_radio_cap_eu
   assert_choice_type(types::ue_radio_cap_eutra_format, type_, "Value");
   return c.get<unbounded_octstring<true>>();
 }
+xr_dev_with2_rx_e& ue_radio_cap_info_ind_ies_o::value_c::xr_dev_with2_rx()
+{
+  assert_choice_type(types::xr_dev_with2_rx, type_, "Value");
+  return c.get<xr_dev_with2_rx_e>();
+}
 const uint64_t& ue_radio_cap_info_ind_ies_o::value_c::amf_ue_ngap_id() const
 {
   assert_choice_type(types::amf_ue_ngap_id, type_, "Value");
@@ -43064,6 +49084,11 @@ const unbounded_octstring<true>& ue_radio_cap_info_ind_ies_o::value_c::ue_radio_
   assert_choice_type(types::ue_radio_cap_eutra_format, type_, "Value");
   return c.get<unbounded_octstring<true>>();
 }
+const xr_dev_with2_rx_e& ue_radio_cap_info_ind_ies_o::value_c::xr_dev_with2_rx() const
+{
+  assert_choice_type(types::xr_dev_with2_rx, type_, "Value");
+  return c.get<xr_dev_with2_rx_e>();
+}
 void ue_radio_cap_info_ind_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -43083,6 +49108,9 @@ void ue_radio_cap_info_ind_ies_o::value_c::to_json(json_writer& j) const
       break;
     case types::ue_radio_cap_eutra_format:
       j.write_str("OCTET STRING", c.get<unbounded_octstring<true>>().to_string());
+      break;
+    case types::xr_dev_with2_rx:
+      j.write_str("XrDeviceWith2Rx", "true");
       break;
     default:
       log_invalid_choice_id(type_, "ue_radio_cap_info_ind_ies_o::value_c");
@@ -43107,6 +49135,9 @@ OCUDUASN_CODE ue_radio_cap_info_ind_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::ue_radio_cap_eutra_format:
       HANDLE_CODE(c.get<unbounded_octstring<true>>().pack(bref));
+      break;
+    case types::xr_dev_with2_rx:
+      HANDLE_CODE(c.get<xr_dev_with2_rx_e>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ue_radio_cap_info_ind_ies_o::value_c");
@@ -43133,6 +49164,9 @@ OCUDUASN_CODE ue_radio_cap_info_ind_ies_o::value_c::unpack(cbit_ref& bref)
     case types::ue_radio_cap_eutra_format:
       HANDLE_CODE(c.get<unbounded_octstring<true>>().unpack(bref));
       break;
+    case types::xr_dev_with2_rx:
+      HANDLE_CODE(c.get<xr_dev_with2_rx_e>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_radio_cap_info_ind_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -43146,8 +49180,9 @@ const char* ue_radio_cap_info_ind_ies_o::value_c::types_opts::to_string() const
                                 "INTEGER (0..4294967295)",
                                 "OCTET STRING",
                                 "UERadioCapabilityForPaging",
-                                "OCTET STRING"};
-  return convert_enum_idx(names, 5, value, "ue_radio_cap_info_ind_ies_o::value_c::types");
+                                "OCTET STRING",
+                                "XrDeviceWith2Rx"};
+  return convert_enum_idx(names, 6, value, "ue_radio_cap_info_ind_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_radio_cap_info_ind_ies_o>;
@@ -43157,6 +49192,7 @@ OCUDUASN_CODE ue_radio_cap_info_ind_ies_container::pack(bit_ref& bref) const
   uint32_t nof_ies = 3;
   nof_ies += ue_radio_cap_for_paging_present ? 1 : 0;
   nof_ies += ue_radio_cap_eutra_format_present ? 1 : 0;
+  nof_ies += xr_dev_with2_rx_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -43188,6 +49224,12 @@ OCUDUASN_CODE ue_radio_cap_info_ind_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(ue_radio_cap_eutra_format.pack(bref));
+  }
+  if (xr_dev_with2_rx_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)428, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(xr_dev_with2_rx.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -43236,6 +49278,12 @@ OCUDUASN_CODE ue_radio_cap_info_ind_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(ue_radio_cap_eutra_format.unpack(bref));
         break;
       }
+      case 428: {
+        xr_dev_with2_rx_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(xr_dev_with2_rx.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -43269,6 +49317,11 @@ void ue_radio_cap_info_ind_ies_container::to_json(json_writer& j) const
     j.write_int("id", 265);
     j.write_str("criticality", "ignore");
     j.write_str("Value", ue_radio_cap_eutra_format.to_string());
+  }
+  if (xr_dev_with2_rx_present) {
+    j.write_int("id", 428);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
   }
   j.end_obj();
 }

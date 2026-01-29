@@ -10,7 +10,7 @@
 
 /*******************************************************************************
  *
- *                     3GPP TS ASN1 F1AP v17.4.1 (2023-04)
+ *                     3GPP TS ASN1 F1AP v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
@@ -89,6 +89,13 @@ struct prs_cfg_request_ies_container;
 using prs_cfg_request_s = elementary_procedure_option<prs_cfg_request_ies_container>;
 struct meas_precfg_required_ies_container;
 using meas_precfg_required_s = elementary_procedure_option<meas_precfg_required_ies_container>;
+struct timing_synchronisation_status_request_ies_container;
+using timing_synchronisation_status_request_s =
+    elementary_procedure_option<timing_synchronisation_status_request_ies_container>;
+struct multicast_context_notif_ind_ies_container;
+using multicast_context_notif_ind_s = elementary_procedure_option<multicast_context_notif_ind_ies_container>;
+struct multicast_common_cfg_request_ies_container;
+using multicast_common_cfg_request_s = elementary_procedure_option<multicast_common_cfg_request_ies_container>;
 struct error_ind_ies_container;
 using error_ind_s = elementary_procedure_option<error_ind_ies_container>;
 struct ue_context_release_request_ies_container;
@@ -180,6 +187,33 @@ struct qo_e_info_transfer_ies_container;
 using qo_e_info_transfer_s = elementary_procedure_option<qo_e_info_transfer_ies_container>;
 struct pos_sys_info_delivery_cmd_ies_container;
 using pos_sys_info_delivery_cmd_s = elementary_procedure_option<pos_sys_info_delivery_cmd_ies_container>;
+struct du_cu_cell_switch_notif_ies_container;
+using du_cu_cell_switch_notif_s = elementary_procedure_option<du_cu_cell_switch_notif_ies_container>;
+struct cu_du_cell_switch_notif_ies_container;
+using cu_du_cell_switch_notif_s = elementary_procedure_option<cu_du_cell_switch_notif_ies_container>;
+struct du_cu_tai_nformation_transfer_ies_container;
+using du_cu_tai_nformation_transfer_s = elementary_procedure_option<du_cu_tai_nformation_transfer_ies_container>;
+struct cu_du_tai_nformation_transfer_ies_container;
+using cu_du_tai_nformation_transfer_s = elementary_procedure_option<cu_du_tai_nformation_transfer_ies_container>;
+struct qo_e_info_transfer_ctrl_ies_container;
+using qo_e_info_transfer_ctrl_s = elementary_procedure_option<qo_e_info_transfer_ctrl_ies_container>;
+struct rach_ind_ies_container;
+using rach_ind_s = elementary_procedure_option<rach_ind_ies_container>;
+struct timing_synchronisation_status_report_ies_container;
+using timing_synchronisation_status_report_s =
+    elementary_procedure_option<timing_synchronisation_status_report_ies_container>;
+struct miabf1_setup_trigger_ies_container;
+using miabf1_setup_trigger_s = elementary_procedure_option<miabf1_setup_trigger_ies_container>;
+struct miabf1_setup_outcome_notif_ies_container;
+using miabf1_setup_outcome_notif_s = elementary_procedure_option<miabf1_setup_outcome_notif_ies_container>;
+struct broadcast_transport_res_request_ies_container;
+using broadcast_transport_res_request_s = elementary_procedure_option<broadcast_transport_res_request_ies_container>;
+struct du_cu_access_and_mob_ind_ies_container;
+using du_cu_access_and_mob_ind_s = elementary_procedure_option<du_cu_access_and_mob_ind_ies_container>;
+struct srs_info_reserv_notif_ies_container;
+using srs_info_reserv_notif_s = elementary_procedure_option<srs_info_reserv_notif_ies_container>;
+struct cu_du_mob_initiation_request_ies_container;
+using cu_du_mob_initiation_request_s = elementary_procedure_option<cu_du_mob_initiation_request_ies_container>;
 struct reset_ack_ies_container;
 using reset_ack_s = elementary_procedure_option<reset_ack_ies_container>;
 struct f1_setup_resp_ies_container;
@@ -250,6 +284,13 @@ struct prs_cfg_resp_ies_container;
 using prs_cfg_resp_s = elementary_procedure_option<prs_cfg_resp_ies_container>;
 struct meas_precfg_confirm_ies_container;
 using meas_precfg_confirm_s = elementary_procedure_option<meas_precfg_confirm_ies_container>;
+struct timing_synchronisation_status_resp_ies_container;
+using timing_synchronisation_status_resp_s =
+    elementary_procedure_option<timing_synchronisation_status_resp_ies_container>;
+struct multicast_context_notif_confirm_ies_container;
+using multicast_context_notif_confirm_s = elementary_procedure_option<multicast_context_notif_confirm_ies_container>;
+struct multicast_common_cfg_resp_ies_container;
+using multicast_common_cfg_resp_s = elementary_procedure_option<multicast_common_cfg_resp_ies_container>;
 struct f1_setup_fail_ies_container;
 using f1_setup_fail_s = elementary_procedure_option<f1_setup_fail_ies_container>;
 struct gnb_du_cfg_upd_fail_ies_container;
@@ -301,6 +342,13 @@ struct prs_cfg_fail_ies_container;
 using prs_cfg_fail_s = elementary_procedure_option<prs_cfg_fail_ies_container>;
 struct meas_precfg_refuse_ies_container;
 using meas_precfg_refuse_s = elementary_procedure_option<meas_precfg_refuse_ies_container>;
+struct timing_synchronisation_status_fail_ies_container;
+using timing_synchronisation_status_fail_s =
+    elementary_procedure_option<timing_synchronisation_status_fail_ies_container>;
+struct multicast_context_notif_refuse_ies_container;
+using multicast_context_notif_refuse_s = elementary_procedure_option<multicast_context_notif_refuse_ies_container>;
+struct multicast_common_cfg_refuse_ies_container;
+using multicast_common_cfg_refuse_s = elementary_procedure_option<multicast_common_cfg_refuse_ies_container>;
 
 /*******************************************************************************
  *                              Struct Definitions
@@ -365,6 +413,9 @@ struct f1ap_elem_procs_o {
         pdc_meas_initiation_request,
         prs_cfg_request,
         meas_precfg_required,
+        timing_synchronisation_status_request,
+        multicast_context_notif_ind,
+        multicast_common_cfg_request,
         error_ind,
         ue_context_release_request,
         dl_rrc_msg_transfer,
@@ -410,6 +461,19 @@ struct f1ap_elem_procs_o {
         meas_activation,
         qo_e_info_transfer,
         pos_sys_info_delivery_cmd,
+        du_cu_cell_switch_notif,
+        cu_du_cell_switch_notif,
+        du_cu_tai_nformation_transfer,
+        cu_du_tai_nformation_transfer,
+        qo_e_info_transfer_ctrl,
+        rach_ind,
+        timing_synchronisation_status_report,
+        miabf1_setup_trigger,
+        miabf1_setup_outcome_notif,
+        broadcast_transport_res_request,
+        du_cu_access_and_mob_ind,
+        srs_info_reserv_notif,
+        cu_du_mob_initiation_request,
         nulltype
       } value;
 
@@ -425,162 +489,194 @@ struct f1ap_elem_procs_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    reset_s&                                      reset();
-    f1_setup_request_s&                           f1_setup_request();
-    gnb_du_cfg_upd_s&                             gnb_du_cfg_upd();
-    gnb_cu_cfg_upd_s&                             gnb_cu_cfg_upd();
-    ue_context_setup_request_s&                   ue_context_setup_request();
-    ue_context_release_cmd_s&                     ue_context_release_cmd();
-    ue_context_mod_request_s&                     ue_context_mod_request();
-    ue_context_mod_required_s&                    ue_context_mod_required();
-    write_replace_warning_request_s&              write_replace_warning_request();
-    pws_cancel_request_s&                         pws_cancel_request();
-    gnb_du_res_coordination_request_s&            gnb_du_res_coordination_request();
-    f1_removal_request_s&                         f1_removal_request();
-    bap_map_cfg_s&                                bap_map_cfg();
-    gnb_du_res_cfg_s&                             gnb_du_res_cfg();
-    iab_tnl_address_request_s&                    iab_tnl_address_request();
-    iab_up_cfg_upd_request_s&                     iab_up_cfg_upd_request();
-    res_status_request_s&                         res_status_request();
-    positioning_meas_request_s&                   positioning_meas_request();
-    trp_info_request_s&                           trp_info_request();
-    positioning_info_request_s&                   positioning_info_request();
-    positioning_activation_request_s&             positioning_activation_request();
-    e_c_id_meas_initiation_request_s&             e_c_id_meas_initiation_request();
-    broadcast_context_setup_request_s&            broadcast_context_setup_request();
-    broadcast_context_release_cmd_s&              broadcast_context_release_cmd();
-    broadcast_context_mod_request_s&              broadcast_context_mod_request();
-    multicast_context_setup_request_s&            multicast_context_setup_request();
-    multicast_context_release_cmd_s&              multicast_context_release_cmd();
-    multicast_context_mod_request_s&              multicast_context_mod_request();
-    multicast_distribution_setup_request_s&       multicast_distribution_setup_request();
-    multicast_distribution_release_cmd_s&         multicast_distribution_release_cmd();
-    pdc_meas_initiation_request_s&                pdc_meas_initiation_request();
-    prs_cfg_request_s&                            prs_cfg_request();
-    meas_precfg_required_s&                       meas_precfg_required();
-    error_ind_s&                                  error_ind();
-    ue_context_release_request_s&                 ue_context_release_request();
-    dl_rrc_msg_transfer_s&                        dl_rrc_msg_transfer();
-    ul_rrc_msg_transfer_s&                        ul_rrc_msg_transfer();
-    ue_inactivity_notif_s&                        ue_inactivity_notif();
-    private_msg_s&                                private_msg();
-    init_ul_rrc_msg_transfer_s&                   init_ul_rrc_msg_transfer();
-    sys_info_delivery_cmd_s&                      sys_info_delivery_cmd();
-    paging_s&                                     paging();
-    notify_s&                                     notify();
-    pws_restart_ind_s&                            pws_restart_ind();
-    pws_fail_ind_s&                               pws_fail_ind();
-    gnb_du_status_ind_s&                          gnb_du_status_ind();
-    rrc_delivery_report_s&                        rrc_delivery_report();
-    network_access_rate_reduction_s&              network_access_rate_reduction();
-    trace_start_s&                                trace_start();
-    deactiv_trace_s&                              deactiv_trace();
-    du_cu_radio_info_transfer_s&                  du_cu_radio_info_transfer();
-    cu_du_radio_info_transfer_s&                  cu_du_radio_info_transfer();
-    res_status_upd_s&                             res_status_upd();
-    access_and_mob_ind_s&                         access_and_mob_ind();
-    ref_time_info_report_ctrl_s&                  ref_time_info_report_ctrl();
-    ref_time_info_report_s&                       ref_time_info_report();
-    access_success_s&                             access_success();
-    cell_traffic_trace_s&                         cell_traffic_trace();
-    positioning_assist_info_ctrl_s&               positioning_assist_info_ctrl();
-    positioning_assist_info_feedback_s&           positioning_assist_info_feedback();
-    positioning_meas_report_s&                    positioning_meas_report();
-    positioning_meas_abort_s&                     positioning_meas_abort();
-    positioning_meas_fail_ind_s&                  positioning_meas_fail_ind();
-    positioning_meas_upd_s&                       positioning_meas_upd();
-    positioning_deactivation_s&                   positioning_deactivation();
-    e_c_id_meas_fail_ind_s&                       e_c_id_meas_fail_ind();
-    e_c_id_meas_report_s&                         e_c_id_meas_report();
-    e_c_id_meas_termination_cmd_s&                e_c_id_meas_termination_cmd();
-    positioning_info_upd_s&                       positioning_info_upd();
-    multicast_group_paging_s&                     multicast_group_paging();
-    broadcast_context_release_request_s&          broadcast_context_release_request();
-    multicast_context_release_request_s&          multicast_context_release_request();
-    pdc_meas_report_s&                            pdc_meas_report();
-    pdc_meas_termination_cmd_s&                   pdc_meas_termination_cmd();
-    pdc_meas_fail_ind_s&                          pdc_meas_fail_ind();
-    meas_activation_s&                            meas_activation();
-    qo_e_info_transfer_s&                         qo_e_info_transfer();
-    pos_sys_info_delivery_cmd_s&                  pos_sys_info_delivery_cmd();
-    const reset_s&                                reset() const;
-    const f1_setup_request_s&                     f1_setup_request() const;
-    const gnb_du_cfg_upd_s&                       gnb_du_cfg_upd() const;
-    const gnb_cu_cfg_upd_s&                       gnb_cu_cfg_upd() const;
-    const ue_context_setup_request_s&             ue_context_setup_request() const;
-    const ue_context_release_cmd_s&               ue_context_release_cmd() const;
-    const ue_context_mod_request_s&               ue_context_mod_request() const;
-    const ue_context_mod_required_s&              ue_context_mod_required() const;
-    const write_replace_warning_request_s&        write_replace_warning_request() const;
-    const pws_cancel_request_s&                   pws_cancel_request() const;
-    const gnb_du_res_coordination_request_s&      gnb_du_res_coordination_request() const;
-    const f1_removal_request_s&                   f1_removal_request() const;
-    const bap_map_cfg_s&                          bap_map_cfg() const;
-    const gnb_du_res_cfg_s&                       gnb_du_res_cfg() const;
-    const iab_tnl_address_request_s&              iab_tnl_address_request() const;
-    const iab_up_cfg_upd_request_s&               iab_up_cfg_upd_request() const;
-    const res_status_request_s&                   res_status_request() const;
-    const positioning_meas_request_s&             positioning_meas_request() const;
-    const trp_info_request_s&                     trp_info_request() const;
-    const positioning_info_request_s&             positioning_info_request() const;
-    const positioning_activation_request_s&       positioning_activation_request() const;
-    const e_c_id_meas_initiation_request_s&       e_c_id_meas_initiation_request() const;
-    const broadcast_context_setup_request_s&      broadcast_context_setup_request() const;
-    const broadcast_context_release_cmd_s&        broadcast_context_release_cmd() const;
-    const broadcast_context_mod_request_s&        broadcast_context_mod_request() const;
-    const multicast_context_setup_request_s&      multicast_context_setup_request() const;
-    const multicast_context_release_cmd_s&        multicast_context_release_cmd() const;
-    const multicast_context_mod_request_s&        multicast_context_mod_request() const;
-    const multicast_distribution_setup_request_s& multicast_distribution_setup_request() const;
-    const multicast_distribution_release_cmd_s&   multicast_distribution_release_cmd() const;
-    const pdc_meas_initiation_request_s&          pdc_meas_initiation_request() const;
-    const prs_cfg_request_s&                      prs_cfg_request() const;
-    const meas_precfg_required_s&                 meas_precfg_required() const;
-    const error_ind_s&                            error_ind() const;
-    const ue_context_release_request_s&           ue_context_release_request() const;
-    const dl_rrc_msg_transfer_s&                  dl_rrc_msg_transfer() const;
-    const ul_rrc_msg_transfer_s&                  ul_rrc_msg_transfer() const;
-    const ue_inactivity_notif_s&                  ue_inactivity_notif() const;
-    const private_msg_s&                          private_msg() const;
-    const init_ul_rrc_msg_transfer_s&             init_ul_rrc_msg_transfer() const;
-    const sys_info_delivery_cmd_s&                sys_info_delivery_cmd() const;
-    const paging_s&                               paging() const;
-    const notify_s&                               notify() const;
-    const pws_restart_ind_s&                      pws_restart_ind() const;
-    const pws_fail_ind_s&                         pws_fail_ind() const;
-    const gnb_du_status_ind_s&                    gnb_du_status_ind() const;
-    const rrc_delivery_report_s&                  rrc_delivery_report() const;
-    const network_access_rate_reduction_s&        network_access_rate_reduction() const;
-    const trace_start_s&                          trace_start() const;
-    const deactiv_trace_s&                        deactiv_trace() const;
-    const du_cu_radio_info_transfer_s&            du_cu_radio_info_transfer() const;
-    const cu_du_radio_info_transfer_s&            cu_du_radio_info_transfer() const;
-    const res_status_upd_s&                       res_status_upd() const;
-    const access_and_mob_ind_s&                   access_and_mob_ind() const;
-    const ref_time_info_report_ctrl_s&            ref_time_info_report_ctrl() const;
-    const ref_time_info_report_s&                 ref_time_info_report() const;
-    const access_success_s&                       access_success() const;
-    const cell_traffic_trace_s&                   cell_traffic_trace() const;
-    const positioning_assist_info_ctrl_s&         positioning_assist_info_ctrl() const;
-    const positioning_assist_info_feedback_s&     positioning_assist_info_feedback() const;
-    const positioning_meas_report_s&              positioning_meas_report() const;
-    const positioning_meas_abort_s&               positioning_meas_abort() const;
-    const positioning_meas_fail_ind_s&            positioning_meas_fail_ind() const;
-    const positioning_meas_upd_s&                 positioning_meas_upd() const;
-    const positioning_deactivation_s&             positioning_deactivation() const;
-    const e_c_id_meas_fail_ind_s&                 e_c_id_meas_fail_ind() const;
-    const e_c_id_meas_report_s&                   e_c_id_meas_report() const;
-    const e_c_id_meas_termination_cmd_s&          e_c_id_meas_termination_cmd() const;
-    const positioning_info_upd_s&                 positioning_info_upd() const;
-    const multicast_group_paging_s&               multicast_group_paging() const;
-    const broadcast_context_release_request_s&    broadcast_context_release_request() const;
-    const multicast_context_release_request_s&    multicast_context_release_request() const;
-    const pdc_meas_report_s&                      pdc_meas_report() const;
-    const pdc_meas_termination_cmd_s&             pdc_meas_termination_cmd() const;
-    const pdc_meas_fail_ind_s&                    pdc_meas_fail_ind() const;
-    const meas_activation_s&                      meas_activation() const;
-    const qo_e_info_transfer_s&                   qo_e_info_transfer() const;
-    const pos_sys_info_delivery_cmd_s&            pos_sys_info_delivery_cmd() const;
+    reset_s&                                       reset();
+    f1_setup_request_s&                            f1_setup_request();
+    gnb_du_cfg_upd_s&                              gnb_du_cfg_upd();
+    gnb_cu_cfg_upd_s&                              gnb_cu_cfg_upd();
+    ue_context_setup_request_s&                    ue_context_setup_request();
+    ue_context_release_cmd_s&                      ue_context_release_cmd();
+    ue_context_mod_request_s&                      ue_context_mod_request();
+    ue_context_mod_required_s&                     ue_context_mod_required();
+    write_replace_warning_request_s&               write_replace_warning_request();
+    pws_cancel_request_s&                          pws_cancel_request();
+    gnb_du_res_coordination_request_s&             gnb_du_res_coordination_request();
+    f1_removal_request_s&                          f1_removal_request();
+    bap_map_cfg_s&                                 bap_map_cfg();
+    gnb_du_res_cfg_s&                              gnb_du_res_cfg();
+    iab_tnl_address_request_s&                     iab_tnl_address_request();
+    iab_up_cfg_upd_request_s&                      iab_up_cfg_upd_request();
+    res_status_request_s&                          res_status_request();
+    positioning_meas_request_s&                    positioning_meas_request();
+    trp_info_request_s&                            trp_info_request();
+    positioning_info_request_s&                    positioning_info_request();
+    positioning_activation_request_s&              positioning_activation_request();
+    e_c_id_meas_initiation_request_s&              e_c_id_meas_initiation_request();
+    broadcast_context_setup_request_s&             broadcast_context_setup_request();
+    broadcast_context_release_cmd_s&               broadcast_context_release_cmd();
+    broadcast_context_mod_request_s&               broadcast_context_mod_request();
+    multicast_context_setup_request_s&             multicast_context_setup_request();
+    multicast_context_release_cmd_s&               multicast_context_release_cmd();
+    multicast_context_mod_request_s&               multicast_context_mod_request();
+    multicast_distribution_setup_request_s&        multicast_distribution_setup_request();
+    multicast_distribution_release_cmd_s&          multicast_distribution_release_cmd();
+    pdc_meas_initiation_request_s&                 pdc_meas_initiation_request();
+    prs_cfg_request_s&                             prs_cfg_request();
+    meas_precfg_required_s&                        meas_precfg_required();
+    timing_synchronisation_status_request_s&       timing_synchronisation_status_request();
+    multicast_context_notif_ind_s&                 multicast_context_notif_ind();
+    multicast_common_cfg_request_s&                multicast_common_cfg_request();
+    error_ind_s&                                   error_ind();
+    ue_context_release_request_s&                  ue_context_release_request();
+    dl_rrc_msg_transfer_s&                         dl_rrc_msg_transfer();
+    ul_rrc_msg_transfer_s&                         ul_rrc_msg_transfer();
+    ue_inactivity_notif_s&                         ue_inactivity_notif();
+    private_msg_s&                                 private_msg();
+    init_ul_rrc_msg_transfer_s&                    init_ul_rrc_msg_transfer();
+    sys_info_delivery_cmd_s&                       sys_info_delivery_cmd();
+    paging_s&                                      paging();
+    notify_s&                                      notify();
+    pws_restart_ind_s&                             pws_restart_ind();
+    pws_fail_ind_s&                                pws_fail_ind();
+    gnb_du_status_ind_s&                           gnb_du_status_ind();
+    rrc_delivery_report_s&                         rrc_delivery_report();
+    network_access_rate_reduction_s&               network_access_rate_reduction();
+    trace_start_s&                                 trace_start();
+    deactiv_trace_s&                               deactiv_trace();
+    du_cu_radio_info_transfer_s&                   du_cu_radio_info_transfer();
+    cu_du_radio_info_transfer_s&                   cu_du_radio_info_transfer();
+    res_status_upd_s&                              res_status_upd();
+    access_and_mob_ind_s&                          access_and_mob_ind();
+    ref_time_info_report_ctrl_s&                   ref_time_info_report_ctrl();
+    ref_time_info_report_s&                        ref_time_info_report();
+    access_success_s&                              access_success();
+    cell_traffic_trace_s&                          cell_traffic_trace();
+    positioning_assist_info_ctrl_s&                positioning_assist_info_ctrl();
+    positioning_assist_info_feedback_s&            positioning_assist_info_feedback();
+    positioning_meas_report_s&                     positioning_meas_report();
+    positioning_meas_abort_s&                      positioning_meas_abort();
+    positioning_meas_fail_ind_s&                   positioning_meas_fail_ind();
+    positioning_meas_upd_s&                        positioning_meas_upd();
+    positioning_deactivation_s&                    positioning_deactivation();
+    e_c_id_meas_fail_ind_s&                        e_c_id_meas_fail_ind();
+    e_c_id_meas_report_s&                          e_c_id_meas_report();
+    e_c_id_meas_termination_cmd_s&                 e_c_id_meas_termination_cmd();
+    positioning_info_upd_s&                        positioning_info_upd();
+    multicast_group_paging_s&                      multicast_group_paging();
+    broadcast_context_release_request_s&           broadcast_context_release_request();
+    multicast_context_release_request_s&           multicast_context_release_request();
+    pdc_meas_report_s&                             pdc_meas_report();
+    pdc_meas_termination_cmd_s&                    pdc_meas_termination_cmd();
+    pdc_meas_fail_ind_s&                           pdc_meas_fail_ind();
+    meas_activation_s&                             meas_activation();
+    qo_e_info_transfer_s&                          qo_e_info_transfer();
+    pos_sys_info_delivery_cmd_s&                   pos_sys_info_delivery_cmd();
+    du_cu_cell_switch_notif_s&                     du_cu_cell_switch_notif();
+    cu_du_cell_switch_notif_s&                     cu_du_cell_switch_notif();
+    du_cu_tai_nformation_transfer_s&               du_cu_tai_nformation_transfer();
+    cu_du_tai_nformation_transfer_s&               cu_du_tai_nformation_transfer();
+    qo_e_info_transfer_ctrl_s&                     qo_e_info_transfer_ctrl();
+    rach_ind_s&                                    rach_ind();
+    timing_synchronisation_status_report_s&        timing_synchronisation_status_report();
+    miabf1_setup_trigger_s&                        miabf1_setup_trigger();
+    miabf1_setup_outcome_notif_s&                  miabf1_setup_outcome_notif();
+    broadcast_transport_res_request_s&             broadcast_transport_res_request();
+    du_cu_access_and_mob_ind_s&                    du_cu_access_and_mob_ind();
+    srs_info_reserv_notif_s&                       srs_info_reserv_notif();
+    cu_du_mob_initiation_request_s&                cu_du_mob_initiation_request();
+    const reset_s&                                 reset() const;
+    const f1_setup_request_s&                      f1_setup_request() const;
+    const gnb_du_cfg_upd_s&                        gnb_du_cfg_upd() const;
+    const gnb_cu_cfg_upd_s&                        gnb_cu_cfg_upd() const;
+    const ue_context_setup_request_s&              ue_context_setup_request() const;
+    const ue_context_release_cmd_s&                ue_context_release_cmd() const;
+    const ue_context_mod_request_s&                ue_context_mod_request() const;
+    const ue_context_mod_required_s&               ue_context_mod_required() const;
+    const write_replace_warning_request_s&         write_replace_warning_request() const;
+    const pws_cancel_request_s&                    pws_cancel_request() const;
+    const gnb_du_res_coordination_request_s&       gnb_du_res_coordination_request() const;
+    const f1_removal_request_s&                    f1_removal_request() const;
+    const bap_map_cfg_s&                           bap_map_cfg() const;
+    const gnb_du_res_cfg_s&                        gnb_du_res_cfg() const;
+    const iab_tnl_address_request_s&               iab_tnl_address_request() const;
+    const iab_up_cfg_upd_request_s&                iab_up_cfg_upd_request() const;
+    const res_status_request_s&                    res_status_request() const;
+    const positioning_meas_request_s&              positioning_meas_request() const;
+    const trp_info_request_s&                      trp_info_request() const;
+    const positioning_info_request_s&              positioning_info_request() const;
+    const positioning_activation_request_s&        positioning_activation_request() const;
+    const e_c_id_meas_initiation_request_s&        e_c_id_meas_initiation_request() const;
+    const broadcast_context_setup_request_s&       broadcast_context_setup_request() const;
+    const broadcast_context_release_cmd_s&         broadcast_context_release_cmd() const;
+    const broadcast_context_mod_request_s&         broadcast_context_mod_request() const;
+    const multicast_context_setup_request_s&       multicast_context_setup_request() const;
+    const multicast_context_release_cmd_s&         multicast_context_release_cmd() const;
+    const multicast_context_mod_request_s&         multicast_context_mod_request() const;
+    const multicast_distribution_setup_request_s&  multicast_distribution_setup_request() const;
+    const multicast_distribution_release_cmd_s&    multicast_distribution_release_cmd() const;
+    const pdc_meas_initiation_request_s&           pdc_meas_initiation_request() const;
+    const prs_cfg_request_s&                       prs_cfg_request() const;
+    const meas_precfg_required_s&                  meas_precfg_required() const;
+    const timing_synchronisation_status_request_s& timing_synchronisation_status_request() const;
+    const multicast_context_notif_ind_s&           multicast_context_notif_ind() const;
+    const multicast_common_cfg_request_s&          multicast_common_cfg_request() const;
+    const error_ind_s&                             error_ind() const;
+    const ue_context_release_request_s&            ue_context_release_request() const;
+    const dl_rrc_msg_transfer_s&                   dl_rrc_msg_transfer() const;
+    const ul_rrc_msg_transfer_s&                   ul_rrc_msg_transfer() const;
+    const ue_inactivity_notif_s&                   ue_inactivity_notif() const;
+    const private_msg_s&                           private_msg() const;
+    const init_ul_rrc_msg_transfer_s&              init_ul_rrc_msg_transfer() const;
+    const sys_info_delivery_cmd_s&                 sys_info_delivery_cmd() const;
+    const paging_s&                                paging() const;
+    const notify_s&                                notify() const;
+    const pws_restart_ind_s&                       pws_restart_ind() const;
+    const pws_fail_ind_s&                          pws_fail_ind() const;
+    const gnb_du_status_ind_s&                     gnb_du_status_ind() const;
+    const rrc_delivery_report_s&                   rrc_delivery_report() const;
+    const network_access_rate_reduction_s&         network_access_rate_reduction() const;
+    const trace_start_s&                           trace_start() const;
+    const deactiv_trace_s&                         deactiv_trace() const;
+    const du_cu_radio_info_transfer_s&             du_cu_radio_info_transfer() const;
+    const cu_du_radio_info_transfer_s&             cu_du_radio_info_transfer() const;
+    const res_status_upd_s&                        res_status_upd() const;
+    const access_and_mob_ind_s&                    access_and_mob_ind() const;
+    const ref_time_info_report_ctrl_s&             ref_time_info_report_ctrl() const;
+    const ref_time_info_report_s&                  ref_time_info_report() const;
+    const access_success_s&                        access_success() const;
+    const cell_traffic_trace_s&                    cell_traffic_trace() const;
+    const positioning_assist_info_ctrl_s&          positioning_assist_info_ctrl() const;
+    const positioning_assist_info_feedback_s&      positioning_assist_info_feedback() const;
+    const positioning_meas_report_s&               positioning_meas_report() const;
+    const positioning_meas_abort_s&                positioning_meas_abort() const;
+    const positioning_meas_fail_ind_s&             positioning_meas_fail_ind() const;
+    const positioning_meas_upd_s&                  positioning_meas_upd() const;
+    const positioning_deactivation_s&              positioning_deactivation() const;
+    const e_c_id_meas_fail_ind_s&                  e_c_id_meas_fail_ind() const;
+    const e_c_id_meas_report_s&                    e_c_id_meas_report() const;
+    const e_c_id_meas_termination_cmd_s&           e_c_id_meas_termination_cmd() const;
+    const positioning_info_upd_s&                  positioning_info_upd() const;
+    const multicast_group_paging_s&                multicast_group_paging() const;
+    const broadcast_context_release_request_s&     broadcast_context_release_request() const;
+    const multicast_context_release_request_s&     multicast_context_release_request() const;
+    const pdc_meas_report_s&                       pdc_meas_report() const;
+    const pdc_meas_termination_cmd_s&              pdc_meas_termination_cmd() const;
+    const pdc_meas_fail_ind_s&                     pdc_meas_fail_ind() const;
+    const meas_activation_s&                       meas_activation() const;
+    const qo_e_info_transfer_s&                    qo_e_info_transfer() const;
+    const pos_sys_info_delivery_cmd_s&             pos_sys_info_delivery_cmd() const;
+    const du_cu_cell_switch_notif_s&               du_cu_cell_switch_notif() const;
+    const cu_du_cell_switch_notif_s&               cu_du_cell_switch_notif() const;
+    const du_cu_tai_nformation_transfer_s&         du_cu_tai_nformation_transfer() const;
+    const cu_du_tai_nformation_transfer_s&         cu_du_tai_nformation_transfer() const;
+    const qo_e_info_transfer_ctrl_s&               qo_e_info_transfer_ctrl() const;
+    const rach_ind_s&                              rach_ind() const;
+    const timing_synchronisation_status_report_s&  timing_synchronisation_status_report() const;
+    const miabf1_setup_trigger_s&                  miabf1_setup_trigger() const;
+    const miabf1_setup_outcome_notif_s&            miabf1_setup_outcome_notif() const;
+    const broadcast_transport_res_request_s&       broadcast_transport_res_request() const;
+    const du_cu_access_and_mob_ind_s&              du_cu_access_and_mob_ind() const;
+    const srs_info_reserv_notif_s&                 srs_info_reserv_notif() const;
+    const cu_du_mob_initiation_request_s&          cu_du_mob_initiation_request() const;
 
   private:
     types             type_;
@@ -623,6 +719,9 @@ struct f1ap_elem_procs_o {
         pdc_meas_initiation_resp,
         prs_cfg_resp,
         meas_precfg_confirm,
+        timing_synchronisation_status_resp,
+        multicast_context_notif_confirm,
+        multicast_common_cfg_resp,
         nulltype
       } value;
 
@@ -671,6 +770,9 @@ struct f1ap_elem_procs_o {
     pdc_meas_initiation_resp_s&                      pdc_meas_initiation_resp();
     prs_cfg_resp_s&                                  prs_cfg_resp();
     meas_precfg_confirm_s&                           meas_precfg_confirm();
+    timing_synchronisation_status_resp_s&            timing_synchronisation_status_resp();
+    multicast_context_notif_confirm_s&               multicast_context_notif_confirm();
+    multicast_common_cfg_resp_s&                     multicast_common_cfg_resp();
     const reset_ack_s&                               reset_ack() const;
     const f1_setup_resp_s&                           f1_setup_resp() const;
     const gnb_du_cfg_upd_ack_s&                      gnb_du_cfg_upd_ack() const;
@@ -704,6 +806,9 @@ struct f1ap_elem_procs_o {
     const pdc_meas_initiation_resp_s&                pdc_meas_initiation_resp() const;
     const prs_cfg_resp_s&                            prs_cfg_resp() const;
     const meas_precfg_confirm_s&                     meas_precfg_confirm() const;
+    const timing_synchronisation_status_resp_s&      timing_synchronisation_status_resp() const;
+    const multicast_context_notif_confirm_s&         multicast_context_notif_confirm() const;
+    const multicast_common_cfg_resp_s&               multicast_common_cfg_resp() const;
 
   private:
     types             type_;
@@ -738,6 +843,9 @@ struct f1ap_elem_procs_o {
         pdc_meas_initiation_fail,
         prs_cfg_fail,
         meas_precfg_refuse,
+        timing_synchronisation_status_fail,
+        multicast_context_notif_refuse,
+        multicast_common_cfg_refuse,
         nulltype
       } value;
 
@@ -753,56 +861,62 @@ struct f1ap_elem_procs_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    f1_setup_fail_s&                           f1_setup_fail();
-    gnb_du_cfg_upd_fail_s&                     gnb_du_cfg_upd_fail();
-    gnb_cu_cfg_upd_fail_s&                     gnb_cu_cfg_upd_fail();
-    ue_context_setup_fail_s&                   ue_context_setup_fail();
-    ue_context_mod_fail_s&                     ue_context_mod_fail();
-    ue_context_mod_refuse_s&                   ue_context_mod_refuse();
-    f1_removal_fail_s&                         f1_removal_fail();
-    bap_map_cfg_fail_s&                        bap_map_cfg_fail();
-    gnb_du_res_cfg_fail_s&                     gnb_du_res_cfg_fail();
-    iab_tnl_address_fail_s&                    iab_tnl_address_fail();
-    iab_up_cfg_upd_fail_s&                     iab_up_cfg_upd_fail();
-    res_status_fail_s&                         res_status_fail();
-    positioning_meas_fail_s&                   positioning_meas_fail();
-    trp_info_fail_s&                           trp_info_fail();
-    positioning_info_fail_s&                   positioning_info_fail();
-    positioning_activation_fail_s&             positioning_activation_fail();
-    e_c_id_meas_initiation_fail_s&             e_c_id_meas_initiation_fail();
-    broadcast_context_setup_fail_s&            broadcast_context_setup_fail();
-    broadcast_context_mod_fail_s&              broadcast_context_mod_fail();
-    multicast_context_setup_fail_s&            multicast_context_setup_fail();
-    multicast_context_mod_fail_s&              multicast_context_mod_fail();
-    multicast_distribution_setup_fail_s&       multicast_distribution_setup_fail();
-    pdc_meas_initiation_fail_s&                pdc_meas_initiation_fail();
-    prs_cfg_fail_s&                            prs_cfg_fail();
-    meas_precfg_refuse_s&                      meas_precfg_refuse();
-    const f1_setup_fail_s&                     f1_setup_fail() const;
-    const gnb_du_cfg_upd_fail_s&               gnb_du_cfg_upd_fail() const;
-    const gnb_cu_cfg_upd_fail_s&               gnb_cu_cfg_upd_fail() const;
-    const ue_context_setup_fail_s&             ue_context_setup_fail() const;
-    const ue_context_mod_fail_s&               ue_context_mod_fail() const;
-    const ue_context_mod_refuse_s&             ue_context_mod_refuse() const;
-    const f1_removal_fail_s&                   f1_removal_fail() const;
-    const bap_map_cfg_fail_s&                  bap_map_cfg_fail() const;
-    const gnb_du_res_cfg_fail_s&               gnb_du_res_cfg_fail() const;
-    const iab_tnl_address_fail_s&              iab_tnl_address_fail() const;
-    const iab_up_cfg_upd_fail_s&               iab_up_cfg_upd_fail() const;
-    const res_status_fail_s&                   res_status_fail() const;
-    const positioning_meas_fail_s&             positioning_meas_fail() const;
-    const trp_info_fail_s&                     trp_info_fail() const;
-    const positioning_info_fail_s&             positioning_info_fail() const;
-    const positioning_activation_fail_s&       positioning_activation_fail() const;
-    const e_c_id_meas_initiation_fail_s&       e_c_id_meas_initiation_fail() const;
-    const broadcast_context_setup_fail_s&      broadcast_context_setup_fail() const;
-    const broadcast_context_mod_fail_s&        broadcast_context_mod_fail() const;
-    const multicast_context_setup_fail_s&      multicast_context_setup_fail() const;
-    const multicast_context_mod_fail_s&        multicast_context_mod_fail() const;
-    const multicast_distribution_setup_fail_s& multicast_distribution_setup_fail() const;
-    const pdc_meas_initiation_fail_s&          pdc_meas_initiation_fail() const;
-    const prs_cfg_fail_s&                      prs_cfg_fail() const;
-    const meas_precfg_refuse_s&                meas_precfg_refuse() const;
+    f1_setup_fail_s&                            f1_setup_fail();
+    gnb_du_cfg_upd_fail_s&                      gnb_du_cfg_upd_fail();
+    gnb_cu_cfg_upd_fail_s&                      gnb_cu_cfg_upd_fail();
+    ue_context_setup_fail_s&                    ue_context_setup_fail();
+    ue_context_mod_fail_s&                      ue_context_mod_fail();
+    ue_context_mod_refuse_s&                    ue_context_mod_refuse();
+    f1_removal_fail_s&                          f1_removal_fail();
+    bap_map_cfg_fail_s&                         bap_map_cfg_fail();
+    gnb_du_res_cfg_fail_s&                      gnb_du_res_cfg_fail();
+    iab_tnl_address_fail_s&                     iab_tnl_address_fail();
+    iab_up_cfg_upd_fail_s&                      iab_up_cfg_upd_fail();
+    res_status_fail_s&                          res_status_fail();
+    positioning_meas_fail_s&                    positioning_meas_fail();
+    trp_info_fail_s&                            trp_info_fail();
+    positioning_info_fail_s&                    positioning_info_fail();
+    positioning_activation_fail_s&              positioning_activation_fail();
+    e_c_id_meas_initiation_fail_s&              e_c_id_meas_initiation_fail();
+    broadcast_context_setup_fail_s&             broadcast_context_setup_fail();
+    broadcast_context_mod_fail_s&               broadcast_context_mod_fail();
+    multicast_context_setup_fail_s&             multicast_context_setup_fail();
+    multicast_context_mod_fail_s&               multicast_context_mod_fail();
+    multicast_distribution_setup_fail_s&        multicast_distribution_setup_fail();
+    pdc_meas_initiation_fail_s&                 pdc_meas_initiation_fail();
+    prs_cfg_fail_s&                             prs_cfg_fail();
+    meas_precfg_refuse_s&                       meas_precfg_refuse();
+    timing_synchronisation_status_fail_s&       timing_synchronisation_status_fail();
+    multicast_context_notif_refuse_s&           multicast_context_notif_refuse();
+    multicast_common_cfg_refuse_s&              multicast_common_cfg_refuse();
+    const f1_setup_fail_s&                      f1_setup_fail() const;
+    const gnb_du_cfg_upd_fail_s&                gnb_du_cfg_upd_fail() const;
+    const gnb_cu_cfg_upd_fail_s&                gnb_cu_cfg_upd_fail() const;
+    const ue_context_setup_fail_s&              ue_context_setup_fail() const;
+    const ue_context_mod_fail_s&                ue_context_mod_fail() const;
+    const ue_context_mod_refuse_s&              ue_context_mod_refuse() const;
+    const f1_removal_fail_s&                    f1_removal_fail() const;
+    const bap_map_cfg_fail_s&                   bap_map_cfg_fail() const;
+    const gnb_du_res_cfg_fail_s&                gnb_du_res_cfg_fail() const;
+    const iab_tnl_address_fail_s&               iab_tnl_address_fail() const;
+    const iab_up_cfg_upd_fail_s&                iab_up_cfg_upd_fail() const;
+    const res_status_fail_s&                    res_status_fail() const;
+    const positioning_meas_fail_s&              positioning_meas_fail() const;
+    const trp_info_fail_s&                      trp_info_fail() const;
+    const positioning_info_fail_s&              positioning_info_fail() const;
+    const positioning_activation_fail_s&        positioning_activation_fail() const;
+    const e_c_id_meas_initiation_fail_s&        e_c_id_meas_initiation_fail() const;
+    const broadcast_context_setup_fail_s&       broadcast_context_setup_fail() const;
+    const broadcast_context_mod_fail_s&         broadcast_context_mod_fail() const;
+    const multicast_context_setup_fail_s&       multicast_context_setup_fail() const;
+    const multicast_context_mod_fail_s&         multicast_context_mod_fail() const;
+    const multicast_distribution_setup_fail_s&  multicast_distribution_setup_fail() const;
+    const pdc_meas_initiation_fail_s&           pdc_meas_initiation_fail() const;
+    const prs_cfg_fail_s&                       prs_cfg_fail() const;
+    const meas_precfg_refuse_s&                 meas_precfg_refuse() const;
+    const timing_synchronisation_status_fail_s& timing_synchronisation_status_fail() const;
+    const multicast_context_notif_refuse_s&     multicast_context_notif_refuse() const;
+    const multicast_common_cfg_refuse_s&        multicast_common_cfg_refuse() const;
 
   private:
     types             type_;

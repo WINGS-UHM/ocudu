@@ -10,7 +10,7 @@
 
 /*******************************************************************************
  *
- *                    3GPP TS ASN1 RRC NR v17.4.0 (2023-03)
+ *                    3GPP TS ASN1 RRC NR v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
@@ -29,11 +29,37 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_MEAS_FREQS_SN 32
 #define ASN1_RRC_NR_MAX_MEAS_IDENTITIES_MN 62
 #define ASN1_RRC_NR_MAX_CELL_PREP 32
+#define ASN1_RRC_NR_MAX_NROF_L1_MEAS_NO_GAP_R18 8
+#define ASN1_RRC_NR_MAX_NROF_L1_MEAS_WITH_GAP_R18 8
+#define ASN1_RRC_NR_MAX_NROF_CELLS_L1_MEAS_NO_GAP_R18 8
+#define ASN1_RRC_NR_MAX_NROF_CELLS_L1_MEAS_WITH_GAP_R18 8
+#define ASN1_RRC_NR_MAX_NROF_TOTAL_CELLS_L1_MEAS_NO_GAP_R18 24
+#define ASN1_RRC_NR_MAX_NROF_SSBS_L1_MEAS_NO_GAP_R18 8
+#define ASN1_RRC_NR_MAX_NROF_SSBS_L1_MEAS_NO_GAP_EXT_R18 24
+#define ASN1_RRC_NR_MAX_NROF_SSBS_L1_MEAS_WITH_GAP_R18 8
+#define ASN1_RRC_NR_MAX_NROF_TOTAL_SSBS_L1_MEAS_NO_GAP_R18 64
+#define ASN1_RRC_NR_MAX_NROF_L1_MEAS_INTRA_FREQ_R18 8
+#define ASN1_RRC_NR_MAX_NROF_L1_MEAS_INTER_FREQ_R18 8
+#define ASN1_RRC_NR_MAX_NROF_REPORT_CFGS_APERIODIC_R18 4
+#define ASN1_RRC_NR_MAX_NROF_REPORT_CFGS_PERIODIC_R18 4
+#define ASN1_RRC_NR_MAX_NROF_REPORT_CFGS_SEMI_PERSISTENT_R18 4
+#define ASN1_RRC_NR_MAX_NROF_CELLS_TA_MEAS_R18 8
+#define ASN1_RRC_NR_MAX_NROF_CFG_JOINT_TCI_STATES_R18 128
+#define ASN1_RRC_NR_MAX_NROF_CFG_DL_TCI_STATES_R18 128
+#define ASN1_RRC_NR_MAX_NROF_CFG_UL_TCI_STATES_R18 64
+#define ASN1_RRC_NR_MAX_NROF_CELLS_TCI_R18 8
+#define ASN1_RRC_NR_MAX_NROF_STORED_CFG_CELLS_R18 16
+#define ASN1_RRC_NR_MAX_NROF_CFG_CELLS_R18 4
+#define ASN1_RRC_NR_MAX_NROF_ACTIV_JOINT_TCI_STATES_R18 32
+#define ASN1_RRC_NR_MAX_NROF_ACTIV_DL_TCI_STATES_R18 32
+#define ASN1_RRC_NR_MAX_NROF_ACTIV_UL_TCI_STATES_R18 32
 #define ASN1_RRC_NR_MAX_ADD_RACH_R17 256
 #define ASN1_RRC_NR_MAX_AI_DCI_PAYLOAD_SIZE_R16 128
 #define ASN1_RRC_NR_MAX_AI_DCI_PAYLOAD_SIZE_1_R16 127
 #define ASN1_RRC_NR_MAX_BAND_COMB 65536
+#define ASN1_RRC_NR_MAX_BAND_COMB_MU_SI_M_R18 64
 #define ASN1_RRC_NR_MAX_BANDS_UTRA_FDD_R16 64
+#define ASN1_RRC_NR_MAX_CANDIDATE_BAND_IDX_R18 8
 #define ASN1_RRC_NR_MAX_BH_RLC_CH_ID_R16 65536
 #define ASN1_RRC_NR_MAX_BT_ID_REPORT_R16 32
 #define ASN1_RRC_NR_MAX_BT_NAME_R16 4
@@ -44,6 +70,7 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_CBR_CFG_1_R16 7
 #define ASN1_RRC_NR_MAX_CBR_LEVEL_R16 16
 #define ASN1_RRC_NR_MAX_CBR_LEVEL_1_R16 15
+#define ASN1_RRC_NR_MAX_CELL_ATG_R18 8
 #define ASN1_RRC_NR_MAX_CELL_EXCLUDED 16
 #define ASN1_RRC_NR_MAX_CELL_GROUPINGS_R16 32
 #define ASN1_RRC_NR_MAX_CELL_HISTORY_R16 16
@@ -69,13 +96,24 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_NROF_SERVING_CELLS_1 31
 #define ASN1_RRC_NR_MAX_NROF_AGGR_CELLS_PER_CELL_GROUP 16
 #define ASN1_RRC_NR_MAX_NROF_AGGR_CELLS_PER_CELL_GROUP_MINUS4_R16 12
+#define ASN1_RRC_NR_MAX_NROF_APERIODIC_FWD_TIME_RES_R18 112
+#define ASN1_RRC_NR_MAX_NROF_APERIODIC_FWD_TIME_RES_1_R18 111
 #define ASN1_RRC_NR_MAX_NROF_DU_CELLS_R16 512
 #define ASN1_RRC_NR_MAX_NROF_APP_LAYER_MEAS_R17 16
 #define ASN1_RRC_NR_MAX_NROF_APP_LAYER_MEAS_1_R17 15
+#define ASN1_RRC_NR_MAX_NROF_APP_LAYER_REPORTS_R18 16
 #define ASN1_RRC_NR_MAX_NROF_AVAILABILITY_COMBINATIONS_PER_SET_R16 512
 #define ASN1_RRC_NR_MAX_NROF_AVAILABILITY_COMBINATIONS_PER_SET_1_R16 511
 #define ASN1_RRC_NR_MAX_NROF_IAB_RES_CFG_R17 65536
 #define ASN1_RRC_NR_MAX_NROF_IAB_RES_CFG_1_R17 65535
+#define ASN1_RRC_NR_MAX_NROF_PERIODIC_FWD_RES_SET_R18 32
+#define ASN1_RRC_NR_MAX_NROF_PERIODIC_FWD_RES_SET_1_R18 31
+#define ASN1_RRC_NR_MAX_NROF_PERIODIC_FWD_RES_R18 1024
+#define ASN1_RRC_NR_MAX_NROF_PERIODIC_FWD_RES_1_R18 1023
+#define ASN1_RRC_NR_MAX_NROF_SEMI_PERSISTENT_FWD_RES_SET_R18 32
+#define ASN1_RRC_NR_MAX_NROF_SEMI_PERSISTENT_FWD_RES_SET_1_R18 31
+#define ASN1_RRC_NR_MAX_NROF_SEMI_PERSISTENT_FWD_RES_R18 128
+#define ASN1_RRC_NR_MAX_NROF_SEMI_PERSISTENT_FWD_RES_1_R18 127
 #define ASN1_RRC_NR_MAX_NROF_SCELL_ACT_RS_R17 255
 #define ASN1_RRC_NR_MAX_NROF_SCELLS 31
 #define ASN1_RRC_NR_MAX_NROF_CELL_MEAS 32
@@ -91,13 +129,16 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_NROF_CSI_RS_RES_TO_AVERAGE 16
 #define ASN1_RRC_NR_MAX_NROF_DL_ALLOCS 16
 #define ASN1_RRC_NR_MAX_NROF_DL_ALLOCS_EXT_R17 64
+#define ASN1_RRC_NR_MAX_NROF_DL_ALLOCS_1_R18 15
 #define ASN1_RRC_NR_MAX_NROF_PDU_SESSIONS_R17 256
 #define ASN1_RRC_NR_MAX_NROF_SR_CFG_PER_CELL_GROUP 8
+#define ASN1_RRC_NR_MAX_NROF_LC_GS_R18 8
 #define ASN1_RRC_NR_MAX_LCG_ID 7
 #define ASN1_RRC_NR_MAX_LCG_ID_IAB_R17 255
 #define ASN1_RRC_NR_MAX_LC_ID 32
 #define ASN1_RRC_NR_MAX_LC_ID_IAB_R16 65855
 #define ASN1_RRC_NR_MAX_LTE_CRS_PATTERNS_R16 3
+#define ASN1_RRC_NR_MAX_NR_OF_LINKED_SRS_CARRIERS_INACTIVE_1_R18 2
 #define ASN1_RRC_NR_MAX_NROF_TAGS 4
 #define ASN1_RRC_NR_MAX_NROF_TAGS_1 3
 #define ASN1_RRC_NR_MAX_NROF_BWPS 4
@@ -134,6 +175,7 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_NROF_NZP_CSI_RS_RES 192
 #define ASN1_RRC_NR_MAX_NROF_NZP_CSI_RS_RES_1 191
 #define ASN1_RRC_NR_MAX_NROF_NZP_CSI_RS_RES_PER_SET 64
+#define ASN1_RRC_NR_MAX_NROF_NZP_CSI_RS_RES_PER_SET_1_R18 63
 #define ASN1_RRC_NR_MAX_NROF_NZP_CSI_RS_RES_SETS 64
 #define ASN1_RRC_NR_MAX_NROF_NZP_CSI_RS_RES_SETS_1 63
 #define ASN1_RRC_NR_MAX_NROF_NZP_CSI_RS_RES_SETS_PER_CFG 16
@@ -158,12 +200,15 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_NROF_FAIL_DETECTION_RES_1 9
 #define ASN1_RRC_NR_MAX_NROF_FAIL_DETECTION_RES_1_R17 63
 #define ASN1_RRC_NR_MAX_NROF_FREQ_SL_R16 8
+#define ASN1_RRC_NR_MAX_NROF_FREQ_SL_1_R18 7
 #define ASN1_RRC_NR_MAX_NROF_SL_BWPS_R16 4
+#define ASN1_RRC_NR_MAX_NROF_SL_CARRIER_SET_CFG_R18 96
 #define ASN1_RRC_NR_MAX_FREQ_SL_EUTRA_R16 8
 #define ASN1_RRC_NR_MAX_NROF_SL_MEAS_ID_R16 64
 #define ASN1_RRC_NR_MAX_NROF_SL_OBJ_ID_R16 64
 #define ASN1_RRC_NR_MAX_NROF_SL_REPORT_CFG_ID_R16 64
 #define ASN1_RRC_NR_MAX_NROF_SL_POOL_TO_MEASURE_NR_R16 8
+#define ASN1_RRC_NR_MAX_NROF_DED_SL_PRS_POOL_TO_MEAS_R18 8
 #define ASN1_RRC_NR_MAX_FREQ_SL_NR_R16 8
 #define ASN1_RRC_NR_MAX_NROF_SL_QFIS_R16 2048
 #define ASN1_RRC_NR_MAX_NROF_SL_QFIS_PER_DEST_R16 64
@@ -179,7 +224,11 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_NROF_CSI_RS_CELLS_RRM 96
 #define ASN1_RRC_NR_MAX_NROF_SL_DEST_R16 32
 #define ASN1_RRC_NR_MAX_NROF_SL_DEST_1_R16 31
+#define ASN1_RRC_NR_MAX_NROF_SL_PRS_PER_DEST_R18 8
 #define ASN1_RRC_NR_MAX_NROF_SLRB_R16 512
+#define ASN1_RRC_NR_MAX_SL_LCID_PLUS1_R18 513
+#define ASN1_RRC_NR_MAX_SL_LCID_R18 1024
+#define ASN1_RRC_NR_MAX_SL_NON_ANCHOR_R_BSETS 4
 #define ASN1_RRC_NR_MAX_SL_LCID_R16 512
 #define ASN1_RRC_NR_MAX_SL_SYNC_CFG_R16 16
 #define ASN1_RRC_NR_MAX_NROF_RX_POOL_R16 16
@@ -200,7 +249,10 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_NROF_SRS_TRIGGER_STATES_2 2
 #define ASN1_RRC_NR_MAX_RAT_CAP_CONTAINERS 8
 #define ASN1_RRC_NR_MAX_SIMUL_BANDS 32
+#define ASN1_RRC_NR_MAX_SIMUL_BANDS_2_R18 30
 #define ASN1_RRC_NR_MAX_UL_TX_SWITCHING_BAND_PAIRS 32
+#define ASN1_RRC_NR_MAX_UL_TX_SWITCHING_BETWEEN_BAND_PAIRS_R18 32
+#define ASN1_RRC_NR_MAX_SCHED_BAND_COMBINATION_R18 32
 #define ASN1_RRC_NR_MAX_NROF_SLOT_FORMAT_COMBINATIONS_PER_SET 512
 #define ASN1_RRC_NR_MAX_NROF_SLOT_FORMAT_COMBINATIONS_PER_SET_1 511
 #define ASN1_RRC_NR_MAX_NROF_TRAFFIC_PATTERN_R16 8
@@ -265,6 +317,8 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_UL_TCI_R17 64
 #define ASN1_RRC_NR_MAX_UL_TCI_1_R17 63
 #define ASN1_RRC_NR_MAX_NROF_ADD_PCI_R17 7
+#define ASN1_RRC_NR_MAX_NROF_ADD_PRACH_CFGS_R18 7
+#define ASN1_RRC_NR_MAX_NROFDELAY_D_R18 4
 #define ASN1_RRC_NR_MAX_MPE_RES_R17 64
 #define ASN1_RRC_NR_MAX_NROF_UL_ALLOCS 16
 #define ASN1_RRC_NR_MAX_QFI 63
@@ -308,6 +362,9 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_GIN_R17 24
 #define ASN1_RRC_NR_MAX_HRNN_LEN_R16 48
 #define ASN1_RRC_NR_MAX_NPN_R16 12
+#define ASN1_RRC_NR_MAX_SN_PN_CFG_CELL_ID_R18 32
+#define ASN1_RRC_NR_MAX_SN_PN_CFG_ID_R18 16
+#define ASN1_RRC_NR_MAX_SN_PN_CFG_TAI_R18 8
 #define ASN1_RRC_NR_MAX_NR_OF_MIN_SCHED_OFFSET_VALUES_R16 2
 #define ASN1_RRC_NR_MAX_K0_SCHED_OFFSET_R16 16
 #define ASN1_RRC_NR_MAX_K2_SCHED_OFFSET_R16 16
@@ -316,7 +373,10 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_DCI_2_6_SIZE_R16 140
 #define ASN1_RRC_NR_MAX_DCI_2_7_SIZE_R17 43
 #define ASN1_RRC_NR_MAX_DCI_2_6_SIZE_1_R16 139
+#define ASN1_RRC_NR_MAX_DCI_2_9_SIZE_R18 140
+#define ASN1_RRC_NR_MAX_DCI_2_9_SIZE_1_R18 139
 #define ASN1_RRC_NR_MAX_NROF_UL_ALLOCS_R16 64
+#define ASN1_RRC_NR_MAX_NROF_UL_ALLOCS_1_R18 63
 #define ASN1_RRC_NR_MAX_NROF_P0_PUSCH_SET_R16 2
 #define ASN1_RRC_NR_MAX_ON_DEMAND_SIB_R16 8
 #define ASN1_RRC_NR_MAX_ON_DEMAND_POS_SIB_R16 32
@@ -338,6 +398,8 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_NROF_CFG_GRANT_CFG_1_R16 11
 #define ASN1_RRC_NR_MAX_NROF_CG_TYPE2_DEACTIVATION_STATE 16
 #define ASN1_RRC_NR_MAX_NROF_CFG_GRANT_CFG_MAC_1_R16 31
+#define ASN1_RRC_NR_MAX_NROF_CSI_REPORT_SUBCFG_PER_CSI_REPORT_CFG_R18 8
+#define ASN1_RRC_NR_MAX_NROF_CSI_REPORT_SUBCFG_PER_CSI_REPORT_CFG_1_R18 7
 #define ASN1_RRC_NR_MAX_NROF_SPS_CFG_R16 8
 #define ASN1_RRC_NR_MAX_NROF_SPS_CFG_1_R16 7
 #define ASN1_RRC_NR_MAX_NROF_SPS_DEACTIVATION_STATE 16
@@ -388,28 +450,49 @@ namespace rrc_nr {
 #define ASN1_RRC_NR_MAX_NEIGH_CELL_MBS_R17 8
 #define ASN1_RRC_NR_MAX_NROF_PDCCH_BLIND_DETECTION_MIXED_1_R16 7
 #define ASN1_RRC_NR_MAX_NROF_PDCCH_BLIND_DETECTION_R17 16
+#define ASN1_RRC_NR_MAX_NROF_ALTITUDE_RANGES_R18 8
+#define ASN1_RRC_NR_MAX_WAY_POINT_R18 20
+#define ASN1_RRC_NR_MAX_ALTITUDE_R18 10000
+#define ASN1_RRC_NR_MIN_ALTITUDE_R18 -420
+#define ASN1_RRC_NR_MAX_MEAS_SEQ_R18 64
+#define ASN1_RRC_NR_MAX_NROF_HOPS_1_R18 5
+#define ASN1_RRC_NR_MAX_NR_OF_CELLS_IN_VA_R18 16
+#define ASN1_RRC_NR_MAX_NR_OF_CELLS_IN_VA_EXT_R18 16
+#define ASN1_RRC_NR_MAX_NR_OF_LINKED_SRS_POS_RES_SET_R18 3
+#define ASN1_RRC_NR_MAX_NR_OF_LINKED_SRS_POS_RES_SET_COMB_R18 32
+#define ASN1_RRC_NR_MAX_NR_OF_LINKED_SRS_POS_RES_SET_COMB_INACTIVE_R18 16
+#define ASN1_RRC_NR_MAX_CBR_CFG_DED_SL_PRS_1_R18 7
+#define ASN1_RRC_NR_MAX_CBR_LEVEL_DED_SL_PRS_1_R18 15
+#define ASN1_RRC_NR_MAX_NROF_SL_PRS_TX_POOL_R18 8
+#define ASN1_RRC_NR_MAX_NROF_SL_PRS_TX_CFG_R18 64
+#define ASN1_RRC_NR_MAX_NR_OF_VA_R18 16
+#define ASN1_RRC_NR_MAX_NROF_LTM_CFGS_R18 8
+#define ASN1_RRC_NR_MAX_NROF_LTM_CFGS_PLUS1_R18 9
+#define ASN1_RRC_NR_MAX_NROF_LTM_CSI_REPORT_CFGS_R18 48
+#define ASN1_RRC_NR_MAX_NROF_LTM_CSI_REPORT_CFGS_1_R18 47
+#define ASN1_RRC_NR_MAX_NROF_LTM_CSI_SSB_RES_PER_SET_R18 512
+#define ASN1_RRC_NR_MAX_NROF_LTM_CSI_RES_CFGS_R18 112
+#define ASN1_RRC_NR_MAX_NROF_LTM_CSI_RES_CFGS_1_R18 111
+#define ASN1_RRC_NR_MAX_NROF_CANDIDATE_TCI_STATE_R18 128
+#define ASN1_RRC_NR_MAX_NROF_CANDIDATE_UL_TCI_R18 64
+#define ASN1_RRC_NR_MAX_SECURITY_CELL_SET_R18 9
+#define ASN1_RRC_NR_MAX_SK_COUNTER_R18 8
+#define ASN1_RRC_NR_MAX_NROF_THRES_MBS_R18 8
+#define ASN1_RRC_NR_MAX_NROF_THRES_MBS_1_R18 7
+#define ASN1_RRC_NR_MAX_TN_AREA_INFO_R18 32
+#define ASN1_RRC_NR_MAX_NROF_SETS_OF_CELLS_R18 4
+#define ASN1_RRC_NR_MAX_NROF_SETS_OF_CELLS_1_R18 3
+#define ASN1_RRC_NR_MAX_NROF_CELLS_IN_SET_R18 4
+#define ASN1_RRC_NR_MAX_NROF_CELLS_IN_SET_1_R18 3
+#define ASN1_RRC_NR_MAX_NROF_CELL_COMBOS_R18 16
+#define ASN1_RRC_NR_MAX_NROF_BWPS_IN_SET_OF_CELLS_R18 16
+#define ASN1_RRC_NR_MAX_LOWER_MSD_R18 256
+#define ASN1_RRC_NR_MAX_LOWER_MSD_INFO_R18 64
+#define ASN1_RRC_NR_MAX_NROF_INTRA_ENDC_COMPONENTS_R17 4
 
 /*******************************************************************************
  *                              Struct Definitions
  ******************************************************************************/
-
-// MCC ::= SEQUENCE (SIZE (3)) OF INTEGER (0..9)
-using mcc_l = std::array<uint8_t, 3>;
-
-// MNC ::= SEQUENCE (SIZE (2..3)) OF INTEGER (0..9)
-using mnc_l = bounded_array<uint8_t, 3>;
-
-// PLMN-Identity ::= SEQUENCE
-struct plmn_id_s {
-  bool  mcc_present = false;
-  mcc_l mcc;
-  mnc_l mnc;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
 
 // SubcarrierSpacing ::= ENUMERATED
 struct subcarrier_spacing_opts {
@@ -425,6 +508,24 @@ using subcarrier_spacing_e = enumerated<subcarrier_spacing_opts>;
 struct serving_cell_and_bwp_id_r17_s {
   uint8_t servingcell_r17 = 0;
   uint8_t bwp_r17         = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MCC ::= SEQUENCE (SIZE (3)) OF INTEGER (0..9)
+using mcc_l = std::array<uint8_t, 3>;
+
+// MNC ::= SEQUENCE (SIZE (2..3)) OF INTEGER (0..9)
+using mnc_l = bounded_array<uint8_t, 3>;
+
+// PLMN-Identity ::= SEQUENCE
+struct plmn_id_s {
+  bool  mcc_present = false;
+  mcc_l mcc;
+  mnc_l mnc;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1167,6 +1268,148 @@ struct srs_res_s {
   struct srs_dl_or_joint_tci_state_v1730_s_ {
     serving_cell_and_bwp_id_r17_s cell_and_bwp_r17;
   };
+  struct nrof_srs_ports_n8_r18_opts {
+    enum options { ports8, ports8tdm, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using nrof_srs_ports_n8_r18_e_ = enumerated<nrof_srs_ports_n8_r18_opts>;
+  struct comb_offset_hop_r18_s_ {
+    struct hop_subset_r18_c_ {
+      struct types_opts {
+        enum options { tx_comb_n4, tx_comb_n8, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using types = enumerated<types_opts>;
+
+      // choice methods
+      hop_subset_r18_c_() = default;
+      hop_subset_r18_c_(const hop_subset_r18_c_& other);
+      hop_subset_r18_c_& operator=(const hop_subset_r18_c_& other);
+      ~hop_subset_r18_c_() { destroy_(); }
+      void          set(types::options e = types::nulltype);
+      types         type() const { return type_; }
+      OCUDUASN_CODE pack(bit_ref& bref) const;
+      OCUDUASN_CODE unpack(cbit_ref& bref);
+      void          to_json(json_writer& j) const;
+      // getters
+      fixed_bitstring<4>& tx_comb_n4()
+      {
+        assert_choice_type(types::tx_comb_n4, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<4>>();
+      }
+      fixed_bitstring<8>& tx_comb_n8()
+      {
+        assert_choice_type(types::tx_comb_n8, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<8>>();
+      }
+      const fixed_bitstring<4>& tx_comb_n4() const
+      {
+        assert_choice_type(types::tx_comb_n4, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<4>>();
+      }
+      const fixed_bitstring<8>& tx_comb_n8() const
+      {
+        assert_choice_type(types::tx_comb_n8, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<8>>();
+      }
+      fixed_bitstring<4>& set_tx_comb_n4();
+      fixed_bitstring<8>& set_tx_comb_n8();
+
+    private:
+      types                               type_;
+      choice_buffer_t<fixed_bitstring<8>> c;
+
+      void destroy_();
+    };
+    struct hop_with_repeat_r18_opts {
+      enum options { symbol, repeat, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using hop_with_repeat_r18_e_ = enumerated<hop_with_repeat_r18_opts>;
+
+    // member variables
+    bool                   hop_id_r18_present          = false;
+    bool                   hop_subset_r18_present      = false;
+    bool                   hop_with_repeat_r18_present = false;
+    uint16_t               hop_id_r18                  = 0;
+    hop_subset_r18_c_      hop_subset_r18;
+    hop_with_repeat_r18_e_ hop_with_repeat_r18;
+  };
+  struct cyclic_shift_hop_r18_s_ {
+    struct hop_subset_r18_c_ {
+      struct types_opts {
+        enum options { tx_comb_n2, tx_comb_n4, tx_comb_n8, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using types = enumerated<types_opts>;
+
+      // choice methods
+      hop_subset_r18_c_() = default;
+      hop_subset_r18_c_(const hop_subset_r18_c_& other);
+      hop_subset_r18_c_& operator=(const hop_subset_r18_c_& other);
+      ~hop_subset_r18_c_() { destroy_(); }
+      void          set(types::options e = types::nulltype);
+      types         type() const { return type_; }
+      OCUDUASN_CODE pack(bit_ref& bref) const;
+      OCUDUASN_CODE unpack(cbit_ref& bref);
+      void          to_json(json_writer& j) const;
+      // getters
+      fixed_bitstring<8>& tx_comb_n2()
+      {
+        assert_choice_type(types::tx_comb_n2, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<8>>();
+      }
+      fixed_bitstring<12>& tx_comb_n4()
+      {
+        assert_choice_type(types::tx_comb_n4, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<12>>();
+      }
+      fixed_bitstring<6>& tx_comb_n8()
+      {
+        assert_choice_type(types::tx_comb_n8, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<6>>();
+      }
+      const fixed_bitstring<8>& tx_comb_n2() const
+      {
+        assert_choice_type(types::tx_comb_n2, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<8>>();
+      }
+      const fixed_bitstring<12>& tx_comb_n4() const
+      {
+        assert_choice_type(types::tx_comb_n4, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<12>>();
+      }
+      const fixed_bitstring<6>& tx_comb_n8() const
+      {
+        assert_choice_type(types::tx_comb_n8, type_, "hoppingSubset-r18");
+        return c.get<fixed_bitstring<6>>();
+      }
+      fixed_bitstring<8>&  set_tx_comb_n2();
+      fixed_bitstring<12>& set_tx_comb_n4();
+      fixed_bitstring<6>&  set_tx_comb_n8();
+
+    private:
+      types                                type_;
+      choice_buffer_t<fixed_bitstring<12>> c;
+
+      void destroy_();
+    };
+
+    // member variables
+    bool              hop_id_r18_present                = false;
+    bool              hop_subset_r18_present            = false;
+    bool              hop_finer_granularity_r18_present = false;
+    uint16_t          hop_id_r18                        = 0;
+    hop_subset_r18_c_ hop_subset_r18;
+  };
 
   // member variables
   bool                        ext                           = false;
@@ -1196,6 +1439,11 @@ struct srs_res_s {
   // group 2
   bool                                         repeat_factor_v1730_present = false;
   copy_ptr<srs_dl_or_joint_tci_state_v1730_s_> srs_dl_or_joint_tci_state_v1730;
+  // group 3
+  bool                              nrof_srs_ports_n8_r18_present = false;
+  nrof_srs_ports_n8_r18_e_          nrof_srs_ports_n8_r18;
+  copy_ptr<comb_offset_hop_r18_s_>  comb_offset_hop_r18;
+  copy_ptr<cyclic_shift_hop_r18_s_> cyclic_shift_hop_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;

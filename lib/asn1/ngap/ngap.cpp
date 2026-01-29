@@ -71,18 +71,18 @@ bool protocol_ie_field_pair_s<ies_set_paramT_>::load_info_obj(const uint32_t& id
 // NGAP-ELEMENTARY-PROCEDURES ::= OBJECT SET OF NGAP-ELEMENTARY-PROCEDURE
 uint16_t ngap_elem_procs_o::idx_to_proc_code(uint32_t idx)
 {
-  static const uint16_t names[] = {0,  66, 67, 68, 69, 70, 10, 12, 13, 14, 71, 72, 73, 20, 21, 25, 26, 27, 28,
-                                   29, 32, 35, 40, 41, 58, 59, 43, 60, 51, 64, 1,  75, 2,  65, 3,  4,  5,  6,
-                                   63, 7,  54, 8,  9,  11, 61, 15, 18, 16, 17, 74, 19, 22, 23, 24, 30, 31, 33,
-                                   34, 57, 36, 55, 37, 52, 38, 39, 42, 56, 44, 45, 46, 47, 48, 62, 49, 53, 50};
-  return map_enum_number(names, 76, idx, "proc_code");
+  static const uint16_t names[] = {0,  66, 67, 68, 80, 69, 70, 10, 12, 13, 14, 78, 71, 72, 73, 20, 21, 25, 26, 27, 28,
+                                   29, 32, 35, 76, 40, 41, 58, 59, 43, 60, 51, 64, 1,  75, 2,  65, 3,  4,  5,  6,  63,
+                                   7,  54, 8,  9,  11, 61, 15, 18, 16, 17, 74, 19, 22, 23, 24, 30, 31, 33, 34, 57, 79,
+                                   36, 55, 37, 52, 77, 38, 39, 42, 56, 44, 45, 46, 47, 48, 62, 49, 53, 50};
+  return map_enum_number(names, 81, idx, "proc_code");
 }
 bool ngap_elem_procs_o::is_proc_code_valid(const uint16_t& proc_code)
 {
-  static const uint16_t names[] = {0,  66, 67, 68, 69, 70, 10, 12, 13, 14, 71, 72, 73, 20, 21, 25, 26, 27, 28,
-                                   29, 32, 35, 40, 41, 58, 59, 43, 60, 51, 64, 1,  75, 2,  65, 3,  4,  5,  6,
-                                   63, 7,  54, 8,  9,  11, 61, 15, 18, 16, 17, 74, 19, 22, 23, 24, 30, 31, 33,
-                                   34, 57, 36, 55, 37, 52, 38, 39, 42, 56, 44, 45, 46, 47, 48, 62, 49, 53, 50};
+  static const uint16_t names[] = {0,  66, 67, 68, 80, 69, 70, 10, 12, 13, 14, 78, 71, 72, 73, 20, 21, 25, 26, 27, 28,
+                                   29, 32, 35, 76, 40, 41, 58, 59, 43, 60, 51, 64, 1,  75, 2,  65, 3,  4,  5,  6,  63,
+                                   7,  54, 8,  9,  11, 61, 15, 18, 16, 17, 74, 19, 22, 23, 24, 30, 31, 33, 34, 57, 79,
+                                   36, 55, 37, 52, 77, 38, 39, 42, 56, 44, 45, 46, 47, 48, 62, 49, 53, 50};
   for (const auto& o : names) {
     if (o == proc_code) {
       return true;
@@ -106,6 +106,9 @@ ngap_elem_procs_o::init_msg_c ngap_elem_procs_o::get_init_msg(const uint16_t& pr
     case 68:
       ret.set(init_msg_c::types::broadcast_session_setup_request);
       break;
+    case 80:
+      ret.set(init_msg_c::types::broadcast_session_transport_request);
+      break;
     case 69:
       ret.set(init_msg_c::types::distribution_setup_request);
       break;
@@ -123,6 +126,9 @@ ngap_elem_procs_o::init_msg_c ngap_elem_procs_o::get_init_msg(const uint16_t& pr
       break;
     case 14:
       ret.set(init_msg_c::types::init_context_setup_request);
+      break;
+    case 78:
+      ret.set(init_msg_c::types::mt_communication_handling_request);
       break;
     case 71:
       ret.set(init_msg_c::types::multicast_session_activation_request);
@@ -159,6 +165,9 @@ ngap_elem_procs_o::init_msg_c ngap_elem_procs_o::get_init_msg(const uint16_t& pr
       break;
     case 35:
       ret.set(init_msg_c::types::ran_cfg_upd);
+      break;
+    case 76:
+      ret.set(init_msg_c::types::timing_synchronisation_status_request);
       break;
     case 40:
       ret.set(init_msg_c::types::ue_context_mod_request);
@@ -271,6 +280,9 @@ ngap_elem_procs_o::init_msg_c ngap_elem_procs_o::get_init_msg(const uint16_t& pr
     case 57:
       ret.set(init_msg_c::types::ran_cp_relocation_ind);
       break;
+    case 79:
+      ret.set(init_msg_c::types::ran_paging_request);
+      break;
     case 36:
       ret.set(init_msg_c::types::reroute_nas_request);
       break;
@@ -282,6 +294,9 @@ ngap_elem_procs_o::init_msg_c ngap_elem_procs_o::get_init_msg(const uint16_t& pr
       break;
     case 52:
       ret.set(init_msg_c::types::secondary_rat_data_usage_report);
+      break;
+    case 77:
+      ret.set(init_msg_c::types::timing_synchronisation_status_report);
       break;
     case 38:
       ret.set(init_msg_c::types::trace_fail_ind);
@@ -343,6 +358,9 @@ ngap_elem_procs_o::successful_outcome_c ngap_elem_procs_o::get_successful_outcom
     case 68:
       ret.set(successful_outcome_c::types::broadcast_session_setup_resp);
       break;
+    case 80:
+      ret.set(successful_outcome_c::types::broadcast_session_transport_resp);
+      break;
     case 69:
       ret.set(successful_outcome_c::types::distribution_setup_resp);
       break;
@@ -360,6 +378,9 @@ ngap_elem_procs_o::successful_outcome_c ngap_elem_procs_o::get_successful_outcom
       break;
     case 14:
       ret.set(successful_outcome_c::types::init_context_setup_resp);
+      break;
+    case 78:
+      ret.set(successful_outcome_c::types::mt_communication_handling_resp);
       break;
     case 71:
       ret.set(successful_outcome_c::types::multicast_session_activation_resp);
@@ -396,6 +417,9 @@ ngap_elem_procs_o::successful_outcome_c ngap_elem_procs_o::get_successful_outcom
       break;
     case 35:
       ret.set(successful_outcome_c::types::ran_cfg_upd_ack);
+      break;
+    case 76:
+      ret.set(successful_outcome_c::types::timing_synchronisation_status_resp);
       break;
     case 40:
       ret.set(successful_outcome_c::types::ue_context_mod_resp);
@@ -436,6 +460,9 @@ ngap_elem_procs_o::unsuccessful_outcome_c ngap_elem_procs_o::get_unsuccessful_ou
     case 68:
       ret.set(unsuccessful_outcome_c::types::broadcast_session_setup_fail);
       break;
+    case 80:
+      ret.set(unsuccessful_outcome_c::types::broadcast_session_transport_fail);
+      break;
     case 69:
       ret.set(unsuccessful_outcome_c::types::distribution_setup_fail);
       break;
@@ -447,6 +474,9 @@ ngap_elem_procs_o::unsuccessful_outcome_c ngap_elem_procs_o::get_unsuccessful_ou
       break;
     case 14:
       ret.set(unsuccessful_outcome_c::types::init_context_setup_fail);
+      break;
+    case 78:
+      ret.set(unsuccessful_outcome_c::types::mt_communication_handling_fail);
       break;
     case 71:
       ret.set(unsuccessful_outcome_c::types::multicast_session_activation_fail);
@@ -462,6 +492,9 @@ ngap_elem_procs_o::unsuccessful_outcome_c ngap_elem_procs_o::get_unsuccessful_ou
       break;
     case 35:
       ret.set(unsuccessful_outcome_c::types::ran_cfg_upd_fail);
+      break;
+    case 76:
+      ret.set(unsuccessful_outcome_c::types::timing_synchronisation_status_fail);
       break;
     case 40:
       ret.set(unsuccessful_outcome_c::types::ue_context_mod_fail);
@@ -488,6 +521,8 @@ crit_e ngap_elem_procs_o::get_crit(const uint16_t& proc_code)
       return crit_e::reject;
     case 68:
       return crit_e::reject;
+    case 80:
+      return crit_e::reject;
     case 69:
       return crit_e::reject;
     case 70:
@@ -499,6 +534,8 @@ crit_e ngap_elem_procs_o::get_crit(const uint16_t& proc_code)
     case 13:
       return crit_e::reject;
     case 14:
+      return crit_e::reject;
+    case 78:
       return crit_e::reject;
     case 71:
       return crit_e::reject;
@@ -523,6 +560,8 @@ crit_e ngap_elem_procs_o::get_crit(const uint16_t& proc_code)
     case 32:
       return crit_e::reject;
     case 35:
+      return crit_e::reject;
+    case 76:
       return crit_e::reject;
     case 40:
       return crit_e::reject;
@@ -598,6 +637,8 @@ crit_e ngap_elem_procs_o::get_crit(const uint16_t& proc_code)
       return crit_e::ignore;
     case 57:
       return crit_e::reject;
+    case 79:
+      return crit_e::ignore;
     case 36:
       return crit_e::reject;
     case 55:
@@ -605,6 +646,8 @@ crit_e ngap_elem_procs_o::get_crit(const uint16_t& proc_code)
     case 37:
       return crit_e::ignore;
     case 52:
+      return crit_e::ignore;
+    case 77:
       return crit_e::ignore;
     case 38:
       return crit_e::ignore;
@@ -655,6 +698,9 @@ void ngap_elem_procs_o::init_msg_c::set(types::options e)
     case types::broadcast_session_setup_request:
       c = broadcast_session_setup_request_s{};
       break;
+    case types::broadcast_session_transport_request:
+      c = broadcast_session_transport_request_s{};
+      break;
     case types::distribution_setup_request:
       c = distribution_setup_request_s{};
       break;
@@ -672,6 +718,9 @@ void ngap_elem_procs_o::init_msg_c::set(types::options e)
       break;
     case types::init_context_setup_request:
       c = init_context_setup_request_s{};
+      break;
+    case types::mt_communication_handling_request:
+      c = mt_communication_handling_request_s{};
       break;
     case types::multicast_session_activation_request:
       c = multicast_session_activation_request_s{};
@@ -708,6 +757,9 @@ void ngap_elem_procs_o::init_msg_c::set(types::options e)
       break;
     case types::ran_cfg_upd:
       c = ran_cfg_upd_s{};
+      break;
+    case types::timing_synchronisation_status_request:
+      c = timing_synchronisation_status_request_s{};
       break;
     case types::ue_context_mod_request:
       c = ue_context_mod_request_s{};
@@ -820,6 +872,9 @@ void ngap_elem_procs_o::init_msg_c::set(types::options e)
     case types::ran_cp_relocation_ind:
       c = ran_cp_relocation_ind_s{};
       break;
+    case types::ran_paging_request:
+      c = ran_paging_request_s{};
+      break;
     case types::reroute_nas_request:
       c = reroute_nas_request_s{};
       break;
@@ -831,6 +886,9 @@ void ngap_elem_procs_o::init_msg_c::set(types::options e)
       break;
     case types::secondary_rat_data_usage_report:
       c = secondary_rat_data_usage_report_s{};
+      break;
+    case types::timing_synchronisation_status_report:
+      c = timing_synchronisation_status_report_s{};
       break;
     case types::trace_fail_ind:
       c = trace_fail_ind_s{};
@@ -897,6 +955,11 @@ broadcast_session_setup_request_s& ngap_elem_procs_o::init_msg_c::broadcast_sess
   assert_choice_type(types::broadcast_session_setup_request, type_, "InitiatingMessage");
   return c.get<broadcast_session_setup_request_s>();
 }
+broadcast_session_transport_request_s& ngap_elem_procs_o::init_msg_c::broadcast_session_transport_request()
+{
+  assert_choice_type(types::broadcast_session_transport_request, type_, "InitiatingMessage");
+  return c.get<broadcast_session_transport_request_s>();
+}
 distribution_setup_request_s& ngap_elem_procs_o::init_msg_c::distribution_setup_request()
 {
   assert_choice_type(types::distribution_setup_request, type_, "InitiatingMessage");
@@ -926,6 +989,11 @@ init_context_setup_request_s& ngap_elem_procs_o::init_msg_c::init_context_setup_
 {
   assert_choice_type(types::init_context_setup_request, type_, "InitiatingMessage");
   return c.get<init_context_setup_request_s>();
+}
+mt_communication_handling_request_s& ngap_elem_procs_o::init_msg_c::mt_communication_handling_request()
+{
+  assert_choice_type(types::mt_communication_handling_request, type_, "InitiatingMessage");
+  return c.get<mt_communication_handling_request_s>();
 }
 multicast_session_activation_request_s& ngap_elem_procs_o::init_msg_c::multicast_session_activation_request()
 {
@@ -986,6 +1054,11 @@ ran_cfg_upd_s& ngap_elem_procs_o::init_msg_c::ran_cfg_upd()
 {
   assert_choice_type(types::ran_cfg_upd, type_, "InitiatingMessage");
   return c.get<ran_cfg_upd_s>();
+}
+timing_synchronisation_status_request_s& ngap_elem_procs_o::init_msg_c::timing_synchronisation_status_request()
+{
+  assert_choice_type(types::timing_synchronisation_status_request, type_, "InitiatingMessage");
+  return c.get<timing_synchronisation_status_request_s>();
 }
 ue_context_mod_request_s& ngap_elem_procs_o::init_msg_c::ue_context_mod_request()
 {
@@ -1172,6 +1245,11 @@ ran_cp_relocation_ind_s& ngap_elem_procs_o::init_msg_c::ran_cp_relocation_ind()
   assert_choice_type(types::ran_cp_relocation_ind, type_, "InitiatingMessage");
   return c.get<ran_cp_relocation_ind_s>();
 }
+ran_paging_request_s& ngap_elem_procs_o::init_msg_c::ran_paging_request()
+{
+  assert_choice_type(types::ran_paging_request, type_, "InitiatingMessage");
+  return c.get<ran_paging_request_s>();
+}
 reroute_nas_request_s& ngap_elem_procs_o::init_msg_c::reroute_nas_request()
 {
   assert_choice_type(types::reroute_nas_request, type_, "InitiatingMessage");
@@ -1191,6 +1269,11 @@ secondary_rat_data_usage_report_s& ngap_elem_procs_o::init_msg_c::secondary_rat_
 {
   assert_choice_type(types::secondary_rat_data_usage_report, type_, "InitiatingMessage");
   return c.get<secondary_rat_data_usage_report_s>();
+}
+timing_synchronisation_status_report_s& ngap_elem_procs_o::init_msg_c::timing_synchronisation_status_report()
+{
+  assert_choice_type(types::timing_synchronisation_status_report, type_, "InitiatingMessage");
+  return c.get<timing_synchronisation_status_report_s>();
 }
 trace_fail_ind_s& ngap_elem_procs_o::init_msg_c::trace_fail_ind()
 {
@@ -1277,6 +1360,11 @@ const broadcast_session_setup_request_s& ngap_elem_procs_o::init_msg_c::broadcas
   assert_choice_type(types::broadcast_session_setup_request, type_, "InitiatingMessage");
   return c.get<broadcast_session_setup_request_s>();
 }
+const broadcast_session_transport_request_s& ngap_elem_procs_o::init_msg_c::broadcast_session_transport_request() const
+{
+  assert_choice_type(types::broadcast_session_transport_request, type_, "InitiatingMessage");
+  return c.get<broadcast_session_transport_request_s>();
+}
 const distribution_setup_request_s& ngap_elem_procs_o::init_msg_c::distribution_setup_request() const
 {
   assert_choice_type(types::distribution_setup_request, type_, "InitiatingMessage");
@@ -1306,6 +1394,11 @@ const init_context_setup_request_s& ngap_elem_procs_o::init_msg_c::init_context_
 {
   assert_choice_type(types::init_context_setup_request, type_, "InitiatingMessage");
   return c.get<init_context_setup_request_s>();
+}
+const mt_communication_handling_request_s& ngap_elem_procs_o::init_msg_c::mt_communication_handling_request() const
+{
+  assert_choice_type(types::mt_communication_handling_request, type_, "InitiatingMessage");
+  return c.get<mt_communication_handling_request_s>();
 }
 const multicast_session_activation_request_s&
 ngap_elem_procs_o::init_msg_c::multicast_session_activation_request() const
@@ -1368,6 +1461,12 @@ const ran_cfg_upd_s& ngap_elem_procs_o::init_msg_c::ran_cfg_upd() const
 {
   assert_choice_type(types::ran_cfg_upd, type_, "InitiatingMessage");
   return c.get<ran_cfg_upd_s>();
+}
+const timing_synchronisation_status_request_s&
+ngap_elem_procs_o::init_msg_c::timing_synchronisation_status_request() const
+{
+  assert_choice_type(types::timing_synchronisation_status_request, type_, "InitiatingMessage");
+  return c.get<timing_synchronisation_status_request_s>();
 }
 const ue_context_mod_request_s& ngap_elem_procs_o::init_msg_c::ue_context_mod_request() const
 {
@@ -1555,6 +1654,11 @@ const ran_cp_relocation_ind_s& ngap_elem_procs_o::init_msg_c::ran_cp_relocation_
   assert_choice_type(types::ran_cp_relocation_ind, type_, "InitiatingMessage");
   return c.get<ran_cp_relocation_ind_s>();
 }
+const ran_paging_request_s& ngap_elem_procs_o::init_msg_c::ran_paging_request() const
+{
+  assert_choice_type(types::ran_paging_request, type_, "InitiatingMessage");
+  return c.get<ran_paging_request_s>();
+}
 const reroute_nas_request_s& ngap_elem_procs_o::init_msg_c::reroute_nas_request() const
 {
   assert_choice_type(types::reroute_nas_request, type_, "InitiatingMessage");
@@ -1574,6 +1678,12 @@ const secondary_rat_data_usage_report_s& ngap_elem_procs_o::init_msg_c::secondar
 {
   assert_choice_type(types::secondary_rat_data_usage_report, type_, "InitiatingMessage");
   return c.get<secondary_rat_data_usage_report_s>();
+}
+const timing_synchronisation_status_report_s&
+ngap_elem_procs_o::init_msg_c::timing_synchronisation_status_report() const
+{
+  assert_choice_type(types::timing_synchronisation_status_report, type_, "InitiatingMessage");
+  return c.get<timing_synchronisation_status_report_s>();
 }
 const trace_fail_ind_s& ngap_elem_procs_o::init_msg_c::trace_fail_ind() const
 {
@@ -1661,6 +1771,10 @@ void ngap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
       j.write_fieldname("BroadcastSessionSetupRequest");
       c.get<broadcast_session_setup_request_s>().to_json(j);
       break;
+    case types::broadcast_session_transport_request:
+      j.write_fieldname("BroadcastSessionTransportRequest");
+      c.get<broadcast_session_transport_request_s>().to_json(j);
+      break;
     case types::distribution_setup_request:
       j.write_fieldname("DistributionSetupRequest");
       c.get<distribution_setup_request_s>().to_json(j);
@@ -1684,6 +1798,10 @@ void ngap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
     case types::init_context_setup_request:
       j.write_fieldname("InitialContextSetupRequest");
       c.get<init_context_setup_request_s>().to_json(j);
+      break;
+    case types::mt_communication_handling_request:
+      j.write_fieldname("MTCommunicationHandlingRequest");
+      c.get<mt_communication_handling_request_s>().to_json(j);
       break;
     case types::multicast_session_activation_request:
       j.write_fieldname("MulticastSessionActivationRequest");
@@ -1732,6 +1850,10 @@ void ngap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
     case types::ran_cfg_upd:
       j.write_fieldname("RANConfigurationUpdate");
       c.get<ran_cfg_upd_s>().to_json(j);
+      break;
+    case types::timing_synchronisation_status_request:
+      j.write_fieldname("TimingSynchronisationStatusRequest");
+      c.get<timing_synchronisation_status_request_s>().to_json(j);
       break;
     case types::ue_context_mod_request:
       j.write_fieldname("UEContextModificationRequest");
@@ -1881,6 +2003,10 @@ void ngap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
       j.write_fieldname("RANCPRelocationIndication");
       c.get<ran_cp_relocation_ind_s>().to_json(j);
       break;
+    case types::ran_paging_request:
+      j.write_fieldname("RANPagingRequest");
+      c.get<ran_paging_request_s>().to_json(j);
+      break;
     case types::reroute_nas_request:
       j.write_fieldname("RerouteNASRequest");
       c.get<reroute_nas_request_s>().to_json(j);
@@ -1896,6 +2022,10 @@ void ngap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
     case types::secondary_rat_data_usage_report:
       j.write_fieldname("SecondaryRATDataUsageReport");
       c.get<secondary_rat_data_usage_report_s>().to_json(j);
+      break;
+    case types::timing_synchronisation_status_report:
+      j.write_fieldname("TimingSynchronisationStatusReport");
+      c.get<timing_synchronisation_status_report_s>().to_json(j);
       break;
     case types::trace_fail_ind:
       j.write_fieldname("TraceFailureIndication");
@@ -1970,6 +2100,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
     case types::broadcast_session_setup_request:
       HANDLE_CODE(c.get<broadcast_session_setup_request_s>().pack(bref));
       break;
+    case types::broadcast_session_transport_request:
+      HANDLE_CODE(c.get<broadcast_session_transport_request_s>().pack(bref));
+      break;
     case types::distribution_setup_request:
       HANDLE_CODE(c.get<distribution_setup_request_s>().pack(bref));
       break;
@@ -1987,6 +2120,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
       break;
     case types::init_context_setup_request:
       HANDLE_CODE(c.get<init_context_setup_request_s>().pack(bref));
+      break;
+    case types::mt_communication_handling_request:
+      HANDLE_CODE(c.get<mt_communication_handling_request_s>().pack(bref));
       break;
     case types::multicast_session_activation_request:
       HANDLE_CODE(c.get<multicast_session_activation_request_s>().pack(bref));
@@ -2023,6 +2159,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
       break;
     case types::ran_cfg_upd:
       HANDLE_CODE(c.get<ran_cfg_upd_s>().pack(bref));
+      break;
+    case types::timing_synchronisation_status_request:
+      HANDLE_CODE(c.get<timing_synchronisation_status_request_s>().pack(bref));
       break;
     case types::ue_context_mod_request:
       HANDLE_CODE(c.get<ue_context_mod_request_s>().pack(bref));
@@ -2135,6 +2274,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
     case types::ran_cp_relocation_ind:
       HANDLE_CODE(c.get<ran_cp_relocation_ind_s>().pack(bref));
       break;
+    case types::ran_paging_request:
+      HANDLE_CODE(c.get<ran_paging_request_s>().pack(bref));
+      break;
     case types::reroute_nas_request:
       HANDLE_CODE(c.get<reroute_nas_request_s>().pack(bref));
       break;
@@ -2146,6 +2288,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
       break;
     case types::secondary_rat_data_usage_report:
       HANDLE_CODE(c.get<secondary_rat_data_usage_report_s>().pack(bref));
+      break;
+    case types::timing_synchronisation_status_report:
+      HANDLE_CODE(c.get<timing_synchronisation_status_report_s>().pack(bref));
       break;
     case types::trace_fail_ind:
       HANDLE_CODE(c.get<trace_fail_ind_s>().pack(bref));
@@ -2208,6 +2353,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
     case types::broadcast_session_setup_request:
       HANDLE_CODE(c.get<broadcast_session_setup_request_s>().unpack(bref));
       break;
+    case types::broadcast_session_transport_request:
+      HANDLE_CODE(c.get<broadcast_session_transport_request_s>().unpack(bref));
+      break;
     case types::distribution_setup_request:
       HANDLE_CODE(c.get<distribution_setup_request_s>().unpack(bref));
       break;
@@ -2225,6 +2373,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
       break;
     case types::init_context_setup_request:
       HANDLE_CODE(c.get<init_context_setup_request_s>().unpack(bref));
+      break;
+    case types::mt_communication_handling_request:
+      HANDLE_CODE(c.get<mt_communication_handling_request_s>().unpack(bref));
       break;
     case types::multicast_session_activation_request:
       HANDLE_CODE(c.get<multicast_session_activation_request_s>().unpack(bref));
@@ -2261,6 +2412,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
       break;
     case types::ran_cfg_upd:
       HANDLE_CODE(c.get<ran_cfg_upd_s>().unpack(bref));
+      break;
+    case types::timing_synchronisation_status_request:
+      HANDLE_CODE(c.get<timing_synchronisation_status_request_s>().unpack(bref));
       break;
     case types::ue_context_mod_request:
       HANDLE_CODE(c.get<ue_context_mod_request_s>().unpack(bref));
@@ -2373,6 +2527,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
     case types::ran_cp_relocation_ind:
       HANDLE_CODE(c.get<ran_cp_relocation_ind_s>().unpack(bref));
       break;
+    case types::ran_paging_request:
+      HANDLE_CODE(c.get<ran_paging_request_s>().unpack(bref));
+      break;
     case types::reroute_nas_request:
       HANDLE_CODE(c.get<reroute_nas_request_s>().unpack(bref));
       break;
@@ -2384,6 +2541,9 @@ OCUDUASN_CODE ngap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
       break;
     case types::secondary_rat_data_usage_report:
       HANDLE_CODE(c.get<secondary_rat_data_usage_report_s>().unpack(bref));
+      break;
+    case types::timing_synchronisation_status_report:
+      HANDLE_CODE(c.get<timing_synchronisation_status_report_s>().unpack(bref));
       break;
     case types::trace_fail_ind:
       HANDLE_CODE(c.get<trace_fail_ind_s>().unpack(bref));
@@ -2437,12 +2597,14 @@ const char* ngap_elem_procs_o::init_msg_c::types_opts::to_string() const
                                 "BroadcastSessionModificationRequest",
                                 "BroadcastSessionReleaseRequest",
                                 "BroadcastSessionSetupRequest",
+                                "BroadcastSessionTransportRequest",
                                 "DistributionSetupRequest",
                                 "DistributionReleaseRequest",
                                 "HandoverCancel",
                                 "HandoverRequired",
                                 "HandoverRequest",
                                 "InitialContextSetupRequest",
+                                "MTCommunicationHandlingRequest",
                                 "MulticastSessionActivationRequest",
                                 "MulticastSessionDeactivationRequest",
                                 "MulticastSessionUpdateRequest",
@@ -2455,6 +2617,7 @@ const char* ngap_elem_procs_o::init_msg_c::types_opts::to_string() const
                                 "PDUSessionResourceSetupRequest",
                                 "PWSCancelRequest",
                                 "RANConfigurationUpdate",
+                                "TimingSynchronisationStatusRequest",
                                 "UEContextModificationRequest",
                                 "UEContextReleaseCommand",
                                 "UEContextResumeRequest",
@@ -2492,10 +2655,12 @@ const char* ngap_elem_procs_o::init_msg_c::types_opts::to_string() const
                                 "PWSFailureIndication",
                                 "PWSRestartIndication",
                                 "RANCPRelocationIndication",
+                                "RANPagingRequest",
                                 "RerouteNASRequest",
                                 "RetrieveUEInformation",
                                 "RRCInactiveTransitionReport",
                                 "SecondaryRATDataUsageReport",
+                                "TimingSynchronisationStatusReport",
                                 "TraceFailureIndication",
                                 "TraceStart",
                                 "UEContextReleaseRequest",
@@ -2509,7 +2674,7 @@ const char* ngap_elem_procs_o::init_msg_c::types_opts::to_string() const
                                 "UplinkRANStatusTransfer",
                                 "UplinkRIMInformationTransfer",
                                 "UplinkUEAssociatedNRPPaTransport"};
-  return convert_enum_idx(names, 76, value, "ngap_elem_procs_o::init_msg_c::types");
+  return convert_enum_idx(names, 81, value, "ngap_elem_procs_o::init_msg_c::types");
 }
 
 // SuccessfulOutcome ::= OPEN TYPE
@@ -2529,6 +2694,9 @@ void ngap_elem_procs_o::successful_outcome_c::set(types::options e)
     case types::broadcast_session_setup_resp:
       c = broadcast_session_setup_resp_s{};
       break;
+    case types::broadcast_session_transport_resp:
+      c = broadcast_session_transport_resp_s{};
+      break;
     case types::distribution_setup_resp:
       c = distribution_setup_resp_s{};
       break;
@@ -2546,6 +2714,9 @@ void ngap_elem_procs_o::successful_outcome_c::set(types::options e)
       break;
     case types::init_context_setup_resp:
       c = init_context_setup_resp_s{};
+      break;
+    case types::mt_communication_handling_resp:
+      c = mt_communication_handling_resp_s{};
       break;
     case types::multicast_session_activation_resp:
       c = multicast_session_activation_resp_s{};
@@ -2582,6 +2753,9 @@ void ngap_elem_procs_o::successful_outcome_c::set(types::options e)
       break;
     case types::ran_cfg_upd_ack:
       c = ran_cfg_upd_ack_s{};
+      break;
+    case types::timing_synchronisation_status_resp:
+      c = timing_synchronisation_status_resp_s{};
       break;
     case types::ue_context_mod_resp:
       c = ue_context_mod_resp_s{};
@@ -2630,6 +2804,11 @@ broadcast_session_setup_resp_s& ngap_elem_procs_o::successful_outcome_c::broadca
   assert_choice_type(types::broadcast_session_setup_resp, type_, "SuccessfulOutcome");
   return c.get<broadcast_session_setup_resp_s>();
 }
+broadcast_session_transport_resp_s& ngap_elem_procs_o::successful_outcome_c::broadcast_session_transport_resp()
+{
+  assert_choice_type(types::broadcast_session_transport_resp, type_, "SuccessfulOutcome");
+  return c.get<broadcast_session_transport_resp_s>();
+}
 distribution_setup_resp_s& ngap_elem_procs_o::successful_outcome_c::distribution_setup_resp()
 {
   assert_choice_type(types::distribution_setup_resp, type_, "SuccessfulOutcome");
@@ -2659,6 +2838,11 @@ init_context_setup_resp_s& ngap_elem_procs_o::successful_outcome_c::init_context
 {
   assert_choice_type(types::init_context_setup_resp, type_, "SuccessfulOutcome");
   return c.get<init_context_setup_resp_s>();
+}
+mt_communication_handling_resp_s& ngap_elem_procs_o::successful_outcome_c::mt_communication_handling_resp()
+{
+  assert_choice_type(types::mt_communication_handling_resp, type_, "SuccessfulOutcome");
+  return c.get<mt_communication_handling_resp_s>();
 }
 multicast_session_activation_resp_s& ngap_elem_procs_o::successful_outcome_c::multicast_session_activation_resp()
 {
@@ -2720,6 +2904,11 @@ ran_cfg_upd_ack_s& ngap_elem_procs_o::successful_outcome_c::ran_cfg_upd_ack()
   assert_choice_type(types::ran_cfg_upd_ack, type_, "SuccessfulOutcome");
   return c.get<ran_cfg_upd_ack_s>();
 }
+timing_synchronisation_status_resp_s& ngap_elem_procs_o::successful_outcome_c::timing_synchronisation_status_resp()
+{
+  assert_choice_type(types::timing_synchronisation_status_resp, type_, "SuccessfulOutcome");
+  return c.get<timing_synchronisation_status_resp_s>();
+}
 ue_context_mod_resp_s& ngap_elem_procs_o::successful_outcome_c::ue_context_mod_resp()
 {
   assert_choice_type(types::ue_context_mod_resp, type_, "SuccessfulOutcome");
@@ -2775,6 +2964,12 @@ const broadcast_session_setup_resp_s& ngap_elem_procs_o::successful_outcome_c::b
   assert_choice_type(types::broadcast_session_setup_resp, type_, "SuccessfulOutcome");
   return c.get<broadcast_session_setup_resp_s>();
 }
+const broadcast_session_transport_resp_s&
+ngap_elem_procs_o::successful_outcome_c::broadcast_session_transport_resp() const
+{
+  assert_choice_type(types::broadcast_session_transport_resp, type_, "SuccessfulOutcome");
+  return c.get<broadcast_session_transport_resp_s>();
+}
 const distribution_setup_resp_s& ngap_elem_procs_o::successful_outcome_c::distribution_setup_resp() const
 {
   assert_choice_type(types::distribution_setup_resp, type_, "SuccessfulOutcome");
@@ -2804,6 +2999,11 @@ const init_context_setup_resp_s& ngap_elem_procs_o::successful_outcome_c::init_c
 {
   assert_choice_type(types::init_context_setup_resp, type_, "SuccessfulOutcome");
   return c.get<init_context_setup_resp_s>();
+}
+const mt_communication_handling_resp_s& ngap_elem_procs_o::successful_outcome_c::mt_communication_handling_resp() const
+{
+  assert_choice_type(types::mt_communication_handling_resp, type_, "SuccessfulOutcome");
+  return c.get<mt_communication_handling_resp_s>();
 }
 const multicast_session_activation_resp_s&
 ngap_elem_procs_o::successful_outcome_c::multicast_session_activation_resp() const
@@ -2867,6 +3067,12 @@ const ran_cfg_upd_ack_s& ngap_elem_procs_o::successful_outcome_c::ran_cfg_upd_ac
   assert_choice_type(types::ran_cfg_upd_ack, type_, "SuccessfulOutcome");
   return c.get<ran_cfg_upd_ack_s>();
 }
+const timing_synchronisation_status_resp_s&
+ngap_elem_procs_o::successful_outcome_c::timing_synchronisation_status_resp() const
+{
+  assert_choice_type(types::timing_synchronisation_status_resp, type_, "SuccessfulOutcome");
+  return c.get<timing_synchronisation_status_resp_s>();
+}
 const ue_context_mod_resp_s& ngap_elem_procs_o::successful_outcome_c::ue_context_mod_resp() const
 {
   assert_choice_type(types::ue_context_mod_resp, type_, "SuccessfulOutcome");
@@ -2922,6 +3128,10 @@ void ngap_elem_procs_o::successful_outcome_c::to_json(json_writer& j) const
       j.write_fieldname("BroadcastSessionSetupResponse");
       c.get<broadcast_session_setup_resp_s>().to_json(j);
       break;
+    case types::broadcast_session_transport_resp:
+      j.write_fieldname("BroadcastSessionTransportResponse");
+      c.get<broadcast_session_transport_resp_s>().to_json(j);
+      break;
     case types::distribution_setup_resp:
       j.write_fieldname("DistributionSetupResponse");
       c.get<distribution_setup_resp_s>().to_json(j);
@@ -2945,6 +3155,10 @@ void ngap_elem_procs_o::successful_outcome_c::to_json(json_writer& j) const
     case types::init_context_setup_resp:
       j.write_fieldname("InitialContextSetupResponse");
       c.get<init_context_setup_resp_s>().to_json(j);
+      break;
+    case types::mt_communication_handling_resp:
+      j.write_fieldname("MTCommunicationHandlingResponse");
+      c.get<mt_communication_handling_resp_s>().to_json(j);
       break;
     case types::multicast_session_activation_resp:
       j.write_fieldname("MulticastSessionActivationResponse");
@@ -2993,6 +3207,10 @@ void ngap_elem_procs_o::successful_outcome_c::to_json(json_writer& j) const
     case types::ran_cfg_upd_ack:
       j.write_fieldname("RANConfigurationUpdateAcknowledge");
       c.get<ran_cfg_upd_ack_s>().to_json(j);
+      break;
+    case types::timing_synchronisation_status_resp:
+      j.write_fieldname("TimingSynchronisationStatusResponse");
+      c.get<timing_synchronisation_status_resp_s>().to_json(j);
       break;
     case types::ue_context_mod_resp:
       j.write_fieldname("UEContextModificationResponse");
@@ -3043,6 +3261,9 @@ OCUDUASN_CODE ngap_elem_procs_o::successful_outcome_c::pack(bit_ref& bref) const
     case types::broadcast_session_setup_resp:
       HANDLE_CODE(c.get<broadcast_session_setup_resp_s>().pack(bref));
       break;
+    case types::broadcast_session_transport_resp:
+      HANDLE_CODE(c.get<broadcast_session_transport_resp_s>().pack(bref));
+      break;
     case types::distribution_setup_resp:
       HANDLE_CODE(c.get<distribution_setup_resp_s>().pack(bref));
       break;
@@ -3060,6 +3281,9 @@ OCUDUASN_CODE ngap_elem_procs_o::successful_outcome_c::pack(bit_ref& bref) const
       break;
     case types::init_context_setup_resp:
       HANDLE_CODE(c.get<init_context_setup_resp_s>().pack(bref));
+      break;
+    case types::mt_communication_handling_resp:
+      HANDLE_CODE(c.get<mt_communication_handling_resp_s>().pack(bref));
       break;
     case types::multicast_session_activation_resp:
       HANDLE_CODE(c.get<multicast_session_activation_resp_s>().pack(bref));
@@ -3096,6 +3320,9 @@ OCUDUASN_CODE ngap_elem_procs_o::successful_outcome_c::pack(bit_ref& bref) const
       break;
     case types::ran_cfg_upd_ack:
       HANDLE_CODE(c.get<ran_cfg_upd_ack_s>().pack(bref));
+      break;
+    case types::timing_synchronisation_status_resp:
+      HANDLE_CODE(c.get<timing_synchronisation_status_resp_s>().pack(bref));
       break;
     case types::ue_context_mod_resp:
       HANDLE_CODE(c.get<ue_context_mod_resp_s>().pack(bref));
@@ -3140,6 +3367,9 @@ OCUDUASN_CODE ngap_elem_procs_o::successful_outcome_c::unpack(cbit_ref& bref)
     case types::broadcast_session_setup_resp:
       HANDLE_CODE(c.get<broadcast_session_setup_resp_s>().unpack(bref));
       break;
+    case types::broadcast_session_transport_resp:
+      HANDLE_CODE(c.get<broadcast_session_transport_resp_s>().unpack(bref));
+      break;
     case types::distribution_setup_resp:
       HANDLE_CODE(c.get<distribution_setup_resp_s>().unpack(bref));
       break;
@@ -3157,6 +3387,9 @@ OCUDUASN_CODE ngap_elem_procs_o::successful_outcome_c::unpack(cbit_ref& bref)
       break;
     case types::init_context_setup_resp:
       HANDLE_CODE(c.get<init_context_setup_resp_s>().unpack(bref));
+      break;
+    case types::mt_communication_handling_resp:
+      HANDLE_CODE(c.get<mt_communication_handling_resp_s>().unpack(bref));
       break;
     case types::multicast_session_activation_resp:
       HANDLE_CODE(c.get<multicast_session_activation_resp_s>().unpack(bref));
@@ -3194,6 +3427,9 @@ OCUDUASN_CODE ngap_elem_procs_o::successful_outcome_c::unpack(cbit_ref& bref)
     case types::ran_cfg_upd_ack:
       HANDLE_CODE(c.get<ran_cfg_upd_ack_s>().unpack(bref));
       break;
+    case types::timing_synchronisation_status_resp:
+      HANDLE_CODE(c.get<timing_synchronisation_status_resp_s>().unpack(bref));
+      break;
     case types::ue_context_mod_resp:
       HANDLE_CODE(c.get<ue_context_mod_resp_s>().unpack(bref));
       break;
@@ -3228,12 +3464,14 @@ const char* ngap_elem_procs_o::successful_outcome_c::types_opts::to_string() con
                                 "BroadcastSessionModificationResponse",
                                 "BroadcastSessionReleaseResponse",
                                 "BroadcastSessionSetupResponse",
+                                "BroadcastSessionTransportResponse",
                                 "DistributionSetupResponse",
                                 "DistributionReleaseResponse",
                                 "HandoverCancelAcknowledge",
                                 "HandoverCommand",
                                 "HandoverRequestAcknowledge",
                                 "InitialContextSetupResponse",
+                                "MTCommunicationHandlingResponse",
                                 "MulticastSessionActivationResponse",
                                 "MulticastSessionDeactivationResponse",
                                 "MulticastSessionUpdateResponse",
@@ -3246,6 +3484,7 @@ const char* ngap_elem_procs_o::successful_outcome_c::types_opts::to_string() con
                                 "PDUSessionResourceSetupResponse",
                                 "PWSCancelResponse",
                                 "RANConfigurationUpdateAcknowledge",
+                                "TimingSynchronisationStatusResponse",
                                 "UEContextModificationResponse",
                                 "UEContextReleaseComplete",
                                 "UEContextResumeResponse",
@@ -3253,7 +3492,7 @@ const char* ngap_elem_procs_o::successful_outcome_c::types_opts::to_string() con
                                 "UERadioCapabilityCheckResponse",
                                 "UERadioCapabilityIDMappingResponse",
                                 "WriteReplaceWarningResponse"};
-  return convert_enum_idx(names, 29, value, "ngap_elem_procs_o::successful_outcome_c::types");
+  return convert_enum_idx(names, 32, value, "ngap_elem_procs_o::successful_outcome_c::types");
 }
 
 // UnsuccessfulOutcome ::= OPEN TYPE
@@ -3270,6 +3509,9 @@ void ngap_elem_procs_o::unsuccessful_outcome_c::set(types::options e)
     case types::broadcast_session_setup_fail:
       c = broadcast_session_setup_fail_s{};
       break;
+    case types::broadcast_session_transport_fail:
+      c = broadcast_session_transport_fail_s{};
+      break;
     case types::distribution_setup_fail:
       c = distribution_setup_fail_s{};
       break;
@@ -3281,6 +3523,9 @@ void ngap_elem_procs_o::unsuccessful_outcome_c::set(types::options e)
       break;
     case types::init_context_setup_fail:
       c = init_context_setup_fail_s{};
+      break;
+    case types::mt_communication_handling_fail:
+      c = mt_communication_handling_fail_s{};
       break;
     case types::multicast_session_activation_fail:
       c = multicast_session_activation_fail_s{};
@@ -3296,6 +3541,9 @@ void ngap_elem_procs_o::unsuccessful_outcome_c::set(types::options e)
       break;
     case types::ran_cfg_upd_fail:
       c = ran_cfg_upd_fail_s{};
+      break;
+    case types::timing_synchronisation_status_fail:
+      c = timing_synchronisation_status_fail_s{};
       break;
     case types::ue_context_mod_fail:
       c = ue_context_mod_fail_s{};
@@ -3327,6 +3575,11 @@ broadcast_session_setup_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::broad
   assert_choice_type(types::broadcast_session_setup_fail, type_, "UnsuccessfulOutcome");
   return c.get<broadcast_session_setup_fail_s>();
 }
+broadcast_session_transport_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::broadcast_session_transport_fail()
+{
+  assert_choice_type(types::broadcast_session_transport_fail, type_, "UnsuccessfulOutcome");
+  return c.get<broadcast_session_transport_fail_s>();
+}
 distribution_setup_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::distribution_setup_fail()
 {
   assert_choice_type(types::distribution_setup_fail, type_, "UnsuccessfulOutcome");
@@ -3346,6 +3599,11 @@ init_context_setup_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::init_conte
 {
   assert_choice_type(types::init_context_setup_fail, type_, "UnsuccessfulOutcome");
   return c.get<init_context_setup_fail_s>();
+}
+mt_communication_handling_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::mt_communication_handling_fail()
+{
+  assert_choice_type(types::mt_communication_handling_fail, type_, "UnsuccessfulOutcome");
+  return c.get<mt_communication_handling_fail_s>();
 }
 multicast_session_activation_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::multicast_session_activation_fail()
 {
@@ -3371,6 +3629,11 @@ ran_cfg_upd_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::ran_cfg_upd_fail(
 {
   assert_choice_type(types::ran_cfg_upd_fail, type_, "UnsuccessfulOutcome");
   return c.get<ran_cfg_upd_fail_s>();
+}
+timing_synchronisation_status_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::timing_synchronisation_status_fail()
+{
+  assert_choice_type(types::timing_synchronisation_status_fail, type_, "UnsuccessfulOutcome");
+  return c.get<timing_synchronisation_status_fail_s>();
 }
 ue_context_mod_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::ue_context_mod_fail()
 {
@@ -3402,6 +3665,12 @@ const broadcast_session_setup_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c:
   assert_choice_type(types::broadcast_session_setup_fail, type_, "UnsuccessfulOutcome");
   return c.get<broadcast_session_setup_fail_s>();
 }
+const broadcast_session_transport_fail_s&
+ngap_elem_procs_o::unsuccessful_outcome_c::broadcast_session_transport_fail() const
+{
+  assert_choice_type(types::broadcast_session_transport_fail, type_, "UnsuccessfulOutcome");
+  return c.get<broadcast_session_transport_fail_s>();
+}
 const distribution_setup_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::distribution_setup_fail() const
 {
   assert_choice_type(types::distribution_setup_fail, type_, "UnsuccessfulOutcome");
@@ -3421,6 +3690,12 @@ const init_context_setup_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::init
 {
   assert_choice_type(types::init_context_setup_fail, type_, "UnsuccessfulOutcome");
   return c.get<init_context_setup_fail_s>();
+}
+const mt_communication_handling_fail_s&
+ngap_elem_procs_o::unsuccessful_outcome_c::mt_communication_handling_fail() const
+{
+  assert_choice_type(types::mt_communication_handling_fail, type_, "UnsuccessfulOutcome");
+  return c.get<mt_communication_handling_fail_s>();
 }
 const multicast_session_activation_fail_s&
 ngap_elem_procs_o::unsuccessful_outcome_c::multicast_session_activation_fail() const
@@ -3447,6 +3722,12 @@ const ran_cfg_upd_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::ran_cfg_upd
 {
   assert_choice_type(types::ran_cfg_upd_fail, type_, "UnsuccessfulOutcome");
   return c.get<ran_cfg_upd_fail_s>();
+}
+const timing_synchronisation_status_fail_s&
+ngap_elem_procs_o::unsuccessful_outcome_c::timing_synchronisation_status_fail() const
+{
+  assert_choice_type(types::timing_synchronisation_status_fail, type_, "UnsuccessfulOutcome");
+  return c.get<timing_synchronisation_status_fail_s>();
 }
 const ue_context_mod_fail_s& ngap_elem_procs_o::unsuccessful_outcome_c::ue_context_mod_fail() const
 {
@@ -3479,6 +3760,10 @@ void ngap_elem_procs_o::unsuccessful_outcome_c::to_json(json_writer& j) const
       j.write_fieldname("BroadcastSessionSetupFailure");
       c.get<broadcast_session_setup_fail_s>().to_json(j);
       break;
+    case types::broadcast_session_transport_fail:
+      j.write_fieldname("BroadcastSessionTransportFailure");
+      c.get<broadcast_session_transport_fail_s>().to_json(j);
+      break;
     case types::distribution_setup_fail:
       j.write_fieldname("DistributionSetupFailure");
       c.get<distribution_setup_fail_s>().to_json(j);
@@ -3494,6 +3779,10 @@ void ngap_elem_procs_o::unsuccessful_outcome_c::to_json(json_writer& j) const
     case types::init_context_setup_fail:
       j.write_fieldname("InitialContextSetupFailure");
       c.get<init_context_setup_fail_s>().to_json(j);
+      break;
+    case types::mt_communication_handling_fail:
+      j.write_fieldname("MTCommunicationHandlingFailure");
+      c.get<mt_communication_handling_fail_s>().to_json(j);
       break;
     case types::multicast_session_activation_fail:
       j.write_fieldname("MulticastSessionActivationFailure");
@@ -3514,6 +3803,10 @@ void ngap_elem_procs_o::unsuccessful_outcome_c::to_json(json_writer& j) const
     case types::ran_cfg_upd_fail:
       j.write_fieldname("RANConfigurationUpdateFailure");
       c.get<ran_cfg_upd_fail_s>().to_json(j);
+      break;
+    case types::timing_synchronisation_status_fail:
+      j.write_fieldname("TimingSynchronisationStatusFailure");
+      c.get<timing_synchronisation_status_fail_s>().to_json(j);
       break;
     case types::ue_context_mod_fail:
       j.write_fieldname("UEContextModificationFailure");
@@ -3545,6 +3838,9 @@ OCUDUASN_CODE ngap_elem_procs_o::unsuccessful_outcome_c::pack(bit_ref& bref) con
     case types::broadcast_session_setup_fail:
       HANDLE_CODE(c.get<broadcast_session_setup_fail_s>().pack(bref));
       break;
+    case types::broadcast_session_transport_fail:
+      HANDLE_CODE(c.get<broadcast_session_transport_fail_s>().pack(bref));
+      break;
     case types::distribution_setup_fail:
       HANDLE_CODE(c.get<distribution_setup_fail_s>().pack(bref));
       break;
@@ -3556,6 +3852,9 @@ OCUDUASN_CODE ngap_elem_procs_o::unsuccessful_outcome_c::pack(bit_ref& bref) con
       break;
     case types::init_context_setup_fail:
       HANDLE_CODE(c.get<init_context_setup_fail_s>().pack(bref));
+      break;
+    case types::mt_communication_handling_fail:
+      HANDLE_CODE(c.get<mt_communication_handling_fail_s>().pack(bref));
       break;
     case types::multicast_session_activation_fail:
       HANDLE_CODE(c.get<multicast_session_activation_fail_s>().pack(bref));
@@ -3571,6 +3870,9 @@ OCUDUASN_CODE ngap_elem_procs_o::unsuccessful_outcome_c::pack(bit_ref& bref) con
       break;
     case types::ran_cfg_upd_fail:
       HANDLE_CODE(c.get<ran_cfg_upd_fail_s>().pack(bref));
+      break;
+    case types::timing_synchronisation_status_fail:
+      HANDLE_CODE(c.get<timing_synchronisation_status_fail_s>().pack(bref));
       break;
     case types::ue_context_mod_fail:
       HANDLE_CODE(c.get<ue_context_mod_fail_s>().pack(bref));
@@ -3600,6 +3902,9 @@ OCUDUASN_CODE ngap_elem_procs_o::unsuccessful_outcome_c::unpack(cbit_ref& bref)
     case types::broadcast_session_setup_fail:
       HANDLE_CODE(c.get<broadcast_session_setup_fail_s>().unpack(bref));
       break;
+    case types::broadcast_session_transport_fail:
+      HANDLE_CODE(c.get<broadcast_session_transport_fail_s>().unpack(bref));
+      break;
     case types::distribution_setup_fail:
       HANDLE_CODE(c.get<distribution_setup_fail_s>().unpack(bref));
       break;
@@ -3611,6 +3916,9 @@ OCUDUASN_CODE ngap_elem_procs_o::unsuccessful_outcome_c::unpack(cbit_ref& bref)
       break;
     case types::init_context_setup_fail:
       HANDLE_CODE(c.get<init_context_setup_fail_s>().unpack(bref));
+      break;
+    case types::mt_communication_handling_fail:
+      HANDLE_CODE(c.get<mt_communication_handling_fail_s>().unpack(bref));
       break;
     case types::multicast_session_activation_fail:
       HANDLE_CODE(c.get<multicast_session_activation_fail_s>().unpack(bref));
@@ -3626,6 +3934,9 @@ OCUDUASN_CODE ngap_elem_procs_o::unsuccessful_outcome_c::unpack(cbit_ref& bref)
       break;
     case types::ran_cfg_upd_fail:
       HANDLE_CODE(c.get<ran_cfg_upd_fail_s>().unpack(bref));
+      break;
+    case types::timing_synchronisation_status_fail:
+      HANDLE_CODE(c.get<timing_synchronisation_status_fail_s>().unpack(bref));
       break;
     case types::ue_context_mod_fail:
       HANDLE_CODE(c.get<ue_context_mod_fail_s>().unpack(bref));
@@ -3648,19 +3959,22 @@ const char* ngap_elem_procs_o::unsuccessful_outcome_c::types_opts::to_string() c
   static const char* names[] = {"AMFConfigurationUpdateFailure",
                                 "BroadcastSessionModificationFailure",
                                 "BroadcastSessionSetupFailure",
+                                "BroadcastSessionTransportFailure",
                                 "DistributionSetupFailure",
                                 "HandoverPreparationFailure",
                                 "HandoverFailure",
                                 "InitialContextSetupFailure",
+                                "MTCommunicationHandlingFailure",
                                 "MulticastSessionActivationFailure",
                                 "MulticastSessionUpdateFailure",
                                 "NGSetupFailure",
                                 "PathSwitchRequestFailure",
                                 "RANConfigurationUpdateFailure",
+                                "TimingSynchronisationStatusFailure",
                                 "UEContextModificationFailure",
                                 "UEContextResumeFailure",
                                 "UEContextSuspendFailure"};
-  return convert_enum_idx(names, 15, value, "ngap_elem_procs_o::unsuccessful_outcome_c::types");
+  return convert_enum_idx(names, 18, value, "ngap_elem_procs_o::unsuccessful_outcome_c::types");
 }
 
 // InitiatingMessage ::= SEQUENCE{{NGAP-ELEMENTARY-PROCEDURE}}

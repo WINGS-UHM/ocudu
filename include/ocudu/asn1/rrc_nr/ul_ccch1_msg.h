@@ -10,13 +10,13 @@
 
 /*******************************************************************************
  *
- *                    3GPP TS ASN1 RRC NR v17.4.0 (2023-03)
+ *                    3GPP TS ASN1 RRC NR v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
 #pragma once
 
-#include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
+#include "ul_ccch_msg_ies.h"
 
 namespace asn1 {
 namespace rrc_nr {

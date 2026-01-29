@@ -71,16 +71,16 @@ bool protocol_ie_field_pair_s<ies_set_paramT_>::load_info_obj(const uint32_t& id
 // XNAP-ELEMENTARY-PROCEDURES ::= OBJECT SET OF XNAP-ELEMENTARY-PROCEDURE
 uint16_t xnap_elem_procs_o::idx_to_proc_code(uint32_t idx)
 {
-  static const uint16_t names[] = {0,  3,  7,  9,  10, 11, 12, 14, 16, 17, 18, 25, 19, 20, 34, 36, 44,
-                                   45, 46, 49, 1,  2,  4,  5,  6,  8,  13, 15, 21, 22, 23, 24, 26, 27,
-                                   28, 29, 30, 31, 32, 33, 35, 37, 38, 39, 40, 42, 43, 47, 48};
-  return map_enum_number(names, 49, idx, "proc_code");
+  static const uint16_t names[] = {0,  3,  7,  9,  10, 11, 12, 14, 16, 17, 18, 25, 19, 20, 34, 36, 44, 45,
+                                   46, 49, 51, 1,  2,  4,  5,  6,  8,  13, 15, 21, 22, 23, 24, 26, 27, 28,
+                                   29, 30, 31, 32, 33, 35, 37, 38, 39, 40, 42, 43, 47, 48, 50, 52};
+  return map_enum_number(names, 52, idx, "proc_code");
 }
 bool xnap_elem_procs_o::is_proc_code_valid(const uint16_t& proc_code)
 {
-  static const uint16_t names[] = {0,  3,  7,  9,  10, 11, 12, 14, 16, 17, 18, 25, 19, 20, 34, 36, 44,
-                                   45, 46, 49, 1,  2,  4,  5,  6,  8,  13, 15, 21, 22, 23, 24, 26, 27,
-                                   28, 29, 30, 31, 32, 33, 35, 37, 38, 39, 40, 42, 43, 47, 48};
+  static const uint16_t names[] = {0,  3,  7,  9,  10, 11, 12, 14, 16, 17, 18, 25, 19, 20, 34, 36, 44, 45,
+                                   46, 49, 51, 1,  2,  4,  5,  6,  8,  13, 15, 21, 22, 23, 24, 26, 27, 28,
+                                   29, 30, 31, 32, 33, 35, 37, 38, 39, 40, 42, 43, 47, 48, 50, 52};
   for (const auto& o : names) {
     if (o == proc_code) {
       return true;
@@ -151,6 +151,9 @@ xnap_elem_procs_o::init_msg_c xnap_elem_procs_o::get_init_msg(const uint16_t& pr
       break;
     case 49:
       ret.set(init_msg_c::types::partial_ue_context_transfer);
+      break;
+    case 51:
+      ret.set(init_msg_c::types::data_collection_request);
       break;
     case 1:
       ret.set(init_msg_c::types::sn_status_transfer);
@@ -239,6 +242,12 @@ xnap_elem_procs_o::init_msg_c xnap_elem_procs_o::get_init_msg(const uint16_t& pr
     case 48:
       ret.set(init_msg_c::types::cp_c_cancel);
       break;
+    case 50:
+      ret.set(init_msg_c::types::rach_ind);
+      break;
+    case 52:
+      ret.set(init_msg_c::types::data_collection_upd);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -308,6 +317,9 @@ xnap_elem_procs_o::successful_outcome_c xnap_elem_procs_o::get_successful_outcom
     case 49:
       ret.set(successful_outcome_c::types::partial_ue_context_transfer_ack);
       break;
+    case 51:
+      ret.set(successful_outcome_c::types::data_collection_resp);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -362,6 +374,9 @@ xnap_elem_procs_o::unsuccessful_outcome_c xnap_elem_procs_o::get_unsuccessful_ou
     case 49:
       ret.set(unsuccessful_outcome_c::types::partial_ue_context_transfer_fail);
       break;
+    case 51:
+      ret.set(unsuccessful_outcome_c::types::data_collection_fail);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -409,6 +424,8 @@ crit_e xnap_elem_procs_o::get_crit(const uint16_t& proc_code)
     case 46:
       return crit_e::reject;
     case 49:
+      return crit_e::reject;
+    case 51:
       return crit_e::reject;
     case 1:
       return crit_e::ignore;
@@ -465,8 +482,12 @@ crit_e xnap_elem_procs_o::get_crit(const uint16_t& proc_code)
     case 43:
       return crit_e::reject;
     case 47:
-      return crit_e::ignore;
+      return crit_e::reject;
     case 48:
+      return crit_e::ignore;
+    case 50:
+      return crit_e::ignore;
+    case 52:
       return crit_e::ignore;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
@@ -538,6 +559,9 @@ void xnap_elem_procs_o::init_msg_c::set(types::options e)
       break;
     case types::partial_ue_context_transfer:
       c = partial_ue_context_transfer_s{};
+      break;
+    case types::data_collection_request:
+      c = data_collection_request_s{};
       break;
     case types::sn_status_transfer:
       c = sn_status_transfer_s{};
@@ -625,6 +649,12 @@ void xnap_elem_procs_o::init_msg_c::set(types::options e)
       break;
     case types::cp_c_cancel:
       c = cp_c_cancel_s{};
+      break;
+    case types::rach_ind:
+      c = rach_ind_s{};
+      break;
+    case types::data_collection_upd:
+      c = data_collection_upd_s{};
       break;
     case types::nulltype:
       break;
@@ -732,6 +762,11 @@ partial_ue_context_transfer_s& xnap_elem_procs_o::init_msg_c::partial_ue_context
 {
   assert_choice_type(types::partial_ue_context_transfer, type_, "InitiatingMessage");
   return c.get<partial_ue_context_transfer_s>();
+}
+data_collection_request_s& xnap_elem_procs_o::init_msg_c::data_collection_request()
+{
+  assert_choice_type(types::data_collection_request, type_, "InitiatingMessage");
+  return c.get<data_collection_request_s>();
 }
 sn_status_transfer_s& xnap_elem_procs_o::init_msg_c::sn_status_transfer()
 {
@@ -878,6 +913,16 @@ cp_c_cancel_s& xnap_elem_procs_o::init_msg_c::cp_c_cancel()
   assert_choice_type(types::cp_c_cancel, type_, "InitiatingMessage");
   return c.get<cp_c_cancel_s>();
 }
+rach_ind_s& xnap_elem_procs_o::init_msg_c::rach_ind()
+{
+  assert_choice_type(types::rach_ind, type_, "InitiatingMessage");
+  return c.get<rach_ind_s>();
+}
+data_collection_upd_s& xnap_elem_procs_o::init_msg_c::data_collection_upd()
+{
+  assert_choice_type(types::data_collection_upd, type_, "InitiatingMessage");
+  return c.get<data_collection_upd_s>();
+}
 const ho_request_s& xnap_elem_procs_o::init_msg_c::ho_request() const
 {
   assert_choice_type(types::ho_request, type_, "InitiatingMessage");
@@ -979,6 +1024,11 @@ const partial_ue_context_transfer_s& xnap_elem_procs_o::init_msg_c::partial_ue_c
 {
   assert_choice_type(types::partial_ue_context_transfer, type_, "InitiatingMessage");
   return c.get<partial_ue_context_transfer_s>();
+}
+const data_collection_request_s& xnap_elem_procs_o::init_msg_c::data_collection_request() const
+{
+  assert_choice_type(types::data_collection_request, type_, "InitiatingMessage");
+  return c.get<data_collection_request_s>();
 }
 const sn_status_transfer_s& xnap_elem_procs_o::init_msg_c::sn_status_transfer() const
 {
@@ -1125,6 +1175,16 @@ const cp_c_cancel_s& xnap_elem_procs_o::init_msg_c::cp_c_cancel() const
   assert_choice_type(types::cp_c_cancel, type_, "InitiatingMessage");
   return c.get<cp_c_cancel_s>();
 }
+const rach_ind_s& xnap_elem_procs_o::init_msg_c::rach_ind() const
+{
+  assert_choice_type(types::rach_ind, type_, "InitiatingMessage");
+  return c.get<rach_ind_s>();
+}
+const data_collection_upd_s& xnap_elem_procs_o::init_msg_c::data_collection_upd() const
+{
+  assert_choice_type(types::data_collection_upd, type_, "InitiatingMessage");
+  return c.get<data_collection_upd_s>();
+}
 void xnap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -1208,6 +1268,10 @@ void xnap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
     case types::partial_ue_context_transfer:
       j.write_fieldname("PartialUEContextTransfer");
       c.get<partial_ue_context_transfer_s>().to_json(j);
+      break;
+    case types::data_collection_request:
+      j.write_fieldname("DataCollectionRequest");
+      c.get<data_collection_request_s>().to_json(j);
       break;
     case types::sn_status_transfer:
       j.write_fieldname("SNStatusTransfer");
@@ -1325,6 +1389,14 @@ void xnap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
       j.write_fieldname("CPCCancel");
       c.get<cp_c_cancel_s>().to_json(j);
       break;
+    case types::rach_ind:
+      j.write_fieldname("RachIndication");
+      c.get<rach_ind_s>().to_json(j);
+      break;
+    case types::data_collection_upd:
+      j.write_fieldname("DataCollectionUpdate");
+      c.get<data_collection_upd_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_o::init_msg_c");
   }
@@ -1393,6 +1465,9 @@ OCUDUASN_CODE xnap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
       break;
     case types::partial_ue_context_transfer:
       HANDLE_CODE(c.get<partial_ue_context_transfer_s>().pack(bref));
+      break;
+    case types::data_collection_request:
+      HANDLE_CODE(c.get<data_collection_request_s>().pack(bref));
       break;
     case types::sn_status_transfer:
       HANDLE_CODE(c.get<sn_status_transfer_s>().pack(bref));
@@ -1481,6 +1556,12 @@ OCUDUASN_CODE xnap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
     case types::cp_c_cancel:
       HANDLE_CODE(c.get<cp_c_cancel_s>().pack(bref));
       break;
+    case types::rach_ind:
+      HANDLE_CODE(c.get<rach_ind_s>().pack(bref));
+      break;
+    case types::data_collection_upd:
+      HANDLE_CODE(c.get<data_collection_upd_s>().pack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_o::init_msg_c");
       return OCUDUASN_ERROR_ENCODE_FAIL;
@@ -1550,6 +1631,9 @@ OCUDUASN_CODE xnap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
       break;
     case types::partial_ue_context_transfer:
       HANDLE_CODE(c.get<partial_ue_context_transfer_s>().unpack(bref));
+      break;
+    case types::data_collection_request:
+      HANDLE_CODE(c.get<data_collection_request_s>().unpack(bref));
       break;
     case types::sn_status_transfer:
       HANDLE_CODE(c.get<sn_status_transfer_s>().unpack(bref));
@@ -1638,6 +1722,12 @@ OCUDUASN_CODE xnap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
     case types::cp_c_cancel:
       HANDLE_CODE(c.get<cp_c_cancel_s>().unpack(bref));
       break;
+    case types::rach_ind:
+      HANDLE_CODE(c.get<rach_ind_s>().unpack(bref));
+      break;
+    case types::data_collection_upd:
+      HANDLE_CODE(c.get<data_collection_upd_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_o::init_msg_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -1667,6 +1757,7 @@ const char* xnap_elem_procs_o::init_msg_c::types_opts::to_string() const
                                 "IABTransportMigrationModificationRequest",
                                 "IABResourceCoordinationRequest",
                                 "PartialUEContextTransfer",
+                                "DataCollectionRequest",
                                 "SNStatusTransfer",
                                 "HandoverCancel",
                                 "RANPaging",
@@ -1695,8 +1786,10 @@ const char* xnap_elem_procs_o::init_msg_c::types_opts::to_string() const
                                 "ScgFailureTransfer",
                                 "F1CTrafficTransfer",
                                 "RetrieveUEContextConfirm",
-                                "CPCCancel"};
-  return convert_enum_idx(names, 49, value, "xnap_elem_procs_o::init_msg_c::types");
+                                "CPCCancel",
+                                "RachIndication",
+                                "DataCollectionUpdate"};
+  return convert_enum_idx(names, 52, value, "xnap_elem_procs_o::init_msg_c::types");
 }
 uint8_t xnap_elem_procs_o::init_msg_c::types_opts::to_number() const
 {
@@ -1771,6 +1864,9 @@ void xnap_elem_procs_o::successful_outcome_c::set(types::options e)
       break;
     case types::partial_ue_context_transfer_ack:
       c = partial_ue_context_transfer_ack_s{};
+      break;
+    case types::data_collection_resp:
+      c = data_collection_resp_s{};
       break;
     case types::nulltype:
       break;
@@ -1879,6 +1975,11 @@ partial_ue_context_transfer_ack_s& xnap_elem_procs_o::successful_outcome_c::part
   assert_choice_type(types::partial_ue_context_transfer_ack, type_, "SuccessfulOutcome");
   return c.get<partial_ue_context_transfer_ack_s>();
 }
+data_collection_resp_s& xnap_elem_procs_o::successful_outcome_c::data_collection_resp()
+{
+  assert_choice_type(types::data_collection_resp, type_, "SuccessfulOutcome");
+  return c.get<data_collection_resp_s>();
+}
 const ho_request_ack_s& xnap_elem_procs_o::successful_outcome_c::ho_request_ack() const
 {
   assert_choice_type(types::ho_request_ack, type_, "SuccessfulOutcome");
@@ -1983,6 +2084,11 @@ xnap_elem_procs_o::successful_outcome_c::partial_ue_context_transfer_ack() const
   assert_choice_type(types::partial_ue_context_transfer_ack, type_, "SuccessfulOutcome");
   return c.get<partial_ue_context_transfer_ack_s>();
 }
+const data_collection_resp_s& xnap_elem_procs_o::successful_outcome_c::data_collection_resp() const
+{
+  assert_choice_type(types::data_collection_resp, type_, "SuccessfulOutcome");
+  return c.get<data_collection_resp_s>();
+}
 void xnap_elem_procs_o::successful_outcome_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -2067,6 +2173,10 @@ void xnap_elem_procs_o::successful_outcome_c::to_json(json_writer& j) const
       j.write_fieldname("PartialUEContextTransferAcknowledge");
       c.get<partial_ue_context_transfer_ack_s>().to_json(j);
       break;
+    case types::data_collection_resp:
+      j.write_fieldname("DataCollectionResponse");
+      c.get<data_collection_resp_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_o::successful_outcome_c");
   }
@@ -2135,6 +2245,9 @@ OCUDUASN_CODE xnap_elem_procs_o::successful_outcome_c::pack(bit_ref& bref) const
       break;
     case types::partial_ue_context_transfer_ack:
       HANDLE_CODE(c.get<partial_ue_context_transfer_ack_s>().pack(bref));
+      break;
+    case types::data_collection_resp:
+      HANDLE_CODE(c.get<data_collection_resp_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_o::successful_outcome_c");
@@ -2206,6 +2319,9 @@ OCUDUASN_CODE xnap_elem_procs_o::successful_outcome_c::unpack(cbit_ref& bref)
     case types::partial_ue_context_transfer_ack:
       HANDLE_CODE(c.get<partial_ue_context_transfer_ack_s>().unpack(bref));
       break;
+    case types::data_collection_resp:
+      HANDLE_CODE(c.get<data_collection_resp_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_o::successful_outcome_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -2234,8 +2350,9 @@ const char* xnap_elem_procs_o::successful_outcome_c::types_opts::to_string() con
                                 "IABTransportMigrationManagementResponse",
                                 "IABTransportMigrationModificationResponse",
                                 "IABResourceCoordinationResponse",
-                                "PartialUEContextTransferAcknowledge"};
-  return convert_enum_idx(names, 20, value, "xnap_elem_procs_o::successful_outcome_c::types");
+                                "PartialUEContextTransferAcknowledge",
+                                "DataCollectionResponse"};
+  return convert_enum_idx(names, 21, value, "xnap_elem_procs_o::successful_outcome_c::types");
 }
 
 // UnsuccessfulOutcome ::= OPEN TYPE
@@ -2287,6 +2404,9 @@ void xnap_elem_procs_o::unsuccessful_outcome_c::set(types::options e)
       break;
     case types::partial_ue_context_transfer_fail:
       c = partial_ue_context_transfer_fail_s{};
+      break;
+    case types::data_collection_fail:
+      c = data_collection_fail_s{};
       break;
     case types::nulltype:
       break;
@@ -2370,6 +2490,11 @@ partial_ue_context_transfer_fail_s& xnap_elem_procs_o::unsuccessful_outcome_c::p
   assert_choice_type(types::partial_ue_context_transfer_fail, type_, "UnsuccessfulOutcome");
   return c.get<partial_ue_context_transfer_fail_s>();
 }
+data_collection_fail_s& xnap_elem_procs_o::unsuccessful_outcome_c::data_collection_fail()
+{
+  assert_choice_type(types::data_collection_fail, type_, "UnsuccessfulOutcome");
+  return c.get<data_collection_fail_s>();
+}
 const ho_prep_fail_s& xnap_elem_procs_o::unsuccessful_outcome_c::ho_prep_fail() const
 {
   assert_choice_type(types::ho_prep_fail, type_, "UnsuccessfulOutcome");
@@ -2448,6 +2573,11 @@ xnap_elem_procs_o::unsuccessful_outcome_c::partial_ue_context_transfer_fail() co
   assert_choice_type(types::partial_ue_context_transfer_fail, type_, "UnsuccessfulOutcome");
   return c.get<partial_ue_context_transfer_fail_s>();
 }
+const data_collection_fail_s& xnap_elem_procs_o::unsuccessful_outcome_c::data_collection_fail() const
+{
+  assert_choice_type(types::data_collection_fail, type_, "UnsuccessfulOutcome");
+  return c.get<data_collection_fail_s>();
+}
 void xnap_elem_procs_o::unsuccessful_outcome_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -2512,6 +2642,10 @@ void xnap_elem_procs_o::unsuccessful_outcome_c::to_json(json_writer& j) const
       j.write_fieldname("PartialUEContextTransferFailure");
       c.get<partial_ue_context_transfer_fail_s>().to_json(j);
       break;
+    case types::data_collection_fail:
+      j.write_fieldname("DataCollectionFailure");
+      c.get<data_collection_fail_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_o::unsuccessful_outcome_c");
   }
@@ -2565,6 +2699,9 @@ OCUDUASN_CODE xnap_elem_procs_o::unsuccessful_outcome_c::pack(bit_ref& bref) con
       break;
     case types::partial_ue_context_transfer_fail:
       HANDLE_CODE(c.get<partial_ue_context_transfer_fail_s>().pack(bref));
+      break;
+    case types::data_collection_fail:
+      HANDLE_CODE(c.get<data_collection_fail_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_o::unsuccessful_outcome_c");
@@ -2621,6 +2758,9 @@ OCUDUASN_CODE xnap_elem_procs_o::unsuccessful_outcome_c::unpack(cbit_ref& bref)
     case types::partial_ue_context_transfer_fail:
       HANDLE_CODE(c.get<partial_ue_context_transfer_fail_s>().unpack(bref));
       break;
+    case types::data_collection_fail:
+      HANDLE_CODE(c.get<data_collection_fail_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_o::unsuccessful_outcome_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -2644,8 +2784,9 @@ const char* xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::to_string() c
                                 "ResourceStatusFailure",
                                 "MobilityChangeFailure",
                                 "IABTransportMigrationManagementReject",
-                                "PartialUEContextTransferFailure"};
-  return convert_enum_idx(names, 15, value, "xnap_elem_procs_o::unsuccessful_outcome_c::types");
+                                "PartialUEContextTransferFailure",
+                                "DataCollectionFailure"};
+  return convert_enum_idx(names, 16, value, "xnap_elem_procs_o::unsuccessful_outcome_c::types");
 }
 
 // InitiatingMessage ::= SEQUENCE{{XNAP-ELEMENTARY-PROCEDURE}}
@@ -2768,12 +2909,12 @@ bool unsuccessful_outcome_s::load_info_obj(const uint16_t& proc_code_)
 // XNAP-ELEMENTARY-PROCEDURES-CLASS-1 ::= OBJECT SET OF XNAP-ELEMENTARY-PROCEDURE
 uint16_t xnap_elem_procs_class_1_o::idx_to_proc_code(uint32_t idx)
 {
-  static const uint16_t names[] = {0, 3, 7, 9, 10, 11, 12, 14, 16, 17, 18, 25, 19, 20, 34, 36, 44, 45, 46, 49};
-  return map_enum_number(names, 20, idx, "proc_code");
+  static const uint16_t names[] = {0, 3, 7, 9, 10, 11, 12, 14, 16, 17, 18, 25, 19, 20, 34, 36, 44, 45, 46, 49, 51};
+  return map_enum_number(names, 21, idx, "proc_code");
 }
 bool xnap_elem_procs_class_1_o::is_proc_code_valid(const uint16_t& proc_code)
 {
-  static const uint16_t names[] = {0, 3, 7, 9, 10, 11, 12, 14, 16, 17, 18, 25, 19, 20, 34, 36, 44, 45, 46, 49};
+  static const uint16_t names[] = {0, 3, 7, 9, 10, 11, 12, 14, 16, 17, 18, 25, 19, 20, 34, 36, 44, 45, 46, 49, 51};
   for (const auto& o : names) {
     if (o == proc_code) {
       return true;
@@ -2845,6 +2986,9 @@ xnap_elem_procs_class_1_o::init_msg_c xnap_elem_procs_class_1_o::get_init_msg(co
     case 49:
       ret.set(init_msg_c::types::partial_ue_context_transfer);
       break;
+    case 51:
+      ret.set(init_msg_c::types::data_collection_request);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -2915,6 +3059,9 @@ xnap_elem_procs_class_1_o::get_successful_outcome(const uint16_t& proc_code)
     case 49:
       ret.set(successful_outcome_c::types::partial_ue_context_transfer_ack);
       break;
+    case 51:
+      ret.set(successful_outcome_c::types::data_collection_resp);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -2970,6 +3117,9 @@ xnap_elem_procs_class_1_o::get_unsuccessful_outcome(const uint16_t& proc_code)
     case 49:
       ret.set(unsuccessful_outcome_c::types::partial_ue_context_transfer_fail);
       break;
+    case 51:
+      ret.set(unsuccessful_outcome_c::types::data_collection_fail);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -3017,6 +3167,8 @@ crit_e xnap_elem_procs_class_1_o::get_crit(const uint16_t& proc_code)
     case 46:
       return crit_e::reject;
     case 49:
+      return crit_e::reject;
+    case 51:
       return crit_e::reject;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
@@ -3088,6 +3240,9 @@ void xnap_elem_procs_class_1_o::init_msg_c::set(types::options e)
       break;
     case types::partial_ue_context_transfer:
       c = partial_ue_context_transfer_s{};
+      break;
+    case types::data_collection_request:
+      c = data_collection_request_s{};
       break;
     case types::nulltype:
       break;
@@ -3197,6 +3352,11 @@ partial_ue_context_transfer_s& xnap_elem_procs_class_1_o::init_msg_c::partial_ue
   assert_choice_type(types::partial_ue_context_transfer, type_, "InitiatingMessage");
   return c.get<partial_ue_context_transfer_s>();
 }
+data_collection_request_s& xnap_elem_procs_class_1_o::init_msg_c::data_collection_request()
+{
+  assert_choice_type(types::data_collection_request, type_, "InitiatingMessage");
+  return c.get<data_collection_request_s>();
+}
 const ho_request_s& xnap_elem_procs_class_1_o::init_msg_c::ho_request() const
 {
   assert_choice_type(types::ho_request, type_, "InitiatingMessage");
@@ -3300,6 +3460,11 @@ const partial_ue_context_transfer_s& xnap_elem_procs_class_1_o::init_msg_c::part
   assert_choice_type(types::partial_ue_context_transfer, type_, "InitiatingMessage");
   return c.get<partial_ue_context_transfer_s>();
 }
+const data_collection_request_s& xnap_elem_procs_class_1_o::init_msg_c::data_collection_request() const
+{
+  assert_choice_type(types::data_collection_request, type_, "InitiatingMessage");
+  return c.get<data_collection_request_s>();
+}
 void xnap_elem_procs_class_1_o::init_msg_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -3384,6 +3549,10 @@ void xnap_elem_procs_class_1_o::init_msg_c::to_json(json_writer& j) const
       j.write_fieldname("PartialUEContextTransfer");
       c.get<partial_ue_context_transfer_s>().to_json(j);
       break;
+    case types::data_collection_request:
+      j.write_fieldname("DataCollectionRequest");
+      c.get<data_collection_request_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_1_o::init_msg_c");
   }
@@ -3452,6 +3621,9 @@ OCUDUASN_CODE xnap_elem_procs_class_1_o::init_msg_c::pack(bit_ref& bref) const
       break;
     case types::partial_ue_context_transfer:
       HANDLE_CODE(c.get<partial_ue_context_transfer_s>().pack(bref));
+      break;
+    case types::data_collection_request:
+      HANDLE_CODE(c.get<data_collection_request_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_1_o::init_msg_c");
@@ -3523,6 +3695,9 @@ OCUDUASN_CODE xnap_elem_procs_class_1_o::init_msg_c::unpack(cbit_ref& bref)
     case types::partial_ue_context_transfer:
       HANDLE_CODE(c.get<partial_ue_context_transfer_s>().unpack(bref));
       break;
+    case types::data_collection_request:
+      HANDLE_CODE(c.get<data_collection_request_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_1_o::init_msg_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -3551,8 +3726,9 @@ const char* xnap_elem_procs_class_1_o::init_msg_c::types_opts::to_string() const
                                 "IABTransportMigrationManagementRequest",
                                 "IABTransportMigrationModificationRequest",
                                 "IABResourceCoordinationRequest",
-                                "PartialUEContextTransfer"};
-  return convert_enum_idx(names, 20, value, "xnap_elem_procs_class_1_o::init_msg_c::types");
+                                "PartialUEContextTransfer",
+                                "DataCollectionRequest"};
+  return convert_enum_idx(names, 21, value, "xnap_elem_procs_class_1_o::init_msg_c::types");
 }
 
 // SuccessfulOutcome ::= OPEN TYPE
@@ -3619,6 +3795,9 @@ void xnap_elem_procs_class_1_o::successful_outcome_c::set(types::options e)
       break;
     case types::partial_ue_context_transfer_ack:
       c = partial_ue_context_transfer_ack_s{};
+      break;
+    case types::data_collection_resp:
+      c = data_collection_resp_s{};
       break;
     case types::nulltype:
       break;
@@ -3728,6 +3907,11 @@ partial_ue_context_transfer_ack_s& xnap_elem_procs_class_1_o::successful_outcome
   assert_choice_type(types::partial_ue_context_transfer_ack, type_, "SuccessfulOutcome");
   return c.get<partial_ue_context_transfer_ack_s>();
 }
+data_collection_resp_s& xnap_elem_procs_class_1_o::successful_outcome_c::data_collection_resp()
+{
+  assert_choice_type(types::data_collection_resp, type_, "SuccessfulOutcome");
+  return c.get<data_collection_resp_s>();
+}
 const ho_request_ack_s& xnap_elem_procs_class_1_o::successful_outcome_c::ho_request_ack() const
 {
   assert_choice_type(types::ho_request_ack, type_, "SuccessfulOutcome");
@@ -3833,6 +4017,11 @@ xnap_elem_procs_class_1_o::successful_outcome_c::partial_ue_context_transfer_ack
   assert_choice_type(types::partial_ue_context_transfer_ack, type_, "SuccessfulOutcome");
   return c.get<partial_ue_context_transfer_ack_s>();
 }
+const data_collection_resp_s& xnap_elem_procs_class_1_o::successful_outcome_c::data_collection_resp() const
+{
+  assert_choice_type(types::data_collection_resp, type_, "SuccessfulOutcome");
+  return c.get<data_collection_resp_s>();
+}
 void xnap_elem_procs_class_1_o::successful_outcome_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -3917,6 +4106,10 @@ void xnap_elem_procs_class_1_o::successful_outcome_c::to_json(json_writer& j) co
       j.write_fieldname("PartialUEContextTransferAcknowledge");
       c.get<partial_ue_context_transfer_ack_s>().to_json(j);
       break;
+    case types::data_collection_resp:
+      j.write_fieldname("DataCollectionResponse");
+      c.get<data_collection_resp_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_1_o::successful_outcome_c");
   }
@@ -3985,6 +4178,9 @@ OCUDUASN_CODE xnap_elem_procs_class_1_o::successful_outcome_c::pack(bit_ref& bre
       break;
     case types::partial_ue_context_transfer_ack:
       HANDLE_CODE(c.get<partial_ue_context_transfer_ack_s>().pack(bref));
+      break;
+    case types::data_collection_resp:
+      HANDLE_CODE(c.get<data_collection_resp_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_1_o::successful_outcome_c");
@@ -4056,6 +4252,9 @@ OCUDUASN_CODE xnap_elem_procs_class_1_o::successful_outcome_c::unpack(cbit_ref& 
     case types::partial_ue_context_transfer_ack:
       HANDLE_CODE(c.get<partial_ue_context_transfer_ack_s>().unpack(bref));
       break;
+    case types::data_collection_resp:
+      HANDLE_CODE(c.get<data_collection_resp_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_1_o::successful_outcome_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -4084,8 +4283,9 @@ const char* xnap_elem_procs_class_1_o::successful_outcome_c::types_opts::to_stri
                                 "IABTransportMigrationManagementResponse",
                                 "IABTransportMigrationModificationResponse",
                                 "IABResourceCoordinationResponse",
-                                "PartialUEContextTransferAcknowledge"};
-  return convert_enum_idx(names, 20, value, "xnap_elem_procs_class_1_o::successful_outcome_c::types");
+                                "PartialUEContextTransferAcknowledge",
+                                "DataCollectionResponse"};
+  return convert_enum_idx(names, 21, value, "xnap_elem_procs_class_1_o::successful_outcome_c::types");
 }
 
 // UnsuccessfulOutcome ::= OPEN TYPE
@@ -4137,6 +4337,9 @@ void xnap_elem_procs_class_1_o::unsuccessful_outcome_c::set(types::options e)
       break;
     case types::partial_ue_context_transfer_fail:
       c = partial_ue_context_transfer_fail_s{};
+      break;
+    case types::data_collection_fail:
+      c = data_collection_fail_s{};
       break;
     case types::nulltype:
       break;
@@ -4221,6 +4424,11 @@ xnap_elem_procs_class_1_o::unsuccessful_outcome_c::partial_ue_context_transfer_f
   assert_choice_type(types::partial_ue_context_transfer_fail, type_, "UnsuccessfulOutcome");
   return c.get<partial_ue_context_transfer_fail_s>();
 }
+data_collection_fail_s& xnap_elem_procs_class_1_o::unsuccessful_outcome_c::data_collection_fail()
+{
+  assert_choice_type(types::data_collection_fail, type_, "UnsuccessfulOutcome");
+  return c.get<data_collection_fail_s>();
+}
 const ho_prep_fail_s& xnap_elem_procs_class_1_o::unsuccessful_outcome_c::ho_prep_fail() const
 {
   assert_choice_type(types::ho_prep_fail, type_, "UnsuccessfulOutcome");
@@ -4299,6 +4507,11 @@ xnap_elem_procs_class_1_o::unsuccessful_outcome_c::partial_ue_context_transfer_f
   assert_choice_type(types::partial_ue_context_transfer_fail, type_, "UnsuccessfulOutcome");
   return c.get<partial_ue_context_transfer_fail_s>();
 }
+const data_collection_fail_s& xnap_elem_procs_class_1_o::unsuccessful_outcome_c::data_collection_fail() const
+{
+  assert_choice_type(types::data_collection_fail, type_, "UnsuccessfulOutcome");
+  return c.get<data_collection_fail_s>();
+}
 void xnap_elem_procs_class_1_o::unsuccessful_outcome_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -4363,6 +4576,10 @@ void xnap_elem_procs_class_1_o::unsuccessful_outcome_c::to_json(json_writer& j) 
       j.write_fieldname("PartialUEContextTransferFailure");
       c.get<partial_ue_context_transfer_fail_s>().to_json(j);
       break;
+    case types::data_collection_fail:
+      j.write_fieldname("DataCollectionFailure");
+      c.get<data_collection_fail_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_1_o::unsuccessful_outcome_c");
   }
@@ -4416,6 +4633,9 @@ OCUDUASN_CODE xnap_elem_procs_class_1_o::unsuccessful_outcome_c::pack(bit_ref& b
       break;
     case types::partial_ue_context_transfer_fail:
       HANDLE_CODE(c.get<partial_ue_context_transfer_fail_s>().pack(bref));
+      break;
+    case types::data_collection_fail:
+      HANDLE_CODE(c.get<data_collection_fail_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_1_o::unsuccessful_outcome_c");
@@ -4472,6 +4692,9 @@ OCUDUASN_CODE xnap_elem_procs_class_1_o::unsuccessful_outcome_c::unpack(cbit_ref
     case types::partial_ue_context_transfer_fail:
       HANDLE_CODE(c.get<partial_ue_context_transfer_fail_s>().unpack(bref));
       break;
+    case types::data_collection_fail:
+      HANDLE_CODE(c.get<data_collection_fail_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_1_o::unsuccessful_outcome_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -4495,21 +4718,22 @@ const char* xnap_elem_procs_class_1_o::unsuccessful_outcome_c::types_opts::to_st
                                 "ResourceStatusFailure",
                                 "MobilityChangeFailure",
                                 "IABTransportMigrationManagementReject",
-                                "PartialUEContextTransferFailure"};
-  return convert_enum_idx(names, 15, value, "xnap_elem_procs_class_1_o::unsuccessful_outcome_c::types");
+                                "PartialUEContextTransferFailure",
+                                "DataCollectionFailure"};
+  return convert_enum_idx(names, 16, value, "xnap_elem_procs_class_1_o::unsuccessful_outcome_c::types");
 }
 
 // XNAP-ELEMENTARY-PROCEDURES-CLASS-2 ::= OBJECT SET OF XNAP-ELEMENTARY-PROCEDURE
 uint16_t xnap_elem_procs_class_2_o::idx_to_proc_code(uint32_t idx)
 {
-  static const uint16_t names[] = {1,  2,  4,  5,  6,  8,  13, 15, 21, 22, 23, 24, 26, 27, 28,
-                                   29, 30, 31, 32, 33, 35, 37, 38, 39, 40, 42, 43, 47, 48};
-  return map_enum_number(names, 29, idx, "proc_code");
+  static const uint16_t names[] = {1,  2,  4,  5,  6,  8,  13, 15, 21, 22, 23, 24, 26, 27, 28, 29,
+                                   30, 31, 32, 33, 35, 37, 38, 39, 40, 42, 43, 47, 48, 50, 52};
+  return map_enum_number(names, 31, idx, "proc_code");
 }
 bool xnap_elem_procs_class_2_o::is_proc_code_valid(const uint16_t& proc_code)
 {
-  static const uint16_t names[] = {1,  2,  4,  5,  6,  8,  13, 15, 21, 22, 23, 24, 26, 27, 28,
-                                   29, 30, 31, 32, 33, 35, 37, 38, 39, 40, 42, 43, 47, 48};
+  static const uint16_t names[] = {1,  2,  4,  5,  6,  8,  13, 15, 21, 22, 23, 24, 26, 27, 28, 29,
+                                   30, 31, 32, 33, 35, 37, 38, 39, 40, 42, 43, 47, 48, 50, 52};
   for (const auto& o : names) {
     if (o == proc_code) {
       return true;
@@ -4608,6 +4832,12 @@ xnap_elem_procs_class_2_o::init_msg_c xnap_elem_procs_class_2_o::get_init_msg(co
     case 48:
       ret.set(init_msg_c::types::cp_c_cancel);
       break;
+    case 50:
+      ret.set(init_msg_c::types::rach_ind);
+      break;
+    case 52:
+      ret.set(init_msg_c::types::data_collection_upd);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -4691,8 +4921,12 @@ crit_e xnap_elem_procs_class_2_o::get_crit(const uint16_t& proc_code)
     case 43:
       return crit_e::reject;
     case 47:
-      return crit_e::ignore;
+      return crit_e::reject;
     case 48:
+      return crit_e::ignore;
+    case 50:
+      return crit_e::ignore;
+    case 52:
       return crit_e::ignore;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
@@ -4791,6 +5025,12 @@ void xnap_elem_procs_class_2_o::init_msg_c::set(types::options e)
       break;
     case types::cp_c_cancel:
       c = cp_c_cancel_s{};
+      break;
+    case types::rach_ind:
+      c = rach_ind_s{};
+      break;
+    case types::data_collection_upd:
+      c = data_collection_upd_s{};
       break;
     case types::nulltype:
       break;
@@ -4943,6 +5183,16 @@ cp_c_cancel_s& xnap_elem_procs_class_2_o::init_msg_c::cp_c_cancel()
   assert_choice_type(types::cp_c_cancel, type_, "InitiatingMessage");
   return c.get<cp_c_cancel_s>();
 }
+rach_ind_s& xnap_elem_procs_class_2_o::init_msg_c::rach_ind()
+{
+  assert_choice_type(types::rach_ind, type_, "InitiatingMessage");
+  return c.get<rach_ind_s>();
+}
+data_collection_upd_s& xnap_elem_procs_class_2_o::init_msg_c::data_collection_upd()
+{
+  assert_choice_type(types::data_collection_upd, type_, "InitiatingMessage");
+  return c.get<data_collection_upd_s>();
+}
 const sn_status_transfer_s& xnap_elem_procs_class_2_o::init_msg_c::sn_status_transfer() const
 {
   assert_choice_type(types::sn_status_transfer, type_, "InitiatingMessage");
@@ -5088,6 +5338,16 @@ const cp_c_cancel_s& xnap_elem_procs_class_2_o::init_msg_c::cp_c_cancel() const
   assert_choice_type(types::cp_c_cancel, type_, "InitiatingMessage");
   return c.get<cp_c_cancel_s>();
 }
+const rach_ind_s& xnap_elem_procs_class_2_o::init_msg_c::rach_ind() const
+{
+  assert_choice_type(types::rach_ind, type_, "InitiatingMessage");
+  return c.get<rach_ind_s>();
+}
+const data_collection_upd_s& xnap_elem_procs_class_2_o::init_msg_c::data_collection_upd() const
+{
+  assert_choice_type(types::data_collection_upd, type_, "InitiatingMessage");
+  return c.get<data_collection_upd_s>();
+}
 void xnap_elem_procs_class_2_o::init_msg_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -5208,6 +5468,14 @@ void xnap_elem_procs_class_2_o::init_msg_c::to_json(json_writer& j) const
       j.write_fieldname("CPCCancel");
       c.get<cp_c_cancel_s>().to_json(j);
       break;
+    case types::rach_ind:
+      j.write_fieldname("RachIndication");
+      c.get<rach_ind_s>().to_json(j);
+      break;
+    case types::data_collection_upd:
+      j.write_fieldname("DataCollectionUpdate");
+      c.get<data_collection_upd_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_2_o::init_msg_c");
   }
@@ -5303,6 +5571,12 @@ OCUDUASN_CODE xnap_elem_procs_class_2_o::init_msg_c::pack(bit_ref& bref) const
       break;
     case types::cp_c_cancel:
       HANDLE_CODE(c.get<cp_c_cancel_s>().pack(bref));
+      break;
+    case types::rach_ind:
+      HANDLE_CODE(c.get<rach_ind_s>().pack(bref));
+      break;
+    case types::data_collection_upd:
+      HANDLE_CODE(c.get<data_collection_upd_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_2_o::init_msg_c");
@@ -5401,6 +5675,12 @@ OCUDUASN_CODE xnap_elem_procs_class_2_o::init_msg_c::unpack(cbit_ref& bref)
     case types::cp_c_cancel:
       HANDLE_CODE(c.get<cp_c_cancel_s>().unpack(bref));
       break;
+    case types::rach_ind:
+      HANDLE_CODE(c.get<rach_ind_s>().unpack(bref));
+      break;
+    case types::data_collection_upd:
+      HANDLE_CODE(c.get<data_collection_upd_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "xnap_elem_procs_class_2_o::init_msg_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -5438,8 +5718,10 @@ const char* xnap_elem_procs_class_2_o::init_msg_c::types_opts::to_string() const
                                 "ScgFailureTransfer",
                                 "F1CTrafficTransfer",
                                 "RetrieveUEContextConfirm",
-                                "CPCCancel"};
-  return convert_enum_idx(names, 29, value, "xnap_elem_procs_class_2_o::init_msg_c::types");
+                                "CPCCancel",
+                                "RachIndication",
+                                "DataCollectionUpdate"};
+  return convert_enum_idx(names, 31, value, "xnap_elem_procs_class_2_o::init_msg_c::types");
 }
 uint8_t xnap_elem_procs_class_2_o::init_msg_c::types_opts::to_number() const
 {

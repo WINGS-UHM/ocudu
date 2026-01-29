@@ -10,13 +10,13 @@
 
 /*******************************************************************************
  *
- *                     3GPP TS ASN1 F1AP v17.4.1 (2023-04)
+ *                     3GPP TS ASN1 F1AP v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
 #pragma once
 
-#include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "f1ap_pdu_contents_ue.h"
 
 namespace asn1 {
 namespace f1ap {
@@ -32,9 +32,10 @@ struct access_and_mob_ind_ies_o {
     struct types_opts {
       enum options {
         transaction_id,
-        rach_report_info_list,
+        ra_report_list,
         rlf_report_info_list,
         successful_ho_report_info_list,
+        successful_pscell_change_report_info_list,
         nulltype
       } value;
       typedef uint8_t number_type;
@@ -52,14 +53,16 @@ struct access_and_mob_ind_ies_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    uint16_t&                               transaction_id();
-    rach_report_info_list_l&                rach_report_info_list();
-    rlf_report_info_list_l&                 rlf_report_info_list();
-    successful_ho_report_info_list_l&       successful_ho_report_info_list();
-    const uint16_t&                         transaction_id() const;
-    const rach_report_info_list_l&          rach_report_info_list() const;
-    const rlf_report_info_list_l&           rlf_report_info_list() const;
-    const successful_ho_report_info_list_l& successful_ho_report_info_list() const;
+    uint16_t&                                          transaction_id();
+    ra_report_list_l&                                  ra_report_list();
+    rlf_report_info_list_l&                            rlf_report_info_list();
+    successful_ho_report_info_list_l&                  successful_ho_report_info_list();
+    successful_pscell_change_report_info_list_l&       successful_pscell_change_report_info_list();
+    const uint16_t&                                    transaction_id() const;
+    const ra_report_list_l&                            ra_report_list() const;
+    const rlf_report_info_list_l&                      rlf_report_info_list() const;
+    const successful_ho_report_info_list_l&            successful_ho_report_info_list() const;
+    const successful_pscell_change_report_info_list_l& successful_pscell_change_report_info_list() const;
 
   private:
     types             type_;
@@ -75,13 +78,15 @@ struct access_and_mob_ind_ies_o {
 };
 
 struct access_and_mob_ind_ies_container {
-  bool                             rach_report_info_list_present          = false;
-  bool                             rlf_report_info_list_present           = false;
-  bool                             successful_ho_report_info_list_present = false;
-  uint16_t                         transaction_id;
-  rach_report_info_list_l          rach_report_info_list;
-  rlf_report_info_list_l           rlf_report_info_list;
-  successful_ho_report_info_list_l successful_ho_report_info_list;
+  bool                                        ra_report_list_present                            = false;
+  bool                                        rlf_report_info_list_present                      = false;
+  bool                                        successful_ho_report_info_list_present            = false;
+  bool                                        successful_pscell_change_report_info_list_present = false;
+  uint16_t                                    transaction_id;
+  ra_report_list_l                            ra_report_list;
+  rlf_report_info_list_l                      rlf_report_info_list;
+  successful_ho_report_info_list_l            successful_ho_report_info_list;
+  successful_pscell_change_report_info_list_l successful_pscell_change_report_info_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -146,9 +151,36 @@ struct access_success_ies_container {
 using access_success_s = elementary_procedure_option<access_success_ies_container>;
 
 // AperiodicSRS-ExtIEs ::= OBJECT SET OF F1AP-PROTOCOL-EXTENSION
-using aperiodic_srs_ext_ies_o = protocol_ext_empty_o;
+struct aperiodic_srs_ext_ies_o {
+  // Extension ::= OPEN TYPE
+  struct ext_c {
+    struct types_opts {
+      enum options { aggr_pos_srs_res_set_list, nulltype } value;
 
-using aperiodic_srs_ext_ies_container = protocol_ext_container_empty_l;
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::aggr_pos_srs_res_set_list; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    aggr_pos_srs_res_set_list_l&       aggr_pos_srs_res_set_list() { return c; }
+    const aggr_pos_srs_res_set_list_l& aggr_pos_srs_res_set_list() const { return c; }
+
+  private:
+    aggr_pos_srs_res_set_list_l c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static ext_c      get_ext(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
 
 // AperiodicSRS ::= SEQUENCE
 struct aperiodic_srs_s {
@@ -160,12 +192,11 @@ struct aperiodic_srs_s {
   using aperiodic_e_ = enumerated<aperiodic_opts, true>;
 
   // member variables
-  bool                            ext                     = false;
-  bool                            srs_res_trigger_present = false;
-  bool                            ie_exts_present         = false;
-  aperiodic_e_                    aperiodic;
-  srs_res_trigger_s               srs_res_trigger;
-  aperiodic_srs_ext_ies_container ie_exts;
+  bool                                              ext                     = false;
+  bool                                              srs_res_trigger_present = false;
+  aperiodic_e_                                      aperiodic;
+  srs_res_trigger_s                                 srs_res_trigger;
+  protocol_ext_container_l<aperiodic_srs_ext_ies_o> ie_exts;
   // ...
 
   // sequence methods
@@ -442,6 +473,7 @@ struct broadcast_context_mod_request_ies_o {
         broadcast_m_rbs_to_be_setup_mod_list,
         broadcast_m_rbs_to_be_modified_list,
         broadcast_m_rbs_to_be_released_list,
+        supported_ue_type_list,
         nulltype
       } value;
 
@@ -464,6 +496,7 @@ struct broadcast_context_mod_request_ies_o {
     broadcast_m_rbs_to_be_setup_mod_list_l&       broadcast_m_rbs_to_be_setup_mod_list();
     broadcast_m_rbs_to_be_modified_list_l&        broadcast_m_rbs_to_be_modified_list();
     broadcast_m_rbs_to_be_released_list_l&        broadcast_m_rbs_to_be_released_list();
+    supported_ue_type_list_l&                     supported_ue_type_list();
     const uint64_t&                               gnb_cu_mbs_f1ap_id() const;
     const uint64_t&                               gnb_du_mbs_f1ap_id() const;
     const mbs_service_area_c&                     mbs_service_area() const;
@@ -471,6 +504,7 @@ struct broadcast_context_mod_request_ies_o {
     const broadcast_m_rbs_to_be_setup_mod_list_l& broadcast_m_rbs_to_be_setup_mod_list() const;
     const broadcast_m_rbs_to_be_modified_list_l&  broadcast_m_rbs_to_be_modified_list() const;
     const broadcast_m_rbs_to_be_released_list_l&  broadcast_m_rbs_to_be_released_list() const;
+    const supported_ue_type_list_l&               supported_ue_type_list() const;
 
   private:
     types             type_;
@@ -490,6 +524,7 @@ struct broadcast_context_mod_request_ies_container {
   bool                                   broadcast_m_rbs_to_be_setup_mod_list_present = false;
   bool                                   broadcast_m_rbs_to_be_modified_list_present  = false;
   bool                                   broadcast_m_rbs_to_be_released_list_present  = false;
+  bool                                   supported_ue_type_list_present               = false;
   uint64_t                               gnb_cu_mbs_f1ap_id;
   uint64_t                               gnb_du_mbs_f1ap_id;
   mbs_service_area_c                     mbs_service_area;
@@ -497,6 +532,7 @@ struct broadcast_context_mod_request_ies_container {
   broadcast_m_rbs_to_be_setup_mod_list_l broadcast_m_rbs_to_be_setup_mod_list;
   broadcast_m_rbs_to_be_modified_list_l  broadcast_m_rbs_to_be_modified_list;
   broadcast_m_rbs_to_be_released_list_l  broadcast_m_rbs_to_be_released_list;
+  supported_ue_type_list_l               supported_ue_type_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -520,6 +556,7 @@ struct broadcast_context_mod_resp_ies_o {
         broadcast_m_rbs_modified_list,
         broadcast_m_rbs_failed_to_be_modified_list,
         crit_diagnostics,
+        broadcast_area_scope,
         nulltype
       } value;
 
@@ -542,6 +579,7 @@ struct broadcast_context_mod_resp_ies_o {
     broadcast_m_rbs_modified_list_l&                     broadcast_m_rbs_modified_list();
     broadcast_m_rbs_failed_to_be_modified_list_l&        broadcast_m_rbs_failed_to_be_modified_list();
     crit_diagnostics_s&                                  crit_diagnostics();
+    broadcast_area_scope_c&                              broadcast_area_scope();
     const uint64_t&                                      gnb_cu_mbs_f1ap_id() const;
     const uint64_t&                                      gnb_du_mbs_f1ap_id() const;
     const broadcast_m_rbs_setup_mod_list_l&              broadcast_m_rbs_setup_mod_list() const;
@@ -549,6 +587,7 @@ struct broadcast_context_mod_resp_ies_o {
     const broadcast_m_rbs_modified_list_l&               broadcast_m_rbs_modified_list() const;
     const broadcast_m_rbs_failed_to_be_modified_list_l&  broadcast_m_rbs_failed_to_be_modified_list() const;
     const crit_diagnostics_s&                            crit_diagnostics() const;
+    const broadcast_area_scope_c&                        broadcast_area_scope() const;
 
   private:
     types             type_;
@@ -569,6 +608,7 @@ struct broadcast_context_mod_resp_ies_container {
   bool                                          broadcast_m_rbs_modified_list_present               = false;
   bool                                          broadcast_m_rbs_failed_to_be_modified_list_present  = false;
   bool                                          crit_diagnostics_present                            = false;
+  bool                                          broadcast_area_scope_present                        = false;
   uint64_t                                      gnb_cu_mbs_f1ap_id;
   uint64_t                                      gnb_du_mbs_f1ap_id;
   broadcast_m_rbs_setup_mod_list_l              broadcast_m_rbs_setup_mod_list;
@@ -576,6 +616,7 @@ struct broadcast_context_mod_resp_ies_container {
   broadcast_m_rbs_modified_list_l               broadcast_m_rbs_modified_list;
   broadcast_m_rbs_failed_to_be_modified_list_l  broadcast_m_rbs_failed_to_be_modified_list;
   crit_diagnostics_s                            crit_diagnostics;
+  broadcast_area_scope_c                        broadcast_area_scope;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -818,6 +859,9 @@ struct broadcast_context_setup_request_ies_o {
         mbs_cu_to_du_rrc_info,
         snssai,
         broadcast_m_rbs_to_be_setup_list,
+        supported_ue_type_list,
+        associated_session_id,
+        ran_sharing_assist_info,
         nulltype
       } value;
       typedef uint8_t number_type;
@@ -841,12 +885,18 @@ struct broadcast_context_setup_request_ies_o {
     mbs_cu_to_du_rrc_info_s&                  mbs_cu_to_du_rrc_info();
     snssai_s&                                 snssai();
     broadcast_m_rbs_to_be_setup_list_l&       broadcast_m_rbs_to_be_setup_list();
+    supported_ue_type_list_l&                 supported_ue_type_list();
+    unbounded_octstring<true>&                associated_session_id();
+    ran_sharing_assist_info_e&                ran_sharing_assist_info();
     const uint64_t&                           gnb_cu_mbs_f1ap_id() const;
     const mbs_session_id_s&                   mbs_session_id() const;
     const mbs_service_area_c&                 mbs_service_area() const;
     const mbs_cu_to_du_rrc_info_s&            mbs_cu_to_du_rrc_info() const;
     const snssai_s&                           snssai() const;
     const broadcast_m_rbs_to_be_setup_list_l& broadcast_m_rbs_to_be_setup_list() const;
+    const supported_ue_type_list_l&           supported_ue_type_list() const;
+    const unbounded_octstring<true>&          associated_session_id() const;
+    const ran_sharing_assist_info_e&          ran_sharing_assist_info() const;
 
   private:
     types             type_;
@@ -862,13 +912,19 @@ struct broadcast_context_setup_request_ies_o {
 };
 
 struct broadcast_context_setup_request_ies_container {
-  bool                               mbs_service_area_present = false;
+  bool                               mbs_service_area_present        = false;
+  bool                               supported_ue_type_list_present  = false;
+  bool                               associated_session_id_present   = false;
+  bool                               ran_sharing_assist_info_present = false;
   uint64_t                           gnb_cu_mbs_f1ap_id;
   mbs_session_id_s                   mbs_session_id;
   mbs_service_area_c                 mbs_service_area;
   mbs_cu_to_du_rrc_info_s            mbs_cu_to_du_rrc_info;
   snssai_s                           snssai;
   broadcast_m_rbs_to_be_setup_list_l broadcast_m_rbs_to_be_setup_list;
+  supported_ue_type_list_l           supported_ue_type_list;
+  unbounded_octstring<true>          associated_session_id;
+  ran_sharing_assist_info_e          ran_sharing_assist_info;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -952,6 +1008,191 @@ struct broadcast_context_setup_resp_ies_container {
 // BroadcastContextSetupResponse ::= SEQUENCE
 using broadcast_context_setup_resp_s = elementary_procedure_option<broadcast_context_setup_resp_ies_container>;
 
+// BroadcastTransportResourceRequestIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct broadcast_transport_res_request_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options {
+        gnb_cu_mbs_f1ap_id,
+        gnb_du_mbs_f1ap_id,
+        broadcast_m_rbs_transport_request_list,
+        f1_u_path_fail,
+        nulltype
+      } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&                                       gnb_cu_mbs_f1ap_id();
+    uint64_t&                                       gnb_du_mbs_f1ap_id();
+    broadcast_m_rbs_transport_request_list_l&       broadcast_m_rbs_transport_request_list();
+    f1_u_path_fail_e&                               f1_u_path_fail();
+    const uint64_t&                                 gnb_cu_mbs_f1ap_id() const;
+    const uint64_t&                                 gnb_du_mbs_f1ap_id() const;
+    const broadcast_m_rbs_transport_request_list_l& broadcast_m_rbs_transport_request_list() const;
+    const f1_u_path_fail_e&                         f1_u_path_fail() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct broadcast_transport_res_request_ies_container {
+  bool                                     broadcast_m_rbs_transport_request_list_present = false;
+  bool                                     f1_u_path_fail_present                         = false;
+  uint64_t                                 gnb_cu_mbs_f1ap_id;
+  uint64_t                                 gnb_du_mbs_f1ap_id;
+  broadcast_m_rbs_transport_request_list_l broadcast_m_rbs_transport_request_list;
+  f1_u_path_fail_e                         f1_u_path_fail;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BroadcastTransportResourceRequest ::= SEQUENCE
+using broadcast_transport_res_request_s = elementary_procedure_option<broadcast_transport_res_request_ies_container>;
+
+// CUDUCellSwitchNotificationIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct cu_du_cell_switch_notif_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options {
+        gnb_cu_ue_f1ap_id,
+        gnb_du_ue_f1ap_id,
+        nr_cgi,
+        ltm_cell_switch_info,
+        tai_nformation_list,
+        nulltype
+      } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&                     gnb_cu_ue_f1ap_id();
+    uint64_t&                     gnb_du_ue_f1ap_id();
+    nr_cgi_s&                     nr_cgi();
+    ltm_cell_switch_info_s&       ltm_cell_switch_info();
+    tai_nformation_list_l&        tai_nformation_list();
+    const uint64_t&               gnb_cu_ue_f1ap_id() const;
+    const uint64_t&               gnb_du_ue_f1ap_id() const;
+    const nr_cgi_s&               nr_cgi() const;
+    const ltm_cell_switch_info_s& ltm_cell_switch_info() const;
+    const tai_nformation_list_l&  tai_nformation_list() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct cu_du_cell_switch_notif_ies_container {
+  bool                   ltm_cell_switch_info_present = false;
+  bool                   tai_nformation_list_present  = false;
+  uint64_t               gnb_cu_ue_f1ap_id;
+  uint64_t               gnb_du_ue_f1ap_id;
+  nr_cgi_s               nr_cgi;
+  ltm_cell_switch_info_s ltm_cell_switch_info;
+  tai_nformation_list_l  tai_nformation_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CUDUCellSwitchNotification ::= SEQUENCE
+using cu_du_cell_switch_notif_s = elementary_procedure_option<cu_du_cell_switch_notif_ies_container>;
+
+// CUDUMobilityInitiationRequestIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct cu_du_mob_initiation_request_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_ue_f1ap_id, gnb_du_ue_f1ap_id, mob_initiation, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&               gnb_cu_ue_f1ap_id();
+    uint64_t&               gnb_du_ue_f1ap_id();
+    mob_initiation_c&       mob_initiation();
+    const uint64_t&         gnb_cu_ue_f1ap_id() const;
+    const uint64_t&         gnb_du_ue_f1ap_id() const;
+    const mob_initiation_c& mob_initiation() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct cu_du_mob_initiation_request_ies_container {
+  uint64_t         gnb_cu_ue_f1ap_id;
+  uint64_t         gnb_du_ue_f1ap_id;
+  mob_initiation_c mob_initiation;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CUDUMobilityInitiationRequest ::= SEQUENCE
+using cu_du_mob_initiation_request_s = elementary_procedure_option<cu_du_mob_initiation_request_ies_container>;
+
 // CUDURadioInformationTransferIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct cu_du_radio_info_transfer_ies_o {
   // Value ::= OPEN TYPE
@@ -1003,6 +1244,58 @@ struct cu_du_radio_info_transfer_ies_container {
 
 // CUDURadioInformationTransfer ::= SEQUENCE
 using cu_du_radio_info_transfer_s = elementary_procedure_option<cu_du_radio_info_transfer_ies_container>;
+
+// CUDUTAInformationTransferIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct cu_du_tai_nformation_transfer_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, cu_to_du_tai_nformation_list, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                             transaction_id();
+    cu_to_du_tai_nformation_list_l&       cu_to_du_tai_nformation_list();
+    const uint16_t&                       transaction_id() const;
+    const cu_to_du_tai_nformation_list_l& cu_to_du_tai_nformation_list() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct cu_du_tai_nformation_transfer_ies_container {
+  uint16_t                       transaction_id;
+  cu_to_du_tai_nformation_list_l cu_to_du_tai_nformation_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CUDUTAInformationTransfer ::= SEQUENCE
+using cu_du_tai_nformation_transfer_s = elementary_procedure_option<cu_du_tai_nformation_transfer_ies_container>;
 
 // CellTrafficTraceIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct cell_traffic_trace_ies_o {
@@ -1076,6 +1369,127 @@ struct cell_traffic_trace_ies_container {
 // CellTrafficTrace ::= SEQUENCE
 using cell_traffic_trace_s = elementary_procedure_option<cell_traffic_trace_ies_container>;
 
+// DUCUAccessAndMobilityIndicationIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct du_cu_access_and_mob_ind_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, dl_lbt_fail_info_list, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                      transaction_id();
+    dl_lbt_fail_info_list_l&       dl_lbt_fail_info_list();
+    const uint16_t&                transaction_id() const;
+    const dl_lbt_fail_info_list_l& dl_lbt_fail_info_list() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct du_cu_access_and_mob_ind_ies_container {
+  bool                    dl_lbt_fail_info_list_present = false;
+  uint16_t                transaction_id;
+  dl_lbt_fail_info_list_l dl_lbt_fail_info_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// DUCUAccessAndMobilityIndication ::= SEQUENCE
+using du_cu_access_and_mob_ind_s = elementary_procedure_option<du_cu_access_and_mob_ind_ies_container>;
+
+// DUCUCellSwitchNotificationIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct du_cu_cell_switch_notif_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options {
+        gnb_cu_ue_f1ap_id,
+        gnb_du_ue_f1ap_id,
+        nr_cgi,
+        ltm_cell_switch_info,
+        tai_nformation_list,
+        nulltype
+      } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&                     gnb_cu_ue_f1ap_id();
+    uint64_t&                     gnb_du_ue_f1ap_id();
+    nr_cgi_s&                     nr_cgi();
+    ltm_cell_switch_info_s&       ltm_cell_switch_info();
+    tai_nformation_list_l&        tai_nformation_list();
+    const uint64_t&               gnb_cu_ue_f1ap_id() const;
+    const uint64_t&               gnb_du_ue_f1ap_id() const;
+    const nr_cgi_s&               nr_cgi() const;
+    const ltm_cell_switch_info_s& ltm_cell_switch_info() const;
+    const tai_nformation_list_l&  tai_nformation_list() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct du_cu_cell_switch_notif_ies_container {
+  bool                   ltm_cell_switch_info_present = false;
+  bool                   tai_nformation_list_present  = false;
+  uint64_t               gnb_cu_ue_f1ap_id;
+  uint64_t               gnb_du_ue_f1ap_id;
+  nr_cgi_s               nr_cgi;
+  ltm_cell_switch_info_s ltm_cell_switch_info;
+  tai_nformation_list_l  tai_nformation_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// DUCUCellSwitchNotification ::= SEQUENCE
+using du_cu_cell_switch_notif_s = elementary_procedure_option<du_cu_cell_switch_notif_ies_container>;
+
 // DUCURadioInformationTransferIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct du_cu_radio_info_transfer_ies_o {
   // Value ::= OPEN TYPE
@@ -1127,6 +1541,58 @@ struct du_cu_radio_info_transfer_ies_container {
 
 // DUCURadioInformationTransfer ::= SEQUENCE
 using du_cu_radio_info_transfer_s = elementary_procedure_option<du_cu_radio_info_transfer_ies_container>;
+
+// DUCUTAInformationTransferIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct du_cu_tai_nformation_transfer_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, du_to_cu_tai_nformation_list, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                             transaction_id();
+    du_to_cu_tai_nformation_list_l&       du_to_cu_tai_nformation_list();
+    const uint16_t&                       transaction_id() const;
+    const du_to_cu_tai_nformation_list_l& du_to_cu_tai_nformation_list() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct du_cu_tai_nformation_transfer_ies_container {
+  uint16_t                       transaction_id;
+  du_to_cu_tai_nformation_list_l du_to_cu_tai_nformation_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// DUCUTAInformationTransfer ::= SEQUENCE
+using du_cu_tai_nformation_transfer_s = elementary_procedure_option<du_cu_tai_nformation_transfer_ies_container>;
 
 // DeactivateTraceIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct deactiv_trace_ies_o {
@@ -1864,6 +2330,14 @@ struct f1_setup_fail_ies_container {
 // F1SetupFailure ::= SEQUENCE
 using f1_setup_fail_s = elementary_procedure_option<f1_setup_fail_ies_container>;
 
+// F1SetupOutcome ::= ENUMERATED
+struct f1_setup_outcome_opts {
+  enum options { success, fail, /*...*/ nulltype } value;
+
+  const char* to_string() const;
+};
+using f1_setup_outcome_e = enumerated<f1_setup_outcome_opts, true>;
+
 // F1SetupRequestIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct f1_setup_request_ies_o {
   // Value ::= OPEN TYPE
@@ -1878,6 +2352,8 @@ struct f1_setup_request_ies_o {
         transport_layer_address_info,
         bap_address,
         extended_gnb_du_name,
+        rrc_terminating_iab_donor_gnb_id,
+        mobile_iab_mt_user_location_info,
         nulltype
       } value;
 
@@ -1901,6 +2377,8 @@ struct f1_setup_request_ies_o {
     transport_layer_address_info_s&             transport_layer_address_info();
     fixed_bitstring<10, false, true>&           bap_address();
     extended_gnb_du_name_s&                     extended_gnb_du_name();
+    global_gnb_id_s&                            rrc_terminating_iab_donor_gnb_id();
+    mobile_iab_mt_user_location_info_s&         mobile_iab_mt_user_location_info();
     const uint16_t&                             transaction_id() const;
     const uint64_t&                             gnb_du_id() const;
     const printable_string<1, 150, true, true>& gnb_du_name() const;
@@ -1909,6 +2387,8 @@ struct f1_setup_request_ies_o {
     const transport_layer_address_info_s&       transport_layer_address_info() const;
     const fixed_bitstring<10, false, true>&     bap_address() const;
     const extended_gnb_du_name_s&               extended_gnb_du_name() const;
+    const global_gnb_id_s&                      rrc_terminating_iab_donor_gnb_id() const;
+    const mobile_iab_mt_user_location_info_s&   mobile_iab_mt_user_location_info() const;
 
   private:
     types             type_;
@@ -1924,11 +2404,13 @@ struct f1_setup_request_ies_o {
 };
 
 struct f1_setup_request_ies_container {
-  bool                                 gnb_du_name_present                  = false;
-  bool                                 gnb_du_served_cells_list_present     = false;
-  bool                                 transport_layer_address_info_present = false;
-  bool                                 bap_address_present                  = false;
-  bool                                 extended_gnb_du_name_present         = false;
+  bool                                 gnb_du_name_present                      = false;
+  bool                                 gnb_du_served_cells_list_present         = false;
+  bool                                 transport_layer_address_info_present     = false;
+  bool                                 bap_address_present                      = false;
+  bool                                 extended_gnb_du_name_present             = false;
+  bool                                 rrc_terminating_iab_donor_gnb_id_present = false;
+  bool                                 mobile_iab_mt_user_location_info_present = false;
   uint16_t                             transaction_id;
   uint64_t                             gnb_du_id;
   printable_string<1, 150, true, true> gnb_du_name;
@@ -1937,6 +2419,8 @@ struct f1_setup_request_ies_container {
   transport_layer_address_info_s       transport_layer_address_info;
   fixed_bitstring<10, false, true>     bap_address;
   extended_gnb_du_name_s               extended_gnb_du_name;
+  global_gnb_id_s                      rrc_terminating_iab_donor_gnb_id;
+  mobile_iab_mt_user_location_info_s   mobile_iab_mt_user_location_info;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1961,6 +2445,7 @@ struct f1_setup_resp_ies_o {
         ul_bh_non_up_traffic_map,
         bap_address,
         extended_gnb_cu_name,
+        ncgi_to_be_upd_list,
         nulltype
       } value;
       typedef uint8_t number_type;
@@ -1986,6 +2471,7 @@ struct f1_setup_resp_ies_o {
     ul_bh_non_up_traffic_map_s&                 ul_bh_non_up_traffic_map();
     fixed_bitstring<10, false, true>&           bap_address();
     extended_gnb_cu_name_s&                     extended_gnb_cu_name();
+    ncgi_to_be_upd_list_l&                      ncgi_to_be_upd_list();
     const uint16_t&                             transaction_id() const;
     const printable_string<1, 150, true, true>& gnb_cu_name() const;
     const cells_to_be_activ_list_l&             cells_to_be_activ_list() const;
@@ -1994,6 +2480,7 @@ struct f1_setup_resp_ies_o {
     const ul_bh_non_up_traffic_map_s&           ul_bh_non_up_traffic_map() const;
     const fixed_bitstring<10, false, true>&     bap_address() const;
     const extended_gnb_cu_name_s&               extended_gnb_cu_name() const;
+    const ncgi_to_be_upd_list_l&                ncgi_to_be_upd_list() const;
 
   private:
     types             type_;
@@ -2015,6 +2502,7 @@ struct f1_setup_resp_ies_container {
   bool                                 ul_bh_non_up_traffic_map_present     = false;
   bool                                 bap_address_present                  = false;
   bool                                 extended_gnb_cu_name_present         = false;
+  bool                                 ncgi_to_be_upd_list_present          = false;
   uint16_t                             transaction_id;
   printable_string<1, 150, true, true> gnb_cu_name;
   cells_to_be_activ_list_l             cells_to_be_activ_list;
@@ -2023,6 +2511,7 @@ struct f1_setup_resp_ies_container {
   ul_bh_non_up_traffic_map_s           ul_bh_non_up_traffic_map;
   fixed_bitstring<10, false, true>     bap_address;
   extended_gnb_cu_name_s               extended_gnb_cu_name;
+  ncgi_to_be_upd_list_l                ncgi_to_be_upd_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2055,6 +2544,7 @@ struct gnb_cu_cfg_upd_ies_o {
         cells_for_son_list,
         gnb_cu_name,
         extended_gnb_cu_name,
+        cells_allowed_to_be_deactiv_list,
         nulltype
       } value;
       typedef uint8_t number_type;
@@ -2088,6 +2578,7 @@ struct gnb_cu_cfg_upd_ies_o {
     cells_for_son_list_l&                       cells_for_son_list();
     printable_string<1, 150, true, true>&       gnb_cu_name();
     extended_gnb_cu_name_s&                     extended_gnb_cu_name();
+    cells_allowed_to_be_deactiv_list_l&         cells_allowed_to_be_deactiv_list();
     const uint16_t&                             transaction_id() const;
     const cells_to_be_activ_list_l&             cells_to_be_activ_list() const;
     const cells_to_be_deactiv_list_l&           cells_to_be_deactiv_list() const;
@@ -2104,6 +2595,7 @@ struct gnb_cu_cfg_upd_ies_o {
     const cells_for_son_list_l&                 cells_for_son_list() const;
     const printable_string<1, 150, true, true>& gnb_cu_name() const;
     const extended_gnb_cu_name_s&               extended_gnb_cu_name() const;
+    const cells_allowed_to_be_deactiv_list_l&   cells_allowed_to_be_deactiv_list() const;
 
   private:
     types             type_;
@@ -2119,21 +2611,22 @@ struct gnb_cu_cfg_upd_ies_o {
 };
 
 struct gnb_cu_cfg_upd_ies_container {
-  bool                                 cells_to_be_activ_list_present       = false;
-  bool                                 cells_to_be_deactiv_list_present     = false;
-  bool                                 gnb_cu_tnl_assoc_to_add_list_present = false;
-  bool                                 gnb_cu_tnl_assoc_to_rem_list_present = false;
-  bool                                 gnb_cu_tnl_assoc_to_upd_list_present = false;
-  bool                                 cells_to_be_barred_list_present      = false;
-  bool                                 protected_eutra_res_list_present     = false;
-  bool                                 neighbour_cell_info_list_present     = false;
-  bool                                 transport_layer_address_info_present = false;
-  bool                                 ul_bh_non_up_traffic_map_present     = false;
-  bool                                 bap_address_present                  = false;
-  bool                                 cco_assist_info_present              = false;
-  bool                                 cells_for_son_list_present           = false;
-  bool                                 gnb_cu_name_present                  = false;
-  bool                                 extended_gnb_cu_name_present         = false;
+  bool                                 cells_to_be_activ_list_present           = false;
+  bool                                 cells_to_be_deactiv_list_present         = false;
+  bool                                 gnb_cu_tnl_assoc_to_add_list_present     = false;
+  bool                                 gnb_cu_tnl_assoc_to_rem_list_present     = false;
+  bool                                 gnb_cu_tnl_assoc_to_upd_list_present     = false;
+  bool                                 cells_to_be_barred_list_present          = false;
+  bool                                 protected_eutra_res_list_present         = false;
+  bool                                 neighbour_cell_info_list_present         = false;
+  bool                                 transport_layer_address_info_present     = false;
+  bool                                 ul_bh_non_up_traffic_map_present         = false;
+  bool                                 bap_address_present                      = false;
+  bool                                 cco_assist_info_present                  = false;
+  bool                                 cells_for_son_list_present               = false;
+  bool                                 gnb_cu_name_present                      = false;
+  bool                                 extended_gnb_cu_name_present             = false;
+  bool                                 cells_allowed_to_be_deactiv_list_present = false;
   uint16_t                             transaction_id;
   cells_to_be_activ_list_l             cells_to_be_activ_list;
   cells_to_be_deactiv_list_l           cells_to_be_deactiv_list;
@@ -2150,6 +2643,7 @@ struct gnb_cu_cfg_upd_ies_container {
   cells_for_son_list_l                 cells_for_son_list;
   printable_string<1, 150, true, true> gnb_cu_name;
   extended_gnb_cu_name_s               extended_gnb_cu_name;
+  cells_allowed_to_be_deactiv_list_l   cells_allowed_to_be_deactiv_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2173,6 +2667,7 @@ struct gnb_cu_cfg_upd_ack_ies_o {
         gnb_cu_tnl_assoc_failed_to_setup_list,
         ded_si_delivery_needed_ue_list,
         transport_layer_address_info,
+        cells_with_ss_bs_activ_list,
         nulltype
       } value;
       typedef uint8_t number_type;
@@ -2197,6 +2692,7 @@ struct gnb_cu_cfg_upd_ack_ies_o {
     gnb_cu_tnl_assoc_failed_to_setup_list_l&       gnb_cu_tnl_assoc_failed_to_setup_list();
     ded_si_delivery_needed_ue_list_l&              ded_si_delivery_needed_ue_list();
     transport_layer_address_info_s&                transport_layer_address_info();
+    cells_with_ss_bs_activ_list_l&                 cells_with_ss_bs_activ_list();
     const uint16_t&                                transaction_id() const;
     const cells_failed_to_be_activ_list_l&         cells_failed_to_be_activ_list() const;
     const crit_diagnostics_s&                      crit_diagnostics() const;
@@ -2204,6 +2700,7 @@ struct gnb_cu_cfg_upd_ack_ies_o {
     const gnb_cu_tnl_assoc_failed_to_setup_list_l& gnb_cu_tnl_assoc_failed_to_setup_list() const;
     const ded_si_delivery_needed_ue_list_l&        ded_si_delivery_needed_ue_list() const;
     const transport_layer_address_info_s&          transport_layer_address_info() const;
+    const cells_with_ss_bs_activ_list_l&           cells_with_ss_bs_activ_list() const;
 
   private:
     types             type_;
@@ -2225,6 +2722,7 @@ struct gnb_cu_cfg_upd_ack_ies_container {
   bool                                    gnb_cu_tnl_assoc_failed_to_setup_list_present = false;
   bool                                    ded_si_delivery_needed_ue_list_present        = false;
   bool                                    transport_layer_address_info_present          = false;
+  bool                                    cells_with_ss_bs_activ_list_present           = false;
   uint16_t                                transaction_id;
   cells_failed_to_be_activ_list_l         cells_failed_to_be_activ_list;
   crit_diagnostics_s                      crit_diagnostics;
@@ -2232,6 +2730,7 @@ struct gnb_cu_cfg_upd_ack_ies_container {
   gnb_cu_tnl_assoc_failed_to_setup_list_l gnb_cu_tnl_assoc_failed_to_setup_list;
   ded_si_delivery_needed_ue_list_l        ded_si_delivery_needed_ue_list;
   transport_layer_address_info_s          transport_layer_address_info;
+  cells_with_ss_bs_activ_list_l           cells_with_ss_bs_activ_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2320,6 +2819,8 @@ struct gnb_du_cfg_upd_ies_o {
         coverage_mod_notif,
         gnb_du_name,
         extended_gnb_du_name,
+        rrc_terminating_iab_donor_related_info,
+        mobile_iab_mt_user_location_info,
         nulltype
       } value;
 
@@ -2335,30 +2836,34 @@ struct gnb_du_cfg_upd_ies_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    uint16_t&                                   transaction_id();
-    served_cells_to_add_list_l&                 served_cells_to_add_list();
-    served_cells_to_modify_list_l&              served_cells_to_modify_list();
-    served_cells_to_delete_list_l&              served_cells_to_delete_list();
-    cells_status_list_l&                        cells_status_list();
-    ded_si_delivery_needed_ue_list_l&           ded_si_delivery_needed_ue_list();
-    uint64_t&                                   gnb_du_id();
-    gnb_du_tnl_assoc_to_rem_list_l&             gnb_du_tnl_assoc_to_rem_list();
-    transport_layer_address_info_s&             transport_layer_address_info();
-    coverage_mod_notif_s&                       coverage_mod_notif();
-    printable_string<1, 150, true, true>&       gnb_du_name();
-    extended_gnb_du_name_s&                     extended_gnb_du_name();
-    const uint16_t&                             transaction_id() const;
-    const served_cells_to_add_list_l&           served_cells_to_add_list() const;
-    const served_cells_to_modify_list_l&        served_cells_to_modify_list() const;
-    const served_cells_to_delete_list_l&        served_cells_to_delete_list() const;
-    const cells_status_list_l&                  cells_status_list() const;
-    const ded_si_delivery_needed_ue_list_l&     ded_si_delivery_needed_ue_list() const;
-    const uint64_t&                             gnb_du_id() const;
-    const gnb_du_tnl_assoc_to_rem_list_l&       gnb_du_tnl_assoc_to_rem_list() const;
-    const transport_layer_address_info_s&       transport_layer_address_info() const;
-    const coverage_mod_notif_s&                 coverage_mod_notif() const;
-    const printable_string<1, 150, true, true>& gnb_du_name() const;
-    const extended_gnb_du_name_s&               extended_gnb_du_name() const;
+    uint16_t&                                       transaction_id();
+    served_cells_to_add_list_l&                     served_cells_to_add_list();
+    served_cells_to_modify_list_l&                  served_cells_to_modify_list();
+    served_cells_to_delete_list_l&                  served_cells_to_delete_list();
+    cells_status_list_l&                            cells_status_list();
+    ded_si_delivery_needed_ue_list_l&               ded_si_delivery_needed_ue_list();
+    uint64_t&                                       gnb_du_id();
+    gnb_du_tnl_assoc_to_rem_list_l&                 gnb_du_tnl_assoc_to_rem_list();
+    transport_layer_address_info_s&                 transport_layer_address_info();
+    coverage_mod_notif_s&                           coverage_mod_notif();
+    printable_string<1, 150, true, true>&           gnb_du_name();
+    extended_gnb_du_name_s&                         extended_gnb_du_name();
+    rrc_terminating_iab_donor_related_info_s&       rrc_terminating_iab_donor_related_info();
+    mobile_iab_mt_user_location_info_s&             mobile_iab_mt_user_location_info();
+    const uint16_t&                                 transaction_id() const;
+    const served_cells_to_add_list_l&               served_cells_to_add_list() const;
+    const served_cells_to_modify_list_l&            served_cells_to_modify_list() const;
+    const served_cells_to_delete_list_l&            served_cells_to_delete_list() const;
+    const cells_status_list_l&                      cells_status_list() const;
+    const ded_si_delivery_needed_ue_list_l&         ded_si_delivery_needed_ue_list() const;
+    const uint64_t&                                 gnb_du_id() const;
+    const gnb_du_tnl_assoc_to_rem_list_l&           gnb_du_tnl_assoc_to_rem_list() const;
+    const transport_layer_address_info_s&           transport_layer_address_info() const;
+    const coverage_mod_notif_s&                     coverage_mod_notif() const;
+    const printable_string<1, 150, true, true>&     gnb_du_name() const;
+    const extended_gnb_du_name_s&                   extended_gnb_du_name() const;
+    const rrc_terminating_iab_donor_related_info_s& rrc_terminating_iab_donor_related_info() const;
+    const mobile_iab_mt_user_location_info_s&       mobile_iab_mt_user_location_info() const;
 
   private:
     types             type_;
@@ -2374,29 +2879,33 @@ struct gnb_du_cfg_upd_ies_o {
 };
 
 struct gnb_du_cfg_upd_ies_container {
-  bool                                 served_cells_to_add_list_present       = false;
-  bool                                 served_cells_to_modify_list_present    = false;
-  bool                                 served_cells_to_delete_list_present    = false;
-  bool                                 cells_status_list_present              = false;
-  bool                                 ded_si_delivery_needed_ue_list_present = false;
-  bool                                 gnb_du_id_present                      = false;
-  bool                                 gnb_du_tnl_assoc_to_rem_list_present   = false;
-  bool                                 transport_layer_address_info_present   = false;
-  bool                                 coverage_mod_notif_present             = false;
-  bool                                 gnb_du_name_present                    = false;
-  bool                                 extended_gnb_du_name_present           = false;
-  uint16_t                             transaction_id;
-  served_cells_to_add_list_l           served_cells_to_add_list;
-  served_cells_to_modify_list_l        served_cells_to_modify_list;
-  served_cells_to_delete_list_l        served_cells_to_delete_list;
-  cells_status_list_l                  cells_status_list;
-  ded_si_delivery_needed_ue_list_l     ded_si_delivery_needed_ue_list;
-  uint64_t                             gnb_du_id;
-  gnb_du_tnl_assoc_to_rem_list_l       gnb_du_tnl_assoc_to_rem_list;
-  transport_layer_address_info_s       transport_layer_address_info;
-  coverage_mod_notif_s                 coverage_mod_notif;
-  printable_string<1, 150, true, true> gnb_du_name;
-  extended_gnb_du_name_s               extended_gnb_du_name;
+  bool                                     served_cells_to_add_list_present               = false;
+  bool                                     served_cells_to_modify_list_present            = false;
+  bool                                     served_cells_to_delete_list_present            = false;
+  bool                                     cells_status_list_present                      = false;
+  bool                                     ded_si_delivery_needed_ue_list_present         = false;
+  bool                                     gnb_du_id_present                              = false;
+  bool                                     gnb_du_tnl_assoc_to_rem_list_present           = false;
+  bool                                     transport_layer_address_info_present           = false;
+  bool                                     coverage_mod_notif_present                     = false;
+  bool                                     gnb_du_name_present                            = false;
+  bool                                     extended_gnb_du_name_present                   = false;
+  bool                                     rrc_terminating_iab_donor_related_info_present = false;
+  bool                                     mobile_iab_mt_user_location_info_present       = false;
+  uint16_t                                 transaction_id;
+  served_cells_to_add_list_l               served_cells_to_add_list;
+  served_cells_to_modify_list_l            served_cells_to_modify_list;
+  served_cells_to_delete_list_l            served_cells_to_delete_list;
+  cells_status_list_l                      cells_status_list;
+  ded_si_delivery_needed_ue_list_l         ded_si_delivery_needed_ue_list;
+  uint64_t                                 gnb_du_id;
+  gnb_du_tnl_assoc_to_rem_list_l           gnb_du_tnl_assoc_to_rem_list;
+  transport_layer_address_info_s           transport_layer_address_info;
+  coverage_mod_notif_s                     coverage_mod_notif;
+  printable_string<1, 150, true, true>     gnb_du_name;
+  extended_gnb_du_name_s                   extended_gnb_du_name;
+  rrc_terminating_iab_donor_related_info_s rrc_terminating_iab_donor_related_info;
+  mobile_iab_mt_user_location_info_s       mobile_iab_mt_user_location_info;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -3273,6 +3782,132 @@ using iab_up_cfg_upd_resp_s = elementary_procedure_option<iab_up_cfg_upd_resp_ie
 // MC-PagingCell-list ::= SEQUENCE (SIZE (1..512)) OF ProtocolIE-Field{F1AP-PROTOCOL-IES : IEsSetParam}
 using mc_paging_cell_list_l = dyn_array<protocol_ie_single_container_s<mc_paging_cell_item_ies_o>>;
 
+// MIABF1SetupOutcomeNotificationIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct miabf1_setup_outcome_notif_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options {
+        transaction_id,
+        f1_setup_outcome,
+        activ_cells_map_list,
+        target_f1_terminating_donor_gnb_id,
+        nulltype
+      } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                     transaction_id();
+    f1_setup_outcome_e&           f1_setup_outcome();
+    activ_cells_map_list_l&       activ_cells_map_list();
+    global_gnb_id_s&              target_f1_terminating_donor_gnb_id();
+    const uint16_t&               transaction_id() const;
+    const f1_setup_outcome_e&     f1_setup_outcome() const;
+    const activ_cells_map_list_l& activ_cells_map_list() const;
+    const global_gnb_id_s&        target_f1_terminating_donor_gnb_id() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct miabf1_setup_outcome_notif_ies_container {
+  bool                   activ_cells_map_list_present               = false;
+  bool                   target_f1_terminating_donor_gnb_id_present = false;
+  uint16_t               transaction_id;
+  f1_setup_outcome_e     f1_setup_outcome;
+  activ_cells_map_list_l activ_cells_map_list;
+  global_gnb_id_s        target_f1_terminating_donor_gnb_id;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MIABF1SetupOutcomeNotification ::= SEQUENCE
+using miabf1_setup_outcome_notif_s = elementary_procedure_option<miabf1_setup_outcome_notif_ies_container>;
+
+// MIABF1SetupTriggeringIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct miabf1_setup_trigger_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, target_gnb_id, target_gnb_ip_address, target_se_gw_ip_address, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                                    transaction_id();
+    global_gnb_id_s&                             target_gnb_id();
+    bounded_bitstring<1, 160, true, true>&       target_gnb_ip_address();
+    bounded_bitstring<1, 160, true, true>&       target_se_gw_ip_address();
+    const uint16_t&                              transaction_id() const;
+    const global_gnb_id_s&                       target_gnb_id() const;
+    const bounded_bitstring<1, 160, true, true>& target_gnb_ip_address() const;
+    const bounded_bitstring<1, 160, true, true>& target_se_gw_ip_address() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct miabf1_setup_trigger_ies_container {
+  bool                                  target_gnb_ip_address_present   = false;
+  bool                                  target_se_gw_ip_address_present = false;
+  uint16_t                              transaction_id;
+  global_gnb_id_s                       target_gnb_id;
+  bounded_bitstring<1, 160, true, true> target_gnb_ip_address;
+  bounded_bitstring<1, 160, true, true> target_se_gw_ip_address;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MIABF1SetupTriggering ::= SEQUENCE
+using miabf1_setup_trigger_s = elementary_procedure_option<miabf1_setup_trigger_ies_container>;
+
 // MeasurementActivation-IEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct meas_activation_ies_o {
   // Value ::= OPEN TYPE
@@ -3510,6 +4145,168 @@ struct meas_precfg_required_ies_container {
 // MeasurementPreconfigurationRequired ::= SEQUENCE
 using meas_precfg_required_s = elementary_procedure_option<meas_precfg_required_ies_container>;
 
+// MulticastCommonConfigurationRefuseIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_common_cfg_refuse_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, cause, crit_diagnostics, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                 transaction_id();
+    cause_c&                  cause();
+    crit_diagnostics_s&       crit_diagnostics();
+    const uint16_t&           transaction_id() const;
+    const cause_c&            cause() const;
+    const crit_diagnostics_s& crit_diagnostics() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct multicast_common_cfg_refuse_ies_container {
+  bool               crit_diagnostics_present = false;
+  uint16_t           transaction_id;
+  cause_c            cause;
+  crit_diagnostics_s crit_diagnostics;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MulticastCommonConfigurationRefuse ::= SEQUENCE
+using multicast_common_cfg_refuse_s = elementary_procedure_option<multicast_common_cfg_refuse_ies_container>;
+
+// MulticastCommonConfigurationRequestIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_common_cfg_request_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, multicast_cu2_du_common_rrc_info, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                                 transaction_id();
+    multicast_cu2_du_common_rrc_info_s&       multicast_cu2_du_common_rrc_info();
+    const uint16_t&                           transaction_id() const;
+    const multicast_cu2_du_common_rrc_info_s& multicast_cu2_du_common_rrc_info() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct multicast_common_cfg_request_ies_container {
+  bool                               multicast_cu2_du_common_rrc_info_present = false;
+  uint16_t                           transaction_id;
+  multicast_cu2_du_common_rrc_info_s multicast_cu2_du_common_rrc_info;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MulticastCommonConfigurationRequest ::= SEQUENCE
+using multicast_common_cfg_request_s = elementary_procedure_option<multicast_common_cfg_request_ies_container>;
+
+// MulticastCommonConfigurationResponseIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_common_cfg_resp_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, crit_diagnostics, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                 transaction_id();
+    crit_diagnostics_s&       crit_diagnostics();
+    const uint16_t&           transaction_id() const;
+    const crit_diagnostics_s& crit_diagnostics() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct multicast_common_cfg_resp_ies_container {
+  bool               crit_diagnostics_present = false;
+  uint16_t           transaction_id;
+  crit_diagnostics_s crit_diagnostics;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MulticastCommonConfigurationResponse ::= SEQUENCE
+using multicast_common_cfg_resp_s = elementary_procedure_option<multicast_common_cfg_resp_ies_container>;
+
 // MulticastContextModificationFailureIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct multicast_context_mod_fail_ies_o {
   // Value ::= OPEN TYPE
@@ -3579,6 +4376,8 @@ struct multicast_context_mod_request_ies_o {
         multicast_m_rbs_to_be_setup_mod_list,
         multicast_m_rbs_to_be_modified_list,
         multicast_m_rbs_to_be_released_list,
+        multicast_cu2_du_rrc_info,
+        mbs_multicast_session_reception_state,
         nulltype
       } value;
 
@@ -3594,18 +4393,22 @@ struct multicast_context_mod_request_ies_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    uint64_t&                                     gnb_cu_mbs_f1ap_id();
-    uint64_t&                                     gnb_du_mbs_f1ap_id();
-    mbs_service_area_c&                           mbs_service_area();
-    multicast_m_rbs_to_be_setup_mod_list_l&       multicast_m_rbs_to_be_setup_mod_list();
-    multicast_m_rbs_to_be_modified_list_l&        multicast_m_rbs_to_be_modified_list();
-    multicast_m_rbs_to_be_released_list_l&        multicast_m_rbs_to_be_released_list();
-    const uint64_t&                               gnb_cu_mbs_f1ap_id() const;
-    const uint64_t&                               gnb_du_mbs_f1ap_id() const;
-    const mbs_service_area_c&                     mbs_service_area() const;
-    const multicast_m_rbs_to_be_setup_mod_list_l& multicast_m_rbs_to_be_setup_mod_list() const;
-    const multicast_m_rbs_to_be_modified_list_l&  multicast_m_rbs_to_be_modified_list() const;
-    const multicast_m_rbs_to_be_released_list_l&  multicast_m_rbs_to_be_released_list() const;
+    uint64_t&                                      gnb_cu_mbs_f1ap_id();
+    uint64_t&                                      gnb_du_mbs_f1ap_id();
+    mbs_service_area_c&                            mbs_service_area();
+    multicast_m_rbs_to_be_setup_mod_list_l&        multicast_m_rbs_to_be_setup_mod_list();
+    multicast_m_rbs_to_be_modified_list_l&         multicast_m_rbs_to_be_modified_list();
+    multicast_m_rbs_to_be_released_list_l&         multicast_m_rbs_to_be_released_list();
+    multicast_cu2_du_rrc_info_s&                   multicast_cu2_du_rrc_info();
+    mbs_multicast_session_reception_state_e&       mbs_multicast_session_reception_state();
+    const uint64_t&                                gnb_cu_mbs_f1ap_id() const;
+    const uint64_t&                                gnb_du_mbs_f1ap_id() const;
+    const mbs_service_area_c&                      mbs_service_area() const;
+    const multicast_m_rbs_to_be_setup_mod_list_l&  multicast_m_rbs_to_be_setup_mod_list() const;
+    const multicast_m_rbs_to_be_modified_list_l&   multicast_m_rbs_to_be_modified_list() const;
+    const multicast_m_rbs_to_be_released_list_l&   multicast_m_rbs_to_be_released_list() const;
+    const multicast_cu2_du_rrc_info_s&             multicast_cu2_du_rrc_info() const;
+    const mbs_multicast_session_reception_state_e& mbs_multicast_session_reception_state() const;
 
   private:
     types             type_;
@@ -3621,16 +4424,20 @@ struct multicast_context_mod_request_ies_o {
 };
 
 struct multicast_context_mod_request_ies_container {
-  bool                                   mbs_service_area_present                     = false;
-  bool                                   multicast_m_rbs_to_be_setup_mod_list_present = false;
-  bool                                   multicast_m_rbs_to_be_modified_list_present  = false;
-  bool                                   multicast_m_rbs_to_be_released_list_present  = false;
-  uint64_t                               gnb_cu_mbs_f1ap_id;
-  uint64_t                               gnb_du_mbs_f1ap_id;
-  mbs_service_area_c                     mbs_service_area;
-  multicast_m_rbs_to_be_setup_mod_list_l multicast_m_rbs_to_be_setup_mod_list;
-  multicast_m_rbs_to_be_modified_list_l  multicast_m_rbs_to_be_modified_list;
-  multicast_m_rbs_to_be_released_list_l  multicast_m_rbs_to_be_released_list;
+  bool                                    mbs_service_area_present                      = false;
+  bool                                    multicast_m_rbs_to_be_setup_mod_list_present  = false;
+  bool                                    multicast_m_rbs_to_be_modified_list_present   = false;
+  bool                                    multicast_m_rbs_to_be_released_list_present   = false;
+  bool                                    multicast_cu2_du_rrc_info_present             = false;
+  bool                                    mbs_multicast_session_reception_state_present = false;
+  uint64_t                                gnb_cu_mbs_f1ap_id;
+  uint64_t                                gnb_du_mbs_f1ap_id;
+  mbs_service_area_c                      mbs_service_area;
+  multicast_m_rbs_to_be_setup_mod_list_l  multicast_m_rbs_to_be_setup_mod_list;
+  multicast_m_rbs_to_be_modified_list_l   multicast_m_rbs_to_be_modified_list;
+  multicast_m_rbs_to_be_released_list_l   multicast_m_rbs_to_be_released_list;
+  multicast_cu2_du_rrc_info_s             multicast_cu2_du_rrc_info;
+  mbs_multicast_session_reception_state_e mbs_multicast_session_reception_state;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -3654,6 +4461,7 @@ struct multicast_context_mod_resp_ies_o {
         multicast_m_rbs_modified_list,
         multicast_m_rbs_failed_to_be_modified_list,
         crit_diagnostics,
+        multicast_du2_cu_rrc_info,
         nulltype
       } value;
 
@@ -3676,6 +4484,7 @@ struct multicast_context_mod_resp_ies_o {
     multicast_m_rbs_modified_list_l&                     multicast_m_rbs_modified_list();
     multicast_m_rbs_failed_to_be_modified_list_l&        multicast_m_rbs_failed_to_be_modified_list();
     crit_diagnostics_s&                                  crit_diagnostics();
+    multicast_du2_cu_rrc_info_s&                         multicast_du2_cu_rrc_info();
     const uint64_t&                                      gnb_cu_mbs_f1ap_id() const;
     const uint64_t&                                      gnb_du_mbs_f1ap_id() const;
     const multicast_m_rbs_setup_mod_list_l&              multicast_m_rbs_setup_mod_list() const;
@@ -3683,6 +4492,7 @@ struct multicast_context_mod_resp_ies_o {
     const multicast_m_rbs_modified_list_l&               multicast_m_rbs_modified_list() const;
     const multicast_m_rbs_failed_to_be_modified_list_l&  multicast_m_rbs_failed_to_be_modified_list() const;
     const crit_diagnostics_s&                            crit_diagnostics() const;
+    const multicast_du2_cu_rrc_info_s&                   multicast_du2_cu_rrc_info() const;
 
   private:
     types             type_;
@@ -3703,6 +4513,7 @@ struct multicast_context_mod_resp_ies_container {
   bool                                          multicast_m_rbs_modified_list_present               = false;
   bool                                          multicast_m_rbs_failed_to_be_modified_list_present  = false;
   bool                                          crit_diagnostics_present                            = false;
+  bool                                          multicast_du2_cu_rrc_info_present                   = false;
   uint64_t                                      gnb_cu_mbs_f1ap_id;
   uint64_t                                      gnb_du_mbs_f1ap_id;
   multicast_m_rbs_setup_mod_list_l              multicast_m_rbs_setup_mod_list;
@@ -3710,6 +4521,7 @@ struct multicast_context_mod_resp_ies_container {
   multicast_m_rbs_modified_list_l               multicast_m_rbs_modified_list;
   multicast_m_rbs_failed_to_be_modified_list_l  multicast_m_rbs_failed_to_be_modified_list;
   crit_diagnostics_s                            crit_diagnostics;
+  multicast_du2_cu_rrc_info_s                   multicast_du2_cu_rrc_info;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -3719,6 +4531,171 @@ struct multicast_context_mod_resp_ies_container {
 
 // MulticastContextModificationResponse ::= SEQUENCE
 using multicast_context_mod_resp_s = elementary_procedure_option<multicast_context_mod_resp_ies_container>;
+
+// MulticastContextNotificationConfirmIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_context_notif_confirm_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_mbs_f1ap_id, gnb_du_mbs_f1ap_id, crit_diagnostics, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&                 gnb_cu_mbs_f1ap_id();
+    uint64_t&                 gnb_du_mbs_f1ap_id();
+    crit_diagnostics_s&       crit_diagnostics();
+    const uint64_t&           gnb_cu_mbs_f1ap_id() const;
+    const uint64_t&           gnb_du_mbs_f1ap_id() const;
+    const crit_diagnostics_s& crit_diagnostics() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct multicast_context_notif_confirm_ies_container {
+  bool               crit_diagnostics_present = false;
+  uint64_t           gnb_cu_mbs_f1ap_id;
+  uint64_t           gnb_du_mbs_f1ap_id;
+  crit_diagnostics_s crit_diagnostics;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MulticastContextNotificationConfirm ::= SEQUENCE
+using multicast_context_notif_confirm_s = elementary_procedure_option<multicast_context_notif_confirm_ies_container>;
+
+// MulticastContextNotificationIndicationIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_context_notif_ind_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_mbs_f1ap_id, gnb_du_mbs_f1ap_id, multicast_du2_cu_rrc_info, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&                          gnb_cu_mbs_f1ap_id();
+    uint64_t&                          gnb_du_mbs_f1ap_id();
+    multicast_du2_cu_rrc_info_s&       multicast_du2_cu_rrc_info();
+    const uint64_t&                    gnb_cu_mbs_f1ap_id() const;
+    const uint64_t&                    gnb_du_mbs_f1ap_id() const;
+    const multicast_du2_cu_rrc_info_s& multicast_du2_cu_rrc_info() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct multicast_context_notif_ind_ies_container {
+  bool                        multicast_du2_cu_rrc_info_present = false;
+  uint64_t                    gnb_cu_mbs_f1ap_id;
+  uint64_t                    gnb_du_mbs_f1ap_id;
+  multicast_du2_cu_rrc_info_s multicast_du2_cu_rrc_info;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MulticastContextNotificationIndication ::= SEQUENCE
+using multicast_context_notif_ind_s = elementary_procedure_option<multicast_context_notif_ind_ies_container>;
+
+// MulticastContextNotificationRefuseIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct multicast_context_notif_refuse_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { gnb_cu_mbs_f1ap_id, gnb_du_mbs_f1ap_id, crit_diagnostics, cause, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint64_t&                 gnb_cu_mbs_f1ap_id();
+    uint64_t&                 gnb_du_mbs_f1ap_id();
+    crit_diagnostics_s&       crit_diagnostics();
+    cause_c&                  cause();
+    const uint64_t&           gnb_cu_mbs_f1ap_id() const;
+    const uint64_t&           gnb_du_mbs_f1ap_id() const;
+    const crit_diagnostics_s& crit_diagnostics() const;
+    const cause_c&            cause() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct multicast_context_notif_refuse_ies_container {
+  bool               crit_diagnostics_present = false;
+  uint64_t           gnb_cu_mbs_f1ap_id;
+  uint64_t           gnb_du_mbs_f1ap_id;
+  crit_diagnostics_s crit_diagnostics;
+  cause_c            cause;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MulticastContextNotificationRefuse ::= SEQUENCE
+using multicast_context_notif_refuse_s = elementary_procedure_option<multicast_context_notif_refuse_ies_container>;
 
 // MulticastContextReleaseCommandIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct multicast_context_release_cmd_ies_o {
@@ -3951,6 +4928,8 @@ struct multicast_context_setup_request_ies_o {
         mbs_service_area,
         snssai,
         multicast_m_rbs_to_be_setup_list,
+        multicast_cu2_du_rrc_info,
+        mbs_multicast_session_reception_state,
         nulltype
       } value;
       typedef uint8_t number_type;
@@ -3968,16 +4947,20 @@ struct multicast_context_setup_request_ies_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    uint64_t&                                 gnb_cu_mbs_f1ap_id();
-    mbs_session_id_s&                         mbs_session_id();
-    mbs_service_area_c&                       mbs_service_area();
-    snssai_s&                                 snssai();
-    multicast_m_rbs_to_be_setup_list_l&       multicast_m_rbs_to_be_setup_list();
-    const uint64_t&                           gnb_cu_mbs_f1ap_id() const;
-    const mbs_session_id_s&                   mbs_session_id() const;
-    const mbs_service_area_c&                 mbs_service_area() const;
-    const snssai_s&                           snssai() const;
-    const multicast_m_rbs_to_be_setup_list_l& multicast_m_rbs_to_be_setup_list() const;
+    uint64_t&                                      gnb_cu_mbs_f1ap_id();
+    mbs_session_id_s&                              mbs_session_id();
+    mbs_service_area_c&                            mbs_service_area();
+    snssai_s&                                      snssai();
+    multicast_m_rbs_to_be_setup_list_l&            multicast_m_rbs_to_be_setup_list();
+    multicast_cu2_du_rrc_info_s&                   multicast_cu2_du_rrc_info();
+    mbs_multicast_session_reception_state_e&       mbs_multicast_session_reception_state();
+    const uint64_t&                                gnb_cu_mbs_f1ap_id() const;
+    const mbs_session_id_s&                        mbs_session_id() const;
+    const mbs_service_area_c&                      mbs_service_area() const;
+    const snssai_s&                                snssai() const;
+    const multicast_m_rbs_to_be_setup_list_l&      multicast_m_rbs_to_be_setup_list() const;
+    const multicast_cu2_du_rrc_info_s&             multicast_cu2_du_rrc_info() const;
+    const mbs_multicast_session_reception_state_e& mbs_multicast_session_reception_state() const;
 
   private:
     types             type_;
@@ -3993,12 +4976,16 @@ struct multicast_context_setup_request_ies_o {
 };
 
 struct multicast_context_setup_request_ies_container {
-  bool                               mbs_service_area_present = false;
-  uint64_t                           gnb_cu_mbs_f1ap_id;
-  mbs_session_id_s                   mbs_session_id;
-  mbs_service_area_c                 mbs_service_area;
-  snssai_s                           snssai;
-  multicast_m_rbs_to_be_setup_list_l multicast_m_rbs_to_be_setup_list;
+  bool                                    mbs_service_area_present                      = false;
+  bool                                    multicast_cu2_du_rrc_info_present             = false;
+  bool                                    mbs_multicast_session_reception_state_present = false;
+  uint64_t                                gnb_cu_mbs_f1ap_id;
+  mbs_session_id_s                        mbs_session_id;
+  mbs_service_area_c                      mbs_service_area;
+  snssai_s                                snssai;
+  multicast_m_rbs_to_be_setup_list_l      multicast_m_rbs_to_be_setup_list;
+  multicast_cu2_du_rrc_info_s             multicast_cu2_du_rrc_info;
+  mbs_multicast_session_reception_state_e mbs_multicast_session_reception_state;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -4020,6 +5007,7 @@ struct multicast_context_setup_resp_ies_o {
         multicast_m_rbs_setup_list,
         multicast_m_rbs_failed_to_be_setup_list,
         crit_diagnostics,
+        multicast_du2_cu_rrc_info,
         nulltype
       } value;
 
@@ -4040,11 +5028,13 @@ struct multicast_context_setup_resp_ies_o {
     multicast_m_rbs_setup_list_l&                    multicast_m_rbs_setup_list();
     multicast_m_rbs_failed_to_be_setup_list_l&       multicast_m_rbs_failed_to_be_setup_list();
     crit_diagnostics_s&                              crit_diagnostics();
+    multicast_du2_cu_rrc_info_s&                     multicast_du2_cu_rrc_info();
     const uint64_t&                                  gnb_cu_mbs_f1ap_id() const;
     const uint64_t&                                  gnb_du_mbs_f1ap_id() const;
     const multicast_m_rbs_setup_list_l&              multicast_m_rbs_setup_list() const;
     const multicast_m_rbs_failed_to_be_setup_list_l& multicast_m_rbs_failed_to_be_setup_list() const;
     const crit_diagnostics_s&                        crit_diagnostics() const;
+    const multicast_du2_cu_rrc_info_s&               multicast_du2_cu_rrc_info() const;
 
   private:
     types             type_;
@@ -4062,11 +5052,13 @@ struct multicast_context_setup_resp_ies_o {
 struct multicast_context_setup_resp_ies_container {
   bool                                      multicast_m_rbs_failed_to_be_setup_list_present = false;
   bool                                      crit_diagnostics_present                        = false;
+  bool                                      multicast_du2_cu_rrc_info_present               = false;
   uint64_t                                  gnb_cu_mbs_f1ap_id;
   uint64_t                                  gnb_du_mbs_f1ap_id;
   multicast_m_rbs_setup_list_l              multicast_m_rbs_setup_list;
   multicast_m_rbs_failed_to_be_setup_list_l multicast_m_rbs_failed_to_be_setup_list;
   crit_diagnostics_s                        crit_diagnostics;
+  multicast_du2_cu_rrc_info_s               multicast_du2_cu_rrc_info;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -4418,7 +5410,13 @@ struct multicast_group_paging_ies_o {
   // Value ::= OPEN TYPE
   struct value_c {
     struct types_opts {
-      enum options { mbs_session_id, ue_id_list_for_paging_list, mc_paging_cell_list, nulltype } value;
+      enum options {
+        mbs_session_id,
+        ue_id_list_for_paging_list,
+        mc_paging_cell_list,
+        ind_mc_inactive_reception,
+        nulltype
+      } value;
 
       const char* to_string() const;
     };
@@ -4435,9 +5433,11 @@ struct multicast_group_paging_ies_o {
     mbs_session_id_s&                   mbs_session_id();
     ue_id_list_for_paging_list_l&       ue_id_list_for_paging_list();
     mc_paging_cell_list_l&              mc_paging_cell_list();
+    ind_mc_inactive_reception_e&        ind_mc_inactive_reception();
     const mbs_session_id_s&             mbs_session_id() const;
     const ue_id_list_for_paging_list_l& ue_id_list_for_paging_list() const;
     const mc_paging_cell_list_l&        mc_paging_cell_list() const;
+    const ind_mc_inactive_reception_e&  ind_mc_inactive_reception() const;
 
   private:
     types             type_;
@@ -4455,9 +5455,11 @@ struct multicast_group_paging_ies_o {
 struct multicast_group_paging_ies_container {
   bool                         ue_id_list_for_paging_list_present = false;
   bool                         mc_paging_cell_list_present        = false;
+  bool                         ind_mc_inactive_reception_present  = false;
   mbs_session_id_s             mbs_session_id;
   ue_id_list_for_paging_list_l ue_id_list_for_paging_list;
   mc_paging_cell_list_l        mc_paging_cell_list;
+  ind_mc_inactive_reception_e  ind_mc_inactive_reception;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -5005,9 +6007,11 @@ struct prs_cfg_request_ies_o {
   // Value ::= OPEN TYPE
   struct value_c {
     struct types_opts {
-      enum options { prs_cfg_request_type, prstrp_list, nulltype } value;
+      enum options { transaction_id, prs_cfg_request_type, prstrp_list, nulltype } value;
+      typedef uint8_t number_type;
 
       const char* to_string() const;
+      uint8_t     to_number() const;
     };
     using types = enumerated<types_opts>;
 
@@ -5019,8 +6023,10 @@ struct prs_cfg_request_ies_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
+    uint16_t&                     transaction_id();
     prs_cfg_request_type_e&       prs_cfg_request_type();
     prstrp_list_l&                prstrp_list();
+    const uint16_t&               transaction_id() const;
     const prs_cfg_request_type_e& prs_cfg_request_type() const;
     const prstrp_list_l&          prstrp_list() const;
 
@@ -5038,6 +6044,7 @@ struct prs_cfg_request_ies_o {
 };
 
 struct prs_cfg_request_ies_container {
+  uint16_t               transaction_id;
   prs_cfg_request_type_e prs_cfg_request_type;
   prstrp_list_l          prstrp_list;
 
@@ -5361,6 +6368,9 @@ struct paging_ies_o {
         pe_ip_s_assist_info,
         ue_paging_cap,
         extended_ue_id_idx_value,
+        hashed_ue_id_idx_value,
+        mt_sdt_info,
+        nr_paginglonge_drx_infofor_rrc_inactive,
         nulltype
       } value;
 
@@ -5376,34 +6386,40 @@ struct paging_ies_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    ue_id_idx_value_c&                           ue_id_idx_value();
-    paging_id_c&                                 paging_id();
-    paging_drx_e&                                paging_drx();
-    paging_prio_e&                               paging_prio();
-    paging_cell_list_l&                          paging_cell_list();
-    paging_origin_e&                             paging_origin();
-    paging_drx_e&                                ran_ue_paging_drx();
-    paging_drx_e&                                cn_ue_paging_drx();
-    nr_paginge_drx_info_s&                       nr_paginge_drx_info();
-    nr_paginge_drx_infofor_rrc_inactive_s&       nr_paginge_drx_infofor_rrc_inactive();
-    paging_cause_e&                              paging_cause();
-    pe_ip_s_assist_info_s&                       pe_ip_s_assist_info();
-    ue_paging_cap_s&                             ue_paging_cap();
-    fixed_bitstring<16, false, true>&            extended_ue_id_idx_value();
-    const ue_id_idx_value_c&                     ue_id_idx_value() const;
-    const paging_id_c&                           paging_id() const;
-    const paging_drx_e&                          paging_drx() const;
-    const paging_prio_e&                         paging_prio() const;
-    const paging_cell_list_l&                    paging_cell_list() const;
-    const paging_origin_e&                       paging_origin() const;
-    const paging_drx_e&                          ran_ue_paging_drx() const;
-    const paging_drx_e&                          cn_ue_paging_drx() const;
-    const nr_paginge_drx_info_s&                 nr_paginge_drx_info() const;
-    const nr_paginge_drx_infofor_rrc_inactive_s& nr_paginge_drx_infofor_rrc_inactive() const;
-    const paging_cause_e&                        paging_cause() const;
-    const pe_ip_s_assist_info_s&                 pe_ip_s_assist_info() const;
-    const ue_paging_cap_s&                       ue_paging_cap() const;
-    const fixed_bitstring<16, false, true>&      extended_ue_id_idx_value() const;
+    ue_id_idx_value_c&                               ue_id_idx_value();
+    paging_id_c&                                     paging_id();
+    paging_drx_e&                                    paging_drx();
+    paging_prio_e&                                   paging_prio();
+    paging_cell_list_l&                              paging_cell_list();
+    paging_origin_e&                                 paging_origin();
+    paging_drx_e&                                    ran_ue_paging_drx();
+    paging_drx_e&                                    cn_ue_paging_drx();
+    nr_paginge_drx_info_s&                           nr_paginge_drx_info();
+    nr_paginge_drx_infofor_rrc_inactive_s&           nr_paginge_drx_infofor_rrc_inactive();
+    paging_cause_e&                                  paging_cause();
+    pe_ip_s_assist_info_s&                           pe_ip_s_assist_info();
+    ue_paging_cap_s&                                 ue_paging_cap();
+    fixed_bitstring<16, false, true>&                extended_ue_id_idx_value();
+    fixed_bitstring<13, true, true>&                 hashed_ue_id_idx_value();
+    mt_sdt_info_s&                                   mt_sdt_info();
+    nr_paginglonge_drx_infofor_rrc_inactive_s&       nr_paginglonge_drx_infofor_rrc_inactive();
+    const ue_id_idx_value_c&                         ue_id_idx_value() const;
+    const paging_id_c&                               paging_id() const;
+    const paging_drx_e&                              paging_drx() const;
+    const paging_prio_e&                             paging_prio() const;
+    const paging_cell_list_l&                        paging_cell_list() const;
+    const paging_origin_e&                           paging_origin() const;
+    const paging_drx_e&                              ran_ue_paging_drx() const;
+    const paging_drx_e&                              cn_ue_paging_drx() const;
+    const nr_paginge_drx_info_s&                     nr_paginge_drx_info() const;
+    const nr_paginge_drx_infofor_rrc_inactive_s&     nr_paginge_drx_infofor_rrc_inactive() const;
+    const paging_cause_e&                            paging_cause() const;
+    const pe_ip_s_assist_info_s&                     pe_ip_s_assist_info() const;
+    const ue_paging_cap_s&                           ue_paging_cap() const;
+    const fixed_bitstring<16, false, true>&          extended_ue_id_idx_value() const;
+    const fixed_bitstring<13, true, true>&           hashed_ue_id_idx_value() const;
+    const mt_sdt_info_s&                             mt_sdt_info() const;
+    const nr_paginglonge_drx_infofor_rrc_inactive_s& nr_paginglonge_drx_infofor_rrc_inactive() const;
 
   private:
     types             type_;
@@ -5419,31 +6435,37 @@ struct paging_ies_o {
 };
 
 struct paging_ies_container {
-  bool                                  paging_drx_present                          = false;
-  bool                                  paging_prio_present                         = false;
-  bool                                  paging_origin_present                       = false;
-  bool                                  ran_ue_paging_drx_present                   = false;
-  bool                                  cn_ue_paging_drx_present                    = false;
-  bool                                  nr_paginge_drx_info_present                 = false;
-  bool                                  nr_paginge_drx_infofor_rrc_inactive_present = false;
-  bool                                  paging_cause_present                        = false;
-  bool                                  pe_ip_s_assist_info_present                 = false;
-  bool                                  ue_paging_cap_present                       = false;
-  bool                                  extended_ue_id_idx_value_present            = false;
-  ue_id_idx_value_c                     ue_id_idx_value;
-  paging_id_c                           paging_id;
-  paging_drx_e                          paging_drx;
-  paging_prio_e                         paging_prio;
-  paging_cell_list_l                    paging_cell_list;
-  paging_origin_e                       paging_origin;
-  paging_drx_e                          ran_ue_paging_drx;
-  paging_drx_e                          cn_ue_paging_drx;
-  nr_paginge_drx_info_s                 nr_paginge_drx_info;
-  nr_paginge_drx_infofor_rrc_inactive_s nr_paginge_drx_infofor_rrc_inactive;
-  paging_cause_e                        paging_cause;
-  pe_ip_s_assist_info_s                 pe_ip_s_assist_info;
-  ue_paging_cap_s                       ue_paging_cap;
-  fixed_bitstring<16, false, true>      extended_ue_id_idx_value;
+  bool                                      paging_drx_present                              = false;
+  bool                                      paging_prio_present                             = false;
+  bool                                      paging_origin_present                           = false;
+  bool                                      ran_ue_paging_drx_present                       = false;
+  bool                                      cn_ue_paging_drx_present                        = false;
+  bool                                      nr_paginge_drx_info_present                     = false;
+  bool                                      nr_paginge_drx_infofor_rrc_inactive_present     = false;
+  bool                                      paging_cause_present                            = false;
+  bool                                      pe_ip_s_assist_info_present                     = false;
+  bool                                      ue_paging_cap_present                           = false;
+  bool                                      extended_ue_id_idx_value_present                = false;
+  bool                                      hashed_ue_id_idx_value_present                  = false;
+  bool                                      mt_sdt_info_present                             = false;
+  bool                                      nr_paginglonge_drx_infofor_rrc_inactive_present = false;
+  ue_id_idx_value_c                         ue_id_idx_value;
+  paging_id_c                               paging_id;
+  paging_drx_e                              paging_drx;
+  paging_prio_e                             paging_prio;
+  paging_cell_list_l                        paging_cell_list;
+  paging_origin_e                           paging_origin;
+  paging_drx_e                              ran_ue_paging_drx;
+  paging_drx_e                              cn_ue_paging_drx;
+  nr_paginge_drx_info_s                     nr_paginge_drx_info;
+  nr_paginge_drx_infofor_rrc_inactive_s     nr_paginge_drx_infofor_rrc_inactive;
+  paging_cause_e                            paging_cause;
+  pe_ip_s_assist_info_s                     pe_ip_s_assist_info;
+  ue_paging_cap_s                           ue_paging_cap;
+  fixed_bitstring<16, false, true>          extended_ue_id_idx_value;
+  fixed_bitstring<13, true, true>           hashed_ue_id_idx_value;
+  mt_sdt_info_s                             mt_sdt_info;
+  nr_paginglonge_drx_infofor_rrc_inactive_s nr_paginglonge_drx_infofor_rrc_inactive;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -5572,23 +6594,28 @@ struct semipersistent_srs_ext_ies_o {
   // Extension ::= OPEN TYPE
   struct ext_c {
     struct types_opts {
-      enum options { srs_spatial_relation_per_srs_res, nulltype } value;
+      enum options { srs_spatial_relation_per_srs_res, aggr_pos_srs_res_set_list, nulltype } value;
 
       const char* to_string() const;
     };
     using types = enumerated<types_opts>;
 
     // choice methods
-    types         type() const { return types::srs_spatial_relation_per_srs_res; }
+    ext_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
     OCUDUASN_CODE pack(bit_ref& bref) const;
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    spatial_relation_per_srs_res_s&       srs_spatial_relation_per_srs_res() { return c; }
-    const spatial_relation_per_srs_res_s& srs_spatial_relation_per_srs_res() const { return c; }
+    spatial_relation_per_srs_res_s&       srs_spatial_relation_per_srs_res();
+    aggr_pos_srs_res_set_list_l&          aggr_pos_srs_res_set_list();
+    const spatial_relation_per_srs_res_s& srs_spatial_relation_per_srs_res() const;
+    const aggr_pos_srs_res_set_list_l&    aggr_pos_srs_res_set_list() const;
 
   private:
-    spatial_relation_per_srs_res_s c;
+    types             type_;
+    choice_buffer_ptr c;
   };
 
   // members lookup methods
@@ -5599,13 +6626,26 @@ struct semipersistent_srs_ext_ies_o {
   static presence_e get_presence(const uint32_t& id);
 };
 
+struct semipersistent_srs_ext_ies_container {
+  bool                           srs_spatial_relation_per_srs_res_present = false;
+  bool                           aggr_pos_srs_res_set_list_present        = false;
+  spatial_relation_per_srs_res_s srs_spatial_relation_per_srs_res;
+  aggr_pos_srs_res_set_list_l    aggr_pos_srs_res_set_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // SemipersistentSRS ::= SEQUENCE
 struct semipersistent_srs_s {
-  bool                                                   ext                          = false;
-  bool                                                   srs_spatial_relation_present = false;
-  uint8_t                                                srs_res_set_id               = 0;
-  spatial_relation_info_s                                srs_spatial_relation;
-  protocol_ext_container_l<semipersistent_srs_ext_ies_o> ie_exts;
+  bool                                 ext                          = false;
+  bool                                 srs_spatial_relation_present = false;
+  bool                                 ie_exts_present              = false;
+  uint8_t                              srs_res_set_id               = 0;
+  spatial_relation_info_s              srs_spatial_relation;
+  semipersistent_srs_ext_ies_container ie_exts;
   // ...
 
   // sequence methods
@@ -6062,6 +7102,8 @@ struct positioning_info_request_ies_o {
         requested_srs_tx_characteristics,
         ue_report_info,
         srs_pos_rrc_inactive_query_ind,
+        time_win_info_srs_list,
+        requested_srs_precfg_characteristics_list,
         nulltype
       } value;
 
@@ -6077,16 +7119,20 @@ struct positioning_info_request_ies_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    uint64_t&                                 gnb_cu_ue_f1ap_id();
-    uint64_t&                                 gnb_du_ue_f1ap_id();
-    requested_srs_tx_characteristics_s&       requested_srs_tx_characteristics();
-    ue_report_info_s&                         ue_report_info();
-    srs_pos_rrc_inactive_query_ind_e&         srs_pos_rrc_inactive_query_ind();
-    const uint64_t&                           gnb_cu_ue_f1ap_id() const;
-    const uint64_t&                           gnb_du_ue_f1ap_id() const;
-    const requested_srs_tx_characteristics_s& requested_srs_tx_characteristics() const;
-    const ue_report_info_s&                   ue_report_info() const;
-    const srs_pos_rrc_inactive_query_ind_e&   srs_pos_rrc_inactive_query_ind() const;
+    uint64_t&                                          gnb_cu_ue_f1ap_id();
+    uint64_t&                                          gnb_du_ue_f1ap_id();
+    requested_srs_tx_characteristics_s&                requested_srs_tx_characteristics();
+    ue_report_info_s&                                  ue_report_info();
+    srs_pos_rrc_inactive_query_ind_e&                  srs_pos_rrc_inactive_query_ind();
+    time_win_info_srs_list_l&                          time_win_info_srs_list();
+    requested_srs_precfg_characteristics_list_l&       requested_srs_precfg_characteristics_list();
+    const uint64_t&                                    gnb_cu_ue_f1ap_id() const;
+    const uint64_t&                                    gnb_du_ue_f1ap_id() const;
+    const requested_srs_tx_characteristics_s&          requested_srs_tx_characteristics() const;
+    const ue_report_info_s&                            ue_report_info() const;
+    const srs_pos_rrc_inactive_query_ind_e&            srs_pos_rrc_inactive_query_ind() const;
+    const time_win_info_srs_list_l&                    time_win_info_srs_list() const;
+    const requested_srs_precfg_characteristics_list_l& requested_srs_precfg_characteristics_list() const;
 
   private:
     types             type_;
@@ -6102,14 +7148,18 @@ struct positioning_info_request_ies_o {
 };
 
 struct positioning_info_request_ies_container {
-  bool                               requested_srs_tx_characteristics_present = false;
-  bool                               ue_report_info_present                   = false;
-  bool                               srs_pos_rrc_inactive_query_ind_present   = false;
-  uint64_t                           gnb_cu_ue_f1ap_id;
-  uint64_t                           gnb_du_ue_f1ap_id;
-  requested_srs_tx_characteristics_s requested_srs_tx_characteristics;
-  ue_report_info_s                   ue_report_info;
-  srs_pos_rrc_inactive_query_ind_e   srs_pos_rrc_inactive_query_ind;
+  bool                                        requested_srs_tx_characteristics_present          = false;
+  bool                                        ue_report_info_present                            = false;
+  bool                                        srs_pos_rrc_inactive_query_ind_present            = false;
+  bool                                        time_win_info_srs_list_present                    = false;
+  bool                                        requested_srs_precfg_characteristics_list_present = false;
+  uint64_t                                    gnb_cu_ue_f1ap_id;
+  uint64_t                                    gnb_du_ue_f1ap_id;
+  requested_srs_tx_characteristics_s          requested_srs_tx_characteristics;
+  ue_report_info_s                            ue_report_info;
+  srs_pos_rrc_inactive_query_ind_e            srs_pos_rrc_inactive_query_ind;
+  time_win_info_srs_list_l                    time_win_info_srs_list;
+  requested_srs_precfg_characteristics_list_l requested_srs_precfg_characteristics_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -6132,6 +7182,8 @@ struct positioning_info_resp_ies_o {
         sfn_initisation_time,
         crit_diagnostics,
         srs_pos_rrc_inactive_cfg,
+        srs_pos_rrc_inactive_validity_area_cfg,
+        srs_precfg_list,
         nulltype
       } value;
 
@@ -6153,12 +7205,16 @@ struct positioning_info_resp_ies_o {
     fixed_bitstring<64, false, true>&       sfn_initisation_time();
     crit_diagnostics_s&                     crit_diagnostics();
     unbounded_octstring<true>&              srs_pos_rrc_inactive_cfg();
+    unbounded_octstring<true>&              srs_pos_rrc_inactive_validity_area_cfg();
+    srs_precfg_list_l&                      srs_precfg_list();
     const uint64_t&                         gnb_cu_ue_f1ap_id() const;
     const uint64_t&                         gnb_du_ue_f1ap_id() const;
     const srs_configuration_s&              srs_configuration() const;
     const fixed_bitstring<64, false, true>& sfn_initisation_time() const;
     const crit_diagnostics_s&               crit_diagnostics() const;
     const unbounded_octstring<true>&        srs_pos_rrc_inactive_cfg() const;
+    const unbounded_octstring<true>&        srs_pos_rrc_inactive_validity_area_cfg() const;
+    const srs_precfg_list_l&                srs_precfg_list() const;
 
   private:
     types             type_;
@@ -6174,16 +7230,20 @@ struct positioning_info_resp_ies_o {
 };
 
 struct positioning_info_resp_ies_container {
-  bool                             srs_configuration_present        = false;
-  bool                             sfn_initisation_time_present     = false;
-  bool                             crit_diagnostics_present         = false;
-  bool                             srs_pos_rrc_inactive_cfg_present = false;
+  bool                             srs_configuration_present                      = false;
+  bool                             sfn_initisation_time_present                   = false;
+  bool                             crit_diagnostics_present                       = false;
+  bool                             srs_pos_rrc_inactive_cfg_present               = false;
+  bool                             srs_pos_rrc_inactive_validity_area_cfg_present = false;
+  bool                             srs_precfg_list_present                        = false;
   uint64_t                         gnb_cu_ue_f1ap_id;
   uint64_t                         gnb_du_ue_f1ap_id;
   srs_configuration_s              srs_configuration;
   fixed_bitstring<64, false, true> sfn_initisation_time;
   crit_diagnostics_s               crit_diagnostics;
   unbounded_octstring<true>        srs_pos_rrc_inactive_cfg;
+  unbounded_octstring<true>        srs_pos_rrc_inactive_validity_area_cfg;
+  srs_precfg_list_l                srs_precfg_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -6500,6 +7560,7 @@ struct positioning_meas_request_ies_o {
         meas_characteristics_request_ind,
         meas_time_occasion,
         pos_meas_amount,
+        time_win_info_meas_list,
         nulltype
       } value;
 
@@ -6532,6 +7593,7 @@ struct positioning_meas_request_ies_o {
     fixed_bitstring<16, false, true>&       meas_characteristics_request_ind();
     meas_time_occasion_e&                   meas_time_occasion();
     pos_meas_amount_e&                      pos_meas_amount();
+    time_win_info_meas_list_l&              time_win_info_meas_list();
     const uint16_t&                         transaction_id() const;
     const uint32_t&                         lmf_meas_id() const;
     const uint32_t&                         ran_meas_id() const;
@@ -6549,6 +7611,7 @@ struct positioning_meas_request_ies_o {
     const fixed_bitstring<16, false, true>& meas_characteristics_request_ind() const;
     const meas_time_occasion_e&             meas_time_occasion() const;
     const pos_meas_amount_e&                pos_meas_amount() const;
+    const time_win_info_meas_list_l&        time_win_info_meas_list() const;
 
   private:
     types             type_;
@@ -6575,6 +7638,7 @@ struct positioning_meas_request_ies_container {
   bool                             meas_characteristics_request_ind_present = false;
   bool                             meas_time_occasion_present               = false;
   bool                             pos_meas_amount_present                  = false;
+  bool                             time_win_info_meas_list_present          = false;
   uint16_t                         transaction_id;
   uint32_t                         lmf_meas_id;
   uint32_t                         ran_meas_id;
@@ -6592,6 +7656,7 @@ struct positioning_meas_request_ies_container {
   fixed_bitstring<16, false, true> meas_characteristics_request_ind;
   meas_time_occasion_e             meas_time_occasion;
   pos_meas_amount_e                pos_meas_amount;
+  time_win_info_meas_list_l        time_win_info_meas_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -6835,6 +7900,59 @@ struct qo_e_info_transfer_ies_container {
 // QoEInformationTransfer ::= SEQUENCE
 using qo_e_info_transfer_s = elementary_procedure_option<qo_e_info_transfer_ies_container>;
 
+// QoEInformationTransferControl-IEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct qo_e_info_transfer_ctrl_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, deactivation_ind, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                 transaction_id();
+    deactivation_ind_c&       deactivation_ind();
+    const uint16_t&           transaction_id() const;
+    const deactivation_ind_c& deactivation_ind() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct qo_e_info_transfer_ctrl_ies_container {
+  bool               deactivation_ind_present = false;
+  uint16_t           transaction_id;
+  deactivation_ind_c deactivation_ind;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// QoEInformationTransferControl ::= SEQUENCE
+using qo_e_info_transfer_ctrl_s = elementary_procedure_option<qo_e_info_transfer_ctrl_ies_container>;
+
 // RRCDeliveryReportIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct rrc_delivery_report_ies_o {
   // Value ::= OPEN TYPE
@@ -6890,6 +8008,58 @@ struct rrc_delivery_report_ies_container {
 
 // RRCDeliveryReport ::= SEQUENCE
 using rrc_delivery_report_s = elementary_procedure_option<rrc_delivery_report_ies_container>;
+
+// RachIndication-IEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct rach_ind_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, ra_report_ind_list, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                   transaction_id();
+    ra_report_ind_list_l&       ra_report_ind_list();
+    const uint16_t&             transaction_id() const;
+    const ra_report_ind_list_l& ra_report_ind_list() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct rach_ind_ies_container {
+  uint16_t             transaction_id;
+  ra_report_ind_list_l ra_report_ind_list;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RachIndication ::= SEQUENCE
+using rach_ind_s = elementary_procedure_option<rach_ind_ies_container>;
 
 // ReferenceTimeInformationReportIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct ref_time_info_report_ies_o {
@@ -7525,6 +8695,66 @@ struct res_status_upd_ies_container {
 // ResourceStatusUpdate ::= SEQUENCE
 using res_status_upd_s = elementary_procedure_option<res_status_upd_ies_container>;
 
+// SRSInformationReservationNotificationIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct srs_info_reserv_notif_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, srs_reserv_type, srs_info, precfg_srs_info, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                                          transaction_id();
+    srs_reserv_type_e&                                 srs_reserv_type();
+    requested_srs_tx_characteristics_s&                srs_info();
+    requested_srs_precfg_characteristics_list_l&       precfg_srs_info();
+    const uint16_t&                                    transaction_id() const;
+    const srs_reserv_type_e&                           srs_reserv_type() const;
+    const requested_srs_tx_characteristics_s&          srs_info() const;
+    const requested_srs_precfg_characteristics_list_l& precfg_srs_info() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct srs_info_reserv_notif_ies_container {
+  bool                                        srs_info_present        = false;
+  bool                                        precfg_srs_info_present = false;
+  uint16_t                                    transaction_id;
+  srs_reserv_type_e                           srs_reserv_type;
+  requested_srs_tx_characteristics_s          srs_info;
+  requested_srs_precfg_characteristics_list_l precfg_srs_info;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SRSInformationReservationNotification ::= SEQUENCE
+using srs_info_reserv_notif_s = elementary_procedure_option<srs_info_reserv_notif_ies_container>;
+
 // SystemInformationDeliveryCommandIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct sys_info_delivery_cmd_ies_o {
   // Value ::= OPEN TYPE
@@ -7819,6 +9049,223 @@ struct trp_info_resp_ies_container {
 // TRPInformationResponse ::= SEQUENCE
 using trp_info_resp_s = elementary_procedure_option<trp_info_resp_ies_container>;
 
+// TimingSynchronisationStatusFailure-IEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct timing_synchronisation_status_fail_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, cause, crit_diagnostics, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                 transaction_id();
+    cause_c&                  cause();
+    crit_diagnostics_s&       crit_diagnostics();
+    const uint16_t&           transaction_id() const;
+    const cause_c&            cause() const;
+    const crit_diagnostics_s& crit_diagnostics() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct timing_synchronisation_status_fail_ies_container {
+  bool               crit_diagnostics_present = false;
+  uint16_t           transaction_id;
+  cause_c            cause;
+  crit_diagnostics_s crit_diagnostics;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// TimingSynchronisationStatusFailure ::= SEQUENCE
+using timing_synchronisation_status_fail_s =
+    elementary_procedure_option<timing_synchronisation_status_fail_ies_container>;
+
+// TimingSynchronisationStatusReport-IEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct timing_synchronisation_status_report_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, ran_timing_synchronisation_status_info, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                                       transaction_id();
+    ran_timing_synchronisation_status_info_s&       ran_timing_synchronisation_status_info();
+    const uint16_t&                                 transaction_id() const;
+    const ran_timing_synchronisation_status_info_s& ran_timing_synchronisation_status_info() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct timing_synchronisation_status_report_ies_container {
+  uint16_t                                 transaction_id;
+  ran_timing_synchronisation_status_info_s ran_timing_synchronisation_status_info;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// TimingSynchronisationStatusReport ::= SEQUENCE
+using timing_synchronisation_status_report_s =
+    elementary_procedure_option<timing_synchronisation_status_report_ies_container>;
+
+// TimingSynchronisationStatusRequest-IEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct timing_synchronisation_status_request_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, rantss_request_type, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                    transaction_id();
+    rantss_request_type_e&       rantss_request_type();
+    const uint16_t&              transaction_id() const;
+    const rantss_request_type_e& rantss_request_type() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct timing_synchronisation_status_request_ies_container {
+  uint16_t              transaction_id;
+  rantss_request_type_e rantss_request_type;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// TimingSynchronisationStatusRequest ::= SEQUENCE
+using timing_synchronisation_status_request_s =
+    elementary_procedure_option<timing_synchronisation_status_request_ies_container>;
+
+// TimingSynchronisationStatusResponse-IEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+struct timing_synchronisation_status_resp_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { transaction_id, crit_diagnostics, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t&                 transaction_id();
+    crit_diagnostics_s&       crit_diagnostics();
+    const uint16_t&           transaction_id() const;
+    const crit_diagnostics_s& crit_diagnostics() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct timing_synchronisation_status_resp_ies_container {
+  bool               crit_diagnostics_present = false;
+  uint16_t           transaction_id;
+  crit_diagnostics_s crit_diagnostics;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// TimingSynchronisationStatusResponse ::= SEQUENCE
+using timing_synchronisation_status_resp_s =
+    elementary_procedure_option<timing_synchronisation_status_resp_ies_container>;
+
 // TraceStartIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 struct trace_start_ies_o {
   // Value ::= OPEN TYPE
@@ -8023,9 +9470,16 @@ extern template struct asn1::protocol_ie_field_s<asn1::f1ap::broadcast_context_r
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::broadcast_context_setup_fail_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::broadcast_context_setup_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::broadcast_context_setup_resp_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::broadcast_transport_res_request_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::cu_du_cell_switch_notif_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::cu_du_mob_initiation_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::cu_du_radio_info_transfer_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::cu_du_tai_nformation_transfer_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::cell_traffic_trace_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::du_cu_access_and_mob_ind_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::du_cu_cell_switch_notif_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::du_cu_radio_info_transfer_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::du_cu_tai_nformation_transfer_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::deactiv_trace_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::e_c_id_meas_fail_ind_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::e_c_id_meas_initiation_fail_ies_o>;
@@ -8057,13 +9511,21 @@ extern template struct asn1::protocol_ie_field_s<asn1::f1ap::iab_tnl_address_res
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::iab_up_cfg_upd_fail_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::iab_up_cfg_upd_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::iab_up_cfg_upd_resp_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::miabf1_setup_outcome_notif_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::miabf1_setup_trigger_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::meas_activation_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::meas_precfg_confirm_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::meas_precfg_refuse_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::meas_precfg_required_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_common_cfg_refuse_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_common_cfg_request_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_common_cfg_resp_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_context_mod_fail_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_context_mod_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_context_mod_resp_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_context_notif_confirm_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_context_notif_ind_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_context_notif_refuse_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_context_release_cmd_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_context_release_complete_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::multicast_context_release_request_ies_o>;
@@ -8094,6 +9556,7 @@ extern template struct asn1::protocol_ie_field_s<asn1::f1ap::pws_restart_ind_ies
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::paging_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::pos_sys_info_delivery_cmd_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::positioning_activation_fail_ies_o>;
+extern template struct asn1::protocol_ext_field_s<asn1::f1ap::semipersistent_srs_ext_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::positioning_activation_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::positioning_activation_resp_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::positioning_assist_info_ctrl_ies_o>;
@@ -8111,7 +9574,9 @@ extern template struct asn1::protocol_ie_field_s<asn1::f1ap::positioning_meas_re
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::positioning_meas_resp_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::positioning_meas_upd_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::qo_e_info_transfer_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::qo_e_info_transfer_ctrl_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::rrc_delivery_report_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::rach_ind_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::ref_time_info_report_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::ref_time_info_report_ctrl_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::reset_ies_o>;
@@ -8120,10 +9585,15 @@ extern template struct asn1::protocol_ie_field_s<asn1::f1ap::res_status_fail_ies
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::res_status_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::res_status_resp_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::res_status_upd_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::srs_info_reserv_notif_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::sys_info_delivery_cmd_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::trp_info_fail_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::trp_info_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::trp_info_resp_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::timing_synchronisation_status_fail_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::timing_synchronisation_status_report_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::timing_synchronisation_status_request_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::f1ap::timing_synchronisation_status_resp_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::trace_start_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::write_replace_warning_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::f1ap::write_replace_warning_resp_ies_o>;

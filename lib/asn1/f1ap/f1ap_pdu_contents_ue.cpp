@@ -19,12 +19,12 @@ using namespace asn1::f1ap;
 // DLRRCMessageTransferIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t dl_rrc_msg_transfer_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {40, 41, 47, 64, 109, 50, 108, 184, 222, 218, 221, 217, 248, 597};
-  return map_enum_number(names, 14, idx, "id");
+  static const uint32_t names[] = {40, 41, 47, 64, 109, 50, 108, 184, 222, 218, 221, 217, 248, 597, 861, 919};
+  return map_enum_number(names, 16, idx, "id");
 }
 bool dl_rrc_msg_transfer_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {40, 41, 47, 64, 109, 50, 108, 184, 222, 218, 221, 217, 248, 597};
+  static const uint32_t names[] = {40, 41, 47, 64, 109, 50, 108, 184, 222, 218, 221, 217, 248, 597, 861, 919};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -62,6 +62,10 @@ crit_e dl_rrc_msg_transfer_ies_o::get_crit(const uint32_t& id)
     case 248:
       return crit_e::ignore;
     case 597:
+      return crit_e::ignore;
+    case 861:
+      return crit_e::ignore;
+    case 919:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -114,6 +118,12 @@ dl_rrc_msg_transfer_ies_o::value_c dl_rrc_msg_transfer_ies_o::get_value(const ui
     case 597:
       ret.set(value_c::types::srb_map_info);
       break;
+    case 861:
+      ret.set(value_c::types::plmn_idx_nr_assist_info_for_net_shar);
+      break;
+    case 919:
+      ret.set(value_c::types::area_specific_semi_persistent_srs_pos_info);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -149,6 +159,10 @@ presence_e dl_rrc_msg_transfer_ies_o::get_presence(const uint32_t& id)
     case 248:
       return presence_e::optional;
     case 597:
+      return presence_e::optional;
+    case 861:
+      return presence_e::optional;
+    case 919:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -201,7 +215,13 @@ void dl_rrc_msg_transfer_ies_o::value_c::set(types::options e)
       c = fixed_bitstring<32, false, true>{};
       break;
     case types::srb_map_info:
-      c = fixed_bitstring<16, false, true>{};
+      c = uint8_t{};
+      break;
+    case types::plmn_idx_nr_assist_info_for_net_shar:
+      c = uint8_t{};
+      break;
+    case types::area_specific_semi_persistent_srs_pos_info:
+      c = area_specific_semi_persistent_srs_pos_info_s{};
       break;
     case types::nulltype:
       break;
@@ -274,10 +294,21 @@ fixed_bitstring<32, false, true>& dl_rrc_msg_transfer_ies_o::value_c::add_rrm_pr
   assert_choice_type(types::add_rrm_prio_idx, type_, "Value");
   return c.get<fixed_bitstring<32, false, true>>();
 }
-fixed_bitstring<16, false, true>& dl_rrc_msg_transfer_ies_o::value_c::srb_map_info()
+uint8_t& dl_rrc_msg_transfer_ies_o::value_c::srb_map_info()
 {
   assert_choice_type(types::srb_map_info, type_, "Value");
-  return c.get<fixed_bitstring<16, false, true>>();
+  return c.get<uint8_t>();
+}
+uint8_t& dl_rrc_msg_transfer_ies_o::value_c::plmn_idx_nr_assist_info_for_net_shar()
+{
+  assert_choice_type(types::plmn_idx_nr_assist_info_for_net_shar, type_, "Value");
+  return c.get<uint8_t>();
+}
+area_specific_semi_persistent_srs_pos_info_s&
+dl_rrc_msg_transfer_ies_o::value_c::area_specific_semi_persistent_srs_pos_info()
+{
+  assert_choice_type(types::area_specific_semi_persistent_srs_pos_info, type_, "Value");
+  return c.get<area_specific_semi_persistent_srs_pos_info_s>();
 }
 const uint64_t& dl_rrc_msg_transfer_ies_o::value_c::gnb_cu_ue_f1ap_id() const
 {
@@ -344,10 +375,21 @@ const fixed_bitstring<32, false, true>& dl_rrc_msg_transfer_ies_o::value_c::add_
   assert_choice_type(types::add_rrm_prio_idx, type_, "Value");
   return c.get<fixed_bitstring<32, false, true>>();
 }
-const fixed_bitstring<16, false, true>& dl_rrc_msg_transfer_ies_o::value_c::srb_map_info() const
+const uint8_t& dl_rrc_msg_transfer_ies_o::value_c::srb_map_info() const
 {
   assert_choice_type(types::srb_map_info, type_, "Value");
-  return c.get<fixed_bitstring<16, false, true>>();
+  return c.get<uint8_t>();
+}
+const uint8_t& dl_rrc_msg_transfer_ies_o::value_c::plmn_idx_nr_assist_info_for_net_shar() const
+{
+  assert_choice_type(types::plmn_idx_nr_assist_info_for_net_shar, type_, "Value");
+  return c.get<uint8_t>();
+}
+const area_specific_semi_persistent_srs_pos_info_s&
+dl_rrc_msg_transfer_ies_o::value_c::area_specific_semi_persistent_srs_pos_info() const
+{
+  assert_choice_type(types::area_specific_semi_persistent_srs_pos_info, type_, "Value");
+  return c.get<area_specific_semi_persistent_srs_pos_info_s>();
 }
 void dl_rrc_msg_transfer_ies_o::value_c::to_json(json_writer& j) const
 {
@@ -394,7 +436,14 @@ void dl_rrc_msg_transfer_ies_o::value_c::to_json(json_writer& j) const
       j.write_str("BIT STRING", c.get<fixed_bitstring<32, false, true>>().to_string());
       break;
     case types::srb_map_info:
-      j.write_str("BIT STRING", c.get<fixed_bitstring<16, false, true>>().to_string());
+      j.write_int("INTEGER (1..32)", c.get<uint8_t>());
+      break;
+    case types::plmn_idx_nr_assist_info_for_net_shar:
+      j.write_int("INTEGER (1..12)", c.get<uint8_t>());
+      break;
+    case types::area_specific_semi_persistent_srs_pos_info:
+      j.write_fieldname("AreaSpecificSemiPersistentSRSPosInfo");
+      c.get<area_specific_semi_persistent_srs_pos_info_s>().to_json(j);
       break;
     default:
       log_invalid_choice_id(type_, "dl_rrc_msg_transfer_ies_o::value_c");
@@ -445,7 +494,13 @@ OCUDUASN_CODE dl_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
       HANDLE_CODE((c.get<fixed_bitstring<32, false, true>>().pack(bref)));
       break;
     case types::srb_map_info:
-      HANDLE_CODE((c.get<fixed_bitstring<16, false, true>>().pack(bref)));
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)1u, (uint8_t)32u, false, true));
+      break;
+    case types::plmn_idx_nr_assist_info_for_net_shar:
+      HANDLE_CODE(pack_integer(bref, c.get<uint8_t>(), (uint8_t)1u, (uint8_t)12u, false, true));
+      break;
+    case types::area_specific_semi_persistent_srs_pos_info:
+      HANDLE_CODE(c.get<area_specific_semi_persistent_srs_pos_info_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "dl_rrc_msg_transfer_ies_o::value_c");
@@ -497,7 +552,13 @@ OCUDUASN_CODE dl_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
       HANDLE_CODE((c.get<fixed_bitstring<32, false, true>>().unpack(bref)));
       break;
     case types::srb_map_info:
-      HANDLE_CODE((c.get<fixed_bitstring<16, false, true>>().unpack(bref)));
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)1u, (uint8_t)32u, false, true));
+      break;
+    case types::plmn_idx_nr_assist_info_for_net_shar:
+      HANDLE_CODE(unpack_integer(c.get<uint8_t>(), bref, (uint8_t)1u, (uint8_t)12u, false, true));
+      break;
+    case types::area_specific_semi_persistent_srs_pos_info:
+      HANDLE_CODE(c.get<area_specific_semi_persistent_srs_pos_info_s>().unpack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "dl_rrc_msg_transfer_ies_o::value_c");
@@ -521,8 +582,10 @@ const char* dl_rrc_msg_transfer_ies_o::value_c::types_opts::to_string() const
                                 "OCTET STRING",
                                 "INTEGER (0..4294967295)",
                                 "BIT STRING",
-                                "BIT STRING"};
-  return convert_enum_idx(names, 14, value, "dl_rrc_msg_transfer_ies_o::value_c::types");
+                                "INTEGER (1..32)",
+                                "INTEGER (1..12)",
+                                "AreaSpecificSemiPersistentSRSPosInfo"};
+  return convert_enum_idx(names, 16, value, "dl_rrc_msg_transfer_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<dl_rrc_msg_transfer_ies_o>;
@@ -540,6 +603,8 @@ OCUDUASN_CODE dl_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
   nof_ies += new_gnb_cu_ue_f1ap_id_present ? 1 : 0;
   nof_ies += add_rrm_prio_idx_present ? 1 : 0;
   nof_ies += srb_map_info_present ? 1 : 0;
+  nof_ies += plmn_idx_nr_assist_info_for_net_shar_present ? 1 : 0;
+  nof_ies += area_specific_semi_persistent_srs_pos_info_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -624,7 +689,19 @@ OCUDUASN_CODE dl_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(pack_integer(bref, (uint32_t)597, (uint32_t)0u, (uint32_t)65535u, false, true));
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
-    HANDLE_CODE(srb_map_info.pack(bref));
+    HANDLE_CODE(pack_integer(bref, srb_map_info, (uint8_t)1u, (uint8_t)32u, false, true));
+  }
+  if (plmn_idx_nr_assist_info_for_net_shar_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)861, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, plmn_idx_nr_assist_info_for_net_shar, (uint8_t)1u, (uint8_t)12u, false, true));
+  }
+  if (area_specific_semi_persistent_srs_pos_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)919, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(area_specific_semi_persistent_srs_pos_info.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -724,7 +801,19 @@ OCUDUASN_CODE dl_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
       case 597: {
         srb_map_info_present = true;
         varlength_field_unpack_guard varlen_scope(bref, true);
-        HANDLE_CODE(srb_map_info.unpack(bref));
+        HANDLE_CODE(unpack_integer(srb_map_info, bref, (uint8_t)1u, (uint8_t)32u, false, true));
+        break;
+      }
+      case 861: {
+        plmn_idx_nr_assist_info_for_net_shar_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(plmn_idx_nr_assist_info_for_net_shar, bref, (uint8_t)1u, (uint8_t)12u, false, true));
+        break;
+      }
+      case 919: {
+        area_specific_semi_persistent_srs_pos_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(area_specific_semi_persistent_srs_pos_info.unpack(bref));
         break;
       }
       default:
@@ -802,7 +891,17 @@ void dl_rrc_msg_transfer_ies_container::to_json(json_writer& j) const
   if (srb_map_info_present) {
     j.write_int("id", 597);
     j.write_str("criticality", "ignore");
-    j.write_str("Value", srb_map_info.to_string());
+    j.write_int("Value", srb_map_info);
+  }
+  if (plmn_idx_nr_assist_info_for_net_shar_present) {
+    j.write_int("id", 861);
+    j.write_str("criticality", "ignore");
+    j.write_int("Value", plmn_idx_nr_assist_info_for_net_shar);
+  }
+  if (area_specific_semi_persistent_srs_pos_info_present) {
+    j.write_int("id", 919);
+    j.write_str("criticality", "ignore");
+    area_specific_semi_persistent_srs_pos_info.to_json(j);
   }
   j.end_obj();
 }
@@ -810,12 +909,12 @@ void dl_rrc_msg_transfer_ies_container::to_json(json_writer& j) const
 // InitialULRRCMessageTransferIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t init_ul_rrc_msg_transfer_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {41, 111, 95, 50, 128, 178, 78, 226, 241, 578, 592, 617};
-  return map_enum_number(names, 12, idx, "id");
+  static const uint32_t names[] = {41, 111, 95, 50, 128, 178, 78, 226, 241, 578, 592, 617, 783};
+  return map_enum_number(names, 13, idx, "id");
 }
 bool init_ul_rrc_msg_transfer_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {41, 111, 95, 50, 128, 178, 78, 226, 241, 578, 592, 617};
+  static const uint32_t names[] = {41, 111, 95, 50, 128, 178, 78, 226, 241, 578, 592, 617, 783};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -849,6 +948,8 @@ crit_e init_ul_rrc_msg_transfer_ies_o::get_crit(const uint32_t& id)
     case 592:
       return crit_e::ignore;
     case 617:
+      return crit_e::ignore;
+    case 783:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -895,6 +996,9 @@ init_ul_rrc_msg_transfer_ies_o::value_c init_ul_rrc_msg_transfer_ies_o::get_valu
     case 617:
       ret.set(value_c::types::sidelink_relay_cfg);
       break;
+    case 783:
+      ret.set(value_c::types::nr_e_red_cap_ue_ind);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -926,6 +1030,8 @@ presence_e init_ul_rrc_msg_transfer_ies_o::get_presence(const uint32_t& id)
     case 592:
       return presence_e::optional;
     case 617:
+      return presence_e::optional;
+    case 783:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -973,6 +1079,9 @@ void init_ul_rrc_msg_transfer_ies_o::value_c::set(types::options e)
       break;
     case types::sidelink_relay_cfg:
       c = sidelink_relay_cfg_s{};
+      break;
+    case types::nr_e_red_cap_ue_ind:
+      c = nr_e_red_cap_ue_ind_e{};
       break;
     case types::nulltype:
       break;
@@ -1040,6 +1149,11 @@ sidelink_relay_cfg_s& init_ul_rrc_msg_transfer_ies_o::value_c::sidelink_relay_cf
   assert_choice_type(types::sidelink_relay_cfg, type_, "Value");
   return c.get<sidelink_relay_cfg_s>();
 }
+nr_e_red_cap_ue_ind_e& init_ul_rrc_msg_transfer_ies_o::value_c::nr_e_red_cap_ue_ind()
+{
+  assert_choice_type(types::nr_e_red_cap_ue_ind, type_, "Value");
+  return c.get<nr_e_red_cap_ue_ind_e>();
+}
 const uint64_t& init_ul_rrc_msg_transfer_ies_o::value_c::gnb_du_ue_f1ap_id() const
 {
   assert_choice_type(types::gnb_du_ue_f1ap_id, type_, "Value");
@@ -1100,6 +1214,11 @@ const sidelink_relay_cfg_s& init_ul_rrc_msg_transfer_ies_o::value_c::sidelink_re
   assert_choice_type(types::sidelink_relay_cfg, type_, "Value");
   return c.get<sidelink_relay_cfg_s>();
 }
+const nr_e_red_cap_ue_ind_e& init_ul_rrc_msg_transfer_ies_o::value_c::nr_e_red_cap_ue_ind() const
+{
+  assert_choice_type(types::nr_e_red_cap_ue_ind, type_, "Value");
+  return c.get<nr_e_red_cap_ue_ind_e>();
+}
 void init_ul_rrc_msg_transfer_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -1142,6 +1261,9 @@ void init_ul_rrc_msg_transfer_ies_o::value_c::to_json(json_writer& j) const
     case types::sidelink_relay_cfg:
       j.write_fieldname("SidelinkRelayConfiguration");
       c.get<sidelink_relay_cfg_s>().to_json(j);
+      break;
+    case types::nr_e_red_cap_ue_ind:
+      j.write_str("NReRedCapUEIndication", "true");
       break;
     default:
       log_invalid_choice_id(type_, "init_ul_rrc_msg_transfer_ies_o::value_c");
@@ -1187,6 +1309,9 @@ OCUDUASN_CODE init_ul_rrc_msg_transfer_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::sidelink_relay_cfg:
       HANDLE_CODE(c.get<sidelink_relay_cfg_s>().pack(bref));
+      break;
+    case types::nr_e_red_cap_ue_ind:
+      HANDLE_CODE(c.get<nr_e_red_cap_ue_ind_e>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "init_ul_rrc_msg_transfer_ies_o::value_c");
@@ -1234,6 +1359,9 @@ OCUDUASN_CODE init_ul_rrc_msg_transfer_ies_o::value_c::unpack(cbit_ref& bref)
     case types::sidelink_relay_cfg:
       HANDLE_CODE(c.get<sidelink_relay_cfg_s>().unpack(bref));
       break;
+    case types::nr_e_red_cap_ue_ind:
+      HANDLE_CODE(c.get<nr_e_red_cap_ue_ind_e>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "init_ul_rrc_msg_transfer_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -1254,8 +1382,9 @@ const char* init_ul_rrc_msg_transfer_ies_o::value_c::types_opts::to_string() con
                                 "OCTET STRING",
                                 "NRRedCapUEIndication",
                                 "SDTInformation",
-                                "SidelinkRelayConfiguration"};
-  return convert_enum_idx(names, 12, value, "init_ul_rrc_msg_transfer_ies_o::value_c::types");
+                                "SidelinkRelayConfiguration",
+                                "NReRedCapUEIndication"};
+  return convert_enum_idx(names, 13, value, "init_ul_rrc_msg_transfer_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<init_ul_rrc_msg_transfer_ies_o>;
@@ -1270,6 +1399,7 @@ OCUDUASN_CODE init_ul_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
   nof_ies += nr_red_cap_ue_ind_present ? 1 : 0;
   nof_ies += sdt_info_present ? 1 : 0;
   nof_ies += sidelink_relay_cfg_present ? 1 : 0;
+  nof_ies += nr_e_red_cap_ue_ind_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -1343,6 +1473,12 @@ OCUDUASN_CODE init_ul_rrc_msg_transfer_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(sidelink_relay_cfg.pack(bref));
+  }
+  if (nr_e_red_cap_ue_ind_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)783, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_e_red_cap_ue_ind.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -1433,6 +1569,12 @@ OCUDUASN_CODE init_ul_rrc_msg_transfer_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(sidelink_relay_cfg.unpack(bref));
         break;
       }
+      case 783: {
+        nr_e_red_cap_ue_ind_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_e_red_cap_ue_ind.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -1497,6 +1639,11 @@ void init_ul_rrc_msg_transfer_ies_container::to_json(json_writer& j) const
     j.write_int("id", 617);
     j.write_str("criticality", "ignore");
     sidelink_relay_cfg.to_json(j);
+  }
+  if (nr_e_red_cap_ue_ind_present) {
+    j.write_int("id", 783);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
   }
   j.end_obj();
 }
@@ -2926,8 +3073,9 @@ uint32_t ue_context_mod_request_ies_o::idx_to_id(uint32_t idx)
                                    72,  33,  97,  108, 159, 174, 175, 162, 158, 109, 184, 195, 182, 215, 94,  248,
                                    253, 267, 263, 265, 306, 307, 308, 309, 340, 332, 326, 328, 374, 428, 432, 684,
                                    510, 511, 536, 547, 586, 594, 595, 596, 618, 599, 600, 601, 608, 609, 610, 619,
-                                   626, 632, 633, 685, 628, 643, 647, 675, 683, 695, 690, 691};
-  return map_enum_number(names, 76, idx, "id");
+                                   626, 632, 633, 685, 628, 643, 647, 675, 683, 695, 690, 691, 712, 716, 722, 845,
+                                   721, 726, 728, 843, 723, 741, 779, 780, 781, 782, 794, 801, 838, 855, 863};
+  return map_enum_number(names, 95, idx, "id");
 }
 bool ue_context_mod_request_ies_o::is_id_valid(const uint32_t& id)
 {
@@ -2935,7 +3083,8 @@ bool ue_context_mod_request_ies_o::is_id_valid(const uint32_t& id)
                                    72,  33,  97,  108, 159, 174, 175, 162, 158, 109, 184, 195, 182, 215, 94,  248,
                                    253, 267, 263, 265, 306, 307, 308, 309, 340, 332, 326, 328, 374, 428, 432, 684,
                                    510, 511, 536, 547, 586, 594, 595, 596, 618, 599, 600, 601, 608, 609, 610, 619,
-                                   626, 632, 633, 685, 628, 643, 647, 675, 683, 695, 690, 691};
+                                   626, 632, 633, 685, 628, 643, 647, 675, 683, 695, 690, 691, 712, 716, 722, 845,
+                                   721, 726, 728, 843, 723, 741, 779, 780, 781, 782, 794, 801, 838, 855, 863};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -3098,6 +3247,44 @@ crit_e ue_context_mod_request_ies_o::get_crit(const uint32_t& id)
       return crit_e::ignore;
     case 691:
       return crit_e::ignore;
+    case 712:
+      return crit_e::ignore;
+    case 716:
+      return crit_e::ignore;
+    case 722:
+      return crit_e::reject;
+    case 845:
+      return crit_e::ignore;
+    case 721:
+      return crit_e::reject;
+    case 726:
+      return crit_e::ignore;
+    case 728:
+      return crit_e::ignore;
+    case 843:
+      return crit_e::ignore;
+    case 723:
+      return crit_e::reject;
+    case 741:
+      return crit_e::reject;
+    case 779:
+      return crit_e::ignore;
+    case 780:
+      return crit_e::ignore;
+    case 781:
+      return crit_e::ignore;
+    case 782:
+      return crit_e::ignore;
+    case 794:
+      return crit_e::ignore;
+    case 801:
+      return crit_e::ignore;
+    case 838:
+      return crit_e::ignore;
+    case 855:
+      return crit_e::ignore;
+    case 863:
+      return crit_e::reject;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -3335,6 +3522,63 @@ ue_context_mod_request_ies_o::value_c ue_context_mod_request_ies_o::get_value(co
     case 691:
       ret.set(value_c::types::cp_acmcg_info);
       break;
+    case 712:
+      ret.set(value_c::types::network_ctrl_repeater_authorized);
+      break;
+    case 716:
+      ret.set(value_c::types::sdt_volume_thres);
+      break;
+    case 722:
+      ret.set(value_c::types::ltm_info_modify);
+      break;
+    case 845:
+      ret.set(value_c::types::ltmcfra_res_cfg_list);
+      break;
+    case 721:
+      ret.set(value_c::types::ltm_cfg_id_map_list);
+      break;
+    case 726:
+      ret.set(value_c::types::early_sync_info_request);
+      break;
+    case 728:
+      ret.set(value_c::types::early_sync_candidate_cell_info_list);
+      break;
+    case 843:
+      ret.set(value_c::types::early_sync_serving_cell_info);
+      break;
+    case 723:
+      ret.set(value_c::types::ltm_cells_to_be_released_list);
+      break;
+    case 741:
+      ret.set(value_c::types::path_addition_info);
+      break;
+    case 779:
+      ret.set(value_c::types::nr_a2_x_services_authorized);
+      break;
+    case 780:
+      ret.set(value_c::types::ltea2_x_services_authorized);
+      break;
+    case 781:
+      ret.set(value_c::types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x);
+      break;
+    case 782:
+      ret.set(value_c::types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x);
+      break;
+    case 794:
+      ret.set(value_c::types::dl_lbt_fail_info_request);
+      break;
+    case 801:
+      ret.set(value_c::types::sl_positioning_ranging_service_info);
+      break;
+    case 838:
+      ret.set(value_c::types::non_integer_drx_cycle);
+      break;
+    case 855:
+      ret.set(value_c::types::ltm_reset_info);
+      break;
+    case 863:
+      ret.set(value_c::types::ltmtci_states_cfgs_list);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -3494,6 +3738,44 @@ presence_e ue_context_mod_request_ies_o::get_presence(const uint32_t& id)
     case 690:
       return presence_e::optional;
     case 691:
+      return presence_e::optional;
+    case 712:
+      return presence_e::optional;
+    case 716:
+      return presence_e::optional;
+    case 722:
+      return presence_e::optional;
+    case 845:
+      return presence_e::optional;
+    case 721:
+      return presence_e::optional;
+    case 726:
+      return presence_e::optional;
+    case 728:
+      return presence_e::optional;
+    case 843:
+      return presence_e::optional;
+    case 723:
+      return presence_e::optional;
+    case 741:
+      return presence_e::optional;
+    case 779:
+      return presence_e::optional;
+    case 780:
+      return presence_e::optional;
+    case 781:
+      return presence_e::optional;
+    case 782:
+      return presence_e::optional;
+    case 794:
+      return presence_e::optional;
+    case 801:
+      return presence_e::optional;
+    case 838:
+      return presence_e::optional;
+    case 855:
+      return presence_e::optional;
+    case 863:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -3733,6 +4015,63 @@ void ue_context_mod_request_ies_o::value_c::set(types::options e)
       break;
     case types::cp_acmcg_info:
       c = cp_acmcg_info_s{};
+      break;
+    case types::network_ctrl_repeater_authorized:
+      c = network_ctrl_repeater_authorized_e{};
+      break;
+    case types::sdt_volume_thres:
+      c = uint32_t{};
+      break;
+    case types::ltm_info_modify:
+      c = ltm_info_modify_s{};
+      break;
+    case types::ltmcfra_res_cfg_list:
+      c = ltmcfra_res_cfg_list_l{};
+      break;
+    case types::ltm_cfg_id_map_list:
+      c = ltm_cfg_id_map_list_l{};
+      break;
+    case types::early_sync_info_request:
+      c = early_sync_info_request_s{};
+      break;
+    case types::early_sync_candidate_cell_info_list:
+      c = early_sync_candidate_cell_info_list_l{};
+      break;
+    case types::early_sync_serving_cell_info:
+      c = early_sync_serving_cell_info_s{};
+      break;
+    case types::ltm_cells_to_be_released_list:
+      c = ltm_cells_to_be_released_list_l{};
+      break;
+    case types::path_addition_info:
+      c = path_addition_info_c{};
+      break;
+    case types::nr_a2_x_services_authorized:
+      c = nr_a2_x_services_authorized_s{};
+      break;
+    case types::ltea2_x_services_authorized:
+      c = ltea2_x_services_authorized_s{};
+      break;
+    case types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      c = nr_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      c = lte_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::dl_lbt_fail_info_request:
+      c = dl_lbt_fail_info_request_e{};
+      break;
+    case types::sl_positioning_ranging_service_info:
+      c = sl_positioning_ranging_service_info_s{};
+      break;
+    case types::non_integer_drx_cycle:
+      c = non_integer_drx_cycle_s{};
+      break;
+    case types::ltm_reset_info:
+      c = ltm_reset_info_s{};
+      break;
+    case types::ltmtci_states_cfgs_list:
+      c = ltmtci_states_cfgs_list_l{};
       break;
     case types::nulltype:
       break;
@@ -4122,6 +4461,101 @@ cp_acmcg_info_s& ue_context_mod_request_ies_o::value_c::cp_acmcg_info()
   assert_choice_type(types::cp_acmcg_info, type_, "Value");
   return c.get<cp_acmcg_info_s>();
 }
+network_ctrl_repeater_authorized_e& ue_context_mod_request_ies_o::value_c::network_ctrl_repeater_authorized()
+{
+  assert_choice_type(types::network_ctrl_repeater_authorized, type_, "Value");
+  return c.get<network_ctrl_repeater_authorized_e>();
+}
+uint32_t& ue_context_mod_request_ies_o::value_c::sdt_volume_thres()
+{
+  assert_choice_type(types::sdt_volume_thres, type_, "Value");
+  return c.get<uint32_t>();
+}
+ltm_info_modify_s& ue_context_mod_request_ies_o::value_c::ltm_info_modify()
+{
+  assert_choice_type(types::ltm_info_modify, type_, "Value");
+  return c.get<ltm_info_modify_s>();
+}
+ltmcfra_res_cfg_list_l& ue_context_mod_request_ies_o::value_c::ltmcfra_res_cfg_list()
+{
+  assert_choice_type(types::ltmcfra_res_cfg_list, type_, "Value");
+  return c.get<ltmcfra_res_cfg_list_l>();
+}
+ltm_cfg_id_map_list_l& ue_context_mod_request_ies_o::value_c::ltm_cfg_id_map_list()
+{
+  assert_choice_type(types::ltm_cfg_id_map_list, type_, "Value");
+  return c.get<ltm_cfg_id_map_list_l>();
+}
+early_sync_info_request_s& ue_context_mod_request_ies_o::value_c::early_sync_info_request()
+{
+  assert_choice_type(types::early_sync_info_request, type_, "Value");
+  return c.get<early_sync_info_request_s>();
+}
+early_sync_candidate_cell_info_list_l& ue_context_mod_request_ies_o::value_c::early_sync_candidate_cell_info_list()
+{
+  assert_choice_type(types::early_sync_candidate_cell_info_list, type_, "Value");
+  return c.get<early_sync_candidate_cell_info_list_l>();
+}
+early_sync_serving_cell_info_s& ue_context_mod_request_ies_o::value_c::early_sync_serving_cell_info()
+{
+  assert_choice_type(types::early_sync_serving_cell_info, type_, "Value");
+  return c.get<early_sync_serving_cell_info_s>();
+}
+ltm_cells_to_be_released_list_l& ue_context_mod_request_ies_o::value_c::ltm_cells_to_be_released_list()
+{
+  assert_choice_type(types::ltm_cells_to_be_released_list, type_, "Value");
+  return c.get<ltm_cells_to_be_released_list_l>();
+}
+path_addition_info_c& ue_context_mod_request_ies_o::value_c::path_addition_info()
+{
+  assert_choice_type(types::path_addition_info, type_, "Value");
+  return c.get<path_addition_info_c>();
+}
+nr_a2_x_services_authorized_s& ue_context_mod_request_ies_o::value_c::nr_a2_x_services_authorized()
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+ltea2_x_services_authorized_s& ue_context_mod_request_ies_o::value_c::ltea2_x_services_authorized()
+{
+  assert_choice_type(types::ltea2_x_services_authorized, type_, "Value");
+  return c.get<ltea2_x_services_authorized_s>();
+}
+nr_ue_sidelink_aggr_max_bitrate_s& ue_context_mod_request_ies_o::value_c::nr_ue_sidelink_aggr_max_bitrate_for_a2_x()
+{
+  assert_choice_type(types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+lte_ue_sidelink_aggr_max_bitrate_s& ue_context_mod_request_ies_o::value_c::lte_ue_sidelink_aggr_max_bitrate_for_a2_x()
+{
+  assert_choice_type(types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+dl_lbt_fail_info_request_e& ue_context_mod_request_ies_o::value_c::dl_lbt_fail_info_request()
+{
+  assert_choice_type(types::dl_lbt_fail_info_request, type_, "Value");
+  return c.get<dl_lbt_fail_info_request_e>();
+}
+sl_positioning_ranging_service_info_s& ue_context_mod_request_ies_o::value_c::sl_positioning_ranging_service_info()
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
+non_integer_drx_cycle_s& ue_context_mod_request_ies_o::value_c::non_integer_drx_cycle()
+{
+  assert_choice_type(types::non_integer_drx_cycle, type_, "Value");
+  return c.get<non_integer_drx_cycle_s>();
+}
+ltm_reset_info_s& ue_context_mod_request_ies_o::value_c::ltm_reset_info()
+{
+  assert_choice_type(types::ltm_reset_info, type_, "Value");
+  return c.get<ltm_reset_info_s>();
+}
+ltmtci_states_cfgs_list_l& ue_context_mod_request_ies_o::value_c::ltmtci_states_cfgs_list()
+{
+  assert_choice_type(types::ltmtci_states_cfgs_list, type_, "Value");
+  return c.get<ltmtci_states_cfgs_list_l>();
+}
 const uint64_t& ue_context_mod_request_ies_o::value_c::gnb_cu_ue_f1ap_id() const
 {
   assert_choice_type(types::gnb_cu_ue_f1ap_id, type_, "Value");
@@ -4510,6 +4944,106 @@ const cp_acmcg_info_s& ue_context_mod_request_ies_o::value_c::cp_acmcg_info() co
   assert_choice_type(types::cp_acmcg_info, type_, "Value");
   return c.get<cp_acmcg_info_s>();
 }
+const network_ctrl_repeater_authorized_e&
+ue_context_mod_request_ies_o::value_c::network_ctrl_repeater_authorized() const
+{
+  assert_choice_type(types::network_ctrl_repeater_authorized, type_, "Value");
+  return c.get<network_ctrl_repeater_authorized_e>();
+}
+const uint32_t& ue_context_mod_request_ies_o::value_c::sdt_volume_thres() const
+{
+  assert_choice_type(types::sdt_volume_thres, type_, "Value");
+  return c.get<uint32_t>();
+}
+const ltm_info_modify_s& ue_context_mod_request_ies_o::value_c::ltm_info_modify() const
+{
+  assert_choice_type(types::ltm_info_modify, type_, "Value");
+  return c.get<ltm_info_modify_s>();
+}
+const ltmcfra_res_cfg_list_l& ue_context_mod_request_ies_o::value_c::ltmcfra_res_cfg_list() const
+{
+  assert_choice_type(types::ltmcfra_res_cfg_list, type_, "Value");
+  return c.get<ltmcfra_res_cfg_list_l>();
+}
+const ltm_cfg_id_map_list_l& ue_context_mod_request_ies_o::value_c::ltm_cfg_id_map_list() const
+{
+  assert_choice_type(types::ltm_cfg_id_map_list, type_, "Value");
+  return c.get<ltm_cfg_id_map_list_l>();
+}
+const early_sync_info_request_s& ue_context_mod_request_ies_o::value_c::early_sync_info_request() const
+{
+  assert_choice_type(types::early_sync_info_request, type_, "Value");
+  return c.get<early_sync_info_request_s>();
+}
+const early_sync_candidate_cell_info_list_l&
+ue_context_mod_request_ies_o::value_c::early_sync_candidate_cell_info_list() const
+{
+  assert_choice_type(types::early_sync_candidate_cell_info_list, type_, "Value");
+  return c.get<early_sync_candidate_cell_info_list_l>();
+}
+const early_sync_serving_cell_info_s& ue_context_mod_request_ies_o::value_c::early_sync_serving_cell_info() const
+{
+  assert_choice_type(types::early_sync_serving_cell_info, type_, "Value");
+  return c.get<early_sync_serving_cell_info_s>();
+}
+const ltm_cells_to_be_released_list_l& ue_context_mod_request_ies_o::value_c::ltm_cells_to_be_released_list() const
+{
+  assert_choice_type(types::ltm_cells_to_be_released_list, type_, "Value");
+  return c.get<ltm_cells_to_be_released_list_l>();
+}
+const path_addition_info_c& ue_context_mod_request_ies_o::value_c::path_addition_info() const
+{
+  assert_choice_type(types::path_addition_info, type_, "Value");
+  return c.get<path_addition_info_c>();
+}
+const nr_a2_x_services_authorized_s& ue_context_mod_request_ies_o::value_c::nr_a2_x_services_authorized() const
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+const ltea2_x_services_authorized_s& ue_context_mod_request_ies_o::value_c::ltea2_x_services_authorized() const
+{
+  assert_choice_type(types::ltea2_x_services_authorized, type_, "Value");
+  return c.get<ltea2_x_services_authorized_s>();
+}
+const nr_ue_sidelink_aggr_max_bitrate_s&
+ue_context_mod_request_ies_o::value_c::nr_ue_sidelink_aggr_max_bitrate_for_a2_x() const
+{
+  assert_choice_type(types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+const lte_ue_sidelink_aggr_max_bitrate_s&
+ue_context_mod_request_ies_o::value_c::lte_ue_sidelink_aggr_max_bitrate_for_a2_x() const
+{
+  assert_choice_type(types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+const dl_lbt_fail_info_request_e& ue_context_mod_request_ies_o::value_c::dl_lbt_fail_info_request() const
+{
+  assert_choice_type(types::dl_lbt_fail_info_request, type_, "Value");
+  return c.get<dl_lbt_fail_info_request_e>();
+}
+const sl_positioning_ranging_service_info_s&
+ue_context_mod_request_ies_o::value_c::sl_positioning_ranging_service_info() const
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
+const non_integer_drx_cycle_s& ue_context_mod_request_ies_o::value_c::non_integer_drx_cycle() const
+{
+  assert_choice_type(types::non_integer_drx_cycle, type_, "Value");
+  return c.get<non_integer_drx_cycle_s>();
+}
+const ltm_reset_info_s& ue_context_mod_request_ies_o::value_c::ltm_reset_info() const
+{
+  assert_choice_type(types::ltm_reset_info, type_, "Value");
+  return c.get<ltm_reset_info_s>();
+}
+const ltmtci_states_cfgs_list_l& ue_context_mod_request_ies_o::value_c::ltmtci_states_cfgs_list() const
+{
+  assert_choice_type(types::ltmtci_states_cfgs_list, type_, "Value");
+  return c.get<ltmtci_states_cfgs_list_l>();
+}
 void ue_context_mod_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -4867,6 +5401,94 @@ void ue_context_mod_request_ies_o::value_c::to_json(json_writer& j) const
       j.write_fieldname("CPACMCGInformation");
       c.get<cp_acmcg_info_s>().to_json(j);
       break;
+    case types::network_ctrl_repeater_authorized:
+      j.write_str("NetworkControlledRepeaterAuthorized", c.get<network_ctrl_repeater_authorized_e>().to_string());
+      break;
+    case types::sdt_volume_thres:
+      j.write_int("INTEGER (1..192000,...)", c.get<uint32_t>());
+      break;
+    case types::ltm_info_modify:
+      j.write_fieldname("LTMInformation-Modify");
+      c.get<ltm_info_modify_s>().to_json(j);
+      break;
+    case types::ltmcfra_res_cfg_list:
+      j.start_array("LTMCFRAResourceConfig-List");
+      for (const auto& e1 : c.get<ltmcfra_res_cfg_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::ltm_cfg_id_map_list:
+      j.start_array("LTMConfigurationIDMappingList");
+      for (const auto& e1 : c.get<ltm_cfg_id_map_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::early_sync_info_request:
+      j.write_fieldname("EarlySyncInformation-Request");
+      c.get<early_sync_info_request_s>().to_json(j);
+      break;
+    case types::early_sync_candidate_cell_info_list:
+      j.start_array("EarlySyncCandidateCellInformation-List");
+      for (const auto& e1 : c.get<early_sync_candidate_cell_info_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::early_sync_serving_cell_info:
+      j.write_fieldname("EarlySyncServingCellInformation");
+      c.get<early_sync_serving_cell_info_s>().to_json(j);
+      break;
+    case types::ltm_cells_to_be_released_list:
+      j.start_array("LTMCells-ToBeReleased-List");
+      for (const auto& e1 : c.get<ltm_cells_to_be_released_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::path_addition_info:
+      j.write_fieldname("PathAdditionInformation");
+      c.get<path_addition_info_c>().to_json(j);
+      break;
+    case types::nr_a2_x_services_authorized:
+      j.write_fieldname("NRA2XServicesAuthorized");
+      c.get<nr_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::ltea2_x_services_authorized:
+      j.write_fieldname("LTEA2XServicesAuthorized");
+      c.get<ltea2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      j.write_fieldname("NRUESidelinkAggregateMaximumBitrate");
+      c.get<nr_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      j.write_fieldname("LTEUESidelinkAggregateMaximumBitrate");
+      c.get<lte_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::dl_lbt_fail_info_request:
+      j.write_str("DLLBTFailureInformationRequest", "inquiry");
+      break;
+    case types::sl_positioning_ranging_service_info:
+      j.write_fieldname("SLPositioning-Ranging-Service-Info");
+      c.get<sl_positioning_ranging_service_info_s>().to_json(j);
+      break;
+    case types::non_integer_drx_cycle:
+      j.write_fieldname("NonIntegerDRXCycle");
+      c.get<non_integer_drx_cycle_s>().to_json(j);
+      break;
+    case types::ltm_reset_info:
+      j.write_fieldname("LTMResetInformation");
+      c.get<ltm_reset_info_s>().to_json(j);
+      break;
+    case types::ltmtci_states_cfgs_list:
+      j.start_array("LTMTCIStatesConfigurationsList");
+      for (const auto& e1 : c.get<ltmtci_states_cfgs_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_request_ies_o::value_c");
   }
@@ -5103,6 +5725,63 @@ OCUDUASN_CODE ue_context_mod_request_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::cp_acmcg_info:
       HANDLE_CODE(c.get<cp_acmcg_info_s>().pack(bref));
+      break;
+    case types::network_ctrl_repeater_authorized:
+      HANDLE_CODE(c.get<network_ctrl_repeater_authorized_e>().pack(bref));
+      break;
+    case types::sdt_volume_thres:
+      HANDLE_CODE(pack_integer(bref, c.get<uint32_t>(), (uint32_t)1u, (uint32_t)192000u, true, true));
+      break;
+    case types::ltm_info_modify:
+      HANDLE_CODE(c.get<ltm_info_modify_s>().pack(bref));
+      break;
+    case types::ltmcfra_res_cfg_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ltmcfra_res_cfg_list_l>(), 1, 8, true));
+      break;
+    case types::ltm_cfg_id_map_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ltm_cfg_id_map_list_l>(), 1, 8, true));
+      break;
+    case types::early_sync_info_request:
+      HANDLE_CODE(c.get<early_sync_info_request_s>().pack(bref));
+      break;
+    case types::early_sync_candidate_cell_info_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<early_sync_candidate_cell_info_list_l>(), 1, 8, true));
+      break;
+    case types::early_sync_serving_cell_info:
+      HANDLE_CODE(c.get<early_sync_serving_cell_info_s>().pack(bref));
+      break;
+    case types::ltm_cells_to_be_released_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ltm_cells_to_be_released_list_l>(), 1, 8, true));
+      break;
+    case types::path_addition_info:
+      HANDLE_CODE(c.get<path_addition_info_c>().pack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::ltea2_x_services_authorized:
+      HANDLE_CODE(c.get<ltea2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::dl_lbt_fail_info_request:
+      HANDLE_CODE(c.get<dl_lbt_fail_info_request_e>().pack(bref));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().pack(bref));
+      break;
+    case types::non_integer_drx_cycle:
+      HANDLE_CODE(c.get<non_integer_drx_cycle_s>().pack(bref));
+      break;
+    case types::ltm_reset_info:
+      HANDLE_CODE(c.get<ltm_reset_info_s>().pack(bref));
+      break;
+    case types::ltmtci_states_cfgs_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ltmtci_states_cfgs_list_l>(), 1, 8, true));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_request_ies_o::value_c");
@@ -5342,6 +6021,63 @@ OCUDUASN_CODE ue_context_mod_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::cp_acmcg_info:
       HANDLE_CODE(c.get<cp_acmcg_info_s>().unpack(bref));
       break;
+    case types::network_ctrl_repeater_authorized:
+      HANDLE_CODE(c.get<network_ctrl_repeater_authorized_e>().unpack(bref));
+      break;
+    case types::sdt_volume_thres:
+      HANDLE_CODE(unpack_integer(c.get<uint32_t>(), bref, (uint32_t)1u, (uint32_t)192000u, true, true));
+      break;
+    case types::ltm_info_modify:
+      HANDLE_CODE(c.get<ltm_info_modify_s>().unpack(bref));
+      break;
+    case types::ltmcfra_res_cfg_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<ltmcfra_res_cfg_list_l>(), bref, 1, 8, true));
+      break;
+    case types::ltm_cfg_id_map_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<ltm_cfg_id_map_list_l>(), bref, 1, 8, true));
+      break;
+    case types::early_sync_info_request:
+      HANDLE_CODE(c.get<early_sync_info_request_s>().unpack(bref));
+      break;
+    case types::early_sync_candidate_cell_info_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<early_sync_candidate_cell_info_list_l>(), bref, 1, 8, true));
+      break;
+    case types::early_sync_serving_cell_info:
+      HANDLE_CODE(c.get<early_sync_serving_cell_info_s>().unpack(bref));
+      break;
+    case types::ltm_cells_to_be_released_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<ltm_cells_to_be_released_list_l>(), bref, 1, 8, true));
+      break;
+    case types::path_addition_info:
+      HANDLE_CODE(c.get<path_addition_info_c>().unpack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::ltea2_x_services_authorized:
+      HANDLE_CODE(c.get<ltea2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::dl_lbt_fail_info_request:
+      HANDLE_CODE(c.get<dl_lbt_fail_info_request_e>().unpack(bref));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().unpack(bref));
+      break;
+    case types::non_integer_drx_cycle:
+      HANDLE_CODE(c.get<non_integer_drx_cycle_s>().unpack(bref));
+      break;
+    case types::ltm_reset_info:
+      HANDLE_CODE(c.get<ltm_reset_info_s>().unpack(bref));
+      break;
+    case types::ltmtci_states_cfgs_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<ltmtci_states_cfgs_list_l>(), bref, 1, 8, true));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -5426,8 +6162,27 @@ const char* ue_context_mod_request_ies_o::value_c::types_opts::to_string() const
                                 "DAPS-HO-Status",
                                 "ServingCellMO-List",
                                 "OCTET STRING",
-                                "CPACMCGInformation"};
-  return convert_enum_idx(names, 76, value, "ue_context_mod_request_ies_o::value_c::types");
+                                "CPACMCGInformation",
+                                "NetworkControlledRepeaterAuthorized",
+                                "INTEGER (1..192000,...)",
+                                "LTMInformation-Modify",
+                                "LTMCFRAResourceConfig-List",
+                                "LTMConfigurationIDMappingList",
+                                "EarlySyncInformation-Request",
+                                "EarlySyncCandidateCellInformation-List",
+                                "EarlySyncServingCellInformation",
+                                "LTMCells-ToBeReleased-List",
+                                "PathAdditionInformation",
+                                "NRA2XServicesAuthorized",
+                                "LTEA2XServicesAuthorized",
+                                "NRUESidelinkAggregateMaximumBitrate",
+                                "LTEUESidelinkAggregateMaximumBitrate",
+                                "DLLBTFailureInformationRequest",
+                                "SLPositioning-Ranging-Service-Info",
+                                "NonIntegerDRXCycle",
+                                "LTMResetInformation",
+                                "LTMTCIStatesConfigurationsList"};
+  return convert_enum_idx(names, 95, value, "ue_context_mod_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_request_ies_o>;
@@ -5509,6 +6264,25 @@ OCUDUASN_CODE ue_context_mod_request_ies_container::pack(bit_ref& bref) const
   nof_ies += serving_cell_mo_list_present ? 1 : 0;
   nof_ies += ul_tx_direct_current_more_carrier_info_present ? 1 : 0;
   nof_ies += cp_acmcg_info_present ? 1 : 0;
+  nof_ies += network_ctrl_repeater_authorized_present ? 1 : 0;
+  nof_ies += sdt_volume_thres_present ? 1 : 0;
+  nof_ies += ltm_info_modify_present ? 1 : 0;
+  nof_ies += ltmcfra_res_cfg_list_present ? 1 : 0;
+  nof_ies += ltm_cfg_id_map_list_present ? 1 : 0;
+  nof_ies += early_sync_info_request_present ? 1 : 0;
+  nof_ies += early_sync_candidate_cell_info_list_present ? 1 : 0;
+  nof_ies += early_sync_serving_cell_info_present ? 1 : 0;
+  nof_ies += ltm_cells_to_be_released_list_present ? 1 : 0;
+  nof_ies += path_addition_info_present ? 1 : 0;
+  nof_ies += nr_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += ltea2_x_services_authorized_present ? 1 : 0;
+  nof_ies += nr_ue_sidelink_aggr_max_bitrate_for_a2_x_present ? 1 : 0;
+  nof_ies += lte_ue_sidelink_aggr_max_bitrate_for_a2_x_present ? 1 : 0;
+  nof_ies += dl_lbt_fail_info_request_present ? 1 : 0;
+  nof_ies += sl_positioning_ranging_service_info_present ? 1 : 0;
+  nof_ies += non_integer_drx_cycle_present ? 1 : 0;
+  nof_ies += ltm_reset_info_present ? 1 : 0;
+  nof_ies += ltmtci_states_cfgs_list_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -5966,6 +6740,120 @@ OCUDUASN_CODE ue_context_mod_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(cp_acmcg_info.pack(bref));
+  }
+  if (network_ctrl_repeater_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)712, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(network_ctrl_repeater_authorized.pack(bref));
+  }
+  if (sdt_volume_thres_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)716, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, sdt_volume_thres, (uint32_t)1u, (uint32_t)192000u, true, true));
+  }
+  if (ltm_info_modify_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)722, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ltm_info_modify.pack(bref));
+  }
+  if (ltmcfra_res_cfg_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)845, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, ltmcfra_res_cfg_list, 1, 8, true));
+  }
+  if (ltm_cfg_id_map_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)721, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, ltm_cfg_id_map_list, 1, 8, true));
+  }
+  if (early_sync_info_request_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)726, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(early_sync_info_request.pack(bref));
+  }
+  if (early_sync_candidate_cell_info_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)728, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, early_sync_candidate_cell_info_list, 1, 8, true));
+  }
+  if (early_sync_serving_cell_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)843, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(early_sync_serving_cell_info.pack(bref));
+  }
+  if (ltm_cells_to_be_released_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)723, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, ltm_cells_to_be_released_list, 1, 8, true));
+  }
+  if (path_addition_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)741, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(path_addition_info.pack(bref));
+  }
+  if (nr_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)779, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_services_authorized.pack(bref));
+  }
+  if (ltea2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)780, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ltea2_x_services_authorized.pack(bref));
+  }
+  if (nr_ue_sidelink_aggr_max_bitrate_for_a2_x_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)781, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_ue_sidelink_aggr_max_bitrate_for_a2_x.pack(bref));
+  }
+  if (lte_ue_sidelink_aggr_max_bitrate_for_a2_x_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)782, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_ue_sidelink_aggr_max_bitrate_for_a2_x.pack(bref));
+  }
+  if (dl_lbt_fail_info_request_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)794, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(dl_lbt_fail_info_request.pack(bref));
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)801, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(sl_positioning_ranging_service_info.pack(bref));
+  }
+  if (non_integer_drx_cycle_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)838, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(non_integer_drx_cycle.pack(bref));
+  }
+  if (ltm_reset_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)855, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ltm_reset_info.pack(bref));
+  }
+  if (ltmtci_states_cfgs_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)863, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, ltmtci_states_cfgs_list, 1, 8, true));
   }
 
   return OCUDUASN_SUCCESS;
@@ -6439,6 +7327,120 @@ OCUDUASN_CODE ue_context_mod_request_ies_container::unpack(cbit_ref& bref)
         cp_acmcg_info_present = true;
         varlength_field_unpack_guard varlen_scope(bref, true);
         HANDLE_CODE(cp_acmcg_info.unpack(bref));
+        break;
+      }
+      case 712: {
+        network_ctrl_repeater_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(network_ctrl_repeater_authorized.unpack(bref));
+        break;
+      }
+      case 716: {
+        sdt_volume_thres_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(sdt_volume_thres, bref, (uint32_t)1u, (uint32_t)192000u, true, true));
+        break;
+      }
+      case 722: {
+        ltm_info_modify_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ltm_info_modify.unpack(bref));
+        break;
+      }
+      case 845: {
+        ltmcfra_res_cfg_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(ltmcfra_res_cfg_list, bref, 1, 8, true));
+        break;
+      }
+      case 721: {
+        ltm_cfg_id_map_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(ltm_cfg_id_map_list, bref, 1, 8, true));
+        break;
+      }
+      case 726: {
+        early_sync_info_request_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(early_sync_info_request.unpack(bref));
+        break;
+      }
+      case 728: {
+        early_sync_candidate_cell_info_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(early_sync_candidate_cell_info_list, bref, 1, 8, true));
+        break;
+      }
+      case 843: {
+        early_sync_serving_cell_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(early_sync_serving_cell_info.unpack(bref));
+        break;
+      }
+      case 723: {
+        ltm_cells_to_be_released_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(ltm_cells_to_be_released_list, bref, 1, 8, true));
+        break;
+      }
+      case 741: {
+        path_addition_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(path_addition_info.unpack(bref));
+        break;
+      }
+      case 779: {
+        nr_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 780: {
+        ltea2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ltea2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 781: {
+        nr_ue_sidelink_aggr_max_bitrate_for_a2_x_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_ue_sidelink_aggr_max_bitrate_for_a2_x.unpack(bref));
+        break;
+      }
+      case 782: {
+        lte_ue_sidelink_aggr_max_bitrate_for_a2_x_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_ue_sidelink_aggr_max_bitrate_for_a2_x.unpack(bref));
+        break;
+      }
+      case 794: {
+        dl_lbt_fail_info_request_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(dl_lbt_fail_info_request.unpack(bref));
+        break;
+      }
+      case 801: {
+        sl_positioning_ranging_service_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(sl_positioning_ranging_service_info.unpack(bref));
+        break;
+      }
+      case 838: {
+        non_integer_drx_cycle_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(non_integer_drx_cycle.unpack(bref));
+        break;
+      }
+      case 855: {
+        ltm_reset_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ltm_reset_info.unpack(bref));
+        break;
+      }
+      case 863: {
+        ltmtci_states_cfgs_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(ltmtci_states_cfgs_list, bref, 1, 8, true));
         break;
       }
       default:
@@ -6940,18 +7942,135 @@ void ue_context_mod_request_ies_container::to_json(json_writer& j) const
     j.write_str("criticality", "ignore");
     cp_acmcg_info.to_json(j);
   }
+  if (network_ctrl_repeater_authorized_present) {
+    j.write_int("id", 712);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", network_ctrl_repeater_authorized.to_string());
+  }
+  if (sdt_volume_thres_present) {
+    j.write_int("id", 716);
+    j.write_str("criticality", "ignore");
+    j.write_int("Value", sdt_volume_thres);
+  }
+  if (ltm_info_modify_present) {
+    j.write_int("id", 722);
+    j.write_str("criticality", "reject");
+    ltm_info_modify.to_json(j);
+  }
+  if (ltmcfra_res_cfg_list_present) {
+    j.write_int("id", 845);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : ltmcfra_res_cfg_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (ltm_cfg_id_map_list_present) {
+    j.write_int("id", 721);
+    j.write_str("criticality", "reject");
+    j.start_array("Value");
+    for (const auto& e1 : ltm_cfg_id_map_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (early_sync_info_request_present) {
+    j.write_int("id", 726);
+    j.write_str("criticality", "ignore");
+    early_sync_info_request.to_json(j);
+  }
+  if (early_sync_candidate_cell_info_list_present) {
+    j.write_int("id", 728);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : early_sync_candidate_cell_info_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (early_sync_serving_cell_info_present) {
+    j.write_int("id", 843);
+    j.write_str("criticality", "ignore");
+    early_sync_serving_cell_info.to_json(j);
+  }
+  if (ltm_cells_to_be_released_list_present) {
+    j.write_int("id", 723);
+    j.write_str("criticality", "reject");
+    j.start_array("Value");
+    for (const auto& e1 : ltm_cells_to_be_released_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (path_addition_info_present) {
+    j.write_int("id", 741);
+    j.write_str("criticality", "reject");
+    path_addition_info.to_json(j);
+  }
+  if (nr_a2_x_services_authorized_present) {
+    j.write_int("id", 779);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_services_authorized.to_json(j);
+  }
+  if (ltea2_x_services_authorized_present) {
+    j.write_int("id", 780);
+    j.write_str("criticality", "ignore");
+    ltea2_x_services_authorized.to_json(j);
+  }
+  if (nr_ue_sidelink_aggr_max_bitrate_for_a2_x_present) {
+    j.write_int("id", 781);
+    j.write_str("criticality", "ignore");
+    nr_ue_sidelink_aggr_max_bitrate_for_a2_x.to_json(j);
+  }
+  if (lte_ue_sidelink_aggr_max_bitrate_for_a2_x_present) {
+    j.write_int("id", 782);
+    j.write_str("criticality", "ignore");
+    lte_ue_sidelink_aggr_max_bitrate_for_a2_x.to_json(j);
+  }
+  if (dl_lbt_fail_info_request_present) {
+    j.write_int("id", 794);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "inquiry");
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    j.write_int("id", 801);
+    j.write_str("criticality", "ignore");
+    sl_positioning_ranging_service_info.to_json(j);
+  }
+  if (non_integer_drx_cycle_present) {
+    j.write_int("id", 838);
+    j.write_str("criticality", "ignore");
+    non_integer_drx_cycle.to_json(j);
+  }
+  if (ltm_reset_info_present) {
+    j.write_int("id", 855);
+    j.write_str("criticality", "ignore");
+    ltm_reset_info.to_json(j);
+  }
+  if (ltmtci_states_cfgs_list_present) {
+    j.write_int("id", 863);
+    j.write_str("criticality", "reject");
+    j.start_array("Value");
+    for (const auto& e1 : ltmtci_states_cfgs_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
   j.end_obj();
 }
 
 // UEContextModificationRequiredIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t ue_context_mod_required_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {40, 41, 49, 39, 23, 70, 25, 0, 277, 320, 322, 375, 606, 607, 614, 615, 655, 657};
-  return map_enum_number(names, 18, idx, "id");
+  static const uint32_t names[] = {
+      40, 41, 49, 39, 23, 70, 25, 0, 277, 320, 322, 375, 606, 607, 614, 615, 655, 657, 723};
+  return map_enum_number(names, 19, idx, "id");
 }
 bool ue_context_mod_required_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {40, 41, 49, 39, 23, 70, 25, 0, 277, 320, 322, 375, 606, 607, 614, 615, 655, 657};
+  static const uint32_t names[] = {
+      40, 41, 49, 39, 23, 70, 25, 0, 277, 320, 322, 375, 606, 607, 614, 615, 655, 657, 723};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -6997,6 +8116,8 @@ crit_e ue_context_mod_required_ies_o::get_crit(const uint32_t& id)
     case 655:
       return crit_e::reject;
     case 657:
+      return crit_e::reject;
+    case 723:
       return crit_e::reject;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -7061,6 +8182,9 @@ ue_context_mod_required_ies_o::value_c ue_context_mod_required_ies_o::get_value(
     case 657:
       ret.set(value_c::types::ue_multicast_m_rbs_required_to_be_released_list);
       break;
+    case 723:
+      ret.set(value_c::types::ltm_cells_to_be_released_list);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -7104,6 +8228,8 @@ presence_e ue_context_mod_required_ies_o::get_presence(const uint32_t& id)
     case 655:
       return presence_e::optional;
     case 657:
+      return presence_e::optional;
+    case 723:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -7169,6 +8295,9 @@ void ue_context_mod_required_ies_o::value_c::set(types::options e)
       break;
     case types::ue_multicast_m_rbs_required_to_be_released_list:
       c = ue_multicast_m_rbs_required_to_be_released_list_l{};
+      break;
+    case types::ltm_cells_to_be_released_list:
+      c = ltm_cells_to_be_released_list_l{};
       break;
     case types::nulltype:
       break;
@@ -7272,6 +8401,11 @@ ue_context_mod_required_ies_o::value_c::ue_multicast_m_rbs_required_to_be_releas
   assert_choice_type(types::ue_multicast_m_rbs_required_to_be_released_list, type_, "Value");
   return c.get<ue_multicast_m_rbs_required_to_be_released_list_l>();
 }
+ltm_cells_to_be_released_list_l& ue_context_mod_required_ies_o::value_c::ltm_cells_to_be_released_list()
+{
+  assert_choice_type(types::ltm_cells_to_be_released_list, type_, "Value");
+  return c.get<ltm_cells_to_be_released_list_l>();
+}
 const uint64_t& ue_context_mod_required_ies_o::value_c::gnb_cu_ue_f1ap_id() const
 {
   assert_choice_type(types::gnb_cu_ue_f1ap_id, type_, "Value");
@@ -7373,6 +8507,11 @@ ue_context_mod_required_ies_o::value_c::ue_multicast_m_rbs_required_to_be_releas
 {
   assert_choice_type(types::ue_multicast_m_rbs_required_to_be_released_list, type_, "Value");
   return c.get<ue_multicast_m_rbs_required_to_be_released_list_l>();
+}
+const ltm_cells_to_be_released_list_l& ue_context_mod_required_ies_o::value_c::ltm_cells_to_be_released_list() const
+{
+  assert_choice_type(types::ltm_cells_to_be_released_list, type_, "Value");
+  return c.get<ltm_cells_to_be_released_list_l>();
 }
 void ue_context_mod_required_ies_o::value_c::to_json(json_writer& j) const
 {
@@ -7486,6 +8625,13 @@ void ue_context_mod_required_ies_o::value_c::to_json(json_writer& j) const
       }
       j.end_array();
       break;
+    case types::ltm_cells_to_be_released_list:
+      j.start_array("LTMCells-ToBeReleased-List");
+      for (const auto& e1 : c.get<ltm_cells_to_be_released_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_required_ies_o::value_c");
   }
@@ -7548,6 +8694,9 @@ OCUDUASN_CODE ue_context_mod_required_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::ue_multicast_m_rbs_required_to_be_released_list:
       HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ue_multicast_m_rbs_required_to_be_released_list_l>(), 1, 64, true));
+      break;
+    case types::ltm_cells_to_be_released_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ltm_cells_to_be_released_list_l>(), 1, 8, true));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_required_ies_o::value_c");
@@ -7613,6 +8762,9 @@ OCUDUASN_CODE ue_context_mod_required_ies_o::value_c::unpack(cbit_ref& bref)
     case types::ue_multicast_m_rbs_required_to_be_released_list:
       HANDLE_CODE(unpack_dyn_seq_of(c.get<ue_multicast_m_rbs_required_to_be_released_list_l>(), bref, 1, 64, true));
       break;
+    case types::ltm_cells_to_be_released_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<ltm_cells_to_be_released_list_l>(), bref, 1, 8, true));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_required_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -7639,8 +8791,9 @@ const char* ue_context_mod_required_ies_o::value_c::types_opts::to_string() cons
                                 "PC5RLCChannelRequiredToBeModifiedList",
                                 "PC5RLCChannelRequiredToBeReleasedList",
                                 "UE-MulticastMRBs-RequiredToBeModified-List",
-                                "UE-MulticastMRBs-RequiredToBeReleased-List"};
-  return convert_enum_idx(names, 18, value, "ue_context_mod_required_ies_o::value_c::types");
+                                "UE-MulticastMRBs-RequiredToBeReleased-List",
+                                "LTMCells-ToBeReleased-List"};
+  return convert_enum_idx(names, 19, value, "ue_context_mod_required_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_required_ies_o>;
@@ -7663,6 +8816,7 @@ OCUDUASN_CODE ue_context_mod_required_ies_container::pack(bit_ref& bref) const
   nof_ies += pc5_rlc_ch_required_to_be_released_list_present ? 1 : 0;
   nof_ies += ue_multicast_m_rbs_required_to_be_modified_list_present ? 1 : 0;
   nof_ies += ue_multicast_m_rbs_required_to_be_released_list_present ? 1 : 0;
+  nof_ies += ltm_cells_to_be_released_list_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -7772,6 +8926,12 @@ OCUDUASN_CODE ue_context_mod_required_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(pack_dyn_seq_of(bref, ue_multicast_m_rbs_required_to_be_released_list, 1, 64, true));
+  }
+  if (ltm_cells_to_be_released_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)723, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, ltm_cells_to_be_released_list, 1, 8, true));
   }
 
   return OCUDUASN_SUCCESS;
@@ -7896,6 +9056,12 @@ OCUDUASN_CODE ue_context_mod_required_ies_container::unpack(cbit_ref& bref)
         ue_multicast_m_rbs_required_to_be_released_list_present = true;
         varlength_field_unpack_guard varlen_scope(bref, true);
         HANDLE_CODE(unpack_dyn_seq_of(ue_multicast_m_rbs_required_to_be_released_list, bref, 1, 64, true));
+        break;
+      }
+      case 723: {
+        ltm_cells_to_be_released_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(ltm_cells_to_be_released_list, bref, 1, 8, true));
         break;
       }
       default:
@@ -8049,22 +9215,31 @@ void ue_context_mod_required_ies_container::to_json(json_writer& j) const
     }
     j.end_array();
   }
+  if (ltm_cells_to_be_released_list_present) {
+    j.write_int("id", 723);
+    j.write_str("criticality", "reject");
+    j.start_array("Value");
+    for (const auto& e1 : ltm_cells_to_be_released_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
   j.end_obj();
 }
 
 // UEContextModificationResponseIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t ue_context_mod_resp_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {40,  41,  49,  39,  29,  21,  68,  17,  85,  13,  98,  7,   95,
-                                   198, 204, 206, 94,  275, 273, 271, 269, 333, 318, 334, 314, 376,
-                                   548, 602, 603, 604, 605, 611, 612, 616, 613, 676, 679, 697};
-  return map_enum_number(names, 38, idx, "id");
+  static const uint32_t names[] = {40,  41,  49,  39,  29,  21,  68,  17,  85,  13,  98,  7,   95,  198, 204,
+                                   206, 94,  275, 273, 271, 269, 333, 318, 334, 314, 376, 548, 602, 603, 604,
+                                   605, 611, 612, 616, 613, 676, 679, 697, 708, 709, 727, 725, 792};
+  return map_enum_number(names, 43, idx, "id");
 }
 bool ue_context_mod_resp_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {40,  41,  49,  39,  29,  21,  68,  17,  85,  13,  98,  7,   95,
-                                   198, 204, 206, 94,  275, 273, 271, 269, 333, 318, 334, 314, 376,
-                                   548, 602, 603, 604, 605, 611, 612, 616, 613, 676, 679, 697};
+  static const uint32_t names[] = {40,  41,  49,  39,  29,  21,  68,  17,  85,  13,  98,  7,   95,  198, 204,
+                                   206, 94,  275, 273, 271, 269, 333, 318, 334, 314, 376, 548, 602, 603, 604,
+                                   605, 611, 612, 616, 613, 676, 679, 697, 708, 709, 727, 725, 792};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -8150,6 +9325,16 @@ crit_e ue_context_mod_resp_ies_o::get_crit(const uint32_t& id)
     case 679:
       return crit_e::reject;
     case 697:
+      return crit_e::ignore;
+    case 708:
+      return crit_e::ignore;
+    case 709:
+      return crit_e::ignore;
+    case 727:
+      return crit_e::ignore;
+    case 725:
+      return crit_e::ignore;
+    case 792:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -8274,6 +9459,21 @@ ue_context_mod_resp_ies_o::value_c ue_context_mod_resp_ies_o::get_value(const ui
     case 697:
       ret.set(value_c::types::serving_cell_mo_encoded_in_cgc_list);
       break;
+    case 708:
+      ret.set(value_c::types::ded_si_delivery_ind);
+      break;
+    case 709:
+      ret.set(value_c::types::cfg_bwp_list);
+      break;
+    case 727:
+      ret.set(value_c::types::early_sync_info);
+      break;
+    case 725:
+      ret.set(value_c::types::ltm_cfg);
+      break;
+    case 792:
+      ret.set(value_c::types::s_cp_ac_cfg);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -8357,6 +9557,16 @@ presence_e ue_context_mod_resp_ies_o::get_presence(const uint32_t& id)
     case 679:
       return presence_e::optional;
     case 697:
+      return presence_e::optional;
+    case 708:
+      return presence_e::optional;
+    case 709:
+      return presence_e::optional;
+    case 727:
+      return presence_e::optional;
+    case 725:
+      return presence_e::optional;
+    case 792:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -8482,6 +9692,21 @@ void ue_context_mod_resp_ies_o::value_c::set(types::options e)
       break;
     case types::serving_cell_mo_encoded_in_cgc_list:
       c = serving_cell_mo_encoded_in_cgc_list_l{};
+      break;
+    case types::ded_si_delivery_ind:
+      c = ded_si_delivery_ind_e{};
+      break;
+    case types::cfg_bwp_list:
+      c = cfg_bwp_list_l{};
+      break;
+    case types::early_sync_info:
+      c = early_sync_info_s{};
+      break;
+    case types::ltm_cfg:
+      c = ltm_cfg_s{};
+      break;
+    case types::s_cp_ac_cfg:
+      c = s_cp_ac_cfg_s{};
       break;
     case types::nulltype:
       break;
@@ -8679,6 +9904,31 @@ serving_cell_mo_encoded_in_cgc_list_l& ue_context_mod_resp_ies_o::value_c::servi
   assert_choice_type(types::serving_cell_mo_encoded_in_cgc_list, type_, "Value");
   return c.get<serving_cell_mo_encoded_in_cgc_list_l>();
 }
+ded_si_delivery_ind_e& ue_context_mod_resp_ies_o::value_c::ded_si_delivery_ind()
+{
+  assert_choice_type(types::ded_si_delivery_ind, type_, "Value");
+  return c.get<ded_si_delivery_ind_e>();
+}
+cfg_bwp_list_l& ue_context_mod_resp_ies_o::value_c::cfg_bwp_list()
+{
+  assert_choice_type(types::cfg_bwp_list, type_, "Value");
+  return c.get<cfg_bwp_list_l>();
+}
+early_sync_info_s& ue_context_mod_resp_ies_o::value_c::early_sync_info()
+{
+  assert_choice_type(types::early_sync_info, type_, "Value");
+  return c.get<early_sync_info_s>();
+}
+ltm_cfg_s& ue_context_mod_resp_ies_o::value_c::ltm_cfg()
+{
+  assert_choice_type(types::ltm_cfg, type_, "Value");
+  return c.get<ltm_cfg_s>();
+}
+s_cp_ac_cfg_s& ue_context_mod_resp_ies_o::value_c::s_cp_ac_cfg()
+{
+  assert_choice_type(types::s_cp_ac_cfg, type_, "Value");
+  return c.get<s_cp_ac_cfg_s>();
+}
 const uint64_t& ue_context_mod_resp_ies_o::value_c::gnb_cu_ue_f1ap_id() const
 {
   assert_choice_type(types::gnb_cu_ue_f1ap_id, type_, "Value");
@@ -8875,6 +10125,31 @@ ue_context_mod_resp_ies_o::value_c::serving_cell_mo_encoded_in_cgc_list() const
 {
   assert_choice_type(types::serving_cell_mo_encoded_in_cgc_list, type_, "Value");
   return c.get<serving_cell_mo_encoded_in_cgc_list_l>();
+}
+const ded_si_delivery_ind_e& ue_context_mod_resp_ies_o::value_c::ded_si_delivery_ind() const
+{
+  assert_choice_type(types::ded_si_delivery_ind, type_, "Value");
+  return c.get<ded_si_delivery_ind_e>();
+}
+const cfg_bwp_list_l& ue_context_mod_resp_ies_o::value_c::cfg_bwp_list() const
+{
+  assert_choice_type(types::cfg_bwp_list, type_, "Value");
+  return c.get<cfg_bwp_list_l>();
+}
+const early_sync_info_s& ue_context_mod_resp_ies_o::value_c::early_sync_info() const
+{
+  assert_choice_type(types::early_sync_info, type_, "Value");
+  return c.get<early_sync_info_s>();
+}
+const ltm_cfg_s& ue_context_mod_resp_ies_o::value_c::ltm_cfg() const
+{
+  assert_choice_type(types::ltm_cfg, type_, "Value");
+  return c.get<ltm_cfg_s>();
+}
+const s_cp_ac_cfg_s& ue_context_mod_resp_ies_o::value_c::s_cp_ac_cfg() const
+{
+  assert_choice_type(types::s_cp_ac_cfg, type_, "Value");
+  return c.get<s_cp_ac_cfg_s>();
 }
 void ue_context_mod_resp_ies_o::value_c::to_json(json_writer& j) const
 {
@@ -9106,6 +10381,28 @@ void ue_context_mod_resp_ies_o::value_c::to_json(json_writer& j) const
       }
       j.end_array();
       break;
+    case types::ded_si_delivery_ind:
+      j.write_str("DedicatedSIDeliveryIndication", "true");
+      break;
+    case types::cfg_bwp_list:
+      j.start_array("Configured-BWP-List");
+      for (const auto& e1 : c.get<cfg_bwp_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::early_sync_info:
+      j.write_fieldname("EarlySyncInformation");
+      c.get<early_sync_info_s>().to_json(j);
+      break;
+    case types::ltm_cfg:
+      j.write_fieldname("LTMConfiguration");
+      c.get<ltm_cfg_s>().to_json(j);
+      break;
+    case types::s_cp_ac_cfg:
+      j.write_fieldname("S-CPAC-Configuration");
+      c.get<s_cp_ac_cfg_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_resp_ies_o::value_c");
   }
@@ -9228,6 +10525,21 @@ OCUDUASN_CODE ue_context_mod_resp_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::serving_cell_mo_encoded_in_cgc_list:
       HANDLE_CODE(pack_dyn_seq_of(bref, c.get<serving_cell_mo_encoded_in_cgc_list_l>(), 1, 8, true));
+      break;
+    case types::ded_si_delivery_ind:
+      HANDLE_CODE(c.get<ded_si_delivery_ind_e>().pack(bref));
+      break;
+    case types::cfg_bwp_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<cfg_bwp_list_l>(), 1, 8, true));
+      break;
+    case types::early_sync_info:
+      HANDLE_CODE(c.get<early_sync_info_s>().pack(bref));
+      break;
+    case types::ltm_cfg:
+      HANDLE_CODE(c.get<ltm_cfg_s>().pack(bref));
+      break;
+    case types::s_cp_ac_cfg:
+      HANDLE_CODE(c.get<s_cp_ac_cfg_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_resp_ies_o::value_c");
@@ -9353,6 +10665,21 @@ OCUDUASN_CODE ue_context_mod_resp_ies_o::value_c::unpack(cbit_ref& bref)
     case types::serving_cell_mo_encoded_in_cgc_list:
       HANDLE_CODE(unpack_dyn_seq_of(c.get<serving_cell_mo_encoded_in_cgc_list_l>(), bref, 1, 8, true));
       break;
+    case types::ded_si_delivery_ind:
+      HANDLE_CODE(c.get<ded_si_delivery_ind_e>().unpack(bref));
+      break;
+    case types::cfg_bwp_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<cfg_bwp_list_l>(), bref, 1, 8, true));
+      break;
+    case types::early_sync_info:
+      HANDLE_CODE(c.get<early_sync_info_s>().unpack(bref));
+      break;
+    case types::ltm_cfg:
+      HANDLE_CODE(c.get<ltm_cfg_s>().unpack(bref));
+      break;
+    case types::s_cp_ac_cfg:
+      HANDLE_CODE(c.get<s_cp_ac_cfg_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_mod_resp_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -9399,8 +10726,13 @@ const char* ue_context_mod_resp_ies_o::value_c::types_opts::to_string() const
                                 "PC5RLCChannelFailedToBeModifiedList",
                                 "SDTBearerConfigurationInfo",
                                 "UE-MulticastMRBs-Setup-List",
-                                "ServingCellMO-encoded-in-CGC-List"};
-  return convert_enum_idx(names, 38, value, "ue_context_mod_resp_ies_o::value_c::types");
+                                "ServingCellMO-encoded-in-CGC-List",
+                                "DedicatedSIDeliveryIndication",
+                                "Configured-BWP-List",
+                                "EarlySyncInformation",
+                                "LTMConfiguration",
+                                "S-CPAC-Configuration"};
+  return convert_enum_idx(names, 43, value, "ue_context_mod_resp_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_mod_resp_ies_o>;
@@ -9444,6 +10776,11 @@ OCUDUASN_CODE ue_context_mod_resp_ies_container::pack(bit_ref& bref) const
   nof_ies += sdt_bearer_cfg_info_present ? 1 : 0;
   nof_ies += ue_multicast_m_rbs_setup_list_present ? 1 : 0;
   nof_ies += serving_cell_mo_encoded_in_cgc_list_present ? 1 : 0;
+  nof_ies += ded_si_delivery_ind_present ? 1 : 0;
+  nof_ies += cfg_bwp_list_present ? 1 : 0;
+  nof_ies += early_sync_info_present ? 1 : 0;
+  nof_ies += ltm_cfg_present ? 1 : 0;
+  nof_ies += s_cp_ac_cfg_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -9673,6 +11010,36 @@ OCUDUASN_CODE ue_context_mod_resp_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(pack_dyn_seq_of(bref, serving_cell_mo_encoded_in_cgc_list, 1, 8, true));
+  }
+  if (ded_si_delivery_ind_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)708, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ded_si_delivery_ind.pack(bref));
+  }
+  if (cfg_bwp_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)709, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, cfg_bwp_list, 1, 8, true));
+  }
+  if (early_sync_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)727, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(early_sync_info.pack(bref));
+  }
+  if (ltm_cfg_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)725, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ltm_cfg.pack(bref));
+  }
+  if (s_cp_ac_cfg_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)792, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(s_cp_ac_cfg.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -9917,6 +11284,36 @@ OCUDUASN_CODE ue_context_mod_resp_ies_container::unpack(cbit_ref& bref)
         serving_cell_mo_encoded_in_cgc_list_present = true;
         varlength_field_unpack_guard varlen_scope(bref, true);
         HANDLE_CODE(unpack_dyn_seq_of(serving_cell_mo_encoded_in_cgc_list, bref, 1, 8, true));
+        break;
+      }
+      case 708: {
+        ded_si_delivery_ind_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ded_si_delivery_ind.unpack(bref));
+        break;
+      }
+      case 709: {
+        cfg_bwp_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(cfg_bwp_list, bref, 1, 8, true));
+        break;
+      }
+      case 727: {
+        early_sync_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(early_sync_info.unpack(bref));
+        break;
+      }
+      case 725: {
+        ltm_cfg_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ltm_cfg.unpack(bref));
+        break;
+      }
+      case 792: {
+        s_cp_ac_cfg_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(s_cp_ac_cfg.unpack(bref));
         break;
       }
       default:
@@ -10228,18 +11625,47 @@ void ue_context_mod_resp_ies_container::to_json(json_writer& j) const
     }
     j.end_array();
   }
+  if (ded_si_delivery_ind_present) {
+    j.write_int("id", 708);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
+  }
+  if (cfg_bwp_list_present) {
+    j.write_int("id", 709);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : cfg_bwp_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (early_sync_info_present) {
+    j.write_int("id", 727);
+    j.write_str("criticality", "ignore");
+    early_sync_info.to_json(j);
+  }
+  if (ltm_cfg_present) {
+    j.write_int("id", 725);
+    j.write_str("criticality", "ignore");
+    ltm_cfg.to_json(j);
+  }
+  if (s_cp_ac_cfg_present) {
+    j.write_int("id", 792);
+    j.write_str("criticality", "ignore");
+    s_cp_ac_cfg.to_json(j);
+  }
   j.end_obj();
 }
 
 // UEContextReleaseCommandIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t ue_context_release_cmd_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {40, 41, 0, 50, 64, 47, 109, 184, 375, 576, 588};
-  return map_enum_number(names, 11, idx, "id");
+  static const uint32_t names[] = {40, 41, 0, 50, 64, 47, 109, 184, 375, 576, 588, 723, 794};
+  return map_enum_number(names, 13, idx, "id");
 }
 bool ue_context_release_cmd_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {40, 41, 0, 50, 64, 47, 109, 184, 375, 576, 588};
+  static const uint32_t names[] = {40, 41, 0, 50, 64, 47, 109, 184, 375, 576, 588, 723, 794};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -10269,8 +11695,12 @@ crit_e ue_context_release_cmd_ies_o::get_crit(const uint32_t& id)
     case 375:
       return crit_e::reject;
     case 576:
-      return crit_e::reject;
+      return crit_e::ignore;
     case 588:
+      return crit_e::ignore;
+    case 723:
+      return crit_e::reject;
+    case 794:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -10309,10 +11739,16 @@ ue_context_release_cmd_ies_o::value_c ue_context_release_cmd_ies_o::get_value(co
       ret.set(value_c::types::target_cells_to_cancel);
       break;
     case 576:
-      ret.set(value_c::types::pos_conext_rev_ind);
+      ret.set(value_c::types::pos_context_rev_ind);
       break;
     case 588:
       ret.set(value_c::types::cg_sdt_kept_ind);
+      break;
+    case 723:
+      ret.set(value_c::types::ltm_cells_to_be_released_list);
+      break;
+    case 794:
+      ret.set(value_c::types::dl_lbt_fail_info_request);
       break;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -10343,6 +11779,10 @@ presence_e ue_context_release_cmd_ies_o::get_presence(const uint32_t& id)
     case 576:
       return presence_e::optional;
     case 588:
+      return presence_e::optional;
+    case 723:
+      return presence_e::optional;
+    case 794:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -10382,11 +11822,17 @@ void ue_context_release_cmd_ies_o::value_c::set(types::options e)
     case types::target_cells_to_cancel:
       c = target_cell_list_l{};
       break;
-    case types::pos_conext_rev_ind:
-      c = pos_conext_rev_ind_e{};
+    case types::pos_context_rev_ind:
+      c = pos_context_rev_ind_e{};
       break;
     case types::cg_sdt_kept_ind:
       c = cg_sdt_kept_ind_e{};
+      break;
+    case types::ltm_cells_to_be_released_list:
+      c = ltm_cells_to_be_released_list_l{};
+      break;
+    case types::dl_lbt_fail_info_request:
+      c = dl_lbt_fail_info_request_e{};
       break;
     case types::nulltype:
       break;
@@ -10439,15 +11885,25 @@ target_cell_list_l& ue_context_release_cmd_ies_o::value_c::target_cells_to_cance
   assert_choice_type(types::target_cells_to_cancel, type_, "Value");
   return c.get<target_cell_list_l>();
 }
-pos_conext_rev_ind_e& ue_context_release_cmd_ies_o::value_c::pos_conext_rev_ind()
+pos_context_rev_ind_e& ue_context_release_cmd_ies_o::value_c::pos_context_rev_ind()
 {
-  assert_choice_type(types::pos_conext_rev_ind, type_, "Value");
-  return c.get<pos_conext_rev_ind_e>();
+  assert_choice_type(types::pos_context_rev_ind, type_, "Value");
+  return c.get<pos_context_rev_ind_e>();
 }
 cg_sdt_kept_ind_e& ue_context_release_cmd_ies_o::value_c::cg_sdt_kept_ind()
 {
   assert_choice_type(types::cg_sdt_kept_ind, type_, "Value");
   return c.get<cg_sdt_kept_ind_e>();
+}
+ltm_cells_to_be_released_list_l& ue_context_release_cmd_ies_o::value_c::ltm_cells_to_be_released_list()
+{
+  assert_choice_type(types::ltm_cells_to_be_released_list, type_, "Value");
+  return c.get<ltm_cells_to_be_released_list_l>();
+}
+dl_lbt_fail_info_request_e& ue_context_release_cmd_ies_o::value_c::dl_lbt_fail_info_request()
+{
+  assert_choice_type(types::dl_lbt_fail_info_request, type_, "Value");
+  return c.get<dl_lbt_fail_info_request_e>();
 }
 const uint64_t& ue_context_release_cmd_ies_o::value_c::gnb_cu_ue_f1ap_id() const
 {
@@ -10494,15 +11950,25 @@ const target_cell_list_l& ue_context_release_cmd_ies_o::value_c::target_cells_to
   assert_choice_type(types::target_cells_to_cancel, type_, "Value");
   return c.get<target_cell_list_l>();
 }
-const pos_conext_rev_ind_e& ue_context_release_cmd_ies_o::value_c::pos_conext_rev_ind() const
+const pos_context_rev_ind_e& ue_context_release_cmd_ies_o::value_c::pos_context_rev_ind() const
 {
-  assert_choice_type(types::pos_conext_rev_ind, type_, "Value");
-  return c.get<pos_conext_rev_ind_e>();
+  assert_choice_type(types::pos_context_rev_ind, type_, "Value");
+  return c.get<pos_context_rev_ind_e>();
 }
 const cg_sdt_kept_ind_e& ue_context_release_cmd_ies_o::value_c::cg_sdt_kept_ind() const
 {
   assert_choice_type(types::cg_sdt_kept_ind, type_, "Value");
   return c.get<cg_sdt_kept_ind_e>();
+}
+const ltm_cells_to_be_released_list_l& ue_context_release_cmd_ies_o::value_c::ltm_cells_to_be_released_list() const
+{
+  assert_choice_type(types::ltm_cells_to_be_released_list, type_, "Value");
+  return c.get<ltm_cells_to_be_released_list_l>();
+}
+const dl_lbt_fail_info_request_e& ue_context_release_cmd_ies_o::value_c::dl_lbt_fail_info_request() const
+{
+  assert_choice_type(types::dl_lbt_fail_info_request, type_, "Value");
+  return c.get<dl_lbt_fail_info_request_e>();
 }
 void ue_context_release_cmd_ies_o::value_c::to_json(json_writer& j) const
 {
@@ -10540,11 +12006,21 @@ void ue_context_release_cmd_ies_o::value_c::to_json(json_writer& j) const
       }
       j.end_array();
       break;
-    case types::pos_conext_rev_ind:
-      j.write_str("PosConextRevIndication", "true");
+    case types::pos_context_rev_ind:
+      j.write_str("PosContextRevIndication", "true");
       break;
     case types::cg_sdt_kept_ind:
       j.write_str("CG-SDTKeptIndicator", "true");
+      break;
+    case types::ltm_cells_to_be_released_list:
+      j.start_array("LTMCells-ToBeReleased-List");
+      for (const auto& e1 : c.get<ltm_cells_to_be_released_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::dl_lbt_fail_info_request:
+      j.write_str("DLLBTFailureInformationRequest", "inquiry");
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_cmd_ies_o::value_c");
@@ -10582,11 +12058,17 @@ OCUDUASN_CODE ue_context_release_cmd_ies_o::value_c::pack(bit_ref& bref) const
     case types::target_cells_to_cancel:
       HANDLE_CODE(pack_dyn_seq_of(bref, c.get<target_cell_list_l>(), 1, 8, true));
       break;
-    case types::pos_conext_rev_ind:
-      HANDLE_CODE(c.get<pos_conext_rev_ind_e>().pack(bref));
+    case types::pos_context_rev_ind:
+      HANDLE_CODE(c.get<pos_context_rev_ind_e>().pack(bref));
       break;
     case types::cg_sdt_kept_ind:
       HANDLE_CODE(c.get<cg_sdt_kept_ind_e>().pack(bref));
+      break;
+    case types::ltm_cells_to_be_released_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ltm_cells_to_be_released_list_l>(), 1, 8, true));
+      break;
+    case types::dl_lbt_fail_info_request:
+      HANDLE_CODE(c.get<dl_lbt_fail_info_request_e>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_cmd_ies_o::value_c");
@@ -10625,11 +12107,17 @@ OCUDUASN_CODE ue_context_release_cmd_ies_o::value_c::unpack(cbit_ref& bref)
     case types::target_cells_to_cancel:
       HANDLE_CODE(unpack_dyn_seq_of(c.get<target_cell_list_l>(), bref, 1, 8, true));
       break;
-    case types::pos_conext_rev_ind:
-      HANDLE_CODE(c.get<pos_conext_rev_ind_e>().unpack(bref));
+    case types::pos_context_rev_ind:
+      HANDLE_CODE(c.get<pos_context_rev_ind_e>().unpack(bref));
       break;
     case types::cg_sdt_kept_ind:
       HANDLE_CODE(c.get<cg_sdt_kept_ind_e>().unpack(bref));
+      break;
+    case types::ltm_cells_to_be_released_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<ltm_cells_to_be_released_list_l>(), bref, 1, 8, true));
+      break;
+    case types::dl_lbt_fail_info_request:
+      HANDLE_CODE(c.get<dl_lbt_fail_info_request_e>().unpack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_cmd_ies_o::value_c");
@@ -10649,9 +12137,11 @@ const char* ue_context_release_cmd_ies_o::value_c::types_opts::to_string() const
                                 "ExecuteDuplication",
                                 "RRCDeliveryStatusRequest",
                                 "TargetCellList",
-                                "PosConextRevIndication",
-                                "CG-SDTKeptIndicator"};
-  return convert_enum_idx(names, 11, value, "ue_context_release_cmd_ies_o::value_c::types");
+                                "PosContextRevIndication",
+                                "CG-SDTKeptIndicator",
+                                "LTMCells-ToBeReleased-List",
+                                "DLLBTFailureInformationRequest"};
+  return convert_enum_idx(names, 13, value, "ue_context_release_cmd_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_release_cmd_ies_o>;
@@ -10665,8 +12155,10 @@ OCUDUASN_CODE ue_context_release_cmd_ies_container::pack(bit_ref& bref) const
   nof_ies += execute_dupl_present ? 1 : 0;
   nof_ies += rrc_delivery_status_request_present ? 1 : 0;
   nof_ies += target_cells_to_cancel_present ? 1 : 0;
-  nof_ies += pos_conext_rev_ind_present ? 1 : 0;
+  nof_ies += pos_context_rev_ind_present ? 1 : 0;
   nof_ies += cg_sdt_kept_ind_present ? 1 : 0;
+  nof_ies += ltm_cells_to_be_released_list_present ? 1 : 0;
+  nof_ies += dl_lbt_fail_info_request_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -10723,17 +12215,29 @@ OCUDUASN_CODE ue_context_release_cmd_ies_container::pack(bit_ref& bref) const
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(pack_dyn_seq_of(bref, target_cells_to_cancel, 1, 8, true));
   }
-  if (pos_conext_rev_ind_present) {
+  if (pos_context_rev_ind_present) {
     HANDLE_CODE(pack_integer(bref, (uint32_t)576, (uint32_t)0u, (uint32_t)65535u, false, true));
-    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
-    HANDLE_CODE(pos_conext_rev_ind.pack(bref));
+    HANDLE_CODE(pos_context_rev_ind.pack(bref));
   }
   if (cg_sdt_kept_ind_present) {
     HANDLE_CODE(pack_integer(bref, (uint32_t)588, (uint32_t)0u, (uint32_t)65535u, false, true));
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(cg_sdt_kept_ind.pack(bref));
+  }
+  if (ltm_cells_to_be_released_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)723, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, ltm_cells_to_be_released_list, 1, 8, true));
+  }
+  if (dl_lbt_fail_info_request_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)794, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(dl_lbt_fail_info_request.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -10807,15 +12311,27 @@ OCUDUASN_CODE ue_context_release_cmd_ies_container::unpack(cbit_ref& bref)
         break;
       }
       case 576: {
-        pos_conext_rev_ind_present = true;
+        pos_context_rev_ind_present = true;
         varlength_field_unpack_guard varlen_scope(bref, true);
-        HANDLE_CODE(pos_conext_rev_ind.unpack(bref));
+        HANDLE_CODE(pos_context_rev_ind.unpack(bref));
         break;
       }
       case 588: {
         cg_sdt_kept_ind_present = true;
         varlength_field_unpack_guard varlen_scope(bref, true);
         HANDLE_CODE(cg_sdt_kept_ind.unpack(bref));
+        break;
+      }
+      case 723: {
+        ltm_cells_to_be_released_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(ltm_cells_to_be_released_list, bref, 1, 8, true));
+        break;
+      }
+      case 794: {
+        dl_lbt_fail_info_request_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(dl_lbt_fail_info_request.unpack(bref));
         break;
       }
       default:
@@ -10876,9 +12392,9 @@ void ue_context_release_cmd_ies_container::to_json(json_writer& j) const
     }
     j.end_array();
   }
-  if (pos_conext_rev_ind_present) {
+  if (pos_context_rev_ind_present) {
     j.write_int("id", 576);
-    j.write_str("criticality", "reject");
+    j.write_str("criticality", "ignore");
     j.write_str("Value", "true");
   }
   if (cg_sdt_kept_ind_present) {
@@ -10886,18 +12402,32 @@ void ue_context_release_cmd_ies_container::to_json(json_writer& j) const
     j.write_str("criticality", "ignore");
     j.write_str("Value", "true");
   }
+  if (ltm_cells_to_be_released_list_present) {
+    j.write_int("id", 723);
+    j.write_str("criticality", "reject");
+    j.start_array("Value");
+    for (const auto& e1 : ltm_cells_to_be_released_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (dl_lbt_fail_info_request_present) {
+    j.write_int("id", 794);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "inquiry");
+  }
   j.end_obj();
 }
 
 // UEContextReleaseCompleteIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t ue_context_release_complete_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {40, 41, 7};
-  return map_enum_number(names, 3, idx, "id");
+  static const uint32_t names[] = {40, 41, 7, 743};
+  return map_enum_number(names, 4, idx, "id");
 }
 bool ue_context_release_complete_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {40, 41, 7};
+  static const uint32_t names[] = {40, 41, 7, 743};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -10913,6 +12443,8 @@ crit_e ue_context_release_complete_ies_o::get_crit(const uint32_t& id)
     case 41:
       return crit_e::reject;
     case 7:
+      return crit_e::ignore;
+    case 743:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -10932,6 +12464,9 @@ ue_context_release_complete_ies_o::value_c ue_context_release_complete_ies_o::ge
     case 7:
       ret.set(value_c::types::crit_diagnostics);
       break;
+    case 743:
+      ret.set(value_c::types::recommended_ss_bs_for_paging_list);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -10945,6 +12480,8 @@ presence_e ue_context_release_complete_ies_o::get_presence(const uint32_t& id)
     case 41:
       return presence_e::mandatory;
     case 7:
+      return presence_e::optional;
+    case 743:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -10965,6 +12502,9 @@ void ue_context_release_complete_ies_o::value_c::set(types::options e)
       break;
     case types::crit_diagnostics:
       c = crit_diagnostics_s{};
+      break;
+    case types::recommended_ss_bs_for_paging_list:
+      c = recommended_ss_bs_for_paging_list_l{};
       break;
     case types::nulltype:
       break;
@@ -10987,6 +12527,11 @@ crit_diagnostics_s& ue_context_release_complete_ies_o::value_c::crit_diagnostics
   assert_choice_type(types::crit_diagnostics, type_, "Value");
   return c.get<crit_diagnostics_s>();
 }
+recommended_ss_bs_for_paging_list_l& ue_context_release_complete_ies_o::value_c::recommended_ss_bs_for_paging_list()
+{
+  assert_choice_type(types::recommended_ss_bs_for_paging_list, type_, "Value");
+  return c.get<recommended_ss_bs_for_paging_list_l>();
+}
 const uint64_t& ue_context_release_complete_ies_o::value_c::gnb_cu_ue_f1ap_id() const
 {
   assert_choice_type(types::gnb_cu_ue_f1ap_id, type_, "Value");
@@ -11002,6 +12547,12 @@ const crit_diagnostics_s& ue_context_release_complete_ies_o::value_c::crit_diagn
   assert_choice_type(types::crit_diagnostics, type_, "Value");
   return c.get<crit_diagnostics_s>();
 }
+const recommended_ss_bs_for_paging_list_l&
+ue_context_release_complete_ies_o::value_c::recommended_ss_bs_for_paging_list() const
+{
+  assert_choice_type(types::recommended_ss_bs_for_paging_list, type_, "Value");
+  return c.get<recommended_ss_bs_for_paging_list_l>();
+}
 void ue_context_release_complete_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -11015,6 +12566,13 @@ void ue_context_release_complete_ies_o::value_c::to_json(json_writer& j) const
     case types::crit_diagnostics:
       j.write_fieldname("CriticalityDiagnostics");
       c.get<crit_diagnostics_s>().to_json(j);
+      break;
+    case types::recommended_ss_bs_for_paging_list:
+      j.start_array("Recommended-SSBs-for-Paging-List");
+      for (const auto& e1 : c.get<recommended_ss_bs_for_paging_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_complete_ies_o::value_c");
@@ -11033,6 +12591,9 @@ OCUDUASN_CODE ue_context_release_complete_ies_o::value_c::pack(bit_ref& bref) co
       break;
     case types::crit_diagnostics:
       HANDLE_CODE(c.get<crit_diagnostics_s>().pack(bref));
+      break;
+    case types::recommended_ss_bs_for_paging_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<recommended_ss_bs_for_paging_list_l>(), 1, 512, true));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_complete_ies_o::value_c");
@@ -11053,6 +12614,9 @@ OCUDUASN_CODE ue_context_release_complete_ies_o::value_c::unpack(cbit_ref& bref)
     case types::crit_diagnostics:
       HANDLE_CODE(c.get<crit_diagnostics_s>().unpack(bref));
       break;
+    case types::recommended_ss_bs_for_paging_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<recommended_ss_bs_for_paging_list_l>(), bref, 1, 512, true));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_complete_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -11062,8 +12626,11 @@ OCUDUASN_CODE ue_context_release_complete_ies_o::value_c::unpack(cbit_ref& bref)
 
 const char* ue_context_release_complete_ies_o::value_c::types_opts::to_string() const
 {
-  static const char* names[] = {"INTEGER (0..4294967295)", "INTEGER (0..4294967295)", "CriticalityDiagnostics"};
-  return convert_enum_idx(names, 3, value, "ue_context_release_complete_ies_o::value_c::types");
+  static const char* names[] = {"INTEGER (0..4294967295)",
+                                "INTEGER (0..4294967295)",
+                                "CriticalityDiagnostics",
+                                "Recommended-SSBs-for-Paging-List"};
+  return convert_enum_idx(names, 4, value, "ue_context_release_complete_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_release_complete_ies_o>;
@@ -11072,6 +12639,7 @@ OCUDUASN_CODE ue_context_release_complete_ies_container::pack(bit_ref& bref) con
 {
   uint32_t nof_ies = 2;
   nof_ies += crit_diagnostics_present ? 1 : 0;
+  nof_ies += recommended_ss_bs_for_paging_list_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -11091,6 +12659,12 @@ OCUDUASN_CODE ue_context_release_complete_ies_container::pack(bit_ref& bref) con
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(crit_diagnostics.pack(bref));
+  }
+  if (recommended_ss_bs_for_paging_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)743, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, recommended_ss_bs_for_paging_list, 1, 512, true));
   }
 
   return OCUDUASN_SUCCESS;
@@ -11127,6 +12701,12 @@ OCUDUASN_CODE ue_context_release_complete_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(crit_diagnostics.unpack(bref));
         break;
       }
+      case 743: {
+        recommended_ss_bs_for_paging_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(recommended_ss_bs_for_paging_list, bref, 1, 512, true));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -11153,18 +12733,27 @@ void ue_context_release_complete_ies_container::to_json(json_writer& j) const
     j.write_str("criticality", "ignore");
     crit_diagnostics.to_json(j);
   }
+  if (recommended_ss_bs_for_paging_list_present) {
+    j.write_int("id", 743);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : recommended_ss_bs_for_paging_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
   j.end_obj();
 }
 
 // UEContextReleaseRequestIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t ue_context_release_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {40, 41, 0, 375};
-  return map_enum_number(names, 4, idx, "id");
+  static const uint32_t names[] = {40, 41, 0, 375, 723};
+  return map_enum_number(names, 5, idx, "id");
 }
 bool ue_context_release_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {40, 41, 0, 375};
+  static const uint32_t names[] = {40, 41, 0, 375, 723};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -11182,6 +12771,8 @@ crit_e ue_context_release_request_ies_o::get_crit(const uint32_t& id)
     case 0:
       return crit_e::ignore;
     case 375:
+      return crit_e::reject;
+    case 723:
       return crit_e::reject;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -11204,6 +12795,9 @@ ue_context_release_request_ies_o::value_c ue_context_release_request_ies_o::get_
     case 375:
       ret.set(value_c::types::target_cells_to_cancel);
       break;
+    case 723:
+      ret.set(value_c::types::ltm_cells_to_be_released_list);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -11219,6 +12813,8 @@ presence_e ue_context_release_request_ies_o::get_presence(const uint32_t& id)
     case 0:
       return presence_e::mandatory;
     case 375:
+      return presence_e::optional;
+    case 723:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -11242,6 +12838,9 @@ void ue_context_release_request_ies_o::value_c::set(types::options e)
       break;
     case types::target_cells_to_cancel:
       c = target_cell_list_l{};
+      break;
+    case types::ltm_cells_to_be_released_list:
+      c = ltm_cells_to_be_released_list_l{};
       break;
     case types::nulltype:
       break;
@@ -11269,6 +12868,11 @@ target_cell_list_l& ue_context_release_request_ies_o::value_c::target_cells_to_c
   assert_choice_type(types::target_cells_to_cancel, type_, "Value");
   return c.get<target_cell_list_l>();
 }
+ltm_cells_to_be_released_list_l& ue_context_release_request_ies_o::value_c::ltm_cells_to_be_released_list()
+{
+  assert_choice_type(types::ltm_cells_to_be_released_list, type_, "Value");
+  return c.get<ltm_cells_to_be_released_list_l>();
+}
 const uint64_t& ue_context_release_request_ies_o::value_c::gnb_cu_ue_f1ap_id() const
 {
   assert_choice_type(types::gnb_cu_ue_f1ap_id, type_, "Value");
@@ -11289,6 +12893,11 @@ const target_cell_list_l& ue_context_release_request_ies_o::value_c::target_cell
   assert_choice_type(types::target_cells_to_cancel, type_, "Value");
   return c.get<target_cell_list_l>();
 }
+const ltm_cells_to_be_released_list_l& ue_context_release_request_ies_o::value_c::ltm_cells_to_be_released_list() const
+{
+  assert_choice_type(types::ltm_cells_to_be_released_list, type_, "Value");
+  return c.get<ltm_cells_to_be_released_list_l>();
+}
 void ue_context_release_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -11306,6 +12915,13 @@ void ue_context_release_request_ies_o::value_c::to_json(json_writer& j) const
     case types::target_cells_to_cancel:
       j.start_array("TargetCellList");
       for (const auto& e1 : c.get<target_cell_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::ltm_cells_to_be_released_list:
+      j.start_array("LTMCells-ToBeReleased-List");
+      for (const auto& e1 : c.get<ltm_cells_to_be_released_list_l>()) {
         e1.to_json(j);
       }
       j.end_array();
@@ -11331,6 +12947,9 @@ OCUDUASN_CODE ue_context_release_request_ies_o::value_c::pack(bit_ref& bref) con
     case types::target_cells_to_cancel:
       HANDLE_CODE(pack_dyn_seq_of(bref, c.get<target_cell_list_l>(), 1, 8, true));
       break;
+    case types::ltm_cells_to_be_released_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ltm_cells_to_be_released_list_l>(), 1, 8, true));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_request_ies_o::value_c");
       return OCUDUASN_ERROR_ENCODE_FAIL;
@@ -11353,6 +12972,9 @@ OCUDUASN_CODE ue_context_release_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::target_cells_to_cancel:
       HANDLE_CODE(unpack_dyn_seq_of(c.get<target_cell_list_l>(), bref, 1, 8, true));
       break;
+    case types::ltm_cells_to_be_released_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<ltm_cells_to_be_released_list_l>(), bref, 1, 8, true));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_release_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -11362,8 +12984,9 @@ OCUDUASN_CODE ue_context_release_request_ies_o::value_c::unpack(cbit_ref& bref)
 
 const char* ue_context_release_request_ies_o::value_c::types_opts::to_string() const
 {
-  static const char* names[] = {"INTEGER (0..4294967295)", "INTEGER (0..4294967295)", "Cause", "TargetCellList"};
-  return convert_enum_idx(names, 4, value, "ue_context_release_request_ies_o::value_c::types");
+  static const char* names[] = {
+      "INTEGER (0..4294967295)", "INTEGER (0..4294967295)", "Cause", "TargetCellList", "LTMCells-ToBeReleased-List"};
+  return convert_enum_idx(names, 5, value, "ue_context_release_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_release_request_ies_o>;
@@ -11372,6 +12995,7 @@ OCUDUASN_CODE ue_context_release_request_ies_container::pack(bit_ref& bref) cons
 {
   uint32_t nof_ies = 3;
   nof_ies += target_cells_to_cancel_present ? 1 : 0;
+  nof_ies += ltm_cells_to_be_released_list_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -11397,6 +13021,12 @@ OCUDUASN_CODE ue_context_release_request_ies_container::pack(bit_ref& bref) cons
     HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(pack_dyn_seq_of(bref, target_cells_to_cancel, 1, 8, true));
+  }
+  if (ltm_cells_to_be_released_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)723, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, ltm_cells_to_be_released_list, 1, 8, true));
   }
 
   return OCUDUASN_SUCCESS;
@@ -11439,6 +13069,12 @@ OCUDUASN_CODE ue_context_release_request_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(unpack_dyn_seq_of(target_cells_to_cancel, bref, 1, 8, true));
         break;
       }
+      case 723: {
+        ltm_cells_to_be_released_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(ltm_cells_to_be_released_list, bref, 1, 8, true));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -11468,6 +13104,15 @@ void ue_context_release_request_ies_container::to_json(json_writer& j) const
     j.write_str("criticality", "reject");
     j.start_array("Value");
     for (const auto& e1 : target_cells_to_cancel) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (ltm_cells_to_be_released_list_present) {
+    j.write_int("id", 723);
+    j.write_str("criticality", "reject");
+    j.start_array("Value");
+    for (const auto& e1 : ltm_cells_to_be_released_list) {
       e1.to_json(j);
     }
     j.end_array();
@@ -11901,16 +13546,18 @@ void ue_context_setup_fail_ies_container::to_json(json_writer& j) const
 // UEContextSetupRequestIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t ue_context_setup_request_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {40,  41,  63,  107, 96,  9,   90,  38,  49,  54,  74,  35,  97,  108, 50,  126, 165,
-                                   158, 184, 195, 182, 217, 226, 242, 248, 258, 282, 306, 307, 308, 309, 340, 330, 373,
-                                   377, 382, 428, 511, 536, 547, 591, 594, 595, 596, 599, 608, 619, 626, 632, 630, 695};
-  return map_enum_number(names, 51, idx, "id");
+  static const uint32_t names[] = {40,  41,  63,  107, 96,  9,   90,  38,  49,  54,  74,  35,  97,  108, 50,  126,
+                                   165, 158, 184, 195, 182, 217, 226, 242, 248, 258, 282, 306, 307, 308, 309, 340,
+                                   330, 373, 377, 382, 428, 511, 536, 547, 591, 594, 595, 596, 599, 608, 619, 626,
+                                   632, 630, 695, 712, 716, 720, 721, 726, 741, 779, 780, 781, 782, 794, 801, 838};
+  return map_enum_number(names, 64, idx, "id");
 }
 bool ue_context_setup_request_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {40,  41,  63,  107, 96,  9,   90,  38,  49,  54,  74,  35,  97,  108, 50,  126, 165,
-                                   158, 184, 195, 182, 217, 226, 242, 248, 258, 282, 306, 307, 308, 309, 340, 330, 373,
-                                   377, 382, 428, 511, 536, 547, 591, 594, 595, 596, 599, 608, 619, 626, 632, 630, 695};
+  static const uint32_t names[] = {40,  41,  63,  107, 96,  9,   90,  38,  49,  54,  74,  35,  97,  108, 50,  126,
+                                   165, 158, 184, 195, 182, 217, 226, 242, 248, 258, 282, 306, 307, 308, 309, 340,
+                                   330, 373, 377, 382, 428, 511, 536, 547, 591, 594, 595, 596, 599, 608, 619, 626,
+                                   632, 630, 695, 712, 716, 720, 721, 726, 741, 779, 780, 781, 782, 794, 801, 838};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -12022,6 +13669,32 @@ crit_e ue_context_setup_request_ies_o::get_crit(const uint32_t& id)
     case 630:
       return crit_e::reject;
     case 695:
+      return crit_e::ignore;
+    case 712:
+      return crit_e::ignore;
+    case 716:
+      return crit_e::ignore;
+    case 720:
+      return crit_e::reject;
+    case 721:
+      return crit_e::reject;
+    case 726:
+      return crit_e::ignore;
+    case 741:
+      return crit_e::reject;
+    case 779:
+      return crit_e::ignore;
+    case 780:
+      return crit_e::ignore;
+    case 781:
+      return crit_e::ignore;
+    case 782:
+      return crit_e::ignore;
+    case 794:
+      return crit_e::ignore;
+    case 801:
+      return crit_e::ignore;
+    case 838:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -12185,6 +13858,45 @@ ue_context_setup_request_ies_o::value_c ue_context_setup_request_ies_o::get_valu
     case 695:
       ret.set(value_c::types::serving_cell_mo_list);
       break;
+    case 712:
+      ret.set(value_c::types::network_ctrl_repeater_authorized);
+      break;
+    case 716:
+      ret.set(value_c::types::sdt_volume_thres);
+      break;
+    case 720:
+      ret.set(value_c::types::ltm_info_setup);
+      break;
+    case 721:
+      ret.set(value_c::types::ltm_cfg_id_map_list);
+      break;
+    case 726:
+      ret.set(value_c::types::early_sync_info_request);
+      break;
+    case 741:
+      ret.set(value_c::types::path_addition_info);
+      break;
+    case 779:
+      ret.set(value_c::types::nr_a2_x_services_authorized);
+      break;
+    case 780:
+      ret.set(value_c::types::ltea2_x_services_authorized);
+      break;
+    case 781:
+      ret.set(value_c::types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x);
+      break;
+    case 782:
+      ret.set(value_c::types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x);
+      break;
+    case 794:
+      ret.set(value_c::types::dl_lbt_fail_info_request);
+      break;
+    case 801:
+      ret.set(value_c::types::sl_positioning_ranging_service_info);
+      break;
+    case 838:
+      ret.set(value_c::types::non_integer_drx_cycle);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -12294,6 +14006,32 @@ presence_e ue_context_setup_request_ies_o::get_presence(const uint32_t& id)
     case 630:
       return presence_e::optional;
     case 695:
+      return presence_e::optional;
+    case 712:
+      return presence_e::optional;
+    case 716:
+      return presence_e::optional;
+    case 720:
+      return presence_e::optional;
+    case 721:
+      return presence_e::optional;
+    case 726:
+      return presence_e::optional;
+    case 741:
+      return presence_e::optional;
+    case 779:
+      return presence_e::optional;
+    case 780:
+      return presence_e::optional;
+    case 781:
+      return presence_e::optional;
+    case 782:
+      return presence_e::optional;
+    case 794:
+      return presence_e::optional;
+    case 801:
+      return presence_e::optional;
+    case 838:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -12458,6 +14196,45 @@ void ue_context_setup_request_ies_o::value_c::set(types::options e)
       break;
     case types::serving_cell_mo_list:
       c = serving_cell_mo_list_l{};
+      break;
+    case types::network_ctrl_repeater_authorized:
+      c = network_ctrl_repeater_authorized_e{};
+      break;
+    case types::sdt_volume_thres:
+      c = uint32_t{};
+      break;
+    case types::ltm_info_setup:
+      c = ltm_info_setup_s{};
+      break;
+    case types::ltm_cfg_id_map_list:
+      c = ltm_cfg_id_map_list_l{};
+      break;
+    case types::early_sync_info_request:
+      c = early_sync_info_request_s{};
+      break;
+    case types::path_addition_info:
+      c = path_addition_info_c{};
+      break;
+    case types::nr_a2_x_services_authorized:
+      c = nr_a2_x_services_authorized_s{};
+      break;
+    case types::ltea2_x_services_authorized:
+      c = ltea2_x_services_authorized_s{};
+      break;
+    case types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      c = nr_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      c = lte_ue_sidelink_aggr_max_bitrate_s{};
+      break;
+    case types::dl_lbt_fail_info_request:
+      c = dl_lbt_fail_info_request_e{};
+      break;
+    case types::sl_positioning_ranging_service_info:
+      c = sl_positioning_ranging_service_info_s{};
+      break;
+    case types::non_integer_drx_cycle:
+      c = non_integer_drx_cycle_s{};
       break;
     case types::nulltype:
       break;
@@ -12720,6 +14497,71 @@ serving_cell_mo_list_l& ue_context_setup_request_ies_o::value_c::serving_cell_mo
   assert_choice_type(types::serving_cell_mo_list, type_, "Value");
   return c.get<serving_cell_mo_list_l>();
 }
+network_ctrl_repeater_authorized_e& ue_context_setup_request_ies_o::value_c::network_ctrl_repeater_authorized()
+{
+  assert_choice_type(types::network_ctrl_repeater_authorized, type_, "Value");
+  return c.get<network_ctrl_repeater_authorized_e>();
+}
+uint32_t& ue_context_setup_request_ies_o::value_c::sdt_volume_thres()
+{
+  assert_choice_type(types::sdt_volume_thres, type_, "Value");
+  return c.get<uint32_t>();
+}
+ltm_info_setup_s& ue_context_setup_request_ies_o::value_c::ltm_info_setup()
+{
+  assert_choice_type(types::ltm_info_setup, type_, "Value");
+  return c.get<ltm_info_setup_s>();
+}
+ltm_cfg_id_map_list_l& ue_context_setup_request_ies_o::value_c::ltm_cfg_id_map_list()
+{
+  assert_choice_type(types::ltm_cfg_id_map_list, type_, "Value");
+  return c.get<ltm_cfg_id_map_list_l>();
+}
+early_sync_info_request_s& ue_context_setup_request_ies_o::value_c::early_sync_info_request()
+{
+  assert_choice_type(types::early_sync_info_request, type_, "Value");
+  return c.get<early_sync_info_request_s>();
+}
+path_addition_info_c& ue_context_setup_request_ies_o::value_c::path_addition_info()
+{
+  assert_choice_type(types::path_addition_info, type_, "Value");
+  return c.get<path_addition_info_c>();
+}
+nr_a2_x_services_authorized_s& ue_context_setup_request_ies_o::value_c::nr_a2_x_services_authorized()
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+ltea2_x_services_authorized_s& ue_context_setup_request_ies_o::value_c::ltea2_x_services_authorized()
+{
+  assert_choice_type(types::ltea2_x_services_authorized, type_, "Value");
+  return c.get<ltea2_x_services_authorized_s>();
+}
+nr_ue_sidelink_aggr_max_bitrate_s& ue_context_setup_request_ies_o::value_c::nr_ue_sidelink_aggr_max_bitrate_for_a2_x()
+{
+  assert_choice_type(types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+lte_ue_sidelink_aggr_max_bitrate_s& ue_context_setup_request_ies_o::value_c::lte_ue_sidelink_aggr_max_bitrate_for_a2_x()
+{
+  assert_choice_type(types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+dl_lbt_fail_info_request_e& ue_context_setup_request_ies_o::value_c::dl_lbt_fail_info_request()
+{
+  assert_choice_type(types::dl_lbt_fail_info_request, type_, "Value");
+  return c.get<dl_lbt_fail_info_request_e>();
+}
+sl_positioning_ranging_service_info_s& ue_context_setup_request_ies_o::value_c::sl_positioning_ranging_service_info()
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
+non_integer_drx_cycle_s& ue_context_setup_request_ies_o::value_c::non_integer_drx_cycle()
+{
+  assert_choice_type(types::non_integer_drx_cycle, type_, "Value");
+  return c.get<non_integer_drx_cycle_s>();
+}
 const uint64_t& ue_context_setup_request_ies_o::value_c::gnb_cu_ue_f1ap_id() const
 {
   assert_choice_type(types::gnb_cu_ue_f1ap_id, type_, "Value");
@@ -12980,6 +14822,75 @@ const serving_cell_mo_list_l& ue_context_setup_request_ies_o::value_c::serving_c
   assert_choice_type(types::serving_cell_mo_list, type_, "Value");
   return c.get<serving_cell_mo_list_l>();
 }
+const network_ctrl_repeater_authorized_e&
+ue_context_setup_request_ies_o::value_c::network_ctrl_repeater_authorized() const
+{
+  assert_choice_type(types::network_ctrl_repeater_authorized, type_, "Value");
+  return c.get<network_ctrl_repeater_authorized_e>();
+}
+const uint32_t& ue_context_setup_request_ies_o::value_c::sdt_volume_thres() const
+{
+  assert_choice_type(types::sdt_volume_thres, type_, "Value");
+  return c.get<uint32_t>();
+}
+const ltm_info_setup_s& ue_context_setup_request_ies_o::value_c::ltm_info_setup() const
+{
+  assert_choice_type(types::ltm_info_setup, type_, "Value");
+  return c.get<ltm_info_setup_s>();
+}
+const ltm_cfg_id_map_list_l& ue_context_setup_request_ies_o::value_c::ltm_cfg_id_map_list() const
+{
+  assert_choice_type(types::ltm_cfg_id_map_list, type_, "Value");
+  return c.get<ltm_cfg_id_map_list_l>();
+}
+const early_sync_info_request_s& ue_context_setup_request_ies_o::value_c::early_sync_info_request() const
+{
+  assert_choice_type(types::early_sync_info_request, type_, "Value");
+  return c.get<early_sync_info_request_s>();
+}
+const path_addition_info_c& ue_context_setup_request_ies_o::value_c::path_addition_info() const
+{
+  assert_choice_type(types::path_addition_info, type_, "Value");
+  return c.get<path_addition_info_c>();
+}
+const nr_a2_x_services_authorized_s& ue_context_setup_request_ies_o::value_c::nr_a2_x_services_authorized() const
+{
+  assert_choice_type(types::nr_a2_x_services_authorized, type_, "Value");
+  return c.get<nr_a2_x_services_authorized_s>();
+}
+const ltea2_x_services_authorized_s& ue_context_setup_request_ies_o::value_c::ltea2_x_services_authorized() const
+{
+  assert_choice_type(types::ltea2_x_services_authorized, type_, "Value");
+  return c.get<ltea2_x_services_authorized_s>();
+}
+const nr_ue_sidelink_aggr_max_bitrate_s&
+ue_context_setup_request_ies_o::value_c::nr_ue_sidelink_aggr_max_bitrate_for_a2_x() const
+{
+  assert_choice_type(types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x, type_, "Value");
+  return c.get<nr_ue_sidelink_aggr_max_bitrate_s>();
+}
+const lte_ue_sidelink_aggr_max_bitrate_s&
+ue_context_setup_request_ies_o::value_c::lte_ue_sidelink_aggr_max_bitrate_for_a2_x() const
+{
+  assert_choice_type(types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x, type_, "Value");
+  return c.get<lte_ue_sidelink_aggr_max_bitrate_s>();
+}
+const dl_lbt_fail_info_request_e& ue_context_setup_request_ies_o::value_c::dl_lbt_fail_info_request() const
+{
+  assert_choice_type(types::dl_lbt_fail_info_request, type_, "Value");
+  return c.get<dl_lbt_fail_info_request_e>();
+}
+const sl_positioning_ranging_service_info_s&
+ue_context_setup_request_ies_o::value_c::sl_positioning_ranging_service_info() const
+{
+  assert_choice_type(types::sl_positioning_ranging_service_info, type_, "Value");
+  return c.get<sl_positioning_ranging_service_info_s>();
+}
+const non_integer_drx_cycle_s& ue_context_setup_request_ies_o::value_c::non_integer_drx_cycle() const
+{
+  assert_choice_type(types::non_integer_drx_cycle, type_, "Value");
+  return c.get<non_integer_drx_cycle_s>();
+}
 void ue_context_setup_request_ies_o::value_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -13206,6 +15117,58 @@ void ue_context_setup_request_ies_o::value_c::to_json(json_writer& j) const
       }
       j.end_array();
       break;
+    case types::network_ctrl_repeater_authorized:
+      j.write_str("NetworkControlledRepeaterAuthorized", c.get<network_ctrl_repeater_authorized_e>().to_string());
+      break;
+    case types::sdt_volume_thres:
+      j.write_int("INTEGER (1..192000,...)", c.get<uint32_t>());
+      break;
+    case types::ltm_info_setup:
+      j.write_fieldname("LTMInformation-Setup");
+      c.get<ltm_info_setup_s>().to_json(j);
+      break;
+    case types::ltm_cfg_id_map_list:
+      j.start_array("LTMConfigurationIDMappingList");
+      for (const auto& e1 : c.get<ltm_cfg_id_map_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::early_sync_info_request:
+      j.write_fieldname("EarlySyncInformation-Request");
+      c.get<early_sync_info_request_s>().to_json(j);
+      break;
+    case types::path_addition_info:
+      j.write_fieldname("PathAdditionInformation");
+      c.get<path_addition_info_c>().to_json(j);
+      break;
+    case types::nr_a2_x_services_authorized:
+      j.write_fieldname("NRA2XServicesAuthorized");
+      c.get<nr_a2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::ltea2_x_services_authorized:
+      j.write_fieldname("LTEA2XServicesAuthorized");
+      c.get<ltea2_x_services_authorized_s>().to_json(j);
+      break;
+    case types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      j.write_fieldname("NRUESidelinkAggregateMaximumBitrate");
+      c.get<nr_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      j.write_fieldname("LTEUESidelinkAggregateMaximumBitrate");
+      c.get<lte_ue_sidelink_aggr_max_bitrate_s>().to_json(j);
+      break;
+    case types::dl_lbt_fail_info_request:
+      j.write_str("DLLBTFailureInformationRequest", "inquiry");
+      break;
+    case types::sl_positioning_ranging_service_info:
+      j.write_fieldname("SLPositioning-Ranging-Service-Info");
+      c.get<sl_positioning_ranging_service_info_s>().to_json(j);
+      break;
+    case types::non_integer_drx_cycle:
+      j.write_fieldname("NonIntegerDRXCycle");
+      c.get<non_integer_drx_cycle_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_request_ies_o::value_c");
   }
@@ -13367,6 +15330,45 @@ OCUDUASN_CODE ue_context_setup_request_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::serving_cell_mo_list:
       HANDLE_CODE(pack_dyn_seq_of(bref, c.get<serving_cell_mo_list_l>(), 1, 16, true));
+      break;
+    case types::network_ctrl_repeater_authorized:
+      HANDLE_CODE(c.get<network_ctrl_repeater_authorized_e>().pack(bref));
+      break;
+    case types::sdt_volume_thres:
+      HANDLE_CODE(pack_integer(bref, c.get<uint32_t>(), (uint32_t)1u, (uint32_t)192000u, true, true));
+      break;
+    case types::ltm_info_setup:
+      HANDLE_CODE(c.get<ltm_info_setup_s>().pack(bref));
+      break;
+    case types::ltm_cfg_id_map_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ltm_cfg_id_map_list_l>(), 1, 8, true));
+      break;
+    case types::early_sync_info_request:
+      HANDLE_CODE(c.get<early_sync_info_request_s>().pack(bref));
+      break;
+    case types::path_addition_info:
+      HANDLE_CODE(c.get<path_addition_info_c>().pack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::ltea2_x_services_authorized:
+      HANDLE_CODE(c.get<ltea2_x_services_authorized_s>().pack(bref));
+      break;
+    case types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().pack(bref));
+      break;
+    case types::dl_lbt_fail_info_request:
+      HANDLE_CODE(c.get<dl_lbt_fail_info_request_e>().pack(bref));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().pack(bref));
+      break;
+    case types::non_integer_drx_cycle:
+      HANDLE_CODE(c.get<non_integer_drx_cycle_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_request_ies_o::value_c");
@@ -13531,6 +15533,45 @@ OCUDUASN_CODE ue_context_setup_request_ies_o::value_c::unpack(cbit_ref& bref)
     case types::serving_cell_mo_list:
       HANDLE_CODE(unpack_dyn_seq_of(c.get<serving_cell_mo_list_l>(), bref, 1, 16, true));
       break;
+    case types::network_ctrl_repeater_authorized:
+      HANDLE_CODE(c.get<network_ctrl_repeater_authorized_e>().unpack(bref));
+      break;
+    case types::sdt_volume_thres:
+      HANDLE_CODE(unpack_integer(c.get<uint32_t>(), bref, (uint32_t)1u, (uint32_t)192000u, true, true));
+      break;
+    case types::ltm_info_setup:
+      HANDLE_CODE(c.get<ltm_info_setup_s>().unpack(bref));
+      break;
+    case types::ltm_cfg_id_map_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<ltm_cfg_id_map_list_l>(), bref, 1, 8, true));
+      break;
+    case types::early_sync_info_request:
+      HANDLE_CODE(c.get<early_sync_info_request_s>().unpack(bref));
+      break;
+    case types::path_addition_info:
+      HANDLE_CODE(c.get<path_addition_info_c>().unpack(bref));
+      break;
+    case types::nr_a2_x_services_authorized:
+      HANDLE_CODE(c.get<nr_a2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::ltea2_x_services_authorized:
+      HANDLE_CODE(c.get<ltea2_x_services_authorized_s>().unpack(bref));
+      break;
+    case types::nr_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      HANDLE_CODE(c.get<nr_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::lte_ue_sidelink_aggr_max_bitrate_for_a2_x:
+      HANDLE_CODE(c.get<lte_ue_sidelink_aggr_max_bitrate_s>().unpack(bref));
+      break;
+    case types::dl_lbt_fail_info_request:
+      HANDLE_CODE(c.get<dl_lbt_fail_info_request_e>().unpack(bref));
+      break;
+    case types::sl_positioning_ranging_service_info:
+      HANDLE_CODE(c.get<sl_positioning_ranging_service_info_s>().unpack(bref));
+      break;
+    case types::non_integer_drx_cycle:
+      HANDLE_CODE(c.get<non_integer_drx_cycle_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_request_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -13590,8 +15631,21 @@ const char* ue_context_setup_request_ies_o::value_c::types_opts::to_string() con
                                 "GNBDUUESliceMaximumBitRateList",
                                 "MulticastMBSSessionList",
                                 "UE-MulticastMRBs-ToBeSetup-List",
-                                "ServingCellMO-List"};
-  return convert_enum_idx(names, 51, value, "ue_context_setup_request_ies_o::value_c::types");
+                                "ServingCellMO-List",
+                                "NetworkControlledRepeaterAuthorized",
+                                "INTEGER (1..192000,...)",
+                                "LTMInformation-Setup",
+                                "LTMConfigurationIDMappingList",
+                                "EarlySyncInformation-Request",
+                                "PathAdditionInformation",
+                                "NRA2XServicesAuthorized",
+                                "LTEA2XServicesAuthorized",
+                                "NRUESidelinkAggregateMaximumBitrate",
+                                "LTEUESidelinkAggregateMaximumBitrate",
+                                "DLLBTFailureInformationRequest",
+                                "SLPositioning-Ranging-Service-Info",
+                                "NonIntegerDRXCycle"};
+  return convert_enum_idx(names, 64, value, "ue_context_setup_request_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_setup_request_ies_o>;
@@ -13646,6 +15700,19 @@ OCUDUASN_CODE ue_context_setup_request_ies_container::pack(bit_ref& bref) const
   nof_ies += multicast_mbs_session_setup_list_present ? 1 : 0;
   nof_ies += ue_multicast_m_rbs_to_be_setup_list_present ? 1 : 0;
   nof_ies += serving_cell_mo_list_present ? 1 : 0;
+  nof_ies += network_ctrl_repeater_authorized_present ? 1 : 0;
+  nof_ies += sdt_volume_thres_present ? 1 : 0;
+  nof_ies += ltm_info_setup_present ? 1 : 0;
+  nof_ies += ltm_cfg_id_map_list_present ? 1 : 0;
+  nof_ies += early_sync_info_request_present ? 1 : 0;
+  nof_ies += path_addition_info_present ? 1 : 0;
+  nof_ies += nr_a2_x_services_authorized_present ? 1 : 0;
+  nof_ies += ltea2_x_services_authorized_present ? 1 : 0;
+  nof_ies += nr_ue_sidelink_aggr_max_bitrate_for_a2_x_present ? 1 : 0;
+  nof_ies += lte_ue_sidelink_aggr_max_bitrate_for_a2_x_present ? 1 : 0;
+  nof_ies += dl_lbt_fail_info_request_present ? 1 : 0;
+  nof_ies += sl_positioning_ranging_service_info_present ? 1 : 0;
+  nof_ies += non_integer_drx_cycle_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -13953,6 +16020,84 @@ OCUDUASN_CODE ue_context_setup_request_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(pack_dyn_seq_of(bref, serving_cell_mo_list, 1, 16, true));
+  }
+  if (network_ctrl_repeater_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)712, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(network_ctrl_repeater_authorized.pack(bref));
+  }
+  if (sdt_volume_thres_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)716, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_integer(bref, sdt_volume_thres, (uint32_t)1u, (uint32_t)192000u, true, true));
+  }
+  if (ltm_info_setup_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)720, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ltm_info_setup.pack(bref));
+  }
+  if (ltm_cfg_id_map_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)721, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, ltm_cfg_id_map_list, 1, 8, true));
+  }
+  if (early_sync_info_request_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)726, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(early_sync_info_request.pack(bref));
+  }
+  if (path_addition_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)741, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(path_addition_info.pack(bref));
+  }
+  if (nr_a2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)779, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_a2_x_services_authorized.pack(bref));
+  }
+  if (ltea2_x_services_authorized_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)780, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ltea2_x_services_authorized.pack(bref));
+  }
+  if (nr_ue_sidelink_aggr_max_bitrate_for_a2_x_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)781, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(nr_ue_sidelink_aggr_max_bitrate_for_a2_x.pack(bref));
+  }
+  if (lte_ue_sidelink_aggr_max_bitrate_for_a2_x_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)782, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(lte_ue_sidelink_aggr_max_bitrate_for_a2_x.pack(bref));
+  }
+  if (dl_lbt_fail_info_request_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)794, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(dl_lbt_fail_info_request.pack(bref));
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)801, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(sl_positioning_ranging_service_info.pack(bref));
+  }
+  if (non_integer_drx_cycle_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)838, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(non_integer_drx_cycle.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -14278,6 +16423,84 @@ OCUDUASN_CODE ue_context_setup_request_ies_container::unpack(cbit_ref& bref)
         HANDLE_CODE(unpack_dyn_seq_of(serving_cell_mo_list, bref, 1, 16, true));
         break;
       }
+      case 712: {
+        network_ctrl_repeater_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(network_ctrl_repeater_authorized.unpack(bref));
+        break;
+      }
+      case 716: {
+        sdt_volume_thres_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_integer(sdt_volume_thres, bref, (uint32_t)1u, (uint32_t)192000u, true, true));
+        break;
+      }
+      case 720: {
+        ltm_info_setup_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ltm_info_setup.unpack(bref));
+        break;
+      }
+      case 721: {
+        ltm_cfg_id_map_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(ltm_cfg_id_map_list, bref, 1, 8, true));
+        break;
+      }
+      case 726: {
+        early_sync_info_request_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(early_sync_info_request.unpack(bref));
+        break;
+      }
+      case 741: {
+        path_addition_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(path_addition_info.unpack(bref));
+        break;
+      }
+      case 779: {
+        nr_a2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_a2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 780: {
+        ltea2_x_services_authorized_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ltea2_x_services_authorized.unpack(bref));
+        break;
+      }
+      case 781: {
+        nr_ue_sidelink_aggr_max_bitrate_for_a2_x_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(nr_ue_sidelink_aggr_max_bitrate_for_a2_x.unpack(bref));
+        break;
+      }
+      case 782: {
+        lte_ue_sidelink_aggr_max_bitrate_for_a2_x_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(lte_ue_sidelink_aggr_max_bitrate_for_a2_x.unpack(bref));
+        break;
+      }
+      case 794: {
+        dl_lbt_fail_info_request_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(dl_lbt_fail_info_request.unpack(bref));
+        break;
+      }
+      case 801: {
+        sl_positioning_ranging_service_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(sl_positioning_ranging_service_info.unpack(bref));
+        break;
+      }
+      case 838: {
+        non_integer_drx_cycle_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(non_integer_drx_cycle.unpack(bref));
+        break;
+      }
       default:
         asn1::log_error("Unpacked object ID={} is not recognized\n", id);
         return OCUDUASN_ERROR_DECODE_FAIL;
@@ -14592,20 +16815,89 @@ void ue_context_setup_request_ies_container::to_json(json_writer& j) const
     }
     j.end_array();
   }
+  if (network_ctrl_repeater_authorized_present) {
+    j.write_int("id", 712);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", network_ctrl_repeater_authorized.to_string());
+  }
+  if (sdt_volume_thres_present) {
+    j.write_int("id", 716);
+    j.write_str("criticality", "ignore");
+    j.write_int("Value", sdt_volume_thres);
+  }
+  if (ltm_info_setup_present) {
+    j.write_int("id", 720);
+    j.write_str("criticality", "reject");
+    ltm_info_setup.to_json(j);
+  }
+  if (ltm_cfg_id_map_list_present) {
+    j.write_int("id", 721);
+    j.write_str("criticality", "reject");
+    j.start_array("Value");
+    for (const auto& e1 : ltm_cfg_id_map_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (early_sync_info_request_present) {
+    j.write_int("id", 726);
+    j.write_str("criticality", "ignore");
+    early_sync_info_request.to_json(j);
+  }
+  if (path_addition_info_present) {
+    j.write_int("id", 741);
+    j.write_str("criticality", "reject");
+    path_addition_info.to_json(j);
+  }
+  if (nr_a2_x_services_authorized_present) {
+    j.write_int("id", 779);
+    j.write_str("criticality", "ignore");
+    nr_a2_x_services_authorized.to_json(j);
+  }
+  if (ltea2_x_services_authorized_present) {
+    j.write_int("id", 780);
+    j.write_str("criticality", "ignore");
+    ltea2_x_services_authorized.to_json(j);
+  }
+  if (nr_ue_sidelink_aggr_max_bitrate_for_a2_x_present) {
+    j.write_int("id", 781);
+    j.write_str("criticality", "ignore");
+    nr_ue_sidelink_aggr_max_bitrate_for_a2_x.to_json(j);
+  }
+  if (lte_ue_sidelink_aggr_max_bitrate_for_a2_x_present) {
+    j.write_int("id", 782);
+    j.write_str("criticality", "ignore");
+    lte_ue_sidelink_aggr_max_bitrate_for_a2_x.to_json(j);
+  }
+  if (dl_lbt_fail_info_request_present) {
+    j.write_int("id", 794);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "inquiry");
+  }
+  if (sl_positioning_ranging_service_info_present) {
+    j.write_int("id", 801);
+    j.write_str("criticality", "ignore");
+    sl_positioning_ranging_service_info.to_json(j);
+  }
+  if (non_integer_drx_cycle_present) {
+    j.write_int("id", 838);
+    j.write_str("criticality", "ignore");
+    non_integer_drx_cycle.to_json(j);
+  }
   j.end_obj();
 }
 
 // UEContextSetupResponseIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t ue_context_setup_resp_ies_o::idx_to_id(uint32_t idx)
 {
-  static const uint32_t names[] = {40,  41,  39,  95,  49,  94,  27,  66,  15,  83,  98,  7,
-                                   202, 260, 279, 324, 316, 376, 548, 602, 603, 611, 612, 697};
-  return map_enum_number(names, 24, idx, "id");
+  static const uint32_t names[] = {40,  41,  39,  95,  49,  94,  27,  66,  15,  83,  98,  7,   202, 260, 279,
+                                   324, 316, 376, 548, 602, 603, 611, 612, 697, 699, 708, 709, 727, 725, 792};
+  return map_enum_number(names, 30, idx, "id");
 }
 bool ue_context_setup_resp_ies_o::is_id_valid(const uint32_t& id)
 {
-  static const uint32_t names[] = {40,  41,  39,  95,  49,  94,  27,  66,  15,  83,  98,  7,
-                                   202, 260, 279, 324, 316, 376, 548, 602, 603, 611, 612, 697};
+  static const uint32_t names[] = {40,  41,  39,  95,  49,  94,  27,  66,  15,  83,  98,  7,   202, 260, 279,
+                                   324, 316, 376, 548, 602, 603, 611, 612, 697, 699, 708, 709, 727, 725, 792};
   for (const auto& o : names) {
     if (o == id) {
       return true;
@@ -14663,6 +16955,18 @@ crit_e ue_context_setup_resp_ies_o::get_crit(const uint32_t& id)
     case 612:
       return crit_e::ignore;
     case 697:
+      return crit_e::ignore;
+    case 699:
+      return crit_e::reject;
+    case 708:
+      return crit_e::ignore;
+    case 709:
+      return crit_e::ignore;
+    case 727:
+      return crit_e::ignore;
+    case 725:
+      return crit_e::ignore;
+    case 792:
       return crit_e::ignore;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -14745,6 +17049,24 @@ ue_context_setup_resp_ies_o::value_c ue_context_setup_resp_ies_o::get_value(cons
     case 697:
       ret.set(value_c::types::serving_cell_mo_encoded_in_cgc_list);
       break;
+    case 699:
+      ret.set(value_c::types::ue_multicast_m_rbs_setupnew_list);
+      break;
+    case 708:
+      ret.set(value_c::types::ded_si_delivery_ind);
+      break;
+    case 709:
+      ret.set(value_c::types::cfg_bwp_list);
+      break;
+    case 727:
+      ret.set(value_c::types::early_sync_info);
+      break;
+    case 725:
+      ret.set(value_c::types::ltm_cfg);
+      break;
+    case 792:
+      ret.set(value_c::types::s_cp_ac_cfg);
+      break;
     default:
       asn1::log_error("The id={} is not recognized", id);
   }
@@ -14800,6 +17122,18 @@ presence_e ue_context_setup_resp_ies_o::get_presence(const uint32_t& id)
     case 612:
       return presence_e::optional;
     case 697:
+      return presence_e::optional;
+    case 699:
+      return presence_e::optional;
+    case 708:
+      return presence_e::optional;
+    case 709:
+      return presence_e::optional;
+    case 727:
+      return presence_e::optional;
+    case 725:
+      return presence_e::optional;
+    case 792:
       return presence_e::optional;
     default:
       asn1::log_error("The id={} is not recognized", id);
@@ -14883,6 +17217,24 @@ void ue_context_setup_resp_ies_o::value_c::set(types::options e)
       break;
     case types::serving_cell_mo_encoded_in_cgc_list:
       c = serving_cell_mo_encoded_in_cgc_list_l{};
+      break;
+    case types::ue_multicast_m_rbs_setupnew_list:
+      c = ue_multicast_m_rbs_setupnew_list_l{};
+      break;
+    case types::ded_si_delivery_ind:
+      c = ded_si_delivery_ind_e{};
+      break;
+    case types::cfg_bwp_list:
+      c = cfg_bwp_list_l{};
+      break;
+    case types::early_sync_info:
+      c = early_sync_info_s{};
+      break;
+    case types::ltm_cfg:
+      c = ltm_cfg_s{};
+      break;
+    case types::s_cp_ac_cfg:
+      c = s_cp_ac_cfg_s{};
       break;
     case types::nulltype:
       break;
@@ -15010,6 +17362,36 @@ serving_cell_mo_encoded_in_cgc_list_l& ue_context_setup_resp_ies_o::value_c::ser
   assert_choice_type(types::serving_cell_mo_encoded_in_cgc_list, type_, "Value");
   return c.get<serving_cell_mo_encoded_in_cgc_list_l>();
 }
+ue_multicast_m_rbs_setupnew_list_l& ue_context_setup_resp_ies_o::value_c::ue_multicast_m_rbs_setupnew_list()
+{
+  assert_choice_type(types::ue_multicast_m_rbs_setupnew_list, type_, "Value");
+  return c.get<ue_multicast_m_rbs_setupnew_list_l>();
+}
+ded_si_delivery_ind_e& ue_context_setup_resp_ies_o::value_c::ded_si_delivery_ind()
+{
+  assert_choice_type(types::ded_si_delivery_ind, type_, "Value");
+  return c.get<ded_si_delivery_ind_e>();
+}
+cfg_bwp_list_l& ue_context_setup_resp_ies_o::value_c::cfg_bwp_list()
+{
+  assert_choice_type(types::cfg_bwp_list, type_, "Value");
+  return c.get<cfg_bwp_list_l>();
+}
+early_sync_info_s& ue_context_setup_resp_ies_o::value_c::early_sync_info()
+{
+  assert_choice_type(types::early_sync_info, type_, "Value");
+  return c.get<early_sync_info_s>();
+}
+ltm_cfg_s& ue_context_setup_resp_ies_o::value_c::ltm_cfg()
+{
+  assert_choice_type(types::ltm_cfg, type_, "Value");
+  return c.get<ltm_cfg_s>();
+}
+s_cp_ac_cfg_s& ue_context_setup_resp_ies_o::value_c::s_cp_ac_cfg()
+{
+  assert_choice_type(types::s_cp_ac_cfg, type_, "Value");
+  return c.get<s_cp_ac_cfg_s>();
+}
 const uint64_t& ue_context_setup_resp_ies_o::value_c::gnb_cu_ue_f1ap_id() const
 {
   assert_choice_type(types::gnb_cu_ue_f1ap_id, type_, "Value");
@@ -15132,6 +17514,36 @@ ue_context_setup_resp_ies_o::value_c::serving_cell_mo_encoded_in_cgc_list() cons
 {
   assert_choice_type(types::serving_cell_mo_encoded_in_cgc_list, type_, "Value");
   return c.get<serving_cell_mo_encoded_in_cgc_list_l>();
+}
+const ue_multicast_m_rbs_setupnew_list_l& ue_context_setup_resp_ies_o::value_c::ue_multicast_m_rbs_setupnew_list() const
+{
+  assert_choice_type(types::ue_multicast_m_rbs_setupnew_list, type_, "Value");
+  return c.get<ue_multicast_m_rbs_setupnew_list_l>();
+}
+const ded_si_delivery_ind_e& ue_context_setup_resp_ies_o::value_c::ded_si_delivery_ind() const
+{
+  assert_choice_type(types::ded_si_delivery_ind, type_, "Value");
+  return c.get<ded_si_delivery_ind_e>();
+}
+const cfg_bwp_list_l& ue_context_setup_resp_ies_o::value_c::cfg_bwp_list() const
+{
+  assert_choice_type(types::cfg_bwp_list, type_, "Value");
+  return c.get<cfg_bwp_list_l>();
+}
+const early_sync_info_s& ue_context_setup_resp_ies_o::value_c::early_sync_info() const
+{
+  assert_choice_type(types::early_sync_info, type_, "Value");
+  return c.get<early_sync_info_s>();
+}
+const ltm_cfg_s& ue_context_setup_resp_ies_o::value_c::ltm_cfg() const
+{
+  assert_choice_type(types::ltm_cfg, type_, "Value");
+  return c.get<ltm_cfg_s>();
+}
+const s_cp_ac_cfg_s& ue_context_setup_resp_ies_o::value_c::s_cp_ac_cfg() const
+{
+  assert_choice_type(types::s_cp_ac_cfg, type_, "Value");
+  return c.get<s_cp_ac_cfg_s>();
 }
 void ue_context_setup_resp_ies_o::value_c::to_json(json_writer& j) const
 {
@@ -15268,6 +17680,35 @@ void ue_context_setup_resp_ies_o::value_c::to_json(json_writer& j) const
       }
       j.end_array();
       break;
+    case types::ue_multicast_m_rbs_setupnew_list:
+      j.start_array("UE-MulticastMRBs-Setupnew-List");
+      for (const auto& e1 : c.get<ue_multicast_m_rbs_setupnew_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::ded_si_delivery_ind:
+      j.write_str("DedicatedSIDeliveryIndication", "true");
+      break;
+    case types::cfg_bwp_list:
+      j.start_array("Configured-BWP-List");
+      for (const auto& e1 : c.get<cfg_bwp_list_l>()) {
+        e1.to_json(j);
+      }
+      j.end_array();
+      break;
+    case types::early_sync_info:
+      j.write_fieldname("EarlySyncInformation");
+      c.get<early_sync_info_s>().to_json(j);
+      break;
+    case types::ltm_cfg:
+      j.write_fieldname("LTMConfiguration");
+      c.get<ltm_cfg_s>().to_json(j);
+      break;
+    case types::s_cp_ac_cfg:
+      j.write_fieldname("S-CPAC-Configuration");
+      c.get<s_cp_ac_cfg_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_resp_ies_o::value_c");
   }
@@ -15348,6 +17789,24 @@ OCUDUASN_CODE ue_context_setup_resp_ies_o::value_c::pack(bit_ref& bref) const
       break;
     case types::serving_cell_mo_encoded_in_cgc_list:
       HANDLE_CODE(pack_dyn_seq_of(bref, c.get<serving_cell_mo_encoded_in_cgc_list_l>(), 1, 8, true));
+      break;
+    case types::ue_multicast_m_rbs_setupnew_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<ue_multicast_m_rbs_setupnew_list_l>(), 1, 64, true));
+      break;
+    case types::ded_si_delivery_ind:
+      HANDLE_CODE(c.get<ded_si_delivery_ind_e>().pack(bref));
+      break;
+    case types::cfg_bwp_list:
+      HANDLE_CODE(pack_dyn_seq_of(bref, c.get<cfg_bwp_list_l>(), 1, 8, true));
+      break;
+    case types::early_sync_info:
+      HANDLE_CODE(c.get<early_sync_info_s>().pack(bref));
+      break;
+    case types::ltm_cfg:
+      HANDLE_CODE(c.get<ltm_cfg_s>().pack(bref));
+      break;
+    case types::s_cp_ac_cfg:
+      HANDLE_CODE(c.get<s_cp_ac_cfg_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_resp_ies_o::value_c");
@@ -15431,6 +17890,24 @@ OCUDUASN_CODE ue_context_setup_resp_ies_o::value_c::unpack(cbit_ref& bref)
     case types::serving_cell_mo_encoded_in_cgc_list:
       HANDLE_CODE(unpack_dyn_seq_of(c.get<serving_cell_mo_encoded_in_cgc_list_l>(), bref, 1, 8, true));
       break;
+    case types::ue_multicast_m_rbs_setupnew_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<ue_multicast_m_rbs_setupnew_list_l>(), bref, 1, 64, true));
+      break;
+    case types::ded_si_delivery_ind:
+      HANDLE_CODE(c.get<ded_si_delivery_ind_e>().unpack(bref));
+      break;
+    case types::cfg_bwp_list:
+      HANDLE_CODE(unpack_dyn_seq_of(c.get<cfg_bwp_list_l>(), bref, 1, 8, true));
+      break;
+    case types::early_sync_info:
+      HANDLE_CODE(c.get<early_sync_info_s>().unpack(bref));
+      break;
+    case types::ltm_cfg:
+      HANDLE_CODE(c.get<ltm_cfg_s>().unpack(bref));
+      break;
+    case types::s_cp_ac_cfg:
+      HANDLE_CODE(c.get<s_cp_ac_cfg_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "ue_context_setup_resp_ies_o::value_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -15463,8 +17940,14 @@ const char* ue_context_setup_resp_ies_o::value_c::types_opts::to_string() const
                                 "UuRLCChannelFailedToBeSetupList",
                                 "PC5RLCChannelSetupList",
                                 "PC5RLCChannelFailedToBeSetupList",
-                                "ServingCellMO-encoded-in-CGC-List"};
-  return convert_enum_idx(names, 24, value, "ue_context_setup_resp_ies_o::value_c::types");
+                                "ServingCellMO-encoded-in-CGC-List",
+                                "UE-MulticastMRBs-Setupnew-List",
+                                "DedicatedSIDeliveryIndication",
+                                "Configured-BWP-List",
+                                "EarlySyncInformation",
+                                "LTMConfiguration",
+                                "S-CPAC-Configuration"};
+  return convert_enum_idx(names, 30, value, "ue_context_setup_resp_ies_o::value_c::types");
 }
 
 template struct asn1::protocol_ie_field_s<ue_context_setup_resp_ies_o>;
@@ -15493,6 +17976,12 @@ OCUDUASN_CODE ue_context_setup_resp_ies_container::pack(bit_ref& bref) const
   nof_ies += pc5_rlc_ch_setup_list_present ? 1 : 0;
   nof_ies += pc5_rlc_ch_failed_to_be_setup_list_present ? 1 : 0;
   nof_ies += serving_cell_mo_encoded_in_cgc_list_present ? 1 : 0;
+  nof_ies += ue_multicast_m_rbs_setupnew_list_present ? 1 : 0;
+  nof_ies += ded_si_delivery_ind_present ? 1 : 0;
+  nof_ies += cfg_bwp_list_present ? 1 : 0;
+  nof_ies += early_sync_info_present ? 1 : 0;
+  nof_ies += ltm_cfg_present ? 1 : 0;
+  nof_ies += s_cp_ac_cfg_present ? 1 : 0;
   pack_length(bref, nof_ies, 0u, 65535u, true);
 
   {
@@ -15638,6 +18127,42 @@ OCUDUASN_CODE ue_context_setup_resp_ies_container::pack(bit_ref& bref) const
     HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
     varlength_field_pack_guard varlen_scope(bref, true);
     HANDLE_CODE(pack_dyn_seq_of(bref, serving_cell_mo_encoded_in_cgc_list, 1, 8, true));
+  }
+  if (ue_multicast_m_rbs_setupnew_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)699, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::reject}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, ue_multicast_m_rbs_setupnew_list, 1, 64, true));
+  }
+  if (ded_si_delivery_ind_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)708, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ded_si_delivery_ind.pack(bref));
+  }
+  if (cfg_bwp_list_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)709, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(pack_dyn_seq_of(bref, cfg_bwp_list, 1, 8, true));
+  }
+  if (early_sync_info_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)727, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(early_sync_info.pack(bref));
+  }
+  if (ltm_cfg_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)725, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(ltm_cfg.pack(bref));
+  }
+  if (s_cp_ac_cfg_present) {
+    HANDLE_CODE(pack_integer(bref, (uint32_t)792, (uint32_t)0u, (uint32_t)65535u, false, true));
+    HANDLE_CODE(crit_e{crit_e::ignore}.pack(bref));
+    varlength_field_pack_guard varlen_scope(bref, true);
+    HANDLE_CODE(s_cp_ac_cfg.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -15798,6 +18323,42 @@ OCUDUASN_CODE ue_context_setup_resp_ies_container::unpack(cbit_ref& bref)
         serving_cell_mo_encoded_in_cgc_list_present = true;
         varlength_field_unpack_guard varlen_scope(bref, true);
         HANDLE_CODE(unpack_dyn_seq_of(serving_cell_mo_encoded_in_cgc_list, bref, 1, 8, true));
+        break;
+      }
+      case 699: {
+        ue_multicast_m_rbs_setupnew_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(ue_multicast_m_rbs_setupnew_list, bref, 1, 64, true));
+        break;
+      }
+      case 708: {
+        ded_si_delivery_ind_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ded_si_delivery_ind.unpack(bref));
+        break;
+      }
+      case 709: {
+        cfg_bwp_list_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(unpack_dyn_seq_of(cfg_bwp_list, bref, 1, 8, true));
+        break;
+      }
+      case 727: {
+        early_sync_info_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(early_sync_info.unpack(bref));
+        break;
+      }
+      case 725: {
+        ltm_cfg_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(ltm_cfg.unpack(bref));
+        break;
+      }
+      case 792: {
+        s_cp_ac_cfg_present = true;
+        varlength_field_unpack_guard varlen_scope(bref, true);
+        HANDLE_CODE(s_cp_ac_cfg.unpack(bref));
         break;
       }
       default:
@@ -15984,6 +18545,44 @@ void ue_context_setup_resp_ies_container::to_json(json_writer& j) const
       e1.to_json(j);
     }
     j.end_array();
+  }
+  if (ue_multicast_m_rbs_setupnew_list_present) {
+    j.write_int("id", 699);
+    j.write_str("criticality", "reject");
+    j.start_array("Value");
+    for (const auto& e1 : ue_multicast_m_rbs_setupnew_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (ded_si_delivery_ind_present) {
+    j.write_int("id", 708);
+    j.write_str("criticality", "ignore");
+    j.write_str("Value", "true");
+  }
+  if (cfg_bwp_list_present) {
+    j.write_int("id", 709);
+    j.write_str("criticality", "ignore");
+    j.start_array("Value");
+    for (const auto& e1 : cfg_bwp_list) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (early_sync_info_present) {
+    j.write_int("id", 727);
+    j.write_str("criticality", "ignore");
+    early_sync_info.to_json(j);
+  }
+  if (ltm_cfg_present) {
+    j.write_int("id", 725);
+    j.write_str("criticality", "ignore");
+    ltm_cfg.to_json(j);
+  }
+  if (s_cp_ac_cfg_present) {
+    j.write_int("id", 792);
+    j.write_str("criticality", "ignore");
+    s_cp_ac_cfg.to_json(j);
   }
   j.end_obj();
 }

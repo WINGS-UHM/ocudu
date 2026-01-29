@@ -10,13 +10,13 @@
 
 /*******************************************************************************
  *
- *                    3GPP TS ASN1 RRC NR v17.4.0 (2023-03)
+ *                    3GPP TS ASN1 RRC NR v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
 #pragma once
 
-#include "ocudu/asn1/rrc_nr/common.h"
+#include "common.h"
 
 namespace asn1 {
 namespace rrc_nr {
@@ -197,6 +197,34 @@ struct discard_timer_ext2_r17_opts {
   uint16_t    to_number() const;
 };
 using discard_timer_ext2_r17_e = enumerated<discard_timer_ext2_r17_opts>;
+
+// DiscardTimerForLowImportance-r18 ::= ENUMERATED
+struct discard_timer_for_low_importance_r18_opts {
+  enum options {
+    ms0,
+    ms2,
+    ms4,
+    ms6,
+    ms8,
+    ms10,
+    ms12,
+    ms14,
+    ms18,
+    ms22,
+    ms26,
+    ms30,
+    ms40,
+    ms50,
+    ms75,
+    ms100,
+    nulltype
+  } value;
+  typedef uint8_t number_type;
+
+  const char* to_string() const;
+  uint8_t     to_number() const;
+};
+using discard_timer_for_low_importance_r18_e = enumerated<discard_timer_for_low_importance_r18_opts>;
 
 // PDCP-Config ::= SEQUENCE
 struct pdcp_cfg_s {
@@ -455,6 +483,11 @@ struct pdcp_cfg_s {
   copy_ptr<setup_release_c<ul_data_compress_r17_c>>   ul_data_compress_r17;
   copy_ptr<setup_release_c<discard_timer_ext2_r17_e>> discard_timer_ext2_r17;
   fixed_bitstring<32>                                 init_rx_deliv_r17;
+  // group 3
+  bool                                                              pdu_set_discard_r18_present               = false;
+  bool                                                              primary_path_on_indirect_path_r18_present = false;
+  bool                                                              sn_gap_report_r18_present                 = false;
+  copy_ptr<setup_release_c<discard_timer_for_low_importance_r18_e>> discard_timer_for_low_importance_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -474,6 +507,10 @@ struct srb_to_add_mod_s {
   // group 0
   bool    srb_id_v1700_present = false;
   uint8_t srb_id_v1700         = 4;
+  // group 1
+  bool    srb_id_v1800_present              = false;
+  bool    n3c_bearer_associated_r18_present = false;
+  uint8_t srb_id_v1800                      = 5;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -580,6 +617,8 @@ struct drb_to_add_mod_s {
   // ...
   // group 0
   bool daps_cfg_r16_present = false;
+  // group 1
+  bool n3c_bearer_associated_r18_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -742,6 +781,9 @@ struct radio_bearer_cfg_s {
   copy_ptr<mrb_to_add_mod_list_r17_l> mrb_to_add_mod_list_r17;
   copy_ptr<mrb_to_release_list_r17_l> mrb_to_release_list_r17;
   copy_ptr<srb_to_add_mod_s>          srb4_to_add_mod_r17;
+  // group 1
+  bool                       srb5_to_release_r18_present = false;
+  copy_ptr<srb_to_add_mod_s> srb5_to_add_mod_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;

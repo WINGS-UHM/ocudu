@@ -190,7 +190,7 @@ static inline asn1::nrppa::srs_configuration_s generate_srscfg()
   srs_carrier_item.active_ul_bwp.srs_cfg.srs_res_list.push_back(srs_res);
 
   asn1::nrppa::srs_res_set_s srs_res_set;
-  srs_res_set.srs_res_set_id = 0;
+  srs_res_set.srs_res_set_id1 = 0;
   srs_res_set.srs_res_id_list.push_back(0);
   auto& periodic_res_set_type        = srs_res_set.res_set_type.set_periodic();
   periodic_res_set_type.periodic_set = asn1::nrppa::res_set_type_periodic_s::periodic_set_opts::options::true_value;

@@ -593,7 +593,8 @@ void ul_dcch_msg_type_c::msg_class_ext_c_::c2_c_::set(types::options e)
     case types::meas_report_app_layer_r17:
       c = meas_report_app_layer_r17_s{};
       break;
-    case types::spare6:
+    case types::indirect_path_fail_info_r18:
+      c = indirect_path_fail_info_r18_s{};
       break;
     case types::spare5:
       break;
@@ -661,9 +662,10 @@ meas_report_app_layer_r17_s& ul_dcch_msg_type_c::msg_class_ext_c_::c2_c_::set_me
   set(types::meas_report_app_layer_r17);
   return c.get<meas_report_app_layer_r17_s>();
 }
-void ul_dcch_msg_type_c::msg_class_ext_c_::c2_c_::set_spare6()
+indirect_path_fail_info_r18_s& ul_dcch_msg_type_c::msg_class_ext_c_::c2_c_::set_indirect_path_fail_info_r18()
 {
-  set(types::spare6);
+  set(types::indirect_path_fail_info_r18);
+  return c.get<indirect_path_fail_info_r18_s>();
 }
 void ul_dcch_msg_type_c::msg_class_ext_c_::c2_c_::set_spare5()
 {
@@ -729,7 +731,9 @@ void ul_dcch_msg_type_c::msg_class_ext_c_::c2_c_::to_json(json_writer& j) const
       j.write_fieldname("measurementReportAppLayer-r17");
       c.get<meas_report_app_layer_r17_s>().to_json(j);
       break;
-    case types::spare6:
+    case types::indirect_path_fail_info_r18:
+      j.write_fieldname("indirectPathFailureInformation-r18");
+      c.get<indirect_path_fail_info_r18_s>().to_json(j);
       break;
     case types::spare5:
       break;
@@ -780,7 +784,8 @@ OCUDUASN_CODE ul_dcch_msg_type_c::msg_class_ext_c_::c2_c_::pack(bit_ref& bref) c
     case types::meas_report_app_layer_r17:
       HANDLE_CODE(c.get<meas_report_app_layer_r17_s>().pack(bref));
       break;
-    case types::spare6:
+    case types::indirect_path_fail_info_r18:
+      HANDLE_CODE(c.get<indirect_path_fail_info_r18_s>().pack(bref));
       break;
     case types::spare5:
       break;
@@ -834,7 +839,8 @@ OCUDUASN_CODE ul_dcch_msg_type_c::msg_class_ext_c_::c2_c_::unpack(cbit_ref& bref
     case types::meas_report_app_layer_r17:
       HANDLE_CODE(c.get<meas_report_app_layer_r17_s>().unpack(bref));
       break;
-    case types::spare6:
+    case types::indirect_path_fail_info_r18:
+      HANDLE_CODE(c.get<indirect_path_fail_info_r18_s>().unpack(bref));
       break;
     case types::spare5:
       break;
@@ -865,7 +871,7 @@ const char* ul_dcch_msg_type_c::msg_class_ext_c_::c2_c_::types_opts::to_string()
                                 "mbsInterestIndication-r17",
                                 "uePositioningAssistanceInfo-r17",
                                 "measurementReportAppLayer-r17",
-                                "spare6",
+                                "indirectPathFailureInformation-r18",
                                 "spare5",
                                 "spare4",
                                 "spare3",

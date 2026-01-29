@@ -385,12 +385,12 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
           asn1_si_r17.si_win_position_r17 = cfg_si.si_window_position.value();
         }
 
-        for (auto mapping_info : cfg_si.sib_mapping_info) {
+        for (const sib_type mapping_info : cfg_si.sib_mapping_info) {
           // For each entry in the mapping info, find the matching SIB.
           auto sib_id = static_cast<unsigned>(mapping_info);
           for (const auto& sib : du_cfg.si_config->sibs) {
             sib_type type = get_sib_info_type(sib);
-            if (static_cast<std::underlying_type_t<sib_type>>(type) == sib_id) {
+            if (type == mapping_info) {
               switch (type) {
                 case sib_type::sib2:
                 case sib_type::sib3:
@@ -411,12 +411,9 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
                 case sib_type::sib19: {
                   // If the mapping info entry is for a release 17 SIB, append to the schedulingInfo2 element.
                   sib_type_info_v1700_s type_info2;
-                  auto                  sib_id_r17 = static_cast<uint8_t>(mapping_info);
-                  type_info2.sib_type_r17.set_type1_r17();
-                  ret = asn1::number_to_enum(type_info2.sib_type_r17.type1_r17(), sib_id_r17);
-                  if (ret) {
-                    asn1_si_r17.sib_map_info_r17.push_back(type_info2);
-                  }
+                  type_info2.sib_type_r17.set_type1_r17().value =
+                      sib_type_info_v1700_s::sib_type_r17_c_::type1_r17_opts::sib_type19;
+                  asn1_si_r17.sib_map_info_r17.push_back(type_info2);
                 } break;
                 case sib_type::sib1:
                 case sib_type::sib_invalid:

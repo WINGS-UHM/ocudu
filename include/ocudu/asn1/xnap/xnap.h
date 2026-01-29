@@ -10,7 +10,7 @@
 
 /*******************************************************************************
  *
- *                     3GPP TS ASN1 XNAP v17.4.1 (2023-04)
+ *                     3GPP TS ASN1 XNAP v18.7.0 (2025-12)
  *
  ******************************************************************************/
 
@@ -64,6 +64,8 @@ struct iab_res_coordination_request_ies_container;
 using iab_res_coordination_request_s = elementary_procedure_option<iab_res_coordination_request_ies_container>;
 struct partial_ue_context_transfer_ies_container;
 using partial_ue_context_transfer_s = elementary_procedure_option<partial_ue_context_transfer_ies_container>;
+struct data_collection_request_ies_container;
+using data_collection_request_s = elementary_procedure_option<data_collection_request_ies_container>;
 struct sn_status_transfer_ies_container;
 using sn_status_transfer_s = elementary_procedure_option<sn_status_transfer_ies_container>;
 struct ho_cancel_ies_container;
@@ -121,6 +123,10 @@ struct retrieve_ue_context_confirm_ies_container;
 using retrieve_ue_context_confirm_s = elementary_procedure_option<retrieve_ue_context_confirm_ies_container>;
 struct cp_c_cancel_ies_container;
 using cp_c_cancel_s = elementary_procedure_option<cp_c_cancel_ies_container>;
+struct rach_ind_ies_o;
+using rach_ind_s = elementary_procedure_option<protocol_ie_container_l<rach_ind_ies_o>>;
+struct data_collection_upd_ies_container;
+using data_collection_upd_s = elementary_procedure_option<data_collection_upd_ies_container>;
 struct ho_request_ack_ies_container;
 using ho_request_ack_s = elementary_procedure_option<ho_request_ack_ies_container>;
 struct retrieve_ue_context_resp_ies_container;
@@ -163,6 +169,8 @@ struct iab_res_coordination_resp_ies_container;
 using iab_res_coordination_resp_s = elementary_procedure_option<iab_res_coordination_resp_ies_container>;
 struct partial_ue_context_transfer_ack_ies_container;
 using partial_ue_context_transfer_ack_s = elementary_procedure_option<partial_ue_context_transfer_ack_ies_container>;
+struct data_collection_resp_ies_container;
+using data_collection_resp_s = elementary_procedure_option<data_collection_resp_ies_container>;
 struct ho_prep_fail_ies_container;
 using ho_prep_fail_s = elementary_procedure_option<ho_prep_fail_ies_container>;
 struct retrieve_ue_context_fail_ies_container;
@@ -194,6 +202,8 @@ using iab_transport_migration_management_reject_s =
     elementary_procedure_option<iab_transport_migration_management_reject_ies_container>;
 struct partial_ue_context_transfer_fail_ies_container;
 using partial_ue_context_transfer_fail_s = elementary_procedure_option<partial_ue_context_transfer_fail_ies_container>;
+struct data_collection_fail_ies_container;
+using data_collection_fail_s = elementary_procedure_option<data_collection_fail_ies_container>;
 
 /*******************************************************************************
  *                              Struct Definitions
@@ -245,6 +255,7 @@ struct xnap_elem_procs_o {
         iab_transport_migration_mod_request,
         iab_res_coordination_request,
         partial_ue_context_transfer,
+        data_collection_request,
         sn_status_transfer,
         ho_cancel,
         ran_paging,
@@ -274,6 +285,8 @@ struct xnap_elem_procs_o {
         f1_c_traffic_transfer,
         retrieve_ue_context_confirm,
         cp_c_cancel,
+        rach_ind,
+        data_collection_upd,
         nulltype
       } value;
       typedef uint8_t number_type;
@@ -311,6 +324,7 @@ struct xnap_elem_procs_o {
     iab_transport_migration_mod_request_s&              iab_transport_migration_mod_request();
     iab_res_coordination_request_s&                     iab_res_coordination_request();
     partial_ue_context_transfer_s&                      partial_ue_context_transfer();
+    data_collection_request_s&                          data_collection_request();
     sn_status_transfer_s&                               sn_status_transfer();
     ho_cancel_s&                                        ho_cancel();
     ran_paging_s&                                       ran_paging();
@@ -340,6 +354,8 @@ struct xnap_elem_procs_o {
     f1_c_traffic_transfer_s&                            f1_c_traffic_transfer();
     retrieve_ue_context_confirm_s&                      retrieve_ue_context_confirm();
     cp_c_cancel_s&                                      cp_c_cancel();
+    rach_ind_s&                                         rach_ind();
+    data_collection_upd_s&                              data_collection_upd();
     const ho_request_s&                                 ho_request() const;
     const retrieve_ue_context_request_s&                retrieve_ue_context_request() const;
     const sn_ode_addition_request_s&                    sn_ode_addition_request() const;
@@ -360,6 +376,7 @@ struct xnap_elem_procs_o {
     const iab_transport_migration_mod_request_s&        iab_transport_migration_mod_request() const;
     const iab_res_coordination_request_s&               iab_res_coordination_request() const;
     const partial_ue_context_transfer_s&                partial_ue_context_transfer() const;
+    const data_collection_request_s&                    data_collection_request() const;
     const sn_status_transfer_s&                         sn_status_transfer() const;
     const ho_cancel_s&                                  ho_cancel() const;
     const ran_paging_s&                                 ran_paging() const;
@@ -389,6 +406,8 @@ struct xnap_elem_procs_o {
     const f1_c_traffic_transfer_s&                      f1_c_traffic_transfer() const;
     const retrieve_ue_context_confirm_s&                retrieve_ue_context_confirm() const;
     const cp_c_cancel_s&                                cp_c_cancel() const;
+    const rach_ind_s&                                   rach_ind() const;
+    const data_collection_upd_s&                        data_collection_upd() const;
 
   private:
     types             type_;
@@ -418,6 +437,7 @@ struct xnap_elem_procs_o {
         iab_transport_migration_mod_resp,
         iab_res_coordination_resp,
         partial_ue_context_transfer_ack,
+        data_collection_resp,
         nulltype
       } value;
 
@@ -453,6 +473,7 @@ struct xnap_elem_procs_o {
     iab_transport_migration_mod_resp_s&              iab_transport_migration_mod_resp();
     iab_res_coordination_resp_s&                     iab_res_coordination_resp();
     partial_ue_context_transfer_ack_s&               partial_ue_context_transfer_ack();
+    data_collection_resp_s&                          data_collection_resp();
     const ho_request_ack_s&                          ho_request_ack() const;
     const retrieve_ue_context_resp_s&                retrieve_ue_context_resp() const;
     const sn_ode_addition_request_ack_s&             sn_ode_addition_request_ack() const;
@@ -473,6 +494,7 @@ struct xnap_elem_procs_o {
     const iab_transport_migration_mod_resp_s&        iab_transport_migration_mod_resp() const;
     const iab_res_coordination_resp_s&               iab_res_coordination_resp() const;
     const partial_ue_context_transfer_ack_s&         partial_ue_context_transfer_ack() const;
+    const data_collection_resp_s&                    data_collection_resp() const;
 
   private:
     types             type_;
@@ -497,6 +519,7 @@ struct xnap_elem_procs_o {
         mob_change_fail,
         iab_transport_migration_management_reject,
         partial_ue_context_transfer_fail,
+        data_collection_fail,
         nulltype
       } value;
 
@@ -527,6 +550,7 @@ struct xnap_elem_procs_o {
     mob_change_fail_s&                                 mob_change_fail();
     iab_transport_migration_management_reject_s&       iab_transport_migration_management_reject();
     partial_ue_context_transfer_fail_s&                partial_ue_context_transfer_fail();
+    data_collection_fail_s&                            data_collection_fail();
     const ho_prep_fail_s&                              ho_prep_fail() const;
     const retrieve_ue_context_fail_s&                  retrieve_ue_context_fail() const;
     const sn_ode_addition_request_reject_s&            sn_ode_addition_request_reject() const;
@@ -542,6 +566,7 @@ struct xnap_elem_procs_o {
     const mob_change_fail_s&                           mob_change_fail() const;
     const iab_transport_migration_management_reject_s& iab_transport_migration_management_reject() const;
     const partial_ue_context_transfer_fail_s&          partial_ue_context_transfer_fail() const;
+    const data_collection_fail_s&                      data_collection_fail() const;
 
   private:
     types             type_;
@@ -619,6 +644,7 @@ struct xnap_elem_procs_class_1_o {
         iab_transport_migration_mod_request,
         iab_res_coordination_request,
         partial_ue_context_transfer,
+        data_collection_request,
         nulltype
       } value;
 
@@ -654,6 +680,7 @@ struct xnap_elem_procs_class_1_o {
     iab_transport_migration_mod_request_s&              iab_transport_migration_mod_request();
     iab_res_coordination_request_s&                     iab_res_coordination_request();
     partial_ue_context_transfer_s&                      partial_ue_context_transfer();
+    data_collection_request_s&                          data_collection_request();
     const ho_request_s&                                 ho_request() const;
     const retrieve_ue_context_request_s&                retrieve_ue_context_request() const;
     const sn_ode_addition_request_s&                    sn_ode_addition_request() const;
@@ -674,6 +701,7 @@ struct xnap_elem_procs_class_1_o {
     const iab_transport_migration_mod_request_s&        iab_transport_migration_mod_request() const;
     const iab_res_coordination_request_s&               iab_res_coordination_request() const;
     const partial_ue_context_transfer_s&                partial_ue_context_transfer() const;
+    const data_collection_request_s&                    data_collection_request() const;
 
   private:
     types             type_;
@@ -703,6 +731,7 @@ struct xnap_elem_procs_class_1_o {
         iab_transport_migration_mod_resp,
         iab_res_coordination_resp,
         partial_ue_context_transfer_ack,
+        data_collection_resp,
         nulltype
       } value;
 
@@ -738,6 +767,7 @@ struct xnap_elem_procs_class_1_o {
     iab_transport_migration_mod_resp_s&              iab_transport_migration_mod_resp();
     iab_res_coordination_resp_s&                     iab_res_coordination_resp();
     partial_ue_context_transfer_ack_s&               partial_ue_context_transfer_ack();
+    data_collection_resp_s&                          data_collection_resp();
     const ho_request_ack_s&                          ho_request_ack() const;
     const retrieve_ue_context_resp_s&                retrieve_ue_context_resp() const;
     const sn_ode_addition_request_ack_s&             sn_ode_addition_request_ack() const;
@@ -758,6 +788,7 @@ struct xnap_elem_procs_class_1_o {
     const iab_transport_migration_mod_resp_s&        iab_transport_migration_mod_resp() const;
     const iab_res_coordination_resp_s&               iab_res_coordination_resp() const;
     const partial_ue_context_transfer_ack_s&         partial_ue_context_transfer_ack() const;
+    const data_collection_resp_s&                    data_collection_resp() const;
 
   private:
     types             type_;
@@ -782,6 +813,7 @@ struct xnap_elem_procs_class_1_o {
         mob_change_fail,
         iab_transport_migration_management_reject,
         partial_ue_context_transfer_fail,
+        data_collection_fail,
         nulltype
       } value;
 
@@ -812,6 +844,7 @@ struct xnap_elem_procs_class_1_o {
     mob_change_fail_s&                                 mob_change_fail();
     iab_transport_migration_management_reject_s&       iab_transport_migration_management_reject();
     partial_ue_context_transfer_fail_s&                partial_ue_context_transfer_fail();
+    data_collection_fail_s&                            data_collection_fail();
     const ho_prep_fail_s&                              ho_prep_fail() const;
     const retrieve_ue_context_fail_s&                  retrieve_ue_context_fail() const;
     const sn_ode_addition_request_reject_s&            sn_ode_addition_request_reject() const;
@@ -827,6 +860,7 @@ struct xnap_elem_procs_class_1_o {
     const mob_change_fail_s&                           mob_change_fail() const;
     const iab_transport_migration_management_reject_s& iab_transport_migration_management_reject() const;
     const partial_ue_context_transfer_fail_s&          partial_ue_context_transfer_fail() const;
+    const data_collection_fail_s&                      data_collection_fail() const;
 
   private:
     types             type_;
@@ -877,6 +911,8 @@ struct xnap_elem_procs_class_2_o {
         f1_c_traffic_transfer,
         retrieve_ue_context_confirm,
         cp_c_cancel,
+        rach_ind,
+        data_collection_upd,
         nulltype
       } value;
       typedef uint8_t number_type;
@@ -923,6 +959,8 @@ struct xnap_elem_procs_class_2_o {
     f1_c_traffic_transfer_s&                 f1_c_traffic_transfer();
     retrieve_ue_context_confirm_s&           retrieve_ue_context_confirm();
     cp_c_cancel_s&                           cp_c_cancel();
+    rach_ind_s&                              rach_ind();
+    data_collection_upd_s&                   data_collection_upd();
     const sn_status_transfer_s&              sn_status_transfer() const;
     const ho_cancel_s&                       ho_cancel() const;
     const ran_paging_s&                      ran_paging() const;
@@ -952,6 +990,8 @@ struct xnap_elem_procs_class_2_o {
     const f1_c_traffic_transfer_s&           f1_c_traffic_transfer() const;
     const retrieve_ue_context_confirm_s&     retrieve_ue_context_confirm() const;
     const cp_c_cancel_s&                     cp_c_cancel() const;
+    const rach_ind_s&                        rach_ind() const;
+    const data_collection_upd_s&             data_collection_upd() const;
 
   private:
     types             type_;

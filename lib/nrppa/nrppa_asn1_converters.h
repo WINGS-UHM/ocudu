@@ -1151,8 +1151,10 @@ asn1_to_requested_srs_tx_characteristics(const asn1::nrppa::requested_srs_tx_cha
     req.ssb_info = asn1_to_ssb_info(asn1_req.ssb_info);
   }
 
-  for (const auto& asn1_ext_cont : asn1_req.ie_exts) {
-    req.srs_freqs.push_back(asn1_ext_cont.value().srs_freq());
+  if (asn1_req.ie_exts_present) {
+    if (asn1_req.ie_exts.srs_freq_present) {
+      req.srs_freqs.push_back(asn1_req.ie_exts.srs_freq);
+    }
   }
 
   return req;
@@ -1269,14 +1271,14 @@ inline srs_configuration_t asn1_to_srs_configuration(const asn1::nrppa::srs_conf
         pos_srs_res.res_type = srs_resource_type::periodic;
         pos_srs_res.periodicity_and_offset.emplace();
         pos_srs_res.periodicity_and_offset->period =
-            (srs_periodicity)asn1_pos_srs_res.res_type_pos.periodic().periodicity.to_number();
+            (srs_periodicity)asn1_pos_srs_res.res_type_pos.periodic().srs_periodicity.to_number();
         pos_srs_res.periodicity_and_offset->offset = asn1_pos_srs_res.res_type_pos.periodic().offset;
       } else if (asn1_pos_srs_res.res_type_pos.type() ==
                  asn1::nrppa::res_type_pos_c::types_opts::options::semi_persistent) {
         pos_srs_res.res_type = srs_resource_type::semi_persistent;
         pos_srs_res.periodicity_and_offset.emplace();
         pos_srs_res.periodicity_and_offset->period =
-            (srs_periodicity)asn1_pos_srs_res.res_type_pos.semi_persistent().periodicity.to_number();
+            (srs_periodicity)asn1_pos_srs_res.res_type_pos.semi_persistent().srs_periodicity.to_number();
         pos_srs_res.periodicity_and_offset->offset = asn1_pos_srs_res.res_type_pos.semi_persistent().offset;
       } else {
         pos_srs_res.res_type    = srs_resource_type::aperiodic;
@@ -1311,7 +1313,7 @@ inline srs_configuration_t asn1_to_srs_configuration(const asn1::nrppa::srs_conf
     // >> Fill SRS res set list.
     for (const auto& asn1_srs_res_set : asn1_srs_carrier_list_item.active_ul_bwp.srs_cfg.srs_res_set_list) {
       srs_config::srs_resource_set srs_res_set;
-      srs_res_set.id = (srs_config::srs_res_set_id)asn1_srs_res_set.srs_res_set_id;
+      srs_res_set.id = (srs_config::srs_res_set_id)asn1_srs_res_set.srs_res_set_id1;
       for (const auto& asn1_res_id : asn1_srs_res_set.srs_res_id_list) {
         srs_res_set.srs_res_id_list.push_back((srs_config::srs_res_id)asn1_res_id);
       }
@@ -1546,22 +1548,22 @@ inline trp_meas_quantities_list_item_t asn1_to_trp_meas_quantities_list_item(
   trp_meas_quantities_list_item_t trp_meas_quantities_list_item;
 
   switch (asn1_trp_meas_quantities_list_item.trp_meas_quantities_item) {
-    case asn1::nrppa::trp_meas_quantities_item_e::gnb_rx_tx_time_diff:
+    case asn1::nrppa::trp_meas_type_e::gnb_rx_tx_time_diff:
       trp_meas_quantities_list_item.trp_meas_quantities_item = trp_meas_quantities_item_t::gnb_rx_tx_time_diff;
       break;
-    case asn1::nrppa::trp_meas_quantities_item_e::ul_srs_rsrp:
+    case asn1::nrppa::trp_meas_type_e::ul_srs_rsrp:
       trp_meas_quantities_list_item.trp_meas_quantities_item = trp_meas_quantities_item_t::ul_srs_rsrp;
       break;
-    case asn1::nrppa::trp_meas_quantities_item_e::ul_ao_a:
+    case asn1::nrppa::trp_meas_type_e::ul_ao_a:
       trp_meas_quantities_list_item.trp_meas_quantities_item = trp_meas_quantities_item_t::ul_aoa;
       break;
-    case asn1::nrppa::trp_meas_quantities_item_e::ul_rtoa:
+    case asn1::nrppa::trp_meas_type_e::ul_rtoa:
       trp_meas_quantities_list_item.trp_meas_quantities_item = trp_meas_quantities_item_t::ul_rtoa;
       break;
-    case asn1::nrppa::trp_meas_quantities_item_e::multiple_ul_ao_a:
+    case asn1::nrppa::trp_meas_type_e::multiple_ul_ao_a:
       trp_meas_quantities_list_item.trp_meas_quantities_item = trp_meas_quantities_item_t::multiple_ul_aoa;
       break;
-    case asn1::nrppa::trp_meas_quantities_item_e::ul_srs_rsrp_p:
+    case asn1::nrppa::trp_meas_type_e::ul_srs_rsrp_p:
       trp_meas_quantities_list_item.trp_meas_quantities_item = trp_meas_quantities_item_t::ul_srs_rsrp_p;
       break;
     default:
@@ -1584,26 +1586,22 @@ trp_meas_quantities_list_item_to_asn1(const trp_meas_quantities_list_item_t& trp
 
   switch (trp_meas_quantities_list_item.trp_meas_quantities_item) {
     case trp_meas_quantities_item_t::gnb_rx_tx_time_diff:
-      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item =
-          asn1::nrppa::trp_meas_quantities_item_e::gnb_rx_tx_time_diff;
+      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item = asn1::nrppa::trp_meas_type_e::gnb_rx_tx_time_diff;
       break;
     case trp_meas_quantities_item_t::ul_srs_rsrp:
-      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item =
-          asn1::nrppa::trp_meas_quantities_item_e::ul_srs_rsrp;
+      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item = asn1::nrppa::trp_meas_type_e::ul_srs_rsrp;
       break;
     case trp_meas_quantities_item_t::ul_aoa:
-      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item = asn1::nrppa::trp_meas_quantities_item_e::ul_ao_a;
+      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item = asn1::nrppa::trp_meas_type_e::ul_ao_a;
       break;
     case trp_meas_quantities_item_t::ul_rtoa:
-      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item = asn1::nrppa::trp_meas_quantities_item_e::ul_rtoa;
+      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item = asn1::nrppa::trp_meas_type_e::ul_rtoa;
       break;
     case trp_meas_quantities_item_t::multiple_ul_aoa:
-      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item =
-          asn1::nrppa::trp_meas_quantities_item_e::multiple_ul_ao_a;
+      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item = asn1::nrppa::trp_meas_type_e::multiple_ul_ao_a;
       break;
     case trp_meas_quantities_item_t::ul_srs_rsrp_p:
-      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item =
-          asn1::nrppa::trp_meas_quantities_item_e::ul_srs_rsrp_p;
+      asn1_trp_meas_quantities_list_item.trp_meas_quantities_item = asn1::nrppa::trp_meas_type_e::ul_srs_rsrp_p;
       break;
     default:
       report_fatal_error("Cannot convert NRPPa TRP meas quantities item to ASN.1");

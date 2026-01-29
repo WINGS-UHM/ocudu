@@ -295,11 +295,11 @@ const char* resume_cause_opts::to_string() const
                                 "rna-Update",
                                 "mps-PriorityAccess",
                                 "mcs-PriorityAccess",
-                                "spare1",
-                                "spare2",
+                                "mt-SDT-v1810",
+                                "srs-PosConfigOrActivationReq-v1800",
                                 "spare3",
-                                "spare4",
-                                "spare5"};
+                                "spare2",
+                                "spare1"};
   return convert_enum_idx(names, 16, value, "resume_cause_e");
 }
 

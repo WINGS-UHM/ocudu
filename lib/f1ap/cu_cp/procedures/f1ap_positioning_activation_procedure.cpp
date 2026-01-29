@@ -178,16 +178,13 @@ static bool fill_asn1_positioning_activation_request(asn1::f1ap::positioning_act
       return false;
     }
 
-    asn1::protocol_ext_field_s<asn1::f1ap::semipersistent_srs_ext_ies_o> asn1_ie_exts;
-    asn1::f1ap::spatial_relation_per_srs_res_s&                          asn1_spatial_relation_per_srs_res =
-        asn1_ie_exts->srs_spatial_relation_per_srs_res();
     for (const auto& ref_sig : srs_type.srs_spatial_relation_per_srs_res->reference_signals) {
-      asn1::f1ap::spatial_relation_per_srs_res_item_s asn1_spatial_relation_per_srs_res_item;
-      asn1_spatial_relation_per_srs_res_item.ref_sig = ref_sig_to_asn1(ref_sig);
-      asn1_spatial_relation_per_srs_res.spatial_relation_per_srs_res_list.push_back(
-          asn1_spatial_relation_per_srs_res_item);
+      asn1_srs_type.ie_exts_present                                  = true;
+      asn1_srs_type.ie_exts.srs_spatial_relation_per_srs_res_present = true;
+      spatial_relation_per_srs_res_item_s item;
+      item.ref_sig = ref_sig_to_asn1(ref_sig);
+      asn1_srs_type.ie_exts.srs_spatial_relation_per_srs_res.spatial_relation_per_srs_res_list.push_back(item);
     }
-    asn1_srs_type.ie_exts.push_back(asn1_ie_exts);
 
   } else {
     aperiodic_srs_t              srs_type      = std::get<aperiodic_srs_t>(request.srs_type);

@@ -16,6 +16,28 @@ using namespace asn1::rrc_nr;
  *                                Struct Methods
  ******************************************************************************/
 
+// GroupPaging-r18 ::= SEQUENCE
+OCUDUASN_CODE group_paging_r18_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(inactive_reception_allowed_r18_present, 1));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE group_paging_r18_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(inactive_reception_allowed_r18_present, 1));
+
+  return OCUDUASN_SUCCESS;
+}
+void group_paging_r18_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (inactive_reception_allowed_r18_present) {
+    j.write_str("inactiveReceptionAllowed-r18", "true");
+  }
+  j.end_obj();
+}
+
 // PagingUE-Identity ::= CHOICE
 void paging_ue_id_c::destroy_()
 {
@@ -207,6 +229,86 @@ void paging_record_v1700_s::to_json(json_writer& j) const
   j.end_obj();
 }
 
+// PagingRecord-v1800 ::= SEQUENCE
+OCUDUASN_CODE paging_record_v1800_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(mt_sdt_present, 1));
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE paging_record_v1800_s::unpack(cbit_ref& bref)
+{
+  HANDLE_CODE(bref.unpack(mt_sdt_present, 1));
+
+  return OCUDUASN_SUCCESS;
+}
+void paging_record_v1800_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (mt_sdt_present) {
+    j.write_str("mt-SDT", "true");
+  }
+  j.end_obj();
+}
+
+// Paging-v1800-IEs ::= SEQUENCE
+OCUDUASN_CODE paging_v1800_ies_s::pack(bit_ref& bref) const
+{
+  HANDLE_CODE(bref.pack(paging_record_list_v1800.size() > 0, 1));
+  HANDLE_CODE(bref.pack(paging_group_list_v1800.size() > 0, 1));
+  HANDLE_CODE(bref.pack(non_crit_ext_present, 1));
+
+  if (paging_record_list_v1800.size() > 0) {
+    HANDLE_CODE(pack_dyn_seq_of(bref, paging_record_list_v1800, 1, 32));
+  }
+  if (paging_group_list_v1800.size() > 0) {
+    HANDLE_CODE(pack_dyn_seq_of(bref, paging_group_list_v1800, 1, 32));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE paging_v1800_ies_s::unpack(cbit_ref& bref)
+{
+  bool paging_record_list_v1800_present;
+  HANDLE_CODE(bref.unpack(paging_record_list_v1800_present, 1));
+  bool paging_group_list_v1800_present;
+  HANDLE_CODE(bref.unpack(paging_group_list_v1800_present, 1));
+  HANDLE_CODE(bref.unpack(non_crit_ext_present, 1));
+
+  if (paging_record_list_v1800_present) {
+    HANDLE_CODE(unpack_dyn_seq_of(paging_record_list_v1800, bref, 1, 32));
+  }
+  if (paging_group_list_v1800_present) {
+    HANDLE_CODE(unpack_dyn_seq_of(paging_group_list_v1800, bref, 1, 32));
+  }
+
+  return OCUDUASN_SUCCESS;
+}
+void paging_v1800_ies_s::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (paging_record_list_v1800.size() > 0) {
+    j.start_array("pagingRecordList-v1800");
+    for (const auto& e1 : paging_record_list_v1800) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (paging_group_list_v1800.size() > 0) {
+    j.start_array("pagingGroupList-v1800");
+    for (const auto& e1 : paging_group_list_v1800) {
+      e1.to_json(j);
+    }
+    j.end_array();
+  }
+  if (non_crit_ext_present) {
+    j.write_fieldname("nonCriticalExtension");
+    j.start_obj();
+    j.end_obj();
+  }
+  j.end_obj();
+}
+
 // Paging-v1700-IEs ::= SEQUENCE
 OCUDUASN_CODE paging_v1700_ies_s::pack(bit_ref& bref) const
 {
@@ -219,6 +321,9 @@ OCUDUASN_CODE paging_v1700_ies_s::pack(bit_ref& bref) const
   }
   if (paging_group_list_r17.size() > 0) {
     HANDLE_CODE(pack_dyn_seq_of(bref, paging_group_list_r17, 1, 32));
+  }
+  if (non_crit_ext_present) {
+    HANDLE_CODE(non_crit_ext.pack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -236,6 +341,9 @@ OCUDUASN_CODE paging_v1700_ies_s::unpack(cbit_ref& bref)
   }
   if (paging_group_list_r17_present) {
     HANDLE_CODE(unpack_dyn_seq_of(paging_group_list_r17, bref, 1, 32));
+  }
+  if (non_crit_ext_present) {
+    HANDLE_CODE(non_crit_ext.unpack(bref));
   }
 
   return OCUDUASN_SUCCESS;
@@ -259,8 +367,7 @@ void paging_v1700_ies_s::to_json(json_writer& j) const
   }
   if (non_crit_ext_present) {
     j.write_fieldname("nonCriticalExtension");
-    j.start_obj();
-    j.end_obj();
+    non_crit_ext.to_json(j);
   }
   j.end_obj();
 }

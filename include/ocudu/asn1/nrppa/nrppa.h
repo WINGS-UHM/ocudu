@@ -10,7 +10,7 @@
 
 /*******************************************************************************
  *
- *                     3GPP TS ASN1 NRPPA v17.4.0 (2023-03)
+ *                     3GPP TS ASN1 NRPPA v18.7.0 (2025-12)
  *
  ******************************************************************************/
 
@@ -64,6 +64,8 @@ struct positioning_deactivation_ies_o;
 using positioning_deactivation_s = elementary_procedure_option<protocol_ie_container_l<positioning_deactivation_ies_o>>;
 struct meas_activation_ies_container;
 using meas_activation_s = elementary_procedure_option<meas_activation_ies_container>;
+struct srs_info_reserv_notif_ies_container;
+using srs_info_reserv_notif_s = elementary_procedure_option<srs_info_reserv_notif_ies_container>;
 struct e_c_id_meas_initiation_resp_ies_container;
 using e_c_id_meas_initiation_resp_s = elementary_procedure_option<e_c_id_meas_initiation_resp_ies_container>;
 struct otdoa_info_resp_ies_container;
@@ -129,6 +131,7 @@ struct nr_ppa_elem_procs_o {
         meas_fail_ind,
         positioning_deactivation,
         meas_activation,
+        srs_info_reserv_notif,
         nulltype
       } value;
 
@@ -166,6 +169,7 @@ struct nr_ppa_elem_procs_o {
     meas_fail_ind_s&                        meas_fail_ind();
     positioning_deactivation_s&             positioning_deactivation();
     meas_activation_s&                      meas_activation();
+    srs_info_reserv_notif_s&                srs_info_reserv_notif();
     const e_c_id_meas_initiation_request_s& e_c_id_meas_initiation_request() const;
     const otdoa_info_request_s&             otdoa_info_request() const;
     const positioning_info_request_s&       positioning_info_request() const;
@@ -188,6 +192,7 @@ struct nr_ppa_elem_procs_o {
     const meas_fail_ind_s&                  meas_fail_ind() const;
     const positioning_deactivation_s&       positioning_deactivation() const;
     const meas_activation_s&                meas_activation() const;
+    const srs_info_reserv_notif_s&          srs_info_reserv_notif() const;
 
   private:
     types             type_;

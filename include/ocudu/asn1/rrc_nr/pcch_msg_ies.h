@@ -10,13 +10,13 @@
 
 /*******************************************************************************
  *
- *                    3GPP TS ASN1 RRC NR v17.4.0 (2023-03)
+ *                    3GPP TS ASN1 RRC NR v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
 #pragma once
 
-#include "ocudu/asn1/rrc_nr/radio_bearer_cfg.h"
+#include "radio_bearer_cfg.h"
 
 namespace asn1 {
 namespace rrc_nr {
@@ -24,6 +24,16 @@ namespace rrc_nr {
 /*******************************************************************************
  *                              Struct Definitions
  ******************************************************************************/
+
+// GroupPaging-r18 ::= SEQUENCE
+struct group_paging_r18_s {
+  bool inactive_reception_allowed_r18_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
 
 // PagingUE-Identity ::= CHOICE
 struct paging_ue_id_c {
@@ -109,11 +119,40 @@ using paging_record_list_v1700_l = dyn_array<paging_record_v1700_s>;
 // PagingGroupList-r17 ::= SEQUENCE (SIZE (1..32)) OF TMGI-r17
 using paging_group_list_r17_l = dyn_array<tmgi_r17_s>;
 
+// PagingRecord-v1800 ::= SEQUENCE
+struct paging_record_v1800_s {
+  bool mt_sdt_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// PagingRecordList-v1800 ::= SEQUENCE (SIZE (1..32)) OF PagingRecord-v1800
+using paging_record_list_v1800_l = dyn_array<paging_record_v1800_s>;
+
+// PagingGroupList-v1800 ::= SEQUENCE (SIZE (1..32)) OF GroupPaging-r18
+using paging_group_list_v1800_l = dyn_array<group_paging_r18_s>;
+
+// Paging-v1800-IEs ::= SEQUENCE
+struct paging_v1800_ies_s {
+  bool                       non_crit_ext_present = false;
+  paging_record_list_v1800_l paging_record_list_v1800;
+  paging_group_list_v1800_l  paging_group_list_v1800;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // Paging-v1700-IEs ::= SEQUENCE
 struct paging_v1700_ies_s {
   bool                       non_crit_ext_present = false;
   paging_record_list_v1700_l paging_record_list_v1700;
   paging_group_list_r17_l    paging_group_list_r17;
+  paging_v1800_ies_s         non_crit_ext;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;

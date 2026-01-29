@@ -10,7 +10,7 @@
 
 /*******************************************************************************
  *
- *                     3GPP TS ASN1 NGAP v17.4.0 (2023-03)
+ *                     3GPP TS ASN1 NGAP v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
@@ -30,6 +30,9 @@ using broadcast_session_release_request_s =
     elementary_procedure_option<broadcast_session_release_request_ies_container>;
 struct broadcast_session_setup_request_ies_container;
 using broadcast_session_setup_request_s = elementary_procedure_option<broadcast_session_setup_request_ies_container>;
+struct broadcast_session_transport_request_ies_container;
+using broadcast_session_transport_request_s =
+    elementary_procedure_option<broadcast_session_transport_request_ies_container>;
 struct distribution_setup_request_ies_container;
 using distribution_setup_request_s = elementary_procedure_option<distribution_setup_request_ies_container>;
 struct distribution_release_request_ies_container;
@@ -42,6 +45,9 @@ struct ho_request_ies_container;
 using ho_request_s = elementary_procedure_option<ho_request_ies_container>;
 struct init_context_setup_request_ies_container;
 using init_context_setup_request_s = elementary_procedure_option<init_context_setup_request_ies_container>;
+struct mt_communication_handling_request_ies_container;
+using mt_communication_handling_request_s =
+    elementary_procedure_option<mt_communication_handling_request_ies_container>;
 struct multicast_session_activation_request_ies_container;
 using multicast_session_activation_request_s =
     elementary_procedure_option<multicast_session_activation_request_ies_container>;
@@ -68,6 +74,9 @@ struct pws_cancel_request_ies_container;
 using pws_cancel_request_s = elementary_procedure_option<pws_cancel_request_ies_container>;
 struct ran_cfg_upd_ies_container;
 using ran_cfg_upd_s = elementary_procedure_option<ran_cfg_upd_ies_container>;
+struct timing_synchronisation_status_request_ies_container;
+using timing_synchronisation_status_request_s =
+    elementary_procedure_option<timing_synchronisation_status_request_ies_container>;
 struct ue_context_mod_request_ies_container;
 using ue_context_mod_request_s = elementary_procedure_option<ue_context_mod_request_ies_container>;
 struct ue_context_release_cmd_ies_container;
@@ -144,6 +153,8 @@ struct pws_restart_ind_ies_container;
 using pws_restart_ind_s = elementary_procedure_option<pws_restart_ind_ies_container>;
 struct ran_cp_relocation_ind_ies_container;
 using ran_cp_relocation_ind_s = elementary_procedure_option<ran_cp_relocation_ind_ies_container>;
+struct ran_paging_request_ies_container;
+using ran_paging_request_s = elementary_procedure_option<ran_paging_request_ies_container>;
 struct reroute_nas_request_ies_container;
 using reroute_nas_request_s = elementary_procedure_option<reroute_nas_request_ies_container>;
 struct retrieve_ue_info_ies_o;
@@ -152,6 +163,9 @@ struct rrc_inactive_transition_report_ies_container;
 using rrc_inactive_transition_report_s = elementary_procedure_option<rrc_inactive_transition_report_ies_container>;
 struct secondary_rat_data_usage_report_ies_container;
 using secondary_rat_data_usage_report_s = elementary_procedure_option<secondary_rat_data_usage_report_ies_container>;
+struct timing_synchronisation_status_report_ies_container;
+using timing_synchronisation_status_report_s =
+    elementary_procedure_option<timing_synchronisation_status_report_ies_container>;
 struct trace_fail_ind_ies_container;
 using trace_fail_ind_s = elementary_procedure_option<trace_fail_ind_ies_container>;
 struct trace_start_ies_container;
@@ -187,6 +201,8 @@ struct broadcast_session_release_resp_ies_container;
 using broadcast_session_release_resp_s = elementary_procedure_option<broadcast_session_release_resp_ies_container>;
 struct broadcast_session_setup_resp_ies_container;
 using broadcast_session_setup_resp_s = elementary_procedure_option<broadcast_session_setup_resp_ies_container>;
+struct broadcast_session_transport_resp_ies_container;
+using broadcast_session_transport_resp_s = elementary_procedure_option<broadcast_session_transport_resp_ies_container>;
 struct distribution_setup_resp_ies_container;
 using distribution_setup_resp_s = elementary_procedure_option<distribution_setup_resp_ies_container>;
 struct distribution_release_resp_ies_container;
@@ -199,6 +215,8 @@ struct ho_request_ack_ies_container;
 using ho_request_ack_s = elementary_procedure_option<ho_request_ack_ies_container>;
 struct init_context_setup_resp_ies_container;
 using init_context_setup_resp_s = elementary_procedure_option<init_context_setup_resp_ies_container>;
+struct mt_communication_handling_resp_ies_container;
+using mt_communication_handling_resp_s = elementary_procedure_option<mt_communication_handling_resp_ies_container>;
 struct multicast_session_activation_resp_ies_container;
 using multicast_session_activation_resp_s =
     elementary_procedure_option<multicast_session_activation_resp_ies_container>;
@@ -225,6 +243,9 @@ struct pws_cancel_resp_ies_container;
 using pws_cancel_resp_s = elementary_procedure_option<pws_cancel_resp_ies_container>;
 struct ran_cfg_upd_ack_ies_o;
 using ran_cfg_upd_ack_s = elementary_procedure_option<protocol_ie_container_l<ran_cfg_upd_ack_ies_o>>;
+struct timing_synchronisation_status_resp_ies_container;
+using timing_synchronisation_status_resp_s =
+    elementary_procedure_option<timing_synchronisation_status_resp_ies_container>;
 struct ue_context_mod_resp_ies_container;
 using ue_context_mod_resp_s = elementary_procedure_option<ue_context_mod_resp_ies_container>;
 struct ue_context_release_complete_ies_container;
@@ -245,6 +266,8 @@ struct broadcast_session_mod_fail_ies_container;
 using broadcast_session_mod_fail_s = elementary_procedure_option<broadcast_session_mod_fail_ies_container>;
 struct broadcast_session_setup_fail_ies_container;
 using broadcast_session_setup_fail_s = elementary_procedure_option<broadcast_session_setup_fail_ies_container>;
+struct broadcast_session_transport_fail_ies_container;
+using broadcast_session_transport_fail_s = elementary_procedure_option<broadcast_session_transport_fail_ies_container>;
 struct distribution_setup_fail_ies_container;
 using distribution_setup_fail_s = elementary_procedure_option<distribution_setup_fail_ies_container>;
 struct ho_prep_fail_ies_container;
@@ -253,6 +276,8 @@ struct ho_fail_ies_container;
 using ho_fail_s = elementary_procedure_option<ho_fail_ies_container>;
 struct init_context_setup_fail_ies_container;
 using init_context_setup_fail_s = elementary_procedure_option<init_context_setup_fail_ies_container>;
+struct mt_communication_handling_fail_ies_container;
+using mt_communication_handling_fail_s = elementary_procedure_option<mt_communication_handling_fail_ies_container>;
 struct multicast_session_activation_fail_ies_container;
 using multicast_session_activation_fail_s =
     elementary_procedure_option<multicast_session_activation_fail_ies_container>;
@@ -264,6 +289,9 @@ struct path_switch_request_fail_ies_container;
 using path_switch_request_fail_s = elementary_procedure_option<path_switch_request_fail_ies_container>;
 struct ran_cfg_upd_fail_ies_container;
 using ran_cfg_upd_fail_s = elementary_procedure_option<ran_cfg_upd_fail_ies_container>;
+struct timing_synchronisation_status_fail_ies_container;
+using timing_synchronisation_status_fail_s =
+    elementary_procedure_option<timing_synchronisation_status_fail_ies_container>;
 struct ue_context_mod_fail_ies_container;
 using ue_context_mod_fail_s = elementary_procedure_option<ue_context_mod_fail_ies_container>;
 struct ue_context_resume_fail_ies_container;
@@ -305,12 +333,14 @@ struct ngap_elem_procs_o {
         broadcast_session_mod_request,
         broadcast_session_release_request,
         broadcast_session_setup_request,
+        broadcast_session_transport_request,
         distribution_setup_request,
         distribution_release_request,
         ho_cancel,
         ho_required,
         ho_request,
         init_context_setup_request,
+        mt_communication_handling_request,
         multicast_session_activation_request,
         multicast_session_deactivation_request,
         multicast_session_upd_request,
@@ -323,6 +353,7 @@ struct ngap_elem_procs_o {
         pdu_session_res_setup_request,
         pws_cancel_request,
         ran_cfg_upd,
+        timing_synchronisation_status_request,
         ue_context_mod_request,
         ue_context_release_cmd,
         ue_context_resume_request,
@@ -360,10 +391,12 @@ struct ngap_elem_procs_o {
         pws_fail_ind,
         pws_restart_ind,
         ran_cp_relocation_ind,
+        ran_paging_request,
         reroute_nas_request,
         retrieve_ue_info,
         rrc_inactive_transition_report,
         secondary_rat_data_usage_report,
+        timing_synchronisation_status_report,
         trace_fail_ind,
         trace_start,
         ue_context_release_request,
@@ -396,12 +429,14 @@ struct ngap_elem_procs_o {
     broadcast_session_mod_request_s&                broadcast_session_mod_request();
     broadcast_session_release_request_s&            broadcast_session_release_request();
     broadcast_session_setup_request_s&              broadcast_session_setup_request();
+    broadcast_session_transport_request_s&          broadcast_session_transport_request();
     distribution_setup_request_s&                   distribution_setup_request();
     distribution_release_request_s&                 distribution_release_request();
     ho_cancel_s&                                    ho_cancel();
     ho_required_s&                                  ho_required();
     ho_request_s&                                   ho_request();
     init_context_setup_request_s&                   init_context_setup_request();
+    mt_communication_handling_request_s&            mt_communication_handling_request();
     multicast_session_activation_request_s&         multicast_session_activation_request();
     multicast_session_deactivation_request_s&       multicast_session_deactivation_request();
     multicast_session_upd_request_s&                multicast_session_upd_request();
@@ -414,6 +449,7 @@ struct ngap_elem_procs_o {
     pdu_session_res_setup_request_s&                pdu_session_res_setup_request();
     pws_cancel_request_s&                           pws_cancel_request();
     ran_cfg_upd_s&                                  ran_cfg_upd();
+    timing_synchronisation_status_request_s&        timing_synchronisation_status_request();
     ue_context_mod_request_s&                       ue_context_mod_request();
     ue_context_release_cmd_s&                       ue_context_release_cmd();
     ue_context_resume_request_s&                    ue_context_resume_request();
@@ -451,10 +487,12 @@ struct ngap_elem_procs_o {
     pws_fail_ind_s&                                 pws_fail_ind();
     pws_restart_ind_s&                              pws_restart_ind();
     ran_cp_relocation_ind_s&                        ran_cp_relocation_ind();
+    ran_paging_request_s&                           ran_paging_request();
     reroute_nas_request_s&                          reroute_nas_request();
     retrieve_ue_info_s&                             retrieve_ue_info();
     rrc_inactive_transition_report_s&               rrc_inactive_transition_report();
     secondary_rat_data_usage_report_s&              secondary_rat_data_usage_report();
+    timing_synchronisation_status_report_s&         timing_synchronisation_status_report();
     trace_fail_ind_s&                               trace_fail_ind();
     trace_start_s&                                  trace_start();
     ue_context_release_request_s&                   ue_context_release_request();
@@ -472,12 +510,14 @@ struct ngap_elem_procs_o {
     const broadcast_session_mod_request_s&          broadcast_session_mod_request() const;
     const broadcast_session_release_request_s&      broadcast_session_release_request() const;
     const broadcast_session_setup_request_s&        broadcast_session_setup_request() const;
+    const broadcast_session_transport_request_s&    broadcast_session_transport_request() const;
     const distribution_setup_request_s&             distribution_setup_request() const;
     const distribution_release_request_s&           distribution_release_request() const;
     const ho_cancel_s&                              ho_cancel() const;
     const ho_required_s&                            ho_required() const;
     const ho_request_s&                             ho_request() const;
     const init_context_setup_request_s&             init_context_setup_request() const;
+    const mt_communication_handling_request_s&      mt_communication_handling_request() const;
     const multicast_session_activation_request_s&   multicast_session_activation_request() const;
     const multicast_session_deactivation_request_s& multicast_session_deactivation_request() const;
     const multicast_session_upd_request_s&          multicast_session_upd_request() const;
@@ -490,6 +530,7 @@ struct ngap_elem_procs_o {
     const pdu_session_res_setup_request_s&          pdu_session_res_setup_request() const;
     const pws_cancel_request_s&                     pws_cancel_request() const;
     const ran_cfg_upd_s&                            ran_cfg_upd() const;
+    const timing_synchronisation_status_request_s&  timing_synchronisation_status_request() const;
     const ue_context_mod_request_s&                 ue_context_mod_request() const;
     const ue_context_release_cmd_s&                 ue_context_release_cmd() const;
     const ue_context_resume_request_s&              ue_context_resume_request() const;
@@ -527,10 +568,12 @@ struct ngap_elem_procs_o {
     const pws_fail_ind_s&                           pws_fail_ind() const;
     const pws_restart_ind_s&                        pws_restart_ind() const;
     const ran_cp_relocation_ind_s&                  ran_cp_relocation_ind() const;
+    const ran_paging_request_s&                     ran_paging_request() const;
     const reroute_nas_request_s&                    reroute_nas_request() const;
     const retrieve_ue_info_s&                       retrieve_ue_info() const;
     const rrc_inactive_transition_report_s&         rrc_inactive_transition_report() const;
     const secondary_rat_data_usage_report_s&        secondary_rat_data_usage_report() const;
+    const timing_synchronisation_status_report_s&   timing_synchronisation_status_report() const;
     const trace_fail_ind_s&                         trace_fail_ind() const;
     const trace_start_s&                            trace_start() const;
     const ue_context_release_request_s&             ue_context_release_request() const;
@@ -557,12 +600,14 @@ struct ngap_elem_procs_o {
         broadcast_session_mod_resp,
         broadcast_session_release_resp,
         broadcast_session_setup_resp,
+        broadcast_session_transport_resp,
         distribution_setup_resp,
         distribution_release_resp,
         ho_cancel_ack,
         ho_cmd,
         ho_request_ack,
         init_context_setup_resp,
+        mt_communication_handling_resp,
         multicast_session_activation_resp,
         multicast_session_deactivation_resp,
         multicast_session_upd_resp,
@@ -575,6 +620,7 @@ struct ngap_elem_procs_o {
         pdu_session_res_setup_resp,
         pws_cancel_resp,
         ran_cfg_upd_ack,
+        timing_synchronisation_status_resp,
         ue_context_mod_resp,
         ue_context_release_complete,
         ue_context_resume_resp,
@@ -601,12 +647,14 @@ struct ngap_elem_procs_o {
     broadcast_session_mod_resp_s&                broadcast_session_mod_resp();
     broadcast_session_release_resp_s&            broadcast_session_release_resp();
     broadcast_session_setup_resp_s&              broadcast_session_setup_resp();
+    broadcast_session_transport_resp_s&          broadcast_session_transport_resp();
     distribution_setup_resp_s&                   distribution_setup_resp();
     distribution_release_resp_s&                 distribution_release_resp();
     ho_cancel_ack_s&                             ho_cancel_ack();
     ho_cmd_s&                                    ho_cmd();
     ho_request_ack_s&                            ho_request_ack();
     init_context_setup_resp_s&                   init_context_setup_resp();
+    mt_communication_handling_resp_s&            mt_communication_handling_resp();
     multicast_session_activation_resp_s&         multicast_session_activation_resp();
     multicast_session_deactivation_resp_s&       multicast_session_deactivation_resp();
     multicast_session_upd_resp_s&                multicast_session_upd_resp();
@@ -619,6 +667,7 @@ struct ngap_elem_procs_o {
     pdu_session_res_setup_resp_s&                pdu_session_res_setup_resp();
     pws_cancel_resp_s&                           pws_cancel_resp();
     ran_cfg_upd_ack_s&                           ran_cfg_upd_ack();
+    timing_synchronisation_status_resp_s&        timing_synchronisation_status_resp();
     ue_context_mod_resp_s&                       ue_context_mod_resp();
     ue_context_release_complete_s&               ue_context_release_complete();
     ue_context_resume_resp_s&                    ue_context_resume_resp();
@@ -630,12 +679,14 @@ struct ngap_elem_procs_o {
     const broadcast_session_mod_resp_s&          broadcast_session_mod_resp() const;
     const broadcast_session_release_resp_s&      broadcast_session_release_resp() const;
     const broadcast_session_setup_resp_s&        broadcast_session_setup_resp() const;
+    const broadcast_session_transport_resp_s&    broadcast_session_transport_resp() const;
     const distribution_setup_resp_s&             distribution_setup_resp() const;
     const distribution_release_resp_s&           distribution_release_resp() const;
     const ho_cancel_ack_s&                       ho_cancel_ack() const;
     const ho_cmd_s&                              ho_cmd() const;
     const ho_request_ack_s&                      ho_request_ack() const;
     const init_context_setup_resp_s&             init_context_setup_resp() const;
+    const mt_communication_handling_resp_s&      mt_communication_handling_resp() const;
     const multicast_session_activation_resp_s&   multicast_session_activation_resp() const;
     const multicast_session_deactivation_resp_s& multicast_session_deactivation_resp() const;
     const multicast_session_upd_resp_s&          multicast_session_upd_resp() const;
@@ -648,6 +699,7 @@ struct ngap_elem_procs_o {
     const pdu_session_res_setup_resp_s&          pdu_session_res_setup_resp() const;
     const pws_cancel_resp_s&                     pws_cancel_resp() const;
     const ran_cfg_upd_ack_s&                     ran_cfg_upd_ack() const;
+    const timing_synchronisation_status_resp_s&  timing_synchronisation_status_resp() const;
     const ue_context_mod_resp_s&                 ue_context_mod_resp() const;
     const ue_context_release_complete_s&         ue_context_release_complete() const;
     const ue_context_resume_resp_s&              ue_context_resume_resp() const;
@@ -667,15 +719,18 @@ struct ngap_elem_procs_o {
         amf_cfg_upd_fail,
         broadcast_session_mod_fail,
         broadcast_session_setup_fail,
+        broadcast_session_transport_fail,
         distribution_setup_fail,
         ho_prep_fail,
         ho_fail,
         init_context_setup_fail,
+        mt_communication_handling_fail,
         multicast_session_activation_fail,
         multicast_session_upd_fail,
         ng_setup_fail,
         path_switch_request_fail,
         ran_cfg_upd_fail,
+        timing_synchronisation_status_fail,
         ue_context_mod_fail,
         ue_context_resume_fail,
         ue_context_suspend_fail,
@@ -694,36 +749,42 @@ struct ngap_elem_procs_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    amf_cfg_upd_fail_s&                        amf_cfg_upd_fail();
-    broadcast_session_mod_fail_s&              broadcast_session_mod_fail();
-    broadcast_session_setup_fail_s&            broadcast_session_setup_fail();
-    distribution_setup_fail_s&                 distribution_setup_fail();
-    ho_prep_fail_s&                            ho_prep_fail();
-    ho_fail_s&                                 ho_fail();
-    init_context_setup_fail_s&                 init_context_setup_fail();
-    multicast_session_activation_fail_s&       multicast_session_activation_fail();
-    multicast_session_upd_fail_s&              multicast_session_upd_fail();
-    ng_setup_fail_s&                           ng_setup_fail();
-    path_switch_request_fail_s&                path_switch_request_fail();
-    ran_cfg_upd_fail_s&                        ran_cfg_upd_fail();
-    ue_context_mod_fail_s&                     ue_context_mod_fail();
-    ue_context_resume_fail_s&                  ue_context_resume_fail();
-    ue_context_suspend_fail_s&                 ue_context_suspend_fail();
-    const amf_cfg_upd_fail_s&                  amf_cfg_upd_fail() const;
-    const broadcast_session_mod_fail_s&        broadcast_session_mod_fail() const;
-    const broadcast_session_setup_fail_s&      broadcast_session_setup_fail() const;
-    const distribution_setup_fail_s&           distribution_setup_fail() const;
-    const ho_prep_fail_s&                      ho_prep_fail() const;
-    const ho_fail_s&                           ho_fail() const;
-    const init_context_setup_fail_s&           init_context_setup_fail() const;
-    const multicast_session_activation_fail_s& multicast_session_activation_fail() const;
-    const multicast_session_upd_fail_s&        multicast_session_upd_fail() const;
-    const ng_setup_fail_s&                     ng_setup_fail() const;
-    const path_switch_request_fail_s&          path_switch_request_fail() const;
-    const ran_cfg_upd_fail_s&                  ran_cfg_upd_fail() const;
-    const ue_context_mod_fail_s&               ue_context_mod_fail() const;
-    const ue_context_resume_fail_s&            ue_context_resume_fail() const;
-    const ue_context_suspend_fail_s&           ue_context_suspend_fail() const;
+    amf_cfg_upd_fail_s&                         amf_cfg_upd_fail();
+    broadcast_session_mod_fail_s&               broadcast_session_mod_fail();
+    broadcast_session_setup_fail_s&             broadcast_session_setup_fail();
+    broadcast_session_transport_fail_s&         broadcast_session_transport_fail();
+    distribution_setup_fail_s&                  distribution_setup_fail();
+    ho_prep_fail_s&                             ho_prep_fail();
+    ho_fail_s&                                  ho_fail();
+    init_context_setup_fail_s&                  init_context_setup_fail();
+    mt_communication_handling_fail_s&           mt_communication_handling_fail();
+    multicast_session_activation_fail_s&        multicast_session_activation_fail();
+    multicast_session_upd_fail_s&               multicast_session_upd_fail();
+    ng_setup_fail_s&                            ng_setup_fail();
+    path_switch_request_fail_s&                 path_switch_request_fail();
+    ran_cfg_upd_fail_s&                         ran_cfg_upd_fail();
+    timing_synchronisation_status_fail_s&       timing_synchronisation_status_fail();
+    ue_context_mod_fail_s&                      ue_context_mod_fail();
+    ue_context_resume_fail_s&                   ue_context_resume_fail();
+    ue_context_suspend_fail_s&                  ue_context_suspend_fail();
+    const amf_cfg_upd_fail_s&                   amf_cfg_upd_fail() const;
+    const broadcast_session_mod_fail_s&         broadcast_session_mod_fail() const;
+    const broadcast_session_setup_fail_s&       broadcast_session_setup_fail() const;
+    const broadcast_session_transport_fail_s&   broadcast_session_transport_fail() const;
+    const distribution_setup_fail_s&            distribution_setup_fail() const;
+    const ho_prep_fail_s&                       ho_prep_fail() const;
+    const ho_fail_s&                            ho_fail() const;
+    const init_context_setup_fail_s&            init_context_setup_fail() const;
+    const mt_communication_handling_fail_s&     mt_communication_handling_fail() const;
+    const multicast_session_activation_fail_s&  multicast_session_activation_fail() const;
+    const multicast_session_upd_fail_s&         multicast_session_upd_fail() const;
+    const ng_setup_fail_s&                      ng_setup_fail() const;
+    const path_switch_request_fail_s&           path_switch_request_fail() const;
+    const ran_cfg_upd_fail_s&                   ran_cfg_upd_fail() const;
+    const timing_synchronisation_status_fail_s& timing_synchronisation_status_fail() const;
+    const ue_context_mod_fail_s&                ue_context_mod_fail() const;
+    const ue_context_resume_fail_s&             ue_context_resume_fail() const;
+    const ue_context_suspend_fail_s&            ue_context_suspend_fail() const;
 
   private:
     types             type_;

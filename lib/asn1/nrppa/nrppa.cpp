@@ -20,12 +20,12 @@ using namespace asn1::nrppa;
 // NRPPA-ELEMENTARY-PROCEDURES ::= OBJECT SET OF NRPPA-ELEMENTARY-PROCEDURE
 uint16_t nr_ppa_elem_procs_o::idx_to_proc_code(uint32_t idx)
 {
-  static const uint16_t names[] = {2, 6, 9, 11, 16, 17, 19, 20, 3, 4, 5, 0, 1, 7, 8, 10, 12, 13, 14, 15, 18, 21};
-  return map_enum_number(names, 22, idx, "proc_code");
+  static const uint16_t names[] = {2, 6, 9, 11, 16, 17, 19, 20, 3, 4, 5, 0, 1, 7, 8, 10, 12, 13, 14, 15, 18, 21, 22};
+  return map_enum_number(names, 23, idx, "proc_code");
 }
 bool nr_ppa_elem_procs_o::is_proc_code_valid(const uint16_t& proc_code)
 {
-  static const uint16_t names[] = {2, 6, 9, 11, 16, 17, 19, 20, 3, 4, 5, 0, 1, 7, 8, 10, 12, 13, 14, 15, 18, 21};
+  static const uint16_t names[] = {2, 6, 9, 11, 16, 17, 19, 20, 3, 4, 5, 0, 1, 7, 8, 10, 12, 13, 14, 15, 18, 21, 22};
   for (const auto& o : names) {
     if (o == proc_code) {
       return true;
@@ -102,6 +102,9 @@ nr_ppa_elem_procs_o::init_msg_c nr_ppa_elem_procs_o::get_init_msg(const uint16_t
       break;
     case 21:
       ret.set(init_msg_c::types::meas_activation);
+      break;
+    case 22:
+      ret.set(init_msg_c::types::srs_info_reserv_notif);
       break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
@@ -221,6 +224,8 @@ crit_e nr_ppa_elem_procs_o::get_crit(const uint16_t& proc_code)
       return crit_e::ignore;
     case 21:
       return crit_e::ignore;
+    case 22:
+      return crit_e::reject;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -297,6 +302,9 @@ void nr_ppa_elem_procs_o::init_msg_c::set(types::options e)
       break;
     case types::meas_activation:
       c = meas_activation_s{};
+      break;
+    case types::srs_info_reserv_notif:
+      c = srs_info_reserv_notif_s{};
       break;
     case types::nulltype:
       break;
@@ -414,6 +422,11 @@ meas_activation_s& nr_ppa_elem_procs_o::init_msg_c::meas_activation()
   assert_choice_type(types::meas_activation, type_, "InitiatingMessage");
   return c.get<meas_activation_s>();
 }
+srs_info_reserv_notif_s& nr_ppa_elem_procs_o::init_msg_c::srs_info_reserv_notif()
+{
+  assert_choice_type(types::srs_info_reserv_notif, type_, "InitiatingMessage");
+  return c.get<srs_info_reserv_notif_s>();
+}
 const e_c_id_meas_initiation_request_s& nr_ppa_elem_procs_o::init_msg_c::e_c_id_meas_initiation_request() const
 {
   assert_choice_type(types::e_c_id_meas_initiation_request, type_, "InitiatingMessage");
@@ -524,6 +537,11 @@ const meas_activation_s& nr_ppa_elem_procs_o::init_msg_c::meas_activation() cons
   assert_choice_type(types::meas_activation, type_, "InitiatingMessage");
   return c.get<meas_activation_s>();
 }
+const srs_info_reserv_notif_s& nr_ppa_elem_procs_o::init_msg_c::srs_info_reserv_notif() const
+{
+  assert_choice_type(types::srs_info_reserv_notif, type_, "InitiatingMessage");
+  return c.get<srs_info_reserv_notif_s>();
+}
 void nr_ppa_elem_procs_o::init_msg_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -616,6 +634,10 @@ void nr_ppa_elem_procs_o::init_msg_c::to_json(json_writer& j) const
       j.write_fieldname("MeasurementActivation");
       c.get<meas_activation_s>().to_json(j);
       break;
+    case types::srs_info_reserv_notif:
+      j.write_fieldname("SRSInformationReservationNotification");
+      c.get<srs_info_reserv_notif_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "nr_ppa_elem_procs_o::init_msg_c");
   }
@@ -690,6 +712,9 @@ OCUDUASN_CODE nr_ppa_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
       break;
     case types::meas_activation:
       HANDLE_CODE(c.get<meas_activation_s>().pack(bref));
+      break;
+    case types::srs_info_reserv_notif:
+      HANDLE_CODE(c.get<srs_info_reserv_notif_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "nr_ppa_elem_procs_o::init_msg_c");
@@ -767,6 +792,9 @@ OCUDUASN_CODE nr_ppa_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
     case types::meas_activation:
       HANDLE_CODE(c.get<meas_activation_s>().unpack(bref));
       break;
+    case types::srs_info_reserv_notif:
+      HANDLE_CODE(c.get<srs_info_reserv_notif_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "nr_ppa_elem_procs_o::init_msg_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -797,8 +825,9 @@ const char* nr_ppa_elem_procs_o::init_msg_c::types_opts::to_string() const
                                 "MeasurementAbort",
                                 "MeasurementFailureIndication",
                                 "PositioningDeactivation",
-                                "MeasurementActivation"};
-  return convert_enum_idx(names, 22, value, "nr_ppa_elem_procs_o::init_msg_c::types");
+                                "MeasurementActivation",
+                                "SRSInformationReservationNotification"};
+  return convert_enum_idx(names, 23, value, "nr_ppa_elem_procs_o::init_msg_c::types");
 }
 
 // SuccessfulOutcome ::= OPEN TYPE

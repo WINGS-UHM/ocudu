@@ -292,9 +292,9 @@ static void fill_asn1_positioning_information_request(asn1::f1ap::positioning_in
     }
     // Fill SRS freqs.
     for (const auto& srs_freq : request.requested_srs_tx_characteristics->srs_freqs) {
-      asn1::protocol_ext_field_s<asn1::f1ap::requested_srs_tx_characteristics_ext_ies_o> asn1_ie_exts_item;
-      asn1_ie_exts_item->srs_freq() = srs_freq;
-      asn1_request->requested_srs_tx_characteristics.ie_exts.push_back(asn1_ie_exts_item);
+      asn1_request->requested_srs_tx_characteristics.ie_exts_present          = true;
+      asn1_request->requested_srs_tx_characteristics.ie_exts.srs_freq_present = true;
+      asn1_request->requested_srs_tx_characteristics.ie_exts.srs_freq         = srs_freq;
     }
   }
 

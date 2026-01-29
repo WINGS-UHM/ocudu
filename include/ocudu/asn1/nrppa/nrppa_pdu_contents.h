@@ -10,7 +10,7 @@
 
 /*******************************************************************************
  *
- *                     3GPP TS ASN1 NRPPA v17.4.0 (2023-03)
+ *                     3GPP TS ASN1 NRPPA v18.7.0 (2025-12)
  *
  ******************************************************************************/
 
@@ -26,9 +26,36 @@ namespace nrppa {
  ******************************************************************************/
 
 // AperiodicSRS-ExtIEs ::= OBJECT SET OF NRPPA-PROTOCOL-EXTENSION
-using aperiodic_srs_ext_ies_o = protocol_ext_empty_o;
+struct aperiodic_srs_ext_ies_o {
+  // Extension ::= OPEN TYPE
+  struct ext_c {
+    struct types_opts {
+      enum options { pos_srs_res_set_aggregation_list, nulltype } value;
 
-using aperiodic_srs_ext_ies_container = protocol_ext_container_empty_l;
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    types         type() const { return types::pos_srs_res_set_aggregation_list; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    pos_srs_res_set_aggregation_list_l&       pos_srs_res_set_aggregation_list() { return c; }
+    const pos_srs_res_set_aggregation_list_l& pos_srs_res_set_aggregation_list() const { return c; }
+
+  private:
+    pos_srs_res_set_aggregation_list_l c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static ext_c      get_ext(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
 
 // AperiodicSRS ::= SEQUENCE
 struct aperiodic_srs_s {
@@ -40,12 +67,11 @@ struct aperiodic_srs_s {
   using aperiodic_e_ = enumerated<aperiodic_opts, true>;
 
   // member variables
-  bool                            ext                     = false;
-  bool                            srs_res_trigger_present = false;
-  bool                            ie_exts_present         = false;
-  aperiodic_e_                    aperiodic;
-  srs_res_trigger_s               srs_res_trigger;
-  aperiodic_srs_ext_ies_container ie_exts;
+  bool                                              ext                     = false;
+  bool                                              srs_res_trigger_present = false;
+  aperiodic_e_                                      aperiodic;
+  srs_res_trigger_s                                 srs_res_trigger;
+  protocol_ext_container_l<aperiodic_srs_ext_ies_o> ie_exts;
   // ...
 
   // sequence methods
@@ -1014,6 +1040,7 @@ struct meas_request_ies_o {
         meas_characteristics_request_ind,
         meas_time_occasion,
         meas_amount,
+        time_win_info_meas_list,
         nulltype
       } value;
 
@@ -1044,6 +1071,7 @@ struct meas_request_ies_o {
     fixed_bitstring<16, false, true>&       meas_characteristics_request_ind();
     meas_time_occasion_e&                   meas_time_occasion();
     meas_amount_e&                          meas_amount();
+    time_win_info_meas_list_l&              time_win_info_meas_list();
     const uint32_t&                         lmf_meas_id() const;
     const trp_meas_request_list_l&          trp_meas_request_list() const;
     const report_characteristics_e&         report_characteristics() const;
@@ -1059,6 +1087,7 @@ struct meas_request_ies_o {
     const fixed_bitstring<16, false, true>& meas_characteristics_request_ind() const;
     const meas_time_occasion_e&             meas_time_occasion() const;
     const meas_amount_e&                    meas_amount() const;
+    const time_win_info_meas_list_l&        time_win_info_meas_list() const;
 
   private:
     types             type_;
@@ -1085,6 +1114,7 @@ struct meas_request_ies_container {
   bool                             meas_characteristics_request_ind_present = false;
   bool                             meas_time_occasion_present               = false;
   bool                             meas_amount_present                      = false;
+  bool                             time_win_info_meas_list_present          = false;
   uint32_t                         lmf_meas_id;
   trp_meas_request_list_l          trp_meas_request_list;
   report_characteristics_e         report_characteristics;
@@ -1100,6 +1130,7 @@ struct meas_request_ies_container {
   fixed_bitstring<16, false, true> meas_characteristics_request_ind;
   meas_time_occasion_e             meas_time_occasion;
   meas_amount_e                    meas_amount;
+  time_win_info_meas_list_l        time_win_info_meas_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1642,7 +1673,12 @@ struct semipersistent_srs_ext_ies_o {
   // Extension ::= OPEN TYPE
   struct ext_c {
     struct types_opts {
-      enum options { srs_spatial_relation, srs_spatial_relation_per_srs_res, nulltype } value;
+      enum options {
+        srs_spatial_relation,
+        srs_spatial_relation_per_srs_res,
+        pos_srs_res_set_aggregation_list,
+        nulltype
+      } value;
 
       const char* to_string() const;
     };
@@ -1656,10 +1692,12 @@ struct semipersistent_srs_ext_ies_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    spatial_relation_info_s&              srs_spatial_relation();
-    spatial_relation_per_srs_res_s&       srs_spatial_relation_per_srs_res();
-    const spatial_relation_info_s&        srs_spatial_relation() const;
-    const spatial_relation_per_srs_res_s& srs_spatial_relation_per_srs_res() const;
+    spatial_relation_info_s&                  srs_spatial_relation();
+    spatial_relation_per_srs_res_s&           srs_spatial_relation_per_srs_res();
+    pos_srs_res_set_aggregation_list_l&       pos_srs_res_set_aggregation_list();
+    const spatial_relation_info_s&            srs_spatial_relation() const;
+    const spatial_relation_per_srs_res_s&     srs_spatial_relation_per_srs_res() const;
+    const pos_srs_res_set_aggregation_list_l& pos_srs_res_set_aggregation_list() const;
 
   private:
     types             type_;
@@ -1675,10 +1713,12 @@ struct semipersistent_srs_ext_ies_o {
 };
 
 struct semipersistent_srs_ext_ies_container {
-  bool                           srs_spatial_relation_present             = false;
-  bool                           srs_spatial_relation_per_srs_res_present = false;
-  spatial_relation_info_s        srs_spatial_relation;
-  spatial_relation_per_srs_res_s srs_spatial_relation_per_srs_res;
+  bool                               srs_spatial_relation_present             = false;
+  bool                               srs_spatial_relation_per_srs_res_present = false;
+  bool                               pos_srs_res_set_aggregation_list_present = false;
+  spatial_relation_info_s            srs_spatial_relation;
+  spatial_relation_per_srs_res_s     srs_spatial_relation_per_srs_res;
+  pos_srs_res_set_aggregation_list_l pos_srs_res_set_aggregation_list;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1967,6 +2007,9 @@ struct positioning_info_request_ies_o {
         ue_report_info,
         ue_teg_info_request,
         ue_teg_report_periodicity,
+        time_win_info_srs_list,
+        requested_srs_precfg_characteristics_list,
+        remote_ue_ind_request,
         nulltype
       } value;
 
@@ -1982,14 +2025,20 @@ struct positioning_info_request_ies_o {
     OCUDUASN_CODE unpack(cbit_ref& bref);
     void          to_json(json_writer& j) const;
     // getters
-    requested_srs_tx_characteristics_s&       requested_srs_tx_characteristics();
-    ue_report_info_s&                         ue_report_info();
-    ue_teg_info_request_e&                    ue_teg_info_request();
-    ue_teg_report_periodicity_e&              ue_teg_report_periodicity();
-    const requested_srs_tx_characteristics_s& requested_srs_tx_characteristics() const;
-    const ue_report_info_s&                   ue_report_info() const;
-    const ue_teg_info_request_e&              ue_teg_info_request() const;
-    const ue_teg_report_periodicity_e&        ue_teg_report_periodicity() const;
+    requested_srs_tx_characteristics_s&                requested_srs_tx_characteristics();
+    ue_report_info_s&                                  ue_report_info();
+    ue_teg_info_request_e&                             ue_teg_info_request();
+    ue_teg_report_periodicity_e&                       ue_teg_report_periodicity();
+    time_win_info_srs_list_l&                          time_win_info_srs_list();
+    requested_srs_precfg_characteristics_list_l&       requested_srs_precfg_characteristics_list();
+    remote_ue_ind_request_e&                           remote_ue_ind_request();
+    const requested_srs_tx_characteristics_s&          requested_srs_tx_characteristics() const;
+    const ue_report_info_s&                            ue_report_info() const;
+    const ue_teg_info_request_e&                       ue_teg_info_request() const;
+    const ue_teg_report_periodicity_e&                 ue_teg_report_periodicity() const;
+    const time_win_info_srs_list_l&                    time_win_info_srs_list() const;
+    const requested_srs_precfg_characteristics_list_l& requested_srs_precfg_characteristics_list() const;
+    const remote_ue_ind_request_e&                     remote_ue_ind_request() const;
 
   private:
     types             type_;
@@ -2005,14 +2054,20 @@ struct positioning_info_request_ies_o {
 };
 
 struct positioning_info_request_ies_container {
-  bool                               requested_srs_tx_characteristics_present = false;
-  bool                               ue_report_info_present                   = false;
-  bool                               ue_teg_info_request_present              = false;
-  bool                               ue_teg_report_periodicity_present        = false;
-  requested_srs_tx_characteristics_s requested_srs_tx_characteristics;
-  ue_report_info_s                   ue_report_info;
-  ue_teg_info_request_e              ue_teg_info_request;
-  ue_teg_report_periodicity_e        ue_teg_report_periodicity;
+  bool                                        requested_srs_tx_characteristics_present          = false;
+  bool                                        ue_report_info_present                            = false;
+  bool                                        ue_teg_info_request_present                       = false;
+  bool                                        ue_teg_report_periodicity_present                 = false;
+  bool                                        time_win_info_srs_list_present                    = false;
+  bool                                        requested_srs_precfg_characteristics_list_present = false;
+  bool                                        remote_ue_ind_request_present                     = false;
+  requested_srs_tx_characteristics_s          requested_srs_tx_characteristics;
+  ue_report_info_s                            ue_report_info;
+  ue_teg_info_request_e                       ue_teg_info_request;
+  ue_teg_report_periodicity_e                 ue_teg_report_periodicity;
+  time_win_info_srs_list_l                    time_win_info_srs_list;
+  requested_srs_precfg_characteristics_list_l requested_srs_precfg_characteristics_list;
+  remote_ue_ind_request_e                     remote_ue_ind_request;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2028,7 +2083,17 @@ struct positioning_info_resp_ies_o {
   // Value ::= OPEN TYPE
   struct value_c {
     struct types_opts {
-      enum options { srs_configuration, sfn_initisation_time, crit_diagnostics, ue_tx_teg_assoc_list, nulltype } value;
+      enum options {
+        srs_configuration,
+        sfn_initisation_time,
+        crit_diagnostics,
+        ue_tx_teg_assoc_list,
+        new_nr_cgi,
+        pos_validity_area_cell_list,
+        srs_precfg_list,
+        remote_ue_ind,
+        nulltype
+      } value;
 
       const char* to_string() const;
     };
@@ -2046,10 +2111,18 @@ struct positioning_info_resp_ies_o {
     fixed_bitstring<64, false, true>&       sfn_initisation_time();
     crit_diagnostics_s&                     crit_diagnostics();
     ue_tx_teg_assoc_list_l&                 ue_tx_teg_assoc_list();
+    cgi_nr_s&                               new_nr_cgi();
+    pos_validity_area_cell_list_l&          pos_validity_area_cell_list();
+    srs_precfg_list_l&                      srs_precfg_list();
+    remote_ue_ind_e&                        remote_ue_ind();
     const srs_configuration_s&              srs_configuration() const;
     const fixed_bitstring<64, false, true>& sfn_initisation_time() const;
     const crit_diagnostics_s&               crit_diagnostics() const;
     const ue_tx_teg_assoc_list_l&           ue_tx_teg_assoc_list() const;
+    const cgi_nr_s&                         new_nr_cgi() const;
+    const pos_validity_area_cell_list_l&    pos_validity_area_cell_list() const;
+    const srs_precfg_list_l&                srs_precfg_list() const;
+    const remote_ue_ind_e&                  remote_ue_ind() const;
 
   private:
     types             type_;
@@ -2065,14 +2138,22 @@ struct positioning_info_resp_ies_o {
 };
 
 struct positioning_info_resp_ies_container {
-  bool                             srs_configuration_present    = false;
-  bool                             sfn_initisation_time_present = false;
-  bool                             crit_diagnostics_present     = false;
-  bool                             ue_tx_teg_assoc_list_present = false;
+  bool                             srs_configuration_present           = false;
+  bool                             sfn_initisation_time_present        = false;
+  bool                             crit_diagnostics_present            = false;
+  bool                             ue_tx_teg_assoc_list_present        = false;
+  bool                             new_nr_cgi_present                  = false;
+  bool                             pos_validity_area_cell_list_present = false;
+  bool                             srs_precfg_list_present             = false;
+  bool                             remote_ue_ind_present               = false;
   srs_configuration_s              srs_configuration;
   fixed_bitstring<64, false, true> sfn_initisation_time;
   crit_diagnostics_s               crit_diagnostics;
   ue_tx_teg_assoc_list_l           ue_tx_teg_assoc_list;
+  cgi_nr_s                         new_nr_cgi;
+  pos_validity_area_cell_list_l    pos_validity_area_cell_list;
+  srs_precfg_list_l                srs_precfg_list;
+  remote_ue_ind_e                  remote_ue_ind;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2088,7 +2169,15 @@ struct positioning_info_upd_ies_o {
   // Value ::= OPEN TYPE
   struct value_c {
     struct types_opts {
-      enum options { srs_configuration, sfn_initisation_time, ue_tx_teg_assoc_list, srs_tx_status, nulltype } value;
+      enum options {
+        srs_configuration,
+        sfn_initisation_time,
+        ue_tx_teg_assoc_list,
+        srs_tx_status,
+        new_cell_id,
+        remote_ue_status,
+        nulltype
+      } value;
 
       const char* to_string() const;
     };
@@ -2106,10 +2195,14 @@ struct positioning_info_upd_ies_o {
     fixed_bitstring<64, false, true>&       sfn_initisation_time();
     ue_tx_teg_assoc_list_l&                 ue_tx_teg_assoc_list();
     srs_tx_status_e&                        srs_tx_status();
+    cgi_nr_s&                               new_cell_id();
+    remote_ue_status_e&                     remote_ue_status();
     const srs_configuration_s&              srs_configuration() const;
     const fixed_bitstring<64, false, true>& sfn_initisation_time() const;
     const ue_tx_teg_assoc_list_l&           ue_tx_teg_assoc_list() const;
     const srs_tx_status_e&                  srs_tx_status() const;
+    const cgi_nr_s&                         new_cell_id() const;
+    const remote_ue_status_e&               remote_ue_status() const;
 
   private:
     types             type_;
@@ -2129,10 +2222,14 @@ struct positioning_info_upd_ies_container {
   bool                             sfn_initisation_time_present = false;
   bool                             ue_tx_teg_assoc_list_present = false;
   bool                             srs_tx_status_present        = false;
+  bool                             new_cell_id_present          = false;
+  bool                             remote_ue_status_present     = false;
   srs_configuration_s              srs_configuration;
   fixed_bitstring<64, false, true> sfn_initisation_time;
   ue_tx_teg_assoc_list_l           ue_tx_teg_assoc_list;
   srs_tx_status_e                  srs_tx_status;
+  cgi_nr_s                         new_cell_id;
+  remote_ue_status_e               remote_ue_status;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2182,6 +2279,61 @@ struct private_msg_s {
   OCUDUASN_CODE unpack(cbit_ref& bref);
   void          to_json(json_writer& j) const;
 };
+
+// SRSInformationReservationNotification-IEs ::= OBJECT SET OF NRPPA-PROTOCOL-IES
+struct srs_info_reserv_notif_ies_o {
+  // Value ::= OPEN TYPE
+  struct value_c {
+    struct types_opts {
+      enum options { srs_reserv_type, srs_info, precfg_srs_info, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    value_c() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    srs_reserv_type_e&                                 srs_reserv_type();
+    requested_srs_tx_characteristics_s&                srs_info();
+    requested_srs_precfg_characteristics_list_l&       precfg_srs_info();
+    const srs_reserv_type_e&                           srs_reserv_type() const;
+    const requested_srs_tx_characteristics_s&          srs_info() const;
+    const requested_srs_precfg_characteristics_list_l& precfg_srs_info() const;
+
+  private:
+    types             type_;
+    choice_buffer_ptr c;
+  };
+
+  // members lookup methods
+  static uint32_t   idx_to_id(uint32_t idx);
+  static bool       is_id_valid(const uint32_t& id);
+  static crit_e     get_crit(const uint32_t& id);
+  static value_c    get_value(const uint32_t& id);
+  static presence_e get_presence(const uint32_t& id);
+};
+
+struct srs_info_reserv_notif_ies_container {
+  bool                                        srs_info_present        = false;
+  bool                                        precfg_srs_info_present = false;
+  srs_reserv_type_e                           srs_reserv_type;
+  requested_srs_tx_characteristics_s          srs_info;
+  requested_srs_precfg_characteristics_list_l precfg_srs_info;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SRSInformationReservationNotification ::= SEQUENCE
+using srs_info_reserv_notif_s = elementary_procedure_option<srs_info_reserv_notif_ies_container>;
 
 // TRPInformationFailure-IEs ::= OBJECT SET OF NRPPA-PROTOCOL-IES
 struct trp_info_fail_ies_o {
@@ -2371,6 +2523,7 @@ extern template struct asn1::protocol_ie_field_s<asn1::nrppa::positioning_info_f
 extern template struct asn1::protocol_ie_field_s<asn1::nrppa::positioning_info_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::nrppa::positioning_info_resp_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::nrppa::positioning_info_upd_ies_o>;
+extern template struct asn1::protocol_ie_field_s<asn1::nrppa::srs_info_reserv_notif_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::nrppa::trp_info_fail_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::nrppa::trp_info_request_ies_o>;
 extern template struct asn1::protocol_ie_field_s<asn1::nrppa::trp_info_resp_ies_o>;

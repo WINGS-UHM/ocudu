@@ -64,24 +64,19 @@ fill_asn1_pdu_session_resource_release_response(asn1::ngap::pdu_session_res_rele
     asn1::ngap::pdu_session_res_release_resp_transfer_s res_release_resp_transfer;
 
     if (cu_cp_pdu_session_res_released_item.resp_transfer.secondary_rat_usage_info.has_value()) {
+      const auto& ocudu_rat_usage   = *cu_cp_pdu_session_res_released_item.resp_transfer.secondary_rat_usage_info;
       res_release_resp_transfer.ext = true;
+      res_release_resp_transfer.ie_exts_present                          = true;
+      res_release_resp_transfer.ie_exts.secondary_rat_usage_info_present = true;
+      secondary_rat_usage_info_s& asn1_rat_resp = res_release_resp_transfer.ie_exts.secondary_rat_usage_info;
 
-      asn1::protocol_ext_field_s<asn1::ngap::pdu_session_res_release_resp_transfer_ext_ies_o>
-            res_release_resp_transfer_ext;
-      auto& asn1_secondary_rat_usage_info = res_release_resp_transfer_ext.value().secondary_rat_usage_info();
+      if (ocudu_rat_usage.pdu_session_usage_report.has_value()) {
+        const auto& ocudu_pdu_ses                      = *ocudu_rat_usage.pdu_session_usage_report;
+        asn1_rat_resp.pdu_session_usage_report_present = true;
+        bool ret = asn1::string_to_enum(asn1_rat_resp.pdu_session_usage_report.rat_type, ocudu_pdu_ses.rat_type);
+        ocudu_assert(ret, "Invalid RAT type");
 
-      if (cu_cp_pdu_session_res_released_item.resp_transfer.secondary_rat_usage_info.value()
-              .pdu_session_usage_report.has_value()) {
-        asn1_secondary_rat_usage_info.pdu_session_usage_report_present = true;
-
-        const auto& pdu_session_usage_report =
-            cu_cp_pdu_session_res_released_item.resp_transfer.secondary_rat_usage_info.value()
-                .pdu_session_usage_report.value();
-
-        asn1::string_to_enum(asn1_secondary_rat_usage_info.pdu_session_usage_report.rat_type,
-                             pdu_session_usage_report.rat_type);
-
-        for (const auto& pdu_session_usage_timed_item : pdu_session_usage_report.pdu_session_timed_report_list) {
+        for (const auto& pdu_session_usage_timed_item : ocudu_pdu_ses.pdu_session_timed_report_list) {
           asn1::ngap::volume_timed_report_item_s asn1_pdu_session_usage_timed_item;
 
           asn1_pdu_session_usage_timed_item.start_time_stamp.from_number(pdu_session_usage_timed_item.start_time_stamp);
@@ -89,7 +84,7 @@ fill_asn1_pdu_session_resource_release_response(asn1::ngap::pdu_session_res_rele
           asn1_pdu_session_usage_timed_item.usage_count_ul = pdu_session_usage_timed_item.usage_count_ul;
           asn1_pdu_session_usage_timed_item.usage_count_dl = pdu_session_usage_timed_item.usage_count_dl;
 
-          asn1_secondary_rat_usage_info.pdu_session_usage_report.pdu_session_timed_report_list.push_back(
+          asn1_rat_resp.pdu_session_usage_report.pdu_session_timed_report_list.push_back(
               asn1_pdu_session_usage_timed_item);
         }
       }
@@ -113,10 +108,9 @@ fill_asn1_pdu_session_resource_release_response(asn1::ngap::pdu_session_res_rele
           asn1_qos_flows_usage_report_item.qos_flows_timed_report_list.push_back(asn1_qos_flow_timed_report_item);
         }
 
-        asn1_secondary_rat_usage_info.qos_flows_usage_report_list.push_back(asn1_qos_flows_usage_report_item);
+        asn1_rat_resp.qos_flows_usage_report_list.push_back(asn1_qos_flows_usage_report_item);
       }
 
-      res_release_resp_transfer.ie_exts.push_back(res_release_resp_transfer_ext);
     } else {
       res_release_resp_transfer.ext = false;
     }

@@ -10,13 +10,13 @@
 
 /*******************************************************************************
  *
- *                    3GPP TS ASN1 RRC NR v17.4.0 (2023-03)
+ *                    3GPP TS ASN1 RRC NR v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
 #pragma once
 
-#include "ocudu/asn1/rrc_nr/serving_cell.h"
+#include "serving_cell.h"
 
 namespace asn1 {
 namespace rrc_nr {
@@ -52,6 +52,8 @@ struct plmn_id_info_s {
   bool                                gnb_id_len_r17_present = false;
   copy_ptr<tracking_area_list_r17_l_> tracking_area_list_r17;
   uint8_t                             gnb_id_len_r17 = 22;
+  // group 2
+  bool mobile_iab_support_r18_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -163,6 +165,8 @@ struct npn_id_info_r16_s {
   // group 0
   bool    gnb_id_len_r17_present = false;
   uint8_t gnb_id_len_r17         = 22;
+  // group 1
+  bool mobile_iab_support_r18_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -172,6 +176,49 @@ struct npn_id_info_r16_s {
 
 // NPN-IdentityInfoList-r16 ::= SEQUENCE (SIZE (1..12)) OF NPN-IdentityInfo-r16
 using npn_id_info_list_r16_l = dyn_array<npn_id_info_r16_s>;
+
+// Q-OffsetRange ::= ENUMERATED
+struct q_offset_range_opts {
+  enum options {
+    db_neg24,
+    db_neg22,
+    db_neg20,
+    db_neg18,
+    db_neg16,
+    db_neg14,
+    db_neg12,
+    db_neg10,
+    db_neg8,
+    db_neg6,
+    db_neg5,
+    db_neg4,
+    db_neg3,
+    db_neg2,
+    db_neg1,
+    db0,
+    db1,
+    db2,
+    db3,
+    db4,
+    db5,
+    db6,
+    db8,
+    db10,
+    db12,
+    db14,
+    db16,
+    db18,
+    db20,
+    db22,
+    db24,
+    nulltype
+  } value;
+  typedef int8_t number_type;
+
+  const char* to_string() const;
+  int8_t      to_number() const;
+};
+using q_offset_range_e = enumerated<q_offset_range_opts>;
 
 // SSB-MTC ::= SEQUENCE
 struct ssb_mtc_s {
@@ -360,6 +407,40 @@ private:
   void destroy_();
 };
 
+// ATG-Config-r18 ::= SEQUENCE
+struct atg_cfg_r18_s {
+  bool          height_gnb_r18_present            = false;
+  bool          cell_specific_koffset_r18_present = false;
+  bool          ta_report_atg_r18_present         = false;
+  dyn_octstring atg_gnb_location_r18;
+  int16_t       height_gnb_r18            = -16384;
+  uint8_t       cell_specific_koffset_r18 = 1;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// ATG-NeighCellConfig-r18 ::= SEQUENCE
+struct atg_neigh_cell_cfg_r18_s {
+  bool          height_gnb_r18_present   = false;
+  bool          carrier_freq_r18_present = false;
+  bool          pci_r18_present          = false;
+  dyn_octstring atg_gnb_location_r18;
+  int16_t       height_gnb_r18   = -16384;
+  uint32_t      carrier_freq_r18 = 0;
+  uint16_t      pci_r18          = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// ATG-NeighCellConfigList-r18 ::= SEQUENCE (SIZE (1..8)) OF ATG-NeighCellConfig-r18
+using atg_neigh_cell_cfg_list_r18_l = dyn_array<atg_neigh_cell_cfg_r18_s>;
+
 // ApplicableDisasterInfo-r17 ::= CHOICE
 struct applicable_disaster_info_r17_c {
   using ded_plmns_r17_l_ = dyn_array<plmn_id_s>;
@@ -412,49 +493,6 @@ struct thres_nr_s {
   OCUDUASN_CODE unpack(cbit_ref& bref);
   void          to_json(json_writer& j) const;
 };
-
-// Q-OffsetRange ::= ENUMERATED
-struct q_offset_range_opts {
-  enum options {
-    db_neg24,
-    db_neg22,
-    db_neg20,
-    db_neg18,
-    db_neg16,
-    db_neg14,
-    db_neg12,
-    db_neg10,
-    db_neg8,
-    db_neg6,
-    db_neg5,
-    db_neg4,
-    db_neg3,
-    db_neg2,
-    db_neg1,
-    db0,
-    db1,
-    db2,
-    db3,
-    db4,
-    db5,
-    db6,
-    db8,
-    db10,
-    db12,
-    db14,
-    db16,
-    db18,
-    db20,
-    db22,
-    db24,
-    nulltype
-  } value;
-  typedef int8_t number_type;
-
-  const char* to_string() const;
-  int8_t      to_number() const;
-};
-using q_offset_range_e = enumerated<q_offset_range_opts>;
 
 // RangeToBestCell ::= Q-OffsetRange
 using range_to_best_cell_e = q_offset_range_e;
@@ -710,6 +748,11 @@ struct sib2_s {
     ssb_position_qcl_relation_r17_e ssb_position_qcl_common_r17;
     // group 3
     copy_ptr<ssb_mtc4_list_r17_l> smtc4list_r17;
+    // group 4
+    copy_ptr<multi_freq_band_list_nr_sib_v1760_l> freq_band_list_v1760;
+    copy_ptr<multi_freq_band_list_nr_sib_v1760_l> freq_band_list_sul_v1760;
+    // group 5
+    copy_ptr<multi_freq_band_list_nr_aerial_sib_r18_l> freq_band_list_aerial_r18;
 
     // sequence methods
     OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1179,6 +1222,45 @@ struct inter_freq_carrier_freq_info_v1730_s {
 // InterFreqCarrierFreqList-v1730 ::= SEQUENCE (SIZE (1..8)) OF InterFreqCarrierFreqInfo-v1730
 using inter_freq_carrier_freq_list_v1730_l = dyn_array<inter_freq_carrier_freq_info_v1730_s>;
 
+// InterFreqCarrierFreqInfo-v1760 ::= SEQUENCE
+struct inter_freq_carrier_freq_info_v1760_s {
+  multi_freq_band_list_nr_sib_v1760_l freq_band_list_v1760;
+  multi_freq_band_list_nr_sib_v1760_l freq_band_list_sul_v1760;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// InterFreqCarrierFreqList-v1760 ::= SEQUENCE (SIZE (1..8)) OF InterFreqCarrierFreqInfo-v1760
+using inter_freq_carrier_freq_list_v1760_l = dyn_array<inter_freq_carrier_freq_info_v1760_s>;
+
+// InterFreqCarrierFreqInfo-v1800 ::= SEQUENCE
+struct inter_freq_carrier_freq_info_v1800_s {
+  using tn_area_id_list_r18_l_ = bounded_array<uint8_t, 32>;
+
+  // member variables
+  bool                                     dl_carrier_freq_r18_present         = false;
+  bool                                     mobile_iab_cell_list_r18_present    = false;
+  bool                                     mobile_iab_freq_r18_present         = false;
+  bool                                     ered_cap_access_allowed_r18_present = false;
+  bool                                     access_allowed2_rx_xr_r18_present   = false;
+  uint32_t                                 dl_carrier_freq_r18                 = 0;
+  multi_freq_band_list_nr_sib_l            freq_band_list_r18;
+  multi_freq_band_list_nr_aerial_sib_r18_l freq_band_list_aerial_r18;
+  pci_range_s                              mobile_iab_cell_list_r18;
+  tn_area_id_list_r18_l_                   tn_area_id_list_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// InterFreqCarrierFreqList-v1800 ::= SEQUENCE (SIZE (1..8)) OF InterFreqCarrierFreqInfo-v1800
+using inter_freq_carrier_freq_list_v1800_l = dyn_array<inter_freq_carrier_freq_info_v1800_s>;
+
 // SIB4 ::= SEQUENCE
 struct sib4_s {
   bool                           ext = false;
@@ -1193,6 +1275,10 @@ struct sib4_s {
   copy_ptr<inter_freq_carrier_freq_list_v1720_l> inter_freq_carrier_freq_list_v1720;
   // group 3
   copy_ptr<inter_freq_carrier_freq_list_v1730_l> inter_freq_carrier_freq_list_v1730;
+  // group 4
+  copy_ptr<inter_freq_carrier_freq_list_v1760_l> inter_freq_carrier_freq_list_v1760;
+  // group 5
+  copy_ptr<inter_freq_carrier_freq_list_v1800_l> inter_freq_carrier_freq_list_v1800;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1408,6 +1494,37 @@ struct carrier_freq_eutra_v1700_s {
 // CarrierFreqListEUTRA-v1700 ::= SEQUENCE (SIZE (1..8)) OF CarrierFreqEUTRA-v1700
 using carrier_freq_list_eutra_v1700_l = dyn_array<carrier_freq_eutra_v1700_s>;
 
+// EUTRA-MultiBandInfoAerial-r18 ::= SEQUENCE
+struct eutra_multi_band_info_aerial_r18_s {
+  uint16_t             eutra_freq_band_ind_r18 = 1;
+  eutra_ns_pmax_list_l eutra_ns_pmax_list_aerial_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// EUTRA-MultiBandInfoListAerial-r18 ::= SEQUENCE (SIZE (1..8)) OF EUTRA-MultiBandInfoAerial-r18
+using eutra_multi_band_info_list_aerial_r18_l = dyn_array<eutra_multi_band_info_aerial_r18_s>;
+
+// CarrierFreqEUTRA-v1800 ::= SEQUENCE
+struct carrier_freq_eutra_v1800_s {
+  using tn_area_id_list_r18_l_ = bounded_array<uint8_t, 32>;
+
+  // member variables
+  eutra_multi_band_info_list_aerial_r18_l eutra_multi_band_info_list_aerial_r18;
+  tn_area_id_list_r18_l_                  tn_area_id_list_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CarrierFreqListEUTRA-v1800 ::= SEQUENCE (SIZE (1..8)) OF CarrierFreqEUTRA-v1800
+using carrier_freq_list_eutra_v1800_l = dyn_array<carrier_freq_eutra_v1800_s>;
+
 // SIB5 ::= SEQUENCE
 struct sib5_s {
   bool                        ext                      = false;
@@ -1422,6 +1539,8 @@ struct sib5_s {
   // group 1
   bool                                      idle_mode_meas_voice_fallback_r17_present = false;
   copy_ptr<carrier_freq_list_eutra_v1700_l> carrier_freq_list_eutra_v1700;
+  // group 2
+  copy_ptr<carrier_freq_list_eutra_v1800_l> carrier_freq_list_eutra_v1800;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1547,6 +1666,9 @@ struct sib9_s {
   // ...
   // group 0
   copy_ptr<ref_time_info_r16_s> ref_time_info_r16;
+  // group 1
+  bool    event_id_tss_r18_present = false;
+  uint8_t event_id_tss_r18         = 0;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1686,16 +1808,49 @@ struct meas_idle_carrier_eutra_r16_s {
   void          to_json(json_writer& j) const;
 };
 
+// MeasReselectionCarrierNR-r18 ::= SEQUENCE
+struct meas_resel_carrier_nr_r18_s {
+  bool     ext              = false;
+  uint32_t carrier_freq_r18 = 0;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MeasurementValidityDuration-r18 ::= ENUMERATED
+struct meas_validity_dur_r18_opts {
+  enum options { s5, s10, s20, s50, s100, spare3, spare2, spare1, nulltype } value;
+  typedef uint8_t number_type;
+
+  const char* to_string() const;
+  uint8_t     to_number() const;
+};
+using meas_validity_dur_r18_e = enumerated<meas_validity_dur_r18_opts>;
+
 // MeasIdleConfigSIB-r16 ::= SEQUENCE
 struct meas_idle_cfg_sib_r16_s {
-  using meas_idle_carrier_list_nr_r16_l_    = dyn_array<meas_idle_carrier_nr_r16_s>;
-  using meas_idle_carrier_list_eutra_r16_l_ = dyn_array<meas_idle_carrier_eutra_r16_s>;
+  using meas_idle_carrier_list_nr_r16_l_                  = dyn_array<meas_idle_carrier_nr_r16_s>;
+  using meas_idle_carrier_list_eutra_r16_l_               = dyn_array<meas_idle_carrier_eutra_r16_s>;
+  using meas_idle_carrier_list_nr_less_than5_m_hz_r18_l_  = dyn_array<meas_idle_carrier_nr_r16_s>;
+  using meas_resel_carrier_list_nr_r18_l_                 = dyn_array<meas_resel_carrier_nr_r18_s>;
+  using meas_resel_carrier_list_nr_less_than5_m_hz_r18_l_ = dyn_array<meas_resel_carrier_nr_r18_s>;
 
   // member variables
   bool                                ext = false;
   meas_idle_carrier_list_nr_r16_l_    meas_idle_carrier_list_nr_r16;
   meas_idle_carrier_list_eutra_r16_l_ meas_idle_carrier_list_eutra_r16;
   // ...
+  // group 0
+  bool                                                        meas_idle_validity_dur_r18_present  = false;
+  bool                                                        meas_resel_validity_dur_r18_present = false;
+  copy_ptr<meas_idle_carrier_list_nr_less_than5_m_hz_r18_l_>  meas_idle_carrier_list_nr_less_than5_m_hz_r18;
+  copy_ptr<meas_resel_carrier_list_nr_r18_l_>                 meas_resel_carrier_list_nr_r18;
+  copy_ptr<meas_resel_carrier_list_nr_less_than5_m_hz_r18_l_> meas_resel_carrier_list_nr_less_than5_m_hz_r18;
+  meas_validity_dur_r18_e                                     meas_idle_validity_dur_r18;
+  meas_validity_dur_r18_e                                     meas_resel_validity_dur_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2130,6 +2285,32 @@ struct ntn_neigh_cell_cfg_r17_s {
 // NTN-NeighCellConfigList-r17 ::= SEQUENCE (SIZE (1..4)) OF NTN-NeighCellConfig-r17
 using ntn_neigh_cell_cfg_list_r17_l = dyn_array<ntn_neigh_cell_cfg_r17_s>;
 
+// NTN-CovEnh-r18 ::= SEQUENCE
+struct ntn_cov_enh_r18_s {
+  bool               rsrp_thres_msg4_harq_ack_r18_present = false;
+  fixed_bitstring<4> nof_msg4_harq_ack_repeats_r18;
+  uint8_t            rsrp_thres_msg4_harq_ack_r18 = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SatSwitchWithReSync-r18 ::= SEQUENCE
+struct sat_switch_with_re_sync_r18_s {
+  bool          t_service_start_r18_present = false;
+  bool          ssb_time_offset_r18_present = false;
+  ntn_cfg_r17_s ntn_cfg_r18;
+  uint64_t      t_service_start_r18 = 0;
+  uint8_t       ssb_time_offset_r18 = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // SIB19-r17 ::= SEQUENCE
 struct sib19_r17_s {
   bool                          ext                         = false;
@@ -2145,6 +2326,10 @@ struct sib19_r17_s {
   // ...
   // group 0
   copy_ptr<ntn_neigh_cell_cfg_list_r17_l> ntn_neigh_cell_cfg_list_ext_v1720;
+  // group 1
+  dyn_octstring                           moving_ref_location_r18;
+  copy_ptr<ntn_cov_enh_r18_s>             ntn_cov_enh_r18;
+  copy_ptr<sat_switch_with_re_sync_r18_s> sat_switch_with_re_sync_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2314,7 +2499,7 @@ struct mcch_cfg_r17_s {
       rf256,
       rf512,
       rf1024,
-      r2048,
+      rf2048,
       rf4096,
       rf8192,
       rf16384,
@@ -2465,6 +2650,9 @@ struct sib20_r17_s {
   cfr_cfg_mcch_mtch_r17_s cfr_cfg_mcch_mtch_r17;
   dyn_octstring           late_non_crit_ext;
   // ...
+  // group 0
+  copy_ptr<cfr_cfg_mcch_mtch_r17_s> cfr_cfg_mcch_mtch_red_cap_r18;
+  copy_ptr<mcch_cfg_r17_s>          mcch_cfg_red_cap_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2503,6 +2691,106 @@ struct sib21_r17_s {
   void          to_json(json_writer& j) const;
 };
 
+// SIB22-r18 ::= SEQUENCE
+struct sib22_r18_s {
+  bool                          ext                               = false;
+  bool                          atg_cfg_r18_present               = false;
+  bool                          hs_atg_cell_resel_set_r18_present = false;
+  atg_cfg_r18_s                 atg_cfg_r18;
+  atg_neigh_cell_cfg_list_r18_l atg_neigh_cell_cfg_list_r18;
+  dyn_octstring                 late_non_crit_ext;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SIB23-r18 ::= SEQUENCE
+struct sib23_r18_s {
+  struct segment_type_r18_opts {
+    enum options { not_last_segment, last_segment, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using segment_type_r18_e_ = enumerated<segment_type_r18_opts>;
+
+  // member variables
+  uint8_t             segment_num_r18 = 0;
+  segment_type_r18_e_ segment_type_r18;
+  dyn_octstring       segment_container_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SIB24-r18 ::= SEQUENCE
+struct sib24_r18_s {
+  bool                    ext                            = false;
+  bool                    multicast_mcch_cfg_r18_present = false;
+  bool                    cfr_cfg_mcch_mtch_r18_present  = false;
+  mcch_cfg_r17_s          multicast_mcch_cfg_r18;
+  cfr_cfg_mcch_mtch_r17_s cfr_cfg_mcch_mtch_r18;
+  dyn_octstring           late_non_crit_ext;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CoverageAreaInfo-r18 ::= SEQUENCE
+struct coverage_area_info_r18_s {
+  uint8_t       tn_area_id_r18 = 1;
+  dyn_octstring tn_ref_location_r18;
+  uint32_t      tn_distance_radius_r18 = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CoverageAreaInfoList-r18 ::= SEQUENCE (SIZE (1..32)) OF CoverageAreaInfo-r18
+using coverage_area_info_list_r18_l = dyn_array<coverage_area_info_r18_s>;
+
+// SIB25-r18 ::= SEQUENCE
+struct sib25_r18_s {
+  bool                          ext = false;
+  coverage_area_info_list_r18_l coverage_area_info_list_r18;
+  dyn_octstring                 late_non_crit_ext;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SIB17bis-r18 ::= SEQUENCE
+struct sib17bis_r18_s {
+  struct segment_type_r18_opts {
+    enum options { not_last_segment, last_segment, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using segment_type_r18_e_ = enumerated<segment_type_r18_opts>;
+
+  // member variables
+  uint8_t             segment_num_r18 = 0;
+  segment_type_r18_e_ segment_type_r18;
+  dyn_octstring       segment_container_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // SystemInformation-IEs ::= SEQUENCE
 struct sys_info_ies_s {
   struct item_c_ {
@@ -2529,14 +2817,17 @@ struct sys_info_ies_s {
         sib19_v1700,
         sib20_v1700,
         sib21_v1700,
+        sib22_v1800,
+        sib23_v1800,
+        sib24_v1800,
+        sib25_v1800,
+        sib17bis_v1820,
         nulltype
       } value;
-      typedef uint8_t number_type;
 
       const char* to_string() const;
-      uint8_t     to_number() const;
     };
-    using types = enumerated<types_opts, true, 12>;
+    using types = enumerated<types_opts, true, 17>;
 
     // choice methods
     item_c_() = default;
@@ -2649,6 +2940,31 @@ struct sys_info_ies_s {
       assert_choice_type(types::sib21_v1700, type_, "item");
       return c.get<sib21_r17_s>();
     }
+    sib22_r18_s& sib22_v1800()
+    {
+      assert_choice_type(types::sib22_v1800, type_, "item");
+      return c.get<sib22_r18_s>();
+    }
+    sib23_r18_s& sib23_v1800()
+    {
+      assert_choice_type(types::sib23_v1800, type_, "item");
+      return c.get<sib23_r18_s>();
+    }
+    sib24_r18_s& sib24_v1800()
+    {
+      assert_choice_type(types::sib24_v1800, type_, "item");
+      return c.get<sib24_r18_s>();
+    }
+    sib25_r18_s& sib25_v1800()
+    {
+      assert_choice_type(types::sib25_v1800, type_, "item");
+      return c.get<sib25_r18_s>();
+    }
+    sib17bis_r18_s& sib17bis_v1820()
+    {
+      assert_choice_type(types::sib17bis_v1820, type_, "item");
+      return c.get<sib17bis_r18_s>();
+    }
     const sib2_s& sib2() const
     {
       assert_choice_type(types::sib2, type_, "item");
@@ -2749,26 +3065,56 @@ struct sys_info_ies_s {
       assert_choice_type(types::sib21_v1700, type_, "item");
       return c.get<sib21_r17_s>();
     }
-    sib2_s&      set_sib2();
-    sib3_s&      set_sib3();
-    sib4_s&      set_sib4();
-    sib5_s&      set_sib5();
-    sib6_s&      set_sib6();
-    sib7_s&      set_sib7();
-    sib8_s&      set_sib8();
-    sib9_s&      set_sib9();
-    sib10_r16_s& set_sib10_v1610();
-    sib11_r16_s& set_sib11_v1610();
-    sib12_r16_s& set_sib12_v1610();
-    sib13_r16_s& set_sib13_v1610();
-    sib14_r16_s& set_sib14_v1610();
-    sib15_r17_s& set_sib15_v1700();
-    sib16_r17_s& set_sib16_v1700();
-    sib17_r17_s& set_sib17_v1700();
-    sib18_r17_s& set_sib18_v1700();
-    sib19_r17_s& set_sib19_v1700();
-    sib20_r17_s& set_sib20_v1700();
-    sib21_r17_s& set_sib21_v1700();
+    const sib22_r18_s& sib22_v1800() const
+    {
+      assert_choice_type(types::sib22_v1800, type_, "item");
+      return c.get<sib22_r18_s>();
+    }
+    const sib23_r18_s& sib23_v1800() const
+    {
+      assert_choice_type(types::sib23_v1800, type_, "item");
+      return c.get<sib23_r18_s>();
+    }
+    const sib24_r18_s& sib24_v1800() const
+    {
+      assert_choice_type(types::sib24_v1800, type_, "item");
+      return c.get<sib24_r18_s>();
+    }
+    const sib25_r18_s& sib25_v1800() const
+    {
+      assert_choice_type(types::sib25_v1800, type_, "item");
+      return c.get<sib25_r18_s>();
+    }
+    const sib17bis_r18_s& sib17bis_v1820() const
+    {
+      assert_choice_type(types::sib17bis_v1820, type_, "item");
+      return c.get<sib17bis_r18_s>();
+    }
+    sib2_s&         set_sib2();
+    sib3_s&         set_sib3();
+    sib4_s&         set_sib4();
+    sib5_s&         set_sib5();
+    sib6_s&         set_sib6();
+    sib7_s&         set_sib7();
+    sib8_s&         set_sib8();
+    sib9_s&         set_sib9();
+    sib10_r16_s&    set_sib10_v1610();
+    sib11_r16_s&    set_sib11_v1610();
+    sib12_r16_s&    set_sib12_v1610();
+    sib13_r16_s&    set_sib13_v1610();
+    sib14_r16_s&    set_sib14_v1610();
+    sib15_r17_s&    set_sib15_v1700();
+    sib16_r17_s&    set_sib16_v1700();
+    sib17_r17_s&    set_sib17_v1700();
+    sib18_r17_s&    set_sib18_v1700();
+    sib19_r17_s&    set_sib19_v1700();
+    sib20_r17_s&    set_sib20_v1700();
+    sib21_r17_s&    set_sib21_v1700();
+    sib22_r18_s&    set_sib22_v1800();
+    sib23_r18_s&    set_sib23_v1800();
+    sib24_r18_s&    set_sib24_v1800();
+    sib25_r18_s&    set_sib25_v1800();
+    sib17bis_r18_s& set_sib17bis_v1820();
 
   private:
     types type_;
@@ -2780,10 +3126,15 @@ struct sys_info_ies_s {
                     sib15_r17_s,
                     sib16_r17_s,
                     sib17_r17_s,
+                    sib17bis_r18_s,
                     sib18_r17_s,
                     sib19_r17_s,
                     sib20_r17_s,
                     sib21_r17_s,
+                    sib22_r18_s,
+                    sib23_r18_s,
+                    sib24_r18_s,
+                    sib25_r18_s,
                     sib2_s,
                     sib3_s,
                     sib4_s,
@@ -2872,12 +3223,24 @@ struct pos_sys_info_r16_ies_s {
         pos_sib6_4_v1700,
         pos_sib6_5_v1700,
         pos_sib6_6_v1700,
+        pos_sib2_17a_v1770,
+        pos_sib2_18a_v1770,
+        pos_sib2_20a_v1770,
+        pos_sib1_11_v1800,
+        pos_sib1_12_v1800,
+        pos_sib2_26_v1800,
+        pos_sib2_27_v1800,
+        pos_sib6_7_v1800,
+        pos_sib7_1_v1800,
+        pos_sib7_2_v1800,
+        pos_sib7_3_v1800,
+        pos_sib7_4_v1800,
         nulltype
       } value;
 
       const char* to_string() const;
     };
-    using types = enumerated<types_opts, true, 7>;
+    using types = enumerated<types_opts, true, 19>;
 
     // choice methods
     item_c_() = default;
@@ -3110,6 +3473,66 @@ struct pos_sys_info_r16_ies_s {
       assert_choice_type(types::pos_sib6_6_v1700, type_, "item");
       return c.get<sib_pos_r16_s>();
     }
+    sib_pos_r16_s& pos_sib2_17a_v1770()
+    {
+      assert_choice_type(types::pos_sib2_17a_v1770, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib2_18a_v1770()
+    {
+      assert_choice_type(types::pos_sib2_18a_v1770, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib2_20a_v1770()
+    {
+      assert_choice_type(types::pos_sib2_20a_v1770, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib1_11_v1800()
+    {
+      assert_choice_type(types::pos_sib1_11_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib1_12_v1800()
+    {
+      assert_choice_type(types::pos_sib1_12_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib2_26_v1800()
+    {
+      assert_choice_type(types::pos_sib2_26_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib2_27_v1800()
+    {
+      assert_choice_type(types::pos_sib2_27_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib6_7_v1800()
+    {
+      assert_choice_type(types::pos_sib6_7_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib7_1_v1800()
+    {
+      assert_choice_type(types::pos_sib7_1_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib7_2_v1800()
+    {
+      assert_choice_type(types::pos_sib7_2_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib7_3_v1800()
+    {
+      assert_choice_type(types::pos_sib7_3_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    sib_pos_r16_s& pos_sib7_4_v1800()
+    {
+      assert_choice_type(types::pos_sib7_4_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
     const sib_pos_r16_s& pos_sib1_1_r16() const
     {
       assert_choice_type(types::pos_sib1_1_r16, type_, "item");
@@ -3330,6 +3753,66 @@ struct pos_sys_info_r16_ies_s {
       assert_choice_type(types::pos_sib6_6_v1700, type_, "item");
       return c.get<sib_pos_r16_s>();
     }
+    const sib_pos_r16_s& pos_sib2_17a_v1770() const
+    {
+      assert_choice_type(types::pos_sib2_17a_v1770, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib2_18a_v1770() const
+    {
+      assert_choice_type(types::pos_sib2_18a_v1770, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib2_20a_v1770() const
+    {
+      assert_choice_type(types::pos_sib2_20a_v1770, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib1_11_v1800() const
+    {
+      assert_choice_type(types::pos_sib1_11_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib1_12_v1800() const
+    {
+      assert_choice_type(types::pos_sib1_12_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib2_26_v1800() const
+    {
+      assert_choice_type(types::pos_sib2_26_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib2_27_v1800() const
+    {
+      assert_choice_type(types::pos_sib2_27_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib6_7_v1800() const
+    {
+      assert_choice_type(types::pos_sib6_7_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib7_1_v1800() const
+    {
+      assert_choice_type(types::pos_sib7_1_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib7_2_v1800() const
+    {
+      assert_choice_type(types::pos_sib7_2_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib7_3_v1800() const
+    {
+      assert_choice_type(types::pos_sib7_3_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
+    const sib_pos_r16_s& pos_sib7_4_v1800() const
+    {
+      assert_choice_type(types::pos_sib7_4_v1800, type_, "item");
+      return c.get<sib_pos_r16_s>();
+    }
     sib_pos_r16_s& set_pos_sib1_1_r16();
     sib_pos_r16_s& set_pos_sib1_2_r16();
     sib_pos_r16_s& set_pos_sib1_3_r16();
@@ -3374,6 +3857,18 @@ struct pos_sys_info_r16_ies_s {
     sib_pos_r16_s& set_pos_sib6_4_v1700();
     sib_pos_r16_s& set_pos_sib6_5_v1700();
     sib_pos_r16_s& set_pos_sib6_6_v1700();
+    sib_pos_r16_s& set_pos_sib2_17a_v1770();
+    sib_pos_r16_s& set_pos_sib2_18a_v1770();
+    sib_pos_r16_s& set_pos_sib2_20a_v1770();
+    sib_pos_r16_s& set_pos_sib1_11_v1800();
+    sib_pos_r16_s& set_pos_sib1_12_v1800();
+    sib_pos_r16_s& set_pos_sib2_26_v1800();
+    sib_pos_r16_s& set_pos_sib2_27_v1800();
+    sib_pos_r16_s& set_pos_sib6_7_v1800();
+    sib_pos_r16_s& set_pos_sib7_1_v1800();
+    sib_pos_r16_s& set_pos_sib7_2_v1800();
+    sib_pos_r16_s& set_pos_sib7_3_v1800();
+    sib_pos_r16_s& set_pos_sib7_4_v1800();
 
   private:
     types                          type_;
@@ -3908,11 +4403,11 @@ using uac_access_category1_sel_assist_info_e = enumerated<uac_access_category1_s
 // GNSS-ID-r16 ::= SEQUENCE
 struct gnss_id_r16_s {
   struct gnss_id_r16_opts {
-    enum options { gps, sbas, qzss, galileo, glonass, bds, /*...*/ nulltype } value;
+    enum options { gps, sbas, qzss, galileo, glonass, bds, /*...*/ navic_v1760, nulltype } value;
 
     const char* to_string() const;
   };
-  using gnss_id_r16_e_ = enumerated<gnss_id_r16_opts, true>;
+  using gnss_id_r16_e_ = enumerated<gnss_id_r16_opts, true, 1>;
 
   // member variables
   bool           ext = false;
@@ -4043,6 +4538,52 @@ struct pos_sched_info_r16_s {
   void          to_json(json_writer& j) const;
 };
 
+// SI-RequestResourcesRepetition-r18 ::= SEQUENCE
+struct si_request_res_repeat_r18_s {
+  uint8_t ra_preamb_start_idx_r18 = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SI-RequestConfigRepetition-r18 ::= SEQUENCE
+struct si_request_cfg_repeat_r18_s {
+  struct rach_occasions_si_r18_s_ {
+    struct ssb_per_rach_occasion_r18_opts {
+      enum options { one_eighth, one_fourth, one_half, one, two, four, eight, sixteen, nulltype } value;
+      typedef float number_type;
+
+      const char* to_string() const;
+      float       to_number() const;
+      const char* to_number_string() const;
+    };
+    using ssb_per_rach_occasion_r18_e_ = enumerated<ssb_per_rach_occasion_r18_opts>;
+
+    // member variables
+    rach_cfg_generic_s           rach_cfg_si_r18;
+    ssb_per_rach_occasion_r18_e_ ssb_per_rach_occasion_r18;
+  };
+  using si_request_res_repeat_num2_r18_l_ = dyn_array<si_request_res_repeat_r18_s>;
+  using si_request_res_repeat_num4_r18_l_ = dyn_array<si_request_res_repeat_r18_s>;
+  using si_request_res_repeat_num8_r18_l_ = dyn_array<si_request_res_repeat_r18_s>;
+
+  // member variables
+  bool                              ext                           = false;
+  bool                              rach_occasions_si_r18_present = false;
+  rach_occasions_si_r18_s_          rach_occasions_si_r18;
+  si_request_res_repeat_num2_r18_l_ si_request_res_repeat_num2_r18;
+  si_request_res_repeat_num4_r18_l_ si_request_res_repeat_num4_r18;
+  si_request_res_repeat_num8_r18_l_ si_request_res_repeat_num8_r18;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // PosSI-SchedulingInfo-r16 ::= SEQUENCE
 struct pos_si_sched_info_r16_s {
   using pos_sched_info_list_r16_l_ = dyn_array<pos_sched_info_r16_s>;
@@ -4057,6 +4598,10 @@ struct pos_si_sched_info_r16_s {
   // ...
   // group 0
   copy_ptr<si_request_cfg_s> pos_si_request_cfg_red_cap_r17;
+  // group 1
+  copy_ptr<si_request_cfg_repeat_r18_s> pos_si_request_cfg_msg1_repeat_r18;
+  copy_ptr<si_request_cfg_repeat_r18_s> pos_si_request_cfg_sul_msg1_repeat_r18;
+  copy_ptr<si_request_cfg_repeat_r18_s> pos_si_request_cfg_red_cap_msg1_repeat_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -4220,11 +4765,11 @@ struct sib_type_info_v1700_s {
         sib_type19,
         sib_type20,
         sib_type21,
-        spare9,
-        spare8,
-        spare7,
-        spare6,
-        spare5,
+        sib_type22_v1800,
+        sib_type23_v1800,
+        sib_type24_v1800,
+        sib_type25_v1800,
+        sib_type17bis_v1820,
         spare4,
         spare3,
         spare2,
@@ -4232,10 +4777,8 @@ struct sib_type_info_v1700_s {
         // ...
         nulltype
       } value;
-      typedef uint8_t number_type;
 
       const char* to_string() const;
-      uint8_t     to_number() const;
     };
     using type1_r17_e_ = enumerated<type1_r17_opts, true>;
     struct type2_r17_s_ {
@@ -4248,22 +4791,25 @@ struct sib_type_info_v1700_s {
           pos_sib_type6_neg4,
           pos_sib_type6_neg5,
           pos_sib_type6_neg6,
-          spare9,
-          spare8,
-          spare7,
-          spare6,
-          spare5,
-          spare4,
-          spare3,
-          spare2,
-          spare1,
+          pos_sib_type2_neg17a_v1770,
+          pos_sib_type2_neg18a_v1770,
+          pos_sib_type2_neg20a_v1770,
+          pos_sib_type1_neg11_v1800,
+          pos_sib_type1_neg12_v1800,
+          pos_sib_type2_neg26_v1800,
+          pos_sib_type2_neg27_v1800,
+          pos_sib_type6_neg7_v1800,
+          pos_sib_type7_neg1_v1800,
           // ...
+          pos_sib_type7_neg2_v1800,
+          pos_sib_type7_neg3_v1800,
+          pos_sib_type7_neg4_v1800,
           nulltype
         } value;
 
         const char* to_string() const;
       };
-      using pos_sib_type_r17_e_ = enumerated<pos_sib_type_r17_opts, true>;
+      using pos_sib_type_r17_e_ = enumerated<pos_sib_type_r17_opts, true, 3>;
 
       // member variables
       bool                encrypted_r17_present = false;
@@ -4393,11 +4939,194 @@ struct si_sched_info_v1740_s {
   void          to_json(json_writer& j) const;
 };
 
+// MT-SDT-ConfigCommonSIB-r18 ::= SEQUENCE
+struct mt_sdt_cfg_common_sib_r18_s {
+  struct sdt_lc_ch_sr_delay_timer_r18_opts {
+    enum options { sf20, sf40, sf64, sf128, sf512, sf1024, sf2560, spare1, nulltype } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using sdt_lc_ch_sr_delay_timer_r18_e_ = enumerated<sdt_lc_ch_sr_delay_timer_r18_opts>;
+  struct t319a_r18_opts {
+    enum options {
+      ms100,
+      ms200,
+      ms300,
+      ms400,
+      ms600,
+      ms1000,
+      ms2000,
+      ms3000,
+      ms4000,
+      spare7,
+      spare6,
+      spare5,
+      spare4,
+      spare3,
+      spare2,
+      spare1,
+      nulltype
+    } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using t319a_r18_e_ = enumerated<t319a_r18_opts>;
+
+  // member variables
+  bool                            mt_sdt_rsrp_thres_r18_present        = false;
+  bool                            sdt_lc_ch_sr_delay_timer_r18_present = false;
+  bool                            t319a_r18_present                    = false;
+  uint8_t                         mt_sdt_rsrp_thres_r18                = 0;
+  sdt_lc_ch_sr_delay_timer_r18_e_ sdt_lc_ch_sr_delay_timer_r18;
+  t319a_r18_e_                    t319a_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SI-SchedulingInfo-v1800 ::= SEQUENCE
+struct si_sched_info_v1800_s {
+  bool                        si_request_cfg_msg1_repeat_r18_present         = false;
+  bool                        si_request_cfg_red_cap_msg1_repeat_r18_present = false;
+  bool                        si_request_cfg_sul_msg1_repeat_r18_present     = false;
+  si_request_cfg_repeat_r18_s si_request_cfg_msg1_repeat_r18;
+  si_request_cfg_repeat_r18_s si_request_cfg_red_cap_msg1_repeat_r18;
+  si_request_cfg_repeat_r18_s si_request_cfg_sul_msg1_repeat_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// ERedCap-ConfigCommonSIB-r18 ::= SEQUENCE
+struct e_red_cap_cfg_common_sib_r18_s {
+  struct cell_barred_e_red_cap_r18_s_ {
+    struct cell_barred_e_red_cap1_rx_r18_opts {
+      enum options { barred, not_barred, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using cell_barred_e_red_cap1_rx_r18_e_ = enumerated<cell_barred_e_red_cap1_rx_r18_opts>;
+    struct cell_barred_e_red_cap2_rx_r18_opts {
+      enum options { barred, not_barred, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using cell_barred_e_red_cap2_rx_r18_e_ = enumerated<cell_barred_e_red_cap2_rx_r18_opts>;
+
+    // member variables
+    cell_barred_e_red_cap1_rx_r18_e_ cell_barred_e_red_cap1_rx_r18;
+    cell_barred_e_red_cap2_rx_r18_e_ cell_barred_e_red_cap2_rx_r18;
+  };
+
+  // member variables
+  cell_barred_e_red_cap_r18_s_ cell_barred_e_red_cap_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SIB1-v1800-IEs ::= SEQUENCE
+struct sib1_v1800_ies_s {
+  struct feature_priorities_v1800_s_ {
+    bool    msg1_repeats_prio_r18_present = false;
+    bool    ered_cap_prio_r18_present     = false;
+    uint8_t msg1_repeats_prio_r18         = 0;
+    uint8_t ered_cap_prio_r18             = 0;
+  };
+  struct cell_barred_atg_r18_opts {
+    enum options { barred, not_barred, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using cell_barred_atg_r18_e_ = enumerated<cell_barred_atg_r18_opts>;
+  struct intra_freq_resel_e_red_cap_r18_opts {
+    enum options { allowed, not_allowed, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using intra_freq_resel_e_red_cap_r18_e_ = enumerated<intra_freq_resel_e_red_cap_r18_opts>;
+  struct sdt_beam_fail_recovery_prohibit_timer_r18_opts {
+    enum options { ms50, ms100, ms200, ms500, ms1000, ms1500, ms2000, ms3000, nulltype } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using sdt_beam_fail_recovery_prohibit_timer_r18_e_ = enumerated<sdt_beam_fail_recovery_prohibit_timer_r18_opts>;
+  struct cell_barred_fixed_vsat_r18_opts {
+    enum options { barred, not_barred, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using cell_barred_fixed_vsat_r18_e_ = enumerated<cell_barred_fixed_vsat_r18_opts>;
+  struct cell_barred_mobile_vsat_r18_opts {
+    enum options { barred, not_barred, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using cell_barred_mobile_vsat_r18_e_ = enumerated<cell_barred_mobile_vsat_r18_opts>;
+  struct intra_freq_resel2_rx_xr_r18_opts {
+    enum options { allowed, not_allowed, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using intra_freq_resel2_rx_xr_r18_e_ = enumerated<intra_freq_resel2_rx_xr_r18_opts>;
+
+  // member variables
+  bool                                         ncr_support_r18_present                           = false;
+  bool                                         mt_sdt_cfg_common_sib_r18_present                 = false;
+  bool                                         musim_cap_restrict_allowed_r18_present            = false;
+  bool                                         feature_priorities_v1800_present                  = false;
+  bool                                         si_sched_info_v1800_present                       = false;
+  bool                                         cell_barred_atg_r18_present                       = false;
+  bool                                         cell_barred_nes_r18_present                       = false;
+  bool                                         mobile_iab_cell_r18_present                       = false;
+  bool                                         edrx_allowed_inactive_r18_present                 = false;
+  bool                                         intra_freq_resel_e_red_cap_r18_present            = false;
+  bool                                         non_serving_cell_mii_r18_present                  = false;
+  bool                                         sdt_beam_fail_recovery_prohibit_timer_r18_present = false;
+  bool                                         ered_cap_cfg_common_r18_present                   = false;
+  bool                                         cell_barred_fixed_vsat_r18_present                = false;
+  bool                                         cell_barred_mobile_vsat_r18_present               = false;
+  bool                                         resel_meass_nr_r18_present                        = false;
+  bool                                         cell_barred2_rx_xr_r18_present                    = false;
+  bool                                         intra_freq_resel2_rx_xr_r18_present               = false;
+  bool                                         barr_exempt_emergency_call_r18_present            = false;
+  bool                                         n3c_support_r18_present                           = false;
+  bool                                         non_crit_ext_present                              = false;
+  mt_sdt_cfg_common_sib_r18_s                  mt_sdt_cfg_common_sib_r18;
+  feature_priorities_v1800_s_                  feature_priorities_v1800;
+  si_sched_info_v1800_s                        si_sched_info_v1800;
+  cell_barred_atg_r18_e_                       cell_barred_atg_r18;
+  intra_freq_resel_e_red_cap_r18_e_            intra_freq_resel_e_red_cap_r18;
+  sdt_beam_fail_recovery_prohibit_timer_r18_e_ sdt_beam_fail_recovery_prohibit_timer_r18;
+  e_red_cap_cfg_common_sib_r18_s               ered_cap_cfg_common_r18;
+  cell_barred_fixed_vsat_r18_e_                cell_barred_fixed_vsat_r18;
+  cell_barred_mobile_vsat_r18_e_               cell_barred_mobile_vsat_r18;
+  intra_freq_resel2_rx_xr_r18_e_               intra_freq_resel2_rx_xr_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // SIB1-v1740-IEs ::= SEQUENCE
 struct sib1_v1740_ies_s {
   bool                  si_sched_info_v1740_present = false;
   bool                  non_crit_ext_present        = false;
   si_sched_info_v1740_s si_sched_info_v1740;
+  sib1_v1800_ies_s      non_crit_ext;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;

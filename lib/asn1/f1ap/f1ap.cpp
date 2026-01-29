@@ -71,18 +71,20 @@ bool protocol_ie_field_pair_s<ies_set_paramT_>::load_info_obj(const uint32_t& id
 // F1AP-ELEMENTARY-PROCEDURES ::= OBJECT SET OF F1AP-ELEMENTARY-PROCEDURE
 uint16_t f1ap_elem_procs_o::idx_to_proc_code(uint32_t idx)
 {
-  static const uint16_t names[] = {0,  1,  3,  4,  5,  6,  7,  8,  20, 21, 16, 26, 32, 33, 34, 35, 36, 41, 48, 49,
-                                   50, 52, 59, 60, 62, 64, 65, 67, 68, 69, 70, 75, 76, 2,  10, 12, 13, 15, 14, 11,
-                                   17, 18, 19, 22, 23, 24, 25, 27, 28, 29, 30, 31, 37, 38, 58, 57, 39, 40, 42, 43,
-                                   44, 45, 46, 47, 51, 53, 54, 55, 56, 63, 61, 66, 71, 79, 80, 77, 78, 81};
-  return map_enum_number(names, 78, idx, "proc_code");
+  static const uint16_t names[] = {0,  1,  3,  4,  5,  6,  7,  8,  20, 21, 16, 26, 32, 33, 34, 35, 36, 41, 48,
+                                   49, 50, 52, 59, 60, 62, 64, 65, 67, 68, 69, 70, 75, 76, 88, 92, 93, 2,  10,
+                                   12, 13, 15, 14, 11, 17, 18, 19, 22, 23, 24, 25, 27, 28, 29, 30, 31, 37, 38,
+                                   58, 57, 39, 40, 42, 43, 44, 45, 46, 47, 51, 53, 54, 55, 56, 63, 61, 66, 71,
+                                   79, 80, 77, 78, 81, 82, 83, 84, 85, 86, 87, 89, 90, 91, 94, 95, 96, 97};
+  return map_enum_number(names, 94, idx, "proc_code");
 }
 bool f1ap_elem_procs_o::is_proc_code_valid(const uint16_t& proc_code)
 {
-  static const uint16_t names[] = {0,  1,  3,  4,  5,  6,  7,  8,  20, 21, 16, 26, 32, 33, 34, 35, 36, 41, 48, 49,
-                                   50, 52, 59, 60, 62, 64, 65, 67, 68, 69, 70, 75, 76, 2,  10, 12, 13, 15, 14, 11,
-                                   17, 18, 19, 22, 23, 24, 25, 27, 28, 29, 30, 31, 37, 38, 58, 57, 39, 40, 42, 43,
-                                   44, 45, 46, 47, 51, 53, 54, 55, 56, 63, 61, 66, 71, 79, 80, 77, 78, 81};
+  static const uint16_t names[] = {0,  1,  3,  4,  5,  6,  7,  8,  20, 21, 16, 26, 32, 33, 34, 35, 36, 41, 48,
+                                   49, 50, 52, 59, 60, 62, 64, 65, 67, 68, 69, 70, 75, 76, 88, 92, 93, 2,  10,
+                                   12, 13, 15, 14, 11, 17, 18, 19, 22, 23, 24, 25, 27, 28, 29, 30, 31, 37, 38,
+                                   58, 57, 39, 40, 42, 43, 44, 45, 46, 47, 51, 53, 54, 55, 56, 63, 61, 66, 71,
+                                   79, 80, 77, 78, 81, 82, 83, 84, 85, 86, 87, 89, 90, 91, 94, 95, 96, 97};
   for (const auto& o : names) {
     if (o == proc_code) {
       return true;
@@ -192,6 +194,15 @@ f1ap_elem_procs_o::init_msg_c f1ap_elem_procs_o::get_init_msg(const uint16_t& pr
       break;
     case 76:
       ret.set(init_msg_c::types::meas_precfg_required);
+      break;
+    case 88:
+      ret.set(init_msg_c::types::timing_synchronisation_status_request);
+      break;
+    case 92:
+      ret.set(init_msg_c::types::multicast_context_notif_ind);
+      break;
+    case 93:
+      ret.set(init_msg_c::types::multicast_common_cfg_request);
       break;
     case 2:
       ret.set(init_msg_c::types::error_ind);
@@ -328,6 +339,45 @@ f1ap_elem_procs_o::init_msg_c f1ap_elem_procs_o::get_init_msg(const uint16_t& pr
     case 81:
       ret.set(init_msg_c::types::pos_sys_info_delivery_cmd);
       break;
+    case 82:
+      ret.set(init_msg_c::types::du_cu_cell_switch_notif);
+      break;
+    case 83:
+      ret.set(init_msg_c::types::cu_du_cell_switch_notif);
+      break;
+    case 84:
+      ret.set(init_msg_c::types::du_cu_tai_nformation_transfer);
+      break;
+    case 85:
+      ret.set(init_msg_c::types::cu_du_tai_nformation_transfer);
+      break;
+    case 86:
+      ret.set(init_msg_c::types::qo_e_info_transfer_ctrl);
+      break;
+    case 87:
+      ret.set(init_msg_c::types::rach_ind);
+      break;
+    case 89:
+      ret.set(init_msg_c::types::timing_synchronisation_status_report);
+      break;
+    case 90:
+      ret.set(init_msg_c::types::miabf1_setup_trigger);
+      break;
+    case 91:
+      ret.set(init_msg_c::types::miabf1_setup_outcome_notif);
+      break;
+    case 94:
+      ret.set(init_msg_c::types::broadcast_transport_res_request);
+      break;
+    case 95:
+      ret.set(init_msg_c::types::du_cu_access_and_mob_ind);
+      break;
+    case 96:
+      ret.set(init_msg_c::types::srs_info_reserv_notif);
+      break;
+    case 97:
+      ret.set(init_msg_c::types::cu_du_mob_initiation_request);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -436,6 +486,15 @@ f1ap_elem_procs_o::successful_outcome_c f1ap_elem_procs_o::get_successful_outcom
     case 76:
       ret.set(successful_outcome_c::types::meas_precfg_confirm);
       break;
+    case 88:
+      ret.set(successful_outcome_c::types::timing_synchronisation_status_resp);
+      break;
+    case 92:
+      ret.set(successful_outcome_c::types::multicast_context_notif_confirm);
+      break;
+    case 93:
+      ret.set(successful_outcome_c::types::multicast_common_cfg_resp);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -520,6 +579,15 @@ f1ap_elem_procs_o::unsuccessful_outcome_c f1ap_elem_procs_o::get_unsuccessful_ou
     case 76:
       ret.set(unsuccessful_outcome_c::types::meas_precfg_refuse);
       break;
+    case 88:
+      ret.set(unsuccessful_outcome_c::types::timing_synchronisation_status_fail);
+      break;
+    case 92:
+      ret.set(unsuccessful_outcome_c::types::multicast_context_notif_refuse);
+      break;
+    case 93:
+      ret.set(unsuccessful_outcome_c::types::multicast_common_cfg_refuse);
+      break;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
   }
@@ -593,6 +661,12 @@ crit_e f1ap_elem_procs_o::get_crit(const uint16_t& proc_code)
     case 75:
       return crit_e::reject;
     case 76:
+      return crit_e::reject;
+    case 88:
+      return crit_e::reject;
+    case 92:
+      return crit_e::reject;
+    case 93:
       return crit_e::reject;
     case 2:
       return crit_e::ignore;
@@ -683,6 +757,32 @@ crit_e f1ap_elem_procs_o::get_crit(const uint16_t& proc_code)
     case 78:
       return crit_e::ignore;
     case 81:
+      return crit_e::ignore;
+    case 82:
+      return crit_e::ignore;
+    case 83:
+      return crit_e::ignore;
+    case 84:
+      return crit_e::ignore;
+    case 85:
+      return crit_e::ignore;
+    case 86:
+      return crit_e::ignore;
+    case 87:
+      return crit_e::ignore;
+    case 89:
+      return crit_e::ignore;
+    case 90:
+      return crit_e::reject;
+    case 91:
+      return crit_e::reject;
+    case 94:
+      return crit_e::reject;
+    case 95:
+      return crit_e::ignore;
+    case 96:
+      return crit_e::reject;
+    case 97:
       return crit_e::ignore;
     default:
       asn1::log_error("The proc_code={} is not recognized", proc_code);
@@ -793,6 +893,15 @@ void f1ap_elem_procs_o::init_msg_c::set(types::options e)
       break;
     case types::meas_precfg_required:
       c = meas_precfg_required_s{};
+      break;
+    case types::timing_synchronisation_status_request:
+      c = timing_synchronisation_status_request_s{};
+      break;
+    case types::multicast_context_notif_ind:
+      c = multicast_context_notif_ind_s{};
+      break;
+    case types::multicast_common_cfg_request:
+      c = multicast_common_cfg_request_s{};
       break;
     case types::error_ind:
       c = error_ind_s{};
@@ -928,6 +1037,45 @@ void f1ap_elem_procs_o::init_msg_c::set(types::options e)
       break;
     case types::pos_sys_info_delivery_cmd:
       c = pos_sys_info_delivery_cmd_s{};
+      break;
+    case types::du_cu_cell_switch_notif:
+      c = du_cu_cell_switch_notif_s{};
+      break;
+    case types::cu_du_cell_switch_notif:
+      c = cu_du_cell_switch_notif_s{};
+      break;
+    case types::du_cu_tai_nformation_transfer:
+      c = du_cu_tai_nformation_transfer_s{};
+      break;
+    case types::cu_du_tai_nformation_transfer:
+      c = cu_du_tai_nformation_transfer_s{};
+      break;
+    case types::qo_e_info_transfer_ctrl:
+      c = qo_e_info_transfer_ctrl_s{};
+      break;
+    case types::rach_ind:
+      c = rach_ind_s{};
+      break;
+    case types::timing_synchronisation_status_report:
+      c = timing_synchronisation_status_report_s{};
+      break;
+    case types::miabf1_setup_trigger:
+      c = miabf1_setup_trigger_s{};
+      break;
+    case types::miabf1_setup_outcome_notif:
+      c = miabf1_setup_outcome_notif_s{};
+      break;
+    case types::broadcast_transport_res_request:
+      c = broadcast_transport_res_request_s{};
+      break;
+    case types::du_cu_access_and_mob_ind:
+      c = du_cu_access_and_mob_ind_s{};
+      break;
+    case types::srs_info_reserv_notif:
+      c = srs_info_reserv_notif_s{};
+      break;
+    case types::cu_du_mob_initiation_request:
+      c = cu_du_mob_initiation_request_s{};
       break;
     case types::nulltype:
       break;
@@ -1099,6 +1247,21 @@ meas_precfg_required_s& f1ap_elem_procs_o::init_msg_c::meas_precfg_required()
 {
   assert_choice_type(types::meas_precfg_required, type_, "InitiatingMessage");
   return c.get<meas_precfg_required_s>();
+}
+timing_synchronisation_status_request_s& f1ap_elem_procs_o::init_msg_c::timing_synchronisation_status_request()
+{
+  assert_choice_type(types::timing_synchronisation_status_request, type_, "InitiatingMessage");
+  return c.get<timing_synchronisation_status_request_s>();
+}
+multicast_context_notif_ind_s& f1ap_elem_procs_o::init_msg_c::multicast_context_notif_ind()
+{
+  assert_choice_type(types::multicast_context_notif_ind, type_, "InitiatingMessage");
+  return c.get<multicast_context_notif_ind_s>();
+}
+multicast_common_cfg_request_s& f1ap_elem_procs_o::init_msg_c::multicast_common_cfg_request()
+{
+  assert_choice_type(types::multicast_common_cfg_request, type_, "InitiatingMessage");
+  return c.get<multicast_common_cfg_request_s>();
 }
 error_ind_s& f1ap_elem_procs_o::init_msg_c::error_ind()
 {
@@ -1325,6 +1488,71 @@ pos_sys_info_delivery_cmd_s& f1ap_elem_procs_o::init_msg_c::pos_sys_info_deliver
   assert_choice_type(types::pos_sys_info_delivery_cmd, type_, "InitiatingMessage");
   return c.get<pos_sys_info_delivery_cmd_s>();
 }
+du_cu_cell_switch_notif_s& f1ap_elem_procs_o::init_msg_c::du_cu_cell_switch_notif()
+{
+  assert_choice_type(types::du_cu_cell_switch_notif, type_, "InitiatingMessage");
+  return c.get<du_cu_cell_switch_notif_s>();
+}
+cu_du_cell_switch_notif_s& f1ap_elem_procs_o::init_msg_c::cu_du_cell_switch_notif()
+{
+  assert_choice_type(types::cu_du_cell_switch_notif, type_, "InitiatingMessage");
+  return c.get<cu_du_cell_switch_notif_s>();
+}
+du_cu_tai_nformation_transfer_s& f1ap_elem_procs_o::init_msg_c::du_cu_tai_nformation_transfer()
+{
+  assert_choice_type(types::du_cu_tai_nformation_transfer, type_, "InitiatingMessage");
+  return c.get<du_cu_tai_nformation_transfer_s>();
+}
+cu_du_tai_nformation_transfer_s& f1ap_elem_procs_o::init_msg_c::cu_du_tai_nformation_transfer()
+{
+  assert_choice_type(types::cu_du_tai_nformation_transfer, type_, "InitiatingMessage");
+  return c.get<cu_du_tai_nformation_transfer_s>();
+}
+qo_e_info_transfer_ctrl_s& f1ap_elem_procs_o::init_msg_c::qo_e_info_transfer_ctrl()
+{
+  assert_choice_type(types::qo_e_info_transfer_ctrl, type_, "InitiatingMessage");
+  return c.get<qo_e_info_transfer_ctrl_s>();
+}
+rach_ind_s& f1ap_elem_procs_o::init_msg_c::rach_ind()
+{
+  assert_choice_type(types::rach_ind, type_, "InitiatingMessage");
+  return c.get<rach_ind_s>();
+}
+timing_synchronisation_status_report_s& f1ap_elem_procs_o::init_msg_c::timing_synchronisation_status_report()
+{
+  assert_choice_type(types::timing_synchronisation_status_report, type_, "InitiatingMessage");
+  return c.get<timing_synchronisation_status_report_s>();
+}
+miabf1_setup_trigger_s& f1ap_elem_procs_o::init_msg_c::miabf1_setup_trigger()
+{
+  assert_choice_type(types::miabf1_setup_trigger, type_, "InitiatingMessage");
+  return c.get<miabf1_setup_trigger_s>();
+}
+miabf1_setup_outcome_notif_s& f1ap_elem_procs_o::init_msg_c::miabf1_setup_outcome_notif()
+{
+  assert_choice_type(types::miabf1_setup_outcome_notif, type_, "InitiatingMessage");
+  return c.get<miabf1_setup_outcome_notif_s>();
+}
+broadcast_transport_res_request_s& f1ap_elem_procs_o::init_msg_c::broadcast_transport_res_request()
+{
+  assert_choice_type(types::broadcast_transport_res_request, type_, "InitiatingMessage");
+  return c.get<broadcast_transport_res_request_s>();
+}
+du_cu_access_and_mob_ind_s& f1ap_elem_procs_o::init_msg_c::du_cu_access_and_mob_ind()
+{
+  assert_choice_type(types::du_cu_access_and_mob_ind, type_, "InitiatingMessage");
+  return c.get<du_cu_access_and_mob_ind_s>();
+}
+srs_info_reserv_notif_s& f1ap_elem_procs_o::init_msg_c::srs_info_reserv_notif()
+{
+  assert_choice_type(types::srs_info_reserv_notif, type_, "InitiatingMessage");
+  return c.get<srs_info_reserv_notif_s>();
+}
+cu_du_mob_initiation_request_s& f1ap_elem_procs_o::init_msg_c::cu_du_mob_initiation_request()
+{
+  assert_choice_type(types::cu_du_mob_initiation_request, type_, "InitiatingMessage");
+  return c.get<cu_du_mob_initiation_request_s>();
+}
 const reset_s& f1ap_elem_procs_o::init_msg_c::reset() const
 {
   assert_choice_type(types::reset, type_, "InitiatingMessage");
@@ -1490,6 +1718,22 @@ const meas_precfg_required_s& f1ap_elem_procs_o::init_msg_c::meas_precfg_require
 {
   assert_choice_type(types::meas_precfg_required, type_, "InitiatingMessage");
   return c.get<meas_precfg_required_s>();
+}
+const timing_synchronisation_status_request_s&
+f1ap_elem_procs_o::init_msg_c::timing_synchronisation_status_request() const
+{
+  assert_choice_type(types::timing_synchronisation_status_request, type_, "InitiatingMessage");
+  return c.get<timing_synchronisation_status_request_s>();
+}
+const multicast_context_notif_ind_s& f1ap_elem_procs_o::init_msg_c::multicast_context_notif_ind() const
+{
+  assert_choice_type(types::multicast_context_notif_ind, type_, "InitiatingMessage");
+  return c.get<multicast_context_notif_ind_s>();
+}
+const multicast_common_cfg_request_s& f1ap_elem_procs_o::init_msg_c::multicast_common_cfg_request() const
+{
+  assert_choice_type(types::multicast_common_cfg_request, type_, "InitiatingMessage");
+  return c.get<multicast_common_cfg_request_s>();
 }
 const error_ind_s& f1ap_elem_procs_o::init_msg_c::error_ind() const
 {
@@ -1716,6 +1960,72 @@ const pos_sys_info_delivery_cmd_s& f1ap_elem_procs_o::init_msg_c::pos_sys_info_d
   assert_choice_type(types::pos_sys_info_delivery_cmd, type_, "InitiatingMessage");
   return c.get<pos_sys_info_delivery_cmd_s>();
 }
+const du_cu_cell_switch_notif_s& f1ap_elem_procs_o::init_msg_c::du_cu_cell_switch_notif() const
+{
+  assert_choice_type(types::du_cu_cell_switch_notif, type_, "InitiatingMessage");
+  return c.get<du_cu_cell_switch_notif_s>();
+}
+const cu_du_cell_switch_notif_s& f1ap_elem_procs_o::init_msg_c::cu_du_cell_switch_notif() const
+{
+  assert_choice_type(types::cu_du_cell_switch_notif, type_, "InitiatingMessage");
+  return c.get<cu_du_cell_switch_notif_s>();
+}
+const du_cu_tai_nformation_transfer_s& f1ap_elem_procs_o::init_msg_c::du_cu_tai_nformation_transfer() const
+{
+  assert_choice_type(types::du_cu_tai_nformation_transfer, type_, "InitiatingMessage");
+  return c.get<du_cu_tai_nformation_transfer_s>();
+}
+const cu_du_tai_nformation_transfer_s& f1ap_elem_procs_o::init_msg_c::cu_du_tai_nformation_transfer() const
+{
+  assert_choice_type(types::cu_du_tai_nformation_transfer, type_, "InitiatingMessage");
+  return c.get<cu_du_tai_nformation_transfer_s>();
+}
+const qo_e_info_transfer_ctrl_s& f1ap_elem_procs_o::init_msg_c::qo_e_info_transfer_ctrl() const
+{
+  assert_choice_type(types::qo_e_info_transfer_ctrl, type_, "InitiatingMessage");
+  return c.get<qo_e_info_transfer_ctrl_s>();
+}
+const rach_ind_s& f1ap_elem_procs_o::init_msg_c::rach_ind() const
+{
+  assert_choice_type(types::rach_ind, type_, "InitiatingMessage");
+  return c.get<rach_ind_s>();
+}
+const timing_synchronisation_status_report_s&
+f1ap_elem_procs_o::init_msg_c::timing_synchronisation_status_report() const
+{
+  assert_choice_type(types::timing_synchronisation_status_report, type_, "InitiatingMessage");
+  return c.get<timing_synchronisation_status_report_s>();
+}
+const miabf1_setup_trigger_s& f1ap_elem_procs_o::init_msg_c::miabf1_setup_trigger() const
+{
+  assert_choice_type(types::miabf1_setup_trigger, type_, "InitiatingMessage");
+  return c.get<miabf1_setup_trigger_s>();
+}
+const miabf1_setup_outcome_notif_s& f1ap_elem_procs_o::init_msg_c::miabf1_setup_outcome_notif() const
+{
+  assert_choice_type(types::miabf1_setup_outcome_notif, type_, "InitiatingMessage");
+  return c.get<miabf1_setup_outcome_notif_s>();
+}
+const broadcast_transport_res_request_s& f1ap_elem_procs_o::init_msg_c::broadcast_transport_res_request() const
+{
+  assert_choice_type(types::broadcast_transport_res_request, type_, "InitiatingMessage");
+  return c.get<broadcast_transport_res_request_s>();
+}
+const du_cu_access_and_mob_ind_s& f1ap_elem_procs_o::init_msg_c::du_cu_access_and_mob_ind() const
+{
+  assert_choice_type(types::du_cu_access_and_mob_ind, type_, "InitiatingMessage");
+  return c.get<du_cu_access_and_mob_ind_s>();
+}
+const srs_info_reserv_notif_s& f1ap_elem_procs_o::init_msg_c::srs_info_reserv_notif() const
+{
+  assert_choice_type(types::srs_info_reserv_notif, type_, "InitiatingMessage");
+  return c.get<srs_info_reserv_notif_s>();
+}
+const cu_du_mob_initiation_request_s& f1ap_elem_procs_o::init_msg_c::cu_du_mob_initiation_request() const
+{
+  assert_choice_type(types::cu_du_mob_initiation_request, type_, "InitiatingMessage");
+  return c.get<cu_du_mob_initiation_request_s>();
+}
 void f1ap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -1851,6 +2161,18 @@ void f1ap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
     case types::meas_precfg_required:
       j.write_fieldname("MeasurementPreconfigurationRequired");
       c.get<meas_precfg_required_s>().to_json(j);
+      break;
+    case types::timing_synchronisation_status_request:
+      j.write_fieldname("TimingSynchronisationStatusRequest");
+      c.get<timing_synchronisation_status_request_s>().to_json(j);
+      break;
+    case types::multicast_context_notif_ind:
+      j.write_fieldname("MulticastContextNotificationIndication");
+      c.get<multicast_context_notif_ind_s>().to_json(j);
+      break;
+    case types::multicast_common_cfg_request:
+      j.write_fieldname("MulticastCommonConfigurationRequest");
+      c.get<multicast_common_cfg_request_s>().to_json(j);
       break;
     case types::error_ind:
       j.write_fieldname("ErrorIndication");
@@ -2032,6 +2354,58 @@ void f1ap_elem_procs_o::init_msg_c::to_json(json_writer& j) const
       j.write_fieldname("PosSystemInformationDeliveryCommand");
       c.get<pos_sys_info_delivery_cmd_s>().to_json(j);
       break;
+    case types::du_cu_cell_switch_notif:
+      j.write_fieldname("DUCUCellSwitchNotification");
+      c.get<du_cu_cell_switch_notif_s>().to_json(j);
+      break;
+    case types::cu_du_cell_switch_notif:
+      j.write_fieldname("CUDUCellSwitchNotification");
+      c.get<cu_du_cell_switch_notif_s>().to_json(j);
+      break;
+    case types::du_cu_tai_nformation_transfer:
+      j.write_fieldname("DUCUTAInformationTransfer");
+      c.get<du_cu_tai_nformation_transfer_s>().to_json(j);
+      break;
+    case types::cu_du_tai_nformation_transfer:
+      j.write_fieldname("CUDUTAInformationTransfer");
+      c.get<cu_du_tai_nformation_transfer_s>().to_json(j);
+      break;
+    case types::qo_e_info_transfer_ctrl:
+      j.write_fieldname("QoEInformationTransferControl");
+      c.get<qo_e_info_transfer_ctrl_s>().to_json(j);
+      break;
+    case types::rach_ind:
+      j.write_fieldname("RachIndication");
+      c.get<rach_ind_s>().to_json(j);
+      break;
+    case types::timing_synchronisation_status_report:
+      j.write_fieldname("TimingSynchronisationStatusReport");
+      c.get<timing_synchronisation_status_report_s>().to_json(j);
+      break;
+    case types::miabf1_setup_trigger:
+      j.write_fieldname("MIABF1SetupTriggering");
+      c.get<miabf1_setup_trigger_s>().to_json(j);
+      break;
+    case types::miabf1_setup_outcome_notif:
+      j.write_fieldname("MIABF1SetupOutcomeNotification");
+      c.get<miabf1_setup_outcome_notif_s>().to_json(j);
+      break;
+    case types::broadcast_transport_res_request:
+      j.write_fieldname("BroadcastTransportResourceRequest");
+      c.get<broadcast_transport_res_request_s>().to_json(j);
+      break;
+    case types::du_cu_access_and_mob_ind:
+      j.write_fieldname("DUCUAccessAndMobilityIndication");
+      c.get<du_cu_access_and_mob_ind_s>().to_json(j);
+      break;
+    case types::srs_info_reserv_notif:
+      j.write_fieldname("SRSInformationReservationNotification");
+      c.get<srs_info_reserv_notif_s>().to_json(j);
+      break;
+    case types::cu_du_mob_initiation_request:
+      j.write_fieldname("CUDUMobilityInitiationRequest");
+      c.get<cu_du_mob_initiation_request_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "f1ap_elem_procs_o::init_msg_c");
   }
@@ -2139,6 +2513,15 @@ OCUDUASN_CODE f1ap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
       break;
     case types::meas_precfg_required:
       HANDLE_CODE(c.get<meas_precfg_required_s>().pack(bref));
+      break;
+    case types::timing_synchronisation_status_request:
+      HANDLE_CODE(c.get<timing_synchronisation_status_request_s>().pack(bref));
+      break;
+    case types::multicast_context_notif_ind:
+      HANDLE_CODE(c.get<multicast_context_notif_ind_s>().pack(bref));
+      break;
+    case types::multicast_common_cfg_request:
+      HANDLE_CODE(c.get<multicast_common_cfg_request_s>().pack(bref));
       break;
     case types::error_ind:
       HANDLE_CODE(c.get<error_ind_s>().pack(bref));
@@ -2275,6 +2658,45 @@ OCUDUASN_CODE f1ap_elem_procs_o::init_msg_c::pack(bit_ref& bref) const
     case types::pos_sys_info_delivery_cmd:
       HANDLE_CODE(c.get<pos_sys_info_delivery_cmd_s>().pack(bref));
       break;
+    case types::du_cu_cell_switch_notif:
+      HANDLE_CODE(c.get<du_cu_cell_switch_notif_s>().pack(bref));
+      break;
+    case types::cu_du_cell_switch_notif:
+      HANDLE_CODE(c.get<cu_du_cell_switch_notif_s>().pack(bref));
+      break;
+    case types::du_cu_tai_nformation_transfer:
+      HANDLE_CODE(c.get<du_cu_tai_nformation_transfer_s>().pack(bref));
+      break;
+    case types::cu_du_tai_nformation_transfer:
+      HANDLE_CODE(c.get<cu_du_tai_nformation_transfer_s>().pack(bref));
+      break;
+    case types::qo_e_info_transfer_ctrl:
+      HANDLE_CODE(c.get<qo_e_info_transfer_ctrl_s>().pack(bref));
+      break;
+    case types::rach_ind:
+      HANDLE_CODE(c.get<rach_ind_s>().pack(bref));
+      break;
+    case types::timing_synchronisation_status_report:
+      HANDLE_CODE(c.get<timing_synchronisation_status_report_s>().pack(bref));
+      break;
+    case types::miabf1_setup_trigger:
+      HANDLE_CODE(c.get<miabf1_setup_trigger_s>().pack(bref));
+      break;
+    case types::miabf1_setup_outcome_notif:
+      HANDLE_CODE(c.get<miabf1_setup_outcome_notif_s>().pack(bref));
+      break;
+    case types::broadcast_transport_res_request:
+      HANDLE_CODE(c.get<broadcast_transport_res_request_s>().pack(bref));
+      break;
+    case types::du_cu_access_and_mob_ind:
+      HANDLE_CODE(c.get<du_cu_access_and_mob_ind_s>().pack(bref));
+      break;
+    case types::srs_info_reserv_notif:
+      HANDLE_CODE(c.get<srs_info_reserv_notif_s>().pack(bref));
+      break;
+    case types::cu_du_mob_initiation_request:
+      HANDLE_CODE(c.get<cu_du_mob_initiation_request_s>().pack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "f1ap_elem_procs_o::init_msg_c");
       return OCUDUASN_ERROR_ENCODE_FAIL;
@@ -2383,6 +2805,15 @@ OCUDUASN_CODE f1ap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
       break;
     case types::meas_precfg_required:
       HANDLE_CODE(c.get<meas_precfg_required_s>().unpack(bref));
+      break;
+    case types::timing_synchronisation_status_request:
+      HANDLE_CODE(c.get<timing_synchronisation_status_request_s>().unpack(bref));
+      break;
+    case types::multicast_context_notif_ind:
+      HANDLE_CODE(c.get<multicast_context_notif_ind_s>().unpack(bref));
+      break;
+    case types::multicast_common_cfg_request:
+      HANDLE_CODE(c.get<multicast_common_cfg_request_s>().unpack(bref));
       break;
     case types::error_ind:
       HANDLE_CODE(c.get<error_ind_s>().unpack(bref));
@@ -2519,6 +2950,45 @@ OCUDUASN_CODE f1ap_elem_procs_o::init_msg_c::unpack(cbit_ref& bref)
     case types::pos_sys_info_delivery_cmd:
       HANDLE_CODE(c.get<pos_sys_info_delivery_cmd_s>().unpack(bref));
       break;
+    case types::du_cu_cell_switch_notif:
+      HANDLE_CODE(c.get<du_cu_cell_switch_notif_s>().unpack(bref));
+      break;
+    case types::cu_du_cell_switch_notif:
+      HANDLE_CODE(c.get<cu_du_cell_switch_notif_s>().unpack(bref));
+      break;
+    case types::du_cu_tai_nformation_transfer:
+      HANDLE_CODE(c.get<du_cu_tai_nformation_transfer_s>().unpack(bref));
+      break;
+    case types::cu_du_tai_nformation_transfer:
+      HANDLE_CODE(c.get<cu_du_tai_nformation_transfer_s>().unpack(bref));
+      break;
+    case types::qo_e_info_transfer_ctrl:
+      HANDLE_CODE(c.get<qo_e_info_transfer_ctrl_s>().unpack(bref));
+      break;
+    case types::rach_ind:
+      HANDLE_CODE(c.get<rach_ind_s>().unpack(bref));
+      break;
+    case types::timing_synchronisation_status_report:
+      HANDLE_CODE(c.get<timing_synchronisation_status_report_s>().unpack(bref));
+      break;
+    case types::miabf1_setup_trigger:
+      HANDLE_CODE(c.get<miabf1_setup_trigger_s>().unpack(bref));
+      break;
+    case types::miabf1_setup_outcome_notif:
+      HANDLE_CODE(c.get<miabf1_setup_outcome_notif_s>().unpack(bref));
+      break;
+    case types::broadcast_transport_res_request:
+      HANDLE_CODE(c.get<broadcast_transport_res_request_s>().unpack(bref));
+      break;
+    case types::du_cu_access_and_mob_ind:
+      HANDLE_CODE(c.get<du_cu_access_and_mob_ind_s>().unpack(bref));
+      break;
+    case types::srs_info_reserv_notif:
+      HANDLE_CODE(c.get<srs_info_reserv_notif_s>().unpack(bref));
+      break;
+    case types::cu_du_mob_initiation_request:
+      HANDLE_CODE(c.get<cu_du_mob_initiation_request_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "f1ap_elem_procs_o::init_msg_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -2561,6 +3031,9 @@ const char* f1ap_elem_procs_o::init_msg_c::types_opts::to_string() const
                                 "PDCMeasurementInitiationRequest",
                                 "PRSConfigurationRequest",
                                 "MeasurementPreconfigurationRequired",
+                                "TimingSynchronisationStatusRequest",
+                                "MulticastContextNotificationIndication",
+                                "MulticastCommonConfigurationRequest",
                                 "ErrorIndication",
                                 "UEContextReleaseRequest",
                                 "DLRRCMessageTransfer",
@@ -2605,8 +3078,21 @@ const char* f1ap_elem_procs_o::init_msg_c::types_opts::to_string() const
                                 "PDCMeasurementFailureIndication",
                                 "MeasurementActivation",
                                 "QoEInformationTransfer",
-                                "PosSystemInformationDeliveryCommand"};
-  return convert_enum_idx(names, 78, value, "f1ap_elem_procs_o::init_msg_c::types");
+                                "PosSystemInformationDeliveryCommand",
+                                "DUCUCellSwitchNotification",
+                                "CUDUCellSwitchNotification",
+                                "DUCUTAInformationTransfer",
+                                "CUDUTAInformationTransfer",
+                                "QoEInformationTransferControl",
+                                "RachIndication",
+                                "TimingSynchronisationStatusReport",
+                                "MIABF1SetupTriggering",
+                                "MIABF1SetupOutcomeNotification",
+                                "BroadcastTransportResourceRequest",
+                                "DUCUAccessAndMobilityIndication",
+                                "SRSInformationReservationNotification",
+                                "CUDUMobilityInitiationRequest"};
+  return convert_enum_idx(names, 94, value, "f1ap_elem_procs_o::init_msg_c::types");
 }
 
 // SuccessfulOutcome ::= OPEN TYPE
@@ -2712,6 +3198,15 @@ void f1ap_elem_procs_o::successful_outcome_c::set(types::options e)
       break;
     case types::meas_precfg_confirm:
       c = meas_precfg_confirm_s{};
+      break;
+    case types::timing_synchronisation_status_resp:
+      c = timing_synchronisation_status_resp_s{};
+      break;
+    case types::multicast_context_notif_confirm:
+      c = multicast_context_notif_confirm_s{};
+      break;
+    case types::multicast_common_cfg_resp:
+      c = multicast_common_cfg_resp_s{};
       break;
     case types::nulltype:
       break;
@@ -2885,6 +3380,21 @@ meas_precfg_confirm_s& f1ap_elem_procs_o::successful_outcome_c::meas_precfg_conf
   assert_choice_type(types::meas_precfg_confirm, type_, "SuccessfulOutcome");
   return c.get<meas_precfg_confirm_s>();
 }
+timing_synchronisation_status_resp_s& f1ap_elem_procs_o::successful_outcome_c::timing_synchronisation_status_resp()
+{
+  assert_choice_type(types::timing_synchronisation_status_resp, type_, "SuccessfulOutcome");
+  return c.get<timing_synchronisation_status_resp_s>();
+}
+multicast_context_notif_confirm_s& f1ap_elem_procs_o::successful_outcome_c::multicast_context_notif_confirm()
+{
+  assert_choice_type(types::multicast_context_notif_confirm, type_, "SuccessfulOutcome");
+  return c.get<multicast_context_notif_confirm_s>();
+}
+multicast_common_cfg_resp_s& f1ap_elem_procs_o::successful_outcome_c::multicast_common_cfg_resp()
+{
+  assert_choice_type(types::multicast_common_cfg_resp, type_, "SuccessfulOutcome");
+  return c.get<multicast_common_cfg_resp_s>();
+}
 const reset_ack_s& f1ap_elem_procs_o::successful_outcome_c::reset_ack() const
 {
   assert_choice_type(types::reset_ack, type_, "SuccessfulOutcome");
@@ -3054,6 +3564,23 @@ const meas_precfg_confirm_s& f1ap_elem_procs_o::successful_outcome_c::meas_precf
   assert_choice_type(types::meas_precfg_confirm, type_, "SuccessfulOutcome");
   return c.get<meas_precfg_confirm_s>();
 }
+const timing_synchronisation_status_resp_s&
+f1ap_elem_procs_o::successful_outcome_c::timing_synchronisation_status_resp() const
+{
+  assert_choice_type(types::timing_synchronisation_status_resp, type_, "SuccessfulOutcome");
+  return c.get<timing_synchronisation_status_resp_s>();
+}
+const multicast_context_notif_confirm_s&
+f1ap_elem_procs_o::successful_outcome_c::multicast_context_notif_confirm() const
+{
+  assert_choice_type(types::multicast_context_notif_confirm, type_, "SuccessfulOutcome");
+  return c.get<multicast_context_notif_confirm_s>();
+}
+const multicast_common_cfg_resp_s& f1ap_elem_procs_o::successful_outcome_c::multicast_common_cfg_resp() const
+{
+  assert_choice_type(types::multicast_common_cfg_resp, type_, "SuccessfulOutcome");
+  return c.get<multicast_common_cfg_resp_s>();
+}
 void f1ap_elem_procs_o::successful_outcome_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -3190,6 +3717,18 @@ void f1ap_elem_procs_o::successful_outcome_c::to_json(json_writer& j) const
       j.write_fieldname("MeasurementPreconfigurationConfirm");
       c.get<meas_precfg_confirm_s>().to_json(j);
       break;
+    case types::timing_synchronisation_status_resp:
+      j.write_fieldname("TimingSynchronisationStatusResponse");
+      c.get<timing_synchronisation_status_resp_s>().to_json(j);
+      break;
+    case types::multicast_context_notif_confirm:
+      j.write_fieldname("MulticastContextNotificationConfirm");
+      c.get<multicast_context_notif_confirm_s>().to_json(j);
+      break;
+    case types::multicast_common_cfg_resp:
+      j.write_fieldname("MulticastCommonConfigurationResponse");
+      c.get<multicast_common_cfg_resp_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "f1ap_elem_procs_o::successful_outcome_c");
   }
@@ -3297,6 +3836,15 @@ OCUDUASN_CODE f1ap_elem_procs_o::successful_outcome_c::pack(bit_ref& bref) const
       break;
     case types::meas_precfg_confirm:
       HANDLE_CODE(c.get<meas_precfg_confirm_s>().pack(bref));
+      break;
+    case types::timing_synchronisation_status_resp:
+      HANDLE_CODE(c.get<timing_synchronisation_status_resp_s>().pack(bref));
+      break;
+    case types::multicast_context_notif_confirm:
+      HANDLE_CODE(c.get<multicast_context_notif_confirm_s>().pack(bref));
+      break;
+    case types::multicast_common_cfg_resp:
+      HANDLE_CODE(c.get<multicast_common_cfg_resp_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "f1ap_elem_procs_o::successful_outcome_c");
@@ -3407,6 +3955,15 @@ OCUDUASN_CODE f1ap_elem_procs_o::successful_outcome_c::unpack(cbit_ref& bref)
     case types::meas_precfg_confirm:
       HANDLE_CODE(c.get<meas_precfg_confirm_s>().unpack(bref));
       break;
+    case types::timing_synchronisation_status_resp:
+      HANDLE_CODE(c.get<timing_synchronisation_status_resp_s>().unpack(bref));
+      break;
+    case types::multicast_context_notif_confirm:
+      HANDLE_CODE(c.get<multicast_context_notif_confirm_s>().unpack(bref));
+      break;
+    case types::multicast_common_cfg_resp:
+      HANDLE_CODE(c.get<multicast_common_cfg_resp_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "f1ap_elem_procs_o::successful_outcome_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -3448,8 +4005,11 @@ const char* f1ap_elem_procs_o::successful_outcome_c::types_opts::to_string() con
                                 "MulticastDistributionReleaseComplete",
                                 "PDCMeasurementInitiationResponse",
                                 "PRSConfigurationResponse",
-                                "MeasurementPreconfigurationConfirm"};
-  return convert_enum_idx(names, 33, value, "f1ap_elem_procs_o::successful_outcome_c::types");
+                                "MeasurementPreconfigurationConfirm",
+                                "TimingSynchronisationStatusResponse",
+                                "MulticastContextNotificationConfirm",
+                                "MulticastCommonConfigurationResponse"};
+  return convert_enum_idx(names, 36, value, "f1ap_elem_procs_o::successful_outcome_c::types");
 }
 
 // UnsuccessfulOutcome ::= OPEN TYPE
@@ -3531,6 +4091,15 @@ void f1ap_elem_procs_o::unsuccessful_outcome_c::set(types::options e)
       break;
     case types::meas_precfg_refuse:
       c = meas_precfg_refuse_s{};
+      break;
+    case types::timing_synchronisation_status_fail:
+      c = timing_synchronisation_status_fail_s{};
+      break;
+    case types::multicast_context_notif_refuse:
+      c = multicast_context_notif_refuse_s{};
+      break;
+    case types::multicast_common_cfg_refuse:
+      c = multicast_common_cfg_refuse_s{};
       break;
     case types::nulltype:
       break;
@@ -3663,6 +4232,21 @@ meas_precfg_refuse_s& f1ap_elem_procs_o::unsuccessful_outcome_c::meas_precfg_ref
   assert_choice_type(types::meas_precfg_refuse, type_, "UnsuccessfulOutcome");
   return c.get<meas_precfg_refuse_s>();
 }
+timing_synchronisation_status_fail_s& f1ap_elem_procs_o::unsuccessful_outcome_c::timing_synchronisation_status_fail()
+{
+  assert_choice_type(types::timing_synchronisation_status_fail, type_, "UnsuccessfulOutcome");
+  return c.get<timing_synchronisation_status_fail_s>();
+}
+multicast_context_notif_refuse_s& f1ap_elem_procs_o::unsuccessful_outcome_c::multicast_context_notif_refuse()
+{
+  assert_choice_type(types::multicast_context_notif_refuse, type_, "UnsuccessfulOutcome");
+  return c.get<multicast_context_notif_refuse_s>();
+}
+multicast_common_cfg_refuse_s& f1ap_elem_procs_o::unsuccessful_outcome_c::multicast_common_cfg_refuse()
+{
+  assert_choice_type(types::multicast_common_cfg_refuse, type_, "UnsuccessfulOutcome");
+  return c.get<multicast_common_cfg_refuse_s>();
+}
 const f1_setup_fail_s& f1ap_elem_procs_o::unsuccessful_outcome_c::f1_setup_fail() const
 {
   assert_choice_type(types::f1_setup_fail, type_, "UnsuccessfulOutcome");
@@ -3789,6 +4373,23 @@ const meas_precfg_refuse_s& f1ap_elem_procs_o::unsuccessful_outcome_c::meas_prec
   assert_choice_type(types::meas_precfg_refuse, type_, "UnsuccessfulOutcome");
   return c.get<meas_precfg_refuse_s>();
 }
+const timing_synchronisation_status_fail_s&
+f1ap_elem_procs_o::unsuccessful_outcome_c::timing_synchronisation_status_fail() const
+{
+  assert_choice_type(types::timing_synchronisation_status_fail, type_, "UnsuccessfulOutcome");
+  return c.get<timing_synchronisation_status_fail_s>();
+}
+const multicast_context_notif_refuse_s&
+f1ap_elem_procs_o::unsuccessful_outcome_c::multicast_context_notif_refuse() const
+{
+  assert_choice_type(types::multicast_context_notif_refuse, type_, "UnsuccessfulOutcome");
+  return c.get<multicast_context_notif_refuse_s>();
+}
+const multicast_common_cfg_refuse_s& f1ap_elem_procs_o::unsuccessful_outcome_c::multicast_common_cfg_refuse() const
+{
+  assert_choice_type(types::multicast_common_cfg_refuse, type_, "UnsuccessfulOutcome");
+  return c.get<multicast_common_cfg_refuse_s>();
+}
 void f1ap_elem_procs_o::unsuccessful_outcome_c::to_json(json_writer& j) const
 {
   j.start_obj();
@@ -3893,6 +4494,18 @@ void f1ap_elem_procs_o::unsuccessful_outcome_c::to_json(json_writer& j) const
       j.write_fieldname("MeasurementPreconfigurationRefuse");
       c.get<meas_precfg_refuse_s>().to_json(j);
       break;
+    case types::timing_synchronisation_status_fail:
+      j.write_fieldname("TimingSynchronisationStatusFailure");
+      c.get<timing_synchronisation_status_fail_s>().to_json(j);
+      break;
+    case types::multicast_context_notif_refuse:
+      j.write_fieldname("MulticastContextNotificationRefuse");
+      c.get<multicast_context_notif_refuse_s>().to_json(j);
+      break;
+    case types::multicast_common_cfg_refuse:
+      j.write_fieldname("MulticastCommonConfigurationRefuse");
+      c.get<multicast_common_cfg_refuse_s>().to_json(j);
+      break;
     default:
       log_invalid_choice_id(type_, "f1ap_elem_procs_o::unsuccessful_outcome_c");
   }
@@ -3976,6 +4589,15 @@ OCUDUASN_CODE f1ap_elem_procs_o::unsuccessful_outcome_c::pack(bit_ref& bref) con
       break;
     case types::meas_precfg_refuse:
       HANDLE_CODE(c.get<meas_precfg_refuse_s>().pack(bref));
+      break;
+    case types::timing_synchronisation_status_fail:
+      HANDLE_CODE(c.get<timing_synchronisation_status_fail_s>().pack(bref));
+      break;
+    case types::multicast_context_notif_refuse:
+      HANDLE_CODE(c.get<multicast_context_notif_refuse_s>().pack(bref));
+      break;
+    case types::multicast_common_cfg_refuse:
+      HANDLE_CODE(c.get<multicast_common_cfg_refuse_s>().pack(bref));
       break;
     default:
       log_invalid_choice_id(type_, "f1ap_elem_procs_o::unsuccessful_outcome_c");
@@ -4062,6 +4684,15 @@ OCUDUASN_CODE f1ap_elem_procs_o::unsuccessful_outcome_c::unpack(cbit_ref& bref)
     case types::meas_precfg_refuse:
       HANDLE_CODE(c.get<meas_precfg_refuse_s>().unpack(bref));
       break;
+    case types::timing_synchronisation_status_fail:
+      HANDLE_CODE(c.get<timing_synchronisation_status_fail_s>().unpack(bref));
+      break;
+    case types::multicast_context_notif_refuse:
+      HANDLE_CODE(c.get<multicast_context_notif_refuse_s>().unpack(bref));
+      break;
+    case types::multicast_common_cfg_refuse:
+      HANDLE_CODE(c.get<multicast_common_cfg_refuse_s>().unpack(bref));
+      break;
     default:
       log_invalid_choice_id(type_, "f1ap_elem_procs_o::unsuccessful_outcome_c");
       return OCUDUASN_ERROR_DECODE_FAIL;
@@ -4095,8 +4726,11 @@ const char* f1ap_elem_procs_o::unsuccessful_outcome_c::types_opts::to_string() c
                                 "MulticastDistributionSetupFailure",
                                 "PDCMeasurementInitiationFailure",
                                 "PRSConfigurationFailure",
-                                "MeasurementPreconfigurationRefuse"};
-  return convert_enum_idx(names, 25, value, "f1ap_elem_procs_o::unsuccessful_outcome_c::types");
+                                "MeasurementPreconfigurationRefuse",
+                                "TimingSynchronisationStatusFailure",
+                                "MulticastContextNotificationRefuse",
+                                "MulticastCommonConfigurationRefuse"};
+  return convert_enum_idx(names, 28, value, "f1ap_elem_procs_o::unsuccessful_outcome_c::types");
 }
 
 // InitiatingMessage ::= SEQUENCE{{F1AP-ELEMENTARY-PROCEDURE}}

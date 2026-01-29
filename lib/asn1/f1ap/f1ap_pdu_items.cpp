@@ -16,6 +16,68 @@ using namespace asn1::f1ap;
  *                                Struct Methods
  ******************************************************************************/
 
+// Activated-Cells-Mapping-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+uint32_t activ_cells_map_list_item_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {759};
+  return map_enum_number(names, 1, idx, "id");
+}
+bool activ_cells_map_list_item_ies_o::is_id_valid(const uint32_t& id)
+{
+  return 759 == id;
+}
+crit_e activ_cells_map_list_item_ies_o::get_crit(const uint32_t& id)
+{
+  if (id == 759) {
+    return crit_e::ignore;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+activ_cells_map_list_item_ies_o::value_c activ_cells_map_list_item_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  if (id != 759) {
+    asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e activ_cells_map_list_item_ies_o::get_presence(const uint32_t& id)
+{
+  if (id == 759) {
+    return presence_e::mandatory;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void activ_cells_map_list_item_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("Activated-Cells-Mapping-List-Item");
+  c.to_json(j);
+  j.end_obj();
+}
+OCUDUASN_CODE activ_cells_map_list_item_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.pack(bref));
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE activ_cells_map_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.unpack(bref));
+  return OCUDUASN_SUCCESS;
+}
+
+const char* activ_cells_map_list_item_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"Activated-Cells-Mapping-List-Item"};
+  return convert_enum_idx(names, 1, value, "activ_cells_map_list_item_ies_o::value_c::types");
+}
+
 // Associated-SCell-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
 uint32_t associated_scell_item_ies_o::idx_to_id(uint32_t idx)
 {
@@ -107,7 +169,7 @@ bap_hdr_rewriting_added_list_item_ies_o::value_c bap_hdr_rewriting_added_list_it
 presence_e bap_hdr_rewriting_added_list_item_ies_o::get_presence(const uint32_t& id)
 {
   if (id == 515) {
-    return presence_e::optional;
+    return presence_e::mandatory;
   }
   asn1::log_error("The id={} is not recognized", id);
   return {};
@@ -169,7 +231,7 @@ bap_hdr_rewriting_remd_list_item_ies_o::value_c bap_hdr_rewriting_remd_list_item
 presence_e bap_hdr_rewriting_remd_list_item_ies_o::get_presence(const uint32_t& id)
 {
   if (id == 642) {
-    return presence_e::optional;
+    return presence_e::mandatory;
   }
   asn1::log_error("The id={} is not recognized", id);
   return {};
@@ -231,7 +293,7 @@ bh_routing_info_added_list_item_ies_o::value_c bh_routing_info_added_list_item_i
 presence_e bh_routing_info_added_list_item_ies_o::get_presence(const uint32_t& id)
 {
   if (id == 284) {
-    return presence_e::optional;
+    return presence_e::mandatory;
   }
   asn1::log_error("The id={} is not recognized", id);
   return {};
@@ -293,7 +355,7 @@ bh_routing_info_remd_list_item_ies_o::value_c bh_routing_info_remd_list_item_ies
 presence_e bh_routing_info_remd_list_item_ies_o::get_presence(const uint32_t& id)
 {
   if (id == 286) {
-    return presence_e::optional;
+    return presence_e::mandatory;
   }
   asn1::log_error("The id={} is not recognized", id);
   return {};
@@ -1008,6 +1070,69 @@ const char* bh_chs_to_be_setup_mod_item_ies_o::value_c::types_opts::to_string() 
 {
   static const char* names[] = {"BHChannels-ToBeSetupMod-Item"};
   return convert_enum_idx(names, 1, value, "bh_chs_to_be_setup_mod_item_ies_o::value_c::types");
+}
+
+// Broadcast-MRBs-Transport-Request-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+uint32_t broadcast_m_rbs_transport_request_item_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {790};
+  return map_enum_number(names, 1, idx, "id");
+}
+bool broadcast_m_rbs_transport_request_item_ies_o::is_id_valid(const uint32_t& id)
+{
+  return 790 == id;
+}
+crit_e broadcast_m_rbs_transport_request_item_ies_o::get_crit(const uint32_t& id)
+{
+  if (id == 790) {
+    return crit_e::reject;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+broadcast_m_rbs_transport_request_item_ies_o::value_c
+broadcast_m_rbs_transport_request_item_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  if (id != 790) {
+    asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e broadcast_m_rbs_transport_request_item_ies_o::get_presence(const uint32_t& id)
+{
+  if (id == 790) {
+    return presence_e::mandatory;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void broadcast_m_rbs_transport_request_item_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("Broadcast-MRBs-Transport-Request-Item");
+  c.to_json(j);
+  j.end_obj();
+}
+OCUDUASN_CODE broadcast_m_rbs_transport_request_item_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.pack(bref));
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE broadcast_m_rbs_transport_request_item_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.unpack(bref));
+  return OCUDUASN_SUCCESS;
+}
+
+const char* broadcast_m_rbs_transport_request_item_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"Broadcast-MRBs-Transport-Request-Item"};
+  return convert_enum_idx(names, 1, value, "broadcast_m_rbs_transport_request_item_ies_o::value_c::types");
 }
 
 // Broadcast-To-Be-Cancelled-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -1759,6 +1884,69 @@ const char* candidate_sp_cell_item_ies_o::value_c::types_opts::to_string() const
 {
   static const char* names[] = {"Candidate-SpCell-Item"};
   return convert_enum_idx(names, 1, value, "candidate_sp_cell_item_ies_o::value_c::types");
+}
+
+// Cells-Allowed-to-be-Deactivated-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+uint32_t cells_allowed_to_be_deactiv_list_item_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {747};
+  return map_enum_number(names, 1, idx, "id");
+}
+bool cells_allowed_to_be_deactiv_list_item_ies_o::is_id_valid(const uint32_t& id)
+{
+  return 747 == id;
+}
+crit_e cells_allowed_to_be_deactiv_list_item_ies_o::get_crit(const uint32_t& id)
+{
+  if (id == 747) {
+    return crit_e::ignore;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+cells_allowed_to_be_deactiv_list_item_ies_o::value_c
+cells_allowed_to_be_deactiv_list_item_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  if (id != 747) {
+    asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e cells_allowed_to_be_deactiv_list_item_ies_o::get_presence(const uint32_t& id)
+{
+  if (id == 747) {
+    return presence_e::mandatory;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void cells_allowed_to_be_deactiv_list_item_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("Cells-Allowed-to-be-Deactivated-List-Item");
+  c.to_json(j);
+  j.end_obj();
+}
+OCUDUASN_CODE cells_allowed_to_be_deactiv_list_item_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.pack(bref));
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE cells_allowed_to_be_deactiv_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.unpack(bref));
+  return OCUDUASN_SUCCESS;
+}
+
+const char* cells_allowed_to_be_deactiv_list_item_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"Cells-Allowed-to-be-Deactivated-List-Item"};
+  return convert_enum_idx(names, 1, value, "cells_allowed_to_be_deactiv_list_item_ies_o::value_c::types");
 }
 
 // Cells-Broadcast-Cancelled-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -3375,6 +3563,68 @@ const char* gnb_du_served_cells_item_ies_o::value_c::types_opts::to_string() con
 {
   static const char* names[] = {"GNB-DU-Served-Cells-Item"};
   return convert_enum_idx(names, 1, value, "gnb_du_served_cells_item_ies_o::value_c::types");
+}
+
+// NCGI-to-be-Updated-List-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+uint32_t ncgi_to_be_upd_list_item_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {764};
+  return map_enum_number(names, 1, idx, "id");
+}
+bool ncgi_to_be_upd_list_item_ies_o::is_id_valid(const uint32_t& id)
+{
+  return 764 == id;
+}
+crit_e ncgi_to_be_upd_list_item_ies_o::get_crit(const uint32_t& id)
+{
+  if (id == 764) {
+    return crit_e::reject;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+ncgi_to_be_upd_list_item_ies_o::value_c ncgi_to_be_upd_list_item_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  if (id != 764) {
+    asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e ncgi_to_be_upd_list_item_ies_o::get_presence(const uint32_t& id)
+{
+  if (id == 764) {
+    return presence_e::mandatory;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void ncgi_to_be_upd_list_item_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("NCGI-to-be-Updated-List-Item");
+  c.to_json(j);
+  j.end_obj();
+}
+OCUDUASN_CODE ncgi_to_be_upd_list_item_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.pack(bref));
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE ncgi_to_be_upd_list_item_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.unpack(bref));
+  return OCUDUASN_SUCCESS;
+}
+
+const char* ncgi_to_be_upd_list_item_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"NCGI-to-be-Updated-List-Item"};
+  return convert_enum_idx(names, 1, value, "ncgi_to_be_upd_list_item_ies_o::value_c::types");
 }
 
 // GNB-CU-TNL-Association-Failed-To-Setup-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
@@ -5230,7 +5480,7 @@ ue_id_list_for_paging_item_ies_o::value_c ue_id_list_for_paging_item_ies_o::get_
 presence_e ue_id_list_for_paging_item_ies_o::get_presence(const uint32_t& id)
 {
   if (id == 480) {
-    return presence_e::optional;
+    return presence_e::mandatory;
   }
   asn1::log_error("The id={} is not recognized", id);
   return {};
@@ -7500,6 +7750,68 @@ const char* ue_multicast_m_rbs_setup_item_ies_o::value_c::types_opts::to_string(
 {
   static const char* names[] = {"UE-MulticastMRBs-Setup-Item"};
   return convert_enum_idx(names, 1, value, "ue_multicast_m_rbs_setup_item_ies_o::value_c::types");
+}
+
+// UE-MulticastMRBs-Setupnew-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES
+uint32_t ue_multicast_m_rbs_setupnew_item_ies_o::idx_to_id(uint32_t idx)
+{
+  static const uint32_t names[] = {700};
+  return map_enum_number(names, 1, idx, "id");
+}
+bool ue_multicast_m_rbs_setupnew_item_ies_o::is_id_valid(const uint32_t& id)
+{
+  return 700 == id;
+}
+crit_e ue_multicast_m_rbs_setupnew_item_ies_o::get_crit(const uint32_t& id)
+{
+  if (id == 700) {
+    return crit_e::reject;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+ue_multicast_m_rbs_setupnew_item_ies_o::value_c ue_multicast_m_rbs_setupnew_item_ies_o::get_value(const uint32_t& id)
+{
+  value_c ret{};
+  if (id != 700) {
+    asn1::log_error("The id={} is not recognized", id);
+  }
+  return ret;
+}
+presence_e ue_multicast_m_rbs_setupnew_item_ies_o::get_presence(const uint32_t& id)
+{
+  if (id == 700) {
+    return presence_e::mandatory;
+  }
+  asn1::log_error("The id={} is not recognized", id);
+  return {};
+}
+
+// Value ::= OPEN TYPE
+void ue_multicast_m_rbs_setupnew_item_ies_o::value_c::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_fieldname("UE-MulticastMRBs-Setupnew-Item");
+  c.to_json(j);
+  j.end_obj();
+}
+OCUDUASN_CODE ue_multicast_m_rbs_setupnew_item_ies_o::value_c::pack(bit_ref& bref) const
+{
+  varlength_field_pack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.pack(bref));
+  return OCUDUASN_SUCCESS;
+}
+OCUDUASN_CODE ue_multicast_m_rbs_setupnew_item_ies_o::value_c::unpack(cbit_ref& bref)
+{
+  varlength_field_unpack_guard varlen_scope(bref, true);
+  HANDLE_CODE(c.unpack(bref));
+  return OCUDUASN_SUCCESS;
+}
+
+const char* ue_multicast_m_rbs_setupnew_item_ies_o::value_c::types_opts::to_string() const
+{
+  static const char* names[] = {"UE-MulticastMRBs-Setupnew-Item"};
+  return convert_enum_idx(names, 1, value, "ue_multicast_m_rbs_setupnew_item_ies_o::value_c::types");
 }
 
 // UE-MulticastMRBs-ToBeReleased-ItemIEs ::= OBJECT SET OF F1AP-PROTOCOL-IES

@@ -10,14 +10,15 @@
 
 /*******************************************************************************
  *
- *                    3GPP TS ASN1 RRC NR v17.4.0 (2023-03)
+ *                    3GPP TS ASN1 RRC NR v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
 #pragma once
 
-#include "ocudu/asn1/rrc_nr/cell_group_config.h"
-#include "ocudu/asn1/rrc_nr/nr_sidelink_preconf.h"
+#include "cell_group_config.h"
+#include "nr_sidelink_preconf.h"
+#include "pc5_rrc_definitions.h"
 
 namespace asn1 {
 namespace rrc_nr {
@@ -25,6 +26,105 @@ namespace rrc_nr {
 /*******************************************************************************
  *                              Struct Definitions
  ******************************************************************************/
+
+// AreaValidityTA-Config-r18 ::= SEQUENCE
+struct area_validity_ta_cfg_r18_s {
+  struct inactive_pos_srs_validity_area_tat_r18_opts {
+    enum options { ms1280, ms1920, ms2560, ms5120, ms10240, ms20480, ms40960, infinity, nulltype } value;
+    typedef int32_t number_type;
+
+    const char* to_string() const;
+    int32_t     to_number() const;
+  };
+  using inactive_pos_srs_validity_area_tat_r18_e_ = enumerated<inactive_pos_srs_validity_area_tat_r18_opts>;
+
+  // member variables
+  bool                                      inactive_pos_srs_validity_area_rsrp_r18_present = false;
+  bool                                      autonomous_ta_adjustment_enabled_r18_present    = false;
+  inactive_pos_srs_validity_area_tat_r18_e_ inactive_pos_srs_validity_area_tat_r18;
+  rsrp_change_thres_r17_e                   inactive_pos_srs_validity_area_rsrp_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SRS-PosConfigPerULCarrier-r18 ::= SEQUENCE
+struct srs_pos_cfg_per_ul_carrier_r18_s {
+  bool                   ext                              = false;
+  bool                   scs_specific_carrier_r18_present = false;
+  bool                   bwp_r18_present                  = false;
+  uint32_t               freq_info_r18                    = 0;
+  srs_pos_cfg_r17_s      srs_pos_cfg_r18;
+  scs_specific_carrier_s scs_specific_carrier_r18;
+  bwp_s                  bwp_r18;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SRS-PosRRC-InactiveAggBW-AdditionalCarriers-r18 ::= SEQUENCE
+struct srs_pos_rrc_inactive_agg_bw_add_carriers_r18_s {
+  using aggr_pos_srs_carrier_list_r18_l_ = dyn_array<srs_pos_cfg_per_ul_carrier_r18_s>;
+
+  // member variables
+  bool                             ext = false;
+  aggr_pos_srs_carrier_list_r18_l_ aggr_pos_srs_carrier_list_r18;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SRS-InactivePosResourceSetLinkedForAggBW-List-r18 ::= SEQUENCE (SIZE (2..3)) OF SRS-PosResourceSetLinkedForAggBW-r18
+using srs_inactive_pos_res_set_linked_for_agg_bw_list_r18_l = dyn_array<srs_pos_res_set_linked_for_agg_bw_r18_s>;
+
+// SRS-PosRRC-InactiveAggBW-ConfigList-r18 ::= SEQUENCE (SIZE (1..16)) OF
+// SRS-InactivePosResourceSetLinkedForAggBW-List-r18
+using srs_pos_rrc_inactive_agg_bw_cfg_list_r18_l = dyn_array<srs_inactive_pos_res_set_linked_for_agg_bw_list_r18_l>;
+
+// SRS-PosRRC-InactiveValidityAreaConfig-r18 ::= SEQUENCE
+struct srs_pos_rrc_inactive_validity_area_cfg_r18_s {
+  using srs_pos_cfg_validity_area_r18_l_       = bounded_array<fixed_bitstring<36>, 16>;
+  using srs_pos_cfg_validity_area_ext_v1830_l_ = bounded_array<fixed_bitstring<36>, 16>;
+
+  // member variables
+  bool                             ext                              = false;
+  bool                             srs_pos_cfg_n_ul_r18_present     = false;
+  bool                             srs_pos_cfg_sul_r18_present      = false;
+  bool                             bwp_n_ul_r18_present             = false;
+  bool                             bwp_sul_r18_present              = false;
+  bool                             area_validity_ta_cfg_r18_present = false;
+  srs_pos_cfg_validity_area_r18_l_ srs_pos_cfg_validity_area_r18;
+  srs_pos_cfg_r17_s                srs_pos_cfg_n_ul_r18;
+  srs_pos_cfg_r17_s                srs_pos_cfg_sul_r18;
+  bwp_s                            bwp_n_ul_r18;
+  bwp_s                            bwp_sul_r18;
+  area_validity_ta_cfg_r18_s       area_validity_ta_cfg_r18;
+  // ...
+  // group 0
+  copy_ptr<srs_pos_cfg_validity_area_ext_v1830_l_> srs_pos_cfg_validity_area_ext_v1830;
+  // group 1
+  copy_ptr<setup_release_c<srs_pos_rrc_inactive_agg_bw_add_carriers_r18_s>>
+      srs_pos_rrc_inactive_agg_bw_add_carriers_per_va_r18;
+  copy_ptr<setup_release_c<dyn_seq_of<dyn_seq_of<srs_pos_res_set_linked_for_agg_bw_r18_s, 2, 3>, 1, 16>>>
+      srs_pos_rrc_inactive_agg_bw_cfg_list_per_va_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SRS-PosRRC-InactiveValidityAreaPreConfigList-r18 ::= SEQUENCE (SIZE (1..16)) OF
+// SRS-PosRRC-InactiveValidityAreaConfig-r18
+using srs_pos_rrc_inactive_validity_area_pre_cfg_list_r18_l = dyn_array<srs_pos_rrc_inactive_validity_area_cfg_r18_s>;
 
 // AS-Config ::= SEQUENCE
 struct as_cfg_s {
@@ -39,6 +139,8 @@ struct as_cfg_s {
   bool source_scg_cfg_present = false;
   // group 2
   copy_ptr<sdt_cfg_r17_s> sdt_cfg_r17;
+  // group 3
+  copy_ptr<srs_pos_rrc_inactive_validity_area_pre_cfg_list_r18_l> srs_pos_rrc_inactive_validity_area_pre_cfg_list_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -150,6 +252,30 @@ struct as_context_s {
   copy_ptr<need_for_gap_ncsg_info_nr_r17_s>    need_for_gap_ncsg_info_nr_r17;
   copy_ptr<need_for_gap_ncsg_info_eutra_r17_s> need_for_gap_ncsg_info_eutra_r17;
   dyn_octstring                                mbs_interest_ind_r17;
+  // group 6
+  copy_ptr<need_for_interruption_info_nr_r18_s> need_for_interruption_info_nr_r18;
+  copy_ptr<flight_path_info_report_r18_l>       flight_path_info_report_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// AggregatedBandwidthSN-r17 ::= SEQUENCE
+struct aggr_bw_sn_r17_s {
+  bool                   agg_bw_fdd_dl_r17_present   = false;
+  bool                   agg_bw_fdd_ul_r17_present   = false;
+  bool                   agg_bw_tdd_dl_r17_present   = false;
+  bool                   agg_bw_tdd_ul_r17_present   = false;
+  bool                   agg_bw_total_dl_r17_present = false;
+  bool                   agg_bw_total_ul_r17_present = false;
+  supported_agg_bw_r17_c agg_bw_fdd_dl_r17;
+  supported_agg_bw_r17_c agg_bw_fdd_ul_r17;
+  supported_agg_bw_r17_c agg_bw_tdd_dl_r17;
+  supported_agg_bw_r17_c agg_bw_tdd_ul_r17;
+  supported_agg_bw_r17_c agg_bw_total_dl_r17;
+  supported_agg_bw_r17_c agg_bw_total_ul_r17;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -299,6 +425,17 @@ struct cfg_restrict_mod_req_scg_s {
   uint8_t        requested_max_inter_freq_meas_id_scg_r16         = 1;
   uint8_t        requested_max_intra_freq_meas_id_scg_r16         = 1;
   t_offset_r16_e requested_toffset_r16;
+  // group 2
+  copy_ptr<res_cfg_nrdc_r17_s> reserved_res_cfg_nrdc_r17;
+  // group 3
+  copy_ptr<aggr_bw_sn_r17_s> aggr_bw_sn_r17;
+  // group 4
+  bool    requested_max_ltm_candidate_id_scg_r18_present = false;
+  uint8_t requested_max_ltm_candidate_id_scg_r18         = 0;
+  // group 5
+  copy_ptr<l1_meas_cfg_nrdc_r18_s> requested_l1_meas_cfg_nrdc_r18;
+  // group 6
+  copy_ptr<ltm_res_cfg_nrdc_r18_s> requested_ltm_res_cfg_nrdc_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -356,6 +493,8 @@ struct ph_info_scg_s {
   // ...
   // group 0
   bool two_srs_pusch_repeat_r17_present = false;
+  // group 1
+  bool two_srs_multipanel_scheme_r18_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -403,13 +542,32 @@ struct candidate_cell_info_r17_s {
 // CandidateCellInfoListCPC-r17 ::= SEQUENCE (SIZE (1..8)) OF CandidateCellInfo-r17
 using candidate_cell_info_list_cp_c_r17_l = dyn_array<candidate_cell_info_r17_s>;
 
+// CG-Config-v1800-IEs ::= SEQUENCE
+struct cg_cfg_v1800_ies_s {
+  bool                                       idc_tdm_assist_cfg_r18_present = false;
+  bool                                       success_pscell_cfg_r18_present = false;
+  bool                                       non_crit_ext_present           = false;
+  candidate_serving_freq_range_list_nr_r18_l candidate_serving_freq_range_list_nr_r18;
+  candidate_serving_freq_list_nr_r16_l       candidate_serving_freq_list_nr_r18;
+  candidate_cell_info_list_cp_c_r17_l        candidate_cell_info_list_subsequent_cp_c_r18;
+  dyn_octstring                              scpac_ref_cfg_scg_r18;
+  candidate_cell_info_list_cp_c_r17_l        subsequent_cp_ac_info_r18;
+  success_pscell_cfg_r18_s                   success_pscell_cfg_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // CG-Config-v1730-IEs ::= SEQUENCE
 struct cg_cfg_v1730_ies_s {
-  bool    fr1_carriers_scg_r17_present = false;
-  bool    fr2_carriers_scg_r17_present = false;
-  bool    non_crit_ext_present         = false;
-  uint8_t fr1_carriers_scg_r17         = 1;
-  uint8_t fr2_carriers_scg_r17         = 1;
+  bool               fr1_carriers_scg_r17_present = false;
+  bool               fr2_carriers_scg_r17_present = false;
+  bool               non_crit_ext_present         = false;
+  uint8_t            fr1_carriers_scg_r17         = 1;
+  uint8_t            fr2_carriers_scg_r17         = 1;
+  cg_cfg_v1800_ies_s non_crit_ext;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -665,10 +823,38 @@ struct cg_cfg_s {
   void          to_json(json_writer& j) const;
 };
 
+// CandPSCellExecutionConditionInfo-r18 ::= SEQUENCE
+struct cand_pscell_execution_condition_info_r18_s {
+  using cand_pscell_exec_cond_report_cfg_nr_r18_l_ = dyn_array<report_cfg_nr_s>;
+
+  // member variables
+  bool                                       ext = false;
+  cand_pscell_exec_cond_report_cfg_nr_r18_l_ cand_pscell_exec_cond_report_cfg_nr_r18;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// HandoverCommand-v1800-IEs ::= SEQUENCE
+struct ho_cmd_v1800_ies_s {
+  bool                                       cand_pscell_execution_condition_info_r18_present = false;
+  bool                                       non_crit_ext_present                             = false;
+  cand_pscell_execution_condition_info_r18_s cand_pscell_execution_condition_info_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // HandoverCommand-IEs ::= SEQUENCE
 struct ho_cmd_ies_s {
-  bool          non_crit_ext_present = false;
-  dyn_octstring ho_cmd_msg;
+  bool               non_crit_ext_present = false;
+  dyn_octstring      ho_cmd_msg;
+  ho_cmd_v1800_ies_s non_crit_ext;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1208,6 +1394,42 @@ struct ue_radio_access_cap_info_s {
   void          to_json(json_writer& j) const;
 };
 
+// UERadioPagingInformation-v1840-IEs ::= SEQUENCE
+struct ue_radio_paging_info_v1840_ies_s {
+  bool dl_sched_offset_pdsch_type_a_fdd_fr2_ntn_r18_present = false;
+  bool dl_sched_offset_pdsch_type_b_fdd_fr2_ntn_r18_present = false;
+  bool non_crit_ext_present                                 = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UERadioPagingInformation-v1800-IEs ::= SEQUENCE
+struct ue_radio_paging_info_v1800_ies_s {
+  struct nof_rx_e_red_cap_r18_opts {
+    enum options { one, two, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using nof_rx_e_red_cap_r18_e_ = enumerated<nof_rx_e_red_cap_r18_opts>;
+
+  // member variables
+  bool                             nof_rx_e_red_cap_r18_present  = false;
+  bool                             support_of2_rx_xr_r18_present = false;
+  bool                             non_crit_ext_present          = false;
+  nof_rx_e_red_cap_r18_e_          nof_rx_e_red_cap_r18;
+  ue_radio_paging_info_v1840_ies_s non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // UERadioPagingInformation-v1700-IEs ::= SEQUENCE
 struct ue_radio_paging_info_v1700_ies_s {
   struct nof_rx_red_cap_r17_opts {
@@ -1227,6 +1449,7 @@ struct ue_radio_paging_info_v1700_ies_s {
   dyn_octstring                         ue_radio_paging_info_r17;
   nof_rx_red_cap_r17_e_                 nof_rx_red_cap_r17;
   half_duplex_fdd_type_a_red_cap_r17_l_ half_duplex_fdd_type_a_red_cap_r17;
+  ue_radio_paging_info_v1800_ies_s      non_crit_ext;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1355,28 +1578,6 @@ struct ue_radio_paging_info_s {
 // AI-RNTI-r16 ::= INTEGER (0..65535)
 using ai_rnti_r16 = integer<uint32_t, 0, 65535>;
 
-// PDCCH-BlindDetectionCA-MixedExt-r16 ::= SEQUENCE
-struct pdcch_blind_detection_ca_mixed_ext_r16_s {
-  uint8_t pdcch_blind_detection_ca1_r16 = 1;
-  uint8_t pdcch_blind_detection_ca2_r16 = 1;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
-// PDCCH-BlindDetectionCG-UE-MixedExt-r16 ::= SEQUENCE
-struct pdcch_blind_detection_cg_ue_mixed_ext_r16_s {
-  uint8_t pdcch_blind_detection_cg_ue1_r16 = 0;
-  uint8_t pdcch_blind_detection_cg_ue2_r16 = 0;
-
-  // sequence methods
-  OCUDUASN_CODE pack(bit_ref& bref) const;
-  OCUDUASN_CODE unpack(cbit_ref& bref);
-  void          to_json(json_writer& j) const;
-};
-
 // PDCCH-BlindDetectionMixedList-r16 ::= SEQUENCE
 struct pdcch_blind_detection_mixed_list_r16_s {
   struct pdcch_blind_detection_ca_mixed_ext_r16_c_ {
@@ -1498,16 +1699,429 @@ struct band_combination_ul_tx_switch_v16a0_s {
   void          to_json(json_writer& j) const;
 };
 
+// CA-ParametersNRDC-v16j0 ::= SEQUENCE
+struct ca_params_nrdc_v16j0_s {
+  bool                 ca_params_nr_for_dc_v16j0_present = false;
+  ca_params_nr_v1690_s ca_params_nr_for_dc_v16j0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandCombination-v16j0 ::= SEQUENCE
+struct band_combination_v16j0_s {
+  bool                   ca_params_nr_v16j0_present   = false;
+  bool                   ca_params_nrdc_v16j0_present = false;
+  ca_params_nr_v1690_s   ca_params_nr_v16j0;
+  ca_params_nrdc_v16j0_s ca_params_nrdc_v16j0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandCombination-UplinkTxSwitch-v16j0 ::= SEQUENCE
+struct band_combination_ul_tx_switch_v16j0_s {
+  bool                     band_combination_v16j0_present = false;
+  band_combination_v16j0_s band_combination_v16j0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CA-ParametersNRDC-v17b0 ::= SEQUENCE
+struct ca_params_nrdc_v17b0_s {
+  bool                 ca_params_nr_for_dc_v17b0_present = false;
+  ca_params_nr_v1740_s ca_params_nr_for_dc_v17b0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandCombination-v17b0 ::= SEQUENCE
+struct band_combination_v17b0_s {
+  bool                   ca_params_nr_v17b0_present   = false;
+  bool                   ca_params_nrdc_v17b0_present = false;
+  ca_params_nr_v1740_s   ca_params_nr_v17b0;
+  ca_params_nrdc_v17b0_s ca_params_nrdc_v17b0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandCombination-UplinkTxSwitch-v17b0 ::= SEQUENCE
+struct band_combination_ul_tx_switch_v17b0_s {
+  bool                     band_combination_v17b0_present = false;
+  band_combination_v17b0_s band_combination_v17b0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // BandCombinationList-UplinkTxSwitch-v16a0 ::= SEQUENCE (SIZE (1..65536)) OF BandCombination-UplinkTxSwitch-v16a0
 using band_combination_list_ul_tx_switch_v16a0_l = dyn_array<band_combination_ul_tx_switch_v16a0_s>;
 
+// BandCombinationList-UplinkTxSwitch-v16j0 ::= SEQUENCE (SIZE (1..65536)) OF BandCombination-UplinkTxSwitch-v16j0
+using band_combination_list_ul_tx_switch_v16j0_l = dyn_array<band_combination_ul_tx_switch_v16j0_s>;
+
+// BandCombinationList-UplinkTxSwitch-v17b0 ::= SEQUENCE (SIZE (1..65536)) OF BandCombination-UplinkTxSwitch-v17b0
+using band_combination_list_ul_tx_switch_v17b0_l = dyn_array<band_combination_ul_tx_switch_v17b0_s>;
+
 // BandCombinationList-v16a0 ::= SEQUENCE (SIZE (1..65536)) OF BandCombination-v16a0
 using band_combination_list_v16a0_l = dyn_array<band_combination_v16a0_s>;
+
+// BandCombinationList-v16j0 ::= SEQUENCE (SIZE (1..65536)) OF BandCombination-v16j0
+using band_combination_list_v16j0_l = dyn_array<band_combination_v16j0_s>;
+
+// BandCombinationList-v17b0 ::= SEQUENCE (SIZE (1..65536)) OF BandCombination-v17b0
+using band_combination_list_v17b0_l = dyn_array<band_combination_v17b0_s>;
 
 // BandNR-v16c0 ::= SEQUENCE
 struct band_nr_v16c0_s {
   bool ext                               = false;
   bool pusch_repeat_type_a_v16c0_present = false;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MIMO-ParametersPerBand-v17b0 ::= SEQUENCE
+struct mimo_params_per_band_v17b0_s {
+  struct unified_joint_tci_multi_mac_ce_v17b0_s_ {
+    struct min_beam_application_time_joint_tci_v17b0_c_ {
+      struct fr1_v17b0_s_ {
+        struct scs_15k_hz_v17b0_opts {
+          enum options { sym1, sym2, sym4, sym7, sym14, sym28, sym42, sym56, sym70, nulltype } value;
+          typedef uint8_t number_type;
+
+          const char* to_string() const;
+          uint8_t     to_number() const;
+        };
+        using scs_15k_hz_v17b0_e_ = enumerated<scs_15k_hz_v17b0_opts>;
+        struct scs_30k_hz_v17b0_opts {
+          enum options { sym1, sym2, sym4, sym7, sym14, sym28, sym42, sym56, sym70, nulltype } value;
+          typedef uint8_t number_type;
+
+          const char* to_string() const;
+          uint8_t     to_number() const;
+        };
+        using scs_30k_hz_v17b0_e_ = enumerated<scs_30k_hz_v17b0_opts>;
+        struct scs_60k_hz_v17b0_opts {
+          enum options { sym1, sym2, sym4, sym7, sym14, sym28, sym42, sym56, sym70, nulltype } value;
+          typedef uint8_t number_type;
+
+          const char* to_string() const;
+          uint8_t     to_number() const;
+        };
+        using scs_60k_hz_v17b0_e_ = enumerated<scs_60k_hz_v17b0_opts>;
+
+        // member variables
+        bool                scs_15k_hz_v17b0_present = false;
+        bool                scs_30k_hz_v17b0_present = false;
+        bool                scs_60k_hz_v17b0_present = false;
+        scs_15k_hz_v17b0_e_ scs_15k_hz_v17b0;
+        scs_30k_hz_v17b0_e_ scs_30k_hz_v17b0;
+        scs_60k_hz_v17b0_e_ scs_60k_hz_v17b0;
+      };
+      struct fr2_v17b0_s_ {
+        struct scs_60k_hz_v17b0_opts {
+          enum options {
+            sym1,
+            sym2,
+            sym4,
+            sym7,
+            sym14,
+            sym28,
+            sym42,
+            sym56,
+            sym70,
+            sym84,
+            sym98,
+            sym112,
+            sym224,
+            sym336,
+            nulltype
+          } value;
+          typedef uint16_t number_type;
+
+          const char* to_string() const;
+          uint16_t    to_number() const;
+        };
+        using scs_60k_hz_v17b0_e_ = enumerated<scs_60k_hz_v17b0_opts>;
+        struct scs_120k_hz_v17b0_opts {
+          enum options {
+            sym1,
+            sym2,
+            sym4,
+            sym7,
+            sym14,
+            sym28,
+            sym42,
+            sym56,
+            sym70,
+            sym84,
+            sym98,
+            sym112,
+            sym224,
+            sym336,
+            nulltype
+          } value;
+          typedef uint16_t number_type;
+
+          const char* to_string() const;
+          uint16_t    to_number() const;
+        };
+        using scs_120k_hz_v17b0_e_ = enumerated<scs_120k_hz_v17b0_opts>;
+
+        // member variables
+        bool                 scs_60k_hz_v17b0_present  = false;
+        bool                 scs_120k_hz_v17b0_present = false;
+        scs_60k_hz_v17b0_e_  scs_60k_hz_v17b0;
+        scs_120k_hz_v17b0_e_ scs_120k_hz_v17b0;
+      };
+      struct types_opts {
+        enum options { fr1_v17b0, fr2_v17b0, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using types = enumerated<types_opts>;
+
+      // choice methods
+      min_beam_application_time_joint_tci_v17b0_c_() = default;
+      min_beam_application_time_joint_tci_v17b0_c_(const min_beam_application_time_joint_tci_v17b0_c_& other);
+      min_beam_application_time_joint_tci_v17b0_c_&
+      operator=(const min_beam_application_time_joint_tci_v17b0_c_& other);
+      ~min_beam_application_time_joint_tci_v17b0_c_() { destroy_(); }
+      void          set(types::options e = types::nulltype);
+      types         type() const { return type_; }
+      OCUDUASN_CODE pack(bit_ref& bref) const;
+      OCUDUASN_CODE unpack(cbit_ref& bref);
+      void          to_json(json_writer& j) const;
+      // getters
+      fr1_v17b0_s_& fr1_v17b0()
+      {
+        assert_choice_type(types::fr1_v17b0, type_, "minBeamApplicationTimeJointTCI-v17b0");
+        return c.get<fr1_v17b0_s_>();
+      }
+      fr2_v17b0_s_& fr2_v17b0()
+      {
+        assert_choice_type(types::fr2_v17b0, type_, "minBeamApplicationTimeJointTCI-v17b0");
+        return c.get<fr2_v17b0_s_>();
+      }
+      const fr1_v17b0_s_& fr1_v17b0() const
+      {
+        assert_choice_type(types::fr1_v17b0, type_, "minBeamApplicationTimeJointTCI-v17b0");
+        return c.get<fr1_v17b0_s_>();
+      }
+      const fr2_v17b0_s_& fr2_v17b0() const
+      {
+        assert_choice_type(types::fr2_v17b0, type_, "minBeamApplicationTimeJointTCI-v17b0");
+        return c.get<fr2_v17b0_s_>();
+      }
+      fr1_v17b0_s_& set_fr1_v17b0();
+      fr2_v17b0_s_& set_fr2_v17b0();
+
+    private:
+      types                                       type_;
+      choice_buffer_t<fr1_v17b0_s_, fr2_v17b0_s_> c;
+
+      void destroy_();
+    };
+    struct max_num_mac_ce_per_cc_v17b0_opts {
+      enum options { n2, n3, n4, n5, n6, n7, n8, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using max_num_mac_ce_per_cc_v17b0_e_ = enumerated<max_num_mac_ce_per_cc_v17b0_opts>;
+
+    // member variables
+    min_beam_application_time_joint_tci_v17b0_c_ min_beam_application_time_joint_tci_v17b0;
+    max_num_mac_ce_per_cc_v17b0_e_               max_num_mac_ce_per_cc_v17b0;
+  };
+  struct unified_separate_tci_multi_mac_ce_v17b0_s_ {
+    struct min_beam_application_time_separate_tci_v17b0_c_ {
+      struct fr1_v17b0_s_ {
+        struct scs_15k_hz_v17b0_opts {
+          enum options { sym1, sym2, sym4, sym7, sym14, sym28, sym42, sym56, sym70, nulltype } value;
+          typedef uint8_t number_type;
+
+          const char* to_string() const;
+          uint8_t     to_number() const;
+        };
+        using scs_15k_hz_v17b0_e_ = enumerated<scs_15k_hz_v17b0_opts>;
+        struct scs_30k_hz_v17b0_opts {
+          enum options { sym1, sym2, sym4, sym7, sym14, sym28, sym42, sym56, sym70, nulltype } value;
+          typedef uint8_t number_type;
+
+          const char* to_string() const;
+          uint8_t     to_number() const;
+        };
+        using scs_30k_hz_v17b0_e_ = enumerated<scs_30k_hz_v17b0_opts>;
+        struct scs_60k_hz_v17b0_opts {
+          enum options { sym1, sym2, sym4, sym7, sym14, sym28, sym42, sym56, sym70, nulltype } value;
+          typedef uint8_t number_type;
+
+          const char* to_string() const;
+          uint8_t     to_number() const;
+        };
+        using scs_60k_hz_v17b0_e_ = enumerated<scs_60k_hz_v17b0_opts>;
+
+        // member variables
+        bool                scs_15k_hz_v17b0_present = false;
+        bool                scs_30k_hz_v17b0_present = false;
+        bool                scs_60k_hz_v17b0_present = false;
+        scs_15k_hz_v17b0_e_ scs_15k_hz_v17b0;
+        scs_30k_hz_v17b0_e_ scs_30k_hz_v17b0;
+        scs_60k_hz_v17b0_e_ scs_60k_hz_v17b0;
+      };
+      struct fr2_v17b0_s_ {
+        struct scs_60k_hz_v17b0_opts {
+          enum options {
+            sym1,
+            sym2,
+            sym4,
+            sym7,
+            sym14,
+            sym28,
+            sym42,
+            sym56,
+            sym70,
+            sym84,
+            sym98,
+            sym112,
+            sym224,
+            sym336,
+            nulltype
+          } value;
+          typedef uint16_t number_type;
+
+          const char* to_string() const;
+          uint16_t    to_number() const;
+        };
+        using scs_60k_hz_v17b0_e_ = enumerated<scs_60k_hz_v17b0_opts>;
+        struct scs_120k_hz_v17b0_opts {
+          enum options {
+            sym1,
+            sym2,
+            sym4,
+            sym7,
+            sym14,
+            sym28,
+            sym42,
+            sym56,
+            sym70,
+            sym84,
+            sym98,
+            sym112,
+            sym224,
+            sym336,
+            nulltype
+          } value;
+          typedef uint16_t number_type;
+
+          const char* to_string() const;
+          uint16_t    to_number() const;
+        };
+        using scs_120k_hz_v17b0_e_ = enumerated<scs_120k_hz_v17b0_opts>;
+
+        // member variables
+        bool                 scs_60k_hz_v17b0_present  = false;
+        bool                 scs_120k_hz_v17b0_present = false;
+        scs_60k_hz_v17b0_e_  scs_60k_hz_v17b0;
+        scs_120k_hz_v17b0_e_ scs_120k_hz_v17b0;
+      };
+      struct types_opts {
+        enum options { fr1_v17b0, fr2_v17b0, nulltype } value;
+        typedef uint8_t number_type;
+
+        const char* to_string() const;
+        uint8_t     to_number() const;
+      };
+      using types = enumerated<types_opts>;
+
+      // choice methods
+      min_beam_application_time_separate_tci_v17b0_c_() = default;
+      min_beam_application_time_separate_tci_v17b0_c_(const min_beam_application_time_separate_tci_v17b0_c_& other);
+      min_beam_application_time_separate_tci_v17b0_c_&
+      operator=(const min_beam_application_time_separate_tci_v17b0_c_& other);
+      ~min_beam_application_time_separate_tci_v17b0_c_() { destroy_(); }
+      void          set(types::options e = types::nulltype);
+      types         type() const { return type_; }
+      OCUDUASN_CODE pack(bit_ref& bref) const;
+      OCUDUASN_CODE unpack(cbit_ref& bref);
+      void          to_json(json_writer& j) const;
+      // getters
+      fr1_v17b0_s_& fr1_v17b0()
+      {
+        assert_choice_type(types::fr1_v17b0, type_, "minBeamApplicationTimeSeparateTCI-v17b0");
+        return c.get<fr1_v17b0_s_>();
+      }
+      fr2_v17b0_s_& fr2_v17b0()
+      {
+        assert_choice_type(types::fr2_v17b0, type_, "minBeamApplicationTimeSeparateTCI-v17b0");
+        return c.get<fr2_v17b0_s_>();
+      }
+      const fr1_v17b0_s_& fr1_v17b0() const
+      {
+        assert_choice_type(types::fr1_v17b0, type_, "minBeamApplicationTimeSeparateTCI-v17b0");
+        return c.get<fr1_v17b0_s_>();
+      }
+      const fr2_v17b0_s_& fr2_v17b0() const
+      {
+        assert_choice_type(types::fr2_v17b0, type_, "minBeamApplicationTimeSeparateTCI-v17b0");
+        return c.get<fr2_v17b0_s_>();
+      }
+      fr1_v17b0_s_& set_fr1_v17b0();
+      fr2_v17b0_s_& set_fr2_v17b0();
+
+    private:
+      types                                       type_;
+      choice_buffer_t<fr1_v17b0_s_, fr2_v17b0_s_> c;
+
+      void destroy_();
+    };
+
+    // member variables
+    min_beam_application_time_separate_tci_v17b0_c_ min_beam_application_time_separate_tci_v17b0;
+    uint8_t                                         max_activ_dl_tci_per_cc_v17b0 = 2;
+    uint8_t                                         max_activ_ul_tci_per_cc_v17b0 = 2;
+  };
+
+  // member variables
+  bool                                       unified_joint_tci_multi_mac_ce_v17b0_present    = false;
+  bool                                       unified_separate_tci_multi_mac_ce_v17b0_present = false;
+  unified_joint_tci_multi_mac_ce_v17b0_s_    unified_joint_tci_multi_mac_ce_v17b0;
+  unified_separate_tci_multi_mac_ce_v17b0_s_ unified_separate_tci_multi_mac_ce_v17b0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// BandNR-v17b0 ::= SEQUENCE
+struct band_nr_v17b0_s {
+  bool                         ext                                = false;
+  bool                         mimo_params_per_band_v17b0_present = false;
+  mimo_params_per_band_v17b0_s mimo_params_per_band_v17b0;
   // ...
 
   // sequence methods
@@ -1525,6 +2139,43 @@ struct cg_sdt_cfg_lch_restrict_r17_s {
   bool                   allowed_cg_list_r17_present         = false;
   uint8_t                lc_ch_id_r17                        = 1;
   allowed_cg_list_r17_l_ allowed_cg_list_r17;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// CG-SDT-ConfigLCH-RestrictionExt-v1800 ::= SEQUENCE
+struct cg_sdt_cfg_lch_restrict_ext_v1800_s {
+  struct cg_sdt_max_dur_to_next_cg_occasion_r18_opts {
+    enum options {
+      ms10,
+      ms100,
+      sec1,
+      sec10,
+      sec60,
+      sec100,
+      sec300,
+      sec600,
+      sec1200,
+      sec1800,
+      sec3600,
+      spare5,
+      spare4,
+      spare3,
+      spare2,
+      spare1,
+      nulltype
+    } value;
+
+    const char* to_string() const;
+  };
+  using cg_sdt_max_dur_to_next_cg_occasion_r18_e_ = enumerated<cg_sdt_max_dur_to_next_cg_occasion_r18_opts>;
+
+  // member variables
+  bool                                      cg_sdt_max_dur_to_next_cg_occasion_r18_present = false;
+  cg_sdt_max_dur_to_next_cg_occasion_r18_e_ cg_sdt_max_dur_to_next_cg_occasion_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -1594,6 +2245,288 @@ struct cell_grouping_r16_s {
 
 // CondReconfigExecCondSCG-r17 ::= SEQUENCE (SIZE (1..2)) OF INTEGER (1..64)
 using cond_recfg_exec_cond_scg_r17_l = bounded_array<uint8_t, 2>;
+
+// EarlyUL-SyncConfig-r18 ::= SEQUENCE
+struct early_ul_sync_cfg_r18_s {
+  struct ssb_per_rach_occasion_r18_opts {
+    enum options { one_eighth, one_fourth, one_half, one, two, four, eight, sixteen, nulltype } value;
+    typedef float number_type;
+
+    const char* to_string() const;
+    float       to_number() const;
+    const char* to_number_string() const;
+  };
+  using ssb_per_rach_occasion_r18_e_ = enumerated<ssb_per_rach_occasion_r18_opts>;
+  struct prach_root_seq_idx_r18_c_ {
+    struct types_opts {
+      enum options { l839, l139, nulltype } value;
+      typedef uint16_t number_type;
+
+      const char* to_string() const;
+      uint16_t    to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    prach_root_seq_idx_r18_c_() = default;
+    prach_root_seq_idx_r18_c_(const prach_root_seq_idx_r18_c_& other);
+    prach_root_seq_idx_r18_c_& operator=(const prach_root_seq_idx_r18_c_& other);
+    ~prach_root_seq_idx_r18_c_() { destroy_(); }
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t& l839()
+    {
+      assert_choice_type(types::l839, type_, "prach-RootSequenceIndex-r18");
+      return c.get<uint16_t>();
+    }
+    uint8_t& l139()
+    {
+      assert_choice_type(types::l139, type_, "prach-RootSequenceIndex-r18");
+      return c.get<uint8_t>();
+    }
+    const uint16_t& l839() const
+    {
+      assert_choice_type(types::l839, type_, "prach-RootSequenceIndex-r18");
+      return c.get<uint16_t>();
+    }
+    const uint8_t& l139() const
+    {
+      assert_choice_type(types::l139, type_, "prach-RootSequenceIndex-r18");
+      return c.get<uint8_t>();
+    }
+    uint16_t& set_l839();
+    uint8_t&  set_l139();
+
+  private:
+    types               type_;
+    pod_choice_buffer_t c;
+
+    void destroy_();
+  };
+  struct n_timing_advance_offset_r18_opts {
+    enum options { n0, n25600, n39936, spare1, nulltype } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using n_timing_advance_offset_r18_e_ = enumerated<n_timing_advance_offset_r18_opts>;
+  struct ltm_restricted_set_cfg_r18_opts {
+    enum options { unrestricted_set, restricted_set_type_a, restricted_set_type_b, nulltype } value;
+
+    const char* to_string() const;
+  };
+  using ltm_restricted_set_cfg_r18_e_ = enumerated<ltm_restricted_set_cfg_r18_opts>;
+
+  // member variables
+  bool                           ext                                      = false;
+  bool                           ssb_per_rach_occasion_r18_present        = false;
+  bool                           prach_root_seq_idx_r18_present           = false;
+  bool                           ltm_prach_subcarrier_spacing_r18_present = false;
+  bool                           n_timing_advance_offset_r18_present      = false;
+  freq_info_ul_s                 freq_info_ul_r18;
+  rach_cfg_generic_s             rach_cfg_generic_r18;
+  bwp_s                          bwp_generic_params_r18;
+  ssb_per_rach_occasion_r18_e_   ssb_per_rach_occasion_r18;
+  prach_root_seq_idx_r18_c_      prach_root_seq_idx_r18;
+  subcarrier_spacing_e           ltm_prach_subcarrier_spacing_r18;
+  n_timing_advance_offset_r18_e_ n_timing_advance_offset_r18;
+  // ...
+  // group 0
+  bool                             ltm_restricted_set_cfg_r18_present = false;
+  copy_ptr<tdd_ul_dl_cfg_common_s> ltm_tdd_ul_dl_cfg_common_r18;
+  ltm_restricted_set_cfg_r18_e_    ltm_restricted_set_cfg_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSetDownlink-v15t0 ::= SEQUENCE
+struct feature_set_dl_v15t0_s {
+  bool zero_slot_offset_aperiodic_srs_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSetDownlink-v16k0 ::= SEQUENCE
+struct feature_set_dl_v16k0_s {
+  struct offset_srs_cb_pusch_pdcch_monitor_any_occ_with_span_gap_fr1_r16_s_ {
+    struct scs_15k_hz_r16_opts {
+      enum options { set1, set2, set3, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using scs_15k_hz_r16_e_ = enumerated<scs_15k_hz_r16_opts>;
+    struct scs_30k_hz_r16_opts {
+      enum options { set1, set2, set3, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using scs_30k_hz_r16_e_ = enumerated<scs_30k_hz_r16_opts>;
+    struct scs_60k_hz_r16_opts {
+      enum options { set1, set2, set3, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using scs_60k_hz_r16_e_ = enumerated<scs_60k_hz_r16_opts>;
+
+    // member variables
+    bool              scs_15k_hz_r16_present = false;
+    bool              scs_30k_hz_r16_present = false;
+    bool              scs_60k_hz_r16_present = false;
+    scs_15k_hz_r16_e_ scs_15k_hz_r16;
+    scs_30k_hz_r16_e_ scs_30k_hz_r16;
+    scs_60k_hz_r16_e_ scs_60k_hz_r16;
+  };
+
+  // member variables
+  bool offset_srs_cb_pusch_ant_switch_fr1_r16_present                          = false;
+  bool offset_srs_cb_pusch_pdcch_monitor_single_occ_fr1_r16_present            = false;
+  bool offset_srs_cb_pusch_pdcch_monitor_any_occ_without_gap_fr1_r16_present   = false;
+  bool offset_srs_cb_pusch_pdcch_monitor_any_occ_with_gap_fr1_r16_present      = false;
+  bool offset_srs_cb_pusch_pdcch_monitor_any_occ_with_span_gap_fr1_r16_present = false;
+  offset_srs_cb_pusch_pdcch_monitor_any_occ_with_span_gap_fr1_r16_s_
+      offset_srs_cb_pusch_pdcch_monitor_any_occ_with_span_gap_fr1_r16;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSetDownlink-v17d0 ::= SEQUENCE
+struct feature_set_dl_v17d0_s {
+  bool srs_ant_switching2_sp_1_periodic_r17_present = false;
+  bool srs_ext_aperiodic_srs_r17_present            = false;
+  bool srs_one_ap_srs_r17_present                   = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSetUplink-v16d0 ::= SEQUENCE
+struct feature_set_ul_v16d0_s {
+  struct pusch_repeat_type_b_v16d0_s_ {
+    struct max_num_pusch_tx_cap1_r16_opts {
+      enum options { n2, n3, n4, n7, n8, n12, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using max_num_pusch_tx_cap1_r16_e_ = enumerated<max_num_pusch_tx_cap1_r16_opts>;
+    struct max_num_pusch_tx_cap2_r16_opts {
+      enum options { n2, n3, n4, n7, n8, n12, nulltype } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using max_num_pusch_tx_cap2_r16_e_ = enumerated<max_num_pusch_tx_cap2_r16_opts>;
+
+    // member variables
+    max_num_pusch_tx_cap1_r16_e_ max_num_pusch_tx_cap1_r16;
+    max_num_pusch_tx_cap2_r16_e_ max_num_pusch_tx_cap2_r16;
+  };
+
+  // member variables
+  bool                         pusch_repeat_type_b_v16d0_present = false;
+  pusch_repeat_type_b_v16d0_s_ pusch_repeat_type_b_v16d0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSets-v15t0 ::= SEQUENCE
+struct feature_sets_v15t0_s {
+  using feature_sets_dl_v15t0_l_ = dyn_array<feature_set_dl_v15t0_s>;
+
+  // member variables
+  feature_sets_dl_v15t0_l_ feature_sets_dl_v15t0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSets-v16d0 ::= SEQUENCE
+struct feature_sets_v16d0_s {
+  using feature_sets_ul_v16d0_l_ = dyn_array<feature_set_ul_v16d0_s>;
+
+  // member variables
+  feature_sets_ul_v16d0_l_ feature_sets_ul_v16d0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSets-v16k0 ::= SEQUENCE
+struct feature_sets_v16k0_s {
+  using feature_sets_dl_v16k0_l_ = dyn_array<feature_set_dl_v16k0_s>;
+
+  // member variables
+  feature_sets_dl_v16k0_l_ feature_sets_dl_v16k0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// FeatureSets-v17d0 ::= SEQUENCE
+struct feature_sets_v17d0_s {
+  using feature_sets_dl_v17d0_l_ = dyn_array<feature_set_dl_v17d0_s>;
+
+  // member variables
+  feature_sets_dl_v17d0_l_ feature_sets_dl_v17d0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MAC-Parameters-v17b0 ::= SEQUENCE
+struct mac_params_v17b0_s {
+  bool mtrp_pusch_phr_type1_report_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MAC-Parameters-v17c0 ::= SEQUENCE
+struct mac_params_v17c0_s {
+  bool direct_scell_activation_with_tci_r17_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
 
 // MBS-NeighbourCell-r17 ::= SEQUENCE
 struct mbs_neighbour_cell_r17_s {
@@ -1729,6 +2662,199 @@ struct mbs_session_info_r17_s {
 
 // MBS-SessionInfoList-r17 ::= SEQUENCE (SIZE (1..1024)) OF MBS-SessionInfo-r17
 using mbs_session_info_list_r17_l = dyn_array<mbs_session_info_r17_s>;
+
+// MRB-PDCP-ConfigMulticast-r18 ::= SEQUENCE
+struct mrb_pdcp_cfg_multicast_r18_s {
+  struct pdcp_sn_size_dl_r18_opts {
+    enum options { len12bits, len18bits, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using pdcp_sn_size_dl_r18_e_ = enumerated<pdcp_sn_size_dl_r18_opts>;
+  struct hdr_compress_r18_c_ {
+    struct rohc_s_ {
+      struct profiles_r18_s_ {
+        bool profile0x0000_r18 = false;
+        bool profile0x0001_r18 = false;
+        bool profile0x0002_r18 = false;
+      };
+
+      // member variables
+      bool            max_c_id_r18_present = false;
+      uint8_t         max_c_id_r18         = 1;
+      profiles_r18_s_ profiles_r18;
+    };
+    struct types_opts {
+      enum options { not_used, rohc, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    hdr_compress_r18_c_() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    rohc_s_& rohc()
+    {
+      assert_choice_type(types::rohc, type_, "headerCompression-r18");
+      return c;
+    }
+    const rohc_s_& rohc() const
+    {
+      assert_choice_type(types::rohc, type_, "headerCompression-r18");
+      return c;
+    }
+    void     set_not_used();
+    rohc_s_& set_rohc();
+
+  private:
+    types   type_;
+    rohc_s_ c;
+  };
+  struct t_reordering_r17_opts {
+    enum options { ms1, ms10, ms40, ms160, ms500, ms1000, ms1250, ms2750, nulltype } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using t_reordering_r17_e_ = enumerated<t_reordering_r17_opts>;
+
+  // member variables
+  bool                   t_reordering_r17_present = false;
+  pdcp_sn_size_dl_r18_e_ pdcp_sn_size_dl_r18;
+  hdr_compress_r18_c_    hdr_compress_r18;
+  t_reordering_r17_e_    t_reordering_r17;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MRB-RLC-ConfigMulticast-r18 ::= SEQUENCE
+struct mrb_rlc_cfg_multicast_r18_s {
+  struct lc_ch_id_r18_c_ {
+    struct types_opts {
+      enum options { lc_ch_idmulticast_r18, lc_ch_id_ext_r18, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    lc_ch_id_r18_c_() = default;
+    lc_ch_id_r18_c_(const lc_ch_id_r18_c_& other);
+    lc_ch_id_r18_c_& operator=(const lc_ch_id_r18_c_& other);
+    ~lc_ch_id_r18_c_() { destroy_(); }
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint8_t& lc_ch_idmulticast_r18()
+    {
+      assert_choice_type(types::lc_ch_idmulticast_r18, type_, "logicalChannelIdentity-r18");
+      return c.get<uint8_t>();
+    }
+    uint32_t& lc_ch_id_ext_r18()
+    {
+      assert_choice_type(types::lc_ch_id_ext_r18, type_, "logicalChannelIdentity-r18");
+      return c.get<uint32_t>();
+    }
+    const uint8_t& lc_ch_idmulticast_r18() const
+    {
+      assert_choice_type(types::lc_ch_idmulticast_r18, type_, "logicalChannelIdentity-r18");
+      return c.get<uint8_t>();
+    }
+    const uint32_t& lc_ch_id_ext_r18() const
+    {
+      assert_choice_type(types::lc_ch_id_ext_r18, type_, "logicalChannelIdentity-r18");
+      return c.get<uint32_t>();
+    }
+    uint8_t&  set_lc_ch_idmulticast_r18();
+    uint32_t& set_lc_ch_id_ext_r18();
+
+  private:
+    types               type_;
+    pod_choice_buffer_t c;
+
+    void destroy_();
+  };
+  struct sn_field_len_r18_opts {
+    enum options { size6, size12, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using sn_field_len_r18_e_ = enumerated<sn_field_len_r18_opts>;
+
+  // member variables
+  bool                t_reassembly_r18_present = false;
+  lc_ch_id_r18_c_     lc_ch_id_r18;
+  sn_field_len_r18_e_ sn_field_len_r18;
+  t_reassembly_e      t_reassembly_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MRB-InfoMulticast-r18 ::= SEQUENCE
+struct mrb_info_multicast_r18_s {
+  bool                         ext = false;
+  mrb_pdcp_cfg_multicast_r18_s pdcp_cfg_r18;
+  mrb_rlc_cfg_multicast_r18_s  rlc_cfg_r18;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MRB-ListMulticast-r18 ::= SEQUENCE (SIZE (1..32)) OF MRB-InfoMulticast-r18
+using mrb_list_multicast_r18_l = dyn_array<mrb_info_multicast_r18_s>;
+
+// MBS-SessionInfoMulticast-r18 ::= SEQUENCE
+struct mbs_session_info_multicast_r18_s {
+  bool                     ext                              = false;
+  bool                     g_rnti_r18_present               = false;
+  bool                     mtch_sched_info_r18_present      = false;
+  bool                     mtch_neighbour_cell_r18_present  = false;
+  bool                     pdsch_cfg_idx_r18_present        = false;
+  bool                     mtch_ssb_map_win_idx_r18_present = false;
+  bool                     thres_idx_r18_present            = false;
+  bool                     pdcp_sync_ind_r18_present        = false;
+  bool                     stop_monitoring_rnti_r18_present = false;
+  tmgi_r17_s               mbs_session_id_r18;
+  uint32_t                 g_rnti_r18 = 0;
+  mrb_list_multicast_r18_l mrb_list_multicast_r18;
+  uint8_t                  mtch_sched_info_r18 = 0;
+  fixed_bitstring<8>       mtch_neighbour_cell_r18;
+  uint8_t                  pdsch_cfg_idx_r18        = 0;
+  uint8_t                  mtch_ssb_map_win_idx_r18 = 0;
+  uint8_t                  thres_idx_r18            = 0;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MBS-SessionInfoListMulticast-r18 ::= SEQUENCE (SIZE (1..1024)) OF MBS-SessionInfoMulticast-r18
+using mbs_session_info_list_multicast_r18_l = dyn_array<mbs_session_info_multicast_r18_s>;
 
 // MTCH-SSB-MappingWindowCycleOffset-r17 ::= CHOICE
 struct mtch_ssb_map_win_cycle_offset_r17_c {
@@ -1895,6 +3021,87 @@ struct mbs_broadcast_cfg_r17_s {
   void          to_json(json_writer& j) const;
 };
 
+// ThresholdMBS-r18 ::= SEQUENCE
+struct thres_mbs_r18_s {
+  bool    rsrp_r18_present = false;
+  bool    rsrq_r18_present = false;
+  uint8_t rsrp_r18         = 0;
+  uint8_t rsrq_r18         = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MBSMulticastConfiguration-r18-IEs ::= SEQUENCE
+struct mbs_multicast_cfg_r18_ies_s {
+  using drx_cfg_ptm_list_r18_l_ = dyn_array<drx_cfg_ptm_r17_s>;
+  using thres_mbs_list_r18_l_   = dyn_array<thres_mbs_r18_s>;
+
+  // member variables
+  bool                                  mbs_neighbour_cell_list_r18_present = false;
+  bool                                  pdsch_cfg_mtch_r18_present          = false;
+  bool                                  non_crit_ext_present                = false;
+  mbs_session_info_list_multicast_r18_l mbs_session_info_list_multicast_r18;
+  mbs_neighbour_cell_list_r17_l         mbs_neighbour_cell_list_r18;
+  drx_cfg_ptm_list_r18_l_               drx_cfg_ptm_list_r18;
+  pdsch_cfg_broadcast_r17_s             pdsch_cfg_mtch_r18;
+  mtch_ssb_map_win_list_r17_l           mtch_ssb_map_win_list_r18;
+  thres_mbs_list_r18_l_                 thres_mbs_list_r18;
+  dyn_octstring                         late_non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MBSMulticastConfiguration-r18 ::= SEQUENCE
+struct mbs_multicast_cfg_r18_s {
+  struct crit_exts_c_ {
+    struct types_opts {
+      enum options { mbs_multicast_cfg_r18, crit_exts_future, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    crit_exts_c_() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    mbs_multicast_cfg_r18_ies_s& mbs_multicast_cfg_r18()
+    {
+      assert_choice_type(types::mbs_multicast_cfg_r18, type_, "criticalExtensions");
+      return c;
+    }
+    const mbs_multicast_cfg_r18_ies_s& mbs_multicast_cfg_r18() const
+    {
+      assert_choice_type(types::mbs_multicast_cfg_r18, type_, "criticalExtensions");
+      return c;
+    }
+    mbs_multicast_cfg_r18_ies_s& set_mbs_multicast_cfg_r18();
+    void                         set_crit_exts_future();
+
+  private:
+    types                       type_;
+    mbs_multicast_cfg_r18_ies_s c;
+  };
+
+  // member variables
+  crit_exts_c_ crit_exts;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // MCCH-MessageType-r17 ::= CHOICE
 struct mcch_msg_type_r17_c {
   struct c1_c_ {
@@ -1975,6 +3182,27 @@ struct mcch_msg_r17_s {
   void          to_json(json_writer& j) const;
 };
 
+// MeasAndMobParametersCommon-v15t0 ::= SEQUENCE
+struct meas_and_mob_params_common_v15t0_s {
+  bool intra_f_neigh_meas_for_scell_without_ssb_present = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MeasAndMobParameters-v15t0 ::= SEQUENCE
+struct meas_and_mob_params_v15t0_s {
+  bool                               meas_and_mob_params_common_v15t0_present = false;
+  meas_and_mob_params_common_v15t0_s meas_and_mob_params_common_v15t0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // MeasResultSCG-Failure ::= SEQUENCE
 struct meas_result_scg_fail_s {
   bool                   ext = false;
@@ -1982,6 +3210,86 @@ struct meas_result_scg_fail_s {
   // ...
   // group 0
   copy_ptr<location_info_r16_s> location_info_r16;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// MulticastMCCH-MessageType-r18 ::= CHOICE
+struct multicast_mcch_msg_type_r18_c {
+  struct c1_c_ {
+    struct types_opts {
+      enum options { mbs_multicast_cfg_r18, spare1, nulltype } value;
+
+      const char* to_string() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    c1_c_() = default;
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    mbs_multicast_cfg_r18_s& mbs_multicast_cfg_r18()
+    {
+      assert_choice_type(types::mbs_multicast_cfg_r18, type_, "c1");
+      return c;
+    }
+    const mbs_multicast_cfg_r18_s& mbs_multicast_cfg_r18() const
+    {
+      assert_choice_type(types::mbs_multicast_cfg_r18, type_, "c1");
+      return c;
+    }
+    mbs_multicast_cfg_r18_s& set_mbs_multicast_cfg_r18();
+    void                     set_spare1();
+
+  private:
+    types                   type_;
+    mbs_multicast_cfg_r18_s c;
+  };
+  struct types_opts {
+    enum options { c1, msg_class_ext, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using types = enumerated<types_opts>;
+
+  // choice methods
+  multicast_mcch_msg_type_r18_c() = default;
+  void          set(types::options e = types::nulltype);
+  types         type() const { return type_; }
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+  // getters
+  c1_c_& c1()
+  {
+    assert_choice_type(types::c1, type_, "MulticastMCCH-MessageType-r18");
+    return c;
+  }
+  const c1_c_& c1() const
+  {
+    assert_choice_type(types::c1, type_, "MulticastMCCH-MessageType-r18");
+    return c;
+  }
+  c1_c_& set_c1();
+  void   set_msg_class_ext();
+
+private:
+  types type_;
+  c1_c_ c;
+};
+
+// MulticastMCCH-Message-r18 ::= SEQUENCE
+struct multicast_mcch_msg_r18_s {
+  multicast_mcch_msg_type_r18_c msg;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2055,38 +3363,155 @@ struct rf_params_v16c0_s {
   void          to_json(json_writer& j) const;
 };
 
-// RSRP-ChangeThreshold-r17 ::= ENUMERATED
-struct rsrp_change_thres_r17_opts {
-  enum options {
-    db4,
-    db6,
-    db8,
-    db10,
-    db14,
-    db18,
-    db22,
-    db26,
-    db30,
-    db34,
-    spare6,
-    spare5,
-    spare4,
-    spare3,
-    spare2,
-    spare1,
-    nulltype
-  } value;
-  typedef uint8_t number_type;
+// RF-Parameters-v16j0 ::= SEQUENCE
+struct rf_params_v16j0_s {
+  band_combination_list_v16j0_l              supported_band_combination_list_v16j0;
+  band_combination_list_ul_tx_switch_v16j0_l supported_band_combination_list_ul_tx_switch_v16j0;
 
-  const char* to_string() const;
-  uint8_t     to_number() const;
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
 };
-using rsrp_change_thres_r17_e = enumerated<rsrp_change_thres_r17_opts>;
+
+// RF-Parameters-v17b0 ::= SEQUENCE
+struct rf_params_v17b0_s {
+  using supported_band_list_nr_v17b0_l_ = dyn_array<band_nr_v17b0_s>;
+
+  // member variables
+  supported_band_list_nr_v17b0_l_            supported_band_list_nr_v17b0;
+  band_combination_list_v17b0_l              supported_band_combination_list_v17b0;
+  band_combination_list_ul_tx_switch_v17b0_l supported_band_combination_list_ul_tx_switch_v17b0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SL-FreqConfigExt-v16k0 ::= SEQUENCE
+struct sl_freq_cfg_ext_v16k0_s {
+  bool    add_spec_emission_r16_present = false;
+  uint8_t add_spec_emission_r16         = 0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SL-PHY-MAC-RLC-Config-v16k0 ::= SEQUENCE
+struct sl_phy_mac_rlc_cfg_v16k0_s {
+  using sl_freq_info_to_add_mod_list_ext_v16k0_l_ = dyn_array<sl_freq_cfg_ext_v16k0_s>;
+
+  // member variables
+  sl_freq_info_to_add_mod_list_ext_v16k0_l_ sl_freq_info_to_add_mod_list_ext_v16k0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SL-ConfigDedicatedNR-v16k0 ::= SEQUENCE
+struct sl_cfg_ded_nr_v16k0_s {
+  bool                       sl_phy_mac_rlc_cfg_v16k0_present = false;
+  sl_phy_mac_rlc_cfg_v16k0_s sl_phy_mac_rlc_cfg_v16k0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RRCReconfiguration-v16k0-IEs ::= SEQUENCE
+struct rrc_recfg_v16k0_ies_s {
+  bool                                   sl_cfg_ded_nr_v16k0_present = false;
+  bool                                   non_crit_ext_present        = false;
+  setup_release_c<sl_cfg_ded_nr_v16k0_s> sl_cfg_ded_nr_v16k0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RRCReconfiguration-v15t0-IEs ::= SEQUENCE
+struct rrc_recfg_v15t0_ies_s {
+  bool                  non_crit_ext_present = false;
+  dyn_octstring         late_non_crit_ext;
+  rrc_recfg_v16k0_ies_s non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RRCSetupComplete-v17b0-IEs ::= SEQUENCE
+struct rrc_setup_complete_v17b0_ies_s {
+  bool ul_rrc_max_capa_segments_r17_present = false;
+  bool non_crit_ext_present                 = false;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RRCSetupComplete-v16j0-IEs ::= SEQUENCE
+struct rrc_setup_complete_v16j0_ies_s {
+  bool                           non_crit_ext_present = false;
+  dyn_octstring                  late_non_crit_ext;
+  rrc_setup_complete_v17b0_ies_s non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// RRCSetupComplete-v15s0-IEs ::= SEQUENCE
+struct rrc_setup_complete_v15s0_ies_s {
+  bool                           non_crit_ext_present = false;
+  dyn_octstring                  late_non_crit_ext;
+  rrc_setup_complete_v16j0_ies_s non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
 
 // SDT-MAC-PHY-CG-Config-r17 ::= SEQUENCE
 struct sdt_mac_phy_cg_cfg_r17_s {
-  using cg_sdt_cfg_lch_restrict_to_add_mod_list_r17_l_ = dyn_array<cg_sdt_cfg_lch_restrict_r17_s>;
-  using cg_sdt_cfg_lch_restrict_to_release_list_r17_l_ = bounded_array<uint8_t, 32>;
+  using cg_sdt_cfg_lch_restrict_to_add_mod_list_r17_l_       = dyn_array<cg_sdt_cfg_lch_restrict_r17_s>;
+  using cg_sdt_cfg_lch_restrict_to_release_list_r17_l_       = bounded_array<uint8_t, 32>;
+  using cg_sdt_cfg_lch_restrict_to_add_mod_list_ext_v1800_l_ = dyn_array<cg_sdt_cfg_lch_restrict_ext_v1800_s>;
+  struct cg_mt_sdt_max_dur_to_next_cg_occasion_r18_opts {
+    enum options {
+      ms10,
+      ms100,
+      sec1,
+      sec10,
+      sec60,
+      sec100,
+      sec300,
+      sec600,
+      sec1200,
+      sec1800,
+      sec3600,
+      spare5,
+      spare4,
+      spare3,
+      spare2,
+      spare1,
+      nulltype
+    } value;
+
+    const char* to_string() const;
+  };
+  using cg_mt_sdt_max_dur_to_next_cg_occasion_r18_e_ = enumerated<cg_mt_sdt_max_dur_to_next_cg_occasion_r18_opts>;
 
   // member variables
   bool                                            ext                                  = false;
@@ -2107,6 +3532,10 @@ struct sdt_mac_phy_cg_cfg_r17_s {
   setup_release_c<cg_sdt_ta_validation_cfg_r17_s> cg_sdt_ta_validation_cfg_r17;
   uint32_t                                        cg_sdt_cs_rnti_r17 = 0;
   // ...
+  // group 0
+  bool cg_mt_sdt_max_dur_to_next_cg_occasion_r18_present = false;
+  copy_ptr<cg_sdt_cfg_lch_restrict_to_add_mod_list_ext_v1800_l_> cg_sdt_cfg_lch_restrict_to_add_mod_list_ext_v1800;
+  cg_mt_sdt_max_dur_to_next_cg_occasion_r18_e_                   cg_mt_sdt_max_dur_to_next_cg_occasion_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2216,8 +3645,43 @@ struct ue_timers_and_consts_remote_ue_r17_s {
   void          to_json(json_writer& j) const;
 };
 
+// SL-DiscConfigCommon-v1800 ::= SEQUENCE
+struct sl_disc_cfg_common_v1800_s {
+  sl_relay_ue_cfg_u2_u_r18_s  sl_relay_ue_cfg_common_u2_u_r18;
+  sl_remote_ue_cfg_u2_u_r18_s sl_remote_ue_cfg_common_u2_u_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SL-DiscConfigCommon-v1840 ::= SEQUENCE
+struct sl_disc_cfg_common_v1840_s {
+  sl_relay_ue_cfg_u2_u_v1840_s  sl_relay_ue_cfg_common_u2_u_v1840;
+  sl_remote_ue_cfg_u2_u_v1830_s sl_remote_ue_cfg_common_u2_u_v1840;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // SIB12-IEs-r16 ::= SEQUENCE
 struct sib12_ies_r16_s {
+  using sl_freq_info_list_size_ext_v1800_l_      = dyn_array<sl_freq_cfg_common_r16_s>;
+  using sl_rlc_bearer_cfg_list_size_ext_v1800_l_ = dyn_array<sl_rlc_bearer_cfg_r16_s>;
+  using sl_sync_freq_list_r18_l_                 = bounded_array<uint8_t, 8>;
+  struct t400_u2_u_r18_opts {
+    enum options { ms200, ms400, ms600, ms800, ms1200, ms2000, ms3000, ms4000, nulltype } value;
+    typedef uint16_t number_type;
+
+    const char* to_string() const;
+    uint16_t    to_number() const;
+  };
+  using t400_u2_u_r18_e_ = enumerated<t400_u2_u_r18_opts>;
+
+  // member variables
   bool                   ext = false;
   sl_cfg_common_nr_r16_s sl_cfg_common_nr_r16;
   dyn_octstring          late_non_crit_ext;
@@ -2229,6 +3693,45 @@ struct sib12_ies_r16_s {
   copy_ptr<sl_drx_cfg_gc_bc_r17_s>               sl_drx_cfg_common_gc_bc_r17;
   copy_ptr<sl_disc_cfg_common_r17_s>             sl_disc_cfg_common_r17;
   copy_ptr<ue_timers_and_consts_remote_ue_r17_s> sl_timers_and_consts_remote_ue_r17;
+  // group 1
+  bool                                               sl_sync_tx_multi_freq_r18_present      = false;
+  bool                                               sl_max_trans_pwr_ca_r18_present        = false;
+  bool                                               sl_l2_u2_u_relay_r18_present           = false;
+  bool                                               sl_l3_u2_u_relay_discovery_r18_present = false;
+  bool                                               t400_u2_u_r18_present                  = false;
+  copy_ptr<sl_freq_info_list_size_ext_v1800_l_>      sl_freq_info_list_size_ext_v1800;
+  copy_ptr<sl_rlc_bearer_cfg_list_size_ext_v1800_l_> sl_rlc_bearer_cfg_list_size_ext_v1800;
+  copy_ptr<sl_sync_freq_list_r18_l_>                 sl_sync_freq_list_r18;
+  int8_t                                             sl_max_trans_pwr_ca_r18 = -30;
+  copy_ptr<sl_disc_cfg_common_v1800_s>               sl_disc_cfg_common_v1800;
+  t400_u2_u_r18_e_                                   t400_u2_u_r18;
+  // group 2
+  copy_ptr<sl_disc_cfg_common_v1840_s> sl_disc_cfg_common_v1840;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SL-ConfigCommonNR-v16k0 ::= SEQUENCE
+struct sl_cfg_common_nr_v16k0_s {
+  using sl_freq_info_list_ext_v16k0_l_ = dyn_array<sl_freq_cfg_common_ext_v16k0_s>;
+
+  // member variables
+  sl_freq_info_list_ext_v16k0_l_ sl_freq_info_list_ext_v16k0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SIB12-IEs-v16k0 ::= SEQUENCE
+struct sib12_ies_v16k0_s {
+  bool                     sl_cfg_common_nr_v16k0_present = false;
+  bool                     non_crit_ext_present           = false;
+  sl_cfg_common_nr_v16k0_s sl_cfg_common_nr_v16k0;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2458,10 +3961,210 @@ struct sib17_ies_r17_s {
   void          to_json(json_writer& j) const;
 };
 
-// SL-ServingCellInfo-r17 ::= SEQUENCE
-struct sl_serving_cell_info_r17_s {
-  uint16_t sl_pci_r17             = 0;
-  uint32_t sl_carrier_freq_nr_r17 = 0;
+// TRS-ResourceSet-r18 ::= SEQUENCE
+struct trs_res_set_r18_s {
+  struct pwr_ctrl_offset_ss_r18_opts {
+    enum options { db_neg3, db0, db3, db6, nulltype } value;
+    typedef int8_t number_type;
+
+    const char* to_string() const;
+    int8_t      to_number() const;
+  };
+  using pwr_ctrl_offset_ss_r18_e_ = enumerated<pwr_ctrl_offset_ss_r18_opts>;
+  struct scrambling_id_info_r18_c_ {
+    using scrambling_id_per_res_list_with2_r18_l_ = std::array<uint16_t, 2>;
+    using scrambling_id_per_res_list_with4_r18_l_ = std::array<uint16_t, 4>;
+    struct types_opts {
+      enum options {
+        scrambling_id_for_common_r18,
+        scrambling_id_per_res_list_with2_r18,
+        scrambling_id_per_res_list_with4_r18,
+        // ...
+        nulltype
+      } value;
+      typedef uint8_t number_type;
+
+      const char* to_string() const;
+      uint8_t     to_number() const;
+    };
+    using types = enumerated<types_opts, true>;
+
+    // choice methods
+    scrambling_id_info_r18_c_() = default;
+    scrambling_id_info_r18_c_(const scrambling_id_info_r18_c_& other);
+    scrambling_id_info_r18_c_& operator=(const scrambling_id_info_r18_c_& other);
+    ~scrambling_id_info_r18_c_() { destroy_(); }
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint16_t& scrambling_id_for_common_r18()
+    {
+      assert_choice_type(types::scrambling_id_for_common_r18, type_, "scramblingID-Info-r18");
+      return c.get<uint16_t>();
+    }
+    scrambling_id_per_res_list_with2_r18_l_& scrambling_id_per_res_list_with2_r18()
+    {
+      assert_choice_type(types::scrambling_id_per_res_list_with2_r18, type_, "scramblingID-Info-r18");
+      return c.get<scrambling_id_per_res_list_with2_r18_l_>();
+    }
+    scrambling_id_per_res_list_with4_r18_l_& scrambling_id_per_res_list_with4_r18()
+    {
+      assert_choice_type(types::scrambling_id_per_res_list_with4_r18, type_, "scramblingID-Info-r18");
+      return c.get<scrambling_id_per_res_list_with4_r18_l_>();
+    }
+    const uint16_t& scrambling_id_for_common_r18() const
+    {
+      assert_choice_type(types::scrambling_id_for_common_r18, type_, "scramblingID-Info-r18");
+      return c.get<uint16_t>();
+    }
+    const scrambling_id_per_res_list_with2_r18_l_& scrambling_id_per_res_list_with2_r18() const
+    {
+      assert_choice_type(types::scrambling_id_per_res_list_with2_r18, type_, "scramblingID-Info-r18");
+      return c.get<scrambling_id_per_res_list_with2_r18_l_>();
+    }
+    const scrambling_id_per_res_list_with4_r18_l_& scrambling_id_per_res_list_with4_r18() const
+    {
+      assert_choice_type(types::scrambling_id_per_res_list_with4_r18, type_, "scramblingID-Info-r18");
+      return c.get<scrambling_id_per_res_list_with4_r18_l_>();
+    }
+    uint16_t&                                set_scrambling_id_for_common_r18();
+    scrambling_id_per_res_list_with2_r18_l_& set_scrambling_id_per_res_list_with2_r18();
+    scrambling_id_per_res_list_with4_r18_l_& set_scrambling_id_per_res_list_with4_r18();
+
+  private:
+    types                                                                                             type_;
+    choice_buffer_t<scrambling_id_per_res_list_with2_r18_l_, scrambling_id_per_res_list_with4_r18_l_> c;
+
+    void destroy_();
+  };
+  struct periodicity_and_offset_r18_c_ {
+    struct types_opts {
+      enum options { slots10, slots20, slots40, slots80, slots160, slots320, slots640, nulltype } value;
+      typedef uint16_t number_type;
+
+      const char* to_string() const;
+      uint16_t    to_number() const;
+    };
+    using types = enumerated<types_opts>;
+
+    // choice methods
+    periodicity_and_offset_r18_c_() = default;
+    periodicity_and_offset_r18_c_(const periodicity_and_offset_r18_c_& other);
+    periodicity_and_offset_r18_c_& operator=(const periodicity_and_offset_r18_c_& other);
+    ~periodicity_and_offset_r18_c_() { destroy_(); }
+    void          set(types::options e = types::nulltype);
+    types         type() const { return type_; }
+    OCUDUASN_CODE pack(bit_ref& bref) const;
+    OCUDUASN_CODE unpack(cbit_ref& bref);
+    void          to_json(json_writer& j) const;
+    // getters
+    uint8_t& slots10()
+    {
+      assert_choice_type(types::slots10, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    uint8_t& slots20()
+    {
+      assert_choice_type(types::slots20, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    uint8_t& slots40()
+    {
+      assert_choice_type(types::slots40, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    uint8_t& slots80()
+    {
+      assert_choice_type(types::slots80, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    uint8_t& slots160()
+    {
+      assert_choice_type(types::slots160, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    uint16_t& slots320()
+    {
+      assert_choice_type(types::slots320, type_, "periodicityAndOffset-r18");
+      return c.get<uint16_t>();
+    }
+    uint16_t& slots640()
+    {
+      assert_choice_type(types::slots640, type_, "periodicityAndOffset-r18");
+      return c.get<uint16_t>();
+    }
+    const uint8_t& slots10() const
+    {
+      assert_choice_type(types::slots10, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    const uint8_t& slots20() const
+    {
+      assert_choice_type(types::slots20, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    const uint8_t& slots40() const
+    {
+      assert_choice_type(types::slots40, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    const uint8_t& slots80() const
+    {
+      assert_choice_type(types::slots80, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    const uint8_t& slots160() const
+    {
+      assert_choice_type(types::slots160, type_, "periodicityAndOffset-r18");
+      return c.get<uint8_t>();
+    }
+    const uint16_t& slots320() const
+    {
+      assert_choice_type(types::slots320, type_, "periodicityAndOffset-r18");
+      return c.get<uint16_t>();
+    }
+    const uint16_t& slots640() const
+    {
+      assert_choice_type(types::slots640, type_, "periodicityAndOffset-r18");
+      return c.get<uint16_t>();
+    }
+    uint8_t&  set_slots10();
+    uint8_t&  set_slots20();
+    uint8_t&  set_slots40();
+    uint8_t&  set_slots80();
+    uint8_t&  set_slots160();
+    uint16_t& set_slots320();
+    uint16_t& set_slots640();
+
+  private:
+    types               type_;
+    pod_choice_buffer_t c;
+
+    void destroy_();
+  };
+  struct nrof_res_r18_opts {
+    enum options { n2, n4, nulltype } value;
+    typedef uint8_t number_type;
+
+    const char* to_string() const;
+    uint8_t     to_number() const;
+  };
+  using nrof_res_r18_e_ = enumerated<nrof_res_r18_opts>;
+
+  // member variables
+  pwr_ctrl_offset_ss_r18_e_     pwr_ctrl_offset_ss_r18;
+  scrambling_id_info_r18_c_     scrambling_id_info_r18;
+  uint8_t                       first_ofdm_symbol_in_time_domain_r18 = 0;
+  uint16_t                      start_rb_r18                         = 0;
+  uint16_t                      nrof_rbs_r18                         = 24;
+  uint8_t                       ssb_idx_r18                          = 0;
+  periodicity_and_offset_r18_c_ periodicity_and_offset_r18;
+  fixed_bitstring<4>            freq_domain_alloc_r18;
+  uint8_t                       ind_bit_id_r18 = 0;
+  nrof_res_r18_e_               nrof_res_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2469,18 +4172,94 @@ struct sl_serving_cell_info_r17_s {
   void          to_json(json_writer& j) const;
 };
 
-// SRS-PosConfig-r17 ::= SEQUENCE
-struct srs_pos_cfg_r17_s {
-  using srs_pos_res_set_to_release_list_r17_l_ = bounded_array<uint8_t, 16>;
-  using srs_pos_res_set_to_add_mod_list_r17_l_ = dyn_array<srs_pos_res_set_r16_s>;
-  using srs_pos_res_to_release_list_r17_l_     = dyn_array<uint8_t>;
-  using srs_pos_res_to_add_mod_list_r17_l_     = dyn_array<srs_pos_res_r16_s>;
+// SIB17bis-IEs-r18 ::= SEQUENCE
+struct sib17bis_ies_r18_s {
+  using trs_res_set_cfg_r18_l_ = dyn_array<trs_res_set_r18_s>;
+  struct validity_dur_r18_opts {
+    enum options {
+      t1,
+      t2,
+      t4,
+      t8,
+      t16,
+      t32,
+      t64,
+      t128,
+      t256,
+      t512,
+      infinity,
+      spare5,
+      spare4,
+      spare3,
+      spare2,
+      spare1,
+      nulltype
+    } value;
+    typedef int16_t number_type;
+
+    const char* to_string() const;
+    int16_t     to_number() const;
+  };
+  using validity_dur_r18_e_ = enumerated<validity_dur_r18_opts>;
 
   // member variables
-  srs_pos_res_set_to_release_list_r17_l_ srs_pos_res_set_to_release_list_r17;
-  srs_pos_res_set_to_add_mod_list_r17_l_ srs_pos_res_set_to_add_mod_list_r17;
-  srs_pos_res_to_release_list_r17_l_     srs_pos_res_to_release_list_r17;
-  srs_pos_res_to_add_mod_list_r17_l_     srs_pos_res_to_add_mod_list_r17;
+  bool                   ext                      = false;
+  bool                   validity_dur_r18_present = false;
+  trs_res_set_cfg_r18_l_ trs_res_set_cfg_r18;
+  validity_dur_r18_e_    validity_dur_r18;
+  dyn_octstring          late_non_crit_ext;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SL-PosConfigCommonNR-r18 ::= SEQUENCE
+struct sl_pos_cfg_common_nr_r18_s {
+  using sl_pos_freq_info_list_r18_l_       = dyn_array<sl_freq_cfg_common_r16_s>;
+  using sl_pos_freq_info_list_ext_v1880_l_ = dyn_array<sl_freq_cfg_common_ext_v16k0_s>;
+
+  // member variables
+  bool                                 ext                                = false;
+  bool                                 sl_pos_ue_sel_cfg_r18_present      = false;
+  bool                                 sl_pos_meas_cfg_common_r18_present = false;
+  bool                                 sl_pos_offset_dfn_r18_present      = false;
+  bool                                 sl_pos_ssb_prio_nr_r18_present     = false;
+  sl_pos_freq_info_list_r18_l_         sl_pos_freq_info_list_r18;
+  sl_ue_sel_cfg_r16_s                  sl_pos_ue_sel_cfg_r18;
+  sl_nr_anchor_carrier_freq_list_r16_l sl_pos_nr_anchor_carrier_freq_list_r18;
+  sl_meas_cfg_common_r16_s             sl_pos_meas_cfg_common_r18;
+  uint16_t                             sl_pos_offset_dfn_r18  = 1;
+  uint8_t                              sl_pos_ssb_prio_nr_r18 = 1;
+  // ...
+  // group 0
+  copy_ptr<sl_pos_freq_info_list_ext_v1880_l_> sl_pos_freq_info_list_ext_v1880;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SIB23-IEs-r18 ::= SEQUENCE
+struct sib23_ies_r18_s {
+  bool                       ext = false;
+  sl_pos_cfg_common_nr_r18_s sl_pos_cfg_common_nr_r18;
+  dyn_octstring              late_non_crit_ext;
+  // ...
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// SL-ServingCellInfo-r17 ::= SEQUENCE
+struct sl_serving_cell_info_r17_s {
+  uint16_t sl_pci_r17             = 0;
+  uint32_t sl_carrier_freq_nr_r17 = 0;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2509,6 +4288,30 @@ struct srs_pos_rrc_inactive_cfg_r17_s {
   void          to_json(json_writer& j) const;
 };
 
+// SRS-PosRRC-InactiveEnhancedConfig-r18 ::= SEQUENCE
+struct srs_pos_rrc_inactive_enhanced_cfg_r18_s {
+  bool ext                                                         = false;
+  bool srs_pos_rrc_inactive_agg_bw_cfg_list_r18_present            = false;
+  bool srs_pos_tx_hop_r18_present                                  = false;
+  bool srs_pos_rrc_inactive_validity_area_pre_cfg_list_r18_present = false;
+  bool srs_pos_rrc_inactive_validity_area_non_pre_cfg_r18_present  = false;
+  setup_release_c<dyn_seq_of<dyn_seq_of<srs_pos_res_set_linked_for_agg_bw_r18_s, 2, 3>, 1, 16>>
+                                        srs_pos_rrc_inactive_agg_bw_cfg_list_r18;
+  setup_release_c<srs_pos_tx_hop_r18_s> srs_pos_tx_hop_r18;
+  setup_release_c<dyn_seq_of<srs_pos_rrc_inactive_validity_area_cfg_r18_s, 1, 16>>
+                                                                srs_pos_rrc_inactive_validity_area_pre_cfg_list_r18;
+  setup_release_c<srs_pos_rrc_inactive_validity_area_cfg_r18_s> srs_pos_rrc_inactive_validity_area_non_pre_cfg_r18;
+  // ...
+  // group 0
+  copy_ptr<setup_release_c<srs_pos_rrc_inactive_agg_bw_add_carriers_r18_s>>
+      srs_pos_rrc_inactive_agg_bw_add_carriers_r18;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // UE-CapabilityRequestFilterCommon ::= SEQUENCE
 struct ue_cap_request_filt_common_s {
   struct mrdc_request_s_ {
@@ -2523,6 +4326,11 @@ struct ue_cap_request_filt_common_s {
     bool type2_port_sel_r16_present     = false;
   };
   using requested_cell_grouping_r16_l_ = dyn_array<cell_grouping_r16_s>;
+  struct lower_msd_request_r18_s_ {
+    bool pc1dot5_r18_present = false;
+    bool pc2_r18_present     = false;
+    bool pc3_r18_present     = false;
+  };
 
   // member variables
   bool            ext                  = false;
@@ -2536,6 +4344,8 @@ struct ue_cap_request_filt_common_s {
   copy_ptr<requested_cell_grouping_r16_l_> requested_cell_grouping_r16;
   // group 2
   bool fallback_group_five_request_r17_present = false;
+  // group 3
+  copy_ptr<lower_msd_request_r18_s_> lower_msd_request_r18;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2578,11 +4388,80 @@ struct ue_cap_request_filt_nr_s {
   void          to_json(json_writer& j) const;
 };
 
+// UE-NR-Capability-v17d0 ::= SEQUENCE
+struct ue_nr_cap_v17d0_s {
+  bool                 feature_sets_v17d0_present = false;
+  bool                 non_crit_ext_present       = false;
+  feature_sets_v17d0_s feature_sets_v17d0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UE-NR-Capability-v17c0 ::= SEQUENCE
+struct ue_nr_cap_v17c0_s {
+  bool               mac_params_v17c0_present = false;
+  bool               non_crit_ext_present     = false;
+  mac_params_v17c0_s mac_params_v17c0;
+  ue_nr_cap_v17d0_s  non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UE-NR-Capability-v17b0 ::= SEQUENCE
+struct ue_nr_cap_v17b0_s {
+  bool               mac_params_v17b0_present             = false;
+  bool               rf_params_v17b0_present              = false;
+  bool               ul_rrc_max_capa_segments_r17_present = false;
+  bool               non_crit_ext_present                 = false;
+  mac_params_v17b0_s mac_params_v17b0;
+  rf_params_v17b0_s  rf_params_v17b0;
+  ue_nr_cap_v17c0_s  non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UE-NR-Capability-v16j0 ::= SEQUENCE
+struct ue_nr_cap_v16j0_s {
+  bool              rf_params_v16j0_present = false;
+  bool              non_crit_ext_present    = false;
+  rf_params_v16j0_s rf_params_v16j0;
+  dyn_octstring     late_non_crit_ext;
+  ue_nr_cap_v17b0_s non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UE-NR-Capability-v16d0 ::= SEQUENCE
+struct ue_nr_cap_v16d0_s {
+  bool                 feature_sets_v16d0_present = false;
+  bool                 non_crit_ext_present       = false;
+  feature_sets_v16d0_s feature_sets_v16d0;
+  ue_nr_cap_v16j0_s    non_crit_ext;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // UE-NR-Capability-v16c0 ::= SEQUENCE
 struct ue_nr_cap_v16c0_s {
   bool              rf_params_v16c0_present = false;
   bool              non_crit_ext_present    = false;
   rf_params_v16c0_s rf_params_v16c0;
+  ue_nr_cap_v16d0_s non_crit_ext;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2644,10 +4523,49 @@ struct ue_nr_cap_v15c0_s {
   void          to_json(json_writer& j) const;
 };
 
+// UE-NR-Capability-v15t0 ::= SEQUENCE
+struct ue_nr_cap_v15t0_s {
+  bool                        feature_sets_v15t0_present        = false;
+  bool                        meas_and_mob_params_v15t0_present = false;
+  bool                        non_crit_ext_present              = false;
+  feature_sets_v15t0_s        feature_sets_v15t0;
+  meas_and_mob_params_v15t0_s meas_and_mob_params_v15t0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UE-NR-Capability-v16k0 ::= SEQUENCE
+struct ue_nr_cap_v16k0_s {
+  bool                 feature_sets_v16k0_present = false;
+  bool                 non_crit_ext_present       = false;
+  feature_sets_v16k0_s feature_sets_v16k0;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
+// UECapabilityEnquiry-v17b0-IEs ::= SEQUENCE
+struct ue_cap_enquiry_v17b0_ies_s {
+  bool    rrc_max_capa_seg_allowed_r17_present = false;
+  bool    non_crit_ext_present                 = false;
+  uint8_t rrc_max_capa_seg_allowed_r17         = 2;
+
+  // sequence methods
+  OCUDUASN_CODE pack(bit_ref& bref) const;
+  OCUDUASN_CODE unpack(cbit_ref& bref);
+  void          to_json(json_writer& j) const;
+};
+
 // UECapabilityEnquiry-v1610-IEs ::= SEQUENCE
 struct ue_cap_enquiry_v1610_ies_s {
-  bool rrc_seg_allowed_r16_present = false;
-  bool non_crit_ext_present        = false;
+  bool                       rrc_seg_allowed_r16_present = false;
+  bool                       non_crit_ext_present        = false;
+  ue_cap_enquiry_v17b0_ies_s non_crit_ext;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;
@@ -2674,6 +4592,8 @@ struct sl_access_info_l2_u2_n_r17_s {
   cell_access_related_info_s cell_access_related_info_r17;
   sl_serving_cell_info_r17_s sl_serving_cell_info_r17;
   // ...
+  // group 0
+  bool sl_relay_ind_r18_present = false;
 
   // sequence methods
   OCUDUASN_CODE pack(bit_ref& bref) const;

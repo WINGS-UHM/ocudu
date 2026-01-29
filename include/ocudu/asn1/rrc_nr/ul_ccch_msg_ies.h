@@ -10,7 +10,7 @@
 
 /*******************************************************************************
  *
- *                    3GPP TS ASN1 RRC NR v17.4.0 (2023-03)
+ *                    3GPP TS ASN1 RRC NR v18.8.0 (2025-12)
  *
  ******************************************************************************/
 
@@ -170,11 +170,11 @@ struct resume_cause_opts {
     rna_upd,
     mps_prio_access,
     mcs_prio_access,
-    spare1,
-    spare2,
+    mt_sdt_v1810,
+    srs_pos_cfg_or_activation_req_v1800,
     spare3,
-    spare4,
-    spare5,
+    spare2,
+    spare1,
     nulltype
   } value;
 

@@ -16,36 +16,30 @@
 namespace ocudu {
 namespace fapi {
 
-// :TODO: Review the builders documentation so it matches the UCI builder.
-
 /// UL_DCI.request message builder that helps to fill in the parameters specified in SCF-222 v4.0 section 3.4.4.
 class ul_dci_request_builder
 {
   ul_dci_request& msg;
 
 public:
-  explicit ul_dci_request_builder(ul_dci_request& msg_) : msg(msg_) { msg.num_pdus_of_each_type.fill(0); }
+  explicit ul_dci_request_builder(ul_dci_request& msg_) : msg(msg_) {}
 
-  /// Sets the UL_DCI.request basic parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.4 in table UL_DCI.request message body.
-  ul_dci_request_builder& set_basic_parameters(slot_point slot)
+  /// \brief Sets the UL_DCI.request slot point and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.4 in table UL_DCI.request message body.
+  ul_dci_request_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 
     return *this;
   }
 
-  /// Adds a PDCCH PDU to the UL_DCI.request basic parameters and returns a reference to the PDCCH PDU builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.4 in table UL_DCI.request message body.
+  /// \brief Adds a PDCCH PDU to the UL_DCI.request basic parameters and returns a reference to the PDCCH PDU builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.4 in table UL_DCI.request message body.
   dl_pdcch_pdu_builder add_pdcch_pdu()
   {
     auto& pdu = msg.pdus.emplace_back();
-
-    // Increase the number of PDCCH pdus in the request.
-    ++msg.num_pdus_of_each_type[static_cast<size_t>(ul_dci_pdu_type::PDCCH)];
-    ++msg.num_pdus_of_each_type[ul_dci_request::DCI_INDEX];
-
-    pdu.pdu_type = ul_dci_pdu_type::PDCCH;
 
     dl_pdcch_pdu_builder builder(pdu.pdu);
 

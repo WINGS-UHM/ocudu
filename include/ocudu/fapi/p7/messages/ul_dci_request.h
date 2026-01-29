@@ -12,32 +12,20 @@
 
 #include "ocudu/fapi/common/base_message.h"
 #include "ocudu/fapi/p7/messages/dl_pdcch_pdu.h"
+#include "ocudu/ran/slot_pdu_capacity_constants.h"
 
 namespace ocudu {
 namespace fapi {
 
-enum class ul_dci_pdu_type : uint16_t { PDCCH };
-
 /// Uplink DCI PDU information.
 struct ul_dci_pdu {
-  ul_dci_pdu_type pdu_type;
-  units::bytes    pdu_size;
-  dl_pdcch_pdu    pdu;
+  dl_pdcch_pdu pdu;
 };
 
 /// Uplink DCI request message.
 struct ul_dci_request : public base_message {
-  /// [Implementation-defined] DCI index in the array number PDUs of each type.
-  static constexpr unsigned DCI_INDEX = 1;
-  /// [Implementation-defined] Maximum number of supported UL PDU types in this release.
-  static constexpr unsigned MAX_NUM_DL_TYPES = 2;
-  /// [Implementation-defined] Maximum number of supported UCI PDUs in this message.
-  static constexpr unsigned MAX_NUM_UL_DCI_PDUS = 128;
-
-  slot_point                                     slot;
-  std::array<uint16_t, MAX_NUM_DL_TYPES>         num_pdus_of_each_type;
-  static_vector<ul_dci_pdu, MAX_NUM_UL_DCI_PDUS> pdus;
-  // Vendor specific parameters.
+  slot_point                                            slot;
+  static_vector<ul_dci_pdu, MAX_UL_PDCCH_PDUS_PER_SLOT> pdus;
 };
 
 } // namespace fapi

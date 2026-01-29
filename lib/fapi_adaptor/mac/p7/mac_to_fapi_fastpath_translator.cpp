@@ -108,6 +108,10 @@ static bool add_pdcch_pdus_to_builder(builder_type&                  builder,
                                       const precoding_matrix_mapper& pm_mapper,
                                       unsigned                       cell_nof_prbs)
 {
+  static_assert(std::is_same_v<builder_type, fapi::dl_tti_request_builder> ||
+                    std::is_same_v<builder_type, fapi::ul_dci_request_builder>,
+                "Unsupported builder type. Must be DL TTI or UL DCI builder.");
+
   ocudu_assert(pdcch_info.size() == payloads.size(), "Size mismatch");
 
   if (pdcch_info.empty()) {
@@ -336,7 +340,7 @@ void mac_to_fapi_fastpath_translator::handle_ul_dci_request(span<const pdcch_ul_
   fapi::ul_dci_request         msg;
   fapi::ul_dci_request_builder builder(msg);
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
 
   if (!add_pdcch_pdus_to_builder(builder, pdcch_info, payloads, *pm_mapper, cell_nof_prbs)) {
     mac_cell_slot_handler::error_event error;

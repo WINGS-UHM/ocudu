@@ -624,13 +624,7 @@ void ocudu::fapi::log_ul_dci_request(const ul_dci_request& msg, unsigned sector_
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: UL_DCI.request slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
-    switch (pdu.pdu_type) {
-      case fapi::ul_dci_pdu_type::PDCCH:
-        log_pdcch_pdu(pdu.pdu, buffer);
-        break;
-      default:
-        ocudu_assert(0, "UL_DCI.request PDU type value ({}) not recognized.", fmt::underlying(pdu.pdu_type));
-    }
+    log_pdcch_pdu(pdu.pdu, buffer);
   }
 
   logger.debug("{}", to_c_str(buffer));

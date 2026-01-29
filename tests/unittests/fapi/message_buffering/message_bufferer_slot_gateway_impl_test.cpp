@@ -163,12 +163,12 @@ static bool operator==(const ul_tti_request& lhs, const ul_tti_request& rhs)
 
 static bool operator==(const ul_dci_pdu& lhs, const ul_dci_pdu& rhs)
 {
-  return lhs.pdu_type == rhs.pdu_type && lhs.pdu_size == rhs.pdu_size && lhs.pdu == rhs.pdu;
+  return lhs.pdu == rhs.pdu;
 }
 
 static bool operator==(const ul_dci_request& lhs, const ul_dci_request& rhs)
 {
-  return lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type && lhs.pdus == rhs.pdus;
+  return lhs.slot == rhs.slot && lhs.pdus == rhs.pdus;
 }
 
 static bool operator==(const tx_data_req_pdu& lhs, const tx_data_req_pdu& rhs)

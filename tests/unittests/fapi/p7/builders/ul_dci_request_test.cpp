@@ -23,18 +23,13 @@ TEST(ul_dci_request_builder, valid_basic_parameters_passes)
   unsigned sfn        = 16;
   unsigned slot_index = 18;
   auto     slot       = slot_point(scs, sfn, slot_index);
-  unsigned nof_dcis   = 0;
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
 
   for (unsigned i = 0, e = 10; i != e; ++i) {
-    ++nof_dcis;
-
     builder.add_pdcch_pdu();
 
     ASSERT_EQ(i + 1, msg.pdus.size());
-    ASSERT_EQ(i + 1, msg.num_pdus_of_each_type[static_cast<unsigned>(ul_dci_pdu_type::PDCCH)]);
-    ASSERT_EQ(nof_dcis, msg.num_pdus_of_each_type[ul_dci_request::DCI_INDEX]);
   }
 
   ASSERT_EQ(slot, msg.slot);

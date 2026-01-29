@@ -337,12 +337,9 @@ ul_dci_request unittest::build_valid_ul_dci_request()
   auto     slot_index = generate_slot();
   msg.slot            = slot_point(scs, sfn, slot_index);
 
-  msg.num_pdus_of_each_type.fill(0);
-
   // Manually add the PDCCH PDU to reuse the functions above.
   msg.pdus.emplace_back();
-  msg.pdus.back().pdu_type = ul_dci_pdu_type::PDCCH;
-  msg.pdus.back().pdu      = build_valid_dl_pdcch_pdu();
+  msg.pdus.back().pdu = build_valid_dl_pdcch_pdu();
 
   return msg;
 }

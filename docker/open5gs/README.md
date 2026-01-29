@@ -63,8 +63,8 @@ Then run the docker container with:
 
 `docker run --net open5gsnet --ip 10.53.1.2 --env-file open5gs.env --privileged --publish 9999:9999 open5gs-docker ./build/tests/app/5gc -c open5gs-5gc.yml`
 
-To use this container with ocudu, the `addr` option under `amf` section in gnb configuration must be set OPEN5GS_IP (here: 10.53.1.2).
-It could also be required to modify `bind_addr` option under `amf` section in gnb configuration to the local ethernet/wifi IP address for the host or container where gnb is running, not a localhost IP.
+To use this container with ocudu, the `addrs` option under `amf` section in gnb configuration must be set to OPEN5GS_IP (here: 10.53.1.2).
+It could also be required to modify `bind_addrs` option under `amf` section in gnb configuration to the local ethernet/wifi IP address for the host or container where gnb is running, not a localhost IP.
 
 To ping a connected UE setup the necessary route to the UE_IP_BASE + ".0/24" (here: 10.45.0) via the OPEN5GS_IP (here: 10.53.1.2) using:
 

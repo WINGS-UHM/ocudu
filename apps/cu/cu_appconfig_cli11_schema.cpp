@@ -23,10 +23,11 @@ using namespace ocudu;
 
 static void configure_cli11_f1ap_args(CLI::App& app, ocu::cu_f1ap_appconfig& f1ap_params)
 {
-  add_option(app,
-             "--bind_addrs",
-             f1ap_params.bind_addrs,
-             "CU F1-C bind addresses. Multiple addresses can be specified for SCTP multi-homing")
+  add_option(
+      app,
+      "--bind_addrs,--bind_addr", // TODO: old name kept for backward compatibility, should be removed in the future
+      f1ap_params.bind_addrs,
+      "CU F1-C bind addresses. Multiple addresses can be specified for SCTP multi-homing")
       ->capture_default_str();
 }
 

@@ -23,15 +23,21 @@ using namespace ocudu;
 
 static void configure_cli11_e1ap_args(CLI::App& app, ocucp::e1ap_appconfig& e1ap_params)
 {
-  add_option(app, "--bind_addrs", e1ap_params.bind_addrs, "E1 bind addresses")->capture_default_str();
+  add_option(
+      app,
+      "--bind_addrs,--bind_addr", // TODO: old name kept for backward compatibility, should be removed in the future
+      e1ap_params.bind_addrs,
+      "E1 bind addresses")
+      ->capture_default_str();
 }
 
 static void configure_cli11_f1ap_args(CLI::App& app, ocucp::f1ap_appconfig& f1ap_params)
 {
-  add_option(app,
-             "--bind_addrs",
-             f1ap_params.bind_addrs,
-             "CU-CP F1-C bind addresses. Multiple addresses can be specified for SCTP multi-homing")
+  add_option(
+      app,
+      "--bind_addrs,--bind_addr", // TODO: old name kept for backward compatibility, should be removed in the future
+      f1ap_params.bind_addrs,
+      "CU-CP F1-C bind addresses. Multiple addresses can be specified for SCTP multi-homing")
       ->capture_default_str();
 }
 

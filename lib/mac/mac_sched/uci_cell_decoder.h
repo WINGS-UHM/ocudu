@@ -28,8 +28,8 @@ class uci_cell_decoder
 {
 public:
   uci_cell_decoder(const sched_cell_configuration_request_message& cell_cfg,
-                   const du_rnti_table&                            rnti_table,
-                   rlf_detector&                                   rlf_dt);
+                   const du_rnti_table&                            rnti_table_,
+                   rlf_detector&                                   rlf_hdlr_);
 
   /// \brief Store information relative to expected UCIs to be decoded.
   void
@@ -48,6 +48,7 @@ private:
 
   const du_rnti_table&    rnti_table;
   du_cell_index_t         cell_index;
+  bool                    aperiodic_csi_report;
   rlf_detector&           rlf_handler;
   ocudulog::basic_logger& logger;
 

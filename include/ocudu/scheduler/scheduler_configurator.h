@@ -85,6 +85,9 @@ struct sched_cell_configuration_request_message {
   /// List of nzp-CSI-RS resources common to all UEs.
   std::vector<nzp_csi_rs_resource> nzp_csi_rs_res_list;
 
+  /// Indicates whether CSI reporting is configured as aperiodic.
+  bool aperiodic_csi_report = false;
+
   /// List of dl-DataToUL-ACK values sent to UE in its dedicated configuration.
   static_vector<uint8_t, 8> dl_data_to_ul_ack;
 

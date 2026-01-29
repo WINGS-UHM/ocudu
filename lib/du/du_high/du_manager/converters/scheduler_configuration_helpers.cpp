@@ -11,6 +11,7 @@
 #include "scheduler_configuration_helpers.h"
 #include "../du_ue/du_ue.h"
 #include "ocudu/du/du_cell_config.h"
+#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 #include "ocudu/ran/qos/five_qi_qos_mapping.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
@@ -88,7 +89,8 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.zp_csi_rs_list = du_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->zp_csi_rs_res_list;
 
   if (du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
-    sched_req.nzp_csi_rs_res_list = du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list;
+    sched_req.nzp_csi_rs_res_list  = du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list;
+    sched_req.aperiodic_csi_report = is_pusch_configured(*du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg);
   }
 
   if (du_cfg.ue_ded_serv_cell_cfg.ul_config.has_value() and

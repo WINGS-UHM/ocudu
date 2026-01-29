@@ -10,6 +10,7 @@
 
 #include "uci_cell_decoder.h"
 #include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
 #include "ocudu/scheduler/resource_grid_util.h"
 #include "ocudu/scheduler/result/pucch_info.h"
 #include "ocudu/scheduler/result/pusch_info.h"
@@ -33,6 +34,7 @@ uci_cell_decoder::uci_cell_decoder(const sched_cell_configuration_request_messag
                                    rlf_detector&                                   rlf_hdlr_) :
   rnti_table(rnti_table_),
   cell_index(cell_cfg.cell_index),
+  aperiodic_csi_report(cell_cfg.aperiodic_csi_report),
   rlf_handler(rlf_hdlr_),
   logger(ocudulog::fetch_basic_logger("MAC")),
   expected_uci_report_grid(get_ring_size(cell_cfg))
@@ -54,8 +56,8 @@ static auto convert_mac_harq_bits_to_sched_harq_values(bool harq_status,
   return harqs;
 }
 
-static csi_report_data decode_csi(const bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PART2_BITS>& payload,
-                                  const csi_report_configuration&                                       csi_rep_cfg)
+static csi_report_data decode_pucch_csi(const bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PART2_BITS>& payload,
+                                        const csi_report_configuration& csi_rep_cfg)
 {
   // Convert UCI CSI1 bits to "csi_report_packed".
   csi_report_packed csi_bits(payload.size());
@@ -70,16 +72,28 @@ static std::optional<csi_report_data> decode_csi_bits(const mac_uci_pdu::pucch_f
                                                       const csi_report_configuration&               csi_rep_cfg)
 {
   // TODO: Handle CSI part 2.
-  return decode_csi(pucch.csi_part1_info->payload, csi_rep_cfg);
+  return decode_pucch_csi(pucch.csi_part1_info->payload, csi_rep_cfg);
 }
 
-static std::optional<csi_report_data> decode_csi_bits(const mac_uci_pdu::pusch_type&  pusch,
-                                                      const csi_report_configuration& csi_rep_cfg)
+static std::optional<csi_report_data>
+decode_csi_bits(const mac_uci_pdu::pusch_type& pusch, const csi_report_configuration& csi_rep_cfg, bool is_aperiodic)
 {
-  // TODO: Revisit this logic since its valid only for periodic CSI reporting and for both Type I and Type II reports
-  //  configured for PUCCH but transmitted on PUSCH"
-  // TODO: Handle CSI part 2.
-  return decode_csi(pusch.csi_part1_info->payload, csi_rep_cfg);
+  if (not is_aperiodic) {
+    // TODO: Handle CSI part 2.
+    return decode_pucch_csi(pusch.csi_part1_info->payload, csi_rep_cfg);
+  }
+
+  // Convert UCI CSI1 and CSI2 bits to "csi_report_packed".
+  csi_report_packed csi1_bits(pusch.csi_part1_info->payload.size());
+  for (unsigned k = 0; k != csi1_bits.size(); ++k) {
+    csi1_bits.set(k, pusch.csi_part1_info->payload.test(k));
+  }
+  csi_report_packed csi2_bits(pusch.csi_part2_info->payload.size());
+  for (unsigned k = 0; k != csi2_bits.size(); ++k) {
+    csi2_bits.set(k, pusch.csi_part2_info->payload.test(k));
+  }
+
+  return csi_report_unpack_pusch(csi1_bits, csi2_bits, csi_rep_cfg);
 }
 
 uci_indication uci_cell_decoder::decode_uci(const mac_uci_indication_message& msg)
@@ -163,7 +177,7 @@ uci_indication uci_cell_decoder::decode_uci(const mac_uci_indication_message& ms
           // Search for CSI report config with matching RNTI.
           for (const auto& expected_slot_uci : slot_ucis) {
             if (expected_slot_uci.rnti == uci_pdu.crnti) {
-              pdu.csi = decode_csi_bits(*pusch, expected_slot_uci.csi_rep_cfg);
+              pdu.csi = decode_csi_bits(*pusch, expected_slot_uci.csi_rep_cfg, aperiodic_csi_report);
               break;
             }
           }

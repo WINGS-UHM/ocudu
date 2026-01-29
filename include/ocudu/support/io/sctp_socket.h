@@ -74,6 +74,10 @@ public:
   /// This can be used to check if socket is bound and to get the port number if dynamic port number was used.
   std::optional<uint16_t> get_bound_port() const;
 
+  /// \brief Return the address family of the socket (AF_INET or AF_INET6).
+  /// Returns std::nullopt if socket is closed, address family is unknown or getsockname fails.
+  std::optional<int> get_address_family() const;
+
 private:
   bool set_sockopts(const sctp_socket_params& params);
 

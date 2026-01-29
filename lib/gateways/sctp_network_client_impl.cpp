@@ -190,7 +190,8 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
 
   // Resolve all destination addresses, remove duplicates and determine required socket family.
   // If socket was already created during bind, its family is already set and cannot be changed.
-  // If socket family determined from destination addresses is different - in that case IPv6 paths won't work.
+  // If it was created as an IPv4 socket, but destination addresses list contains some IPv6 addresses,
+  // then those will be filtered out later to avoid "Invalid argument" error with sctp_connectx().
   bool                          has_ipv6_dest_addr = false;
   std::vector<sockaddr_storage> resolved_addrs;
 
@@ -218,6 +219,29 @@ sctp_network_client_impl::connect(std::unique_ptr<sctp_association_sdu_notifier>
     expected<sctp_socket> outcome       = create_socket(socket_family, SOCK_SEQPACKET);
     if (outcome.has_value()) {
       socket = std::move(outcome.value());
+    }
+  } else {
+    // Socket was already created during bind. Filter out addresses that don't match the socket family.
+    // An IPv4 socket cannot connect to IPv6 addresses. An IPv6 socket with IPV6_V6ONLY=0 can handle both.
+    auto sock_family = socket.get_address_family();
+    if (sock_family.has_value() && sock_family.value() == AF_INET) {
+      auto orig_size = resolved_addrs.size();
+      resolved_addrs.erase(std::remove_if(resolved_addrs.begin(),
+                                          resolved_addrs.end(),
+                                          [](const sockaddr_storage& addr) { return addr.ss_family == AF_INET6; }),
+                           resolved_addrs.end());
+      if (resolved_addrs.size() < orig_size) {
+        logger.warning("{}: Filtered out {} IPv6 destination address(es) because socket is IPv4-only. "
+                       "To enable IPv6, add an IPv6 bind address.",
+                       node_cfg.if_name,
+                       orig_size - resolved_addrs.size());
+      }
+      if (resolved_addrs.empty()) {
+        logger.error("{}: No compatible destination addresses remain after filtering. "
+                     "Socket has only IPv4 bind addresses but all destination addresses are IPv6.",
+                     node_cfg.if_name);
+        return nullptr;
+      }
     }
   }
 

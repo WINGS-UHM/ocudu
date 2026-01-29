@@ -571,3 +571,29 @@ std::optional<uint16_t> sctp_socket::get_bound_port() const
 
   return gw_bound_port;
 }
+
+std::optional<int> sctp_socket::get_address_family() const
+{
+  if (not sock_fd.is_open()) {
+    return {};
+  }
+
+  sockaddr_storage gw_addr_storage;
+  sockaddr*        gw_addr     = (sockaddr*)&gw_addr_storage;
+  socklen_t        gw_addr_len = sizeof(gw_addr_storage);
+
+  int ret = ::getsockname(sock_fd.value(), gw_addr, &gw_addr_len);
+  if (ret != 0) {
+    logger.error("{}: Failed `getsockname` in SCTP network gateway with sock_fd={}: {}",
+                 if_name,
+                 sock_fd.value(),
+                 ::strerror(errno));
+    return {};
+  }
+
+  if (gw_addr->sa_family == AF_INET || gw_addr->sa_family == AF_INET6) {
+    return gw_addr->sa_family;
+  }
+
+  return {};
+}

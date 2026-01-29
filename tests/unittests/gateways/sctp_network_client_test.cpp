@@ -1,3 +1,4 @@
+
 /*
  *
  * Copyright 2021-2026 Software Radio Systems Limited
@@ -14,11 +15,22 @@
 #include "ocudu/support/executors/unique_thread.h"
 #include "ocudu/support/io/sctp_socket.h"
 #include <gtest/gtest.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 using namespace ocudu;
 
 namespace {
 
+int get_fd_family(int fd)
+{
+  sockaddr_storage ss{};
+  socklen_t        len = sizeof(ss);
+  if (::getsockname(fd, (sockaddr*)&ss, &len) == 0) {
+    return ss.ss_family;
+  }
+  return -1;
+}
 class sctp_recv_notifier_factory
 {
 public:
@@ -654,4 +666,24 @@ TEST_F(sctp_network_client_test, when_server_has_multihomed_mixed_ipv4_and_ipv6_
   // Process shutdown events
   trigger_broker();
   ASSERT_TRUE(recv_notifier_factory.destroyed);
+}
+
+TEST_F(sctp_network_client_test,
+       ipv4_bind_and_ipv4_and_ipv6_connect_addresses_filters_ipv6_and_connects_successfully_over_ipv4_socket)
+{
+  // Server is IPv4 only
+  dummy_sctp_server server_ipv4;
+  client_cfg.sctp.bind_addresses    = {"127.0.0.2"};
+  client_cfg.sctp.bind_port         = server_ipv4.bind_port;
+  client_cfg.sctp.connect_addresses = {server_ipv4.address, "::1"}; // IPv4 and IPv6
+  client_cfg.sctp.connect_port      = server_ipv4.bind_port;
+  client_cfg.sctp.dest_name         = "server_ipv4";
+  client                            = create_sctp_network_client(client_cfg);
+  ASSERT_TRUE(client != nullptr);
+  // Should only use IPv4 address, so connect should succeed
+  ASSERT_TRUE(connect_to_server());
+  // Check socket family is AF_INET
+  int fd = client->get_socket_fd();
+  ASSERT_GT(fd, 0);
+  ASSERT_EQ(get_fd_family(fd), AF_INET);
 }

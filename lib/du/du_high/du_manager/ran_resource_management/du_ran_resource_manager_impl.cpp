@@ -115,7 +115,6 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
                     ? fmt::to_string(csi_limit)
                     : "n/a",
                 cell.srs_cfg.srs_type_enabled == srs_type::periodic ? fmt::to_string(srs_limit) : "n/a");
-    ;
   }
 }
 

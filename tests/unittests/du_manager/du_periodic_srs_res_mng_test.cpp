@@ -8,6 +8,7 @@
  *
  */
 
+#include "lib/du/du_high/du_manager/ran_resource_management/du_srs_manager_helpers.h"
 #include "lib/du/du_high/du_manager/ran_resource_management/du_srs_periodic_res_mng.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "ocudu/du/du_cell_config_helpers.h"
@@ -61,36 +62,12 @@ static cell_config_builder_params make_cell_cfg_params(const srs_params& params 
   cell_config_builder_params cell_params =
       cell_config_builder_profiles::create(is_tdd ? duplex_mode::TDD : duplex_mode::FDD);
   if (is_tdd) {
-    auto& tdd_cfg                              = cell_params.tdd_ul_dl_cfg_common.emplace();
-    tdd_cfg.pattern1.dl_ul_tx_period_nof_slots = 10;
-    tdd_cfg.pattern1.nof_dl_slots              = 7;
-    tdd_cfg.pattern1.nof_dl_symbols            = 2;
-    tdd_cfg.pattern1.nof_ul_slots              = 2;
-    tdd_cfg.pattern1.nof_ul_symbols            = params.nof_ul_symbols_p1.value();
-    tdd_cfg.ref_scs                            = subcarrier_spacing::kHz30;
+    auto& tdd_cfg    = cell_params.tdd_ul_dl_cfg_common.emplace();
+    tdd_cfg.pattern1 = {10, 7, 2, 2, params.nof_ul_symbols_p1.value()};
+    tdd_cfg.ref_scs  = subcarrier_spacing::kHz30;
   }
 
   return cell_params;
-}
-// Helper that computes the C_SRS parameter (see Section 6.4.1.4.3, TS 38.211) that maximize the SRS BW, given the BWP
-// size in RBs.
-static unsigned compute_c_srs(unsigned nof_ul_bwp_rbs)
-{
-  unsigned candidate_c_srs = 0U;
-  unsigned candidate_m_srs = 0U;
-  // Spans over Table 6.4.1.4.3-1 in TS 38.211 and find the smallest C_SRS that maximizes m_srs_0 under the
-  // constraint of m_SRS <= nof_BW_RBs.
-  for (unsigned c_srs_it = 0; c_srs_it != 64; ++c_srs_it) {
-    // In this test, we only consider the case where B_SRS is 0.
-    constexpr uint8_t                b_srs   = 0U;
-    std::optional<srs_configuration> srs_cfg = srs_configuration_get(c_srs_it, b_srs);
-    ocudu_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
-    if (srs_cfg.value().m_srs <= nof_ul_bwp_rbs and srs_cfg.value().m_srs > candidate_m_srs) {
-      candidate_m_srs = srs_cfg->m_srs;
-      candidate_c_srs = c_srs_it;
-    }
-  }
-  return candidate_c_srs;
 }
 
 static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_params& params, bool use_max_bw)
@@ -104,9 +81,10 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   if (not use_max_bw) {
     const unsigned bw_nof_rbs = du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
     // Get the max value of C_SRS for the given BWP size.
-    const unsigned c_srs_valid_max = compute_c_srs(bw_nof_rbs);
+    const std::optional<unsigned> c_srs_valid_max = du_srs_mng_details::compute_c_srs(bw_nof_rbs);
+    ocudu_assert(c_srs_valid_max.has_value(), "C_SRS is required for this unittest");
     // Pick a random C_SRS value.
-    srs_cfg.c_srs.emplace(test_rgen::uniform_int<size_t>(0U, c_srs_valid_max));
+    srs_cfg.c_srs.emplace(test_rgen::uniform_int<size_t>(0U, c_srs_valid_max.value()));
     // Compute the Frequency Domain Shift based on the BWP BW and on the SRS BW.
     constexpr uint8_t b_srs_0     = 0;
     const auto        srs_cfg_val = srs_configuration_get(srs_cfg.c_srs.value(), b_srs_0);
@@ -177,7 +155,7 @@ make_srs_cell_config(const cell_config_builder_params& params, bool limit_srs_re
 {
   auto du_cfg = make_srs_base_du_cell_config(params, use_max_bw);
 
-  // For the optimality test, we to have a configuration that doesn't allow for more than 1024 SRS resources.
+  // For the optimality test, we need to have a configuration that doesn't allow for more than 1024 SRS resources.
   if (not limit_srs_res) {
     return du_cfg;
   }
@@ -199,13 +177,13 @@ make_srs_cell_config(const cell_config_builder_params& params, bool limit_srs_re
 
     // The number of symbols interval per slot depends on whether it's FDD or TDD.
     if (not tdd_cfg.has_value()) {
-      // In FDD, in an SRS period we can "max_nof_symbols / nof_symbols" intervals per slot.
+      // In FDD, in an SRS period we have "max_nof_symbols / nof_symbols" intervals per slot.
       nof_symb_intervals = srs_cfg.max_nof_symbols.value() / static_cast<unsigned>(srs_cfg.nof_symbols) *
                            static_cast<unsigned>(srs_cfg.srs_period_prohib_time);
     } else {
-      // In TDD, in an SRS period we can "max_nof_symbols / nof_symbols" intervals per UL slot; in addition to this, the
-      // partially-UL slots can have extra symbols intervals, up to a maximum of 6U, which is the max number of symbols
-      // usable for SRS resources.
+      // In TDD, in an SRS period we have "max_nof_symbols / nof_symbols" intervals per UL slot; in addition to this,
+      // the partially-UL slots can have extra symbols intervals, up to a maximum of 6U, which is the max number of
+      // symbols usable for SRS resources.
       nof_symb_intervals =
           (srs_cfg.max_nof_symbols.value() / static_cast<unsigned>(srs_cfg.nof_symbols)) *
           tdd_cfg->pattern1.nof_ul_slots *
@@ -229,12 +207,12 @@ make_srs_cell_config(const cell_config_builder_params& params, bool limit_srs_re
   return du_cfg;
 }
 
-class du_srs_res_manager_base_tester
+class du_periodic_srs_res_mng_base_tester
 {
 protected:
-  explicit du_srs_res_manager_base_tester(const cell_config_builder_params& params_,
-                                          bool                              test_optimality,
-                                          bool                              use_max_bw) :
+  explicit du_periodic_srs_res_mng_base_tester(const cell_config_builder_params& params_,
+                                               bool                              test_optimality,
+                                               bool                              use_max_bw) :
     params(params_),
     cell_cfg_list({make_srs_cell_config(params_, test_optimality, use_max_bw)}),
     srs_params(cell_cfg_list[0].srs_cfg),
@@ -309,10 +287,11 @@ protected:
   unsigned compute_freq_shift() const
   {
     // The function computes the frequency shift so that the SRS resources are placed in the center of the band.
-    const unsigned ul_bw_nof_rbs = cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
-    const unsigned c_srs         = compute_c_srs(ul_bw_nof_rbs);
-    const auto     srs_cfg       = srs_configuration_get(c_srs, 0U);
-    ocudu_assert(srs_cfg.has_value(), "C_SRS is required for this unittest");
+    const unsigned ul_bw_nof_rbs        = cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+    const std::optional<unsigned> c_srs = du_srs_mng_details::compute_c_srs(ul_bw_nof_rbs);
+    ocudu_assert(c_srs.has_value(), "C_SRS is required for this unittest");
+    const auto srs_cfg = srs_configuration_get(c_srs.value(), 0U);
+    ocudu_assert(srs_cfg.has_value(), "SRS Config is required for this unittest");
     return (ul_bw_nof_rbs - srs_cfg.value().m_srs) / 2U;
   }
 
@@ -324,17 +303,17 @@ protected:
   slotted_array<cell_group_config, MAX_NOF_DU_UES> ues;
 };
 
-class du_srs_resource_manager_tester : public du_srs_res_manager_base_tester,
+class du_periodic_srs_res_mng_tester : public du_periodic_srs_res_mng_base_tester,
                                        public ::testing::TestWithParam<srs_params>
 {
 protected:
-  explicit du_srs_resource_manager_tester() :
-    du_srs_res_manager_base_tester(make_cell_cfg_params(GetParam()), true, GetParam().use_max_bw)
+  explicit du_periodic_srs_res_mng_tester() :
+    du_periodic_srs_res_mng_base_tester(make_cell_cfg_params(GetParam()), true, GetParam().use_max_bw)
   {
   }
 };
 
-TEST_P(du_srs_resource_manager_tester, ue_are_assigned_orthogonal_srs_resources)
+TEST_P(du_periodic_srs_res_mng_tester, ue_are_assigned_orthogonal_srs_resources)
 {
   // Keeps track of which SRS resources have been assigned to the UEs.
   std::vector<srs_res_params> used_srs_resources;
@@ -385,7 +364,7 @@ TEST_P(du_srs_resource_manager_tester, ue_are_assigned_orthogonal_srs_resources)
                            [&res_params](const srs_res_params& res) { return res.collides(res_params); }));
 }
 
-TEST_P(du_srs_resource_manager_tester, srs_resources_parameters_are_valid)
+TEST_P(du_periodic_srs_res_mng_tester, srs_resources_parameters_are_valid)
 {
   // > Created UEs have unique SRS resources.
   for (unsigned i = 0; i != MAX_NOF_DU_UES; ++i) {
@@ -419,8 +398,10 @@ TEST_P(du_srs_resource_manager_tester, srs_resources_parameters_are_valid)
     // Checks on Freq. Hopping need to be adjusted based on whether the SRS has been configured with a given BW.
     if (GetParam().use_max_bw) {
       // Verify that C_SRS corresponds to the maximum allowed BW.
-      ASSERT_EQ(srs_res.freq_hop.c_srs,
-                compute_c_srs(cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length()));
+      const std::optional<unsigned> c_srs =
+          du_srs_mng_details::compute_c_srs(cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      ASSERT_TRUE(c_srs.has_value());
+      ASSERT_EQ(srs_res.freq_hop.c_srs, c_srs);
       ASSERT_EQ(srs_res.freq_domain_shift, compute_freq_shift());
     } else {
       // Verify that C_SRS maps to a value that fits within the UL BWP.
@@ -447,7 +428,7 @@ TEST_P(du_srs_resource_manager_tester, srs_resources_parameters_are_valid)
 }
 
 INSTANTIATE_TEST_SUITE_P(test_du_srs_res_mng_for_different_ul_symbols,
-                         du_srs_resource_manager_tester,
+                         du_periodic_srs_res_mng_tester,
                          ::testing::Values(srs_params{.nof_ul_symbols_p1 = std::nullopt},
                                            srs_params{.nof_ul_symbols_p1 = 0U},
                                            srs_params{.nof_ul_symbols_p1 = 1U},
@@ -472,12 +453,12 @@ INSTANTIATE_TEST_SUITE_P(test_du_srs_res_mng_for_different_ul_symbols,
 
 /////////     Test the optimality of DU SRS resource manager policy      /////////
 
-class du_srs_resource_manager_tester_optimality : public du_srs_res_manager_base_tester,
+class du_periodic_srs_res_mng_tester_optimality : public du_periodic_srs_res_mng_base_tester,
                                                   public ::testing::TestWithParam<srs_params>
 {
 protected:
-  explicit du_srs_resource_manager_tester_optimality() :
-    du_srs_res_manager_base_tester(make_cell_cfg_params(GetParam()), true, true)
+  explicit du_periodic_srs_res_mng_tester_optimality() :
+    du_periodic_srs_res_mng_base_tester(make_cell_cfg_params(GetParam()), true, true)
   {
     nof_srs_res_per_symb_interval = static_cast<unsigned>(srs_params.tx_comb) *
                                     static_cast<unsigned>(srs_params.cyclic_shift_reuse_factor) *
@@ -611,7 +592,7 @@ protected:
   }
 };
 
-TEST_P(du_srs_resource_manager_tester_optimality, srs_are_assigned_according_to_class_policy)
+TEST_P(du_periodic_srs_res_mng_tester_optimality, srs_are_assigned_according_to_class_policy)
 {
   // > Created UEs have unique SRS resources.
   for (unsigned i = 0; i != MAX_NOF_DU_UES; ++i) {
@@ -650,7 +631,7 @@ TEST_P(du_srs_resource_manager_tester_optimality, srs_are_assigned_according_to_
 }
 
 INSTANTIATE_TEST_SUITE_P(test_du_srs_res_mng_for_different_ul_symbols,
-                         du_srs_resource_manager_tester_optimality,
+                         du_periodic_srs_res_mng_tester_optimality,
                          ::testing::Values(srs_params{.nof_ul_symbols_p1 = std::nullopt},
                                            srs_params{.nof_ul_symbols_p1 = 0U},
                                            srs_params{.nof_ul_symbols_p1 = 1U},

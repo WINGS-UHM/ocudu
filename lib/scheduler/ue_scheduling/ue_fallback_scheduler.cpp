@@ -59,7 +59,7 @@ ue_fallback_scheduler::ue_fallback_scheduler(const scheduler_ue_expert_config& e
   // NOTE 2: Although the TS 38.213, Section 9.2.3 specifies that the k1 possible values are {1, ..., 8}, some UE
   // implementations that we work with do not handle well the value k1=8. Instead, in the particular context of RRC
   // Reestablishment, they PRACH instead of sending the PUCCH.
-  const unsigned max_k1 = 7U;
+  constexpr unsigned max_k1 = 7U;
   ocudu_sanity_check(expert_cfg.min_k1 <= max_k1, "Invalid min_k1 value");
   for (unsigned k1_value = expert_cfg.min_k1; k1_value <= max_k1; ++k1_value) {
     dci_1_0_k1_values.push_back(k1_value);
@@ -184,7 +184,7 @@ void ue_fallback_scheduler::handle_ul_bsr_indication(du_ue_index_t ue_index, con
   const auto* srb_lcg_report =
       std::find_if(bsr_ind.reported_lcgs.begin(), bsr_ind.reported_lcgs.end(), [](const auto& lcg_report) {
         // We assume the LCG ID for SRB is 0.
-        const lcg_id_t srb_lcg_id = uint_to_lcg_id(0U);
+        constexpr lcg_id_t srb_lcg_id = uint_to_lcg_id(0U);
         return lcg_report.lcg_id == srb_lcg_id;
       });
   const unsigned bsr_bytes = srb_lcg_report != bsr_ind.reported_lcgs.end() ? srb_lcg_report->nof_bytes : 0U;

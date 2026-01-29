@@ -17,6 +17,22 @@ namespace ocudu {
 
 using cli11_cell = std::vector<std::string>;
 
+/// \brief Extracts the first option name from a comma-separated list of option names.
+///
+/// CLI11 allows specifying multiple names for an option using commas (e.g., "--addrs,--addr").
+/// This function returns only the first name, which is needed for get_option_no_throw lookup.
+///
+/// \param option_name Single option name or list of comma-separated option name aliases (e.g. "--addrs,--addr").
+/// \return The first option name to be used for option lookup.
+inline std::string get_first_option_name(const std::string& option_name)
+{
+  auto pos = option_name.find(',');
+  if (pos != std::string::npos) {
+    return option_name.substr(0, pos);
+  }
+  return option_name;
+}
+
 /// \brief Adds a subcommand to the given application using the given subcommand name and description.
 ///
 /// If the subcommand already exists in the application, returns a pointer to it.
@@ -50,7 +66,7 @@ inline CLI::App* add_subcommand(CLI::App& app, const std::string& name, const st
 template <typename T>
 CLI::Option* add_option(CLI::App& app, const std::string& option_name, T& param, const std::string& desc)
 {
-  auto* opt = app.get_option_no_throw(option_name);
+  auto* opt = app.get_option_no_throw(get_first_option_name(option_name));
   if (!opt) {
     return app.add_option(option_name, param, desc);
   }
@@ -76,7 +92,7 @@ CLI::Option* add_option(CLI::App& app, const std::string& option_name, T& param,
 template <>
 inline CLI::Option* add_option(CLI::App& app, const std::string& option_name, bool& param, const std::string& desc)
 {
-  auto* opt = app.get_option_no_throw(option_name);
+  auto* opt = app.get_option_no_throw(get_first_option_name(option_name));
   if (!opt) {
     return app.add_option(option_name, param, desc)->default_function([&param]() -> std::string {
       return param ? "true" : "false";
@@ -118,7 +134,7 @@ CLI::Option* add_option_function(CLI::App&                            app,
                                  const std::function<void(const T&)>& func,
                                  const std::string&                   desc)
 {
-  auto* opt = app.get_option_no_throw(option_name);
+  auto* opt = app.get_option_no_throw(get_first_option_name(option_name));
   if (!opt) {
     return app.add_option_function<T>(option_name, func, desc)->run_callback_for_default();
   }
@@ -150,7 +166,7 @@ inline CLI::Option* add_option_cell(CLI::App&                                   
                                     const std::function<void(const cli11_cell&)>& func,
                                     const std::string&                            desc)
 {
-  auto* opt = app.get_option_no_throw(option_name);
+  auto* opt = app.get_option_no_throw(get_first_option_name(option_name));
   if (!opt) {
     return app.add_option_function<std::vector<std::string>>(option_name, func, desc);
   }

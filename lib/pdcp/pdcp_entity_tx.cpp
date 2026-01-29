@@ -14,7 +14,6 @@
 #include "ocudu/instrumentation/traces/up_traces.h"
 #include "ocudu/rohc/rohc_compressor.h"
 #include "ocudu/rohc/rohc_factory.h"
-#include "ocudu/rohc/rohc_support.h"
 #include "ocudu/support/bit_encoding.h"
 #include "ocudu/support/executors/execution_context_description.h"
 #include "ocudu/support/ocudu_assert.h"
@@ -87,9 +86,6 @@ pdcp_entity_tx::pdcp_entity_tx(uint32_t                        ue_index,
             break;
           }
         }
-      }
-      if (!rohc::rohc_supported()) {
-        report_error("ROHC is not not supported. {}", cfg);
       }
     }
   }

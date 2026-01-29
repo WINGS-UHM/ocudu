@@ -370,8 +370,11 @@ void f1ap_cu_impl::handle_initial_ul_rrc_message(const asn1::f1ap::init_ul_rrc_m
   }
 
   // Forward RRC container.
-  f1c_initial_ul_bearer_handler* bearer = ue_ctxt_list[resp->ue_index].get_ul_bearer_manager().get_srb0();
+  std::variant<f1c_initial_ul_bearer_handler*, f1c_ul_bearer_handler*> bearer_var =
+      ue_ctxt_list[resp->ue_index].get_ul_bearer_manager().get_srb(srb_id_t::srb0);
 
+  ocudu_assert(std::holds_alternative<f1c_initial_ul_bearer_handler*>(bearer_var), "Incorrect SRB type for SRB0");
+  auto* bearer = std::get<f1c_initial_ul_bearer_handler*>(bearer_var);
   ocudu_assert(bearer, "SRB0 should be always active");
   bearer->handle_initial_ul_rrc_message(msg->rrc_container.copy(), crnti);
 }
@@ -386,7 +389,21 @@ void f1ap_cu_impl::handle_ul_rrc_message(const asn1::f1ap::ul_rrc_msg_transfer_s
     return;
   }
 
-  f1c_ul_bearer_handler* bearer = ue_ctxt->get_ul_bearer_manager().get_srb(int_to_srb_id(msg->srb_id));
+  if (int_to_srb_id(msg->srb_id) == srb_id_t::srb0) {
+    logger.warning("cu_ue={} du_ue={}: Dropping \"ULRRCMessageTransfer\". Using SRB0 for non-initial UL RRC message",
+                   msg->gnb_cu_ue_f1ap_id,
+                   msg->gnb_du_ue_f1ap_id);
+    return;
+  }
+
+  std::variant<f1c_initial_ul_bearer_handler*, f1c_ul_bearer_handler*> bearer_var =
+      ue_ctxt->get_ul_bearer_manager().get_srb(int_to_srb_id(msg->srb_id));
+
+  ocudu_assert(std::holds_alternative<f1c_ul_bearer_handler*>(bearer_var),
+               "Incorrect SRB type for {}",
+               int_to_srb_id(msg->srb_id));
+
+  auto* bearer = std::get<f1c_ul_bearer_handler*>(bearer_var);
   if (bearer == nullptr) {
     logger.warning("cu_ue={} du_ue={}: Dropping \"ULRRCMessageTransfer\". Cause: SRB{} has not been activated",
                    msg->gnb_cu_ue_f1ap_id,

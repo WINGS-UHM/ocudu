@@ -14,6 +14,7 @@
 #include "ocudu/adt/slotted_array.h"
 #include "ocudu/ran/rb_id.h"
 #include "ocudu/ran/rnti.h"
+#include <variant>
 
 namespace ocudu::ocucp {
 
@@ -53,24 +54,23 @@ public:
   /// Activate SRB2.
   void activate_srb2(f1ap_ul_dcch_notifier& f1ap_srb2_notifier);
 
-  /// Returns a pointer to the SRB bearer handler, or nullptr if the SRB has not been activated.
-  f1c_initial_ul_bearer_handler* get_srb0() { return f1c_initial_ul_bearer.get(); }
-
-  /// Returns a pointer to the SRB bearer handler, or nullptr if the SRB has not been activated.
-  f1c_ul_bearer_handler* get_srb(srb_id_t srb_id)
+  /// Is SRB active.
+  bool is_srb_active(srb_id_t srb_id)
   {
-    report_error_if_not(srb_id != srb_id_t::srb0, "Cannnot obtain SRB0");
-    if (!f1c_ul_bearers.contains(srb_id_to_uint(srb_id))) {
-      return nullptr;
+    if (srb_id == srb_id_t::srb0) {
+      return f1c_initial_ul_bearer != nullptr;
     }
-    return f1c_ul_bearers[srb_id_to_uint(srb_id)].get();
+    return f1c_ul_bearers.contains(srb_id_to_uint(srb_id));
   }
 
   /// Returns a pointer to the SRB bearer handler, or nullptr if the SRB has not been activated.
-  const f1c_ul_bearer_handler* get_srb(srb_id_t srb_id) const
+  std::variant<f1c_initial_ul_bearer_handler*, f1c_ul_bearer_handler*> get_srb(srb_id_t srb_id)
   {
+    if (srb_id == srb_id_t::srb0) {
+      return f1c_initial_ul_bearer.get();
+    }
     if (!f1c_ul_bearers.contains(srb_id_to_uint(srb_id))) {
-      return nullptr;
+      return (f1c_ul_bearer_handler*)nullptr;
     }
     return f1c_ul_bearers[srb_id_to_uint(srb_id)].get();
   }

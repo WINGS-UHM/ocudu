@@ -68,8 +68,14 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.tdd_ul_dl_cfg_common = du_cfg.tdd_ul_dl_cfg_common;
   sched_req.nof_beams            = 1;
   // NTN parameters.
-  sched_req.ntn_cs_koffset = du_cfg.ntn_cs_koffset.count() * get_nof_slots_per_subframe(du_cfg.scs_common);
-  sched_req.ul_harq_mode_b = du_cfg.ul_harq_mode_b;
+  if (du_cfg.ntn_params.has_value()) {
+    sched_req.ntn_cs_koffset =
+        du_cfg.ntn_params->cell_specific_koffset.count() * get_nof_slots_per_subframe(du_cfg.scs_common);
+    sched_req.ul_harq_mode_b = du_cfg.ntn_params->ul_harq_mode_b;
+  } else {
+    sched_req.ntn_cs_koffset = 0;
+    sched_req.ul_harq_mode_b = false;
+  }
 
   sched_req.coreset0     = du_cfg.coreset0_idx;
   sched_req.searchspace0 = du_cfg.searchspace0_idx;

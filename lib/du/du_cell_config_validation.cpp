@@ -10,6 +10,7 @@
 
 #include "ocudu/du/du_cell_config_validation.h"
 #include "ocudu/asn1/rrc_nr/serving_cell.h"
+#include "ocudu/asn1/rrc_nr/sys_info.h"
 #include "ocudu/du/du_update_config_helpers.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
@@ -772,6 +773,37 @@ static check_outcome check_prach_config(const du_cell_config& cell_cfg)
   return {};
 }
 
+/// Validates NTN cell configuration parameters.
+static check_outcome check_ntn_config(const du_cell_config& cell_cfg)
+{
+  if (!cell_cfg.ntn_params.has_value()) {
+    return {}; // NTN not configured, skip validation
+  }
+
+  const auto& ntn = cell_cfg.ntn_params.value();
+
+  CHECK_EQ_OR_ABOVE(ntn.cell_specific_koffset.count(), 1, "cell_specific_koffset");
+  CHECK_EQ_OR_BELOW(ntn.cell_specific_koffset.count(), 1023, "cell_specific_koffset");
+
+  if (ntn.k_mac.has_value()) {
+    CHECK_EQ_OR_ABOVE(ntn.k_mac.value(), 1, "k_mac");
+    CHECK_EQ_OR_BELOW(ntn.k_mac.value(), 512, "k_mac");
+  }
+
+  if (ntn.ntn_ul_sync_validity_dur.has_value()) {
+    const bool valid_sync_dur = is_valid_enum_number<asn1::rrc_nr::ntn_cfg_r17_s::ntn_ul_sync_validity_dur_r17_e_>(
+        ntn.ntn_ul_sync_validity_dur.value());
+    CHECK_TRUE(valid_sync_dur, "Invalid ntn_ul_sync_validity_dur value={}", ntn.ntn_ul_sync_validity_dur.value());
+  }
+
+  if (ntn.epoch_time.has_value()) {
+    CHECK_EQ_OR_BELOW(ntn.epoch_time->sfn, 1023, "epoch_time.sfn");
+    CHECK_EQ_OR_BELOW(ntn.epoch_time->subframe_number, 9, "epoch_time.subframe_number");
+  }
+
+  return {};
+}
+
 check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
 {
   CHECK_EQ_OR_BELOW(cell_cfg.pci, MAX_PCI, "cell PCI");
@@ -794,6 +826,7 @@ check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
       cell_cfg.ue_ded_serv_cell_cfg, cell_cfg.tdd_ul_dl_cfg_common, cell_cfg.ul_cfg_common));
   HANDLE_ERROR(check_dl_config_dedicated(cell_cfg));
   HANDLE_ERROR(check_ul_config_dedicated(cell_cfg));
+  HANDLE_ERROR(check_ntn_config(cell_cfg));
   // TODO: Remaining.
   return {};
 }

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/mac/config/mac_cell_group_params.h"
+#include "ocudu/ntn/ntn_cell_params.h"
 #include "ocudu/ran/carrier_configuration.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pci.h"
@@ -100,12 +101,8 @@ struct du_cell_config {
   /// Parameters for SRS-Config generation.
   srs_builder_params srs_cfg;
 
-  /// Defines the maximum allowable channel delay in slots when running in NTN mode. The unit is number of slots for a
-  /// given subcarrier spacing of 15 kHz (i.e., milliseconds). See TS38.300 section 16.14.2.
-  std::chrono::milliseconds ntn_cs_koffset = std::chrono::milliseconds(0);
-
-  /// Whether UL HARQ Mode B is enabled for this NTN cell (if there is at least one UL HARQ process in mode B).
-  bool ul_harq_mode_b = false;
+  /// NTN configuration for this cell. When empty, the cell operates in terrestrial mode.
+  std::optional<ntn_cell_params> ntn_params;
 
   /// PUSCH Maximum of transmission layers. Limits the PUSCH maximum rank the UE is configured with.
   unsigned pusch_max_nof_layers = 1;

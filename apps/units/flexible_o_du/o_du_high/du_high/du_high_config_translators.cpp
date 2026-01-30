@@ -370,6 +370,27 @@ generate_du_slicing_rrm_policy_config(span<const std::string>                   
   return rrm_policy_cfgs;
 }
 
+static ntn_cell_params make_ntn_cell_params(const ntn_config& cfg, bool ul_harq_mode_b)
+{
+  ntn_cell_params ntn;
+  ntn.cell_specific_koffset    = cfg.cell_specific_koffset;
+  ntn.k_mac                    = cfg.k_mac;
+  ntn.ntn_ul_sync_validity_dur = cfg.ntn_ul_sync_validity_dur;
+  ntn.epoch_time               = cfg.epoch_time;
+  ntn.ta_info                  = cfg.ta_info;
+  ntn.polarization             = cfg.polarization;
+  ntn.ta_report                = cfg.ta_report;
+  if (std::holds_alternative<ecef_coordinates_t>(cfg.ephemeris_info)) {
+    ntn.ephemeris_info = cfg.ephemeris_info;
+  } else if (std::holds_alternative<orbital_coordinates_t>(cfg.ephemeris_info)) {
+    ntn.ephemeris_info = cfg.ephemeris_info;
+  }
+  // Derived from PUSCH config
+  ntn.ul_harq_mode_b = ul_harq_mode_b;
+
+  return ntn;
+}
+
 std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_unit_config& config)
 {
   std::vector<odu::du_cell_config> out_cfg;
@@ -662,10 +683,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             : std::min({cell.cell.nof_antennas_ul, phy_capabilities.max_nof_layers, cell.cell.pusch_cfg.max_rank});
 
     if (cell.cell.ntn_cfg.has_value()) {
-      out_cell.ntn_cs_koffset = cell.cell.ntn_cfg.value().cell_specific_koffset;
+      out_cell.ntn_params = make_ntn_cell_params(cell.cell.ntn_cfg.value(), cell.cell.pusch_cfg.harq_mode_b.any());
     }
-
-    out_cell.ul_harq_mode_b = cell.cell.pusch_cfg.harq_mode_b.any();
 
     // Parameters for PUCCH-ConfigCommon.
     if (not out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {

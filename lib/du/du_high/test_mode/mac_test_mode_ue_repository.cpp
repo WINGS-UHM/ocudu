@@ -49,14 +49,14 @@ du_ue_index_t mac_test_mode_ue_repository::rnti_to_du_ue_idx(rnti_t rnti) const
 
 const sched_ue_config_request& mac_test_mode_ue_repository::get_sched_ue_cfg_request(rnti_t rnti) const
 {
-  return cells[get_cell_index(rnti)]->rnti_to_ue_info_lookup.at(rnti).sched_ue_cfg_req;
+  return *cells[get_cell_index(rnti)]->rnti_to_ue_info_lookup.at(rnti).sched_ue_cfg_req;
 }
 
 const sched_ue_config_request* mac_test_mode_ue_repository::find_sched_ue_cfg_request(rnti_t rnti) const
 {
   unsigned cell_idx = get_cell_index(rnti);
   auto     it       = cells[cell_idx]->rnti_to_ue_info_lookup.find(rnti);
-  return it != cells[cell_idx]->rnti_to_ue_info_lookup.end() ? &it->second.sched_ue_cfg_req : nullptr;
+  return it != cells[cell_idx]->rnti_to_ue_info_lookup.end() ? it->second.sched_ue_cfg_req.get() : nullptr;
 }
 
 bool mac_test_mode_ue_repository::is_msg4_rxed(rnti_t rnti) const
@@ -87,11 +87,12 @@ void mac_test_mode_ue_repository::add_ue(rnti_t                         rnti,
   ocudu_assert(is_cell_test_ue(pcell_index, rnti), "Invalid rnti={} for cell={}", rnti, fmt::underlying(pcell_index));
 
   // Dispatch creation of UE to du_cell thread.
-  while (not event_handler.schedule(pcell_index, [this, rnti, ue_idx, cfg = sched_ue_cfg_req]() mutable {
-    const du_cell_index_t cellidx = cfg.cells.value()[0].serv_cell_cfg.cell_index;
-    cells[cellidx]->rnti_to_ue_info_lookup.emplace(
-        rnti, test_ue_info{.ue_idx = ue_idx, .sched_ue_cfg_req = std::move(cfg), .msg4_rx_flag = false});
-  })) {
+  while (not event_handler.schedule(
+      pcell_index, [this, rnti, ue_idx, cfg = std::make_unique<sched_ue_config_request>(sched_ue_cfg_req)]() mutable {
+        const du_cell_index_t cellidx = cfg->cells.value()[0].serv_cell_cfg.cell_index;
+        cells[cellidx]->rnti_to_ue_info_lookup.emplace(
+            rnti, test_ue_info{.ue_idx = ue_idx, .sched_ue_cfg_req = std::move(cfg), .msg4_rx_flag = false});
+      })) {
     ocudulog::fetch_basic_logger("MAC").warning("Failed to add test mode UE. Retrying...");
   }
 }

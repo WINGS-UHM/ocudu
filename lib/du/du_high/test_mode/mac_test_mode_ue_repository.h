@@ -62,9 +62,9 @@ private:
       concurrent_queue<unique_task, concurrent_queue_policy::lockfree_mpmc, concurrent_queue_wait_policy::non_blocking>;
 
   struct test_ue_info {
-    du_ue_index_t           ue_idx;
-    sched_ue_config_request sched_ue_cfg_req;
-    bool                    msg4_rx_flag;
+    du_ue_index_t                            ue_idx;
+    std::unique_ptr<sched_ue_config_request> sched_ue_cfg_req;
+    bool                                     msg4_rx_flag;
   };
 
   struct cell_info {

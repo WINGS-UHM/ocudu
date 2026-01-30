@@ -21,10 +21,9 @@ class mac_test_mode_event_handler
 {
   static constexpr unsigned queue_size = 128U;
 
-  using cell_event_queue =
-      concurrent_queue<unique_task, concurrent_queue_policy::lockfree_mpmc, concurrent_queue_wait_policy::non_blocking>;
-
 public:
+  using task_type = unique_function<void(), default_unique_task_buffer_size, true>;
+
   mac_test_mode_event_handler(unsigned nof_cells)
   {
     cells.reserve(nof_cells);
@@ -33,7 +32,7 @@ public:
     }
   }
 
-  bool schedule(du_cell_index_t cell_index, unique_task t)
+  bool schedule(du_cell_index_t cell_index, task_type t)
   {
     ocudu_assert(cell_index < cells.size(), "Invalid cell index {}", fmt::underlying(cell_index));
     return cells[cell_index]->try_push(std::move(t));
@@ -44,13 +43,15 @@ public:
     ocudu_assert(cell_index < cells.size(), "Invalid cell index {}", fmt::underlying(cell_index));
     auto& c = *cells[cell_index];
 
-    unique_task task;
+    task_type task;
     while (c.try_pop(task)) {
       task();
     }
   }
 
 private:
+  using cell_event_queue = concurrent_queue<task_type, concurrent_queue_policy::lockfree_mpmc>;
+
   std::vector<std::unique_ptr<cell_event_queue>> cells;
 };
 

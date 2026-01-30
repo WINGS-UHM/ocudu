@@ -11,6 +11,7 @@
 #pragma once
 
 #include "apps/helpers/metrics/metrics_config.h"
+#include "ntn/du_high_unit_cell_ntn_config.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/bs_channel_bandwidth.h"
@@ -19,7 +20,6 @@
 #include "ocudu/ran/gnb_du_id.h"
 #include "ocudu/ran/gnb_id.h"
 #include "ocudu/ran/harq_id.h"
-#include "ocudu/ran/ntn.h"
 #include "ocudu/ran/pcch/pcch_configuration.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/pdcch/search_space.h"

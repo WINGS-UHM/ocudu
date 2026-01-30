@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include "ocudu/ran/ntn.h"
-
 namespace ocudu {
 namespace ocudu_ntn {
 

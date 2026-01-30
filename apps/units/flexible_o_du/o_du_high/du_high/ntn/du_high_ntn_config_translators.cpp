@@ -9,9 +9,9 @@
  */
 
 #include "du_high_ntn_config_translators.h"
+#include "du_high_unit_cell_ntn_config.h"
 #include "ocudu/du/du_high/du_qos_config.h"
 #include "ocudu/du/du_high/du_srb_config.h"
-#include "ocudu/ran/ntn.h"
 #include "ocudu/ran/qos/five_qi.h"
 #include "ocudu/rlc/rlc_config.h"
 

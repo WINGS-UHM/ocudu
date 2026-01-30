@@ -9,7 +9,7 @@
  */
 
 #include "du_high_ntn_config_yaml_writer.h"
-#include "ocudu/ran/ntn.h"
+#include "du_high_unit_cell_ntn_config.h"
 
 using namespace ocudu;
 

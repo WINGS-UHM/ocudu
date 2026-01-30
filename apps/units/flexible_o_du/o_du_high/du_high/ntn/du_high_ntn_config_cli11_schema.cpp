@@ -9,7 +9,7 @@
  */
 
 #include "du_high_ntn_config_cli11_schema.h"
-#include "ocudu/ran/ntn.h"
+#include "du_high_unit_cell_ntn_config.h"
 #include "ocudu/support/cli11_utils.h"
 
 using namespace ocudu;
@@ -149,7 +149,7 @@ static void configure_cli11_ntn_args(CLI::App& app, du_high_unit_cell_ntn_config
 void ocudu::configure_cli11_cell_ntn_args(CLI::App& app, std::optional<du_high_unit_cell_ntn_config>& cell_ntn_params)
 {
   static du_high_unit_cell_ntn_config ntn_cfg;
-  CLI::App*         ntn_subcmd = add_subcommand(app, "ntn", "NTN configuration")->configurable();
+  CLI::App*                           ntn_subcmd = add_subcommand(app, "ntn", "NTN configuration")->configurable();
 
   if (not cell_ntn_params.has_value()) {
     // Configure NTN options.

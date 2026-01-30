@@ -52,26 +52,24 @@ public:
   }
 
   void connect_ue_with_rrc_inactive_support(
-      std::optional<uint64_t>                                   five_g_s_tmsi = std::nullopt,
       std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive =
           ngap_core_network_assist_info_for_inactive{.ue_id_idx_value = 0x64c0})
   {
     // Connect UE 0x4601 with RRC inactive support.
-    report_fatal_error_if_not(
-        attach_ue(du_idx,
-                  cu_up_idx,
-                  du_ue_id,
-                  crnti,
-                  amf_ue_id,
-                  cu_up_e1ap_id,
-                  psi,
-                  drb_id_t::drb1,
-                  qfi,
-                  test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete(1, five_g_s_tmsi)),
-                  make_byte_buffer("00070e00cc6fcda5").value(),
-                  std::move(cn_assist_info_for_inactive),
-                  true),
-        "Failed to attach UE with RRC Inactive support");
+    report_fatal_error_if_not(attach_ue(du_idx,
+                                        cu_up_idx,
+                                        du_ue_id,
+                                        crnti,
+                                        amf_ue_id,
+                                        cu_up_e1ap_id,
+                                        psi,
+                                        drb_id_t::drb1,
+                                        qfi,
+                                        test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete()),
+                                        make_byte_buffer("00070e00cc6fcda5").value(),
+                                        std::move(cn_assist_info_for_inactive),
+                                        true),
+                              "Failed to attach UE with RRC Inactive support");
     ue_ctx = this->find_ue_context(du_idx, du_ue_id);
     report_fatal_error_if_not(ue_ctx != nullptr,
                               "Failed to find UE context after attaching UE with RRC Inactive support");
@@ -572,42 +570,19 @@ TEST_F(cu_cp_rrc_inactive_test,
 
 TEST_F(
     cu_cp_rrc_inactive_test,
-    when_ue_level_inactivity_message_received_and_5g_s_tmsi_and_cn_assist_info_for_inactive_are_not_present_then_ue_is_not_set_to_rrc_inactive)
+    when_ue_level_inactivity_message_received_and_cn_assist_info_for_inactive_is_not_present_then_ue_is_not_set_to_rrc_inactive)
 {
   // Connect UE with RRC Inactive support.
-  connect_ue_with_rrc_inactive_support(std::nullopt, std::nullopt);
+  connect_ue_with_rrc_inactive_support(std::nullopt);
 
   // Inject Inactivity Notification and await UE Context Release Request.
   ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_ue_context_release_request());
 }
 
-TEST_F(
-    cu_cp_rrc_inactive_test,
-    when_ue_level_inactivity_message_received_only_cn_assist_info_for_inactive_present_then_ue_is_set_to_rrc_inactive)
+TEST_F(cu_cp_rrc_inactive_test, when_ue_level_inactivity_message_received_then_ue_is_set_to_rrc_inactive)
 {
   // Connect UE with RRC Inactive support.
   connect_ue_with_rrc_inactive_support();
-
-  // Inject Inactivity Notification and await Bearer Context Modification Request.
-  ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());
-
-  // Send Bearer Context Modification Response and await UE Context Release Command.
-  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ue_context_release_command());
-
-  // Send F1AP UE Context Release Complete.
-  ASSERT_TRUE(send_f1ap_ue_context_release_complete());
-
-  // Check metrics for RRC inactive transition.
-  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
-}
-
-TEST_F(cu_cp_rrc_inactive_test,
-       when_ue_level_inactivity_message_received_and_only_5g_s_tmsi_is_present_then_ue_is_set_to_rrc_inactive)
-{
-  // Connect UE with RRC Inactive support.
-  connect_ue_with_rrc_inactive_support(0x0040c000011b, std::nullopt);
 
   // Inject Inactivity Notification and await Bearer Context Modification Request.
   ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());

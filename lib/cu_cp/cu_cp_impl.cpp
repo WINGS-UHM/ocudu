@@ -233,16 +233,13 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
     std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive =
         ngap->get_cn_assist_info_for_inactive(msg.ue_index);
 
-    // Get 5G-S-TMSI if present.
-    std::optional<cu_cp_five_g_s_tmsi> five_g_s_tmsi = ue->get_rrc_ue()->get_five_g_s_tmsi();
-
     // To set the UE as inactive, the following conditions must be met:
     // 1. RRC Inactive must be configured in CU-CP.
     // 2. RRC Inactive must be supported by the UE.
-    // 3. Either a 5G-S-TMSI from the UE must have been received during RRC Setup or the Core Network Assist Info for
-    //    Inactive from the AMF must be present. Otherwise the RAN Paging procedure cannot be performed.
+    // 3. The Core Network Assist Info for Inactive from the AMF must be present.
+    // Otherwise the RAN Paging procedure cannot be performed.
     if (cfg.ue.enable_rrc_inactive && ue->get_rrc_ue()->is_rrc_inactive_supported() &&
-        (cn_assist_info_for_inactive.has_value() || five_g_s_tmsi.has_value())) {
+        cn_assist_info_for_inactive.has_value()) {
       // Set UE as inactive.
       std::optional<i_rntis_t> i_rntis = ue_mng.set_inactive(ue->get_ue_index());
       if (i_rntis.has_value()) {
@@ -333,21 +330,18 @@ void cu_cp_impl::handle_dl_data_notification(ue_index_t ue_index)
   std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive =
       ngap->get_cn_assist_info_for_inactive(ue_index);
 
+  if (!cn_assist_info_for_inactive.has_value()) {
+    logger.warning("ue={}: Dropping DL Data Notification. Core Network Assist Info for Inactive not available",
+                   ue_index);
+    return;
+  }
+
   // Fill paging message.
   cu_cp_paging_message cu_cp_paging_msg;
 
-  if (cn_assist_info_for_inactive.has_value()) {
-    cu_cp_paging_msg.ue_id_idx_value = cn_assist_info_for_inactive->ue_id_idx_value;
-    cu_cp_paging_msg.paging_drx      = cn_assist_info_for_inactive->ue_specific_drx;
-  } else {
-    std::optional<cu_cp_five_g_s_tmsi> five_g_s_tmsi = ue->get_rrc_ue()->get_five_g_s_tmsi();
-    if (five_g_s_tmsi.has_value()) {
-      // UE Identity Index value is defined as: UE_ID 5G-S-TMSI mod 1024 (see TS 38.304 section 7.1).
-      cu_cp_paging_msg.ue_id_idx_value = five_g_s_tmsi->to_number() % 1024;
-    }
-  }
-
-  cu_cp_paging_msg.ue_paging_id = full_i_rnti.value();
+  cu_cp_paging_msg.ue_id_idx_value = cn_assist_info_for_inactive->ue_id_idx_value;
+  cu_cp_paging_msg.paging_drx      = cn_assist_info_for_inactive->ue_specific_drx;
+  cu_cp_paging_msg.ue_paging_id    = full_i_rnti.value();
 
   if (!cu_cp_paging_msg.paging_drx.has_value()) {
     // Use RAN configured paging DRX if not available from CN assist info.

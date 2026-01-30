@@ -15,6 +15,9 @@
   image: python:${PYTHON_VERSION}-alpine # sh entrypoint
   variables:
     PYTHON_VERSION: "3.14"
+    TWINE_USERNAME: "gitlab-ci-token"
+    TWINE_PASSWORD: "$CI_JOB_TOKEN"
+    TWINE_REPO: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi"
 
 .python_publish:
   extends: .python_base
@@ -32,10 +35,7 @@
     - if: $ON_MR
   script:
     - &setup_env_variables |
-      export TWINE_PASSWORD="$CI_JOB_TOKEN"
-      export TWINE_USERNAME="gitlab-ci-token"
-      export TWINE_REPO="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi"
-      export PIP_EXTRA_INDEX_URL="https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/pypi/simple"
+      export PIP_EXTRA_INDEX_URL="https://${TWINE_USERNAME}:${TWINE_PASSWORD}@${TWINE_REPO#https://}/simple"
     - pip install 'tox<5'
     - cd $PY_DIR
     - tox -r
@@ -60,7 +60,6 @@
   image: ubuntu:22.04
   variables:
     CIBW_ENVIRONMENT_PASS_LINUX: ""
-    TWINE_PASSWORD: $CI_JOB_TOKEN
     # See https://github.com/docker-library/docker/pull/166
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_DRIVER: overlay2

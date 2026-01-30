@@ -27,6 +27,7 @@ variables:
     OVERWRITE: "false"
     ATTESTATION_FILE: ""
     COSIGN_YES: "true" # Used by Cosign to skip confirmation prompts for non-destructive operations
+    REGISTRY_URI: ${CI_REGISTRY_IMAGE}
   id_tokens:
     SIGSTORE_ID_TOKEN: # Used by Cosign to get certificate from Fulcio
       aud: sigstore
@@ -50,7 +51,7 @@ variables:
       [ -z "$CONTEXT" ] && CONTEXT="${CI_PROJECT_DIR}"
       [ -z "$DOCKERFILE" ] && DOCKERFILE="${CONTEXT}"
       [ -z "$VERSION" ] && VERSION=$(date +%Y)_$(date +%m)_$(date +%d)
-      IMAGE_NAME="${CI_REGISTRY_IMAGE}/${NAME}"
+      IMAGE_NAME="${REGISTRY_URI}/${NAME}"
       IMAGE_NAME_VERSION="${IMAGE_NAME}:${VERSION}"
       if [ -n "$BUILD_ARGS" ]; then
         BUILD_ARGS="--opt build-arg:$(echo $BUILD_ARGS | sed 's/;/ --opt build-arg:/g')"
@@ -123,17 +124,18 @@ variables:
     GIT_STRATEGY: none
     NAME: none
     VERSION: none
+    REGISTRY_URI: ${CI_REGISTRY_IMAGE}
   before_script:
     - *docker_login
   script:
     - *docker_login # Setup duplicated on purpose so both before_script and script can be overwritten
     - |
       docker manifest create \
-        ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION} \
-        --amend ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}-amd64 \
-        --amend ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}-arm64
-      docker manifest push ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}
-      echo "Image ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION} pushed"
+        ${REGISTRY_URI}/${NAME}:${VERSION} \
+        --amend ${REGISTRY_URI}/${NAME}:${VERSION}-amd64 \
+        --amend ${REGISTRY_URI}/${NAME}:${VERSION}-arm64
+      docker manifest push ${REGISTRY_URI}/${NAME}:${VERSION}
+      echo "Image ${REGISTRY_URI}/${NAME}:${VERSION} pushed"
 
 .check image exists for all supported ubuntu versions:
   image: ${OCUDU_REGISTRY_URI}/buildkit-cli:$BUILDKIT_CLI_VERSION

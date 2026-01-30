@@ -102,8 +102,7 @@ struct ntn_polarization_t {
   std::optional<polarization_type> ul;
 };
 
-struct ntn_config {
-  /// SIB 19 values
+struct du_high_unit_cell_ntn_config {
   /// Reference location of the serving cell in geodetic coordinates format (in degrees).
   std::optional<geodetic_coordinates_t> reference_location;
   /// Distance from the serving cell reference location, as defined in TS 38.304. Each step represents 50m.

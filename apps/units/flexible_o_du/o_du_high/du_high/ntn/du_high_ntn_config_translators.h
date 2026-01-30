@@ -20,12 +20,14 @@ struct du_qos_config;
 struct du_srb_config;
 } // namespace odu
 
-struct ntn_config;
+struct du_high_unit_cell_ntn_config;
 
 /// Applies NTN-specific overrides to DU SRB configuration based on \c ntn_cfg.
-void ntn_augment_du_srb_config(const ntn_config& ntn_cfg, std::map<srb_id_t, odu::du_srb_config>& srb_cfgs);
+void ntn_augment_du_srb_config(const du_high_unit_cell_ntn_config&     ntn_cfg,
+                               std::map<srb_id_t, odu::du_srb_config>& srb_cfgs);
 
 /// Applies NTN-specific overrides to DU QoS configuration based on \c ntn_cfg.
-void ntn_augment_du_qos_config(const ntn_config& ntn_cfg, std::map<five_qi_t, odu::du_qos_config>& qos_cfgs);
+void ntn_augment_du_qos_config(const du_high_unit_cell_ntn_config&      ntn_cfg,
+                               std::map<five_qi_t, odu::du_qos_config>& qos_cfgs);
 
 } // namespace ocudu

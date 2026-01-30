@@ -17,7 +17,7 @@
 
 using namespace ocudu;
 
-static void ntn_augment_rlc_config(const ntn_config& ntn_cfg, rlc_config& rlc)
+static void ntn_augment_rlc_config(const du_high_unit_cell_ntn_config& ntn_cfg, rlc_config& rlc)
 {
   if (ntn_cfg.cell_specific_koffset.count() > 1000) {
     rlc.am.tx.t_poll_retx = std::max(rlc.am.tx.t_poll_retx, 4000);
@@ -40,7 +40,8 @@ static void ntn_augment_rlc_config(const ntn_config& ntn_cfg, rlc_config& rlc)
   }
 }
 
-void ocudu::ntn_augment_du_srb_config(const ntn_config& ntn_cfg, std::map<srb_id_t, odu::du_srb_config>& srb_cfgs)
+void ocudu::ntn_augment_du_srb_config(const du_high_unit_cell_ntn_config&     ntn_cfg,
+                                      std::map<srb_id_t, odu::du_srb_config>& srb_cfgs)
 {
   // NTN is enabled, so we need to augment the RLC parameters for the NTN cell.
   for (auto& srb : srb_cfgs) {
@@ -48,7 +49,8 @@ void ocudu::ntn_augment_du_srb_config(const ntn_config& ntn_cfg, std::map<srb_id
   }
 }
 
-void ocudu::ntn_augment_du_qos_config(const ntn_config& ntn_cfg, std::map<five_qi_t, odu::du_qos_config>& qos_cfgs)
+void ocudu::ntn_augment_du_qos_config(const du_high_unit_cell_ntn_config&      ntn_cfg,
+                                      std::map<five_qi_t, odu::du_qos_config>& qos_cfgs)
 {
   // NTN is enabled, so we need to augment the QoS parameters for the NTN cell.
   for (auto& qos : qos_cfgs) {

@@ -413,7 +413,7 @@ static bool validate_pusch_cell_unit_config(const du_high_unit_pusch_config& con
   return true;
 }
 
-static bool validate_ntn_config(const ntn_config& ntn_cfg)
+static bool validate_ntn_config(const du_high_unit_cell_ntn_config& ntn_cfg)
 {
   bool valid = true;
 

@@ -14,9 +14,9 @@
 
 namespace ocudu {
 
-struct ntn_config;
+struct du_high_unit_cell_ntn_config;
 
 /// Fills the given node with the NTN configuration values.
-void fill_ntn_config_in_yaml_schema(YAML::Node& node, const ntn_config& config);
+void fill_ntn_config_in_yaml_schema(YAML::Node& node, const du_high_unit_cell_ntn_config& config);
 
 } // namespace ocudu

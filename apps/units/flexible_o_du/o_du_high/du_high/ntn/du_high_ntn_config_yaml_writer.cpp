@@ -13,7 +13,7 @@
 
 using namespace ocudu;
 
-void ocudu::fill_ntn_config_in_yaml_schema(YAML::Node& node, const ntn_config& config)
+void ocudu::fill_ntn_config_in_yaml_schema(YAML::Node& node, const du_high_unit_cell_ntn_config& config)
 {
   auto ntn_node = node["ntn"];
 

@@ -16,7 +16,7 @@ using namespace ocudu;
 
 #ifndef OCUDU_HAS_ENTERPRISE_NTN
 
-void ocudu::configure_cli11_advanced_ntn_args(CLI::App& app, ntn_config& config)
+void ocudu::configure_cli11_advanced_ntn_args(CLI::App& app, du_high_unit_cell_ntn_config& config)
 {
   // Advanced NTN config parameters are not implemented.
 }
@@ -90,7 +90,7 @@ static void configure_cli11_ephemeris_info_orbital(CLI::App& app, orbital_coordi
       ->check(CLI::Range(0.0, 6.28407400155));
 }
 
-static void configure_cli11_ntn_args(CLI::App& app, ntn_config& config)
+static void configure_cli11_ntn_args(CLI::App& app, du_high_unit_cell_ntn_config& config)
 {
   add_option(
       app, "--cell_specific_koffset", config.cell_specific_koffset, "Cell-specific k-offset to be used for NTN [ms].")
@@ -146,9 +146,9 @@ static void configure_cli11_ntn_args(CLI::App& app, ntn_config& config)
   configure_cli11_advanced_ntn_args(app, config);
 }
 
-void ocudu::configure_cli11_cell_ntn_args(CLI::App& app, std::optional<ntn_config>& cell_ntn_params)
+void ocudu::configure_cli11_cell_ntn_args(CLI::App& app, std::optional<du_high_unit_cell_ntn_config>& cell_ntn_params)
 {
-  static ntn_config ntn_cfg;
+  static du_high_unit_cell_ntn_config ntn_cfg;
   CLI::App*         ntn_subcmd = add_subcommand(app, "ntn", "NTN configuration")->configurable();
 
   if (not cell_ntn_params.has_value()) {

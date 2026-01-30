@@ -1097,7 +1097,7 @@ struct du_high_unit_base_cell_config {
   /// Network slice configuration.
   std::vector<du_high_unit_cell_slice_config> slice_cfg;
   /// NTN configuration.
-  std::optional<ntn_config> ntn_cfg;
+  std::optional<du_high_unit_cell_ntn_config> ntn_cfg;
   /// Radio Link Monitoring configuration.
   du_high_unit_rlm_config rlm_cfg;
 };

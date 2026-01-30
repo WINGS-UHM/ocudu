@@ -130,7 +130,7 @@ generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_proc
 }
 
 /// Converts app-level ntn_config to library-level ntn_assistance_info.
-static ocudu_ntn::ntn_assistance_info convert_ntn_config_to_assistance_info(const ntn_config& cfg)
+static ocudu_ntn::ntn_assistance_info convert_ntn_config_to_assistance_info(const du_high_unit_cell_ntn_config& cfg)
 {
   ocudu_ntn::ntn_assistance_info info = {};
 

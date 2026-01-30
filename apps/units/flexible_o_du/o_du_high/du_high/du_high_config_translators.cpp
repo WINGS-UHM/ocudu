@@ -243,7 +243,7 @@ static sib16_info create_sib16_info(const du_high_unit_sib_config::sib16_config&
   return sib16;
 }
 
-static sib19_info create_sib19_info(const ntn_config& config)
+static sib19_info create_sib19_info(const du_high_unit_cell_ntn_config& config)
 {
   sib19_info sib19;
   sib19.distance_thres           = config.distance_threshold;
@@ -370,7 +370,7 @@ generate_du_slicing_rrm_policy_config(span<const std::string>                   
   return rrm_policy_cfgs;
 }
 
-static ntn_cell_params make_ntn_cell_params(const ntn_config& cfg, bool ul_harq_mode_b)
+static ntn_cell_params make_ntn_cell_params(const du_high_unit_cell_ntn_config& cfg, bool ul_harq_mode_b)
 {
   ntn_cell_params ntn;
   ntn.cell_specific_koffset    = cfg.cell_specific_koffset;

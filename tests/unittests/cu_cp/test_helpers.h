@@ -798,12 +798,6 @@ public:
     return rrc_cell_context{};
   }
 
-  std::optional<cu_cp_five_g_s_tmsi> get_five_g_s_tmsi() const override
-  {
-    logger.info("Received a new request to get 5G-S-TMSI");
-    return cu_cp_five_g_s_tmsi{};
-  }
-
   void update_cell_group_config(byte_buffer cell_group_config) override
   {
     logger.info("Received a new request to update packed cell group config");

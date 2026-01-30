@@ -11,14 +11,14 @@
 #include "lower_phy_baseband_processor.h"
 #include "ocudu/adt/interval.h"
 #include "ocudu/instrumentation/traces/ru_traces.h"
-#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/slot_point_extended.h"
 
 using namespace ocudu;
 
 lower_phy_baseband_processor::lower_phy_baseband_processor(const lower_phy_baseband_processor_configuration& config,
                                                            const lower_phy_baseband_processor_dependencies&  deps) :
   srate(config.srate),
-  nof_samples_per_super_frame(config.srate.to_kHz() * NOF_SFNS * NOF_SUBFRAMES_PER_FRAME),
+  nof_samples_in_all_hyper_frames(config.srate.to_kHz() * NOF_HYPER_SFNS * NOF_SFNS * NOF_SUBFRAMES_PER_FRAME),
   rx_buffer_size(config.rx_buffer_size),
   slot_duration(1000 / pow2(to_numerology_value(config.scs))),
   system_time_throttling_ratio(config.system_time_throttling),

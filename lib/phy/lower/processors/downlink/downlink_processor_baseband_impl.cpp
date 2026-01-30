@@ -100,9 +100,9 @@ downlink_processor_baseband_impl::process(baseband_gateway_timestamp timestamp)
     proc_timestamp_offset -= current_tx_time_offset;
   }
 
-  // Calculate the subframe index.
-  auto i_sf =
-      static_cast<unsigned>((proc_timestamp_offset / nof_samples_per_subframe) % (NOF_SFNS * NOF_SUBFRAMES_PER_FRAME));
+  // Calculate the subframe index within a hyper-system frame.
+  auto i_sf = static_cast<unsigned>((proc_timestamp_offset / nof_samples_per_subframe) %
+                                    (NOF_HYPER_SFNS * NOF_SFNS * NOF_SUBFRAMES_PER_FRAME));
   // Calculate the sample index within the subframe.
   unsigned i_sample_sf = proc_timestamp_offset % nof_samples_per_subframe;
 
@@ -129,14 +129,11 @@ downlink_processor_baseband_impl::process(baseband_gateway_timestamp timestamp)
   unsigned i_sample_slot =
       i_sample_sf - std::accumulate(symbol_sizes_before_slot.begin(), symbol_sizes_before_slot.end(), 0U);
 
-  // Create slot point.
-  slot_point slot(to_numerology_value(scs), i_slot);
-
   // Note that the slot could be equal to the previous slot if tx_time_offset was modified. So, the processor notifies
   // the slot boundary only if no previous slot has been processed before or the new slot is different from the
   // previous.
   pdxch_processor_baseband::slot_result pdxch_baseband_result;
-  if (!previous_slot.has_value() || (*previous_slot != slot)) {
+  if (slot_point_extended slot(scs, i_slot); !previous_slot.has_value() || (*previous_slot != slot)) {
     ocudu_assert(notifier != nullptr, "Timing notifier is not connected.");
     trace_point tp = ru_tracer.now();
     notifier->on_tti_boundary(
@@ -147,7 +144,7 @@ downlink_processor_baseband_impl::process(baseband_gateway_timestamp timestamp)
 
     // Obtain the downlink baseband processing for the slot independently of the sample alignment. This avoids leaving
     // resource grids in the PDxCH processor.
-    pdxch_baseband_result = pdxch_proc_baseband.process_slot({.slot = slot, .sector = sector_id});
+    pdxch_baseband_result = pdxch_proc_baseband.process_slot({.slot = slot.without_hyper_sfn(), .sector = sector_id});
   }
 
   // Handle CFO and metrics if the PDxCH baseband result contains a buffer.

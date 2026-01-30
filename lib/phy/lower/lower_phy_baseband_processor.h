@@ -23,7 +23,6 @@
 #include <future>
 
 namespace ocudu {
-
 /// Collects the parameters necessary to initialize the baseband adaptor.
 struct lower_phy_baseband_processor_configuration {
   /// Sampling rate.
@@ -176,19 +175,20 @@ private:
   /// \brief Subtracts the System Frame Number (SFN) Zero reference time to a given timestamp.
   ///
   /// To avoid an overflow in the substraction, a number of samples is added to the timestamp that results in the same
-  /// SFN and slot.
+  /// hyper-SFN, SFN and slot.
   baseband_gateway_timestamp apply_timestamp_sfn0_ref(baseband_gateway_timestamp timestamp) const
   {
-    // Add the time of a superframe which is 1024 frames to avoid overflow.
+    // Add the time of all the hyper frames to avoid overflow and keep the SLOT.indication continuous in hyper-SFN
+    // number.
     if (timestamp < start_time_sfn0) {
-      timestamp += divide_ceil(start_time_sfn0, nof_samples_per_super_frame) * nof_samples_per_super_frame;
+      timestamp += divide_ceil(start_time_sfn0, nof_samples_in_all_hyper_frames) * nof_samples_in_all_hyper_frames;
     }
 
     return timestamp - start_time_sfn0;
   }
 
   sampling_rate                                                              srate;
-  uint64_t                                                                   nof_samples_per_super_frame;
+  uint64_t                                                                   nof_samples_in_all_hyper_frames;
   unsigned                                                                   rx_buffer_size;
   std::chrono::microseconds                                                  slot_duration;
   float                                                                      system_time_throttling_ratio;
@@ -209,5 +209,4 @@ private:
   std::optional<std::chrono::time_point<std::chrono::high_resolution_clock>> last_tx_time;
   unsigned                                                                   last_tx_buffer_size = 0;
 };
-
 } // namespace ocudu

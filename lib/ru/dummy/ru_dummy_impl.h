@@ -143,7 +143,7 @@ private:
   /// Number of slots is notified in advance of the transmission time.
   const unsigned max_processing_delay_slots;
   /// Current slot.
-  slot_point current_slot;
+  slot_point_extended current_slot;
   /// Radio unit sectors.
   std::vector<std::unique_ptr<ru_dummy_sector>> sectors;
   /// RU dummy metrics collector.

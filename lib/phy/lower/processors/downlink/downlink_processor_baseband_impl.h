@@ -23,6 +23,7 @@
 #include "ocudu/phy/lower/processors/lower_phy_tx_time_offset_controller.h"
 #include "ocudu/phy/lower/sampling_rate.h"
 #include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/support/math/stats.h"
 
 namespace ocudu {
@@ -232,7 +233,7 @@ private:
   /// Baseband buffer pool for transmitting zeros.
   baseband_gateway_buffer_pool buffer_pool;
   /// Previous reported slot.
-  std::optional<slot_point> previous_slot;
+  std::optional<slot_point_extended> previous_slot;
 };
 
 } // namespace ocudu

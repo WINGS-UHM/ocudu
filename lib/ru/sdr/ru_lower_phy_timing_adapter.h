@@ -31,13 +31,13 @@ public:
   // See interface for documentation.
   void on_ul_half_slot_boundary(const lower_phy_timing_context& context) override
   {
-    timing_handler.on_ul_half_slot_boundary(context.slot);
+    timing_handler.on_ul_half_slot_boundary(context.slot.without_hyper_sfn());
   }
 
   // See interface for documentation.
   void on_ul_full_slot_boundary(const lower_phy_timing_context& context) override
   {
-    timing_handler.on_ul_full_slot_boundary(context.slot);
+    timing_handler.on_ul_full_slot_boundary(context.slot.without_hyper_sfn());
   }
 
 private:

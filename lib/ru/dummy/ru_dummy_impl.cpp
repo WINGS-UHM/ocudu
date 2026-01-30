@@ -20,14 +20,13 @@
 
 using namespace ocudu;
 
-static uint64_t get_current_system_slot(std::chrono::microseconds slot_duration,
-                                        uint64_t                  nof_slots_per_hyper_system_frame)
+static uint64_t get_current_system_slot(std::chrono::microseconds slot_duration, uint64_t nof_slots_in_all_hyper_sfns)
 {
   // Get the time since the epoch.
   auto time_since_epoch = std::chrono::duration_cast<std::chrono::microseconds>(
       std::chrono::high_resolution_clock::now().time_since_epoch());
 
-  return (time_since_epoch / slot_duration) % nof_slots_per_hyper_system_frame;
+  return (time_since_epoch / slot_duration) % nof_slots_in_all_hyper_sfns;
 }
 
 ru_dummy_impl::ru_dummy_impl(const ru_dummy_configuration& config, ru_dummy_dependencies dependencies) noexcept :
@@ -59,9 +58,8 @@ ru_dummy_impl::ru_dummy_impl(const ru_dummy_configuration& config, ru_dummy_depe
 void ru_dummy_impl::start()
 {
   // Get initial system slot.
-  uint64_t initial_system_slot =
-      get_current_system_slot(slot_duration, current_slot.nof_slots_per_hyper_system_frame());
-  current_slot = slot_point(current_slot.numerology(), initial_system_slot);
+  uint64_t initial_system_slot = get_current_system_slot(slot_duration, current_slot.nof_slots_in_all_hyper_sfns());
+  current_slot                 = slot_point_extended(current_slot.scs(), initial_system_slot);
 
   stop_control.reset();
 
@@ -101,7 +99,7 @@ void ru_dummy_impl::defer_loop()
 void ru_dummy_impl::loop()
 {
   // Get the current system slot from the system time.
-  uint64_t slot_count = get_current_system_slot(slot_duration, current_slot.nof_slots_per_hyper_system_frame());
+  uint64_t slot_count = get_current_system_slot(slot_duration, current_slot.nof_slots_in_all_hyper_sfns());
 
   // Make sure a minimum time between loop executions without crossing boundaries.
   if (slot_count == current_slot.system_slot()) {
@@ -115,20 +113,20 @@ void ru_dummy_impl::loop()
     ++current_slot;
 
     // Notify new slot boundary.
-    tti_boundary_context context;
-    context.slot       = current_slot + max_processing_delay_slots;
-    context.time_point = std::chrono::system_clock::now() + (slot_duration * max_processing_delay_slots);
-    timing_notifier.on_tti_boundary(context);
+    timing_notifier.on_tti_boundary(tti_boundary_context{.slot       = current_slot + max_processing_delay_slots,
+                                                         .time_point = std::chrono::system_clock::now() +
+                                                                       (slot_duration * max_processing_delay_slots)});
 
     // Notify UL half slot.
-    timing_notifier.on_ul_half_slot_boundary(current_slot);
+    slot_point slot = current_slot.without_hyper_sfn();
+    timing_notifier.on_ul_half_slot_boundary(slot);
 
     // Notify UL full slot.
-    timing_notifier.on_ul_full_slot_boundary(current_slot);
+    timing_notifier.on_ul_full_slot_boundary(slot);
 
     // Notify the slot boundary in all the sectors.
     for (auto& sector : sectors) {
-      sector->new_slot_boundary(current_slot);
+      sector->new_slot_boundary(slot);
     }
   }
 

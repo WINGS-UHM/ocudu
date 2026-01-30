@@ -558,10 +558,10 @@ static unsigned generate_rssi_or_rsrp()
   return (value <= 1280U) ? value : 65535;
 }
 
-static unsigned generate_bit_length()
+static units::bits generate_bit_length()
 {
   std::uniform_int_distribution<unsigned> dist(1, 1706);
-  return dist(gen);
+  return units::bits(dist(gen));
 }
 
 static uci_harq_pdu generate_harq_pdu()
@@ -570,7 +570,7 @@ static uci_harq_pdu generate_harq_pdu()
 
   pdu.detection_status    = uci_pusch_or_pucch_f2_3_4_detection_status::crc_pass;
   pdu.expected_bit_length = generate_bit_length();
-  pdu.payload.resize(pdu.expected_bit_length);
+  pdu.payload.resize(pdu.expected_bit_length.value());
 
   return pdu;
 }
@@ -581,7 +581,7 @@ static uci_csi_part1 generate_csi_part1_pdu()
 
   pdu.detection_status    = uci_pusch_or_pucch_f2_3_4_detection_status::crc_pass;
   pdu.expected_bit_length = generate_bit_length();
-  pdu.payload.resize(pdu.expected_bit_length);
+  pdu.payload.resize(pdu.expected_bit_length.value());
 
   return pdu;
 }
@@ -592,7 +592,7 @@ static uci_csi_part2 generate_csi_part2_pdu()
 
   pdu.detection_status    = uci_pusch_or_pucch_f2_3_4_detection_status::crc_pass;
   pdu.expected_bit_length = generate_bit_length();
-  pdu.payload.resize(pdu.expected_bit_length);
+  pdu.payload.resize(pdu.expected_bit_length.value());
 
   return pdu;
 }
@@ -602,17 +602,16 @@ uci_pusch_pdu unittest::build_valid_uci_pusch_pdu()
   uci_pusch_pdu pdu;
 
   pdu.handle                = generate_handle();
-  pdu.rnti                  = to_value(generate_rnti());
+  pdu.rnti                  = generate_rnti();
   pdu.ul_sinr_metric        = static_cast<int16_t>(generate_ul_sinr_metric());
   pdu.timing_advance_offset = generate_timing_advance_offset();
   pdu.rssi                  = generate_rssi_or_rsrp();
   pdu.rsrp                  = generate_rssi_or_rsrp();
 
   // Enable HARQ, CSI Part 1 and CSI Part 2.
-  pdu.pdu_bitmap = 14U;
-  pdu.harq       = generate_harq_pdu();
-  pdu.csi_part1  = generate_csi_part1_pdu();
-  pdu.csi_part2  = generate_csi_part2_pdu();
+  pdu.harq      = generate_harq_pdu();
+  pdu.csi_part1 = generate_csi_part1_pdu();
+  pdu.csi_part2 = generate_csi_part2_pdu();
 
   return pdu;
 }
@@ -622,10 +621,7 @@ static sr_pdu_format_0_1 generate_sr_format01_pdu()
   sr_pdu_format_0_1 pdu;
 
   std::uniform_int_distribution<unsigned> dist(0, 3);
-  pdu.sr_indication = std::min(1U, dist(gen));
-
-  unsigned value          = dist(gen);
-  pdu.sr_confidence_level = (value < 2U) ? value : 255U;
+  pdu.sr_detected = std::min(1U, dist(gen));
 
   return pdu;
 }
@@ -635,8 +631,6 @@ static uci_harq_format_0_1 generate_harq_format01_pdu()
   uci_harq_format_0_1 pdu;
 
   std::uniform_int_distribution<unsigned> dist(0, 2);
-  unsigned                                value = dist(gen);
-  pdu.harq_confidence_level                     = (value < 2U) ? value : 255U;
 
   std::uniform_int_distribution<unsigned> nof_dist(1, 2);
   for (unsigned i = 0, e = nof_dist(gen); i != e; ++i) {
@@ -651,7 +645,7 @@ uci_pucch_pdu_format_0_1 unittest::build_valid_uci_pucch_format01_pdu()
   uci_pucch_pdu_format_0_1 pdu;
 
   pdu.handle                = generate_handle();
-  pdu.rnti                  = to_value(generate_rnti());
+  pdu.rnti                  = generate_rnti();
   pdu.ul_sinr_metric        = static_cast<int16_t>(generate_ul_sinr_metric());
   pdu.timing_advance_offset = generate_timing_advance_offset();
   pdu.rssi                  = generate_rssi_or_rsrp();
@@ -661,9 +655,8 @@ uci_pucch_pdu_format_0_1 unittest::build_valid_uci_pucch_format01_pdu()
   pdu.pucch_format = static_cast<uci_pucch_pdu_format_0_1::format_type>(dist(gen));
 
   // Enable SR and HARQ for PUCCH format 0/1.
-  pdu.pdu_bitmap = 3U;
-  pdu.sr         = generate_sr_format01_pdu();
-  pdu.harq       = generate_harq_format01_pdu();
+  pdu.sr   = generate_sr_format01_pdu();
+  pdu.harq = generate_harq_format01_pdu();
 
   return pdu;
 }
@@ -673,8 +666,7 @@ static sr_pdu_format_2_3_4 generate_sr_format234_pdu()
   sr_pdu_format_2_3_4 pdu;
 
   std::uniform_int_distribution<unsigned> dist(1, 4);
-  pdu.sr_bitlen = dist(gen);
-  pdu.sr_payload.resize(std::ceil(static_cast<float>(pdu.sr_bitlen) / 8.F));
+  pdu.sr_payload.resize(std::ceil(static_cast<float>(dist(gen)) / 8.F));
 
   return pdu;
 }
@@ -684,7 +676,7 @@ uci_pucch_pdu_format_2_3_4 unittest::build_valid_uci_pucch_format234_pdu()
   uci_pucch_pdu_format_2_3_4 pdu;
 
   pdu.handle                = generate_handle();
-  pdu.rnti                  = to_value(generate_rnti());
+  pdu.rnti                  = generate_rnti();
   pdu.ul_sinr_metric        = static_cast<int16_t>(generate_ul_sinr_metric());
   pdu.timing_advance_offset = generate_timing_advance_offset();
   pdu.rssi                  = generate_rssi_or_rsrp();
@@ -694,11 +686,10 @@ uci_pucch_pdu_format_2_3_4 unittest::build_valid_uci_pucch_format234_pdu()
   pdu.pucch_format = static_cast<uci_pucch_pdu_format_2_3_4::format_type>(dist(gen));
 
   // Enable SR, HARQ, CSI Part 1. CSI Part 2, UCI payload Part 1 and UCI payload Part 2.
-  pdu.pdu_bitmap = 15U;
-  pdu.sr         = generate_sr_format234_pdu();
-  pdu.harq       = generate_harq_pdu();
-  pdu.csi_part1  = generate_csi_part1_pdu();
-  pdu.csi_part2  = generate_csi_part2_pdu();
+  pdu.sr        = generate_sr_format234_pdu();
+  pdu.harq      = generate_harq_pdu();
+  pdu.csi_part1 = generate_csi_part1_pdu();
+  pdu.csi_part2 = generate_csi_part2_pdu();
 
   return pdu;
 }
@@ -718,18 +709,15 @@ uci_indication unittest::build_valid_uci_indication()
 
   // Add one PDU of each type.
   msg.pdus.emplace_back();
-  msg.pdus.back().pdu_type  = uci_pdu_type::PUSCH;
-  msg.pdus.back().pusch_pdu = build_valid_uci_pusch_pdu();
+  msg.pdus.back() = build_valid_uci_pusch_pdu();
 
   // Add one PDU of each type.
   msg.pdus.emplace_back();
-  msg.pdus.back().pdu_type      = uci_pdu_type::PUCCH_format_0_1;
-  msg.pdus.back().pucch_pdu_f01 = build_valid_uci_pucch_format01_pdu();
+  msg.pdus.back() = build_valid_uci_pucch_format01_pdu();
 
   // Add one PDU of each type.
   msg.pdus.emplace_back();
-  msg.pdus.back().pdu_type       = uci_pdu_type::PUCCH_format_2_3_4;
-  msg.pdus.back().pucch_pdu_f234 = build_valid_uci_pucch_format234_pdu();
+  msg.pdus.back() = build_valid_uci_pucch_format234_pdu();
 
   return msg;
 }

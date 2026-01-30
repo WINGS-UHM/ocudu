@@ -11,13 +11,9 @@
 #pragma once
 
 #include "ocudu/fapi/p7/messages/uci_pucch_pdu_format_2_3_4.h"
-#include "ocudu/ran/pucch/pucch_mapping.h"
-#include "ocudu/ran/rnti.h"
 
 namespace ocudu {
 namespace fapi {
-
-// :TODO: Review the builders documentation so it matches the UCI builder.
 
 /// UCI PUSCH PDU Format 2, Format 3 or Format 4 builder that helps fill in the parameters specified in SCF-222 v4.0
 /// Section 3.4.9.3.
@@ -26,14 +22,26 @@ class uci_pucch_pdu_format_2_3_4_builder
   uci_pucch_pdu_format_2_3_4& pdu;
 
 public:
-  explicit uci_pucch_pdu_format_2_3_4_builder(uci_pucch_pdu_format_2_3_4& pdu_) : pdu(pdu_) { pdu.pdu_bitmap = 0; }
+  explicit uci_pucch_pdu_format_2_3_4_builder(uci_pucch_pdu_format_2_3_4& pdu_) : pdu(pdu_) {}
 
-  /// \brief Sets the UCI PUCCH Format 2, Format 3 and Format 4 PDU basic parameters and returns a reference to the
-  /// builder. \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format
+  /// \brief Sets the UCI PUCCH Format 2, Format 3 and Format 4 PDU UE specific parameters and returns a reference to
+  /// the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format
   /// 3 or Format 4 PDU.
-  uci_pucch_pdu_format_2_3_4_builder& set_basic_parameters(rnti_t rnti, pucch_format type)
+  uci_pucch_pdu_format_2_3_4_builder& set_ue_specific_parameters(rnti_t rnti)
   {
-    pdu.rnti = to_value(rnti);
+    pdu.rnti = rnti;
+
+    return *this;
+  }
+
+  /// \brief Sets the UCI PUCCH Format 2, Format 3 and Format 4 PDU UE format and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format
+  /// 3 or Format 4 PDU.
+  uci_pucch_pdu_format_2_3_4_builder& set_format(pucch_format type)
+  {
     switch (type) {
       case pucch_format::FORMAT_2:
         pdu.pucch_format = uci_pucch_pdu_format_2_3_4::format_type::format_2;
@@ -54,7 +62,8 @@ public:
 
   /// \brief Sets the UCI PUCCH Format 2, Format 3 and Format 4 PDU metric parameters and returns a reference to the
   /// builder.
-  /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format
+  ///
+  /// These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format
   /// 3 or Format 4 PDU.
   uci_pucch_pdu_format_2_3_4_builder& set_metrics_parameters(std::optional<float>         ul_sinr_metric,
                                                              std::optional<phy_time_unit> timing_advance_offset,
@@ -106,70 +115,53 @@ public:
   }
 
   /// \brief Sets the SR PDU parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format 3 or
+  ///
+  /// These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format 3 or
   /// Format 4 PDU.
   uci_pucch_pdu_format_2_3_4_builder&
-  set_sr_parameters(uint16_t                                                             bit_length,
-                    const bounded_bitset<sr_pdu_format_2_3_4::MAX_SR_PAYLOAD_SIZE_BITS>& sr_payload)
+  set_sr_parameters(const bounded_bitset<sr_pdu_format_2_3_4::MAX_SR_PAYLOAD_SIZE_BITS>& sr_payload)
   {
-    pdu.pdu_bitmap.set(uci_pucch_pdu_format_2_3_4::SR_BIT);
-
-    auto& sr_pdu = pdu.sr;
-
-    sr_pdu.sr_bitlen  = bit_length;
-    sr_pdu.sr_payload = sr_payload;
+    pdu.sr = sr_pdu_format_2_3_4{.sr_payload = sr_payload};
 
     return *this;
   }
 
   /// \brief Sets the HARQ PDU parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format 3 or
+  ///
+  /// These parameters are specified in SCF-222 v4.0 Section 3.4.9.3 in Table UCI PUCCH Format 2, Format 3 or
   /// Format 4 PDU.
-  uci_pucch_pdu_format_2_3_4_builder&
-  set_harq_parameters(uci_pusch_or_pucch_f2_3_4_detection_status              detection,
-                      uint16_t                                                expected_bit_length,
-                      const bounded_bitset<uci_constants::MAX_NOF_HARQ_BITS>& payload)
+  uci_pucch_pdu_format_2_3_4_builder& set_harq_parameters(uci_pusch_or_pucch_f2_3_4_detection_status detection,
+                                                          units::bits             expected_bit_length,
+                                                          const uci_payload_type& payload)
   {
-    pdu.pdu_bitmap.set(uci_pucch_pdu_format_2_3_4::HARQ_BIT);
-
-    auto& harq               = pdu.harq;
-    harq.detection_status    = detection;
-    harq.expected_bit_length = expected_bit_length;
-    harq.payload             = payload;
+    pdu.harq =
+        uci_harq_pdu{.detection_status = detection, .expected_bit_length = expected_bit_length, .payload = payload};
 
     return *this;
   }
 
   /// \brief Sets the CSI Part 1 PDU parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.4 in Table CSI Part 1 PDU.
-  uci_pucch_pdu_format_2_3_4_builder&
-  set_csi_part1_parameters(uci_pusch_or_pucch_f2_3_4_detection_status                            detection,
-                           uint16_t                                                              expected_bit_length,
-                           const bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PART2_BITS>& payload)
+  ///
+  /// These parameters are specified in SCF-222 v4.0 Section 3.4.9.4 in Table CSI Part 1 PDU.
+  uci_pucch_pdu_format_2_3_4_builder& set_csi_part1_parameters(uci_pusch_or_pucch_f2_3_4_detection_status detection,
+                                                               units::bits             expected_bit_length,
+                                                               const uci_payload_type& payload)
   {
-    pdu.pdu_bitmap.set(uci_pucch_pdu_format_2_3_4::CSI_PART1_BIT);
-
-    auto& csi               = pdu.csi_part1;
-    csi.detection_status    = detection;
-    csi.expected_bit_length = expected_bit_length;
-    csi.payload             = payload;
+    pdu.csi_part1 =
+        uci_csi_part1{.detection_status = detection, .expected_bit_length = expected_bit_length, .payload = payload};
 
     return *this;
   }
 
   /// \brief Sets the CSI Part 2 PDU parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 Section 3.4.9.4 in Table CSI Part 2 PDU.
-  uci_pucch_pdu_format_2_3_4_builder&
-  set_csi_part2_parameters(uci_pusch_or_pucch_f2_3_4_detection_status                            detection,
-                           uint16_t                                                              expected_bit_length,
-                           const bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PART2_BITS>& payload)
+  ///
+  /// These parameters are specified in SCF-222 v4.0 Section 3.4.9.4 in Table CSI Part 2 PDU.
+  uci_pucch_pdu_format_2_3_4_builder& set_csi_part2_parameters(uci_pusch_or_pucch_f2_3_4_detection_status detection,
+                                                               units::bits             expected_bit_length,
+                                                               const uci_payload_type& payload)
   {
-    pdu.pdu_bitmap.set(uci_pucch_pdu_format_2_3_4::CSI_PART2_BIT);
-
-    auto& csi               = pdu.csi_part2;
-    csi.detection_status    = detection;
-    csi.expected_bit_length = expected_bit_length;
-    csi.payload             = payload;
+    pdu.csi_part2 =
+        uci_csi_part2{.detection_status = detection, .expected_bit_length = expected_bit_length, .payload = payload};
 
     return *this;
   }

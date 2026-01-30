@@ -10,29 +10,22 @@
 
 #pragma once
 
-#include "ocudu/fapi/p7/messages/uci_pdu_type.h"
+#include "ocudu/fapi/common/base_message.h"
 #include "ocudu/fapi/p7/messages/uci_pucch_pdu_format_0_1.h"
 #include "ocudu/fapi/p7/messages/uci_pucch_pdu_format_2_3_4.h"
 #include "ocudu/fapi/p7/messages/uci_pusch_pdu.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
+#include <variant>
 
 namespace ocudu {
 namespace fapi {
 
-/// Reception data indication PDU information.
-struct uci_indication_pdu {
-  uci_pdu_type pdu_type;
-  uint16_t     pdu_size;
-
-  // :TODO: add a variant for this fields below.
-  uci_pusch_pdu              pusch_pdu;
-  uci_pucch_pdu_format_0_1   pucch_pdu_f01;
-  uci_pucch_pdu_format_2_3_4 pucch_pdu_f234;
-};
-
 /// UCI indication message.
 struct uci_indication : public base_message {
+  /// UCI indication PDU format.
+  using uci_indication_pdu = std::variant<uci_pusch_pdu, uci_pucch_pdu_format_0_1, uci_pucch_pdu_format_2_3_4>;
+
   slot_point                                                  slot;
   static_vector<uci_indication_pdu, MAX_UCI_PDUS_PER_UCI_IND> pdus;
 };

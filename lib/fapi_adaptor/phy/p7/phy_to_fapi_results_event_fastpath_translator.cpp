@@ -178,9 +178,10 @@ void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(
   fapi::uci_indication         msg;
   fapi::uci_indication_builder builder(msg);
 
-  builder.set_basic_parameters(result.slot);
+  builder.set_slot(result.slot);
 
-  fapi::uci_pusch_pdu_builder builder_pdu = builder.add_pusch_pdu(result.rnti);
+  fapi::uci_pusch_pdu_builder builder_pdu = builder.add_pusch_pdu();
+  builder_pdu.set_ue_specific_parameters(result.rnti);
 
   const channel_state_information& csi_info = result.csi;
 
@@ -207,10 +208,9 @@ void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(
   if (result.harq_ack.has_value()) {
     const pusch_uci_field&                     harq   = result.harq_ack.value();
     uci_pusch_or_pucch_f2_3_4_detection_status status = to_fapi_uci_detection_status(harq.status, uci_length);
-    builder_pdu.set_harq_parameters(
-        status,
-        harq.payload.size(),
-        (is_fapi_uci_payload_valid(status)) ? harq.payload : bounded_bitset<uci_constants::MAX_NOF_HARQ_BITS>());
+    builder_pdu.set_harq_parameters(status,
+                                    units::bits(harq.payload.size()),
+                                    (is_fapi_uci_payload_valid(status)) ? harq.payload : uci_payload_type());
   }
 
   // Add the CSI Part1 section.
@@ -218,10 +218,8 @@ void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(
     const pusch_uci_field&                     csi1   = result.csi1.value();
     uci_pusch_or_pucch_f2_3_4_detection_status status = to_fapi_uci_detection_status(csi1.status, uci_length);
     builder_pdu.set_csi_part1_parameters(status,
-                                         csi1.payload.size(),
-                                         (is_fapi_uci_payload_valid(status))
-                                             ? csi1.payload
-                                             : bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PART2_BITS>());
+                                         units::bits(csi1.payload.size()),
+                                         (is_fapi_uci_payload_valid(status)) ? csi1.payload : uci_payload_type());
   }
 
   // Add the CSI Part2 section.
@@ -229,10 +227,8 @@ void phy_to_fapi_results_event_fastpath_translator::notify_pusch_uci_indication(
     const pusch_uci_field&                     csi2   = result.csi2.value();
     uci_pusch_or_pucch_f2_3_4_detection_status status = to_fapi_uci_detection_status(csi2.status, uci_length);
     builder_pdu.set_csi_part2_parameters(status,
-                                         csi2.payload.size(),
-                                         (is_fapi_uci_payload_valid(status))
-                                             ? csi2.payload
-                                             : bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PART2_BITS>());
+                                         units::bits(csi2.payload.size()),
+                                         (is_fapi_uci_payload_valid(status)) ? csi2.payload : uci_payload_type());
   }
 
   p7_notifier->on_uci_indication(msg);
@@ -308,7 +304,7 @@ static void fill_format_0_1_sr(fapi::uci_pucch_pdu_format_0_1_builder& builder, 
 
   // Set the SR detection status based on the UCI status.
   const pucch_uci_message& msg = result.processor_result.message;
-  builder.set_sr_parameters(msg.get_status() == uci_status::valid, {});
+  builder.set_sr_parameters(msg.get_status() == uci_status::valid);
 }
 
 /// Fills the HARQ parameters for PUCCH Format 0 or Format 1 using the given builder and message.
@@ -332,15 +328,16 @@ static void fill_format_0_1_harq(fapi::uci_pucch_pdu_format_0_1_builder& builder
   }
 
   // Write the parameters using the builder.
-  builder.set_harq_parameters({}, harq);
+  builder.set_harq_parameters(harq);
 }
 
 /// Adds a PUCCH Format 0 or Format 1 PDU to the given builder using the data provided by result.
 static void add_format_0_1_pucch_pdu(fapi::uci_indication_builder& builder, const ul_pucch_results& result)
 {
-  const ul_pucch_context&                context = result.context;
-  fapi::uci_pucch_pdu_format_0_1_builder builder_format01 =
-      builder.add_format_0_1_pucch_pdu(context.rnti, context.format);
+  const ul_pucch_context&                context          = result.context;
+  fapi::uci_pucch_pdu_format_0_1_builder builder_format01 = builder.add_format_0_1_pucch_pdu();
+
+  builder_format01.set_ue_specific_parameters(context.rnti).set_format(context.format);
 
   const channel_state_information& csi_info = result.processor_result.csi;
 
@@ -361,7 +358,7 @@ static void add_format_0_1_pucch_pdu(fapi::uci_indication_builder& builder, cons
     timing_advance_offset_ns = static_cast<int>(timing_advance.value().to_seconds() * 1e9);
   }
 
-  builder_format01.set_metrics_parameters(sinr_dB, timing_advance, std::nullopt, std::nullopt);
+  builder_format01.set_time_advance(timing_advance).set_metrics_parameters(sinr_dB, std::nullopt, std::nullopt);
 
   // Fill SR parameters.
   fill_format_0_1_sr(builder_format01, result);
@@ -383,14 +380,12 @@ static void fill_format_2_3_4_harq(fapi::uci_pucch_pdu_format_2_3_4_builder& bui
 
   // Write an empty payload on detection failure.
   if (!is_fapi_uci_payload_valid(status)) {
-    builder.set_harq_parameters(status, harq_len.value(), {});
+    builder.set_harq_parameters(status, harq_len, {});
     return;
   }
 
-  builder.set_harq_parameters(status,
-                              harq_len.value(),
-                              bounded_bitset<uci_constants::MAX_NOF_HARQ_BITS>(message.get_harq_ack_bits().begin(),
-                                                                               message.get_harq_ack_bits().end()));
+  builder.set_harq_parameters(
+      status, harq_len, uci_payload_type(message.get_harq_ack_bits().begin(), message.get_harq_ack_bits().end()));
 }
 
 /// Fills the SR parameters for PUCCH Format 2/3/4 using the given builder and message.
@@ -406,14 +401,12 @@ static void fill_format_2_3_4_sr(fapi::uci_pucch_pdu_format_2_3_4_builder& build
 
   // Set the payload to 0s on detection failure.
   if (!is_fapi_uci_payload_valid(status)) {
-    builder.set_sr_parameters(sr_len.value(),
-                              bounded_bitset<fapi::sr_pdu_format_2_3_4::MAX_SR_PAYLOAD_SIZE_BITS>(sr_len.value()));
+    builder.set_sr_parameters(bounded_bitset<fapi::sr_pdu_format_2_3_4::MAX_SR_PAYLOAD_SIZE_BITS>(sr_len.value()));
     return;
   }
 
-  builder.set_sr_parameters(sr_len.value(),
-                            bounded_bitset<fapi::sr_pdu_format_2_3_4::MAX_SR_PAYLOAD_SIZE_BITS>(
-                                message.get_sr_bits().begin(), message.get_sr_bits().end()));
+  builder.set_sr_parameters(bounded_bitset<fapi::sr_pdu_format_2_3_4::MAX_SR_PAYLOAD_SIZE_BITS>(
+      message.get_sr_bits().begin(), message.get_sr_bits().end()));
 }
 
 /// Fills the CSI Part 1 parameters for PUCCH Format 2/3/4 using the given builder and message.
@@ -430,21 +423,20 @@ static void fill_format_2_3_4_csi_part1(fapi::uci_pucch_pdu_format_2_3_4_builder
 
   // Write an empty payload on detection failure.
   if (!is_fapi_uci_payload_valid(status)) {
-    builder.set_csi_part1_parameters(status, csi_len.value(), {});
+    builder.set_csi_part1_parameters(status, csi_len, {});
     return;
   }
 
-  builder.set_csi_part1_parameters(status,
-                                   csi_len.value(),
-                                   bounded_bitset<uci_constants::MAX_NOF_HARQ_BITS>(
-                                       message.get_csi_part1_bits().begin(), message.get_csi_part1_bits().end()));
+  builder.set_csi_part1_parameters(
+      status, csi_len, uci_payload_type(message.get_csi_part1_bits().begin(), message.get_csi_part1_bits().end()));
 }
 
 /// Adds a PUCCH Format 2, Format 3 or Format 4 PDU to the given builder using the data provided by result.
 static void add_format_2_3_4_pucch_pdu(fapi::uci_indication_builder& builder, const ul_pucch_results& result)
 {
-  fapi::uci_pucch_pdu_format_2_3_4_builder builder_format234 =
-      builder.add_format_2_3_4_pucch_pdu(result.context.rnti, result.context.format);
+  fapi::uci_pucch_pdu_format_2_3_4_builder builder_format234 = builder.add_format_2_3_4_pucch_pdu();
+
+  builder_format234.set_ue_specific_parameters(result.context.rnti).set_format(result.context.format);
 
   const channel_state_information& csi_info = result.processor_result.csi;
 
@@ -483,7 +475,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_pucch_results(const u
   fapi::uci_indication_builder builder(msg);
 
   const ul_pucch_context& context = result.context;
-  builder.set_basic_parameters(context.slot);
+  builder.set_slot(context.slot);
 
   switch (context.format) {
     case pucch_format::FORMAT_0:

@@ -356,6 +356,12 @@ static float to_uci_ul_rsrp(unsigned rsrp)
   return static_cast<float>(static_cast<int>(rsrp) - 1280) * 0.1F;
 }
 
+/// Converts the given FAPI UCI RSSI to dB as per SCF-222 v4.0 section 3.4.9.
+static float to_uci_ul_rssi(unsigned rssi)
+{
+  return static_cast<float>(static_cast<int>(rssi) - 1280) * 0.1F;
+}
+
 static void
 log_uci_pucch_f0_f1_pdu(const uci_pucch_pdu_format_0_1& pdu, subcarrier_spacing scs, fmt::memory_buffer& buffer)
 {
@@ -368,24 +374,27 @@ log_uci_pucch_f0_f1_pdu(const uci_pucch_pdu_format_0_1& pdu, subcarrier_spacing 
     fmt::format_to(std::back_inserter(buffer), " sinr={:.1f}", to_uci_ul_sinr(pdu.ul_sinr_metric));
   }
   append_time_advance(buffer, pdu.timing_advance_offset, scs);
+
+  if (pdu.rssi != std::numeric_limits<decltype(pdu.rssi)>::max()) {
+    fmt::format_to(std::back_inserter(buffer), " rssi={:.1f}", to_uci_ul_rssi(pdu.rsrp));
+  }
+
   if (pdu.rsrp != std::numeric_limits<decltype(pdu.rsrp)>::max()) {
     fmt::format_to(std::back_inserter(buffer), " rsrp={:.1f}", to_uci_ul_rsrp(pdu.rsrp));
   }
 
-  if (pdu.pdu_bitmap.test(fapi::uci_pucch_pdu_format_0_1::HARQ_BIT)) {
-    fmt::format_to(std::back_inserter(buffer), " HARQ: confidence={} harq_ack=", pdu.harq.harq_confidence_level);
-    for (unsigned i = 0, e = pdu.harq.harq_values.size(), last = e - 1; i != e; ++i) {
-      fmt::format_to(std::back_inserter(buffer), "{}", to_string(pdu.harq.harq_values[i]));
+  if (pdu.sr.has_value()) {
+    fmt::format_to(std::back_inserter(buffer), " SR: sr={}", pdu.sr->sr_detected ? "detected" : "not detected");
+  }
+
+  if (pdu.harq.has_value()) {
+    fmt::format_to(std::back_inserter(buffer), " HARQ: harq_ack=");
+    for (unsigned i = 0, e = pdu.harq->harq_values.size(), last = e - 1; i != e; ++i) {
+      fmt::format_to(std::back_inserter(buffer), "{}", to_string(pdu.harq->harq_values[i]));
       if (i != last) {
         fmt::format_to(std::back_inserter(buffer), ",");
       }
     }
-  }
-  if (pdu.pdu_bitmap.test(fapi::uci_pucch_pdu_format_0_1::SR_BIT)) {
-    fmt::format_to(std::back_inserter(buffer),
-                   " SR: confidence={} sr={}",
-                   pdu.sr.sr_confidence_level,
-                   pdu.sr.sr_indication ? "detected" : "not detected");
   }
 }
 
@@ -400,25 +409,37 @@ log_uci_pucch_f234_pdu(const uci_pucch_pdu_format_2_3_4& pdu, subcarrier_spacing
   if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
     fmt::format_to(std::back_inserter(buffer), " sinr={:.1f}", to_uci_ul_sinr(pdu.ul_sinr_metric));
   }
+
   append_time_advance(buffer, pdu.timing_advance_offset, scs);
+
+  if (pdu.rssi != std::numeric_limits<decltype(pdu.rssi)>::max()) {
+    fmt::format_to(std::back_inserter(buffer), " rssi={:.1f}", to_uci_ul_rssi(pdu.rsrp));
+  }
+
   if (pdu.rsrp != std::numeric_limits<decltype(pdu.rsrp)>::max()) {
     fmt::format_to(std::back_inserter(buffer), " rsrp={:.1f}", to_uci_ul_rsrp(pdu.rsrp));
   }
 
-  if (pdu.pdu_bitmap.test(uci_pucch_pdu_format_2_3_4::SR_BIT)) {
-    fmt::format_to(std::back_inserter(buffer), " SR: bit_len={}", pdu.sr.sr_bitlen);
+  if (pdu.sr.has_value()) {
+    fmt::format_to(std::back_inserter(buffer), " SR: bit_len={}", pdu.sr->sr_payload.size());
   }
-  if (pdu.pdu_bitmap.test(uci_pucch_pdu_format_2_3_4::HARQ_BIT)) {
+  if (pdu.harq.has_value()) {
     fmt::format_to(std::back_inserter(buffer),
                    " HARQ: detection={} bit_len={}",
-                   fmt::underlying(pdu.harq.detection_status),
-                   pdu.harq.expected_bit_length);
+                   fmt::underlying(pdu.harq->detection_status),
+                   pdu.harq->expected_bit_length);
   }
-  if (pdu.pdu_bitmap.test(uci_pucch_pdu_format_2_3_4::CSI_PART1_BIT)) {
+  if (pdu.csi_part1.has_value()) {
     fmt::format_to(std::back_inserter(buffer),
                    " CSI1: detection={} bit_len={}",
-                   fmt::underlying(pdu.csi_part1.detection_status),
-                   pdu.csi_part1.expected_bit_length);
+                   fmt::underlying(pdu.csi_part1->detection_status),
+                   pdu.csi_part1->expected_bit_length);
+  }
+  if (pdu.csi_part2.has_value()) {
+    fmt::format_to(std::back_inserter(buffer),
+                   " CSI2: detection={} bit_len={}",
+                   fmt::underlying(pdu.csi_part2->detection_status),
+                   pdu.csi_part2->expected_bit_length);
   }
 }
 
@@ -430,21 +451,32 @@ static void log_uci_pusch_pdu(const uci_pusch_pdu& pdu, subcarrier_spacing scs, 
     fmt::format_to(std::back_inserter(buffer), " sinr={:.1f}", to_uci_ul_sinr(pdu.ul_sinr_metric));
   }
   append_time_advance(buffer, pdu.timing_advance_offset, scs);
+
+  if (pdu.rssi != std::numeric_limits<decltype(pdu.rssi)>::max()) {
+    fmt::format_to(std::back_inserter(buffer), " rssi={:.1f}", to_uci_ul_rssi(pdu.rssi));
+  }
+
   if (pdu.rsrp != std::numeric_limits<decltype(pdu.rsrp)>::max()) {
     fmt::format_to(std::back_inserter(buffer), " rsrp={:.1f}", to_uci_ul_rsrp(pdu.rsrp));
   }
 
-  if (pdu.pdu_bitmap.test(uci_pusch_pdu::HARQ_BIT)) {
+  if (pdu.harq.has_value()) {
     fmt::format_to(std::back_inserter(buffer),
                    " HARQ: detection={} bit_len={}",
-                   fmt::underlying(pdu.harq.detection_status),
-                   pdu.harq.expected_bit_length);
+                   fmt::underlying(pdu.harq->detection_status),
+                   pdu.harq->expected_bit_length);
   }
-  if (pdu.pdu_bitmap.test(uci_pusch_pdu::CSI_PART1_BIT)) {
+  if (pdu.csi_part1.has_value()) {
     fmt::format_to(std::back_inserter(buffer),
                    " CSI1: detection={} bit_len={}",
-                   fmt::underlying(pdu.csi_part1.detection_status),
-                   pdu.csi_part1.expected_bit_length);
+                   fmt::underlying(pdu.csi_part1->detection_status),
+                   pdu.csi_part1->expected_bit_length);
+  }
+  if (pdu.csi_part2.has_value()) {
+    fmt::format_to(std::back_inserter(buffer),
+                   " CSI2: detection={} bit_len={}",
+                   fmt::underlying(pdu.csi_part2->detection_status),
+                   pdu.csi_part2->expected_bit_length);
   }
 }
 
@@ -454,16 +486,12 @@ void ocudu::fapi::log_uci_indication(const uci_indication& msg, unsigned sector_
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: UCI.indication slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
-    switch (pdu.pdu_type) {
-      case fapi::uci_pdu_type::PUSCH:
-        log_uci_pusch_pdu(pdu.pusch_pdu, msg.slot.scs(), buffer);
-        break;
-      case fapi::uci_pdu_type::PUCCH_format_0_1:
-        log_uci_pucch_f0_f1_pdu(pdu.pucch_pdu_f01, msg.slot.scs(), buffer);
-        break;
-      case fapi::uci_pdu_type::PUCCH_format_2_3_4:
-        log_uci_pucch_f234_pdu(pdu.pucch_pdu_f234, msg.slot.scs(), buffer);
-        break;
+    if (const auto* uci_pusch = std::get_if<fapi::uci_pusch_pdu>(&pdu)) {
+      log_uci_pusch_pdu(*uci_pusch, msg.slot.scs(), buffer);
+    } else if (const auto* uci_pusch_format_0_1 = std::get_if<fapi::uci_pucch_pdu_format_0_1>(&pdu)) {
+      log_uci_pucch_f0_f1_pdu(*uci_pusch_format_0_1, msg.slot.scs(), buffer);
+    } else if (const auto* uci_pusch_format_2_3_4 = std::get_if<fapi::uci_pucch_pdu_format_2_3_4>(&pdu)) {
+      log_uci_pucch_f234_pdu(*uci_pusch_format_2_3_4, msg.slot.scs(), buffer);
     }
   }
 

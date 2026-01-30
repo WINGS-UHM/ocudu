@@ -18,6 +18,7 @@
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/tai.h"
 #include "ocudu/ran/up_transport_layer_info.h"
 #include <variant>
 
@@ -542,9 +543,9 @@ inline asn1::ngap::s_nssai_s s_nssai_to_asn1(const s_nssai_t& s_nssai)
 /// \brief Convert NGAP ASN.1 TAI to common type.
 /// \param[in] asn1_tai The ASN.1 type TAI.
 /// \return The common type TAI.
-inline cu_cp_tai ngap_asn1_to_tai(const asn1::ngap::tai_s& asn1_tai)
+inline tai_t ngap_asn1_to_tai(const asn1::ngap::tai_s& asn1_tai)
 {
-  cu_cp_tai tai;
+  tai_t tai;
   tai.plmn_id = plmn_identity::from_bytes(asn1_tai.plmn_id.to_bytes()).value();
   tai.tac     = asn1_tai.tac.to_number();
 

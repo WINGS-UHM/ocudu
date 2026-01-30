@@ -29,6 +29,7 @@
 #include "ocudu/ran/s_nssai.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/ran/tac.h"
+#include "ocudu/ran/tai.h"
 #include "ocudu/ran/up_transport_layer_info.h"
 #include <cstdint>
 #include <optional>
@@ -145,14 +146,9 @@ struct cu_cp_qos_config {
 
 // ASN1 types converted to common types
 
-struct cu_cp_tai {
-  plmn_identity plmn_id = plmn_identity::test_value();
-  tac_t         tac;
-};
-
 struct cu_cp_user_location_info_nr {
   nr_cell_global_id_t     nr_cgi;
-  cu_cp_tai               tai;
+  tai_t                   tai;
   std::optional<uint64_t> time_stamp;
 };
 
@@ -533,7 +529,7 @@ struct cu_cp_amf_paging_target {
   bool                               is_global_ran_node_id;
   bool                               is_tai;
   std::optional<cu_cp_global_gnb_id> global_ran_node_id;
-  std::optional<cu_cp_tai>           tai;
+  std::optional<tai_t>               tai;
 };
 
 struct cu_cp_recommended_ran_node_item {
@@ -559,7 +555,7 @@ struct cu_cp_ue_context_release_complete {
 };
 
 struct cu_cp_tai_list_for_paging_item {
-  cu_cp_tai tai;
+  tai_t tai;
 };
 
 struct cu_cp_ue_radio_cap_for_paging {

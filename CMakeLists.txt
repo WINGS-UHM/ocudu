@@ -439,11 +439,17 @@ endif (ENABLE_ARMPL AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
 if (BUILD_TESTING)
     find_package(GTest REQUIRED)
     # Alias gtest_discover_tests increase discovery the timeout.
+    # Timeout can be controlled via GTEST_DISCOVERY_TIMEOUT env var (default: 15)
+    if(DEFINED ENV{GTEST_DISCOVERY_TIMEOUT})
+        set(GTEST_DISCOVERY_TIMEOUT_VALUE $ENV{GTEST_DISCOVERY_TIMEOUT})
+    else()
+        set(GTEST_DISCOVERY_TIMEOUT_VALUE 15)
+    endif()
     function(gtest_discover_tests)
         _gtest_discover_tests(
             ${ARGV}
             DISCOVERY_MODE PRE_TEST
-            DISCOVERY_TIMEOUT 15
+            DISCOVERY_TIMEOUT ${GTEST_DISCOVERY_TIMEOUT_VALUE}
         )
     endfunction()
 else()

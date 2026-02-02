@@ -86,7 +86,7 @@ TEST_P(du_high_many_cells_tester,
     // Inject UL-CCCH with RRC Setup.
     rnti_t rnti = to_rnti(0x4601 + i);
     du_hi->get_pdu_handler().handle_rx_data_indication(
-        test_helpers::create_ccch_message(next_slot, rnti, to_du_cell_index(i)));
+        test_helpers::create_ccch_message(next_slot.without_hyper_sfn(), rnti, to_du_cell_index(i)));
 
     // Wait for F1AP message to be propagated to the CU-CP.
     this->run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });

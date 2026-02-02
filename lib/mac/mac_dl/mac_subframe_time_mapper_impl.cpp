@@ -95,7 +95,7 @@ mac_subframe_time_mapper_impl::mac_subframe_time_mapper_impl() : logger(ocudulog
 void mac_subframe_time_mapper_impl::handle_slot_indication(const mac_cell_timing_context& context)
 {
   if (context.sl_tx.subframe_slot_index() == 0) {
-    cur_slot_time_mapping.store(context.sl_tx, context.time_point);
+    cur_slot_time_mapping.store(context.sl_tx.without_hyper_sfn(), context.time_point);
   }
 }
 

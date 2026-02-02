@@ -67,7 +67,7 @@ void benchmark_sib_scheduling()
   auto& logger = ocudulog::fetch_basic_logger("SCHED", true);
 
   // Run benchmark.
-  slot_point sl_tx{0, 0};
+  slot_point_extended sl_tx{subcarrier_spacing::kHz15, 0};
   bm->new_measure("SSB+SIB scheduling", 1, [&sch, &sl_tx, &logger]() mutable {
     logger.set_context(sl_tx.sfn(), sl_tx.slot_index());
     sch->slot_indication(sl_tx, to_du_cell_index(0));
@@ -90,9 +90,9 @@ void benchmark_rach_scheduling()
   sch->handle_cell_configuration_request(cell_cfg_msg);
 
   auto&                   logger = ocudulog::fetch_basic_logger("SCHED", true);
-  slot_point              sl_tx{0, 0};
-  rach_indication_message rach_ind =
-      test_helper::create_rach_indication(sl_tx - 4, {test_helper::create_preamble(0, to_rnti(0x4601))});
+  slot_point_extended     sl_tx{subcarrier_spacing::kHz15, 0};
+  rach_indication_message rach_ind = test_helper::create_rach_indication(
+      sl_tx.without_hyper_sfn() - 4, {test_helper::create_preamble(0, to_rnti(0x4601))});
 
   // Run benchmark.
   bm->new_measure("SSB+SIB+RACH scheduling", 1, [&sch, &sl_tx, &rach_ind, &logger]() mutable {
@@ -107,7 +107,7 @@ void benchmark_rach_scheduling()
     if (not res->ul.puschs.empty()) {
       ul_crc_indication crc;
       crc.cell_index = to_du_cell_index(0);
-      crc.sl_rx      = sl_tx - 4;
+      crc.sl_rx      = sl_tx.without_hyper_sfn() - 4;
       for (const ul_sched_info& ulinfo : res->ul.puschs) {
         crc.crcs.push_back(ul_crc_pdu_indication{
             ulinfo.pusch_cfg.rnti, INVALID_DU_UE_INDEX, to_harq_id(ulinfo.pusch_cfg.harq_id), true});

@@ -47,9 +47,9 @@ public:
   explicit scheduler_test_simulator(const scheduler_test_sim_config& cfg);
   ~scheduler_test_simulator();
 
-  slot_point next_slot_rx() const { return next_slot - tx_rx_delay; }
+  slot_point next_slot_rx() const { return next_slot.without_hyper_sfn() - tx_rx_delay; }
 
-  slot_point last_result_slot() const { return next_slot - 1; }
+  slot_point last_result_slot() const { return next_slot.without_hyper_sfn() - 1; }
 
   /// Configure new cell.
   void add_cell(const sched_cell_configuration_request_message& cell_cfg_req);
@@ -94,7 +94,7 @@ public:
   scheduler_ue_metrics_dummy_notifier metric_notif;
   std::unique_ptr<mac_scheduler>      sched;
 
-  slot_point next_slot;
+  slot_point_extended next_slot;
 
   bool contains(du_cell_index_t cell_idx) const
   {

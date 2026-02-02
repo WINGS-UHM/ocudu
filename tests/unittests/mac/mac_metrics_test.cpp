@@ -116,7 +116,7 @@ protected:
 
   slotted_id_table<du_cell_index_t, cell_context, MAX_CELLS_PER_DU> cells;
 
-  slot_point next_point{0, 0};
+  slot_point_extended next_point{subcarrier_spacing::kHz15, 0};
 
   mac_dl_cell_metric_handler& add_cell(du_cell_index_t cell_index)
   {
@@ -132,8 +132,8 @@ protected:
     for (auto& cell : cells) {
       if (cell.active) {
         cell.timer_source->on_slot_indication(next_point);
-        cell.sched.slot_indication(next_point);
-        cell.mac.start_slot(next_point, metric_clock::now());
+        cell.sched.slot_indication(next_point.without_hyper_sfn());
+        cell.mac.start_slot(next_point.without_hyper_sfn(), metric_clock::now());
       }
     }
     task_worker.run_pending_tasks();

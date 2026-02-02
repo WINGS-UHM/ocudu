@@ -17,6 +17,7 @@
 #include "ocudu/cu_cp/cu_cp.h"
 #include "ocudu/du/du_high/du_high.h"
 #include "ocudu/du/du_high/du_high_configuration.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include "ocudu/support/executors/task_worker.h"
 
@@ -51,7 +52,7 @@ public:
     null_rlc_pcap                 rlc_pcap;
     std::unique_ptr<odu::du_high> du_high_inst;
 
-    slot_point next_slot;
+    slot_point_extended next_slot;
 
     du_sim(task_executor& phy_exec) : phy(1, phy_exec) {}
   };

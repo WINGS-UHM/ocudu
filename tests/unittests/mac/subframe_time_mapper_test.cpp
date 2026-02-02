@@ -46,9 +46,9 @@ TEST_P(subframe_time_mapper_test, slot_time_point_mapping_not_available)
 
 TEST_P(subframe_time_mapper_test, when_called_with_unitialized_value)
 {
-  const slot_point      report_slot       = {numerology, 0, 0};
-  const slot_time_point report_time_point = std::chrono::system_clock::now();
-  const auto            scs               = to_subcarrier_spacing(numerology);
+  const auto                scs               = to_subcarrier_spacing(numerology);
+  const slot_point_extended report_slot       = {scs, 0};
+  const slot_time_point     report_time_point = std::chrono::system_clock::now();
 
   manager.handle_slot_indication({report_slot, report_time_point});
 
@@ -65,9 +65,9 @@ TEST_P(subframe_time_mapper_test, when_called_with_unitialized_value)
 
 TEST_P(subframe_time_mapper_test, slot_time_point_mapping_available)
 {
-  const slot_point      report_slot       = {numerology, 0, 0};
-  const slot_time_point report_time_point = std::chrono::system_clock::now();
-  const auto            scs               = to_subcarrier_spacing(numerology);
+  const auto                scs               = to_subcarrier_spacing(numerology);
+  const slot_point_extended report_slot       = {scs, 0};
+  const slot_time_point     report_time_point = std::chrono::system_clock::now();
 
   ASSERT_FALSE(manager.get_last_mapping(scs).has_value());
   manager.handle_slot_indication({report_slot, report_time_point});
@@ -77,24 +77,24 @@ TEST_P(subframe_time_mapper_test, slot_time_point_mapping_available)
   ASSERT_TRUE(mapping.has_value());
   slot_point      slot       = mapping.value().sl_tx;
   slot_time_point time_point = mapping.value().time_point;
-  ASSERT_EQ(slot, report_slot);
+  ASSERT_EQ(slot, report_slot.without_hyper_sfn());
   ASSERT_EQ(time_point, report_time_point);
 
-  std::optional<slot_time_point> ret_time_point = manager.get_time_point(report_slot);
+  std::optional<slot_time_point> ret_time_point = manager.get_time_point(report_slot.without_hyper_sfn());
   ASSERT_TRUE(ret_time_point.has_value());
   ASSERT_EQ(ret_time_point.value(), report_time_point);
 
   std::optional<slot_point> ret_slot = manager.get_slot_point(time_point, scs);
   ASSERT_TRUE(ret_slot.has_value());
-  ASSERT_EQ(ret_slot.value(), report_slot);
+  ASSERT_EQ(ret_slot.value(), report_slot.without_hyper_sfn());
 }
 
 TEST_P(subframe_time_mapper_test, get_last_mapping)
 {
-  slot_point      report_slot        = {numerology, 0, 0};
-  slot_time_point report_time_point  = std::chrono::system_clock::now();
-  unsigned        slots_per_subframe = report_slot.nof_slots_per_subframe();
-  const auto      scs                = to_subcarrier_spacing(numerology);
+  const auto          scs                = to_subcarrier_spacing(numerology);
+  slot_point_extended report_slot        = {scs, 0};
+  slot_time_point     report_time_point  = std::chrono::system_clock::now();
+  unsigned            slots_per_subframe = report_slot.nof_slots_per_subframe();
 
   slot_point      slot;
   slot_time_point time_point;
@@ -110,17 +110,17 @@ TEST_P(subframe_time_mapper_test, get_last_mapping)
     ASSERT_TRUE(mapping.has_value());
     slot       = mapping.value().sl_tx;
     time_point = mapping.value().time_point;
-    ASSERT_EQ(slot, report_slot);
+    ASSERT_EQ(slot, report_slot.without_hyper_sfn());
     ASSERT_EQ(time_point, report_time_point);
   }
 }
 
 TEST_P(subframe_time_mapper_test, get_last_mapping_only_sub_frame_stored)
 {
-  slot_point      full_subframe_slot       = {numerology, 0, 0};
-  slot_time_point full_subframe_time_point = std::chrono::system_clock::now();
-  const auto      slot_dur                 = std::chrono::microseconds{1000U >> numerology};
-  const auto      scs                      = to_subcarrier_spacing(numerology);
+  const auto          scs                      = to_subcarrier_spacing(numerology);
+  slot_point_extended full_subframe_slot       = {scs, 0};
+  slot_time_point     full_subframe_time_point = std::chrono::system_clock::now();
+  const auto          slot_dur                 = std::chrono::microseconds{1000U >> numerology};
 
   slot_point      slot;
   slot_time_point time_point;
@@ -129,8 +129,8 @@ TEST_P(subframe_time_mapper_test, get_last_mapping_only_sub_frame_stored)
   manager.handle_slot_indication({full_subframe_slot, full_subframe_time_point});
   ASSERT_TRUE(manager.get_last_mapping(scs).has_value());
 
-  slot_point      report_slot       = full_subframe_slot;
-  slot_time_point report_time_point = full_subframe_time_point;
+  slot_point_extended report_slot       = full_subframe_slot;
+  slot_time_point     report_time_point = full_subframe_time_point;
   // Note: only subframe is stored, slot_idx = 0.
   // Note: The following updates will not be stored.
   for (unsigned i = 0; i < full_subframe_slot.nof_slots_per_frame(); i++) {
@@ -148,18 +148,18 @@ TEST_P(subframe_time_mapper_test, get_last_mapping_only_sub_frame_stored)
     ASSERT_TRUE(mapping.has_value());
     slot       = mapping.value().sl_tx;
     time_point = mapping.value().time_point;
-    ASSERT_EQ(slot, full_subframe_slot);
+    ASSERT_EQ(slot, full_subframe_slot.without_hyper_sfn());
     ASSERT_EQ(time_point, full_subframe_time_point);
   }
 }
 
 TEST_P(subframe_time_mapper_test, get_slot_time_point_from_slot_point)
 {
-  ocudulog::basic_logger& logger            = ocudulog::fetch_basic_logger("TEST");
-  const slot_point        report_slot       = {numerology, 0, 0};
-  const slot_time_point   report_time_point = std::chrono::system_clock::now();
-  const auto              slot_dur          = std::chrono::microseconds{1000U >> numerology};
-  const auto              scs               = to_subcarrier_spacing(numerology);
+  ocudulog::basic_logger&   logger            = ocudulog::fetch_basic_logger("TEST");
+  const auto                scs               = to_subcarrier_spacing(numerology);
+  const slot_point_extended report_slot       = {scs, 0};
+  const slot_time_point     report_time_point = std::chrono::system_clock::now();
+  const auto                slot_dur          = std::chrono::microseconds{1000U >> numerology};
 
   ASSERT_FALSE(manager.get_last_mapping(scs).has_value());
   logger.info(
@@ -167,7 +167,7 @@ TEST_P(subframe_time_mapper_test, get_slot_time_point_from_slot_point)
   manager.handle_slot_indication({report_slot, report_time_point});
   ASSERT_TRUE(manager.get_last_mapping(scs).has_value());
 
-  slot_point                     slot;
+  slot_point_extended            slot;
   std::optional<slot_time_point> time_point;
   slot_time_point                expected_time_point;
   auto time_difference = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds(0));
@@ -175,7 +175,7 @@ TEST_P(subframe_time_mapper_test, get_slot_time_point_from_slot_point)
   for (signed i = -10; i < 10; i++) {
     slot                = report_slot + i;
     expected_time_point = report_time_point + slot_dur * i;
-    time_point          = manager.get_time_point(slot);
+    time_point          = manager.get_time_point(slot.without_hyper_sfn());
     ASSERT_TRUE(time_point.has_value());
     time_difference = std::chrono::duration_cast<std::chrono::microseconds>(time_point.value() - report_time_point);
     logger.info("N={} Returned time_point={} for slot={} (time_diff={})",
@@ -189,11 +189,11 @@ TEST_P(subframe_time_mapper_test, get_slot_time_point_from_slot_point)
 
 TEST_P(subframe_time_mapper_test, get_slot_point_from_time_point)
 {
-  ocudulog::basic_logger& logger            = ocudulog::fetch_basic_logger("TEST");
-  const slot_point        report_slot       = {numerology, 0, 0};
-  const slot_time_point   report_time_point = std::chrono::system_clock::now();
-  const auto              slot_dur          = std::chrono::microseconds{1000U >> numerology};
-  const auto              scs               = to_subcarrier_spacing(numerology);
+  ocudulog::basic_logger&   logger            = ocudulog::fetch_basic_logger("TEST");
+  const auto                scs               = to_subcarrier_spacing(numerology);
+  const slot_point_extended report_slot       = {scs, 0};
+  const slot_time_point     report_time_point = std::chrono::system_clock::now();
+  const auto                slot_dur          = std::chrono::microseconds{1000U >> numerology};
 
   ASSERT_FALSE(manager.get_last_mapping(scs).has_value());
   logger.info(
@@ -203,8 +203,8 @@ TEST_P(subframe_time_mapper_test, get_slot_point_from_time_point)
 
   std::optional<slot_point> slot;
   slot_time_point           time_point;
-  slot_point                expected_slot_point;
-  auto time_difference = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::microseconds(0));
+  slot_point_extended       expected_slot_point;
+  auto                      time_difference = std::chrono::microseconds(0);
   for (signed i = -10; i < 10; i++) {
     time_point          = report_time_point + slot_dur * i;
     expected_slot_point = report_slot + i;
@@ -217,7 +217,7 @@ TEST_P(subframe_time_mapper_test, get_slot_point_from_time_point)
                 slot.value(),
                 time_point.time_since_epoch().count(),
                 time_difference.count());
-    ASSERT_EQ(slot.value(), expected_slot_point);
+    ASSERT_EQ(slot.value(), expected_slot_point.without_hyper_sfn());
   }
 }
 

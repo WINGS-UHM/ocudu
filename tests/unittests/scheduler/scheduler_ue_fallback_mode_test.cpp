@@ -194,7 +194,8 @@ TEST_P(scheduler_con_res_msg4_test, while_ue_is_in_fallback_then_common_pucch_is
       << "Failed to schedule ConRes CE and Msg4 PDCCH, PDSCH and PUCCH for UE in fallback mode";
 
   // Push an ACK to trigger the Contention Resolution completion in the scheduler.
-  uci_indication uci = test_helper::create_uci_indication(next_slot - 1, ue_index, *first_msg4_pucch);
+  uci_indication uci =
+      test_helper::create_uci_indication(next_slot.without_hyper_sfn() - 1, ue_index, *first_msg4_pucch);
   this->sched->handle_uci_indication(uci);
   run_slot();
 
@@ -293,8 +294,9 @@ TEST_P(scheduler_con_res_msg4_test, while_ue_is_in_fallback_then_common_ss_is_us
   }
   ASSERT_TRUE(is_common_ss_used) << "UE in fallback should use common SS";
   // PDCCH monitoring must be active in this slot.
-  ASSERT_TRUE(ss_used != nullptr and pdcch_helper::is_pdcch_monitoring_active(next_slot, *ss_used)) << fmt::format(
-      "Common SS id={} is not monitored at slot={}", fmt::underlying(ss_used->get_id()), next_slot.slot_index());
+  ASSERT_TRUE(ss_used != nullptr and pdcch_helper::is_pdcch_monitoring_active(next_slot.without_hyper_sfn(), *ss_used))
+      << fmt::format(
+             "Common SS id={} is not monitored at slot={}", fmt::underlying(ss_used->get_id()), next_slot.slot_index());
 }
 
 TEST_P(scheduler_con_res_msg4_test, when_msg4_gets_retxed_then_tc_rnti_is_used_and_csi_rs_avoided)
@@ -309,7 +311,8 @@ TEST_P(scheduler_con_res_msg4_test, when_msg4_gets_retxed_then_tc_rnti_is_used_a
       << "Failed to schedule ConRes CE and Msg4 PDCCH, PDSCH and PUCCH for UE in fallback mode";
 
   // Enqueue HARQ NACK for Msg4.
-  uci_indication uci = test_helper::create_uci_indication(next_slot - 1, ue_index, *first_msg4_pucch);
+  uci_indication uci =
+      test_helper::create_uci_indication(next_slot.without_hyper_sfn() - 1, ue_index, *first_msg4_pucch);
   std::get<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(uci.ucis[0].pdu).harqs[0] =
       mac_harq_ack_report_status::nack;
   this->sched->handle_uci_indication(uci);
@@ -369,10 +372,10 @@ protected:
     ue_cfg.ue_index           = ue_index;
     ue_cfg.crnti              = rnti;
     ue_cfg.starts_in_fallback = true;
-    ue_cfg.ul_ccch_slot_rx    = next_slot;
+    ue_cfg.ul_ccch_slot_rx    = next_slot.without_hyper_sfn();
     scheduler_test_simulator::add_ue(ue_cfg, true);
     nof_rtt_slots      = cell_cfg_req.ntn_cs_koffset;
-    ul_ccch_slot_rx    = next_slot;
+    ul_ccch_slot_rx    = next_slot.without_hyper_sfn();
     conres_expiry_slot = ul_ccch_slot_rx +
                          cell_cfg_req.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer.count() *
                              next_slot.nof_slots_per_subframe() +
@@ -392,7 +395,7 @@ TEST_P(scheduler_conres_expiry_test, when_conres_ce_arrives_after_conres_timer_e
 {
   // CE is enqueued after the ConRes timer expires.
   auto ce_enqueue_slot = conres_expiry_slot + test_rgen::uniform_int<unsigned>(0, 10);
-  while (next_slot < ce_enqueue_slot) {
+  while (next_slot.without_hyper_sfn() < ce_enqueue_slot) {
     run_slot();
     ASSERT_EQ(find_ue_pdsch(rnti, *last_sched_result(cell_index)), nullptr)
         << "PDSCH scheduled but there is no pending data";
@@ -409,7 +412,7 @@ TEST_P(scheduler_conres_expiry_test, when_conres_retx_goes_after_conres_timer_ex
   auto pdsch_is_sched = [this]() { return find_ue_pdsch(rnti, *this->last_sched_result(cell_index)) != nullptr; };
 
   // Get closer to the conRes expiry slot.
-  while (next_slot < conres_expiry_slot - 10) {
+  while (next_slot.without_hyper_sfn() < conres_expiry_slot - 10) {
     run_slot();
     ASSERT_FALSE(pdsch_is_sched());
   }
@@ -425,11 +428,11 @@ TEST_P(scheduler_conres_expiry_test, when_conres_retx_goes_after_conres_timer_ex
   // Enqueue a NACK after ConRes timer expires.
   uci_indication uci_ind;
   uci_ind.cell_index = cell_index;
-  uci_ind.slot_rx    = next_slot - 1;
+  uci_ind.slot_rx    = next_slot.without_hyper_sfn() - 1;
   for (const pucch_info& pucch : this->last_sched_result(cell_index)->ul.pucchs) {
     uci_ind.ucis.push_back(test_helper::create_uci_indication_pdu(ue_index, pucch, mac_harq_ack_report_status::nack));
   }
-  while (next_slot < conres_expiry_slot) {
+  while (next_slot.without_hyper_sfn() < conres_expiry_slot) {
     run_slot();
     ASSERT_FALSE(pdsch_is_sched());
   }
@@ -445,7 +448,7 @@ TEST_P(scheduler_conres_expiry_test, when_ntn_cell_conres_timer_extended_with_rt
   auto pdsch_is_sched = [this]() { return find_ue_pdsch(rnti, *this->last_sched_result(cell_index)) != nullptr; };
 
   // Advance by link RTT.
-  while (next_slot < ul_ccch_slot_rx + nof_rtt_slots) {
+  while (next_slot.without_hyper_sfn() < ul_ccch_slot_rx + nof_rtt_slots) {
     run_slot();
     ASSERT_FALSE(pdsch_is_sched());
   }
@@ -479,7 +482,7 @@ protected:
     ue_cfg.ue_index           = ue_index;
     ue_cfg.crnti              = rnti;
     ue_cfg.starts_in_fallback = true;
-    ue_cfg.ul_ccch_slot_rx    = next_slot;
+    ue_cfg.ul_ccch_slot_rx    = next_slot.without_hyper_sfn();
     scheduler_test_simulator::add_ue(ue_cfg, true);
   }
 
@@ -507,7 +510,8 @@ TEST_F(scheduler_ue_no_config_test, when_ue_has_no_serv_cell_cfg_then_msg4_and_c
   const pucch_info* first_msg4_pucch = run_until_common_pucch_with_harq(rnti);
   ASSERT_NE(first_msg4_pucch, nullptr)
       << "Failed to schedule ConRes CE and Msg4 PDCCH, PDSCH and PUCCH for UE in fallback mode";
-  uci_indication uci = test_helper::create_uci_indication(next_slot - 1, ue_index, *first_msg4_pucch);
+  uci_indication uci =
+      test_helper::create_uci_indication(next_slot.without_hyper_sfn() - 1, ue_index, *first_msg4_pucch);
   std::get<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(uci.ucis[0].pdu).harqs[0] =
       mac_harq_ack_report_status::nack;
   this->sched->handle_uci_indication(uci);

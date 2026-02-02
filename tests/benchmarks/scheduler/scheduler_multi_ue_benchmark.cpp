@@ -139,16 +139,16 @@ public:
 
   void process_results()
   {
-    slot_point result_sl_tx = next_sl_tx;
+    slot_point_extended result_sl_tx = next_sl_tx;
     ++next_sl_tx;
 
     // Store previous results if any.
     if (result != nullptr) {
-      sched_results[result_sl_tx.to_uint()] = *result;
+      sched_results[result_sl_tx.count()] = *result;
     }
 
     // Process past UCI results.
-    slot_point          sl_rx = next_sl_tx - dl_pipeline_delay - uci_process_delay;
+    slot_point          sl_rx = next_sl_tx.without_hyper_sfn() - dl_pipeline_delay - uci_process_delay;
     const sched_result& res   = sched_results[sl_rx.to_uint()];
     if (res.success) {
       uci_indication ind;
@@ -239,7 +239,7 @@ private:
   std::unique_ptr<mac_scheduler> sch;
 
   unsigned            ue_count = 0;
-  slot_point          next_sl_tx;
+  slot_point_extended next_sl_tx;
   const sched_result* result = nullptr;
 
   circular_array<sched_result, 64> sched_results{};

@@ -116,9 +116,11 @@ du_high_env_simulator::du_high_env_simulator(const du_high_configuration& du_hi_
   }()),
   du_hi(make_du_high(du_high_cfg, du_hi_dependencies)),
   phy(du_high_cfg.ran.cells.size(), workers.test_worker),
-  next_slot(to_numerology_value(du_high_cfg.ran.cells[0].scs_common),
-            test_rgen::uniform_int<unsigned>(0, 10239) *
-                get_nof_slots_per_subframe(du_high_cfg.ran.cells[0].scs_common))
+  next_slot(du_high_cfg.ran.cells[0].scs_common,
+            test_rgen::uniform_int<unsigned>(0,
+                                             NOF_SFNS * NOF_HYPER_SFNS * NOF_SUBFRAMES_PER_FRAME *
+                                                     get_nof_slots_per_subframe(du_high_cfg.ran.cells[0].scs_common) -
+                                                 1))
 {
   if (auto_start) {
     // Start DU and try to connect to CU.
@@ -173,7 +175,8 @@ bool du_high_env_simulator::add_ue(rnti_t rnti, du_cell_index_t cell_index)
   cu_notifier.f1ap_ul_msgs.clear();
 
   // Send UL-CCCH message.
-  du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, rnti, cell_index));
+  du_hi->get_pdu_handler().handle_rx_data_indication(
+      test_helpers::create_ccch_message(next_slot.without_hyper_sfn(), rnti, cell_index));
 
   // Wait for Init UL RRC Message to come out of the F1AP and ConRes CE to be scheduled.
   // Note: These events are concurrent.
@@ -483,20 +486,21 @@ void du_high_env_simulator::run_slot()
   // case, with the join point being the test main thread).
   for (unsigned i = 0; i != du_high_cfg.ran.cells.size(); ++i) {
     const unsigned MAX_COUNT = 100000;
-    for (unsigned count = 0; count < MAX_COUNT and phy.cells[i].last_slot_res != next_slot; ++count) {
+    for (unsigned count = 0; count < MAX_COUNT and phy.cells[i].last_slot_res != next_slot.without_hyper_sfn();
+         ++count) {
       // Process tasks dispatched to the test main thread (e.g. L2 slot result)
       workers.test_worker.run_pending_tasks();
 
       // Wait for tasks to arrive to test thread.
       std::this_thread::sleep_for(std::chrono::milliseconds{1});
     }
-    EXPECT_EQ(phy.cells[i].last_slot_res, next_slot)
+    EXPECT_EQ(phy.cells[i].last_slot_res, next_slot.without_hyper_sfn())
         << fmt::format("Slot={} failed to be processed (last processed slot={}). Is there a deadlock?",
                        next_slot,
                        phy.cells[i].last_slot_res);
     const std::optional<mac_dl_sched_result>& dl_result = phy.cells[i].last_dl_res;
     if (dl_result.has_value()) {
-      EXPECT_EQ(dl_result->slot, next_slot);
+      EXPECT_EQ(dl_result->slot, next_slot.without_hyper_sfn());
     }
 
     // Process results.
@@ -648,7 +652,8 @@ du_high_env_simulator::launch_ue_creation_task(rnti_t rnti, du_cell_index_t cell
         rnti);
 
     // Forward UL-CCCH message.
-    du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, rnti, cell_index));
+    du_hi->get_pdu_handler().handle_rx_data_indication(
+        test_helpers::create_ccch_message(next_slot.without_hyper_sfn(), rnti, cell_index));
 
     for (count = 0; (not conres_sent or not init_ul_rrc_msg) and count < ue_creation_timeout; ++count) {
       // On every run_slot.
@@ -898,7 +903,7 @@ void du_high_env_simulator::handle_slot_preamble_tasks()
 {
   // Handle any pending UE UL RLC SDUs.
   for (unsigned i = 0; i != du_high_cfg.ran.cells.size(); ++i) {
-    mac_rx_data_indication rx_ind{.sl_rx = next_slot, .cell_index = to_du_cell_index(i)};
+    mac_rx_data_indication rx_ind{.sl_rx = next_slot.without_hyper_sfn(), .cell_index = to_du_cell_index(i)};
     // Only process UEs with matching PCell.
     for (auto& [rnti, u] : ues) {
       if (u.pcell_index == i) {

@@ -120,7 +120,7 @@ bool du_high_cu_test_simulator::add_ue(unsigned du_index, rnti_t rnti)
 
   // Send UL-CCCH message.
   du_ctxt.du_high_inst->get_pdu_handler().handle_rx_data_indication(
-      test_helpers::create_ccch_message(du_ctxt.next_slot, rnti));
+      test_helpers::create_ccch_message(du_ctxt.next_slot.without_hyper_sfn(), rnti));
 
   // Wait for Init UL RRC Message to come out of the F1AP.
   run_until([this, du_index]() { return not f1c_gw.get_last_cu_cp_rx_pdus(du_index).empty(); });
@@ -137,7 +137,8 @@ void du_high_cu_test_simulator::start_dus()
     auto& du_ctxt = *dus.back();
 
     // Setup DU-specific slot index.
-    du_ctxt.next_slot = {0, test_rgen::uniform_int<unsigned>(0, 10239)};
+    du_ctxt.next_slot = {subcarrier_spacing::kHz15,
+                         test_rgen::uniform_int<unsigned>(0, NOF_HYPER_SFNS * NOF_SFNS * NOF_SUBFRAMES_PER_FRAME - 1)};
 
     // Instantiate DU-high.
     odu::du_high_configuration& du_hi_cfg = du_ctxt.du_high_cfg;
@@ -174,7 +175,8 @@ void du_high_cu_test_simulator::run_slot()
     // main thread).
     const unsigned                            MAX_COUNT = 1000;
     const std::optional<mac_dl_sched_result>& dl_result = dus[i]->phy.cells[0].last_dl_res;
-    for (unsigned count = 0; count < MAX_COUNT and (not dl_result.has_value() or dl_result->slot != dus[i]->next_slot);
+    for (unsigned count = 0;
+         count < MAX_COUNT and (not dl_result.has_value() or dl_result->slot != dus[i]->next_slot.without_hyper_sfn());
          ++count) {
       // Process tasks dispatched to the test main thread (e.g. L2 slot result)
       workers.test_worker.run_pending_tasks();
@@ -182,7 +184,7 @@ void du_high_cu_test_simulator::run_slot()
       // Wait for tasks to arrive to test thread.
       std::this_thread::sleep_for(std::chrono::milliseconds{1});
     }
-    EXPECT_TRUE(dl_result.has_value() and dl_result->slot == dus[i]->next_slot);
+    EXPECT_TRUE(dl_result.has_value() and dl_result->slot == dus[i]->next_slot.without_hyper_sfn());
 
     // Increament the DU slot.
     ++dus[i]->next_slot;

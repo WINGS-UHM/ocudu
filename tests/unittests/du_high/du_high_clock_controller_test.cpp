@@ -107,7 +107,7 @@ TEST_F(du_high_time_source_test, when_cell_is_activated_then_ticking_becomes_man
   ASSERT_TRUE(is_clock_running_automatically());
 
   // Activate cell.
-  slot_point cur_sl_tx = {subcarrier_spacing::kHz30, 0};
+  slot_point_extended cur_sl_tx = {subcarrier_spacing::kHz30, 0};
   cell_source->on_slot_indication(cur_sl_tx);
   timer_worker.run_pending_tasks();
 
@@ -122,7 +122,7 @@ TEST_F(du_high_time_source_test, cell_slot_now_is_updated_on_slot_indication)
 
   ASSERT_FALSE(cell_source->now().valid());
 
-  slot_point cur_sl_tx = {subcarrier_spacing::kHz30, 0};
+  slot_point_extended cur_sl_tx = {subcarrier_spacing::kHz30, 0};
   cell_source->on_slot_indication(cur_sl_tx);
 
   ASSERT_TRUE(cell_source->now().valid());
@@ -132,7 +132,7 @@ TEST_F(du_high_time_source_test, cell_slot_now_is_updated_on_slot_indication)
 TEST_F(du_high_time_source_test, when_cell_is_deactivated_then_ticking_becomes_automatic)
 {
   std::vector<std::unique_ptr<mac_cell_clock_controller>> cells(test_rgen::uniform_int<unsigned>(1, 5));
-  slot_point                                              cur_sl_tx = {subcarrier_spacing::kHz30, 0};
+  slot_point_extended                                     cur_sl_tx = {subcarrier_spacing::kHz30, 0};
   for (auto& cell : cells) {
     cell = timer_ctrl->add_cell(to_du_cell_index(std::distance(cells.data(), &cell)));
     cell->on_slot_indication(cur_sl_tx);
@@ -153,7 +153,7 @@ TEST_F(du_high_time_source_test, tick_periodicity_for_scs15khz_is_1msec)
   auto cell_source = timer_ctrl->add_cell(to_du_cell_index(0));
 
   // Cells get activated with slot_indication.
-  slot_point cur_sl_tx = {subcarrier_spacing::kHz15, 0};
+  slot_point_extended cur_sl_tx = {subcarrier_spacing::kHz15, 0};
   cell_source->on_slot_indication(cur_sl_tx++);
   timer_worker.run_pending_tasks();
 
@@ -174,7 +174,7 @@ TEST_F(du_high_time_source_test, tick_periodicity_for_scs30khz_is_1msec)
   auto cell_source = timer_ctrl->add_cell(to_du_cell_index(0));
 
   // Cells get activated with slot_indication.
-  slot_point cur_sl_tx = {subcarrier_spacing::kHz30, 0};
+  slot_point_extended cur_sl_tx = {subcarrier_spacing::kHz30, 0};
   cell_source->on_slot_indication(cur_sl_tx++);
   // Note: We advance twice to start next check in an even slot index.
   cell_source->on_slot_indication(cur_sl_tx++);
@@ -198,7 +198,7 @@ TEST_F(du_high_time_source_test, only_one_tick_per_msec_for_multiple_cells)
   auto cell_source2 = timer_ctrl->add_cell(to_du_cell_index(1));
 
   // Cells get activated with slot_indication.
-  slot_point cur_sl_tx = {subcarrier_spacing::kHz30, 0};
+  slot_point_extended cur_sl_tx = {subcarrier_spacing::kHz30, 0};
   cell_source1->on_slot_indication(cur_sl_tx);
   cell_source2->on_slot_indication(cur_sl_tx++);
   // Note: We advance twice to start next check in an even slot index.

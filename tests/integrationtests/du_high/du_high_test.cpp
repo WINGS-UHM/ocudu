@@ -51,7 +51,8 @@ TEST_F(du_high_tester, when_ccch_msg_is_received_then_ue_context_is_created)
   cu_notifier.f1ap_ul_msgs.clear();
 
   // Add UE
-  du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, to_rnti(0x4601)));
+  du_hi->get_pdu_handler().handle_rx_data_indication(
+      test_helpers::create_ccch_message(next_slot.without_hyper_sfn(), to_rnti(0x4601)));
 
   // TEST CASE: DU sends Initial UL RRC Message
   this->run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
@@ -65,8 +66,10 @@ TEST_F(du_high_tester, when_two_concurrent_ccch_msg_are_received_then_two_ue_con
   cu_notifier.f1ap_ul_msgs.clear();
 
   // Add two UEs.
-  du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, to_rnti(0x4601)));
-  du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, to_rnti(0x4602)));
+  du_hi->get_pdu_handler().handle_rx_data_indication(
+      test_helpers::create_ccch_message(next_slot.without_hyper_sfn(), to_rnti(0x4601)));
+  du_hi->get_pdu_handler().handle_rx_data_indication(
+      test_helpers::create_ccch_message(next_slot.without_hyper_sfn(), to_rnti(0x4602)));
 
   this->run_until([this]() { return cu_notifier.f1ap_ul_msgs.size() >= 2; });
 
@@ -214,7 +217,7 @@ TEST_F(du_high_tester,
     if (pucch != nullptr) {
       // Push SR indication to MAC. It should be ignored.
       mac_uci_indication_message uci;
-      uci.sl_rx = next_slot - 1;
+      uci.sl_rx = next_slot.without_hyper_sfn() - 1;
       uci.ucis.push_back(test_helpers::create_uci_pdu(*pucch, true));
       du_hi->get_control_info_handler(to_du_cell_index(0)).handle_uci(uci);
       ue1_sr_count++;

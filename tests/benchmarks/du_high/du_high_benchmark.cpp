@@ -582,7 +582,7 @@ public:
     ul_bsr_bytes(ul_bsr_bytes_)
   {
     // Set slot point based on the SCS.
-    next_sl_tx = slot_point{to_numerology_value(params.scs_common), 0};
+    next_sl_tx = slot_point_extended{params.scs_common, 0};
 
     // Compute LBSR buffer size. According to TS38.321, 254 is the maximum value for the LBSR size.
     unsigned lbsr_buff_sz = 0;
@@ -692,7 +692,7 @@ public:
     // Send any pending UCI indications.
     auto uci_ind = pending_ucis.begin();
     while (uci_ind != pending_ucis.end()) {
-      if (uci_ind->sl_rx == next_sl_tx - tx_rx_delay) {
+      if (uci_ind->sl_rx == next_sl_tx.without_hyper_sfn() - tx_rx_delay) {
         du_hi->get_control_info_handler(to_du_cell_index(0)).handle_uci(*uci_ind);
         uci_ind = pending_ucis.erase(uci_ind);
         continue;
@@ -706,7 +706,7 @@ public:
     // Send any pending Rx Data indications.
     auto rx_data_ind = pending_puschs.begin();
     while (rx_data_ind != pending_puschs.end()) {
-      if (rx_data_ind->sl_rx == next_sl_tx - tx_rx_delay) {
+      if (rx_data_ind->sl_rx == next_sl_tx.without_hyper_sfn() - tx_rx_delay) {
         du_hi->get_pdu_handler().handle_rx_data_indication(*rx_data_ind);
         rx_data_ind = pending_puschs.erase(rx_data_ind);
         continue;
@@ -720,7 +720,7 @@ public:
     // Send any pending CRC indications.
     auto crc_ind = pending_crc.begin();
     while (crc_ind != pending_crc.end()) {
-      if (crc_ind->sl_rx == next_sl_tx - tx_rx_delay) {
+      if (crc_ind->sl_rx == next_sl_tx.without_hyper_sfn() - tx_rx_delay) {
         du_hi->get_control_info_handler(to_du_cell_index(0)).handle_crc(*crc_ind);
         crc_ind = pending_crc.erase(crc_ind);
         continue;
@@ -752,13 +752,13 @@ public:
 
       return not cfg.ran.cells[to_du_cell_index(0)].tdd_ul_dl_cfg_common.has_value() or
              not is_tdd_full_ul_slot(cfg.ran.cells[to_du_cell_index(0)].tdd_ul_dl_cfg_common.value(),
-                                     slot_point(next_sl_tx - tx_rx_delay - 1).slot_index());
+                                     slot_point(next_sl_tx.without_hyper_sfn() - tx_rx_delay - 1).slot_index());
     };
     report_fatal_error_if_not(run_slot_until(next_ul_slot), "No slot for Msg3 was detected");
 
     // Received Msg3 with UL-CCCH message.
     mac_rx_data_indication rx_ind;
-    rx_ind.sl_rx      = next_sl_tx - tx_rx_delay;
+    rx_ind.sl_rx      = next_sl_tx.without_hyper_sfn() - tx_rx_delay;
     rx_ind.cell_index = to_du_cell_index(0);
     rx_ind.pdus.push_back(mac_rx_pdu{
         rnti, 0, 0, byte_buffer::create({0x34, 0x1e, 0x4f, 0xc0, 0x4f, 0xa6, 0x06, 0x3f, 0x00, 0x00, 0x00}).value()});
@@ -780,7 +780,7 @@ public:
 
     // Push MAC UL SDU that corresponds to the RRC Setup Complete.
     rx_ind             = {};
-    rx_ind.sl_rx       = next_sl_tx - tx_rx_delay;
+    rx_ind.sl_rx       = next_sl_tx.without_hyper_sfn() - tx_rx_delay;
     rx_ind.cell_index  = to_du_cell_index(0);
     byte_buffer ul_pdu = byte_buffer::create({0x01, 0x04, 0xc0, 0x00, 0x00, 0x00}).value(); // SRB1, RLC SN 0
     rx_ind.pdus.push_back(mac_rx_pdu{du_ue_index_to_rnti(ue_idx), 0, 0, ul_pdu.copy()});
@@ -831,7 +831,7 @@ public:
     report_fatal_error_if_not(run_slot_until(ue_setup_resp_rx), "F1AP UL RRC Message missing");
 
     // Push MAC UL SDU that will serve as RRC Reconf Complete and make the UE go out of fallback mode.
-    rx_ind = test_helpers::create_pdu_with_sdu(next_sl_tx - tx_rx_delay, rnti, LCID_SRB1, 1);
+    rx_ind = test_helpers::create_pdu_with_sdu(next_sl_tx.without_hyper_sfn() - tx_rx_delay, rnti, LCID_SRB1, 1);
     du_hi->get_pdu_handler().handle_rx_data_indication(rx_ind);
 
     // Wait for RRC Reconf Complete to arrive to F1AP and that the RLC sends status report.
@@ -1152,7 +1152,7 @@ public:
   cu_cp_simulator               sim_cu_cp;
   cu_up_simulator               sim_cu_up;
   phy_simulator                 sim_phy;
-  slot_point                    next_sl_tx{0, 0};
+  slot_point_extended           next_sl_tx{subcarrier_spacing::kHz15, 0};
 
   /// Determines whether a UE setup has completed.
   std::array<bool, MAX_NOF_DU_UES> ue_created_flag_list{false};

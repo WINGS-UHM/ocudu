@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include <chrono>
 
 namespace ocudu {
@@ -18,7 +18,7 @@ namespace ocudu {
 /// Describes the context of the current timing boundary.
 struct mac_cell_timing_context {
   /// Indicates the current slot.
-  slot_point sl_tx;
+  slot_point_extended sl_tx;
   /// Indicates the system time point associated to the current slot.
   std::chrono::time_point<std::chrono::system_clock> time_point;
 };

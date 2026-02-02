@@ -334,7 +334,7 @@ void mac_cell_processor::handle_slot_indication_impl(slot_point_extended      sl
   }
 
   // Tick DU timers.
-  time_source->on_slot_indication(sl_tx);
+  time_source->on_slot_indication(sl_tx_ext);
 
   // Initiate metric capturing.
   auto        metrics_meas = metrics.start_slot(sl_tx, enqueue_slot_tp);

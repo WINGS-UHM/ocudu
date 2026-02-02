@@ -84,7 +84,7 @@ public:
     if (events.next_ul_sched_res.has_value()) {
       result_notifier.get_cell(to_du_cell_index(0)).on_new_uplink_scheduler_results(events.next_ul_sched_res.value());
     }
-    result_notifier.get_cell(to_du_cell_index(0)).on_cell_results_completion(context.sl_tx);
+    result_notifier.get_cell(to_du_cell_index(0)).on_cell_results_completion(context.sl_tx.without_hyper_sfn());
   }
   void                               handle_error_indication(slot_point sl_tx, error_event event) override {}
   void                               handle_stop_indication() override {}
@@ -199,7 +199,7 @@ protected:
 
   csi_report_configuration csi_cfg;
 
-  slot_point next_slot{0, 0};
+  slot_point_extended next_slot{subcarrier_spacing::kHz15, 0};
 };
 
 class mac_test_mode_test : public base_mac_test_mode_test, public ::testing::Test
@@ -230,16 +230,16 @@ TEST_F(mac_test_mode_test, when_test_mode_ue_has_pucch_grants_then_uci_indicatio
     ul_res.pucchs.push_back(pucch);
 
     mac_events.next_ul_sched_res.emplace();
-    mac_events.next_ul_sched_res->slot   = next_slot;
+    mac_events.next_ul_sched_res->slot   = next_slot.without_hyper_sfn();
     mac_events.next_ul_sched_res->ul_res = &ul_res;
 
     // Run the slot with PUCCH scheduled.
-    slot_point sl_rx = next_slot;
+    slot_point_extended sl_rx = next_slot;
     this->run_slot();
 
     // Forward UCI indication.
     mac_uci_indication_message uci;
-    uci.sl_rx                                = sl_rx;
+    uci.sl_rx                                = sl_rx.without_hyper_sfn();
     mac_uci_pdu& pdu                         = uci.ucis.emplace_back();
     pdu.rnti                                 = this->params.test_ue_cfg.rnti;
     mac_uci_pdu::pucch_f0_or_f1_type& f1_uci = pdu.pdu.emplace<mac_uci_pdu::pucch_f0_or_f1_type>();
@@ -249,7 +249,7 @@ TEST_F(mac_test_mode_test, when_test_mode_ue_has_pucch_grants_then_uci_indicatio
     this->adapter.get_control_info_handler(to_du_cell_index(0)).handle_uci(uci);
 
     ASSERT_TRUE(mac_events.last_uci.has_value());
-    ASSERT_EQ(mac_events.last_uci->sl_rx, sl_rx);
+    ASSERT_EQ(mac_events.last_uci->sl_rx, sl_rx.without_hyper_sfn());
     ASSERT_EQ(mac_events.last_uci->ucis.size(), 1);
 
     ASSERT_EQ(mac_events.last_uci->ucis[0].rnti, this->params.test_ue_cfg.rnti);
@@ -271,11 +271,11 @@ TEST_F(mac_test_mode_test, when_test_mode_ue_has_pusch_grants_then_crc_indicatio
   ulgrant.pusch_cfg.rnti    = this->params.test_ue_cfg.rnti;
   ulgrant.pusch_cfg.harq_id = to_harq_id(test_rgen::uniform_int(0, 15));
   mac_events.next_ul_sched_res.emplace();
-  mac_events.next_ul_sched_res->slot   = next_slot;
+  mac_events.next_ul_sched_res->slot   = next_slot.without_hyper_sfn();
   mac_events.next_ul_sched_res->ul_res = &ul_res;
 
   // Run the slot with PUSCH scheduled.
-  slot_point sl_rx = next_slot;
+  slot_point sl_rx = next_slot.without_hyper_sfn();
   this->run_slot();
 
   // Forward CRC indication.
@@ -344,11 +344,11 @@ TEST_P(mac_test_mode_auto_uci_test, when_test_mode_ue_has_pucch_grants_then_uci_
   pucch_f1.uci_bits.sr_bits           = sr_nof_bits::no_sr;
 
   mac_events.next_ul_sched_res.emplace();
-  mac_events.next_ul_sched_res->slot   = next_slot;
+  mac_events.next_ul_sched_res->slot   = next_slot.without_hyper_sfn();
   mac_events.next_ul_sched_res->ul_res = &ul_res;
 
   // Run the slot with PUCCH scheduled.
-  slot_point sl_rx = next_slot;
+  slot_point sl_rx = next_slot.without_hyper_sfn();
   this->run_slot();
 
   // After a few slots, the UCI indication is forwarded to the real MAC.
@@ -384,11 +384,11 @@ TEST_P(mac_test_mode_auto_uci_test, when_test_mode_ue_has_pusch_grants_then_crc_
   ulgrant.pusch_cfg.rnti    = this->params.test_ue_cfg.rnti;
   ulgrant.pusch_cfg.harq_id = to_harq_id(test_rgen::uniform_int(0, 15));
   mac_events.next_ul_sched_res.emplace();
-  mac_events.next_ul_sched_res->slot   = next_slot;
+  mac_events.next_ul_sched_res->slot   = next_slot.without_hyper_sfn();
   mac_events.next_ul_sched_res->ul_res = &ul_res;
 
   // Run the slot with PUSCH scheduled.
-  slot_point sl_rx = next_slot;
+  slot_point sl_rx = next_slot.without_hyper_sfn();
   this->run_slot();
 
   // After a few slots, the CRC indication is forwarded to the real MAC.
@@ -438,11 +438,11 @@ TEST_P(mac_test_mode_auto_uci_test, when_uci_is_forwarded_to_mac_then_test_mode_
   pucch_f4.csi_rep_cfg                 = this->csi_cfg;
 
   mac_events.next_ul_sched_res.emplace();
-  mac_events.next_ul_sched_res->slot   = next_slot;
+  mac_events.next_ul_sched_res->slot   = next_slot.without_hyper_sfn();
   mac_events.next_ul_sched_res->ul_res = &ul_res;
 
   // Run the slot with PUCCH scheduled.
-  slot_point sl_rx = next_slot;
+  slot_point sl_rx = next_slot.without_hyper_sfn();
   this->run_slot();
 
   // After a few slots, the UCI indication is forwarded to the real MAC.

@@ -18,6 +18,7 @@
 #include "ocudu/du/du_high/du_high.h"
 #include "ocudu/du/du_high/du_high_configuration.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
 #include "ocudu/support/async/eager_async_task.h"
 #include "ocudu/support/async/event_signal.h"
@@ -111,7 +112,7 @@ public:
   null_mac_pcap            mac_pcap;
   null_rlc_pcap            rlc_pcap;
 
-  slot_point next_slot;
+  slot_point_extended next_slot;
 
   ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
 

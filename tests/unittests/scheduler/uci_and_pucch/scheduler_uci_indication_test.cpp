@@ -29,7 +29,7 @@ protected:
     add_cell();
     add_ue();
 
-    next_slot = slot_point{0, 1};
+    next_slot = slot_point_extended{subcarrier_spacing::kHz15, 0, 0, 1};
   }
 
   void add_cell()
@@ -51,7 +51,7 @@ protected:
   {
     last_sched_res = &sched->slot_indication(next_slot, to_du_cell_index(0));
     TESTASSERT(last_sched_res->success);
-    test_scheduler_result_consistency(*cell_cfg, next_slot, *last_sched_res);
+    test_scheduler_result_consistency(*cell_cfg, next_slot.without_hyper_sfn(), *last_sched_res);
     ++next_slot;
   }
 
@@ -59,7 +59,7 @@ protected:
   {
     uci_indication uci_ind{};
     uci_ind.cell_index = to_du_cell_index(0);
-    uci_ind.slot_rx    = next_slot - 1;
+    uci_ind.slot_rx    = next_slot.without_hyper_sfn() - 1;
     uci_ind.ucis.resize(1);
     uci_ind.ucis[0].ue_index = to_du_ue_index(0);
     uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu pdu{.sr_detected = sr_ind};
@@ -76,7 +76,7 @@ protected:
   {
     uci_indication uci_ind{};
     uci_ind.cell_index = to_du_cell_index(0);
-    uci_ind.slot_rx    = next_slot - 1;
+    uci_ind.slot_rx    = next_slot.without_hyper_sfn() - 1;
     uci_ind.ucis.resize(1);
     uci_ind.ucis[0].ue_index = to_du_ue_index(0);
     uci_indication::uci_pdu::uci_pusch_pdu pdu{};
@@ -130,7 +130,7 @@ protected:
   std::optional<cell_configuration>   cell_cfg;
   std::unique_ptr<mac_scheduler>      sched;
 
-  slot_point          next_slot;
+  slot_point_extended next_slot;
   const sched_result* last_sched_res = nullptr;
 };
 

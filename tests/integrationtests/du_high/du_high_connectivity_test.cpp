@@ -99,7 +99,8 @@ TEST_F(du_high_connectivity_test, when_f1_connection_is_lost_then_ues_are_remove
   run_f1_setup();
 
   // Add UE
-  du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, to_rnti(0x4601)));
+  du_hi->get_pdu_handler().handle_rx_data_indication(
+      test_helpers::create_ccch_message(next_slot.without_hyper_sfn(), to_rnti(0x4601)));
   this->run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
   ASSERT_EQ(cu_notifier.f1ap_ul_msgs.size(), 1);
   ASSERT_TRUE(
@@ -114,7 +115,8 @@ TEST_F(du_high_connectivity_test, when_f1_connection_is_lost_then_ues_are_remove
   test_logger.info("STATUS: DU successfully retried F1 Setup after connection loss.");
 
   // Add new UE
-  du_hi->get_pdu_handler().handle_rx_data_indication(test_helpers::create_ccch_message(next_slot, to_rnti(0x4602)));
+  du_hi->get_pdu_handler().handle_rx_data_indication(
+      test_helpers::create_ccch_message(next_slot.without_hyper_sfn(), to_rnti(0x4602)));
   this->run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
   ASSERT_EQ(cu_notifier.f1ap_ul_msgs.size(), 1);
   ASSERT_TRUE(

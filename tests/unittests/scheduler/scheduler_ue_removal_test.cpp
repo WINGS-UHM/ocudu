@@ -129,7 +129,7 @@ TEST_F(sched_ue_removal_test, when_ue_has_pending_harqs_then_scheduler_waits_for
   ASSERT_NE(alloc, nullptr);
 
   // Schedule UE removal.
-  slot_point rem_slot = next_slot;
+  slot_point_extended rem_slot = next_slot;
   rem_ue(ue_index);
 
   // Wait for the right slot for ACK.

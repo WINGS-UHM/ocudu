@@ -303,7 +303,7 @@ TEST_P(multi_cell_scheduler_tester, test_sr_indication_for_ues_in_different_cell
       // Push SR indication based on PUCCH scheduled for UE.
       const auto pucch_res = get_pucch_sr_scheduled(cell_idx, ue_idx);
       if (pucch_res.has_value() and not is_ue_sr_scheduled_in_cell[cell_idx]) {
-        sched->handle_uci_indication(create_sr_uci_ind(cell_idx, ue_idx, next_slot, *pucch_res));
+        sched->handle_uci_indication(create_sr_uci_ind(cell_idx, ue_idx, next_slot.without_hyper_sfn(), *pucch_res));
       }
       if (last_sched_result(to_du_cell_index(cell_idx)) != nullptr) {
         const bool is_ue_scheduled = std::any_of(

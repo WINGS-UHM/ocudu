@@ -119,7 +119,7 @@ void scheduler_test_simulator::run_slot(std::optional<du_cell_index_t> cell_idx)
     sim_cells[cidx]->last_res = &sched->slot_indication(next_slot, cidx);
 
     // Ensure the scheduler result is consistent with the cell configuration and there are no collisions.
-    test_scheduler_result_consistency(cell_cfg(cidx), next_slot, *last_sched_result(cidx));
+    test_scheduler_result_consistency(cell_cfg(cidx), next_slot.without_hyper_sfn(), *last_sched_result(cidx));
 
     // In case auto-feedback is enabled, handle it.
     handle_auto_feedback(cidx);
@@ -157,7 +157,7 @@ void scheduler_test_simulator::handle_auto_feedback(du_cell_index_t cell_idx)
     return;
   }
   // Note: next_slot hasn't been incremented yet.
-  slot_point sl_rx = next_slot;
+  slot_point sl_rx = next_slot.without_hyper_sfn();
 
   uci_indication uci_ind;
   uci_ind.cell_index = cell_idx;

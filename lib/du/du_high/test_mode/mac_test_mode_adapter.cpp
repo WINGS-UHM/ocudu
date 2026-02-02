@@ -88,7 +88,7 @@ void mac_test_mode_cell_adapter::handle_slot_indication(const mac_cell_timing_co
 {
   if (test_ue_cfg.auto_ack_indication_delay.has_value()) {
     // auto-generation of CRC/UCI indication is enabled.
-    slot_point sl_rx = context.sl_tx - test_ue_cfg.auto_ack_indication_delay.value();
+    slot_point sl_rx = context.sl_tx.without_hyper_sfn() - test_ue_cfg.auto_ack_indication_delay.value();
     const auto entry = history.read(sl_rx);
     if (entry != nullptr) {
       // Handle auto-generation of pending CRC indications.

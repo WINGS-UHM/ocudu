@@ -33,7 +33,7 @@ public:
              timers,
              {timer_ctrl.add_cell(to_du_cell_index(0))})
   {
-    next_slot = {to_numerology_value(builder_params.scs_common), 0};
+    next_slot = {builder_params.scs_common, 0};
   }
 
   bool is_pdsch_scheduled() const
@@ -54,7 +54,7 @@ public:
   cell_config_builder_params                   builder_params;
   mac_cell_processor                           mac_cell;
 
-  slot_point next_slot;
+  slot_point_extended next_slot;
 };
 
 struct test_params {

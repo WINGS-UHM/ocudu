@@ -40,7 +40,7 @@ fapi_to_mac_slot_indication_fastpath_translator::fapi_to_mac_slot_indication_fas
 
 void fapi_to_mac_slot_indication_fastpath_translator::on_slot_indication(const fapi::slot_indication& msg)
 {
-  mac_cell_timing_context context{.sl_tx = msg.slot.without_hyper_sfn(), .time_point = msg.time_point};
+  mac_cell_timing_context context{.sl_tx = msg.slot, .time_point = msg.time_point};
   fapi_slot_handler.handle_slot_indication(context);
   mac_slot_handler->handle_slot_indication(context);
 }

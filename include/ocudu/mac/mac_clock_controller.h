@@ -25,7 +25,7 @@ public:
   virtual ~mac_cell_clock_controller() = default;
 
   /// Called on each new slot indication for a given cell.
-  void on_slot_indication(slot_point sl_tx) { cached_now = do_on_slot_indication(sl_tx); }
+  void on_slot_indication(slot_point_extended sl_tx) { cached_now = do_on_slot_indication(sl_tx.without_hyper_sfn()); }
 
   /// Called when a cell is deactivated.
   virtual void on_cell_deactivation() = 0;

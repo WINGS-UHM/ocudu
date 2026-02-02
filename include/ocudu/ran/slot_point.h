@@ -105,7 +105,7 @@ public:
   /// Radio Frame Number. Value: (0..1023).
   constexpr uint32_t sfn() const { return (static_cast<uint32_t>(count_val) / nof_slots_per_frame()) % NOF_SFNS; }
 
-  /// Number of slots per hyper system frame. Values: (0..1023).
+  /// Number of slots per hyper system frame. Values: (0..1023) * nof_slots_per_frame.
   constexpr uint32_t nof_slots_per_hyper_system_frame() const { return nof_slots_per_frame() * NOF_SFNS; }
 
   /// Number of slots present in a subframe. Depends on numerology.

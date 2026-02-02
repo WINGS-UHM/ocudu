@@ -37,7 +37,7 @@ public:
     count_val = count;
   }
 
-  constexpr slot_point_extended(slot_point slot)
+  explicit constexpr slot_point_extended(slot_point slot)
   {
     numerology_val = slot.numerology();
     count_val      = slot.count();

@@ -263,13 +263,13 @@ void lower_phy_uplink_processor_impl::process_collecting(const baseband_gateway_
   // Detect half-slot boundary.
   if (current_symbol_index == (nof_symbols_per_slot / 2) - 1) {
     // Notify half slot boundary.
-    notifier->on_half_slot(lower_phy_timing_context{.slot = current_slot, .time_point = {}});
+    notifier->on_half_slot(lower_phy_timing_context{.slot = slot_point_extended(current_slot), .time_point = {}});
   }
 
   // Detect full slot boundary.
   if (current_symbol_index == nof_symbols_per_slot - 1) {
     // Notify full slot boundary.
-    notifier->on_full_slot(lower_phy_timing_context{.slot = current_slot, .time_point = {}});
+    notifier->on_full_slot(lower_phy_timing_context{.slot = slot_point_extended(current_slot), .time_point = {}});
   }
 
   // Process next symbol with the remainder samples.

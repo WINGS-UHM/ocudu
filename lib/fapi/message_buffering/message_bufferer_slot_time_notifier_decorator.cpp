@@ -29,6 +29,7 @@ public:
 
 } // namespace
 
+/// Dummy notifier.
 static p7_slot_indication_notifier_dummy dummy_notifier;
 
 message_bufferer_slot_time_notifier_decorator::message_bufferer_slot_time_notifier_decorator(
@@ -49,7 +50,7 @@ void message_bufferer_slot_time_notifier_decorator::on_slot_indication(const slo
   gateway_task_dispatcher.update_current_slot(msg.slot.without_hyper_sfn());
 
   // Notify the upper layers.
-  slot_point delayed_slot = msg.slot.without_hyper_sfn() + l2_nof_slots_ahead;
+  slot_point_extended delayed_slot = msg.slot + l2_nof_slots_ahead;
   notifier.get().on_slot_indication(build_slot_indication(delayed_slot, msg.time_point + l2_nof_slots_ahead_ns));
 
   // Forward cached messages.

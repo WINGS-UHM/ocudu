@@ -115,7 +115,8 @@ public:
   {
     ocudu_assert(!handlers.empty(), "Adapter is not connected");
     for (auto& handler : handlers) {
-      handler->handle_tti_boundary({slot_context.slot, slot_context.time_point});
+      handler->handle_tti_boundary(
+          upper_phy_timing_context{.slot = slot_context.slot, .time_point = slot_context.time_point});
     }
   }
 
@@ -124,7 +125,8 @@ public:
   {
     ocudu_assert(!handlers.empty(), "Adapter is not connected");
     for (auto& handler : handlers) {
-      handler->handle_ul_half_slot_boundary({slot});
+      handler->handle_ul_half_slot_boundary(
+          upper_phy_timing_context{.slot = slot_point_extended(slot), .time_point = {}});
     }
   }
 
@@ -133,7 +135,8 @@ public:
   {
     ocudu_assert(!handlers.empty(), "Adapter is not connected");
     for (auto& handler : handlers) {
-      handler->handle_ul_full_slot_boundary({slot});
+      handler->handle_ul_full_slot_boundary(
+          upper_phy_timing_context{.slot = slot_point_extended(slot), .time_point = {}});
     }
   }
 

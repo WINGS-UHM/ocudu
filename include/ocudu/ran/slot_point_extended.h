@@ -25,6 +25,7 @@ class slot_point_extended : private slot_point
 
 public:
   constexpr slot_point_extended() = default;
+
   constexpr slot_point_extended(subcarrier_spacing scs, uint32_t count)
   {
     uint32_t numerology = to_numerology_value(scs);
@@ -35,17 +36,20 @@ public:
                  count);
     count_val = count;
   }
+
   constexpr slot_point_extended(slot_point slot)
   {
     numerology_val = slot.numerology();
     count_val      = slot.count();
   }
+
   constexpr slot_point_extended(slot_point slot, uint32_t hyper_sfn)
   {
     ocudu_assert(hyper_sfn < NOF_HYPER_SFNS, "Invalid HyperSFN={} passed", hyper_sfn);
     numerology_val = slot.numerology();
     count_val = slot.count() + hyper_sfn * NOF_SFNS * NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(slot.scs());
   }
+
   constexpr slot_point_extended(subcarrier_spacing scs, uint32_t hyper_sfn, uint32_t sfn, uint32_t slot_frame_index) :
     slot_point_extended(scs,
                         (hyper_sfn * NOF_SFNS + sfn) * NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(scs) +
@@ -89,7 +93,9 @@ public:
   {
     return other.count_val == count_val and other.numerology_val == numerology_val;
   }
+
   constexpr bool operator!=(const slot_point_extended& other) const { return not(*this == other); }
+
   constexpr bool operator<(slot_point_extended other) const
   {
     ocudu_assert(numerology() == other.numerology(), "Comparing slots of different numerologies");
@@ -99,6 +105,7 @@ public:
     }
     return (v < -static_cast<int>(nof_slots_in_all_hyper_sfns() / 2));
   }
+
   constexpr bool operator<=(slot_point_extended other) const { return (*this == other) or (*this < other); }
   constexpr bool operator>=(slot_point_extended other) const { return not(*this < other); }
   constexpr bool operator>(slot_point_extended other) const { return (*this != other) and *this >= other; }
@@ -124,18 +131,21 @@ public:
     }
     return *this;
   }
+
   slot_point_extended operator++(int)
   {
     slot_point_extended ret{*this};
     this->operator++();
     return ret;
   }
+
   template <typename Unsigned, std::enable_if_t<std::is_unsigned_v<Unsigned>, int> = 0>
   slot_point_extended& operator+=(Unsigned jump)
   {
     count_val = (count_val + jump) % nof_slots_in_all_hyper_sfns();
     return *this;
   }
+
   slot_point_extended& operator+=(int jump)
   {
     const int nof_slots = static_cast<int>(nof_slots_in_all_hyper_sfns());
@@ -160,21 +170,25 @@ inline slot_point_extended operator+(slot_point_extended slot, Integer jump)
   slot += jump;
   return slot;
 }
+
 inline slot_point_extended operator+(uint32_t jump, slot_point_extended slot)
 {
   slot += jump;
   return slot;
 }
+
 inline slot_point_extended operator+(int jump, slot_point_extended slot)
 {
   slot += jump;
   return slot;
 }
+
 inline slot_point_extended operator-(slot_point_extended slot, uint32_t jump)
 {
   slot -= jump;
   return slot;
 }
+
 inline slot_point_extended operator-(slot_point_extended slot, int jump)
 {
   slot -= jump;
@@ -203,6 +217,7 @@ struct formatter<ocudu::slot_point_extended> {
   {
     return ctx.begin();
   }
+
   template <typename FormatContext>
   auto format(ocudu::slot_point_extended slot, FormatContext& ctx) const
   {

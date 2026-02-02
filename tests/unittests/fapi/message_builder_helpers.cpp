@@ -246,6 +246,7 @@ dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
 
   return pdu;
 }
+
 ocudu::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
 {
   dl_prs_pdu pdu;
@@ -349,7 +350,7 @@ slot_indication unittest::build_valid_slot_indication()
   auto     scs        = subcarrier_spacing::kHz240;
   unsigned sfn        = generate_sfn();
   auto     slot_index = generate_slot();
-  msg.slot            = slot_point(scs, sfn, slot_index);
+  msg.slot            = slot_point_extended(scs, 0, sfn, slot_index);
 
   return msg;
 }

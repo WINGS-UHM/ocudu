@@ -368,7 +368,7 @@ TEST_P(LowerPhyDownlinkProcessorFixture, UnalignedFlow)
     // Assert the slot boundary. The slot must be notified always.
     const auto& tti_boundary_entries = downlink_proc_notifier_spy.get_tti_boundaries();
     ASSERT_EQ(tti_boundary_entries.size(), 1);
-    ASSERT_EQ(tti_boundary_entries.front().slot, slot);
+    ASSERT_EQ(tti_boundary_entries.front().slot, slot_point_extended(slot));
 
     // No PDxCH notifications.
     ASSERT_EQ(pdxch_proc_notifier_spy.get_nof_notifications(), 0);

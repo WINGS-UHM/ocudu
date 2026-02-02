@@ -357,7 +357,6 @@ protected:
 
       // Let the stop thread run after running the pending tasks.
       std::this_thread::yield();
-
     } while (rx_task || tx_task);
 
     // Join asynchronous thread.
@@ -472,7 +471,7 @@ TEST_P(LowerPhyFixture, TimingNotifiers)
   // Notify TTI boundary.
   {
     lower_phy_timing_context context;
-    context.slot = slot_point(to_numerology_value(scs), slot_dist(rgen));
+    context.slot = slot_point_extended(scs, slot_dist(rgen));
     downlink_notifier->on_tti_boundary(context);
     auto& entries = timing_notifier_spy.get_tti_boundaries_events();
     ASSERT_EQ(entries.size(), 1);
@@ -482,7 +481,7 @@ TEST_P(LowerPhyFixture, TimingNotifiers)
   // Notify half slot.
   {
     lower_phy_timing_context context;
-    context.slot = slot_point(to_numerology_value(scs), slot_dist(rgen));
+    context.slot = slot_point_extended(scs, slot_dist(rgen));
     uplink_notifier->on_half_slot(context);
     auto& entries = timing_notifier_spy.get_ul_half_slot_events();
     ASSERT_EQ(entries.size(), 1);
@@ -492,7 +491,7 @@ TEST_P(LowerPhyFixture, TimingNotifiers)
   // Notify full slot.
   {
     lower_phy_timing_context context;
-    context.slot = slot_point(to_numerology_value(scs), slot_dist(rgen));
+    context.slot = slot_point_extended(scs, slot_dist(rgen));
     uplink_notifier->on_full_slot(context);
     auto& entries = timing_notifier_spy.get_ul_full_slot_events();
     ASSERT_EQ(entries.size(), 1);

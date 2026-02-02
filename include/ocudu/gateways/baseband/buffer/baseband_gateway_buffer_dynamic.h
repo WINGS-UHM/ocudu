@@ -108,6 +108,12 @@ public:
   {
   }
 
+  /// Move constructor.
+  baseband_gateway_buffer_dynamic(baseband_gateway_buffer_dynamic&& other) noexcept :
+    data(std::move(other.data)), reader(data), writer(data)
+  {
+  }
+
 private:
   dynamic_tensor<static_cast<unsigned>(detail::baseband_gateway_buffer_dims::all),
                  ci16_t,

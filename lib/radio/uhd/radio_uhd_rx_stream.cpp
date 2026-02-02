@@ -145,7 +145,7 @@ baseband_gateway_receiver::metadata radio_uhd_rx_stream::receive(baseband_gatewa
       case uhd::rx_metadata_t::ERROR_CODE_TIMEOUT:
         ++timeout_trial_count;
         if (timeout_trial_count >= 10) {
-          fmt::println("Error: exceeded maximum number of timed out transmissions.");
+          fmt::println("Error: exceeded maximum number of timed out receive calls.");
           return ret;
         }
         break;

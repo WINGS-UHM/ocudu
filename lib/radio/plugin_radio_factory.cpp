@@ -125,7 +125,7 @@ std::unique_ptr<radio_factory> ocudu::create_plugin_radio_factory(std::string dr
 
   // Load symbol.
   auto* create_factory =
-      reinterpret_cast<create_factory_func*>(::dlsym(dl_handle, "_ZN6ocudu28create_dynamic_radio_factoryEv"));
+      reinterpret_cast<create_factory_func*>(::dlsym(dl_handle, "_ZN5ocudu28create_dynamic_radio_factoryEv"));
 
   // Handle an error loading the symbol.
   if (create_factory == nullptr) {

@@ -39,6 +39,12 @@ rohc_test_params cfg_rohc_compressed{
                                                 .set_profile(rohc::rohc_profile::profile0x0002, true)
                                                 .set_profile(rohc::rohc_profile::profile0x0004, true)}};
 
+/// Dummy operator to avoid Valgrind warnings.
+inline std::ostream& operator<<(std::ostream& os, const rohc_test_params& params)
+{
+  return os;
+}
+
 /// Helper class to verify the state of the PDCP entity when the order of the PDU's crypto processing
 /// is non-deterministic.
 inline void assert_pdcp_state(const pdcp_rx_state& st, const pdcp_rx_state& exp_st)

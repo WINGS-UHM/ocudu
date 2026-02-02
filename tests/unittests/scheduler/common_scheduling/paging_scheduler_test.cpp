@@ -62,7 +62,7 @@ class base_paging_sched_tester
 public:
   using five_g_s_tmsi = uint64_t;
 
-  slot_point                             current_slot{0, 0};
+  slot_point_extended                    current_slot{subcarrier_spacing::kHz15, 0};
   ocudulog::basic_logger&                mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
   ocudulog::basic_logger&                test_logger = ocudulog::fetch_basic_logger("TEST", true);
   std::optional<paging_sched_test_bench> bench;
@@ -105,8 +105,8 @@ public:
     // Initialize.
     mac_logger.set_context(current_slot.sfn(), current_slot.slot_index());
     test_logger.set_context(current_slot.sfn(), current_slot.slot_index());
-    bench->res_grid.slot_indication(current_slot);
-    bench->pdcch_sch.slot_indication(current_slot);
+    bench->res_grid.slot_indication(current_slot.without_hyper_sfn());
+    bench->pdcch_sch.slot_indication(current_slot.without_hyper_sfn());
   }
 
   void run_slot()
@@ -116,9 +116,9 @@ public:
     mac_logger.set_context(current_slot.sfn(), current_slot.slot_index());
     test_logger.set_context(current_slot.sfn(), current_slot.slot_index());
 
-    bench->res_grid.slot_indication(current_slot);
-    bench->pdcch_sch.slot_indication(current_slot);
-    bench->pg_sch.run_slot(bench->res_grid);
+    bench->res_grid.slot_indication(current_slot.without_hyper_sfn());
+    bench->pdcch_sch.slot_indication(current_slot.without_hyper_sfn());
+    bench->pg_sch.run_slot(bench->res_grid, current_slot.hyper_sfn());
 
     // Log scheduling results.
     sched_res_logger.on_scheduler_result(bench->res_grid[0].result);

@@ -55,7 +55,8 @@ public:
   /// \brief Performs paging (if any) scheduling for the current slot.
   ///
   /// \param[out,in] res_grid Resource grid with current allocations and scheduling results.
-  void run_slot(cell_resource_allocator& res_grid);
+  /// \param[in] hyper_sfn_tx HyperSFN for the slot provided in the current slot indication.
+  void run_slot(cell_resource_allocator& res_grid, uint32_t hyper_sfn_tx);
 
   /// Handles Paging information reported by upper layers.
   /// \param[in] paging_info Per UE paging information to be scheduled.
@@ -77,7 +78,7 @@ private:
 
   std::optional<unsigned> find_pdsch_time_resource(const cell_resource_allocator&  res_grid,
                                                    const sched_paging_information& pg_req,
-                                                   slot_point                      pdcch_slot);
+                                                   slot_point_extended             pdcch_slot);
 
   /// \brief Helper function to get sum of paging payload size of each UE scheduled at a particular slot.
   /// \param[in] ue_paging_ids List of UE scheduled at a particular slot for Paging.

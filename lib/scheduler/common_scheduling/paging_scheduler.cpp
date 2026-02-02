@@ -79,7 +79,7 @@ paging_scheduler::paging_scheduler(const cell_configuration& cell_cfg_,
   }
 }
 
-void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
+void paging_scheduler::run_slot(cell_resource_allocator& res_grid, uint32_t hyper_sfn_tx)
 {
   // Pop pending Paging notification and process them.
   handle_pending_paging_requests();
@@ -96,11 +96,11 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
   //   frames.
 
   // How much far ahead in time the scheduler will allocate the Paging.
-  const cell_slot_resource_allocator& pdcch_alloc = res_grid[nof_slots_ahead_sched];
-  const auto                          pdcch_slot  = pdcch_alloc.slot;
+  const slot_point_extended sl_tx_ext{res_grid.slot_tx(), hyper_sfn_tx};
+  const auto                pdcch_slot = sl_tx_ext + nof_slots_ahead_sched;
 
   // Verify PDCCH slot is DL enabled.
-  if (not cell_cfg.is_dl_enabled(pdcch_slot)) {
+  if (not cell_cfg.is_dl_enabled(pdcch_slot.without_hyper_sfn())) {
     return;
   }
 
@@ -118,7 +118,8 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid)
   for (unsigned pdsch_td_res_idx = 0, sz = pdsch_time_res_idx_to_scheduled_ues_lookup.size(); pdsch_td_res_idx != sz;
        ++pdsch_td_res_idx) {
     const auto& group = pdsch_time_res_idx_to_scheduled_ues_lookup[pdsch_td_res_idx];
-    if (not group.empty() and allocate_paging(res_grid, pdcch_slot, pdsch_td_res_idx, group, paging_search_space)) {
+    if (not group.empty() and
+        allocate_paging(res_grid, pdcch_slot.without_hyper_sfn(), pdsch_td_res_idx, group, paging_search_space)) {
       // Allocation successful. Mark number of retries.
       for (ue_paging_id pg_id : group) {
         auto it = paging_pending_ues.find(pg_id);
@@ -226,7 +227,7 @@ bool paging_scheduler::is_paging_opportunity(slot_point_extended pdcch_slot, con
 
 std::optional<unsigned> paging_scheduler::find_pdsch_time_resource(const cell_resource_allocator&  res_grid,
                                                                    const sched_paging_information& request,
-                                                                   slot_point                      pdcch_slot)
+                                                                   slot_point_extended             pdcch_slot)
 {
   if (not is_paging_opportunity(pdcch_slot, request)) {
     // Not a paging opportunity for this UE.
@@ -244,7 +245,7 @@ std::optional<unsigned> paging_scheduler::find_pdsch_time_resource(const cell_re
         get_accumulated_paging_msg_size(group) +
         (request.paging_type_indicator == paging_identity_type::cn_ue_paging_identity ? RRC_CN_PAGING_ID_RECORD_SIZE
                                                                                       : RRC_RAN_PAGING_ID_RECORD_SIZE);
-    if (is_there_space_available_for_paging(res_grid, time_res_idx, msg_size, pdcch_slot)) {
+    if (is_there_space_available_for_paging(res_grid, time_res_idx, msg_size, pdcch_slot.without_hyper_sfn())) {
       return time_res_idx;
     }
   }

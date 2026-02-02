@@ -116,7 +116,7 @@ void cell_scheduler::run_slot(slot_point_extended sl_tx_ext)
   ra_sch.run_slot(res_grid);
 
   // > Schedule Paging.
-  pg_sch.run_slot(res_grid);
+  pg_sch.run_slot(res_grid, sl_tx_ext.hyper_sfn());
 
   // > Schedule UE DL and UL data.
   ue_sched->run_slot(sl_tx);

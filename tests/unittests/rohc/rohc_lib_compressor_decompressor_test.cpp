@@ -95,7 +95,7 @@ static std::vector<rohc_test_params> rohc_test_set_invalid = {
                                                            .set_profile(rohc_profile::profile0x0104, true)}},
 };
 
-//// Dummy operator to avoid Valgrind warnings.
+/// Dummy operator to avoid Valgrind warnings.
 inline std::ostream& operator<<(std::ostream& os, const rohc_test_params& params)
 {
   return os;

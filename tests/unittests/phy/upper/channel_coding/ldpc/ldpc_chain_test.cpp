@@ -108,8 +108,8 @@ public:
       ASSERT_NE(enc_factory_neon, nullptr);
     }
 
-    ldpc_decoder_factory::ldpc_decoder_factory_configuration cfg;
-    cfg.force_decoding = false;
+    ldpc_decoder_factory::ldpc_decoder_factory_configuration cfg = {.force_decoding      = false,
+                                                                    .early_stop_syndrome = false};
     if (!dec_factory_generic) {
       dec_factory_generic = create_ldpc_decoder_factory_sw("generic", cfg);
       ASSERT_NE(dec_factory_generic, nullptr);
@@ -231,7 +231,6 @@ protected:
   static std::shared_ptr<ldpc_decoder_factory>        dec_factory_generic;
   static std::shared_ptr<ldpc_encoder_factory>        enc_factory_avx2;
   static std::shared_ptr<ldpc_decoder_factory>        dec_factory_avx2;
-  static std::shared_ptr<ldpc_encoder_factory>        enc_factory_avx512;
   static std::shared_ptr<ldpc_decoder_factory>        dec_factory_avx512;
   static std::shared_ptr<ldpc_encoder_factory>        enc_factory_neon;
   static std::shared_ptr<ldpc_decoder_factory>        dec_factory_neon;
@@ -255,7 +254,6 @@ std::shared_ptr<ldpc_encoder_factory>        LDPCChainFixture::enc_factory_gener
 std::shared_ptr<ldpc_decoder_factory>        LDPCChainFixture::dec_factory_generic            = nullptr;
 std::shared_ptr<ldpc_encoder_factory>        LDPCChainFixture::enc_factory_avx2               = nullptr;
 std::shared_ptr<ldpc_decoder_factory>        LDPCChainFixture::dec_factory_avx2               = nullptr;
-std::shared_ptr<ldpc_encoder_factory>        LDPCChainFixture::enc_factory_avx512             = nullptr;
 std::shared_ptr<ldpc_decoder_factory>        LDPCChainFixture::dec_factory_avx512             = nullptr;
 std::shared_ptr<ldpc_encoder_factory>        LDPCChainFixture::enc_factory_neon               = nullptr;
 std::shared_ptr<ldpc_decoder_factory>        LDPCChainFixture::dec_factory_neon               = nullptr;

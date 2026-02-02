@@ -47,6 +47,10 @@ public:
   /// By passing a CRC calculator, the CRC is verified after each iteration allowing, when successful, an early stop of
   /// the decoding process.
   ///
+  /// The decoding is successful if:
+  /// - An early stop mechanism condition is met (CRC or syndrome check); or
+  /// - No early stop mechanism is configured and syndrome check is successful after completing all iterations.
+  ///
   /// \param[out] output  Reconstructed message of information bits.
   /// \param[in]  input   Log-likelihood ratios of the codeblock to be decoded.
   /// \param[in]  crc     Pointer to a CRC calculator for early stopping. Set to \c nullptr for disabling early

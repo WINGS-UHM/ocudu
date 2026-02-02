@@ -88,13 +88,15 @@ int main(int argc, char** argv)
     use_ls = span<const lifting_size_t>(all_lifting_sizes);
   }
 
+  ldpc_decoder_factory::ldpc_decoder_factory_configuration ldpc_dec_cfg = {.force_decoding      = false,
+                                                                           .early_stop_syndrome = false};
+
   for (const ldpc_base_graph_type& bg : {ldpc_base_graph_type::BG1, ldpc_base_graph_type::BG2}) {
     for (const lifting_size_t& ls : use_ls) {
       std::unique_ptr<crc_calculator> crc16   = nullptr;
       std::unique_ptr<ldpc_encoder>   encoder = nullptr;
       // Decoder.
-      std::shared_ptr<ldpc_decoder_factory> decoder_factory =
-          create_ldpc_decoder_factory_sw(dec_type, {.force_decoding = false});
+      std::shared_ptr<ldpc_decoder_factory> decoder_factory = create_ldpc_decoder_factory_sw(dec_type, ldpc_dec_cfg);
       TESTASSERT(decoder_factory);
       std::unique_ptr<ldpc_decoder> decoder = decoder_factory->create();
       TESTASSERT(decoder);

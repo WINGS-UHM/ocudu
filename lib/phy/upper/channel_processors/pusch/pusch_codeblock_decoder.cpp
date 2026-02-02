@@ -27,7 +27,6 @@ std::optional<unsigned> pusch_codeblock_decoder::decode(bit_buffer              
                                                         ocudu::crc_generator_poly        crc_poly,
                                                         bool                             use_early_stop,
                                                         unsigned                         nof_ldpc_iterations,
-                                                        bool                             force_decoding,
                                                         const codeblock_metadata&        metadata)
 {
   rate_match(rm_buffer, cb_llrs, new_data, metadata);
@@ -49,8 +48,11 @@ std::optional<unsigned> pusch_codeblock_decoder::decode(bit_buffer              
     return decoder->decode(cb_data, rm_buffer, crc, decoder_config);
   }
 
-  // Without early stop, first decode and then check the CRC.
-  decoder->decode(cb_data, rm_buffer, nullptr, decoder_config);
+  // Without CRC early stop, first decode and skip the CRC if the syndrome check fails.
+  std::optional<unsigned> decoder_result = decoder->decode(cb_data, rm_buffer, nullptr, decoder_config);
+  if (!decoder_result.has_value()) {
+    return std::nullopt;
+  }
 
   // Discard filler bits for the CRC.
   unsigned nof_significant_bits = cb_data.size() - metadata.cb_specific.nof_filler_bits;

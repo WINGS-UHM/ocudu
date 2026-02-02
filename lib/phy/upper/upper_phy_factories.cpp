@@ -743,7 +743,7 @@ create_ul_processor_factory(const upper_phy_factory_configuration& config,
     pusch_decoder_factory_sw_configuration decoder_config;
     decoder_config.crc_factory     = pusch_crc_calc_factory;
     decoder_config.decoder_factory = create_ldpc_decoder_factory_sw(
-        config.ldpc_decoder_type, {.force_decoding = config.ldpc_decoder_force_decoding});
+        config.ldpc_decoder_type, {.force_decoding = config.ldpc_decoder_force_decoding, .early_stop_syndrome = false});
     report_fatal_error_if_not(
         decoder_config.decoder_factory, "Invalid LDPC decoder factory of type {}.", config.crc_calculator_type);
     decoder_config.dematcher_factory = create_ldpc_rate_dematcher_factory_sw(config.ldpc_rate_dematcher_type);

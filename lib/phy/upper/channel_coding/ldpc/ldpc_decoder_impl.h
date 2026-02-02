@@ -33,7 +33,8 @@ public:
   static constexpr unsigned MAX_CHECK_NODE_DEGREE = ldpc::MAX_BG_K + 5;
 
   /// Constructor: configures the force_decoding flag.
-  explicit ldpc_decoder_impl(bool cfg_force_decoding) : force_decoding(cfg_force_decoding)
+  explicit ldpc_decoder_impl(bool cfg_force_decoding, bool cfg_early_stop_syndrome) :
+    force_decoding(cfg_force_decoding), early_stop_syndrome(cfg_early_stop_syndrome)
   {
     ocudu_assert((scaling_factor > 0) && (scaling_factor < 1), "Scaling factor must be between 0 and 1, not included.");
   }
@@ -174,6 +175,11 @@ private:
   /// \return True if none of the soft bits is zero. Otherwise, false.
   bool get_hard_bits(bit_buffer& out) const;
 
+  /// \brief Checks the syndrome of the LDPC code.
+  /// \return True if the syndrome check is positive: the codeblock satisfies all parity checks and the syndrome is
+  /// zero. False, otherwise.
+  bool check_syndrome() const;
+
 protected:
   /// Number of base graph variable nodes corresponding to information bits.
   uint16_t bg_K = 22;
@@ -215,6 +221,8 @@ private:
   unsigned max_iterations = 6;
   /// Forces the decoder to decode even if there are not enough soft bits at the input.
   bool force_decoding;
+  /// Use the LDPC syndrome as an early stop mechanism. Note the syndrome is ignored if the CRC calculator is provided.
+  bool early_stop_syndrome;
 
   /// \brief Buffer to store the current value of the variable-to-check messages.
   ///

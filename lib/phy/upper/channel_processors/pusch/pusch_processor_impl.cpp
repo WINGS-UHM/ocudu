@@ -110,7 +110,6 @@ pusch_processor_impl::pusch_processor_impl(configuration& config) :
   dependencies_pool(std::move(config.dependencies_pool)),
   decoder(std::move(config.decoder)),
   dec_nof_iterations(config.dec_nof_iterations),
-  force_decoding(config.dec_force_decoding),
   dec_enable_early_stop(config.dec_enable_early_stop),
   ce_dims(config.ce_dims),
   csi_sinr_calc_method(config.csi_sinr_calc_method)
@@ -298,7 +297,6 @@ void pusch_processor_impl::process_data(span<uint8_t>                          d
     decoder_config.Nref                = Nref.value();
     decoder_config.nof_layers          = pdu.nof_tx_layers;
     decoder_config.nof_ldpc_iterations = dec_nof_iterations;
-    decoder_config.force_decoding      = force_decoding;
     decoder_config.use_early_stop      = dec_enable_early_stop;
     decoder_config.new_data            = pdu.codeword->new_data;
 

@@ -106,21 +106,21 @@ public:
     bool supports_avx512 = cpu_supports_feature(cpu_feature::avx512f) && cpu_supports_feature(cpu_feature::avx512bw);
 
     if (((dec_type == "avx512") || (dec_type == "auto")) && supports_avx512) {
-      return std::make_unique<ldpc_decoder_avx512>(cfg.force_decoding);
+      return std::make_unique<ldpc_decoder_avx512>(cfg.force_decoding, cfg.early_stop_syndrome);
     }
     if (((dec_type == "avx2") || (dec_type == "auto")) && supports_avx2) {
-      return std::make_unique<ldpc_decoder_avx2>(cfg.force_decoding);
+      return std::make_unique<ldpc_decoder_avx2>(cfg.force_decoding, cfg.early_stop_syndrome);
     }
 #endif // __x86_64__
 #ifdef __aarch64__
     bool support_neon = cpu_supports_feature(cpu_feature::neon);
 
     if (((dec_type == "neon") || (dec_type == "auto")) && support_neon) {
-      return std::make_unique<ldpc_decoder_neon>(cfg.force_decoding);
+      return std::make_unique<ldpc_decoder_neon>(cfg.force_decoding, cfg.early_stop_syndrome);
     }
 #endif // __aarch64__
     if ((dec_type == "auto") || (dec_type == "generic")) {
-      return std::make_unique<ldpc_decoder_generic>(cfg.force_decoding);
+      return std::make_unique<ldpc_decoder_generic>(cfg.force_decoding, cfg.early_stop_syndrome);
     }
     return {};
   }

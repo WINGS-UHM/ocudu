@@ -10,6 +10,8 @@
 
 #include "ldpc_decoder_impl.h"
 #include "ldpc_luts_impl.h"
+#include "ocudu/ocuduvec/binary.h"
+#include "ocudu/ocuduvec/circ_shift.h"
 #include "ocudu/ocuduvec/copy.h"
 #include "ocudu/ocuduvec/fill.h"
 #include "ocudu/ocuduvec/zero.h"
@@ -103,6 +105,7 @@ std::optional<unsigned> ldpc_decoder_impl::decode(bit_buffer&                   
   unsigned nof_layers = codeblock_length / lifting_size - bg_K;
 
   for (unsigned i_iteration = 0; i_iteration != max_iterations; ++i_iteration) {
+    // Run all layers.
     for (unsigned i_layer = 0; i_layer != nof_layers; ++i_layer) {
       update_variable_to_check_messages(i_layer);
 
@@ -114,25 +117,37 @@ std::optional<unsigned> ldpc_decoder_impl::decode(bit_buffer&                   
     // If a CRC calculator was passed with the configuration parameters.
     if (crc != nullptr) {
       // Get hard bits.
-      bool success = get_hard_bits(output);
+      bool hard_bits_success = get_hard_bits(output);
 
-      // Early stop. The hard bits must be successful.
-      if (success && crc->calculate(output.first(nof_significant_bits)) == 0) {
+      // Early stop condition: CRC check must be zero.
+      if (hard_bits_success && crc->calculate(output.first(nof_significant_bits)) == 0) {
+        return i_iteration + 1;
+      }
+    } else if (early_stop_syndrome) {
+      // Get hard bits.
+      bool hard_bits_success = get_hard_bits(output);
+
+      // Early stop condition: check syndrome.
+      if (hard_bits_success && check_syndrome()) {
         return i_iteration + 1;
       }
     }
   }
 
-  // If a CRC calculator was passed with the configuration parameters and we hit this point, the codeblock wasn't
-  // decoded correctly.
-  if (crc != nullptr) {
-    return {};
+  // Skip any further decisions if an early stop condition is configured.
+  if ((crc != nullptr) || early_stop_syndrome) {
+    return std::nullopt;
   }
 
-  // We reach this point only if we don't have a CRC calculator for early stopping: we return whatever message we could
-  // reconstruct after max_iterations (note that we don't know whether the message is correct or not).
-  get_hard_bits(output);
-  return {};
+  // Get current hard bits.
+  bool hard_bits_success = get_hard_bits(output);
+
+  // Check syndrome for determining if the codeblock decoding is successful.
+  if (!hard_bits_success || !check_syndrome()) {
+    return std::nullopt;
+  }
+
+  return max_iterations;
 }
 
 void ldpc_decoder_impl::load_soft_bits(span<const log_likelihood_ratio> llrs, unsigned nof_llr)
@@ -335,4 +350,66 @@ bool ldpc_decoder_impl::get_hard_bits(bit_buffer& out) const
   }
 
   return valid;
+}
+
+bool ldpc_decoder_impl::check_syndrome() const
+{
+  // Temporary buffers.
+  static_vector<log_likelihood_ratio, ldpc::MAX_LIFTING_SIZE> soft_shifted_bits(lifting_size);
+  static_bit_buffer<ldpc::MAX_LIFTING_SIZE>                   hard_shifted_bits(lifting_size);
+  static_bit_buffer<ldpc::MAX_LIFTING_SIZE>                   hard_syndrome_bits(lifting_size);
+
+  // Make sure the last byte is zero for the static bit buffers.
+  hard_shifted_bits.get_buffer().back()  = 0;
+  hard_syndrome_bits.get_buffer().back() = 0;
+
+  // Calculate number of layers or check nodes.
+  unsigned nof_check_nodes = codeblock_length / lifting_size - bg_K;
+
+  // Iterate all check nodes.
+  for (unsigned i_check_node = 0; i_check_node != nof_check_nodes; ++i_check_node) {
+    // Obtain parity check node.
+    const BG_adjacency_row_t& current_var_indices = current_graph->get_adjacency_row(i_check_node);
+
+    // Iterate over all check nodes.
+    for (BG_adjacency_row_t::const_iterator this_var_index = current_var_indices.cbegin(),
+                                            last_var_index = current_var_indices.cend();
+         (this_var_index != last_var_index) && (*this_var_index != NO_EDGE);
+         ++this_var_index) {
+      // Get shift.
+      unsigned shift = current_graph->get_lifted_node(i_check_node, *this_var_index);
+
+      // Select view of the soft bits.
+      span<const log_likelihood_ratio> this_soft_bits =
+          span<const log_likelihood_ratio>(soft_bits).subspan((*this_var_index) * node_size_byte, lifting_size);
+
+      // Circular shift of bits.
+      ocuduvec::circ_shift_backward(soft_shifted_bits, this_soft_bits, shift);
+
+      // Perform hard decision in-place for the first node. Early return if there is any undetermined soft bit.
+      if (this_var_index == current_var_indices.cbegin()) {
+        if (!hard_decision(hard_syndrome_bits, soft_shifted_bits)) {
+          return false;
+        }
+        continue;
+      }
+
+      // Hard decision on shifted soft bits. Early return if there is any undetermined soft bit.
+      if (!hard_decision(hard_shifted_bits, soft_shifted_bits)) {
+        return false;
+      }
+
+      // XOR this node hard-bits with the current syndrome.
+      ocuduvec::binary_xor(
+          hard_syndrome_bits.get_buffer(), hard_shifted_bits.get_buffer(), hard_syndrome_bits.get_buffer());
+    }
+
+    // Check that all syndrome bits are zero. Early return false otherwise.
+    span<const uint8_t> hard_syndrome_bytes = hard_syndrome_bits.get_buffer();
+    if (std::any_of(hard_syndrome_bytes.begin(), hard_syndrome_bytes.end(), [](uint8_t byte) { return byte != 0; })) {
+      return false;
+    }
+  }
+
+  return true;
 }

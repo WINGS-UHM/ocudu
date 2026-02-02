@@ -21,8 +21,8 @@ namespace ocudu {
 class ldpc_decoder_avx512 : public ldpc_decoder_impl
 {
 public:
-  /// Constructor: configures the force_decoding flag.
-  explicit ldpc_decoder_avx512(bool cfg_force_decoding);
+  /// Constructor: configures the \c force_decoding and \c early_stop_syndrome flags.
+  ldpc_decoder_avx512(bool cfg_force_decoding, bool early_stop_syndrome);
 
 private:
   // See ldpc_decoder_impl for the documentation.

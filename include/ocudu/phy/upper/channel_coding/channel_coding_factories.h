@@ -43,6 +43,7 @@ class ldpc_decoder_factory
 public:
   struct ldpc_decoder_factory_configuration {
     bool force_decoding;
+    bool early_stop_syndrome;
   };
   virtual ~ldpc_decoder_factory()                = default;
   virtual std::unique_ptr<ldpc_decoder> create() = 0;

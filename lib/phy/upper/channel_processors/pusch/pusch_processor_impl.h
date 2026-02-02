@@ -97,8 +97,6 @@ public:
     unsigned dec_nof_iterations;
     /// Enables LDPC decoder early stop if the CRC matches before completing \c ldpc_nof_iterations iterations.
     bool dec_enable_early_stop;
-    /// Set to true for decoding even if the number of valid soft bits is insufficient.
-    bool dec_force_decoding;
     /// PUSCH SINR calculation method for CSI reporting.
     channel_state_information::sinr_type csi_sinr_calc_method;
     /// Channel size as seen by the PUSCH channel estimator.
@@ -227,8 +225,6 @@ private:
   std::unique_ptr<pusch_decoder> decoder;
   /// Selects the number of LDPC decoder iterations.
   unsigned dec_nof_iterations;
-  /// Set to true for decoding even if the number of valid soft bits is insufficient.
-  bool force_decoding;
   /// Enables LDPC decoder early stop if the CRC matches before completing \c ldpc_nof_iterations iterations.
   bool dec_enable_early_stop;
   /// \brief Channel size as seen by the PUSCH channel estimator.

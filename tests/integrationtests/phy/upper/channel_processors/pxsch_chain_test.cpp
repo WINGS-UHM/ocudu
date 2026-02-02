@@ -94,8 +94,9 @@ private:
     std::shared_ptr<crc_calculator_factory> crc_calc_factory = create_crc_calculator_factory_sw("auto");
     TESTASSERT(crc_calc_factory);
 
-    std::shared_ptr<ldpc_decoder_factory> ldpc_decoder_factory =
-        create_ldpc_decoder_factory_sw("auto", {.force_decoding = false});
+    ldpc_decoder_factory::ldpc_decoder_factory_configuration ldpc_dec_cfg = {.force_decoding      = false,
+                                                                             .early_stop_syndrome = false};
+    std::shared_ptr<ldpc_decoder_factory> ldpc_decoder_factory = create_ldpc_decoder_factory_sw("auto", ldpc_dec_cfg);
     TESTASSERT(ldpc_decoder_factory);
 
     std::shared_ptr<ldpc_rate_dematcher_factory> ldpc_rate_dematcher_factory =

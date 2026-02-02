@@ -14,7 +14,7 @@
 #pragma once
 
 #include "ocudu/adt/span.h"
-#include "ocudu/ocuduvec/copy.h"
+#include "ocudu/ocuduvec/types.h"
 
 namespace ocudu {
 namespace ocuduvec {
@@ -40,8 +40,8 @@ void circ_shift_forward(T&& out, const U& in, unsigned shift)
   unsigned length = out.size();
   ocudu_assert(std::abs(in.data() - out.data()) >= length, "Input and output memory overlap.");
 
-  copy(out.first(shift), in.last(shift));
-  copy(out.subspan(shift, length - shift), in.first(length - shift));
+  std::copy_n(in.begin() + length - shift, shift, out.begin());
+  std::copy_n(in.begin(), length - shift, out.begin() + shift);
 }
 
 /// \brief Circularly shifts a sequence in the backward direction.
@@ -65,8 +65,8 @@ void circ_shift_backward(T&& out, const U& in, unsigned shift)
   unsigned length = out.size();
   ocudu_assert(std::abs(in.data() - out.data()) >= length, "Input and output memory overlap.");
 
-  copy(out.first(length - shift), in.last(length - shift));
-  copy(out.subspan(length - shift, shift), in.first(shift));
+  std::copy_n(in.begin() + shift, length - shift, out.begin());
+  std::copy_n(in.begin(), shift, out.begin() + length - shift);
 }
 
 } // namespace ocuduvec

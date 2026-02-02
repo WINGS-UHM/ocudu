@@ -250,8 +250,8 @@ void ocudu_scheduler_adapter::handle_dl_buffer_state_update(const mac_dl_buffer_
     const high_resolution_clock::time_point sl_tp = last_slot_tp.load(std::memory_order_relaxed);
     if (sl_tp != high_resolution_clock::time_point{}) {
       // Convert HOL TOA from chrono time point to slots.
-      bs.hol_toa =
-          chrono_to_slot_point(mac_dl_bs_ind.hol_toa.value(), sl_tp, last_slot_point.load(std::memory_order_relaxed));
+      bs.hol_toa = chrono_to_slot_point(
+          mac_dl_bs_ind.hol_toa.value(), sl_tp, last_slot_point.load(std::memory_order_relaxed).without_hyper_sfn());
     }
   }
 
@@ -276,7 +276,7 @@ void ocudu_scheduler_adapter::handle_crnti_ce_indication(du_ue_index_t old_ue_in
   rlf_handler.handle_crnti_ce(old_ue_index);
 }
 
-const sched_result& ocudu_scheduler_adapter::slot_indication(slot_point slot_tx, du_cell_index_t cell_idx)
+const sched_result& ocudu_scheduler_adapter::slot_indication(slot_point_extended slot_tx, du_cell_index_t cell_idx)
 {
   using namespace std::chrono;
 
@@ -290,7 +290,7 @@ const sched_result& ocudu_scheduler_adapter::slot_indication(slot_point slot_tx,
 
   if (res.success) {
     // Store UCI PDUs for later decoding.
-    cell_handlers[cell_idx].uci_decoder.store_uci(slot_tx, res.ul.pucchs, res.ul.puschs);
+    cell_handlers[cell_idx].uci_decoder.store_uci(slot_tx.without_hyper_sfn(), res.ul.pucchs, res.ul.puschs);
   }
 
   return res;
@@ -321,7 +321,7 @@ void ocudu_scheduler_adapter::handle_slice_reconfiguration_request(const du_cell
 void ocudu_scheduler_adapter::sched_config_notif_adapter::on_ue_config_complete(du_ue_index_t ue_index,
                                                                                 bool          ue_creation_result)
 {
-  ocudu_sanity_check(is_du_ue_index_valid(ue_index), "Invalid ue index={}", fmt::underlying(ue_index));
+  ocudu_sanity_check(is_du_ue_index_valid(ue_index), "Invalid ue index={}", ue_index);
 
   // Remove continuation of task in ctrl executor.
   defer_until_success(parent.ctrl_exec, parent.timers, [this, ue_index, ue_creation_result]() {
@@ -331,7 +331,7 @@ void ocudu_scheduler_adapter::sched_config_notif_adapter::on_ue_config_complete(
 
 void ocudu_scheduler_adapter::sched_config_notif_adapter::on_ue_deletion_completed(du_ue_index_t ue_index)
 {
-  ocudu_sanity_check(is_du_ue_index_valid(ue_index), "Invalid ue index={}", fmt::underlying(ue_index));
+  ocudu_sanity_check(is_du_ue_index_valid(ue_index), "Invalid ue index={}", ue_index);
 
   // Continuation of ue remove task dispatched to the ctrl executor.
   defer_until_success(parent.ctrl_exec, parent.timers, [this, ue_index]() {

@@ -11,12 +11,13 @@
 #pragma once
 
 #include "ocudu/ran/du_types.h"
-#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/slot_point_extended.h"
 
 namespace ocudu {
 
 struct sched_result;
 
+/// Interface to forward slot indications and error indications to the MAC scheduler.
 class scheduler_slot_handler
 {
 public:
@@ -31,7 +32,7 @@ public:
   virtual ~scheduler_slot_handler() = default;
 
   /// \brief Handle slot indications that arrive to the scheduler for a given cell.
-  virtual const sched_result& slot_indication(slot_point sl_tx, du_cell_index_t cell_index) = 0;
+  virtual const sched_result& slot_indication(slot_point_extended sl_tx, du_cell_index_t cell_index) = 0;
 
   /// \brief Handle error indications caused by lates or invalid scheduling results.
   virtual void handle_error_indication(slot_point sl_tx, du_cell_index_t cell_index, error_outcome event) = 0;

@@ -203,10 +203,10 @@ void scheduler_impl::handle_dl_mac_ce_indication(const dl_mac_ce_indication& mac
   cells[pcell_idx]->get_feedback_handler().handle_dl_mac_ce_indication(mac_ce);
 }
 
-const sched_result& scheduler_impl::slot_indication(slot_point      sl_tx,
-                                                    du_cell_index_t cell_index) noexcept OCUDU_RTSAN_NONBLOCKING
+const sched_result& scheduler_impl::slot_indication(slot_point_extended sl_tx,
+                                                    du_cell_index_t     cell_index) noexcept OCUDU_RTSAN_NONBLOCKING
 {
-  ocudu_assert(cells.contains(cell_index), "cell={} does not exist", fmt::underlying(cell_index));
+  ocudu_assert(cells.contains(cell_index), "cell={} does not exist", cell_index);
   cell_scheduler& cell = *cells[cell_index];
 
   if (cell_index == to_du_cell_index(0)) {

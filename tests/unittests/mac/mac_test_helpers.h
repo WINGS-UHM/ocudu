@@ -111,7 +111,7 @@ public:
   void handle_ul_phr_indication(const ul_phr_indication_message& phr_ind) override {}
   void handle_dl_mac_ce_indication(const dl_mac_ce_indication& mac_ce) override {}
   void handle_paging_information(const sched_paging_information& pi) override {}
-  const sched_result& slot_indication(slot_point sl_tx, du_cell_index_t cell_index) override
+  const sched_result& slot_indication(slot_point_extended sl_tx, du_cell_index_t cell_index) override
   {
     return next_sched_result;
   }
@@ -154,7 +154,7 @@ public:
 
   void handle_cell_deactivation(du_cell_index_t cell_idx) override { active = false; }
 
-  const sched_result& slot_indication(slot_point slot_tx, du_cell_index_t cell_idx) override
+  const sched_result& slot_indication(slot_point_extended slot_tx, du_cell_index_t cell_idx) override
   {
     return next_sched_result;
   }

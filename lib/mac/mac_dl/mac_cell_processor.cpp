@@ -318,12 +318,13 @@ async_task<bool> mac_cell_processor::remove_bearers(du_ue_index_t ue_index, span
       });
 }
 
-void mac_cell_processor::handle_slot_indication_impl(slot_point               sl_tx,
+void mac_cell_processor::handle_slot_indication_impl(slot_point_extended      sl_tx_ext,
                                                      metric_clock::time_point enqueue_slot_tp) noexcept
     OCUDU_RTSAN_NONBLOCKING
 {
   // * Start of Critical Path * //
 
+  slot_point sl_tx = sl_tx_ext.without_hyper_sfn();
   logger.set_context(sl_tx.sfn(), sl_tx.slot_index());
 
   if (OCUDU_UNLIKELY(state == cell_state::inactive)) {
@@ -340,14 +341,13 @@ void mac_cell_processor::handle_slot_indication_impl(slot_point               sl
   trace_point sched_tp     = metrics_meas.start_time_point();
 
   // Cleans old MAC DL PDU buffers.
-  pdu_pool.tick(sl_tx.to_uint());
+  pdu_pool.tick(sl_tx.count());
 
   // Generate DL scheduling result for provided slot and cell.
-  const sched_result& sl_res = sched.slot_indication(sl_tx, cell_cfg.cell_index);
+  const sched_result& sl_res = sched.slot_indication(sl_tx_ext, cell_cfg.cell_index);
   metrics_meas.on_sched();
   if (not sl_res.success) {
-    logger.warning(
-        "Unable to compute scheduling result for slot={}, cell={}", sl_tx, fmt::underlying(cell_cfg.cell_index));
+    logger.warning("Unable to compute scheduling result for slot={}, cell={}", sl_tx, cell_cfg.cell_index);
     if (sl_res.dl.nof_dl_symbols > 0) {
       mac_dl_sched_result mac_dl_res{};
       mac_dl_res.slot = sl_tx;

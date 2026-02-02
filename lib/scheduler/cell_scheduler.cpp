@@ -77,10 +77,11 @@ void cell_scheduler::handle_crc_indication(const ul_crc_indication& crc_ind)
   }
 }
 
-void cell_scheduler::run_slot(slot_point sl_tx)
+void cell_scheduler::run_slot(slot_point_extended sl_tx_ext)
 {
   // Mark the start of the slot.
-  auto slot_start_tp = std::chrono::high_resolution_clock::now();
+  slot_point sl_tx         = sl_tx_ext.without_hyper_sfn();
+  auto       slot_start_tp = std::chrono::high_resolution_clock::now();
 
   // If there are skipped slots, handle them. Otherwise, the cell grid and cached results are not correctly cleared.
   if (OCUDU_LIKELY(res_grid.slot_tx().valid())) {

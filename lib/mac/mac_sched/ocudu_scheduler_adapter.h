@@ -18,6 +18,7 @@
 #include "rlf_detector.h"
 #include "uci_cell_decoder.h"
 #include "ocudu/adt/slotted_array.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/scheduler/mac_scheduler.h"
 #include "ocudu/support/async/manual_event.h"
 
@@ -79,7 +80,7 @@ public:
 
   void handle_paging_information(const paging_information& msg) override;
 
-  const sched_result& slot_indication(slot_point slot_tx, du_cell_index_t cell_idx) override;
+  const sched_result& slot_indication(slot_point_extended slot_tx, du_cell_index_t cell_idx) override;
 
   void handle_error_indication(slot_point                         slot_tx,
                                du_cell_index_t                    cell_idx,
@@ -157,7 +158,7 @@ private:
   /// Handler of RACH indications.
   mac_rach_handler rach_handler;
 
-  std::atomic<slot_point>                                     last_slot_point;
+  std::atomic<slot_point_extended>                            last_slot_point;
   std::atomic<std::chrono::high_resolution_clock::time_point> last_slot_tp;
 
   /// List of event flags used by scheduler to notify that the configuration is complete.

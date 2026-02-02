@@ -14,6 +14,7 @@
 #include "ocudu/mac/mac_cell_slot_handler.h"
 #include "ocudu/mac/mac_ue_control_information_handler.h"
 #include "ocudu/ran/du_types.h"
+#include "ocudu/ran/slot_point_extended.h"
 
 namespace ocudu {
 
@@ -24,7 +25,7 @@ struct sched_result;
 class mac_scheduler_cell_info_handler : public mac_ue_control_information_handler
 {
 public:
-  virtual ~mac_scheduler_cell_info_handler() = default;
+  virtual ~mac_scheduler_cell_info_handler() override = default;
 
   /// \brief Start scheduling for a given cell. If cell was already activated, this operation has no effect.
   /// \param cell_idx DU-specific index of the cell for which the slot is being processed.
@@ -40,7 +41,7 @@ public:
   /// \param slot_tx SFN + slot index of the Transmit slot to be processed.
   /// \param cell_idx DU-specific index of the cell for which the slot is being processed.
   /// \return Result of the scheduling operation. It contains both DL and UL scheduling information.
-  virtual const sched_result& slot_indication(slot_point slot_tx, du_cell_index_t cell_idx) = 0;
+  virtual const sched_result& slot_indication(slot_point_extended slot_tx, du_cell_index_t cell_idx) = 0;
 
   /// \brief Processes an error indication for a specific cell in the MAC scheduler.
   /// \param slot_tx SFN + slot index of the Transmit slot to be processed.

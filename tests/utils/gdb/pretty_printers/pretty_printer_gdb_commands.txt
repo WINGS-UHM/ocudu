@@ -6,10 +6,11 @@
 # the distribution.
 #
 
+cd ../../../../..
 set width 0
 set height 0
 set verbose off
-source ../../../../../.gdbinit
+source .gdbinit
 
 run
 bt -full

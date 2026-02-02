@@ -40,7 +40,7 @@ public:
   /// \brief This method will be called to start preparing a new object to notify.
   builder get_builder() { return builder{&get_next(), committer{this}}; }
 
-protected:
+private:
   /// Internal method that retrieves the next pooled object of type T to be filled by the caller to get_builder.
   virtual T& get_next() = 0;
 

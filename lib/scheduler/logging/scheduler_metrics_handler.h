@@ -14,7 +14,7 @@
 #include "ocudu/adt/flat_map.h"
 #include "ocudu/adt/slotted_array.h"
 #include "ocudu/adt/slotted_vector.h"
-#include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 #include "ocudu/scheduler/scheduler_dl_buffer_state_indication_handler.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
@@ -165,7 +165,7 @@ class cell_metrics_handler final : public sched_metrics_ue_configurator
   const unsigned nof_slots_per_sf;
 
   /// Last slot indication handled.
-  slot_point last_slot_tx;
+  slot_point_extended last_slot_tx;
 
   slotted_id_vector<du_ue_index_t, ue_metric_context> ues;
   flat_map<rnti_t, du_ue_index_t>                     rnti_to_ue_index_lookup;
@@ -238,7 +238,9 @@ public:
   void handle_late_ul_harqs();
 
   /// \brief Handle results stored in the scheduler result and push new entry.
-  void push_result(slot_point sl_tx, const sched_result& slot_result, std::chrono::microseconds slot_decision_latency);
+  void push_result(slot_point_extended       sl_tx,
+                   const sched_result&       slot_result,
+                   std::chrono::microseconds slot_decision_latency);
 
   /// \brief Checks whether the metrics reporting is active.
   bool enabled() const;
@@ -250,7 +252,7 @@ private:
   void handle_pucch_sinr(ue_metric_context& u, float sinr);
   void handle_csi_report(ue_metric_context& u, const csi_report_data& csi);
   void report_metrics();
-  void handle_slot_result(slot_point                sl_tx,
+  void handle_slot_result(slot_point_extended       sl_tx,
                           const sched_result&       slot_result,
                           std::chrono::microseconds slot_decision_latency);
 

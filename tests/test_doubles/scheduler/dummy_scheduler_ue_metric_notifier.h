@@ -40,7 +40,7 @@ public:
     current_metrics.events.clear();
   }
 
-  bool is_sched_report_required(slot_point sl_tx) const override
+  bool is_sched_report_required(slot_point_extended sl_tx) const override
   {
     bool ret          = metrics_requested;
     metrics_requested = false;

@@ -15,6 +15,7 @@
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/sch/sch_mcs.h"
 #include "ocudu/ran/slot_point.h"
+#include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/support/math/stats.h"
 #include "ocudu/support/zero_copy_notifier.h"
 #include <array>
@@ -196,7 +197,7 @@ class scheduler_cell_metrics_notifier : public zero_copy_notifier<scheduler_cell
 {
 public:
   /// Check whether a new metric report is required given the current slot.
-  virtual bool is_sched_report_required(slot_point sl_tx) const = 0;
+  virtual bool is_sched_report_required(slot_point_extended sl_tx) const = 0;
 };
 
 } // namespace ocudu

@@ -21,15 +21,15 @@ using namespace ocudu;
 class test_scheduler_cell_metrics_notifier : public scheduler_cell_metrics_notifier
 {
 public:
-  unsigned               period_slots = 1000;
-  mutable slot_point     next_sl_report;
-  scheduler_cell_metrics last_report;
+  unsigned                    period_slots = 1000;
+  mutable slot_point_extended next_sl_report;
+  scheduler_cell_metrics      last_report;
 
   scheduler_cell_metrics& get_next() override { return last_report; }
 
   void commit(scheduler_cell_metrics& ptr) override {}
 
-  bool is_sched_report_required(slot_point sl_tx) const override
+  bool is_sched_report_required(slot_point_extended sl_tx) const override
   {
     if (not next_sl_report.valid()) {
       next_sl_report = sl_tx + period_slots - (sl_tx.count() % period_slots) - 1;
@@ -88,8 +88,10 @@ protected:
   cell_metrics_handler                 metrics;
   du_ue_index_t test_ue_index = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, MAX_NOF_DU_UES - 1));
 
-  slot_point next_sl_tx{0, test_rgen::uniform_int<unsigned>(0, 10239)};
-  unsigned   slot_count = 0;
+  slot_point_extended next_sl_tx{
+      subcarrier_spacing::kHz15,
+      test_rgen::uniform_int<unsigned>(0, NOF_HYPER_SFNS* NOF_SFNS* NOF_SUBFRAMES_PER_FRAME - 1)};
+  unsigned slot_count = 0;
 };
 
 TEST_F(scheduler_metrics_handler_tester, metrics_sent_with_defined_periodicity)
@@ -172,11 +174,11 @@ TEST_F(scheduler_metrics_handler_tester, compute_nof_ul_oks_and_noks)
   crc_pdu.ue_index       = test_ue_index;
   crc_pdu.tb_crc_success = true;
   for (unsigned i = 0; i != nof_acks; ++i) {
-    metrics.handle_crc_indication(next_sl_tx - 1, crc_pdu, units::bytes{1});
+    metrics.handle_crc_indication(next_sl_tx.without_hyper_sfn() - 1, crc_pdu, units::bytes{1});
   }
   crc_pdu.tb_crc_success = false;
   for (unsigned i = 0; i != nof_nacks; ++i) {
-    metrics.handle_crc_indication(next_sl_tx - 1, crc_pdu, units::bytes{1});
+    metrics.handle_crc_indication(next_sl_tx.without_hyper_sfn() - 1, crc_pdu, units::bytes{1});
   }
 
   this->get_next_metric();
@@ -240,7 +242,7 @@ TEST_F(scheduler_metrics_handler_tester, compute_bitrate)
   crc_pdu.rnti           = to_rnti(0x4601);
   crc_pdu.ue_index       = test_ue_index;
   crc_pdu.tb_crc_success = true;
-  metrics.handle_crc_indication(next_sl_tx - 1, crc_pdu, ul_tbs);
+  metrics.handle_crc_indication(next_sl_tx.without_hyper_sfn() - 1, crc_pdu, ul_tbs);
 
   this->get_next_metric();
   unsigned             msec_elapsed = metrics_notif.last_report.nof_slots * next_sl_tx.nof_slots_per_subframe();
@@ -262,7 +264,7 @@ TEST_F(scheduler_metrics_handler_tester, compute_bitrate)
   crc_pdu.rnti           = to_rnti(0x4601);
   crc_pdu.ue_index       = test_ue_index;
   crc_pdu.tb_crc_success = false;
-  metrics.handle_crc_indication(next_sl_tx - 1, crc_pdu, ul_tbs);
+  metrics.handle_crc_indication(next_sl_tx.without_hyper_sfn() - 1, crc_pdu, ul_tbs);
 
   this->get_next_metric();
   ue_metrics = metrics_notif.last_report.ue_metrics[0];

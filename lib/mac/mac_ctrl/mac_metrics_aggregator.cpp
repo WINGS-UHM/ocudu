@@ -25,8 +25,11 @@ constexpr unsigned cell_report_queue_size = 8;
 
 /// Cell metrics report containing scheduler and MAC.
 struct full_cell_report {
-  slot_point_extended                      start_slot;
-  scheduler_cell_metrics                   sched;
+  /// Slot at which samples started to be considered in this report.
+  slot_point_extended start_slot;
+  /// Scheduler report.
+  scheduler_cell_metrics sched;
+  /// MAC report.
   std::optional<mac_dl_cell_metric_report> mac;
 };
 
@@ -70,8 +73,7 @@ public:
   {
     // Note: Called by MAC, from the cell execution context.
 
-    if (OCUDU_UNLIKELY(not last_sl_tx.valid())) {
-      // Cell not yet active.
+    if (OCUDU_UNLIKELY(not is_cell_active())) {
       return false;
     }
     last_sl_tx = slot_tx;
@@ -79,26 +81,19 @@ public:
     // Check if this is the last slot of the report.
     // Note: We compare with end-1, because this function is called when the scheduler is done with its scheduling
     // decision. e.g. for a report period of 10, we want to produce report at slots 0.9, 1.9, etc.
-    return mac_builder != nullptr and last_sl_tx >= next_report_end_slot_tx - 1;
+    return mac_builder != nullptr and slot_tx >= next_report_end_slot_tx - 1;
   }
 
-  bool is_sched_report_required(slot_point slot_tx) const override
+  bool is_sched_report_required(slot_point_extended slot_tx) const override
   {
     // Note: Called by SCHED, from the cell execution context.
 
-    if (OCUDU_UNLIKELY(not last_sl_tx.valid())) {
+    if (OCUDU_UNLIKELY(not is_cell_active())) {
       return false;
     }
 
-    // Add HFN.
-    slot_point_extended new_last_sl_tx{slot_tx, last_sl_tx.hyper_sfn()};
-    if (OCUDU_UNLIKELY(new_last_sl_tx < last_sl_tx)) {
-      // SFN rollover detected.
-      new_last_sl_tx += slot_tx.nof_slots_per_hyper_system_frame();
-    }
-
     // Check if this is the last slot of the report.
-    return new_last_sl_tx >= next_report_end_slot_tx - 1;
+    return slot_tx >= next_report_end_slot_tx - 1;
   }
 
   void on_cell_activation() override
@@ -116,6 +111,8 @@ public:
       parent.handle_cell_activation(cell_index, sl);
     });
   }
+
+  bool is_cell_active() const { return next_report_end_slot_tx.valid(); }
 
   void on_cell_deactivation(const mac_dl_cell_metric_report& report) override
   {
@@ -228,7 +225,7 @@ mac_metrics_aggregator::mac_metrics_aggregator(const mac_control_config::metrics
   aggr_timer.set(aggregation_timeout, [this](timer_id_t /* unused */) { handle_pending_reports(); });
 }
 
-mac_metrics_aggregator::~mac_metrics_aggregator() {}
+mac_metrics_aggregator::~mac_metrics_aggregator() = default;
 
 cell_metric_report_config mac_metrics_aggregator::add_cell(du_cell_index_t            cell_index,
                                                            subcarrier_spacing         scs_common,

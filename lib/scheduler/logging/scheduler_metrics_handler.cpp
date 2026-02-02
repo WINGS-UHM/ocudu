@@ -31,7 +31,7 @@ private:
     null_report.ue_metrics.clear();
     null_report.events.clear();
   }
-  bool is_sched_report_required(slot_point sl_tx) const override { return false; }
+  bool is_sched_report_required(slot_point_extended sl_tx) const override { return false; }
 
   scheduler_cell_metrics null_report{};
 };
@@ -82,7 +82,8 @@ void cell_metrics_handler::handle_ue_creation(du_ue_index_t ue_index, rnti_t rnt
   rnti_to_ue_index_lookup.emplace(rnti, ue_index);
 
   if (pending_events.size() < pending_events.capacity()) {
-    pending_events.push_back(scheduler_cell_event{last_slot_tx, rnti, scheduler_cell_event::event_type::ue_add});
+    pending_events.push_back(
+        scheduler_cell_event{last_slot_tx.without_hyper_sfn(), rnti, scheduler_cell_event::event_type::ue_add});
   } else {
     data.filtered_events_counter++;
   }
@@ -94,8 +95,8 @@ void cell_metrics_handler::handle_ue_reconfiguration(du_ue_index_t ue_index)
     return;
   }
   if (pending_events.size() < pending_events.capacity()) {
-    pending_events.push_back(
-        scheduler_cell_event{last_slot_tx, ues[ue_index].rnti, scheduler_cell_event::event_type::ue_reconf});
+    pending_events.push_back(scheduler_cell_event{
+        last_slot_tx.without_hyper_sfn(), ues[ue_index].rnti, scheduler_cell_event::event_type::ue_reconf});
   } else {
     data.filtered_events_counter++;
   }
@@ -110,7 +111,8 @@ void cell_metrics_handler::handle_ue_deletion(du_ue_index_t ue_index)
     rnti_t rnti = ues[ue_index].rnti;
 
     if (pending_events.size() < pending_events.capacity()) {
-      pending_events.push_back(scheduler_cell_event{last_slot_tx, rnti, scheduler_cell_event::event_type::ue_rem});
+      pending_events.push_back(
+          scheduler_cell_event{last_slot_tx.without_hyper_sfn(), rnti, scheduler_cell_event::event_type::ue_rem});
     } else {
       data.filtered_events_counter++;
     }
@@ -171,8 +173,9 @@ void cell_metrics_handler::handle_crc_indication(slot_point                   sl
       u.data.ta.update(crc_pdu.time_advance_offset.value().to_seconds());
       u.data.pusch_ta.update(crc_pdu.time_advance_offset.value().to_seconds());
     }
-    u.data.sum_crc_delay_slots += last_slot_tx - sl_rx;
-    u.data.max_crc_delay_slots = std::max(static_cast<unsigned>(last_slot_tx - sl_rx), u.data.max_crc_delay_slots);
+    u.data.sum_crc_delay_slots += last_slot_tx.without_hyper_sfn() - sl_rx;
+    u.data.max_crc_delay_slots =
+        std::max(static_cast<unsigned>(last_slot_tx.without_hyper_sfn() - sl_rx), u.data.max_crc_delay_slots);
   }
 }
 
@@ -211,16 +214,15 @@ void cell_metrics_handler::handle_csi_report(ue_metric_context& u, const csi_rep
 void cell_metrics_handler::handle_uci_with_harq_ack(du_ue_index_t ue_index, slot_point sl_rx, bool pucch)
 {
   if (ues.contains(ue_index)) {
-    auto& u = ues[ue_index];
+    auto& u    = ues[ue_index];
+    auto  diff = last_slot_tx.without_hyper_sfn() - sl_rx;
     if (pucch) {
-      u.data.sum_pucch_harq_delay_slots += last_slot_tx - sl_rx;
-      u.data.max_pucch_harq_delay_slots =
-          std::max(static_cast<unsigned>(last_slot_tx - sl_rx), u.data.max_pucch_harq_delay_slots);
+      u.data.sum_pucch_harq_delay_slots += diff;
+      u.data.max_pucch_harq_delay_slots = std::max(static_cast<unsigned>(diff), u.data.max_pucch_harq_delay_slots);
       ++u.data.count_pucch_harq_pdus;
     } else {
-      u.data.sum_pusch_harq_delay_slots += last_slot_tx - sl_rx;
-      u.data.max_pusch_harq_delay_slots =
-          std::max(static_cast<unsigned>(last_slot_tx - sl_rx), u.data.max_pusch_harq_delay_slots);
+      u.data.sum_pusch_harq_delay_slots += diff;
+      u.data.max_pusch_harq_delay_slots = std::max(static_cast<unsigned>(diff), u.data.max_pusch_harq_delay_slots);
       ++u.data.count_pusch_harq_pdus;
     }
   }
@@ -352,9 +354,9 @@ void cell_metrics_handler::handle_ul_phr_indication(const ul_phr_indication_mess
       // Log the floor of the average of the PH interval.
       interval<int> rg = phr_ind.phr.get_phr().front().ph;
       u.last_phr       = (rg.start() + rg.stop()) / 2;
-      u.data.sum_ul_ce_delay_slots += last_slot_tx - phr_ind.slot_rx;
-      u.data.max_ul_ce_delay_slots =
-          std::max(static_cast<unsigned>(last_slot_tx - phr_ind.slot_rx), u.data.max_ul_ce_delay_slots);
+      auto diff        = last_slot_tx.without_hyper_sfn() - phr_ind.slot_rx;
+      u.data.sum_ul_ce_delay_slots += diff;
+      u.data.max_ul_ce_delay_slots = std::max(static_cast<unsigned>(diff), u.data.max_ul_ce_delay_slots);
       ++u.data.nof_ul_ces;
     }
   }
@@ -403,7 +405,7 @@ void cell_metrics_handler::report_metrics()
   // The window of slots for a report should be [start, stop) = [last_slot_tx + 1 - period, last_slot_tx + 1).
   // e.g. if the report period is 10, and we are at slot 0.9 (the last slot of the report), then the start slot is
   // 0.9 + 0.1 - 1.0 == 0.
-  next_report->slot                  = last_slot_tx + 1 - data.nof_slots;
+  next_report->slot                  = last_slot_tx.without_hyper_sfn() + 1 - data.nof_slots;
   next_report->nof_slots             = data.nof_slots;
   next_report->nof_error_indications = data.error_indication_counter;
   next_report->average_decision_latency =
@@ -464,7 +466,7 @@ void cell_metrics_handler::report_metrics()
   next_report.reset();
 }
 
-void cell_metrics_handler::handle_slot_result(slot_point                sl_tx,
+void cell_metrics_handler::handle_slot_result(slot_point_extended       sl_tx,
                                               const sched_result&       slot_result,
                                               std::chrono::microseconds slot_decision_latency)
 {
@@ -504,9 +506,10 @@ void cell_metrics_handler::handle_slot_result(slot_point                sl_tx,
     u.last_dl_olla = dl_grant.context.olla_offset;
     if (u.data.last_pdsch_slot.valid()) {
       u.data.max_pdsch_distance_slots =
-          std::max(static_cast<unsigned>(last_slot_tx - u.data.last_pdsch_slot), u.data.max_pdsch_distance_slots);
+          std::max(static_cast<unsigned>(last_slot_tx.without_hyper_sfn() - u.data.last_pdsch_slot),
+                   u.data.max_pdsch_distance_slots);
     }
-    u.data.last_pdsch_slot = last_slot_tx;
+    u.data.last_pdsch_slot = last_slot_tx.without_hyper_sfn();
   }
 
   data.nof_ue_pusch_grants += slot_result.ul.puschs.size();
@@ -533,7 +536,7 @@ void cell_metrics_handler::handle_slot_result(slot_point                sl_tx,
     u.data.ul_mcs += ul_grant.pusch_cfg.mcs_index.value();
     u.last_ul_olla = ul_grant.context.olla_offset;
     if (u.data.last_sr_slot.valid()) {
-      unsigned sr_to_pusch_delay = last_slot_tx - u.data.last_sr_slot;
+      unsigned sr_to_pusch_delay = last_slot_tx.without_hyper_sfn() - u.data.last_sr_slot;
       u.data.sum_sr_to_pusch_delay_slots += sr_to_pusch_delay;
       u.data.max_sr_to_pusch_delay_slots = std::max(sr_to_pusch_delay, u.data.max_sr_to_pusch_delay_slots);
       u.data.last_sr_slot.clear();
@@ -542,9 +545,10 @@ void cell_metrics_handler::handle_slot_result(slot_point                sl_tx,
     ++u.data.nof_puschs;
     if (u.data.last_pusch_slot.valid()) {
       u.data.max_pusch_distance_slots =
-          std::max(static_cast<unsigned>(last_slot_tx - u.data.last_pusch_slot), u.data.max_pusch_distance_slots);
+          std::max(static_cast<unsigned>(last_slot_tx.without_hyper_sfn() - u.data.last_pusch_slot),
+                   u.data.max_pusch_distance_slots);
     }
-    u.data.last_pusch_slot = last_slot_tx;
+    u.data.last_pusch_slot = last_slot_tx.without_hyper_sfn();
   }
 
   // PUCCH resource usage.
@@ -564,7 +568,7 @@ void cell_metrics_handler::handle_slot_result(slot_point                sl_tx,
   data.decision_latency_sum += slot_decision_latency;
   if (data.max_decision_latency < slot_decision_latency) {
     data.max_decision_latency      = slot_decision_latency;
-    data.max_decision_latency_slot = last_slot_tx;
+    data.max_decision_latency_slot = last_slot_tx.without_hyper_sfn();
   }
   unsigned bin_idx = slot_decision_latency.count() / scheduler_cell_metrics::nof_usec_per_bin;
   bin_idx          = std::min(bin_idx, scheduler_cell_metrics::latency_hist_bins - 1);
@@ -575,7 +579,7 @@ void cell_metrics_handler::handle_slot_result(slot_point                sl_tx,
   data.nof_failed_uci_allocs += slot_result.failed_attempts.uci;
 }
 
-void cell_metrics_handler::push_result(slot_point                sl_tx,
+void cell_metrics_handler::push_result(slot_point_extended       sl_tx,
                                        const sched_result&       slot_result,
                                        std::chrono::microseconds slot_decision_latency)
 {

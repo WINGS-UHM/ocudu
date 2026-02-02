@@ -42,13 +42,13 @@ namespace {
 struct dummy_sched_metric_handler {
   dummy_sched_metric_handler(scheduler_cell_metrics_notifier& notif_) : notif(notif_) { builder = notif.get_builder(); }
 
-  void slot_indication(slot_point sl_tx)
+  void slot_indication(slot_point_extended sl_tx)
   {
     last_sl_tx = sl_tx;
     report_slot_count++;
 
     if (notif.is_sched_report_required(sl_tx)) {
-      builder->slot      = sl_tx + 1 - report_slot_count;
+      builder->slot      = sl_tx.without_hyper_sfn() + 1 - report_slot_count;
       builder->nof_slots = report_slot_count;
       builder.reset();
       builder           = notif.get_builder();
@@ -59,7 +59,7 @@ struct dummy_sched_metric_handler {
   void on_cell_deactivation()
   {
     if (last_sl_tx.valid()) {
-      builder->slot      = last_sl_tx + 1 - report_slot_count;
+      builder->slot      = last_sl_tx.without_hyper_sfn() + 1 - report_slot_count;
       builder->nof_slots = report_slot_count;
       builder.reset();
       builder           = notif.get_builder();
@@ -70,8 +70,8 @@ struct dummy_sched_metric_handler {
 
   scheduler_cell_metrics_notifier& notif;
 
-  slot_point last_sl_tx;
-  unsigned   report_slot_count{0};
+  slot_point_extended last_sl_tx;
+  unsigned            report_slot_count{0};
 
   zero_copy_notifier<scheduler_cell_metrics>::builder builder;
 };
@@ -132,7 +132,7 @@ protected:
     for (auto& cell : cells) {
       if (cell.active) {
         cell.timer_source->on_slot_indication(next_point);
-        cell.sched.slot_indication(next_point.without_hyper_sfn());
+        cell.sched.slot_indication(next_point);
         cell.mac.start_slot(next_point, metric_clock::now());
       }
     }

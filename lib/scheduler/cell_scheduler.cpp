@@ -132,7 +132,7 @@ void cell_scheduler::run_slot(slot_point_extended sl_tx_ext)
   result_logger.on_scheduler_result(last_result(), slot_dur);
 
   // > Push the scheduler results to the metrics handler.
-  metrics.push_result(sl_tx, last_result(), slot_dur);
+  metrics.push_result(sl_tx_ext, last_result(), slot_dur);
 }
 
 void cell_scheduler::handle_error_indication(slot_point sl_tx, scheduler_slot_handler::error_outcome event)

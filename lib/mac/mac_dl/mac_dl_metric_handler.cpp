@@ -81,7 +81,7 @@ void mac_dl_cell_metric_handler::handle_slot_completion(const slot_measurement& 
   if (not enabled() or not active()) {
     return;
   }
-  const unsigned nof_skipped_slots = last_sl_tx.valid() ? meas.sl_tx - last_sl_tx : 0;
+  const unsigned nof_skipped_slots = meas.sl_tx - last_sl_tx;
   last_sl_tx                       = meas.sl_tx;
 
   // Time difference

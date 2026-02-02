@@ -129,6 +129,37 @@ generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_proc
   return out_cfg;
 }
 
+/// Converts app-level ntn_config to library-level ntn_assistance_info.
+static ocudu_ntn::ntn_assistance_info convert_ntn_config_to_assistance_info(const ntn_config& cfg)
+{
+  ocudu_ntn::ntn_assistance_info info = {};
+
+  // SIB19 fields exempt from valuetag.
+  info.moving_reference_location = cfg.reference_location;
+  info.ephemeris_info            = cfg.ephemeris_info;
+  info.ta_info                   = cfg.ta_info;
+  info.epoch_time                = cfg.epoch_time;
+  info.ntn_ul_sync_validity_dur  = cfg.ntn_ul_sync_validity_dur;
+
+  // SIB19 fields tracked by valuetag.
+  info.reference_location    = cfg.reference_location;
+  info.distance_threshold    = cfg.distance_threshold;
+  info.t_service             = cfg.t_service;
+  info.cell_specific_koffset = cfg.cell_specific_koffset;
+  info.k_mac                 = cfg.k_mac;
+  info.polarization          = cfg.polarization;
+  info.ta_report             = cfg.ta_report;
+
+  // Metadata fields.
+  info.epoch_timestamp      = cfg.epoch_timestamp;
+  info.epoch_sfn_offset     = cfg.epoch_sfn_offset;
+  info.use_state_vector     = cfg.use_state_vector;
+  info.feeder_link_info     = cfg.feeder_link_info;
+  info.ntn_gateway_location = cfg.ntn_gateway_location;
+
+  return info;
+}
+
 static ocudu_ntn::ntn_configuration_manager_config
 generate_ntn_configuration_manager_config(const gnb_id_t& gnb_id, span<const du_high_unit_cell_config> du_hi_cells)
 {
@@ -145,10 +176,10 @@ generate_ntn_configuration_manager_config(const gnb_id_t& gnb_id, span<const du_
       if (not nci.has_value()) {
         report_error("Invalid NR-NCI");
       }
-      out_cell.sector_id      = cell_cfg.sector_id;
-      out_cell.nr_cgi.plmn_id = plmn.value();
-      out_cell.nr_cgi.nci     = nci.value();
-      out_cell.ntn_cfg        = *cell_cfg.ntn_cfg;
+      out_cell.sector_id       = cell_cfg.sector_id;
+      out_cell.nr_cgi.plmn_id  = plmn.value();
+      out_cell.nr_cgi.nci      = nci.value();
+      out_cell.assistance_info = convert_ntn_config_to_assistance_info(*cell_cfg.ntn_cfg);
 
       // SIB19 Scheduling info.
       const auto& sib_cfg = cell_cfg.sib_cfg;

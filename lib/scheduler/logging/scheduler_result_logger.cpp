@@ -66,7 +66,8 @@ static auto make_dl_dci_log_entry(const dci_dl_info& dci)
   }
   return make_formattable([is_formattable, h_id, ndi, rv, mcs, pucch_res_id, dai, tpc_cmd, vrb_prb](auto& ctx) {
     if (is_formattable) {
-      fmt::format_to(ctx.out(), "dci: h_id={} ndi={} rv={} mcs={} res_ind={}", h_id, ndi, rv, mcs, pucch_res_id);
+      fmt::format_to(
+          ctx.out(), "dci: h_id={} ndi={} rv={} mcs={} res_ind={}", h_id, ndi ? 1 : 0, rv, mcs, pucch_res_id);
       if (tpc_cmd.has_value()) {
         fmt::format_to(ctx.out(), " tpc={}", *tpc_cmd);
       }

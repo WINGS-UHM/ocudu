@@ -23,7 +23,7 @@ public:
   virtual ~mac_cell_metric_notifier() = default;
 
   /// \brief Polling on whether a new MAC cell metric report is required.
-  virtual bool is_report_required(slot_point slot_tx) = 0;
+  virtual bool is_report_required(slot_point_extended slot_tx) = 0;
 
   /// \brief Called when a new cell is activated.
   virtual void on_cell_activation() = 0;

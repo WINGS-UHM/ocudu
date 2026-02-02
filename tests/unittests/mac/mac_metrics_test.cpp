@@ -133,7 +133,7 @@ protected:
       if (cell.active) {
         cell.timer_source->on_slot_indication(next_point);
         cell.sched.slot_indication(next_point.without_hyper_sfn());
-        cell.mac.start_slot(next_point.without_hyper_sfn(), metric_clock::now());
+        cell.mac.start_slot(next_point, metric_clock::now());
       }
     }
     task_worker.run_pending_tasks();

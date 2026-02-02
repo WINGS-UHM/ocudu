@@ -66,7 +66,7 @@ public:
   {
   }
 
-  bool is_report_required(slot_point slot_tx) override
+  bool is_report_required(slot_point_extended slot_tx) override
   {
     // Note: Called by MAC, from the cell execution context.
 
@@ -74,15 +74,7 @@ public:
       // Cell not yet active.
       return false;
     }
-
-    // Add HFN.
-    slot_point_extended new_last_sl_tx{slot_tx, last_sl_tx.hyper_sfn()};
-    if (OCUDU_UNLIKELY(new_last_sl_tx < last_sl_tx)) {
-      // SFN rollover detected.
-      new_last_sl_tx += slot_tx.nof_slots_per_hyper_system_frame();
-    }
-
-    last_sl_tx = new_last_sl_tx;
+    last_sl_tx = slot_tx;
 
     // Check if this is the last slot of the report.
     // Note: We compare with end-1, because this function is called when the scheduler is done with its scheduling
@@ -142,7 +134,7 @@ public:
   void on_cell_metric_report(const mac_dl_cell_metric_report& report) override
   {
     // Note: Function called from the DU cell execution context.
-    ocudu_sanity_check(is_report_required(last_sl_tx.without_hyper_sfn()), "Report not required");
+    ocudu_sanity_check(is_report_required(last_sl_tx), "Report not required");
 
     // Save MAC report.
     mac_builder->mac = report;

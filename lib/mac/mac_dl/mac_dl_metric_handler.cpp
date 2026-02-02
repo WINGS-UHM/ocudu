@@ -52,7 +52,7 @@ mac_dl_cell_metric_handler::mac_dl_cell_metric_handler(pci_t                    
 {
 }
 
-void mac_dl_cell_metric_handler::on_cell_activation(slot_point sl_tx)
+void mac_dl_cell_metric_handler::on_cell_activation(slot_point_extended sl_tx)
 {
   if (not enabled() or active()) {
     return;
@@ -115,20 +115,21 @@ void mac_dl_cell_metric_handler::handle_slot_completion(const slot_measurement& 
   if (not data.start_slot.valid()) {
     data.start_slot = meas.sl_tx;
   }
-  data.wall.save_sample(meas.sl_tx, time_diff);
-  data.slot_dequeue.save_sample(meas.sl_tx, enqueue_time_diff);
-  data.sched.save_sample(meas.sl_tx, meas.sched_tp - meas.start_tp);
+  slot_point sl_tx_no_ext = meas.sl_tx.without_hyper_sfn();
+  data.wall.save_sample(sl_tx_no_ext, time_diff);
+  data.slot_dequeue.save_sample(sl_tx_no_ext, enqueue_time_diff);
+  data.sched.save_sample(sl_tx_no_ext, meas.sched_tp - meas.start_tp);
   auto last_tp = meas.sched_tp;
   if (meas.dl_tti_req_tp != metric_clock::time_point{}) {
-    data.dl_tti_req.save_sample(meas.sl_tx, meas.dl_tti_req_tp - last_tp);
+    data.dl_tti_req.save_sample(sl_tx_no_ext, meas.dl_tti_req_tp - last_tp);
     last_tp = meas.dl_tti_req_tp;
     if (meas.tx_data_req_tp != metric_clock::time_point{}) {
-      data.tx_data_req.save_sample(meas.sl_tx, meas.tx_data_req_tp - last_tp);
+      data.tx_data_req.save_sample(sl_tx_no_ext, meas.tx_data_req_tp - last_tp);
       last_tp = meas.tx_data_req_tp;
     }
   }
   if (meas.ul_tti_req_tp != metric_clock::time_point{}) {
-    data.ul_tti_req.save_sample(meas.sl_tx, meas.ul_tti_req_tp - last_tp);
+    data.ul_tti_req.save_sample(sl_tx_no_ext, meas.ul_tti_req_tp - last_tp);
   }
   if (rusg_diff.has_value()) {
     auto& rusg_val = rusg_diff.value();
@@ -136,7 +137,7 @@ void mac_dl_cell_metric_handler::handle_slot_completion(const slot_measurement& 
     data.count_invol_context_switches += rusg_val.invol_ctxt_switch_count;
   }
   if (consecutive_slot_ind_time_diff != std::chrono::nanoseconds{0}) {
-    data.slot_distance.save_sample(meas.sl_tx, consecutive_slot_ind_time_diff);
+    data.slot_distance.save_sample(sl_tx_no_ext, consecutive_slot_ind_time_diff);
   }
 
   if (notifier->is_report_required(meas.sl_tx)) {
@@ -149,7 +150,7 @@ void mac_dl_cell_metric_handler::send_new_report()
   // Prepare cell report.
   mac_dl_cell_metric_report report;
   report.pci                                = cell_pci;
-  report.start_slot                         = data.start_slot;
+  report.start_slot                         = data.start_slot.without_hyper_sfn();
   report.slot_duration                      = slot_duration;
   report.nof_slots                          = data.nof_slots;
   report.wall_clock_latency                 = data.wall.get_report();

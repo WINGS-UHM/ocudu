@@ -38,6 +38,8 @@ variables:
     - job: trigger builder
       optional: true
       artifacts: false
+  variables:
+    TEST_EXECUTION_TIMEOUT: 0
   script:
     - &script_functions |
       build_ocudu_extended() {
@@ -688,6 +690,7 @@ ubsan avx2:
     CMAKE_BUILD_TYPE: Debug
     ASSERT_LEVEL: PARANOID
     ENABLE_UBSAN: "True"
+    GTEST_DISCOVERY_TIMEOUT: 120
     TEST_MODE: default
     MARCH: x86-64-v3
   tags: [saas-linux-large-amd64]
@@ -849,6 +852,7 @@ sanitizers amd64 avx2:
         SANITIZER: ubsan
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
+        GTEST_DISCOVERY_TIMEOUT: 120
         TEST_MODE: default
 
 sanitizers amd64 avx512:
@@ -874,6 +878,7 @@ sanitizers amd64 avx512:
         SANITIZER: ubsan
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
+        GTEST_DISCOVERY_TIMEOUT: 120
         TEST_MODE: full
 
 sanitizers arm neon:
@@ -902,6 +907,7 @@ sanitizers arm neon:
         SANITIZER: ubsan
         COMPILER: [gcc, clang]
         ENABLE_UBSAN: "True"
+        GTEST_DISCOVERY_TIMEOUT: 120
         TEST_MODE: default
 
 # UHD Alternatives

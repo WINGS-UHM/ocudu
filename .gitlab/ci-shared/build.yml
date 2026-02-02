@@ -43,7 +43,7 @@ include:
     CCACHE_MAXSIZE: 3G
     # TEST
     TEST_MODE: "default"
-    TEST_EXECUTION_TIMEOUT: 0
+    GTEST_DISCOVERY_TIMEOUT: 15
     # CI
     OCUDU_DIR: ${CI_PROJECT_DIR}
     OCUDU_BUILD_DIR: build

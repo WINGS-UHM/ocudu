@@ -476,10 +476,13 @@ package:
     KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
     KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
     KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
-    DEB_BUILD_OPTIONS: parallel=${KUBERNETES_CPU_LIMIT}
-    MAKEFLAGS: -j${KUBERNETES_CPU_LIMIT}
     extraopts: -DMARCH=x86-64-v3
   tags: [saas-linux-large-amd64]
+  before_script:
+    - |
+      CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
+      export MAKEFLAGS="-j${CPU_JOBS}"
+      export DEB_BUILD_OPTIONS="parallel=${CPU_JOBS}"
   parallel:
     matrix:
       - OS_VERSION: "22.04"

@@ -227,12 +227,12 @@ public:
     {
     }
 
-    slot_point_extended do_on_slot_indication(slot_point sl_tx) override
+    slot_point_extended do_on_slot_indication(slot_point_extended sl_tx) override
     {
       if (not parent.active_cells[cell_index]) {
         parent.active_cells[cell_index] = true;
         if (parent.nof_active_cells == 0) {
-          parent.master_slot = slot_point_extended{sl_tx - 1, parent.start_hfn};
+          parent.master_slot = sl_tx - 1;
         }
         parent.nof_active_cells++;
       }
@@ -241,14 +241,9 @@ public:
         return parent.master_slot;
       }
 
-      if (sl_tx > parent.master_slot.without_hyper_sfn()) {
-        slot_point_extended next_master_slot = {sl_tx, parent.master_slot.hyper_sfn()};
-        if (next_master_slot < parent.master_slot) {
-          // SFN rollover.
-          next_master_slot += sl_tx.nof_slots_per_hyper_system_frame();
-        }
-        unsigned nof_ticks = next_master_slot - parent.master_slot;
-        parent.master_slot = next_master_slot;
+      if (sl_tx > parent.master_slot) {
+        unsigned nof_ticks = sl_tx - parent.master_slot;
+        parent.master_slot = sl_tx;
         for (unsigned i = 0; i != nof_ticks; ++i) {
           parent.timers.tick();
         }
@@ -269,9 +264,7 @@ public:
     du_cell_index_t             cell_index;
   };
 
-  dummy_mac_clock_controller(timer_manager& timers_, unsigned start_hfn_ = 0) : timers(timers_), start_hfn(start_hfn_)
-  {
-  }
+  dummy_mac_clock_controller(timer_manager& timers_) : timers(timers_) {}
 
   std::unique_ptr<mac_cell_clock_controller> add_cell(du_cell_index_t cell_index) override
   {
@@ -282,7 +275,6 @@ public:
 
 private:
   timer_manager& timers;
-  const unsigned start_hfn;
 
   unsigned                           nof_active_cells = 0;
   slot_point_extended                master_slot;

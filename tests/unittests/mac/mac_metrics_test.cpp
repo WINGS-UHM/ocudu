@@ -96,7 +96,7 @@ protected:
   };
 
   base_mac_metrics_test(std::chrono::milliseconds period_ = std::chrono::milliseconds{10}, unsigned start_hfn = 0) :
-    period(period_), timer_ctrl(timers, start_hfn)
+    period(period_), next_point{scs, start_hfn, 0, 0}
   {
   }
 
@@ -116,7 +116,7 @@ protected:
 
   slotted_id_table<du_cell_index_t, cell_context, MAX_CELLS_PER_DU> cells;
 
-  slot_point_extended next_point{subcarrier_spacing::kHz15, 0};
+  slot_point_extended next_point;
 
   mac_dl_cell_metric_handler& add_cell(du_cell_index_t cell_index)
   {

@@ -20,22 +20,6 @@ using namespace odu;
 
 namespace {
 
-// Helper to setup the cell initial last slot counter based on the master cell clock.
-slot_point_extended get_init_slot_tx_ext(slot_point sl_tx, slot_point_extended master_sl_tx)
-{
-  static const int    max_slot_diff = sl_tx.nof_slots_per_hyper_system_frame() / 2;
-  slot_point_extended curr_count{sl_tx, master_sl_tx.hyper_sfn()};
-  int                 diff = curr_count - master_sl_tx;
-  if (diff < -max_slot_diff) {
-    // This new cell is a bit ahead of the master cell and there was SFN rollover.
-    curr_count += sl_tx.nof_slots_per_hyper_system_frame();
-  } else if (diff > max_slot_diff) {
-    // This new cell is a bit behind the master cell and there was SFN rollover.
-    curr_count -= sl_tx.nof_slots_per_hyper_system_frame();
-  }
-  return curr_count;
-}
-
 /// IO timer source that supports two modes: automatically ticking based on wall clock and manual ticking.
 class io_timer_multi_source
 {
@@ -145,7 +129,7 @@ public:
     }
 
   private:
-    slot_point_extended do_on_slot_indication(slot_point sl_tx) override
+    slot_point_extended do_on_slot_indication(slot_point_extended sl_tx) override
     {
       ocudu_assert(parent != nullptr, "Slot indication for a deleted cell");
       return parent->handle_slot_indication(cell_index, sl_tx);
@@ -179,7 +163,7 @@ private:
     bool active() const { return ticker.has_value(); }
   };
 
-  slot_point_extended handle_slot_indication(du_cell_index_t cell_index, slot_point sl_tx)
+  slot_point_extended handle_slot_indication(du_cell_index_t cell_index, slot_point_extended sl_tx)
   {
     static constexpr int MAX_SKIPPED = 128;
 
@@ -189,12 +173,7 @@ private:
       // Create cell if it is not yet active.
       handle_cell_activation(cell_index, sl_tx);
     } else {
-      slot_point_extended sl_tx_ext{sl_tx, cell_sl_counter.hyper_sfn()};
-      if (sl_tx_ext < cell_sl_counter) {
-        // SFN rollover detected. Increment HFN.
-        sl_tx_ext += sl_tx.nof_slots_per_hyper_system_frame();
-      }
-      cell_sl_counter = sl_tx_ext;
+      cell_sl_counter = sl_tx;
     }
 
     if (cell_sl_counter.subframe_slot_index() != 0) {
@@ -224,7 +203,7 @@ private:
 
     if (nof_skipped >= MAX_SKIPPED) {
       // Number of skipped slots is too high. This is likely an error.
-      logger.warning("cell={}: Unexpected jump in slot indications of {}", fmt::underlying(cell_index), nof_skipped);
+      logger.warning("cell={}: Unexpected jump in slot indications of {}", cell_index, nof_skipped);
       return cell_sl_counter;
     }
 
@@ -235,20 +214,18 @@ private:
   }
 
   /// Called on the first slot indication received for a cell.
-  void handle_cell_activation(du_cell_index_t cell_index, slot_point sl_tx)
+  void handle_cell_activation(du_cell_index_t cell_index, slot_point_extended sl_tx)
   {
-    if (cells[cell_index].active()) {
-      return;
-    }
+    ocudu_sanity_check(cells[cell_index].active(), "Unexpected cell activation state");
+
     cells[cell_index].ticker.emplace(io_source.create_manual_ticker());
 
     // Setup the cell initial slot counter.
     uint64_t cur_master_state = master_state.load(std::memory_order_relaxed);
     while (unpack_nof_active_cells(cur_master_state) == 0) {
-      // First cell to be activated. Start with HFN count == 0, and set the master clock to one slot before the current
-      // slot.
-      cells[cell_index].last_counter = slot_point_extended{sl_tx, 0};
-      uint64_t next_master_state     = pack_state(1, cells[cell_index].last_counter - 1);
+      // First cell to be activated. Set the master clock to one slot before the current slot.
+      cells[cell_index].last_counter = sl_tx;
+      uint64_t next_master_state     = pack_state(1, sl_tx - 1);
       if (master_state.compare_exchange_weak(cur_master_state, next_master_state)) {
         // Successfully set the master state.
         return;
@@ -256,8 +233,8 @@ private:
       // Either another cell concurrently changed the state or the CAS operation failed spuriously.
     }
 
-    // We reach this point only when nof active cells is > 0.
-    cells[cell_index].last_counter = get_init_slot_tx_ext(sl_tx, unpack_slot_ext(cur_master_state));
+    // We reach this point only when nof active cells is > 0, and it was not this cell setting the master state.
+    cells[cell_index].last_counter = sl_tx;
   }
 
   /// Called when the cell gets deactivated.

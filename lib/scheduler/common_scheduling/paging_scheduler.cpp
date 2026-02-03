@@ -109,7 +109,7 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid, uint32_t hype
     if (std::optional<unsigned> time_res_idx = find_pdsch_time_resource(res_grid, pg_it.second.request, pdcch_slot);
         time_res_idx.has_value()) {
       // A suitable PDSCH time resource found for this UE.
-      pdsch_time_res_idx_to_scheduled_ues_lookup[*time_res_idx].push_back(pg_it.first);
+      pdsch_time_res_idx_to_scheduled_ues_lookup[*time_res_idx].push_back(pg_it.second.request.paging_identity);
     }
   }
 
@@ -206,9 +206,10 @@ bool paging_scheduler::is_paging_opportunity(slot_point_extended pdcch_slot, con
   if (req.edrx.has_value() and req.edrx->cycle_idle > hyper_frames{1}) {
     ocudu_assert(req.edrx->ptw_len.has_value(),
                  "If eDRX cycle is longer than 1024 radio frames, Paging Time Window needs to be provided");
+    ocudu_assert(*req.edrx->ptw_len < req.edrx->cycle_idle, "PTW must be shorter than eDRX cycle idle");
     const unsigned     UE_ID_H     = req.edrx->hashed_ue_identity;
     const radio_frames Tedrxcn_rfs = req.edrx->cycle_idle;
-    const radio_frames Tedrxcn     = std::chrono::duration_cast<hyper_frames>(Tedrxcn_rfs);
+    const hyper_frames Tedrxcn     = std::chrono::duration_cast<hyper_frames>(Tedrxcn_rfs);
     const unsigned     iedrxcn     = (UE_ID_H / Tedrxcn.count()) % 8U;
     const radio_frames L           = *req.edrx->ptw_len;
     const radio_frames ptw_start{128 * iedrxcn};

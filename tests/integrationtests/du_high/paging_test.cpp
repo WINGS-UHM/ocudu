@@ -20,6 +20,7 @@
 #include "ocudu/asn1/rrc_nr/bcch_dl_sch_msg.h"
 #include "ocudu/asn1/rrc_nr/sys_info.h"
 #include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/pcch/paging_helper.h"
 #include "ocudu/support/test_utils.h"
 
 using namespace ocudu;
@@ -76,7 +77,7 @@ static std::optional<uint16_t> extract_bcch_dl_sch_msg_hyper_sfn(span<const uint
 class paging_tester : public du_high_env_simulator, public testing::Test
 {};
 
-f1ap_message generate_paging_message(uint64_t five_g_tmsi, const nr_cell_global_id_t& nr_cgi)
+static f1ap_message generate_paging_message(uint64_t five_g_tmsi, const nr_cell_global_id_t& nr_cgi)
 {
   f1ap_message msg;
   msg.pdu.set_init_msg().load_info_obj(ASN1_F1AP_ID_PAGING);
@@ -91,7 +92,7 @@ f1ap_message generate_paging_message(uint64_t five_g_tmsi, const nr_cell_global_
 
   // Add paging DRX.
   paging->paging_drx_present = true;
-  paging->paging_drx         = asn1::f1ap::paging_drx_opts::v32;
+  paging->paging_drx         = paging_drx_opts::v32;
 
   // Add paging cell list.
   asn1::protocol_ie_single_container_s<asn1::f1ap::paging_cell_item_ies_o> asn1_paging_cell_item_container;
@@ -192,4 +193,52 @@ TEST_F(edrx_paging_test, when_edrx_enabled_then_hypersfn_is_updated_in_sib1)
   }
 
   ASSERT_EQ(sib1_count, 4);
+}
+
+TEST_F(edrx_paging_test, when_f1_edrx_paging_is_received_then_it_is_sent_to_lower_layers)
+{
+  const uint64_t five_g_tmsi = test_rgen::uniform_int<uint64_t>() & mask_lsb_ones<uint64_t>(48);
+  // Note: We set a Paging Time Window that is almost the length of the full eDRX cycle, to minimize the duration
+  /// of this test.
+  const hyper_frames edrx_cycle{2};
+  /// PTW length == paging_win_coeff * 1.28sec
+  const unsigned     paging_win_coeff = 15;
+  const radio_frames ptw_len          = paging_win_coeff * radio_frames{128};
+
+  // Receive F1AP paging message.
+  // Note: We set the PTW close enough to current slot, to minimize the duration of the test.
+  cu_notifier.f1ap_ul_msgs.clear();
+  const auto&  du_cell_cfg            = this->du_high_cfg.ran.cells[0];
+  f1ap_message msg                    = generate_paging_message(five_g_tmsi, du_cell_cfg.nr_cgi);
+  auto&        paging                 = msg.pdu.init_msg().value.paging();
+  paging->nr_paginge_drx_info_present = true;
+  bool success                        = asn1::float_number_to_enum(
+      paging->nr_paginge_drx_info.nrpaging_e_drx_cycle_idle, static_cast<double>(edrx_cycle.count()), 0.001);
+  ocudu_assert(success, "Invalid conversion");
+  paging->nr_paginge_drx_info.nrpaging_time_win_present = true;
+  success = asn1::number_to_enum(paging->nr_paginge_drx_info.nrpaging_time_win, paging_win_coeff);
+  ocudu_assert(success, "Invalid conversion");
+  this->du_hi->get_f1ap_du().handle_message(msg);
+
+  // Maximum time that can be observed without paging (accounts for the eDRX PTW and DRX SFN).
+  const radio_frames forbid_edrx = edrx_cycle - ptw_len;
+  const unsigned     MAX_SLOT_COUNT =
+      (forbid_edrx.count() + paging->paging_drx.to_number()) * next_slot.nof_slots_per_frame();
+  bool found = false;
+  for (unsigned i = 0; i != MAX_SLOT_COUNT; ++i) {
+    this->run_slot();
+    if (this->phy.cells[0].last_dl_res.has_value() and
+        not this->phy.cells[0].last_dl_res->dl_res->paging_grants.empty()) {
+      for (const auto& grant : this->phy.cells[0].last_dl_res->dl_res->paging_grants) {
+        ASSERT_FALSE(grant.paging_ue_list.empty());
+        for (const auto& ue_pg : grant.paging_ue_list) {
+          ASSERT_EQ(ue_pg.paging_type_indicator, paging_ue_info::cn_ue_paging_identity);
+          ASSERT_EQ(ue_pg.paging_identity, five_g_tmsi);
+          found = true;
+          break;
+        }
+      }
+    }
+  }
+  ASSERT_TRUE(found);
 }

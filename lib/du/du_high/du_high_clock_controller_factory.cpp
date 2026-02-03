@@ -216,7 +216,7 @@ private:
   /// Called on the first slot indication received for a cell.
   void handle_cell_activation(du_cell_index_t cell_index, slot_point_extended sl_tx)
   {
-    ocudu_sanity_check(cells[cell_index].active(), "Unexpected cell activation state");
+    ocudu_sanity_check(not cells[cell_index].active(), "Unexpected cell activation state");
 
     cells[cell_index].ticker.emplace(io_source.create_manual_ticker());
 

@@ -135,6 +135,13 @@ public:
     last_transaction_id = request.transaction_id;
   }
 
+  void handle_cho_reconfiguration_sent(const cu_cp_cho_target_request& request) override
+  {
+    logger.info("target_ue={} source_ue={}: CHO reconfiguration sent, awaiting completion",
+                request.target_ue_index,
+                request.source_ue_index);
+  }
+
   void handle_handover_ue_context_push(ue_index_t source_ue_index, ue_index_t target_ue_index) override
   {
     logger.info("source_ue={} target_ue={}: Received handover ue context push", source_ue_index, target_ue_index);
@@ -680,6 +687,13 @@ public:
   {
     logger.info("Received a new handover reconfiguration request (transaction_id={})", test_transaction_id);
     last_radio_bearer_cfg = request.radio_bearer_cfg;
+    return {test_transaction_id, byte_buffer{}};
+  }
+
+  rrc_ue_cond_reconfiguration_context
+  get_rrc_ue_cond_reconfiguration_context(const rrc_reconfiguration_procedure_request& request) override
+  {
+    logger.info("Received a new CHO reconfiguration request (transaction_id={})", test_transaction_id);
     return {test_transaction_id, byte_buffer{}};
   }
 

@@ -23,6 +23,7 @@
 #include "ocudu/asn1/rrc_nr/dl_dcch_msg_ies.h"
 #include "ocudu/asn1/rrc_nr/ul_ccch_msg.h"
 #include "ocudu/ran/rb_id.h"
+#include "ocudu/support/ocudu_assert.h"
 #include <chrono>
 
 using namespace ocudu;
@@ -541,6 +542,144 @@ rrc_ue_impl::get_rrc_ue_handover_reconfiguration_context(const rrc_reconfigurati
         logger, Tx, ho_reconf_ctxt.rrc_ue_handover_reconfiguration_pdu, dl_dcch_msg, srb_id_t::srb1, "DCCH DL");
   }
   return ho_reconf_ctxt;
+}
+
+rrc_ue_cond_reconfiguration_context
+rrc_ue_impl::get_rrc_ue_cond_reconfiguration_context(const rrc_reconfiguration_procedure_request& request)
+{
+  rrc_ue_cond_reconfiguration_context cond_reconf_ctxt;
+
+  if (context.srbs.find(srb_id_t::srb1) == context.srbs.end()) {
+    logger.log_error("Can't get CHO reconfiguration context. {} is not set up", srb_id_t::srb1);
+    return cond_reconf_ctxt;
+  }
+
+  // Create transaction to get transaction ID.
+  rrc_transaction transaction     = event_mng->transactions.create_transaction();
+  cond_reconf_ctxt.transaction_id = transaction.id();
+
+  // Build RRCReconfiguration with measConfig and conditionalReconfiguration-r16.
+  dl_dcch_msg_s dl_dcch_msg;
+  auto&         rrc_recfg        = dl_dcch_msg.msg.set_c1().set_rrc_recfg();
+  rrc_recfg.rrc_transaction_id   = cond_reconf_ctxt.transaction_id;
+  auto&                recfg_ies = rrc_recfg.crit_exts.set_rrc_recfg();
+  std::vector<uint8_t> cho_meas_ids;
+
+  // CHO measurement config (already filtered and includes conditional triggers).
+  // The measurement config from generate_meas_config() is already complete:
+  // - Measurement objects filtered to candidate target cells
+  // - Conditional trigger report configs included in report_cfg_to_add_mod_list
+  // - Measurement IDs correctly linking filtered MOs to conditional triggers
+  if (request.meas_cfg.has_value()) {
+    recfg_ies.meas_cfg_present = true;
+    recfg_ies.meas_cfg         = meas_config_to_rrc_asn1(request.meas_cfg.value());
+
+    logger.log_debug("ue={}: Using CHO-specific measConfig with condTriggerConfig-r16 - {} meas_obj, {} "
+                     "report_cfg, {} meas_id",
+                     context.ue_index,
+                     recfg_ies.meas_cfg.meas_obj_to_add_mod_list.size(),
+                     recfg_ies.meas_cfg.report_cfg_to_add_mod_list.size(),
+                     recfg_ies.meas_cfg.meas_id_to_add_mod_list.size());
+
+    if (recfg_ies.meas_cfg.meas_obj_to_add_mod_list.size() == 0) {
+      logger.log_warning("ue={}: CHO measConfig has no measurement objects; conditional execution will not trigger",
+                         context.ue_index);
+    }
+  } else {
+    logger.log_warning("ue={}: CHO RRCReconfiguration has no measConfig - UE may not have measurement conditions",
+                       context.ue_index);
+  }
+
+  // Set up non-critical extensions chain to reach v1610 for conditionalReconfiguration.
+  recfg_ies.non_crit_ext_present = true;
+  auto& v1530                    = recfg_ies.non_crit_ext;
+  v1530.non_crit_ext_present     = true;
+  auto& v1540                    = v1530.non_crit_ext;
+  v1540.non_crit_ext_present     = true;
+  auto& v1560                    = v1540.non_crit_ext;
+  v1560.non_crit_ext_present     = true;
+  auto& v1610                    = v1560.non_crit_ext;
+
+  // Add conditionalReconfiguration-r16 if CHO candidates are provided.
+  if (request.cho_candidates.has_value() && !request.cho_candidates->empty()) {
+    v1610.conditional_recfg_r16_present       = true;
+    auto& cond_recfg                          = v1610.conditional_recfg_r16;
+    cond_recfg.attempt_cond_recfg_r16_present = true;
+
+    // Add each candidate with its specific measIds based on target NCI.
+    for (const auto& candidate : request.cho_candidates.value()) {
+      cond_recfg_to_add_mod_r16_s entry;
+      entry.cond_recfg_id_r16 = candidate.cond_recfg_id.value();
+
+      // Set execution condition (measurement ID reference) based on target NCI.
+      if (request.cho_nci_to_meas_ids.has_value()) {
+        auto it = request.cho_nci_to_meas_ids->find(candidate.target_cgi.nci);
+        if (it != request.cho_nci_to_meas_ids->end()) {
+          const auto& meas_ids = it->second;
+
+          // Validate ASN.1 constraint: max 2 measIds per 3GPP TS 38.331.
+          if (meas_ids.size() > 2) {
+            logger.log_error("ue={}: CHO candidate cond_recfg_id={} target_nci={:#x} has {} measIds (max 2 allowed). "
+                             "Using first 2 only.",
+                             context.ue_index,
+                             candidate.cond_recfg_id,
+                             candidate.target_cgi.nci.value(),
+                             meas_ids.size());
+          }
+
+          // Add up to 2 measIds.
+          for (size_t i = 0; i < std::min(meas_ids.size(), size_t{2}); ++i) {
+            entry.cond_execution_cond_r16.push_back(meas_id_to_uint(meas_ids[i]));
+          }
+
+          logger.log_debug("ue={}: CHO candidate cond_recfg_id={} target_nci={:#x} assigned {} measId(s): {}",
+                           context.ue_index,
+                           candidate.cond_recfg_id,
+                           candidate.target_cgi.nci.value(),
+                           entry.cond_execution_cond_r16.size(),
+                           fmt::format("{}", fmt::join(entry.cond_execution_cond_r16, ", ")));
+        } else {
+          logger.log_warning("ue={}: CHO candidate cond_recfg_id={} target_nci={:#x} not found in measId mapping. "
+                             "Using fallback measId=1.",
+                             context.ue_index,
+                             candidate.cond_recfg_id,
+                             candidate.target_cgi.nci.value());
+          entry.cond_execution_cond_r16.push_back(1);
+        }
+      } else {
+        // Fallback if no mapping provided.
+        logger.log_warning("ue={}: No CHO measId mapping provided. Using fallback measId=1 for cond_recfg_id={}",
+                           context.ue_index,
+                           candidate.cond_recfg_id);
+        entry.cond_execution_cond_r16.push_back(1);
+      }
+
+      // Set the prepared RRC reconfiguration for this candidate.
+      if (!candidate.prepared_rrc_recfg.empty()) {
+        entry.cond_rrc_recfg_r16 = candidate.prepared_rrc_recfg.copy();
+      }
+
+      cond_recfg.cond_recfg_to_add_mod_list_r16.push_back(entry);
+    }
+  }
+
+  // Pack DL DCCH message.
+  pdcp_tx_result pdcp_packing_result =
+      context.srbs.at(srb_id_t::srb1).pack_rrc_pdu(pack_into_pdu(dl_dcch_msg, "CHO RRCReconfiguration"));
+
+  if (!pdcp_packing_result.is_successful()) {
+    logger.log_info("Requesting UE release. Cause: PDCP packing failed with {}",
+                    pdcp_packing_result.get_failure_cause());
+    on_ue_release_required(pdcp_packing_result.get_failure_cause());
+    return cond_reconf_ctxt;
+  }
+
+  cond_reconf_ctxt.rrc_ue_cond_reconfiguration_pdu = pdcp_packing_result.pop_pdu();
+
+  // Log Tx message.
+  log_rrc_message(logger, Tx, cond_reconf_ctxt.rrc_ue_cond_reconfiguration_pdu, dl_dcch_msg, srb_id_t::srb1, "DCCH DL");
+
+  return cond_reconf_ctxt;
 }
 
 async_task<bool> rrc_ue_impl::handle_handover_reconfiguration_complete_expected(uint8_t transaction_id,

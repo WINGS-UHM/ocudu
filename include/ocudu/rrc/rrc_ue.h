@@ -206,6 +206,11 @@ struct rrc_ue_handover_reconfiguration_context {
   byte_buffer rrc_ue_handover_reconfiguration_pdu;
 };
 
+struct rrc_ue_cond_reconfiguration_context {
+  unsigned    transaction_id;
+  byte_buffer rrc_ue_cond_reconfiguration_pdu; // PDCP-protected outer RRC Reconfiguration
+};
+
 struct rrc_inactivity_context {
   i_rntis_t                        i_rntis;
   uint8_t                          next_hop_chaining_count;
@@ -243,6 +248,12 @@ public:
   /// \returns The RRC handover reconfiguration context.
   virtual rrc_ue_handover_reconfiguration_context
   get_rrc_ue_handover_reconfiguration_context(const rrc_reconfiguration_procedure_request& msg) = 0;
+
+  /// \brief Get the RRC UE conditional reconfiguration context (conditionalReconfiguration).
+  /// \param[in] request The RRC reconfiguration request containing CHO candidates.
+  /// \returns The conditional reconfiguration context with transaction ID and PDCP-protected PDU.
+  virtual rrc_ue_cond_reconfiguration_context
+  get_rrc_ue_cond_reconfiguration_context(const rrc_reconfiguration_procedure_request& request) = 0;
 
   /// \brief Await a RRC Reconfiguration Complete for a handover.
   /// \param[in] transaction_id The transaction ID of the RRC Reconfiguration Complete.

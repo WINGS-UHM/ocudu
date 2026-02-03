@@ -15,6 +15,7 @@
 #include "routines/cell_activation_routine.h"
 #include "routines/initial_context_setup_routine.h"
 #include "routines/mobility/cho_coordinator_routine.h"
+#include "routines/mobility/cho_target_routine.h"
 #include "routines/mobility/inter_cu_handover_execution_target_routine.h"
 #include "routines/mobility/inter_cu_handover_source_routine.h"
 #include "routines/mobility/inter_cu_handover_target_routine.h"
@@ -607,6 +608,21 @@ void cu_cp_impl::handle_handover_reconfiguration_sent(const cu_cp_intra_cu_hando
       ue_mng,
       mobility_mng,
       logger));
+}
+
+void cu_cp_impl::handle_cho_reconfiguration_sent(const cu_cp_cho_target_request& request)
+{
+  if (ue_mng.find_du_ue(request.target_ue_index) == nullptr) {
+    logger.warning("CHO target UE index={} got removed", request.target_ue_index);
+    return;
+  }
+
+  cu_cp_ue* ue = ue_mng.find_du_ue(request.target_ue_index);
+
+  // Schedule cho_target_routine on the target UE's task scheduler.
+  // This routine only waits for target-side RRCReconfigurationComplete.
+  // Source-side CHO completion is handled separately (Access Success / cho_source_routine).
+  ue->get_task_sched().schedule_async_task(launch_async<cho_target_routine>(request, ue_mng, logger));
 }
 
 void cu_cp_impl::handle_handover_ue_context_push(ue_index_t source_ue_index, ue_index_t target_ue_index)

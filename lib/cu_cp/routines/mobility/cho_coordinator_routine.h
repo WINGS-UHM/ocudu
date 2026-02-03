@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "cho_reconfiguration_routine.h"
 #include "ocudu/cu_cp/cu_cp_cho_types.h"
 #include "ocudu/cu_cp/cu_cp_intra_cu_ho_types.h"
 #include "ocudu/ocudulog/logger.h"
@@ -56,14 +57,16 @@ private:
 
   cu_cp_intra_cu_cho_response response{};
 
-  cu_cp_ue*                        source_ue = nullptr;
-  byte_buffer                      target_cell_sib1;
-  du_index_t                       source_du_index = du_index_t::invalid;
-  du_index_t                       target_du_index = du_index_t::invalid;
-  size_t                           candidate_idx   = 0;
-  cond_recfg_id_t                  cond_recfg_id   = 1;
-  cu_cp_intra_cu_handover_request  prep_request;
-  cu_cp_intra_cu_handover_response prep_response;
+  cu_cp_ue*                         source_ue = nullptr;
+  byte_buffer                       target_cell_sib1;
+  du_index_t                        source_du_index = du_index_t::invalid;
+  du_index_t                        target_du_index = du_index_t::invalid;
+  size_t                            candidate_idx   = 0;
+  cond_recfg_id_t                   cond_recfg_id   = 1;
+  cu_cp_intra_cu_handover_request   prep_request;
+  cu_cp_intra_cu_handover_response  prep_response;
+  cu_cp_cho_reconfiguration_request cho_reconfig_request;
+  bool                              cho_reconfig_result = false;
 
   /// \brief Releases all tracked inter-DU target UE contexts.
   /// Called when the source UE disappears before CHO completes.

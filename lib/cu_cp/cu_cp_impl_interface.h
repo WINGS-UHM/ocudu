@@ -271,6 +271,19 @@ struct cu_cp_intra_cu_handover_target_request {
   e1ap_bearer_context_modification_request bearer_context_modification_request;
 };
 
+/// Request with information for the target handler of conditional handover.
+struct cu_cp_cho_target_request {
+  ue_index_t                source_ue_index = ue_index_t::invalid;
+  ue_index_t                target_ue_index = ue_index_t::invalid;
+  cond_recfg_id_t           cond_recfg_id   = cond_recfg_id_t(bounded_integer_invalid_tag{});
+  pci_t                     target_pci      = INVALID_PCI;
+  unsigned                  transaction_id  = 0;
+  std::chrono::milliseconds timeout;
+
+  /// \brief E1AP bearer context modification request for CU-UP tunnel update after CHO completion.
+  e1ap_bearer_context_modification_request bearer_context_mod_request;
+};
+
 /// Interface for entities (e.g. DU processor) that wish to manipulate the context of a UE.
 class cu_cp_ue_context_manipulation_handler
 {
@@ -285,6 +298,15 @@ public:
   /// Reconfiguration Complete.
   /// \param[in] request The intra CU handover target request.
   virtual void handle_handover_reconfiguration_sent(const cu_cp_intra_cu_handover_target_request& request) = 0;
+
+  /// \brief Handle the transmission of the CHO reconfiguration by notifying a CHO target UE to await
+  /// RRCReconfigurationComplete.
+  ///
+  /// This starts the cho_target_routine on the specified target UE. CHO completion and cleanup
+  /// are finalized on the source side (via Access Success handling / cho_source_routine).
+  ///
+  /// \param[in] request The CHO target request.
+  virtual void handle_cho_reconfiguration_sent(const cu_cp_cho_target_request& request) = 0;
 
   /// \brief Handle a UE context push during handover.
   /// \param[in] source_ue_index The index of the UE that is the source of the handover.

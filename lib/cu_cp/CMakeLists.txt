@@ -58,6 +58,8 @@ set(SOURCES
         routines/mobility/inter_cu_handover_execution_target_routine.cpp
         routines/mobility/handover_reconfiguration_routine.cpp
         routines/mobility/cho_coordinator_routine.cpp
+        routines/mobility/cho_reconfiguration_routine.cpp
+        routines/mobility/cho_target_routine.cpp
         routines/positioning/trp_information_exchange_routine.cpp
         task_schedulers/ngap_task_scheduler.cpp
         ue_manager/cu_cp_ue_impl.cpp

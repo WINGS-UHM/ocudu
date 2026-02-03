@@ -20,7 +20,7 @@
 using namespace ocudu;
 
 // We assume normal cyclic prefix here.
-const unsigned NOF_SYM_PER_SLOT = 14;
+constexpr unsigned NOF_SYM_PER_SLOT = 14;
 
 namespace prach_test {
 
@@ -101,7 +101,7 @@ protected:
     prach_counter += res_grid[0].result.ul.prachs.size();
   }
 
-  bool is_prach_slot()
+  bool is_prach_slot() const
   {
     bool prach_occasion_sfn =
         std::any_of(prach_cfg.y.begin(), prach_cfg.y.end(), [this](uint8_t y) { return sl.sfn() % prach_cfg.x == y; });
@@ -109,10 +109,10 @@ protected:
       return false;
     }
 
-    subcarrier_spacing scs_ref = band_helper::get_freq_range(cell_cfg.band) == frequency_range::FR2
-                                     ? subcarrier_spacing::kHz60
-                                     : subcarrier_spacing::kHz15;
-    unsigned           scs_ratio =
+    const subcarrier_spacing scs_ref = band_helper::get_freq_range(cell_cfg.band) == frequency_range::FR2
+                                           ? subcarrier_spacing::kHz60
+                                           : subcarrier_spacing::kHz15;
+    const unsigned           scs_ratio =
         pow2(to_numerology_value(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs) - to_numerology_value(scs_ref));
 
     if (std::find(prach_cfg.slots.begin(), prach_cfg.slots.end(), sl.slot_index() / scs_ratio) ==
@@ -131,7 +131,7 @@ protected:
       }
     } else {
       // With short Format PRACH, with 15kHz SCS, there is only 1 slot per subframe. This slot contrains a burst PRACH
-      // occasions. With 30kHz SCS, there are 2 slots per subframe; depending on the whether "number of PRACH slots
+      // occasions. With 30kHz SCS, there are 2 slots per subframe; depending on whether the "number of PRACH slots
       // within a subframe" 1 or 2 (as per Tables 6.3.3.2-2 and 6.3.3.2-3, TS 38.211), the occasions (and the
       // transmission in one of the occasions) are expected in the second slot of the subframe (if number of PRACH
       // slots within a subframe = 1) or in both slots (number of PRACH slots within a subframe = 2).
@@ -152,8 +152,8 @@ protected:
   grant_info get_prach_grant(const prach_occasion_info& occasion, unsigned prach_slot_idx) const
   {
     // The information we need are not related to whether it is the last PRACH occasion.
-    const bool                 is_last_prach_occasion = false;
-    prach_preamble_information info =
+    constexpr bool                   is_last_prach_occasion = false;
+    const prach_preamble_information info =
         is_long_preamble(prach_cfg.format)
             ? get_prach_preamble_long_info(prach_cfg.format)
             : get_prach_preamble_short_info(
@@ -180,17 +180,16 @@ protected:
                                                 : (starting_symbol_pusch_scs + nof_symbols) % NOF_SYM_PER_SLOT};
 
       return grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
-    } else {
-      const unsigned          starting_symbol_pusch_scs = occasion.start_symbol;
-      const ofdm_symbol_range prach_symbols{starting_symbol_pusch_scs,
-                                            starting_symbol_pusch_scs +
-                                                prach_cfg.duration * prach_cfg.nof_occasions_within_slot};
-
-      return grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
     }
+    const unsigned          starting_symbol_pusch_scs = occasion.start_symbol;
+    const ofdm_symbol_range prach_symbols{starting_symbol_pusch_scs,
+                                          starting_symbol_pusch_scs +
+                                              prach_cfg.duration * prach_cfg.nof_occasions_within_slot};
+
+    return grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
   }
 
-  static const unsigned nof_slots_run = 1000;
+  static constexpr unsigned nof_slots_run = 1000;
 
   const scheduler_expert_config sched_cfg{config_helpers::make_default_scheduler_expert_config()};
   cell_configuration            cell_cfg;
@@ -268,16 +267,38 @@ INSTANTIATE_TEST_SUITE_P(
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 73},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 86},
         // Format A1.
-        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 87},
-        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 88},
-        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 99},
-        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 100},
-        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 106},
-        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 107}),
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 87},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 88},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 99},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 100},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 106},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 107},
+        // Format A3.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 147},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 153},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 156},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 159},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 164},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 165},
+        // Format B4.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 198},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 205},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 208},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 212},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 216},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 218},
+        // Format C0.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 219},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 225},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 234},
+        // Format C2.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 236},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 242},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 253}),
     [](const testing::TestParamInfo<prach_tester::ParamType>& info_) {
       return fmt::format("fdd_scs_{}_prach_cfg_idx_{}", to_string(info_.param.scs), info_.param.prach_cfg_index);
     });
-//
+
 INSTANTIATE_TEST_SUITE_P(
     prach_scheduler_fdd_30kHz,
     prach_tester,
@@ -303,7 +324,29 @@ INSTANTIATE_TEST_SUITE_P(
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 99},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 100},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 106},
-        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 107}),
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 107},
+        // Format A3.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 147},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 153},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 156},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 159},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 164},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 165},
+        // Format B4.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 198},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 205},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 208},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 212},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 216},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 218},
+        // Format C0.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 219},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 225},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 234},
+        // Format C2.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 236},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 242},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 253}),
     [](const testing::TestParamInfo<prach_tester::ParamType>& info_) {
       return fmt::format("fdd_scs_{}_prach_cfg_idx_{}", to_string(info_.param.scs), info_.param.prach_cfg_index);
     });
@@ -334,7 +377,33 @@ INSTANTIATE_TEST_SUITE_P(
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 69},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 71},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 73},
-        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 86}),
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 86},
+        // Format A3.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 110},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 112},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 113},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 127},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 132},
+        // Format B4.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 145},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 147},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 152},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 162},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 168},
+        // Format C0.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 169},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 176},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 178},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 183},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 187},
+        // Format C2.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 189},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 193},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 198},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 206},
+        prach_test_params{.scs             = ocudu::subcarrier_spacing::kHz15,
+                          .band            = ocudu::nr_band::n41,
+                          .prach_cfg_index = 210}),
     [](const testing::TestParamInfo<prach_tester::ParamType>& info_) {
       return fmt::format("tdd_scs_{}_prach_cfg_idx_{}", to_string(info_.param.scs), info_.param.prach_cfg_index);
     });
@@ -367,7 +436,33 @@ INSTANTIATE_TEST_SUITE_P(
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 69},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 71},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 73},
-        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 86}),
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 86},
+        // Format A3.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 110},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 112},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 113},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 127},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 132},
+        // Format B4.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 145},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 147},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 152},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 162},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 168},
+        // Format C0.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 169},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 176},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 178},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 183},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 187},
+        // Format C2.
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 189},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 193},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 198},
+        prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 206},
+        prach_test_params{.scs             = ocudu::subcarrier_spacing::kHz30,
+                          .band            = ocudu::nr_band::n41,
+                          .prach_cfg_index = 210}),
     [](const testing::TestParamInfo<prach_tester::ParamType>& info_) {
       return fmt::format("tdd_scs_{}_prach_cfg_idx_{}", to_string(info_.param.scs), info_.param.prach_cfg_index);
     });

@@ -21,18 +21,21 @@ error_type<std::string>
 ocudu::prach_helper::prach_config_index_is_valid(uint8_t prach_cfg_idx, frequency_range fr, duplex_mode mode)
 {
   // Supported PRACH Configuration Index values for FDD in FR1, as per TS38.211 Table 6.3.3.2-2.
-  static constexpr auto fr1_tdd_intervals = to_array<interval<uint8_t>>({{0, 87}, {110, 133}, {145, 210}});
+  static constexpr auto fr1_tdd_intervals = to_array<interval<unsigned>>({{0, 87}, {110, 133}, {145, 211}});
   // Supported PRACH Configuration Index values for TDD in FR1, as per TS38.211 Table 6.3.3.2-3.
-  static constexpr auto fr1_fdd_intervals = to_array<interval<uint8_t>>({{0, 108}, {147, 167}, {198, 255}});
+  static constexpr auto fr1_fdd_intervals = to_array<interval<unsigned>>({{0, 108}, {147, 167}, {198, 256}});
   // Supported PRACH Configuration Index values for TDD in FR2, as per TS38.211 Table 6.3.3.2-4.
-  static constexpr auto fr2_tdd_intervals = to_array<interval<uint8_t>>({{112, 144}});
+  static constexpr auto fr2_tdd_intervals = to_array<interval<unsigned>>({{112, 144}});
 
-  span<const interval<uint8_t>> intervals =
-      (mode == duplex_mode::FDD)     ? span<const interval<uint8_t>>(fr1_fdd_intervals)
-      : (fr == frequency_range::FR1) ? span<const interval<uint8_t>>(fr1_tdd_intervals)
-                                     : span<const interval<uint8_t>>(fr2_tdd_intervals);
+  span<const interval<unsigned>> intervals;
+  if (mode == duplex_mode::FDD) {
+    intervals = fr1_fdd_intervals;
+  } else {
+    intervals = fr == frequency_range::FR1 ? span<const interval<unsigned>>(fr1_tdd_intervals)
+                                           : span<const interval<unsigned>>(fr2_tdd_intervals);
+  }
 
-  bool is_prach_cfg_idx_supported = std::any_of(
+  const bool is_prach_cfg_idx_supported = std::any_of(
       intervals.begin(), intervals.end(), [prach_cfg_idx](const auto& range) { return range.contains(prach_cfg_idx); });
 
   if (not is_prach_cfg_idx_supported) {

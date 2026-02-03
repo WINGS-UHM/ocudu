@@ -60,6 +60,11 @@ public:
 
   void trigger_handover(pci_t source_pci, rnti_t rnti, pci_t target_pci) override;
 
+  void trigger_conditional_handover(pci_t                     source_pci,
+                                    rnti_t                    rnti,
+                                    span<const pci_t>         target_pcis,
+                                    std::chrono::milliseconds timeout) override;
+
   void handle_neighbor_better_than_spcell(ue_index_t       ue_index,
                                           gnb_id_t         neighbor_gnb_id,
                                           nr_cell_identity neighbor_nci,

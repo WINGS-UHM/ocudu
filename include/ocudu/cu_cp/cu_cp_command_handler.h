@@ -10,9 +10,11 @@
 
 #pragma once
 
+#include "ocudu/adt/span.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/rnti.h"
+#include <chrono>
 
 namespace ocudu {
 namespace ocucp {
@@ -27,6 +29,20 @@ public:
   /// The UE is uniquely identified in the CU-CP through the serving Cell PCI
   /// and RNTI. The target is identified through the Target PCI.
   virtual void trigger_handover(pci_t source_pci, rnti_t rnti, pci_t target_pci) = 0;
+
+  /// \brief Trigger Conditional Handover (CHO) with one or more target cells.
+  ///
+  /// Prepares CHO candidate cell configurations and sends them to the UE.
+  /// The UE is uniquely identified in the CU-CP through the serving Cell PCI and RNTI.
+  ///
+  /// \param[in] source_pci Serving cell PCI.
+  /// \param[in] rnti UE RNTI on the serving cell.
+  /// \param[in] target_pcis Target cell PCIs (1-8 candidates supported per 3GPP).
+  /// \param[in] timeout Maximum time to wait for CHO completion.
+  virtual void trigger_conditional_handover(pci_t                     source_pci,
+                                            rnti_t                    rnti,
+                                            span<const pci_t>         target_pcis,
+                                            std::chrono::milliseconds timeout) = 0;
 };
 
 /// Handler for external commands to the CU-CP.

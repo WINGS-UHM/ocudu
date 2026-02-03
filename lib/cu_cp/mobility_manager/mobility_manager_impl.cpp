@@ -39,6 +39,14 @@ void mobility_manager::trigger_handover(pci_t source_pci, rnti_t rnti, pci_t tar
   handle_handover(ue_index, gnb_id_t{}, nr_cell_identity{}, target_pci); // TODO: define gNB-ID and NCI
 }
 
+void mobility_manager::trigger_conditional_handover(pci_t                     source_pci,
+                                                    rnti_t                    rnti,
+                                                    span<const pci_t>         target_pcis,
+                                                    std::chrono::milliseconds timeout)
+{
+  // TODO: Trigger CHO by preparing and then automatically executing.
+}
+
 void mobility_manager::handle_neighbor_better_than_spcell(ue_index_t       ue_index,
                                                           gnb_id_t         neighbor_gnb_id,
                                                           nr_cell_identity neighbor_nci,

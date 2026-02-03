@@ -95,7 +95,7 @@ void realtime_timing_worker::stop()
   logger.info("Stopped the realtime timing worker");
 }
 
-void realtime_timing_worker::timing_loop(const stop_event_token& token) noexcept OCUDU_RTSAN_NONBLOCKING
+void realtime_timing_worker::timing_loop(const rt_stop_event_token& token) noexcept OCUDU_RTSAN_NONBLOCKING
 {
   while (OCUDU_LIKELY(!token.is_stop_requested())) {
     poll();

@@ -99,7 +99,7 @@ private:
   error_notifier&                                       err_notifier;
   downlink_handler_metrics_collector                    metrics_collector;
   bool                                                  enable_log_warnings_for_lates;
-  stop_event_source                                     stop_control;
+  rt_stop_event_source                                  stop_control;
 };
 
 } // namespace ofh

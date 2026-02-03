@@ -137,7 +137,7 @@ private:
   /// Radio Unit timing notifier.
   ru_timing_notifier& timing_notifier;
   /// Stop control.
-  stop_event_source stop_control;
+  rt_stop_event_source stop_control;
   /// Slot time in microseconds.
   std::chrono::microseconds slot_duration;
   /// Number of slots is notified in advance of the transmission time.

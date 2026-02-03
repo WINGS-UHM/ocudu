@@ -85,7 +85,7 @@ class realtime_timing_worker : public operation_controller, public ota_symbol_bo
   unsigned                                       previous_symb_index       = 0;
   gps_clock::rep                                 previous_time_since_epoch = 0;
   std::chrono::steady_clock::time_point          last_wakeup_tp;
-  stop_event_source                              stop_manager;
+  rt_stop_event_source                           stop_manager;
   timing_metrics_collector_impl                  metrics_collector;
 
 public:
@@ -105,7 +105,7 @@ public:
 
 private:
   /// Main timing loop.
-  void timing_loop(const stop_event_token& token) noexcept;
+  void timing_loop(const rt_stop_event_token& token) noexcept;
 
   /// Polls the system time checking for the start of a new OTA symbol.
   void poll();

@@ -73,7 +73,7 @@ private:
   ota_symbol_boundary_notifier& dl_window_checker;
   ota_symbol_boundary_notifier& ul_window_checker;
   ota_symbol_boundary_notifier& msg_symbol_handler;
-  stop_event_source             stop_manager;
+  rt_stop_event_source          stop_manager;
 };
 
 } // namespace ofh

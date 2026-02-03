@@ -16,12 +16,10 @@
 #include "ocudu/support/executors/task_executor.h"
 #include "ocudu/support/ocudu_assert.h"
 #include "ocudu/support/rtsan.h"
-#include <mutex>
-#include <thread>
 
 using namespace ocudu;
 
-shared_resource_grid resource_grid_pool_wrapper::try_reserve(ocudu::stop_event_token token)
+shared_resource_grid resource_grid_pool_wrapper::try_reserve(rt_stop_event_token token)
 {
   // Try to transition from available to one scope.
   unsigned expected = ref_counter_available;
@@ -42,7 +40,7 @@ shared_resource_grid resource_grid_pool_wrapper::try_reserve(ocudu::stop_event_t
 void resource_grid_pool_wrapper::release()
 {
   // Move token to the scope of this method before transitioning to available.
-  stop_event_token token = std::move(stop_token);
+  auto token = std::move(stop_token);
 
   // Transition to available.
   [[maybe_unused]] unsigned prev_scope_count = scope_count.exchange(ref_counter_available, std::memory_order_acq_rel);

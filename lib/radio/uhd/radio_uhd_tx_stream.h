@@ -51,7 +51,7 @@ class radio_uhd_tx_stream : public baseband_gateway_transmitter, public uhd_exce
   /// Power ramping transmit buffer. It is filled with zeros, used to absorb power ramping when starting a transmission.
   baseband_gateway_buffer_dynamic power_ramping_buffer;
   /// Stop control.
-  stop_event_source stop_control;
+  rt_stop_event_source stop_control;
 
   /// Receive asynchronous message.
   void recv_async_msg();

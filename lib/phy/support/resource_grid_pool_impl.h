@@ -50,7 +50,7 @@ public:
   /// \brief Try to reserve the resource grid.
   ///
   /// \return True if the resource grid is reserved successfully. Otherwise, false.
-  shared_resource_grid try_reserve(stop_event_token token);
+  shared_resource_grid try_reserve(rt_stop_event_token token);
 
 private:
   /// Reference counter value to indicate the availability of a resource grid.
@@ -78,7 +78,7 @@ private:
   /// A resource grid is available when the counter is equal to \c ref_counter_available.
   std::atomic<unsigned> scope_count = ref_counter_available;
   /// Signaling mechanism for safe stop.
-  stop_event_token stop_token;
+  rt_stop_event_token stop_token;
 };
 
 /// \brief Implements a resource grid pool.
@@ -109,7 +109,7 @@ private:
   /// Resource grid state controllers. There is a controller for each grid.
   std::vector<resource_grid_pool_wrapper> grids;
   /// Stop control.
-  stop_event_source stop_control;
+  rt_stop_event_source stop_control;
 };
 
 } // namespace ocudu

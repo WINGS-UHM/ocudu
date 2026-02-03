@@ -19,7 +19,7 @@ using namespace ocudu;
 
 void prach_processor_worker::run_state_wait(const baseband_gateway_buffer_reader&           samples,
                                             const prach_processor_baseband::symbol_context& context,
-                                            stop_event_token                                token)
+                                            rt_stop_event_token                             token)
 {
   // Check if the context slot is in the past even if the sector/port does not match.
   if ((context.slot > prach_context.slot) || (context.slot == prach_context.slot && context.symbol > 0)) {
@@ -58,7 +58,7 @@ void prach_processor_worker::run_state_wait(const baseband_gateway_buffer_reader
 
 void prach_processor_worker::run_state_collecting(const baseband_gateway_buffer_reader&           samples,
                                                   const prach_processor_baseband::symbol_context& context,
-                                                  stop_event_token                                token)
+                                                  rt_stop_event_token                             token)
 {
   // Ignore symbol if the sector and port do not match with the prach_context.
   if (context.sector != prach_context.sector) {
@@ -69,7 +69,8 @@ void prach_processor_worker::run_state_collecting(const baseband_gateway_buffer_
   accumulate_samples(samples, std::move(token));
 }
 
-void prach_processor_worker::accumulate_samples(const baseband_gateway_buffer_reader& samples, stop_event_token token)
+void prach_processor_worker::accumulate_samples(const baseband_gateway_buffer_reader& samples,
+                                                rt_stop_event_token                   token)
 {
   // Select number of samples to append.
   unsigned count = std::min(window_length - nof_samples, samples.get_nof_samples());

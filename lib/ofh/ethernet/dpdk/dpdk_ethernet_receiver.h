@@ -59,7 +59,7 @@ private:
   frame_notifier*                    notifier;
   std::shared_ptr<dpdk_port_context> port_ctx;
   receiver_metrics_collector_impl    metrics_collector;
-  stop_event_source                  stop_manager;
+  rt_stop_event_source               stop_manager;
 };
 
 } // namespace ether

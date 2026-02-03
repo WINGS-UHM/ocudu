@@ -38,7 +38,7 @@ class radio_uhd_rx_stream : public uhd_exception_handler, public baseband_gatewa
   /// Indicates the number of channels.
   unsigned nof_channels;
   /// Stop control.
-  stop_event_source stop_control;
+  rt_stop_event_source stop_control;
 
   /// \brief Receives a single block of baseband samples.
   /// \param[out] nof_rxd_samples Indicate the number of samples received in the block.

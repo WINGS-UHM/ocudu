@@ -83,20 +83,20 @@ class prach_processor_worker
   /// Buffer to hold complex floating-point based samples for demodulation.
   dynamic_tensor<2, cf_t> temp_cf_baseband;
   /// Manager to handle the stop process.
-  stop_event_source stop_manager;
+  rt_stop_event_source stop_manager;
 
   /// Runs state \c wait.
   void run_state_wait(const baseband_gateway_buffer_reader&           samples,
                       const prach_processor_baseband::symbol_context& context,
-                      stop_event_token                                token);
+                      rt_stop_event_token                             token);
 
   /// Runs state \c collecting.
   void run_state_collecting(const baseband_gateway_buffer_reader&           samples,
                             const prach_processor_baseband::symbol_context& context,
-                            stop_event_token                                token);
+                            rt_stop_event_token                             token);
 
   /// Accumulates \c samples in the internal buffer.
-  void accumulate_samples(const baseband_gateway_buffer_reader& samples, stop_event_token token);
+  void accumulate_samples(const baseband_gateway_buffer_reader& samples, rt_stop_event_token token);
 
 public:
   /// Creates a PRACH processor worker.

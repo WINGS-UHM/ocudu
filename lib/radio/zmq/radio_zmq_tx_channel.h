@@ -53,8 +53,8 @@ class radio_zmq_tx_channel
   std::mutex              transmit_alignment_mutex;
   std::condition_variable transmit_alignment_cvar;
   /// Stop control.
-  stop_event_source stop_control;
-  std::atomic<bool> is_tx_enabled = {false};
+  rt_stop_event_source stop_control;
+  std::atomic<bool>    is_tx_enabled = {false};
 
 public:
   /// Describes the necessary parameters to create a ZMQ Tx channel.

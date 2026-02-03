@@ -231,7 +231,7 @@ private:
   public:
     /// Emplace a new request with a new context and grid.
     /// \return \c std::nullopt if there is no previous request, otherwise the context of the previous request.
-    std::optional<Context> new_request(const Context& new_context, Resource new_resource, stop_event_token tk)
+    std::optional<Context> new_request(const Context& new_context, Resource new_resource, rt_stop_event_token tk)
     {
       // Exchange the current internal state.
       internal_states previous_state = internal_state.exchange(internal_states::locked);
@@ -283,7 +283,7 @@ private:
       }
 
       // Move token to stack before transitioning to a different state.
-      stop_event_token local_token = std::move(token);
+      auto local_token = std::move(token);
 
       // Transition to available. The object will become available again.
       internal_state.store(internal_states::available);
@@ -298,7 +298,7 @@ private:
     std::atomic<internal_states> internal_state = internal_states::available;
     Context                      context        = {};
     Resource                     resource;
-    stop_event_token             token;
+    rt_stop_event_token          token;
   };
 
   /// Logger.
@@ -316,7 +316,7 @@ private:
   /// Circular buffer containing the DL requests indexed by system slot.
   std::vector<request_information<resource_grid_context, shared_resource_grid>> dl_request;
   /// Stop control.
-  stop_event_source stop_control;
+  rt_stop_event_source stop_control;
   /// \name  Group of event counters.
   ///
   /// These counters are informative and printed when print_metrics() is called.

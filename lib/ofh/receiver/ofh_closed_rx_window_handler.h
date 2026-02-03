@@ -106,7 +106,7 @@ private:
   std::atomic<unsigned> nof_missed_uplink_symbols;
   /// Counts every PRACH not received when the reception window closes.
   std::atomic<unsigned> nof_missed_prach_contexts;
-  stop_event_source     stop_manager;
+  rt_stop_event_source  stop_manager;
 };
 
 } // namespace ofh

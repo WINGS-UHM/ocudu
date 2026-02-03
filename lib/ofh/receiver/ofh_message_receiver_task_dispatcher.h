@@ -78,7 +78,7 @@ private:
   task_executor&                   executor;
   const unsigned                   sector;
   std::unique_ptr<ether::receiver> eth_receiver;
-  stop_event_source                stop_manager;
+  rt_stop_event_source             stop_manager;
 };
 
 } // namespace ofh

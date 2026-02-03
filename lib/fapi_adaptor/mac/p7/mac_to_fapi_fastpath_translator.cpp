@@ -163,7 +163,7 @@ static void add_pdsch_pdus_to_dl_request(fapi::dl_tti_request_builder&    builde
 
 void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const mac_dl_sched_result& dl_res)
 {
-  stop_event_token token = stop_manager.get_token();
+  auto token = stop_manager.get_token();
   // Do not process results when the translator is not running.
   if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
@@ -206,7 +206,7 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const ma
 
 void mac_to_fapi_fastpath_translator::on_new_downlink_data(const mac_dl_data_result& dl_data)
 {
-  stop_event_token token = stop_manager.get_token();
+  auto token = stop_manager.get_token();
   // Do not process results when the translator is not running.
   if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;
@@ -264,7 +264,7 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_data(const mac_dl_data_res
 
 void mac_to_fapi_fastpath_translator::on_new_uplink_scheduler_results(const mac_ul_sched_result& ul_res)
 {
-  stop_event_token token = stop_manager.get_token();
+  auto token = stop_manager.get_token();
   // Do not process results when the translator is not running.
   if (OCUDU_UNLIKELY(token.is_stop_requested())) {
     return;

@@ -60,7 +60,7 @@ private:
   task_executor&                  executor;
   frame_notifier*                 notifier;
   int                             socket_fd = -1;
-  stop_event_source               stop_manager;
+  rt_stop_event_source            stop_manager;
   ethernet_rx_buffer_pool         buffer_pool;
   receiver_metrics_collector_impl metrics_collector;
 };

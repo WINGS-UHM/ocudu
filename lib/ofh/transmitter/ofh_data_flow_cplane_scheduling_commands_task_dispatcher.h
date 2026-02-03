@@ -87,7 +87,7 @@ private:
   std::unique_ptr<data_flow_cplane_scheduling_commands> data_flow_cplane;
   task_executor&                                        executor;
   const unsigned                                        sector_id;
-  stop_event_source                                     stop_manager;
+  rt_stop_event_source                                  stop_manager;
 };
 
 } // namespace ofh

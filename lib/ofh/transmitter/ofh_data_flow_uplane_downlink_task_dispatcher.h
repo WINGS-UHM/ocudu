@@ -72,7 +72,7 @@ private:
   std::unique_ptr<data_flow_uplane_downlink_data> data_flow_uplane;
   task_executor&                                  executor;
   const unsigned                                  sector_id;
-  stop_event_source                               stop_manager;
+  rt_stop_event_source                            stop_manager;
 };
 
 } // namespace ofh

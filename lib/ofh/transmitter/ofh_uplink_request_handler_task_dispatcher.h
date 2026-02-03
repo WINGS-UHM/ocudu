@@ -25,7 +25,7 @@ class uplink_request_handler_task_dispatcher : public uplink_request_handler, op
   ocudulog::basic_logger& logger;
   uplink_request_handler& uplink_handler;
   task_executor&          executor;
-  stop_event_source       stop_manager;
+  rt_stop_event_source    stop_manager;
 
 public:
   uplink_request_handler_task_dispatcher(unsigned                sector_id_,

@@ -31,7 +31,7 @@ class radio_zmq_rx_channel
   /// Indicates the current state of the stream.
   radio_zmq_rx_channel_fsm state_fsm;
   /// Stop control.
-  stop_event_source stop_control;
+  rt_stop_event_source stop_control;
   /// ZMQ socket.
   void* sock = nullptr;
   /// ZMQ socket type.

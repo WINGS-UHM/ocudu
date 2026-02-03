@@ -71,6 +71,7 @@ target_link_libraries(ocudu_cu_cp
         ocudu_e1ap_cu_cp
         ocudu_f1ap_cu
         ocudu_ngap
+        ocudu_xnap
         ocudu_nrppa
         ocudu_rrc
         ocudu_ran

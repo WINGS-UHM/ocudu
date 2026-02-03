@@ -402,10 +402,10 @@ public:
   template <size_t N2 = N, typename NewTag = Tag>
   bounded_bitset<N2, LowestInfoBitIsMSB, NewTag> slice(size_t startpos, size_t endpos) const
   {
-    bounded_bitset<N2, LowestInfoBitIsMSB> sliced(endpos - startpos);
-    const unsigned                         start_word = startpos / bits_per_word;
-    unsigned                               start_mod  = startpos % bits_per_word;
-    const auto                             nwords     = nof_words_();
+    bounded_bitset<N2, LowestInfoBitIsMSB, NewTag> sliced(endpos - startpos);
+    const unsigned                                 start_word = startpos / bits_per_word;
+    unsigned                                       start_mod  = startpos % bits_per_word;
+    const auto                                     nwords     = nof_words_();
 
     if (start_mod != 0) {
       if constexpr (LowestInfoBitIsMSB) {

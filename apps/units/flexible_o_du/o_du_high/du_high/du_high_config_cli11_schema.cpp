@@ -604,6 +604,7 @@ static void configure_cli11_paging_args(CLI::App& app, du_high_unit_paging_confi
   add_option(app, "--nof_po_per_pf", pg_params.nof_po_per_pf, "Number of paging occasions per paging frame")
       ->capture_default_str()
       ->check(CLI::IsMember({1, 2, 4}));
+  add_option(app, "--edrx_enabled", pg_params.edrx_enabled, "Enable eDRX")->capture_default_str();
 }
 
 static void configure_cli11_csi_args(CLI::App& app, du_high_unit_csi_config& csi_params)

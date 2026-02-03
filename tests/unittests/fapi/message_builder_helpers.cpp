@@ -262,6 +262,12 @@ ocudu::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
   pdu.start_rb         = 24;
   pdu.prs_power_offset = -13.3;
 
+  // Precoding.
+  pdu.precoding_and_beamforming.prg_size = 276;
+  auto& prg                              = pdu.precoding_and_beamforming.prgs.emplace_back();
+  // Use identity matrix
+  prg.pm_index = 0;
+
   return pdu;
 }
 

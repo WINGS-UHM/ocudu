@@ -17,6 +17,7 @@
 #include "tests/unittests/gateways/test_helpers.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
+#include "ocudu/asn1/rrc_nr/bcch_dl_sch_msg.h"
 #include "ocudu/asn1/rrc_nr/sys_info.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/support/test_utils.h"
@@ -25,16 +26,8 @@ using namespace ocudu;
 using namespace odu;
 using namespace asn1::f1ap;
 
-static bool is_edrx_enabled(const asn1::f1ap::gnb_du_served_cells_item_s& cell)
+static bool is_edrx_enabled(const asn1::rrc_nr::sib1_s& sib1)
 {
-  if (not cell.gnb_du_sys_info_present) {
-    return false;
-  }
-  asn1::rrc_nr::sib1_s sib1;
-  {
-    asn1::cbit_ref bref{cell.gnb_du_sys_info.sib1_msg};
-    ocudu_assert(sib1.unpack(bref) == asn1::OCUDUASN_SUCCESS, "Failed to decode SIB1");
-  }
   if (not sib1.non_crit_ext_present or not sib1.non_crit_ext.non_crit_ext_present or
       not sib1.non_crit_ext.non_crit_ext.non_crit_ext_present) {
     return false;
@@ -44,6 +37,40 @@ static bool is_edrx_enabled(const asn1::f1ap::gnb_du_served_cells_item_s& cell)
     return false;
   }
   return true;
+}
+
+static std::optional<uint16_t> get_hyper_sfn(const asn1::rrc_nr::sib1_s& sib1)
+{
+  if (not is_edrx_enabled(sib1)) {
+    return false;
+  }
+  return sib1.non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17.to_number();
+}
+
+static bool is_edrx_enabled(const byte_buffer& packed_sib1)
+{
+  asn1::rrc_nr::sib1_s sib1;
+  {
+    asn1::cbit_ref bref{packed_sib1};
+    ocudu_assert(sib1.unpack(bref) == asn1::OCUDUASN_SUCCESS, "Failed to decode SIB1");
+  }
+  return is_edrx_enabled(sib1);
+}
+
+static std::optional<uint16_t> extract_bcch_dl_sch_msg_hyper_sfn(span<const uint8_t> pdu)
+{
+  asn1::rrc_nr::bcch_dl_sch_msg_s msg;
+  {
+    auto           buf = byte_buffer::create(pdu).value();
+    asn1::cbit_ref bref{buf};
+    ocudu_assert(msg.unpack(bref) == asn1::OCUDUASN_SUCCESS, "Failed to decode SIB1");
+  }
+  ocudu_assert(msg.msg.type().value == asn1::rrc_nr::bcch_dl_sch_msg_type_c::types_opts::c1,
+               "Invalid BCCH-DL SCH type");
+  if (msg.msg.c1().type().value != asn1::rrc_nr::bcch_dl_sch_msg_type_c::c1_c_::types_opts::sib_type1) {
+    return false;
+  }
+  return get_hyper_sfn(msg.msg.c1().sib_type1());
 }
 
 class paging_tester : public du_high_env_simulator, public testing::Test
@@ -85,7 +112,8 @@ TEST_F(paging_tester, when_paging_message_is_received_its_relayed_to_ue)
   auto& f1_setup_req = cu_notifier.f1ap_ul_msgs.rbegin()->second.pdu.init_msg().value.f1_setup_request();
   ASSERT_TRUE(f1_setup_req->gnb_du_served_cells_list_present);
   auto& cell = f1_setup_req->gnb_du_served_cells_list[0].value().gnb_du_served_cells_item();
-  ASSERT_FALSE(is_edrx_enabled(cell));
+  ASSERT_TRUE(cell.gnb_du_sys_info_present);
+  ASSERT_FALSE(is_edrx_enabled(cell.gnb_du_sys_info.sib1_msg));
 
   // Receive F1AP paging message.
   cu_notifier.f1ap_ul_msgs.clear();
@@ -132,5 +160,36 @@ TEST_F(edrx_paging_test, when_edrx_enabled_then_sib1_contains_hyper_sfn)
   auto& f1_setup_req = cu_notifier.f1ap_ul_msgs.rbegin()->second.pdu.init_msg().value.f1_setup_request();
   ASSERT_TRUE(f1_setup_req->gnb_du_served_cells_list_present);
   auto& cell = f1_setup_req->gnb_du_served_cells_list[0].value().gnb_du_served_cells_item();
-  ASSERT_TRUE(is_edrx_enabled(cell));
+  ASSERT_TRUE(cell.gnb_du_sys_info_present);
+  ASSERT_TRUE(is_edrx_enabled(cell.gnb_du_sys_info.sib1_msg));
+}
+
+TEST_F(edrx_paging_test, when_edrx_enabled_then_hypersfn_is_updated_in_sib1)
+{
+  const unsigned MAX_COUNT = 4 * 16 * this->next_slot.nof_slots_per_frame();
+
+  unsigned sib1_count = 0;
+  for (unsigned i = 0; i != MAX_COUNT; ++i) {
+    this->run_slot();
+
+    if (this->phy.cells[0].last_dl_res.has_value() and not this->phy.cells[0].last_dl_res->dl_res->bc.sibs.empty()) {
+      auto& sibs = this->phy.cells[0].last_dl_res->dl_res->bc.sibs;
+      for (const auto& sib : sibs) {
+        if (sib.si_indicator == sib_information::sib1) {
+          sib1_count++;
+          unsigned idx = &sib - sibs.data();
+          ASSERT_TRUE(this->phy.cells[0].last_dl_data.has_value());
+          ASSERT_LT(idx, this->phy.cells[0].last_dl_data->si_pdus.size());
+          span<const uint8_t> pdu       = this->phy.cells[0].last_dl_data->si_pdus[idx].pdu.get_buffer();
+          auto                hyper_sfn = extract_bcch_dl_sch_msg_hyper_sfn(pdu);
+          ASSERT_TRUE(hyper_sfn.has_value()) << "eDRX not enabled in SIB1";
+          auto cur_hypersfn = (this->next_slot - 1).hyper_sfn();
+          ASSERT_EQ(cur_hypersfn, *hyper_sfn)
+              << fmt::format("HyperSFNs don't match ({} != {})", cur_hypersfn, *hyper_sfn);
+        }
+      }
+    }
+  }
+
+  ASSERT_EQ(sib1_count, 4);
 }

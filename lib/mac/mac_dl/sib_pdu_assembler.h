@@ -50,7 +50,7 @@ public:
     virtual bool enqueue_si_pdu_updates(const mac_cell_sys_info_pdu_update& pdu_update_req) = 0;
 
     /// Retrieve encoded SI bytes for a given SI scheduling opportunity.
-    virtual span<const uint8_t> get_pdu(slot_point sl_tx, const sib_information& si_info) = 0;
+    virtual span<const uint8_t> get_pdu(slot_point_extended sl_tx, const sib_information& si_info) = 0;
   };
 
   sib_pdu_assembler(const mac_cell_sys_info_config& req);
@@ -60,7 +60,7 @@ public:
   void handle_si_change_request(const mac_cell_sys_info_config& req);
 
   /// \brief Retrieve the encoded SI message.
-  span<const uint8_t> encode_si_pdu(slot_point sl_tx, const sib_information& si_info);
+  span<const uint8_t> encode_si_pdu(slot_point_extended sl_tx, const sib_information& si_info);
 
   /// \brief Enqueue encodes SI messages at proper Tx slots.
   bool enqueue_si_message_pdu_updates(const mac_cell_sys_info_pdu_update& pdu_update_req);

@@ -250,7 +250,7 @@ void sib_pdu_assembler::save_buffers(si_version_type si_version, const mac_cell_
   last_cfg_buffers.version = si_version;
 }
 
-span<const uint8_t> sib_pdu_assembler::encode_si_pdu(slot_point sl_tx, const sib_information& si_info)
+span<const uint8_t> sib_pdu_assembler::encode_si_pdu(slot_point_extended sl_tx, const sib_information& si_info)
 {
   const unsigned tbs = si_info.pdsch_cfg.codewords[0].tb_size_bytes;
   ocudu_assert(tbs <= MAX_BCCH_DL_SCH_PDU_SIZE, "BCCH-DL-SCH is too long. Revisit constant");
@@ -267,7 +267,7 @@ span<const uint8_t> sib_pdu_assembler::encode_si_pdu(slot_point sl_tx, const sib
   }
 
   if (si_info.si_indicator == sib_information::si_indicator_type::sib1) {
-    auto payload = current_buffers.sib1->encode(slot_point_extended{sl_tx}, units::bytes{tbs});
+    auto payload = current_buffers.sib1->encode(sl_tx, units::bytes{tbs});
     if (not payload.has_value()) {
       units::bytes sib1_len = payload.error();
       logger.warning(

@@ -76,7 +76,7 @@ public:
   si_version_type                next_version = 1;
   std::optional<si_version_type> last_version;
 
-  slot_point current_slot{1, 0};
+  slot_point_extended current_slot{subcarrier_spacing::kHz30, 0};
 };
 
 TEST_F(sib_pdu_assembler_test, when_sib1_is_scheduled_then_the_correct_payload_is_generated)

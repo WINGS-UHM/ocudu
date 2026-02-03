@@ -387,7 +387,7 @@ void mac_cell_processor::handle_slot_indication_impl(slot_point_extended      sl
         not sl_res.dl.paging_grants.empty()) {
       trace_point tx_data_req_tp = l2_tracer.now();
 
-      assemble_dl_data_request(data_res, sl_tx, cell_cfg.cell_index, sl_res.dl);
+      assemble_dl_data_request(data_res, sl_tx_ext, cell_cfg.cell_index, sl_res.dl);
 
       // Send DL Data to PHY.
       phy_cell.on_new_downlink_data(data_res);
@@ -488,11 +488,11 @@ void mac_cell_processor::assemble_dl_sched_request(mac_dl_sched_result&   mac_re
 }
 
 void mac_cell_processor::assemble_dl_data_request(mac_dl_data_result&    data_res,
-                                                  slot_point             sl_tx,
+                                                  slot_point_extended    sl_tx,
                                                   du_cell_index_t        cell_index,
                                                   const dl_sched_result& dl_res)
 {
-  data_res.slot = sl_tx;
+  data_res.slot = sl_tx.without_hyper_sfn();
   // Assemble scheduled BCCH-DL-SCH message containing SIBs' payload.
   for (const sib_information& sib_info : dl_res.bc.sibs) {
     ocudu_assert(not data_res.si_pdus.full(), "No SIB1 added as SIB1 list in MAC DL data results is already full");

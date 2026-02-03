@@ -58,6 +58,7 @@ TEST(dl_pdsch_pdu_builder, add_codeword_passes)
 {
   dl_pdsch_pdu         pdu;
   dl_pdsch_pdu_builder builder(pdu);
+
   ASSERT_TRUE(pdu.cws.empty());
   ASSERT_TRUE(pdu.pdsch_maintenance_v3.cbg_tx_information.empty());
 

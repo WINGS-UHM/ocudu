@@ -228,22 +228,28 @@ void ocudu::fapi::log_dl_tti_request(const dl_tti_request& msg, unsigned sector_
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: DL_TTI.request slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
-    switch (pdu.pdu_type) {
-      case fapi::dl_pdu_type::CSI_RS:
-        log_csi_rs_pdu(pdu.csi_rs_pdu, buffer);
-        break;
-      case fapi::dl_pdu_type::PDCCH:
-        log_pdcch_pdu(pdu.pdcch_pdu, buffer);
-        break;
-      case fapi::dl_pdu_type::PDSCH:
-        log_pdsch_pdu(pdu.pdsch_pdu, buffer);
-        break;
-      case fapi::dl_pdu_type::SSB:
-        log_ssb_pdu(pdu.ssb_pdu, buffer);
-        break;
-      case fapi::dl_pdu_type::PRS:
-        log_prs_pdu(pdu.prs_pdu, buffer);
-        break;
+    if (const auto* csi_rs_pdu = std::get_if<dl_csi_rs_pdu>(&pdu.pdu)) {
+      log_csi_rs_pdu(*csi_rs_pdu, buffer);
+      continue;
+    }
+
+    if (const auto* pdcch_pdu = std::get_if<dl_pdcch_pdu>(&pdu.pdu)) {
+      log_pdcch_pdu(*pdcch_pdu, buffer);
+      continue;
+    }
+
+    if (const auto* pdsch_pdu = std::get_if<dl_pdsch_pdu>(&pdu.pdu)) {
+      log_pdsch_pdu(*pdsch_pdu, buffer);
+      continue;
+    }
+    if (const auto* ssb_pdu = std::get_if<dl_ssb_pdu>(&pdu.pdu)) {
+      log_ssb_pdu(*ssb_pdu, buffer);
+      continue;
+    }
+
+    if (const auto* prs_pdu = std::get_if<dl_prs_pdu>(&pdu.pdu)) {
+      log_prs_pdu(*prs_pdu, buffer);
+      continue;
     }
   }
 
@@ -546,27 +552,157 @@ static void log_pusch_pdu(const ul_pusch_pdu& pdu, fmt::memory_buffer& buffer)
   }
 }
 
-static void log_pucch_pdu(const ul_pucch_pdu& pdu, fmt::memory_buffer& buffer)
+static void
+log_pucch_format_0_pdu(const ul_pucch_pdu& pdu, const ul_pucch_pdu_format_0& format_0_pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PUCCH rnti={} bwp={} format={} prbs={} prb2={} symb={} harq_bit_len={} sr_bit_len={}",
+                 "\n\t- PUCCH rnti={} bwp={} scs={} cp={} FORMAT_0 nid_pucch_hopping={} initial_cyclic_shift={} "
+                 "sr_present={} prb={} symb={} harq_bit_len={}",
                  pdu.rnti,
                  pdu.bwp,
-                 fmt::underlying(pdu.format_type),
+                 to_string(pdu.scs),
+                 pdu.cp.to_string(),
+                 format_0_pdu.nid_pucch_hopping,
+                 format_0_pdu.initial_cyclic_shift,
+                 format_0_pdu.sr_present,
                  pdu.prbs,
-                 pdu.second_hop_prb,
                  pdu.symbols,
-                 pdu.bit_len_harq,
-                 pdu.sr_bit_len);
+                 format_0_pdu.bit_len_harq.value());
 
-  switch (pdu.format_type) {
-    case pucch_format::FORMAT_2:
-    case pucch_format::FORMAT_3:
-    case pucch_format::FORMAT_4:
-      fmt::format_to(std::back_inserter(buffer), " csi1_bit_len={}", pdu.csi_part1_bit_length);
-      break;
-    default:
-      break;
+  if (pdu.second_hop_prb.has_value()) {
+    fmt::format_to(std::back_inserter(buffer), " intra_slot_frequency_hopping={}", *pdu.second_hop_prb);
+  }
+}
+
+static void
+log_pucch_format_1_pdu(const ul_pucch_pdu& pdu, const ul_pucch_pdu_format_1& format_1_pdu, fmt::memory_buffer& buffer)
+{
+  fmt::format_to(std::back_inserter(buffer),
+                 "\n\t- PUCCH rnti={} bwp={} scs={} cp={} FORMAT_1 nid_pucch_hopping={} initial_cyclic_shift={} "
+                 "time_domain_occ_index={} sr_present={} prb={} symb={} harq_bit_len={}",
+                 pdu.rnti,
+                 pdu.bwp,
+                 to_string(pdu.scs),
+                 pdu.cp.to_string(),
+                 format_1_pdu.nid_pucch_hopping,
+                 format_1_pdu.initial_cyclic_shift,
+                 format_1_pdu.time_domain_occ_index,
+                 format_1_pdu.sr_present,
+                 pdu.prbs,
+                 pdu.symbols,
+                 format_1_pdu.bit_len_harq.value());
+
+  if (pdu.second_hop_prb.has_value()) {
+    fmt::format_to(std::back_inserter(buffer), " intra_slot_frequency_hopping={}", *pdu.second_hop_prb);
+  }
+}
+
+static void
+log_pucch_format_2_pdu(const ul_pucch_pdu& pdu, const ul_pucch_pdu_format_2& format_2_pdu, fmt::memory_buffer& buffer)
+{
+  fmt::format_to(
+      std::back_inserter(buffer),
+      "\n\t- PUCCH rnti={} bwp={} scs={} cp={} FORMAT_2 nid_pucch_scrambling={} nid0_pucch_dmrs_scrambling={} "
+      "sr_bit_len={} csi_part1_bit_length={} prb={} symb={} harq_bit_len={}",
+      pdu.rnti,
+      pdu.bwp,
+      to_string(pdu.scs),
+      pdu.cp.to_string(),
+      format_2_pdu.nid_pucch_scrambling,
+      format_2_pdu.nid0_pucch_dmrs_scrambling,
+      fmt::underlying(format_2_pdu.sr_bit_len),
+      format_2_pdu.csi_part1_bit_length.value(),
+      pdu.prbs,
+      pdu.symbols,
+      format_2_pdu.bit_len_harq.value());
+
+  if (pdu.second_hop_prb.has_value()) {
+    fmt::format_to(std::back_inserter(buffer), " intra_slot_frequency_hopping={}", *pdu.second_hop_prb);
+  }
+}
+
+static void
+log_pucch_format_3_pdu(const ul_pucch_pdu& pdu, const ul_pucch_pdu_format_3& format_3_pdu, fmt::memory_buffer& buffer)
+{
+  fmt::format_to(std::back_inserter(buffer),
+                 "\n\t- PUCCH rnti={} bwp={} scs={} cp={} FORMAT_3 nid_pucch_hopping={} nid_pucch_scrambling={} "
+                 "add_dmrs_flag={} nid0_pucch_dmrs_scrambling={} m0_pucch_dmrs_cyclic_shift={} sr_bit_len={} "
+                 "csi_part1_bit_length={} pi2_bpsk={} prb={} symb={} harq_bit_len={} ",
+                 pdu.rnti,
+                 pdu.bwp,
+                 to_string(pdu.scs),
+                 pdu.cp.to_string(),
+                 format_3_pdu.nid_pucch_hopping,
+                 format_3_pdu.nid_pucch_scrambling,
+                 format_3_pdu.add_dmrs_flag,
+                 format_3_pdu.nid0_pucch_dmrs_scrambling,
+                 format_3_pdu.m0_pucch_dmrs_cyclic_shift,
+                 fmt::underlying(format_3_pdu.sr_bit_len),
+                 format_3_pdu.csi_part1_bit_length.value(),
+                 format_3_pdu.pi2_bpsk,
+                 pdu.prbs,
+                 pdu.symbols,
+                 format_3_pdu.bit_len_harq.value());
+
+  if (pdu.second_hop_prb.has_value()) {
+    fmt::format_to(std::back_inserter(buffer), " intra_slot_frequency_hopping={}", *pdu.second_hop_prb);
+  }
+}
+
+static void
+log_pucch_format_4_pdu(const ul_pucch_pdu& pdu, const ul_pucch_pdu_format_4& format_4_pdu, fmt::memory_buffer& buffer)
+{
+  fmt::format_to(
+      std::back_inserter(buffer),
+      "\n\t- PUCCH rnti={} bwp={} scs={} cp={} FORMAT_4 nid_pucch_hopping={} nid_pucch_scrambling={} "
+      "pre_dft_occ_idx={} pre_dft_occ_len={} add_dmrs_flag={} nid0_pucch_dmrs_scrambling={} "
+      "m0_pucch_dmrs_cyclic_shift={} sr_bit_len={} csi_part1_bit_length={} pi2_bpsk={} prb={} symb={} harq_bit_len={}",
+      pdu.rnti,
+      pdu.bwp,
+      to_string(pdu.scs),
+      pdu.cp.to_string(),
+      format_4_pdu.nid_pucch_hopping,
+      format_4_pdu.nid_pucch_scrambling,
+      format_4_pdu.pre_dft_occ_idx,
+      format_4_pdu.pre_dft_occ_len,
+      format_4_pdu.add_dmrs_flag,
+      format_4_pdu.nid0_pucch_dmrs_scrambling,
+      format_4_pdu.m0_pucch_dmrs_cyclic_shift,
+      fmt::underlying(format_4_pdu.sr_bit_len),
+      format_4_pdu.csi_part1_bit_length.value(),
+      format_4_pdu.pi2_bpsk,
+      pdu.prbs,
+      pdu.symbols,
+      format_4_pdu.bit_len_harq.value());
+
+  if (pdu.second_hop_prb.has_value()) {
+    fmt::format_to(std::back_inserter(buffer), " intra_slot_frequency_hopping={}", *pdu.second_hop_prb);
+  }
+}
+
+static void log_pucch_pdu(const ul_pucch_pdu& pdu, fmt::memory_buffer& buffer)
+{
+  if (const auto* format0 = std::get_if<ul_pucch_pdu_format_0>(&pdu.format)) {
+    log_pucch_format_0_pdu(pdu, *format0, buffer);
+    return;
+  }
+
+  if (const auto* format1 = std::get_if<ul_pucch_pdu_format_1>(&pdu.format)) {
+    log_pucch_format_1_pdu(pdu, *format1, buffer);
+  }
+
+  if (const auto* format2 = std::get_if<ul_pucch_pdu_format_2>(&pdu.format)) {
+    log_pucch_format_2_pdu(pdu, *format2, buffer);
+    return;
+  }
+  if (const auto* format3 = std::get_if<ul_pucch_pdu_format_3>(&pdu.format)) {
+    log_pucch_format_3_pdu(pdu, *format3, buffer);
+    return;
+  }
+
+  if (const auto* format4 = std::get_if<ul_pucch_pdu_format_4>(&pdu.format)) {
+    log_pucch_format_4_pdu(pdu, *format4, buffer);
+    return;
   }
 }
 
@@ -597,22 +733,27 @@ void ocudu::fapi::log_ul_tti_request(const ul_tti_request& msg, unsigned sector_
   fmt::format_to(std::back_inserter(buffer), "Sector#{}: UL_TTI.request slot={}", sector_id, msg.slot);
 
   for (const auto& pdu : msg.pdus) {
-    switch (pdu.pdu_type) {
-      case fapi::ul_pdu_type::PRACH:
-        log_prach_pdu(pdu.prach_pdu, buffer);
-        break;
-      case fapi::ul_pdu_type::PUCCH:
-        log_pucch_pdu(pdu.pucch_pdu, buffer);
-        break;
-      case fapi::ul_pdu_type::PUSCH:
-        log_pusch_pdu(pdu.pusch_pdu, buffer);
-        break;
-      case fapi::ul_pdu_type::SRS:
-        log_srs_pdu(pdu.srs_pdu, buffer);
-        break;
-      default:
-        ocudu_assert(0, "UL_TTI.request PDU type value ({}) not recognized.", get_ul_tti_pdu_type_string(pdu.pdu_type));
+    if (const auto* prach_pdu = std::get_if<ul_prach_pdu>(&pdu.pdu)) {
+      log_prach_pdu(*prach_pdu, buffer);
+      continue;
     }
+
+    if (const auto* pucch_pdu = std::get_if<ul_pucch_pdu>(&pdu.pdu)) {
+      log_pucch_pdu(*pucch_pdu, buffer);
+      continue;
+    }
+
+    if (const auto* pusch_pdu = std::get_if<ul_pusch_pdu>(&pdu.pdu)) {
+      log_pusch_pdu(*pusch_pdu, buffer);
+      continue;
+    }
+
+    if (const auto* srs_pdu = std::get_if<ul_srs_pdu>(&pdu.pdu)) {
+      log_srs_pdu(*srs_pdu, buffer);
+      continue;
+    }
+
+    ocudu_assert(0, "UL_TTI.request PDU type value not recognized.");
   }
 
   logger.debug("{}", to_c_str(buffer));

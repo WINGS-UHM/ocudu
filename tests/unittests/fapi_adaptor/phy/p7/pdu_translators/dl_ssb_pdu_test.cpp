@@ -83,8 +83,8 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               bool                  cell_barred            = binary_dist(gen);
               bool                  intra_freq_reselection = binary_dist(gen);
 
-              fapi::dl_ssb_pdu         ssb_pdu;
-              fapi::dl_ssb_pdu_builder builder(ssb_pdu);
+              fapi::dl_ssb_pdu         fapi_pdu;
+              fapi::dl_ssb_pdu_builder builder(fapi_pdu);
               builder.set_carrier_parameters(scs)
                   .set_cell_parameters(pci)
                   .set_power_parameters(beta_pss)
@@ -105,7 +105,7 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               ssb_processor::pdu_t pdu;
 
               // Conversion block.
-              convert_ssb_fapi_to_phy(pdu, ssb_pdu, slot, common_scs);
+              convert_ssb_fapi_to_phy(pdu, fapi_pdu, slot, common_scs);
 
               // Assert contents.
               ASSERT_EQ(pdu.slot.sfn(), sfn);

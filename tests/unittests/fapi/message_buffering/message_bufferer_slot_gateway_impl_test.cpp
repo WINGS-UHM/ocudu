@@ -56,35 +56,22 @@ static bool operator==(const dl_ssb_pdu& lhs, const dl_ssb_pdu& rhs)
   return lhs.bch_payload == rhs.bch_payload;
 }
 
+static bool operator==(const dl_prs_pdu& lhs, const dl_prs_pdu& rhs)
+{
+  return lhs.scs == rhs.scs && lhs.cp == rhs.cp && lhs.nid_prs == rhs.nid_prs && lhs.comb_size == rhs.comb_size &&
+         lhs.comb_offset == rhs.comb_offset && lhs.num_symbols == rhs.num_symbols &&
+         lhs.first_symbol == rhs.first_symbol && lhs.crbs == rhs.crbs && lhs.prs_power_offset == rhs.prs_power_offset &&
+         lhs.precoding_and_beamforming == rhs.precoding_and_beamforming;
+}
+
 static bool operator==(const dl_tti_request_pdu& lhs, const dl_tti_request_pdu& rhs)
 {
-  if (lhs.pdu_type != rhs.pdu_type) {
-    return false;
-  }
-
-  switch (lhs.pdu_type) {
-    case dl_pdu_type::PDCCH:
-      return lhs.pdcch_pdu == rhs.pdcch_pdu;
-      break;
-    case dl_pdu_type::PDSCH:
-      return lhs.pdsch_pdu == rhs.pdsch_pdu;
-      break;
-    case dl_pdu_type::SSB:
-      return lhs.ssb_pdu == rhs.ssb_pdu;
-      break;
-    case dl_pdu_type::CSI_RS:
-      return lhs.csi_rs_pdu == rhs.csi_rs_pdu;
-      break;
-    default:
-      break;
-  }
-
-  return false;
+  return lhs.pdu == rhs.pdu;
 }
 
 static bool operator==(const dl_tti_request& lhs, const dl_tti_request& rhs)
 {
-  return lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type && lhs.pdus == rhs.pdus;
+  return lhs.slot == rhs.slot && lhs.pdus == rhs.pdus;
 }
 
 static bool operator==(const ul_prach_pdu& lhs, const ul_prach_pdu& rhs)
@@ -92,21 +79,37 @@ static bool operator==(const ul_prach_pdu& lhs, const ul_prach_pdu& rhs)
   return lhs.prach_format == rhs.prach_format;
 }
 
-static bool operator==(const uci_part1_to_part2_correspondence_v3::part2_info& lhs,
-                       const uci_part1_to_part2_correspondence_v3::part2_info& rhs)
+static bool operator==(const uci_part1_to_part2_correspondence::part2_info& lhs,
+                       const uci_part1_to_part2_correspondence::part2_info& rhs)
 {
-  return lhs.priority == rhs.priority && lhs.param_offsets == rhs.param_offsets && lhs.param_sizes == rhs.param_sizes &&
-         lhs.part2_size_map_index == rhs.part2_size_map_index && lhs.part2_size_map_scope == rhs.part2_size_map_scope;
+  return lhs.param_offsets == rhs.param_offsets && lhs.param_sizes == rhs.param_sizes &&
+         lhs.part2_size_map_index == rhs.part2_size_map_index;
 }
 
-static bool operator==(const uci_part1_to_part2_correspondence_v3& lhs, const uci_part1_to_part2_correspondence_v3& rhs)
+static bool operator==(const uci_part1_to_part2_correspondence& lhs, const uci_part1_to_part2_correspondence& rhs)
 {
   return lhs.part2 == rhs.part2;
 }
 
 static bool operator==(const ul_pucch_pdu& lhs, const ul_pucch_pdu& rhs)
 {
-  return lhs.rnti == rhs.rnti && lhs.format_type == rhs.format_type && lhs.uci_correspondence == rhs.uci_correspondence;
+  return lhs.rnti == rhs.rnti && lhs.format.index() == rhs.format.index();
+}
+
+static bool operator==(const ul_srs_pdu& lhs, const ul_srs_pdu& rhs)
+{
+  return lhs.rnti == rhs.rnti && lhs.handle == rhs.handle && lhs.bwp == rhs.bwp && lhs.scs == rhs.scs &&
+         lhs.cp == rhs.cp && lhs.num_ant_ports == rhs.num_ant_ports && lhs.ofdm_symbols == rhs.ofdm_symbols &&
+         lhs.num_repetitions == rhs.num_repetitions && lhs.time_start_position == rhs.time_start_position &&
+         lhs.config_index == rhs.config_index && lhs.sequence_id == rhs.sequence_id &&
+         lhs.bandwidth_index == rhs.bandwidth_index && lhs.comb_size == rhs.comb_size &&
+         lhs.comb_offset == rhs.comb_offset && lhs.cyclic_shift == rhs.cyclic_shift &&
+         lhs.frequency_position == rhs.frequency_position && lhs.frequency_shift == rhs.frequency_shift &&
+         lhs.frequency_hopping == rhs.frequency_hopping &&
+         lhs.group_or_sequence_hopping == rhs.group_or_sequence_hopping && lhs.resource_type == rhs.resource_type &&
+         lhs.t_srs == rhs.t_srs && lhs.t_offset == rhs.t_offset &&
+         lhs.enable_normalized_iq_matrix_report == rhs.enable_normalized_iq_matrix_report &&
+         lhs.enable_positioning_report == rhs.enable_positioning_report;
 }
 
 static bool operator==(const ul_pusch_data& lhs, const ul_pusch_data& rhs)
@@ -128,31 +131,12 @@ static bool operator==(const ul_pusch_pdu& lhs, const ul_pusch_pdu& rhs)
 
 static bool operator==(const ul_tti_request_pdu& lhs, const ul_tti_request_pdu& rhs)
 {
-  if (!(lhs.pdu_type == rhs.pdu_type && lhs.pdu_size == rhs.pdu_size)) {
-    return false;
-  }
-
-  switch (lhs.pdu_type) {
-    case ul_pdu_type::PRACH:
-      return lhs.prach_pdu == rhs.prach_pdu;
-      break;
-    case ul_pdu_type::PUCCH:
-      return lhs.pucch_pdu == rhs.pucch_pdu;
-      break;
-    case ul_pdu_type::PUSCH:
-      return lhs.pusch_pdu == rhs.pusch_pdu;
-      break;
-    default:
-      break;
-  }
-
-  return false;
+  return lhs.pdu == rhs.pdu;
 }
 
 static bool operator==(const ul_tti_request& lhs, const ul_tti_request& rhs)
 {
-  return lhs.slot == rhs.slot && lhs.num_pdus_of_each_type == rhs.num_pdus_of_each_type &&
-         lhs.num_groups == rhs.num_groups && lhs.pdus == rhs.pdus;
+  return lhs.slot == rhs.slot && lhs.pdus == rhs.pdus;
 }
 
 static bool operator==(const ul_dci_pdu& lhs, const ul_dci_pdu& rhs)

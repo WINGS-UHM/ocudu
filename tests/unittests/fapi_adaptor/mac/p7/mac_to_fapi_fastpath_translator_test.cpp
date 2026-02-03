@@ -115,11 +115,11 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_sched_results_generate_correct_d
   ASSERT_TRUE(gateway_spy.has_dl_tti_request_method_called());
   const fapi::dl_tti_request& msg = gateway_spy.dl_tti_request_msg();
   ASSERT_EQ(msg.pdus.size(), 7U);
-  ASSERT_EQ((msg.pdus.begin() + 1)->pdu_type, fapi::dl_pdu_type::PDCCH);
-  ASSERT_EQ(msg.pdus.back().pdu_type, fapi::dl_pdu_type::PDSCH);
-  ASSERT_EQ(msg.pdus.front().pdu_type, fapi::dl_pdu_type::PDCCH);
-  ASSERT_EQ((msg.pdus.end() - 2)->pdu_type, fapi::dl_pdu_type::SSB);
-  ASSERT_EQ((msg.pdus.end() - 3)->pdu_type, fapi::dl_pdu_type::SSB);
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_pdcch_pdu>((msg.pdus.begin() + 1)->pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_pdsch_pdu>(msg.pdus.back().pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_pdcch_pdu>(msg.pdus.front().pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_ssb_pdu>((msg.pdus.end() - 2)->pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_ssb_pdu>((msg.pdus.end() - 3)->pdu));
 }
 
 TEST_F(mac_to_fapi_translator_fixture, valid_ul_sched_results_generate_correct_ul_tti_request)
@@ -133,10 +133,10 @@ TEST_F(mac_to_fapi_translator_fixture, valid_ul_sched_results_generate_correct_u
   ASSERT_TRUE(gateway_spy.has_ul_tti_request_method_called());
   const fapi::ul_tti_request& msg = gateway_spy.ul_tti_request_msg();
   ASSERT_EQ(msg.pdus.size(), 4U);
-  ASSERT_EQ(msg.pdus.front().pdu_type, fapi::ul_pdu_type::PRACH);
-  ASSERT_EQ((msg.pdus.begin() + 1)->pdu_type, fapi::ul_pdu_type::PUSCH);
-  ASSERT_EQ((msg.pdus.end() - 2)->pdu_type, fapi::ul_pdu_type::PUCCH);
-  ASSERT_EQ(msg.pdus.back().pdu_type, fapi::ul_pdu_type::PUCCH);
+  ASSERT_TRUE(std::holds_alternative<fapi::ul_prach_pdu>(msg.pdus.front().pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::ul_pusch_pdu>((msg.pdus.begin() + 1)->pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::ul_pucch_pdu>((msg.pdus.end() - 2)->pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::ul_pucch_pdu>(msg.pdus.back().pdu));
 }
 
 TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_tx_data_request)

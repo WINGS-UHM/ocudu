@@ -194,12 +194,9 @@ public:
   /// Adds a UCI part1 to part2 correspondence v3 to the PUSCH PDU and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table UCI information for determining UCI
   /// Part1 to PArt2 correspondence, added in FAPIv3.
-  ul_pusch_pdu_builder&
-  add_uci_part1_part2_corresnpondence_v3(uint16_t                                             priority,
-                                         span<const uint16_t>                                 param_offset,
-                                         span<const uint8_t>                                  param_sizes,
-                                         uint16_t                                             part2_size_map_index,
-                                         uci_part1_to_part2_correspondence_v3::map_scope_type part2_size_map_scope)
+  ul_pusch_pdu_builder& add_uci_part1_part2_correspondence_v3(span<const uint16_t> param_offset,
+                                                              span<const uint8_t>  param_sizes,
+                                                              uint16_t             part2_size_map_index)
   {
     ocudu_assert(param_offset.size() == param_sizes.size(),
                  "Mismatching span sizes for param offset ({}) and param sizes ({})",
@@ -207,9 +204,7 @@ public:
                  param_sizes.size());
 
     auto& correspondence                = pdu.uci_correspondence.part2.emplace_back();
-    correspondence.priority             = priority;
     correspondence.part2_size_map_index = part2_size_map_index;
-    correspondence.part2_size_map_scope = part2_size_map_scope;
 
     correspondence.param_offsets.assign(param_offset.begin(), param_offset.end());
     correspondence.param_sizes.assign(param_sizes.begin(), param_sizes.end());

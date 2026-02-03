@@ -16,9 +16,10 @@ TEST(mac_to_fapi_pusch_pdu_test, valid_pusch_pdu_should_pass)
   const ul_sched_info_test_helper& pdu_test = build_valid_pusch_pdu();
   const ul_sched_info&             mac_pdu  = pdu_test.info;
   fapi::ul_pusch_pdu               fapi_pdu;
+  fapi::ul_pusch_pdu_builder       builder(fapi_pdu);
   auto                             uci_part2_tools = generate_uci_part2_correspondence(1);
 
-  convert_pusch_mac_to_fapi(fapi_pdu, mac_pdu, *std::get<0>(uci_part2_tools));
+  convert_pusch_mac_to_fapi(builder, mac_pdu, *std::get<0>(uci_part2_tools));
 
   // BWP.
   const pusch_information& pusch_cfg = mac_pdu.pusch_cfg;

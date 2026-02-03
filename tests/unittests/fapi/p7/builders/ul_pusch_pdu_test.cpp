@@ -397,23 +397,15 @@ TEST(ul_pusch_pdu_builder, valid_uci_part1_part2_correspondence_parameters_passe
 
   unsigned nof_part2 = 2;
   for (unsigned i = 0; i != nof_part2; ++i) {
-    unsigned                                             priority             = 3 * (i + 1);
-    static_vector<uint16_t, 4>                           offset               = {1, 2, 3};
-    static_vector<uint8_t, 4>                            size                 = {6, 3, 2};
-    unsigned                                             part2_size_map_index = 31 * (i + 1);
-    uci_part1_to_part2_correspondence_v3::map_scope_type part2_size_map_scope =
-        (i) ? uci_part1_to_part2_correspondence_v3::map_scope_type::common_context
-            : uci_part1_to_part2_correspondence_v3::map_scope_type::phy_context;
+    static_vector<uint16_t, 4> offset               = {1, 2, 3};
+    static_vector<uint8_t, 4>  size                 = {6, 3, 2};
+    unsigned                   part2_size_map_index = 31 * (i + 1);
 
-    builder.add_uci_part1_part2_corresnpondence_v3(
-        priority, {offset}, {size}, part2_size_map_index, part2_size_map_scope);
+    builder.add_uci_part1_part2_correspondence_v3({offset}, {size}, part2_size_map_index);
 
     const auto& correspondence = pdu.uci_correspondence.part2.back();
     ASSERT_EQ(i + 1, pdu.uci_correspondence.part2.size());
-    ASSERT_EQ(priority, correspondence.priority);
-    ASSERT_EQ(part2_size_map_scope, correspondence.part2_size_map_scope);
     ASSERT_EQ(part2_size_map_index, correspondence.part2_size_map_index);
-    ASSERT_EQ(priority, correspondence.priority);
     ASSERT_EQ(offset, correspondence.param_offsets);
     ASSERT_EQ(size, correspondence.param_sizes);
   }

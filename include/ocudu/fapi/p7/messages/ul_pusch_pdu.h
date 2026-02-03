@@ -4,7 +4,7 @@
 #pragma once
 
 #include "ocudu/fapi/p7/messages/pxsch_parameters.h"
-#include "ocudu/fapi/p7/messages/uci_part1_to_part2_correspondence_v3.h"
+#include "ocudu/fapi/p7/messages/uci_part1_to_part2_correspondence.h"
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/pusch/pusch_context.h"
 #include "ocudu/ran/pusch/pusch_mcs.h"
@@ -137,9 +137,9 @@ struct ul_pusch_pdu {
   ul_pusch_ptrs                                pusch_ptrs;
   ul_pusch_dfts_ofdm                           pusch_ofdm;
   //: TODO: beamforming struct
-  ul_pusch_maintenance_v3              pusch_maintenance_v3;
-  ul_pusch_params_v4                   pusch_params_v4;
-  uci_part1_to_part2_correspondence_v3 uci_correspondence;
+  ul_pusch_maintenance_v3           pusch_maintenance_v3;
+  ul_pusch_params_v4                pusch_params_v4;
+  uci_part1_to_part2_correspondence uci_correspondence;
   // Vendor specific parameters.
   std::optional<pusch_context> context;
 };

@@ -152,19 +152,14 @@ generate_csi_re_pattern_list(const fapi::dl_tti_request& msg, uint16_t cell_band
   static_vector<re_pattern_list, MAX_CSI_RS_PDUS_PER_SLOT> re_pattern_lst;
 
   for (const auto& pdu : msg.pdus) {
-    switch (pdu.pdu_type) {
-      case fapi::dl_pdu_type::CSI_RS: {
-        csi_rs_pattern pattern;
-        get_csi_rs_pattern_from_fapi_pdu(pattern, pdu.csi_rs_pdu, cell_bandwidth_prb);
+    if (const auto* csi_rs_pdu = std::get_if<fapi::dl_csi_rs_pdu>(&pdu.pdu)) {
+      csi_rs_pattern pattern;
+      get_csi_rs_pattern_from_fapi_pdu(pattern, *csi_rs_pdu, cell_bandwidth_prb);
 
-        auto& re_pat = re_pattern_lst.emplace_back();
-        for (unsigned port = 0, nof_ports = pattern.prb_patterns.size(); port != nof_ports; ++port) {
-          re_pat.merge(get_re_pattern_port(pattern, port));
-        }
-        break;
+      auto& re_pat = re_pattern_lst.emplace_back();
+      for (unsigned port = 0, nof_ports = pattern.prb_patterns.size(); port != nof_ports; ++port) {
+        re_pat.merge(get_re_pattern_port(pattern, port));
       }
-      default:
-        break;
     }
   }
 
@@ -185,93 +180,96 @@ static expected<downlink_pdus> translate_dl_tti_pdus_to_phy_pdus(const fapi::dl_
   const auto&   csi_re_patterns = generate_csi_re_pattern_list(msg, cell_bandwidth_prb);
 
   for (const auto& pdu : msg.pdus) {
-    switch (pdu.pdu_type) {
-      case fapi::dl_pdu_type::CSI_RS: {
-        if (pdu.csi_rs_pdu.type != csi_rs_type::CSI_RS_NZP && pdu.csi_rs_pdu.type != csi_rs_type::CSI_RS_ZP) {
-          logger.warning("Sector#{}: Skipping DL_TTI.request: Only NZP-CSI-RS and ZP-CSI-RS PDU types are supported",
-                         sector_id);
+    if (const auto* csi_rs_pdu = std::get_if<fapi::dl_csi_rs_pdu>(&pdu.pdu)) {
+      if (csi_rs_pdu->type != csi_rs_type::CSI_RS_NZP && csi_rs_pdu->type != csi_rs_type::CSI_RS_ZP) {
+        logger.warning("Sector#{}: Skipping DL_TTI.request: Only NZP-CSI-RS and ZP-CSI-RS PDU types are supported",
+                       sector_id);
 
-          return make_unexpected(default_error_t{});
-        }
-        // ZP-CSI does not need any further work to do.
-        if (pdu.csi_rs_pdu.type == csi_rs_type::CSI_RS_ZP) {
-          break;
-        }
-        nzp_csi_rs_generator::config_t& csi_pdu = pdus.csi_rs.emplace_back();
-        convert_csi_rs_fapi_to_phy(csi_pdu, pdu.csi_rs_pdu, msg.slot, cell_bandwidth_prb);
-        error_type<std::string> phy_csi_validator = dl_pdu_validator.is_valid(csi_pdu);
-        if (!phy_csi_validator.has_value()) {
-          logger.warning("Sector#{}: Skipping DL_TTI.request: NZP-CSI-RS PDU flagged as invalid by the Upper PHY with "
-                         "the following error\n    {}",
-                         sector_id,
-                         phy_csi_validator.error());
+        return make_unexpected(default_error_t{});
+      }
+      // ZP-CSI does not need any further work to do.
+      if (csi_rs_pdu->type == csi_rs_type::CSI_RS_ZP) {
+        continue;
+      }
+      nzp_csi_rs_generator::config_t& csi_pdu = pdus.csi_rs.emplace_back();
+      convert_csi_rs_fapi_to_phy(csi_pdu, *csi_rs_pdu, msg.slot, cell_bandwidth_prb);
+      if (error_type<std::string> phy_csi_validator = dl_pdu_validator.is_valid(csi_pdu);
+          !phy_csi_validator.has_value()) {
+        logger.warning("Sector#{}: Skipping DL_TTI.request: NZP-CSI-RS PDU flagged as invalid by the Upper PHY with "
+                       "the following error\n    {}",
+                       sector_id,
+                       phy_csi_validator.error());
 
-          return make_unexpected(default_error_t{});
-        }
-        break;
+        return make_unexpected(default_error_t{});
       }
-      case fapi::dl_pdu_type::PDCCH: {
-        // Create a pdcch_processor::pdu_t for the DCI in the PDCCH PDU.
-        pdcch_processor::pdu_t& pdcch_pdu = pdus.pdcch.emplace_back();
-        convert_pdcch_fapi_to_phy(pdcch_pdu, pdu.pdcch_pdu, msg.slot, pm_repo);
-        error_type<std::string> phy_pdsch_validator = dl_pdu_validator.is_valid(pdcch_pdu);
-        if (!phy_pdsch_validator.has_value()) {
-          logger.warning("Sector#{}: Skipping DL_TTI.request: DL DCI PDU flagged as invalid by the "
-                         "Upper PHY with the following error\n    {}",
-                         sector_id,
-                         phy_pdsch_validator.error());
 
-          return make_unexpected(default_error_t{});
-        }
-        break;
-      }
-      case fapi::dl_pdu_type::PDSCH: {
-        pdsch_processor::pdu_t& pdsch_pdu = pdus.pdsch.emplace_back();
-        convert_pdsch_fapi_to_phy(pdsch_pdu, pdu.pdsch_pdu, msg.slot, csi_re_patterns, pm_repo);
-        error_type<std::string> phy_pdsch_validator = dl_pdu_validator.is_valid(pdsch_pdu);
-        if (!phy_pdsch_validator.has_value()) {
-          logger.warning("Sector#{}: Skipping DL_TTI.request: PDSCH PDU flagged as invalid by the Upper PHY with the "
-                         "following error\n    {}",
-                         sector_id,
-                         phy_pdsch_validator.error());
-          return make_unexpected(default_error_t{});
-        }
-        break;
-      }
-      case fapi::dl_pdu_type::SSB: {
-        ssb_processor::pdu_t& ssb_pdu = pdus.ssb.emplace_back();
-        convert_ssb_fapi_to_phy(ssb_pdu, pdu.ssb_pdu, msg.slot, scs_common);
-        error_type<std::string> phy_ssb_validator = dl_pdu_validator.is_valid(ssb_pdu, cell_bandwidth_prb);
-        if (!phy_ssb_validator.has_value()) {
-          logger.warning("Sector#{}: Skipping DL_TTI.request: SSB PDU flagged as invalid by the Upper PHY with the "
-                         "following error\n    {}",
-                         sector_id,
-                         phy_ssb_validator.error());
-
-          return make_unexpected(default_error_t{});
-        }
-        break;
-      }
-      case fapi::dl_pdu_type::PRS: {
-        prs_generator_configuration& prs_pdu = pdus.prs.emplace_back();
-        convert_prs_fapi_to_phy(prs_pdu, pdu.prs_pdu, msg.slot, pm_repo);
-        error_type<std::string> phy_prs_validator = dl_pdu_validator.is_valid(prs_pdu);
-        if (!phy_prs_validator.has_value()) {
-          logger.warning("Sector#{}: Skipping DL_TTI.request: PRS PDU flagged as invalid by the Upper PHY with the "
-                         "following error\n    {}",
-                         sector_id,
-                         phy_prs_validator.error());
-
-          return make_unexpected(default_error_t{});
-        }
-        break;
-      }
-      default:
-        ocudu_assert(0,
-                     "Sector#{}: DL_TTI.request PDU type value '{}' not recognized.",
-                     sector_id,
-                     static_cast<unsigned>(pdu.pdu_type));
+      continue;
     }
+
+    if (const auto* pdcch_pdu = std::get_if<fapi::dl_pdcch_pdu>(&pdu.pdu)) {
+      // Create a pdcch_processor::pdu_t for the DCI in the PDCCH PDU.
+      pdcch_processor::pdu_t& pdcch = pdus.pdcch.emplace_back();
+      convert_pdcch_fapi_to_phy(pdcch, *pdcch_pdu, msg.slot, pm_repo);
+      if (error_type<std::string> phy_pdsch_validator = dl_pdu_validator.is_valid(pdcch);
+          !phy_pdsch_validator.has_value()) {
+        logger.warning("Sector#{}: Skipping DL_TTI.request: DL DCI PDU flagged as invalid by the "
+                       "Upper PHY with the following error\n    {}",
+                       sector_id,
+                       phy_pdsch_validator.error());
+
+        return make_unexpected(default_error_t{});
+      }
+
+      continue;
+    }
+
+    if (const auto* pdsch_pdu = std::get_if<fapi::dl_pdsch_pdu>(&pdu.pdu)) {
+      pdsch_processor::pdu_t& pdsch = pdus.pdsch.emplace_back();
+      convert_pdsch_fapi_to_phy(pdsch, *pdsch_pdu, msg.slot, csi_re_patterns, pm_repo);
+      if (error_type<std::string> phy_pdsch_validator = dl_pdu_validator.is_valid(pdsch);
+          !phy_pdsch_validator.has_value()) {
+        logger.warning("Sector#{}: Skipping DL_TTI.request: PDSCH PDU flagged as invalid by the Upper PHY with the "
+                       "following error\n    {}",
+                       sector_id,
+                       phy_pdsch_validator.error());
+        return make_unexpected(default_error_t{});
+      }
+
+      continue;
+    }
+
+    if (const auto* ssb_pdu = std::get_if<fapi::dl_ssb_pdu>(&pdu.pdu)) {
+      ssb_processor::pdu_t& ssb = pdus.ssb.emplace_back();
+      convert_ssb_fapi_to_phy(ssb, *ssb_pdu, msg.slot, scs_common);
+      if (error_type<std::string> phy_ssb_validator = dl_pdu_validator.is_valid(ssb, cell_bandwidth_prb);
+          !phy_ssb_validator.has_value()) {
+        logger.warning("Sector#{}: Skipping DL_TTI.request: SSB PDU flagged as invalid by the Upper PHY with the "
+                       "following error\n    {}",
+                       sector_id,
+                       phy_ssb_validator.error());
+
+        return make_unexpected(default_error_t{});
+      }
+
+      continue;
+    }
+
+    if (const auto* prs_pdu = std::get_if<fapi::dl_prs_pdu>(&pdu.pdu)) {
+      prs_generator_configuration& prs = pdus.prs.emplace_back();
+      convert_prs_fapi_to_phy(prs, *prs_pdu, msg.slot, pm_repo);
+      if (error_type<std::string> phy_prs_validator = dl_pdu_validator.is_valid(prs); !phy_prs_validator.has_value()) {
+        logger.warning("Sector#{}: Skipping DL_TTI.request: PRS PDU flagged as invalid by the Upper PHY with the "
+                       "following error\n    {}",
+                       sector_id,
+                       phy_prs_validator.error());
+
+        return make_unexpected(default_error_t{});
+      }
+
+      continue;
+    }
+
+    ocudu_assert(0, "Sector#{}: DL_TTI.request PDU type not recognized.", sector_id);
   }
 
   return pdus;
@@ -293,8 +291,8 @@ void fapi_to_phy_fastpath_translator::send_dl_tti_request(const fapi::dl_tti_req
   // Reset the repository.
   pdsch_repository.reset(slot);
 
-  // Release the controller of the previous slot in case that it has not been released before. In case that it already
-  // is released, this call will do nothing.
+  // Release the controller of the previous slot in case that it has not been released before. In case that it
+  // already is released, this call will do nothing.
   slot_controller_mngr.release_controller(slot - 1);
 
   // Ignore messages that do not correspond to the current slot.
@@ -400,71 +398,71 @@ static expected<uplink_pdus> translate_ul_tti_pdus_to_phy_pdus(const fapi::ul_tt
 {
   uplink_pdus pdus;
   for (const auto& pdu : msg.pdus) {
-    switch (pdu.pdu_type) {
-      case fapi::ul_pdu_type::PRACH: {
-        prach_buffer_context& context = pdus.prach.emplace_back();
-        convert_prach_fapi_to_phy(context, pdu.prach_pdu, prach_cfg, carrier_cfg, ports, msg.slot, sector_id);
-        error_type<std::string> phy_prach_validation =
-            ul_pdu_validator.is_valid(get_prach_dectector_config_from(context));
-        if (!phy_prach_validation.has_value()) {
-          logger.warning(
-              "Sector#{}: Skipping UL_TTI.request in slot: PRACH PDU flagged as invalid by the Upper PHY with the "
-              "following error\n    {}",
-              sector_id,
-              phy_prach_validation.error());
+    if (const auto* prach_pdu = std::get_if<fapi::ul_prach_pdu>(&pdu.pdu)) {
+      prach_buffer_context& context = pdus.prach.emplace_back();
+      convert_prach_fapi_to_phy(context, *prach_pdu, prach_cfg, carrier_cfg, ports, msg.slot, sector_id);
+      if (error_type<std::string> phy_prach_validation =
+              ul_pdu_validator.is_valid(get_prach_dectector_config_from(context));
+          !phy_prach_validation.has_value()) {
+        logger.warning(
+            "Sector#{}: Skipping UL_TTI.request in slot: PRACH PDU flagged as invalid by the Upper PHY with the "
+            "following error\n    {}",
+            sector_id,
+            phy_prach_validation.error());
 
-          return make_unexpected(default_error_t{});
-        }
+        return make_unexpected(default_error_t{});
+      }
 
-        break;
-      }
-      case fapi::ul_pdu_type::PUCCH: {
-        uplink_pdu_slot_repository::pucch_pdu& ul_pdu = pdus.pucch.emplace_back();
-        convert_pucch_fapi_to_phy(ul_pdu, pdu.pucch_pdu, msg.slot, carrier_cfg.num_rx_ant);
-        error_type<std::string> phy_pucch_validation = is_pucch_pdu_valid(ul_pdu_validator, ul_pdu);
-        if (!phy_pucch_validation.has_value()) {
-          logger.warning("Sector#{}: Skipping UL_TTI.request: PUCCH PDU flagged as invalid by the Upper PHY with the "
-                         "following error\n    {}",
-                         sector_id,
-                         phy_pucch_validation.error());
-
-          return make_unexpected(default_error_t{});
-        }
-
-        break;
-      }
-      case fapi::ul_pdu_type::PUSCH: {
-        uplink_pdu_slot_repository::pusch_pdu& ul_pdu = pdus.pusch.emplace_back();
-        convert_pusch_fapi_to_phy(ul_pdu, pdu.pusch_pdu, msg.slot, carrier_cfg.num_rx_ant, part2_repo);
-        error_type<std::string> phy_pusch_validator = ul_pdu_validator.is_valid(ul_pdu.pdu);
-        if (!phy_pusch_validator.has_value()) {
-          logger.warning("Sector#{}: Skipping UL_TTI.request: PUSCH PDU flagged as invalid by the Upper PHY with the "
-                         "following error\n    {}",
-                         sector_id,
-                         phy_pusch_validator.error());
-          return make_unexpected(default_error_t{});
-        }
-        break;
-      }
-      case fapi::ul_pdu_type::SRS: {
-        uplink_pdu_slot_repository::srs_pdu& ul_pdu = pdus.srs.emplace_back();
-        convert_srs_fapi_to_phy(ul_pdu, pdu.srs_pdu, sector_id, carrier_cfg.num_rx_ant, msg.slot);
-        error_type<std::string> srs_validation = ul_pdu_validator.is_valid(ul_pdu.config);
-        if (!srs_validation.has_value()) {
-          logger.warning(
-              "Sector#{}: Skipping UL_TTI.request: SRS PDU flagged as invalid with the following error\n    {}",
-              sector_id,
-              srs_validation.error());
-          return make_unexpected(default_error_t{});
-        }
-        break;
-      }
-      default:
-        ocudu_assert(0,
-                     "Sector#{}: UL_TTI.request PDU type value '{}' not recognized.",
-                     sector_id,
-                     static_cast<unsigned>(pdu.pdu_type));
+      continue;
     }
+
+    if (const auto* pucch_pdu = std::get_if<fapi::ul_pucch_pdu>(&pdu.pdu)) {
+      uplink_pdu_slot_repository::pucch_pdu& ul_pdu = pdus.pucch.emplace_back();
+      convert_pucch_fapi_to_phy(ul_pdu, *pucch_pdu, msg.slot, carrier_cfg.num_rx_ant);
+      if (error_type<std::string> phy_pucch_validation = is_pucch_pdu_valid(ul_pdu_validator, ul_pdu);
+          !phy_pucch_validation.has_value()) {
+        logger.warning("Sector#{}: Skipping UL_TTI.request: PUCCH PDU flagged as invalid by the Upper PHY with the "
+                       "following error\n    {}",
+                       sector_id,
+                       phy_pucch_validation.error());
+
+        return make_unexpected(default_error_t{});
+      }
+
+      continue;
+    }
+
+    if (const auto* pusch_pdu = std::get_if<fapi::ul_pusch_pdu>(&pdu.pdu)) {
+      uplink_pdu_slot_repository::pusch_pdu& ul_pdu = pdus.pusch.emplace_back();
+      convert_pusch_fapi_to_phy(ul_pdu, *pusch_pdu, msg.slot, carrier_cfg.num_rx_ant, part2_repo);
+      if (error_type<std::string> phy_pusch_validator = ul_pdu_validator.is_valid(ul_pdu.pdu);
+          !phy_pusch_validator.has_value()) {
+        logger.warning("Sector#{}: Skipping UL_TTI.request: PUSCH PDU flagged as invalid by the Upper PHY with the "
+                       "following error\n    {}",
+                       sector_id,
+                       phy_pusch_validator.error());
+        return make_unexpected(default_error_t{});
+      }
+
+      continue;
+    }
+
+    if (const auto* srs_pdu = std::get_if<fapi::ul_srs_pdu>(&pdu.pdu)) {
+      uplink_pdu_slot_repository::srs_pdu& ul_pdu = pdus.srs.emplace_back();
+      convert_srs_fapi_to_phy(ul_pdu, *srs_pdu, sector_id, carrier_cfg.num_rx_ant, msg.slot);
+      if (error_type<std::string> srs_validation = ul_pdu_validator.is_valid(ul_pdu.config);
+          !srs_validation.has_value()) {
+        logger.warning(
+            "Sector#{}: Skipping UL_TTI.request: SRS PDU flagged as invalid with the following error\n    {}",
+            sector_id,
+            srs_validation.error());
+        return make_unexpected(default_error_t{});
+      }
+
+      continue;
+    }
+
+    ocudu_assert(0, "Sector#{}: UL_TTI.request PDU type not recognized.", sector_id);
   }
 
   return pdus;
@@ -477,8 +475,8 @@ void fapi_to_phy_fastpath_translator::send_ul_tti_request(const fapi::ul_tti_req
   slot_point  current_slot = get_current_slot();
   trace_point tp           = l1_ul_tracer.now();
 
-  // Release the controller of the previous slot in case that it has not been released before. In case that it already
-  // is released, this call will do nothing.
+  // Release the controller of the previous slot in case that it has not been released before. In case that it
+  // already is released, this call will do nothing.
   slot_controller_mngr.release_controller(slot - 1);
 
   // Ignore messages that do not correspond to the current slot.
@@ -543,8 +541,8 @@ void fapi_to_phy_fastpath_translator::send_ul_tti_request(const fapi::ul_tti_req
     ul_pdu_slot_repository->add_srs_pdu(pdu);
   }
 
-  // Release repository and obtain uplink resource grid - it ensures that the uplink processing associated with the slot
-  // is ready when the UL request reaches the RU.
+  // Release repository and obtain uplink resource grid - it ensures that the uplink processing associated with the
+  // slot is ready when the UL request reaches the RU.
   shared_resource_grid ul_rg = ul_pdu_slot_repository.release();
 
   // Prepare the capture uplink slot context.

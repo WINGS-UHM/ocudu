@@ -10,15 +10,6 @@
 using namespace ocudu;
 using namespace fapi_adaptor;
 
-void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu&              fapi_pdu,
-                                                    const ul_sched_info&             mac_pdu,
-                                                    uci_part2_correspondence_mapper& part2_mapper)
-{
-  fapi::ul_pusch_pdu_builder builder(fapi_pdu);
-
-  convert_pusch_mac_to_fapi(builder, mac_pdu, part2_mapper);
-}
-
 /// Fill the optional UCI parameters.
 static void fill_optional_uci_parameters(fapi::ul_pusch_pdu_builder&      builder,
                                          const std::optional<uci_info>&   uci,
@@ -46,14 +37,8 @@ static void fill_optional_uci_parameters(fapi::ul_pusch_pdu_builder&      builde
 
         // Build UCI Part2 correspondence.
         for (const auto& part2 : uci_correspondence) {
-          builder.add_uci_part1_part2_corresnpondence_v3(
-              part2.priority,
-              part2.part1_param_offsets,
-              part2.part1_param_sizes,
-              part2.part2_map_index,
-              (part2.part2_map_scope == 1)
-                  ? fapi::uci_part1_to_part2_correspondence_v3::map_scope_type::phy_context
-                  : fapi::uci_part1_to_part2_correspondence_v3::map_scope_type::common_context);
+          builder.add_uci_part1_part2_correspondence_v3(
+              part2.part1_param_offsets, part2.part1_param_sizes, part2.part2_map_index);
         }
       }
     }

@@ -7,7 +7,6 @@
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_decoder_result.h"
 #include "ocudu/phy/upper/channel_processors/uci/uci_status.h"
 #include "ocudu/phy/upper/channel_state_information.h"
-#include "ocudu/ran/uci/uci_constants.h"
 #include "ocudu/ran/uci/uci_payload_type.h"
 
 namespace ocudu {

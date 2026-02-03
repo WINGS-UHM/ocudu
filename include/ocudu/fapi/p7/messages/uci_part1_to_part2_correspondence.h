@@ -3,27 +3,20 @@
 
 #pragma once
 
-#include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/uci/uci_part2_size_description.h"
 
 namespace ocudu {
 namespace fapi {
 
 /// UCI information for determining UCI Part1 to Part2 correspondence.
-struct uci_part1_to_part2_correspondence_v3 {
-  /// Maximum number of part2 info.
-  static constexpr unsigned MAX_NUM_PART2_INFO = 100;
-
-  enum class map_scope_type : uint8_t { common_context, phy_context };
-
+struct uci_part1_to_part2_correspondence {
   struct part2_info {
-    uint16_t                   priority;
     static_vector<uint16_t, 4> param_offsets;
     static_vector<uint8_t, 4>  param_sizes;
     uint16_t                   part2_size_map_index;
-    map_scope_type             part2_size_map_scope;
   };
 
-  static_vector<part2_info, MAX_NUM_PART2_INFO> part2;
+  static_vector<part2_info, uci_part2_size_description::max_nof_entries> part2;
 };
 
 } // namespace fapi

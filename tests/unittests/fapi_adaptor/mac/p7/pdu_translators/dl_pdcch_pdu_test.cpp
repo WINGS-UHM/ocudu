@@ -20,9 +20,10 @@ TEST(mac_fapi_pdcch_pdu_conversor_test, mac_to_fapi_conversion_is_valid)
   const dci_context_information          context_information = result.dl_res->dl_pdcchs.front().ctx;
   const dci_payload                      payload             = result.dl_pdcch_pdus.front();
 
-  fapi::dl_pdcch_pdu fapi_pdu;
-  auto               pm_tools = generate_precoding_matrix_tables(1, 0);
-  convert_pdcch_mac_to_fapi(fapi_pdu, context_information, payload, *std::get<0>(pm_tools), nof_prbs);
+  fapi::dl_pdcch_pdu         fapi_pdu;
+  fapi::dl_pdcch_pdu_builder builder(fapi_pdu);
+  auto                       pm_tools = generate_precoding_matrix_tables(1, 0);
+  convert_pdcch_mac_to_fapi(builder, context_information, payload, *std::get<0>(pm_tools), nof_prbs);
 
   // BWP.
   ASSERT_EQ(context_information.bwp_cfg->cp, fapi_pdu.cp);

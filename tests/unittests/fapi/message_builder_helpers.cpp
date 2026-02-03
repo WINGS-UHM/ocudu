@@ -29,7 +29,7 @@ static unsigned generate_start_symbol_index()
   return dist(gen);
 }
 
-static ofdm_symbol_range generate_symbols(pucch_format type)
+static ofdm_symbol_range generate_symbols()
 {
   std::uniform_int_distribution<unsigned> size_dist(0, 13);
   unsigned                                size = size_dist(gen);
@@ -191,15 +191,14 @@ dl_pdcch_pdu unittest::build_valid_dl_pdcch_pdu()
 {
   dl_pdcch_pdu pdu;
 
-  pdu.coreset_bwp                      = generate_crb_interval();
-  pdu.scs                              = subcarrier_spacing::kHz240;
-  pdu.cp                               = generate_cyclic_prefix();
-  static constexpr pucch_format format = pucch_format::FORMAT_1;
-  pdu.symbols                          = generate_symbols(format);
-  uint8_t    reg_bundle_size           = 2;
-  uint8_t    interleaver_size          = 3;
-  uint16_t   shift_index               = 129;
-  coreset_id id                        = generate_coreset_id();
+  pdu.coreset_bwp             = generate_crb_interval();
+  pdu.scs                     = subcarrier_spacing::kHz240;
+  pdu.cp                      = generate_cyclic_prefix();
+  pdu.symbols                 = generate_symbols();
+  uint8_t    reg_bundle_size  = 2;
+  uint8_t    interleaver_size = 3;
+  uint16_t   shift_index      = 129;
+  coreset_id id               = generate_coreset_id();
   if (id == to_coreset_id(0)) {
     pdu.mapping = dl_pdcch_pdu::mapping_coreset_0{reg_bundle_size, interleaver_size, shift_index};
   } else {
@@ -247,8 +246,7 @@ dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
   pdu.resource_alloc                       = resource_allocation_type::type_1;
   pdu.vrbs                                 = {42, 89};
   pdu.vrb_to_prb_mapping                   = fapi::vrb_to_prb_mapping_type::interleaved_rb_size2;
-  static constexpr pucch_format format     = pucch_format::FORMAT_1;
-  pdu.symbols                              = generate_symbols(format);
+  pdu.symbols                              = generate_symbols();
   auto& power                              = pdu.power_config.emplace<dl_pdsch_pdu::power_profile_nr>();
   power.power_control_offset_profile_nr    = 6;
   power.power_control_offset_ss_profile_nr = fapi::power_control_offset_ss::dB3;
@@ -329,24 +327,24 @@ dl_tti_request unittest::build_valid_dl_tti_request()
   msg.slot            = slot_point(scs, sfn, slot_index);
 
   // Manually add the SSB PDU to reuse the functions above.
-  msg.pdus.emplace_back();
-  msg.pdus.back().pdu_type = dl_pdu_type::SSB;
-  msg.pdus.back().ssb_pdu  = build_valid_dl_ssb_pdu();
+  auto& last_ssb_pdu = msg.pdus.emplace_back();
+  auto& ssb_pdu      = last_ssb_pdu.pdu.emplace<dl_ssb_pdu>();
+  ssb_pdu            = build_valid_dl_ssb_pdu();
 
   // Manually add the PDCCH PDU to reuse the functions above.
-  msg.pdus.emplace_back();
-  msg.pdus.back().pdu_type  = dl_pdu_type::PDCCH;
-  msg.pdus.back().pdcch_pdu = build_valid_dl_pdcch_pdu();
+  auto& last_pdcch_pdu = msg.pdus.emplace_back();
+  auto& pdcch_pdu      = last_pdcch_pdu.pdu.emplace<dl_pdcch_pdu>();
+  pdcch_pdu            = build_valid_dl_pdcch_pdu();
 
   // Manually add the PDSCH PDU to reuse the functions above.
-  msg.pdus.emplace_back();
-  msg.pdus.back().pdu_type  = dl_pdu_type::PDSCH;
-  msg.pdus.back().pdsch_pdu = build_valid_dl_pdsch_pdu();
+  auto& last_pdsch_pdu = msg.pdus.emplace_back();
+  auto& pdsch_pdu      = last_pdsch_pdu.pdu.emplace<dl_pdsch_pdu>();
+  pdsch_pdu            = build_valid_dl_pdsch_pdu();
 
   // Manually add the CSI PDU to reuse the functions above.
-  msg.pdus.emplace_back();
-  msg.pdus.back().pdu_type   = dl_pdu_type::CSI_RS;
-  msg.pdus.back().csi_rs_pdu = build_valid_dl_csi_pdu();
+  auto& last_csi_rs_pdu = msg.pdus.emplace_back();
+  auto& csi_rs_pdu      = last_csi_rs_pdu.pdu.emplace<dl_csi_rs_pdu>();
+  csi_rs_pdu            = build_valid_dl_csi_pdu();
 
   return msg;
 }
@@ -732,15 +730,9 @@ uci_indication unittest::build_valid_uci_indication()
   return msg;
 }
 
-static pucch_repetition_tx_slot generate_multi_slot_tx_indicator()
+static unsigned generate_sr_bit_len(ul_pucch_pdu::ul_pucch_pdu_format format)
 {
-  std::uniform_int_distribution<unsigned> dist(0, 3);
-  return static_cast<pucch_repetition_tx_slot>(dist(gen));
-}
-
-static unsigned generate_sr_bit_len(pucch_format type)
-{
-  if (type == pucch_format::FORMAT_0 || type == pucch_format::FORMAT_1) {
+  if (std::holds_alternative<ul_pucch_pdu_format_0>(format) || std::holds_alternative<ul_pucch_pdu_format_1>(format)) {
     std::uniform_int_distribution<unsigned> dist(0, 1);
     return dist(gen);
   }
@@ -749,31 +741,15 @@ static unsigned generate_sr_bit_len(pucch_format type)
   return dist(gen);
 }
 
-static unsigned generate_harq_bit_len(pucch_format type)
+static units::bits generate_harq_bit_len(ul_pucch_pdu::ul_pucch_pdu_format format)
 {
-  if (type == pucch_format::FORMAT_0 || type == pucch_format::FORMAT_1) {
+  if (std::holds_alternative<ul_pucch_pdu_format_0>(format) || std::holds_alternative<ul_pucch_pdu_format_1>(format)) {
     std::uniform_int_distribution<unsigned> dist(1, 2);
-    return dist(gen);
+    return units::bits(dist(gen));
   }
 
   std::uniform_int_distribution<unsigned> dist(2, 1706);
-  return dist(gen);
-}
-
-static unsigned generate_max_code_rate(pucch_format type)
-{
-  if (type == pucch_format::FORMAT_0 || type == pucch_format::FORMAT_1) {
-    return 255;
-  }
-
-  std::uniform_int_distribution<unsigned> dist(0, 7);
-  return dist(gen);
-}
-
-static pucch_group_hopping generate_pucch_group_hopping()
-{
-  std::uniform_int_distribution<unsigned> dist(0, 2);
-  return static_cast<pucch_group_hopping>(dist(gen));
+  return units::bits(dist(gen));
 }
 
 static unsigned generate_nid_pucch_hopping()
@@ -788,112 +764,97 @@ static unsigned generate_initial_cyclic_shift()
   return dist(gen);
 }
 
-static unsigned generate_csi_bit_len()
+static units::bits generate_csi_bit_len()
 {
   std::uniform_int_distribution<unsigned> dist(0, 1706);
-  return dist(gen);
+  return units::bits(dist(gen));
 }
 
 static ul_pucch_pdu generate_generic_ul_pucch_pdu()
 {
   ul_pucch_pdu pdu;
 
-  pdu.rnti                           = generate_rnti();
-  pdu.handle                         = generate_handle();
-  pdu.bwp                            = generate_crb_interval();
-  pdu.scs                            = generate_scs();
-  pdu.cp                             = generate_cyclic_prefix();
-  pdu.multi_slot_tx_indicator        = generate_multi_slot_tx_indicator();
-  pdu.pi2_bpsk                       = true;
-  pdu.prbs                           = generate_prb_interval();
-  pdu.intra_slot_frequency_hopping   = true;
-  pdu.second_hop_prb                 = generate_bwp_start();
-  pdu.pucch_grp_hopping              = generate_pucch_group_hopping();
-  pdu.nid_pucch_hopping              = generate_nid_pucch_hopping();
-  pdu.initial_cyclic_shift           = generate_initial_cyclic_shift();
-  pdu.nid_pucch_scrambling           = generate_nid_pucch_hopping();
-  pdu.time_domain_occ_index          = 5;
-  pdu.pre_dft_occ_len                = 2;
-  pdu.pre_dft_occ_idx                = 2;
-  pdu.add_dmrs_flag                  = true;
-  pdu.nid0_pucch_dmrs_scrambling     = 10200;
-  pdu.m0_pucch_dmrs_cyclic_shift     = 8;
-  pdu.csi_part1_bit_length           = generate_csi_bit_len();
-  pdu.pucch_maintenance_v3.ul_bwp_id = 43;
-
-  // Add 1 part1 to part2 correspondence.
-  pdu.uci_correspondence.part2.emplace_back();
-  auto& corr                = pdu.uci_correspondence.part2.back();
-  corr.priority             = 3;
-  corr.param_offsets        = {1, 2, 3};
-  corr.param_sizes          = {1, 2, 3};
-  corr.part2_size_map_index = 43;
-  corr.part2_size_map_scope = uci_part1_to_part2_correspondence_v3::map_scope_type::common_context;
+  pdu.rnti           = generate_rnti();
+  pdu.handle         = generate_handle();
+  pdu.bwp            = generate_crb_interval();
+  pdu.scs            = generate_scs();
+  pdu.cp             = generate_cyclic_prefix();
+  pdu.prbs           = generate_prb_interval();
+  pdu.symbols        = generate_symbols();
+  pdu.second_hop_prb = generate_bwp_start();
 
   return pdu;
 }
 
 ul_pucch_pdu unittest::build_valid_ul_pucch_f0_pdu()
 {
-  auto                          pdu      = generate_generic_ul_pucch_pdu();
-  static constexpr pucch_format format   = pucch_format::FORMAT_0;
-  pdu.format_type                        = format;
-  pdu.symbols                            = generate_symbols(format);
-  pdu.sr_bit_len                         = generate_sr_bit_len(format);
-  pdu.bit_len_harq                       = generate_harq_bit_len(format);
-  pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
+  auto  pdu                   = generate_generic_ul_pucch_pdu();
+  auto& format                = pdu.format.emplace<ul_pucch_pdu_format_0>();
+  format.sr_present           = generate_sr_bit_len(pdu.format);
+  format.nid_pucch_hopping    = generate_nid_pucch_hopping();
+  format.initial_cyclic_shift = generate_initial_cyclic_shift();
+  format.bit_len_harq         = generate_harq_bit_len(pdu.format);
 
   return pdu;
 }
 
 ul_pucch_pdu unittest::build_valid_ul_pucch_f1_pdu()
 {
-  auto                          pdu      = generate_generic_ul_pucch_pdu();
-  static constexpr pucch_format format   = pucch_format::FORMAT_1;
-  pdu.format_type                        = format;
-  pdu.symbols                            = generate_symbols(format);
-  pdu.sr_bit_len                         = generate_sr_bit_len(format);
-  pdu.bit_len_harq                       = generate_harq_bit_len(format);
-  pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
+  auto  pdu                    = generate_generic_ul_pucch_pdu();
+  auto& format                 = pdu.format.emplace<ul_pucch_pdu_format_1>();
+  format.nid_pucch_hopping     = generate_nid_pucch_hopping();
+  format.initial_cyclic_shift  = generate_initial_cyclic_shift();
+  format.time_domain_occ_index = 5;
+  format.sr_present            = generate_sr_bit_len(pdu.format);
+  format.bit_len_harq          = generate_harq_bit_len(pdu.format);
 
   return pdu;
 }
 
 ul_pucch_pdu unittest::build_valid_ul_pucch_f2_pdu()
 {
-  auto                          pdu      = generate_generic_ul_pucch_pdu();
-  static constexpr pucch_format format   = pucch_format::FORMAT_2;
-  pdu.format_type                        = format;
-  pdu.symbols                            = generate_symbols(format);
-  pdu.sr_bit_len                         = generate_sr_bit_len(format);
-  pdu.bit_len_harq                       = generate_harq_bit_len(format);
-  pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
+  auto  pdu                         = generate_generic_ul_pucch_pdu();
+  auto& format                      = pdu.format.emplace<ul_pucch_pdu_format_2>();
+  format.sr_bit_len                 = static_cast<sr_nof_bits>(generate_sr_bit_len(pdu.format));
+  format.nid_pucch_scrambling       = generate_nid_pucch_hopping();
+  format.nid0_pucch_dmrs_scrambling = 10200;
+  format.csi_part1_bit_length       = generate_csi_bit_len();
+  format.bit_len_harq               = generate_harq_bit_len(pdu.format);
 
   return pdu;
 }
 
 ul_pucch_pdu unittest::build_valid_ul_pucch_f3_pdu()
 {
-  auto                          pdu      = generate_generic_ul_pucch_pdu();
-  static constexpr pucch_format format   = pucch_format::FORMAT_3;
-  pdu.format_type                        = format;
-  pdu.symbols                            = generate_symbols(format);
-  pdu.sr_bit_len                         = generate_sr_bit_len(format);
-  pdu.bit_len_harq                       = generate_harq_bit_len(format);
-  pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
+  auto  pdu                         = generate_generic_ul_pucch_pdu();
+  auto& format                      = pdu.format.emplace<ul_pucch_pdu_format_3>();
+  format.pi2_bpsk                   = true;
+  format.nid_pucch_hopping          = generate_nid_pucch_hopping();
+  format.nid0_pucch_dmrs_scrambling = 10200;
+  format.m0_pucch_dmrs_cyclic_shift = 8;
+  format.sr_bit_len                 = static_cast<sr_nof_bits>(generate_sr_bit_len(pdu.format));
+  format.add_dmrs_flag              = true;
+  format.csi_part1_bit_length       = generate_csi_bit_len();
+  format.bit_len_harq               = generate_harq_bit_len(pdu.format);
 
   return pdu;
 }
 
 ul_pucch_pdu unittest::build_valid_ul_pucch_f4_pdu()
 {
-  auto                          pdu      = generate_generic_ul_pucch_pdu();
-  static constexpr pucch_format format   = pucch_format::FORMAT_4;
-  pdu.format_type                        = format;
-  pdu.symbols                            = generate_symbols(format);
-  pdu.sr_bit_len                         = generate_sr_bit_len(format);
-  pdu.bit_len_harq                       = generate_harq_bit_len(format);
-  pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
+  auto  pdu                         = generate_generic_ul_pucch_pdu();
+  auto& format                      = pdu.format.emplace<ul_pucch_pdu_format_4>();
+  format.pi2_bpsk                   = true;
+  format.nid_pucch_hopping          = generate_nid_pucch_hopping();
+  format.nid0_pucch_dmrs_scrambling = 10200;
+  format.pre_dft_occ_len            = 2;
+  format.pre_dft_occ_idx            = 2;
+  format.add_dmrs_flag              = true;
+  format.nid0_pucch_dmrs_scrambling = 10200;
+  format.m0_pucch_dmrs_cyclic_shift = 8;
+  format.sr_bit_len                 = static_cast<sr_nof_bits>(generate_sr_bit_len(pdu.format));
+  format.csi_part1_bit_length       = generate_csi_bit_len();
+  format.bit_len_harq               = generate_harq_bit_len(pdu.format);
 
   return pdu;
 }
@@ -998,8 +959,7 @@ ul_pusch_pdu unittest::build_valid_ul_pusch_pdu()
   pdu.intra_slot_frequency_hopping        = generate_bool();
   pdu.tx_direct_current_location          = generate_tx_direct_current_location();
   pdu.uplink_frequency_shift_7p5kHz       = generate_bool();
-  static constexpr pucch_format format    = pucch_format::FORMAT_1;
-  pdu.symbols                             = generate_symbols(format);
+  pdu.symbols                             = generate_symbols();
 
   auto& data = pdu.pusch_data;
   pdu.pdu_bitmap.set(ul_pusch_pdu::PUSCH_DATA_BIT);
@@ -1022,11 +982,9 @@ ul_pusch_pdu unittest::build_valid_ul_pusch_pdu()
   // Add 1 part1 to part2 correspondence.
   pdu.uci_correspondence.part2.emplace_back();
   auto& corr                = pdu.uci_correspondence.part2.back();
-  corr.priority             = 3;
   corr.param_offsets        = {1, 2};
   corr.param_sizes          = {1, 2};
   corr.part2_size_map_index = 0;
-  corr.part2_size_map_scope = uci_part1_to_part2_correspondence_v3::map_scope_type::common_context;
 
   auto& ptrs = pdu.pusch_ptrs;
   pdu.pdu_bitmap.set(ul_pusch_pdu::PUSCH_PTRS_BIT);
@@ -1095,33 +1053,26 @@ ul_tti_request unittest::build_valid_ul_tti_request()
   unsigned sfn        = generate_sfn();
   auto     slot_index = generate_slot();
   msg.slot            = slot_point(scs, sfn, slot_index);
-  msg.num_groups      = 2000;
-  msg.num_pdus_of_each_type.fill(1);
 
   {
-    ++msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PRACH)];
-    msg.pdus.push_back({ul_pdu_type::PRACH, 0, build_valid_ul_prach_pdu()});
+    auto& pdu       = msg.pdus.emplace_back();
+    auto& prach_pdu = pdu.pdu.emplace<ul_prach_pdu>();
+    prach_pdu       = build_valid_ul_prach_pdu();
   }
   {
-    ++msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format01)];
-    ul_tti_request_pdu pdu;
-    pdu.pdu_type  = ul_pdu_type::PUCCH;
-    pdu.pucch_pdu = build_valid_ul_pucch_f0_pdu();
-    msg.pdus.push_back(pdu);
+    auto& pdu          = msg.pdus.emplace_back();
+    auto& pucch_f0_pdu = pdu.pdu.emplace<ul_pucch_pdu>();
+    pucch_f0_pdu       = build_valid_ul_pucch_f0_pdu();
   }
   {
-    ++msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUCCH_format234)];
-    ul_tti_request_pdu pdu;
-    pdu.pdu_type  = ul_pdu_type::PUCCH;
-    pdu.pucch_pdu = build_valid_ul_pucch_f3_pdu();
-    msg.pdus.push_back(pdu);
+    auto& pdu          = msg.pdus.emplace_back();
+    auto& pucch_f3_pdu = pdu.pdu.emplace<ul_pucch_pdu>();
+    pucch_f3_pdu       = build_valid_ul_pucch_f3_pdu();
   }
   {
-    ++msg.num_pdus_of_each_type[static_cast<unsigned>(ul_tti_request::pdu_type::PUSCH)];
-    ul_tti_request_pdu pdu;
-    pdu.pdu_type  = ul_pdu_type::PUSCH;
-    pdu.pusch_pdu = build_valid_ul_pusch_pdu();
-    msg.pdus.push_back(pdu);
+    auto& pdu       = msg.pdus.emplace_back();
+    auto& pusch_pdu = pdu.pdu.emplace<ul_pusch_pdu>();
+    pusch_pdu       = build_valid_ul_pusch_pdu();
   }
 
   return msg;

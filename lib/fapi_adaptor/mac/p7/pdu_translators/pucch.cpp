@@ -9,13 +9,6 @@
 using namespace ocudu;
 using namespace fapi_adaptor;
 
-void ocudu::fapi_adaptor::convert_pucch_mac_to_fapi(fapi::ul_pucch_pdu& fapi_pdu, const pucch_info& mac_pdu)
-{
-  fapi::ul_pucch_pdu_builder builder(fapi_pdu);
-
-  convert_pucch_mac_to_fapi(builder, mac_pdu);
-}
-
 /// Returns the number of SR bits as unsigned.
 static unsigned convert_sr_bits_to_unsigned(sr_nof_bits value)
 {
@@ -35,110 +28,52 @@ static unsigned convert_sr_bits_to_unsigned(sr_nof_bits value)
 }
 
 /// Fills the Format 0 parameters.
-static void fill_format0_parameters(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
+static void fill_format0_parameters(fapi::ul_pucch_format_0_pdu_builder& builder,
+                                    const pucch_format_0&                mac_pdu,
+                                    sr_nof_bits                          sr_bits,
+                                    units::bits                          bit_len_harq)
 {
-  // Hopping parameters.
-  const prb_interval&   hop_prbs            = mac_pdu.resources.second_hop_prbs;
-  const pucch_format_0& f0                  = std::get<pucch_format_0>(mac_pdu.format_params);
-  const bool            intra_slot_freq_hop = hop_prbs.empty() ? false : true;
-  builder.set_hopping_information_parameters(
-      intra_slot_freq_hop, hop_prbs.start(), f0.group_hopping, f0.n_id_hopping, f0.initial_cyclic_shift);
-
-  // Do not use pi/2 BPSK for UCI symbols.
-  static constexpr bool use_pi_to_bpsk = false;
-  // Format 0 does not support multi slot repetition.
-  pucch_repetition_tx_slot pucch_repetition = pucch_repetition_tx_slot::no_multi_slot;
-  builder.set_common_parameters(mac_pdu.format(), pucch_repetition, use_pi_to_bpsk);
-
-  // Format 0 does not support CSI.
-  static constexpr unsigned csi_part1_bit_length = 0U;
-  builder.set_bit_length_parameters(
-      convert_sr_bits_to_unsigned(mac_pdu.uci_bits.sr_bits), mac_pdu.uci_bits.harq_ack_nof_bits, csi_part1_bit_length);
+  builder.set_hopping_parameters(mac_pdu.n_id_hopping)
+      .set_cyclic_shift_parameters(mac_pdu.initial_cyclic_shift)
+      .set_payload_parameters(convert_sr_bits_to_unsigned(sr_bits), bit_len_harq);
 }
 
 /// Fills the Format 1 parameters.
-static void fill_format1_parameters(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
+static void fill_format1_parameters(fapi::ul_pucch_format_1_pdu_builder& builder,
+                                    const pucch_format_1&                mac_pdu,
+                                    sr_nof_bits                          sr_bits,
+                                    units::bits                          bit_len_harq)
 {
-  // Hopping parameters.
-  const prb_interval&   hop_prbs            = mac_pdu.resources.second_hop_prbs;
-  const pucch_format_1& f1                  = std::get<pucch_format_1>(mac_pdu.format_params);
-  const bool            intra_slot_freq_hop = hop_prbs.empty() ? false : true;
-  builder.set_hopping_information_parameters(
-      intra_slot_freq_hop, hop_prbs.start(), f1.group_hopping, f1.n_id_hopping, f1.initial_cyclic_shift);
-
-  // Do not use pi/2 BPSK for UCI symbols.
-  static constexpr bool use_pi_to_bpsk = false;
-  builder.set_common_parameters(mac_pdu.format(), f1.slot_repetition, use_pi_to_bpsk);
-
-  // Time domain occasion.
-  builder.set_format1_parameters(f1.time_domain_occ);
-
-  // Format 1 does not support CSI.
-  static constexpr unsigned csi_part1_bit_length = 0U;
-  builder.set_bit_length_parameters(
-      convert_sr_bits_to_unsigned(mac_pdu.uci_bits.sr_bits), mac_pdu.uci_bits.harq_ack_nof_bits, csi_part1_bit_length);
+  builder.set_hopping_parameters(mac_pdu.n_id_hopping)
+      .set_cyclic_shift_parameters(mac_pdu.initial_cyclic_shift)
+      .set_time_domain_parameters(mac_pdu.time_domain_occ)
+      .set_payload_parameters(convert_sr_bits_to_unsigned(sr_bits), bit_len_harq);
 }
 
 /// Fills the Format 2 parameters.
-static void fill_format2_parameters(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
+static void fill_format2_parameters(fapi::ul_pucch_format_2_pdu_builder& builder,
+                                    const pucch_format_2&                mac_pdu,
+                                    const pucch_uci_bits&                uci_bits,
+                                    units::bits                          bit_len_harq)
 {
-  // Hopping parameters.
-  const prb_interval&   hop_prbs            = mac_pdu.resources.second_hop_prbs;
-  const pucch_format_2& f2                  = std::get<pucch_format_2>(mac_pdu.format_params);
-  const bool            intra_slot_freq_hop = hop_prbs.empty() ? false : true;
-  builder.set_hopping_information_format2_parameters(intra_slot_freq_hop, hop_prbs.start());
-
-  // Do not use pi/2 BPSK for UCI symbols.
-  static constexpr bool use_pi_to_bpsk = false;
-  // Format 2 does not support multi slot repetition.
-  pucch_repetition_tx_slot pucch_repetition = pucch_repetition_tx_slot::no_multi_slot;
-  builder.set_common_parameters(mac_pdu.format(), pucch_repetition, use_pi_to_bpsk);
-
-  // Scrambling.
-  builder.set_scrambling_parameters(f2.n_id_scrambling);
-  builder.set_dmrs_scrambling(f2.n_id_0_scrambling);
-
-  // Max coding rate.
-  builder.set_maintenance_v3_basic_parameters({static_cast<unsigned>(f2.max_code_rate)}, {});
-
-  // Bit lengths.
-  builder.set_bit_length_parameters(convert_sr_bits_to_unsigned(mac_pdu.uci_bits.sr_bits),
-                                    mac_pdu.uci_bits.harq_ack_nof_bits,
-                                    mac_pdu.uci_bits.csi_part1_nof_bits);
+  builder.set_scrambling_parameters(mac_pdu.n_id_scrambling, mac_pdu.n_id_0_scrambling)
+      .set_payload_parameters(uci_bits.sr_bits, units::bits(uci_bits.csi_part1_nof_bits), bit_len_harq);
 }
 
 /// Fills the Format 3 parameters.
-static void fill_format3_parameters(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
+static void fill_format3_parameters(fapi::ul_pucch_format_3_pdu_builder& builder,
+                                    const pucch_format_3&                mac_pdu,
+                                    const pucch_uci_bits&                uci_bits,
+                                    units::bits                          bit_len_harq)
 {
-  const pucch_format_3& f3 = std::get<pucch_format_3>(mac_pdu.format_params);
+  // FAPI parameter m0PucchDmrsCyclicShift (ref. TS 38.211 6.4.1.3.3.1) maps always to 0 for PUCCH Format 3.
+  constexpr unsigned m0_pucch_dmrs_cyclic_shift = 0;
 
-  // Hopping parameters.
-  const prb_interval& hop_prbs            = mac_pdu.resources.second_hop_prbs;
-  const bool          intra_slot_freq_hop = hop_prbs.empty() ? false : true;
-  // Both FAPI parameters initialCyclicShift (ref. TS 38.211 6.3.2.2.2) and m0PucchDmrsCyclicShift (ref.
-  // TS 38.211 6.4.1.3.3.1) map to the same value, which is always 0 for PUCCH Format 3.
-  constexpr unsigned m0_format3 = 0;
-
-  // Parameter initial_cyclic_shift is not applicable to PUCCH Format 3.
-  builder.set_hopping_information_parameters(
-      intra_slot_freq_hop, hop_prbs.start(), f3.group_hopping, f3.n_id_hopping, m0_format3);
-
-  // Common parameters.
-  builder.set_common_parameters(mac_pdu.format(), f3.slot_repetition, f3.pi_2_bpsk);
-
-  // Scrambling.
-  builder.set_scrambling_parameters(f3.n_id_scrambling);
-
-  // DM-RS.
-  builder.set_dmrs_parameters(f3.additional_dmrs, f3.n_id_0_scrambling, m0_format3);
-
-  // Max coding rate.
-  builder.set_maintenance_v3_basic_parameters({static_cast<unsigned>(f3.max_code_rate)}, {});
-
-  // Bit lengths.
-  builder.set_bit_length_parameters(convert_sr_bits_to_unsigned(mac_pdu.uci_bits.sr_bits),
-                                    mac_pdu.uci_bits.harq_ack_nof_bits,
-                                    mac_pdu.uci_bits.csi_part1_nof_bits);
+  builder.set_modulation_parameters(mac_pdu.pi_2_bpsk)
+      .set_hopping_parameters(mac_pdu.n_id_hopping)
+      .set_scrambling_parameters(mac_pdu.n_id_scrambling)
+      .set_dmrs_parameters(mac_pdu.additional_dmrs, mac_pdu.n_id_0_scrambling, m0_pucch_dmrs_cyclic_shift)
+      .set_payload_parameters(uci_bits.sr_bits, units::bits(uci_bits.csi_part1_nof_bits), bit_len_harq);
 }
 
 /// Gets the cyclic shift index (m0) for PUCCH Format 4, as per TS 38.211 Table 6.4.1.3.3.1-1.
@@ -159,59 +94,62 @@ static unsigned get_pucch_format4_m0(unsigned occ_index)
 }
 
 /// Fills the Format 4 parameters.
-static void fill_format4_parameters(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
+static void fill_format4_parameters(fapi::ul_pucch_format_4_pdu_builder& builder,
+                                    const pucch_format_4&                mac_pdu,
+                                    const pucch_uci_bits&                uci_bits,
+                                    units::bits                          bit_len_harq)
 {
-  const pucch_format_4& f4 = std::get<pucch_format_4>(mac_pdu.format_params);
-
-  // Hopping parameters.
-  const prb_interval& hop_prbs            = mac_pdu.resources.second_hop_prbs;
-  const bool          intra_slot_freq_hop = hop_prbs.empty() ? false : true;
+  // Format 4 specific parameters.
   // Both FAPI parameters initialCyclicShift (ref. TS 38.211 6.3.2.2.2) and m0PucchDmrsCyclicShift
   // (ref. TS 38.211 6.4.1.3.3.1) map to the same value.
-  const unsigned m0_format4 = get_pucch_format4_m0(f4.orthog_seq_idx);
+  const unsigned m0_format4 = get_pucch_format4_m0(mac_pdu.orthog_seq_idx);
 
-  builder.set_hopping_information_parameters(
-      intra_slot_freq_hop, hop_prbs.start(), f4.group_hopping, f4.n_id_hopping, m0_format4);
-
-  // Common parameters.
-  builder.set_common_parameters(mac_pdu.format(), f4.slot_repetition, f4.pi_2_bpsk);
-
-  // Scrambling.
-  builder.set_scrambling_parameters(f4.n_id_scrambling);
-
-  // DM-RS.
-  builder.set_dmrs_parameters(f4.additional_dmrs, f4.n_id_0_scrambling, m0_format4);
-
-  // Specific format 4 parameters.
-  builder.set_format4_parameters(f4.orthog_seq_idx, static_cast<uint8_t>(f4.n_sf_pucch_f4));
-
-  // Max coding rate.
-  builder.set_maintenance_v3_basic_parameters({static_cast<unsigned>(f4.max_code_rate)}, {});
-
-  // Bit lengths.
-  builder.set_bit_length_parameters(convert_sr_bits_to_unsigned(mac_pdu.uci_bits.sr_bits),
-                                    mac_pdu.uci_bits.harq_ack_nof_bits,
-                                    mac_pdu.uci_bits.csi_part1_nof_bits);
+  builder.set_modulation_parameters(mac_pdu.pi_2_bpsk)
+      .set_hopping_parameters(mac_pdu.n_id_hopping)
+      .set_occ_parameters(mac_pdu.orthog_seq_idx, static_cast<uint8_t>(mac_pdu.n_sf_pucch_f4))
+      .set_scrambling_parameters(mac_pdu.n_id_scrambling)
+      .set_dmrs_parameters(mac_pdu.additional_dmrs, mac_pdu.n_id_0_scrambling, m0_format4)
+      .set_payload_parameters(uci_bits.sr_bits, units::bits(uci_bits.csi_part1_nof_bits), bit_len_harq);
 }
 
-static void fill_custom_parameters(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
+static void fill_format_parameters(fapi::ul_pucch_pdu_builder& builder, const pucch_info& mac_pdu)
 {
   switch (mac_pdu.format()) {
-    case pucch_format::FORMAT_0:
-      fill_format0_parameters(builder, mac_pdu);
+    case pucch_format::FORMAT_0: {
+      const auto&                         mac_pdu_f0       = std::get<pucch_format_0>(mac_pdu.format_params);
+      fapi::ul_pucch_format_0_pdu_builder format_0_builder = builder.get_pucch_format_0_builder();
+      fill_format0_parameters(
+          format_0_builder, mac_pdu_f0, mac_pdu.uci_bits.sr_bits, units::bits(mac_pdu.uci_bits.harq_ack_nof_bits));
       break;
-    case pucch_format::FORMAT_1:
-      fill_format1_parameters(builder, mac_pdu);
+    }
+    case pucch_format::FORMAT_1: {
+      const auto&                         mac_pdu_f1       = std::get<pucch_format_1>(mac_pdu.format_params);
+      fapi::ul_pucch_format_1_pdu_builder format_1_builder = builder.get_pucch_format_1_builder();
+      fill_format1_parameters(
+          format_1_builder, mac_pdu_f1, mac_pdu.uci_bits.sr_bits, units::bits(mac_pdu.uci_bits.harq_ack_nof_bits));
       break;
-    case pucch_format::FORMAT_2:
-      fill_format2_parameters(builder, mac_pdu);
+    }
+    case pucch_format::FORMAT_2: {
+      const auto&                         mac_pdu_f2       = std::get<pucch_format_2>(mac_pdu.format_params);
+      fapi::ul_pucch_format_2_pdu_builder format_2_builder = builder.get_pucch_format_2_builder();
+      fill_format2_parameters(
+          format_2_builder, mac_pdu_f2, mac_pdu.uci_bits, units::bits(mac_pdu.uci_bits.harq_ack_nof_bits));
       break;
-    case pucch_format::FORMAT_3:
-      fill_format3_parameters(builder, mac_pdu);
+    }
+    case pucch_format::FORMAT_3: {
+      const auto&                         mac_pdu_f3       = std::get<pucch_format_3>(mac_pdu.format_params);
+      fapi::ul_pucch_format_3_pdu_builder format_3_builder = builder.get_pucch_format_3_builder();
+      fill_format3_parameters(
+          format_3_builder, mac_pdu_f3, mac_pdu.uci_bits, units::bits(mac_pdu.uci_bits.harq_ack_nof_bits));
       break;
-    case pucch_format::FORMAT_4:
-      fill_format4_parameters(builder, mac_pdu);
+    }
+    case pucch_format::FORMAT_4: {
+      const auto&                         mac_pdu_f4       = std::get<pucch_format_4>(mac_pdu.format_params);
+      fapi::ul_pucch_format_4_pdu_builder format_4_builder = builder.get_pucch_format_4_builder();
+      fill_format4_parameters(
+          format_4_builder, mac_pdu_f4, mac_pdu.uci_bits, units::bits(mac_pdu.uci_bits.harq_ack_nof_bits));
       break;
+    }
     default:
       ocudu_assert(0, "Invalid PUCCH format={}", fmt::underlying(mac_pdu.format()));
   }
@@ -225,10 +163,14 @@ void ocudu::fapi_adaptor::convert_pucch_mac_to_fapi(fapi::ul_pucch_pdu_builder& 
   builder.set_bwp_parameters(bwp_cfg.crbs, bwp_cfg.scs, bwp_cfg.cp);
 
   const prb_interval& freq_prbs = mac_pdu.resources.prbs;
-  builder.set_allocation_in_frequency_parameters(freq_prbs);
+  builder.set_frequency_allocation_parameters(freq_prbs);
 
   const ofdm_symbol_range& symbols = mac_pdu.resources.symbols;
-  builder.set_allocation_in_time_parameters(symbols);
+  builder.set_time_allocation_parameters(symbols);
 
-  fill_custom_parameters(builder, mac_pdu);
+  const prb_interval& hop_prbs = mac_pdu.resources.second_hop_prbs;
+  builder.set_time_allocation_parameters(mac_pdu.resources.symbols)
+      .set_hopping_information_parameters(hop_prbs.start());
+
+  fill_format_parameters(builder, mac_pdu);
 }

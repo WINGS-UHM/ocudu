@@ -12,11 +12,12 @@ using namespace unittests;
 
 TEST(mac_to_fapi_srs_pdu_test, valid_srs_pdu_should_pass)
 {
-  const srs_info_helper& pdu_test = build_valid_srs_pdu();
-  const srs_info&        mac_pdu  = pdu_test.pdu;
-  fapi::ul_srs_pdu       fapi_pdu;
+  const srs_info_helper&   pdu_test = build_valid_srs_pdu();
+  const srs_info&          mac_pdu  = pdu_test.pdu;
+  fapi::ul_srs_pdu         fapi_pdu;
+  fapi::ul_srs_pdu_builder builder(fapi_pdu);
 
-  convert_srs_mac_to_fapi(fapi_pdu, mac_pdu);
+  convert_srs_mac_to_fapi(builder, mac_pdu);
 
   ASSERT_EQ(mac_pdu.crnti, fapi_pdu.rnti);
 

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/rb_id.h"
@@ -26,6 +27,8 @@ struct gnbdu_config_update_request;
 }
 
 namespace test_helpers {
+
+bool is_f1_setup_request_valid(const f1ap_message& msg);
 
 bool is_gnb_du_config_update_valid(const f1ap_message& msg);
 bool is_gnb_du_config_update_valid(const f1ap_message& msg, const odu::gnbdu_config_update_request& req);

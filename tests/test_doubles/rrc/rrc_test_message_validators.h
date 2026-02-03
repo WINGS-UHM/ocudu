@@ -59,5 +59,7 @@ bool is_valid_rrc_release_with_suspend(const byte_buffer& dl_dcch_msg);
 bool is_valid_rrc_resume(const asn1::rrc_nr::dl_dcch_msg_s& msg);
 bool is_valid_rrc_resume(const byte_buffer& dl_dcch_msg);
 
+bool is_valid_sib1(const byte_buffer& packed_sib1);
+
 } // namespace test_helpers
 } // namespace ocudu

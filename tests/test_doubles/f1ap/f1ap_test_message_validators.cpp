@@ -30,6 +30,25 @@ static bool is_packable(const f1ap_message& msg)
   return msg.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS;
 }
 
+bool test_helpers::is_f1_setup_request_valid(const f1ap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_F1AP_ID_F1_SETUP);
+  const auto& f1_setup_req = msg.pdu.init_msg().value.f1_setup_request();
+  if (f1_setup_req->gnb_du_served_cells_list_present) {
+    TRUE_OR_RETURN(f1_setup_req->gnb_du_served_cells_list.size() > 0);
+    for (auto& cell : f1_setup_req->gnb_du_served_cells_list) {
+      auto& item = cell.value().gnb_du_served_cells_item();
+      if (item.gnb_du_sys_info_present) {
+        TRUE_OR_RETURN(item.gnb_du_sys_info.sib1_msg.size() > 0);
+        TRUE_OR_RETURN(test_helpers::is_valid_sib1(item.gnb_du_sys_info.sib1_msg));
+      }
+    }
+  }
+  TRUE_OR_RETURN(is_packable(msg));
+  return true;
+}
+
 bool ocudu::test_helpers::is_gnb_du_config_update_valid(const f1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::init_msg);

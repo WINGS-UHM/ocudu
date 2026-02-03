@@ -252,3 +252,11 @@ bool ocudu::test_helpers::is_valid_rrc_resume(const byte_buffer& dl_dcch_msg)
   TRUE_OR_RETURN(msg.unpack(bref) == asn1::OCUDUASN_SUCCESS);
   return is_valid_rrc_resume(msg);
 }
+
+bool test_helpers::is_valid_sib1(const byte_buffer& packed_sib1)
+{
+  asn1::cbit_ref       bref{packed_sib1};
+  asn1::rrc_nr::sib1_s msg;
+  TRUE_OR_RETURN(msg.unpack(bref) == asn1::OCUDUASN_SUCCESS);
+  return true;
+}

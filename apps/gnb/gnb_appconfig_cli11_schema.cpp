@@ -109,9 +109,6 @@ void ocudu::autoderive_supported_tas_for_amf_from_du_cells(const du_high_unit_co
   }
 
   // Clear supported TAs.
-  ocudulog::fetch_basic_logger("CONFIG").debug(
-      "{} supported TAs will be derived from DU cell config",
-      cu_cp_cfg.amf_config.amf.is_default_supported_tas ? "No supported TAs configured," : "--no-core configured,");
   cu_cp_cfg.amf_config.amf.supported_tas.clear();
   cu_cp_cfg.amf_config.amf.is_default_supported_tas = false;
 

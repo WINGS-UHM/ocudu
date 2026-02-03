@@ -189,16 +189,22 @@ drb_setup_result pdu_session_manager_impl::handle_drb_to_setup_item(pdu_session&
 
   // Make sure 5QI exists before creating DRB.
   if (drb_to_setup.qos_flow_info_to_be_setup.empty()) {
+    logger.log_warning(
+        "Cannot create {} for {}. QoS flow info is empty", drb_to_setup.drb_id, new_session.pdu_session_id);
     return drb_result;
   }
   five_qi_t five_qi = drb_to_setup.qos_flow_info_to_be_setup.begin()->qos_flow_level_qos_params.qos_desc.get_5qi();
   if (qos_cfg.find(five_qi) == qos_cfg.end()) {
+    logger.log_warning(
+        "Cannot create {} for {}. {} not found", drb_to_setup.drb_id, new_session.pdu_session_id, five_qi);
     drb_result.cause = e1ap_cause_radio_network_t::not_supported_5qi_value;
     return drb_result;
   }
 
   // Make sure ROHC is supported when requested
   if (drb_to_setup.pdcp_cfg.rohc_config.has_value() && !rohc::rohc_supported()) {
+    logger.log_warning(
+        "Cannot create {} for {}. ROHC is not supported. {}", drb_to_setup.drb_id, new_session.pdu_session_id, five_qi);
     drb_result.cause = e1ap_cause_radio_network_t::pdcp_cfg_not_supported;
     return drb_result;
   }

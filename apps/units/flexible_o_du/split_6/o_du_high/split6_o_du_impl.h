@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "slot_point_extender_adaptor.h"
 #include "ocudu/du/du.h"
 #include "ocudu/du/du_high/o_du_high.h"
 #include "ocudu/du/du_operation_controller.h"
@@ -25,9 +26,10 @@ class radio_unit;
 class split6_o_du_impl : public odu::du, public du_operation_controller
 {
 public:
-  explicit split6_o_du_impl(unsigned                                        nof_cells_,
-                            std::unique_ptr<fapi_adaptor::phy_fapi_adaptor> adaptor_,
-                            std::unique_ptr<odu::o_du_high>                 odu_hi_);
+  split6_o_du_impl(unsigned                                        nof_cells_,
+                   std::chrono::microseconds                       slot_duration,
+                   std::unique_ptr<fapi_adaptor::phy_fapi_adaptor> adaptor_,
+                   std::unique_ptr<odu::o_du_high>                 odu_hi_);
 
   // See interface for documentation.
   du_operation_controller& get_operation_controller() override { return *this; }
@@ -40,6 +42,7 @@ public:
 
 private:
   const unsigned                                  nof_cells;
+  std::vector<slot_point_extender_adaptor>        slot_adaptors;
   std::unique_ptr<odu::o_du_high>                 odu_hi;
   std::unique_ptr<fapi_adaptor::phy_fapi_adaptor> adaptor;
 };

@@ -68,9 +68,12 @@ o_du_unit ocudu::create_o_du_split6(const split6_o_du_unit_config&              
   odu_unit.commands = std::move(odu_hi_unit.commands);
   odu_unit.metrics  = std::move(odu_hi_unit.metrics);
 
+  std::chrono::microseconds slot_duration{
+      static_cast<unsigned>(1000.0 / pow2(to_numerology_value(du_hi_unit_cfg.cells_cfg.front().cell.common_scs)))};
+
   // Create the DU.
   odu_unit.unit = std::make_unique<split6_o_du_impl>(
-      du_hi_unit_cfg.cells_cfg.size(), std::move(fapi_adaptor), std::move(odu_hi_unit.o_du_hi));
+      du_hi_unit_cfg.cells_cfg.size(), slot_duration, std::move(fapi_adaptor), std::move(odu_hi_unit.o_du_hi));
   report_error_if_not(odu_unit.unit, "Invalid Distributed Unit");
 
   announce_du_high_cells(du_hi_unit_cfg);

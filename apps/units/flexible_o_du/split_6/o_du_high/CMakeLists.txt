@@ -7,6 +7,7 @@
 #
 
 set(SOURCES
+        slot_point_extender_adaptor.cpp
         split6_o_du_application_unit_impl.cpp
         split6_o_du_factory.cpp
         split6_o_du_impl.cpp

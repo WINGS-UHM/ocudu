@@ -20,6 +20,7 @@
 #include "ocudu/ran/pcch/pcch_configuration.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include <gtest/gtest.h>
 #include <random>
 
@@ -356,10 +357,11 @@ TEST_F(paging_sched_partial_slot_tester, successfully_allocated_paging_grant_ss_
   cell_cfg_request.tdd_ul_dl_cfg_common = tdd_cfg;
   // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
   cell_cfg_request.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
-      config_helpers::make_pdsch_time_domain_resource(cell_cfg_request.searchspace0,
-                                                      cell_cfg_request.dl_cfg_common.init_dl_bwp.pdcch_common,
-                                                      std::nullopt,
-                                                      cell_cfg_request.tdd_ul_dl_cfg_common);
+      time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
+          cell_cfg_request.tdd_ul_dl_cfg_common,
+          cell_cfg_request.dl_cfg_common.init_dl_bwp.generic_params.cp,
+          time_domain_resource_helper::calculate_minimum_pdsch_symbol(
+              cell_cfg_request.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt));
 
   // Set Paging configuration to a particular value in order to derive the 5G-S-TMSI, such that Paging Occasion
   // of UE fall in partial slot of above set TDD configuration. i.e. we would like to force Paging Occasion index of UE

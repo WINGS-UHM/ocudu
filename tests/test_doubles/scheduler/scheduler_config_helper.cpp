@@ -13,6 +13,7 @@
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 
 using namespace ocudu;
 
@@ -61,7 +62,7 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
 
   if (sched_req.tdd_ul_dl_cfg_common.has_value()) {
     sched_req.dl_data_to_ul_ack =
-        config_helpers::generate_k1_candidates(*sched_req.tdd_ul_dl_cfg_common, params.min_k1);
+        time_domain_resource_helper::generate_k1_candidates(*sched_req.tdd_ul_dl_cfg_common, params.min_k1);
   } else {
     sched_req.dl_data_to_ul_ack = {params.min_k1};
   }

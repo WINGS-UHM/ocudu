@@ -32,6 +32,7 @@
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_validator.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include <algorithm>
 
 using namespace ocudu;
@@ -788,10 +789,11 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     // PDSCH-Config - Update PDSCH time domain resource allocations based on partial slot and/or dedicated PDCCH
     // configuration.
     out_cell.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
-        config_helpers::make_pdsch_time_domain_resource(param.search_space0_index,
-                                                        out_cell.dl_cfg_common.init_dl_bwp.pdcch_common,
-                                                        out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg,
-                                                        out_cell.tdd_ul_dl_cfg_common);
+        time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
+            out_cell.tdd_ul_dl_cfg_common,
+            out_cell.dl_cfg_common.init_dl_bwp.generic_params.cp,
+            time_domain_resource_helper::calculate_minimum_pdsch_symbol(
+                out_cell.dl_cfg_common.init_dl_bwp.pdcch_common, out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg));
 
     out_cell.ue_ded_serv_cell_cfg.pdsch_serv_cell_cfg->nof_harq_proc =
         static_cast<pdsch_serving_cell_config::nof_harq_proc_for_pdsch>(

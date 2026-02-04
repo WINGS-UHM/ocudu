@@ -20,6 +20,7 @@
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <ostream>
@@ -120,8 +121,12 @@ protected:
       req.tdd_ul_dl_cfg_common = t_params.tdd_config;
     }
 
-    req.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list = config_helpers::make_pdsch_time_domain_resource(
-        req.searchspace0, req.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt, t_params.tdd_config);
+    req.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
+        time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
+            t_params.tdd_config,
+            req.dl_cfg_common.init_dl_bwp.generic_params.cp,
+            time_domain_resource_helper::calculate_minimum_pdsch_symbol(req.dl_cfg_common.init_dl_bwp.pdcch_common,
+                                                                        std::nullopt));
 
     for (auto& pdsch_td_alloc : req.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
       pdsch_td_alloc.k0 = t_params.k0;

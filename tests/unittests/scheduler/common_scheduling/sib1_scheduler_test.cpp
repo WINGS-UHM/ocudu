@@ -18,6 +18,7 @@
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include "ocudu/support/ocudu_test.h"
 #include <gtest/gtest.h>
 
@@ -684,8 +685,11 @@ protected:
           msg.tdd_ul_dl_cfg_common = GetParam().tdd_config;
           // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
           msg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
-              config_helpers::make_pdsch_time_domain_resource(
-                  msg.searchspace0, msg.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt, GetParam().tdd_config);
+              time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
+                  GetParam().tdd_config,
+                  msg.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                  time_domain_resource_helper::calculate_minimum_pdsch_symbol(
+                      msg.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt));
           return msg;
         }(),
         GetParam().sib1_rtx_period),

@@ -23,6 +23,7 @@
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/pucch_builder_params.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include <algorithm>
 #include <set>
 #include <vector>
@@ -75,44 +76,6 @@ static carrier_configuration make_default_carrier_configuration(const cell_confi
                bs_channel_bandwidth_to_MHz(cfg.carrier_bw),
                min_channel_bandwidth_to_MHz(min_channel_bw));
   return cfg;
-}
-
-static_vector<uint8_t, 8> ocudu::config_helpers::generate_k1_candidates(const tdd_ul_dl_config_common& tdd_cfg,
-                                                                        uint8_t                        min_k1)
-{
-  static constexpr unsigned MAX_K1_CANDIDATES = 8;
-  const unsigned            tdd_period        = nof_slots_per_tdd_period(tdd_cfg);
-  unsigned nof_dl_slots = tdd_cfg.pattern1.nof_dl_slots + (tdd_cfg.pattern1.nof_dl_symbols > 0 ? 1 : 0);
-  if (tdd_cfg.pattern2.has_value()) {
-    nof_dl_slots += tdd_cfg.pattern2->nof_dl_slots + (tdd_cfg.pattern2->nof_dl_symbols > 0 ? 1 : 0);
-  }
-
-  // Fill list of k1 candidates, prioritizing low k1 values to minimize latency, and avoiding having DL slots without
-  // a k1 value to choose from that corresponds to an UL slot. We reuse std::set to ensure the ordering of k1.
-  std::set<uint8_t>    result_set;
-  std::vector<uint8_t> next_k1_for_dl_slot(nof_dl_slots, min_k1);
-  unsigned             prev_size = 0;
-  do {
-    prev_size = result_set.size();
-    for (unsigned idx = 0, dl_idx = 0; idx < tdd_period and result_set.size() < MAX_K1_CANDIDATES; ++idx) {
-      if (has_active_tdd_dl_symbols(tdd_cfg, idx)) {
-        for (unsigned k1 = next_k1_for_dl_slot[dl_idx]; k1 <= SCHEDULER_MAX_K1; ++k1) {
-          // TODO: Consider partial UL slots when scheduler supports it.
-          if (is_tdd_full_ul_slot(tdd_cfg, idx + k1)) {
-            result_set.insert(k1);
-            next_k1_for_dl_slot[dl_idx] = k1 + 1;
-            break;
-          }
-        }
-        dl_idx++;
-      }
-    }
-  } while (prev_size != result_set.size() and result_set.size() < 8);
-
-  // Results are stored in ascending order to reduce the latency with which UCI is scheduled.
-  static_vector<uint8_t, 8> result(result_set.size());
-  std::copy(result_set.begin(), result_set.end(), result.begin());
-  return result;
 }
 
 carrier_configuration
@@ -245,13 +208,11 @@ dl_config_common ocudu::config_helpers::make_default_dl_config_common(const cell
   cfg.init_dl_bwp.pdcch_common.sib1_search_space_id   = to_search_space_id(0);
   cfg.init_dl_bwp.pdcch_common.paging_search_space_id = to_search_space_id(1);
   cfg.init_dl_bwp.pdcch_common.ra_search_space_id     = to_search_space_id(1);
-  cfg.init_dl_bwp.pdsch_common.pdsch_td_alloc_list    = make_pdsch_time_domain_resource(
-      params.search_space0_index,
-      cfg.init_dl_bwp.pdcch_common,
-      make_ue_dedicated_pdcch_config(params),
-      band_helper::get_duplex_mode(cfg.freq_info_dl.freq_band_list.back().band) == duplex_mode::TDD
-             ? *params.tdd_ul_dl_cfg_common
-             : std::optional<tdd_ul_dl_config_common>{});
+  cfg.init_dl_bwp.pdsch_common.pdsch_td_alloc_list = time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
+      params.tdd_ul_dl_cfg_common,
+      cfg.init_dl_bwp.generic_params.cp,
+      time_domain_resource_helper::calculate_minimum_pdsch_symbol(cfg.init_dl_bwp.pdcch_common,
+                                                                  make_ue_dedicated_pdcch_config(params)));
 
   // Configure PCCH.
   cfg.pcch_cfg.default_paging_cycle = paging_cycle::rf128;
@@ -260,47 +221,6 @@ dl_config_common ocudu::config_helpers::make_default_dl_config_common(const cell
   cfg.pcch_cfg.ns                   = pcch_config::nof_po_per_pf::one;
 
   return cfg;
-}
-
-std::vector<pusch_time_domain_resource_allocation>
-ocudu::config_helpers::generate_k2_candidates(cyclic_prefix cp, const tdd_ul_dl_config_common& tdd_cfg, uint8_t min_k2)
-{
-  const unsigned SYMBOLS_PER_SLOT = get_nsymb_per_slot(cp);
-
-  const unsigned tdd_period_slots  = nof_slots_per_tdd_period(tdd_cfg);
-  const unsigned nof_dl_slots      = nof_dl_slots_per_tdd_period(tdd_cfg);
-  const unsigned nof_full_ul_slots = nof_full_ul_slots_per_tdd_period(tdd_cfg);
-
-  std::vector<pusch_time_domain_resource_allocation> result;
-  result.reserve(pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS);
-  for (unsigned idx = 0; idx < tdd_period_slots and result.size() < pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS;
-       ++idx) {
-    // For every slot containing DL symbols check for corresponding k2 value.
-    if (get_active_tdd_dl_symbols(tdd_cfg, idx, cp).length() > 0) {
-      for (uint8_t k2 = min_k2; k2 <= SCHEDULER_MAX_K2 and result.size() < pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS;
-           ++k2) {
-        // TODO: Consider partial UL slots when scheduler supports it.
-        if (get_active_tdd_ul_symbols(tdd_cfg, idx + k2, cp).length() == SYMBOLS_PER_SLOT) {
-          if (std::none_of(result.begin(), result.end(), [k2](const auto& res) { return res.k2 == k2; })) {
-            result.emplace_back(pusch_time_domain_resource_allocation{
-                k2, sch_mapping_type::typeA, ofdm_symbol_range{0, SYMBOLS_PER_SLOT}});
-          }
-          // [Implementation-defined] For DL heavy (nof. of DL slots greater than nof. UL slots) TDD configuration nof.
-          // k2 values are generated based on nof. DL slots i.e. one k2 value per DL slot. But in the case of UL
-          // heavy TDD configuration we generate all applicable k2 value(s) for each DL slot to allow multiple UL PDCCH
-          // allocations in the same slot for same UE.
-          if (nof_dl_slots > nof_full_ul_slots) {
-            break;
-          }
-        }
-      }
-    }
-  }
-  // Sorting in ascending order is performed to reduce the latency with which PUSCH is scheduled.
-  std::sort(result.begin(), result.end(), [](const auto& lhs, const auto& rhs) {
-    return lhs.k2 < rhs.k2 or (lhs.k2 == rhs.k2 and lhs.symbols.length() > rhs.symbols.length());
-  });
-  return result;
 }
 
 ul_config_common ocudu::config_helpers::make_default_ul_config_common(const cell_config_builder_params_extended& params)
@@ -357,19 +277,16 @@ ul_config_common ocudu::config_helpers::make_default_ul_config_common(const cell
 
   cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window = 10U << to_numerology_value(params.scs_common);
   cfg.init_ul_bwp.rach_cfg_common->rach_cfg_generic.preamble_rx_target_pw = -100;
+
   cfg.init_ul_bwp.pusch_cfg_common.emplace();
-  if (band_helper::get_duplex_mode(params.dl_carrier.band) == duplex_mode::FDD) {
-    cfg.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list = {
-        pusch_time_domain_resource_allocation{params.min_k2, sch_mapping_type::typeA, ofdm_symbol_range{0, 14}}};
-  } else {
-    // TDD
-    // - [Implementation-defined] Ensure k2 value which is less than or equal to minimum value of k1(s) exist in the
-    // first entry of list. This way PDSCH(s) are scheduled before PUSCH and all DL slots are filled with PDSCH and all
-    // UL slots are filled with PUSCH under heavy load. It also ensures that correct DAI value goes in the UL PDCCH of
-    // DCI Format 0_1.
-    cfg.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list =
-        generate_k2_candidates(cfg.init_ul_bwp.generic_params.cp, *params.tdd_ul_dl_cfg_common, params.min_k2);
-  }
+  // - [Implementation-defined] Ensure k2 value which is less than or equal to minimum value of k1(s) exist in the
+  // first entry of list. This way PDSCH(s) are scheduled before PUSCH and all DL slots are filled with PDSCH and all
+  // UL slots are filled with PUSCH under heavy load. It also ensures that correct DAI value goes in the UL PDCCH of
+  // DCI Format 0_1.
+  cfg.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list =
+      time_domain_resource_helper::generate_dedicated_pusch_td_res_list(
+          params.tdd_ul_dl_cfg_common, cfg.init_ul_bwp.generic_params.cp, params.min_k2);
+
   cfg.init_ul_bwp.pucch_cfg_common.emplace();
   cfg.init_ul_bwp.pucch_cfg_common->pucch_resource_common        = 11;
   cfg.init_ul_bwp.pucch_cfg_common->group_hopping                = pucch_group_hopping::NEITHER;
@@ -582,7 +499,8 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
     pucch_cfg.dl_data_to_ul_ack = {params.min_k1};
   } else {
     // TDD
-    pucch_cfg.dl_data_to_ul_ack = generate_k1_candidates(*params.tdd_ul_dl_cfg_common, params.min_k1);
+    pucch_cfg.dl_data_to_ul_ack =
+        time_domain_resource_helper::generate_k1_candidates(*params.tdd_ul_dl_cfg_common, params.min_k1);
   }
 
   // Compute the max UCI payload per format.
@@ -781,131 +699,6 @@ uint8_t ocudu::config_helpers::compute_max_nof_candidates(aggregation_level     
     max_nof_candidates = 6;
   }
   return max_nof_candidates > PDCCH_MAX_NOF_CANDIDATES_SS ? PDCCH_MAX_NOF_CANDIDATES_SS : max_nof_candidates;
-}
-
-std::vector<pdsch_time_domain_resource_allocation>
-ocudu::config_helpers::make_pdsch_time_domain_resource(uint8_t                                       ss0_idx,
-                                                       const pdcch_config_common&                    common_pdcch_cfg,
-                                                       const std::optional<pdcch_config>&            ded_pdcch_cfg,
-                                                       const std::optional<tdd_ul_dl_config_common>& tdd_cfg)
-{
-  const std::optional<coreset_configuration> coreset0                                = common_pdcch_cfg.coreset0;
-  const std::optional<coreset_configuration> common_coreset                          = common_pdcch_cfg.common_coreset;
-  unsigned                                   pattern1_nof_dl_symbols_in_special_slot = 0;
-  unsigned                                   pattern2_nof_dl_symbols_in_special_slot = 0;
-  if (tdd_cfg.has_value()) {
-    pattern1_nof_dl_symbols_in_special_slot = tdd_cfg->pattern1.nof_dl_symbols;
-    if (tdd_cfg->pattern2.has_value()) {
-      pattern2_nof_dl_symbols_in_special_slot = tdd_cfg->pattern2->nof_dl_symbols;
-    }
-  }
-  std::set<ofdm_symbol_range> pdsch_symbols;
-
-  // Compute the maximum duration configured CORESETs can occupy.
-  uint8_t max_coreset_duration = 0;
-  if (coreset0.has_value() and coreset0->duration > max_coreset_duration) {
-    max_coreset_duration = coreset0->duration;
-  }
-  if (common_coreset.has_value() and common_coreset->duration > max_coreset_duration) {
-    max_coreset_duration = common_coreset->duration;
-  }
-  if (ded_pdcch_cfg.has_value()) {
-    for (const coreset_configuration& cs_cfg : ded_pdcch_cfg->coresets) {
-      max_coreset_duration = std::max<unsigned>(cs_cfg.duration, max_coreset_duration);
-    }
-  }
-
-  // See TS 38.214, Table 5.1.2.1-1: Valid S and L combinations.
-  static constexpr unsigned pdsch_mapping_typeA_min_L_value = 3;
-
-  // TODO: Consider SearchSpace periodicity while generating PDSCH OFDM symbol range. If there is no PDCCH, there is no
-  //  PDSCH since we dont support k0 != 0 yet.
-
-  // NOTE1: Number of DL PDSCH symbols must be at least greater than SearchSpace monitoring symbol index + maximum
-  // CORESET duration for PDSCH allocation in partial slot. Otherwise, it can be used only for UL PDCCH allocations.
-  // NOTE2: We don't support multiple monitoring occasions in a slot belonging to a SearchSpace.
-  // NOTE3: It is assumed that a validator has ensured that a CORESET exists corresponding to the CORESET Id set in
-  // SearchSpace configuration.
-  unsigned ss_start_symbol_idx;
-  // SearchSpaces in Common PDCCH configuration.
-  for (const search_space_configuration& ss_cfg : common_pdcch_cfg.search_spaces) {
-    ss_start_symbol_idx = 0;
-    if (coreset0.has_value()) {
-      if (ss_cfg.is_search_space0() and ss_cfg.get_coreset_id() == coreset0->id) {
-        // Fetch SearchSpace#0 configuration.
-        const pdcch_type0_css_occasion_pattern1_description ss0_occasion =
-            pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
-                .is_fr2 = false, .ss_zero_index = ss0_idx, .nof_symb_coreset = coreset0->duration});
-        // Consider the starting index of last PDCCH monitoring occasion to account for all SSB beams.
-        ss_start_symbol_idx = *std::max_element(ss0_occasion.start_symbol.begin(), ss0_occasion.start_symbol.end());
-      } else if (not ss_cfg.is_search_space0() and ss_cfg.get_coreset_id() == coreset0->id) {
-        ss_start_symbol_idx = ss_cfg.get_first_symbol_index();
-      }
-    }
-    if (common_coreset.has_value()) {
-      if (not ss_cfg.is_search_space0() and ss_cfg.get_coreset_id() == common_coreset->id) {
-        ss_start_symbol_idx = ss_cfg.get_first_symbol_index();
-      }
-    }
-
-    // For slots with all DL symbols. i.e. full DL slot.
-    pdsch_symbols.insert({ss_start_symbol_idx + max_coreset_duration, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP});
-    // For special slots with DL symbols in TDD pattern 1 if configured.
-    if (pattern1_nof_dl_symbols_in_special_slot > 0 and
-        (pattern1_nof_dl_symbols_in_special_slot > (ss_start_symbol_idx + max_coreset_duration)) and
-        (pattern1_nof_dl_symbols_in_special_slot - ss_start_symbol_idx - max_coreset_duration) >=
-            pdsch_mapping_typeA_min_L_value) {
-      pdsch_symbols.insert({ss_start_symbol_idx + max_coreset_duration, pattern1_nof_dl_symbols_in_special_slot});
-    }
-    // For special slots with DL symbols in TDD pattern 2 if configured.
-    if (pattern2_nof_dl_symbols_in_special_slot > 0 and
-        (pattern2_nof_dl_symbols_in_special_slot > (ss_start_symbol_idx + max_coreset_duration)) and
-        (pattern2_nof_dl_symbols_in_special_slot - ss_start_symbol_idx - max_coreset_duration) >=
-            pdsch_mapping_typeA_min_L_value) {
-      pdsch_symbols.insert({ss_start_symbol_idx + max_coreset_duration, pattern2_nof_dl_symbols_in_special_slot});
-    }
-  }
-  // SearchSpaces in Dedicated PDCCH configuration.
-  if (ded_pdcch_cfg.has_value()) {
-    for (const search_space_configuration& ss_cfg : ded_pdcch_cfg->search_spaces) {
-      ss_start_symbol_idx = ss_cfg.get_first_symbol_index();
-      // For slots with all DL symbols. i.e. full DL slot.
-      pdsch_symbols.insert({ss_start_symbol_idx + max_coreset_duration, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP});
-      // For special slots with DL symbols in TDD pattern 1 if configured.
-      if (pattern1_nof_dl_symbols_in_special_slot > 0 and
-          (pattern1_nof_dl_symbols_in_special_slot > (ss_start_symbol_idx + max_coreset_duration)) and
-          (pattern1_nof_dl_symbols_in_special_slot - ss_start_symbol_idx - max_coreset_duration) >=
-              pdsch_mapping_typeA_min_L_value) {
-        pdsch_symbols.insert({ss_start_symbol_idx + max_coreset_duration, pattern1_nof_dl_symbols_in_special_slot});
-      }
-      // For special slots with DL symbols in TDD pattern 2 if configured.
-      if (pattern2_nof_dl_symbols_in_special_slot > 0 and
-          (pattern2_nof_dl_symbols_in_special_slot > (ss_start_symbol_idx + max_coreset_duration)) and
-          (pattern2_nof_dl_symbols_in_special_slot - ss_start_symbol_idx - max_coreset_duration) >=
-              pdsch_mapping_typeA_min_L_value) {
-        pdsch_symbols.insert({ss_start_symbol_idx + max_coreset_duration, pattern2_nof_dl_symbols_in_special_slot});
-      }
-    }
-  }
-
-  // Make PDSCH time domain resource allocation.
-  std::vector<pdsch_time_domain_resource_allocation> result;
-  result.reserve(pdsch_symbols.size());
-  for (const auto& symbs : pdsch_symbols) {
-    result.push_back(
-        pdsch_time_domain_resource_allocation{.k0 = 0, .map_type = sch_mapping_type::typeA, .symbols = symbs});
-  }
-
-  // Sort PDSCH time domain resource allocations in descending order of OFDM symbol range length to always choose
-  // the resource which occupies most of the DL symbols in a slot.
-  std::sort(result.begin(),
-            result.end(),
-            [](const pdsch_time_domain_resource_allocation& res_alloc_a,
-               const pdsch_time_domain_resource_allocation& res_alloc_b) {
-              return res_alloc_a.symbols.length() > res_alloc_b.symbols.length();
-            });
-
-  return result;
 }
 
 ue_timers_and_constants_config ocudu::config_helpers::make_default_ue_timers_and_constants_config()

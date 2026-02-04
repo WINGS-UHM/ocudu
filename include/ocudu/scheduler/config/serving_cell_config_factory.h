@@ -31,11 +31,6 @@ struct cell_config_builder_params_extended : public cell_config_builder_params {
   unsigned               cell_nof_crbs;
 };
 
-static_vector<uint8_t, 8> generate_k1_candidates(const tdd_ul_dl_config_common& tdd_cfg, uint8_t min_k1 = 4);
-
-std::vector<pusch_time_domain_resource_allocation>
-generate_k2_candidates(cyclic_prefix cp, const tdd_ul_dl_config_common& tdd_cfg, uint8_t min_k2 = 4);
-
 carrier_configuration make_default_dl_carrier_configuration(const cell_config_builder_params_extended& params = {});
 
 carrier_configuration make_default_ul_carrier_configuration(const cell_config_builder_params_extended& params = {});
@@ -85,24 +80,6 @@ create_default_initial_ue_spcell_cell_config(const cell_config_builder_params_ex
 /// \brief Computes maximum nof. candidates that can be accommodated in a CORESET for a given aggregation level.
 /// \return Maximum nof. candidates for a aggregation level.
 uint8_t compute_max_nof_candidates(aggregation_level aggr_lvl, const coreset_configuration& cs_cfg);
-
-/// \brief Creates PDSCH Time Domain Resource allocation based on CORESET and SearchSpace configuration.
-///
-/// Function generates a list of PDSCH Time Domain Resource allocation over which PDSCH can be scheduled. The list is
-/// generated considering the nof. DL symbols configured in a particular slot, CORESET duration and first PDCCH
-/// monitoring symbol index in SearchSpace configuration. This is mainly needed in TDD usecase where TDD pattern
-/// configured contains special slots where not all OFDM symbols are reserved for Downlink transmission.
-///
-/// \param[in] ss0_idx SearchSpace#0 index.
-/// \param[in] common_pdcch_cfg Common PDCCH configuration.
-/// \param[in] ded_pdcch_cfg UE dedicated PDCCH configuration.
-/// \param[in] tdd_cfg TDD configuration.
-/// \return List of PDSCH Time Domain Resource allocation.
-std::vector<pdsch_time_domain_resource_allocation>
-make_pdsch_time_domain_resource(uint8_t                                       ss0_idx,
-                                const pdcch_config_common&                    common_pdcch_cfg,
-                                const std::optional<pdcch_config>&            ded_pdcch_cfg = {},
-                                const std::optional<tdd_ul_dl_config_common>& tdd_cfg       = {});
 
 /// \brief Creates a default UE timers and constants configuration.
 ue_timers_and_constants_config make_default_ue_timers_and_constants_config();

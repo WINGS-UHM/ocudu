@@ -339,7 +339,7 @@ bool paging_scheduler::is_there_space_available_for_paging(const cell_resource_a
   //   for now only initial DL BWP is considered for simplification in this function.
 
   const pdsch_time_domain_resource_allocation& pdsch_td_cfg = pdsch_td_alloc_list[pdsch_time_res];
-  static const unsigned                        nof_symb_sh  = pdsch_td_cfg.symbols.length();
+  const unsigned                               nof_symb_sh  = pdsch_td_cfg.symbols.length();
   static constexpr unsigned                    nof_layers   = 1;
   // As per Section 5.1.3.2, TS 38.214, nof_oh_prb = 0 if PDSCH is scheduled by PDCCH with a CRC scrambled by P-RNTI.
   static constexpr unsigned nof_oh_prb = 0;

@@ -13,6 +13,7 @@ set(SOURCES serving_cell_config_factory.cpp
         serving_cell_config_validator.cpp
         csi_helper.cpp
         pucch_resource_generator.cpp
+        time_domain_resource_helper.cpp
         rlm_helper.cpp)
 add_library(sched_config STATIC ${SOURCES})
 target_link_libraries(sched_config ocudu_ran du_resource_manager)

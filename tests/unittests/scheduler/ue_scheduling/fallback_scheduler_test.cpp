@@ -25,6 +25,7 @@
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include "ocudu/support/test_utils.h"
 #include <algorithm>
 #include <gtest/gtest.h>
@@ -878,10 +879,11 @@ TEST_F(fallback_scheduler_tdd_tester, test_allocation_in_partial_slots_tdd)
   sched_cell_configuration_request_message cell_cfg = create_custom_cell_config_request(k0, tdd_cfg);
   // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
   cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
-      config_helpers::make_pdsch_time_domain_resource(cell_cfg.searchspace0,
-                                                      cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common,
-                                                      std::nullopt,
-                                                      cell_cfg.tdd_ul_dl_cfg_common);
+      time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
+          cell_cfg.tdd_ul_dl_cfg_common,
+          cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp,
+          time_domain_resource_helper::calculate_minimum_pdsch_symbol(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common,
+                                                                      std::nullopt));
   // Set minimum k1 according to TDD pattern.
   scheduler_expert_config expert_cfg = create_expert_config(max_msg4_mcs_index);
   expert_cfg.ue.min_k1               = 2;

@@ -14,7 +14,6 @@
 #include "pucch_detector_test_doubles.h"
 #include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
-#include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;

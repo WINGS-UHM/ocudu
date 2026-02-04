@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ocudulog/logger.h"
 #include "ocudu/phy/generic_functions/generic_functions_factories.h"
 #include "ocudu/phy/upper/channel_processors/prach/prach_detector.h"
 #include "ocudu/phy/upper/channel_processors/prach/prach_generator.h"

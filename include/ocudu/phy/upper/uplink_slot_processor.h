@@ -14,11 +14,6 @@
 #pragma once
 
 #include "ocudu/phy/support/shared_prach_buffer.h"
-#include "ocudu/phy/upper/channel_processors/prach/prach_detector.h"
-#include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
-#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
-#include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
-#include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
 
 namespace ocudu {
 

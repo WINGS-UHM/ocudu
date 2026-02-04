@@ -16,6 +16,7 @@
 #include "ocudu/fapi_adaptor/phy/phy_fapi_fastpath_adaptor_factory.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
 using namespace ocudu;
 using namespace odu;

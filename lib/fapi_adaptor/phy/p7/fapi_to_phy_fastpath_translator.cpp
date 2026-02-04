@@ -22,7 +22,6 @@
 #include "ocudu/fapi/common/error_indication_builder.h"
 #include "ocudu/instrumentation/traces/critical_traces.h"
 #include "ocudu/instrumentation/traces/du_traces.h"
-#include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/phy/support/prach_buffer_context.h"
 #include "ocudu/phy/support/resource_grid_pool.h"
 #include "ocudu/phy/support/shared_resource_grid.h"

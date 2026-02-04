@@ -9,21 +9,20 @@
  */
 
 #include "upper_phy_ssb_example.h"
-#include "ocudu/ocuduvec/bit.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/phy/support/prach_buffer.h"
 #include "ocudu/phy/support/prach_buffer_context.h"
 #include "ocudu/phy/support/re_pattern.h"
 #include "ocudu/phy/support/resource_grid_mapper.h"
 #include "ocudu/phy/support/resource_grid_reader.h"
-#include "ocudu/phy/support/resource_grid_writer.h"
 #include "ocudu/phy/support/shared_resource_grid.h"
 #include "ocudu/phy/support/support_factories.h"
 #include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
-#include "ocudu/phy/upper/channel_processors/prach/factories.h"
 #include "ocudu/phy/upper/channel_processors/ssb/factories.h"
 #include "ocudu/phy/upper/channel_processors/ssb/ssb_processor.h"
 #include "ocudu/phy/upper/sequence_generators/sequence_generator_factories.h"
 #include "ocudu/phy/upper/upper_phy_timing_context.h"
+#include "ocudu/ran/prach/prach_constants.h"
 #include "ocudu/ran/precoding/precoding_codebooks.h"
 #include <condition_variable>
 #include <mutex>
@@ -72,7 +71,7 @@ public:
                        std::unique_ptr<resource_grid_mapper> mapper_,
                        upper_phy_rg_gateway*                 gateway_,
                        upper_phy_rx_symbol_request_notifier* rx_symb_req_notifier_,
-                       const ssb_configuration&              ssb_config_,
+                       ssb_configuration                     ssb_config_,
                        bool                                  enable_random_data_,
                        bool                                  enable_ul_processing_,
                        bool                                  enable_prach_processing_,
@@ -87,7 +86,7 @@ public:
     mapper(std::move(mapper_)),
     gateway(gateway_),
     rx_symb_req_notifier(rx_symb_req_notifier_),
-    ssb_config(ssb_config_),
+    ssb_config(std::move(ssb_config_)),
     enable_random_data(enable_random_data_),
     enable_ul_processing(enable_ul_processing_),
     enable_prach_processing(enable_prach_processing_),

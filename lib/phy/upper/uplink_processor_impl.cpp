@@ -11,6 +11,7 @@
 #include "uplink_processor_impl.h"
 #include "ocudu/adt/scope_exit.h"
 #include "ocudu/instrumentation/traces/du_traces.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/phy/support/prach_buffer_context.h"
 #include "ocudu/phy/upper/unique_rx_buffer.h"
 #include "ocudu/phy/upper/upper_phy_rx_results_notifier.h"

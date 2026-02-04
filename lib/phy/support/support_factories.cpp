@@ -44,7 +44,7 @@ ocudu::create_generic_resource_grid_pool(std::vector<std::unique_ptr<resource_gr
 {
   std::vector<resource_grid_pool_wrapper> rg_wrappers;
   std::for_each(grids.begin(), grids.end(), [&rg_wrappers](std::unique_ptr<resource_grid>& grid) {
-    rg_wrappers.emplace_back(resource_grid_pool_wrapper(std::move(grid), nullptr));
+    rg_wrappers.emplace_back(std::move(grid), nullptr);
   });
 
   return std::make_unique<resource_grid_pool_impl>(std::move(rg_wrappers));
@@ -58,7 +58,7 @@ ocudu::create_asynchronous_resource_grid_pool(task_executor&                    
   std::for_each(grids.begin(),
                 grids.end(),
                 [&rg_wrappers, async_executor_ptr = &async_executor](std::unique_ptr<resource_grid>& grid) {
-                  rg_wrappers.emplace_back(resource_grid_pool_wrapper(std::move(grid), async_executor_ptr));
+                  rg_wrappers.emplace_back(std::move(grid), async_executor_ptr);
                 });
 
   return std::make_unique<resource_grid_pool_impl>(std::move(rg_wrappers));

@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "../../../phy_test_utils.h"
 #include "ocudu/phy/upper/signal_processors/pucch/factories.h"
 
 namespace ocudu {

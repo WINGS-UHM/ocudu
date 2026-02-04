@@ -10,12 +10,10 @@
 
 #pragma once
 
+#include "ocudu/hal/phy/upper/channel_processors/hw_accelerator_pdsch_enc_factory.h"
+#include "ocudu/hal/phy/upper/channel_processors/pusch/hw_accelerator_pusch_dec_factory.h"
+#include "ocudu/ocudulog/logger.h"
 #include "ocudu/phy/metrics/phy_metrics_notifiers.h"
-#include "ocudu/phy/support/support_factories.h"
-#include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
-#include "ocudu/phy/upper/channel_processors/pdsch/factories.h"
-#include "ocudu/phy/upper/channel_processors/prach/factories.h"
-#include "ocudu/phy/upper/channel_processors/pusch/factories.h"
 #include "ocudu/phy/upper/downlink_processor.h"
 #include "ocudu/phy/upper/phy_tap/phy_tap.h"
 #include "ocudu/phy/upper/rx_buffer_pool.h"

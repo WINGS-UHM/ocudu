@@ -16,24 +16,24 @@
 
 using namespace ocudu;
 
-// Resource element allocation patterns within a resource block for PDSCH DM-RS type 1.
+/// Resource element allocation patterns within a resource block for PDSCH DM-RS type 1.
 static const re_prb_mask& get_re_mask_type_1(unsigned cdm_group_id)
 {
   static constexpr unsigned MAX_CDM_GROUPS_TYPE1 = 2;
 
-  static const std::array<re_prb_mask, MAX_CDM_GROUPS_TYPE1> re_mask_type1 = {
+  static constexpr std::array<re_prb_mask, MAX_CDM_GROUPS_TYPE1> re_mask_type1 = {
       {{true, false, true, false, true, false, true, false, true, false, true, false},
        {false, true, false, true, false, true, false, true, false, true, false, true}}};
 
   return re_mask_type1[cdm_group_id];
 }
 
-// Resource element allocation patterns within a resource block for PDSCH DM-RS type 2.
+/// Resource element allocation patterns within a resource block for PDSCH DM-RS type 2.
 static const re_prb_mask& get_re_mask_type_2(unsigned cdm_group_id)
 {
   static constexpr unsigned MAX_CDM_GROUPS_TYPE2 = 3;
 
-  static std::array<const re_prb_mask, MAX_CDM_GROUPS_TYPE2> re_mask_type2 = {
+  static constexpr std::array<const re_prb_mask, MAX_CDM_GROUPS_TYPE2> re_mask_type2 = {
       {{true, true, false, false, false, false, true, true, false, false, false, false},
        {false, false, true, true, false, false, false, false, true, true, false, false},
        {false, false, false, false, true, true, false, false, false, false, true, true}}};

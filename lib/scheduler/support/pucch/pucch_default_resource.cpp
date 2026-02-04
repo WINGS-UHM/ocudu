@@ -43,28 +43,32 @@ unsigned ocudu::get_pucch_default_cyclic_shift(unsigned r_pucch, unsigned nof_cs
   return result;
 }
 
+/// TS38.213 Table 9.2.1-1.
+static const std::array<pucch_default_resource, 16> resource_table = {
+    {{pucch_format::FORMAT_0, 12, 2, 0, {0, 3}},
+     {pucch_format::FORMAT_0, 12, 2, 0, {0, 4, 8}},
+     {pucch_format::FORMAT_0, 12, 2, 3, {0, 4, 8}},
+     {pucch_format::FORMAT_1, 10, 4, 0, {0, 6}},
+     {pucch_format::FORMAT_1, 10, 4, 0, {0, 3, 6, 9}},
+     {pucch_format::FORMAT_1, 10, 4, 2, {0, 3, 6, 9}},
+     {pucch_format::FORMAT_1, 10, 4, 4, {0, 3, 6, 9}},
+     {pucch_format::FORMAT_1, 4, 10, 0, {0, 6}},
+     {pucch_format::FORMAT_1, 4, 10, 0, {0, 3, 6, 9}},
+     {pucch_format::FORMAT_1, 4, 10, 2, {0, 3, 6, 9}},
+     {pucch_format::FORMAT_1, 4, 10, 4, {0, 3, 6, 9}},
+     {pucch_format::FORMAT_1, 0, 14, 0, {0, 6}},
+     {pucch_format::FORMAT_1, 0, 14, 0, {0, 3, 6, 9}},
+     {pucch_format::FORMAT_1, 0, 14, 2, {0, 3, 6, 9}},
+     {pucch_format::FORMAT_1, 0, 14, 4, {0, 3, 6, 9}},
+     {pucch_format::FORMAT_1, 0, 14, 0, {0, 3, 6, 9}}}};
+
 pucch_default_resource ocudu::get_pucch_default_resource(unsigned index, unsigned N_bwp_size)
 {
-  // TS38.213 Table 9.2.1-1.
-  static const std::array<pucch_default_resource, 16> table = {{{pucch_format::FORMAT_0, 12, 2, 0, {0, 3}},
-                                                                {pucch_format::FORMAT_0, 12, 2, 0, {0, 4, 8}},
-                                                                {pucch_format::FORMAT_0, 12, 2, 3, {0, 4, 8}},
-                                                                {pucch_format::FORMAT_1, 10, 4, 0, {0, 6}},
-                                                                {pucch_format::FORMAT_1, 10, 4, 0, {0, 3, 6, 9}},
-                                                                {pucch_format::FORMAT_1, 10, 4, 2, {0, 3, 6, 9}},
-                                                                {pucch_format::FORMAT_1, 10, 4, 4, {0, 3, 6, 9}},
-                                                                {pucch_format::FORMAT_1, 4, 10, 0, {0, 6}},
-                                                                {pucch_format::FORMAT_1, 4, 10, 0, {0, 3, 6, 9}},
-                                                                {pucch_format::FORMAT_1, 4, 10, 2, {0, 3, 6, 9}},
-                                                                {pucch_format::FORMAT_1, 4, 10, 4, {0, 3, 6, 9}},
-                                                                {pucch_format::FORMAT_1, 0, 14, 0, {0, 6}},
-                                                                {pucch_format::FORMAT_1, 0, 14, 0, {0, 3, 6, 9}},
-                                                                {pucch_format::FORMAT_1, 0, 14, 2, {0, 3, 6, 9}},
-                                                                {pucch_format::FORMAT_1, 0, 14, 4, {0, 3, 6, 9}},
-                                                                {pucch_format::FORMAT_1, 0, 14, 0, {0, 3, 6, 9}}}};
-
-  ocudu_assert(index < table.size(), "PUCCH resource index {} exceeds the number of elements {}.", index, table.size());
-  pucch_default_resource result = table[index];
+  ocudu_assert(index < resource_table.size(),
+               "PUCCH resource index {} exceeds the number of elements {}.",
+               index,
+               resource_table.size());
+  pucch_default_resource result = resource_table[index];
 
   // Handle PRB offset for index 15.
   if (index == 15) {

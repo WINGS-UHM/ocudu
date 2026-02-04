@@ -168,7 +168,7 @@ class protocol_transaction_manager
 
 public:
   /// Time limit for a transaction to complete.
-  static const std::chrono::milliseconds max_timeout;
+  static constexpr std::chrono::milliseconds max_timeout{600000};
 
   protocol_transaction_manager(protocol_transaction_id_t nof_transaction_ids_, timer_factory timer_service_) :
     nof_transaction_ids(nof_transaction_ids_), timer_service(timer_service_)
@@ -313,9 +313,6 @@ private:
 
   std::unordered_map<protocol_transaction_id_t, transaction_context> running_transactions;
 };
-
-template <typename T>
-constexpr std::chrono::milliseconds protocol_transaction_manager<T>::max_timeout{600000};
 
 struct no_fail_response_path {};
 

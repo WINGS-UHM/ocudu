@@ -100,9 +100,9 @@ private:
   /// Rx window
   sdu_window<rlc_rx_am_sdu_info, rlc_bearer_logger> rx_window;
   /// Indicates the rx_window has not been changed, i.e. no need to rebuild status report.
-  static const bool rx_window_not_changed = false;
+  static constexpr bool rx_window_not_changed = false;
   /// Indicates the rx_window has been changed, i.e. need to rebuild status report.
-  static const bool rx_window_changed = true;
+  static constexpr bool rx_window_changed = true;
 
   /// Pre-allocated status reports for (re)-building, caching, and sharing with TX entity
   std::array<rlc_am_status_pdu, 3> status_buf;

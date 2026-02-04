@@ -52,7 +52,7 @@ void du_cell_stop_procedure::operator()(coro_context<async_task<void>>& ctx)
 
   // Wait for some slots to ensure all pending grants were flushed.
   // TODO: Move this wait to the MAC once the FAPI stop procedure is supported.
-  static const std::chrono::milliseconds mac_grant_flush_timeout{50};
+  static constexpr std::chrono::milliseconds mac_grant_flush_timeout{50};
   CORO_AWAIT(async_wait_for(timer, mac_grant_flush_timeout));
 
   proc_logger.log_proc_completed();
@@ -103,8 +103,8 @@ async_task<void> du_cell_stop_procedure::rem_ues_with_matching_pcell()
 async_task<void> du_cell_stop_procedure::await_cu_to_release_ues()
 {
   // Implementation-defined timeout for graceful UE removal. After which, we will force UE removal.
-  static const std::chrono::milliseconds periodic_check_timeout{10};
-  static const unsigned                  nof_checks = std::chrono::milliseconds{500} / periodic_check_timeout;
+  static constexpr std::chrono::milliseconds periodic_check_timeout{10};
+  static constexpr unsigned                  nof_checks = std::chrono::milliseconds{500} / periodic_check_timeout;
 
   return launch_async([this, count = 0U](coro_context<async_task<void>>& ctx) mutable {
     CORO_BEGIN(ctx);

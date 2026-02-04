@@ -32,7 +32,7 @@ struct gsm7_char {
 } // namespace
 
 /// GSM-7 default alphabet map, including the default extension table.
-static const std::array<gsm7_char, 96> gsm7_default_alphabet = {
+static constexpr std::array<gsm7_char, 96> gsm7_default_alphabet = {
     {{'@', 0x00, false},  {'$', 0x02, false}, {'\n', 0x0a, false}, {'_', 0x11, false}, {' ', 0x20, false},
      {'!', 0x21, false},  {'"', 0x22, false}, {'#', 0x23, false},  {'%', 0x25, false}, {'&', 0x26, false},
      {'\'', 0x27, false}, {'(', 0x28, false}, {')', 0x29, false},  {'*', 0x2a, false}, {'+', 0x2b, false},

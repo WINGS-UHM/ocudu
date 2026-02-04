@@ -262,7 +262,7 @@ std::thread unique_thread::make_thread(const std::string&               name,
     std::string fixed_name = name;
 
     // Truncate the thread name if it exceeds the maximum length.
-    static const unsigned MAX_THREADNAME_LEN = 15;
+    static constexpr unsigned MAX_THREADNAME_LEN = 15;
     if (fixed_name.size() > MAX_THREADNAME_LEN) {
       fixed_name.erase(MAX_THREADNAME_LEN, std::string::npos);
       fmt::println("Thread [{}]: Thread name '{}' exceeds {} characters, truncating to '{}'",

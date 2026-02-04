@@ -149,7 +149,7 @@ using th_flag = threshold_flag;
 } // namespace
 
 /// Unsorted list of thresholds.
-static const auto all_threshold_and_margins = to_array<threshold_and_margin_finder::threshold_entry>({
+static constexpr auto all_threshold_and_margins = to_array<threshold_and_margin_finder::threshold_entry>({
     // clang-format off
     {{/* nof_rx_ports */ 1, prach_subcarrier_spacing::kHz1_25, prach_format_type::zero, /* ZCZ */ 0}, {0.147F, /* combine symbols */ true, 5}, th_flag::orange},
     {{/* nof_rx_ports */ 1, prach_subcarrier_spacing::kHz1_25, prach_format_type::zero, /* ZCZ */ 1}, {1.000F, /* combine symbols */ true, 5}, th_flag::orange},

@@ -19,8 +19,8 @@
 using namespace ocudu;
 using namespace ocudu::ldpc;
 
-static const std::array<double, 4> shift_factor_bg1 = {0, 17, 33, 56};
-static const std::array<double, 4> shift_factor_bg2 = {0, 13, 25, 43};
+static constexpr std::array<double, 4> shift_factor_bg1 = {0, 17, 33, 56};
+static constexpr std::array<double, 4> shift_factor_bg2 = {0, 13, 25, 43};
 
 void ldpc_rate_matcher_impl::init(const codeblock_metadata& cfg, unsigned block_length, unsigned rm_length)
 {

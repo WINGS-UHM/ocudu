@@ -29,7 +29,7 @@ span<const uint8_t> search_space_info::get_k1_candidates() const
   // {1, 2, 3, 4, 5, 6, 7, 8}. For DCI format 1_1, if present, the PDSCH-to-HARQ-timing-indicator field values map to
   // values for a set of number of slots provided by dl-DataToUL-ACK as defined in Table 9.2.3-1.
   // Note: Tested UEs do not support k1 < 4.
-  static const std::array<uint8_t, 5> f1_0_list = {4, 5, 6, 7, 8};
+  static constexpr std::array<uint8_t, 5> f1_0_list = {4, 5, 6, 7, 8};
   if (get_dl_dci_format() == ocudu::dci_dl_format::f1_0) {
     return f1_0_list;
   }
@@ -465,9 +465,9 @@ static void apply_pdcch_candidate_monitoring_limits(slotted_array<search_space_i
                                                     const bwp_config&                                        bwp)
 {
   // TS 38.213, Table 10.1-3 - Maximum number of non-overlapped CCEs.
-  static const std::array<uint8_t, 4> max_non_overlapped_cces_per_slot = {56, 56, 48, 32};
+  static constexpr std::array<uint8_t, 4> max_non_overlapped_cces_per_slot = {56, 56, 48, 32};
   // Maximum nof. CCEs in a CORESET = maximum PDCCH frequency resources * maximum CORESET duration.
-  static const unsigned maximum_nof_cces =
+  static constexpr unsigned maximum_nof_cces =
       pdcch_constants::MAX_NOF_FREQ_RESOURCES * pdcch_constants::MAX_CORESET_DURATION;
 
   const unsigned max_pdcch_candidates = max_nof_monitored_pdcch_candidates(bwp.dl_common->value().generic_params.scs);

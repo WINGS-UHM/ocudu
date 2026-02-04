@@ -230,7 +230,7 @@ void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   ocudu_assert(not ss_info.cfg->is_common_search_space(), "SearchSpace must be of type UE-Specific SearchSpace");
 
   // TODO: Update the value based on nof. CWs enabled.
-  static const bool are_both_cws_enabled = false;
+  static constexpr bool are_both_cws_enabled = false;
 
   const bwp_downlink_common& active_dl_bwp_cmn = *ss_info.bwp->dl_common.value();
   const bwp_configuration&   active_dl_bwp     = active_dl_bwp_cmn.generic_params;

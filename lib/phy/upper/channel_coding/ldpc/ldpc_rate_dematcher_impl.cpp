@@ -18,8 +18,8 @@
 using namespace ocudu;
 using namespace ocudu::ldpc;
 
-static const std::array<double, 4> shift_factor_bg1 = {0, 17, 33, 56};
-static const std::array<double, 4> shift_factor_bg2 = {0, 13, 25, 43};
+static constexpr std::array<double, 4> shift_factor_bg1 = {0, 17, 33, 56};
+static constexpr std::array<double, 4> shift_factor_bg2 = {0, 13, 25, 43};
 
 void ldpc_rate_dematcher_impl::init(bool new_data, const codeblock_metadata::tb_common_metadata& cfg)
 {

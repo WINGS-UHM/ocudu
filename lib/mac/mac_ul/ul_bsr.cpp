@@ -78,19 +78,16 @@ expected<long_bsr_report> ocudu::decode_lbsr(bsr_format format, byte_buffer_view
   long_bsr_report lbsr = {};
 
   // Represents a Long BSR report with buffer size set to 0 for all LCGs.
-  static const long_bsr_report empty_lbsr_report = {.list =
-                                                        {
-                                                            {uint_to_lcg_id(0), 0},
-                                                            {uint_to_lcg_id(1), 0},
-                                                            {uint_to_lcg_id(2), 0},
-                                                            {uint_to_lcg_id(3), 0},
-                                                            {uint_to_lcg_id(4), 0},
-                                                            {uint_to_lcg_id(5), 0},
-                                                            {uint_to_lcg_id(6), 0},
-                                                            {uint_to_lcg_id(7), 0},
-                                                        }
-
-  };
+  static const long_bsr_report empty_lbsr_report = {.list = {
+                                                        {uint_to_lcg_id(0), 0},
+                                                        {uint_to_lcg_id(1), 0},
+                                                        {uint_to_lcg_id(2), 0},
+                                                        {uint_to_lcg_id(3), 0},
+                                                        {uint_to_lcg_id(4), 0},
+                                                        {uint_to_lcg_id(5), 0},
+                                                        {uint_to_lcg_id(6), 0},
+                                                        {uint_to_lcg_id(7), 0},
+                                                    }};
 
   byte_buffer_reader reader = payload;
 

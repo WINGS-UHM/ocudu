@@ -57,8 +57,8 @@ static void fill_codewords(fapi::dl_pdsch_pdu_builder& builder, span<const pdsch
 
   const units::bytes    tb_size_lbrm_bytes           = tbs_lbrm_default;
   const pdsch_codeword& cw                           = codewords.front();
-  static const bool     is_tb_crc_first_tb_required  = false;
-  static const bool     is_tb_crc_second_tb_required = false;
+  static constexpr bool is_tb_crc_first_tb_required  = false;
+  static constexpr bool is_tb_crc_second_tb_required = false;
 
   // NOTE: MAC uses the value of the target code rate x[1024], as per TS 38.214, Section 5.1.3.1, table 5.1.3.1-1.
   float R = cw.mcs_descr.get_normalised_target_code_rate();
@@ -73,7 +73,7 @@ static void fill_codeword_information(fapi::dl_pdsch_pdu_builder& builder,
                                       fapi::pdsch_ref_point_type  ref_point,
                                       unsigned                    nof_layers)
 {
-  static const unsigned transmision_scheme = 0;
+  static constexpr unsigned transmision_scheme = 0;
   builder.set_codeword_information_parameters(nid_pdsch, nof_layers, transmision_scheme, ref_point);
 }
 

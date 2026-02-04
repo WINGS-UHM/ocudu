@@ -35,7 +35,7 @@ static constexpr cf_t dot25(0.25F, 0.0F);
 static constexpr cf_t dot25j(0.0F, 0.25F);
 static constexpr cf_t zero;
 
-// TS38.211 Table 6.3.1.5-1
+/// TS38.211 Table 6.3.1.5-1
 static const std::array<precoding_weight_matrix, 6> codebook_1layer_2port = {
     {precoding_weight_matrix({sqrt1_2, zero}, 1, 2),
      precoding_weight_matrix({zero, sqrt1_2}, 1, 2),
@@ -44,7 +44,7 @@ static const std::array<precoding_weight_matrix, 6> codebook_1layer_2port = {
      precoding_weight_matrix({sqrt1_2, sqrt1_2j}, 1, 2),
      precoding_weight_matrix({sqrt1_2, -sqrt1_2j}, 1, 2)}};
 
-// TS38.211 Table 6.3.1.5-3
+/// TS38.211 Table 6.3.1.5-3
 static const std::array<precoding_weight_matrix, 28> codebook_1layer_4port = {
     {// TPMI Index 0-7
      precoding_weight_matrix({dot5, zero, zero, zero}, 1, 4),
@@ -79,13 +79,13 @@ static const std::array<precoding_weight_matrix, 28> codebook_1layer_4port = {
      precoding_weight_matrix({dot5, -dot5j, -dot5, dot5j}, 1, 4),
      precoding_weight_matrix({dot5, -dot5j, -dot5j, -dot5}, 1, 4)}};
 
-// TS38.211 Table 6.3.1.5-4
+/// TS38.211 Table 6.3.1.5-4
 static const std::array<precoding_weight_matrix, 3> codebook_2layer_2port = {
     {precoding_weight_matrix({sqrt1_2, zero, zero, sqrt1_2}, 2, 2),
      precoding_weight_matrix({dot5, dot5, dot5, -dot5}, 2, 2),
      precoding_weight_matrix({dot5, dot5, dot5j, -dot5j}, 2, 2)}};
 
-// TS38.211 Table 6.3.1.5-5
+/// TS38.211 Table 6.3.1.5-5
 static const std::array<precoding_weight_matrix, 22> codebook_2layer_4port = {{
     // TPMI Index 0-3
     precoding_weight_matrix({dot5, zero, zero, dot5, zero, zero, zero, zero}, 2, 4),
@@ -117,7 +117,7 @@ static const std::array<precoding_weight_matrix, 22> codebook_2layer_4port = {{
     precoding_weight_matrix({sqrt1_8, sqrt1_8, -sqrt1_8j, -sqrt1_8j, sqrt1_8j, -sqrt1_8j, sqrt1_8, -sqrt1_8}, 2, 4),
 }};
 
-// TS38.211 Table 6.3.1.5-6
+/// TS38.211 Table 6.3.1.5-6
 static const std::array<precoding_weight_matrix, 7> codebook_3layer_4port = {{
     // TPMI Index 0-3
     precoding_weight_matrix({dot5, zero, zero, zero, dot5, zero, zero, zero, dot5, zero, zero, zero}, 3, 4),
@@ -182,7 +182,7 @@ static const std::array<precoding_weight_matrix, 7> codebook_3layer_4port = {{
                             4),
 }};
 
-// TS38.211 Table 6.3.1.5-7
+/// TS38.211 Table 6.3.1.5-7
 static const std::array<precoding_weight_matrix, 5> codebook_4layer_4port = {{
     // TPMI Index 0-3
     precoding_weight_matrix(
@@ -263,8 +263,8 @@ static const std::array<precoding_weight_matrix, 5> codebook_4layer_4port = {{
                             4),
 }};
 
-// Calculates the product of a channel matrix and a precoding weight matrix. The number of transmit ports of each matrix
-// must be equal.
+/// Calculates the product of a channel matrix and a precoding weight matrix. The number of transmit ports of each
+/// matrix must be equal.
 static precoding_weight_matrix product_channel_weight(const srs_channel_matrix& H, const precoding_weight_matrix& W)
 {
   ocudu_assert(H.get_nof_tx_ports() == W.get_nof_ports(), "Number of Ports is not equal.");
@@ -286,7 +286,7 @@ static precoding_weight_matrix product_channel_weight(const srs_channel_matrix& 
   return result;
 }
 
-// Calculates the gram matrix.
+/// Calculates the gram matrix.
 template <unsigned N>
 static void gram_channel_matrix(cf_t out[N][N], const precoding_weight_matrix& H)
 {
@@ -307,7 +307,7 @@ static void gram_channel_matrix(cf_t out[N][N], const precoding_weight_matrix& H
   }
 }
 
-// Select the sub elements of a matrix eliminating a given row and column.
+/// Select the sub elements of a matrix eliminating a given row and column.
 template <unsigned N>
 static void subchannel_matrix(cf_t out[N - 1][N - 1], const cf_t in[N][N], unsigned i_skip_row, unsigned i_skip_col)
 {
@@ -327,7 +327,7 @@ static void subchannel_matrix(cf_t out[N - 1][N - 1], const cf_t in[N][N], unsig
   }
 }
 
-// Calculate the determinant of a matrix of size N.
+/// Calculate the determinant of a matrix of size N.
 template <unsigned N>
 cf_t det_channel_matrix(const cf_t in[N][N])
 {
@@ -344,14 +344,14 @@ cf_t det_channel_matrix(const cf_t in[N][N])
   return sum;
 }
 
-// Calculate the determinant of a matrix of size 2.
+/// Calculate the determinant of a matrix of size 2.
 template <>
 cf_t det_channel_matrix<2>(const cf_t in[2][2])
 {
   return in[0][0] * in[1][1] - in[0][1] * in[1][0];
 }
 
-// Calculate the determinant of a matrix of size 3.
+/// Calculate the determinant of a matrix of size 3.
 template <>
 cf_t det_channel_matrix<3>(const cf_t in[3][3])
 {
@@ -360,14 +360,14 @@ cf_t det_channel_matrix<3>(const cf_t in[3][3])
          in[0][2] * (in[1][0] * in[2][1] - in[1][1] * in[2][0]);
 }
 
-// Calculate the determinant of a matrix of size 1.
+/// Calculate the determinant of a matrix of size 1.
 template <>
 cf_t det_channel_matrix<1>(const cf_t in[1][1])
 {
   return in[0][0];
 }
 
-// Calculate the mean layer SINR based on the channel matrix and noise variance.
+/// Calculate the mean layer SINR based on the channel matrix and noise variance.
 template <unsigned NofLayers>
 std::array<float, NofLayers> calculate_mean_layer_sinr(const precoding_weight_matrix& channel_weights,
                                                        float                          noise_variance)

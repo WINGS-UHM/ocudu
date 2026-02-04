@@ -13,7 +13,7 @@
 using namespace ocudu;
 using namespace csi_rs;
 
-// CSI-RS locations within a slot. See TS 38.211 Table 7.4.1.5.3-1.
+/// CSI-RS locations within a slot. See TS 38.211 Table 7.4.1.5.3-1.
 namespace {
 struct csi_rs_resource_mapping_info {
   unsigned                 row;
@@ -23,9 +23,9 @@ struct csi_rs_resource_mapping_info {
 };
 } // namespace
 
-// The following entries are taken from Table 7.4.1.5.3-1, TS 38.211, which is spread out over all possible combinations
-// of nof_ports, density, cdm_type.
-static const uint32_t nof_csi_rs_resource_mappings = 38;
+/// The following entries are taken from Table 7.4.1.5.3-1, TS 38.211, which is spread out over all possible
+/// combinations of nof_ports, density, cdm_type.
+static constexpr uint32_t nof_csi_rs_resource_mappings = 38;
 static constexpr std::array<csi_rs_resource_mapping_info, nof_csi_rs_resource_mappings>
     csi_rs_resource_mapping_within_slot = {{
         // clang-format off
@@ -85,7 +85,8 @@ unsigned ocudu::csi_rs::get_csi_rs_resource_mapping_row_number(uint8_t          
       if (info.row == 6U or info.row == 7U) {
         if (fd_alloc.count() == 2U) {
           return 7U;
-        } else if (fd_alloc.count() == 4U) {
+        }
+        if (fd_alloc.count() == 4U) {
           return 6U;
         }
         continue;
@@ -96,7 +97,8 @@ unsigned ocudu::csi_rs::get_csi_rs_resource_mapping_row_number(uint8_t          
       if (info.row == 4U or info.row == 5U) {
         if (fd_alloc.size() == 3) {
           return 4U;
-        } else if (fd_alloc.size() == 6) {
+        }
+        if (fd_alloc.size() == 6) {
           return 5U;
         }
         continue;

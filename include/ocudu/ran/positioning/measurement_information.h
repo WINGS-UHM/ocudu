@@ -107,7 +107,7 @@ struct trp_meas_timing_quality_t {
 
     static float to_float(const resolution_t::value_t& enum_val)
     {
-      static const float numbers[] = {0.1, 1.0, 10.0, 30.0};
+      static constexpr float numbers[] = {0.1, 1.0, 10.0, 30.0};
 
       if ((unsigned)enum_val >= sizeof(numbers)) {
         return (float)0;
@@ -182,7 +182,7 @@ struct rx_tx_timing_error_margin_t {
 
   static float to_float(const rx_tx_timing_error_margin_t::value_t& enum_val)
   {
-    static const float numbers[] = {
+    static constexpr float numbers[] = {
         0.5, 1.0, 2.0, 4.0, 8.0, 12.0, 16.0, 20.0, 24.0, 32.0, 40.0, 48.0, 64.0, 80.0, 96.0, 128.0};
 
     if ((unsigned)enum_val >= sizeof(numbers)) {

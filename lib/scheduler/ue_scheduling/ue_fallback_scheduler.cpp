@@ -838,7 +838,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
   }
 
   // Fill DL PDCCH DCI.
-  static const uint8_t msg4_rv = 0;
+  static constexpr uint8_t msg4_rv = 0;
 
   vrb_interval vrbs;
   switch (dci_type) {

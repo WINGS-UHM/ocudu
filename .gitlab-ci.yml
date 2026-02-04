@@ -244,6 +244,7 @@ clang-tidy:
     ARTIFACT_EXTRA_PATH: "/index.html"
 
 clang-tidy incremental:
+  timeout: 2 hours
   extends: clang-tidy
   stage: manual
   rules:

@@ -34,10 +34,10 @@ class concurrent_queue<T, concurrent_queue_policy::locking_mpsc, BlockingPolicy>
   queue_barrier                       barrier;
 
 public:
-  using value_type                                       = T;
-  static const concurrent_queue_policy      queue_policy = concurrent_queue_policy::locking_mpsc;
-  static const concurrent_queue_wait_policy wait_policy  = BlockingPolicy;
-  using consumer_type                                    = detail::basic_queue_consumer<concurrent_queue, T>;
+  using value_type                                           = T;
+  static constexpr concurrent_queue_policy      queue_policy = concurrent_queue_policy::locking_mpsc;
+  static constexpr concurrent_queue_wait_policy wait_policy  = BlockingPolicy;
+  using consumer_type                                        = detail::basic_queue_consumer<concurrent_queue, T>;
 
   template <typename... Args>
   explicit concurrent_queue(size_t qsize, Args&&... args) :

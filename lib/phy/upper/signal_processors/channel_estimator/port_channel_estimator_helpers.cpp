@@ -25,11 +25,11 @@
 
 using namespace ocudu;
 
-static const bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern_pucch_f2 =
+static constexpr bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern_pucch_f2 =
     {false, true, false, false, true, false, false, true, false, false, true, false};
-static const bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern_pusch_0 =
+static constexpr bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern_pusch_0 =
     {true, false, true, false, true, false, true, false, true, false, true, false};
-static const bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern_pusch_1 =
+static constexpr bounded_bitset<NOF_SUBCARRIERS_PER_RB> re_pattern_pusch_1 =
     {false, true, false, true, false, true, false, true, false, true, false, true};
 
 /// Coefficients of a raised cosine FIR filter with roll-off 0.2, 3-symbol span, 10 samples per symbol (total 31

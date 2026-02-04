@@ -75,7 +75,7 @@ struct base_coro_frame<void> {
   int32_t state_index = (int32_t)detail::tag_init;
 
   /// In-place memory buffer to store awaiter.
-  static const std::size_t                                     default_mem_buffer_storage = 32;
+  static constexpr std::size_t                                 default_mem_buffer_storage = 32;
   detail::awaiter_memory_storage_t<default_mem_buffer_storage> mem_buffer;
 
   /// Checks if coroutine is at a suspension point.

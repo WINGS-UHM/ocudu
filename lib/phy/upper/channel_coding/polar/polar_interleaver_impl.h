@@ -21,12 +21,14 @@ namespace ocudu {
 class polar_interleaver_impl : public polar_interleaver
 {
 private:
-  static const unsigned                      K_MAX_IL = 164;
+  static constexpr unsigned                  K_MAX_IL = 164;
   static const std::array<uint8_t, K_MAX_IL> pattern;
 
 public:
   ~polar_interleaver_impl() override = default;
+
   // See interface for the documentation.
   void interleave(span<uint8_t> out, span<const uint8_t> in, polar_interleaver_direction direction) override;
 };
+
 } // namespace ocudu

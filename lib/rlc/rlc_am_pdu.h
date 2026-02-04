@@ -77,7 +77,7 @@ struct rlc_am_pdu_header {
 
 /// Status PDU NACK
 struct rlc_am_status_nack {
-  static const uint16_t so_end_of_sdu;
+  static constexpr uint16_t so_end_of_sdu = 0xffff;
 
   uint32_t nack_sn;        ///< Sequence Number (SN) of first missing SDU
   bool     has_so;         ///< NACKs continuous sequence of bytes [so_start..so_end]

@@ -17,10 +17,10 @@
 
 using namespace ocudu;
 
-// Max SI Message PDU size. This value is implementation-defined.
+/// Max SI Message PDU size. This value is implementation-defined.
 static constexpr unsigned MAX_BCCH_DL_SCH_PDU_SIZE = 2048;
 
-// Payload of zeros sent to lower layers when an error occurs.
+/// Payload of zeros sent to lower layers when an error occurs.
 static const std::vector<uint8_t> zeros_payload(MAX_BCCH_DL_SCH_PDU_SIZE, 0);
 
 /// Helper to convert byte buffer into a linear array buffer (lower layers work with linearized buffers).

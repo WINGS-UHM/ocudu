@@ -42,7 +42,8 @@ void dmrs_pdcch_processor_impl::mapping(resource_grid_writer&     grid,
                                         const config_t&           config)
 {
   // Resource element allocation within a resource block for PDCCH.
-  static const re_prb_mask re_mask = {false, true, false, false, false, true, false, false, false, true, false, false};
+  static constexpr re_prb_mask re_mask = {
+      false, true, false, false, false, true, false, false, false, true, false, false};
 
   // Create PDCCH mapping pattern.
   re_pattern pattern;

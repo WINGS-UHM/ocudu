@@ -19,9 +19,9 @@ class pss_processor_impl : public pss_processor
 {
 private:
   /// First subcarrier in the SS/PBCH block.
-  static const unsigned SSB_K_BEGIN = 56;
+  static constexpr unsigned SSB_K_BEGIN = 56;
   /// Symbol index in the SSB where the PSS is mapped.
-  static const unsigned SSB_L = 0;
+  static constexpr unsigned SSB_L = 0;
   /// Actual sequence length in the PSS.
   static constexpr unsigned SEQUENCE_LEN = pss_sequence_generator::sequence_length;
 

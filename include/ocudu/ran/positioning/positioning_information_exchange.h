@@ -57,9 +57,9 @@ struct periodicity_item_t {
 
   static float to_float(const periodicity_item_t::value_t& enum_val)
   {
-    static const float numbers[] = {0.125, 0.25,  0.5,   0.625,  1.0,    1.25,   2.0,    2.5,  4.0,
-                                    5.0,   8.0,   10.0,  16.0,   20.0,   32.0,   40.0,   64.0, 80.0,
-                                    160.0, 320.0, 640.0, 1280.0, 2560.0, 5120.0, 10240.0};
+    static constexpr float numbers[] = {0.125, 0.25,  0.5,   0.625,  1.0,    1.25,   2.0,    2.5,  4.0,
+                                        5.0,   8.0,   10.0,  16.0,   20.0,   32.0,   40.0,   64.0, 80.0,
+                                        160.0, 320.0, 640.0, 1280.0, 2560.0, 5120.0, 10240.0};
 
     if ((unsigned)enum_val >= sizeof(numbers)) {
       return (float)0;

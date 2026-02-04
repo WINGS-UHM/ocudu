@@ -761,8 +761,8 @@ public:
   /// \brief Checks whether UE has pending UE Contention Resolution Identity CE to be scheduled.
   unsigned pending_con_res_ce_bytes() const
   {
-    static const auto ce_size = lcid_dl_sch_t{lcid_dl_sch_t::UE_CON_RES_ID}.sizeof_ce();
-    auto              u       = get_ue_row();
+    static constexpr auto ce_size = lcid_dl_sch_t{lcid_dl_sch_t::UE_CON_RES_ID}.sizeof_ce();
+    auto                  u       = get_ue_row();
     return u.at<ue_context>().pending_con_res_id ? FIXED_SIZED_MAC_CE_SUBHEADER_SIZE + ce_size : 0;
   }
 

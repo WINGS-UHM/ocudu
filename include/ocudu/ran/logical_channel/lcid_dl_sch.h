@@ -49,8 +49,11 @@ public:
     PADDING       = 0b111111
   };
 
-  lcid_dl_sch_t(underlying_type lcid_ = PADDING) : lcid_val(lcid_) { ocudu_assert(lcid_ <= PADDING, "Invalid LCID"); }
-  lcid_dl_sch_t& operator=(underlying_type lcid)
+  constexpr lcid_dl_sch_t(underlying_type lcid_ = PADDING) : lcid_val(lcid_)
+  {
+    ocudu_assert(lcid_ <= PADDING, "Invalid LCID");
+  }
+  constexpr lcid_dl_sch_t& operator=(underlying_type lcid)
   {
     ocudu_assert(lcid <= PADDING, "Invalid LCID");
     lcid_val = lcid;
@@ -58,29 +61,32 @@ public:
   }
 
   /// convert lcid_dl_sch_t to underlying integer type via cast.
-  explicit operator underlying_type() const { return lcid_val; }
+  explicit constexpr operator underlying_type() const { return lcid_val; }
 
   /// convert lcid_dl_sch_t to underlying integer type.
-  underlying_type value() const { return lcid_val; }
+  constexpr underlying_type value() const { return lcid_val; }
 
   /// Whether LCID is an MAC CE
-  bool is_ce() const { return lcid_val <= PADDING and lcid_val >= RECOMMENDED_BIT_RATE; }
+  constexpr bool is_ce() const { return lcid_val <= PADDING and lcid_val >= RECOMMENDED_BIT_RATE; }
 
   /// Whether LCID belongs to a Radio Bearer Logical Channel
-  bool is_sdu() const { return lcid_val <= LCID32 and lcid_val >= CCCH; }
+  constexpr bool is_sdu() const { return lcid_val <= LCID32 and lcid_val >= CCCH; }
 
-  lcid_t to_lcid() const
+  constexpr lcid_t to_lcid() const
   {
     ocudu_assert(is_sdu(), "Invalid to_lcid() access to lcid={}", lcid_val);
     return (lcid_t)lcid_val;
   }
 
   /// Returns false for all reserved values in Table 6.2.1-1 and 6.2.1-2
-  bool is_valid() const { return lcid_val <= PADDING and (lcid_val < MIN_RESERVED or lcid_val > MAX_RESERVED); }
+  constexpr bool is_valid() const
+  {
+    return lcid_val <= PADDING and (lcid_val < MIN_RESERVED or lcid_val > MAX_RESERVED);
+  }
 
-  bool is_var_len_ce() const { return false; }
+  constexpr bool is_var_len_ce() const { return false; }
 
-  uint32_t sizeof_ce() const
+  constexpr uint32_t sizeof_ce() const
   {
     // Values taken from TS38.321, Section 6.1.3.
     switch (lcid_val) {
@@ -103,8 +109,8 @@ public:
     return 0;
   }
 
-  bool operator==(lcid_dl_sch_t other) const { return lcid_val == other.lcid_val; }
-  bool operator!=(lcid_dl_sch_t other) const { return lcid_val != other.lcid_val; }
+  constexpr bool operator==(lcid_dl_sch_t other) const { return lcid_val == other.lcid_val; }
+  constexpr bool operator!=(lcid_dl_sch_t other) const { return lcid_val != other.lcid_val; }
 
 private:
   underlying_type lcid_val;

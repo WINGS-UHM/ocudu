@@ -95,7 +95,7 @@ static void fill_format2_parameters(fapi::ul_pucch_pdu_builder& builder, const p
   builder.set_hopping_information_format2_parameters(intra_slot_freq_hop, hop_prbs.start());
 
   // Do not use pi/2 BPSK for UCI symbols.
-  static const bool use_pi_to_bpsk = false;
+  static constexpr bool use_pi_to_bpsk = false;
   // Format 2 does not support multi slot repetition.
   pucch_repetition_tx_slot pucch_repetition = pucch_repetition_tx_slot::no_multi_slot;
   builder.set_common_parameters(mac_pdu.format(), pucch_repetition, use_pi_to_bpsk);

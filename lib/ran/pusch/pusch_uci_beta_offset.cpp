@@ -15,8 +15,8 @@
 
 using namespace ocudu;
 
-// Implements Table 9.3-1, TS 38.213.
-static const std::array<float, 16> beta_offset_harq_ack_values = {
+/// Implements Table 9.3-1, TS 38.213.
+static constexpr std::array<float, 16> beta_offset_harq_ack_values = {
     // clang-format off
    /* Idx 0 */  1.000,
    /* Idx 1 */  2.000,
@@ -37,8 +37,8 @@ static const std::array<float, 16> beta_offset_harq_ack_values = {
     // clang-format on
 };
 
-// Implements Table 9.3-2, TS 38.213.
-static const std::array<float, 19> beta_offset_csi_values = {
+/// Implements Table 9.3-2, TS 38.213.
+static constexpr std::array<float, 19> beta_offset_csi_values = {
     // clang-format off
    /* Idx 0 */  1.125,
    /* Idx 1 */  1.250,

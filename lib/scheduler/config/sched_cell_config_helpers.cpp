@@ -57,9 +57,9 @@ ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const
   // NOTE: After performing the DCI size alignment mentioned in TS 38.212 (release 16), clause 7.3.1.0. The size of DCI
   // 1_0 scrambled by C-RNTI, TC-RNTI, P-RNTI, SI-RNTI and RA-RNTI will be same. And, the size of DCI 0_0 scrambled by
   // C-RNTI will be same as size of DCI 1_0 scrambled by C-RNTI.
-  static const unsigned nof_fallback_dci_sizes_to_be_monitored = 1;
+  static constexpr unsigned nof_fallback_dci_sizes_to_be_monitored = 1;
   // UE needs to monitor PDCCH candidates for both DCI 1_1 and 0_1, which have different sizes.
-  static const unsigned nof_non_fallback_dci_sizes_to_be_monitored_in_uss = 2;
+  static constexpr unsigned nof_non_fallback_dci_sizes_to_be_monitored_in_uss = 2;
 
   std::map<search_space_id, unsigned> nof_monitored_pdcch_candidates_per_ss;
 

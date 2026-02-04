@@ -19,11 +19,11 @@ class sss_processor_impl : public sss_processor
 {
 private:
   /// First subcarrier in the SS/PBCH block.
-  static const unsigned ssb_k_begin = 56;
+  static constexpr unsigned ssb_k_begin = 56;
   /// Symbol index in the SSB where the SSS is mapped.
-  static const unsigned ssb_l = 2;
+  static constexpr unsigned ssb_l = 2;
   /// SSS Sequence length in the SSB.
-  static const unsigned sequence_len = sss_sequence_generator::sequence_length;
+  static constexpr unsigned sequence_len = sss_sequence_generator::sequence_length;
 
   /// Internal SSS sequence generator.
   static const sss_sequence_generator sequence_generator;

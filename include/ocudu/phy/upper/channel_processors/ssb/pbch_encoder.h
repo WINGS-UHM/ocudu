@@ -22,19 +22,19 @@ class pbch_encoder
 {
 public:
   /// Generated payload length. TS38.212 refers to it as \e A.
-  static const unsigned A = 32;
+  static constexpr unsigned A = 32;
   /// Higher layer generated payload length. TS38.212 refers to it as \e A_hat.
-  static const unsigned A_HAT = 24;
+  static constexpr unsigned A_HAT = 24;
   /// CRC length in bits.
-  static const unsigned CRC_LEN = 24;
+  static constexpr unsigned CRC_LEN = 24;
   /// Payload size plus CRC length.
-  static const unsigned B = (A + CRC_LEN);
+  static constexpr unsigned B = (A + CRC_LEN);
   /// Number of rate matched bits.
-  static const unsigned E = 864;
+  static constexpr unsigned E = 864;
   /// Polar encoder order, logarithmic representation.
-  static const unsigned POLAR_N_MAX_LOG = 9;
+  static constexpr unsigned POLAR_N_MAX_LOG = 9;
   /// Number of encoded bits.
-  static const unsigned POLAR_N_MAX = (1U << POLAR_N_MAX_LOG);
+  static constexpr unsigned POLAR_N_MAX = (1U << POLAR_N_MAX_LOG);
 
   /// Describes a PBCH message to encode.
   struct pbch_msg_t {

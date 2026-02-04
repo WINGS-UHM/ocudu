@@ -27,7 +27,7 @@ static const complex_exponential_table
 
 unsigned prach_generator_impl::get_sequence_number_long(unsigned root_sequence_index)
 {
-  static const std::array<uint16_t, LONG - 1> lut = {
+  static constexpr std::array<uint16_t, LONG - 1> lut = {
       129, 710, 140, 699, 120, 719, 210, 629, 168, 671, 84,  755, 105, 734, 93,  746, 70,  769, 60,  779, 2,   837, 1,
       838, 56,  783, 112, 727, 148, 691, 80,  759, 42,  797, 40,  799, 35,  804, 73,  766, 146, 693, 31,  808, 28,  811,
       30,  809, 27,  812, 29,  810, 24,  815, 48,  791, 68,  771, 74,  765, 178, 661, 136, 703, 86,  753, 78,  761, 43,
@@ -71,7 +71,7 @@ unsigned prach_generator_impl::get_sequence_number_long(unsigned root_sequence_i
 
 unsigned prach_generator_impl::get_sequence_number_short(unsigned root_sequence_index)
 {
-  static const std::array<uint8_t, SHORT - 1> lut = {
+  static constexpr std::array<uint8_t, SHORT - 1> lut = {
       1,   138, 2,   137, 3,   136, 4,   135, 5,   134, 6,   133, 7,   132, 8,   131, 9,   130, 10,  129, 11,  128, 12,
       127, 13,  126, 14,  125, 15,  124, 16,  123, 17,  122, 18,  121, 19,  120, 20,  119, 21,  118, 22,  117, 23,  116,
       24,  115, 25,  114, 26,  113, 27,  112, 28,  111, 29,  110, 30,  109, 31,  108, 32,  107, 33,  106, 34,  105, 35,
@@ -85,7 +85,7 @@ unsigned prach_generator_impl::get_sequence_number_short(unsigned root_sequence_
 span<const cf_t> prach_generator_impl::generate_y_u_v_long(unsigned sequence_number, unsigned cyclic_shift)
 {
   // Sequence compression factor look-up table for each sequence number.
-  static const std::array<uint16_t, LONG> compression_factor_table = {
+  static constexpr std::array<uint16_t, LONG> compression_factor_table = {
       0,   1,   420, 280, 210, 168, 140, 120, 105, 373, 84,  534, 70,  710, 60,  56,  472, 691, 606, 265, 42,  40,  267,
       73,  35,  537, 355, 404, 30,  434, 28,  406, 236, 178, 765, 24,  303, 771, 552, 796, 21,  573, 20,  800, 553, 578,
       456, 482, 437, 137, 688, 510, 597, 95,  202, 778, 15,  368, 217, 128, 14,  784, 203, 293, 118, 142, 89,  551, 802,
@@ -125,7 +125,7 @@ span<const cf_t> prach_generator_impl::generate_y_u_v_long(unsigned sequence_num
       305, 755, 466, 734, 719, 699, 671, 629, 559, 419, 838};
 
   // Sequence phase offset look-up table for each sequence number.
-  static const std::array<uint16_t, LONG> index_offset = {
+  static constexpr std::array<uint16_t, LONG> index_offset = {
       0,    2937, 1,    421,  841,  1261, 1681, 2101, 2521, 2941, 5,    2103, 845,  2943, 1685, 2105, 2525, 1267, 9,
       429,  849,  1269, 11,   2109, 2529, 2949, 1691, 433,  853,  2951, 1693, 435,  2533, 1275, 1695, 437,  857,  1277,
       1697, 439,  2537, 1279, 21,   441,  2539, 1281, 1701, 2121, 2541, 2961, 25,   2123, 2543, 1285, 1705, 447,  2545,
@@ -200,7 +200,7 @@ span<const cf_t> prach_generator_impl::generate_y_u_v_long(unsigned sequence_num
 span<const cf_t> prach_generator_impl::generate_y_u_v_short(unsigned sequence_number, unsigned cyclic_shift)
 {
   // Sequence compression factor look-up table for each sequence number.
-  static const std::array<uint16_t, SHORT> compression_factor_table = {
+  static constexpr std::array<uint16_t, SHORT> compression_factor_table = {
       0,   1,   70,  93,  35,  28,  116, 20, 87,  31,  14,  38, 58,  107, 10,  102, 113, 90, 85, 22,  7,  53,  19,  133,
       29,  89,  123, 103, 5,   24,  51,  9,  126, 59,  45,  4,  112, 124, 11,  82,  73,  78, 96, 97,  79, 34,  136, 71,
       84,  122, 114, 30,  131, 21,  121, 91, 72,  100, 12,  33, 95,  98,  74,  64,  63,  77, 99, 83,  92, 137, 2,   47,
@@ -209,7 +209,7 @@ span<const cf_t> prach_generator_impl::generate_y_u_v_short(unsigned sequence_nu
       117, 54,  49,  26,  37,  129, 32,  81, 101, 125, 108, 52, 119, 23,  111, 104, 46,  69, 138};
 
   // Sequence phase offset look-up table for each sequence number.
-  static const std::array<uint16_t, SHORT> index_offset = {
+  static constexpr std::array<uint16_t, SHORT> index_offset = {
       0,   487, 1,   349, 419, 211, 3,   351, 421, 491, 5,   75,  145, 215, 285, 77,  147, 217, 9,  357,
       427, 497, 289, 81,  151, 499, 13,  361, 431, 223, 15,  363, 433, 225, 295, 87,  435, 227, 19, 89,
       437, 507, 299, 369, 439, 231, 23,  371, 441, 511, 25,  95,  443, 513, 27,  375, 445, 515, 29, 377,

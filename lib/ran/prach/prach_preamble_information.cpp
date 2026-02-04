@@ -166,8 +166,8 @@ prach_symbols_slots_duration ocudu::get_prach_duration_info(const prach_configur
   prach_symbols_slots_duration output{};
 
   // Only SCS 60kHz SCS supports extended CP.
-  static const unsigned nof_symbols_per_slot = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
-  static const double   symbol_duration_msec =
+  static constexpr unsigned nof_symbols_per_slot = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
+  double                    symbol_duration_msec =
       (double)SUBFRAME_DURATION_MSEC / (double)(get_nof_slots_per_subframe(pusch_scs) * nof_symbols_per_slot);
 
   if (is_long_preamble(prach_cfg.format)) {

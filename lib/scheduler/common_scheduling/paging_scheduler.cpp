@@ -340,12 +340,12 @@ bool paging_scheduler::is_there_space_available_for_paging(const cell_resource_a
 
   const pdsch_time_domain_resource_allocation& pdsch_td_cfg = pdsch_td_alloc_list[pdsch_time_res];
   static const unsigned                        nof_symb_sh  = pdsch_td_cfg.symbols.length();
-  static const unsigned                        nof_layers   = 1;
+  static constexpr unsigned                    nof_layers   = 1;
   // As per Section 5.1.3.2, TS 38.214, nof_oh_prb = 0 if PDSCH is scheduled by PDCCH with a CRC scrambled by P-RNTI.
-  static const unsigned nof_oh_prb = 0;
+  static constexpr unsigned nof_oh_prb = 0;
   // As per TS 38.214, Table 5.1.3.2-2.
   // TODO: TBS scaling is assumed to be 0. Need to set correct value.
-  static const unsigned tbs_scaling = 0;
+  static constexpr unsigned tbs_scaling = 0;
 
   // Generate dmrs information to be passed to (i) the fnc that computes number of RE used for DMRS per RB and (ii) to
   // the fnc that fills the DCI.

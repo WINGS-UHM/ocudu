@@ -107,7 +107,7 @@ struct formatter_template {
 
   formatter_template()
   {
-    static const string_view DEFAULT_FORMAT =
+    static constexpr std::string_view DEFAULT_FORMAT =
         (std::is_same<ComplexType, ocudu::cf_t>::value) ? "{:+f}{:+f}j" : "{:+d}{:+d}j";
     format_buffer.append(DEFAULT_FORMAT.begin(), DEFAULT_FORMAT.end());
   }
@@ -115,7 +115,7 @@ struct formatter_template {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
-    static const fmt::string_view PREAMBLE_FORMAT = "{:";
+    static constexpr std::string_view PREAMBLE_FORMAT = "{:";
 
     // Skip if context is empty and use default format.
     if (ctx.begin() == ctx.end()) {

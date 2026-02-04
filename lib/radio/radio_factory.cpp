@@ -29,6 +29,8 @@ struct radio_factory_entry {
   std::function<std::unique_ptr<radio_factory>()> make;
 };
 
+} // namespace
+
 static const std::vector<radio_factory_entry> radio_factory_available_factories = {
 #ifdef ENABLE_UHD
     {"uhd", []() { return std::make_unique<radio_factory_uhd_impl>(); }},
@@ -37,8 +39,6 @@ static const std::vector<radio_factory_entry> radio_factory_available_factories 
     {"zmq", []() { return std::make_unique<radio_factory_zmq_impl>(); }},
 #endif // ENABLE_ZMQ
 };
-
-} // namespace
 
 void ocudu::print_available_radio_factories()
 {

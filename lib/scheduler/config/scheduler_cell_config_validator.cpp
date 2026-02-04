@@ -61,8 +61,8 @@ static error_type<std::string> validate_rach_cfg_common(const sched_cell_configu
          "Cells without RACH-ConfigCommon are not supported");
   const rach_config_common& rach_cfg_cmn = msg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
 
-  static const pdsch_mcs_table mcs_table = ocudu::pdsch_mcs_table::qam64;
-  const sch_mcs_description    mcs_descr = pdsch_mcs_get_config(mcs_table, expert_cfg.ra.rar_mcs_index);
+  static constexpr pdsch_mcs_table mcs_table = ocudu::pdsch_mcs_table::qam64;
+  const sch_mcs_description        mcs_descr = pdsch_mcs_get_config(mcs_table, expert_cfg.ra.rar_mcs_index);
   // See TS 38.214, 5.1.3.1, Modulation order and target code rate determination.
   VERIFY((unsigned)mcs_descr.modulation < (unsigned)modulation_scheme::QAM64,
          "Modulation order for PDSCH scheduled with RA-RNTI cannot be > 2");
@@ -169,13 +169,13 @@ static error_type<std::string> validate_pucch_cfg_common(const sched_cell_config
 static error_type<std::string> validate_sib1_cfg(const sched_cell_configuration_request_message& msg,
                                                  const scheduler_expert_config&                  expert_cfg)
 {
-  static const unsigned        nof_layers = 1;
-  static const unsigned        nof_oh_prb = 0;
-  static const pdsch_mcs_table mcs_table  = ocudu::pdsch_mcs_table::qam64;
+  static constexpr unsigned        nof_layers = 1;
+  static constexpr unsigned        nof_oh_prb = 0;
+  static constexpr pdsch_mcs_table mcs_table  = ocudu::pdsch_mcs_table::qam64;
 
   // TODO: Revise the value set for time_resource in case of partial slots where nof. OFDM symbols maybe be less.
-  static const unsigned time_resource = 0;
-  const auto&           pdsch_td_res_alloc_list =
+  static constexpr unsigned time_resource = 0;
+  const auto&               pdsch_td_res_alloc_list =
       get_si_rnti_pdsch_time_domain_list(msg.dl_cfg_common.init_dl_bwp.generic_params.cp, msg.dmrs_typeA_pos);
   const ofdm_symbol_range sib1_symbols = pdsch_td_res_alloc_list[time_resource].symbols;
 
@@ -204,8 +204,8 @@ static error_type<std::string> validate_sib1_cfg(const sched_cell_configuration_
 
 static error_type<std::string> validate_paging_cfg(const scheduler_expert_config& expert_cfg)
 {
-  static const pdsch_mcs_table mcs_table = ocudu::pdsch_mcs_table::qam64;
-  const sch_mcs_description    mcs_descr = pdsch_mcs_get_config(mcs_table, expert_cfg.pg.paging_mcs_index);
+  static constexpr pdsch_mcs_table mcs_table = ocudu::pdsch_mcs_table::qam64;
+  const sch_mcs_description        mcs_descr = pdsch_mcs_get_config(mcs_table, expert_cfg.pg.paging_mcs_index);
   // See TS 38.214, 5.1.3.1, Modulation order and target code rate determination.
   VERIFY((unsigned)mcs_descr.modulation < (unsigned)modulation_scheme::QAM64,
          "Modulation order for PDSCH scheduled with P-RNTI cannot be > 2");

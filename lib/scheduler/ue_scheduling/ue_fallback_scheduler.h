@@ -66,7 +66,7 @@ private:
   enum class dl_new_tx_alloc_type { conres_only, srb0, srb1, skip, error };
 
   /// Size of the ring buffer used to store the slots where the scheduler has found no PDCCH/PDSCH resources.
-  static const size_t FALLBACK_SCHED_RING_BUFFER_SIZE =
+  static constexpr size_t FALLBACK_SCHED_RING_BUFFER_SIZE =
       get_allocator_ring_size_gt_min(SCHEDULER_MAX_K0 + SCHEDULER_MAX_K1 + NTN_CELL_SPECIFIC_KOFFSET_MAX);
 
   /// Defines the information that is needed to track the DL UEs that are pending for new SRB0/SRB1/ConRes CE TX.

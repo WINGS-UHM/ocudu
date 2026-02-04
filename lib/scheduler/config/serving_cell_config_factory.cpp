@@ -265,7 +265,7 @@ dl_config_common ocudu::config_helpers::make_default_dl_config_common(const cell
 std::vector<pusch_time_domain_resource_allocation>
 ocudu::config_helpers::generate_k2_candidates(cyclic_prefix cp, const tdd_ul_dl_config_common& tdd_cfg, uint8_t min_k2)
 {
-  static const unsigned SYMBOLS_PER_SLOT = get_nsymb_per_slot(cp);
+  const unsigned SYMBOLS_PER_SLOT = get_nsymb_per_slot(cp);
 
   const unsigned tdd_period_slots  = nof_slots_per_tdd_period(tdd_cfg);
   const unsigned nof_dl_slots      = nof_dl_slots_per_tdd_period(tdd_cfg);

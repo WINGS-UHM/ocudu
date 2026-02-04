@@ -16,8 +16,9 @@
 using namespace ocudu;
 
 /// Implements TS38.212 Table 7.1.1-1: Value of PBCH payload interleaver pattern G (j).
-static const std::array<uint32_t, pbch_encoder::A> G = {16, 23, 18, 17, 8,  30, 10, 6,  24, 7,  0,  5,  3,  2,  1,  4,
-                                                        9,  11, 12, 13, 14, 15, 19, 20, 21, 22, 25, 26, 27, 28, 29, 31};
+static constexpr std::array<uint32_t, pbch_encoder::A> G = {16, 23, 18, 17, 8,  30, 10, 6,  24, 7,  0,
+                                                            5,  3,  2,  1,  4,  9,  11, 12, 13, 14, 15,
+                                                            19, 20, 21, 22, 25, 26, 27, 28, 29, 31};
 
 #define PBCH_SFN_PAYLOAD_BEGIN 1
 #define PBCH_SFN_PAYLOAD_LENGTH 6

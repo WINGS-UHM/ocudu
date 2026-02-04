@@ -72,7 +72,7 @@ class fixed_size_memory_block_pool
   // to account the potential number of producers. The way to exactly over-dimension this queue is inconvenient, so
   // we just try to conservatively ensure it can accommodate up to 32 producers for a block size of 32. If this is
   // not enough, the queue will resize itself and malloc in the process.
-  static const size_t OVER_DIM_CENTRAL_CACHE = 2 * 32 * 32;
+  static constexpr size_t OVER_DIM_CENTRAL_CACHE = 2 * 32 * 32;
 
   /// Ctor of the memory pool. It is set as private because the class works as a singleton.
   explicit fixed_size_memory_block_pool(size_t nof_blocks_, size_t memory_block_size_) :

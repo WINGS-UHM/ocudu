@@ -16,23 +16,25 @@
 
 using namespace ocudu;
 
+namespace {
 using precoding_buffer_type = static_re_buffer<precoding_constants::MAX_NOF_PORTS, MAX_NOF_SUBCARRIERS, cbf16_t>;
+} // namespace
 
-// Resource element allocation patterns within a resource block for PDSCH DM-RS type 1.
+/// Resource element allocation patterns within a resource block for PDSCH DM-RS type 1.
 static const re_prb_mask& get_re_mask_type_1(unsigned cdm_group_id)
 {
   static constexpr unsigned MAX_CDM_GROUPS_TYPE1 = 2;
   ocudu_assert(cdm_group_id < MAX_CDM_GROUPS_TYPE1, "Invalid CDM group ID.");
 
-  static const std::array<re_prb_mask, MAX_CDM_GROUPS_TYPE1> re_mask_type1 = {
+  static constexpr std::array<re_prb_mask, MAX_CDM_GROUPS_TYPE1> re_mask_type1 = {
       {{true, false, true, false, true, false, true, false, true, false, true, false},
        {false, true, false, true, false, true, false, true, false, true, false, true}}};
 
   return re_mask_type1[cdm_group_id];
 }
 
-// Optimized mapping for PDSCH DM-RS Type 1 mapped on contiguous RBs. It derives the CDM group ID of the input symbols
-// from the RE allocation pattern.
+/// Optimized mapping for PDSCH DM-RS Type 1 mapped on contiguous RBs. It derives the CDM group ID of the input symbols
+/// from the RE allocation pattern.
 static void map_dmrs_type1_contiguous(resource_grid_writer&          writer,
                                       precoding_buffer_type&         precoding_buffer,
                                       const re_buffer_reader<>&      input,

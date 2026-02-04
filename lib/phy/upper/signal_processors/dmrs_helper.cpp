@@ -12,15 +12,15 @@
 
 using namespace ocudu;
 
-static const re_prb_mask RE_PATTERN_TYPE1_DELTA0 =
+static constexpr re_prb_mask RE_PATTERN_TYPE1_DELTA0 =
     {true, false, true, false, true, false, true, false, true, false, true, false};
-static const re_prb_mask RE_PATTERN_TYPE1_DELTA1 =
+static constexpr re_prb_mask RE_PATTERN_TYPE1_DELTA1 =
     {false, true, false, true, false, true, false, true, false, true, false, true};
-static const re_prb_mask RE_PATTERN_TYPE2_DELTA0 =
+static constexpr re_prb_mask RE_PATTERN_TYPE2_DELTA0 =
     {true, true, false, false, false, false, true, true, false, false, false, false};
-static const re_prb_mask RE_PATTERN_TYPE2_DELTA2 =
+static constexpr re_prb_mask RE_PATTERN_TYPE2_DELTA2 =
     {false, false, true, true, false, false, false, false, true, true, false, false};
-static const re_prb_mask RE_PATTERN_TYPE2_DELTA4 =
+static constexpr re_prb_mask RE_PATTERN_TYPE2_DELTA4 =
     {false, false, false, false, true, true, false, false, false, false, true, true};
 
 static const std::array<dmrs_pxsch_parameters, dmrs_type::DMRS_MAX_PORTS_TYPE1> params_type1 = {{

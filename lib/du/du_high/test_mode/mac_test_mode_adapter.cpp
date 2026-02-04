@@ -22,9 +22,9 @@
 using namespace ocudu;
 using namespace odu;
 
-// Buffer state that the fake RLC will report to the MAC. This value should be large enough for the scheduler to fill
-// the largest TB possible.
-static const unsigned TEST_UE_DL_BUFFER_STATE_UPDATE_SIZE = 10000000;
+/// Buffer state that the fake RLC will report to the MAC. This value should be large enough for the scheduler to fill
+/// the largest TB possible.
+static constexpr unsigned TEST_UE_DL_BUFFER_STATE_UPDATE_SIZE = 10000000;
 
 namespace {
 

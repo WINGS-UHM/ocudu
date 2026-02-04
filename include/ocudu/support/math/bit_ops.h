@@ -185,15 +185,15 @@ T swapbits(T p)
 /// \return Reversed number.
 inline uint64_t bit_reverse(uint64_t n)
 {
-  static const uint64_t m0 = 0x5555555555555555LLU;
-  static const uint64_t m1 = 0x0300c0303030c303LLU;
-  static const uint64_t m2 = 0x00c0300c03f0003fLLU;
-  static const uint64_t m3 = 0x00000ffc00003fffLLU;
-  n                        = ((n >> 1U) & m0) | (n & m0) << 1U;
-  n                        = detail::swapbits<uint64_t, m1, 4>(n);
-  n                        = detail::swapbits<uint64_t, m2, 8>(n);
-  n                        = detail::swapbits<uint64_t, m3, 20>(n);
-  n                        = (n >> 34U) | (n << 30U);
+  static constexpr uint64_t m0 = 0x5555555555555555LLU;
+  static constexpr uint64_t m1 = 0x0300c0303030c303LLU;
+  static constexpr uint64_t m2 = 0x00c0300c03f0003fLLU;
+  static constexpr uint64_t m3 = 0x00000ffc00003fffLLU;
+  n                            = ((n >> 1U) & m0) | (n & m0) << 1U;
+  n                            = detail::swapbits<uint64_t, m1, 4>(n);
+  n                            = detail::swapbits<uint64_t, m2, 8>(n);
+  n                            = detail::swapbits<uint64_t, m3, 20>(n);
+  n                            = (n >> 34U) | (n << 30U);
   return n;
 }
 

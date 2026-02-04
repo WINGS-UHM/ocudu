@@ -948,8 +948,8 @@ logical_channel_system::allocate_ue_con_res_id_mac_ce(soa::row_id ue_rid, dl_msg
   subpdu.lcid        = lcid_dl_sch_t::MIN_RESERVED;
   subpdu.sched_bytes = 0;
 
-  static const auto ce_size     = lcid_dl_sch_t{lcid_dl_sch_t::UE_CON_RES_ID}.sizeof_ce();
-  unsigned          alloc_bytes = ce_size + FIXED_SIZED_MAC_CE_SUBHEADER_SIZE;
+  static constexpr auto ce_size     = lcid_dl_sch_t{lcid_dl_sch_t::UE_CON_RES_ID}.sizeof_ce();
+  unsigned              alloc_bytes = ce_size + FIXED_SIZED_MAC_CE_SUBHEADER_SIZE;
 
   // Verify there is space for both MAC CE and subheader.
   if (rem_bytes < alloc_bytes) {

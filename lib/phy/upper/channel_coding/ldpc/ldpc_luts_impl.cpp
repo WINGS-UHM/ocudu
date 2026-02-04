@@ -4370,7 +4370,7 @@ static constexpr std::array<BG_matrix_t, NOF_LIFTING_INDICES> BG2_matrices = {
 ///
 /// For each check node, the corresponding row contains the indices of the
 /// variable nodes connected to it.
-static const BG_adjacency_matrix_t BG1_adjacency_matrix = {
+static constexpr BG_adjacency_matrix_t BG1_adjacency_matrix = {
     {{0, 1, 2, 3, 5, 6, 9, 10, 11, 12, 13, 15, 16, 18, 19, 20, 21, 22, 23, NO_EDGE},
      {0, 2, 3, 4, 5, 7, 8, 9, 11, 12, 14, 15, 16, 17, 19, 21, 22, 23, 24, NO_EDGE},
      {0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 13, 14, 15, 17, 18, 19, 20, 24, 25, NO_EDGE},
@@ -4464,7 +4464,7 @@ static const BG_adjacency_matrix_t BG1_adjacency_matrix = {
 ///
 ///  For each check node, the corresponding row contains the indices of the
 ///  variable nodes connected to it.
-static const BG_adjacency_matrix_t BG2_adjacency_matrix = {
+static constexpr BG_adjacency_matrix_t BG2_adjacency_matrix = {
     {{0, 1, 2, 3, 6, 9, 10, 11, NO_EDGE, NO_EDGE, NO_EDGE},
      {0, 3, 4, 5, 6, 7, 8, 9, 11, 12, NO_EDGE},
      {0, 1, 3, 4, 8, 10, 12, 13, NO_EDGE, NO_EDGE, NO_EDGE},

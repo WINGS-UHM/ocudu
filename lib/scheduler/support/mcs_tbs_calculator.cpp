@@ -155,7 +155,7 @@ static compute_ul_mcs_tbs_error is_pusch_effective_rate_valid(const pusch_config
 
   // The maximum supported code rate is 0.95, as per TS 38.214, Section 5.1.3. The maximum code rate is defined for DL,
   // but we consider the same value for UL.
-  static const double max_supported_code_rate = 0.95;
+  static constexpr double max_supported_code_rate = 0.95;
 
   // Make sure the rate-matched bits for two HARQ-ACK feedback bits plus the DC overhead does not exceed the number of
   // rate-matched bits for UL-SCH.
@@ -213,10 +213,10 @@ std::optional<sch_mcs_tbs> ocudu::compute_dl_mcs_tbs(const pdsch_config_params& 
 {
   // The maximum supported code rate is 0.95, as per TS38.214, Section 5.1.3. The maximum code rate is defined for DL,
   // but we consider the same value for UL.
-  static const double max_supported_code_rate = 0.95;
-  const unsigned      dmrs_prbs               = calculate_nof_dmrs_per_rb(pdsch_params.dmrs);
-  sch_mcs_description mcs_info                = pdsch_mcs_get_config(pdsch_params.mcs_table, max_mcs);
-  unsigned            nof_symbols             = pdsch_params.symbols.length();
+  static constexpr double max_supported_code_rate = 0.95;
+  const unsigned          dmrs_prbs               = calculate_nof_dmrs_per_rb(pdsch_params.dmrs);
+  sch_mcs_description     mcs_info                = pdsch_mcs_get_config(pdsch_params.mcs_table, max_mcs);
+  unsigned                nof_symbols             = pdsch_params.symbols.length();
 
   unsigned tbs_bits =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,

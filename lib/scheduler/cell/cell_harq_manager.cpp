@@ -152,8 +152,8 @@ public:
 
 } // namespace ocudu::harq_utils
 
-// In NTN case, we timeout the HARQ since we need to reuse the process before the PUSCH arrives.
-static const unsigned NTN_ACK_WAIT_TIMEOUT = 1;
+// In NTN case, we time out the HARQ since we need to reuse the process before the PUSCH arrives.
+static constexpr unsigned NTN_ACK_WAIT_TIMEOUT = 1;
 
 template <bool IsDl>
 cell_harq_repository<IsDl>::cell_harq_repository(unsigned                max_ues,

@@ -38,8 +38,8 @@ unsigned ocudu::estimate_required_nof_prbs(const prbs_calculator_sch_config& sch
   // Convert size into bits, as per TS procedures for TBS.
   const unsigned payload_size = sch_config.payload_size_bytes * NOF_BITS_PER_BYTE;
 
-  float                 nof_info_estimate;
-  static const unsigned payload_step_threshold = 3824;
+  float                     nof_info_estimate;
+  static constexpr unsigned payload_step_threshold = 3824;
   if (payload_size >= payload_step_threshold) {
     nof_info_estimate = estimate_nof_info_payload_higher_3824_bits(payload_size, sch_config.mcs_descr.target_code_rate);
   } else {

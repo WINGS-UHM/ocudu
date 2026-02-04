@@ -132,7 +132,7 @@ pusch_config_params ocudu::get_pusch_config_f0_1_c_rnti(const ue_cell_configurat
   // Parameter \c tp-pi2BPSK enabled is not supported yet.
   constexpr bool tp_pi2bpsk_present = false;
   // TODO: Update the value based on nof. CWs enabled.
-  static const bool are_both_cws_enabled = false;
+  static constexpr bool are_both_cws_enabled = false;
 
   pusch_config_params pusch;
 

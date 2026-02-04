@@ -246,8 +246,8 @@ struct formatter<ocudu::span<T>> {
 
   formatter()
   {
-    static const string_view DEFAULT_FORMAT    = "{}";
-    static const string_view DEFAULT_DELIMITER = " ";
+    static constexpr std::string_view DEFAULT_FORMAT    = "{}";
+    static constexpr std::string_view DEFAULT_DELIMITER = " ";
     format_buffer.append(DEFAULT_FORMAT.begin(), DEFAULT_FORMAT.end());
     delimiter_buffer.append(DEFAULT_DELIMITER.begin(), DEFAULT_DELIMITER.end());
   }
@@ -255,8 +255,8 @@ struct formatter<ocudu::span<T>> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
-    static const string_view PREAMBLE_FORMAT = "{:";
-    static const string_view COMMA_DELIMITER = ", ";
+    static constexpr std::string_view PREAMBLE_FORMAT = "{:";
+    static constexpr std::string_view COMMA_DELIMITER = ", ";
 
     // Skip if context is empty and use default format.
     if (ctx.begin() == ctx.end()) {

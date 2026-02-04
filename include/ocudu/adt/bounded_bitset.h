@@ -991,7 +991,7 @@ private:
   }
 
   /// Number of words currently in use.
-  OCUDU_FORCE_INLINE size_t nof_words_() const noexcept { return divide_ceil(size(), bits_per_word); }
+  OCUDU_FORCE_INLINE constexpr size_t nof_words_() const noexcept { return divide_ceil(size(), bits_per_word); }
 
   constexpr size_t word_idx_(size_t bitidx) const { return bitidx / bits_per_word; }
 

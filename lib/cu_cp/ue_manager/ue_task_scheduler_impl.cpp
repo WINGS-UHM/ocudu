@@ -15,7 +15,7 @@ using namespace ocudu;
 using namespace ocucp;
 
 /// Maximum number of pending procedures per UE.
-static const size_t number_of_pending_ue_procedures = 64;
+static constexpr size_t number_of_pending_ue_procedures = 64;
 
 unique_timer ue_task_scheduler_impl::create_timer()
 {

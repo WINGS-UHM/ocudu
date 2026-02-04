@@ -158,10 +158,10 @@ void si_message_scheduler::schedule_pending_si_messages(cell_slot_resource_alloc
 
 bool si_message_scheduler::allocate_si_message(unsigned si_message, cell_slot_resource_allocator& res_grid)
 {
-  static const unsigned time_resource = 0;
-  static const unsigned nof_layers    = 1;
+  static constexpr unsigned time_resource = 0;
+  static constexpr unsigned nof_layers    = 1;
   // As per Section 5.1.3.2, TS 38.214, nof_oh_prb = 0 if PDSCH is scheduled by PDCCH with a CRC scrambled by SI-RNTI.
-  static const unsigned nof_oh_prb = 0;
+  static constexpr unsigned nof_oh_prb = 0;
 
   const units::bytes si_msg_payload_size = si_sched_cfg->si_messages[si_message].msg_len;
 
@@ -235,8 +235,8 @@ void si_message_scheduler::fill_si_grant(cell_slot_resource_allocator& res_grid,
       get_si_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.dmrs_typeA_pos);
 
   // Fill SI-message DCI.
-  static const unsigned si_indicator = 1;
-  auto&                 si_pdcch     = res_grid.result.dl.dl_pdcchs.back();
+  static constexpr unsigned si_indicator = 1;
+  auto&                     si_pdcch     = res_grid.result.dl.dl_pdcchs.back();
   build_dci_f1_0_si_rnti(si_pdcch.dci,
                          cell_cfg.dl_cfg_common.init_dl_bwp,
                          si_crbs_grant,

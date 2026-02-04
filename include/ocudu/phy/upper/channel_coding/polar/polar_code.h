@@ -37,16 +37,16 @@ class polar_code
 {
 public:
   /// \brief Maximum rate-matched codeword length.
-  static const unsigned EMAX = 8192;
+  static constexpr unsigned EMAX = 8192;
 
   /// \brief Maximum codeword length.
-  static const unsigned NMAX = 1024;
+  static constexpr unsigned NMAX = 1024;
 
   /// \brief Base-2 logarithm of the maximum codeword length.
-  static const unsigned NMAX_LOG = 10U;
+  static constexpr unsigned NMAX_LOG = 10U;
 
   /// \brief Base-2 logarithm of the maximum rate-matched codeword length.
-  static const unsigned eMAX = 13;
+  static constexpr unsigned eMAX = 13;
 
   virtual ~polar_code() = default;
 

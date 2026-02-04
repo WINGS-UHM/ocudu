@@ -88,7 +88,7 @@ sched_helper::get_pdsch_config_f1_1_c_rnti(const cell_configuration&            
   static constexpr unsigned tb_scaling_field = 0;
 
   // TODO: Update the value based on nof. CWs enabled.
-  static const bool are_both_cws_enabled = false;
+  static constexpr bool are_both_cws_enabled = false;
 
   pdsch_config_params pdsch;
 

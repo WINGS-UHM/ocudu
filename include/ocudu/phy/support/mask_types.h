@@ -26,10 +26,10 @@ public:
   constexpr symbol_slot_mask(unsigned nsymb = MAX_NSYMB_PER_SLOT) : bounded_bitset(nsymb) {}
 
   /// Copy constructor from another \c bounded_bitset<MAX_NSYMB_PER_SLOT>.
-  symbol_slot_mask(const bounded_bitset& other) : bounded_bitset(other) {}
+  constexpr symbol_slot_mask(const bounded_bitset& other) : bounded_bitset(other) {}
 
   /// Constructor from an initializer list.
-  symbol_slot_mask(const std::initializer_list<const bool>& list) : bounded_bitset(list) {}
+  constexpr symbol_slot_mask(const std::initializer_list<const bool>& list) : bounded_bitset(list) {}
 };
 
 /// \brief Represents a RE mask within a PRB.
@@ -42,10 +42,10 @@ public:
   constexpr re_prb_mask() : bounded_bitset(NOF_SUBCARRIERS_PER_RB) {}
 
   /// Copy constructor from another \c bounded_bitset<NOF_SUBCARRIERS_PER_RB>.
-  re_prb_mask(const bounded_bitset& other) : bounded_bitset(other) {}
+  constexpr re_prb_mask(const bounded_bitset& other) : bounded_bitset(other) {}
 
   /// Constructor from an initializer list.
-  re_prb_mask(const std::initializer_list<const bool>& list) : bounded_bitset(list) {}
+  constexpr re_prb_mask(const std::initializer_list<const bool>& list) : bounded_bitset(list) {}
 };
 
 } // namespace ocudu

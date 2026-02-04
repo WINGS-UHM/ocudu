@@ -12,6 +12,46 @@
 
 using namespace ocudu;
 
+static constexpr unsigned N_SYMB_CORESET = UINT32_MAX;
+
+/// TS38.213 Table 13-11 for FR1.
+static const std::array<pdcch_type0_css_occasion_pattern1_description, 16> TABLE_FR1 = {{
+    {0, 1.0, {0}},
+    {0, 0.5, {0, N_SYMB_CORESET}},
+    {2, 1.0, {0}},
+    {2, 0.5, {0, N_SYMB_CORESET}},
+    {5, 1.0, {0}},
+    {5, 0.5, {0, N_SYMB_CORESET}},
+    {7, 1.0, {0}},
+    {7, 0.5, {0, N_SYMB_CORESET}},
+    {0, 2.0, {0}},
+    {5, 2.0, {0}},
+    {0, 1.0, {1}},
+    {0, 1.0, {2}},
+    {2, 1.0, {1}},
+    {2, 1.0, {2}},
+    {5, 1.0, {1}},
+    {5, 1.0, {2}},
+}};
+
+/// TS38.213 Table 13-12 for FR2.
+static const std::array<pdcch_type0_css_occasion_pattern1_description, 14> TABLE_FR2 = {{
+    {0, 1.0, {0}},
+    {0, 0.5, {0, 7}},
+    {2.5, 1.0, {0}},
+    {2.5, 0.5, {0, 7}},
+    {5.0, 1.0, {0}},
+    {5.0, 0.5, {0, 7}},
+    {0.0, 0.5, {0, N_SYMB_CORESET}},
+    {2.5, 0.5, {0, N_SYMB_CORESET}},
+    {5.0, 0.5, {0, N_SYMB_CORESET}},
+    {7.5, 1.0, {0}},
+    {7.5, 0.5, {0, 7}},
+    {7.5, 0.5, {0, N_SYMB_CORESET}},
+    {0.0, 2.0, {0}},
+    {5.0, 2.0, {0}},
+}};
+
 pdcch_type0_css_occasion_pattern1_description
 ocudu::pdcch_type0_css_occasions_get_pattern1(const pdcch_type0_css_occasion_pattern1_configuration& config)
 {
@@ -21,46 +61,6 @@ ocudu::pdcch_type0_css_occasions_get_pattern1(const pdcch_type0_css_occasion_pat
                config.ss_zero_index,
                ss_zero_index_range,
                config.is_fr2 ? "FR2" : "FR1");
-
-  static const unsigned N_SYMB_CORESET = UINT32_MAX;
-
-  // TS38.213 Table 13-11 for FR1.
-  static const std::array<pdcch_type0_css_occasion_pattern1_description, 16> TABLE_FR1 = {{
-      {0, 1.0, {0}},
-      {0, 0.5, {0, N_SYMB_CORESET}},
-      {2, 1.0, {0}},
-      {2, 0.5, {0, N_SYMB_CORESET}},
-      {5, 1.0, {0}},
-      {5, 0.5, {0, N_SYMB_CORESET}},
-      {7, 1.0, {0}},
-      {7, 0.5, {0, N_SYMB_CORESET}},
-      {0, 2.0, {0}},
-      {5, 2.0, {0}},
-      {0, 1.0, {1}},
-      {0, 1.0, {2}},
-      {2, 1.0, {1}},
-      {2, 1.0, {2}},
-      {5, 1.0, {1}},
-      {5, 1.0, {2}},
-  }};
-
-  // TS38.213 Table 13-12 for FR2.
-  static const std::array<pdcch_type0_css_occasion_pattern1_description, 14> TABLE_FR2 = {{
-      {0, 1.0, {0}},
-      {0, 0.5, {0, 7}},
-      {2.5, 1.0, {0}},
-      {2.5, 0.5, {0, 7}},
-      {5.0, 1.0, {0}},
-      {5.0, 0.5, {0, 7}},
-      {0.0, 0.5, {0, N_SYMB_CORESET}},
-      {2.5, 0.5, {0, N_SYMB_CORESET}},
-      {5.0, 0.5, {0, N_SYMB_CORESET}},
-      {7.5, 1.0, {0}},
-      {7.5, 0.5, {0, 7}},
-      {7.5, 0.5, {0, N_SYMB_CORESET}},
-      {0.0, 2.0, {0}},
-      {5.0, 2.0, {0}},
-  }};
 
   // Select occasion from the tables.
   pdcch_type0_css_occasion_pattern1_description occasion = TABLE_FR1[config.ss_zero_index];

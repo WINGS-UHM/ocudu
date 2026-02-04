@@ -20,8 +20,8 @@ namespace ocudu {
 /// \return Returns the dB interval to which reported PH maps to.
 inline ph_db_range ph_to_db_range(unsigned ph)
 {
-  static const int ph_min_db_value = -32;
-  static const int ph_max_db_value = 38;
+  static constexpr int ph_min_db_value = -32;
+  static constexpr int ph_max_db_value = 38;
 
   if (ph == 0) {
     // PH is < -32dB.
@@ -43,8 +43,8 @@ inline ph_db_range ph_to_db_range(unsigned ph)
 /// \return Returns the dBm interval to which reported P_CMAX,f,c maps to.
 inline p_cmax_dbm_range p_cmax_to_dbm_range(unsigned p_cmax)
 {
-  static const int p_cmax_min_db_value = -29;
-  static const int p_cmax_max_db_value = 33;
+  static constexpr int p_cmax_min_db_value = -29;
+  static constexpr int p_cmax_max_db_value = 33;
 
   if (p_cmax == 0) {
     // P_CMAX,f,c is < -29dBm.

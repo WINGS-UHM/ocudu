@@ -67,7 +67,7 @@ void rar_pdu_encoder::encode_rar_subpdu(const rar_ul_grant& grant, bool is_last_
 
 void rar_pdu_encoder::encode_rapid_subheader(uint16_t rapid, bool is_last_subpdu)
 {
-  static const unsigned RAPID_FLAG = 1;
+  static constexpr unsigned RAPID_FLAG = 1;
 
   // write E/T/RAPID MAC subheader.
   *ptr = (uint8_t)((not is_last_subpdu ? 1U : 0U) << 7U) | (RAPID_FLAG << 6U) | ((uint8_t)rapid & 0x3fU);

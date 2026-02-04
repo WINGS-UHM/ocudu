@@ -76,24 +76,24 @@ ENV DPDK_DIR=/opt/dpdk/${DPDK_VERSION}
 RUN if [ -z "$NUM_JOBS" ]; then NUM_JOBS=$(nproc); fi \
     && \
     /src/docker/scripts/builder.sh -c ${COMPILER} -m "-j${NUM_JOBS} ocu odu odu_split_8 odu_split_7_2 gnb gnb_split_8 gnb_split_7_2 ru_emulator" \
-    -DBUILD_TESTING=False -DENABLE_UHD=On -DENABLE_DPDK=On -DMARCH=${MARCH} -DCMAKE_INSTALL_PREFIX=/opt/srs \
+    -DBUILD_TESTING=False -DENABLE_UHD=On -DENABLE_DPDK=On -DMARCH=${MARCH} -DCMAKE_INSTALL_PREFIX=/opt/ocudu \
     ${EXTRA_CMAKE_ARGS} /src
 RUN cp /src/build/apps/cu/ocu             /tmp/ocu                     && \
     cp /src/build/apps/du/odu             /tmp/odu                     && \
     cp /src/build/apps/du_split_8/odu     /tmp/odu_split_8             && \
     cp /src/build/apps/du_split_7_2/odu   /tmp/odu_split_7_2           && \
-    cp /src/build/apps/gnb/gnb              /tmp/gnb                       && \
-    cp /src/build/apps/gnb_split_8/gnb      /tmp/gnb_split_8               && \
-    cp /src/build/apps/gnb_split_7_2/gnb    /tmp/gnb_split_7_2             && \
-    cd /src/build                                                          && \
-    make install                                                           && \
-    mv /tmp/ocu                           /opt/srs/bin/ocu             && \
-    mv /tmp/odu                           /opt/srs/bin/odu             && \
-    mv /tmp/odu_split_8                   /opt/srs/bin/odu_split_8     && \
-    mv /tmp/odu_split_7_2                 /opt/srs/bin/odu_split_7_2   && \
-    mv /tmp/gnb                             /opt/srs/bin/gnb               && \
-    mv /tmp/gnb_split_8                     /opt/srs/bin/gnb_split_8       && \
-    mv /tmp/gnb_split_7_2                   /opt/srs/bin/gnb_split_7_2
+    cp /src/build/apps/gnb/gnb            /tmp/gnb                     && \
+    cp /src/build/apps/gnb_split_8/gnb    /tmp/gnb_split_8             && \
+    cp /src/build/apps/gnb_split_7_2/gnb  /tmp/gnb_split_7_2           && \
+    cd /src/build                                                      && \
+    make install                                                       && \
+    mv /tmp/ocu                           /opt/ocudu/bin/ocu           && \
+    mv /tmp/odu                           /opt/ocudu/bin/odu           && \
+    mv /tmp/odu_split_8                   /opt/ocudu/bin/odu_split_8   && \
+    mv /tmp/odu_split_7_2                 /opt/ocudu/bin/odu_split_7_2 && \
+    mv /tmp/gnb                           /opt/ocudu/bin/gnb           && \
+    mv /tmp/gnb_split_8                   /opt/ocudu/bin/gnb_split_8   && \
+    mv /tmp/gnb_split_7_2                 /opt/ocudu/bin/gnb_split_7_2
 
 ################
 # Stage 2: Run #
@@ -108,7 +108,7 @@ ARG DPDK_VERSION
 COPY --from=builder /opt/rohc                 /opt/rohc
 COPY --from=builder /opt/uhd/${UHD_VERSION}   /opt/uhd/${UHD_VERSION}
 COPY --from=builder /opt/dpdk/${DPDK_VERSION} /opt/dpdk/${DPDK_VERSION}
-COPY --from=builder /opt/srs                  /usr/local
+COPY --from=builder /opt/ocudu                /usr/local
 
 # Copy the install dependencies scripts
 ADD docker/scripts/install_rohc_dependencies.sh /usr/local/etc/install_rohc_dependencies.sh
@@ -134,9 +134,9 @@ RUN /usr/local/etc/install_ocudu_dependencies.sh run && \
 
 FROM anchore/syft:v1.26.1 AS syft-bin
 FROM python:3.11.3-alpine AS spdx-merger
-COPY --from=syft-bin  /syft                      /syft
-COPY --from=runtime   /                          /rootfs
-COPY --from=builder   /opt/srs/share/ocudu.spdx /sbom/ocudu.spdx
+COPY --from=syft-bin  /syft                       /syft
+COPY --from=runtime   /                           /rootfs
+COPY --from=builder   /opt/ocudu/share/ocudu.spdx /sbom/ocudu.spdx
 
 # Generate SPDX file for the container image
 RUN mkdir -p /sbom /usr/local/etc/ && /syft dir:/rootfs -o spdx > /sbom/container.spdx

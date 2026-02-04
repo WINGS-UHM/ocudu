@@ -84,7 +84,7 @@ public:
       sib1msg.non_crit_ext.non_crit_ext_present                            = true;
       sib1msg.non_crit_ext.non_crit_ext.non_crit_ext_present               = true;
       sib1msg.non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17_present = true;
-      sib1msg.non_crit_ext.non_crit_ext.non_crit_ext.hyper_sfn_r17.from_number(0);
+      build_bcch_dl_sch_payload(0);
     }
 
     expected<span<const uint8_t>, units::bytes> encode(slot_point_extended sl_tx, units::bytes tbs) override

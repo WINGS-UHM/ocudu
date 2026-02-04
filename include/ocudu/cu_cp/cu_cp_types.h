@@ -577,6 +577,11 @@ struct cu_cp_assist_data_for_paging {
   std::optional<cu_cp_paging_attempt_info>               paging_attempt_info;
 };
 
+struct cu_cp_paging_edrx_info {
+  float                  nr_paging_edrx_cycle;
+  std::optional<uint8_t> nr_paging_time_window;
+};
+
 struct cu_cp_paging_message {
   uint64_t                                         ue_id_idx_value = 0;
   std::variant<cu_cp_five_g_s_tmsi, full_i_rnti_t> ue_paging_id;
@@ -586,6 +591,7 @@ struct cu_cp_paging_message {
   std::optional<cu_cp_ue_radio_cap_for_paging>     ue_radio_cap_for_paging;
   std::optional<bool>                              paging_origin;
   std::optional<cu_cp_assist_data_for_paging>      assist_data_for_paging;
+  std::optional<cu_cp_paging_edrx_info>            paging_edrx_info;
 };
 
 struct cu_cp_bearer_context_release_request {

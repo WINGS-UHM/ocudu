@@ -67,6 +67,14 @@ inline void fill_asn1_paging_message(asn1::f1ap::paging_s& asn1_paging, const cu
     asn1_paging->paging_origin_present = true;
     asn1::bool_to_enum(asn1_paging->paging_origin, paging.paging_origin.value());
   }
+
+  // Add paging eDRX information.
+  if (paging.paging_edrx_info.has_value()) {
+    asn1_paging->nr_paginge_drx_info_present = true;
+    asn1::float_number_to_enum(asn1_paging->nr_paginge_drx_info.nrpaging_e_drx_cycle_idle,
+                               paging.paging_edrx_info->nr_paging_edrx_cycle,
+                               0.001f);
+  }
 }
 
 } // namespace ocucp

@@ -942,6 +942,17 @@ inline void fill_cu_cp_paging_message(cu_cp_paging_message& paging, const asn1::
 
     paging.assist_data_for_paging = assist_data_for_paging;
   }
+
+  // Add Paging eDRX Information.
+  if (asn1_paging->nr_paginge_drx_info_present) {
+    cu_cp_paging_edrx_info paging_edrx_info{};
+    paging_edrx_info.nr_paging_edrx_cycle = asn1_paging->nr_paginge_drx_info.nr_paging_e_drx_cycle.to_number();
+
+    if (asn1_paging->nr_paginge_drx_info.nr_paging_time_win_present) {
+      paging_edrx_info.nr_paging_time_window = asn1_paging->nr_paginge_drx_info.nr_paging_time_win.to_number();
+    }
+    paging.paging_edrx_info = paging_edrx_info;
+  }
 }
 
 /// \brief Convert Handover Request ASN1 struct to common type.

@@ -19,13 +19,10 @@
 using namespace ocudu;
 using namespace odu;
 
-// Helper that computes the slot offsets that can be used for the activation of the SRS resource sets (ref. to
-// Section 6.2.1, TS 38.214).
-// These offsets are chosen:
-// - So that the scheduler can trigger the aperiodic SRS transmission for the UE with both DCI 0_1 and 1_1; this way,
-// the scheduler can take advantage of both DL and UL allocation to scheduler an SRS.
-// - To be greater than the maximum k2, so that the SRS will be allocated before the PUSCH.
-static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg)
+// Helper that computes the slot offset that can be used for the activation of the SRS resource sets (ref. to
+// Section 6.2.1, TS 38.214). As per TS 38.214, 6.1.1.1, only 1 SRS Resource Set can be configured for Codebook based
+// transmissions. This means that only 1 offset can be chosen.
+static unsigned compute_slot_offset(const du_cell_config& cell_cfg)
 {
   const auto& dl_data_to_ul_ack =
       cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value().dl_data_to_ul_ack;
@@ -61,7 +58,7 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
   // FDD Case.
   if (not cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
     // Return 1 slot offsets value, to ensure that the SRS is allocated before the PUSCH.
-    return {static_cast<unsigned>(slot_offset_lower_bound + 1)};
+    return static_cast<unsigned>(slot_offset_lower_bound + 1);
   }
 
   const auto& tdd_cfg = cell_cfg.tdd_ul_dl_cfg_common.value();
@@ -85,24 +82,10 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
 
   const unsigned tdd_period_slots = nof_slots_per_tdd_period(tdd_cfg);
 
-  struct offset_info {
-    offset_info(uint8_t dl_sl_idx, uint8_t sl_offset, bool is_dl) :
-      dl_slot_idx(dl_sl_idx), slot_offset(sl_offset), is_dl_dci(is_dl)
-    {
-    }
-
-    // Slot index of the DL slot, from 0 to TDD period in slots - 1.
-    uint8_t dl_slot_idx;
-    // \c slotOffset, as per \c SRS-ResourceSet, \c SRS-Config, TS 38.331.
-    uint8_t slot_offset;
-    // true if this offset is used to allocate SRS through DL DCI, false for UL DCI.
-    bool is_dl_dci;
-  };
-
   // Find the candidate UL slot offsets, i.e., the slot offsets that can be used to trigger aperiodic SRS with UL DCIs.
   // These UL slot offsets only exist for DL slots that has at least a k2 value (otherwise, the DL slot can't be used
   // for UL DCIs).
-  std::vector<offset_info> candidate_slot_offsets;
+  std::vector<unsigned> candidate_slot_offsets;
   for (unsigned dl_sl_idx = 0, sz = pusch_td_list_per_slot.size(); dl_sl_idx != sz; ++dl_sl_idx) {
     // Skip UL slots.
     if (pusch_td_list_per_slot[dl_sl_idx].empty()) {
@@ -119,119 +102,23 @@ static std::vector<unsigned> compute_slot_offsets(const du_cell_config& cell_cfg
             static_cast<int>(target_slot_idx + period_multiplier * tdd_period_slots) - static_cast<int>(dl_sl_idx);
         // The constraint offsets > slot_offset_lower_bound ensures the SRS is always allocated before a PUSCH.
         if (sl_offset > slot_offset_lower_bound and sl_offset <= static_cast<int>(srs_constants::MAX_SRS_SLOT_OFFSET)) {
-          candidate_slot_offsets.emplace_back(dl_sl_idx, sl_offset, /* is_dl */ false);
+          candidate_slot_offsets.emplace_back(sl_offset);
         }
       }
     }
   }
 
-  // Find the candidate DL slot offsets, i.e., the slot offsets that can be used to trigger aperiodic SRS with DL DCIs.
-  for (unsigned dl_sl_idx = 0, sz = tdd_period_slots; dl_sl_idx != sz; ++dl_sl_idx) {
-    if (not has_active_tdd_dl_symbols(tdd_cfg, dl_sl_idx)) {
-      continue;
-    }
-    // Save the viable offsets that map the DL slots suitable for DL DCI to the candidate SRS UL slots.
-    for (const auto target_slot_idx : target_ul_slots_idx) {
-      // Consider the offsets that spans over several TDD periods, otherwise the constraint
-      // sl_offset > slot_offset_lower_bound might not be met.
-      // The maximum period multiplier 3 is the for a 4-slot TDD period to cover the worst case for the constraint
-      // sl_offset > SCHEDULER_MAX_K2.
-      for (unsigned period_multiplier = 0; period_multiplier != 4; ++period_multiplier) {
-        const auto sl_offset =
-            static_cast<int>(target_slot_idx + period_multiplier * tdd_period_slots) - static_cast<int>(dl_sl_idx);
-        // The constraint offsets > slot_offset_lower_bound ensures the SRS is always allocated before a PUSCH.
-        if (sl_offset > slot_offset_lower_bound and sl_offset <= static_cast<int>(srs_constants::MAX_SRS_SLOT_OFFSET)) {
-          candidate_slot_offsets.emplace_back(dl_sl_idx, sl_offset, /* is_dl */ true);
-        }
-      }
-    }
-  }
+  ocudu_assert(not candidate_slot_offsets.empty(),
+               "The candidate slot offsets list cannot be empty: check if the pusch_td_list_per_slot has been "
+               "correctly created");
 
-  std::vector<offset_info> optimal_tuples;
-  auto                     weight_function =
-      [&optimal_tuples, &tdd_cfg, &target_ul_slots_idx, tdd_period_slots](const offset_info& offset) {
-        // The logic of this function can be summarized as follows:
-        // - Provide at least 1 UL slot offset and 1 DL slot offset.
-        // - If a third one is required, then provide an extra UL(DL) slot offset for UL(DL)-heavy configuration.
-        // - If possible, provide a slot offset that reaches the UL target slot from different DL slot (if another slot
-        // offset exits).
-        // - Don't consider an offset that has already been chosen, even if the metric is good; the goal is to provide a
-        // list of offsets that are different, so the scheduler has more option when it comes to find a possible DL slot
-        // for the DCI that triggers the SRS transmission.
-        const bool         ul_heavy = nof_dl_slots_per_tdd_period(tdd_cfg) > nof_full_ul_slots_per_tdd_period(tdd_cfg);
-        constexpr unsigned exclude_element_penalty = 1000;
-        // Always start the search from an UL slot offset, first, as in DL-heavy the search space for UL slot offset is
-        // smaller than for DL slot offsets.
-        if (optimal_tuples.empty()) {
-          const unsigned is_dl_penalty = offset.is_dl_dci ? exclude_element_penalty : 0U;
-          return offset.slot_offset + is_dl_penalty;
-        }
-        // Penalty to force the choice of a slot offset starting from a different DL slot index.
-        const unsigned existing_dl_slot_penalty = std::find_if(optimal_tuples.begin(),
-                                                               optimal_tuples.end(),
-                                                               [offset](const offset_info& tuple) {
-                                                                 return tuple.dl_slot_idx == offset.dl_slot_idx;
-                                                               }) != optimal_tuples.end()
-                                                      ? 2 * srs_constants::MAX_SRS_SLOT_OFFSET
-                                                      : 0U;
-        // Penalty to force the choice of a different slot offset.
-        const unsigned existing_offset_penalty = std::find_if(optimal_tuples.begin(),
-                                                              optimal_tuples.end(),
-                                                              [offset](const offset_info& tuple) {
-                                                                return tuple.slot_offset == offset.slot_offset;
-                                                              }) != optimal_tuples.end()
-                                                     ? exclude_element_penalty
-                                                     : 0U;
-        // Penalty to force the choice of a different UL slot target (only needed if the TDD patterns has 2 special
-        // slots).
-        const unsigned same_target_ul_slot_penalty =
-            target_ul_slots_idx.size() == 2 and
-                    std::find_if(optimal_tuples.begin(),
-                                 optimal_tuples.end(),
-                                 [offset, tdd_period_slots](const offset_info& tuple) {
-                                   return (tuple.dl_slot_idx + tuple.slot_offset) % tdd_period_slots ==
-                                          (offset.dl_slot_idx + offset.slot_offset) % tdd_period_slots;
-                                 }) != optimal_tuples.end()
-                ? srs_constants::MAX_SRS_SLOT_OFFSET
-                : 0U;
-        // Choose a DL slot offset as second value.
-        if (optimal_tuples.size() == 1) {
-          const unsigned is_ul_penalty = offset.is_dl_dci ? 0U : exclude_element_penalty;
-          const unsigned weight        = offset.slot_offset + existing_dl_slot_penalty + existing_offset_penalty +
-                                  is_ul_penalty + same_target_ul_slot_penalty;
-          return weight;
-        }
-        // Choose a DL/UL slot offset as second value, depending on DL-UL heavy config.
-        if (optimal_tuples.size() == 2) {
-          // If UL heavy then we add a penalty for DL slots offsets. If DL heavy, we add a penalty for UL.
-          const unsigned dl_ul_penalty = exclude_element_penalty * static_cast<unsigned>(ul_heavy != offset.is_dl_dci);
-          const unsigned weight        = offset.slot_offset + dl_ul_penalty + existing_dl_slot_penalty +
-                                  existing_offset_penalty + same_target_ul_slot_penalty;
-          return weight;
-        }
+  // Return the min offset.
+  const auto min_it = std::min_element(candidate_slot_offsets.begin(),
+                                       candidate_slot_offsets.end(),
+                                       [](const unsigned lhs, const unsigned rhs) { return lhs < rhs; });
+  ocudu_assert(min_it != candidate_slot_offsets.end(), "A min is expected from a non-empty set");
 
-        return 0U;
-      };
-
-  // We consider max 3 slots offsets, as many as the possible activation states defined in Table 7.3.1.1.2-24,
-  // TS 38.212. NOTE, if the TDD configuration only has 2 DL slot, then the 3rd slot offset wouldn't be used.
-  const unsigned nof_slot_offset = std::min(3U, nof_dl_slots_per_tdd_period(tdd_cfg));
-  for (unsigned n = 0; n != nof_slot_offset; ++n) {
-    auto min_it = std::min_element(candidate_slot_offsets.begin(),
-                                   candidate_slot_offsets.end(),
-                                   [&weight_function](const offset_info& lhs, const offset_info& rhs) {
-                                     return weight_function(lhs) < weight_function(rhs);
-                                   });
-    ocudu_assert(min_it != optimal_tuples.end(), "");
-    optimal_tuples.emplace_back(*min_it);
-  }
-
-  std::vector<unsigned> slot_offsets;
-  for (const auto& tuple : optimal_tuples) {
-    slot_offsets.emplace_back(tuple.slot_offset);
-  }
-  std::sort(slot_offsets.begin(), slot_offsets.end());
-  return slot_offsets;
+  return *min_it;
 }
 
 du_srs_aperiodic_res_mng::cell_context::cell_context(const du_cell_config& cfg) :
@@ -287,7 +174,7 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
                                        (cell_cfg.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0);
     cell.cell_srs_res_list = generate_cell_srs_list(cell_cfg, use_special_slot_only);
 
-    // Reserve the size of the vector and set the SRS counter of each offset to 0.
+    // Reserve the size of the vector and set the SRS counter of each resource to 0.
     cell.srs_res_usage.reserve(cell.cell_srs_res_list.size());
     cell.srs_res_usage.assign(cell.cell_srs_res_list.size(), 0U);
 
@@ -296,10 +183,7 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
                      cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value(),
                  "The SRS aperiodic configuration generation requires PUSCH Config Common, UL Config and PUCCH Config");
 
-    cell.slot_offsets = compute_slot_offsets(cell_cfg);
-    ocudu_assert((cell_cfg.tdd_ul_dl_cfg_common.has_value() and cell.slot_offsets.size() >= 2) or
-                     cell.slot_offsets.size() == 1,
-                 "At least 2 SRS slot offset values expected for TDD, only 1 for FDD");
+    cell.slot_offset = compute_slot_offset(cell_cfg);
   }
 }
 
@@ -318,7 +202,6 @@ bool du_srs_aperiodic_res_mng::alloc_resources(cell_group_config& cell_grp_cfg)
     const auto opt_srs_res_it = std::min_element(ue_du_cell.srs_res_usage.begin(),
                                                  ue_du_cell.srs_res_usage.end(),
                                                  [](const unsigned lhs, const unsigned rhs) { return lhs < rhs; });
-    ;
     ocudu_assert(opt_srs_res_it != ue_du_cell.srs_res_usage.end(), "No SRS resource returned from a non-emtpy set");
 
     auto opt_res_idx = std::distance(ue_du_cell.srs_res_usage.begin(), opt_srs_res_it);
@@ -330,7 +213,7 @@ bool du_srs_aperiodic_res_mng::alloc_resources(cell_group_config& cell_grp_cfg)
     // Update the SRS configuration with the parameters that are specific to this resource and for this UE.
     auto& only_ue_srs_res = ue_srs_cfg.srs_res_list.front();
     ue_du_cell.fill_srs_res_parameters(only_ue_srs_res, du_res);
-    ue_du_cell.fill_srs_res_sets(ue_srs_cfg.srs_res_set_list, only_ue_srs_res.id.ue_res_id, ue_du_cell.slot_offsets);
+    ue_du_cell.fill_srs_res_set(ue_srs_cfg.srs_res_set_list, only_ue_srs_res.id.ue_res_id);
 
     // Update the counter of UEs using this resource.
     ++ue_du_cell.srs_res_usage[opt_res_idx];
@@ -365,35 +248,21 @@ void du_srs_aperiodic_res_mng::cell_context::fill_srs_res_parameters(srs_config:
   res_out.freq_domain_shift = srs_common_params.freq_shift;
 }
 
-void du_srs_aperiodic_res_mng::cell_context::fill_srs_res_sets(srs_set_t&             srs_res_set_list,
-                                                               srs_config::srs_res_id res_id,
-                                                               span<const unsigned>   slot_offset_values) const
+void du_srs_aperiodic_res_mng::cell_context::fill_srs_res_set(srs_set_t&             srs_res_set_list,
+                                                              srs_config::srs_res_id res_id) const
 {
-  ocudu_assert(not slot_offset_values.empty() and slot_offset_values.size() <= 3U, "Invalid number of slot_offsets");
-
   // Update the parameters.
   auto& srs_res_set = srs_res_set_list.front();
   srs_res_set.p0    = srs_common_params.p0;
 
-  // The basic config has 1 SRS resource set; we expand it to (max) 3 element, by copying the first one and then
-  // updating the res set ID, slot_offset and code trigger.
-  for (auto it = slot_offset_values.begin(); it != slot_offset_values.end(); ++it) {
-    unsigned idx = std::distance(slot_offset_values.begin(), it);
-
-    if (it != slot_offset_values.begin()) {
-      srs_res_set_list.emplace_back(srs_res_set);
-    }
-    auto& srs_set = srs_res_set_list.back();
-    // Index the SRS resource set ID consecutively from 0 to 3.
-    srs_set.id               = static_cast<srs_config::srs_res_set_id>(idx);
-    auto& aperiodic_set_type = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_set.res_type);
-    aperiodic_set_type.slot_offset.emplace(*it);
-    // We use the following map to activate the SRS sets (ref to Table 7.3.1.1.2-24, TS 38.212).
-    // SRS resource set 0 -> aperiodic_srs_res_trigger 1.
-    // SRS resource set 1 -> aperiodic_srs_res_trigger 2.
-    // (If present) SRS resource set 2 -> aperiodic_srs_res_trigger 3.
-    aperiodic_set_type.aperiodic_srs_res_trigger = static_cast<uint8_t>(srs_res_set_list.back().id) + 1U;
-  }
+  srs_res_set.id = static_cast<srs_config::srs_res_set_id>(0);
+  // [Implementation-defined] Only 1 SRS resource per set.
+  srs_res_set.srs_res_id_list.front() = res_id;
+  auto& aperiodic_set_type = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_res_set.res_type);
+  aperiodic_set_type.slot_offset.emplace(slot_offset);
+  // We use the following map to activate the SRS sets (ref to Table 7.3.1.1.2-24, TS 38.212).
+  // SRS resource set 0 -> aperiodic_srs_res_trigger 1.
+  aperiodic_set_type.aperiodic_srs_res_trigger = static_cast<uint8_t>(srs_res_set.id) + 1U;
 }
 
 void du_srs_aperiodic_res_mng::dealloc_resources(cell_group_config& cell_grp_cfg)

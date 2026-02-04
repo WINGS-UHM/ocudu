@@ -65,9 +65,7 @@ private:
     using srs_set_t = static_vector<srs_config::srs_resource_set, srs_config::srs_res_set_id::MAX_NOF_SRS_RES_SETS>;
 
     // Fills the SRS resource set list for a UE SRS-Config.
-    void fill_srs_res_sets(srs_set_t&             srs_res_set_list,
-                           srs_config::srs_res_id res_id,
-                           span<const unsigned>   slot_offsets) const;
+    void fill_srs_res_set(srs_set_t& srs_res_set_list, srs_config::srs_res_id res_id) const;
 
     // Parameters that are common to all cell SRS resources.
     struct srs_cell_common {
@@ -89,8 +87,8 @@ private:
     // Keeps the count (i.e, \ref srs_res_usage[cell_res_id]) of how many UEs have been assigned the resource ID
     // \ref cell_res_id.
     std::vector<unsigned> srs_res_usage;
-    // List of slot_offsets used to build the SRS-Config for aperiodic SRS.
-    std::vector<unsigned> slot_offsets;
+    // Slot_offset used to build the SRS-Config for aperiodic SRS.
+    unsigned slot_offset;
   };
 
   // Contains the resources for the different cells of the DU.

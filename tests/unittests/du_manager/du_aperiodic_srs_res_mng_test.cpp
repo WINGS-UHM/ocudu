@@ -22,9 +22,9 @@ using namespace odu;
 namespace {
 
 struct srs_params {
-  std::optional<tdd_ul_dl_config_common> tdd_cfg       = std::nullopt;
-  unsigned                               min_k         = 4;
-  std::vector<unsigned>                  slots_offsets = {};
+  std::optional<tdd_ul_dl_config_common> tdd_cfg = std::nullopt;
+  unsigned                               min_k   = 4;
+  std::optional<unsigned>                slot_offset;
 };
 
 std::ostream& operator<<(std::ostream& out, const srs_params& params)
@@ -52,11 +52,8 @@ std::ostream& operator<<(std::ostream& out, const srs_params& params)
 
   out << fmt::format("_min_k_{}", params.min_k);
 
-  if (not params.slots_offsets.empty()) {
-    out << fmt::format("_sl_offsets");
-  }
-  for (const unsigned offset : params.slots_offsets) {
-    out << fmt::format("_{}", offset);
+  if (params.slot_offset.has_value()) {
+    out << fmt::format("_sl_offset_{}", params.slot_offset.value());
   }
   return out;
 }
@@ -430,21 +427,21 @@ TEST_P(du_aperiodic_srs_res_mng_param_tester, when_ue_is_added_srs_resources_par
     // Verify all parameters of the SRS resource are as expected.
     ASSERT_TRUE(ue.value().cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value());
     const auto& ue_srs_config = ue.value().cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
-    ASSERT_EQ(ue_srs_config.srs_res_set_list.size(), GetParam().slots_offsets.size());
+    ASSERT_EQ(ue_srs_config.srs_res_set_list.size(), 1U);
     // Check all SRS resource sets.
-    for (unsigned res_set_idx = 0, sz = ue_srs_config.srs_res_set_list.size(); res_set_idx != sz; ++res_set_idx) {
-      const auto srs_res_set = ue_srs_config.srs_res_set_list[res_set_idx];
-      ASSERT_EQ(srs_res_set.id, res_set_idx);
-      ASSERT_TRUE(std::holds_alternative<srs_config::srs_resource_set::aperiodic_resource_type>(srs_res_set.res_type));
-      const auto& aperiodic_set = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_res_set.res_type);
-      ASSERT_FALSE(aperiodic_set.csi_rs.has_value());
-      ASSERT_TRUE(aperiodic_set.aperiodic_srs_res_trigger_list.empty());
-      ASSERT_EQ(aperiodic_set.aperiodic_srs_res_trigger, res_set_idx + 1U);
-      // Check the slot offsets have been correctly assigned.
-      ASSERT_EQ(aperiodic_set.slot_offset, GetParam().slots_offsets[res_set_idx]);
-      ASSERT_EQ(srs_res_set.srs_res_id_list.size(), 1U);
-      ASSERT_EQ(srs_res_set.srs_res_id_list[0], 0U);
-    }
+    const auto srs_res_set = ue_srs_config.srs_res_set_list.front();
+    ASSERT_EQ(srs_res_set.id, srs_config::srs_res_set_id::MIN_SRS_RES_SET_ID);
+    ASSERT_TRUE(std::holds_alternative<srs_config::srs_resource_set::aperiodic_resource_type>(srs_res_set.res_type));
+    const auto& aperiodic_set = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_res_set.res_type);
+    ASSERT_FALSE(aperiodic_set.csi_rs.has_value());
+    ASSERT_TRUE(aperiodic_set.aperiodic_srs_res_trigger_list.empty());
+    ASSERT_EQ(aperiodic_set.aperiodic_srs_res_trigger,
+              static_cast<unsigned>(srs_config::srs_res_set_id::MIN_SRS_RES_SET_ID) + 1U);
+    // Check the slot offsets have been correctly assigned.
+    ASSERT_TRUE(GetParam().slot_offset.has_value()) << "Slot offset is not set in the input parameters";
+    ASSERT_EQ(aperiodic_set.slot_offset, GetParam().slot_offset.value());
+    ASSERT_EQ(srs_res_set.srs_res_id_list.size(), 1U);
+    ASSERT_EQ(srs_res_set.srs_res_id_list[0], 0U);
     ASSERT_EQ(ue_srs_config.srs_res_list.size(), 1U);
     const auto& srs_res = ue_srs_config.srs_res_list[0];
     ASSERT_EQ(srs_res.id.ue_res_id, static_cast<srs_config::srs_res_id>(0U));
@@ -479,29 +476,29 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(
         // clang-format off
     // FDD
-    srs_params{.tdd_cfg = std::nullopt, .slots_offsets = {5}},
+    srs_params{.tdd_cfg = std::nullopt, .slot_offset = 5},
     // TDD with 1 pattern only.
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 6, 10, 3, 2}}, .slots_offsets = {5, 6, 11}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 6, 8, 3, 4}}, .slots_offsets = {5, 6, 11}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 6, 6, 3, 6}}, .slots_offsets = {5, 6, 11}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 7, 8, 2, 4}}, .slots_offsets = {5, 6, 12}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 5, 8, 4, 4}}, .slots_offsets = {5, 10, 11}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{5, 3, 8, 1, 4}}, .slots_offsets = {5, 6, 8}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{4, 2, 8, 1, 4}}, .slots_offsets = {6, 8, 9}},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 6, 10, 3, 2}}, .slot_offset = 11},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 6, 8, 3, 4}}, .slot_offset = 11},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 6, 6, 3, 6}}, .slot_offset = 11},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 7, 8, 2, 4}}, .slot_offset = 12},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 5, 8, 4, 4}}, .slot_offset = 10},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{5, 3, 8, 1, 4}}, .slot_offset = 8},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{4, 2, 8, 1, 4}}, .slot_offset = 8},
     // TDD without UL symbols in the Special slot.
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 6, 12, 3, 0}}, .slots_offsets = {5, 6, 12}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 7, 12, 2, 0}}, .slots_offsets = {5, 6, 13}},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 6, 12, 3, 0}}, .slot_offset = 12},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 7, 12, 2, 0}}, .slot_offset = 13},
     // TDD with 2 patterns.
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{6, 3, 8, 2, 4}, tdd_ul_dl_pattern{4, 1, 8, 2, 4}}, .min_k = 3, .slots_offsets = {4, 5, 6}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{5, 3, 8, 1, 4}, tdd_ul_dl_pattern{5, 2, 8, 2, 4}}, .min_k = 3, .slots_offsets = {4, 6, 7}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{6, 3, 8, 2, 4}, tdd_ul_dl_pattern{4, 4, 0, 0, 0}}, .slots_offsets = {5, 6, 12}},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{6, 3, 8, 2, 4}, tdd_ul_dl_pattern{4, 1, 8, 2, 4}}, .min_k = 3, .slot_offset = 5},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{5, 3, 8, 1, 4}, tdd_ul_dl_pattern{5, 2, 8, 2, 4}}, .min_k = 3, .slot_offset = 6},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{6, 3, 8, 2, 4}, tdd_ul_dl_pattern{4, 4, 0, 0, 0}}, .slot_offset = 12},
     // TDD UL-heavy.
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 3, 6, 6, 4}}, .slots_offsets = {10, 11, 12}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 3, 6, 6, 4}}, .min_k = 3, .slots_offsets = {10, 11, 12}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 2, 8, 7, 4}},.slots_offsets = {12, 20, 21}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 2, 8, 7, 4}}, .min_k = 3, .slots_offsets = {12, 20, 21}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{5, 1, 10, 3, 2}}, .min_k = 3, .slots_offsets = {10, 11}},
-    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{6, 2, 10, 3, 4}, tdd_ul_dl_pattern{4, 1, 8, 2, 4}}, .min_k = 2, .slots_offsets = {5, 6, 10}}
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 3, 6, 6, 4}}, .slot_offset = 10},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 3, 6, 6, 4}}, .min_k = 3, .slot_offset = 10},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 2, 8, 7, 4}}, .slot_offset = 12},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{10, 2, 8, 7, 4}}, .min_k = 3, .slot_offset = 12},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{5, 1, 10, 3, 2}}, .min_k = 3, .slot_offset = 10},
+    srs_params{.tdd_cfg = tdd_ul_dl_config_common{subcarrier_spacing::kHz30,{6, 2, 10, 3, 4}, tdd_ul_dl_pattern{4, 1, 8, 2, 4}}, .min_k = 2, .slot_offset = 5}
 
         // clang-format on
         ),

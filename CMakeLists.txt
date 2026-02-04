@@ -75,6 +75,8 @@ option(ENABLE_LIBNUMA        "Enable LibNUMA"                               OFF)
 option(ENABLE_EXPORT         "Enable PIC and export libraries"              OFF)
 option(ENABLE_TRX_DRIVER     "Enable Amarisoft TRX driver library"          OFF)
 option(ENABLE_PLUGINS        "Compile plugins in the plugin folder"         ON)
+option(DISABLE_MBEDTLS       "Disable MBEDTLS library and related apps"     OFF)
+option(DISABLE_SCTP          "Disable SCTP library and related apps"        OFF)
 option(BUILD_TESTING         "Compile tests"                                ON)
 option(ENABLE_GPROF          "Enable gprof"                                 OFF)
 option(FORCE_DEBUG_INFO      "Add debug information to Release build"       OFF)
@@ -373,26 +375,6 @@ if(ROHC_FOUND)
     )
 endif()
 
-# Crypto
-find_package(MbedTLS REQUIRED)
-if (MBEDTLS_FOUND)
-    set(SEC_INCLUDE_DIRS "${MBEDTLS_INCLUDE_DIRS}")
-    if(BUILD_STATIC)
-        set(SEC_LIBRARIES "${MBEDTLS_STATIC_LIBRARIES}")
-    else(BUILD_STATIC)
-        set(SEC_LIBRARIES "${MBEDTLS_LIBRARIES}")
-    endif(BUILD_STATIC)
-    sbom_add(
-        PACKAGE            "mbedTLS"
-        DOWNLOAD_LOCATION  "https://tls.mbed.org"
-        SUPPLIER           "MbedTLS project"
-        LICENSE            "Apache-2.0"
-        VERSION            ${PC_MBEDTLS_VERSION}
-    )
-else(MBEDTLS_FOUND)
-    message(FATAL_ERROR "mbedTLS is required to build ${CMAKE_PROJECT_NAME}")
-endif (MBEDTLS_FOUND)
-
 # FFTW
 if (ENABLE_FFTW)
     find_package(FFTW3F)
@@ -651,13 +633,17 @@ add_subdirectory(lib)
 add_subdirectory(utils)
 
 if (BUILD_TESTING)
-    add_subdirectory(tests/test_doubles)
-    add_subdirectory(tests/unittests)
-    add_subdirectory(tests/integrationtests)
-    add_subdirectory(tests/benchmarks)
-    if (TEST_GDB_PRINTERS)
-        add_subdirectory(tests/utils/gdb/pretty_printers)
-    endif (TEST_GDB_PRINTERS)
+    if (DISABLE_MBEDTLS OR DISABLE_SCTP)
+        message(WARNING "Ignoring OCUDU project testing as DISABLE_MBEDTLS=${DISABLE_MBEDTLS} and/or DISABLE_SCTP=${DISABLE_SCTP} definitions are enabled")
+    else ()
+        add_subdirectory(tests/test_doubles)
+        add_subdirectory(tests/unittests)
+        add_subdirectory(tests/integrationtests)
+        add_subdirectory(tests/benchmarks)
+        if (TEST_GDB_PRINTERS)
+            add_subdirectory(tests/utils/gdb/pretty_printers)
+        endif (TEST_GDB_PRINTERS)
+    endif ()
 endif (BUILD_TESTING)
 
 if (ENABLE_PLUGINS)

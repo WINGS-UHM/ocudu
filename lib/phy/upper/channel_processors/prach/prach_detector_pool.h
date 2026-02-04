@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/phy/upper/channel_processors/prach_detector.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_detector.h"
 #include "ocudu/support/memory_pool/bounded_object_pool.h"
 
 namespace ocudu {

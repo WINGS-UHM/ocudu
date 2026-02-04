@@ -8,12 +8,12 @@
  *
  */
 
-#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/prach/factories.h"
 #include "prach_detector_generic_impl.h"
 #include "prach_detector_pool.h"
 #include "prach_generator_impl.h"
 #include "ocudu/phy/support/support_formatters.h"
-#include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
+#include "ocudu/phy/upper/channel_processors/prach/formatters.h"
 
 using namespace ocudu;
 

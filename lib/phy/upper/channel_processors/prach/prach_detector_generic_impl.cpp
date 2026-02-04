@@ -22,7 +22,7 @@
 #include "ocudu/ocuduvec/prod.h"
 #include "ocudu/ocuduvec/sc_prod.h"
 #include "ocudu/ocuduvec/zero.h"
-#include "ocudu/phy/upper/channel_processors/prach_detector_phy_validator.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_detector_phy_validator.h"
 #include "ocudu/ran/prach/prach_cyclic_shifts.h"
 #include "ocudu/ran/prach/prach_preamble_information.h"
 #include "ocudu/support/math/math_utils.h"

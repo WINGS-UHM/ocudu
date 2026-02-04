@@ -26,7 +26,7 @@
 #include "ocudu/phy/support/prach_buffer_context.h"
 #include "ocudu/phy/support/resource_grid_pool.h"
 #include "ocudu/phy/support/shared_resource_grid.h"
-#include "ocudu/phy/upper/channel_processors/prach_detector.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_detector.h"
 #include "ocudu/phy/upper/downlink_processor.h"
 #include "ocudu/phy/upper/uplink_pdu_slot_repository.h"
 #include "ocudu/phy/upper/uplink_pdu_validator.h"

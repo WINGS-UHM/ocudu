@@ -17,7 +17,7 @@
 /// expected performance is too far from the requested one.
 
 #include "prach_detector_generic_thresholds.h"
-#include "ocudu/phy/upper/channel_processors/prach_detector_phy_validator.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_detector_phy_validator.h"
 #include "fmt/format.h"
 
 using namespace ocudu;

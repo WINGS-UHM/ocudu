@@ -9,8 +9,8 @@
  */
 
 #include "ocudu/phy/support/support_factories.h"
-#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
-#include "ocudu/phy/upper/channel_processors/channel_processor_formatters.h"
+#include "ocudu/phy/upper/channel_processors/prach/factories.h"
+#include "ocudu/phy/upper/channel_processors/prach/formatters.h"
 #include "ocudu/support/benchmark_utils.h"
 #include "ocudu/support/error_handling.h"
 #include "ocudu/support/math/complex_normal_random.h"

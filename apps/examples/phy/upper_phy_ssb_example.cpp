@@ -19,7 +19,7 @@
 #include "ocudu/phy/support/shared_resource_grid.h"
 #include "ocudu/phy/support/support_factories.h"
 #include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
-#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/prach/factories.h"
 #include "ocudu/phy/upper/channel_processors/ssb/factories.h"
 #include "ocudu/phy/upper/channel_processors/ssb/ssb_processor.h"
 #include "ocudu/phy/upper/sequence_generators/sequence_generator_factories.h"

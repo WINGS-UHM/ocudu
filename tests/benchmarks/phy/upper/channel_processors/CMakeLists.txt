@@ -47,7 +47,8 @@ add_test(pdsch_processor_benchmark_lite pdsch_processor_benchmark -m silent -R 1
 add_executable(prach_detector_benchmark prach_detector_benchmark.cpp)
 target_link_libraries(prach_detector_benchmark
         ocudu_phy_support
-        ocudu_channel_processors
+        ocudu_prach_detector
+        ocudu_dft
         ocudulog
         ocuduvec)
 add_test(prach_detector_benchmark prach_detector_benchmark -R 1)

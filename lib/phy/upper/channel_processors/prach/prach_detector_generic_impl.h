@@ -13,8 +13,8 @@
 #include "ocudu/adt/expected.h"
 #include "ocudu/adt/tensor.h"
 #include "ocudu/phy/generic_functions/dft_processor.h"
-#include "ocudu/phy/upper/channel_processors/prach_detector.h"
-#include "ocudu/phy/upper/channel_processors/prach_generator.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_detector.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_generator.h"
 
 namespace ocudu {
 

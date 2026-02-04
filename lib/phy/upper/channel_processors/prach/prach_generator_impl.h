@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/phy/upper/channel_processors/prach_generator.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_generator.h"
 #include "ocudu/ran/prach/prach_constants.h"
 
 namespace ocudu {

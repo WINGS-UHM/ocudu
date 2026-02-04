@@ -12,8 +12,8 @@
 
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/phy/generic_functions/generic_functions_factories.h"
-#include "ocudu/phy/upper/channel_processors/prach_detector.h"
-#include "ocudu/phy/upper/channel_processors/prach_generator.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_detector.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_generator.h"
 #include <memory>
 
 namespace ocudu {

@@ -12,7 +12,7 @@
 
 #include "ocudu/adt/expected.h"
 #include "ocudu/phy/support/prach_buffer.h"
-#include "ocudu/phy/upper/channel_processors/prach_detection_result.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_detection_result.h"
 #include "ocudu/ran/prach/prach_format_type.h"
 #include "ocudu/ran/prach/prach_subcarrier_spacing.h"
 #include "ocudu/ran/prach/restricted_set_config.h"

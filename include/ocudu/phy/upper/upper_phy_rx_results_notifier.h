@@ -16,7 +16,7 @@
 
 #include "ocudu/adt/span.h"
 #include "ocudu/phy/support/prach_buffer_context.h"
-#include "ocudu/phy/upper/channel_processors/prach_detection_result.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_detection_result.h"
 #include "ocudu/phy/upper/channel_processors/pucch/pucch_processor_result.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
 #include "ocudu/phy/upper/signal_processors/srs/srs_estimator_result.h"

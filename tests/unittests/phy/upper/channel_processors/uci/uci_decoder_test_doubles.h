@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/prach/factories.h"
 #include "ocudu/phy/upper/channel_processors/pucch/factories.h"
 #include "ocudu/phy/upper/channel_processors/uci/uci_decoder.h"
 #include <random>

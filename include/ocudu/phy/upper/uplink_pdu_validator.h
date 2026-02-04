@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/expected.h"
-#include "ocudu/phy/upper/channel_processors/prach_detector.h"
+#include "ocudu/phy/upper/channel_processors/prach/prach_detector.h"
 #include "ocudu/phy/upper/channel_processors/pucch/pucch_processor.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_processor.h"
 #include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"

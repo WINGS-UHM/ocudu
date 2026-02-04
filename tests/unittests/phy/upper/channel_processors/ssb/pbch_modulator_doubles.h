@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/phy/upper/channel_processors/channel_processor_factories.h"
+#include "ocudu/phy/upper/channel_processors/ssb/pbch_modulator.h"
 #include <vector>
 
 namespace ocudu {

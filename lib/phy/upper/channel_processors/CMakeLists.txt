@@ -8,20 +8,14 @@
 
 add_subdirectory(pdcch)
 add_subdirectory(pdsch)
+add_subdirectory(prach)
 add_subdirectory(pucch)
 add_subdirectory(pusch)
 add_subdirectory(ssb)
 add_subdirectory(uci)
 
-add_library(ocudu_prach_detector STATIC
-        prach_detector_generic_impl.cpp
-        prach_detector_generic_thresholds.cpp
-        prach_generator_impl.cpp
-        prach_detector_phy_validator_impl.cpp)
-target_link_libraries(ocudu_prach_detector ocudu_ran ocuduvec)
-
-add_library(ocudu_channel_processors STATIC channel_processor_factories.cpp)
-target_link_libraries(ocudu_channel_processors
+add_library(ocudu_channel_processors INTERFACE)
+target_link_libraries(ocudu_channel_processors INTERFACE
         ocudu_channel_coding
         ocudu_channel_modulation
         ocudu_channel_precoder

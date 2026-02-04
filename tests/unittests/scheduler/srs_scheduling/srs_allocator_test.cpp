@@ -59,10 +59,11 @@ namespace {
 
 struct srs_params {
   bool is_tdd;
-  // The slot offsets depend on TDD/FDD, but they are passed as a parameter to allow future extensions.
-  std::vector<unsigned> slots_offsets = {};
-  srs_periodicity       srs_prohib_time;
-  unsigned              nof_ues_per_test = 1;
+  // The slot offsets depend on TDD/FDD, but they are passed as a parameter to allow future extensions. In this test,
+  // they are used to build the SRS config for the different TDD/FDD, or future different TDD patterns.
+  unsigned        slot_offset;
+  srs_periodicity srs_prohib_time;
+  unsigned        nof_ues_per_test = 1;
 };
 
 std::ostream& operator<<(std::ostream& os, const srs_params& params)
@@ -133,7 +134,7 @@ public:
     sched_ue_creation_request_message ue_req =
         create_sched_ue_creation_request_for_srs_cfg(cfg_mng.get_default_ue_config_request(),
                                                      cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
-                                                     params.slots_offsets);
+                                                     params.slot_offset);
     ue_req.ue_index = next_du_ue_idx;
     ue_req.crnti    = next_rnti;
     next_du_ue_idx  = to_du_ue_index(static_cast<unsigned>(next_du_ue_idx) + 1);
@@ -219,7 +220,7 @@ public:
   sched_ue_creation_request_message
   create_sched_ue_creation_request_for_srs_cfg(const sched_ue_creation_request_message& base_ue_req,
                                                unsigned                                 nof_ul_crbs,
-                                               span<const unsigned>                     slot_offsets)
+                                               unsigned                                 slot_offset)
   {
     validate_default_ue_cfg_req(base_ue_req);
 
@@ -261,30 +262,15 @@ public:
     srs_res.id.cell_res_id = next_srs_res_id;
     next_srs_res_id        = (next_srs_res_id + 1) % max_cell_srs_res;
 
-    const auto default_srs_set_cfg = ue_req.cfg.cells.value()
-                                         .front()
-                                         .serv_cell_cfg.ul_config.value()
-                                         .init_ul_bwp.srs_cfg.value()
-                                         .srs_res_set_list.back();
-
-    for (unsigned n = 0, sz = slot_offsets.size(); n != sz; ++n) {
-      if (n != 0) {
-        ue_req.cfg.cells.value()
-            .front()
-            .serv_cell_cfg.ul_config.value()
-            .init_ul_bwp.srs_cfg.value()
-            .srs_res_set_list.emplace_back(default_srs_set_cfg);
-      }
-      auto& srs_set_cfg = ue_req.cfg.cells.value()
-                              .front()
-                              .serv_cell_cfg.ul_config.value()
-                              .init_ul_bwp.srs_cfg.value()
-                              .srs_res_set_list.back();
-      srs_set_cfg.id      = static_cast<srs_config::srs_res_set_id>(n);
-      auto& aperiodic_set = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_set_cfg.res_type);
-      aperiodic_set.aperiodic_srs_res_trigger = n + 1;
-      aperiodic_set.slot_offset.emplace(slot_offsets[n]);
-    }
+    auto& srs_set_cfg = ue_req.cfg.cells.value()
+                            .front()
+                            .serv_cell_cfg.ul_config.value()
+                            .init_ul_bwp.srs_cfg.value()
+                            .srs_res_set_list.front();
+    srs_set_cfg.id      = srs_config::srs_res_set_id::MIN_SRS_RES_SET_ID;
+    auto& aperiodic_set = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_set_cfg.res_type);
+    aperiodic_set.aperiodic_srs_res_trigger = static_cast<unsigned>(srs_config::srs_res_set_id::MIN_SRS_RES_SET_ID) + 1;
+    aperiodic_set.slot_offset.emplace(slot_offset);
 
     return ue_req;
   }
@@ -360,12 +346,12 @@ TEST_P(srs_alloc_tester, with_only_1_ue_srs_is_allocated_every_time_prohibit_tim
 INSTANTIATE_TEST_SUITE_P(
     test_srs_alloc,
     srs_alloc_tester,
-    testing::Values(srs_params{.is_tdd = false, .slots_offsets = {5}, .srs_prohib_time = srs_periodicity::sl40},
-                    srs_params{.is_tdd = false, .slots_offsets = {5}, .srs_prohib_time = srs_periodicity::sl80},
-                    srs_params{.is_tdd = false, .slots_offsets = {5}, .srs_prohib_time = srs_periodicity::sl160},
-                    srs_params{.is_tdd = true, .slots_offsets = {5, 6, 11}, .srs_prohib_time = srs_periodicity::sl40},
-                    srs_params{.is_tdd = true, .slots_offsets = {5, 6, 11}, .srs_prohib_time = srs_periodicity::sl80},
-                    srs_params{.is_tdd = true, .slots_offsets = {5, 6, 11}, .srs_prohib_time = srs_periodicity::sl160}),
+    testing::Values(srs_params{.is_tdd = false, .slot_offset = 5, .srs_prohib_time = srs_periodicity::sl40},
+                    srs_params{.is_tdd = false, .slot_offset = 5, .srs_prohib_time = srs_periodicity::sl80},
+                    srs_params{.is_tdd = false, .slot_offset = 5, .srs_prohib_time = srs_periodicity::sl160},
+                    srs_params{.is_tdd = true, .slot_offset = 11, .srs_prohib_time = srs_periodicity::sl40},
+                    srs_params{.is_tdd = true, .slot_offset = 11, .srs_prohib_time = srs_periodicity::sl80},
+                    srs_params{.is_tdd = true, .slot_offset = 11, .srs_prohib_time = srs_periodicity::sl160}),
     [](const testing::TestParamInfo<srs_params>& params_item) { return fmt::format("{}", params_item.param); });
 
 class srs_alloc_multi_ue_tester : public ::testing::TestWithParam<srs_params>, public srs_alloc_test_bench
@@ -393,7 +379,7 @@ protected:
   std::array<unsigned, max_cell_srs_res> cell_srs_res_usage;
 };
 
-TEST_P(srs_alloc_multi_ue_tester, multiple_ues_with_orthogonal_srs_res_get_allocated_every_time_prohibit_time)
+TEST_P(srs_alloc_multi_ue_tester, multiple_ues_with_orthogonal_srs_res_is_allocated_at_most_every_time_prohibit_time)
 {
   const auto srs_prohib_time_uint = static_cast<unsigned>(GetParam().srs_prohib_time);
 
@@ -462,48 +448,24 @@ TEST_P(srs_alloc_multi_ue_tester, multiple_ues_with_orthogonal_srs_res_get_alloc
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(test_srs_alloc,
-                         srs_alloc_multi_ue_tester,
-                         testing::Values(srs_params{.is_tdd           = false,
-                                                    .slots_offsets    = {5},
-                                                    .srs_prohib_time  = srs_periodicity::sl40,
-                                                    .nof_ues_per_test = 5},
-                                         srs_params{.is_tdd           = false,
-                                                    .slots_offsets    = {5},
-                                                    .srs_prohib_time  = srs_periodicity::sl80,
-                                                    .nof_ues_per_test = 5},
-                                         srs_params{.is_tdd           = false,
-                                                    .slots_offsets    = {5},
-                                                    .srs_prohib_time  = srs_periodicity::sl160,
-                                                    .nof_ues_per_test = 5},
-                                         srs_params{.is_tdd           = false,
-                                                    .slots_offsets    = {5},
-                                                    .srs_prohib_time  = srs_periodicity::sl40,
-                                                    .nof_ues_per_test = 37},
-                                         srs_params{.is_tdd           = false,
-                                                    .slots_offsets    = {5},
-                                                    .srs_prohib_time  = srs_periodicity::sl80,
-                                                    .nof_ues_per_test = 59},
-                                         srs_params{.is_tdd           = false,
-                                                    .slots_offsets    = {5},
-                                                    .srs_prohib_time  = srs_periodicity::sl160,
-                                                    .nof_ues_per_test = 97},
-                                         srs_params{.is_tdd           = true,
-                                                    .slots_offsets    = {5, 6, 11},
-                                                    .srs_prohib_time  = srs_periodicity::sl40,
-                                                    .nof_ues_per_test = 7},
-                                         srs_params{.is_tdd           = true,
-                                                    .slots_offsets    = {5, 6, 11},
-                                                    .srs_prohib_time  = srs_periodicity::sl80,
-                                                    .nof_ues_per_test = 7},
-                                         srs_params{.is_tdd           = true,
-                                                    .slots_offsets    = {5, 6, 11},
-                                                    .srs_prohib_time  = srs_periodicity::sl40,
-                                                    .nof_ues_per_test = 17},
-                                         srs_params{.is_tdd           = true,
-                                                    .slots_offsets    = {5, 6, 11},
-                                                    .srs_prohib_time  = srs_periodicity::sl40,
-                                                    .nof_ues_per_test = 37}),
-                         [](const testing::TestParamInfo<srs_params>& params_item) {
-                           return fmt::format("{}", params_item.param);
-                         });
+INSTANTIATE_TEST_SUITE_P(
+    test_srs_alloc,
+    srs_alloc_multi_ue_tester,
+    testing::Values(
+        srs_params{.is_tdd = false, .slot_offset = 5, .srs_prohib_time = srs_periodicity::sl40, .nof_ues_per_test = 5},
+        srs_params{.is_tdd = false, .slot_offset = 5, .srs_prohib_time = srs_periodicity::sl80, .nof_ues_per_test = 5},
+        srs_params{.is_tdd = false, .slot_offset = 5, .srs_prohib_time = srs_periodicity::sl160, .nof_ues_per_test = 5},
+        srs_params{.is_tdd = false, .slot_offset = 5, .srs_prohib_time = srs_periodicity::sl40, .nof_ues_per_test = 37},
+        srs_params{.is_tdd = false, .slot_offset = 5, .srs_prohib_time = srs_periodicity::sl80, .nof_ues_per_test = 59},
+        srs_params{.is_tdd           = false,
+                   .slot_offset      = 5,
+                   .srs_prohib_time  = srs_periodicity::sl160,
+                   .nof_ues_per_test = 97},
+        srs_params{.is_tdd = true, .slot_offset = 11, .srs_prohib_time = srs_periodicity::sl40, .nof_ues_per_test = 7},
+        srs_params{.is_tdd = true, .slot_offset = 11, .srs_prohib_time = srs_periodicity::sl80, .nof_ues_per_test = 7},
+        srs_params{.is_tdd = true, .slot_offset = 11, .srs_prohib_time = srs_periodicity::sl40, .nof_ues_per_test = 17},
+        srs_params{.is_tdd           = true,
+                   .slot_offset      = 11,
+                   .srs_prohib_time  = srs_periodicity::sl40,
+                   .nof_ues_per_test = 37}),
+    [](const testing::TestParamInfo<srs_params>& params_item) { return fmt::format("{}", params_item.param); });

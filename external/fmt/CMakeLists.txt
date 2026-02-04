@@ -8,8 +8,7 @@
 
 set(SOURCES
         src/format.cc
-        src/os.cc
-)
+        src/os.cc)
 
 add_library(fmt STATIC ${SOURCES})
 target_link_libraries(fmt ${CMAKE_THREAD_LIBS_INIT})

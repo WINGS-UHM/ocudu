@@ -34,7 +34,7 @@ cell_scheduler::cell_scheduler(const scheduler_expert_config&                  s
   pucch_alloc(cell_cfg, sched_cfg.ue.max_pucchs_per_slot, sched_cfg.ue.max_ul_grants_per_slot),
   uci_alloc(pucch_alloc),
   // The SRS allocator is only used if srs_prohibit_time is set.
-  srs_alloc(cell_cfg, sched_cfg.ue.srs_prohibit_time.value_or(srs_periodicity::sl40)),
+  srs_alloc(cell_cfg, sched_cfg.ue.srs_prohibit_time),
   pg_sch(cell_cfg, pdcch_sch)
 {
   // Register new cell in the UE scheduler.

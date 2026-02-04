@@ -116,11 +116,11 @@ public:
   {
     if (this != &other) {
       // In case of shrink, reset erased bits.
-      // Note: We use < comparison because other can be larger than this.
       const size_t other_nof_words = other.nof_words_();
       const size_t this_nof_words  = nof_words_();
       ocudu_assume(other_nof_words <= buffer.size());
       ocudu_assume(this_nof_words <= buffer.size());
+      // Note: We use < comparison because other can be larger than this.
       for (size_t i = other_nof_words; i < this_nof_words; ++i) {
         buffer[i] = static_cast<word_t>(0);
       }

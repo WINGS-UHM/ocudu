@@ -480,49 +480,35 @@ validator_result config_validators::validate_srs_cfg(const serving_cell_config& 
 
   const auto& srs_cfg = ue_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
 
-  // For aperiodic SRS, we can have max 3 sets, whereas per for periodic SR we can only have 1.
-  VERIFY(srs_cfg.srs_res_set_list.size() <= 3U, "The SRS resource set list is expected to have max size 3");
-  for (unsigned i = 0, sz = srs_cfg.srs_res_set_list.size(); i != sz; i++) {
-    const auto& srs_res_set = srs_cfg.srs_res_set_list[i];
-    VERIFY(srs_res_set.id == static_cast<srs_config::srs_res_set_id>(i),
-           "The SRS resource set index={} is expected to have ID {}",
-           i,
-           fmt::underlying(srs_res_set.id));
-    VERIFY(not(std::holds_alternative<srs_config::srs_resource_set::periodic_resource_type>(srs_res_set.res_type) and
-               i != 0),
-           "For periodic SRS, the SRS resource set list is expected to have 1 element only");
-    VERIFY(srs_res_set.srs_res_id_list.size() == 1,
-           "The SRS resource list of the SRS resource set ID {} is expected to have size 1",
-           fmt::underlying(srs_res_set.id));
-    VERIFY(srs_res_set.srs_res_id_list.front() == srs_cfg.srs_res_list.front().id.ue_res_id,
-           "The SRS resource set ID {}'s resource should point to the SRS resource ID 0",
-           fmt::underlying(srs_res_set.id));
-    if (std::holds_alternative<srs_config::srs_resource_set::aperiodic_resource_type>(srs_res_set.res_type)) {
-      const auto& aperiodic_set = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_res_set.res_type);
-      const auto& init_ul_bwp   = ue_cell_cfg.ul_config.value().init_ul_bwp;
-      unsigned    min_k1        = 0;
-      // This existence of pucch_cfg should be checked by the \ref validate_pucch_cfg().
-      if (init_ul_bwp.pucch_cfg.has_value()) {
-        const auto min_k1_it = std::min_element(init_ul_bwp.pucch_cfg.value().dl_data_to_ul_ack.begin(),
-                                                init_ul_bwp.pucch_cfg.value().dl_data_to_ul_ack.end());
-        VERIFY(min_k1_it != init_ul_bwp.pucch_cfg.value().dl_data_to_ul_ack.end(), "Expected min k1 from a list");
-        min_k1 = *min_k1_it;
-      }
-      VERIFY(aperiodic_set.slot_offset.has_value() and aperiodic_set.slot_offset.value() > min_k1,
-             "The SRS resource set ID {}'s slot_offset should be greater than the max between min_k1 and max k2",
-             fmt::underlying(srs_res_set.id));
-      VERIFY(aperiodic_set.aperiodic_srs_res_trigger == static_cast<uint8_t>(srs_res_set.id) + 1U,
-             "The SRS resource set ID {}'s aperiodic_srs_res_trigger should be equal its ID + 1",
-             fmt::underlying(srs_res_set.id));
+  VERIFY(srs_cfg.srs_res_set_list.size() == 1 and srs_cfg.srs_res_set_list.front().id == srs_config::MIN_SRS_RES_SET_ID,
+         "The SRS resource set list is expected to have size 1 and its only set is expected to have ID 0");
+  const auto& srs_res_set = srs_cfg.srs_res_set_list.front();
+  if (std::holds_alternative<srs_config::srs_resource_set::aperiodic_resource_type>(srs_res_set.res_type)) {
+    const auto& aperiodic_set = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_res_set.res_type);
+    const auto& init_ul_bwp   = ue_cell_cfg.ul_config.value().init_ul_bwp;
+    unsigned    min_k1        = 0;
+    // This existence of pucch_cfg should be checked by the \ref validate_pucch_cfg().
+    if (init_ul_bwp.pucch_cfg.has_value()) {
+      const auto min_k1_it = std::min_element(init_ul_bwp.pucch_cfg.value().dl_data_to_ul_ack.begin(),
+                                              init_ul_bwp.pucch_cfg.value().dl_data_to_ul_ack.end());
+      VERIFY(min_k1_it != init_ul_bwp.pucch_cfg.value().dl_data_to_ul_ack.end(), "Expected min k1 from a list");
+      min_k1 = *min_k1_it;
     }
+    VERIFY(aperiodic_set.slot_offset.has_value() and aperiodic_set.slot_offset.value() > min_k1,
+           "The SRS resource set ID {}'s slot_offset should be greater than the max between min_k1 and max k2",
+           fmt::underlying(srs_res_set.id));
+    VERIFY(aperiodic_set.aperiodic_srs_res_trigger == static_cast<uint8_t>(srs_res_set.id) + 1U,
+           "The SRS resource set ID {}'s aperiodic_srs_res_trigger should be equal its ID + 1",
+           fmt::underlying(srs_res_set.id));
   }
-  VERIFY(srs_cfg.srs_res_set_list.front().srs_res_id_list.size() == 1,
-         "The SRS resource list of the SRS resource set ID 0 is expected to have size 1");
   VERIFY(srs_cfg.srs_res_list.size() == 1 and srs_cfg.srs_res_list.front().id.ue_res_id == srs_config::MIN_SRS_RES_ID,
          "The SRS resource list is expected to have size 1 and its only resource is expected to have ID 0");
-  VERIFY(srs_cfg.srs_res_set_list.front().srs_res_id_list.front() == srs_cfg.srs_res_list.front().id.ue_res_id,
-         "The SRS resource set ID 0's resource should point to the SRS resource ID 0");
-  const auto& srs_res_set = srs_cfg.srs_res_set_list.front();
+  VERIFY(srs_res_set.srs_res_id_list.size() == 1,
+         "The SRS resource list of the SRS resource set ID {} is expected to have size 1",
+         fmt::underlying(srs_res_set.id));
+  VERIFY(srs_res_set.srs_res_id_list.front() == srs_cfg.srs_res_list.front().id.ue_res_id,
+         "The SRS resource set ID {}'s resource should point to the SRS resource ID 0",
+         fmt::underlying(srs_res_set.id));
   VERIFY(srs_res_set.srs_res_set_usage == srs_usage::codebook, "Only SRS resource set usage \"codebook\" is supported");
 
   const auto& srs_res = srs_cfg.srs_res_list.front();
@@ -566,8 +552,8 @@ validator_result config_validators::validate_srs_cfg(const serving_cell_config& 
   VERIFY(srs_params.has_value(),
          "No valid configuration found for the SRS res_id={}",
          fmt::underlying(srs_res.id.ue_res_id));
-  // This per-se wouldn't be a problem according to the TS, but we construct the UE configuration with this constraint
-  // to simplify the scheduler implementation.
+  // [Implementation-defined constraint] We construct the UE configuration with this constraint to simplify the
+  // scheduler implementation.
   VERIFY(srs_res.freq_domain_shift >= ul_bwp_crbs.start(),
          "SRS res_id={} invalid configuration: frequency shift smaller than BWP lower RB",
          fmt::underlying(srs_res.id.ue_res_id));

@@ -33,10 +33,8 @@ class srs_allocator_impl : public srs_allocator
 public:
   explicit srs_allocator_impl(const cell_configuration& cell_cfg_, std::optional<srs_periodicity> prohibit_window);
 
-  /// Schedules the SRS occasions.
   void slot_indication(slot_point slot_tx) override;
 
-  /// Adds a UE to the internal list of UEs to be scheduled.
   aperiodic_srs_alloc_info allocate_aperiodic_srs(cell_resource_allocator&     res_alloc,
                                                   slot_point                   last_srs_slot,
                                                   const ue_cell_configuration& ue_cfg) override;
@@ -47,7 +45,7 @@ private:
 
   // Checks if the SRS resource with cell ID \ref cell_res_id is currently used at slot \ref srs_slot. If not, it sets
   // the SRS resource as used (which means it can be allocated for the UE for which this function was called).
-  // It returns "true" if the UE is allocated the SRS resource with cell ID \ref cell_res_id; false otherwise.
+  // It returns "true" if the UE is allocated the SRS resource with cell ID \ref cell_res_id; "false" otherwise.
   bool alloc_srs_resource(slot_point srs_slot, unsigned cell_res_id);
   // Returns the index to the SRS slot bitmap \ref srs_slots corresponding to a given slot.
   unsigned get_slot_idx(slot_point sl) const;
@@ -59,18 +57,16 @@ private:
 
   const cell_configuration& cell_cfg;
   // Defines a time interval (since the last aperiodic SRS allocation) within which it is not possible to allocate
-  // another aperiodic SRS.
+  // another aperiodic SRS. If not set, the SRS allocator works as no-op.
   const std::optional<unsigned> srs_prohibit_time;
 
-  // We assume there can be at most 1 SRS cell per UE.
+  // We consider MAX_NOF_DU_UES as max size, as we assume there can be at most 1 SRS cell per UE.
   using slot_srs_allocation = bounded_bitset<MAX_NOF_DU_UES>;
-  // \brief Ring of SRS resource allocations indexed by slot.
-  circular_array<slot_srs_allocation, RES_MANAGER_RING_BUFFER_SIZE> srs_alloc_manager;
+  // Ring of SRS resource allocations indexed by slot.
+  circular_array<slot_srs_allocation, RES_MANAGER_RING_BUFFER_SIZE> srs_allocation_ring;
 
   // Keeps track of the last slot_point used by the resource manager.
   slot_point last_sl_ind;
-
-  ocudulog::basic_logger& logger;
 };
 
 } // namespace ocudu

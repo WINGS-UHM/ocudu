@@ -280,7 +280,7 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
       // We give up on more reTxs of this HARQ.
       grant.h_dl.cancel_retxs();
 
-      logger.warning("ue={} rnti={}: Failed to derive MCS for PUSCH. Cause: no MCS such that code rate <= 0.95 with "
+      logger.warning("ue={} rnti={}: Failed to derive MCS for PDSCH. Cause: no MCS such that code rate <= 0.95 with "
                      "provided configuration",
                      fmt::underlying(u.ue_index),
                      u.crnti);
@@ -295,8 +295,8 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
   }
 
   // Compute TPC for PUCCH.
-  uint8_t tpc = ue_cc.get_pucch_power_controller().compute_tpc_command(pdsch_alloc.slot + k1 +
-                                                                       ue_cell_cfg.cell_cfg_common.ntn_cs_koffset);
+  const uint8_t tpc = ue_cc.get_pucch_power_controller().compute_tpc_command(
+      pdsch_alloc.slot + k1 + ue_cell_cfg.cell_cfg_common.ntn_cs_koffset);
 
   // Check if is possible to allocate an aperiodic SRS.
   // NOTE: if the prohibit time is not set, the scheduler doesn't allocate any aperiodic SRS.
@@ -720,7 +720,7 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
   if (expert_cfg.srs_prohibit_time.has_value() and dci_type == dci_ul_rnti_config_type::c_rnti_f0_1) {
     const auto [srs_res_trigger, slot_offset] = srs_alloc.allocate_aperiodic_srs(
         cell_alloc, ue_cc.channel_state_manager().last_aperiodic_srs_slot, ue_cell_cfg);
-    if (aperiodic_srs_res_trigger != 0) {
+    if (srs_res_trigger != 0) {
       ue_cc.channel_state_manager().on_scheduled_aperiodic_srs(pdcch_alloc.slot + slot_offset +
                                                                cell_cfg.ntn_cs_koffset);
       aperiodic_srs_res_trigger = srs_res_trigger;
@@ -728,7 +728,7 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
   }
 
   // Fill UL PDCCH DCI.
-  uint8_t rv = ue_cc.get_pusch_rv(grant.h_ul.nof_retxs());
+  const uint8_t rv = ue_cc.get_pusch_rv(grant.h_ul.nof_retxs());
   switch (dci_type) {
     case dci_ul_rnti_config_type::c_rnti_f0_0:
       build_dci_f0_0_c_rnti(grant.pdcch->dci,

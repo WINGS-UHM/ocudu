@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/ocudulog/logger.h"
 #include "ocudu/ran/csi_report/csi_report_data.h"
 #include "ocudu/ran/pusch/pusch_tpmi_select.h"
 #include "ocudu/ran/srs/srs_channel_matrix.h"
@@ -77,17 +78,17 @@ public:
   /// Checks if an aperiodic CSI report can be scheduled in the given PUSCH slot.
   bool is_aperiodic_csi_allowed(slot_point pusch_slot, unsigned aperiodic_csi_prohibit_time_slots) const
   {
-    if (not last_aperiodic_slot.valid()) {
+    if (not last_aperiodic_csi_slot.valid()) {
       return true;
     }
-    return pusch_slot > last_aperiodic_slot and
-           (pusch_slot - last_aperiodic_slot) >= static_cast<int>(aperiodic_csi_prohibit_time_slots);
+    return pusch_slot > last_aperiodic_csi_slot and
+           (pusch_slot - last_aperiodic_csi_slot) >= static_cast<int>(aperiodic_csi_prohibit_time_slots);
   }
 
   /// Records the slot of the latest scheduled aperiodic CSI report.
-  void on_scheduled_aperiodic_csi_pusch(slot_point pusch_slot) { last_aperiodic_slot = pusch_slot; }
+  void on_scheduled_aperiodic_csi_pusch(slot_point pusch_slot) { last_aperiodic_csi_slot = pusch_slot; }
 
-  void on_scheduled_aperiodic_srs(slot_point srs_slot) { last_aperiodic_slot = srs_slot; }
+  void on_scheduled_aperiodic_srs(slot_point srs_slot) { last_aperiodic_srs_slot = srs_slot; }
 
   /// Slot of the latest aperiodic SRS report scheduled.
   slot_point last_aperiodic_srs_slot;
@@ -125,7 +126,7 @@ private:
   std::optional<csi_report_data> latest_csi_report;
 
   /// Slot of the latest aperiodic CSI report scheduled.
-  slot_point last_aperiodic_slot;
+  slot_point last_aperiodic_csi_slot;
 
   /// \brief Latest PUSCH Transmit Precoding Matrix Indication (TPMI) information.
   ///

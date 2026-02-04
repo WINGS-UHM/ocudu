@@ -13,6 +13,7 @@
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "lib/scheduler/pucch_scheduling/pucch_allocator_impl.h"
 #include "lib/scheduler/slicing/inter_slice_scheduler.h"
+#include "lib/scheduler/srs/srs_allocator_impl.h"
 #include "lib/scheduler/uci_scheduling/uci_allocator_impl.h"
 #include "lib/scheduler/ue_context/ue.h"
 #include "lib/scheduler/ue_scheduling/intra_slice_scheduler.h"
@@ -62,7 +63,7 @@ protected:
     ues(cell_cfg.expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, &cell_metrics)),
     slice_sched(cell_cfg, ues),
-    intra_slice_sched(cell_cfg.expert_cfg.ue, ues, pdcch_alloc, uci_alloc, res_grid, cell_metrics, logger)
+    intra_slice_sched(cell_cfg.expert_cfg.ue, ues, pdcch_alloc, uci_alloc, srs_alloc, res_grid, cell_metrics, logger)
   {
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
@@ -185,6 +186,7 @@ protected:
   pdcch_resource_allocator_impl pdcch_alloc{cell_cfg};
   pucch_allocator_impl pucch_alloc{cell_cfg, sched_cfg.ue.max_pucchs_per_slot, sched_cfg.ue.max_ul_grants_per_slot};
   uci_allocator_impl   uci_alloc{pucch_alloc};
+  srs_allocator_impl   srs_alloc{cell_cfg, std::nullopt};
   cell_metrics_handler cell_metrics;
   ue_repository        ues;
   ue_cell_repository&  cell_ues;

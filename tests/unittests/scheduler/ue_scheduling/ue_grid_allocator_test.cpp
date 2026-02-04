@@ -15,6 +15,7 @@
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "lib/scheduler/pucch_scheduling/pucch_allocator_impl.h"
 #include "lib/scheduler/slicing/ran_slice_instance.h"
+#include "lib/scheduler/srs/srs_allocator_impl.h"
 #include "lib/scheduler/support/rb_helper.h"
 #include "lib/scheduler/uci_scheduling/uci_allocator_impl.h"
 #include "lib/scheduler/ue_context/ue.h"
@@ -61,7 +62,7 @@ protected:
     ues(sched_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
     slice_ues(ran_slice_id_t{0}, to_du_cell_index(0), ues),
-    alloc(expert_cfg, ues, pdcch_alloc, uci_alloc, res_grid, logger),
+    alloc(expert_cfg, ues, pdcch_alloc, uci_alloc, srs_alloc, res_grid, logger),
     current_slot(cfg_builder_params.scs_common, 0)
   {
     logger.set_level(ocudulog::basic_levels::debug);
@@ -240,6 +241,7 @@ protected:
   pdcch_resource_allocator_impl pdcch_alloc{cell_cfg};
   pucch_allocator_impl pucch_alloc{cell_cfg, expert_cfg.max_pucchs_per_slot, expert_cfg.max_ul_grants_per_slot};
   uci_allocator_impl   uci_alloc{pucch_alloc};
+  srs_allocator_impl   srs_alloc{cell_cfg, std::nullopt};
 
   ocudulog::basic_logger& logger{ocudulog::fetch_basic_logger("SCHED")};
   scheduler_result_logger res_logger{false, cell_cfg.pci};

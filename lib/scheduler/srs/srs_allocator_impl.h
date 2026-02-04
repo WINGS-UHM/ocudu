@@ -31,7 +31,7 @@ struct positioning_measurement_request;
 class srs_allocator_impl : public srs_allocator
 {
 public:
-  explicit srs_allocator_impl(const cell_configuration& cell_cfg_, const srs_periodicity prohibit_window);
+  explicit srs_allocator_impl(const cell_configuration& cell_cfg_, std::optional<srs_periodicity> prohibit_window);
 
   /// Schedules the SRS occasions.
   void slot_indication(slot_point slot_tx) override;
@@ -60,7 +60,7 @@ private:
   const cell_configuration& cell_cfg;
   // Defines a time interval (since the last aperiodic SRS allocation) within which it is not possible to allocate
   // another aperiodic SRS.
-  const unsigned srs_prohibit_time;
+  const std::optional<unsigned> srs_prohibit_time;
 
   // We assume there can be at most 1 SRS cell per UE.
   using slot_srs_allocation = bounded_bitset<MAX_NOF_DU_UES>;

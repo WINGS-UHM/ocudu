@@ -71,9 +71,12 @@ static grant_info get_srs_res_grid_grant(const bwp_configuration&        ul_bwp_
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-srs_allocator_impl::srs_allocator_impl(const cell_configuration& cell_cfg_, const srs_periodicity prohibit_window) :
+srs_allocator_impl::srs_allocator_impl(const cell_configuration&      cell_cfg_,
+                                       std::optional<srs_periodicity> prohibit_window) :
   cell_cfg(cell_cfg_),
-  srs_prohibit_time(static_cast<unsigned>(prohibit_window)),
+  srs_prohibit_time(prohibit_window.has_value()
+                        ? std::optional<unsigned>(static_cast<unsigned>(prohibit_window.value()))
+                        : std::nullopt),
   srs_alloc_manager(slot_srs_allocation(MAX_NOF_DU_UES)),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
@@ -130,6 +133,10 @@ aperiodic_srs_alloc_info srs_allocator_impl::allocate_aperiodic_srs(cell_resourc
                                                                     slot_point                   last_srs_slot,
                                                                     const ue_cell_configuration& ue_cfg)
 {
+  if (not srs_prohibit_time.has_value()) {
+    return {};
+  }
+
   const srs_config& srs_cfg    = ue_cfg.init_bwp().ul_ded->srs_cfg.value();
   const slot_point  pdcch_slot = res_alloc[0].slot;
   const auto&       srs_res    = srs_cfg.srs_res_list.front();
@@ -153,7 +160,7 @@ aperiodic_srs_alloc_info srs_allocator_impl::allocate_aperiodic_srs(cell_resourc
     }
 
     // We can't transmit if candidate_srs_slot is inside the prohibit window.
-    if (last_srs_slot.valid() and candidate_srs_slot < last_srs_slot + srs_prohibit_time) {
+    if (last_srs_slot.valid() and candidate_srs_slot < last_srs_slot + srs_prohibit_time.value()) {
       // logger.info("rnti={}: SRS allocation for slot={} skipped, not enough time since last SRS",
       //             ue_cfg.crnti,
       //             candidate_srs_slot);

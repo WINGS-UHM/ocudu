@@ -11,9 +11,9 @@
 #pragma once
 
 #include "ocudu/gateways/sctp_network_gateway.h"
+#include "ocudu/gateways/sctp_socket.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/support/io/io_broker.h"
-#include "ocudu/support/io/sctp_socket.h"
 
 struct addrinfo;
 

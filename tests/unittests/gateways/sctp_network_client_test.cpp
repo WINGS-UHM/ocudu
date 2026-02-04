@@ -11,9 +11,9 @@
 
 #include "sctp_test_helpers.h"
 #include "ocudu/gateways/sctp_network_client_factory.h"
+#include "ocudu/gateways/sctp_socket.h"
 #include "ocudu/support/executors/inline_task_executor.h"
 #include "ocudu/support/executors/unique_thread.h"
-#include "ocudu/support/io/sctp_socket.h"
 #include <gtest/gtest.h>
 #include <netinet/in.h>
 #include <sys/socket.h>

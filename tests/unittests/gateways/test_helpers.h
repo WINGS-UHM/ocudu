@@ -12,9 +12,9 @@
 
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/gateways/sctp_network_gateway.h"
+#include "ocudu/gateways/sctp_socket.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/io/io_broker.h"
-#include "ocudu/support/io/sctp_socket.h"
 #include <arpa/inet.h>
 #include <condition_variable>
 #include <gtest/gtest.h>

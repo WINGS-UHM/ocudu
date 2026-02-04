@@ -9,6 +9,7 @@
 find_package(SCTP REQUIRED)
 
 add_library(ocudu_gateway
+        sctp_socket.cpp
         sctp_network_gateway_common_impl.cpp
         sctp_network_client_impl.cpp
         sctp_network_server_impl.cpp

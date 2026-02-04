@@ -10,8 +10,8 @@
 
 #include "sctp_test_helpers.h"
 #include "ocudu/gateways/sctp_network_server_factory.h"
+#include "ocudu/gateways/sctp_socket.h"
 #include "ocudu/support/executors/inline_task_executor.h"
-#include "ocudu/support/io/sctp_socket.h"
 #include <arpa/inet.h>
 #include <gtest/gtest.h>
 

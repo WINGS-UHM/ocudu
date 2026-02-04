@@ -8,7 +8,7 @@
  *
  */
 
-#include "ocudu/support/io/sctp_socket.h"
+#include "ocudu/gateways/sctp_socket.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/error_handling.h"
 #include "ocudu/support/io/sockets.h"

@@ -1,6 +1,6 @@
 /*
  *
- * Copyright 2021-2025 Software Radio Systems Limited
+ * Copyright 2021-2026 Software Radio Systems Limited
  *
  * By using this file, you agree to the terms and conditions set
  * forth in the LICENSE file which can be found at the top level of
@@ -8,8 +8,8 @@
  *
  */
 
+#include "ocudu/gateways/sctp_socket.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include "ocudu/support/io/sctp_socket.h"
 #include <arpa/inet.h>
 #include <cstring>
 #include <gtest/gtest.h>

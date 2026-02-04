@@ -22,7 +22,6 @@ set(SOURCES
         network/io_broker_epoll.cpp
         network/io_broker_factory.cpp
         network/io_timer_source.cpp
-        network/sctp_socket.cpp
         network/sockets.cpp
         network/transport_layer_address.cpp
         synchronization/futex_util.cpp
@@ -47,7 +46,7 @@ set(SOURCES
 
 add_library(ocudu_support STATIC ${SOURCES})
 target_link_libraries(ocudu_support PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${YAML_CPP_LIBRARIES}
-	${NUMA_LIBRARIES} ${SCTP_LIBRARIES} ocudulog)
+	${NUMA_LIBRARIES} ocudulog)
 add_backward(ocudu_support)
 
 if (Backward_FOUND AND BACKWARD_HAS_EXTERNAL_LIBRARIES)

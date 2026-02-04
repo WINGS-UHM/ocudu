@@ -42,6 +42,7 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   zp_csi_rs_list(msg.zp_csi_rs_list),
   nzp_csi_rs_list(msg.nzp_csi_rs_res_list),
   dl_data_to_ul_ack(msg.dl_data_to_ul_ack),
+  init_bwp_builder(msg.init_bwp_builder),
   rrm_policy_members(msg.rrm_policy_members),
   cfra_enabled(msg.cfra_enabled),
   // SSB derived params.

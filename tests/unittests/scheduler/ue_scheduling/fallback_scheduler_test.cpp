@@ -123,6 +123,8 @@ protected:
     enable_pusch_transform_precoding(enable_pusch_transform_precoding_),
     builder_params(cell_config_builder_profiles::create(duplx_mode))
   {
+    builder_params.min_k1 = 2;
+    builder_params.min_k2 = 2;
   }
 
   ~base_fallback_tester()
@@ -886,7 +888,6 @@ TEST_F(fallback_scheduler_tdd_tester, test_allocation_in_partial_slots_tdd)
                                                                       std::nullopt));
   // Set minimum k1 according to TDD pattern.
   scheduler_expert_config expert_cfg = create_expert_config(max_msg4_mcs_index);
-  expert_cfg.ue.min_k1               = 2;
   setup_sched(expert_cfg, cell_cfg);
 
   const unsigned MAX_TEST_RUN_SLOTS = 40;

@@ -66,6 +66,9 @@ public:
   /// List of dl-DataToUL-ACK values sent to UE in its dedicated configuration.
   static_vector<uint8_t, 8> dl_data_to_ul_ack;
 
+  /// Meta parameters used to generate the initial BWP configuration.
+  bwp_builder_params init_bwp_builder;
+
   /// List of RRM Policy members configured for this cell.
   std::vector<slice_rrm_policy_config> rrm_policy_members;
 

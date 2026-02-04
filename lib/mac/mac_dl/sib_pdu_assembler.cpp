@@ -98,7 +98,7 @@ public:
         // HyperSFN has changed, re-encode payload.
         build_bcch_dl_sch_payload(new_hyper_sfn);
       }
-      return current_payload;
+      return span<const uint8_t>(current_payload.data(), tbs.value());
     }
 
   private:

@@ -70,9 +70,8 @@ static std::optional<uint16_t> extract_bcch_dl_sch_msg_hyper_sfn(span<const uint
   }
   ocudu_assert(msg.msg.type().value == asn1::rrc_nr::bcch_dl_sch_msg_type_c::types_opts::c1,
                "Invalid BCCH-DL SCH type");
-  if (msg.msg.c1().type().value != asn1::rrc_nr::bcch_dl_sch_msg_type_c::c1_c_::types_opts::sib_type1) {
-    return false;
-  }
+  ocudu_assert(msg.msg.c1().type().value == asn1::rrc_nr::bcch_dl_sch_msg_type_c::c1_c_::types_opts::sib_type1,
+               "Unexpected type for SIB1");
   return get_hyper_sfn(msg.msg.c1().sib_type1());
 }
 

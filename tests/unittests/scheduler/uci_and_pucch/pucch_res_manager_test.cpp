@@ -17,7 +17,7 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
-#include "ocudu/scheduler/config/pucch_builder_params.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
@@ -30,7 +30,7 @@ using namespace ocudu;
 class res_manager_test_bench
 {
 public:
-  explicit res_manager_test_bench(const pucch_builder_params& builder_params_) :
+  explicit res_manager_test_bench(const pucch_resource_builder_params& builder_params_) :
     builder_params(builder_params_),
     cell_cfg(*cfg_mng.add_cell([this]() {
       // Create cell and save a reference to its configuration.
@@ -72,7 +72,7 @@ public:
     return ue_req;
   }
 
-  const pucch_builder_params builder_params;
+  const pucch_resource_builder_params builder_params;
 
   // Configuration dependencies.
   const scheduler_expert_config           expert_cfg = config_helpers::make_default_scheduler_expert_config();
@@ -93,7 +93,7 @@ class test_pucch_resource_manager : public ::testing::Test
 {
 public:
   test_pucch_resource_manager() :
-    t_bench(pucch_builder_params{
+    t_bench(pucch_resource_builder_params{
         .nof_cell_sr_resources = 2U,
     })
   {
@@ -565,7 +565,7 @@ protected:
 
   void create_ues(unsigned nof_ues, unsigned nof_res_per_ue_, unsigned nof_configurations)
   {
-    t_bench.emplace(pucch_builder_params{
+    t_bench.emplace(pucch_resource_builder_params{
         .res_set_0_size           = nof_res_per_ue_,
         .res_set_1_size           = nof_res_per_ue_,
         .nof_cell_res_set_configs = nof_configurations,

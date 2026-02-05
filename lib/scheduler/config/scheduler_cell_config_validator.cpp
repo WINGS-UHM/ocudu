@@ -167,7 +167,7 @@ static error_type<std::string> validate_pusch_cfg_common(const sched_cell_config
   }
 
   const auto& pusch_lst = msg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list;
-  HANDLE_CODE(validade_pusch_td_res_list(pusch_lst, msg.tdd_ul_dl_cfg_common, msg.init_bwp_builder.min_k2));
+  HANDLE_CODE(validade_pusch_td_res_list(pusch_lst, msg.tdd_ul_dl_cfg_common, msg.init_bwp_builder.pusch.min_k2));
 
   return {};
 }

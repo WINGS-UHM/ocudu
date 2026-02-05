@@ -11,7 +11,7 @@
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/ran/csi_rs/csi_meas_config.h"
 #include "ocudu/ran/slot_point.h"
-#include "ocudu/scheduler/config/pucch_builder_params.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 
 using namespace ocudu;
 using namespace csi_helper;
@@ -520,8 +520,8 @@ make_csi_report_configs(const csi_builder_params&                               
         csi_report_config::periodic_or_semi_persistent_report_on_pucch::report_type_t::periodic;
     report_cfg_type.report_slot_period = convert_csi_resource_period_to_report_period(params.csi_rs_period);
     report_cfg_type.report_slot_offset = *params.csi_report_slot_offset;
-    pucch_builder_params pucch_builder_params{};
-    const unsigned       cell_res_id =
+    pucch_resource_builder_params pucch_builder_params{};
+    const unsigned                cell_res_id =
         ((pucch_builder_params.res_set_0_size.value() + pucch_builder_params.res_set_1_size.value()) *
          pucch_builder_params.nof_cell_res_set_configs) +
         pucch_builder_params.nof_cell_sr_resources;

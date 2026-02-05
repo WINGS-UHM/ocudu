@@ -116,9 +116,9 @@ class pucch_power_control_test_bench : public ::testing::TestWithParam<pucch_pw_
         .dl_carrier = {.carrier_bw = bs_channel_bandwidth::MHz20, .arfcn_f_ref = 520000U}};
   }
 
-  static pucch_builder_params make_pucch_builder_params()
+  static pucch_resource_builder_params make_pucch_builder_params()
   {
-    pucch_builder_params pucch_params;
+    pucch_resource_builder_params pucch_params;
 
     if (GetParam().format_set_0 == pucch_format::FORMAT_0) {
       pucch_params.f0_or_f1_params.emplace<pucch_f0_params>(pucch_f0_params{});

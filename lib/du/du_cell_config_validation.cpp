@@ -756,7 +756,7 @@ static check_outcome check_prach_config(const du_cell_config& cell_cfg)
       rach_cfg.rach_cfg_generic.msg1_frequency_start + rach_cfg.rach_cfg_generic.msg1_fdm * prach_nof_prbs;
 
   prb_interval prb_interval_no_pucch = config_helpers::find_largest_prb_interval_without_pucch(
-      cell_cfg.pucch_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      cell_cfg.init_bwp_builder.pucch.resources, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   // This is to preserve a guardband between the PUCCH and PRACH.
   const unsigned pucch_to_prach_guardband = is_long_preamble(prach_cfg.format) ? 0U : 3U;
@@ -816,7 +816,7 @@ check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
   HANDLE_ERROR(check_ul_config_common(cell_cfg));
   HANDLE_ERROR(check_ssb_configuration(cell_cfg));
   HANDLE_ERROR(check_tdd_ul_dl_config(cell_cfg));
-  const pucch_builder_params& pucch_cfg = cell_cfg.pucch_cfg;
+  const pucch_resource_builder_params& pucch_cfg = cell_cfg.init_bwp_builder.pucch.resources;
   HANDLE_ERROR(config_helpers::pucch_parameters_validator(
       pucch_cfg.res_set_0_size.value() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_sr_resources,
       pucch_cfg.res_set_1_size.value() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_csi_resources,

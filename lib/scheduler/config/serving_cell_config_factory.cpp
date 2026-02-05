@@ -21,7 +21,7 @@
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/csi_helper.h"
-#include "ocudu/scheduler/config/pucch_builder_params.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include <algorithm>
@@ -422,7 +422,7 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
   auto& pucch_cfg = ul_config.init_ul_bwp.pucch_cfg.emplace();
 
   // Get the default PUCCH cell resource list.
-  pucch_builder_params builder_params{};
+  pucch_resource_builder_params builder_params{};
   const auto cell_pucch_res_list = config_helpers::build_pucch_resource_list(builder_params, params.cell_nof_crbs);
 
   // >>> Resource Set ID 0.

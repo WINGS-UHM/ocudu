@@ -433,7 +433,7 @@ unsigned ue_capability_manager::select_pusch_max_rank(du_cell_index_t cell_idx) 
   nr_band band = base_cell_cfg_list[cell_idx].ul_carrier.band;
 
   // Configured maximum number of layers.
-  unsigned pusch_max_rank = base_cell_cfg_list[cell_idx].pusch_max_nof_layers;
+  unsigned pusch_max_rank = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.max_nof_layers;
 
   // If UE capabilities or the band are not available, return default value.
   if (not ue_caps.has_value() || ue_caps->bands.count(band) == 0) {

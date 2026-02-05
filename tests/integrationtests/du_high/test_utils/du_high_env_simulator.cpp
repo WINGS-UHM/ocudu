@@ -65,7 +65,7 @@ du_high_configuration odu::create_du_high_configuration(const du_high_env_sim_pa
     cfg.ran.cells.push_back(du_cell_cfg);
     cfg.ran.cells.back().nr_cgi.nci = nr_cell_identity::create(i).value();
     if (params.pucch_cfg.has_value()) {
-      cfg.ran.cells.back().pucch_cfg = params.pucch_cfg.value();
+      cfg.ran.cells.back().init_bwp_builder.pucch.resources = params.pucch_cfg.value();
     }
     cfg.ran.mac_cfg.configs.push_back({10000, 10000, 10000});
     if (params.srs_period.has_value()) {

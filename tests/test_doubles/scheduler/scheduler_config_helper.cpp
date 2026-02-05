@@ -22,17 +22,17 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
 {
   config_helpers::cell_config_builder_params_extended params{params_input};
   sched_cell_configuration_request_message            sched_req{};
-  sched_req.cell_index              = to_du_cell_index(0);
-  sched_req.pci                     = params.pci;
-  sched_req.scs_common              = params.scs_common;
-  sched_req.dl_carrier              = config_helpers::make_default_dl_carrier_configuration(params);
-  sched_req.ul_carrier              = config_helpers::make_default_ul_carrier_configuration(params);
-  sched_req.dl_cfg_common           = config_helpers::make_default_dl_config_common(params);
-  sched_req.ul_cfg_common           = config_helpers::make_default_ul_config_common(params);
-  sched_req.ssb_config              = config_helpers::make_default_ssb_config(params);
-  sched_req.tdd_ul_dl_cfg_common    = params.tdd_ul_dl_cfg_common;
-  sched_req.init_bwp_builder.min_k1 = params.min_k1;
-  sched_req.init_bwp_builder.min_k2 = params.min_k2;
+  sched_req.cell_index                    = to_du_cell_index(0);
+  sched_req.pci                           = params.pci;
+  sched_req.scs_common                    = params.scs_common;
+  sched_req.dl_carrier                    = config_helpers::make_default_dl_carrier_configuration(params);
+  sched_req.ul_carrier                    = config_helpers::make_default_ul_carrier_configuration(params);
+  sched_req.dl_cfg_common                 = config_helpers::make_default_dl_config_common(params);
+  sched_req.ul_cfg_common                 = config_helpers::make_default_ul_config_common(params);
+  sched_req.ssb_config                    = config_helpers::make_default_ssb_config(params);
+  sched_req.tdd_ul_dl_cfg_common          = params.tdd_ul_dl_cfg_common;
+  sched_req.init_bwp_builder.pucch.min_k1 = params.min_k1;
+  sched_req.init_bwp_builder.pusch.min_k2 = params.min_k2;
 
   // The CORESET duration of 3 symbols is only permitted if dmrs-typeA-Position is set to 3. Refer TS 38.211, 7.3.2.2.
   const pdcch_type0_css_coreset_description coreset0_desc = pdcch_type0_css_coreset_get(
@@ -51,7 +51,7 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
   sched_req.dl_bwp_ded.pdcch_cfg = make_ue_dedicated_pdcch_config(params);
   sched_req.dl_bwp_ded.pdsch_cfg = make_default_pdsch_config(params);
 
-  pucch_builder_params default_pucch_builder_params{};
+  pucch_resource_builder_params default_pucch_builder_params{};
   sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
       default_pucch_builder_params, sched_req.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 

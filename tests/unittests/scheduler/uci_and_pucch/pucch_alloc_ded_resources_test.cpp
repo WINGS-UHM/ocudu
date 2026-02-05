@@ -24,8 +24,8 @@ class pucch_alloc_ded_resources_test : public ::testing::TestWithParam<pucch_for
 {
 public:
   pucch_alloc_ded_resources_test() :
-    pucch_allocator_base_test({.pucch_ded_params = [format = GetParam()]() -> pucch_builder_params {
-      pucch_builder_params params{.res_set_0_size = 3};
+    pucch_allocator_base_test({.pucch_ded_params = [format = GetParam()]() -> pucch_resource_builder_params {
+      pucch_resource_builder_params params{.res_set_0_size = 3};
       switch (format) {
         case pucch_format::FORMAT_2:
           params.f2_or_f3_or_f4_params.emplace<pucch_f2_params>();

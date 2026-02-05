@@ -21,7 +21,7 @@
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include "ocudu/scheduler/config/bwp_builder_params.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
-#include "ocudu/scheduler/config/pucch_builder_params.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/slice_rrm_policy_config.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
@@ -96,9 +96,6 @@ struct du_cell_config {
   /// Parameters to initialize/build the \c mac_cell_group_config.
   mac_cell_group_params mcg_params;
 
-  /// Parameters for PUCCH-Config generation.
-  pucch_builder_params pucch_cfg;
-
   /// Parameters for SRS-Config generation.
   srs_builder_params srs_cfg;
 
@@ -107,9 +104,6 @@ struct du_cell_config {
 
   /// NTN configuration for this cell. When empty, the cell operates in terrestrial mode.
   std::optional<ntn_cell_params> ntn_params;
-
-  /// PUSCH Maximum of transmission layers. Limits the PUSCH maximum rank the UE is configured with.
-  unsigned pusch_max_nof_layers = 1;
 
   /// Whether contention-free random access is enabled for this cell.
   bool cfra_enabled = true;

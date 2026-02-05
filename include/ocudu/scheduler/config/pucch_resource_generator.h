@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/expected.h"
-#include "ocudu/scheduler/config/pucch_builder_params.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 
 namespace ocudu {
 

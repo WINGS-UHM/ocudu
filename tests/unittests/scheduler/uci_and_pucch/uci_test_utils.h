@@ -19,7 +19,7 @@
 #include "lib/scheduler/ue_context/ue_repository.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
-#include "ocudu/scheduler/config/pucch_builder_params.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 
 namespace ocudu {
 
@@ -51,7 +51,7 @@ bool find_pucch_pdu(const static_vector<pucch_info, MAX_PUCCH_PDUS_PER_SLOT>& pu
 bool pucch_info_match(const pucch_info& expected, const pucch_info& test);
 
 struct test_bench_params {
-  pucch_builder_params                  pucch_ded_params{};
+  pucch_resource_builder_params         pucch_ded_params{};
   max_pucch_code_rate                   max_code_rate = max_pucch_code_rate::dot_25;
   std::optional<unsigned>               pucch_res_common;
   unsigned                              n_cces                 = 0;

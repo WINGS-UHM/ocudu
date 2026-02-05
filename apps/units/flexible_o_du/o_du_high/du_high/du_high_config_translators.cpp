@@ -672,15 +672,15 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().msg3_delta_power = base_cell.pusch_cfg.msg3_delta_power;
 
     // Set initial BWP builder.
-    out_cell.init_bwp_builder.min_k1 = base_cell.pucch_cfg.min_k1;
-    out_cell.init_bwp_builder.min_k2 = base_cell.pusch_cfg.min_k2;
+    out_cell.init_bwp_builder.pucch.min_k1 = base_cell.pucch_cfg.min_k1;
+    out_cell.init_bwp_builder.pusch.min_k2 = base_cell.pusch_cfg.min_k2;
 
     // Determine the PUSCH transmission maximum number of layers:
     //  - one layer if transform precoding is enabled; or
     //  - selects the most limiting number of layers among the physical layer capability, the number of antennas and
     //    configured maximum rank.
     pusch_processor_phy_capabilities phy_capabilities = get_pusch_processor_phy_capabilities();
-    out_cell.pusch_max_nof_layers =
+    out_cell.init_bwp_builder.pusch.max_nof_layers =
         cell.cell.pusch_cfg.enable_transform_precoding
             ? 1
             : std::min({cell.cell.nof_antennas_ul, phy_capabilities.max_nof_layers, cell.cell.pusch_cfg.max_rank});
@@ -838,7 +838,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     }
 
     // Parameters for PUCCH-Config builder (these parameters will be used later on to generate the PUCCH resources).
-    pucch_builder_params&            du_pucch_cfg                  = out_cell.pucch_cfg;
+    pucch_resource_builder_params&   du_pucch_cfg                  = out_cell.init_bwp_builder.pucch.resources;
     const du_high_unit_pucch_config& user_pucch_cfg_pre_processing = base_cell.pucch_cfg;
     du_high_unit_pucch_config        user_pucch_cfg                = user_pucch_cfg_pre_processing;
     // For 5MHz BW or for 10MHz TDD, the default PUCCH configuration would use too many PRBs, we need to reduce them not

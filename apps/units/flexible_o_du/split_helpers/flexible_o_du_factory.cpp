@@ -99,7 +99,7 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
     du_low_cell.prach_config_index =
         cell.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index;
     du_low_cell.max_puschs_per_slot  = du_hi_cell.cell.pusch_cfg.max_puschs_per_slot;
-    du_low_cell.pusch_max_nof_layers = cell.pusch_max_nof_layers;
+    du_low_cell.pusch_max_nof_layers = cell.init_bwp_builder.pusch.max_nof_layers;
     du_low_cell.tdd_pattern          = cell.tdd_ul_dl_cfg_common;
   }
 

@@ -616,12 +616,13 @@ public:
     dependencies.rlc_p       = &rlc_pcap;
 
     // Increase nof. PUCCH resources to accommodate more UEs.
-    cfg.ran.cells[0].pucch_cfg.nof_cell_sr_resources    = 80;
-    cfg.ran.cells[0].pucch_cfg.nof_cell_csi_resources   = 80;
-    cfg.ran.cells[0].pucch_cfg.res_set_1_size           = 8;
-    cfg.ran.cells[0].pucch_cfg.res_set_0_size           = 8;
-    cfg.ran.cells[0].pucch_cfg.nof_cell_res_set_configs = 2;
-    auto& f1_params                             = cfg.ran.cells[0].pucch_cfg.f0_or_f1_params.emplace<pucch_f1_params>();
+    auto& pucch_resources                       = cfg.ran.cells[0].init_bwp_builder.pucch.resources;
+    pucch_resources.nof_cell_sr_resources       = 80;
+    pucch_resources.nof_cell_csi_resources      = 80;
+    pucch_resources.res_set_1_size              = 8;
+    pucch_resources.res_set_0_size              = 8;
+    pucch_resources.nof_cell_res_set_configs    = 2;
+    auto& f1_params                             = pucch_resources.f0_or_f1_params.emplace<pucch_f1_params>();
     f1_params.nof_cyc_shifts                    = pucch_nof_cyclic_shifts::twelve;
     f1_params.occ_supported                     = true;
     cfg.ran.sched_cfg.ue.max_pucchs_per_slot    = 120;

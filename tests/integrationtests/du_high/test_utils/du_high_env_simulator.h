@@ -32,14 +32,14 @@ namespace odu {
 
 /// Parameters to set the DU-high environment simulator.
 struct du_high_env_sim_params {
-  unsigned                                  nof_cells  = 1;
-  bool                                      auto_start = true;
-  std::optional<cell_config_builder_params> builder_params;
-  std::optional<pucch_builder_params>       pucch_cfg;
-  std::optional<scheduler_ue_expert_config> sched_ue_expert_cfg;
-  std::optional<unsigned>                   prach_frequency_start;
-  std::optional<srs_periodicity>            srs_period;
-  bool                                      active_cells_on_start = true;
+  unsigned                                     nof_cells  = 1;
+  bool                                         auto_start = true;
+  std::optional<cell_config_builder_params>    builder_params;
+  std::optional<pucch_resource_builder_params> pucch_cfg;
+  std::optional<scheduler_ue_expert_config>    sched_ue_expert_cfg;
+  std::optional<unsigned>                      prach_frequency_start;
+  std::optional<srs_periodicity>               srs_period;
+  bool                                         active_cells_on_start = true;
 };
 
 du_high_configuration create_du_high_configuration(const du_high_env_sim_params& params = {});

@@ -16,8 +16,8 @@
 
 using namespace ocudu;
 
-std::vector<pucch_resource> ocudu::config_helpers::build_pucch_resource_list(const pucch_builder_params& user_params,
-                                                                             unsigned                    bwp_size)
+std::vector<pucch_resource>
+ocudu::config_helpers::build_pucch_resource_list(const pucch_resource_builder_params& user_params, unsigned bwp_size)
 {
   // Compute the cell PUCCH resource list, depending on which parameter that has been passed.
   auto res_list = config_helpers::generate_cell_pucch_res_list(

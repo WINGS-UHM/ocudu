@@ -39,7 +39,7 @@ protected:
     params(cell_config_builder_profiles::create(duplex_mode::TDD))
   {
     auto sched_cell_cfg_req = sched_config_helper::make_default_sched_cell_configuration_request(params);
-    pucch_builder_params pucch_basic_params{
+    pucch_resource_builder_params pucch_basic_params{
         .res_set_0_size = 8, .res_set_1_size = 8, .nof_cell_sr_resources = 8, .nof_cell_csi_resources = 8};
     auto& f1_params                        = pucch_basic_params.f0_or_f1_params.emplace<pucch_f1_params>();
     f1_params.nof_cyc_shifts               = pucch_nof_cyclic_shifts::twelve;

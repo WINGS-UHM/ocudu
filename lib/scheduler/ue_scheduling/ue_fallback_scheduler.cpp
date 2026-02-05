@@ -60,7 +60,7 @@ ue_fallback_scheduler::ue_fallback_scheduler(const scheduler_ue_expert_config& e
   // implementations that we work with do not handle well the value k1=8. Instead, in the particular context of RRC
   // Reestablishment, they PRACH instead of sending the PUCCH.
   static constexpr unsigned max_k1 = 7U;
-  const unsigned            min_k1 = cell_cfg.init_bwp_builder.min_k1;
+  const unsigned            min_k1 = cell_cfg.init_bwp_builder.pucch.min_k1;
   ocudu_sanity_check(min_k1 <= max_k1, "Invalid min_k1 value");
   for (unsigned k1_value = min_k1; k1_value <= max_k1; ++k1_value) {
     dci_1_0_k1_values.push_back(k1_value);

@@ -90,7 +90,7 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   }
 
   sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-      du_cfg.pucch_cfg, du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      du_cfg.init_bwp_builder.pucch.resources, du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   sched_req.zp_csi_rs_list = du_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->zp_csi_rs_res_list;
 

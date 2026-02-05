@@ -43,7 +43,7 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   zp_csi_rs_list(msg.zp_csi_rs_list),
   nzp_csi_rs_list(msg.nzp_csi_rs_res_list),
   dl_data_to_ul_ack(
-      time_domain_resource_helper::generate_k1_candidates(msg.tdd_ul_dl_cfg_common, msg.init_bwp_builder.min_k1)),
+      time_domain_resource_helper::generate_k1_candidates(msg.tdd_ul_dl_cfg_common, msg.init_bwp_builder.pucch.min_k1)),
   init_bwp_builder(msg.init_bwp_builder),
   rrm_policy_members(msg.rrm_policy_members),
   cfra_enabled(msg.cfra_enabled),

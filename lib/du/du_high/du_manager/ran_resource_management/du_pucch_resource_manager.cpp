@@ -36,7 +36,8 @@ static bool csi_offset_exceeds_grant_cnt(unsigned                     offset_can
 }
 
 // Helper that updates the starting PUCCH config with user-defined parameters.
-static pucch_config build_default_pucch_cfg(const pucch_config& pucch_cfg, const pucch_builder_params& user_params)
+static pucch_config build_default_pucch_cfg(const pucch_config&                  pucch_cfg,
+                                            const pucch_resource_builder_params& user_params)
 {
   pucch_config target_pucch_cfg = pucch_cfg;
   if (not std::holds_alternative<pucch_f1_params>(user_params.f0_or_f1_params)) {
@@ -59,9 +60,9 @@ static pucch_config build_default_pucch_cfg(const pucch_config& pucch_cfg, const
 
 du_pucch_resource_manager::du_pucch_resource_manager(span<const du_cell_config> cell_cfg_list_,
                                                      unsigned                   max_pucch_grants_per_slot_) :
-  user_defined_pucch_cfg(cell_cfg_list_[0].pucch_cfg),
+  user_defined_pucch_cfg(cell_cfg_list_[0].init_bwp_builder.pucch.resources),
   default_pucch_res_list(config_helpers::build_pucch_resource_list(
-      cell_cfg_list_[0].pucch_cfg,
+      cell_cfg_list_[0].init_bwp_builder.pucch.resources,
       cell_cfg_list_[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length())),
   default_pucch_cfg(
       build_default_pucch_cfg(cell_cfg_list_[0].ue_ded_serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value(),

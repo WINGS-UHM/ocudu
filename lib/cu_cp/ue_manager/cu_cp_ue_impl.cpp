@@ -53,6 +53,7 @@ cu_cp_ue::cu_cp_ue(ue_index_t                     ue_index_,
   nrppa_cu_cp_ue_ev_notifier.connect_ue(*this);
 
   handover_ue_release_timer = timers_.create_unique_timer(task_exec_);
+  ran_paging_timer          = timers_.create_unique_timer(task_exec_);
 }
 
 /// \brief Update a UE with PCI and/or C-RNTI.

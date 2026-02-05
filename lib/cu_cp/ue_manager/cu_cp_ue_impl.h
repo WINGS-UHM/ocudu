@@ -21,7 +21,6 @@
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <optional>
-#include <unordered_map>
 
 namespace ocudu {
 
@@ -97,6 +96,9 @@ public:
 
   /// \brief Get the measurement context of the UE.
   cell_meas_manager_ue_context& get_meas_context() { return meas_context; }
+
+  /// \brief Get the ran paging timer of the UE.
+  unique_timer& get_ran_paging_timer() { return ran_paging_timer; }
 
   /// \brief Update a UE with PCI and/or C-RNTI.
   void update_du_ue(gnb_du_id_t     du_id_       = gnb_du_id_t::invalid,
@@ -183,7 +185,8 @@ private:
   // CU-CP UE context.
   rrc_ue_cu_cp_adapter                     rrc_ue_cu_cp_ev_notifier;
   cell_meas_manager_ue_context             meas_context;
-  unique_timer                             handover_ue_release_timer = {};
+  unique_timer                             handover_ue_release_timer;
+  unique_timer                             ran_paging_timer;
   std::optional<cu_cp_ue_handover_context> ho_context;
 };
 

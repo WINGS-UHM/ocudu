@@ -74,6 +74,11 @@ inline void fill_asn1_paging_message(asn1::f1ap::paging_s& asn1_paging, const cu
     asn1::float_number_to_enum(asn1_paging->nr_paginge_drx_info.nrpaging_e_drx_cycle_idle,
                                paging.paging_edrx_info->nr_paging_edrx_cycle,
                                0.001f);
+    if (paging.paging_edrx_info->nr_paging_time_window.has_value()) {
+      asn1_paging->nr_paginge_drx_info.nrpaging_time_win_present = true;
+      asn1::number_to_enum(asn1_paging->nr_paginge_drx_info.nrpaging_time_win,
+                           *paging.paging_edrx_info->nr_paging_time_window);
+    }
   }
 }
 

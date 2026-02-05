@@ -94,6 +94,12 @@ protected:
 
     paging_msg.assist_data_for_paging = assist_data_for_paging;
 
+    // Add eDRX information.
+    cu_cp_paging_edrx_info edrx_info = {};
+    edrx_info.nr_paging_edrx_cycle   = 0.5;
+    edrx_info.nr_paging_time_window  = 1;
+    paging_msg.paging_edrx_info      = edrx_info;
+
     return paging_msg;
   }
 
@@ -156,6 +162,18 @@ protected:
     }
     if ((std::string)paging_msg->paging_origin.to_string() != "non-3gpp") {
       test_logger.error("Paging origin mismatch {} != non-3gpp", paging_msg->paging_origin.to_string());
+      return false;
+    }
+
+    // Check eDRX information.
+    if (!paging_msg->nr_paginge_drx_info_present) {
+      return false;
+    }
+    if (paging_msg->nr_paginge_drx_info.nrpaging_e_drx_cycle_idle != asn1::f1ap::nr_paging_e_drx_cycle_idle_e::hfhalf) {
+      return false;
+    }
+    if (!paging_msg->nr_paginge_drx_info.nrpaging_time_win_present ||
+        paging_msg->nr_paginge_drx_info.nrpaging_time_win != asn1::f1ap::nr_paging_time_win_e::s1) {
       return false;
     }
 

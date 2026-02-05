@@ -922,7 +922,7 @@ public:
       CORO_RETURN(odu::du_param_config_response{});
     });
   }
-  void handle_si_pdu_update(const odu::du_si_pdu_update_request& req) override {}
+  void handle_ntn_param_update(const odu::du_ntn_param_update_request& req) override {}
 
   odu::du_mac_sched_control_config config;
 };

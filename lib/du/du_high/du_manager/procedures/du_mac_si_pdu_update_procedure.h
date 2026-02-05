@@ -18,9 +18,9 @@ namespace odu {
 
 class du_cell_manager;
 
-async_task<du_si_pdu_update_response> start_du_mac_si_pdu_update(const du_si_pdu_update_request& req,
-                                                                 const du_manager_params&        params,
-                                                                 du_cell_manager&                cell_mng);
+async_task<du_ntn_param_update_response> start_du_ntn_param_update(const du_ntn_param_update_request& req,
+                                                                   const du_manager_params&           params,
+                                                                   du_cell_manager&                   cell_mng);
 
 } // namespace odu
 } // namespace ocudu

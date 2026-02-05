@@ -282,7 +282,7 @@ du_param_config_response du_manager_impl::handle_sync_operator_config(const du_p
   return resp;
 }
 
-void du_manager_impl::handle_si_pdu_update(const du_si_pdu_update_request& req)
+void du_manager_impl::handle_ntn_param_update(const du_ntn_param_update_request& req)
 {
   schedule_async_task(launch_async([&req, this](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);
@@ -291,7 +291,7 @@ void du_manager_impl::handle_si_pdu_update(const du_si_pdu_update_request& req)
       // Already stopped.
       CORO_EARLY_RETURN();
     }
-    CORO_AWAIT(start_du_mac_si_pdu_update(req, params, cell_mng));
+    CORO_AWAIT(start_du_ntn_param_update(req, params, cell_mng));
 
     CORO_RETURN();
   }));

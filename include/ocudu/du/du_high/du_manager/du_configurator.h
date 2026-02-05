@@ -13,6 +13,7 @@
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/ran/nr_cgi.h"
+#include "ocudu/ran/ntn.h"
 #include "ocudu/ran/rrm.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/support/async/async_task.h"
@@ -71,11 +72,27 @@ struct du_param_config_response {
   bool success;
 };
 
+/// NTN assistance information update. Only SIB19 fields that do not trigger SIB1 valuetag change notifications.
+struct ntn_assistance_info_update {
+  /// Moving reference location for NTN Earth-moving cell.
+  std::optional<geodetic_coordinates_t> moving_reference_location;
+  /// Ephemeris info.
+  std::variant<ecef_coordinates_t, orbital_coordinates_t> ephemeris_info;
+  /// Timing advance info (ta-Common, ta-CommonDrift, ta-CommonDriftVariant).
+  std::optional<ta_info_t> ta_info;
+  /// Epoch time for NTN assistance info.
+  std::optional<epoch_time_t> epoch_time;
+  /// Validity duration for UL sync assistance info in seconds.
+  std::optional<unsigned> ntn_ul_sync_validity_dur;
+};
+
 /// Structure used to update SI PDU messages, without SI change notifications nor in a modification of valueTag in SIB1.
-struct du_si_pdu_update_request {
+struct du_ntn_param_update_request {
   using time_point = std::chrono::system_clock::time_point;
   /// NR Cell Global ID of the cell being configured.
   nr_cell_global_id_t nr_cgi;
+  /// NTN assistance information update.
+  std::optional<ntn_assistance_info_update> ntn_assistance_info;
   /// SI message index.
   unsigned si_msg_idx;
   /// SIB index (e.g., sib2 => value 2).
@@ -88,7 +105,7 @@ struct du_si_pdu_update_request {
   span<byte_buffer> si_messages;
 };
 
-struct du_si_pdu_update_response {
+struct du_ntn_param_update_response {
   bool success;
 };
 
@@ -113,8 +130,8 @@ public:
   virtual async_task<du_param_config_response> handle_operator_config(const du_param_config_request& req,
                                                                       task_executor& continuation_exec) = 0;
 
-  /// Apply new SI PDU requested from outside the DU.
-  virtual void handle_si_pdu_update(const du_si_pdu_update_request& req) = 0;
+  /// Update NTN parameters from outside the DU.
+  virtual void handle_ntn_param_update(const du_ntn_param_update_request& req) = 0;
 };
 
 } // namespace odu

@@ -75,7 +75,7 @@ public:
   async_task<du_param_config_response> handle_operator_config(const du_param_config_request& req,
                                                               task_executor& continuation_exec) override;
 
-  void handle_si_pdu_update(const du_si_pdu_update_request& req) override;
+  void handle_ntn_param_update(const du_ntn_param_update_request& req) override;
 
   f1ap_du_positioning_handler& get_positioning_handler() override { return *positioning_handler; }
 

@@ -55,6 +55,16 @@ static_vector<uint8_t, 8> time_domain_resource_helper::generate_k1_candidates(co
   return result;
 }
 
+static_vector<uint8_t, 8>
+time_domain_resource_helper::generate_k1_candidates(const std::optional<tdd_ul_dl_config_common>& tdd_cfg,
+                                                    uint8_t                                       min_k1)
+{
+  if (tdd_cfg.has_value()) {
+    return generate_k1_candidates(*tdd_cfg, min_k1);
+  }
+  return {min_k1};
+}
+
 /// Helper function to determine the start of the PDSCH symbols, considering a CORESET config.
 static uint8_t calc_min_pdsch_symbol(const coreset_configuration&       cs_cfg,
                                      const pdcch_config_common&         common_pdcch_cfg,

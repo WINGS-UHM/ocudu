@@ -89,9 +89,6 @@ struct sched_cell_configuration_request_message {
   /// Indicates whether CSI reporting is configured as aperiodic.
   bool aperiodic_csi_report = false;
 
-  /// List of dl-DataToUL-ACK values sent to UE in its dedicated configuration.
-  static_vector<uint8_t, 8> dl_data_to_ul_ack;
-
   /// Parameters used to generate the initial BWP parameters.
   bwp_builder_params init_bwp_builder;
 

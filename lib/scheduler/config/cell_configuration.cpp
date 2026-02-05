@@ -12,6 +12,7 @@
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 
 using namespace ocudu;
 
@@ -41,7 +42,8 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   ded_pucch_resources(msg.ded_pucch_resources),
   zp_csi_rs_list(msg.zp_csi_rs_list),
   nzp_csi_rs_list(msg.nzp_csi_rs_res_list),
-  dl_data_to_ul_ack(msg.dl_data_to_ul_ack),
+  dl_data_to_ul_ack(
+      time_domain_resource_helper::generate_k1_candidates(msg.tdd_ul_dl_cfg_common, msg.init_bwp_builder.min_k1)),
   init_bwp_builder(msg.init_bwp_builder),
   rrm_policy_members(msg.rrm_policy_members),
   cfra_enabled(msg.cfra_enabled),

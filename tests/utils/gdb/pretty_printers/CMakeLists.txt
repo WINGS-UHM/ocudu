@@ -24,6 +24,15 @@ add_test(NAME pretty_printer_cbf16_test
          COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_cbf16_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'a = 1.2265625 + 4.5625i'"
 )
 
+add_executable(pretty_printer_llr_test pretty_printer_llr_test.cpp)
+target_link_libraries(pretty_printer_llr_test PRIVATE fmt)
+add_test(NAME pretty_printer_llr_finite_test
+         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_llr_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'a = 33'"
+)
+add_test(NAME pretty_printer_llr_infinite_test
+         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_llr_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'b = 127'"
+)
+
 add_executable(pretty_printer_slotted_array_test pretty_printer_slotted_array_test.cpp)
 target_link_libraries(pretty_printer_slotted_array_test PRIVATE fmt)
 add_test(NAME pretty_printer_slotted_array_test
@@ -41,6 +50,10 @@ add_test(NAME pretty_printer_static_vector_test
          COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_static_vector_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'a = static_vector of length 3, capacity 5 = {0, 1, 2}'"
 )
 
+add_executable(pretty_printer_strong_type_test pretty_printer_strong_type_test.cpp)
+add_test(NAME pretty_printer_strong_type_test
+         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_strong_type_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep '{val = 42}'")
+
 add_executable(pretty_printer_tiny_optional_test pretty_printer_tiny_optional_test.cpp)
 add_test(NAME pretty_printer_tiny_optional_empty_test
          COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_tiny_optional_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'c = tiny_optional (empty)'"
@@ -55,18 +68,15 @@ add_test(NAME pretty_printer_tiny_optional_alternative_present_test
          COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_tiny_optional_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'b = tiny_optional (present) = {3.4000001}'"
 )
 
-add_executable(pretty_printer_strong_type_test pretty_printer_strong_type_test.cpp)
-add_test(NAME pretty_printer_strong_type_test
-         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_strong_type_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep '{val = 42}'")
-
 add_custom_target(pretty_printer_tests)
 add_dependencies(pretty_printer_tests
         pretty_printer_bf16_test
         pretty_printer_bounded_bitset_test
         pretty_printer_cbf16_test
+        pretty_printer_llr_test
         pretty_printer_slotted_array_test
         pretty_printer_slotted_vector_test
         pretty_printer_static_vector_test
-        pretty_printer_tiny_optional_test
         pretty_printer_strong_type_test
+        pretty_printer_tiny_optional_test
 )

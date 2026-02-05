@@ -259,6 +259,24 @@ class StrongTypePrinter(printer_base):
 _ocudu_printers.append(PrinterSetup('strong type', '^ocudu::strong_type<.*>$', StrongTypePrinter))
 
 
+###### Log Likelihood Ratio (log_likelihood_ratio) ######
+
+class LogLikelihoodRatioPrinter(printer_base):
+    # Test: tests/utils/gdb/pretty_printers/pretty_printer_llr_test.cpp
+
+    def __init__(self, val):
+        self.__val = val
+
+    def to_string(self):
+        # Maybe there is a better way to do this.
+        return f'{self.__val.cast(gdb.lookup_type('int8_t')).cast(gdb.lookup_type('int'))}'
+
+    def display_hint(self):
+        return None
+
+_ocudu_printers.append(PrinterSetup('llr', 'ocudu::log_likelihood_ratio', LogLikelihoodRatioPrinter))
+
+
 ###########################################################
 # Set-up functions
 ###########################################################

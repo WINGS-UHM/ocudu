@@ -672,8 +672,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().msg3_delta_power = base_cell.pusch_cfg.msg3_delta_power;
 
     // Set initial BWP builder.
-    out_cell.init_bwp_cfg.min_k1 = base_cell.pucch_cfg.min_k1;
-    out_cell.init_bwp_cfg.min_k2 = base_cell.pusch_cfg.min_k2;
+    out_cell.init_bwp_builder.min_k1 = base_cell.pucch_cfg.min_k1;
+    out_cell.init_bwp_builder.min_k2 = base_cell.pusch_cfg.min_k2;
 
     // Determine the PUSCH transmission maximum number of layers:
     //  - one layer if transform precoding is enabled; or

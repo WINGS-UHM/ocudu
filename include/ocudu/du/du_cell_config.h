@@ -103,7 +103,7 @@ struct du_cell_config {
   srs_builder_params srs_cfg;
 
   /// Parameters for the initial BWP config generation.
-  bwp_builder_params init_bwp_cfg;
+  bwp_builder_params init_bwp_builder;
 
   /// NTN configuration for this cell. When empty, the cell operates in terrestrial mode.
   std::optional<ntn_cell_params> ntn_params;

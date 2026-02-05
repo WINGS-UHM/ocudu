@@ -99,7 +99,7 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
     sched_req.aperiodic_csi_report = is_pusch_configured(*du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg);
   }
 
-  sched_req.init_bwp_builder = du_cfg.init_bwp_cfg;
+  sched_req.init_bwp_builder = du_cfg.init_bwp_builder;
 
   sched_req.rrm_policy_members = du_cfg.rrm_policy_members;
 

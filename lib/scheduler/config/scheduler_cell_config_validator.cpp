@@ -17,8 +17,8 @@
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_frequency_mapping.h"
 #include "ocudu/ran/prach/prach_helper.h"
-#include "ocudu/ran/prach/prach_preamble_information.h"
 #include "ocudu/scheduler/config/serving_cell_config_validator.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include "ocudu/scheduler/sched_consts.h"
 
 using namespace ocudu;
@@ -117,15 +117,11 @@ static error_type<std::string> validate_rach_cfg_common(const sched_cell_configu
   return {};
 }
 
-static error_type<std::string> validate_pusch_cfg_common(const sched_cell_configuration_request_message& msg)
+static error_type<std::string> validade_pusch_td_res_list(span<const pusch_time_domain_resource_allocation> pusch_lst,
+                                                          const std::optional<tdd_ul_dl_config_common>&     tdd_cfg,
+                                                          uint8_t                                           k2)
 {
   using res_t = pusch_time_domain_resource_allocation;
-
-  if (not msg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value()) {
-    return {};
-  }
-
-  const auto& pusch_lst = msg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list;
 
   // Verify that PUSCH TD resource list is sorted by k2.
   bool sorted = std::is_sorted(pusch_lst.begin(), pusch_lst.end(), [](const res_t& l, const res_t& r) {
@@ -133,12 +129,17 @@ static error_type<std::string> validate_pusch_cfg_common(const sched_cell_config
   });
   VERIFY(sorted, "List of PUSCH TD resources should be sorted by k2 values");
 
+  // The list needs to be a subset of the auto-generated based on the TDD pattern and min k2.
+  const auto superset_lst =
+      time_domain_resource_helper::generate_dedicated_pusch_td_res_list(tdd_cfg, cyclic_prefix::NORMAL, k2);
   for (const auto& pusch : pusch_lst) {
-    VERIFY(pusch.k2 <= SCHEDULER_MAX_K2, "k2={} value exceeds maximum supported k2", pusch.k2);
+    if (std::find(superset_lst.begin(), superset_lst.end(), pusch) == superset_lst.end()) {
+      return make_unexpected(fmt::format("Invalid PUSCH TD resource (k2={})", pusch.k2));
+    }
   }
 
-  if (msg.tdd_ul_dl_cfg_common.has_value()) {
-    const auto&    tdd          = msg.tdd_ul_dl_cfg_common.value();
+  if (tdd_cfg.has_value()) {
+    const auto&    tdd          = tdd_cfg.value();
     const unsigned period_slots = nof_slots_per_tdd_period(tdd);
 
     // For each PUSCH slot, verify that there is a valid k2.
@@ -155,6 +156,19 @@ static error_type<std::string> validate_pusch_cfg_common(const sched_cell_config
       ul_slot   = find_next_tdd_full_ul_slot(tdd, next_slot);
     }
   }
+
+  return {};
+}
+
+static error_type<std::string> validate_pusch_cfg_common(const sched_cell_configuration_request_message& msg)
+{
+  if (not msg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value()) {
+    return {};
+  }
+
+  const auto& pusch_lst = msg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list;
+  HANDLE_CODE(validade_pusch_td_res_list(pusch_lst, msg.tdd_ul_dl_cfg_common, msg.init_bwp_builder.min_k2));
+
   return {};
 }
 
@@ -216,7 +230,7 @@ static error_type<std::string> validate_paging_cfg(const scheduler_expert_config
 /// \brief Validates \c sched_cell_configuration_request_message used to add a cell.
 /// \param[in] msg scheduler cell configuration message to be validated.
 /// \return In case an invalid parameter is detected, returns a string containing an error message.
-error_type<std::string> ocudu::config_validators::validate_sched_cell_configuration_request_message(
+error_type<std::string> config_validators::validate_sched_cell_configuration_request_message(
     const sched_cell_configuration_request_message& msg,
     const scheduler_expert_config&                  expert_cfg)
 {

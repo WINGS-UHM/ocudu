@@ -487,21 +487,8 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
       pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
   pucch_cfg.format_4_common_param.emplace(
       pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
-
-  // >>> dl-DataToUl-Ack
-  // TS38.213, 9.1.2.1 - "If a UE is provided dl-DataToUL-ACK, the UE does not expect to be indicated by DCI format 1_0
-  // a slot timing value for transmission of HARQ-ACK information that does not belong to the intersection of the set
-  // of slot timing values {1, 2, 3, 4, 5, 6, 7, 8} and the set of slot timing values provided by dl-DataToUL-ACK for
-  // the active DL BWP of a corresponding serving cell.
-  // Inactive for format1_0."
-  // Note2: Only k1 >= 4 supported.
-  if (band_helper::get_duplex_mode(params.dl_carrier.band) == duplex_mode::FDD) {
-    pucch_cfg.dl_data_to_ul_ack = {params.min_k1};
-  } else {
-    // TDD
-    pucch_cfg.dl_data_to_ul_ack =
-        time_domain_resource_helper::generate_k1_candidates(*params.tdd_ul_dl_cfg_common, params.min_k1);
-  }
+  pucch_cfg.dl_data_to_ul_ack =
+      time_domain_resource_helper::generate_k1_candidates(params.tdd_ul_dl_cfg_common, params.min_k1);
 
   // Compute the max UCI payload per format.
   // As per TS 38.231, Section 9.2.1, with PUCCH Format 1, we can have up to 2 HARQ-ACK bits (SR doesn't count as part

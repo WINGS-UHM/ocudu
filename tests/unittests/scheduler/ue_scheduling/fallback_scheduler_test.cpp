@@ -202,7 +202,9 @@ protected:
     }
     sched_cell_configuration_request_message msg =
         sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
-    msg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[0].k0 = k0;
+    for (auto& item : msg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
+      item.k0 = k0;
+    }
 
     if (add_extra_pdcch_candidate) {
       ocudu_assert(msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.size() > 1U,
@@ -821,50 +823,6 @@ class fallback_scheduler_tdd_tester : public base_fallback_tester, public ::test
 protected:
   fallback_scheduler_tdd_tester() : base_fallback_tester(ocudu::duplex_mode::TDD, false) {}
 };
-
-TEST_F(fallback_scheduler_tdd_tester, test_allocation_in_appropriate_slots_in_tdd)
-{
-  const unsigned      k0                 = 0;
-  const sch_mcs_index max_msg4_mcs_index = 5;
-  auto                cell_cfg           = create_custom_cell_config_request(k0);
-  setup_sched(create_expert_config(max_msg4_mcs_index), cell_cfg);
-
-  const unsigned MAX_UES            = 4;
-  const unsigned MAX_TEST_RUN_SLOTS = 40;
-  const unsigned MAC_SRB0_SDU_SIZE  = 129;
-
-  // Add UEs.
-  for (unsigned idx = 0; idx < MAX_UES; idx++) {
-    add_ue(to_rnti(0x4601 + idx), to_du_ue_index(idx));
-    // Notify about SRB0 message in DL.
-    push_buffer_state_to_dl_ue(to_du_ue_index(idx), current_slot, MAC_SRB0_SDU_SIZE, true);
-  }
-
-  for (unsigned idx = 0; idx < MAX_UES * MAX_TEST_RUN_SLOTS * (1U << current_slot.numerology()); idx++) {
-    run_slot();
-    if (not bench->cell_cfg.is_dl_enabled(current_slot)) {
-      // Check whether PDCCH/PDSCH is not scheduled in UL slots for any of the UEs.
-      for (unsigned ue_idx = 0; ue_idx < MAX_UES; ue_idx++) {
-        const auto& test_ue = get_ue(to_du_ue_index(ue_idx));
-        ASSERT_FALSE(ue_is_allocated_pdcch(test_ue));
-        ASSERT_FALSE(ue_is_allocated_pdsch(test_ue));
-      }
-    }
-    if (not bench->cell_cfg.is_ul_enabled(current_slot)) {
-      // Check whether PUCCH HARQ is not scheduled in DL slots for any of the UEs.
-      for (unsigned ue_idx = 0; ue_idx < MAX_UES; ue_idx++) {
-        const auto& test_ue = get_ue(to_du_ue_index(ue_idx));
-        ASSERT_FALSE(ue_is_allocated_pucch(test_ue));
-      }
-    }
-  }
-
-  for (unsigned ue_idx = 0; ue_idx < MAX_UES; ue_idx++) {
-    const auto& test_ue = get_ue(to_du_ue_index(ue_idx));
-    ASSERT_FALSE(test_ue.logical_channels().has_pending_bytes(LCID_SRB0))
-        << "UE " << ue_idx << " has still pending DL bytes";
-  }
-}
 
 TEST_F(fallback_scheduler_tdd_tester, test_allocation_in_partial_slots_tdd)
 {

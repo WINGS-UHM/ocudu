@@ -21,3 +21,4 @@ target_link_libraries(ue_scheduler_test
         gtest
         gtest_main)
 add_test(ue_scheduler_test ue_scheduler_test)
+gtest_discover_tests(ue_scheduler_test)

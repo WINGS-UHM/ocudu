@@ -181,6 +181,17 @@ private:
 
   void request_ue_release(cu_cp_ue& ue, const ngap_cause_t& cause);
 
+  /// \brief Initiate RAN paging of an inactive UE.
+  /// \param[in] ue The UE to page.
+  /// \param[in] full_i_rnti Full I-RNTI of the UE to page.
+  /// \param[in] cn_assist_info_for_inactive Core network assist information for inactive UEs to include in the paging
+  /// message.
+  void send_ran_paging(cu_cp_ue&                                         ue,
+                       full_i_rnti_t                                     full_i_rnti,
+                       const ngap_core_network_assist_info_for_inactive& cn_assist_info_for_inactive);
+
+  void on_ran_paging_timer_expired(ue_index_t ue_index);
+
   void on_statistics_report_timer_expired();
 
   cu_cp_configuration cfg;

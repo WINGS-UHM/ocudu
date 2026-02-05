@@ -35,6 +35,7 @@
 #include "ocudu/nrppa/nrppa.h"
 #include "ocudu/nrppa/nrppa_factory.h"
 #include "ocudu/ran/plmn_identity.h"
+#include "ocudu/ran/time/radio_frame.h"
 #include "ocudu/support/async/coroutine.h"
 #include "ocudu/support/synchronization/sync_event.h"
 #include <chrono>
@@ -304,41 +305,8 @@ void cu_cp_impl::handle_dl_data_notification(ue_index_t ue_index)
     return;
   }
 
-  // Fill paging message.
-  cu_cp_paging_message cu_cp_paging_msg;
-
-  cu_cp_paging_msg.ue_id_idx_value = cn_assist_info_for_inactive->ue_id_idx_value;
-  cu_cp_paging_msg.paging_drx      = cn_assist_info_for_inactive->ue_specific_drx;
-  cu_cp_paging_msg.ue_paging_id    = full_i_rnti.value();
-
-  if (!cu_cp_paging_msg.paging_drx.has_value()) {
-    // Use RAN configured paging DRX if not available from CN assist info.
-    cu_cp_paging_msg.paging_drx = cfg.ue.ran_paging_cycle;
-  }
-
-  cu_cp_paging_msg.assist_data_for_paging.emplace();
-  cu_cp_paging_msg.assist_data_for_paging->assist_data_for_recommended_cells.emplace();
-
-  du_processor& du_proc = du_db.get_du_processor(ue->get_du_index());
-
-  // Add recommended cells for paging.
-  // Note: Currently only RAN area cells are supported.
-  for (const auto& ran_area_cell : du_proc.get_rrc_du_handler().get_ran_area_cells()) {
-    if (!ran_area_cell.plmn_id.has_value()) {
-      logger.warning("ue={}: Dropping DL Data Notification. PLMN ID not available in RAN area cell", ue_index);
-      continue;
-    }
-
-    for (const auto& cell_id : ran_area_cell.ran_area_cells) {
-      nr_cell_global_id_t nr_cgi(ran_area_cell.plmn_id.value(), cell_id);
-
-      cu_cp_paging_msg.assist_data_for_paging->assist_data_for_recommended_cells->recommended_cells_for_paging
-          .recommended_cell_list.push_back(cu_cp_recommended_cell_item{.ngran_cgi = nr_cgi});
-    }
-  }
-
   // Send paging message.
-  paging_handler.handle_paging_message(cu_cp_paging_msg);
+  send_ran_paging(*ue, full_i_rnti.value(), cn_assist_info_for_inactive.value());
 }
 
 void cu_cp_impl::handle_e1_release_request(cu_up_index_t cu_up_index)
@@ -670,6 +638,13 @@ async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(co
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
   ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
+
+  // Stop RAN paging timer if it is running.
+  unique_timer& ran_paging_timer = ue->get_ran_paging_timer();
+  if (ran_paging_timer.is_running()) {
+    logger.debug("ue={}: Stopping RAN paging timer", request.ue_index);
+    ran_paging_timer.stop();
+  }
 
   return launch_async<rrc_resume_routine>(request,
                                           du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
@@ -1225,6 +1200,72 @@ void cu_cp_impl::request_ue_release(cu_cp_ue& ue, const ngap_cause_t& cause)
     CORO_AWAIT(handle_ue_context_release(req));
     CORO_RETURN();
   }));
+}
+
+void cu_cp_impl::send_ran_paging(cu_cp_ue&                                         ue,
+                                 full_i_rnti_t                                     full_i_rnti,
+                                 const ngap_core_network_assist_info_for_inactive& cn_assist_info_for_inactive)
+{
+  // Fill paging message.
+  cu_cp_paging_message cu_cp_paging_msg;
+
+  cu_cp_paging_msg.ue_id_idx_value = cn_assist_info_for_inactive.ue_id_idx_value;
+  cu_cp_paging_msg.paging_drx      = cn_assist_info_for_inactive.ue_specific_drx;
+  cu_cp_paging_msg.ue_paging_id    = full_i_rnti;
+
+  if (!cu_cp_paging_msg.paging_drx.has_value()) {
+    // Use RAN configured paging DRX if not available from CN assist info.
+    cu_cp_paging_msg.paging_drx = cfg.ue.ran_paging_cycle;
+  }
+
+  cu_cp_paging_msg.assist_data_for_paging.emplace();
+  cu_cp_paging_msg.assist_data_for_paging->assist_data_for_recommended_cells.emplace();
+
+  du_processor& du_proc = du_db.get_du_processor(ue.get_du_index());
+
+  // Add recommended cells for paging.
+  // Note: Currently only RAN area cells are supported.
+  for (const auto& ran_area_cell : du_proc.get_rrc_du_handler().get_ran_area_cells()) {
+    if (!ran_area_cell.plmn_id.has_value()) {
+      continue;
+    }
+
+    for (const auto& cell_id : ran_area_cell.ran_area_cells) {
+      nr_cell_global_id_t nr_cgi(ran_area_cell.plmn_id.value(), cell_id);
+
+      cu_cp_paging_msg.assist_data_for_paging->assist_data_for_recommended_cells->recommended_cells_for_paging
+          .recommended_cell_list.push_back(cu_cp_recommended_cell_item{.ngran_cgi = nr_cgi});
+    }
+  }
+
+  // Send paging message.
+  paging_handler.handle_paging_message(cu_cp_paging_msg);
+
+  // Start RAN paging timer. When this timer expires, the UE will be released if it has not been resumed yet.
+  unique_timer& ran_paging_timer = ue.get_ran_paging_timer();
+
+  // Calculate RAN paging timeout based on the paging (e)DRX and the number of paging cycles. A guard time of 1 hyper
+  // frame is added to ensure that the timer expires after the last paging occasion. If paging eDRX is not available,
+  // the timer is set to 1 hyper frame.
+  std::chrono::seconds ran_paging_timeout = std::chrono::duration_cast<std::chrono::seconds>(
+      hyper_frames{1} + (cu_cp_paging_msg.paging_edrx_info.has_value()
+                             ? cu_cp_paging_msg.paging_edrx_info->nr_paging_edrx_cycle * hyper_frames{1}
+                             : hyper_frames{0}));
+  ran_paging_timer.set(ran_paging_timeout, [this, ue_index = ue.get_ue_index()](timer_id_t /*tid*/) {
+    on_ran_paging_timer_expired(ue_index);
+  });
+  ran_paging_timer.run();
+}
+
+void cu_cp_impl::on_ran_paging_timer_expired(ue_index_t ue_index)
+{
+  cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+  if (ue == nullptr) {
+    logger.debug("ue={}: Could not find UE", ue_index);
+    return;
+  }
+
+  request_ue_release(*ue, ngap_cause_radio_network_t::ue_in_rrc_inactive_state_not_reachable);
 }
 
 void cu_cp_impl::on_statistics_report_timer_expired()

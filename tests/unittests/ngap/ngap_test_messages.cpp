@@ -819,6 +819,12 @@ ngap_message ocudu::ocucp::generate_valid_paging_message()
   paging->assist_data_for_paging_present                                   = true;
   paging->assist_data_for_paging.assist_data_for_recommended_cells_present = true;
 
+  // Fill eDRX information for paging.
+  paging->nr_paginge_drx_info_present                    = true;
+  paging->nr_paginge_drx_info.nr_paging_e_drx_cycle      = nr_paging_e_drx_cycle_e::hfhalf;
+  paging->nr_paginge_drx_info.nr_paging_time_win_present = true;
+  paging->nr_paginge_drx_info.nr_paging_time_win         = nr_paging_time_win_e::s1;
+
   asn1::ngap::recommended_cell_item_s recommended_cell_item;
   auto&                               nr_cgi = recommended_cell_item.ngran_cgi.set_nr_cgi();
   nr_cgi.plmn_id.from_string("00f110");

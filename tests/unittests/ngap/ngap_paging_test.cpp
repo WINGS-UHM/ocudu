@@ -117,6 +117,16 @@ protected:
       return false;
     }
 
+    if (!cu_cp_notifier.last_paging_msg.paging_edrx_info.has_value()) {
+      return false;
+    }
+    if (cu_cp_notifier.last_paging_msg.paging_edrx_info->nr_paging_edrx_cycle != 0.5) {
+      return false;
+    }
+    if (cu_cp_notifier.last_paging_msg.paging_edrx_info->nr_paging_time_window != 1) {
+      return false;
+    }
+
     if (!cu_cp_notifier.last_paging_msg.assist_data_for_paging.value().assist_data_for_recommended_cells.has_value()) {
       return false;
     }

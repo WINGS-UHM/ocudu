@@ -190,23 +190,7 @@ void cu_cp_impl::handle_bearer_context_release_request(const cu_cp_bearer_contex
     return;
   }
 
-  cu_cp_ue_context_release_request req;
-  req.ue_index = msg.ue_index;
-  req.cause    = msg.cause;
-
-  // Add PDU Session IDs.
-  auto& up_resource_manager            = ue->get_up_resource_manager();
-  req.pdu_session_res_list_cxt_rel_req = up_resource_manager.get_pdu_sessions();
-
-  logger.debug("ue={}: Requesting UE context release with cause={}", req.ue_index, req.cause);
-
-  // Schedule on UE task scheduler.
-  ue->get_task_sched().schedule_async_task(launch_async([this, req](coro_context<async_task<void>>& ctx) mutable {
-    CORO_BEGIN(ctx);
-    // Notify NGAP to request a release from the AMF.
-    CORO_AWAIT(handle_ue_context_release(req));
-    CORO_RETURN();
-  }));
+  request_ue_release(*ue, msg.cause);
 }
 
 void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inactivity_notification& msg)
@@ -285,23 +269,7 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
                      msg.ue_index);
       }
 
-      cu_cp_ue_context_release_request req;
-      req.ue_index = msg.ue_index;
-      req.cause    = ngap_cause_radio_network_t::user_inactivity;
-
-      // Add PDU Session IDs.
-      auto& up_resource_manager            = ue->get_up_resource_manager();
-      req.pdu_session_res_list_cxt_rel_req = up_resource_manager.get_pdu_sessions();
-
-      logger.debug("ue={}: Requesting UE context release with cause={}", req.ue_index, req.cause);
-
-      // Schedule on UE task scheduler.
-      ue->get_task_sched().schedule_async_task(launch_async([this, req](coro_context<async_task<void>>& ctx) mutable {
-        CORO_BEGIN(ctx);
-        // Notify NGAP to request a release from the AMF.
-        CORO_AWAIT(handle_ue_context_release(req));
-        CORO_RETURN();
-      }));
+      request_ue_release(*ue, ngap_cause_radio_network_t::user_inactivity);
     }
   } else {
     logger.debug("Inactivity notification level not supported");
@@ -1236,6 +1204,27 @@ bool cu_cp_impl::schedule_ue_task(ue_index_t ue_index, async_task<void> task)
   }
 
   return ue_mng.find_ue_task_scheduler(ue_index)->schedule_async_task(std::move(task));
+}
+
+void cu_cp_impl::request_ue_release(cu_cp_ue& ue, const ngap_cause_t& cause)
+{
+  cu_cp_ue_context_release_request req;
+  req.ue_index = ue.get_ue_index();
+  req.cause    = cause;
+
+  // Add PDU Session IDs.
+  auto& up_resource_manager            = ue.get_up_resource_manager();
+  req.pdu_session_res_list_cxt_rel_req = up_resource_manager.get_pdu_sessions();
+
+  logger.debug("ue={}: Requesting UE context release with cause={}", req.ue_index, req.cause);
+
+  // Schedule on UE task scheduler.
+  ue.get_task_sched().schedule_async_task(launch_async([this, req](coro_context<async_task<void>>& ctx) mutable {
+    CORO_BEGIN(ctx);
+    // Notify NGAP to request a release from the AMF.
+    CORO_AWAIT(handle_ue_context_release(req));
+    CORO_RETURN();
+  }));
 }
 
 void cu_cp_impl::on_statistics_report_timer_expired()

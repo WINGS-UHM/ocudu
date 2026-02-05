@@ -179,6 +179,8 @@ private:
   // cu_cp_task_scheduler_handler.
   bool schedule_ue_task(ue_index_t ue_index, async_task<void> task) override;
 
+  void request_ue_release(cu_cp_ue& ue, const ngap_cause_t& cause);
+
   void on_statistics_report_timer_expired();
 
   cu_cp_configuration cfg;

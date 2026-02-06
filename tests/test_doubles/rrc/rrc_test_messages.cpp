@@ -15,9 +15,7 @@
 #include "ocudu/asn1/rrc_nr/ue_cap.h"
 #include "ocudu/asn1/rrc_nr/ul_ccch_msg_ies.h"
 #include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
-#include "ocudu/ran/nr_band.h"
 #include "ocudu/ran/plmn_identity.h"
-#include "ocudu/ran/subcarrier_spacing.h"
 
 using namespace ocudu;
 using namespace asn1::rrc_nr;
@@ -49,7 +47,9 @@ ocudu::test_helpers::create_rrc_reestablishment_request(rnti_t old_crnti, pci_t 
   return msg;
 }
 
-ul_ccch_msg_s ocudu::test_helpers::create_rrc_resume_request(uint64_t resume_id, const std::string& resume_mac_i)
+ul_ccch_msg_s ocudu::test_helpers::create_rrc_resume_request(uint64_t           resume_id,
+                                                             const std::string& resume_mac_i,
+                                                             resume_cause_e     resume_cause)
 {
   ul_ccch_msg_s msg;
 
@@ -57,8 +57,7 @@ ul_ccch_msg_s ocudu::test_helpers::create_rrc_resume_request(uint64_t resume_id,
 
   req.rrc_resume_request.resume_id.from_number(resume_id);
   req.rrc_resume_request.resume_mac_i.from_string(resume_mac_i);
-
-  req.rrc_resume_request.resume_cause.value = resume_cause_opts::mo_data;
+  req.rrc_resume_request.resume_cause = resume_cause;
 
   return msg;
 }

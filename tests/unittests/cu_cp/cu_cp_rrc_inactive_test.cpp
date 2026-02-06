@@ -214,7 +214,7 @@ public:
     return true;
   }
 
-  [[nodiscard]] bool send_f1ap_ue_context_release_complete()
+  [[nodiscard]] bool send_f1ap_ue_context_release_complete(gnb_du_ue_f1ap_id_t f1ap_du_ue_id = gnb_du_ue_f1ap_id_t::min)
   {
     report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
                               "there are still E1AP messages to pop from CU-UP");
@@ -223,7 +223,7 @@ public:
 
     // Inject F1AP UE Context Release Complete.
     get_du(du_idx).push_ul_pdu(
-        test_helpers::generate_ue_context_release_complete(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
+        test_helpers::generate_ue_context_release_complete(ue_ctx->cu_ue_id.value(), f1ap_du_ue_id));
     return true;
   }
 
@@ -242,6 +242,26 @@ public:
                               "Failed to receive UE Context Setup Request");
     report_fatal_error_if_not(test_helpers::is_valid_ue_context_setup_request(f1ap_pdu, true),
                               "Invalid UE Context Setup Request");
+
+    return true;
+  }
+
+  [[nodiscard]] bool send_init_ul_rrc_message_transfer_with_rna_upd_and_await_ue_context_release_command()
+  {
+    // Inject Initial UL RRC message and await UE context setup request.
+    f1ap_message init_ul_rrc_msg = test_helpers::generate_init_ul_rrc_message_transfer(
+        du_ue_id_2,
+        crnti_2,
+        plmn_identity::test_value(),
+        {},
+        test_helpers::pack_ul_ccch_msg(test_helpers::create_rrc_resume_request(
+            0x36000, "1111010001000010", asn1::rrc_nr::resume_cause_opts::rna_upd)));
+    test_logger.info("c-rnti={} du_ue={}: Injecting Initial UL RRC message", crnti_2, fmt::underlying(du_ue_id_2));
+    get_du(du_idx).push_ul_pdu(init_ul_rrc_msg);
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
+                              "Failed to receive UE Context Release Command");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_command(f1ap_pdu),
+                              "Invalid UE Context Release Command");
 
     return true;
   }
@@ -984,6 +1004,46 @@ TEST_F(cu_cp_rrc_inactive_test, when_bearer_context_modification_for_rrc_resume_
       1);
   ASSERT_EQ(
       report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(resume_cause_t::mo_data), 0);
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_with_cause_rna_upd_is_received_then_ue_is_set_to_inactive_again)
+{
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
+  // Check metrics for active RRC UE.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_rrc_connections, 1);
+
+  // Inject Inactivity Notification and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());
+
+  // Send Bearer Context Modification Response and await UE Context Release Command.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ue_context_release_command());
+
+  // Send F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete());
+
+  // Check metrics for RRC inactive transition.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  // Send Initial UL RRC Message containing RRC Resume Request with resume cause RNA_UPD.
+  ASSERT_TRUE(send_init_ul_rrc_message_transfer_with_rna_upd_and_await_ue_context_release_command());
+
+  // Check metrics for attempted RRC resume.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::rna_upd), 1);
+
+  // Send F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete(int_to_gnb_du_ue_f1ap_id(1)));
+
+  // Check metrics for RRC inactive transition.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
 }
 
 //----------------------------------------------------------------------------------//

@@ -31,8 +31,10 @@ asn1::rrc_nr::ul_ccch_msg_s create_rrc_reestablishment_request(rnti_t           
                                                                const std::string& short_mac_i = "1100011101010100");
 
 /// \brief Generates a dummy RRC Resume Request message.
-asn1::rrc_nr::ul_ccch_msg_s create_rrc_resume_request(uint64_t           resume_id,
-                                                      const std::string& resume_mac_i = "1111010001000010");
+asn1::rrc_nr::ul_ccch_msg_s
+create_rrc_resume_request(uint64_t                     resume_id,
+                          const std::string&           resume_mac_i = "1111010001000010",
+                          asn1::rrc_nr::resume_cause_e resume_cause = asn1::rrc_nr::resume_cause_opts::mo_data);
 
 /// \brief Generates a dummy RRC Resume Complete message.
 asn1::rrc_nr::ul_dcch_msg_s create_rrc_resume_complete(uint8_t transaction_id = 0, uint8_t sel_plmn_id = 1);

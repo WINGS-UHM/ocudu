@@ -247,17 +247,18 @@ static sib16_info create_sib16_info(const du_high_unit_sib_config::sib16_config&
 static sib19_info create_sib19_info(const du_high_unit_cell_ntn_config& config)
 {
   sib19_info sib19;
-  sib19.distance_thres           = config.distance_threshold;
-  sib19.ref_location             = config.reference_location;
-  sib19.t_service                = config.t_service;
-  sib19.cell_specific_koffset    = config.cell_specific_koffset.count();
-  sib19.ephemeris_info           = config.ephemeris_info;
-  sib19.epoch_time               = config.epoch_time;
-  sib19.k_mac                    = config.k_mac;
-  sib19.ta_info                  = config.ta_info;
-  sib19.ntn_ul_sync_validity_dur = config.ntn_ul_sync_validity_dur;
-  sib19.polarization             = config.polarization;
-  sib19.ta_report                = config.ta_report;
+  sib19.distance_thres = config.distance_threshold;
+  sib19.ref_location   = config.reference_location;
+  sib19.t_service      = config.t_service;
+  sib19.ntn_cfg.emplace();
+  sib19.ntn_cfg->cell_specific_koffset    = config.cell_specific_koffset;
+  sib19.ntn_cfg->ephemeris_info           = config.ephemeris_info;
+  sib19.ntn_cfg->epoch_time               = config.epoch_time;
+  sib19.ntn_cfg->k_mac                    = config.k_mac;
+  sib19.ntn_cfg->ta_info                  = config.ta_info;
+  sib19.ntn_cfg->ntn_ul_sync_validity_dur = config.ntn_ul_sync_validity_dur;
+  sib19.ntn_cfg->polarization             = config.polarization;
+  sib19.ntn_cfg->ta_report                = config.ta_report;
   return sib19;
 }
 
@@ -374,19 +375,16 @@ generate_du_slicing_rrm_policy_config(span<const std::string>                   
 static ntn_cell_params make_ntn_cell_params(const du_high_unit_cell_ntn_config& cfg, bool ul_harq_mode_b)
 {
   ntn_cell_params ntn;
-  ntn.cell_specific_koffset    = cfg.cell_specific_koffset;
-  ntn.k_mac                    = cfg.k_mac;
-  ntn.ntn_ul_sync_validity_dur = cfg.ntn_ul_sync_validity_dur;
-  ntn.epoch_time               = cfg.epoch_time;
-  ntn.ta_info                  = cfg.ta_info;
-  ntn.polarization             = cfg.polarization;
-  ntn.ta_report                = cfg.ta_report;
-  if (std::holds_alternative<ecef_coordinates_t>(cfg.ephemeris_info)) {
-    ntn.ephemeris_info = cfg.ephemeris_info;
-  } else if (std::holds_alternative<orbital_coordinates_t>(cfg.ephemeris_info)) {
-    ntn.ephemeris_info = cfg.ephemeris_info;
-  }
-  // Derived from PUSCH config
+  ntn.ntn_cfg.cell_specific_koffset    = cfg.cell_specific_koffset;
+  ntn.ntn_cfg.k_mac                    = cfg.k_mac;
+  ntn.ntn_cfg.ntn_ul_sync_validity_dur = cfg.ntn_ul_sync_validity_dur;
+  ntn.ntn_cfg.epoch_time               = cfg.epoch_time;
+  ntn.ntn_cfg.ta_info                  = cfg.ta_info;
+  ntn.ntn_cfg.polarization             = cfg.polarization;
+  ntn.ntn_cfg.ta_report                = cfg.ta_report;
+  ntn.ntn_cfg.ephemeris_info           = cfg.ephemeris_info;
+
+  // Derived from PUSCH config.
   ntn.ul_harq_mode_b = ul_harq_mode_b;
 
   return ntn;

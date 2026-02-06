@@ -102,4 +102,33 @@ struct ntn_polarization_t {
   std::optional<polarization_type> ul;
 };
 
+/// NTN config parameters.
+struct ntn_config {
+  /// Reference epoch time for NTN assistance information.
+  std::optional<epoch_time_t> epoch_time;
+  /// A validity duration configured by the network for assistance information which indicates the maximum time duration
+  /// (from epochTime) during which the UE can apply assistance information without having acquired new assistance
+  /// information. Values {5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900} seconds.
+  std::optional<unsigned> ntn_ul_sync_validity_dur;
+  /// Scheduling offset used for timing relationships modified for NTN operation (see TS 38.213 and TS 38.300,
+  /// Section 16.14.2). The unit is milliseconds.
+  ///
+  /// \note In the specifications, the K_offset field is expressed as a number of slots assuming a subcarrier spacing of
+  /// 15 kHz (i.e., 1 slot = 1 ms). To avoid ambiguity with other subcarrier spacings, this parameter is represented in
+  /// the implementation as std::chrono::milliseconds.
+  std::optional<std::chrono::milliseconds> cell_specific_koffset;
+  /// Scheduling offset provided by network if downlink and uplink frame timing are not aligned at gNB.
+  std::optional<unsigned> k_mac;
+  /// Network-controlled common timing advanced value, and it may include any timing offset considered necessary by the
+  /// network.
+  std::optional<ta_info_t> ta_info;
+  /// Indicates polarization information for downlink/uplink transmission on service link.
+  std::optional<ntn_polarization_t> polarization;
+  /// This field provides satellite ephemeris either in format of position and velocity state vector or in format of
+  /// orbital parameters.
+  std::optional<std::variant<ecef_coordinates_t, orbital_coordinates_t>> ephemeris_info;
+  /// When this field is included in SIB19, it indicates reporting of timing advanced is enabled.
+  std::optional<bool> ta_report;
+};
+
 } // namespace ocudu

@@ -82,8 +82,9 @@ du_served_cell_info ocudu::odu::make_f1ap_du_cell_info(const du_cell_config& du_
     serv_cell.ul_carrier = du_cfg.ul_carrier;
   }
   serv_cell.packed_meas_time_cfg = make_asn1_meas_time_cfg_buffer(du_cfg);
-  serv_cell.ntn_link_rtt =
-      du_cfg.ntn_params.has_value() ? du_cfg.ntn_params->cell_specific_koffset : std::chrono::milliseconds(0);
+  serv_cell.ntn_link_rtt         = du_cfg.ntn_params.has_value()
+                                       ? du_cfg.ntn_params->ntn_cfg.cell_specific_koffset.value_or(std::chrono::milliseconds(0))
+                                       : std::chrono::milliseconds(0);
 
   return serv_cell;
 }

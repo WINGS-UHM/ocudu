@@ -3465,7 +3465,8 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
     out.sp_cell_cfg_common.ntn_cfg_r17.set_present();
     auto* ntn_cfg_r17                              = out.sp_cell_cfg_common.ntn_cfg_r17.get();
     ntn_cfg_r17->cell_specific_koffset_r17_present = true;
-    ntn_cfg_r17->cell_specific_koffset_r17         = ntn.cell_specific_koffset.count();
+    ntn_cfg_r17->cell_specific_koffset_r17 =
+        ntn.ntn_cfg.cell_specific_koffset.has_value() ? ntn.ntn_cfg.cell_specific_koffset->count() : 0;
   }
   // TODO
 

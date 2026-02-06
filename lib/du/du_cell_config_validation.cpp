@@ -780,10 +780,13 @@ static check_outcome check_ntn_config(const du_cell_config& cell_cfg)
     return {}; // NTN not configured, skip validation
   }
 
-  const auto& ntn = cell_cfg.ntn_params.value();
+  const auto& ntn = cell_cfg.ntn_params.value().ntn_cfg;
 
-  CHECK_EQ_OR_ABOVE(ntn.cell_specific_koffset.count(), 1, "cell_specific_koffset");
-  CHECK_EQ_OR_BELOW(ntn.cell_specific_koffset.count(), 1023, "cell_specific_koffset");
+  // Validate cell_specific_koffset (required for NTN).
+  if (ntn.cell_specific_koffset.has_value()) {
+    CHECK_EQ_OR_ABOVE(ntn.cell_specific_koffset.value().count(), 1, "cell_specific_koffset");
+    CHECK_EQ_OR_BELOW(ntn.cell_specific_koffset.value().count(), 1023, "cell_specific_koffset");
+  }
 
   if (ntn.k_mac.has_value()) {
     CHECK_EQ_OR_ABOVE(ntn.k_mac.value(), 1, "k_mac");

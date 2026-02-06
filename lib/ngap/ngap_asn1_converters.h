@@ -14,6 +14,7 @@
 #include "ocudu/asn1/ngap/ngap_ies.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ngap/ngap_handover.h"
+#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/cu_types.h"
@@ -1090,6 +1091,30 @@ inline ngap_core_network_assist_info_for_inactive asn1_to_core_network_assist_in
   }
 
   return cn_assist_info_for_inactive;
+}
+
+inline ngap_location_reporting_control::event_type
+asn1_to_location_reporting_control_event_type(const asn1::ngap::event_type_e& asn1_reporting_trigger)
+{
+  switch (asn1_reporting_trigger) {
+    case asn1::ngap::event_type_opts::options::direct:
+      return ngap_location_reporting_control::event_type::direct;
+    case asn1::ngap::event_type_opts::options::change_of_serve_cell:
+      return ngap_location_reporting_control::event_type::change_of_serve_cell;
+    case asn1::ngap::event_type_opts::options::ue_presence_in_area_of_interest:
+      return ngap_location_reporting_control::event_type::ue_presence_in_area_of_interest;
+    case asn1::ngap::event_type_opts::options::stop_change_of_serve_cell:
+      return ngap_location_reporting_control::event_type::stop_change_of_serve_cell;
+    case asn1::ngap::event_type_opts::options::stop_ue_presence_in_area_of_interest:
+      return ngap_location_reporting_control::event_type::stop_ue_presence_in_area_of_interest;
+    case asn1::ngap::event_type_opts::options::cancel_location_report_for_the_ue:
+      return ngap_location_reporting_control::event_type::cancel_location_report_for_the_ue;
+    case asn1::ngap::event_type_opts::options::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
+      return ngap_location_reporting_control::event_type::
+          change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
+    default:
+      return ngap_location_reporting_control::event_type::nulltype;
+  }
 }
 
 } // namespace ocudu::ocucp

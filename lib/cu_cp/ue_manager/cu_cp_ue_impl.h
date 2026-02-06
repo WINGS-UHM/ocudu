@@ -167,6 +167,10 @@ private:
   ue_task_scheduler_impl task_sched;
   up_resource_manager    up_mng;
   ue_security_manager    sec_mng;
+  // TODO: consider adding UE location manager:
+  // - track current location and timestamps,
+  // - track and store configured areas of interest
+  // - build location_report_request to be sent to AMF.
 
   // DU/CU-UP UE context.
   cu_cp_ue_context ue_ctxt;

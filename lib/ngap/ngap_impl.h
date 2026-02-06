@@ -52,6 +52,9 @@ public:
   void handle_initial_ue_message(const cu_cp_initial_ue_message& msg) override;
   void handle_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg) override;
 
+  // ngap_location_reporting_handler.
+  void handle_location_report_transmission(const ngap_location_report& msg) override;
+
   // ngap_ue_radio_capability_management_handler.
   void
   handle_tx_ue_radio_capability_info_indication_required(const ngap_ue_radio_capability_info_indication& msg) override;
@@ -181,6 +184,9 @@ private:
 
   /// \brief Notifiy about the reception of a DL Non UE Associated NRPPA Transport message.
   void handle_dl_non_ue_associated_nrppa_transport(const asn1::ngap::dl_non_ue_associated_nrppa_transport_s& msg);
+
+  /// \brief Notifiy about the reception of a Location Reporting Control message.
+  void handle_location_reporting_control_message(const asn1::ngap::location_report_ctrl_s& msg);
 
   /// \brief Notify about the reception of an Error Indication message.
   /// \param[in] msg The received Error Indication message.

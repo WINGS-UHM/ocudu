@@ -122,6 +122,10 @@ public:
   /// \param[in] nrppa_pdu The NRPPa transport PDU.
   virtual void handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) = 0;
 
+  /// \brief Handles Location Reporting Control message.
+  virtual void handle_location_reporting_control_message(ue_index_t                             ue_index,
+                                                         const ngap_location_reporting_control& msg) = 0;
+
   /// \brief Handle N2 AMF connection drop.
   /// \param[in] amf_index The index of the dropped AMF.
   virtual void handle_n2_disconnection(amf_index_t amf_index) = 0;

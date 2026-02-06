@@ -19,6 +19,7 @@
 #include "ocudu/ngap/ngap_context.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ngap/ngap_init_context_setup.h"
+#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ngap/ngap_nas.h"
 #include "ocudu/ngap/ngap_rrc_inactive_transition.h"
 #include "ocudu/ngap/ngap_setup.h"
@@ -1179,6 +1180,15 @@ inline void fill_asn1_rrc_inactive_transition_report(asn1::ngap::rrc_inactive_tr
   // Fill user location info.
   auto& user_loc_info_nr = asn1_report->user_location_info.set_user_location_info_nr();
   user_loc_info_nr       = cu_cp_user_location_info_to_asn1(report.user_location_info);
+}
+
+/// \brief Convert NGAP ASN1 Location Reporting Control structure to common type.
+inline void fill_ngap_location_reporting_control(ngap_location_reporting_control&          location_report_ctrl,
+                                                 const asn1::ngap::location_report_ctrl_s& asn1_location_report_ctrl)
+{
+  location_report_ctrl.location_reporting_type =
+      asn1_to_location_reporting_control_event_type(asn1_location_report_ctrl->location_report_request_type.event_type);
+  // TODO: add rest of the fields
 }
 
 } // namespace ocudu::ocucp

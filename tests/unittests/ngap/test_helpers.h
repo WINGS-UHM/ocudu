@@ -386,13 +386,21 @@ public:
     logger.error("DL non UE associated NRPPa transport failed. Cause: NRPPa transport PDUs not supported.");
   }
 
-  ue_index_t                                 last_ue = ue_index_t::invalid;
-  ngap_init_context_setup_request            last_init_ctxt_setup_request;
-  cu_cp_pdu_session_resource_setup_request   last_request;
-  cu_cp_pdu_session_resource_modify_request  last_modify_request;
-  cu_cp_pdu_session_resource_release_command last_release_command;
-  std::optional<ue_index_t>                  last_created_ue_index;
-  cu_cp_paging_message                       last_paging_msg;
+  void on_location_reporting_control_message(ue_index_t ue_index, const ngap_location_reporting_control& msg) override
+  {
+    last_location_reporting_ctrl_ue_index = ue_index;
+    last_location_reporting_ctrl          = msg;
+  }
+
+  ue_index_t                                     last_ue = ue_index_t::invalid;
+  ngap_init_context_setup_request                last_init_ctxt_setup_request;
+  cu_cp_pdu_session_resource_setup_request       last_request;
+  cu_cp_pdu_session_resource_modify_request      last_modify_request;
+  cu_cp_pdu_session_resource_release_command     last_release_command;
+  std::optional<ue_index_t>                      last_created_ue_index;
+  cu_cp_paging_message                           last_paging_msg;
+  std::optional<ue_index_t>                      last_location_reporting_ctrl_ue_index;
+  std::optional<ngap_location_reporting_control> last_location_reporting_ctrl;
 
 private:
   ue_manager&             ue_mng;

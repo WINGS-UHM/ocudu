@@ -32,6 +32,7 @@
 #include "routines/ue_transaction_info_release_routine.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/f1ap/cu_cp/f1ap_cu.h"
+#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/nrppa/nrppa.h"
 #include "ocudu/nrppa/nrppa_factory.h"
 #include "ocudu/ran/plmn_identity.h"
@@ -905,6 +906,39 @@ void cu_cp_impl::handle_dl_ue_associated_nrppa_transport_pdu(ue_index_t ue_index
 void cu_cp_impl::handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu)
 {
   nrppa_entity->get_nrppa_message_handler().handle_new_nrppa_pdu(nrppa_pdu, amf_index);
+}
+
+void cu_cp_impl::handle_location_reporting_control_message(ue_index_t                             ue_index,
+                                                           const ngap_location_reporting_control& msg)
+{
+  if (msg.location_reporting_type == ngap_location_reporting_control::event_type::direct) {
+    auto* ue = ue_mng.find_du_ue(ue_index);
+    if (ue == nullptr) {
+      logger.warning("ue={}: UE not found for handling location reporting control message", ue_index);
+      return;
+    }
+    auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+    if (ngap == nullptr) {
+      logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+      return;
+    }
+    ngap_location_report resp;
+    resp.ue_index    = ue_index;
+    const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
+    if (cell == nullptr) {
+      logger.warning("ue={}: Cell not found for PCI={}", ue_index, ue->get_pci());
+      return;
+    }
+    resp.nr_cgi = cell->cgi;
+    resp.tai    = tai_t{cell->cgi.plmn_id, cell->tac};
+    ngap->handle_location_report_transmission(resp);
+  } else {
+    logger.warning(
+        "ue={}: Received NGAP Location Reporting Control message with unsupported location reporting type: {}",
+        ue_index,
+        msg.location_reporting_type);
+    // TODO: send Location Reporting Failure Indication if not supported?
+  }
 }
 
 nrppa_cu_cp_ue_notifier* cu_cp_impl::handle_new_nrppa_ue(ue_index_t ue_index)

@@ -136,6 +136,12 @@ public:
     cu_cp_handler->handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index, nrppa_pdu);
   }
 
+  void on_location_reporting_control_message(ue_index_t ue_index, const ngap_location_reporting_control& msg) override
+  {
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP NGAP handler must not be nullptr");
+    cu_cp_handler->handle_location_reporting_control_message(ue_index, msg);
+  }
+
   void on_n2_disconnection(amf_index_t amf_index) override
   {
     ocudu_assert(cu_cp_handler != nullptr, "CU-CP NGAP handler must not be nullptr");

@@ -25,6 +25,7 @@
 #include "procedures/ngap_pdu_session_resource_setup_procedure.h"
 #include "procedures/ngap_ue_context_release_procedure.h"
 #include "ocudu/asn1/ngap/common.h"
+#include "ocudu/asn1/ngap/ngap.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ngap/ngap_setup.h"
 #include "ocudu/ngap/ngap_types.h"
@@ -238,6 +239,61 @@ void ngap_impl::handle_ul_nas_transport_message(const cu_cp_ul_nas_transport& ms
   }));
 }
 
+void ngap_impl::handle_location_report_transmission(const ngap_location_report& msg)
+{
+  if (!ue_ctxt_list.contains(msg.ue_index)) {
+    logger.warning("ue={}: Dropping Location Report message. UE context does not exist", msg.ue_index);
+    return;
+  }
+
+  ngap_ue_context& ue_ctxt = ue_ctxt_list[msg.ue_index];
+
+  auto* ue = ue_ctxt.get_cu_cp_ue();
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+
+  if (ue_ctxt.release_scheduled) {
+    // TODO: check if we should still send it in that case or not, as it may be the last location report for this UE
+    ue_ctxt.logger.log_info("Dropping Location Report message. UE is already scheduled for release");
+    return;
+  }
+
+  ngap_message ngap_msg = {};
+  ngap_msg.pdu.set_init_msg();
+  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_LOCATION_REPORT);
+
+  auto& location_report_msg = ngap_msg.pdu.init_msg().value.location_report();
+
+  location_report_msg->ran_ue_ngap_id = ran_ue_id_to_uint(ue_ctxt.ue_ids.ran_ue_id);
+
+  amf_ue_id_t amf_ue_id = ue_ctxt.ue_ids.amf_ue_id;
+  if (amf_ue_id == amf_ue_id_t::invalid) {
+    logger.warning("ue={}: Dropping Location Report message. UE AMF ID not found", msg.ue_index);
+    return;
+  }
+  location_report_msg->amf_ue_ngap_id = amf_ue_id_to_uint(amf_ue_id);
+
+  // Fill location report request type.
+  location_report_msg->location_report_request_type.event_type  = asn1::ngap::event_type_opts::options::direct;
+  location_report_msg->location_report_request_type.report_area = asn1::ngap::report_area_opts::options::cell;
+
+  // Fill user location info.
+  auto& user_loc_info_nr = location_report_msg->user_location_info.set_user_location_info_nr();
+  user_loc_info_nr.nr_cgi.nr_cell_id.from_number(msg.nr_cgi.nci.value());
+  user_loc_info_nr.nr_cgi.plmn_id = msg.nr_cgi.plmn_id.to_bytes();
+  user_loc_info_nr.tai.plmn_id    = msg.tai.plmn_id.to_bytes();
+  user_loc_info_nr.tai.tac.from_number(msg.tai.tac);
+
+  // Forward message to AMF.
+  if (!tx_pdu_notifier.on_new_message(ngap_msg)) {
+    logger.warning("ue={}: AMF notifier is not set. Cannot send LocationReport", msg.ue_index);
+    return;
+  }
+}
+
 void ngap_impl::handle_tx_ue_radio_capability_info_indication_required(
     const ngap_ue_radio_capability_info_indication& msg)
 {
@@ -349,6 +405,9 @@ void ngap_impl::handle_initiating_message(const init_msg_s& msg)
     case ngap_elem_procs_o::init_msg_c::types_opts::dl_non_ue_associated_nrppa_transport:
       handle_dl_non_ue_associated_nrppa_transport(msg.value.dl_non_ue_associated_nrppa_transport());
       break;
+    case asn1::ngap::ngap_elem_procs_o::init_msg_c::types_opts::location_report_ctrl:
+      handle_location_reporting_control_message(msg.value.location_report_ctrl());
+      break;
     case ngap_elem_procs_o::init_msg_c::types_opts::error_ind:
       handle_error_indication(msg.value.error_ind());
       break;
@@ -371,7 +430,7 @@ void ngap_impl::handle_dl_nas_transport_message(const asn1::ngap::dl_nas_transpo
     return;
   }
 
-  // Check wether another context doesn't exist already for the same AMF UE ID with mismatched RAN UE ID.
+  // Check whether another context doesn't exist already for the same AMF UE ID with mismatched RAN UE ID.
   if (not validate_consistent_ue_id_pair(uint_to_ran_ue_id(msg->ran_ue_ngap_id),
                                          uint_to_amf_ue_id(msg->amf_ue_ngap_id))) {
     // Release old UE context and send error indication with the received UE IDs to the AMF.
@@ -434,7 +493,7 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
     return;
   }
 
-  // Check wether another context doesn't exist already for the same AMF UE ID with mismatched RAN UE ID.
+  // Check whether another context doesn't exist already for the same AMF UE ID with mismatched RAN UE ID.
   if (not validate_consistent_ue_id_pair(uint_to_ran_ue_id(request->ran_ue_ngap_id),
                                          uint_to_amf_ue_id(request->amf_ue_ngap_id))) {
     // Release old UE context and send error indication with the received UE IDs to the AMF.
@@ -702,7 +761,7 @@ void ngap_impl::handle_ue_context_release_command(const asn1::ngap::ue_context_r
     amf_ue_id = uint_to_amf_ue_id(cmd->ue_ngap_ids.ue_ngap_id_pair().amf_ue_ngap_id);
     ran_ue_id = uint_to_ran_ue_id(cmd->ue_ngap_ids.ue_ngap_id_pair().ran_ue_ngap_id);
 
-    // Check wether another context doesn't exist already for the same AMF UE ID with mismatched RAN UE ID.
+    // Check whether another context doesn't exist already for the same AMF UE ID with mismatched RAN UE ID.
     if (not validate_consistent_ue_id_pair(ran_ue_id, amf_ue_id)) {
       // Release old UE context and send error indication with the received UE IDs to the AMF.
       handle_inconsistent_ue_id_pair(ran_ue_id, amf_ue_id);
@@ -954,6 +1013,35 @@ void ngap_impl::handle_dl_non_ue_associated_nrppa_transport(
 
   // Forward to CU-CP.
   cu_cp_notifier.on_dl_non_ue_associated_nrppa_transport_pdu(context.amf_index, msg->nrppa_pdu);
+}
+
+void ngap_impl::handle_location_reporting_control_message(const asn1::ngap::location_report_ctrl_s& msg)
+{
+  if (!ue_ctxt_list.contains(uint_to_ran_ue_id(msg->ran_ue_ngap_id))) {
+    logger.warning("ran_ue={} amf_ue={}: Dropping Location Reporting Control message. UE context does not exist",
+                   msg->ran_ue_ngap_id,
+                   msg->amf_ue_ngap_id);
+    send_error_indication(tx_pdu_notifier,
+                          logger,
+                          {},
+                          uint_to_amf_ue_id(msg->amf_ue_ngap_id),
+                          ngap_cause_radio_network_t::unknown_local_ue_ngap_id);
+    return;
+  }
+
+  // Check whether another context doesn't exist already for the same AMF UE ID with mismatched RAN UE ID.
+  if (not validate_consistent_ue_id_pair(uint_to_ran_ue_id(msg->ran_ue_ngap_id),
+                                         uint_to_amf_ue_id(msg->amf_ue_ngap_id))) {
+    // Release old UE context and send error indication with the received UE IDs to the AMF.
+    // TODO: check if that should be error indication and release or just Location Reporting Failure Indication?
+    handle_inconsistent_ue_id_pair(uint_to_ran_ue_id(msg->ran_ue_ngap_id), uint_to_amf_ue_id(msg->amf_ue_ngap_id));
+    return;
+  }
+  ue_index_t                      ue_index = ue_ctxt_list[uint_to_ran_ue_id(msg->ran_ue_ngap_id)].ue_ids.ue_index;
+  ngap_location_reporting_control location_reporting_ctrl;
+
+  fill_ngap_location_reporting_control(location_reporting_ctrl, msg);
+  cu_cp_notifier.on_location_reporting_control_message(ue_index, location_reporting_ctrl);
 }
 
 void ngap_impl::handle_error_indication(const asn1::ngap::error_ind_s& msg)

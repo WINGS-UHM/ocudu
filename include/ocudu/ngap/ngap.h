@@ -14,6 +14,7 @@
 #include "ocudu/ngap/ngap_context.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ngap/ngap_init_context_setup.h"
+#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ngap/ngap_metrics.h"
 #include "ocudu/ngap/ngap_rrc_inactive_transition.h"
 #include "ocudu/ngap/ngap_setup.h"
@@ -131,6 +132,8 @@ public:
 
   /// \brief Check if security is enabled.
   [[nodiscard]] virtual bool is_security_enabled() const = 0;
+
+  // TODO: should location reporting control and other UE messages be moved here?
 };
 
 /// NGAP notifier to the CU-CP.
@@ -223,6 +226,10 @@ public:
   /// \param[in] amf_index The index of the AMF that received the NRPPa transport.
   /// \param[in] nrppa_pdu The NRPPa transport PDU.
   virtual void on_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) = 0;
+
+  /// \brief Notifies the CU-CP about a Location Reporting Control message.
+  virtual void on_location_reporting_control_message(ue_index_t                             ue_index,
+                                                     const ngap_location_reporting_control& msg) = 0;
 };
 
 /// Handle NGAP NAS Message procedures as defined in TS 38.413 section 8.6.
@@ -238,6 +245,15 @@ public:
   /// \brief Initiates Uplink NAS transport procedure as per TS 38.413 section 8.6.3.
   /// \param[in] msg The ul nas transfer message to transmit.
   virtual void handle_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg) = 0;
+};
+
+/// Handle NGAP Location Reporting procedures as defined in TS 38.413 section 8.12.
+class ngap_location_reporting_handler
+{
+public:
+  virtual ~ngap_location_reporting_handler() = default;
+  /// \brief Initiates Location Report procedure as per TS 38.413 section 8.12.3.
+  virtual void handle_location_report_transmission(const ngap_location_report& msg) = 0;
 };
 
 /// Handle NGAP UE Radio Capability Management Messages as per TS 38.413 section 8.14.
@@ -356,6 +372,7 @@ class ngap_interface : public ngap_message_handler,
                        public ngap_event_handler,
                        public ngap_connection_manager,
                        public ngap_nas_message_handler,
+                       public ngap_location_reporting_handler,
                        public ngap_ue_radio_capability_management_handler,
                        public ngap_control_message_handler,
                        public ngap_ue_control_manager,

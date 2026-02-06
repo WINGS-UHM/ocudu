@@ -249,5 +249,8 @@ ngap_message generate_handover_cancel_ack(amf_ue_id_t amf_ue_id, ran_ue_id_t ran
 
 ngap_message generate_ng_reset_ack(const asn1::ngap::ue_associated_lc_ng_conn_list_l& ng_reset_ues = {});
 
+/// \brief Generate a valid dummy Location Reporting Control message.
+ngap_message generate_location_reporting_control_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);
+
 } // namespace ocucp
 } // namespace ocudu

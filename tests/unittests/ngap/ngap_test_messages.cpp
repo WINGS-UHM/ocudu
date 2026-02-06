@@ -1096,3 +1096,21 @@ ngap_message ocudu::ocucp::generate_ng_reset_ack(const asn1::ngap::ue_associated
 
   return ngap_msg;
 }
+
+ngap_message ocudu::ocucp::generate_location_reporting_control_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
+{
+  ngap_message ngap_msg;
+
+  ngap_msg.pdu.set_init_msg();
+  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_LOCATION_REPORT_CTRL);
+
+  auto& loc_rep_control = ngap_msg.pdu.init_msg().value.location_report_ctrl();
+
+  loc_rep_control->amf_ue_ngap_id = amf_ue_id_to_uint(amf_ue_id);
+  loc_rep_control->ran_ue_ngap_id = ran_ue_id_to_uint(ran_ue_id);
+
+  // Fill location reporting type.
+  loc_rep_control->location_report_request_type.event_type = asn1::ngap::event_type_opts::options::direct;
+
+  return ngap_msg;
+}

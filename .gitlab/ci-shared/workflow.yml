@@ -38,6 +38,12 @@ workflow:
         ON_TAG: "true"
       auto_cancel:
         on_new_commit: none
+    - if: $CI_MERGE_REQUEST_SOURCE_PROJECT_ID != $CI_MERGE_REQUEST_PROJECT_ID
+      variables:
+        ON_MR_FORK: "true"
+        ON_MR: "true"
+      auto_cancel:
+        on_new_commit: none
     - if: $CI_MERGE_REQUEST_EVENT_TYPE == "merge_train"
       variables:
         ON_MR_TRAIN: "true"
@@ -57,6 +63,7 @@ workflow:
     - when: never
 
 variables:
+  # CI Defaults
   GIT_STRATEGY: fetch
   GIT_DEPTH: "1"
   GET_SOURCES_ATTEMPTS: 3
@@ -64,7 +71,10 @@ variables:
   RESTORE_CACHE_ATTEMPTS: 3
   CLICOLOR_FORCE: 1
   FORCE_COLOR: 1
-  OCUDU_REGISTRY_URI: ${CI_REGISTRY_IMAGE}
+  # OCUDU Variables
+  OCUDU_REGISTRY_SERVER: registry.gitlab.com # $CI_TEMPLATE_REGISTRY_HOST
+  OCUDU_PROJECT_PATH: ocudu/ocudu # $CI_PROJECT_PATH
+  OCUDU_REGISTRY_URI: ${OCUDU_REGISTRY_SERVER}/${OCUDU_PROJECT_PATH}
 
 default:
   interruptible: true

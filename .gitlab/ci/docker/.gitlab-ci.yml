@@ -53,6 +53,10 @@ grafana version changed:
   extends: .version increased
   stage: static
   rules:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      when: never
+    - if: $ON_MR_FORK
+      when: never
     - if: $ON_MR
       changes:
         - docker/grafana/**/*
@@ -64,6 +68,10 @@ telegraf version changed:
   extends: .version increased
   stage: static
   rules:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      when: never
+    - if: $ON_MR_FORK
+      when: never
     - if: $ON_MR
       changes:
         - docker/telegraf/**/*
@@ -192,6 +200,10 @@ telegraf image:
   extends: .docker-builder
   stage: publish
   rules:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      when: never
+    - if: $ON_MR_FORK
+      when: never
     - if: $ON_MR
       changes:
         paths:
@@ -216,6 +228,10 @@ grafana image:
   extends: .docker-builder
   stage: publish
   rules:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      when: never
+    - if: $ON_MR_FORK
+      when: never
     - if: $ON_MR
       changes:
         paths:

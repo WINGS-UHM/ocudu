@@ -22,12 +22,19 @@ stages:
   - documentation
   - deploy
 
+# variables:
+#   SKIP_OCUDU_BUILDING_CONTAINERS_CI: true # set to any value to skip building ocudu containers in CI
+
 ################################################################################
 ## CI MR
 ################################################################################
 trigger builder:
   stage: ci
   rules:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      when: never
+    - if: $ON_MR_FORK
+      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-builder/
       when: never
     - if: $ON_MR
@@ -46,6 +53,10 @@ trigger builder:
 trigger buildkit:
   stage: ci
   rules:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      when: never
+    - if: $ON_MR_FORK
+      when: never
     - if: $ON_MR
       changes:
         paths:
@@ -83,6 +94,10 @@ trigger docker:
 trigger doxygen:
   stage: ci
   rules:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      when: never
+    - if: $ON_MR_FORK
+      when: never
     - if: $ON_MR
       changes:
         paths:
@@ -98,6 +113,10 @@ trigger doxygen:
 trigger static:
   stage: ci
   rules:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      when: never
+    - if: $ON_MR_FORK
+      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-static/
       when: never
     - if: $ON_MR
@@ -111,6 +130,28 @@ trigger static:
     - job: trigger buildkit
       optional: true
       artifacts: false
+
+warning about unapplied changes:
+  stage: ci
+  image: alpine:3.16.0
+  rules:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      changes: &warning_container_changes
+        paths:
+          - .gitlab/ci/builders/**/*
+          - .gitlab/ci/buildkit-cli/**/*
+          - .gitlab/ci/doxygen/**/*
+          - .gitlab/ci/static/**/*
+          - docker/grafana/**/*
+          - docker/scripts/**/*
+          - docker/telegraf/**/*
+    - if: $ON_MR_FORK
+      changes:
+        <<: *warning_container_changes
+  allow_failure: true
+  script:
+    - echo "This MR contains changes in OCUDU containers but pushing new images is disabled. You'll keep using old containers and changes won't be applied."
+    - exit 1
 
 ################################################################################
 ## Static
@@ -167,7 +208,7 @@ include-guards:
       artifacts: false
 
 .codechecker:
-  image: ${CI_REGISTRY_IMAGE}/codechecker:${DOCKER_BUILDER_VERSION}
+  image: ${OCUDU_REGISTRY_URI}/codechecker:${DOCKER_BUILDER_VERSION}
   stage: static
   tags: [saas-linux-large-amd64]
   needs:
@@ -246,7 +287,6 @@ clang-tidy:
     ARTIFACT_EXTRA_PATH: "/index.html"
 
 clang-tidy incremental:
-  timeout: 2 hours
   extends: clang-tidy
   stage: manual
   rules:
@@ -403,7 +443,7 @@ unit coverage dev:
 
 doxygen:
   stage: documentation
-  image: ${CI_REGISTRY_IMAGE}/doxygen:${DOXYGEN_VERSION}-${PLANTUML_VERSION}
+  image: ${OCUDU_REGISTRY_URI}/doxygen:${DOXYGEN_VERSION}-${PLANTUML_VERSION}
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: always # Even if previous stages/required jobs fail

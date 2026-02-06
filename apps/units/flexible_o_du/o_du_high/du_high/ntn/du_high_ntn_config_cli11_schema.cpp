@@ -95,7 +95,7 @@ static void configure_cli11_ntn_args(CLI::App& app, du_high_unit_cell_ntn_config
   add_option(
       app, "--cell_specific_koffset", config.cell_specific_koffset, "Cell-specific k-offset to be used for NTN [ms].")
       ->capture_default_str()
-      ->check(CLI::Range(0, 1023));
+      ->check(CLI::Range(1, 1023));
 
   app.add_option("--ntn_ul_sync_validity_dur", config.ntn_ul_sync_validity_dur, "An UL sync validity duration")
       ->capture_default_str()

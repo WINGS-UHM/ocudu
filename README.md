@@ -1,8 +1,40 @@
-# Welcome to the Linux Foundation OCUDU
+# The OCUDU Project
 
-This repository and its contents are work in progress.
+![Pipeline](https://gitlab.com/ocudu/ocudu/badges/dev/pipeline.svg)
+![Code](https://img.shields.io/badge/Code-C++-informational)
+![Build](https://img.shields.io/badge/build-CMake-informational)
+![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11899/badge)](https://www.bestpractices.dev/projects/11899)
+![Coverage](https://gitlab.com/ocudu/ocudu/badges/dev/coverage.svg?min_good=98&min_acceptable=60)
 
-For more information on the OCUDU, please visit [https://ocudu.org](https://ocudu.org)
+<img src="https://srs.io/wp-content/uploads/ocudu_color.png" alt="image" style="width:50%; height:auto;">
+
+OCUDU is a permissively-licensed, open-source 5G (and beyond) CU/DU project designed for commercial deployment and broad industry adoption, as well as advanced research and development. OCUDU is a complete radio access network (RAN) solution compliant with 3GPP and O-RAN Alliance specifications and includes the full L1/2/3 stack with minimal external dependencies. OCUDU is govorned under the Linux Foundation.
+
+This repository contains the RAN source code, architecture documentation, and tooling.
+
+For general information, visit https://ocudu.org.
+
+## Getting started
+
+Build instructions and user guides are provided in the [OCUDU User manual](https://docs.ocudu.org/user_manual/installation/). We also host an extensive selection of tutorials.
+
+## Documentation
+
+Complete project documentation including developer guideline, configuration reference, tutorials, etc. is
+hosted in [this](https://gitlab.com/ocudu/ocudu_docs) repo. The most recent version of the documentation
+is available under [docs.ocudu.org](docs.ocudu.org).
+
+## Contributing
+
+Contributions of all sorts are welcome. Please take a look at the [Developer Guide](https://docs.ocudu.org/dev_guide/contributing_guide/) with detailed instructions on how to best engange with the community.
+
+
+## Governance
+
+The OCUDU project is governed by a framework of principles, values, policies and processes to help our community and constituents towards our shared goals.
+
+The [Governance](https://gitlab.com/ocudu/Governance) repo is used by the Technical Steering Committee, which oversees governance of the project.
 
 ## License
 

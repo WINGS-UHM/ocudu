@@ -20,7 +20,6 @@ class task_executor;
 class timer_manager;
 class ru_controller;
 struct application_unit_commands;
-struct ntn_config;
 
 namespace odu {
 class du_configurator;

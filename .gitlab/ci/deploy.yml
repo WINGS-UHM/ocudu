@@ -15,7 +15,6 @@ ocudu image:
   stage: deploy
   rules:
     - if: $CI_DESCRIPTION =~ /Nightly/
-    - if: $ON_MR
   retry: 2
   variables:
     # CI & Infrastructure
@@ -82,7 +81,6 @@ ocudu image update latest:
   stage: deploy
   rules:
     - if: $CI_DESCRIPTION =~ /Nightly/
-    - if: $ON_MR
   retry: 2
   variables:
     REGISTRY_URI: ${OCUDU_REGISTRY_URI}

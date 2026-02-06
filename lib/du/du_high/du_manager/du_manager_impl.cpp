@@ -12,7 +12,7 @@
 #include "du_positioning_handler_factory.h"
 #include "procedures/cu_configuration_procedure.h"
 #include "procedures/du_cell_stop_procedure.h"
-#include "procedures/du_mac_si_pdu_update_procedure.h"
+#include "procedures/du_mac_ntn_param_update_procedure.h"
 #include "procedures/du_param_config_procedure.h"
 #include "procedures/du_setup_procedure.h"
 #include "procedures/du_stop_procedure.h"

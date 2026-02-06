@@ -11,7 +11,7 @@ set(SOURCES
         du_cell_stop_procedure.cpp
         du_ue_ric_configuration_procedure.cpp
         du_param_config_procedure.cpp
-        du_mac_si_pdu_update_procedure.cpp
+        du_mac_ntn_param_update_procedure.cpp
         du_setup_procedure.cpp
         ue_configuration_procedure.cpp
         ue_creation_procedure.cpp

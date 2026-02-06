@@ -8,7 +8,7 @@
  *
  */
 
-#include "du_mac_si_pdu_update_procedure.h"
+#include "du_mac_ntn_param_update_procedure.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/async/async_no_op_task.h"
 #include <future>

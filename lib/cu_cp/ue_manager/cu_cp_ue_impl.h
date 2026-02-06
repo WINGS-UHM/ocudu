@@ -97,8 +97,11 @@ public:
   /// \brief Get the measurement context of the UE.
   cell_meas_manager_ue_context& get_meas_context() { return meas_context; }
 
-  /// \brief Get the ran paging timer of the UE.
+  /// \brief Get the RAN paging timer of the UE.
   unique_timer& get_ran_paging_timer() { return ran_paging_timer; }
+
+  /// \brief Get the RNA update timer of the UE.
+  unique_timer& get_rna_update_timer() { return rna_update_timer; }
 
   /// \brief Update a UE with PCI and/or C-RNTI.
   void update_du_ue(gnb_du_id_t     du_id_       = gnb_du_id_t::invalid,
@@ -187,6 +190,7 @@ private:
   cell_meas_manager_ue_context             meas_context;
   unique_timer                             handover_ue_release_timer;
   unique_timer                             ran_paging_timer;
+  unique_timer                             rna_update_timer;
   std::optional<cu_cp_ue_handover_context> ho_context;
 };
 

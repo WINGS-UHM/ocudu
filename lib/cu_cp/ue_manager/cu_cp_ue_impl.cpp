@@ -54,9 +54,9 @@ cu_cp_ue::cu_cp_ue(ue_index_t                     ue_index_,
 
   handover_ue_release_timer = timers_.create_unique_timer(task_exec_);
   ran_paging_timer          = timers_.create_unique_timer(task_exec_);
+  rna_update_timer          = timers_.create_unique_timer(task_exec_);
 }
 
-/// \brief Update a UE with PCI and/or C-RNTI.
 void cu_cp_ue::update_du_ue(gnb_du_id_t du_id_, pci_t pci_, rnti_t c_rnti_, du_cell_index_t pcell_index_)
 {
   if (du_id_ != gnb_du_id_t::invalid) {
@@ -76,7 +76,6 @@ void cu_cp_ue::update_du_ue(gnb_du_id_t du_id_, pci_t pci_, rnti_t c_rnti_, du_c
   }
 }
 
-/// \brief Set/update the measurement context of the UE.
 void cu_cp_ue::update_meas_context(cell_meas_manager_ue_context meas_ctxt)
 {
   meas_context = std::move(meas_ctxt);

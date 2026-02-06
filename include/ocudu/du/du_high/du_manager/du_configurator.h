@@ -86,8 +86,8 @@ struct ntn_assistance_info_update {
   std::optional<unsigned> ntn_ul_sync_validity_dur;
 };
 
-/// Structure used to update SI PDU messages, without SI change notifications nor in a modification of valueTag in SIB1.
-struct du_ntn_param_update_request {
+/// NTN parameters to be updated in a single cell.
+struct du_cell_ntn_param_update_request {
   using time_point = std::chrono::system_clock::time_point;
   /// NR Cell Global ID of the cell being configured.
   nr_cell_global_id_t nr_cgi;
@@ -103,6 +103,12 @@ struct du_ntn_param_update_request {
   std::optional<unsigned> si_slot_period;
   /// Packed content of SIB messages.
   span<byte_buffer> si_messages;
+};
+
+/// NTN Parameters to be updated for multiple cells in DU.
+struct du_ntn_param_update_request {
+  /// Cells for which NTN parameters need to be updated.
+  std::vector<du_cell_ntn_param_update_request> cells;
 };
 
 struct du_ntn_param_update_response {

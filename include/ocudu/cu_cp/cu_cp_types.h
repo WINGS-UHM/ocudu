@@ -591,6 +591,7 @@ struct cu_cp_paging_message {
   std::optional<cu_cp_ue_radio_cap_for_paging>     ue_radio_cap_for_paging;
   std::optional<bool>                              paging_origin;
   std::optional<cu_cp_assist_data_for_paging>      assist_data_for_paging;
+  std::optional<uint64_t>                          extended_ue_id_idx_value;
   std::optional<cu_cp_paging_edrx_info>            paging_edrx_info;
 };
 

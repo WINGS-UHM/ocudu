@@ -1072,6 +1072,23 @@ inline ngap_core_network_assist_info_for_inactive asn1_to_core_network_assist_in
     cn_assist_info_for_inactive.tai_list_for_inactive.push_back(ngap_asn1_to_tai(tai_list_for_inactive_item.tai));
   }
 
+  if (asn1_cn_assist_info_for_inactive.ie_exts_present) {
+    cn_assist_info_for_inactive.ie_exts.emplace();
+    if (asn1_cn_assist_info_for_inactive.ie_exts.extended_ue_id_idx_value_present) {
+      cn_assist_info_for_inactive.ie_exts->extended_ue_idx_value =
+          asn1_cn_assist_info_for_inactive.ie_exts.extended_ue_id_idx_value.to_number();
+    }
+    if (asn1_cn_assist_info_for_inactive.ie_exts.nr_paginge_drx_info_present) {
+      cn_assist_info_for_inactive.ie_exts->nr_paging_drx_info.emplace();
+      cn_assist_info_for_inactive.ie_exts->nr_paging_drx_info->nr_paging_edrx_cycle =
+          asn1_cn_assist_info_for_inactive.ie_exts.nr_paginge_drx_info.nr_paging_e_drx_cycle.to_number();
+      if (asn1_cn_assist_info_for_inactive.ie_exts.nr_paginge_drx_info.nr_paging_time_win_present) {
+        cn_assist_info_for_inactive.ie_exts->nr_paging_drx_info->nr_paging_time_window =
+            asn1_cn_assist_info_for_inactive.ie_exts.nr_paginge_drx_info.nr_paging_time_win.to_number();
+      }
+    }
+  }
+
   return cn_assist_info_for_inactive;
 }
 

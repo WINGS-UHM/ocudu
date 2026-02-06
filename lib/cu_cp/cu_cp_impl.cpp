@@ -266,8 +266,8 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
                      msg.ue_index,
                      cfg.ue.enable_rrc_inactive ? "supported by the UE" : "configured");
       } else {
-        logger.debug("ue={}: Releasing UE due to inactivity notification. RRC Inactive is not possible without "
-                     "5G-S-TMSI or Core Network Assist Info for Inactive",
+        logger.debug("ue={}: Releasing UE due to inactivity notification. RRC Inactive is not possible without Core "
+                     "Network Assist Info for Inactive",
                      msg.ue_index);
       }
 
@@ -655,7 +655,9 @@ async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(co
   }
 
   return launch_async<rrc_resume_routine>(request,
-                                          du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
+                                          cfg.ue,
+                                          du_db.get_du_processor(ue->get_du_index()),
+                                          get_cu_cp_ue_context_handler(),
                                           cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_handler(),
                                           ue_mng,
                                           logger);

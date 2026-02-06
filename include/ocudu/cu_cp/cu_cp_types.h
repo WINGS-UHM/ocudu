@@ -14,6 +14,7 @@
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/adt/slotted_vector.h"
 #include "ocudu/pdcp/pdcp_config.h"
+#include "ocudu/ran/cause/common.h"
 #include "ocudu/ran/cause/e1ap_cause.h"
 #include "ocudu/ran/cause/f1ap_cause.h"
 #include "ocudu/ran/cause/ngap_cause.h"
@@ -623,6 +624,7 @@ struct cu_cp_rrc_resume_request {
   ue_index_t          ue_index = ue_index_t::invalid;
   nr_cell_global_id_t cgi;
   rnti_t              new_c_rnti;
+  resume_cause_t      cause;
 };
 
 } // namespace ocudu::ocucp

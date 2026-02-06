@@ -33,13 +33,17 @@ static bool verify_rrc_resume_request(const cu_cp_rrc_resume_request& request,
   return true;
 }
 
-rrc_resume_routine::rrc_resume_routine(const cu_cp_rrc_resume_request& request_,
-                                       f1ap_ue_context_manager&        du_f1ap_ue_ctxt_mng_,
-                                       e1ap_bearer_context_manager&    e1ap_bearer_ctxt_mng_,
-                                       ue_manager&                     ue_mng_,
-                                       ocudulog::basic_logger&         logger_) :
+rrc_resume_routine::rrc_resume_routine(const cu_cp_rrc_resume_request&        request_,
+                                       const ue_configuration&                ue_cfg_,
+                                       du_processor&                          du_proc_,
+                                       cu_cp_ue_context_manipulation_handler& ue_context_handler_,
+                                       e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
+                                       ue_manager&                            ue_mng_,
+                                       ocudulog::basic_logger&                logger_) :
   request(request_),
-  du_f1ap_ue_ctxt_mng(du_f1ap_ue_ctxt_mng_),
+  ue_cfg(ue_cfg_),
+  du_proc(du_proc_),
+  ue_context_handler(ue_context_handler_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
   ue_mng(ue_mng_),
   logger(logger_)
@@ -65,6 +69,44 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
 
   logger.debug("ue={}: \"{}\" started...", request.ue_index, name());
 
+  // If resume cause is RNA update, the UE will be set to RRC inactive again.
+  {
+    if (request.cause == resume_cause_t::rna_upd) {
+      logger.debug("ue={}: RRC Resume cause is RNA Update. Requesting UE Release to set UE to RRC Inactive",
+                   request.ue_index);
+
+      // Set UE as active.
+      ue_mng.set_active(request.ue_index);
+
+      // Set UE as inactive to allocate new I-RNTIs.
+      i_rntis = ue_mng.set_inactive(request.ue_index);
+      if (i_rntis.has_value()) {
+        logger.debug("ue={}: Set UE as inactive with {} {}",
+                     request.ue_index,
+                     i_rntis.value().short_i_rnti,
+                     i_rntis.value().full_i_rnti);
+
+        CORO_AWAIT_VALUE(
+            released_ue_index,
+            du_proc.get_f1ap_handler().handle_ue_context_release_command(fill_du_ue_context_release_command()));
+
+        if (released_ue_index != request.ue_index) {
+          logger.warning("ue={}: \"{}\" failed to release UE context at DU", request.ue_index, name());
+          CORO_EARLY_RETURN(response_msg);
+        }
+
+        // Start RNA update timer after successful transition to RRC Inactive state.
+        {
+          ue_context_handler.initialize_rna_update_timer(request.ue_index);
+        }
+
+        logger.debug("ue={}: \"{}\" finished successfully by setting UE to inactive", request.ue_index, name());
+        response_msg.success = true;
+        CORO_EARLY_RETURN(response_msg);
+      }
+    }
+  }
+
   {
     // Prepare F1AP UE Context Setup Command and call F1AP notifier.
     if (!generate_ue_context_setup_request(ue_context_setup_request,
@@ -79,7 +121,7 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
     ue_context_setup_request.serving_cell_mo            = ue->get_rrc_ue()->get_serving_cell_mo();
 
     CORO_AWAIT_VALUE(ue_context_setup_response,
-                     du_f1ap_ue_ctxt_mng.handle_ue_context_setup_request(ue_context_setup_request, rrc_context));
+                     du_proc.get_f1ap_handler().handle_ue_context_setup_request(ue_context_setup_request, rrc_context));
 
     // Handle UE Context Setup Response.
     if (!handle_ue_context_setup_response()) {
@@ -148,6 +190,29 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
   }
 
   CORO_RETURN(response_msg);
+}
+
+f1ap_ue_context_release_command rrc_resume_routine::fill_du_ue_context_release_command()
+{
+  // Add all local cells to RAN area cells.
+  // Note: Support for configurable ran area cells is left as future work.
+  rrc_ue_release_context release_context = ue->get_rrc_ue()->get_rrc_ue_release_context(
+      true,
+      std::nullopt,
+      rrc_inactivity_context{.i_rntis                    = i_rntis.value(),
+                             .next_hop_chaining_count    = ue->get_security_manager().get_ncc(),
+                             .ran_paging_cycle           = ue_cfg.ran_paging_cycle,
+                             .ran_notification_area_info = du_proc.get_rrc_du_handler().get_ran_area_cells(),
+                             .t380                       = ue_cfg.t380});
+
+  // Prepare UE Context Release Command and call F1.
+  f1ap_ue_context_release_command du_ue_context_release_command;
+  du_ue_context_release_command.ue_index        = request.ue_index;
+  du_ue_context_release_command.cause           = f1ap_cause_radio_network_t::normal_release;
+  du_ue_context_release_command.rrc_release_pdu = release_context.rrc_release_pdu.copy();
+  du_ue_context_release_command.srb_id          = release_context.srb_id;
+
+  return du_ue_context_release_command;
 }
 
 bool rrc_resume_routine::generate_ue_context_setup_request(f1ap_ue_context_setup_request&               setup_request,

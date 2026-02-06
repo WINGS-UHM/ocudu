@@ -86,6 +86,7 @@ void rrc_inactive_routine::operator()(coro_context<async_task<void>>& ctx)
         CORO_EARLY_RETURN();
       }
     }
+
     // Notify DU RRC about RRC Inactive transition.
     rrc_du_metrics_handler.handle_rrc_inactive();
   }

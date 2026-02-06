@@ -61,11 +61,18 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
   request.ue_index   = context.ue_index;
   request.cgi        = context.cell.cgi;
   request.new_c_rnti = new_c_rnti;
+  request.cause      = asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause);
   CORO_AWAIT_VALUE(rrc_resume_context, cu_cp_notifier.on_rrc_resume_request(request));
 
   if (!rrc_resume_context.success) {
     logger.log_info("\"{}\" failed. Requesting UE context release", name());
     CORO_AWAIT(handle_rrc_resume_failure());
+    CORO_EARLY_RETURN();
+  }
+
+  if (request.cause == resume_cause_t::rna_upd) {
+    logger.log_debug(
+        "ue={}: \"{}\" finished successfully by setting UE to inactive for RNA update", context.ue_index, name());
     CORO_EARLY_RETURN();
   }
 

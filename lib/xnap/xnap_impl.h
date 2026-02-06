@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/xnap/xnap.h"
+#include "ocudu/xnap/xnap_configuration.h"
 
 namespace ocudu::ocucp {
 
@@ -18,7 +19,7 @@ class xnap_impl final : public xnap_interface
 {
 public:
   xnap_impl(const xnap_configuration& xnap_cfg_, task_executor& ctrl_exec_);
-  ~xnap_impl();
+  ~xnap_impl() override = default;
 
   // XNAP message handling.
   void handle_message(const xnap_message& msg) override;

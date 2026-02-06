@@ -18,9 +18,6 @@ namespace ocudu::ocucp {
 
 struct xnap_message;
 
-// TODO.
-struct xnap_configuration {};
-
 /// This interface is used to push XNAP messages to the XNAP interface.
 class xnap_message_handler
 {

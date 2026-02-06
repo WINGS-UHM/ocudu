@@ -344,6 +344,7 @@ smoke pretty printers cached:
         paths:
           - include/ocudu/adt/**/*
           - tests/utils/gdb/pretty_printers/*
+          - utils/gdb/**/*
           - .gdbinit
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
       changes:

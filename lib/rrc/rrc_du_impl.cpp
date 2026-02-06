@@ -330,7 +330,7 @@ void rrc_du_impl::remove_ue(ue_index_t ue_index)
   ue_db.erase(ue_it);
 }
 
-void rrc_du_impl::handle_successful_rrc_setup(std::optional<establishment_resume_cause_t> cause)
+void rrc_du_impl::handle_successful_rrc_setup(std::optional<establishment_cause_t> cause)
 {
   if (cause.has_value()) {
     metrics_aggregator.aggregate_successful_connection_establishment(cause.value());
@@ -349,7 +349,7 @@ void rrc_du_impl::handle_rrc_inactive()
   metrics_aggregator.aggregate_successful_rrc_inactive();
 }
 
-void rrc_du_impl::handle_attempted_rrc_setup(establishment_resume_cause_t cause)
+void rrc_du_impl::handle_attempted_rrc_setup(establishment_cause_t cause)
 {
   metrics_aggregator.aggregate_attempted_connection_establishment(cause);
 }
@@ -369,28 +369,28 @@ void rrc_du_impl::handle_successful_rrc_reestablishment_fallback()
   metrics_aggregator.aggregate_successful_connection_reestablishment(false);
 }
 
-void rrc_du_impl::handle_attempted_rrc_resume(establishment_resume_cause_t cause)
+void rrc_du_impl::handle_attempted_rrc_resume(resume_cause_t cause)
 {
   metrics_aggregator.aggregate_attempted_connection_resume(cause);
 }
 
-void rrc_du_impl::handle_successful_rrc_resume(establishment_resume_cause_t cause)
+void rrc_du_impl::handle_successful_rrc_resume(resume_cause_t cause)
 {
   metrics_aggregator.aggregate_successful_connection_resume(cause);
   metrics_aggregator.aggregate_successful_rrc_resume();
 }
 
-void rrc_du_impl::handle_successful_rrc_resume_with_fallback(establishment_resume_cause_t cause)
+void rrc_du_impl::handle_successful_rrc_resume_with_fallback(resume_cause_t cause)
 {
   metrics_aggregator.aggregate_successful_connection_resume_with_fallback(cause);
 }
 
-void rrc_du_impl::handle_rrc_resume_followed_by_network_release(establishment_resume_cause_t cause)
+void rrc_du_impl::handle_rrc_resume_followed_by_network_release(resume_cause_t cause)
 {
   metrics_aggregator.aggregate_connection_resume_followed_by_network_release(cause);
 }
 
-void rrc_du_impl::handle_attempted_rrc_resume_followed_by_rrc_setup(establishment_resume_cause_t cause)
+void rrc_du_impl::handle_attempted_rrc_resume_followed_by_rrc_setup(resume_cause_t cause)
 {
   metrics_aggregator.aggregate_attempted_connection_resume_followed_by_rrc_setup(cause);
 }

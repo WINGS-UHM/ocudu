@@ -202,7 +202,7 @@ private:
 struct cu_cp_initial_ue_message {
   ue_index_t                         ue_index = ue_index_t::invalid;
   byte_buffer                        nas_pdu;
-  establishment_resume_cause_t       establishment_cause;
+  establishment_cause_t              establishment_cause;
   cu_cp_user_location_info_nr        user_location_info;
   std::optional<cu_cp_five_g_s_tmsi> five_g_s_tmsi;
   std::optional<uint16_t>            amf_set_id;

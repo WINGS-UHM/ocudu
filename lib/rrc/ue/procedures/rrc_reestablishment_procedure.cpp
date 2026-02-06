@@ -133,7 +133,7 @@ void rrc_reestablishment_procedure::operator()(coro_context<async_task<void>>& c
 
 async_task<void> rrc_reestablishment_procedure::handle_rrc_reestablishment_fallback()
 {
-  context.connection_cause = establishment_resume_cause_t::mt_access;
+  context.connection_cause = establishment_cause_t::mt_access;
 
   return launch_async([this](coro_context<async_task<void>>& ctx) mutable {
     CORO_BEGIN(ctx);

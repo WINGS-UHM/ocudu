@@ -48,7 +48,7 @@ public:
 struct rrc_resume_context_t {
   bool                                                       is_resume;
   std::optional<std::variant<short_i_rnti_t, full_i_rnti_t>> rrc_resume_id = std::nullopt;
-  std::optional<establishment_resume_cause_t>                resume_cause  = std::nullopt;
+  std::optional<resume_cause_t>                              resume_cause  = std::nullopt;
 };
 
 struct rrc_ue_creation_message {
@@ -115,7 +115,7 @@ public:
   /// \brief Add the successful RRC setup to the metrics.
   /// \param[in] cause The establishment cause of the RRC connection. If this is given the connection establishment
   /// metrics are increased. Otherwise the connection metrics are increased.
-  virtual void handle_successful_rrc_setup(std::optional<establishment_resume_cause_t> cause = std::nullopt) = 0;
+  virtual void handle_successful_rrc_setup(std::optional<establishment_cause_t> cause = std::nullopt) = 0;
 
   /// \brief Add the successful RRC release to the metrics.
   /// \param[in] is_inactive True if the released RRC connection was in inactive state, false otherwise.
@@ -126,7 +126,7 @@ public:
 
   /// \brief Add the attempted RRC connection establishment to the metrics.
   /// \param[in] cause The establishment cause of the RRC connection.
-  virtual void handle_attempted_rrc_setup(establishment_resume_cause_t cause) = 0;
+  virtual void handle_attempted_rrc_setup(establishment_cause_t cause) = 0;
 
   /// \brief Add the attempted RRC connection re-establishment to the metrics.
   virtual void handle_attempted_rrc_reestablishment() = 0;
@@ -138,20 +138,20 @@ public:
   virtual void handle_successful_rrc_reestablishment_fallback() = 0;
 
   /// \brief Add the attempted RRC connection resume to the metrics.
-  virtual void handle_attempted_rrc_resume(establishment_resume_cause_t cause) = 0;
+  virtual void handle_attempted_rrc_resume(resume_cause_t cause) = 0;
 
   /// \brief Add the RRC resume to the metrics.
   /// \param[in] cause The resume cause of the RRC connection resume.
-  virtual void handle_successful_rrc_resume(establishment_resume_cause_t cause) = 0;
+  virtual void handle_successful_rrc_resume(resume_cause_t cause) = 0;
 
   /// \brief Add the successful RRC connection resume with fallback to the metrics.
-  virtual void handle_successful_rrc_resume_with_fallback(establishment_resume_cause_t cause) = 0;
+  virtual void handle_successful_rrc_resume_with_fallback(resume_cause_t cause) = 0;
 
   /// \brief Add the RRC connection resume followed by network release to the metrics.
-  virtual void handle_rrc_resume_followed_by_network_release(establishment_resume_cause_t cause) = 0;
+  virtual void handle_rrc_resume_followed_by_network_release(resume_cause_t cause) = 0;
 
   /// \brief Add the attempted RRC connection resume followed by RRC setup to the metrics.
-  virtual void handle_attempted_rrc_resume_followed_by_rrc_setup(establishment_resume_cause_t cause) = 0;
+  virtual void handle_attempted_rrc_resume_followed_by_rrc_setup(resume_cause_t cause) = 0;
 };
 
 class rrc_du_metrics_collector

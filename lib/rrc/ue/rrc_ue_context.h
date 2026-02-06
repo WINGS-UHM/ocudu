@@ -44,7 +44,7 @@ public:
   std::optional<cu_cp_five_g_s_tmsi> five_g_s_tmsi;
   std::variant<uint64_t, asn1::fixed_bitstring<39>>
                                      setup_ue_id; ///< this is either a random value or the 5G-S-TMSI-PART1
-  establishment_resume_cause_t       connection_cause;
+  establishment_cause_t              connection_cause;
   std::map<srb_id_t, ue_srb_context> srbs;
   std::optional<asn1::rrc_nr::ue_cap_rat_container_list_l> capabilities_list;
   rrc_ue_capabilities_t                                    capabilities;

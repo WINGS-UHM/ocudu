@@ -36,11 +36,11 @@ struct rrc_connection_reestablishment_metrics {
 };
 
 struct rrc_connection_resume_metrics {
-  rrc_connection_counter_with_cause attempted_rrc_connection_resumes;
-  rrc_connection_counter_with_cause successful_rrc_connection_resumes;
-  rrc_connection_counter_with_cause successful_rrc_connection_resumes_with_fallback;
-  rrc_connection_counter_with_cause rrc_connection_resumes_followed_by_network_release;
-  rrc_connection_counter_with_cause attempted_rrc_connection_resumes_followed_by_rrc_setup;
+  rrc_connection_resume_counter_with_cause attempted_rrc_connection_resumes;
+  rrc_connection_resume_counter_with_cause successful_rrc_connection_resumes;
+  rrc_connection_resume_counter_with_cause successful_rrc_connection_resumes_with_fallback;
+  rrc_connection_resume_counter_with_cause rrc_connection_resumes_followed_by_network_release;
+  rrc_connection_resume_counter_with_cause attempted_rrc_connection_resumes_followed_by_rrc_setup;
 };
 
 class rrc_du_metrics_aggregator : public rrc_du_metrics_collector
@@ -57,23 +57,23 @@ public:
 
   void aggregate_successful_rrc_resume();
 
-  void aggregate_attempted_connection_establishment(establishment_resume_cause_t cause);
+  void aggregate_attempted_connection_establishment(establishment_cause_t cause);
 
-  void aggregate_successful_connection_establishment(establishment_resume_cause_t cause);
+  void aggregate_successful_connection_establishment(establishment_cause_t cause);
 
   void aggregate_attempted_connection_reestablishment();
 
   void aggregate_successful_connection_reestablishment(bool with_ue_context);
 
-  void aggregate_attempted_connection_resume(establishment_resume_cause_t cause);
+  void aggregate_attempted_connection_resume(resume_cause_t cause);
 
-  void aggregate_successful_connection_resume(establishment_resume_cause_t cause);
+  void aggregate_successful_connection_resume(resume_cause_t cause);
 
-  void aggregate_successful_connection_resume_with_fallback(establishment_resume_cause_t cause);
+  void aggregate_successful_connection_resume_with_fallback(resume_cause_t cause);
 
-  void aggregate_connection_resume_followed_by_network_release(establishment_resume_cause_t cause);
+  void aggregate_connection_resume_followed_by_network_release(resume_cause_t cause);
 
-  void aggregate_attempted_connection_resume_followed_by_rrc_setup(establishment_resume_cause_t cause);
+  void aggregate_attempted_connection_resume_followed_by_rrc_setup(resume_cause_t cause);
 
   void collect_metrics(rrc_du_metrics& metrics) override;
 

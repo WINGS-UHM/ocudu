@@ -100,7 +100,7 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
 
 async_task<void> rrc_resume_procedure::handle_rrc_resume_failure()
 {
-  context.connection_cause = asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause);
+  context.connection_cause = asn1_resume_cause_to_establishment_cause(resume_request.rrc_resume_request.resume_cause);
 
   // Notify metrics about RRC connection resume followed by network release.
   metrics_notifier.on_rrc_connection_resume_followed_by_network_release(

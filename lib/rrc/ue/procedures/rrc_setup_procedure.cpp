@@ -12,6 +12,7 @@
 #include "../rrc_asn1_helpers.h"
 #include "ue/rrc_asn1_converters.h"
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/ran/cause/common.h"
 #include <variant>
 
 using namespace ocudu;
@@ -107,7 +108,8 @@ void rrc_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
     metrics_notifier.on_successful_rrc_connection_reestablishment_fallback();
   } else if (is_resume_fallback) {
     // Notify metrics about successful RRC connection resume with fallback.
-    metrics_notifier.on_successful_rrc_connection_resume_with_fallback(context.connection_cause);
+    metrics_notifier.on_successful_rrc_connection_resume_with_fallback(
+        establishment_cause_to_resume_cause(context.connection_cause));
   } else {
     // Notify metrics about successful RRC connection establishment.
     metrics_notifier.on_successful_rrc_connection_establishment(context.connection_cause);
@@ -182,4 +184,33 @@ void rrc_setup_procedure::send_initial_ue_msg()
   }
 
   ngap_notifier.on_initial_ue_message(init_ue_msg);
+}
+
+resume_cause_t
+rrc_setup_procedure::establishment_cause_to_resume_cause(const establishment_cause_t& establishment_cause)
+{
+  switch (establishment_cause) {
+    case establishment_cause_t::emergency:
+      return resume_cause_t::emergency;
+    case establishment_cause_t::high_prio_access:
+      return resume_cause_t::high_prio_access;
+    case establishment_cause_t::mt_access:
+      return resume_cause_t::mt_access;
+    case establishment_cause_t::mo_sig:
+      return resume_cause_t::mo_sig;
+    case establishment_cause_t::mo_data:
+      return resume_cause_t::mo_data;
+    case establishment_cause_t::mo_voice_call:
+      return resume_cause_t::mo_voice_call;
+    case establishment_cause_t::mo_video_call:
+      return resume_cause_t::mo_video_call;
+    case establishment_cause_t::mo_sms:
+      return resume_cause_t::mo_sms;
+    case establishment_cause_t::mps_prio_access:
+      return resume_cause_t::mps_prio_access;
+    case establishment_cause_t::mcs_prio_access:
+      return resume_cause_t::mcs_prio_access;
+    default:
+      return resume_cause_t::unknown;
+  }
 }

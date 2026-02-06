@@ -85,6 +85,8 @@ private:
   /// \remark Forward the Initial UE Message to the NGAP
   void send_initial_ue_msg();
 
+  static resume_cause_t establishment_cause_to_resume_cause(const establishment_cause_t& establishment_cause);
+
   rrc_ue_context_t&  context;
   const byte_buffer& du_to_cu_container;
 

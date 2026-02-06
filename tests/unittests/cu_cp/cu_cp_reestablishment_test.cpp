@@ -371,11 +371,9 @@ TEST_F(cu_cp_reestablishment_test, when_old_ue_does_not_exist_then_reestablishme
 
   // Check metrics for RRC connection establishment.
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(
-      report.dus[0].rrc_metrics.attempted_rrc_connection_establishments.get_count(establishment_resume_cause_t::mo_sig),
-      1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(
-                establishment_resume_cause_t::mo_sig),
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
+            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
             1);
 
   // Reestablishment Request to RNTI that does not exist.
@@ -392,8 +390,7 @@ TEST_F(cu_cp_reestablishment_test, when_old_ue_does_not_exist_then_reestablishme
 
   // Check metrics for successful RRC connection re-establishment without UE context (fallback).
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(
-                establishment_resume_cause_t::mo_sig),
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
             1);
   ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_reestablishments_without_ue_context, 1);
 
@@ -424,8 +421,7 @@ TEST_F(cu_cp_reestablishment_test, when_old_ue_has_no_ngap_context_then_reestabl
 
   // Check metrics for successful RRC connection re-establishment without UE context (fallback).
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(
-                establishment_resume_cause_t::mo_sig),
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
             1);
   ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_reestablishments_without_ue_context, 1);
 
@@ -551,8 +547,7 @@ TEST_F(cu_cp_reestablishment_test,
   // Check metrics for successful RRC connection re-establishment.
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_reestablishments, 1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(
-                establishment_resume_cause_t::mo_sig),
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
             1);
   ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_reestablishments_with_ue_context, 1);
   // Old UE should not be removed at this stage.
@@ -573,8 +568,7 @@ TEST_F(cu_cp_reestablishment_test, when_reestablishment_succeeds_then_amf_is_con
   // Check metrics for successful RRC connection re-establishment.
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_reestablishments, 1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(
-                establishment_resume_cause_t::mo_sig),
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
             1);
   ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_reestablishments_with_ue_context, 1);
   // Old UE should not be removed at this stage.
@@ -726,8 +720,7 @@ TEST_F(cu_cp_reestablishment_test,
   // Check metrics for successful RRC connection re-establishment.
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_reestablishments, 1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(
-                establishment_resume_cause_t::mo_sig),
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_establishments.get_count(establishment_cause_t::mo_sig),
             1);
   ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_reestablishments_with_ue_context, 1);
   // Old UE should not be removed at this stage.

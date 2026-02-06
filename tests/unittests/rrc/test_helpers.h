@@ -166,9 +166,9 @@ public:
 
   void on_rrc_inactive() override {}
 
-  void on_attempted_rrc_connection_establishment(establishment_resume_cause_t cause) override {}
+  void on_attempted_rrc_connection_establishment(establishment_cause_t cause) override {}
 
-  void on_successful_rrc_connection_establishment(establishment_resume_cause_t cause) override {}
+  void on_successful_rrc_connection_establishment(establishment_cause_t cause) override {}
 
   void on_attempted_rrc_connection_reestablishment() override {}
 
@@ -176,15 +176,15 @@ public:
 
   void on_successful_rrc_connection_reestablishment_fallback() override {}
 
-  void on_attempted_rrc_connection_resume(establishment_resume_cause_t cause) override {}
+  void on_attempted_rrc_connection_resume(resume_cause_t cause) override {}
 
-  void on_successful_rrc_connection_resume(establishment_resume_cause_t cause) override {}
+  void on_successful_rrc_connection_resume(resume_cause_t cause) override {}
 
-  void on_successful_rrc_connection_resume_with_fallback(establishment_resume_cause_t cause) override {}
+  void on_successful_rrc_connection_resume_with_fallback(resume_cause_t cause) override {}
 
-  void on_rrc_connection_resume_followed_by_network_release(establishment_resume_cause_t cause) override {}
+  void on_rrc_connection_resume_followed_by_network_release(resume_cause_t cause) override {}
 
-  void on_attempted_rrc_connection_resume_followed_by_rrc_setup(establishment_resume_cause_t cause) override {}
+  void on_attempted_rrc_connection_resume_followed_by_rrc_setup(resume_cause_t cause) override {}
 };
 
 } // namespace ocudu::ocucp

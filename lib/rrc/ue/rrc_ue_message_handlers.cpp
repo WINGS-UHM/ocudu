@@ -174,10 +174,11 @@ void rrc_ue_impl::handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_reque
     logger.log_info("Received RRC Resume Request, but falling back to RRC Setup. Cause: {}",
                     context.cfg.force_resume_fallback ? "RRC Resumes are disabled" : "UE context wasn't found");
     // Fallback to RRC Setup
-    context.connection_cause = asn1_to_resume_cause(msg.rrc_resume_request.resume_cause);
+    context.connection_cause = asn1_resume_cause_to_establishment_cause(msg.rrc_resume_request.resume_cause);
 
     // Notify metrics about the attempted RRC connection resume followed by RRC Setup.
-    metrics_notifier.on_attempted_rrc_connection_resume_followed_by_rrc_setup(context.connection_cause);
+    metrics_notifier.on_attempted_rrc_connection_resume_followed_by_rrc_setup(
+        asn1_to_resume_cause(msg.rrc_resume_request.resume_cause));
 
     cu_cp_ue_notifier.schedule_async_task(launch_async<rrc_setup_procedure>(context,
                                                                             du_to_cu_container,

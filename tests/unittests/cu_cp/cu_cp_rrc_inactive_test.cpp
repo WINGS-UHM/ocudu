@@ -733,8 +733,7 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existin
 
   // Check metrics for attempted RRC resume.
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
-            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
 
   // Send UE Context Setup Response and await Bearer Context Modification Request.
   ASSERT_TRUE(send_ue_context_setup_response_and_await_bearer_context_modification_request());
@@ -747,8 +746,7 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existin
 
   // Check metrics for successful RRC resume.
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(
-      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
 }
 
 TEST_F(cu_cp_rrc_inactive_test, when_ue_becomes_inactive_after_resume_then_resume_is_successful_again)
@@ -777,10 +775,8 @@ TEST_F(cu_cp_rrc_inactive_test, when_ue_becomes_inactive_after_resume_then_resum
 
   // Check metrics for attempted/successful RRC resume.
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
-            1);
-  ASSERT_EQ(
-      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
 
   // Second Active -> Inactive -> Resume cycle.
 
@@ -808,10 +804,8 @@ TEST_F(cu_cp_rrc_inactive_test, when_ue_becomes_inactive_after_resume_then_resum
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   // Check metrics for attempted/successful RRC resume.
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
-            2);
-  ASSERT_EQ(
-      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 2);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 2);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 2);
 }
 
 TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_unknown_ue_is_received_then_fallback_succeeds)
@@ -832,16 +826,13 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_unknown_ue_is_receiv
 
   // Check metrics for RRC resume.
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 0);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup.get_count(
+                resume_cause_t::mo_data),
             1);
   ASSERT_EQ(
-      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 0);
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup.get_count(
-                establishment_resume_cause_t::mo_data),
-            1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(
-                establishment_resume_cause_t::mo_data),
-            1);
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(resume_cause_t::mo_data), 1);
 }
 
 TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_with_invalid_resume_mac_is_received_then_release_is_sent)
@@ -874,16 +865,13 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_with_invalid_resume_
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
   // Check metrics for RRC resume.
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
-            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 0);
   ASSERT_EQ(
-      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 0);
-  ASSERT_EQ(report.dus[0].rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(
-                establishment_resume_cause_t::mo_data),
-            1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(
-                establishment_resume_cause_t::mo_data),
-            0);
+      report.dus[0].rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(resume_cause_t::mo_data),
+      1);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(resume_cause_t::mo_data), 0);
 }
 
 TEST_F(cu_cp_rrc_inactive_test, when_ue_context_setup_for_rrc_resume_fails_then_release_is_sent)
@@ -915,8 +903,7 @@ TEST_F(cu_cp_rrc_inactive_test, when_ue_context_setup_for_rrc_resume_fails_then_
 
   // Check metrics for attempted RRC resume.
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
-            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
 
   // Send UE Context Setup Response and await Bearer Context Modification Request.
   ASSERT_TRUE(send_ue_context_setup_failure_and_await_ngap_ue_context_release_request());
@@ -931,16 +918,13 @@ TEST_F(cu_cp_rrc_inactive_test, when_ue_context_setup_for_rrc_resume_fails_then_
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
   // Check metrics for RRC resume.
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
-            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 0);
   ASSERT_EQ(
-      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 0);
-  ASSERT_EQ(report.dus[0].rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(
-                establishment_resume_cause_t::mo_data),
-            1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(
-                establishment_resume_cause_t::mo_data),
-            0);
+      report.dus[0].rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(resume_cause_t::mo_data),
+      1);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(resume_cause_t::mo_data), 0);
 }
 
 TEST_F(cu_cp_rrc_inactive_test, when_bearer_context_modification_for_rrc_resume_fails_then_release_is_sent)
@@ -972,8 +956,7 @@ TEST_F(cu_cp_rrc_inactive_test, when_bearer_context_modification_for_rrc_resume_
 
   // Check metrics for attempted RRC resume.
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
-            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
 
   // Send UE Context Setup Response and await Bearer Context Modification Request.
   ASSERT_TRUE(send_ue_context_setup_response_and_await_bearer_context_modification_request());
@@ -994,16 +977,13 @@ TEST_F(cu_cp_rrc_inactive_test, when_bearer_context_modification_for_rrc_resume_
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
   // Check metrics for RRC resume.
-  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data),
-            1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.attempted_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(resume_cause_t::mo_data), 0);
   ASSERT_EQ(
-      report.dus[0].rrc_metrics.successful_rrc_connection_resumes.get_count(establishment_resume_cause_t::mo_data), 0);
-  ASSERT_EQ(report.dus[0].rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(
-                establishment_resume_cause_t::mo_data),
-            1);
-  ASSERT_EQ(report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(
-                establishment_resume_cause_t::mo_data),
-            0);
+      report.dus[0].rrc_metrics.rrc_connection_resumes_followed_by_network_release.get_count(resume_cause_t::mo_data),
+      1);
+  ASSERT_EQ(
+      report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(resume_cause_t::mo_data), 0);
 }
 
 //----------------------------------------------------------------------------------//

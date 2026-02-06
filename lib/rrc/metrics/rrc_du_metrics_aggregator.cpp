@@ -45,12 +45,12 @@ void rrc_du_metrics_aggregator::aggregate_successful_rrc_resume()
   connection_metrics.add_rrc_connection();
 }
 
-void rrc_du_metrics_aggregator::aggregate_attempted_connection_establishment(establishment_resume_cause_t cause)
+void rrc_du_metrics_aggregator::aggregate_attempted_connection_establishment(establishment_cause_t cause)
 {
   connection_establishment_metrics.attempted_rrc_connection_establishments.increase(cause);
 }
 
-void rrc_du_metrics_aggregator::aggregate_successful_connection_establishment(establishment_resume_cause_t cause)
+void rrc_du_metrics_aggregator::aggregate_successful_connection_establishment(establishment_cause_t cause)
 {
   connection_establishment_metrics.successful_rrc_connection_establishments.increase(cause);
 }
@@ -69,29 +69,27 @@ void rrc_du_metrics_aggregator::aggregate_successful_connection_reestablishment(
   }
 }
 
-void rrc_du_metrics_aggregator::aggregate_attempted_connection_resume(establishment_resume_cause_t cause)
+void rrc_du_metrics_aggregator::aggregate_attempted_connection_resume(resume_cause_t cause)
 {
   connection_resume_metrics.attempted_rrc_connection_resumes.increase(cause);
 }
 
-void rrc_du_metrics_aggregator::aggregate_successful_connection_resume(establishment_resume_cause_t cause)
+void rrc_du_metrics_aggregator::aggregate_successful_connection_resume(resume_cause_t cause)
 {
   connection_resume_metrics.successful_rrc_connection_resumes.increase(cause);
 }
 
-void rrc_du_metrics_aggregator::aggregate_successful_connection_resume_with_fallback(establishment_resume_cause_t cause)
+void rrc_du_metrics_aggregator::aggregate_successful_connection_resume_with_fallback(resume_cause_t cause)
 {
   connection_resume_metrics.successful_rrc_connection_resumes_with_fallback.increase(cause);
 }
 
-void rrc_du_metrics_aggregator::aggregate_connection_resume_followed_by_network_release(
-    establishment_resume_cause_t cause)
+void rrc_du_metrics_aggregator::aggregate_connection_resume_followed_by_network_release(resume_cause_t cause)
 {
   connection_resume_metrics.rrc_connection_resumes_followed_by_network_release.increase(cause);
 }
 
-void rrc_du_metrics_aggregator::aggregate_attempted_connection_resume_followed_by_rrc_setup(
-    establishment_resume_cause_t cause)
+void rrc_du_metrics_aggregator::aggregate_attempted_connection_resume_followed_by_rrc_setup(resume_cause_t cause)
 {
   connection_resume_metrics.attempted_rrc_connection_resumes_followed_by_rrc_setup.increase(cause);
 }

@@ -35,12 +35,12 @@ public:
 
   void on_rrc_inactive() override { metrics_handler.handle_rrc_inactive(); }
 
-  void on_attempted_rrc_connection_establishment(establishment_resume_cause_t cause) override
+  void on_attempted_rrc_connection_establishment(establishment_cause_t cause) override
   {
     metrics_handler.handle_attempted_rrc_setup(cause);
   }
 
-  void on_successful_rrc_connection_establishment(establishment_resume_cause_t cause) override
+  void on_successful_rrc_connection_establishment(establishment_cause_t cause) override
   {
     metrics_handler.handle_successful_rrc_setup(cause);
   }
@@ -60,27 +60,27 @@ public:
     metrics_handler.handle_successful_rrc_reestablishment_fallback();
   }
 
-  void on_attempted_rrc_connection_resume(establishment_resume_cause_t cause) override
+  void on_attempted_rrc_connection_resume(resume_cause_t cause) override
   {
     metrics_handler.handle_attempted_rrc_resume(cause);
   }
 
-  void on_successful_rrc_connection_resume(establishment_resume_cause_t cause) override
+  void on_successful_rrc_connection_resume(resume_cause_t cause) override
   {
     metrics_handler.handle_successful_rrc_resume(cause);
   }
 
-  void on_successful_rrc_connection_resume_with_fallback(establishment_resume_cause_t cause) override
+  void on_successful_rrc_connection_resume_with_fallback(resume_cause_t cause) override
   {
     metrics_handler.handle_successful_rrc_resume_with_fallback(cause);
   }
 
-  void on_rrc_connection_resume_followed_by_network_release(establishment_resume_cause_t cause) override
+  void on_rrc_connection_resume_followed_by_network_release(resume_cause_t cause) override
   {
     metrics_handler.handle_rrc_resume_followed_by_network_release(cause);
   }
 
-  void on_attempted_rrc_connection_resume_followed_by_rrc_setup(establishment_resume_cause_t cause) override
+  void on_attempted_rrc_connection_resume_followed_by_rrc_setup(resume_cause_t cause) override
   {
     metrics_handler.handle_attempted_rrc_resume_followed_by_rrc_setup(cause);
   }
@@ -123,18 +123,18 @@ public:
   void remove_ue(ue_index_t ue_index) override;
 
   // rrc_du_connection_event_handler.
-  void handle_successful_rrc_setup(std::optional<establishment_resume_cause_t> cause) override;
+  void handle_successful_rrc_setup(std::optional<establishment_cause_t> cause) override;
   void handle_successful_rrc_release(bool is_inactive = false) override;
   void handle_rrc_inactive() override;
-  void handle_attempted_rrc_setup(establishment_resume_cause_t cause) override;
+  void handle_attempted_rrc_setup(establishment_cause_t cause) override;
   void handle_attempted_rrc_reestablishment() override;
   void handle_successful_rrc_reestablishment() override;
   void handle_successful_rrc_reestablishment_fallback() override;
-  void handle_attempted_rrc_resume(establishment_resume_cause_t cause) override;
-  void handle_successful_rrc_resume(establishment_resume_cause_t cause) override;
-  void handle_successful_rrc_resume_with_fallback(establishment_resume_cause_t cause) override;
-  void handle_rrc_resume_followed_by_network_release(establishment_resume_cause_t cause) override;
-  void handle_attempted_rrc_resume_followed_by_rrc_setup(establishment_resume_cause_t cause) override;
+  void handle_attempted_rrc_resume(resume_cause_t cause) override;
+  void handle_successful_rrc_resume(resume_cause_t cause) override;
+  void handle_successful_rrc_resume_with_fallback(resume_cause_t cause) override;
+  void handle_rrc_resume_followed_by_network_release(resume_cause_t cause) override;
+  void handle_attempted_rrc_resume_followed_by_rrc_setup(resume_cause_t cause) override;
 
   rrc_du_cell_manager&             get_rrc_du_cell_manager() override { return *this; }
   rrc_du_ue_repository&            get_rrc_du_ue_repository() override { return *this; }

@@ -142,7 +142,7 @@ cu_cp_initial_ue_message ocudu::ocucp::generate_initial_ue_message(ue_index_t ue
   cu_cp_initial_ue_message msg = {};
   msg.ue_index                 = ue_index;
   (void)msg.nas_pdu.resize(nas_pdu_len);
-  msg.establishment_cause               = establishment_resume_cause_t::mo_sig;
+  msg.establishment_cause               = establishment_cause_t::mo_sig;
   msg.user_location_info.nr_cgi.plmn_id = plmn_identity::test_value();
   msg.user_location_info.nr_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
   msg.user_location_info.tai.plmn_id    = plmn_identity::test_value();

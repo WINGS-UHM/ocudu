@@ -527,6 +527,18 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool timeout_ran_paging_and_await_ngap_ue_context_release_request()
+  {
+    // Fail RAN paging (UE doesn't respond) and wait for NGAP UE Context Release Request.
+    if (tick_until(std::chrono::milliseconds{10240}, [&]() { return false; }, false)) {
+      return false;
+    }
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive UE Context Release Request");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_request(ngap_pdu),
+                              "Invalid UE Context Release Request");
+    return true;
+  }
+
   unsigned du_idx    = 0;
   unsigned cu_up_idx = 0;
 
@@ -985,4 +997,25 @@ TEST_F(cu_cp_rrc_inactive_test, when_dl_data_notification_for_inactive_ue_is_rec
   // Inject E1AP DL Data Notification and await F1AP Paging.
   ASSERT_TRUE(
       send_e1ap_dl_data_notification_and_await_f1ap_paging(du_idx, ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id));
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_ran_paging_timer_expires_then_ue_release_is_requested)
+{
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
+  // Inject Inactivity Notification and handle it.
+  ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
+
+  // Check metrics for RRC inactive transition.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  // Inject E1AP DL Data Notification and await F1AP Paging.
+  ASSERT_TRUE(
+      send_e1ap_dl_data_notification_and_await_f1ap_paging(du_idx, ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id));
+
+  // Timeout RAN paging and await NGAP UE Context Release Request.
+  ASSERT_TRUE(timeout_ran_paging_and_await_ngap_ue_context_release_request());
 }

@@ -50,16 +50,16 @@ protected:
         this->cell_res_alloc.next_config_resp.failed_drbs.push_back(drb.drb_id);
         continue;
       }
-      auto& new_drb            = next_cfg.drbs.emplace(drb.drb_id);
-      new_drb.drb_id           = drb.drb_id;
-      new_drb.lcid             = uint_to_lcid(3 + (unsigned)drb.drb_id);
-      new_drb.rlc_cfg          = make_default_srb_rlc_config();
-      new_drb.mac_cfg          = make_default_drb_mac_lc_config();
-      new_drb.pdcp_sn_len      = drb.pdcp_sn_len;
-      new_drb.s_nssai          = drb.qos_info.s_nssai;
-      new_drb.qos              = drb.qos_info.drb_qos;
-      new_drb.f1u.t_notify     = 100;
-      new_drb.f1u.warn_on_drop = false;
+      auto& new_drb                = next_cfg.drbs.emplace(drb.drb_id);
+      new_drb.drb_id               = drb.drb_id;
+      new_drb.lcid                 = uint_to_lcid(3 + (unsigned)drb.drb_id);
+      new_drb.rlc_cfg              = make_default_srb_rlc_config();
+      new_drb.mac_cfg              = make_default_drb_mac_lc_config();
+      new_drb.pdcp_sn_len          = drb.pdcp_sn_len;
+      new_drb.s_nssai              = drb.qos_info.s_nssai;
+      new_drb.qos                  = drb.qos_info.drb_qos;
+      new_drb.f1u.ul_t_notif_timer = std::chrono::milliseconds{100};
+      new_drb.f1u.warn_on_drop     = false;
     }
 
     proc = launch_async<ue_configuration_procedure>(req, ue_mng, params);

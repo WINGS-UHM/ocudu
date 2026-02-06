@@ -92,8 +92,8 @@ protected:
     f1u_conn = std::make_unique<f1u_local_connector>();
 
     // prepare F1-U DU bearer config
-    f1u_du_config.t_notify     = 10;
-    f1u_du_config.warn_on_drop = true;
+    f1u_du_config.ul_t_notif_timer = std::chrono::milliseconds{5};
+    f1u_du_config.warn_on_drop     = true;
 
     // prepare F1-U CU-UP bearer config
     f1u_cu_up_cfg.warn_on_drop = false;

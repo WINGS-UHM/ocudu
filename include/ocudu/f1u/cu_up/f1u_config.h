@@ -18,8 +18,10 @@ namespace ocuup {
 
 /// \brief Configurable parameters of the F1-U bearer in the CU-UP
 struct f1u_config {
-  bool                      warn_on_drop = true; ///< Log a warning instead of an info message whenever a PDU is dropped
-  std::chrono::milliseconds dl_t_notif_timer{10};
+  /// Log a warning instead of an info message whenever a PDU is dropped.
+  bool warn_on_drop = true;
+  /// Backoff timer for piggy-packing of discard blocks.
+  std::chrono::milliseconds dl_t_notif_timer{5};
   uint32_t                  queue_size = 8192;
   uint32_t                  batch_size = 256;
 };

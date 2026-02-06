@@ -40,11 +40,22 @@ namespace ocudu::config_helpers {
 ///               F1-U messages. Large values may trigger unnecessary discard notifications due to expiration of the
 ///               PDCP discard timer.
 
-///  Default value for RLC SDU queue limit in bytes are chosen such that it allows for 4096 PDCP pdus of 1500 of payload
+///  Default value for RLC SDU queue limit in bytes are chosen such that it allows for 4096 PDCP PDUs of 1500 of payload
 ///  and 7 bytes of PDCP overhead. The SDU limit should be much larger then this, so that the limit is the number of
-///  bytes in the queue, not the number of SDUs, even in the case of small PDUs
+///  bytes in the queue, not the number of SDUs, even in the case of small PDUs.
 const uint32_t default_rlc_queue_size_sdus  = 16384;
 const uint32_t default_rlc_queue_size_bytes = 4096 * (1500 + 7);
+
+/// Default value for the F1-U backoff timer (t_notify) in ms. This is the maximum time the F1-U waits to piggy-back
+/// a DDDS (transmit and delivery notifications) on a UL T-PDU before sending it separately.
+/// Larger timer values decrease the UL overhead on the F1-U. On the other hand, if the PDCP is notified too late about
+/// successfully transmitted/delivered PDUs, DL SDUs may be discarded at PDCP due to a supposedly full RLC SDU queue.
+/// The maximum delay_budget for a given rlc_queue_size_bytes and expected dl_tput_bps can be coarsely estimated by
+///
+/// delay_budget = rlc_queue_size_bytes * 1507 * 8 / dl_tput_bps - sr_period_ms / 1000
+///
+/// with sr_period_ms representing the period of a MAC scheduling request.
+const uint32_t default_f1u_backoff_timer = 5;
 
 inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(bool warn_on_drop,
                                                                                int  rlc_metrics_report)
@@ -66,7 +77,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(1)] = cfg;
@@ -84,7 +95,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(2)] = cfg;
@@ -102,7 +113,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(3)] = cfg;
@@ -127,7 +138,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.am.rx.max_sn_per_status = {};
     cfg.rlc.metrics_period          = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(4)] = cfg;
@@ -145,7 +156,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(65)] = cfg;
@@ -163,7 +174,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(66)] = cfg;
@@ -181,7 +192,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(67)] = cfg;
@@ -206,7 +217,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.am.rx.max_sn_per_status = {};
     cfg.rlc.metrics_period          = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(5)] = cfg;
@@ -231,7 +242,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.am.rx.max_sn_per_status = {};
     cfg.rlc.metrics_period          = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(6)] = cfg;
@@ -249,7 +260,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.rx.t_reassembly     = 100;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
     cfg.f1u.warn_on_drop          = warn_on_drop;
 
@@ -275,7 +286,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.am.rx.max_sn_per_status = {};
     cfg.rlc.metrics_period          = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
     cfg.f1u.warn_on_drop          = warn_on_drop;
 
@@ -301,7 +312,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.am.rx.max_sn_per_status = {};
     cfg.rlc.metrics_period          = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
     cfg.f1u.warn_on_drop          = warn_on_drop;
 
@@ -327,7 +338,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.am.rx.max_sn_per_status = {};
     cfg.rlc.metrics_period          = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
     cfg.f1u.warn_on_drop          = warn_on_drop;
 
@@ -353,7 +364,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.am.rx.max_sn_per_status = {};
     cfg.rlc.metrics_period          = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
     cfg.f1u.warn_on_drop          = warn_on_drop;
 
@@ -379,7 +390,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.am.rx.max_sn_per_status = {};
     cfg.rlc.metrics_period          = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
     cfg.f1u.warn_on_drop          = warn_on_drop;
 
@@ -401,7 +412,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(82)] = cfg;
@@ -419,7 +430,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(83)] = cfg;
@@ -437,7 +448,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(84)] = cfg;
@@ -455,7 +466,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(85)] = cfg;
@@ -473,7 +484,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(86)] = cfg;
@@ -491,7 +502,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(87)] = cfg;
@@ -509,7 +520,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(88)] = cfg;
@@ -527,7 +538,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(89)] = cfg;
@@ -545,7 +556,7 @@ inline std::map<five_qi_t, odu::du_qos_config> make_default_du_qos_config_list(b
     cfg.rlc.um.tx.queue_size_bytes = default_rlc_queue_size_bytes;
     cfg.rlc.metrics_period         = std::chrono::milliseconds(rlc_metrics_report);
     // F1-U
-    cfg.f1u.t_notify              = 10;
+    cfg.f1u.ul_t_notif_timer      = std::chrono::milliseconds{default_f1u_backoff_timer};
     cfg.f1u.rlc_queue_bytes_limit = default_rlc_queue_size_bytes;
 
     qos_list[uint_to_five_qi(90)] = cfg;

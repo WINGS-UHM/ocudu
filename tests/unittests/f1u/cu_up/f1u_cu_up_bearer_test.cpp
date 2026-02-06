@@ -102,7 +102,8 @@ protected:
     ue_inactivity_timer.run();
 
     // prepare F1-U config
-    f1u_cfg.warn_on_drop = false;
+    f1u_cfg.warn_on_drop     = false;
+    f1u_cfg.dl_t_notif_timer = std::chrono::milliseconds{5};
 
     // create F1-U bearer
     f1u = std::make_unique<f1u_bearer_impl>(
@@ -167,7 +168,7 @@ TEST_F(f1u_cu_up_test, tx_discard)
 
   f1u->discard_sdu(pdcp_sn);
   // advance time just before the timer-based DL notification is triggered
-  uint32_t f1u_dl_notif_time_ms = 10; // default notif timer
+  uint32_t f1u_dl_notif_time_ms = 5; // default notif timer
   for (uint32_t t = 0; t < f1u_dl_notif_time_ms - 1; t++) {
     EXPECT_TRUE(tester->tx_msg_list.empty());
     tick();

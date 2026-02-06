@@ -118,7 +118,7 @@ protected:
     init_logger();
     // create tester and testee
     f1u_config config            = {};
-    config.t_notify              = f1u_ul_notif_time_ms;
+    config.ul_t_notif_timer      = std::chrono::milliseconds{f1u_ul_notif_time_ms};
     config.rlc_queue_bytes_limit = f1u_intial_rlc_queue_bytes_limit;
     config.warn_on_drop          = true;
     init_f1u(config);
@@ -141,7 +141,7 @@ protected:
     init_logger();
     // create tester and testee
     f1u_config config           = {};
-    config.t_notify             = f1u_ul_notif_time_ms;
+    config.ul_t_notif_timer     = std::chrono::milliseconds{f1u_ul_notif_time_ms};
     config.warn_on_drop         = true;
     config.buffer_ul_on_startup = true;
     config.ul_buffer_size       = 2;

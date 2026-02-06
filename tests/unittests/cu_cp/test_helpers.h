@@ -147,6 +147,11 @@ public:
     logger.info("ue={}: Initializing UE release timer", ue_index);
   }
 
+  void initialize_rna_update_timer(ue_index_t ue_index) override
+  {
+    logger.info("ue={}: Initializing RNA update timer", ue_index);
+  }
+
   unsigned last_transaction_id = 99999;
 
 private:

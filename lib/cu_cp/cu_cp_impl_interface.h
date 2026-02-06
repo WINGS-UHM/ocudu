@@ -292,6 +292,10 @@ public:
   initialize_handover_ue_release_timer(ue_index_t                              ue_index,
                                        std::chrono::milliseconds               handover_ue_release_timeout,
                                        const cu_cp_ue_context_release_request& ue_context_release_request) = 0;
+
+  /// \brief Initialize a RNA update timer. When the timeout is reached, a release request is sent to the AMF.
+  /// \param[in] ue_index The index of the UE.
+  virtual void initialize_rna_update_timer(ue_index_t ue_index) = 0;
 };
 
 /// Methods used by CU-CP to transfer the RRC UE context e.g. for RRC Reestablishments.

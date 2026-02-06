@@ -256,6 +256,7 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
             get_cu_cp_ngap_handler(),
             du_db.get_du_processor(ue->get_du_index()).get_rrc_du_handler().get_rrc_du_connection_event_handler(),
             ngap->get_ngap_control_message_handler(),
+            get_cu_cp_ue_context_handler(),
             logger));
       }
     } else {
@@ -644,6 +645,13 @@ async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(co
   if (ran_paging_timer.is_running()) {
     logger.debug("ue={}: Stopping RAN paging timer", request.ue_index);
     ran_paging_timer.stop();
+  }
+
+  // Stop RNA update timer if it is running.
+  unique_timer& rna_update_timer = ue->get_rna_update_timer();
+  if (rna_update_timer.is_running()) {
+    logger.debug("ue={}: Stopping RNA update timer", request.ue_index);
+    rna_update_timer.stop();
   }
 
   return launch_async<rrc_resume_routine>(request,
@@ -1133,6 +1141,29 @@ void cu_cp_impl::initialize_handover_ue_release_timer(
   ue->get_handover_ue_release_timer().run();
 }
 
+void cu_cp_impl::initialize_rna_update_timer(ue_index_t ue_index)
+{
+  if (ue_mng.find_du_ue(ue_index) == nullptr) {
+    logger.warning("ue={}: Could not find UE", ue_index);
+    return;
+  }
+
+  cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+
+  if (ue->get_rna_update_timer().is_running()) {
+    logger.warning("ue={}: RNA update timer already running", ue_index);
+    return;
+  }
+
+  // Start RNA update timer (T380). When this timer expires, the UE will be released if it hasn't initiated RRC Resume
+  // procedure to send data or send mandatory RNA update.
+  logger.debug("ue={}: Setting release timer to {}min", ue_index, cfg.ue.t380.count());
+  unique_timer& rna_update_timer = ue->get_rna_update_timer();
+  rna_update_timer.set(cfg.ue.t380,
+                       [this, ue_idx = ue_index](timer_id_t /*tid*/) { request_release_of_inactive_ue(ue_idx); });
+  rna_update_timer.run();
+}
+
 // private
 
 void cu_cp_impl::handle_rrc_ue_creation(ue_index_t ue_index, rrc_ue_interface& rrc_ue)
@@ -1252,12 +1283,12 @@ void cu_cp_impl::send_ran_paging(cu_cp_ue&                                      
                              ? cu_cp_paging_msg.paging_edrx_info->nr_paging_edrx_cycle * hyper_frames{1}
                              : hyper_frames{0}));
   ran_paging_timer.set(ran_paging_timeout, [this, ue_index = ue.get_ue_index()](timer_id_t /*tid*/) {
-    on_ran_paging_timer_expired(ue_index);
+    request_release_of_inactive_ue(ue_index);
   });
   ran_paging_timer.run();
 }
 
-void cu_cp_impl::on_ran_paging_timer_expired(ue_index_t ue_index)
+void cu_cp_impl::request_release_of_inactive_ue(ue_index_t ue_index)
 {
   cu_cp_ue* ue = ue_mng.find_ue(ue_index);
   if (ue == nullptr) {

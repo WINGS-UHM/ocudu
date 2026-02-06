@@ -86,9 +86,10 @@ public:
   void handle_handover_reconfiguration_sent(const cu_cp_intra_cu_handover_target_request& request) override;
   void handle_handover_ue_context_push(ue_index_t source_ue_index, ue_index_t target_ue_index) override;
   void
-  initialize_handover_ue_release_timer(ue_index_t                              ue_index,
-                                       std::chrono::milliseconds               handover_ue_release_timeout,
-                                       const cu_cp_ue_context_release_request& ue_context_release_request) override;
+       initialize_handover_ue_release_timer(ue_index_t                              ue_index,
+                                            std::chrono::milliseconds               handover_ue_release_timeout,
+                                            const cu_cp_ue_context_release_request& ue_context_release_request) override;
+  void initialize_rna_update_timer(ue_index_t ue_index) override;
 
   // cu_cp_ngap_handler.
   bool handle_handover_request(ue_index_t                        ue_index,
@@ -190,7 +191,9 @@ private:
                        full_i_rnti_t                                     full_i_rnti,
                        const ngap_core_network_assist_info_for_inactive& cn_assist_info_for_inactive);
 
-  void on_ran_paging_timer_expired(ue_index_t ue_index);
+  /// \brief Request the release of an inactive UE that failed to resume within the expected time.
+  /// \param[in] ue_index The index of the UE to release.
+  void request_release_of_inactive_ue(ue_index_t ue_index);
 
   void on_statistics_report_timer_expired();
 

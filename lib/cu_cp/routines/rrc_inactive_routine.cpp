@@ -17,14 +17,15 @@ using namespace ocudu;
 using namespace ocucp;
 using namespace asn1::rrc_nr;
 
-rrc_inactive_routine::rrc_inactive_routine(ue_index_t                        ue_index_,
-                                           const rrc_ue_release_context&     release_context_,
-                                           e1ap_bearer_context_manager&      e1ap_bearer_ctxt_mng_,
-                                           f1ap_ue_context_manager&          f1ap_ue_ctxt_mng_,
-                                           cu_cp_ue_context_release_handler& ue_context_release_handler_,
-                                           rrc_du_connection_event_handler&  rrc_du_metrics_handler_,
-                                           ngap_control_message_handler&     ng_control_handler_,
-                                           ocudulog::basic_logger&           logger_) :
+rrc_inactive_routine::rrc_inactive_routine(ue_index_t                             ue_index_,
+                                           const rrc_ue_release_context&          release_context_,
+                                           e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
+                                           f1ap_ue_context_manager&               f1ap_ue_ctxt_mng_,
+                                           cu_cp_ue_context_release_handler&      ue_context_release_handler_,
+                                           rrc_du_connection_event_handler&       rrc_du_metrics_handler_,
+                                           ngap_control_message_handler&          ng_control_handler_,
+                                           cu_cp_ue_context_manipulation_handler& ue_context_handler_,
+                                           ocudulog::basic_logger&                logger_) :
   ue_index(ue_index_),
   release_context(release_context_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
@@ -32,6 +33,7 @@ rrc_inactive_routine::rrc_inactive_routine(ue_index_t                        ue_
   ue_context_release_handler(ue_context_release_handler_),
   rrc_du_metrics_handler(rrc_du_metrics_handler_),
   ng_control_handler(ng_control_handler_),
+  ue_context_handler(ue_context_handler_),
   logger(logger_)
 {
 }
@@ -86,6 +88,11 @@ void rrc_inactive_routine::operator()(coro_context<async_task<void>>& ctx)
     }
     // Notify DU RRC about RRC Inactive transition.
     rrc_du_metrics_handler.handle_rrc_inactive();
+  }
+
+  // Start RNA update timer after successful transition to RRC Inactive state.
+  {
+    ue_context_handler.initialize_rna_update_timer(ue_index);
   }
 
   // Inform AMF about RRC inactive transition report. If no RRC Inactive Transition Report is requested, the NGAP will

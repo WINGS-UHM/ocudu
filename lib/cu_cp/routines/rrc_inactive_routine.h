@@ -24,14 +24,15 @@ namespace ocucp {
 class rrc_inactive_routine
 {
 public:
-  rrc_inactive_routine(ue_index_t                        ue_index_,
-                       const rrc_ue_release_context&     release_context_,
-                       e1ap_bearer_context_manager&      e1ap_bearer_ctxt_mng_,
-                       f1ap_ue_context_manager&          f1ap_ue_ctxt_mng_,
-                       cu_cp_ue_context_release_handler& ue_context_release_handler_,
-                       rrc_du_connection_event_handler&  rrc_du_metrics_handler_,
-                       ngap_control_message_handler&     ng_control_handler_,
-                       ocudulog::basic_logger&           logger_);
+  rrc_inactive_routine(ue_index_t                             ue_index_,
+                       const rrc_ue_release_context&          release_context_,
+                       e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
+                       f1ap_ue_context_manager&               f1ap_ue_ctxt_mng_,
+                       cu_cp_ue_context_release_handler&      ue_context_release_handler_,
+                       rrc_du_connection_event_handler&       rrc_du_metrics_handler_,
+                       ngap_control_message_handler&          ng_control_handler_,
+                       cu_cp_ue_context_manipulation_handler& ue_context_handler_,
+                       ocudulog::basic_logger&                logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -41,12 +42,13 @@ private:
   const ue_index_t             ue_index;
   const rrc_ue_release_context release_context;
 
-  e1ap_bearer_context_manager&      e1ap_bearer_ctxt_mng;       // to trigger bearer context modification at CU-UP
-  f1ap_ue_context_manager&          f1ap_ue_ctxt_mng;           // to trigger UE context release at DU
-  cu_cp_ue_context_release_handler& ue_context_release_handler; // to release UE contexts
-  rrc_du_connection_event_handler&  rrc_du_metrics_handler;     // to notify DU RRC about RRC Inactive transition
-  ngap_control_message_handler&     ng_control_handler;         // to notify AMF about RRC Inactive transition
-  ocudulog::basic_logger&           logger;
+  e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng;       // to trigger bearer context modification at CU-UP
+  f1ap_ue_context_manager&               f1ap_ue_ctxt_mng;           // to trigger UE context release at DU
+  cu_cp_ue_context_release_handler&      ue_context_release_handler; // to release UE contexts
+  rrc_du_connection_event_handler&       rrc_du_metrics_handler;     // to notify DU RRC about RRC Inactive transition
+  ngap_control_message_handler&          ng_control_handler;         // to notify AMF about RRC Inactive transition
+  cu_cp_ue_context_manipulation_handler& ue_context_handler;         // to start RNA update timer
+  ocudulog::basic_logger&                logger;
 
   // (sub-)routine requests.
   e1ap_bearer_context_modification_request bearer_context_modification_request;

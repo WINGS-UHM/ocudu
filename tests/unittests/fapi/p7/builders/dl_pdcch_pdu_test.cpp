@@ -110,7 +110,7 @@ TEST(dl_pdcch_pdu_builder, valid_dci_ue_specific_parameters_passes)
 {
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
-  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci_pdu_builder();
 
   rnti_t rnti = to_rnti(100);
   builder_dci.set_ue_specific_parameters(rnti);
@@ -122,7 +122,7 @@ TEST(dl_pdcch_pdu_builder, valid_dci_control_channel_parameters_passes)
 {
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
-  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci_pdu_builder();
 
   unsigned          cce_index             = 100;
   aggregation_level dci_aggregation_level = aggregation_level::n4;
@@ -136,7 +136,7 @@ TEST(dl_pdcch_pdu_builder, valid_dci_data_scrambling_parameters_passes)
 {
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
-  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci_pdu_builder();
 
   unsigned nid_pdcch_data   = 200;
   unsigned nrnti_pdcch_data = 200;
@@ -151,7 +151,7 @@ TEST(dl_pdcch_pdu_builder, valid_dci_tx_power_parameters_passes)
   for (int i = -8; i != 9; ++i) {
     dl_pdcch_pdu         pdu;
     dl_pdcch_pdu_builder builder(pdu);
-    dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+    dl_dci_pdu_builder   builder_dci = builder.get_dl_dci_pdu_builder();
 
     builder_dci.set_profile_nr_tx_power_info_parameters(i);
 
@@ -166,7 +166,7 @@ TEST(dl_pdcch_pdu_builder, valid_dci_profile_sss_tx_power_parameters_passes)
   for (int i = -8; i != 9; ++i) {
     dl_pdcch_pdu         pdu;
     dl_pdcch_pdu_builder builder(pdu);
-    dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+    dl_dci_pdu_builder   builder_dci = builder.get_dl_dci_pdu_builder();
 
     builder_dci.set_profile_sss_tx_power_info_parameters(i, i - 10);
 
@@ -181,7 +181,7 @@ TEST(dl_pdcch_pdu_builder, valid_dmrs_parameters_passes)
 {
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
-  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci_pdu_builder();
 
   unsigned nid = 100;
   builder_dci.set_dmrs_parameters(nid);
@@ -193,7 +193,7 @@ TEST(dl_pdcch_pdu_builder, add_valid_dci_payload_passes)
 {
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
-  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci();
+  dl_dci_pdu_builder   builder_dci = builder.get_dl_dci_pdu_builder();
 
   dci_payload payload = {1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1};
   builder_dci.set_payload(payload);

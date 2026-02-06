@@ -87,7 +87,7 @@ void ocudu::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu_builder& 
   }
 
   // Fill the DCI.
-  fapi::dl_dci_pdu_builder dci_builder = builder.get_dl_dci();
+  fapi::dl_dci_pdu_builder dci_builder = builder.get_dl_dci_pdu_builder();
 
   fill_precoding_and_beamforming(dci_builder, pm_mapper, cell_nof_prbs);
 

@@ -89,7 +89,7 @@ TEST(fapi_to_phy_pdcch_conversion_test, valid_pdu_conversion_success)
                   }
 
                   // Add DCI.
-                  auto builder_dci = builder.get_dl_dci();
+                  auto builder_dci = builder.get_dl_dci_pdu_builder();
 
                   builder_dci.set_ue_specific_parameters(to_rnti(0))
                       .set_data_scrambling_parameters(nid_data, n_rnti)

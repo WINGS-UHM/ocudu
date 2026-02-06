@@ -192,10 +192,10 @@ public:
     return *this;
   }
 
-  /// \brief Gets the DL DCI PDU of the PDCCH PDU.
+  /// \brief Gets the DL DCI PDU builder of the PDCCH PDU.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.2.1, in table PDCCH PDU.
-  dl_dci_pdu_builder get_dl_dci()
+  dl_dci_pdu_builder get_dl_dci_pdu_builder()
   {
     // Set the DL DCI index.
     dl_dci_pdu_builder builder(pdu.dl_dci);

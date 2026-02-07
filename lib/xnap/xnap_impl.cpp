@@ -9,7 +9,7 @@
  */
 
 #include "xnap_impl.h"
-#include "ocudu/asn1/xnap/common.h"
+#include "procedures/xn_setup_procedure_asn1_helpers.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
 #include "ocudu/xnap/xnap_message.h"
 
@@ -75,38 +75,9 @@ async_task<void> xnap_impl::handle_xn_setup_request_required()
 
 void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
 {
-  xnap_message xn_setup_resp;
+  // TODO check XN setup request is a valid message.
 
-  xn_setup_resp.pdu.set_successful_outcome();
-  xn_setup_resp.pdu.successful_outcome().load_info_obj(ASN1_XNAP_ID_XN_SETUP);
-
-  xn_setup_resp_s& asn1_ies = xn_setup_resp.pdu.successful_outcome().value.xn_setup_resp();
-
-  // Fill global RAN node id.
-  auto& global_gnb = asn1_ies->global_ng_ran_node_id.set_gnb();
-  global_gnb.gnb_id.set_gnb_id();
-  global_gnb.gnb_id.gnb_id().from_number(1, 22); // TODO get right values.
-
-  asn1_ies->tai_support_list.resize(1);
-  for (auto& asn1_tai_support_item : asn1_ies->tai_support_list) {
-    // Fill TAC.
-    asn1_tai_support_item.tac.from_number(7);
-
-    // Fill broadcast PLMN list.
-    // TODO for loop
-    asn1_tai_support_item.broadcast_plmns.resize(1);
-    for (asn1::xnap::broadcast_plmn_in_tai_support_item_s& asn1_broadcast_plmn_item :
-         asn1_tai_support_item.broadcast_plmns) {
-      // Fill PLMN id.
-      // asn1_broadcast_plmn_item.plmn_id; // TODO.
-
-      // Fill TAI slice support list.
-      asn1_broadcast_plmn_item.tai_slice_support_list.resize(1);
-      // for (const asn1::xnap::s_nssai_s& ans1_slice_support_item : asn1_broadcast_plmn_item.tai_slice_support_list) {
-      //  TODO Fill S-NSSAI.
-      //}
-    }
-  }
+  xnap_message xn_setup_resp = generate_xn_setup_response(xnap_cfg);
 
   // tx_notifier->on_new_message(xn_setup_resp);
 }

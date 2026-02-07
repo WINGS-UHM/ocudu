@@ -10,8 +10,7 @@
 
 #pragma once
 
-#include "xnap_message.h"
-#include "ocudu/cu_cp/cu_cp_types.h"
+#include "xnap_message_notifier.h"
 #include "ocudu/support/async/async_task.h"
 
 namespace ocudu::ocucp {
@@ -28,14 +27,17 @@ public:
   virtual void handle_message(const xnap_message& msg) = 0;
 };
 
-/// Handle NGAP interface management procedures as defined in TS 38.413 section 8.7.
+/// XNAP interface for CU-CP to initiate the XN interface.
 class xnap_connection_manager
 {
 public:
   virtual ~xnap_connection_manager() = default;
 
-  /// TODO Docs.
+  /// Trigger the initiation of the XN setup procedure.
   virtual async_task<void> handle_xn_setup_request_required() = 0;
+
+  /// Provide the SCTP association notifier after the SCTP association establishment.
+  virtual void set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) = 0;
 };
 
 /// Combined entry point for the NGAP object.
@@ -44,4 +46,5 @@ class xnap_interface : public xnap_message_handler, public xnap_connection_manag
 public:
   virtual ~xnap_interface() = default;
 };
+
 } // namespace ocudu::ocucp

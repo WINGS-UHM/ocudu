@@ -10,8 +10,10 @@
 
 #pragma once
 
+#include "xnap_tx_pdu_notifier_with_log.h"
 #include "ocudu/xnap/xnap.h"
 #include "ocudu/xnap/xnap_configuration.h"
+#include "ocudu/xnap/xnap_message.h"
 
 namespace ocudu::ocucp {
 
@@ -26,6 +28,10 @@ public:
 
   // XNAP connection manager functions.
   async_task<void> handle_xn_setup_request_required() override;
+  void             set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) override
+  {
+    tx_notifier.connect(std::move(tx_notifier_));
+  }
 
 private:
   /// Message handling.
@@ -37,8 +43,9 @@ private:
 
   ocudulog::basic_logger& logger;
 
-  xnap_configuration xnap_cfg;
-  task_executor&     ctrl_exec;
+  xnap_configuration                xnap_cfg;
+  task_executor&                    ctrl_exec;
+  xnap_tx_pdu_notifier_with_logging tx_notifier;
 };
 
 } // namespace ocudu::ocucp

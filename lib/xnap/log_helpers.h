@@ -10,15 +10,11 @@
 
 #pragma once
 
-#include "ocudu/cu_cp/cu_cp_configuration.h"
-#include "ocudu/ran/gnb_id.h"
-#include <vector>
+#include "ocudu/asn1/xnap/xnap.h"
 
 namespace ocudu::ocucp {
 
-struct xnap_configuration {
-  gnb_id_t                             gnb_id;
-  std::vector<supported_tracking_area> tai_support_list;
-};
+/// \brief Log Received/Transmitted NGAP PDU.
+void log_xnap_pdu(ocudulog::basic_logger& logger, bool json_log, bool is_rx, const asn1::xnap::xn_ap_pdu_c& pdu);
 
 } // namespace ocudu::ocucp

@@ -8,6 +8,8 @@
 
 set(SOURCES
         xnap_impl.cpp
+        xnap_asn1_utils.cpp
+        log_helpers.cpp
     )
 
 

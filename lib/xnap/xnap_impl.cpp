@@ -9,6 +9,7 @@
  */
 
 #include "xnap_impl.h"
+#include "log_helpers.h"
 #include "procedures/xn_setup_procedure_asn1_helpers.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -24,9 +25,9 @@ xnap_impl::xnap_impl(const xnap_configuration& xnap_cfg_, task_executor& ctrl_ex
 
 void xnap_impl::handle_message(const xnap_message& msg)
 {
-  // Run NGAP protocols in Control executor.
+  // Run XNAP protocols in Control executor.
   if (not ctrl_exec.execute([this, msg]() {
-        // TODO log RX PDU.
+        log_xnap_pdu(logger, logger.debug.enabled(), true, msg.pdu);
         switch (msg.pdu.type().value) {
           case xn_ap_pdu_c::types_opts::init_msg:
             handle_initiating_message(msg.pdu.init_msg());
@@ -79,5 +80,7 @@ void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
 
   xnap_message xn_setup_resp = generate_xn_setup_response(xnap_cfg);
 
-  // tx_notifier->on_new_message(xn_setup_resp);
+  if (not tx_notifier.on_new_message(xn_setup_resp)) {
+    logger.error("Failed to send XN Setup Response. Cause: no SCTP association available");
+  }
 }

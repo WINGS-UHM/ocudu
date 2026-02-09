@@ -14,7 +14,7 @@ ocudu image:
   extends: .docker-builder
   stage: deploy
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   retry: 2
   variables:
     # CI & Infrastructure
@@ -80,7 +80,7 @@ ocudu image update latest:
   extends: .docker manifest
   stage: deploy
   rules:
-    - if: $CI_DESCRIPTION =~ /Nightly/
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   retry: 2
   variables:
     REGISTRY_URI: ${OCUDU_REGISTRY_URI}

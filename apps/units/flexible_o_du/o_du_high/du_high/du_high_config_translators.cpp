@@ -635,7 +635,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             static_cast<ra_prioritization::scaling_factor_bi>(clifield.scaling_factor_bi.value());
       }
     }
-    out_cell.cfra_enabled = base_cell.prach_cfg.cfra_enabled;
 
     // PhysicalCellGroup Config parameters.
     if (base_cell.pcg_cfg.p_nr_fr1.has_value()) {
@@ -659,7 +658,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id =
         to_search_space_id(base_cell.paging_cfg.paging_search_space_id);
     out_cell.dl_cfg_common.pcch_cfg = generate_pcch_config(base_cell);
-    out_cell.edrx_enabled           = base_cell.paging_cfg.edrx_enabled;
 
     // Parameters for PUSCH-ConfigCommon.
     if (not out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value()) {
@@ -672,18 +670,22 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().msg3_delta_power = base_cell.pusch_cfg.msg3_delta_power;
 
     // Set initial BWP builder.
-    out_cell.init_bwp_builder.pucch.min_k1 = base_cell.pucch_cfg.min_k1;
-    out_cell.init_bwp_builder.pusch.min_k2 = base_cell.pusch_cfg.min_k2;
-
+    out_cell.init_bwp_builder.pucch.min_k1                      = base_cell.pucch_cfg.min_k1;
+    out_cell.init_bwp_builder.pusch.min_k2                      = base_cell.pusch_cfg.min_k2;
+    out_cell.init_bwp_builder.pusch.transform_precoding_enabled = base_cell.pusch_cfg.enable_transform_precoding;
     // Determine the PUSCH transmission maximum number of layers:
     //  - one layer if transform precoding is enabled; or
     //  - selects the most limiting number of layers among the physical layer capability, the number of antennas and
     //    configured maximum rank.
-    pusch_processor_phy_capabilities phy_capabilities = get_pusch_processor_phy_capabilities();
     out_cell.init_bwp_builder.pusch.max_nof_layers =
         cell.cell.pusch_cfg.enable_transform_precoding
             ? 1
-            : std::min({cell.cell.nof_antennas_ul, phy_capabilities.max_nof_layers, cell.cell.pusch_cfg.max_rank});
+            : std::min({cell.cell.nof_antennas_ul,
+                        get_pusch_processor_phy_capabilities().max_nof_layers,
+                        cell.cell.pusch_cfg.max_rank});
+    out_cell.init_bwp_builder.rach.emplace();
+    out_cell.init_bwp_builder.rach->cfra_enabled  = base_cell.prach_cfg.cfra_enabled;
+    out_cell.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
 
     if (cell.cell.ntn_cfg.has_value()) {
       out_cell.ntn_params = make_ntn_cell_params(cell.cell.ntn_cfg.value(), cell.cell.pusch_cfg.harq_mode_b.any());

@@ -35,14 +35,33 @@ struct pusch_builder_params {
   uint8_t min_k2 = 4;
   /// PUSCH Maximum of transmission layers. Limits the maximum rank the UE is configured with. Values: {1, ..., 4}.
   uint8_t max_nof_layers = 1;
+  /// Whether transform precoding is enabled in PUSCH.
+  bool transform_precoding_enabled = false;
+};
+
+/// Random Access parameters for this BWP.
+struct rach_builder_params {
+  /// \brief Whether to enable contention-free random access (CFRA) for this BWP. If enabled, the number of RA preambles
+  /// used for CBRA (see \c nof_cb_preambles_per_ssb) must be less than \c total_nof_ra_preambles.
+  bool cfra_enabled = true;
+};
+
+/// Parameters used to configure paging in this BWP.
+struct paging_builder_params {
+  /// Whether eDRX paging is enabled.
+  bool edrx_enabled = false;
 };
 
 /// Parameters used to generate a BWP configuration.
 struct bwp_builder_params {
-  /// Parameters relative to the generation of the PUSCH configs for a given cell.
+  /// Parameters relative to the generation of the PUSCH configs.
   pusch_builder_params pusch;
-  /// Parameters relative to the generation of the PUCCH configs for a given cell.
+  /// Parameters relative to the generation of the PUCCH configs.
   pucch_builder_params pucch;
+  /// Parameters for Random Access in this BWP.
+  std::optional<rach_builder_params> rach;
+  /// Parameters relative to the generation of the paging configs.
+  paging_builder_params paging;
 };
 
 } // namespace ocudu

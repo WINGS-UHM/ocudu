@@ -105,12 +105,6 @@ struct du_cell_config {
   /// NTN configuration for this cell. When empty, the cell operates in terrestrial mode.
   std::optional<ntn_cell_params> ntn_params;
 
-  /// Whether contention-free random access is enabled for this cell.
-  bool cfra_enabled = true;
-
-  /// Whether eDRX paging is enabled.
-  bool edrx_enabled = false;
-
   /// List of RAN slices to support in the scheduler.
   std::vector<slice_rrm_policy_config> rrm_policy_members;
 };

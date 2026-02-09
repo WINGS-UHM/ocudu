@@ -74,7 +74,7 @@ void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder& 
   builder.set_ue_specific_parameters(pusch_pdu.rnti);
 
   const bwp_configuration& bwp_cfg = *pusch_pdu.bwp_cfg;
-  builder.set_bwp_parameters(bwp_cfg.crbs.length(), bwp_cfg.crbs.start(), bwp_cfg.scs, bwp_cfg.cp);
+  builder.set_bwp_parameters(bwp_cfg.crbs, bwp_cfg.scs, bwp_cfg.cp);
 
   builder.set_information_parameters(pusch_pdu.mcs_descr.target_code_rate,
                                      pusch_pdu.mcs_descr.modulation,
@@ -108,15 +108,12 @@ void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder& 
     builder.set_allocation_in_frequency_type_0_parameters(
         {rb_map}, pusch_pdu.tx_direct_current_location, pusch_pdu.ul_freq_shift_7p5khz);
   } else {
-    const vrb_interval& vrb_int = rbs.type1();
-    builder.set_allocation_in_frequency_type_1_parameters(vrb_int.start(),
-                                                          vrb_int.length(),
-                                                          pusch_pdu.intra_slot_freq_hopping,
-                                                          pusch_pdu.tx_direct_current_location,
-                                                          pusch_pdu.ul_freq_shift_7p5khz);
+    const vrb_interval& vrbs = rbs.type1();
+    builder.set_allocation_in_frequency_type_1_parameters(
+        vrbs, pusch_pdu.intra_slot_freq_hopping, pusch_pdu.tx_direct_current_location, pusch_pdu.ul_freq_shift_7p5khz);
   }
 
-  builder.set_allocation_in_time_parameters(pusch_pdu.symbols.start(), pusch_pdu.symbols.length());
+  builder.set_allocation_in_time_parameters(pusch_pdu.symbols);
 
   // Sending data through PUSCH is optional, but for now, the MAC does not signal this, use the TB size to catch it.
   ocudu_assert(pusch_pdu.tb_size_bytes, "Transport block of null size");

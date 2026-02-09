@@ -56,12 +56,10 @@ TEST(dl_prs_pdu_builder, valid_rb_parameters_passes)
   dl_prs_pdu         pdu;
   dl_prs_pdu_builder builder(pdu);
 
-  unsigned nof_rb   = 10;
-  unsigned start_rb = 2;
-  builder.set_rb_parameters(nof_rb, start_rb);
+  crb_interval crbs = {2, 10};
+  builder.set_rb_parameters(crbs);
 
-  ASSERT_EQ(nof_rb, pdu.num_rbs);
-  ASSERT_EQ(start_rb, pdu.start_rb);
+  ASSERT_EQ(crbs, pdu.crbs);
 }
 
 TEST(dl_prs_pdu_builder, valid_power_offset_parameter_passes)

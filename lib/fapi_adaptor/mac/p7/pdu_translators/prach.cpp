@@ -28,7 +28,9 @@ void ocudu::fapi_adaptor::convert_prach_mac_to_fapi(fapi::ul_prach_pdu_builder& 
   // compliant with the FAPI specification.
   unsigned nof_prach_occasions = is_long_preamble(mac_pdu.format) ? 1U : mac_pdu.nof_prach_occasions;
 
-  builder.set_preamble_parameters(mac_pdu.start_preamble_index, mac_pdu.nof_preamble_indexes)
+  builder
+      .set_preamble_parameters(fapi::ul_prach_pdu::preambles_interval::start_and_len(mac_pdu.start_preamble_index,
+                                                                                     mac_pdu.nof_preamble_indexes))
       .set_prach_parameters(nof_prach_occasions, mac_pdu.nof_cs, mac_pdu.format)
       .set_frequency_domain_parameters(mac_pdu.index_fd_ra, mac_pdu.nof_fd_ra)
       .set_time_domain_parameters(mac_pdu.start_symbol);

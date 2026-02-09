@@ -13,6 +13,7 @@
 #include "ocudu/fapi/p7/messages/tx_precoding_and_beamforming_pdu.h"
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/prs/prs.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <optional>
 
@@ -28,8 +29,7 @@ struct dl_prs_pdu {
   uint8_t                          comb_offset;
   prs_num_symbols                  num_symbols;
   uint8_t                          first_symbol;
-  uint16_t                         num_rbs;
-  uint16_t                         start_rb;
+  crb_interval                     crbs;
   std::optional<float>             prs_power_offset;
   tx_precoding_and_beamforming_pdu precoding_and_beamforming;
 };

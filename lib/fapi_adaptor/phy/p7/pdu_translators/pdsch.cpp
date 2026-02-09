@@ -94,9 +94,9 @@ static vrb_to_prb::mapping_type get_mapping_type(fapi::vrb_to_prb_mapping_type v
 static vrb_to_prb::configuration make_vrb_to_prb_config(const fapi::dl_pdsch_pdu& fapi_pdu)
 {
   // BWP i start.
-  unsigned N_bwp_i_start = fapi_pdu.bwp_start;
+  unsigned N_bwp_i_start = fapi_pdu.bwp.start();
   // BWP i size.
-  unsigned N_bwp_i_size = fapi_pdu.bwp_size;
+  unsigned N_bwp_i_size = fapi_pdu.bwp.length();
   // CORESET first VRB index.
   unsigned N_start_coreset = fapi_pdu.pdsch_maintenance_v3.coreset_start_point - N_bwp_i_start;
   // Initial BWP size.
@@ -128,13 +128,13 @@ static void fill_rb_allocation(pdsch_processor::pdu_t& proc_pdu, const fapi::dl_
   vrb_to_prb::configuration vrb_to_prb_config = make_vrb_to_prb_config(fapi_pdu);
 
   if (fapi_pdu.resource_alloc == fapi::resource_allocation_type::type_1) {
-    proc_pdu.freq_alloc = rb_allocation::make_type1(fapi_pdu.rb_start, fapi_pdu.rb_size, vrb_to_prb_config);
+    proc_pdu.freq_alloc = rb_allocation::make_type1(fapi_pdu.vrbs.start(), fapi_pdu.vrbs.length(), vrb_to_prb_config);
     return;
   }
 
   // Unpack the VRB bitmap. LSB of byte 0 of the bitmap represents the VRB 0.
-  vrb_bitmap vrb_bitmap(fapi_pdu.bwp_size);
-  for (unsigned vrb_index = 0, vrb_index_end = fapi_pdu.bwp_size; vrb_index != vrb_index_end; ++vrb_index) {
+  vrb_bitmap vrb_bitmap(fapi_pdu.bwp.length());
+  for (unsigned vrb_index = 0, vrb_index_end = fapi_pdu.bwp.length(); vrb_index != vrb_index_end; ++vrb_index) {
     unsigned byte = vrb_index / 8;
     unsigned bit  = vrb_index % 8;
     if ((fapi_pdu.rb_bitmap[byte] >> bit) & 1U) {
@@ -153,8 +153,8 @@ void ocudu::fapi_adaptor::convert_pdsch_fapi_to_phy(pdsch_processor::pdu_t&     
 {
   proc_pdu.slot         = slot;
   proc_pdu.rnti         = to_value(fapi_pdu.rnti);
-  proc_pdu.bwp_size_rb  = fapi_pdu.bwp_size;
-  proc_pdu.bwp_start_rb = fapi_pdu.bwp_start;
+  proc_pdu.bwp_size_rb  = fapi_pdu.bwp.length();
+  proc_pdu.bwp_start_rb = fapi_pdu.bwp.start();
   proc_pdu.cp           = fapi_pdu.cp;
 
   fill_codewords(proc_pdu, fapi_pdu);
@@ -178,8 +178,8 @@ void ocudu::fapi_adaptor::convert_pdsch_fapi_to_phy(pdsch_processor::pdu_t&     
   proc_pdu.scrambling_id               = fapi_pdu.pdsch_dmrs_scrambling_id;
   proc_pdu.n_scid                      = fapi_pdu.nscid == 1U;
   proc_pdu.nof_cdm_groups_without_data = fapi_pdu.num_dmrs_cdm_grps_no_data;
-  proc_pdu.start_symbol_index          = fapi_pdu.start_symbol_index;
-  proc_pdu.nof_symbols                 = fapi_pdu.nr_of_symbols;
+  proc_pdu.start_symbol_index          = fapi_pdu.symbols.start();
+  proc_pdu.nof_symbols                 = fapi_pdu.symbols.length();
 
   fill_rb_allocation(proc_pdu, fapi_pdu);
 

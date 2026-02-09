@@ -33,7 +33,7 @@ static void fill_bwp_parameters(fapi::dl_pdcch_pdu_builder&  builder,
   // point and size, otherwise, for the rest of CORESETs take it from the BWP where the CORESET belongs.
   const crb_interval& crbs = (coreset_cfg.get_id() == to_coreset_id(0)) ? coreset_cfg.coreset0_crbs() : bwp_cfg.crbs;
 
-  builder.set_bwp_parameters(crbs.length(), crbs.start(), bwp_cfg.scs, bwp_cfg.cp);
+  builder.set_bwp_parameters(crbs, bwp_cfg.scs, bwp_cfg.cp);
 }
 
 static freq_resource_bitmap calculate_coreset0_freq_res_bitmap(const coreset_configuration& coreset_cfg)
@@ -50,7 +50,8 @@ static void fill_coreset_parameters(fapi::dl_pdcch_pdu_builder&  builder,
                                     const coreset_configuration& coreset_cfg,
                                     unsigned                     start_symbol_index)
 {
-  builder.set_coreset_parameters(start_symbol_index, coreset_cfg.duration(), coreset_cfg.get_precoder_granularity());
+  builder.set_coreset_parameters(ofdm_symbol_range::start_and_len(start_symbol_index, coreset_cfg.duration()),
+                                 coreset_cfg.get_precoder_granularity());
 }
 
 static void fill_precoding_and_beamforming(fapi::dl_dci_pdu_builder&      builder,

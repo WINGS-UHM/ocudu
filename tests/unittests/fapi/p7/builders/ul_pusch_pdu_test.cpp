@@ -30,18 +30,16 @@ TEST(ul_pusch_pdu_builder, valid_basic_parameters_passes)
 
 TEST(ul_pusch_pdu_builder, valid_bwp_parameters_passes)
 {
-  unsigned           bwp_start = 100;
-  unsigned           bwp_size  = 69;
-  subcarrier_spacing scs       = subcarrier_spacing::kHz30;
-  cyclic_prefix      cp        = cyclic_prefix::EXTENDED;
+  crb_interval       bwp = {69, 100};
+  subcarrier_spacing scs = subcarrier_spacing::kHz30;
+  cyclic_prefix      cp  = cyclic_prefix::EXTENDED;
 
   ul_pusch_pdu         pdu;
   ul_pusch_pdu_builder builder(pdu);
 
-  builder.set_bwp_parameters(bwp_size, bwp_start, scs, cp);
+  builder.set_bwp_parameters(bwp, scs, cp);
 
-  ASSERT_EQ(bwp_size, pdu.bwp_size);
-  ASSERT_EQ(bwp_start, pdu.bwp_start);
+  ASSERT_EQ(bwp, pdu.bwp);
   ASSERT_EQ(scs, pdu.scs);
   ASSERT_EQ(cp, pdu.cp);
 }
@@ -127,39 +125,34 @@ TEST(ul_pusch_pdu_builder, valid_frequency_allocation_type0_parameters_passes)
 
 TEST(ul_pusch_pdu_builder, valid_frequency_allocation_type1_parameters_passes)
 {
-  unsigned rb_start          = 127;
-  unsigned rb_size           = 13;
-  bool     intra_slot_fh     = false;
-  unsigned tx_direct_current = 54;
-  bool     uplink_freq_shift = false;
+  vrb_interval vrbs              = {13, 127};
+  bool         intra_slot_fh     = false;
+  unsigned     tx_direct_current = 54;
+  bool         uplink_freq_shift = false;
 
   ul_pusch_pdu         pdu;
   ul_pusch_pdu_builder builder(pdu);
 
-  builder.set_allocation_in_frequency_type_1_parameters(
-      rb_start, rb_size, intra_slot_fh, tx_direct_current, uplink_freq_shift);
+  builder.set_allocation_in_frequency_type_1_parameters(vrbs, intra_slot_fh, tx_direct_current, uplink_freq_shift);
 
   ASSERT_EQ(vrb_to_prb_mapping_type::non_interleaved, pdu.vrb_to_prb_mapping);
   ASSERT_EQ(resource_allocation_type::type_1, pdu.resource_alloc);
   ASSERT_EQ(tx_direct_current, pdu.tx_direct_current_location);
   ASSERT_EQ(uplink_freq_shift, pdu.uplink_frequency_shift_7p5kHz);
-  ASSERT_EQ(rb_size, pdu.rb_size);
-  ASSERT_EQ(rb_start, pdu.rb_start);
+  ASSERT_EQ(vrbs, pdu.vrbs);
   ASSERT_EQ(intra_slot_fh, pdu.intra_slot_frequency_hopping);
 }
 
 TEST(ul_pusch_pdu_builder, valid_time_allocation_parameters_passes)
 {
-  unsigned start_symbol_idx = 4;
-  unsigned num_symbols      = 6;
+  ofdm_symbol_range symbols = {4, 6};
 
   ul_pusch_pdu         pdu;
   ul_pusch_pdu_builder builder(pdu);
 
-  builder.set_allocation_in_time_parameters(start_symbol_idx, num_symbols);
+  builder.set_allocation_in_time_parameters(symbols);
 
-  ASSERT_EQ(start_symbol_idx, pdu.start_symbol_index);
-  ASSERT_EQ(num_symbols, pdu.nr_of_symbols);
+  ASSERT_EQ(symbols, pdu.symbols);
 }
 
 TEST(ul_pusch_pdu_builder, valid_data_parameters_passes)

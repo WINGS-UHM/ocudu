@@ -29,8 +29,7 @@ TEST(mac_to_fapi_srs_pdu_test, valid_srs_pdu_should_pass)
   // BWP.
   ASSERT_EQ(mac_pdu.bwp_cfg->cp, fapi_pdu.cp);
   ASSERT_EQ(mac_pdu.bwp_cfg->scs, fapi_pdu.scs);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.start(), fapi_pdu.bwp_start);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.length(), fapi_pdu.bwp_size);
+  ASSERT_EQ(mac_pdu.bwp_cfg->crbs, fapi_pdu.bwp);
 
   ASSERT_EQ(mac_pdu.nof_antenna_ports, static_cast<uint8_t>(fapi_pdu.num_ant_ports));
   ASSERT_EQ(mac_pdu.symbols, fapi_pdu.ofdm_symbols);

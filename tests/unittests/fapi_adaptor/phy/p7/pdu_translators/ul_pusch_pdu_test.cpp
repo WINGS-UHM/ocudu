@@ -43,11 +43,11 @@ TEST(fapi_phy_ul_pusch_adaptor_test, valid_pdu_pass)
 
   const pusch_processor::pdu_t& phy_pdu = pdu.pdu;
   ASSERT_EQ(slot, phy_pdu.slot);
-  ASSERT_EQ(fapi_pdu.start_symbol_index, phy_pdu.start_symbol_index);
-  ASSERT_EQ(fapi_pdu.nr_of_symbols, phy_pdu.nof_symbols);
+  ASSERT_EQ(fapi_pdu.symbols.start(), phy_pdu.start_symbol_index);
+  ASSERT_EQ(fapi_pdu.symbols.length(), phy_pdu.nof_symbols);
   ASSERT_EQ(to_value(fapi_pdu.rnti), phy_pdu.rnti);
-  ASSERT_EQ(fapi_pdu.bwp_start, phy_pdu.bwp_start_rb);
-  ASSERT_EQ(fapi_pdu.bwp_size, phy_pdu.bwp_size_rb);
+  ASSERT_EQ(fapi_pdu.bwp.start(), phy_pdu.bwp_start_rb);
+  ASSERT_EQ(fapi_pdu.bwp.length(), phy_pdu.bwp_size_rb);
   ASSERT_EQ(fapi_pdu.cp, phy_pdu.cp);
   ASSERT_EQ(fapi_pdu.qam_mod_order, phy_pdu.mcs_descr.modulation);
   ASSERT_EQ(fapi_pdu.nid_pusch, phy_pdu.n_id);
@@ -80,8 +80,8 @@ TEST(fapi_phy_ul_pusch_adaptor_test, valid_pdu_pass)
   ASSERT_EQ(fapi_pdu.pusch_maintenance_v3.tb_size_lbrm_bytes, phy_pdu.tbs_lbrm);
 
   // RB allocation.
-  vrb_bitmap vrb_bitmap(fapi_pdu.bwp_size);
-  for (unsigned vrb_index = 0, vrb_index_end = fapi_pdu.bwp_size; vrb_index != vrb_index_end; ++vrb_index) {
+  vrb_bitmap vrb_bitmap(fapi_pdu.bwp.length());
+  for (unsigned vrb_index = 0, vrb_index_end = fapi_pdu.bwp.length(); vrb_index != vrb_index_end; ++vrb_index) {
     unsigned byte = vrb_index / 8;
     unsigned bit  = vrb_index % 8;
     if ((fapi_pdu.rb_bitmap[byte] >> bit) & 1U) {
@@ -90,7 +90,7 @@ TEST(fapi_phy_ul_pusch_adaptor_test, valid_pdu_pass)
   }
 
   rb_allocation alloc = (fapi_pdu.resource_alloc == fapi::resource_allocation_type::type_1)
-                            ? rb_allocation::make_type1(fapi_pdu.rb_start, fapi_pdu.rb_size, {})
+                            ? rb_allocation::make_type1(fapi_pdu.vrbs.start(), fapi_pdu.vrbs.length(), {})
                             : rb_allocation::make_type0(vrb_bitmap, {});
 
   ASSERT_EQ(alloc, phy_pdu.freq_alloc);

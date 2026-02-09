@@ -13,6 +13,8 @@
 #include "ocudu/fapi/p7/messages/uci_part1_to_part2_correspondence_v3.h"
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 
@@ -29,17 +31,14 @@ struct ul_pucch_maintenance_v3 {
 struct ul_pucch_pdu {
   rnti_t                   rnti;
   uint32_t                 handle = 0;
-  uint16_t                 bwp_size;
-  uint16_t                 bwp_start;
+  crb_interval             bwp;
   subcarrier_spacing       scs;
   cyclic_prefix            cp;
   pucch_format             format_type;
   pucch_repetition_tx_slot multi_slot_tx_indicator;
   bool                     pi2_bpsk;
-  uint16_t                 prb_start;
-  uint16_t                 prb_size;
-  uint8_t                  start_symbol_index;
-  uint8_t                  nr_of_symbols;
+  prb_interval             prbs;
+  ofdm_symbol_range        symbols;
   bool                     intra_slot_frequency_hopping;
   uint16_t                 second_hop_prb;
   pucch_group_hopping      pucch_grp_hopping;

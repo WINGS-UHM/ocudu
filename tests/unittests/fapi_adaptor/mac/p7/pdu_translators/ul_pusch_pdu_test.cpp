@@ -30,8 +30,7 @@ TEST(mac_to_fapi_pusch_pdu_test, valid_pusch_pdu_should_pass)
   const pusch_information& pusch_cfg = mac_pdu.pusch_cfg;
   ASSERT_EQ(pusch_cfg.bwp_cfg->cp, fapi_pdu.cp);
   ASSERT_EQ(pusch_cfg.bwp_cfg->scs, fapi_pdu.scs);
-  ASSERT_EQ(pusch_cfg.bwp_cfg->crbs.start(), fapi_pdu.bwp_start);
-  ASSERT_EQ(pusch_cfg.bwp_cfg->crbs.length(), fapi_pdu.bwp_size);
+  ASSERT_EQ(pusch_cfg.bwp_cfg->crbs, fapi_pdu.bwp);
 
   // Information parameters.
   ASSERT_EQ(static_cast<unsigned>(pusch_cfg.mcs_descr.target_code_rate * 10.F), fapi_pdu.target_code_rate);
@@ -62,15 +61,13 @@ TEST(mac_to_fapi_pusch_pdu_test, valid_pusch_pdu_should_pass)
   const vrb_alloc& prb_cfg = pusch_cfg.rbs;
   ASSERT_TRUE(fapi_pdu.resource_alloc == fapi::resource_allocation_type::type_1);
   ASSERT_TRUE(fapi_pdu.vrb_to_prb_mapping == fapi::vrb_to_prb_mapping_type::non_interleaved);
-  ASSERT_EQ(prb_cfg.type1().start(), fapi_pdu.rb_start);
-  ASSERT_EQ(prb_cfg.type1().length(), fapi_pdu.rb_size);
+  ASSERT_EQ(prb_cfg.type1(), fapi_pdu.vrbs);
   ASSERT_EQ(pusch_cfg.intra_slot_freq_hopping, fapi_pdu.intra_slot_frequency_hopping);
   ASSERT_EQ(pusch_cfg.tx_direct_current_location, fapi_pdu.tx_direct_current_location);
   ASSERT_EQ(pusch_cfg.ul_freq_shift_7p5khz, fapi_pdu.uplink_frequency_shift_7p5kHz);
 
   // Time allocation.
-  ASSERT_EQ(pusch_cfg.symbols.start(), fapi_pdu.start_symbol_index);
-  ASSERT_EQ(pusch_cfg.symbols.length(), fapi_pdu.nr_of_symbols);
+  ASSERT_EQ(pusch_cfg.symbols, fapi_pdu.symbols);
 
   // Maintenance v3.
   ASSERT_EQ(units::bytes(159749), fapi_pdu.pusch_maintenance_v3.tb_size_lbrm_bytes);

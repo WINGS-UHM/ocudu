@@ -23,11 +23,8 @@ void ocudu::fapi_adaptor::convert_csi_rs_mac_to_fapi(fapi::dl_tti_request_builde
           csi_rs_pdu.type, csi_rs_pdu.row, csi_rs_pdu.cdm_type, csi_rs_pdu.scrambling_id)
       .set_frequency_domain_parameters(csi_rs_pdu.freq_domain, csi_rs_pdu.freq_density)
       .set_time_domain_parameters(csi_rs_pdu.symbol0, csi_rs_pdu.symbol1)
-      .set_resource_block_parameters(csi_rs_pdu.crbs.start(), csi_rs_pdu.crbs.length())
-      .set_bwp_parameters(csi_rs_pdu.bwp_cfg->scs,
-                          csi_rs_pdu.bwp_cfg->cp,
-                          csi_rs_pdu.bwp_cfg->crbs.length(),
-                          csi_rs_pdu.bwp_cfg->crbs.start())
+      .set_resource_block_parameters(csi_rs_pdu.crbs)
+      .set_bwp_parameters(csi_rs_pdu.bwp_cfg->scs, csi_rs_pdu.bwp_cfg->cp, csi_rs_pdu.bwp_cfg->crbs)
       .set_tx_power_info_parameters(csi_rs_pdu.power_ctrl_offset,
                                     fapi::to_power_control_offset_ss(csi_rs_pdu.power_ctrl_offset_ss));
 }

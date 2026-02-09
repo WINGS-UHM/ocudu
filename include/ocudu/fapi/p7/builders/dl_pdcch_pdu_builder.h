@@ -127,13 +127,11 @@ public:
   /// \brief Sets the BWP parameters for the fields of the PDCCH PDU.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.2.1, in table PDCCH PDU.
-  dl_pdcch_pdu_builder&
-  set_bwp_parameters(uint16_t coreset_bwp_size, uint16_t coreset_bwp_start, subcarrier_spacing scs, cyclic_prefix cp)
+  dl_pdcch_pdu_builder& set_bwp_parameters(crb_interval coreset_bwp, subcarrier_spacing scs, cyclic_prefix cp)
   {
-    pdu.coreset_bwp_size  = coreset_bwp_size;
-    pdu.coreset_bwp_start = coreset_bwp_start;
-    pdu.scs               = scs;
-    pdu.cp                = cp;
+    pdu.coreset_bwp = coreset_bwp;
+    pdu.scs         = scs;
+    pdu.cp          = cp;
 
     return *this;
   }
@@ -141,12 +139,10 @@ public:
   /// \brief Sets the coreset parameters for the fields of the PDCCH PDU.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.2.1, in table PDCCH PDU.
-  dl_pdcch_pdu_builder& set_coreset_parameters(uint8_t                                          start_symbol_index,
-                                               uint8_t                                          duration_symbols,
+  dl_pdcch_pdu_builder& set_coreset_parameters(ofdm_symbol_range                                symbols,
                                                coreset_configuration::precoder_granularity_type precoder_granularity)
   {
-    pdu.start_symbol_index   = start_symbol_index;
-    pdu.duration_symbols     = duration_symbols;
+    pdu.symbols              = symbols;
     pdu.precoder_granularity = precoder_granularity;
 
     return *this;

@@ -16,6 +16,8 @@
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/pdsch/pdsch_context.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/sch/ldpc_base_graph.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <bitset>
@@ -125,8 +127,7 @@ struct dl_pdsch_pdu {
   std::bitset<BITMAP_SIZE>                             pdu_bitmap;
   rnti_t                                               rnti;
   uint16_t                                             pdu_index;
-  uint16_t                                             bwp_size;
-  uint16_t                                             bwp_start;
+  crb_interval                                         bwp;
   subcarrier_spacing                                   scs;
   cyclic_prefix                                        cp;
   static_vector<dl_pdsch_codeword, MAX_NUM_CW_PER_PDU> cws;
@@ -144,11 +145,9 @@ struct dl_pdsch_pdu {
   uint16_t                                             dmrs_ports;
   resource_allocation_type                             resource_alloc;
   std::array<uint8_t, MAX_SIZE_RB_BITMAP>              rb_bitmap;
-  uint16_t                                             rb_start;
-  uint16_t                                             rb_size;
+  vrb_interval                                         vrbs;
   vrb_to_prb_mapping_type                              vrb_to_prb_mapping;
-  uint8_t                                              start_symbol_index;
-  uint8_t                                              nr_of_symbols;
+  ofdm_symbol_range                                    symbols;
   std::variant<power_profile_nr, power_profile_sss>    power_config;
   // :TODO: PTRS
   tx_precoding_and_beamforming_pdu         precoding_and_beamforming;

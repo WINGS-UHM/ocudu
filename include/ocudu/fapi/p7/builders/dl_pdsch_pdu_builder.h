@@ -93,13 +93,11 @@ public:
 
   /// Sets the BWP parameters for the fields of the PDSCH PDU.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.2.2, in table PDSCH PDU.
-  dl_pdsch_pdu_builder&
-  set_bwp_parameters(uint16_t bwp_size, uint16_t bwp_start, subcarrier_spacing scs, cyclic_prefix cp)
+  dl_pdsch_pdu_builder& set_bwp_parameters(crb_interval bwp, subcarrier_spacing scs, cyclic_prefix cp)
   {
-    pdu.bwp_size  = bwp_size;
-    pdu.bwp_start = bwp_start;
-    pdu.scs       = scs;
-    pdu.cp        = cp;
+    pdu.bwp = bwp;
+    pdu.scs = scs;
+    pdu.cp  = cp;
 
     return *this;
   }
@@ -167,22 +165,19 @@ public:
 
     std::copy(rb_map.begin(), rb_map.end(), pdu.rb_bitmap.begin());
 
-    // Fill in these fields, although they belong to allocation type 1.
-    pdu.rb_start = 0;
-    pdu.rb_size  = 0;
+    // Fill in the VRBS fields, although they belong to allocation type 1.
+    pdu.vrbs = {0, 0};
 
     return *this;
   }
 
   /// Sets the PDSCH allocation in frequency type 1 parameters for the fields of the PDSCH PDU.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.2.2, in table PDSCH PDU.
-  dl_pdsch_pdu_builder& set_pdsch_allocation_in_frequency_type_1(uint16_t                rb_start,
-                                                                 uint16_t                rb_size,
+  dl_pdsch_pdu_builder& set_pdsch_allocation_in_frequency_type_1(vrb_interval            vrbs,
                                                                  vrb_to_prb_mapping_type vrb_to_prb_mapping)
   {
     pdu.resource_alloc     = resource_allocation_type::type_1;
-    pdu.rb_start           = rb_start;
-    pdu.rb_size            = rb_size;
+    pdu.vrbs               = vrbs;
     pdu.vrb_to_prb_mapping = vrb_to_prb_mapping;
 
     return *this;
@@ -190,10 +185,9 @@ public:
 
   /// Sets the PDSCH allocation in time parameters for the fields of the PDSCH PDU.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.2.2, in table PDSCH PDU.
-  dl_pdsch_pdu_builder& set_pdsch_allocation_in_time_parameters(uint8_t start_symbol_index, uint8_t nof_symbols)
+  dl_pdsch_pdu_builder& set_pdsch_allocation_in_time_parameters(ofdm_symbol_range symbols)
   {
-    pdu.start_symbol_index = start_symbol_index;
-    pdu.nr_of_symbols      = nof_symbols;
+    pdu.symbols = symbols;
 
     return *this;
   }

@@ -22,7 +22,7 @@ using crb_interval = interval<unsigned, false, crb_tag>;
 
 /// \brief Physical Resource Block (PRB) bitmap.
 ///
-/// Describes a {min,...,max} range of CRB indices within a BWP.
+/// Describes a {min,...,max} range of PRB indices within a BWP.
 using prb_interval = interval<unsigned, false, prb_tag>;
 
 /// \brief Virtual Resource Block (VRB) bitmap.

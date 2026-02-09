@@ -32,8 +32,9 @@ void ocudu::fapi_adaptor::convert_csi_rs_fapi_to_phy(nzp_csi_rs_generator::confi
   proc_pdu.slot = slot;
   proc_pdu.cp   = fapi_pdu.cp;
 
-  proc_pdu.start_rb = fapi_pdu.start_rb;
-  proc_pdu.nof_rb   = std::min(fapi_pdu.num_rbs, static_cast<uint16_t>(cell_bandwidth_prb - fapi_pdu.start_rb));
+  proc_pdu.start_rb                 = fapi_pdu.crbs.start();
+  proc_pdu.nof_rb                   = std::min(static_cast<uint16_t>(fapi_pdu.crbs.length()),
+                             static_cast<uint16_t>(cell_bandwidth_prb - fapi_pdu.crbs.start()));
   proc_pdu.csi_rs_mapping_table_row = fapi_pdu.row;
   csi_rs::convert_freq_domain(proc_pdu.freq_allocation_ref_idx, fapi_pdu.freq_domain, fapi_pdu.row);
 
@@ -56,8 +57,9 @@ void ocudu::fapi_adaptor::get_csi_rs_pattern_from_fapi_pdu(csi_rs_pattern&      
   // Fill the CSI-RS pattern configuration.
   csi_rs_pattern_configuration config;
 
-  config.start_rb = fapi_pdu.start_rb;
-  config.nof_rb   = std::min(fapi_pdu.num_rbs, static_cast<uint16_t>(cell_bandwidth_prb - fapi_pdu.start_rb));
+  config.start_rb                 = fapi_pdu.crbs.start();
+  config.nof_rb                   = std::min(static_cast<uint16_t>(fapi_pdu.crbs.length()),
+                           static_cast<uint16_t>(cell_bandwidth_prb - fapi_pdu.crbs.start()));
   config.csi_rs_mapping_table_row = fapi_pdu.row;
   csi_rs::convert_freq_domain(config.freq_allocation_ref_idx, fapi_pdu.freq_domain, fapi_pdu.row);
 

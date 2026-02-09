@@ -29,6 +29,6 @@ TEST(mac_fapi_ul_prach_pdu_conversor_test, valid_prach_pdu_should_pass)
   ASSERT_EQ(mac_pdu.nof_fd_ra, fapi_pdu.num_fd_ra);
   ASSERT_EQ(mac_pdu.start_symbol, fapi_pdu.prach_start_symbol);
   ASSERT_EQ(mac_pdu.nof_cs, fapi_pdu.num_cs);
-  ASSERT_EQ(mac_pdu.start_preamble_index, fapi_pdu.start_preamble_index);
-  ASSERT_EQ(mac_pdu.nof_preamble_indexes, fapi_pdu.num_preamble_indices);
+  ASSERT_EQ(mac_pdu.start_preamble_index, fapi_pdu.preambles.start());
+  ASSERT_EQ(mac_pdu.nof_preamble_indexes, fapi_pdu.preambles.length());
 }

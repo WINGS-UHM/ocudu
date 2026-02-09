@@ -24,19 +24,34 @@ class rach_indication_pdu_builder
 public:
   explicit rach_indication_pdu_builder(rach_indication_pdu& pdu_) : pdu(pdu_) {}
 
-  /// Sets the basic parameters of the \e RACH.indication PDU and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
-  rach_indication_pdu_builder& set_basic_params(uint8_t              symbol_index,
-                                                uint8_t              slot_index,
-                                                uint8_t              ra_index,
-                                                std::optional<float> avg_rssi_dB,
-                                                std::optional<float> avg_snr_dB)
+  /// \brief Sets the time domain parameters of the \e RACH.indication PDU and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
+  rach_indication_pdu_builder& set_time_domain_parameters(uint8_t symbol_index, uint8_t slot_index)
 
   {
     pdu.symbol_index = symbol_index;
     pdu.slot_index   = slot_index;
-    pdu.ra_index     = ra_index;
 
+    return *this;
+  }
+
+  /// \brief Sets the frequency domain parameters of the \e RACH.indication PDU and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
+  rach_indication_pdu_builder& set_frequency_domain_parameters(uint8_t ra_index)
+  {
+    pdu.ra_index = ra_index;
+
+    return *this;
+  }
+
+  /// \brief Sets the power parameters of the \e RACH.indication PDU and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
+  rach_indication_pdu_builder& set_power_parameters(std::optional<float> avg_rssi_dB, std::optional<float> avg_snr_dB)
+
+  {
     pdu.avg_rssi = (avg_rssi_dB) ? static_cast<uint32_t>((avg_rssi_dB.value() + 140.F) * 1000.F)
                                  : std::numeric_limits<uint32_t>::max();
 
@@ -52,10 +67,11 @@ public:
     return *this;
   }
 
-  /// Adds a preamble to the \e RACH.indication PDU and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
-  /// \note Units for timing advace offset parameter are specified in SCF-222 v4.0 section 3.4.11 in table
-  /// RACH.indication message body, and this function expect this units.
+  /// \brief Adds a preamble to the \e RACH.indication PDU and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
+  /// Units for timing advace offset parameter are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication
+  /// message body, and this function expect this units.
   rach_indication_pdu_builder& add_preamble(unsigned                     preamble_index,
                                             std::optional<phy_time_unit> timing_advance_offset,
                                             std::optional<float>         preamble_power,
@@ -93,17 +109,19 @@ class rach_indication_builder
 public:
   explicit rach_indication_builder(rach_indication& msg_) : msg(msg_) {}
 
-  /// Sets the basic parameters of the \e RACH.indication message and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
-  rach_indication_builder& set_basic_parameters(slot_point slot)
+  /// \brief Sets the slot point of the \e RACH.indication message and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
+  rach_indication_builder& set_slot_point(slot_point slot)
   {
     msg.slot = slot;
 
     return *this;
   }
 
-  /// Adds a PDU to the \e RACH.indication message and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
+  /// \brief Adds a PDU to the \e RACH.indication message and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
   rach_indication_pdu_builder add_pdu(uint8_t              symbol_index,
                                       uint8_t              slot_index,
                                       uint8_t              ra_index,
@@ -114,7 +132,9 @@ public:
 
     rach_indication_pdu_builder builder(pdu);
 
-    builder.set_basic_params(symbol_index, slot_index, ra_index, avg_rssi, avg_snr);
+    builder.set_time_domain_parameters(symbol_index, slot_index)
+        .set_frequency_domain_parameters(ra_index)
+        .set_power_parameters(avg_rssi, avg_snr);
 
     return builder;
   }

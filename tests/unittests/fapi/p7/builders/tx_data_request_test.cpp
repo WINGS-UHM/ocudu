@@ -24,7 +24,7 @@ TEST(tx_data_request_builder, valid_basic_parameters_passes)
   unsigned slot_index = 20;
   auto     slot       = slot_point(scs, sfn, slot_index);
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
   unsigned                  pdu_index = 3;
   unsigned                  cw_index  = 0;
   static_vector<uint8_t, 5> payload   = {5, 3, 4, 5};

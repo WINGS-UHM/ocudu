@@ -48,18 +48,18 @@ TEST(FAPIPPHYULPUCCHAdaptorTest, ValidFormat1PDUPass)
 
   // Format 1 custom parameters.
   const auto& phy_pdu = std::get<pucch_processor::format1_configuration>(pdu.config);
-  ASSERT_EQ(fapi_pdu.start_symbol_index, phy_pdu.start_symbol_index);
-  ASSERT_EQ(fapi_pdu.nr_of_symbols, phy_pdu.nof_symbols);
+  ASSERT_EQ(fapi_pdu.symbols.start(), phy_pdu.start_symbol_index);
+  ASSERT_EQ(fapi_pdu.symbols.length(), phy_pdu.nof_symbols);
   ASSERT_EQ(fapi_pdu.time_domain_occ_index, phy_pdu.time_domain_occ);
   ASSERT_EQ(fapi_pdu.initial_cyclic_shift, phy_pdu.initial_cyclic_shift);
 
   // Common parameters.
   ASSERT_EQ(slot, phy_pdu.slot);
-  ASSERT_EQ(fapi_pdu.bwp_start, phy_pdu.bwp_start_rb);
-  ASSERT_EQ(fapi_pdu.bwp_size, phy_pdu.bwp_size_rb);
+  ASSERT_EQ(fapi_pdu.bwp.start(), phy_pdu.bwp_start_rb);
+  ASSERT_EQ(fapi_pdu.bwp.length(), phy_pdu.bwp_size_rb);
   ASSERT_EQ(fapi_pdu.cp, phy_pdu.cp);
 
-  ASSERT_EQ(fapi_pdu.prb_start, phy_pdu.starting_prb);
+  ASSERT_EQ(fapi_pdu.prbs.start(), phy_pdu.starting_prb);
   if (phy_pdu.second_hop_prb.has_value()) {
     ASSERT_EQ(fapi_pdu.second_hop_prb, phy_pdu.second_hop_prb.value());
   }

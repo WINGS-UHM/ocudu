@@ -25,17 +25,19 @@ class rx_data_indication_builder
 public:
   explicit rx_data_indication_builder(rx_data_indication& msg_) : msg(msg_) {}
 
-  /// Sets the \e Rx_Data.indication basic parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.7 in table Rx_Data.indication message body.
-  rx_data_indication_builder& set_basic_parameters(slot_point slot)
+  /// \brief Sets the \e Rx_Data.indication slot point and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.7 in table Rx_Data.indication message body.
+  rx_data_indication_builder& set_slot_point(slot_point slot)
   {
     msg.slot = slot;
 
     return *this;
   }
 
-  /// Adds a PDU to the message and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.7 in table Rx_Data.indication message body.
+  /// \brief Adds a PDU to the message and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.7 in table Rx_Data.indication message body.
   rx_data_indication_builder& add_pdu(rnti_t rnti, harq_id_t harq_id, span<const uint8_t> transport_block)
   {
     auto& pdu = msg.pdus.emplace_back();

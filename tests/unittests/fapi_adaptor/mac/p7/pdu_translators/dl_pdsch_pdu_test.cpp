@@ -22,8 +22,7 @@ static void validate_pdsch_information(const pdsch_information& pdsch_cfg, const
 {
   // BWP params
   const bwp_configuration& bwp_cfg = *pdsch_cfg.bwp_cfg;
-  ASSERT_EQ(pdsch_cfg.coreset_cfg->coreset0_crbs().length(), fapi_pdu.bwp_size);
-  ASSERT_EQ(pdsch_cfg.coreset_cfg->coreset0_crbs().start(), fapi_pdu.bwp_start);
+  ASSERT_EQ(pdsch_cfg.coreset_cfg->coreset0_crbs(), fapi_pdu.bwp);
   ASSERT_EQ(bwp_cfg.scs, fapi_pdu.scs);
   ASSERT_EQ(bwp_cfg.cp, fapi_pdu.cp);
 
@@ -56,8 +55,7 @@ static void validate_pdsch_information(const pdsch_information& pdsch_cfg, const
   const vrb_alloc& prb_cfg = pdsch_cfg.rbs;
   ASSERT_EQ(fapi_pdu.resource_alloc, fapi::resource_allocation_type::type_1);
   ASSERT_EQ(fapi_pdu.vrb_to_prb_mapping, fapi::vrb_to_prb_mapping_type::non_interleaved);
-  ASSERT_EQ(prb_cfg.type1().start(), fapi_pdu.rb_start);
-  ASSERT_EQ(prb_cfg.type1().length(), fapi_pdu.rb_size);
+  ASSERT_EQ(prb_cfg.type1(), fapi_pdu.vrbs);
 }
 
 TEST(mac_fapi_pdsch_pdu_conversor_test, valid_sib1_pdu_should_pass)

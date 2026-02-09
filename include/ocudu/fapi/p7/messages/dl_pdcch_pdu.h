@@ -15,6 +15,7 @@
 #include "ocudu/ran/pdcch/aggregation_level.h"
 #include "ocudu/ran/pdcch/dci_packing.h"
 #include "ocudu/ran/pdcch/pdcch_context.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/subcarrier_spacing.h"
@@ -65,12 +66,10 @@ struct dl_pdcch_pdu {
     uint8_t reg_bundle_sz;
   };
 
-  uint16_t                                                                      coreset_bwp_size;
-  uint16_t                                                                      coreset_bwp_start;
+  crb_interval                                                                  coreset_bwp;
   subcarrier_spacing                                                            scs;
   cyclic_prefix                                                                 cp;
-  uint8_t                                                                       start_symbol_index;
-  uint8_t                                                                       duration_symbols;
+  ofdm_symbol_range                                                             symbols;
   freq_resource_bitmap                                                          freq_domain_resource;
   std::variant<mapping_coreset_0, mapping_interleaved, mapping_non_interleaved> mapping;
   coreset_configuration::precoder_granularity_type                              precoder_granularity;

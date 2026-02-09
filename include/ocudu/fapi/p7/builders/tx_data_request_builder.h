@@ -21,10 +21,10 @@ class tx_data_request_builder
 public:
   explicit tx_data_request_builder(tx_data_request& msg_) : msg(msg_) {}
 
-  /// \brief Sets the Tx_Data.request basic parameters and returns a reference to the builder.
+  /// \brief Sets the Tx_Data.request slot point and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.6 in table Tx_Data.request message body.
-  tx_data_request_builder& set_basic_parameters(slot_point slot)
+  tx_data_request_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 

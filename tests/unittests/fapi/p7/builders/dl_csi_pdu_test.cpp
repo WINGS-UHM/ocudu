@@ -65,13 +65,11 @@ TEST(dl_csi_pdu_builder, valid_resource_block_parameters_passes)
   dl_csi_rs_pdu         pdu;
   dl_csi_rs_pdu_builder builder(pdu);
 
-  unsigned start_rb = 200;
-  unsigned nof_rb   = 150;
+  crb_interval crbs = {150, 200};
 
-  builder.set_resource_block_parameters(start_rb, nof_rb);
+  builder.set_resource_block_parameters(crbs);
 
-  ASSERT_EQ(start_rb, pdu.start_rb);
-  ASSERT_EQ(nof_rb, pdu.num_rbs);
+  ASSERT_EQ(crbs, pdu.crbs);
 }
 
 TEST(dl_csi_pdu_builder, valid_bwp_parameters_passes)
@@ -82,15 +80,13 @@ TEST(dl_csi_pdu_builder, valid_bwp_parameters_passes)
   subcarrier_spacing scs      = subcarrier_spacing::kHz60;
   cyclic_prefix      cyclic_p = cyclic_prefix::NORMAL;
 
-  unsigned bwp_start = 56U;
-  unsigned bwp_size  = 60U;
+  crb_interval bwp = {56U, 60U};
 
-  builder.set_bwp_parameters(scs, cyclic_p, bwp_size, bwp_start);
+  builder.set_bwp_parameters(scs, cyclic_p, bwp);
 
   ASSERT_EQ(scs, pdu.scs);
   ASSERT_EQ(cyclic_p, pdu.cp);
-  ASSERT_EQ(bwp_size, pdu.bwp_size);
-  ASSERT_EQ(bwp_start, pdu.bwp_start);
+  ASSERT_EQ(bwp, pdu.bwp);
 }
 
 TEST(dl_csi_pdu_builder, valid_tx_power_info_parameters_passes)

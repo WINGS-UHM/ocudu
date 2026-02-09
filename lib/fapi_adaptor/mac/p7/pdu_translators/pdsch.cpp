@@ -13,7 +13,6 @@
 #include "ocudu/mac/mac_cell_result.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 #include "ocudu/ran/sch/sch_constants.h"
-#include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/scheduler/result/pdsch_info.h"
 #include <numeric>
 
@@ -103,14 +102,14 @@ static void fill_frequency_allocation(fapi::dl_pdsch_pdu_builder&   builder,
     }
     builder.set_pdsch_allocation_in_frequency_type_0({rb_map}, mapping);
   } else {
-    const vrb_interval& vrb_int = rbs.type1();
-    builder.set_pdsch_allocation_in_frequency_type_1(vrb_int.start(), vrb_int.length(), mapping);
+    const vrb_interval& vrbs = rbs.type1();
+    builder.set_pdsch_allocation_in_frequency_type_1(vrbs, mapping);
   }
 }
 
 static void fill_time_allocation(fapi::dl_pdsch_pdu_builder& builder, const ofdm_symbol_range& symbols)
 {
-  builder.set_pdsch_allocation_in_time_parameters(symbols.start(), symbols.length());
+  builder.set_pdsch_allocation_in_time_parameters(symbols);
 }
 
 static void fill_power_parameters(fapi::dl_pdsch_pdu_builder& builder, const tx_power_pdsch_information& power_params)
@@ -266,8 +265,7 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
                             mac_pdu.pdsch_cfg.nof_layers);
   // BWP parameters.
   const crb_interval& crbs = get_crb_interval(mac_pdu.pdsch_cfg);
-  builder.set_bwp_parameters(
-      crbs.length(), crbs.start(), mac_pdu.pdsch_cfg.bwp_cfg->scs, mac_pdu.pdsch_cfg.bwp_cfg->cp);
+  builder.set_bwp_parameters(crbs, mac_pdu.pdsch_cfg.bwp_cfg->scs, mac_pdu.pdsch_cfg.bwp_cfg->cp);
 
   // Get the VRB-to-PRB mapping from the DCI.
   bool is_interleaved = mac_pdu.pdsch_cfg.vrb_prb_mapping != vrb_to_prb::mapping_type::non_interleaved;
@@ -323,8 +321,7 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
 
   // BWP parameters.
   const crb_interval& crbs = get_crb_interval(mac_pdu.pdsch_cfg);
-  builder.set_bwp_parameters(
-      crbs.length(), crbs.start(), mac_pdu.pdsch_cfg.bwp_cfg->scs, mac_pdu.pdsch_cfg.bwp_cfg->cp);
+  builder.set_bwp_parameters(crbs, mac_pdu.pdsch_cfg.bwp_cfg->scs, mac_pdu.pdsch_cfg.bwp_cfg->cp);
 
   // Get the VRB-to-PRB mapping from the DCI.
   bool is_interleaved = mac_pdu.pdsch_cfg.vrb_prb_mapping != vrb_to_prb::mapping_type::non_interleaved;
@@ -381,8 +378,7 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
 
   // BWP parameters.
   const crb_interval& crbs = get_crb_interval(mac_pdu.pdsch_cfg);
-  builder.set_bwp_parameters(
-      crbs.length(), crbs.start(), mac_pdu.pdsch_cfg.bwp_cfg->scs, mac_pdu.pdsch_cfg.bwp_cfg->cp);
+  builder.set_bwp_parameters(crbs, mac_pdu.pdsch_cfg.bwp_cfg->scs, mac_pdu.pdsch_cfg.bwp_cfg->cp);
 
   // Get the VRB-to-PRB mapping from the DCI.
   bool is_interleaved = mac_pdu.pdsch_cfg.vrb_prb_mapping != vrb_to_prb::mapping_type::non_interleaved;
@@ -430,8 +426,7 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
 
   // BWP parameters.
   const crb_interval& crbs = get_crb_interval(mac_pdu.pdsch_cfg);
-  builder.set_bwp_parameters(
-      crbs.length(), crbs.start(), mac_pdu.pdsch_cfg.bwp_cfg->scs, mac_pdu.pdsch_cfg.bwp_cfg->cp);
+  builder.set_bwp_parameters(crbs, mac_pdu.pdsch_cfg.bwp_cfg->scs, mac_pdu.pdsch_cfg.bwp_cfg->cp);
 
   // Get the VRB-to-PRB mapping from the DCI.
   bool is_interleaved = mac_pdu.pdsch_cfg.vrb_prb_mapping != vrb_to_prb::mapping_type::non_interleaved;

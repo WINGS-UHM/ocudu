@@ -19,10 +19,10 @@ static void fill_format0_parameters(pucch_processor::format0_configuration& conf
                                     uint16_t                                num_rx_ant)
 {
   config.slot         = slot;
-  config.bwp_size_rb  = fapi_pdu.bwp_size;
-  config.bwp_start_rb = fapi_pdu.bwp_start;
+  config.bwp_size_rb  = fapi_pdu.bwp.length();
+  config.bwp_start_rb = fapi_pdu.bwp.start();
   config.cp           = fapi_pdu.cp;
-  config.starting_prb = fapi_pdu.prb_start;
+  config.starting_prb = fapi_pdu.prbs.start();
   if (fapi_pdu.intra_slot_frequency_hopping) {
     config.second_hop_prb.emplace(fapi_pdu.second_hop_prb);
   }
@@ -36,8 +36,8 @@ static void fill_format0_parameters(pucch_processor::format0_configuration& conf
   std::iota(config.ports.begin(), config.ports.end(), 0);
 
   config.initial_cyclic_shift = fapi_pdu.initial_cyclic_shift;
-  config.nof_symbols          = fapi_pdu.nr_of_symbols;
-  config.start_symbol_index   = fapi_pdu.start_symbol_index;
+  config.nof_symbols          = fapi_pdu.symbols.length();
+  config.start_symbol_index   = fapi_pdu.symbols.start();
 
   // Fill PUCCH context for logging.
   config.context = pucch_context(fapi_pdu.rnti);
@@ -49,10 +49,10 @@ static void fill_format1_parameters(pucch_processor::format1_configuration& conf
                                     uint16_t                                num_rx_ant)
 {
   config.slot         = slot;
-  config.bwp_size_rb  = fapi_pdu.bwp_size;
-  config.bwp_start_rb = fapi_pdu.bwp_start;
+  config.bwp_size_rb  = fapi_pdu.bwp.length();
+  config.bwp_start_rb = fapi_pdu.bwp.start();
   config.cp           = fapi_pdu.cp;
-  config.starting_prb = fapi_pdu.prb_start;
+  config.starting_prb = fapi_pdu.prbs.start();
   if (fapi_pdu.intra_slot_frequency_hopping) {
     config.second_hop_prb.emplace(fapi_pdu.second_hop_prb);
   }
@@ -65,8 +65,8 @@ static void fill_format1_parameters(pucch_processor::format1_configuration& conf
   std::iota(config.ports.begin(), config.ports.end(), 0);
 
   config.initial_cyclic_shift = fapi_pdu.initial_cyclic_shift;
-  config.nof_symbols          = fapi_pdu.nr_of_symbols;
-  config.start_symbol_index   = fapi_pdu.start_symbol_index;
+  config.nof_symbols          = fapi_pdu.symbols.length();
+  config.start_symbol_index   = fapi_pdu.symbols.start();
   config.time_domain_occ      = fapi_pdu.time_domain_occ_index;
 
   // Fill PUCCH context for logging.
@@ -80,15 +80,15 @@ static void fill_format2_parameters(pucch_processor::format2_configuration& conf
 {
   config.slot         = slot;
   config.cp           = fapi_pdu.cp;
-  config.bwp_size_rb  = fapi_pdu.bwp_size;
-  config.bwp_start_rb = fapi_pdu.bwp_start;
-  config.starting_prb = fapi_pdu.prb_start;
+  config.bwp_size_rb  = fapi_pdu.bwp.length();
+  config.bwp_start_rb = fapi_pdu.bwp.start();
+  config.starting_prb = fapi_pdu.prbs.start();
   if (fapi_pdu.intra_slot_frequency_hopping) {
     config.second_hop_prb.emplace(fapi_pdu.second_hop_prb);
   }
-  config.nof_prb            = fapi_pdu.prb_size;
-  config.start_symbol_index = fapi_pdu.start_symbol_index;
-  config.nof_symbols        = fapi_pdu.nr_of_symbols;
+  config.nof_prb            = fapi_pdu.prbs.length();
+  config.start_symbol_index = fapi_pdu.symbols.start();
+  config.nof_symbols        = fapi_pdu.symbols.length();
 
   config.rnti   = to_value(fapi_pdu.rnti);
   config.n_id   = fapi_pdu.nid_pucch_scrambling;
@@ -115,15 +115,15 @@ static void fill_format3_parameters(pucch_processor::format3_configuration& conf
 {
   config.slot         = slot;
   config.cp           = fapi_pdu.cp;
-  config.bwp_size_rb  = fapi_pdu.bwp_size;
-  config.bwp_start_rb = fapi_pdu.bwp_start;
-  config.starting_prb = fapi_pdu.prb_start;
+  config.bwp_size_rb  = fapi_pdu.bwp.length();
+  config.bwp_start_rb = fapi_pdu.bwp.start();
+  config.starting_prb = fapi_pdu.prbs.start();
   if (fapi_pdu.intra_slot_frequency_hopping) {
     config.second_hop_prb.emplace(fapi_pdu.second_hop_prb);
   }
-  config.nof_prb            = fapi_pdu.prb_size;
-  config.start_symbol_index = fapi_pdu.start_symbol_index;
-  config.nof_symbols        = fapi_pdu.nr_of_symbols;
+  config.nof_prb            = fapi_pdu.prbs.length();
+  config.start_symbol_index = fapi_pdu.symbols.start();
+  config.nof_symbols        = fapi_pdu.symbols.length();
 
   config.rnti            = to_value(fapi_pdu.rnti);
   config.n_id_hopping    = fapi_pdu.nid_pucch_hopping;
@@ -153,14 +153,14 @@ static void fill_format4_parameters(pucch_processor::format4_configuration& conf
 {
   config.slot         = slot;
   config.cp           = fapi_pdu.cp;
-  config.bwp_size_rb  = fapi_pdu.bwp_size;
-  config.bwp_start_rb = fapi_pdu.bwp_start;
-  config.starting_prb = fapi_pdu.prb_start;
+  config.bwp_size_rb  = fapi_pdu.bwp.length();
+  config.bwp_start_rb = fapi_pdu.bwp.start();
+  config.starting_prb = fapi_pdu.prbs.start();
   if (fapi_pdu.intra_slot_frequency_hopping) {
     config.second_hop_prb.emplace(fapi_pdu.second_hop_prb);
   }
-  config.start_symbol_index = fapi_pdu.start_symbol_index;
-  config.nof_symbols        = fapi_pdu.nr_of_symbols;
+  config.start_symbol_index = fapi_pdu.symbols.start();
+  config.nof_symbols        = fapi_pdu.symbols.length();
 
   config.rnti            = to_value(fapi_pdu.rnti);
   config.n_id_hopping    = fapi_pdu.nid_pucch_hopping;

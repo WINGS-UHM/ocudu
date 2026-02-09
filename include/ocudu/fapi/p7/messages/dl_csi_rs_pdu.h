@@ -14,6 +14,7 @@
 #include "ocudu/ran/csi_rs/csi_rs_types.h"
 #include "ocudu/ran/csi_rs/frequency_allocation_type.h"
 #include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 
 namespace ocudu {
@@ -23,8 +24,7 @@ namespace fapi {
 struct dl_csi_rs_pdu {
   subcarrier_spacing                scs;
   cyclic_prefix                     cp;
-  uint16_t                          start_rb;
-  uint16_t                          num_rbs;
+  crb_interval                      crbs;
   csi_rs_type                       type;
   uint8_t                           row;
   csi_rs::freq_allocation_mask_type freq_domain;
@@ -35,8 +35,7 @@ struct dl_csi_rs_pdu {
   uint16_t                          scramb_id;
   int                               power_control_offset_profile_nr;
   power_control_offset_ss           power_control_offset_ss_profile_nr;
-  uint16_t                          bwp_size;
-  uint16_t                          bwp_start;
+  crb_interval                      bwp;
 };
 
 } // namespace fapi

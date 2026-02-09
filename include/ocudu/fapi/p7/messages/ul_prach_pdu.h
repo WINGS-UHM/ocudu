@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/adt/interval.h"
 #include "ocudu/ran/prach/prach_format_type.h"
 
 namespace ocudu {
@@ -17,15 +18,16 @@ namespace fapi {
 
 /// Uplink PRACH PDU information.
 struct ul_prach_pdu {
-  uint8_t           num_prach_ocas;
-  prach_format_type prach_format;
-  uint8_t           index_fd_ra;
-  uint8_t           prach_start_symbol;
-  uint16_t          num_cs;
-  uint32_t          handle = 0U;
-  uint8_t           num_fd_ra;
-  uint8_t           start_preamble_index;
-  uint8_t           num_preamble_indices;
+  using preambles_interval = interval<uint8_t, false>;
+
+  uint8_t            num_prach_ocas;
+  prach_format_type  prach_format;
+  uint8_t            index_fd_ra;
+  uint8_t            prach_start_symbol;
+  uint16_t           num_cs;
+  uint32_t           handle = 0U;
+  uint8_t            num_fd_ra;
+  preambles_interval preambles;
 };
 
 } // namespace fapi

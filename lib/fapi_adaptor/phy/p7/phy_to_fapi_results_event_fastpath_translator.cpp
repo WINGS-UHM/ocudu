@@ -79,7 +79,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
   fapi::rach_indication         msg;
   fapi::rach_indication_builder builder(msg);
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot_point(slot);
 
   // NOTE: Currently not supporting PRACH multiplexed in frequency domain.
   static constexpr unsigned fd_ra_index = 0U;
@@ -283,7 +283,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(co
   fapi::rx_data_indication         msg;
   fapi::rx_data_indication_builder builder(msg);
 
-  builder.set_basic_parameters(result.slot);
+  builder.set_slot_point(result.slot);
 
   // TODO: Remove the to_harq_id call once it is changed in the PHY layer.
   builder.add_pdu(result.rnti, to_harq_id(result.harq_id), result.payload);

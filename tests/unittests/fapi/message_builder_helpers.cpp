@@ -35,6 +35,17 @@ static unsigned generate_start_symbol_index()
   return dist(gen);
 }
 
+static ofdm_symbol_range generate_symbols(pucch_format type)
+{
+  std::uniform_int_distribution<unsigned> size_dist(0, 13);
+  unsigned                                size = size_dist(gen);
+
+  std::uniform_int_distribution<unsigned> start_dist(0, size);
+  unsigned                                start = start_dist(gen);
+
+  return {start, size};
+}
+
 static rnti_t generate_rnti()
 {
   std::uniform_int_distribution<unsigned> dist(1, 65535);
@@ -63,18 +74,44 @@ static unsigned generate_handle()
   return dist(gen);
 }
 
-static unsigned generate_bwp_size()
-{
-  std::uniform_int_distribution<unsigned> dist(1, 275);
-
-  return dist(gen);
-}
-
 static unsigned generate_bwp_start()
 {
   std::uniform_int_distribution<unsigned> dist(0, 274);
 
   return dist(gen);
+}
+
+static crb_interval generate_crb_interval()
+{
+  std::uniform_int_distribution<unsigned> size_dist(0, 274);
+  unsigned                                size = size_dist(gen);
+
+  std::uniform_int_distribution<unsigned> start_dist(0, size);
+  unsigned                                start = start_dist(gen);
+
+  return {start, size};
+}
+
+static prb_interval generate_prb_interval()
+{
+  std::uniform_int_distribution<unsigned> size_dist(0, 274);
+  unsigned                                size = size_dist(gen);
+
+  std::uniform_int_distribution<unsigned> start_dist(0, size);
+  unsigned                                start = start_dist(gen);
+
+  return {start, size};
+}
+
+static vrb_interval generate_vrb_interval()
+{
+  std::uniform_int_distribution<unsigned> size_dist(0, 274);
+  unsigned                                size = size_dist(gen);
+
+  std::uniform_int_distribution<unsigned> start_dist(0, size);
+  unsigned                                start = start_dist(gen);
+
+  return {start, size};
 }
 
 static subcarrier_spacing generate_scs()
@@ -160,16 +197,15 @@ dl_pdcch_pdu unittest::build_valid_dl_pdcch_pdu()
 {
   dl_pdcch_pdu pdu;
 
-  pdu.coreset_bwp_size        = generate_bwp_size();
-  pdu.coreset_bwp_start       = generate_bwp_start();
-  pdu.scs                     = subcarrier_spacing::kHz240;
-  pdu.cp                      = generate_cyclic_prefix();
-  pdu.start_symbol_index      = generate_start_symbol_index();
-  pdu.duration_symbols        = 2;
-  uint8_t    reg_bundle_size  = 2;
-  uint8_t    interleaver_size = 3;
-  uint16_t   shift_index      = 129;
-  coreset_id id               = generate_coreset_id();
+  pdu.coreset_bwp                      = generate_crb_interval();
+  pdu.scs                              = subcarrier_spacing::kHz240;
+  pdu.cp                               = generate_cyclic_prefix();
+  static constexpr pucch_format format = pucch_format::FORMAT_1;
+  pdu.symbols                          = generate_symbols(format);
+  uint8_t    reg_bundle_size           = 2;
+  uint8_t    interleaver_size          = 3;
+  uint16_t   shift_index               = 129;
+  coreset_id id                        = generate_coreset_id();
   if (id == to_coreset_id(0)) {
     pdu.mapping = dl_pdcch_pdu::mapping_coreset_0{reg_bundle_size, interleaver_size, shift_index};
   } else {
@@ -200,8 +236,7 @@ dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
   pdu.pdu_bitmap.set(1);
   pdu.rnti                                 = to_rnti(3);
   pdu.pdu_index                            = 2;
-  pdu.bwp_size                             = 3;
-  pdu.bwp_start                            = 4;
+  pdu.bwp                                  = {3, 4};
   pdu.scs                                  = subcarrier_spacing::kHz15;
   pdu.cp                                   = cyclic_prefix::NORMAL;
   pdu.cws                                  = {{10, 2, 3, 1, 3, units::bytes{12}}};
@@ -216,11 +251,10 @@ dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
   pdu.nscid                                = 0;
   pdu.num_dmrs_cdm_grps_no_data            = 2;
   pdu.resource_alloc                       = resource_allocation_type::type_1;
-  pdu.rb_start                             = 42;
-  pdu.rb_size                              = 89;
+  pdu.vrbs                                 = {42, 89};
   pdu.vrb_to_prb_mapping                   = fapi::vrb_to_prb_mapping_type::interleaved_rb_size2;
-  pdu.start_symbol_index                   = 3;
-  pdu.nr_of_symbols                        = 5;
+  static constexpr pucch_format format     = pucch_format::FORMAT_1;
+  pdu.symbols                              = generate_symbols(format);
   auto& power                              = pdu.power_config.emplace<dl_pdsch_pdu::power_profile_nr>();
   power.power_control_offset_profile_nr    = 6;
   power.power_control_offset_ss_profile_nr = fapi::power_control_offset_ss::dB3;
@@ -258,8 +292,7 @@ ocudu::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
   pdu.comb_offset      = 0;
   pdu.num_symbols      = prs_num_symbols::four;
   pdu.first_symbol     = 8;
-  pdu.num_rbs          = 28;
-  pdu.start_rb         = 24;
+  pdu.crbs             = {24, 28};
   pdu.prs_power_offset = -13.3;
 
   // Precoding.
@@ -276,8 +309,7 @@ dl_csi_rs_pdu unittest::build_valid_dl_csi_pdu()
 
   pdu.scs                                = subcarrier_spacing::kHz15;
   pdu.cp                                 = cyclic_prefix::NORMAL;
-  pdu.start_rb                           = 23;
-  pdu.num_rbs                            = 28;
+  pdu.crbs                               = {23, 28};
   pdu.type                               = csi_rs_type::CSI_RS_NZP;
   pdu.row                                = 1;
   pdu.freq_domain                        = {1, 0, 0, 0, 0, 0};
@@ -288,8 +320,7 @@ dl_csi_rs_pdu unittest::build_valid_dl_csi_pdu()
   pdu.scramb_id                          = 123;
   pdu.power_control_offset_profile_nr    = 0;
   pdu.power_control_offset_ss_profile_nr = power_control_offset_ss::dB0;
-  pdu.bwp_size                           = 56U;
-  pdu.bwp_start                          = 60U;
+  pdu.bwp                                = {56U, 60U};
 
   return pdu;
 }
@@ -506,32 +537,28 @@ static prach_format_type generate_prach_format()
   return static_cast<prach_format_type>(dist(gen));
 }
 
-static uint8_t generate_start_preamble()
+static ul_prach_pdu::preambles_interval generate_preambles()
 {
-  unsigned value = generate_num_cs();
+  std::uniform_int_distribution<unsigned> num_preambles_dist(1, 64);
 
-  return (value < 64U) ? value : 255U;
-}
+  unsigned num_preambles = num_preambles_dist(gen);
 
-static uint8_t generate_num_preambles_indices()
-{
-  std::uniform_int_distribution<unsigned> dist(1, 64);
+  unsigned start_preamble = std::min(static_cast<unsigned>(generate_num_cs()), num_preambles);
 
-  return dist(gen);
+  return {num_preambles, start_preamble};
 }
 
 ul_prach_pdu unittest::build_valid_ul_prach_pdu()
 {
   ul_prach_pdu pdu;
 
-  pdu.num_prach_ocas       = 1;
-  pdu.prach_format         = generate_prach_format();
-  pdu.index_fd_ra          = generate_index_fd_ra();
-  pdu.prach_start_symbol   = generate_prach_start_symbol();
-  pdu.num_cs               = generate_num_cs();
-  pdu.num_fd_ra            = generate_index_fd_ra() + 1U;
-  pdu.start_preamble_index = generate_start_preamble();
-  pdu.num_preamble_indices = generate_num_preambles_indices();
+  pdu.num_prach_ocas     = 1;
+  pdu.prach_format       = generate_prach_format();
+  pdu.index_fd_ra        = generate_index_fd_ra();
+  pdu.prach_start_symbol = generate_prach_start_symbol();
+  pdu.num_cs             = generate_num_cs();
+  pdu.num_fd_ra          = generate_index_fd_ra() + 1U;
+  pdu.preambles          = generate_preambles();
 
   return pdu;
 }
@@ -728,23 +755,6 @@ static pucch_repetition_tx_slot generate_multi_slot_tx_indicator()
   return static_cast<pucch_repetition_tx_slot>(dist(gen));
 }
 
-static unsigned generate_prb_size()
-{
-  std::uniform_int_distribution<unsigned> dist(1, 16);
-  return dist(gen);
-}
-
-static unsigned generate_nof_symbols(pucch_format type)
-{
-  if (type == pucch_format::FORMAT_0 || type == pucch_format::FORMAT_2) {
-    std::uniform_int_distribution<unsigned> dist(1, 2);
-    return dist(gen);
-  }
-
-  std::uniform_int_distribution<unsigned> dist(4, 14);
-  return dist(gen);
-}
-
 static unsigned generate_sr_bit_len(pucch_format type)
 {
   if (type == pucch_format::FORMAT_0 || type == pucch_format::FORMAT_1) {
@@ -807,15 +817,12 @@ static ul_pucch_pdu generate_generic_ul_pucch_pdu()
 
   pdu.rnti                           = generate_rnti();
   pdu.handle                         = generate_handle();
-  pdu.bwp_size                       = generate_bwp_size();
-  pdu.bwp_start                      = generate_bwp_start();
+  pdu.bwp                            = generate_crb_interval();
   pdu.scs                            = generate_scs();
   pdu.cp                             = generate_cyclic_prefix();
   pdu.multi_slot_tx_indicator        = generate_multi_slot_tx_indicator();
   pdu.pi2_bpsk                       = true;
-  pdu.prb_start                      = generate_bwp_start();
-  pdu.prb_size                       = generate_prb_size();
-  pdu.start_symbol_index             = generate_start_symbol_index();
+  pdu.prbs                           = generate_prb_interval();
   pdu.intra_slot_frequency_hopping   = true;
   pdu.second_hop_prb                 = generate_bwp_start();
   pdu.pucch_grp_hopping              = generate_pucch_group_hopping();
@@ -848,7 +855,7 @@ ul_pucch_pdu unittest::build_valid_ul_pucch_f0_pdu()
   auto                          pdu      = generate_generic_ul_pucch_pdu();
   static constexpr pucch_format format   = pucch_format::FORMAT_0;
   pdu.format_type                        = format;
-  pdu.nr_of_symbols                      = generate_nof_symbols(format);
+  pdu.symbols                            = generate_symbols(format);
   pdu.sr_bit_len                         = generate_sr_bit_len(format);
   pdu.bit_len_harq                       = generate_harq_bit_len(format);
   pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
@@ -861,7 +868,7 @@ ul_pucch_pdu unittest::build_valid_ul_pucch_f1_pdu()
   auto                          pdu      = generate_generic_ul_pucch_pdu();
   static constexpr pucch_format format   = pucch_format::FORMAT_1;
   pdu.format_type                        = format;
-  pdu.nr_of_symbols                      = generate_nof_symbols(format);
+  pdu.symbols                            = generate_symbols(format);
   pdu.sr_bit_len                         = generate_sr_bit_len(format);
   pdu.bit_len_harq                       = generate_harq_bit_len(format);
   pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
@@ -874,7 +881,7 @@ ul_pucch_pdu unittest::build_valid_ul_pucch_f2_pdu()
   auto                          pdu      = generate_generic_ul_pucch_pdu();
   static constexpr pucch_format format   = pucch_format::FORMAT_2;
   pdu.format_type                        = format;
-  pdu.nr_of_symbols                      = generate_nof_symbols(format);
+  pdu.symbols                            = generate_symbols(format);
   pdu.sr_bit_len                         = generate_sr_bit_len(format);
   pdu.bit_len_harq                       = generate_harq_bit_len(format);
   pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
@@ -887,7 +894,7 @@ ul_pucch_pdu unittest::build_valid_ul_pucch_f3_pdu()
   auto                          pdu      = generate_generic_ul_pucch_pdu();
   static constexpr pucch_format format   = pucch_format::FORMAT_3;
   pdu.format_type                        = format;
-  pdu.nr_of_symbols                      = generate_nof_symbols(format);
+  pdu.symbols                            = generate_symbols(format);
   pdu.sr_bit_len                         = generate_sr_bit_len(format);
   pdu.bit_len_harq                       = generate_harq_bit_len(format);
   pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
@@ -900,7 +907,7 @@ ul_pucch_pdu unittest::build_valid_ul_pucch_f4_pdu()
   auto                          pdu      = generate_generic_ul_pucch_pdu();
   static constexpr pucch_format format   = pucch_format::FORMAT_4;
   pdu.format_type                        = format;
-  pdu.nr_of_symbols                      = generate_nof_symbols(format);
+  pdu.symbols                            = generate_symbols(format);
   pdu.sr_bit_len                         = generate_sr_bit_len(format);
   pdu.bit_len_harq                       = generate_harq_bit_len(format);
   pdu.pucch_maintenance_v3.max_code_rate = generate_max_code_rate(format);
@@ -983,8 +990,7 @@ ul_pusch_pdu unittest::build_valid_ul_pusch_pdu()
   pdu.rb_bitmap                           = {};
   pdu.rnti                                = generate_rnti();
   pdu.handle                              = generate_handle();
-  pdu.bwp_size                            = generate_bwp_size();
-  pdu.bwp_start                           = generate_bwp_start();
+  pdu.bwp                                 = generate_crb_interval();
   pdu.scs                                 = generate_scs();
   pdu.cp                                  = generate_cyclic_prefix();
   pdu.target_code_rate                    = 1982U;
@@ -1004,14 +1010,13 @@ ul_pusch_pdu unittest::build_valid_ul_pusch_pdu()
   pdu.num_dmrs_cdm_grps_no_data           = generate_num_dmrs_cdm_no_data();
   pdu.dmrs_ports                          = 4;
   pdu.resource_alloc                      = resource_allocation_type::type_1;
-  pdu.rb_start                            = generate_bwp_start();
-  pdu.rb_size                             = generate_bwp_size();
+  pdu.vrbs                                = generate_vrb_interval();
   pdu.vrb_to_prb_mapping                  = vrb_to_prb_mapping_type::non_interleaved;
   pdu.intra_slot_frequency_hopping        = generate_bool();
   pdu.tx_direct_current_location          = generate_tx_direct_current_location();
   pdu.uplink_frequency_shift_7p5kHz       = generate_bool();
-  pdu.start_symbol_index                  = generate_start_symbol_index();
-  pdu.nr_of_symbols                       = 3U;
+  static constexpr pucch_format format    = pucch_format::FORMAT_1;
+  pdu.symbols                             = generate_symbols(format);
 
   auto& data = pdu.pusch_data;
   pdu.pdu_bitmap.set(ul_pusch_pdu::PUSCH_DATA_BIT);
@@ -1073,8 +1078,7 @@ ul_srs_pdu unittest::build_valid_ul_srs_pdu()
   ul_srs_pdu pdu;
   pdu.rnti                               = to_rnti(23);
   pdu.handle                             = 8;
-  pdu.bwp_size                           = 230;
-  pdu.bwp_start                          = 10;
+  pdu.bwp                                = {230, 10};
   pdu.scs                                = subcarrier_spacing::kHz240;
   pdu.cp                                 = cyclic_prefix::NORMAL;
   pdu.num_ant_ports                      = srs_resource_configuration::one_two_four_enum::two;

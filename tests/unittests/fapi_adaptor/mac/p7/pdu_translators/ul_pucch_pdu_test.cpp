@@ -27,18 +27,15 @@ TEST(mac_fapi_ul_pucch_format1_pdu_conversor_test, ul_pucch_format1_pdu_valid_sh
   // BWP.
   ASSERT_EQ(mac_pdu.bwp_cfg->cp, fapi_pdu.cp);
   ASSERT_EQ(mac_pdu.bwp_cfg->scs, fapi_pdu.scs);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.start(), fapi_pdu.bwp_start);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.length(), fapi_pdu.bwp_size);
+  ASSERT_EQ(mac_pdu.bwp_cfg->crbs, fapi_pdu.bwp);
 
   ASSERT_EQ(mac_pdu.format(), fapi_pdu.format_type);
   ASSERT_EQ(mac_pdu.crnti, fapi_pdu.rnti);
 
   // Resources.
   const pucch_resources& resources = mac_pdu.resources;
-  ASSERT_EQ(resources.prbs.start(), fapi_pdu.prb_start);
-  ASSERT_EQ(resources.prbs.length(), fapi_pdu.prb_size);
-  ASSERT_EQ(resources.symbols.start(), fapi_pdu.start_symbol_index);
-  ASSERT_EQ(resources.symbols.length(), fapi_pdu.nr_of_symbols);
+  ASSERT_EQ(resources.prbs, fapi_pdu.prbs);
+  ASSERT_EQ(resources.symbols, fapi_pdu.symbols);
   ASSERT_EQ(resources.second_hop_prbs.start(), fapi_pdu.second_hop_prb);
   ASSERT_EQ(!resources.second_hop_prbs.empty(), fapi_pdu.intra_slot_frequency_hopping);
 
@@ -64,18 +61,15 @@ TEST(mac_fapi_ul_pucch_format2_pdu_conversor_test, ul_pucch_format2_pdu_valid_sh
   // BWP.
   ASSERT_EQ(mac_pdu.bwp_cfg->cp, fapi_pdu.cp);
   ASSERT_EQ(mac_pdu.bwp_cfg->scs, fapi_pdu.scs);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.start(), fapi_pdu.bwp_start);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.length(), fapi_pdu.bwp_size);
+  ASSERT_EQ(mac_pdu.bwp_cfg->crbs, fapi_pdu.bwp);
 
   ASSERT_EQ(mac_pdu.format(), fapi_pdu.format_type);
   ASSERT_EQ(mac_pdu.crnti, fapi_pdu.rnti);
 
   // Resources.
   const pucch_resources& resources = mac_pdu.resources;
-  ASSERT_EQ(resources.prbs.start(), fapi_pdu.prb_start);
-  ASSERT_EQ(resources.prbs.length(), fapi_pdu.prb_size);
-  ASSERT_EQ(resources.symbols.start(), fapi_pdu.start_symbol_index);
-  ASSERT_EQ(resources.symbols.length(), fapi_pdu.nr_of_symbols);
+  ASSERT_EQ(resources.prbs, fapi_pdu.prbs);
+  ASSERT_EQ(resources.symbols, fapi_pdu.symbols);
   ASSERT_EQ(resources.second_hop_prbs.start(), fapi_pdu.second_hop_prb);
   ASSERT_EQ(!resources.second_hop_prbs.empty(), fapi_pdu.intra_slot_frequency_hopping);
 
@@ -100,18 +94,15 @@ TEST(mac_fapi_ul_pucch_format3_pdu_conversor_test, ul_pucch_format3_pdu_valid_sh
   // BWP.
   ASSERT_EQ(mac_pdu.bwp_cfg->cp, fapi_pdu.cp);
   ASSERT_EQ(mac_pdu.bwp_cfg->scs, fapi_pdu.scs);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.start(), fapi_pdu.bwp_start);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.length(), fapi_pdu.bwp_size);
+  ASSERT_EQ(mac_pdu.bwp_cfg->crbs, fapi_pdu.bwp);
 
   ASSERT_EQ(mac_pdu.format(), fapi_pdu.format_type);
   ASSERT_EQ(mac_pdu.crnti, fapi_pdu.rnti);
 
   // Resources.
   const pucch_resources& resources = mac_pdu.resources;
-  ASSERT_EQ(resources.prbs.start(), fapi_pdu.prb_start);
-  ASSERT_EQ(resources.prbs.length(), fapi_pdu.prb_size);
-  ASSERT_EQ(resources.symbols.start(), fapi_pdu.start_symbol_index);
-  ASSERT_EQ(resources.symbols.length(), fapi_pdu.nr_of_symbols);
+  ASSERT_EQ(resources.prbs, fapi_pdu.prbs);
+  ASSERT_EQ(resources.symbols, fapi_pdu.symbols);
   ASSERT_EQ(resources.second_hop_prbs.start(), fapi_pdu.second_hop_prb);
   ASSERT_EQ(!resources.second_hop_prbs.empty(), fapi_pdu.intra_slot_frequency_hopping);
 
@@ -139,18 +130,15 @@ TEST(mac_fapi_ul_pucch_format4_pdu_conversor_test, ul_pucch_format4_pdu_valid_sh
   // BWP.
   ASSERT_EQ(mac_pdu.bwp_cfg->cp, fapi_pdu.cp);
   ASSERT_EQ(mac_pdu.bwp_cfg->scs, fapi_pdu.scs);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.start(), fapi_pdu.bwp_start);
-  ASSERT_EQ(mac_pdu.bwp_cfg->crbs.length(), fapi_pdu.bwp_size);
+  ASSERT_EQ(mac_pdu.bwp_cfg->crbs, fapi_pdu.bwp);
 
   ASSERT_EQ(mac_pdu.format(), fapi_pdu.format_type);
   ASSERT_EQ(mac_pdu.crnti, fapi_pdu.rnti);
 
   // Resources.
   const pucch_resources& resources = mac_pdu.resources;
-  ASSERT_EQ(resources.prbs.start(), fapi_pdu.prb_start);
-  ASSERT_EQ(resources.prbs.length(), fapi_pdu.prb_size);
-  ASSERT_EQ(resources.symbols.start(), fapi_pdu.start_symbol_index);
-  ASSERT_EQ(resources.symbols.length(), fapi_pdu.nr_of_symbols);
+  ASSERT_EQ(resources.prbs, fapi_pdu.prbs);
+  ASSERT_EQ(resources.symbols, fapi_pdu.symbols);
   ASSERT_EQ(resources.second_hop_prbs.start(), fapi_pdu.second_hop_prb);
   ASSERT_EQ(!resources.second_hop_prbs.empty(), fapi_pdu.intra_slot_frequency_hopping);
 

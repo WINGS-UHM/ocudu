@@ -58,8 +58,8 @@ TEST(FapiPhyUlPrachPduAdaptorTest, valid_pdu_pass)
   ASSERT_EQ(fapi_pdu.prach_start_symbol, context.start_symbol);
   ASSERT_EQ(fapi_pdu.num_prach_ocas, context.nof_td_occasions);
   ASSERT_EQ(fapi_pdu.num_fd_ra, context.nof_fd_occasions);
-  ASSERT_EQ(fapi_pdu.start_preamble_index, context.start_preamble_index);
-  ASSERT_EQ(fapi_pdu.num_preamble_indices, context.nof_preamble_indices);
+  ASSERT_EQ(fapi_pdu.preambles.start(), context.start_preamble_index);
+  ASSERT_EQ(fapi_pdu.preambles.length(), context.nof_preamble_indices);
   ASSERT_EQ(static_cast<unsigned>(prach.restricted_set), static_cast<unsigned>(context.restricted_set));
   ASSERT_EQ(static_cast<unsigned>(scs_common), static_cast<unsigned>(context.pusch_scs));
   ASSERT_EQ(prach.prach_root_seq_index, context.root_sequence_index);

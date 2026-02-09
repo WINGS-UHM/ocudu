@@ -29,18 +29,16 @@ TEST(ul_srs_pdu_builder, valid_basic_parameters_passes)
 
 TEST(ul_srs_pdu_builder, valid_bwp_parameters_passes)
 {
-  unsigned           bwp_start = 100;
-  unsigned           bwp_size  = 69;
-  subcarrier_spacing scs       = subcarrier_spacing::kHz30;
-  cyclic_prefix      cp        = cyclic_prefix::EXTENDED;
+  crb_interval       bwp = {69, 100};
+  subcarrier_spacing scs = subcarrier_spacing::kHz30;
+  cyclic_prefix      cp  = cyclic_prefix::EXTENDED;
 
   ul_srs_pdu         pdu;
   ul_srs_pdu_builder builder(pdu);
 
-  builder.set_bwp_parameters(bwp_size, bwp_start, scs, cp);
+  builder.set_bwp_parameters(bwp, scs, cp);
 
-  ASSERT_EQ(bwp_size, pdu.bwp_size);
-  ASSERT_EQ(bwp_start, pdu.bwp_start);
+  ASSERT_EQ(bwp, pdu.bwp);
   ASSERT_EQ(scs, pdu.scs);
   ASSERT_EQ(cp, pdu.cp);
 }

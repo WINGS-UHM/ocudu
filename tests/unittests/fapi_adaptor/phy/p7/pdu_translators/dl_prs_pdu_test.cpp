@@ -35,6 +35,6 @@ TEST(fapi_phy_dl_prs_pdu_adaptor, valid_pdu_pass)
   ASSERT_EQ(fapi_pdu.comb_offset, prs_config.comb_offset);
   ASSERT_EQ(fapi_pdu.num_symbols, prs_config.duration);
   ASSERT_EQ(fapi_pdu.first_symbol, prs_config.start_symbol);
-  ASSERT_EQ(fapi_pdu.start_rb, prs_config.prb_start);
-  ASSERT_EQ(interval<uint16_t>::start_and_len(fapi_pdu.start_rb, fapi_pdu.num_rbs), prs_config.freq_alloc);
+  ASSERT_EQ(fapi_pdu.crbs.start(), prs_config.prb_start);
+  ASSERT_EQ(interval<uint16_t>::start_and_len(fapi_pdu.crbs.start(), fapi_pdu.crbs.length()), prs_config.freq_alloc);
 }

@@ -32,15 +32,13 @@ TEST(dl_pdsch_pdu_builder, valid_bwp_parameters_passes)
   dl_pdsch_pdu         pdu;
   dl_pdsch_pdu_builder builder(pdu);
 
-  unsigned           bwp_size  = 128;
-  unsigned           bwp_start = 192;
-  cyclic_prefix      cprefix   = cyclic_prefix::NORMAL;
-  subcarrier_spacing scs       = subcarrier_spacing::kHz15;
+  crb_interval       bwp     = {128, 192};
+  cyclic_prefix      cprefix = cyclic_prefix::NORMAL;
+  subcarrier_spacing scs     = subcarrier_spacing::kHz15;
 
-  builder.set_bwp_parameters(bwp_size, bwp_start, scs, cprefix);
+  builder.set_bwp_parameters(bwp, scs, cprefix);
 
-  ASSERT_EQ(bwp_size, pdu.bwp_size);
-  ASSERT_EQ(bwp_start, pdu.bwp_start);
+  ASSERT_EQ(bwp, pdu.bwp);
   ASSERT_EQ(scs, pdu.scs);
   ASSERT_EQ(cprefix, pdu.cp);
 }
@@ -149,14 +147,12 @@ TEST(dl_pdsch_pdu_builder, valid_freq_allocation_type_1_parameters_passes)
   dl_pdsch_pdu_builder builder(pdu);
 
   vrb_to_prb_mapping_type vrb_to_prb = vrb_to_prb_mapping_type::interleaved_rb_size2;
-  uint16_t                rb_start   = 15;
-  uint16_t                rb_size    = 20;
+  vrb_interval            vrbs       = {15, 20};
 
-  builder.set_pdsch_allocation_in_frequency_type_1(rb_start, rb_size, vrb_to_prb);
+  builder.set_pdsch_allocation_in_frequency_type_1(vrbs, vrb_to_prb);
 
   ASSERT_EQ(vrb_to_prb, pdu.vrb_to_prb_mapping);
-  ASSERT_EQ(rb_start, pdu.rb_start);
-  ASSERT_EQ(rb_size, pdu.rb_size);
+  ASSERT_EQ(vrbs, pdu.vrbs);
 }
 
 TEST(dl_pdsch_pdu_builder, valid_time_allocation_parameters_passes)
@@ -164,13 +160,11 @@ TEST(dl_pdsch_pdu_builder, valid_time_allocation_parameters_passes)
   dl_pdsch_pdu         pdu;
   dl_pdsch_pdu_builder builder(pdu);
 
-  uint8_t start_symb = 4;
-  uint8_t nof_symb   = 8;
+  ofdm_symbol_range symbols = {4, 8};
 
-  builder.set_pdsch_allocation_in_time_parameters(start_symb, nof_symb);
+  builder.set_pdsch_allocation_in_time_parameters(symbols);
 
-  ASSERT_EQ(start_symb, pdu.start_symbol_index);
-  ASSERT_EQ(nof_symb, pdu.nr_of_symbols);
+  ASSERT_EQ(symbols, pdu.symbols);
 }
 
 TEST(dl_pdsch_pdu_builder, valid_tx_power_info_parameters_passes)

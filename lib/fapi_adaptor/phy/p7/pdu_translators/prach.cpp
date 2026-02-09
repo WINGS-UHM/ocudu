@@ -31,8 +31,8 @@ void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       
   context.nof_td_occasions     = fapi_pdu.num_prach_ocas;
   context.nof_fd_occasions     = fapi_pdu.num_fd_ra;
   context.start_symbol         = fapi_pdu.prach_start_symbol;
-  context.start_preamble_index = fapi_pdu.start_preamble_index;
-  context.nof_preamble_indices = fapi_pdu.num_preamble_indices;
+  context.start_preamble_index = fapi_pdu.preambles.start();
+  context.nof_preamble_indices = fapi_pdu.preambles.length();
 
   context.pusch_scs       = slot.scs();
   context.restricted_set  = prach_cfg.restricted_set;

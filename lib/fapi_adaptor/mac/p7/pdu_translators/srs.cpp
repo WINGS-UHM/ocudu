@@ -26,7 +26,7 @@ void fapi_adaptor::convert_srs_mac_to_fapi(fapi::ul_srs_pdu_builder& builder, co
   const bwp_configuration& bwp = *mac_pdu.bwp_cfg;
 
   builder.set_ue_specific_parameters(mac_pdu.crnti)
-      .set_bwp_parameters(bwp.crbs.length(), bwp.crbs.start(), bwp.scs, bwp.cp)
+      .set_bwp_parameters(bwp.crbs, bwp.scs, bwp.cp)
       .set_frequency_params(
           mac_pdu.freq_position, mac_pdu.freq_shift, mac_pdu.freq_hopping, mac_pdu.group_or_seq_hopping)
       .set_comb_params(mac_pdu.tx_comb, mac_pdu.comb_offset)

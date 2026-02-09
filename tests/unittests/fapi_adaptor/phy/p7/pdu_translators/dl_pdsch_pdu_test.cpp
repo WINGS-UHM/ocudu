@@ -169,20 +169,20 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
                       slot_point   slot                     = slot_point(scs, sfn, slot_index);
                       rnti_t       rnti                     = to_rnti(rnti_dist(gen));
                       unsigned     bwp_size                 = bwp_size_dist(gen);
-                      unsigned     bwp_start                = bwp_start_dist(gen);
+                      unsigned     bwp_start                = std::min(bwp_start_dist(gen), bwp_size);
                       unsigned     nid_pdsch                = nid_pdsch_dist(gen);
                       unsigned     scrambling_id            = dmrs_scrambling_dist(gen);
                       unsigned     scrambling_id_complement = dmrs_scrambling_dist(gen);
                       bool         n_scid                   = binary_dist(gen);
                       unsigned     dmrs_cdm_grps_no_data    = dmrs_cdm_grps_no_data_dist(gen);
-                      unsigned     start_symbol_index       = start_symbol_index_dist(gen);
                       unsigned     nr_of_symbols            = nr_of_symbols_dist(gen);
+                      unsigned     start_symbol_index       = std::min(start_symbol_index_dist(gen), nr_of_symbols);
                       unsigned     coreset_start            = bwp_size_dist(gen);
                       unsigned     initial_bwp_size         = bwp_size_dist(gen);
                       units::bytes tb_size_lbrm_bytes{50};
                       unsigned     dl_dmrs_symbol = rnti_dist(gen);
                       unsigned     rb_size        = nr_of_symbols_dist(gen);
-                      unsigned     rb_start       = start_symbol_index_dist(gen);
+                      unsigned     rb_start       = std::min(start_symbol_index_dist(gen), rb_size);
 
                       std::array<uint8_t, 36> rb_bitmap = {};
 
@@ -192,7 +192,7 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
                       builder.set_basic_parameters(rnti);
 
                       // Always work with the biggest numerology.
-                      builder.set_bwp_parameters(bwp_size, bwp_start, scs, cyclic_p);
+                      builder.set_bwp_parameters(crb_interval::start_and_len(bwp_start, bwp_size), scs, cyclic_p);
                       builder.set_codeword_information_parameters(nid_pdsch, 0, 0, ref_point);
                       builder.set_dmrs_parameters(dl_dmrs_symbol,
                                                   config_type,
@@ -217,10 +217,12 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
                       if (resource_alloc == fapi::resource_allocation_type::type_0) {
                         builder.set_pdsch_allocation_in_frequency_type_0({rb_bitmap}, vrb_prb_mapping);
                       } else {
-                        builder.set_pdsch_allocation_in_frequency_type_1(rb_start, rb_size, vrb_prb_mapping);
+                        builder.set_pdsch_allocation_in_frequency_type_1(vrb_interval::start_and_len(rb_start, rb_size),
+                                                                         vrb_prb_mapping);
                       }
 
-                      builder.set_pdsch_allocation_in_time_parameters(start_symbol_index, nr_of_symbols);
+                      builder.set_pdsch_allocation_in_time_parameters(
+                          ofdm_symbol_range::start_and_len(start_symbol_index, nr_of_symbols));
                       builder.set_profile_nr_tx_power_info_parameters(power_profile_nr, power_ss_profile_nr);
 
                       // :TODO: not filling CBG to retx control parameters.

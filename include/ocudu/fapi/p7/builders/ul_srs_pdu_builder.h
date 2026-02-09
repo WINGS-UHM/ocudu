@@ -23,8 +23,9 @@ class ul_srs_pdu_builder
 public:
   explicit ul_srs_pdu_builder(ul_srs_pdu& pdu_) : pdu(pdu_) {}
 
-  /// Sets the SRS PDU UE specific parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table SRS PDU.
+  /// \brief Sets the SRS PDU UE specific parameters and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table SRS PDU.
   ul_srs_pdu_builder& set_ue_specific_parameters(rnti_t rnti)
   {
     pdu.rnti = rnti;
@@ -35,13 +36,11 @@ public:
   /// \brief Sets the SRS PDU BWP parameters and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table SRS PDU.
-  ul_srs_pdu_builder&
-  set_bwp_parameters(uint16_t bwp_size, uint16_t bwp_start, subcarrier_spacing scs, cyclic_prefix cp)
+  ul_srs_pdu_builder& set_bwp_parameters(crb_interval bwp, subcarrier_spacing scs, cyclic_prefix cp)
   {
-    pdu.bwp_size  = bwp_size;
-    pdu.bwp_start = bwp_start;
-    pdu.scs       = scs;
-    pdu.cp        = cp;
+    pdu.bwp = bwp;
+    pdu.scs = scs;
+    pdu.cp  = cp;
 
     return *this;
   }

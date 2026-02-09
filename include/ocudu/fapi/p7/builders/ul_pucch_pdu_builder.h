@@ -49,33 +49,29 @@ public:
 
   /// Sets the PUCCH PDU BWP parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table PUCCH PDU.
-  ul_pucch_pdu_builder&
-  set_bwp_parameters(uint16_t bwp_size, uint16_t bwp_start, subcarrier_spacing scs, cyclic_prefix cp)
+  ul_pucch_pdu_builder& set_bwp_parameters(crb_interval bwp, subcarrier_spacing scs, cyclic_prefix cp)
   {
-    pdu.bwp_size  = bwp_size;
-    pdu.bwp_start = bwp_start;
-    pdu.scs       = scs;
-    pdu.cp        = cp;
+    pdu.bwp = bwp;
+    pdu.scs = scs;
+    pdu.cp  = cp;
 
     return *this;
   }
 
   /// Sets the PUCCH PDU allocation in frequency parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table PUCCH PDU.
-  ul_pucch_pdu_builder& set_allocation_in_frequency_parameters(uint16_t prb_start, uint16_t prb_size)
+  ul_pucch_pdu_builder& set_allocation_in_frequency_parameters(prb_interval prbs)
   {
-    pdu.prb_start = prb_start;
-    pdu.prb_size  = prb_size;
+    pdu.prbs = prbs;
 
     return *this;
   }
 
   /// Sets the PUCCH PDU allocation in time parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table PUCCH PDU.
-  ul_pucch_pdu_builder& set_allocation_in_time_parameters(uint8_t start_symbol_index, uint8_t nof_symbols)
+  ul_pucch_pdu_builder& set_allocation_in_time_parameters(ofdm_symbol_range symbols)
   {
-    pdu.start_symbol_index = start_symbol_index;
-    pdu.nr_of_symbols      = nof_symbols;
+    pdu.symbols = symbols;
 
     return *this;
   }

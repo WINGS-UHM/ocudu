@@ -14,7 +14,7 @@
 using namespace ocudu;
 using namespace fapi;
 
-TEST(dl_ssb_pdu_builder, valid_basic_parameters_passes)
+TEST(dl_ssb_pdu_builder, valid_slot_point_passes)
 {
   auto     scs        = subcarrier_spacing::kHz30;
   unsigned sfn        = 599;
@@ -24,7 +24,7 @@ TEST(dl_ssb_pdu_builder, valid_basic_parameters_passes)
   dl_tti_request         msg;
   dl_tti_request_builder builder(msg);
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
 
   ASSERT_EQ(slot, msg.slot);
   ASSERT_TRUE(msg.pdus.empty());
@@ -100,7 +100,7 @@ TEST(dl_ssb_pdu_builder, add_csi_pdu_passes)
   csi_builder.set_csi_resource_config_parameters(type, row, cdm_type, scrambling_id)
       .set_frequency_domain_parameters(freq_domain, freq_density)
       .set_time_domain_parameters(symb_l0, symb_l1)
-      .set_resource_block_parameters(start_rb, nof_rbs);
+      .set_resource_block_parameters({start_rb, nof_rbs});
 
   ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::CSI_RS)]);
   ASSERT_EQ(1U, msg.pdus.size());

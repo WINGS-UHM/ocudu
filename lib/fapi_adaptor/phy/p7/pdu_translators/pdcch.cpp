@@ -55,10 +55,10 @@ static void fill_dci(pdcch_processor::pdu_t&            proc_pdu,
 /// Fills the CORESET parameters of the PDCCH processor PDU.
 static void fill_coreset(pdcch_processor::coreset_description& coreset, const fapi::dl_pdcch_pdu& fapi_pdu)
 {
-  coreset.bwp_size_rb         = fapi_pdu.coreset_bwp_size;
-  coreset.bwp_start_rb        = fapi_pdu.coreset_bwp_start;
-  coreset.start_symbol_index  = fapi_pdu.start_symbol_index;
-  coreset.duration            = fapi_pdu.duration_symbols;
+  coreset.bwp_size_rb         = fapi_pdu.coreset_bwp.length();
+  coreset.bwp_start_rb        = fapi_pdu.coreset_bwp.start();
+  coreset.start_symbol_index  = fapi_pdu.symbols.start();
+  coreset.duration            = fapi_pdu.symbols.length();
   coreset.frequency_resources = fapi_pdu.freq_domain_resource;
 
   if (const auto* dci_coreset_0 = std::get_if<fapi::dl_pdcch_pdu::mapping_coreset_0>(&fapi_pdu.mapping)) {

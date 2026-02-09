@@ -20,18 +20,17 @@
 namespace ocudu {
 namespace fapi {
 
-// :TODO: Review the builders documentation so it matches the UCI builder.
-
 class dl_tti_request_builder
 {
 public:
   /// Constructs a builder that will help to fill the given DL TTI request message.
   explicit dl_tti_request_builder(dl_tti_request& msg_) : msg(msg_) {}
 
-  /// Sets the DL_TTI.request basic parameters and returns a reference to the builder.
-  /// \note nPDUs and nPDUsOfEachType properties are filled by the add_*_pdu() functions.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.2 in table DL_TTI.request message body.
-  dl_tti_request_builder& set_basic_parameters(slot_point slot)
+  /// \brief Sets the DL_TTI.request slot point and returns a reference to the builder.
+  ///
+  /// nPDUs and nPDUsOfEachType properties are filled by the add_*_pdu() functions.
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.2 in table DL_TTI.request message body.
+  dl_tti_request_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 

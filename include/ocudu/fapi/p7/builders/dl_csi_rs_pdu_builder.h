@@ -64,10 +64,9 @@ public:
   /// \brief Sets the CSI-RS PDU resource block parameters and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.2.3 in table CSI-RS PDU.
-  dl_csi_rs_pdu_builder& set_resource_block_parameters(uint16_t start_rb, uint16_t nof_rbs)
+  dl_csi_rs_pdu_builder& set_resource_block_parameters(crb_interval crbs)
   {
-    pdu.start_rb = start_rb;
-    pdu.num_rbs  = nof_rbs;
+    pdu.crbs = crbs;
 
     return *this;
   }
@@ -75,13 +74,11 @@ public:
   /// \brief Sets the CSI-RS PDU BWP parameters and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.2.3 in table CSI-RS PDU.
-  dl_csi_rs_pdu_builder&
-  set_bwp_parameters(subcarrier_spacing scs, cyclic_prefix cp, uint16_t bwp_size, uint16_t bwp_start)
+  dl_csi_rs_pdu_builder& set_bwp_parameters(subcarrier_spacing scs, cyclic_prefix cp, crb_interval bwp)
   {
-    pdu.scs       = scs;
-    pdu.cp        = cp;
-    pdu.bwp_size  = bwp_size;
-    pdu.bwp_start = bwp_start;
+    pdu.scs = scs;
+    pdu.cp  = cp;
+    pdu.bwp = bwp;
 
     return *this;
   }

@@ -36,13 +36,13 @@ static void fill_codeword(uplink_pdu_slot_repository::pusch_pdu& pdu, const fapi
 static void fill_rb_allocation(pusch_processor::pdu_t& proc_pdu, const fapi::ul_pusch_pdu& fapi_pdu)
 {
   if (fapi_pdu.resource_alloc == fapi::resource_allocation_type::type_1) {
-    proc_pdu.freq_alloc = rb_allocation::make_type1(fapi_pdu.rb_start, fapi_pdu.rb_size, {});
+    proc_pdu.freq_alloc = rb_allocation::make_type1(fapi_pdu.vrbs.start(), fapi_pdu.vrbs.length(), {});
     return;
   }
 
   // Unpack the VRB bitmap. LSB of byte 0 of the bitmap represents the VRB 0.
-  vrb_bitmap vrb_bitmap(fapi_pdu.bwp_size);
-  for (unsigned vrb_index = 0, vrb_index_end = fapi_pdu.bwp_size; vrb_index != vrb_index_end; ++vrb_index) {
+  vrb_bitmap vrb_bitmap(fapi_pdu.bwp.length());
+  for (unsigned vrb_index = 0, vrb_index_end = fapi_pdu.bwp.length(); vrb_index != vrb_index_end; ++vrb_index) {
     unsigned byte = vrb_index / 8;
     unsigned bit  = vrb_index % 8;
     if ((fapi_pdu.rb_bitmap[byte] >> bit) & 1U) {
@@ -106,8 +106,8 @@ void ocudu::fapi_adaptor::convert_pusch_fapi_to_phy(uplink_pdu_slot_repository::
   pusch_processor::pdu_t& proc_pdu    = pdu.pdu;
   proc_pdu.slot                       = slot;
   proc_pdu.rnti                       = to_value(fapi_pdu.rnti);
-  proc_pdu.bwp_start_rb               = fapi_pdu.bwp_start;
-  proc_pdu.bwp_size_rb                = fapi_pdu.bwp_size;
+  proc_pdu.bwp_start_rb               = fapi_pdu.bwp.start();
+  proc_pdu.bwp_size_rb                = fapi_pdu.bwp.length();
   proc_pdu.cp                         = fapi_pdu.cp;
   proc_pdu.mcs_descr.modulation       = fapi_pdu.qam_mod_order;
   proc_pdu.mcs_descr.target_code_rate = fapi_pdu.target_code_rate * 0.1F;
@@ -130,8 +130,8 @@ void ocudu::fapi_adaptor::convert_pusch_fapi_to_phy(uplink_pdu_slot_repository::
         .n_scid                      = (fapi_pdu.nscid == 1),
         .nof_cdm_groups_without_data = fapi_pdu.num_dmrs_cdm_grps_no_data};
   }
-  proc_pdu.start_symbol_index = fapi_pdu.start_symbol_index;
-  proc_pdu.nof_symbols        = fapi_pdu.nr_of_symbols;
+  proc_pdu.start_symbol_index = fapi_pdu.symbols.start();
+  proc_pdu.nof_symbols        = fapi_pdu.symbols.length();
   proc_pdu.tbs_lbrm           = fapi_pdu.pusch_maintenance_v3.tb_size_lbrm_bytes;
 
   if (fapi_pdu.tx_direct_current_location < 3300) {

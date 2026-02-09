@@ -51,13 +51,11 @@ public:
 
   /// Sets the PUSCH PDU BWP parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
-  ul_pusch_pdu_builder&
-  set_bwp_parameters(uint16_t bwp_size, uint16_t bwp_start, subcarrier_spacing scs, cyclic_prefix cp)
+  ul_pusch_pdu_builder& set_bwp_parameters(crb_interval bwp, subcarrier_spacing scs, cyclic_prefix cp)
   {
-    pdu.bwp_size  = bwp_size;
-    pdu.bwp_start = bwp_start;
-    pdu.scs       = scs;
-    pdu.cp        = cp;
+    pdu.bwp = bwp;
+    pdu.scs = scs;
+    pdu.cp  = cp;
 
     return *this;
   }
@@ -121,9 +119,8 @@ public:
     pdu.tx_direct_current_location    = tx_direct_current_location;
     pdu.uplink_frequency_shift_7p5kHz = uplink_frequency_shift_7p5hHz;
 
-    // Set the parameters for type 1 to a value.
-    pdu.rb_start                     = 0;
-    pdu.rb_size                      = 0;
+    // Set the VRBs parameters for type 1 to a value.
+    pdu.vrbs                         = {0, 0};
     pdu.intra_slot_frequency_hopping = false;
 
     return *this;
@@ -131,15 +128,13 @@ public:
 
   /// Sets the PUSCH PDU allocation in frequency domain type 1 parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
-  ul_pusch_pdu_builder& set_allocation_in_frequency_type_1_parameters(uint16_t rb_start,
-                                                                      uint16_t rb_size,
-                                                                      bool     intra_slot_frequency_hopping,
-                                                                      uint16_t tx_direct_current_location,
-                                                                      bool     uplink_frequency_shift_7p5hHz)
+  ul_pusch_pdu_builder& set_allocation_in_frequency_type_1_parameters(vrb_interval vrbs,
+                                                                      bool         intra_slot_frequency_hopping,
+                                                                      uint16_t     tx_direct_current_location,
+                                                                      bool         uplink_frequency_shift_7p5hHz)
   {
     pdu.resource_alloc                = resource_allocation_type::type_1;
-    pdu.rb_start                      = rb_start;
-    pdu.rb_size                       = rb_size;
+    pdu.vrbs                          = vrbs;
     pdu.intra_slot_frequency_hopping  = intra_slot_frequency_hopping;
     pdu.vrb_to_prb_mapping            = vrb_to_prb_mapping_type::non_interleaved;
     pdu.tx_direct_current_location    = tx_direct_current_location;
@@ -150,10 +145,9 @@ public:
 
   /// Sets the PUSCH PDU allocation in time domain type 0 parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
-  ul_pusch_pdu_builder& set_allocation_in_time_parameters(uint8_t start_symbol_index, uint8_t num_symbols)
+  ul_pusch_pdu_builder& set_allocation_in_time_parameters(ofdm_symbol_range symbols)
   {
-    pdu.start_symbol_index = start_symbol_index;
-    pdu.nr_of_symbols      = num_symbols;
+    pdu.symbols = symbols;
 
     return *this;
   }

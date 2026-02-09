@@ -228,13 +228,13 @@ void ocudu::fapi_adaptor::convert_pucch_mac_to_fapi(fapi::ul_pucch_pdu_builder& 
   builder.set_ue_specific_parameters(mac_pdu.crnti);
 
   const bwp_configuration& bwp_cfg = *mac_pdu.bwp_cfg;
-  builder.set_bwp_parameters(bwp_cfg.crbs.length(), bwp_cfg.crbs.start(), bwp_cfg.scs, bwp_cfg.cp);
+  builder.set_bwp_parameters(bwp_cfg.crbs, bwp_cfg.scs, bwp_cfg.cp);
 
   const prb_interval& freq_prbs = mac_pdu.resources.prbs;
-  builder.set_allocation_in_frequency_parameters(freq_prbs.start(), freq_prbs.length());
+  builder.set_allocation_in_frequency_parameters(freq_prbs);
 
   const ofdm_symbol_range& symbols = mac_pdu.resources.symbols;
-  builder.set_allocation_in_time_parameters(symbols.start(), symbols.length());
+  builder.set_allocation_in_time_parameters(symbols);
 
   fill_custom_parameters(builder, mac_pdu);
 }

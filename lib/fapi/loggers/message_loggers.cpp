@@ -134,11 +134,9 @@ static void log_dl_dci_pdu(const dl_dci_pdu& dci_pdu, fmt::memory_buffer& buffer
 static void log_pdcch_pdu(const dl_pdcch_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PDCCH bwp={}:{} symb={}:{} freq_domain_resource={} precoder_granularity={}",
-                 pdu.coreset_bwp_start,
-                 pdu.coreset_bwp_size,
-                 pdu.start_symbol_index,
-                 pdu.duration_symbols,
+                 "\n\t- PDCCH bwp={} symb={} freq_domain_resource={} precoder_granularity={}",
+                 pdu.coreset_bwp,
+                 pdu.symbols,
                  pdu.freq_domain_resource,
                  fmt::underlying(pdu.precoder_granularity));
 
@@ -181,12 +179,10 @@ static void log_ssb_pdu(const dl_ssb_pdu& pdu, fmt::memory_buffer& buffer)
 static void log_pdsch_pdu(const dl_pdsch_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PDSCH rnti={} bwp={}:{} symb={}:{} CW: tbs={} mod={} rv_idx={}",
+                 "\n\t- PDSCH rnti={} bwp={} symb={} CW: tbs={} mod={} rv_idx={}",
                  pdu.rnti,
-                 pdu.bwp_start,
-                 pdu.bwp_size,
-                 pdu.start_symbol_index,
-                 pdu.nr_of_symbols,
+                 pdu.bwp,
+                 pdu.symbols,
                  pdu.cws.front().tb_size,
                  pdu.cws.front().qam_mod_order,
                  pdu.cws.front().rv_index);
@@ -196,10 +192,9 @@ static void log_csi_rs_pdu(const dl_csi_rs_pdu& pdu, fmt::memory_buffer& buffer)
 {
   if (pdu.type == csi_rs_type::CSI_RS_NZP) {
     fmt::format_to(std::back_inserter(buffer),
-                   "\n\t- NZP-CSI-RS crbs={}:{} type={} freq_domain={} row={} symbL0={} symbL1={} cdm_type={} "
+                   "\n\t- NZP-CSI-RS crbs={} type={} freq_domain={} row={} symbL0={} symbL1={} cdm_type={} "
                    "freq_density={} scramb_id={}",
-                   pdu.start_rb,
-                   pdu.num_rbs,
+                   pdu.crbs,
                    to_string(pdu.type),
                    pdu.freq_domain,
                    pdu.row,
@@ -213,9 +208,8 @@ static void log_csi_rs_pdu(const dl_csi_rs_pdu& pdu, fmt::memory_buffer& buffer)
 
   if (pdu.type == csi_rs_type::CSI_RS_ZP) {
     fmt::format_to(std::back_inserter(buffer),
-                   "\n\t- ZP-CSI-RS crbs={}:{} row={} symbL0={} symbL1={}",
-                   pdu.start_rb,
-                   pdu.num_rbs,
+                   "\n\t- ZP-CSI-RS crbs={} row={} symbL0={} symbL1={}",
+                   pdu.crbs,
                    pdu.row,
                    pdu.symb_L0,
                    pdu.symb_L1);
@@ -226,13 +220,12 @@ static void log_csi_rs_pdu(const dl_csi_rs_pdu& pdu, fmt::memory_buffer& buffer)
 static void log_prs_pdu(const dl_prs_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PRS comb_size={} comb_offset={} symb={}:{} RBs={}:{} n_id={}",
+                 "\n\t- PRS comb_size={} comb_offset={} symb={}:{} CRBs={} n_id={}",
                  fmt::underlying(pdu.comb_size),
                  pdu.comb_offset,
                  pdu.first_symbol,
                  fmt::underlying(pdu.num_symbols),
-                 pdu.start_rb,
-                 pdu.num_rbs,
+                 pdu.crbs,
                  pdu.nid_prs);
 }
 
@@ -525,27 +518,23 @@ void ocudu::fapi::log_srs_indication(const srs_indication& msg, unsigned sector_
 static void log_prach_pdu(const ul_prach_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PRACH num_prach_ocas={} format={} fd_ra={}:{} symb={} z_corr={} start_preamble_index={} "
-                 "num_preamble_indices={}",
+                 "\n\t- PRACH num_prach_ocas={} format={} fd_ra={}:{} symb={} z_corr={} preambles={}",
                  pdu.num_prach_ocas,
                  to_string(pdu.prach_format),
                  pdu.index_fd_ra,
                  pdu.num_fd_ra,
                  pdu.prach_start_symbol,
                  pdu.num_cs,
-                 pdu.start_preamble_index,
-                 pdu.num_preamble_indices);
+                 pdu.preambles);
 }
 
 static void log_pusch_pdu(const ul_pusch_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PUSCH rnti={} bwp={}:{} symb={}:{} mod={}",
+                 "\n\t- PUSCH rnti={} bwp={} symb={} mod={}",
                  pdu.rnti,
-                 pdu.bwp_start,
-                 pdu.bwp_size,
-                 pdu.start_symbol_index,
-                 pdu.nr_of_symbols,
+                 pdu.bwp,
+                 pdu.symbols,
                  fmt::underlying(pdu.qam_mod_order));
 
   if (pdu.pdu_bitmap.test(fapi::ul_pusch_pdu::PUSCH_DATA_BIT)) {
@@ -567,16 +556,13 @@ static void log_pusch_pdu(const ul_pusch_pdu& pdu, fmt::memory_buffer& buffer)
 static void log_pucch_pdu(const ul_pucch_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PUCCH rnti={} bwp={}:{} format={} prb={}:{} prb2={} symb={}:{} harq_bit_len={} sr_bit_len={}",
+                 "\n\t- PUCCH rnti={} bwp={} format={} prbs={} prb2={} symb={} harq_bit_len={} sr_bit_len={}",
                  pdu.rnti,
-                 pdu.bwp_start,
-                 pdu.bwp_size,
+                 pdu.bwp,
                  fmt::underlying(pdu.format_type),
-                 pdu.prb_start,
-                 pdu.prb_size,
+                 pdu.prbs,
                  pdu.second_hop_prb,
-                 pdu.start_symbol_index,
-                 pdu.nr_of_symbols,
+                 pdu.symbols,
                  pdu.bit_len_harq,
                  pdu.sr_bit_len);
 
@@ -595,11 +581,10 @@ static void log_srs_pdu(const ul_srs_pdu& pdu, fmt::memory_buffer& buffer)
 {
   fmt::format_to(
       std::back_inserter(buffer),
-      "\n\t- SRS rnti={} bwp={}:{} nof_ports={} symb={}:{} config_idx={} comb=(size={} offset={} cyclic_shift={}) "
+      "\n\t- SRS rnti={} bwp={} nof_ports={} symb={}:{} config_idx={} comb=(size={} offset={} cyclic_shift={}) "
       "freq_shift={} type={} normalized_channel_iq_matrix_req={} positioning_report_req={}",
       pdu.rnti,
-      pdu.bwp_start,
-      pdu.bwp_size,
+      pdu.bwp,
       fmt::underlying(pdu.num_ant_ports),
       pdu.time_start_position,
       pdu.ofdm_symbols.length(),

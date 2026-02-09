@@ -30,7 +30,7 @@ TEST(rach_indication_builder, valid_basic_parameters_passes)
   std::optional<float> rssi;
   std::optional<float> snr = 10;
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot_point(slot);
   auto pdu_builder = builder.add_pdu(symb_id, slot_id, ra_id_d, rssi, snr);
 
   std::optional<phy_time_unit> timing         = phy_time_unit::from_seconds(0);

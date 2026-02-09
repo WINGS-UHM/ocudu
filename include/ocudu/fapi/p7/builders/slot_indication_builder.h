@@ -16,8 +16,6 @@
 namespace ocudu {
 namespace fapi {
 
-// :TODO: Review the builders documentation so it matches the UCI builder.
-
 /// Builds and returns a slot.indication message with the given parameters, as per SCF-222 v4.0 section 3.4.1 in table
 /// Slot indication message body.
 inline slot_indication build_slot_indication(slot_point_extended                                slot,

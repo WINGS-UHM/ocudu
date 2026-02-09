@@ -59,10 +59,9 @@ public:
   /// \brief Sets the PRS PDU RB parameters and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v8.0 section 3.4.2.4a in table PRS PDU.
-  dl_prs_pdu_builder& set_rb_parameters(unsigned nof_rb, unsigned start_rb)
+  dl_prs_pdu_builder& set_rb_parameters(crb_interval crbs)
   {
-    pdu.num_rbs  = nof_rb;
-    pdu.start_rb = start_rb;
+    pdu.crbs = crbs;
 
     return *this;
   }

@@ -33,11 +33,10 @@ TEST(mac_fapi_pdcch_pdu_conversor_test, mac_to_fapi_conversion_is_valid)
   // BWP.
   ASSERT_EQ(context_information.bwp_cfg->cp, fapi_pdu.cp);
   ASSERT_EQ(context_information.bwp_cfg->scs, fapi_pdu.scs);
-  ASSERT_EQ(context_information.coreset_cfg->coreset0_crbs().start(), fapi_pdu.coreset_bwp_start);
-  ASSERT_EQ(context_information.coreset_cfg->coreset0_crbs().length(), fapi_pdu.coreset_bwp_size);
+  ASSERT_EQ(context_information.coreset_cfg->coreset0_crbs(), fapi_pdu.coreset_bwp);
 
   // CORESET.
-  ASSERT_EQ(context_information.coreset_cfg->duration(), fapi_pdu.duration_symbols);
+  ASSERT_EQ(context_information.coreset_cfg->duration(), fapi_pdu.symbols.length());
   ASSERT_EQ(context_information.coreset_cfg->get_precoder_granularity(), fapi_pdu.precoder_granularity);
 
   if (context_information.coreset_cfg->get_id() == to_coreset_id(0)) {
@@ -60,7 +59,7 @@ TEST(mac_fapi_pdcch_pdu_conversor_test, mac_to_fapi_conversion_is_valid)
   ASSERT_EQ(context_information.n_id_pdcch_data, fapi_pdu.dl_dci.nid_pdcch_data);
   ASSERT_EQ(context_information.n_rnti_pdcch_data, fapi_pdu.dl_dci.nrnti_pdcch_data);
   ASSERT_EQ(context_information.cces.ncce, fapi_pdu.dl_dci.cce_index);
-  ASSERT_EQ(context_information.starting_symbol, fapi_pdu.start_symbol_index);
+  ASSERT_EQ(context_information.starting_symbol, fapi_pdu.symbols.start());
   ASSERT_EQ(context_information.cces.aggr_lvl, fapi_pdu.dl_dci.dci_aggregation_level);
   ASSERT_EQ(context_information.n_id_pdcch_dmrs, fapi_pdu.dl_dci.nid_pdcch_dmrs);
   ASSERT_EQ(payload, fapi_pdu.dl_dci.payload);

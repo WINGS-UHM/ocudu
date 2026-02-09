@@ -16,16 +16,14 @@ using namespace fapi;
 
 TEST(ul_prach_pdu_builder, valid_preamble_parameters_passes)
 {
-  uint8_t start_preamble_index = 12;
-  uint8_t num_preamble_indices = 13;
+  ul_prach_pdu::preambles_interval preambles = {12, 13};
 
   ul_prach_pdu         pdu;
   ul_prach_pdu_builder builder(pdu);
 
-  builder.set_preamble_parameters(start_preamble_index, num_preamble_indices);
+  builder.set_preamble_parameters(preambles);
 
-  ASSERT_EQ(start_preamble_index, pdu.start_preamble_index);
-  ASSERT_EQ(num_preamble_indices, pdu.num_preamble_indices);
+  ASSERT_EQ(preambles, pdu.preambles);
 }
 
 TEST(ul_prach_pdu_builder, valid_prach_parameters_passes)

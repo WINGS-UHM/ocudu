@@ -45,48 +45,42 @@ TEST(ul_pucch_pdu_builder, valid_format_common_parameters_passes)
 
 TEST(ul_pucch_pdu_builder, valid_bwp_parameters_passes)
 {
-  unsigned           start = 34;
-  unsigned           size  = 35;
-  subcarrier_spacing scs   = subcarrier_spacing::kHz120;
-  cyclic_prefix      cp    = cyclic_prefix::NORMAL;
+  crb_interval       bwp = {34, 35};
+  subcarrier_spacing scs = subcarrier_spacing::kHz120;
+  cyclic_prefix      cp  = cyclic_prefix::NORMAL;
 
   ul_pucch_pdu         pdu;
   ul_pucch_pdu_builder builder(pdu);
 
-  builder.set_bwp_parameters(size, start, scs, cp);
+  builder.set_bwp_parameters(bwp, scs, cp);
 
-  ASSERT_EQ(start, pdu.bwp_start);
-  ASSERT_EQ(size, pdu.bwp_size);
+  ASSERT_EQ(bwp, pdu.bwp);
   ASSERT_EQ(scs, pdu.scs);
   ASSERT_EQ(cp, pdu.cp);
 }
 
 TEST(ul_pucch_pdu_builder, valid_frequency_allocation_parameters_passes)
 {
-  unsigned start = 10;
-  unsigned size  = 8;
+  prb_interval prbs = {8, 10};
 
   ul_pucch_pdu         pdu;
   ul_pucch_pdu_builder builder(pdu);
 
-  builder.set_allocation_in_frequency_parameters(start, size);
+  builder.set_allocation_in_frequency_parameters(prbs);
 
-  ASSERT_EQ(start, pdu.prb_start);
-  ASSERT_EQ(size, pdu.prb_size);
+  ASSERT_EQ(prbs, pdu.prbs);
 }
 
 TEST(ul_pucch_pdu_builder, valid_time_allocation_parameters_passes)
 {
-  unsigned start_symb  = 7;
-  unsigned nof_symbols = 4;
+  ofdm_symbol_range symbols = {4, 7};
 
   ul_pucch_pdu         pdu;
   ul_pucch_pdu_builder builder(pdu);
 
-  builder.set_allocation_in_time_parameters(start_symb, nof_symbols);
+  builder.set_allocation_in_time_parameters(symbols);
 
-  ASSERT_EQ(start_symb, pdu.start_symbol_index);
-  ASSERT_EQ(nof_symbols, pdu.nr_of_symbols);
+  ASSERT_EQ(symbols, pdu.symbols);
 }
 
 TEST(ul_pucch_pdu_builder, valid_hopping_information_parameters_passes)

@@ -135,7 +135,7 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const ma
   fapi::dl_tti_request         msg;
   fapi::dl_tti_request_builder builder(msg);
 
-  builder.set_basic_parameters(dl_res.slot);
+  builder.set_slot(dl_res.slot);
 
   // Add PDCCH PDUs to the DL_TTI.request message.
   add_pdcch_pdus_to_builder(builder,
@@ -183,7 +183,7 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_data(const mac_dl_data_res
   fapi::tx_data_request         msg;
   fapi::tx_data_request_builder builder(msg);
 
-  builder.set_basic_parameters(dl_data.slot);
+  builder.set_slot(dl_data.slot);
 
   // Make sure PDUs are added to the builder in the same order as for the DL_TTI.request message.
   unsigned fapi_pdu_index = 0;

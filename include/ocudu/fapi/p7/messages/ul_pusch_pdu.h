@@ -15,6 +15,8 @@
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/pusch/pusch_context.h"
 #include "ocudu/ran/pusch/pusch_mcs.h"
+#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/sch/ldpc_base_graph.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/ran/uci/uci_configuration.h"
@@ -110,8 +112,7 @@ struct ul_pusch_pdu {
   std::bitset<BITMAP_SIZE>                     pdu_bitmap;
   rnti_t                                       rnti;
   uint32_t                                     handle = 0;
-  uint16_t                                     bwp_size;
-  uint16_t                                     bwp_start;
+  crb_interval                                 bwp;
   subcarrier_spacing                           scs;
   cyclic_prefix                                cp;
   uint16_t                                     target_code_rate;
@@ -132,14 +133,12 @@ struct ul_pusch_pdu {
   uint16_t                                     dmrs_ports;
   resource_allocation_type                     resource_alloc;
   std::array<uint8_t, RB_BITMAP_SIZE_IN_BYTES> rb_bitmap;
-  uint16_t                                     rb_start;
-  uint16_t                                     rb_size;
+  vrb_interval                                 vrbs;
   vrb_to_prb_mapping_type                      vrb_to_prb_mapping;
   bool                                         intra_slot_frequency_hopping;
   uint16_t                                     tx_direct_current_location;
   bool                                         uplink_frequency_shift_7p5kHz;
-  uint8_t                                      start_symbol_index;
-  uint8_t                                      nr_of_symbols;
+  ofdm_symbol_range                            symbols;
   ul_pusch_data                                pusch_data;
   ul_pusch_uci                                 pusch_uci;
   ul_pusch_ptrs                                pusch_ptrs;

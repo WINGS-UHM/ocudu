@@ -19,15 +19,13 @@ TEST(dl_pdcch_pdu_builder, valid_bwp_parameters_passes)
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
 
-  unsigned           bwp_size  = 100;
-  unsigned           bwp_start = 100;
-  subcarrier_spacing scs       = subcarrier_spacing::kHz60;
-  cyclic_prefix      cp        = cyclic_prefix::NORMAL;
+  crb_interval       coreset_bwp = {100, 100};
+  subcarrier_spacing scs         = subcarrier_spacing::kHz60;
+  cyclic_prefix      cp          = cyclic_prefix::NORMAL;
 
-  builder.set_bwp_parameters(bwp_size, bwp_start, scs, cp);
+  builder.set_bwp_parameters(coreset_bwp, scs, cp);
 
-  ASSERT_EQ(bwp_size, pdu.coreset_bwp_size);
-  ASSERT_EQ(bwp_start, pdu.coreset_bwp_start);
+  ASSERT_EQ(coreset_bwp, pdu.coreset_bwp);
   ASSERT_EQ(scs, pdu.scs);
   ASSERT_EQ(cp, pdu.cp);
 }
@@ -37,15 +35,13 @@ TEST(dl_pdcch_pdu_builder, valid_coreset_parameters_passes)
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
 
-  unsigned                                         start_symb_id = 7;
-  unsigned                                         symb_duration = 2;
+  ofdm_symbol_range                                symbols = {2, 7};
   coreset_configuration::precoder_granularity_type granularity =
       coreset_configuration::precoder_granularity_type::same_as_reg_bundle;
 
-  builder.set_coreset_parameters(start_symb_id, symb_duration, granularity);
+  builder.set_coreset_parameters(symbols, granularity);
 
-  ASSERT_EQ(start_symb_id, pdu.start_symbol_index);
-  ASSERT_EQ(symb_duration, pdu.duration_symbols);
+  ASSERT_EQ(symbols, pdu.symbols);
   ASSERT_EQ(granularity, pdu.precoder_granularity);
 }
 

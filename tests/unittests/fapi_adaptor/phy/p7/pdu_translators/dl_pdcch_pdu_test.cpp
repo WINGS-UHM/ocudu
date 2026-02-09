@@ -54,9 +54,9 @@ TEST(fapi_to_phy_pdcch_conversion_test, valid_pdu_conversion_success)
                   unsigned slot_index         = slot_dist(gen);
                   auto     slot               = slot_point(scs, sfn, slot_index);
                   unsigned bwp_size           = bwp_size_dist(gen);
-                  unsigned bwp_start          = bwp_start_dist(gen);
-                  unsigned start_symbol_index = start_symbol_index_dist(gen);
+                  unsigned bwp_start          = std::min(bwp_start_dist(gen), bwp_size);
                   unsigned duration_symbol    = duration_symbol_dist(gen);
+                  unsigned start_symbol_index = std::min(start_symbol_index_dist(gen), duration_symbol);
                   unsigned shift_index        = shift_index_dist(gen);
                   unsigned n_rnti             = n_rnti_dist(gen);
                   unsigned cce                = cce_dist(gen);
@@ -72,9 +72,10 @@ TEST(fapi_to_phy_pdcch_conversion_test, valid_pdu_conversion_success)
                                                       0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1};
 
                   // Always work with the biggest numerology.
-                  builder.set_bwp_parameters(bwp_size, bwp_start, scs, cp);
+                  builder.set_bwp_parameters(crb_interval::start_and_len(bwp_start, bwp_size), scs, cp);
 
-                  builder.set_coreset_parameters(start_symbol_index, duration_symbol, precoder);
+                  builder.set_coreset_parameters(ofdm_symbol_range::start_and_len(start_symbol_index, duration_symbol),
+                                                 precoder);
 
                   if (id == to_coreset_id(0)) {
                     builder.set_coreset_0_parameters(

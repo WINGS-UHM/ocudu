@@ -12,6 +12,7 @@
 
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
+#include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/srs/srs_configuration.h"
 #include "ocudu/ran/srs/srs_resource_configuration.h"
@@ -25,8 +26,7 @@ namespace fapi {
 struct ul_srs_pdu {
   rnti_t                                        rnti;
   uint32_t                                      handle = 0U;
-  uint16_t                                      bwp_size;
-  uint16_t                                      bwp_start;
+  crb_interval                                  bwp;
   subcarrier_spacing                            scs;
   cyclic_prefix                                 cp;
   srs_resource_configuration::one_two_four_enum num_ant_ports;

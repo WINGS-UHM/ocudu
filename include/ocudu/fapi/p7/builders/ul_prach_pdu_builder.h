@@ -28,10 +28,9 @@ public:
   /// \brief Sets the PRACH PDU preamble parameters and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.3.1 in table PRACH PDU.
-  ul_prach_pdu_builder& set_preamble_parameters(uint8_t start_preamble_index, uint8_t num_preamble_indices)
+  ul_prach_pdu_builder& set_preamble_parameters(ul_prach_pdu::preambles_interval preambles)
   {
-    pdu.start_preamble_index = start_preamble_index;
-    pdu.num_preamble_indices = num_preamble_indices;
+    pdu.preambles = preambles;
 
     return *this;
   }

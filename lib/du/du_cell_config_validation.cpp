@@ -494,8 +494,8 @@ static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
       cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start,
       cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_fdm);
 
-  if (cell_cfg.srs_cfg.srs_type_enabled == srs_type::aperiodic and cell_cfg.tdd_ul_dl_cfg_common.has_value() and
-      cell_cfg.tdd_ul_dl_cfg_common.value().pattern2.has_value()) {
+  if (cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::aperiodic and
+      cell_cfg.tdd_ul_dl_cfg_common.has_value() and cell_cfg.tdd_ul_dl_cfg_common.value().pattern2.has_value()) {
     CHECK_TRUE(cell_cfg.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols ==
                    cell_cfg.tdd_ul_dl_cfg_common.value().pattern2.value().nof_ul_symbols,
                "With aperiodic SRS, the TDD pattern 1 and 2 must have the same number of symbols.");

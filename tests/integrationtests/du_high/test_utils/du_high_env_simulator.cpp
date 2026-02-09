@@ -69,8 +69,8 @@ du_high_configuration odu::create_du_high_configuration(const du_high_env_sim_pa
     }
     cfg.ran.mac_cfg.configs.push_back({10000, 10000, 10000});
     if (params.srs_period.has_value()) {
-      cfg.ran.cells.back().srs_cfg.srs_type_enabled       = srs_type::periodic;
-      cfg.ran.cells.back().srs_cfg.srs_period_prohib_time = params.srs_period.value();
+      cfg.ran.cells.back().init_bwp_builder.srs_cfg.srs_type_enabled       = srs_type::periodic;
+      cfg.ran.cells.back().init_bwp_builder.srs_cfg.srs_period_prohib_time = params.srs_period.value();
     }
   }
 

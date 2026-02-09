@@ -935,7 +935,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     }
 
     // Parameters for SRS-Config.
-    srs_builder_params&            du_srs_cfg   = out_cell.srs_cfg;
+    srs_builder_params&            du_srs_cfg   = out_cell.init_bwp_builder.srs_cfg;
     const du_high_unit_srs_config& user_srs_cfg = base_cell.srs_cfg;
     du_srs_cfg.srs_type_enabled                 = [](const std::string& str) {
       if (str == "periodic") {

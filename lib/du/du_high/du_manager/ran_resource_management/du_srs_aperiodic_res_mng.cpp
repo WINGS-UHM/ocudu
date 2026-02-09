@@ -136,10 +136,10 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
                      cell.cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
                  "DU cell config is not valid");
 
-    ocudu_assert(cell.cell_cfg.srs_cfg.srs_type_enabled != srs_type::periodic,
+    ocudu_assert(cell.cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled != srs_type::periodic,
                  "Request to build aperiodic SRS configuration, but periodic parameters have been provided");
 
-    if (cell.cell_cfg.srs_cfg.srs_type_enabled == srs_type::disabled) {
+    if (cell.cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::disabled) {
       continue;
     }
 
@@ -147,9 +147,9 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
 
     // If the C_SRS is not set as an input parameter, then we compute C_SRS so that the SRS uses the maximum allowed
     // number of RBs and is located at the center of the UL BWP.
-    if (cell_cfg.srs_cfg.c_srs.has_value()) {
-      cell.srs_common_params.c_srs      = cell_cfg.srs_cfg.c_srs.value();
-      cell.srs_common_params.freq_shift = cell_cfg.srs_cfg.freq_domain_shift.value();
+    if (cell_cfg.init_bwp_builder.srs_cfg.c_srs.has_value()) {
+      cell.srs_common_params.c_srs      = cell_cfg.init_bwp_builder.srs_cfg.c_srs.value();
+      cell.srs_common_params.freq_shift = cell_cfg.init_bwp_builder.srs_cfg.freq_domain_shift.value();
     } else {
       const std::optional<unsigned> c_srs =
           du_srs_mng_details::compute_c_srs(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
@@ -165,7 +165,7 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
           cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.start();
     }
 
-    cell.srs_common_params.p0 = cell_cfg.srs_cfg.p0;
+    cell.srs_common_params.p0 = cell_cfg.init_bwp_builder.srs_cfg.p0;
 
     // TODO: evaluate whether we need to consider the case of multiple cells.
     // NOTE: If there is pattern2, then we expect pattern 2 to have the same number of symbols in the special slot as
@@ -232,7 +232,7 @@ void du_srs_aperiodic_res_mng::cell_context::fill_srs_res_parameters(srs_config:
                    cell_context::cell_cfg.ul_carrier.nof_ant == 4,
                "The number of UL antenna ports is not valid");
   res_out.nof_ports                    = srs_config::srs_resource::nof_srs_ports::port1;
-  res_out.tx_comb.size                 = cell_cfg.srs_cfg.tx_comb;
+  res_out.tx_comb.size                 = cell_cfg.init_bwp_builder.srs_cfg.tx_comb;
   res_out.tx_comb.tx_comb_offset       = res_in.tx_comb_offset.value();
   res_out.tx_comb.tx_comb_cyclic_shift = res_in.cs;
   res_out.freq_domain_pos              = res_in.freq_dom_position;

@@ -74,7 +74,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
 {
   // This function generates a configuration which potentially allows for a very large number of SRS resources.
   du_cell_config du_cfg  = config_helpers::make_default_du_cell_config(params);
-  auto&          srs_cfg = du_cfg.srs_cfg;
+  auto&          srs_cfg = du_cfg.init_bwp_builder.srs_cfg;
 
   srs_cfg.srs_type_enabled = srs_type::periodic;
 
@@ -164,7 +164,7 @@ make_srs_cell_config(const cell_config_builder_params& params, bool limit_srs_re
   // given SRS parameters.
   auto tot_num_srs_res = [&du_cfg]() {
     const auto& tdd_cfg = du_cfg.tdd_ul_dl_cfg_common;
-    const auto& srs_cfg = du_cfg.srs_cfg;
+    const auto& srs_cfg = du_cfg.init_bwp_builder.srs_cfg;
     // This is the number of SRS resources per symbol interval. A symbol interval is an interval where the SRS resource
     // can be placed within a slot and its width (or length) is given by the corresponding SRS parameter \c nof_symb in
     // the SRS configuration.
@@ -215,7 +215,7 @@ protected:
                                                bool                              use_max_bw) :
     params(params_),
     cell_cfg_list({make_srs_cell_config(params_, test_optimality, use_max_bw)}),
-    srs_params(cell_cfg_list[0].srs_cfg),
+    srs_params(cell_cfg_list[0].init_bwp_builder.srs_cfg),
     du_srs_res_mng(cell_cfg_list)
   {
   }

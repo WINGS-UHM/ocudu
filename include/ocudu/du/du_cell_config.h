@@ -21,10 +21,8 @@
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include "ocudu/scheduler/config/bwp_builder_params.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
-#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/slice_rrm_policy_config.h"
-#include "ocudu/scheduler/config/srs_builder_params.h"
 
 namespace ocudu {
 namespace odu {
@@ -95,9 +93,6 @@ struct du_cell_config {
 
   /// Parameters to initialize/build the \c mac_cell_group_config.
   mac_cell_group_params mcg_params;
-
-  /// Parameters for SRS-Config generation.
-  srs_builder_params srs_cfg;
 
   /// Parameters for the initial BWP config generation.
   bwp_builder_params init_bwp_builder;

@@ -821,7 +821,7 @@ static du_cell_config make_custom_pucch_srs_cell_config(bool pucch_has_more_res_
   du_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value().sr_res_list.front().period =
       ocudu::sr_periodicity::sl_10;
 
-  auto& srs_cfg = du_cfg.srs_cfg;
+  auto& srs_cfg = du_cfg.init_bwp_builder.srs_cfg;
 
   // Generates a random SRS configuration.
   srs_cfg.srs_type_enabled          = srs_type::periodic;

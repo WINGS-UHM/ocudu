@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
-#include <cstdint>
+#include "ocudu/scheduler/config/srs_builder_params.h"
 
 namespace ocudu {
 
@@ -58,6 +58,8 @@ struct bwp_builder_params {
   pusch_builder_params pusch;
   /// Parameters relative to the generation of the PUCCH configs.
   pucch_builder_params pucch;
+  /// Parameters for SRS-Config generation.
+  srs_builder_params srs_cfg;
   /// Parameters for Random Access in this BWP.
   std::optional<rach_builder_params> rach;
   /// Parameters relative to the generation of the paging configs.

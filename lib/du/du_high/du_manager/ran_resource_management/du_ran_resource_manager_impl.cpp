@@ -65,7 +65,7 @@ static void reset_serv_cell_cfg(serving_cell_config& serv_cell_cfg)
 
 static std::unique_ptr<du_srs_resource_manager> build_srs_res_mng(span<const du_cell_config> cell_cfg_list)
 {
-  if (cell_cfg_list[0].srs_cfg.srs_type_enabled == srs_type::aperiodic) {
+  if (cell_cfg_list[0].init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::aperiodic) {
     return std::make_unique<du_srs_aperiodic_res_mng>(cell_cfg_list);
   }
   return std::make_unique<du_srs_policy_max_ul_rate>(cell_cfg_list);
@@ -98,7 +98,7 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
       csi_limit   = pucch_res_mng.get_nof_csi_free_res_offsets(cell_idx);
       max_nof_ues = std::min(max_nof_ues, csi_limit);
     }
-    if (cell.srs_cfg.srs_type_enabled == srs_type::periodic) {
+    if (cell.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::periodic) {
       srs_limit   = srs_res_mng->get_nof_srs_free_res_offsets(cell_idx);
       max_nof_ues = std::min(max_nof_ues, srs_limit);
     }
@@ -114,7 +114,8 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
                         not is_pusch_configured(*cell.ue_ded_serv_cell_cfg.csi_meas_cfg)
                     ? fmt::to_string(csi_limit)
                     : "n/a",
-                cell.srs_cfg.srs_type_enabled == srs_type::periodic ? fmt::to_string(srs_limit) : "n/a");
+                cell.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::periodic ? fmt::to_string(srs_limit)
+                                                                                     : "n/a");
   }
 }
 

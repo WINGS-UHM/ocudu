@@ -43,13 +43,14 @@ srs_config build_default_srs_cfg(const du_cell_config& cell_cfg)
                    cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
                "DU cell config is not valid");
 
-  ocudu_assert(cell_cfg.srs_cfg.srs_type_enabled != (IsPeriodic ? srs_type::aperiodic : srs_type::periodic),
+  ocudu_assert(cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled !=
+                   (IsPeriodic ? srs_type::aperiodic : srs_type::periodic),
                "Request to build {} SRS configuration, but {} parameters have been provided",
                IsPeriodic ? "periodic" : "aperiodic",
                IsPeriodic ? "aperiodic" : "periodic");
 
   // If SRS is not enabled, we don't need to update its configuration.
-  if (cell_cfg.srs_cfg.srs_type_enabled == srs_type::disabled) {
+  if (cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::disabled) {
     return cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
   }
 
@@ -66,8 +67,8 @@ srs_config build_default_srs_cfg(const du_cell_config& cell_cfg)
   if (IsPeriodic) {
     res.res_type = srs_resource_type::periodic;
     // Set offset to 0. The offset will be updated later on, when the UE is allocated the SRS resources.
-    res.periodicity_and_offset.emplace(
-        srs_config::srs_periodicity_and_offset{.period = cell_cfg.srs_cfg.srs_period_prohib_time, .offset = 0});
+    res.periodicity_and_offset.emplace(srs_config::srs_periodicity_and_offset{
+        .period = cell_cfg.init_bwp_builder.srs_cfg.srs_period_prohib_time, .offset = 0});
     res_set.res_type.emplace<srs_config::srs_resource_set::periodic_resource_type>(
         srs_config::srs_resource_set::periodic_resource_type{});
     // Set the SRS resource set ID to 0, as there is only 1 SRS resource set per UE.

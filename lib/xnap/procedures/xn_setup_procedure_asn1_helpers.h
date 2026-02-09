@@ -29,6 +29,7 @@ inline xnap_message generate_xn_setup_request(const xnap_configuration& xnap_cfg
   auto& global_gnb = asn1_ies->global_ng_ran_node_id.set_gnb();
   global_gnb.gnb_id.set_gnb_id();
   global_gnb.gnb_id.gnb_id().from_number(xnap_cfg.gnb_id.id, xnap_cfg.gnb_id.bit_length);
+  global_gnb.plmn_id = xnap_cfg.tai_support_list.front().plmn_list.front().plmn_id.to_bytes();
 
   // Fill TAI support list.
   asn1_ies->tai_support_list.resize(xnap_cfg.tai_support_list.size());

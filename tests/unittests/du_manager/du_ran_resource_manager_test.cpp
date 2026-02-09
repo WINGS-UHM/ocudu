@@ -28,7 +28,7 @@ protected:
     du_cfg_param(du_cfg_param_),
     cell_cfg_list({du_cfg_param_}),
     qos_cfg_list(config_helpers::make_default_du_qos_config_list(/* warn_on_drop */ true, 1000)),
-    default_ue_cell_cfg(du_cfg_param.ue_ded_serv_cell_cfg),
+    default_ue_cell_cfg(config_helpers::make_ue_serving_cell_config(du_cfg_param, to_du_cell_index(0))),
     res_mng(std::make_unique<du_ran_resource_manager_impl>(
         cell_cfg_list,
         scheduler_expert_config{.ue = {.max_pucchs_per_slot = max_pucch_grants}},

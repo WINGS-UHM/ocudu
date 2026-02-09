@@ -11,6 +11,7 @@
 #include "du_ran_resource_manager_impl.h"
 #include "du_srs_aperiodic_res_mng.h"
 #include "du_srs_periodic_res_mng.h"
+#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/mac/config/mac_cell_group_config_factory.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/csi_report/csi_report_config_helpers.h"
@@ -86,8 +87,9 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
   drx_res_mng(cell_cfg_list),
   ra_res_alloc(cell_cfg_list)
 {
-  for (const auto& cell : cell_cfg_list) {
-    const du_cell_index_t cell_idx  = cell.ue_ded_serv_cell_cfg.cell_index;
+  for (unsigned cell_idx_uint = 0; cell_idx_uint != cell_cfg_list.size(); ++cell_idx_uint) {
+    const auto&           cell      = cell_cfg_list[cell_idx_uint];
+    const du_cell_index_t cell_idx  = to_du_cell_index(cell_idx_uint);
     unsigned              sr_limit  = pucch_res_mng.get_nof_sr_free_res_offsets(cell_idx);
     unsigned              csi_limit = 0;
     unsigned              srs_limit = 0;
@@ -259,9 +261,8 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
     // It is a PCell.
     ocudu_assert(not ue_res.cell_group.cells.contains(SERVING_CELL_PCELL_IDX), "Reallocation of PCell detected");
     ue_res.cell_group.cells.emplace(SERVING_CELL_PCELL_IDX);
-    ue_res.cell_group.cells[0].serv_cell_idx            = SERVING_CELL_PCELL_IDX;
-    ue_res.cell_group.cells[0].serv_cell_cfg            = cell_cfg_cmn.ue_ded_serv_cell_cfg;
-    ue_res.cell_group.cells[0].serv_cell_cfg.cell_index = cell_index;
+    ue_res.cell_group.cells[0].serv_cell_idx = SERVING_CELL_PCELL_IDX;
+    ue_res.cell_group.cells[0].serv_cell_cfg = config_helpers::make_ue_serving_cell_config(cell_cfg_cmn, cell_index);
     ue_res.cell_group.mcg_cfg = config_helpers::make_initial_mac_cell_group_config(cell_cfg_cmn.mcg_params);
     // TODO: Move to helper.
     if (cell_cfg_cmn.pcg_params.p_nr_fr1.has_value()) {
@@ -290,9 +291,9 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
   } else {
     ocudu_assert(not ue_res.cell_group.cells.contains(serv_cell_index), "Reallocation of SCell detected");
     ue_res.cell_group.cells.emplace(serv_cell_index);
-    ue_res.cell_group.cells[serv_cell_index].serv_cell_idx            = serv_cell_index;
-    ue_res.cell_group.cells[serv_cell_index].serv_cell_cfg            = cell_cfg_cmn.ue_ded_serv_cell_cfg;
-    ue_res.cell_group.cells[serv_cell_index].serv_cell_cfg.cell_index = cell_index;
+    ue_res.cell_group.cells[serv_cell_index].serv_cell_idx = serv_cell_index;
+    ue_res.cell_group.cells[serv_cell_index].serv_cell_cfg =
+        config_helpers::make_ue_serving_cell_config(cell_cfg_cmn, cell_index);
     // TODO: Allocate SCell params.
   }
   return {};

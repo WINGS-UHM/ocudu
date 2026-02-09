@@ -11,6 +11,7 @@
 #include "ocudu/du/du_cell_config_validation.h"
 #include "ocudu/asn1/rrc_nr/serving_cell.h"
 #include "ocudu/asn1/rrc_nr/sys_info.h"
+#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/du/du_update_config_helpers.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
@@ -326,7 +327,7 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
     // Checks whether nof. monitored PDCCH candidates per slot for a DL BWP does not exceed maximum allowed value as per
     // TS 38.213, Table 10.1-2.
     const unsigned total_nof_monitored_pdcch_candidates =
-        config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(cell_cfg.ue_ded_serv_cell_cfg,
+        config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(cell_cfg.ue_ded_serv_cell_cfg.init_dl_bwp,
                                                                             cell_cfg.dl_cfg_common);
     CHECK_EQ_OR_BELOW(total_nof_monitored_pdcch_candidates,
                       max_nof_monitored_pdcch_candidates(cell_cfg.scs_common),
@@ -825,8 +826,10 @@ check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
       cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
       pucch_cfg.max_nof_symbols));
   HANDLE_ERROR(check_prach_config(cell_cfg));
+  const serving_cell_config ue_serv_cell_cfg =
+      config_helpers::make_ue_serving_cell_config(cell_cfg, to_du_cell_index(0));
   HANDLE_ERROR(config_validators::validate_csi_meas_cfg(
-      cell_cfg.ue_ded_serv_cell_cfg, cell_cfg.tdd_ul_dl_cfg_common, cell_cfg.ul_cfg_common));
+      ue_serv_cell_cfg, cell_cfg.tdd_ul_dl_cfg_common, cell_cfg.ul_cfg_common));
   HANDLE_ERROR(check_dl_config_dedicated(cell_cfg));
   HANDLE_ERROR(check_ul_config_dedicated(cell_cfg));
   HANDLE_ERROR(check_ntn_config(cell_cfg));

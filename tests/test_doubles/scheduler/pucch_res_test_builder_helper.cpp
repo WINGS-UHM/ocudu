@@ -10,6 +10,7 @@
 
 #include "pucch_res_test_builder_helper.h"
 #include "../../../lib/scheduler/config/cell_configuration.h"
+#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
@@ -23,7 +24,7 @@ static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&     
   odu::du_cell_config cell_cfg;
   cell_cfg.ul_cfg_common.init_ul_bwp        = init_ul_bwp;
   cell_cfg.tdd_ul_dl_cfg_common             = tdd_ul_dl_cfg_common;
-  cell_cfg.ue_ded_serv_cell_cfg             = base_ue_cfg;
+  cell_cfg.ue_ded_serv_cell_cfg             = config_helpers::make_du_ue_ded_serv_cell_config(base_ue_cfg);
   cell_cfg.init_bwp_builder.pucch.resources = pucch_cfg;
   return cell_cfg;
 }

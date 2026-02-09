@@ -37,6 +37,13 @@ unsigned
 ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const serving_cell_config& ue_cell_cfg,
                                                                            const dl_config_common&    dl_cfg_common)
 {
+  return compute_tot_nof_monitored_pdcch_candidates_per_slot(ue_cell_cfg.init_dl_bwp, dl_cfg_common);
+}
+
+unsigned
+ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const bwp_downlink_dedicated& ue_bwp_ded,
+                                                                           const dl_config_common&       dl_cfg_common)
+{
   // NOTE: We assume DCI formats other than 1_0, 0_0, 1_1 and 0_1 are not configured in SearchSpaces.
   // NOTE: Total nof. monitored PDCCH candidates are calculated considering a slot at which all SearchSpaces are active
   // for simplification.
@@ -64,7 +71,7 @@ ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const
   std::map<search_space_id, unsigned> nof_monitored_pdcch_candidates_per_ss;
 
   const bwp_downlink_common&    bwp_cmn = dl_cfg_common.init_dl_bwp;
-  const bwp_downlink_dedicated& bwp_ded = ue_cell_cfg.init_dl_bwp;
+  const bwp_downlink_dedicated& bwp_ded = ue_bwp_ded;
 
   for (const search_space_configuration& ss : bwp_ded.pdcch_cfg->search_spaces) {
     const auto& dci_format_variant = ss.get_monitored_dci_formats();

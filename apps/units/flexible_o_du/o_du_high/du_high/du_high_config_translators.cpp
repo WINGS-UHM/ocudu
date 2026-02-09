@@ -267,7 +267,7 @@ static unsigned get_nof_rbs(const du_high_unit_base_cell_config& cell_cfg)
       cell_cfg.channel_bw_mhz, cell_cfg.common_scs, band_helper::get_freq_range(*cell_cfg.band));
 }
 
-static void fill_csi_resources(serving_cell_config&                                      out_cell,
+static void fill_csi_resources(odu::du_ue_ded_serv_cell_config&                          out_cell,
                                const du_high_unit_base_cell_config&                      cell_cfg,
                                const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list)
 {
@@ -759,8 +759,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
       };
 
       static constexpr uint8_t min_nof_pdcch_candidates = 1;
-      while (config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(out_cell.ue_ded_serv_cell_cfg,
-                                                                                 out_cell.dl_cfg_common) >
+      while (config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(
+                 out_cell.ue_ded_serv_cell_cfg.init_dl_bwp, out_cell.dl_cfg_common) >
                  max_nof_monitored_pdcch_candidates(param.scs_common) and
              std::accumulate(ss2_cfg.get_nof_candidates().begin(), ss2_cfg.get_nof_candidates().end(), 0U) >
                  min_nof_pdcch_candidates) {

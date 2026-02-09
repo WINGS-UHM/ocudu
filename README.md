@@ -7,7 +7,7 @@
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11899/badge)](https://www.bestpractices.dev/projects/11899)
 ![Coverage](https://gitlab.com/ocudu/ocudu/badges/dev/coverage.svg?min_good=98&min_acceptable=60)
 
-<img src="https://srs.io/wp-content/uploads/ocudu_color.png" alt="image" style="width:50%; height:auto;">
+<img src="https://srs.io/wp-content/uploads/ocudu_color.png" alt="image" style="width:50%; height:auto;"/>
 
 OCUDU is a permissively-licensed, open-source 5G (and beyond) CU/DU project designed for commercial deployment and broad industry adoption, as well as advanced research and development. OCUDU is a complete radio access network (RAN) solution compliant with 3GPP and O-RAN Alliance specifications and includes the full L1/2/3 stack with minimal external dependencies. OCUDU is govorned under the Linux Foundation.
 

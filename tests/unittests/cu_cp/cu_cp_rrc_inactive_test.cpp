@@ -16,8 +16,10 @@
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
+#include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include "ocudu/ngap/ngap_message.h"
+#include <chrono>
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -539,6 +541,21 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool timeout_rna_update_and_await_ngap_ue_context_release_request()
+  {
+    // Fail RNA update (UE doesn't resume) and wait for NGAP UE Context Release Request.
+    if (tick_until(
+            std::chrono::duration_cast<std::chrono::milliseconds>(get_cu_cp_cfg().ue.t380),
+            [&]() { return false; },
+            false)) {
+      return false;
+    }
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive UE Context Release Request");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_request(ngap_pdu),
+                              "Invalid UE Context Release Request");
+    return true;
+  }
+
   unsigned du_idx    = 0;
   unsigned cu_up_idx = 0;
 
@@ -657,6 +674,33 @@ TEST_F(cu_cp_rrc_inactive_test,
 //----------------------------------------------------------------------------------//
 // UE initiated resume                                                              //
 //----------------------------------------------------------------------------------//
+
+TEST_F(cu_cp_rrc_inactive_test, when_ue_rna_update_timer_expires_then_ue_release_is_requested)
+{
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
+  // Check metrics for active RRC UE.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_rrc_connections, 1);
+
+  // Inject Inactivity Notification and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_ue_level_bearer_context_inactivity_notification_and_await_bearer_context_modification_request());
+
+  // Send Bearer Context Modification Response and await UE Context Release Command.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ue_context_release_command());
+
+  // Send F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete());
+
+  // Check metrics for RRC inactive transition.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  ASSERT_TRUE(timeout_rna_update_and_await_ngap_ue_context_release_request());
+}
 
 TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_is_received_then_existing_ue_is_found_and_resumed)
 {

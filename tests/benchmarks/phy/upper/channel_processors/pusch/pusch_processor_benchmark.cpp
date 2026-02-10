@@ -12,7 +12,6 @@
 #include "ocudu/phy/support/resource_grid_writer.h"
 #include "ocudu/phy/support/support_factories.h"
 #include "ocudu/phy/upper/channel_processors/pusch/factories.h"
-#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_result_notifier.h"
 #include "ocudu/phy/upper/rx_buffer_pool.h"
 #include "ocudu/phy/upper/unique_rx_buffer.h"
@@ -365,15 +364,10 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
 {
   std::vector<test_case_type> test_case_set;
 
-  unsigned max_nof_layers = get_pusch_processor_phy_capabilities().max_nof_layers;
-
   for (sch_mcs_description mcs : profile.mcs_set) {
     for (unsigned nof_prb : profile.nof_prb_set) {
       for (unsigned rv : profile.rv_set) {
         for (unsigned nof_layers : profile.nof_layers_set) {
-          if (nof_layers > max_nof_layers) {
-            continue;
-          }
           // Determine the Transport Block Size.
           tbs_calculator_configuration tbs_config = {};
           tbs_config.mcs_descr                    = mcs;

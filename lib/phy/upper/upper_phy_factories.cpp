@@ -25,7 +25,6 @@
 #include "ocudu/phy/upper/channel_processors/prach/factories.h"
 #include "ocudu/phy/upper/channel_processors/pucch/factories.h"
 #include "ocudu/phy/upper/channel_processors/pusch/factories.h"
-#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
 #include "ocudu/phy/upper/channel_processors/ssb/factories.h"
 #include "ocudu/phy/upper/signal_processors/nzp_csi_rs/factories.h"
 #include "ocudu/phy/upper/signal_processors/prs/factories.h"
@@ -561,11 +560,10 @@ create_ul_processor_factory(const upper_phy_factory_configuration& config,
                             upper_phy_metrics_notifiers*           metric_notifier)
 {
   // Verify the PUSCH processor capabilities.
-  pusch_processor_phy_capabilities pusch_capabilities = get_pusch_processor_phy_capabilities();
-  report_fatal_error_if_not(pusch_capabilities.max_nof_layers >= config.pusch_max_nof_layers,
+  report_fatal_error_if_not(pusch_constants::MAX_NOF_LAYERS >= config.pusch_max_nof_layers,
                             "The configured PUSCH maximum number of layers (i.e., {}) exceeds the maximum PUSCH "
                             "processor capable number of layers (i.e., {}).",
-                            pusch_capabilities.max_nof_layers,
+                            pusch_constants::MAX_NOF_LAYERS,
                             config.pusch_max_nof_layers);
 
   channel_equalizer_algorithm_type pusch_equalizer_algorithm_type = channel_equalizer_algorithm_type::zf;

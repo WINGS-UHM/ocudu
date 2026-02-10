@@ -9,7 +9,6 @@
  */
 
 #include "pxsch_bler_test_factories.h"
-#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
 #if defined(HWACC_PDSCH_ENABLED) && defined(HWACC_PUSCH_ENABLED)
 #include "ocudu/hal/dpdk/bbdev/bbdev_acc.h"
 #include "ocudu/hal/dpdk/bbdev/bbdev_acc_factory.h"
@@ -189,8 +188,6 @@ ocudu::create_sw_pusch_processor_factory(task_executor&                         
                                          port_channel_estimator_td_interpolation_strategy td_interpolation_strategy,
                                          channel_equalizer_algorithm_type                 equalizer_algorithm_type)
 {
-  pusch_processor_phy_capabilities pusch_processor_phy_cap = get_pusch_processor_phy_capabilities();
-
   std::shared_ptr<dft_processor_factory> dft_proc_factory = create_dft_processor_factory_fftw_slow();
   report_fatal_error_if_not(dft_proc_factory, "Failed to create factory.");
 
@@ -312,7 +309,7 @@ ocudu::create_sw_pusch_processor_factory(task_executor&                         
   pusch_proc_factory_config.ch_estimate_dimensions     = {.nof_prb       = MAX_NOF_PRBS,
                                                           .nof_symbols   = MAX_NSYMB_PER_SLOT,
                                                           .nof_rx_ports  = pusch_constants::MAX_NOF_RX_PORTS,
-                                                          .nof_tx_layers = pusch_processor_phy_cap.max_nof_layers};
+                                                          .nof_tx_layers = pusch_constants::MAX_NOF_LAYERS};
   pusch_proc_factory_config.dec_nof_iterations         = nof_ldpc_iterations;
   pusch_proc_factory_config.dec_enable_early_stop      = dec_enable_early_stop;
   pusch_proc_factory_config.max_nof_concurrent_threads = max_nof_threads;

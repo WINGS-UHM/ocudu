@@ -17,7 +17,6 @@
 #include "ocudu/du/du_high/du_high_configuration.h"
 #include "ocudu/du/du_high/du_qos_config_helpers.h"
 #include "ocudu/du/du_update_config_helpers.h"
-#include "ocudu/phy/upper/channel_processors/pusch/pusch_processor_phy_capabilities.h"
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 #include "ocudu/ran/prach/prach_configuration.h"
@@ -680,9 +679,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.init_bwp_builder.pusch.max_nof_layers =
         cell.cell.pusch_cfg.enable_transform_precoding
             ? 1
-            : std::min({cell.cell.nof_antennas_ul,
-                        get_pusch_processor_phy_capabilities().max_nof_layers,
-                        cell.cell.pusch_cfg.max_rank});
+            : std::min({cell.cell.nof_antennas_ul, pusch_constants::MAX_NOF_LAYERS, cell.cell.pusch_cfg.max_rank});
     out_cell.init_bwp_builder.rach.cfra_enabled   = base_cell.prach_cfg.cfra_enabled;
     out_cell.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
 

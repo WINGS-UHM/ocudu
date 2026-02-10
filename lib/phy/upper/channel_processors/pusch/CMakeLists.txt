@@ -17,7 +17,6 @@ add_library(ocudu_pusch_processor STATIC
         pusch_decoder_hw_impl.cpp
         pusch_decoder_impl.cpp
         pusch_processor_impl.cpp
-        pusch_processor_phy_capabilities.cpp
         pusch_processor_validator_impl.cpp
         ulsch_demultiplex_impl.cpp)
 set(OCUDU_PUSCH_LIBS ocudu_upper_phy_support ocudu_ran ocudu_pusch_demodulator)

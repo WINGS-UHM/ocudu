@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "gtpu_pdu.h"
+#include "gtpu_tunnel_logger.h"
 #include "ocudu/gtpu/gtpu_demux.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/pcap/dlt_pcap.h"
@@ -45,7 +47,11 @@ public:
 
   void stop() override;
 
+  void set_error_indication_tx(gtpu_tunnel_common_tx_upper_layer_notifier& tx_upper,
+                               const std::string&                          local_addr) override;
+
 private:
+  void send_error_indication(uint32_t teid, const sockaddr_storage& src_addr);
   // Actual demuxing, to be run in CU-UP executor.
   void handle_pdu_impl(gtpu_teid_t teid, gtpu_demux_pdu_ctx_t pdu_ctx);
 
@@ -62,6 +68,13 @@ private:
   gtpu_teid_t test_teid{0x01};
 
   ocudulog::basic_logger& logger;
+
+  // Error Indication TX support
+  gtpu_tunnel_common_tx_upper_layer_notifier* tx_upper      = nullptr;
+  gtpu_ie_gtpu_peer_address                   ei_peer_addr  = {};
+  uint16_t                                    ei_sn_next    = 0;
+  gtpu_tunnel_logger                          ei_logger{"GTPU",
+                                                        {gtpu_tunnel_log_prefix{{}, GTPU_PATH_MANAGEMENT_TEID, "UL"}}};
 };
 
 } // namespace ocudu

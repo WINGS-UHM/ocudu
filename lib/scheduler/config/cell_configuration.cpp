@@ -40,7 +40,7 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   searchspace0(msg.searchspace0),
   init_bwp_res(pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, nullptr),
   ded_pucch_resources(msg.ded_pucch_resources),
-  zp_csi_rs_list(msg.zp_csi_rs_list),
+  zp_csi_rs_list(msg.init_bwp_builder.pdsch.zp_csi_rs_res_list),
   nzp_csi_rs_list(msg.nzp_csi_rs_res_list),
   dl_data_to_ul_ack(
       time_domain_resource_helper::generate_k1_candidates(msg.tdd_ul_dl_cfg_common, msg.init_bwp_builder.pucch.min_k1)),

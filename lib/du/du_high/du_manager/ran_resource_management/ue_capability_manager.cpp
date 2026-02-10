@@ -322,21 +322,17 @@ bool ue_capability_manager::decode_ue_capability_list(const byte_buffer& ue_cap_
 
 pdsch_mcs_table ue_capability_manager::select_pdsch_mcs_table(du_cell_index_t cell_idx) const
 {
-  const auto& ded_cfg = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg;
-
-  if (ded_cfg.pdsch_cfg.has_value()) {
-    pdsch_mcs_table app_mcs_table = ded_cfg.pdsch_cfg.value().mcs_table;
-    if (ue_caps.has_value()) {
-      if (app_mcs_table == pdsch_mcs_table::qam256 and ue_caps->pdsch_qam256_supported) {
-        return pdsch_mcs_table::qam256;
-      }
-      if (app_mcs_table == pdsch_mcs_table::qam64LowSe and ue_caps->pdsch_qam64lowse_supported) {
-        return pdsch_mcs_table::qam64LowSe;
-      }
-    } else if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
-      // Has no capabilities but the UE is in test mode.
-      return app_mcs_table;
+  const pdsch_mcs_table app_mcs_table = base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.mcs_table;
+  if (ue_caps.has_value()) {
+    if (app_mcs_table == pdsch_mcs_table::qam256 and ue_caps->pdsch_qam256_supported) {
+      return pdsch_mcs_table::qam256;
     }
+    if (app_mcs_table == pdsch_mcs_table::qam64LowSe and ue_caps->pdsch_qam64lowse_supported) {
+      return pdsch_mcs_table::qam64LowSe;
+    }
+  } else if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
+    // Has no capabilities but the UE is in test mode.
+    return app_mcs_table;
   }
 
   // Default to QAM64 if no base cell PDSCH config of if the UE capabilities are not available.
@@ -385,19 +381,16 @@ pusch_mcs_table ue_capability_manager::select_pusch_mcs_table(du_cell_index_t ce
 
 vrb_to_prb::mapping_type ue_capability_manager::select_pdsch_interleaving(du_cell_index_t cell_idx) const
 {
-  const auto& ded_cfg = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg;
-
-  if (ded_cfg.pdsch_cfg.has_value()) {
-    vrb_to_prb::mapping_type app_pdsch_interleaving = ded_cfg.pdsch_cfg.value().vrb_to_prb_interleaving;
-    if (ue_caps.has_value()) {
-      if (ue_caps->pdsch_interleaving_vrb_to_prb_supported) {
-        // If the PDSCH interleaving is enabled in the application configuration and supported by the UE, return it.
-        return app_pdsch_interleaving;
-      }
-    } else if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
-      // Has no capabilities but the UE is in test mode.
+  const vrb_to_prb::mapping_type app_pdsch_interleaving =
+      base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.interleaving_bundle_size;
+  if (ue_caps.has_value()) {
+    if (ue_caps->pdsch_interleaving_vrb_to_prb_supported) {
+      // If the PDSCH interleaving is enabled in the application configuration and supported by the UE, return it.
       return app_pdsch_interleaving;
     }
+  } else if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
+    // Has no capabilities but the UE is in test mode.
+    return app_pdsch_interleaving;
   }
 
   // Default to \c non-interleaved if no base cell PDSCH config or if the UE capabilities are not available.

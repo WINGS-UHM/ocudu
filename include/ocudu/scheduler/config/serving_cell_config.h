@@ -106,12 +106,12 @@ struct pdsch_config {
   /// PDSCH-TimeDomainResourceAllocation).
   std::optional<dmrs_downlink_config> pdsch_mapping_type_b_dmrs;
   /// VRB-to-PRB mapping type for PDSCH. The field vrb-ToPRB-Interleaver applies to DCI format 1_1.
-  vrb_to_prb::mapping_type vrb_to_prb_interleaving;
+  vrb_to_prb::mapping_type vrb_to_prb_interleaving = vrb_to_prb::mapping_type::non_interleaved;
   /// A list of Transmission Configuration Indicator (TCI) states indicating a transmission configuration which includes
   /// QCL-relationships between the DL RSs in one RS set and the PDSCH DMRS ports (see TS 38.214, clause 5.1.5).
   static_vector<tci_state, MAX_NOF_TCI_STATES> tci_states;
   /// Configuration of resource allocation type 0 and resource allocation type 1 for non-fallback DCI.
-  resource_allocation res_alloc;
+  resource_allocation res_alloc = resource_allocation::resource_allocation_type_1;
   /// Number of repetitions for data. When the field is absent the UE applies the value 1.
   std::optional<pdsch_aggregation_factor> aggr_factor;
   /// PDSCH time domain resource allocations. Size: (0..maxNrofDL-Allocations=16).
@@ -124,7 +124,7 @@ struct pdsch_config {
 
   /// Selection between config 1 and config 2 for RBG size for PDSCH. The UE ignores this field if resourceAllocation is
   /// set to resourceAllocationType1.
-  rbg_size rbg_sz;
+  rbg_size rbg_sz = rbg_size::config1;
   /// Indicates which MCS table the UE shall use for PDSCH. (see TS 38.214 [19], clause 5.1.3.1). The field mcs-Table
   /// applies to DCI format 1_0 and DCI format 1_1.
   pdsch_mcs_table mcs_table{pdsch_mcs_table::qam64};

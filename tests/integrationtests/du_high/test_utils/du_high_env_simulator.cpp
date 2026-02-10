@@ -61,7 +61,7 @@ du_high_configuration odu::create_du_high_configuration(const du_high_env_sim_pa
       du_cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.msg1_frequency_start =
           params.prach_frequency_start.value();
     }
-    du_cell_cfg.ue_ded_serv_cell_cfg.pdsch_cfg->mcs_table = pdsch_mcs_table::qam256;
+    du_cell_cfg.init_bwp_builder.pdsch.mcs_table = pdsch_mcs_table::qam256;
     cfg.ran.cells.push_back(du_cell_cfg);
     cfg.ran.cells.back().nr_cgi.nci = nr_cell_identity::create(i).value();
     if (params.pucch_cfg.has_value()) {

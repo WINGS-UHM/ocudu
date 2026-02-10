@@ -67,7 +67,6 @@ inline odu::du_ue_ded_serv_cell_config make_du_ue_ded_serv_cell_config(const ser
 {
   odu::du_ue_ded_serv_cell_config cfg{};
   cfg.pdcch_cfg    = ue_serv_cell_cfg.init_dl_bwp.pdcch_cfg;
-  cfg.pdsch_cfg    = ue_serv_cell_cfg.init_dl_bwp.pdsch_cfg;
   cfg.ul_config    = ue_serv_cell_cfg.ul_config;
   cfg.csi_meas_cfg = ue_serv_cell_cfg.csi_meas_cfg;
   return cfg;
@@ -104,6 +103,58 @@ inline std::optional<radio_link_monitoring_config> make_rlm_config(const odu::du
   return rlm_cfg;
 }
 
+/// Builds a PDSCH configuration from DU cell configuration.
+inline std::optional<pdsch_config> make_pdsch_config(const odu::du_cell_config& du_cell_cfg)
+{
+  pdsch_config pdsch_cfg;
+
+  pdsch_cfg.pdsch_mapping_type_a_dmrs.emplace();
+  pdsch_cfg.pdsch_mapping_type_a_dmrs->additional_positions = du_cell_cfg.init_bwp_builder.pdsch.additional_positions;
+
+  pdsch_cfg.tci_states.push_back(tci_state{
+      .state_id  = static_cast<tci_state_id_t>(0),
+      .qcl_type1 = {.ref_sig  = {.type = qcl_info::reference_signal::reference_signal_type::ssb,
+                                 .ssb  = static_cast<ssb_id_t>(0)},
+                    .qcl_type = qcl_info::qcl_type::type_d},
+  });
+
+  pdsch_cfg.res_alloc = pdsch_config::resource_allocation::resource_allocation_type_1;
+  pdsch_cfg.rbg_sz    = rbg_size::config1;
+
+  pdsch_cfg.vrb_to_prb_interleaving = du_cell_cfg.init_bwp_builder.pdsch.interleaving_bundle_size;
+  pdsch_cfg.mcs_table               = du_cell_cfg.init_bwp_builder.pdsch.mcs_table;
+
+  pdsch_cfg.harq_process_num_size_dci_1_1 = pdsch_config::harq_process_num_dci_1_1_size::n4;
+  pdsch_cfg.harq_process_num_size_dci_1_2 = pdsch_config::harq_process_num_dci_1_2_size::n4;
+
+  // According to TS 38.214 Section 5.1.2.3, prb-BundlingType size must match the VRB-to-PRB mapping type.
+  switch (pdsch_cfg.vrb_to_prb_interleaving) {
+    case vrb_to_prb::mapping_type::non_interleaved:
+      // > If $P'_{BWP,i}$ is determined as "wideband", the UE is not expected to be scheduled with non-contiguous
+      // > PRBs and the UE may assume that the same precoding is applied to the allocated resource.
+      pdsch_cfg.prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
+          prb_bundling::static_bundling({.sz = prb_bundling::static_bundling::bundling_size::wideband}));
+      break;
+    case vrb_to_prb::mapping_type::interleaved_n2:
+      // > When a UE is configured with nominal RBG size = 2 for bandwidth part i according to clause 5.1.2.2.1, or
+      // > when a UE is configured with interleaving unit of 2 for VRB to PRB mapping provided by the higher layer
+      // > parameter vrb-ToPRB-Interleaver given by PDSCH-Config for bandwidth part i, the UE is not expected to be
+      // > configured with $P'_{BWP,i} = 4$.
+      pdsch_cfg.prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
+          prb_bundling::static_bundling({.sz = std::nullopt}));
+      break;
+    case vrb_to_prb::mapping_type::interleaved_n4:
+      pdsch_cfg.prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
+          prb_bundling::static_bundling({.sz = prb_bundling::static_bundling::bundling_size::n4}));
+      break;
+  }
+
+  pdsch_cfg.zp_csi_rs_res_list = du_cell_cfg.init_bwp_builder.pdsch.zp_csi_rs_res_list;
+  pdsch_cfg.p_zp_csi_rs_res    = du_cell_cfg.init_bwp_builder.pdsch.p_zp_csi_rs_res;
+
+  return pdsch_cfg;
+}
+
 /// Builds PDSCH builder parameters from a full UE serving cell configuration.
 inline pdsch_builder_params make_pdsch_builder_params(const serving_cell_config& ue_serv_cell_cfg)
 {
@@ -111,6 +162,16 @@ inline pdsch_builder_params make_pdsch_builder_params(const serving_cell_config&
   if (ue_serv_cell_cfg.pdsch_serv_cell_cfg.has_value()) {
     params.nof_harq_procs            = static_cast<uint8_t>(ue_serv_cell_cfg.pdsch_serv_cell_cfg->nof_harq_proc);
     params.dl_harq_feedback_disabled = ue_serv_cell_cfg.pdsch_serv_cell_cfg->dl_harq_feedback_disabled;
+  }
+  if (ue_serv_cell_cfg.init_dl_bwp.pdsch_cfg.has_value()) {
+    const auto& pdsch_cfg           = ue_serv_cell_cfg.init_dl_bwp.pdsch_cfg.value();
+    params.mcs_table                = pdsch_cfg.mcs_table;
+    params.interleaving_bundle_size = pdsch_cfg.vrb_to_prb_interleaving;
+    params.zp_csi_rs_res_list       = pdsch_cfg.zp_csi_rs_res_list;
+    params.p_zp_csi_rs_res          = pdsch_cfg.p_zp_csi_rs_res;
+    if (pdsch_cfg.pdsch_mapping_type_a_dmrs.has_value()) {
+      params.additional_positions = pdsch_cfg.pdsch_mapping_type_a_dmrs->additional_positions;
+    }
   }
   return params;
 }
@@ -131,7 +192,6 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_ue_ded_serv
   serving_cell_config cfg{};
   cfg.cell_index            = cell_index;
   cfg.init_dl_bwp.pdcch_cfg = ue_ded_cfg.pdcch_cfg;
-  cfg.init_dl_bwp.pdsch_cfg = ue_ded_cfg.pdsch_cfg;
   cfg.ul_config             = ue_ded_cfg.ul_config;
   cfg.pdsch_serv_cell_cfg   = make_default_pdsch_serving_cell_config();
   cfg.csi_meas_cfg          = ue_ded_cfg.csi_meas_cfg;
@@ -142,9 +202,10 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_ue_ded_serv
 inline serving_cell_config make_ue_serving_cell_config(const odu::du_cell_config& du_cell_cfg,
                                                        du_cell_index_t            cell_index)
 {
-  serving_cell_config cfg = make_ue_serving_cell_config(du_cell_cfg.ue_ded_serv_cell_cfg, cell_index);
-  cfg.pdsch_serv_cell_cfg = make_pdsch_serv_cell_config(du_cell_cfg.init_bwp_builder.pdsch);
-  cfg.init_dl_bwp.rlm_cfg = make_rlm_config(du_cell_cfg);
+  serving_cell_config cfg   = make_ue_serving_cell_config(du_cell_cfg.ue_ded_serv_cell_cfg, cell_index);
+  cfg.pdsch_serv_cell_cfg   = make_pdsch_serv_cell_config(du_cell_cfg.init_bwp_builder.pdsch);
+  cfg.init_dl_bwp.pdsch_cfg = make_pdsch_config(du_cell_cfg);
+  cfg.init_dl_bwp.rlm_cfg   = make_rlm_config(du_cell_cfg);
   return cfg;
 }
 

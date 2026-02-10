@@ -266,7 +266,7 @@ static unsigned get_nof_rbs(const du_high_unit_base_cell_config& cell_cfg)
       cell_cfg.channel_bw_mhz, cell_cfg.common_scs, band_helper::get_freq_range(*cell_cfg.band));
 }
 
-static void fill_csi_resources(odu::du_ue_ded_serv_cell_config&                          out_cell,
+static void fill_csi_resources(odu::du_cell_config&                                      out_cell,
                                const du_high_unit_base_cell_config&                      cell_cfg,
                                const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list)
 {
@@ -317,23 +317,23 @@ static void fill_csi_resources(odu::du_ue_ded_serv_cell_config&                 
   }
 
   // Generate basic csiMeasConfig.
-  out_cell.csi_meas_cfg = csi_helper::make_csi_meas_config(csi_params, pusch_td_alloc_list);
+  out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg = csi_helper::make_csi_meas_config(csi_params, pusch_td_alloc_list);
 
   // Set power control offset for all nzp-CSI-RS resources.
-  for (auto& nzp_csi_res : out_cell.csi_meas_cfg->nzp_csi_rs_res_list) {
+  for (auto& nzp_csi_res : out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list) {
     nzp_csi_res.pwr_ctrl_offset = cell_cfg.csi_cfg.pwr_ctrl_offset;
   }
 
   // Set CQI table according to the MCS table used for PDSCH.
   switch (cell_cfg.pdsch_cfg.mcs_table) {
     case pdsch_mcs_table::qam64:
-      out_cell.csi_meas_cfg->csi_report_cfg_list[0].cqi_table = cqi_table_t::table1;
+      out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].cqi_table = cqi_table_t::table1;
       break;
     case pdsch_mcs_table::qam256:
-      out_cell.csi_meas_cfg->csi_report_cfg_list[0].cqi_table = cqi_table_t::table2;
+      out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].cqi_table = cqi_table_t::table2;
       break;
     case pdsch_mcs_table::qam64LowSe:
-      out_cell.csi_meas_cfg->csi_report_cfg_list[0].cqi_table = cqi_table_t::table3;
+      out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].cqi_table = cqi_table_t::table3;
       break;
     default:
       report_error(
@@ -341,8 +341,8 @@ static void fill_csi_resources(odu::du_ue_ded_serv_cell_config&                 
   }
 
   // Generate zp-CSI-RS resources.
-  out_cell.pdsch_cfg->zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
-  out_cell.pdsch_cfg->p_zp_csi_rs_res    = csi_helper::make_periodic_zp_csi_rs_resource_set(csi_params);
+  out_cell.init_bwp_builder.pdsch.zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
+  out_cell.init_bwp_builder.pdsch.p_zp_csi_rs_res    = csi_helper::make_periodic_zp_csi_rs_resource_set(csi_params);
 }
 
 /// Converts and returns the given gnb application configuration to a DU slice RRM policy configuration list.
@@ -804,35 +804,11 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             config.cells_cfg.front().cell.pusch_cfg.nof_harqs);
     out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->ul_harq_mode =
         ~config.cells_cfg.front().cell.pusch_cfg.harq_mode_b;
-    // Set DL MCS table.
-    out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->mcs_table = base_cell.pdsch_cfg.mcs_table;
-    // Set DMRS additional position.
-    out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->pdsch_mapping_type_a_dmrs->additional_positions =
+    // Set DL PDSCH builder parameters.
+    out_cell.init_bwp_builder.pdsch.mcs_table = base_cell.pdsch_cfg.mcs_table;
+    out_cell.init_bwp_builder.pdsch.additional_positions =
         uint_to_dmrs_additional_positions(base_cell.pdsch_cfg.dmrs_add_pos);
-    out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->vrb_to_prb_interleaving =
-        config.cells_cfg.front().cell.pdsch_cfg.interleaving_bundle_size;
-
-    // According to TS 38.214 Section 5.1.2.3, prb-BundlingType size must match the VRB-to-PRB mapping type.
-    switch (out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->vrb_to_prb_interleaving) {
-      case vrb_to_prb::mapping_type::non_interleaved:
-        // > If $P'_{BWP,i}$ is determined as "wideband", the UE is not expected to be scheduled with non-contiguous
-        // > PRBs and the UE may assume that the same precoding is applied to the allocated resource.
-        out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
-            prb_bundling::static_bundling({.sz = prb_bundling::static_bundling::bundling_size::wideband}));
-        break;
-      case vrb_to_prb::mapping_type::interleaved_n2:
-        // > When a UE is configured with nominal RBG size = 2 for bandwidth part i according to clause 5.1.2.2.1, or
-        // > when a UE is configured with interleaving unit of 2 for VRB to PRB mapping provided by the higher layer
-        // > parameter vrb-ToPRB-Interleaver given by PDSCH-Config for bandwidth part i, the UE is not expected to be
-        // > configured with $P'_{BWP,i} = 4$.
-        out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
-            prb_bundling::static_bundling({.sz = std::nullopt}));
-        break;
-      case vrb_to_prb::mapping_type::interleaved_n4:
-        out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
-            prb_bundling::static_bundling({.sz = prb_bundling::static_bundling::bundling_size::n4}));
-        break;
-    }
+    out_cell.init_bwp_builder.pdsch.interleaving_bundle_size = base_cell.pdsch_cfg.interleaving_bundle_size;
 
     // Parameters for PUCCH-Config builder (these parameters will be used later on to generate the PUCCH resources).
     pucch_resource_builder_params&   du_pucch_cfg                  = out_cell.init_bwp_builder.pucch.resources;
@@ -1054,9 +1030,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
 
     // Parameters for csiMeasConfig.
     if (param.csi_rs_enabled) {
-      fill_csi_resources(out_cell.ue_ded_serv_cell_cfg,
-                         base_cell,
-                         out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list);
+      fill_csi_resources(out_cell, base_cell, out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list);
     }
 
     if (update_msg1_frequency_start) {

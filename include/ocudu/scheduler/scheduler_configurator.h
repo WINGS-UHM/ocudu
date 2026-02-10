@@ -80,9 +80,6 @@ struct sched_cell_configuration_request_message {
   /// List of dedicated PUCCH resources.
   std::vector<pucch_resource> ded_pucch_resources;
 
-  /// List of zp-CSI-RS resources common to all UEs.
-  std::vector<zp_csi_rs_resource> zp_csi_rs_list;
-
   /// List of nzp-CSI-RS resources common to all UEs.
   std::vector<nzp_csi_rs_resource> nzp_csi_rs_res_list;
 

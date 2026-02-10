@@ -10,10 +10,16 @@
 
 #pragma once
 
+#include "ocudu/ran/csi_rs/csi_meas_config.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/harq_id.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/radio_link_monitoring.h"
+#include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
+#include <optional>
+#include <vector>
 
 namespace ocudu {
 
@@ -22,9 +28,20 @@ struct pdsch_builder_params {
   /// Number of DL HARQ processes.
   /// \remark See TS 38.331, \c nrofHARQ-ProcessesForPDSCH.
   uint8_t nof_harq_procs = 16;
+  /// MCS table to use for PDSCH.
+  pdsch_mcs_table mcs_table = pdsch_mcs_table::qam256;
+  /// Position for additional DM-RS in DL, see Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 in TS 38.211. If the field is absent,
+  /// the UE applies the value pos2.
+  dmrs_additional_positions additional_positions{dmrs_additional_positions::pos2};
+  /// VRB-to-PRB mapping type for PDSCH. The field vrb-ToPRB-Interleaver applies to DCI format 1_1.
+  vrb_to_prb::mapping_type interleaving_bundle_size{vrb_to_prb::mapping_type::non_interleaved};
   /// See TS 38.331, \c downlinkHARQ-FeedbackDisabled.
   /// A bit set to 1 indicates HARQ processes with disabled DL HARQ feedback; a bit set to 0 indicate feedback enabled.
   harq_dl_feedback_disabled_mask dl_harq_feedback_disabled = harq_dl_feedback_disabled_mask(MAX_NOF_HARQS);
+  /// ZP-CSI-RS resources used for interference measurement.
+  std::vector<zp_csi_rs_resource> zp_csi_rs_res_list;
+  /// Periodically occurring ZP-CSI-RS resource set.
+  std::optional<zp_csi_rs_resource_set> p_zp_csi_rs_res;
 };
 
 /// PUCCH parameters for a given BWP of a given DU cell.

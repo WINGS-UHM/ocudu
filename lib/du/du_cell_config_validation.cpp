@@ -293,7 +293,7 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 {
   const auto& pdcch_cfg = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg;
-  const auto& pdsch_cfg = cell_cfg.ue_ded_serv_cell_cfg.pdsch_cfg;
+  const auto  pdsch_cfg = config_helpers::make_pdsch_config(cell_cfg);
 
   // PDCCH
   if (pdcch_cfg.has_value()) {
@@ -320,7 +320,7 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
                    "64QAM Low Se MCS table cannot be used for PDSCH with DCI in Common SearchSpace");
       }
 
-      if (pdsch_cfg->pdsch_mapping_type_a_dmrs.has_value() and
+      if (pdsch_cfg.has_value() and pdsch_cfg->pdsch_mapping_type_a_dmrs.has_value() and
           pdsch_cfg->pdsch_mapping_type_a_dmrs->additional_positions == dmrs_additional_positions::pos3) {
         CHECK_TRUE(
             cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2,

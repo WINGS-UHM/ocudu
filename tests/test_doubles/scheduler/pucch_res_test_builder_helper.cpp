@@ -26,6 +26,12 @@ static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&     
   cell_cfg.tdd_ul_dl_cfg_common             = tdd_ul_dl_cfg_common;
   cell_cfg.ue_ded_serv_cell_cfg             = config_helpers::make_du_ue_ded_serv_cell_config(base_ue_cfg);
   cell_cfg.init_bwp_builder.pucch.resources = pucch_cfg;
+  if (base_ue_cfg.pdsch_serv_cell_cfg.has_value()) {
+    cell_cfg.init_bwp_builder.pdsch.nof_harq_procs =
+        static_cast<uint8_t>(base_ue_cfg.pdsch_serv_cell_cfg->nof_harq_proc);
+    cell_cfg.init_bwp_builder.pdsch.dl_harq_feedback_disabled =
+        base_ue_cfg.pdsch_serv_cell_cfg->dl_harq_feedback_disabled;
+  }
   return cell_cfg;
 }
 

@@ -10,10 +10,21 @@
 
 #pragma once
 
+#include "ocudu/ran/harq_id.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
 
 namespace ocudu {
+
+/// PDSCH parameters for a given BWP of a given DU cell.
+struct pdsch_builder_params {
+  /// Number of DL HARQ processes.
+  /// \remark See TS 38.331, \c nrofHARQ-ProcessesForPDSCH.
+  uint8_t nof_harq_procs = 16;
+  /// See TS 38.331, \c downlinkHARQ-FeedbackDisabled.
+  /// A bit set to 1 indicates HARQ processes with disabled DL HARQ feedback; a bit set to 0 indicate feedback enabled.
+  harq_dl_feedback_disabled_mask dl_harq_feedback_disabled = harq_dl_feedback_disabled_mask(MAX_NOF_HARQS);
+};
 
 /// PUCCH parameters for a given BWP of a given DU cell.
 struct pucch_builder_params {
@@ -54,6 +65,8 @@ struct paging_builder_params {
 
 /// Parameters used to generate a BWP configuration.
 struct bwp_builder_params {
+  /// Parameters relative to the generation of the PDSCH configs.
+  pdsch_builder_params pdsch;
   /// Parameters relative to the generation of the PUSCH configs.
   pusch_builder_params pusch;
   /// Parameters relative to the generation of the PUCCH configs.

@@ -669,6 +669,10 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().msg3_delta_power = base_cell.pusch_cfg.msg3_delta_power;
 
     // Set initial BWP builder.
+    // > PDSCH
+    out_cell.init_bwp_builder.pdsch.nof_harq_procs =
+        static_cast<uint8_t>(config.cells_cfg.front().cell.pdsch_cfg.nof_harqs);
+    out_cell.init_bwp_builder.pdsch.dl_harq_feedback_disabled   = base_cell.pdsch_cfg.harq_feedback_disabled;
     out_cell.init_bwp_builder.pucch.min_k1                      = base_cell.pucch_cfg.min_k1;
     out_cell.init_bwp_builder.pusch.min_k2                      = base_cell.pusch_cfg.min_k2;
     out_cell.init_bwp_builder.pusch.transform_precoding_enabled = base_cell.pusch_cfg.enable_transform_precoding;
@@ -795,14 +799,9 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             time_domain_resource_helper::calculate_minimum_pdsch_symbol(
                 out_cell.dl_cfg_common.init_dl_bwp.pdcch_common, out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg));
 
-    out_cell.ue_ded_serv_cell_cfg.pdsch_serv_cell_cfg->nof_harq_proc =
-        static_cast<pdsch_serving_cell_config::nof_harq_proc_for_pdsch>(
-            config.cells_cfg.front().cell.pdsch_cfg.nof_harqs);
     out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->nof_harq_proc =
         static_cast<pusch_serving_cell_config::nof_harq_proc_for_pusch>(
             config.cells_cfg.front().cell.pusch_cfg.nof_harqs);
-    out_cell.ue_ded_serv_cell_cfg.pdsch_serv_cell_cfg->dl_harq_feedback_disabled =
-        config.cells_cfg.front().cell.pdsch_cfg.harq_feedback_disabled;
     out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->ul_harq_mode =
         ~config.cells_cfg.front().cell.pusch_cfg.harq_mode_b;
     // Set DL MCS table.

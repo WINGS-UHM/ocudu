@@ -9,6 +9,7 @@
  */
 
 #pragma once
+
 #include "ocudu/adt/bounded_bitset.h"
 
 namespace ocudu {

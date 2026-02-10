@@ -40,8 +40,6 @@ struct du_ue_ded_serv_cell_config {
   bwp_downlink_dedicated init_dl_bwp;
   /// Uplink configuration.
   std::optional<uplink_config> ul_config;
-  /// PDSCH-ServingCellConfig.
-  std::optional<pdsch_serving_cell_config> pdsch_serv_cell_cfg;
   /// CSI-MeasConfig.
   std::optional<csi_meas_config> csi_meas_cfg;
 };

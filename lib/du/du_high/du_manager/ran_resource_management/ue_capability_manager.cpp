@@ -446,13 +446,7 @@ unsigned ue_capability_manager::select_pusch_max_rank(du_cell_index_t cell_idx) 
 unsigned ue_capability_manager::select_max_dl_nof_harqs(du_cell_index_t cell_idx) const
 {
   // Configured maximum number of DL HARQs.
-  const auto& pdsch_serv_cell_cfg = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg.pdsch_serv_cell_cfg;
-
-  if (not pdsch_serv_cell_cfg.has_value()) {
-    return ue_capability_summary::default_max_harq_process_num;
-  }
-
-  auto cell_max_nof_dl_harq_proc = (unsigned)pdsch_serv_cell_cfg->nof_harq_proc;
+  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.nof_harq_procs;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
@@ -523,15 +517,9 @@ unsigned ue_capability_manager::select_dl_dci_harq_num_field_size(du_cell_index_
     return default_dci_size;
   }
 
-  // Configured maximum number of UL HARQs.
-  const auto& pdsch_serv_cell_cfg = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg.pdsch_serv_cell_cfg;
-
-  if (not pdsch_serv_cell_cfg.has_value()) {
-    return default_dci_size;
-  }
-
-  auto cell_max_nof_dl_harq_proc = (unsigned)pdsch_serv_cell_cfg->nof_harq_proc;
-  auto cell_dci_size             = log2_ceil(cell_max_nof_dl_harq_proc);
+  // Configured maximum number of DL HARQs.
+  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.nof_harq_procs;
+  auto     cell_dci_size             = log2_ceil(cell_max_nof_dl_harq_proc);
 
   nr_band band = base_cell_cfg_list[cell_idx].dl_carrier.band;
 
@@ -592,12 +580,8 @@ harq_dl_feedback_disabled_mask ue_capability_manager::select_disabled_dl_harq_fe
   default_harq_feedback_disabled.reset();
 
   // Configured disabled DL HARQ feedback.
-  const auto& pdsch_serv_cell_cfg = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg.pdsch_serv_cell_cfg;
-
-  if (not pdsch_serv_cell_cfg.has_value()) {
-    return default_harq_feedback_disabled;
-  }
-  harq_dl_feedback_disabled_mask cell_harq_feedback_disabled = pdsch_serv_cell_cfg->dl_harq_feedback_disabled;
+  harq_dl_feedback_disabled_mask cell_harq_feedback_disabled =
+      base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.dl_harq_feedback_disabled;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.

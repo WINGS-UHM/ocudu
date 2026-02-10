@@ -37,7 +37,7 @@ protected:
   ~cell_meas_manager_test() override;
 
   void create_empty_manager();
-  void create_default_manager();
+  void create_default_manager(std::optional<unsigned> t312 = std::nullopt);
   void create_default_manager_with_cell_params();
   void create_manager_with_incomplete_cells_and_periodic_report_at_target_cell();
   void create_manager_without_ncells_and_periodic_report();

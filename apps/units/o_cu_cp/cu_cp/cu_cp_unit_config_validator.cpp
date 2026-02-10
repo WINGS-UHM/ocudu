@@ -66,6 +66,12 @@ static bool validate_mobility_appconfig(gnb_id_t gnb_id, const cu_cp_unit_mobili
         }
       }
     }
+
+    // T312 is only valid for event-triggered reports.
+    if (report_cfg.t312_ms.has_value() and report_cfg.report_type != "event_triggered") {
+      fmt::print("T312 is only valid for event-triggered report configurations.\n");
+      return false;
+    }
   }
 
   std::map<nr_cell_identity, std::set<unsigned>> cell_to_report_cfg_id;

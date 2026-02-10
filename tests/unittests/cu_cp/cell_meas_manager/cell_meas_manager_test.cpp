@@ -278,3 +278,46 @@ TEST_F(cell_meas_manager_test, when_invalid_cell_config_update_received_then_con
   std::optional<rrc_meas_cfg> target_meas_cfg = manager->get_measurement_config(ue_index, target_nci, initial_meas_cfg);
   ASSERT_FALSE(target_meas_cfg.has_value());
 }
+
+TEST_F(cell_meas_manager_test, when_t312_is_configured_then_meas_obj_has_t312_and_report_cfg_has_t312)
+{
+  create_default_manager(100);
+
+  ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
+  ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+  nr_cell_identity nci = nr_cell_identity::create(0x19b0).value();
+
+  std::optional<rrc_meas_cfg> meas_cfg = manager->get_measurement_config(ue_index, nci);
+  ASSERT_TRUE(meas_cfg.has_value());
+  verify_meas_cfg(meas_cfg);
+
+  // Find the event-triggered report config.
+  const auto report_it = std::find_if(
+      meas_cfg.value().report_cfg_to_add_mod_list.begin(),
+      meas_cfg.value().report_cfg_to_add_mod_list.end(),
+      [](const rrc_report_cfg_to_add_mod& r) { return std::get_if<rrc_event_trigger_cfg>(&r.report_cfg) != nullptr; });
+  ASSERT_NE(report_it, meas_cfg.value().report_cfg_to_add_mod_list.end());
+
+  // Verify report config carries t312.
+  const auto* event_triggered = std::get_if<rrc_event_trigger_cfg>(&report_it->report_cfg);
+  ASSERT_NE(event_triggered, nullptr);
+  ASSERT_TRUE(event_triggered->t312.has_value());
+  ASSERT_EQ(event_triggered->t312.value(), 100);
+
+  // Find the meas_id that links the event-triggered report to a meas object.
+  const auto meas_id_it =
+      std::find_if(meas_cfg.value().meas_id_to_add_mod_list.begin(),
+                   meas_cfg.value().meas_id_to_add_mod_list.end(),
+                   [&](const rrc_meas_id_to_add_mod& m) { return m.report_cfg_id == report_it->report_cfg_id; });
+  ASSERT_NE(meas_id_it, meas_cfg.value().meas_id_to_add_mod_list.end());
+
+  // Find the linked measurement object and verify t312 is propagated.
+  const auto meas_obj_it =
+      std::find_if(meas_cfg.value().meas_obj_to_add_mod_list.begin(),
+                   meas_cfg.value().meas_obj_to_add_mod_list.end(),
+                   [&](const rrc_meas_obj_to_add_mod& obj) { return obj.meas_obj_id == meas_id_it->meas_obj_id; });
+  ASSERT_NE(meas_obj_it, meas_cfg.value().meas_obj_to_add_mod_list.end());
+  ASSERT_TRUE(meas_obj_it->meas_obj_nr.has_value());
+  ASSERT_TRUE(meas_obj_it->meas_obj_nr.value().t312.has_value());
+  ASSERT_EQ(meas_obj_it->meas_obj_nr.value().t312.value(), 100);
+}

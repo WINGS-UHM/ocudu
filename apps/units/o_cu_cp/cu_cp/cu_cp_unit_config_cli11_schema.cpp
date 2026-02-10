@@ -246,6 +246,13 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
              report_params.time_to_trigger_ms,
              "Time in ms during which a condition must be met before measurement report trigger")
       ->check(CLI::IsMember({0, 40, 64, 80, 100, 128, 160, 256, 320, 480, 512, 640, 1024, 1280, 2560, 5120}));
+  add_option(app,
+             "--t312",
+             report_params.t312_ms,
+             "T312 timer in ms. This timer is started by the UE on event triggered measurement report, when T310 "
+             "(out-of-sync) timer is already running and on its expiration triggers the RLF to speed up "
+             "reestablishment to different cell.")
+      ->check(CLI::IsMember({0, 50, 100, 200, 300, 400, 500, 1000}));
 }
 
 static void configure_cli11_ncell_args(CLI::App& app, cu_cp_unit_neighbor_cell_config_item& config)

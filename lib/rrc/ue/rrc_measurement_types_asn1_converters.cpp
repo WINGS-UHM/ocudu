@@ -537,6 +537,14 @@ asn1::rrc_nr::meas_obj_nr_s ocudu::ocucp::meas_obj_nr_to_rrc_asn1(const rrc_meas
     asn1_meas_obj_nr.meas_cycle_scell_present = true;
     asn1::number_to_enum(asn1_meas_obj_nr.meas_cycle_scell, meas_obj_nr.meas_cycle_scell.value());
   }
+  // group 1
+  // t312
+  if (meas_obj_nr.t312.has_value()) {
+    asn1_meas_obj_nr.ext = true;
+    asn1_meas_obj_nr.t312_r16.set_present();
+    asn1_meas_obj_nr.t312_r16->set_setup();
+    asn1::number_to_enum(asn1_meas_obj_nr.t312_r16->setup(), meas_obj_nr.t312.value());
+  }
 
   return asn1_meas_obj_nr;
 }
@@ -922,6 +930,13 @@ ocudu::ocucp::event_triggered_report_cfg_to_rrc_asn1(const rrc_event_trigger_cfg
 
   // include beam meass
   asn1_event_trigger_cfg.include_beam_meass = event_trigger_cfg.include_beam_meass;
+
+  // use T312
+  if (event_trigger_cfg.t312.has_value()) {
+    asn1_event_trigger_cfg.ext                  = true;
+    asn1_event_trigger_cfg.use_t312_r16_present = true;
+    asn1_event_trigger_cfg.use_t312_r16         = true;
+  }
 
   return asn1_event_trigger_cfg;
 }

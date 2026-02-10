@@ -250,6 +250,8 @@ struct rrc_meas_obj_nr {
   // group 0
   std::optional<uint16_t> freq_band_ind_nr;
   std::optional<uint16_t> meas_cycle_scell;
+  // group 1
+  std::optional<unsigned> t312;
 };
 
 struct rrc_n2 {
@@ -406,6 +408,8 @@ struct rrc_event_trigger_cfg {
   std::optional<rrc_meas_report_quant> report_quant_rs_idxes;
   std::optional<uint8_t>               max_nrof_rs_idxes_to_report;
   bool                                 include_beam_meass;
+  // group 0
+  std::optional<unsigned> t312;
 };
 
 struct rrc_report_cgi {

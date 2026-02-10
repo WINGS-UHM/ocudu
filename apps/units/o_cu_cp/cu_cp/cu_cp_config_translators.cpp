@@ -331,6 +331,7 @@ generate_cu_cp_event_trigger_report_config(const cu_cp_unit_report_config& repor
   event_trigger_cfg.report_quant_cell.rsrq = true;
   event_trigger_cfg.report_quant_cell.sinr = true;
   event_trigger_cfg.max_report_cells       = 4;
+  event_trigger_cfg.t312                   = report_cfg_item.t312_ms;
 
   ocucp::rrc_meas_report_quant report_quant_rs_idxes;
   report_quant_rs_idxes.rsrp              = true;

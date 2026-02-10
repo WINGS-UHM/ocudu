@@ -178,6 +178,9 @@ static YAML::Node build_cu_cp_mobility_report_section(const cu_cp_unit_report_co
     if (config.time_to_trigger_ms) {
       node["time_to_trigger_ms"] = config.time_to_trigger_ms.value();
     }
+    if (config.t312_ms) {
+      node["t312_ms"] = config.t312_ms.value();
+    }
   }
 
   node["report_interval_ms"] = config.report_interval_ms;

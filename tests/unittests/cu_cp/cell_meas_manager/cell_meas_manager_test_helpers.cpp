@@ -42,7 +42,7 @@ void cell_meas_manager_test::create_empty_manager()
   ASSERT_NE(manager, nullptr);
 }
 
-void cell_meas_manager_test::create_default_manager()
+void cell_meas_manager_test::create_default_manager(std::optional<unsigned> t312)
 {
   cell_meas_manager_cfg cfg;
 
@@ -137,6 +137,9 @@ void cell_meas_manager_test::create_default_manager()
   report_quant_rs_idxes.rsrq              = true;
   report_quant_rs_idxes.sinr              = true;
   event_trigger_cfg.report_quant_rs_idxes = report_quant_rs_idxes;
+
+  // Set T312 if provided.
+  event_trigger_cfg.t312 = t312;
 
   a3_report_cfg = event_trigger_cfg;
   cfg.report_config_ids.emplace(uint_to_report_cfg_id(2), a3_report_cfg);

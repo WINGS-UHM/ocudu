@@ -186,13 +186,25 @@ void ocudu::ocucp::generate_report_config(const cell_meas_manager_cfg&  cfg,
   meas_cfg.meas_id_to_add_mod_list.push_back(meas_id_to_add_mod);
 
   // add meas id to lookup
-  auto& serving_cell_cfg = cfg.cells.at(nci).serving_cell_cfg;
+  const auto& serving_cell_cfg = cfg.cells.at(nci).serving_cell_cfg;
   ue_meas_context.meas_id_to_meas_context.emplace(meas_id_to_add_mod.meas_id,
                                                   meas_context_t{meas_id_to_add_mod.meas_obj_id,
                                                                  meas_id_to_add_mod.report_cfg_id,
                                                                  serving_cell_cfg.gnb_id_bit_length,
                                                                  serving_cell_cfg.nci,
                                                                  serving_cell_cfg.pci.value()});
+
+  // Set T312 value in the measurement object if it's linked to (event-triggered) report config with T312 configured.
+  const auto* event_triggered = std::get_if<rrc_event_trigger_cfg>(&report_cfg_to_add_mod.report_cfg);
+  if (event_triggered != nullptr && event_triggered->t312.has_value()) {
+    auto meas_obj_it = std::find_if(
+        meas_cfg.meas_obj_to_add_mod_list.begin(),
+        meas_cfg.meas_obj_to_add_mod_list.end(),
+        [&](const rrc_meas_obj_to_add_mod& obj) { return obj.meas_obj_id == meas_id_to_add_mod.meas_obj_id; });
+    if (meas_obj_it != meas_cfg.meas_obj_to_add_mod_list.end() && meas_obj_it->meas_obj_nr.has_value()) {
+      meas_obj_it->meas_obj_nr.value().t312 = event_triggered->t312;
+    }
+  }
 }
 
 rrc_meas_obj_nr ocudu::ocucp::generate_measurement_object(const serving_cell_meas_config& cfg)

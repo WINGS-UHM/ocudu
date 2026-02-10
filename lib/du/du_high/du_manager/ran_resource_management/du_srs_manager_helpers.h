@@ -39,9 +39,7 @@ unsigned compute_srs_rb_start(unsigned c_srs, unsigned nof_ul_bwp_rbs);
 template <bool IsPeriodic>
 srs_config build_default_srs_cfg(const du_cell_config& cell_cfg)
 {
-  ocudu_assert(cell_cfg.ue_ded_serv_cell_cfg.ul_config.has_value() and
-                   cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
-               "DU cell config is not valid");
+  ocudu_assert(cell_cfg.ue_ded_serv_cell_cfg.srs_cfg.has_value(), "DU cell config is not valid");
 
   ocudu_assert(cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled !=
                    (IsPeriodic ? srs_type::aperiodic : srs_type::periodic),
@@ -51,10 +49,10 @@ srs_config build_default_srs_cfg(const du_cell_config& cell_cfg)
 
   // If SRS is not enabled, we don't need to update its configuration.
   if (cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::disabled) {
-    return cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
+    return cell_cfg.ue_ded_serv_cell_cfg.srs_cfg.value();
   }
 
-  auto srs_cfg = cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
+  auto srs_cfg = cell_cfg.ue_ded_serv_cell_cfg.srs_cfg.value();
 
   ocudu_assert(srs_cfg.srs_res_list.size() == 1 and srs_cfg.srs_res_set_list.size() == 1,
                "The SRS resource list and the SRS resource set list are expected to have a single element");

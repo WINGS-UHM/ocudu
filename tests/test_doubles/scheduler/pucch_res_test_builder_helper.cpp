@@ -27,6 +27,7 @@ static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&     
   cell_cfg.ue_ded_serv_cell_cfg             = config_helpers::make_du_ue_ded_serv_cell_config(base_ue_cfg);
   cell_cfg.init_bwp_builder.pucch.resources = pucch_cfg;
   cell_cfg.init_bwp_builder.pdsch           = config_helpers::make_pdsch_builder_params(base_ue_cfg);
+  cell_cfg.init_bwp_builder.pusch           = config_helpers::make_pusch_builder_params(base_ue_cfg);
   return cell_cfg;
 }
 

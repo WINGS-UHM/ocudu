@@ -65,8 +65,7 @@ du_pucch_resource_manager::du_pucch_resource_manager(span<const du_cell_config> 
       cell_cfg_list_[0].init_bwp_builder.pucch.resources,
       cell_cfg_list_[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length())),
   default_pucch_cfg(
-      build_default_pucch_cfg(cell_cfg_list_[0].ue_ded_serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value(),
-                              user_defined_pucch_cfg)),
+      build_default_pucch_cfg(cell_cfg_list_[0].ue_ded_serv_cell_cfg.pucch_cfg.value(), user_defined_pucch_cfg)),
   default_csi_report_cfg([&cell_cfg_list_]() -> std::optional<csi_report_config> {
     const auto& csi_meas = cell_cfg_list_[0].ue_ded_serv_cell_cfg.csi_meas_cfg;
     if (csi_meas.has_value() and not is_pusch_configured(*csi_meas)) {

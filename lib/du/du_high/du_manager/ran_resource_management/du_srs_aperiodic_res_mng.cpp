@@ -24,8 +24,7 @@ using namespace odu;
 // transmissions. This means that only 1 offset can be chosen.
 static unsigned compute_slot_offset(const du_cell_config& cell_cfg)
 {
-  const auto& dl_data_to_ul_ack =
-      cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value().dl_data_to_ul_ack;
+  const auto& dl_data_to_ul_ack = cell_cfg.ue_ded_serv_cell_cfg.pucch_cfg.value().dl_data_to_ul_ack;
 
   std::vector<static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>> pusch_td_list_per_slot =
       get_fairly_distributed_pusch_td_resource_indices(cell_cfg.scs_common,
@@ -132,9 +131,7 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
   cells(cell_cfg_list_.begin(), cell_cfg_list_.end())
 {
   for (auto& cell : cells) {
-    ocudu_assert(cell.cell_cfg.ue_ded_serv_cell_cfg.ul_config.has_value() and
-                     cell.cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
-                 "DU cell config is not valid");
+    ocudu_assert(cell.cell_cfg.ue_ded_serv_cell_cfg.srs_cfg.has_value(), "DU cell config is not valid");
 
     ocudu_assert(cell.cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled != srs_type::periodic,
                  "Request to build aperiodic SRS configuration, but periodic parameters have been provided");
@@ -179,9 +176,8 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
     cell.srs_res_usage.assign(cell.cell_srs_res_list.size(), 0U);
 
     ocudu_assert(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value() and
-                     cell_cfg.ue_ded_serv_cell_cfg.ul_config.has_value() and
-                     cell_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value(),
-                 "The SRS aperiodic configuration generation requires PUSCH Config Common, UL Config and PUCCH Config");
+                     cell_cfg.ue_ded_serv_cell_cfg.pucch_cfg.has_value(),
+                 "The SRS aperiodic configuration generation requires PUSCH Config Common and PUCCH Config");
 
     cell.slot_offset = compute_slot_offset(cell_cfg);
   }

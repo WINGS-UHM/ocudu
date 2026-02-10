@@ -25,8 +25,12 @@ namespace config_helpers {
 inline odu::du_ue_ded_serv_cell_config make_du_ue_ded_serv_cell_config(const serving_cell_config& ue_serv_cell_cfg);
 /// Builds PDSCH builder parameters from a full UE serving cell configuration.
 inline pdsch_builder_params make_pdsch_builder_params(const serving_cell_config& ue_serv_cell_cfg);
+/// Builds PUSCH builder parameters from a full UE serving cell configuration.
+inline pusch_builder_params make_pusch_builder_params(const serving_cell_config& ue_serv_cell_cfg);
 /// Builds a PDSCH serving cell configuration from PDSCH builder parameters.
 inline pdsch_serving_cell_config make_pdsch_serv_cell_config(const pdsch_builder_params& pdsch_params);
+/// Builds a PUSCH serving cell configuration from PUSCH builder parameters.
+inline pusch_serving_cell_config make_pusch_serv_cell_config(const pusch_builder_params& pusch_params);
 
 /// Generates default cell configuration used by gNB DU. The default configuration should be valid.
 inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder_params_extended& params = {})
@@ -58,6 +62,7 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
   const serving_cell_config ue_serv_cell = create_default_initial_ue_serving_cell_config(params);
   cfg.ue_ded_serv_cell_cfg               = make_du_ue_ded_serv_cell_config(ue_serv_cell);
   cfg.init_bwp_builder.pdsch             = make_pdsch_builder_params(ue_serv_cell);
+  cfg.init_bwp_builder.pusch             = make_pusch_builder_params(ue_serv_cell);
 
   return cfg;
 }
@@ -67,8 +72,11 @@ inline odu::du_ue_ded_serv_cell_config make_du_ue_ded_serv_cell_config(const ser
 {
   odu::du_ue_ded_serv_cell_config cfg{};
   cfg.pdcch_cfg    = ue_serv_cell_cfg.init_dl_bwp.pdcch_cfg;
-  cfg.ul_config    = ue_serv_cell_cfg.ul_config;
   cfg.csi_meas_cfg = ue_serv_cell_cfg.csi_meas_cfg;
+  if (ue_serv_cell_cfg.ul_config.has_value()) {
+    cfg.pucch_cfg = ue_serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg;
+    cfg.srs_cfg   = ue_serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg;
+  }
   return cfg;
 }
 
@@ -155,6 +163,41 @@ inline std::optional<pdsch_config> make_pdsch_config(const odu::du_cell_config& 
   return pdsch_cfg;
 }
 
+/// Builds a PUSCH configuration from PUSCH builder parameters.
+inline pusch_config make_pusch_config(const pusch_builder_params& pusch_params)
+{
+  pusch_config pusch_cfg = make_default_pusch_config();
+
+  pusch_cfg.mcs_table = pusch_params.mcs_table;
+  if (!pusch_cfg.pusch_mapping_type_a_dmrs.has_value()) {
+    pusch_cfg.pusch_mapping_type_a_dmrs.emplace();
+  }
+  pusch_cfg.pusch_mapping_type_a_dmrs->additional_positions = pusch_params.additional_positions;
+
+  if (pusch_params.transform_precoding_enabled) {
+    pusch_cfg.trans_precoder = pusch_config::transform_precoder::enabled;
+    pusch_cfg.pusch_mapping_type_a_dmrs->trans_precoder_enabled.emplace(
+        dmrs_uplink_config::transform_precoder_enabled{std::nullopt, false, false});
+  }
+  if (pusch_params.uci_beta_offsets.has_value()) {
+    if (!pusch_cfg.uci_cfg.has_value()) {
+      pusch_cfg.uci_cfg.emplace();
+    }
+    pusch_cfg.uci_cfg->beta_offsets_cfg = uci_on_pusch::beta_offsets_semi_static{pusch_params.uci_beta_offsets.value()};
+  }
+  if (pusch_params.p0_pusch_alpha.has_value()) {
+    if (!pusch_cfg.pusch_pwr_ctrl.has_value()) {
+      pusch_cfg.pusch_pwr_ctrl.emplace(pusch_config::pusch_power_control{});
+    }
+    if (pusch_cfg.pusch_pwr_ctrl->p0_alphasets.empty()) {
+      pusch_cfg.pusch_pwr_ctrl->p0_alphasets.emplace_back();
+    }
+    pusch_cfg.pusch_pwr_ctrl->p0_alphasets.front().p0_pusch_alpha = pusch_params.p0_pusch_alpha.value();
+  }
+
+  return pusch_cfg;
+}
+
 /// Builds PDSCH builder parameters from a full UE serving cell configuration.
 inline pdsch_builder_params make_pdsch_builder_params(const serving_cell_config& ue_serv_cell_cfg)
 {
@@ -176,12 +219,65 @@ inline pdsch_builder_params make_pdsch_builder_params(const serving_cell_config&
   return params;
 }
 
+/// Builds PUSCH builder parameters from a full UE serving cell configuration.
+inline pusch_builder_params make_pusch_builder_params(const serving_cell_config& ue_serv_cell_cfg)
+{
+  pusch_builder_params params{};
+  if (ue_serv_cell_cfg.ul_config.has_value()) {
+    const auto& ul_cfg = ue_serv_cell_cfg.ul_config.value();
+    if (ul_cfg.pusch_serv_cell_cfg.has_value()) {
+      params.nof_harq_procs = static_cast<uint8_t>(ul_cfg.pusch_serv_cell_cfg->nof_harq_proc);
+      params.ul_harq_mode   = ul_cfg.pusch_serv_cell_cfg->ul_harq_mode;
+      if (ul_cfg.pusch_serv_cell_cfg->cbg_tx.has_value()) {
+        params.cbg_tx = static_cast<uint8_t>(ul_cfg.pusch_serv_cell_cfg->cbg_tx->max_cgb_per_tb);
+      }
+      params.x_ov_head = ul_cfg.pusch_serv_cell_cfg->x_ov_head;
+    }
+    if (ul_cfg.init_ul_bwp.pusch_cfg.has_value()) {
+      const auto& pusch_cfg = ul_cfg.init_ul_bwp.pusch_cfg.value();
+      params.mcs_table      = pusch_cfg.mcs_table;
+      if (pusch_cfg.pusch_mapping_type_a_dmrs.has_value()) {
+        params.additional_positions = pusch_cfg.pusch_mapping_type_a_dmrs->additional_positions;
+      }
+      if (pusch_cfg.trans_precoder == pusch_config::transform_precoder::enabled) {
+        params.transform_precoding_enabled = true;
+      }
+      if (pusch_cfg.uci_cfg.has_value() && pusch_cfg.uci_cfg->beta_offsets_cfg.has_value()) {
+        if (const auto* beta_offsets =
+                std::get_if<uci_on_pusch::beta_offsets_semi_static>(&pusch_cfg.uci_cfg->beta_offsets_cfg.value())) {
+          params.uci_beta_offsets = *beta_offsets;
+        }
+      }
+      if (pusch_cfg.pusch_pwr_ctrl.has_value() && !pusch_cfg.pusch_pwr_ctrl->p0_alphasets.empty()) {
+        params.p0_pusch_alpha = pusch_cfg.pusch_pwr_ctrl->p0_alphasets.front().p0_pusch_alpha;
+      }
+    }
+  }
+  return params;
+}
+
 /// Builds a PDSCH serving cell configuration from PDSCH builder parameters.
 inline pdsch_serving_cell_config make_pdsch_serv_cell_config(const pdsch_builder_params& pdsch_params)
 {
   pdsch_serving_cell_config cfg = make_default_pdsch_serving_cell_config();
   cfg.nof_harq_proc = static_cast<pdsch_serving_cell_config::nof_harq_proc_for_pdsch>(pdsch_params.nof_harq_procs);
   cfg.dl_harq_feedback_disabled = pdsch_params.dl_harq_feedback_disabled;
+  return cfg;
+}
+
+/// Builds a PUSCH serving cell configuration from PUSCH builder parameters.
+inline pusch_serving_cell_config make_pusch_serv_cell_config(const pusch_builder_params& pusch_params)
+{
+  pusch_serving_cell_config cfg{};
+  if (pusch_params.cbg_tx) {
+    cfg.cbg_tx.emplace();
+    cfg.cbg_tx->max_cgb_per_tb = static_cast<
+        pusch_serving_cell_config::pusch_code_block_group_transmission::max_code_block_groups_per_transport_block>(
+        *pusch_params.cbg_tx);
+  }
+  cfg.x_ov_head     = pusch_params.x_ov_head;
+  cfg.nof_harq_proc = static_cast<pusch_serving_cell_config::nof_harq_proc_for_pusch>(pusch_params.nof_harq_procs);
+  cfg.ul_harq_mode  = pusch_params.ul_harq_mode;
   return cfg;
 }
 
@@ -192,9 +288,13 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_ue_ded_serv
   serving_cell_config cfg{};
   cfg.cell_index            = cell_index;
   cfg.init_dl_bwp.pdcch_cfg = ue_ded_cfg.pdcch_cfg;
-  cfg.ul_config             = ue_ded_cfg.ul_config;
   cfg.pdsch_serv_cell_cfg   = make_default_pdsch_serving_cell_config();
   cfg.csi_meas_cfg          = ue_ded_cfg.csi_meas_cfg;
+  if (ue_ded_cfg.pucch_cfg.has_value() || ue_ded_cfg.srs_cfg.has_value()) {
+    cfg.ul_config.emplace();
+    cfg.ul_config->init_ul_bwp.pucch_cfg = ue_ded_cfg.pucch_cfg;
+    cfg.ul_config->init_ul_bwp.srs_cfg   = ue_ded_cfg.srs_cfg;
+  }
   return cfg;
 }
 
@@ -202,10 +302,17 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_ue_ded_serv
 inline serving_cell_config make_ue_serving_cell_config(const odu::du_cell_config& du_cell_cfg,
                                                        du_cell_index_t            cell_index)
 {
-  serving_cell_config cfg   = make_ue_serving_cell_config(du_cell_cfg.ue_ded_serv_cell_cfg, cell_index);
-  cfg.pdsch_serv_cell_cfg   = make_pdsch_serv_cell_config(du_cell_cfg.init_bwp_builder.pdsch);
-  cfg.init_dl_bwp.pdsch_cfg = make_pdsch_config(du_cell_cfg);
-  cfg.init_dl_bwp.rlm_cfg   = make_rlm_config(du_cell_cfg);
+  serving_cell_config cfg = make_ue_serving_cell_config(du_cell_cfg.ue_ded_serv_cell_cfg, cell_index);
+  cfg.pdsch_serv_cell_cfg = make_pdsch_serv_cell_config(du_cell_cfg.init_bwp_builder.pdsch);
+  if (!cfg.ul_config.has_value()) {
+    cfg.ul_config.emplace();
+    cfg.ul_config->init_ul_bwp.pucch_cfg = du_cell_cfg.ue_ded_serv_cell_cfg.pucch_cfg;
+    cfg.ul_config->init_ul_bwp.srs_cfg   = du_cell_cfg.ue_ded_serv_cell_cfg.srs_cfg;
+  }
+  cfg.ul_config->init_ul_bwp.pusch_cfg = make_pusch_config(du_cell_cfg.init_bwp_builder.pusch);
+  cfg.ul_config->pusch_serv_cell_cfg   = make_pusch_serv_cell_config(du_cell_cfg.init_bwp_builder.pusch);
+  cfg.init_dl_bwp.pdsch_cfg            = make_pdsch_config(du_cell_cfg);
+  cfg.init_dl_bwp.rlm_cfg              = make_rlm_config(du_cell_cfg);
   return cfg;
 }
 

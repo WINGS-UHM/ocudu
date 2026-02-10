@@ -341,15 +341,8 @@ pdsch_mcs_table ue_capability_manager::select_pdsch_mcs_table(du_cell_index_t ce
 
 pusch_mcs_table ue_capability_manager::select_pusch_mcs_table(du_cell_index_t cell_idx) const
 {
-  nr_band     band        = base_cell_cfg_list[cell_idx].ul_carrier.band;
-  const auto& base_ul_cfg = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg.ul_config;
-
-  if (not base_ul_cfg.has_value() or not base_ul_cfg->init_ul_bwp.pusch_cfg.has_value()) {
-    // No PUSCH config present. Default to QAM64.
-    return pusch_mcs_table::qam64;
-  }
-
-  const pusch_mcs_table app_mcs_table = base_ul_cfg->init_ul_bwp.pusch_cfg->mcs_table;
+  nr_band               band          = base_cell_cfg_list[cell_idx].ul_carrier.band;
+  const pusch_mcs_table app_mcs_table = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.mcs_table;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
@@ -360,7 +353,7 @@ pusch_mcs_table ue_capability_manager::select_pusch_mcs_table(du_cell_index_t ce
     return pusch_mcs_table::qam64;
   }
 
-  if (base_ul_cfg->init_ul_bwp.pusch_cfg->mcs_table == pusch_mcs_table::qam256) {
+  if (app_mcs_table == pusch_mcs_table::qam256) {
     // If the band capability is present, select the MCS table from this band.
     if (ue_caps->bands.count(band)) {
       return ue_caps->bands.at(band).pusch_qam256_supported ? pusch_mcs_table::qam256 : pusch_mcs_table::qam64;
@@ -372,11 +365,11 @@ pusch_mcs_table ue_capability_manager::select_pusch_mcs_table(du_cell_index_t ce
         })) {
       return pusch_mcs_table::qam64;
     }
-  } else if (base_ul_cfg->init_ul_bwp.pusch_cfg->mcs_table == pusch_mcs_table::qam64LowSe) {
+  } else if (app_mcs_table == pusch_mcs_table::qam64LowSe) {
     return ue_caps.value().pusch_qam64lowse_supported ? pusch_mcs_table::qam64LowSe : pusch_mcs_table::qam64;
   }
 
-  return base_ul_cfg->init_ul_bwp.pusch_cfg->mcs_table;
+  return app_mcs_table;
 }
 
 vrb_to_prb::mapping_type ue_capability_manager::select_pdsch_interleaving(du_cell_index_t cell_idx) const
@@ -465,19 +458,8 @@ unsigned ue_capability_manager::select_max_dl_nof_harqs(du_cell_index_t cell_idx
 
 unsigned ue_capability_manager::select_max_ul_nof_harqs(du_cell_index_t cell_idx) const
 {
-  const auto& ul_config = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg.ul_config;
-
-  if (not ul_config.has_value()) {
-    return ue_capability_summary::default_max_harq_process_num;
-  }
-
-  const auto& pusch_serv_cell_cfg = ul_config->pusch_serv_cell_cfg;
-  if (not pusch_serv_cell_cfg.has_value()) {
-    return ue_capability_summary::default_max_harq_process_num;
-  }
-
   // Configured maximum number of UL HARQs.
-  auto cell_max_nof_ul_harq_proc = (unsigned)pusch_serv_cell_cfg->nof_harq_proc;
+  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.nof_harq_procs;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
@@ -537,20 +519,9 @@ unsigned ue_capability_manager::select_ul_dci_harq_num_field_size(du_cell_index_
     return default_dci_size;
   }
 
-  const auto& ul_config = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg.ul_config;
-
-  if (not ul_config.has_value()) {
-    return default_dci_size;
-  }
-
-  const auto& pusch_serv_cell_cfg = ul_config->pusch_serv_cell_cfg;
-  if (not pusch_serv_cell_cfg.has_value()) {
-    return default_dci_size;
-  }
-
   // Configured maximum number of UL HARQs.
-  auto cell_max_nof_ul_harq_proc = (unsigned)pusch_serv_cell_cfg->nof_harq_proc;
-  auto cell_dci_size             = log2_ceil(cell_max_nof_ul_harq_proc);
+  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.nof_harq_procs;
+  auto     cell_dci_size             = log2_ceil(cell_max_nof_ul_harq_proc);
 
   nr_band band = base_cell_cfg_list[cell_idx].ul_carrier.band;
 
@@ -602,17 +573,7 @@ harq_ul_mode_mask ue_capability_manager::select_ul_harq_mode(du_cell_index_t cel
   default_ul_harq_mode_mask.fill(true);
 
   // Configured disabled UL HARQ mode B.
-  const auto& ul_config = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg.ul_config;
-
-  if (not ul_config.has_value()) {
-    return default_ul_harq_mode_mask;
-  }
-  const auto& pusch_serv_cell_cfg = ul_config->pusch_serv_cell_cfg;
-  if (not pusch_serv_cell_cfg.has_value()) {
-    return default_ul_harq_mode_mask;
-  }
-
-  harq_ul_mode_mask cell_ul_harq_mode_mask = pusch_serv_cell_cfg->ul_harq_mode;
+  harq_ul_mode_mask cell_ul_harq_mode_mask = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.ul_harq_mode;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.

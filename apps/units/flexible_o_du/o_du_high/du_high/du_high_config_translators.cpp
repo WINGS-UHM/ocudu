@@ -671,11 +671,17 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     // > PDSCH
     out_cell.init_bwp_builder.pdsch.nof_harq_procs =
         static_cast<uint8_t>(config.cells_cfg.front().cell.pdsch_cfg.nof_harqs);
-    out_cell.init_bwp_builder.pdsch.dl_harq_feedback_disabled   = base_cell.pdsch_cfg.harq_feedback_disabled;
-    out_cell.init_bwp_builder.pucch.min_k1                      = base_cell.pucch_cfg.min_k1;
+    out_cell.init_bwp_builder.pdsch.dl_harq_feedback_disabled = base_cell.pdsch_cfg.harq_feedback_disabled;
+    out_cell.init_bwp_builder.pdsch.mcs_table                 = base_cell.pdsch_cfg.mcs_table;
+    out_cell.init_bwp_builder.pdsch.additional_positions =
+        uint_to_dmrs_additional_positions(base_cell.pdsch_cfg.dmrs_add_pos);
+    out_cell.init_bwp_builder.pdsch.interleaving_bundle_size = base_cell.pdsch_cfg.interleaving_bundle_size;
+    // > PUSCH
     out_cell.init_bwp_builder.pusch.min_k2                      = base_cell.pusch_cfg.min_k2;
     out_cell.init_bwp_builder.pusch.transform_precoding_enabled = base_cell.pusch_cfg.enable_transform_precoding;
-    out_cell.init_bwp_builder.rlm.type                          = base_cell.rlm_cfg.resource_type;
+    out_cell.init_bwp_builder.pusch.mcs_table                   = base_cell.pusch_cfg.mcs_table;
+    out_cell.init_bwp_builder.pusch.additional_positions =
+        uint_to_dmrs_additional_positions(base_cell.pusch_cfg.dmrs_add_pos);
     // Determine the PUSCH transmission maximum number of layers:
     //  - one layer if transform precoding is enabled; or
     //  - selects the most limiting number of layers among the physical layer capability, the number of antennas and
@@ -684,8 +690,24 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
         cell.cell.pusch_cfg.enable_transform_precoding
             ? 1
             : std::min({cell.cell.nof_antennas_ul, pusch_constants::MAX_NOF_LAYERS, cell.cell.pusch_cfg.max_rank});
+    beta_offsets b_offsets{};
+    b_offsets.beta_offset_ack_idx_1                  = base_cell.pusch_cfg.beta_offset_ack_idx_1;
+    b_offsets.beta_offset_ack_idx_2                  = base_cell.pusch_cfg.beta_offset_ack_idx_2;
+    b_offsets.beta_offset_ack_idx_3                  = base_cell.pusch_cfg.beta_offset_ack_idx_3;
+    b_offsets.beta_offset_csi_p1_idx_1               = base_cell.pusch_cfg.beta_offset_csi_p1_idx_1;
+    b_offsets.beta_offset_csi_p1_idx_2               = base_cell.pusch_cfg.beta_offset_csi_p1_idx_2;
+    b_offsets.beta_offset_csi_p2_idx_1               = base_cell.pusch_cfg.beta_offset_csi_p2_idx_1;
+    b_offsets.beta_offset_csi_p2_idx_2               = base_cell.pusch_cfg.beta_offset_csi_p2_idx_2;
+    out_cell.init_bwp_builder.pusch.uci_beta_offsets = b_offsets;
+    out_cell.init_bwp_builder.pusch.p0_pusch_alpha = float_to_alpha(base_cell.pusch_cfg.path_loss_compensation_factor);
+    out_cell.init_bwp_builder.pusch.nof_harq_procs = static_cast<uint8_t>(base_cell.pusch_cfg.nof_harqs);
+    out_cell.init_bwp_builder.pusch.ul_harq_mode   = ~base_cell.pusch_cfg.harq_mode_b;
+    // > PUCCH
+    out_cell.init_bwp_builder.pucch.min_k1 = base_cell.pucch_cfg.min_k1;
+    // > RACH.
     out_cell.init_bwp_builder.rach.cfra_enabled   = base_cell.prach_cfg.cfra_enabled;
     out_cell.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
+    out_cell.init_bwp_builder.rlm.type            = base_cell.rlm_cfg.resource_type;
 
     if (cell.cell.ntn_cfg.has_value()) {
       out_cell.ntn_params = make_ntn_cell_params(cell.cell.ntn_cfg.value(), cell.cell.pusch_cfg.harq_mode_b.any());
@@ -798,17 +820,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             out_cell.dl_cfg_common.init_dl_bwp.generic_params.cp,
             time_domain_resource_helper::calculate_minimum_pdsch_symbol(out_cell.dl_cfg_common.init_dl_bwp.pdcch_common,
                                                                         out_cell.ue_ded_serv_cell_cfg.pdcch_cfg));
-
-    out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->nof_harq_proc =
-        static_cast<pusch_serving_cell_config::nof_harq_proc_for_pusch>(
-            config.cells_cfg.front().cell.pusch_cfg.nof_harqs);
-    out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->ul_harq_mode =
-        ~config.cells_cfg.front().cell.pusch_cfg.harq_mode_b;
-    // Set DL PDSCH builder parameters.
-    out_cell.init_bwp_builder.pdsch.mcs_table = base_cell.pdsch_cfg.mcs_table;
-    out_cell.init_bwp_builder.pdsch.additional_positions =
-        uint_to_dmrs_additional_positions(base_cell.pdsch_cfg.dmrs_add_pos);
-    out_cell.init_bwp_builder.pdsch.interleaving_bundle_size = base_cell.pdsch_cfg.interleaving_bundle_size;
 
     // Parameters for PUCCH-Config builder (these parameters will be used later on to generate the PUCCH resources).
     pucch_resource_builder_params&   du_pucch_cfg                  = out_cell.init_bwp_builder.pucch.resources;
@@ -930,67 +941,11 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     du_srs_cfg.sequence_id_reuse_factor  = user_srs_cfg.sequence_id_reuse_factor;
     du_srs_cfg.p0                        = user_srs_cfg.p0;
 
-    // Parameters for PUSCH-Config.
-    if (not out_cell.ue_ded_serv_cell_cfg.ul_config.has_value()) {
-      out_cell.ue_ded_serv_cell_cfg.ul_config.emplace();
-    }
-    auto& ul_cfg = out_cell.ue_ded_serv_cell_cfg.ul_config.value();
-    if (not ul_cfg.init_ul_bwp.pusch_cfg.has_value()) {
-      ul_cfg.init_ul_bwp.pusch_cfg.emplace();
-    }
-    auto& pusch_cfg = ul_cfg.init_ul_bwp.pusch_cfg.value();
-
-    // Set DMRS additional position.
-    pusch_cfg.pusch_mapping_type_a_dmrs->additional_positions =
-        uint_to_dmrs_additional_positions(base_cell.pusch_cfg.dmrs_add_pos);
-
-    // Set UL MCS table.
-    pusch_cfg.mcs_table = base_cell.pusch_cfg.mcs_table;
-
-    // Configure PUSCH transform precoding.
-    if (base_cell.pusch_cfg.enable_transform_precoding) {
-      pusch_cfg.trans_precoder = pusch_config::transform_precoder::enabled;
-      pusch_cfg.pusch_mapping_type_a_dmrs.value().trans_precoder_enabled.emplace(
-          dmrs_uplink_config::transform_precoder_enabled{std::nullopt, false, false});
-    }
-
-    if (not pusch_cfg.uci_cfg.has_value()) {
-      pusch_cfg.uci_cfg.emplace();
-    }
-    auto& uci_cfg = pusch_cfg.uci_cfg.value();
-    if (not uci_cfg.beta_offsets_cfg.has_value()) {
-      uci_cfg.beta_offsets_cfg.emplace();
-      uci_cfg.beta_offsets_cfg->emplace<uci_on_pusch::beta_offsets_semi_static>();
-    }
-    if (not std::holds_alternative<uci_on_pusch::beta_offsets_semi_static>(uci_cfg.beta_offsets_cfg.value())) {
-      uci_cfg.beta_offsets_cfg.emplace();
-      uci_cfg.beta_offsets_cfg->emplace<uci_on_pusch::beta_offsets_semi_static>();
-    }
-    auto& b_offsets = std::get<uci_on_pusch::beta_offsets_semi_static>(uci_cfg.beta_offsets_cfg.value());
-    b_offsets.beta_offset_ack_idx_1    = base_cell.pusch_cfg.beta_offset_ack_idx_1;
-    b_offsets.beta_offset_ack_idx_2    = base_cell.pusch_cfg.beta_offset_ack_idx_2;
-    b_offsets.beta_offset_ack_idx_3    = base_cell.pusch_cfg.beta_offset_ack_idx_3;
-    b_offsets.beta_offset_csi_p1_idx_1 = base_cell.pusch_cfg.beta_offset_csi_p1_idx_1;
-    b_offsets.beta_offset_csi_p1_idx_2 = base_cell.pusch_cfg.beta_offset_csi_p1_idx_2;
-    b_offsets.beta_offset_csi_p2_idx_1 = base_cell.pusch_cfg.beta_offset_csi_p2_idx_1;
-    b_offsets.beta_offset_csi_p2_idx_2 = base_cell.pusch_cfg.beta_offset_csi_p2_idx_2;
-
-    // Set PUSCH power control parameters.
-    if (not pusch_cfg.pusch_pwr_ctrl.has_value()) {
-      pusch_cfg.pusch_pwr_ctrl.emplace(pusch_config::pusch_power_control{});
-    }
-    auto& pusch_pwr_ctrl = pusch_cfg.pusch_pwr_ctrl.value();
-    if (pusch_pwr_ctrl.p0_alphasets.empty()) {
-      pusch_pwr_ctrl.p0_alphasets.emplace_back();
-    }
-    pusch_pwr_ctrl.p0_alphasets.front().p0_pusch_alpha =
-        float_to_alpha(base_cell.pusch_cfg.path_loss_compensation_factor);
-
     // Parameters for PUCCH-Config.
-    if (not out_cell.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value()) {
-      out_cell.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.emplace();
+    if (not out_cell.ue_ded_serv_cell_cfg.pucch_cfg.has_value()) {
+      out_cell.ue_ded_serv_cell_cfg.pucch_cfg.emplace();
     }
-    auto& sr_cng = out_cell.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value().sr_res_list;
+    auto& sr_cng = out_cell.ue_ded_serv_cell_cfg.pucch_cfg.value().sr_res_list;
     if (sr_cng.empty()) {
       sr_cng.emplace_back(scheduling_request_resource_config{});
     }

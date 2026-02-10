@@ -508,35 +508,30 @@ static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
 
 static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
 {
-  if (not cell_cfg.ue_ded_serv_cell_cfg.ul_config.has_value()) {
-    return {};
+  const auto&                       ue_ded_cfg   = cell_cfg.ue_ded_serv_cell_cfg;
+  const auto&                       pusch_params = cell_cfg.init_bwp_builder.pusch;
+  const pusch_mcs_table             mcs_table    = pusch_params.mcs_table;
+  const search_space_configuration& ss2          = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg->search_spaces.back();
+  const bool                        fallback_dci_format_in_ss2 =
+      ss2.is_common_search_space() or
+      not(std::get<search_space_configuration::ue_specific_dci_format>(ss2.get_monitored_dci_formats()) ==
+          search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
+  if (fallback_dci_format_in_ss2) {
+    CHECK_TRUE(mcs_table != pusch_mcs_table::qam256,
+               "256QAM MCS table cannot be used for PUSCH with fallback DCI format in SearchSpace#2");
   }
-
-  const bwp_uplink_dedicated& bwp = cell_cfg.ue_ded_serv_cell_cfg.ul_config->init_ul_bwp;
-  if (bwp.pusch_cfg.has_value()) {
-    const search_space_configuration& ss2 = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg->search_spaces.back();
-    const bool                        fallback_dci_format_in_ss2 =
-        ss2.is_common_search_space() or
-        not(std::get<search_space_configuration::ue_specific_dci_format>(ss2.get_monitored_dci_formats()) ==
-            search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
-    if (fallback_dci_format_in_ss2) {
-      CHECK_TRUE(bwp.pusch_cfg->mcs_table != pusch_mcs_table::qam256,
-                 "256QAM MCS table cannot be used for PUSCH with fallback DCI format in SearchSpace#2");
-    }
-    if (bwp.pusch_cfg.value().mcs_table == pusch_mcs_table::qam64LowSe) {
-      // As per Section 5.1.3.1, TS 38.213 and assuming MCS-C-RNTI is not supported.
-      CHECK_TRUE(not ss2.is_common_search_space(),
-                 "64QAM Low Se MCS table cannot be used for PDSCH with DCI in Common SearchSpace");
-    }
-    if (bwp.pusch_cfg->pusch_mapping_type_a_dmrs.has_value() and
-        bwp.pusch_cfg->pusch_mapping_type_a_dmrs->additional_positions == dmrs_additional_positions::pos3) {
-      CHECK_TRUE(cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2,
-                 "PUSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
-    }
+  if (mcs_table == pusch_mcs_table::qam64LowSe) {
+    // As per Section 5.1.3.1, TS 38.213 and assuming MCS-C-RNTI is not supported.
+    CHECK_TRUE(not ss2.is_common_search_space(),
+               "64QAM Low Se MCS table cannot be used for PDSCH with DCI in Common SearchSpace");
   }
-  if (bwp.pucch_cfg.has_value()) {
+  if (pusch_params.additional_positions == dmrs_additional_positions::pos3) {
+    CHECK_TRUE(cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2,
+               "PUSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
+  }
+  if (ue_ded_cfg.pucch_cfg.has_value()) {
     if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
-      for (const scheduling_request_resource_config& sr_cfg : bwp.pucch_cfg->sr_res_list) {
+      for (const scheduling_request_resource_config& sr_cfg : ue_ded_cfg.pucch_cfg->sr_res_list) {
         CHECK_TRUE(sr_periodicity_to_slot(sr_cfg.period) %
                            nof_slots_per_tdd_period(cell_cfg.tdd_ul_dl_cfg_common.value()) ==
                        0,

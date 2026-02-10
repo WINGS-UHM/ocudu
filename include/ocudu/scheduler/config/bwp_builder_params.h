@@ -17,6 +17,7 @@
 #include "ocudu/ran/radio_link_monitoring.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
 #include <optional>
 #include <vector>
@@ -56,16 +57,35 @@ struct pucch_builder_params {
 
 /// PUSCH parameters for a given BWP of a given DU cell.
 struct pusch_builder_params {
+  /// Number of HARQ processes. Values: {16, 32}.
+  /// \remark See TS 38.331, \c nrofHARQ-ProcessesForPUSCH.
+  uint8_t nof_harq_procs = 16;
   /// \brief Minimum k2 value used in the generation of the UE PUSCH time-domain resources.
   /// Possible values: {1, ..., 7}.
   /// [Implementation-defined] The value of min_k2 should be equal or lower than min_k1. Otherwise, the scheduler is
   /// forced to pick higher k1 values, as it cannot allocate PUCCHs in slots where there is an PUSCH with an already
   /// assigned DAI.
   uint8_t min_k2 = 4;
+  /// Indicates which MCS table the UE shall use for PUSCH.
+  pusch_mcs_table mcs_table{pusch_mcs_table::qam64};
   /// PUSCH Maximum of transmission layers. Limits the maximum rank the UE is configured with. Values: {1, ..., 4}.
   uint8_t max_nof_layers = 1;
   /// Whether transform precoding is enabled in PUSCH.
   bool transform_precoding_enabled = false;
+  /// Position for additional DM-RS in UL (see TS 38.211, clause 6.4.1.1.3). If the field is not set, the UE applies the
+  /// value pos2.
+  dmrs_additional_positions additional_positions{dmrs_additional_positions::pos2};
+  /// UCI beta offsets (semi-static) for PUSCH.
+  std::optional<uci_on_pusch::beta_offsets_semi_static> uci_beta_offsets;
+  /// P0-PUSCH-AlphaSet alpha for PUSCH power control.
+  std::optional<alpha> p0_pusch_alpha;
+  /// A bit set to one identifies a HARQ process in modeA and a bit set to zero identifies a HARQ process in modeB.
+  /// \remark See TS 38.331, \c uplinkHARQ-mode.
+  harq_ul_mode_mask ul_harq_mode = ~harq_ul_mode_mask(MAX_NOF_HARQS);
+  /// Maximum number of code-block-groups (CBGs) per TB. See TS 38.213, clause 9.1. Values: {2, 4, 6, 8}.
+  std::optional<uint8_t> cbg_tx;
+  /// \c xOverhead.
+  x_overhead x_ov_head{x_overhead::not_set};
 };
 
 /// Random Access parameters for this BWP.

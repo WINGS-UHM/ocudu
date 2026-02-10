@@ -600,7 +600,7 @@ make_custom_du_cell_config_for_pucch_cnt(const pucch_cnt_builder_params&        
   f1_params.nof_cyc_shifts            = pucch_nof_cyclic_shifts::six;
   f1_params.occ_supported             = true;
 
-  du_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->sr_res_list[0].period = pucch_params_.sr_period;
+  du_cfg.ue_ded_serv_cell_cfg.pucch_cfg->sr_res_list[0].period = pucch_params_.sr_period;
   if (du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
     std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
         du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type)
@@ -818,8 +818,7 @@ static du_cell_config make_custom_pucch_srs_cell_config(bool pucch_has_more_res_
   tdd_cfg.pattern1.nof_ul_slots              = 2;
   tdd_cfg.pattern1.nof_ul_symbols            = 0;
 
-  du_cfg.ue_ded_serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value().sr_res_list.front().period =
-      ocudu::sr_periodicity::sl_10;
+  du_cfg.ue_ded_serv_cell_cfg.pucch_cfg.value().sr_res_list.front().period = ocudu::sr_periodicity::sl_10;
 
   auto& srs_cfg = du_cfg.init_bwp_builder.srs_cfg;
 

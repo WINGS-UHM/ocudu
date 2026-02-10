@@ -20,8 +20,8 @@ namespace ocudu {
 
 namespace ocudu_ntn {
 
-/// NTN Config update message to be received over a websocket interface.
-struct ntn_config_update_info {
+/// NTN Config update for a single cell.
+struct ntn_cell_config_update_info {
   using time_point = std::chrono::system_clock::time_point;
   nr_cell_global_id_t                                     nr_cgi;
   time_point                                              epoch_time;
@@ -32,19 +32,33 @@ struct ntn_config_update_info {
   std::optional<geodetic_coordinates_t>                   ntn_gateway_location;
 };
 
+/// NTN Config update message to be received over a websocket interface.
+struct ntn_config_update_info {
+  /// Per-cell NTN config updates.
+  std::vector<ntn_cell_config_update_info> cells;
+};
+
+/// Result of NTN configuration update operation.
+struct ntn_config_update_result {
+  /// Cells that were successfully updated.
+  std::vector<nr_cell_global_id_t> succeeded;
+  /// Cells that failed to update.
+  std::vector<nr_cell_global_id_t> failed;
+};
+
 /// Public NTN configuration manager interface.
 class ntn_configuration_manager
 {
 public:
   virtual ~ntn_configuration_manager() = default;
 
-  /// \brief Handle an NTN configuration update request.
+  /// \brief Handle NTN configuration update request for one or more cells.
   ///
-  /// This function processes an NTN configuration update, including generating timestamped SIB19 PDUs and setting the
+  /// This function processes NTN configuration updates, including generating timestamped SIB19 PDUs and setting the
   /// Doppler shift for PHY layer pre- and post-compensation for the feeder link.
-  /// \param req Information required to perform the NTN configuration update.
-  /// \return True if the update was successfully handled; false otherwise.
-  virtual bool handle_ntn_config_update(const ntn_config_update_info& req) = 0;
+  /// \param req NTN configuration update request containing one or more cell configurations.
+  /// \return Result containing lists of successfully updated and failed cells.
+  virtual ntn_config_update_result handle_ntn_config_update(const ntn_config_update_info& req) = 0;
 };
 
 } // namespace ocudu_ntn

@@ -324,7 +324,7 @@ public:
                                     const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt) = 0;
 
   /// \brief Handle a measurement report for given UE.
-  virtual void handle_measurement_report(const ue_index_t ue_index, const rrc_meas_results& meas_results) = 0;
+  virtual void handle_measurement_report(ue_index_t ue_index, const rrc_meas_results& meas_results) = 0;
 };
 
 /// Interface to handle measurement config update requests.

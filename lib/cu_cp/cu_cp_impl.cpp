@@ -280,34 +280,14 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
 
 void cu_cp_impl::handle_dl_data_notification(ue_index_t ue_index)
 {
-  cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
-  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
-
   std::optional<full_i_rnti_t> full_i_rnti = ue_mng.get_full_i_rnti(ue_index);
   if (!full_i_rnti.has_value()) {
     logger.warning("ue={}: Dropping DL Data Notification. I-RNTI for UE not found", ue_index);
     return;
   }
 
-  auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
-  if (ngap == nullptr) {
-    logger.warning(
-        "ue={}: Dropping DL Data Notification. NGAP not found for plmn={}", ue_index, ue->get_ue_context().plmn);
-    return;
-  }
-
-  // Get Core Network Assist Info for Inactive if present.
-  std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive =
-      ngap->get_cn_assist_info_for_inactive(ue_index);
-
-  if (!cn_assist_info_for_inactive.has_value()) {
-    logger.warning("ue={}: Dropping DL Data Notification. Core Network Assist Info for Inactive not available",
-                   ue_index);
-    return;
-  }
-
   // Send paging message.
-  send_ran_paging(*ue, full_i_rnti.value(), cn_assist_info_for_inactive.value());
+  send_ran_paging(ue_index, full_i_rnti.value());
 }
 
 void cu_cp_impl::handle_e1_release_request(cu_up_index_t cu_up_index)
@@ -988,7 +968,7 @@ cu_cp_impl::handle_measurement_config_request(ue_index_t                        
   return cell_meas_mng.get_measurement_config(ue_index, nci, current_meas_config);
 }
 
-void cu_cp_impl::handle_measurement_report(const ue_index_t ue_index, const rrc_meas_results& meas_results)
+void cu_cp_impl::handle_measurement_report(ue_index_t ue_index, const rrc_meas_results& meas_results)
 {
   cell_meas_mng.report_measurement(ue_index, meas_results);
 }
@@ -1240,15 +1220,34 @@ void cu_cp_impl::request_ue_release(cu_cp_ue& ue, const ngap_cause_t& cause)
   }));
 }
 
-void cu_cp_impl::send_ran_paging(cu_cp_ue&                                         ue,
-                                 full_i_rnti_t                                     full_i_rnti,
-                                 const ngap_core_network_assist_info_for_inactive& cn_assist_info_for_inactive)
+void cu_cp_impl::send_ran_paging(ue_index_t ue_index, full_i_rnti_t full_i_rnti)
 {
+  cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: Can't initiate RAN paging. UE not found", ue_index);
+    return;
+  }
+
+  auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+  if (ngap == nullptr) {
+    logger.warning("ue={}: Can't initiate RAN paging. NGAP not found for plmn={}", ue_index, ue->get_ue_context().plmn);
+    return;
+  }
+
+  // Get Core Network Assist Info for Inactive if present.
+  std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive =
+      ngap->get_cn_assist_info_for_inactive(ue_index);
+
+  if (!cn_assist_info_for_inactive.has_value()) {
+    logger.warning("ue={}: Can't initiate RAN paging. Core Network Assist Info for Inactive not available", ue_index);
+    return;
+  }
+
   // Fill paging message.
   cu_cp_paging_message cu_cp_paging_msg;
 
-  cu_cp_paging_msg.ue_id_idx_value = cn_assist_info_for_inactive.ue_id_idx_value;
-  cu_cp_paging_msg.paging_drx      = cn_assist_info_for_inactive.ue_specific_drx;
+  cu_cp_paging_msg.ue_id_idx_value = cn_assist_info_for_inactive->ue_id_idx_value;
+  cu_cp_paging_msg.paging_drx      = cn_assist_info_for_inactive->ue_specific_drx;
   cu_cp_paging_msg.ue_paging_id    = full_i_rnti;
 
   if (!cu_cp_paging_msg.paging_drx.has_value()) {
@@ -1259,7 +1258,7 @@ void cu_cp_impl::send_ran_paging(cu_cp_ue&                                      
   cu_cp_paging_msg.assist_data_for_paging.emplace();
   cu_cp_paging_msg.assist_data_for_paging->assist_data_for_recommended_cells.emplace();
 
-  du_processor& du_proc = du_db.get_du_processor(ue.get_du_index());
+  du_processor& du_proc = du_db.get_du_processor(ue->get_du_index());
 
   // Add recommended cells for paging.
   // Note: Currently only RAN area cells are supported.
@@ -1280,7 +1279,7 @@ void cu_cp_impl::send_ran_paging(cu_cp_ue&                                      
   paging_handler.handle_paging_message(cu_cp_paging_msg);
 
   // Start RAN paging timer. When this timer expires, the UE will be released if it has not been resumed yet.
-  unique_timer& ran_paging_timer = ue.get_ran_paging_timer();
+  unique_timer& ran_paging_timer = ue->get_ran_paging_timer();
 
   // Calculate RAN paging timeout based on the paging (e)DRX and the number of paging cycles. A guard time of 1 hyper
   // frame is added to ensure that the timer expires after the last paging occasion. If paging eDRX is not available,
@@ -1289,9 +1288,8 @@ void cu_cp_impl::send_ran_paging(cu_cp_ue&                                      
       hyper_frames{1} + (cu_cp_paging_msg.paging_edrx_info.has_value()
                              ? cu_cp_paging_msg.paging_edrx_info->nr_paging_edrx_cycle * hyper_frames{1}
                              : hyper_frames{0}));
-  ran_paging_timer.set(ran_paging_timeout, [this, ue_index = ue.get_ue_index()](timer_id_t /*tid*/) {
-    request_release_of_inactive_ue(ue_index);
-  });
+  ran_paging_timer.set(ran_paging_timeout,
+                       [this, ue_idx = ue_index](timer_id_t /*tid*/) { request_release_of_inactive_ue(ue_idx); });
   ran_paging_timer.run();
 }
 

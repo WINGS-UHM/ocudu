@@ -127,7 +127,7 @@ public:
        handle_measurement_config_request(ue_index_t                         ue_index,
                                          nr_cell_identity                   nci,
                                          const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt) override;
-  void handle_measurement_report(const ue_index_t ue_index, const rrc_meas_results& meas_results) override;
+  void handle_measurement_report(ue_index_t ue_index, const rrc_meas_results& meas_results) override;
 
   // cu_cp_measurement_config_handler.
   bool handle_cell_config_update_request(nr_cell_identity nci, const serving_cell_meas_config& serv_cell_cfg) override;
@@ -183,13 +183,10 @@ private:
   void request_ue_release(cu_cp_ue& ue, const ngap_cause_t& cause);
 
   /// \brief Initiate RAN paging of an inactive UE.
-  /// \param[in] ue The UE to page.
+  /// \param[in] ue_index The index of the UE to page.
   /// \param[in] full_i_rnti Full I-RNTI of the UE to page.
-  /// \param[in] cn_assist_info_for_inactive Core network assist information for inactive UEs to include in the paging
   /// message.
-  void send_ran_paging(cu_cp_ue&                                         ue,
-                       full_i_rnti_t                                     full_i_rnti,
-                       const ngap_core_network_assist_info_for_inactive& cn_assist_info_for_inactive);
+  void send_ran_paging(ue_index_t ue_index, full_i_rnti_t full_i_rnti);
 
   /// \brief Request the release of an inactive UE that failed to resume within the expected time.
   /// \param[in] ue_index The index of the UE to release.

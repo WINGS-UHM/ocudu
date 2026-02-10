@@ -84,26 +84,38 @@ inline xnap_message generate_xn_setup_response(const xnap_configuration& xnap_cf
   // Fill global RAN node id.
   auto& global_gnb = asn1_ies->global_ng_ran_node_id.set_gnb();
   global_gnb.gnb_id.set_gnb_id();
-  global_gnb.gnb_id.gnb_id().from_number(1, 22); // TODO get right values.
+  global_gnb.gnb_id.gnb_id().from_number(xnap_cfg.gnb_id.id, xnap_cfg.gnb_id.bit_length);
+  global_gnb.plmn_id = xnap_cfg.tai_support_list.front().plmn_list.front().plmn_id.to_bytes();
 
-  asn1_ies->tai_support_list.resize(1);
-  for (auto& asn1_tai_support_item : asn1_ies->tai_support_list) {
+  asn1_ies->tai_support_list.resize(xnap_cfg.tai_support_list.size());
+  for (unsigned i = 0; i < xnap_cfg.tai_support_list.size(); i++) {
+    const auto& tai_support_item      = xnap_cfg.tai_support_list[i];
+    auto&       asn1_tai_support_item = asn1_ies->tai_support_list[i];
     // Fill TAC.
-    asn1_tai_support_item.tac.from_number(7);
+    asn1_tai_support_item.tac.from_number(tai_support_item.tac);
 
     // Fill broadcast PLMN list.
-    // TODO for loop
-    asn1_tai_support_item.broadcast_plmns.resize(1);
-    for (asn1::xnap::broadcast_plmn_in_tai_support_item_s& asn1_broadcast_plmn_item :
-         asn1_tai_support_item.broadcast_plmns) {
+    asn1_tai_support_item.broadcast_plmns.resize(tai_support_item.plmn_list.size());
+    for (unsigned j = 0; j < xnap_cfg.tai_support_list.size(); j++) {
+      const auto& plmn_item           = tai_support_item.plmn_list[j];
+      auto&       asn1_broadcast_plmn = asn1_tai_support_item.broadcast_plmns[j];
+
       // Fill PLMN id.
-      // asn1_broadcast_plmn_item.plmn_id; // TODO.
+      asn1_broadcast_plmn.plmn_id.from_number(plmn_item.plmn_id.to_bcd());
 
       // Fill TAI slice support list.
-      asn1_broadcast_plmn_item.tai_slice_support_list.resize(1);
-      // for (const asn1::xnap::s_nssai_s& ans1_slice_support_item : asn1_broadcast_plmn_item.tai_slice_support_list) {
-      //  TODO Fill S-NSSAI.
-      //}
+      asn1_broadcast_plmn.tai_slice_support_list.resize(plmn_item.slice_support_list.size());
+      for (unsigned k = 0; k < plmn_item.slice_support_list.size(); k++) {
+        // Fill S-NSSAI.
+        const auto& snssai_item    = plmn_item.slice_support_list[k];
+        auto&       asn1_tai_slice = asn1_broadcast_plmn.tai_slice_support_list[k];
+        asn1_tai_slice.sst.from_number(snssai_item.sst.value());
+
+        if (snssai_item.sd.is_set()) {
+          asn1_tai_slice.sd_present = true;
+          asn1_tai_slice.sd.from_number(snssai_item.sd.value());
+        }
+      }
     }
   }
   return xn_setup_resp;

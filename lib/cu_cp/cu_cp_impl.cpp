@@ -24,11 +24,11 @@
 #include "routines/pdu_session_resource_setup_routine.h"
 #include "routines/positioning/trp_information_exchange_routine.h"
 #include "routines/reestablishment_context_modification_routine.h"
-#include "routines/rrc_inactive_routine.h"
-#include "routines/rrc_resume_routine.h"
 #include "routines/ue_amf_context_release_request_routine.h"
 #include "routines/ue_context_release_routine.h"
 #include "routines/ue_removal_routine.h"
+#include "routines/ue_resume_routine.h"
+#include "routines/ue_suspend_routine.h"
 #include "routines/ue_transaction_info_release_routine.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/f1ap/cu_cp/f1ap_cu.h"
@@ -248,7 +248,7 @@ void cu_cp_impl::handle_bearer_context_inactivity_notification(const cu_cp_inact
             ue->get_rrc_ue()->get_rrc_ue_release_context(true, std::nullopt, inactivity_ctx);
 
         // Schedule on UE task scheduler.
-        ue->get_task_sched().schedule_async_task(launch_async<rrc_inactive_routine>(
+        ue->get_task_sched().schedule_async_task(launch_async<ue_suspend_routine>(
             ue->get_ue_index(),
             std::move(release_context),
             cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_bearer_context_manager(),
@@ -654,13 +654,13 @@ async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(co
     rna_update_timer.stop();
   }
 
-  return launch_async<rrc_resume_routine>(request,
-                                          cfg.ue,
-                                          du_db.get_du_processor(ue->get_du_index()),
-                                          get_cu_cp_ue_context_handler(),
-                                          cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_handler(),
-                                          ue_mng,
-                                          logger);
+  return launch_async<ue_resume_routine>(request,
+                                         cfg.ue,
+                                         du_db.get_du_processor(ue->get_du_index()),
+                                         get_cu_cp_ue_context_handler(),
+                                         cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_handler(),
+                                         ue_mng,
+                                         logger);
 }
 
 bool cu_cp_impl::handle_handover_request(ue_index_t                        ue_index,

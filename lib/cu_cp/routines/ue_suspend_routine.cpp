@@ -8,7 +8,7 @@
  *
  */
 
-#include "rrc_inactive_routine.h"
+#include "ue_suspend_routine.h"
 #include "ocudu/ngap/ngap_rrc_inactive_transition.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/support/async/coroutine.h"
@@ -17,15 +17,15 @@ using namespace ocudu;
 using namespace ocucp;
 using namespace asn1::rrc_nr;
 
-rrc_inactive_routine::rrc_inactive_routine(ue_index_t                             ue_index_,
-                                           const rrc_ue_release_context&          release_context_,
-                                           e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
-                                           f1ap_ue_context_manager&               f1ap_ue_ctxt_mng_,
-                                           cu_cp_ue_context_release_handler&      ue_context_release_handler_,
-                                           rrc_du_connection_event_handler&       rrc_du_metrics_handler_,
-                                           ngap_control_message_handler&          ng_control_handler_,
-                                           cu_cp_ue_context_manipulation_handler& ue_context_handler_,
-                                           ocudulog::basic_logger&                logger_) :
+ue_suspend_routine::ue_suspend_routine(ue_index_t                             ue_index_,
+                                       const rrc_ue_release_context&          release_context_,
+                                       e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
+                                       f1ap_ue_context_manager&               f1ap_ue_ctxt_mng_,
+                                       cu_cp_ue_context_release_handler&      ue_context_release_handler_,
+                                       rrc_du_connection_event_handler&       rrc_du_metrics_handler_,
+                                       ngap_control_message_handler&          ng_control_handler_,
+                                       cu_cp_ue_context_manipulation_handler& ue_context_handler_,
+                                       ocudulog::basic_logger&                logger_) :
   ue_index(ue_index_),
   release_context(release_context_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
@@ -38,7 +38,7 @@ rrc_inactive_routine::rrc_inactive_routine(ue_index_t                           
 {
 }
 
-void rrc_inactive_routine::operator()(coro_context<async_task<void>>& ctx)
+void ue_suspend_routine::operator()(coro_context<async_task<void>>& ctx)
 {
   CORO_BEGIN(ctx);
 

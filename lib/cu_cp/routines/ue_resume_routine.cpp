@@ -8,7 +8,7 @@
  *
  */
 
-#include "rrc_resume_routine.h"
+#include "ue_resume_routine.h"
 #include "pdu_session_routine_helpers.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 
@@ -33,13 +33,13 @@ static bool verify_rrc_resume_request(const cu_cp_rrc_resume_request& request,
   return true;
 }
 
-rrc_resume_routine::rrc_resume_routine(const cu_cp_rrc_resume_request&        request_,
-                                       const ue_configuration&                ue_cfg_,
-                                       du_processor&                          du_proc_,
-                                       cu_cp_ue_context_manipulation_handler& ue_context_handler_,
-                                       e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
-                                       ue_manager&                            ue_mng_,
-                                       ocudulog::basic_logger&                logger_) :
+ue_resume_routine::ue_resume_routine(const cu_cp_rrc_resume_request&        request_,
+                                     const ue_configuration&                ue_cfg_,
+                                     du_processor&                          du_proc_,
+                                     cu_cp_ue_context_manipulation_handler& ue_context_handler_,
+                                     e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
+                                     ue_manager&                            ue_mng_,
+                                     ocudulog::basic_logger&                logger_) :
   request(request_),
   ue_cfg(ue_cfg_),
   du_proc(du_proc_),
@@ -50,7 +50,7 @@ rrc_resume_routine::rrc_resume_routine(const cu_cp_rrc_resume_request&        re
 {
 }
 
-void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_response>>& ctx)
+void ue_resume_routine::operator()(coro_context<async_task<rrc_resume_request_response>>& ctx)
 {
   CORO_BEGIN(ctx);
 
@@ -192,7 +192,7 @@ void rrc_resume_routine::operator()(coro_context<async_task<rrc_resume_request_r
   CORO_RETURN(response_msg);
 }
 
-f1ap_ue_context_release_command rrc_resume_routine::fill_du_ue_context_release_command()
+f1ap_ue_context_release_command ue_resume_routine::fill_du_ue_context_release_command()
 {
   // Add all local cells to RAN area cells.
   // Note: Support for configurable ran area cells is left as future work.
@@ -215,10 +215,10 @@ f1ap_ue_context_release_command rrc_resume_routine::fill_du_ue_context_release_c
   return du_ue_context_release_command;
 }
 
-bool rrc_resume_routine::generate_ue_context_setup_request(f1ap_ue_context_setup_request&               setup_request,
-                                                           const static_vector<srb_id_t, MAX_NOF_SRBS>& srbs,
-                                                           const rrc_ue_transfer_context& transfer_context,
-                                                           byte_buffer&                   cell_group_config)
+bool ue_resume_routine::generate_ue_context_setup_request(f1ap_ue_context_setup_request&               setup_request,
+                                                          const static_vector<srb_id_t, MAX_NOF_SRBS>& srbs,
+                                                          const rrc_ue_transfer_context&               transfer_context,
+                                                          byte_buffer& cell_group_config)
 {
   setup_request.serv_cell_idx = 0; // TODO: Remove hardcoded value
   setup_request.sp_cell_id    = request.cgi;
@@ -264,7 +264,7 @@ bool rrc_resume_routine::generate_ue_context_setup_request(f1ap_ue_context_setup
   return true;
 }
 
-bool rrc_resume_routine::handle_ue_context_setup_response()
+bool ue_resume_routine::handle_ue_context_setup_response()
 {
   // Sanity checks.
   if (ue_context_setup_response.ue_index == ue_index_t::invalid) {
@@ -359,7 +359,7 @@ bool rrc_resume_routine::handle_ue_context_setup_response()
   return ue_context_setup_response.success;
 }
 
-bool rrc_resume_routine::fill_rrc_resume_request_response(
+bool ue_resume_routine::fill_rrc_resume_request_response(
     const std::vector<f1ap_srb_to_setup>&                            srbs_to_be_setup_mod_list,
     const std::map<pdu_session_id_t, up_pdu_session_context_update>& pdu_sessions,
     const std::vector<drb_id_t>&                                     drb_to_remove,

@@ -42,10 +42,10 @@ set(SOURCES
         routines/pdu_session_resource_release_routine.cpp
         routines/pdu_session_resource_modification_routine.cpp
         routines/reestablishment_context_modification_routine.cpp
-        routines/rrc_inactive_routine.cpp
-        routines/rrc_resume_routine.cpp
         routines/ue_context_release_routine.cpp
         routines/ue_removal_routine.cpp
+        routines/ue_resume_routine.cpp
+        routines/ue_suspend_routine.cpp
         routines/ue_transaction_info_release_routine.cpp
         routines/ue_amf_context_release_request_routine.cpp
         routines/mobility/mobility_helpers.cpp

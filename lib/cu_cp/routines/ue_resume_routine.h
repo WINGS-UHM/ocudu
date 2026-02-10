@@ -18,16 +18,16 @@
 namespace ocudu::ocucp {
 
 /// \brief Handles the UE Connection Resume.
-class rrc_resume_routine
+class ue_resume_routine
 {
 public:
-  rrc_resume_routine(const cu_cp_rrc_resume_request&        request_,
-                     const ue_configuration&                ue_cfg_,
-                     du_processor&                          du_proc_,
-                     cu_cp_ue_context_manipulation_handler& ue_context_handler_,
-                     e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
-                     ue_manager&                            ue_mng_,
-                     ocudulog::basic_logger&                logger_);
+  ue_resume_routine(const cu_cp_rrc_resume_request&        request_,
+                    const ue_configuration&                ue_cfg_,
+                    du_processor&                          du_proc_,
+                    cu_cp_ue_context_manipulation_handler& ue_context_handler_,
+                    e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
+                    ue_manager&                            ue_mng_,
+                    ocudulog::basic_logger&                logger_);
 
   void operator()(coro_context<async_task<rrc_resume_request_response>>& ctx);
 

@@ -61,7 +61,7 @@ struct bwp_builder_params {
   /// Parameters for SRS-Config generation.
   srs_builder_params srs_cfg;
   /// Parameters for Random Access in this BWP.
-  std::optional<rach_builder_params> rach;
+  rach_builder_params rach;
   /// Parameters relative to the generation of the paging configs.
   paging_builder_params paging;
 };

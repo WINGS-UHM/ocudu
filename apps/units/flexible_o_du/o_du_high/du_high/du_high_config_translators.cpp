@@ -683,8 +683,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             : std::min({cell.cell.nof_antennas_ul,
                         get_pusch_processor_phy_capabilities().max_nof_layers,
                         cell.cell.pusch_cfg.max_rank});
-    out_cell.init_bwp_builder.rach.emplace();
-    out_cell.init_bwp_builder.rach->cfra_enabled  = base_cell.prach_cfg.cfra_enabled;
+    out_cell.init_bwp_builder.rach.cfra_enabled   = base_cell.prach_cfg.cfra_enabled;
     out_cell.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
 
     if (cell.cell.ntn_cfg.has_value()) {

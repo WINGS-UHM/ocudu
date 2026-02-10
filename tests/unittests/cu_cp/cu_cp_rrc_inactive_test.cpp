@@ -578,6 +578,37 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool send_dl_nas_transport_and_await_f1ap_paging(unsigned du_idx_)
+  {
+    report_fatal_error_if_not(not this->get_cu_up(0).try_pop_rx_pdu(e1ap_pdu),
+                              "there are still E1AP messages to pop from CU-UP");
+    report_fatal_error_if_not(not this->get_du(du_idx_).try_pop_dl_pdu(f1ap_pdu),
+                              "there are still F1AP DL messages to pop from DU");
+
+    // Inject NGAP DL message (dummy message) and wait for F1AP Paging.
+    get_amf().push_tx_pdu(
+        ocucp::generate_downlink_nas_transport_message(ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value()));
+
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx_, f1ap_pdu), "Failed to receive F1AP Paging");
+    report_fatal_error_if_not(test_helpers::is_valid_paging(f1ap_pdu), "Invalid F1AP Paging");
+    return true;
+  }
+
+  [[nodiscard]] bool await_dl_rrc_message_transfer(unsigned du_idx_)
+  {
+    report_fatal_error_if_not(not this->get_cu_up(0).try_pop_rx_pdu(e1ap_pdu),
+                              "there are still E1AP messages to pop from CU-UP");
+    report_fatal_error_if_not(not this->get_du(du_idx_).try_pop_dl_pdu(f1ap_pdu),
+                              "there are still F1AP DL messages to pop from DU");
+
+    // Wait for F1AP DL RRC message transfer.
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx_, f1ap_pdu),
+                              "Failed to receive F1AP DL RRC message transfer");
+    report_fatal_error_if_not(test_helpers::is_valid_dl_rrc_message_transfer(f1ap_pdu),
+                              "Invalid F1AP DL RRC message transfer");
+    return true;
+  }
+
   unsigned du_idx    = 0;
   unsigned cu_up_idx = 0;
 
@@ -1083,6 +1114,32 @@ TEST_F(cu_cp_rrc_inactive_test, when_dl_data_notification_for_inactive_ue_is_rec
   // Inject E1AP DL Data Notification and await F1AP Paging.
   ASSERT_TRUE(
       send_e1ap_dl_data_notification_and_await_f1ap_paging(du_idx, ue_ctx->cu_cp_e1ap_id.value(), cu_up_e1ap_id));
+}
+
+TEST_F(
+    cu_cp_rrc_inactive_test,
+    when_dl_nas_transport_for_inactive_ue_is_received_then_paging_is_sent_to_du_and_after_successful_resume_dl_nas_transport_is_forwarded_to_ue)
+{
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
+  // Inject Inactivity Notification and handle it.
+  ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
+
+  // Check metrics for RRC inactive transition.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_inactive_rrc_connections, 1);
+  ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_inactive_rrc_connections, 1);
+
+  // Inject DL NAS Transport and await F1AP Paging.
+  ASSERT_TRUE(send_dl_nas_transport_and_await_f1ap_paging(du_idx));
+
+  // Successfully resume UE.
+  ASSERT_TRUE(
+      resume_ue(du_ue_id_2, crnti_2, 0x36000, "1111010001000010", make_byte_buffer("000020400033b01cab").value()));
+
+  // Await DL RRC Message Transfer containing the DL NAS Transport.
+  ASSERT_TRUE(await_dl_rrc_message_transfer(du_idx));
 }
 
 TEST_F(cu_cp_rrc_inactive_test, when_ran_paging_timer_expires_then_ue_release_is_requested)

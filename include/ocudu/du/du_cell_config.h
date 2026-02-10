@@ -36,8 +36,10 @@ struct phy_cell_group_params {
 
 /// UE-dedicated serving cell configuration parameters derived at DU cell level.
 struct du_ue_ded_serv_cell_config {
-  /// Initial Downlink BWP dedicated configuration.
-  bwp_downlink_dedicated init_dl_bwp;
+  /// Initial Downlink BWP dedicated PDCCH configuration.
+  std::optional<pdcch_config> pdcch_cfg;
+  /// Initial Downlink BWP dedicated PDSCH configuration.
+  std::optional<pdsch_config> pdsch_cfg;
   /// Uplink configuration.
   std::optional<uplink_config> ul_config;
   /// CSI-MeasConfig.

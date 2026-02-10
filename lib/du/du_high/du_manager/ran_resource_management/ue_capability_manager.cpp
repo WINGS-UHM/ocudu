@@ -322,10 +322,10 @@ bool ue_capability_manager::decode_ue_capability_list(const byte_buffer& ue_cap_
 
 pdsch_mcs_table ue_capability_manager::select_pdsch_mcs_table(du_cell_index_t cell_idx) const
 {
-  const auto& init_dl_bwp = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg.init_dl_bwp;
+  const auto& ded_cfg = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg;
 
-  if (init_dl_bwp.pdsch_cfg.has_value()) {
-    pdsch_mcs_table app_mcs_table = init_dl_bwp.pdsch_cfg.value().mcs_table;
+  if (ded_cfg.pdsch_cfg.has_value()) {
+    pdsch_mcs_table app_mcs_table = ded_cfg.pdsch_cfg.value().mcs_table;
     if (ue_caps.has_value()) {
       if (app_mcs_table == pdsch_mcs_table::qam256 and ue_caps->pdsch_qam256_supported) {
         return pdsch_mcs_table::qam256;
@@ -385,10 +385,10 @@ pusch_mcs_table ue_capability_manager::select_pusch_mcs_table(du_cell_index_t ce
 
 vrb_to_prb::mapping_type ue_capability_manager::select_pdsch_interleaving(du_cell_index_t cell_idx) const
 {
-  const auto& init_dl_bwp = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg.init_dl_bwp;
+  const auto& ded_cfg = base_cell_cfg_list[cell_idx].ue_ded_serv_cell_cfg;
 
-  if (init_dl_bwp.pdsch_cfg.has_value()) {
-    vrb_to_prb::mapping_type app_pdsch_interleaving = init_dl_bwp.pdsch_cfg.value().vrb_to_prb_interleaving;
+  if (ded_cfg.pdsch_cfg.has_value()) {
+    vrb_to_prb::mapping_type app_pdsch_interleaving = ded_cfg.pdsch_cfg.value().vrb_to_prb_interleaving;
     if (ue_caps.has_value()) {
       if (ue_caps->pdsch_interleaving_vrb_to_prb_supported) {
         // If the PDSCH interleaving is enabled in the application configuration and supported by the UE, return it.

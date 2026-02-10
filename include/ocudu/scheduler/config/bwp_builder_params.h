@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/ran/harq_id.h"
+#include "ocudu/ran/radio_link_monitoring.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
 
@@ -63,6 +64,12 @@ struct paging_builder_params {
   bool edrx_enabled = false;
 };
 
+/// Parameters used to setup Radio-link Monitoring in a given BWP.
+struct du_rlm_params {
+  /// Defines which resources (e.g, default, SSB, CSI-RS, SSB and CSI-RS) the UE should use for RLM.
+  rlm_resource_type type = rlm_resource_type::default_type;
+};
+
 /// Parameters used to generate a BWP configuration.
 struct bwp_builder_params {
   /// Parameters relative to the generation of the PDSCH configs.
@@ -77,6 +84,8 @@ struct bwp_builder_params {
   rach_builder_params rach;
   /// Parameters relative to the generation of the paging configs.
   paging_builder_params paging;
+  /// Parameters used to setup Radio-Link Monitoring.
+  du_rlm_params rlm;
 };
 
 } // namespace ocudu

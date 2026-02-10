@@ -13,7 +13,9 @@
 #include "ocudu/du/du_cell_config.h"
 #include "ocudu/mac/config/mac_config_helpers.h"
 #include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/scheduler/config/rlm_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
 namespace ocudu {
@@ -64,10 +66,42 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
 inline odu::du_ue_ded_serv_cell_config make_du_ue_ded_serv_cell_config(const serving_cell_config& ue_serv_cell_cfg)
 {
   odu::du_ue_ded_serv_cell_config cfg{};
-  cfg.init_dl_bwp  = ue_serv_cell_cfg.init_dl_bwp;
+  cfg.pdcch_cfg    = ue_serv_cell_cfg.init_dl_bwp.pdcch_cfg;
+  cfg.pdsch_cfg    = ue_serv_cell_cfg.init_dl_bwp.pdsch_cfg;
   cfg.ul_config    = ue_serv_cell_cfg.ul_config;
   cfg.csi_meas_cfg = ue_serv_cell_cfg.csi_meas_cfg;
   return cfg;
+}
+
+/// Builds a Radio Link Monitoring configuration from DU cell configuration.
+inline std::optional<radio_link_monitoring_config> make_rlm_config(const odu::du_cell_config& du_cell_cfg)
+{
+  const rlm_resource_type rlm_type = du_cell_cfg.init_bwp_builder.rlm.type;
+  if (rlm_type == rlm_resource_type::default_type) {
+    return std::nullopt;
+  }
+
+  const uint8_t l_max =
+      ssb_get_L_max(du_cell_cfg.ssb_cfg.scs, du_cell_cfg.dl_carrier.arfcn_f_ref, du_cell_cfg.dl_carrier.band);
+
+  rlm_helper::rlm_builder_params rlm_params;
+  if (rlm_type == rlm_resource_type::ssb || rlm_type == rlm_resource_type::ssb_and_csi_rs) {
+    rlm_params =
+        rlm_helper::rlm_builder_params(rlm_type, l_max, du_cell_cfg.ssb_cfg.ssb_bitmap, du_cell_cfg.ssb_cfg.beam_ids);
+  } else {
+    rlm_params = rlm_helper::rlm_builder_params(rlm_type, l_max);
+  }
+
+  span<const nzp_csi_rs_resource> csi_rs_resources;
+  if (du_cell_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
+    csi_rs_resources = du_cell_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list;
+  }
+
+  radio_link_monitoring_config rlm_cfg = rlm_helper::make_radio_link_monitoring_config(rlm_params, csi_rs_resources);
+  if (rlm_cfg.rlm_resources.empty()) {
+    return std::nullopt;
+  }
+  return rlm_cfg;
 }
 
 /// Builds PDSCH builder parameters from a full UE serving cell configuration.
@@ -95,11 +129,12 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_ue_ded_serv
                                                        du_cell_index_t                        cell_index)
 {
   serving_cell_config cfg{};
-  cfg.cell_index          = cell_index;
-  cfg.init_dl_bwp         = ue_ded_cfg.init_dl_bwp;
-  cfg.ul_config           = ue_ded_cfg.ul_config;
-  cfg.pdsch_serv_cell_cfg = make_default_pdsch_serving_cell_config();
-  cfg.csi_meas_cfg        = ue_ded_cfg.csi_meas_cfg;
+  cfg.cell_index            = cell_index;
+  cfg.init_dl_bwp.pdcch_cfg = ue_ded_cfg.pdcch_cfg;
+  cfg.init_dl_bwp.pdsch_cfg = ue_ded_cfg.pdsch_cfg;
+  cfg.ul_config             = ue_ded_cfg.ul_config;
+  cfg.pdsch_serv_cell_cfg   = make_default_pdsch_serving_cell_config();
+  cfg.csi_meas_cfg          = ue_ded_cfg.csi_meas_cfg;
   return cfg;
 }
 
@@ -109,6 +144,7 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_cell_config
 {
   serving_cell_config cfg = make_ue_serving_cell_config(du_cell_cfg.ue_ded_serv_cell_cfg, cell_index);
   cfg.pdsch_serv_cell_cfg = make_pdsch_serv_cell_config(du_cell_cfg.init_bwp_builder.pdsch);
+  cfg.init_dl_bwp.rlm_cfg = make_rlm_config(du_cell_cfg);
   return cfg;
 }
 

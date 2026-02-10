@@ -234,9 +234,11 @@ static check_outcome check_dl_config_common(const du_cell_config& cell_cfg)
 
 static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 {
-  const auto& rlm_cfg = cell_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.rlm_cfg.value();
-
-  for (auto& rlm_res : rlm_cfg.rlm_resources) {
+  const auto rlm_cfg = config_helpers::make_rlm_config(cell_cfg);
+  if (not rlm_cfg.has_value()) {
+    return {};
+  }
+  for (auto& rlm_res : rlm_cfg->rlm_resources) {
     CHECK_TRUE(rlm_res.resource_purpose == radio_link_monitoring_config::radio_link_monitoring_rs::purpose::rlf,
                "Radio Link Failure is the only supported Radio Link Monitoring purpose");
     if (not cell_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
@@ -278,11 +280,11 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
   const uint8_t l_max = ssb_get_L_max(cell_cfg.ssb_cfg.scs, cell_cfg.dl_carrier.arfcn_f_ref, cell_cfg.dl_carrier.band);
   // Check the constrains on N_RLM values in Table 5-1, TS 38.213, are met.
   if (l_max == 4U) {
-    CHECK_TRUE(rlm_cfg.rlm_resources.size() <= 2, "With SSB L_max = 4, max 2 RLM resources can be configured");
+    CHECK_TRUE(rlm_cfg->rlm_resources.size() <= 2, "With SSB L_max = 4, max 2 RLM resources can be configured");
   } else if (l_max == 8U) {
-    CHECK_TRUE(rlm_cfg.rlm_resources.size() <= 4, "With SSB L_max = 8, max 4 RLM resources can be configured");
+    CHECK_TRUE(rlm_cfg->rlm_resources.size() <= 4, "With SSB L_max = 8, max 4 RLM resources can be configured");
   } else if (l_max == 64U) {
-    CHECK_TRUE(rlm_cfg.rlm_resources.size() <= 8, "With SSB L_max = 64, max 8 RLM resources can be configured");
+    CHECK_TRUE(rlm_cfg->rlm_resources.size() <= 8, "With SSB L_max = 64, max 8 RLM resources can be configured");
   }
 
   return {};
@@ -290,10 +292,12 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 
 static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 {
-  const bwp_downlink_dedicated& bwp = cell_cfg.ue_ded_serv_cell_cfg.init_dl_bwp;
+  const auto& pdcch_cfg = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg;
+  const auto& pdsch_cfg = cell_cfg.ue_ded_serv_cell_cfg.pdsch_cfg;
+
   // PDCCH
-  if (bwp.pdcch_cfg.has_value()) {
-    for (const search_space_configuration& ss : bwp.pdcch_cfg->search_spaces) {
+  if (pdcch_cfg.has_value()) {
+    for (const search_space_configuration& ss : pdcch_cfg->search_spaces) {
       const bool fallback_dci_format_in_ss2 =
           ss.is_common_search_space() or
           not(std::get<search_space_configuration::ue_specific_dci_format>(ss.get_monitored_dci_formats()) ==
@@ -304,20 +308,20 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
                    "Nof. DL antennas {} cannot be greater than 1 when using fallback DCI format\n",
                    cell_cfg.dl_carrier.nof_ant);
 
-        if (bwp.pdsch_cfg.has_value()) {
-          CHECK_TRUE(bwp.pdsch_cfg->mcs_table != pdsch_mcs_table::qam256,
+        if (pdsch_cfg.has_value()) {
+          CHECK_TRUE(pdsch_cfg->mcs_table != pdsch_mcs_table::qam256,
                      "256QAM MCS table cannot be used for PDSCH with fallback DCI format in SearchSpace#2");
         }
       }
 
-      if (bwp.pdsch_cfg.has_value() and bwp.pdsch_cfg->mcs_table == pdsch_mcs_table::qam64LowSe) {
+      if (pdsch_cfg.has_value() and pdsch_cfg->mcs_table == pdsch_mcs_table::qam64LowSe) {
         // As per Section 5.1.3.1, TS 38.213 and assuming MCS-C-RNTI is not supported.
         CHECK_TRUE(not ss.is_common_search_space(),
                    "64QAM Low Se MCS table cannot be used for PDSCH with DCI in Common SearchSpace");
       }
 
-      if (bwp.pdsch_cfg->pdsch_mapping_type_a_dmrs.has_value() and
-          bwp.pdsch_cfg->pdsch_mapping_type_a_dmrs->additional_positions == dmrs_additional_positions::pos3) {
+      if (pdsch_cfg->pdsch_mapping_type_a_dmrs.has_value() and
+          pdsch_cfg->pdsch_mapping_type_a_dmrs->additional_positions == dmrs_additional_positions::pos3) {
         CHECK_TRUE(
             cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2,
             "PDSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
@@ -327,8 +331,7 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
     // Checks whether nof. monitored PDCCH candidates per slot for a DL BWP does not exceed maximum allowed value as per
     // TS 38.213, Table 10.1-2.
     const unsigned total_nof_monitored_pdcch_candidates =
-        config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(cell_cfg.ue_ded_serv_cell_cfg.init_dl_bwp,
-                                                                            cell_cfg.dl_cfg_common);
+        config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(*pdcch_cfg, cell_cfg.dl_cfg_common);
     CHECK_EQ_OR_BELOW(total_nof_monitored_pdcch_candidates,
                       max_nof_monitored_pdcch_candidates(cell_cfg.scs_common),
                       "Nof. PDCCH candidates monitored per slot for a DL BWP={} exceeds maximum value={}\n",
@@ -336,10 +339,8 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
                       max_nof_monitored_pdcch_candidates(cell_cfg.scs_common));
   }
 
-  if (bwp.rlm_cfg.has_value()) {
-    check_outcome rlm_validation = check_rlm_config(cell_cfg);
-    CHECK_TRUE(rlm_validation.has_value(), "Invalid Radio Link Monitoring config: {}", rlm_validation.error());
-  }
+  check_outcome rlm_validation = check_rlm_config(cell_cfg);
+  CHECK_TRUE(rlm_validation.has_value(), "Invalid Radio Link Monitoring config: {}", rlm_validation.error());
 
   return {};
 }
@@ -513,7 +514,7 @@ static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
 
   const bwp_uplink_dedicated& bwp = cell_cfg.ue_ded_serv_cell_cfg.ul_config->init_ul_bwp;
   if (bwp.pusch_cfg.has_value()) {
-    const search_space_configuration& ss2 = cell_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces.back();
+    const search_space_configuration& ss2 = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg->search_spaces.back();
     const bool                        fallback_dci_format_in_ss2 =
         ss2.is_common_search_space() or
         not(std::get<search_space_configuration::ue_specific_dci_format>(ss2.get_monitored_dci_formats()) ==
@@ -556,10 +557,10 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
   // See TS 38.214, Table 5.1.2.1-1: Valid S and L combinations.
   static constexpr unsigned pdsch_mapping_typeA_min_L_value = 3;
 
-  const pdcch_config_common& common_pdcch_cfg          = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common;
-  const pdcch_config&        ded_pdcch_cfg             = cell_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg.value();
-  const std::optional<coreset_configuration>& coreset0 = common_pdcch_cfg.coreset0;
-  const std::optional<coreset_configuration>& common_coreset = common_pdcch_cfg.common_coreset;
+  const pdcch_config_common&                  common_pdcch_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common;
+  const pdcch_config&                         ded_pdcch_cfg    = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg.value();
+  const std::optional<coreset_configuration>& coreset0         = common_pdcch_cfg.coreset0;
+  const std::optional<coreset_configuration>& common_coreset   = common_pdcch_cfg.common_coreset;
   CHECK_TRUE(coreset0.has_value(), "CORESET#0 not configured");
 
   const pdcch_type0_css_occasion_pattern1_description& ss0_occasion = pdcch_type0_css_occasions_get_pattern1(

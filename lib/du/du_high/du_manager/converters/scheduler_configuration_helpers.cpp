@@ -11,6 +11,7 @@
 #include "scheduler_configuration_helpers.h"
 #include "../du_ue/du_ue.h"
 #include "ocudu/du/du_cell_config.h"
+#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 #include "ocudu/ran/qos/five_qi_qos_mapping.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
@@ -85,14 +86,17 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.si_scheduling     = si_sched_cfg;
 
   // For now, only one BWP is supported.
-  if (du_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg.has_value()) {
-    sched_req.dl_bwp_ded = du_cfg.ue_ded_serv_cell_cfg.init_dl_bwp;
+  if (du_cfg.ue_ded_serv_cell_cfg.pdcch_cfg.has_value()) {
+    const auto rlm_cfg   = config_helpers::make_rlm_config(du_cfg);
+    sched_req.dl_bwp_ded = bwp_downlink_dedicated{.pdcch_cfg = du_cfg.ue_ded_serv_cell_cfg.pdcch_cfg,
+                                                  .pdsch_cfg = du_cfg.ue_ded_serv_cell_cfg.pdsch_cfg,
+                                                  .rlm_cfg   = rlm_cfg};
   }
 
   sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
       du_cfg.init_bwp_builder.pucch.resources, du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
-  sched_req.zp_csi_rs_list = du_cfg.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->zp_csi_rs_res_list;
+  sched_req.zp_csi_rs_list = du_cfg.ue_ded_serv_cell_cfg.pdsch_cfg->zp_csi_rs_res_list;
 
   if (du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
     sched_req.nzp_csi_rs_res_list  = du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list;

@@ -19,6 +19,7 @@ struct pucch_resource_builder_params;
 struct bwp_downlink_dedicated;
 struct serving_cell_config;
 struct dl_config_common;
+struct pdcch_config;
 
 namespace config_helpers {
 
@@ -28,7 +29,7 @@ std::vector<pucch_resource> build_pucch_resource_list(const pucch_resource_build
 
 unsigned compute_tot_nof_monitored_pdcch_candidates_per_slot(const serving_cell_config& ue_cell_cfg,
                                                              const dl_config_common&    dl_cfg_common);
-unsigned compute_tot_nof_monitored_pdcch_candidates_per_slot(const bwp_downlink_dedicated& ue_bwp_ded,
-                                                             const dl_config_common&       dl_cfg_common);
+unsigned compute_tot_nof_monitored_pdcch_candidates_per_slot(const pdcch_config&     ue_pdcch_cfg,
+                                                             const dl_config_common& dl_cfg_common);
 } // namespace config_helpers
 } // namespace ocudu

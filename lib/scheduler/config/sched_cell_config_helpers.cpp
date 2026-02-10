@@ -37,12 +37,15 @@ unsigned
 ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const serving_cell_config& ue_cell_cfg,
                                                                            const dl_config_common&    dl_cfg_common)
 {
-  return compute_tot_nof_monitored_pdcch_candidates_per_slot(ue_cell_cfg.init_dl_bwp, dl_cfg_common);
+  if (not ue_cell_cfg.init_dl_bwp.pdcch_cfg.has_value()) {
+    return 0;
+  }
+  return compute_tot_nof_monitored_pdcch_candidates_per_slot(*ue_cell_cfg.init_dl_bwp.pdcch_cfg, dl_cfg_common);
 }
 
 unsigned
-ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const bwp_downlink_dedicated& ue_bwp_ded,
-                                                                           const dl_config_common&       dl_cfg_common)
+ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const pdcch_config&     ded_pdcch_cfg,
+                                                                           const dl_config_common& dl_cfg_common)
 {
   // NOTE: We assume DCI formats other than 1_0, 0_0, 1_1 and 0_1 are not configured in SearchSpaces.
   // NOTE: Total nof. monitored PDCCH candidates are calculated considering a slot at which all SearchSpaces are active
@@ -70,10 +73,9 @@ ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const
 
   std::map<search_space_id, unsigned> nof_monitored_pdcch_candidates_per_ss;
 
-  const bwp_downlink_common&    bwp_cmn = dl_cfg_common.init_dl_bwp;
-  const bwp_downlink_dedicated& bwp_ded = ue_bwp_ded;
+  const bwp_downlink_common& bwp_cmn = dl_cfg_common.init_dl_bwp;
 
-  for (const search_space_configuration& ss : bwp_ded.pdcch_cfg->search_spaces) {
+  for (const search_space_configuration& ss : ded_pdcch_cfg.search_spaces) {
     const auto& dci_format_variant = ss.get_monitored_dci_formats();
     const bool  non_fallback_dci_fmt =
         std::holds_alternative<search_space_configuration::ue_specific_dci_format>(dci_format_variant) and
@@ -93,8 +95,8 @@ ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const
 
     for (const auto& entry : nof_monitored_pdcch_candidates_per_ss) {
       const auto it = std::find_if(
-          bwp_ded.pdcch_cfg->search_spaces.begin(),
-          bwp_ded.pdcch_cfg->search_spaces.end(),
+          ded_pdcch_cfg.search_spaces.begin(),
+          ded_pdcch_cfg.search_spaces.end(),
           [ss_id = entry.first](const search_space_configuration& ss_cfg) { return ss_cfg.get_id() == ss_id; });
       // [Implementation-defined] Reset nof. monitored PDCCH candidates for earlier accounted SearchSpace so that we
       // account only the highest nof. monitored PDCCH candidates for SeachSpaces sharing the same CORESET and
@@ -103,7 +105,7 @@ ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const
       // For example: Assume SS#2 and SS#3 share CORESET#1 and monitoring DCI format 1_0/0_0. And, nof.
       // PDCCH candidates to monitor is 4 and 12 respectively. In this case, we consider only 12 PDCCH candidates to
       // monitor.
-      if (it != bwp_ded.pdcch_cfg->search_spaces.end() and it->get_coreset_id() == ss.get_coreset_id() and
+      if (it != ded_pdcch_cfg.search_spaces.end() and it->get_coreset_id() == ss.get_coreset_id() and
           it->get_monitored_dci_formats() == ss.get_monitored_dci_formats()) {
         if (nof_monitored_pdcch_candidates > nof_monitored_pdcch_candidates_per_ss[entry.first]) {
           nof_monitored_pdcch_candidates_per_ss[entry.first] = 0;
@@ -135,8 +137,8 @@ ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const
 
     for (const auto& entry : nof_monitored_pdcch_candidates_per_ss) {
       const auto it = std::find_if(
-          bwp_ded.pdcch_cfg->search_spaces.begin(),
-          bwp_ded.pdcch_cfg->search_spaces.end(),
+          ded_pdcch_cfg.search_spaces.begin(),
+          ded_pdcch_cfg.search_spaces.end(),
           [ss_id = entry.first](const search_space_configuration& ss_cfg) { return ss_cfg.get_id() == ss_id; });
       // [Implementation-defined] Reset nof. monitored PDCCH candidates for earlier accounted SearchSpace so that we
       // account only the highest nof. monitored PDCCH candidates for SeachSpaces sharing the same CORESET and
@@ -145,7 +147,7 @@ ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const
       // For example: Assume SS#2 and SS#3 share CORESET#1 and monitoring DCI format 1_0/0_0. And, nof.
       // PDCCH candidates to monitor is 4 and 12 respectively. In this case, we consider only 12 PDCCH candidates to
       // monitor.
-      if (it != bwp_ded.pdcch_cfg->search_spaces.end() and it->get_coreset_id() == ss.get_coreset_id() and
+      if (it != ded_pdcch_cfg.search_spaces.end() and it->get_coreset_id() == ss.get_coreset_id() and
           it->get_monitored_dci_formats() == ss.get_monitored_dci_formats()) {
         if (nof_monitored_pdcch_candidates > nof_monitored_pdcch_candidates_per_ss[entry.first]) {
           nof_monitored_pdcch_candidates_per_ss[entry.first] = 0;

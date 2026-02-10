@@ -27,7 +27,6 @@
 #include "ocudu/rlc/rlc_srb_config_factory.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
 #include "ocudu/scheduler/config/csi_helper.h"
-#include "ocudu/scheduler/config/rlm_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_validator.h"
@@ -342,8 +341,8 @@ static void fill_csi_resources(odu::du_ue_ded_serv_cell_config&                 
   }
 
   // Generate zp-CSI-RS resources.
-  out_cell.init_dl_bwp.pdsch_cfg->zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
-  out_cell.init_dl_bwp.pdsch_cfg->p_zp_csi_rs_res    = csi_helper::make_periodic_zp_csi_rs_resource_set(csi_params);
+  out_cell.pdsch_cfg->zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
+  out_cell.pdsch_cfg->p_zp_csi_rs_res    = csi_helper::make_periodic_zp_csi_rs_resource_set(csi_params);
 }
 
 /// Converts and returns the given gnb application configuration to a DU slice RRM policy configuration list.
@@ -676,6 +675,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.init_bwp_builder.pucch.min_k1                      = base_cell.pucch_cfg.min_k1;
     out_cell.init_bwp_builder.pusch.min_k2                      = base_cell.pusch_cfg.min_k2;
     out_cell.init_bwp_builder.pusch.transform_precoding_enabled = base_cell.pusch_cfg.enable_transform_precoding;
+    out_cell.init_bwp_builder.rlm.type                          = base_cell.rlm_cfg.resource_type;
     // Determine the PUSCH transmission maximum number of layers:
     //  - one layer if transform precoding is enabled; or
     //  - selects the most limiting number of layers among the physical layer capability, the number of antennas and
@@ -725,8 +725,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
                         (cset1_start_crb / pdcch_constants::NOF_RB_PER_FREQ_RESOURCE) + coreset1_nof_resources,
                         true);
 
-    search_space_configuration& ss2_cfg   = out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0];
-    coreset_configuration&      cset1_cfg = out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets[0];
+    search_space_configuration& ss2_cfg   = out_cell.ue_ded_serv_cell_cfg.pdcch_cfg->search_spaces[0];
+    coreset_configuration&      cset1_cfg = out_cell.ue_ded_serv_cell_cfg.pdcch_cfg->coresets[0];
     cset1_cfg.set_freq_domain_resources(freq_resources);
     if (base_cell.pdcch_cfg.dedicated.coreset1_duration.has_value()) {
       cset1_cfg.duration = base_cell.pdcch_cfg.dedicated.coreset1_duration.value();
@@ -764,7 +764,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
 
       static constexpr uint8_t min_nof_pdcch_candidates = 1;
       while (config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(
-                 out_cell.ue_ded_serv_cell_cfg.init_dl_bwp, out_cell.dl_cfg_common) >
+                 *out_cell.ue_ded_serv_cell_cfg.pdcch_cfg, out_cell.dl_cfg_common) >
                  max_nof_monitored_pdcch_candidates(param.scs_common) and
              std::accumulate(ss2_cfg.get_nof_candidates().begin(), ss2_cfg.get_nof_candidates().end(), 0U) >
                  min_nof_pdcch_candidates) {
@@ -786,7 +786,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
              0});
       }
     } else if (not base_cell.pdcch_cfg.dedicated.dci_format_0_1_and_1_1) {
-      search_space_configuration& ss_cfg = out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0];
+      search_space_configuration& ss_cfg = out_cell.ue_ded_serv_cell_cfg.pdcch_cfg->search_spaces[0];
       ss_cfg.set_non_ss0_monitored_dci_formats(search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0);
     }
 
@@ -796,8 +796,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
         time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
             out_cell.tdd_ul_dl_cfg_common,
             out_cell.dl_cfg_common.init_dl_bwp.generic_params.cp,
-            time_domain_resource_helper::calculate_minimum_pdsch_symbol(
-                out_cell.dl_cfg_common.init_dl_bwp.pdcch_common, out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdcch_cfg));
+            time_domain_resource_helper::calculate_minimum_pdsch_symbol(out_cell.dl_cfg_common.init_dl_bwp.pdcch_common,
+                                                                        out_cell.ue_ded_serv_cell_cfg.pdcch_cfg));
 
     out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->nof_harq_proc =
         static_cast<pusch_serving_cell_config::nof_harq_proc_for_pusch>(
@@ -805,19 +805,19 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.ue_ded_serv_cell_cfg.ul_config->pusch_serv_cell_cfg->ul_harq_mode =
         ~config.cells_cfg.front().cell.pusch_cfg.harq_mode_b;
     // Set DL MCS table.
-    out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->mcs_table = base_cell.pdsch_cfg.mcs_table;
+    out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->mcs_table = base_cell.pdsch_cfg.mcs_table;
     // Set DMRS additional position.
-    out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->pdsch_mapping_type_a_dmrs->additional_positions =
+    out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->pdsch_mapping_type_a_dmrs->additional_positions =
         uint_to_dmrs_additional_positions(base_cell.pdsch_cfg.dmrs_add_pos);
-    out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->vrb_to_prb_interleaving =
+    out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->vrb_to_prb_interleaving =
         config.cells_cfg.front().cell.pdsch_cfg.interleaving_bundle_size;
 
     // According to TS 38.214 Section 5.1.2.3, prb-BundlingType size must match the VRB-to-PRB mapping type.
-    switch (out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->vrb_to_prb_interleaving) {
+    switch (out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->vrb_to_prb_interleaving) {
       case vrb_to_prb::mapping_type::non_interleaved:
         // > If $P'_{BWP,i}$ is determined as "wideband", the UE is not expected to be scheduled with non-contiguous
         // > PRBs and the UE may assume that the same precoding is applied to the allocated resource.
-        out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
+        out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
             prb_bundling::static_bundling({.sz = prb_bundling::static_bundling::bundling_size::wideband}));
         break;
       case vrb_to_prb::mapping_type::interleaved_n2:
@@ -825,11 +825,11 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
         // > when a UE is configured with interleaving unit of 2 for VRB to PRB mapping provided by the higher layer
         // > parameter vrb-ToPRB-Interleaver given by PDSCH-Config for bandwidth part i, the UE is not expected to be
         // > configured with $P'_{BWP,i} = 4$.
-        out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
+        out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
             prb_bundling::static_bundling({.sz = std::nullopt}));
         break;
       case vrb_to_prb::mapping_type::interleaved_n4:
-        out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.pdsch_cfg->prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
+        out_cell.ue_ded_serv_cell_cfg.pdsch_cfg->prb_bndlg.bundling.emplace<prb_bundling::static_bundling>(
             prb_bundling::static_bundling({.sz = prb_bundling::static_bundling::bundling_size::n4}));
         break;
     }
@@ -1078,22 +1078,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     std::vector<std::string> cell_plmns{base_cell.plmn};
     out_cell.rrm_policy_members = generate_du_slicing_rrm_policy_config(
         cell_plmns, base_cell.slice_cfg, nof_crbs, *cell.cell.scheduler_cfg.policy_cfg);
-
-    // RLM configuration.
-    if (cell.cell.rlm_cfg.resource_type != rlm_resource_type::default_type) {
-      rlm_helper::rlm_builder_params rlm_params(
-          cell.cell.rlm_cfg.resource_type,
-          ssb_get_L_max(out_cell.ssb_cfg.scs, param.dl_carrier.arfcn_f_ref, param.dl_carrier.band),
-          out_cell.ssb_cfg.ssb_bitmap,
-          out_cell.ssb_cfg.beam_ids);
-      radio_link_monitoring_config rlm_cfg = rlm_helper::make_radio_link_monitoring_config(
-          rlm_params,
-          out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()
-              ? out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg.value().nzp_csi_rs_res_list
-              : std::vector<nzp_csi_rs_resource>{});
-      out_cell.ue_ded_serv_cell_cfg.init_dl_bwp.rlm_cfg =
-          rlm_cfg.rlm_resources.empty() ? std::nullopt : std::optional<radio_link_monitoring_config>(rlm_cfg);
-    }
 
     error_type<std::string> error = is_du_cell_config_valid(out_cfg.back());
     if (!error) {

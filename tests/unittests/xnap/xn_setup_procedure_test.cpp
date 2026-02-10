@@ -16,6 +16,20 @@
 using namespace ocudu;
 using namespace ocudu::ocucp;
 
+/// Dummy class to check for XN TX messages.
+class dummy_xnap_message_notifier : public xnap_message_notifier
+{
+public:
+  virtual ~dummy_xnap_message_notifier() = default;
+
+  bool on_new_message(const xnap_message& msg) override
+  {
+    last_msg = msg;
+    return true;
+  }
+  xnap_message last_msg;
+};
+
 /// Fixture class for XNAP Setup tests
 class xn_setup_procedure_test : public ::testing::Test
 {
@@ -29,7 +43,9 @@ protected:
     ocudulog::fetch_basic_logger("XNAP", false).set_level(ocudulog::basic_levels::debug);
     ocudulog::fetch_basic_logger("XNAP", false).set_hex_dump_max_size(100);
 
-    xnap = std::make_unique<xnap_impl>(xnap_local_cfg, ctrl_worker);
+    std::unique_ptr<xnap_message_notifier> assoc = std::make_unique<dummy_xnap_message_notifier>();
+    xnap                                         = std::make_unique<xnap_impl>(xnap_local_cfg, ctrl_worker);
+    xnap->set_tx_association_notifier(std::move(assoc));
   }
 
   void TearDown() override

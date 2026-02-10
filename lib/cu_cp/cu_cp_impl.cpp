@@ -1157,9 +1157,14 @@ void cu_cp_impl::initialize_rna_update_timer(ue_index_t ue_index)
 
   // Start RNA update timer (T380). When this timer expires, the UE will be released if it hasn't initiated RRC Resume
   // procedure to send data or send mandatory RNA update.
-  logger.debug("ue={}: Setting release timer to {}min", ue_index, cfg.ue.t380.count());
+  // NOTE: A guard time is added to leave time for the resume message to be received.
+  std::chrono::seconds rna_guard_time{1};
+  logger.debug("ue={}: Setting release timer to {}min (+ {}s guard time)",
+               ue_index,
+               cfg.ue.t380.count(),
+               rna_guard_time.count());
   unique_timer& rna_update_timer = ue->get_rna_update_timer();
-  rna_update_timer.set(cfg.ue.t380,
+  rna_update_timer.set(cfg.ue.t380 + rna_guard_time,
                        [this, ue_idx = ue_index](timer_id_t /*tid*/) { request_release_of_inactive_ue(ue_idx); });
   rna_update_timer.run();
 }

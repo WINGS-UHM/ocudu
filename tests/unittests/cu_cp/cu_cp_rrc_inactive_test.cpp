@@ -543,9 +543,11 @@ public:
 
   [[nodiscard]] bool timeout_rna_update_and_await_ngap_ue_context_release_request()
   {
+    std::chrono::seconds rna_guard_time{1};
+
     // Fail RNA update (UE doesn't resume) and wait for NGAP UE Context Release Request.
     if (tick_until(
-            std::chrono::duration_cast<std::chrono::milliseconds>(get_cu_cp_cfg().ue.t380),
+            std::chrono::duration_cast<std::chrono::milliseconds>(get_cu_cp_cfg().ue.t380 + rna_guard_time),
             [&]() { return false; },
             false)) {
       return false;

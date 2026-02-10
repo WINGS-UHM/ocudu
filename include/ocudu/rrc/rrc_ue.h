@@ -433,6 +433,9 @@ public:
   /// \param[in] request The resume request.
   /// \returns The RRC Resume Request response.
   virtual async_task<rrc_resume_request_response> on_rrc_resume_request(const cu_cp_rrc_resume_request& request) = 0;
+
+  /// \brief Notify the CU-CP that a RAN paging for a UE in RRC Inactive state is required.
+  virtual void on_ran_paging_required() = 0;
 };
 
 /// Interface to notify about measurements

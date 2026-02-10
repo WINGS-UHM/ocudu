@@ -246,6 +246,12 @@ public:
     return cu_cp_rrc_ue_handler->handle_rrc_resume_request(request);
   }
 
+  void on_ran_paging_required() override
+  {
+    ocudu_assert(cu_cp_rrc_ue_handler != nullptr, "CU-CP handler must not be nullptr");
+    cu_cp_rrc_ue_handler->handle_ran_paging_required(ue_index);
+  }
+
   std::optional<rrc_meas_cfg>
   on_measurement_config_request(nr_cell_identity                   nci,
                                 const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt) override

@@ -51,7 +51,9 @@ public:
   std::optional<rrc_ue_transfer_context> transfer_context; // Context of old UE when created through mobility.
   byte_buffer                            cell_group_config;
   bool                                   reestablishment_ongoing = false;
-  rrc_ue_logger&                         logger;
+  // NAS message received while UE is in RRC Inactive, to be sent after successful resume.
+  byte_buffer    pending_dl_nas_transport_message;
+  rrc_ue_logger& logger;
 };
 
 } // namespace ocudu::ocucp

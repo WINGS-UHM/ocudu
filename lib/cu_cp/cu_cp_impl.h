@@ -81,6 +81,7 @@ public:
   async_task<bool> handle_ue_context_transfer(ue_index_t ue_index, ue_index_t old_ue_index) override;
   async_task<void> handle_ue_context_release(const cu_cp_ue_context_release_request& request) override;
   async_task<rrc_resume_request_response> handle_rrc_resume_request(const cu_cp_rrc_resume_request& request) override;
+  void                                    handle_ran_paging_required(ue_index_t ue_index) override;
 
   // cu_cp_ue_context_manipulation_handler.
   void handle_handover_reconfiguration_sent(const cu_cp_intra_cu_handover_target_request& request) override;

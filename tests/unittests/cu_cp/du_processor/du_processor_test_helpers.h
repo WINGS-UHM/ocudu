@@ -11,8 +11,6 @@
 #pragma once
 
 #include "../test_helpers.h"
-#include "du_processor_test_helpers.h"
-#include "lib/cu_cp/cu_cp_controller/cu_cp_ue_admission_controller.h"
 #include "lib/cu_cp/du_processor/du_configuration_manager.h"
 #include "lib/cu_cp/du_processor/du_processor.h"
 #include "lib/cu_cp/du_processor/du_processor_factory.h"
@@ -24,8 +22,7 @@
 #include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// Fixture class for DU processor creation
 class du_processor_test : public ::testing::Test
@@ -55,5 +52,4 @@ protected:
   std::optional<lazy_task_launcher<ue_index_t>> t_launcher;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

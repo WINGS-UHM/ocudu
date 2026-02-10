@@ -253,6 +253,9 @@ public:
   /// \returns The RRC Resume Request response.
   virtual async_task<rrc_resume_request_response>
   handle_rrc_resume_request(const cu_cp_rrc_resume_request& request) = 0;
+
+  /// \brief Initiate RAN paging for a UE in RRC Inactive state.
+  virtual void handle_ran_paging_required(ue_index_t ue_index) = 0;
 };
 
 // Request with information for the target handler of the intra cu handover.

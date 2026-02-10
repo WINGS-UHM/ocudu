@@ -50,6 +50,9 @@ private:
   /// \remark Send RRC Resume, see section 5.3.13 in TS 38.331.
   void send_rrc_resume();
 
+  /// \brief Send the pending DL NAS Transport message to the UE after a successful resume.
+  void send_pending_dl_nas();
+
   async_task<void> handle_rrc_resume_failure();
 
   const asn1::rrc_nr::rrc_resume_request_s resume_request;

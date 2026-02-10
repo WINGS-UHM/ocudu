@@ -643,6 +643,18 @@ async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(co
                                          logger);
 }
 
+void cu_cp_impl::handle_ran_paging_required(ue_index_t ue_index)
+{
+  std::optional<full_i_rnti_t> full_i_rnti = ue_mng.get_full_i_rnti(ue_index);
+  if (!full_i_rnti.has_value()) {
+    logger.warning("ue={}: Dropping DL NAS transport message. I-RNTI for UE not found", ue_index);
+    return;
+  }
+
+  // Send paging message.
+  send_ran_paging(ue_index, full_i_rnti.value());
+}
+
 bool cu_cp_impl::handle_handover_request(ue_index_t                        ue_index,
                                          const plmn_identity&              selected_plmn,
                                          const security::security_context& sec_ctxt)

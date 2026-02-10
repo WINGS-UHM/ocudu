@@ -9,7 +9,6 @@
  */
 
 #include "du_processor_test_helpers.h"
-#include "../du_processor_test_messages.h"
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "ocudu/cu_cp/common_task_scheduler.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
@@ -75,6 +74,7 @@ struct dummy_cu_cp_rrc_ue_interface : public cu_cp_rrc_ue_interface {
   {
     return launch_no_op_task(rrc_resume_request_response{.success = true});
   }
+  void handle_ran_paging_required(ue_index_t ue_index) override {}
   void handle_rrc_reconf_complete_indicator(ue_index_t ue_index) override {}
 };
 
@@ -124,7 +124,7 @@ du_processor_test::du_processor_test() :
   cu_cp_logger.set_level(ocudulog::basic_levels::debug);
   ocudulog::init();
 
-  // create and start DU processor
+  // Create and start DU processor.
   du_processor_config_t du_cfg = {uint_to_du_index(0),
                                   cu_cp_cfg,
                                   ocudulog::fetch_basic_logger("CU-CP"),
@@ -139,6 +139,6 @@ du_processor_test::du_processor_test() :
 
 du_processor_test::~du_processor_test()
 {
-  // flush logger after each test
+  // Flush logger after each test.
   ocudulog::flush();
 }

@@ -379,7 +379,6 @@ unit coverage:
     - if: $ON_MR
       variables:
         coverage_report: summary
-      when: always # Even if previous stages/required jobs fail
   before_script:
     - export PATH="$PATH:/root/.dotnet/tools"
     - dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.5.0
@@ -413,7 +412,7 @@ unit coverage:
         HISTORY=
       fi
     - |
-      reportgenerator -reports:*coverage.xml -targetdir:coverage_html ${HISTORY} \
+      reportgenerator -reports:*coverage*.xml -targetdir:coverage_html ${HISTORY} \
         -title:${CI_PROJECT_NAME} -tag:${CI_COMMIT_SHA} \
         -reporttypes:"${HTML_TYPE};TextSummary"
     - cat coverage_html/Summary.txt
@@ -451,7 +450,6 @@ unit coverage dev:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       variables:
         coverage_report: full
-      when: always # Even if previous stages/required jobs fail
   artifacts:
     <<: *unit_coverage_artifacts
     expire_in: 1 day

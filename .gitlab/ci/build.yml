@@ -103,18 +103,40 @@ variables:
           echo "+ gcovr: Coverage generation"
           if ! output=$(gcovr $common_options --keep 2>&1); then
             echo "gcovr FAILED!"
-            echo "$output"
-            ret=1
           fi
-          if ! output=$(gcovr $common_options --xml --print-summary --use-gcov-files -o coverage.xml 2>&1); then
-            echo "gcovr FAILED!"
+
+          if ! output=$(gcovr $common_options --xml --print-summary --use-gcov-files --keep \
+            --exclude="${CI_PROJECT_DIR}/lib/phy/.*" \
+            --exclude="${CI_PROJECT_DIR}/lib/scheduler/.*" \
+            -o coverage_1.xml 2>&1); then
+            echo "gcovr coverage_1.xml FAILED!"
             echo "$output"
             ret=1
           fi
 
-          filesize=$(stat -c%s coverage.xml)
-          maxsize=$((10*1204*1024))
-          (( filesize > maxsize )) && echo "coverage.xml is greater than 10MB, over gitlab limit" && exit 1
+          if ! output=$(gcovr $common_options --xml --print-summary --use-gcov-files --keep \
+            --filter="${CI_PROJECT_DIR}/lib/phy/.*" \
+            --filter="${CI_PROJECT_DIR}/lib/scheduler/.*" \
+            -o coverage_2.xml 2>&1); then
+            echo "gcovr coverage_2.xml FAILED!"
+            echo "$output"
+            ret=1
+          fi
+
+          echo "Generated coverage files:"
+          ls -lh coverage*.xml 2>/dev/null || true
+
+          # Check that no coverage file exceeds 10MB GitLab limit
+          maxsize=$((10*1024*1024))
+          for covfile in coverage*.xml; do
+            if [ -f "$covfile" ]; then
+              filesize=$(stat -c%s "$covfile")
+              if (( filesize > maxsize )); then
+                echo "ERROR: $covfile is $(( filesize / 1024 / 1024 ))MB, exceeds 10MB GitLab limit!"
+                ret=1
+              fi
+            fi
+          done
         fi
 
         if [ $ret -eq 124 ]; then
@@ -128,15 +150,16 @@ variables:
     - launch_tests
   timeout: 6h
   after_script:
-    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage.xml      ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage.xml            || true
+    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_1.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_1.xml   || true
+    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_2.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_2.xml   || true
   artifacts:
     when: always
     reports:
       coverage_report:
         coverage_format: cobertura
-        path: ${CI_JOB_ID}_coverage.xml
+        path: ${CI_JOB_ID}_coverage*.xml
     paths:
-      - ${CI_JOB_ID}_coverage.xml
+      - ${CI_JOB_ID}_coverage*.xml
       - ${OCUDU_BUILD_DIR}/Testing/Temporary/MemoryChecker.*.log
     expire_in: 5 days
 

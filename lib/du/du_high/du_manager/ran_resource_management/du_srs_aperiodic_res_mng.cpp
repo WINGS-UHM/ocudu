@@ -123,16 +123,15 @@ static unsigned compute_slot_offset(const du_cell_config& cell_cfg)
 du_srs_aperiodic_res_mng::cell_context::cell_context(const du_cell_config& cfg) :
   cell_cfg(cfg),
   tdd_ul_dl_cfg_common(cfg.tdd_ul_dl_cfg_common),
-  default_srs_cfg(du_srs_mng_details::build_default_srs_cfg<false>(cfg))
+  default_srs_cfg(du_srs_mng_details::build_default_srs_cfg(cfg))
 {
+  ocudu_assert(cfg.init_bwp_builder.srs_cfg.srs_type_enabled != srs_type::periodic, "Invalid SRS type");
 }
 
 du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> cell_cfg_list_) :
   cells(cell_cfg_list_.begin(), cell_cfg_list_.end())
 {
   for (auto& cell : cells) {
-    ocudu_assert(cell.cell_cfg.ue_ded_serv_cell_cfg.srs_cfg.has_value(), "DU cell config is not valid");
-
     ocudu_assert(cell.cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled != srs_type::periodic,
                  "Request to build aperiodic SRS configuration, but periodic parameters have been provided");
 

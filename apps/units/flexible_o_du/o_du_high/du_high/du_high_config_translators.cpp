@@ -667,6 +667,25 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
         base_cell.pusch_cfg.p0_nominal_with_grant;
     out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().msg3_delta_power = base_cell.pusch_cfg.msg3_delta_power;
 
+    // Parameters for PUCCH-ConfigCommon.
+    if (not out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {
+      out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.emplace();
+    }
+    out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().p0_nominal = base_cell.pucch_cfg.p0_nominal;
+    // If not provided, set a default common resource set index depending on the format used for Resource Set 0.
+    // The indices are chosen to maximize the number of symbols and minimize the number of cyclic shifts.
+    if (pucch_f0f1_format(base_cell.pucch_cfg.formats) == pucch_format::FORMAT_0) {
+      out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common =
+          base_cell.pucch_cfg.pucch_resource_common.value_or(0);
+    } else {
+      out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common =
+          base_cell.pucch_cfg.pucch_resource_common.value_or(11);
+    }
+
+    // Common PDCCH config.
+    search_space_configuration& ss1_cfg = out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.back();
+    ss1_cfg.set_non_ss0_nof_candidates(base_cell.pdcch_cfg.common.ss1_n_candidates);
+
     // Set initial BWP builder.
     // > PDSCH
     out_cell.init_bwp_builder.pdsch.nof_harq_procs =
@@ -709,28 +728,9 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
     out_cell.init_bwp_builder.rlm.type            = base_cell.rlm_cfg.resource_type;
 
-    if (cell.cell.ntn_cfg.has_value()) {
-      out_cell.ntn_params = make_ntn_cell_params(cell.cell.ntn_cfg.value(), cell.cell.pusch_cfg.harq_mode_b.any());
+    if (base_cell.ntn_cfg.has_value()) {
+      out_cell.ntn_params = make_ntn_cell_params(base_cell.ntn_cfg.value(), base_cell.pusch_cfg.harq_mode_b.any());
     }
-
-    // Parameters for PUCCH-ConfigCommon.
-    if (not out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {
-      out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.emplace();
-    }
-    out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().p0_nominal = base_cell.pucch_cfg.p0_nominal;
-    // If not provided, set a default common resource set index depending on the format used for Resource Set 0.
-    // The indices are chosen to maximize the number of symbols and minimize the number of cyclic shifts.
-    if (pucch_f0f1_format(base_cell.pucch_cfg.formats) == pucch_format::FORMAT_0) {
-      out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common =
-          base_cell.pucch_cfg.pucch_resource_common.value_or(0);
-    } else {
-      out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common =
-          base_cell.pucch_cfg.pucch_resource_common.value_or(11);
-    }
-
-    // Common PDCCH config.
-    search_space_configuration& ss1_cfg = out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.back();
-    ss1_cfg.set_non_ss0_nof_candidates(base_cell.pdcch_cfg.common.ss1_n_candidates);
 
     // UE-dedicated PDCCH config.
     freq_resource_bitmap freq_resources(pdcch_constants::MAX_NOF_FREQ_RESOURCES);
@@ -919,15 +919,19 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     // Parameters for SRS-Config.
     srs_builder_params&            du_srs_cfg   = out_cell.init_bwp_builder.srs_cfg;
     const du_high_unit_srs_config& user_srs_cfg = base_cell.srs_cfg;
-    du_srs_cfg.srs_type_enabled                 = [](const std::string& str) {
-      if (str == "periodic") {
-        return srs_type::periodic;
-      }
-      if (str == "aperiodic") {
-        return srs_type::aperiodic;
-      }
-      return srs_type::disabled;
-    }(user_srs_cfg.srs_type_enabled);
+    switch (du_srs_cfg.srs_type_enabled) {
+      case srs_type::disabled:
+        du_srs_cfg.srs_type_enabled = srs_type::disabled;
+        break;
+      case srs_type::periodic:
+        du_srs_cfg.srs_type_enabled = srs_type::periodic;
+        break;
+      case srs_type::aperiodic:
+        du_srs_cfg.srs_type_enabled = srs_type::aperiodic;
+        break;
+      default:
+        report_fatal_error("Invalid SRS type");
+    }
     const auto srs_period_slots =
         static_cast<unsigned>(static_cast<float>(get_nof_slots_per_subframe(base_cell.common_scs)) *
                               user_srs_cfg.srs_period_prohibit_time_ms);

@@ -31,6 +31,8 @@ inline pusch_builder_params make_pusch_builder_params(const serving_cell_config&
 inline pdsch_serving_cell_config make_pdsch_serv_cell_config(const pdsch_builder_params& pdsch_params);
 /// Builds a PUSCH serving cell configuration from PUSCH builder parameters.
 inline pusch_serving_cell_config make_pusch_serv_cell_config(const pusch_builder_params& pusch_params);
+/// Builds an SRS configuration from DU cell configuration and SRS builder parameters.
+inline srs_config make_srs_config(const srs_builder_params& srs_params, pci_t pci);
 
 /// Generates default cell configuration used by gNB DU. The default configuration should be valid.
 inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder_params_extended& params = {})
@@ -75,7 +77,6 @@ inline odu::du_ue_ded_serv_cell_config make_du_ue_ded_serv_cell_config(const ser
   cfg.csi_meas_cfg = ue_serv_cell_cfg.csi_meas_cfg;
   if (ue_serv_cell_cfg.ul_config.has_value()) {
     cfg.pucch_cfg = ue_serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg;
-    cfg.srs_cfg   = ue_serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg;
   }
   return cfg;
 }
@@ -281,6 +282,59 @@ inline pusch_serving_cell_config make_pusch_serv_cell_config(const pusch_builder
   return cfg;
 }
 
+/// Builds an SRS configuration from DU cell configuration and SRS builder parameters.
+inline srs_config make_srs_config(const srs_builder_params& user_params, pci_t pci)
+{
+  srs_config cfg{};
+
+  cfg.srs_res_list.emplace_back();
+  srs_config::srs_resource& res    = cfg.srs_res_list.back();
+  res.id.cell_res_id               = 0;
+  res.id.ue_res_id                 = static_cast<srs_config::srs_res_id>(0U);
+  res.nof_ports                    = srs_config::srs_resource::nof_srs_ports::port1;
+  res.tx_comb.size                 = user_params.tx_comb;
+  res.tx_comb.tx_comb_offset       = 0;
+  res.tx_comb.tx_comb_cyclic_shift = 0;
+  const uint8_t nof_symb           = static_cast<uint8_t>(user_params.nof_symbols);
+  res.res_mapping.start_pos        = nof_symb - 1U;
+  res.res_mapping.nof_symb         = user_params.nof_symbols;
+  res.res_mapping.rept_factor      = srs_nof_symbols::n1;
+  res.freq_domain_pos              = 0;
+  res.freq_domain_shift            = user_params.c_srs.has_value() ? user_params.freq_domain_shift.value() : 0;
+  res.freq_hop.c_srs               = user_params.c_srs.value_or(0);
+  // We assume that the frequency hopping is disabled and that the SRS occupies all possible RBs within the BWP. Refer
+  // to Section 6.4.1.4.3, TS 38.211.
+  res.freq_hop.b_srs = 0;
+  res.freq_hop.b_hop = 0;
+  res.grp_or_seq_hop = srs_group_or_sequence_hopping::neither;
+  res.sequence_id    = pci;
+
+  cfg.srs_res_set_list.emplace_back();
+  srs_config::srs_resource_set& res_set = cfg.srs_res_set_list.back();
+  // Set the SRS resource set ID to 0, as there is only 1 SRS resource set per UE.
+  res_set.id = static_cast<srs_config::srs_res_set_id>(0U);
+  res_set.srs_res_id_list.emplace_back(static_cast<srs_config::srs_res_id>(0U));
+  res_set.srs_res_set_usage = srs_usage::codebook;
+  res_set.p0                = user_params.p0;
+  res_set.pathloss_ref_rs   = static_cast<ssb_id_t>(0);
+
+  if (user_params.srs_type_enabled == srs_type::periodic) {
+    res.res_type = srs_resource_type::periodic;
+    // Set offset to 0. The offset will be updated later on, when the UE is allocated the SRS resources.
+    res.periodicity_and_offset.emplace(
+        srs_config::srs_periodicity_and_offset{.period = user_params.srs_period_prohib_time, .offset = 0});
+    res_set.res_type.emplace<srs_config::srs_resource_set::periodic_resource_type>(
+        srs_config::srs_resource_set::periodic_resource_type{});
+  } else {
+    // In case of aperiodic or disabled, we create an aperiodic SRS resource.
+    res.res_type = srs_resource_type::aperiodic;
+    res_set.res_type =
+        srs_config::srs_resource_set::aperiodic_resource_type{.aperiodic_srs_res_trigger = 1, .slot_offset = 7};
+  }
+
+  return cfg;
+}
+
 /// Builds a full UE serving cell configuration from DU cell configuration and a cell index.
 inline serving_cell_config make_ue_serving_cell_config(const odu::du_ue_ded_serv_cell_config& ue_ded_cfg,
                                                        du_cell_index_t                        cell_index)
@@ -290,10 +344,9 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_ue_ded_serv
   cfg.init_dl_bwp.pdcch_cfg = ue_ded_cfg.pdcch_cfg;
   cfg.pdsch_serv_cell_cfg   = make_default_pdsch_serving_cell_config();
   cfg.csi_meas_cfg          = ue_ded_cfg.csi_meas_cfg;
-  if (ue_ded_cfg.pucch_cfg.has_value() || ue_ded_cfg.srs_cfg.has_value()) {
+  if (ue_ded_cfg.pucch_cfg.has_value()) {
     cfg.ul_config.emplace();
     cfg.ul_config->init_ul_bwp.pucch_cfg = ue_ded_cfg.pucch_cfg;
-    cfg.ul_config->init_ul_bwp.srs_cfg   = ue_ded_cfg.srs_cfg;
   }
   return cfg;
 }
@@ -306,9 +359,9 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_cell_config
   cfg.pdsch_serv_cell_cfg = make_pdsch_serv_cell_config(du_cell_cfg.init_bwp_builder.pdsch);
   if (!cfg.ul_config.has_value()) {
     cfg.ul_config.emplace();
-    cfg.ul_config->init_ul_bwp.pucch_cfg = du_cell_cfg.ue_ded_serv_cell_cfg.pucch_cfg;
-    cfg.ul_config->init_ul_bwp.srs_cfg   = du_cell_cfg.ue_ded_serv_cell_cfg.srs_cfg;
   }
+  cfg.ul_config->init_ul_bwp.pucch_cfg = du_cell_cfg.ue_ded_serv_cell_cfg.pucch_cfg;
+  cfg.ul_config->init_ul_bwp.srs_cfg   = make_srs_config(du_cell_cfg.init_bwp_builder.srs_cfg, du_cell_cfg.pci);
   cfg.ul_config->init_ul_bwp.pusch_cfg = make_pusch_config(du_cell_cfg.init_bwp_builder.pusch);
   cfg.ul_config->pusch_serv_cell_cfg   = make_pusch_serv_cell_config(du_cell_cfg.init_bwp_builder.pusch);
   cfg.init_dl_bwp.pdsch_cfg            = make_pdsch_config(du_cell_cfg);

@@ -40,8 +40,6 @@ struct du_ue_ded_serv_cell_config {
   std::optional<pdcch_config> pdcch_cfg;
   /// Initial Uplink BWP dedicated PUCCH configuration.
   std::optional<pucch_config> pucch_cfg;
-  /// Initial Uplink BWP dedicated SRS configuration.
-  std::optional<srs_config> srs_cfg;
   /// CSI-MeasConfig.
   std::optional<csi_meas_config> csi_meas_cfg;
 };

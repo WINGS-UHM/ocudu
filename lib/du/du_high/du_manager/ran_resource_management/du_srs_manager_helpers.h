@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
 #include <ocudu/du/du_cell_config.h>
 #include <ocudu/ran/srs/srs_configuration.h>
@@ -33,52 +34,13 @@ unsigned compute_srs_rb_start(unsigned c_srs, unsigned nof_ul_bwp_rbs);
 /// \brief Helper that updates the starting SRS config with user-defined parameters.
 /// This is not the UE-specific SRS configuration, but a default template with user-defined parameters that is used to
 /// build the UE-specific SRS-Config.
-/// \param[in] IsPeriodic If true, indicates whether the function is used for periodic SRS (aperiodic if false).
 /// \param[in] cell_cfg DU Cell configuration.
 /// \return The default SRS configuration (not yet UE-specific) later used to build the UE-specific SRS-Config.
-template <bool IsPeriodic>
-srs_config build_default_srs_cfg(const du_cell_config& cell_cfg)
+inline srs_config build_default_srs_cfg(const du_cell_config& cell_cfg)
 {
-  ocudu_assert(cell_cfg.ue_ded_serv_cell_cfg.srs_cfg.has_value(), "DU cell config is not valid");
-
-  ocudu_assert(cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled !=
-                   (IsPeriodic ? srs_type::aperiodic : srs_type::periodic),
-               "Request to build {} SRS configuration, but {} parameters have been provided",
-               IsPeriodic ? "periodic" : "aperiodic",
-               IsPeriodic ? "aperiodic" : "periodic");
-
-  // If SRS is not enabled, we don't need to update its configuration.
-  if (cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::disabled) {
-    return cell_cfg.ue_ded_serv_cell_cfg.srs_cfg.value();
-  }
-
-  auto srs_cfg = cell_cfg.ue_ded_serv_cell_cfg.srs_cfg.value();
-
+  srs_config srs_cfg = config_helpers::make_srs_config(cell_cfg.init_bwp_builder.srs_cfg, cell_cfg.pci);
   ocudu_assert(srs_cfg.srs_res_list.size() == 1 and srs_cfg.srs_res_set_list.size() == 1,
                "The SRS resource list and the SRS resource set list are expected to have a single element");
-
-  srs_config::srs_resource& res = srs_cfg.srs_res_list.back();
-  // Set the SRS resource ID to 0, as there is only 1 SRS resource per UE.
-  res.id.ue_res_id = static_cast<srs_config::srs_res_id>(0U);
-
-  srs_config::srs_resource_set& res_set = srs_cfg.srs_res_set_list.back();
-  if (IsPeriodic) {
-    res.res_type = srs_resource_type::periodic;
-    // Set offset to 0. The offset will be updated later on, when the UE is allocated the SRS resources.
-    res.periodicity_and_offset.emplace(srs_config::srs_periodicity_and_offset{
-        .period = cell_cfg.init_bwp_builder.srs_cfg.srs_period_prohib_time, .offset = 0});
-    res_set.res_type.emplace<srs_config::srs_resource_set::periodic_resource_type>(
-        srs_config::srs_resource_set::periodic_resource_type{});
-    // Set the SRS resource set ID to 0, as there is only 1 SRS resource set per UE.
-    res_set.id = static_cast<srs_config::srs_res_set_id>(0U);
-  } else {
-    res.res_type = srs_resource_type::aperiodic;
-    res_set.res_type.emplace<srs_config::srs_resource_set::aperiodic_resource_type>(
-        srs_config::srs_resource_set::aperiodic_resource_type{});
-    // Set the SRS resource set ID to 0, as there is only 1 SRS resource set per UE.
-    res_set.id = static_cast<srs_config::srs_res_set_id>(0U);
-  }
-
   return srs_cfg;
 }
 

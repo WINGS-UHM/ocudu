@@ -17,7 +17,7 @@
 
 namespace ocudu::ocucp {
 
-inline xnap_message generate_xn_setup_request(const xnap_configuration& xnap_cfg)
+inline xnap_message generate_asn1_xn_setup_request(const xnap_configuration& xnap_cfg)
 {
   xnap_message xn_setup_req;
   xn_setup_req.pdu.set_init_msg();
@@ -72,7 +72,7 @@ inline xnap_message generate_xn_setup_request(const xnap_configuration& xnap_cfg
   return xn_setup_req;
 }
 
-inline xnap_message generate_xn_setup_response(const xnap_configuration& xnap_cfg)
+inline xnap_message generate_asn1_xn_setup_response(const xnap_configuration& xnap_cfg)
 {
   xnap_message xn_setup_resp;
 

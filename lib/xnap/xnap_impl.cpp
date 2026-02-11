@@ -78,7 +78,7 @@ void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
 {
   // TODO check XN setup request is a valid message.
 
-  xnap_message xn_setup_resp = generate_xn_setup_response(xnap_cfg);
+  xnap_message xn_setup_resp = generate_asn1_xn_setup_response(xnap_cfg);
 
   if (not tx_notifier.on_new_message(xn_setup_resp)) {
     logger.error("Failed to send XN Setup Response. Cause: no SCTP association available");

@@ -30,7 +30,7 @@ public:
   xnap_message last_msg;
 };
 
-/// Fixture class for XNAP Setup tests
+/// Fixture class for XNAP Setup tests.
 class xn_setup_procedure_test : public ::testing::Test
 {
 protected:
@@ -95,7 +95,7 @@ private:
 
 TEST_F(xn_setup_procedure_test, when_correct_setup_received_from_peer_setup_complete_is_sent)
 {
-  xnap_message xn_setup_req = generate_xn_setup_request(xnap_peer_cfg);
+  xnap_message xn_setup_req = generate_asn1_xn_setup_request(xnap_peer_cfg);
   xnap->handle_message(xn_setup_req);
   std::optional<xnap_message> rep = get_last_message();
 

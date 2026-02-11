@@ -40,7 +40,7 @@ public:
   virtual void set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) = 0;
 };
 
-/// Combined entry point for the NGAP object.
+/// Combined entry point for the XNAP object.
 class xnap_interface : public xnap_message_handler, public xnap_connection_manager
 {
 public:

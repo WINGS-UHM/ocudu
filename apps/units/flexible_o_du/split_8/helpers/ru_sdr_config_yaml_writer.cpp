@@ -95,6 +95,16 @@ static void fill_ru_sdr_section(YAML::Node node, const ru_sdr_unit_config& confi
   } else {
     node["start_time"] = "na";
   }
+  if (config.dl_freq_override_Hz.has_value()) {
+    node["dl_freq_Hz"] = *config.dl_freq_override_Hz;
+  } else {
+    node["dl_freq_Hz"] = "na";
+  }
+  if (config.ul_freq_override_Hz.has_value()) {
+    node["ul_freq_Hz"] = *config.ul_freq_override_Hz;
+  } else {
+    node["ul_freq_Hz"] = "na";
+  }
 
   {
     YAML::Node amp_crtl_node         = node["amplitude_control"];

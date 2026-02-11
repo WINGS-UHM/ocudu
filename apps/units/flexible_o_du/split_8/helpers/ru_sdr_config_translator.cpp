@@ -159,8 +159,15 @@ static void generate_radio_config(radio_configuration::radio&                   
     radio_configuration::stream rx_stream_config;
 
     // Deduce center frequencies.
-    const double cell_tx_freq_Hz = band_helper::nr_arfcn_to_freq(cell.dl_arfcn);
-    const double cell_rx_freq_Hz = band_helper::nr_arfcn_to_freq(cell.ul_arfcn);
+    double cell_tx_freq_Hz = band_helper::nr_arfcn_to_freq(cell.dl_arfcn);
+    if (ru_cfg.dl_freq_override_Hz.has_value()) {
+      cell_tx_freq_Hz = *ru_cfg.dl_freq_override_Hz;
+    }
+
+    double cell_rx_freq_Hz = band_helper::nr_arfcn_to_freq(cell.ul_arfcn);
+    if (ru_cfg.ul_freq_override_Hz.has_value()) {
+      cell_rx_freq_Hz = *ru_cfg.ul_freq_override_Hz;
+    }
 
     // Correct actual RF center frequencies considering offset and PPM calibration.
     double center_tx_freq_cal_Hz =

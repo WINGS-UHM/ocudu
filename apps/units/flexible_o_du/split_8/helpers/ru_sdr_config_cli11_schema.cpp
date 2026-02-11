@@ -147,6 +147,18 @@ static void configure_cli11_ru_sdr_args(CLI::App& app, ru_sdr_unit_config& confi
       })
       ->default_str("auto");
 
+  add_option(app,
+             "--dl_freq_Hz",
+             config.dl_freq_override_Hz,
+             "Downlink frequency in Hz. If present, it overrides the one derived by DL ARFCN and NR Band.")
+      ->capture_default_str();
+
+  add_option(app,
+             "--ul_freq_Hz",
+             config.ul_freq_override_Hz,
+             "Uplink frequency in Hz. If present, it overrides the one derived by UL ARFCN and NR Band.")
+      ->capture_default_str();
+
   // Amplitude control configuration.
   CLI::App* amplitude_control_subcmd = add_subcommand(app, "amplitude_control", "Amplitude control parameters");
   configure_cli11_amplitude_control_args(*amplitude_control_subcmd, config.amplitude_cfg);

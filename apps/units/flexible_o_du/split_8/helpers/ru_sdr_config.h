@@ -167,6 +167,10 @@ struct ru_sdr_unit_config {
   ru_sdr_unit_expert_execution_config expert_execution_cfg;
   /// Metrics configuration.
   ru_sdr_unit_metrics_config metrics_cfg;
+  /// DL Frequency in Hz. If present, it overrides the one derived by DL ARFCN and NR Band.
+  std::optional<double> dl_freq_override_Hz;
+  /// UL Frequency in Hz. If present, it overrides the one derived by UL ARFCN and NR Band.
+  std::optional<double> ul_freq_override_Hz;
 };
 
 } // namespace ocudu

@@ -722,7 +722,9 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.init_bwp_builder.pusch.nof_harq_procs = static_cast<uint8_t>(base_cell.pusch_cfg.nof_harqs);
     out_cell.init_bwp_builder.pusch.ul_harq_mode   = ~base_cell.pusch_cfg.harq_mode_b;
     // > PUCCH
-    out_cell.init_bwp_builder.pucch.min_k1 = base_cell.pucch_cfg.min_k1;
+    out_cell.init_bwp_builder.pucch.min_k1    = base_cell.pucch_cfg.min_k1;
+    out_cell.init_bwp_builder.pucch.sr_period = static_cast<sr_periodicity>(
+        static_cast<unsigned>(get_nof_slots_per_subframe(base_cell.common_scs) * base_cell.pucch_cfg.sr_period_msec));
     // > RACH.
     out_cell.init_bwp_builder.rach.cfra_enabled   = base_cell.prach_cfg.cfra_enabled;
     out_cell.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
@@ -944,17 +946,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     du_srs_cfg.cyclic_shift_reuse_factor = static_cast<nof_cyclic_shifts>(user_srs_cfg.cyclic_shift_reuse_factor);
     du_srs_cfg.sequence_id_reuse_factor  = user_srs_cfg.sequence_id_reuse_factor;
     du_srs_cfg.p0                        = user_srs_cfg.p0;
-
-    // Parameters for PUCCH-Config.
-    if (not out_cell.ue_ded_serv_cell_cfg.pucch_cfg.has_value()) {
-      out_cell.ue_ded_serv_cell_cfg.pucch_cfg.emplace();
-    }
-    auto& sr_cng = out_cell.ue_ded_serv_cell_cfg.pucch_cfg.value().sr_res_list;
-    if (sr_cng.empty()) {
-      sr_cng.emplace_back(scheduling_request_resource_config{});
-    }
-    sr_cng.front().period = static_cast<sr_periodicity>(
-        static_cast<unsigned>(get_nof_slots_per_subframe(base_cell.common_scs) * base_cell.pucch_cfg.sr_period_msec));
 
     // If any dependent parameter needs to be updated, this is the place.
     config_helpers::compute_nof_sr_csi_pucch_res(du_pucch_cfg,

@@ -38,8 +38,6 @@ struct phy_cell_group_params {
 struct du_ue_ded_serv_cell_config {
   /// Initial Downlink BWP dedicated PDCCH configuration.
   std::optional<pdcch_config> pdcch_cfg;
-  /// Initial Uplink BWP dedicated PUCCH configuration.
-  std::optional<pucch_config> pucch_cfg;
   /// CSI-MeasConfig.
   std::optional<csi_meas_config> csi_meas_cfg;
 };

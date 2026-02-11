@@ -508,7 +508,6 @@ static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
 
 static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
 {
-  const auto&                       ue_ded_cfg   = cell_cfg.ue_ded_serv_cell_cfg;
   const auto&                       pusch_params = cell_cfg.init_bwp_builder.pusch;
   const pusch_mcs_table             mcs_table    = pusch_params.mcs_table;
   const search_space_configuration& ss2          = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg->search_spaces.back();
@@ -529,16 +528,13 @@ static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
     CHECK_TRUE(cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2,
                "PUSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
   }
-  if (ue_ded_cfg.pucch_cfg.has_value()) {
-    if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
-      for (const scheduling_request_resource_config& sr_cfg : ue_ded_cfg.pucch_cfg->sr_res_list) {
-        CHECK_TRUE(sr_periodicity_to_slot(sr_cfg.period) %
-                           nof_slots_per_tdd_period(cell_cfg.tdd_ul_dl_cfg_common.value()) ==
-                       0,
-                   "Scheduling request resource periodicity that is not a submultiple of the TDD "
-                   "configuration periodicity is not supported.");
-      }
-    }
+  if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
+    const pucch_config pucch_cfg = config_helpers::make_pucch_config(cell_cfg);
+    CHECK_TRUE(sr_periodicity_to_slot(cell_cfg.init_bwp_builder.pucch.sr_period) %
+                       nof_slots_per_tdd_period(cell_cfg.tdd_ul_dl_cfg_common.value()) ==
+                   0,
+               "Scheduling request resource periodicity that is not a submultiple of the TDD "
+               "configuration periodicity is not supported.");
   }
   return {};
 }

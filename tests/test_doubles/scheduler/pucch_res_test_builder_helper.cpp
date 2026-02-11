@@ -26,8 +26,13 @@ static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&     
   cell_cfg.tdd_ul_dl_cfg_common             = tdd_ul_dl_cfg_common;
   cell_cfg.ue_ded_serv_cell_cfg             = config_helpers::make_du_ue_ded_serv_cell_config(base_ue_cfg);
   cell_cfg.init_bwp_builder.pucch.resources = pucch_cfg;
-  cell_cfg.init_bwp_builder.pdsch           = config_helpers::make_pdsch_builder_params(base_ue_cfg);
-  cell_cfg.init_bwp_builder.pusch           = config_helpers::make_pusch_builder_params(base_ue_cfg);
+  if (base_ue_cfg.ul_config.has_value() && base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value() &&
+      !base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.empty()) {
+    cell_cfg.init_bwp_builder.pucch.sr_period =
+        base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.front().period;
+  }
+  cell_cfg.init_bwp_builder.pdsch = config_helpers::make_pdsch_builder_params(base_ue_cfg);
+  cell_cfg.init_bwp_builder.pusch = config_helpers::make_pusch_builder_params(base_ue_cfg);
   return cell_cfg;
 }
 

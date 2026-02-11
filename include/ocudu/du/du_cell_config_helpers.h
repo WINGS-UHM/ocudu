@@ -12,11 +12,16 @@
 
 #include "ocudu/du/du_cell_config.h"
 #include "ocudu/mac/config/mac_config_helpers.h"
+#include "ocudu/ran/frame_types.h"
 #include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
 #include "ocudu/scheduler/config/rlm_helper.h"
+#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
+#include <algorithm>
 
 namespace ocudu {
 namespace config_helpers {
@@ -31,7 +36,9 @@ inline pusch_builder_params make_pusch_builder_params(const serving_cell_config&
 inline pdsch_serving_cell_config make_pdsch_serv_cell_config(const pdsch_builder_params& pdsch_params);
 /// Builds a PUSCH serving cell configuration from PUSCH builder parameters.
 inline pusch_serving_cell_config make_pusch_serv_cell_config(const pusch_builder_params& pusch_params);
-/// Builds an SRS configuration from DU cell configuration and SRS builder parameters.
+/// Builds a PUCCH configuration from DU cell configuration and PUCCH builder parameters.
+inline pucch_config make_pucch_config(const odu::du_cell_config& du_cell_cfg);
+/// Builds an SRS configuration from SRS builder parameters.
 inline srs_config make_srs_config(const srs_builder_params& srs_params, pci_t pci);
 
 /// Generates default cell configuration used by gNB DU. The default configuration should be valid.
@@ -60,11 +67,15 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
       cfg.dl_carrier.band, *params.scs_ssb, params.scs_common, *params.coreset0_index, params.k_ssb->value());
   cfg.dmrs_typeA_pos = coreset0_desc.nof_symb_coreset == 3U ? dmrs_typeA_position::pos3 : dmrs_typeA_position::pos2;
 
-  cfg.tdd_ul_dl_cfg_common               = params.tdd_ul_dl_cfg_common;
-  const serving_cell_config ue_serv_cell = create_default_initial_ue_serving_cell_config(params);
-  cfg.ue_ded_serv_cell_cfg               = make_du_ue_ded_serv_cell_config(ue_serv_cell);
-  cfg.init_bwp_builder.pdsch             = make_pdsch_builder_params(ue_serv_cell);
-  cfg.init_bwp_builder.pusch             = make_pusch_builder_params(ue_serv_cell);
+  cfg.tdd_ul_dl_cfg_common                  = params.tdd_ul_dl_cfg_common;
+  const serving_cell_config ue_serv_cell    = create_default_initial_ue_serving_cell_config(params);
+  cfg.ue_ded_serv_cell_cfg                  = make_du_ue_ded_serv_cell_config(ue_serv_cell);
+  cfg.init_bwp_builder.pdsch                = make_pdsch_builder_params(ue_serv_cell);
+  cfg.init_bwp_builder.pdsch.max_nof_layers = params.max_nof_layers;
+  cfg.init_bwp_builder.pusch                = make_pusch_builder_params(ue_serv_cell);
+  cfg.init_bwp_builder.pucch.min_k1         = params.min_k1;
+  cfg.init_bwp_builder.pucch.sr_period =
+      static_cast<sr_periodicity>(static_cast<unsigned>(get_nof_slots_per_subframe(params.scs_common)) * 40U);
 
   return cfg;
 }
@@ -75,9 +86,6 @@ inline odu::du_ue_ded_serv_cell_config make_du_ue_ded_serv_cell_config(const ser
   odu::du_ue_ded_serv_cell_config cfg{};
   cfg.pdcch_cfg    = ue_serv_cell_cfg.init_dl_bwp.pdcch_cfg;
   cfg.csi_meas_cfg = ue_serv_cell_cfg.csi_meas_cfg;
-  if (ue_serv_cell_cfg.ul_config.has_value()) {
-    cfg.pucch_cfg = ue_serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg;
-  }
   return cfg;
 }
 
@@ -282,6 +290,143 @@ inline pusch_serving_cell_config make_pusch_serv_cell_config(const pusch_builder
   return cfg;
 }
 
+/// Builds a PUCCH configuration from DU cell configuration and PUCCH builder parameters.
+inline pucch_config make_pucch_config(const odu::du_cell_config& du_cell_cfg)
+{
+  pucch_config                         pucch_cfg{};
+  const pucch_builder_params&          pucch_params   = du_cell_cfg.init_bwp_builder.pucch;
+  const pucch_resource_builder_params& builder_params = pucch_params.resources;
+  const unsigned                       bwp_size = du_cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+  const auto cell_pucch_res_list                = config_helpers::build_pucch_resource_list(builder_params, bwp_size);
+
+  // >>> Resource Set ID 0.
+  {
+    auto& res_set_0            = pucch_cfg.pucch_res_set.emplace_back();
+    res_set_0.pucch_res_set_id = pucch_res_set_idx::set_0;
+    for (unsigned r_pucch = 0; r_pucch != builder_params.res_set_0_size; ++r_pucch) {
+      auto& res            = pucch_cfg.pucch_res_list.emplace_back(cell_pucch_res_list[r_pucch]);
+      res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
+      res_set_0.pucch_res_id_list.push_back(res.res_id);
+    }
+  }
+
+  // >>> SR Resource.
+  {
+    const sr_periodicity sr_period = pucch_params.sr_period;
+    const unsigned       sr_offset = du_cell_cfg.tdd_ul_dl_cfg_common.has_value()
+                                         ? find_next_tdd_full_ul_slot(*du_cell_cfg.tdd_ul_dl_cfg_common).value()
+                                         : 0;
+    auto& sr_res = pucch_cfg.pucch_res_list.emplace_back(cell_pucch_res_list[builder_params.res_set_0_size.value()]);
+    sr_res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
+    pucch_cfg.sr_res_list.push_back(scheduling_request_resource_config{.sr_res_id    = 1,
+                                                                       .sr_id        = uint_to_sched_req_id(0),
+                                                                       .period       = sr_period,
+                                                                       .offset       = sr_offset,
+                                                                       .pucch_res_id = sr_res.res_id});
+  }
+
+  // >>> Resource Set ID 1.
+  {
+    auto& res_set_1            = pucch_cfg.pucch_res_set.emplace_back();
+    res_set_1.pucch_res_set_id = pucch_res_set_idx::set_1;
+    const unsigned res_set_0_cell_res_offset =
+        builder_params.res_set_0_size.value() * builder_params.nof_cell_res_set_configs +
+        builder_params.nof_cell_sr_resources;
+    for (unsigned r_pucch = 0; r_pucch != builder_params.res_set_1_size; ++r_pucch) {
+      auto& res = pucch_cfg.pucch_res_list.emplace_back(cell_pucch_res_list[res_set_0_cell_res_offset + r_pucch]);
+      res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
+      res_set_1.pucch_res_id_list.push_back(res.res_id);
+    }
+  }
+
+  // >>> CSI resource.
+  if (builder_params.nof_cell_csi_resources > 0) {
+    const unsigned csi_cell_res_offset =
+        builder_params.res_set_0_size.value() * builder_params.nof_cell_res_set_configs +
+        builder_params.nof_cell_sr_resources +
+        builder_params.res_set_1_size.value() * builder_params.nof_cell_res_set_configs;
+    auto& res            = pucch_cfg.pucch_res_list.emplace_back(cell_pucch_res_list[csi_cell_res_offset]);
+    res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
+  }
+
+  // Increase code rate in case of more than 4 layers.
+  const unsigned nof_dl_layers =
+      du_cell_cfg.init_bwp_builder.pdsch.max_nof_layers.value_or(du_cell_cfg.dl_carrier.nof_ant);
+  const max_pucch_code_rate max_c_rate = nof_dl_layers >= 4 ? max_pucch_code_rate::dot_35 : max_pucch_code_rate::dot_25;
+
+  pucch_cfg.format_1_common_param.emplace();
+  pucch_cfg.format_2_common_param.emplace(
+      pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
+  pucch_cfg.format_3_common_param.emplace(
+      pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
+  pucch_cfg.format_4_common_param.emplace(
+      pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
+  pucch_cfg.dl_data_to_ul_ack =
+      time_domain_resource_helper::generate_k1_candidates(du_cell_cfg.tdd_ul_dl_cfg_common, pucch_params.min_k1);
+
+  // Compute the max UCI payload per format.
+  // As per TS 38.231, Section 9.2.1, with PUCCH Format 1, we can have up to 2 HARQ-ACK bits (SR doesn't count as part
+  // of the payload).
+  {
+    static constexpr unsigned pucch_f1_max_harq_payload                        = 2U;
+    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_1)] = pucch_f1_max_harq_payload;
+
+    if (std::holds_alternative<pucch_f2_params>(builder_params.f2_or_f3_or_f4_params)) {
+      auto* res_f2_it = std::find_if(pucch_cfg.pucch_res_list.begin(),
+                                     pucch_cfg.pucch_res_list.end(),
+                                     [](const pucch_resource& res) { return res.format == pucch_format::FORMAT_2; });
+      ocudu_assert(res_f2_it != pucch_cfg.pucch_res_list.end(), "No PUCCH F2 resource found in the cell configuration");
+      const auto& res_f2_params = std::get<pucch_format_2_3_cfg>(res_f2_it->format_params);
+      pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
+          get_pucch_format2_max_payload(res_f2_params.nof_prbs,
+                                        res_f2_it->nof_symbols,
+                                        to_max_code_rate_float(pucch_cfg.format_2_common_param.value().max_c_rate));
+      pucch_cfg.set_1_format = pucch_format::FORMAT_2;
+    } else if (std::holds_alternative<pucch_f3_params>(builder_params.f2_or_f3_or_f4_params)) {
+      auto* res_f3_it = std::find_if(pucch_cfg.pucch_res_list.begin(),
+                                     pucch_cfg.pucch_res_list.end(),
+                                     [](const pucch_resource& res) { return res.format == pucch_format::FORMAT_3; });
+      ocudu_assert(res_f3_it != pucch_cfg.pucch_res_list.end(), "No PUCCH F3 resource found in the cell configuration");
+      const auto& f3_common_params = pucch_cfg.format_3_common_param.value();
+      pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_3)] =
+          get_pucch_format3_max_payload(std::get<pucch_format_2_3_cfg>(res_f3_it->format_params).nof_prbs,
+                                        res_f3_it->nof_symbols,
+                                        to_max_code_rate_float(pucch_cfg.format_3_common_param.value().max_c_rate),
+                                        res_f3_it->second_hop_prb.has_value(),
+                                        f3_common_params.additional_dmrs,
+                                        f3_common_params.pi_2_bpsk);
+      pucch_cfg.set_1_format = pucch_format::FORMAT_3;
+    } else {
+      auto* res_f4_it = std::find_if(pucch_cfg.pucch_res_list.begin(),
+                                     pucch_cfg.pucch_res_list.end(),
+                                     [](const pucch_resource& res) { return res.format == pucch_format::FORMAT_4; });
+      ocudu_assert(res_f4_it != pucch_cfg.pucch_res_list.end(), "No PUCCH F4 resource found in the cell configuration");
+      const auto& f4_common_params = pucch_cfg.format_4_common_param.value();
+      pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_4)] =
+          get_pucch_format4_max_payload(res_f4_it->nof_symbols,
+                                        to_max_code_rate_float(pucch_cfg.format_4_common_param.value().max_c_rate),
+                                        res_f4_it->second_hop_prb.has_value(),
+                                        f4_common_params.additional_dmrs,
+                                        f4_common_params.pi_2_bpsk,
+                                        std::get<pucch_format_4_cfg>(res_f4_it->format_params).occ_length);
+      pucch_cfg.set_1_format = pucch_format::FORMAT_4;
+    }
+  }
+
+  // Add the PUCCH power configuration.
+  auto& pucch_pw_ctrl          = pucch_cfg.pucch_pw_control.emplace();
+  pucch_pw_ctrl.delta_pucch_f0 = 0;
+  pucch_pw_ctrl.delta_pucch_f1 = 0;
+  pucch_pw_ctrl.delta_pucch_f2 = 0;
+  pucch_pw_ctrl.delta_pucch_f3 = 0;
+  pucch_pw_ctrl.delta_pucch_f4 = 0;
+  auto& pucch_pw_set           = pucch_pw_ctrl.p0_set.emplace_back();
+  pucch_pw_set.id              = 0U;
+  pucch_pw_set.value           = 0;
+
+  return pucch_cfg;
+}
+
 /// Builds an SRS configuration from DU cell configuration and SRS builder parameters.
 inline srs_config make_srs_config(const srs_builder_params& user_params, pci_t pci)
 {
@@ -344,10 +489,6 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_ue_ded_serv
   cfg.init_dl_bwp.pdcch_cfg = ue_ded_cfg.pdcch_cfg;
   cfg.pdsch_serv_cell_cfg   = make_default_pdsch_serving_cell_config();
   cfg.csi_meas_cfg          = ue_ded_cfg.csi_meas_cfg;
-  if (ue_ded_cfg.pucch_cfg.has_value()) {
-    cfg.ul_config.emplace();
-    cfg.ul_config->init_ul_bwp.pucch_cfg = ue_ded_cfg.pucch_cfg;
-  }
   return cfg;
 }
 
@@ -360,12 +501,32 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_cell_config
   if (!cfg.ul_config.has_value()) {
     cfg.ul_config.emplace();
   }
-  cfg.ul_config->init_ul_bwp.pucch_cfg = du_cell_cfg.ue_ded_serv_cell_cfg.pucch_cfg;
+  cfg.ul_config->init_ul_bwp.pucch_cfg = make_pucch_config(du_cell_cfg);
   cfg.ul_config->init_ul_bwp.srs_cfg   = make_srs_config(du_cell_cfg.init_bwp_builder.srs_cfg, du_cell_cfg.pci);
   cfg.ul_config->init_ul_bwp.pusch_cfg = make_pusch_config(du_cell_cfg.init_bwp_builder.pusch);
   cfg.ul_config->pusch_serv_cell_cfg   = make_pusch_serv_cell_config(du_cell_cfg.init_bwp_builder.pusch);
   cfg.init_dl_bwp.pdsch_cfg            = make_pdsch_config(du_cell_cfg);
   cfg.init_dl_bwp.rlm_cfg              = make_rlm_config(du_cell_cfg);
+
+  // Align CSI PUCCH resource ids with the PUCCH config built from builder params.
+  // Note: This is temporary, while a make_csi_meas_config is not present.
+  if (cfg.csi_meas_cfg.has_value() && cfg.ul_config->init_ul_bwp.pucch_cfg.has_value()) {
+    auto&       csi_meas_cfg = cfg.csi_meas_cfg.value();
+    const auto& pucch_cfg    = cfg.ul_config->init_ul_bwp.pucch_cfg.value();
+    if (!pucch_cfg.pucch_res_list.empty()) {
+      const pucch_res_id_t csi_pucch_res_id = pucch_cfg.pucch_res_list.back().res_id;
+      for (auto& report_cfg : csi_meas_cfg.csi_report_cfg_list) {
+        if (std::holds_alternative<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
+                report_cfg.report_cfg_type)) {
+          auto& pucch_report =
+              std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(report_cfg.report_cfg_type);
+          for (auto& pucch_res : pucch_report.pucch_csi_res_list) {
+            pucch_res.pucch_res_id = csi_pucch_res_id;
+          }
+        }
+      }
+    }
+  }
   return cfg;
 }
 

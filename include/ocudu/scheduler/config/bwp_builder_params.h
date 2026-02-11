@@ -16,6 +16,7 @@
 #include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/radio_link_monitoring.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
+#include "ocudu/ran/sr_configuration.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
@@ -29,6 +30,8 @@ struct pdsch_builder_params {
   /// Number of DL HARQ processes.
   /// \remark See TS 38.331, \c nrofHARQ-ProcessesForPDSCH.
   uint8_t nof_harq_procs = 16;
+  /// Optional maximum number of DL layers. If not set, DL antenna ports are used.
+  std::optional<unsigned> max_nof_layers;
   /// MCS table to use for PDSCH.
   pdsch_mcs_table mcs_table = pdsch_mcs_table::qam256;
   /// Position for additional DM-RS in DL, see Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 in TS 38.211. If the field is absent,
@@ -51,6 +54,8 @@ struct pucch_builder_params {
   /// [Implementation-defined] Even though the "dl-DataToUl-Ack" ranges from {1, ..., 15} as per TS 38.213, 9.1.2.1, we
   /// restrict min_k1 to be at most 7. The reason being that we need a k1 < 8 for common PUCCH allocations.
   uint8_t min_k1 = 4;
+  /// SR periodicity to use for UE-dedicated SR resources.
+  sr_periodicity sr_period = sr_periodicity::sl_40;
   /// Parameters used to generate the PUCCH resources of a cell.
   pucch_resource_builder_params resources;
 };

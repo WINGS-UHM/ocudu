@@ -332,9 +332,12 @@ static du_cell_config make_custom_du_cell_config(const pucch_cfg_builder_params&
   pucch_params.nof_cell_sr_resources    = pucch_params_.nof_res_sr;
   pucch_params.nof_cell_csi_resources   = pucch_params_.nof_res_csi;
   pucch_params.nof_cell_res_set_configs = pucch_params_.nof_harq_cfg;
-  auto& f1_params                       = std::get<pucch_f1_params>(pucch_params.f0_or_f1_params);
-  f1_params.nof_cyc_shifts              = pucch_nof_cyclic_shifts::six;
-  f1_params.occ_supported               = true;
+  if (!std::holds_alternative<pucch_f1_params>(pucch_params.f0_or_f1_params)) {
+    pucch_params.f0_or_f1_params.emplace<pucch_f1_params>();
+  }
+  auto& f1_params          = std::get<pucch_f1_params>(pucch_params.f0_or_f1_params);
+  f1_params.nof_cyc_shifts = pucch_nof_cyclic_shifts::six;
+  f1_params.occ_supported  = true;
 
   return du_cfg;
 }
@@ -596,11 +599,14 @@ make_custom_du_cell_config_for_pucch_cnt(const pucch_cnt_builder_params&        
   auto&          pucch_params         = du_cfg.init_bwp_builder.pucch.resources;
   pucch_params.nof_cell_sr_resources  = pucch_params_.nof_res_sr;
   pucch_params.nof_cell_csi_resources = pucch_params_.nof_res_csi;
-  auto& f1_params                     = std::get<pucch_f1_params>(pucch_params.f0_or_f1_params);
-  f1_params.nof_cyc_shifts            = pucch_nof_cyclic_shifts::six;
-  f1_params.occ_supported             = true;
+  if (!std::holds_alternative<pucch_f1_params>(pucch_params.f0_or_f1_params)) {
+    pucch_params.f0_or_f1_params.emplace<pucch_f1_params>();
+  }
+  auto& f1_params          = std::get<pucch_f1_params>(pucch_params.f0_or_f1_params);
+  f1_params.nof_cyc_shifts = pucch_nof_cyclic_shifts::six;
+  f1_params.occ_supported  = true;
 
-  du_cfg.ue_ded_serv_cell_cfg.pucch_cfg->sr_res_list[0].period = pucch_params_.sr_period;
+  du_cfg.init_bwp_builder.pucch.sr_period = pucch_params_.sr_period;
   if (du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
     std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
         du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type)
@@ -807,9 +813,12 @@ static du_cell_config make_custom_pucch_srs_cell_config(bool pucch_has_more_res_
   pucch_params.nof_cell_sr_resources    = pucch_has_more_res_than_srs ? 10U : 1U;
   pucch_params.nof_cell_csi_resources   = pucch_has_more_res_than_srs ? 10U : 1U;
   pucch_params.nof_cell_res_set_configs = 1U;
-  auto& f1_params                       = std::get<pucch_f1_params>(pucch_params.f0_or_f1_params);
-  f1_params.nof_cyc_shifts              = pucch_nof_cyclic_shifts::no_cyclic_shift;
-  f1_params.occ_supported               = false;
+  if (!std::holds_alternative<pucch_f1_params>(pucch_params.f0_or_f1_params)) {
+    pucch_params.f0_or_f1_params.emplace<pucch_f1_params>();
+  }
+  auto& f1_params          = std::get<pucch_f1_params>(pucch_params.f0_or_f1_params);
+  f1_params.nof_cyc_shifts = pucch_nof_cyclic_shifts::no_cyclic_shift;
+  f1_params.occ_supported  = false;
 
   auto& tdd_cfg                              = du_cfg.tdd_ul_dl_cfg_common.emplace();
   tdd_cfg.pattern1.dl_ul_tx_period_nof_slots = 10;
@@ -818,7 +827,7 @@ static du_cell_config make_custom_pucch_srs_cell_config(bool pucch_has_more_res_
   tdd_cfg.pattern1.nof_ul_slots              = 2;
   tdd_cfg.pattern1.nof_ul_symbols            = 0;
 
-  du_cfg.ue_ded_serv_cell_cfg.pucch_cfg.value().sr_res_list.front().period = ocudu::sr_periodicity::sl_10;
+  du_cfg.init_bwp_builder.pucch.sr_period = ocudu::sr_periodicity::sl_10;
 
   auto& srs_cfg = du_cfg.init_bwp_builder.srs_cfg;
 

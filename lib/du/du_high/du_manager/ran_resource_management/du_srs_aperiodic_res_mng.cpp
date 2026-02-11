@@ -24,7 +24,8 @@ using namespace odu;
 // transmissions. This means that only 1 offset can be chosen.
 static unsigned compute_slot_offset(const du_cell_config& cell_cfg)
 {
-  const auto& dl_data_to_ul_ack = cell_cfg.ue_ded_serv_cell_cfg.pucch_cfg.value().dl_data_to_ul_ack;
+  auto dl_data_to_ul_ack = time_domain_resource_helper::generate_k1_candidates(cell_cfg.tdd_ul_dl_cfg_common,
+                                                                               cell_cfg.init_bwp_builder.pucch.min_k1);
 
   std::vector<static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>> pusch_td_list_per_slot =
       get_fairly_distributed_pusch_td_resource_indices(cell_cfg.scs_common,
@@ -174,9 +175,8 @@ du_srs_aperiodic_res_mng::du_srs_aperiodic_res_mng(span<const du_cell_config> ce
     cell.srs_res_usage.reserve(cell.cell_srs_res_list.size());
     cell.srs_res_usage.assign(cell.cell_srs_res_list.size(), 0U);
 
-    ocudu_assert(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value() and
-                     cell_cfg.ue_ded_serv_cell_cfg.pucch_cfg.has_value(),
-                 "The SRS aperiodic configuration generation requires PUSCH Config Common and PUCCH Config");
+    ocudu_assert(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(),
+                 "The SRS aperiodic configuration generation requires PUSCH Config Common and PUCCH parameters");
 
     cell.slot_offset = compute_slot_offset(cell_cfg);
   }

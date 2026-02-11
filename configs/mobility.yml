@@ -45,3 +45,5 @@ cu_cp:
         hysteresis_db: 0
         time_to_trigger_ms: 100
         report_interval_ms: 1024
+        # For event_triggered report configs T312 timer can be optionally configured.
+        # t312: 200

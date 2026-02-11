@@ -119,7 +119,7 @@ static error_type<std::string> validate_rach_cfg_common(const sched_cell_configu
 
 static error_type<std::string> validade_pusch_td_res_list(span<const pusch_time_domain_resource_allocation> pusch_lst,
                                                           const std::optional<tdd_ul_dl_config_common>&     tdd_cfg,
-                                                          uint8_t                                           k2)
+                                                          uint8_t                                           min_k2)
 {
   using res_t = pusch_time_domain_resource_allocation;
 
@@ -131,9 +131,13 @@ static error_type<std::string> validade_pusch_td_res_list(span<const pusch_time_
 
   // The list needs to be a subset of the auto-generated based on the TDD pattern and min k2.
   const auto superset_lst =
-      time_domain_resource_helper::generate_dedicated_pusch_td_res_list(tdd_cfg, cyclic_prefix::NORMAL, k2);
+      time_domain_resource_helper::generate_dedicated_pusch_td_res_list(tdd_cfg, cyclic_prefix::NORMAL, min_k2);
   for (const auto& pusch : pusch_lst) {
-    if (std::find(superset_lst.begin(), superset_lst.end(), pusch) == superset_lst.end()) {
+    const auto it = std::find_if(
+        superset_lst.begin(), superset_lst.end(), [&pusch](const pusch_time_domain_resource_allocation& res) {
+          return res.k2 == pusch.k2 && res.map_type == pusch.map_type && res.symbols.contains(pusch.symbols);
+        });
+    if (it == superset_lst.end()) {
       return make_unexpected(fmt::format("Invalid PUSCH TD resource (k2={})", pusch.k2));
     }
   }

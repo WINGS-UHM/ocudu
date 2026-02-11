@@ -51,7 +51,7 @@ private:
   void send_rrc_resume();
 
   /// \brief Send the pending DL NAS Transport message to the UE after a successful resume.
-  void send_pending_dl_nas();
+  void send_pending_dl_nas(byte_buffer& nas_pdu);
 
   async_task<void> handle_rrc_resume_failure();
 

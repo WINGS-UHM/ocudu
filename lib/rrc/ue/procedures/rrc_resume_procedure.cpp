@@ -95,11 +95,12 @@ void rrc_resume_procedure::operator()(coro_context<async_task<void>>& ctx)
     metrics_notifier.on_successful_rrc_connection_resume(
         asn1_to_resume_cause(resume_request.rrc_resume_request.resume_cause));
 
-    if (!context.pending_dl_nas_transport_message.empty()) {
+    for (auto& nas_pdu : context.pending_dl_nas_transport_messages) {
       // If there is a pending DL NAS Transport message, send it to the UE now that it is resumed.
       logger.log_debug("Sending pending DL NAS Transport message to UE after successful resume");
-      send_pending_dl_nas();
+      send_pending_dl_nas(nas_pdu);
     }
+    context.pending_dl_nas_transport_messages.clear();
 
     logger.log_info("\"{}\" finished successfully", name());
 
@@ -200,18 +201,16 @@ void rrc_resume_procedure::send_rrc_resume()
   rrc_ue_resume_notifier.on_new_dl_dcch(srb_id_t::srb1, dl_dcch_msg);
 }
 
-void rrc_resume_procedure::send_pending_dl_nas()
+void rrc_resume_procedure::send_pending_dl_nas(byte_buffer& nas_pdu)
 {
   asn1::rrc_nr::dl_dcch_msg_s           dl_dcch_msg;
   asn1::rrc_nr::dl_info_transfer_ies_s& dl_info_transfer =
       dl_dcch_msg.msg.set_c1().set_dl_info_transfer().crit_exts.set_dl_info_transfer();
-  dl_info_transfer.ded_nas_msg = context.pending_dl_nas_transport_message.copy();
+  dl_info_transfer.ded_nas_msg = nas_pdu.copy();
 
   if (context.srbs.find(srb_id_t::srb2) != context.srbs.end()) {
     rrc_ue_resume_notifier.on_new_dl_dcch(srb_id_t::srb2, dl_dcch_msg);
   } else {
     rrc_ue_resume_notifier.on_new_dl_dcch(srb_id_t::srb1, dl_dcch_msg);
   }
-
-  context.pending_dl_nas_transport_message.clear();
 }

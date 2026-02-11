@@ -17,7 +17,6 @@ using harq_pid_value = uint8_t;
 /// MAC Received PDU that comprises the list of PDUs of Rx_Data.indication.
 struct mac_rx_pdu {
   rnti_t         rnti;
-  uint8_t        rapid;
   harq_pid_value harq_id;
   byte_buffer    pdu;
 };

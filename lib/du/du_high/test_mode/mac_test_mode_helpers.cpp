@@ -33,7 +33,7 @@ odu::create_test_pdu_with_bsr(du_cell_index_t cell_index, slot_point sl_rx, rnti
     return make_unexpected(default_error_t{});
   }
   return mac_rx_data_indication{
-      sl_rx, cell_index, mac_rx_pdu_list{mac_rx_pdu{test_rnti, 0, harq_id, std::move(buf.value())}}};
+      sl_rx, cell_index, mac_rx_pdu_list{mac_rx_pdu{test_rnti, harq_id, std::move(buf.value())}}};
 }
 
 expected<mac_rx_data_indication> odu::create_test_pdu_with_rrc_setup_complete(du_cell_index_t cell_index,
@@ -48,7 +48,7 @@ expected<mac_rx_data_indication> odu::create_test_pdu_with_rrc_setup_complete(du
     return make_unexpected(default_error_t{});
   }
   return mac_rx_data_indication{
-      sl_rx, cell_index, mac_rx_pdu_list{mac_rx_pdu{test_rnti, 0, harq_id, std::move(buf.value())}}};
+      sl_rx, cell_index, mac_rx_pdu_list{mac_rx_pdu{test_rnti, harq_id, std::move(buf.value())}}};
 }
 
 static void fill_csi_bits(bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PART2_BITS>& payload,

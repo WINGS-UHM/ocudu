@@ -762,7 +762,7 @@ public:
     rx_ind.sl_rx      = next_sl_tx.without_hyper_sfn() - tx_rx_delay;
     rx_ind.cell_index = to_du_cell_index(0);
     rx_ind.pdus.push_back(mac_rx_pdu{
-        rnti, 0, 0, byte_buffer::create({0x34, 0x1e, 0x4f, 0xc0, 0x4f, 0xa6, 0x06, 0x3f, 0x00, 0x00, 0x00}).value()});
+        rnti, 0, byte_buffer::create({0x34, 0x1e, 0x4f, 0xc0, 0x4f, 0xa6, 0x06, 0x3f, 0x00, 0x00, 0x00}).value()});
     du_hi->get_pdu_handler().handle_rx_data_indication(std::move(rx_ind));
     test_logger.info("rnti={}: Msg3 forwarded to DU-high", rnti);
 
@@ -784,7 +784,7 @@ public:
     rx_ind.sl_rx       = next_sl_tx.without_hyper_sfn() - tx_rx_delay;
     rx_ind.cell_index  = to_du_cell_index(0);
     byte_buffer ul_pdu = byte_buffer::create({0x01, 0x04, 0xc0, 0x00, 0x00, 0x00}).value(); // SRB1, RLC SN 0
-    rx_ind.pdus.push_back(mac_rx_pdu{du_ue_index_to_rnti(ue_idx), 0, 0, ul_pdu.copy()});
+    rx_ind.pdus.push_back(mac_rx_pdu{du_ue_index_to_rnti(ue_idx), 0, ul_pdu.copy()});
     du_hi->get_pdu_handler().handle_rx_data_indication(rx_ind);
 
     // Wait for RRC Setup Complete.
@@ -1031,7 +1031,7 @@ public:
       if (ue_created_flag_list[rnti_to_du_ue_index(pusch.pusch_cfg.rnti)]) {
         // Prepare MAC SDU for LCID 4.
         static const lcid_t drb_lcid = uint_to_lcid(4);
-        mac_rx_pdu          rx_pdu{pusch.pusch_cfg.rnti, 0, pusch.pusch_cfg.harq_id, {}};
+        mac_rx_pdu          rx_pdu{pusch.pusch_cfg.rnti, pusch.pusch_cfg.harq_id, {}};
         // Pack header and payload length.
         // Subtract BSR length.
         payload_len -= mac_header_size + bsr_mac_subpdu.length();

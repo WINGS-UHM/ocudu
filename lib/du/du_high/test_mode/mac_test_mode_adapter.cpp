@@ -412,7 +412,7 @@ void mac_test_mode_cell_adapter::on_cell_results_completion(slot_point slot)
 
     // Inject UL-CCCH message that will trigger the test mode UE creation.
     pdu_handler.handle_rx_data_indication(
-        mac_rx_data_indication{slot, cell_index, {mac_rx_pdu{test_ue_rnti, 0, 0, ulcch_buf.value().copy()}}});
+        mac_rx_data_indication{slot, cell_index, {mac_rx_pdu{test_ue_rnti, 0, ulcch_buf.value().copy()}}});
 
     // UL-CCCH message injected. Update counter.
     logger.info("TEST_MODE: Starting UE with rnti={} creation on cell={}. There still {}/{} left to be created.",

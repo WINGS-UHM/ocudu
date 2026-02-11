@@ -89,30 +89,11 @@ public:
   slot_point slot() const { return notif_slot; }
 };
 
-class mac_cell_slot_handler_spy : public mac_cell_slot_handler
-{
-  error_event error;
-  bool        has_been_notified = false;
-
-public:
-  void handle_slot_indication(const mac_cell_timing_context& context) override {}
-  void handle_error_indication(slot_point sl_tx, error_event event) override
-  {
-    error             = event;
-    has_been_notified = true;
-  }
-  void handle_stop_indication() override {}
-
-  bool               has_error_been_notified() const { return has_been_notified; }
-  const error_event& get_error() const { return error; }
-};
-
 class mac_to_fapi_translator_fixture : public ::testing::Test
 {
 protected:
   p7_requests_gateway_spy                                                                           gateway_spy;
   slot_last_message_notifier_spy                                                                    notifier_spy;
-  mac_cell_slot_handler_spy                                                                         slot_handler_spy;
   const unsigned                                                                                    nof_prbs = 51U;
   std::pair<std::unique_ptr<precoding_matrix_mapper>, std::unique_ptr<precoding_matrix_repository>> pm_tools =
       generate_precoding_matrix_tables(1, 0);
@@ -145,7 +126,6 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_sched_results_generate_correct_d
   ASSERT_EQ(msg.pdus.front().pdu_type, fapi::dl_pdu_type::PDCCH);
   ASSERT_EQ((msg.pdus.end() - 2)->pdu_type, fapi::dl_pdu_type::SSB);
   ASSERT_EQ((msg.pdus.end() - 3)->pdu_type, fapi::dl_pdu_type::SSB);
-  ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
 
 TEST_F(mac_to_fapi_translator_fixture, valid_ul_sched_results_generate_correct_ul_tti_request)
@@ -163,7 +143,6 @@ TEST_F(mac_to_fapi_translator_fixture, valid_ul_sched_results_generate_correct_u
   ASSERT_EQ((msg.pdus.begin() + 1)->pdu_type, fapi::ul_pdu_type::PUSCH);
   ASSERT_EQ((msg.pdus.end() - 2)->pdu_type, fapi::ul_pdu_type::PUCCH);
   ASSERT_EQ(msg.pdus.back().pdu_type, fapi::ul_pdu_type::PUCCH);
-  ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
 
 TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_tx_data_request)
@@ -179,7 +158,6 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_tx
   ASSERT_TRUE(gateway_spy.has_tx_data_request_method_called());
   const fapi::tx_data_request& msg = gateway_spy.tx_data_request_msg();
   ASSERT_EQ(msg.pdus.size(), 1);
-  ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
 
 TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_ul_dci_request)
@@ -193,7 +171,6 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_ul
   ASSERT_TRUE(gateway_spy.has_ul_dci_request_method_called());
   const fapi::ul_dci_request& msg = gateway_spy.ul_dci_request_msg();
   ASSERT_EQ(msg.pdus.size(), 1);
-  ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
 
 TEST_F(mac_to_fapi_translator_fixture, last_message_is_notified)
@@ -219,8 +196,6 @@ TEST_F(mac_to_fapi_translator_fixture, dl_tti_message_with_all_pdus_passes)
   const fapi::dl_tti_request& dl_tti_msg = gateway_spy.dl_tti_request_msg();
   // As the MAC struct does still not contain MAX_PRS_PDUS_PER_SLOT, substract the value.
   ASSERT_EQ(dl_tti_msg.pdus.size(), MAX_DL_PDUS_PER_SLOT - MAX_PRS_PDUS_PER_SLOT);
-
-  ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
 
 TEST_F(mac_to_fapi_translator_fixture, tx_data_message_with_all_pdus_passes)
@@ -244,8 +219,6 @@ TEST_F(mac_to_fapi_translator_fixture, tx_data_message_with_all_pdus_passes)
   const fapi::dl_tti_request& dl_tti_msg = gateway_spy.dl_tti_request_msg();
   // As the MAC struct does still not contain MAX_PRS_PDUS_PER_SLOT, substract the value.
   ASSERT_EQ(dl_tti_msg.pdus.size(), MAX_DL_PDUS_PER_SLOT - MAX_PRS_PDUS_PER_SLOT);
-
-  ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }
 
 TEST_F(mac_to_fapi_translator_fixture, ul_tti_message_with_all_pdus_passes)
@@ -261,6 +234,4 @@ TEST_F(mac_to_fapi_translator_fixture, ul_tti_message_with_all_pdus_passes)
 
   const fapi::ul_tti_request& msg = gateway_spy.ul_tti_request_msg();
   ASSERT_EQ(msg.pdus.size(), MAX_UL_PDUS_PER_SLOT);
-
-  ASSERT_FALSE(slot_handler_spy.has_error_been_notified());
 }

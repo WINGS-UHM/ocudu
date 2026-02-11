@@ -908,7 +908,7 @@ void du_high_env_simulator::handle_slot_preamble_tasks()
     for (auto& [rnti, u] : ues) {
       if (u.pcell_index == i) {
         if (auto pdu_opt = u.sim->build_next_ul_mac_pdu(); pdu_opt.has_value()) {
-          rx_ind.pdus.push_back(mac_rx_pdu{.rnti = rnti, .rapid = 0, .harq_id = 0, .pdu = std::move(pdu_opt.value())});
+          rx_ind.pdus.push_back(mac_rx_pdu{.rnti = rnti, .harq_id = 0, .pdu = std::move(pdu_opt.value())});
         }
       }
     }

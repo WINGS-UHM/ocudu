@@ -13,7 +13,6 @@
 #include "ocudu/fapi_adaptor/precoding_matrix_mapper.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_mapper.h"
 #include "ocudu/mac/mac_cell_result.h"
-#include "ocudu/mac/mac_cell_slot_handler.h"
 #include "ocudu/scheduler/result/pdcch_info.h"
 #include "ocudu/support/synchronization/stop_event.h"
 
@@ -72,9 +71,6 @@ public:
   // See interface for documentation.
   void on_cell_results_completion(slot_point slot) override;
 
-  /// Configures the MAC slot cell handler to the given one.
-  void set_cell_slot_handler(mac_cell_slot_handler& handler) { mac_slot_handler = &handler; }
-
 private:
   /// Handles the UL_DCI.request message.
   void
@@ -91,8 +87,6 @@ private:
   std::unique_ptr<precoding_matrix_mapper> pm_mapper;
   /// UCI Part2 correspondence mapper.
   std::unique_ptr<uci_part2_correspondence_mapper> part2_mapper;
-  /// MAC cell slot handler.
-  mac_cell_slot_handler* mac_slot_handler;
   /// Stop manager.
   rt_stop_event_source stop_manager;
   /// Stop token. This token is used to track when a slot is being used. It is set on new scheduler results (downlink,

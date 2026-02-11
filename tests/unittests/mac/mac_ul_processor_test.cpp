@@ -127,7 +127,7 @@ struct test_bench {
   void enqueue_pdu(rnti_t rnti, byte_buffer& pdu_payload)
   {
     // Create PDU content.
-    mac_rx_pdu pdu{.rnti = rnti, .rapid = 1, .harq_id = 0};
+    mac_rx_pdu pdu{.rnti = rnti, .harq_id = 0};
     ASSERT_TRUE(pdu.pdu.append(pdu_payload));
 
     // Add PDU to the list in the RX indication message.
@@ -217,7 +217,7 @@ private:
 mac_rx_data_indication create_rx_data_indication(du_cell_index_t cell_idx, rnti_t rnti, byte_buffer pdu_payload)
 {
   mac_rx_data_indication rx_ind{slot_point{subcarrier_spacing::kHz15, 0}, cell_idx, {}};
-  rx_ind.pdus.push_back(mac_rx_pdu{.rnti = rnti, .rapid = 1, .harq_id = 0});
+  rx_ind.pdus.push_back(mac_rx_pdu{.rnti = rnti, .harq_id = 0});
   rx_ind.pdus.back().pdu = std::move(pdu_payload);
   return rx_ind;
 }

@@ -1240,6 +1240,12 @@ void cu_cp_impl::send_ran_paging(ue_index_t ue_index, full_i_rnti_t full_i_rnti)
     return;
   }
 
+  // Check if RAN paging timer is already running and drop the new paging request if needed.
+  if (ue->get_ran_paging_timer().is_running()) {
+    logger.debug("ue={}: RAN paging timer already running, dropping new paging request", ue_index);
+    return;
+  }
+
   auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
   if (ngap == nullptr) {
     logger.warning("ue={}: Can't initiate RAN paging. NGAP not found for plmn={}", ue_index, ue->get_ue_context().plmn);

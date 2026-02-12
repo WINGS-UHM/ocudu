@@ -363,10 +363,23 @@ intermediate commits cached:
   timeout: 2 hours
   script:
     - *script_functions
-    - git config advice.detachedHead false
-    - git fetch origin --depth=20 $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+    - &fetch_branches |
+      git config advice.detachedHead false
+      if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_PATH" != "$CI_PROJECT_PATH" ]; then
+        git remote add fork $CI_MERGE_REQUEST_SOURCE_PROJECT_URL
+        git fetch --deepen=50 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+        git fetch --deepen=50 fork $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME fork/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+      else
+        git fetch --deepen=50 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+      fi
+      FORK_POINT=$(git merge-base $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME $CI_MERGE_REQUEST_TARGET_BRANCH_NAME)
+      SOURCE_SHA=${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}
     - |
-      for rev in $(git rev-list --reverse origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME..$CI_COMMIT_SHA)
+      for rev in $(git rev-list --reverse $FORK_POINT..$SOURCE_SHA)
       do
         echo "##################################################"
         echo "#### $rev ####"
@@ -396,10 +409,8 @@ valgrind changed tests:
     TEST_EXECUTION_TIMEOUT: 20m
   script:
     - *script_functions
-    - git config advice.detachedHead false
-    - git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME --depth 50
+    - *fetch_branches
     - |
-      FORK_POINT=$(git merge-base origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME)
       echo "##################################################"
       echo "#### $FORK_POINT ####"
       echo "##################################################"
@@ -409,9 +420,9 @@ valgrind changed tests:
       OUTPUT_FINGERPRINT=""
     - |
       echo "##################################################"
-      echo "#### $CI_COMMIT_SHA ####"
+      echo "#### $SOURCE_SHA ####"
       echo "##################################################"
-      git checkout origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+      git checkout $SOURCE_SHA
       build_ocudu_extended
     - echo "This test execution has a timeout of ${TEST_EXECUTION_TIMEOUT}. If the execution excess that timer, the job will be marked as allowed_to_fail. This will avoid the job to have a huge duration in a MR pipeline."
     - launch_tests

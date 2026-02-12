@@ -304,9 +304,24 @@ clang-tidy incremental:
       cd $CI_PROJECT_DIR
       git config advice.detachedHead false
       git config --local core.hooksPath /dev/null
-      git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+      if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_PATH" != "$CI_PROJECT_PATH" ]; then
+        git remote add fork $CI_MERGE_REQUEST_SOURCE_PROJECT_URL
+        git fetch --deepen=50 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+        git fetch --deepen=50 fork $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME fork/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+      else
+        git fetch --deepen=50 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+      fi
+      FORK_POINT=$(git merge-base $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME $CI_MERGE_REQUEST_TARGET_BRANCH_NAME)
+      SOURCE_SHA=${CI_MERGE_REQUEST_SOURCE_BRANCH_SHA:-$CI_COMMIT_SHA}
     - |
-      for rev in $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME; do
+      for rev in $FORK_POINT $SOURCE_SHA; do
+        echo "##################################################"
+        echo "#### $rev ####"
+        echo "##################################################"
         git checkout $rev
         CodeChecker log -o ${CI_PROJECT_DIR}/build/compile_commands.json --build "builder.sh -m -j${CPU_JOBS} -c clang -DMARCH=x86-64-v3 -DENABLE_ARMPL=False -DENABLE_MKL=False -DENABLE_FFTW=True -DASSERT_LEVEL=PARANOID -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTING=False $CI_PROJECT_DIR"
       done

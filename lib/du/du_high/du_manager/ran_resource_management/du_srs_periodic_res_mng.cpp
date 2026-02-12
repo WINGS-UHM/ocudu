@@ -36,7 +36,7 @@ static bool is_partially_ul_slot(unsigned offset, const std::optional<tdd_ul_dl_
 du_srs_policy_max_ul_rate::cell_context::cell_context(const du_cell_config& cfg) :
   cell_cfg(cfg),
   tdd_ul_dl_cfg_common(cfg.tdd_ul_dl_cfg_common),
-  default_srs_cfg(du_srs_mng_details::build_default_srs_cfg(cfg))
+  default_srs_cfg(config_helpers::make_srs_config(cell_cfg.init_bwp_builder.srs_cfg, cell_cfg.pci))
 {
   ocudu_assert(cfg.init_bwp_builder.srs_cfg.srs_type_enabled != srs_type::aperiodic, "Invalid SRS type");
 }

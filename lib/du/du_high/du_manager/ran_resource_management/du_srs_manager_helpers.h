@@ -31,19 +31,6 @@ std::optional<unsigned> compute_c_srs(unsigned nof_ul_bwp_rbs);
 ///         resources are placed at the center of the BWP.
 unsigned compute_srs_rb_start(unsigned c_srs, unsigned nof_ul_bwp_rbs);
 
-/// \brief Helper that updates the starting SRS config with user-defined parameters.
-/// This is not the UE-specific SRS configuration, but a default template with user-defined parameters that is used to
-/// build the UE-specific SRS-Config.
-/// \param[in] cell_cfg DU Cell configuration.
-/// \return The default SRS configuration (not yet UE-specific) later used to build the UE-specific SRS-Config.
-inline srs_config build_default_srs_cfg(const du_cell_config& cell_cfg)
-{
-  srs_config srs_cfg = config_helpers::make_srs_config(cell_cfg.init_bwp_builder.srs_cfg, cell_cfg.pci);
-  ocudu_assert(srs_cfg.srs_res_list.size() == 1 and srs_cfg.srs_res_set_list.size() == 1,
-               "The SRS resource list and the SRS resource set list are expected to have a single element");
-  return srs_cfg;
-}
-
 } // namespace du_srs_mng_details
 } // namespace odu
 } // namespace ocudu

@@ -42,12 +42,6 @@ inline pucch_config make_pucch_config(const odu::du_cell_config& du_cell_cfg);
 /// Builds an SRS configuration from SRS builder parameters.
 inline srs_config make_srs_config(const srs_builder_params& srs_params, pci_t pci);
 
-/// Builds default DU CSI parameters.
-inline du_csi_params make_default_du_csi_params(const cell_config_builder_params_extended& params = {})
-{
-  return make_default_csi_builder_params(params).csi_params;
-}
-
 /// Generates default cell configuration used by gNB DU. The default configuration should be valid.
 inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder_params_extended& params = {})
 {
@@ -84,7 +78,7 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
   cfg.init_bwp_builder.pucch.sr_period =
       static_cast<sr_periodicity>(get_nof_slots_per_subframe(params.scs_common) * 40U);
   if (params.csi_rs_enabled) {
-    cfg.init_bwp_builder.csi = make_default_du_csi_params(params);
+    cfg.init_bwp_builder.csi = make_default_csi_builder_params(params).csi_params;
   }
 
   return cfg;

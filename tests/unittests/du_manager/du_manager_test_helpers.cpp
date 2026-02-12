@@ -131,6 +131,7 @@ du_manager_test_bench::du_manager_test_bench(span<const du_cell_config> cells) :
          {f1u_gw},
          {mac, f1ap, f1ap, rlc_pcap},
          {mac}},
+  cell_mng(params),
   logger(ocudulog::fetch_basic_logger("DU-MNG"))
 {
   logger.set_level(ocudulog::basic_levels::debug);
@@ -138,4 +139,9 @@ du_manager_test_bench::du_manager_test_bench(span<const du_cell_config> cells) :
   ocudulog::init();
 
   params.ran.qos = config_helpers::make_default_du_qos_config_list(/* warn_on_drop */ true, 1000);
+
+  // Add cells to cell manager.
+  for (const auto& cell : du_cells) {
+    cell_mng.add_cell(cell);
+  }
 }

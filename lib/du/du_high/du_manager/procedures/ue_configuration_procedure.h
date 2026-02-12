@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "../du_cell_manager.h"
 #include "../du_ue/du_ue_manager_repository.h"
 #include "procedure_logger.h"
 #include "ocudu/du/du_high/du_manager/du_manager_params.h"
@@ -23,6 +24,7 @@ class ue_configuration_procedure
 public:
   ue_configuration_procedure(const f1ap_ue_context_update_request& request_,
                              du_ue_manager_repository&             ue_mng_,
+                             const du_cell_manager&                cell_mng_,
                              const du_manager_params&              du_params_);
 
   void operator()(coro_context<async_task<f1ap_ue_context_update_response>>& ctx);
@@ -50,6 +52,7 @@ private:
 
   const f1ap_ue_context_update_request request;
   du_ue_manager_repository&            ue_mng;
+  const du_cell_manager&               cell_mng;
   const du_manager_params&             du_params;
 
   ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("DU-MNG");

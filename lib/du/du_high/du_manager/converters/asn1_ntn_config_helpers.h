@@ -21,6 +21,11 @@ namespace odu {
 /// \return The filled ASN.1 SIB19 structure.
 asn1::rrc_nr::sib19_r17_s make_asn1_rrc_cell_sib19(const sib19_info& sib19_params);
 
+/// Creates and fills an ASN.1 NTN-Config-R17 structure for NTN cell configuration.
+/// \param[in] sib19_params The NTN cell configuration parameters to encode.
+/// \return The filled ASN.1 NTN-Config-R17 structure.
+asn1::rrc_nr::ntn_cfg_r17_s make_asn1_rrc_cell_ntn_cfg(const ntn_config& ntn_cfg);
+
 /// Fills advanced cell NTN-config parameters in ASN.1 SIB19 message.
 /// \param[in]  sib19_params content of SIB19 msg.
 /// \param[out] out The ASN.1 SIB19 struct to fill.

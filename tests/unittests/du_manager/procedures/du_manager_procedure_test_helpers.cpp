@@ -110,7 +110,8 @@ f1ap_ue_context_update_response du_manager_proc_tester::configure_ue(const f1ap_
   }
 
   // Run Procedure.
-  async_task<f1ap_ue_context_update_response>         t = launch_async<ue_configuration_procedure>(req, ue_mng, params);
+  async_task<f1ap_ue_context_update_response> t =
+      launch_async<ue_configuration_procedure>(req, ue_mng, cell_mng, params);
   lazy_task_launcher<f1ap_ue_context_update_response> launcher{t};
   ocudu_assert(launcher.ready(), "The UE creation procedure should have completed by now");
 

@@ -20,9 +20,11 @@ using namespace odu;
 
 ue_configuration_procedure::ue_configuration_procedure(const f1ap_ue_context_update_request& request_,
                                                        du_ue_manager_repository&             ue_mng_,
+                                                       const du_cell_manager&                cell_mng_,
                                                        const du_manager_params&              du_params_) :
   request(request_),
   ue_mng(ue_mng_),
+  cell_mng(cell_mng_),
   du_params(du_params_),
   ue(ue_mng.find_ue(request.ue_index)),
   proc_logger(logger, name(), request.ue_index, ue != nullptr ? ue->rnti : rnti_t::INVALID_RNTI)
@@ -368,10 +370,8 @@ f1ap_ue_context_update_response ue_configuration_procedure::make_ue_config_respo
       proc_logger.log_proc_failure("Failed to handle HandoverPreparation IE. Cause: No Spcell ID provided");
       return make_ue_config_failure();
     }
-    auto target_cell_it = std::find_if(du_params.ran.cells.begin(), du_params.ran.cells.end(), [this](const auto& e) {
-      return e.nr_cgi == request.spcell_id;
-    });
-    if (target_cell_it == du_params.ran.cells.end()) {
+    auto target_cell_idx = cell_mng.get_cell_index(*request.spcell_id);
+    if (target_cell_idx == INVALID_DU_CELL_INDEX) {
       proc_logger.log_proc_failure("Failed to handle HandoverPreparation IE. Cause: No Spcell ID {}:{} found",
                                    request.spcell_id->plmn_id,
                                    request.spcell_id->nci);
@@ -388,8 +388,9 @@ f1ap_ue_context_update_response ue_configuration_procedure::make_ue_config_respo
         return make_ue_config_failure();
       }
     }
+    const du_cell_config& target_cell_cfg               = cell_mng.get_cell_cfg(target_cell_idx);
     asn1_cell_group.sp_cell_cfg.recfg_with_sync_present = calculate_reconfig_with_sync_diff(
-        asn1_cell_group.sp_cell_cfg.recfg_with_sync, *target_cell_it, ue->resources.value(), ho_prep_info, ue->rnti);
+        asn1_cell_group.sp_cell_cfg.recfg_with_sync, target_cell_cfg, ue->resources.value(), ho_prep_info, ue->rnti);
     if (not asn1_cell_group.sp_cell_cfg.recfg_with_sync_present) {
       proc_logger.log_proc_failure("Failed to calculate ReconfigWithSync");
       return make_ue_config_failure();

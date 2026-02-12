@@ -10,6 +10,7 @@
 
 #include "asn1_rrc_config_helpers.h"
 #include "asn1_csi_meas_config_helpers.h"
+#include "asn1_ntn_config_helpers.h"
 #include "ocudu/asn1/asn1_diff_utils.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/support/error_handling.h"
@@ -3460,13 +3461,10 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   *out.smtc = make_ssb_mtc(du_cell_cfg);
 
   if (du_cell_cfg.ntn_params.has_value() && du_cell_cfg.ntn_params->is_enabled()) {
-    const auto& ntn            = du_cell_cfg.ntn_params.value();
     out.sp_cell_cfg_common.ext = true;
     out.sp_cell_cfg_common.ntn_cfg_r17.set_present();
-    auto* ntn_cfg_r17                              = out.sp_cell_cfg_common.ntn_cfg_r17.get();
-    ntn_cfg_r17->cell_specific_koffset_r17_present = true;
-    ntn_cfg_r17->cell_specific_koffset_r17 =
-        ntn.ntn_cfg.cell_specific_koffset.has_value() ? ntn.ntn_cfg.cell_specific_koffset->count() : 0;
+    auto* ntn_cfg_r17 = out.sp_cell_cfg_common.ntn_cfg_r17.get();
+    *ntn_cfg_r17      = make_asn1_rrc_cell_ntn_cfg(du_cell_cfg.ntn_params.value().ntn_cfg);
   }
   // TODO
 

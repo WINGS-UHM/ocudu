@@ -62,7 +62,7 @@ protected:
       new_drb.f1u.warn_on_drop     = false;
     }
 
-    proc = launch_async<ue_configuration_procedure>(req, ue_mng, params);
+    proc = launch_async<ue_configuration_procedure>(req, ue_mng, cell_mng, params);
     proc_launcher.emplace(proc);
   }
 

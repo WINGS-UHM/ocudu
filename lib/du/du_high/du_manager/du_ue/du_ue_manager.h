@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "../du_cell_manager.h"
 #include "du_ue.h"
 #include "du_ue_controller_impl.h"
 #include "du_ue_manager_repository.h"
@@ -26,7 +27,9 @@ namespace odu {
 class du_ue_manager final : public du_ue_manager_repository
 {
 public:
-  explicit du_ue_manager(du_manager_params& cfg_, du_ran_resource_manager& cell_res_alloc);
+  explicit du_ue_manager(du_manager_params&       cfg_,
+                         du_ran_resource_manager& cell_res_alloc,
+                         const du_cell_manager&   cell_mng);
 
   du_ue_index_t find_unused_du_ue_index();
 
@@ -81,6 +84,7 @@ private:
 
   du_manager_params&       cfg;
   du_ran_resource_manager& cell_res_alloc;
+  const du_cell_manager&   cell_mng;
   ocudulog::basic_logger&  logger;
 
   // Pool of available TEIDs for F1-U.

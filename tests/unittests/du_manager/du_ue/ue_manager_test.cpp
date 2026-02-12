@@ -8,6 +8,7 @@
  *
  */
 
+#include "lib/du/du_high/du_manager/du_cell_manager.h"
 #include "lib/du/du_high/du_manager/du_ue/du_ue_manager.h"
 #include "tests/unittests/du_manager/du_manager_test_helpers.h"
 #include "ocudu/du/du_cell_config_helpers.h"
@@ -31,6 +32,11 @@ protected:
     ocudulog::fetch_basic_logger("DU-MNG").set_level(ocudulog::basic_levels::debug);
     ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
+
+    // Add cells to cell manager.
+    for (const auto& cell : cells) {
+      cell_mng.add_cell(cell);
+    }
 
     // By default F1AP creates two F1-C bearers.
     f1ap_dummy.next_ue_create_response.result = true;
@@ -105,7 +111,8 @@ protected:
                            {mac_dummy, f1ap_dummy, f1ap_dummy, rlc_pcap},
                            {mac_dummy}};
 
-  du_ue_manager ue_mng{params, cell_res_alloc};
+  du_cell_manager cell_mng{params};
+  du_ue_manager   ue_mng{params, cell_res_alloc, cell_mng};
 };
 
 TEST_F(du_ue_manager_tester, when_ue_create_request_is_received_du_manager_requests_f1ap_and_mac_to_create_ue)

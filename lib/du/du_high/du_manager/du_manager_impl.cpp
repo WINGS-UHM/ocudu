@@ -34,7 +34,7 @@ du_manager_impl::du_manager_impl(const du_manager_params& params_) :
   logger(ocudulog::fetch_basic_logger("DU-MNG")),
   cell_mng(params),
   cell_res_alloc(params.ran.cells, params.mac.sched_cfg, params.ran.srbs, params.ran.qos, params.test_cfg),
-  ue_mng(params, cell_res_alloc),
+  ue_mng(params, cell_res_alloc, cell_mng),
   positioning_handler(create_du_positioning_handler(params, cell_mng, ue_mng, logger)),
   metrics(params.metrics, params.services.du_mng_exec, params.services.timers, params.f1ap.metrics),
   proc_ctxt{params, ctxt, cell_mng, ue_mng, metrics, logger},

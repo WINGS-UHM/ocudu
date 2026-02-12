@@ -13,8 +13,28 @@
 using namespace ocudu;
 using namespace asn1::rrc_nr;
 
-/// Pack NTN configuration parameters into ASN.1 NTN-Config structure.
-static ntn_cfg_r17_s make_asn1_rrc_cell_ntn_cfg(const ntn_config& ntn_cfg)
+sib19_r17_s ocudu::odu::make_asn1_rrc_cell_sib19(const sib19_info& sib19_params)
+{
+  sib19_r17_s sib19;
+
+  // Distance Threshold.
+  sib19.distance_thresh_r17_present = false;
+
+  // T-Service, currently not supported.
+  sib19.t_service_r17_present = false;
+
+  // NTN-Config
+  if (sib19_params.ntn_cfg.has_value()) {
+    sib19.ntn_cfg_r17_present = true;
+    sib19.ntn_cfg_r17         = make_asn1_rrc_cell_ntn_cfg(*sib19_params.ntn_cfg);
+  }
+
+  make_asn1_rrc_advanced_cell_sib19(sib19_params, sib19);
+
+  return sib19;
+}
+
+ntn_cfg_r17_s ocudu::odu::make_asn1_rrc_cell_ntn_cfg(const ntn_config& ntn_cfg)
 {
   ntn_cfg_r17_s out_ntn_cfg;
 
@@ -161,27 +181,6 @@ static ntn_cfg_r17_s make_asn1_rrc_cell_ntn_cfg(const ntn_config& ntn_cfg)
   }
 
   return out_ntn_cfg;
-}
-
-sib19_r17_s ocudu::odu::make_asn1_rrc_cell_sib19(const sib19_info& sib19_params)
-{
-  sib19_r17_s sib19;
-
-  // Distance Threshold.
-  sib19.distance_thresh_r17_present = false;
-
-  // T-Service, currently not supported.
-  sib19.t_service_r17_present = false;
-
-  // NTN-Config
-  if (sib19_params.ntn_cfg.has_value()) {
-    sib19.ntn_cfg_r17_present = true;
-    sib19.ntn_cfg_r17         = make_asn1_rrc_cell_ntn_cfg(*sib19_params.ntn_cfg);
-  }
-
-  make_asn1_rrc_advanced_cell_sib19(sib19_params, sib19);
-
-  return sib19;
 }
 
 #ifndef OCUDU_HAS_ENTERPRISE_NTN

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "lib/du/du_high/du_manager/du_cell_manager.h"
 #include "lib/du/du_high/du_manager/ran_resource_management/du_ran_resource_manager.h"
 #include "ocudu/du/du_high/du_manager/du_manager_params.h"
 #include "ocudu/gtpu/gtpu_teid_pool.h"
@@ -413,6 +414,7 @@ public:
   mac_test_dummy                         mac;
   null_rlc_pcap                          rlc_pcap;
   du_manager_params                      params;
+  du_cell_manager                        cell_mng;
   dummy_ue_resource_configurator_factory cell_res_alloc;
   ocudulog::basic_logger&                logger;
 };

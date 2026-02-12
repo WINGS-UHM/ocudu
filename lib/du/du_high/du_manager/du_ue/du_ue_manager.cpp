@@ -21,9 +21,12 @@
 using namespace ocudu;
 using namespace odu;
 
-du_ue_manager::du_ue_manager(du_manager_params& cfg_, du_ran_resource_manager& cell_res_alloc_) :
+du_ue_manager::du_ue_manager(du_manager_params&       cfg_,
+                             du_ran_resource_manager& cell_res_alloc_,
+                             const du_cell_manager&   cell_mng_) :
   cfg(cfg_),
   cell_res_alloc(cell_res_alloc_),
+  cell_mng(cell_mng_),
   logger(ocudulog::fetch_basic_logger("DU-MNG")),
   f1u_teid_pool(create_gtpu_allocator({MAX_NOF_DU_UES * MAX_NOF_DRBS}))
 {
@@ -93,7 +96,7 @@ du_ue_manager::handle_ue_create_request(const f1ap_ue_context_creation_request& 
 async_task<f1ap_ue_context_update_response>
 du_ue_manager::handle_ue_config_request(const f1ap_ue_context_update_request& msg)
 {
-  return launch_async<ue_configuration_procedure>(msg, *this, cfg);
+  return launch_async<ue_configuration_procedure>(msg, *this, cell_mng, cfg);
 }
 
 async_task<void> du_ue_manager::handle_ue_delete_request(const f1ap_ue_delete_request& req)

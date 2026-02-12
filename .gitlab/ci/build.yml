@@ -408,6 +408,11 @@ intermediate commits cached:
         echo "#### $rev ####"
         echo "##################################################"
         git checkout $rev
+        if ! git log -1 --format=%B "$rev" | grep -qiE '^Signed-off-by:\s+.+\s+<.+>$'; then
+          echo "✗ Missing Signed-off-by trailer in commit."
+          git log -1 --oneline "$rev"
+          exit 1
+        fi
         build_ocudu_extended
       done
     - launch_tests

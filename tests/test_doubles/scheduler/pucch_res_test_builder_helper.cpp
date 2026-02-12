@@ -86,9 +86,57 @@ static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&     
     cell_cfg.init_bwp_builder.pucch.sr_period =
         base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.front().period;
   }
-  cell_cfg.init_bwp_builder.pdsch = config_helpers::make_pdsch_builder_params(base_ue_cfg);
-  cell_cfg.init_bwp_builder.pusch = config_helpers::make_pusch_builder_params(base_ue_cfg);
-  cell_cfg.init_bwp_builder.csi   = derive_csi_builder_params(base_ue_cfg);
+  {
+    pdsch_builder_params params{};
+    if (base_ue_cfg.pdsch_serv_cell_cfg.has_value()) {
+      params.nof_harq_procs            = static_cast<uint8_t>(base_ue_cfg.pdsch_serv_cell_cfg->nof_harq_proc);
+      params.dl_harq_feedback_disabled = base_ue_cfg.pdsch_serv_cell_cfg->dl_harq_feedback_disabled;
+    }
+    if (base_ue_cfg.init_dl_bwp.pdsch_cfg.has_value()) {
+      const auto& pdsch_cfg           = base_ue_cfg.init_dl_bwp.pdsch_cfg.value();
+      params.mcs_table                = pdsch_cfg.mcs_table;
+      params.interleaving_bundle_size = pdsch_cfg.vrb_to_prb_interleaving;
+      if (pdsch_cfg.pdsch_mapping_type_a_dmrs.has_value()) {
+        params.additional_positions = pdsch_cfg.pdsch_mapping_type_a_dmrs->additional_positions;
+      }
+    }
+    cell_cfg.init_bwp_builder.pdsch = params;
+  }
+  {
+    pusch_builder_params params{};
+    if (base_ue_cfg.ul_config.has_value()) {
+      const auto& ul_cfg = base_ue_cfg.ul_config.value();
+      if (ul_cfg.pusch_serv_cell_cfg.has_value()) {
+        params.nof_harq_procs = static_cast<uint8_t>(ul_cfg.pusch_serv_cell_cfg->nof_harq_proc);
+        params.ul_harq_mode   = ul_cfg.pusch_serv_cell_cfg->ul_harq_mode;
+        if (ul_cfg.pusch_serv_cell_cfg->cbg_tx.has_value()) {
+          params.cbg_tx = static_cast<uint8_t>(ul_cfg.pusch_serv_cell_cfg->cbg_tx->max_cgb_per_tb);
+        }
+        params.x_ov_head = ul_cfg.pusch_serv_cell_cfg->x_ov_head;
+      }
+      if (ul_cfg.init_ul_bwp.pusch_cfg.has_value()) {
+        const auto& pusch_cfg = ul_cfg.init_ul_bwp.pusch_cfg.value();
+        params.mcs_table      = pusch_cfg.mcs_table;
+        if (pusch_cfg.pusch_mapping_type_a_dmrs.has_value()) {
+          params.additional_positions = pusch_cfg.pusch_mapping_type_a_dmrs->additional_positions;
+        }
+        if (pusch_cfg.trans_precoder == pusch_config::transform_precoder::enabled) {
+          params.transform_precoding_enabled = true;
+        }
+        if (pusch_cfg.uci_cfg.has_value() && pusch_cfg.uci_cfg->beta_offsets_cfg.has_value()) {
+          if (const auto* beta_offsets =
+                  std::get_if<uci_on_pusch::beta_offsets_semi_static>(&pusch_cfg.uci_cfg->beta_offsets_cfg.value())) {
+            params.uci_beta_offsets = *beta_offsets;
+          }
+        }
+        if (pusch_cfg.pusch_pwr_ctrl.has_value() && !pusch_cfg.pusch_pwr_ctrl->p0_alphasets.empty()) {
+          params.p0_pusch_alpha = pusch_cfg.pusch_pwr_ctrl->p0_alphasets.front().p0_pusch_alpha;
+        }
+      }
+    }
+    cell_cfg.init_bwp_builder.pusch = params;
+  }
+  cell_cfg.init_bwp_builder.csi = derive_csi_builder_params(base_ue_cfg);
   return cell_cfg;
 }
 

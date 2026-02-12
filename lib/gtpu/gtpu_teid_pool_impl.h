@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "ocudu/adt/moodycamel_mpmc_queue.h"
 #include "ocudu/gtpu/gtpu_teid_pool.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include <mutex>
 
 namespace ocudu {
 
@@ -23,47 +23,68 @@ public:
   explicit gtpu_teid_pool_impl(uint32_t max_nof_teids_) :
     max_nof_teids(max_nof_teids_), teid_pool(max_nof_teids_), logger(ocudulog::fetch_basic_logger("GTPU"))
   {
-    for (uint32_t t = GTPU_TEID_MIN.value(); t < GTPU_TEID_MIN.value() + max_nof_teids; t++) {
-      if (not teid_pool.try_push(gtpu_teid_t{t})) {
-        logger.warning("Failed to reserve TEID. teid={}", t);
-      }
-    }
   }
 
   [[nodiscard]] expected<gtpu_teid_t> request_teid() override
   {
     expected<gtpu_teid_t> teid = make_unexpected(default_error_t{});
-    gtpu_teid_t           t;
 
-    if (teid_pool.try_pop(t)) {
-      teid = t;
-    } else {
-      logger.warning("Failed to allocate TEID. teid_pool_size={}", teid_pool.size());
+    std::lock_guard<std::mutex> guard(pool_mutex);
+    if (full_no_lock()) {
+      return teid;
     }
 
+    // Find a free teid
+    bool     found   = false;
+    uint16_t tmp_idx = next_teid_idx;
+    for (uint16_t n = 0; n < max_nof_teids; n++) {
+      tmp_idx = (next_teid_idx + n) % max_nof_teids;
+      if (not teid_pool[tmp_idx]) {
+        teid_pool[tmp_idx] = true;
+        found              = true;
+        break;
+      }
+    }
+
+    if (not found) {
+      return teid;
+    }
+    next_teid_idx = (tmp_idx + 1) % max_nof_teids;
+    teid          = gtpu_teid_t{tmp_idx + GTPU_TEID_MIN.value()};
+    nof_teids++;
     return teid;
   }
 
   [[nodiscard]] bool release_teid(gtpu_teid_t teid) override
   {
-    if (not teid_pool.try_push(teid)) {
-      logger.warning("Failed to release TEID. teid_pool_size={} teid={}", teid_pool.size(), teid);
+    std::lock_guard<std::mutex> guard(pool_mutex);
+    uint32_t                    teid_idx = teid.value() - GTPU_TEID_MIN.value();
+    if (not teid_pool[teid_idx]) {
+      logger.error("Trying to free non-allocated TEID. teid={}", teid);
       return false;
     }
+    teid_pool[teid_idx] = false;
+    nof_teids--;
     return true;
   }
 
-  [[nodiscard]] bool full() const override { return teid_pool.empty(); }
+  [[nodiscard]] bool full() override
+  {
+    std::lock_guard<std::mutex> guard(pool_mutex);
+    return full_no_lock();
+  }
 
   uint32_t get_max_nof_teids() override { return max_nof_teids; }
 
 private:
+  [[nodiscard]] bool full_no_lock() const { return nof_teids >= max_nof_teids; }
+
+  uint32_t       next_teid_idx = 0;
+  uint32_t       nof_teids     = 0;
   const uint32_t max_nof_teids;
 
-  concurrent_queue<gtpu_teid_t,
-                   concurrent_queue_policy::moodycamel_lockfree_mpmc,
-                   concurrent_queue_wait_policy::non_blocking>
-      teid_pool;
+  std::mutex        pool_mutex;
+  std::vector<bool> teid_pool;
 
   ocudulog::basic_logger& logger;
 };

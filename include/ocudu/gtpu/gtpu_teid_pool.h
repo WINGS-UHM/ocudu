@@ -30,7 +30,7 @@ public:
 
   [[nodiscard]] virtual bool release_teid(gtpu_teid_t teid) = 0;
 
-  [[nodiscard]] virtual bool full() const = 0;
+  [[nodiscard]] virtual bool full() = 0;
 
   virtual uint32_t get_max_nof_teids() = 0;
 };

@@ -39,7 +39,7 @@ public:
 
   [[nodiscard]] bool release_teid(gtpu_teid_t teid) override { return true; }
 
-  [[nodiscard]] bool full() const override { return false; }
+  [[nodiscard]] bool full() override { return false; }
 
   uint32_t get_max_nof_teids() override { return std::numeric_limits<uint32_t>::max(); }
 

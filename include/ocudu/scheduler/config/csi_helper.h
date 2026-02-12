@@ -19,7 +19,7 @@
 
 namespace ocudu {
 
-/// CSI-specific parameters used to generate CSI Meas Config for a given DU cell.
+/// Configurable CSI parameters in a given DU cell.
 struct du_csi_params {
   /// Symbol index within the slot assigned to CSI-RS for channel measurement.
   unsigned cm_csi_ofdm_symbol_index = 4;
@@ -50,8 +50,8 @@ struct du_csi_params {
 
 namespace csi_helper {
 
-/// Extendsion of \c du_csi_params with other cell parameters involved in the CSI Meas Config generation.
-struct csi_builder_params {
+/// Extension of \c du_csi_params with other cell parameters involved in the CSI Meas Config generation.
+struct csi_meas_config_builder_params {
   /// PCI of the cell that will determine the scrambling.
   pci_t pci;
   /// \brief Number of RBs used for the CSI-RS. The csi config generators will find the closest number of RBs to
@@ -61,8 +61,10 @@ struct csi_builder_params {
   unsigned nof_ports = 1;
   /// Maximum number of DL layers.
   unsigned max_nof_layers = 1;
+  /// PDSCH MCS table used to select the CSI CQI table.
+  pdsch_mcs_table mcs_table = pdsch_mcs_table::qam64;
   /// DU-level CSI parameters.
-  du_csi_params du_params;
+  du_csi_params csi_params;
 };
 
 /// \brief Compute default CSI-RS signalling period to use, while constrained by TS38.214, 5.1.6.1.1.
@@ -102,18 +104,17 @@ std::optional<csi_resource_periodicity> find_valid_csi_rs_period(const tdd_ul_dl
                                                     unsigned                       ssb_period_ms);
 
 /// \brief Generate list of zp-CSI-RS Resources.
-std::vector<zp_csi_rs_resource> make_periodic_zp_csi_rs_resource_list(const csi_builder_params& params);
+std::vector<zp_csi_rs_resource> make_periodic_zp_csi_rs_resource_list(const csi_meas_config_builder_params& params);
 
 /// \brief Generate set of periodic zp-CSI-RS Resources.
-zp_csi_rs_resource_set make_periodic_zp_csi_rs_resource_set(const csi_builder_params& params);
+zp_csi_rs_resource_set make_periodic_zp_csi_rs_resource_set(const csi_meas_config_builder_params& params);
 
 /// \brief Generate wideband NZP-CSI-RS Resource List, composed by nzp-CSI-RS resources for tracking and channel
 /// measurements.
-std::vector<nzp_csi_rs_resource> make_nzp_csi_rs_resource_list(const csi_builder_params& params);
+std::vector<nzp_csi_rs_resource> make_nzp_csi_rs_resource_list(const csi_meas_config_builder_params& params);
 
 /// \brief Generate CSI-MeasConfig.
-csi_meas_config make_csi_meas_config(const csi_builder_params&                                 params,
-                                     pdsch_mcs_table                                           mcs_table,
+csi_meas_config make_csi_meas_config(const csi_meas_config_builder_params&                     params,
                                      const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list);
 
 } // namespace csi_helper

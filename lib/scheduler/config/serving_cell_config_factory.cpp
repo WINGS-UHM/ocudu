@@ -538,16 +538,17 @@ pdsch_serving_cell_config ocudu::config_helpers::make_default_pdsch_serving_cell
   return serv_cell;
 }
 
-csi_helper::csi_builder_params
+csi_helper::csi_meas_config_builder_params
 ocudu::config_helpers::make_default_csi_builder_params(const cell_config_builder_params_extended& params)
 {
   // Parameters used to generate list of CSI resources.
-  csi_helper::csi_builder_params csi_params{};
-  csi_params.pci                     = params.pci;
-  csi_params.nof_rbs                 = params.cell_nof_crbs;
-  csi_params.nof_ports               = params.dl_carrier.nof_ant;
-  csi_params.max_nof_layers          = *params.max_nof_layers;
-  csi_params.du_params.csi_rs_period = csi_helper::get_max_csi_rs_period(params.scs_common);
+  csi_helper::csi_meas_config_builder_params csi_params{};
+  csi_params.pci                      = params.pci;
+  csi_params.nof_rbs                  = params.cell_nof_crbs;
+  csi_params.nof_ports                = params.dl_carrier.nof_ant;
+  csi_params.max_nof_layers           = *params.max_nof_layers;
+  csi_params.mcs_table                = pdsch_mcs_table::qam64;
+  csi_params.csi_params.csi_rs_period = csi_helper::get_max_csi_rs_period(params.scs_common);
 
   if (band_helper::get_duplex_mode(params.dl_carrier.band) == duplex_mode::TDD) {
     // Set a default CSI report slot offset that falls in an UL slot.
@@ -555,10 +556,10 @@ ocudu::config_helpers::make_default_csi_builder_params(const cell_config_builder
 
     constexpr unsigned default_ssb_period_ms = 10U;
 
-    const unsigned max_csi_symbol = *std::max_element(csi_params.du_params.tracking_csi_ofdm_symbol_indices.begin(),
-                                                      csi_params.du_params.tracking_csi_ofdm_symbol_indices.end());
+    const unsigned max_csi_symbol = *std::max_element(csi_params.csi_params.tracking_csi_ofdm_symbol_indices.begin(),
+                                                      csi_params.csi_params.tracking_csi_ofdm_symbol_indices.end());
 
-    if (not csi_helper::derive_valid_csi_rs_slot_offsets(csi_params.du_params,
+    if (not csi_helper::derive_valid_csi_rs_slot_offsets(csi_params.csi_params,
                                                          std::nullopt,
                                                          std::nullopt,
                                                          std::nullopt,
@@ -571,7 +572,7 @@ ocudu::config_helpers::make_default_csi_builder_params(const cell_config_builder
     for (unsigned i = 0; i != nof_slots_per_tdd_period(tdd_pattern); ++i) {
       // TODO: Support reports in the special slot.
       if (is_tdd_full_ul_slot(tdd_pattern, i)) {
-        csi_params.du_params.csi_report_slot_offset = i;
+        csi_params.csi_params.csi_report_slot_offset = i;
       }
     }
   }
@@ -599,7 +600,7 @@ pdsch_config ocudu::config_helpers::make_default_pdsch_config(const cell_config_
   pdsch_cfg.vrb_to_prb_interleaving = vrb_to_prb::mapping_type::non_interleaved;
 
   if (params.csi_rs_enabled) {
-    const csi_helper::csi_builder_params csi_params = make_default_csi_builder_params(params);
+    const csi_helper::csi_meas_config_builder_params csi_params = make_default_csi_builder_params(params);
 
     // zp-CSI-RS resources.
     pdsch_cfg.zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
@@ -635,11 +636,11 @@ pdcch_config ocudu::config_helpers::make_ue_dedicated_pdcch_config(const cell_co
 csi_meas_config ocudu::config_helpers::make_csi_meas_config(const cell_config_builder_params_extended& params)
 {
   // Parameters used to generate list of CSI resources.
-  const csi_helper::csi_builder_params csi_params = make_default_csi_builder_params(params);
+  const csi_helper::csi_meas_config_builder_params csi_params = make_default_csi_builder_params(params);
 
   // Generate CSI resources.
   // Note: Since by default we use periodic CSI, we pass an empty PUSCH TD allocation list.
-  return csi_helper::make_csi_meas_config(csi_params, pdsch_mcs_table::qam64, {});
+  return csi_helper::make_csi_meas_config(csi_params, {});
 }
 
 serving_cell_config

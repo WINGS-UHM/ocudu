@@ -316,12 +316,13 @@ static void fill_csi_resources(odu::du_cell_config& out_cell, const du_high_unit
   out_cell.init_bwp_builder.csi = du_csi;
 
   // Generate zp-CSI-RS resources.
-  csi_helper::csi_builder_params csi_params;
+  csi_helper::csi_meas_config_builder_params csi_params;
   csi_params.pci                                     = cell_cfg.pci;
   csi_params.nof_rbs                                 = get_nof_rbs(cell_cfg);
   csi_params.nof_ports                               = cell_cfg.nof_antennas_dl;
   csi_params.max_nof_layers                          = cell_cfg.pdsch_cfg.max_rank.value_or(cell_cfg.nof_antennas_dl);
-  csi_params.du_params                               = du_csi;
+  csi_params.mcs_table                               = cell_cfg.pdsch_cfg.mcs_table;
+  csi_params.csi_params                              = du_csi;
   out_cell.init_bwp_builder.pdsch.zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
   out_cell.init_bwp_builder.pdsch.p_zp_csi_rs_res    = csi_helper::make_periodic_zp_csi_rs_resource_set(csi_params);
 }

@@ -175,11 +175,9 @@ bool csi_helper::derive_valid_csi_rs_slot_offsets(du_csi_params&                
   return meas_found and tracking_found;
 }
 
-static zp_csi_rs_resource make_default_zp_csi_rs_resource(const csi_builder_params& params)
+static zp_csi_rs_resource make_default_zp_csi_rs_resource(const csi_meas_config_builder_params& params)
 {
-  if (params.nof_ports > 4) {
-    report_error("Unsupported number of antenna ports={}", params.nof_ports);
-  }
+  report_error_if_not(params.nof_ports <= 4, "Unsupported number of antenna ports={}", params.nof_ports);
 
   zp_csi_rs_resource res{};
   res.id = static_cast<zp_csi_rs_res_id_t>(0);
@@ -191,17 +189,17 @@ static zp_csi_rs_resource make_default_zp_csi_rs_resource(const csi_builder_para
   res.res_mapping.fd_alloc.resize(3);
   res.res_mapping.fd_alloc.set(params.pci % res.res_mapping.fd_alloc.size(), true);
   res.res_mapping.cdm                     = csi_rs_cdm_type::fd_CDM2;
-  res.res_mapping.first_ofdm_symbol_in_td = params.du_params.zp_csi_ofdm_symbol_index;
+  res.res_mapping.first_ofdm_symbol_in_td = params.csi_params.zp_csi_ofdm_symbol_index;
   res.res_mapping.freq_density            = csi_rs_freq_density_type::one;
   res.res_mapping.freq_band_rbs           = get_csi_freq_occupation_rbs(params.nof_rbs, params.nof_rbs);
-  res.period                              = params.du_params.csi_rs_period;
+  res.period                              = params.csi_params.csi_rs_period;
   res.offset                              = 2;
 
   return res;
 }
 
 std::vector<zp_csi_rs_resource>
-ocudu::csi_helper::make_periodic_zp_csi_rs_resource_list(const csi_builder_params& params)
+ocudu::csi_helper::make_periodic_zp_csi_rs_resource_list(const csi_meas_config_builder_params& params)
 {
   if (params.nof_ports > 4) {
     report_error("Unsupported number of antenna ports {}", params.nof_ports);
@@ -213,14 +211,15 @@ ocudu::csi_helper::make_periodic_zp_csi_rs_resource_list(const csi_builder_param
   list[0].id = static_cast<zp_csi_rs_res_id_t>(0);
 
   for (auto& res : list) {
-    res.offset = params.du_params.zp_csi_slot_offset;
-    res.period = params.du_params.csi_rs_period;
+    res.offset = params.csi_params.zp_csi_slot_offset;
+    res.period = params.csi_params.csi_rs_period;
   }
 
   return list;
 }
 
-zp_csi_rs_resource_set ocudu::csi_helper::make_periodic_zp_csi_rs_resource_set(const csi_builder_params& params)
+zp_csi_rs_resource_set
+ocudu::csi_helper::make_periodic_zp_csi_rs_resource_set(const csi_meas_config_builder_params& params)
 {
   if (params.nof_ports > 4) {
     report_error("Unsupported number of antenna ports {}", params.nof_ports);
@@ -270,7 +269,7 @@ static csi_report_periodicity convert_csi_resource_period_to_report_period(csi_r
 }
 
 // Fills the values that are common to all CSI-RS resources.
-static nzp_csi_rs_resource make_common_nzp_csi_rs_resource(const csi_builder_params& params)
+static nzp_csi_rs_resource make_common_nzp_csi_rs_resource(const csi_meas_config_builder_params& params)
 {
   nzp_csi_rs_resource res{};
 
@@ -278,28 +277,29 @@ static nzp_csi_rs_resource make_common_nzp_csi_rs_resource(const csi_builder_par
   res.res_mapping.freq_density  = csi_rs_freq_density_type::three;
   res.res_mapping.freq_band_rbs = get_csi_freq_occupation_rbs(params.nof_rbs, params.nof_rbs);
 
-  res.pwr_ctrl_offset       = params.du_params.pwr_ctrl_offset;
+  res.pwr_ctrl_offset       = params.csi_params.pwr_ctrl_offset;
   res.pwr_ctrl_offset_ss_db = 0;
   res.scrambling_id         = params.pci;
 
-  res.csi_res_period = params.du_params.csi_rs_period;
+  res.csi_res_period = params.csi_params.csi_rs_period;
 
   res.qcl_info_periodic_csi_rs = static_cast<tci_state_id_t>(0);
 
   return res;
 }
 
-static nzp_csi_rs_resource make_channel_measurement_nzp_csi_rs_resource(const csi_builder_params& params)
+static nzp_csi_rs_resource make_channel_measurement_nzp_csi_rs_resource(const csi_meas_config_builder_params& params)
 {
-  ocudu_assert(params.du_params.meas_csi_slot_offset < csi_resource_periodicity_to_uint(params.du_params.csi_rs_period),
+  ocudu_assert(params.csi_params.meas_csi_slot_offset <
+                   csi_resource_periodicity_to_uint(params.csi_params.csi_rs_period),
                "Invalid CSI slot offset {} >= {}",
-               params.du_params.meas_csi_slot_offset,
-               csi_resource_periodicity_to_uint(params.du_params.csi_rs_period));
+               params.csi_params.meas_csi_slot_offset,
+               csi_resource_periodicity_to_uint(params.csi_params.csi_rs_period));
   nzp_csi_rs_resource res = make_common_nzp_csi_rs_resource(params);
 
   res.res_id                              = static_cast<nzp_csi_rs_res_id_t>(0);
-  res.csi_res_offset                      = params.du_params.meas_csi_slot_offset;
-  res.res_mapping.first_ofdm_symbol_in_td = params.du_params.cm_csi_ofdm_symbol_index;
+  res.csi_res_offset                      = params.csi_params.meas_csi_slot_offset;
+  res.res_mapping.first_ofdm_symbol_in_td = params.csi_params.cm_csi_ofdm_symbol_index;
   res.res_mapping.nof_ports               = params.nof_ports;
   res.res_mapping.freq_density            = csi_rs_freq_density_type::one;
 
@@ -339,15 +339,15 @@ static nzp_csi_rs_resource make_channel_measurement_nzp_csi_rs_resource(const cs
 /// The NZP-CSI-RS resources selected for TRS are constrained by TS 38.214 Section 5.1.6.1.1 which specifies the number
 /// of ports, multiplexing, OFDM symbols to use within the slot, periodicity, and density.
 static void
-fill_tracking_nzp_csi_rs_resource(span<nzp_csi_rs_resource> tracking_csi_rs,
-                                  const csi_builder_params& params,
-                                  nzp_csi_rs_res_id_t       first_csi_res_id = static_cast<nzp_csi_rs_res_id_t>(1))
+fill_tracking_nzp_csi_rs_resource(span<nzp_csi_rs_resource>             tracking_csi_rs,
+                                  const csi_meas_config_builder_params& params,
+                                  nzp_csi_rs_res_id_t first_csi_res_id = static_cast<nzp_csi_rs_res_id_t>(1))
 {
   static constexpr size_t NOF_TRACKING_RESOURCES = 4;
 
   ocudu_assert(tracking_csi_rs.size() == NOF_TRACKING_RESOURCES, "Invalid tracking CSI-RS resource list size");
-  ocudu_assert(params.du_params.tracking_csi_slot_offset + 1 <
-                   csi_resource_periodicity_to_uint(params.du_params.csi_rs_period),
+  ocudu_assert(params.csi_params.tracking_csi_slot_offset + 1 <
+                   csi_resource_periodicity_to_uint(params.csi_params.csi_rs_period),
                "Invalid CSI slot offset");
   nzp_csi_rs_resource res = make_common_nzp_csi_rs_resource(params);
 
@@ -363,13 +363,14 @@ fill_tracking_nzp_csi_rs_resource(span<nzp_csi_rs_resource> tracking_csi_rs,
   static constexpr unsigned rel_slot_offset[] = {0, 0, 1, 1};
   for (unsigned i = 0; i != NOF_TRACKING_RESOURCES; ++i) {
     res.res_id                              = static_cast<nzp_csi_rs_res_id_t>(first_csi_res_id + i);
-    res.res_mapping.first_ofdm_symbol_in_td = params.du_params.tracking_csi_ofdm_symbol_indices[i];
-    res.csi_res_offset                      = params.du_params.tracking_csi_slot_offset + rel_slot_offset[i];
+    res.res_mapping.first_ofdm_symbol_in_td = params.csi_params.tracking_csi_ofdm_symbol_indices[i];
+    res.csi_res_offset                      = params.csi_params.tracking_csi_slot_offset + rel_slot_offset[i];
     tracking_csi_rs[i]                      = res;
   }
 }
 
-std::vector<nzp_csi_rs_resource> ocudu::csi_helper::make_nzp_csi_rs_resource_list(const csi_builder_params& params)
+std::vector<nzp_csi_rs_resource>
+ocudu::csi_helper::make_nzp_csi_rs_resource_list(const csi_meas_config_builder_params& params)
 {
   std::vector<nzp_csi_rs_resource> list(5);
 
@@ -439,7 +440,7 @@ static unsigned get_subcarrier_location_from_fd_alloc_bit_location(int     fd_al
   }
 }
 
-static std::vector<csi_im_resource> make_csi_im_resources(const csi_builder_params& params)
+static std::vector<csi_im_resource> make_csi_im_resources(const csi_meas_config_builder_params& params)
 {
   if (params.nof_ports > 4) {
     report_error("Unsupported number of antenna ports={}", params.nof_ports);
@@ -500,13 +501,13 @@ static std::vector<csi_resource_config> make_csi_resource_configs()
 }
 
 static std::vector<csi_report_config>
-make_csi_report_configs(const csi_builder_params&                                 params,
+make_csi_report_configs(const csi_meas_config_builder_params&                     params,
                         const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list)
 {
-  ocudu_assert(params.du_params.csi_report_slot_offset.has_value() or params.du_params.enable_aperiodic_report,
+  ocudu_assert(params.csi_params.csi_report_slot_offset.has_value() or params.csi_params.enable_aperiodic_report,
                "At least one of periodic or aperiodic CSI reporting must be enabled");
   // TODO: support both periodic and aperiodic reporting simultaneously.
-  ocudu_assert(not(params.du_params.csi_report_slot_offset.has_value() and params.du_params.enable_aperiodic_report),
+  ocudu_assert(not(params.csi_params.csi_report_slot_offset.has_value() and params.csi_params.enable_aperiodic_report),
                "Simultaneous periodic and aperiodic CSI reporting is not supported");
   std::vector<csi_report_config> reps(1);
 
@@ -515,12 +516,12 @@ make_csi_report_configs(const csi_builder_params&                               
   reps[0].csi_im_res_for_interference = static_cast<csi_res_config_id_t>(1);
 
   // Set Report Config.
-  if (params.du_params.csi_report_slot_offset.has_value()) {
+  if (params.csi_params.csi_report_slot_offset.has_value()) {
     csi_report_config::periodic_or_semi_persistent_report_on_pucch report_cfg_type{};
     report_cfg_type.report_type =
         csi_report_config::periodic_or_semi_persistent_report_on_pucch::report_type_t::periodic;
-    report_cfg_type.report_slot_period = convert_csi_resource_period_to_report_period(params.du_params.csi_rs_period);
-    report_cfg_type.report_slot_offset = *params.du_params.csi_report_slot_offset;
+    report_cfg_type.report_slot_period = convert_csi_resource_period_to_report_period(params.csi_params.csi_rs_period);
+    report_cfg_type.report_slot_offset = *params.csi_params.csi_report_slot_offset;
     pucch_resource_builder_params pucch_builder_params{};
     const unsigned                cell_res_id =
         ((pucch_builder_params.res_set_0_size.value() + pucch_builder_params.res_set_1_size.value()) *
@@ -534,7 +535,7 @@ make_csi_report_configs(const csi_builder_params&                               
         .ul_bwp = to_bwp_id(0), .pucch_res_id = pucch_res_id_t{cell_res_id, ue_res_id}}};
     reps[0].report_cfg_type            = report_cfg_type;
   }
-  if (params.du_params.enable_aperiodic_report) {
+  if (params.csi_params.enable_aperiodic_report) {
     csi_report_config::aperiodic_report report_cfg_type{};
     // K2 values for CSI PUSCHs. We set them to be the same as the PUSCH time domain allocations K2 values.
     report_cfg_type.report_slot_offset_list.resize(pusch_td_alloc_list.size());
@@ -591,12 +592,30 @@ make_csi_report_configs(const csi_builder_params&                               
   reps[0].cqi_table                             = cqi_table_t::table1;
   reps[0].subband_size                          = csi_report_config::subband_size_t::value1;
 
+  // Set CQI table of CSI-ReportConfig according to the MCS table used for PDSCH.
+  cqi_table_t cqi_table = cqi_table_t::table1;
+  switch (params.mcs_table) {
+    case pdsch_mcs_table::qam64:
+      cqi_table = cqi_table_t::table1;
+      break;
+    case pdsch_mcs_table::qam256:
+      cqi_table = cqi_table_t::table2;
+      break;
+    case pdsch_mcs_table::qam64LowSe:
+      cqi_table = cqi_table_t::table3;
+      break;
+    default:
+      report_error("Invalid MCS table={}\n", static_cast<unsigned>(params.mcs_table));
+  }
+  for (auto& csi_report_cfg : reps) {
+    csi_report_cfg.cqi_table = cqi_table;
+  }
+
   return reps;
 }
 
 csi_meas_config
-ocudu::csi_helper::make_csi_meas_config(const csi_builder_params&                                 params,
-                                        pdsch_mcs_table                                           mcs_table,
+ocudu::csi_helper::make_csi_meas_config(const csi_meas_config_builder_params&                     params,
                                         const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list)
 {
   csi_meas_config csi_meas{};
@@ -619,27 +638,8 @@ ocudu::csi_helper::make_csi_meas_config(const csi_builder_params&               
   // CSI-ReportConfig.
   csi_meas.csi_report_cfg_list = make_csi_report_configs(params, pusch_td_alloc_list);
 
-  // Set CQI table of CSI-ReportConfig according to the MCS table used for PDSCH.
-  cqi_table_t cqi_table = cqi_table_t::table1;
-  switch (mcs_table) {
-    case pdsch_mcs_table::qam64:
-      cqi_table = cqi_table_t::table1;
-      break;
-    case pdsch_mcs_table::qam256:
-      cqi_table = cqi_table_t::table2;
-      break;
-    case pdsch_mcs_table::qam64LowSe:
-      cqi_table = cqi_table_t::table3;
-      break;
-    default:
-      report_error("Invalid MCS table={}\n", static_cast<unsigned>(mcs_table));
-  }
-  for (auto& csi_report_cfg : csi_meas.csi_report_cfg_list) {
-    csi_report_cfg.cqi_table = cqi_table;
-  }
-
   // Aperiodic parameters.
-  if (params.du_params.enable_aperiodic_report) {
+  if (params.csi_params.enable_aperiodic_report) {
     csi_aperiodic_trigger_state       ts;
     csi_associated_report_config_info report_cfg_info;
     // [Implementation-defined] We have only one report config.

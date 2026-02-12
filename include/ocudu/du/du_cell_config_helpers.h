@@ -47,7 +47,7 @@ inline srs_config make_srs_config(const srs_builder_params& srs_params, pci_t pc
 /// Builds default DU CSI parameters.
 inline du_csi_params make_default_du_csi_params(const cell_config_builder_params_extended& params = {})
 {
-  return make_default_csi_builder_params(params).du_params;
+  return make_default_csi_builder_params(params).csi_params;
 }
 
 /// Generates default cell configuration used by gNB DU. The default configuration should be valid.
@@ -226,17 +226,16 @@ inline std::optional<csi_meas_config> make_csi_meas_config(const odu::du_cell_co
     return std::nullopt;
   }
 
-  csi_helper::csi_builder_params csi_params;
+  csi_helper::csi_meas_config_builder_params csi_params;
   csi_params.pci            = du_cell_cfg.pci;
   csi_params.nof_rbs        = du_cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
   csi_params.nof_ports      = du_cell_cfg.dl_carrier.nof_ant;
   csi_params.max_nof_layers = du_cell_cfg.init_bwp_builder.pdsch.max_nof_layers.value_or(csi_params.nof_ports);
-  csi_params.du_params      = du_cell_cfg.init_bwp_builder.csi.value();
+  csi_params.mcs_table      = du_cell_cfg.init_bwp_builder.pdsch.mcs_table;
+  csi_params.csi_params     = du_cell_cfg.init_bwp_builder.csi.value();
 
-  csi_meas_config csi_cfg =
-      csi_helper::make_csi_meas_config(csi_params,
-                                       du_cell_cfg.init_bwp_builder.pdsch.mcs_table,
-                                       du_cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list);
+  csi_meas_config csi_cfg = csi_helper::make_csi_meas_config(
+      csi_params, du_cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list);
 
   return csi_cfg;
 }

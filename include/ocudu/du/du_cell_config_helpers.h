@@ -21,6 +21,7 @@
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
+#include "ocudu/support/error_handling.h"
 #include <algorithm>
 
 namespace ocudu {
@@ -36,10 +37,18 @@ inline pusch_builder_params make_pusch_builder_params(const serving_cell_config&
 inline pdsch_serving_cell_config make_pdsch_serv_cell_config(const pdsch_builder_params& pdsch_params);
 /// Builds a PUSCH serving cell configuration from PUSCH builder parameters.
 inline pusch_serving_cell_config make_pusch_serv_cell_config(const pusch_builder_params& pusch_params);
+/// Builds a CSI-MeasConfig from DU cell configuration.
+inline std::optional<csi_meas_config> make_csi_meas_config(const odu::du_cell_config& du_cell_cfg);
 /// Builds a PUCCH configuration from DU cell configuration and PUCCH builder parameters.
 inline pucch_config make_pucch_config(const odu::du_cell_config& du_cell_cfg);
 /// Builds an SRS configuration from SRS builder parameters.
 inline srs_config make_srs_config(const srs_builder_params& srs_params, pci_t pci);
+
+/// Builds default DU CSI parameters.
+inline du_csi_params make_default_du_csi_params(const cell_config_builder_params_extended& params = {})
+{
+  return make_default_csi_builder_params(params).du_params;
+}
 
 /// Generates default cell configuration used by gNB DU. The default configuration should be valid.
 inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder_params_extended& params = {})
@@ -76,6 +85,9 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
   cfg.init_bwp_builder.pucch.min_k1         = params.min_k1;
   cfg.init_bwp_builder.pucch.sr_period =
       static_cast<sr_periodicity>(get_nof_slots_per_subframe(params.scs_common) * 40U);
+  if (params.csi_rs_enabled) {
+    cfg.init_bwp_builder.csi = make_default_du_csi_params(params);
+  }
 
   return cfg;
 }
@@ -84,8 +96,7 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
 inline odu::du_ue_ded_serv_cell_config make_du_ue_ded_serv_cell_config(const serving_cell_config& ue_serv_cell_cfg)
 {
   odu::du_ue_ded_serv_cell_config cfg{};
-  cfg.pdcch_cfg    = ue_serv_cell_cfg.init_dl_bwp.pdcch_cfg;
-  cfg.csi_meas_cfg = ue_serv_cell_cfg.csi_meas_cfg;
+  cfg.pdcch_cfg = ue_serv_cell_cfg.init_dl_bwp.pdcch_cfg;
   return cfg;
 }
 
@@ -109,8 +120,9 @@ inline std::optional<radio_link_monitoring_config> make_rlm_config(const odu::du
   }
 
   span<const nzp_csi_rs_resource> csi_rs_resources;
-  if (du_cell_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
-    csi_rs_resources = du_cell_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list;
+  const auto                      csi_meas_cfg = make_csi_meas_config(du_cell_cfg);
+  if (csi_meas_cfg.has_value()) {
+    csi_rs_resources = csi_meas_cfg->nzp_csi_rs_res_list;
   }
 
   radio_link_monitoring_config rlm_cfg = rlm_helper::make_radio_link_monitoring_config(rlm_params, csi_rs_resources);
@@ -205,6 +217,28 @@ inline pusch_config make_pusch_config(const pusch_builder_params& pusch_params)
   }
 
   return pusch_cfg;
+}
+
+/// Builds a CSI-MeasConfig from DU cell configuration.
+inline std::optional<csi_meas_config> make_csi_meas_config(const odu::du_cell_config& du_cell_cfg)
+{
+  if (!du_cell_cfg.init_bwp_builder.csi.has_value()) {
+    return std::nullopt;
+  }
+
+  csi_helper::csi_builder_params csi_params;
+  csi_params.pci            = du_cell_cfg.pci;
+  csi_params.nof_rbs        = du_cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+  csi_params.nof_ports      = du_cell_cfg.dl_carrier.nof_ant;
+  csi_params.max_nof_layers = du_cell_cfg.init_bwp_builder.pdsch.max_nof_layers.value_or(csi_params.nof_ports);
+  csi_params.du_params      = du_cell_cfg.init_bwp_builder.csi.value();
+
+  csi_meas_config csi_cfg =
+      csi_helper::make_csi_meas_config(csi_params,
+                                       du_cell_cfg.init_bwp_builder.pdsch.mcs_table,
+                                       du_cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list);
+
+  return csi_cfg;
 }
 
 /// Builds PDSCH builder parameters from a full UE serving cell configuration.
@@ -481,23 +515,13 @@ inline srs_config make_srs_config(const srs_builder_params& user_params, pci_t p
 }
 
 /// Builds a full UE serving cell configuration from DU cell configuration and a cell index.
-inline serving_cell_config make_ue_serving_cell_config(const odu::du_ue_ded_serv_cell_config& ue_ded_cfg,
-                                                       du_cell_index_t                        cell_index)
-{
-  serving_cell_config cfg{};
-  cfg.cell_index            = cell_index;
-  cfg.init_dl_bwp.pdcch_cfg = ue_ded_cfg.pdcch_cfg;
-  cfg.pdsch_serv_cell_cfg   = make_default_pdsch_serving_cell_config();
-  cfg.csi_meas_cfg          = ue_ded_cfg.csi_meas_cfg;
-  return cfg;
-}
-
-/// Builds a full UE serving cell configuration from DU cell configuration and a cell index.
 inline serving_cell_config make_ue_serving_cell_config(const odu::du_cell_config& du_cell_cfg,
                                                        du_cell_index_t            cell_index)
 {
-  serving_cell_config cfg = make_ue_serving_cell_config(du_cell_cfg.ue_ded_serv_cell_cfg, cell_index);
-  cfg.pdsch_serv_cell_cfg = make_pdsch_serv_cell_config(du_cell_cfg.init_bwp_builder.pdsch);
+  serving_cell_config cfg{};
+  cfg.cell_index            = cell_index;
+  cfg.init_dl_bwp.pdcch_cfg = du_cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg;
+  cfg.pdsch_serv_cell_cfg   = make_pdsch_serv_cell_config(du_cell_cfg.init_bwp_builder.pdsch);
   if (!cfg.ul_config.has_value()) {
     cfg.ul_config.emplace();
   }
@@ -505,6 +529,7 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_cell_config
   cfg.ul_config->init_ul_bwp.srs_cfg   = make_srs_config(du_cell_cfg.init_bwp_builder.srs_cfg, du_cell_cfg.pci);
   cfg.ul_config->init_ul_bwp.pusch_cfg = make_pusch_config(du_cell_cfg.init_bwp_builder.pusch);
   cfg.ul_config->pusch_serv_cell_cfg   = make_pusch_serv_cell_config(du_cell_cfg.init_bwp_builder.pusch);
+  cfg.csi_meas_cfg                     = make_csi_meas_config(du_cell_cfg);
   cfg.init_dl_bwp.pdsch_cfg            = make_pdsch_config(du_cell_cfg);
   cfg.init_dl_bwp.rlm_cfg              = make_rlm_config(du_cell_cfg);
 

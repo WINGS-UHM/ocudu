@@ -911,11 +911,11 @@ TEST(serving_cell_config_converter_test, test_pdsch_serving_cell_cfg_release_con
 static csi_meas_config make_test_csi_meas_cfg()
 {
   csi_helper::csi_builder_params csi_params{};
-  csi_params.pci           = (pci_t)1;
-  csi_params.nof_rbs       = 52;
-  csi_params.csi_rs_period = csi_helper::get_max_csi_rs_period(subcarrier_spacing::kHz15);
+  csi_params.pci                     = (pci_t)1;
+  csi_params.nof_rbs                 = 52;
+  csi_params.du_params.csi_rs_period = csi_helper::get_max_csi_rs_period(subcarrier_spacing::kHz15);
   // Note: Since by default we use periodic CSI, we pass an empty PUSCH TD allocation list.
-  return csi_helper::make_csi_meas_config(csi_params, {});
+  return csi_helper::make_csi_meas_config(csi_params, pdsch_mcs_table::qam64, {});
 }
 
 TEST(serving_cell_config_converter_test, test_initial_csi_meas_cfg_conversion)

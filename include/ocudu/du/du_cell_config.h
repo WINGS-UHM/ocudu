@@ -38,8 +38,6 @@ struct phy_cell_group_params {
 struct du_ue_ded_serv_cell_config {
   /// Initial Downlink BWP dedicated PDCCH configuration.
   std::optional<pdcch_config> pdcch_cfg;
-  /// CSI-MeasConfig.
-  std::optional<csi_meas_config> csi_meas_cfg;
 };
 
 /// Cell Configuration, including common and UE-dedicated configs, that the DU will use to generate other configs for

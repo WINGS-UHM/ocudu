@@ -601,10 +601,21 @@ make_custom_du_cell_config_for_pucch_cnt(const pucch_cnt_builder_params&        
   f1_params.occ_supported             = true;
 
   du_cfg.init_bwp_builder.pucch.sr_period = pucch_params_.sr_period;
-  if (du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
-    std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        du_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type)
-        .report_slot_period = pucch_params_.csi_period;
+  if (du_cfg.init_bwp_builder.csi.has_value()) {
+    auto&          csi_params       = du_cfg.init_bwp_builder.csi.value();
+    const unsigned csi_period_slots = csi_report_periodicity_to_uint(pucch_params_.csi_period);
+    csi_params.csi_rs_period        = static_cast<csi_resource_periodicity>(csi_period_slots);
+
+    // Ensure CSI offsets remain within the selected period.
+    csi_params.meas_csi_slot_offset     = csi_params.meas_csi_slot_offset % csi_period_slots;
+    csi_params.zp_csi_slot_offset       = csi_params.zp_csi_slot_offset % csi_period_slots;
+    csi_params.tracking_csi_slot_offset = csi_params.tracking_csi_slot_offset % csi_period_slots;
+    if (csi_params.tracking_csi_slot_offset + 1 >= csi_period_slots) {
+      csi_params.tracking_csi_slot_offset = csi_period_slots > 1 ? csi_period_slots - 2 : 0;
+    }
+    if (csi_params.csi_report_slot_offset.has_value()) {
+      csi_params.csi_report_slot_offset = *csi_params.csi_report_slot_offset % csi_period_slots;
+    }
   }
 
   return du_cfg;

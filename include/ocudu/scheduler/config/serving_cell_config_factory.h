@@ -16,6 +16,7 @@
 #include "ocudu/ran/sib/system_info_config.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 
 namespace ocudu {
@@ -64,6 +65,9 @@ srs_config make_default_srs_config(const cell_config_builder_params_extended& pa
 pdsch_serving_cell_config make_default_pdsch_serving_cell_config();
 
 pdsch_config make_default_pdsch_config(const cell_config_builder_params_extended& params = {});
+
+/// \brief Creates default CSI builder parameters.
+csi_helper::csi_builder_params make_default_csi_builder_params(const cell_config_builder_params_extended& params = {});
 
 pdcch_config make_ue_dedicated_pdcch_config(const cell_config_builder_params_extended& params = {});
 

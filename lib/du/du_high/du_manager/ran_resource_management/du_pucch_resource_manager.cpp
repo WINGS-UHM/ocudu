@@ -68,7 +68,7 @@ du_pucch_resource_manager::du_pucch_resource_manager(span<const du_cell_config> 
   default_pucch_cfg(
       build_default_pucch_cfg(config_helpers::make_pucch_config(cell_cfg_list_[0]), user_defined_pucch_cfg)),
   default_csi_report_cfg([&cell_cfg_list_]() -> std::optional<csi_report_config> {
-    const auto& csi_meas = cell_cfg_list_[0].ue_ded_serv_cell_cfg.csi_meas_cfg;
+    const auto csi_meas = config_helpers::make_csi_meas_config(cell_cfg_list_[0]);
     if (csi_meas.has_value() and not is_pusch_configured(*csi_meas)) {
       return csi_meas->csi_report_cfg_list[0];
     }

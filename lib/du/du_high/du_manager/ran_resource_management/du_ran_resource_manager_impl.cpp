@@ -88,15 +88,15 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
   ra_res_alloc(cell_cfg_list)
 {
   for (unsigned cell_idx_uint = 0; cell_idx_uint != cell_cfg_list.size(); ++cell_idx_uint) {
-    const auto&           cell      = cell_cfg_list[cell_idx_uint];
-    const du_cell_index_t cell_idx  = to_du_cell_index(cell_idx_uint);
-    unsigned              sr_limit  = pucch_res_mng.get_nof_sr_free_res_offsets(cell_idx);
-    unsigned              csi_limit = 0;
-    unsigned              srs_limit = 0;
+    const auto&           cell         = cell_cfg_list[cell_idx_uint];
+    const du_cell_index_t cell_idx     = to_du_cell_index(cell_idx_uint);
+    unsigned              sr_limit     = pucch_res_mng.get_nof_sr_free_res_offsets(cell_idx);
+    unsigned              csi_limit    = 0;
+    unsigned              srs_limit    = 0;
+    const auto            csi_meas_cfg = config_helpers::make_csi_meas_config(cell);
 
     unsigned max_nof_ues = sr_limit;
-    if (cell.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value() and
-        not is_pusch_configured(*cell.ue_ded_serv_cell_cfg.csi_meas_cfg)) {
+    if (csi_meas_cfg.has_value() and not is_pusch_configured(*csi_meas_cfg)) {
       csi_limit   = pucch_res_mng.get_nof_csi_free_res_offsets(cell_idx);
       max_nof_ues = std::min(max_nof_ues, csi_limit);
     }
@@ -112,10 +112,7 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
                 fmt::underlying(cell_idx),
                 max_nof_ues,
                 sr_limit,
-                cell.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value() and
-                        not is_pusch_configured(*cell.ue_ded_serv_cell_cfg.csi_meas_cfg)
-                    ? fmt::to_string(csi_limit)
-                    : "n/a",
+                csi_meas_cfg.has_value() and not is_pusch_configured(*csi_meas_cfg) ? fmt::to_string(csi_limit) : "n/a",
                 cell.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::periodic ? fmt::to_string(srs_limit)
                                                                                      : "n/a");
   }

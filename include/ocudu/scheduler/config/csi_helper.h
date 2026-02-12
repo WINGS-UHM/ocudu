@@ -12,21 +12,15 @@
 
 #include "ocudu/ran/csi_rs/csi_meas_config.h"
 #include "ocudu/ran/pci.h"
+#include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include <array>
+#include <optional>
 
 namespace ocudu {
-namespace csi_helper {
 
-/// \brief Parameters used to generate CSI Meas Config.
-struct csi_builder_params {
-  /// PCI of the cell that will determine the scrambling.
-  pci_t pci;
-  /// \brief Number of RBs used for the CSI-RS. The csi config generators will find the closest number of RBs to
-  /// the one provided that is a multiple of 4 as required by the TS 38.331, "CSI-FrequencyOccupation".
-  unsigned nof_rbs;
-  /// Number of ports set for the CSI-RS.
-  unsigned nof_ports = 1;
+/// CSI-specific parameters used to generate CSI Meas Config for a given DU cell.
+struct du_csi_params {
   /// Symbol index within the slot assigned to CSI-RS for channel measurement.
   unsigned cm_csi_ofdm_symbol_index = 4;
   /// Symbol index within the slot assigned to ZP-CSI-RS.
@@ -50,8 +44,25 @@ struct csi_builder_params {
   std::optional<unsigned> csi_report_slot_offset = 9;
   /// Whether to configure aperiodic CSI reports.
   bool enable_aperiodic_report = false;
+  /// Power offset of PDSCH RE to NZP CSI-RS RE. Value in dB {-8,...,15}.
+  int8_t pwr_ctrl_offset = 0;
+};
+
+namespace csi_helper {
+
+/// Extendsion of \c du_csi_params with other cell parameters involved in the CSI Meas Config generation.
+struct csi_builder_params {
+  /// PCI of the cell that will determine the scrambling.
+  pci_t pci;
+  /// \brief Number of RBs used for the CSI-RS. The csi config generators will find the closest number of RBs to
+  /// the one provided that is a multiple of 4 as required by the TS 38.331, "CSI-FrequencyOccupation".
+  unsigned nof_rbs;
+  /// Number of ports set for the CSI-RS.
+  unsigned nof_ports = 1;
   /// Maximum number of DL layers.
   unsigned max_nof_layers = 1;
+  /// DU-level CSI parameters.
+  du_csi_params du_params;
 };
 
 /// \brief Compute default CSI-RS signalling period to use, while constrained by TS38.214, 5.1.6.1.1.
@@ -82,7 +93,7 @@ std::optional<csi_resource_periodicity> find_valid_csi_rs_period(const tdd_ul_dl
 /// \param tdd_cfg [in] TDD pattern.
 /// \param max_csi_symbol_index [in] Maximum CSI symbol among those used for CSI-RS.
 /// \param ssb_period_ms [in] SSB period in ms.
-[[nodiscard]] bool derive_valid_csi_rs_slot_offsets(csi_builder_params&            csi_params,
+[[nodiscard]] bool derive_valid_csi_rs_slot_offsets(du_csi_params&                 csi_params,
                                                     const std::optional<unsigned>& meas_csi_slot_offset,
                                                     const std::optional<unsigned>& tracking_csi_slot_offset,
                                                     const std::optional<unsigned>& zp_csi_slot_offset,
@@ -102,6 +113,7 @@ std::vector<nzp_csi_rs_resource> make_nzp_csi_rs_resource_list(const csi_builder
 
 /// \brief Generate CSI-MeasConfig.
 csi_meas_config make_csi_meas_config(const csi_builder_params&                                 params,
+                                     pdsch_mcs_table                                           mcs_table,
                                      const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list);
 
 } // namespace csi_helper

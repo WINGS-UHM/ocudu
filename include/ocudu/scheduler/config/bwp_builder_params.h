@@ -10,13 +10,13 @@
 
 #pragma once
 
-#include "ocudu/ran/csi_rs/csi_meas_config.h"
 #include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/radio_link_monitoring.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 #include "ocudu/ran/sr_configuration.h"
+#include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
@@ -120,6 +120,8 @@ struct bwp_builder_params {
   pusch_builder_params pusch;
   /// Parameters relative to the generation of the PUCCH configs.
   pucch_builder_params pucch;
+  /// Parameters relative to the generation of the CSI Meas Config.
+  std::optional<du_csi_params> csi;
   /// Parameters for SRS-Config generation.
   srs_builder_params srs_cfg;
   /// Parameters for Random Access in this BWP.

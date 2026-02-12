@@ -266,41 +266,37 @@ static unsigned get_nof_rbs(const du_high_unit_base_cell_config& cell_cfg)
       cell_cfg.channel_bw_mhz, cell_cfg.common_scs, band_helper::get_freq_range(*cell_cfg.band));
 }
 
-static void fill_csi_resources(odu::du_cell_config&                                      out_cell,
-                               const du_high_unit_base_cell_config&                      cell_cfg,
-                               const std::vector<pusch_time_domain_resource_allocation>& pusch_td_alloc_list)
+static void fill_csi_resources(odu::du_cell_config& out_cell, const du_high_unit_base_cell_config& cell_cfg)
 {
   const auto& csi_cfg = cell_cfg.csi_cfg;
 
-  csi_helper::csi_builder_params csi_params{};
-  csi_params.pci            = cell_cfg.pci;
-  csi_params.nof_rbs        = get_nof_rbs(cell_cfg);
-  csi_params.nof_ports      = cell_cfg.nof_antennas_dl;
-  csi_params.max_nof_layers = cell_cfg.pdsch_cfg.max_rank.value_or(cell_cfg.nof_antennas_dl);
-  csi_params.csi_rs_period  = static_cast<csi_resource_periodicity>(csi_cfg.csi_rs_period_msec *
-                                                                   get_nof_slots_per_subframe(cell_cfg.common_scs));
+  // CSI-specific params.
+  du_csi_params du_csi;
+  du_csi.csi_rs_period = static_cast<csi_resource_periodicity>(csi_cfg.csi_rs_period_msec *
+                                                               get_nof_slots_per_subframe(cell_cfg.common_scs));
   if (cell_cfg.csi_cfg.report_type == csi_report_type::aperiodic) {
-    csi_params.csi_report_slot_offset  = std::nullopt;
-    csi_params.enable_aperiodic_report = true;
+    du_csi.csi_report_slot_offset  = std::nullopt;
+    du_csi.enable_aperiodic_report = true;
   }
+  du_csi.pwr_ctrl_offset = static_cast<int8_t>(cell_cfg.csi_cfg.pwr_ctrl_offset);
 
   // [Implementation-defined] The default CSI symbols are in symbols 4 and 8, the DM-RS for PDSCH might collide in
   // symbol index 8 when the number of DM-RS additional positions is 3.
   if (uint_to_dmrs_additional_positions(cell_cfg.pdsch_cfg.dmrs_add_pos) == dmrs_additional_positions::pos3) {
-    csi_params.zp_csi_ofdm_symbol_index = 9;
+    du_csi.zp_csi_ofdm_symbol_index = 9;
     // As per TS 38.214, clause 5.1.6.1.1, following time-domain locations of the two CSI-RS resources in a slot, or of
     // the four CSI-RS resources in two consecutive slots are allowed:
     // {4,8}, {5,9}, or {6,10} for frequency range 1 and frequency range 2.
     // NOTE: As per TS 38.211, table 7.4.1.1.2-3, PDSCH DM-RS time-domain positions for single-symbol DM-RS
     // corresponding to ld >= 12 and dmrs-AdditionalPosition pos3 are l0, 5, 8, 11.
-    csi_params.tracking_csi_ofdm_symbol_indices = {6, 10, 6, 10};
+    du_csi.tracking_csi_ofdm_symbol_indices = {6, 10, 6, 10};
   }
 
   if (cell_cfg.tdd_ul_dl_cfg.has_value()) {
-    const unsigned max_csi_symbol_index = *std::max_element(csi_params.tracking_csi_ofdm_symbol_indices.begin(),
-                                                            csi_params.tracking_csi_ofdm_symbol_indices.end());
+    const unsigned max_csi_symbol_index = *std::max_element(du_csi.tracking_csi_ofdm_symbol_indices.begin(),
+                                                            du_csi.tracking_csi_ofdm_symbol_indices.end());
     if (not csi_helper::derive_valid_csi_rs_slot_offsets(
-            csi_params,
+            du_csi,
             csi_cfg.meas_csi_slot_offset,
             csi_cfg.tracking_csi_slot_offset,
             csi_cfg.zp_csi_slot_offset,
@@ -310,37 +306,22 @@ static void fill_csi_resources(odu::du_cell_config&                             
       report_error("Unable to derive valid CSI-RS slot offsets and period for cell with pci={}\n", cell_cfg.pci);
     }
   } else {
-    csi_params.meas_csi_slot_offset = csi_cfg.meas_csi_slot_offset.has_value() ? *csi_cfg.meas_csi_slot_offset : 2;
-    csi_params.zp_csi_slot_offset   = csi_cfg.zp_csi_slot_offset.has_value() ? *csi_cfg.zp_csi_slot_offset : 2;
-    csi_params.tracking_csi_slot_offset =
+    du_csi.meas_csi_slot_offset = csi_cfg.meas_csi_slot_offset.has_value() ? *csi_cfg.meas_csi_slot_offset : 2;
+    du_csi.zp_csi_slot_offset   = csi_cfg.zp_csi_slot_offset.has_value() ? *csi_cfg.zp_csi_slot_offset : 2;
+    du_csi.tracking_csi_slot_offset =
         csi_cfg.tracking_csi_slot_offset.has_value() ? *csi_cfg.tracking_csi_slot_offset : 12;
   }
 
-  // Generate basic csiMeasConfig.
-  out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg = csi_helper::make_csi_meas_config(csi_params, pusch_td_alloc_list);
-
-  // Set power control offset for all nzp-CSI-RS resources.
-  for (auto& nzp_csi_res : out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list) {
-    nzp_csi_res.pwr_ctrl_offset = cell_cfg.csi_cfg.pwr_ctrl_offset;
-  }
-
-  // Set CQI table according to the MCS table used for PDSCH.
-  switch (cell_cfg.pdsch_cfg.mcs_table) {
-    case pdsch_mcs_table::qam64:
-      out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].cqi_table = cqi_table_t::table1;
-      break;
-    case pdsch_mcs_table::qam256:
-      out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].cqi_table = cqi_table_t::table2;
-      break;
-    case pdsch_mcs_table::qam64LowSe:
-      out_cell.ue_ded_serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].cqi_table = cqi_table_t::table3;
-      break;
-    default:
-      report_error(
-          "Invalid MCS table={} for cell with pci={}\n", fmt::underlying(cell_cfg.pdsch_cfg.mcs_table), cell_cfg.pci);
-  }
+  // Store DU CSI parameters to generate csiMeasConfig inside the DU.
+  out_cell.init_bwp_builder.csi = du_csi;
 
   // Generate zp-CSI-RS resources.
+  csi_helper::csi_builder_params csi_params;
+  csi_params.pci                                     = cell_cfg.pci;
+  csi_params.nof_rbs                                 = get_nof_rbs(cell_cfg);
+  csi_params.nof_ports                               = cell_cfg.nof_antennas_dl;
+  csi_params.max_nof_layers                          = cell_cfg.pdsch_cfg.max_rank.value_or(cell_cfg.nof_antennas_dl);
+  csi_params.du_params                               = du_csi;
   out_cell.init_bwp_builder.pdsch.zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
   out_cell.init_bwp_builder.pdsch.p_zp_csi_rs_res    = csi_helper::make_periodic_zp_csi_rs_resource_set(csi_params);
 }
@@ -973,7 +954,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
 
     // Parameters for csiMeasConfig.
     if (param.csi_rs_enabled) {
-      fill_csi_resources(out_cell, base_cell, out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list);
+      fill_csi_resources(out_cell, base_cell);
     }
 
     if (update_msg1_frequency_start) {

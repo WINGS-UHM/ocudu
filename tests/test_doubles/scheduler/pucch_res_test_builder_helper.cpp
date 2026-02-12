@@ -16,12 +16,67 @@
 
 using namespace ocudu;
 
+static std::optional<du_csi_params> derive_csi_builder_params(const serving_cell_config& base_ue_cfg)
+{
+  if (!base_ue_cfg.csi_meas_cfg.has_value() || base_ue_cfg.csi_meas_cfg->csi_report_cfg_list.empty()) {
+    return std::nullopt;
+  }
+
+  du_csi_params params{};
+
+  if (!base_ue_cfg.csi_meas_cfg->nzp_csi_rs_res_list.empty()) {
+    const auto& meas_res            = base_ue_cfg.csi_meas_cfg->nzp_csi_rs_res_list.front();
+    params.cm_csi_ofdm_symbol_index = meas_res.res_mapping.first_ofdm_symbol_in_td;
+    params.pwr_ctrl_offset          = meas_res.pwr_ctrl_offset;
+    if (meas_res.csi_res_period.has_value()) {
+      params.csi_rs_period = *meas_res.csi_res_period;
+    }
+    if (meas_res.csi_res_offset.has_value()) {
+      params.meas_csi_slot_offset = *meas_res.csi_res_offset;
+    }
+  }
+
+  const auto& report_cfg = base_ue_cfg.csi_meas_cfg->csi_report_cfg_list.front();
+  if (auto* periodic =
+          std::get_if<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(&report_cfg.report_cfg_type)) {
+    params.enable_aperiodic_report = false;
+    params.csi_report_slot_offset  = periodic->report_slot_offset;
+    // Derive CSI-RS period from the configured CSI report period to preserve test configuration.
+    params.csi_rs_period =
+        static_cast<csi_resource_periodicity>(csi_report_periodicity_to_uint(periodic->report_slot_period));
+  } else {
+    params.enable_aperiodic_report = true;
+    params.csi_report_slot_offset.reset();
+  }
+
+  const unsigned period_slots     = csi_resource_periodicity_to_uint(params.csi_rs_period);
+  params.meas_csi_slot_offset     = params.meas_csi_slot_offset % period_slots;
+  params.zp_csi_slot_offset       = params.zp_csi_slot_offset % period_slots;
+  params.tracking_csi_slot_offset = params.tracking_csi_slot_offset % period_slots;
+  if (params.tracking_csi_slot_offset + 1 >= period_slots) {
+    params.tracking_csi_slot_offset = period_slots > 1 ? period_slots - 2 : 0;
+  }
+  if (params.csi_report_slot_offset.has_value()) {
+    params.csi_report_slot_offset = *params.csi_report_slot_offset % period_slots;
+  }
+
+  return params;
+}
+
 static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&                      init_ul_bwp,
                                                    const std::optional<tdd_ul_dl_config_common>& tdd_ul_dl_cfg_common,
                                                    const serving_cell_config&                    base_ue_cfg,
                                                    const pucch_resource_builder_params&          pucch_cfg)
 {
   odu::du_cell_config cell_cfg;
+  if (base_ue_cfg.csi_meas_cfg.has_value() && !base_ue_cfg.csi_meas_cfg->nzp_csi_rs_res_list.empty()) {
+    const auto& meas_res        = base_ue_cfg.csi_meas_cfg->nzp_csi_rs_res_list.front();
+    cell_cfg.pci                = static_cast<pci_t>(meas_res.scrambling_id);
+    cell_cfg.dl_carrier.nof_ant = static_cast<uint16_t>(meas_res.res_mapping.nof_ports);
+  } else {
+    cell_cfg.pci                = pci_t{0};
+    cell_cfg.dl_carrier.nof_ant = 1;
+  }
   cell_cfg.ul_cfg_common.init_ul_bwp        = init_ul_bwp;
   cell_cfg.tdd_ul_dl_cfg_common             = tdd_ul_dl_cfg_common;
   cell_cfg.ue_ded_serv_cell_cfg             = config_helpers::make_du_ue_ded_serv_cell_config(base_ue_cfg);
@@ -33,6 +88,7 @@ static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&     
   }
   cell_cfg.init_bwp_builder.pdsch = config_helpers::make_pdsch_builder_params(base_ue_cfg);
   cell_cfg.init_bwp_builder.pusch = config_helpers::make_pusch_builder_params(base_ue_cfg);
+  cell_cfg.init_bwp_builder.csi   = derive_csi_builder_params(base_ue_cfg);
   return cell_cfg;
 }
 

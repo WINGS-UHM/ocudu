@@ -238,15 +238,16 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
   if (not rlm_cfg.has_value()) {
     return {};
   }
+  const auto csi_meas_cfg = config_helpers::make_csi_meas_config(cell_cfg);
   for (auto& rlm_res : rlm_cfg->rlm_resources) {
     CHECK_TRUE(rlm_res.resource_purpose == radio_link_monitoring_config::radio_link_monitoring_rs::purpose::rlf,
                "Radio Link Failure is the only supported Radio Link Monitoring purpose");
-    if (not cell_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.has_value()) {
+    if (not csi_meas_cfg.has_value()) {
       CHECK_TRUE(not std::holds_alternative<nzp_csi_rs_res_id_t>(rlm_res.detection_resource),
                  "RLM resources cannot use CSI-RS resources if CSI is not enabled");
     } else {
       if (std::holds_alternative<nzp_csi_rs_res_id_t>(rlm_res.detection_resource)) {
-        const auto&               csi_cfg   = cell_cfg.ue_ded_serv_cell_cfg.csi_meas_cfg.value();
+        const auto&               csi_cfg   = csi_meas_cfg.value();
         const nzp_csi_rs_res_id_t csi_rs_id = std::get<nzp_csi_rs_res_id_t>(rlm_res.detection_resource);
         const auto                csi_res_it =
             std::find_if(csi_cfg.nzp_csi_rs_res_list.begin(),

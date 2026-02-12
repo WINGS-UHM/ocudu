@@ -86,11 +86,11 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.si_scheduling     = si_sched_cfg;
 
   // For now, only one BWP is supported.
-  if (du_cfg.ue_ded_serv_cell_cfg.pdcch_cfg.has_value()) {
+  if (du_cfg.init_bwp_builder.pdcch_cfg.has_value()) {
     const auto rlm_cfg   = config_helpers::make_rlm_config(du_cfg);
     const auto pdsch_cfg = config_helpers::make_pdsch_config(du_cfg);
     sched_req.dl_bwp_ded = bwp_downlink_dedicated{
-        .pdcch_cfg = du_cfg.ue_ded_serv_cell_cfg.pdcch_cfg, .pdsch_cfg = pdsch_cfg, .rlm_cfg = rlm_cfg};
+        .pdcch_cfg = du_cfg.init_bwp_builder.pdcch_cfg, .pdsch_cfg = pdsch_cfg, .rlm_cfg = rlm_cfg};
   }
 
   sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(

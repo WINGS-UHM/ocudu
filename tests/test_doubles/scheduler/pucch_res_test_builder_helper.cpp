@@ -79,7 +79,7 @@ static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&     
   }
   cell_cfg.ul_cfg_common.init_ul_bwp        = init_ul_bwp;
   cell_cfg.tdd_ul_dl_cfg_common             = tdd_ul_dl_cfg_common;
-  cell_cfg.ue_ded_serv_cell_cfg             = config_helpers::make_du_ue_ded_serv_cell_config(base_ue_cfg);
+  cell_cfg.init_bwp_builder.pdcch_cfg       = base_ue_cfg.init_dl_bwp.pdcch_cfg;
   cell_cfg.init_bwp_builder.pucch.resources = pucch_cfg;
   if (base_ue_cfg.ul_config.has_value() && base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value() &&
       !base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.empty()) {

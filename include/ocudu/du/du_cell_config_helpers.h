@@ -27,8 +27,6 @@
 namespace ocudu {
 namespace config_helpers {
 
-/// Builds a DU-level UE-dedicated serving cell configuration from a full UE serving cell configuration.
-inline odu::du_ue_ded_serv_cell_config make_du_ue_ded_serv_cell_config(const serving_cell_config& ue_serv_cell_cfg);
 /// Builds PDSCH builder parameters from a full UE serving cell configuration.
 inline pdsch_builder_params make_pdsch_builder_params(const serving_cell_config& ue_serv_cell_cfg);
 /// Builds PUSCH builder parameters from a full UE serving cell configuration.
@@ -78,7 +76,7 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
 
   cfg.tdd_ul_dl_cfg_common                  = params.tdd_ul_dl_cfg_common;
   const serving_cell_config ue_serv_cell    = create_default_initial_ue_serving_cell_config(params);
-  cfg.ue_ded_serv_cell_cfg                  = make_du_ue_ded_serv_cell_config(ue_serv_cell);
+  cfg.init_bwp_builder.pdcch_cfg            = ue_serv_cell.init_dl_bwp.pdcch_cfg;
   cfg.init_bwp_builder.pdsch                = make_pdsch_builder_params(ue_serv_cell);
   cfg.init_bwp_builder.pdsch.max_nof_layers = params.max_nof_layers;
   cfg.init_bwp_builder.pusch                = make_pusch_builder_params(ue_serv_cell);
@@ -89,14 +87,6 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
     cfg.init_bwp_builder.csi = make_default_du_csi_params(params);
   }
 
-  return cfg;
-}
-
-/// Builds a DU-level UE-dedicated serving cell configuration from a full UE serving cell configuration.
-inline odu::du_ue_ded_serv_cell_config make_du_ue_ded_serv_cell_config(const serving_cell_config& ue_serv_cell_cfg)
-{
-  odu::du_ue_ded_serv_cell_config cfg{};
-  cfg.pdcch_cfg = ue_serv_cell_cfg.init_dl_bwp.pdcch_cfg;
   return cfg;
 }
 
@@ -519,7 +509,7 @@ inline serving_cell_config make_ue_serving_cell_config(const odu::du_cell_config
 {
   serving_cell_config cfg{};
   cfg.cell_index            = cell_index;
-  cfg.init_dl_bwp.pdcch_cfg = du_cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg;
+  cfg.init_dl_bwp.pdcch_cfg = du_cell_cfg.init_bwp_builder.pdcch_cfg;
   cfg.pdsch_serv_cell_cfg   = make_pdsch_serv_cell_config(du_cell_cfg.init_bwp_builder.pdsch);
   if (!cfg.ul_config.has_value()) {
     cfg.ul_config.emplace();

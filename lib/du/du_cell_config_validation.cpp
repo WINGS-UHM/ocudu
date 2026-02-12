@@ -293,7 +293,7 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 
 static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 {
-  const auto& pdcch_cfg = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg;
+  const auto& pdcch_cfg = cell_cfg.init_bwp_builder.pdcch_cfg;
   const auto  pdsch_cfg = config_helpers::make_pdsch_config(cell_cfg);
 
   // PDCCH
@@ -511,7 +511,7 @@ static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
 {
   const auto&                       pusch_params = cell_cfg.init_bwp_builder.pusch;
   const pusch_mcs_table             mcs_table    = pusch_params.mcs_table;
-  const search_space_configuration& ss2          = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg->search_spaces.back();
+  const search_space_configuration& ss2          = cell_cfg.init_bwp_builder.pdcch_cfg->search_spaces.back();
   const bool                        fallback_dci_format_in_ss2 =
       ss2.is_common_search_space() or
       not(std::get<search_space_configuration::ue_specific_dci_format>(ss2.get_monitored_dci_formats()) ==
@@ -549,7 +549,7 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
   static constexpr unsigned pdsch_mapping_typeA_min_L_value = 3;
 
   const pdcch_config_common&                  common_pdcch_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common;
-  const pdcch_config&                         ded_pdcch_cfg    = cell_cfg.ue_ded_serv_cell_cfg.pdcch_cfg.value();
+  const pdcch_config&                         ded_pdcch_cfg    = cell_cfg.init_bwp_builder.pdcch_cfg.value();
   const std::optional<coreset_configuration>& coreset0         = common_pdcch_cfg.coreset0;
   const std::optional<coreset_configuration>& common_coreset   = common_pdcch_cfg.common_coreset;
   CHECK_TRUE(coreset0.has_value(), "CORESET#0 not configured");

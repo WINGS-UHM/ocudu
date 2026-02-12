@@ -114,6 +114,8 @@ struct du_rlm_params {
 
 /// Parameters used to generate a BWP configuration.
 struct bwp_builder_params {
+  /// UE-dedicated PDCCH configuration used for DU-generated configs.
+  std::optional<pdcch_config> pdcch_cfg;
   /// Parameters relative to the generation of the PDSCH configs.
   pdsch_builder_params pdsch;
   /// Parameters relative to the generation of the PUSCH configs.

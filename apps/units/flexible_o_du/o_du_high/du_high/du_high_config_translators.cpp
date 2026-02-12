@@ -731,8 +731,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
                         (cset1_start_crb / pdcch_constants::NOF_RB_PER_FREQ_RESOURCE) + coreset1_nof_resources,
                         true);
 
-    search_space_configuration& ss2_cfg   = out_cell.ue_ded_serv_cell_cfg.pdcch_cfg->search_spaces[0];
-    coreset_configuration&      cset1_cfg = out_cell.ue_ded_serv_cell_cfg.pdcch_cfg->coresets[0];
+    search_space_configuration& ss2_cfg   = out_cell.init_bwp_builder.pdcch_cfg->search_spaces[0];
+    coreset_configuration&      cset1_cfg = out_cell.init_bwp_builder.pdcch_cfg->coresets[0];
     cset1_cfg.set_freq_domain_resources(freq_resources);
     if (base_cell.pdcch_cfg.dedicated.coreset1_duration.has_value()) {
       cset1_cfg.duration = base_cell.pdcch_cfg.dedicated.coreset1_duration.value();
@@ -769,8 +769,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
       };
 
       static constexpr uint8_t min_nof_pdcch_candidates = 1;
-      while (config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(
-                 *out_cell.ue_ded_serv_cell_cfg.pdcch_cfg, out_cell.dl_cfg_common) >
+      while (config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(*out_cell.init_bwp_builder.pdcch_cfg,
+                                                                                 out_cell.dl_cfg_common) >
                  max_nof_monitored_pdcch_candidates(param.scs_common) and
              std::accumulate(ss2_cfg.get_nof_candidates().begin(), ss2_cfg.get_nof_candidates().end(), 0U) >
                  min_nof_pdcch_candidates) {
@@ -792,7 +792,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
              0});
       }
     } else if (not base_cell.pdcch_cfg.dedicated.dci_format_0_1_and_1_1) {
-      search_space_configuration& ss_cfg = out_cell.ue_ded_serv_cell_cfg.pdcch_cfg->search_spaces[0];
+      search_space_configuration& ss_cfg = out_cell.init_bwp_builder.pdcch_cfg->search_spaces[0];
       ss_cfg.set_non_ss0_monitored_dci_formats(search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0);
     }
 
@@ -803,7 +803,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             out_cell.tdd_ul_dl_cfg_common,
             out_cell.dl_cfg_common.init_dl_bwp.generic_params.cp,
             time_domain_resource_helper::calculate_minimum_pdsch_symbol(out_cell.dl_cfg_common.init_dl_bwp.pdcch_common,
-                                                                        out_cell.ue_ded_serv_cell_cfg.pdcch_cfg));
+                                                                        out_cell.init_bwp_builder.pdcch_cfg));
 
     // Parameters for PUCCH-Config builder (these parameters will be used later on to generate the PUCCH resources).
     pucch_resource_builder_params&   du_pucch_cfg                  = out_cell.init_bwp_builder.pucch.resources;

@@ -34,12 +34,6 @@ struct phy_cell_group_params {
   std::optional<bounded_integer<int, -30, 33>> p_nr_fr1;
 };
 
-/// UE-dedicated serving cell configuration parameters derived at DU cell level.
-struct du_ue_ded_serv_cell_config {
-  /// Initial Downlink BWP dedicated PDCCH configuration.
-  std::optional<pdcch_config> pdcch_cfg;
-};
-
 /// Cell Configuration, including common and UE-dedicated configs, that the DU will use to generate other configs for
 /// other layers (e.g. scheduler).
 struct du_cell_config {
@@ -90,9 +84,6 @@ struct du_cell_config {
 
   /// Defines the TDD DL-UL pattern and periodicity. If no value is set, the cell is in FDD mode.
   std::optional<tdd_ul_dl_config_common> tdd_ul_dl_cfg_common;
-
-  /// UE-dedicated serving cell configuration subset (fields derived/overridden by the DU).
-  du_ue_ded_serv_cell_config ue_ded_serv_cell_cfg;
 
   /// Parameters to initialize/build the \c phy_cell_group.
   phy_cell_group_params pcg_params;

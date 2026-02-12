@@ -70,11 +70,10 @@ private:
   ocudulog::basic_logger& logger;
 
   // Error Indication TX support
-  gtpu_tunnel_common_tx_upper_layer_notifier* tx_upper      = nullptr;
-  gtpu_ie_gtpu_peer_address                   ei_peer_addr  = {};
-  uint16_t                                    ei_sn_next    = 0;
-  gtpu_tunnel_logger                          ei_logger{"GTPU",
-                                                        {gtpu_tunnel_log_prefix{{}, GTPU_PATH_MANAGEMENT_TEID, "UL"}}};
+  gtpu_tunnel_common_tx_upper_layer_notifier* tx_upper     = nullptr;
+  gtpu_ie_gtpu_peer_address                   ei_peer_addr = {};
+  uint16_t                                    ei_sn_next   = 0;
+  gtpu_tunnel_logger ei_logger{"GTPU", {gtpu_tunnel_log_prefix{{}, GTPU_PATH_MANAGEMENT_TEID, "UL"}}};
 };
 
 } // namespace ocudu

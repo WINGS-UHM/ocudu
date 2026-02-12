@@ -152,8 +152,8 @@ bool ocudu::gtpu_write_ie_teid_i(byte_buffer& pdu, const gtpu_ie_teid_i& ie, gtp
 }
 
 bool ocudu::gtpu_write_ie_gtpu_peer_address(byte_buffer&                     pdu,
-                                             const gtpu_ie_gtpu_peer_address& ie,
-                                             gtpu_tunnel_logger&              logger)
+                                            const gtpu_ie_gtpu_peer_address& ie,
+                                            gtpu_tunnel_logger&              logger)
 {
   logger.log_debug("Writing IE GTP-U peer address.");
   bit_encoder enc{pdu};

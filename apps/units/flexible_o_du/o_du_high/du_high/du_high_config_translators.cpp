@@ -260,12 +260,6 @@ static sib19_info create_sib19_info(const du_high_unit_cell_ntn_config& config)
   return sib19;
 }
 
-static unsigned get_nof_rbs(const du_high_unit_base_cell_config& cell_cfg)
-{
-  return band_helper::get_n_rbs_from_bw(
-      cell_cfg.channel_bw_mhz, cell_cfg.common_scs, band_helper::get_freq_range(*cell_cfg.band));
-}
-
 static void fill_csi_resources(odu::du_cell_config& out_cell, const du_high_unit_base_cell_config& cell_cfg)
 {
   const auto& csi_cfg = cell_cfg.csi_cfg;
@@ -314,17 +308,6 @@ static void fill_csi_resources(odu::du_cell_config& out_cell, const du_high_unit
 
   // Store DU CSI parameters to generate csiMeasConfig inside the DU.
   out_cell.init_bwp_builder.csi = du_csi;
-
-  // Generate zp-CSI-RS resources.
-  csi_helper::csi_meas_config_builder_params csi_params;
-  csi_params.pci                                     = cell_cfg.pci;
-  csi_params.nof_rbs                                 = get_nof_rbs(cell_cfg);
-  csi_params.nof_ports                               = cell_cfg.nof_antennas_dl;
-  csi_params.max_nof_layers                          = cell_cfg.pdsch_cfg.max_rank.value_or(cell_cfg.nof_antennas_dl);
-  csi_params.mcs_table                               = cell_cfg.pdsch_cfg.mcs_table;
-  csi_params.csi_params                              = du_csi;
-  out_cell.init_bwp_builder.pdsch.zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
-  out_cell.init_bwp_builder.pdsch.p_zp_csi_rs_res    = csi_helper::make_periodic_zp_csi_rs_resource_set(csi_params);
 }
 
 /// Converts and returns the given gnb application configuration to a DU slice RRM policy configuration list.

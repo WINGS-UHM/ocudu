@@ -122,6 +122,22 @@ inline std::optional<radio_link_monitoring_config> make_rlm_config(const odu::du
   return rlm_cfg;
 }
 
+/// Builds CSI meas config builder parameters from DU cell configuration.
+inline csi_helper::csi_meas_config_builder_params
+make_csi_meas_config_builder_params(const odu::du_cell_config& du_cell_cfg)
+{
+  ocudu_assert(du_cell_cfg.init_bwp_builder.csi.has_value(), "CSI parameters are required to build CSI resources");
+
+  csi_helper::csi_meas_config_builder_params csi_params;
+  csi_params.pci            = du_cell_cfg.pci;
+  csi_params.nof_rbs        = du_cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+  csi_params.nof_ports      = du_cell_cfg.dl_carrier.nof_ant;
+  csi_params.max_nof_layers = du_cell_cfg.init_bwp_builder.pdsch.max_nof_layers.value_or(csi_params.nof_ports);
+  csi_params.mcs_table      = du_cell_cfg.init_bwp_builder.pdsch.mcs_table;
+  csi_params.csi_params     = du_cell_cfg.init_bwp_builder.csi.value();
+  return csi_params;
+}
+
 /// Builds a PDSCH configuration from DU cell configuration.
 inline std::optional<pdsch_config> make_pdsch_config(const odu::du_cell_config& du_cell_cfg)
 {
@@ -168,8 +184,11 @@ inline std::optional<pdsch_config> make_pdsch_config(const odu::du_cell_config& 
       break;
   }
 
-  pdsch_cfg.zp_csi_rs_res_list = du_cell_cfg.init_bwp_builder.pdsch.zp_csi_rs_res_list;
-  pdsch_cfg.p_zp_csi_rs_res    = du_cell_cfg.init_bwp_builder.pdsch.p_zp_csi_rs_res;
+  if (du_cell_cfg.init_bwp_builder.csi.has_value()) {
+    const csi_helper::csi_meas_config_builder_params csi_params = make_csi_meas_config_builder_params(du_cell_cfg);
+    pdsch_cfg.zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
+    pdsch_cfg.p_zp_csi_rs_res    = csi_helper::make_periodic_zp_csi_rs_resource_set(csi_params);
+  }
 
   return pdsch_cfg;
 }
@@ -216,15 +235,8 @@ inline std::optional<csi_meas_config> make_csi_meas_config(const odu::du_cell_co
     return std::nullopt;
   }
 
-  csi_helper::csi_meas_config_builder_params csi_params;
-  csi_params.pci            = du_cell_cfg.pci;
-  csi_params.nof_rbs        = du_cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
-  csi_params.nof_ports      = du_cell_cfg.dl_carrier.nof_ant;
-  csi_params.max_nof_layers = du_cell_cfg.init_bwp_builder.pdsch.max_nof_layers.value_or(csi_params.nof_ports);
-  csi_params.mcs_table      = du_cell_cfg.init_bwp_builder.pdsch.mcs_table;
-  csi_params.csi_params     = du_cell_cfg.init_bwp_builder.csi.value();
-
-  csi_meas_config csi_cfg = csi_helper::make_csi_meas_config(
+  const csi_helper::csi_meas_config_builder_params csi_params = make_csi_meas_config_builder_params(du_cell_cfg);
+  csi_meas_config                                  csi_cfg    = csi_helper::make_csi_meas_config(
       csi_params, du_cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list);
 
   return csi_cfg;
@@ -242,8 +254,6 @@ inline pdsch_builder_params make_pdsch_builder_params(const serving_cell_config&
     const auto& pdsch_cfg           = ue_serv_cell_cfg.init_dl_bwp.pdsch_cfg.value();
     params.mcs_table                = pdsch_cfg.mcs_table;
     params.interleaving_bundle_size = pdsch_cfg.vrb_to_prb_interleaving;
-    params.zp_csi_rs_res_list       = pdsch_cfg.zp_csi_rs_res_list;
-    params.p_zp_csi_rs_res          = pdsch_cfg.p_zp_csi_rs_res;
     if (pdsch_cfg.pdsch_mapping_type_a_dmrs.has_value()) {
       params.additional_positions = pdsch_cfg.pdsch_mapping_type_a_dmrs->additional_positions;
     }

@@ -56,10 +56,10 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
       default_pucch_builder_params, sched_req.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   if (params.csi_rs_enabled) {
-    csi_meas_config csi_meas                            = config_helpers::make_csi_meas_config(params);
-    pdsch_config    pdsch                               = config_helpers::make_default_pdsch_config(params);
-    sched_req.init_bwp_builder.pdsch.zp_csi_rs_res_list = pdsch.zp_csi_rs_res_list;
-    sched_req.nzp_csi_rs_res_list                       = csi_meas.nzp_csi_rs_res_list;
+    csi_helper::csi_meas_config_builder_params csi_params = config_helpers::make_default_csi_builder_params(params);
+    sched_req.init_bwp_builder.csi                        = csi_params.csi_params;
+    csi_meas_config csi_meas                              = csi_helper::make_csi_meas_config(csi_params, {});
+    sched_req.nzp_csi_rs_res_list                         = csi_meas.nzp_csi_rs_res_list;
   }
 
   return sched_req;

@@ -21,7 +21,6 @@
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
 #include <optional>
-#include <vector>
 
 namespace ocudu {
 
@@ -42,10 +41,6 @@ struct pdsch_builder_params {
   /// See TS 38.331, \c downlinkHARQ-FeedbackDisabled.
   /// A bit set to 1 indicates HARQ processes with disabled DL HARQ feedback; a bit set to 0 indicate feedback enabled.
   harq_dl_feedback_disabled_mask dl_harq_feedback_disabled = harq_dl_feedback_disabled_mask(MAX_NOF_HARQS);
-  /// ZP-CSI-RS resources used for interference measurement.
-  std::vector<zp_csi_rs_resource> zp_csi_rs_res_list;
-  /// Periodically occurring ZP-CSI-RS resource set.
-  std::optional<zp_csi_rs_resource_set> p_zp_csi_rs_res;
 };
 
 /// PUCCH parameters for a given BWP of a given DU cell.

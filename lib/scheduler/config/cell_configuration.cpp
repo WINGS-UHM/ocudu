@@ -12,11 +12,30 @@
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
+#include <algorithm>
 
 using namespace ocudu;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static std::vector<zp_csi_rs_resource> make_zp_csi_rs_list(const sched_cell_configuration_request_message& msg)
+{
+  if (!msg.init_bwp_builder.csi.has_value()) {
+    return {};
+  }
+
+  csi_helper::csi_meas_config_builder_params csi_params{};
+  csi_params.pci            = msg.pci;
+  csi_params.nof_rbs        = msg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+  csi_params.nof_ports      = msg.dl_carrier.nof_ant;
+  csi_params.max_nof_layers = msg.init_bwp_builder.pdsch.max_nof_layers.value_or(csi_params.nof_ports);
+  csi_params.mcs_table      = msg.init_bwp_builder.pdsch.mcs_table;
+  csi_params.csi_params     = msg.init_bwp_builder.csi.value();
+
+  return csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
+}
 
 cell_configuration::cell_configuration(const scheduler_expert_config&                  expert_cfg_,
                                        const sched_cell_configuration_request_message& msg) :
@@ -40,7 +59,7 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   searchspace0(msg.searchspace0),
   init_bwp_res(pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, nullptr),
   ded_pucch_resources(msg.ded_pucch_resources),
-  zp_csi_rs_list(msg.init_bwp_builder.pdsch.zp_csi_rs_res_list),
+  zp_csi_rs_list(make_zp_csi_rs_list(msg)),
   nzp_csi_rs_list(msg.nzp_csi_rs_res_list),
   dl_data_to_ul_ack(
       time_domain_resource_helper::generate_k1_candidates(msg.tdd_ul_dl_cfg_common, msg.init_bwp_builder.pucch.min_k1)),

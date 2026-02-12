@@ -38,15 +38,15 @@ workflow:
         ON_TAG: "true"
       auto_cancel:
         on_new_commit: none
-    - if: $CI_MERGE_REQUEST_SOURCE_PROJECT_ID != $CI_MERGE_REQUEST_PROJECT_ID
-      variables:
-        ON_MR_FORK: "true"
-        ON_MR: "true"
-      auto_cancel:
-        on_new_commit: none
     - if: $CI_MERGE_REQUEST_EVENT_TYPE == "merge_train"
       variables:
         ON_MR_TRAIN: "true"
+        ON_MR: "true"
+      auto_cancel:
+        on_new_commit: none
+    - if: $CI_MERGE_REQUEST_SOURCE_PROJECT_ID != $CI_MERGE_REQUEST_PROJECT_ID
+      variables:
+        ON_MR_FORK: "true"
         ON_MR: "true"
       auto_cancel:
         on_new_commit: none

@@ -43,7 +43,7 @@ ocudu image:
         CPU_JOBS=1
       fi
       export NAME="ocudu_nightly_${SUFFIX}"
-      export VERSION="$(date +%Y%m%d)_${CI_COMMIT_SHORT_SHA}"
+      export VERSION="$(git show -s --date=format:%Y%m%d --format=%cd ${CI_COMMIT_SHA})_${CI_COMMIT_SHORT_SHA}"
       export BUILD_ARGS="UHD_VERSION=${DOCKER_UHD_VERSION};DPDK_VERSION=${DOCKER_DPDK_VERSION};MARCH=${MARCH};NUM_JOBS=${CPU_JOBS};EXTRA_CMAKE_ARGS=\"${EXTRA_CMAKE_ARGS}\""
   parallel: &matrix-ocudu-image-variants
     matrix:
@@ -91,7 +91,7 @@ ocudu image update latest:
   script:
     - |
       export NAME="ocudu_nightly_${SUFFIX}"
-      export VERSION="$(date +%Y%m%d)_${CI_COMMIT_SHORT_SHA}"
+      export VERSION="$(git show -s --date=format:%Y%m%d --format=%cd ${CI_COMMIT_SHA})_${CI_COMMIT_SHORT_SHA}"
       docker manifest create ${REGISTRY_URI}/${NAME}:latest --amend ${REGISTRY_URI}/${NAME}:${VERSION}
       docker manifest push ${REGISTRY_URI}/${NAME}:latest
       echo "Image ${RETINA_REGISTRY_URI}/${NAME}:latest pushed"

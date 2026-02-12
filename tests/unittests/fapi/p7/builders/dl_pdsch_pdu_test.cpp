@@ -115,7 +115,7 @@ TEST(dl_pdsch_pdu_builder, valid_dmrs_parameters_passes)
                               dmrs_ports);
 
   ASSERT_EQ(dmrs_symbol_pos, pdu.dl_dmrs_symb_pos);
-  ASSERT_EQ(config_type == dmrs_config_type::type1 ? dmrs_cfg_type::type_1 : dmrs_cfg_type::type_2, pdu.dmrs_type);
+  ASSERT_EQ(config_type, pdu.dmrs_type);
   ASSERT_EQ(dmrs_scrambling_id, pdu.pdsch_dmrs_scrambling_id);
   ASSERT_EQ(dmrs_scrambling_id_complement, pdu.pdsch_dmrs_scrambling_id_compl);
   ASSERT_EQ(low_papr, pdu.low_papr_dmrs);

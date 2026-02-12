@@ -238,7 +238,7 @@ dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
   pdu.transmission_scheme                  = 0;
   pdu.ref_point                            = pdsch_ref_point_type::point_a;
   pdu.pdsch_dmrs_scrambling_id             = 31;
-  pdu.dmrs_type                            = dmrs_cfg_type::type_1;
+  pdu.dmrs_type                            = dmrs_config_type::type1;
   pdu.pdsch_dmrs_scrambling_id_compl       = 42;
   pdu.low_papr_dmrs                        = low_papr_dmrs_type::dependent_cdm_group;
   pdu.nscid                                = 0;
@@ -891,16 +891,10 @@ static unsigned generate_num_layers()
   return dist(gen);
 }
 
-static dmrs_cfg_type generate_dmrs_type()
+static dmrs_config_type generate_dmrs_type()
 {
   std::uniform_int_distribution<unsigned> dist(0, 1);
-  return static_cast<dmrs_cfg_type>(dist(gen));
-}
-
-static low_papr_dmrs_type generate_low_papr_dmrs()
-{
-  std::uniform_int_distribution<unsigned> dist(0, 1);
-  return static_cast<low_papr_dmrs_type>(dist(gen));
+  return static_cast<dmrs_config_type>(dist(gen));
 }
 
 static unsigned generate_pusch_dmrs_identity()
@@ -931,85 +925,58 @@ ul_pusch_pdu unittest::build_valid_ul_pusch_pdu()
 {
   ul_pusch_pdu pdu;
 
-  pdu.rb_bitmap                           = {};
-  pdu.rnti                                = generate_rnti();
-  pdu.handle                              = generate_handle();
-  pdu.bwp                                 = generate_crb_interval();
-  pdu.scs                                 = generate_scs();
-  pdu.cp                                  = generate_cyclic_prefix();
-  pdu.target_code_rate                    = 1982U;
-  pdu.transform_precoding                 = generate_bool();
-  pdu.qam_mod_order                       = generate_qam_mod_order(pdu.transform_precoding);
-  pdu.mcs_index                           = generate_mcs_index();
-  pdu.mcs_table                           = generate_mcs_table();
-  pdu.nid_pusch                           = generate_nid_pucch_hopping();
-  pdu.num_layers                          = generate_num_layers();
-  pdu.ul_dmrs_symb_pos                    = 3U;
-  pdu.dmrs_type                           = generate_dmrs_type();
-  pdu.pusch_dmrs_scrambling_id            = 32421;
-  pdu.pusch_dmrs_scrambling_id_complement = 3213;
-  pdu.low_papr_dmrs                       = generate_low_papr_dmrs();
-  pdu.pusch_dmrs_identity                 = generate_pusch_dmrs_identity();
-  pdu.nscid                               = generate_bool();
-  pdu.num_dmrs_cdm_grps_no_data           = generate_num_dmrs_cdm_no_data();
-  pdu.dmrs_ports                          = 4;
-  pdu.resource_alloc                      = resource_allocation_type::type_1;
-  pdu.vrbs                                = generate_vrb_interval();
-  pdu.vrb_to_prb_mapping                  = vrb_to_prb_mapping_type::non_interleaved;
-  pdu.intra_slot_frequency_hopping        = generate_bool();
-  pdu.tx_direct_current_location          = generate_tx_direct_current_location();
-  pdu.uplink_frequency_shift_7p5kHz       = generate_bool();
-  pdu.symbols                             = generate_symbols();
+  pdu.rnti             = generate_rnti();
+  pdu.handle           = generate_handle();
+  pdu.bwp              = generate_crb_interval();
+  pdu.scs              = generate_scs();
+  pdu.cp               = generate_cyclic_prefix();
+  pdu.target_code_rate = 1982U;
 
-  auto& data = pdu.pusch_data;
-  pdu.pdu_bitmap.set(ul_pusch_pdu::PUSCH_DATA_BIT);
-  data.rv_index        = 2;
-  data.harq_process_id = 2;
-  data.new_data        = false;
-  data.tb_size         = units::bytes{213131};
-  data.num_cb          = 3414;
+  bool transform_precoding = generate_bool();
+  if (transform_precoding) {
+    auto& tp_enabled               = pdu.transform_precoding.emplace<ul_pusch_pdu::transform_precoding_enabled>();
+    tp_enabled.pusch_dmrs_identity = generate_pusch_dmrs_identity();
+  } else {
+    auto& tp_disabled = pdu.transform_precoding.emplace<ul_pusch_pdu::transform_precoding_disabled>();
+    tp_disabled.num_dmrs_cdm_grps_no_data = generate_num_dmrs_cdm_no_data();
+  }
 
-  auto& uci = pdu.pusch_uci;
-  pdu.pdu_bitmap.set(ul_pusch_pdu::PUSCH_UCI_BIT);
-  uci.harq_ack_bit_length  = 3;
-  uci.csi_part1_bit_length = 4;
-  uci.flags_csi_part2      = 65535;
-  uci.alpha_scaling        = alpha_scaling_opt::f0p5;
-  uci.beta_offset_harq_ack = 12;
-  uci.beta_offset_csi1     = 16;
-  uci.beta_offset_csi2     = 17;
+  pdu.qam_mod_order    = generate_qam_mod_order(transform_precoding);
+  pdu.mcs_index        = generate_mcs_index();
+  pdu.mcs_table        = generate_mcs_table();
+  pdu.nid_pusch        = generate_nid_pucch_hopping();
+  pdu.num_layers       = generate_num_layers();
+  pdu.ul_dmrs_symb_pos = dmrs_symbol_mask(13);
+  pdu.ul_dmrs_symb_pos.from_uint64(3);
+  pdu.dmrs_type                = generate_dmrs_type();
+  pdu.pusch_dmrs_scrambling_id = 32421;
+  pdu.nscid                    = generate_bool();
+  pdu.dmrs_ports               = dmrs_ports_mask(11);
+  pdu.dmrs_ports.from_uint64(4);
+  pdu.resource_allocation_1.vrbs = generate_vrb_interval();
+  pdu.tx_direct_current_location = generate_tx_direct_current_location();
+  pdu.symbols                    = generate_symbols();
+
+  pdu.pusch_data = std::make_optional(ul_pusch_data{
+      .rv_index = 2, .harq_process_id = to_harq_id(2), .new_data = false, .tb_size = units::bytes{213131}});
+
+  pdu.pusch_uci = std::make_optional(ul_pusch_uci{.harq_ack_bit         = units::bits(3),
+                                                  .csi_part1_bit        = units::bits(4),
+                                                  .alpha_scaling        = alpha_scaling_opt::f0p5,
+                                                  .beta_offset_harq_ack = 12,
+                                                  .beta_offset_csi1     = 16,
+                                                  .beta_offset_csi2     = 17});
 
   // Add 1 part1 to part2 correspondence.
-  pdu.uci_correspondence.part2.emplace_back();
-  auto& corr                = pdu.uci_correspondence.part2.back();
+  pdu.uci_correspondence = std::make_optional(uci_part1_to_part2_correspondence());
+  pdu.uci_correspondence->part2.emplace_back();
+  auto& corr                = pdu.uci_correspondence->part2.back();
   corr.param_offsets        = {1, 2};
   corr.param_sizes          = {1, 2};
   corr.part2_size_map_index = 0;
 
-  auto& ptrs = pdu.pusch_ptrs;
-  pdu.pdu_bitmap.set(ul_pusch_pdu::PUSCH_PTRS_BIT);
-  ptrs.ul_ptrs_power     = ul_ptrs_power_type::dB4_77;
-  ptrs.ptrs_freq_density = 1;
-  ptrs.ptrs_time_density = 2;
-  ptrs.port_info.push_back({3, 4, 5});
-
-  auto& ofdm = pdu.pusch_ofdm;
-  pdu.pdu_bitmap.set(ul_pusch_pdu::DFTS_OFDM_BIT);
-  ofdm.low_papr_group_number                    = 25;
-  ofdm.low_papr_sequence_number                 = 3232;
-  ofdm.ul_ptrs_sample_density                   = 3;
-  ofdm.ul_ptrs_time_density_transform_precoding = 4;
-
-  auto& v3                            = pdu.pusch_maintenance_v3;
-  v3.pusch_trans_type                 = 2;
-  v3.delta_bwp0_start_from_active_bwp = generate_bwp_start();
-  v3.initial_ul_bwp_size              = generate_bwp_start();
-  v3.group_or_sequence_hopping        = 2;
-  v3.pusch_second_hop_prb             = generate_bwp_start();
-  v3.ldpc_base_graph                  = generate_ldpc_graph_type();
-  v3.tb_size_lbrm_bytes               = units::bytes{32323242};
-
-  pdu.pusch_params_v4.cb_crc_status_request = generate_bool();
+  pdu.ldpc_base_graph    = generate_ldpc_graph_type();
+  pdu.tb_size_lbrm_bytes = units::bytes{32323242};
 
   return pdu;
 }

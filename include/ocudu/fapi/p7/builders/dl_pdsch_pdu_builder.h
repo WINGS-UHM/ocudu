@@ -131,8 +131,8 @@ public:
                                             uint8_t            num_dmrs_cdm_groups_no_data,
                                             uint16_t           dmrs_ports)
   {
-    pdu.dl_dmrs_symb_pos = dl_dmrs_symb_pos;
-    pdu.dmrs_type        = (dmrs_type == dmrs_config_type::type1) ? dmrs_cfg_type::type_1 : dmrs_cfg_type::type_2;
+    pdu.dl_dmrs_symb_pos               = dl_dmrs_symb_pos;
+    pdu.dmrs_type                      = dmrs_type;
     pdu.pdsch_dmrs_scrambling_id       = pdsch_dmrs_scrambling_id;
     pdu.pdsch_dmrs_scrambling_id_compl = pdsch_dmrs_scrambling_id_complement;
     pdu.low_papr_dmrs                  = low_papr_dmrs;

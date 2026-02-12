@@ -33,9 +33,7 @@ static void validate_pdsch_information(const pdsch_information& pdsch_cfg, const
   // DMRS.
   const dmrs_information& dmrs_cfg = pdsch_cfg.dmrs;
   ASSERT_EQ(dmrs_cfg.dmrs_symb_pos.to_uint64(), fapi_pdu.dl_dmrs_symb_pos);
-  ASSERT_EQ((dmrs_cfg.config_type == ocudu::dmrs_config_type::type1) ? fapi::dmrs_cfg_type::type_1
-                                                                     : fapi::dmrs_cfg_type::type_2,
-            fapi_pdu.dmrs_type);
+  ASSERT_EQ(dmrs_cfg.config_type, fapi_pdu.dmrs_type);
   ASSERT_EQ(dmrs_cfg.dmrs_scrambling_id, fapi_pdu.pdsch_dmrs_scrambling_id);
   ASSERT_EQ(dmrs_cfg.dmrs_scrambling_id_complement, fapi_pdu.pdsch_dmrs_scrambling_id_compl);
   ASSERT_EQ(dmrs_cfg.low_papr_dmrs ? fapi::low_papr_dmrs_type::dependent_cdm_group

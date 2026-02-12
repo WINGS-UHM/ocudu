@@ -18,31 +18,42 @@ static void fill_optional_uci_parameters(fapi::ul_pusch_pdu_builder&      builde
   if (!uci) {
     return;
   }
-  builder.add_optional_pusch_uci_alpha(uci->alpha);
+
+  units::bits       harq_ack_bit{0U};
+  units::bits       csi_part1_bit{0U};
+  alpha_scaling_opt alpha_scaling = uci->alpha;
+  uint8_t           beta_offset_harq_ack{0U};
+  uint8_t           beta_offset_csi1{0U};
+  uint8_t           beta_offset_csi2{0U};
 
   if (uci->harq) {
     const uci_info::harq_info& harq = *uci->harq;
-    builder.add_optional_pusch_uci_harq(harq.harq_ack_nof_bits, harq.beta_offset_harq_ack);
+    harq_ack_bit                    = units::bits(harq.harq_ack_nof_bits);
+    beta_offset_harq_ack            = harq.beta_offset_harq_ack;
   }
 
   if (uci->csi) {
     const uci_info::csi_info& csi = *uci->csi;
-    builder.add_optional_pusch_uci_csi1(csi.csi_part1_nof_bits, csi.beta_offset_csi_1);
+    csi_part1_bit                 = units::bits(csi.csi_part1_nof_bits);
+    beta_offset_csi1              = csi.beta_offset_csi_1;
 
     // No CSI Part2 for a single antenna.
     if (csi.beta_offset_csi_2 && csi.csi_rep_cfg.pmi_codebook != pmi_codebook_type::one) {
       span<const uci_part2_correspondence_information> uci_correspondence = part2_mapper.map(csi.csi_rep_cfg);
       if (!uci_correspondence.empty()) {
-        builder.add_optional_pusch_uci_csi2(*csi.beta_offset_csi_2);
+        beta_offset_csi2 = *csi.beta_offset_csi_2;
 
         // Build UCI Part2 correspondence.
         for (const auto& part2 : uci_correspondence) {
-          builder.add_uci_part1_part2_correspondence_v3(
+          builder.add_uci_part1_part2_correspondence(
               part2.part1_param_offsets, part2.part1_param_sizes, part2.part2_map_index);
         }
       }
     }
   }
+
+  builder.add_optional_pusch_uci(
+      harq_ack_bit, csi_part1_bit, alpha_scaling, beta_offset_harq_ack, beta_offset_csi1, beta_offset_csi2);
 }
 
 void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder&      builder,
@@ -59,59 +70,43 @@ void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder& 
                                      pusch_pdu.mcs_descr.modulation,
                                      pusch_pdu.mcs_index.value(),
                                      pusch_pdu.mcs_table,
-                                     pusch_pdu.transform_precoding,
                                      pusch_pdu.n_id,
                                      pusch_pdu.nof_layers);
 
   const dmrs_information& dmrs_cfg = pusch_pdu.dmrs;
-  builder.set_dmrs_parameters(dmrs_cfg.dmrs_symb_pos.to_uint64(),
-                              dmrs_cfg.config_type,
-                              dmrs_cfg.dmrs_scrambling_id,
-                              dmrs_cfg.dmrs_scrambling_id_complement,
-                              dmrs_cfg.low_papr_dmrs ? fapi::low_papr_dmrs_type::dependent_cdm_group
-                                                     : fapi::low_papr_dmrs_type::independent_cdm_group,
-                              pusch_pdu.pusch_dmrs_id,
-                              dmrs_cfg.n_scid,
-                              dmrs_cfg.num_dmrs_cdm_grps_no_data,
-                              dmrs_cfg.dmrs_ports.to_uint64());
+  if (pusch_pdu.transform_precoding) {
+    builder.set_transform_precoding_enabled_parameters(dmrs_cfg.dmrs_scrambling_id);
+  } else {
+    builder.set_transform_precoding_disabled_parameters(dmrs_cfg.num_dmrs_cdm_grps_no_data);
+  }
+  builder.set_dmrs_parameters(
+      dmrs_cfg.dmrs_symb_pos, dmrs_cfg.config_type, pusch_pdu.pusch_dmrs_id, dmrs_cfg.n_scid, dmrs_cfg.dmrs_ports);
 
   const vrb_alloc& rbs = pusch_pdu.rbs;
-  if (rbs.is_type0()) {
-    static_vector<uint8_t, fapi::ul_pusch_pdu::RB_BITMAP_SIZE_IN_BYTES> rb_map;
-    rb_map.resize(fapi::ul_pusch_pdu::RB_BITMAP_SIZE_IN_BYTES, 0U);
-    const rbg_bitmap& mac_rbg_map = rbs.type0();
-    for (unsigned i = 0, e = mac_rbg_map.size(); i != e; ++i) {
-      rb_map[i / 8] |= uint8_t(mac_rbg_map.test(i) ? 1U : 0U) << i % 8;
-    }
 
-    builder.set_allocation_in_frequency_type_0_parameters(
-        {rb_map}, pusch_pdu.tx_direct_current_location, pusch_pdu.ul_freq_shift_7p5khz);
-  } else {
-    const vrb_interval& vrbs = rbs.type1();
-    builder.set_allocation_in_frequency_type_1_parameters(
-        vrbs, pusch_pdu.intra_slot_freq_hopping, pusch_pdu.tx_direct_current_location, pusch_pdu.ul_freq_shift_7p5khz);
-  }
+  report_error_if_not(!rbs.is_type0(), "PUSCH resource type allocation type 0 is not supported");
 
-  builder.set_allocation_in_time_parameters(pusch_pdu.symbols);
+  builder.set_time_allocation_parameters(pusch_pdu.symbols);
 
   // Sending data through PUSCH is optional, but for now, the MAC does not signal this, use the TB size to catch it.
-  ocudu_assert(pusch_pdu.tb_size_bytes.value() != 0, "Transport block of null size");
+  ocudu_assert(pusch_pdu.tb_size_bytes.value(), "Transport block of null size");
 
   // Add PUSCH Data.
   builder.add_optional_pusch_data(
-      pusch_pdu.rv_index, pusch_pdu.harq_id, pusch_pdu.new_data, pusch_pdu.tb_size_bytes, pusch_pdu.num_cb, {});
+      pusch_pdu.rv_index, pusch_pdu.harq_id, pusch_pdu.new_data, units::bytes{pusch_pdu.tb_size_bytes});
 
   // NOTE: MAC uses the value of the target code rate x[1024], as per TS38.214, Section 6.1.4.1, Table 6.1.4.1-1.
-  float              R                  = pusch_pdu.mcs_descr.get_normalised_target_code_rate();
-  const units::bytes tb_size_lbrm_bytes = tbs_lbrm_default;
-  builder.set_maintenance_v3_frequency_allocation_parameters(
-      pusch_pdu.pusch_second_hop_prb, get_ldpc_base_graph(R, pusch_pdu.tb_size_bytes.to_bits()), tb_size_lbrm_bytes);
-
-  builder.set_maintenance_v3_dmrs_parameters(static_cast<unsigned>(pusch_pdu.dmrs_hopping_mode));
+  const vrb_interval& vrbs               = rbs.type1();
+  float               R                  = pusch_pdu.mcs_descr.get_normalised_target_code_rate();
+  const units::bytes  tb_size_lbrm_bytes = tbs_lbrm_default;
+  builder.set_frequency_allocation_parameters(vrbs,
+                                              pusch_pdu.tx_direct_current_location,
+                                              get_ldpc_base_graph(R, units::bytes{pusch_pdu.tb_size_bytes}.to_bits()),
+                                              tb_size_lbrm_bytes);
 
   // Fill the UCI parameters.
   fill_optional_uci_parameters(builder, mac_pdu.uci, part2_mapper);
 
   // Set PUSCH context for logging.
-  builder.set_context_vendor_specific(pusch_pdu.rnti, static_cast<harq_id_t>(pusch_pdu.harq_id));
+  builder.set_context_vendor_specific(pusch_pdu.rnti, pusch_pdu.harq_id);
 }

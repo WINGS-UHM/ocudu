@@ -114,19 +114,18 @@ static bool operator==(const ul_srs_pdu& lhs, const ul_srs_pdu& rhs)
 
 static bool operator==(const ul_pusch_data& lhs, const ul_pusch_data& rhs)
 {
-  return lhs.rv_index == rhs.rv_index && lhs.new_data == rhs.new_data && lhs.tb_size == rhs.tb_size &&
-         lhs.cb_present_and_position == rhs.cb_present_and_position;
+  return lhs.rv_index == rhs.rv_index && lhs.new_data == rhs.new_data && lhs.tb_size == rhs.tb_size;
 }
 
 static bool operator==(const ul_pusch_uci& lhs, const ul_pusch_uci& rhs)
 {
-  return lhs.harq_ack_bit_length == rhs.harq_ack_bit_length && lhs.alpha_scaling == rhs.alpha_scaling;
+  return lhs.alpha_scaling == rhs.alpha_scaling;
 }
 
 static bool operator==(const ul_pusch_pdu& lhs, const ul_pusch_pdu& rhs)
 {
-  return lhs.rnti == rhs.rnti && lhs.pdu_bitmap == rhs.pdu_bitmap && lhs.uci_correspondence == rhs.uci_correspondence &&
-         lhs.rb_bitmap == rhs.rb_bitmap && lhs.pusch_data == rhs.pusch_data && lhs.pusch_uci == rhs.pusch_uci;
+  return lhs.rnti == rhs.rnti && lhs.uci_correspondence == rhs.uci_correspondence && lhs.pusch_data == rhs.pusch_data &&
+         lhs.pusch_uci == rhs.pusch_uci;
 }
 
 static bool operator==(const ul_tti_request_pdu& lhs, const ul_tti_request_pdu& rhs)

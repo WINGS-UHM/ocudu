@@ -529,26 +529,66 @@ static void log_prach_pdu(const ul_prach_pdu& pdu, fmt::memory_buffer& buffer)
 
 static void log_pusch_pdu(const ul_pusch_pdu& pdu, fmt::memory_buffer& buffer)
 {
-  fmt::format_to(std::back_inserter(buffer),
-                 "\n\t- PUSCH rnti={} bwp={} symb={} mod={}",
-                 pdu.rnti,
-                 pdu.bwp,
-                 pdu.symbols,
-                 fmt::underlying(pdu.qam_mod_order));
+  fmt::format_to(
+      std::back_inserter(buffer),
+      "\n\t- PUSCH rnti={} bwp={} scs={} cp={} target_code_rate={} modulation={} mcs_index={} "
+      "mcs_table={} nid_pusch={} num_layers={} ul_dmrs_symb_pos={} dmrs_type={} pusch_dmrs_scrambling_id={} "
+      "nscid={} dmrs_ports={} tx_direct_current_location={} symb={} ldpc_base_graph={} tb_size_lbrm_bytes={}",
+      pdu.rnti,
+      pdu.bwp,
+      fmt::underlying(pdu.scs),
+      pdu.cp,
+      pdu.target_code_rate,
+      to_string(pdu.qam_mod_order),
+      pdu.mcs_index,
+      pusch_mcs_table_to_string(pdu.mcs_table),
+      pdu.nid_pusch,
+      pdu.num_layers,
+      pdu.ul_dmrs_symb_pos.to_uint64(),
+      fmt::underlying(pdu.dmrs_type),
+      pdu.pusch_dmrs_scrambling_id,
+      pdu.nscid,
+      pdu.dmrs_ports.to_uint64(),
+      pdu.tx_direct_current_location,
+      pdu.symbols,
+      fmt::underlying(pdu.ldpc_base_graph),
+      pdu.tb_size_lbrm_bytes.value());
 
-  if (pdu.pdu_bitmap.test(fapi::ul_pusch_pdu::PUSCH_DATA_BIT)) {
+  if (const auto* tp_enabled = std::get_if<ul_pusch_pdu::transform_precoding_enabled>(&pdu.transform_precoding)) {
     fmt::format_to(std::back_inserter(buffer),
-                   " CW: tbs={} rv_idx={} harq_id={}",
-                   pdu.pusch_data.tb_size,
-                   pdu.pusch_data.rv_index,
-                   pdu.pusch_data.harq_process_id);
+                   " Transport Decoding Enabled pusch_dmrs_identity={}",
+                   tp_enabled->pusch_dmrs_identity);
+  } else if (const auto* tp_disabled =
+                 std::get_if<ul_pusch_pdu::transform_precoding_disabled>(&pdu.transform_precoding)) {
+    fmt::format_to(std::back_inserter(buffer),
+                   " Transport Decoding Disabled num_dmrs_cdm_grps_no_data={}",
+                   tp_disabled->num_dmrs_cdm_grps_no_data);
   }
 
-  if (pdu.pdu_bitmap.test(fapi::ul_pusch_pdu::PUSCH_UCI_BIT)) {
+  fmt::format_to(std::back_inserter(buffer),
+                 " Resource Allocation Type 1 vrbs={}",
+                 pdu.resource_allocation_1.vrbs,
+                 pdu.resource_allocation_1.vrbs);
+
+  if (pdu.pusch_data.has_value()) {
     fmt::format_to(std::back_inserter(buffer),
-                   " UCI: harq_bit_len={} csi1_bit_len={}",
-                   pdu.pusch_uci.harq_ack_bit_length,
-                   pdu.pusch_uci.csi_part1_bit_length);
+                   " CW: rv_idx={} harq_id={} new_data={} tbs={}",
+                   pdu.pusch_data->rv_index,
+                   fmt::underlying(pdu.pusch_data->harq_process_id),
+                   pdu.pusch_data->new_data,
+                   pdu.pusch_data->tb_size);
+  }
+
+  if (pdu.pusch_uci.has_value()) {
+    fmt::format_to(std::back_inserter(buffer),
+                   " UCI: harq_bit_len={} csi1_bit_len={} alpha_scaling={} beta_offset_harq_ack={} beta_offset_csi1={} "
+                   "beta_offset_csi2={}",
+                   pdu.pusch_uci->harq_ack_bit.value(),
+                   pdu.pusch_uci->csi_part1_bit.value(),
+                   alpha_scaling_to_float(pdu.pusch_uci->alpha_scaling),
+                   pdu.pusch_uci->beta_offset_harq_ack,
+                   pdu.pusch_uci->beta_offset_csi1,
+                   pdu.pusch_uci->beta_offset_csi2);
   }
 }
 

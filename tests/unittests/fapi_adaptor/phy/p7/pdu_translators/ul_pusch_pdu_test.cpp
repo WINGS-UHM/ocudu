@@ -56,44 +56,34 @@ TEST(fapi_phy_ul_pusch_adaptor_test, valid_pdu_pass)
   }
 
   // DM-RS.
-  for (unsigned i = 0; i != 14; ++i) {
-    ASSERT_EQ(((fapi_pdu.ul_dmrs_symb_pos >> i) & 1U) == 1U, phy_pdu.dmrs_symbol_mask.test(i));
-  }
-  if (fapi_pdu.transform_precoding) {
+  ASSERT_EQ(fapi_pdu.ul_dmrs_symb_pos, phy_pdu.dmrs_symbol_mask);
+  if (const auto* tp_enabled =
+          std::get_if<fapi::ul_pusch_pdu::transform_precoding_enabled>(&fapi_pdu.transform_precoding)) {
     const auto& dmrs_config = std::get<pusch_processor::dmrs_transform_precoding_configuration>(phy_pdu.dmrs);
-    ASSERT_EQ(fapi_pdu.pusch_dmrs_identity, dmrs_config.n_rs_id);
-  } else {
+    ASSERT_EQ(tp_enabled->pusch_dmrs_identity, dmrs_config.n_rs_id);
+  } else if (const auto* tp_disabled =
+                 std::get_if<fapi::ul_pusch_pdu::transform_precoding_disabled>(&fapi_pdu.transform_precoding)) {
     const auto& dmrs_config = std::get<pusch_processor::dmrs_configuration>(phy_pdu.dmrs);
-    ASSERT_EQ(dmrs_type((fapi_pdu.dmrs_type == fapi::dmrs_cfg_type::type_1) ? dmrs_type::options::TYPE1
-                                                                            : dmrs_type::options::TYPE2),
+    ASSERT_EQ(dmrs_type((fapi_pdu.dmrs_type == dmrs_config_type::type1) ? dmrs_type::options::TYPE1
+                                                                        : dmrs_type::options::TYPE2),
               dmrs_config.dmrs);
     ASSERT_EQ(fapi_pdu.pusch_dmrs_scrambling_id, dmrs_config.scrambling_id);
     ASSERT_EQ(fapi_pdu.nscid, dmrs_config.n_scid);
-    ASSERT_EQ(fapi_pdu.num_dmrs_cdm_grps_no_data, dmrs_config.nof_cdm_groups_without_data);
+    ASSERT_EQ(tp_disabled->num_dmrs_cdm_grps_no_data, dmrs_config.nof_cdm_groups_without_data);
   }
-  ASSERT_EQ(fapi_pdu.pusch_maintenance_v3.tb_size_lbrm_bytes, phy_pdu.tbs_lbrm);
+  ASSERT_EQ(fapi_pdu.tb_size_lbrm_bytes, phy_pdu.tbs_lbrm);
 
   // RB allocation.
-  vrb_bitmap vrb_bitmap(fapi_pdu.bwp.length());
-  for (unsigned vrb_index = 0, vrb_index_end = fapi_pdu.bwp.length(); vrb_index != vrb_index_end; ++vrb_index) {
-    unsigned byte = vrb_index / 8;
-    unsigned bit  = vrb_index % 8;
-    if ((fapi_pdu.rb_bitmap[byte] >> bit) & 1U) {
-      vrb_bitmap.set(vrb_index);
-    }
-  }
-
-  rb_allocation alloc = (fapi_pdu.resource_alloc == fapi::resource_allocation_type::type_1)
-                            ? rb_allocation::make_type1(fapi_pdu.vrbs.start(), fapi_pdu.vrbs.length(), {})
-                            : rb_allocation::make_type0(vrb_bitmap, {});
+  rb_allocation alloc = rb_allocation::make_type1(
+      fapi_pdu.resource_allocation_1.vrbs.start(), fapi_pdu.resource_allocation_1.vrbs.length(), {});
 
   ASSERT_EQ(alloc, phy_pdu.freq_alloc);
 
   // Codeword.
   ASSERT_TRUE(phy_pdu.codeword.has_value());
-  ASSERT_EQ(fapi_pdu.pusch_data.rv_index, phy_pdu.codeword.value().rv);
-  ASSERT_EQ(fapi_pdu.pusch_data.new_data, phy_pdu.codeword.value().new_data);
-  ASSERT_EQ(fapi_pdu.pusch_maintenance_v3.ldpc_base_graph, phy_pdu.codeword.value().ldpc_base_graph);
-  ASSERT_EQ(fapi_pdu.pusch_data.tb_size.value(), pdu.tb_size.value());
-  ASSERT_EQ(fapi_pdu.pusch_data.harq_process_id, pdu.harq_id);
+  ASSERT_EQ(fapi_pdu.pusch_data->rv_index, phy_pdu.codeword.value().rv);
+  ASSERT_EQ(fapi_pdu.pusch_data->new_data, phy_pdu.codeword.value().new_data);
+  ASSERT_EQ(fapi_pdu.ldpc_base_graph, phy_pdu.codeword.value().ldpc_base_graph);
+  ASSERT_EQ(fapi_pdu.pusch_data->tb_size.value(), pdu.tb_size.value());
+  ASSERT_EQ(fapi_pdu.pusch_data->harq_process_id, pdu.harq_id);
 }

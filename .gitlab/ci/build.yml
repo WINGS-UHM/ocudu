@@ -292,6 +292,7 @@ smoke tsan cached:
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
+    - if: $ON_MR_FORK
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
       when: manual
@@ -306,6 +307,7 @@ smoke archlinux cached:
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
+    - if: $ON_MR_FORK
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
       when: manual
@@ -320,6 +322,7 @@ smoke dpdk cached:
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
+    - if: $ON_MR_FORK
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
       when: manual
@@ -334,12 +337,15 @@ smoke pretty printers cached:
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
+    - if: $ON_MR_FORK
       changes: &gdb_printers_changes
         paths:
           - include/ocudu/adt/**/*
           - tests/utils/gdb/pretty_printers/*
           - .gdbinit
+    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
+      changes:
+        <<: *gdb_printers_changes
     - if: $ON_MR
       changes:
         <<: *gdb_printers_changes
@@ -427,6 +433,7 @@ valgrind changed tests:
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-memcheck/
       when: never
+    - if: $ON_MR_FORK
     - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
       when: manual

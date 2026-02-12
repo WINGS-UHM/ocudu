@@ -497,46 +497,13 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
     static constexpr unsigned pucch_f1_max_harq_payload                        = 2U;
     pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_1)] = pucch_f1_max_harq_payload;
 
-    if (std::holds_alternative<pucch_f2_params>(builder_params.f2_or_f3_or_f4_params)) {
-      auto* res_f2_it = std::find_if(pucch_cfg.pucch_res_list.begin(),
-                                     pucch_cfg.pucch_res_list.end(),
-                                     [](const pucch_resource& res) { return res.format == pucch_format::FORMAT_2; });
-      ocudu_assert(res_f2_it != pucch_cfg.pucch_res_list.end(), "No PUCCH F2 resource found in the cell configuration");
-      const auto& res_f2_params = std::get<pucch_format_2_3_cfg>(res_f2_it->format_params);
-      pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
-          get_pucch_format2_max_payload(res_f2_params.nof_prbs,
-                                        res_f2_it->nof_symbols,
-                                        to_max_code_rate_float(pucch_cfg.format_2_common_param.value().max_c_rate));
-      pucch_cfg.set_1_format = pucch_format::FORMAT_2;
-    } else if (std::holds_alternative<pucch_f3_params>(builder_params.f2_or_f3_or_f4_params)) {
-      auto* res_f3_it = std::find_if(pucch_cfg.pucch_res_list.begin(),
-                                     pucch_cfg.pucch_res_list.end(),
-                                     [](const pucch_resource& res) { return res.format == pucch_format::FORMAT_3; });
-      ocudu_assert(res_f3_it != pucch_cfg.pucch_res_list.end(), "No PUCCH F3 resource found in the cell configuration");
-      const auto& f3_common_params = pucch_cfg.format_3_common_param.value();
-      pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_3)] =
-          get_pucch_format3_max_payload(std::get<pucch_format_2_3_cfg>(res_f3_it->format_params).nof_prbs,
-                                        res_f3_it->nof_symbols,
-                                        to_max_code_rate_float(pucch_cfg.format_3_common_param.value().max_c_rate),
-                                        res_f3_it->second_hop_prb.has_value(),
-                                        f3_common_params.additional_dmrs,
-                                        f3_common_params.pi_2_bpsk);
-      pucch_cfg.set_1_format = pucch_format::FORMAT_3;
-    } else {
-      auto* res_f4_it = std::find_if(pucch_cfg.pucch_res_list.begin(),
-                                     pucch_cfg.pucch_res_list.end(),
-                                     [](const pucch_resource& res) { return res.format == pucch_format::FORMAT_4; });
-      ocudu_assert(res_f4_it != pucch_cfg.pucch_res_list.end(), "No PUCCH F4 resource found in the cell configuration");
-      const auto& f4_common_params = pucch_cfg.format_4_common_param.value();
-      pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_4)] =
-          get_pucch_format4_max_payload(res_f4_it->nof_symbols,
-                                        to_max_code_rate_float(pucch_cfg.format_4_common_param.value().max_c_rate),
-                                        res_f4_it->second_hop_prb.has_value(),
-                                        f4_common_params.additional_dmrs,
-                                        f4_common_params.pi_2_bpsk,
-                                        std::get<pucch_format_4_cfg>(res_f4_it->format_params).occ_length);
-      pucch_cfg.set_1_format = pucch_format::FORMAT_4;
-    }
+    const pucch_resource& res_f2        = pucch_cfg.pucch_res_list.back();
+    const auto&           res_f2_params = std::get<pucch_format_2_3_cfg>(res_f2.format_params);
+    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
+        get_pucch_format2_max_payload(res_f2_params.nof_prbs,
+                                      res_f2.nof_symbols,
+                                      to_max_code_rate_float(pucch_cfg.format_2_common_param.value().max_c_rate));
+    pucch_cfg.set_1_format = pucch_format::FORMAT_2;
   }
 
   // Add the PUCCH power configuration.

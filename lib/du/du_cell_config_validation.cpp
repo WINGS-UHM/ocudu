@@ -529,7 +529,6 @@ static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
                "PUSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
   }
   if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
-    const pucch_config pucch_cfg = config_helpers::make_pucch_config(cell_cfg);
     CHECK_TRUE(sr_periodicity_to_slot(cell_cfg.init_bwp_builder.pucch.sr_period) %
                        nof_slots_per_tdd_period(cell_cfg.tdd_ul_dl_cfg_common.value()) ==
                    0,

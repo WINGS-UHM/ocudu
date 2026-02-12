@@ -921,28 +921,21 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     // Parameters for SRS-Config.
     srs_builder_params&            du_srs_cfg   = out_cell.init_bwp_builder.srs_cfg;
     const du_high_unit_srs_config& user_srs_cfg = base_cell.srs_cfg;
-    switch (du_srs_cfg.srs_type_enabled) {
-      case srs_type::disabled:
-        du_srs_cfg.srs_type_enabled = srs_type::disabled;
-        break;
-      case srs_type::periodic:
-        du_srs_cfg.srs_type_enabled = srs_type::periodic;
-        break;
-      case srs_type::aperiodic:
-        du_srs_cfg.srs_type_enabled = srs_type::aperiodic;
-        break;
-      default:
-        report_fatal_error("Invalid SRS type");
+    if (user_srs_cfg.srs_type_enabled == "periodic") {
+      du_srs_cfg.srs_type_enabled = srs_type::periodic;
+    } else if (user_srs_cfg.srs_type_enabled == "aperiodic") {
+      du_srs_cfg.srs_type_enabled = srs_type::aperiodic;
+    } else {
+      du_srs_cfg.srs_type_enabled = srs_type::disabled;
     }
-    const auto srs_period_slots =
-        static_cast<unsigned>(static_cast<float>(get_nof_slots_per_subframe(base_cell.common_scs)) *
-                              user_srs_cfg.srs_period_prohibit_time_ms);
+    const auto srs_period_slots = static_cast<unsigned>(
+        std::round(get_nof_slots_per_subframe(base_cell.common_scs) * user_srs_cfg.srs_period_prohibit_time_ms));
     du_srs_cfg.srs_period_prohib_time    = static_cast<srs_periodicity>(srs_period_slots);
     du_srs_cfg.c_srs                     = user_srs_cfg.c_srs;
-    du_srs_cfg.freq_domain_shift         = user_srs_cfg.freq_domain_shift;
-    du_srs_cfg.tx_comb                   = user_srs_cfg.tx_comb == 2 ? tx_comb_size::n2 : tx_comb_size::n4;
     du_srs_cfg.max_nof_symbols           = user_srs_cfg.max_nof_symbols_per_slot;
+    du_srs_cfg.tx_comb                   = user_srs_cfg.tx_comb == 2 ? tx_comb_size::n2 : tx_comb_size::n4;
     du_srs_cfg.nof_symbols               = static_cast<srs_nof_symbols>(user_srs_cfg.nof_symbols);
+    du_srs_cfg.freq_domain_shift         = user_srs_cfg.freq_domain_shift;
     du_srs_cfg.cyclic_shift_reuse_factor = static_cast<nof_cyclic_shifts>(user_srs_cfg.cyclic_shift_reuse_factor);
     du_srs_cfg.sequence_id_reuse_factor  = user_srs_cfg.sequence_id_reuse_factor;
     du_srs_cfg.p0                        = user_srs_cfg.p0;

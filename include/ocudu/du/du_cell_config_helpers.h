@@ -75,7 +75,7 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
   cfg.init_bwp_builder.pusch                = make_pusch_builder_params(ue_serv_cell);
   cfg.init_bwp_builder.pucch.min_k1         = params.min_k1;
   cfg.init_bwp_builder.pucch.sr_period =
-      static_cast<sr_periodicity>(static_cast<unsigned>(get_nof_slots_per_subframe(params.scs_common)) * 40U);
+      static_cast<sr_periodicity>(get_nof_slots_per_subframe(params.scs_common) * 40U);
 
   return cfg;
 }

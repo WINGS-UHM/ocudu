@@ -1074,9 +1074,16 @@ static bool validate_cell_sib_config(const du_high_unit_base_cell_config& cell_c
       if (sib_it < r17_min_sib_type and si_msg.si_window_position.has_value()) {
         fmt::print("The SIB{} cannot be configured with SI-window position.\n", sib_it);
         return false;
-      } else if (sib_it >= r17_min_sib_type and !si_msg.si_window_position.has_value()) {
-        fmt::print("The SIB{} must be configured with SI-window position.\n", sib_it);
-        return false;
+      } else if (sib_it >= r17_min_sib_type) {
+        if (!si_msg.si_window_position.has_value()) {
+          fmt::print("The SIB{} must be configured with SI-window position.\n", sib_it);
+          return false;
+        } else if (n_sched_info_list_messages == 0) {
+          fmt::print("The SIB{} (ID >= 15) requires at least one SIB with ID < 15 to be present; otherwise "
+                     "si-WindowLength will not be included.\n",
+                     sib_it);
+          return false;
+        }
       }
       sibs_included.push_back(sib_it);
     }

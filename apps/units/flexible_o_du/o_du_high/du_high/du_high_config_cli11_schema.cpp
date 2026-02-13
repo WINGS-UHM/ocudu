@@ -298,14 +298,17 @@ static void configure_cli11_pdsch_args(CLI::App& app, du_high_unit_pdsch_config&
                                                        return result.has_value() ? "" : result.error();
                                                      },
                                                      "32_bitmask_validator"));
-  add_option(app, "--nof_harqs", pdsch_params.nof_harqs, "Number of DL HARQ processes")
+  add_option(app,
+             "--nof_harqs",
+             pdsch_params.nof_harqs,
+             "Number of DL HARQ processes. The value 32 is applied only for NTN cells when supported by the UE; "
+             "otherwise, it defaults to 16.")
       ->capture_default_str()
       ->check(CLI::IsMember({2, 4, 6, 8, 10, 12, 16, 32}));
   add_option(app,
              "--max_nof_harq_retxs",
              pdsch_params.max_nof_harq_retxs,
-             "Maximum number of times a DL HARQ can be retransmitted, before it gets discarded"
-             "The value 32 is applied only for NTN cells when supported by the UE; otherwise, it defaults to 16.")
+             "Maximum number of times a DL HARQ can be retransmitted, before it gets discarded.")
       ->capture_default_str()
       ->check(CLI::Range(0, 64));
   add_option(app,
@@ -858,14 +861,17 @@ static void configure_cli11_pusch_args(CLI::App& app, du_high_unit_pusch_config&
                                                        return result.has_value() ? "" : result.error();
                                                      },
                                                      "32_bitmask_validator"));
-  add_option(app, "--nof_harqs", pusch_params.nof_harqs, "Number of UL HARQ processes")
+  add_option(app,
+             "--nof_harqs",
+             pusch_params.nof_harqs,
+             "Number of UL HARQ processes. The value 32 is applied only for NTN cells when supported by the UE; "
+             "otherwise, it defaults to 16.")
       ->capture_default_str()
       ->check(CLI::IsMember({16, 32}));
   add_option(app,
              "--max_nof_harq_retxs",
              pusch_params.max_nof_harq_retxs,
-             "Maximum number of times a UL HARQ can be retransmitted, before it gets discarded."
-             "The value 32 is applied only for NTN cells when supported by the UE; otherwise, it defaults to 16.")
+             "Maximum number of times a UL HARQ can be retransmitted, before it gets discarded.")
       ->capture_default_str()
       ->check(CLI::Range(0, 64));
   add_option(app,

@@ -177,6 +177,123 @@ Change the environment variables define in `.env` that are used to setup and dep
 └── ...
 ```
 
+#### Connecting to gNB in Different Deployment Scenarios
+
+The monitoring stack (Telegraf + InfluxDB + Grafana) connects to the gNB via WebSocket
+to collect metrics. The `WS_URL` variable in `.env` controls where Telegraf looks for
+the gNB. Choose the scenario that matches your deployment:
+
+| Scenario | `WS_URL` value | When to use |
+|----------|---------------|-------------|
+| **[A] gNB in Docker** | `gnb:8001` (default) | gNB runs via `docker-compose.yml` alongside the monitoring stack |
+| **[B] gNB on Host** | `host.docker.internal:8001` | gNB built and running natively on the host machine |
+| **[C] gNB in Kubernetes** | `<K8S_NODE_IP>:<NODE_PORT>` | gNB deployed in a Kubernetes cluster |
+| **[D] gNB on Remote** | `<REMOTE_IP>:8001` | gNB runs on a different machine on the network |
+
+##### Scenario A: gNB in Docker (default)
+
+No changes needed. The default `.env` already uses Docker DNS (`gnb:8001`):
+
+```bash
+# Just start both compose files together
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.ui.yml up
+```
+
+##### Scenario B: gNB on Host Machine
+
+When the gNB runs directly on the host (not in Docker), Telegraf inside the container
+needs to reach the host network via `host.docker.internal`:
+
+```bash
+# 1. Edit docker/.env
+sed -i 's/^WS_URL=.*/WS_URL=host.docker.internal:8001/' docker/.env
+
+# 2. Start the monitoring stack only
+docker compose -f docker/docker-compose.ui.yml up -d
+
+# 3. Start the gNB natively (ensure metrics are enabled in the config)
+sudo ./ocudu_gnb -c gnb.yml
+```
+
+> **Linux note:** If `host.docker.internal` does not resolve, the `extra_hosts` entry
+> in `docker-compose.ui.yml` should handle it automatically. If it still fails, use your
+> host's IP directly: `WS_URL=<HOST_IP>:8001` or the Docker bridge gateway
+> `WS_URL=172.17.0.1:8001`.
+
+##### Scenario C: gNB in Kubernetes
+
+When the gNB is deployed in a Kubernetes cluster:
+
+```bash
+# 1. Expose the gNB metrics port via NodePort or LoadBalancer
+#    Example: kubectl expose deployment ocudu-gnb --type=NodePort --port=8001
+
+# 2. Find the assigned NodePort
+#    kubectl get svc ocudu-gnb -o jsonpath='{.spec.ports[0].nodePort}'
+
+# 3. Edit docker/.env with the K8s node IP and port
+sed -i 's/^WS_URL=.*/WS_URL=10.0.0.50:30801/' docker/.env
+
+# 4. Start the monitoring stack
+docker compose -f docker/docker-compose.ui.yml up -d
+```
+
+Alternatively, if using K8s service DNS from within the same cluster:
+`WS_URL=ocudu-gnb-metrics.ocudu.svc.cluster.local:8001`
+
+For more information on Kubernetes deployments, see [https://docs.ocudu.org](https://docs.ocudu.org).
+
+##### Scenario D: gNB on Remote Server
+
+When the gNB runs on a different machine:
+
+```bash
+# 1. Edit docker/.env with the remote server's IP
+sed -i 's/^WS_URL=.*/WS_URL=192.168.1.100:8001/' docker/.env
+
+# 2. Ensure the remote gNB is reachable on port 8001
+#    (check firewalls, security groups, etc.)
+
+# 3. Start the monitoring stack
+docker compose -f docker/docker-compose.ui.yml up -d
+```
+
+##### Troubleshooting
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| Grafana shows "No data" | `WS_URL` points to wrong address | Verify with `docker exec telegraf printenv WS_URL` and check connectivity |
+| `host.docker.internal` does not resolve | Missing `extra_hosts` or old Docker version | Ensure `docker-compose.ui.yml` has `extra_hosts` entry; upgrade Docker to 20.10+ |
+| Connection refused on port 8001 | gNB metrics not enabled or wrong bind address | Add `remote_control: { enabled: true, bind_addr: 0.0.0.0 }` to gNB config |
+| Telegraf logs show WebSocket errors | Network/firewall blocking the connection | Check `docker logs telegraf`; ensure port 8001 is open between hosts |
+| Metrics stop after gNB restart | Telegraf doesn't auto-reconnect immediately | Restart Telegraf: `docker compose restart telegraf` |
+
+##### Manual Verification
+
+To verify the connection is working:
+
+```bash
+# Check Telegraf logs for successful WebSocket connection
+docker logs telegraf 2>&1 | grep -i "ws\|websocket\|connect"
+
+# Verify the WS_URL environment variable inside the container
+docker exec telegraf printenv WS_URL
+
+# Test WebSocket connectivity manually (requires python3 + websockets)
+docker exec telegraf python3 -c "
+import asyncio, websockets
+async def test():
+    import os
+    url = f\"ws://{os.environ['WS_URL']}\"
+    try:
+        async with websockets.connect(url, open_timeout=5) as ws:
+            print(f'Connected to {url}')
+    except Exception as e:
+        print(f'Failed to connect to {url}: {e}')
+asyncio.run(test())
+"
+```
+
 You can access grafana in [http://localhost:3300](http://localhost:3300). By default, you'll be in view mode without needing to log in. If you want to modify anything, you need to log in using following credentials:
 
 - username: `admin`

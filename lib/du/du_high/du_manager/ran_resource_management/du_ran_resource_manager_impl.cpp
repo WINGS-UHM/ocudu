@@ -80,7 +80,7 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
   cell_cfg_list(cell_cfg_list_),
   logger(ocudulog::fetch_basic_logger("DU-MNG")),
   test_cfg(test_cfg_),
-  pucch_res_mng(cell_cfg_list, scheduler_cfg.ue.max_pucchs_per_slot),
+  pucch_res_mng(scheduler_cfg.ue.max_pucchs_per_slot),
   bearer_res_mng(srbs, qos, logger),
   srs_res_mng(build_srs_res_mng(cell_cfg_list)),
   meas_cfg_mng(cell_cfg_list),
@@ -88,12 +88,13 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
   ra_res_alloc(cell_cfg_list)
 {
   for (unsigned cell_idx_uint = 0; cell_idx_uint != cell_cfg_list.size(); ++cell_idx_uint) {
-    const auto&           cell         = cell_cfg_list[cell_idx_uint];
-    const du_cell_index_t cell_idx     = to_du_cell_index(cell_idx_uint);
-    unsigned              sr_limit     = pucch_res_mng.get_nof_sr_free_res_offsets(cell_idx);
-    unsigned              csi_limit    = 0;
-    unsigned              srs_limit    = 0;
-    const auto            csi_meas_cfg = config_helpers::make_csi_meas_config(cell);
+    const auto&           cell     = cell_cfg_list[cell_idx_uint];
+    const du_cell_index_t cell_idx = to_du_cell_index(cell_idx_uint);
+    pucch_res_mng.add_cell(cell_idx, cell);
+    unsigned   sr_limit     = pucch_res_mng.get_nof_sr_free_res_offsets(cell_idx);
+    unsigned   csi_limit    = 0;
+    unsigned   srs_limit    = 0;
+    const auto csi_meas_cfg = config_helpers::make_csi_meas_config(cell);
 
     unsigned max_nof_ues = sr_limit;
     if (csi_meas_cfg.has_value() and not is_pusch_configured(*csi_meas_cfg)) {

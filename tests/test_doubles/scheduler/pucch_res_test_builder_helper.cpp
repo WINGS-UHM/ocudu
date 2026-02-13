@@ -140,7 +140,7 @@ static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&     
   return cell_cfg;
 }
 
-pucch_res_builder_test_helper::pucch_res_builder_test_helper() : pucch_res_mgr(std::nullopt) {}
+pucch_res_builder_test_helper::pucch_res_builder_test_helper() : pucch_res_mgr(max_pucch_grants_per_slot) {}
 
 pucch_res_builder_test_helper::pucch_res_builder_test_helper(
     const bwp_uplink_common&                      init_ul_bwp,
@@ -148,7 +148,8 @@ pucch_res_builder_test_helper::pucch_res_builder_test_helper(
     const pucch_resource_builder_params&          pucch_cfg) :
   required_info(pucch_res_builder_info{.init_ul_bwp          = init_ul_bwp,
                                        .tdd_ul_dl_cfg_common = tdd_ul_dl_cfg_common,
-                                       .pucch_cfg            = pucch_cfg})
+                                       .pucch_cfg            = pucch_cfg}),
+  pucch_res_mgr(max_pucch_grants_per_slot)
 {
 }
 
@@ -156,7 +157,8 @@ pucch_res_builder_test_helper::pucch_res_builder_test_helper(const cell_configur
                                                              const pucch_resource_builder_params& pucch_cfg) :
   required_info(pucch_res_builder_info{.init_ul_bwp          = cell_cfg.ul_cfg_common.init_ul_bwp,
                                        .tdd_ul_dl_cfg_common = cell_cfg.tdd_cfg_common,
-                                       .pucch_cfg            = pucch_cfg})
+                                       .pucch_cfg            = pucch_cfg}),
+  pucch_res_mgr(max_pucch_grants_per_slot)
 {
   // Sanity check to ensure the cell_cfg and the pucch_cfg use the same parameters.
   const auto ded_pucch_resource_list = config_helpers::build_pucch_resource_list(
@@ -193,14 +195,14 @@ bool pucch_res_builder_test_helper::add_build_new_ue_pucch_cfg(serving_cell_conf
     return false;
   }
 
-  if (not pucch_res_mgr.has_value()) {
+  if (not pucch_res_mgr.contains(serv_cell_cfg.cell_index)) {
     init_pucch_res_mgr(serv_cell_cfg);
   }
 
   // Create a temporary struct that will be fed to the function alloc_resources().
   odu::cell_group_config cell_group_cfg;
   cell_group_cfg.cells.emplace(0, cell_config_dedicated{.serv_cell_cfg = serv_cell_cfg});
-  const bool alloc_outcome = pucch_res_mgr.value().alloc_resources(cell_group_cfg);
+  const bool alloc_outcome = pucch_res_mgr.alloc_resources(cell_group_cfg);
   if (not alloc_outcome) {
     return false;
   }
@@ -211,13 +213,9 @@ bool pucch_res_builder_test_helper::add_build_new_ue_pucch_cfg(serving_cell_conf
 
 void pucch_res_builder_test_helper::init_pucch_res_mgr(const serving_cell_config& base_ue_cfg)
 {
-  if (pucch_res_mgr.has_value()) {
-    return;
-  }
-  pucch_res_mgr.emplace(odu::du_pucch_resource_manager(
-      static_vector<odu::du_cell_config, 1>{generate_du_cell_config(required_info.value().init_ul_bwp,
-                                                                    required_info.value().tdd_ul_dl_cfg_common,
-                                                                    base_ue_cfg,
-                                                                    required_info.value().pucch_cfg)},
-      max_pucch_grants_per_slot));
+  odu::du_cell_config cell_cfg = generate_du_cell_config(required_info.value().init_ul_bwp,
+                                                         required_info.value().tdd_ul_dl_cfg_common,
+                                                         base_ue_cfg,
+                                                         required_info.value().pucch_cfg);
+  pucch_res_mgr.add_cell(to_du_cell_index(0), cell_cfg);
 }

@@ -79,6 +79,7 @@ public:
     expert_cfg(expert_cfg_),
     builder_params(builder_params_),
     logger(ocudulog::fetch_basic_logger("SCHED")),
+    pucch_res_mng(expert_cfg_.ue.max_pucchs_per_slot),
     sch(create_scheduler(scheduler_config{expert_cfg, cfg_notif})),
     next_sl_tx(builder_params.scs_common, 0)
   {
@@ -97,7 +98,7 @@ public:
         pucch_resources, cell_cfg_msg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
     sch->handle_cell_configuration_request(cell_cfg_msg);
 
-    pucch_res_mng.emplace(du_cell_cfgs, expert_cfg_.ue.max_pucchs_per_slot);
+    pucch_res_mng.add_cell(to_du_cell_index(0), du_cell_cfgs[0]);
 
     logger.set_context(next_sl_tx.sfn(), next_sl_tx.slot_index());
   }
@@ -116,7 +117,7 @@ public:
     odu::cell_group_config cell_group;
     cell_group.cells.emplace(0);
     cell_group.cells[0].serv_cell_cfg = pcell.serv_cell_cfg;
-    bool success                      = pucch_res_mng->alloc_resources(cell_group);
+    bool success                      = pucch_res_mng.alloc_resources(cell_group);
     ocudu_assert(success, "Failed to allocate resources for UE={}", ue_count);
     pcell.serv_cell_cfg = cell_group.cells[0].serv_cell_cfg;
 
@@ -228,13 +229,13 @@ private:
   const unsigned dl_pipeline_delay = 4;
   const unsigned uci_process_delay = 2;
 
-  sched_cfg_dummy_notifier                      cfg_notif;
-  sched_dummy_metric_notifier                   metric_notif;
-  scheduler_expert_config                       expert_cfg;
-  cell_config_builder_params                    builder_params;
-  std::vector<odu::du_cell_config>              du_cell_cfgs;
-  ocudulog::basic_logger&                       logger;
-  std::optional<odu::du_pucch_resource_manager> pucch_res_mng;
+  sched_cfg_dummy_notifier         cfg_notif;
+  sched_dummy_metric_notifier      metric_notif;
+  scheduler_expert_config          expert_cfg;
+  cell_config_builder_params       builder_params;
+  std::vector<odu::du_cell_config> du_cell_cfgs;
+  ocudulog::basic_logger&          logger;
+  odu::du_pucch_resource_manager   pucch_res_mng;
 
   std::unique_ptr<mac_scheduler> sch;
 

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "du_ue_resource_config.h"
+#include <optional>
 #include <set>
 
 namespace ocudu {
@@ -23,11 +24,17 @@ namespace odu {
 class du_pucch_resource_manager
 {
 public:
-  explicit du_pucch_resource_manager(span<const du_cell_config> cell_cfg_list_, unsigned max_pucch_grants_per_slot_);
+  explicit du_pucch_resource_manager(unsigned max_pucch_grants_per_slot_);
   du_pucch_resource_manager(const du_pucch_resource_manager&)            = delete;
   du_pucch_resource_manager(du_pucch_resource_manager&&)                 = default;
   du_pucch_resource_manager& operator=(const du_pucch_resource_manager&) = delete;
   du_pucch_resource_manager& operator=(du_pucch_resource_manager&&)      = delete;
+
+  /// Add resources for a new DU cell.
+  void add_cell(du_cell_index_t cell_idx, const du_cell_config& cell_cfg);
+
+  /// Remove all resources for a DU cell.
+  void rem_cell(du_cell_index_t cell_idx);
 
   /// \brief Allocate PUCCH resources for a given UE. The resources are stored in the UE's cell group config.
   /// \return true if allocation was successful.
@@ -48,7 +55,16 @@ public:
     return cells[cell_idx].csi_res_offset_free_list.size();
   }
 
+  /// Whether a given cell is configured.
+  bool contains(du_cell_index_t cell_index) const { return cells.contains(cell_index); }
+
 private:
+  struct cell_resource_context;
+
+  void configure_shared_pucch_params(const du_cell_config& cell_cfg);
+  void verify_shared_pucch_params_compatibility(const du_cell_config& cell_cfg) const;
+  void clear_shared_pucch_params();
+
   unsigned sr_du_res_idx_to_pucch_res_idx(unsigned sr_du_res_idx) const;
 
   /// \brief Computes the DU index for PUCCH SR resource from the UE's PUCCH-Config \ref res_id index.
@@ -96,15 +112,15 @@ private:
   void disable_pucch_cfg(cell_group_config& cell_grp_cfg);
 
   // Parameters for PUCCH configuration passed by the user.
-  const pucch_resource_builder_params user_defined_pucch_cfg;
-  const std::vector<pucch_resource>   default_pucch_res_list;
-  const pucch_config                  default_pucch_cfg;
+  pucch_resource_builder_params user_defined_pucch_cfg{};
+  std::vector<pucch_resource>   default_pucch_res_list;
+  pucch_config                  default_pucch_cfg{};
   // Default CSI report configuration. Only set if periodic CSI reporting is configured.
-  const std::optional<csi_report_config> default_csi_report_cfg;
-  const unsigned                         max_pucch_grants_per_slot;
-  unsigned                               lcm_csi_sr_period;
-  unsigned                               sr_period_slots  = 0;
-  unsigned                               csi_period_slots = 0;
+  std::optional<csi_report_config> default_csi_report_cfg;
+  const unsigned                   max_pucch_grants_per_slot;
+  unsigned                         lcm_csi_sr_period;
+  unsigned                         sr_period_slots  = 0;
+  unsigned                         csi_period_slots = 0;
 
   struct cell_resource_context {
     /// \brief Pool of PUCCH SR offsets currently available to be allocated to UEs. Each element is represented by a
@@ -118,7 +134,7 @@ private:
   };
 
   /// Resources for the different cells of the DU.
-  static_vector<cell_resource_context, MAX_NOF_DU_CELLS> cells;
+  slotted_id_table<du_cell_index_t, cell_resource_context, MAX_NOF_DU_CELLS> cells;
 };
 
 } // namespace odu

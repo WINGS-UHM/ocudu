@@ -54,9 +54,9 @@ private:
     pucch_resource_builder_params          pucch_cfg;
   };
 
-  std::optional<pucch_res_builder_info>         required_info;
-  std::optional<odu::du_pucch_resource_manager> pucch_res_mgr;
-  static constexpr unsigned                     max_pucch_grants_per_slot = 64;
+  std::optional<pucch_res_builder_info> required_info;
+  odu::du_pucch_resource_manager        pucch_res_mgr;
+  static constexpr unsigned             max_pucch_grants_per_slot = 64;
 };
 
 } // namespace ocudu

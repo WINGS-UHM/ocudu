@@ -17,6 +17,7 @@
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/result/pucch_format.h"
 #include <numeric>
+#include <utility>
 
 using namespace ocudu;
 using namespace odu;
@@ -59,25 +60,30 @@ static pucch_config build_default_pucch_cfg(const pucch_config&                 
   return target_pucch_cfg;
 }
 
-du_pucch_resource_manager::du_pucch_resource_manager(span<const du_cell_config> cell_cfg_list_,
-                                                     unsigned                   max_pucch_grants_per_slot_) :
-  user_defined_pucch_cfg(cell_cfg_list_[0].init_bwp_builder.pucch.resources),
-  default_pucch_res_list(config_helpers::build_pucch_resource_list(
-      cell_cfg_list_[0].init_bwp_builder.pucch.resources,
-      cell_cfg_list_[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length())),
-  default_pucch_cfg(
-      build_default_pucch_cfg(config_helpers::make_pucch_config(cell_cfg_list_[0]), user_defined_pucch_cfg)),
-  default_csi_report_cfg([&cell_cfg_list_]() -> std::optional<csi_report_config> {
-    const auto csi_meas = config_helpers::make_csi_meas_config(cell_cfg_list_[0]);
-    if (csi_meas.has_value() and not is_pusch_configured(*csi_meas)) {
-      return csi_meas->csi_report_cfg_list[0];
-    }
-    return std::nullopt;
-  }()),
-  // Leave 1 PUCCH grants for HARQ ACKs.
-  max_pucch_grants_per_slot(max_pucch_grants_per_slot_ - 1U),
-  cells(cell_cfg_list_.size())
+static std::optional<csi_report_config> make_default_csi_report_config(const du_cell_config& cell_cfg)
 {
+  const auto csi_meas_cfg = config_helpers::make_csi_meas_config(cell_cfg);
+  if (csi_meas_cfg.has_value() and not is_pusch_configured(*csi_meas_cfg)) {
+    return csi_meas_cfg->csi_report_cfg_list[0];
+  }
+  return std::nullopt;
+}
+
+du_pucch_resource_manager::du_pucch_resource_manager(unsigned max_pucch_grants_per_slot_) :
+  // Leave 1 PUCCH grant for HARQ ACKs.
+  max_pucch_grants_per_slot(max_pucch_grants_per_slot_ - 1U), lcm_csi_sr_period(0)
+{
+  ocudu_assert(max_pucch_grants_per_slot_ > 0, "At least one PUCCH grant per slot is required");
+}
+
+void du_pucch_resource_manager::configure_shared_pucch_params(const du_cell_config& cell_cfg)
+{
+  user_defined_pucch_cfg = cell_cfg.init_bwp_builder.pucch.resources;
+  default_pucch_res_list = config_helpers::build_pucch_resource_list(
+      user_defined_pucch_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+  default_pucch_cfg      = build_default_pucch_cfg(config_helpers::make_pucch_config(cell_cfg), user_defined_pucch_cfg);
+  default_csi_report_cfg = make_default_csi_report_config(cell_cfg);
+
   ocudu_assert(not default_pucch_cfg.sr_res_list.empty(), "There must be at least one SR Resource");
 
   // Compute fundamental SR period.
@@ -86,6 +92,7 @@ du_pucch_resource_manager::du_pucch_resource_manager(span<const du_cell_config> 
 
   // Compute fundamental CSI report period.
   // TODO: Handle more than one CSI report period.
+  csi_period_slots = 0;
   if (default_csi_report_cfg.has_value()) {
     const auto& rep = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
         default_csi_report_cfg->report_cfg_type);
@@ -94,46 +101,90 @@ du_pucch_resource_manager::du_pucch_resource_manager(span<const du_cell_config> 
   // As the SR and CSI period might not be one a multiple of each other, we compute the Least Common Multiple (LCM) of
   // the two periods.
   lcm_csi_sr_period = std::lcm(sr_period_slots, csi_period_slots);
+}
 
-  // Setup RAN resources per cell.
-  unsigned cell_count = 0;
-  for (auto& cell : cells) {
-    du_cell_index_t cell_index = to_du_cell_index(cell_count++);
-    const auto&     cell_cfg   = cell_cfg_list_[cell_index];
+void du_pucch_resource_manager::verify_shared_pucch_params_compatibility(const du_cell_config& cell_cfg) const
+{
+  const pucch_resource_builder_params& cell_user_params    = cell_cfg.init_bwp_builder.pucch.resources;
+  const std::vector<pucch_resource>    cell_pucch_res_list = config_helpers::build_pucch_resource_list(
+      cell_user_params, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+  const pucch_config cell_default_pucch_cfg =
+      build_default_pucch_cfg(config_helpers::make_pucch_config(cell_cfg), cell_user_params);
+  const std::optional<csi_report_config> cell_default_csi_report_cfg = make_default_csi_report_config(cell_cfg);
 
-    // Initialize the PUCCH grants-per-slot counter.
-    cell.pucch_grants_per_slot_cnt.resize(lcm_csi_sr_period, 0);
+  // The manager keeps one shared PUCCH model and per-cell offsets. New cells must be compatible with that model.
+  ocudu_assert(cell_pucch_res_list == default_pucch_res_list, "PUCCH resource list mismatch across DU cells");
+  ocudu_assert(cell_default_pucch_cfg == default_pucch_cfg, "PUCCH default configuration mismatch across DU cells");
+  ocudu_assert(cell_default_csi_report_cfg == default_csi_report_cfg,
+               "CSI report configuration mismatch across DU cells");
+}
 
-    // Set up the pucch_res_id for the resource used for SR.
-    for (unsigned sr_res_idx = 0; sr_res_idx < user_defined_pucch_cfg.nof_cell_sr_resources; ++sr_res_idx) {
-      for (unsigned offset = 0; offset != sr_period_slots; ++offset) {
-        if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
-          const tdd_ul_dl_config_common& tdd_cfg = *cell_cfg.tdd_ul_dl_cfg_common;
-          const unsigned slot_index = offset % (NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(tdd_cfg.ref_scs));
-          if (get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length() !=
-              NOF_OFDM_SYM_PER_SLOT_NORMAL_CP) {
-            // UL disabled for this slot.
-            continue;
-          }
+void du_pucch_resource_manager::clear_shared_pucch_params()
+{
+  user_defined_pucch_cfg = {};
+  default_pucch_res_list = {};
+  default_pucch_cfg      = {};
+  default_csi_report_cfg = std::nullopt;
+  lcm_csi_sr_period      = 0;
+  sr_period_slots        = 0;
+  csi_period_slots       = 0;
+}
+
+void du_pucch_resource_manager::add_cell(du_cell_index_t cell_idx, const du_cell_config& cell_cfg)
+{
+  ocudu_assert(not cells.contains(cell_idx), "Cell index={} already configured", cell_idx);
+
+  if (cells.empty()) {
+    configure_shared_pucch_params(cell_cfg);
+  } else {
+    verify_shared_pucch_params_compatibility(cell_cfg);
+  }
+
+  cell_resource_context cell;
+  cell.pucch_grants_per_slot_cnt.resize(lcm_csi_sr_period, 0);
+
+  // Set up SR resources and offsets.
+  for (unsigned sr_res_idx = 0; sr_res_idx < user_defined_pucch_cfg.nof_cell_sr_resources; ++sr_res_idx) {
+    for (unsigned offset = 0; offset != sr_period_slots; ++offset) {
+      if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
+        const tdd_ul_dl_config_common& tdd_cfg = *cell_cfg.tdd_ul_dl_cfg_common;
+        const unsigned slot_index = offset % (NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(tdd_cfg.ref_scs));
+        if (get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length() !=
+            NOF_OFDM_SYM_PER_SLOT_NORMAL_CP) {
+          // UL disabled for this slot.
+          continue;
         }
-        cell.sr_res_offset_free_list.emplace_back(sr_res_idx, offset);
       }
+      cell.sr_res_offset_free_list.emplace_back(sr_res_idx, offset);
     }
+  }
 
-    for (unsigned csi_res_idx = 0; csi_res_idx < user_defined_pucch_cfg.nof_cell_csi_resources; ++csi_res_idx) {
-      for (unsigned offset = 0; offset != csi_period_slots; ++offset) {
-        if (cell_cfg_list_[0].tdd_ul_dl_cfg_common.has_value()) {
-          const tdd_ul_dl_config_common& tdd_cfg = *cell_cfg.tdd_ul_dl_cfg_common;
-          const unsigned slot_index = offset % (NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(tdd_cfg.ref_scs));
-          if (get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length() !=
-              NOF_OFDM_SYM_PER_SLOT_NORMAL_CP) {
-            // UL disabled for this slot.
-            continue;
-          }
+  // Set up CSI resources and offsets.
+  for (unsigned csi_res_idx = 0; csi_res_idx < user_defined_pucch_cfg.nof_cell_csi_resources; ++csi_res_idx) {
+    for (unsigned offset = 0; offset != csi_period_slots; ++offset) {
+      if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
+        const tdd_ul_dl_config_common& tdd_cfg = *cell_cfg.tdd_ul_dl_cfg_common;
+        const unsigned slot_index = offset % (NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(tdd_cfg.ref_scs));
+        if (get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length() !=
+            NOF_OFDM_SYM_PER_SLOT_NORMAL_CP) {
+          // UL disabled for this slot.
+          continue;
         }
-        cell.csi_res_offset_free_list.emplace_back(csi_res_idx, offset);
       }
+      cell.csi_res_offset_free_list.emplace_back(csi_res_idx, offset);
     }
+  }
+
+  cells.emplace(cell_idx, std::move(cell));
+}
+
+void du_pucch_resource_manager::rem_cell(du_cell_index_t cell_idx)
+{
+  ocudu_assert(cells.contains(cell_idx), "Cell index={} has not been configured", cell_idx);
+
+  cells.erase(cell_idx);
+  if (cells.empty()) {
+    clear_shared_pucch_params();
   }
 }
 

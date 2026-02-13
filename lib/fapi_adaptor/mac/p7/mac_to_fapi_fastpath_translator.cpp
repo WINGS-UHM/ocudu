@@ -69,7 +69,7 @@ static void add_pdcch_pdus_to_builder(builder_type&                  builder,
   for (unsigned i = 0, e = pdcch_info.size(); i != e; ++i) {
     const coreset_configuration& coreset_cfg = *pdcch_info[i].ctx.coreset_cfg;
 
-    ocudu_assert(!(coreset_cfg.id == to_coreset_id(0) && !coreset_cfg.interleaved.has_value()),
+    ocudu_assert(!(coreset_cfg.get_id() == to_coreset_id(0) && !coreset_cfg.get_interleaved().has_value()),
                  "CORESET0 must always be interleaved");
 
     fapi::dl_pdcch_pdu_builder pdcch_builder = builder.add_pdcch_pdu();

@@ -41,7 +41,7 @@ static error_type<std::string> validate_pdcch_cfg_common(const sched_cell_config
   for (const auto& ss : msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
     bool cset_id_exits_in_common =
         msg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value()
-            ? ss.get_coreset_id() == msg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset->id
+            ? ss.get_coreset_id() == msg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset->get_id()
             : false;
     bool cset_id_exits_in_cset0 =
         msg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value() ? ss.get_coreset_id() == 0 : false;

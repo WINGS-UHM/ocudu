@@ -1322,7 +1322,7 @@ ue_fallback_scheduler::get_pdsch_time_res_idx(const pdsch_config_common&        
   for (unsigned time_res_idx = 0; time_res_idx != pdsch_cfg.pdsch_td_alloc_list.size(); ++time_res_idx) {
     const pdsch_time_domain_resource_allocation& pdsch_td_cfg = get_pdsch_td_cfg(time_res_idx);
     // Check whether PDSCH time domain resource does not overlap with CORESET.
-    if (pdsch_td_cfg.symbols.start() < ss_cfg.get_first_symbol_index() + cs_cfg.duration) {
+    if (pdsch_td_cfg.symbols.start() < ss_cfg.get_first_symbol_index() + cs_cfg.get_duration()) {
       continue;
     }
 

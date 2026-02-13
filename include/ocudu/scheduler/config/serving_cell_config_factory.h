@@ -36,7 +36,8 @@ carrier_configuration make_default_dl_carrier_configuration(const cell_config_bu
 
 carrier_configuration make_default_ul_carrier_configuration(const cell_config_builder_params_extended& params = {});
 
-coreset_configuration make_default_coreset_config(const cell_config_builder_params_extended& params = {});
+coreset_configuration make_default_coreset_config(const cell_config_builder_params_extended& params = {},
+                                                  coreset_id                                 cs_id  = to_coreset_id(1));
 
 coreset_configuration make_default_coreset0_config(const cell_config_builder_params_extended& params = {});
 

@@ -31,7 +31,7 @@ get_pusch_time_domain_resource_table(const pusch_config_common& pusch_cfg)
 inline unsigned get_coreset_nof_prbs(const coreset_configuration& cs_cfg)
 {
   static constexpr unsigned NOF_RBS_PER_GROUP = 6U;
-  if (cs_cfg.id == to_coreset_id(0)) {
+  if (cs_cfg.get_id() == to_coreset_id(0)) {
     return cs_cfg.coreset0_crbs().length();
   }
   return cs_cfg.freq_domain_resources().count() * NOF_RBS_PER_GROUP;
@@ -41,7 +41,7 @@ inline unsigned get_coreset_nof_prbs(const coreset_configuration& cs_cfg)
 inline unsigned get_coreset_end_crb(const coreset_configuration& cs_cfg)
 {
   static constexpr unsigned NOF_RBS_PER_GROUP = 6U;
-  if (cs_cfg.id == to_coreset_id(0)) {
+  if (cs_cfg.get_id() == to_coreset_id(0)) {
     return cs_cfg.coreset0_crbs().stop();
   }
   const uint64_t highest_bit = cs_cfg.freq_domain_resources().find_highest(0, cs_cfg.freq_domain_resources().size());

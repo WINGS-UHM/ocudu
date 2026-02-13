@@ -91,48 +91,35 @@ ocudu::config_helpers::make_default_ul_carrier_configuration(const cell_config_b
 }
 
 coreset_configuration
-ocudu::config_helpers::make_default_coreset_config(const cell_config_builder_params_extended& params)
+ocudu::config_helpers::make_default_coreset_config(const cell_config_builder_params_extended& params, coreset_id cs_id)
 {
-  coreset_configuration cfg{};
-  cfg.id = to_coreset_id(1);
   // PRBs spanning the maximnum number of CRBs possible.
   freq_resource_bitmap freq_resources(pdcch_constants::MAX_NOF_FREQ_RESOURCES);
   const unsigned       coreset_nof_resources = params.cell_nof_crbs / pdcch_constants::NOF_RB_PER_FREQ_RESOURCE;
   freq_resources.fill(0, coreset_nof_resources, true);
-  cfg.set_freq_domain_resources(freq_resources);
+
   // Number of symbols equal to CORESET#0 duration.
   const pdcch_type0_css_coreset_description desc = pdcch_type0_css_coreset_get(
       params.dl_carrier.band, *params.scs_ssb, params.scs_common, *params.coreset0_index, params.k_ssb->value());
-  cfg.duration             = desc.nof_symb_coreset;
-  cfg.precoder_granurality = coreset_configuration::precoder_granularity_type::same_as_reg_bundle;
-  return cfg;
+
+  return coreset_configuration{cs_id,
+                               freq_resources,
+                               desc.nof_symb_coreset,
+                               std::nullopt,
+                               coreset_configuration::precoder_granularity_type::same_as_reg_bundle};
 }
 
 /// Generates a default CORESET#0 configuration. The default CORESET#0 table index value used is equal to 6.
 /// \remark See TS 38.213, Table 13-1.
 coreset_configuration config_helpers::make_default_coreset0_config(const cell_config_builder_params_extended& params)
 {
-  coreset_configuration cfg{};
-  cfg.id                                         = to_coreset_id(0);
-  const pdcch_type0_css_coreset_description desc = pdcch_type0_css_coreset_get(
-      params.dl_carrier.band, *params.scs_ssb, params.scs_common, *params.coreset0_index, params.k_ssb->value());
-
-  cfg.duration       = static_cast<unsigned>(desc.nof_symb_coreset);
-  const int rb_start = params.scs_common == subcarrier_spacing::kHz15
-                           ? static_cast<int>(params.offset_to_point_a->value()) - desc.offset
-                           : static_cast<int>(params.offset_to_point_a->value() / 2) - desc.offset;
-  if (rb_start < 0) {
-    report_error("Coreset#0 CRB starts before pointA.\n");
-  }
-  cfg.set_coreset0_crbs({static_cast<unsigned>(rb_start), static_cast<unsigned>(rb_start) + desc.nof_rb_coreset});
-  // Implicit CORESET#0 parameters as per TS38.211-7.3.2.2.
-  cfg.interleaved.emplace();
-  cfg.interleaved->interleaver_sz = 2;
-  cfg.interleaved->reg_bundle_sz  = 6;
-  cfg.interleaved->shift_index    = params.pci;
-  cfg.precoder_granurality        = coreset_configuration::precoder_granularity_type::same_as_reg_bundle;
-
-  return cfg;
+  return coreset_configuration{params.dl_carrier.band,
+                               *params.scs_ssb,
+                               params.scs_common,
+                               coreset0_index{static_cast<uint8_t>(*params.coreset0_index)},
+                               *params.k_ssb,
+                               *params.offset_to_point_a,
+                               params.pci};
 }
 
 search_space_configuration
@@ -620,7 +607,6 @@ pdcch_config ocudu::config_helpers::make_ue_dedicated_pdcch_config(const cell_co
   pdcch_config pdcch_cfg{};
   // >> Add CORESET#1.
   pdcch_cfg.coresets.push_back(make_default_coreset_config(params));
-  pdcch_cfg.coresets[0].id = to_coreset_id(1);
   // >> Add SearchSpace#2.
   pdcch_cfg.search_spaces.push_back(make_default_ue_search_space_config());
   pdcch_cfg.search_spaces[0].set_non_ss0_nof_candidates(
@@ -685,7 +671,7 @@ uint8_t ocudu::config_helpers::compute_max_nof_candidates(aggregation_level     
   // 1 REG = 1 RB and 1 symbol.
   // 1 CCE = 6 {PRB, symbol}. e.g. 3 PRBs over 2 symbols or 6 PRBs over 1 symbol, etc.
   // Example: 3 Frequency domain resources, 2 symbol duration contains 6 CCEs.
-  const unsigned max_coreset_cces   = cs_cfg.freq_domain_resources().count() * cs_cfg.duration;
+  const unsigned max_coreset_cces   = cs_cfg.freq_domain_resources().count() * cs_cfg.get_duration();
   unsigned       max_nof_candidates = max_coreset_cces / to_nof_cces(aggr_lvl);
   // See TS 38.331, SearchSpace IE.
   // aggregationLevelX - ENUMERATED {n0, n1, n2, n3, n4, n5, n6, n8}.

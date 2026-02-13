@@ -716,11 +716,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     search_space_configuration& ss2_cfg   = out_cell.init_bwp_builder.pdcch_cfg->search_spaces[0];
     coreset_configuration&      cset1_cfg = out_cell.init_bwp_builder.pdcch_cfg->coresets[0];
     cset1_cfg.set_freq_domain_resources(freq_resources);
-    if (base_cell.pdcch_cfg.dedicated.coreset1_duration.has_value()) {
-      cset1_cfg.duration = base_cell.pdcch_cfg.dedicated.coreset1_duration.value();
-    } else {
-      cset1_cfg.duration = out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->duration;
-    }
+    cset1_cfg.set_non_coreset0_duration(base_cell.pdcch_cfg.dedicated.coreset1_duration.value_or(
+        out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->get_duration()));
     const std::array<uint8_t, 5> auto_compute_ss2_n_candidates_cfg = {0, 0, 0, 0, 0};
     if (base_cell.pdcch_cfg.dedicated.ss2_n_candidates != auto_compute_ss2_n_candidates_cfg) {
       ss2_cfg.set_non_ss0_nof_candidates(base_cell.pdcch_cfg.dedicated.ss2_n_candidates);

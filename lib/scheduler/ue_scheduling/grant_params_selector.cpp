@@ -249,7 +249,7 @@ static std::optional<dl_sched_context> get_dl_sched_context(const slice_ue&     
     }
 
     // Check whether PDSCH time domain resource does not overlap with CORESET.
-    if (pdsch_td_res.symbols.start() < ss.cfg->get_first_symbol_index() + ss.coreset->cfg().duration) {
+    if (pdsch_td_res.symbols.start() < ss.cfg->get_first_symbol_index() + ss.coreset->cfg().get_duration()) {
       continue;
     }
 

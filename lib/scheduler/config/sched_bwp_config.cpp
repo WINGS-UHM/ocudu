@@ -51,12 +51,12 @@ sched_bwp_config::sched_bwp_config(pci_t                         pci,
                     sched_coreset_config(pci, base_dl_bwp_cmn, *base_dl_bwp_cmn.pdcch_common.coreset0));
   }
   if (base_dl_bwp_cmn.pdcch_common.common_coreset.has_value()) {
-    cs_list.emplace(base_dl_bwp_cmn.pdcch_common.common_coreset->id,
+    cs_list.emplace(base_dl_bwp_cmn.pdcch_common.common_coreset->get_id(),
                     sched_coreset_config(pci, base_dl_bwp_cmn, *base_dl_bwp_cmn.pdcch_common.common_coreset));
   }
   if (base_dl_bwp_ded.has_value() and base_dl_bwp_ded->pdcch_cfg.has_value()) {
     for (const auto& cs_cfg : base_dl_bwp_ded->pdcch_cfg->coresets) {
-      cs_list.emplace(cs_cfg.id, sched_coreset_config(pci, base_dl_bwp_cmn, cs_cfg));
+      cs_list.emplace(cs_cfg.get_id(), sched_coreset_config(pci, base_dl_bwp_cmn, cs_cfg));
     }
   }
 }

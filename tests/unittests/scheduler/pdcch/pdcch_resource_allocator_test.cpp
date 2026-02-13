@@ -112,14 +112,15 @@ protected:
     const coreset_configuration&      cs_cfg = u.pcell_cfg->coreset(ss_cfg.get_coreset_id());
     ASSERT_EQ(*pdcch_ctx.coreset_cfg, cs_cfg);
     ASSERT_EQ(pdcch_ctx.n_id_pdcch_dmrs,
-              cs_cfg.pdcch_dmrs_scrambling_id.has_value() ? *cs_cfg.pdcch_dmrs_scrambling_id : cell_cfg.pci)
+              cs_cfg.get_pdcch_dmrs_scrambling_id().has_value() ? *cs_cfg.get_pdcch_dmrs_scrambling_id() : cell_cfg.pci)
         << "Invalid N_{ID} (see TS38.211, 7.4.1.3.1)";
     ASSERT_EQ(pdcch_ctx.n_rnti_pdcch_data,
-              cs_cfg.pdcch_dmrs_scrambling_id.has_value() and (not ss_cfg.is_common_search_space()) ? to_value(u.rnti)
-                                                                                                    : 0)
+              cs_cfg.get_pdcch_dmrs_scrambling_id().has_value() and (not ss_cfg.is_common_search_space())
+                  ? to_value(u.rnti)
+                  : 0)
         << "Invalid n_{RNTI} (see TS38.211, 7.3.2.3)";
-    unsigned expected_n_id = cs_cfg.pdcch_dmrs_scrambling_id.has_value() and (not ss_cfg.is_common_search_space())
-                                 ? *cs_cfg.pdcch_dmrs_scrambling_id
+    unsigned expected_n_id = cs_cfg.get_pdcch_dmrs_scrambling_id().has_value() and (not ss_cfg.is_common_search_space())
+                                 ? *cs_cfg.get_pdcch_dmrs_scrambling_id()
                                  : cell_cfg.pci;
     ASSERT_EQ(pdcch_ctx.n_id_pdcch_data, expected_n_id) << "Invalid n_{ID} (see TS38.211, 7.3.2.3)";
 
@@ -151,7 +152,7 @@ protected:
         pdcch_candidates_ue_ss_configuration{aggr_lvl,
                                              ss_cfg.get_nof_candidates()[to_aggregation_level_index(aggr_lvl)],
                                              cs_cfg.get_nof_cces(),
-                                             cs_cfg.id,
+                                             cs_cfg.get_id(),
                                              rnti,
                                              slot_index});
   }
@@ -200,7 +201,7 @@ protected:
       bool           success    = true;
       for (unsigned prb : pdcch_prbs) {
         unsigned crb = prb_to_crb(bwp_cfg, prb);
-        if (res_grid[0].dl_res_grid.collides(bwp_cfg.scs, {0, cs_cfg.duration}, crb_interval{crb, crb + 1})) {
+        if (res_grid[0].dl_res_grid.collides(bwp_cfg.scs, {0, cs_cfg.get_duration()}, crb_interval{crb, crb + 1})) {
           success = false;
           break;
         }
@@ -220,11 +221,15 @@ protected:
         std::back_inserter(fmtbuf), "\n- initial BWP: RBs={}", cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs);
     const auto&                  bwp_res = cell_cfg.ded_bwp_res[to_bwp_id(0)];
     const coreset_configuration& cs0_cfg = bwp_res.coresets()[to_coreset_id(0)].cfg();
-    fmt::format_to(
-        std::back_inserter(fmtbuf), "\n- CORESET#0: RBs={}, duration={}", cs0_cfg.coreset0_crbs(), cs0_cfg.duration);
+    fmt::format_to(std::back_inserter(fmtbuf),
+                   "\n- CORESET#0: RBs={}, duration={}",
+                   cs0_cfg.coreset0_crbs(),
+                   cs0_cfg.get_duration());
     const auto& cs1_cfg = bwp_res.coresets()[to_coreset_id(1)].cfg();
-    fmt::format_to(
-        std::back_inserter(fmtbuf), "\n- CORESET#1: RBs={}, duration={}", get_coreset_crbs(cs1_cfg), cs1_cfg.duration);
+    fmt::format_to(std::back_inserter(fmtbuf),
+                   "\n- CORESET#1: RBs={}, duration={}",
+                   get_coreset_crbs(cs1_cfg),
+                   cs1_cfg.get_duration());
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- SearchSpace#0: nof_candidates={}",
                    fmt::join(bwp_res.dl_common().pdcch_common.search_spaces[0].get_nof_candidates(), ", "));
@@ -347,8 +352,8 @@ class ue_pdcch_resource_allocator_scrambling_tester : public base_pdcch_resource
   {
     sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
     auto&                                    pdcch_cfg = *msg.dl_bwp_ded.pdcch_cfg;
-    pdcch_cfg.coresets[0].pdcch_dmrs_scrambling_id     = params.cs1_pdcch_dmrs_scrambling_id;
-    auto& ss2                                          = pdcch_cfg.search_spaces[0];
+    pdcch_cfg.coresets[0].set_non_coreset0_pdcch_dmrs_scrambling_id(params.cs1_pdcch_dmrs_scrambling_id);
+    auto& ss2 = pdcch_cfg.search_spaces[0];
     if (params.ss2_type == ocudu::search_space_type::common) {
       ss2.set_non_ss0_monitored_dci_formats(search_space_configuration::common_dci_format{.f0_0_and_f1_0 = true});
     } else {
@@ -358,9 +363,9 @@ class ue_pdcch_resource_allocator_scrambling_tester : public base_pdcch_resource
   }
   static cell_config_dedicated make_ue_base_req(const test_scrambling_params& params)
   {
-    cell_config_dedicated ue_cell                  = sched_config_helper::create_test_initial_ue_spcell_cell_config();
-    auto&                 pdcch_cfg                = *ue_cell.serv_cell_cfg.init_dl_bwp.pdcch_cfg;
-    pdcch_cfg.coresets[0].pdcch_dmrs_scrambling_id = params.cs1_pdcch_dmrs_scrambling_id;
+    cell_config_dedicated ue_cell   = sched_config_helper::create_test_initial_ue_spcell_cell_config();
+    auto&                 pdcch_cfg = *ue_cell.serv_cell_cfg.init_dl_bwp.pdcch_cfg;
+    pdcch_cfg.coresets[0].set_non_coreset0_pdcch_dmrs_scrambling_id(params.cs1_pdcch_dmrs_scrambling_id);
     if (params.ss2_type == ocudu::search_space_type::common) {
       pdcch_cfg.search_spaces[0].set_non_ss0_monitored_dci_formats(
           search_space_configuration::common_dci_format{.f0_0_and_f1_0 = true});

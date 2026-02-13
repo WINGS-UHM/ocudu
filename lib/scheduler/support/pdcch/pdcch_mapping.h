@@ -24,26 +24,26 @@ inline prb_index_list cce_to_prb_mapping(const bwp_configuration&     bwp_cfg,
                                          aggregation_level            aggr_lvl,
                                          unsigned                     ncce)
 {
-  if (cs_cfg.id == 0) {
+  if (cs_cfg.get_id() == to_coreset_id(0)) {
     return cce_to_prb_mapping_coreset0(cs_cfg.get_coreset_start_crb(),
                                        get_coreset_nof_prbs(cs_cfg),
-                                       cs_cfg.duration,
+                                       cs_cfg.get_duration(),
                                        pci,
                                        to_nof_cces(aggr_lvl),
                                        ncce);
   }
-  if (cs_cfg.interleaved.has_value()) {
+  if (cs_cfg.get_interleaved().has_value()) {
     return cce_to_prb_mapping_interleaved(bwp_cfg.crbs.start(),
                                           cs_cfg.freq_domain_resources(),
-                                          cs_cfg.duration,
-                                          cs_cfg.interleaved->reg_bundle_sz,
-                                          cs_cfg.interleaved->interleaver_sz,
-                                          cs_cfg.interleaved->shift_index,
+                                          cs_cfg.get_duration(),
+                                          cs_cfg.get_interleaved()->reg_bundle_sz,
+                                          cs_cfg.get_interleaved()->interleaver_sz,
+                                          cs_cfg.get_interleaved()->shift_index,
                                           to_nof_cces(aggr_lvl),
                                           ncce);
   }
   return cce_to_prb_mapping_non_interleaved(
-      bwp_cfg.crbs.start(), cs_cfg.freq_domain_resources(), cs_cfg.duration, to_nof_cces(aggr_lvl), ncce);
+      bwp_cfg.crbs.start(), cs_cfg.freq_domain_resources(), cs_cfg.get_duration(), to_nof_cces(aggr_lvl), ncce);
 }
 
 } // namespace pdcch_helper

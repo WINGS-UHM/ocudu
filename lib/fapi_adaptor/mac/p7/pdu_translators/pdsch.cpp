@@ -36,7 +36,7 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu&         
 
 static crb_interval get_crb_interval(const pdsch_information& pdsch_cfg)
 {
-  if (pdsch_cfg.coreset_cfg->id == to_coreset_id(0)) {
+  if (pdsch_cfg.coreset_cfg->get_id() == to_coreset_id(0)) {
     return pdsch_cfg.coreset_cfg->coreset0_crbs();
   }
   return pdsch_cfg.bwp_cfg->crbs;
@@ -276,7 +276,7 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
   fill_frequency_allocation(
       builder, mac_pdu.pdsch_cfg.rbs, get_vrb_to_prb_mapping_type(mac_pdu.pdsch_cfg.vrb_prb_mapping));
 
-  fapi::pdsch_trans_type trans_type = get_pdsch_trans_type(mac_pdu.pdsch_cfg.coreset_cfg->id,
+  fapi::pdsch_trans_type trans_type = get_pdsch_trans_type(mac_pdu.pdsch_cfg.coreset_cfg->get_id(),
                                                            mac_pdu.pdsch_cfg.ss_set_type,
                                                            is_interleaved,
                                                            mac_pdu.pdsch_cfg.dci_fmt == dci_dl_format::f1_0,
@@ -333,7 +333,7 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
   fill_frequency_allocation(
       builder, mac_pdu.pdsch_cfg.rbs, get_vrb_to_prb_mapping_type(mac_pdu.pdsch_cfg.vrb_prb_mapping));
 
-  fapi::pdsch_trans_type trans_type = get_pdsch_trans_type(mac_pdu.pdsch_cfg.coreset_cfg->id,
+  fapi::pdsch_trans_type trans_type = get_pdsch_trans_type(mac_pdu.pdsch_cfg.coreset_cfg->get_id(),
                                                            mac_pdu.pdsch_cfg.ss_set_type,
                                                            is_interleaved,
                                                            mac_pdu.pdsch_cfg.dci_fmt == dci_dl_format::f1_0,
@@ -391,7 +391,7 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
   fill_frequency_allocation(
       builder, mac_pdu.pdsch_cfg.rbs, get_vrb_to_prb_mapping_type(mac_pdu.pdsch_cfg.vrb_prb_mapping));
 
-  fapi::pdsch_trans_type trans_type = get_pdsch_trans_type(mac_pdu.pdsch_cfg.coreset_cfg->id,
+  fapi::pdsch_trans_type trans_type = get_pdsch_trans_type(mac_pdu.pdsch_cfg.coreset_cfg->get_id(),
                                                            mac_pdu.pdsch_cfg.ss_set_type,
                                                            is_interleaved,
                                                            mac_pdu.pdsch_cfg.dci_fmt == dci_dl_format::f1_0,
@@ -440,7 +440,7 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
   fill_frequency_allocation(
       builder, mac_pdu.pdsch_cfg.rbs, get_vrb_to_prb_mapping_type(mac_pdu.pdsch_cfg.vrb_prb_mapping));
 
-  fapi::pdsch_trans_type trans_type = get_pdsch_trans_type(mac_pdu.pdsch_cfg.coreset_cfg->id,
+  fapi::pdsch_trans_type trans_type = get_pdsch_trans_type(mac_pdu.pdsch_cfg.coreset_cfg->get_id(),
                                                            mac_pdu.pdsch_cfg.ss_set_type,
                                                            is_interleaved,
                                                            mac_pdu.pdsch_cfg.dci_fmt == dci_dl_format::f1_0,

@@ -285,7 +285,7 @@ TEST_P(scheduler_con_res_msg4_test, while_ue_is_in_fallback_then_common_pucch_is
   ASSERT_TRUE(this->run_slot_until([this]() { return find_ue_pdsch(rnti, *this->last_sched_result()) != nullptr; }));
   const pdcch_dl_information& dl_pdcch = *find_ue_dl_pdcch(rnti);
   ASSERT_EQ(dl_pdcch.dci.type, dci_dl_rnti_config_type::c_rnti_f1_0) << "Invalid format used for UE in fallback mode";
-  ASSERT_EQ(dl_pdcch.ctx.coreset_cfg->id, to_coreset_id(0));
+  ASSERT_EQ(dl_pdcch.ctx.coreset_cfg->get_id(), to_coreset_id(0));
   const dl_msg_alloc& pdsch = *find_ue_pdsch(rnti, *this->last_sched_result());
   ASSERT_EQ(pdsch.pdsch_cfg.dci_fmt, dci_dl_format::f1_0);
 

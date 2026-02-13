@@ -116,14 +116,14 @@ public:
     du_manager_procedure_tester([]() {
       std::vector<du_cell_config> cfgs;
       for (unsigned i = 0; i != NOF_CELLS; ++i) {
-        cfgs.push_back(config_helpers::make_default_du_cell_config());
+        cell_config_builder_params params;
+        params.pci = static_cast<pci_t>(1U + i);
+        cfgs.push_back(config_helpers::make_default_du_cell_config(params));
         cfgs.back().rrm_policy_members.emplace_back(slice_rrm_policy_config{
             .rrc_member = rrm_policy_member{.plmn_id = plmn_identity{mobile_country_code::from_string("001").value(),
                                                                      mobile_network_code::from_string("01").value()},
                                             .s_nssai = s_nssai_t{.sst = slice_service_type{1}}}});
-        cfgs.back().pci        = static_cast<pci_t>(1U + i);
         cfgs.back().nr_cgi.nci = nr_cell_identity::create({411, 22}, 1 + i).value();
-        cfgs.back().dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value().interleaved->shift_index = cfgs.back().pci;
       }
       return cfgs;
     }())

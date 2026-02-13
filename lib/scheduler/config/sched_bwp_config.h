@@ -27,7 +27,7 @@ public:
   sched_coreset_config(pci_t pci, const bwp_downlink_common& dl_bwp_cmn, const coreset_configuration& cs_cfg);
 
   /// CORESET identifier.
-  coreset_id id() const { return cfg_ptr->id; }
+  coreset_id id() const { return cfg_ptr->get_id(); }
 
   /// Fetch CORESET configuration.
   const coreset_configuration& cfg() const { return *cfg_ptr; }

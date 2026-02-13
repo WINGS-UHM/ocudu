@@ -138,40 +138,17 @@ static bwp_configuration generate_bwp_configuration()
   return config;
 }
 
-static unsigned generate_duration()
-{
-  std::uniform_int_distribution<unsigned> dist(1, 3);
-  return dist(gen);
-}
-
-static unsigned generate_reg_bundle_sz()
-{
-  static const std::vector<unsigned>      values = {2, 3, 6};
-  std::uniform_int_distribution<unsigned> dist(0, 2);
-  return values[dist(gen)];
-}
-
 static coreset_configuration generate_coreset_configuration()
 {
-  coreset_configuration config;
-
-  config.id                   = to_coreset_id(0);
-  config.duration             = generate_duration();
-  config.precoder_granurality = static_cast<coreset_configuration::precoder_granularity_type>(generate_binary());
-  config.interleaved.emplace(coreset_configuration::interleaved_mapping_type{6, generate_reg_bundle_sz(), 10});
-  if (generate_bool()) {
-    config.pdcch_dmrs_scrambling_id = 10;
-  }
-
-  if (config.id == to_coreset_id(0)) {
-    config.set_coreset0_crbs({0, 48});
-  } else {
-    freq_resource_bitmap freq_res_bitmap(freq_res_bitmap.max_size());
-    for (unsigned i = 0, e = freq_res_bitmap.max_size(); i != e; ++i) {
-      freq_res_bitmap.set(i, generate_bool());
-    }
-    config.set_freq_domain_resources(freq_res_bitmap);
-  }
+  const std::optional<unsigned> pdcch_dmrs_scrambling_id = generate_bool() ? std::optional<unsigned>{10} : std::nullopt;
+  coreset_configuration         config{nr_band::n3,
+                               subcarrier_spacing::kHz15,
+                               subcarrier_spacing::kHz15,
+                               coreset0_index{0},
+                               ssb_subcarrier_offset{0},
+                               ssb_offset_to_pointA{48},
+                               pci_t{10},
+                               pdcch_dmrs_scrambling_id};
 
   return config;
 }

@@ -36,9 +36,6 @@ constexpr search_space_id to_search_space_id(unsigned ss_id)
 /// SearchSpace#0 index of Table 13-{11, ..., 15}, TS 38.213.
 using search_space0_index = bounded_integer<uint8_t, 0, 15>;
 
-/// CORESET#0 index of Table 13-{1, ..., 15}, TS 38.213.
-using coreset0_index = bounded_integer<uint8_t, 0, 15>;
-
 /// Search Space Set Type as per TS38.213, Section 10.1.
 enum class search_space_set_type : uint8_t { type0, type0A, type1, type2, type3, ue_specific };
 

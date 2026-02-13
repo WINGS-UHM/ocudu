@@ -143,7 +143,7 @@ static auto make_dl_pdcch_log_entry(const pdcch_dl_information& pdcch)
 {
   return make_formattable([rnti     = pdcch.ctx.rnti,
                            dci_type = pdcch.dci.type,
-                           cs_id    = pdcch.ctx.coreset_cfg->id,
+                           cs_id    = pdcch.ctx.coreset_cfg->get_id(),
                            ss_id    = pdcch.ctx.context.ss_id,
                            cces     = pdcch.ctx.cces,
                            dci_log  = make_dl_dci_log_entry(pdcch.dci)](auto& ctx) {
@@ -178,7 +178,7 @@ static auto make_ul_pdcch_log_entry(const pdcch_ul_information& pdcch)
 {
   return make_formattable([rnti     = pdcch.ctx.rnti,
                            dci_type = pdcch.dci.type,
-                           cid      = pdcch.ctx.coreset_cfg->id,
+                           cid      = pdcch.ctx.coreset_cfg->get_id(),
                            ssid     = pdcch.ctx.context.ss_id,
                            cces     = pdcch.ctx.cces,
                            dci_log  = make_ul_dci_log_entry(pdcch.dci)](auto& ctx) {

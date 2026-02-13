@@ -64,13 +64,13 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
   bwp_cfg.dl_common = bwp_dl_common_config_pool.create(dl_bwp_common);
   if (dl_bwp_common.pdcch_common.coreset0.has_value()) {
     auto& coreset0 = dl_bwp_common.pdcch_common.coreset0.value();
-    bwp_cfg.coresets.emplace(coreset0.id, coreset_config_pool.create(coreset0));
-    out.coresets.emplace(coreset0.id, bwp_cfg.coresets[coreset0.id]);
+    bwp_cfg.coresets.emplace(coreset0.get_id(), coreset_config_pool.create(coreset0));
+    out.coresets.emplace(coreset0.get_id(), bwp_cfg.coresets[coreset0.get_id()]);
   }
   if (dl_bwp_common.pdcch_common.common_coreset.has_value()) {
     auto& common_coreset = dl_bwp_common.pdcch_common.common_coreset.value();
-    bwp_cfg.coresets.emplace(common_coreset.id, coreset_config_pool.create(common_coreset));
-    out.coresets.emplace(common_coreset.id, bwp_cfg.coresets[common_coreset.id]);
+    bwp_cfg.coresets.emplace(common_coreset.get_id(), coreset_config_pool.create(common_coreset));
+    out.coresets.emplace(common_coreset.get_id(), bwp_cfg.coresets[common_coreset.get_id()]);
   }
   for (const search_space_configuration& ss : dl_bwp_common.pdcch_common.search_spaces) {
     bwp_cfg.search_spaces.emplace(ss.get_id(), ss_config_pool.create(ss));
@@ -84,8 +84,8 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
       // ControlResourceSetId as used for commonControlResourceSet configured via PDCCH-ConfigCommon,
       // the configuration from PDCCH-Config always takes precedence and should not be updated by the UE based on
       // servingCellConfigCommon.
-      bwp_cfg.coresets.emplace(cs.id, coreset_config_pool.create(cs));
-      out.coresets.emplace(cs.id, bwp_cfg.coresets[cs.id]);
+      bwp_cfg.coresets.emplace(cs.get_id(), coreset_config_pool.create(cs));
+      out.coresets.emplace(cs.get_id(), bwp_cfg.coresets[cs.get_id()]);
     }
     for (const search_space_configuration& ss : dl_bwp_ded.pdcch_cfg->search_spaces) {
       bwp_cfg.search_spaces.emplace(ss.get_id(), ss_config_pool.create(ss));

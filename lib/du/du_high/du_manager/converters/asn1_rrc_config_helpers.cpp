@@ -214,25 +214,25 @@ static rlc_bearer_cfg_s make_asn1_rrc_rlc_bearer(const rlc_bearer_config& cfg)
 asn1::rrc_nr::coreset_s ocudu::odu::make_asn1_rrc_coreset(const coreset_configuration& cfg)
 {
   coreset_s cs;
-  cs.coreset_id = cfg.id;
+  cs.coreset_id = cfg.get_id();
   cs.freq_domain_res.from_number(cfg.freq_domain_resources().to_uint64());
-  cs.dur = cfg.duration;
-  if (cfg.interleaved.has_value()) {
+  cs.dur = cfg.get_duration();
+  if (cfg.get_interleaved().has_value()) {
     auto& interv = cs.cce_reg_map_type.set_interleaved();
-    asn1::number_to_enum(interv.reg_bundle_size, cfg.interleaved->reg_bundle_sz);
-    asn1::number_to_enum(interv.interleaver_size, cfg.interleaved->interleaver_sz);
+    asn1::number_to_enum(interv.reg_bundle_size, cfg.get_interleaved()->reg_bundle_sz);
+    asn1::number_to_enum(interv.interleaver_size, cfg.get_interleaved()->interleaver_sz);
     interv.shift_idx_present = true;
-    interv.shift_idx         = cfg.interleaved->shift_index;
+    interv.shift_idx         = cfg.get_interleaved()->shift_index;
   } else {
     cs.cce_reg_map_type.set_non_interleaved();
   }
   cs.precoder_granularity.value =
-      cfg.precoder_granurality == coreset_configuration::precoder_granularity_type::same_as_reg_bundle
+      cfg.get_precoder_granularity() == coreset_configuration::precoder_granularity_type::same_as_reg_bundle
           ? coreset_s::precoder_granularity_opts::same_as_reg_bundle
           : coreset_s::precoder_granularity_opts::all_contiguous_rbs;
-  cs.pdcch_dmrs_scrambling_id_present = cfg.pdcch_dmrs_scrambling_id.has_value();
+  cs.pdcch_dmrs_scrambling_id_present = cfg.get_pdcch_dmrs_scrambling_id().has_value();
   if (cs.pdcch_dmrs_scrambling_id_present) {
-    cs.pdcch_dmrs_scrambling_id = *cfg.pdcch_dmrs_scrambling_id;
+    cs.pdcch_dmrs_scrambling_id = *cfg.get_pdcch_dmrs_scrambling_id();
   }
   return cs;
 }
@@ -961,7 +961,7 @@ calculate_pdcch_config_diff(asn1::rrc_nr::pdcch_cfg_s& out, const pdcch_config& 
       src.coresets,
       dest.coresets,
       [](const coreset_configuration& cs_cfg) { return make_asn1_rrc_coreset(cs_cfg); },
-      [](const coreset_configuration& cs_cfg) { return (uint8_t)cs_cfg.id; });
+      [](const coreset_configuration& cs_cfg) { return (uint8_t)cs_cfg.get_id(); });
 
   calculate_addmodremlist_diff(
       out.search_spaces_to_add_mod_list,

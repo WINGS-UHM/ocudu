@@ -31,7 +31,7 @@ static void fill_bwp_parameters(fapi::dl_pdcch_pdu_builder&  builder,
 {
   // According to the FreqDomainResource description field in the FAPI specs, for CORESET0 we need to take its starting
   // point and size, otherwise, for the rest of CORESETs take it from the BWP where the CORESET belongs.
-  const crb_interval& crbs = (coreset_cfg.id == to_coreset_id(0)) ? coreset_cfg.coreset0_crbs() : bwp_cfg.crbs;
+  const crb_interval& crbs = (coreset_cfg.get_id() == to_coreset_id(0)) ? coreset_cfg.coreset0_crbs() : bwp_cfg.crbs;
 
   builder.set_bwp_parameters(crbs.length(), crbs.start(), bwp_cfg.scs, bwp_cfg.cp);
 }
@@ -50,7 +50,8 @@ static void fill_coreset_parameters(fapi::dl_pdcch_pdu_builder&  builder,
                                     const coreset_configuration& coreset_cfg,
                                     unsigned                     start_symbol_index)
 {
-  builder.set_coreset_parameters(start_symbol_index, coreset_cfg.duration, coreset_cfg.precoder_granurality);
+  builder.set_coreset_parameters(
+      start_symbol_index, coreset_cfg.get_duration(), coreset_cfg.get_precoder_granularity());
 }
 
 static void fill_precoding_and_beamforming(fapi::dl_dci_pdu_builder&      builder,
@@ -78,10 +79,10 @@ void ocudu::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu_builder& 
   // Fill CORESET parameters.
   fill_coreset_parameters(builder, coreset_cfg, context_information.starting_symbol);
 
-  if (coreset_cfg.id == to_coreset_id(0)) {
-    builder.set_coreset_0_parameters(*coreset_cfg.interleaved, calculate_coreset0_freq_res_bitmap(coreset_cfg));
-  } else if (coreset_cfg.interleaved.has_value()) {
-    builder.set_interleaver_parameters(*coreset_cfg.interleaved, coreset_cfg.freq_domain_resources());
+  if (coreset_cfg.get_id() == to_coreset_id(0)) {
+    builder.set_coreset_0_parameters(*coreset_cfg.get_interleaved(), calculate_coreset0_freq_res_bitmap(coreset_cfg));
+  } else if (coreset_cfg.get_interleaved().has_value()) {
+    builder.set_interleaver_parameters(*coreset_cfg.get_interleaved(), coreset_cfg.freq_domain_resources());
   } else {
     builder.set_non_interleaver_parameters(coreset_cfg.freq_domain_resources());
   }

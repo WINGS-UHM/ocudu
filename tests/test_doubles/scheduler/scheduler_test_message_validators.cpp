@@ -74,7 +74,7 @@ static bool is_pdsch_info_valid(const pdsch_information& pdsch, const std::optio
       TRUE_OR_RETURN(pdsch.codewords[0].mcs_table == pdsch_mcs_table::qam64);
     } break;
     case dci_dl_format::f1_1: {
-      TRUE_OR_RETURN(pdsch.coreset_cfg->id != to_coreset_id(0));
+      TRUE_OR_RETURN(pdsch.coreset_cfg->get_id() != to_coreset_id(0));
     } break;
     default:
       report_fatal_error("DCI format not supported");

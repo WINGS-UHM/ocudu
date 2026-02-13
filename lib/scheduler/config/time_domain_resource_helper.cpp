@@ -81,13 +81,13 @@ static uint8_t calc_min_pdsch_symbol(const coreset_configuration&       cs_cfg,
   // CORESET need to share the same symbol start.
 
   for (const search_space_configuration& ss_cfg : common_pdcch_cfg.search_spaces) {
-    if (ss_cfg.get_coreset_id() == cs_cfg.id) {
+    if (ss_cfg.get_coreset_id() == cs_cfg.get_id()) {
       return ss_cfg.get_first_symbol_index();
     }
   }
   if (ded_pdcch_cfg.has_value()) {
     for (const search_space_configuration& ss_cfg : ded_pdcch_cfg->search_spaces) {
-      if (ss_cfg.get_coreset_id() == cs_cfg.id) {
+      if (ss_cfg.get_coreset_id() == cs_cfg.get_id()) {
         return ss_cfg.get_first_symbol_index();
       }
     }
@@ -108,17 +108,17 @@ uint8_t time_domain_resource_helper::calculate_minimum_pdsch_symbol(const pdcch_
   unsigned min_pdsch_symbol = 0;
 
   if (coreset0.has_value()) {
-    min_pdsch_symbol = calc_min_pdsch_symbol(*coreset0, common_pdcch_cfg, ded_pdcch_cfg) + coreset0->duration;
+    min_pdsch_symbol = calc_min_pdsch_symbol(*coreset0, common_pdcch_cfg, ded_pdcch_cfg) + coreset0->get_duration();
   }
   if (common_coreset.has_value()) {
-    min_pdsch_symbol =
-        std::max(min_pdsch_symbol,
-                 calc_min_pdsch_symbol(*common_coreset, common_pdcch_cfg, ded_pdcch_cfg) + common_coreset->duration);
+    min_pdsch_symbol = std::max(min_pdsch_symbol,
+                                calc_min_pdsch_symbol(*common_coreset, common_pdcch_cfg, ded_pdcch_cfg) +
+                                    common_coreset->get_duration());
   }
   if (ded_pdcch_cfg.has_value()) {
     for (const coreset_configuration& cs_cfg : ded_pdcch_cfg->coresets) {
-      min_pdsch_symbol =
-          std::max(min_pdsch_symbol, calc_min_pdsch_symbol(cs_cfg, common_pdcch_cfg, ded_pdcch_cfg) + cs_cfg.duration);
+      min_pdsch_symbol = std::max(
+          min_pdsch_symbol, calc_min_pdsch_symbol(cs_cfg, common_pdcch_cfg, ded_pdcch_cfg) + cs_cfg.get_duration());
     }
   }
 

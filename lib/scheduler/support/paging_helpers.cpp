@@ -53,7 +53,8 @@ paging_slot_helper::paging_slot_helper(const cell_configuration& cell_cfg_) : ce
     } else {
       if (ss_cfg->get_coreset_id() != to_coreset_id(0) and
           ((not cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value()) or
-           (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value().id != ss_cfg->get_coreset_id()))) {
+           (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value().get_id() !=
+            ss_cfg->get_coreset_id()))) {
         ocudu_assertion_failure("CORESET configuration for Paging Search Space not configured in DL BWP.");
       }
       if (ss_cfg->get_coreset_id() == to_coreset_id(0) and

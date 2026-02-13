@@ -55,7 +55,8 @@ TEST_F(ue_configuration_test, configuration_valid_on_creation)
   ASSERT_TRUE(ue_cfg.find_bwp(to_bwp_id(0)) != nullptr);
   ASSERT_TRUE(ue_cfg.bwp(to_bwp_id(0)).dl_common->value().generic_params ==
               cell_cfg.dl_cfg_common.init_dl_bwp.generic_params);
-  ASSERT_TRUE(ue_cfg.coreset(to_coreset_id(0)).id == cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->id);
+  ASSERT_TRUE(ue_cfg.coreset(to_coreset_id(0)).get_id() ==
+              cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->get_id());
   ASSERT_EQ(0, fmt::underlying(ue_cfg.search_space(to_search_space_id(0)).cfg->get_id()));
   ASSERT_TRUE(*ue_cfg.search_space(to_search_space_id(0)).cfg ==
               cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[0]);
@@ -83,13 +84,12 @@ TEST_F(ue_configuration_test, configuration_valid_on_reconfiguration)
   recfg_req.cfg.cells.value().resize(1);
   cell_config_dedicated& ue_cell_reconf = recfg_req.cfg.cells.value()[0];
   ue_cell_reconf.serv_cell_cfg.init_dl_bwp.pdcch_cfg.emplace();
-  ue_cell_reconf.serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets.emplace_back();
-  ue_cell_reconf.serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets.back() = config_helpers::make_default_coreset_config();
-  ue_cell_reconf.serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets.back().id = to_coreset_id(2);
+  ue_cell_reconf.serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets.push_back(
+      config_helpers::make_default_coreset_config({}, to_coreset_id(2)));
   ue_cfg.reconfigure(cfg_pool.reconf_ue(recfg_req).cells[to_du_cell_index(0)]);
 
   ASSERT_TRUE(ue_cfg.find_coreset(to_coreset_id(2)) != nullptr);
-  ASSERT_EQ(2, fmt::underlying(ue_cfg.coreset(to_coreset_id(2)).id));
+  ASSERT_EQ(2, fmt::underlying(ue_cfg.coreset(to_coreset_id(2)).get_id()));
   ASSERT_TRUE(ue_cfg.coreset(to_coreset_id(2)) == ue_cell_reconf.serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets.back());
 }
 

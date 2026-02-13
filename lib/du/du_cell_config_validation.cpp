@@ -105,34 +105,11 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 static check_outcome is_coreset0_params_valid(const du_cell_config& cell_cfg)
 {
   const coreset_configuration& cs_cfg = *cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;
-  CHECK_TRUE(cs_cfg.duration >= 1, "Invalid CORESET#0 slot duration ({})", cs_cfg.duration);
-  // Implicit, invariant values for CORESET#0 as per TS38.211-7.3.2.2.
-  CHECK_EQ(fmt::underlying(cs_cfg.id), 0, "CORESET#0 ID");
-  CHECK_TRUE(cs_cfg.interleaved.has_value(), "CORESET#0 must be interleaved");
-  CHECK_EQ(cs_cfg.interleaved->interleaver_sz, 2, "CORESET#0 interleaver size (R)");
-  CHECK_EQ(cs_cfg.interleaved->reg_bundle_sz, 6, "CORESET#0 REG Bundle size (L)");
-  CHECK_EQ(cs_cfg.interleaved->shift_index, cell_cfg.pci, "CORESET#0 shift index should be equal to PCI");
-  CHECK_EQ(fmt::underlying(cs_cfg.precoder_granurality),
-           fmt::underlying(coreset_configuration::precoder_granularity_type::same_as_reg_bundle),
-           "CORESET#0 Precoder Granularity");
+  CHECK_EQ(fmt::underlying(cs_cfg.get_id()), 0, "CORESET#0 ID");
 
-  pdcch_type0_css_coreset_description coreset0_param =
-      pdcch_type0_css_coreset_get(cell_cfg.dl_carrier.band,
-                                  cell_cfg.ssb_cfg.scs,
-                                  cell_cfg.scs_common,
-                                  cell_cfg.coreset0_idx.value(),
-                                  static_cast<uint8_t>(cell_cfg.ssb_cfg.k_ssb.value()));
-
-  // CRB (with reference to SCScommon carrier) pointed to by offset_to_point_A.
-  unsigned crb_ssb = cell_cfg.scs_common == subcarrier_spacing::kHz15 ? cell_cfg.ssb_cfg.offset_to_point_A.value()
-                                                                      : cell_cfg.ssb_cfg.offset_to_point_A.value() / 2;
-
-  // Verify that Coreset0 does not start before pointA.
-  CHECK_TRUE(static_cast<unsigned>(coreset0_param.offset) <= crb_ssb, "CORESET#0 starts before pointA.");
   // Check if Coreset0 is within the Initial DL BWP CRBs.
-  crb_interval initial_bwp_crbs{cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs};
-  crb_interval coreset0_crbs{crb_ssb - coreset0_param.offset,
-                             crb_ssb - coreset0_param.offset + coreset0_param.nof_rb_coreset};
+  const crb_interval& initial_bwp_crbs = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs;
+  crb_interval        coreset0_crbs    = cs_cfg.coreset0_crbs();
   CHECK_TRUE(initial_bwp_crbs.contains(coreset0_crbs),
              "The CORESET#0 CRBs [{}, {}) falls outside of the initial DL BWP CRBs [{}, {})",
              coreset0_crbs.start(),
@@ -186,7 +163,7 @@ static check_outcome check_dl_config_common(const du_cell_config& cell_cfg)
              "SearchSpaceSIB1 must be equal to 0 for initial DL BWP");
   }
   if (bwp.pdcch_common.common_coreset.has_value()) {
-    CHECK_NEQ(fmt::underlying(bwp.pdcch_common.common_coreset->id), 0, "Common CORESET");
+    CHECK_NEQ(fmt::underlying(bwp.pdcch_common.common_coreset->get_id()), 0, "Common CORESET");
   }
   for (const search_space_configuration& ss : bwp.pdcch_common.search_spaces) {
     HANDLE_ERROR(is_search_space_valid(ss));
@@ -202,7 +179,7 @@ static check_outcome check_dl_config_common(const du_cell_config& cell_cfg)
                  fmt::underlying(ss.get_id()));
     } else {
       CHECK_TRUE(bwp.pdcch_common.common_coreset.has_value() and
-                     ss.get_coreset_id() == bwp.pdcch_common.common_coreset->id,
+                     ss.get_coreset_id() == bwp.pdcch_common.common_coreset->get_id(),
                  "common SearchSpace#{} points to CORESET#{} which is inactive",
                  fmt::underlying(ss.get_id()),
                  fmt::underlying(ss.get_coreset_id()));
@@ -561,7 +538,7 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
 
   const pdcch_type0_css_occasion_pattern1_description& ss0_occasion =
       pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
-          .is_fr2 = false, .ss0_index = ss0_idx.value(), .nof_symb_coreset = coreset0->duration});
+          .is_fr2 = false, .ss0_index = ss0_idx.value(), .nof_symb_coreset = coreset0->get_duration()});
 
   const auto& tdd_cfg = cell_cfg.tdd_ul_dl_cfg_common.value();
   CHECK_TRUE(
@@ -600,22 +577,22 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
     cs_duration         = {};
     ss_start_symbol_idx = 0;
     if (coreset0.has_value()) {
-      if (ss_cfg.get_id() == to_search_space_id(0) and ss_cfg.get_coreset_id() == coreset0->id) {
-        cs_duration = coreset0->duration;
+      if (ss_cfg.get_id() == to_search_space_id(0) and ss_cfg.get_coreset_id() == coreset0->get_id()) {
+        cs_duration = coreset0->get_duration();
         // Consider the starting index of last PDCCH monitoring occasion to account for all SSB beams.
         ss_start_symbol_idx = *std::max_element(ss0_occasion.start_symbol.begin(), ss0_occasion.start_symbol.end());
-      } else if (ss_cfg.get_id() != to_search_space_id(0) and ss_cfg.get_coreset_id() == coreset0->id) {
-        cs_duration         = coreset0->duration;
+      } else if (ss_cfg.get_id() != to_search_space_id(0) and ss_cfg.get_coreset_id() == coreset0->get_id()) {
+        cs_duration         = coreset0->get_duration();
         ss_start_symbol_idx = ss_cfg.get_first_symbol_index();
       }
     }
     if (common_coreset.has_value()) {
-      if (ss_cfg.get_id() == to_search_space_id(0) and ss_cfg.get_coreset_id() == common_coreset->id) {
-        cs_duration = common_coreset->duration;
+      if (ss_cfg.get_id() == to_search_space_id(0) and ss_cfg.get_coreset_id() == common_coreset->get_id()) {
+        cs_duration = common_coreset->get_duration();
         // Consider the starting index of last PDCCH monitoring occasion to account for all SSB beams.
         ss_start_symbol_idx = *std::max_element(ss0_occasion.start_symbol.begin(), ss0_occasion.start_symbol.end());
-      } else if (ss_cfg.get_id() != to_search_space_id(0) and ss_cfg.get_coreset_id() == common_coreset->id) {
-        cs_duration         = common_coreset->duration;
+      } else if (ss_cfg.get_id() != to_search_space_id(0) and ss_cfg.get_coreset_id() == common_coreset->get_id()) {
+        cs_duration         = common_coreset->get_duration();
         ss_start_symbol_idx = ss_cfg.get_first_symbol_index();
       }
     }
@@ -661,20 +638,20 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
     cs_duration         = {};
     ss_start_symbol_idx = ss_cfg.get_first_symbol_index();
     if (coreset0.has_value()) {
-      if (ss_cfg.get_coreset_id() == coreset0->id) {
-        cs_duration = coreset0->duration;
+      if (ss_cfg.get_coreset_id() == coreset0->get_id()) {
+        cs_duration = coreset0->get_duration();
       }
     }
     if ((not cs_duration.has_value()) and common_coreset.has_value()) {
-      if (ss_cfg.get_coreset_id() == common_coreset->id) {
-        cs_duration = common_coreset->duration;
+      if (ss_cfg.get_coreset_id() == common_coreset->get_id()) {
+        cs_duration = common_coreset->get_duration();
       }
     }
 
     if (not cs_duration.has_value()) {
       for (const coreset_configuration& cs_cfg : ded_pdcch_cfg.coresets) {
-        if (ss_cfg.get_coreset_id() == cs_cfg.id) {
-          cs_duration = cs_cfg.duration;
+        if (ss_cfg.get_coreset_id() == cs_cfg.get_id()) {
+          cs_duration = cs_cfg.get_duration();
           break;
         }
       }

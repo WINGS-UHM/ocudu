@@ -37,18 +37,18 @@ TEST(mac_fapi_pdcch_pdu_conversor_test, mac_to_fapi_conversion_is_valid)
   ASSERT_EQ(context_information.coreset_cfg->coreset0_crbs().length(), fapi_pdu.coreset_bwp_size);
 
   // CORESET.
-  ASSERT_EQ(context_information.coreset_cfg->duration, fapi_pdu.duration_symbols);
-  ASSERT_EQ(context_information.coreset_cfg->precoder_granurality, fapi_pdu.precoder_granularity);
+  ASSERT_EQ(context_information.coreset_cfg->get_duration(), fapi_pdu.duration_symbols);
+  ASSERT_EQ(context_information.coreset_cfg->get_precoder_granularity(), fapi_pdu.precoder_granularity);
 
-  if (context_information.coreset_cfg->id == to_coreset_id(0)) {
-    ASSERT_TRUE(context_information.coreset_cfg->interleaved.has_value());
+  if (context_information.coreset_cfg->get_id() == to_coreset_id(0)) {
+    ASSERT_TRUE(context_information.coreset_cfg->get_interleaved().has_value());
     ASSERT_TRUE(std::holds_alternative<fapi::dl_pdcch_pdu::mapping_coreset_0>(fapi_pdu.mapping));
-    ASSERT_EQ(*context_information.coreset_cfg->interleaved,
+    ASSERT_EQ(*context_information.coreset_cfg->get_interleaved(),
               std::get<fapi::dl_pdcch_pdu::mapping_coreset_0>(fapi_pdu.mapping).interleaved);
-  } else if (context_information.coreset_cfg->interleaved.has_value()) {
+  } else if (context_information.coreset_cfg->get_interleaved().has_value()) {
     ASSERT_EQ(context_information.coreset_cfg->freq_domain_resources(), fapi_pdu.freq_domain_resource);
     ASSERT_TRUE(std::holds_alternative<fapi::dl_pdcch_pdu::mapping_interleaved>(fapi_pdu.mapping));
-    ASSERT_EQ(*context_information.coreset_cfg->interleaved,
+    ASSERT_EQ(*context_information.coreset_cfg->get_interleaved(),
               std::get<fapi::dl_pdcch_pdu::mapping_interleaved>(fapi_pdu.mapping).interleaved);
   } else {
     ASSERT_EQ(context_information.coreset_cfg->freq_domain_resources(), fapi_pdu.freq_domain_resource);

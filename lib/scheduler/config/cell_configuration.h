@@ -179,7 +179,7 @@ public:
   {
     // The existence of the Coreset (either CommonCoreset or Coreset0) has been verified by the validator.
     return dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value() and
-                   dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value().id == cs_id
+                   dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value().get_id() == cs_id
                ? dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value()
                : dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value();
   }

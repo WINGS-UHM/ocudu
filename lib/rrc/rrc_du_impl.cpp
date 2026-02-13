@@ -318,7 +318,7 @@ void rrc_du_impl::remove_ue(ue_index_t ue_index)
     return;
   }
 
-  bool is_inactive = ue_it->second->get_rrc_state() == rrc_state::connected_inactive;
+  bool is_inactive = ue_it->second->get_rrc_state() == rrc_state::inactive;
 
   // Delete RRC UE to RRC DU adapter.
   rrc_ue_rrc_du_adapters.erase(ue_index);

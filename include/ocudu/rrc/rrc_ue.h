@@ -35,7 +35,7 @@ struct dl_dcch_msg_s;
 namespace ocudu::ocucp {
 
 /// RRC states (3GPP 38.331 v15.5.1 Sec 4.2.1)
-enum class rrc_state { idle = 0, connected, connected_inactive };
+enum class rrc_state { idle = 0, connected, inactive };
 
 class rrc_ue_controller
 {

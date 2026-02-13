@@ -325,7 +325,7 @@ void rrc_ue_impl::handle_measurement_report(const asn1::rrc_nr::meas_report_s& m
 
 void rrc_ue_impl::handle_dl_nas_transport_message(byte_buffer nas_pdu)
 {
-  if (context.state == rrc_state::connected_inactive) {
+  if (context.state == rrc_state::inactive) {
     // Store NAS PDU in the UE context to be sent to the UE after a successful resume.
     context.pending_dl_nas_transport_messages.push_back(std::move(nas_pdu));
     // Notify the CU-CP about the reception of the DL NAS Transport message for a UE in RRC Inactive state.

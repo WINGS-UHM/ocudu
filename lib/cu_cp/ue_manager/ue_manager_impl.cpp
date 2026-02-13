@@ -248,9 +248,9 @@ std::optional<i_rntis_t> ue_manager::set_inactive(ue_index_t ue_index)
     return std::nullopt;
   }
 
-  // Set RRC state to CONNECTED_INACTIVE.
+  // Set RRC state to RRC_INACTIVE.
   auto& ue = ues.at(ue_index);
-  ue.get_rrc_ue()->set_rrc_state(rrc_state::connected_inactive);
+  ue.get_rrc_ue()->set_rrc_state(rrc_state::inactive);
 
   // Add I-RNTIs to lookups.
   full_i_rnti_to_ue_index.emplace(i_rntis->full_i_rnti, ue_index);
@@ -302,7 +302,7 @@ std::optional<full_i_rnti_t> ue_manager::get_full_i_rnti(ue_index_t ue_index)
   }
 
   auto& ue = ues.at(ue_index);
-  if (ue.get_rrc_ue()->get_rrc_state() != rrc_state::connected_inactive) {
+  if (ue.get_rrc_ue()->get_rrc_state() != rrc_state::inactive) {
     logger.warning("ue={}: Get I-RNTIs called for active UE", ue_index);
     return std::nullopt;
   }

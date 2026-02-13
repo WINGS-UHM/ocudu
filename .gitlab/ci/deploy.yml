@@ -44,7 +44,11 @@ ocudu image:
       fi
       export NAME="ocudu_nightly_${SUFFIX}"
       export VERSION="$(git show -s --date=format:%Y%m%d --format=%cd ${CI_COMMIT_SHA})_${CI_COMMIT_SHORT_SHA}"
+      echo "CI_SHARED_OCUDU_IMAGE_VERSION=${VERSION}" >> variables.env
       export BUILD_ARGS="UHD_VERSION=${DOCKER_UHD_VERSION};DPDK_VERSION=${DOCKER_DPDK_VERSION};MARCH=${MARCH};NUM_JOBS=${CPU_JOBS};EXTRA_CMAKE_ARGS=\"${EXTRA_CMAKE_ARGS}\""
+  artifacts:
+    reports:
+      dotenv: variables.env
   parallel: &matrix-ocudu-image-variants
     matrix:
       # AMD AVX2
@@ -91,7 +95,7 @@ ocudu image update latest:
   script:
     - |
       export NAME="ocudu_nightly_${SUFFIX}"
-      export VERSION="$(git show -s --date=format:%Y%m%d --format=%cd ${CI_COMMIT_SHA})_${CI_COMMIT_SHORT_SHA}"
+      export VERSION="${CI_SHARED_OCUDU_IMAGE_VERSION}"
       docker manifest create ${REGISTRY_URI}/${NAME}:latest --amend ${REGISTRY_URI}/${NAME}:${VERSION}
       docker manifest push ${REGISTRY_URI}/${NAME}:latest
       echo "Image ${RETINA_REGISTRY_URI}/${NAME}:latest pushed"
@@ -99,4 +103,4 @@ ocudu image update latest:
   parallel: *matrix-ocudu-image-variants
   needs:
     - job: ocudu image
-      artifacts: false
+      artifacts: true

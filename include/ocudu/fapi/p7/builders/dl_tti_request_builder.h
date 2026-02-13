@@ -46,7 +46,7 @@ public:
   dl_pdsch_pdu_builder add_pdsch_pdu(rnti_t rnti)
   {
     dl_pdsch_pdu_builder builder = add_pdsch_pdu();
-    builder.set_basic_parameters(rnti);
+    builder.set_ue_specific_parameters(rnti);
 
     return builder;
   }

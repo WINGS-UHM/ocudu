@@ -226,49 +226,30 @@ dl_pdcch_pdu unittest::build_valid_dl_pdcch_pdu()
 dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
 {
   dl_pdsch_pdu pdu;
-  pdu.pdu_bitmap.set(1);
-  pdu.rnti                                 = to_rnti(3);
-  pdu.pdu_index                            = 2;
-  pdu.bwp                                  = {3, 4};
-  pdu.scs                                  = subcarrier_spacing::kHz15;
-  pdu.cp                                   = cyclic_prefix::NORMAL;
-  pdu.cws                                  = {{10, 2, 3, 1, 3, units::bytes{12}}};
-  pdu.nid_pdsch                            = 65;
-  pdu.num_layers                           = 6;
-  pdu.transmission_scheme                  = 0;
-  pdu.ref_point                            = pdsch_ref_point_type::point_a;
-  pdu.pdsch_dmrs_scrambling_id             = 31;
-  pdu.dmrs_type                            = dmrs_config_type::type1;
-  pdu.pdsch_dmrs_scrambling_id_compl       = 42;
-  pdu.low_papr_dmrs                        = low_papr_dmrs_type::dependent_cdm_group;
-  pdu.nscid                                = 0;
+  pdu.rnti                     = to_rnti(3);
+  pdu.bwp                      = {3, 4};
+  pdu.scs                      = subcarrier_spacing::kHz15;
+  pdu.cp                       = cyclic_prefix::NORMAL;
+  pdu.cws                      = {{modulation_scheme::QPSK, sch_mcs_index(3), pdsch_mcs_table(1), 3, units::bytes{12}}};
+  pdu.nid_pdsch                = 65;
+  pdu.num_layers               = 6;
+  pdu.ref_point                = pdsch_ref_point_type::point_a;
+  pdu.pdsch_dmrs_scrambling_id = 31;
+  pdu.dmrs_type                = dmrs_config_type::type1;
+  pdu.nscid                    = 0;
   pdu.num_dmrs_cdm_grps_no_data            = 2;
-  pdu.resource_alloc                       = resource_allocation_type::type_1;
-  pdu.vrbs                                 = {42, 89};
-  pdu.vrb_to_prb_mapping                   = fapi::vrb_to_prb_mapping_type::interleaved_rb_size2;
+  pdu.resource_alloc.vrbs                  = {42, 89};
+  pdu.vrb_to_prb_mapping                   = vrb_to_prb::mapping_type::interleaved_n2;
   pdu.symbols                              = generate_symbols();
   auto& power                              = pdu.power_config.emplace<dl_pdsch_pdu::power_profile_nr>();
   power.power_control_offset_profile_nr    = 6;
   power.power_control_offset_ss_profile_nr = fapi::power_control_offset_ss::dB3;
-  pdu.is_inline_tb_crc                     = fapi::inline_tb_crc_type::control_message;
-  pdu.dl_dmrs_symb_pos                     = 0;
-  pdu.precoding_and_beamforming            = build_valid_tx_precoding_and_beamforming_pdu();
 
-  // Maintenance v3.
-  pdu.pdsch_maintenance_v3.trans_type = ocudu::fapi::pdsch_trans_type::interleaved_common_any_coreset0_not_present;
-  pdu.pdsch_maintenance_v3.coreset_start_point                  = 2;
-  pdu.pdsch_maintenance_v3.initial_dl_bwp_size                  = 3;
-  pdu.pdsch_maintenance_v3.ldpc_base_graph                      = ocudu::ldpc_base_graph_type::BG1;
-  pdu.pdsch_maintenance_v3.tb_size_lbrm_bytes                   = units::bytes{12};
-  pdu.pdsch_maintenance_v3.prb_sym_rm_pattern_bitmap_size_byref = 0;
-  pdu.pdsch_maintenance_v3.num_prb_sym_rm_patts_by_value        = 0;
-  pdu.pdsch_maintenance_v3.num_coreset_rm_patterns              = 0;
-  pdu.pdsch_maintenance_v3.pdcch_pdu_index                      = 4;
-  pdu.pdsch_maintenance_v3.dci_index                            = 3;
-  pdu.pdsch_maintenance_v3.max_num_cbg_per_tb                   = 4;
+  pdu.dl_dmrs_symb_pos = dmrs_symbol_mask(13);
+  pdu.dl_dmrs_symb_pos.from_uint64(0);
+  pdu.precoding_and_beamforming = build_valid_tx_precoding_and_beamforming_pdu();
 
-  // Maintenance v4
-  pdu.pdsch_parameters_v4.lte_crs_mbsfn_derivation_method = 0;
+  pdu.ldpc_base_graph = ocudu::ldpc_base_graph_type::BG1;
 
   return pdu;
 }

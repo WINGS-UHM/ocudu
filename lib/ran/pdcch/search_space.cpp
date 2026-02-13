@@ -20,15 +20,18 @@ search_space_configuration::search_space_configuration(nr_band             band,
                                                        subcarrier_spacing  common_scs,
                                                        subcarrier_spacing  ssb_scs,
                                                        unsigned            coreset0_index,
-                                                       search_space0_index ss0_index) :
-  id(to_search_space_id(0)), cs_id(to_coreset_id(0)), dci_fmt(common_dci_format{.f0_0_and_f1_0 = true})
+                                                       search_space0_index ss0_index_) :
+  id(to_search_space_id(0)),
+  cs_id(to_coreset_id(0)),
+  dci_fmt(common_dci_format{.f0_0_and_f1_0 = true}),
+  ss0_index(ss0_index_)
 {
   const pdcch_type0_css_coreset_description cset0_desc =
       pdcch_type0_css_coreset_get(band, ssb_scs, common_scs, coreset0_index, 0);
   ocudu_assert(cset0_desc.pattern != PDCCH_TYPE0_CSS_CORESET_RESERVED.pattern, "Invalid CORESET#0 index value");
   const pdcch_type0_css_occasion_pattern1_description ss0_occasion =
       pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
-          .is_fr2 = false, .ss0_index = ss0_index, .nof_symb_coreset = cset0_desc.nof_symb_coreset});
+          .is_fr2 = false, .ss0_index = ss0_index_, .nof_symb_coreset = cset0_desc.nof_symb_coreset});
 
   // TS 38.213, Table 10.1-1 - CCE aggregation levels and maximum number of PDCCH candidates per CCE aggregation level
   // for CSS sets configured by searchSpace-SIB1.
@@ -76,7 +79,8 @@ search_space_configuration::search_space_configuration(
   nof_candidates(nof_candidates_),
   dci_fmt(dci_fmt_),
   monitoring_slot_periodicity(monitoring_slot_periodicity_),
-  duration(duration_)
+  duration(duration_),
+  ss0_index(0)
 {
   ocudu_assert(not is_search_space0(), "Constructor cannot be used for SearchSpace#0");
 

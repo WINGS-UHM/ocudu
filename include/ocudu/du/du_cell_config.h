@@ -56,9 +56,6 @@ struct du_cell_config {
   /// CORESET#0 index of Table 13-{1, ..., 10}, TS 38.213.
   unsigned coreset0_idx;
 
-  /// SearchSpace#0 index of Table 13-{11, ..., 15}, TS 38.213.
-  search_space0_index ss0_idx;
-
   /// \c cellSelectionInfo, \c SIB1, as per TS 38.331.
   cell_selection_info cell_sel_info;
 

@@ -83,7 +83,7 @@ struct search_space_configuration {
                                       subcarrier_spacing  common_scs,
                                       subcarrier_spacing  ssb_scs,
                                       unsigned            coreset0_index,
-                                      search_space0_index ss0_index);
+                                      search_space0_index ss0_index_);
 
   /// Constructor for non-SearchSpace#0 SearchSpaces.
   explicit search_space_configuration(search_space_id                                         id_,
@@ -101,7 +101,7 @@ struct search_space_configuration {
     return id == rhs.id and cs_id == rhs.cs_id and monitoring_slot_periodicity == rhs.monitoring_slot_periodicity and
            monitoring_slot_offset == rhs.monitoring_slot_offset and duration == rhs.duration and
            monitoring_symbols_within_slot == rhs.monitoring_symbols_within_slot and
-           nof_candidates == rhs.nof_candidates and dci_fmt == rhs.dci_fmt;
+           nof_candidates == rhs.nof_candidates and dci_fmt == rhs.dci_fmt and ss0_index == rhs.ss0_index;
   }
 
   /// \brief Returns Id of the SearchSpace.
@@ -130,6 +130,13 @@ struct search_space_configuration {
 
   /// \brief Returns whether SearchSpace if of Common SearchSpace(CSS) or UE Specific SearchSpace(USS).
   bool is_common_search_space() const { return std::holds_alternative<common_dci_format>(dci_fmt); }
+
+  /// \brief Returns SearchSpace#0 index for SearchSpace ID 0.
+  search_space0_index get_ss0_index() const
+  {
+    ocudu_assert(is_search_space0(), "Invalid access to SearchSpaceZero index of SearchSpace#{}", fmt::underlying(id));
+    return ss0_index;
+  }
 
   /// \brief Sets the nof. PDCCH candidates for non-SearchSpace#0 SearchSpaces.
   void set_non_ss0_nof_candidates(std::array<uint8_t, 5> nof_candidates_)
@@ -255,6 +262,8 @@ private:
   /// For SearchSpace == 0, each element in vector corresponds to a SSB beam of index equal to index in vector.
   /// For SearchSpace != 0, only the first element of the vector is used.
   static_vector<monitoring_symbols_within_slot_t, MAX_NUM_BEAMS> monitoring_symbols_within_slot;
+  /// SearchSpace#0 index of Table 13-{11, ..., 15}, TS 38.213.
+  search_space0_index ss0_index = 0;
 };
 
 } // namespace ocudu

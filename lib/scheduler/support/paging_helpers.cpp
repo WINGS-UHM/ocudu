@@ -48,7 +48,7 @@ paging_slot_helper::paging_slot_helper(const cell_configuration& cell_cfg_) : ce
         // For Ns = 1, there is only one PO which starts from the first PDCCH monitoring occasion for paging in the PF.
         // TS 38.304, clause 7.1. Hence, n0 slot must be use and not n0 + 1 slot.
         type0_pdcch_css_slots[i_ssb] = precompute_type0_pdcch_css_n0(
-            cell_cfg.searchspace0, cell_cfg.coreset0, cell_cfg, cell_cfg.scs_common, i_ssb);
+            ss_cfg->get_ss0_index(), cell_cfg.coreset0, cell_cfg, cell_cfg.scs_common, i_ssb);
       }
     } else {
       if (ss_cfg->get_coreset_id() != to_coreset_id(0) and

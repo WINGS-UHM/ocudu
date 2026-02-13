@@ -77,6 +77,9 @@ bool is_valid_enum_number(Number number)
 /// Checks whether CORESET#0 table index is valid as per TS38.213, Table 13-{1,...,10}.
 static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 {
+  const auto ss0_idx = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
+  CHECK_TRUE(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
+
   // TODO: Check which table to use.
   // TODO: Add checks on minimum bandwidth.
   if (cell_cfg.scs_common == subcarrier_spacing::kHz15 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz15) {
@@ -92,7 +95,7 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
   // starting from the symbol index 0.
   if (cell_cfg.scs_common == subcarrier_spacing::kHz15 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz15) {
     // As per TS38.213, Table 13-11.
-    CHECK_EQ_OR_BELOW(cell_cfg.ss0_idx, 9, "SearchSpaceZero index table");
+    CHECK_EQ_OR_BELOW(ss0_idx.value(), 9, "SearchSpaceZero index table");
   }
 
   return {};
@@ -552,12 +555,13 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
   const pdcch_config&                         ded_pdcch_cfg    = cell_cfg.init_bwp_builder.pdcch_cfg.value();
   const std::optional<coreset_configuration>& coreset0         = common_pdcch_cfg.coreset0;
   const std::optional<coreset_configuration>& common_coreset   = common_pdcch_cfg.common_coreset;
+  const auto                                  ss0_idx          = common_pdcch_cfg.get_searchspace0();
+  CHECK_TRUE(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
   CHECK_TRUE(coreset0.has_value(), "CORESET#0 not configured");
 
-  const pdcch_type0_css_occasion_pattern1_description& ss0_occasion = pdcch_type0_css_occasions_get_pattern1(
-      pdcch_type0_css_occasion_pattern1_configuration{.is_fr2           = false,
-                                                      .ss0_index        = static_cast<uint8_t>(cell_cfg.ss0_idx),
-                                                      .nof_symb_coreset = coreset0->duration});
+  const pdcch_type0_css_occasion_pattern1_description& ss0_occasion =
+      pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
+          .is_fr2 = false, .ss0_index = ss0_idx.value(), .nof_symb_coreset = coreset0->duration});
 
   const auto& tdd_cfg = cell_cfg.tdd_ul_dl_cfg_common.value();
   CHECK_TRUE(

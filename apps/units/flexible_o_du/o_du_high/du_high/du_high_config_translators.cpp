@@ -429,7 +429,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.nr_cgi.plmn_id = plmn_identity::parse(base_cell.plmn).value();
     out_cell.nr_cgi.nci     = nr_cell_identity::create(config.gnb_id, base_cell.sector_id.value()).value();
     out_cell.tac            = base_cell.tac;
-    out_cell.ss0_idx        = param.ss0_index;
     out_cell.enabled        = base_cell.enabled;
 
     // Cell selection parameters.

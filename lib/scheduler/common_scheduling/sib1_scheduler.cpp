@@ -18,6 +18,7 @@
 #include "../support/rb_helper.h"
 #include "../support/sch_pdu_builder.h"
 #include "ocudu/ran/sib/sib_configuration.h"
+#include <algorithm>
 
 using namespace ocudu;
 
@@ -33,10 +34,12 @@ sib1_scheduler::sib1_scheduler(const cell_configuration& cfg_,
   cell_cfg{cfg_},
   pdcch_sched{pdcch_sch},
   coreset0{cell_cfg.coreset0},
-  searchspace0{cell_cfg.searchspace0},
   sib1_payload_size{sib1_payload_size_},
   L_max(cfg_.ssb_cfg.ssb_bitmap.get_L_max())
 {
+  const auto searchspace0 = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
+  ocudu_assert(searchspace0.has_value(), "SearchSpace#0 not found in common SearchSpace list");
+
   // Compute derived SIB1 parameters.
   sib1_rtx_period = std::chrono::milliseconds{std::max(ssb_periodicity_to_value(cfg_.ssb_cfg.ssb_period),
                                                        sib1_rtx_periodicity_to_value(expert_cfg.sib1_retx_period))};
@@ -49,7 +52,7 @@ sib1_scheduler::sib1_scheduler(const cell_configuration& cfg_,
     // NOTE:
     // - [Implementation defined] Use (n0 + 1) slot to avoid collisions between SSB and SIB1.
     sib1_type0_pdcch_css_slots[i_ssb] =
-        precompute_type0_pdcch_css_n0_plus_1(searchspace0, coreset0, cell_cfg, cell_cfg.scs_common, i_ssb);
+        precompute_type0_pdcch_css_n0_plus_1(searchspace0.value(), coreset0, cell_cfg, cell_cfg.scs_common, i_ssb);
   }
 
   // Define a BWP configuration limited by CORESET#0 RBs.

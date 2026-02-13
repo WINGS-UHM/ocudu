@@ -44,7 +44,6 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
 
   // SIB1 parameters.
   sched_req.coreset0          = *params.coreset0_index;
-  sched_req.searchspace0      = params.ss0_index;
   sched_req.sib1_payload_size = units::bytes{101}; // Random size.
 
   // Generic dedicated UE config templates.

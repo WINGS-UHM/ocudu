@@ -54,7 +54,6 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
   cfg.dl_carrier              = make_default_dl_carrier_configuration(params);
   cfg.ul_carrier              = make_default_ul_carrier_configuration(params);
   cfg.coreset0_idx            = *params.coreset0_index;
-  cfg.ss0_idx                 = params.ss0_index;
   cfg.dl_cfg_common           = make_default_dl_config_common(params);
   cfg.ul_cfg_common           = make_default_ul_config_common(params);
   cfg.scs_common              = params.scs_common;

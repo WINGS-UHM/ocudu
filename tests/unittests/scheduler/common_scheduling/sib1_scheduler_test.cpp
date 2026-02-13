@@ -224,6 +224,10 @@ struct sib_test_bench {
     cell_cfg.dl_carrier.arfcn_f_ref = freq_arfcn;
     cell_cfg.scs_common             = init_bwp_scs;
     cell_cfg.dl_carrier.carrier_bw  = carrier_bw_mhz;
+    cell_cfg.coreset0_index         = (pdcch_config_sib1 >> 4U) & 0b00001111U;
+    cell_cfg.ss0_index              = pdcch_config_sib1 & 0b00001111U;
+    cell_cfg.offset_to_point_a      = ssb_offset_to_pointA{offset_to_point_A};
+    cell_cfg.k_ssb                  = k_ssb;
     cell_cfg.auto_derive_params();
 
     sched_cell_configuration_request_message msg =
@@ -235,8 +239,6 @@ struct sib_test_bench {
     msg.ssb_config.offset_to_point_A = ssb_offset_to_pointA{offset_to_point_A};
     msg.ssb_config.k_ssb             = k_ssb;
     msg.dl_carrier.carrier_bw        = carrier_bw_mhz;
-    msg.coreset0                     = (pdcch_config_sib1 >> 4U) & 0b00001111;
-    msg.searchspace0                 = pdcch_config_sib1 & 0b00001111;
 
     if (band_helper::get_duplex_mode(band_helper::get_band_from_dl_arfcn(freq_arfcn)) == ocudu::duplex_mode::TDD) {
       // Change TDD pattern so that PDCCH slots falls in DL slot when using 5Mhz carrier BW.
@@ -497,6 +499,16 @@ void test_sib_1_pdsch_collisions(arfcn_t freq_arfcn, subcarrier_spacing scs, bs_
                     static_cast<unsigned>(coreset0_param.nof_rb_coreset) >=
                 nof_rbs_bpw or
             static_cast<unsigned>(coreset0_param.offset) > crb_ssb) {
+          continue;
+        }
+        if (not band_helper::get_ssb_arfcn(freq_arfcn,
+                                           band,
+                                           nof_rbs_bpw,
+                                           scs,
+                                           scs,
+                                           ssb_offset_to_pointA{static_cast<uint16_t>(offset_to_point_A)},
+                                           ssb_subcarrier_offset{k_ssb_val})
+                    .has_value()) {
           continue;
         }
 

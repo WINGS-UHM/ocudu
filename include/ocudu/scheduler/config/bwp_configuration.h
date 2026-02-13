@@ -38,6 +38,14 @@ struct pdcch_config_common {
   /// SearchSpace of RA procedure. If field is invalid, the UE does not receive RAR in this BWP.
   search_space_id ra_search_space_id;
 
+  std::optional<search_space0_index> get_searchspace0() const
+  {
+    if (search_spaces.empty() or search_spaces.front().get_id() != to_search_space_id(0)) {
+      return std::nullopt;
+    }
+    return search_spaces.front().get_ss0_index();
+  }
+
   bool operator==(const pdcch_config_common& other) const
   {
     return coreset0 == other.coreset0 and common_coreset == other.common_coreset and

@@ -52,6 +52,9 @@ void ocudu::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
                cell.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
                band_helper::nr_arfcn_to_freq(cell.ul_carrier.arfcn_f_ref) / 1e6);
 
+    const auto ss0_idx = cell.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
+    ocudu_assert(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
+
     logger.info(
         "SSB derived parameters for cell: {}, band: {}, dl_arfcn:{}, nof_crbs: {} scs:{}, ssb_scs:{}:\n\t - SSB offset "
         "pointA:{} \n\t - k_SSB:{} \n\t - SSB arfcn:{} \n\t - Coreset index:{} \n\t - Searchspace index:{}",
@@ -65,7 +68,7 @@ void ocudu::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
         cell.ssb_cfg.k_ssb.value(),
         cell.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
         cell.coreset0_idx,
-        cell.ss0_idx);
+        ss0_idx.value());
   }
 
   fmt::print("\n");

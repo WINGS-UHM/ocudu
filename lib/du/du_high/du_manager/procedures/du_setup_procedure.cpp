@@ -32,13 +32,15 @@ static mac_cell_creation_request make_mac_cell_config(du_cell_index_t           
                                                       const sched_cell_configuration_request_message& sched_cell_cfg)
 {
   mac_cell_creation_request mac_cfg{};
-  mac_cfg.cell_index    = cell_index;
-  mac_cfg.pci           = du_cfg.pci;
-  mac_cfg.scs_common    = du_cfg.scs_common;
-  mac_cfg.ssb_cfg       = du_cfg.ssb_cfg;
-  mac_cfg.dl_carrier    = du_cfg.dl_carrier;
-  mac_cfg.ul_carrier    = du_cfg.ul_carrier;
-  mac_cfg.sys_info.sib1 = sib1.copy();
+  mac_cfg.cell_index     = cell_index;
+  mac_cfg.pci            = du_cfg.pci;
+  mac_cfg.scs_common     = du_cfg.scs_common;
+  mac_cfg.ssb_cfg        = du_cfg.ssb_cfg;
+  mac_cfg.dl_carrier     = du_cfg.dl_carrier;
+  mac_cfg.ul_carrier     = du_cfg.ul_carrier;
+  mac_cfg.coreset0_index = du_cfg.coreset0_idx;
+  mac_cfg.ss0_index      = du_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0().value();
+  mac_cfg.sys_info.sib1  = sib1.copy();
   for (auto& msg : si_messages) {
     mac_cfg.sys_info.si_messages.push_back(msg);
   }

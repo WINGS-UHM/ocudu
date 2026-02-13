@@ -3376,7 +3376,11 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   pdcch_cfg_common.coreset_zero_present = true;
   pdcch_cfg_common.coreset_zero         = du_cell_cfg.coreset0_idx;
   pdcch_cfg_common.search_space_zero_present = true;
-  pdcch_cfg_common.search_space_zero         = du_cell_cfg.ss0_idx.value();
+  {
+    const auto ss0_idx = du_cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
+    ocudu_assert(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
+    pdcch_cfg_common.search_space_zero = ss0_idx->value();
+  }
 
   // > uplinkConfigCommon UplinkConfigCommon OPTIONAL, -- Need M
   out.sp_cell_cfg_common.ul_cfg_common_present = true;

@@ -42,8 +42,6 @@ private:
   const ssb_configuration ssb_cfg;
   uint8_t                 pdcch_config_sib1;
   dmrs_typeA_position     dmrs_typeA_pos;
-  bool                    cell_barred;
-  bool                    intra_f_resel;
 
   /// Other derived SSB parameters.
   ssb_pattern_case ssb_case;

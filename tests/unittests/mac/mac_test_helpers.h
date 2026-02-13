@@ -25,7 +25,6 @@
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/mac_scheduler.h"
 #include "ocudu/scheduler/result/sched_result.h"
-#include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/test_utils.h"
 
 namespace ocudu {
@@ -37,15 +36,17 @@ inline mac_cell_creation_request make_default_mac_cell_config(const cell_config_
 {
   mac_cell_creation_request req{};
 
-  req.pci              = params.pci;
-  req.cell_index       = to_du_cell_index(0);
-  req.scs_common       = params.scs_common;
-  req.dl_carrier       = config_helpers::make_default_dl_carrier_configuration(params);
-  req.ul_carrier       = config_helpers::make_default_ul_carrier_configuration(params);
-  req.ssb_cfg          = config_helpers::make_default_ssb_config(params);
-  req.cell_barred      = false;
-  req.intra_freq_resel = false;
-  req.sched_req        = {}; // Note: MAC should not touch this field.
+  config_helpers::cell_config_builder_params_extended params_ext{params};
+
+  req.pci            = params.pci;
+  req.cell_index     = to_du_cell_index(0);
+  req.scs_common     = params.scs_common;
+  req.dl_carrier     = config_helpers::make_default_dl_carrier_configuration(params);
+  req.ul_carrier     = config_helpers::make_default_ul_carrier_configuration(params);
+  req.ssb_cfg        = config_helpers::make_default_ssb_config(params);
+  req.coreset0_index = params_ext.coreset0_index.value();
+  req.ss0_index      = params_ext.ss0_index;
+  req.sched_req      = {}; // Note: MAC should not touch this field.
 
   byte_buffer dummy_sib1;
   for (unsigned i = 0; i != 100; ++i) {

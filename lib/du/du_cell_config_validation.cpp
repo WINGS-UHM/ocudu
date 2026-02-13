@@ -120,7 +120,7 @@ static check_outcome is_coreset0_params_valid(const du_cell_config& cell_cfg)
       pdcch_type0_css_coreset_get(cell_cfg.dl_carrier.band,
                                   cell_cfg.ssb_cfg.scs,
                                   cell_cfg.scs_common,
-                                  cell_cfg.coreset0_idx,
+                                  cell_cfg.coreset0_idx.value(),
                                   static_cast<uint8_t>(cell_cfg.ssb_cfg.k_ssb.value()));
 
   // CRB (with reference to SCScommon carrier) pointed to by offset_to_point_A.

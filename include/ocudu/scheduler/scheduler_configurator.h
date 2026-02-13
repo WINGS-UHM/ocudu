@@ -64,7 +64,7 @@ struct sched_cell_configuration_request_message {
   ssb_configuration     ssb_config;
   dmrs_typeA_position   dmrs_typeA_pos;
   /// This corresponds to controlResourceSetZero as per PDCCH-ConfigSIB1, TS 38.331.
-  uint8_t coreset0;
+  coreset0_index coreset0;
 
   /// Payload size is in bytes.
   units::bytes sib1_payload_size;

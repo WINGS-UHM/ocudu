@@ -54,7 +54,7 @@ struct du_cell_config {
   dmrs_typeA_position dmrs_typeA_pos;
 
   /// CORESET#0 index of Table 13-{1, ..., 10}, TS 38.213.
-  unsigned coreset0_idx;
+  coreset0_index coreset0_idx;
 
   /// \c cellSelectionInfo, \c SIB1, as per TS 38.331.
   cell_selection_info cell_sel_info;

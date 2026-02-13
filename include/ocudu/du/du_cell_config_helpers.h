@@ -159,17 +159,19 @@ inline pucch_config make_pucch_config(const odu::du_cell_config& du_cell_cfg)
   }
 
   // Increase code rate in case of more than 4 layers.
-  const unsigned nof_dl_layers =
-      du_cell_cfg.init_bwp_builder.pdsch.max_nof_layers.value_or(du_cell_cfg.dl_carrier.nof_ant);
-  const max_pucch_code_rate max_c_rate = nof_dl_layers >= 4 ? max_pucch_code_rate::dot_35 : max_pucch_code_rate::dot_25;
-
-  pucch_cfg.format_1_common_param.emplace();
-  pucch_cfg.format_2_common_param.emplace(
-      pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
-  pucch_cfg.format_3_common_param.emplace(
-      pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
-  pucch_cfg.format_4_common_param.emplace(
-      pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
+  if (std::holds_alternative<pucch_f1_params>(builder_params.f0_or_f1_params)) {
+    pucch_cfg.format_1_common_param.emplace();
+  }
+  if (const auto* f2_params = std::get_if<pucch_f2_params>(&builder_params.f2_or_f3_or_f4_params)) {
+    pucch_cfg.format_2_common_param.emplace(
+        pucch_common_all_formats{.max_c_rate = f2_params->max_code_rate, .simultaneous_harq_ack_csi = true});
+  } else if (const auto* f3_params = std::get_if<pucch_f3_params>(&builder_params.f2_or_f3_or_f4_params)) {
+    pucch_cfg.format_3_common_param.emplace(
+        pucch_common_all_formats{.max_c_rate = f3_params->max_code_rate, .simultaneous_harq_ack_csi = true});
+  } else if (const auto* f4_params = std::get_if<pucch_f4_params>(&builder_params.f2_or_f3_or_f4_params)) {
+    pucch_cfg.format_4_common_param.emplace(
+        pucch_common_all_formats{.max_c_rate = f4_params->max_code_rate, .simultaneous_harq_ack_csi = true});
+  }
   pucch_cfg.dl_data_to_ul_ack =
       time_domain_resource_helper::generate_k1_candidates(du_cell_cfg.tdd_ul_dl_cfg_common, pucch_params.min_k1);
 

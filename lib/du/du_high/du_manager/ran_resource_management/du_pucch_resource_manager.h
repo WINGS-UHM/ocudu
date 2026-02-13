@@ -61,11 +61,7 @@ public:
 private:
   struct cell_resource_context;
 
-  void configure_shared_pucch_params(const du_cell_config& cell_cfg);
-  void verify_shared_pucch_params_compatibility(const du_cell_config& cell_cfg) const;
-  void clear_shared_pucch_params();
-
-  unsigned sr_du_res_idx_to_pucch_res_idx(unsigned sr_du_res_idx) const;
+  unsigned sr_du_res_idx_to_pucch_res_idx(du_cell_index_t cell_index, unsigned sr_du_res_idx) const;
 
   /// \brief Computes the DU index for PUCCH SR resource from the UE's PUCCH-Config \ref res_id index.
   ///
@@ -73,9 +69,9 @@ private:
   /// resources are indexed with the values: {0, ..., nof_cell_pucch_f1_res_sr-1}. However, in the UE's PUCCH-Config,
   /// the PUCCH F1 resources use different indices (see \ref res_id in \ref pucch_resource). The mapping between the DU
   /// index and the UE's PUCCH-Config for SR PUCCH resources is defined in \ref odu::ue_pucch_config_builder.
-  unsigned pucch_res_idx_to_sr_du_res_idx(unsigned pucch_res_idx) const;
+  unsigned pucch_res_idx_to_sr_du_res_idx(du_cell_index_t cell_index, unsigned pucch_res_idx) const;
 
-  unsigned csi_du_res_idx_to_pucch_res_idx(unsigned csi_du_res_idx) const;
+  unsigned csi_du_res_idx_to_pucch_res_idx(du_cell_index_t cell_index, unsigned csi_du_res_idx) const;
 
   /// \brief Computes the DU index for PUCCH CSI resource from the UE's PUCCH-Config \ref res_id index.
   ///
@@ -83,7 +79,7 @@ private:
   /// resources are indexed with the values: {0, ..., nof_cell_pucch_f2_res_csi-1}. However, in the UE's PUCCH-Config,
   /// the PUCCH F2 resources use different indices (see \ref res_id in \ref pucch_resource). The mapping between the DU
   /// index and the UE's PUCCH-Config for CSI PUCCH resources is defined in \ref odu::ue_pucch_config_builder.
-  unsigned pucch_res_idx_to_csi_du_res_idx(unsigned pucch_res_idx) const;
+  unsigned pucch_res_idx_to_csi_du_res_idx(du_cell_index_t cell_index, unsigned pucch_res_idx) const;
 
   std::vector<std::pair<unsigned, unsigned>>::const_iterator
   find_optimal_csi_report_slot_offset(du_cell_index_t                                   cell_index,
@@ -104,25 +100,27 @@ private:
 
   /// Computes the SR and CSI PUCCH offsets and their repetitions within a given period, which is the Least Common
   /// Multiple of SR and CSI periods. If SR and CSI results in having common offsets, this will be counted only once.
-  std::set<unsigned> compute_sr_csi_pucch_offsets(unsigned sr_offset, unsigned csi_offset = 0);
+  std::set<unsigned>
+  compute_sr_csi_pucch_offsets(du_cell_index_t cell_index, unsigned sr_offset, unsigned csi_offset = 0);
 
-  [[nodiscard]] bool csi_offset_collides_with_sr(unsigned sr_offset, unsigned csi_offset) const;
+  [[nodiscard]] bool
+  csi_offset_collides_with_sr(du_cell_index_t cell_index, unsigned sr_offset, unsigned csi_offset) const;
 
   /// Called when PUCCH allocation fails for a given UE.
-  void disable_pucch_cfg(cell_group_config& cell_grp_cfg);
+  void disable_pucch_cfg(du_cell_index_t cell_index, cell_group_config& cell_grp_cfg);
 
-  // Parameters for PUCCH configuration passed by the user.
-  pucch_resource_builder_params user_defined_pucch_cfg{};
-  std::vector<pucch_resource>   default_pucch_res_list;
-  pucch_config                  default_pucch_cfg{};
-  // Default CSI report configuration. Only set if periodic CSI reporting is configured.
-  std::optional<csi_report_config> default_csi_report_cfg;
-  const unsigned                   max_pucch_grants_per_slot;
-  unsigned                         lcm_csi_sr_period;
-  unsigned                         sr_period_slots  = 0;
-  unsigned                         csi_period_slots = 0;
+  const unsigned max_pucch_grants_per_slot;
 
   struct cell_resource_context {
+    // Parameters for PUCCH configuration passed by the user.
+    pucch_resource_builder_params user_defined_pucch_cfg{};
+    std::vector<pucch_resource>   default_pucch_res_list;
+    pucch_config                  default_pucch_cfg{};
+    // Default CSI report configuration. Only set if periodic CSI reporting is configured.
+    std::optional<csi_report_config> default_csi_report_cfg;
+    unsigned                         lcm_csi_sr_period = 0;
+    unsigned                         sr_period_slots   = 0;
+    unsigned                         csi_period_slots  = 0;
     /// \brief Pool of PUCCH SR offsets currently available to be allocated to UEs. Each element is represented by a
     /// pair (pucch_resource_id, slot_offset).
     std::vector<std::pair<unsigned, unsigned>> sr_res_offset_free_list;

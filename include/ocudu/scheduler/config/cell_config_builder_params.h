@@ -13,6 +13,7 @@
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/carrier_configuration.h"
 #include "ocudu/ran/pci.h"
+#include "ocudu/ran/pdcch/search_space.h"
 #include "ocudu/ran/ssb/ssb_properties.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 
@@ -38,7 +39,7 @@ struct cell_config_builder_params {
   /// Maximum CORESET#0 duration in OFDM symbols to consider when deriving CORESET#0 index.
   uint8_t max_coreset0_duration = 2;
   /// This is \c searchSpaceZero, as per TS38.213, Section 13.
-  unsigned search_space0_index = 0;
+  search_space0_index ss0_index = 0;
   /// \brief k_ssb or SSB SubcarrierOffest, as per TS38.211 Section 7.4.3.1. Possible values: {0, ..., 23}. If not
   /// specified, a valid k_ssb is derived.
   std::optional<ssb_subcarrier_offset> k_ssb;
@@ -97,21 +98,11 @@ struct cell_config_builder_params {
 
       std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc;
       if (coreset0_index.has_value()) {
-        ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(dl_carrier.arfcn_f_ref,
-                                                                                 dl_carrier.band,
-                                                                                 nof_crbs,
-                                                                                 scs_common,
-                                                                                 *scs_ssb,
-                                                                                 search_space0_index,
-                                                                                 coreset0_index.value());
+        ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(
+            dl_carrier.arfcn_f_ref, dl_carrier.band, nof_crbs, scs_common, *scs_ssb, ss0_index, coreset0_index.value());
       } else {
-        ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(dl_carrier.arfcn_f_ref,
-                                                                   dl_carrier.band,
-                                                                   nof_crbs,
-                                                                   scs_common,
-                                                                   *scs_ssb,
-                                                                   search_space0_index,
-                                                                   max_coreset0_duration);
+        ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(
+            dl_carrier.arfcn_f_ref, dl_carrier.band, nof_crbs, scs_common, *scs_ssb, ss0_index, max_coreset0_duration);
       }
       report_error_if_not(
           ssb_freq_loc.has_value(), "Unable to derive a valid SSB pointA and k_SSB for cell id ({}).\n", pci);

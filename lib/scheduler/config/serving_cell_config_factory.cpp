@@ -139,7 +139,7 @@ search_space_configuration
 ocudu::config_helpers::make_default_search_space_zero_config(const cell_config_builder_params_extended& params)
 {
   return search_space_configuration{
-      params.dl_carrier.band, params.scs_common, *params.scs_ssb, *params.coreset0_index, params.search_space0_index};
+      params.dl_carrier.band, params.scs_common, *params.scs_ssb, *params.coreset0_index, params.ss0_index};
 }
 
 search_space_configuration

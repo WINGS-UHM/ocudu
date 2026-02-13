@@ -41,12 +41,12 @@ public:
   const std::optional<tdd_ul_dl_config_common> tdd_cfg_common;
 
   /// Imported from mac_cell_configuration.
-  carrier_configuration   dl_carrier;
-  const ssb_configuration ssb_cfg;
-  dmrs_typeA_position     dmrs_typeA_pos;
-  carrier_configuration   ul_carrier;
-  const uint8_t           coreset0;
-  const uint8_t           searchspace0;
+  carrier_configuration     dl_carrier;
+  const ssb_configuration   ssb_cfg;
+  dmrs_typeA_position       dmrs_typeA_pos;
+  carrier_configuration     ul_carrier;
+  const uint8_t             coreset0;
+  const search_space0_index searchspace0;
 
   /// BWP config resources used when UEs have no dedicated config.
   sched_bwp_config init_bwp_res;

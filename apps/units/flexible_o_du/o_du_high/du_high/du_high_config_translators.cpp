@@ -371,13 +371,13 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     param.dl_carrier.arfcn_f_ref                   = base_cell.dl_f_ref_arfcn;
     param.dl_carrier.band                          = band;
     // Enable CSI-RS if the PDSCH mcs is dynamic (min_ue_mcs != max_ue_mcs).
-    param.csi_rs_enabled      = base_cell.csi_cfg.csi_rs_enabled;
-    param.dl_carrier.nof_ant  = base_cell.nof_antennas_dl;
-    param.max_nof_layers      = base_cell.pdsch_cfg.max_rank;
-    param.search_space0_index = base_cell.pdcch_cfg.common.ss0_index;
-    param.min_k1              = base_cell.pucch_cfg.min_k1;
-    param.min_k2              = base_cell.pusch_cfg.min_k2;
-    param.coreset0_index      = base_cell.pdcch_cfg.common.coreset0_index;
+    param.csi_rs_enabled     = base_cell.csi_cfg.csi_rs_enabled;
+    param.dl_carrier.nof_ant = base_cell.nof_antennas_dl;
+    param.max_nof_layers     = base_cell.pdsch_cfg.max_rank;
+    param.ss0_index          = base_cell.pdcch_cfg.common.ss0_index;
+    param.min_k1             = base_cell.pucch_cfg.min_k1;
+    param.min_k2             = base_cell.pusch_cfg.min_k2;
+    param.coreset0_index     = base_cell.pdcch_cfg.common.coreset0_index;
     // If the CORESET#0 maximum duration is not set, set maximum CORESET#0 duration to 1 OFDM symbol for BW > 50MHz in
     // FR1 to spread CORESET RBs across the BW. This results in one extra symbol to be used for PDSCH.
     if (base_cell.pdcch_cfg.common.max_coreset0_duration.has_value()) {
@@ -395,7 +395,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
                                                                     nof_crbs,
                                                                     base_cell.common_scs,
                                                                     base_cell.common_scs,
-                                                                    param.search_space0_index,
+                                                                    param.ss0_index,
                                                                     base_cell.pdcch_cfg.common.coreset0_index.value());
     } else {
       ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(base_cell.dl_f_ref_arfcn,
@@ -403,7 +403,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
                                                                  nof_crbs,
                                                                  base_cell.common_scs,
                                                                  base_cell.common_scs,
-                                                                 param.search_space0_index,
+                                                                 param.ss0_index,
                                                                  param.max_coreset0_duration);
     }
 
@@ -426,11 +426,11 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     odu::du_cell_config& out_cell = out_cfg.back();
 
     // Set the rest of the parameters.
-    out_cell.nr_cgi.plmn_id   = plmn_identity::parse(base_cell.plmn).value();
-    out_cell.nr_cgi.nci       = nr_cell_identity::create(config.gnb_id, base_cell.sector_id.value()).value();
-    out_cell.tac              = base_cell.tac;
-    out_cell.searchspace0_idx = param.search_space0_index;
-    out_cell.enabled          = base_cell.enabled;
+    out_cell.nr_cgi.plmn_id = plmn_identity::parse(base_cell.plmn).value();
+    out_cell.nr_cgi.nci     = nr_cell_identity::create(config.gnb_id, base_cell.sector_id.value()).value();
+    out_cell.tac            = base_cell.tac;
+    out_cell.ss0_idx        = param.ss0_index;
+    out_cell.enabled        = base_cell.enabled;
 
     // Cell selection parameters.
     out_cell.cell_sel_info.q_rx_lev_min = base_cell.q_rx_lev_min;

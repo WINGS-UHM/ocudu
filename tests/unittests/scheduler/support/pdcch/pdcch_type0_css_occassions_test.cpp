@@ -26,17 +26,8 @@ TEST_P(pdcch_type0_css_occasions_fixture, fr1)
 
   pdcch_type0_css_occasion_pattern1_configuration config;
   config.is_fr2           = false;
-  config.ss_zero_index    = ss0_index;
+  config.ss0_index        = ss0_index;
   config.nof_symb_coreset = nof_symb_coreset;
-
-  if (ss0_index > 15) {
-#if ASSERTS_ENABLED
-    ASSERT_DEATH(
-        { pdcch_type0_css_occasions_get_pattern1(config); },
-        R"(SearchSpaceZero \([0-9]{1,}\) must be \[0\.\.15\] for FR1.)");
-#endif // ASSERTS_ENABLED
-    return;
-  }
 
   pdcch_type0_css_occasion_pattern1_description occasion = pdcch_type0_css_occasions_get_pattern1(config);
 
@@ -82,7 +73,7 @@ TEST_P(pdcch_type0_css_occasions_fixture, fr2)
 
   pdcch_type0_css_occasion_pattern1_configuration config;
   config.is_fr2           = true;
-  config.ss_zero_index    = ss0_index;
+  config.ss0_index        = ss0_index;
   config.nof_symb_coreset = nof_symb_coreset;
 
   if (ss0_index > 13) {
@@ -131,4 +122,4 @@ TEST_P(pdcch_type0_css_occasions_fixture, fr2)
 
 INSTANTIATE_TEST_SUITE_P(pdcch_type0_css_occasions,
                          pdcch_type0_css_occasions_fixture,
-                         ::testing::Combine(::testing::Range(0U, 17U), ::testing::Range(1U, 3U)));
+                         ::testing::Combine(::testing::Range(0U, 15U), ::testing::Range(1U, 3U)));

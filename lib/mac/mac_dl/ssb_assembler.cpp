@@ -18,7 +18,7 @@ using namespace ocudu;
 ssb_assembler::ssb_assembler(const mac_cell_creation_request& cell_cfg) :
   pci(cell_cfg.pci),
   ssb_cfg(cell_cfg.ssb_cfg),
-  pdcch_config_sib1((cell_cfg.sched_req.coreset0 << 4U) + cell_cfg.sched_req.searchspace0),
+  pdcch_config_sib1((cell_cfg.sched_req.coreset0 << 4U) + cell_cfg.sched_req.searchspace0.value()),
   dmrs_typeA_pos(cell_cfg.sched_req.dmrs_typeA_pos),
   cell_barred(cell_cfg.cell_barred),
   intra_f_resel(cell_cfg.intra_freq_resel),

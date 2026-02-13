@@ -13,7 +13,7 @@
 
 using namespace ocudu;
 
-slot_point ocudu::precompute_type0_pdcch_css_n0(uint8_t                   searchspace0,
+slot_point ocudu::precompute_type0_pdcch_css_n0(search_space0_index       searchspace0,
                                                 uint8_t                   coreset0,
                                                 const cell_configuration& cell_cfg,
                                                 subcarrier_spacing        scs_common,
@@ -36,7 +36,7 @@ slot_point ocudu::precompute_type0_pdcch_css_n0(uint8_t                   search
 
   const pdcch_type0_css_occasion_pattern1_description ss0_config_occasion_param =
       pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
-          .is_fr2 = is_fr2, .ss_zero_index = searchspace0, .nof_symb_coreset = nof_symb_coreset0});
+          .is_fr2 = is_fr2, .ss0_index = searchspace0, .nof_symb_coreset = nof_symb_coreset0});
 
   const auto pdcch_slot = get_type0_pdcch_css_n0(
       static_cast<unsigned>(ss0_config_occasion_param.offset), ss0_config_occasion_param.M, scs_common, ssb_index);
@@ -46,7 +46,7 @@ slot_point ocudu::precompute_type0_pdcch_css_n0(uint8_t                   search
   return pdcch_slot;
 }
 
-slot_point ocudu::precompute_type0_pdcch_css_n0_plus_1(uint8_t                   searchspace0,
+slot_point ocudu::precompute_type0_pdcch_css_n0_plus_1(search_space0_index       searchspace0,
                                                        uint8_t                   coreset0,
                                                        const cell_configuration& cell_cfg,
                                                        subcarrier_spacing        scs_common,

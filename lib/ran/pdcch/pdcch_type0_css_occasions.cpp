@@ -56,16 +56,16 @@ pdcch_type0_css_occasion_pattern1_description
 ocudu::pdcch_type0_css_occasions_get_pattern1(const pdcch_type0_css_occasion_pattern1_configuration& config)
 {
   interval<unsigned, true> ss_zero_index_range(0, config.is_fr2 ? 13 : 15);
-  ocudu_assert(ss_zero_index_range.contains(config.ss_zero_index),
+  ocudu_assert(ss_zero_index_range.contains(config.ss0_index.value()),
                "SearchSpaceZero ({}) must be {} for {}.",
-               config.ss_zero_index,
+               config.ss0_index,
                ss_zero_index_range,
                config.is_fr2 ? "FR2" : "FR1");
 
   // Select occasion from the tables.
-  pdcch_type0_css_occasion_pattern1_description occasion = TABLE_FR1[config.ss_zero_index];
+  pdcch_type0_css_occasion_pattern1_description occasion = TABLE_FR1[config.ss0_index.value()];
   if (config.is_fr2) {
-    occasion = TABLE_FR2[config.ss_zero_index];
+    occasion = TABLE_FR2[config.ss0_index.value()];
   }
 
   // Substitute the start symbol with the CORESET number of symbols.

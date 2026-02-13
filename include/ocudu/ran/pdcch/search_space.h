@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/adt/bounded_integer.h"
 #include "ocudu/ran/frame_types.h"
 #include "ocudu/ran/nr_band.h"
 #include "ocudu/ran/pdcch/coreset.h"
@@ -31,6 +32,9 @@ constexpr search_space_id to_search_space_id(unsigned ss_id)
 {
   return static_cast<search_space_id>(ss_id);
 }
+
+/// SearchSpace#0 index of Table 13-{11, ..., 15}, TS 38.213.
+using search_space0_index = bounded_integer<uint8_t, 0, 15>;
 
 /// Search Space Set Type as per TS38.213, Section 10.1.
 enum class search_space_set_type : uint8_t { type0, type0A, type1, type2, type3, ue_specific };
@@ -70,11 +74,16 @@ struct search_space_configuration {
   enum class ue_specific_dci_format : uint8_t { f0_0_and_f1_0, f0_1_and_1_1 };
 
   /// Constructor for SearchSpace#0.
-  explicit search_space_configuration(nr_band            band,
-                                      subcarrier_spacing common_scs,
-                                      subcarrier_spacing ssb_scs,
-                                      unsigned           coreset0_index,
-                                      unsigned           search_space0_index);
+  /// \param[in] band NR band.
+  /// \param[in] common_scs common subcarrier spacing.
+  /// \param[in] ssb_scs SSB subcarrier spacing.
+  /// \param[in] coreset0_index CORESET#0 index of Table 13-{1, ..., 10}, TS 38.213.
+  /// \param[in] ss0_index SearchSpace#0 index of Table 13-{11, ..., 15}, TS 38.213.
+  explicit search_space_configuration(nr_band             band,
+                                      subcarrier_spacing  common_scs,
+                                      subcarrier_spacing  ssb_scs,
+                                      unsigned            coreset0_index,
+                                      search_space0_index ss0_index);
 
   /// Constructor for non-SearchSpace#0 SearchSpaces.
   explicit search_space_configuration(search_space_id                                         id_,

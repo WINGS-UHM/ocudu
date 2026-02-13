@@ -191,7 +191,7 @@ struct sib_test_bench {
     cell_cfg.scs_common            = init_bwp_scs;
     cell_cfg.dl_carrier.carrier_bw = static_cast<bs_channel_bandwidth>(carrier_bw_mhz);
     cell_cfg.coreset0_index        = (pdcch_config_sib1 >> 4U) & 0b00001111U;
-    cell_cfg.search_space0_index   = pdcch_config_sib1 & 0b00001111U;
+    cell_cfg.ss0_index             = pdcch_config_sib1 & 0b00001111U;
 
     sched_cell_configuration_request_message msg =
         sched_config_helper::make_default_sched_cell_configuration_request(cell_cfg);

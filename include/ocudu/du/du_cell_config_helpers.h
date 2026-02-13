@@ -54,13 +54,11 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
   cfg.dl_carrier              = make_default_dl_carrier_configuration(params);
   cfg.ul_carrier              = make_default_ul_carrier_configuration(params);
   cfg.coreset0_idx            = *params.coreset0_index;
-  cfg.searchspace0_idx        = params.search_space0_index;
+  cfg.ss0_idx                 = params.ss0_index;
   cfg.dl_cfg_common           = make_default_dl_config_common(params);
   cfg.ul_cfg_common           = make_default_ul_config_common(params);
   cfg.scs_common              = params.scs_common;
   cfg.ssb_cfg                 = make_default_ssb_config(params);
-  cfg.cell_barred             = false;
-  cfg.intra_freq_resel        = false;
   cfg.ue_timers_and_constants = make_default_ue_timers_and_constants_config();
   cfg.tdd_ul_dl_cfg_common    = params.tdd_ul_dl_cfg_common;
   // The CORESET duration of 3 symbols is only permitted if dmrs-typeA-Position is set to 3. Refer TS 38.211, 7.3.2.2.

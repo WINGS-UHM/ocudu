@@ -66,7 +66,7 @@ struct sched_cell_configuration_request_message {
   /// This corresponds to controlResourceSetZero as per PDCCH-ConfigSIB1, TS 38.331.
   uint8_t coreset0;
   /// This corresponds to searchSpaceZero as per PDCCH-ConfigSIB1, TS 38.331.
-  uint8_t searchspace0;
+  search_space0_index searchspace0;
 
   /// Payload size is in bytes.
   units::bytes sib1_payload_size;

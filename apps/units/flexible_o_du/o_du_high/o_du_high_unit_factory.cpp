@@ -65,7 +65,7 @@ void ocudu::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
         cell.ssb_cfg.k_ssb.value(),
         cell.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
         cell.coreset0_idx,
-        cell.searchspace0_idx);
+        cell.ss0_idx);
   }
 
   fmt::print("\n");

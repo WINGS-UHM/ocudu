@@ -48,10 +48,9 @@ byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
                                              ? mib_s::dmrs_type_a_position_opts::pos2
                                              : mib_s::dmrs_type_a_position_opts::pos3;
   mib.pdcch_cfg_sib1.coreset_zero      = du_cfg.coreset0_idx;
-  mib.pdcch_cfg_sib1.search_space_zero = du_cfg.searchspace0_idx;
-  mib.cell_barred.value = du_cfg.cell_barred ? mib_s::cell_barred_opts::barred : mib_s::cell_barred_opts::not_barred;
-  mib.intra_freq_resel.value =
-      du_cfg.intra_freq_resel ? mib_s::intra_freq_resel_opts::allowed : mib_s::intra_freq_resel_opts::not_allowed;
+  mib.pdcch_cfg_sib1.search_space_zero = du_cfg.ss0_idx.value();
+  mib.cell_barred.value                = mib_s::cell_barred_opts::not_barred;
+  mib.intra_freq_resel.value           = mib_s::intra_freq_resel_opts::not_allowed;
 
   byte_buffer         buf;
   asn1::bit_ref       bref{buf};

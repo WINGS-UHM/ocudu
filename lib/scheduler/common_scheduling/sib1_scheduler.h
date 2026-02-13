@@ -70,8 +70,8 @@ private:
   pdcch_resource_allocator&         pdcch_sched;
 
   /// Parameters for SIB1 scheduling.
-  uint8_t coreset0;
-  uint8_t searchspace0;
+  uint8_t             coreset0;
+  search_space0_index searchspace0;
   /// This is a derived parameters, that depends on the SSB periodicity, SIB1 periodicity and SIB1 re-tx periodicity.
   std::chrono::milliseconds sib1_rtx_period;
   /// The SIB1 payload is in bytes.

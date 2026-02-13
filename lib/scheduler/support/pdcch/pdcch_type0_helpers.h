@@ -28,7 +28,7 @@ namespace ocudu {
 /// \param[in] scs_common SCS corresponding to subCarrierSpacingCommon, which must coincide with SCS if initial DL BWP.
 /// \param[in] ssb_index SSB Beam index.
 /// \return Returns slot n0 where UE should monitor Type0-PDCCH CSS.
-slot_point precompute_type0_pdcch_css_n0(uint8_t                   searchspace0,
+slot_point precompute_type0_pdcch_css_n0(search_space0_index       searchspace0,
                                          uint8_t                   coreset0,
                                          const cell_configuration& cell_cfg,
                                          subcarrier_spacing        scs_common,
@@ -42,7 +42,7 @@ slot_point precompute_type0_pdcch_css_n0(uint8_t                   searchspace0,
 /// \param[in] scs_common SCS corresponding to subCarrierSpacingCommon, which must coincide with SCS if initial DL BWP.
 /// \param[in] ssb_index SSB Beam index.
 /// \return Returns slot n0 + 1 where UE should monitor Type0-PDCCH CSS.
-slot_point precompute_type0_pdcch_css_n0_plus_1(uint8_t                   searchspace0,
+slot_point precompute_type0_pdcch_css_n0_plus_1(search_space0_index       searchspace0,
                                                 uint8_t                   coreset0,
                                                 const cell_configuration& cell_cfg,
                                                 subcarrier_spacing        scs_common,

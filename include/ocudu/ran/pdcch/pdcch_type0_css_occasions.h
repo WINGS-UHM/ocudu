@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
+#include "ocudu/ran/pdcch/search_space.h"
 #include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
@@ -20,7 +21,7 @@ struct pdcch_type0_css_occasion_pattern1_configuration {
   /// Set to true for FR2, otherwise it uses FR1.
   bool is_fr2;
   /// Higher layer parameter \c searchSpaceZero as per TS38.331 PDCCH-ConfigSIB1.
-  uint8_t ss_zero_index;
+  search_space0_index ss0_index;
   /// Number of symbols of the CORESET, \f$N_{symb}^{CORESET}\f$.
   unsigned nof_symb_coreset;
 };

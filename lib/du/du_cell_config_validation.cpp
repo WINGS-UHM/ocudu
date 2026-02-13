@@ -92,7 +92,7 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
   // starting from the symbol index 0.
   if (cell_cfg.scs_common == subcarrier_spacing::kHz15 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz15) {
     // As per TS38.213, Table 13-11.
-    CHECK_EQ_OR_BELOW(cell_cfg.searchspace0_idx, 9, "SearchSpaceZero index table");
+    CHECK_EQ_OR_BELOW(cell_cfg.ss0_idx, 9, "SearchSpaceZero index table");
   }
 
   return {};
@@ -555,8 +555,8 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
   CHECK_TRUE(coreset0.has_value(), "CORESET#0 not configured");
 
   const pdcch_type0_css_occasion_pattern1_description& ss0_occasion = pdcch_type0_css_occasions_get_pattern1(
-      pdcch_type0_css_occasion_pattern1_configuration{.is_fr2        = false,
-                                                      .ss_zero_index = static_cast<uint8_t>(cell_cfg.searchspace0_idx),
+      pdcch_type0_css_occasion_pattern1_configuration{.is_fr2           = false,
+                                                      .ss0_index        = static_cast<uint8_t>(cell_cfg.ss0_idx),
                                                       .nof_symb_coreset = coreset0->duration});
 
   const auto& tdd_cfg = cell_cfg.tdd_ul_dl_cfg_common.value();

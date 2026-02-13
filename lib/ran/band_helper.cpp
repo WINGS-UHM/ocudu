@@ -1328,13 +1328,13 @@ static interval<unsigned> get_ssb_crbs(subcarrier_spacing    scs_common,
 }
 
 std::optional<ssb_coreset0_freq_location>
-ocudu::band_helper::get_ssb_coreset0_freq_location(arfcn_t            dl_arfcn,
-                                                   nr_band            band,
-                                                   unsigned           n_rbs,
-                                                   subcarrier_spacing scs_common,
-                                                   subcarrier_spacing scs_ssb,
-                                                   uint8_t            ss0_idx,
-                                                   uint8_t            max_coreset0_duration)
+ocudu::band_helper::get_ssb_coreset0_freq_location(arfcn_t             dl_arfcn,
+                                                   nr_band             band,
+                                                   unsigned            n_rbs,
+                                                   subcarrier_spacing  scs_common,
+                                                   subcarrier_spacing  scs_ssb,
+                                                   search_space0_index ss0_idx,
+                                                   uint8_t             max_coreset0_duration)
 {
   std::optional<ssb_coreset0_freq_location> result;
 
@@ -1391,13 +1391,13 @@ ocudu::band_helper::get_ssb_coreset0_freq_location(arfcn_t            dl_arfcn,
 }
 
 std::optional<ssb_coreset0_freq_location>
-ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(arfcn_t            dl_arfcn,
-                                                                 nr_band            band,
-                                                                 unsigned           n_rbs,
-                                                                 subcarrier_spacing scs_common,
-                                                                 subcarrier_spacing scs_ssb,
-                                                                 uint8_t            ss0_idx,
-                                                                 unsigned           cset0_idx)
+ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(arfcn_t             dl_arfcn,
+                                                                 nr_band             band,
+                                                                 unsigned            n_rbs,
+                                                                 subcarrier_spacing  scs_common,
+                                                                 subcarrier_spacing  scs_ssb,
+                                                                 search_space0_index ss0_idx,
+                                                                 unsigned            cset0_idx)
 {
   ocudu_assert(scs_ssb < subcarrier_spacing::kHz60,
                "Only 15kHz and 30kHz currently supported for SSB subcarrier spacing");
@@ -1431,7 +1431,7 @@ ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(arfcn_t        
 
     const pdcch_type0_css_occasion_pattern1_description ss0_config =
         pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
-            .is_fr2 = false, .ss_zero_index = ss0_idx, .nof_symb_coreset = coreset0_cfg.nof_symb_coreset});
+            .is_fr2 = false, .ss0_index = ss0_idx, .nof_symb_coreset = coreset0_cfg.nof_symb_coreset});
 
     // CORESET#0 offset must be between pointA and max CRB.
     const bool coreset0_not_below_pointA = crbs_ssb >= static_cast<unsigned>(coreset0_cfg.offset);
@@ -1474,7 +1474,7 @@ std::optional<unsigned> ocudu::band_helper::get_coreset0_index(nr_band          
                                                                ssb_offset_to_pointA    offset_to_point_A,
                                                                ssb_subcarrier_offset   k_ssb,
                                                                uint8_t                 ssb_first_symbol,
-                                                               uint8_t                 ss0_idx,
+                                                               search_space0_index     ss0_idx,
                                                                std::optional<unsigned> nof_coreset0_symb)
 {
   // Determine the frequency range.
@@ -1502,7 +1502,7 @@ std::optional<unsigned> ocudu::band_helper::get_coreset0_index(nr_band          
 
     const pdcch_type0_css_occasion_pattern1_description ss0_config =
         pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
-            .is_fr2 = is_fr2, .ss_zero_index = ss0_idx, .nof_symb_coreset = coreset0_cfg.nof_symb_coreset});
+            .is_fr2 = is_fr2, .ss0_index = ss0_idx, .nof_symb_coreset = coreset0_cfg.nof_symb_coreset});
 
     // Check if the number of symbols of the CORESET#0 is the one we are searching for.
     const bool coreset0_nof_symb_valid =

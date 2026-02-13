@@ -21,7 +21,6 @@
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include "ocudu/scheduler/config/bwp_builder_params.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
-#include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/slice_rrm_policy_config.h"
 
 namespace ocudu {
@@ -57,14 +56,8 @@ struct du_cell_config {
   /// CORESET#0 index of Table 13-{1, ..., 10}, TS 38.213.
   unsigned coreset0_idx;
 
-  /// SearcSpace#0 index of Table 13-{11, ..., 15}, TS 38.213.
-  unsigned searchspace0_idx;
-
-  /// Parameters used to pack MIB.
-  /// "cellBarred" as per MIB, TS 38.331. true = barred; false = notBarred.
-  bool cell_barred;
-  /// "intraFreqReselection" as per MIB, TS 38.331. true = allowed; false = notAllowed.
-  bool intra_freq_resel;
+  /// SearchSpace#0 index of Table 13-{11, ..., 15}, TS 38.213.
+  search_space0_index ss0_idx;
 
   /// \c cellSelectionInfo, \c SIB1, as per TS 38.331.
   cell_selection_info cell_sel_info;

@@ -79,7 +79,7 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   }
 
   sched_req.coreset0     = du_cfg.coreset0_idx;
-  sched_req.searchspace0 = du_cfg.searchspace0_idx;
+  sched_req.searchspace0 = du_cfg.ss0_idx;
 
   // Convert SIB1 and SI message info scheduling config.
   sched_req.sib1_payload_size = sib1_len;

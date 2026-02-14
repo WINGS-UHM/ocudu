@@ -542,29 +542,32 @@ endif (SCTP_FOUND)
 ########################################################################
 # Instruction Set Architecture setup
 ########################################################################
-set(MTUNE "generic" CACHE STRING "Compiler -mtune flag. Default value is 'generic'")
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
-    set(MARCH "armv8-a" CACHE STRING "Compiler -march flag. Default value is 'armv8-a' for aarch64.")
-    message(STATUS "Detected aarch64 processor")
+    set(MCPU "native" CACHE STRING "Compiler -mcpu flag. Default value is 'native' for aarch64.")
+
+    message(STATUS "Detected aarch64 processor, using -mcpu instead of -march")
+    message(STATUS "CPU value is ${MCPU}")
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=${MCPU}")
 else (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+    set(MTUNE "generic" CACHE STRING "Compiler -mtune flag. Default value is 'generic'")
     set(MARCH "native" CACHE STRING "Compiler -march flag. Default value is 'native' for x86-64.")
+
+    message(STATUS "TUNE value is ${MTUNE}")
+    message(STATUS "ARCH value is ${MARCH}")
+
+    add_cxx_compiler_flag_if_available("-march=${MARCH}" HAVE_MARCH)
+    if (NOT HAVE_MARCH)
+        message(SEND_ERROR "The compiler does not support -march=${MARCH}, try setting a different value.")
+    endif (NOT HAVE_MARCH)
+
+    add_cxx_compiler_flag_if_available("-mtune=${MTUNE}" HAVE_MTUNE)
+    if (NOT HAVE_MTUNE)
+        message(SEND_ERROR "The compiler does not support -mtune=${MTUNE}, try setting a different value.")
+    endif (NOT HAVE_MTUNE)
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${MARCH} -mtune=${MTUNE}")
 endif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
-
-add_cxx_compiler_flag_if_available("-march=${MARCH}" HAVE_MARCH)
-if (NOT HAVE_MARCH)
-    message(SEND_ERROR "The compiler does not support -march=${MARCH}, try setting a different value.")
-endif (NOT HAVE_MARCH)
-
-add_cxx_compiler_flag_if_available("-mtune=${MTUNE}" HAVE_MTUNE)
-if (NOT HAVE_MTUNE)
-    message(SEND_ERROR "The compiler does not support -mtune=${MTUNE}, try setting a different value.")
-endif (NOT HAVE_MTUNE)
-
-message(STATUS "ARCH value is ${MARCH}")
-message(STATUS "TUNE value is ${MTUNE}")
-
-# Append march and mtune to the compilation flags.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${MARCH} -mtune=${MTUNE}")
 
 ########################################################################
 # Compiler launcher setup

@@ -32,13 +32,12 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
             printf(\"Result: 0x%016lx\", vgetq_lane_u64(result, 0));
             return 0;
         }")
-    set(CMAKE_REQUIRED_FLAGS "-march=${MARCH}")
     check_cxx_source_compiles("${CHECK_ARM_CRYPTO_CODE}" HAVE_ARM_CRYPTO)
 
     # If the compiler does not support the crypto features with the default compiler flags, try to append +crypto.
     if (NOT HAVE_ARM_CRYPTO)
         # Append +crypto to the required flags.
-        set(CMAKE_REQUIRED_FLAGS "-march=${MARCH}+crypto")
+        set(CMAKE_REQUIRED_FLAGS "-mcpu=${MCPU}+crypto")
         check_cxx_source_compiles("${CHECK_ARM_CRYPTO_CODE}" HAVE_PLUS_CRYPTO)
 
         # Print a fatal error if the +crypto appending is not supported.

@@ -48,11 +48,11 @@ constexpr coreset_id to_coreset_id(unsigned cs_id)
 struct coreset_configuration {
   struct interleaved_mapping_type {
     /// Values: (2, 3, 6).
-    unsigned reg_bundle_sz;
+    uint8_t reg_bundle_sz;
     /// Values: (2, 3, 6).
-    unsigned interleaver_sz;
+    uint8_t interleaver_sz;
     /// Values: (0..MAX_NOF_PRBS-1).
-    unsigned shift_index;
+    uint16_t shift_index;
 
     bool operator==(const interleaved_mapping_type& rhs) const
     {
@@ -86,13 +86,13 @@ struct coreset_configuration {
   coreset_id get_id() const { return id; }
 
   /// \brief Returns CORESET#0 table index, if this configuration corresponds to CORESET#0.
-  const std::optional<coreset0_index>& get_coreset0_index() const { return coreset0_table_index; }
+  const std::optional<coreset0_index>& get_coreset0_index() const { return coreset0_idx; }
 
   /// \brief Returns CORESET duration in number of symbols.
-  unsigned get_duration() const { return duration; }
+  unsigned duration() const { return dur; }
 
-  /// \brief Returns interleaving configuration.
-  const std::optional<interleaved_mapping_type>& get_interleaved() const { return interleaved; }
+  /// \brief Returns interleaving configuration, if enabled.
+  const std::optional<interleaved_mapping_type>& interleaved_mapping() const { return interleaved; }
 
   /// \brief Returns precoder granularity.
   precoder_granularity_type get_precoder_granularity() const { return precoder_granurality; }
@@ -105,7 +105,7 @@ struct coreset_configuration {
   {
     ocudu_assert(id != to_coreset_id(0), "Invalid access to CORESET#0 duration");
     ocudu_assert(duration_ <= pdcch_constants::MAX_CORESET_DURATION, "Invalid CORESET duratioN");
-    duration = duration_;
+    dur = duration_;
   }
 
   /// \brief Sets interleaving parameters for non-CORESET#0.
@@ -149,8 +149,8 @@ struct coreset_configuration {
 
   bool operator==(const coreset_configuration& rhs) const
   {
-    if (std::tie(id, duration, interleaved, precoder_granurality, pdcch_dmrs_scrambling_id) !=
-        std::tie(rhs.id, rhs.duration, rhs.interleaved, rhs.precoder_granurality, rhs.pdcch_dmrs_scrambling_id)) {
+    if (std::tie(id, dur, interleaved, precoder_granurality, pdcch_dmrs_scrambling_id) !=
+        std::tie(rhs.id, rhs.dur, rhs.interleaved, rhs.precoder_granurality, rhs.pdcch_dmrs_scrambling_id)) {
       return false;
     }
     if (id == to_coreset_id(0)) {
@@ -168,7 +168,7 @@ struct coreset_configuration {
                            ? coreset0_rbs.length()
                            : (other_coreset_freq_resources.count() * pdcch_constants::NOF_RB_PER_FREQ_RESOURCE);
     // A CCE corresponds to 6 REGs, where a REG is 1 RB x 1 symbol.
-    return (nof_rbs * duration) / pdcch_constants::NOF_REG_PER_CCE;
+    return (nof_rbs * dur) / pdcch_constants::NOF_REG_PER_CCE;
   }
 
   /// Computes the lowest RB used by the CORESET.
@@ -183,17 +183,17 @@ struct coreset_configuration {
   }
 
 private:
-  coreset_id id = to_coreset_id(0);
+  coreset_id id = to_coreset_id(1);
   /// Duration in number of symbols. Values: (1..maxCORESETDuration).
-  uint8_t                                 duration = 0;
+  uint8_t                                 dur = 0;
   std::optional<interleaved_mapping_type> interleaved;
   precoder_granularity_type               precoder_granurality = precoder_granularity_type::same_as_reg_bundle;
   /// PDCCH DMRS scrambling initialization. Values: (0..65535).
   std::optional<unsigned> pdcch_dmrs_scrambling_id;
 
   crb_interval                  coreset0_rbs;
+  std::optional<coreset0_index> coreset0_idx;
   freq_resource_bitmap          other_coreset_freq_resources;
-  std::optional<coreset0_index> coreset0_table_index;
 };
 
 } // namespace ocudu

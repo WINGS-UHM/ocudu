@@ -100,7 +100,7 @@ ocudu::config_helpers::make_default_coreset_config(const cell_config_builder_par
 
   // Number of symbols equal to CORESET#0 duration.
   const pdcch_type0_css_coreset_description desc = pdcch_type0_css_coreset_get(
-      params.dl_carrier.band, *params.scs_ssb, params.scs_common, *params.coreset0_index, params.k_ssb->value());
+      params.dl_carrier.band, *params.scs_ssb, params.scs_common, params.cs0_index->value(), params.k_ssb->value());
 
   return coreset_configuration{cs_id,
                                freq_resources,
@@ -116,7 +116,7 @@ coreset_configuration config_helpers::make_default_coreset0_config(const cell_co
   return coreset_configuration{params.dl_carrier.band,
                                *params.scs_ssb,
                                params.scs_common,
-                               coreset0_index{static_cast<uint8_t>(*params.coreset0_index)},
+                               *params.cs0_index,
                                *params.k_ssb,
                                *params.offset_to_point_a,
                                params.pci};
@@ -126,7 +126,7 @@ search_space_configuration
 ocudu::config_helpers::make_default_search_space_zero_config(const cell_config_builder_params_extended& params)
 {
   return search_space_configuration{
-      params.dl_carrier.band, params.scs_common, *params.scs_ssb, *params.coreset0_index, params.ss0_index};
+      params.dl_carrier.band, params.scs_common, *params.scs_ssb, *params.cs0_index, params.ss0_index};
 }
 
 search_space_configuration
@@ -671,7 +671,7 @@ uint8_t ocudu::config_helpers::compute_max_nof_candidates(aggregation_level     
   // 1 REG = 1 RB and 1 symbol.
   // 1 CCE = 6 {PRB, symbol}. e.g. 3 PRBs over 2 symbols or 6 PRBs over 1 symbol, etc.
   // Example: 3 Frequency domain resources, 2 symbol duration contains 6 CCEs.
-  const unsigned max_coreset_cces   = cs_cfg.freq_domain_resources().count() * cs_cfg.get_duration();
+  const unsigned max_coreset_cces   = cs_cfg.freq_domain_resources().count() * cs_cfg.duration();
   unsigned       max_nof_candidates = max_coreset_cces / to_nof_cces(aggr_lvl);
   // See TS 38.331, SearchSpace IE.
   // aggregationLevelX - ENUMERATED {n0, n1, n2, n3, n4, n5, n6, n8}.

@@ -54,9 +54,9 @@ TEST(dl_pdcch_pdu_builder, valid_coreset_0_parameters_passes)
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
 
-  unsigned                                        reg_size         = 3;
-  unsigned                                        interleaver_size = 3;
-  unsigned                                        shift_index      = 100;
+  uint8_t                                         reg_size         = 3;
+  uint8_t                                         interleaver_size = 3;
+  uint16_t                                        shift_index      = 100;
   coreset_configuration::interleaved_mapping_type interleaved      = {reg_size, interleaver_size, shift_index};
 
   freq_resource_bitmap freq_domain = {1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1,
@@ -74,9 +74,9 @@ TEST(dl_pdcch_pdu_builder, valid_interleaver_parameters_passes)
   dl_pdcch_pdu         pdu;
   dl_pdcch_pdu_builder builder(pdu);
 
-  unsigned                                        reg_size         = 3;
-  unsigned                                        interleaver_size = 3;
-  unsigned                                        shift_index      = 100;
+  uint8_t                                         reg_size         = 3;
+  uint8_t                                         interleaver_size = 3;
+  uint16_t                                        shift_index      = 100;
   coreset_configuration::interleaved_mapping_type interleaved      = {reg_size, interleaver_size, shift_index};
 
   freq_resource_bitmap freq_domain = {1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1,

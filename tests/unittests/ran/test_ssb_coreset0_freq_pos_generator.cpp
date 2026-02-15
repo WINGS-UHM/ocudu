@@ -408,7 +408,7 @@ TEST(ssb_freq_position_generation_test, band_46_bw_40mhz)
 namespace ssb_coreset0_gen {
 
 struct cset0_test_params {
-  std::optional<unsigned> expected_cset0_idx;
+  std::optional<coreset0_index> expected_cset0_idx;
 
   nr_band                 band;
   unsigned                n_rbs;
@@ -420,7 +420,7 @@ struct cset0_test_params {
   uint8_t                 ss0_idx;
   std::optional<unsigned> nof_coreset0_symb;
 
-  std::optional<unsigned> get_coreset0_index()
+  std::optional<coreset0_index> get_coreset0_index()
   {
     return band_helper::get_coreset0_index(
         band, n_rbs, scs_common, scs_ssb, offset_to_point_A, k_ssb, ssb_first_symbol, ss0_idx, nof_coreset0_symb);
@@ -478,8 +478,8 @@ class coreset0_index_generation_test : public ::testing::TestWithParam<cset0_tes
 
 TEST_P(coreset0_index_generation_test, coreset0_params_are_valid)
 {
-  cset0_test_params             params    = GetParam();
-  const std::optional<unsigned> cset0_idx = params.get_coreset0_index();
+  cset0_test_params                   params    = GetParam();
+  const std::optional<coreset0_index> cset0_idx = params.get_coreset0_index();
   ASSERT_EQ(params.expected_cset0_idx, cset0_idx);
 }
 

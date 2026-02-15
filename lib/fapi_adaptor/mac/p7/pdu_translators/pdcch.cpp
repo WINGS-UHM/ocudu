@@ -50,8 +50,7 @@ static void fill_coreset_parameters(fapi::dl_pdcch_pdu_builder&  builder,
                                     const coreset_configuration& coreset_cfg,
                                     unsigned                     start_symbol_index)
 {
-  builder.set_coreset_parameters(
-      start_symbol_index, coreset_cfg.get_duration(), coreset_cfg.get_precoder_granularity());
+  builder.set_coreset_parameters(start_symbol_index, coreset_cfg.duration(), coreset_cfg.get_precoder_granularity());
 }
 
 static void fill_precoding_and_beamforming(fapi::dl_dci_pdu_builder&      builder,
@@ -80,9 +79,10 @@ void ocudu::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu_builder& 
   fill_coreset_parameters(builder, coreset_cfg, context_information.starting_symbol);
 
   if (coreset_cfg.get_id() == to_coreset_id(0)) {
-    builder.set_coreset_0_parameters(*coreset_cfg.get_interleaved(), calculate_coreset0_freq_res_bitmap(coreset_cfg));
-  } else if (coreset_cfg.get_interleaved().has_value()) {
-    builder.set_interleaver_parameters(*coreset_cfg.get_interleaved(), coreset_cfg.freq_domain_resources());
+    builder.set_coreset_0_parameters(*coreset_cfg.interleaved_mapping(),
+                                     calculate_coreset0_freq_res_bitmap(coreset_cfg));
+  } else if (coreset_cfg.interleaved_mapping().has_value()) {
+    builder.set_interleaver_parameters(*coreset_cfg.interleaved_mapping(), coreset_cfg.freq_domain_resources());
   } else {
     builder.set_non_interleaver_parameters(coreset_cfg.freq_domain_resources());
   }

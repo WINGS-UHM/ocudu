@@ -78,13 +78,15 @@ TEST(fapi_to_phy_pdcch_conversion_test, valid_pdu_conversion_success)
 
                   if (id == to_coreset_id(0)) {
                     builder.set_coreset_0_parameters(
-                        coreset_configuration::interleaved_mapping_type{reg_bundle, interleaver_size, shift_index},
+                        coreset_configuration::interleaved_mapping_type{
+                            (uint8_t)reg_bundle, (uint8_t)interleaver_size, (uint16_t)shift_index},
                         freq_domain);
                   } else if (interleaved == 0U) {
                     builder.set_non_interleaver_parameters(freq_domain);
                   } else {
                     builder.set_interleaver_parameters(
-                        coreset_configuration::interleaved_mapping_type{reg_bundle, interleaver_size, shift_index},
+                        coreset_configuration::interleaved_mapping_type{
+                            (uint8_t)reg_bundle, (uint8_t)interleaver_size, (uint16_t)shift_index},
                         freq_domain);
                   }
 

@@ -14,6 +14,7 @@
 #include "ocudu/ran/carrier_configuration.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/pci.h"
+#include "ocudu/ran/pdcch/coreset.h"
 #include "ocudu/ran/ssb/ssb_configuration.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
@@ -48,7 +49,7 @@ struct mac_cell_creation_request {
   carrier_configuration dl_carrier;
   carrier_configuration ul_carrier;
   ssb_configuration     ssb_cfg;
-  uint8_t               coreset0_index;
+  coreset0_index        cs0_index;
   search_space0_index   ss0_index;
 
   /// Embedded scheduler cell configuration request.

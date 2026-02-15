@@ -36,14 +36,14 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
 
   // The CORESET duration of 3 symbols is only permitted if dmrs-typeA-Position is set to 3. Refer TS 38.211, 7.3.2.2.
   const pdcch_type0_css_coreset_description coreset0_desc = pdcch_type0_css_coreset_get(
-      params.dl_carrier.band, *params.scs_ssb, params.scs_common, *params.coreset0_index, params.k_ssb->value());
+      params.dl_carrier.band, *params.scs_ssb, params.scs_common, params.cs0_index->value(), params.k_ssb->value());
   sched_req.dmrs_typeA_pos =
       coreset0_desc.nof_symb_coreset == 3U ? dmrs_typeA_position::pos3 : dmrs_typeA_position::pos2;
 
   sched_req.nof_beams = 1;
 
   // SIB1 parameters.
-  sched_req.coreset0          = *params.coreset0_index;
+  sched_req.coreset0          = *params.cs0_index;
   sched_req.sib1_payload_size = units::bytes{101}; // Random size.
 
   // Generic dedicated UE config templates.

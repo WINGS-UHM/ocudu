@@ -82,7 +82,7 @@ struct search_space_configuration {
   explicit search_space_configuration(nr_band             band,
                                       subcarrier_spacing  common_scs,
                                       subcarrier_spacing  ssb_scs,
-                                      unsigned            coreset0_index,
+                                      coreset0_index      cset0_index,
                                       search_space0_index ss0_index_);
 
   /// Constructor for non-SearchSpace#0 SearchSpaces.

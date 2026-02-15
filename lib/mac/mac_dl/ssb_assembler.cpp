@@ -18,7 +18,7 @@ using namespace ocudu;
 ssb_assembler::ssb_assembler(const mac_cell_creation_request& cell_cfg) :
   pci(cell_cfg.pci),
   ssb_cfg(cell_cfg.ssb_cfg),
-  pdcch_config_sib1((cell_cfg.coreset0_index << 4U) + cell_cfg.ss0_index.value()),
+  pdcch_config_sib1((cell_cfg.cs0_index.value() << 4U) + cell_cfg.ss0_index.value()),
   dmrs_typeA_pos(cell_cfg.sched_req.dmrs_typeA_pos),
   ssb_case(band_helper::get_ssb_pattern(cell_cfg.dl_carrier.band, ssb_cfg.scs)),
   L_max(ssb_get_L_max(ssb_cfg.scs, cell_cfg.dl_carrier.arfcn_f_ref, cell_cfg.dl_carrier.band))

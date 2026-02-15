@@ -538,7 +538,7 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
 
   const pdcch_type0_css_occasion_pattern1_description& ss0_occasion =
       pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
-          .is_fr2 = false, .ss0_index = ss0_idx.value(), .nof_symb_coreset = coreset0->get_duration()});
+          .is_fr2 = false, .ss0_index = ss0_idx.value(), .nof_symb_coreset = coreset0->duration()});
 
   const auto& tdd_cfg = cell_cfg.tdd_ul_dl_cfg_common.value();
   CHECK_TRUE(
@@ -578,21 +578,21 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
     ss_start_symbol_idx = 0;
     if (coreset0.has_value()) {
       if (ss_cfg.get_id() == to_search_space_id(0) and ss_cfg.get_coreset_id() == coreset0->get_id()) {
-        cs_duration = coreset0->get_duration();
+        cs_duration = coreset0->duration();
         // Consider the starting index of last PDCCH monitoring occasion to account for all SSB beams.
         ss_start_symbol_idx = *std::max_element(ss0_occasion.start_symbol.begin(), ss0_occasion.start_symbol.end());
       } else if (ss_cfg.get_id() != to_search_space_id(0) and ss_cfg.get_coreset_id() == coreset0->get_id()) {
-        cs_duration         = coreset0->get_duration();
+        cs_duration         = coreset0->duration();
         ss_start_symbol_idx = ss_cfg.get_first_symbol_index();
       }
     }
     if (common_coreset.has_value()) {
       if (ss_cfg.get_id() == to_search_space_id(0) and ss_cfg.get_coreset_id() == common_coreset->get_id()) {
-        cs_duration = common_coreset->get_duration();
+        cs_duration = common_coreset->duration();
         // Consider the starting index of last PDCCH monitoring occasion to account for all SSB beams.
         ss_start_symbol_idx = *std::max_element(ss0_occasion.start_symbol.begin(), ss0_occasion.start_symbol.end());
       } else if (ss_cfg.get_id() != to_search_space_id(0) and ss_cfg.get_coreset_id() == common_coreset->get_id()) {
-        cs_duration         = common_coreset->get_duration();
+        cs_duration         = common_coreset->duration();
         ss_start_symbol_idx = ss_cfg.get_first_symbol_index();
       }
     }
@@ -639,19 +639,19 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
     ss_start_symbol_idx = ss_cfg.get_first_symbol_index();
     if (coreset0.has_value()) {
       if (ss_cfg.get_coreset_id() == coreset0->get_id()) {
-        cs_duration = coreset0->get_duration();
+        cs_duration = coreset0->duration();
       }
     }
     if ((not cs_duration.has_value()) and common_coreset.has_value()) {
       if (ss_cfg.get_coreset_id() == common_coreset->get_id()) {
-        cs_duration = common_coreset->get_duration();
+        cs_duration = common_coreset->duration();
       }
     }
 
     if (not cs_duration.has_value()) {
       for (const coreset_configuration& cs_cfg : ded_pdcch_cfg.coresets) {
         if (ss_cfg.get_coreset_id() == cs_cfg.get_id()) {
-          cs_duration = cs_cfg.get_duration();
+          cs_duration = cs_cfg.duration();
           break;
         }
       }

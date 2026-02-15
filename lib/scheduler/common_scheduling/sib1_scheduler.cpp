@@ -112,7 +112,7 @@ void sib1_scheduler::run_slot(cell_slot_resource_allocator& res_grid)
       const search_space_configuration& ss_cfg =
           cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common
               .search_spaces[cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id];
-      const unsigned coreset_duration        = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id()).get_duration();
+      const unsigned coreset_duration        = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id()).duration();
       const auto&    pdsch_td_res_alloc_list = get_si_rnti_pdsch_time_domain_list(
           cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.dmrs_typeA_pos);
       bool is_sib1_scheduled = false;

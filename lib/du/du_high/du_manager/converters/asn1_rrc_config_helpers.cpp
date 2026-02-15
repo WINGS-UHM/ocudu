@@ -216,13 +216,13 @@ asn1::rrc_nr::coreset_s ocudu::odu::make_asn1_rrc_coreset(const coreset_configur
   coreset_s cs;
   cs.coreset_id = cfg.get_id();
   cs.freq_domain_res.from_number(cfg.freq_domain_resources().to_uint64());
-  cs.dur = cfg.get_duration();
-  if (cfg.get_interleaved().has_value()) {
+  cs.dur = cfg.duration();
+  if (cfg.interleaved_mapping().has_value()) {
     auto& interv = cs.cce_reg_map_type.set_interleaved();
-    asn1::number_to_enum(interv.reg_bundle_size, cfg.get_interleaved()->reg_bundle_sz);
-    asn1::number_to_enum(interv.interleaver_size, cfg.get_interleaved()->interleaver_sz);
+    asn1::number_to_enum(interv.reg_bundle_size, cfg.interleaved_mapping()->reg_bundle_sz);
+    asn1::number_to_enum(interv.interleaver_size, cfg.interleaved_mapping()->interleaver_sz);
     interv.shift_idx_present = true;
-    interv.shift_idx         = cfg.get_interleaved()->shift_index;
+    interv.shift_idx         = cfg.interleaved_mapping()->shift_index;
   } else {
     cs.cce_reg_map_type.set_non_interleaved();
   }

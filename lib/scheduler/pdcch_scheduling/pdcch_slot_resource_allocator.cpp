@@ -93,7 +93,7 @@ bool pdcch_slot_allocator::cancel_last_pdcch(cell_slot_resource_allocator& slot_
   // Clear allocation on resource grid.
   const sched_coreset_config& cs_cfg   = *last_rec.cs_cfg;
   const crb_index_list_span pdcch_crbs = cs_cfg.candidate_crbs(dfs_tree.back().ncce, last_rec.pdcch_ctx->cces.aggr_lvl);
-  ofdm_symbol_range         symbols{0, (uint8_t)cs_cfg.cfg().get_duration()};
+  ofdm_symbol_range         symbols{0, (uint8_t)cs_cfg.cfg().duration()};
   slot_alloc.dl_res_grid.clear(last_rec.pdcch_ctx->bwp_cfg->scs, symbols, pdcch_crbs);
 
   dfs_tree.pop_back();
@@ -165,7 +165,7 @@ bool pdcch_slot_allocator::allocate_cce(cell_slot_resource_allocator& slot_alloc
   grant.scs = bwp_cfg.scs;
 
   // Check the current CCE position collides with an existing one.
-  ofdm_symbol_range symbols{0, (uint8_t)cs_cfg.get_duration()};
+  ofdm_symbol_range symbols{0, (uint8_t)cs_cfg.duration()};
   if (slot_alloc.dl_res_grid.collides(record.pdcch_ctx->bwp_cfg->scs, symbols, pdcch_crbs)) {
     // Collision detected. Try another CCE position.
     return false;

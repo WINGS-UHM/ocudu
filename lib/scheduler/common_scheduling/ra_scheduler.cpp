@@ -494,7 +494,7 @@ bool ra_scheduler::is_slot_candidate_for_rar(const cell_slot_resource_allocator&
   const coreset_configuration&      cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
   // TODO: Handle the case when ra_search_space_id is set to 0.
   if (not pdcch_helper::is_pdcch_monitoring_active(pdcch_slot, ss_cfg) or
-      ss_cfg.get_first_symbol_index() + cs_cfg.get_duration() > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_slot)) {
+      ss_cfg.get_first_symbol_index() + cs_cfg.duration() > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_slot)) {
     // RAR scheduling only possible when PDCCH monitoring is active.
     log_postponed_rar(pending_rars.front(), "PDCCH monitoring is inactive or not enough DL symbols", pdcch_slot);
     ++pending_rars.front().failed_attempts.pdcch;
@@ -587,7 +587,7 @@ unsigned ra_scheduler::schedule_rar(pending_rar_t& rar, cell_resource_allocator&
   const search_space_configuration& ss_cfg =
       cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common
           .search_spaces[cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id];
-  const unsigned coreset_duration = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id()).get_duration();
+  const unsigned coreset_duration = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id()).duration();
 
   unsigned     pdsch_time_res_index = pdsch_td_res_alloc_list.size();
   unsigned     max_nof_allocs       = 0;
@@ -906,8 +906,7 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     // Check if there are enough UL symbols to allocate the PDCCH
     const search_space_configuration& ss_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
     const coreset_configuration&      cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
-    if (ss_cfg.get_first_symbol_index() + cs_cfg.get_duration() >
-        cell_cfg.get_nof_dl_symbol_per_slot(pdcch_alloc.slot)) {
+    if (ss_cfg.get_first_symbol_index() + cs_cfg.duration() > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_alloc.slot)) {
       // Early exit. RAR scheduling only possible when PDCCH monitoring is active.
       return;
     }

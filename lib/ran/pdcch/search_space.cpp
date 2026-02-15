@@ -19,7 +19,7 @@ using namespace ocudu;
 search_space_configuration::search_space_configuration(nr_band             band,
                                                        subcarrier_spacing  common_scs,
                                                        subcarrier_spacing  ssb_scs,
-                                                       unsigned            coreset0_index,
+                                                       coreset0_index      cset0_index,
                                                        search_space0_index ss0_index_) :
   id(to_search_space_id(0)),
   cs_id(to_coreset_id(0)),
@@ -27,7 +27,7 @@ search_space_configuration::search_space_configuration(nr_band             band,
   ss0_index(ss0_index_)
 {
   const pdcch_type0_css_coreset_description cset0_desc =
-      pdcch_type0_css_coreset_get(band, ssb_scs, common_scs, coreset0_index, 0);
+      pdcch_type0_css_coreset_get(band, ssb_scs, common_scs, cset0_index.value(), 0);
   ocudu_assert(cset0_desc.pattern != PDCCH_TYPE0_CSS_CORESET_RESERVED.pattern, "Invalid CORESET#0 index value");
   const pdcch_type0_css_occasion_pattern1_description ss0_occasion =
       pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{

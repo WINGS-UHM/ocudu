@@ -377,7 +377,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     param.ss0_index          = base_cell.pdcch_cfg.common.ss0_index;
     param.min_k1             = base_cell.pucch_cfg.min_k1;
     param.min_k2             = base_cell.pusch_cfg.min_k2;
-    param.coreset0_index     = base_cell.pdcch_cfg.common.coreset0_index;
+    param.cs0_index          = base_cell.pdcch_cfg.common.coreset0_index;
     // If the CORESET#0 maximum duration is not set, set maximum CORESET#0 duration to 1 OFDM symbol for BW > 50MHz in
     // FR1 to spread CORESET RBs across the BW. This results in one extra symbol to be used for PDSCH.
     if (base_cell.pdcch_cfg.common.max_coreset0_duration.has_value()) {
@@ -413,7 +413,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
 
     param.offset_to_point_a = ssb_freq_loc->offset_to_point_A;
     param.k_ssb             = ssb_freq_loc->k_ssb;
-    param.coreset0_index    = ssb_freq_loc->coreset0_idx;
+    param.cs0_index         = ssb_freq_loc->coreset0_idx;
 
     // Set TDD pattern.
     const bool is_tdd = (dplx_mode == duplex_mode::TDD);
@@ -717,7 +717,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     coreset_configuration&      cset1_cfg = out_cell.init_bwp_builder.pdcch_cfg->coresets[0];
     cset1_cfg.set_freq_domain_resources(freq_resources);
     cset1_cfg.set_non_coreset0_duration(base_cell.pdcch_cfg.dedicated.coreset1_duration.value_or(
-        out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->get_duration()));
+        out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->duration()));
     const std::array<uint8_t, 5> auto_compute_ss2_n_candidates_cfg = {0, 0, 0, 0, 0};
     if (base_cell.pdcch_cfg.dedicated.ss2_n_candidates != auto_compute_ss2_n_candidates_cfg) {
       ss2_cfg.set_non_ss0_nof_candidates(base_cell.pdcch_cfg.dedicated.ss2_n_candidates);

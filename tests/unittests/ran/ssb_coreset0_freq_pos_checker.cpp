@@ -80,7 +80,7 @@ void ocudu::test_ssb_coreset0_allocation(arfcn_t                                
   test_ssb_belong_to_sync_raster(ss_ssb_hz);
 
   auto coreset0_cfg =
-      pdcch_type0_css_coreset_get(nr_band, scs_ssb, scs_common, params.coreset0_idx, params.k_ssb.value());
+      pdcch_type0_css_coreset_get(nr_band, scs_ssb, scs_common, params.coreset0_idx.value(), params.k_ssb.value());
   // Verify that the CORESET0 doesn't start below CRB0.
   ASSERT_GE(crb_ssb, static_cast<unsigned>(coreset0_cfg.offset));
 

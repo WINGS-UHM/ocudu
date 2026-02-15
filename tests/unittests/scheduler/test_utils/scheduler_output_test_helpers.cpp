@@ -30,7 +30,7 @@ std::vector<grant_info> ocudu::get_pdcch_grant_info(pci_t pci, const pdcch_dl_in
       pdcch_helper::cce_to_prb_mapping(bwp_cfg, cs_cfg, pci, pdcch.ctx.cces.aggr_lvl, pdcch.ctx.cces.ncce);
   for (unsigned prb : pdcch_prbs) {
     unsigned crb = prb_to_crb(bwp_cfg, prb);
-    grants.push_back(grant_info{bwp_cfg.scs, ofdm_symbol_range{0U, (uint8_t)cs_cfg.get_duration()}, {crb, crb + 1}});
+    grants.push_back(grant_info{bwp_cfg.scs, ofdm_symbol_range{0U, (uint8_t)cs_cfg.duration()}, {crb, crb + 1}});
   }
   return grants;
 }
@@ -45,7 +45,7 @@ std::vector<grant_info> ocudu::get_pdcch_grant_info(pci_t pci, const pdcch_ul_in
       pdcch_helper::cce_to_prb_mapping(bwp_cfg, cs_cfg, pci, pdcch.ctx.cces.aggr_lvl, pdcch.ctx.cces.ncce);
   for (unsigned prb : pdcch_prbs) {
     unsigned crb = prb_to_crb(bwp_cfg, prb);
-    grants.push_back(grant_info{bwp_cfg.scs, ofdm_symbol_range{0U, (uint8_t)cs_cfg.get_duration()}, {crb, crb + 1}});
+    grants.push_back(grant_info{bwp_cfg.scs, ofdm_symbol_range{0U, (uint8_t)cs_cfg.duration()}, {crb, crb + 1}});
   }
   return grants;
 }

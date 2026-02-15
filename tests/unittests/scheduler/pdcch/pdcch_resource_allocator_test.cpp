@@ -201,7 +201,7 @@ protected:
       bool           success    = true;
       for (unsigned prb : pdcch_prbs) {
         unsigned crb = prb_to_crb(bwp_cfg, prb);
-        if (res_grid[0].dl_res_grid.collides(bwp_cfg.scs, {0, cs_cfg.get_duration()}, crb_interval{crb, crb + 1})) {
+        if (res_grid[0].dl_res_grid.collides(bwp_cfg.scs, {0, cs_cfg.duration()}, crb_interval{crb, crb + 1})) {
           success = false;
           break;
         }
@@ -221,15 +221,13 @@ protected:
         std::back_inserter(fmtbuf), "\n- initial BWP: RBs={}", cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs);
     const auto&                  bwp_res = cell_cfg.ded_bwp_res[to_bwp_id(0)];
     const coreset_configuration& cs0_cfg = bwp_res.coresets()[to_coreset_id(0)].cfg();
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- CORESET#0: RBs={}, duration={}",
-                   cs0_cfg.coreset0_crbs(),
-                   cs0_cfg.get_duration());
+    fmt::format_to(
+        std::back_inserter(fmtbuf), "\n- CORESET#0: RBs={}, duration={}", cs0_cfg.coreset0_crbs(), cs0_cfg.duration());
     const auto& cs1_cfg = bwp_res.coresets()[to_coreset_id(1)].cfg();
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- CORESET#1: RBs={}, duration={}",
                    get_coreset_crbs(cs1_cfg),
-                   cs1_cfg.get_duration());
+                   cs1_cfg.duration());
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- SearchSpace#0: nof_candidates={}",
                    fmt::join(bwp_res.dl_common().pdcch_common.search_spaces[0].get_nof_candidates(), ", "));

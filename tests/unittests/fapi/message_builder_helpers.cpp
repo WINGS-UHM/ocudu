@@ -166,9 +166,9 @@ dl_pdcch_pdu unittest::build_valid_dl_pdcch_pdu()
   pdu.cp                      = generate_cyclic_prefix();
   pdu.start_symbol_index      = generate_start_symbol_index();
   pdu.duration_symbols        = 2;
-  unsigned   reg_bundle_size  = 2;
-  unsigned   interleaver_size = 3;
-  unsigned   shift_index      = 129;
+  uint8_t    reg_bundle_size  = 2;
+  uint8_t    interleaver_size = 3;
+  uint16_t   shift_index      = 129;
   coreset_id id               = generate_coreset_id();
   if (id == to_coreset_id(0)) {
     pdu.mapping = dl_pdcch_pdu::mapping_coreset_0{reg_bundle_size, interleaver_size, shift_index};

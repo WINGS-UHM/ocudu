@@ -313,7 +313,7 @@ static bool has_space_for_pdsch(const cell_resource_allocator&                  
   const coreset_configuration& cs_cfg       = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
 
   // Check whether PDSCH time domain resource does not overlap with CORESET.
-  if (pdsch_td_cfg.symbols.start() < ss_cfg.get_first_symbol_index() + cs_cfg.get_duration()) {
+  if (pdsch_td_cfg.symbols.start() < ss_cfg.get_first_symbol_index() + cs_cfg.duration()) {
     return false;
   }
 

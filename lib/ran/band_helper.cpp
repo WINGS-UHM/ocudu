@@ -1350,22 +1350,22 @@ ocudu::band_helper::get_ssb_coreset0_freq_location(arfcn_t             dl_arfcn,
   ssb_freq_location ssb                            = du_cfg.get_next_ssb_location();
   while (ssb.is_valid) {
     // Iterate over the searchSpace0_indices and corresponding configurations.
-    std::optional<unsigned> cset0_idx = get_coreset0_index(band,
-                                                           n_rbs,
-                                                           scs_common,
-                                                           scs_ssb,
-                                                           ssb.offset_to_point_A,
-                                                           ssb.k_ssb,
-                                                           du_cfg.get_ssb_first_symbol(),
-                                                           ss0_idx,
-                                                           max_coreset0_duration);
+    std::optional<coreset0_index> cset0_idx = get_coreset0_index(band,
+                                                                 n_rbs,
+                                                                 scs_common,
+                                                                 scs_ssb,
+                                                                 ssb.offset_to_point_A,
+                                                                 ssb.k_ssb,
+                                                                 du_cfg.get_ssb_first_symbol(),
+                                                                 ss0_idx,
+                                                                 max_coreset0_duration);
 
     if (cset0_idx.has_value()) {
       const unsigned nof_avail_cset0_rbs = get_nof_coreset0_rbs_not_intersecting_ssb(
           cset0_idx.value(), band, scs_common, scs_ssb, ssb.offset_to_point_A, ssb.k_ssb);
 
       const pdcch_type0_css_coreset_description cset0_desc =
-          pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, *cset0_idx, ssb.k_ssb.value());
+          pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx->value(), ssb.k_ssb.value());
 
       // If the number of non-intersecting CORESET#0 RBs is the highest so far for the least nof. CORESET#0 RBs and
       // largest CORESET#0 duration less than max_coreset0_duration, save result.
@@ -1397,7 +1397,7 @@ ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(arfcn_t        
                                                                  subcarrier_spacing  scs_common,
                                                                  subcarrier_spacing  scs_ssb,
                                                                  search_space0_index ss0_idx,
-                                                                 unsigned            cset0_idx)
+                                                                 coreset0_index      cset0_idx)
 {
   ocudu_assert(scs_ssb < subcarrier_spacing::kHz60,
                "Only 15kHz and 30kHz currently supported for SSB subcarrier spacing");
@@ -1410,7 +1410,7 @@ ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(arfcn_t        
   // Get the maximum Coreset0 index that can be used for the Tables 13-[1-6], TS 38.213.
   const unsigned max_cset0_idx = get_max_coreset0_index(band, scs_common, scs_ssb);
 
-  if (cset0_idx > max_cset0_idx) {
+  if (cset0_idx.value() > max_cset0_idx) {
     return result;
   }
 
@@ -1423,7 +1423,7 @@ ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(arfcn_t        
     const unsigned crbs_ssb =
         scs_common == subcarrier_spacing::kHz15 ? ssb.offset_to_point_A.value() : ssb.offset_to_point_A.value() / 2;
 
-    auto coreset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, ssb.k_ssb.value());
+    auto coreset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx.value(), ssb.k_ssb.value());
     // CORESET#0 must be within cell bandwidth limits.
     if (coreset0_cfg.nof_rb_coreset > n_rbs) {
       break;
@@ -1467,15 +1467,15 @@ ocudu::band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(arfcn_t        
   return result;
 }
 
-std::optional<unsigned> ocudu::band_helper::get_coreset0_index(nr_band                 band,
-                                                               unsigned                n_rbs,
-                                                               subcarrier_spacing      scs_common,
-                                                               subcarrier_spacing      scs_ssb,
-                                                               ssb_offset_to_pointA    offset_to_point_A,
-                                                               ssb_subcarrier_offset   k_ssb,
-                                                               uint8_t                 ssb_first_symbol,
-                                                               search_space0_index     ss0_idx,
-                                                               std::optional<unsigned> nof_coreset0_symb)
+std::optional<coreset0_index> ocudu::band_helper::get_coreset0_index(nr_band                 band,
+                                                                     unsigned                n_rbs,
+                                                                     subcarrier_spacing      scs_common,
+                                                                     subcarrier_spacing      scs_ssb,
+                                                                     ssb_offset_to_pointA    offset_to_point_A,
+                                                                     ssb_subcarrier_offset   k_ssb,
+                                                                     uint8_t                 ssb_first_symbol,
+                                                                     search_space0_index     ss0_idx,
+                                                                     std::optional<unsigned> nof_coreset0_symb)
 {
   // Determine the frequency range.
   bool is_fr2 = (get_freq_range(band) == frequency_range::FR2);
@@ -1491,8 +1491,8 @@ std::optional<unsigned> ocudu::band_helper::get_coreset0_index(nr_band          
   const unsigned max_cset0_idx = get_max_coreset0_index(band, scs_common, scs_ssb);
 
   // Iterate over the coreset0_indices and corresponding configurations.
-  unsigned                max_nof_avail_rbs = 0;
-  std::optional<unsigned> chosen_cset0_idx;
+  unsigned                      max_nof_avail_rbs = 0;
+  std::optional<coreset0_index> chosen_cset0_idx;
   for (int cset0_idx = static_cast<int>(max_cset0_idx); cset0_idx >= 0; --cset0_idx) {
     auto coreset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, k_ssb.value());
     if (max_nof_avail_rbs > coreset0_cfg.nof_rb_coreset) {
@@ -1521,20 +1521,20 @@ std::optional<unsigned> ocudu::band_helper::get_coreset0_index(nr_band          
     if (coreset0_nof_symb_valid and coreset0_not_below_pointA and coreset0_not_above_bw_ub and
         ss0_not_overlapping_with_ssb_symbols) {
       // Compute the number of non-intersecting RBs between CORESET#0 and SSB.
-      const unsigned nof_avail_rbs =
-          get_nof_coreset0_rbs_not_intersecting_ssb(cset0_idx, band, scs_common, scs_ssb, offset_to_point_A, k_ssb);
+      const unsigned nof_avail_rbs = get_nof_coreset0_rbs_not_intersecting_ssb(
+          coreset0_index{static_cast<uint8_t>(cset0_idx)}, band, scs_common, scs_ssb, offset_to_point_A, k_ssb);
 
       // If it is the best candidate so far, store it and try the next CORESET#0 index.
       if (nof_avail_rbs > max_nof_avail_rbs) {
         max_nof_avail_rbs = nof_avail_rbs;
-        chosen_cset0_idx  = cset0_idx;
+        chosen_cset0_idx  = coreset0_index{static_cast<uint8_t>(cset0_idx)};
       }
     }
   }
   return chosen_cset0_idx;
 }
 
-unsigned ocudu::band_helper::get_nof_coreset0_rbs_not_intersecting_ssb(unsigned              cset0_idx,
+unsigned ocudu::band_helper::get_nof_coreset0_rbs_not_intersecting_ssb(coreset0_index        cset0_idx,
                                                                        nr_band               band,
                                                                        subcarrier_spacing    scs_common,
                                                                        subcarrier_spacing    scs_ssb,
@@ -1542,7 +1542,7 @@ unsigned ocudu::band_helper::get_nof_coreset0_rbs_not_intersecting_ssb(unsigned 
                                                                        ssb_subcarrier_offset k_ssb)
 {
   // Coreset0 configuration for the provided CORESET#0 index.
-  auto cset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx, k_ssb.value());
+  auto cset0_cfg = pdcch_type0_css_coreset_get(band, scs_ssb, scs_common, cset0_idx.value(), k_ssb.value());
 
   const interval<unsigned> ssb_prbs   = get_ssb_crbs(scs_common, scs_ssb, offset_to_point_A, k_ssb);
   const unsigned           crb_ssb_0  = get_ssb_crb_0(scs_common, offset_to_point_A.value());

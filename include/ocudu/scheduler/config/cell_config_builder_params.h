@@ -35,7 +35,7 @@ struct cell_config_builder_params {
   /// is derived.
   std::optional<ssb_offset_to_pointA> offset_to_point_a;
   /// This is \c controlResourceSetZero, as per TS38.213, Section 13. If not specified, a valid coreset0 is derived.
-  std::optional<unsigned> coreset0_index;
+  std::optional<coreset0_index> cs0_index;
   /// Maximum CORESET#0 duration in OFDM symbols to consider when deriving CORESET#0 index.
   uint8_t max_coreset0_duration = 2;
   /// This is \c searchSpaceZero, as per TS38.213, Section 13.
@@ -88,7 +88,7 @@ struct cell_config_builder_params {
     }
 
     // Auto-derive offset_to_pointA, k_ssb and coreset0 index.
-    if (not coreset0_index.has_value() or not offset_to_point_a.has_value() or not k_ssb.has_value()) {
+    if (not cs0_index.has_value() or not offset_to_point_a.has_value() or not k_ssb.has_value()) {
       if (offset_to_point_a.has_value() or k_ssb.has_value()) {
         report_error("The user either sets {controlResourceSetZero, offsetToPointA, kSSB} or just "
                      "{controlResourceSetZero}, or none of them.\n");
@@ -97,9 +97,9 @@ struct cell_config_builder_params {
           dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(dl_carrier.band));
 
       std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc;
-      if (coreset0_index.has_value()) {
+      if (cs0_index.has_value()) {
         ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(
-            dl_carrier.arfcn_f_ref, dl_carrier.band, nof_crbs, scs_common, *scs_ssb, ss0_index, coreset0_index.value());
+            dl_carrier.arfcn_f_ref, dl_carrier.band, nof_crbs, scs_common, *scs_ssb, ss0_index, *cs0_index);
       } else {
         ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(
             dl_carrier.arfcn_f_ref, dl_carrier.band, nof_crbs, scs_common, *scs_ssb, ss0_index, max_coreset0_duration);
@@ -108,7 +108,7 @@ struct cell_config_builder_params {
           ssb_freq_loc.has_value(), "Unable to derive a valid SSB pointA and k_SSB for cell id ({}).\n", pci);
       offset_to_point_a = ssb_freq_loc->offset_to_point_A;
       k_ssb             = ssb_freq_loc->k_ssb;
-      coreset0_index    = ssb_freq_loc->coreset0_idx;
+      cs0_index         = ssb_freq_loc->coreset0_idx;
     }
 
     return *this;

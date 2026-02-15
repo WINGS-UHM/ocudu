@@ -53,7 +53,6 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
 
   cfg.dl_carrier              = make_default_dl_carrier_configuration(params);
   cfg.ul_carrier              = make_default_ul_carrier_configuration(params);
-  cfg.coreset0_idx            = *params.cs0_index;
   cfg.dl_cfg_common           = make_default_dl_config_common(params);
   cfg.ul_cfg_common           = make_default_ul_config_common(params);
   cfg.scs_common              = params.scs_common;
@@ -61,9 +60,9 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
   cfg.ue_timers_and_constants = make_default_ue_timers_and_constants_config();
   cfg.tdd_ul_dl_cfg_common    = params.tdd_ul_dl_cfg_common;
   // The CORESET duration of 3 symbols is only permitted if dmrs-typeA-Position is set to 3. Refer TS 38.211, 7.3.2.2.
-  const pdcch_type0_css_coreset_description coreset0_desc = pdcch_type0_css_coreset_get(
-      cfg.dl_carrier.band, *params.scs_ssb, params.scs_common, params.cs0_index->value(), params.k_ssb->value());
-  cfg.dmrs_typeA_pos   = coreset0_desc.nof_symb_coreset == 3U ? dmrs_typeA_position::pos3 : dmrs_typeA_position::pos2;
+  cfg.dmrs_typeA_pos   = cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value().duration() >= 3U
+                             ? dmrs_typeA_position::pos3
+                             : dmrs_typeA_position::pos2;
   cfg.init_bwp_builder = make_default_bwp_builder_params(params);
   return cfg;
 }

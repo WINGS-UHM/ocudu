@@ -54,6 +54,8 @@ void ocudu::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
 
     const auto ss0_idx = cell.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
     ocudu_assert(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
+    const auto cs0_idx = cell.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+    ocudu_assert(cs0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
 
     logger.info(
         "SSB derived parameters for cell: {}, band: {}, dl_arfcn:{}, nof_crbs: {} scs:{}, ssb_scs:{}:\n\t - SSB offset "
@@ -67,7 +69,7 @@ void ocudu::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
         cell.ssb_cfg.offset_to_point_A.value(),
         cell.ssb_cfg.k_ssb.value(),
         cell.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
-        cell.coreset0_idx,
+        cs0_idx.value(),
         ss0_idx.value());
   }
 

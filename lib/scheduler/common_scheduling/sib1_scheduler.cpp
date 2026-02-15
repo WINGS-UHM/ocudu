@@ -33,10 +33,12 @@ sib1_scheduler::sib1_scheduler(const cell_configuration& cfg_,
   expert_cfg{cfg_.expert_cfg.si},
   cell_cfg{cfg_},
   pdcch_sched{pdcch_sch},
-  coreset0{cell_cfg.coreset0},
   sib1_payload_size{sib1_payload_size_},
   L_max(cfg_.ssb_cfg.ssb_bitmap.get_L_max())
 {
+  const auto coreset0 = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  ocudu_assert(coreset0.has_value(), "CORESET#0 not configured");
+
   const auto searchspace0 = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
   ocudu_assert(searchspace0.has_value(), "SearchSpace#0 not found in common SearchSpace list");
 
@@ -51,8 +53,8 @@ sib1_scheduler::sib1_scheduler(const cell_configuration& cfg_,
     }
     // NOTE:
     // - [Implementation defined] Use (n0 + 1) slot to avoid collisions between SSB and SIB1.
-    sib1_type0_pdcch_css_slots[i_ssb] =
-        precompute_type0_pdcch_css_n0_plus_1(searchspace0.value(), coreset0, cell_cfg, cell_cfg.scs_common, i_ssb);
+    sib1_type0_pdcch_css_slots[i_ssb] = precompute_type0_pdcch_css_n0_plus_1(
+        searchspace0.value(), coreset0->value(), cell_cfg, cell_cfg.scs_common, i_ssb);
   }
 
   // Define a BWP configuration limited by CORESET#0 RBs.

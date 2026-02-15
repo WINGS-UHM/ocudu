@@ -77,6 +77,8 @@ bool is_valid_enum_number(Number number)
 /// Checks whether CORESET#0 table index is valid as per TS38.213, Table 13-{1,...,10}.
 static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 {
+  const auto cs0_idx = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  CHECK_TRUE(cs0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
   const auto ss0_idx = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
   CHECK_TRUE(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
 
@@ -84,10 +86,10 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
   // TODO: Add checks on minimum bandwidth.
   if (cell_cfg.scs_common == subcarrier_spacing::kHz15 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz15) {
     // As per TS38.213, Table 13-1.
-    CHECK_BELOW(cell_cfg.coreset0_idx, 15, "CORESET#0 index table");
+    CHECK_BELOW(cs0_idx.value(), 15, "CORESET#0 index table");
   } else if (cell_cfg.scs_common == subcarrier_spacing::kHz30 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz30) {
     // As per TS38.213, Table 13-4.
-    CHECK_BELOW(cell_cfg.coreset0_idx, 16, "CORESET#0 index table");
+    CHECK_BELOW(cs0_idx.value(), 16, "CORESET#0 index table");
   }
   // The remaining cases will trigger an assert in the SSB checks.
 

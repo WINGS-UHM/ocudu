@@ -78,8 +78,6 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
     sched_req.ul_harq_mode_b = false;
   }
 
-  sched_req.coreset0 = du_cfg.coreset0_idx;
-
   // Convert SIB1 and SI message info scheduling config.
   sched_req.sib1_payload_size = sib1_len;
   sched_req.si_scheduling     = si_sched_cfg;

@@ -26,6 +26,8 @@ using namespace odu;
 byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
 {
   using namespace asn1::rrc_nr;
+  const auto cs0_idx = du_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  ocudu_assert(cs0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
   const auto ss0_idx = du_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
   ocudu_assert(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
 
@@ -49,7 +51,7 @@ byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
   mib.dmrs_type_a_position.value       = du_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2
                                              ? mib_s::dmrs_type_a_position_opts::pos2
                                              : mib_s::dmrs_type_a_position_opts::pos3;
-  mib.pdcch_cfg_sib1.coreset_zero      = du_cfg.coreset0_idx.value();
+  mib.pdcch_cfg_sib1.coreset_zero      = cs0_idx->value();
   mib.pdcch_cfg_sib1.search_space_zero = ss0_idx->value();
   mib.cell_barred.value                = mib_s::cell_barred_opts::not_barred;
   mib.intra_freq_resel.value           = mib_s::intra_freq_resel_opts::not_allowed;

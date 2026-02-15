@@ -46,6 +46,14 @@ struct pdcch_config_common {
     return search_spaces.front().get_ss0_index();
   }
 
+  std::optional<coreset0_index> get_coreset0() const
+  {
+    if (not coreset0.has_value()) {
+      return std::nullopt;
+    }
+    return coreset0->get_coreset0_index();
+  }
+
   bool operator==(const pdcch_config_common& other) const
   {
     return coreset0 == other.coreset0 and common_coreset == other.common_coreset and

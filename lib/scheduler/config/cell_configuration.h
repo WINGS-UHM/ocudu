@@ -45,7 +45,6 @@ public:
   const ssb_configuration ssb_cfg;
   dmrs_typeA_position     dmrs_typeA_pos;
   carrier_configuration   ul_carrier;
-  const uint8_t           coreset0;
 
   /// BWP config resources used when UEs have no dedicated config.
   sched_bwp_config init_bwp_res;

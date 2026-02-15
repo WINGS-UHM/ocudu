@@ -29,6 +29,9 @@ paging_slot_helper::paging_slot_helper(const cell_configuration& cell_cfg_) : ce
     }
 
     if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value() == 0) {
+      const auto coreset0 = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+      ocudu_assert(coreset0.has_value(), "CORESET#0 configuration for Paging Search Space not configured in DL BWP.");
+
       // PDCCH monitoring occasions for paging are same as for RMSI. See TS 38.304, clause 7.1.
       // NOTE: We currently support only SS/PBCH and CORESET multiplexing patter 1.
       if (cell_cfg.dl_cfg_common.pcch_cfg.nof_pf == pcch_config::nof_pf_per_drx_cycle::oneT) {
@@ -48,7 +51,7 @@ paging_slot_helper::paging_slot_helper(const cell_configuration& cell_cfg_) : ce
         // For Ns = 1, there is only one PO which starts from the first PDCCH monitoring occasion for paging in the PF.
         // TS 38.304, clause 7.1. Hence, n0 slot must be use and not n0 + 1 slot.
         type0_pdcch_css_slots[i_ssb] = precompute_type0_pdcch_css_n0(
-            ss_cfg->get_ss0_index(), cell_cfg.coreset0, cell_cfg, cell_cfg.scs_common, i_ssb);
+            ss_cfg->get_ss0_index(), coreset0->value(), cell_cfg, cell_cfg.scs_common, i_ssb);
       }
     } else {
       if (ss_cfg->get_coreset_id() != to_coreset_id(0) and

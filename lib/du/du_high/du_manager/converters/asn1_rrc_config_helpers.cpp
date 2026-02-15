@@ -3374,7 +3374,9 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   // >> In case of HO, the coresetZero and searchSpaceZero need to be set.
   pdcch_cfg_common_s& pdcch_cfg_common  = out.sp_cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_cfg_common.setup();
   pdcch_cfg_common.coreset_zero_present = true;
-  pdcch_cfg_common.coreset_zero         = du_cell_cfg.coreset0_idx.value();
+  const auto cset0_idx                  = du_cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  ocudu_assert(cset0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
+  pdcch_cfg_common.coreset_zero              = cset0_idx->value();
   pdcch_cfg_common.search_space_zero_present = true;
   {
     const auto ss0_idx = du_cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();

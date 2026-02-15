@@ -55,7 +55,6 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   ssb_cfg(msg.ssb_config),
   dmrs_typeA_pos(msg.dmrs_typeA_pos),
   ul_carrier(msg.ul_carrier),
-  coreset0(msg.coreset0.value()),
   init_bwp_res(pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, nullptr),
   ded_pucch_resources(msg.ded_pucch_resources),
   zp_csi_rs_list(make_zp_csi_rs_list(msg)),

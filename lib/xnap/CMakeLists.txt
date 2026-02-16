@@ -10,6 +10,7 @@ set(SOURCES
         xnap_impl.cpp
         xnap_asn1_utils.cpp
         log_helpers.cpp
+        procedures/xn_setup_procedure.cpp
     )
 
 
@@ -19,4 +20,3 @@ target_link_libraries(ocudu_xnap
 	ocudu_cu_cp
 	xnap_asn1
 	ocudu_support)
-

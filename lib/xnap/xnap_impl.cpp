@@ -10,6 +10,7 @@
 
 #include "xnap_impl.h"
 #include "log_helpers.h"
+#include "procedures/xn_setup_procedure.h"
 #include "procedures/xn_setup_procedure_asn1_helpers.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -71,7 +72,7 @@ void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& msg)
 // TODO Implement XN setup procedure.
 async_task<void> xnap_impl::handle_xn_setup_request_required()
 {
-  return {};
+  return launch_async<xn_setup_procedure>(xnap_cfg, xnc_gw, logger);
 }
 
 void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)

@@ -51,6 +51,22 @@ public:
   /// Extracts the POSIX representation of the transport layer address.
   native_type native() const { return {(struct sockaddr*)&addr_storage, addrlen}; }
 
+  /// Sets the port number of the transport layer address.
+  bool set_port(uint16_t port)
+  {
+    if (((struct sockaddr*)&addr_storage)->sa_family != AF_INET &&
+        ((struct sockaddr*)&addr_storage)->sa_family != AF_INET6) {
+      return false;
+    }
+    if (((struct sockaddr*)&addr_storage)->sa_family == AF_INET) {
+      ((struct sockaddr_in*)&addr_storage)->sin_port = htons(port);
+    }
+    if (((struct sockaddr*)&addr_storage)->sa_family == AF_INET6) {
+      ((struct sockaddr_in6*)&addr_storage)->sin6_port = htons(port);
+    }
+    return true;
+  }
+
   /// Compares two transport_layer_addresses.
   bool operator==(const transport_layer_address& other) const;
   bool operator!=(const transport_layer_address& other) const { return not(*this == other); }

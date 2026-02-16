@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/cu_up/cu_up_types.h"
 #include "ocudu/gtpu/gtpu_config.h"
 #include "ocudu/gtpu/gtpu_tunnel_common_tx.h"
 #include "ocudu/gtpu/gtpu_tunnel_nru.h"
@@ -23,7 +22,7 @@
 namespace ocudu {
 
 struct gtpu_tunnel_nru_creation_message {
-  ocuup::ue_index_t                           ue_index;
+  uint32_t                                    ue_index;
   gtpu_tunnel_nru_config                      cfg;
   dlt_pcap*                                   gtpu_pcap;
   gtpu_tunnel_nru_rx_lower_layer_notifier*    rx_lower;
@@ -34,7 +33,7 @@ struct gtpu_tunnel_nru_creation_message {
 std::unique_ptr<gtpu_tunnel_nru> create_gtpu_tunnel_nru(gtpu_tunnel_nru_creation_message& msg);
 
 struct gtpu_tunnel_nru_rx_creation_message {
-  ocuup::ue_index_t                                 ue_index;
+  uint32_t                                          ue_index;
   gtpu_tunnel_nru_config::gtpu_tunnel_nru_rx_config rx_cfg;
   gtpu_tunnel_nru_rx_lower_layer_notifier*          rx_lower;
 };
@@ -44,7 +43,7 @@ std::unique_ptr<gtpu_tunnel_common_rx_upper_layer_interface>
 create_gtpu_tunnel_nru_rx(gtpu_tunnel_nru_rx_creation_message& msg);
 
 struct gtpu_tunnel_nru_tx_creation_message {
-  ocuup::ue_index_t                                 ue_index;
+  uint32_t                                          ue_index;
   gtpu_tunnel_nru_config::gtpu_tunnel_nru_tx_config tx_cfg;
   dlt_pcap*                                         gtpu_pcap;
   gtpu_tunnel_common_tx_upper_layer_notifier*       tx_upper;

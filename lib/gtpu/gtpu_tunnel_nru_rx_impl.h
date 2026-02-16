@@ -22,7 +22,7 @@ namespace ocudu {
 class gtpu_tunnel_nru_rx_impl : public gtpu_tunnel_base_rx
 {
 public:
-  gtpu_tunnel_nru_rx_impl(ocuup::ue_index_t                                 ue_index,
+  gtpu_tunnel_nru_rx_impl(uint32_t                                          ue_index,
                           gtpu_tunnel_nru_config::gtpu_tunnel_nru_rx_config cfg,
                           gtpu_tunnel_nru_rx_lower_layer_notifier&          rx_lower_) :
     gtpu_tunnel_base_rx(gtpu_tunnel_log_prefix{ue_index, cfg.local_teid, "RX"}),

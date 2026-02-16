@@ -25,7 +25,7 @@ namespace ocudu {
 class gtpu_tunnel_nru_tx_impl : public gtpu_tunnel_base_tx, public gtpu_tunnel_nru_tx_lower_layer_interface
 {
 public:
-  gtpu_tunnel_nru_tx_impl(ocuup::ue_index_t                                 ue_index,
+  gtpu_tunnel_nru_tx_impl(uint32_t                                          ue_index,
                           gtpu_tunnel_nru_config::gtpu_tunnel_nru_tx_config cfg_,
                           dlt_pcap&                                         gtpu_pcap_,
                           gtpu_tunnel_common_tx_upper_layer_notifier&       upper_dn_) :

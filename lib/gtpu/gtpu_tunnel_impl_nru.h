@@ -22,7 +22,7 @@ namespace ocudu {
 class gtpu_tunnel_nru_impl : public gtpu_tunnel_nru
 {
 public:
-  gtpu_tunnel_nru_impl(ocuup::ue_index_t                           ue_index,
+  gtpu_tunnel_nru_impl(uint32_t                                    ue_index,
                        gtpu_tunnel_nru_config                      cfg,
                        dlt_pcap&                                   gtpu_pcap,
                        gtpu_tunnel_nru_rx_lower_layer_notifier&    rx_lower,

@@ -6,10 +6,15 @@
 # the distribution.
 #
 
-set_directory_properties(PROPERTIES LABELS "xnap")
+add_library(xnap_test_helpers xnap_test_helpers.cpp)
+target_include_directories(xnap_test_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(xnap_test_helpers ocudu_support xnap_asn1 ocudulog)
 
-add_executable(xn_setup_procedure_test xn_setup_procedure_test.cpp)
-target_link_libraries(xn_setup_procedure_test ocudu_xnap ocudu_support ocudulog gtest gtest_main)
-target_include_directories(xn_setup_procedure_test PRIVATE ${CMAKE_SOURCE_DIR})
-gtest_discover_tests(xn_setup_procedure_test)
+set(SOURCES
+        xn_setup_procedure_test.cpp
+        )
 
+add_executable(xnap_test ${SOURCES})
+target_include_directories(xnap_test PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(xnap_test xnap_test_helpers ocudu_xnap ocudu_support ocudulog gtest gtest_main)
+gtest_discover_tests(xnap_test PROPERTIES "LABELS;xnap")

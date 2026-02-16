@@ -9,88 +9,16 @@
  */
 
 #include "lib/xnap/procedures/xn_setup_procedure_asn1_helpers.h"
-#include "lib/xnap/xnap_impl.h"
-#include "ocudu/support/executors/manual_task_worker.h"
+#include "xnap_test_helpers.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
 
-/// Dummy class to check for XN TX messages.
-class dummy_xnap_message_notifier : public xnap_message_notifier
-{
-public:
-  ~dummy_xnap_message_notifier() override = default;
-
-  bool on_new_message(const xnap_message& msg) override
-  {
-    last_msg = msg;
-    return true;
-  }
-  xnap_message last_msg;
-};
-
-/// Reusable class that stores the messages sent over XNAP for test inspection.
-class dummy_xnc_gateway : public xnc_connection_gateway
-{
-public:
-  dummy_xnc_gateway() : logger(ocudulog::fetch_basic_logger("TEST")) {}
-
-  void init_association(transport_layer_address dest_addr, byte_buffer payload) override
-  {
-    logger.info("Received request to init association with peer at {}. Payload size: {} bytes",
-                dest_addr.to_string(),
-                payload.length());
-    last_xnap_msgs.push_back(std::move(payload));
-  }
-
-  std::vector<byte_buffer> last_xnap_msgs;
-
-private:
-  ocudulog::basic_logger& logger;
-};
-
 /// Fixture class for XNAP Setup tests.
-class xn_setup_procedure_test : public ::testing::Test
+class xn_setup_procedure_test : public xnap_test
 {
 protected:
-  void SetUp() override
-  {
-    // Init test's loggers.
-    ocudulog::init();
-    logger.set_level(ocudulog::basic_levels::debug);
-
-    ocudulog::fetch_basic_logger("XNAP", false).set_level(ocudulog::basic_levels::debug);
-    ocudulog::fetch_basic_logger("XNAP", false).set_hex_dump_max_size(100);
-
-    auto assoc = std::make_unique<dummy_xnap_message_notifier>();
-    xnap       = std::make_unique<xnap_impl>(xnap_local_cfg, xnc_gw, ctrl_worker);
-    tx_assoc   = assoc.get();
-    xnap->set_tx_association_notifier(std::move(assoc));
-  }
-
-  void TearDown() override
-  {
-    // Flush logger after each test.
-    ocudulog::flush();
-    tx_assoc = nullptr;
-  }
-
-  ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("TEST", false);
-  manual_task_worker         ctrl_worker{128};
-  dummy_xnc_gateway          xnc_gw;
-  std::unique_ptr<xnap_impl> xnap                     = nullptr;
-  gnb_id_t                   local_gnb_id             = {0, 22};
-  plmn_identity              local_plmn               = plmn_identity::test_value();
-  tac_t                      local_tac                = {8};
-  s_nssai_t                  local_slice              = {};
-  std::vector<s_nssai_t>     local_slice_support_list = {local_slice};
-
-  xnap_configuration xnap_local_cfg = {
-      local_gnb_id,
-      std::vector<supported_tracking_area>{
-          {local_tac, std::vector<plmn_item>{{local_plmn, local_slice_support_list}}}}};
-
   /// Peer configuration.
   gnb_id_t               peer_gnb_id             = {1, 22};
   plmn_identity          peer_plmn               = plmn_identity::test_value();
@@ -101,18 +29,8 @@ protected:
   xnap_configuration xnap_peer_cfg = {
       peer_gnb_id,
       std::vector<supported_tracking_area>{{peer_tac, std::vector<plmn_item>{{peer_plmn, peer_slice_support_list}}}},
-      std::vector<guami_t>{{.plmn = local_plmn, .amf_region_id = 1}}};
-
-  std::optional<xnap_message> get_last_message()
-  {
-    if (tx_assoc == nullptr) {
-      return std::nullopt;
-    }
-    return tx_assoc->last_msg;
-  }
-
-private:
-  dummy_xnap_message_notifier* tx_assoc = nullptr;
+      std::vector<guami_t>{{peer_plmn, 1}},
+  };
 };
 
 TEST_F(xn_setup_procedure_test, when_correct_setup_received_from_peer_setup_complete_is_sent)

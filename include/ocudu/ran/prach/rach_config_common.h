@@ -30,7 +30,7 @@ struct rach_config_generic {
   /// Msg2 RAR window length in #slots. Network configures a value < 10msec. Values: (1, 2, 4, 8, 10, 20, 40, 80).
   unsigned ra_resp_window;
   /// Number of PRACH occasions FDMed in one time instance as per TS38.211, clause 6.3.3.2.
-  unsigned msg1_fdm;
+  unsigned msg1_fdm = 1;
   /// Offset of lowest PRACH transmission occasion in frequency domain respective to PRB 0,
   /// as per TS38.211, clause 6.3.3.2. Possible values: {0,...,MAX_NOF_PRB - 1}.
   unsigned msg1_frequency_start;

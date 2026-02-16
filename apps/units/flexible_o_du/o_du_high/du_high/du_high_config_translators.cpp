@@ -353,6 +353,105 @@ static ntn_cell_params make_ntn_cell_params(const du_high_unit_cell_ntn_config& 
   return ntn;
 }
 
+/// Fill SI-Scheduling Information.
+static std::optional<si_scheduling_info_config> make_si_sched_info_config(const du_high_unit_base_cell_config& cell_cfg)
+{
+  const auto& sib_cfg = cell_cfg.sib_cfg;
+  if (sib_cfg.si_sched_info.empty()) {
+    return std::nullopt;
+  }
+  si_scheduling_info_config out;
+  out.si_window_len_slots = sib_cfg.si_window_len_slots;
+  // Set SIB mapping info.
+  out.si_sched_info.resize(sib_cfg.si_sched_info.size());
+  std::vector<uint8_t> sibs_included;
+  for (unsigned i = 0; i != sib_cfg.si_sched_info.size(); ++i) {
+    auto& out_si                  = out.si_sched_info[i];
+    out_si.si_period_radio_frames = sib_cfg.si_sched_info[i].si_period_rf;
+    out_si.sib_mapping_info.resize(sib_cfg.si_sched_info[i].sib_mapping_info.size());
+    out_si.si_window_position = sib_cfg.si_sched_info[i].si_window_position;
+    for (unsigned j = 0; j != sib_cfg.si_sched_info[i].sib_mapping_info.size(); ++j) {
+      sibs_included.push_back(sib_cfg.si_sched_info[i].sib_mapping_info[j]);
+      out_si.sib_mapping_info[j] = static_cast<sib_type>(sibs_included.back());
+    }
+  }
+
+  // Fill SIB parameters.
+  for (const uint8_t sib_id : sibs_included) {
+    sib_info item;
+    switch (sib_id) {
+      case 2: {
+        if (!sib_cfg.sib2_cfg.has_value()) {
+          report_error("SIB-2 cannot be scheduled without SIB2 config. Set the SIB2 config or remove SIB-2 from "
+                       "the si_sched_info list");
+        }
+        item = create_sib2_info(sib_cfg.sib2_cfg.value());
+      } break;
+      case 3: {
+        if (!sib_cfg.sib3_cfg.has_value()) {
+          report_error("SIB-3 cannot be scheduled without SIB3 config. Set the SIB3 config or remove SIB-3 from "
+                       "the si_sched_info list");
+        }
+        item = create_sib3_info(sib_cfg.sib3_cfg.value());
+      } break;
+      case 4: {
+        if (!sib_cfg.sib4_cfg.has_value()) {
+          report_error("SIB-4 cannot be scheduled without SIB4 config. Set the SIB4 config or remove SIB-4 from "
+                       "the si_sched_info list");
+        }
+        item = create_sib4_info(sib_cfg.sib4_cfg.value());
+      } break;
+      case 5: {
+        if (!sib_cfg.sib5_cfg.has_value()) {
+          report_error("SIB-5 cannot be scheduled without SIB5 config. Set the SIB5 config or remove SIB-5 from "
+                       "the si_sched_info list");
+        }
+        item = create_sib5_info(sib_cfg.sib5_cfg.value());
+      } break;
+      case 6: {
+        if (!sib_cfg.etws_cfg.has_value()) {
+          report_error("SIB-6 cannot be scheduled without ETWS config. Set the ETWS config or remove SIB-6 from "
+                       "the si_sched_info list");
+        }
+        item = create_sib6_info(sib_cfg.etws_cfg.value());
+      } break;
+      case 7: {
+        if (!sib_cfg.etws_cfg.has_value()) {
+          report_error("SIB-7 cannot be scheduled without ETWS config. Set the ETWS config or remove SIB-7 from "
+                       "the si_sched_info list");
+        }
+        item = create_sib7_info(sib_cfg.etws_cfg.value());
+      } break;
+      case 8: {
+        if (!sib_cfg.cmas_cfg.has_value()) {
+          report_error("SIB-8 cannot be scheduled without CMAS config. Set the CMAS config or remove SIB-8 from "
+                       "the si_sched_info list");
+        }
+        item = create_sib8_info(sib_cfg.cmas_cfg.value());
+      } break;
+      case 16: {
+        if (!sib_cfg.sib16_cfg.has_value()) {
+          report_error("SIB-16 cannot be scheduled without SIB16 config. Set the SIB16 config or remove SIB-16 from "
+                       "the si_sched_info list");
+        }
+        item = create_sib16_info(sib_cfg.sib16_cfg.value());
+      } break;
+      case 19: {
+        if (!cell_cfg.ntn_cfg.has_value()) {
+          report_error("SIB-19 cannot be scheduled without NTN config. Set the NTN config or remove SIB-19 from "
+                       "the si_sched_info list\n");
+        }
+        item = create_sib19_info(cell_cfg.ntn_cfg.value());
+      } break;
+      default:
+        report_error("SIB{} not supported\n", sib_id);
+    }
+    out.sibs.push_back(item);
+  }
+
+  return out;
+}
+
 std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_unit_config& config)
 {
   std::vector<odu::du_cell_config> out_cfg;
@@ -363,6 +462,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     frequency_range freq_range = band_helper::get_freq_range(band);
     duplex_mode     dplx_mode  = band_helper::get_duplex_mode(band);
 
+    // Setup a cell configuration builder.
     cell_config_builder_params           param;
     const du_high_unit_base_cell_config& base_cell = cell.cell;
     param.pci                                      = base_cell.pci;
@@ -374,10 +474,10 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     param.csi_rs_enabled     = base_cell.csi_cfg.csi_rs_enabled;
     param.dl_carrier.nof_ant = base_cell.nof_antennas_dl;
     param.max_nof_layers     = base_cell.pdsch_cfg.max_rank;
-    param.ss0_index          = base_cell.pdcch_cfg.common.ss0_index;
     param.min_k1             = base_cell.pucch_cfg.min_k1;
     param.min_k2             = base_cell.pusch_cfg.min_k2;
     param.cs0_index          = base_cell.pdcch_cfg.common.coreset0_index;
+    param.ss0_index          = base_cell.pdcch_cfg.common.ss0_index;
     // If the CORESET#0 maximum duration is not set, set maximum CORESET#0 duration to 1 OFDM symbol for BW > 50MHz in
     // FR1 to spread CORESET RBs across the BW. This results in one extra symbol to be used for PDSCH.
     if (base_cell.pdcch_cfg.common.max_coreset0_duration.has_value()) {
@@ -385,47 +485,16 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     } else if ((param.dl_carrier.carrier_bw > bs_channel_bandwidth::MHz50) && (freq_range == frequency_range::FR1)) {
       param.max_coreset0_duration = 1;
     }
-    const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(base_cell.channel_bw_mhz, param.scs_common, freq_range);
-
-    std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc;
-    if (base_cell.pdcch_cfg.common.coreset0_index.has_value()) {
-      ssb_freq_loc =
-          band_helper::get_ssb_coreset0_freq_location_for_cset0_idx(base_cell.dl_f_ref_arfcn,
-                                                                    param.dl_carrier.band,
-                                                                    nof_crbs,
-                                                                    base_cell.common_scs,
-                                                                    base_cell.common_scs,
-                                                                    param.ss0_index,
-                                                                    base_cell.pdcch_cfg.common.coreset0_index.value());
-    } else {
-      ssb_freq_loc = band_helper::get_ssb_coreset0_freq_location(base_cell.dl_f_ref_arfcn,
-                                                                 param.dl_carrier.band,
-                                                                 nof_crbs,
-                                                                 base_cell.common_scs,
-                                                                 base_cell.common_scs,
-                                                                 param.ss0_index,
-                                                                 param.max_coreset0_duration);
-    }
-
-    if (!ssb_freq_loc.has_value()) {
-      report_error("Unable to derive a valid SSB pointA and k_SSB for cell id ({}).\n", base_cell.pci);
-    }
-
-    param.offset_to_point_a = ssb_freq_loc->offset_to_point_A;
-    param.k_ssb             = ssb_freq_loc->k_ssb;
-    param.cs0_index         = ssb_freq_loc->coreset0_idx;
-
-    // Set TDD pattern.
     const bool is_tdd = (dplx_mode == duplex_mode::TDD);
     if (is_tdd) {
       param.tdd_ul_dl_cfg_common.emplace(generate_tdd_pattern(param.scs_common, cell.cell.tdd_ul_dl_cfg.value()));
     }
 
-    // Create the configuration.
+    // Create the configuration from the cell config builder.
     out_cfg.push_back(config_helpers::make_default_du_cell_config(param));
     odu::du_cell_config& out_cell = out_cfg.back();
 
-    // Set the rest of the parameters.
+    // Set the remaining parameters.
     out_cell.nr_cgi.plmn_id = plmn_identity::parse(base_cell.plmn).value();
     out_cell.nr_cgi.nci     = nr_cell_identity::create(config.gnb_id, base_cell.sector_id.value()).value();
     out_cell.tac            = base_cell.tac;
@@ -446,93 +515,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.ssb_cfg.pss_to_sss_epre = base_cell.ssb_cfg.pss_to_sss_epre;
 
     // SI message config.
-    if (not base_cell.sib_cfg.si_sched_info.empty()) {
-      out_cell.si_config.emplace();
-      out_cell.si_config->si_window_len_slots = base_cell.sib_cfg.si_window_len_slots;
-      out_cell.si_config->si_sched_info.resize(base_cell.sib_cfg.si_sched_info.size());
-      std::vector<uint8_t> sibs_included;
-      for (unsigned i = 0; i != base_cell.sib_cfg.si_sched_info.size(); ++i) {
-        auto& out_si                  = out_cell.si_config->si_sched_info[i];
-        out_si.si_period_radio_frames = base_cell.sib_cfg.si_sched_info[i].si_period_rf;
-        out_si.sib_mapping_info.resize(base_cell.sib_cfg.si_sched_info[i].sib_mapping_info.size());
-        out_si.si_window_position = base_cell.sib_cfg.si_sched_info[i].si_window_position;
-        for (unsigned j = 0; j != base_cell.sib_cfg.si_sched_info[i].sib_mapping_info.size(); ++j) {
-          sibs_included.push_back(base_cell.sib_cfg.si_sched_info[i].sib_mapping_info[j]);
-          out_si.sib_mapping_info[j] = static_cast<sib_type>(sibs_included.back());
-        }
-      }
-      for (const uint8_t sib_id : sibs_included) {
-        sib_info item;
-        switch (sib_id) {
-          case 2: {
-            if (!base_cell.sib_cfg.sib2_cfg.has_value()) {
-              report_error("SIB-2 cannot be scheduled without SIB2 config. Set the SIB2 config or remove SIB-2 from "
-                           "the si_sched_info list");
-            }
-            item = create_sib2_info(base_cell.sib_cfg.sib2_cfg.value());
-          } break;
-          case 3: {
-            if (!base_cell.sib_cfg.sib3_cfg.has_value()) {
-              report_error("SIB-3 cannot be scheduled without SIB3 config. Set the SIB3 config or remove SIB-3 from "
-                           "the si_sched_info list");
-            }
-            item = create_sib3_info(base_cell.sib_cfg.sib3_cfg.value());
-          } break;
-          case 4: {
-            if (!base_cell.sib_cfg.sib4_cfg.has_value()) {
-              report_error("SIB-4 cannot be scheduled without SIB4 config. Set the SIB4 config or remove SIB-4 from "
-                           "the si_sched_info list");
-            }
-            item = create_sib4_info(base_cell.sib_cfg.sib4_cfg.value());
-          } break;
-          case 5: {
-            if (!base_cell.sib_cfg.sib5_cfg.has_value()) {
-              report_error("SIB-5 cannot be scheduled without SIB5 config. Set the SIB5 config or remove SIB-5 from "
-                           "the si_sched_info list");
-            }
-            item = create_sib5_info(base_cell.sib_cfg.sib5_cfg.value());
-          } break;
-          case 6: {
-            if (!base_cell.sib_cfg.etws_cfg.has_value()) {
-              report_error("SIB-6 cannot be scheduled without ETWS config. Set the ETWS config or remove SIB-6 from "
-                           "the si_sched_info list");
-            }
-            item = create_sib6_info(base_cell.sib_cfg.etws_cfg.value());
-          } break;
-          case 7: {
-            if (!base_cell.sib_cfg.etws_cfg.has_value()) {
-              report_error("SIB-7 cannot be scheduled without ETWS config. Set the ETWS config or remove SIB-7 from "
-                           "the si_sched_info list");
-            }
-            item = create_sib7_info(base_cell.sib_cfg.etws_cfg.value());
-          } break;
-          case 8: {
-            if (!base_cell.sib_cfg.cmas_cfg.has_value()) {
-              report_error("SIB-8 cannot be scheduled without CMAS config. Set the CMAS config or remove SIB-8 from "
-                           "the si_sched_info list");
-            }
-            item = create_sib8_info(base_cell.sib_cfg.cmas_cfg.value());
-          } break;
-          case 16: {
-            if (!base_cell.sib_cfg.sib16_cfg.has_value()) {
-              report_error(
-                  "SIB-16 cannot be scheduled without SIB16 config. Set the SIB16 config or remove SIB-16 from "
-                  "the si_sched_info list");
-            }
-            item = create_sib16_info(base_cell.sib_cfg.sib16_cfg.value());
-          } break;
-          case 19: {
-            if (!base_cell.ntn_cfg.has_value()) {
-              report_error("SIB-19 cannot be scheduled without NTN config. Set the NTN config or remove SIB-19 from "
-                           "the si_sched_info list\n");
-            }
-            item = create_sib19_info(base_cell.ntn_cfg.value());
-          } break;
-          default:
-            report_error("SIB{} not supported\n", sib_id);
-        }
-        out_cell.si_config->sibs.push_back(item);
-      }
+    out_cell.si_config = make_si_sched_info_config(base_cell);
+    if (out_cell.si_config.has_value()) {
       // Enable otherSI search space.
       out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.other_si_search_space_id = to_search_space_id(1);
     }
@@ -560,13 +544,22 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
         base_cell.pdsch_cfg.dc_offset, out_cell.dl_cfg_common.freq_info_dl.scs_carrier_list.back().carrier_bandwidth);
 
     // PRACH config.
-    rach_config_common& rach_cfg                    = *out_cell.ul_cfg_common.init_ul_bwp.rach_cfg_common;
-    rach_cfg.rach_cfg_generic.prach_config_index    = base_cell.prach_cfg.prach_config_index.value();
-    rach_cfg.rach_cfg_generic.ra_resp_window        = base_cell.prach_cfg.ra_resp_window.value();
-    rach_cfg.rach_cfg_generic.preamble_trans_max    = base_cell.prach_cfg.preamble_trans_max;
-    rach_cfg.rach_cfg_generic.power_ramping_step_db = base_cell.prach_cfg.power_ramping_step_db;
-    rach_cfg.msg3_transform_precoder                = cell.cell.pusch_cfg.enable_transform_precoding;
-    const bool is_long_prach                        = is_long_preamble(
+    rach_config_common& rach_cfg                           = *out_cell.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+    rach_cfg.rach_cfg_generic.prach_config_index           = base_cell.prach_cfg.prach_config_index.value();
+    rach_cfg.rach_cfg_generic.ra_resp_window               = base_cell.prach_cfg.ra_resp_window.value();
+    rach_cfg.rach_cfg_generic.zero_correlation_zone_config = base_cell.prach_cfg.zero_correlation_zone;
+    rach_cfg.rach_cfg_generic.preamble_rx_target_pw        = base_cell.prach_cfg.preamble_rx_target_pw;
+    rach_cfg.rach_cfg_generic.preamble_trans_max           = base_cell.prach_cfg.preamble_trans_max;
+    rach_cfg.rach_cfg_generic.power_ramping_step_db        = base_cell.prach_cfg.power_ramping_step_db;
+    // \c msg1_frequency_start for RACH is one of the parameters that can either be set manually, or need to be
+    // recomputed at the end of the manual configuration, as a results of other user parameters passed by the user.
+    const bool update_msg1_frequency_start = not base_cell.prach_cfg.prach_frequency_start.has_value();
+    if (not update_msg1_frequency_start) {
+      // Set manually.
+      rach_cfg.rach_cfg_generic.msg1_frequency_start = base_cell.prach_cfg.prach_frequency_start.value();
+    }
+    rach_cfg.msg3_transform_precoder = cell.cell.pusch_cfg.enable_transform_precoding;
+    const bool is_long_prach         = is_long_preamble(
         prach_configuration_get(freq_range, dplx_mode, rach_cfg.rach_cfg_generic.prach_config_index).format);
     // \c is_prach_root_seq_index_l839 and msg1_scs are derived parameters, that depend on the PRACH format. They are
     // originally computed in the base_cell struct, but since we overwrite the PRACH prach_config_index (which
@@ -574,18 +567,9 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     rach_cfg.is_prach_root_seq_index_l839 = is_long_prach;
     rach_cfg.msg1_scs                     = is_long_prach ? subcarrier_spacing::invalid : base_cell.common_scs;
     rach_cfg.prach_root_seq_index         = base_cell.prach_cfg.prach_root_sequence_index;
-    rach_cfg.rach_cfg_generic.zero_correlation_zone_config = base_cell.prach_cfg.zero_correlation_zone;
-    rach_cfg.rach_cfg_generic.preamble_rx_target_pw        = base_cell.prach_cfg.preamble_rx_target_pw;
-    // \c msg1_frequency_start for RACH is one of the parameters that can either be set manually, or need to be
-    // recomputed at the end of the manual configuration, as a results of other user parameters passed by the user.
-    bool update_msg1_frequency_start = not base_cell.prach_cfg.prach_frequency_start.has_value();
-    if (not update_msg1_frequency_start) {
-      // Set manually.
-      rach_cfg.rach_cfg_generic.msg1_frequency_start = base_cell.prach_cfg.prach_frequency_start.value();
-    }
-    rach_cfg.total_nof_ra_preambles   = base_cell.prach_cfg.total_nof_ra_preambles;
-    rach_cfg.nof_ssb_per_ro           = base_cell.prach_cfg.nof_ssb_per_ro;
-    rach_cfg.nof_cb_preambles_per_ssb = base_cell.prach_cfg.nof_cb_preambles_per_ssb;
+    rach_cfg.total_nof_ra_preambles       = base_cell.prach_cfg.total_nof_ra_preambles;
+    rach_cfg.nof_ssb_per_ro               = base_cell.prach_cfg.nof_ssb_per_ro;
+    rach_cfg.nof_cb_preambles_per_ssb     = base_cell.prach_cfg.nof_cb_preambles_per_ssb;
     rach_cfg.ra_prio_slice_info_list.resize(base_cell.prach_cfg.ra_prio_slice_info_list.size());
     for (unsigned i = 0, e = base_cell.prach_cfg.ra_prio_slice_info_list.size(); i != e; ++i) {
       const auto& clifield                             = base_cell.prach_cfg.ra_prio_slice_info_list[i];
@@ -650,7 +634,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     search_space_configuration& ss1_cfg = out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.back();
     ss1_cfg.set_non_ss0_nof_candidates(base_cell.pdcch_cfg.common.ss1_n_candidates);
 
-    // Set initial BWP builder.
+    // Set builder for initial BWP UE-dedicated parameters.
     // > PDSCH
     out_cell.init_bwp_builder.pdsch.nof_harq_procs =
         static_cast<uint8_t>(config.cells_cfg.front().cell.pdsch_cfg.nof_harqs);
@@ -693,7 +677,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.init_bwp_builder.rach.cfra_enabled   = base_cell.prach_cfg.cfra_enabled;
     out_cell.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
     out_cell.init_bwp_builder.rlm.type            = base_cell.rlm_cfg.resource_type;
-
+    // > NTN.
     if (base_cell.ntn_cfg.has_value()) {
       out_cell.ntn_params = make_ntn_cell_params(base_cell.ntn_cfg.value(), base_cell.pusch_cfg.harq_mode_b.any());
     }
@@ -704,7 +688,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     if (base_cell.pdcch_cfg.dedicated.coreset1_rb_start.has_value()) {
       cset1_start_crb = base_cell.pdcch_cfg.dedicated.coreset1_rb_start.value();
     }
-    unsigned cset1_l_crb = nof_crbs - cset1_start_crb;
+    const unsigned nof_crbs    = band_helper::get_n_rbs_from_bw(base_cell.channel_bw_mhz, param.scs_common, freq_range);
+    unsigned       cset1_l_crb = nof_crbs - cset1_start_crb;
     if (base_cell.pdcch_cfg.dedicated.coreset1_l_crb.has_value()) {
       cset1_l_crb = base_cell.pdcch_cfg.dedicated.coreset1_l_crb.value();
     }

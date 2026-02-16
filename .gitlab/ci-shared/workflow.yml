@@ -60,6 +60,11 @@ workflow:
         ON_DEFAULT_BRANCH: "true"
       auto_cancel:
         on_new_commit: none
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+      variables:
+        ON_PROTECTED_BRANCH: "true"
+      auto_cancel:
+        on_new_commit: none
     - when: never
 
 variables:

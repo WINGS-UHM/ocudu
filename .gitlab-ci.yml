@@ -379,6 +379,12 @@ unit coverage:
     - if: $ON_MR
       variables:
         coverage_report: summary
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
+      variables:
+        coverage_report: summary
+    - if: $ON_PROTECTED_BRANCH
+      variables:
+        coverage_report: full
   before_script:
     - export PATH="$PATH:/root/.dotnet/tools"
     - dotnet tool install -g dotnet-reportgenerator-globaltool --version 5.5.0
@@ -420,18 +426,15 @@ unit coverage:
     - |
       if [[ $coverage_report = "full" ]]; then
         publish_to_registry
-      fi
-    - |
-      if [[ $CI_COMMIT_BRANCH == "$CI_DEFAULT_BRANCH" ]]; then
         cd ${CI_PROJECT_DIR}
         tar -czf coverage_html.tar.gz coverage_html
         curl --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file coverage_html.tar.gz ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/coverage_html/latest/coverage_html.tar.gz
       fi
   coverage: /^\s*Line coverage:\s*\d+.\d+\%/
-  artifacts: &unit_coverage_artifacts
+  artifacts:
     paths:
       - coverage_html
-    expire_in: 10 minutes
+    expire_in: 7 days
   retry: 2
   needs:
     - job: intermediate commits cached
@@ -444,27 +447,16 @@ unit coverage:
       optional: true
       artifacts: true
 
-unit coverage dev:
-  extends: unit coverage
-  rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      variables:
-        coverage_report: full
-  artifacts:
-    <<: *unit_coverage_artifacts
-    expire_in: 1 day
-
 doxygen:
   stage: documentation
   image: ${OCUDU_REGISTRY_URI}/doxygen:${DOXYGEN_VERSION}-${PLANTUML_VERSION}
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: always # Even if previous stages/required jobs fail
-      allow_failure: true
     - if: $ON_MR
       changes:
         paths:
           - docs/**/*
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
+    - if: $ON_PROTECTED_BRANCH
   script:
     - |
       rm -Rf build_doxygen
@@ -473,7 +465,7 @@ doxygen:
       cmake -DENABLE_UHD=False -DDOXYGEN_HAVE_DOT=False -DBUILD_TESTING=False ..
       make -j $(nproc) doxygen
     - |
-      if [[ $CI_COMMIT_BRANCH == "$CI_DEFAULT_BRANCH" ]]; then
+      if [[ $CI_COMMIT_BRANCH == "main" ]]; then
         cd ${CI_PROJECT_DIR}
         tar -czf doxygen.tar.gz build_doxygen/docs/doxygen/html
         curl --fail --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file doxygen.tar.gz ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/doxygen/latest/doxygen.tar.gz
@@ -486,3 +478,23 @@ doxygen:
     - job: trigger doxygen
       optional: true
       artifacts: false
+
+################################################################################
+# post
+################################################################################
+promotion:
+  stage: .post
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/ && $GITLAB_TOKEN
+  image: alpine:3
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - apk add --no-cache git
+    - git clone https://gitlab_token:${GITLAB_TOKEN}@${CI_SERVER_SHELL_SSH_HOST}/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}.git /${CI_PROJECT_NAME}
+    - cd /${CI_PROJECT_NAME}
+    - git fetch origin main
+    - git checkout -t origin/main
+    - git rebase ${CI_COMMIT_SHA}
+    - git push
+  dependencies: []

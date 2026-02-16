@@ -476,6 +476,7 @@ smoke coverage:
   extends: .smoke coverage
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
+    - if: $ON_PROTECTED_BRANCH
   tags: [saas-linux-large-amd64]
 
 smoke asan:

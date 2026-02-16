@@ -175,8 +175,8 @@ module "settings" {
     main = {
       allow_force_push             = false
       code_owner_approval_required = false
-      merge_access_level           = "developer"
-      push_access_level            = "no one"
+      merge_access_level           = "no one"
+      push_access_level            = "maintainer"
     }
   }
 

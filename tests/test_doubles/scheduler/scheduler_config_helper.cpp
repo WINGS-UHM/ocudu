@@ -24,7 +24,6 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
   sched_cell_configuration_request_message            sched_req{};
   sched_req.cell_index                    = to_du_cell_index(0);
   sched_req.pci                           = params.pci;
-  sched_req.scs_common                    = params.scs_common;
   sched_req.dl_carrier                    = config_helpers::make_default_dl_carrier_configuration(params);
   sched_req.ul_carrier                    = config_helpers::make_default_ul_carrier_configuration(params);
   sched_req.dl_cfg_common                 = config_helpers::make_default_dl_config_common(params);

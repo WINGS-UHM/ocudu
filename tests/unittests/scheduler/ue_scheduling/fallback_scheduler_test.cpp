@@ -138,7 +138,7 @@ protected:
 
   void setup_sched(const scheduler_expert_config& sched_cfg, const sched_cell_configuration_request_message& msg)
   {
-    current_slot = slot_point{to_numerology_value(msg.scs_common), 0};
+    current_slot = slot_point{to_numerology_value(msg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0};
 
     bench.emplace(sched_cfg, builder_params, msg);
 

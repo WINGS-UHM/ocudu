@@ -77,18 +77,18 @@ bool is_valid_enum_number(Number number)
 /// Checks whether CORESET#0 table index is valid as per TS38.213, Table 13-{1,...,10}.
 static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 {
-  const auto cs0_idx = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  const subcarrier_spacing scs_common = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const auto               cs0_idx    = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
   CHECK_TRUE(cs0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
   const auto ss0_idx = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
   CHECK_TRUE(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
 
   // TODO: Check which table to use.
   // TODO: Add checks on minimum bandwidth.
-  if (cell_cfg.si.scs_common == subcarrier_spacing::kHz15 and cell_cfg.si.ssb_cfg.scs == subcarrier_spacing::kHz15) {
+  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.si.ssb_cfg.scs == subcarrier_spacing::kHz15) {
     // As per TS38.213, Table 13-1.
     CHECK_BELOW(cs0_idx.value(), 15, "CORESET#0 index table");
-  } else if (cell_cfg.si.scs_common == subcarrier_spacing::kHz30 and
-             cell_cfg.si.ssb_cfg.scs == subcarrier_spacing::kHz30) {
+  } else if (scs_common == subcarrier_spacing::kHz30 and cell_cfg.si.ssb_cfg.scs == subcarrier_spacing::kHz30) {
     // As per TS38.213, Table 13-4.
     CHECK_BELOW(cs0_idx.value(), 16, "CORESET#0 index table");
   }
@@ -96,7 +96,7 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 
   // This constraint is implementation-defined and comes from the fact that our PDCCH scheduler only schedules PDCCH
   // starting from the symbol index 0.
-  if (cell_cfg.si.scs_common == subcarrier_spacing::kHz15 and cell_cfg.si.ssb_cfg.scs == subcarrier_spacing::kHz15) {
+  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.si.ssb_cfg.scs == subcarrier_spacing::kHz15) {
     // As per TS38.213, Table 13-11.
     CHECK_EQ_OR_BELOW(ss0_idx.value(), 9, "SearchSpaceZero index table");
   }
@@ -277,8 +277,9 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 
 static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 {
-  const auto& pdcch_cfg = cell_cfg.init_bwp_builder.pdcch_cfg;
-  const auto  pdsch_cfg = config_helpers::make_pdsch_config(cell_cfg);
+  const subcarrier_spacing scs_common = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const auto&              pdcch_cfg  = cell_cfg.init_bwp_builder.pdcch_cfg;
+  const auto               pdsch_cfg  = config_helpers::make_pdsch_config(cell_cfg);
 
   // PDCCH
   if (pdcch_cfg.has_value()) {
@@ -318,10 +319,10 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
     const unsigned total_nof_monitored_pdcch_candidates =
         config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(*pdcch_cfg, cell_cfg.dl_cfg_common);
     CHECK_EQ_OR_BELOW(total_nof_monitored_pdcch_candidates,
-                      max_nof_monitored_pdcch_candidates(cell_cfg.si.scs_common),
+                      max_nof_monitored_pdcch_candidates(scs_common),
                       "Nof. PDCCH candidates monitored per slot for a DL BWP={} exceeds maximum value={}\n",
                       total_nof_monitored_pdcch_candidates,
-                      max_nof_monitored_pdcch_candidates(cell_cfg.si.scs_common));
+                      max_nof_monitored_pdcch_candidates(scs_common));
   }
 
   check_outcome rlm_validation = check_rlm_config(cell_cfg);
@@ -332,11 +333,12 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 
 static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
 {
-  const ssb_configuration& ssb_cfg = cell_cfg.si.ssb_cfg;
+  const ssb_configuration& ssb_cfg    = cell_cfg.si.ssb_cfg;
+  const subcarrier_spacing scs_common = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
 
   // No mixed numerologies supported (yet).
   CHECK_EQ(fmt::underlying(ssb_cfg.scs),
-           fmt::underlying(cell_cfg.si.scs_common),
+           fmt::underlying(scs_common),
            "SSB SCS must be equal to SCS common. Mixed numerologies are not supported.");
 
   // Only FR1 SCS supported (for now).
@@ -354,7 +356,7 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
              "Multiple beams not supported for SSB.");
 
   // Checks that SSB does not get located outside the band.
-  if (cell_cfg.si.scs_common == subcarrier_spacing::kHz15) {
+  if (scs_common == subcarrier_spacing::kHz15) {
     // Check if k_SSB is within limits, according to the SCScommon.
     CHECK_EQ_OR_BELOW(ssb_cfg.k_ssb.value(), 11, "For SCS common 15kHz, k_SSB must be within the range [0, 11].");
 
@@ -369,7 +371,7 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
         "Offset to PointA must be such that the SSB is located inside the Initial DL BWP, i.e, offset_to_point_A <= {}",
         offset_p_A_upper_bound);
 
-  } else if (cell_cfg.si.scs_common == subcarrier_spacing::kHz30) {
+  } else if (scs_common == subcarrier_spacing::kHz30) {
     // Check if k_SSB is within limits, according to the SCScommon.
     CHECK_EQ_OR_BELOW(ssb_cfg.k_ssb.value(), 23, "For SCS common 30kHz, k_SSB must be within the range [0, 23].");
     // Check if k_SSB is an even number, as this is a requirement coming from PHY implementation limitation.
@@ -788,7 +790,9 @@ static check_outcome check_ntn_config(const du_cell_config& cell_cfg)
 check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
 {
   CHECK_EQ_OR_BELOW(cell_cfg.pci, MAX_PCI, "cell PCI");
-  CHECK_EQ_OR_BELOW(fmt::underlying(cell_cfg.si.scs_common), fmt::underlying(subcarrier_spacing::kHz120), "SCS common");
+  CHECK_EQ_OR_BELOW(fmt::underlying(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs),
+                    fmt::underlying(subcarrier_spacing::kHz120),
+                    "SCS common");
   HANDLE_ERROR(is_coreset0_ss0_idx_valid(cell_cfg));
   HANDLE_ERROR(check_dl_config_common(cell_cfg));
   HANDLE_ERROR(check_ul_config_common(cell_cfg));

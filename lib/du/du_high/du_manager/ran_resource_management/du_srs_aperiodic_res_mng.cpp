@@ -28,7 +28,7 @@ static unsigned compute_slot_offset(const du_cell_config& cell_cfg)
                                                                                cell_cfg.init_bwp_builder.pucch.min_k1);
 
   std::vector<static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>> pusch_td_list_per_slot =
-      get_fairly_distributed_pusch_td_resource_indices(cell_cfg.si.scs_common,
+      get_fairly_distributed_pusch_td_resource_indices(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
                                                        cell_cfg.tdd_ul_dl_cfg_common,
                                                        cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
                                                        dl_data_to_ul_ack);

@@ -55,7 +55,6 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
   cfg.ul_carrier                 = make_default_ul_carrier_configuration(params);
   cfg.dl_cfg_common              = make_default_dl_config_common(params);
   cfg.ul_cfg_common              = make_default_ul_config_common(params);
-  cfg.si.scs_common              = params.scs_common;
   cfg.si.ssb_cfg                 = make_default_ssb_config(params);
   cfg.si.ue_timers_and_constants = make_default_ue_timers_and_constants_config();
   cfg.tdd_ul_dl_cfg_common       = params.tdd_ul_dl_cfg_common;

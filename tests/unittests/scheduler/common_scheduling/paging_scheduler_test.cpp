@@ -86,7 +86,7 @@ public:
                    const sched_cell_configuration_request_message& msg =
                        sched_config_helper::make_default_sched_cell_configuration_request())
   {
-    current_slot = slot_point_extended{msg.scs_common, 0};
+    current_slot = slot_point_extended{msg.dl_cfg_common.init_dl_bwp.generic_params.scs, 0};
 
     const auto& dl_lst = msg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
     for (const auto& pdsch : dl_lst) {

@@ -125,7 +125,6 @@ static sched_cell_configuration_request_message make_cell_cfg_req_msg(const ssb_
   msg.dl_cfg_common.freq_info_dl.offset_to_point_a = params.offset_to_point_A;
   msg.dl_cfg_common.init_dl_bwp.generic_params.scs = params.ssb_scs;
   msg.ssb_config.scs                               = params.ssb_scs;
-  msg.scs_common                                   = params.ssb_scs;
 
   // Generate a random
   msg.ssb_config.ssb_bitmap        = ssb_bitmap_t(test_rgen::uniform_int<uint8_t>(1, params.L_max - 1), params.L_max);

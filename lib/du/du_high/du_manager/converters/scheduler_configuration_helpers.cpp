@@ -64,15 +64,15 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.ul_carrier           = du_cfg.ul_carrier;
   sched_req.dl_cfg_common        = du_cfg.dl_cfg_common;
   sched_req.ul_cfg_common        = du_cfg.ul_cfg_common;
-  sched_req.scs_common           = du_cfg.si.scs_common;
   sched_req.ssb_config           = du_cfg.si.ssb_cfg;
   sched_req.dmrs_typeA_pos       = du_cfg.si.dmrs_typeA_pos;
   sched_req.tdd_ul_dl_cfg_common = du_cfg.tdd_ul_dl_cfg_common;
   sched_req.nof_beams            = 1;
   // NTN parameters.
   if (du_cfg.ntn_params.has_value()) {
+    const subcarrier_spacing scs = sched_req.dl_cfg_common.init_dl_bwp.generic_params.scs;
     sched_req.ntn_cs_koffset =
-        du_cfg.ntn_params->ntn_cfg.cell_specific_koffset->count() * get_nof_slots_per_subframe(du_cfg.si.scs_common);
+        du_cfg.ntn_params->ntn_cfg.cell_specific_koffset->count() * get_nof_slots_per_subframe(scs);
     sched_req.ul_harq_mode_b = du_cfg.ntn_params->ul_harq_mode_b;
   } else {
     sched_req.ntn_cs_koffset = 0;

@@ -76,7 +76,7 @@ du_served_cell_info ocudu::odu::make_f1ap_du_cell_info(const du_cell_config& du_
   serv_cell.pci        = du_cfg.pci;
   serv_cell.tac        = du_cfg.tac;
   serv_cell.duplx_mode = du_cfg.tdd_ul_dl_cfg_common.has_value() ? duplex_mode::TDD : duplex_mode::FDD;
-  serv_cell.scs_common = du_cfg.si.scs_common;
+  serv_cell.scs_common = du_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
   serv_cell.dl_carrier = du_cfg.dl_carrier;
   if (serv_cell.duplx_mode == duplex_mode::FDD) {
     serv_cell.ul_carrier = du_cfg.ul_carrier;

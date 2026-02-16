@@ -30,9 +30,10 @@ byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
   ocudu_assert(cs0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
   const auto ss0_idx = du_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
   ocudu_assert(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
+  const subcarrier_spacing scs_common = du_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
 
   mib_s mib;
-  switch (du_cfg.si.scs_common) {
+  switch (scs_common) {
     case ocudu::subcarrier_spacing::kHz15:
     case ocudu::subcarrier_spacing::kHz60:
       mib.sub_carrier_spacing_common.value = mib_s::sub_carrier_spacing_common_opts::scs15or60;

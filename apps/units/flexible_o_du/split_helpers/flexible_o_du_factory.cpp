@@ -37,10 +37,11 @@ using namespace ocudu;
 
 static fapi::carrier_config generate_carrier_config_tlv(const odu::du_cell_config& du_cell)
 {
+  const subcarrier_spacing scs_common = du_cell.dl_cfg_common.init_dl_bwp.generic_params.scs;
   // Deduce common numerology and grid size for DL and UL.
-  unsigned numerology       = to_numerology_value(du_cell.si.scs_common);
+  unsigned numerology       = to_numerology_value(scs_common);
   unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
-      du_cell.dl_carrier.carrier_bw, du_cell.si.scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
+      du_cell.dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
 
   fapi::carrier_config fapi_config = {};
 
@@ -65,8 +66,9 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
   o_du_low_unit_config odu_low_cfg = {du_low_unit_cfg, {}, {}};
 
   for (unsigned i = 0, e = cells.size(); i != e; ++i) {
-    const auto& cell       = cells[i];
-    const auto& du_hi_cell = du_hi_cells[i];
+    const auto&              cell       = cells[i];
+    const auto&              du_hi_cell = du_hi_cells[i];
+    const subcarrier_spacing scs_common = cell.dl_cfg_common.init_dl_bwp.generic_params.scs;
 
     fapi_adaptor::phy_fapi_p5_sector_fastpath_adaptor_config p5_cfg{.sector_id = i};
 
@@ -74,8 +76,8 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
         .sector_id                     = i,
         .nof_slots_request_headroom    = du_low_unit_cfg.expert_phy_cfg.nof_slots_request_headroom,
         .allow_request_on_empty_ul_tti = du_low_unit_cfg.expert_phy_cfg.allow_request_on_empty_uplink_slot,
-        .scs                           = cell.si.scs_common,
-        .scs_common                    = cell.si.scs_common,
+        .scs                           = scs_common,
+        .scs_common                    = scs_common,
         .carrier_cfg                   = generate_carrier_config_tlv(cell),
         .prach_cfg                     = *cell.ul_cfg_common.init_ul_bwp.rach_cfg_common,
         .prach_ports                   = du_hi_cell.cell.prach_cfg.ports,
@@ -90,12 +92,11 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
     nr_band band           = cell.dl_carrier.band;
     du_low_cell.duplex     = band_helper::get_duplex_mode(band);
     du_low_cell.freq_range = band_helper::get_freq_range(band);
-    du_low_cell.bw_rb =
-        band_helper::get_n_rbs_from_bw(cell.dl_carrier.carrier_bw, cell.si.scs_common, du_low_cell.freq_range);
+    du_low_cell.bw_rb = band_helper::get_n_rbs_from_bw(cell.dl_carrier.carrier_bw, scs_common, du_low_cell.freq_range);
     du_low_cell.nof_rx_antennas = cell.ul_carrier.nof_ant;
     du_low_cell.nof_tx_antennas = cell.dl_carrier.nof_ant;
     du_low_cell.prach_ports     = du_hi_cell.cell.prach_cfg.ports;
-    du_low_cell.scs_common      = cell.si.scs_common;
+    du_low_cell.scs_common      = scs_common;
     du_low_cell.prach_config_index =
         cell.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index;
     du_low_cell.max_puschs_per_slot  = du_hi_cell.cell.pusch_cfg.max_puschs_per_slot;
@@ -114,16 +115,17 @@ generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_proc
   out_cfg.max_processing_delay = max_processing_delay;
 
   for (const auto& cell : cells) {
-    auto& out_cell           = out_cfg.cells.emplace_back();
-    out_cell.nof_tx_antennas = cell.dl_carrier.nof_ant;
-    out_cell.nof_rx_antennas = cell.ul_carrier.nof_ant;
-    out_cell.scs             = cell.si.scs_common;
-    out_cell.dl_arfcn        = cell.dl_carrier.arfcn_f_ref.value();
-    out_cell.ul_arfcn        = cell.ul_carrier.arfcn_f_ref.value();
-    out_cell.tdd_config      = cell.tdd_ul_dl_cfg_common;
-    out_cell.bw              = cell.dl_carrier.carrier_bw;
-    out_cell.freq_range      = band_helper::get_freq_range(cell.dl_carrier.band);
-    out_cell.cp              = cell.dl_cfg_common.init_dl_bwp.generic_params.cp;
+    auto&                    out_cell   = out_cfg.cells.emplace_back();
+    const subcarrier_spacing scs_common = cell.dl_cfg_common.init_dl_bwp.generic_params.scs;
+    out_cell.nof_tx_antennas            = cell.dl_carrier.nof_ant;
+    out_cell.nof_rx_antennas            = cell.ul_carrier.nof_ant;
+    out_cell.scs                        = scs_common;
+    out_cell.dl_arfcn                   = cell.dl_carrier.arfcn_f_ref.value();
+    out_cell.ul_arfcn                   = cell.ul_carrier.arfcn_f_ref.value();
+    out_cell.tdd_config                 = cell.tdd_ul_dl_cfg_common;
+    out_cell.bw                         = cell.dl_carrier.carrier_bw;
+    out_cell.freq_range                 = band_helper::get_freq_range(cell.dl_carrier.band);
+    out_cell.cp                         = cell.dl_cfg_common.init_dl_bwp.generic_params.cp;
   }
 
   return out_cfg;

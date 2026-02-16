@@ -117,6 +117,6 @@ void du_meas_config_manager::update(du_ue_resource_config& ue_cfg, const byte_bu
     }
 
     // Create measGap.
-    ue_cfg.meas_gap = create_meas_gap(pcell_common.si.scs_common, asn1nr.smtc1);
+    ue_cfg.meas_gap = create_meas_gap(pcell_common.dl_cfg_common.init_dl_bwp.generic_params.scs, asn1nr.smtc1);
   }
 }

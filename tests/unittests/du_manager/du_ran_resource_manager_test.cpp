@@ -91,7 +91,8 @@ protected:
   unsigned get_nof_sr_slot_offsets() const
   {
     const unsigned slots_per_frame =
-        NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(cell_cfg_list[0].si.scs_common);
+        NOF_SUBFRAMES_PER_FRAME *
+        get_nof_slots_per_subframe(cell_cfg_list[0].dl_cfg_common.init_dl_bwp.generic_params.scs);
     const auto& sr_res_list = default_ue_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list;
     unsigned    nof_offsets = 0;
     for (unsigned i = 0; i != sr_res_list.size(); ++i) {
@@ -207,8 +208,10 @@ TEST_P(du_ran_resource_manager_tester, when_srb1_is_added_then_ue_resource_confi
 
 TEST_P(du_ran_resource_manager_tester, when_multiple_ues_are_created_then_they_use_different_sr_offsets)
 {
-  const unsigned sr_period       = get_config_sr_period();
-  const unsigned slots_per_frame = NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(cell_cfg_list[0].si.scs_common);
+  const unsigned sr_period = get_config_sr_period();
+  const unsigned slots_per_frame =
+      NOF_SUBFRAMES_PER_FRAME *
+      get_nof_slots_per_subframe(cell_cfg_list[0].dl_cfg_common.init_dl_bwp.generic_params.scs);
   const unsigned nof_avail_sr_offsets = this->get_nof_sr_slot_offsets();
   du_ue_index_t  next_ue_index        = to_du_ue_index(0);
 
@@ -413,7 +416,8 @@ protected:
   std::tuple<unsigned, bool, bool> get_nof_available_resources() const
   {
     const unsigned slots_per_frame =
-        NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(cell_cfg_list[0].si.scs_common);
+        NOF_SUBFRAMES_PER_FRAME *
+        get_nof_slots_per_subframe(cell_cfg_list[0].dl_cfg_common.init_dl_bwp.generic_params.scs);
     const auto& sr_res_list     = default_ue_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list;
     unsigned    nof_sr_offsets  = 0;
     unsigned    nof_csi_offsets = 0;
@@ -460,9 +464,11 @@ protected:
 
 TEST_P(du_ran_res_mng_multiple_cfg_tester, test_correct_resource_creation_indexing)
 {
-  const unsigned sr_period       = get_config_sr_period();
-  const unsigned csi_period      = get_config_csi_period();
-  const unsigned slots_per_frame = NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(cell_cfg_list[0].si.scs_common);
+  const unsigned sr_period  = get_config_sr_period();
+  const unsigned csi_period = get_config_csi_period();
+  const unsigned slots_per_frame =
+      NOF_SUBFRAMES_PER_FRAME *
+      get_nof_slots_per_subframe(cell_cfg_list[0].dl_cfg_common.init_dl_bwp.generic_params.scs);
   std::tuple<unsigned, bool, bool> avail_res     = get_nof_available_resources();
   du_ue_index_t                    next_ue_index = to_du_ue_index(0);
 

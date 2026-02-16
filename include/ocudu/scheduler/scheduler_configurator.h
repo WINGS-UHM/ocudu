@@ -23,7 +23,6 @@
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/sr_configuration.h"
 #include "ocudu/ran/ssb/ssb_configuration.h"
-#include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include "ocudu/ran/time_alignment_config.h"
 #include "ocudu/scheduler/config/bwp_builder_params.h"
@@ -58,7 +57,6 @@ struct sched_cell_configuration_request_message {
   std::optional<tdd_ul_dl_config_common> tdd_ul_dl_cfg_common;
 
   /// Imported from mac_cell_configuration (NR Cell Configuration, O-RAN WG8, Section 9.2.1.1).
-  subcarrier_spacing    scs_common;
   carrier_configuration dl_carrier;
   carrier_configuration ul_carrier;
   ssb_configuration     ssb_config;

@@ -18,8 +18,6 @@ namespace ocudu {
 
 /// Parameters related with the the SSB, MIB and SIB1 and other-SI scheduling information
 struct si_acquisition_info {
-  /// subcarrierSpacing for common, used for initial access and broadcast message.
-  subcarrier_spacing scs_common;
   /// SSB configuration.
   ssb_configuration ssb_cfg;
   /// Position of first DM-RS in Downlink, as per TS 38.211, 7.4.1.1.1.

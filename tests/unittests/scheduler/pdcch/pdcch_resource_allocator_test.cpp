@@ -471,8 +471,8 @@ TEST(pdcch_resource_allocator_test, monitoring_period)
         sched_cell_configuration_request_message msg =
             sched_config_helper::make_default_sched_cell_configuration_request();
         msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1].set_non_ss0_monitoring_slot_periodicity(period);
-        msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1].set_non_ss0_monitoring_slot_offset(offset,
-                                                                                                       msg.scs_common);
+        msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1].set_non_ss0_monitoring_slot_offset(
+            offset, msg.dl_cfg_common.init_dl_bwp.generic_params.scs);
         msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1].set_non_ss0_duration(duration);
 
         cell_configuration      cfg{sched_cfg, msg};

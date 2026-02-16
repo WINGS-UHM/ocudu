@@ -15,6 +15,7 @@
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/gtpu/gtpu_config.h"
 #include "ocudu/gtpu/gtpu_tunnel_ngu_tx.h"
+#include "ocudu/ran/cu_up_types.h"
 #include "ocudu/support/bit_encoding.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -25,7 +26,7 @@ namespace ocudu {
 class gtpu_tunnel_ngu_tx_impl final : public gtpu_tunnel_base_tx, public gtpu_tunnel_ngu_tx_lower_layer_interface
 {
 public:
-  gtpu_tunnel_ngu_tx_impl(ocuup::ue_index_t                                        ue_index,
+  gtpu_tunnel_ngu_tx_impl(cu_up_ue_index_t                                         ue_index,
                           const gtpu_tunnel_ngu_config::gtpu_tunnel_ngu_tx_config& cfg_,
                           dlt_pcap&                                                gtpu_pcap_,
                           gtpu_tunnel_common_tx_upper_layer_notifier&              upper_dn_) :

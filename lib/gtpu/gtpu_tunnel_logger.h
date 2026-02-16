@@ -21,11 +21,11 @@ namespace ocudu {
 class gtpu_tunnel_log_prefix
 {
 public:
-  gtpu_tunnel_log_prefix(std::optional<ocuup::ue_index_t> ue_index, gtpu_teid_t teid, const char* dir)
+  gtpu_tunnel_log_prefix(std::optional<uint32_t> ue_index, gtpu_teid_t teid, const char* dir)
   {
     fmt::memory_buffer buffer;
     if (ue_index.has_value()) {
-      fmt::format_to(std::back_inserter(buffer), "ue={} {} teid={}: ", fmt::underlying(*ue_index), dir, teid);
+      fmt::format_to(std::back_inserter(buffer), "ue={} {} teid={}: ", *ue_index, dir, teid);
     } else {
       fmt::format_to(std::back_inserter(buffer), "{} teid={}: ", dir, teid);
     }

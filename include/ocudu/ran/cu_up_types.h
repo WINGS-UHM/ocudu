@@ -18,7 +18,7 @@
 namespace ocudu {
 
 /// Maximum number of UEs supported by CU-UP (implementation-defined).
-enum cu_up_ue_index_t : uint16_t {
+enum cu_up_ue_index_t : uint32_t {
   MIN_CU_UP_UE_INDEX     = 0,
   MAX_CU_UP_UE_INDEX     = 1023,
   MAX_NOF_CU_UP_UES      = 1024,

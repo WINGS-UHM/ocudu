@@ -16,13 +16,14 @@
 #include "ocudu/gtpu/gtpu_tunnel_ngu.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/ran/cu_up_types.h"
 
 namespace ocudu {
 
 class gtpu_tunnel_ngu_impl : public gtpu_tunnel_ngu
 {
 public:
-  gtpu_tunnel_ngu_impl(ocuup::ue_index_t                           ue_index,
+  gtpu_tunnel_ngu_impl(cu_up_ue_index_t                            ue_index,
                        gtpu_tunnel_ngu_config                      cfg,
                        dlt_pcap&                                   gtpu_pcap,
                        gtpu_tunnel_ngu_rx_lower_layer_notifier&    rx_lower,

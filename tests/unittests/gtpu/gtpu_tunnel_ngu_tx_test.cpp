@@ -96,7 +96,7 @@ TEST_F(gtpu_tunnel_ngu_tx_test, entity_creation)
   tx_cfg.peer_addr                                         = "127.0.0.1";
   tx_cfg.peer_teid                                         = gtpu_teid_t{0x1};
 
-  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
+  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(cu_up_ue_index_t::MIN_CU_UP_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
 
   ASSERT_NE(tx, nullptr);
 }
@@ -109,7 +109,7 @@ TEST_F(gtpu_tunnel_ngu_tx_test, tx_sdus)
   tx_cfg.peer_addr                                         = "127.0.0.1";
   tx_cfg.peer_teid                                         = gtpu_teid_t{0x2};
 
-  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
+  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(cu_up_ue_index_t::MIN_CU_UP_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
   ASSERT_NE(tx, nullptr);
 
   for (unsigned i = 0; i < 3; i++) {
@@ -129,7 +129,7 @@ TEST_F(gtpu_tunnel_ngu_tx_test, tx_stop)
   tx_cfg.peer_addr                                         = "127.0.0.1";
   tx_cfg.peer_teid                                         = gtpu_teid_t{0x2};
 
-  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
+  tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(cu_up_ue_index_t::MIN_CU_UP_UE_INDEX, tx_cfg, dummy_pcap, tx_upper);
   ASSERT_NE(tx, nullptr);
 
   for (unsigned i = 0; i < 3; i++) {

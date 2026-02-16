@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "ocudu/cu_up/cu_up_types.h"
 #include "ocudu/gtpu/gtpu_config.h"
 #include "ocudu/gtpu/gtpu_tunnel_common_tx.h"
 #include "ocudu/gtpu/gtpu_tunnel_ngu.h"
 #include "ocudu/gtpu/gtpu_tunnel_ngu_rx.h"
 #include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/ran/cu_up_types.h"
 #include "ocudu/support/timers.h"
 #include <memory>
 
@@ -24,7 +24,7 @@
 namespace ocudu {
 
 struct gtpu_tunnel_ngu_creation_message {
-  ocuup::ue_index_t                           ue_index;
+  cu_up_ue_index_t                            ue_index;
   gtpu_tunnel_ngu_config                      cfg;
   dlt_pcap*                                   gtpu_pcap;
   gtpu_tunnel_ngu_rx_lower_layer_notifier*    rx_lower;

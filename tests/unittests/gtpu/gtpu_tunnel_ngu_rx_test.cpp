@@ -54,7 +54,8 @@ public:
     cfg.peer_teid                                         = teid;
     cfg.peer_addr                                         = "127.0.0.1";
 
-    tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, cfg, dummy_pcap, tx_upper_dummy);
+    tx = std::make_unique<gtpu_tunnel_ngu_tx_impl>(
+        cu_up_ue_index_t::MIN_CU_UP_UE_INDEX, cfg, dummy_pcap, tx_upper_dummy);
   }
 
   byte_buffer create_gtpu_pdu(byte_buffer buf, gtpu_teid_t teid, qos_flow_id_t flow_id, std::optional<uint16_t> sn)
@@ -186,7 +187,7 @@ protected:
     rx_cfg.t_reordering                                      = std::chrono::milliseconds{10};
     rx_cfg.warn_on_drop                                      = warn_on_drop;
 
-    rx = std::make_unique<gtpu_tunnel_ngu_rx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower, timers);
+    rx = std::make_unique<gtpu_tunnel_ngu_rx_impl>(cu_up_ue_index_t::MIN_CU_UP_UE_INDEX, rx_cfg, rx_lower, timers);
   }
 
   /// \brief Helper to advance the timers

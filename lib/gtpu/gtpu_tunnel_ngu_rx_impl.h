@@ -14,6 +14,7 @@
 #include "ocudu/gtpu/gtpu_config.h"
 #include "ocudu/gtpu/gtpu_tunnel_ngu_rx.h"
 #include "ocudu/psup/psup_packing.h"
+#include "ocudu/ran/cu_up_types.h"
 #include "ocudu/support/sdu_window.h"
 #include "ocudu/support/timers.h"
 
@@ -48,7 +49,7 @@ struct gtpu_rx_sdu_info {
 class gtpu_tunnel_ngu_rx_impl : public gtpu_tunnel_base_rx
 {
 public:
-  gtpu_tunnel_ngu_rx_impl(ocuup::ue_index_t                                 ue_index,
+  gtpu_tunnel_ngu_rx_impl(cu_up_ue_index_t                                  ue_index,
                           gtpu_tunnel_ngu_config::gtpu_tunnel_ngu_rx_config cfg,
                           gtpu_tunnel_ngu_rx_lower_layer_notifier&          rx_lower_,
                           timer_factory                                     ue_ctrl_timer_factory_) :

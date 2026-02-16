@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "ocudu/cu_up/cu_up_types.h"
 #include "ocudu/gtpu/gtpu_teid.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
 #include "ocudu/support/format/prefixed_logger.h"
 #include "fmt/format.h"
+#include "fmt/std.h"
 
 namespace ocudu {
 

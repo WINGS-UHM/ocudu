@@ -105,7 +105,7 @@ private:
   gtpu_tunnel_tx_upper_dummy               tx_upper_dummy;
   std::unique_ptr<gtpu_tunnel_ngu_tx_impl> tx;
   byte_buffer                              gen_pdu;
-  gtpu_tunnel_logger                       gtpu_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  gtpu_tunnel_logger                       gtpu_logger{"GTPU", {{}, gtpu_teid_t{1}, "DL"}};
 
 public:
 };
@@ -207,7 +207,7 @@ protected:
 
   // GTP-U logger
   ocudulog::basic_logger& gtpu_logger;
-  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {{}, gtpu_teid_t{1}, "DL"}};
 
   // Timers
   manual_task_worker worker{64};

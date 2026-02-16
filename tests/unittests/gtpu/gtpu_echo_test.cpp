@@ -76,8 +76,8 @@ protected:
 
   // GTP-U logger
   ocudulog::basic_logger& gtpu_logger;
-  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{0}, "DL"}};
-  gtpu_tunnel_logger      gtpu_tx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{0}, "UL"}};
+  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {{}, gtpu_teid_t{0}, "DL"}};
+  gtpu_tunnel_logger      gtpu_tx_logger{"GTPU", {{}, gtpu_teid_t{0}, "UL"}};
 
   // GTP-U echo entity
   std::unique_ptr<gtpu_echo> echo;

@@ -72,7 +72,7 @@ protected:
 
   // GTP-U logger
   ocudulog::basic_logger& gtpu_logger;
-  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {{}, gtpu_teid_t{1}, "DL"}};
 
   // Timers
   manual_task_worker worker{64};

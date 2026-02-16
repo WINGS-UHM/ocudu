@@ -35,7 +35,7 @@ public:
     cfg.peer_teid                                         = teid;
     cfg.peer_addr                                         = "127.0.0.1";
 
-    tx = std::make_unique<gtpu_tunnel_nru_tx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, cfg, dummy_pcap, tx_upper_dummy);
+    tx = std::make_unique<gtpu_tunnel_nru_tx_impl>(0, cfg, dummy_pcap, tx_upper_dummy);
   }
 
   byte_buffer create_gtpu_pdu(byte_buffer buf, gtpu_teid_t teid, uint32_t nru_sn, std::optional<uint16_t> gtpu_sn)
@@ -84,7 +84,7 @@ private:
   gtpu_tunnel_tx_upper_dummy               tx_upper_dummy;
   std::unique_ptr<gtpu_tunnel_nru_tx_impl> tx;
   byte_buffer                              gen_pdu;
-  gtpu_tunnel_logger                       gtpu_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  gtpu_tunnel_logger                       gtpu_logger{"GTPU", {{}, gtpu_teid_t{1}, "DL"}};
 
 public:
 };
@@ -168,7 +168,7 @@ protected:
 
   // GTP-U logger
   ocudulog::basic_logger& gtpu_logger;
-  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {ocuup::ue_index_t{}, gtpu_teid_t{1}, "DL"}};
+  gtpu_tunnel_logger      gtpu_rx_logger{"GTPU", {{}, gtpu_teid_t{1}, "DL"}};
 
   // Timers
   manual_task_worker worker{64};
@@ -190,7 +190,7 @@ TEST_F(gtpu_tunnel_nru_rx_test, entity_creation)
   rx_cfg.node                                              = nru_node::cu_up;
   rx_cfg.local_teid                                        = gtpu_teid_t{0x1};
 
-  rx = std::make_unique<gtpu_tunnel_nru_rx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower);
+  rx = std::make_unique<gtpu_tunnel_nru_rx_impl>(0, rx_cfg, rx_lower);
 
   ASSERT_NE(rx, nullptr);
 }
@@ -203,7 +203,7 @@ TEST_F(gtpu_tunnel_nru_rx_test, rx_no_sn)
   rx_cfg.node                                              = nru_node::du;
   rx_cfg.local_teid                                        = gtpu_teid_t{0x1};
 
-  rx = std::make_unique<gtpu_tunnel_nru_rx_impl>(ocuup::ue_index_t::MIN_UE_INDEX, rx_cfg, rx_lower);
+  rx = std::make_unique<gtpu_tunnel_nru_rx_impl>(0, rx_cfg, rx_lower);
   ASSERT_NE(rx, nullptr);
 
   sockaddr_storage src_addr;

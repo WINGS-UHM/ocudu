@@ -301,9 +301,9 @@ protected:
       (*req.cfg.lc_config_list)[drb1_idx].rrm_policy.plmn_id = plmn_identity::test_value();
       // NOTE: if drb1_slice_id = 2 and drb1_slice_id = 3 have the same priority, the scheduler
       // returns drb1_slice_id = 2 as get_next_dl_candidate, as this was build first in the list of scheduler slices.
-      // By setting slice_service_type{2} for this UE, we make sure that, when get_next_dl_candidate() returns
-      // drb1_slice_id = 3 (mapping to slice_service_type{2}), it returns this because of its higher priority, not
-      // because of the order in which the slices were built in the scheduler.
+      // By setting slice_service_type{2} (mapping to drb3_slice_id) for this UE, we make sure that, when
+      // get_next_dl_candidate() returns drb3_slice_id, it returns this because of its higher priority, not because of
+      // the order in which the slices were built in the scheduler.
       (*req.cfg.lc_config_list)[drb1_idx].rrm_policy.s_nssai = s_nssai_t{slice_service_type{2}};
     } else {
       *req.cfg.lc_config_list = lc_cfgs;
@@ -341,19 +341,18 @@ TEST_F(
     rb_ratio_slice_scheduler_test,
     when_slice_rb_ratios_are_min_bounded_but_there_are_no_other_slices_as_candidates_then_remaining_rbs_is_max_bounded)
 {
-    ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
-    run_slot();
+  ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
+  run_slot();
 
-    auto next_dl_slice = slice_sched.get_next_dl_candidate();
-    // Default SRB slice has very high priority. We ignore it as candidate for this test.
-    ASSERT_EQ(next_dl_slice->id(), SRB_RAN_SLICE_ID);
-    next_dl_slice = slice_sched.get_next_dl_candidate();
-    ASSERT_EQ(next_dl_slice->id(), drb2_slice_id);
-    ASSERT_EQ(next_dl_slice->remaining_rbs(), MAX_SLICE_RB);
-    next_dl_slice = slice_sched.get_next_dl_candidate();
-    ASSERT_FALSE(next_dl_slice.has_value());
+  auto next_dl_slice = slice_sched.get_next_dl_candidate();
+  // Default SRB slice has very high priority. We ignore it as candidate for this test.
+  ASSERT_EQ(next_dl_slice->id(), SRB_RAN_SLICE_ID);
+  next_dl_slice = slice_sched.get_next_dl_candidate();
+  ASSERT_EQ(next_dl_slice->id(), drb2_slice_id);
+  ASSERT_EQ(next_dl_slice->remaining_rbs(), MAX_SLICE_RB);
+  next_dl_slice = slice_sched.get_next_dl_candidate();
+  ASSERT_FALSE(next_dl_slice.has_value());
 }
-
 
 TEST_F(rb_ratio_slice_scheduler_test,
        when_slice_rb_ratios_are_min_bounded_and_there_are_other_slices_as_candidates_then_remaining_rbs_is_min_bounded)
@@ -541,7 +540,8 @@ protected:
   }
 };
 
-TEST_F(prioritised_slice_scheduler_test, when_drb_slice_with_min_rb_then_it_is_prioritized)
+TEST_F(prioritised_slice_scheduler_test,
+       when_drb_slice_with_min_rb_has_ues_then_it_is_prioritized_over_empty_slice_without_ded_rbs)
 {
   ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
 
@@ -713,10 +713,9 @@ protected:
   }
 };
 
-TEST_F(dedicated_empty_slice_scheduler_test, when_dedicated_resources_not_filled_then_they_remain_unused)
+TEST_F(dedicated_empty_slice_scheduler_test, when_slice_has_no_ues_its_rbs_will_still_remain_unused)
 {
   ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
-  // constexpr unsigned grant_rbs = 5;
   const unsigned max_prbs = slice_sched.slice_config(static_cast<ran_slice_id_t>(0)).rbs.max();
 
   for (unsigned count = 0, e = 10; count != e; ++count) {

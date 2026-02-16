@@ -93,9 +93,9 @@ private:
 
     void push(const slice_candidate_context& candidate)
     {
-      // if (candidate.prio == skip_prio) {
-      //   return;
-      // }
+      if (candidate.prio == skip_prio) {
+        return;
+      }
       queue.push_back(candidate);
     }
 

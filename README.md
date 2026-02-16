@@ -1,7 +1,7 @@
 # The OCUDU Project
 
 ![Pipeline](https://gitlab.com/ocudu/ocudu/badges/main/pipeline.svg)
-![Code](https://img.shields.io/badge/Code-C++-informational)
+![Code](https://img.shields.io/badge/code-C++17-informational)
 ![Build](https://img.shields.io/badge/build-CMake-informational)
 ![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11899/badge)](https://www.bestpractices.dev/projects/11899)

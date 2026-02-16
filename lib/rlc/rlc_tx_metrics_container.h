@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/rlc/rlc_mode.h"
+#include "ocudu/ran/rlc_mode.h"
 #include "ocudu/rlc/rlc_tx_metrics.h"
 #include "ocudu/support/ocudu_assert.h"
 

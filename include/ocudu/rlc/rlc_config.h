@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/pdcp/pdcp_sn_size.h"
-#include "ocudu/rlc/rlc_mode.h"
+#include "ocudu/ran/rlc_mode.h"
 #include "ocudu/support/ocudu_assert.h"
 #include "ocudu/support/timers.h"
 #include "fmt/std.h"

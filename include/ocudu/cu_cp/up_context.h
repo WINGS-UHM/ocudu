@@ -12,7 +12,7 @@
 
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ran/rb_id.h"
-#include "ocudu/rlc/rlc_config.h"
+#include "ocudu/ran/rlc_mode.h"
 #include <map>
 
 namespace ocudu {
@@ -35,7 +35,7 @@ struct up_drb_context {
   pdu_session_id_t                             pdu_session_id = pdu_session_id_t::invalid;
   s_nssai_t                                    s_nssai        = {};
   bool                                         default_drb    = false;
-  ocudu::rlc_mode                              rlc_mod;
+  rlc_mode                                     rlc_mod;
   qos_flow_level_qos_parameters                qos_params; // DRB QoS params.
   std::map<qos_flow_id_t, up_qos_flow_context> qos_flows;  // QoS flow IDs of all QoS flows mapped to this DRB.
   std::vector<up_transport_layer_info>         ul_up_tnl_info_to_be_setup_list; // Allocated by CU-UP.

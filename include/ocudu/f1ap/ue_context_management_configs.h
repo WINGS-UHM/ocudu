@@ -15,9 +15,9 @@
 #include "ocudu/ran/qos/qos_flow_id.h"
 #include "ocudu/ran/qos/qos_parameters.h"
 #include "ocudu/ran/rb_id.h"
+#include "ocudu/ran/rlc_mode.h"
 #include "ocudu/ran/s_nssai.h"
 #include "ocudu/ran/up_transport_layer_info.h"
-#include "ocudu/rlc/rlc_mode.h"
 
 namespace ocudu {
 

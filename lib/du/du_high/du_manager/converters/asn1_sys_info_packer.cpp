@@ -48,8 +48,8 @@ byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
   }
 
   /// As per TS 38.331, MIB, the field "ssb-SubcarrierOffset" in the MIB only encodes the 4 LSB of k_SSB.
-  mib.ssb_subcarrier_offset            = static_cast<uint8_t>(du_cfg.si.ssb_cfg.k_ssb.value() & 0b00001111U);
-  mib.dmrs_type_a_position.value       = du_cfg.si.dmrs_typeA_pos == dmrs_typeA_position::pos2
+  mib.ssb_subcarrier_offset            = static_cast<uint8_t>(du_cfg.ssb_cfg.k_ssb.value() & 0b00001111U);
+  mib.dmrs_type_a_position.value       = du_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2
                                              ? mib_s::dmrs_type_a_position_opts::pos2
                                              : mib_s::dmrs_type_a_position_opts::pos3;
   mib.pdcch_cfg_sib1.coreset_zero      = cs0_idx->value();
@@ -259,25 +259,25 @@ static asn1::rrc_nr::serving_cell_cfg_common_sib_s make_asn1_rrc_cell_serving_ce
     // We assume the SSB bitmap has been checked in the validator.
     for (size_t i = 0; i != nof_bits_group; ++i) {
       const bool i_th_ssb_group_has_non_zero_elems =
-          du_cfg.si.ssb_cfg.ssb_bitmap.extract(i * nof_bits_group, nof_bits_group) != 0U;
+          du_cfg.ssb_cfg.ssb_bitmap.extract(i * nof_bits_group, nof_bits_group) != 0U;
       cell.ssb_positions_in_burst.group_presence.set(i, i_th_ssb_group_has_non_zero_elems);
     }
 
-    cell.ssb_positions_in_burst.in_one_group.from_number(du_cfg.si.ssb_cfg.ssb_bitmap.extract(0U, 8U));
+    cell.ssb_positions_in_burst.in_one_group.from_number(du_cfg.ssb_cfg.ssb_bitmap.extract(0U, 8U));
     cell.ssb_positions_in_burst.group_presence_present = true;
   } else {
     // As per \c inOneGroup, \c ssb-PositionsInBurst, \c ServingCellConfigCommonSIB, TS 38.331, maximum number of
     // SS/PBCH blocks per half frame (i.e., L_max) equals to 4, only 4 left-most bits are valid; if L_max = 8, then all
     // 8 bits are valid.
-    ocudu_assert(du_cfg.si.ssb_cfg.ssb_bitmap.get_L_max() == 4U or du_cfg.si.ssb_cfg.ssb_bitmap.get_L_max() == 8U,
+    ocudu_assert(du_cfg.ssb_cfg.ssb_bitmap.get_L_max() == 4U or du_cfg.ssb_cfg.ssb_bitmap.get_L_max() == 8U,
                  "For FR1, only L_max = 4 and 8 are supported");
     cell.ssb_positions_in_burst.in_one_group.from_number(
-        du_cfg.si.ssb_cfg.ssb_bitmap.extract<uint64_t>(0U, du_cfg.si.ssb_cfg.ssb_bitmap.get_L_max())
-        << (8U - du_cfg.si.ssb_cfg.ssb_bitmap.get_L_max()));
+        du_cfg.ssb_cfg.ssb_bitmap.extract<uint64_t>(0U, du_cfg.ssb_cfg.ssb_bitmap.get_L_max())
+        << (8U - du_cfg.ssb_cfg.ssb_bitmap.get_L_max()));
   }
 
-  asn1::number_to_enum(cell.ssb_periodicity_serving_cell, ssb_periodicity_to_value(du_cfg.si.ssb_cfg.ssb_period));
-  cell.ss_pbch_block_pwr = du_cfg.si.ssb_cfg.ssb_block_power;
+  asn1::number_to_enum(cell.ssb_periodicity_serving_cell, ssb_periodicity_to_value(du_cfg.ssb_cfg.ssb_period));
+  cell.ss_pbch_block_pwr = du_cfg.ssb_cfg.ssb_block_power;
 
   const n_ta_offset ta_offset = band_helper::get_ta_offset(du_cfg.dl_carrier.band);
   switch (ta_offset) {

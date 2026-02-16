@@ -49,13 +49,13 @@ enum class sib_type : uint8_t {
 
 /// Cell reselection information common to all cell reselection types.
 struct sib2_info {
-  // Parameter "Qhyst" in TS 38.304. Hysteresis value for ranking criteria.
+  /// Parameter "Qhyst" in TS 38.304. Hysteresis value for ranking criteria.
   q_hyst_t q_hyst;
   /// \brief Parameter "ThreshServing, LowP" in TS 38.304.
   ///
   /// Rx level threshold used by the UE on the serving cell when reselecting towards a lower priority RAT/frequency.
   reselection_threshold_t thresh_serving_low_p;
-  // Integer part of the cell reselection priority for the frequency of this cell.
+  /// Integer part of the cell reselection priority for the frequency of this cell.
   cell_reselection_priority_t cell_reselection_priority;
   /// \brief Parameter "QrxLevMin" in TS 38.304.
   ///
@@ -280,25 +280,37 @@ struct si_scheduling_info_config {
 struct ue_timers_and_constants_config {
   /// t300
   /// Values (in ms): {100, 200, 300, 400, 600, 1000, 1500, 2000}
-  std::chrono::milliseconds t300;
+  std::chrono::milliseconds t300{1000};
   /// t301
   /// Values (in ms): {100, 200, 300, 400, 600, 1000, 1500, 2000}
-  std::chrono::milliseconds t301;
+  std::chrono::milliseconds t301{1000};
   /// \brief Timer triggered by UE upon detection of N310 consecutive out-of-sync indications from lower layers, as
   /// per TS 38.331, 7.1.1. Values: {ms0, ms50, ms100, ms200, ms500, ms1000, ms2000}.
-  std::chrono::milliseconds t310;
+  std::chrono::milliseconds t310{1000};
   /// n310
   /// Values: {1, 2, 3, 4, 6, 8, 10, 20}
-  unsigned n310;
+  unsigned n310 = 1;
   /// \brief Timer triggered by UE upon initiating RRC connection reestablishment procedure, as per TS 38.331 7.1.1.
   /// Values: {ms1000, ms3000, ms5000, ms10000, ms15000, ms20000, ms30000}.
-  std::chrono::milliseconds t311;
+  std::chrono::milliseconds t311{30000};
   /// n311
   /// Values: {1, 2, 3, 4, 5, 6, 8, 10}
-  unsigned n311;
+  unsigned n311 = 1;
   /// t319
   /// Values (in ms): {100, 200, 300, 400, 600, 1000, 1500, 2000}
-  std::chrono::milliseconds t319;
+  std::chrono::milliseconds t319{1000};
+};
+
+/// Parameters related to SIB1 and other-SI scheduling information.
+struct si_acquisition_info {
+  /// \c cellSelectionInfo, sent in \c SIB1, as per TS 38.331.
+  cell_selection_info cell_sel_info;
+  /// \c cellAccessRelatedInfo, sent in \c SIB1, as per TS 38.331.
+  cell_access_related_info cell_acc_rel_info;
+  /// Content and scheduling information of SI-messages.
+  std::optional<si_scheduling_info_config> si_config;
+  /// \c ueTimersAndConstants, sent in \c SIB1, as per TS 38.331.
+  ue_timers_and_constants_config ue_timers_and_constants;
 };
 
 } // namespace ocudu

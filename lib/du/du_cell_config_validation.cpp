@@ -85,10 +85,10 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 
   // TODO: Check which table to use.
   // TODO: Add checks on minimum bandwidth.
-  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.si.ssb_cfg.scs == subcarrier_spacing::kHz15) {
+  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz15) {
     // As per TS38.213, Table 13-1.
     CHECK_BELOW(cs0_idx.value(), 15, "CORESET#0 index table");
-  } else if (scs_common == subcarrier_spacing::kHz30 and cell_cfg.si.ssb_cfg.scs == subcarrier_spacing::kHz30) {
+  } else if (scs_common == subcarrier_spacing::kHz30 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz30) {
     // As per TS38.213, Table 13-4.
     CHECK_BELOW(cs0_idx.value(), 16, "CORESET#0 index table");
   }
@@ -96,7 +96,7 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 
   // This constraint is implementation-defined and comes from the fact that our PDCCH scheduler only schedules PDCCH
   // starting from the symbol index 0.
-  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.si.ssb_cfg.scs == subcarrier_spacing::kHz15) {
+  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz15) {
     // As per TS38.213, Table 13-11.
     CHECK_EQ_OR_BELOW(ss0_idx.value(), 9, "SearchSpaceZero index table");
   }
@@ -252,8 +252,8 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 
     if (std::holds_alternative<ssb_id_t>(rlm_res.detection_resource)) {
       const ssb_id_t ssb_rs_id = std::get<ssb_id_t>(rlm_res.detection_resource);
-      CHECK_TRUE(std::any_of(cell_cfg.si.ssb_cfg.beam_ids.begin(),
-                             cell_cfg.si.ssb_cfg.beam_ids.end(),
+      CHECK_TRUE(std::any_of(cell_cfg.ssb_cfg.beam_ids.begin(),
+                             cell_cfg.ssb_cfg.beam_ids.end(),
                              [ssb_rs_id](const uint8_t ssb_idx) { return ssb_idx == static_cast<uint8_t>(ssb_rs_id); }),
                  "RLM resource id={} points at SSB index={}, which wasn't found in SSB configuration",
                  fmt::underlying(rlm_res.res_id),
@@ -261,8 +261,7 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
     }
   }
 
-  const uint8_t l_max =
-      ssb_get_L_max(cell_cfg.si.ssb_cfg.scs, cell_cfg.dl_carrier.arfcn_f_ref, cell_cfg.dl_carrier.band);
+  const uint8_t l_max = ssb_get_L_max(cell_cfg.ssb_cfg.scs, cell_cfg.dl_carrier.arfcn_f_ref, cell_cfg.dl_carrier.band);
   // Check the constrains on N_RLM values in Table 5-1, TS 38.213, are met.
   if (l_max == 4U) {
     CHECK_TRUE(rlm_cfg->rlm_resources.size() <= 2, "With SSB L_max = 4, max 2 RLM resources can be configured");
@@ -309,7 +308,7 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
       if (pdsch_cfg.has_value() and pdsch_cfg->pdsch_mapping_type_a_dmrs.has_value() and
           pdsch_cfg->pdsch_mapping_type_a_dmrs->additional_positions == dmrs_additional_positions::pos3) {
         CHECK_TRUE(
-            cell_cfg.si.dmrs_typeA_pos == dmrs_typeA_position::pos2,
+            cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2,
             "PDSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
       }
     }
@@ -333,7 +332,7 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 
 static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
 {
-  const ssb_configuration& ssb_cfg    = cell_cfg.si.ssb_cfg;
+  const ssb_configuration& ssb_cfg    = cell_cfg.ssb_cfg;
   const subcarrier_spacing scs_common = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
 
   // No mixed numerologies supported (yet).
@@ -512,7 +511,7 @@ static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
                "64QAM Low Se MCS table cannot be used for PDSCH with DCI in Common SearchSpace");
   }
   if (pusch_params.additional_positions == dmrs_additional_positions::pos3) {
-    CHECK_TRUE(cell_cfg.si.dmrs_typeA_pos == dmrs_typeA_position::pos2,
+    CHECK_TRUE(cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2,
                "PUSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
   }
   if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {

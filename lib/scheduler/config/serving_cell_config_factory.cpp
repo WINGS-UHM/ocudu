@@ -680,17 +680,3 @@ uint8_t ocudu::config_helpers::compute_max_nof_candidates(aggregation_level     
   }
   return max_nof_candidates > PDCCH_MAX_NOF_CANDIDATES_SS ? PDCCH_MAX_NOF_CANDIDATES_SS : max_nof_candidates;
 }
-
-ue_timers_and_constants_config ocudu::config_helpers::make_default_ue_timers_and_constants_config()
-{
-  ue_timers_and_constants_config config;
-  config.t300 = std::chrono::milliseconds(1000);
-  config.t301 = std::chrono::milliseconds(1000);
-  config.t310 = std::chrono::milliseconds(1000);
-  config.n310 = 1;
-  config.t311 = std::chrono::milliseconds(30000);
-  config.n311 = 1;
-  config.t319 = std::chrono::milliseconds(1000);
-
-  return config;
-}

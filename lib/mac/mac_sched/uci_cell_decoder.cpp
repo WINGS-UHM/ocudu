@@ -34,7 +34,8 @@ uci_cell_decoder::uci_cell_decoder(const sched_cell_configuration_request_messag
                                    rlf_detector&                                   rlf_hdlr_) :
   rnti_table(rnti_table_),
   cell_index(cell_cfg.cell_index),
-  aperiodic_csi_report(cell_cfg.aperiodic_csi_report),
+  aperiodic_csi_report(cell_cfg.init_bwp_builder.csi.has_value() and
+                       cell_cfg.init_bwp_builder.csi->enable_aperiodic_report),
   rlf_handler(rlf_hdlr_),
   logger(ocudulog::fetch_basic_logger("MAC")),
   expected_uci_report_grid(get_ring_size(cell_cfg))

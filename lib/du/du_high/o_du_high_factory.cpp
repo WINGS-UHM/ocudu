@@ -68,9 +68,9 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   // Number of transmit and receive antenna ports.
   cell_cfg.carrier_cfg.num_tx_ant     = du_cell.dl_carrier.nof_ant;
   cell_cfg.carrier_cfg.num_rx_ant     = du_cell.ul_carrier.nof_ant;
-  cell_cfg.carrier_cfg.dmrs_typeA_pos = du_cell.si.dmrs_typeA_pos;
+  cell_cfg.carrier_cfg.dmrs_typeA_pos = du_cell.dmrs_typeA_pos;
 
-  cell_cfg.ssb_cfg              = du_cell.si.ssb_cfg;
+  cell_cfg.ssb_cfg              = du_cell.ssb_cfg;
   cell_cfg.tdd_ul_dl_cfg_common = du_cell.tdd_ul_dl_cfg_common;
   report_error_if_not(du_cell.ul_cfg_common.init_ul_bwp.rach_cfg_common, "RACH configuration not present");
 

@@ -51,18 +51,17 @@ inline odu::du_cell_config make_default_du_cell_config(const cell_config_builder
   cfg.nr_cgi.plmn_id = plmn_identity::test_value();
   cfg.nr_cgi.nci     = nr_cell_identity::create({411, 22}, 1).value();
 
-  cfg.dl_carrier                 = make_default_dl_carrier_configuration(params);
-  cfg.ul_carrier                 = make_default_ul_carrier_configuration(params);
-  cfg.dl_cfg_common              = make_default_dl_config_common(params);
-  cfg.ul_cfg_common              = make_default_ul_config_common(params);
-  cfg.si.ssb_cfg                 = make_default_ssb_config(params);
-  cfg.si.ue_timers_and_constants = make_default_ue_timers_and_constants_config();
-  cfg.tdd_ul_dl_cfg_common       = params.tdd_ul_dl_cfg_common;
+  cfg.dl_carrier    = make_default_dl_carrier_configuration(params);
+  cfg.ul_carrier    = make_default_ul_carrier_configuration(params);
+  cfg.dl_cfg_common = make_default_dl_config_common(params);
+  cfg.ul_cfg_common = make_default_ul_config_common(params);
+  cfg.ssb_cfg       = make_default_ssb_config(params);
   // The CORESET duration of 3 symbols is only permitted if dmrs-typeA-Position is set to 3. Refer TS 38.211, 7.3.2.2.
-  cfg.si.dmrs_typeA_pos = cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value().duration() >= 3U
-                              ? dmrs_typeA_position::pos3
-                              : dmrs_typeA_position::pos2;
-  cfg.init_bwp_builder  = make_default_bwp_builder_params(params);
+  cfg.dmrs_typeA_pos       = cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value().duration() >= 3U
+                                 ? dmrs_typeA_position::pos3
+                                 : dmrs_typeA_position::pos2;
+  cfg.tdd_ul_dl_cfg_common = params.tdd_ul_dl_cfg_common;
+  cfg.init_bwp_builder     = make_default_bwp_builder_params(params);
   return cfg;
 }
 
@@ -294,12 +293,12 @@ inline std::optional<radio_link_monitoring_config> make_rlm_config(const odu::du
   }
 
   const uint8_t l_max =
-      ssb_get_L_max(du_cell_cfg.si.ssb_cfg.scs, du_cell_cfg.dl_carrier.arfcn_f_ref, du_cell_cfg.dl_carrier.band);
+      ssb_get_L_max(du_cell_cfg.ssb_cfg.scs, du_cell_cfg.dl_carrier.arfcn_f_ref, du_cell_cfg.dl_carrier.band);
 
   rlm_helper::rlm_builder_params rlm_params;
   if (rlm_type == rlm_resource_type::ssb || rlm_type == rlm_resource_type::ssb_and_csi_rs) {
-    rlm_params = rlm_helper::rlm_builder_params(
-        rlm_type, l_max, du_cell_cfg.si.ssb_cfg.ssb_bitmap, du_cell_cfg.si.ssb_cfg.beam_ids);
+    rlm_params =
+        rlm_helper::rlm_builder_params(rlm_type, l_max, du_cell_cfg.ssb_cfg.ssb_bitmap, du_cell_cfg.ssb_cfg.beam_ids);
   } else {
     rlm_params = rlm_helper::rlm_builder_params(rlm_type, l_max);
   }

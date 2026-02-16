@@ -510,9 +510,9 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     }
 
     // SSB config.
-    out_cell.si.ssb_cfg.ssb_period      = static_cast<ssb_periodicity>(base_cell.ssb_cfg.ssb_period_msec);
-    out_cell.si.ssb_cfg.ssb_block_power = base_cell.ssb_cfg.ssb_block_power;
-    out_cell.si.ssb_cfg.pss_to_sss_epre = base_cell.ssb_cfg.pss_to_sss_epre;
+    out_cell.ssb_cfg.ssb_period      = static_cast<ssb_periodicity>(base_cell.ssb_cfg.ssb_period_msec);
+    out_cell.ssb_cfg.ssb_block_power = base_cell.ssb_cfg.ssb_block_power;
+    out_cell.ssb_cfg.pss_to_sss_epre = base_cell.ssb_cfg.pss_to_sss_epre;
 
     // SI message config.
     out_cell.si.si_config = make_si_sched_info_config(base_cell);

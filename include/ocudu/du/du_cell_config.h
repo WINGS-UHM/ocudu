@@ -13,9 +13,9 @@
 #include "ocudu/mac/config/mac_cell_group_params.h"
 #include "ocudu/ntn/ntn_cell_params.h"
 #include "ocudu/ran/carrier_configuration.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pci.h"
-#include "ocudu/ran/sib/si_acquisition_info.h"
 #include "ocudu/ran/sib/system_info_config.h"
 #include "ocudu/ran/ssb/ssb_configuration.h"
 #include "ocudu/ran/tac.h"
@@ -47,6 +47,11 @@ struct du_cell_config {
   /// Whether the DU automatically attempts to activate the cell or waits for a command from the SMO.
   /// Note: If set to false, the DU won't add this cell to the list of served cells in the F1 Setup Request.
   bool enabled = true;
+
+  /// SSB configuration.
+  ssb_configuration ssb_cfg;
+  /// Position of first DM-RS in Downlink, as per TS 38.211, 7.4.1.1.1.
+  dmrs_typeA_position dmrs_typeA_pos;
 
   /// Information for UE cell access and SI scheduling.
   si_acquisition_info si;

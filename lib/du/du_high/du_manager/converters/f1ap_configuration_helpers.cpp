@@ -31,14 +31,14 @@ byte_buffer ocudu::odu::make_asn1_meas_time_cfg_buffer(const du_cell_config& du_
   // MeasTiming
   meas_item.freq_and_timing_present = true;
   auto& freq_time                   = meas_item.freq_and_timing;
-  freq_time.ssb_subcarrier_spacing  = get_asn1_scs(du_cfg.si.ssb_cfg.scs);
+  freq_time.ssb_subcarrier_spacing  = get_asn1_scs(du_cfg.ssb_cfg.scs);
   freq_time.carrier_freq            = du_cfg.dl_cfg_common.freq_info_dl.absolute_frequency_ssb.value();
 
   // > Derive SSB periodicity, duration and offset.
   // TODO: Derive the correct duration.
   freq_time.ssb_meas_timing_cfg.dur.value = asn1::rrc_nr::ssb_mtc_s::dur_opts::sf5;
   // TODO: Derive the correct offset.
-  switch (du_cfg.si.ssb_cfg.ssb_period) {
+  switch (du_cfg.ssb_cfg.ssb_period) {
     case ssb_periodicity::ms5:
       freq_time.ssb_meas_timing_cfg.periodicity_and_offset.set_sf5() = 0;
       break;
@@ -58,7 +58,7 @@ byte_buffer ocudu::odu::make_asn1_meas_time_cfg_buffer(const du_cell_config& du_
       freq_time.ssb_meas_timing_cfg.periodicity_and_offset.set_sf160() = 0;
       break;
     default:
-      report_fatal_error("Invalid SSB periodicity {}.", fmt::underlying(du_cfg.si.ssb_cfg.ssb_period));
+      report_fatal_error("Invalid SSB periodicity {}.", fmt::underlying(du_cfg.ssb_cfg.ssb_period));
   }
   meas_item.pci_present = true;
   meas_item.pci         = du_cfg.pci;

@@ -87,8 +87,5 @@ create_default_initial_ue_spcell_cell_config(const cell_config_builder_params_ex
 /// \return Maximum nof. candidates for a aggregation level.
 uint8_t compute_max_nof_candidates(aggregation_level aggr_lvl, const coreset_configuration& cs_cfg);
 
-/// \brief Creates a default UE timers and constants configuration.
-ue_timers_and_constants_config make_default_ue_timers_and_constants_config();
-
 } // namespace config_helpers
 } // namespace ocudu

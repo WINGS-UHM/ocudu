@@ -64,8 +64,8 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.ul_carrier           = du_cfg.ul_carrier;
   sched_req.dl_cfg_common        = du_cfg.dl_cfg_common;
   sched_req.ul_cfg_common        = du_cfg.ul_cfg_common;
-  sched_req.ssb_config           = du_cfg.si.ssb_cfg;
-  sched_req.dmrs_typeA_pos       = du_cfg.si.dmrs_typeA_pos;
+  sched_req.ssb_config           = du_cfg.ssb_cfg;
+  sched_req.dmrs_typeA_pos       = du_cfg.dmrs_typeA_pos;
   sched_req.tdd_ul_dl_cfg_common = du_cfg.tdd_ul_dl_cfg_common;
   sched_req.nof_beams            = 1;
   // NTN parameters.
@@ -96,8 +96,7 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
 
   const auto csi_meas_cfg = config_helpers::make_csi_meas_config(du_cfg);
   if (csi_meas_cfg.has_value()) {
-    sched_req.nzp_csi_rs_res_list  = csi_meas_cfg->nzp_csi_rs_res_list;
-    sched_req.aperiodic_csi_report = is_pusch_configured(*csi_meas_cfg);
+    sched_req.nzp_csi_rs_res_list = csi_meas_cfg->nzp_csi_rs_res_list;
   }
 
   sched_req.init_bwp_builder = du_cfg.init_bwp_builder;

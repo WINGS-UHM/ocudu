@@ -10,6 +10,7 @@
 
 #include "lib/xnap/procedures/xn_setup_procedure_asn1_helpers.h"
 #include "xnap_test_helpers.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -44,6 +45,28 @@ TEST_F(xn_setup_procedure_test, when_correct_setup_received_from_peer_setup_comp
   ASSERT_EQ(rep->pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::successful_outcome);
   ASSERT_EQ(rep->pdu.successful_outcome().value.type(),
             asn1::xnap::xnap_elem_procs_o::successful_outcome_c::types_opts::xn_setup_resp);
+}
+
+TEST_F(xn_setup_procedure_test, when_xn_setup_request_required_then_setup_is_sent_to_peer)
+{
+  // Action 1: Launch XN setup procedure
+  logger.info("Launch xn setup request procedure...");
+  async_task<void>         t = xnap->handle_xn_setup_request_required();
+  lazy_task_launcher<void> t_launcher(t);
+
+  ASSERT_TRUE(t.ready());
+
+  // Check XN setup request sent to peer.
+  ASSERT_FALSE(xnc_gw.last_xnap_msgs.empty());
+  xnap_message   setup_req;
+  asn1::cbit_ref bref{xnc_gw.last_xnap_msgs.back()};
+  ASSERT_EQ(setup_req.pdu.unpack(bref), asn1::OCUDUASN_SUCCESS)
+      << "Failed to decode last XNAP message sent by the CU-CP";
+
+  // Check XN setup request.
+  ASSERT_EQ(setup_req.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::init_msg);
+  ASSERT_EQ(setup_req.pdu.init_msg().value.type(),
+            asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);
 }
 
 int main(int argc, char** argv)

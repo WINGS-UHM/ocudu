@@ -15,6 +15,7 @@
 #include "ocudu/ran/carrier_configuration.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pci.h"
+#include "ocudu/ran/sib/si_acquisition_info.h"
 #include "ocudu/ran/sib/system_info_config.h"
 #include "ocudu/ran/ssb/ssb_configuration.h"
 #include "ocudu/ran/tac.h"
@@ -43,27 +44,12 @@ struct du_cell_config {
   carrier_configuration dl_carrier;
   carrier_configuration ul_carrier;
 
-  /// subcarrierSpacing for common, used for initial access and broadcast message.
-  subcarrier_spacing scs_common;
-  ssb_configuration  ssb_cfg;
-
   /// Whether the DU automatically attempts to activate the cell or waits for a command from the SMO.
   /// Note: If set to false, the DU won't add this cell to the list of served cells in the F1 Setup Request.
   bool enabled = true;
 
-  dmrs_typeA_position dmrs_typeA_pos;
-
-  /// \c cellSelectionInfo, \c SIB1, as per TS 38.331.
-  cell_selection_info cell_sel_info;
-
-  /// \c cellAccessRelatedInfo, sent in \c SIB1, as per TS 38.331.
-  cell_access_related_info cell_acc_rel_info;
-
-  /// Content and scheduling information of SI-messages.
-  std::optional<si_scheduling_info_config> si_config;
-
-  /// \c ueTimersAndConstants, sent in \c SIB1, as per TS 38.331.
-  ue_timers_and_constants_config ue_timers_and_constants;
+  /// Information for UE cell access and SI scheduling.
+  si_acquisition_info si;
 
   /// Cell-specific DL and UL configuration used by common searchSpaces.
   dl_config_common dl_cfg_common;

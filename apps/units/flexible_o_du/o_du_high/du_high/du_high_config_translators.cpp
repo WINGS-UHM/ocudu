@@ -501,34 +501,39 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cell.enabled        = base_cell.enabled;
 
     // Cell selection parameters.
-    out_cell.cell_sel_info.q_rx_lev_min = base_cell.q_rx_lev_min;
-    out_cell.cell_sel_info.q_qual_min   = base_cell.q_qual_min;
+    out_cell.si.cell_sel_info.q_rx_lev_min = base_cell.q_rx_lev_min;
+    out_cell.si.cell_sel_info.q_qual_min   = base_cell.q_qual_min;
 
     // Cell access Related Info parameters.
     for (const auto& plmn : base_cell.additional_plmns) {
-      out_cell.cell_acc_rel_info.additional_plmns.push_back(plmn_identity::parse(plmn).value());
+      out_cell.si.cell_acc_rel_info.additional_plmns.push_back(plmn_identity::parse(plmn).value());
     }
 
     // SSB config.
-    out_cell.ssb_cfg.ssb_period      = static_cast<ssb_periodicity>(base_cell.ssb_cfg.ssb_period_msec);
-    out_cell.ssb_cfg.ssb_block_power = base_cell.ssb_cfg.ssb_block_power;
-    out_cell.ssb_cfg.pss_to_sss_epre = base_cell.ssb_cfg.pss_to_sss_epre;
+    out_cell.si.ssb_cfg.ssb_period      = static_cast<ssb_periodicity>(base_cell.ssb_cfg.ssb_period_msec);
+    out_cell.si.ssb_cfg.ssb_block_power = base_cell.ssb_cfg.ssb_block_power;
+    out_cell.si.ssb_cfg.pss_to_sss_epre = base_cell.ssb_cfg.pss_to_sss_epre;
 
     // SI message config.
-    out_cell.si_config = make_si_sched_info_config(base_cell);
-    if (out_cell.si_config.has_value()) {
+    out_cell.si.si_config = make_si_sched_info_config(base_cell);
+    if (out_cell.si.si_config.has_value()) {
       // Enable otherSI search space.
       out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.other_si_search_space_id = to_search_space_id(1);
     }
 
     // UE timers and constants config.
-    out_cell.ue_timers_and_constants.t300 = std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t300);
-    out_cell.ue_timers_and_constants.t301 = std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t301);
-    out_cell.ue_timers_and_constants.t310 = std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t310);
-    out_cell.ue_timers_and_constants.n310 = base_cell.sib_cfg.ue_timers_and_constants.n310;
-    out_cell.ue_timers_and_constants.t311 = std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t311);
-    out_cell.ue_timers_and_constants.n311 = base_cell.sib_cfg.ue_timers_and_constants.n311;
-    out_cell.ue_timers_and_constants.t319 = std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t319);
+    out_cell.si.ue_timers_and_constants.t300 =
+        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t300);
+    out_cell.si.ue_timers_and_constants.t301 =
+        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t301);
+    out_cell.si.ue_timers_and_constants.t310 =
+        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t310);
+    out_cell.si.ue_timers_and_constants.n310 = base_cell.sib_cfg.ue_timers_and_constants.n310;
+    out_cell.si.ue_timers_and_constants.t311 =
+        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t311);
+    out_cell.si.ue_timers_and_constants.n311 = base_cell.sib_cfg.ue_timers_and_constants.n311;
+    out_cell.si.ue_timers_and_constants.t319 =
+        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t319);
 
     // Carrier config.
     out_cell.dl_carrier.nof_ant = base_cell.nof_antennas_dl;

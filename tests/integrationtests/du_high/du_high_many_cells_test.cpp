@@ -413,7 +413,7 @@ TEST_F(du_high_many_cells_metrics_test, when_du_metrics_are_configured_then_metr
 
   // Drop the first metrics report as it may not contain all slots.
   const unsigned metrics_period_slots =
-      METRICS_PERIOD.count() * get_nof_slots_per_subframe(du_high_cfg.ran.cells[0].scs_common);
+      METRICS_PERIOD.count() * get_nof_slots_per_subframe(du_high_cfg.ran.cells[0].si.scs_common);
   const unsigned nof_test_slots = metrics_period_slots + 20;
   ASSERT_TRUE(run_until(
       [this]() {

@@ -3329,7 +3329,7 @@ static ssb_mtc_s make_ssb_mtc(const du_cell_config& du_cell_cfg)
   ssb_mtc_s ret;
 
   // TODO: Derive the correct duration.
-  switch (du_cell_cfg.ssb_cfg.ssb_period) {
+  switch (du_cell_cfg.si.ssb_cfg.ssb_period) {
     case ssb_periodicity::ms5:
       ret.periodicity_and_offset.set_sf5() = 0;
       break;
@@ -3349,7 +3349,7 @@ static ssb_mtc_s make_ssb_mtc(const du_cell_config& du_cell_cfg)
       ret.periodicity_and_offset.set_sf160() = 0;
       break;
     default:
-      report_fatal_error("Invalud SSB period={}", fmt::underlying(du_cell_cfg.ssb_cfg.ssb_period));
+      report_fatal_error("Invalud SSB period={}", fmt::underlying(du_cell_cfg.si.ssb_cfg.ssb_period));
   }
   ret.dur.value = ssb_mtc_s::dur_opts::sf5;
 
@@ -3403,30 +3403,30 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   // As per \c ssb-PositionsInBurst, in \c ServingCellConfigCommon, TS 38.331, the length of \c ssb-PositionsInBurst
   // needs to be set according to TS 38.213, Section 4.1.
   out.sp_cell_cfg_common.ssb_positions_in_burst_present = true;
-  const uint8_t l_max                                   = du_cell_cfg.ssb_cfg.ssb_bitmap.get_L_max();
+  const uint8_t l_max                                   = du_cell_cfg.si.ssb_cfg.ssb_bitmap.get_L_max();
   ocudu_assert(l_max == 4U or l_max == 8U or l_max == 64U, "L_max value {} not valid", l_max);
   if (l_max == 4U) {
     out.sp_cell_cfg_common.ssb_positions_in_burst.set_short_bitmap().from_number(
-        du_cell_cfg.ssb_cfg.ssb_bitmap.to_uint64());
+        du_cell_cfg.si.ssb_cfg.ssb_bitmap.to_uint64());
   } else if (l_max == 8U) {
     out.sp_cell_cfg_common.ssb_positions_in_burst.set_medium_bitmap().from_number(
-        du_cell_cfg.ssb_cfg.ssb_bitmap.to_uint64());
+        du_cell_cfg.si.ssb_cfg.ssb_bitmap.to_uint64());
   } else {
     out.sp_cell_cfg_common.ssb_positions_in_burst.set_long_bitmap().from_number(
-        du_cell_cfg.ssb_cfg.ssb_bitmap.to_uint64());
+        du_cell_cfg.si.ssb_cfg.ssb_bitmap.to_uint64());
   }
 
   out.sp_cell_cfg_common.ssb_periodicity_serving_cell_present = true;
   asn1::number_to_enum(out.sp_cell_cfg_common.ssb_periodicity_serving_cell,
-                       ssb_periodicity_to_value(du_cell_cfg.ssb_cfg.ssb_period));
+                       ssb_periodicity_to_value(du_cell_cfg.si.ssb_cfg.ssb_period));
 
-  out.sp_cell_cfg_common.dmrs_type_a_position.value = du_cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2
+  out.sp_cell_cfg_common.dmrs_type_a_position.value = du_cell_cfg.si.dmrs_typeA_pos == dmrs_typeA_position::pos2
                                                           ? serving_cell_cfg_common_s::dmrs_type_a_position_opts::pos2
                                                           : serving_cell_cfg_common_s::dmrs_type_a_position_opts::pos3;
 
   // > ssbSubcarrierSpacing SubcarrierSpacing OPTIONAL, -- Cond HOAndServCellWithSSB
   out.sp_cell_cfg_common.ssb_subcarrier_spacing_present = true;
-  out.sp_cell_cfg_common.ssb_subcarrier_spacing.value   = get_asn1_scs(du_cell_cfg.ssb_cfg.scs);
+  out.sp_cell_cfg_common.ssb_subcarrier_spacing.value   = get_asn1_scs(du_cell_cfg.si.ssb_cfg.scs);
 
   // > tdd-UL-DL-ConfigurationCommon TDD-UL-DL-ConfigCommon OPTIONAL, -- Cond TDD
   out.sp_cell_cfg_common.tdd_ul_dl_cfg_common_present = du_cell_cfg.tdd_ul_dl_cfg_common.has_value();
@@ -3436,7 +3436,7 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   }
 
   // ss-PBCH-BlockPower INTEGER (-60..50)
-  out.sp_cell_cfg_common.ss_pbch_block_pwr = du_cell_cfg.ssb_cfg.ssb_block_power;
+  out.sp_cell_cfg_common.ss_pbch_block_pwr = du_cell_cfg.si.ssb_cfg.ssb_block_power;
 
   out.new_ue_id = to_value(rnti);
 

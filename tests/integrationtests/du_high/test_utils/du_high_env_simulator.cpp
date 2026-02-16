@@ -116,11 +116,12 @@ du_high_env_simulator::du_high_env_simulator(const du_high_configuration& du_hi_
   }()),
   du_hi(make_du_high(du_high_cfg, du_hi_dependencies)),
   phy(du_high_cfg.ran.cells.size(), workers.test_worker),
-  next_slot(du_high_cfg.ran.cells[0].scs_common,
-            test_rgen::uniform_int<unsigned>(0,
-                                             NOF_SFNS * NOF_HYPER_SFNS * NOF_SUBFRAMES_PER_FRAME *
-                                                     get_nof_slots_per_subframe(du_high_cfg.ran.cells[0].scs_common) -
-                                                 1))
+  next_slot(
+      du_high_cfg.ran.cells[0].si.scs_common,
+      test_rgen::uniform_int<unsigned>(0,
+                                       NOF_SFNS * NOF_HYPER_SFNS * NOF_SUBFRAMES_PER_FRAME *
+                                               get_nof_slots_per_subframe(du_high_cfg.ran.cells[0].si.scs_common) -
+                                           1))
 {
   if (auto_start) {
     // Start DU and try to connect to CU.

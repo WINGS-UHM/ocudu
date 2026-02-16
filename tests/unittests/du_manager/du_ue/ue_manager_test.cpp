@@ -314,7 +314,7 @@ public:
 
   void tick_until_rlf_timeout()
   {
-    const auto&    ue_timers       = params.ran.cells[0].ue_timers_and_constants;
+    const auto&    ue_timers       = params.ran.cells[0].si.ue_timers_and_constants;
     const unsigned release_timeout = (ue_timers.t310 + ue_timers.t311).count();
     for (unsigned i = 0; i != release_timeout; ++i) {
       timers.tick();

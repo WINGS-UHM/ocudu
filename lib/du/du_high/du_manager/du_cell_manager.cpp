@@ -99,14 +99,14 @@ du_cell_manager::handle_cell_reconf_request(const du_cell_param_config_request& 
   du_cell_config& cell_cfg   = cell.cfg;
   bool            si_updated = false;
 
-  if (req.ssb_pwr_mod.has_value() and req.ssb_pwr_mod.value() != cell_cfg.ssb_cfg.ssb_block_power) {
+  if (req.ssb_pwr_mod.has_value() and req.ssb_pwr_mod.value() != cell_cfg.si.ssb_cfg.ssb_block_power) {
     // SSB power changed.
-    cell_cfg.ssb_cfg.ssb_block_power = req.ssb_pwr_mod.value();
-    si_updated                       = true;
+    cell_cfg.si.ssb_cfg.ssb_block_power = req.ssb_pwr_mod.value();
+    si_updated                          = true;
   }
 
   const unsigned nof_prbs = band_helper::get_n_rbs_from_bw(
-      cell_cfg.dl_carrier.carrier_bw, cell_cfg.scs_common, band_helper::get_freq_range(cell_cfg.dl_carrier.band));
+      cell_cfg.dl_carrier.carrier_bw, cell_cfg.si.scs_common, band_helper::get_freq_range(cell_cfg.dl_carrier.band));
 
   du_cell_reconfig_result result;
   result.slice_reconf_req.emplace();

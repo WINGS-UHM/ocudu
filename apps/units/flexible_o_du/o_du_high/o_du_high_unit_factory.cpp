@@ -65,9 +65,9 @@ void ocudu::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
         cell.dl_carrier.arfcn_f_ref,
         cell.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
         to_string(cell.dl_cfg_common.init_dl_bwp.generic_params.scs),
-        to_string(cell.ssb_cfg.scs),
-        cell.ssb_cfg.offset_to_point_A.value(),
-        cell.ssb_cfg.k_ssb.value(),
+        to_string(cell.si.ssb_cfg.scs),
+        cell.si.ssb_cfg.offset_to_point_A.value(),
+        cell.si.ssb_cfg.k_ssb.value(),
         cell.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
         cs0_idx.value(),
         ss0_idx.value());

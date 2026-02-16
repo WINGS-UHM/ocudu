@@ -197,7 +197,7 @@ private:
     // the UE to perform C-RNTI CE (t310) and/or RRC re-establishment (t311).
     // Note: When the UE is initially created, it does not yet have a SRB2+DRB configured, so we do not need to account
     // for the t311 in the RLF timer, as the UE won't try to do RRC re-establishment at that stage.
-    const auto& ue_timers = cfg.ran.cells[ue_ctx.pcell_index].ue_timers_and_constants;
+    const auto& ue_timers = cfg.ran.cells[ue_ctx.pcell_index].si.ue_timers_and_constants;
 
     bool has_srb2_and_drb = ue_ctx.bearers.srbs().contains(srb_id_t::srb2) and not ue_ctx.bearers.drbs().empty();
     return has_srb2_and_drb ? ue_timers.t310 + ue_timers.t311 : ue_timers.t310;

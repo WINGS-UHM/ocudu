@@ -61,7 +61,7 @@ static du_param_config_request make_dummy_request(span<const du_cell_config> cel
   du_param_config_request req;
   req.cells.resize(1);
   req.cells[0].nr_cgi      = cell_cfgs[0].nr_cgi;
-  req.cells[0].ssb_pwr_mod = cell_cfgs[0].ssb_cfg.ssb_block_power + 1;
+  req.cells[0].ssb_pwr_mod = cell_cfgs[0].si.ssb_cfg.ssb_block_power + 1;
   return req;
 }
 

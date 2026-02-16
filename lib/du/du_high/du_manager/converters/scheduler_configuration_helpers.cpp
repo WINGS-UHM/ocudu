@@ -23,19 +23,20 @@ using namespace odu;
 std::optional<si_scheduling_config> ocudu::odu::make_si_scheduling_info_config(const du_cell_config&    du_cfg,
                                                                                span<const units::bytes> si_message_lens)
 {
-  ocudu_assert(si_message_lens.size() == (du_cfg.si_config.has_value() ? du_cfg.si_config->si_sched_info.size() : 0),
+  ocudu_assert(si_message_lens.size() ==
+                   (du_cfg.si.si_config.has_value() ? du_cfg.si.si_config->si_sched_info.size() : 0),
                "Number of SI messages does not match the number of SI payload sizes");
 
   std::optional<si_scheduling_config> sched_req;
 
-  if (du_cfg.si_config.has_value()) {
+  if (du_cfg.si.si_config.has_value()) {
     sched_req.emplace();
-    sched_req->si_window_len_slots = du_cfg.si_config->si_window_len_slots;
-    sched_req->si_messages.resize(du_cfg.si_config->si_sched_info.size());
-    for (unsigned i = 0, sz = du_cfg.si_config->si_sched_info.size(); i != sz; ++i) {
-      sched_req->si_messages[i].period_radio_frames = du_cfg.si_config->si_sched_info[i].si_period_radio_frames;
+    sched_req->si_window_len_slots = du_cfg.si.si_config->si_window_len_slots;
+    sched_req->si_messages.resize(du_cfg.si.si_config->si_sched_info.size());
+    for (unsigned i = 0, sz = du_cfg.si.si_config->si_sched_info.size(); i != sz; ++i) {
+      sched_req->si_messages[i].period_radio_frames = du_cfg.si.si_config->si_sched_info[i].si_period_radio_frames;
       sched_req->si_messages[i].msg_len             = si_message_lens[i];
-      sched_req->si_messages[i].si_window_position  = du_cfg.si_config->si_sched_info[i].si_window_position;
+      sched_req->si_messages[i].si_window_position  = du_cfg.si.si_config->si_sched_info[i].si_window_position;
     }
   }
 
@@ -52,7 +53,7 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   ocudu_assert(sib1_len.value() > 0, "SIB1 payload size needs to be set");
   ocudu_assert(si_sched_cfg.has_value()
                    ? si_sched_cfg->si_messages.size()
-                   : 0 == (du_cfg.si_config.has_value() ? du_cfg.si_config->si_sched_info.size() : 0),
+                   : 0 == (du_cfg.si.si_config.has_value() ? du_cfg.si.si_config->si_sched_info.size() : 0),
                "Number of SI messages does not match the number of SI payload sizes");
 
   sched_cell_configuration_request_message sched_req{};
@@ -63,15 +64,15 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.ul_carrier           = du_cfg.ul_carrier;
   sched_req.dl_cfg_common        = du_cfg.dl_cfg_common;
   sched_req.ul_cfg_common        = du_cfg.ul_cfg_common;
-  sched_req.scs_common           = du_cfg.scs_common;
-  sched_req.ssb_config           = du_cfg.ssb_cfg;
-  sched_req.dmrs_typeA_pos       = du_cfg.dmrs_typeA_pos;
+  sched_req.scs_common           = du_cfg.si.scs_common;
+  sched_req.ssb_config           = du_cfg.si.ssb_cfg;
+  sched_req.dmrs_typeA_pos       = du_cfg.si.dmrs_typeA_pos;
   sched_req.tdd_ul_dl_cfg_common = du_cfg.tdd_ul_dl_cfg_common;
   sched_req.nof_beams            = 1;
   // NTN parameters.
   if (du_cfg.ntn_params.has_value()) {
     sched_req.ntn_cs_koffset =
-        du_cfg.ntn_params->ntn_cfg.cell_specific_koffset->count() * get_nof_slots_per_subframe(du_cfg.scs_common);
+        du_cfg.ntn_params->ntn_cfg.cell_specific_koffset->count() * get_nof_slots_per_subframe(du_cfg.si.scs_common);
     sched_req.ul_harq_mode_b = du_cfg.ntn_params->ul_harq_mode_b;
   } else {
     sched_req.ntn_cs_koffset = 0;

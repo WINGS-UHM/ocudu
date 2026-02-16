@@ -38,9 +38,9 @@ using namespace ocudu;
 static fapi::carrier_config generate_carrier_config_tlv(const odu::du_cell_config& du_cell)
 {
   // Deduce common numerology and grid size for DL and UL.
-  unsigned numerology       = to_numerology_value(du_cell.scs_common);
+  unsigned numerology       = to_numerology_value(du_cell.si.scs_common);
   unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
-      du_cell.dl_carrier.carrier_bw, du_cell.scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
+      du_cell.dl_carrier.carrier_bw, du_cell.si.scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
 
   fapi::carrier_config fapi_config = {};
 
@@ -74,8 +74,8 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
         .sector_id                     = i,
         .nof_slots_request_headroom    = du_low_unit_cfg.expert_phy_cfg.nof_slots_request_headroom,
         .allow_request_on_empty_ul_tti = du_low_unit_cfg.expert_phy_cfg.allow_request_on_empty_uplink_slot,
-        .scs                           = cell.scs_common,
-        .scs_common                    = cell.scs_common,
+        .scs                           = cell.si.scs_common,
+        .scs_common                    = cell.si.scs_common,
         .carrier_cfg                   = generate_carrier_config_tlv(cell),
         .prach_cfg                     = *cell.ul_cfg_common.init_ul_bwp.rach_cfg_common,
         .prach_ports                   = du_hi_cell.cell.prach_cfg.ports,
@@ -91,11 +91,11 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
     du_low_cell.duplex     = band_helper::get_duplex_mode(band);
     du_low_cell.freq_range = band_helper::get_freq_range(band);
     du_low_cell.bw_rb =
-        band_helper::get_n_rbs_from_bw(cell.dl_carrier.carrier_bw, cell.scs_common, du_low_cell.freq_range);
+        band_helper::get_n_rbs_from_bw(cell.dl_carrier.carrier_bw, cell.si.scs_common, du_low_cell.freq_range);
     du_low_cell.nof_rx_antennas = cell.ul_carrier.nof_ant;
     du_low_cell.nof_tx_antennas = cell.dl_carrier.nof_ant;
     du_low_cell.prach_ports     = du_hi_cell.cell.prach_cfg.ports;
-    du_low_cell.scs_common      = cell.scs_common;
+    du_low_cell.scs_common      = cell.si.scs_common;
     du_low_cell.prach_config_index =
         cell.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index;
     du_low_cell.max_puschs_per_slot  = du_hi_cell.cell.pusch_cfg.max_puschs_per_slot;
@@ -117,7 +117,7 @@ generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_proc
     auto& out_cell           = out_cfg.cells.emplace_back();
     out_cell.nof_tx_antennas = cell.dl_carrier.nof_ant;
     out_cell.nof_rx_antennas = cell.ul_carrier.nof_ant;
-    out_cell.scs             = cell.scs_common;
+    out_cell.scs             = cell.si.scs_common;
     out_cell.dl_arfcn        = cell.dl_carrier.arfcn_f_ref.value();
     out_cell.ul_arfcn        = cell.ul_carrier.arfcn_f_ref.value();
     out_cell.tdd_config      = cell.tdd_ul_dl_cfg_common;

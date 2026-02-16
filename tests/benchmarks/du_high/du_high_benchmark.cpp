@@ -1263,7 +1263,7 @@ void benchmark_dl_ul_only_rlc_um(benchmarker&                   bm,
   bench.stop();
   ocudulog::flush();
 
-  const subcarrier_spacing scs = bench.cfg.ran.cells[0].scs_common;
+  const subcarrier_spacing scs = bench.cfg.ran.cells[0].si.scs_common;
   const double pdschs_per_slot = bench.sim_phy.metrics.nof_dl_grants / (double)bench.sim_phy.metrics.slot_dl_count;
   const double puschs_per_slot = bench.sim_phy.metrics.nof_ul_grants / (double)bench.sim_phy.metrics.slot_ul_count;
   fmt::print("\nStats: #slots={}, #PDSCHs={}, #PDSCHs-per-slot={:.3}, dl_bitrate={:.3} Mbps, #PUSCHs={}, "

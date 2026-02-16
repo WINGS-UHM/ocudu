@@ -32,7 +32,7 @@ byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
   ocudu_assert(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
 
   mib_s mib;
-  switch (du_cfg.scs_common) {
+  switch (du_cfg.si.scs_common) {
     case ocudu::subcarrier_spacing::kHz15:
     case ocudu::subcarrier_spacing::kHz60:
       mib.sub_carrier_spacing_common.value = mib_s::sub_carrier_spacing_common_opts::scs15or60;
@@ -47,8 +47,8 @@ byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
   }
 
   /// As per TS 38.331, MIB, the field "ssb-SubcarrierOffset" in the MIB only encodes the 4 LSB of k_SSB.
-  mib.ssb_subcarrier_offset            = static_cast<uint8_t>(du_cfg.ssb_cfg.k_ssb.value() & 0b00001111U);
-  mib.dmrs_type_a_position.value       = du_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2
+  mib.ssb_subcarrier_offset            = static_cast<uint8_t>(du_cfg.si.ssb_cfg.k_ssb.value() & 0b00001111U);
+  mib.dmrs_type_a_position.value       = du_cfg.si.dmrs_typeA_pos == dmrs_typeA_position::pos2
                                              ? mib_s::dmrs_type_a_position_opts::pos2
                                              : mib_s::dmrs_type_a_position_opts::pos3;
   mib.pdcch_cfg_sib1.coreset_zero      = cs0_idx->value();
@@ -258,25 +258,25 @@ static asn1::rrc_nr::serving_cell_cfg_common_sib_s make_asn1_rrc_cell_serving_ce
     // We assume the SSB bitmap has been checked in the validator.
     for (size_t i = 0; i != nof_bits_group; ++i) {
       const bool i_th_ssb_group_has_non_zero_elems =
-          du_cfg.ssb_cfg.ssb_bitmap.extract(i * nof_bits_group, nof_bits_group) != 0U;
+          du_cfg.si.ssb_cfg.ssb_bitmap.extract(i * nof_bits_group, nof_bits_group) != 0U;
       cell.ssb_positions_in_burst.group_presence.set(i, i_th_ssb_group_has_non_zero_elems);
     }
 
-    cell.ssb_positions_in_burst.in_one_group.from_number(du_cfg.ssb_cfg.ssb_bitmap.extract(0U, 8U));
+    cell.ssb_positions_in_burst.in_one_group.from_number(du_cfg.si.ssb_cfg.ssb_bitmap.extract(0U, 8U));
     cell.ssb_positions_in_burst.group_presence_present = true;
   } else {
     // As per \c inOneGroup, \c ssb-PositionsInBurst, \c ServingCellConfigCommonSIB, TS 38.331, maximum number of
     // SS/PBCH blocks per half frame (i.e., L_max) equals to 4, only 4 left-most bits are valid; if L_max = 8, then all
     // 8 bits are valid.
-    ocudu_assert(du_cfg.ssb_cfg.ssb_bitmap.get_L_max() == 4U or du_cfg.ssb_cfg.ssb_bitmap.get_L_max() == 8U,
+    ocudu_assert(du_cfg.si.ssb_cfg.ssb_bitmap.get_L_max() == 4U or du_cfg.si.ssb_cfg.ssb_bitmap.get_L_max() == 8U,
                  "For FR1, only L_max = 4 and 8 are supported");
     cell.ssb_positions_in_burst.in_one_group.from_number(
-        du_cfg.ssb_cfg.ssb_bitmap.extract<uint64_t>(0U, du_cfg.ssb_cfg.ssb_bitmap.get_L_max())
-        << (8U - du_cfg.ssb_cfg.ssb_bitmap.get_L_max()));
+        du_cfg.si.ssb_cfg.ssb_bitmap.extract<uint64_t>(0U, du_cfg.si.ssb_cfg.ssb_bitmap.get_L_max())
+        << (8U - du_cfg.si.ssb_cfg.ssb_bitmap.get_L_max()));
   }
 
-  asn1::number_to_enum(cell.ssb_periodicity_serving_cell, ssb_periodicity_to_value(du_cfg.ssb_cfg.ssb_period));
-  cell.ss_pbch_block_pwr = du_cfg.ssb_cfg.ssb_block_power;
+  asn1::number_to_enum(cell.ssb_periodicity_serving_cell, ssb_periodicity_to_value(du_cfg.si.ssb_cfg.ssb_period));
+  cell.ss_pbch_block_pwr = du_cfg.si.ssb_cfg.ssb_block_power;
 
   const n_ta_offset ta_offset = band_helper::get_ta_offset(du_cfg.dl_carrier.band);
   switch (ta_offset) {
@@ -348,13 +348,13 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
   sib1_s sib1;
 
   sib1.cell_sel_info_present            = true;
-  sib1.cell_sel_info.q_rx_lev_min       = du_cfg.cell_sel_info.q_rx_lev_min.value();
+  sib1.cell_sel_info.q_rx_lev_min       = du_cfg.si.cell_sel_info.q_rx_lev_min.value();
   sib1.cell_sel_info.q_qual_min_present = true;
-  sib1.cell_sel_info.q_qual_min         = du_cfg.cell_sel_info.q_qual_min.value();
+  sib1.cell_sel_info.q_qual_min         = du_cfg.si.cell_sel_info.q_qual_min.value();
 
   auto& asn1_plmn_id_info_list = sib1.cell_access_related_info.plmn_id_info_list;
   asn1_plmn_id_info_list.push_back(make_asn1_plmn_id_info(du_cfg.nr_cgi.plmn_id, du_cfg.tac, du_cfg.nr_cgi.nci));
-  for (auto& add_plmn : du_cfg.cell_acc_rel_info.additional_plmns) {
+  for (auto& add_plmn : du_cfg.si.cell_acc_rel_info.additional_plmns) {
     asn1_plmn_id_info_list[0].plmn_id_list.push_back(make_asn1_plmn_id(add_plmn));
   }
 
@@ -365,14 +365,14 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
   sib1.conn_est_fail_ctrl.conn_est_fail_offset_present = true;
   sib1.conn_est_fail_ctrl.conn_est_fail_offset         = 1;
 
-  if (du_cfg.si_config.has_value()) {
+  if (du_cfg.si.si_config.has_value()) {
     // Populate the SI Scheduling info list.
-    if (!du_cfg.si_config->si_sched_info.empty()) {
-      bool ret = asn1::number_to_enum(sib1.si_sched_info.si_win_len, du_cfg.si_config.value().si_window_len_slots);
+    if (!du_cfg.si.si_config->si_sched_info.empty()) {
+      bool ret = asn1::number_to_enum(sib1.si_sched_info.si_win_len, du_cfg.si.si_config.value().si_window_len_slots);
       ocudu_assert(ret, "Invalid SI window length");
 
       // For each SI message in the configuration...
-      for (const auto& cfg_si : du_cfg.si_config->si_sched_info) {
+      for (const auto& cfg_si : du_cfg.si.si_config->si_sched_info) {
         // Prepare a SchedulingInfo element. This holds information for an SI message carrying SIBs 2, 6, 7 or 8.
         sched_info_s asn1_si;
         asn1_si.si_broadcast_status.value = sched_info_s::si_broadcast_status_opts::broadcasting;
@@ -391,7 +391,7 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
         for (const sib_type mapping_info : cfg_si.sib_mapping_info) {
           // For each entry in the mapping info, find the matching SIB.
           auto sib_id = static_cast<unsigned>(mapping_info);
-          for (const auto& sib : du_cfg.si_config->sibs) {
+          for (const auto& sib : du_cfg.si.si_config->sibs) {
             sib_type type = get_sib_info_type(sib);
             if (type == mapping_info) {
               switch (type) {
@@ -458,26 +458,26 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
 
   sib1.ue_timers_and_consts_present = true;
 
-  bool ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t300, du_cfg.ue_timers_and_constants.t300.count());
-  ocudu_assert(ret, "Invalid value for T300: {}", du_cfg.ue_timers_and_constants.t300.count());
+  bool ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t300, du_cfg.si.ue_timers_and_constants.t300.count());
+  ocudu_assert(ret, "Invalid value for T300: {}", du_cfg.si.ue_timers_and_constants.t300.count());
 
-  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t301, du_cfg.ue_timers_and_constants.t301.count());
-  ocudu_assert(ret, "Invalid value for T301: {}", du_cfg.ue_timers_and_constants.t301.count());
+  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t301, du_cfg.si.ue_timers_and_constants.t301.count());
+  ocudu_assert(ret, "Invalid value for T301: {}", du_cfg.si.ue_timers_and_constants.t301.count());
 
-  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t310, du_cfg.ue_timers_and_constants.t310.count());
-  ocudu_assert(ret, "Invalid value for T310: {}", du_cfg.ue_timers_and_constants.t310.count());
+  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t310, du_cfg.si.ue_timers_and_constants.t310.count());
+  ocudu_assert(ret, "Invalid value for T310: {}", du_cfg.si.ue_timers_and_constants.t310.count());
 
-  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.n310, du_cfg.ue_timers_and_constants.n310);
-  ocudu_assert(ret, "Invalid value for N310: {}", du_cfg.ue_timers_and_constants.n310);
+  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.n310, du_cfg.si.ue_timers_and_constants.n310);
+  ocudu_assert(ret, "Invalid value for N310: {}", du_cfg.si.ue_timers_and_constants.n310);
 
-  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t311, du_cfg.ue_timers_and_constants.t311.count());
-  ocudu_assert(ret, "Invalid value for T311: {}", du_cfg.ue_timers_and_constants.t311.count());
+  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t311, du_cfg.si.ue_timers_and_constants.t311.count());
+  ocudu_assert(ret, "Invalid value for T311: {}", du_cfg.si.ue_timers_and_constants.t311.count());
 
-  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.n311, du_cfg.ue_timers_and_constants.n311);
-  ocudu_assert(ret, "Invalid value for N311: {}", du_cfg.ue_timers_and_constants.n311);
+  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.n311, du_cfg.si.ue_timers_and_constants.n311);
+  ocudu_assert(ret, "Invalid value for N311: {}", du_cfg.si.ue_timers_and_constants.n311);
 
-  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t319, du_cfg.ue_timers_and_constants.t319.count());
-  ocudu_assert(ret, "Invalid value for T319: {}", du_cfg.ue_timers_and_constants.t319.count());
+  ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t319, du_cfg.si.ue_timers_and_constants.t319.count());
+  ocudu_assert(ret, "Invalid value for T319: {}", du_cfg.si.ue_timers_and_constants.t319.count());
 
   if (du_cfg.init_bwp_builder.paging.edrx_enabled) {
     sib1.non_crit_ext_present                           = true;
@@ -958,10 +958,10 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
   }
 
   // Pack SI messages.
-  if (du_cfg.si_config.has_value()) {
-    const auto& sibs = du_cfg.si_config.value().sibs;
+  if (du_cfg.si.si_config.has_value()) {
+    const auto& sibs = du_cfg.si.si_config.value().sibs;
 
-    for (const auto& si_sched : du_cfg.si_config.value().si_sched_info) {
+    for (const auto& si_sched : du_cfg.si.si_config.value().si_sched_info) {
       // Pack SI messages that contain multiple SIBs.
       if (si_sched.sib_mapping_info.size() > 1) {
         asn1::rrc_nr::bcch_dl_sch_msg_s msg;

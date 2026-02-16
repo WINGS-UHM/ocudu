@@ -18,8 +18,8 @@ using namespace ocudu;
 using namespace asn1::xnap;
 using namespace ocucp;
 
-xnap_impl::xnap_impl(const xnap_configuration& xnap_cfg_, task_executor& ctrl_exec_) :
-  logger(ocudulog::fetch_basic_logger("XNAP")), xnap_cfg(xnap_cfg_), ctrl_exec(ctrl_exec_)
+xnap_impl::xnap_impl(const xnap_configuration& xnap_cfg_, xnc_connection_gateway& xnc_gw_, task_executor& ctrl_exec_) :
+  logger(ocudulog::fetch_basic_logger("XNAP")), xnap_cfg(xnap_cfg_), xnc_gw(xnc_gw_), ctrl_exec(ctrl_exec_)
 {
 }
 

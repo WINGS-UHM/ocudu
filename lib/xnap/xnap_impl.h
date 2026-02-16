@@ -11,6 +11,7 @@
 #pragma once
 
 #include "xnap_tx_pdu_notifier_with_log.h"
+#include "ocudu/xnap/gateways/xnc_connection_gateway.h"
 #include "ocudu/xnap/xnap.h"
 #include "ocudu/xnap/xnap_configuration.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -20,7 +21,7 @@ namespace ocudu::ocucp {
 class xnap_impl final : public xnap_interface
 {
 public:
-  xnap_impl(const xnap_configuration& xnap_cfg_, task_executor& ctrl_exec_);
+  xnap_impl(const xnap_configuration& xnap_cfg_, xnc_connection_gateway& xnc_gw_, task_executor& ctrl_exec_);
   ~xnap_impl() override = default;
 
   // XNAP message handling.
@@ -43,8 +44,10 @@ private:
 
   ocudulog::basic_logger& logger;
 
-  xnap_configuration                xnap_cfg;
-  task_executor&                    ctrl_exec;
+  xnap_configuration      xnap_cfg;
+  xnc_connection_gateway& xnc_gw;
+  task_executor&          ctrl_exec;
+
   xnap_tx_pdu_notifier_with_logging tx_notifier;
 };
 

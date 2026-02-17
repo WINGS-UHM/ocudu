@@ -9,8 +9,8 @@
  */
 
 #include "pucch_res_test_builder_helper.h"
-#include "../../../lib/scheduler/config/cell_configuration.h"
-#include "ocudu/du/du_cell_config_helpers.h"
+#include "lib/scheduler/config/cell_configuration.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 

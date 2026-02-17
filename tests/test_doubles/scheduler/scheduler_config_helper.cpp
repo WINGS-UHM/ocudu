@@ -55,8 +55,6 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
   if (params.csi_rs_enabled) {
     csi_helper::csi_meas_config_builder_params csi_params = config_helpers::make_default_csi_builder_params(params);
     sched_req.ran.init_bwp_builder.csi                    = csi_params.csi_params;
-    csi_meas_config csi_meas                              = csi_helper::make_csi_meas_config(csi_params, {});
-    sched_req.nzp_csi_rs_res_list                         = csi_meas.nzp_csi_rs_res_list;
   }
 
   return sched_req;

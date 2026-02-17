@@ -11,9 +11,6 @@
 #pragma once
 
 #include "ocudu/du/du_cell_config_helpers.h"
-#include "ocudu/scheduler/config/srs_builder_params.h"
-#include <ocudu/du/du_cell_config.h>
-#include <ocudu/ran/srs/srs_configuration.h>
 #include <optional>
 
 namespace ocudu {

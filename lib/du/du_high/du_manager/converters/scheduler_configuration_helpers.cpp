@@ -77,11 +77,6 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
       du_cfg.ran.init_bwp_builder.pucch.resources, du_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
-  const auto csi_meas_cfg = config_helpers::make_csi_meas_config(du_cfg.ran);
-  if (csi_meas_cfg.has_value()) {
-    sched_req.nzp_csi_rs_res_list = csi_meas_cfg->nzp_csi_rs_res_list;
-  }
-
   sched_req.rrm_policy_members = du_cfg.rrm_policy_members;
 
   return sched_req;

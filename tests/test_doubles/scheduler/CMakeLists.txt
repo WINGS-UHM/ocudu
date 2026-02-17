@@ -13,3 +13,4 @@ add_library(sched_test_doubles pucch_res_test_builder_helper.cpp scheduler_resul
 )
 set_target_properties(sched_test_doubles PROPERTIES UNITY_BUILD ON)
 target_link_libraries(sched_test_doubles ocudu_sched ocudulog)
+target_include_directories(sched_test_doubles PRIVATE ../../../)

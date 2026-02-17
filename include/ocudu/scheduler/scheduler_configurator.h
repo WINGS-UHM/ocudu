@@ -63,9 +63,6 @@ struct sched_cell_configuration_request_message {
   /// List of dedicated PUCCH resources.
   std::vector<pucch_resource> ded_pucch_resources;
 
-  /// List of nzp-CSI-RS resources common to all UEs.
-  std::vector<nzp_csi_rs_resource> nzp_csi_rs_res_list;
-
   /// List of RAN slices to support in the scheduler.
   std::vector<slice_rrm_policy_config> rrm_policy_members;
 

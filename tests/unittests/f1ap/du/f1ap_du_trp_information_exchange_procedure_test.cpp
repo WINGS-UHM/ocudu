@@ -13,7 +13,6 @@
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
-#include "ocudu/du/du_cell_config_helpers.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;

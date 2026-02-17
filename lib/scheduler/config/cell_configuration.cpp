@@ -13,28 +13,29 @@
 #include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/csi_helper.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
-#include <algorithm>
 
 using namespace ocudu;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::vector<zp_csi_rs_resource> make_zp_csi_rs_list(const sched_cell_configuration_request_message& msg)
+static std::vector<zp_csi_rs_resource> make_zp_csi_rs_list(const ran_cell_config& cfg)
 {
-  if (!msg.ran.init_bwp_builder.csi.has_value()) {
+  if (!cfg.init_bwp_builder.csi.has_value()) {
     return {};
   }
+  const auto csi_helper = config_helpers::make_csi_meas_config_builder_params(cfg);
+  return csi_helper::make_periodic_zp_csi_rs_resource_list(csi_helper);
+}
 
-  csi_helper::csi_meas_config_builder_params csi_params{};
-  csi_params.pci            = msg.ran.pci;
-  csi_params.nof_rbs        = msg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
-  csi_params.nof_ports      = msg.ran.dl_carrier.nof_ant;
-  csi_params.max_nof_layers = msg.ran.init_bwp_builder.pdsch.max_nof_layers.value_or(csi_params.nof_ports);
-  csi_params.mcs_table      = msg.ran.init_bwp_builder.pdsch.mcs_table;
-  csi_params.csi_params     = msg.ran.init_bwp_builder.csi.value();
-
-  return csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
+static std::vector<nzp_csi_rs_resource> make_nzp_csi_rs_list(const ran_cell_config& cfg)
+{
+  if (!cfg.init_bwp_builder.csi.has_value()) {
+    return {};
+  }
+  const auto csi_helper = config_helpers::make_csi_meas_config_builder_params(cfg);
+  return csi_helper::make_nzp_csi_rs_resource_list(csi_helper);
 }
 
 cell_configuration::cell_configuration(const scheduler_expert_config&                  expert_cfg_,
@@ -59,8 +60,8 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   ul_carrier(msg.ran.ul_carrier),
   init_bwp_res(pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, nullptr),
   ded_pucch_resources(msg.ded_pucch_resources),
-  zp_csi_rs_list(make_zp_csi_rs_list(msg)),
-  nzp_csi_rs_list(msg.nzp_csi_rs_res_list),
+  zp_csi_rs_list(make_zp_csi_rs_list(msg.ran)),
+  nzp_csi_rs_list(make_nzp_csi_rs_list(msg.ran)),
   dl_data_to_ul_ack(time_domain_resource_helper::generate_k1_candidates(msg.ran.tdd_ul_dl_cfg_common,
                                                                         msg.ran.init_bwp_builder.pucch.min_k1)),
   init_bwp_builder(msg.ran.init_bwp_builder),

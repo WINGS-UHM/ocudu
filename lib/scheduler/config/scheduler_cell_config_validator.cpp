@@ -17,6 +17,7 @@
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_frequency_mapping.h"
 #include "ocudu/ran/prach/prach_helper.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_validator.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include "ocudu/scheduler/sched_consts.h"
@@ -259,7 +260,10 @@ error_type<std::string> config_validators::validate_sched_cell_configuration_req
 
   HANDLE_CODE(validate_paging_cfg(expert_cfg));
 
-  HANDLE_CODE(validate_nzp_csi_rs_list(msg.nzp_csi_rs_res_list, msg.ran.tdd_ul_dl_cfg_common));
+  if (msg.ran.init_bwp_builder.csi.has_value()) {
+    auto csi_meas = *config_helpers::make_csi_meas_config(msg.ran);
+    HANDLE_CODE(validate_nzp_csi_rs_list(csi_meas.nzp_csi_rs_res_list, msg.ran.tdd_ul_dl_cfg_common));
+  }
 
   // TODO: Validate other parameters.
   return {};

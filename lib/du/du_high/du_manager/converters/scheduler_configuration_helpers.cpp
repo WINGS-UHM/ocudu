@@ -60,7 +60,6 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.cell_index       = cell_index;
   sched_req.cell_group_index = (du_cell_group_index_t)cell_index; // No CA by default.
   sched_req.ran              = du_cfg.ran;
-  sched_req.nof_beams        = 1;
 
   // Convert SIB1 and SI message info scheduling config.
   sched_req.sib1_payload_size = sib1_len;
@@ -73,9 +72,6 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
     sched_req.dl_bwp_ded = bwp_downlink_dedicated{
         .pdcch_cfg = du_cfg.ran.init_bwp_builder.pdcch_cfg, .pdsch_cfg = pdsch_cfg, .rlm_cfg = rlm_cfg};
   }
-
-  sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-      du_cfg.ran.init_bwp_builder.pucch.resources, du_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   sched_req.rrm_policy_members = du_cfg.rrm_policy_members;
 

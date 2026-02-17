@@ -34,9 +34,8 @@ public:
     builder_params(builder_params_),
     cell_cfg(*cfg_mng.add_cell([this]() {
       // Create cell and save a reference to its configuration.
-      auto req                = sched_config_helper::make_default_sched_cell_configuration_request();
-      req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-          builder_params, req.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      auto req                                 = sched_config_helper::make_default_sched_cell_configuration_request();
+      req.ran.init_bwp_builder.pucch.resources = builder_params;
       return req;
     }())),
     ues(config_helpers::make_default_scheduler_expert_config().ue),

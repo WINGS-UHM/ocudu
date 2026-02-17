@@ -47,7 +47,6 @@ struct sched_cell_configuration_request_message {
 
   du_cell_index_t       cell_index;
   du_cell_group_index_t cell_group_index;
-  uint8_t               nof_beams; // (0..64)
 
   ran_cell_config ran;
 
@@ -59,9 +58,6 @@ struct sched_cell_configuration_request_message {
 
   /// Dedicated DL BWP config that will be used by the UEs of this cell.
   bwp_downlink_dedicated dl_bwp_ded;
-
-  /// List of dedicated PUCCH resources.
-  std::vector<pucch_resource> ded_pucch_resources;
 
   /// List of RAN slices to support in the scheduler.
   std::vector<slice_rrm_policy_config> rrm_policy_members;

@@ -59,7 +59,9 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   dmrs_typeA_pos(msg.ran.dmrs_typeA_pos),
   ul_carrier(msg.ran.ul_carrier),
   init_bwp_res(pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, nullptr),
-  ded_pucch_resources(msg.ded_pucch_resources),
+  ded_pucch_resources(
+      config_helpers::build_pucch_resource_list(msg.ran.init_bwp_builder.pucch.resources,
+                                                msg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length())),
   zp_csi_rs_list(make_zp_csi_rs_list(msg.ran)),
   nzp_csi_rs_list(make_nzp_csi_rs_list(msg.ran)),
   dl_data_to_ul_ack(time_domain_resource_helper::generate_k1_candidates(msg.ran.tdd_ul_dl_cfg_common,

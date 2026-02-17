@@ -240,9 +240,7 @@ make_custom_sched_cell_configuration_request(const test_bench_params& params)
       req.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 11U;
     }
   }
-
-  req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-      params.pucch_ded_params, req.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+  req.ran.init_bwp_builder.pucch.resources = params.pucch_ded_params;
 
   return req;
 }

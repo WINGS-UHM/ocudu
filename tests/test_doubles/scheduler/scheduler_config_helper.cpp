@@ -11,9 +11,7 @@
 #include "scheduler_config_helper.h"
 #include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
-#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
-#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 
 using namespace ocudu;
 
@@ -39,18 +37,12 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
   sched_req.ran.dmrs_typeA_pos =
       coreset0_desc.nof_symb_coreset == 3U ? dmrs_typeA_position::pos3 : dmrs_typeA_position::pos2;
 
-  sched_req.nof_beams = 1;
-
   // SIB1 parameters.
   sched_req.sib1_payload_size = units::bytes{101}; // Random size.
 
   // Generic dedicated UE config templates.
   sched_req.dl_bwp_ded.pdcch_cfg = make_ue_dedicated_pdcch_config(params);
   sched_req.dl_bwp_ded.pdsch_cfg = make_default_pdsch_config(params);
-
-  pucch_resource_builder_params default_pucch_builder_params{};
-  sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-      default_pucch_builder_params, sched_req.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   if (params.csi_rs_enabled) {
     csi_helper::csi_meas_config_builder_params csi_params = config_helpers::make_default_csi_builder_params(params);

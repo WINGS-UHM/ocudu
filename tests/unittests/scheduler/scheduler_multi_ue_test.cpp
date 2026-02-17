@@ -66,11 +66,10 @@ public:
                                                      .nof_cell_res_set_configs = 2,
                                                      .nof_cell_sr_resources    = 80,
                                                      .nof_cell_csi_resources   = 80};
-    auto&                         f1_params = pucch_basic_params.f0_or_f1_params.emplace<pucch_f1_params>();
-    f1_params.nof_cyc_shifts                = pucch_nof_cyclic_shifts::twelve;
-    f1_params.occ_supported                 = true;
-    cell_cfg_req.ded_pucch_resources        = config_helpers::build_pucch_resource_list(
-        pucch_basic_params, cell_cfg_req.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+    auto&                         f1_params           = pucch_basic_params.f0_or_f1_params.emplace<pucch_f1_params>();
+    f1_params.nof_cyc_shifts                          = pucch_nof_cyclic_shifts::twelve;
+    f1_params.occ_supported                           = true;
+    cell_cfg_req.ran.init_bwp_builder.pucch.resources = pucch_basic_params;
     this->add_cell(cell_cfg_req);
 
     // Create PUCCH builder that will be used to add UEs.

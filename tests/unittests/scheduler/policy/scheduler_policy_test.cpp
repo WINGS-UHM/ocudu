@@ -185,7 +185,7 @@ protected:
   cell_resource_allocator       res_grid{cell_cfg};
   pdcch_resource_allocator_impl pdcch_alloc{cell_cfg};
   pucch_allocator_impl pucch_alloc{cell_cfg, sched_cfg.ue.max_pucchs_per_slot, sched_cfg.ue.max_ul_grants_per_slot};
-  uci_allocator_impl   uci_alloc{pucch_alloc};
+  uci_allocator_impl   uci_alloc{cell_cfg, pucch_alloc};
   srs_allocator_impl   srs_alloc{cell_cfg, std::nullopt};
   cell_metrics_handler cell_metrics;
   ue_repository        ues;

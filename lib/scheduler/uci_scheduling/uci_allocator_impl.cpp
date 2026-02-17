@@ -21,9 +21,11 @@ using namespace ocudu;
 
 ////////////    C-tors and d-tors    ////////////
 
-uci_allocator_impl::uci_allocator_impl(pucch_allocator& pucch_alloc_) :
+uci_allocator_impl::uci_allocator_impl(const cell_configuration& cell_cfg_, pucch_allocator& pucch_alloc_) :
   pucch_alloc{pucch_alloc_}, logger(ocudulog::fetch_basic_logger("SCHED"))
 {
+  const unsigned ring_size = get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg_.ntn_cs_koffset));
+  uci_alloc_grid.resize(ring_size);
 }
 
 uci_allocator_impl::~uci_allocator_impl() = default;

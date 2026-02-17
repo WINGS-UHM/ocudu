@@ -12,7 +12,7 @@
 
 #include "../pucch_scheduling/pucch_allocator.h"
 #include "uci_allocator.h"
-#include "ocudu/adt/circular_array.h"
+#include "ocudu/adt/circular_vector.h"
 #include "ocudu/ocudulog/logger.h"
 
 namespace ocudu {
@@ -21,7 +21,7 @@ namespace ocudu {
 class uci_allocator_impl final : public uci_allocator
 {
 public:
-  explicit uci_allocator_impl(pucch_allocator& pucch_alloc_);
+  explicit uci_allocator_impl(const cell_configuration& cell_cfg_, pucch_allocator& pucch_alloc_);
 
   void slot_indication(slot_point sl_tx) override;
 
@@ -85,7 +85,7 @@ private:
   ocudulog::basic_logger& logger;
 
   // \brief Ring of UCI allocations indexed by slot.
-  circular_array<slot_alloc_list, cell_resource_allocator::RING_ALLOCATOR_SIZE> uci_alloc_grid;
+  circular_vector<slot_alloc_list> uci_alloc_grid;
 };
 
 } // namespace ocudu

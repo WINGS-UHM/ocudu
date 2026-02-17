@@ -240,7 +240,7 @@ protected:
 
   pdcch_resource_allocator_impl pdcch_alloc{cell_cfg};
   pucch_allocator_impl pucch_alloc{cell_cfg, expert_cfg.max_pucchs_per_slot, expert_cfg.max_ul_grants_per_slot};
-  uci_allocator_impl   uci_alloc{pucch_alloc};
+  uci_allocator_impl   uci_alloc{cell_cfg, pucch_alloc};
   srs_allocator_impl   srs_alloc{cell_cfg, std::nullopt};
 
   ocudulog::basic_logger& logger{ocudulog::fetch_basic_logger("SCHED")};

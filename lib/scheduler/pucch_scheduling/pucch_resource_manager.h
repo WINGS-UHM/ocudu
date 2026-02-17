@@ -202,7 +202,7 @@ private:
   pucch_collision_manager   collision_manager;
 
   // Ring buffer of slot contexts to keep track of PUCCH resource usage in recent slots.
-  circular_array<slot_context, cell_resource_allocator::RING_ALLOCATOR_SIZE> slots_ctx;
+  circular_vector<slot_context> slots_ctx;
 
   // Keeps track of the last slot_point used by the resource manager.
   slot_point last_sl_ind;

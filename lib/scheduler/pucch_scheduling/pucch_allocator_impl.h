@@ -286,7 +286,7 @@ private:
                                const pucch_grant_list&                       grants_to_tx);
 
   // \brief Ring of PUCCH allocations indexed by slot.
-  circular_array<slot_context, cell_resource_allocator::RING_ALLOCATOR_SIZE> slots_ctx;
+  circular_vector<slot_context> slots_ctx;
 
   const cell_configuration& cell_cfg;
   const unsigned            max_pucch_grants_per_slot;

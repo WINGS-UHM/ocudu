@@ -18,6 +18,7 @@
 #include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 #include <algorithm>
 
 using namespace ocudu;
@@ -227,7 +228,8 @@ pucch_collision_manager::pucch_collision_manager(const cell_configuration& cell_
   col_matrix(make_collision_matrix(resources)),
   mux_matrix(make_mux_regions_matrix(resources)),
   mux_region_lookup(build_mux_region_lookup(mux_matrix)),
-  slots_ctx({slot_context(cell_cfg)})
+  slots_ctx(get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg.ntn_cs_koffset)),
+            {slot_context(cell_cfg)})
 {
 }
 
@@ -305,7 +307,7 @@ pucch_collision_manager::build_mux_region_lookup(const detail::mux_regions_matri
 pucch_collision_manager::alloc_result_t
 pucch_collision_manager::alloc(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned res_idx)
 {
-  ocudu_sanity_check(sl < last_sl_ind + cell_resource_allocator::RING_ALLOCATOR_SIZE,
+  ocudu_sanity_check(sl < last_sl_ind + slots_ctx.size(),
                      "PUCCH resource ring-buffer accessed too far into the future");
 
   auto& ctx = slots_ctx[sl.count()];
@@ -340,7 +342,7 @@ pucch_collision_manager::alloc(cell_slot_resource_grid& ul_res_grid, slot_point 
 
 bool pucch_collision_manager::free(cell_slot_resource_grid& ul_res_grid, slot_point sl, unsigned res_idx)
 {
-  ocudu_sanity_check(sl < last_sl_ind + cell_resource_allocator::RING_ALLOCATOR_SIZE,
+  ocudu_sanity_check(sl < last_sl_ind + slots_ctx.size(),
                      "PUCCH resource ring-buffer accessed too far into the future");
 
   auto& ctx = slots_ctx[sl.count()];

@@ -143,6 +143,8 @@ pucch_allocator_impl::pucch_allocator_impl(const cell_configuration& cell_cfg_,
   resource_manager(cell_cfg_),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
+  const unsigned ring_size = get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg.ntn_cs_koffset));
+  slots_ctx.resize(ring_size);
 }
 
 pucch_allocator_impl::~pucch_allocator_impl() = default;

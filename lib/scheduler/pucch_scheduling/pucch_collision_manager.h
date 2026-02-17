@@ -13,7 +13,6 @@
 #include "../cell/resource_grid.h"
 #include "../config/cell_configuration.h"
 #include "ocudu/adt/bounded_bitset.h"
-#include "ocudu/adt/circular_array.h"
 #include "ocudu/adt/expected.h"
 #include "ocudu/adt/slotted_array.h"
 #include "ocudu/adt/span.h"
@@ -182,7 +181,7 @@ private:
   };
 
   // Ring buffer of slot contexts to keep track of PUCCH resource usage in recent slots.
-  circular_array<slot_context, cell_resource_allocator::RING_ALLOCATOR_SIZE> slots_ctx;
+  circular_vector<slot_context> slots_ctx;
 
   // Keeps track of the last slot_point used by the resource manager.
   slot_point last_sl_ind;

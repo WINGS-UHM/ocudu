@@ -10,7 +10,6 @@
 
 #include "cell_scheduler.h"
 #include "logging/scheduler_metrics_handler.h"
-#include "ue_scheduling/ue_scheduler_impl.h"
 
 using namespace ocudu;
 
@@ -32,7 +31,7 @@ cell_scheduler::cell_scheduler(const scheduler_expert_config&                  s
   ra_sch(sched_cfg.ra, cell_cfg, pdcch_sch, event_logger, metrics),
   prach_sch(cell_cfg),
   pucch_alloc(cell_cfg, sched_cfg.ue.max_pucchs_per_slot, sched_cfg.ue.max_ul_grants_per_slot),
-  uci_alloc(pucch_alloc),
+  uci_alloc(cell_cfg, pucch_alloc),
   // The SRS allocator is only used if srs_prohibit_time is set.
   srs_alloc(cell_cfg, sched_cfg.ue.srs_prohibit_time),
   pg_sch(cell_cfg, pdcch_sch)
@@ -58,7 +57,8 @@ void cell_scheduler::handle_crc_indication(const ul_crc_indication& crc_ind)
       crc_ind.crcs.begin(), crc_ind.crcs.end(), [](const auto& pdu) { return pdu.ue_index == INVALID_DU_UE_INDEX; });
 
   if (has_msg3_crcs) {
-    ul_crc_indication msg3_crcs{}, ue_crcs{};
+    ul_crc_indication msg3_crcs{};
+    ul_crc_indication ue_crcs{};
     msg3_crcs.sl_rx      = crc_ind.sl_rx;
     msg3_crcs.cell_index = crc_ind.cell_index;
     ue_crcs.sl_rx        = crc_ind.sl_rx;

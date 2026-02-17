@@ -9,6 +9,7 @@
  */
 
 #include "../test_utils/config_generators.h"
+#include "lib/scheduler/cell/resource_grid.h"
 #include "lib/scheduler/srs/srs_allocator_impl.h"
 #include "lib/scheduler/srs/srs_scheduler_impl.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
@@ -289,10 +290,9 @@ TEST_P(srs_alloc_tester, with_only_1_ue_srs_is_allocated_every_time_prohibit_tim
 {
   const auto srs_prohib_time_uint = static_cast<unsigned>(GetParam().srs_prohib_time);
 
-  const auto add_ue_slot = test_rgen::uniform_int<unsigned>(0, res_grid.RING_ALLOCATOR_SIZE);
+  const auto add_ue_slot = test_rgen::uniform_int<unsigned>(0, res_grid.ring_size());
   // Check at the allocation for at least 4 the size of the resource grid.
-  const unsigned nof_slots_to_test =
-      add_ue_slot + std::max(srs_prohib_time_uint * 4, static_cast<unsigned>(res_grid.RING_ALLOCATOR_SIZE) * 4);
+  const unsigned nof_slots_to_test = add_ue_slot + std::max(srs_prohib_time_uint * 4, res_grid.ring_size() * 4);
 
   for (unsigned sl_cnt = 0; sl_cnt < nof_slots_to_test; ++sl_cnt, slot_indication(++current_sl_tx)) {
     // Add the UE at the specified random slot.
@@ -380,11 +380,10 @@ TEST_P(srs_alloc_multi_ue_tester, multiple_ues_with_orthogonal_srs_res_is_alloca
     return test_rgen::uniform_int<unsigned>(0, max_rnd_ue_gen_slot);
   };
 
-  // The first UE is randomly generated at a given slot (up to the res_grid.RING_ALLOCATOR_SIZE).
-  auto add_ue_slot = get_next_add_ue_slot(res_grid.RING_ALLOCATOR_SIZE);
+  // The first UE is randomly generated at a given slot (up to the res_grid.ring_size).
+  auto add_ue_slot = get_next_add_ue_slot(res_grid.ring_size());
   // Check at the allocation for at least 10 the size of the resource grid.
-  const unsigned nof_slots_to_test =
-      add_ue_slot + std::max(srs_prohib_time_uint * 10, static_cast<unsigned>(res_grid.RING_ALLOCATOR_SIZE) * 10);
+  const unsigned nof_slots_to_test = add_ue_slot + std::max(srs_prohib_time_uint * 10, res_grid.ring_size() * 10);
 
   for (unsigned sl_cnt = 0; sl_cnt < nof_slots_to_test; ++sl_cnt, slot_indication(++current_sl_tx)) {
     // Add the UE at the specified random slot.

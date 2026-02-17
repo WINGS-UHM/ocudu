@@ -280,10 +280,9 @@ TEST_P(srs_scheduler_tester, test_different_periods)
 {
   const auto srs_period_uint = static_cast<unsigned>(GetParam().period);
 
-  const auto add_ue_slot = test_rgen::uniform_int<unsigned>(0, res_grid.RING_ALLOCATOR_SIZE);
+  const auto add_ue_slot = test_rgen::uniform_int<unsigned>(0, res_grid.ring_size());
   // Check at the allocation for at least 4 the size of the resource grid.
-  const unsigned nof_slots_to_test =
-      add_ue_slot + std::max(srs_period_uint * 4, static_cast<unsigned>(res_grid.RING_ALLOCATOR_SIZE) * 4);
+  const unsigned nof_slots_to_test = add_ue_slot + std::max(srs_period_uint * 4, res_grid.ring_size() * 4);
 
   for (unsigned sl_cnt = 0; sl_cnt < nof_slots_to_test + add_ue_slot; ++sl_cnt) {
     // Add the UE at the specified slot.

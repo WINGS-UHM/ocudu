@@ -309,9 +309,6 @@ struct cell_resource_allocator {
   ///
   /// Having access to past decisions is useful during the handling of error indications.
   static constexpr size_t RING_MAX_HISTORY_SIZE = 16;
-  /// Maximum number of slots managed by this container.
-  static constexpr size_t RING_ALLOCATOR_SIZE = get_allocator_ring_size_gt_min(
-      RING_MAX_HISTORY_SIZE + get_max_slot_ul_alloc_delay(NTN_CELL_SPECIFIC_KOFFSET_MAX));
 
   /// Cell configuration
   const cell_configuration& cfg;
@@ -373,6 +370,9 @@ struct cell_resource_allocator {
     ocudu_assert(r.slot == slot, "Bad access to uninitialized cell_resource_grid");
     return &r;
   }
+
+  /// \brief Returns the size of the circular ring of cell_slot_resource_grids (not counting the history).
+  unsigned ring_size() const { return slots.size() - RING_MAX_HISTORY_SIZE; }
 
 private:
   /// Ensure we are not overflowing the ring.

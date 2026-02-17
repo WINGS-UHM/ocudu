@@ -13,6 +13,7 @@
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/ran/rnti.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 #include "ocudu/support/ocudu_assert.h"
 
 using namespace ocudu;
@@ -42,7 +43,8 @@ static pucch_res_id_t get_csi_res_id(const ue_cell_configuration& ue_cell_cfg)
 pucch_resource_manager::pucch_resource_manager(const cell_configuration& cell_cfg_) :
   cell_cfg(cell_cfg_),
   collision_manager(cell_cfg_),
-  slots_ctx({static_vector<rnti_t, pucch_constants::MAX_NOF_CELL_DED_RESOURCES>(cell_cfg_.ded_pucch_resources.size(),
+  slots_ctx(get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg_.ntn_cs_koffset)),
+            {static_vector<rnti_t, pucch_constants::MAX_NOF_CELL_DED_RESOURCES>(cell_cfg_.ded_pucch_resources.size(),
                                                                                 rnti_t::INVALID_RNTI)})
 {
 }

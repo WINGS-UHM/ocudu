@@ -71,8 +71,7 @@ protected:
 TEST_P(uci_sched_sr_test, test_different_periods)
 {
   // Check at the allocation for at least 2 the size of the resource grid.
-  const unsigned nof_slots_to_test =
-      std::max(sr_periodicity_to_slot(sr_period) * 4, static_cast<unsigned>(t_bench.res_grid.RING_ALLOCATOR_SIZE) * 2);
+  const unsigned nof_slots_to_test = std::max(sr_periodicity_to_slot(sr_period) * 4, t_bench.res_grid.ring_size() * 2);
 
   // Randomize initial slot, as the UCI scheduler will be called only after the UE is added.
   const auto starting_slot = test_rgen::uniform_int<unsigned>(0, 1000U);

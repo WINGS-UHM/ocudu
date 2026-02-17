@@ -249,6 +249,17 @@ inline sib_type get_sib_info_type(const sib_info& sib)
   return sib_type::sib_invalid;
 }
 
+/// \brief Value tag for SIB content versioning, as per TS 38.331. Range: 0..31 (5-bit field).
+using value_tag_t = bounded_integer<uint8_t, 0, 31>;
+
+/// \brief SIB content with associated metadata, as per TS 38.331 SIB-TypeInfo.
+struct sib_type_info {
+  /// The actual SIB content (variant holding sib2_info, sib3_info, etc.).
+  sib_info content;
+  /// Value tag for this SIB, used to indicate when the SIB content has changed.
+  value_tag_t value_tag = 0;
+};
+
 /// \brief This struct contains the information required for the scheduling of the SI messages by the network.
 struct si_message_sched_info {
   /// List of SIBs (sib2, sib3, ...) included in this SI message. The list has at most 32 elements.
@@ -271,8 +282,8 @@ struct si_scheduling_info_config {
   unsigned si_window_len_slots;
   /// List of SI-messages and associated scheduling information.
   std::vector<si_message_sched_info> si_sched_info;
-  /// Information included in each SIB that is scheduled as part of one of the SI-messages.
-  std::vector<sib_info> sibs;
+  /// Information included in each SIB that is scheduled as part of one of the SI-messages, with associated value tags.
+  std::vector<sib_type_info> sibs;
 };
 
 /// This struct contains the information required for the generation of the SIB1 "UE-TimersAndConstants" field of the

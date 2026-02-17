@@ -446,7 +446,7 @@ static std::optional<si_scheduling_info_config> make_si_sched_info_config(const 
       default:
         report_error("SIB{} not supported\n", sib_id);
     }
-    out.sibs.push_back(item);
+    out.sibs.push_back({item, value_tag_t::min()});
   }
 
   return out;

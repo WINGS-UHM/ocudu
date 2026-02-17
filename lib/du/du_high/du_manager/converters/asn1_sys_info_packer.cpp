@@ -393,7 +393,7 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
           // For each entry in the mapping info, find the matching SIB.
           auto sib_id = static_cast<unsigned>(mapping_info);
           for (const auto& sib : du_cfg.si.si_config->sibs) {
-            sib_type type = get_sib_info_type(sib);
+            sib_type type = get_sib_info_type(sib.content);
             if (type == mapping_info) {
               switch (type) {
                 case sib_type::sib2:
@@ -405,9 +405,12 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
                 case sib_type::sib8: {
                   // If the mapping info entry is for a regular SIB, append the SIB type to the schedulingInfo element.
                   sib_type_info_s type_info;
-                  ret                         = asn1::number_to_enum(type_info.type, sib_id);
-                  type_info.value_tag_present = true;
-                  type_info.value_tag         = 0;
+                  ret = asn1::number_to_enum(type_info.type, sib_id);
+                  if (sib.value_tag.valid()) {
+                    type_info.value_tag_present = true;
+                    type_info.value_tag         = sib.value_tag.value();
+                  }
+
                   if (ret) {
                     asn1_si.sib_map_info.push_back(type_info);
                   }
@@ -417,6 +420,11 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
                   sib_type_info_v1700_s type_info2;
                   type_info2.sib_type_r17.set_type1_r17().value =
                       sib_type_info_v1700_s::sib_type_r17_c_::type1_r17_opts::sib_type19;
+                  if (sib.value_tag.valid()) {
+                    type_info2.value_tag_r17_present = true;
+                    type_info2.value_tag_r17         = sib.value_tag.value();
+                  }
+
                   asn1_si_r17.sib_map_info_r17.push_back(type_info2);
                 } break;
                 case sib_type::sib1:
@@ -973,13 +981,14 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
           report_error_if_not((sib_id != sib_type::sib7) && (sib_id != sib_type::sib8),
                               "SIB-7 and SIB-8 cannot be on an SI message containing other SIBs, as they can hold a "
                               "segmented message.");
-          auto it = std::find_if(
-              sibs.begin(), sibs.end(), [sib_id](const sib_info& sib) { return get_sib_info_type(sib) == sib_id; });
+          auto it = std::find_if(sibs.begin(), sibs.end(), [sib_id](const sib_type_info& sib) {
+            return get_sib_info_type(sib.content) == sib_id;
+          });
           ocudu_assert(
               it != sibs.end(), "SIB{} in SIB mapping info has no defined config", static_cast<unsigned>(sib_id));
 
           // Obtain the SIB and make sure it does not hold a segmented message.
-          auto sib = make_asn1_rrc_sib_item(*it);
+          auto sib = make_asn1_rrc_sib_item(it->content);
           ocudu_assert(sib.size() == 1, "SI messages holding multiple SIBs cannot contain segmented messages.");
 
           si_ies.sib_type_and_info.push_back(sib.front());
@@ -992,8 +1001,9 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
       } else {
         // Pack SI messages that hold a single SIB.
         sib_type sib_id = si_sched.sib_mapping_info.front();
-        auto     it     = std::find_if(
-            sibs.begin(), sibs.end(), [sib_id](const sib_info& sib) { return get_sib_info_type(sib) == sib_id; });
+        auto     it     = std::find_if(sibs.begin(), sibs.end(), [sib_id](const sib_type_info& sib) {
+          return get_sib_info_type(sib.content) == sib_id;
+        });
         ocudu_assert(
             it != sibs.end(), "SIB{} in SIB mapping info has no defined config", static_cast<unsigned>(sib_id));
 
@@ -1001,7 +1011,7 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
         bcch_dl_sch_payload_type packed_sib;
 
         // Generate the SIB message. If the SIB carries a segmented message, one SIB is generated for each segment.
-        auto sib_list = make_asn1_rrc_sib_item(*it);
+        auto sib_list = make_asn1_rrc_sib_item(it->content);
         // If the SIB holds multiple segments, pack each of them in a distinct SI message.
         if (sib_list.size() > 1) {
           for (auto& sib : sib_list) {

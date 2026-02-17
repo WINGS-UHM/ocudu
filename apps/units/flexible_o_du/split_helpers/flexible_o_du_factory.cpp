@@ -37,11 +37,11 @@ using namespace ocudu;
 
 static fapi::carrier_config generate_carrier_config_tlv(const odu::du_cell_config& du_cell)
 {
-  const subcarrier_spacing scs_common = du_cell.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const subcarrier_spacing scs_common = du_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
   // Deduce common numerology and grid size for DL and UL.
   unsigned numerology       = to_numerology_value(scs_common);
   unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
-      du_cell.dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
+      du_cell.ran.dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(du_cell.ran.dl_carrier.band));
 
   fapi::carrier_config fapi_config = {};
 
@@ -52,8 +52,8 @@ static fapi::carrier_config generate_carrier_config_tlv(const odu::du_cell_confi
   fapi_config.ul_grid_size[numerology] = grid_size_bw_prb;
 
   // Number of transmit and receive antenna ports.
-  fapi_config.num_tx_ant = du_cell.dl_carrier.nof_ant;
-  fapi_config.num_rx_ant = du_cell.ul_carrier.nof_ant;
+  fapi_config.num_tx_ant = du_cell.ran.dl_carrier.nof_ant;
+  fapi_config.num_rx_ant = du_cell.ran.ul_carrier.nof_ant;
 
   return fapi_config;
 }
@@ -68,7 +68,7 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
   for (unsigned i = 0, e = cells.size(); i != e; ++i) {
     const auto&              cell       = cells[i];
     const auto&              du_hi_cell = du_hi_cells[i];
-    const subcarrier_spacing scs_common = cell.dl_cfg_common.init_dl_bwp.generic_params.scs;
+    const subcarrier_spacing scs_common = cell.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
 
     fapi_adaptor::phy_fapi_p5_sector_fastpath_adaptor_config p5_cfg{.sector_id = i};
 
@@ -79,29 +79,30 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
         .scs                           = scs_common,
         .scs_common                    = scs_common,
         .carrier_cfg                   = generate_carrier_config_tlv(cell),
-        .prach_cfg                     = *cell.ul_cfg_common.init_ul_bwp.rach_cfg_common,
+        .prach_cfg                     = *cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common,
         .prach_ports                   = du_hi_cell.cell.prach_cfg.ports,
         .dBFS_calibration_value        = dBFS_calibration_value};
 
     odu_low_cfg.fapi_cfg.sectors.push_back({.p5_config = p5_cfg, .p7_config = p7_cfg});
 
-    report_error_if_not(cell.ul_cfg_common.init_ul_bwp.rach_cfg_common,
+    report_error_if_not(cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common,
                         "RACH configuration for the cell is not present");
 
     auto&   du_low_cell    = odu_low_cfg.cells.emplace_back();
-    nr_band band           = cell.dl_carrier.band;
+    nr_band band           = cell.ran.dl_carrier.band;
     du_low_cell.duplex     = band_helper::get_duplex_mode(band);
     du_low_cell.freq_range = band_helper::get_freq_range(band);
-    du_low_cell.bw_rb = band_helper::get_n_rbs_from_bw(cell.dl_carrier.carrier_bw, scs_common, du_low_cell.freq_range);
-    du_low_cell.nof_rx_antennas = cell.ul_carrier.nof_ant;
-    du_low_cell.nof_tx_antennas = cell.dl_carrier.nof_ant;
+    du_low_cell.bw_rb =
+        band_helper::get_n_rbs_from_bw(cell.ran.dl_carrier.carrier_bw, scs_common, du_low_cell.freq_range);
+    du_low_cell.nof_rx_antennas = cell.ran.ul_carrier.nof_ant;
+    du_low_cell.nof_tx_antennas = cell.ran.dl_carrier.nof_ant;
     du_low_cell.prach_ports     = du_hi_cell.cell.prach_cfg.ports;
     du_low_cell.scs_common      = scs_common;
     du_low_cell.prach_config_index =
-        cell.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index;
+        cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index;
     du_low_cell.max_puschs_per_slot  = du_hi_cell.cell.pusch_cfg.max_puschs_per_slot;
-    du_low_cell.pusch_max_nof_layers = cell.init_bwp_builder.pusch.max_nof_layers;
-    du_low_cell.tdd_pattern          = cell.tdd_ul_dl_cfg_common;
+    du_low_cell.pusch_max_nof_layers = cell.ran.init_bwp_builder.pusch.max_nof_layers;
+    du_low_cell.tdd_pattern          = cell.ran.tdd_ul_dl_cfg_common;
   }
 
   return odu_low_cfg;
@@ -116,16 +117,16 @@ generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_proc
 
   for (const auto& cell : cells) {
     auto&                    out_cell   = out_cfg.cells.emplace_back();
-    const subcarrier_spacing scs_common = cell.dl_cfg_common.init_dl_bwp.generic_params.scs;
-    out_cell.nof_tx_antennas            = cell.dl_carrier.nof_ant;
-    out_cell.nof_rx_antennas            = cell.ul_carrier.nof_ant;
+    const subcarrier_spacing scs_common = cell.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
+    out_cell.nof_tx_antennas            = cell.ran.dl_carrier.nof_ant;
+    out_cell.nof_rx_antennas            = cell.ran.ul_carrier.nof_ant;
     out_cell.scs                        = scs_common;
-    out_cell.dl_arfcn                   = cell.dl_carrier.arfcn_f_ref.value();
-    out_cell.ul_arfcn                   = cell.ul_carrier.arfcn_f_ref.value();
-    out_cell.tdd_config                 = cell.tdd_ul_dl_cfg_common;
-    out_cell.bw                         = cell.dl_carrier.carrier_bw;
-    out_cell.freq_range                 = band_helper::get_freq_range(cell.dl_carrier.band);
-    out_cell.cp                         = cell.dl_cfg_common.init_dl_bwp.generic_params.cp;
+    out_cell.dl_arfcn                   = cell.ran.dl_carrier.arfcn_f_ref.value();
+    out_cell.ul_arfcn                   = cell.ran.ul_carrier.arfcn_f_ref.value();
+    out_cell.tdd_config                 = cell.ran.tdd_ul_dl_cfg_common;
+    out_cell.bw                         = cell.ran.dl_carrier.carrier_bw;
+    out_cell.freq_range                 = band_helper::get_freq_range(cell.ran.dl_carrier.band);
+    out_cell.cp                         = cell.ran.dl_cfg_common.init_dl_bwp.generic_params.cp;
   }
 
   return out_cfg;
@@ -216,7 +217,7 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
   std::vector<pci_t> pci_cell_mapper;
 
   for (const auto& cell : du_cells) {
-    pci_cell_mapper.push_back(cell.pci);
+    pci_cell_mapper.push_back(cell.ran.pci);
   }
 
   std::chrono::nanoseconds symbol_duration(

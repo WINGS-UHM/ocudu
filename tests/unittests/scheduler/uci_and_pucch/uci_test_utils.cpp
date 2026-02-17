@@ -232,17 +232,17 @@ make_custom_sched_cell_configuration_request(const test_bench_params& params)
       make_custom_cell_config_builder_params(params));
 
   if (params.pucch_res_common.has_value()) {
-    req.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = *params.pucch_res_common;
+    req.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = *params.pucch_res_common;
   } else {
     if (std::holds_alternative<pucch_f0_params>(params.pucch_ded_params.f0_or_f1_params)) {
-      req.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 0U;
+      req.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 0U;
     } else {
-      req.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 11U;
+      req.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 11U;
     }
   }
 
   req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-      params.pucch_ded_params, req.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      params.pucch_ded_params, req.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   return req;
 }

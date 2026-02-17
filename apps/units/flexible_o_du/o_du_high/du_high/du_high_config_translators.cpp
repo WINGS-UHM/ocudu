@@ -307,7 +307,7 @@ static void fill_csi_resources(odu::du_cell_config& out_cell, const du_high_unit
   }
 
   // Store DU CSI parameters to generate csiMeasConfig inside the DU.
-  out_cell.init_bwp_builder.csi = du_csi;
+  out_cell.ran.init_bwp_builder.csi = du_csi;
 }
 
 /// Converts and returns the given gnb application configuration to a DU slice RRM policy configuration list.
@@ -510,15 +510,15 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     }
 
     // SSB config.
-    out_cell.ssb_cfg.ssb_period      = static_cast<ssb_periodicity>(base_cell.ssb_cfg.ssb_period_msec);
-    out_cell.ssb_cfg.ssb_block_power = base_cell.ssb_cfg.ssb_block_power;
-    out_cell.ssb_cfg.pss_to_sss_epre = base_cell.ssb_cfg.pss_to_sss_epre;
+    out_cell.ran.ssb_cfg.ssb_period      = static_cast<ssb_periodicity>(base_cell.ssb_cfg.ssb_period_msec);
+    out_cell.ran.ssb_cfg.ssb_block_power = base_cell.ssb_cfg.ssb_block_power;
+    out_cell.ran.ssb_cfg.pss_to_sss_epre = base_cell.ssb_cfg.pss_to_sss_epre;
 
     // SI message config.
     out_cell.si.si_config = make_si_sched_info_config(base_cell);
     if (out_cell.si.si_config.has_value()) {
       // Enable otherSI search space.
-      out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.other_si_search_space_id = to_search_space_id(1);
+      out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common.other_si_search_space_id = to_search_space_id(1);
     }
 
     // UE timers and constants config.
@@ -536,20 +536,21 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
         std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t319);
 
     // Carrier config.
-    out_cell.dl_carrier.nof_ant = base_cell.nof_antennas_dl;
-    out_cell.ul_carrier.nof_ant = base_cell.nof_antennas_ul;
+    out_cell.ran.dl_carrier.nof_ant = base_cell.nof_antennas_dl;
+    out_cell.ran.ul_carrier.nof_ant = base_cell.nof_antennas_ul;
 
     // UL common config.
     if (base_cell.ul_common_cfg.p_max.has_value()) {
-      out_cell.ul_cfg_common.freq_info_ul.p_max = base_cell.ul_common_cfg.p_max.value();
+      out_cell.ran.ul_cfg_common.freq_info_ul.p_max = base_cell.ul_common_cfg.p_max.value();
     }
 
     // DL common config.
-    out_cell.dl_cfg_common.freq_info_dl.scs_carrier_list.back().tx_direct_current_location = dc_offset_helper::pack(
-        base_cell.pdsch_cfg.dc_offset, out_cell.dl_cfg_common.freq_info_dl.scs_carrier_list.back().carrier_bandwidth);
+    out_cell.ran.dl_cfg_common.freq_info_dl.scs_carrier_list.back().tx_direct_current_location =
+        dc_offset_helper::pack(base_cell.pdsch_cfg.dc_offset,
+                               out_cell.ran.dl_cfg_common.freq_info_dl.scs_carrier_list.back().carrier_bandwidth);
 
     // PRACH config.
-    rach_config_common& rach_cfg                           = *out_cell.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+    rach_config_common& rach_cfg                           = *out_cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common;
     rach_cfg.rach_cfg_generic.prach_config_index           = base_cell.prach_cfg.prach_config_index.value();
     rach_cfg.rach_cfg_generic.ra_resp_window               = base_cell.prach_cfg.ra_resp_window.value();
     rach_cfg.rach_cfg_generic.zero_correlation_zone_config = base_cell.prach_cfg.zero_correlation_zone;
@@ -606,85 +607,87 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     }
 
     // Paging parameters.
-    out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id =
+    out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id =
         to_search_space_id(base_cell.paging_cfg.paging_search_space_id);
-    out_cell.dl_cfg_common.pcch_cfg = generate_pcch_config(base_cell);
+    out_cell.ran.dl_cfg_common.pcch_cfg = generate_pcch_config(base_cell);
 
     // Parameters for PUSCH-ConfigCommon.
-    if (not out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value()) {
-      out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.emplace();
+    if (not out_cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value()) {
+      out_cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.emplace();
     }
-    out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().msg3_delta_preamble =
+    out_cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().msg3_delta_preamble =
         base_cell.pusch_cfg.msg3_delta_preamble;
-    out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant =
+    out_cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant =
         base_cell.pusch_cfg.p0_nominal_with_grant;
-    out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().msg3_delta_power = base_cell.pusch_cfg.msg3_delta_power;
+    out_cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().msg3_delta_power =
+        base_cell.pusch_cfg.msg3_delta_power;
 
     // Parameters for PUCCH-ConfigCommon.
-    if (not out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {
-      out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.emplace();
+    if (not out_cell.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {
+      out_cell.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common.emplace();
     }
-    out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().p0_nominal = base_cell.pucch_cfg.p0_nominal;
+    out_cell.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().p0_nominal = base_cell.pucch_cfg.p0_nominal;
     // If not provided, set a default common resource set index depending on the format used for Resource Set 0.
     // The indices are chosen to maximize the number of symbols and minimize the number of cyclic shifts.
     if (pucch_f0f1_format(base_cell.pucch_cfg.formats) == pucch_format::FORMAT_0) {
-      out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common =
+      out_cell.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common =
           base_cell.pucch_cfg.pucch_resource_common.value_or(0);
     } else {
-      out_cell.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common =
+      out_cell.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common =
           base_cell.pucch_cfg.pucch_resource_common.value_or(11);
     }
 
     // Common PDCCH config.
-    search_space_configuration& ss1_cfg = out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.back();
+    search_space_configuration& ss1_cfg = out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.back();
     ss1_cfg.set_non_ss0_nof_candidates(base_cell.pdcch_cfg.common.ss1_n_candidates);
 
     // Set builder for initial BWP UE-dedicated parameters.
     // > PDSCH
-    out_cell.init_bwp_builder.pdsch.nof_harq_procs =
+    out_cell.ran.init_bwp_builder.pdsch.nof_harq_procs =
         static_cast<uint8_t>(config.cells_cfg.front().cell.pdsch_cfg.nof_harqs);
-    out_cell.init_bwp_builder.pdsch.dl_harq_feedback_disabled = base_cell.pdsch_cfg.harq_feedback_disabled;
-    out_cell.init_bwp_builder.pdsch.mcs_table                 = base_cell.pdsch_cfg.mcs_table;
-    out_cell.init_bwp_builder.pdsch.additional_positions =
+    out_cell.ran.init_bwp_builder.pdsch.dl_harq_feedback_disabled = base_cell.pdsch_cfg.harq_feedback_disabled;
+    out_cell.ran.init_bwp_builder.pdsch.mcs_table                 = base_cell.pdsch_cfg.mcs_table;
+    out_cell.ran.init_bwp_builder.pdsch.additional_positions =
         uint_to_dmrs_additional_positions(base_cell.pdsch_cfg.dmrs_add_pos);
-    out_cell.init_bwp_builder.pdsch.interleaving_bundle_size = base_cell.pdsch_cfg.interleaving_bundle_size;
+    out_cell.ran.init_bwp_builder.pdsch.interleaving_bundle_size = base_cell.pdsch_cfg.interleaving_bundle_size;
     // > PUSCH
-    out_cell.init_bwp_builder.pusch.min_k2                      = base_cell.pusch_cfg.min_k2;
-    out_cell.init_bwp_builder.pusch.transform_precoding_enabled = base_cell.pusch_cfg.enable_transform_precoding;
-    out_cell.init_bwp_builder.pusch.mcs_table                   = base_cell.pusch_cfg.mcs_table;
-    out_cell.init_bwp_builder.pusch.additional_positions =
+    out_cell.ran.init_bwp_builder.pusch.min_k2                      = base_cell.pusch_cfg.min_k2;
+    out_cell.ran.init_bwp_builder.pusch.transform_precoding_enabled = base_cell.pusch_cfg.enable_transform_precoding;
+    out_cell.ran.init_bwp_builder.pusch.mcs_table                   = base_cell.pusch_cfg.mcs_table;
+    out_cell.ran.init_bwp_builder.pusch.additional_positions =
         uint_to_dmrs_additional_positions(base_cell.pusch_cfg.dmrs_add_pos);
     // Determine the PUSCH transmission maximum number of layers:
     //  - one layer if transform precoding is enabled; or
     //  - selects the most limiting number of layers among the physical layer capability, the number of antennas and
     //    configured maximum rank.
-    out_cell.init_bwp_builder.pusch.max_nof_layers =
+    out_cell.ran.init_bwp_builder.pusch.max_nof_layers =
         cell.cell.pusch_cfg.enable_transform_precoding
             ? 1
             : std::min({cell.cell.nof_antennas_ul, pusch_constants::MAX_NOF_LAYERS, cell.cell.pusch_cfg.max_rank});
     beta_offsets b_offsets{};
-    b_offsets.beta_offset_ack_idx_1                  = base_cell.pusch_cfg.beta_offset_ack_idx_1;
-    b_offsets.beta_offset_ack_idx_2                  = base_cell.pusch_cfg.beta_offset_ack_idx_2;
-    b_offsets.beta_offset_ack_idx_3                  = base_cell.pusch_cfg.beta_offset_ack_idx_3;
-    b_offsets.beta_offset_csi_p1_idx_1               = base_cell.pusch_cfg.beta_offset_csi_p1_idx_1;
-    b_offsets.beta_offset_csi_p1_idx_2               = base_cell.pusch_cfg.beta_offset_csi_p1_idx_2;
-    b_offsets.beta_offset_csi_p2_idx_1               = base_cell.pusch_cfg.beta_offset_csi_p2_idx_1;
-    b_offsets.beta_offset_csi_p2_idx_2               = base_cell.pusch_cfg.beta_offset_csi_p2_idx_2;
-    out_cell.init_bwp_builder.pusch.uci_beta_offsets = b_offsets;
-    out_cell.init_bwp_builder.pusch.p0_pusch_alpha = float_to_alpha(base_cell.pusch_cfg.path_loss_compensation_factor);
-    out_cell.init_bwp_builder.pusch.nof_harq_procs = static_cast<uint8_t>(base_cell.pusch_cfg.nof_harqs);
-    out_cell.init_bwp_builder.pusch.ul_harq_mode   = ~base_cell.pusch_cfg.harq_mode_b;
+    b_offsets.beta_offset_ack_idx_1                      = base_cell.pusch_cfg.beta_offset_ack_idx_1;
+    b_offsets.beta_offset_ack_idx_2                      = base_cell.pusch_cfg.beta_offset_ack_idx_2;
+    b_offsets.beta_offset_ack_idx_3                      = base_cell.pusch_cfg.beta_offset_ack_idx_3;
+    b_offsets.beta_offset_csi_p1_idx_1                   = base_cell.pusch_cfg.beta_offset_csi_p1_idx_1;
+    b_offsets.beta_offset_csi_p1_idx_2                   = base_cell.pusch_cfg.beta_offset_csi_p1_idx_2;
+    b_offsets.beta_offset_csi_p2_idx_1                   = base_cell.pusch_cfg.beta_offset_csi_p2_idx_1;
+    b_offsets.beta_offset_csi_p2_idx_2                   = base_cell.pusch_cfg.beta_offset_csi_p2_idx_2;
+    out_cell.ran.init_bwp_builder.pusch.uci_beta_offsets = b_offsets;
+    out_cell.ran.init_bwp_builder.pusch.p0_pusch_alpha =
+        float_to_alpha(base_cell.pusch_cfg.path_loss_compensation_factor);
+    out_cell.ran.init_bwp_builder.pusch.nof_harq_procs = static_cast<uint8_t>(base_cell.pusch_cfg.nof_harqs);
+    out_cell.ran.init_bwp_builder.pusch.ul_harq_mode   = ~base_cell.pusch_cfg.harq_mode_b;
     // > PUCCH
-    out_cell.init_bwp_builder.pucch.min_k1    = base_cell.pucch_cfg.min_k1;
-    out_cell.init_bwp_builder.pucch.sr_period = static_cast<sr_periodicity>(
+    out_cell.ran.init_bwp_builder.pucch.min_k1    = base_cell.pucch_cfg.min_k1;
+    out_cell.ran.init_bwp_builder.pucch.sr_period = static_cast<sr_periodicity>(
         static_cast<unsigned>(get_nof_slots_per_subframe(base_cell.common_scs) * base_cell.pucch_cfg.sr_period_msec));
     // > RACH.
-    out_cell.init_bwp_builder.rach.cfra_enabled   = base_cell.prach_cfg.cfra_enabled;
-    out_cell.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
-    out_cell.init_bwp_builder.rlm.type            = base_cell.rlm_cfg.resource_type;
+    out_cell.ran.init_bwp_builder.rach.cfra_enabled   = base_cell.prach_cfg.cfra_enabled;
+    out_cell.ran.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
+    out_cell.ran.init_bwp_builder.rlm.type            = base_cell.rlm_cfg.resource_type;
     // > NTN.
     if (base_cell.ntn_cfg.has_value()) {
-      out_cell.ntn_params = make_ntn_cell_params(base_cell.ntn_cfg.value(), base_cell.pusch_cfg.harq_mode_b.any());
+      out_cell.ran.ntn_params = make_ntn_cell_params(base_cell.ntn_cfg.value(), base_cell.pusch_cfg.harq_mode_b.any());
     }
 
     // UE-dedicated PDCCH config.
@@ -703,11 +706,11 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
                         (cset1_start_crb / pdcch_constants::NOF_RB_PER_FREQ_RESOURCE) + coreset1_nof_resources,
                         true);
 
-    search_space_configuration& ss2_cfg   = out_cell.init_bwp_builder.pdcch_cfg->search_spaces[0];
-    coreset_configuration&      cset1_cfg = out_cell.init_bwp_builder.pdcch_cfg->coresets[0];
+    search_space_configuration& ss2_cfg   = out_cell.ran.init_bwp_builder.pdcch_cfg->search_spaces[0];
+    coreset_configuration&      cset1_cfg = out_cell.ran.init_bwp_builder.pdcch_cfg->coresets[0];
     cset1_cfg.set_freq_domain_resources(freq_resources);
     cset1_cfg.set_non_coreset0_duration(base_cell.pdcch_cfg.dedicated.coreset1_duration.value_or(
-        out_cell.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->duration()));
+        out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->duration()));
     const std::array<uint8_t, 5> auto_compute_ss2_n_candidates_cfg = {0, 0, 0, 0, 0};
     if (base_cell.pdcch_cfg.dedicated.ss2_n_candidates != auto_compute_ss2_n_candidates_cfg) {
       ss2_cfg.set_non_ss0_nof_candidates(base_cell.pdcch_cfg.dedicated.ss2_n_candidates);
@@ -738,8 +741,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
       };
 
       static constexpr uint8_t min_nof_pdcch_candidates = 1;
-      while (config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(*out_cell.init_bwp_builder.pdcch_cfg,
-                                                                                 out_cell.dl_cfg_common) >
+      while (config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(
+                 *out_cell.ran.init_bwp_builder.pdcch_cfg, out_cell.ran.dl_cfg_common) >
                  max_nof_monitored_pdcch_candidates(param.scs_common) and
              std::accumulate(ss2_cfg.get_nof_candidates().begin(), ss2_cfg.get_nof_candidates().end(), 0U) >
                  min_nof_pdcch_candidates) {
@@ -761,21 +764,21 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
              0});
       }
     } else if (not base_cell.pdcch_cfg.dedicated.dci_format_0_1_and_1_1) {
-      search_space_configuration& ss_cfg = out_cell.init_bwp_builder.pdcch_cfg->search_spaces[0];
+      search_space_configuration& ss_cfg = out_cell.ran.init_bwp_builder.pdcch_cfg->search_spaces[0];
       ss_cfg.set_non_ss0_monitored_dci_formats(search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0);
     }
 
     // PDSCH-Config - Update PDSCH time domain resource allocations based on partial slot and/or dedicated PDCCH
     // configuration.
-    out_cell.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
+    out_cell.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
         time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
-            out_cell.tdd_ul_dl_cfg_common,
-            out_cell.dl_cfg_common.init_dl_bwp.generic_params.cp,
-            time_domain_resource_helper::calculate_minimum_pdsch_symbol(out_cell.dl_cfg_common.init_dl_bwp.pdcch_common,
-                                                                        out_cell.init_bwp_builder.pdcch_cfg));
+            out_cell.ran.tdd_ul_dl_cfg_common,
+            out_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
+            time_domain_resource_helper::calculate_minimum_pdsch_symbol(
+                out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common, out_cell.ran.init_bwp_builder.pdcch_cfg));
 
     // Parameters for PUCCH-Config builder (these parameters will be used later on to generate the PUCCH resources).
-    pucch_resource_builder_params&   du_pucch_cfg                  = out_cell.init_bwp_builder.pucch.resources;
+    pucch_resource_builder_params&   du_pucch_cfg                  = out_cell.ran.init_bwp_builder.pucch.resources;
     const du_high_unit_pucch_config& user_pucch_cfg_pre_processing = base_cell.pucch_cfg;
     du_high_unit_pucch_config        user_pucch_cfg                = user_pucch_cfg_pre_processing;
     // For 5MHz BW or for 10MHz TDD, the default PUCCH configuration would use too many PRBs, we need to reduce them not
@@ -870,7 +873,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     }
 
     // Parameters for SRS-Config.
-    srs_builder_params&            du_srs_cfg   = out_cell.init_bwp_builder.srs_cfg;
+    srs_builder_params&            du_srs_cfg   = out_cell.ran.init_bwp_builder.srs_cfg;
     const du_high_unit_srs_config& user_srs_cfg = base_cell.srs_cfg;
     if (user_srs_cfg.srs_type_enabled == "periodic") {
       du_srs_cfg.srs_type_enabled = srs_type::periodic;
@@ -917,9 +920,9 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
       }
       // Add extra PUSCH time-domain resources to enable PUSCH on symbols not used by the SRS.
       config_helpers::recompute_pusch_time_domain_resources(
-          out_cell.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list,
+          out_cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list,
           du_srs_cfg,
-          out_cell.tdd_ul_dl_cfg_common);
+          out_cell.ran.tdd_ul_dl_cfg_common);
     }
 
     // Parameters for csiMeasConfig.
@@ -929,7 +932,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
 
     if (update_msg1_frequency_start) {
       rach_cfg.rach_cfg_generic.msg1_frequency_start = config_helpers::compute_prach_frequency_start(
-          du_pucch_cfg, out_cell.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), is_long_prach);
+          du_pucch_cfg, out_cell.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), is_long_prach);
     }
 
     // DRX params. Long cycle != 0 if enabled.

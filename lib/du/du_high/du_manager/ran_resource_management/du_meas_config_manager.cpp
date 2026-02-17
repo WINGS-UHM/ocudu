@@ -111,12 +111,12 @@ void du_meas_config_manager::update(du_ue_resource_config& ue_cfg, const byte_bu
       continue;
     }
 
-    if (asn1nr.ssb_freq == pcell_common.dl_cfg_common.freq_info_dl.absolute_frequency_ssb) {
+    if (asn1nr.ssb_freq == pcell_common.ran.dl_cfg_common.freq_info_dl.absolute_frequency_ssb) {
       // Same frequency. No need for measGap.
       continue;
     }
 
     // Create measGap.
-    ue_cfg.meas_gap = create_meas_gap(pcell_common.dl_cfg_common.init_dl_bwp.generic_params.scs, asn1nr.smtc1);
+    ue_cfg.meas_gap = create_meas_gap(pcell_common.ran.dl_cfg_common.init_dl_bwp.generic_params.scs, asn1nr.smtc1);
   }
 }

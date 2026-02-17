@@ -75,7 +75,7 @@ public:
     f1_params.nof_cyc_shifts         = pucch_nof_cyclic_shifts::twelve;
     f1_params.occ_supported          = true;
     cell_cfg_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-        pucch_basic_params, cell_cfg_req.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+        pucch_basic_params, cell_cfg_req.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
     this->add_cell(cell_cfg_req);
 
     pucch_cfg_builder.setup(cell_cfg(), pucch_basic_params);

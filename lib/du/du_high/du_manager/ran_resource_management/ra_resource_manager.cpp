@@ -20,8 +20,8 @@ ra_resource_manager::ra_resource_manager(span<const du_cell_config> cell_cfg_lis
     cells[i].cell_cfg = &cell_cfg_list[i];
     const auto& cfg   = *cells[i].cell_cfg;
 
-    if (cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value() and cfg.init_bwp_builder.rach.cfra_enabled) {
-      const auto& rach_common = cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
+    if (cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value() and cfg.ran.init_bwp_builder.rach.cfra_enabled) {
+      const auto& rach_common = cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
 
       // Store the preambles used for CFRA.
       const unsigned nof_cf_preambles = rach_common.total_nof_ra_preambles - rach_common.nof_cb_preambles_per_ssb;

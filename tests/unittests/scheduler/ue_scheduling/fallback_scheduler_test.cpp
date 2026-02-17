@@ -138,7 +138,7 @@ protected:
 
   void setup_sched(const scheduler_expert_config& sched_cfg, const sched_cell_configuration_request_message& msg)
   {
-    current_slot = slot_point{to_numerology_value(msg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0};
+    current_slot = slot_point{to_numerology_value(msg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs), 0};
 
     bench.emplace(sched_cfg, builder_params, msg);
 
@@ -202,14 +202,14 @@ protected:
     }
     sched_cell_configuration_request_message msg =
         sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
-    for (auto& item : msg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
+    for (auto& item : msg.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
       item.k0 = k0;
     }
 
     if (add_extra_pdcch_candidate) {
-      ocudu_assert(msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.size() > 1U,
+      ocudu_assert(msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces.size() > 1U,
                    "This test assumes that the cell configuration has at least 2 search spaces");
-      msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1].set_non_ss0_nof_candidates({0, 0, 2, 0, 0});
+      msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1].set_non_ss0_nof_candidates({0, 0, 2, 0, 0});
     }
     return msg;
   }
@@ -838,12 +838,12 @@ TEST_F(fallback_scheduler_tdd_tester, test_allocation_in_partial_slots_tdd)
   this->builder_params.csi_rs_enabled               = false;
   sched_cell_configuration_request_message cell_cfg = create_custom_cell_config_request(k0, tdd_cfg);
   // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
-  cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
+  cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
       time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
-          cell_cfg.tdd_ul_dl_cfg_common,
-          cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp,
-          time_domain_resource_helper::calculate_minimum_pdsch_symbol(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common,
-                                                                      std::nullopt));
+          cell_cfg.ran.tdd_ul_dl_cfg_common,
+          cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
+          time_domain_resource_helper::calculate_minimum_pdsch_symbol(
+              cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt));
   // Set minimum k1 according to TDD pattern.
   scheduler_expert_config expert_cfg = create_expert_config(max_msg4_mcs_index);
   setup_sched(expert_cfg, cell_cfg);
@@ -1428,7 +1428,7 @@ protected:
     base_fallback_tester(GetParam().duplx_mode, GetParam().enable_pusch_transform_precoding)
   {
     auto msg = sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
-    msg.ul_cfg_common.init_ul_bwp.rach_cfg_common->msg3_transform_precoder = enable_pusch_transform_precoding;
+    msg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->msg3_transform_precoder = enable_pusch_transform_precoding;
     setup_sched(config_helpers::make_default_scheduler_expert_config(), msg);
   }
 
@@ -1543,7 +1543,7 @@ protected:
     base_fallback_tester(GetParam().duplx_mode, GetParam().enable_pusch_transform_precoding)
   {
     auto msg = sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
-    msg.ul_cfg_common.init_ul_bwp.rach_cfg_common->msg3_transform_precoder = enable_pusch_transform_precoding;
+    msg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->msg3_transform_precoder = enable_pusch_transform_precoding;
     setup_sched(config_helpers::make_default_scheduler_expert_config(), msg);
     slot_generate_srb_traffic =
         slot_point{to_numerology_value(bench->cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs),

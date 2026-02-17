@@ -22,21 +22,21 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
 {
   config_helpers::cell_config_builder_params_extended params{params_input};
   sched_cell_configuration_request_message            sched_req{};
-  sched_req.cell_index                    = to_du_cell_index(0);
-  sched_req.pci                           = params.pci;
-  sched_req.dl_carrier                    = config_helpers::make_default_dl_carrier_configuration(params);
-  sched_req.ul_carrier                    = config_helpers::make_default_ul_carrier_configuration(params);
-  sched_req.dl_cfg_common                 = config_helpers::make_default_dl_config_common(params);
-  sched_req.ul_cfg_common                 = config_helpers::make_default_ul_config_common(params);
-  sched_req.ssb_config                    = config_helpers::make_default_ssb_config(params);
-  sched_req.tdd_ul_dl_cfg_common          = params.tdd_ul_dl_cfg_common;
-  sched_req.init_bwp_builder.pucch.min_k1 = params.min_k1;
-  sched_req.init_bwp_builder.pusch.min_k2 = params.min_k2;
+  sched_req.cell_index                        = to_du_cell_index(0);
+  sched_req.ran.pci                           = params.pci;
+  sched_req.ran.dl_carrier                    = config_helpers::make_default_dl_carrier_configuration(params);
+  sched_req.ran.ul_carrier                    = config_helpers::make_default_ul_carrier_configuration(params);
+  sched_req.ran.dl_cfg_common                 = config_helpers::make_default_dl_config_common(params);
+  sched_req.ran.ul_cfg_common                 = config_helpers::make_default_ul_config_common(params);
+  sched_req.ran.ssb_cfg                       = config_helpers::make_default_ssb_config(params);
+  sched_req.ran.tdd_ul_dl_cfg_common          = params.tdd_ul_dl_cfg_common;
+  sched_req.ran.init_bwp_builder.pucch.min_k1 = params.min_k1;
+  sched_req.ran.init_bwp_builder.pusch.min_k2 = params.min_k2;
 
   // The CORESET duration of 3 symbols is only permitted if dmrs-typeA-Position is set to 3. Refer TS 38.211, 7.3.2.2.
   const pdcch_type0_css_coreset_description coreset0_desc = pdcch_type0_css_coreset_get(
       params.dl_carrier.band, *params.scs_ssb, params.scs_common, params.cs0_index->value(), params.k_ssb->value());
-  sched_req.dmrs_typeA_pos =
+  sched_req.ran.dmrs_typeA_pos =
       coreset0_desc.nof_symb_coreset == 3U ? dmrs_typeA_position::pos3 : dmrs_typeA_position::pos2;
 
   sched_req.nof_beams = 1;
@@ -50,11 +50,11 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
 
   pucch_resource_builder_params default_pucch_builder_params{};
   sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-      default_pucch_builder_params, sched_req.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      default_pucch_builder_params, sched_req.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   if (params.csi_rs_enabled) {
     csi_helper::csi_meas_config_builder_params csi_params = config_helpers::make_default_csi_builder_params(params);
-    sched_req.init_bwp_builder.csi                        = csi_params.csi_params;
+    sched_req.ran.init_bwp_builder.csi                    = csi_params.csi_params;
     csi_meas_config csi_meas                              = csi_helper::make_csi_meas_config(csi_params, {});
     sched_req.nzp_csi_rs_res_list                         = csi_meas.nzp_csi_rs_res_list;
   }

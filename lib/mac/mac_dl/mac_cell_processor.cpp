@@ -577,7 +577,7 @@ void mac_cell_processor::write_tx_pdu_pcap(slot_point                sl_tx,
     if (dumped_version != dl_alloc.version) {
       const mac_dl_data_result::dl_pdu& sib1_pdu = dl_res.si_pdus[i];
       mac_nr_context_info               context  = {};
-      context.radioType = cell_cfg.sched_req.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
+      context.radioType = cell_cfg.sched_req.ran.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
       context.direction = PCAP_DIRECTION_DOWNLINK;
       context.rntiType  = PCAP_SI_RNTI;
       context.rnti      = to_value(dl_alloc.pdsch_cfg.rnti);
@@ -593,10 +593,10 @@ void mac_cell_processor::write_tx_pdu_pcap(slot_point                sl_tx,
     const mac_dl_data_result::dl_pdu& rar_pdu  = dl_res.rar_pdus[i];
     const rar_information&            dl_alloc = sl_res.dl.rar_grants[i];
     mac_nr_context_info               context  = {};
-    context.radioType           = cell_cfg.sched_req.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
-    context.direction           = PCAP_DIRECTION_DOWNLINK;
-    context.rntiType            = PCAP_RA_RNTI;
-    context.rnti                = to_value(dl_alloc.pdsch_cfg.rnti);
+    context.radioType = cell_cfg.sched_req.ran.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
+    context.direction = PCAP_DIRECTION_DOWNLINK;
+    context.rntiType  = PCAP_RA_RNTI;
+    context.rnti      = to_value(dl_alloc.pdsch_cfg.rnti);
     context.system_frame_number = sl_tx.sfn();
     context.sub_frame_number    = sl_tx.subframe_index();
     context.length              = rar_pdu.pdu.get_buffer().size();
@@ -607,10 +607,10 @@ void mac_cell_processor::write_tx_pdu_pcap(slot_point                sl_tx,
     const mac_dl_data_result::dl_pdu& pg_pdu   = dl_res.paging_pdus[i];
     const dl_paging_allocation&       dl_alloc = sl_res.dl.paging_grants[i];
     ocudu::mac_nr_context_info        context  = {};
-    context.radioType           = cell_cfg.sched_req.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
-    context.direction           = PCAP_DIRECTION_DOWNLINK;
-    context.rntiType            = PCAP_P_RNTI;
-    context.rnti                = to_value(dl_alloc.pdsch_cfg.rnti);
+    context.radioType = cell_cfg.sched_req.ran.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
+    context.direction = PCAP_DIRECTION_DOWNLINK;
+    context.rntiType  = PCAP_P_RNTI;
+    context.rnti      = to_value(dl_alloc.pdsch_cfg.rnti);
     context.system_frame_number = sl_tx.sfn();
     context.sub_frame_number    = sl_tx.subframe_index();
     context.length              = pg_pdu.pdu.get_buffer().size();
@@ -622,7 +622,7 @@ void mac_cell_processor::write_tx_pdu_pcap(slot_point                sl_tx,
     const dl_msg_alloc&               dl_alloc = sl_res.dl.ue_grants[i];
     if (dl_alloc.pdsch_cfg.codewords[0].new_data) {
       ocudu::mac_nr_context_info context = {};
-      context.radioType = cell_cfg.sched_req.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
+      context.radioType = cell_cfg.sched_req.ran.tdd_ul_dl_cfg_common.has_value() ? PCAP_TDD_RADIO : PCAP_FDD_RADIO;
       context.direction = PCAP_DIRECTION_DOWNLINK;
       context.rntiType  = PCAP_C_RNTI;
       context.rnti      = to_value(dl_alloc.pdsch_cfg.rnti);

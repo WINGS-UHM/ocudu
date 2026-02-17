@@ -37,7 +37,7 @@ static bool csi_offset_exceeds_grant_cnt(unsigned                     offset_can
   return false;
 }
 
-static std::optional<csi_report_config> make_default_csi_report_config(const du_cell_config& cell_cfg)
+static std::optional<csi_report_config> make_default_csi_report_config(const ran_cell_config& cell_cfg)
 {
   const auto csi_meas_cfg = config_helpers::make_csi_meas_config(cell_cfg);
   if (csi_meas_cfg.has_value() and not is_pusch_configured(*csi_meas_cfg)) {
@@ -53,7 +53,7 @@ du_pucch_resource_manager::du_pucch_resource_manager(unsigned max_pucch_grants_p
   ocudu_assert(max_pucch_grants_per_slot_ > 0, "At least one PUCCH grant per slot is required");
 }
 
-void du_pucch_resource_manager::add_cell(du_cell_index_t cell_idx, const du_cell_config& cell_cfg)
+void du_pucch_resource_manager::add_cell(du_cell_index_t cell_idx, const ran_cell_config& cell_cfg)
 {
   ocudu_assert(not cells.contains(cell_idx), "Cell index={} already configured", cell_idx);
 

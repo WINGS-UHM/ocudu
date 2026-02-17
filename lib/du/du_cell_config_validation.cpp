@@ -77,18 +77,18 @@ bool is_valid_enum_number(Number number)
 /// Checks whether CORESET#0 table index is valid as per TS38.213, Table 13-{1,...,10}.
 static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 {
-  const subcarrier_spacing scs_common = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
-  const auto               cs0_idx    = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  const subcarrier_spacing scs_common = cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const auto               cs0_idx    = cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
   CHECK_TRUE(cs0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
-  const auto ss0_idx = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
+  const auto ss0_idx = cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
   CHECK_TRUE(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
 
   // TODO: Check which table to use.
   // TODO: Add checks on minimum bandwidth.
-  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz15) {
+  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.ran.ssb_cfg.scs == subcarrier_spacing::kHz15) {
     // As per TS38.213, Table 13-1.
     CHECK_BELOW(cs0_idx.value(), 15, "CORESET#0 index table");
-  } else if (scs_common == subcarrier_spacing::kHz30 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz30) {
+  } else if (scs_common == subcarrier_spacing::kHz30 and cell_cfg.ran.ssb_cfg.scs == subcarrier_spacing::kHz30) {
     // As per TS38.213, Table 13-4.
     CHECK_BELOW(cs0_idx.value(), 16, "CORESET#0 index table");
   }
@@ -96,7 +96,7 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 
   // This constraint is implementation-defined and comes from the fact that our PDCCH scheduler only schedules PDCCH
   // starting from the symbol index 0.
-  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.ssb_cfg.scs == subcarrier_spacing::kHz15) {
+  if (scs_common == subcarrier_spacing::kHz15 and cell_cfg.ran.ssb_cfg.scs == subcarrier_spacing::kHz15) {
     // As per TS38.213, Table 13-11.
     CHECK_EQ_OR_BELOW(ss0_idx.value(), 9, "SearchSpaceZero index table");
   }
@@ -107,11 +107,11 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
 /// Checks whether CORESET#0 configuration matches the values specified in TS38.211-7.3.2.2.
 static check_outcome is_coreset0_params_valid(const du_cell_config& cell_cfg)
 {
-  const coreset_configuration& cs_cfg = *cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;
+  const coreset_configuration& cs_cfg = *cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;
   CHECK_EQ(fmt::underlying(cs_cfg.get_id()), 0, "CORESET#0 ID");
 
   // Check if Coreset0 is within the Initial DL BWP CRBs.
-  const crb_interval& initial_bwp_crbs = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs;
+  const crb_interval& initial_bwp_crbs = cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs;
   crb_interval        coreset0_crbs    = cs_cfg.coreset0_crbs();
   CHECK_TRUE(initial_bwp_crbs.contains(coreset0_crbs),
              "The CORESET#0 CRBs [{}, {}) falls outside of the initial DL BWP CRBs [{}, {})",
@@ -155,7 +155,7 @@ static check_outcome is_search_space_valid(const search_space_configuration& ss_
 
 static check_outcome check_dl_config_common(const du_cell_config& cell_cfg)
 {
-  const bwp_downlink_common& bwp = cell_cfg.dl_cfg_common.init_dl_bwp;
+  const bwp_downlink_common& bwp = cell_cfg.ran.dl_cfg_common.init_dl_bwp;
   // PDCCH
   if (bwp.pdcch_common.coreset0.has_value()) {
     HANDLE_ERROR(is_coreset0_params_valid(cell_cfg));
@@ -217,11 +217,11 @@ static check_outcome check_dl_config_common(const du_cell_config& cell_cfg)
 
 static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 {
-  const auto rlm_cfg = config_helpers::make_rlm_config(cell_cfg);
+  const auto rlm_cfg = config_helpers::make_rlm_config(cell_cfg.ran);
   if (not rlm_cfg.has_value()) {
     return {};
   }
-  const auto csi_meas_cfg = config_helpers::make_csi_meas_config(cell_cfg);
+  const auto csi_meas_cfg = config_helpers::make_csi_meas_config(cell_cfg.ran);
   for (auto& rlm_res : rlm_cfg->rlm_resources) {
     CHECK_TRUE(rlm_res.resource_purpose == radio_link_monitoring_config::radio_link_monitoring_rs::purpose::rlf,
                "Radio Link Failure is the only supported Radio Link Monitoring purpose");
@@ -252,8 +252,8 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 
     if (std::holds_alternative<ssb_id_t>(rlm_res.detection_resource)) {
       const ssb_id_t ssb_rs_id = std::get<ssb_id_t>(rlm_res.detection_resource);
-      CHECK_TRUE(std::any_of(cell_cfg.ssb_cfg.beam_ids.begin(),
-                             cell_cfg.ssb_cfg.beam_ids.end(),
+      CHECK_TRUE(std::any_of(cell_cfg.ran.ssb_cfg.beam_ids.begin(),
+                             cell_cfg.ran.ssb_cfg.beam_ids.end(),
                              [ssb_rs_id](const uint8_t ssb_idx) { return ssb_idx == static_cast<uint8_t>(ssb_rs_id); }),
                  "RLM resource id={} points at SSB index={}, which wasn't found in SSB configuration",
                  fmt::underlying(rlm_res.res_id),
@@ -261,7 +261,8 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
     }
   }
 
-  const uint8_t l_max = ssb_get_L_max(cell_cfg.ssb_cfg.scs, cell_cfg.dl_carrier.arfcn_f_ref, cell_cfg.dl_carrier.band);
+  const uint8_t l_max =
+      ssb_get_L_max(cell_cfg.ran.ssb_cfg.scs, cell_cfg.ran.dl_carrier.arfcn_f_ref, cell_cfg.ran.dl_carrier.band);
   // Check the constrains on N_RLM values in Table 5-1, TS 38.213, are met.
   if (l_max == 4U) {
     CHECK_TRUE(rlm_cfg->rlm_resources.size() <= 2, "With SSB L_max = 4, max 2 RLM resources can be configured");
@@ -276,9 +277,9 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 
 static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 {
-  const subcarrier_spacing scs_common = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
-  const auto&              pdcch_cfg  = cell_cfg.init_bwp_builder.pdcch_cfg;
-  const auto               pdsch_cfg  = config_helpers::make_pdsch_config(cell_cfg);
+  const subcarrier_spacing scs_common = cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const auto&              pdcch_cfg  = cell_cfg.ran.init_bwp_builder.pdcch_cfg;
+  const auto               pdsch_cfg  = config_helpers::make_pdsch_config(cell_cfg.ran);
 
   // PDCCH
   if (pdcch_cfg.has_value()) {
@@ -289,9 +290,9 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
               search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
 
       if (fallback_dci_format_in_ss2) {
-        CHECK_TRUE(cell_cfg.dl_carrier.nof_ant == 1,
+        CHECK_TRUE(cell_cfg.ran.dl_carrier.nof_ant == 1,
                    "Nof. DL antennas {} cannot be greater than 1 when using fallback DCI format\n",
-                   cell_cfg.dl_carrier.nof_ant);
+                   cell_cfg.ran.dl_carrier.nof_ant);
 
         if (pdsch_cfg.has_value()) {
           CHECK_TRUE(pdsch_cfg->mcs_table != pdsch_mcs_table::qam256,
@@ -308,7 +309,7 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
       if (pdsch_cfg.has_value() and pdsch_cfg->pdsch_mapping_type_a_dmrs.has_value() and
           pdsch_cfg->pdsch_mapping_type_a_dmrs->additional_positions == dmrs_additional_positions::pos3) {
         CHECK_TRUE(
-            cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2,
+            cell_cfg.ran.dmrs_typeA_pos == dmrs_typeA_position::pos2,
             "PDSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
       }
     }
@@ -316,7 +317,7 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
     // Checks whether nof. monitored PDCCH candidates per slot for a DL BWP does not exceed maximum allowed value as per
     // TS 38.213, Table 10.1-2.
     const unsigned total_nof_monitored_pdcch_candidates =
-        config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(*pdcch_cfg, cell_cfg.dl_cfg_common);
+        config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(*pdcch_cfg, cell_cfg.ran.dl_cfg_common);
     CHECK_EQ_OR_BELOW(total_nof_monitored_pdcch_candidates,
                       max_nof_monitored_pdcch_candidates(scs_common),
                       "Nof. PDCCH candidates monitored per slot for a DL BWP={} exceeds maximum value={}\n",
@@ -332,8 +333,8 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 
 static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
 {
-  const ssb_configuration& ssb_cfg    = cell_cfg.ssb_cfg;
-  const subcarrier_spacing scs_common = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const ssb_configuration& ssb_cfg    = cell_cfg.ran.ssb_cfg;
+  const subcarrier_spacing scs_common = cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
 
   // No mixed numerologies supported (yet).
   CHECK_EQ(fmt::underlying(ssb_cfg.scs),
@@ -341,7 +342,7 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
            "SSB SCS must be equal to SCS common. Mixed numerologies are not supported.");
 
   // Only FR1 SCS supported (for now).
-  if (band_helper::get_freq_range(cell_cfg.dl_carrier.band) == frequency_range::FR1) {
+  if (band_helper::get_freq_range(cell_cfg.ran.dl_carrier.band) == frequency_range::FR1) {
     CHECK_EQ_OR_BELOW(fmt::underlying(ssb_cfg.scs),
                       fmt::underlying(subcarrier_spacing::kHz30),
                       "SSB SCS must be 15kHz or 30kHz for FR1.");
@@ -362,7 +363,7 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
     // In the following, we assume the SSB is located inside the Transmission Bandwidth Configuration of the specified
     // band. Refer to TS38.104, Section 5.3.1 for the definition of Transmission Bandwidth Configuration.
     // We assume the Initial DL BWP ranges over the whole Transmission Bandwidth Configuration.
-    unsigned nof_crbs               = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
+    unsigned nof_crbs               = cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
     unsigned offset_p_A_upper_bound = ssb_cfg.k_ssb.value() > 0 ? nof_crbs - NOF_SSB_PRBS - 1 : nof_crbs - NOF_SSB_PRBS;
     CHECK_EQ_OR_BELOW(
         ssb_cfg.offset_to_point_A.value(),
@@ -379,7 +380,7 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
     // In the following, we assume the SSB is located inside the Transmission Bandwidth Configuration of the specified
     // band. Refer to TS38.104, Section 5.3.1 for the definition of Transmission Bandwidth Configuration.
     // We assume the Initial DL BWP ranges over the whole Transmission Bandwidth Configuration.
-    unsigned nof_crbs = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
+    unsigned nof_crbs = cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
     unsigned offset_p_A_upper_bound =
         ssb_cfg.k_ssb.value() > 0 ? (nof_crbs - NOF_SSB_PRBS - 1) * 2 : (nof_crbs - NOF_SSB_PRBS) * 2;
     CHECK_EQ_OR_BELOW(
@@ -392,8 +393,8 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
                offset_p_A_upper_bound);
   }
 
-  ssb_pattern_case ssb_case = band_helper::get_ssb_pattern(cell_cfg.dl_carrier.band, ssb_cfg.scs);
-  const uint8_t    L_max    = ssb_get_L_max(ssb_cfg.scs, cell_cfg.dl_carrier.arfcn_f_ref, cell_cfg.dl_carrier.band);
+  ssb_pattern_case ssb_case = band_helper::get_ssb_pattern(cell_cfg.ran.dl_carrier.band, ssb_cfg.scs);
+  const uint8_t L_max = ssb_get_L_max(ssb_cfg.scs, cell_cfg.ran.dl_carrier.arfcn_f_ref, cell_cfg.ran.dl_carrier.band);
   CHECK_TRUE(ssb_cfg.ssb_bitmap.get_L_max() == L_max, "Mismatch between SSB bitmap size and L_max");
 
   // (Only for Lmax = 64) It is assumed in \c inOneGroup, \c ssb-PositionsInBurst, \c ServingCellConfigCommonSIB,
@@ -418,11 +419,11 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
     double     cutoff_freq_mhz_case_a_b_c      = band_helper::nr_arfcn_to_freq(CUTOFF_FREQ_ARFCN_CASE_A_B_C) / 1e6;
     double     cutoff_freq_mhz_case_c_unpaired = band_helper::nr_arfcn_to_freq(CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED) / 1e6;
     const bool ssb_case_c_unpaired =
-        ssb_case == ssb_pattern_case::C and not band_helper::is_paired_spectrum(cell_cfg.dl_carrier.band);
+        ssb_case == ssb_pattern_case::C and not band_helper::is_paired_spectrum(cell_cfg.ran.dl_carrier.band);
 
     const bool    frequency_above_cutoff = ssb_case_c_unpaired
-                                               ? cell_cfg.dl_carrier.arfcn_f_ref > CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED
-                                               : cell_cfg.dl_carrier.arfcn_f_ref > CUTOFF_FREQ_ARFCN_CASE_A_B_C;
+                                               ? cell_cfg.ran.dl_carrier.arfcn_f_ref > CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED
+                                               : cell_cfg.ran.dl_carrier.arfcn_f_ref > CUTOFF_FREQ_ARFCN_CASE_A_B_C;
     const uint8_t expected_L_max         = frequency_above_cutoff ? 8U : 4U;
 
     CHECK_EQ(L_max,
@@ -443,9 +444,9 @@ static check_outcome check_ssb_configuration(const du_cell_config& cell_cfg)
 
 static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
 {
-  const bwp_uplink_common& bwp = cell_cfg.ul_cfg_common.init_ul_bwp;
+  const bwp_uplink_common& bwp = cell_cfg.ran.ul_cfg_common.init_ul_bwp;
   if (bwp.pusch_cfg_common.has_value()) {
-    const pusch_config_common& pusch = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value();
+    const pusch_config_common& pusch = cell_cfg.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value();
     CHECK_TRUE(pusch.msg3_delta_power.valid(),
                "msg3_delta_power{} in pucch_config_common not in range [-6, 8]",
                pusch.msg3_delta_power.value());
@@ -455,10 +456,10 @@ static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
   }
 
   // \ref prach_scheduler for the derivation of this validation.
-  const prach_configuration prach_cfg =
-      prach_configuration_get(band_helper::get_freq_range(cell_cfg.dl_carrier.band),
-                              band_helper::get_duplex_mode(cell_cfg.dl_carrier.band),
-                              cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index);
+  const prach_configuration prach_cfg = prach_configuration_get(
+      band_helper::get_freq_range(cell_cfg.ran.dl_carrier.band),
+      band_helper::get_duplex_mode(cell_cfg.ran.dl_carrier.band),
+      cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index);
 
   // The information we need are not related to whether it is the last PRACH occasion.
   constexpr bool                   is_last_prach_occasion = false;
@@ -467,25 +468,26 @@ static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
           ? get_prach_preamble_long_info(prach_cfg.format)
           : get_prach_preamble_short_info(
                 prach_cfg.format,
-                to_ra_subcarrier_spacing(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs),
+                to_ra_subcarrier_spacing(cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.scs),
                 is_last_prach_occasion);
   const unsigned prach_nof_prbs =
-      prach_frequency_mapping_get(info.scs, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs).nof_rb_ra;
+      prach_frequency_mapping_get(info.scs, cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.scs).nof_rb_ra;
   const unsigned prach_prb_end =
-      cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start +
-      cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_fdm * prach_nof_prbs;
+      cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start +
+      cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_fdm * prach_nof_prbs;
   CHECK_TRUE(
-      prach_prb_end <= cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
+      prach_prb_end <= cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
       "With the current PRACH configuration index {}, MSG1 frequency start {} and MSG1 FDM {}, the resulting PRACH "
       "RBs fall outside the BWP.",
-      cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index,
-      cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start,
-      cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_fdm);
+      cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index,
+      cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start,
+      cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_fdm);
 
-  if (cell_cfg.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::aperiodic and
-      cell_cfg.tdd_ul_dl_cfg_common.has_value() and cell_cfg.tdd_ul_dl_cfg_common.value().pattern2.has_value()) {
-    CHECK_TRUE(cell_cfg.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols ==
-                   cell_cfg.tdd_ul_dl_cfg_common.value().pattern2.value().nof_ul_symbols,
+  if (cell_cfg.ran.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::aperiodic and
+      cell_cfg.ran.tdd_ul_dl_cfg_common.has_value() and
+      cell_cfg.ran.tdd_ul_dl_cfg_common.value().pattern2.has_value()) {
+    CHECK_TRUE(cell_cfg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols ==
+                   cell_cfg.ran.tdd_ul_dl_cfg_common.value().pattern2.value().nof_ul_symbols,
                "With aperiodic SRS, the TDD pattern 1 and 2 must have the same number of symbols.");
   }
 
@@ -494,9 +496,9 @@ static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
 
 static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
 {
-  const auto&                       pusch_params = cell_cfg.init_bwp_builder.pusch;
+  const auto&                       pusch_params = cell_cfg.ran.init_bwp_builder.pusch;
   const pusch_mcs_table             mcs_table    = pusch_params.mcs_table;
-  const search_space_configuration& ss2          = cell_cfg.init_bwp_builder.pdcch_cfg->search_spaces.back();
+  const search_space_configuration& ss2          = cell_cfg.ran.init_bwp_builder.pdcch_cfg->search_spaces.back();
   const bool                        fallback_dci_format_in_ss2 =
       ss2.is_common_search_space() or
       not(std::get<search_space_configuration::ue_specific_dci_format>(ss2.get_monitored_dci_formats()) ==
@@ -511,12 +513,12 @@ static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
                "64QAM Low Se MCS table cannot be used for PDSCH with DCI in Common SearchSpace");
   }
   if (pusch_params.additional_positions == dmrs_additional_positions::pos3) {
-    CHECK_TRUE(cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2,
+    CHECK_TRUE(cell_cfg.ran.dmrs_typeA_pos == dmrs_typeA_position::pos2,
                "PUSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
   }
-  if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
-    CHECK_TRUE(sr_periodicity_to_slot(cell_cfg.init_bwp_builder.pucch.sr_period) %
-                       nof_slots_per_tdd_period(cell_cfg.tdd_ul_dl_cfg_common.value()) ==
+  if (cell_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
+    CHECK_TRUE(sr_periodicity_to_slot(cell_cfg.ran.init_bwp_builder.pucch.sr_period) %
+                       nof_slots_per_tdd_period(cell_cfg.ran.tdd_ul_dl_cfg_common.value()) ==
                    0,
                "Scheduling request resource periodicity that is not a submultiple of the TDD "
                "configuration periodicity is not supported.");
@@ -526,15 +528,15 @@ static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
 
 static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
 {
-  if (not cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
+  if (not cell_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
     return {};
   }
 
   // See TS 38.214, Table 5.1.2.1-1: Valid S and L combinations.
   static constexpr unsigned pdsch_mapping_typeA_min_L_value = 3;
 
-  const pdcch_config_common&                  common_pdcch_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common;
-  const pdcch_config&                         ded_pdcch_cfg    = cell_cfg.init_bwp_builder.pdcch_cfg.value();
+  const pdcch_config_common&                  common_pdcch_cfg = cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common;
+  const pdcch_config&                         ded_pdcch_cfg    = cell_cfg.ran.init_bwp_builder.pdcch_cfg.value();
   const std::optional<coreset_configuration>& coreset0         = common_pdcch_cfg.coreset0;
   const std::optional<coreset_configuration>& common_coreset   = common_pdcch_cfg.common_coreset;
   const auto                                  ss0_idx          = common_pdcch_cfg.get_searchspace0();
@@ -545,7 +547,7 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
       pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
           .is_fr2 = false, .ss0_index = ss0_idx.value(), .nof_symb_coreset = coreset0->duration()});
 
-  const auto& tdd_cfg = cell_cfg.tdd_ul_dl_cfg_common.value();
+  const auto& tdd_cfg = cell_cfg.ran.tdd_ul_dl_cfg_common.value();
   CHECK_TRUE(
       (get_nof_slots_per_subframe(tdd_cfg.ref_scs) * NOF_SUBFRAMES_PER_FRAME) % nof_slots_per_tdd_period(tdd_cfg) == 0,
       "TDD configuration periodicity that is not a submultiple of the number of slots in a radio frame is "
@@ -706,13 +708,13 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
 
 static check_outcome check_prach_config(const du_cell_config& cell_cfg)
 {
-  CHECK_TRUE(cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value(),
+  CHECK_TRUE(cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value(),
              "Rach config common not present in UL BWP");
 
-  const rach_config_common& rach_cfg = cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
+  const rach_config_common& rach_cfg = cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
 
-  const auto prach_cfg = prach_configuration_get(band_helper::get_freq_range(cell_cfg.dl_carrier.band),
-                                                 band_helper::get_duplex_mode(cell_cfg.dl_carrier.band),
+  const auto prach_cfg = prach_configuration_get(band_helper::get_freq_range(cell_cfg.ran.dl_carrier.band),
+                                                 band_helper::get_duplex_mode(cell_cfg.ran.dl_carrier.band),
                                                  rach_cfg.rach_cfg_generic.prach_config_index);
   CHECK_NEQ(fmt::underlying(prach_cfg.format),
             fmt::underlying(ocudu::prach_format_type::invalid),
@@ -726,16 +728,17 @@ static check_outcome check_prach_config(const du_cell_config& cell_cfg)
           ? get_prach_preamble_long_info(prach_cfg.format)
           : get_prach_preamble_short_info(
                 prach_cfg.format,
-                to_ra_subcarrier_spacing(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs),
+                to_ra_subcarrier_spacing(cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.scs),
                 is_last_prach_occasion);
   const unsigned prach_nof_prbs =
-      prach_frequency_mapping_get(info.scs, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs).nof_rb_ra;
+      prach_frequency_mapping_get(info.scs, cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.scs).nof_rb_ra;
 
   const uint8_t prach_prb_stop =
       rach_cfg.rach_cfg_generic.msg1_frequency_start + rach_cfg.rach_cfg_generic.msg1_fdm * prach_nof_prbs;
 
   prb_interval prb_interval_no_pucch = config_helpers::find_largest_prb_interval_without_pucch(
-      cell_cfg.init_bwp_builder.pucch.resources, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      cell_cfg.ran.init_bwp_builder.pucch.resources,
+      cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   // This is to preserve a guardband between the PUCCH and PRACH.
   const unsigned pucch_to_prach_guardband = is_long_preamble(prach_cfg.format) ? 0U : 3U;
@@ -747,7 +750,7 @@ static check_outcome check_prach_config(const du_cell_config& cell_cfg)
              rach_cfg.rach_cfg_generic.msg1_frequency_start,
              prach_prb_stop,
              prb_interval_no_pucch.stop() - pucch_to_prach_guardband,
-             cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+             cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   return {};
 }
@@ -755,11 +758,11 @@ static check_outcome check_prach_config(const du_cell_config& cell_cfg)
 /// Validates NTN cell configuration parameters.
 static check_outcome check_ntn_config(const du_cell_config& cell_cfg)
 {
-  if (!cell_cfg.ntn_params.has_value()) {
+  if (!cell_cfg.ran.ntn_params.has_value()) {
     return {}; // NTN not configured, skip validation
   }
 
-  const auto& ntn = cell_cfg.ntn_params.value().ntn_cfg;
+  const auto& ntn = cell_cfg.ran.ntn_params.value().ntn_cfg;
 
   // Validate cell_specific_koffset (required for NTN).
   if (ntn.cell_specific_koffset.has_value()) {
@@ -788,8 +791,8 @@ static check_outcome check_ntn_config(const du_cell_config& cell_cfg)
 
 check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
 {
-  CHECK_EQ_OR_BELOW(cell_cfg.pci, MAX_PCI, "cell PCI");
-  CHECK_EQ_OR_BELOW(fmt::underlying(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs),
+  CHECK_EQ_OR_BELOW(cell_cfg.ran.pci, MAX_PCI, "cell PCI");
+  CHECK_EQ_OR_BELOW(fmt::underlying(cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs),
                     fmt::underlying(subcarrier_spacing::kHz120),
                     "SCS common");
   HANDLE_ERROR(is_coreset0_ss0_idx_valid(cell_cfg));
@@ -797,19 +800,19 @@ check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
   HANDLE_ERROR(check_ul_config_common(cell_cfg));
   HANDLE_ERROR(check_ssb_configuration(cell_cfg));
   HANDLE_ERROR(check_tdd_ul_dl_config(cell_cfg));
-  const pucch_resource_builder_params& pucch_cfg = cell_cfg.init_bwp_builder.pucch.resources;
+  const pucch_resource_builder_params& pucch_cfg = cell_cfg.ran.init_bwp_builder.pucch.resources;
   HANDLE_ERROR(config_helpers::pucch_parameters_validator(
       pucch_cfg.res_set_0_size.value() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_sr_resources,
       pucch_cfg.res_set_1_size.value() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_csi_resources,
       pucch_cfg.f0_or_f1_params,
       pucch_cfg.f2_or_f3_or_f4_params,
-      cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
+      cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
       pucch_cfg.max_nof_symbols));
   HANDLE_ERROR(check_prach_config(cell_cfg));
   const serving_cell_config ue_serv_cell_cfg =
-      config_helpers::make_ue_serving_cell_config(cell_cfg, to_du_cell_index(0));
+      config_helpers::make_ue_serving_cell_config(cell_cfg.ran, to_du_cell_index(0));
   HANDLE_ERROR(config_validators::validate_csi_meas_cfg(
-      ue_serv_cell_cfg, cell_cfg.tdd_ul_dl_cfg_common, cell_cfg.ul_cfg_common));
+      ue_serv_cell_cfg, cell_cfg.ran.tdd_ul_dl_cfg_common, cell_cfg.ran.ul_cfg_common));
   HANDLE_ERROR(check_dl_config_dedicated(cell_cfg));
   HANDLE_ERROR(check_ul_config_dedicated(cell_cfg));
   HANDLE_ERROR(check_ntn_config(cell_cfg));

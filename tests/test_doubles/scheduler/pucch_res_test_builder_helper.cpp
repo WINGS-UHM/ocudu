@@ -63,12 +63,12 @@ static std::optional<du_csi_params> derive_csi_builder_params(const serving_cell
   return params;
 }
 
-static odu::du_cell_config generate_du_cell_config(const bwp_uplink_common&                      init_ul_bwp,
-                                                   const std::optional<tdd_ul_dl_config_common>& tdd_ul_dl_cfg_common,
-                                                   const serving_cell_config&                    base_ue_cfg,
-                                                   const pucch_resource_builder_params&          pucch_cfg)
+static ran_cell_config generate_ran_cell_config(const bwp_uplink_common&                      init_ul_bwp,
+                                                const std::optional<tdd_ul_dl_config_common>& tdd_ul_dl_cfg_common,
+                                                const serving_cell_config&                    base_ue_cfg,
+                                                const pucch_resource_builder_params&          pucch_cfg)
 {
-  odu::du_cell_config cell_cfg;
+  ran_cell_config cell_cfg;
   if (base_ue_cfg.csi_meas_cfg.has_value() && !base_ue_cfg.csi_meas_cfg->nzp_csi_rs_res_list.empty()) {
     const auto& meas_res        = base_ue_cfg.csi_meas_cfg->nzp_csi_rs_res_list.front();
     cell_cfg.pci                = static_cast<pci_t>(meas_res.scrambling_id);
@@ -213,9 +213,9 @@ bool pucch_res_builder_test_helper::add_build_new_ue_pucch_cfg(serving_cell_conf
 
 void pucch_res_builder_test_helper::init_pucch_res_mgr(const serving_cell_config& base_ue_cfg)
 {
-  odu::du_cell_config cell_cfg = generate_du_cell_config(required_info.value().init_ul_bwp,
-                                                         required_info.value().tdd_ul_dl_cfg_common,
-                                                         base_ue_cfg,
-                                                         required_info.value().pucch_cfg);
+  ran_cell_config cell_cfg = generate_ran_cell_config(required_info.value().init_ul_bwp,
+                                                      required_info.value().tdd_ul_dl_cfg_common,
+                                                      base_ue_cfg,
+                                                      required_info.value().pucch_cfg);
   pucch_res_mgr.add_cell(to_du_cell_index(0), cell_cfg);
 }

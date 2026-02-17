@@ -38,13 +38,13 @@ using namespace config_validators;
 
 static error_type<std::string> validate_pdcch_cfg_common(const sched_cell_configuration_request_message& msg)
 {
-  for (const auto& ss : msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
+  for (const auto& ss : msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
     bool cset_id_exits_in_common =
-        msg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value()
-            ? ss.get_coreset_id() == msg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset->get_id()
+        msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value()
+            ? ss.get_coreset_id() == msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset->get_id()
             : false;
     bool cset_id_exits_in_cset0 =
-        msg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value() ? ss.get_coreset_id() == 0 : false;
+        msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value() ? ss.get_coreset_id() == 0 : false;
     VERIFY(cset_id_exits_in_common or cset_id_exits_in_cset0,
            "Coreset Id. {} indexed by SearchSpace Id. {} not found within the configured Common Coresets",
            fmt::underlying(ss.get_coreset_id()),
@@ -57,9 +57,9 @@ static error_type<std::string> validate_pdcch_cfg_common(const sched_cell_config
 static error_type<std::string> validate_rach_cfg_common(const sched_cell_configuration_request_message& msg,
                                                         const scheduler_expert_config&                  expert_cfg)
 {
-  VERIFY(msg.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value(),
+  VERIFY(msg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value(),
          "Cells without RACH-ConfigCommon are not supported");
-  const rach_config_common& rach_cfg_cmn = msg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
+  const rach_config_common& rach_cfg_cmn = msg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
 
   static constexpr pdsch_mcs_table mcs_table = ocudu::pdsch_mcs_table::qam64;
   const sch_mcs_description        mcs_descr = pdsch_mcs_get_config(mcs_table, expert_cfg.ra.rar_mcs_index);
@@ -67,8 +67,8 @@ static error_type<std::string> validate_rach_cfg_common(const sched_cell_configu
   VERIFY((unsigned)mcs_descr.modulation < (unsigned)modulation_scheme::QAM64,
          "Modulation order for PDSCH scheduled with RA-RNTI cannot be > 2");
 
-  frequency_range freq_range = band_helper::get_freq_range(msg.dl_carrier.band);
-  duplex_mode     dplx_mode  = band_helper::get_duplex_mode(msg.dl_carrier.band);
+  frequency_range freq_range = band_helper::get_freq_range(msg.ran.dl_carrier.band);
+  duplex_mode     dplx_mode  = band_helper::get_duplex_mode(msg.ran.dl_carrier.band);
 
   // Check PRACH config index.
   auto code = prach_helper::prach_config_index_is_valid(
@@ -87,12 +87,12 @@ static error_type<std::string> validate_rach_cfg_common(const sched_cell_configu
     return code;
   }
 
-  subcarrier_spacing pusch_scs = msg.ul_cfg_common.init_ul_bwp.generic_params.scs;
+  subcarrier_spacing pusch_scs = msg.ran.ul_cfg_common.init_ul_bwp.generic_params.scs;
 
   // Check if the PRACH preambles fall into UL slots
-  if (msg.tdd_ul_dl_cfg_common.has_value()) {
+  if (msg.ran.tdd_ul_dl_cfg_common.has_value()) {
     auto ret = prach_helper::prach_fits_in_tdd_pattern(
-        pusch_scs, rach_cfg_cmn.rach_cfg_generic.prach_config_index, *msg.tdd_ul_dl_cfg_common);
+        pusch_scs, rach_cfg_cmn.rach_cfg_generic.prach_config_index, *msg.ran.tdd_ul_dl_cfg_common);
     if (not ret.has_value()) {
       std::string s = fmt::format("PRACH configuration index {} not supported with current TDD pattern.",
                                   rach_cfg_cmn.rach_cfg_generic.prach_config_index);
@@ -166,19 +166,20 @@ static error_type<std::string> validade_pusch_td_res_list(span<const pusch_time_
 
 static error_type<std::string> validate_pusch_cfg_common(const sched_cell_configuration_request_message& msg)
 {
-  if (not msg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value()) {
+  if (not msg.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value()) {
     return {};
   }
 
-  const auto& pusch_lst = msg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list;
-  HANDLE_CODE(validade_pusch_td_res_list(pusch_lst, msg.tdd_ul_dl_cfg_common, msg.init_bwp_builder.pusch.min_k2));
+  const auto& pusch_lst = msg.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list;
+  HANDLE_CODE(
+      validade_pusch_td_res_list(pusch_lst, msg.ran.tdd_ul_dl_cfg_common, msg.ran.init_bwp_builder.pusch.min_k2));
 
   return {};
 }
 
 static error_type<std::string> validate_pucch_cfg_common(const sched_cell_configuration_request_message& msg)
 {
-  VERIFY(msg.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value(),
+  VERIFY(msg.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value(),
          "Cells without PUCCH-ConfigCommon are not supported");
 
   return {};
@@ -194,10 +195,11 @@ static error_type<std::string> validate_sib1_cfg(const sched_cell_configuration_
   // TODO: Revise the value set for time_resource in case of partial slots where nof. OFDM symbols maybe be less.
   static constexpr unsigned time_resource = 0;
   const auto&               pdsch_td_res_alloc_list =
-      get_si_rnti_pdsch_time_domain_list(msg.dl_cfg_common.init_dl_bwp.generic_params.cp, msg.dmrs_typeA_pos);
+      get_si_rnti_pdsch_time_domain_list(msg.ran.dl_cfg_common.init_dl_bwp.generic_params.cp, msg.ran.dmrs_typeA_pos);
   const ofdm_symbol_range sib1_symbols = pdsch_td_res_alloc_list[time_resource].symbols;
 
-  const dmrs_information    dmrs_info = make_dmrs_info_common(pdsch_td_res_alloc_list, 0, msg.pci, msg.dmrs_typeA_pos);
+  const dmrs_information dmrs_info =
+      make_dmrs_info_common(pdsch_td_res_alloc_list, 0, msg.ran.pci, msg.ran.dmrs_typeA_pos);
   const sch_mcs_description mcs_descr = pdsch_mcs_get_config(mcs_table, expert_cfg.si.sib1_mcs_index);
   // See TS 38.214, 5.1.3.1, Modulation order and target code rate determination.
   VERIFY((unsigned)mcs_descr.modulation < (unsigned)modulation_scheme::QAM64,
@@ -209,10 +211,10 @@ static error_type<std::string> validate_sib1_cfg(const sched_cell_configuration_
                                                                              mcs_descr,
                                                                              nof_layers});
 
-  VERIFY(sib1_prbs_tbs.nof_prbs <= msg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
+  VERIFY(sib1_prbs_tbs.nof_prbs <= msg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
          "Not enough initial DL BWP PRBs ({} > {}) to send SIB1, given the chosen MCS={} and SIB1 payload size={}. "
          "Consider increasing SIB1 MCS or decrease the SIB1 payload size.",
-         msg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
+         msg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
          sib1_prbs_tbs.nof_prbs,
          expert_cfg.si.sib1_mcs_index,
          msg.sib1_payload_size);
@@ -240,7 +242,7 @@ error_type<std::string> config_validators::validate_sched_cell_configuration_req
 {
   VERIFY(msg.cell_index < MAX_NOF_DU_CELLS, "cell index={} is not valid", fmt::underlying(msg.cell_index));
 
-  const auto& dl_lst = msg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
+  const auto& dl_lst = msg.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
   for (const auto& pdsch : dl_lst) {
     VERIFY(pdsch.k0 <= SCHEDULER_MAX_K0, "k0={} value exceeds maximum supported k0", pdsch.k0);
   }
@@ -257,7 +259,7 @@ error_type<std::string> config_validators::validate_sched_cell_configuration_req
 
   HANDLE_CODE(validate_paging_cfg(expert_cfg));
 
-  HANDLE_CODE(validate_nzp_csi_rs_list(msg.nzp_csi_rs_res_list, msg.tdd_ul_dl_cfg_common));
+  HANDLE_CODE(validate_nzp_csi_rs_list(msg.nzp_csi_rs_res_list, msg.ran.tdd_ul_dl_cfg_common));
 
   // TODO: Validate other parameters.
   return {};

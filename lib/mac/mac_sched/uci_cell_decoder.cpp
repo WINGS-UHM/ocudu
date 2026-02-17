@@ -21,12 +21,18 @@ using namespace ocudu;
 /// should account for potential latencies in the PHY in forwarding the decoded UCI to the MAC.
 static size_t get_ring_size(const sched_cell_configuration_request_message& cell_cfg)
 {
+  const unsigned ntn_cs_koffset =
+      cell_cfg.ran.ntn_params.has_value() && cell_cfg.ran.ntn_params->ntn_cfg.cell_specific_koffset.has_value()
+          ? cell_cfg.ran.ntn_params->ntn_cfg.cell_specific_koffset->count() *
+                get_nof_slots_per_subframe(cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs)
+          : 0;
+
   // Estimation of the time it takes the UL lower-layers to process and forward CRC/UCI indications.
   // Note: The size of this ring has to be larger than that of the test mode internal buffer.
   static constexpr unsigned MAX_UL_PHY_DELAY = 80;
   // Note: The history ring size has to be a multiple of the TDD frame size in slots.
   // Number of slots managed by this container.
-  return get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg.ntn_cs_koffset) + MAX_UL_PHY_DELAY);
+  return get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(ntn_cs_koffset) + MAX_UL_PHY_DELAY);
 }
 
 uci_cell_decoder::uci_cell_decoder(const sched_cell_configuration_request_message& cell_cfg,
@@ -34,8 +40,8 @@ uci_cell_decoder::uci_cell_decoder(const sched_cell_configuration_request_messag
                                    rlf_detector&                                   rlf_hdlr_) :
   rnti_table(rnti_table_),
   cell_index(cell_cfg.cell_index),
-  aperiodic_csi_report(cell_cfg.init_bwp_builder.csi.has_value() and
-                       cell_cfg.init_bwp_builder.csi->enable_aperiodic_report),
+  aperiodic_csi_report(cell_cfg.ran.init_bwp_builder.csi.has_value() and
+                       cell_cfg.ran.init_bwp_builder.csi->enable_aperiodic_report),
   rlf_handler(rlf_hdlr_),
   logger(ocudulog::fetch_basic_logger("MAC")),
   expected_uci_report_grid(get_ring_size(cell_cfg))

@@ -120,32 +120,32 @@ static ssb_params gen_random_ssb_freq_params(const ssb_params& params)
 static sched_cell_configuration_request_message make_cell_cfg_req_msg(const ssb_params& params)
 {
   sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
-  msg.dl_carrier.arfcn_f_ref                   = params.freq_arfcn;
-  msg.dl_carrier.band                          = params.band;
-  msg.dl_cfg_common.freq_info_dl.offset_to_point_a = params.offset_to_point_A;
-  msg.dl_cfg_common.init_dl_bwp.generic_params.scs = params.ssb_scs;
-  msg.ssb_config.scs                               = params.ssb_scs;
+  msg.ran.dl_carrier.arfcn_f_ref               = params.freq_arfcn;
+  msg.ran.dl_carrier.band                      = params.band;
+  msg.ran.dl_cfg_common.freq_info_dl.offset_to_point_a = params.offset_to_point_A;
+  msg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs = params.ssb_scs;
+  msg.ran.ssb_cfg.scs                                  = params.ssb_scs;
 
   // Generate a random
-  msg.ssb_config.ssb_bitmap        = ssb_bitmap_t(test_rgen::uniform_int<uint8_t>(1, params.L_max - 1), params.L_max);
-  msg.ssb_config.ssb_period        = params.periodicity;
-  msg.ssb_config.offset_to_point_A = params.offset_to_point_A;
-  msg.ssb_config.k_ssb             = params.k_ssb;
+  msg.ran.ssb_cfg.ssb_bitmap        = ssb_bitmap_t(test_rgen::uniform_int<uint8_t>(1, params.L_max - 1), params.L_max);
+  msg.ran.ssb_cfg.ssb_period        = params.periodicity;
+  msg.ran.ssb_cfg.offset_to_point_A = params.offset_to_point_A;
+  msg.ran.ssb_cfg.k_ssb             = params.k_ssb;
   // Change Carrier parameters when SCS is 15kHz.
   if (params.ssb_scs == subcarrier_spacing::kHz15) {
-    msg.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth = 106;
-    msg.dl_cfg_common.init_dl_bwp.generic_params.crbs =
-        crb_interval{0, msg.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth};
+    msg.ran.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth = 106;
+    msg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs =
+        crb_interval{0, msg.ran.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth};
   }
   // Change Carrier parameters when SCS is 30kHz.
   else if (params.ssb_scs == subcarrier_spacing::kHz30) {
-    msg.dl_cfg_common.freq_info_dl.scs_carrier_list.emplace_back(
+    msg.ran.dl_cfg_common.freq_info_dl.scs_carrier_list.emplace_back(
         scs_specific_carrier{0, subcarrier_spacing::kHz30, 52});
-    msg.dl_cfg_common.init_dl_bwp.generic_params.crbs = {
-        0, msg.dl_cfg_common.freq_info_dl.scs_carrier_list[1].carrier_bandwidth};
+    msg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs = {
+        0, msg.ran.dl_cfg_common.freq_info_dl.scs_carrier_list[1].carrier_bandwidth};
   }
-  msg.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
-  msg.dl_carrier.nof_ant    = 1;
+  msg.ran.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz20;
+  msg.ran.dl_carrier.nof_ant    = 1;
 
   return msg;
 }

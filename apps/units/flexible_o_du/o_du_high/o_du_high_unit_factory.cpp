@@ -42,33 +42,33 @@ void ocudu::announce_du_high_cells(const du_high_unit_config& du_high_unit_cfg)
 
   for (const auto& cell : cells) {
     fmt::print("Cell pci={}, bw={} MHz, {}T{}R, dl_arfcn={} (n{}), dl_freq={} MHz, dl_ssb_arfcn={}, ul_freq={} MHz\n",
-               cell.pci,
-               bs_channel_bandwidth_to_MHz(cell.dl_carrier.carrier_bw),
-               cell.dl_carrier.nof_ant,
-               cell.ul_carrier.nof_ant,
-               cell.dl_carrier.arfcn_f_ref,
-               nr_band_to_uint(cell.dl_carrier.band),
-               band_helper::nr_arfcn_to_freq(cell.dl_carrier.arfcn_f_ref) / 1e6,
-               cell.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
-               band_helper::nr_arfcn_to_freq(cell.ul_carrier.arfcn_f_ref) / 1e6);
+               cell.ran.pci,
+               bs_channel_bandwidth_to_MHz(cell.ran.dl_carrier.carrier_bw),
+               cell.ran.dl_carrier.nof_ant,
+               cell.ran.ul_carrier.nof_ant,
+               cell.ran.dl_carrier.arfcn_f_ref,
+               nr_band_to_uint(cell.ran.dl_carrier.band),
+               band_helper::nr_arfcn_to_freq(cell.ran.dl_carrier.arfcn_f_ref) / 1e6,
+               cell.ran.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
+               band_helper::nr_arfcn_to_freq(cell.ran.ul_carrier.arfcn_f_ref) / 1e6);
 
-    const auto ss0_idx = cell.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
+    const auto ss0_idx = cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
     ocudu_assert(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
-    const auto cs0_idx = cell.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+    const auto cs0_idx = cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
     ocudu_assert(cs0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
 
     logger.info(
         "SSB derived parameters for cell: {}, band: {}, dl_arfcn:{}, nof_crbs: {} scs:{}, ssb_scs:{}:\n\t - SSB offset "
         "pointA:{} \n\t - k_SSB:{} \n\t - SSB arfcn:{} \n\t - Coreset index:{} \n\t - Searchspace index:{}",
-        cell.pci,
-        fmt::underlying(cell.dl_carrier.band),
-        cell.dl_carrier.arfcn_f_ref,
-        cell.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
-        to_string(cell.dl_cfg_common.init_dl_bwp.generic_params.scs),
-        to_string(cell.ssb_cfg.scs),
-        cell.ssb_cfg.offset_to_point_A.value(),
-        cell.ssb_cfg.k_ssb.value(),
-        cell.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
+        cell.ran.pci,
+        fmt::underlying(cell.ran.dl_carrier.band),
+        cell.ran.dl_carrier.arfcn_f_ref,
+        cell.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
+        to_string(cell.ran.dl_cfg_common.init_dl_bwp.generic_params.scs),
+        to_string(cell.ran.ssb_cfg.scs),
+        cell.ran.ssb_cfg.offset_to_point_A.value(),
+        cell.ran.ssb_cfg.k_ssb.value(),
+        cell.ran.dl_cfg_common.freq_info_dl.absolute_frequency_ssb,
         cs0_idx.value(),
         ss0_idx.value());
   }
@@ -81,15 +81,16 @@ static void validates_derived_du_params(span<const odu::du_cell_config> cells)
   ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("DU", false);
 
   for (const auto& cell_cfg : cells) {
-    const rach_config_common& rach_cfg = cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
+    const rach_config_common& rach_cfg = cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
 
-    frequency_range freq_range = band_helper::get_freq_range(cell_cfg.dl_carrier.band);
-    duplex_mode     dplx_mode  = band_helper::get_duplex_mode(cell_cfg.dl_carrier.band);
+    frequency_range freq_range = band_helper::get_freq_range(cell_cfg.ran.dl_carrier.band);
+    duplex_mode     dplx_mode  = band_helper::get_duplex_mode(cell_cfg.ran.dl_carrier.band);
 
     const auto prach_cfg = prach_configuration_get(freq_range, dplx_mode, rach_cfg.rach_cfg_generic.prach_config_index);
 
     prb_interval prb_interval_no_pucch = config_helpers::find_largest_prb_interval_without_pucch(
-        cell_cfg.init_bwp_builder.pucch.resources, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+        cell_cfg.ran.init_bwp_builder.pucch.resources,
+        cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
     // This is to preserve a guardband between the PUCCH and PRACH.
     const unsigned pucch_to_prach_guardband = is_long_preamble(prach_cfg.format) ? 0U : 3U;

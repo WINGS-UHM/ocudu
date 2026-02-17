@@ -27,7 +27,7 @@ protected:
     sched_cfg([this]() {
       auto cfg = sched_config_helper::make_default_sched_cell_configuration_request(params);
       // Leave some preambles for CFRA.
-      cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb = 56;
+      cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb = 56;
       return cfg;
     }()),
     handler(sched, rnti_mng, logger),
@@ -50,15 +50,15 @@ protected:
 
   uint8_t create_cb_preamble() const
   {
-    return test_rgen::uniform_int(0U,
-                                  sched_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb - 1U);
+    return test_rgen::uniform_int(
+        0U, sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb - 1U);
   }
 
   uint8_t create_cf_preamble() const
   {
     return test_rgen::uniform_int<unsigned>(
-        sched_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb,
-        sched_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->total_nof_ra_preambles - 1U);
+        sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb,
+        sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->total_nof_ra_preambles - 1U);
   }
 
   ocudulog::basic_logger&                  logger;

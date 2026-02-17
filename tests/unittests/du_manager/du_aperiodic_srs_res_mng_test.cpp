@@ -145,7 +145,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
 {
   // This function generates a configuration which potentially allows for a very large number of SRS resources.
   du_cell_config du_cfg  = config_helpers::make_default_du_cell_config(params);
-  auto&          srs_cfg = du_cfg.init_bwp_builder.srs_cfg;
+  auto&          srs_cfg = du_cfg.ran.init_bwp_builder.srs_cfg;
 
   srs_cfg.srs_type_enabled = srs_type::aperiodic;
 
@@ -155,9 +155,10 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   constexpr std::array<srs_nof_symbols, 3> nof_symb_values = {
       srs_nof_symbols::n1, srs_nof_symbols::n2, srs_nof_symbols::n4};
   unsigned max_nof_symbols = srs_cfg.max_nof_symbols.value();
-  if (du_cfg.tdd_ul_dl_cfg_common.has_value() and du_cfg.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0) {
+  if (du_cfg.ran.tdd_ul_dl_cfg_common.has_value() and
+      du_cfg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0) {
     max_nof_symbols =
-        std::min(du_cfg.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols, srs_cfg.max_nof_symbols.value());
+        std::min(du_cfg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols, srs_cfg.max_nof_symbols.value());
   }
   srs_cfg.nof_symbols = nof_symb_values[test_rgen::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
   while (srs_cfg.nof_symbols > max_nof_symbols) {
@@ -196,13 +197,13 @@ protected:
   explicit du_periodic_srs_res_mng_base_tester(const cell_config_builder_params& params_) :
     params(params_),
     cell_cfg_list({make_srs_base_du_cell_config(params_)}),
-    srs_params(cell_cfg_list[0].init_bwp_builder.srs_cfg),
+    srs_params(cell_cfg_list[0].ran.init_bwp_builder.srs_cfg),
     du_srs_res_mng(cell_cfg_list)
   {
     // We only run the test for 1 cell.
     const auto& cell_cfg              = cell_cfg_list.front();
-    const bool  use_special_slot_only = cell_cfg.tdd_ul_dl_cfg_common.has_value() and
-                                       (cell_cfg.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0);
+    const bool  use_special_slot_only = cell_cfg.ran.tdd_ul_dl_cfg_common.has_value() and
+                                       (cell_cfg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0);
     max_nof_cell_srs_res = generate_cell_srs_list(cell_cfg, use_special_slot_only).size();
   }
 
@@ -238,7 +239,7 @@ protected:
   unsigned compute_freq_shift() const
   {
     // The function computes the frequency shift so that the SRS resources are placed in the center of the band.
-    const unsigned ul_bw_nof_rbs        = cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+    const unsigned ul_bw_nof_rbs        = cell_cfg_list[0].ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
     const std::optional<unsigned> c_srs = du_srs_mng_details::compute_c_srs(ul_bw_nof_rbs);
     ocudu_assert(c_srs.has_value(), "C_SRS is required for this unittest");
     const auto srs_cfg = srs_configuration_get(c_srs.value(), 0U);
@@ -451,7 +452,7 @@ TEST_P(du_aperiodic_srs_res_mng_param_tester, when_ue_is_added_srs_resources_par
 
     // Verify that C_SRS corresponds to the maximum allowed BW.
     const std::optional<unsigned> c_srs =
-        du_srs_mng_details::compute_c_srs(cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+        du_srs_mng_details::compute_c_srs(cell_cfg_list[0].ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
     ASSERT_TRUE(c_srs.has_value());
     ASSERT_EQ(srs_res.freq_hop.c_srs, c_srs.value());
     ASSERT_EQ(srs_res.freq_domain_shift, compute_freq_shift());
@@ -461,9 +462,10 @@ TEST_P(du_aperiodic_srs_res_mng_param_tester, when_ue_is_added_srs_resources_par
 
     // Verify the symbols, depending on whether it's FDD, or TDD.
     ASSERT_EQ(srs_res.res_mapping.nof_symb, srs_params.nof_symbols);
-    if (cell_cfg_list[0].tdd_ul_dl_cfg_common.has_value() and
-        cell_cfg_list[0].tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0) {
-      ASSERT_LT(srs_res.res_mapping.start_pos, cell_cfg_list[0].tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
+    if (cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.has_value() and
+        cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0) {
+      ASSERT_LT(srs_res.res_mapping.start_pos,
+                cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
     } else {
       ASSERT_LT(srs_res.res_mapping.start_pos, srs_params.max_nof_symbols.value());
     }

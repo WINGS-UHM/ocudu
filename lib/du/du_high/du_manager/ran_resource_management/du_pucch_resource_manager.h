@@ -31,7 +31,7 @@ public:
   du_pucch_resource_manager& operator=(du_pucch_resource_manager&&)      = delete;
 
   /// Add resources for a new DU cell.
-  void add_cell(du_cell_index_t cell_idx, const du_cell_config& cell_cfg);
+  void add_cell(du_cell_index_t cell_idx, const ran_cell_config& cell_cfg);
 
   /// Remove all resources for a DU cell.
   void rem_cell(du_cell_index_t cell_idx);

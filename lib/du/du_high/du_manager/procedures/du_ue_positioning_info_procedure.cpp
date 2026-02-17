@@ -51,17 +51,17 @@ du_positioning_info_response du_ue_positioning_info_procedure::create_response(b
   // Fill PCell params.
   resp.srs_carriers.resize(1);
   // pointA
-  resp.srs_carriers[0].point_a = cell_cmn.ul_cfg_common.freq_info_ul.absolute_freq_point_a;
+  resp.srs_carriers[0].point_a = cell_cmn.ran.ul_cfg_common.freq_info_ul.absolute_freq_point_a;
   // freq shift 7.5kHz
-  resp.srs_carriers[0].freq_shift_7p5khz_present = cell_cmn.ul_cfg_common.freq_info_ul.freq_shift_7p5khz_present;
+  resp.srs_carriers[0].freq_shift_7p5khz_present = cell_cmn.ran.ul_cfg_common.freq_info_ul.freq_shift_7p5khz_present;
   // uplink ChannelBW per SCS list
-  resp.srs_carriers[0].ul_ch_bw_per_scs_list = cell_cmn.ul_cfg_common.freq_info_ul.scs_carrier_list;
+  resp.srs_carriers[0].ul_ch_bw_per_scs_list = cell_cmn.ran.ul_cfg_common.freq_info_ul.scs_carrier_list;
   // active UL BWP.
-  resp.srs_carriers[0].ul_bwp_cfg = cell_cmn.ul_cfg_common.init_ul_bwp.generic_params;
+  resp.srs_carriers[0].ul_bwp_cfg = cell_cmn.ran.ul_cfg_common.init_ul_bwp.generic_params;
   // srsConfig.
   resp.srs_carriers[0].srs_cfg = pcell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
   // PCI
-  resp.srs_carriers[0].pci = cell_cmn.pci;
+  resp.srs_carriers[0].pci = cell_cmn.ran.pci;
 
   return resp;
 }

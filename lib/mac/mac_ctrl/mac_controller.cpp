@@ -41,8 +41,8 @@ mac_cell_controller& mac_controller::add_cell(const mac_cell_creation_request& c
   auto cell_time_source = time_ctrl.add_cell(cell_add_req.cell_index);
 
   // Add cell to metrics reports.
-  unsigned tdd_period_slots = cell_add_req.sched_req.tdd_ul_dl_cfg_common.has_value()
-                                  ? nof_slots_per_tdd_period(*cell_add_req.sched_req.tdd_ul_dl_cfg_common)
+  unsigned tdd_period_slots = cell_add_req.sched_req.ran.tdd_ul_dl_cfg_common.has_value()
+                                  ? nof_slots_per_tdd_period(*cell_add_req.sched_req.ran.tdd_ul_dl_cfg_common)
                                   : 0U;
 
   auto cell_metrics_cfg =

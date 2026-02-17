@@ -112,14 +112,15 @@ make_custom_sched_cell_configuration_request(subcarrier_spacing scs_common,
   sched_cell_configuration_request_message sched_req =
       sched_config_helper::make_default_sched_cell_configuration_request(params);
 
-  sched_req.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.prach_config_index = prach_config_index;
-  sched_req.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.zero_correlation_zone_config = zcz;
-  sched_req.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.msg1_fdm                     = nof_fd_ra;
+  sched_req.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.prach_config_index =
+      prach_config_index;
+  sched_req.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.zero_correlation_zone_config = zcz;
+  sched_req.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.msg1_fdm = nof_fd_ra;
 
   // NOTE: For this test we modify the TDD pattern so that we can test several PRACH configuration indices.
   if (not band_helper::is_paired_spectrum(band)) {
-    sched_req.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots = 0;
-    sched_req.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots = 10;
+    sched_req.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots = 0;
+    sched_req.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots = 10;
   }
 
   return sched_req;

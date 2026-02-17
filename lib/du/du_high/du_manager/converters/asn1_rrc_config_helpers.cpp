@@ -414,20 +414,20 @@ static asn1::rrc_nr::dl_cfg_common_s make_asn1_rrc_dl_cfg_common(const du_cell_c
 
   // > frequencyInfoDL   FrequencyInfoDL   OPTIONAL   -- Cond InterFreqHOAndServCellAdd
   out.freq_info_dl_present = true;
-  for (const auto& dl_band : cfg.dl_cfg_common.freq_info_dl.freq_band_list) {
+  for (const auto& dl_band : cfg.ran.dl_cfg_common.freq_info_dl.freq_band_list) {
     out.freq_info_dl.freq_band_list.push_back(nr_band_to_uint(dl_band.band));
   }
   out.freq_info_dl.absolute_freq_ssb_present = true;
   // TODO: Check how to derive this value.
-  out.freq_info_dl.absolute_freq_ssb = cfg.dl_cfg_common.freq_info_dl.absolute_frequency_ssb.value();
+  out.freq_info_dl.absolute_freq_ssb = cfg.ran.dl_cfg_common.freq_info_dl.absolute_frequency_ssb.value();
   // TODO: Check how to derive absoluteFreqPointA.
-  out.freq_info_dl.absolute_freq_point_a = cfg.dl_cfg_common.freq_info_dl.absolute_freq_point_a.value();
+  out.freq_info_dl.absolute_freq_point_a = cfg.ran.dl_cfg_common.freq_info_dl.absolute_freq_point_a.value();
   out.freq_info_dl.scs_specific_carrier_list =
-      make_asn1_rrc_scs_specific_carrier_list(cfg.dl_cfg_common.freq_info_dl.scs_carrier_list);
+      make_asn1_rrc_scs_specific_carrier_list(cfg.ran.dl_cfg_common.freq_info_dl.scs_carrier_list);
 
   // > initialDownlinkBWP    BWP-DownlinkCommon    OPTIONAL   -- Cond ServCellAdd
   out.init_dl_bwp_present = true;
-  out.init_dl_bwp         = make_asn1_init_dl_bwp(cfg.dl_cfg_common);
+  out.init_dl_bwp         = make_asn1_init_dl_bwp(cfg.ran.dl_cfg_common);
 
   return out;
 }
@@ -3329,7 +3329,7 @@ static ssb_mtc_s make_ssb_mtc(const du_cell_config& du_cell_cfg)
   ssb_mtc_s ret;
 
   // TODO: Derive the correct duration.
-  switch (du_cell_cfg.ssb_cfg.ssb_period) {
+  switch (du_cell_cfg.ran.ssb_cfg.ssb_period) {
     case ssb_periodicity::ms5:
       ret.periodicity_and_offset.set_sf5() = 0;
       break;
@@ -3349,7 +3349,7 @@ static ssb_mtc_s make_ssb_mtc(const du_cell_config& du_cell_cfg)
       ret.periodicity_and_offset.set_sf160() = 0;
       break;
     default:
-      report_fatal_error("Invalud SSB period={}", fmt::underlying(du_cell_cfg.ssb_cfg.ssb_period));
+      report_fatal_error("Invalud SSB period={}", fmt::underlying(du_cell_cfg.ran.ssb_cfg.ssb_period));
   }
   ret.dur.value = ssb_mtc_s::dur_opts::sf5;
 
@@ -3366,7 +3366,7 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
 
   // > physCellId PhysCellId OPTIONAL, -- Cond HOAndServCellAdd
   out.sp_cell_cfg_common.pci_present = true;
-  out.sp_cell_cfg_common.pci         = (uint16_t)du_cell_cfg.pci;
+  out.sp_cell_cfg_common.pci         = (uint16_t)du_cell_cfg.ran.pci;
 
   // > downlinkConfigCommon DownlinkConfigCommon OPTIONAL, -- Cond HOAndServCellAdd
   out.sp_cell_cfg_common.dl_cfg_common_present = true;
@@ -3374,21 +3374,21 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   // >> In case of HO, the coresetZero and searchSpaceZero need to be set.
   pdcch_cfg_common_s& pdcch_cfg_common  = out.sp_cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_cfg_common.setup();
   pdcch_cfg_common.coreset_zero_present = true;
-  const auto cset0_idx                  = du_cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  const auto cset0_idx                  = du_cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
   ocudu_assert(cset0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
   pdcch_cfg_common.coreset_zero              = cset0_idx->value();
   pdcch_cfg_common.search_space_zero_present = true;
   {
-    const auto ss0_idx = du_cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
+    const auto ss0_idx = du_cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
     ocudu_assert(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
     pdcch_cfg_common.search_space_zero = ss0_idx->value();
   }
 
   // > uplinkConfigCommon UplinkConfigCommon OPTIONAL, -- Need M
   out.sp_cell_cfg_common.ul_cfg_common_present = true;
-  out.sp_cell_cfg_common.ul_cfg_common         = make_asn1_rrc_ul_cfg_common(du_cell_cfg.ul_cfg_common);
+  out.sp_cell_cfg_common.ul_cfg_common         = make_asn1_rrc_ul_cfg_common(du_cell_cfg.ran.ul_cfg_common);
 
-  n_ta_offset ta_offset                                  = band_helper::get_ta_offset(du_cell_cfg.dl_carrier.band);
+  n_ta_offset ta_offset                                  = band_helper::get_ta_offset(du_cell_cfg.ran.dl_carrier.band);
   out.sp_cell_cfg_common.n_timing_advance_offset_present = true;
   if (ta_offset == n_ta_offset::n0) {
     out.sp_cell_cfg_common.n_timing_advance_offset.value = serving_cell_cfg_common_s::n_timing_advance_offset_opts::n0;
@@ -3403,40 +3403,40 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   // As per \c ssb-PositionsInBurst, in \c ServingCellConfigCommon, TS 38.331, the length of \c ssb-PositionsInBurst
   // needs to be set according to TS 38.213, Section 4.1.
   out.sp_cell_cfg_common.ssb_positions_in_burst_present = true;
-  const uint8_t l_max                                   = du_cell_cfg.ssb_cfg.ssb_bitmap.get_L_max();
+  const uint8_t l_max                                   = du_cell_cfg.ran.ssb_cfg.ssb_bitmap.get_L_max();
   ocudu_assert(l_max == 4U or l_max == 8U or l_max == 64U, "L_max value {} not valid", l_max);
   if (l_max == 4U) {
     out.sp_cell_cfg_common.ssb_positions_in_burst.set_short_bitmap().from_number(
-        du_cell_cfg.ssb_cfg.ssb_bitmap.to_uint64());
+        du_cell_cfg.ran.ssb_cfg.ssb_bitmap.to_uint64());
   } else if (l_max == 8U) {
     out.sp_cell_cfg_common.ssb_positions_in_burst.set_medium_bitmap().from_number(
-        du_cell_cfg.ssb_cfg.ssb_bitmap.to_uint64());
+        du_cell_cfg.ran.ssb_cfg.ssb_bitmap.to_uint64());
   } else {
     out.sp_cell_cfg_common.ssb_positions_in_burst.set_long_bitmap().from_number(
-        du_cell_cfg.ssb_cfg.ssb_bitmap.to_uint64());
+        du_cell_cfg.ran.ssb_cfg.ssb_bitmap.to_uint64());
   }
 
   out.sp_cell_cfg_common.ssb_periodicity_serving_cell_present = true;
   asn1::number_to_enum(out.sp_cell_cfg_common.ssb_periodicity_serving_cell,
-                       ssb_periodicity_to_value(du_cell_cfg.ssb_cfg.ssb_period));
+                       ssb_periodicity_to_value(du_cell_cfg.ran.ssb_cfg.ssb_period));
 
-  out.sp_cell_cfg_common.dmrs_type_a_position.value = du_cell_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2
+  out.sp_cell_cfg_common.dmrs_type_a_position.value = du_cell_cfg.ran.dmrs_typeA_pos == dmrs_typeA_position::pos2
                                                           ? serving_cell_cfg_common_s::dmrs_type_a_position_opts::pos2
                                                           : serving_cell_cfg_common_s::dmrs_type_a_position_opts::pos3;
 
   // > ssbSubcarrierSpacing SubcarrierSpacing OPTIONAL, -- Cond HOAndServCellWithSSB
   out.sp_cell_cfg_common.ssb_subcarrier_spacing_present = true;
-  out.sp_cell_cfg_common.ssb_subcarrier_spacing.value   = get_asn1_scs(du_cell_cfg.ssb_cfg.scs);
+  out.sp_cell_cfg_common.ssb_subcarrier_spacing.value   = get_asn1_scs(du_cell_cfg.ran.ssb_cfg.scs);
 
   // > tdd-UL-DL-ConfigurationCommon TDD-UL-DL-ConfigCommon OPTIONAL, -- Cond TDD
-  out.sp_cell_cfg_common.tdd_ul_dl_cfg_common_present = du_cell_cfg.tdd_ul_dl_cfg_common.has_value();
-  if (du_cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
+  out.sp_cell_cfg_common.tdd_ul_dl_cfg_common_present = du_cell_cfg.ran.tdd_ul_dl_cfg_common.has_value();
+  if (du_cell_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
     out.sp_cell_cfg_common.tdd_ul_dl_cfg_common =
-        make_asn1_rrc_tdd_ul_dl_cfg_common(du_cell_cfg.tdd_ul_dl_cfg_common.value());
+        make_asn1_rrc_tdd_ul_dl_cfg_common(du_cell_cfg.ran.tdd_ul_dl_cfg_common.value());
   }
 
   // ss-PBCH-BlockPower INTEGER (-60..50)
-  out.sp_cell_cfg_common.ss_pbch_block_pwr = du_cell_cfg.ssb_cfg.ssb_block_power;
+  out.sp_cell_cfg_common.ss_pbch_block_pwr = du_cell_cfg.ran.ssb_cfg.ssb_block_power;
 
   out.new_ue_id = to_value(rnti);
 
@@ -3445,7 +3445,7 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   // In case of CFRA.
   out.rach_cfg_ded_present = dest.cfra.has_value();
   if (out.rach_cfg_ded_present) {
-    const auto&     rach_common = *du_cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+    const auto&     rach_common = *du_cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common;
     rach_cfg_ded_s& rach_ded    = out.rach_cfg_ded.set_ul();
     rach_ded.cfra_present       = true;
     // Use rachConfigCommon to get "occasions".
@@ -3466,11 +3466,12 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   out.smtc.set_present();
   *out.smtc = make_ssb_mtc(du_cell_cfg);
 
-  if (du_cell_cfg.ntn_params.has_value() && du_cell_cfg.ntn_params->is_enabled()) {
+  if (du_cell_cfg.ran.ntn_params.has_value() && du_cell_cfg.ran.ntn_params->is_enabled()) {
+    const auto& ntn            = du_cell_cfg.ran.ntn_params.value();
     out.sp_cell_cfg_common.ext = true;
     out.sp_cell_cfg_common.ntn_cfg_r17.set_present();
     auto* ntn_cfg_r17 = out.sp_cell_cfg_common.ntn_cfg_r17.get();
-    *ntn_cfg_r17      = make_asn1_rrc_cell_ntn_cfg(du_cell_cfg.ntn_params.value().ntn_cfg);
+    *ntn_cfg_r17      = make_asn1_rrc_cell_ntn_cfg(ntn.ntn_cfg);
   }
   // TODO
 

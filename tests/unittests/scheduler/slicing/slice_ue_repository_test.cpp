@@ -54,7 +54,7 @@ protected:
     auto req = test_cfg.get_default_cell_config_request();
     test_cfg.add_cell(req);
 
-    next_slot = {to_numerology_value(req.dl_cfg_common.init_dl_bwp.generic_params.scs), 0};
+    next_slot = {to_numerology_value(req.ran.dl_cfg_common.init_dl_bwp.generic_params.scs), 0};
 
     ue_db.add_cell(test_cfg.get_cell(to_du_cell_index(0)), nullptr);
 

@@ -57,49 +57,30 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
                "Number of SI messages does not match the number of SI payload sizes");
 
   sched_cell_configuration_request_message sched_req{};
-  sched_req.cell_index           = cell_index;
-  sched_req.cell_group_index     = (du_cell_group_index_t)cell_index; // No CA by default.
-  sched_req.pci                  = du_cfg.pci;
-  sched_req.dl_carrier           = du_cfg.dl_carrier;
-  sched_req.ul_carrier           = du_cfg.ul_carrier;
-  sched_req.dl_cfg_common        = du_cfg.dl_cfg_common;
-  sched_req.ul_cfg_common        = du_cfg.ul_cfg_common;
-  sched_req.ssb_config           = du_cfg.ssb_cfg;
-  sched_req.dmrs_typeA_pos       = du_cfg.dmrs_typeA_pos;
-  sched_req.tdd_ul_dl_cfg_common = du_cfg.tdd_ul_dl_cfg_common;
-  sched_req.nof_beams            = 1;
-  // NTN parameters.
-  if (du_cfg.ntn_params.has_value()) {
-    const subcarrier_spacing scs = sched_req.dl_cfg_common.init_dl_bwp.generic_params.scs;
-    sched_req.ntn_cs_koffset =
-        du_cfg.ntn_params->ntn_cfg.cell_specific_koffset->count() * get_nof_slots_per_subframe(scs);
-    sched_req.ul_harq_mode_b = du_cfg.ntn_params->ul_harq_mode_b;
-  } else {
-    sched_req.ntn_cs_koffset = 0;
-    sched_req.ul_harq_mode_b = false;
-  }
+  sched_req.cell_index       = cell_index;
+  sched_req.cell_group_index = (du_cell_group_index_t)cell_index; // No CA by default.
+  sched_req.ran              = du_cfg.ran;
+  sched_req.nof_beams        = 1;
 
   // Convert SIB1 and SI message info scheduling config.
   sched_req.sib1_payload_size = sib1_len;
   sched_req.si_scheduling     = si_sched_cfg;
 
   // For now, only one BWP is supported.
-  if (du_cfg.init_bwp_builder.pdcch_cfg.has_value()) {
-    const auto rlm_cfg   = config_helpers::make_rlm_config(du_cfg);
-    const auto pdsch_cfg = config_helpers::make_pdsch_config(du_cfg);
+  if (du_cfg.ran.init_bwp_builder.pdcch_cfg.has_value()) {
+    const auto rlm_cfg   = config_helpers::make_rlm_config(du_cfg.ran);
+    const auto pdsch_cfg = config_helpers::make_pdsch_config(du_cfg.ran);
     sched_req.dl_bwp_ded = bwp_downlink_dedicated{
-        .pdcch_cfg = du_cfg.init_bwp_builder.pdcch_cfg, .pdsch_cfg = pdsch_cfg, .rlm_cfg = rlm_cfg};
+        .pdcch_cfg = du_cfg.ran.init_bwp_builder.pdcch_cfg, .pdsch_cfg = pdsch_cfg, .rlm_cfg = rlm_cfg};
   }
 
   sched_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-      du_cfg.init_bwp_builder.pucch.resources, du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      du_cfg.ran.init_bwp_builder.pucch.resources, du_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
-  const auto csi_meas_cfg = config_helpers::make_csi_meas_config(du_cfg);
+  const auto csi_meas_cfg = config_helpers::make_csi_meas_config(du_cfg.ran);
   if (csi_meas_cfg.has_value()) {
     sched_req.nzp_csi_rs_res_list = csi_meas_cfg->nzp_csi_rs_res_list;
   }
-
-  sched_req.init_bwp_builder = du_cfg.init_bwp_builder;
 
   sched_req.rrm_policy_members = du_cfg.rrm_policy_members;
 

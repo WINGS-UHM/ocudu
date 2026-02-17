@@ -118,21 +118,21 @@ protected:
         sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
 
     if (dplx_mode == ocudu::duplex_mode::TDD and t_params.tdd_config.has_value()) {
-      req.tdd_ul_dl_cfg_common = t_params.tdd_config;
+      req.ran.tdd_ul_dl_cfg_common = t_params.tdd_config;
     }
 
-    req.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
+    req.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
         time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
             t_params.tdd_config,
-            req.dl_cfg_common.init_dl_bwp.generic_params.cp,
-            time_domain_resource_helper::calculate_minimum_pdsch_symbol(req.dl_cfg_common.init_dl_bwp.pdcch_common,
+            req.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
+            time_domain_resource_helper::calculate_minimum_pdsch_symbol(req.ran.dl_cfg_common.init_dl_bwp.pdcch_common,
                                                                         std::nullopt));
 
-    for (auto& pdsch_td_alloc : req.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
+    for (auto& pdsch_td_alloc : req.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
       pdsch_td_alloc.k0 = t_params.k0;
     }
 
-    auto& pusch_list = req.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
+    auto& pusch_list = req.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     if (t_params.k2s.empty()) {
       pusch_list[0].k2 = test_rgen::uniform_int<unsigned>(2, 4);
     } else {

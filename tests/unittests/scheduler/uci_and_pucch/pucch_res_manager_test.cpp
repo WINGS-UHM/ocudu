@@ -36,7 +36,7 @@ public:
       // Create cell and save a reference to its configuration.
       auto req                = sched_config_helper::make_default_sched_cell_configuration_request();
       req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-          builder_params, req.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+          builder_params, req.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
       return req;
     }())),
     ues(config_helpers::make_default_scheduler_expert_config().ue),

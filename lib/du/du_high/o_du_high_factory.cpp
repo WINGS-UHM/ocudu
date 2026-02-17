@@ -39,25 +39,25 @@ static fapi_adaptor::mac_fapi_p5_sector_fastpath_adaptor_config
 generate_fapi_p5_cell_config(const du_cell_config& du_cell)
 {
   fapi::cell_configuration cell_cfg;
-  const subcarrier_spacing scs_common = du_cell.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const subcarrier_spacing scs_common = du_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
 
   cell_cfg.scs_common = scs_common;
-  cell_cfg.cp         = du_cell.dl_cfg_common.init_dl_bwp.generic_params.cp;
+  cell_cfg.cp         = du_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.cp;
 
-  cell_cfg.duplex = (du_cell.tdd_ul_dl_cfg_common) ? duplex_mode::TDD : duplex_mode::FDD;
-  cell_cfg.pci    = du_cell.pci;
+  cell_cfg.duplex = (du_cell.ran.tdd_ul_dl_cfg_common) ? duplex_mode::TDD : duplex_mode::FDD;
+  cell_cfg.pci    = du_cell.ran.pci;
 
   unsigned numerology       = to_numerology_value(scs_common);
   unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
-      du_cell.dl_carrier.carrier_bw,
+      du_cell.ran.dl_carrier.carrier_bw,
       scs_common,
-      band_helper::get_freq_range(band_helper::get_band_from_dl_arfcn(du_cell.dl_carrier.arfcn_f_ref)));
+      band_helper::get_freq_range(band_helper::get_band_from_dl_arfcn(du_cell.ran.dl_carrier.arfcn_f_ref)));
 
-  cell_cfg.carrier_cfg.dl_bandwidth = bs_channel_bandwidth_to_MHz(du_cell.dl_carrier.carrier_bw);
-  cell_cfg.carrier_cfg.ul_bandwidth = bs_channel_bandwidth_to_MHz(du_cell.ul_carrier.carrier_bw);
+  cell_cfg.carrier_cfg.dl_bandwidth = bs_channel_bandwidth_to_MHz(du_cell.ran.dl_carrier.carrier_bw);
+  cell_cfg.carrier_cfg.ul_bandwidth = bs_channel_bandwidth_to_MHz(du_cell.ran.ul_carrier.carrier_bw);
 
-  cell_cfg.carrier_cfg.dl_f_ref_arfcn = du_cell.dl_carrier.arfcn_f_ref.value();
-  cell_cfg.carrier_cfg.ul_f_ref_arfcn = du_cell.ul_carrier.arfcn_f_ref.value();
+  cell_cfg.carrier_cfg.dl_f_ref_arfcn = du_cell.ran.dl_carrier.arfcn_f_ref.value();
+  cell_cfg.carrier_cfg.ul_f_ref_arfcn = du_cell.ran.ul_carrier.arfcn_f_ref.value();
 
   // NOTE; for now we only need to fill the nof_prb_ul_grid and nof_prb_dl_grid for the common SCS.
   cell_cfg.carrier_cfg.dl_grid_size             = {};
@@ -66,15 +66,15 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.carrier_cfg.ul_grid_size[numerology] = grid_size_bw_prb;
 
   // Number of transmit and receive antenna ports.
-  cell_cfg.carrier_cfg.num_tx_ant     = du_cell.dl_carrier.nof_ant;
-  cell_cfg.carrier_cfg.num_rx_ant     = du_cell.ul_carrier.nof_ant;
-  cell_cfg.carrier_cfg.dmrs_typeA_pos = du_cell.dmrs_typeA_pos;
+  cell_cfg.carrier_cfg.num_tx_ant     = du_cell.ran.dl_carrier.nof_ant;
+  cell_cfg.carrier_cfg.num_rx_ant     = du_cell.ran.ul_carrier.nof_ant;
+  cell_cfg.carrier_cfg.dmrs_typeA_pos = du_cell.ran.dmrs_typeA_pos;
 
-  cell_cfg.ssb_cfg              = du_cell.ssb_cfg;
-  cell_cfg.tdd_ul_dl_cfg_common = du_cell.tdd_ul_dl_cfg_common;
-  report_error_if_not(du_cell.ul_cfg_common.init_ul_bwp.rach_cfg_common, "RACH configuration not present");
+  cell_cfg.ssb_cfg              = du_cell.ran.ssb_cfg;
+  cell_cfg.tdd_ul_dl_cfg_common = du_cell.ran.tdd_ul_dl_cfg_common;
+  report_error_if_not(du_cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common, "RACH configuration not present");
 
-  cell_cfg.prach_cfg = *du_cell.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+  cell_cfg.prach_cfg = *du_cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common;
 
   return {cell_cfg};
 }
@@ -86,9 +86,9 @@ generate_fapi_fastpath_adaptor_config(const o_du_high_config& config)
 
   for (unsigned i = 0, e = config.du_hi.ran.cells.size(); i != e; ++i) {
     const auto&              du_cell    = config.du_hi.ran.cells[i];
-    const subcarrier_spacing scs_common = du_cell.dl_cfg_common.init_dl_bwp.generic_params.scs;
-    unsigned                 nof_prb =
-        get_max_Nprb(du_cell.dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(du_cell.dl_carrier.band));
+    const subcarrier_spacing scs_common = du_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
+    unsigned                 nof_prb    = get_max_Nprb(
+        du_cell.ran.dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(du_cell.ran.dl_carrier.band));
     fapi_adaptor::mac_fapi_p7_sector_fastpath_adaptor_config p7_cfg = {.sector_id     = i,
                                                                        .cell_nof_prbs = nof_prb,
                                                                        .scs           = scs_common,
@@ -126,7 +126,7 @@ generate_fapi_fastpath_adaptor_dependencies(const o_du_high_config& config, o_du
     out_dependencies.sectors.push_back(
         {.p5_dependencies = generate_mac_fapi_p5_sector_adaptor_dependencies(sector_dependencies),
          .p7_dependencies = generate_mac_fapi_p7_sector_adaptor_dependencies(
-             sector_dependencies, config.du_hi.ran.cells[i].dl_carrier.nof_ant, i)});
+             sector_dependencies, config.du_hi.ran.cells[i].ran.dl_carrier.nof_ant, i)});
   }
 
   return out_dependencies;

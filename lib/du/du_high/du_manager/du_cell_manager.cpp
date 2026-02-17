@@ -77,7 +77,7 @@ void du_cell_manager::add_cell(const du_cell_config& cell_cfg)
   cell.si_cfg.sib1      = sib1.copy();
   cell.si_cfg.si_messages.assign(si_messages.begin(), si_messages.end());
   cell.si_cfg.si_sched_cfg           = std::move(si_sched_req);
-  cell.si_cfg.sib1_contains_hypersfn = cell_cfg.init_bwp_builder.paging.edrx_enabled;
+  cell.si_cfg.sib1_contains_hypersfn = cell_cfg.ran.init_bwp_builder.paging.edrx_enabled;
 }
 
 expected<du_cell_reconfig_result>
@@ -99,15 +99,15 @@ du_cell_manager::handle_cell_reconf_request(const du_cell_param_config_request& 
   du_cell_config& cell_cfg   = cell.cfg;
   bool            si_updated = false;
 
-  if (req.ssb_pwr_mod.has_value() and req.ssb_pwr_mod.value() != cell_cfg.ssb_cfg.ssb_block_power) {
+  if (req.ssb_pwr_mod.has_value() and req.ssb_pwr_mod.value() != cell_cfg.ran.ssb_cfg.ssb_block_power) {
     // SSB power changed.
-    cell_cfg.ssb_cfg.ssb_block_power = req.ssb_pwr_mod.value();
-    si_updated                       = true;
+    cell_cfg.ran.ssb_cfg.ssb_block_power = req.ssb_pwr_mod.value();
+    si_updated                           = true;
   }
 
-  const unsigned nof_prbs = band_helper::get_n_rbs_from_bw(cell_cfg.dl_carrier.carrier_bw,
-                                                           cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
-                                                           band_helper::get_freq_range(cell_cfg.dl_carrier.band));
+  const unsigned nof_prbs = band_helper::get_n_rbs_from_bw(cell_cfg.ran.dl_carrier.carrier_bw,
+                                                           cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs,
+                                                           band_helper::get_freq_range(cell_cfg.ran.dl_carrier.band));
 
   du_cell_reconfig_result result;
   result.slice_reconf_req.emplace();
@@ -271,7 +271,7 @@ du_cell_index_t du_cell_manager::get_cell_index(pci_t pci) const
   du_cell_index_t cell_index = du_cell_index_t::INVALID_DU_CELL_INDEX;
   for (unsigned i = 0, e = nof_cells(); i != e; ++i) {
     const du_cell_config& cell_it = get_cell_cfg(to_du_cell_index(i));
-    if (cell_it.pci == pci) {
+    if (cell_it.ran.pci == pci) {
       cell_index = to_du_cell_index(i);
       break;
     }

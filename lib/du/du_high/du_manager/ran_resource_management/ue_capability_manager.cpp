@@ -322,7 +322,7 @@ bool ue_capability_manager::decode_ue_capability_list(const byte_buffer& ue_cap_
 
 pdsch_mcs_table ue_capability_manager::select_pdsch_mcs_table(du_cell_index_t cell_idx) const
 {
-  const pdsch_mcs_table app_mcs_table = base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.mcs_table;
+  const pdsch_mcs_table app_mcs_table = base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pdsch.mcs_table;
   if (ue_caps.has_value()) {
     if (app_mcs_table == pdsch_mcs_table::qam256 and ue_caps->pdsch_qam256_supported) {
       return pdsch_mcs_table::qam256;
@@ -341,8 +341,8 @@ pdsch_mcs_table ue_capability_manager::select_pdsch_mcs_table(du_cell_index_t ce
 
 pusch_mcs_table ue_capability_manager::select_pusch_mcs_table(du_cell_index_t cell_idx) const
 {
-  nr_band               band          = base_cell_cfg_list[cell_idx].ul_carrier.band;
-  const pusch_mcs_table app_mcs_table = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.mcs_table;
+  nr_band               band          = base_cell_cfg_list[cell_idx].ran.ul_carrier.band;
+  const pusch_mcs_table app_mcs_table = base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pusch.mcs_table;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
@@ -375,7 +375,7 @@ pusch_mcs_table ue_capability_manager::select_pusch_mcs_table(du_cell_index_t ce
 vrb_to_prb::mapping_type ue_capability_manager::select_pdsch_interleaving(du_cell_index_t cell_idx) const
 {
   const vrb_to_prb::mapping_type app_pdsch_interleaving =
-      base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.interleaving_bundle_size;
+      base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pdsch.interleaving_bundle_size;
   if (ue_caps.has_value()) {
     if (ue_caps->pdsch_interleaving_vrb_to_prb_supported) {
       // If the PDSCH interleaving is enabled in the application configuration and supported by the UE, return it.
@@ -392,7 +392,7 @@ vrb_to_prb::mapping_type ue_capability_manager::select_pdsch_interleaving(du_cel
 
 tx_scheme_codebook_subset ue_capability_manager::select_tx_codebook_subset(du_cell_index_t cell_idx) const
 {
-  nr_band band = base_cell_cfg_list[cell_idx].ul_carrier.band;
+  nr_band band = base_cell_cfg_list[cell_idx].ran.ul_carrier.band;
 
   // If UE capabilities or the band are not available, return default value.
   if (not ue_caps.has_value() || ue_caps->bands.count(band) == 0) {
@@ -404,7 +404,7 @@ tx_scheme_codebook_subset ue_capability_manager::select_tx_codebook_subset(du_ce
 
 unsigned ue_capability_manager::select_srs_nof_ports(du_cell_index_t cell_idx) const
 {
-  nr_band band = base_cell_cfg_list[cell_idx].ul_carrier.band;
+  nr_band band = base_cell_cfg_list[cell_idx].ran.ul_carrier.band;
 
   // If UE capabilities or the band are not available, return default value.
   if (not ue_caps.has_value() || ue_caps->bands.count(band) == 0) {
@@ -416,10 +416,10 @@ unsigned ue_capability_manager::select_srs_nof_ports(du_cell_index_t cell_idx) c
 
 unsigned ue_capability_manager::select_pusch_max_rank(du_cell_index_t cell_idx) const
 {
-  nr_band band = base_cell_cfg_list[cell_idx].ul_carrier.band;
+  nr_band band = base_cell_cfg_list[cell_idx].ran.ul_carrier.band;
 
   // Configured maximum number of layers.
-  unsigned pusch_max_rank = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.max_nof_layers;
+  unsigned pusch_max_rank = base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pusch.max_nof_layers;
 
   // If UE capabilities or the band are not available, return default value.
   if (not ue_caps.has_value() || ue_caps->bands.count(band) == 0) {
@@ -432,14 +432,14 @@ unsigned ue_capability_manager::select_pusch_max_rank(du_cell_index_t cell_idx) 
 unsigned ue_capability_manager::select_max_dl_nof_harqs(du_cell_index_t cell_idx) const
 {
   // Configured maximum number of DL HARQs.
-  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.nof_harq_procs;
+  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pdsch.nof_harq_procs;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
     return cell_max_nof_dl_harq_proc;
   }
 
-  nr_band band = base_cell_cfg_list[cell_idx].dl_carrier.band;
+  nr_band band = base_cell_cfg_list[cell_idx].ran.dl_carrier.band;
 
   // UE capabilities not yet decoded, so return at most 16.
   // Extended HARQ processes (up to 32 for NTN) require explicit UE capability confirmation.
@@ -459,14 +459,14 @@ unsigned ue_capability_manager::select_max_dl_nof_harqs(du_cell_index_t cell_idx
 unsigned ue_capability_manager::select_max_ul_nof_harqs(du_cell_index_t cell_idx) const
 {
   // Configured maximum number of UL HARQs.
-  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.nof_harq_procs;
+  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pusch.nof_harq_procs;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
     return cell_max_nof_ul_harq_proc;
   }
 
-  nr_band band = base_cell_cfg_list[cell_idx].ul_carrier.band;
+  nr_band band = base_cell_cfg_list[cell_idx].ran.ul_carrier.band;
 
   // UE capabilities not yet decoded, so return at most 16.
   // Extended HARQ processes (up to 32 for NTN) require explicit UE capability confirmation.
@@ -493,10 +493,10 @@ unsigned ue_capability_manager::select_dl_dci_harq_num_field_size(du_cell_index_
   }
 
   // Configured maximum number of DL HARQs.
-  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.nof_harq_procs;
+  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pdsch.nof_harq_procs;
   auto     cell_dci_size             = log2_ceil(cell_max_nof_dl_harq_proc);
 
-  nr_band band = base_cell_cfg_list[cell_idx].dl_carrier.band;
+  nr_band band = base_cell_cfg_list[cell_idx].ran.dl_carrier.band;
 
   // UE capabilities have not been decoded yet, band info no available, or UE does not support NTN.
   if (not band_helper::is_ntn_band(band) || not ue_caps.has_value() || ue_caps->bands.count(band) == 0 ||
@@ -520,10 +520,10 @@ unsigned ue_capability_manager::select_ul_dci_harq_num_field_size(du_cell_index_
   }
 
   // Configured maximum number of UL HARQs.
-  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.nof_harq_procs;
+  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pusch.nof_harq_procs;
   auto     cell_dci_size             = log2_ceil(cell_max_nof_ul_harq_proc);
 
-  nr_band band = base_cell_cfg_list[cell_idx].ul_carrier.band;
+  nr_band band = base_cell_cfg_list[cell_idx].ran.ul_carrier.band;
 
   // UE capabilities have not been decoded yet, band info no available, or UE does not support NTN.
   if (not band_helper::is_ntn_band(band) || not ue_caps.has_value() || ue_caps->bands.count(band) == 0 ||
@@ -545,14 +545,14 @@ harq_dl_feedback_disabled_mask ue_capability_manager::select_disabled_dl_harq_fe
 
   // Configured disabled DL HARQ feedback.
   harq_dl_feedback_disabled_mask cell_harq_feedback_disabled =
-      base_cell_cfg_list[cell_idx].init_bwp_builder.pdsch.dl_harq_feedback_disabled;
+      base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pdsch.dl_harq_feedback_disabled;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
     return cell_harq_feedback_disabled;
   }
 
-  const nr_band band = base_cell_cfg_list[cell_idx].dl_carrier.band;
+  const nr_band band = base_cell_cfg_list[cell_idx].ran.dl_carrier.band;
   // Not NTN band, UE capabilities have not been decoded yet, band info no available, or UE does not support NTN.
   if (not band_helper::is_ntn_band(band) || not ue_caps.has_value() || ue_caps->bands.count(band) == 0 ||
       not ue_caps->ntn_supported) {
@@ -573,7 +573,7 @@ harq_ul_mode_mask ue_capability_manager::select_ul_harq_mode(du_cell_index_t cel
   default_ul_harq_mode_mask.fill(true);
 
   // Configured disabled UL HARQ mode B.
-  harq_ul_mode_mask cell_ul_harq_mode_mask = base_cell_cfg_list[cell_idx].init_bwp_builder.pusch.ul_harq_mode;
+  harq_ul_mode_mask cell_ul_harq_mode_mask = base_cell_cfg_list[cell_idx].ran.init_bwp_builder.pusch.ul_harq_mode;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.

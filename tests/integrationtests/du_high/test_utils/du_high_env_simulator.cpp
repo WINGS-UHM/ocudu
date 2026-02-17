@@ -58,19 +58,19 @@ du_high_configuration odu::create_du_high_configuration(const du_high_env_sim_pa
     builder_params.pci = (pci_t)i;
     auto du_cell_cfg   = config_helpers::make_default_du_cell_config(builder_params);
     if (params.prach_frequency_start.has_value()) {
-      du_cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.msg1_frequency_start =
+      du_cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.msg1_frequency_start =
           params.prach_frequency_start.value();
     }
-    du_cell_cfg.init_bwp_builder.pdsch.mcs_table = pdsch_mcs_table::qam256;
+    du_cell_cfg.ran.init_bwp_builder.pdsch.mcs_table = pdsch_mcs_table::qam256;
     cfg.ran.cells.push_back(du_cell_cfg);
     cfg.ran.cells.back().nr_cgi.nci = nr_cell_identity::create(i).value();
     if (params.pucch_cfg.has_value()) {
-      cfg.ran.cells.back().init_bwp_builder.pucch.resources = params.pucch_cfg.value();
+      cfg.ran.cells.back().ran.init_bwp_builder.pucch.resources = params.pucch_cfg.value();
     }
     cfg.ran.mac_cfg.configs.push_back({10000, 10000, 10000});
     if (params.srs_period.has_value()) {
-      cfg.ran.cells.back().init_bwp_builder.srs_cfg.srs_type_enabled       = srs_type::periodic;
-      cfg.ran.cells.back().init_bwp_builder.srs_cfg.srs_period_prohib_time = params.srs_period.value();
+      cfg.ran.cells.back().ran.init_bwp_builder.srs_cfg.srs_type_enabled       = srs_type::periodic;
+      cfg.ran.cells.back().ran.init_bwp_builder.srs_cfg.srs_period_prohib_time = params.srs_period.value();
     }
   }
 
@@ -116,13 +116,13 @@ du_high_env_simulator::du_high_env_simulator(const du_high_configuration& du_hi_
   }()),
   du_hi(make_du_high(du_high_cfg, du_hi_dependencies)),
   phy(du_high_cfg.ran.cells.size(), workers.test_worker),
-  next_slot(
-      du_high_cfg.ran.cells[0].dl_cfg_common.init_dl_bwp.generic_params.scs,
-      test_rgen::uniform_int<unsigned>(
-          0,
-          NOF_SFNS * NOF_HYPER_SFNS * NOF_SUBFRAMES_PER_FRAME *
-                  get_nof_slots_per_subframe(du_high_cfg.ran.cells[0].dl_cfg_common.init_dl_bwp.generic_params.scs) -
-              1))
+  next_slot(du_high_cfg.ran.cells[0].ran.dl_cfg_common.init_dl_bwp.generic_params.scs,
+            test_rgen::uniform_int<unsigned>(
+                0,
+                NOF_SFNS * NOF_HYPER_SFNS * NOF_SUBFRAMES_PER_FRAME *
+                        get_nof_slots_per_subframe(
+                            du_high_cfg.ran.cells[0].ran.dl_cfg_common.init_dl_bwp.generic_params.scs) -
+                    1))
 {
   if (auto_start) {
     // Start DU and try to connect to CU.

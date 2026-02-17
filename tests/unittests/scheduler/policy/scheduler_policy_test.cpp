@@ -57,7 +57,7 @@ protected:
     }()),
     cell_cfg_req(tparams.cell_cfg_req.has_value() ? *tparams.cell_cfg_req : cfg_mng.get_default_cell_config_request()),
     logger(ocudulog::fetch_basic_logger("SCHED", true)),
-    res_logger(false, cell_cfg_req.pci),
+    res_logger(false, cell_cfg_req.ran.pci),
     cell_cfg(*cfg_mng.add_cell(cell_cfg_req)),
     cell_metrics(cell_cfg, cell_cfg_req.metrics),
     ues(cell_cfg.expert_cfg.ue),

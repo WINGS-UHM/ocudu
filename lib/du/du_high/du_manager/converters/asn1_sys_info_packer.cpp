@@ -26,11 +26,11 @@ using namespace odu;
 byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
 {
   using namespace asn1::rrc_nr;
-  const auto cs0_idx = du_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  const auto cs0_idx = du_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
   ocudu_assert(cs0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
-  const auto ss0_idx = du_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
+  const auto ss0_idx = du_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
   ocudu_assert(ss0_idx.has_value(), "SearchSpace#0 not found in common SearchSpace list");
-  const subcarrier_spacing scs_common = du_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const subcarrier_spacing scs_common = du_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
 
   mib_s mib;
   switch (scs_common) {
@@ -48,8 +48,8 @@ byte_buffer asn1_packer::pack_mib(const du_cell_config& du_cfg)
   }
 
   /// As per TS 38.331, MIB, the field "ssb-SubcarrierOffset" in the MIB only encodes the 4 LSB of k_SSB.
-  mib.ssb_subcarrier_offset            = static_cast<uint8_t>(du_cfg.ssb_cfg.k_ssb.value() & 0b00001111U);
-  mib.dmrs_type_a_position.value       = du_cfg.dmrs_typeA_pos == dmrs_typeA_position::pos2
+  mib.ssb_subcarrier_offset            = static_cast<uint8_t>(du_cfg.ran.ssb_cfg.k_ssb.value() & 0b00001111U);
+  mib.dmrs_type_a_position.value       = du_cfg.ran.dmrs_typeA_pos == dmrs_typeA_position::pos2
                                              ? mib_s::dmrs_type_a_position_opts::pos2
                                              : mib_s::dmrs_type_a_position_opts::pos3;
   mib.pdcch_cfg_sib1.coreset_zero      = cs0_idx->value();
@@ -247,39 +247,39 @@ static asn1::rrc_nr::serving_cell_cfg_common_sib_s make_asn1_rrc_cell_serving_ce
   using namespace asn1::rrc_nr;
 
   serving_cell_cfg_common_sib_s cell;
-  cell.dl_cfg_common         = make_asn1_rrc_dl_cfg_common_sib(du_cfg.dl_cfg_common);
+  cell.dl_cfg_common         = make_asn1_rrc_dl_cfg_common_sib(du_cfg.ran.dl_cfg_common);
   cell.ul_cfg_common_present = true;
-  cell.ul_cfg_common         = make_asn1_rrc_ul_config_common(du_cfg.ul_cfg_common);
+  cell.ul_cfg_common         = make_asn1_rrc_ul_config_common(du_cfg.ran.ul_cfg_common);
 
   // SSB params.
-  if (frequency_range::FR2 == band_helper::get_freq_range(du_cfg.dl_carrier.band)) {
+  if (frequency_range::FR2 == band_helper::get_freq_range(du_cfg.ran.dl_carrier.band)) {
     // Populate FR2 SSB params based on TS 38.331 section 6.3.2 IE "ServingCellConfigCommonSIB".
     constexpr unsigned nof_bits_group = 8U;
 
     // We assume the SSB bitmap has been checked in the validator.
     for (size_t i = 0; i != nof_bits_group; ++i) {
       const bool i_th_ssb_group_has_non_zero_elems =
-          du_cfg.ssb_cfg.ssb_bitmap.extract(i * nof_bits_group, nof_bits_group) != 0U;
+          du_cfg.ran.ssb_cfg.ssb_bitmap.extract(i * nof_bits_group, nof_bits_group) != 0U;
       cell.ssb_positions_in_burst.group_presence.set(i, i_th_ssb_group_has_non_zero_elems);
     }
 
-    cell.ssb_positions_in_burst.in_one_group.from_number(du_cfg.ssb_cfg.ssb_bitmap.extract(0U, 8U));
+    cell.ssb_positions_in_burst.in_one_group.from_number(du_cfg.ran.ssb_cfg.ssb_bitmap.extract(0U, 8U));
     cell.ssb_positions_in_burst.group_presence_present = true;
   } else {
     // As per \c inOneGroup, \c ssb-PositionsInBurst, \c ServingCellConfigCommonSIB, TS 38.331, maximum number of
     // SS/PBCH blocks per half frame (i.e., L_max) equals to 4, only 4 left-most bits are valid; if L_max = 8, then all
     // 8 bits are valid.
-    ocudu_assert(du_cfg.ssb_cfg.ssb_bitmap.get_L_max() == 4U or du_cfg.ssb_cfg.ssb_bitmap.get_L_max() == 8U,
+    ocudu_assert(du_cfg.ran.ssb_cfg.ssb_bitmap.get_L_max() == 4U or du_cfg.ran.ssb_cfg.ssb_bitmap.get_L_max() == 8U,
                  "For FR1, only L_max = 4 and 8 are supported");
     cell.ssb_positions_in_burst.in_one_group.from_number(
-        du_cfg.ssb_cfg.ssb_bitmap.extract<uint64_t>(0U, du_cfg.ssb_cfg.ssb_bitmap.get_L_max())
-        << (8U - du_cfg.ssb_cfg.ssb_bitmap.get_L_max()));
+        du_cfg.ran.ssb_cfg.ssb_bitmap.extract<uint64_t>(0U, du_cfg.ran.ssb_cfg.ssb_bitmap.get_L_max())
+        << (8U - du_cfg.ran.ssb_cfg.ssb_bitmap.get_L_max()));
   }
 
-  asn1::number_to_enum(cell.ssb_periodicity_serving_cell, ssb_periodicity_to_value(du_cfg.ssb_cfg.ssb_period));
-  cell.ss_pbch_block_pwr = du_cfg.ssb_cfg.ssb_block_power;
+  asn1::number_to_enum(cell.ssb_periodicity_serving_cell, ssb_periodicity_to_value(du_cfg.ran.ssb_cfg.ssb_period));
+  cell.ss_pbch_block_pwr = du_cfg.ran.ssb_cfg.ssb_block_power;
 
-  const n_ta_offset ta_offset = band_helper::get_ta_offset(du_cfg.dl_carrier.band);
+  const n_ta_offset ta_offset = band_helper::get_ta_offset(du_cfg.ran.dl_carrier.band);
   switch (ta_offset) {
     case n_ta_offset::n0:
       cell.n_timing_advance_offset_present = true;
@@ -304,9 +304,9 @@ static asn1::rrc_nr::serving_cell_cfg_common_sib_s make_asn1_rrc_cell_serving_ce
   }
 
   // TDD config.
-  if (du_cfg.tdd_ul_dl_cfg_common.has_value()) {
+  if (du_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
     cell.tdd_ul_dl_cfg_common_present = true;
-    cell.tdd_ul_dl_cfg_common         = odu::make_asn1_rrc_tdd_ul_dl_cfg_common(du_cfg.tdd_ul_dl_cfg_common.value());
+    cell.tdd_ul_dl_cfg_common = odu::make_asn1_rrc_tdd_ul_dl_cfg_common(du_cfg.ran.tdd_ul_dl_cfg_common.value());
   }
   // TODO: Fill remaining fields.
 
@@ -480,7 +480,7 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
   ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t319, du_cfg.si.ue_timers_and_constants.t319.count());
   ocudu_assert(ret, "Invalid value for T319: {}", du_cfg.si.ue_timers_and_constants.t319.count());
 
-  if (du_cfg.init_bwp_builder.paging.edrx_enabled) {
+  if (du_cfg.ran.init_bwp_builder.paging.edrx_enabled) {
     sib1.non_crit_ext_present                           = true;
     sib1.non_crit_ext.non_crit_ext_present              = true;
     sib1.non_crit_ext.non_crit_ext.non_crit_ext_present = true;

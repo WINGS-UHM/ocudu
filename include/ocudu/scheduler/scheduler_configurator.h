@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/ran/carrier_configuration.h"
 #include "ocudu/ran/drx_config.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/meas_gap_config.h"
@@ -28,6 +27,7 @@
 #include "ocudu/scheduler/config/bwp_builder_params.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/logical_channel_config.h"
+#include "ocudu/scheduler/config/ran_cell_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/si_scheduling_config.h"
 #include "ocudu/scheduler/config/slice_rrm_policy_config.h"
@@ -48,19 +48,8 @@ struct sched_cell_configuration_request_message {
   du_cell_index_t       cell_index;
   du_cell_group_index_t cell_group_index;
   uint8_t               nof_beams; // (0..64)
-  pci_t                 pci;
 
-  dl_config_common dl_cfg_common;
-  ul_config_common ul_cfg_common;
-
-  /// Defines the TDD DL-UL pattern and periodicity. If no value is set, the cell is in FDD mode.
-  std::optional<tdd_ul_dl_config_common> tdd_ul_dl_cfg_common;
-
-  /// Imported from mac_cell_configuration (NR Cell Configuration, O-RAN WG8, Section 9.2.1.1).
-  carrier_configuration dl_carrier;
-  carrier_configuration ul_carrier;
-  ssb_configuration     ssb_config;
-  dmrs_typeA_position   dmrs_typeA_pos;
+  ran_cell_config ran;
 
   /// Payload size is in bytes.
   units::bytes sib1_payload_size;
@@ -77,17 +66,8 @@ struct sched_cell_configuration_request_message {
   /// List of nzp-CSI-RS resources common to all UEs.
   std::vector<nzp_csi_rs_resource> nzp_csi_rs_res_list;
 
-  /// Parameters used to generate the initial BWP parameters.
-  bwp_builder_params init_bwp_builder;
-
   /// List of RAN slices to support in the scheduler.
   std::vector<slice_rrm_policy_config> rrm_policy_members;
-
-  /// NTN parameters.
-  /// Cell-specific K-offset in slots defined by the cell subcarrier spacing.
-  unsigned ntn_cs_koffset = 0;
-  /// Indicates whether UL HARQ Mode B is enabled (if there is at least one UL HARQ process in mode B).
-  bool ul_harq_mode_b = false;
 
   /// Configuration of scheduler cell metrics.
   metrics_config metrics;

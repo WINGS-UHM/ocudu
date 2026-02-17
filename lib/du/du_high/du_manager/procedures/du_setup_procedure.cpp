@@ -33,20 +33,20 @@ static mac_cell_creation_request make_mac_cell_config(du_cell_index_t           
 {
   mac_cell_creation_request mac_cfg{};
   mac_cfg.cell_index = cell_index;
-  mac_cfg.pci        = du_cfg.pci;
-  mac_cfg.scs_common = du_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
-  mac_cfg.ssb_cfg    = du_cfg.ssb_cfg;
-  mac_cfg.dl_carrier = du_cfg.dl_carrier;
-  mac_cfg.ul_carrier = du_cfg.ul_carrier;
-  const auto cs0_idx = du_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  mac_cfg.pci        = du_cfg.ran.pci;
+  mac_cfg.scs_common = du_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  mac_cfg.ssb_cfg    = du_cfg.ran.ssb_cfg;
+  mac_cfg.dl_carrier = du_cfg.ran.dl_carrier;
+  mac_cfg.ul_carrier = du_cfg.ran.ul_carrier;
+  const auto cs0_idx = du_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
   ocudu_assert(cs0_idx.has_value(), "CORESET#0 index not found in common PDCCH configuration");
   mac_cfg.cs0_index     = cs0_idx.value();
-  mac_cfg.ss0_index     = du_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0().value();
+  mac_cfg.ss0_index     = du_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0().value();
   mac_cfg.sys_info.sib1 = sib1.copy();
   for (auto& msg : si_messages) {
     mac_cfg.sys_info.si_messages.push_back(msg);
   }
-  mac_cfg.sys_info.sib1_contains_hypersfn = du_cfg.init_bwp_builder.paging.edrx_enabled;
+  mac_cfg.sys_info.sib1_contains_hypersfn = du_cfg.ran.init_bwp_builder.paging.edrx_enabled;
   mac_cfg.sched_req                       = sched_cell_cfg;
 
   return mac_cfg;

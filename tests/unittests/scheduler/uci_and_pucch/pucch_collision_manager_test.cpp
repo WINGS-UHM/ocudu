@@ -30,7 +30,7 @@ static cell_configuration make_test_cell_configuration(const std::vector<pucch_r
   const auto expert_cfg         = config_helpers::make_default_scheduler_expert_config();
   auto       sched_req          = sched_config_helper::make_default_sched_cell_configuration_request();
   sched_req.ded_pucch_resources = ded_res;
-  sched_req.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common = pucch_resource_common;
+  sched_req.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value().pucch_resource_common = pucch_resource_common;
   return cell_configuration{expert_cfg, sched_req};
 }
 

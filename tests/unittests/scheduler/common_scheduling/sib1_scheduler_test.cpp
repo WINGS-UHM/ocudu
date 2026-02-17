@@ -92,7 +92,7 @@ struct sib_test_bench {
   cell_configuration                       cfg{sched_cfg, cfg_msg};
   cell_resource_allocator                  res_grid{cfg};
   dummy_pdcch_resource_allocator           pdcch_sch;
-  scheduler_result_logger                  sched_res_logger{true, cfg_msg.pci};
+  scheduler_result_logger                  sched_res_logger{true, cfg_msg.ran.pci};
   slot_point                               sl_tx;
 
   // Test bench ctor for SIB1 scheduler test use. It allows us to set single parameters.
@@ -196,15 +196,15 @@ struct sib_test_bench {
     sched_cell_configuration_request_message msg =
         sched_config_helper::make_default_sched_cell_configuration_request(cell_cfg);
 
-    msg.ssb_config.ssb_bitmap.set_bitmap(ssb_bitmap, l_max);
+    msg.ran.ssb_cfg.ssb_bitmap.set_bitmap(ssb_bitmap, l_max);
 
-    msg.ssb_config.ssb_period = ssb_period;
+    msg.ran.ssb_cfg.ssb_period = ssb_period;
 
     if (duplx_mode == ocudu::duplex_mode::TDD) {
       // Change TDD pattern so that PDCCH slots falls in DL slot when using 5Mhz carrier BW.
-      msg.tdd_ul_dl_cfg_common.value().pattern1.dl_ul_tx_period_nof_slots = 20;
-      msg.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots              = 12;
-      msg.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots              = 7;
+      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.dl_ul_tx_period_nof_slots = 20;
+      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots              = 12;
+      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots              = 7;
     }
 
     return msg;
@@ -232,19 +232,19 @@ struct sib_test_bench {
 
     sched_cell_configuration_request_message msg =
         sched_config_helper::make_default_sched_cell_configuration_request(cell_cfg);
-    msg.dl_cfg_common.freq_info_dl.offset_to_point_a = offset_to_point_A;
+    msg.ran.dl_cfg_common.freq_info_dl.offset_to_point_a = offset_to_point_A;
 
-    msg.ssb_config.ssb_bitmap.set_bitmap(ssb_bitmap, l_max);
-    msg.ssb_config.ssb_period        = ssb_periodicity::ms10;
-    msg.ssb_config.offset_to_point_A = ssb_offset_to_pointA{offset_to_point_A};
-    msg.ssb_config.k_ssb             = k_ssb;
-    msg.dl_carrier.carrier_bw        = carrier_bw_mhz;
+    msg.ran.ssb_cfg.ssb_bitmap.set_bitmap(ssb_bitmap, l_max);
+    msg.ran.ssb_cfg.ssb_period        = ssb_periodicity::ms10;
+    msg.ran.ssb_cfg.offset_to_point_A = ssb_offset_to_pointA{offset_to_point_A};
+    msg.ran.ssb_cfg.k_ssb             = k_ssb;
+    msg.ran.dl_carrier.carrier_bw     = carrier_bw_mhz;
 
     if (band_helper::get_duplex_mode(band_helper::get_band_from_dl_arfcn(freq_arfcn)) == ocudu::duplex_mode::TDD) {
       // Change TDD pattern so that PDCCH slots falls in DL slot when using 5Mhz carrier BW.
-      msg.tdd_ul_dl_cfg_common.value().pattern1.dl_ul_tx_period_nof_slots = 20;
-      msg.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots              = 12;
-      msg.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots              = 7;
+      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.dl_ul_tx_period_nof_slots = 20;
+      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots              = 12;
+      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots              = 7;
     }
 
     return msg;
@@ -694,14 +694,14 @@ protected:
                                                               GetParam().ssb_period,
                                                               GetParam().carrier_bw_mhz,
                                                               ocudu::duplex_mode::TDD);
-          msg.tdd_ul_dl_cfg_common = GetParam().tdd_config;
+          msg.ran.tdd_ul_dl_cfg_common = GetParam().tdd_config;
           // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
-          msg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
+          msg.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
               time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
                   GetParam().tdd_config,
-                  msg.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                  msg.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
                   time_domain_resource_helper::calculate_minimum_pdsch_symbol(
-                      msg.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt));
+                      msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt));
           return msg;
         }(),
         GetParam().sib1_rtx_period),

@@ -129,12 +129,18 @@ private:
 
   static size_t get_ring_size(const mac_cell_creation_request& cell_cfg)
   {
+    const unsigned ntn_cs_koffset =
+        cell_cfg.sched_req.ran.ntn_params.has_value() &&
+                cell_cfg.sched_req.ran.ntn_params->ntn_cfg.cell_specific_koffset.has_value()
+            ? cell_cfg.sched_req.ran.ntn_params->ntn_cfg.cell_specific_koffset->count() *
+                  get_nof_slots_per_subframe(cell_cfg.sched_req.ran.dl_cfg_common.init_dl_bwp.generic_params.scs)
+            : 0;
+
     // Estimation of the time it takes the UL lower-layers to process and forward CRC/UCI indications.
     static constexpr unsigned MAX_UL_PHY_DELAY = 80;
     // Note: The history ring size has to be a multiple of the TDD frame size in slots.
     // Number of slots managed by this container.
-    return get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg.sched_req.ntn_cs_koffset) +
-                                          MAX_UL_PHY_DELAY);
+    return get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(ntn_cs_koffset) + MAX_UL_PHY_DELAY);
   }
 
   size_t get_ring_idx(slot_point sl) const { return sl.to_uint() % sched_decision_history.size(); }

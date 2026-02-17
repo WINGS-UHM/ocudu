@@ -427,7 +427,7 @@ f1ap_ue_context_update_response ue_configuration_procedure::make_ue_config_respo
     // Look for the SpCell ARFCN in the ServingCellMO List.
     const auto& serving_cell_mo_it =
         std::find_if(serving_cell_mo_list.begin(), serving_cell_mo_list.end(), [&pcell_cfg](const auto& item) {
-          return item.ssb_freq == pcell_cfg.dl_carrier.arfcn_f_ref;
+          return item.ssb_freq == pcell_cfg.ran.dl_carrier.arfcn_f_ref;
         });
 
     if (serving_cell_mo_it != serving_cell_mo_list.end()) {

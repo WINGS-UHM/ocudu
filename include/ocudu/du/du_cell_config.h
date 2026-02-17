@@ -11,17 +11,10 @@
 #pragma once
 
 #include "ocudu/mac/config/mac_cell_group_params.h"
-#include "ocudu/ntn/ntn_cell_params.h"
-#include "ocudu/ran/carrier_configuration.h"
-#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/nr_cgi.h"
-#include "ocudu/ran/pci.h"
 #include "ocudu/ran/sib/system_info_config.h"
-#include "ocudu/ran/ssb/ssb_configuration.h"
 #include "ocudu/ran/tac.h"
-#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
-#include "ocudu/scheduler/config/bwp_builder_params.h"
-#include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/scheduler/config/ran_cell_config.h"
 #include "ocudu/scheduler/config/slice_rrm_policy_config.h"
 
 namespace ocudu {
@@ -37,43 +30,24 @@ struct phy_cell_group_params {
 /// Cell Configuration, including common and UE-dedicated configs, that the DU will use to generate other configs for
 /// other layers (e.g. scheduler).
 struct du_cell_config {
-  pci_t               pci;
   tac_t               tac;
   nr_cell_global_id_t nr_cgi;
-
-  carrier_configuration dl_carrier;
-  carrier_configuration ul_carrier;
 
   /// Whether the DU automatically attempts to activate the cell or waits for a command from the SMO.
   /// Note: If set to false, the DU won't add this cell to the list of served cells in the F1 Setup Request.
   bool enabled = true;
 
-  /// SSB configuration.
-  ssb_configuration ssb_cfg;
-  /// Position of first DM-RS in Downlink, as per TS 38.211, 7.4.1.1.1.
-  dmrs_typeA_position dmrs_typeA_pos;
-
   /// Information for UE cell access and SI scheduling.
   si_acquisition_info si;
 
-  /// Cell-specific DL and UL configuration used by common searchSpaces.
-  dl_config_common dl_cfg_common;
-  ul_config_common ul_cfg_common;
-
-  /// Defines the TDD DL-UL pattern and periodicity. If no value is set, the cell is in FDD mode.
-  std::optional<tdd_ul_dl_config_common> tdd_ul_dl_cfg_common;
+  /// RAN-specific parameters of the cell.
+  ran_cell_config ran;
 
   /// Parameters to initialize/build the \c phy_cell_group.
   phy_cell_group_params pcg_params;
 
   /// Parameters to initialize/build the \c mac_cell_group_config.
   mac_cell_group_params mcg_params;
-
-  /// Parameters for the initial BWP config generation.
-  bwp_builder_params init_bwp_builder;
-
-  /// NTN configuration for this cell. When empty, the cell operates in terrestrial mode.
-  std::optional<ntn_cell_params> ntn_params;
 
   /// List of RAN slices to support in the scheduler.
   std::vector<slice_rrm_policy_config> rrm_policy_members;

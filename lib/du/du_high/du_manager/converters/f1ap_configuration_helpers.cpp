@@ -31,14 +31,14 @@ byte_buffer ocudu::odu::make_asn1_meas_time_cfg_buffer(const du_cell_config& du_
   // MeasTiming
   meas_item.freq_and_timing_present = true;
   auto& freq_time                   = meas_item.freq_and_timing;
-  freq_time.ssb_subcarrier_spacing  = get_asn1_scs(du_cfg.ssb_cfg.scs);
-  freq_time.carrier_freq            = du_cfg.dl_cfg_common.freq_info_dl.absolute_frequency_ssb.value();
+  freq_time.ssb_subcarrier_spacing  = get_asn1_scs(du_cfg.ran.ssb_cfg.scs);
+  freq_time.carrier_freq            = du_cfg.ran.dl_cfg_common.freq_info_dl.absolute_frequency_ssb.value();
 
   // > Derive SSB periodicity, duration and offset.
   // TODO: Derive the correct duration.
   freq_time.ssb_meas_timing_cfg.dur.value = asn1::rrc_nr::ssb_mtc_s::dur_opts::sf5;
   // TODO: Derive the correct offset.
-  switch (du_cfg.ssb_cfg.ssb_period) {
+  switch (du_cfg.ran.ssb_cfg.ssb_period) {
     case ssb_periodicity::ms5:
       freq_time.ssb_meas_timing_cfg.periodicity_and_offset.set_sf5() = 0;
       break;
@@ -58,10 +58,10 @@ byte_buffer ocudu::odu::make_asn1_meas_time_cfg_buffer(const du_cell_config& du_
       freq_time.ssb_meas_timing_cfg.periodicity_and_offset.set_sf160() = 0;
       break;
     default:
-      report_fatal_error("Invalid SSB periodicity {}.", fmt::underlying(du_cfg.ssb_cfg.ssb_period));
+      report_fatal_error("Invalid SSB periodicity {}.", fmt::underlying(du_cfg.ran.ssb_cfg.ssb_period));
   }
   meas_item.pci_present = true;
-  meas_item.pci         = du_cfg.pci;
+  meas_item.pci         = du_cfg.ran.pci;
 
   asn1::OCUDUASN_CODE ret = cfg.pack(bref);
   ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack meas_time_cfg");
@@ -73,18 +73,19 @@ du_served_cell_info ocudu::odu::make_f1ap_du_cell_info(const du_cell_config& du_
   du_served_cell_info serv_cell;
 
   serv_cell.nr_cgi     = du_cfg.nr_cgi;
-  serv_cell.pci        = du_cfg.pci;
+  serv_cell.pci        = du_cfg.ran.pci;
   serv_cell.tac        = du_cfg.tac;
-  serv_cell.duplx_mode = du_cfg.tdd_ul_dl_cfg_common.has_value() ? duplex_mode::TDD : duplex_mode::FDD;
-  serv_cell.scs_common = du_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
-  serv_cell.dl_carrier = du_cfg.dl_carrier;
+  serv_cell.duplx_mode = du_cfg.ran.tdd_ul_dl_cfg_common.has_value() ? duplex_mode::TDD : duplex_mode::FDD;
+  serv_cell.scs_common = du_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  serv_cell.dl_carrier = du_cfg.ran.dl_carrier;
   if (serv_cell.duplx_mode == duplex_mode::FDD) {
-    serv_cell.ul_carrier = du_cfg.ul_carrier;
+    serv_cell.ul_carrier = du_cfg.ran.ul_carrier;
   }
   serv_cell.packed_meas_time_cfg = make_asn1_meas_time_cfg_buffer(du_cfg);
-  serv_cell.ntn_link_rtt         = du_cfg.ntn_params.has_value()
-                                       ? du_cfg.ntn_params->ntn_cfg.cell_specific_koffset.value_or(std::chrono::milliseconds(0))
-                                       : std::chrono::milliseconds(0);
+  serv_cell.ntn_link_rtt =
+      du_cfg.ran.ntn_params.has_value()
+          ? du_cfg.ran.ntn_params->ntn_cfg.cell_specific_koffset.value_or(std::chrono::milliseconds(0))
+          : std::chrono::milliseconds(0);
 
   return serv_cell;
 }

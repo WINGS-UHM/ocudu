@@ -59,13 +59,13 @@ make_custom_sched_cell_configuration_request(const prach_test_params test_params
   sched_cell_configuration_request_message sched_req =
       sched_config_helper::make_default_sched_cell_configuration_request(params);
 
-  sched_req.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.prach_config_index =
+  sched_req.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.prach_config_index =
       test_params.prach_cfg_index;
 
   // NOTE: For this test we modify the TDD pattern so that we can test several PRACH configuration indices.
   if (not band_helper::is_paired_spectrum(test_params.band)) {
-    sched_req.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots = 2;
-    sched_req.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots = 8;
+    sched_req.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots = 2;
+    sched_req.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots = 8;
   }
 
   return sched_req;

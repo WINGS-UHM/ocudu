@@ -74,12 +74,12 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
 {
   // This function generates a configuration which potentially allows for a very large number of SRS resources.
   du_cell_config du_cfg  = config_helpers::make_default_du_cell_config(params);
-  auto&          srs_cfg = du_cfg.init_bwp_builder.srs_cfg;
+  auto&          srs_cfg = du_cfg.ran.init_bwp_builder.srs_cfg;
 
   srs_cfg.srs_type_enabled = srs_type::periodic;
 
   if (not use_max_bw) {
-    const unsigned bw_nof_rbs = du_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+    const unsigned bw_nof_rbs = du_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
     // Get the max value of C_SRS for the given BWP size.
     const std::optional<unsigned> c_srs_valid_max = du_srs_mng_details::compute_c_srs(bw_nof_rbs);
     ocudu_assert(c_srs_valid_max.has_value(), "C_SRS is required for this unittest");
@@ -123,7 +123,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   srs_cfg.sequence_id_reuse_factor =
       srs_seq_id_values[test_rgen::uniform_int<unsigned>(0, srs_seq_id_values.size() - 1)];
 
-  if (du_cfg.tdd_ul_dl_cfg_common.has_value()) {
+  if (du_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
     std::array<srs_periodicity, 8> period_values = {srs_periodicity::sl10,
                                                     srs_periodicity::sl20,
                                                     srs_periodicity::sl40,
@@ -163,8 +163,8 @@ make_srs_cell_config(const cell_config_builder_params& params, bool limit_srs_re
   // This function calculates the total number of SRS resources that can be potentially allocated in the cell with the
   // given SRS parameters.
   auto tot_num_srs_res = [&du_cfg]() {
-    const auto& tdd_cfg = du_cfg.tdd_ul_dl_cfg_common;
-    const auto& srs_cfg = du_cfg.init_bwp_builder.srs_cfg;
+    const auto& tdd_cfg = du_cfg.ran.tdd_ul_dl_cfg_common;
+    const auto& srs_cfg = du_cfg.ran.init_bwp_builder.srs_cfg;
     // This is the number of SRS resources per symbol interval. A symbol interval is an interval where the SRS resource
     // can be placed within a slot and its width (or length) is given by the corresponding SRS parameter \c nof_symb in
     // the SRS configuration.
@@ -215,7 +215,7 @@ protected:
                                                bool                              use_max_bw) :
     params(params_),
     cell_cfg_list({make_srs_cell_config(params_, test_optimality, use_max_bw)}),
-    srs_params(cell_cfg_list[0].init_bwp_builder.srs_cfg),
+    srs_params(cell_cfg_list[0].ran.init_bwp_builder.srs_cfg),
     du_srs_res_mng(cell_cfg_list)
   {
   }
@@ -287,7 +287,7 @@ protected:
   unsigned compute_freq_shift() const
   {
     // The function computes the frequency shift so that the SRS resources are placed in the center of the band.
-    const unsigned ul_bw_nof_rbs        = cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+    const unsigned ul_bw_nof_rbs        = cell_cfg_list[0].ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
     const std::optional<unsigned> c_srs = du_srs_mng_details::compute_c_srs(ul_bw_nof_rbs);
     ocudu_assert(c_srs.has_value(), "C_SRS is required for this unittest");
     const auto srs_cfg = srs_configuration_get(c_srs.value(), 0U);
@@ -389,8 +389,9 @@ TEST_P(du_periodic_srs_res_mng_tester, srs_resources_parameters_are_valid)
     ASSERT_TRUE(srs_res.periodicity_and_offset.has_value());
     ASSERT_EQ(srs_res.periodicity_and_offset->period, srs_params.srs_period_prohib_time);
     ASSERT_LT(srs_res.periodicity_and_offset->offset, static_cast<unsigned>(srs_res.periodicity_and_offset->period));
-    if (cell_cfg_list[0].tdd_ul_dl_cfg_common.has_value()) {
-      ASSERT_TRUE(is_ul_slot(srs_res.periodicity_and_offset->offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value()));
+    if (cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.has_value()) {
+      ASSERT_TRUE(
+          is_ul_slot(srs_res.periodicity_and_offset->offset, cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value()));
     }
     ASSERT_LT(srs_res.tx_comb.tx_comb_offset, static_cast<unsigned>(srs_res.tx_comb.size));
     ASSERT_LT(srs_res.tx_comb.tx_comb_cyclic_shift, srs_res.tx_comb.size == tx_comb_size::n2 ? 8U : 12U);
@@ -398,8 +399,8 @@ TEST_P(du_periodic_srs_res_mng_tester, srs_resources_parameters_are_valid)
     // Checks on Freq. Hopping need to be adjusted based on whether the SRS has been configured with a given BW.
     if (GetParam().use_max_bw) {
       // Verify that C_SRS corresponds to the maximum allowed BW.
-      const std::optional<unsigned> c_srs =
-          du_srs_mng_details::compute_c_srs(cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      const std::optional<unsigned> c_srs = du_srs_mng_details::compute_c_srs(
+          cell_cfg_list[0].ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
       ASSERT_TRUE(c_srs.has_value());
       ASSERT_EQ(srs_res.freq_hop.c_srs, c_srs);
       ASSERT_EQ(srs_res.freq_domain_shift, compute_freq_shift());
@@ -408,9 +409,9 @@ TEST_P(du_periodic_srs_res_mng_tester, srs_resources_parameters_are_valid)
       constexpr unsigned b_srs_0 = 0;
       auto               srs_cfg = srs_configuration_get(srs_res.freq_hop.c_srs, b_srs_0);
       ASSERT_TRUE(srs_cfg.has_value());
-      ASSERT_LE(srs_cfg.value().m_srs, cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      ASSERT_LE(srs_cfg.value().m_srs, cell_cfg_list[0].ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
       ASSERT_LE(srs_res.freq_domain_shift + srs_cfg.value().m_srs,
-                cell_cfg_list[0].ul_cfg_common.init_ul_bwp.generic_params.crbs.stop());
+                cell_cfg_list[0].ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.stop());
     }
     ASSERT_EQ(srs_res.freq_hop.b_srs, 0U);
     ASSERT_EQ(srs_res.freq_hop.b_hop, 0U);
@@ -418,9 +419,11 @@ TEST_P(du_periodic_srs_res_mng_tester, srs_resources_parameters_are_valid)
 
     // Verify the symbols, depending on whether it's FDD, or TDD.
     ASSERT_EQ(srs_res.res_mapping.nof_symb, srs_params.nof_symbols);
-    if (cell_cfg_list[0].tdd_ul_dl_cfg_common.has_value() and
-        is_partially_ul_slot(srs_res.periodicity_and_offset->offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value())) {
-      ASSERT_LT(srs_res.res_mapping.start_pos, cell_cfg_list[0].tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
+    if (cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.has_value() and
+        is_partially_ul_slot(srs_res.periodicity_and_offset->offset,
+                             cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value())) {
+      ASSERT_LT(srs_res.res_mapping.start_pos,
+                cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
     } else {
       ASSERT_LT(srs_res.res_mapping.start_pos, srs_params.max_nof_symbols.value());
     }
@@ -467,13 +470,13 @@ protected:
 
     // Build the SRS resource tracker.
     for (unsigned offset = 0; offset != static_cast<unsigned>(srs_params.srs_period_prohib_time); ++offset) {
-      if (cell_cfg_list[0].tdd_ul_dl_cfg_common.has_value()) {
-        const auto& tdd_cfg = cell_cfg_list[0].tdd_ul_dl_cfg_common.value();
+      if (cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.has_value()) {
+        const auto& tdd_cfg = cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value();
 
-        if (not is_ul_slot(offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value())) {
+        if (not is_ul_slot(offset, cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value())) {
           // In TDD, no SRS resources can be allocated in DL slots.
           srs_res_tracker.emplace_back(0U);
-        } else if (is_partially_ul_slot(offset, cell_cfg_list[0].tdd_ul_dl_cfg_common.value())) {
+        } else if (is_partially_ul_slot(offset, cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value())) {
           const unsigned slot_index = offset % (NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(tdd_cfg.ref_scs));
           const unsigned nof_ul_symbols =
               ocudu::get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length();

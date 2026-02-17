@@ -45,7 +45,7 @@ protected:
     f1_params.nof_cyc_shifts               = pucch_nof_cyclic_shifts::twelve;
     f1_params.occ_supported                = true;
     sched_cell_cfg_req.ded_pucch_resources = config_helpers::build_pucch_resource_list(
-        pucch_basic_params, sched_cell_cfg_req.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+        pucch_basic_params, sched_cell_cfg_req.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
     add_cell(sched_cell_cfg_req);
 
     // Create PUCCH builder that will be used to add UEs.

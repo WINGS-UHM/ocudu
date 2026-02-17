@@ -175,7 +175,7 @@ TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpa
 
   unsigned       sfn = test_rgen::uniform_int<unsigned>(0, 1023);
   const unsigned slots_to_test =
-      msg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[0].get_monitoring_slot_periodicity();
+      msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[0].get_monitoring_slot_periodicity();
   slot_point start_slot{params.scs_common, sfn, 0}, end_slot = start_slot + slots_to_test;
   for (slot_point pdcch_slot = start_slot; pdcch_slot != end_slot; ++pdcch_slot) {
     unsigned pdcch_candidates_count = 0;

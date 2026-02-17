@@ -66,7 +66,7 @@ static void reset_serv_cell_cfg(serving_cell_config& serv_cell_cfg)
 
 static std::unique_ptr<du_srs_resource_manager> build_srs_res_mng(span<const du_cell_config> cell_cfg_list)
 {
-  if (cell_cfg_list[0].init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::aperiodic) {
+  if (cell_cfg_list[0].ran.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::aperiodic) {
     return std::make_unique<du_srs_aperiodic_res_mng>(cell_cfg_list);
   }
   return std::make_unique<du_srs_policy_max_ul_rate>(cell_cfg_list);
@@ -90,18 +90,18 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
   for (unsigned cell_idx_uint = 0; cell_idx_uint != cell_cfg_list.size(); ++cell_idx_uint) {
     const auto&           cell     = cell_cfg_list[cell_idx_uint];
     const du_cell_index_t cell_idx = to_du_cell_index(cell_idx_uint);
-    pucch_res_mng.add_cell(cell_idx, cell);
+    pucch_res_mng.add_cell(cell_idx, cell.ran);
     unsigned   sr_limit     = pucch_res_mng.get_nof_sr_free_res_offsets(cell_idx);
     unsigned   csi_limit    = 0;
     unsigned   srs_limit    = 0;
-    const auto csi_meas_cfg = config_helpers::make_csi_meas_config(cell);
+    const auto csi_meas_cfg = config_helpers::make_csi_meas_config(cell.ran);
 
     unsigned max_nof_ues = sr_limit;
     if (csi_meas_cfg.has_value() and not is_pusch_configured(*csi_meas_cfg)) {
       csi_limit   = pucch_res_mng.get_nof_csi_free_res_offsets(cell_idx);
       max_nof_ues = std::min(max_nof_ues, csi_limit);
     }
-    if (cell.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::periodic) {
+    if (cell.ran.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::periodic) {
       srs_limit   = srs_res_mng->get_nof_srs_free_res_offsets(cell_idx);
       max_nof_ues = std::min(max_nof_ues, srs_limit);
     }
@@ -109,13 +109,13 @@ du_ran_resource_manager_impl::du_ran_resource_manager_impl(span<const du_cell_co
     logger.info("The upper-bound on the number of UEs supported by cell {{pci={}, du_cell_index={}}} is {} (the actual "
                 "number might be lower than that). This is determined by the lowest of the following limits: SR ({}), "
                 "CSI ({}) and SRS ({}).",
-                cell.pci,
+                cell.ran.pci,
                 fmt::underlying(cell_idx),
                 max_nof_ues,
                 sr_limit,
                 csi_meas_cfg.has_value() and not is_pusch_configured(*csi_meas_cfg) ? fmt::to_string(csi_limit) : "n/a",
-                cell.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::periodic ? fmt::to_string(srs_limit)
-                                                                                     : "n/a");
+                cell.ran.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::periodic ? fmt::to_string(srs_limit)
+                                                                                         : "n/a");
   }
 }
 
@@ -260,7 +260,8 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
     ocudu_assert(not ue_res.cell_group.cells.contains(SERVING_CELL_PCELL_IDX), "Reallocation of PCell detected");
     ue_res.cell_group.cells.emplace(SERVING_CELL_PCELL_IDX);
     ue_res.cell_group.cells[0].serv_cell_idx = SERVING_CELL_PCELL_IDX;
-    ue_res.cell_group.cells[0].serv_cell_cfg = config_helpers::make_ue_serving_cell_config(cell_cfg_cmn, cell_index);
+    ue_res.cell_group.cells[0].serv_cell_cfg =
+        config_helpers::make_ue_serving_cell_config(cell_cfg_cmn.ran, cell_index);
     ue_res.cell_group.mcg_cfg = config_helpers::make_initial_mac_cell_group_config(cell_cfg_cmn.mcg_params);
     // TODO: Move to helper.
     if (cell_cfg_cmn.pcg_params.p_nr_fr1.has_value()) {
@@ -291,7 +292,7 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
     ue_res.cell_group.cells.emplace(serv_cell_index);
     ue_res.cell_group.cells[serv_cell_index].serv_cell_idx = serv_cell_index;
     ue_res.cell_group.cells[serv_cell_index].serv_cell_cfg =
-        config_helpers::make_ue_serving_cell_config(cell_cfg_cmn, cell_index);
+        config_helpers::make_ue_serving_cell_config(cell_cfg_cmn.ran, cell_index);
     // TODO: Allocate SCell params.
   }
   return {};

@@ -349,7 +349,7 @@ class ue_pdcch_resource_allocator_scrambling_tester : public base_pdcch_resource
   static sched_cell_configuration_request_message make_cell_req(const test_scrambling_params& params)
   {
     sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
-    auto&                                    pdcch_cfg = *msg.dl_bwp_ded.pdcch_cfg;
+    auto&                                    pdcch_cfg = *msg.ran.init_bwp_builder.pdcch_cfg;
     pdcch_cfg.coresets[0].set_non_coreset0_pdcch_dmrs_scrambling_id(params.cs1_pdcch_dmrs_scrambling_id);
     auto& ss2 = pdcch_cfg.search_spaces[0];
     if (params.ss2_type == ocudu::search_space_type::common) {
@@ -571,7 +571,8 @@ protected:
               sched_config_helper::make_default_sched_cell_configuration_request(
                   cell_config_builder_params{.dl_carrier{.carrier_bw = tparams.cell_bw}});
           if (tparams.ss2_nof_candidates.has_value()) {
-            msg.dl_bwp_ded.pdcch_cfg->search_spaces[0].set_non_ss0_nof_candidates(*tparams.ss2_nof_candidates);
+            msg.ran.init_bwp_builder.pdcch_cfg->search_spaces[0].set_non_ss0_nof_candidates(
+                *tparams.ss2_nof_candidates);
           }
           return msg;
         }(),

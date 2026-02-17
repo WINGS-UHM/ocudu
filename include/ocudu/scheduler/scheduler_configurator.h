@@ -13,7 +13,6 @@
 #include "ocudu/ran/drx_config.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/meas_gap_config.h"
-#include "ocudu/ran/pci.h"
 #include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/rnti.h"
@@ -21,10 +20,8 @@
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/sr_configuration.h"
-#include "ocudu/ran/ssb/ssb_configuration.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include "ocudu/ran/time_alignment_config.h"
-#include "ocudu/scheduler/config/bwp_builder_params.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/logical_channel_config.h"
 #include "ocudu/scheduler/config/ran_cell_config.h"
@@ -36,8 +33,7 @@ namespace ocudu {
 
 class scheduler_cell_metrics_notifier;
 
-/// Cell Configuration Request.
-/// \remark See O-RAN WG8, Section 9.2.3.2.1, Table 9.18.
+/// Cell Configuration Request for the scheduler.
 struct sched_cell_configuration_request_message {
   struct metrics_config {
     scheduler_cell_metrics_notifier* notifier = nullptr;
@@ -45,9 +41,13 @@ struct sched_cell_configuration_request_message {
     unsigned max_ue_events_per_report = 64;
   };
 
-  du_cell_index_t       cell_index;
+  /// Cell identifier internal to the DU.
+  du_cell_index_t cell_index;
+
+  /// Cell group identifier internal to the DU.
   du_cell_group_index_t cell_group_index;
 
+  /// RAN-specific cell parameters.
   ran_cell_config ran;
 
   /// Payload size is in bytes.
@@ -55,9 +55,6 @@ struct sched_cell_configuration_request_message {
 
   /// Scheduling of SI messages.
   std::optional<si_scheduling_config> si_scheduling;
-
-  /// Dedicated DL BWP config that will be used by the UEs of this cell.
-  bwp_downlink_dedicated dl_bwp_ded;
 
   /// List of RAN slices to support in the scheduler.
   std::vector<slice_rrm_policy_config> rrm_policy_members;

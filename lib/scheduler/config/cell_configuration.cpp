@@ -82,7 +82,13 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   ul_harq_mode_b(msg.ran.ntn_params.has_value() ? msg.ran.ntn_params->ul_harq_mode_b : false)
 {
   // Initiate dedicated sched BWP configs.
-  ded_bwp_res.emplace(to_bwp_id(0), pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, &msg.dl_bwp_ded);
+  {
+    const auto                   rlm_cfg   = config_helpers::make_rlm_config(msg.ran);
+    const auto                   pdsch_cfg = config_helpers::make_pdsch_config(msg.ran);
+    const bwp_downlink_dedicated bwp_dl_ded{
+        .pdcch_cfg = msg.ran.init_bwp_builder.pdcch_cfg, .pdsch_cfg = pdsch_cfg, .rlm_cfg = rlm_cfg};
+    ded_bwp_res.emplace(to_bwp_id(0), pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, &bwp_dl_ded);
+  }
 
   if (tdd_cfg_common.has_value()) {
     // Cache list of DL and UL slots in case of TDD

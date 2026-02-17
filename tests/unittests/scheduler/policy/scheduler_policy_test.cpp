@@ -205,7 +205,8 @@ protected:
     base_scheduler_policy_test(test_params{.policy = GetParam(), .cell_cfg_req = []() {
                                              auto cell_req =
                                                  sched_config_helper::make_default_sched_cell_configuration_request();
-                                             cell_req.dl_bwp_ded.pdcch_cfg->search_spaces = make_search_spaces();
+                                             cell_req.ran.init_bwp_builder.pdcch_cfg->search_spaces =
+                                                 make_search_spaces();
                                              return cell_req;
                                            }()})
   {

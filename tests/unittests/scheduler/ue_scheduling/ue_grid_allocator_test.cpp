@@ -46,7 +46,7 @@ class ue_grid_allocator_test : public ::testing::TestWithParam<duplex_mode>
   {
     sched_cell_configuration_request_message req;
     req = sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
-    req.dl_bwp_ded.pdcch_cfg->search_spaces[0].set_non_ss0_monitored_dci_formats(params.ss2_dci_fmt);
+    req.ran.init_bwp_builder.pdcch_cfg->search_spaces[0].set_non_ss0_monitored_dci_formats(params.ss2_dci_fmt);
     return req;
   }
 

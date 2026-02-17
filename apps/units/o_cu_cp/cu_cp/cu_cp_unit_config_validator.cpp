@@ -102,7 +102,13 @@ static bool validate_mobility_appconfig(gnb_id_t gnb_id, const cu_cp_unit_mobili
         return false;
       }
       // Check that for the serving cell only periodic reports are configured.
-      if (report_cfg_ids_to_report_type.at(cell.periodic_report_cfg_id.value()) != "periodical") {
+      auto it = report_cfg_ids_to_report_type.find(*cell.periodic_report_cfg_id);
+      if (it == report_cfg_ids_to_report_type.end()) {
+        fmt::print("cell={:#x}: Report configuration with id {} does not exist in the report configuration list.\n",
+                   cell.nr_cell_id,
+                   *cell.periodic_report_cfg_id);
+        return false;
+      } else if (it->second != "periodical") {
         fmt::print("For the serving cell only periodic reports are allowed\n");
         return false;
       }
@@ -204,7 +210,15 @@ static bool validate_mobility_appconfig(gnb_id_t gnb_id, const cu_cp_unit_mobili
     // Check that for neighbor cells managed by this CU-CP no periodic reports are configured.
     for (const auto& ncell : cell.ncells) {
       for (const auto& id : ncell.report_cfg_ids) {
-        if (report_cfg_ids_to_report_type.at(id) == "periodical") {
+        auto it = report_cfg_ids_to_report_type.find(id);
+        if (it == report_cfg_ids_to_report_type.end()) {
+          fmt::print("cell={:#x}: Report configuration for neighbor cell={:#x} with id={} does not exist in the report "
+                     "configuration list.\n",
+                     cell.nr_cell_id,
+                     ncell.nr_cell_id,
+                     id);
+          return false;
+        } else if (it->second == "periodical") {
           fmt::print("cell={:#x}: For neighbor cells no periodic reports are allowed\n", cell.nr_cell_id);
           return false;
         }

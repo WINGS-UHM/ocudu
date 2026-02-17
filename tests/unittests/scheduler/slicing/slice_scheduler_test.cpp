@@ -40,11 +40,11 @@ protected:
     }()),
     ues(cell_cfg.expert_cfg.ue)
   {
-    pusch_td_list_per_slot = get_fairly_distributed_pusch_td_resource_indices(
-        cell_cfg.scs_common(),
-        cell_cfg.params.tdd_cfg,
-        cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
-        cell_cfg.dl_data_to_ul_ack);
+    pusch_td_list_per_slot =
+        get_pusch_td_resource_indices_per_slot(cell_cfg.scs_common(),
+                                               cell_cfg.params.tdd_cfg,
+                                               cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+                                               cell_cfg.dl_data_to_ul_ack);
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
 

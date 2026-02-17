@@ -4,8 +4,11 @@
 
 #include "ue_cell_grid_allocator.h"
 #include "../support/dci_builder.h"
+#include "../support/pucch/pucch_k1_helper.h"
 #include "../ue_context/ue_drx_controller.h"
 #include "grant_params_selector.h"
+#include "ocudu/adt/static_vector.h"
+#include "ocudu/scheduler/config/pusch_td_resource_indices.h"
 #include "ocudu/scheduler/result/dci_info.h"
 #include "ocudu/support/error_handling.h"
 
@@ -28,6 +31,25 @@ ue_cell_grid_allocator::ue_cell_grid_allocator(const scheduler_ue_expert_config&
 {
   dl_grants.reserve(MAX_UE_PDUS_PER_SLOT);
   ul_grants.reserve(MAX_PUSCH_PDUS_PER_SLOT);
+
+  const auto pusch_list =
+      get_pusch_td_resource_indices_per_slot(cell_alloc.cfg.scs_common(),
+                                             cell_alloc.cfg.params.tdd_cfg,
+                                             cell_alloc.cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+                                             cell_alloc.cfg.dl_data_to_ul_ack);
+  k1s_per_dl_slot = get_pucch_k1_list_per_slot(
+      cell_alloc.cfg.dl_data_to_ul_ack,
+      cell_alloc.cfg.params.tdd_cfg,
+      cell_alloc.cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list,
+      pusch_list);
+  static constexpr std::array<uint8_t, 5> f1_0_k1_list = {4, 5, 6, 7, 8};
+  k1s_per_dl_slot_dci_1_0                              = get_pucch_k1_list_per_slot(
+      f1_0_k1_list,
+      cell_alloc.cfg.params.tdd_cfg,
+      cell_alloc.cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list,
+      pusch_list);
+  ocudu_assert(k1s_per_dl_slot_dci_1_0.size() == k1s_per_dl_slot_dci_1_0.size(),
+               "k1s_per_dl_slot vector size must be the same for both DCI 1_0's and DCI 1_1's lists");
 }
 
 std::optional<sch_mcs_tbs>
@@ -108,7 +130,14 @@ std::optional<uci_allocation> ue_cell_grid_allocator::alloc_uci(const ue_cell&  
   const pdsch_time_domain_resource_allocation& pdsch_td_cfg = ss_info.pdsch_time_domain_list[pdsch_td_res_index];
 
   // Allocate UCI. UCI destination (i.e., PUCCH or PUSCH) depends on whether there exist a PUSCH grant for the UE.
-  span<const uint8_t>           k1_list = ss_info.get_k1_candidates();
+  // NOTE: k1s_per_dl_slot size is the same for with k1s_per_dl_slot_dci_1_0 and k1s_per_dl_slot lists, we ensure that
+  // in the constructor.
+  const slot_point    pdsch_slot  = cell_alloc[pdsch_td_cfg.k0].slot;
+  const unsigned      k1_list_idx = pdsch_slot.count() % k1s_per_dl_slot.size();
+  span<const uint8_t> k1_list     = ss_info.get_dl_dci_format() == dci_dl_format::f1_0
+                                        ? k1s_per_dl_slot_dci_1_0[k1_list_idx]
+                                        : k1s_per_dl_slot[k1_list_idx];
+
   std::optional<uci_allocation> uci =
       uci_alloc.alloc_harq_ack(cell_alloc, ue_cc.rnti(), ue_cc.cfg(), pdsch_td_cfg.k0, k1_list);
   if (not uci.has_value()) {

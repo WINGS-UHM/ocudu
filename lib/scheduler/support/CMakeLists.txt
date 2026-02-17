@@ -13,7 +13,7 @@ add_library(sched_support STATIC
         pucch/pucch_guardbands.cpp
         pusch/pusch_default_time_allocation.cpp
         pusch/pusch_dmrs_symbol_mask.cpp
-	paging_helpers.cpp
+	    paging_helpers.cpp
         mcs_tbs_calculator.cpp
         prbs_calculator.cpp
         mcs_calculator.cpp
@@ -23,4 +23,5 @@ add_library(sched_support STATIC
         sch_pdu_builder.cpp
         csi_report_helpers.cpp
         pusch_power_controller.cpp
-        pucch_power_controller.cpp)
+        pucch_power_controller.cpp
+		pucch/pucch_k1_helper.cpp)

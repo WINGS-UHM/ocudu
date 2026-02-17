@@ -23,10 +23,10 @@ static unsigned compute_slot_offset(const du_cell_config& cell_cfg)
       time_domain_resource_helper::generate_k1_candidates(cell_cfg.ran.tdd_cfg, cell_cfg.ran.init_bwp.pucch.min_k1);
 
   std::vector<static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>> pusch_td_list_per_slot =
-      get_fairly_distributed_pusch_td_resource_indices(cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs,
-                                                       cell_cfg.ran.tdd_cfg,
-                                                       cell_cfg.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
-                                                       dl_data_to_ul_ack);
+      get_pusch_td_resource_indices_per_slot(cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs,
+                                             cell_cfg.ran.tdd_cfg,
+                                             cell_cfg.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+                                             dl_data_to_ul_ack);
 
   const auto& pusch_td_alloc_list = cell_cfg.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
 

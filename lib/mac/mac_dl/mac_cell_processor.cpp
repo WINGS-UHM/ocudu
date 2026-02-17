@@ -148,25 +148,15 @@ async_task<mac_cell_reconfig_response> mac_cell_processor::reconfigure(const mac
     CORO_BEGIN(ctx);
 
     if (request.new_sys_info.has_value()) {
-      // Change to respective DL cell executor context.
-      CORO_AWAIT(defer_on_blocking(cell_exec, timers));
+      if (request.new_sys_info.has_value()) {
+        // Forward new SIB1/SI message PDUs to SIB assembler and update version.
+        sib_assembler.handle_si_change_request(*request.new_sys_info);
 
-      {
-        OCUDU_RTSAN_SCOPED_ENABLER;
+        // Notify scheduler of SIB1/SI message scheduling update.
+        sched.handle_si_change_indication(request.new_sys_info->si_sched_cfg);
 
-        if (request.new_sys_info.has_value()) {
-          // Forward new SIB1/SI message PDUs to SIB assembler and update version.
-          sib_assembler.handle_si_change_request(*request.new_sys_info);
-
-          // Notify scheduler of SIB1/SI message scheduling update.
-          sched.handle_si_change_indication(request.new_sys_info->si_sched_cfg);
-
-          resp.si_updated = true;
-        }
+        resp.si_updated = true;
       }
-
-      // Change back to CTRL executor context.
-      CORO_AWAIT(defer_on_blocking(ctrl_exec, timers));
     }
 
     if (request.new_si_pdu_info.has_value()) {

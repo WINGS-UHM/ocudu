@@ -46,9 +46,9 @@ void to_json(nlohmann::json& json, const scheduler_ue_metrics& metrics)
   json["ue"]   = metrics.ue_index;
   json["pci"]  = metrics.pci;
   json["rnti"] = metrics.rnti;
-  if (metrics.cqi_stats.get_nof_observations() > 0) {
-    json["cqi"] = static_cast<uint8_t>(std::round(metrics.cqi_stats.get_mean()));
-  }
+  json["cqi"]  = (metrics.cqi_stats.get_nof_observations() > 0)
+                     ? static_cast<uint8_t>(std::round(metrics.cqi_stats.get_mean()))
+                     : -1;
 
   json["dl_ri"] = metrics.dl_ri_stats.get_nof_observations() > 0 ? metrics.dl_ri_stats.get_mean() : 1;
   json["ul_ri"] = metrics.ul_ri_stats.get_nof_observations() > 0 ? metrics.ul_ri_stats.get_mean() : 1;

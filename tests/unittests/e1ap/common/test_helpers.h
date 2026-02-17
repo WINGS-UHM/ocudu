@@ -171,7 +171,7 @@ public:
     });
   }
 
-  void on_schedule_ue_async_task(ocuup::ue_index_t ue_index_, async_task<void> task) override
+  void on_schedule_ue_async_task(cu_up_ue_index_t ue_index_, async_task<void> task) override
   {
     task_loop.schedule(std::move(task)); // schedule ue task in dummy task loop
   }
@@ -183,7 +183,7 @@ public:
     task_loop.schedule(std::move(task)); // schedule ue task in dummy task loop
   }
 
-  void set_ue_index(uint16_t ue_index_) { ue_index = ocuup::int_to_ue_index(ue_index_); }
+  void set_ue_index(uint16_t ue_index_) { ue_index = int_to_ue_index(ue_index_); }
 
   ocuup::e1ap_bearer_context_release_command      last_bearer_context_release_command;
   ocuup::e1ap_bearer_context_modification_request last_bearer_context_modification_request;
@@ -191,7 +191,7 @@ public:
 
 private:
   ocudulog::basic_logger& logger;
-  ocuup::ue_index_t       ue_index = ocuup::MIN_UE_INDEX;
+  cu_up_ue_index_t        ue_index = MIN_CU_UP_UE_INDEX;
 
   fifo_async_task_scheduler task_loop;
 };

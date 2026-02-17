@@ -66,7 +66,7 @@ public:
 
   void schedule_cu_up_async_task(async_task<void> task) override;
 
-  void schedule_ue_async_task(ocuup::ue_index_t ue_index, async_task<void> task) override;
+  void schedule_ue_async_task(cu_up_ue_index_t ue_index, async_task<void> task) override;
 
   // cu_up_e1ap_connection_notifier
   void on_e1ap_connection_establish() override { e1ap_connected = true; }
@@ -76,9 +76,9 @@ public:
   size_t get_nof_ues() override { return ue_mng->get_nof_ues(); }
 
   // PDCP event handlers.
-  void handle_pdcp_protocol_failure(ue_index_t ue_index) override;
-  void handle_pdcp_max_count_reached(ue_index_t ue_index) override;
-  void handle_pdcp_resume_required(ue_index_t ue_index) override;
+  void handle_pdcp_protocol_failure(cu_up_ue_index_t ue_index) override;
+  void handle_pdcp_max_count_reached(cu_up_ue_index_t ue_index) override;
+  void handle_pdcp_resume_required(cu_up_ue_index_t ue_index) override;
 
   // Test helpers.
   void trigger_enable_test_mode();

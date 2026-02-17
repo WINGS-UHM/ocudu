@@ -59,7 +59,7 @@ struct ue_context_dependencies {
 class ue_context : public pdu_session_manager_ctrl
 {
 public:
-  ue_context(ue_index_t                    index_,
+  ue_context(cu_up_ue_index_t              index_,
              ue_context_cfg                cfg_,
              const n3_interface_config&    n3_config_,
              const cu_up_test_mode_config& test_mode_config_,
@@ -176,7 +176,7 @@ public:
 
   pdu_session_state_t get_pdu_session_state() override { return pdu_session_manager.get_pdu_session_state(); }
 
-  [[nodiscard]] ue_index_t get_index() const { return index; }
+  [[nodiscard]] cu_up_ue_index_t get_index() const { return index; }
 
   [[nodiscard]] const cu_up_ue_logger& get_logger() const { return logger; }
 
@@ -204,9 +204,9 @@ public:
   }
 
 private:
-  ue_index_t      index;
-  ue_context_cfg  cfg;
-  cu_up_ue_logger logger;
+  cu_up_ue_index_t index;
+  ue_context_cfg   cfg;
+  cu_up_ue_logger  logger;
 
   e1ap_interface&          e1ap;
   pdu_session_manager_impl pdu_session_manager;

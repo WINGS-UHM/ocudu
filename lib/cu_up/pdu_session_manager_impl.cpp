@@ -23,7 +23,7 @@
 using namespace ocudu;
 using namespace ocuup;
 
-pdu_session_manager_impl::pdu_session_manager_impl(ue_index_t                                   ue_index_,
+pdu_session_manager_impl::pdu_session_manager_impl(cu_up_ue_index_t                             ue_index_,
                                                    std::map<five_qi_t, ocuup::cu_up_qos_config> qos_cfg_,
                                                    const security::sec_as_config&               security_info_,
                                                    const n3_interface_config&                   n3_config_,
@@ -111,7 +111,7 @@ pdu_session_setup_result pdu_session_manager_impl::setup_pdu_session(const e1ap_
 
   // Create GTPU entity
   gtpu_tunnel_ngu_creation_message msg = {};
-  msg.ue_index                         = static_cast<cu_up_ue_index_t>(ue_index);
+  msg.ue_index                         = ue_index;
   msg.cfg.tx.peer_teid                 = int_to_gtpu_teid(ul_tunnel_info.gtp_teid.value());
   msg.cfg.tx.peer_addr                 = ul_tunnel_info.tp_address.to_string();
   msg.cfg.tx.peer_port                 = n3_config.upf_port;

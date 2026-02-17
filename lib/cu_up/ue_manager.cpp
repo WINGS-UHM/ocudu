@@ -31,7 +31,7 @@ ue_manager::ue_manager(const ue_manager_config& config, const ue_manager_depende
   logger(dependencies.logger)
 {
   // Initialize a ue task schedulers for all UE indexes.
-  for (size_t i = 0; i < MAX_NOF_UES; ++i) {
+  for (size_t i = 0; i < MAX_NOF_CU_UP_UES; ++i) {
     ue_task_schedulers.emplace(i, UE_TASK_QUEUE_SIZE);
   }
 }
@@ -61,21 +61,21 @@ async_task<void> ue_manager::remove_all_ues()
   });
 }
 
-ue_context* ue_manager::find_ue(ue_index_t ue_index)
+ue_context* ue_manager::find_ue(cu_up_ue_index_t ue_index)
 {
-  ocudu_assert(ue_index < MAX_NOF_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
+  ocudu_assert(ue_index < MAX_NOF_CU_UP_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
   return ue_db.find(ue_index) != ue_db.end() ? ue_db[ue_index].get() : nullptr;
 }
 
 ue_context* ue_manager::add_ue(const ue_context_cfg& ue_cfg)
 {
-  if (ue_db.size() >= MAX_NOF_UES) {
+  if (ue_db.size() >= MAX_NOF_CU_UP_UES) {
     logger.error("Can't add new UE. Max number of UEs reached.");
     return nullptr;
   }
 
-  ue_index_t new_idx = get_next_ue_index();
-  if (new_idx == INVALID_UE_INDEX) {
+  cu_up_ue_index_t new_idx = get_next_ue_index();
+  if (new_idx == INVALID_CU_UP_UE_INDEX) {
     logger.error("No free ue_index available");
     return nullptr;
   }
@@ -115,7 +115,7 @@ ue_context* ue_manager::add_ue(const ue_context_cfg& ue_cfg)
   return ue_db[new_idx].get();
 }
 
-async_task<void> ue_manager::remove_ue(ue_index_t ue_index)
+async_task<void> ue_manager::remove_ue(cu_up_ue_index_t ue_index)
 {
   logger.debug("ue={}: Scheduling UE deletion", fmt::underlying(ue_index));
   ocudu_assert(
@@ -135,19 +135,19 @@ async_task<void> ue_manager::remove_ue(ue_index_t ue_index)
   });
 }
 
-ue_index_t ue_manager::get_next_ue_index()
+cu_up_ue_index_t ue_manager::get_next_ue_index()
 {
   // Search unallocated UE index
-  for (int i = 0; i < MAX_NOF_UES; i++) {
-    if (ue_db.find(static_cast<ue_index_t>(i)) == ue_db.end()) {
+  for (unsigned i = 0; i < MAX_NOF_CU_UP_UES; i++) {
+    if (ue_db.find(static_cast<cu_up_ue_index_t>(i)) == ue_db.end()) {
       return int_to_ue_index(i);
       break;
     }
   }
-  return INVALID_UE_INDEX;
+  return INVALID_CU_UP_UE_INDEX;
 }
 
-void ue_manager::schedule_ue_async_task(ue_index_t ue_index, async_task<void> task)
+void ue_manager::schedule_ue_async_task(cu_up_ue_index_t ue_index, async_task<void> task)
 {
   ue_context* ue_ctx = find_ue(ue_index);
   if (ue_ctx == nullptr) {
@@ -157,7 +157,7 @@ void ue_manager::schedule_ue_async_task(ue_index_t ue_index, async_task<void> ta
   ue_ctx->task_sched.schedule(std::move(task));
 }
 
-async_task<expected<>> ue_manager::schedule_and_wait_ue_removal(ue_index_t ue_index)
+async_task<expected<>> ue_manager::schedule_and_wait_ue_removal(cu_up_ue_index_t ue_index)
 {
   ue_context* ue_ctx = find_ue(ue_index);
   if (ue_ctx == nullptr) {

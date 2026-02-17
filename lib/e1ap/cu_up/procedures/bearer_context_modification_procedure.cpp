@@ -60,7 +60,7 @@ void bearer_context_modification_procedure::operator()(coro_context<async_task<v
                    cu_up_notifier.on_bearer_context_modification_request_received(bearer_context_mod));
 
   // Could not find UE.
-  if (bearer_context_mod_response_msg.ue_index == INVALID_UE_INDEX) {
+  if (bearer_context_mod_response_msg.ue_index == INVALID_CU_UP_UE_INDEX) {
     ue_ctxt.logger.log_error("Sending BearerContextModificationFailure: Cause: Invalid UE index");
     pdu_notifier.on_new_message(e1ap_msg);
     CORO_EARLY_RETURN();

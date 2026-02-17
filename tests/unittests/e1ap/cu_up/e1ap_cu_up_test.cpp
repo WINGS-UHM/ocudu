@@ -245,7 +245,7 @@ TEST_F(e1ap_cu_up_test, when_bearer_context_valid_and_resume_requested_dl_status
   this->setup_bearer(9);
 
   // Receive E1 Reset message.
-  ue_index_t ue_index{0};
+  cu_up_ue_index_t ue_index{0};
   e1ap->handle_dl_data_notification_required(ue_index);
 
   // Check the generated PDU is indeed the DL Data Notification.

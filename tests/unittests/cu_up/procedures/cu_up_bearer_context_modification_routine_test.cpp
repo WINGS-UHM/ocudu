@@ -64,7 +64,7 @@ protected:
     resp = *res;
   }
 
-  ue_index_t ue_index{1};
+  cu_up_ue_index_t ue_index{1};
 
 private:
   async_task<e1ap_bearer_context_modification_response>                        proc;

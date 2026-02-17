@@ -20,7 +20,7 @@ namespace ocuup {
 class cu_up_log_prefix
 {
 public:
-  cu_up_log_prefix(ue_index_t ue_index)
+  cu_up_log_prefix(cu_up_ue_index_t ue_index)
   {
     fmt::memory_buffer buffer;
     fmt::format_to(std::back_inserter(buffer), "ue={}: ", fmt::underlying(ue_index));

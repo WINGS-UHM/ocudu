@@ -65,7 +65,7 @@ public:
 
   virtual void schedule_cu_up_async_task(async_task<void> task) = 0;
 
-  virtual void schedule_ue_async_task(ocuup::ue_index_t ue_index, async_task<void> task) = 0;
+  virtual void schedule_ue_async_task(cu_up_ue_index_t ue_index, async_task<void> task) = 0;
 };
 
 /// Interface for the PDCP to notify the CU-UP manger
@@ -77,11 +77,11 @@ class cu_up_manager_pdcp_interface
 public:
   virtual ~cu_up_manager_pdcp_interface() = default;
 
-  virtual void handle_pdcp_protocol_failure(ue_index_t ue_index) = 0;
+  virtual void handle_pdcp_protocol_failure(cu_up_ue_index_t ue_index) = 0;
 
-  virtual void handle_pdcp_max_count_reached(ue_index_t ue_index) = 0;
+  virtual void handle_pdcp_max_count_reached(cu_up_ue_index_t ue_index) = 0;
 
-  virtual void handle_pdcp_resume_required(ue_index_t ue_index) = 0;
+  virtual void handle_pdcp_resume_required(cu_up_ue_index_t ue_index) = 0;
 };
 
 class cu_up_manager : public cu_up_manager_e1ap_connection_notifier,

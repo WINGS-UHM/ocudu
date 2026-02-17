@@ -57,7 +57,7 @@ async_task<void> e1ap_cu_up_reset_procedure::handle_e1_interface_reset(const asn
 async_task<void> e1ap_cu_up_reset_procedure::handle_part_of_e1_interface_reset(
     const asn1::e1ap::ue_associated_lc_e1_conn_list_res_l& ue_reset_list)
 {
-  std::vector<ue_index_t> ues;
+  std::vector<cu_up_ue_index_t> ues;
   for (const auto& ue : ue_reset_list) {
     if (ue->type() !=
         asn1::e1ap::ue_associated_lc_e1_conn_item_res_o::value_c::types_opts::ue_associated_lc_e1_conn_item) {

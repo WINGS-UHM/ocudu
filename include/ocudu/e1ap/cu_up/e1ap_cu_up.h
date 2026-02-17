@@ -49,7 +49,7 @@ public:
 
   /// \brief Initiates the Bearer Context Release procedure as defined in TS 38.463 section 8.3.5.
   /// It does this by sending the Bearer Context Release Request to the CU-CP.
-  virtual void handle_bearer_context_release_request_required(ue_index_t ue_index) = 0;
+  virtual void handle_bearer_context_release_request_required(cu_up_ue_index_t ue_index) = 0;
 
   /// \brief Initiates the Bearer Context Inactivity Notification procedure as defined in TS 38.463 section 8.3.6
   /// \param[in] msg The common type bearer context inactivity notification message to convert and forward to the CU-CP.
@@ -58,7 +58,7 @@ public:
 
   /// \brief Transmits the DL Data notification to the CU-CP, as defined in TS 38.463 section 8.3.7.
   /// This is done so the CU-CP can resume the inactive bearer context.
-  virtual void handle_dl_data_notification_required(ue_index_t ue_index) = 0;
+  virtual void handle_dl_data_notification_required(cu_up_ue_index_t ue_index) = 0;
 };
 
 /// \brief Interface to query statistics from the E1AP interface.
@@ -103,7 +103,7 @@ public:
   virtual void on_schedule_cu_up_async_task(async_task<void> task) = 0;
 
   /// \brief Schedules async task on UE.
-  virtual void on_schedule_ue_async_task(ocuup::ue_index_t ue_index, async_task<void> task) = 0;
+  virtual void on_schedule_ue_async_task(cu_up_ue_index_t ue_index, async_task<void> task) = 0;
 };
 
 /// Methods used by E1AP to notify the CU-UP manager of connection drops.

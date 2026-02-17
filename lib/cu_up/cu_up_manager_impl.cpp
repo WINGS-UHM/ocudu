@@ -72,7 +72,7 @@ void cu_up_manager_impl::schedule_cu_up_async_task(async_task<void> task)
   cu_up_task_scheduler.schedule(std::move(task));
 }
 
-void cu_up_manager_impl::schedule_ue_async_task(ue_index_t ue_index, async_task<void> task)
+void cu_up_manager_impl::schedule_ue_async_task(cu_up_ue_index_t ue_index, async_task<void> task)
 {
   ue_mng->schedule_ue_async_task(ue_index, std::move(task));
 }
@@ -81,7 +81,7 @@ e1ap_bearer_context_setup_response
 cu_up_manager_impl::handle_bearer_context_setup_request(const e1ap_bearer_context_setup_request& msg)
 {
   e1ap_bearer_context_setup_response response = {};
-  response.ue_index                           = INVALID_UE_INDEX;
+  response.ue_index                           = INVALID_CU_UP_UE_INDEX;
   response.success                            = false;
 
   // 1. Create new UE context
@@ -178,27 +178,27 @@ async_task<void> cu_up_manager_impl::handle_e1_reset(const e1ap_reset& msg)
     });
   }
 
-  return launch_async(
-      [this, msg, ue_it = std::vector<ue_index_t>::const_iterator{}](coro_context<async_task<void>>& ctx) mutable {
-        CORO_BEGIN(ctx);
-        ue_it = msg.ues.begin();
-        while (ue_it != msg.ues.end()) {
-          CORO_AWAIT(ue_mng->remove_ue(*ue_it));
-          ue_it++;
-        }
-        CORO_RETURN();
-      });
+  return launch_async([this, msg, ue_it = std::vector<cu_up_ue_index_t>::const_iterator{}](
+                          coro_context<async_task<void>>& ctx) mutable {
+    CORO_BEGIN(ctx);
+    ue_it = msg.ues.begin();
+    while (ue_it != msg.ues.end()) {
+      CORO_AWAIT(ue_mng->remove_ue(*ue_it));
+      ue_it++;
+    }
+    CORO_RETURN();
+  });
 }
 
 ///
 /// PDCP control events handling.
 ///
-void cu_up_manager_impl::handle_pdcp_protocol_failure(ue_index_t ue_index)
+void cu_up_manager_impl::handle_pdcp_protocol_failure(cu_up_ue_index_t ue_index)
 {
   /// TODO.
 }
 
-void cu_up_manager_impl::handle_pdcp_max_count_reached(ue_index_t ue_index)
+void cu_up_manager_impl::handle_pdcp_max_count_reached(cu_up_ue_index_t ue_index)
 {
   ue_context* ue_ctxt = ue_mng->find_ue(ue_index);
   if (ue_ctxt == nullptr) {
@@ -208,7 +208,7 @@ void cu_up_manager_impl::handle_pdcp_max_count_reached(ue_index_t ue_index)
   e1ap.handle_bearer_context_release_request_required(ue_index);
 }
 
-void cu_up_manager_impl::handle_pdcp_resume_required(ue_index_t ue_index)
+void cu_up_manager_impl::handle_pdcp_resume_required(cu_up_ue_index_t ue_index)
 {
   ue_context* ue_ctxt = ue_mng->find_ue(ue_index);
   if (ue_ctxt == nullptr) {

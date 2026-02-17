@@ -46,9 +46,9 @@ public:
   // e1ap control message handler functions
   void handle_bearer_context_inactivity_notification(const e1ap_bearer_context_inactivity_notification& msg) override;
 
-  void handle_bearer_context_release_request_required(ue_index_t ue_index) override;
+  void handle_bearer_context_release_request_required(cu_up_ue_index_t ue_index) override;
 
-  void handle_dl_data_notification_required(ue_index_t ue_index) override;
+  void handle_dl_data_notification_required(cu_up_ue_index_t ue_index) override;
 
   // e1ap event handler functions
   void handle_connection_loss() override

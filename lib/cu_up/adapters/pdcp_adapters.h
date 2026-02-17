@@ -46,7 +46,7 @@ public:
   pdcp_rx_cu_up_mngr_adapter()           = default;
   ~pdcp_rx_cu_up_mngr_adapter() override = default;
 
-  void connect_cu_up_mngr(ue_index_t ue_index_, cu_up_manager_pdcp_interface* cu_up_mngr_)
+  void connect_cu_up_mngr(cu_up_ue_index_t ue_index_, cu_up_manager_pdcp_interface* cu_up_mngr_)
   {
     cu_up_mngr = cu_up_mngr_;
     ue_index   = ue_index_;
@@ -83,7 +83,7 @@ public:
   }
 
   cu_up_manager_pdcp_interface* cu_up_mngr = nullptr;
-  ue_index_t                    ue_index   = INVALID_UE_INDEX;
+  cu_up_ue_index_t              ue_index   = INVALID_CU_UP_UE_INDEX;
 };
 
 /// Adapter between PDCP and F1-U
@@ -125,7 +125,7 @@ public:
   pdcp_tx_cu_up_mngr_adapter()           = default;
   ~pdcp_tx_cu_up_mngr_adapter() override = default;
 
-  void connect_cu_up_mngr(ue_index_t ue_index_, cu_up_manager_pdcp_interface* cu_up_mngr_)
+  void connect_cu_up_mngr(cu_up_ue_index_t ue_index_, cu_up_manager_pdcp_interface* cu_up_mngr_)
   {
     cu_up_mngr = cu_up_mngr_;
     ue_index   = ue_index_;
@@ -158,7 +158,7 @@ public:
 
 private:
   cu_up_manager_pdcp_interface* cu_up_mngr = nullptr;
-  ue_index_t                    ue_index   = INVALID_UE_INDEX;
+  cu_up_ue_index_t              ue_index   = INVALID_CU_UP_UE_INDEX;
 };
 
 } // namespace ocuup

@@ -20,7 +20,7 @@ namespace ocudu {
 namespace ocuup {
 
 struct e1ap_ue_ids {
-  ue_index_t                   ue_index         = INVALID_UE_INDEX;
+  cu_up_ue_index_t             ue_index         = INVALID_CU_UP_UE_INDEX;
   const gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id = gnb_cu_up_ue_e1ap_id_t::invalid;
   gnb_cu_cp_ue_e1ap_id_t       cu_cp_ue_e1ap_id = gnb_cu_cp_ue_e1ap_id_t::invalid;
 };
@@ -30,7 +30,7 @@ struct e1ap_ue_context {
   activity_notification_level_t activity_notification_level = activity_notification_level_t::invalid;
   e1ap_ue_logger                logger;
 
-  e1ap_ue_context(ue_index_t                    ue_index_,
+  e1ap_ue_context(cu_up_ue_index_t              ue_index_,
                   gnb_cu_up_ue_e1ap_id_t        cu_up_ue_e1ap_id_,
                   gnb_cu_cp_ue_e1ap_id_t        cu_cp_ue_e1ap_id_,
                   activity_notification_level_t activity_notification_level_) :
@@ -51,7 +51,7 @@ public:
   /// \brief Checks whether a UE with the given UE index exists.
   /// \param[in] ue_index The UE index used to find the UE.
   /// \return The UE Index.
-  bool contains(ue_index_t ue_index) const
+  bool contains(cu_up_ue_index_t ue_index) const
   {
     if (ue_index_to_ue_e1ap_id.find(ue_index) == ue_index_to_ue_e1ap_id.end()) {
       return false;
@@ -81,7 +81,7 @@ public:
                  fmt::underlying(cu_up_ue_e1ap_id));
     return ues.at(cu_up_ue_e1ap_id);
   }
-  e1ap_ue_context& operator[](ue_index_t ue_index)
+  e1ap_ue_context& operator[](cu_up_ue_index_t ue_index)
   {
     ocudu_assert(ue_index_to_ue_e1ap_id.find(ue_index) != ue_index_to_ue_e1ap_id.end(),
                  "ue={} gNB-CU-UP-UE-E1AP-ID not found",
@@ -92,12 +92,12 @@ public:
     return ues.at(ue_index_to_ue_e1ap_id.at(ue_index));
   }
 
-  e1ap_ue_context& add_ue(ue_index_t                    ue_index,
+  e1ap_ue_context& add_ue(cu_up_ue_index_t              ue_index,
                           gnb_cu_up_ue_e1ap_id_t        cu_up_ue_e1ap_id,
                           gnb_cu_cp_ue_e1ap_id_t        cu_cp_ue_e1ap_id,
                           activity_notification_level_t activity_notification_level)
   {
-    ocudu_assert(ue_index != INVALID_UE_INDEX, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(ue_index != INVALID_CU_UP_UE_INDEX, "Invalid ue_index={}", fmt::underlying(ue_index));
     ocudu_assert(cu_up_ue_e1ap_id != gnb_cu_up_ue_e1ap_id_t::invalid,
                  "Invalid cu_up_ue_e1ap_id={}",
                  fmt::underlying(cu_up_ue_e1ap_id));
@@ -116,9 +116,9 @@ public:
     return ues.at(cu_up_ue_e1ap_id);
   }
 
-  void remove_ue(ue_index_t ue_index)
+  void remove_ue(cu_up_ue_index_t ue_index)
   {
-    ocudu_assert(ue_index != INVALID_UE_INDEX, "Invalid ue_index={}", fmt::underlying(ue_index));
+    ocudu_assert(ue_index != INVALID_CU_UP_UE_INDEX, "Invalid ue_index={}", fmt::underlying(ue_index));
 
     if (ue_index_to_ue_e1ap_id.find(ue_index) == ue_index_to_ue_e1ap_id.end()) {
       logger.warning("ue={}: GNB-CU-UP-UE-E1AP-ID not found", fmt::underlying(ue_index));
@@ -143,7 +143,7 @@ public:
   /// \brief Get the next available GNB-CU-UP-E1AP-UE-ID.
   gnb_cu_up_ue_e1ap_id_t next_gnb_cu_up_ue_e1ap_id()
   {
-    if (ue_index_to_ue_e1ap_id.size() == MAX_NOF_UES) {
+    if (ue_index_to_ue_e1ap_id.size() == MAX_NOF_CU_UP_UES) {
       return gnb_cu_up_ue_e1ap_id_t::invalid;
     }
 
@@ -196,8 +196,8 @@ private:
     }
   }
 
-  std::unordered_map<gnb_cu_up_ue_e1ap_id_t, e1ap_ue_context> ues;                    // indexed by gnb_cu_up_ue_e1ap_id
-  std::unordered_map<ue_index_t, gnb_cu_up_ue_e1ap_id_t>      ue_index_to_ue_e1ap_id; // indexed by ue_index
+  std::unordered_map<gnb_cu_up_ue_e1ap_id_t, e1ap_ue_context>  ues; // indexed by gnb_cu_up_ue_e1ap_id
+  std::unordered_map<cu_up_ue_index_t, gnb_cu_up_ue_e1ap_id_t> ue_index_to_ue_e1ap_id; // indexed by ue_index
 };
 
 } // namespace ocuup

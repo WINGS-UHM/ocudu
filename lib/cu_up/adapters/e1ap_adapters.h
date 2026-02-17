@@ -80,7 +80,7 @@ public:
     cu_up_handler->schedule_cu_up_async_task(std::move(task));
   }
 
-  void on_schedule_ue_async_task(ocuup::ue_index_t ue_index, async_task<void> task) override
+  void on_schedule_ue_async_task(cu_up_ue_index_t ue_index, async_task<void> task) override
   {
     if (cu_up_handler == nullptr) {
       logger.error("Could not schedule UE task, no CU-UP handler present. ue={}", fmt::underlying(ue_index));

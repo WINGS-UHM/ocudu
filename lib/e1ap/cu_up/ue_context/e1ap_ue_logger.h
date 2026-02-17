@@ -13,6 +13,7 @@
 #include "ocudu/cu_up/cu_up_types.h"
 #include "ocudu/e1ap/common/e1ap_types.h"
 #include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/cu_up_types.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
 #include "ocudu/support/format/prefixed_logger.h"
 #include "fmt/format.h"
@@ -24,7 +25,7 @@ namespace ocuup {
 class e1ap_ue_log_prefix
 {
 public:
-  e1ap_ue_log_prefix(ue_index_t             ue_index,
+  e1ap_ue_log_prefix(cu_up_ue_index_t       ue_index,
                      gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id = gnb_cu_up_ue_e1ap_id_t::invalid,
                      gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id = gnb_cu_cp_ue_e1ap_id_t::invalid)
   {

@@ -29,8 +29,8 @@ struct e1ap_bearer_context_setup_request {
 
 /// \brief Response to a bearer context setup request including UE index for E1AP map.
 struct e1ap_bearer_context_setup_response {
-  bool       success  = false;
-  ue_index_t ue_index = INVALID_UE_INDEX; // Valid UE index if setup was successful.
+  bool             success  = false;
+  cu_up_ue_index_t ue_index = INVALID_CU_UP_UE_INDEX; // Valid UE index if setup was successful.
   // Bearer Context Setup Response
   slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_resource_setup_modification_item>
                                                                              pdu_session_resource_setup_list;
@@ -45,7 +45,7 @@ struct e1ap_bearer_context_setup_response {
 
 /// \brief Request to modify a bearer context.
 struct e1ap_bearer_context_modification_request {
-  ue_index_t                                            ue_index = INVALID_UE_INDEX;
+  cu_up_ue_index_t                                      ue_index = INVALID_CU_UP_UE_INDEX;
   std::optional<e1ap_security_info>                     security_info;
   std::optional<uint64_t>                               ue_dl_aggr_max_bit_rate;
   std::optional<uint64_t>                               ue_dl_max_integrity_protected_data_rate;
@@ -61,8 +61,8 @@ struct e1ap_bearer_context_modification_request {
 
 /// \brief Response to a bearer context modification request including UE index for E1AP map.
 struct e1ap_bearer_context_modification_response {
-  bool       success  = false;
-  ue_index_t ue_index = INVALID_UE_INDEX; // Valid UE index if modification was successful.
+  bool             success  = false;
+  cu_up_ue_index_t ue_index = INVALID_CU_UP_UE_INDEX; // Valid UE index if modification was successful.
 
   // Bearer Context Modification Response
   slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_resource_setup_modification_item>
@@ -80,13 +80,13 @@ struct e1ap_bearer_context_modification_response {
 
 /// \brief Request to release a bearer context.
 struct e1ap_bearer_context_release_command {
-  ue_index_t   ue_index = INVALID_UE_INDEX;
-  e1ap_cause_t cause; // Cause of the release.
+  cu_up_ue_index_t ue_index = INVALID_CU_UP_UE_INDEX;
+  e1ap_cause_t     cause; // Cause of the release.
 };
 
 struct e1ap_reset {
   enum { full, partial } type = e1ap_reset::full;
-  std::vector<ue_index_t> ues;
+  std::vector<cu_up_ue_index_t> ues;
 };
 } // namespace ocuup
 } // namespace ocudu

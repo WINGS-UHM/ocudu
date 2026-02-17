@@ -17,7 +17,7 @@
 using namespace ocudu;
 using namespace ocudu::ocuup;
 
-bearer_context_release_procedure::bearer_context_release_procedure(ue_index_t ue_index_,
+bearer_context_release_procedure::bearer_context_release_procedure(cu_up_ue_index_t ue_index_,
                                                                    const asn1::e1ap::bearer_context_release_cmd_s& cmd_,
                                                                    e1ap_message_notifier&        pdu_notifier_,
                                                                    e1ap_cu_up_manager_notifier&  cu_up_notifier_,

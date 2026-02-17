@@ -50,7 +50,7 @@ struct pdu_session_manager_dependencies {
 class pdu_session_manager_impl final : public pdu_session_manager_ctrl
 {
 public:
-  pdu_session_manager_impl(ue_index_t                                   ue_index_,
+  pdu_session_manager_impl(cu_up_ue_index_t                             ue_index_,
                            std::map<five_qi_t, ocuup::cu_up_qos_config> qos_cfg_,
                            const security::sec_as_config&               security_info_,
                            const n3_interface_config&                   n3_config_,
@@ -95,7 +95,7 @@ private:
   drb_setup_result handle_drb_to_setup_item(pdu_session&                         new_session,
                                             const e1ap_drb_to_setup_item_ng_ran& drb_to_setup);
 
-  ue_index_t                                               ue_index;
+  cu_up_ue_index_t                                         ue_index;
   const std::map<five_qi_t, ocuup::cu_up_qos_config>       qos_cfg;
   security::sec_as_config                                  security_info;
   const n3_interface_config&                               n3_config;

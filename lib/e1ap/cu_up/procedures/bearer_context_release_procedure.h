@@ -26,7 +26,7 @@ namespace ocudu::ocuup {
 class bearer_context_release_procedure
 {
 public:
-  bearer_context_release_procedure(ue_index_t                                      ue_index,
+  bearer_context_release_procedure(cu_up_ue_index_t                                ue_index,
                                    const asn1::e1ap::bearer_context_release_cmd_s& cmd_,
                                    e1ap_message_notifier&                          pdu_notifier_,
                                    e1ap_cu_up_manager_notifier&                    cu_up_notifier_,
@@ -40,7 +40,7 @@ public:
   static const char* name() { return "E1AP CU-UP Bearer Context Release Procedure"; }
 
 private:
-  ue_index_t                                     ue_index;
+  cu_up_ue_index_t                               ue_index;
   const asn1::e1ap::bearer_context_release_cmd_s cmd;
   e1ap_message_notifier&                         pdu_notifier;
   e1ap_cu_up_manager_notifier&                   cu_up_notifier;

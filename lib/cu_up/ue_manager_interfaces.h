@@ -26,8 +26,8 @@ public:
   virtual async_task<void> stop()                               = 0;
   virtual ue_context*      add_ue(const ue_context_cfg& ue_cfg) = 0;
   virtual async_task<void> remove_all_ues()                     = 0;
-  virtual async_task<void> remove_ue(ue_index_t ue_index)       = 0;
-  virtual ue_context*      find_ue(ue_index_t ue_index)         = 0;
+  virtual async_task<void> remove_ue(cu_up_ue_index_t ue_index) = 0;
+  virtual ue_context*      find_ue(cu_up_ue_index_t ue_index)   = 0;
   virtual size_t           get_nof_ues() const                  = 0;
   virtual up_state_t       get_up_state() const                 = 0;
 };

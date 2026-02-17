@@ -132,7 +132,7 @@ void e1ap_cu_up_impl::handle_bearer_context_inactivity_notification(
   pdu_notifier->on_new_message(e1ap_msg);
 }
 
-void e1ap_cu_up_impl::handle_bearer_context_release_request_required(ue_index_t ue_index)
+void e1ap_cu_up_impl::handle_bearer_context_release_request_required(cu_up_ue_index_t ue_index)
 {
   if (!ue_ctxt_list.contains(ue_index)) {
     logger.error("ue={}: Dropping PDCP max count reached. UE does not exist.", fmt::underlying(ue_index));
@@ -155,7 +155,7 @@ void e1ap_cu_up_impl::handle_bearer_context_release_request_required(ue_index_t 
   pdu_notifier->on_new_message(e1ap_msg);
 }
 
-void e1ap_cu_up_impl::handle_dl_data_notification_required(ue_index_t ue_index)
+void e1ap_cu_up_impl::handle_dl_data_notification_required(cu_up_ue_index_t ue_index)
 {
   // Get UE context.
   if (!ue_ctxt_list.contains(ue_index)) {
@@ -267,7 +267,7 @@ void e1ap_cu_up_impl::handle_bearer_context_setup_request(const asn1::e1ap::bear
   e1ap_bearer_context_setup_response bearer_context_setup_response_msg =
       cu_up_notifier.on_bearer_context_setup_request_received(bearer_context_setup);
 
-  if (bearer_context_setup_response_msg.ue_index == INVALID_UE_INDEX) {
+  if (bearer_context_setup_response_msg.ue_index == INVALID_CU_UP_UE_INDEX) {
     logger.error("Sending BearerContextSetupFailure. Cause: Invalid UE index");
 
     // Send response.
@@ -347,7 +347,7 @@ void e1ap_cu_up_impl::handle_bearer_context_release_command(const asn1::e1ap::be
   }
 
   e1ap_ue_context& ue_ctxt  = ue_ctxt_list[int_to_gnb_cu_up_ue_e1ap_id(msg->gnb_cu_up_ue_e1ap_id)];
-  ue_index_t       ue_index = ue_ctxt.ue_ids.ue_index;
+  cu_up_ue_index_t ue_index = ue_ctxt.ue_ids.ue_index;
 
   // Remove UE context at E1AP before switching to UE execution context to avoid concurrent access of ue_ctxt_list.
   ue_ctxt_list.remove_ue(ue_ctxt.ue_ids.ue_index);
@@ -399,11 +399,11 @@ void e1ap_cu_up_impl::log_pdu(bool is_rx, const e1ap_message& e1ap_pdu)
   }
 
   // Fetch UE index.
-  auto                      up_ue_id = get_gnb_cu_up_ue_e1ap_id(e1ap_pdu.pdu);
-  std::optional<ue_index_t> ue_idx;
+  auto                            up_ue_id = get_gnb_cu_up_ue_e1ap_id(e1ap_pdu.pdu);
+  std::optional<cu_up_ue_index_t> ue_idx;
   if (up_ue_id.has_value()) {
     auto* ue_ptr = ue_ctxt_list.find_ue(up_ue_id.value());
-    if (ue_ptr != nullptr and ue_ptr->ue_ids.ue_index != INVALID_UE_INDEX) {
+    if (ue_ptr != nullptr and ue_ptr->ue_ids.ue_index != INVALID_CU_UP_UE_INDEX) {
       ue_idx = ue_ptr->ue_ids.ue_index;
     }
   }

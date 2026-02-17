@@ -98,11 +98,11 @@ TEST_F(ue_manager_test, when_ue_db_not_full_new_ue_can_be_added)
 TEST_F(ue_manager_test, when_ue_db_is_full_new_ue_cannot_be_added)
 {
   // add maximum number of UE objects
-  for (uint32_t i = 0; i < MAX_NOF_UES; i++) {
+  for (uint32_t i = 0; i < MAX_NOF_CU_UP_UES; i++) {
     ue_context* ue = ue_mng->add_ue(ue_cfg);
     ASSERT_NE(ue, nullptr);
   }
-  ASSERT_EQ(ue_mng->get_nof_ues(), MAX_NOF_UES);
+  ASSERT_EQ(ue_mng->get_nof_ues(), MAX_NOF_CU_UP_UES);
 
   // try to add one more
   ue_context* ue = ue_mng->add_ue(ue_cfg);
@@ -112,14 +112,14 @@ TEST_F(ue_manager_test, when_ue_db_is_full_new_ue_cannot_be_added)
 TEST_F(ue_manager_test, when_ue_are_deleted_ue_db_is_empty)
 {
   // add maximum number of UE objects
-  for (uint32_t i = 0; i < MAX_NOF_UES; i++) {
+  for (uint32_t i = 0; i < MAX_NOF_CU_UP_UES; i++) {
     ue_context* ue = ue_mng->add_ue(ue_cfg);
     ASSERT_NE(ue, nullptr);
   }
-  ASSERT_EQ(ue_mng->get_nof_ues(), MAX_NOF_UES);
+  ASSERT_EQ(ue_mng->get_nof_ues(), MAX_NOF_CU_UP_UES);
 
   // delete all UE objects
-  for (uint32_t i = 0; i < MAX_NOF_UES; i++) {
+  for (uint32_t i = 0; i < MAX_NOF_CU_UP_UES; i++) {
     t = ue_mng->remove_ue(int_to_ue_index(i));
     t_launcher.emplace(t);
   }

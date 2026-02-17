@@ -3,17 +3,19 @@
 <!--
 
 ## Pre-submission Checklist
-- Read the [**OCUDU contribution guidelines**](https://docs.ocudu.org/dev_guide/contributing_guide/).
-- Browse the [**open merge requests**](https://gitlab.com/ocudu/ocudu/-/merge_requests) to ensure this is not already worked on.
-- Perform a **self-review** of the code and remove any debug prints or temporary hacks.
-- Rebase your changes on the **latest version** of the `dev` branch.
-- Confirm that all existing **unit tests** pass and new tests have been added for the changes.
+- Read the OCUDU contribution guidelines.
+- Browse the open merge requests to ensure this is not already worked on.
+- Perform a self-review of the code and remove any debug prints or temporary hacks.
+- Rebase your changes on the latest version of the dev branch.
+- Confirm that all existing unit tests pass and new tests have been added for the changes.
 
 -->
 
 ## Description
-<!--- Provide a general summary of your changes in the title above -->
-<!--- Why is this change required? What problem does it solve? -->
+<!--
+Provide a general summary of your changes in the title above. 
+Why is this change required? What problem does it solve?
+-->
 
 ## Type of Change
 - [ ] Bug Fix
@@ -23,7 +25,7 @@
 
 ### Bug Fixes
 * Provide a detailed summary of the issue being resolved and the root cause.
-* **Diagnostic Information:** If no related issue exists for this fix, you should include the following in this description (detailed desctiption can be found  ):
+* **Diagnostic Information:** If no related issue exists for this fix, you should include the following in this description:
     * Relevant logs and PCAP files demonstrating the failure.
     * Configuration files used when the issue occurred.
     * Steps to reproduce the original problem.
@@ -58,7 +60,7 @@
 
 ## Checklist
 
-- [ ] I have read the CONTRIBUTING document.
+- [ ] I have read the [OCUDU contribution guidelines](https://docs.ocudu.org/dev_guide/contributing_guide/)
 - [ ] My code follows the code style of this project. See [here](https://docs.ocudu.org/dev_guide/code_guide/).
 - [ ] I have updated the documentation accordingly.
 - [ ] I have added tests to cover my changes, and all previous tests pass.

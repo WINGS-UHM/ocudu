@@ -24,9 +24,9 @@ si_scheduler::si_scheduler(const cell_configuration&                       cfg_,
   si_change_mod_period(default_paging_cycle * static_cast<unsigned>(cell_cfg.dl_cfg_common.bcch_cfg.mod_period_coeff)),
   pdcch_sch(pdcch_sch_),
   logger(ocudulog::fetch_basic_logger("SCHED")),
-  sib1_sched(cell_cfg, pdcch_sch, msg.sib1_payload_size),
+  sib1_sched(cell_cfg, pdcch_sch, msg.si_scheduling.sib1_payload_size),
   si_msg_sched(cell_cfg, pdcch_sch, msg.si_scheduling),
-  pending_req(si_scheduling_update_request{INVALID_DU_CELL_INDEX, last_version, units::bytes{0U}, {}})
+  pending_req(si_scheduling_update_request{INVALID_DU_CELL_INDEX, last_version, {}})
 {
 }
 
@@ -120,7 +120,7 @@ void si_scheduler::handle_pending_request(cell_resource_allocator& res_alloc)
   logger.debug("SI change with version {} starting after slot {}", on_going_req->version, slot_sched);
 
   // Apply the SIB1 and SI message changes.
-  sib1_sched.handle_sib1_update_indication(on_going_req->version, on_going_req->sib1_len);
+  sib1_sched.handle_sib1_update_indication(on_going_req->version, on_going_req->si_sched_cfg.sib1_payload_size);
   si_msg_sched.handle_si_message_update_indication(on_going_req->version, on_going_req->si_sched_cfg);
 
   // Delete the on-going request.

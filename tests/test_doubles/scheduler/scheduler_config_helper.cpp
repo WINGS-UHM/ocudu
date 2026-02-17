@@ -24,7 +24,7 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
   sched_req.ran        = config_helpers::make_default_ran_cell_config(params);
 
   // SIB1 parameters.
-  sched_req.sib1_payload_size = units::bytes{101}; // Random size.
+  sched_req.si_scheduling.sib1_payload_size = units::bytes{101}; // Random size.
 
   if (params.csi_rs_enabled) {
     csi_helper::csi_meas_config_builder_params csi_params = config_helpers::make_default_csi_builder_params(params);

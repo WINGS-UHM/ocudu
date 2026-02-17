@@ -50,11 +50,8 @@ struct sched_cell_configuration_request_message {
   /// RAN-specific cell parameters.
   ran_cell_config ran;
 
-  /// Payload size is in bytes.
-  units::bytes sib1_payload_size;
-
   /// Scheduling of SI messages.
-  std::optional<si_scheduling_config> si_scheduling;
+  si_scheduling_config si_scheduling;
 
   /// List of RAN slices to support in the scheduler.
   std::vector<slice_rrm_policy_config> rrm_policy_members;

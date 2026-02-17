@@ -34,12 +34,16 @@ struct si_message_scheduling_config {
 ///
 /// This struct will be handled by the MAC scheduler to determine the required PDCCH and PDSCH grants for SI.
 struct si_scheduling_config {
+  /// SIB1 payload size in bytes.
+  units::bytes sib1_payload_size = units::bytes{0U};
   /// List of SI-messages to schedule.
   static_vector<si_message_scheduling_config, MAX_SI_MESSAGES> si_messages;
   /// \brief The length of the SI scheduling window, in slots.
   ///
-  /// It is always shorter or equal to the period of the SI message. Values: {5, 10, 20, 40, 80, 160, 320, 640, 1280}.
-  unsigned si_window_len_slots;
+  /// It is always shorter or equal to the period of the SI message.
+  /// Values: {0, 5, 10, 20, 40, 80, 160, 320, 640, 1280}. The value 0 is reserved for the case no SI messages need to
+  /// be scheduled.
+  unsigned si_window_len_slots = 0;
 };
 
 } // namespace ocudu

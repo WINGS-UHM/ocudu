@@ -26,11 +26,9 @@
 using namespace ocudu;
 
 static sched_cell_configuration_request_message
-make_sched_configuration_request(units::bytes                               sib1_payload_size,
-                                 const std::optional<si_scheduling_config>& si_sched_cfg)
+make_sched_configuration_request(const si_scheduling_config& si_sched_cfg)
 {
   sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
-  msg.sib1_payload_size                        = sib1_payload_size;
   msg.si_scheduling                            = si_sched_cfg;
   return msg;
 }
@@ -80,7 +78,7 @@ public:
 
 TEST(no_si_scheduler_test, when_no_si_is_provided_then_nothing_is_scheduled)
 {
-  si_scheduler_setup setup{make_sched_configuration_request(units::bytes{0}, std::nullopt)};
+  si_scheduler_setup setup{make_sched_configuration_request(si_scheduling_config{units::bytes{0}, {}, 0})};
 
   const unsigned nof_slots = 100;
 
@@ -95,16 +93,14 @@ TEST(no_si_scheduler_test, when_no_si_is_provided_then_nothing_is_scheduled)
 class si_scheduler_test : public si_scheduler_setup, public testing::Test
 {
 protected:
-  si_scheduler_test() :
-    si_scheduler_setup(make_sched_configuration_request(DEFAULT_SIB1_PAYLOAD_SIZE, DEFAULT_SI_SCHED_CFG))
-  {
-  }
+  si_scheduler_test() : si_scheduler_setup(make_sched_configuration_request(DEFAULT_SI_SCHED_CFG)) {}
 
   static constexpr units::bytes     DEFAULT_SIB1_PAYLOAD_SIZE{128};
   static const si_scheduling_config DEFAULT_SI_SCHED_CFG;
 };
 
 const si_scheduling_config si_scheduler_test::DEFAULT_SI_SCHED_CFG{
+    DEFAULT_SIB1_PAYLOAD_SIZE,
     {{si_message_scheduling_config{units::bytes{64}, 16}}},
     10};
 
@@ -138,11 +134,11 @@ TEST_F(si_scheduler_test, when_si_is_updated_then_new_version_is_applied_at_si_c
 {
   const units::bytes   new_sib1_len     = DEFAULT_SIB1_PAYLOAD_SIZE + units::bytes{64U};
   si_scheduling_config new_si_sched_cfg = DEFAULT_SI_SCHED_CFG;
+  new_si_sched_cfg.sib1_payload_size    = new_sib1_len;
   new_si_sched_cfg.si_messages[0].msg_len += units::bytes{64U};
 
   // Update SI scheduling.
-  si_sched.handle_si_update_request(
-      si_scheduling_update_request{to_du_cell_index(0), 1, new_sib1_len, new_si_sched_cfg});
+  si_sched.handle_si_update_request(si_scheduling_update_request{to_du_cell_index(0), 1, new_si_sched_cfg});
 
   const unsigned si_ch_wind_len_rfs = static_cast<unsigned>(cell_cfg.dl_cfg_common.bcch_cfg.mod_period_coeff) *
                                       static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle);
@@ -200,11 +196,11 @@ TEST_F(si_scheduler_test, when_si_is_updated_all_ues_in_rrc_idle_get_notified_ex
   const paging_slot_helper slot_helper(cell_cfg);
   const units::bytes       new_sib1_len     = DEFAULT_SIB1_PAYLOAD_SIZE + units::bytes{64U};
   si_scheduling_config     new_si_sched_cfg = DEFAULT_SI_SCHED_CFG;
+  new_si_sched_cfg.sib1_payload_size        = new_sib1_len;
   new_si_sched_cfg.si_messages[0].msg_len += units::bytes{64U};
 
   // Update SI scheduling.
-  si_sched.handle_si_update_request(
-      si_scheduling_update_request{to_du_cell_index(0), 1, new_sib1_len, new_si_sched_cfg});
+  si_sched.handle_si_update_request(si_scheduling_update_request{to_du_cell_index(0), 1, new_si_sched_cfg});
 
   const unsigned si_ch_wind_len_rfs = static_cast<unsigned>(cell_cfg.dl_cfg_common.bcch_cfg.mod_period_coeff) *
                                       static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle);

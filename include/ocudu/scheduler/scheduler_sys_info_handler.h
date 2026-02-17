@@ -12,7 +12,6 @@
 
 #include "ocudu/ran/du_types.h"
 #include "ocudu/scheduler/config/si_scheduling_config.h"
-#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -25,10 +24,8 @@ struct si_scheduling_update_request {
   du_cell_index_t cell_index;
   /// SI epoch counter, monotonically increasing with each update.
   si_version_type version;
-  /// SIB1 payload length.
-  units::bytes sib1_len;
-  /// Configuration of SI message scheduling.
-  std::optional<si_scheduling_config> si_sched_cfg;
+  /// Configuration of SI scheduling, including SIB1 payload length and SI messages.
+  si_scheduling_config si_sched_cfg;
 };
 
 /// Interface used to notify new SIB1 or SI message updates to the scheduler.

@@ -205,12 +205,13 @@ static error_type<std::string> validate_sib1_cfg(const sched_cell_configuration_
   // See TS 38.214, 5.1.3.1, Modulation order and target code rate determination.
   VERIFY((unsigned)mcs_descr.modulation < (unsigned)modulation_scheme::QAM64,
          "Modulation order for PDSCH scheduled with SI-RNTI cannot be > 2");
-  const sch_prbs_tbs sib1_prbs_tbs = get_nof_prbs(prbs_calculator_sch_config{msg.sib1_payload_size.value(),
-                                                                             (unsigned)sib1_symbols.length(),
-                                                                             calculate_nof_dmrs_per_rb(dmrs_info),
-                                                                             nof_oh_prb,
-                                                                             mcs_descr,
-                                                                             nof_layers});
+  const sch_prbs_tbs sib1_prbs_tbs =
+      get_nof_prbs(prbs_calculator_sch_config{msg.si_scheduling.sib1_payload_size.value(),
+                                              (unsigned)sib1_symbols.length(),
+                                              calculate_nof_dmrs_per_rb(dmrs_info),
+                                              nof_oh_prb,
+                                              mcs_descr,
+                                              nof_layers});
 
   VERIFY(sib1_prbs_tbs.nof_prbs <= msg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
          "Not enough initial DL BWP PRBs ({} > {}) to send SIB1, given the chosen MCS={} and SIB1 payload size={}. "
@@ -218,7 +219,7 @@ static error_type<std::string> validate_sib1_cfg(const sched_cell_configuration_
          msg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
          sib1_prbs_tbs.nof_prbs,
          expert_cfg.si.sib1_mcs_index,
-         msg.sib1_payload_size);
+         msg.si_scheduling.sib1_payload_size);
 
   return {};
 }

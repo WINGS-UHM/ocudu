@@ -309,7 +309,7 @@ void test_sib1_scheduler(subcarrier_spacing                         scs_common,
 {
   // Instantiate the sib_test_bench and the SIB1 scheduler.
   sib_test_bench t_bench{scs_common, pdcch_config_sib1, ssb_beam_bitmap, l_max, carrier_bw_mhz, duplx_mode};
-  sib1_scheduler sib1_sched{t_bench.cfg, t_bench.pdcch_sch, t_bench.cfg_msg.sib1_payload_size};
+  sib1_scheduler sib1_sched{t_bench.cfg, t_bench.pdcch_sch, t_bench.cfg_msg.si_scheduling.sib1_payload_size};
 
   // SIB1 periodicity in slots.
   const unsigned sib1_period_slots = SIB1_PERIODICITY * t_bench.sl_tx.nof_slots_per_subframe();
@@ -361,7 +361,7 @@ void test_sib1_periodicity(sib1_rtx_periodicity sib1_rtx_period, ssb_periodicity
   const uint8_t  L_max = 4U;
   sib_test_bench t_bench{
       subcarrier_spacing::kHz15, 9U, 0b1000, L_max, 20, ocudu::duplex_mode::FDD, sib1_rtx_period, ssb_period};
-  sib1_scheduler sib1_sched{t_bench.cfg, t_bench.pdcch_sch, t_bench.cfg_msg.sib1_payload_size};
+  sib1_scheduler sib1_sched{t_bench.cfg, t_bench.pdcch_sch, t_bench.cfg_msg.si_scheduling.sib1_payload_size};
 
   // Determine the expected SIB1 retx periodicity.
   const unsigned expected_sib1_period_ms =
@@ -427,7 +427,7 @@ void test_ssb_sib1_collision(arfcn_t              freq_arfcn,
   // Instantiate the sib_test_bench and the SIB1 scheduler.
   sib_test_bench t_bench{
       freq_arfcn, offset_to_point_A, k_ssb, ssb_bitmap, l_max, scs, pdcch_config_sib1, carrier_bw_mhz};
-  sib1_scheduler sib1_sched{t_bench.cfg, t_bench.pdcch_sch, t_bench.cfg_msg.sib1_payload_size};
+  sib1_scheduler sib1_sched{t_bench.cfg, t_bench.pdcch_sch, t_bench.cfg_msg.si_scheduling.sib1_payload_size};
   ssb_scheduler  ssb_sched{t_bench.cfg};
 
   // Run the test for 10000 slots.
@@ -705,7 +705,7 @@ protected:
           return msg;
         }(),
         GetParam().sib1_rtx_period),
-    sib1_sched(t_bench.cfg, t_bench.pdcch_sch, t_bench.cfg_msg.sib1_payload_size)
+    sib1_sched(t_bench.cfg, t_bench.pdcch_sch, t_bench.cfg_msg.si_scheduling.sib1_payload_size)
   {
     // Determine the expected SIB1 retx periodicity.
     const unsigned expected_sib1_period_ms =

@@ -20,23 +20,24 @@
 using namespace ocudu;
 using namespace odu;
 
-std::optional<si_scheduling_config> ocudu::odu::make_si_scheduling_info_config(const du_cell_config&    du_cfg,
-                                                                               span<const units::bytes> si_message_lens)
+si_scheduling_config ocudu::odu::make_si_scheduling_info_config(const du_cell_config&    du_cfg,
+                                                                units::bytes             sib1_len,
+                                                                span<const units::bytes> si_message_lens)
 {
   ocudu_assert(si_message_lens.size() ==
                    (du_cfg.si.si_config.has_value() ? du_cfg.si.si_config->si_sched_info.size() : 0),
                "Number of SI messages does not match the number of SI payload sizes");
 
-  std::optional<si_scheduling_config> sched_req;
+  si_scheduling_config sched_req{};
+  sched_req.sib1_payload_size = sib1_len;
 
   if (du_cfg.si.si_config.has_value()) {
-    sched_req.emplace();
-    sched_req->si_window_len_slots = du_cfg.si.si_config->si_window_len_slots;
-    sched_req->si_messages.resize(du_cfg.si.si_config->si_sched_info.size());
+    sched_req.si_window_len_slots = du_cfg.si.si_config->si_window_len_slots;
+    sched_req.si_messages.resize(du_cfg.si.si_config->si_sched_info.size());
     for (unsigned i = 0, sz = du_cfg.si.si_config->si_sched_info.size(); i != sz; ++i) {
-      sched_req->si_messages[i].period_radio_frames = du_cfg.si.si_config->si_sched_info[i].si_period_radio_frames;
-      sched_req->si_messages[i].msg_len             = si_message_lens[i];
-      sched_req->si_messages[i].si_window_position  = du_cfg.si.si_config->si_sched_info[i].si_window_position;
+      sched_req.si_messages[i].period_radio_frames = du_cfg.si.si_config->si_sched_info[i].si_period_radio_frames;
+      sched_req.si_messages[i].msg_len             = si_message_lens[i];
+      sched_req.si_messages[i].si_window_position  = du_cfg.si.si_config->si_sched_info[i].si_window_position;
     }
   }
 
@@ -45,15 +46,13 @@ std::optional<si_scheduling_config> ocudu::odu::make_si_scheduling_info_config(c
 
 /// Derives Scheduler Cell Configuration from DU Cell Configuration.
 sched_cell_configuration_request_message
-ocudu::odu::make_sched_cell_config_req(du_cell_index_t                            cell_index,
-                                       const odu::du_cell_config&                 du_cfg,
-                                       units::bytes                               sib1_len,
-                                       const std::optional<si_scheduling_config>& si_sched_cfg)
+ocudu::odu::make_sched_cell_config_req(du_cell_index_t             cell_index,
+                                       const odu::du_cell_config&  du_cfg,
+                                       const si_scheduling_config& si_sched_cfg)
 {
-  ocudu_assert(sib1_len.value() > 0, "SIB1 payload size needs to be set");
-  ocudu_assert(si_sched_cfg.has_value()
-                   ? si_sched_cfg->si_messages.size()
-                   : 0 == (du_cfg.si.si_config.has_value() ? du_cfg.si.si_config->si_sched_info.size() : 0),
+  ocudu_assert(si_sched_cfg.sib1_payload_size.value() > 0, "SIB1 payload size needs to be set");
+  ocudu_assert(si_sched_cfg.si_messages.size() ==
+                   (du_cfg.si.si_config.has_value() ? du_cfg.si.si_config->si_sched_info.size() : 0),
                "Number of SI messages does not match the number of SI payload sizes");
 
   sched_cell_configuration_request_message sched_req{};
@@ -62,8 +61,7 @@ ocudu::odu::make_sched_cell_config_req(du_cell_index_t                          
   sched_req.ran              = du_cfg.ran;
 
   // Convert SIB1 and SI message info scheduling config.
-  sched_req.sib1_payload_size = sib1_len;
-  sched_req.si_scheduling     = si_sched_cfg;
+  sched_req.si_scheduling = si_sched_cfg;
 
   sched_req.rrm_policy_members = du_cfg.rrm_policy_members;
 

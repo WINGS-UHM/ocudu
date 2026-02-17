@@ -18,9 +18,9 @@ namespace ocudu {
 class si_message_scheduler
 {
 public:
-  si_message_scheduler(const cell_configuration&                  cfg_,
-                       pdcch_resource_allocator&                  pdcch_sch,
-                       const std::optional<si_scheduling_config>& si_sched_cfg_);
+  si_message_scheduler(const cell_configuration&   cfg_,
+                       pdcch_resource_allocator&   pdcch_sch,
+                       const si_scheduling_config& si_sched_cfg_);
 
   /// \brief Performs broadcast SI message scheduling.
   ///
@@ -28,8 +28,7 @@ public:
   void run_slot(cell_slot_resource_allocator& res_grid);
 
   /// \brief Update the SI messages.
-  void handle_si_message_update_indication(unsigned                                   version,
-                                           const std::optional<si_scheduling_config>& new_si_sched_cfg);
+  void handle_si_message_update_indication(unsigned version, const si_scheduling_config& new_si_sched_cfg);
 
   /// Called when cell is deactivated.
   void stop();
@@ -59,11 +58,11 @@ private:
                      const message_window_context& message_context);
 
   // Configuration of the broadcast SI messages.
-  const scheduler_si_expert_config&   expert_cfg;
-  const cell_configuration&           cell_cfg;
-  pdcch_resource_allocator&           pdcch_sch;
-  std::optional<si_scheduling_config> si_sched_cfg;
-  ocudulog::basic_logger&             logger;
+  const scheduler_si_expert_config& expert_cfg;
+  const cell_configuration&         cell_cfg;
+  pdcch_resource_allocator&         pdcch_sch;
+  si_scheduling_config              si_sched_cfg;
+  ocudulog::basic_logger&           logger;
 
   std::vector<message_window_context> pending_messages;
   unsigned                            version = 0;

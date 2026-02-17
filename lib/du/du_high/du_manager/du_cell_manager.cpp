@@ -30,7 +30,7 @@ static void fill_si_scheduler_config(si_scheduling_update_request&        req,
                                      const byte_buffer&                   sib1,
                                      span<const bcch_dl_sch_payload_type> si_messages)
 {
-  req.sib1_len = units::bytes{static_cast<unsigned>(sib1.length())};
+  const units::bytes                           sib1_len = units::bytes{static_cast<unsigned>(sib1.length())};
   static_vector<units::bytes, MAX_SI_MESSAGES> si_payload_sizes;
   for (const auto& si_msg : si_messages) {
     size_t si_msg_len = si_msg.front().length();
@@ -44,7 +44,7 @@ static void fill_si_scheduler_config(si_scheduling_update_request&        req,
     }
     si_payload_sizes.emplace_back(units::bytes{static_cast<unsigned>(si_msg_len)});
   }
-  req.si_sched_cfg = make_si_scheduling_info_config(cell_cfg, si_payload_sizes);
+  req.si_sched_cfg = make_si_scheduling_info_config(cell_cfg, sib1_len, si_payload_sizes);
 }
 
 void du_cell_manager::add_cell(const du_cell_config& cell_cfg)

@@ -117,10 +117,7 @@ void du_setup_procedure::configure_du_cells()
     const du_cell_config&           du_cfg     = ctxt.cell_mng.get_cell_cfg(cell_index);
     const mac_cell_sys_info_config& sys_info   = ctxt.cell_mng.get_sys_info(cell_index);
 
-    auto                    sched_cfg = make_sched_cell_config_req(cell_index,
-                                                du_cfg,
-                                                units::bytes{static_cast<unsigned>(sys_info.sib1.length())},
-                                                sys_info.si_sched_cfg.si_sched_cfg);
+    auto sched_cfg = make_sched_cell_config_req(cell_index, du_cfg, sys_info.si_sched_cfg.si_sched_cfg);
     error_type<std::string> result =
         config_validators::validate_sched_cell_configuration_request_message(sched_cfg, ctxt.params.mac.sched_cfg);
     if (not result.has_value()) {

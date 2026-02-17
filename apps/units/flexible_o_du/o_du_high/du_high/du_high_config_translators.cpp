@@ -452,6 +452,53 @@ static std::optional<si_scheduling_info_config> make_si_sched_info_config(const 
   return out;
 }
 
+/// Helper to generate MAC cell group parameters.
+mac_cell_group_params make_mac_cell_group_params(const du_high_unit_base_cell_config& cli_cfg)
+{
+  mac_cell_group_params mcg_params;
+  mcg_params.periodic_timer = to_periodic_bsr_timer(cli_cfg.mcg_cfg.bsr_cfg.periodic_bsr_timer);
+  mcg_params.retx_timer     = to_retx_bsr_timer(cli_cfg.mcg_cfg.bsr_cfg.retx_bsr_timer);
+  if (cli_cfg.mcg_cfg.bsr_cfg.lc_sr_delay_timer.has_value()) {
+    mcg_params.lc_sr_delay_timer = to_lc_sr_delay_timer(cli_cfg.mcg_cfg.bsr_cfg.lc_sr_delay_timer.value());
+  }
+  if (cli_cfg.mcg_cfg.sr_cfg.sr_prohibit_timer.has_value()) {
+    mcg_params.sr_prohibit_timer.emplace(to_sr_prohib_timer(cli_cfg.mcg_cfg.sr_cfg.sr_prohibit_timer.value()));
+  }
+  mcg_params.max_tx           = to_sr_max_tx(cli_cfg.mcg_cfg.sr_cfg.sr_trans_max);
+  mcg_params.phr_prohib_timer = to_phr_prohibit_timer(cli_cfg.mcg_cfg.phr_cfg.phr_prohib_timer);
+  // DRX
+  if (cli_cfg.drx_cfg.long_cycle != 0) {
+    auto& drx            = mcg_params.drx.emplace();
+    drx.on_duration      = std::chrono::milliseconds{cli_cfg.drx_cfg.on_duration_timer};
+    drx.long_cycle       = std::chrono::milliseconds{cli_cfg.drx_cfg.long_cycle};
+    drx.inactivity_timer = std::chrono::milliseconds{cli_cfg.drx_cfg.inactivity_timer};
+    drx.retx_timer_dl    = cli_cfg.drx_cfg.retx_timer_dl;
+    drx.retx_timer_ul    = cli_cfg.drx_cfg.retx_timer_ul;
+  }
+  return mcg_params;
+}
+
+void fill_si_acquisition_info(si_acquisition_info& si, const du_high_unit_base_cell_config& cli_cfg)
+{
+  // Cell selection parameters.
+  si.cell_sel_info.q_rx_lev_min = cli_cfg.q_rx_lev_min;
+  si.cell_sel_info.q_qual_min   = cli_cfg.q_qual_min;
+  // Cell access Related Info parameters.
+  for (const auto& plmn : cli_cfg.additional_plmns) {
+    si.cell_acc_rel_info.additional_plmns.push_back(plmn_identity::parse(plmn).value());
+  }
+  // SI message config.
+  si.si_config = make_si_sched_info_config(cli_cfg);
+  // UE timers and constants config.
+  si.ue_timers_and_constants.t300 = std::chrono::milliseconds(cli_cfg.sib_cfg.ue_timers_and_constants.t300);
+  si.ue_timers_and_constants.t301 = std::chrono::milliseconds(cli_cfg.sib_cfg.ue_timers_and_constants.t301);
+  si.ue_timers_and_constants.t310 = std::chrono::milliseconds(cli_cfg.sib_cfg.ue_timers_and_constants.t310);
+  si.ue_timers_and_constants.n310 = cli_cfg.sib_cfg.ue_timers_and_constants.n310;
+  si.ue_timers_and_constants.t311 = std::chrono::milliseconds(cli_cfg.sib_cfg.ue_timers_and_constants.t311);
+  si.ue_timers_and_constants.n311 = cli_cfg.sib_cfg.ue_timers_and_constants.n311;
+  si.ue_timers_and_constants.t319 = std::chrono::milliseconds(cli_cfg.sib_cfg.ue_timers_and_constants.t319);
+}
+
 std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_unit_config& config)
 {
   std::vector<odu::du_cell_config> out_cfg;
@@ -494,50 +541,25 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     out_cfg.push_back(config_helpers::make_default_du_cell_config(param));
     odu::du_cell_config& out_cell = out_cfg.back();
 
-    // Set the remaining parameters.
+    // Overwrite the parameters that the cell config builder set as default.
+    // > PLMN/TAC/NCI.
     out_cell.nr_cgi.plmn_id = plmn_identity::parse(base_cell.plmn).value();
     out_cell.nr_cgi.nci     = nr_cell_identity::create(config.gnb_id, base_cell.sector_id.value()).value();
     out_cell.tac            = base_cell.tac;
     out_cell.enabled        = base_cell.enabled;
-
-    // Cell selection parameters.
-    out_cell.si.cell_sel_info.q_rx_lev_min = base_cell.q_rx_lev_min;
-    out_cell.si.cell_sel_info.q_qual_min   = base_cell.q_qual_min;
-
-    // Cell access Related Info parameters.
-    for (const auto& plmn : base_cell.additional_plmns) {
-      out_cell.si.cell_acc_rel_info.additional_plmns.push_back(plmn_identity::parse(plmn).value());
-    }
-
-    // SSB config.
+    // > SSB.
     out_cell.ran.ssb_cfg.ssb_period      = static_cast<ssb_periodicity>(base_cell.ssb_cfg.ssb_period_msec);
     out_cell.ran.ssb_cfg.ssb_block_power = base_cell.ssb_cfg.ssb_block_power;
     out_cell.ran.ssb_cfg.pss_to_sss_epre = base_cell.ssb_cfg.pss_to_sss_epre;
-
-    // SI message config.
-    out_cell.si.si_config = make_si_sched_info_config(base_cell);
+    // > Carrier config.
+    out_cell.ran.dl_carrier.nof_ant = base_cell.nof_antennas_dl;
+    out_cell.ran.ul_carrier.nof_ant = base_cell.nof_antennas_ul;
+    // > System Information.
+    fill_si_acquisition_info(out_cell.si, base_cell);
     if (out_cell.si.si_config.has_value()) {
       // Enable otherSI search space.
       out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common.other_si_search_space_id = to_search_space_id(1);
     }
-
-    // UE timers and constants config.
-    out_cell.si.ue_timers_and_constants.t300 =
-        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t300);
-    out_cell.si.ue_timers_and_constants.t301 =
-        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t301);
-    out_cell.si.ue_timers_and_constants.t310 =
-        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t310);
-    out_cell.si.ue_timers_and_constants.n310 = base_cell.sib_cfg.ue_timers_and_constants.n310;
-    out_cell.si.ue_timers_and_constants.t311 =
-        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t311);
-    out_cell.si.ue_timers_and_constants.n311 = base_cell.sib_cfg.ue_timers_and_constants.n311;
-    out_cell.si.ue_timers_and_constants.t319 =
-        std::chrono::milliseconds(base_cell.sib_cfg.ue_timers_and_constants.t319);
-
-    // Carrier config.
-    out_cell.ran.dl_carrier.nof_ant = base_cell.nof_antennas_dl;
-    out_cell.ran.ul_carrier.nof_ant = base_cell.nof_antennas_ul;
 
     // UL common config.
     if (base_cell.ul_common_cfg.p_max.has_value()) {
@@ -594,22 +616,12 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     }
 
     // MAC Cell Group Config parameters.
-    out_cell.mcg_params.periodic_timer = to_periodic_bsr_timer(base_cell.mcg_cfg.bsr_cfg.periodic_bsr_timer);
-    out_cell.mcg_params.retx_timer     = to_retx_bsr_timer(base_cell.mcg_cfg.bsr_cfg.retx_bsr_timer);
-    if (base_cell.mcg_cfg.bsr_cfg.lc_sr_delay_timer.has_value()) {
-      out_cell.mcg_params.lc_sr_delay_timer = to_lc_sr_delay_timer(base_cell.mcg_cfg.bsr_cfg.lc_sr_delay_timer.value());
-    }
-    out_cell.mcg_params.max_tx           = to_sr_max_tx(base_cell.mcg_cfg.sr_cfg.sr_trans_max);
-    out_cell.mcg_params.phr_prohib_timer = to_phr_prohibit_timer(base_cell.mcg_cfg.phr_cfg.phr_prohib_timer);
-    if (base_cell.mcg_cfg.sr_cfg.sr_prohibit_timer.has_value()) {
-      out_cell.mcg_params.sr_prohibit_timer.emplace(
-          to_sr_prohib_timer(base_cell.mcg_cfg.sr_cfg.sr_prohibit_timer.value()));
-    }
+    out_cell.mcg_params = make_mac_cell_group_params(base_cell);
 
     // Paging parameters.
+    out_cell.ran.dl_cfg_common.pcch_cfg = generate_pcch_config(base_cell);
     out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id =
         to_search_space_id(base_cell.paging_cfg.paging_search_space_id);
-    out_cell.ran.dl_cfg_common.pcch_cfg = generate_pcch_config(base_cell);
 
     // Parameters for PUSCH-ConfigCommon.
     if (not out_cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value()) {
@@ -933,16 +945,6 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     if (update_msg1_frequency_start) {
       rach_cfg.rach_cfg_generic.msg1_frequency_start = config_helpers::compute_prach_frequency_start(
           du_pucch_cfg, out_cell.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), is_long_prach);
-    }
-
-    // DRX params. Long cycle != 0 if enabled.
-    if (base_cell.drx_cfg.long_cycle != 0) {
-      drx_params& drx      = out_cell.mcg_params.drx.emplace();
-      drx.on_duration      = std::chrono::milliseconds{base_cell.drx_cfg.on_duration_timer};
-      drx.long_cycle       = std::chrono::milliseconds{base_cell.drx_cfg.long_cycle};
-      drx.inactivity_timer = std::chrono::milliseconds{base_cell.drx_cfg.inactivity_timer};
-      drx.retx_timer_dl    = base_cell.drx_cfg.retx_timer_dl;
-      drx.retx_timer_ul    = base_cell.drx_cfg.retx_timer_ul;
     }
 
     // Slicing configuration.

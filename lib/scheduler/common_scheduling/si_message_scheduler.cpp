@@ -21,23 +21,21 @@
 
 using namespace ocudu;
 
-si_message_scheduler::si_message_scheduler(const cell_configuration&                  cfg_,
-                                           pdcch_resource_allocator&                  pdcch_sch_,
-                                           const std::optional<si_scheduling_config>& si_sched_cfg_) :
+si_message_scheduler::si_message_scheduler(const cell_configuration&   cfg_,
+                                           pdcch_resource_allocator&   pdcch_sch_,
+                                           const si_scheduling_config& si_sched_cfg_) :
   expert_cfg(cfg_.expert_cfg.si),
   cell_cfg(cfg_),
   pdcch_sch(pdcch_sch_),
   si_sched_cfg(si_sched_cfg_),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
-  if (si_sched_cfg.has_value()) {
-    pending_messages.resize(si_sched_cfg->si_messages.size());
-  }
+  pending_messages.resize(si_sched_cfg.si_messages.size());
 }
 
 void si_message_scheduler::run_slot(cell_slot_resource_allocator& res_grid)
 {
-  if (not si_sched_cfg.has_value()) {
+  if (si_sched_cfg.si_messages.empty()) {
     return;
   }
 
@@ -56,23 +54,18 @@ void si_message_scheduler::stop()
   }
 }
 
-void si_message_scheduler::handle_si_message_update_indication(
-    unsigned                                   new_version,
-    const std::optional<si_scheduling_config>& new_si_sched_cfg)
+void si_message_scheduler::handle_si_message_update_indication(unsigned                    new_version,
+                                                               const si_scheduling_config& new_si_sched_cfg)
 {
   // Update SI messages.
   version      = new_version;
   si_sched_cfg = new_si_sched_cfg;
-  if (si_sched_cfg.has_value()) {
-    pending_messages.resize(si_sched_cfg->si_messages.size());
+  pending_messages.resize(si_sched_cfg.si_messages.size());
 
-    // Reset window and transmission counters.
-    std::fill(pending_messages.begin(),
-              pending_messages.end(),
-              message_window_context{.window = {}, .nof_tx_in_current_window = 0, .total_nof_tx = 0});
-  } else {
-    pending_messages.clear();
-  }
+  // Reset window and transmission counters.
+  std::fill(pending_messages.begin(),
+            pending_messages.end(),
+            message_window_context{.window = {}, .nof_tx_in_current_window = 0, .total_nof_tx = 0});
 }
 
 void si_message_scheduler::update_si_message_windows(slot_point sl_tx)
@@ -80,7 +73,7 @@ void si_message_scheduler::update_si_message_windows(slot_point sl_tx)
   const unsigned sfn = sl_tx.sfn();
 
   for (unsigned i = 0; i != pending_messages.size(); ++i) {
-    const si_message_scheduling_config& si_msg = si_sched_cfg->si_messages[i];
+    const si_message_scheduling_config& si_msg = si_sched_cfg.si_messages[i];
 
     if (not pending_messages[i].window.empty()) {
       // SI message is already in the window. Check for window end.
@@ -101,11 +94,11 @@ void si_message_scheduler::update_si_message_windows(slot_point sl_tx)
     const unsigned n = i + 1;
 
     // 3> Determine the integer value x = (n – 1) × w, where w is the si-WindowLength.
-    unsigned x = (n - 1) * si_sched_cfg->si_window_len_slots;
+    unsigned x = (n - 1) * si_sched_cfg.si_window_len_slots;
     if (si_msg.si_window_position.has_value()) {
       // 3> Determine the integer value x = (si-WindowPosition -1) × w, where w is the si-WindowLength. See TS 38 331
       // V17.0.0.
-      x = (si_msg.si_window_position.value() - 1) * si_sched_cfg->si_window_len_slots;
+      x = (si_msg.si_window_position.value() - 1) * si_sched_cfg.si_window_len_slots;
     }
 
     // 3> The SI-window starts at the slot #a, where a = x mod N, in the radio frame for which SFN mod T = FLOOR(x/N),
@@ -123,7 +116,7 @@ void si_message_scheduler::update_si_message_windows(slot_point sl_tx)
     }
 
     // SI window start detected.
-    pending_messages[i].window = {sl_tx, sl_tx + si_sched_cfg->si_window_len_slots};
+    pending_messages[i].window = {sl_tx, sl_tx + si_sched_cfg.si_window_len_slots};
 
     // Reset the trasnmission counter for the new window.
     pending_messages[i].nof_tx_in_current_window = 0;
@@ -163,7 +156,7 @@ bool si_message_scheduler::allocate_si_message(unsigned si_message, cell_slot_re
   // As per Section 5.1.3.2, TS 38.214, nof_oh_prb = 0 if PDSCH is scheduled by PDCCH with a CRC scrambled by SI-RNTI.
   static constexpr unsigned nof_oh_prb = 0;
 
-  const units::bytes si_msg_payload_size = si_sched_cfg->si_messages[si_message].msg_len;
+  const units::bytes si_msg_payload_size = si_sched_cfg.si_messages[si_message].msg_len;
 
   const auto& pdsch_td_res_alloc_list =
       get_si_rnti_type0A_common_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common,

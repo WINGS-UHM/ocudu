@@ -89,12 +89,14 @@ variables:
             --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/ngap/.* \
             --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/nrppa/.* \
             --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/rrc_nr/.* \
+            --exclude=${CI_PROJECT_DIR}/include/ocudu/asn1/xnap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/e1ap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/e2ap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/f1ap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/ngap/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/nrppa/.* \
             --exclude=${CI_PROJECT_DIR}/lib/asn1/rrc_nr/.* \
+            --exclude=${CI_PROJECT_DIR}/lib/asn1/xnap/.* \
             --exclude-lines-by-pattern \".*ocudu_assert.*|.*ocudu_sanity_check.*\" \
             --root=${CI_PROJECT_DIR} \
             --gcov-ignore-parse-errors=all \

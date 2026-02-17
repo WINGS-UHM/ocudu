@@ -96,4 +96,70 @@ void ocudu::fill_ntn_config_in_yaml_schema(YAML::Node& node, const du_high_unit_
 
     ntn_node["ephemeris_orbital"] = orb_node;
   }
+
+  if (config.polarization.has_value()) {
+    const auto& pol = config.polarization.value();
+    YAML::Node  pol_node;
+    auto        pol_type_to_str = [](ntn_polarization_t::polarization_type t) -> const char* {
+      switch (t) {
+        case ntn_polarization_t::polarization_type::rhcp:
+          return "rhcp";
+        case ntn_polarization_t::polarization_type::lhcp:
+          return "lhcp";
+        default:
+          return "linear";
+      }
+    };
+    if (pol.dl) {
+      pol_node["dl"] = pol_type_to_str(pol.dl.value());
+    }
+    if (pol.ul) {
+      pol_node["ul"] = pol_type_to_str(pol.ul.value());
+    }
+    ntn_node["polarization"] = pol_node;
+  }
+
+  if (config.ta_report.has_value()) {
+    ntn_node["ta_report"] = config.ta_report.value();
+  }
+
+  if (config.reference_location.has_value()) {
+    YAML::Node ref_loc_node;
+    ref_loc_node["latitude"]       = config.reference_location.value().latitude;
+    ref_loc_node["longitude"]      = config.reference_location.value().longitude;
+    ntn_node["reference_location"] = ref_loc_node;
+  }
+  if (config.distance_threshold.has_value()) {
+    ntn_node["distance_threshold"] = config.distance_threshold.value();
+  }
+
+  if (config.t_service.has_value()) {
+    ntn_node["t_service"] = config.t_service.value();
+  }
+
+  // Moving reference location (R18 extension).
+  if (config.moving_ref_location.has_value()) {
+    YAML::Node mov_ref_node;
+    mov_ref_node["latitude"]        = config.moving_ref_location.value().latitude;
+    mov_ref_node["longitude"]       = config.moving_ref_location.value().longitude;
+    ntn_node["moving_ref_location"] = mov_ref_node;
+  }
+
+  // Satellite switch with resynchronization (R18 extension).
+  if (config.sat_switch_with_resync.has_value()) {
+    const auto& sat_sw = config.sat_switch_with_resync.value();
+    YAML::Node  sat_sw_node;
+
+    // TODO: add ntn-config dump.
+
+    if (sat_sw.t_service_start.has_value()) {
+      sat_sw_node["t_service_start"] = sat_sw.t_service_start.value();
+    }
+
+    if (sat_sw.ssb_time_offset_sf.has_value()) {
+      sat_sw_node["ssb_time_offset_sf"] = static_cast<unsigned>(sat_sw.ssb_time_offset_sf->value());
+    }
+
+    ntn_node["sat_switch_with_resync"] = sat_sw_node;
+  }
 }

@@ -66,6 +66,10 @@ struct du_high_unit_cell_ntn_config {
   std::optional<ntn_polarization_t> polarization;
   /// When this field is included in SIB19, it indicates reporting of timing advanced is enabled.
   std::optional<bool> ta_report;
+  /// Moving reference location for NTN Earth-moving cell (R18).
+  std::optional<geodetic_coordinates_t> moving_ref_location;
+  /// Satellite switch with resynchronization parameters (R18).
+  std::optional<sat_switch_with_resync_t> sat_switch_with_resync;
 };
 
 } // namespace ocudu

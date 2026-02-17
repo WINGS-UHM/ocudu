@@ -42,6 +42,12 @@ struct ntn_assistance_info {
   std::optional<ntn_polarization_t> polarization;
   /// Indicates if timing advance reporting is enabled.
   std::optional<bool> ta_report;
+  /// List of NTN neighbor cells including their ntn-Config, carrier frequency and PhysCellId.
+  static_vector<neighbor_ntn_cell, MAX_NOF_NTN_NEIGHBORS> ncells;
+  /// NTN coverage enhancements defines parameters used to improve UE connectivity under high path-loss conditions.
+  std::optional<ntn_cov_enh_t> coverage_enhancements;
+  /// Provides parameters for the target satellite required to perform satellite switch with resynchronization.
+  std::optional<sat_switch_with_resync_t> sat_switch_with_resync;
 
   /// Metadata fields (not directly in SIB19, used for SIB19 generation):
   /// Epoch timestamp (Unix time in ms since 1970-01-01) used to calculate epochTime.

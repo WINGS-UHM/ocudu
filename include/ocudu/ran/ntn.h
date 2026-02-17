@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "ocudu/ran/arfcn.h"
+#include "ocudu/ran/pci.h"
 #include <chrono>
 #include <optional>
 #include <variant>
@@ -129,6 +131,43 @@ struct ntn_config {
   std::optional<std::variant<ecef_coordinates_t, orbital_coordinates_t>> ephemeris_info;
   /// When this field is included in SIB19, it indicates reporting of timing advanced is enabled.
   std::optional<bool> ta_report;
+};
+
+/// NTN coverage enhancements defines parameters used to improve UE connectivity under high path-loss conditions.
+struct ntn_cov_enh_t {
+  /// The number of repetition slots for PUCCH transmission with HARQ-ACK information for Msg4, see clause 9.2.6 in
+  /// TS 38.213.
+  std::optional<unsigned> nof_msg4_harg_ack_rep;
+  /// This threshold is used by the UE for determining the configuration of the MAC entity for PUCCH repetition for Msg4
+  /// HARQ-ACK, as specified in clause 6.2.1 in TS 38.321.
+  std::optional<unsigned> rsrp_thres_mgs4_harq_ack;
+};
+
+/// Provides parameters for the target satellite required to perform satellite switch with resynchronization.
+struct sat_switch_with_resync_t {
+  using ssb_time_offset_t = bounded_integer<uint8_t, 0, 159>;
+  /// NTN config.
+  ntn_config ntn_cfg;
+  /// Indicates the time information on when the target satellite is going to start serving the area currently covered
+  /// by the serving satellite. The reference point for t-ServiceStart is the uplink time synchronization reference
+  /// point of the serving satellite.
+  std::optional<uint64_t> t_service_start;
+  /// Indicates the time offset of the SSB from target satellite at its uplink time synchronization reference point with
+  /// respect to the SSB from source satellite at its uplink time synchronization reference point. It is given in
+  /// number of subframes.  Values: [0, 159]
+  std::optional<ssb_time_offset_t> ssb_time_offset_sf;
+};
+
+/// Max number of neighboring NTN cells.
+/// Derived from ASN.1: ntn-NeighCellConfigList and ntn-NeighCellConfigListExt each hold up to 4 entries, giving 8
+/// total.
+constexpr size_t MAX_NOF_NTN_NEIGHBORS = 8U;
+
+/// Neighbor NTN cell configuration.
+struct neighbor_ntn_cell {
+  std::optional<ntn_config> ntn_cfg;
+  std::optional<arfcn_t>    carrier_freq;
+  std::optional<pci_t>      phys_cell_id;
 };
 
 } // namespace ocudu

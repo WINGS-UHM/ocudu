@@ -207,10 +207,14 @@ struct sib19_info {
   // with std::optional.
   sib19_info() {}
 
-  std::optional<unsigned>               distance_thres;
-  std::optional<geodetic_coordinates_t> ref_location;
-  std::optional<uint64_t>               t_service;
-  std::optional<ntn_config>             ntn_cfg;
+  std::optional<ntn_config>                               ntn_cfg;
+  std::optional<uint64_t>                                 t_service;
+  std::optional<geodetic_coordinates_t>                   ref_location;
+  std::optional<unsigned>                                 distance_thres;
+  static_vector<neighbor_ntn_cell, MAX_NOF_NTN_NEIGHBORS> ncells;
+  std::optional<geodetic_coordinates_t>                   moving_ref_location;
+  std::optional<ntn_cov_enh_t>                            coverage_enhancements;
+  std::optional<sat_switch_with_resync_t>                 sat_switch_with_resync;
 };
 
 /// \brief Variant type that can hold different types of SIBs that go in a SI message.

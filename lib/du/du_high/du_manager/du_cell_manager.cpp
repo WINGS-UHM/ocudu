@@ -105,6 +105,34 @@ du_cell_manager::handle_cell_reconf_request(const du_cell_param_config_request& 
     si_updated                           = true;
   }
 
+  // Update SIB info in cell config if provided.
+  if (req.new_sys_info.has_value()) {
+    // Ensure si_config exists.
+    if (not cell_cfg.si.si_config.has_value()) {
+      logger.warning("Cell {} has no SI config, cannot update SIB", cell_index);
+    } else {
+      sib_type type = get_sib_info_type(req.new_sys_info.value());
+
+      // Find existing entry for this SIB type.
+      auto sib_it = std::find_if(cell_cfg.si.si_config->sibs.begin(),
+                                 cell_cfg.si.si_config->sibs.end(),
+                                 [type](const sib_type_info& sib) { return get_sib_info_type(sib.content) == type; });
+
+      if (sib_it != cell_cfg.si.si_config->sibs.end()) {
+        sib_it->content = req.new_sys_info.value();
+        // Increment value_tag with wrapping (5-bit field: 0-31).
+        sib_it->value_tag = (sib_it->value_tag.value() + 1) % 32;
+        si_updated        = true;
+        logger.info("Updated SIB{} in cell {} config, new value_tag={}",
+                    static_cast<int>(type),
+                    cell_index,
+                    sib_it->value_tag.value());
+      } else {
+        logger.warning("Requested SIB{} update in cell {}, but entry not found.", static_cast<int>(type), cell_index);
+      }
+    }
+  }
+
   const unsigned nof_prbs = band_helper::get_n_rbs_from_bw(cell_cfg.ran.dl_carrier.carrier_bw,
                                                            cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs,
                                                            band_helper::get_freq_range(cell_cfg.ran.dl_carrier.band));
@@ -164,8 +192,21 @@ du_cell_manager::handle_cell_reconf_request(const du_cell_param_config_request& 
   }
 
   if (si_updated) {
-    // Need to re-pack SIB1.
-    cell.si_cfg.sib1 = asn1_packer::pack_sib1(cell_cfg);
+    if (req.new_sys_info.has_value()) {
+      // Other SIB msg was updated, repack ALL SIBs (SIB1 + SI messages).
+      logger.info("Repacking all BCCH-DL-SCH messages for cell {} (SIB update)", cell_index);
+      std::vector<bcch_dl_sch_payload_type> bcch_msgs = asn1_packer::pack_all_bcch_dl_sch_msgs(cell_cfg);
+
+      ocudu_assert(bcch_msgs[0].size() == 1, "SIB-1 cannot be segmented");
+      cell.si_cfg.sib1 = bcch_msgs[0].front().copy();
+
+      span<const bcch_dl_sch_payload_type> si_messages =
+          span<const bcch_dl_sch_payload_type>(bcch_msgs).last(bcch_msgs.size() - 1);
+      cell.si_cfg.si_messages.assign(si_messages.begin(), si_messages.end());
+    } else {
+      // Only SSB power changed, repack only SIB1.
+      cell.si_cfg.sib1 = asn1_packer::pack_sib1(cell_cfg);
+    }
 
     // Bump SI version and update SI messages.
     fill_si_scheduler_config(cell.si_cfg.si_sched_cfg, cell_cfg, cell.si_cfg.sib1, cell.si_cfg.si_messages);

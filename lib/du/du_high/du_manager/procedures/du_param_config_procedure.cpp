@@ -24,8 +24,9 @@ static error_type<std::string> validate_du_param_config_request(const du_param_c
   }
 
   for (const auto& cell : req.cells) {
-    if (not cell.ssb_pwr_mod.has_value() and cell.rrm_policy_ratio_list.empty()) {
-      return make_unexpected("Cell config requests must specify either SSB power mod. or rrm_policy_ratio_list");
+    if (not cell.ssb_pwr_mod.has_value() and cell.rrm_policy_ratio_list.empty() and not cell.new_sys_info.has_value()) {
+      return make_unexpected(
+          "Cell config requests must specify either SSB power mod or rrm_policy_ratio_list or new_sys_info.");
     }
   }
 

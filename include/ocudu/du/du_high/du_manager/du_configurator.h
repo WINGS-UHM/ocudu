@@ -15,6 +15,7 @@
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/ntn.h"
 #include "ocudu/ran/rrm.h"
+#include "ocudu/ran/sib/system_info_config.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/support/async/async_task.h"
 
@@ -59,6 +60,8 @@ struct du_cell_param_config_request {
   std::optional<int> ssb_pwr_mod;
   /// Radio resource management policy list to be applied to the cell, If empty, no modification is applied.
   std::vector<rrm_policy_ratio_group> rrm_policy_ratio_list;
+  /// SIB update. When present, triggers SIB1 systemInfoValueTag increment.
+  std::optional<sib_info> new_sys_info;
 };
 
 /// Parameters of the DU that need to be configured during operation.
@@ -103,6 +106,8 @@ struct du_cell_ntn_param_update_request {
   std::optional<unsigned> si_slot_period;
   /// Packed content of SIB messages.
   span<byte_buffer> si_messages;
+  /// SIB19 update. When present, triggers SIB1 systemInfoValueTag increment.
+  std::optional<sib19_info> sib19;
 };
 
 /// NTN Parameters to be updated for multiple cells in DU.

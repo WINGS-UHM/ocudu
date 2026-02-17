@@ -148,6 +148,7 @@ async_task<mac_cell_reconfig_response> mac_cell_processor::reconfigure(const mac
     CORO_BEGIN(ctx);
 
     if (request.new_sys_info.has_value()) {
+      // SI message update with SI change notifications and/or SIB1 valueTag update.
       if (request.new_sys_info.has_value()) {
         // Forward new SIB1/SI message PDUs to SIB assembler and update version.
         sib_assembler.handle_si_change_request(*request.new_sys_info);
@@ -160,6 +161,7 @@ async_task<mac_cell_reconfig_response> mac_cell_processor::reconfigure(const mac
     }
 
     if (request.new_si_pdu_info.has_value()) {
+      // SI message update without SI change notifications nor SIB1 valueTag update.
       sib_assembler.enqueue_si_message_pdu_updates(*request.new_si_pdu_info);
       resp.si_pdus_enqueued = true;
     }

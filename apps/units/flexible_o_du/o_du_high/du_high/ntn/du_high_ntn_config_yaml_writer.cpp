@@ -13,6 +13,25 @@
 
 using namespace ocudu;
 
+/// Convert time_point to ISO 8601 format string (YYYY-MM-DDTHH:MM:SS.mmm).
+static std::string timepoint_to_iso8601(const std::chrono::system_clock::time_point& tp)
+{
+  auto   ms           = std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch());
+  auto   secs         = std::chrono::duration_cast<std::chrono::seconds>(ms);
+  time_t time         = secs.count();
+  int    milliseconds = (ms.count() % 1000);
+
+  std::tm tm_utc = *std::gmtime(&time);
+  char    buf[32];
+  std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S", &tm_utc);
+
+  // Format milliseconds with leading zeros.
+  char ms_buf[8];
+  std::snprintf(ms_buf, sizeof(ms_buf), ".%03d", milliseconds);
+
+  return std::string(buf) + ms_buf;
+}
+
 void ocudu::fill_ntn_config_in_yaml_schema(YAML::Node& node, const du_high_unit_cell_ntn_config& config)
 {
   auto ntn_node = node["ntn"];
@@ -34,7 +53,7 @@ void ocudu::fill_ntn_config_in_yaml_schema(YAML::Node& node, const du_high_unit_
   }
 
   if (config.epoch_timestamp) {
-    ntn_node["epoch_timestamp"] = config.epoch_timestamp.value();
+    ntn_node["epoch_timestamp"] = timepoint_to_iso8601(config.epoch_timestamp.value());
   }
 
   if (config.feeder_link_info) {
@@ -134,7 +153,7 @@ void ocudu::fill_ntn_config_in_yaml_schema(YAML::Node& node, const du_high_unit_
   }
 
   if (config.t_service.has_value()) {
-    ntn_node["t_service"] = config.t_service.value();
+    ntn_node["t_service"] = timepoint_to_iso8601(config.t_service.value());
   }
 
   // Moving reference location (R18 extension).
@@ -153,7 +172,7 @@ void ocudu::fill_ntn_config_in_yaml_schema(YAML::Node& node, const du_high_unit_
     // TODO: add ntn-config dump.
 
     if (sat_sw.t_service_start.has_value()) {
-      sat_sw_node["t_service_start"] = sat_sw.t_service_start.value();
+      sat_sw_node["t_service_start"] = timepoint_to_iso8601(sat_sw.t_service_start.value());
     }
 
     if (sat_sw.ssb_time_offset_sf.has_value()) {

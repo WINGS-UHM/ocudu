@@ -23,12 +23,11 @@ struct du_high_unit_cell_ntn_config {
   /// Distance from the serving cell reference location, as defined in TS 38.304. Each step represents 50m.
   std::optional<unsigned> distance_threshold;
   /// Indicates the time information on when a cell provided via NTN is going to stop serving the area it is currently
-  /// covering. It represents a timestamp in ms unit of Unix time (UTC time since 1970-01-01)
-  std::optional<uint64_t> t_service;
+  /// covering. UTC timepoint.
+  std::optional<std::chrono::system_clock::time_point> t_service;
   /// NTN-config values
-  /// Indicate the epoch time for the NTN assistance information passed in the config file.
-  /// It represents a timestamp in ms unit of Unix time (UTC time since 1970-01-01)
-  std::optional<uint64_t> epoch_timestamp;
+  /// Indicate the epoch time for the NTN assistance information passed in the config file. UTC timepoint.
+  std::optional<std::chrono::system_clock::time_point> epoch_timestamp;
   /// Optional offset (in SFN) between the SIB19 transmission slot and the epoch time (EpochTime IE) of the NTN
   /// assistance info. Allows sending NTN assistance information that will become valid epoch_sfn_offset number of
   /// system frames after SIB19 Tx slot.

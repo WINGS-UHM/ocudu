@@ -150,8 +150,8 @@ struct sat_switch_with_resync_t {
   ntn_config ntn_cfg;
   /// Indicates the time information on when the target satellite is going to start serving the area currently covered
   /// by the serving satellite. The reference point for t-ServiceStart is the uplink time synchronization reference
-  /// point of the serving satellite.
-  std::optional<uint64_t> t_service_start;
+  /// point of the serving satellite. UTC timepoint.
+  std::optional<std::chrono::system_clock::time_point> t_service_start;
   /// Indicates the time offset of the SSB from target satellite at its uplink time synchronization reference point with
   /// respect to the SSB from source satellite at its uplink time synchronization reference point. It is given in
   /// number of subframes.  Values: [0, 159]

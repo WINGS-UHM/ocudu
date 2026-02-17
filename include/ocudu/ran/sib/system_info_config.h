@@ -208,7 +208,7 @@ struct sib19_info {
   sib19_info() {}
 
   std::optional<ntn_config>                               ntn_cfg;
-  std::optional<uint64_t>                                 t_service;
+  std::optional<std::chrono::system_clock::time_point>    t_service;
   std::optional<geodetic_coordinates_t>                   ref_location;
   std::optional<unsigned>                                 distance_thres;
   static_vector<neighbor_ntn_cell, MAX_NOF_NTN_NEIGHBORS> ncells;

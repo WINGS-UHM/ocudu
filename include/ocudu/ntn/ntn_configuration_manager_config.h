@@ -32,8 +32,8 @@ struct ntn_assistance_info {
   std::optional<geodetic_coordinates_t> reference_location;
   /// Distance threshold from serving cell reference location. Each step represents 50m.
   std::optional<unsigned> distance_threshold;
-  /// Time when cell stops serving current area (Unix time in ms since 1970-01-01).
-  std::optional<uint64_t> t_service;
+  /// Time when cell stops serving current area (UTC timepoint).
+  std::optional<std::chrono::system_clock::time_point> t_service;
   /// Cell-specific scheduling offset (k_offset) for NTN, in milliseconds.
   std::chrono::milliseconds cell_specific_koffset;
   /// Scheduling offset k_mac if DL/UL frame timing not aligned.
@@ -50,8 +50,8 @@ struct ntn_assistance_info {
   std::optional<sat_switch_with_resync_t> sat_switch_with_resync;
 
   /// Metadata fields (not directly in SIB19, used for SIB19 generation):
-  /// Epoch timestamp (Unix time in ms since 1970-01-01) used to calculate epochTime.
-  std::optional<uint64_t> epoch_timestamp;
+  /// Epoch timestamp (UTC timepoint) used to calculate epochTime.
+  std::optional<std::chrono::system_clock::time_point> epoch_timestamp;
   /// Offset in SFN between SIB19 transmission and epoch time.
   std::optional<uint64_t> epoch_sfn_offset;
   /// Use ECEF state vectors (true) or ECI orbital parameters (false) for ephemeris format.

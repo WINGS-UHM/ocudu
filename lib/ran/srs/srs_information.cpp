@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/ran/srs/srs_information.h"
+#include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 #include "ocudu/ran/srs/srs_resource_configuration.h"
 #include "ocudu/support/ocudu_assert.h"
@@ -10,11 +11,9 @@
 
 using namespace ocudu;
 
-static constexpr unsigned N_RB_SC = 12;
-
 static constexpr unsigned get_sequence_length(unsigned m_srs_b, tx_comb_size comb_size)
 {
-  return (m_srs_b * N_RB_SC) / static_cast<unsigned>(comb_size);
+  return (m_srs_b * NOF_SUBCARRIERS_PER_RB) / static_cast<unsigned>(comb_size);
 }
 
 srs_information ocudu::get_srs_information(const srs_resource_configuration& resource, unsigned i_antenna_port)
@@ -59,7 +58,7 @@ srs_information ocudu::get_srs_information(const srs_resource_configuration& res
       ((i_antenna_port == 1) || (i_antenna_port == 3))) {
     k_tc = (k_tc + comb_size / 2) % comb_size;
   }
-  unsigned k0_bar = resource.freq_shift.value() * N_RB_SC + k_tc;
+  unsigned k0_bar = resource.freq_shift.value() * NOF_SUBCARRIERS_PER_RB + k_tc;
   unsigned sum    = 0;
   for (unsigned b = 0; b <= resource.bandwidth_index; ++b) {
     std::optional<srs_configuration> bw_config = srs_configuration_get(resource.configuration_index.value(), b);

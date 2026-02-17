@@ -15,6 +15,6 @@ add_library(ocudu_phy_support STATIC
         resource_grid_reader_impl.cpp
         resource_grid_writer_impl.cpp
         support_factories.cpp)
-target_link_libraries(ocudu_phy_support ocuduvec ocudu_instrumentation ocudu_ran)
+target_link_libraries(ocudu_phy_support ocuduvec ocudu_instrumentation ocudu_ran ocudu_support_math)
 
 add_to_exported_libs(ocudu_phy_support)

@@ -3,6 +3,7 @@
 
 
 add_subdirectory(versioning)
+add_subdirectory(math)
 
 set(SOURCES
         executors/metrics/executor_metrics_backend.cpp
@@ -37,12 +38,12 @@ set(SOURCES
         signal_handling.cpp
         sysinfo.cpp
         timers.cpp
-        math_utils.cpp
 )
 
 add_library(ocudu_support STATIC ${SOURCES})
-target_link_libraries(ocudu_support PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${YAML_CPP_LIBRARIES}
-	${NUMA_LIBRARIES} ocudulog)
+target_link_libraries(ocudu_support
+        PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${YAML_CPP_LIBRARIES} ${NUMA_LIBRARIES} ocudulog
+        INTERFACE ocudu_support_math)
 add_backward(ocudu_support)
 
 if (Backward_FOUND AND BACKWARD_HAS_EXTERNAL_LIBRARIES)

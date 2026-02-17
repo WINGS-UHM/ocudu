@@ -451,7 +451,7 @@ private:
     return grid;
   }
 
-  void notify_release_scope() override { ocudu_assert(ref_count == 0, "The grid must be reserved."); }
+  void notify_release_scope() override { ocudu_assert(ref_count == 0, "The grid cannot be reserved."); }
 
 public:
   explicit shared_resource_grid_spy(resource_grid& grid_) : grid(grid_) {}

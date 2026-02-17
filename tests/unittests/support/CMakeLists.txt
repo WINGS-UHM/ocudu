@@ -101,6 +101,6 @@ add_executable(resource_usage_test tracing/resource_usage_test.cpp)
 target_link_libraries(resource_usage_test ocudu_support ocudulog gtest gtest_main)
 add_test(resource_usage_test resource_usage_test)
 
-add_executable(math_test math/mod_math_utils_test.cpp)
-target_link_libraries(math_test ocudu_support gtest gtest_main)
+add_executable(math_test math/mod_math_utils_test.cpp math/curve_fitting_find_max_test.cpp)
+target_link_libraries(math_test ocudu_support_math ocuduvec gtest gtest_main)
 add_test(math_test math_test)

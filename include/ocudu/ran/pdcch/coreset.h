@@ -100,32 +100,32 @@ struct coreset_configuration {
   /// \brief Returns optional PDCCH DMRS scrambling ID.
   const std::optional<unsigned>& get_pdcch_dmrs_scrambling_id() const { return pdcch_dmrs_scrambling_id; }
 
-  /// \brief Sets duration for non-CORESET#0.
+  /// \brief Sets duration for coresets other than CORESET#0.
   void set_non_coreset0_duration(uint8_t duration_)
   {
-    ocudu_assert(id != to_coreset_id(0), "Invalid access to CORESET#0 duration");
-    ocudu_assert(duration_ <= pdcch_constants::MAX_CORESET_DURATION, "Invalid CORESET duratioN");
+    ocudu_assert(id != to_coreset_id(0), "Duration of CORESET#0 cannot be manually set");
+    ocudu_assert(duration_ <= pdcch_constants::MAX_CORESET_DURATION, "Invalid CORESET duration");
     dur = duration_;
   }
 
-  /// \brief Sets interleaving parameters for non-CORESET#0.
+  /// \brief Sets interleaving parameters for coresets other than CORESET#0.
   void set_non_coreset0_interleaved(std::optional<interleaved_mapping_type> interleaved_)
   {
-    ocudu_assert(id != to_coreset_id(0), "Invalid access to CORESET#0 interleaving");
+    ocudu_assert(id != to_coreset_id(0), "Cannot manually set interlaved mapping of CORESET#0");
     interleaved = std::move(interleaved_);
   }
 
-  /// \brief Sets precoder granularity for non-CORESET#0.
+  /// \brief Sets precoder granularity for coresets other than CORESET#0.
   void set_non_coreset0_precoder_granularity(precoder_granularity_type precoder_granularity_)
   {
-    ocudu_assert(id != to_coreset_id(0), "Invalid access to CORESET#0 precoder granularity");
+    ocudu_assert(id != to_coreset_id(0), "Cannot manually set precoder granularity of CORESET#0");
     precoder_granurality = precoder_granularity_;
   }
 
-  /// \brief Sets PDCCH DMRS scrambling ID for non-CORESET#0.
+  /// \brief Sets PDCCH DMRS scrambling ID for coresets other than CORESET#0.
   void set_non_coreset0_pdcch_dmrs_scrambling_id(std::optional<unsigned> pdcch_dmrs_scrambling_id_)
   {
-    ocudu_assert(id != to_coreset_id(0), "Invalid access to CORESET#0 DMRS scrambling ID");
+    ocudu_assert(id != to_coreset_id(0), "Cannot manually set DMRS scrambling ID of CORESET#0");
     pdcch_dmrs_scrambling_id = pdcch_dmrs_scrambling_id_;
   }
 
@@ -138,12 +138,12 @@ struct coreset_configuration {
 
   void set_freq_domain_resources(freq_resource_bitmap res_bitmap)
   {
-    ocudu_assert(id != to_coreset_id(0), "Invalid access to CORESET#0 RBs for a coresetId>0");
+    ocudu_assert(id != to_coreset_id(0), "Cannot manually set frequency domain resource bitmap for CORESET#0");
     other_coreset_freq_resources = res_bitmap;
   }
   const freq_resource_bitmap& freq_domain_resources() const
   {
-    ocudu_assert(id != to_coreset_id(0), "Invalid access to CORESET#0 RBs for a coresetId>0");
+    ocudu_assert(id != to_coreset_id(0), "Invalid access to CORESET#0 frequency resource bitmap");
     return other_coreset_freq_resources;
   }
 

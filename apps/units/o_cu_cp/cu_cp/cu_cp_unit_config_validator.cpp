@@ -20,11 +20,12 @@
 using namespace ocudu;
 
 /// Validates field presence and physical range for event-triggered measurement parameters.
+/// Used by both event_triggered and cond_trigger report types.
 /// Returns true on success, prints a diagnostic and returns false on error.
 static bool validate_event_trigger_params(const cu_cp_unit_report_config& cfg)
 {
   if (!cfg.event_triggered_report_type.has_value()) {
-    fmt::print("report_cfg_id={}: event_triggered_report_type must be set for event-triggered report\n",
+    fmt::print("report_cfg_id={}: event_triggered_report_type must be set for event-triggered/cond_trigger report\n",
                cfg.report_cfg_id);
     return false;
   }
@@ -118,7 +119,7 @@ static bool validate_mobility_appconfig(gnb_id_t gnb_id, const cu_cp_unit_mobili
     report_cfg_ids_to_report_type.emplace(report_cfg.report_cfg_id, report_cfg.report_type);
 
     // Check that report configs are valid.
-    if (report_cfg.report_type == "event_triggered") {
+    if (report_cfg.report_type == "event_triggered" or report_cfg.report_type == "cond_trigger") {
       if (!validate_event_trigger_params(report_cfg)) {
         return false;
       }

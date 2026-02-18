@@ -197,7 +197,7 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
   add_option(app, "--report_cfg_id", report_params.report_cfg_id, "Report configuration id to be configured")
       ->check(CLI::Range(1, 64));
   add_option(app, "--report_type", report_params.report_type, "Type of the report configuration")
-      ->check(CLI::IsMember({"periodical", "event_triggered"}));
+      ->check(CLI::IsMember({"periodical", "event_triggered", "cond_trigger"}));
   add_option(app,
              "--event_triggered_report_type",
              report_params.event_triggered_report_type,

@@ -68,7 +68,7 @@ struct cu_cp_unit_amf_config {
   unsigned amf_reconnection_retry_time = 1000;
 };
 
-/// Report configuration for periodical and event-triggered report types.
+/// Report configuration for periodical, event-triggered and conditional-trigger report types.
 /// Event-triggered reports support events A1–A6 as defined in 3GPP TS 38.331.
 struct cu_cp_unit_report_config {
   unsigned    report_cfg_id;

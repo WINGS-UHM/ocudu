@@ -421,21 +421,14 @@ struct rrc_report_sftd_nr {
   bool report_rsrp;
 };
 
-struct rrc_cond_event_a3 {
-  rrc_meas_trigger_quant_offset a3_offset;
-  uint8_t                       hysteresis;
-  uint16_t                      time_to_trigger;
+/// Conditional trigger configuration for CHO (see TS 38.331 CondTriggerConfig-r16).
+struct rrc_cond_trigger_cfg {
+  rrc_event_id   cond_event_id; ///< The conditional event (A3, A5, ...)
+  rrc_nr_rs_type rs_type;       ///< Reference signal type (SSB or CSI-RS)
 };
 
-struct rrc_cond_event_a5 {
-  rrc_meas_trigger_quant a5_thres1;
-  rrc_meas_trigger_quant a5_thres2;
-  uint8_t                hysteresis;
-  uint16_t               time_to_trigger;
-};
-
-using rrc_report_cfg_nr =
-    std::variant<rrc_periodical_report_cfg, rrc_event_trigger_cfg, rrc_report_cgi, rrc_report_sftd_nr>;
+using rrc_report_cfg_nr = std::
+    variant<rrc_periodical_report_cfg, rrc_event_trigger_cfg, rrc_report_cgi, rrc_report_sftd_nr, rrc_cond_trigger_cfg>;
 
 struct rrc_report_cfg_to_add_mod {
   report_cfg_id_t   report_cfg_id;

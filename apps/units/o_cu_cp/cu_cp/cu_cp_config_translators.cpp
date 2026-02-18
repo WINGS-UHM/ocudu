@@ -262,13 +262,12 @@ static ocucp::rrc_meas_trigger_quant build_meas_trigger_offset(const std::string
   return q;
 }
 
-static ocucp::rrc_report_cfg_nr
-generate_cu_cp_event_trigger_report_config(const cu_cp_unit_report_config& report_cfg_item)
+static ocucp::rrc_report_cfg_nr generate_cu_cp_trigger_report_config(const cu_cp_unit_report_config& report_cfg_item)
 {
   const std::string& ev  = report_cfg_item.event_triggered_report_type.value();
   const std::string& qty = report_cfg_item.meas_trigger_quantity.value();
 
-  // Build rrc_event_id.
+  // Build rrc_event_id (common to both event-triggered and conditional-trigger).
   ocucp::rrc_event_id event_id;
 
   if (ev == "a1") {
@@ -301,6 +300,14 @@ generate_cu_cp_event_trigger_report_config(const cu_cp_unit_report_config& repor
       event_id.meas_trigger_quant_thres_2 =
           build_meas_trigger_threshold(qty, report_cfg_item.meas_trigger_quantity_threshold_2_db.value());
     }
+  }
+
+  // Conditional-trigger: wrap in rrc_cond_trigger_cfg (no report interval/amount fields).
+  if (report_cfg_item.report_type == "cond_trigger") {
+    ocucp::rrc_cond_trigger_cfg cond_trigger_cfg;
+    cond_trigger_cfg.cond_event_id = event_id;
+    cond_trigger_cfg.rs_type       = ocucp::rrc_nr_rs_type::ssb;
+    return cond_trigger_cfg;
   }
 
   // Event-triggered specific parameters.
@@ -471,7 +478,7 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
     if (report_cfg_item.report_type == "periodical") {
       report_cfg = generate_cu_cp_periodical_report_config(report_cfg_item);
     } else {
-      report_cfg = generate_cu_cp_event_trigger_report_config(report_cfg_item);
+      report_cfg = generate_cu_cp_trigger_report_config(report_cfg_item);
     }
 
     // Store config.

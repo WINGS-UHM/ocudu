@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/pdcp/pdcp_entity.h"
 #include "ocudu/pdcp/pdcp_rx.h"

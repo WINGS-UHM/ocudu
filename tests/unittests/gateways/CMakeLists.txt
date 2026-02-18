@@ -14,6 +14,7 @@ gtest_discover_tests(sctp_socket_test PROPERTIES "LABELS;sctp")
 
 add_executable(sctp_network_gateway_test
         sctp_network_server_test.cpp
+        sctp_network_server_peer_test.cpp
         sctp_network_client_test.cpp
         sctp_network_link_test.cpp)
 target_link_libraries(sctp_network_gateway_test ocudu_gateway ocudu_support ocudulog gtest gtest_main)

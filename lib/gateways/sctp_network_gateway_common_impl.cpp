@@ -131,7 +131,7 @@ struct fmt::formatter<sctp_sn_type> : fmt::formatter<std::string_view> {
 
 sockaddr_searcher::sockaddr_searcher(const std::string& address, int port, ocudulog::basic_logger& logger)
 {
-  struct addrinfo hints {};
+  struct addrinfo hints = {};
   // support ipv4, ipv6 and hostnames
   hints.ai_family    = AF_UNSPEC;
   hints.ai_socktype  = SOCK_SEQPACKET;

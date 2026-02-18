@@ -220,6 +220,30 @@ void sctp_network_server_impl::handle_data(int assoc_id, span<const uint8_t> pay
   assoc_it->second.sctp_data_recv_notifier->on_new_sdu(byte_buffer{byte_buffer::fallback_allocation_tag{}, payload});
 }
 
+bool sctp_network_server_impl::init_association_with_msg(transport_layer_address dest_addr, byte_buffer payload)
+{
+  logger.info("{}: Initializing association to {}", node_cfg.if_name, dest_addr);
+
+  std::array<uint8_t, 3000> buffer = {};
+  to_span(payload, buffer);
+  transport_layer_address::native_type native_addr = dest_addr.native();
+  int                                  bytes_sent  = ::sctp_sendmsg(get_socket_fd(),
+                                  buffer.data(),
+                                  payload.length(),
+                                  const_cast<struct sockaddr*>(native_addr.addr),
+                                  native_addr.addrlen,
+                                  htonl(node_cfg.ppid),
+                                  0,
+                                  stream_no,
+                                  0,
+                                  0);
+  if (bytes_sent == -1) {
+    logger.error(": Closing SCTP association. Cause: could not initialize association. errno={}", ::strerror(errno));
+    return false;
+  }
+  return true;
+}
+
 void sctp_network_server_impl::handle_notification(span<const uint8_t>           payload,
                                                    const struct sctp_sndrcvinfo& sri,
                                                    const sockaddr&               src_addr,

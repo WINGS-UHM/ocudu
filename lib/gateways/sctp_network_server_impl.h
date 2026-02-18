@@ -45,6 +45,8 @@ public:
 
   std::optional<uint16_t> get_listen_port() override;
 
+  bool init_association_with_msg(transport_layer_address dest_addr, byte_buffer payload) override;
+
 private:
   class sctp_send_notifier;
 

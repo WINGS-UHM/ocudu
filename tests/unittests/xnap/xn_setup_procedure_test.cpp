@@ -79,7 +79,8 @@ protected:
 
   xnap_configuration xnap_peer_cfg = {
       peer_gnb_id,
-      std::vector<supported_tracking_area>{{peer_tac, std::vector<plmn_item>{{peer_plmn, peer_slice_support_list}}}}};
+      std::vector<supported_tracking_area>{{peer_tac, std::vector<plmn_item>{{peer_plmn, peer_slice_support_list}}}},
+      std::vector<guami_t>{{.plmn = local_plmn, .amf_region_id = 1}}};
 
   std::optional<xnap_message> get_last_message()
   {
@@ -90,7 +91,7 @@ protected:
   }
 
 private:
-  dummy_xnap_message_notifier* tx_assoc;
+  dummy_xnap_message_notifier* tx_assoc = nullptr;
 };
 
 TEST_F(xn_setup_procedure_test, when_correct_setup_received_from_peer_setup_complete_is_sent)

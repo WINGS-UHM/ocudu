@@ -66,8 +66,12 @@ inline xnap_message generate_asn1_xn_setup_request(const xnap_configuration& xna
   }
 
   // Fill AMF region information.
-  // TODO.
-  asn1_ies->amf_region_info.resize(1);
+  for (const auto& guami : xnap_cfg.guami_list) {
+    asn1::xnap::global_amf_region_info_s amf_region_info;
+    amf_region_info.plmn_id = guami.plmn.to_bytes();
+    amf_region_info.amf_region_id.from_number(guami.amf_region_id);
+    asn1_ies->amf_region_info.push_back(amf_region_info);
+  }
 
   return xn_setup_req;
 }

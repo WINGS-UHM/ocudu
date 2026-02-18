@@ -941,6 +941,34 @@ ocudu::ocucp::event_triggered_report_cfg_to_rrc_asn1(const rrc_event_trigger_cfg
   return asn1_event_trigger_cfg;
 }
 
+asn1::rrc_nr::cond_trigger_cfg_r16_s
+ocudu::ocucp::cond_trigger_cfg_to_rrc_asn1(const rrc_cond_trigger_cfg& cond_trigger_cfg)
+{
+  using namespace asn1::rrc_nr;
+  cond_trigger_cfg_r16_s asn1_cond_trigger_cfg;
+
+  const auto& cond_event = cond_trigger_cfg.cond_event_id;
+
+  // Convert conditional event based on ID.
+  if (cond_event.id == rrc_event_id::event_id_t::a3) {
+    auto& asn1_cond_event_a3 = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_a3();
+    meas_trigger_quant_to_rrc_asn1(asn1_cond_event_a3.a3_offset, cond_event.meas_trigger_quant_thres_or_offset.value());
+    asn1_cond_event_a3.hysteresis = cond_event.hysteresis;
+    asn1::number_to_enum(asn1_cond_event_a3.time_to_trigger, cond_event.time_to_trigger);
+  } else if (cond_event.id == rrc_event_id::event_id_t::a5) {
+    auto& asn1_cond_event_a5 = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_a5();
+    meas_trigger_quant_to_rrc_asn1(asn1_cond_event_a5.a5_thres1, cond_event.meas_trigger_quant_thres_or_offset.value());
+    meas_trigger_quant_to_rrc_asn1(asn1_cond_event_a5.a5_thres2, cond_event.meas_trigger_quant_thres_2.value());
+    asn1_cond_event_a5.hysteresis = cond_event.hysteresis;
+    asn1::number_to_enum(asn1_cond_event_a5.time_to_trigger, cond_event.time_to_trigger);
+  }
+
+  // Set RS type
+  asn1_cond_trigger_cfg.rs_type_r16 = rrc_nr_rs_type_to_asn1(cond_trigger_cfg.rs_type);
+
+  return asn1_cond_trigger_cfg;
+}
+
 asn1::rrc_nr::report_cfg_nr_s ocudu::ocucp::report_cfg_nr_to_rrc_asn1(const rrc_report_cfg_nr& report_cfg_nr)
 {
   asn1::rrc_nr::report_cfg_nr_s asn1_report_cfg_nr;
@@ -966,6 +994,11 @@ asn1::rrc_nr::report_cfg_nr_s ocudu::ocucp::report_cfg_nr_to_rrc_asn1(const rrc_
     asn1_report_cfg_nr.report_type.set_report_sftd();
     asn1_report_cfg_nr.report_type.report_sftd().report_sftd_meas = report_sftd->report_sftd_meas;
     asn1_report_cfg_nr.report_type.report_sftd().report_rsrp      = report_sftd->report_rsrp;
+  }
+
+  if (const auto* cond_trigger = std::get_if<rrc_cond_trigger_cfg>(&report_cfg_nr); cond_trigger != nullptr) {
+    // conditional trigger config
+    asn1_report_cfg_nr.report_type.set_cond_trigger_cfg_r16() = cond_trigger_cfg_to_rrc_asn1(*cond_trigger);
   }
 
   return asn1_report_cfg_nr;

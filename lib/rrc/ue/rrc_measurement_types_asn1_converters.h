@@ -122,6 +122,11 @@ void meas_trigger_quant_to_rrc_asn1(asn1_meas_trigger_quant_quant_offset& asn1_m
 asn1::rrc_nr::event_trigger_cfg_s
 event_triggered_report_cfg_to_rrc_asn1(const rrc_event_trigger_cfg& event_trigger_cfg);
 
+/// \brief Convert type \c rrc_cond_trigger_cfg to an RRC NR ASN.1 type.
+/// \param[in] cond_trigger_cfg conditional trigger config object.
+/// \return The RRC NR ASN.1 object where the result of the conversion is stored.
+asn1::rrc_nr::cond_trigger_cfg_r16_s cond_trigger_cfg_to_rrc_asn1(const rrc_cond_trigger_cfg& cond_trigger_cfg);
+
 /// \brief Convert type \c rrc_report_cfg_nr to an RRC NR ASN.1 type.
 /// \param[in] report_cfg_nr report config object.
 /// \return The RRC NR ASN.1 object where the result of the conversion is stored.

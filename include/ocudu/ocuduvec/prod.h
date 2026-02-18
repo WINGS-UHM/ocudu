@@ -27,6 +27,7 @@ namespace ocuduvec {
 void prod(span<cf_t> z, span<const cf_t> x, span<const cf_t> y);
 void prod(span<cf_t> z, span<const cf_t> x, span<const float> y);
 void prod(span<cf_t> z, span<const float> x, span<const cf_t> y);
+void prod(span<cbf16_t> z, span<const cf_t> x, span<const cf_t> y);
 void prod(span<float> z, span<const float> x, span<const float> y);
 void prod(span<int16_t> z, span<const int16_t> x, span<const int16_t> y);
 ///@}

@@ -109,6 +109,26 @@ static void prod_ccc_simd(const cf_t* x, const cf_t* y, cf_t* z, std::size_t len
   }
 }
 
+static void prod_ccc_simd(const cf_t* x, const cf_t* y, cbf16_t* z, std::size_t len)
+{
+  std::size_t i = 0;
+
+#if OCUDU_SIMD_CF_SIZE
+  for (std::size_t i_end = (len / OCUDU_SIMD_CF_SIZE) * OCUDU_SIMD_CF_SIZE; i != i_end; i += OCUDU_SIMD_CF_SIZE) {
+    simd_cf_t a = ocudu_simd_cfi_loadu(x + i);
+    simd_cf_t b = ocudu_simd_cfi_loadu(y + i);
+
+    simd_cf_t r = ocudu_simd_cf_prod(a, b);
+
+    ocudu_simd_cbf16_storeu(z + i, r);
+  }
+#endif
+
+  for (; i != len; ++i) {
+    z[i] = x[i] * y[i];
+  }
+}
+
 static void prod_conj_ccc_simd(const cf_t* x, const cf_t* y, cf_t* z, std::size_t len)
 {
   std::size_t i = 0;
@@ -192,6 +212,14 @@ static void prod_cexp_simd(cf_t* out, const cf_t* in, float cfo, float initial_p
 }
 
 void ocudu::ocuduvec::prod(span<cf_t> z, span<const cf_t> x, span<const cf_t> y)
+{
+  ocudu_ocuduvec_assert_size(x, y);
+  ocudu_ocuduvec_assert_size(x, z);
+
+  prod_ccc_simd(x.data(), y.data(), z.data(), x.size());
+}
+
+void ocudu::ocuduvec::prod(span<cbf16_t> z, span<const cf_t> x, span<const cf_t> y)
 {
   ocudu_ocuduvec_assert_size(x, y);
   ocudu_ocuduvec_assert_size(x, z);

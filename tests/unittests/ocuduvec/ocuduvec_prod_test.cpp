@@ -15,6 +15,7 @@
 
 static std::mt19937 rgen(0);
 static const float  ASSERT_MAX_ERROR      = 1e-6;
+static const float  ASSERT_MAX_ERROR_BF16 = 1e-2;
 static const float  ASSERT_MAX_ERROR_CEXP = 1e-5;
 
 using namespace ocudu;
@@ -49,6 +50,31 @@ TEST_P(OcuduVecProdFixture, ProdCCC)
     cf_t  gold_z = x[i] * y[i];
     float err    = std::abs(gold_z - z[i]);
     ASSERT_LT(err, ASSERT_MAX_ERROR);
+  }
+}
+
+TEST_P(OcuduVecProdFixture, ProdCCCBF16)
+{
+  std::uniform_real_distribution<float> dist(-1.0, 1.0);
+
+  std::vector<cf_t> x(N);
+  for (cf_t& v : x) {
+    v = {dist(rgen), dist(rgen)};
+  }
+
+  std::vector<cf_t> y(N);
+  for (cf_t& v : y) {
+    v = {dist(rgen), dist(rgen)};
+  }
+
+  std::vector<cbf16_t> z(N);
+
+  ocuduvec::prod(z, x, y);
+
+  for (size_t i = 0; i != N; ++i) {
+    cf_t  gold_z = x[i] * y[i];
+    float err    = std::abs(gold_z - to_cf(z[i]));
+    ASSERT_LT(err, ASSERT_MAX_ERROR_BF16);
   }
 }
 

@@ -220,27 +220,25 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
              "Measurement trigger quantity (RSRP/RSRQ/SINR)")
       ->check(CLI::IsMember({"rsrp", "rsrq", "sinr"}));
   add_option(app,
-             "--meas_trigger_quantitiy_threshold_db",
+             "--meas_trigger_quantity_threshold_db",
              report_params.meas_trigger_quantity_threshold_db,
-             "Measurement trigger quantity threshold in dB used for measurement report trigger of event A1/A2/A4/A5")
-      ->check(CLI::Range(0, 127));
+             "Measurement trigger quantity threshold in dB used for measurement report trigger of event A1/A2/A4/A5"
+             "Valid ranges: RSRP [-156..-31] dBm, RSRQ [-43..20] dB, SINR [-23..40] dB")
+      ->check(CLI::Range(-156, 40));
   add_option(app,
-             "--meas_trigger_quantitiy_threshold_2_db",
+             "--meas_trigger_quantity_threshold_2_db",
              report_params.meas_trigger_quantity_threshold_2_db,
-             "Measurement trigger quantity threshold 2 in dB used for measurement report trigger of event A5")
-      ->check(CLI::Range(0, 127));
+             "Measurement trigger quantity threshold 2 in dB used for measurement report trigger of event A5"
+             "Valid ranges: RSRP [-156..-31] dBm, RSRQ [-43..20] dB, SINR [-23..40] dB")
+      ->check(CLI::Range(-156, 40));
   add_option(app,
              "--meas_trigger_quantity_offset_db",
              report_params.meas_trigger_quantity_offset_db,
-             "Measurement trigger quantity offset in dB used for measurement report trigger of event A3/A6. Note the "
-             "actual value is field value * 0.5 dB")
-
-      ->check(CLI::Range(-30, 30));
-  add_option(app,
-             "--hysteresis_db",
-             report_params.hysteresis_db,
-             "Hysteresis in dB used for measurement report trigger. Note the actual value is field value * 0.5 dB")
-      ->check(CLI::Range(0, 30));
+             "Measurement trigger quantity offset in dB used for measurement report trigger of event A3/A6.")
+      ->check(CLI::Range(-15, 15));
+  add_option(
+      app, "--hysteresis_db", report_params.hysteresis_db, "Hysteresis in dB used for measurement report trigger.")
+      ->check(CLI::Range(0, 15));
   add_option(app,
              "--time_to_trigger_ms",
              report_params.time_to_trigger_ms,

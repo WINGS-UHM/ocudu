@@ -156,34 +156,44 @@ static YAML::Node build_cu_cp_mobility_report_section(const cu_cp_unit_report_co
 {
   YAML::Node node;
 
-  node["report_cfg_id"] = config.report_cfg_id;
-  node["report_type"]   = config.report_type;
-  if (config.event_triggered_report_type) {
-    node["event_triggered_report_type"] = config.event_triggered_report_type.value();
-    if (config.meas_trigger_quantity_threshold_db) {
-      node["meas_trigger_quantity_threshold_db"] = config.meas_trigger_quantity_threshold_db.value();
-    }
-    if (config.meas_trigger_quantity_threshold_2_db) {
-      node["meas_trigger_quantity_threshold_2_db"] = config.meas_trigger_quantity_threshold_2_db.value();
-    }
-    if (config.meas_trigger_quantity_offset_db) {
-      node["meas_trigger_quantity_offset_db"] = config.meas_trigger_quantity_offset_db.value();
-    }
-    if (config.hysteresis_db) {
-      node["hysteresis_db"] = config.hysteresis_db.value();
-    }
-    if (config.meas_trigger_quantity) {
-      node["meas_trigger_quantity"] = config.meas_trigger_quantity.value();
-    }
-    if (config.time_to_trigger_ms) {
-      node["time_to_trigger_ms"] = config.time_to_trigger_ms.value();
-    }
-    if (config.t312_ms) {
-      node["t312_ms"] = config.t312_ms.value();
-    }
+  node["report_cfg_id"]      = config.report_cfg_id;
+  node["report_type"]        = config.report_type;
+  node["report_interval_ms"] = config.report_interval_ms;
+
+  if (!config.event_triggered_report_type) {
+    return node;
   }
 
-  node["report_interval_ms"] = config.report_interval_ms;
+  // Helper: emit an optional field only when present.
+  auto add_opt = [&](const char* key, const auto& opt) {
+    if (opt.has_value()) {
+      node[key] = opt.value();
+    }
+  };
+
+  const std::string& ev               = config.event_triggered_report_type.value();
+  node["event_triggered_report_type"] = ev;
+
+  // Parameters common to all event types.
+  add_opt("meas_trigger_quantity", config.meas_trigger_quantity);
+  add_opt("hysteresis_db", config.hysteresis_db);
+  add_opt("time_to_trigger_ms", config.time_to_trigger_ms);
+  add_opt("t312_ms", config.t312_ms);
+
+  // A1, A2, A4, A5 - absolute threshold on one measurement quantity.
+  if (ev == "a1" or ev == "a2" or ev == "a4" or ev == "a5") {
+    add_opt("meas_trigger_quantity_threshold_db", config.meas_trigger_quantity_threshold_db);
+  }
+
+  // A5 only - second absolute threshold (serving < T1 AND neighbour > T2).
+  if (ev == "a5") {
+    add_opt("meas_trigger_quantity_threshold_2_db", config.meas_trigger_quantity_threshold_2_db);
+  }
+
+  // A3, A6 - neighbour offset relative to serving cell.
+  if (ev == "a3" or ev == "a6") {
+    add_opt("meas_trigger_quantity_offset_db", config.meas_trigger_quantity_offset_db);
+  }
 
   return node;
 }
@@ -194,10 +204,10 @@ static YAML::Node build_cu_cp_mobility_section(const cu_cp_unit_mobility_config&
 
   node["trigger_handover_from_measurements"] = config.trigger_handover_from_measurements;
   for (const auto& cell : config.cells) {
-    node["cells"] = build_cu_cp_mobility_cells_section(cell);
+    node["cells"].push_back(build_cu_cp_mobility_cells_section(cell));
   }
   for (const auto& report : config.report_configs) {
-    node["report_configs"] = build_cu_cp_mobility_report_section(report);
+    node["report_configs"].push_back(build_cu_cp_mobility_report_section(report));
   }
 
   return node;

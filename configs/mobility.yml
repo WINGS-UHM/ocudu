@@ -41,7 +41,7 @@ cu_cp:
         report_type: event_triggered
         event_triggered_report_type: a3
         meas_trigger_quantity: rsrp
-        meas_trigger_quantity_offset_db: 6
+        meas_trigger_quantity_offset_db: 3
         hysteresis_db: 0
         time_to_trigger_ms: 100
         report_interval_ms: 1024

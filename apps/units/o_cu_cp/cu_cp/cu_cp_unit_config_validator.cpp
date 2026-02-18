@@ -19,6 +19,93 @@
 
 using namespace ocudu;
 
+/// Validates field presence and physical range for event-triggered measurement parameters.
+/// Returns true on success, prints a diagnostic and returns false on error.
+static bool validate_event_trigger_params(const cu_cp_unit_report_config& cfg)
+{
+  if (!cfg.event_triggered_report_type.has_value()) {
+    fmt::print("report_cfg_id={}: event_triggered_report_type must be set for event-triggered report\n",
+               cfg.report_cfg_id);
+    return false;
+  }
+  if (!cfg.meas_trigger_quantity.has_value() or !cfg.hysteresis_db.has_value() or !cfg.time_to_trigger_ms.has_value()) {
+    fmt::print("report_cfg_id={}: meas_trigger_quantity, hysteresis_db, and time_to_trigger_ms are required\n",
+               cfg.report_cfg_id);
+    return false;
+  }
+
+  // Hysteresis range: [0..15] dB (ASN.1 encodes as value × 2, so [0..30] in 0.5 dB steps).
+  if (cfg.hysteresis_db.value() > 15) {
+    fmt::print(
+        "report_cfg_id={}: hysteresis_db={} out of range [0..15] dB\n", cfg.report_cfg_id, cfg.hysteresis_db.value());
+    return false;
+  }
+
+  const std::string& ev  = cfg.event_triggered_report_type.value();
+  const std::string& qty = cfg.meas_trigger_quantity.value();
+
+  if (ev == "a3" or ev == "a6") {
+    if (!cfg.meas_trigger_quantity_offset_db.has_value()) {
+      fmt::print("report_cfg_id={}: A3/A6 event requires meas_trigger_quantity_offset_db\n", cfg.report_cfg_id);
+      return false;
+    }
+    // Offset range: [-15..+15] dB (ASN.1 encodes as value × 2, giving [-30..+30] in 0.5 dB steps).
+    int offset = cfg.meas_trigger_quantity_offset_db.value();
+    if (offset < -15 or offset > 15) {
+      fmt::print("report_cfg_id={}: meas_trigger_quantity_offset_db={} out of range [-15..15] dB\n",
+                 cfg.report_cfg_id,
+                 offset);
+      return false;
+    }
+  } else {
+    // A1, A2, A4, A5: absolute threshold required.
+    if (!cfg.meas_trigger_quantity_threshold_db.has_value()) {
+      fmt::print("report_cfg_id={}: A1/A2/A4/A5 event requires meas_trigger_quantity_threshold_db\n",
+                 cfg.report_cfg_id);
+      return false;
+    }
+    if (ev == "a5" and !cfg.meas_trigger_quantity_threshold_2_db.has_value()) {
+      fmt::print("report_cfg_id={}: A5 event requires meas_trigger_quantity_threshold_2_db\n", cfg.report_cfg_id);
+      return false;
+    }
+
+    // Validate threshold range(s) per measurement quantity.
+    auto check_threshold = [&](int val, const char* label) -> bool {
+      if (qty == "rsrp") {
+        if (val < -156 or val > -31) {
+          fmt::print("report_cfg_id={}: RSRP {} = {} dBm out of range [-156..-31]\n", cfg.report_cfg_id, label, val);
+          return false;
+        }
+      } else if (qty == "rsrq") {
+        if (val < -43 or val > 20) {
+          fmt::print("report_cfg_id={}: RSRQ {} = {} dB out of range [-43..20]\n", cfg.report_cfg_id, label, val);
+          return false;
+        }
+      } else if (qty == "sinr") {
+        if (val < -23 or val > 40) {
+          fmt::print("report_cfg_id={}: SINR {} = {} dB out of range [-23..40]\n", cfg.report_cfg_id, label, val);
+          return false;
+        }
+      } else {
+        fmt::print("report_cfg_id={}: invalid meas_trigger_quantity={}\n", cfg.report_cfg_id, qty);
+        return false;
+      }
+      return true;
+    };
+
+    if (!check_threshold(cfg.meas_trigger_quantity_threshold_db.value(), "threshold1")) {
+      return false;
+    }
+    if (ev == "a5") {
+      if (!check_threshold(cfg.meas_trigger_quantity_threshold_2_db.value(), "threshold2")) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 static bool validate_mobility_appconfig(gnb_id_t gnb_id, const cu_cp_unit_mobility_config& config)
 {
   std::map<unsigned, std::string> report_cfg_ids_to_report_type;
@@ -32,38 +119,8 @@ static bool validate_mobility_appconfig(gnb_id_t gnb_id, const cu_cp_unit_mobili
 
     // Check that report configs are valid.
     if (report_cfg.report_type == "event_triggered") {
-      if (!report_cfg.event_triggered_report_type.has_value()) {
-        fmt::print("Invalid CU-CP configuration. If report type is set to \"event_triggered\" then "
-                   "\"event_triggered_report_type\" must be set\n");
+      if (!validate_event_trigger_params(report_cfg)) {
         return false;
-      }
-
-      if (report_cfg.event_triggered_report_type.value() == "a1" or
-          report_cfg.event_triggered_report_type.value() == "a2" or
-          report_cfg.event_triggered_report_type.value() == "a4") {
-        if (!report_cfg.meas_trigger_quantity.has_value() or
-            !report_cfg.meas_trigger_quantity_threshold_db.has_value() or !report_cfg.hysteresis_db.has_value() or
-            !report_cfg.time_to_trigger_ms.has_value()) {
-          fmt::print("Invalid event A1/A2/A4 measurement report configuration.\n");
-          return false;
-        }
-      }
-      if (report_cfg.event_triggered_report_type.value() == "a3" or
-          report_cfg.event_triggered_report_type.value() == "a6") {
-        if (!report_cfg.meas_trigger_quantity.has_value() or !report_cfg.meas_trigger_quantity_offset_db.has_value() or
-            !report_cfg.hysteresis_db.has_value() or !report_cfg.time_to_trigger_ms.has_value()) {
-          fmt::print("Invalid event A3/A6 measurement report configuration.\n");
-          return false;
-        }
-      }
-      if (report_cfg.event_triggered_report_type.value() == "a5") {
-        if (!report_cfg.meas_trigger_quantity.has_value() or
-            !report_cfg.meas_trigger_quantity_threshold_db.has_value() or
-            !report_cfg.meas_trigger_quantity_threshold_2_db.has_value() or !report_cfg.hysteresis_db.has_value() or
-            !report_cfg.time_to_trigger_ms.has_value()) {
-          fmt::print("Invalid event A5 measurement report configuration.\n");
-          return false;
-        }
       }
     }
 

@@ -225,105 +225,92 @@ generate_cu_cp_periodical_report_config(const cu_cp_unit_report_config& report_c
   return periodical;
 }
 
-static ocucp::rrc_event_trigger_cfg
+/// Build a measurement trigger quantity for absolute thresholds (A1, A2, A4, A5).
+/// Applies 3GPP TS 38.331 encoding:
+///   RSRP [dBm]:  ASN.1 = value + 156      (range [-156..-31] -> [0..125])
+///   RSRQ [dB]:   ASN.1 = (value + 43) x 2 (range [-43..20]   -> [0..126])
+///   SINR [dB]:   ASN.1 = (value + 23) x 2 (range [-23..40]   -> [0..126])
+static ocucp::rrc_meas_trigger_quant build_meas_trigger_threshold(const std::string& qty, int db_val)
+{
+  ocucp::rrc_meas_trigger_quant q;
+  if (qty == "rsrp") {
+    q.rsrp = static_cast<uint8_t>(db_val + 156);
+  } else if (qty == "rsrq") {
+    q.rsrq = static_cast<uint8_t>((db_val + 43) * 2);
+  } else if (qty == "sinr") {
+    q.sinr = static_cast<uint8_t>((db_val + 23) * 2);
+  } else {
+    report_error("Invalid measurement trigger quantity: {}\n", qty);
+  }
+  return q;
+}
+
+/// Build a measurement trigger quantity for relative offsets (A3, A6).
+/// Applies 3GPP TS 38.331 encoding: ASN.1 = value x 2 (dB -> 0.5 dB steps).
+static ocucp::rrc_meas_trigger_quant build_meas_trigger_offset(const std::string& qty, int db_val)
+{
+  ocucp::rrc_meas_trigger_quant q;
+  if (qty == "rsrp") {
+    q.rsrp = static_cast<uint8_t>(db_val * 2);
+  } else if (qty == "rsrq") {
+    q.rsrq = static_cast<uint8_t>(db_val * 2);
+  } else if (qty == "sinr") {
+    q.sinr = static_cast<uint8_t>(db_val * 2);
+  } else {
+    report_error("Invalid measurement trigger quantity: {}\n", qty);
+  }
+  return q;
+}
+
+static ocucp::rrc_report_cfg_nr
 generate_cu_cp_event_trigger_report_config(const cu_cp_unit_report_config& report_cfg_item)
 {
-  ocucp::rrc_event_trigger_cfg event_trigger_cfg;
+  const std::string& ev  = report_cfg_item.event_triggered_report_type.value();
+  const std::string& qty = report_cfg_item.meas_trigger_quantity.value();
 
-  {
-    ocucp::rrc_event_id event_id;
+  // Build rrc_event_id.
+  ocucp::rrc_event_id event_id;
 
-    if (report_cfg_item.event_triggered_report_type.value() == "a1") {
-      event_id.id = ocucp::rrc_event_id::event_id_t::a1;
-    }
-    if (report_cfg_item.event_triggered_report_type.value() == "a2") {
-      event_id.id = ocucp::rrc_event_id::event_id_t::a2;
-    }
-    if (report_cfg_item.event_triggered_report_type.value() == "a3") {
-      event_id.id = ocucp::rrc_event_id::event_id_t::a3;
-    }
-    if (report_cfg_item.event_triggered_report_type.value() == "a4") {
-      event_id.id = ocucp::rrc_event_id::event_id_t::a4;
-    }
-    if (report_cfg_item.event_triggered_report_type.value() == "a5") {
-      event_id.id = ocucp::rrc_event_id::event_id_t::a5;
-    }
-    if (report_cfg_item.event_triggered_report_type.value() == "a6") {
-      event_id.id = ocucp::rrc_event_id::event_id_t::a6;
-    }
-
-    event_id.meas_trigger_quant_thres_or_offset.emplace();
-
-    // Event id
-    if (report_cfg_item.event_triggered_report_type.value() == "a1" or
-        report_cfg_item.event_triggered_report_type.value() == "a2" or
-        report_cfg_item.event_triggered_report_type.value() == "a4" or
-        report_cfg_item.event_triggered_report_type.value() == "a5") {
-      if (report_cfg_item.event_triggered_report_type.value() == "a5") {
-        event_id.meas_trigger_quant_thres_2.emplace();
-      }
-      // Meas trigger quantity threshold
-      if (report_cfg_item.meas_trigger_quantity.value() == "rsrp") {
-        event_id.meas_trigger_quant_thres_or_offset.value().rsrp =
-            report_cfg_item.meas_trigger_quantity_threshold_db.value();
-        if (report_cfg_item.event_triggered_report_type.value() == "a5") {
-          event_id.meas_trigger_quant_thres_2.value().rsrp =
-              report_cfg_item.meas_trigger_quantity_threshold_2_db.value();
-        }
-      } else if (report_cfg_item.meas_trigger_quantity.value() == "rsrq") {
-        event_id.meas_trigger_quant_thres_or_offset.value().rsrq =
-            report_cfg_item.meas_trigger_quantity_threshold_db.value();
-        if (report_cfg_item.event_triggered_report_type.value() == "a5") {
-          event_id.meas_trigger_quant_thres_2.value().rsrq =
-              report_cfg_item.meas_trigger_quantity_threshold_2_db.value();
-        }
-      } else if (report_cfg_item.meas_trigger_quantity.value() == "sinr") {
-        event_id.meas_trigger_quant_thres_or_offset.value().sinr =
-            report_cfg_item.meas_trigger_quantity_threshold_db.value();
-        if (report_cfg_item.event_triggered_report_type.value() == "a5") {
-          event_id.meas_trigger_quant_thres_2.value().sinr =
-              report_cfg_item.meas_trigger_quantity_threshold_2_db.value();
-        }
-      }
-    }
-
-    if (report_cfg_item.event_triggered_report_type.value() == "a3" or
-        report_cfg_item.event_triggered_report_type.value() == "a6") {
-      // Meas trigger quantity offset
-      if (report_cfg_item.meas_trigger_quantity.value() == "rsrp") {
-        event_id.meas_trigger_quant_thres_or_offset.value().rsrp =
-            report_cfg_item.meas_trigger_quantity_offset_db.value();
-      } else if (report_cfg_item.meas_trigger_quantity.value() == "rsrq") {
-        event_id.meas_trigger_quant_thres_or_offset.value().rsrq =
-            report_cfg_item.meas_trigger_quantity_offset_db.value();
-      } else if (report_cfg_item.meas_trigger_quantity.value() == "sinr") {
-        event_id.meas_trigger_quant_thres_or_offset.value().sinr =
-            report_cfg_item.meas_trigger_quantity_offset_db.value();
-      }
-    }
-
-    if (report_cfg_item.event_triggered_report_type.value() == "a3" or
-        report_cfg_item.event_triggered_report_type.value() == "a4" or
-        report_cfg_item.event_triggered_report_type.value() == "a5" or
-        report_cfg_item.event_triggered_report_type.value() == "a6") {
-      // Report on leave
-      event_id.use_allowed_cell_list = false;
-    }
-
-    // Common parameters
-
-    // Report on leave
-    event_id.report_on_leave = false;
-
-    // Hysteresis
-    event_id.hysteresis = report_cfg_item.hysteresis_db.value();
-
-    // Time to trigger
-    event_id.time_to_trigger = report_cfg_item.time_to_trigger_ms.value();
-
-    event_trigger_cfg.event_id = event_id;
+  if (ev == "a1") {
+    event_id.id = ocucp::rrc_event_id::event_id_t::a1;
+  } else if (ev == "a2") {
+    event_id.id = ocucp::rrc_event_id::event_id_t::a2;
+  } else if (ev == "a3") {
+    event_id.id = ocucp::rrc_event_id::event_id_t::a3;
+  } else if (ev == "a4") {
+    event_id.id = ocucp::rrc_event_id::event_id_t::a4;
+  } else if (ev == "a5") {
+    event_id.id = ocucp::rrc_event_id::event_id_t::a5;
+  } else {
+    event_id.id = ocucp::rrc_event_id::event_id_t::a6;
   }
 
+  // Hysteresis: convert dB to 0.5 dB ASN.1 units.
+  event_id.hysteresis      = static_cast<uint8_t>(report_cfg_item.hysteresis_db.value() * 2);
+  event_id.time_to_trigger = report_cfg_item.time_to_trigger_ms.value();
+
+  // A3, A6: relative offset (neighbour - serving).
+  if (ev == "a3" or ev == "a6") {
+    event_id.meas_trigger_quant_thres_or_offset =
+        build_meas_trigger_offset(qty, report_cfg_item.meas_trigger_quantity_offset_db.value());
+  } else {
+    // A1, A2, A4, A5: absolute threshold.
+    event_id.meas_trigger_quant_thres_or_offset =
+        build_meas_trigger_threshold(qty, report_cfg_item.meas_trigger_quantity_threshold_db.value());
+    if (ev == "a5") {
+      event_id.meas_trigger_quant_thres_2 =
+          build_meas_trigger_threshold(qty, report_cfg_item.meas_trigger_quantity_threshold_2_db.value());
+    }
+  }
+
+  // Event-triggered specific parameters.
+  event_id.report_on_leave = false;
+  if (ev == "a3" or ev == "a4" or ev == "a5" or ev == "a6") {
+    event_id.use_allowed_cell_list = false;
+  }
+
+  ocucp::rrc_event_trigger_cfg event_trigger_cfg;
+  event_trigger_cfg.event_id               = event_id;
   event_trigger_cfg.rs_type                = ocucp::rrc_nr_rs_type::ssb;
   event_trigger_cfg.report_interv          = report_cfg_item.report_interval_ms;
   event_trigger_cfg.report_amount          = -1;

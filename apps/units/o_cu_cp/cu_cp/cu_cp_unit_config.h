@@ -68,20 +68,22 @@ struct cu_cp_unit_amf_config {
   unsigned amf_reconnection_retry_time = 1000;
 };
 
-/// Report configuration, for now only supporting the A3 event.
+/// Report configuration for periodical and event-triggered report types.
+/// Event-triggered reports support events A1–A6 as defined in 3GPP TS 38.331.
 struct cu_cp_unit_report_config {
   unsigned    report_cfg_id;
   std::string report_type;
   unsigned    report_interval_ms;
 
   std::optional<std::string> event_triggered_report_type;
-  std::optional<std::string> meas_trigger_quantity;
-  std::optional<int>         meas_trigger_quantity_threshold_db;
-  std::optional<int>         meas_trigger_quantity_threshold_2_db;
-  std::optional<int> meas_trigger_quantity_offset_db; ///< [-30..30] Note the actual value is field value * 0.5 dB. E.g.
-                                                      ///< putting a value of -6 here results in -3dB offset.
-  std::optional<unsigned> hysteresis_db;
-  std::optional<unsigned> time_to_trigger_ms;
+  std::optional<std::string> meas_trigger_quantity;              ///< "rsrp", "rsrq", "sinr"
+  std::optional<int>         meas_trigger_quantity_threshold_db; ///< Threshold for A5: RSRP[-156..-31],
+                                                                 ///< RSRQ[-43..20], SINR[-23..40]
+  std::optional<int> meas_trigger_quantity_threshold_2_db;       ///< Threshold 2 for A5: RSRP[-156..-31],
+                                                                 /// <RSRQ[-43..20], SINR[-23..40]
+  std::optional<int>      meas_trigger_quantity_offset_db;       ///< [-15..15] dB
+  std::optional<unsigned> hysteresis_db;                         ///< [0..15] dB (0.5 dB steps in ASN.1)
+  std::optional<unsigned> time_to_trigger_ms;                    ///< Enumerated values
   std::optional<unsigned> t312_ms;
   int                     periodic_ho_rsrp_offset =
       -1; ///< -1 disables handovers from periodic measurements. [0..30] Note the actual value is field value * 0.5 dB.

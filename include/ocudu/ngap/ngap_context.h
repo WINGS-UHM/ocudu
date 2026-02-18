@@ -11,8 +11,8 @@
 #pragma once
 
 #include "ocudu/cu_cp/cu_cp_configuration.h"
-#include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/gnb_id.h"
+#include "ocudu/ran/guami.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <chrono>
 #include <string>

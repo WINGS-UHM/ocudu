@@ -12,6 +12,7 @@
 
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ngap/ngap_types.h"
+#include "ocudu/ran/guami.h"
 #include "ocudu/security/security.h"
 #include <map>
 

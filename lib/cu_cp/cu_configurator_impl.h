@@ -13,6 +13,7 @@
 #include "ngap_repository.h"
 #include "ue_manager/ue_manager_impl.h"
 #include "ocudu/cu_cp/cu_configurator.h"
+#include "ocudu/ran/guami.h"
 
 namespace ocudu {
 
@@ -29,7 +30,7 @@ public:
 
   /// Get UE index for a given tuple of (AMF-UE-NGAP-ID, GUAMI, GNB-CU-UE-F1AP-ID).
   ocucp::ue_index_t get_ue_index(const ocucp::amf_ue_id_t&  amf_ue_id,
-                                 const ocucp::guami_t&      guami,
+                                 const guami_t&             guami,
                                  const gnb_cu_ue_f1ap_id_t& gnb_cu_ue_f1ap_id) const override;
 
   /// Get index of the DU that has UE with a given GNB-CU-UE-F1AP-ID.

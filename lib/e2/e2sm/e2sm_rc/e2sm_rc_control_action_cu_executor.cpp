@@ -12,6 +12,7 @@
 #include "ocudu/cu_up/cu_up_types.h"
 #include "ocudu/du/du_cell_config.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/ran/guami.h"
 #include "ocudu/ran/nr_cgi.h"
 #include <future>
 
@@ -100,7 +101,7 @@ e2sm_rc_control_action_3_1_cu_executor::execute_ric_control_action(const e2sm_ri
 
   // Translate UE-IDs.
   ocucp::amf_ue_id_t amf_ue_id = ocucp::uint_to_amf_ue_id(gnb_ue_id.amf_ue_ngap_id);
-  ocucp::guami_t     guami;
+  guami_t            guami;
   guami.plmn.from_bytes(gnb_ue_id.guami.plmn_id.to_bytes());
   guami.amf_set_id                           = static_cast<uint16_t>(gnb_ue_id.guami.amf_set_id.to_number());
   guami.amf_pointer                          = static_cast<uint8_t>(gnb_ue_id.guami.amf_pointer.to_number());

@@ -10,12 +10,13 @@
 
 #pragma once
 
-#include "ocudu/cu_cp/mobility_manager_config.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/guami.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/qos/qos_flow_id.h"
+#include "ocudu/support/async/async_task.h"
 #include <map>
 
 namespace ocudu {
@@ -39,7 +40,7 @@ public:
 
   /// Get UE index for a given GNB-CU-UE-F1AP-ID.
   virtual ocucp::ue_index_t get_ue_index(const ocucp::amf_ue_id_t&  amf_ue_id,
-                                         const ocucp::guami_t&      guami,
+                                         const guami_t&             guami,
                                          const gnb_cu_ue_f1ap_id_t& gnb_cu_ue_f1ap_id) const = 0;
 
   /// Get index of the DU that serves the given UE.

@@ -10,13 +10,14 @@
 
 #pragma once
 
-#include "ocudu/cu_cp/cu_cp_types.h"
-#include "ocudu/ngap/ngap_types.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/crit_diagnostics.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/guami.h"
+#include "ocudu/ran/tac.h"
 #include <variant>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 // enum class ngap_handov_type { intra5gs = 0, fivegs_to_eps, eps_to_5gs, fivegs_to_utran };
 
@@ -58,5 +59,4 @@ struct ngap_ng_setup_failure {
 
 using ngap_ng_setup_result = std::variant<ngap_ng_setup_response, ngap_ng_setup_failure>;
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

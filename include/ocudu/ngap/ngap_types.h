@@ -11,7 +11,6 @@
 #pragma once
 
 #include "ocudu/cu_cp/cu_cp_types.h"
-#include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/tai.h"
 
 namespace ocudu::ocucp {
@@ -32,14 +31,6 @@ constexpr amf_ue_id_t uint_to_amf_ue_id(std::underlying_type_t<amf_ue_id_t> id)
 {
   return static_cast<amf_ue_id_t>(id);
 }
-
-// Globally unique AMF identifier.
-struct guami_t {
-  plmn_identity plmn = plmn_identity::test_value();
-  uint16_t      amf_set_id;
-  uint8_t       amf_pointer;
-  uint8_t       amf_region_id;
-};
 
 struct ngap_ue_aggr_max_bit_rate {
   uint64_t ue_aggr_max_bit_rate_dl;

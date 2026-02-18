@@ -934,7 +934,7 @@ public:
   dummy_cu_configurator() {}
 
   ocucp::ue_index_t get_ue_index(const ocucp::amf_ue_id_t&  amf_ue_id,
-                                 const ocucp::guami_t&      guami,
+                                 const guami_t&             guami,
                                  const gnb_cu_ue_f1ap_id_t& gnb_cu_ue_f1ap_id) const override
   {
     return ocucp::uint_to_ue_index(1);

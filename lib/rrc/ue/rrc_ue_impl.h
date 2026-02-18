@@ -69,18 +69,21 @@ public:
   bool             store_ue_capabilities(byte_buffer ue_capabilities) override;
   async_task<bool> handle_rrc_ue_capability_transfer_request(const rrc_ue_capability_transfer_request& msg) override;
   rrc_ue_release_context
-                              get_rrc_ue_release_context(bool                                  requires_rrc_message,
-                                                         std::optional<std::chrono::seconds>   release_wait_time = std::nullopt,
-                                                         std::optional<rrc_inactivity_context> inactivity_context = std::nullopt) override;
-  rrc_ue_transfer_context     get_transfer_context() override;
-  std::optional<rrc_meas_cfg> generate_meas_config(const std::optional<rrc_meas_cfg>& current_meas_config) override;
-  byte_buffer                 get_packed_meas_config() override;
-  std::optional<uint8_t>      get_serving_cell_mo() override;
-  byte_buffer                 get_rrc_handover_command(const rrc_reconfiguration_procedure_request& request,
-                                                       unsigned                                     transaction_id) override;
-  byte_buffer                 handle_rrc_handover_command(byte_buffer cmd) override;
-  bool                        handle_rrc_handover_preparation_info(byte_buffer pdu) override;
-  void                        create_srb(const srb_creation_message& msg) override;
+                          get_rrc_ue_release_context(bool                                  requires_rrc_message,
+                                                     std::optional<std::chrono::seconds>   release_wait_time = std::nullopt,
+                                                     std::optional<rrc_inactivity_context> inactivity_context = std::nullopt) override;
+  rrc_ue_transfer_context get_transfer_context() override;
+  std::optional<rrc_meas_cfg>
+                         generate_meas_config(const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt,
+                                              bool                               cond_meas           = false,
+                                              span<const pci_t>                  candidate_pcis      = {}) override;
+  byte_buffer            get_packed_meas_config() override;
+  std::optional<uint8_t> get_serving_cell_mo() override;
+  byte_buffer            get_rrc_handover_command(const rrc_reconfiguration_procedure_request& request,
+                                                  unsigned                                     transaction_id) override;
+  byte_buffer            handle_rrc_handover_command(byte_buffer cmd) override;
+  bool                   handle_rrc_handover_preparation_info(byte_buffer pdu) override;
+  void                   create_srb(const srb_creation_message& msg) override;
   static_vector<srb_id_t, MAX_NOF_SRBS> get_srbs() override;
   void                                  set_rrc_state(rrc_state state) override { context.state = state; }
   rrc_state                             get_rrc_state() const override;

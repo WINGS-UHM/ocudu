@@ -129,7 +129,9 @@ public:
   std::optional<rrc_meas_cfg>
        handle_measurement_config_request(ue_index_t                         ue_index,
                                          nr_cell_identity                   nci,
-                                         const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt) override;
+                                         const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt,
+                                         bool                               cond_meas           = false,
+                                         span<const pci_t>                  candidate_pcis      = {}) override;
   void handle_measurement_report(ue_index_t ue_index, const rrc_meas_results& meas_results) override;
 
   // cu_cp_measurement_config_handler.

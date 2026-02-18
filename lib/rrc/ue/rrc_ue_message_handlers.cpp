@@ -706,16 +706,19 @@ rrc_ue_release_context rrc_ue_impl::get_rrc_ue_release_context(bool             
   return release_context;
 }
 
-std::optional<rrc_meas_cfg> rrc_ue_impl::generate_meas_config(const std::optional<rrc_meas_cfg>& current_meas_config)
+std::optional<rrc_meas_cfg> rrc_ue_impl::generate_meas_config(const std::optional<rrc_meas_cfg>& current_meas_config,
+                                                              bool                               cond_meas,
+                                                              span<const pci_t>                  candidate_pcis)
 {
-  // (Re-)generate measurement config and return result.
-  context.meas_cfg = measurement_notifier.on_measurement_config_request(context.cell.cgi.nci, current_meas_config);
+  auto result = measurement_notifier.on_measurement_config_request(
+      context.cell.cgi.nci, current_meas_config, cond_meas, candidate_pcis);
 
-  // Store serving cell MO if available.
-  if (context.meas_cfg.has_value()) {
-    for (const auto& meas_obj : context.meas_cfg.value().meas_obj_to_add_mod_list) {
-      if (meas_obj.meas_obj_nr.has_value()) {
-        if (meas_obj.meas_obj_nr.value().ssb_freq == context.cell.ssb_arfcn) {
+  if (!cond_meas) {
+    // Store regular meas config and derive serving cell MO.
+    context.meas_cfg = result;
+    if (context.meas_cfg.has_value()) {
+      for (const auto& meas_obj : context.meas_cfg.value().meas_obj_to_add_mod_list) {
+        if (meas_obj.meas_obj_nr.has_value() && meas_obj.meas_obj_nr.value().ssb_freq == context.cell.ssb_arfcn) {
           context.serving_cell_mo = meas_obj_id_to_uint(meas_obj.meas_obj_id);
           break;
         }
@@ -723,13 +726,13 @@ std::optional<rrc_meas_cfg> rrc_ue_impl::generate_meas_config(const std::optiona
     }
   }
 
-  return context.meas_cfg;
+  return result;
 }
 
 byte_buffer rrc_ue_impl::get_packed_meas_config()
 {
   // (Re-)generate measurement config.
-  context.meas_cfg = measurement_notifier.on_measurement_config_request(context.cell.cgi.nci, context.meas_cfg);
+  generate_meas_config(context.meas_cfg);
 
   if (context.meas_cfg.has_value()) {
     // Convert to ASN1, pack and return.

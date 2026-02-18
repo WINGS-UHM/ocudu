@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../ue_manager/ue_manager_impl.h"
+#include "ocudu/adt/span.h"
 #include "ocudu/cu_cp/cell_meas_manager_config.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ran/nr_cgi.h"
@@ -45,7 +46,9 @@ public:
   std::optional<rrc_meas_cfg>
                                   get_measurement_config(ue_index_t                         ue_index,
                                                          nr_cell_identity                   nci,
-                                                         const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt);
+                                                         const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt,
+                                                         bool                               cond_meas      = false,
+                                                         span<const pci_t>                  candidate_pcis = {});
   std::optional<cell_meas_config> get_cell_config(nr_cell_identity nci);
   bool update_cell_config(nr_cell_identity nci, const serving_cell_meas_config& serv_cell_cfg);
   void report_measurement(ue_index_t ue_index, const rrc_meas_results& meas_results);

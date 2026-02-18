@@ -254,10 +254,13 @@ public:
 
   std::optional<rrc_meas_cfg>
   on_measurement_config_request(nr_cell_identity                   nci,
-                                const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt) override
+                                const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt,
+                                bool                               cond_meas           = false,
+                                span<const pci_t>                  candidate_pcis      = {}) override
   {
     ocudu_assert(meas_handler != nullptr, "Measurement handler must not be nullptr");
-    return meas_handler->handle_measurement_config_request(ue_index, nci, current_meas_config);
+    return meas_handler->handle_measurement_config_request(
+        ue_index, nci, current_meas_config, cond_meas, candidate_pcis);
   }
 
   void on_measurement_report(const rrc_meas_results& meas_results) override

@@ -142,7 +142,9 @@ public:
 
   std::optional<rrc_meas_cfg>
   on_measurement_config_request(nr_cell_identity                   nci,
-                                const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt) override
+                                const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt,
+                                bool                               cond_meas           = false,
+                                span<const pci_t>                  candidate_pcis      = {}) override
   {
     std::optional<rrc_meas_cfg> meas_cfg;
     return meas_cfg;

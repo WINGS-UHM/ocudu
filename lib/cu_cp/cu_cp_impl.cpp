@@ -1009,9 +1009,11 @@ void cu_cp_impl::handle_n2_disconnection(amf_index_t amf_index)
 std::optional<rrc_meas_cfg>
 cu_cp_impl::handle_measurement_config_request(ue_index_t                         ue_index,
                                               nr_cell_identity                   nci,
-                                              const std::optional<rrc_meas_cfg>& current_meas_config)
+                                              const std::optional<rrc_meas_cfg>& current_meas_config,
+                                              bool                               cond_meas,
+                                              span<const pci_t>                  candidate_pcis)
 {
-  return cell_meas_mng.get_measurement_config(ue_index, nci, current_meas_config);
+  return cell_meas_mng.get_measurement_config(ue_index, nci, current_meas_config, cond_meas, candidate_pcis);
 }
 
 void cu_cp_impl::handle_measurement_report(ue_index_t ue_index, const rrc_meas_results& meas_results)

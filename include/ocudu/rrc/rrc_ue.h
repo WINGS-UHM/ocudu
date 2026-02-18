@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/byte_buffer.h"
+#include "ocudu/adt/span.h"
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
@@ -273,9 +274,13 @@ public:
 
   /// \brief Get the RRC measurement config for the current serving cell of the UE.
   /// \param[in] current_meas_config The current meas config of the UE (if applicable).
+  /// \param[in] cond_meas True if this is a conditional measurement config request (e.g. CHO).
+  /// \param[in] candidate_pcis List of candidate target PCIs (when cond_meas is true); if empty, use all neighbors.
   /// \return The measurement config, if present.
   virtual std::optional<rrc_meas_cfg>
-  generate_meas_config(const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt) = 0;
+  generate_meas_config(const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt,
+                       bool                               cond_meas           = false,
+                       span<const pci_t>                  candidate_pcis      = {}) = 0;
 
   /// \brief Get the packed RRC measurement config for the current serving cell of the UE.
   virtual byte_buffer get_packed_meas_config() = 0;
@@ -447,9 +452,13 @@ public:
   /// \brief Retrieve the measurement config (for any UE) connected to the given serving cell.
   /// \param[in] nci The cell id of the serving cell to update.
   /// \param[in] current_meas_config The current meas config of the UE (if applicable).
+  /// \param[in] cond_meas True if this is a conditional measurement config request (e.g. CHO).
+  /// \param[in] candidate_pcis List of candidate target PCIs (when cond_meas is true); if empty, use all neighbors.
   virtual std::optional<rrc_meas_cfg>
   on_measurement_config_request(nr_cell_identity                   nci,
-                                const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt) = 0;
+                                const std::optional<rrc_meas_cfg>& current_meas_config = std::nullopt,
+                                bool                               cond_meas           = false,
+                                span<const pci_t>                  candidate_pcis      = {}) = 0;
 
   /// \brief Submit measurement report for given UE to cell manager.
   virtual void on_measurement_report(const rrc_meas_results& meas_results) = 0;

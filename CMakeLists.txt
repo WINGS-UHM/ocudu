@@ -69,6 +69,7 @@ option(ENABLE_UHD            "Enable UHD"                                   ON)
 option(ENABLE_ZEROMQ         "Enable ZeroMQ"                                ON)
 option(ENABLE_FFTW           "Enable FFTW"                                  ON)
 option(ENABLE_MKL            "Enable Intel MKL"                             ON)
+option(ENABLE_FFTZ           "Enable AMD AOCL-FFTZ"                         ON)
 option(ENABLE_ARMPL          "Enable ARM performance library"               ON)
 option(ENABLE_DPDK           "Enable DPDK"                                  OFF)
 option(ENABLE_LIBNUMA        "Enable LibNUMA"                               OFF)
@@ -402,6 +403,20 @@ if (ENABLE_MKL AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
         )
     endif(MKL_FOUND)
 endif (ENABLE_MKL AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+
+# AOCL-FFTZ
+if (ENABLE_FFTZ AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
+    find_package(FFTZ)
+    if(FFTZ_FOUND)
+        sbom_add(
+                PACKAGE            "AMD AOCL-FFTZ"
+                DOWNLOAD_LOCATION  "github.com/amd/aocl-fftz/"
+                SUPPLIER           "Advanced Micro Devices (AMD)"
+                LICENSE            "BSD-3-Clause"
+                VERSION            ${FFTZ_VERSION}
+        )
+    endif(FFTZ_FOUND)
+endif (ENABLE_FFTZ AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
 
 # ARMPL
 if (ENABLE_ARMPL AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")

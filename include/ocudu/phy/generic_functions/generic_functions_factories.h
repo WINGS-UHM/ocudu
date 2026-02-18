@@ -51,6 +51,10 @@ std::shared_ptr<dft_processor_factory> create_dft_processor_factory_fftw(const s
                                                                          bool               avoid_wisdom    = false,
                                                                          const std::string& wisdom_filename = "");
 
+/// \brief Creates a DFT processor factory based on the AOCL-FFTZ library.
+/// \return A valid pointer to a DFT processor factory if AOCL-FFTZ is available. Otherwise, \c nullptr.
+std::shared_ptr<dft_processor_factory> create_dft_processor_factory_fftz();
+
 /// \brief Creates a sub-optimal DFT processor factory based on FFTW library.
 /// \param[in] avoid_wisdom    Set to true to avoid loading FFTW wisdom from a file.
 /// \param[in] wisdom_filename FFTW wisdom file name. Leave empty for default value. It is ignored if the option

@@ -75,6 +75,8 @@ int main(int argc, char** argv)
   // Create DFT for 16-bit complex integers. It might not be available for machines other than x86.
   std::shared_ptr<dft_processor_ci16_factory> dft_ci16_factory = create_dft_processor_ci16_factory_avx2();
 
+  std::shared_ptr<dft_processor_factory> fftz_dft_factory = create_dft_processor_factory_fftz();
+
   benchmarker perf_meas("DFT", nof_repetitions);
 
   // Test for the most common DFT sizes
@@ -107,24 +109,47 @@ int main(int argc, char** argv)
 
       // Benchmark FFTW DFT if available.
       {
-        std::unique_ptr<dft_processor> dft = fftw_dft_factory->create(config);
-        if (dft != nullptr) {
-          // Get DFT input buffer
-          span<cf_t> input = dft->get_input();
+        if (fftw_dft_factory) {
+          std::unique_ptr<dft_processor> dft = fftw_dft_factory->create(config);
+          if (dft != nullptr) {
+            // Get DFT input buffer
+            span<cf_t> input = dft->get_input();
 
-          // Generate input random data.
-          for (cf_t& value : input) {
-            value = {dist(rgen), dist(rgen)};
+            // Generate input random data.
+            for (cf_t& value : input) {
+              value = {dist(rgen), dist(rgen)};
+            }
+
+            // Measure performance.
+            perf_meas.new_measure(fmt::format("fftw {} {}", size, dft_processor::direction_to_string(direction)),
+                                  size,
+                                  [&dft]() { dft->run(); });
           }
-
-          // Measure performance.
-          perf_meas.new_measure(fmt::format("fftw {} {}", size, dft_processor::direction_to_string(direction)),
-                                size,
-                                [&dft]() { dft->run(); });
         }
       }
 
-      // Benchmark FFTW DFT if available.
+      // Benchmark FFTZ DFT if available.
+      {
+        if (fftz_dft_factory) {
+          std::unique_ptr<dft_processor> dft = fftz_dft_factory->create(config);
+          if (dft != nullptr) {
+            // Get DFT input buffer
+            span<cf_t> input = dft->get_input();
+
+            // Generate input random data.
+            for (cf_t& value : input) {
+              value = {dist(rgen), dist(rgen)};
+            }
+
+            // Measure performance.
+            perf_meas.new_measure(fmt::format("fftz {} {}", size, dft_processor::direction_to_string(direction)),
+                                  size,
+                                  [&dft]() { dft->run(); });
+          }
+        }
+      }
+
+      // Benchmark CI16 DFT if available.
       if (dft_ci16_factory) {
         dft_processor_ci16::configuration config_ci16;
         config_ci16.size = size;

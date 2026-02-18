@@ -17,6 +17,10 @@
 #include "dft_processor_fftw_impl.h"
 #endif // HAVE_FFTW
 
+#ifdef HAVE_FFTZ
+#include "dft_processor_fftz_impl.h"
+#endif // HAVE_FFTZ
+
 #ifdef __x86_64__
 #include "dft_processor_ci16_avx2.h"
 #endif // __x86_64__
@@ -83,6 +87,27 @@ private:
 };
 #endif // HAVE_FFTW
 
+#ifdef HAVE_FFTZ
+class dft_processor_factory_fftz : public dft_processor_factory
+{
+  dft_processor_fftz_configuration fftz_config;
+
+public:
+  dft_processor_factory_fftz()
+  {
+    // Disable bit reproducibility mode and enable maximum optimization level.
+    fftz_config.bit_reproducibility = false;
+    fftz_config.opt_level           = 3;
+  }
+
+private:
+  std::unique_ptr<dft_processor> create(const dft_processor::configuration& dft_config) override
+  {
+    return std::make_unique<dft_processor_fftz_impl>(fftz_config, dft_config);
+  }
+};
+#endif // HAVE_FFTZ
+
 } // namespace
 
 std::shared_ptr<dft_processor_factory> ocudu::create_dft_processor_factory_generic()
@@ -101,6 +126,15 @@ std::shared_ptr<dft_processor_factory> ocudu::create_dft_processor_factory_fftw(
 #else  // HAVE_FFTW
   return nullptr;
 #endif // HAVE_FFTW
+}
+
+std::shared_ptr<dft_processor_factory> ocudu::create_dft_processor_factory_fftz()
+{
+#ifdef HAVE_FFTZ
+  return std::make_shared<dft_processor_factory_fftz>();
+#else  // HAVE_FFTZ
+  return nullptr;
+#endif // HAVE_FFTZ
 }
 
 std::shared_ptr<dft_processor_ci16_factory> ocudu::create_dft_processor_ci16_factory_avx2()

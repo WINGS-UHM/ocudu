@@ -89,6 +89,8 @@ protected:
       dft_factory = create_dft_processor_factory_generic();
     } else if (dft_factory_str == "fftw") {
       dft_factory = create_dft_processor_factory_fftw_slow();
+    } else if (dft_factory_str == "fftz") {
+      dft_factory = create_dft_processor_factory_fftz();
     }
   }
 
@@ -194,6 +196,10 @@ INSTANTIATE_TEST_SUITE_P(DFTProcessorTest,
                                                               ,
                                                               "fftw"
 #endif // HAVE_FFTW
+#ifdef HAVE_FFTZ
+                                                              ,
+                                                              "fftz"
+#endif // HAVE_FFTZ
                                                               ),
                                             ::testing::ValuesIn(dft_required_sizes),
                                             ::testing::Values(dft_processor::direction::DIRECT,

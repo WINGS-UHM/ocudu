@@ -625,8 +625,9 @@ protected:
 TEST_F(dedicated_slice_scheduler_test, when_dedicated_resources_not_filled_then_they_remain_unused)
 {
   ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
-  constexpr unsigned grant_rbs = 5;
-  const unsigned     max_prbs  = slice_sched.slice_config(static_cast<ran_slice_id_t>(0U)).rbs.max();
+  constexpr unsigned drb2_grant_rbs = 7;
+  constexpr unsigned drb3_grant_rbs = 50;
+  const unsigned     max_prbs       = slice_sched.slice_config(static_cast<ran_slice_id_t>(0U)).rbs.max();
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
     const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
@@ -637,37 +638,165 @@ TEST_F(dedicated_slice_scheduler_test, when_dedicated_resources_not_filled_then_
       auto next_dl_slice = slice_sched.get_next_dl_candidate();
       // Default SRB slice has very high priority. We ignore it as candidate for this test.
       ASSERT_EQ(next_dl_slice->id(), SRB_RAN_SLICE_ID);
-      ASSERT_EQ(next_dl_slice->remaining_rbs(), max_prbs);
+      // Dedicated resources are reserved also for empty slices.
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
       next_dl_slice = slice_sched.get_next_dl_candidate();
       // Slice with prioritised and dedicated resources gets scheduled.
       ASSERT_EQ(next_dl_slice->id(), drb2_slice_id);
-      next_dl_slice->store_grant(DED_SLICE_RB - grant_rbs);
+      // DRB2 slice can potentially use all RBs, as it's the only one with dedicated resources and no other slice has
+      // been allocated anything so far.
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs);
+      next_dl_slice->store_grant(drb2_grant_rbs);
       // Other slices get scheduled.
       next_dl_slice = slice_sched.get_next_dl_candidate();
       ASSERT_EQ(next_dl_slice->id(), drb3_slice_id);
-      ASSERT_EQ(next_dl_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
+      // DRB3 slice can use max the all RBs minus those dedicated for DRB2.
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - std::max(DED_SLICE_RB, drb2_grant_rbs));
+      next_dl_slice->store_grant(drb3_grant_rbs);
       next_dl_slice = slice_sched.get_next_dl_candidate();
       ASSERT_EQ(next_dl_slice->id(), drb1_slice_id);
+      // DRB1 slice can use max the all RBs left after the dedicated for DRB2 + those allocated to DRB3 slices.
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - std::max(DED_SLICE_RB, drb2_grant_rbs) - drb3_grant_rbs);
     }
     if (dl_slot_has_k2_values) {
       auto next_ul_slice = slice_sched.get_next_ul_candidate();
       // Default SRB slice has very high priority. We ignore it as candidate for this test.
       ASSERT_TRUE(next_ul_slice.has_value());
       ASSERT_EQ(next_ul_slice->id(), SRB_RAN_SLICE_ID);
-      ASSERT_EQ(next_ul_slice->remaining_rbs(), max_prbs);
+      // Dedicated resources are reserved also for empty slices.
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
       next_ul_slice = slice_sched.get_next_ul_candidate();
       ASSERT_TRUE(next_ul_slice.has_value());
       // Slice with prioritised and dedicated resources gets scheduled.
       ASSERT_EQ(next_ul_slice->id(), drb2_slice_id);
-      next_ul_slice->store_grant(DED_SLICE_RB - grant_rbs);
+      // DRB2 slice can potentially use all RBs, as it's the only one with dedicated resources and no other slice has
+      // been allocated anything so far.
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs);
+      next_ul_slice->store_grant(drb2_grant_rbs);
       // Other slices get scheduled.
       next_ul_slice = slice_sched.get_next_ul_candidate();
       ASSERT_TRUE(next_ul_slice.has_value());
       ASSERT_EQ(next_ul_slice->id(), drb3_slice_id);
-      ASSERT_EQ(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
+      // DRB3 slice can use max the all RBs minus those dedicated for DRB2.
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - std::max(DED_SLICE_RB, drb2_grant_rbs));
+      next_ul_slice->store_grant(drb3_grant_rbs);
       next_ul_slice = slice_sched.get_next_ul_candidate();
       ASSERT_TRUE(next_ul_slice.has_value());
       ASSERT_EQ(next_ul_slice->id(), drb1_slice_id);
+      // DRB1 slice can use max the all RBs left after the dedicated for DRB2 + those allocated to DRB3 slices.
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - std::max(DED_SLICE_RB, drb2_grant_rbs) - drb3_grant_rbs);
+    }
+    auto next_dl_slice = slice_sched.get_next_dl_candidate();
+    auto next_ul_slice = slice_sched.get_next_ul_candidate();
+    ASSERT_FALSE(next_dl_slice.has_value());
+    ASSERT_FALSE(next_ul_slice.has_value());
+  }
+}
+
+class dedicated_slice_scheduler_test_2nd : public slice_scheduler_test, public ::testing::Test
+{
+  // This test is a variation of \ref dedicated_slice_scheduler_test, but the order of the slices is reversed (the slice
+  // with ded/min resources is the last one). This test verifies that the scheduler correctly computes the remaining
+  // RBs when a slice generates 2 candidates with [0, rb_min] and [rb_min, rb_max], but their priorities is such that
+  // the candidates [0, rb_min] and [rb_min, rb_max] are not adjacent when creating the candidate priority queue.
+protected:
+  static constexpr unsigned       DED_SLICE_RB = 10;
+  static constexpr unsigned       MIN_SLICE_RB = DED_SLICE_RB;
+  static constexpr unsigned       PRIORITY     = 1;
+  static constexpr ran_slice_id_t drb1_slice_id{1};
+  static constexpr ran_slice_id_t drb2_slice_id{2};
+  static constexpr ran_slice_id_t drb3_slice_id{3};
+
+  dedicated_slice_scheduler_test_2nd() :
+    slice_scheduler_test(
+        {{{plmn_identity::test_value(), s_nssai_t{slice_service_type{1}}}, {0, MAX_NOF_PRBS}, PRIORITY},
+         {{plmn_identity::test_value(), s_nssai_t{slice_service_type{2}}},
+          {DED_SLICE_RB, MIN_SLICE_RB, MAX_NOF_PRBS},
+          PRIORITY}})
+  {
+  }
+
+  const ue_configuration* add_ue(du_ue_index_t ue_idx)
+  {
+    rrm_policy_member slice1_nssai{.s_nssai = {slice_service_type{1}}};
+    rrm_policy_member slice2_nssai{.s_nssai = {slice_service_type{2}}};
+    auto              req   = test_cfg.get_default_ue_config_request();
+    req.ue_index            = ue_idx;
+    req.crnti               = to_rnti(0x4601 + ue_idx);
+    req.starts_in_fallback  = false;
+    *req.cfg.lc_config_list = std::initializer_list<logical_channel_config>{
+        create_logical_channel_config(LCID_SRB0),
+        create_logical_channel_config(LCID_SRB1),
+        create_logical_channel_config(LCID_MIN_DRB),
+        create_logical_channel_config(uint_to_lcid(LCID_MIN_DRB + 1), slice1_nssai),
+        create_logical_channel_config(uint_to_lcid(LCID_MIN_DRB + 2), slice2_nssai)};
+    return slice_scheduler_test::add_ue(req);
+  }
+};
+
+TEST_F(dedicated_slice_scheduler_test_2nd, with_candidates_with_min_lim_remaining_rbs_are_computed_correctly)
+{
+  ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
+  // Allocate the same grant for both drb2_slice_id and drb2_slice_id slices; this way, their priority will be the same
+  // and the scheduler will always return drb2_slice_id candidate (which has no min priority) over the drb3_slice_id
+  // candidate with rb_lim = [MIN_SLICE_RB, MAX_NOF_PRBS], as drb2_slice_id is created before drb3_slice_id in the
+  // scheduler.
+  constexpr unsigned drb2_3_grant_rbs = 50;
+  const unsigned     max_prbs         = slice_sched.slice_config(static_cast<ran_slice_id_t>(0U)).rbs.max();
+
+  for (unsigned count = 0, e = 10; count != e; ++count) {
+    const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool dl_slot_has_k2_values = not pusch_td_list_per_slot[count].empty();
+    run_slot();
+
+    if (is_pdcch_active) {
+      auto next_dl_slice = slice_sched.get_next_dl_candidate();
+      // Default SRB slice has very high priority. We ignore it as candidate for this test.
+      ASSERT_EQ(next_dl_slice->id(), SRB_RAN_SLICE_ID);
+      // Dedicated resources are reserved also for empty slices.
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
+      next_dl_slice = slice_sched.get_next_dl_candidate();
+      // Slice with prioritised and dedicated resources gets scheduled.
+      ASSERT_EQ(next_dl_slice->id(), drb3_slice_id);
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs);
+      next_dl_slice->store_grant(DED_SLICE_RB);
+      next_dl_slice = slice_sched.get_next_dl_candidate();
+      ASSERT_EQ(next_dl_slice->id(), drb2_slice_id);
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
+      next_dl_slice->store_grant(drb2_3_grant_rbs);
+      next_dl_slice = slice_sched.get_next_dl_candidate();
+      ASSERT_TRUE(next_dl_slice->id() == drb3_slice_id);
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - DED_SLICE_RB - drb2_3_grant_rbs);
+      next_dl_slice->store_grant(drb2_3_grant_rbs - DED_SLICE_RB);
+      next_dl_slice = slice_sched.get_next_dl_candidate();
+      ASSERT_EQ(next_dl_slice->id(), drb1_slice_id);
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - std::max(DED_SLICE_RB, drb2_3_grant_rbs) - drb2_3_grant_rbs);
+    }
+
+    if (dl_slot_has_k2_values) {
+      auto next_ul_slice = slice_sched.get_next_ul_candidate();
+      // Default SRB slice has very high priority. We ignore it as candidate for this test.
+      ASSERT_TRUE(next_ul_slice.has_value());
+      ASSERT_EQ(next_ul_slice->id(), SRB_RAN_SLICE_ID);
+      // Dedicated resources are reserved also for empty slices.
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_TRUE(next_ul_slice.has_value());
+      // Slice with prioritised and dedicated resources gets scheduled.
+      ASSERT_EQ(next_ul_slice->id(), drb3_slice_id);
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs);
+      next_ul_slice->store_grant(DED_SLICE_RB);
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_EQ(next_ul_slice->id(), drb2_slice_id);
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
+      next_ul_slice->store_grant(drb2_3_grant_rbs);
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_TRUE(next_ul_slice->id() == drb3_slice_id);
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB - drb2_3_grant_rbs);
+      next_ul_slice->store_grant(drb2_3_grant_rbs - DED_SLICE_RB);
+      next_ul_slice = slice_sched.get_next_ul_candidate();
+      ASSERT_EQ(next_ul_slice->id(), drb1_slice_id);
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - std::max(DED_SLICE_RB, drb2_3_grant_rbs) - drb2_3_grant_rbs);
     }
     auto next_dl_slice = slice_sched.get_next_dl_candidate();
     auto next_ul_slice = slice_sched.get_next_ul_candidate();
@@ -716,7 +845,8 @@ protected:
 TEST_F(dedicated_empty_slice_scheduler_test, when_slice_has_no_ues_its_rbs_will_still_remain_unused)
 {
   ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
-  const unsigned max_prbs = slice_sched.slice_config(static_cast<ran_slice_id_t>(0)).rbs.max();
+  const unsigned     max_prbs       = slice_sched.slice_config(static_cast<ran_slice_id_t>(0)).rbs.max();
+  constexpr unsigned drb3_grant_rbs = 40;
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
     const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
@@ -727,13 +857,17 @@ TEST_F(dedicated_empty_slice_scheduler_test, when_slice_has_no_ues_its_rbs_will_
       auto next_dl_slice = slice_sched.get_next_dl_candidate();
       // Default SRB slice has very high priority. We ignore it as candidate for this test.
       ASSERT_EQ(next_dl_slice->id(), SRB_RAN_SLICE_ID);
-      ASSERT_EQ(next_dl_slice->remaining_rbs(), max_prbs);
+      // Dedicated resources are reserved also for empty slices;
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
       next_dl_slice = slice_sched.get_next_dl_candidate();
       ASSERT_EQ(next_dl_slice->id(), drb3_slice_id);
+      // DRB3 slice cannot be assigned all RBs, as there DRB2 has dedicated RBs.
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
       next_dl_slice = slice_sched.get_next_dl_candidate();
-      // Dedicated resources are reserved also for empty slices.
-      ASSERT_EQ(next_dl_slice->id(), drb2_slice_id);
-      ASSERT_EQ(next_dl_slice->remaining_rbs(), DED_SLICE_RB);
+      next_dl_slice->store_grant(drb3_grant_rbs);
+      ASSERT_EQ(next_dl_slice->id(), drb1_slice_id);
+      // DRB1 slice can use max the all RBs left after the dedicated for DRB2 + those allocated to DRB3 slices.
+      ASSERT_LE(next_dl_slice->remaining_rbs(), max_prbs - DED_SLICE_RB - drb3_grant_rbs);
     }
 
     if (dl_slot_has_k2_values) {
@@ -741,13 +875,17 @@ TEST_F(dedicated_empty_slice_scheduler_test, when_slice_has_no_ues_its_rbs_will_
       // Default SRB slice has very high priority. We ignore it as candidate for this test.
       ASSERT_TRUE(next_ul_slice.has_value());
       ASSERT_EQ(next_ul_slice->id(), SRB_RAN_SLICE_ID);
-      ASSERT_EQ(next_ul_slice->remaining_rbs(), max_prbs);
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
       next_ul_slice = slice_sched.get_next_ul_candidate();
       ASSERT_EQ(next_ul_slice->id(), drb3_slice_id);
+      // DRB3 slice cannot be assigned all RBs, as there DRB2 has dedicated RBs.
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB);
+      next_ul_slice->store_grant(drb3_grant_rbs);
       next_ul_slice = slice_sched.get_next_ul_candidate();
       // Dedicated resources are reserved also for empty slices.
-      ASSERT_EQ(next_ul_slice->id(), drb2_slice_id);
-      ASSERT_EQ(next_ul_slice->remaining_rbs(), DED_SLICE_RB);
+      ASSERT_EQ(next_ul_slice->id(), drb1_slice_id);
+      // DRB1 slice can use max the all RBs left after the dedicated for DRB2 + those allocated to DRB3 slices.
+      ASSERT_LE(next_ul_slice->remaining_rbs(), max_prbs - DED_SLICE_RB - drb3_grant_rbs);
     }
   }
 }

@@ -169,7 +169,7 @@ void intra_slice_scheduler::post_process_results()
 
 void intra_slice_scheduler::dl_sched(dl_ran_slice_candidate slice, scheduler_policy& policy)
 {
-  ocudu_sanity_check(slice.remaining_rbs() > 0, "Invalid slice slice");
+  ocudu_sanity_check(slice.remaining_rbs() > 0, "Invalid slice");
   if (slice.get_slice_ues().empty()) {
     return;
   }

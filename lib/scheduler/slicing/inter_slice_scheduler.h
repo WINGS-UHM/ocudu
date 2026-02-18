@@ -50,6 +50,11 @@ public:
   void handle_slice_reconfiguration_request(const du_cell_slice_reconfig_request& slice_reconf_req);
 
 private:
+  /// Returns the total number of RBs that are reserved for dedicated RBs + those that have been already allocated to
+  /// other slices.
+  template <bool IsDownlink>
+  unsigned get_nof_used_reserved_rbs(slot_point slot_tx) const;
+
   /// Class responsible for tracking the scheduling context of each RAN slice instance.
   struct ran_slice_sched_context {
     ran_slice_instance                inst;
@@ -122,10 +127,6 @@ private:
     /// \brief List of valid PUSCH time domain resources for a given DL slot.
     /// Note: This list will be empty for UL slots.
     std::vector<unsigned> valid_pusch_td_list;
-    /// Dedicated PDSCH RBs allocated for this slot.
-    unsigned count_dl_ded_rbs = 0;
-    /// Dedicated PUSCH RBs allocated for this slot.
-    unsigned count_ul_ded_rbs = 0;
   };
 
   ran_slice_instance& get_slice(const logical_channel_config& lc_cfg);

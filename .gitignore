@@ -1,0 +1,14 @@
+#
+# Copyright 2021-2026 Software Radio Systems Limited
+#
+# By using this file, you agree to the terms and conditions set
+# forth in the LICENSE file which can be found at the top level of
+# the distribution.
+#
+
+# Reminder: this file should only be used to ignore files generated as part of the project build
+# (i.e., files that all developers will want to ignore). Please use $OCUDU_DIR/.git/info/exclude
+# or $XDG_CONFIG_HOME/git/ignore for auxiliary files inside the repository that are specific of
+# one user's workflow (e.g., build folders). See also https://git-scm.com/docs/gitignore).
+
+/utils/gdb/python/ocudu/__pycache__

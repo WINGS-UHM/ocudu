@@ -39,7 +39,7 @@ TEST(FapiPhyUlPrachPduAdaptorTest, valid_pdu_pass)
   unsigned             sector  = 0;
   slot_point           slot(to_numerology_value(scs_common), sfn, slot_id);
   fapi::carrier_config carrier_cfg;
-  carrier_cfg.ul_grid_size = {25, 50, 100, 150, 170};
+  carrier_cfg.ul_grid_size = 25;
   carrier_cfg.num_rx_ant   = 4;
 
   std::vector<uint8_t> prach_rx_ports(carrier_cfg.num_rx_ant);
@@ -62,5 +62,5 @@ TEST(FapiPhyUlPrachPduAdaptorTest, valid_pdu_pass)
   ASSERT_EQ(slot, context.slot);
   ASSERT_EQ(sector, context.sector);
   ASSERT_EQ(span<const uint8_t>(prach_rx_ports), span<const uint8_t>(context.ports));
-  ASSERT_EQ(carrier_cfg.ul_grid_size[to_numerology_value(scs_common)], context.nof_prb_ul_grid);
+  ASSERT_EQ(carrier_cfg.ul_grid_size, context.nof_prb_ul_grid);
 }

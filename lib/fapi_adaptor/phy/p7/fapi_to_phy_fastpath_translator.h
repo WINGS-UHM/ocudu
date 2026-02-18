@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "ocudu/fapi/cell_config.h"
 #include "ocudu/fapi/common/error_indication_notifier.h"
-#include "ocudu/fapi/p5/config_request_tlvs.h"
 #include "ocudu/fapi/p7/messages/dl_tti_request.h"
 #include "ocudu/fapi/p7/messages/tx_data_request.h"
 #include "ocudu/fapi/p7/messages/ul_dci_request.h"

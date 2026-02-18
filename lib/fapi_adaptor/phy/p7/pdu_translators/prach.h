@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/p5/config_request_tlvs.h"
+#include "ocudu/fapi/cell_config.h"
 #include "ocudu/fapi/p7/messages/ul_tti_request.h"
 
 namespace ocudu {

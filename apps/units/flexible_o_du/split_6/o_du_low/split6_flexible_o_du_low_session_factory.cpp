@@ -165,7 +165,7 @@ split6_flexible_o_du_low_session_factory::create_o_du_low(const fapi::cell_confi
 
   du_low_cell.duplex               = config.duplex;
   du_low_cell.freq_range           = split6_du_low::freq_range;
-  du_low_cell.bw_rb                = config.carrier_cfg.dl_grid_size[to_numerology_value(config.scs_common)];
+  du_low_cell.bw_rb                = config.carrier_cfg.dl_grid_size;
   du_low_cell.nof_rx_antennas      = config.carrier_cfg.num_rx_ant;
   du_low_cell.nof_tx_antennas      = config.carrier_cfg.num_tx_ant;
   du_low_cell.prach_ports          = prach_ports;

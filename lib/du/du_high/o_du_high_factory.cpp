@@ -9,7 +9,6 @@
 #include "ocudu/du/du_high/o_du_high_config.h"
 #include "ocudu/e2/e2_du_factory.h"
 #include "ocudu/fapi/decorator_factory.h"
-#include "ocudu/fapi/p5/p5_requests_gateway.h"
 #include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_factory.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
@@ -41,7 +40,6 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.duplex = (du_cell.ran.tdd_ul_dl_cfg_common) ? duplex_mode::TDD : duplex_mode::FDD;
   cell_cfg.pci    = du_cell.ran.pci;
 
-  unsigned numerology       = to_numerology_value(scs_common);
   unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
       du_cell.ran.dl_carrier.carrier_bw,
       scs_common,
@@ -53,11 +51,8 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.carrier_cfg.dl_f_ref_arfcn = du_cell.ran.dl_carrier.arfcn_f_ref.value();
   cell_cfg.carrier_cfg.ul_f_ref_arfcn = du_cell.ran.ul_carrier.arfcn_f_ref.value();
 
-  // NOTE; for now we only need to fill the nof_prb_ul_grid and nof_prb_dl_grid for the common SCS.
-  cell_cfg.carrier_cfg.dl_grid_size             = {};
-  cell_cfg.carrier_cfg.dl_grid_size[numerology] = grid_size_bw_prb;
-  cell_cfg.carrier_cfg.ul_grid_size             = {};
-  cell_cfg.carrier_cfg.ul_grid_size[numerology] = grid_size_bw_prb;
+  cell_cfg.carrier_cfg.dl_grid_size = grid_size_bw_prb;
+  cell_cfg.carrier_cfg.ul_grid_size = grid_size_bw_prb;
 
   // Number of transmit and receive antenna ports.
   cell_cfg.carrier_cfg.num_tx_ant     = du_cell.ran.dl_carrier.nof_ant;

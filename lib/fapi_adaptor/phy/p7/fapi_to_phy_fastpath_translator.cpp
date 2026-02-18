@@ -327,14 +327,8 @@ void fapi_to_phy_fastpath_translator::send_dl_tti_request(const fapi::dl_tti_req
   }
 
   // Translate the downlink PDUs.
-  expected<downlink_pdus> pdus =
-      translate_dl_tti_pdus_to_phy_pdus(msg,
-                                        dl_pdu_validator,
-                                        logger,
-                                        scs_common,
-                                        carrier_cfg.dl_grid_size[to_numerology_value(scs_common)],
-                                        *pm_repo,
-                                        sector_id);
+  expected<downlink_pdus> pdus = translate_dl_tti_pdus_to_phy_pdus(
+      msg, dl_pdu_validator, logger, scs_common, carrier_cfg.dl_grid_size, *pm_repo, sector_id);
 
   // Raise invalid format error.
   if (!pdus.has_value()) {

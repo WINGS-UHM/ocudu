@@ -16,6 +16,7 @@
 #include "ocudu/f1ap/cu_cp/f1ap_cu.h"
 #include "ocudu/f1ap/f1ap_message_notifier.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
+#include "ocudu/support/async/manual_event.h"
 #include <unordered_map>
 
 namespace ocudu {
@@ -23,7 +24,10 @@ namespace ocucp {
 
 struct f1ap_ue_context {
   f1ap_ue_ids ue_ids;
-  bool        marked_for_release = false;
+  /// Whether the release procedure has been started for this UE context.
+  bool marked_for_release = false;
+  /// Event to notify all pending release callers when release completes. Stores the result.
+  manual_event<ue_index_t> release_complete_event;
   /// Whether the old gNB-DU UE F1AP UE ID IE needs to be notified back to the DU, due to reestablishment.
   std::optional<gnb_du_ue_f1ap_id_t> pending_old_ue_id;
   f1ap_ue_transaction_manager        ev_mng;
@@ -37,6 +41,12 @@ struct f1ap_ue_context {
   /// Returns the instance of the Uplink bearer manager of this UE.
   ue_ul_bearer_manager&       get_ul_bearer_manager() { return bearer_manager; }
   const ue_ul_bearer_manager& get_ul_bearer_manager() const { return bearer_manager; }
+
+  void reset_release_state() // TODO: this is a temporary solution, F1AP context should not be reused
+  {
+    marked_for_release = false;
+    release_complete_event.reset();
+  }
 
   /// Handles Downlink RRC messages.
   void handle_dl_rrc_message(const f1ap_dl_rrc_message& msg, f1ap_message_notifier& msg_notifier);

@@ -43,11 +43,24 @@ void ue_context_release_procedure::operator()(coro_context<async_task<ue_index_t
 {
   CORO_BEGIN(ctx);
 
+  if (ue_ctxt.release_complete_event.is_set()) {
+    // Already completed, return cached result immediately.
+    logger.debug("{}: Returning cached release result", f1ap_ue_log_prefix{ue_ctxt.ue_ids, name()});
+    CORO_EARLY_RETURN(ue_ctxt.release_complete_event.get());
+  }
+
+  if (ue_ctxt.marked_for_release) {
+    // In progress, wait for completion.
+    logger.debug("{}: Waiting for existing release to complete", f1ap_ue_log_prefix{ue_ctxt.ue_ids, name()});
+    CORO_AWAIT_VALUE(release_result, ue_ctxt.release_complete_event);
+    CORO_EARLY_RETURN(release_result);
+  }
+
   logger.debug("{}: Procedure started...", f1ap_ue_log_prefix{ue_ctxt.ue_ids, name()});
 
-  transaction_sink.subscribe_to(ue_ctxt.ev_mng.context_release_complete, f1ap_cfg.proc_timeout);
-
   ue_ctxt.marked_for_release = true;
+
+  transaction_sink.subscribe_to(ue_ctxt.ev_mng.context_release_complete, f1ap_cfg.proc_timeout);
 
   // Send command to DU.
   send_ue_context_release_command();
@@ -56,7 +69,12 @@ void ue_context_release_procedure::operator()(coro_context<async_task<ue_index_t
   CORO_AWAIT(transaction_sink);
 
   // Handle response from DU and return UE index
-  CORO_RETURN(create_ue_context_release_complete());
+  release_result = create_ue_context_release_complete();
+
+  // Notify any other callers waiting for release.
+  ue_ctxt.release_complete_event.set(release_result);
+
+  CORO_RETURN(release_result);
 }
 
 void ue_context_release_procedure::send_ue_context_release_command()

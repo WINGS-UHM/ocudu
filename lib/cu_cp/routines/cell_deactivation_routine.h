@@ -11,7 +11,9 @@
 #pragma once
 
 #include "../ue_manager/ue_manager_impl.h"
+#include "ocudu/adt/expected.h"
 #include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/support/async/eager_async_task.h"
 #include <unordered_set>
 
 namespace ocudu {
@@ -33,7 +35,7 @@ public:
 
   static const char* name() { return "Cell Deactivation Routine"; }
 
-  void release_ues();
+  void trigger_context_release_for_all_ues();
 
   void get_remaining_plmns(const du_cell_configuration& cell_cfg);
 
@@ -47,8 +49,6 @@ private:
   ue_manager&                       ue_mng;
   ocudulog::basic_logger&           logger;
 
-  unique_timer ue_release_timer;
-
   // (Sub-)Routine requests.
   f1ap_gnb_cu_configuration_update f1ap_cu_cfg_update;
 
@@ -56,13 +56,17 @@ private:
   f1ap_gnb_cu_configuration_update_response f1ap_cu_cfg_update_response;
   bool                                      routine_success = true;
 
-  std::unordered_map<ue_index_t, bool>           ue_release_status;
-  std::unordered_map<ue_index_t, bool>::iterator ue_release_status_it;
-  bool                                           all_ues_released = false;
-  std::unordered_set<plmn_identity>              remaining_plmns;
-  std::vector<du_index_t>                        du_indexes;
-  std::vector<du_index_t>::iterator              du_idx_it;
-  du_processor*                                  du_proc = nullptr;
+  using ue_release_task_t = eager_async_task<expected<cu_cp_ue_context_release_complete>>;
+  std::vector<ue_release_task_t>           ue_release_tasks;
+  std::vector<ue_release_task_t>::iterator ue_release_task_it;
+
+  std::unordered_set<plmn_identity> remaining_plmns;
+  std::vector<du_index_t>           du_indexes;
+  std::vector<du_index_t>::iterator du_idx_it;
+  du_processor*                     du_proc = nullptr;
+
+  std::chrono::steady_clock::time_point proc_start_tp;
+  std::chrono::steady_clock::time_point ue_release_finish_tp;
 };
 
 } // namespace ocucp

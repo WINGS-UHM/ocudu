@@ -89,6 +89,12 @@ public:
 
   async_task<bool> dispatch_and_await_task_completion(ue_index_t ue_index, unique_task task);
 
+  template <typename T>
+  auto dispatch_and_await_task_completion(ue_index_t ue_index, async_task<T> task)
+  {
+    return when_coroutine_completed_on_task_sched(*ue_ctrl_loop.at(ue_index), std::move(task));
+  }
+
   unique_timer   make_unique_timer();
   timer_manager& get_timer_manager();
 

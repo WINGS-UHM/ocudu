@@ -23,7 +23,9 @@
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ngap/ngap_message.h"
+#include <algorithm>
 #include <gtest/gtest.h>
+#include <random>
 
 using namespace ocudu;
 using namespace ocucp;
@@ -178,6 +180,149 @@ TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_then_connected_ues_a
     auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
     ASSERT_TRUE(report.ues.empty());
   }
+}
+
+TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_and_ue_release_times_out_then_cell_deactivation_completes)
+{
+  // This test reproduces a bug where cell_deactivation_routine would hang forever.
+  // The scenario is:
+  // 1. AMF initiates UE release (F1AP UE Context Release in progress)
+  // 2. AMF connection drops while release is still in progress
+  // 3. Cell deactivation tries to release the same UE again
+  // 4. The second release fails (already marked for release) and the task fails
+  // 5. With the old boolean tracking, ue_released was never set to true, causing infinite loop
+
+  // Run NG setup to completion.
+  run_ng_setup();
+
+  // Setup DU.
+  auto ret = connect_new_du();
+  ASSERT_TRUE(ret.has_value());
+  unsigned du_idx = ret.value();
+  ASSERT_TRUE(this->run_f1_setup(du_idx));
+
+  // Setup CU-UP.
+  ret = connect_new_cu_up();
+  ASSERT_TRUE(ret.has_value());
+  unsigned cu_up_idx = ret.value();
+  ASSERT_TRUE(this->run_e1_setup(cu_up_idx));
+
+  // Create and authenticate UE.
+  gnb_du_ue_f1ap_id_t du_ue_f1ap_id = int_to_gnb_du_ue_f1ap_id(0);
+  rnti_t              crnti         = to_rnti(0x4601);
+  ASSERT_TRUE(connect_new_ue(du_idx, du_ue_f1ap_id, crnti));
+  ASSERT_TRUE(authenticate_ue(du_idx, du_ue_f1ap_id, uint_to_amf_ue_id(0)));
+
+  // Step 1: AMF initiates UE release - inject NGAP UE Context Release Command.
+  // This starts a release procedure that will send F1AP UE Context Release Command.
+  auto* ue_ctx = find_ue_context(du_idx, du_ue_f1ap_id);
+  ASSERT_NE(ue_ctx, nullptr);
+  get_amf().push_tx_pdu(generate_valid_ue_context_release_command_with_amf_ue_ngap_id(ue_ctx->amf_ue_id.value()));
+
+  // Wait for F1AP UE Context Release Command to be sent to DU.
+  f1ap_message f1ap_pdu;
+  ASSERT_TRUE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_ue_context_release_command(f1ap_pdu));
+
+  // Step 2: DO NOT complete the F1AP release - leave it in progress.
+  // Now drop AMF connection - this triggers cell_deactivation_routine.
+  ASSERT_TRUE(drop_amf_connection(0));
+
+  // Step 3: Cell deactivation will try to release the same UE again.
+  // With the old implementation, this would fail and ue_released would never be set to true.
+  // Wait for the F1AP timeout to expire (the first release will timeout).
+  ASSERT_FALSE(tick_until(
+      this->get_cu_cp_cfg().f1ap.proc_timeout + std::chrono::milliseconds{1000}, [&]() { return false; }, false));
+
+  // After timeout, the cell deactivation routine should complete and send GNB CU Configuration Update.
+  ASSERT_TRUE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu, std::chrono::milliseconds{1000}))
+      << "Cell deactivation should proceed even after UE release timeout";
+  ASSERT_TRUE(test_helpers::is_valid_gnb_cu_configuration_update(f1ap_pdu));
+
+  // DU acknowledges configuration update.
+  get_du(du_idx).push_ul_pdu(test_helpers::generate_gnb_cu_configuration_update_acknowledgement({}));
+
+  // Verify CU-CP is not connected to AMF but still running.
+  ASSERT_FALSE(this->get_cu_cp().get_ng_handler().amfs_are_connected());
+}
+
+TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_then_all_ue_releases_are_started_in_parallel)
+{
+  // This test verifies that cell_deactivation_routine releases all UEs in parallel, not sequentially.
+  // All F1AP UE Context Release Commands should be sent out before any response is received.
+  // If releases were sequential, only one command would be sent at a time, waiting for the response
+  // before sending the next one.
+
+  const unsigned nof_ues = 20;
+
+  // Run NG setup to completion.
+  run_ng_setup();
+
+  // Setup DU.
+  auto ret = connect_new_du();
+  ASSERT_TRUE(ret.has_value());
+  unsigned du_idx = ret.value();
+  ASSERT_TRUE(this->run_f1_setup(du_idx));
+
+  // Setup CU-UP.
+  ret = connect_new_cu_up();
+  ASSERT_TRUE(ret.has_value());
+  unsigned cu_up_idx = ret.value();
+  ASSERT_TRUE(this->run_e1_setup(cu_up_idx));
+
+  // Create 20 UEs.
+  for (unsigned i = 0; i < nof_ues; ++i) {
+    ASSERT_TRUE(connect_new_ue(du_idx, int_to_gnb_du_ue_f1ap_id(i), to_rnti(0x4601 + i)));
+  }
+
+  // Verify all UEs are created.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.ues.size(), nof_ues);
+
+  // Drop AMF connection - this triggers cell_deactivation_routine which should release all UEs.
+  ASSERT_TRUE(drop_amf_connection(0));
+
+  // TEST: Verify all F1AP UE Context Release Commands are sent BEFORE we respond to any.
+  // If the releases are parallel, all commands should be sent without waiting for responses.
+  // If sequential, only 1 command would appear, and the next only after we respond.
+  std::vector<f1ap_message> release_commands(nof_ues);
+  for (unsigned i = 0; i < nof_ues; ++i) {
+    ASSERT_TRUE(this->wait_for_f1ap_tx_pdu(du_idx, release_commands[i], std::chrono::milliseconds{1000}))
+        << "Expected F1AP UE Context Release Command for UE " << i
+        << " before any response was sent - releases may not be parallel";
+    ASSERT_TRUE(test_helpers::is_valid_ue_context_release_command(release_commands[i]));
+  }
+
+  // Generate responses for all UEs and shuffle them to simulate out-of-order completion.
+  std::vector<f1ap_message> release_responses;
+  for (unsigned i = 0; i < nof_ues; ++i) {
+    release_responses.push_back(test_helpers::generate_ue_context_release_complete(release_commands[i]));
+  }
+  std::mt19937 rng(42); // Fixed seed for reproducibility.
+  std::shuffle(release_responses.begin(), release_responses.end(), rng);
+
+  // Simulate DU responses arriving over ~5 seconds (well within 10s F1AP proc timeout).
+  const unsigned delay_between_responses_ms = 5000 / nof_ues; // 250ms between each response.
+  for (const auto& response : release_responses) {
+    tick_until(std::chrono::milliseconds{delay_between_responses_ms}, [&]() { return false; }, false);
+    get_du(du_idx).push_ul_pdu(response);
+  }
+
+  // After all UE releases complete, cell deactivation should send GNB CU Configuration Update.
+  f1ap_message f1ap_pdu;
+  ASSERT_TRUE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu, std::chrono::milliseconds{1000}))
+      << "Cell deactivation should complete and send GNB CU Configuration Update after all UEs are released";
+  ASSERT_TRUE(test_helpers::is_valid_gnb_cu_configuration_update(f1ap_pdu));
+
+  // DU acknowledges configuration update.
+  get_du(du_idx).push_ul_pdu(test_helpers::generate_gnb_cu_configuration_update_acknowledgement({}));
+
+  // Verify all UEs are removed.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_TRUE(report.ues.empty());
+
+  // Verify CU-CP is not connected to AMF but still running.
+  ASSERT_FALSE(this->get_cu_cp().get_ng_handler().amfs_are_connected());
 }
 
 //----------------------------------------------------------------------------------//

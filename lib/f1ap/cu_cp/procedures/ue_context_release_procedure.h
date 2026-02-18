@@ -46,6 +46,8 @@ private:
   f1ap_message_notifier&               f1ap_notifier;
   ocudulog::basic_logger&              logger;
 
+  ue_index_t release_result = ue_index_t::invalid;
+
   protocol_transaction_outcome_observer<asn1::f1ap::ue_context_release_complete_s> transaction_sink;
 };
 

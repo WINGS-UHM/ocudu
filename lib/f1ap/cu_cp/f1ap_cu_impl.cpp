@@ -357,6 +357,9 @@ void f1ap_cu_impl::handle_initial_ul_rrc_message(const asn1::f1ap::init_ul_rrc_m
     f1ap_ue_context& ue_ctxt = ue_ctxt_list[resp->ue_index];
     ue_ctxt_list.add_du_ue_f1ap_id(ue_ctxt.ue_ids.cu_ue_f1ap_id, du_ue_id);
 
+    // Reset release state so the context can be released again if needed (e.g. RRC Resume with invalid MAC).
+    ue_ctxt.reset_release_state(); // TODO: This is a temporary solution, F1AP context should not be reused
+
     ue_ctxt.logger.log_info("Updated resumed UE context with new DU UE F1AP ID");
   } else {
     // Create UE context and store it.

@@ -12,7 +12,7 @@
 #include "lib/cu_up/cu_up_impl.h"
 #include "lib/e1ap/cu_up/e1ap_cu_up_asn1_helpers.h"
 #include "ocudu/asn1/e1ap/e1ap.h"
-#include "ocudu/pdcp/pdcp_sn_util.h"
+#include "ocudu/ran/pdcp_sn_util.h"
 #include "ocudu/support/executors/task_worker.h"
 #include "ocudu/support/io/io_broker_factory.h"
 #include <arpa/inet.h>

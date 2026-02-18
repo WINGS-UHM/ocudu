@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "ocudu/pdcp/pdcp_sn_size.h"
 #include "ocudu/ran/cause/f1ap_cause.h"
+#include "ocudu/ran/pdcp_sn_size.h"
 #include "ocudu/ran/qos/qos_flow_id.h"
 #include "ocudu/ran/qos/qos_parameters.h"
 #include "ocudu/ran/rb_id.h"

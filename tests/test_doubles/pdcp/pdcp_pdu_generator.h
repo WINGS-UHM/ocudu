@@ -14,7 +14,7 @@
 #pragma once
 
 #include "ocudu/adt/byte_buffer.h"
-#include "ocudu/pdcp/pdcp_sn_size.h"
+#include "ocudu/ran/pdcp_sn_size.h"
 #include <gtest/gtest.h>
 
 namespace ocudu {

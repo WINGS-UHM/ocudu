@@ -11,7 +11,7 @@
 #include "rlc_tx_am_entity.h"
 #include "ocudu/adt/scope_exit.h"
 #include "ocudu/instrumentation/traces/du_traces.h"
-#include "ocudu/pdcp/pdcp_sn_util.h"
+#include "ocudu/ran/pdcp_sn_util.h"
 #include "ocudu/ran/pdsch/pdsch_constants.h"
 #include "ocudu/support/ocudu_assert.h"
 #include "ocudu/support/rtsan.h"

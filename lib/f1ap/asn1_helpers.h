@@ -13,7 +13,6 @@
 #include "ocudu/asn1/f1ap/f1ap_pdu_items.h"
 #include "ocudu/f1ap/du/f1ap_du_positioning_handler.h"
 #include "ocudu/f1ap/ue_context_management_configs.h"
-#include "ocudu/pdcp/pdcp_sn_size.h"
 #include "ocudu/ran/nr_cgi.h"
 
 namespace ocudu {

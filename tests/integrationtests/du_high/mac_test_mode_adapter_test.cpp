@@ -179,8 +179,7 @@ protected:
     adapter.get_ue_configurator().handle_ue_create_request(req);
     ocudu_assert(mac_events.last_ue_created.has_value(), "UE creation request was not forwarded to MAC");
 
-    csi_cfg = create_csi_report_configuration(
-        *mac_events.last_ue_created->sched_cfg.cells.value()[0].serv_cell_cfg.csi_meas_cfg);
+    csi_cfg = create_csi_report_configuration(*mac_events.last_ue_created->sched_cfg.cells.value()[0].csi_meas_cfg);
   }
 
   void run_slot()

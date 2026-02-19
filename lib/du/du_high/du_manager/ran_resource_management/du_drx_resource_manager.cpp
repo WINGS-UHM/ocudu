@@ -73,7 +73,7 @@ void du_drx_resource_manager::handle_ue_creation(cell_group_config& cell_grp_cfg
 void du_drx_resource_manager::handle_ue_cap_update(cell_group_config& cell_grp_cfg, bool long_drx_cycle_supported)
 {
   std::optional<drx_config>& current_ue_drx   = cell_grp_cfg.mcg_cfg.drx_cfg;
-  const du_cell_index_t      pcell_index      = cell_grp_cfg.cells[0].serv_cell_cfg.cell_index;
+  const du_cell_index_t      pcell_index      = cell_grp_cfg.cells.at(SERVING_PCELL_IDX).cell_index;
   const du_cell_config&      pcell_cfg_common = cell_cfg_list[pcell_index];
 
   // If both UE and gNB cell are configured to support long DRX cycle.
@@ -115,7 +115,7 @@ void du_drx_resource_manager::handle_ue_removal(cell_group_config& cell_grp_cfg)
 
   // Return offset back to the pool.
   drx_config& drx = cell_grp_cfg.mcg_cfg.drx_cfg.value();
-  offset_pool->deallocate(cell_grp_cfg.cells[0].serv_cell_cfg.cell_index, drx.long_start_offset);
+  offset_pool->deallocate(cell_grp_cfg.cells.at(SERVING_PCELL_IDX).cell_index, drx.long_start_offset);
 
   // Clear DRX config.
   cell_grp_cfg.mcg_cfg.drx_cfg.reset();

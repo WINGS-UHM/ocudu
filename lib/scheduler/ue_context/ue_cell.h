@@ -17,6 +17,7 @@
 #include "ue_channel_state_manager.h"
 #include "ue_drx_controller.h"
 #include "ue_link_adaptation_controller.h"
+#include "ocudu/ran/serv_cell_index.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
 
@@ -60,7 +61,7 @@ public:
 
   ue_cell(du_ue_index_t                ue_index_,
           rnti_t                       crnti_val,
-          ue_cell_index_t              ue_cell_index_,
+          serv_cell_index_t            serv_cell_index_,
           const ue_cell_configuration& ue_cell_cfg_,
           cell_harq_manager&           cell_harq_pool,
           ue_shared_context            shared_ctx,

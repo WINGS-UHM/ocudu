@@ -61,8 +61,8 @@ protected:
       rnti_t                                   crnti = to_rnti(0x4601),
       sched_cell_configuration_request_message msg =
           sched_config_helper::make_default_sched_cell_configuration_request(),
-      cell_config_dedicated ue_cell = sched_config_helper::create_test_initial_ue_spcell_cell_config()) :
-    cell_cfg(*sched_cfg_mng.add_cell(msg)), default_ue_cell_req(ue_cell.serv_cell_cfg)
+      serving_cell_config ue_cell = sched_config_helper::create_test_initial_ue_spcell_cell_config()) :
+    cell_cfg(*sched_cfg_mng.add_cell(msg)), default_ue_cell_req(ue_cell)
   {
     ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
     test_logger.set_level(ocudulog::basic_levels::debug);
@@ -94,7 +94,7 @@ protected:
     ue_creation_req.ue_index                          = to_du_ue_index((unsigned)rnti - 0x4601);
     ue_creation_req.crnti                             = rnti;
     ue_creation_req.starts_in_fallback                = false;
-    (*ue_creation_req.cfg.cells)[0].serv_cell_cfg     = default_ue_cell_req;
+    (*ue_creation_req.cfg.cells)[0]                   = default_ue_cell_req;
     return ue_creation_req;
   }
 
@@ -359,10 +359,10 @@ class ue_pdcch_resource_allocator_scrambling_tester : public base_pdcch_resource
     }
     return msg;
   }
-  static cell_config_dedicated make_ue_base_req(const test_scrambling_params& params)
+  static serving_cell_config make_ue_base_req(const test_scrambling_params& params)
   {
-    cell_config_dedicated ue_cell   = sched_config_helper::create_test_initial_ue_spcell_cell_config();
-    auto&                 pdcch_cfg = *ue_cell.serv_cell_cfg.init_dl_bwp.pdcch_cfg;
+    serving_cell_config ue_cell   = sched_config_helper::create_test_initial_ue_spcell_cell_config();
+    auto&               pdcch_cfg = *ue_cell.init_dl_bwp.pdcch_cfg;
     pdcch_cfg.coresets[0].set_non_coreset0_pdcch_dmrs_scrambling_id(params.cs1_pdcch_dmrs_scrambling_id);
     if (params.ss2_type == ocudu::search_space_type::common) {
       pdcch_cfg.search_spaces[0].set_non_ss0_monitored_dci_formats(
@@ -577,11 +577,10 @@ protected:
           return msg;
         }(),
         [tparams = GetParam()]() {
-          cell_config_dedicated ue_cell = sched_config_helper::create_test_initial_ue_spcell_cell_config(
+          serving_cell_config ue_cell = sched_config_helper::create_test_initial_ue_spcell_cell_config(
               cell_config_builder_params{.dl_carrier{.carrier_bw = tparams.cell_bw}});
           if (tparams.ss2_nof_candidates.has_value()) {
-            ue_cell.serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0].set_non_ss0_nof_candidates(
-                *tparams.ss2_nof_candidates);
+            ue_cell.init_dl_bwp.pdcch_cfg->search_spaces[0].set_non_ss0_nof_candidates(*tparams.ss2_nof_candidates);
           }
           return ue_cell;
         }()),
@@ -592,12 +591,11 @@ protected:
   sched_ue_creation_request_message create_ue_cfg(rnti_t rnti)
   {
     auto ue_creation_req = super_type::create_ue_cfg(rnti);
-    (*ue_creation_req.cfg.cells)[0]
-        .serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0]
-        .set_non_ss0_monitored_dci_formats(search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
+    (*ue_creation_req.cfg.cells)[0].init_dl_bwp.pdcch_cfg->search_spaces[0].set_non_ss0_monitored_dci_formats(
+        search_space_configuration::ue_specific_dci_format::f0_1_and_1_1);
     cell_config_builder_params builder_params{};
     builder_params.dl_carrier.carrier_bw = params.cell_bw;
-    (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets[0] =
+    (*ue_creation_req.cfg.cells)[0].init_dl_bwp.pdcch_cfg->coresets[0] =
         config_helpers::make_default_coreset_config(builder_params);
     return ue_creation_req;
   }

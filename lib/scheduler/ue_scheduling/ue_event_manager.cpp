@@ -277,10 +277,10 @@ void ue_cell_event_manager::handle_ue_creation(ue_config_update_event ev)
     const auto& added_ue = ue_db[ue_index];
 
     // Update UCI scheduler with new UE UCI resources.
-    uci_sched.add_ue(added_ue.get_cell(to_ue_cell_index(0)).cfg());
+    uci_sched.add_ue(added_ue.get_cell(SERVING_PCELL_IDX).cfg());
 
     // Update SRS scheduler with new UE SRS resources.
-    srs_sched.add_ue(added_ue.get_cell(to_ue_cell_index(0)).cfg());
+    srs_sched.add_ue(added_ue.get_cell(SERVING_PCELL_IDX).cfg());
 
     // Add UE to slice scheduler.
     // Note: This action only has effect when UE is created in non-fallback mode.
@@ -313,7 +313,7 @@ void ue_cell_event_manager::handle_ue_reconfiguration(ue_config_update_event ev)
 
     // Reconfigure PCell
     // Note: Carrier aggregation not yet supported.
-    auto& ue_cc = u.get_cell(to_ue_cell_index(0));
+    auto& ue_cc = u.get_cell(SERVING_PCELL_IDX);
     uci_sched.reconf_ue(ev.next_config().ue_cell_cfg(ue_cc.cell_index), ue_cc.cfg());
     srs_sched.reconf_ue(ev.next_config().ue_cell_cfg(ue_cc.cell_index), ue_cc.cfg());
 

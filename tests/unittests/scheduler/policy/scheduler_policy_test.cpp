@@ -226,8 +226,8 @@ protected:
 TEST_P(scheduler_policy_css_test, when_coreset0_used_then_dl_grant_is_within_bounds_of_coreset0_rbs)
 {
   auto ue_req = make_ue_create_req(to_du_ue_index(0), to_rnti(0x4601), {uint_to_lcid(4)}, uint_to_lcg_id(0));
-  (*ue_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces = make_search_spaces();
-  ue& u                                                                     = add_ue(ue_req);
+  (*ue_req.cfg.cells)[0].init_dl_bwp.pdcch_cfg->search_spaces = make_search_spaces();
+  ue& u                                                       = add_ue(ue_req);
 
   // Note: set CQI=15 to use low aggregation level.
   u.get_pcell().handle_csi_report(

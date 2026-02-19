@@ -34,13 +34,10 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
   return sched_req;
 }
 
-cell_config_dedicated
+serving_cell_config
 sched_config_helper::create_test_initial_ue_spcell_cell_config(const cell_config_builder_params& params)
 {
-  cell_config_dedicated cfg;
-  cfg.serv_cell_idx = to_serv_cell_index(0);
-  cfg.serv_cell_cfg = config_helpers::create_default_initial_ue_serving_cell_config(params);
-  return cfg;
+  return config_helpers::create_default_initial_ue_serving_cell_config(params);
 }
 
 sched_ue_creation_request_message
@@ -83,9 +80,8 @@ sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(const cel
   msg.ue_index = to_du_ue_index(0);
   msg.crnti    = to_rnti(0x4601);
 
-  cell_config_dedicated cfg;
-  cfg.serv_cell_idx              = to_serv_cell_index(0);
-  serving_cell_config& serv_cell = cfg.serv_cell_cfg;
+  serving_cell_config  cfg;
+  serving_cell_config& serv_cell = cfg;
 
   serv_cell.cell_index = to_du_cell_index(0);
 

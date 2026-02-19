@@ -330,11 +330,4 @@ struct serving_cell_config {
   }
 };
 
-/// UE-dedicated configuration for serving cell.
-struct cell_config_dedicated {
-  serv_cell_index_t serv_cell_idx;
-  /// Serving Cell Configuration as per TS 38.331.
-  serving_cell_config serv_cell_cfg;
-};
-
 } // namespace ocudu

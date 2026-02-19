@@ -13,6 +13,7 @@
 #include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 #include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
 #include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/ran/serv_cell_index.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/result/pucch_format.h"
@@ -219,12 +220,12 @@ du_pucch_resource_manager::find_optimal_csi_report_slot_offset(
 
 bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
 {
-  auto&                 out_cell_cfg                          = cell_grp_cfg.cells[PCELL_INDEX];
-  const du_cell_index_t du_cell_index                         = out_cell_cfg.serv_cell_cfg.cell_index;
-  auto&                 du_cell_res_ctxt                      = cells[du_cell_index];
-  auto&                 free_sr_list                          = du_cell_res_ctxt.sr_res_offset_free_list;
-  auto&                 free_csi_list                         = du_cell_res_ctxt.csi_res_offset_free_list;
-  out_cell_cfg.serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg = du_cell_res_ctxt.default_pucch_cfg;
+  auto&                 out_cell_cfg            = cell_grp_cfg.cells.at(SERVING_PCELL_IDX);
+  const du_cell_index_t du_cell_index           = out_cell_cfg.cell_index;
+  auto&                 du_cell_res_ctxt        = cells[du_cell_index];
+  auto&                 free_sr_list            = du_cell_res_ctxt.sr_res_offset_free_list;
+  auto&                 free_csi_list           = du_cell_res_ctxt.csi_res_offset_free_list;
+  out_cell_cfg.ul_config->init_ul_bwp.pucch_cfg = du_cell_res_ctxt.default_pucch_cfg;
 
   // Verify where there are SR and CSI resources to allocate a new UE.
   if (free_sr_list.empty() or (du_cell_res_ctxt.default_csi_report_cfg.has_value() and free_csi_list.empty())) {
@@ -266,13 +267,10 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
     const pucch_resource sr_res =
         du_cell_res_ctxt.default_pucch_res_list[sr_du_res_idx_to_pucch_res_idx(du_cell_index, sr_res_offset_it->first)];
 
-    out_cell_cfg.serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list = {*du_cell_res_ctxt.default_csi_report_cfg};
+    out_cell_cfg.csi_meas_cfg->csi_report_cfg_list = {*du_cell_res_ctxt.default_csi_report_cfg};
 
-    auto optimal_res_it = get_csi_resource_offset(du_cell_index,
-                                                  out_cell_cfg.serv_cell_cfg.csi_meas_cfg.value(),
-                                                  sr_res_offset_it->second,
-                                                  sr_res,
-                                                  free_csi_list);
+    auto optimal_res_it = get_csi_resource_offset(
+        du_cell_index, out_cell_cfg.csi_meas_cfg.value(), sr_res_offset_it->second, sr_res, free_csi_list);
 
     if (optimal_res_it != free_csi_list.end()) {
       // At this point the allocation has been successful. Remove SR and CSI resources assigned to this UE from the
@@ -304,7 +302,7 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
   }
 
   // Generate PUCCH resource list for the UE.
-  config_helpers::ue_pucch_config_builder(out_cell_cfg.serv_cell_cfg,
+  config_helpers::ue_pucch_config_builder(out_cell_cfg,
                                           du_cell_res_ctxt.default_pucch_res_list,
                                           du_cell_res_ctxt.ue_idx,
                                           sr_res_offset.value().first,
@@ -316,16 +314,14 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
                                           du_cell_res_ctxt.user_defined_pucch_cfg.nof_cell_csi_resources);
 
   // Set the offsets for SR and CSI.
-  out_cell_cfg.serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.front().offset =
-      sr_res_offset.value().second;
-  if (out_cell_cfg.serv_cell_cfg.csi_meas_cfg.has_value() and
-      not is_pusch_configured(*out_cell_cfg.serv_cell_cfg.csi_meas_cfg)) {
+  out_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.front().offset = sr_res_offset.value().second;
+  if (out_cell_cfg.csi_meas_cfg.has_value() and not is_pusch_configured(*out_cell_cfg.csi_meas_cfg)) {
     std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        out_cell_cfg.serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type)
+        out_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type)
         .report_slot_offset = csi_res_offset.value().second;
   }
 
-  auto& ue_ded_pucch_cfg = out_cell_cfg.serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
+  auto& ue_ded_pucch_cfg = out_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
 
   // Update the PUCCH max payload.
   // As per TS 38.231, Section 9.2.1, with PUCCH Format 1, we can have up to 2 HARQ-ACK bits (SR doesn't count as part
@@ -386,7 +382,7 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
 
 void du_pucch_resource_manager::dealloc_resources(cell_group_config& cell_grp_cfg)
 {
-  auto&                 out_cell_cfg  = cell_grp_cfg.cells[PCELL_INDEX].serv_cell_cfg;
+  auto&                 out_cell_cfg  = cell_grp_cfg.cells.at(SERVING_PCELL_IDX);
   const du_cell_index_t du_cell_index = out_cell_cfg.cell_index;
   auto&                 du_cell_res   = cells[du_cell_index];
 
@@ -564,7 +560,7 @@ unsigned du_pucch_resource_manager::pucch_res_idx_to_csi_du_res_idx(du_cell_inde
 
 void du_pucch_resource_manager::disable_pucch_cfg(du_cell_index_t cell_index, cell_group_config& cell_grp_cfg)
 {
-  auto& serv_cell = cell_grp_cfg.cells[PCELL_INDEX].serv_cell_cfg;
+  auto& serv_cell = cell_grp_cfg.cells.at(SERVING_PCELL_IDX);
 
   serv_cell.ul_config->init_ul_bwp.pucch_cfg.reset();
   if (cells[cell_index].default_csi_report_cfg.has_value()) {

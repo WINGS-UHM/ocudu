@@ -40,7 +40,7 @@ void ra_resource_manager::allocate_cfra_resources(du_ue_resource_config& ue_res_
     return;
   }
 
-  du_cell_index_t  pcell_index = ue_res_cfg.cell_group.cells[0].serv_cell_cfg.cell_index;
+  du_cell_index_t  pcell_index = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX).cell_index;
   cell_ra_context& pcell_ra    = cells[pcell_index];
 
   if (pcell_ra.free_preamble_idx_list.empty()) {
@@ -61,7 +61,7 @@ void ra_resource_manager::deallocate_cfra_resources(du_ue_resource_config& ue_re
 {
   if (ue_res_cfg.cfra.has_value()) {
     // Return allocated CFRA preamble to the pool.
-    cell_ra_context& cell = cells[ue_res_cfg.cell_group.cells[0].serv_cell_cfg.cell_index];
+    cell_ra_context& cell = cells[ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX).cell_index];
     cell.free_preamble_idx_list.push_back(ue_res_cfg.cfra.value().preamble_id);
 
     // Reset CFRA resources.

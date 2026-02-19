@@ -66,10 +66,9 @@ protected:
     // Add UE
     auto ue_cfg = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg_builder_params_list[cell_idx],
                                                                                 {LCID_MIN_DRB});
-    ue_cfg.ue_index                                 = to_du_ue_index(ue_idx);
-    ue_cfg.crnti                                    = get_ue_crnti(ue_idx);
-    (*ue_cfg.cfg.cells)[0].serv_cell_cfg.cell_index = to_du_cell_index(cell_idx);
-    (*ue_cfg.cfg.cells)[0].serv_cell_idx            = to_serv_cell_index(cell_idx);
+    ue_cfg.ue_index                   = to_du_ue_index(ue_idx);
+    ue_cfg.crnti                      = get_ue_crnti(ue_idx);
+    (*ue_cfg.cfg.cells)[0].cell_index = to_du_cell_index(cell_idx);
 
     scheduler_test_simulator::add_ue(ue_cfg);
   }

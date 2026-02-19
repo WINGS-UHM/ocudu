@@ -181,11 +181,12 @@ positioning_measurement_procedure::prepare_mac_cell_positioning_request(du_cell_
 
   // Matches SRS resources that need to be measured to existing UEs' resources.
   for (const auto& u : ue_mng.get_du_ues()) {
-    for (const auto& c : u.resources->cell_group.cells) {
-      if (c.serv_cell_cfg.cell_index != cell_index or not c.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value()) {
+    for (const auto& cell_entry : u.resources->cell_group.cells) {
+      const auto& c = cell_entry.second;
+      if (c.cell_index != cell_index or not c.ul_config->init_ul_bwp.srs_cfg.has_value()) {
         continue;
       }
-      const srs_config& ue_srs_cfg = c.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
+      const srs_config& ue_srs_cfg = c.ul_config->init_ul_bwp.srs_cfg.value();
 
       if (srs_config_matches(ue_srs_cfg, carrier.srs_cfg)) {
         // Found a UE with matching SRSConfig

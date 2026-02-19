@@ -43,11 +43,10 @@ static unsigned compute_c_srs(unsigned nof_ul_crbs)
 
 static void validate_default_ue_cfg_req(const sched_ue_creation_request_message& ue_req)
 {
-  ocudu_assert(ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.has_value(),
-               "UL config is required for this test");
-  ocudu_assert(ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
+  ocudu_assert(ue_req.cfg.cells.value().front().ul_config.has_value(), "UL config is required for this test");
+  ocudu_assert(ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.has_value(),
                "SRS config is required for this test");
-  const auto& srs_cfg = ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
+  const auto& srs_cfg = ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.value();
   ocudu_assert(srs_cfg.srs_res_set_list.size() == 1, "SRS Resource Set is expected to have size 1");
   const auto& srs_set = srs_cfg.srs_res_set_list.front();
   ocudu_assert(srs_set.srs_res_id_list.size() == 1 and
@@ -227,11 +226,8 @@ public:
     sched_ue_creation_request_message ue_req = base_ue_req;
 
     // Set SRS resource aperiodic.
-    srs_config::srs_resource& srs_res = ue_req.cfg.cells.value()
-                                            .front()
-                                            .serv_cell_cfg.ul_config.value()
-                                            .init_ul_bwp.srs_cfg.value()
-                                            .srs_res_list.front();
+    srs_config::srs_resource& srs_res =
+        ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.value().srs_res_list.front();
     srs_res.res_type = srs_resource_type::aperiodic;
 
     // The TX comb size is not used in this test to check collision among SRS resources, but only to check that the
@@ -262,11 +258,8 @@ public:
     srs_res.id.cell_res_id = next_srs_res_id;
     next_srs_res_id        = (next_srs_res_id + 1) % max_cell_srs_res;
 
-    auto& srs_set_cfg = ue_req.cfg.cells.value()
-                            .front()
-                            .serv_cell_cfg.ul_config.value()
-                            .init_ul_bwp.srs_cfg.value()
-                            .srs_res_set_list.front();
+    auto& srs_set_cfg =
+        ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.value().srs_res_set_list.front();
     srs_set_cfg.id      = srs_config::srs_res_set_id::MIN_SRS_RES_SET_ID;
     auto& aperiodic_set = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_set_cfg.res_type);
     aperiodic_set.aperiodic_srs_res_trigger = static_cast<unsigned>(srs_config::srs_res_set_id::MIN_SRS_RES_SET_ID) + 1;

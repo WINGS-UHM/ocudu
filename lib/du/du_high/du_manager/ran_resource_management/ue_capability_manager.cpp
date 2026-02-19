@@ -204,7 +204,7 @@ ue_capability_manager::ue_capability_manager(span<const du_cell_config> cell_cfg
 void ue_capability_manager::handle_ue_creation(du_ue_resource_config& ue_res_cfg)
 {
   du_cell_index_t      cell_idx  = to_du_cell_index(0);
-  serving_cell_config& pcell_cfg = ue_res_cfg.cell_group.cells[cell_idx].serv_cell_cfg;
+  serving_cell_config& pcell_cfg = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
 
   // Set default MCS tables and disable UL MIMO.
   set_pdsch_mcs_table(pcell_cfg, select_pdsch_mcs_table(cell_idx));
@@ -246,7 +246,7 @@ void ue_capability_manager::update(du_ue_resource_config& ue_res_cfg, const ue_c
 void ue_capability_manager::update_impl(du_ue_resource_config& ue_res_cfg)
 {
   du_cell_index_t      cell_idx  = to_du_cell_index(0);
-  serving_cell_config& pcell_cfg = ue_res_cfg.cell_group.cells[cell_idx].serv_cell_cfg;
+  serving_cell_config& pcell_cfg = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
 
   // Enable 256QAM for PDSCH, if supported.
   set_pdsch_mcs_table(pcell_cfg, select_pdsch_mcs_table(cell_idx));

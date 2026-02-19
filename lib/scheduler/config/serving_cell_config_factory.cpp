@@ -656,13 +656,10 @@ ocudu::config_helpers::create_default_initial_ue_serving_cell_config(const cell_
   return serv_cell;
 }
 
-cell_config_dedicated
+serving_cell_config
 ocudu::config_helpers::create_default_initial_ue_spcell_cell_config(const cell_config_builder_params_extended& params)
 {
-  cell_config_dedicated cfg;
-  cfg.serv_cell_idx = to_serv_cell_index(0);
-  cfg.serv_cell_cfg = create_default_initial_ue_serving_cell_config(params);
-  return cfg;
+  return create_default_initial_ue_serving_cell_config(params);
 }
 
 uint8_t ocudu::config_helpers::compute_max_nof_candidates(aggregation_level            aggr_lvl,

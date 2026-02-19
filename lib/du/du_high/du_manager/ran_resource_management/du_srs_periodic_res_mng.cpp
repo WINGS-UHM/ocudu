@@ -131,14 +131,14 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
 {
   // First, check there are available SRS resources in each UE's cell.
   bool alloc_succeeded = true;
-  for (auto& cell_cfg_ded : cell_grp_cfg.cells) {
-    const auto& ue_du_cell = cells[cell_cfg_ded.serv_cell_cfg.cell_index];
+  for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
+    auto&       cell_cfg_ded = cell_cfg_ded_entry.second;
+    const auto& ue_du_cell   = cells[cell_cfg_ded.cell_index];
 
-    ocudu_assert(cell_cfg_ded.serv_cell_cfg.ul_config.has_value() and
-                     not cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value(),
+    ocudu_assert(cell_cfg_ded.ul_config.has_value() and not cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.has_value(),
                  "UE UL config should be non-empty but with an empty SRS config");
 
-    cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.emplace(ue_du_cell.default_srs_cfg);
+    cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.emplace(ue_du_cell.default_srs_cfg);
 
     // If periodic SRS is not enabled on this cell, don't allocate anything and continue to the next cell.
     if (ue_du_cell.cell_cfg.ran.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::disabled) {
@@ -149,7 +149,7 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
     // Verify whether there are SRS resources to allocate a new UE.
     if (free_srs_list.empty()) {
       // If the allocation failed, reset the SRS configuration.
-      cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.reset();
+      cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.reset();
       alloc_succeeded = false;
       break;
     }
@@ -157,27 +157,29 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
 
   // Reset the UE configuration in each cell before existing with failure.
   if (not alloc_succeeded) {
-    for (auto& cell_cfg_ded : cell_grp_cfg.cells) {
-      cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.reset();
+    for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
+      auto& cell_cfg_ded = cell_cfg_ded_entry.second;
+      cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.reset();
     }
     return false;
   }
 
   // From this point on, the allocation is expected to succeed, as there are SRS resources available in each cell.
-  for (auto& cell_cfg_ded : cell_grp_cfg.cells) {
-    auto& ue_du_cell = cells[cell_cfg_ded.serv_cell_cfg.cell_index];
+  for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
+    auto& ue_cell_cfg = cell_cfg_ded_entry.second;
+    auto& ue_du_cell  = cells[ue_cell_cfg.cell_index];
 
     // The UE SRS configuration is taken from a base configuration, saved in the GNB. The UE specific parameters will be
     // added later on in this function.
     // NOTE: This config could be as well for non-periodic SRS, therefore emplace anyway.
-    cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.emplace(ue_du_cell.default_srs_cfg);
+    ue_cell_cfg.ul_config->init_ul_bwp.srs_cfg.emplace(ue_du_cell.default_srs_cfg);
 
     // If periodic SRS is not enabled on this cell, don't allocate anything and continue to the next cell.
     if (ue_du_cell.cell_cfg.ran.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::disabled) {
       continue;
     }
 
-    srs_config& ue_srs_cfg    = cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
+    srs_config& ue_srs_cfg    = ue_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
     auto&       free_srs_list = ue_du_cell.srs_res_offset_free_list;
 
     // Find the best resource ID and offset for this UE, according to the class policy.
@@ -286,19 +288,20 @@ du_srs_policy_max_ul_rate::cell_context::find_optimal_ue_srs_resource()
 
 void du_srs_policy_max_ul_rate::dealloc_resources(cell_group_config& cell_grp_cfg)
 {
-  for (auto& cell_cfg_ded : cell_grp_cfg.cells) {
+  for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
+    auto& cell_cfg_ded = cell_cfg_ded_entry.second;
     // This is the cell index inside the DU.
-    auto& ue_du_cell = cells[cell_cfg_ded.serv_cell_cfg.cell_index];
+    auto& ue_du_cell = cells[cell_cfg_ded.cell_index];
 
     ocudu_assert(ue_du_cell.cell_cfg.ran.init_bwp_builder.srs_cfg.srs_type_enabled != srs_type::aperiodic,
                  "This function is not compatible with aperiodic SRS");
 
     if (ue_du_cell.cell_cfg.ran.init_bwp_builder.srs_cfg.srs_type_enabled != srs_type::periodic or
-        not cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value()) {
+        not cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.has_value()) {
       continue;
     }
 
-    const auto& ue_srs_cfg    = cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
+    const auto& ue_srs_cfg    = cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.value();
     auto&       free_srs_list = ue_du_cell.srs_res_offset_free_list;
 
     for (const auto& srs_res : ue_srs_cfg.srs_res_list) {
@@ -313,6 +316,6 @@ void du_srs_policy_max_ul_rate::dealloc_resources(cell_group_config& cell_grp_cf
 
     // Reset the SRS configuration in this UE. This makes sure the DU will exit this function immediately when it gets
     // called again for the same UE (upon destructor's call).
-    cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.reset();
+    cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.reset();
   }
 }

@@ -23,7 +23,7 @@ namespace ocudu {
 struct sched_cell_configuration_request_message;
 struct sched_ue_creation_request_message;
 struct sched_ue_reconfiguration_message;
-struct cell_config_dedicated;
+struct serving_cell_config;
 
 class du_cell_config_pool
 {

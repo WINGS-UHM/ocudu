@@ -133,7 +133,7 @@ du_ran_resource_manager_impl::create_ue_resource_configurator(du_ue_index_t   ue
 
   // UE initialized PCell.
   // Note: In case of lack of RAN resource availability, the return will be error type.
-  error_type<std::string> err = allocate_cell_resources(ue_index, pcell_index, SERVING_CELL_PCELL_IDX);
+  error_type<std::string> err = allocate_cell_resources(ue_index, pcell_index, SERVING_PCELL_IDX);
   if (not err.has_value()) {
     logger.info("Failed to create a configuration for ue={}. Cause: {}", static_cast<unsigned>(ue_index), err.error());
   }
@@ -164,9 +164,10 @@ du_ran_resource_manager_impl::update_context(du_ue_index_t                      
   du_ue_resource_update_response resp;
 
   // > Deallocate resources for previously configured cells that have now been removed or changed.
-  if (ue_mcg.cell_group.cells.contains(0) and ue_mcg.cell_group.cells[0].serv_cell_cfg.cell_index != pcell_idx) {
+  if (ue_mcg.cell_group.cells.contains(SERVING_PCELL_IDX) and
+      ue_mcg.cell_group.cells.at(SERVING_PCELL_IDX).cell_index != pcell_idx) {
     // >> PCell changed. Deallocate PCell resources.
-    deallocate_cell_resources(ue_index, SERVING_CELL_PCELL_IDX);
+    deallocate_cell_resources(ue_index, SERVING_PCELL_IDX);
   }
   for (serv_cell_index_t scell_idx : upd_req.scells_to_rem) {
     // >> SCells to be removed. Deallocate them.
@@ -175,15 +176,16 @@ du_ran_resource_manager_impl::update_context(du_ue_index_t                      
   for (const f1ap_scell_to_setup& scell : upd_req.scells_to_setup) {
     // >> If SCells to be modified changed DU Cell Index.
     if (ue_mcg.cell_group.cells.contains(scell.serv_cell_index) and
-        ue_mcg.cell_group.cells[scell.serv_cell_index].serv_cell_cfg.cell_index != scell.cell_index) {
+        ue_mcg.cell_group.cells.at(scell.serv_cell_index).cell_index != scell.cell_index) {
       deallocate_cell_resources(ue_index, scell.serv_cell_index);
     }
   }
 
   // > Allocate resources for new or modified cells.
-  if (not ue_mcg.cell_group.cells.contains(0) or ue_mcg.cell_group.cells[0].serv_cell_cfg.cell_index != pcell_idx) {
+  if (not ue_mcg.cell_group.cells.contains(SERVING_PCELL_IDX) or
+      ue_mcg.cell_group.cells.at(SERVING_PCELL_IDX).cell_index != pcell_idx) {
     // >> PCell changed. Allocate new PCell resources.
-    error_type<std::string> outcome = allocate_cell_resources(ue_index, pcell_idx, SERVING_CELL_PCELL_IDX);
+    error_type<std::string> outcome = allocate_cell_resources(ue_index, pcell_idx, SERVING_PCELL_IDX);
     if (not outcome.has_value()) {
       resp.procedure_error = outcome;
       return resp;
@@ -230,8 +232,8 @@ void du_ran_resource_manager_impl::deallocate_context(du_ue_index_t ue_index)
 
   ue_res.ue_cap_manager.release(ue_mcg);
 
-  for (const auto& sc : ue_mcg.cell_group.cells) {
-    deallocate_cell_resources(ue_index, sc.serv_cell_idx);
+  for (auto p : ue_mcg.cell_group.cells) {
+    deallocate_cell_resources(ue_index, p.first);
   }
 
   ue_res_pool.erase(ue_index);
@@ -255,13 +257,11 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
 
   const du_cell_config& cell_cfg_cmn = cell_cfg_list[cell_index];
 
-  if (serv_cell_index == SERVING_CELL_PCELL_IDX) {
+  if (serv_cell_index == SERVING_PCELL_IDX) {
     // It is a PCell.
-    ocudu_assert(not ue_res.cell_group.cells.contains(SERVING_CELL_PCELL_IDX), "Reallocation of PCell detected");
-    ue_res.cell_group.cells.emplace(SERVING_CELL_PCELL_IDX);
-    ue_res.cell_group.cells[0].serv_cell_idx = SERVING_CELL_PCELL_IDX;
-    ue_res.cell_group.cells[0].serv_cell_cfg =
-        config_helpers::make_ue_serving_cell_config(cell_cfg_cmn.ran, cell_index);
+    ocudu_assert(not ue_res.cell_group.cells.contains(SERVING_PCELL_IDX), "Reallocation of PCell detected");
+    ue_res.cell_group.cells.emplace(SERVING_PCELL_IDX,
+                                    config_helpers::make_ue_serving_cell_config(cell_cfg_cmn.ran, cell_index));
     ue_res.cell_group.mcg_cfg = config_helpers::make_initial_mac_cell_group_config(cell_cfg_cmn.mcg_params);
     // TODO: Move to helper.
     if (cell_cfg_cmn.pcg_params.p_nr_fr1.has_value()) {
@@ -271,27 +271,26 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
 
     // Start with removing PUCCH and SRS configurations. This step simplifies the handling of the allocation failure
     // path.
-    reset_serv_cell_cfg(ue_res.cell_group.cells[0].serv_cell_cfg);
+    reset_serv_cell_cfg(ue_res.cell_group.cells.at(SERVING_PCELL_IDX));
 
     if (not srs_res_mng->alloc_resources(ue_res.cell_group)) {
       // Deallocate dedicated Search Spaces.
-      ue_res.cell_group.cells[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces.clear();
+      ue_res.cell_group.cells.at(SERVING_PCELL_IDX).init_dl_bwp.pdcch_cfg->search_spaces.clear();
       return make_unexpected(fmt::format("Unable to allocate SRS resources for cell={}", fmt::underlying(cell_index)));
     }
 
     if (not pucch_res_mng.alloc_resources(ue_res.cell_group)) {
       // Deallocate previously allocated SRS + dedicated Search Spaces.
       srs_res_mng->dealloc_resources(ue_res.cell_group);
-      ue_res.cell_group.cells[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces.clear();
+      ue_res.cell_group.cells.at(SERVING_PCELL_IDX).init_dl_bwp.pdcch_cfg->search_spaces.clear();
       return make_unexpected(
           fmt::format("Unable to allocate dedicated PUCCH resources for cell={}", fmt::underlying(cell_index)));
     }
 
   } else {
     ocudu_assert(not ue_res.cell_group.cells.contains(serv_cell_index), "Reallocation of SCell detected");
-    ue_res.cell_group.cells.emplace(serv_cell_index);
-    ue_res.cell_group.cells[serv_cell_index].serv_cell_idx = serv_cell_index;
-    ue_res.cell_group.cells[serv_cell_index].serv_cell_cfg =
+    ue_res.cell_group.cells.emplace(serv_cell_index, serving_cell_config{});
+    ue_res.cell_group.cells.at(serv_cell_index) =
         config_helpers::make_ue_serving_cell_config(cell_cfg_cmn.ran, cell_index);
     // TODO: Allocate SCell params.
   }
@@ -304,13 +303,13 @@ void du_ran_resource_manager_impl::deallocate_cell_resources(du_ue_index_t ue_in
   du_ue_resource_config& ue_res         = ue_res_updater.cg_cfg;
 
   // Return resources back to free lists.
-  if (serv_cell_index == SERVING_CELL_PCELL_IDX) {
+  if (serv_cell_index == SERVING_PCELL_IDX) {
     ocudu_assert(not ue_res.cell_group.cells.empty() and
-                     ue_res.cell_group.cells[0].serv_cell_cfg.cell_index != INVALID_DU_CELL_INDEX,
+                     ue_res.cell_group.cells.at(SERVING_PCELL_IDX).cell_index != INVALID_DU_CELL_INDEX,
                  "Double deallocation of same UE cell resources detected");
     pucch_res_mng.dealloc_resources(ue_res.cell_group);
     srs_res_mng->dealloc_resources(ue_res.cell_group);
-    ue_res.cell_group.cells[0].serv_cell_cfg.cell_index = INVALID_DU_CELL_INDEX;
+    ue_res.cell_group.cells.at(SERVING_PCELL_IDX).cell_index = INVALID_DU_CELL_INDEX;
   } else {
     // TODO: Remove of SCell params.
     ue_res.cell_group.cells.erase(serv_cell_index);

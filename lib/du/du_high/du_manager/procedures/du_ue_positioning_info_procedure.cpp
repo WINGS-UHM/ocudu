@@ -39,7 +39,7 @@ du_positioning_info_response du_ue_positioning_info_procedure::create_response(b
     return resp;
   }
 
-  const serving_cell_config& pcell_cfg = ue.resources->cell_group.cells[0].serv_cell_cfg;
+  const serving_cell_config& pcell_cfg = ue.resources->cell_group.cells.at(SERVING_PCELL_IDX);
   du_cell_index_t            cell_idx  = pcell_cfg.cell_index;
   const du_cell_config&      cell_cmn  = du_cells.get_cell_cfg(cell_idx);
 

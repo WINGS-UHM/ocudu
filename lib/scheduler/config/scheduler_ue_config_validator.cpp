@@ -42,32 +42,29 @@ ocudu::config_validators::validate_sched_ue_creation_request_message(const sched
   // Verify the list of ServingCellConfig contains spCellConfig.
   VERIFY(msg.cfg.cells.has_value() and not msg.cfg.cells->empty(), "Empty list of ServingCellConfig");
 
-  for (const cell_config_dedicated& cell : *msg.cfg.cells) {
-    HANDLE_ERROR(validate_pdcch_cfg(cell.serv_cell_cfg, cell_cfg.dl_cfg_common));
-    HANDLE_ERROR(validate_bwp_ded_cfg(cell.serv_cell_cfg, cell_cfg));
+  for (const serving_cell_config& cell : *msg.cfg.cells) {
+    HANDLE_ERROR(validate_pdcch_cfg(cell, cell_cfg.dl_cfg_common));
+    HANDLE_ERROR(validate_bwp_ded_cfg(cell, cell_cfg));
 
-    HANDLE_ERROR(validate_pdsch_cfg(cell.serv_cell_cfg));
+    HANDLE_ERROR(validate_pdsch_cfg(cell));
 
-    if (cell.serv_cell_cfg.ul_config.has_value()) {
-      if (cell.serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value() and
-          cell.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value() and
+    if (cell.ul_config.has_value()) {
+      if (cell.ul_config->init_ul_bwp.pucch_cfg.has_value() and cell.ul_config->init_ul_bwp.srs_cfg.has_value() and
           cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {
         const pucch_config_common& pucch_cfg_common = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value();
-        HANDLE_ERROR(validate_pucch_cfg(
-            cell.serv_cell_cfg, cell_cfg.ded_pucch_resources, pucch_cfg_common, cell_cfg.dl_carrier.nof_ant));
-        HANDLE_ERROR(validate_srs_cfg(cell.serv_cell_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs));
+        HANDLE_ERROR(
+            validate_pucch_cfg(cell, cell_cfg.ded_pucch_resources, pucch_cfg_common, cell_cfg.dl_carrier.nof_ant));
+        HANDLE_ERROR(validate_srs_cfg(cell, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs));
       }
 
-      HANDLE_ERROR(
-          validate_pusch_cfg(cell.serv_cell_cfg.ul_config.value(), cell.serv_cell_cfg.csi_meas_cfg.has_value()));
+      HANDLE_ERROR(validate_pusch_cfg(cell.ul_config.value(), cell.csi_meas_cfg.has_value()));
     }
 
-    HANDLE_ERROR(validate_csi_meas_cfg(cell.serv_cell_cfg, cell_cfg.tdd_cfg_common, cell_cfg.ul_cfg_common));
+    HANDLE_ERROR(validate_csi_meas_cfg(cell, cell_cfg.tdd_cfg_common, cell_cfg.ul_cfg_common));
 
     // At the moment, we only support the situation where all UEs have the same NZP-CSI-RS list.
-    if (cell.serv_cell_cfg.csi_meas_cfg.has_value() and
-        not cell.serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list.empty()) {
-      VERIFY(cell.serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list == cell_cfg.nzp_csi_rs_list,
+    if (cell.csi_meas_cfg.has_value() and not cell.csi_meas_cfg->nzp_csi_rs_res_list.empty()) {
+      VERIFY(cell.csi_meas_cfg->nzp_csi_rs_res_list == cell_cfg.nzp_csi_rs_list,
              "The NZP-CSI-RS Resource lists for the UE and the cell do not match");
     }
   }

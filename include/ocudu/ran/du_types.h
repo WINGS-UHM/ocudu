@@ -50,19 +50,6 @@ constexpr du_cell_index_t to_du_cell_index(std::underlying_type_t<du_cell_index_
   return static_cast<du_cell_index_t>(idx);
 }
 
-/// Maximum number of cells supported by a single UE.
-enum ue_cell_index_t : uint16_t {
-  PCELL_INDEX           = 0,
-  MAX_UE_SCELL_INDEX    = 15,
-  MAX_NOF_SCELL_INDEXES = 16,
-  INVALID_UE_CELL_INDEX = MAX_NOF_SCELL_INDEXES
-};
-
-constexpr ue_cell_index_t to_ue_cell_index(std::underlying_type_t<ue_cell_index_t> idx)
-{
-  return static_cast<ue_cell_index_t>(idx);
-}
-
 /// \brief DU-specific index to group of cells that might be aggregated into a UE-specific CellGroup, if the UE
 /// is CA-capable.
 enum du_cell_group_index_t : uint16_t {

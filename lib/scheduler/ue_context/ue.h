@@ -15,6 +15,7 @@
 #include "ue_cell.h"
 #include "ue_drx_controller.h"
 #include "ocudu/ran/du_types.h"
+#include "ocudu/ran/serv_cell_index.h"
 #include "ocudu/scheduler/mac_scheduler.h"
 
 namespace ocudu {
@@ -23,9 +24,9 @@ namespace ocudu {
 struct ue_cell_lookup {
   /// List of UE cells indexed by \c du_cell_index_t.
   slotted_id_table<du_cell_index_t, ue_cell*, MAX_NOF_DU_CELLS> du_cells;
-  /// List of UE cells indexed by \c ue_cell_index_t. The size of the list is equal to the number of cells aggregated
-  /// and configured for the UE. PCell corresponds to ue_cell_index=0. the first SCell corresponds to ue_cell_index=1,
-  /// etc.
+  /// List of UE cells indexed by \c serv_cell_index_t. The size of the list is equal to the number of cells
+  /// aggregated and configured for the UE. PCell corresponds to serv_cell_index=0. The first SCell corresponds to
+  /// serv_cell_index=1.
   static_vector<ue_cell*, MAX_NOF_DU_CELLS> ue_cells;
 };
 
@@ -53,9 +54,9 @@ public:
   ue_cell*       find_cell(du_cell_index_t cell_index) { return cells.du_cells[cell_index]; }
   const ue_cell* find_cell(du_cell_index_t cell_index) const { return cells.du_cells[cell_index]; }
 
-  /// \brief Fetch UE cell based on UE-specific cell identifier. E.g. PCell corresponds to ue_cell_index==0.
-  ue_cell&       get_cell(ue_cell_index_t ue_cell_index) { return *cells.ue_cells[ue_cell_index]; }
-  const ue_cell& get_cell(ue_cell_index_t ue_cell_index) const { return *cells.ue_cells[ue_cell_index]; }
+  /// \brief Fetch UE cell based on UE-specific cell identifier. E.g. PCell corresponds to serv_cell_index==0.
+  ue_cell&       get_cell(serv_cell_index_t serv_cell_index) { return *cells.ue_cells[serv_cell_index]; }
+  const ue_cell& get_cell(serv_cell_index_t serv_cell_index) const { return *cells.ue_cells[serv_cell_index]; }
 
   /// \brief Fetch UE PCell.
   ue_cell&       get_pcell() { return *cells.ue_cells[0]; }

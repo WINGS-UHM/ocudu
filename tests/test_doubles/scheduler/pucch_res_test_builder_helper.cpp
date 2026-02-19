@@ -201,13 +201,13 @@ bool pucch_res_builder_test_helper::add_build_new_ue_pucch_cfg(serving_cell_conf
 
   // Create a temporary struct that will be fed to the function alloc_resources().
   odu::cell_group_config cell_group_cfg;
-  cell_group_cfg.cells.emplace(0, cell_config_dedicated{.serv_cell_cfg = serv_cell_cfg});
+  cell_group_cfg.cells.emplace(SERVING_PCELL_IDX, serv_cell_cfg);
   const bool alloc_outcome = pucch_res_mgr.alloc_resources(cell_group_cfg);
   if (not alloc_outcome) {
     return false;
   }
   // Copy the serv_cell_cfg configuration in cell_group_cfg the input serv_cell_cfg.
-  serv_cell_cfg = cell_group_cfg.cells[0].serv_cell_cfg;
+  serv_cell_cfg = cell_group_cfg.cells.at(SERVING_PCELL_IDX);
   return true;
 }
 

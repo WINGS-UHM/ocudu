@@ -138,7 +138,7 @@ protected:
       ue_creation_req.cfg.lc_config_list->push_back(config_helpers::create_default_logical_channel_config(lcid));
     }
     // Set same dedicated PDCCH config.
-    (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg = cell_cfg.init_bwp_res.dl_ded()->pdcch_cfg;
+    (*ue_creation_req.cfg.cells)[0].init_dl_bwp.pdcch_cfg = cell_cfg.init_bwp_res.dl_ded()->pdcch_cfg;
 
     return add_ue(ue_creation_req);
   }
@@ -274,11 +274,10 @@ TEST_P(ue_grid_allocator_css_test,
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
-  ue_creation_req.cfg.cells->front().serv_cell_cfg.init_dl_bwp.pdcch_cfg =
-      cell_cfg.ded_bwp_res[to_bwp_id(0)].dl_ded()->pdcch_cfg;
-  ue_creation_req.ue_index = to_du_ue_index(0);
-  ue_creation_req.crnti    = to_rnti(0x4601);
-  ue& u                    = add_ue(ue_creation_req);
+  ue_creation_req.cfg.cells->front().init_dl_bwp.pdcch_cfg = cell_cfg.ded_bwp_res[to_bwp_id(0)].dl_ded()->pdcch_cfg;
+  ue_creation_req.ue_index                                 = to_du_ue_index(0);
+  ue_creation_req.crnti                                    = to_rnti(0x4601);
+  ue& u                                                    = add_ue(ue_creation_req);
 
   const auto&        cs1_cfg  = u.ue_cfg_dedicated()->pcell_cfg().coreset(to_coreset_id(1));
   const crb_interval cs1_crbs = get_coreset_crbs(cs1_cfg);
@@ -310,9 +309,9 @@ TEST_P(ue_grid_allocator_default_cfg_test, when_using_non_fallback_dci_format_us
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
   // Change PDSCH MCS table to be used when using non-fallback DCI format.
-  (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdsch_cfg->mcs_table = ocudu::pdsch_mcs_table::qam256;
-  ue_creation_req.ue_index                                                       = to_du_ue_index(0);
-  ue_creation_req.crnti                                                          = to_rnti(0x4601);
+  (*ue_creation_req.cfg.cells)[0].init_dl_bwp.pdsch_cfg->mcs_table = ocudu::pdsch_mcs_table::qam256;
+  ue_creation_req.ue_index                                         = to_du_ue_index(0);
+  ue_creation_req.crnti                                            = to_rnti(0x4601);
 
   const ue& u = add_ue(ue_creation_req);
 

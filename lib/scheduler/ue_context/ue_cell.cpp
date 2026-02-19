@@ -30,7 +30,7 @@ static constexpr unsigned DEFAULT_NOF_UL_HARQS = 16;
 
 ue_cell::ue_cell(du_ue_index_t                ue_index_,
                  rnti_t                       crnti_val,
-                 ue_cell_index_t              ue_cell_index_,
+                 serv_cell_index_t            serv_cell_index_,
                  const ue_cell_configuration& ue_cell_cfg_,
                  cell_harq_manager&           cell_harq_pool,
                  ue_shared_context            shared_ctx_,
@@ -55,7 +55,7 @@ ue_cell::ue_cell(du_ue_index_t                ue_index_,
   components(components_),
   logger(logger_)
 {
-  if (ue_cell_index_ == to_ue_cell_index(0)) {
+  if (serv_cell_index_ == SERVING_PCELL_IDX) {
     // Set ConRes procedure complete by default. Variable only needed for RACHs where MSG3 contains ConRes MAC-CE.
     pcell_state.emplace(ue_pcell_state{});
     pcell_state->conres_complete = true;

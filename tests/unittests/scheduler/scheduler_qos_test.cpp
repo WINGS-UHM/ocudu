@@ -89,7 +89,7 @@ public:
     ue_cfg.crnti              = to_rnti(0x4601 + (unsigned)next_ue_idx);
     ue_cfg.cfg.lc_config_list.value()[2].rrm_policy.s_nssai.sst = slice_service_type{1};
     ue_cfg.cfg.lc_config_list.value()[2].qos                    = drb_qos;
-    report_fatal_error_if_not(pucch_cfg_builder.add_build_new_ue_pucch_cfg(ue_cfg.cfg.cells.value()[0].serv_cell_cfg),
+    report_fatal_error_if_not(pucch_cfg_builder.add_build_new_ue_pucch_cfg(ue_cfg.cfg.cells.value()[0]),
                               "Failed to allocate PUCCH resources");
     scheduler_test_simulator::add_ue(ue_cfg);
 

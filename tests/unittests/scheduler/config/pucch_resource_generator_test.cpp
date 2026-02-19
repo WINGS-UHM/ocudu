@@ -1067,7 +1067,7 @@ protected:
                               .pi2_bpsk               = false,
                               .occ_supported          = false,
                               .occ_length             = pucch_f4_occ_len::n2}),
-    serv_cell_cfg(sched_config_helper::create_default_sched_ue_creation_request().cfg.cells->front().serv_cell_cfg)
+    serv_cell_cfg(sched_config_helper::create_default_sched_ue_creation_request().cfg.cells->front())
   {
     if (GetParam().nof_res_f0_harq != 0) {
       auto& pucch_res_list = serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->pucch_res_list;

@@ -215,16 +215,14 @@ protected:
 
     cell_group_config                  cell_grp_cfg;
     std::unique_ptr<cell_group_config> cell_grp_cfg_ptr = std::make_unique<cell_group_config>();
-    cell_grp_cfg.cells.insert(
-        serv_cell_index_t::SERVING_CELL_PCELL_IDX,
-        cell_config_dedicated{serv_cell_index_t::SERVING_CELL_PCELL_IDX,
-                              config_helpers::create_default_initial_ue_serving_cell_config(params)});
+    cell_grp_cfg.cells.emplace(SERVING_PCELL_IDX,
+                               config_helpers::create_default_initial_ue_serving_cell_config(params));
     ues.insert(ue_idx, cell_grp_cfg);
     auto& ue = ues[ue_idx];
     ues_bin.add_ue_to_repo(static_cast<unsigned>(ue_idx));
 
     // Reset the SRS config before allocating resources.
-    ue.cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.reset();
+    ue.cells.at(SERVING_PCELL_IDX).ul_config->init_ul_bwp.srs_cfg.reset();
 
     if (du_srs_res_mng.alloc_resources(ue)) {
       return ue;
@@ -278,7 +276,7 @@ TEST_P(du_aperiodic_srs_res_mng_tester, when_ues_are_added_the_srs_res_with_min_
     ASSERT_TRUE(ue.has_value());
 
     // Check if the SRS has been assigned to the UE.
-    const auto& srs_res_list = ue.value().cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg->srs_res_list;
+    const auto& srs_res_list = ue.value().cells.at(SERVING_PCELL_IDX).ul_config->init_ul_bwp.srs_cfg->srs_res_list;
     ASSERT_FALSE(srs_res_list.empty());
     const auto& srs_res = srs_res_list[0];
     ASSERT_LT(srs_res.id.cell_res_id, max_nof_cell_srs_res);
@@ -299,7 +297,7 @@ TEST_P(du_aperiodic_srs_res_mng_tester, when_all_ues_are_removed_all_srs_resourc
     ASSERT_TRUE(ue.has_value());
 
     // Check if the SRS has been assigned to the UE.
-    const auto& srs_res_list = ue.value().cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg->srs_res_list;
+    const auto& srs_res_list = ue.value().cells.at(SERVING_PCELL_IDX).ul_config->init_ul_bwp.srs_cfg->srs_res_list;
     ASSERT_FALSE(srs_res_list.empty());
     const auto& srs_res = srs_res_list[0];
     ASSERT_LT(srs_res.id.cell_res_id, max_nof_cell_srs_res);
@@ -314,7 +312,8 @@ TEST_P(du_aperiodic_srs_res_mng_tester, when_all_ues_are_removed_all_srs_resourc
     const du_ue_index_t ue_idx_to_rem    = to_du_ue_index(ue_to_rem.value());
     auto&               ue_to_be_removed = ues[ue_idx_to_rem];
 
-    const auto& srs_res_list = ue_to_be_removed.cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg->srs_res_list;
+    const auto& srs_res_list =
+        ue_to_be_removed.cells.at(SERVING_PCELL_IDX).ul_config->init_ul_bwp.srs_cfg->srs_res_list;
     ASSERT_FALSE(srs_res_list.empty());
     const auto& srs_res = srs_res_list[0];
 
@@ -338,7 +337,7 @@ TEST_P(du_aperiodic_srs_res_mng_tester, when_random_ues_are_removed_and_added_ne
     std::optional<cell_group_config> ue = add_ue(to_du_ue_index(ue_idx));
     ASSERT_TRUE(ue.has_value());
 
-    const auto& srs_res_list = ue.value().cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg->srs_res_list;
+    const auto& srs_res_list = ue.value().cells.at(SERVING_PCELL_IDX).ul_config->init_ul_bwp.srs_cfg->srs_res_list;
     ASSERT_FALSE(srs_res_list.empty());
     const auto& srs_res = srs_res_list[0];
     ASSERT_LT(srs_res.id.cell_res_id, max_nof_cell_srs_res);
@@ -356,7 +355,8 @@ TEST_P(du_aperiodic_srs_res_mng_tester, when_random_ues_are_removed_and_added_ne
     const du_ue_index_t ue_idx_to_rem    = to_du_ue_index(ue_to_rem.value());
     auto&               ue_to_be_removed = ues[ue_idx_to_rem];
 
-    const auto& srs_res_list = ue_to_be_removed.cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg->srs_res_list;
+    const auto& srs_res_list =
+        ue_to_be_removed.cells.at(SERVING_PCELL_IDX).ul_config->init_ul_bwp.srs_cfg->srs_res_list;
     ASSERT_FALSE(srs_res_list.empty());
     const auto& srs_res = srs_res_list[0];
 
@@ -426,8 +426,8 @@ TEST_P(du_aperiodic_srs_res_mng_param_tester, when_ue_is_added_srs_resources_par
     }
 
     // Verify all parameters of the SRS resource are as expected.
-    ASSERT_TRUE(ue.value().cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value());
-    const auto& ue_srs_config = ue.value().cells[0].serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
+    ASSERT_TRUE(ue.value().cells.at(SERVING_PCELL_IDX).ul_config->init_ul_bwp.srs_cfg.has_value());
+    const auto& ue_srs_config = ue.value().cells.at(SERVING_PCELL_IDX).ul_config->init_ul_bwp.srs_cfg.value();
     ASSERT_EQ(ue_srs_config.srs_res_set_list.size(), 1U);
     // Check all SRS resource sets.
     const auto srs_res_set = ue_srs_config.srs_res_set_list.front();

@@ -39,13 +39,13 @@ protected:
 
   const ue_info* add_ue()
   {
-    ues.push_back(ue_info{ue_cnt++, config_helpers::create_default_initial_ue_spcell_cell_config().serv_cell_cfg});
+    ues.push_back(ue_info{ue_cnt++, config_helpers::create_default_initial_ue_spcell_cell_config()});
     pucch_builder.add_build_new_ue_pucch_cfg(ues.back().serv_cell_cfg);
     return &ues.back();
   }
 
   cell_configuration            cell_cfg;
-  cell_config_dedicated         cell_cfg_dedicated;
+  serving_cell_config           cell_cfg_dedicated;
   pucch_resource_builder_params pucch_params;
   std::vector<ue_info>          ues;
   unsigned                      ue_cnt = 0;
@@ -69,7 +69,7 @@ TEST_P(sched_pucch_res_builder_tester, when_ues_are_added_their_cfg_have_differe
     ASSERT_EQ(sr_offsets.count(ue_sr_res_offset_pair), 0);
     sr_offsets.insert(ue_sr_res_offset_pair);
 
-    if (cell_cfg_dedicated.serv_cell_cfg.csi_meas_cfg.has_value()) {
+    if (cell_cfg_dedicated.csi_meas_cfg.has_value()) {
       // Check that the CSI is configured and all UEs have different CSI offsets or PUCCH res id.
       const bool has_csi_cfg = ue->serv_cell_cfg.csi_meas_cfg.has_value() and
                                not ue->serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.empty();

@@ -130,8 +130,7 @@ ue_creation_params du_cell_group_config_pool::add_ue(const sched_ue_creation_req
   slotted_id_vector<du_cell_index_t, ue_cell_config_ptr> cell_cfgs;
   if (cfg_req.cfg.cells.has_value()) {
     for (const auto& cell : cfg_req.cfg.cells.value()) {
-      cell_cfgs.emplace(cell.serv_cell_cfg.cell_index,
-                        cells[cell.serv_cell_cfg.cell_index]->update_ue(cell.serv_cell_cfg));
+      cell_cfgs.emplace(cell.cell_index, cells[cell.cell_index]->update_ue(cell));
     }
   }
 
@@ -149,8 +148,7 @@ ue_reconfig_params du_cell_group_config_pool::reconf_ue(const sched_ue_reconfigu
   slotted_id_vector<du_cell_index_t, ue_cell_config_ptr> cell_cfgs;
   if (cfg_req.cfg.cells.has_value()) {
     for (const auto& cell : cfg_req.cfg.cells.value()) {
-      cell_cfgs.emplace(cell.serv_cell_cfg.cell_index,
-                        cells[cell.serv_cell_cfg.cell_index]->update_ue(cell.serv_cell_cfg));
+      cell_cfgs.emplace(cell.cell_index, cells[cell.cell_index]->update_ue(cell));
     }
   }
 

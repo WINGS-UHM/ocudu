@@ -21,7 +21,7 @@ static cell_ph_report make_phr_report(int ph_lower_bound)
   // We assume the UE always reports the maximum power.
   // In the PH interval reported, we set the upper bound only 1dB higher than the lower bound, as it's the former the
   // one we are interested in.
-  return cell_ph_report{.serv_cell_id = to_ue_cell_index(0U),
+  return cell_ph_report{.serv_cell_id = SERVING_PCELL_IDX,
                         .ph_type      = ph_field_type_t::type1,
                         .ph           = {ph_lower_bound, ph_lower_bound + 1},
                         .p_cmax       = std::optional<p_cmax_dbm_range>({22, 23})};
@@ -358,7 +358,7 @@ protected:
     // Set alpha value for Fractional path-loss compensation.
     ue_req.cfg.cells.value()
         .front()
-        .serv_cell_cfg.ul_config.value()
+        .ul_config.value()
         .init_ul_bwp.pusch_cfg.value()
         .pusch_pwr_ctrl.value()
         .p0_alphasets.front()
@@ -374,7 +374,7 @@ protected:
         static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
                          static_cast<int>(ue_req.cfg.cells.value()
                                               .front()
-                                              .serv_cell_cfg.ul_config.value()
+                                              .ul_config.value()
                                               .init_ul_bwp.pusch_cfg.value()
                                               .pusch_pwr_ctrl.value()
                                               .p0_alphasets.front()
@@ -563,7 +563,7 @@ protected:
     // Set alpha value for Fractional path-loss compensation.
     ue_req.cfg.cells.value()
         .front()
-        .serv_cell_cfg.ul_config.value()
+        .ul_config.value()
         .init_ul_bwp.pusch_cfg.value()
         .pusch_pwr_ctrl.value()
         .p0_alphasets.front()
@@ -575,7 +575,7 @@ protected:
         static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
                          static_cast<int>(ue_req.cfg.cells.value()
                                               .front()
-                                              .serv_cell_cfg.ul_config.value()
+                                              .ul_config.value()
                                               .init_ul_bwp.pusch_cfg.value()
                                               .pusch_pwr_ctrl.value()
                                               .p0_alphasets.front()

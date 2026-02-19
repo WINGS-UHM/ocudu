@@ -154,7 +154,7 @@ ue_config_update_event sched_config_manager::add_ue(const sched_ue_creation_requ
   }
 
   // Ensure configured cells exist.
-  const du_cell_index_t pcell_index = (*cfg_req.cfg.cells)[0].serv_cell_cfg.cell_index;
+  const du_cell_index_t pcell_index = (*cfg_req.cfg.cells)[0].cell_index;
   if (not contains(pcell_index)) {
     logger.warning("ue={} rnti={}: Discarding invalid UE creation request. Cause: PCell={} does not exist",
                    fmt::underlying(cfg_req.ue_index),

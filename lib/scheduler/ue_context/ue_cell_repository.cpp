@@ -66,12 +66,12 @@ void ue_cell_repository::deactivate()
 }
 
 ue_cell& ue_cell_repository::add_ue(const ue_configuration&   ue_cfg,
-                                    ue_cell_index_t           ue_cell_index,
+                                    serv_cell_index_t         serv_cell_index,
                                     ue_drx_controller&        drx,
                                     std::optional<slot_point> msg3_slot_rx)
 {
   ocudu_assert(not ues.contains(ue_cfg.ue_index), "UE with duplicate index being added to the cell UE repository");
-  auto& ue_cell_cfg = ue_cfg.ue_cell_cfg(ue_cell_index);
+  auto& ue_cell_cfg = ue_cfg.ue_cell_cfg(serv_cell_index);
 
   // Create UE cell components.
   channel_states.emplace(ue_cfg.ue_index, ue_cell_cfg.cell_cfg_common.expert_cfg.ue, ue_cell_cfg.get_nof_dl_ports());
@@ -83,7 +83,7 @@ ue_cell& ue_cell_repository::add_ue(const ue_configuration&   ue_cfg,
   ues.emplace(ue_cfg.ue_index,
               ue_cfg.ue_index,
               ue_cfg.crnti,
-              ue_cell_index,
+              serv_cell_index,
               ue_cell_cfg,
               cell_harqs,
               ue_shared_context{drx},

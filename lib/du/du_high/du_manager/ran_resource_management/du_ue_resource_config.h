@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../converters/rlc_config_helpers.h"
+#include "ocudu/adt/flat_map.h"
 #include "ocudu/adt/slotted_vector.h"
 #include "ocudu/mac/mac_cell_group_config.h"
 #include "ocudu/ran/logical_channel/lcid.h"
@@ -25,9 +26,9 @@ namespace odu {
 
 /// This struct stores the accumulated CellGroupConfig.
 struct cell_group_config {
-  mac_cell_group_config                 mcg_cfg;
-  physical_cell_group_config            pcg_cfg;
-  slotted_vector<cell_config_dedicated> cells;
+  mac_cell_group_config                            mcg_cfg;
+  physical_cell_group_config                       pcg_cfg;
+  flat_map<serv_cell_index_t, serving_cell_config> cells;
 };
 
 /// Parameters of an SRB of the DU UE context.

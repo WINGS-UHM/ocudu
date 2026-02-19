@@ -209,7 +209,7 @@ protected:
 
     sched_ue_creation_request_message ue_req = cfg_mng.get_default_ue_config_request();
     pucch_res_builder_test_helper     pucch_builder(cell_cfg, make_pucch_builder_params());
-    pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells.value().front().serv_cell_cfg);
+    pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells.value().front());
     add_ue(ue_req);
   }
 

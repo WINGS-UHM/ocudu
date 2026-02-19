@@ -84,7 +84,7 @@ struct sched_ue_config_request {
   /// List of configured Logical Channels. See \c mac-LogicalChannelConfig, TS38.331.
   std::optional<std::vector<logical_channel_config>> lc_config_list;
   /// UE-dedicated configuration for the PCell and SCells.
-  std::optional<std::vector<cell_config_dedicated>> cells;
+  std::optional<std::vector<serving_cell_config>> cells;
   /// Resource allocation configuration for the given UE.
   std::optional<sched_ue_resource_alloc_config> res_alloc_cfg;
   /// DRX-Config.

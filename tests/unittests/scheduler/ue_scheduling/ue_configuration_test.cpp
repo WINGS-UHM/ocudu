@@ -68,7 +68,7 @@ TEST_F(ue_configuration_test, configuration_valid_on_creation)
   ASSERT_TRUE(ue_cfg.find_coreset(to_coreset_id(2)) == nullptr);
   ASSERT_EQ(2, fmt::underlying(ue_cfg.search_space(to_search_space_id(2)).cfg->get_id()));
   ASSERT_TRUE(*ue_cfg.search_space(to_search_space_id(2)).cfg ==
-              (*ue_create_msg.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0]);
+              (*ue_create_msg.cfg.cells)[0].init_dl_bwp.pdcch_cfg->search_spaces[0]);
   ASSERT_TRUE(ue_cfg.find_search_space(to_search_space_id(3)) == nullptr);
 }
 
@@ -82,15 +82,15 @@ TEST_F(ue_configuration_test, configuration_valid_on_reconfiguration)
   recfg_req.crnti    = ue_create_msg.crnti;
   recfg_req.cfg.cells.emplace();
   recfg_req.cfg.cells.value().resize(1);
-  cell_config_dedicated& ue_cell_reconf = recfg_req.cfg.cells.value()[0];
-  ue_cell_reconf.serv_cell_cfg.init_dl_bwp.pdcch_cfg.emplace();
-  ue_cell_reconf.serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets.push_back(
+  serving_cell_config& ue_cell_reconf = recfg_req.cfg.cells.value()[0];
+  ue_cell_reconf.init_dl_bwp.pdcch_cfg.emplace();
+  ue_cell_reconf.init_dl_bwp.pdcch_cfg->coresets.push_back(
       config_helpers::make_default_coreset_config({}, to_coreset_id(2)));
   ue_cfg.reconfigure(cfg_pool.reconf_ue(recfg_req).cells[to_du_cell_index(0)]);
 
   ASSERT_TRUE(ue_cfg.find_coreset(to_coreset_id(2)) != nullptr);
   ASSERT_EQ(2, fmt::underlying(ue_cfg.coreset(to_coreset_id(2)).get_id()));
-  ASSERT_TRUE(ue_cfg.coreset(to_coreset_id(2)) == ue_cell_reconf.serv_cell_cfg.init_dl_bwp.pdcch_cfg->coresets.back());
+  ASSERT_TRUE(ue_cfg.coreset(to_coreset_id(2)) == ue_cell_reconf.init_dl_bwp.pdcch_cfg->coresets.back());
 }
 
 TEST_F(ue_configuration_test, when_reconfiguration_is_received_then_ue_updates_logical_channel_states)
@@ -157,7 +157,7 @@ TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpa
   msg                           = sched_config_helper::make_default_sched_cell_configuration_request(params);
   ue_create_msg                 = sched_config_helper::create_default_sched_ue_creation_request(params);
 
-  auto&                        pdcch_cfg = *(*ue_create_msg.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg;
+  auto&                        pdcch_cfg = *(*ue_create_msg.cfg.cells)[0].init_dl_bwp.pdcch_cfg;
   const coreset_configuration& cset_cfg  = pdcch_cfg.coresets[0];
   search_space_configuration&  ss_cfg    = pdcch_cfg.search_spaces[0];
   ss_cfg.set_non_ss0_nof_candidates({config_helpers::compute_max_nof_candidates(aggregation_level::n1, cset_cfg),

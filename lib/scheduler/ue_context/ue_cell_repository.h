@@ -13,6 +13,7 @@
 #include "ue_cell.h"
 #include "ocudu/adt/flat_map.h"
 #include "ocudu/ran/du_types.h"
+#include "ocudu/ran/serv_cell_index.h"
 
 namespace ocudu {
 
@@ -69,7 +70,7 @@ private:
 
   /// Add a new UE to the UE cell repository.
   ue_cell& add_ue(const ue_configuration&   ue_cfg,
-                  ue_cell_index_t           ue_cell_index,
+                  serv_cell_index_t         serv_cell_index,
                   ue_drx_controller&        drx,
                   std::optional<slot_point> msg3_slot_rx);
 

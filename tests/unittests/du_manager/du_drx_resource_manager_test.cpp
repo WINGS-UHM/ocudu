@@ -40,9 +40,7 @@ protected:
     report_fatal_error_if_not(ret.second, "Repeated UE index");
 
     auto& u = ues.at(ue_idx);
-    u.cells.emplace(SERVING_CELL_PCELL_IDX,
-                    cell_config_dedicated{serv_cell_index_t::SERVING_CELL_PCELL_IDX,
-                                          config_helpers::create_default_initial_ue_serving_cell_config(params)});
+    u.cells.emplace(SERVING_PCELL_IDX, config_helpers::create_default_initial_ue_serving_cell_config(params));
 
     // On UE creation, handle_ue_creation is always called.
     drx.handle_ue_creation(u);

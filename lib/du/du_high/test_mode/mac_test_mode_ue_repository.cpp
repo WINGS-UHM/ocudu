@@ -83,13 +83,13 @@ void mac_test_mode_ue_repository::add_ue(rnti_t                         rnti,
   if (not is_test_ue(rnti) or not is_test_ue(ue_idx)) {
     return;
   }
-  const du_cell_index_t pcell_index = sched_ue_cfg_req.cells.value()[0].serv_cell_cfg.cell_index;
+  const du_cell_index_t pcell_index = sched_ue_cfg_req.cells.value()[0].cell_index;
   ocudu_assert(is_cell_test_ue(pcell_index, rnti), "Invalid rnti={} for cell={}", rnti, fmt::underlying(pcell_index));
 
   // Dispatch creation of UE to du_cell thread.
   while (not event_handler.schedule(
       pcell_index, [this, rnti, ue_idx, cfg = std::make_unique<sched_ue_config_request>(sched_ue_cfg_req)]() mutable {
-        const du_cell_index_t cellidx = cfg->cells.value()[0].serv_cell_cfg.cell_index;
+        const du_cell_index_t cellidx = cfg->cells.value()[0].cell_index;
         cells[cellidx]->rnti_to_ue_info_lookup.emplace(
             rnti, test_ue_info{.ue_idx = ue_idx, .sched_ue_cfg_req = std::move(cfg), .msg4_rx_flag = false});
       })) {

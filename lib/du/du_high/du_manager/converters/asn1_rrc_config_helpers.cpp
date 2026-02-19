@@ -3301,11 +3301,12 @@ void ocudu::odu::calculate_cell_group_config_diff(asn1::rrc_nr::cell_group_cfg_s
       [](const rlc_bearer_config& b) { return make_asn1_rrc_rlc_bearer(b); },
       [](const rlc_bearer_config& b) { return (uint8_t)b.lcid; });
 
-  if (dest.cell_group.cells.contains(0)) {
+  if (dest.cell_group.cells.contains(SERVING_PCELL_IDX)) {
     out.sp_cell_cfg.sp_cell_cfg_ded_present = calculate_serving_cell_config_diff(
         out.sp_cell_cfg.sp_cell_cfg_ded,
-        src.cell_group.cells.contains(0) ? src.cell_group.cells[0].serv_cell_cfg : serving_cell_config{},
-        dest.cell_group.cells[0].serv_cell_cfg);
+        src.cell_group.cells.contains(SERVING_PCELL_IDX) ? src.cell_group.cells.at(SERVING_PCELL_IDX)
+                                                         : serving_cell_config{},
+        dest.cell_group.cells.at(SERVING_PCELL_IDX));
 
     out.sp_cell_cfg_present = out.sp_cell_cfg.sp_cell_cfg_ded_present;
   }

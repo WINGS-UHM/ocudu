@@ -21,6 +21,7 @@
 #include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
+#include "ocudu/ran/serv_cell_index.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include <optional>
 
@@ -291,7 +292,7 @@ public:
   }
   const cell_configuration& pcell_common_cfg() const
   {
-    return common_cell_cfg(ue_cell_to_du_cell_index[to_ue_cell_index(0)]);
+    return common_cell_cfg(ue_cell_to_du_cell_index[SERVING_PCELL_IDX]);
   }
 
   /// Get the configuration of a cell that is dedicated to the UE.
@@ -300,13 +301,13 @@ public:
     ocudu_assert(du_cells.contains(cell_index), "Invalid cell_index={}", fmt::underlying(cell_index));
     return *du_cells[cell_index];
   }
-  const ue_cell_configuration& ue_cell_cfg(ue_cell_index_t ue_cell_index) const
+  const ue_cell_configuration& ue_cell_cfg(serv_cell_index_t serv_cell_index) const
   {
     ocudu_assert(
-        ue_cell_index < ue_cell_to_du_cell_index.size(), "Invalid cell_index={}", fmt::underlying(ue_cell_index));
-    return ue_cell_cfg(ue_cell_to_du_cell_index[ue_cell_index]);
+        serv_cell_index < ue_cell_to_du_cell_index.size(), "Invalid cell_index={}", fmt::underlying(serv_cell_index));
+    return ue_cell_cfg(ue_cell_to_du_cell_index[serv_cell_index]);
   }
-  const ue_cell_configuration& pcell_cfg() const { return ue_cell_cfg(to_ue_cell_index(0)); }
+  const ue_cell_configuration& pcell_cfg() const { return ue_cell_cfg(SERVING_PCELL_IDX); }
 
   /// Get logical channels configured for the UE.
   logical_channel_config_list_ptr logical_channels() const { return lc_list; }

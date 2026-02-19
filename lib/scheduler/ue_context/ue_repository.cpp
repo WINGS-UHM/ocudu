@@ -34,7 +34,7 @@ static bool is_ue_ready_for_removal(ue& u)
   // Ensure that there no currently active HARQs.
   unsigned nof_ue_cells = u.nof_cells();
   for (unsigned cell_idx = 0; cell_idx != nof_ue_cells; ++cell_idx) {
-    const ue_cell& c = u.get_cell((ue_cell_index_t)cell_idx);
+    const ue_cell& c = u.get_cell(static_cast<serv_cell_index_t>(cell_idx));
     for (unsigned i = 0, e = c.harqs.nof_dl_harqs(); i != e; ++i) {
       if (c.harqs.dl_harq(to_harq_id(i)).has_value()) {
         return false;
@@ -145,10 +145,10 @@ void ue_repository::add_ue(const ue_configuration&   ue_cfg,
   ue_cell_lookups.emplace(ue_index);
   auto& cell_lookup = ue_cell_lookups[ue_index];
   for (unsigned i = 0, sz = ue_cfg.nof_cells(); i != sz; ++i) {
-    const auto&           cell_cfg   = ue_cfg.ue_cell_cfg(to_ue_cell_index(i));
+    const auto&           cell_cfg   = ue_cfg.ue_cell_cfg(static_cast<serv_cell_index_t>(i));
     const du_cell_index_t cell_index = cell_cfg.cell_cfg_common.cell_index;
-    auto&                 ue_cc =
-        cell_ues[cell_index]->add_ue(ue_cfg, to_ue_cell_index(i), ue_drx_controllers[ue_index], ul_ccch_slot_rx);
+    auto&                 ue_cc      = cell_ues[cell_index]->add_ue(
+        ue_cfg, static_cast<serv_cell_index_t>(i), ue_drx_controllers[ue_index], ul_ccch_slot_rx);
     cell_lookup.du_cells.emplace(cell_index, &ue_cc);
     cell_lookup.ue_cells.push_back(&ue_cc);
   }
@@ -192,7 +192,7 @@ void ue_repository::reconfigure_ue(const ue_configuration& new_cfg, bool reestab
     const ue_cell&        ue_cc      = *prev_cell_lookup.ue_cells[i];
     const du_cell_index_t cell_index = ue_cc.cell_index;
     if (not new_cfg.contains(cell_index) or
-        new_cfg.ue_cell_cfg(to_ue_cell_index(i)).cell_cfg_common.cell_index != cell_index) {
+        new_cfg.ue_cell_cfg(static_cast<serv_cell_index_t>(i)).cell_cfg_common.cell_index != cell_index) {
       ocudu_assert(i != 0, "PCell removal is not supported in UE reconfiguration.");
       // Cell has been removed from the UE configuration.
       cell_ues[cell_index]->rem_ue(new_cfg.ue_index);
@@ -200,12 +200,12 @@ void ue_repository::reconfigure_ue(const ue_configuration& new_cfg, bool reestab
   }
   ue_cell_lookup new_lookup;
   for (unsigned i = 0, sz = new_cfg.nof_cells(); i != sz; ++i) {
-    const auto&           ue_cc_cfg  = new_cfg.ue_cell_cfg(to_ue_cell_index(i));
+    const auto&           ue_cc_cfg  = new_cfg.ue_cell_cfg(static_cast<serv_cell_index_t>(i));
     const du_cell_index_t cell_index = ue_cc_cfg.cell_cfg_common.cell_index;
     if (not prev_cell_lookup.du_cells.contains(cell_index)) {
       // New cell being instantiated.
       auto& ue_cc = cell_ues[cell_index]->add_ue(
-          new_cfg, to_ue_cell_index(i), ue_drx_controllers[new_cfg.ue_index], std::nullopt);
+          new_cfg, static_cast<serv_cell_index_t>(i), ue_drx_controllers[new_cfg.ue_index], std::nullopt);
       new_lookup.du_cells.emplace(cell_index, &ue_cc);
       new_lookup.ue_cells.push_back(&ue_cc);
     } else {

@@ -306,23 +306,23 @@ void test_bench::add_ue()
   }
 
   // Configure SR and CSI periodicities.
-  auto& serv_cell_cfg                                                   = ue_req.cfg.cells->back().serv_cell_cfg;
+  auto& serv_cell_cfg                                                   = ue_req.cfg.cells->back();
   serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].period = params.sr_period;
   if (params.csi_period.has_value()) {
     auto& csi_report = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
         serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
     csi_report.report_slot_period = *params.csi_period;
   } else {
-    ue_req.cfg.cells->back().serv_cell_cfg.csi_meas_cfg.reset();
-    ue_req.cfg.cells->back().serv_cell_cfg.init_dl_bwp.pdsch_cfg->zp_csi_rs_res_list.clear();
-    ue_req.cfg.cells->back().serv_cell_cfg.init_dl_bwp.pdsch_cfg->p_zp_csi_rs_res.reset();
+    ue_req.cfg.cells->back().csi_meas_cfg.reset();
+    ue_req.cfg.cells->back().init_dl_bwp.pdsch_cfg->zp_csi_rs_res_list.clear();
+    ue_req.cfg.cells->back().init_dl_bwp.pdsch_cfg->p_zp_csi_rs_res.reset();
   }
 
-  const bool success = pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back().serv_cell_cfg);
+  const bool success = pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back());
   ocudu_assert(success, "UE PUCCH configuration couldn't be built");
 
   // Configure SR and CSI offsets.
-  ue_req.cfg.cells->back().serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].offset = params.sr_offset;
+  ue_req.cfg.cells->back().ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].offset = params.sr_offset;
   if (params.csi_period.has_value()) {
     auto& csi_report = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
         serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);

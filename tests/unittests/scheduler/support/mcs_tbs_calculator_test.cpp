@@ -42,7 +42,7 @@ public:
   const sched_cell_configuration_request_message cell_req =
       sched_config_helper::make_default_sched_cell_configuration_request();
   const cell_configuration&    cell_cfg{*cfg_mng.add_cell(cell_req)};
-  const serving_cell_config    serv_cell_cfg{(*cfg_mng.get_default_ue_config_request().cfg.cells)[0].serv_cell_cfg};
+  const serving_cell_config    serv_cell_cfg{(*cfg_mng.get_default_ue_config_request().cfg.cells)[0]};
   const ue_configuration&      ue_cfg{*cfg_mng.add_ue(cfg_mng.get_default_ue_config_request())};
   const ue_cell_configuration& ue_cell_cfg{ue_cfg.pcell_cfg()};
 };

@@ -98,7 +98,7 @@ static unsigned sum_allocated_ul_harq_bytes(const ue& u)
 {
   unsigned bytes_in_harqs = 0;
   for (unsigned cell_idx = 0, e = u.nof_cells(); cell_idx != e; ++cell_idx) {
-    const ue_cell& cc = u.get_cell(to_ue_cell_index(cell_idx));
+    const ue_cell& cc = u.get_cell(to_serv_cell_index(cell_idx));
     bytes_in_harqs += cc.harqs.total_ul_bytes_waiting_ack();
   }
   return bytes_in_harqs;

@@ -96,6 +96,6 @@ void cu_up_f1u_metrics_consumer_log::handle_metric(const app_services::metrics_s
   const ocuup::f1u_metrics_container& f1u_metric = static_cast<const cu_up_f1u_metrics_impl&>(metric).get_metrics();
 
   fmt::memory_buffer buffer;
-  fmt::format_to(std::back_inserter(buffer), "F1-U Metrics: {}", f1u_metric);
+  fmt::format_to(std::back_inserter(buffer), "NRUP Metrics: {}", f1u_metric);
   log_chan("{}", to_c_str(buffer));
 }

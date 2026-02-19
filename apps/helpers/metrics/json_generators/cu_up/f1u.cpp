@@ -41,7 +41,7 @@ nlohmann::json ocudu::app_helpers::json_generators::generate(const ocuup::f1u_tx
 
   json["timestamp"]          = get_time_stamp();
   nlohmann::json& cu_up_json = json["cu-up"];
-  nlohmann::json& f1u_json   = cu_up_json["f1u"];
+  nlohmann::json& f1u_json   = cu_up_json["nrup"];
 
   f1u_json["dl"] = generate_f1u_tx(tx, metrics_period.count());
   f1u_json["ul"] = generate_f1u_rx(rx, metrics_period.count());

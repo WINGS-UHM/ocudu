@@ -24,7 +24,7 @@ namespace ocudu {
 class cu_up_f1u_metrics_properties_impl : public app_services::metrics_properties
 {
 public:
-  std::string_view name() const override { return "CU-UP F1-U metrics"; }
+  std::string_view name() const override { return "CU-UP NRUP metrics"; }
 };
 
 /// CU-UP F1-U metrics implementation.

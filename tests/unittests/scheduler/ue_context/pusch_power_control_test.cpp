@@ -9,7 +9,6 @@
  */
 
 #include "lib/scheduler/support/pusch_power_controller.h"
-#include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/sched_custom_test_bench.h"
 #include "ocudu/ran/power_control/tpc_mapping.h"
 #include "ocudu/support/test_utils.h"

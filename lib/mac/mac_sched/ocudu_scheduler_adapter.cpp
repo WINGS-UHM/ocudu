@@ -25,7 +25,6 @@ static sched_ue_creation_request_message make_scheduler_ue_creation_request(cons
   ret.starts_in_fallback = request.initial_fallback;
   ret.ul_ccch_slot_rx    = request.ul_ccch_slot_rx;
   ret.cfg                = request.sched_cfg;
-  ret.tag_config         = request.mac_cell_group_cfg.tag_config;
   return ret;
 }
 

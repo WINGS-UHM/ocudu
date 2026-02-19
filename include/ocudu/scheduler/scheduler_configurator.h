@@ -83,8 +83,6 @@ struct sched_ue_resource_alloc_config {
 struct sched_ue_config_request {
   /// List of configured Logical Channels. See \c mac-LogicalChannelConfig, TS38.331.
   std::optional<std::vector<logical_channel_config>> lc_config_list;
-  /// List of configured Scheduling Request resources. See \c schedulingRequestConfig, TS38.331.
-  std::optional<std::vector<scheduling_request_to_addmod>> sched_request_config_list;
   /// UE-dedicated configuration for the PCell and SCells.
   std::optional<std::vector<cell_config_dedicated>> cells;
   /// Resource allocation configuration for the given UE.
@@ -107,8 +105,6 @@ struct sched_ue_creation_request_message {
   std::optional<slot_point> ul_ccch_slot_rx;
   /// Configuration to be applied to the new UE.
   sched_ue_config_request cfg;
-  /// Time Alignment Group configuration.
-  static_vector<time_alignment_group, MAX_NOF_TIME_ALIGNMENT_GROUPS> tag_config;
 };
 
 /// UE Reconfiguration Request.

@@ -39,3 +39,4 @@ The [Governance](https://gitlab.com/ocudu/Governance) repo is used by the Techni
 ## License
 
 This project is licensed under the BSD 3-Clause Open MPI variant License – see the [LICENSE](./LICENSE) file for details.
+Portions of this software may implement 3GPP specifications, which may be subject to additional licensing requirements.

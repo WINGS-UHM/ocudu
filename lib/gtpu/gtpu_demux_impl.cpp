@@ -159,6 +159,8 @@ void gtpu_demux_impl::handle_pdu(byte_buffer pdu, const sockaddr_storage& src_ad
 
   auto it = teid_to_tunnel.find(teid);
   if (it == teid_to_tunnel.end()) {
+    // write the PDU to PCAP before dropping it.
+    write_pcap(pdu);
     logger.info("Dropped GTP-U PDU, tunnel not found. teid={}", teid);
     if (teid.value() != 0 && tx_upper != nullptr) {
       send_error_indication(read_teid, src_addr);
@@ -174,21 +176,24 @@ void gtpu_demux_impl::handle_pdu(byte_buffer pdu, const sockaddr_storage& src_ad
   }
 }
 
-void gtpu_demux_impl::handle_pdu_impl(gtpu_teid_t teid, gtpu_demux_pdu_ctx_t pdu_ctx)
+void gtpu_demux_impl::write_pcap(const byte_buffer& pdu)
 {
-  if (stopped.load(std::memory_order_relaxed)) {
-    return;
-  }
-
   if (gtpu_pcap.is_write_enabled()) {
-    auto pdu_copy = pdu_ctx.pdu.deep_copy();
+    auto pdu_copy = pdu.deep_copy();
     if (not pdu_copy.has_value()) {
       logger.warning("Unable to deep copy PDU for PCAP writer");
     } else {
       gtpu_pcap.push_pdu(std::move(pdu_copy.value()));
     }
   }
+}
 
+void gtpu_demux_impl::handle_pdu_impl(gtpu_teid_t teid, gtpu_demux_pdu_ctx_t pdu_ctx)
+{
+  if (stopped.load(std::memory_order_relaxed)) {
+    return;
+  }
+  write_pcap(pdu_ctx.pdu);
   logger.debug(
       pdu_ctx.pdu.begin(), pdu_ctx.pdu.end(), "Forwarding PDU. pdu_len={} teid={}", pdu_ctx.pdu.length(), teid);
 

@@ -52,6 +52,15 @@ public:
 
 private:
   void send_error_indication(uint32_t teid, const sockaddr_storage& src_addr);
+
+  /// \brief Write PDU to PCAP (if activated).
+  ///
+  /// This function writes a PDU to the PCAP if enabled.
+  /// Only if PCAP is enabled, a deep-copy of the PDU is forwarded to the PCAP writer.
+  ///
+  /// \param pdu The PDU to be written to PCAP as reference.
+  void write_pcap(const byte_buffer& pdu);
+
   // Actual demuxing, to be run in CU-UP executor.
   void handle_pdu_impl(gtpu_teid_t teid, gtpu_demux_pdu_ctx_t pdu_ctx);
 

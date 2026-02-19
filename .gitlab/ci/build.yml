@@ -288,67 +288,44 @@ smoke relwithdeb cached:
 
 smoke tsan cached:
   extends: .smoke tsan
-  stage: manual
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
-    - if: $ON_MR_FORK
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
-      when: manual
-      allow_failure: false
   cache:
     - *cache_build_get
 
 smoke archlinux cached:
   extends: .smoke archlinux
-  stage: manual
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
-    - if: $ON_MR_FORK
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
-      when: manual
       allow_failure: false
   cache:
     - *cache_build_get
 
 smoke dpdk cached:
   extends: .smoke dpdk
-  stage: manual
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
-    - if: $ON_MR_FORK
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
-      when: manual
-      allow_failure: false
   cache:
     - *cache_build_get
 
 smoke pretty printers cached:
   extends: .smoke printers
-  stage: manual
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
-    - if: $ON_MR_FORK
+    - if: $ON_MR
       changes: &gdb_printers_changes
         paths:
           - include/ocudu/adt/**/*
           - tests/utils/gdb/pretty_printers/*
           - utils/gdb/**/*
           - .gdbinit
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
-      changes:
-        <<: *gdb_printers_changes
-    - if: $ON_MR
-      changes:
-        <<: *gdb_printers_changes
-      when: manual
-      allow_failure: false
   cache:
     - *cache_build_get
 
@@ -424,17 +401,12 @@ intermediate commits cached:
 
 valgrind changed tests:
   extends: .smoke valgrind
-  stage: manual
   allow_failure:
     exit_codes: 124 # timeout command's exit code when the time is reached
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-memcheck/
       when: never
-    - if: $ON_MR_FORK
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
-      when: manual
-      allow_failure: true
   variables:
     CLEAN_BUILD: "False"
     FINGERPRINT: "fingerprints.csv"

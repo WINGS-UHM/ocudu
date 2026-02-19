@@ -18,7 +18,6 @@ stages:
   - ci
   - static
   - build and unit tests
-  - manual
   - documentation
   - deploy
 
@@ -289,12 +288,8 @@ clang-tidy:
 
 clang-tidy incremental:
   extends: clang-tidy
-  stage: manual
   rules:
-    - if: $ON_MR == "true" && $CI_MERGE_REQUEST_APPROVED == "true"
     - if: $ON_MR
-      when: manual
-      allow_failure: false
   tags: [saas-linux-medium-amd64]
   variables:
     CCACHE_MAXSIZE: 3G

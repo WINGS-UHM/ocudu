@@ -11,6 +11,7 @@
 #include "mac_rach_handler.h"
 #include "../rnti_manager.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_rach_handler.h"
 
 using namespace ocudu;
 
@@ -116,7 +117,7 @@ void mac_cell_rach_handler_impl::handle_cfra_deallocation(du_ue_index_t ue_idx)
   }
 }
 
-mac_rach_handler::mac_rach_handler(scheduler_configurator& sched_,
+mac_rach_handler::mac_rach_handler(scheduler_rach_handler& sched_,
                                    rnti_manager&           rnti_mng_,
                                    ocudulog::basic_logger& logger_) :
   sched(sched_),

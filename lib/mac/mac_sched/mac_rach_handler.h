@@ -18,7 +18,7 @@
 
 namespace ocudu {
 
-class scheduler_configurator;
+class scheduler_rach_handler;
 class rnti_manager;
 class mac_rach_handler;
 struct sched_cell_configuration_request_message;
@@ -56,7 +56,7 @@ private:
 class mac_rach_handler
 {
 public:
-  mac_rach_handler(scheduler_configurator& sched_, rnti_manager& rnti_mng_, ocudulog::basic_logger& logger_);
+  mac_rach_handler(scheduler_rach_handler& sched_, rnti_manager& rnti_mng_, ocudulog::basic_logger& logger_);
 
   /// Create new handler of RACH indications for a cell.
   mac_cell_rach_handler_impl& add_cell(const sched_cell_configuration_request_message& sched_cfg);
@@ -71,7 +71,7 @@ private:
     uint8_t         preamble_id;
   };
 
-  scheduler_configurator& sched;
+  scheduler_rach_handler& sched;
   rnti_manager&           rnti_mng;
   ocudulog::basic_logger& logger;
 

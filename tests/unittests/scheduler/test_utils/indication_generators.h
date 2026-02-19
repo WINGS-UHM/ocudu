@@ -13,6 +13,7 @@
 #include "ocudu/scheduler/result/pusch_info.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/scheduler/scheduler_rach_handler.h"
 
 namespace ocudu {
 

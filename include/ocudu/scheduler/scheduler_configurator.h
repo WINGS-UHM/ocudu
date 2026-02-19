@@ -120,28 +120,6 @@ struct sched_ue_delete_message {
   rnti_t        crnti;
 };
 
-/// RACH indication Message. It contains all the RACHs detected in a given slot and cell.
-struct rach_indication_message {
-  du_cell_index_t cell_index;
-  slot_point      slot_rx;
-
-  struct preamble {
-    unsigned preamble_id;
-    /// Allocated TC-RNTI, for Contention-based RACH, or C-RNTI, for Contention-free RACH.
-    rnti_t        tc_rnti;
-    phy_time_unit time_advance;
-  };
-
-  struct occasion {
-    /// Index of the first OFDM Symbol where RACH was detected.
-    unsigned                                                  start_symbol;
-    unsigned                                                  frequency_index;
-    static_vector<preamble, MAX_PREAMBLES_PER_PRACH_OCCASION> preambles;
-  };
-
-  static_vector<occasion, MAX_PRACH_OCCASIONS_PER_SLOT> occasions;
-};
-
 /// Interface to Add/Remove UEs and Cells.
 class scheduler_configurator
 {
@@ -155,9 +133,6 @@ public:
 
   /// \brief Handle cell configuration removal.
   virtual void handle_cell_removal_request(du_cell_index_t cell_index) = 0;
-
-  /// \brief Handle RACH indication message.
-  virtual void handle_rach_indication(const rach_indication_message& msg) = 0;
 
   /// \brief Activate a configured cell. This method has no effect if the cell is already active.
   /// \remark This method needs to be called in the same thread as the slot_indication() method.

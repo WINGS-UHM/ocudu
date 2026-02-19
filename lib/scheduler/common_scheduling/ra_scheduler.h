@@ -20,6 +20,7 @@
 #include "ocudu/ran/resource_allocation/rb_bitmap.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
+#include "ocudu/scheduler/scheduler_rach_handler.h"
 
 namespace ocudu {
 

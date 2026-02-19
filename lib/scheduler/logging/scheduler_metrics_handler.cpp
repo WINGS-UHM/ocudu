@@ -14,7 +14,7 @@
 #include "ocudu/ran/resource_allocation/rb_bitmap.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/scheduler/result/sched_result.h"
-#include "ocudu/scheduler/scheduler_configurator.h"
+#include "ocudu/scheduler/scheduler_rach_handler.h"
 
 using namespace ocudu;
 

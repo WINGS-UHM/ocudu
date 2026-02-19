@@ -145,7 +145,23 @@ cell_meas_manager::get_measurement_config(ue_index_t                         ue_
     new_cfg.report_cfg_to_add_mod_list.erase(end_it, new_cfg.report_cfg_to_add_mod_list.end());
     std::sort(new_cfg.report_cfg_to_add_mod_list.begin(), new_cfg.report_cfg_to_add_mod_list.end(), cmp_id);
   } else {
-    const auto cond_trigger_ids = collect_cond_trigger_report_configs(cfg, new_cfg);
+    // Verify CHO and two-trigger-events UE capabilities.
+    const cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+    if (ue == nullptr || ue->get_rrc_ue() == nullptr) {
+      logger.error("ue={}: CHO meas config requested but UE/RRC context is missing", ue_index);
+      return std::nullopt;
+    }
+    if (!ue->get_rrc_ue()->is_conditional_handover_supported()) {
+      logger.warning("ue={}: CHO meas config requested but UE does not support CHO", ue_index);
+      return std::nullopt;
+    }
+    const bool     two_trigger_capable = ue->get_rrc_ue()->is_conditional_handover_two_trigger_events_supported();
+    const unsigned max_trigger_cfgs    = two_trigger_capable ? 2U : 1U;
+    if (!two_trigger_capable) {
+      logger.debug("ue={}: UE does not support CHO two-trigger-events; limiting to one trigger config", ue_index);
+    }
+
+    const auto cond_trigger_ids = collect_cond_trigger_report_configs(cfg, new_cfg, max_trigger_cfgs);
     if (cond_trigger_ids.empty()) {
       logger.warning("ue={}: No conditional trigger report configs found for CHO measurement config", ue_index);
       return std::nullopt;

@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "../test_helpers.h"
 #include "lib/cu_cp/cell_meas_manager/cell_meas_manager_impl.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
@@ -48,11 +49,20 @@ protected:
   void verify_meas_cfg(const std::optional<rrc_meas_cfg>& meas_cfg);
   void verify_empty_meas_cfg(const std::optional<rrc_meas_cfg>& meas_cfg);
 
+  /// Attach the shared dummy RRC UE to the given UE so CHO capability checks pass.
+  void attach_rrc_ue(ue_index_t ue_index)
+  {
+    cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+    ASSERT_NE(ue, nullptr);
+    ue->set_rrc_ue(rrc_ue_stub);
+  }
+
   ocudulog::basic_logger& test_logger  = ocudulog::fetch_basic_logger("TEST");
   ocudulog::basic_logger& cu_cp_logger = ocudulog::fetch_basic_logger("CU-CP", false);
 
   std::unique_ptr<cell_meas_manager> manager;
   dummy_mobility_manager             mobility_manager;
+  dummy_rrc_ue                       rrc_ue_stub;
   manual_task_worker                 ctrl_worker{128};
   timer_manager                      timers;
   cu_cp_configuration                cu_cp_cfg;

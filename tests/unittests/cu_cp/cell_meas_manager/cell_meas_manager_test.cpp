@@ -330,6 +330,7 @@ TEST_F(cell_meas_manager_test, cho_single_frequency_generates_correct_nci_to_mea
 
   ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+  attach_rrc_ue(ue_index);
 
   gnb_id_t         gnb_id{0x19b, 32};
   nr_cell_identity nci_serving = nr_cell_identity::create(gnb_id, 0).value();
@@ -359,6 +360,7 @@ TEST_F(cell_meas_manager_test, cho_multi_frequency_generates_separate_meas_ids_p
 
   ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+  attach_rrc_ue(ue_index);
 
   gnb_id_t         gnb_id{0x19b, 32};
   nr_cell_identity nci_serving = nr_cell_identity::create(gnb_id, 0).value();
@@ -395,6 +397,7 @@ TEST_F(cell_meas_manager_test, cho_multi_trigger_creates_cross_product_meas_ids)
 
   ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+  attach_rrc_ue(ue_index);
 
   gnb_id_t         gnb_id{0x19b, 32};
   nr_cell_identity nci_serving = nr_cell_identity::create(gnb_id, 0).value();
@@ -426,6 +429,7 @@ TEST_F(cell_meas_manager_test, cho_empty_candidate_list_includes_all_neighbors)
 
   ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+  attach_rrc_ue(ue_index);
 
   gnb_id_t         gnb_id{0x19b, 32};
   nr_cell_identity nci_serving = nr_cell_identity::create(gnb_id, 0).value();

@@ -64,11 +64,14 @@ void generate_report_config(const cell_meas_manager_cfg&  cfg,
                             rrc_meas_cfg&                 meas_cfg,
                             cell_meas_manager_ue_context& ue_meas_context);
 
-/// \brief Collect all rrc_cond_trigger_cfg report configs from \p cfg into \p meas_cfg.
+/// \brief Collect rrc_cond_trigger_cfg report configs from \p cfg into \p meas_cfg.
 /// Appends matching entries to meas_cfg.report_cfg_to_add_mod_list.
-/// \returns Vector of report_cfg_id_t for found conditional trigger configs.
+/// \param[in] max_configs Maximum number of trigger configs to collect: pass 1 when the UE does not support
+///                    condHO-TwoTriggerEvents-r16, 2 (default) when it does.
+/// \returns Vector of report_cfg_id_t for the collected conditional trigger configs.
 std::vector<report_cfg_id_t> collect_cond_trigger_report_configs(const cell_meas_manager_cfg& cfg,
-                                                                 rrc_meas_cfg&                meas_cfg);
+                                                                 rrc_meas_cfg&                meas_cfg,
+                                                                 unsigned                     max_configs = 2U);
 
 /// \brief Build measurement IDs linking MOs to conditional trigger report configs for CHO.
 /// For each (mo_id, report_cfg_id) pair: allocates a meas_id, appends rrc_meas_id_to_add_mod,

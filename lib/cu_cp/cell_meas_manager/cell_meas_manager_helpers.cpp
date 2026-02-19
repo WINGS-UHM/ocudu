@@ -280,10 +280,14 @@ void ocudu::ocucp::log_meas_objects(const ocudulog::basic_logger&               
 }
 
 std::vector<report_cfg_id_t> ocudu::ocucp::collect_cond_trigger_report_configs(const cell_meas_manager_cfg& cfg,
-                                                                               rrc_meas_cfg&                meas_cfg)
+                                                                               rrc_meas_cfg&                meas_cfg,
+                                                                               unsigned                     max_configs)
 {
   std::vector<report_cfg_id_t> cond_trigger_ids;
   for (const auto& [report_cfg_id, report_cfg] : cfg.report_config_ids) {
+    if (cond_trigger_ids.size() >= max_configs) {
+      break;
+    }
     if (std::holds_alternative<rrc_cond_trigger_cfg>(report_cfg)) {
       rrc_report_cfg_to_add_mod report_cfg_to_add;
       report_cfg_to_add.report_cfg_id = report_cfg_id;

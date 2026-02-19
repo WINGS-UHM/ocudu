@@ -488,10 +488,6 @@ package:
   variables:
     PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"
-    KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
-    KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
-    KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
-    KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
     extraopts: -DMARCH=x86-64-v3
   tags: [saas-linux-large-amd64]
   before_script:

@@ -80,7 +80,7 @@ std::map<five_qi_t, ocuup::cu_up_qos_config> ocudu::generate_cu_up_qos_config(co
     f1u_cfg.queue_size         = qos.f1u_cu_up.queue_size;
     f1u_cfg.batch_size         = qos.f1u_cu_up.batch_size;
     f1u_cfg.metrics_period =
-        timer_duration(cu_up_config.metrics.layers_cfg.enable_f1u ? cu_up_config.metrics.cu_up_report_period : 0);
+        timer_duration(cu_up_config.metrics.layers_cfg.enable_nrup ? cu_up_config.metrics.cu_up_report_period : 0);
   }
   return out_cfg;
 }

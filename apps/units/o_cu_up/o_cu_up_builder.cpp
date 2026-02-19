@@ -78,7 +78,7 @@ build_f1u_metrics_config(std::vector<app_services::metrics_config>& cu_up_servic
 {
   ocuup::f1u_metrics_notifier* out = nullptr;
 
-  if (!cu_up_metrics_cfg.layers_cfg.enable_f1u) {
+  if (!cu_up_metrics_cfg.layers_cfg.enable_nrup) {
     return out;
   }
 

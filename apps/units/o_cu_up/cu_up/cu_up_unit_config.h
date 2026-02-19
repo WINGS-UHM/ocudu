@@ -24,11 +24,11 @@ namespace ocudu {
 struct cu_up_unit_metrics_layer_config {
   bool enable_e1ap         = false;
   bool enable_pdcp         = false;
-  bool enable_f1u          = false;
+  bool enable_nrup         = false;
   bool skip_cu_up_executor = true;
 
   /// Returns true if one or more layers are enabled, false otherwise.
-  bool are_metrics_enabled() const { return enable_pdcp || enable_f1u || enable_e1ap; }
+  bool are_metrics_enabled() const { return enable_pdcp || enable_nrup || enable_e1ap; }
 };
 
 /// Metrics configuration.

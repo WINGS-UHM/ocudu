@@ -174,7 +174,8 @@ static void configure_cli11_metrics_layers_args(CLI::App& app, cu_up_unit_metric
 {
   add_option(app, "--enable_e1ap", metrics_params.enable_e1ap, "Enable E1AP metrics")->capture_default_str();
   add_option(app, "--enable_pdcp", metrics_params.enable_pdcp, "Enable PDCP metrics")->capture_default_str();
-  add_option(app, "--enable_f1u", metrics_params.enable_f1u, "Enable F1-U GTP-U metrics")->capture_default_str();
+  add_option(app, "--enable_nrup_cu", metrics_params.enable_nrup, "Enable NRUP metrics (CU side)")
+      ->capture_default_str();
   add_option(app,
              "--skip_cu_up_executor",
              metrics_params.skip_cu_up_executor,

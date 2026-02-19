@@ -53,8 +53,8 @@ cell_meas_manager::get_measurement_config(ue_index_t                         ue_
     return meas_cfg;
   }
 
-  // Measurement config is only generated if neighbor cells are configured or serving cell measurements are enabled.
-  if (cell_config.ncells.empty() and !cell_config.periodic_report_cfg_id.has_value()) {
+  // For regular measurement config, early-exit when no neighbors and no periodic report.
+  if (!cond_meas and cell_config.ncells.empty() and !cell_config.periodic_report_cfg_id.has_value()) {
     logger.debug("ue={}: No neighbor cells configured and periodic serving cell reports disabled for nci={:#x}",
                  ue_index,
                  serving_nci);
@@ -76,20 +76,27 @@ cell_meas_manager::get_measurement_config(ue_index_t                         ue_
   ue_meas_context.clear_meas_obj_ids();
   ue_meas_context.clear_meas_ids();
 
+  // Build ssb_freqs vector.
+  // For regular: serving cell (if periodic report configured) plus neighbors with report configs.
+  std::vector<ssb_frequency_t> ssb_freqs = generate_measurement_object_list(cfg, serving_nci);
+
   // TODO: Filter measurement objects using UE capabilities.
 
-  for (const auto& ssb_freq : generate_measurement_object_list(cfg, serving_nci)) {
-    // Add measurement object.
+  // Add measurement object (MO).
+  for (const auto& ssb_freq : ssb_freqs) {
     rrc_meas_obj_to_add_mod meas_obj_to_add;
     meas_obj_to_add.meas_obj_id = ue_meas_context.allocate_meas_obj_id();
     meas_obj_to_add.meas_obj_nr = ssb_freq_to_meas_object.at(ssb_freq);
-    new_cfg.meas_obj_to_add_mod_list.push_back(meas_obj_to_add);
 
     // Add meas obj id to lookup.
     for (const auto& nci : ssb_freq_to_ncis.at(ssb_freq)) {
       ue_meas_context.nci_to_meas_obj_id.emplace(nci, meas_obj_to_add.meas_obj_id);
     }
+    new_cfg.meas_obj_to_add_mod_list.push_back(std::move(meas_obj_to_add));
+  }
 
+  // Report config + meas IDs.
+  for (const auto& ssb_freq : ssb_freqs) {
     if (cell_config.serving_cell_cfg.ssb_arfcn.value() == ssb_freq && cell_config.periodic_report_cfg_id.has_value()) {
       logger.debug("ue={}: Adding periodic report config for nci={:#x}", ue_index, serving_nci);
       generate_report_config(cfg, serving_nci, cell_config.periodic_report_cfg_id.value(), new_cfg, ue_meas_context);

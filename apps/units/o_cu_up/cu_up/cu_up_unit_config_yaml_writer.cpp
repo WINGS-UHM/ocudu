@@ -54,7 +54,6 @@ static void fill_cu_up_ngu_section(YAML::Node node, const cu_up_unit_ngu_config&
 static void fill_cu_up_metrics_layers_section(YAML::Node node, const cu_up_unit_metrics_layer_config& config)
 {
   node["enable_e1ap"]         = config.enable_e1ap;
-  node["enable_n3"]           = config.enable_n3;
   node["enable_pdcp"]         = config.enable_pdcp;
   node["enable_f1u"]          = config.enable_f1u;
   node["skip_cu_up_executor"] = config.skip_cu_up_executor;

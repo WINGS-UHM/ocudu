@@ -88,6 +88,7 @@ void gtpu_demux_impl::send_error_indication(uint32_t teid, const sockaddr_storag
   }
 
   logger.info("TX error indication. teid={:#x} pdu_len={}", teid, buf.length());
+  write_pcap(buf);
   tx_upper->on_new_pdu(std::move(buf), src_addr);
 }
 

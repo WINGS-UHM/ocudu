@@ -28,7 +28,7 @@ struct f1u_config {
   uint32_t                  queue_size = 8192;
   uint32_t                  batch_size = 256;
 
-  timer_duration        metrics_period;
+  timer_duration        metrics_period   = std::chrono::milliseconds{0};
   f1u_metrics_notifier* metrics_notifier = nullptr;
 };
 

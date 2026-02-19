@@ -11,9 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/fapi/common/base_message.h"
 #include "ocudu/ran/phy_time_unit.h"
-#include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 #include <optional>
@@ -41,7 +39,7 @@ struct rach_indication_pdu {
 };
 
 /// RACH indication message
-struct rach_indication : public base_message {
+struct rach_indication {
   slot_point                                                       slot;
   static_vector<rach_indication_pdu, MAX_PRACH_OCCASIONS_PER_SLOT> pdus;
 };

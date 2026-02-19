@@ -69,10 +69,7 @@ void message_bufferer_slot_gateway_impl::handle_message(T&& msg, P pool, Functio
   auto& msg_pool_entry = pool[msg_slot.system_slot() % pool.size()];
 
   if (msg_pool_entry) {
-    logger.warning("Sector#{}: Detected unsent cached FAPI message type '{}' for slot '{}'",
-                   sector_id,
-                   fmt::underlying(msg_pool_entry->message_type),
-                   msg_pool_entry->slot);
+    logger.warning("Sector#{}: Detected unsent cached FAPI message for slot '{}'", sector_id, msg_pool_entry->slot);
   }
 
   msg_pool_entry.emplace(std::forward<T>(msg));
@@ -93,13 +90,10 @@ static void send_message(slot_point              slot,
     return;
   }
 
-  if (auto msg_type = pool_entry->message_type; pool_entry->slot == slot) {
+  if (pool_entry->slot == slot) {
     func(*pool_entry);
   } else {
-    logger.warning("Sector#{}: Detected unsent cached FAPI message id '{}' for slot '{}'",
-                   sector_id,
-                   fmt::underlying(msg_type),
-                   pool_entry->slot);
+    logger.warning("Sector#{}: Detected unsent cached FAPI message for slot '{}'", sector_id, pool_entry->slot);
   }
 
   pool_entry.reset();

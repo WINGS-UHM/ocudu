@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/fapi/common/base_message.h"
 #include "ocudu/fapi/p7/messages/dl_pdcch_pdu.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 
@@ -23,7 +22,7 @@ struct ul_dci_pdu {
 };
 
 /// Uplink DCI request message.
-struct ul_dci_request : public base_message {
+struct ul_dci_request {
   slot_point                                            slot;
   static_vector<ul_dci_pdu, MAX_UL_PDCCH_PDUS_PER_SLOT> pdus;
 };

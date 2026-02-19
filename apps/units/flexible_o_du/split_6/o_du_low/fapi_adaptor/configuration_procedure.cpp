@@ -73,7 +73,6 @@ void configuration_procedure::send_param_request(const fapi::param_request& msg)
 {
   // Do nothing for the PARAM.response.
   param_response response;
-  response.num_tlv = 0;
 
   // If current status is running, report back error code, as per SCF-222 v4.0 section 3.3.1.3.
   response.error_code = (status == cell_status::RUNNING) ? error_code_id::msg_invalid_state : error_code_id::msg_ok;

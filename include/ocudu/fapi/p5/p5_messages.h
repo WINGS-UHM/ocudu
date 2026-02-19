@@ -11,47 +11,40 @@
 #pragma once
 
 #include "ocudu/fapi/cell_config.h"
-#include "ocudu/fapi/common/base_message.h"
 #include "ocudu/fapi/common/error_code.h"
 
 namespace ocudu {
 namespace fapi {
 
 /// Param request message.
-struct param_request : public base_message {
-  uint8_t protocol_version;
-};
+struct param_request {};
 
 /// Param response message.
-struct param_response : public base_message {
+struct param_response {
   error_code_id error_code;
-  uint8_t       num_tlv;
 };
 
 /// Config request message.
-struct config_request : public base_message {
+struct config_request {
   cell_configuration cell_cfg;
 };
 
 /// Config response message.
-struct config_response : public base_message {
-  /// Maximum number of invalid TLVs supported.
-  static constexpr unsigned MAX_NUM_TLVS = 2048;
-
+struct config_response {
   error_code_id error_code;
 };
 
 /// Start request message.
-struct start_request : public base_message {};
+struct start_request {};
 
 /// Start response message.
-struct start_response : public base_message {};
+struct start_response {};
 
 /// Stop request message.
-struct stop_request : public base_message {};
+struct stop_request {};
 
 /// Stop indication message.
-struct stop_indication : public base_message {};
+struct stop_indication {};
 
 } // namespace fapi
 } // namespace ocudu

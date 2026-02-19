@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "ocudu/fapi/common/base_message.h"
 #include "ocudu/fapi/p7/messages/ul_pdu_type.h"
 #include "ocudu/fapi/p7/messages/ul_prach_pdu.h"
 #include "ocudu/fapi/p7/messages/ul_pucch_pdu.h"
@@ -35,7 +34,7 @@ struct ul_tti_request_pdu {
 };
 
 /// Uplink TTI request message.
-struct ul_tti_request : public base_message {
+struct ul_tti_request {
   enum class pdu_type : uint8_t { PRACH, PUSCH, PUCCH_format01, PUCCH_format234, SRS, msga_PUSCH };
 
   /// Maximum number of supported UL PDU types in this release.

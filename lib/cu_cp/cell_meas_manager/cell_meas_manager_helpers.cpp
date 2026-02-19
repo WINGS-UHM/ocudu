@@ -10,6 +10,7 @@
 
 #include "cell_meas_manager_helpers.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include <unordered_set>
 
 using namespace ocudu;
 using namespace ocucp;
@@ -166,6 +167,33 @@ std::vector<ssb_frequency_t> ocudu::ocucp::generate_measurement_object_list(cons
   return ssb_freqs;
 }
 
+std::vector<ssb_frequency_t> ocudu::ocucp::generate_cho_measurement_object_list(const cell_meas_manager_cfg& cfg,
+                                                                                nr_cell_identity  serving_nci,
+                                                                                span<const pci_t> candidate_pcis)
+{
+  ocudu_assert(cfg.cells.count(serving_nci), "No cell config for nci={:#x}", serving_nci);
+
+  std::unordered_set<pci_t>           candidate_pcis_set(candidate_pcis.begin(), candidate_pcis.end());
+  std::unordered_set<ssb_frequency_t> freqs;
+
+  for (const auto& ncell : cfg.cells.at(serving_nci).ncells) {
+    auto it = cfg.cells.find(ncell.nci);
+    if (it == cfg.cells.end()) {
+      ocudulog::fetch_basic_logger(LOG_CHAN).warning("No cell config for nci={:#x}, skipping", ncell.nci);
+      continue;
+    }
+
+    const auto& scfg = it->second.serving_cell_cfg;
+
+    if (!is_complete(scfg) || !scfg.pci || (!candidate_pcis_set.empty() && !candidate_pcis_set.count(*scfg.pci)))
+      continue;
+
+    freqs.insert(scfg.ssb_arfcn->value());
+  }
+
+  return {freqs.begin(), freqs.end()};
+}
+
 void ocudu::ocucp::generate_report_config(const cell_meas_manager_cfg&  cfg,
                                           const nr_cell_identity        nci,
                                           const report_cfg_id_t         report_cfg_id,
@@ -249,4 +277,53 @@ void ocudu::ocucp::log_meas_objects(const ocudulog::basic_logger&               
       logger.debug(" - ssb_freq={}: {}", meas_obj.first, meas_obj.second);
     }
   }
+}
+
+std::vector<report_cfg_id_t> ocudu::ocucp::collect_cond_trigger_report_configs(const cell_meas_manager_cfg& cfg,
+                                                                               rrc_meas_cfg&                meas_cfg)
+{
+  std::vector<report_cfg_id_t> cond_trigger_ids;
+  for (const auto& [report_cfg_id, report_cfg] : cfg.report_config_ids) {
+    if (std::holds_alternative<rrc_cond_trigger_cfg>(report_cfg)) {
+      rrc_report_cfg_to_add_mod report_cfg_to_add;
+      report_cfg_to_add.report_cfg_id = report_cfg_id;
+      report_cfg_to_add.report_cfg    = report_cfg;
+      meas_cfg.report_cfg_to_add_mod_list.push_back(report_cfg_to_add);
+      cond_trigger_ids.push_back(report_cfg_id);
+    }
+  }
+  return cond_trigger_ids;
+}
+
+bool ocudu::ocucp::generate_cho_meas_ids(const cell_meas_manager_cfg&  cfg,
+                                         span<const report_cfg_id_t>   cond_trigger_ids,
+                                         rrc_meas_cfg&                 meas_cfg,
+                                         cell_meas_manager_ue_context& ue_meas_context)
+{
+  for (const auto& mo : meas_cfg.meas_obj_to_add_mod_list) {
+    for (const auto& report_cfg_id : cond_trigger_ids) {
+      meas_id_t meas_id = ue_meas_context.allocate_meas_id();
+      if (meas_id == meas_id_t::invalid) {
+        return false;
+      }
+
+      meas_cfg.meas_id_to_add_mod_list.push_back({meas_id, mo.meas_obj_id, report_cfg_id});
+
+      for (const auto& [context_nci, context_mo_id] : ue_meas_context.nci_to_meas_obj_id) {
+        if (context_mo_id == mo.meas_obj_id) {
+          const auto& cell_cfg = cfg.cells.at(context_nci);
+          ocudu_assert(
+              cell_cfg.serving_cell_cfg.pci.has_value(), "PCI must be set for CHO candidate nci={:#x}", context_nci);
+          ue_meas_context.meas_id_to_meas_context.emplace(meas_id,
+                                                          meas_context_t{mo.meas_obj_id,
+                                                                         report_cfg_id,
+                                                                         cell_cfg.serving_cell_cfg.gnb_id_bit_length,
+                                                                         context_nci,
+                                                                         cell_cfg.serving_cell_cfg.pci.value()});
+          meas_cfg.nci_to_meas_ids[context_nci].push_back(meas_id);
+        }
+      }
+    }
+  }
+  return true;
 }

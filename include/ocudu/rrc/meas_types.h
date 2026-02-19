@@ -13,8 +13,10 @@
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/adt/slotted_array.h"
 #include "ocudu/adt/slotted_vector.h"
+#include "ocudu/ran/nr_cell_identity.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/subcarrier_spacing.h"
+#include <map>
 #include <string>
 #include <variant>
 #include <vector>
@@ -468,6 +470,9 @@ struct rrc_quant_cfg {
   std::vector<rrc_quant_cfg_nr> quant_cfg_nr_list;
 };
 
+/// Maps target NCI to measurement IDs for CHO condExecutionCond assignment.
+using cho_meas_id_map_t = std::map<nr_cell_identity, std::vector<meas_id_t>>;
+
 struct rrc_meas_cfg {
   std::vector<meas_obj_id_t>             meas_obj_to_rem_list;
   std::vector<rrc_meas_obj_to_add_mod>   meas_obj_to_add_mod_list;
@@ -478,6 +483,8 @@ struct rrc_meas_cfg {
   std::optional<rrc_s_measure_cfg>       s_measure_cfg;
   std::optional<rrc_quant_cfg>           quant_cfg;
   // The meas gap config is excluded from the common type and stored in the RRC UE context.
+  /// Maps target NCI to measIds for condExecutionCond.
+  cho_meas_id_map_t nci_to_meas_ids;
 };
 
 struct rrc_meas_quant_results {

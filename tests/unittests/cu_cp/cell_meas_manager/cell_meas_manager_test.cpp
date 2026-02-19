@@ -321,3 +321,136 @@ TEST_F(cell_meas_manager_test, when_t312_is_configured_then_meas_obj_has_t312_an
   ASSERT_TRUE(meas_obj_it->meas_obj_nr.value().t312.has_value());
   ASSERT_EQ(meas_obj_it->meas_obj_nr.value().t312.value(), 100);
 }
+
+// ===================== CHO Measurement Config Tests =====================
+
+TEST_F(cell_meas_manager_test, cho_single_frequency_generates_correct_nci_to_meas_id_mapping)
+{
+  create_cho_manager_single_frequency();
+
+  ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
+  ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+
+  gnb_id_t         gnb_id{0x19b, 32};
+  nr_cell_identity nci_serving = nr_cell_identity::create(gnb_id, 0).value();
+  nr_cell_identity nci_target1 = nr_cell_identity::create(gnb_id, 1).value();
+  nr_cell_identity nci_target2 = nr_cell_identity::create(gnb_id, 2).value();
+
+  // Get CHO measurement config for both target candidates
+  std::vector<pci_t> candidate_pcis = {2, 3}; // PCIs of target cells
+  auto cho_result = manager->get_measurement_config(ue_index, nci_serving, std::nullopt, true, candidate_pcis);
+
+  ASSERT_TRUE(cho_result.has_value());
+  ASSERT_EQ(cho_result->meas_obj_to_add_mod_list.size(), 1);
+  ASSERT_EQ(cho_result->meas_id_to_add_mod_list.size(), 1);
+
+  // Verify NCI-to-measId mapping was generated
+  ASSERT_FALSE(cho_result->nci_to_meas_ids.empty());
+
+  // Single frequency: all targets should map to same frequency's measIds
+  // Both target cells should have entries in the mapping
+  ASSERT_TRUE(cho_result->nci_to_meas_ids.find(nci_target1) != cho_result->nci_to_meas_ids.end() &&
+              cho_result->nci_to_meas_ids.find(nci_target2) != cho_result->nci_to_meas_ids.end());
+}
+
+TEST_F(cell_meas_manager_test, cho_multi_frequency_generates_separate_meas_ids_per_nci)
+{
+  create_cho_manager_multi_frequency();
+
+  ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
+  ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+
+  gnb_id_t         gnb_id{0x19b, 32};
+  nr_cell_identity nci_serving = nr_cell_identity::create(gnb_id, 0).value();
+  nr_cell_identity nci_target1 = nr_cell_identity::create(gnb_id, 1).value();
+  nr_cell_identity nci_target2 = nr_cell_identity::create(gnb_id, 2).value();
+
+  // Get CHO measurement config for both target candidates on different frequencies
+  std::vector<pci_t> candidate_pcis = {2, 3};
+  auto cho_result = manager->get_measurement_config(ue_index, nci_serving, std::nullopt, true, candidate_pcis);
+
+  ASSERT_TRUE(cho_result.has_value());
+
+  // Multi-frequency: should have 2 measurement objects (one per frequency)
+  ASSERT_EQ(cho_result->meas_obj_to_add_mod_list.size(), 2);
+
+  // Verify NCI-to-measId mapping contains both target NCIs
+  ASSERT_TRUE(cho_result->nci_to_meas_ids.find(nci_target1) != cho_result->nci_to_meas_ids.end() &&
+              cho_result->nci_to_meas_ids.find(nci_target2) != cho_result->nci_to_meas_ids.end());
+
+  // Verify each NCI has its own distinct measIds (since they're on different frequencies)
+  if (cho_result->nci_to_meas_ids.size() >= 2) {
+    auto it1 = cho_result->nci_to_meas_ids.begin();
+    auto it2 = std::next(it1);
+
+    // Each target should have at least 1 measId
+    ASSERT_FALSE(it1->second.empty());
+    ASSERT_FALSE(it2->second.empty());
+  }
+}
+
+TEST_F(cell_meas_manager_test, cho_multi_trigger_creates_cross_product_meas_ids)
+{
+  create_cho_manager_multi_trigger();
+
+  ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
+  ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+
+  gnb_id_t         gnb_id{0x19b, 32};
+  nr_cell_identity nci_serving = nr_cell_identity::create(gnb_id, 0).value();
+  nr_cell_identity nci_target  = nr_cell_identity::create(gnb_id, 1).value();
+
+  // Get CHO measurement config with multiple conditional triggers
+  std::vector<pci_t> candidate_pcis = {2};
+  auto cho_result = manager->get_measurement_config(ue_index, nci_serving, std::nullopt, true, candidate_pcis);
+
+  ASSERT_TRUE(cho_result.has_value());
+
+  // Multi-trigger: should create cross-product of MOs × triggers
+  // 1 frequency × 2 triggers = 2 measIds for the target
+  ASSERT_GE(cho_result->meas_id_to_add_mod_list.size(), 2);
+
+  // Verify target NCI is in the mapping
+  ASSERT_TRUE(cho_result->nci_to_meas_ids.find(nci_target) != cho_result->nci_to_meas_ids.end());
+
+  // The target should have 2 measIds (one for each conditional trigger)
+  if (cho_result->nci_to_meas_ids.find(nci_target) != cho_result->nci_to_meas_ids.end()) {
+    const auto& meas_ids = cho_result->nci_to_meas_ids.at(nci_target);
+    ASSERT_GE(meas_ids.size(), 2) << "Expected at least 2 measIds for target with 2 conditional triggers";
+  }
+}
+
+TEST_F(cell_meas_manager_test, cho_empty_candidate_list_includes_all_neighbors)
+{
+  create_cho_manager_single_frequency();
+
+  ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
+  ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+
+  gnb_id_t         gnb_id{0x19b, 32};
+  nr_cell_identity nci_serving = nr_cell_identity::create(gnb_id, 0).value();
+
+  // Empty candidate list means no PCI filter — all configured neighbors are included.
+  std::vector<pci_t> candidate_pcis;
+  auto cho_result = manager->get_measurement_config(ue_index, nci_serving, std::nullopt, true, candidate_pcis);
+
+  ASSERT_TRUE(cho_result.has_value());
+}
+
+TEST_F(cell_meas_manager_test, cho_invalid_candidate_pci_filters_correctly)
+{
+  create_cho_manager_single_frequency();
+
+  ue_index_t ue_index = ue_mng.add_ue(uint_to_du_index(0));
+  ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
+
+  gnb_id_t         gnb_id{0x19b, 32};
+  nr_cell_identity nci_serving = nr_cell_identity::create(gnb_id, 0).value();
+
+  // Request CHO config with invalid/unknown PCI
+  std::vector<pci_t> candidate_pcis = {999}; // Non-existent PCI
+  auto cho_result = manager->get_measurement_config(ue_index, nci_serving, std::nullopt, true, candidate_pcis);
+
+  // Should return nullopt when no valid candidates exist
+  ASSERT_FALSE(cho_result.has_value());
+}

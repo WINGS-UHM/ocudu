@@ -11,9 +11,12 @@
 #pragma once
 
 #include "measurement_context.h"
+#include "ocudu/adt/span.h"
 #include "ocudu/cu_cp/cell_meas_manager_config.h"
 #include "ocudu/rrc/meas_types.h"
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace ocudu {
 namespace ocucp {
@@ -37,6 +40,18 @@ void add_old_meas_config_to_rem_list(const rrc_meas_cfg& old_cfg, rrc_meas_cfg& 
 std::vector<ssb_frequency_t> generate_measurement_object_list(const cell_meas_manager_cfg& cfg,
                                                               nr_cell_identity             serving_nci);
 
+/// \brief Generate unique SSB frequency list for CHO (conditional) measurement config.
+/// Returns the set of SSB frequencies of neighbor cells whose PCI is in
+/// \p candidate_pcis (all neighbors when \p candidate_pcis is empty)
+/// and whose configuration is complete.
+/// \param[in] cfg The cell measurement manager configuration.
+/// \param[in] serving_nci The serving cell NCI.
+/// \param[in] candidate_pcis Optional PCI filter; empty means all neighbors are included.
+/// \returns Vector of unique SSB frequencies.
+std::vector<ssb_frequency_t> generate_cho_measurement_object_list(const cell_meas_manager_cfg& cfg,
+                                                                  nr_cell_identity             serving_nci,
+                                                                  span<const pci_t>            candidate_pcis);
+
 /// \brief Generate report configuration for the given cell configuration.
 /// \param[in] cfg The cell configuration.
 /// \param[in] nci The cell id.
@@ -48,6 +63,22 @@ void generate_report_config(const cell_meas_manager_cfg&  cfg,
                             const report_cfg_id_t         report_cfg_id,
                             rrc_meas_cfg&                 meas_cfg,
                             cell_meas_manager_ue_context& ue_meas_context);
+
+/// \brief Collect all rrc_cond_trigger_cfg report configs from \p cfg into \p meas_cfg.
+/// Appends matching entries to meas_cfg.report_cfg_to_add_mod_list.
+/// \returns Vector of report_cfg_id_t for found conditional trigger configs.
+std::vector<report_cfg_id_t> collect_cond_trigger_report_configs(const cell_meas_manager_cfg& cfg,
+                                                                 rrc_meas_cfg&                meas_cfg);
+
+/// \brief Build measurement IDs linking MOs to conditional trigger report configs for CHO.
+/// For each (mo_id, report_cfg_id) pair: allocates a meas_id, appends rrc_meas_id_to_add_mod,
+/// populates meas_id_to_meas_context for every NCI that maps to that MO, and fills
+/// meas_cfg.nci_to_meas_ids.
+/// \returns false if any meas_id allocation fails, true otherwise.
+bool generate_cho_meas_ids(const cell_meas_manager_cfg&  cfg,
+                           span<const report_cfg_id_t>   cond_trigger_ids,
+                           rrc_meas_cfg&                 meas_cfg,
+                           cell_meas_manager_ue_context& ue_meas_context);
 
 rrc_meas_obj_nr generate_measurement_object(const serving_cell_meas_config& cfg);
 

@@ -13,6 +13,7 @@
 #include "ocudu/cu_cp/cell_meas_manager_config.h"
 #include "ocudu/rrc/meas_types.h"
 #include "ocudu/support/ocudu_assert.h"
+#include <unordered_set>
 #include <utility>
 
 using namespace ocudu;
@@ -78,7 +79,17 @@ cell_meas_manager::get_measurement_config(ue_index_t                         ue_
 
   // Build ssb_freqs vector.
   // For regular: serving cell (if periodic report configured) plus neighbors with report configs.
-  std::vector<ssb_frequency_t> ssb_freqs = generate_measurement_object_list(cfg, serving_nci);
+  // For CHO: candidate neighbors filtered by optional PCI set.
+  std::vector<ssb_frequency_t> ssb_freqs;
+  if (cond_meas) {
+    ssb_freqs = generate_cho_measurement_object_list(cfg, serving_nci, candidate_pcis);
+    if (ssb_freqs.empty()) {
+      logger.warning("ue={}: No measurement objects match CHO candidate PCIs for nci={:#x}", ue_index, serving_nci);
+      return std::nullopt;
+    }
+  } else {
+    ssb_freqs = generate_measurement_object_list(cfg, serving_nci);
+  }
 
   // TODO: Filter measurement objects using UE capabilities.
 
@@ -91,40 +102,68 @@ cell_meas_manager::get_measurement_config(ue_index_t                         ue_
     // Add meas obj id to lookup.
     for (const auto& nci : ssb_freq_to_ncis.at(ssb_freq)) {
       ue_meas_context.nci_to_meas_obj_id.emplace(nci, meas_obj_to_add.meas_obj_id);
+      if (cond_meas) {
+        const auto&          ncell_cfg = cfg.cells.at(nci);
+        rrc_cells_to_add_mod cell_to_add;
+        cell_to_add.pci = ncell_cfg.serving_cell_cfg.pci.value();
+        meas_obj_to_add.meas_obj_nr->cells_to_add_mod_list.push_back(cell_to_add);
+      }
     }
     new_cfg.meas_obj_to_add_mod_list.push_back(std::move(meas_obj_to_add));
   }
 
   // Report config + meas IDs.
-  for (const auto& ssb_freq : ssb_freqs) {
-    if (cell_config.serving_cell_cfg.ssb_arfcn.value() == ssb_freq && cell_config.periodic_report_cfg_id.has_value()) {
-      logger.debug("ue={}: Adding periodic report config for nci={:#x}", ue_index, serving_nci);
-      generate_report_config(cfg, serving_nci, cell_config.periodic_report_cfg_id.value(), new_cfg, ue_meas_context);
-    }
+  if (!cond_meas) {
+    for (const auto& ssb_freq : ssb_freqs) {
+      if (cell_config.serving_cell_cfg.ssb_arfcn.value() == ssb_freq &&
+          cell_config.periodic_report_cfg_id.has_value()) {
+        logger.debug("ue={}: Adding periodic report config for nci={:#x}", ue_index, serving_nci);
+        generate_report_config(cfg, serving_nci, cell_config.periodic_report_cfg_id.value(), new_cfg, ue_meas_context);
+      }
 
-    for (const auto& ncell : cell_config.ncells) {
-      if (is_complete(cfg.cells.at(ncell.nci).serving_cell_cfg) &&
-          cfg.cells.at(ncell.nci).serving_cell_cfg.ssb_arfcn.value() == ssb_freq) {
-        logger.debug("ue={}: Adding neighbor cell nci={:#x} to measurement config", ue_index, ncell.nci);
-        for (const auto& report_cfg_id : ncell.report_cfg_ids) {
-          generate_report_config(cfg, ncell.nci, report_cfg_id, new_cfg, ue_meas_context);
+      for (const auto& ncell : cell_config.ncells) {
+        if (is_complete(cfg.cells.at(ncell.nci).serving_cell_cfg) &&
+            cfg.cells.at(ncell.nci).serving_cell_cfg.ssb_arfcn.value() == ssb_freq) {
+          logger.debug("ue={}: Adding neighbor cell nci={:#x} to measurement config", ue_index, ncell.nci);
+          for (const auto& report_cfg_id : ncell.report_cfg_ids) {
+            generate_report_config(cfg, ncell.nci, report_cfg_id, new_cfg, ue_meas_context);
+          }
         }
       }
     }
-  }
 
-  // Ensure reports are not repeated.
-  auto cmp_id = [](const rrc_report_cfg_to_add_mod& lhs, const rrc_report_cfg_to_add_mod& rhs) {
-    return lhs.report_cfg_id < rhs.report_cfg_id;
-  };
-  std::sort(new_cfg.report_cfg_to_add_mod_list.begin(), new_cfg.report_cfg_to_add_mod_list.end(), cmp_id);
-  auto eq_id = [](const rrc_report_cfg_to_add_mod& lhs, const rrc_report_cfg_to_add_mod& rhs) {
-    return lhs.report_cfg_id == rhs.report_cfg_id;
-  };
-  auto end_it =
-      std::unique(new_cfg.report_cfg_to_add_mod_list.begin(), new_cfg.report_cfg_to_add_mod_list.end(), eq_id);
-  new_cfg.report_cfg_to_add_mod_list.erase(end_it, new_cfg.report_cfg_to_add_mod_list.end());
-  std::sort(new_cfg.report_cfg_to_add_mod_list.begin(), new_cfg.report_cfg_to_add_mod_list.end(), cmp_id);
+    // Ensure reports are not repeated.
+    auto cmp_id = [](const rrc_report_cfg_to_add_mod& lhs, const rrc_report_cfg_to_add_mod& rhs) {
+      return lhs.report_cfg_id < rhs.report_cfg_id;
+    };
+    std::sort(new_cfg.report_cfg_to_add_mod_list.begin(), new_cfg.report_cfg_to_add_mod_list.end(), cmp_id);
+    auto eq_id = [](const rrc_report_cfg_to_add_mod& lhs, const rrc_report_cfg_to_add_mod& rhs) {
+      return lhs.report_cfg_id == rhs.report_cfg_id;
+    };
+    auto end_it =
+        std::unique(new_cfg.report_cfg_to_add_mod_list.begin(), new_cfg.report_cfg_to_add_mod_list.end(), eq_id);
+    new_cfg.report_cfg_to_add_mod_list.erase(end_it, new_cfg.report_cfg_to_add_mod_list.end());
+    std::sort(new_cfg.report_cfg_to_add_mod_list.begin(), new_cfg.report_cfg_to_add_mod_list.end(), cmp_id);
+  } else {
+    const auto cond_trigger_ids = collect_cond_trigger_report_configs(cfg, new_cfg);
+    if (cond_trigger_ids.empty()) {
+      logger.warning("ue={}: No conditional trigger report configs found for CHO measurement config", ue_index);
+      return std::nullopt;
+    }
+
+    if (!generate_cho_meas_ids(cfg, cond_trigger_ids, new_cfg, ue_meas_context)) {
+      logger.error("ue={}: Failed to allocate measurement ID for CHO measurement config", ue_index);
+      return std::nullopt;
+    }
+
+    logger.info("ue={}: Generated CHO measurement config with {} filtered MOs, {} conditional triggers, "
+                "{} meas IDs, and {} NCI mappings",
+                ue_index,
+                new_cfg.meas_obj_to_add_mod_list.size(),
+                cond_trigger_ids.size(),
+                new_cfg.meas_id_to_add_mod_list.size(),
+                new_cfg.nci_to_meas_ids.size());
+  }
 
   // Add quantity config.
   rrc_quant_cfg    quant_cfg;

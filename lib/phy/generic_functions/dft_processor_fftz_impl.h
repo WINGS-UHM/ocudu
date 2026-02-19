@@ -28,8 +28,6 @@ struct dft_processor_fftz_configuration {
 class dft_processor_fftz_impl : public dft_processor
 {
 private:
-  /// Protects FFTZ setup/teardown.
-  static std::mutex mutex_init;
   /// DFT direction.
   direction dir;
   /// DFT input buffer.
@@ -38,12 +36,6 @@ private:
   std::vector<cf_t> output;
   // FFTZ handle.
   void* handle = nullptr;
-  /// FFTZ problem descriptor.
-  aoclfftz_prob_desc_f fft_problem = {};
-  /// FFT dimensions. Since it is a one-dimensional transform, one dimension is enough to describe the FFT.
-  aoclfftz_dim_t signal_dimemsions;
-  /// FFT batch dimensions.
-  aoclfftz_dim_t batch_dimensions;
 
 public:
   /// \brief Constructs a DFT processor based on the AOCL-FFTZ library.

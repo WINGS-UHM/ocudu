@@ -6,7 +6,7 @@
 # the distribution.
 #
 
-# - Try to find FFTW wrapper for AOCL-FFTZ.
+# Try to find the AMD Optimized FFT for Zen (AOCL-FFTZ) library.
 # Once done this will define
 #  FFTZ_FOUND - System has FFTZ
 #  FFTZ_INCLUDE_DIRS - The FFTZ include directories
@@ -27,7 +27,7 @@ set(FFTZ_INCLUDE_DIRS ${FFTZ_INCLUDE_DIR})
 
 include(FindPackageHandleStandardArgs)
 
-# handle the QUIETLY and REQUIRED arguments and set FFTZ_FOUND to TRUE
+# Handle the QUIETLY and REQUIRED arguments and set FFTZ_FOUND to TRUE
 # if all listed variables are TRUE.
 find_package_handle_standard_args(FFTZ DEFAULT_MSG FFTZ_INCLUDE_DIR FFTZ_LIBRARY)
 

@@ -39,7 +39,7 @@ set(ARMPL_STATIC_LIBRARIES ${ARMPL_LIBRARIES})
 set(ARMPL_INCLUDE_DIRS ${ARMPL_INCLUDE_DIR})
 
 include(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set ARMPL_FOUND to TRUE
+# Handle the QUIETLY and REQUIRED arguments and set ARMPL_FOUND to TRUE
 # if all listed variables are TRUE
 find_package_handle_standard_args(ARMPL  DEFAULT_MSG
                                   ARMPL_LIBRARIES ARMPL_INCLUDE_DIRS)

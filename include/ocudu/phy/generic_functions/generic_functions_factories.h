@@ -51,7 +51,7 @@ std::shared_ptr<dft_processor_factory> create_dft_processor_factory_fftw(const s
                                                                          bool               avoid_wisdom    = false,
                                                                          const std::string& wisdom_filename = "");
 
-/// \brief Creates a DFT processor factory based on the AOCL-FFTZ library.
+/// \brief Creates a DFT processor factory based on the AMD Optimized FFT for Zen (AOCL-FFTZ) library.
 /// \return A valid pointer to a DFT processor factory if AOCL-FFTZ is available. Otherwise, \c nullptr.
 std::shared_ptr<dft_processor_factory> create_dft_processor_factory_fftz();
 

@@ -108,44 +108,40 @@ int main(int argc, char** argv)
       }
 
       // Benchmark FFTW DFT if available.
-      {
-        if (fftw_dft_factory) {
-          std::unique_ptr<dft_processor> dft = fftw_dft_factory->create(config);
-          if (dft != nullptr) {
-            // Get DFT input buffer
-            span<cf_t> input = dft->get_input();
+      if (fftw_dft_factory) {
+        std::unique_ptr<dft_processor> dft = fftw_dft_factory->create(config);
+        if (dft != nullptr) {
+          // Get DFT input buffer
+          span<cf_t> input = dft->get_input();
 
-            // Generate input random data.
-            for (cf_t& value : input) {
-              value = {dist(rgen), dist(rgen)};
-            }
-
-            // Measure performance.
-            perf_meas.new_measure(fmt::format("fftw {} {}", size, dft_processor::direction_to_string(direction)),
-                                  size,
-                                  [&dft]() { dft->run(); });
+          // Generate input random data.
+          for (cf_t& value : input) {
+            value = {dist(rgen), dist(rgen)};
           }
+
+          // Measure performance.
+          perf_meas.new_measure(fmt::format("fftw {} {}", size, dft_processor::direction_to_string(direction)),
+                                size,
+                                [&dft]() { dft->run(); });
         }
       }
 
       // Benchmark FFTZ DFT if available.
-      {
-        if (fftz_dft_factory) {
-          std::unique_ptr<dft_processor> dft = fftz_dft_factory->create(config);
-          if (dft != nullptr) {
-            // Get DFT input buffer
-            span<cf_t> input = dft->get_input();
+      if (fftz_dft_factory) {
+        std::unique_ptr<dft_processor> dft = fftz_dft_factory->create(config);
+        if (dft != nullptr) {
+          // Get DFT input buffer
+          span<cf_t> input = dft->get_input();
 
-            // Generate input random data.
-            for (cf_t& value : input) {
-              value = {dist(rgen), dist(rgen)};
-            }
-
-            // Measure performance.
-            perf_meas.new_measure(fmt::format("fftz {} {}", size, dft_processor::direction_to_string(direction)),
-                                  size,
-                                  [&dft]() { dft->run(); });
+          // Generate input random data.
+          for (cf_t& value : input) {
+            value = {dist(rgen), dist(rgen)};
           }
+
+          // Measure performance.
+          perf_meas.new_measure(fmt::format("fftz {} {}", size, dft_processor::direction_to_string(direction)),
+                                size,
+                                [&dft]() { dft->run(); });
         }
       }
 

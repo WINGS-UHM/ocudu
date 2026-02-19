@@ -44,7 +44,7 @@ message(STATUS "FFTW3F STATIC LIBRARIES: " ${FFTW3F_STATIC_LIBRARIES})
 message(STATUS "FFTW3F INCLUDE DIRS: " ${FFTW3F_INCLUDE_DIRS})
 
 include(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set FFTW3F_FOUND to TRUE
+# Handle the QUIETLY and REQUIRED arguments and set FFTW3F_FOUND to TRUE
 # if all listed variables are TRUE
 find_package_handle_standard_args(FFTW3F DEFAULT_MSG FFTW3F_LIBRARY FFTW3F_INCLUDE_DIR)
 

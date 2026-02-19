@@ -57,14 +57,14 @@ public:
   void set_cell_crc_handler(mac_cell_control_information_handler& handler) override;
 
 private:
-  /// MAC-to-FAPI translator.
-  mac_to_fapi_fastpath_translator mac_translator;
   /// FAPI-to-MAC indications message translator.
   fapi_to_mac_indications_fastpath_translator fapi_data_translator;
   /// FAPI-to-MAC slot indications message translator.
   fapi_to_mac_slot_indication_fastpath_translator fapi_time_translator;
   /// FAPI-to-MAC error-specific message translator.
   fapi_to_mac_error_indication_fastpath_translator fapi_error_translator;
+  /// MAC-to-FAPI translator.
+  mac_to_fapi_fastpath_translator mac_translator;
 };
 
 } // namespace fapi_adaptor

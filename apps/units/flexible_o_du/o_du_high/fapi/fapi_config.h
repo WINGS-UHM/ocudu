@@ -10,8 +10,6 @@ namespace ocudu {
 
 /// FAPI configuration.
 struct fapi_unit_config {
-  /// Number of slots the L2 is running ahead of the L1.
-  unsigned l2_nof_slots_ahead = 0;
   /// FAPI log level.
   ocudulog::basic_levels fapi_level = ocudulog::basic_levels::warning;
 };

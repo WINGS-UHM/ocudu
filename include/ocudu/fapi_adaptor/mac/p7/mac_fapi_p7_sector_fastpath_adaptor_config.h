@@ -28,10 +28,6 @@ struct mac_fapi_p7_sector_fastpath_adaptor_config {
   unsigned cell_nof_prbs;
   /// Subcarrier spacing as per TS38.331 Section 6.2.2.
   subcarrier_spacing scs;
-  /// Log level.
-  ocudulog::basic_levels log_level;
-  /// Number of slots the L2 is ahead the L1.
-  unsigned l2_nof_slots_ahead;
 };
 
 /// MAC-FAPI P7 sector fastpath adaptor dependencies.
@@ -44,8 +40,8 @@ struct mac_fapi_p7_sector_fastpath_adaptor_dependencies {
   std::unique_ptr<precoding_matrix_mapper> pm_mapper;
   /// UCI Part2 mapper.
   std::unique_ptr<uci_part2_correspondence_mapper> part2_mapper;
-  /// FAPI message bufferer task executor.
-  task_executor* bufferer_task_executor = nullptr;
+  /// FAPI logger.
+  ocudulog::basic_logger& fapi_logger;
 };
 
 } // namespace fapi_adaptor

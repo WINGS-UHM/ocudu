@@ -5,7 +5,6 @@
 
 set(SOURCES
         fapi_config_cli11_schema.cpp
-        fapi_config_translator.cpp
         fapi_config_yaml_writer.cpp)
 
 add_library(ocudu_fapi_app_unit STATIC ${SOURCES})

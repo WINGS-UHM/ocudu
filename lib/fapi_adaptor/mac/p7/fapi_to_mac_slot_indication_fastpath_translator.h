@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ocudu/fapi/p7/p7_slot_indication_notifier.h"
+#include "ocudu/ocudulog/ocudulog.h"
 
 namespace ocudu {
 
@@ -19,7 +20,9 @@ namespace fapi_adaptor {
 class fapi_to_mac_slot_indication_fastpath_translator : public fapi::p7_slot_indication_notifier
 {
 public:
-  explicit fapi_to_mac_slot_indication_fastpath_translator(mac_cell_slot_handler& fapi_slot_handler_);
+  fapi_to_mac_slot_indication_fastpath_translator(unsigned                sector_id_,
+                                                  mac_cell_slot_handler&  fapi_slot_handler_,
+                                                  ocudulog::basic_logger& logger_);
 
   // See interface for documentation.
   void on_slot_indication(const fapi::slot_indication& msg) override;
@@ -28,8 +31,10 @@ public:
   void set_cell_slot_handler(mac_cell_slot_handler& handler) { mac_slot_handler = &handler; }
 
 private:
-  mac_cell_slot_handler& fapi_slot_handler;
-  mac_cell_slot_handler* mac_slot_handler;
+  const unsigned          sector_id;
+  mac_cell_slot_handler&  fapi_slot_handler;
+  mac_cell_slot_handler*  mac_slot_handler;
+  ocudulog::basic_logger& logger;
 };
 
 } // namespace fapi_adaptor

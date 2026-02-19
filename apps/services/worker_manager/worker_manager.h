@@ -38,9 +38,8 @@ struct worker_manager {
 
   void stop();
 
-  std::vector<task_executor*> fapi_exec;
-  task_executor*              split6_exec      = nullptr;
-  task_executor*              split6_crtl_exec = nullptr;
+  task_executor* split6_exec      = nullptr;
+  task_executor* split6_crtl_exec = nullptr;
 
   odu::du_high_executor_mapper& get_du_high_executor_mapper()
   {
@@ -170,8 +169,6 @@ private:
 
   void add_pcap_strands(const worker_manager_config::pcap_config& config);
 
-  std::vector<execution_config_helper::single_worker> create_fapi_workers(unsigned nof_cells);
-
   /// Helper method that creates the CU-CP executors.
   void create_cu_cp_executors(const worker_manager_config::cu_cp_config& config, timer_manager& timers);
 
@@ -180,9 +177,6 @@ private:
 
   /// Helper method that creates the DU-high executors.
   void create_du_high_executors(const worker_manager_config::du_high_config& config);
-
-  /// Helper method that creates the FAPI executors.
-  void create_fapi_executors(const worker_manager_config::fapi_config& config);
 
   /// Helper method that creates the low Distributed Unit executors.
   void create_du_low_executors(const worker_manager_config::du_low_config& du_low);

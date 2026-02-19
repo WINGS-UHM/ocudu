@@ -9,8 +9,7 @@ add_library(ocudu_fapi_to_phy_p7_fastpath_translator STATIC fapi_to_phy_fastpath
 target_link_libraries(ocudu_fapi_to_phy_p7_fastpath_translator
         ocudu_fapi_phy_message_adaptors
         ocudu_fapi_precoding_matrix_tools
-        ocudu_instrumentation
-        ocudu_fapi)
+        ocudu_instrumentation)
 
 set(SOURCES
         phy_to_fapi_error_event_fastpath_translator.cpp

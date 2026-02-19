@@ -18,6 +18,6 @@ add_library(ocudu_o_du_high STATIC
         o_du_high_impl.cpp
         o_du_high_metrics_notifier_proxy.cpp)
 target_link_libraries(ocudu_o_du_high PUBLIC ocudu_du_config_validators
-                                              ocudu_du_high
-                                              ocudu_mac_fapi_fastpath_adaptor
-                                              ocudu_fapi ocudu_e2)
+        ocudu_du_high
+        ocudu_mac_fapi_fastpath_adaptor
+        ocudu_e2)

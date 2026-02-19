@@ -280,8 +280,7 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
         .timer_mng          = dependencies.timer_ctrl->get_timer_manager(),
         .fapi_ctrl_executor = dependencies.workers->get_cmd_line_executor(),
         .mac_ctrl_executor  = dependencies.workers->get_du_high_executor_mapper().du_control_executor(),
-        .fapi_executor =
-            config.odu_high_cfg.fapi_cfg.l2_nof_slots_ahead != 0 ? dependencies.workers->fapi_exec[i] : nullptr,
+        .fapi_logger        = *dependencies.fapi_logger,
     };
 
     odu_hi_unit_dependencies.o_du_hi_dependencies.sectors.push_back(sector_dependencies);

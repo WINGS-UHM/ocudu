@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "fapi_to_mac_indications_fastpath_translator.h"
+#include "ocudu/fapi/message_loggers.h"
 #include "ocudu/fapi/p7/messages/crc_indication.h"
 #include "ocudu/fapi/p7/messages/rach_indication.h"
 #include "ocudu/fapi/p7/messages/rx_data_indication.h"
@@ -87,11 +88,15 @@ static std::optional<float> convert_fapi_to_mac_rsrp(uint16_t fapi_rsrp)
   return std::nullopt;
 }
 
-fapi_to_mac_indications_fastpath_translator::fapi_to_mac_indications_fastpath_translator(unsigned sector_id_) :
+fapi_to_mac_indications_fastpath_translator::fapi_to_mac_indications_fastpath_translator(
+    unsigned                sector_id_,
+    ocudulog::basic_logger& logger_) :
   sector_id(sector_id_),
+  logger(logger_),
   rach_handler(&dummy_mac_rach_handler),
   pdu_handler(&dummy_pdu_handler),
   cell_control_handler(&dummy_cell_control_handler)
+
 {
 }
 
@@ -121,6 +126,8 @@ void fapi_to_mac_indications_fastpath_translator::on_rx_data_indication(const fa
 
   // Only invoke the MAC when there are successfully decoded PDUs available.
   if (!indication.pdus.empty()) {
+    log_rx_data_indication(msg, sector_id, logger);
+
     pdu_handler->handle_rx_data_indication(std::move(indication));
   }
 }
@@ -140,6 +147,8 @@ void fapi_to_mac_indications_fastpath_translator::on_crc_indication(const fapi::
     pdu.ul_rsrp_dBFS        = convert_fapi_to_mac_rsrp(fapi_pdu.rsrp);
     pdu.time_advance_offset = fapi_pdu.timing_advance_offset;
   }
+
+  log_crc_indication(msg, sector_id, logger);
 
   cell_control_handler->handle_crc(indication);
 }
@@ -278,6 +287,8 @@ void fapi_to_mac_indications_fastpath_translator::on_uci_indication(const fapi::
     }
   }
 
+  log_uci_indication(msg, sector_id, logger);
+
   cell_control_handler->handle_uci(mac_msg);
 }
 
@@ -299,6 +310,8 @@ void fapi_to_mac_indications_fastpath_translator::on_srs_indication(const fapi::
       mac_pdu.report = mac_srs_pdu::positioning_report{pdu.positioning->ul_relative_toa, pdu.positioning->rsrp};
     }
   }
+
+  log_srs_indication(msg, sector_id, logger);
 
   cell_control_handler->handle_srs(mac_msg);
 }
@@ -360,6 +373,7 @@ void fapi_to_mac_indications_fastpath_translator::on_rach_indication(const fapi:
     }
   }
 
+  log_rach_indication(msg, sector_id, logger);
   rach_handler->handle_rach_indication(indication);
 }
 

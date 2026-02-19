@@ -135,10 +135,6 @@ worker_manager::worker_manager(const worker_manager_config& worker_cfg) :
     create_du_high_executors(*worker_cfg.du_hi_cfg);
   }
 
-  if (worker_cfg.fapi_cfg) {
-    create_fapi_executors(*worker_cfg.fapi_cfg);
-  }
-
   if (worker_cfg.du_low_cfg) {
     create_du_low_executors(*worker_cfg.du_low_cfg);
   }
@@ -215,26 +211,6 @@ void worker_manager::add_pcap_strands(const worker_manager_config::pcap_config& 
   pcap_exec_mapper = std::make_unique<pcap_executor_mapper_impl>(config, *non_rt_medium_prio_exec);
 }
 
-std::vector<execution_config_helper::single_worker> worker_manager::create_fapi_workers(unsigned nof_cells)
-{
-  using namespace execution_config_helper;
-  std::vector<single_worker> workers;
-
-  for (unsigned cell_id = 0; cell_id != nof_cells; ++cell_id) {
-    const std::string name      = "fapi#" + std::to_string(cell_id);
-    const std::string exec_name = "fapi_exec#" + std::to_string(cell_id);
-
-    single_worker buffered_worker{name,
-                                  {exec_name, concurrent_queue_policy::locking_mpsc, task_worker_queue_size},
-                                  std::chrono::microseconds{50},
-                                  os_thread_realtime_priority::max() - 6};
-
-    workers.push_back(buffered_worker);
-  }
-
-  return workers;
-}
-
 void worker_manager::create_cu_cp_executors(const worker_manager_config::cu_cp_config& config, timer_manager& timers)
 {
   cu_cp_exec_mapper = ocucp::make_cu_cp_executor_mapper(
@@ -285,26 +261,6 @@ void worker_manager::create_du_high_executors(const worker_manager_config::du_hi
   cfg.exec_metrics_channel_registry    = exec_metrics_channel_registry;
 
   du_high_exec_mapper = create_du_high_executor_mapper(cfg);
-}
-
-void worker_manager::create_fapi_executors(const worker_manager_config::fapi_config& fapi_cfg)
-{
-  // FAPI message buffering executors.
-  // TODO: Use executor mapper and main pool.
-  fapi_exec.resize(fapi_cfg.nof_cells);
-  std::fill(fapi_exec.begin(), fapi_exec.end(), nullptr);
-  // Create workers.
-  auto workers = create_fapi_workers(fapi_cfg.nof_cells);
-
-  for (unsigned cell_id = 0; cell_id != fapi_cfg.nof_cells; ++cell_id) {
-    // Create executor and associated workers.
-    if (!exec_mng.add_execution_context(create_execution_context(workers[cell_id]))) {
-      report_fatal_error("Failed to instantiate {} execution context", workers[cell_id].name);
-    }
-
-    // Associate executor.
-    fapi_exec[cell_id] = exec_mng.executors().at(workers[cell_id].queue.name);
-  }
 }
 
 /// Makes an estimation of the needed number of threads for the application.

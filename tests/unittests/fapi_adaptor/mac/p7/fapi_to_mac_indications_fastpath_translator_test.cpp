@@ -4,6 +4,7 @@
 
 #include "fapi_to_mac_indications_fastpath_translator.h"
 #include "ocudu/fapi/p7/messages/rach_indication.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -27,7 +28,10 @@ class mac_rach_indication_fixture : public testing::TestWithParam<float>
   fapi_to_mac_indications_fastpath_translator translator;
 
 protected:
-  mac_rach_indication_fixture() : translator(0) { translator.set_cell_rach_handler(rach_handler); }
+  mac_rach_indication_fixture() : translator(0, ocudulog::fetch_basic_logger("FAPI"))
+  {
+    translator.set_cell_rach_handler(rach_handler);
+  }
 
   void test_pdu()
   {

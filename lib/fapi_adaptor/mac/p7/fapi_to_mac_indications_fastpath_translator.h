@@ -8,6 +8,7 @@
 #include "ocudu/mac/mac_cell_control_information_handler.h"
 #include "ocudu/mac/mac_cell_rach_handler.h"
 #include "ocudu/mac/mac_pdu_handler.h"
+#include "ocudu/ocudulog/logger.h"
 
 namespace ocudu {
 namespace fapi_adaptor {
@@ -19,7 +20,7 @@ namespace fapi_adaptor {
 class fapi_to_mac_indications_fastpath_translator : public fapi::p7_indications_notifier
 {
 public:
-  explicit fapi_to_mac_indications_fastpath_translator(unsigned sector_id_);
+  fapi_to_mac_indications_fastpath_translator(unsigned sector_id_, ocudulog::basic_logger& logger_);
 
   // See interface for documentation.
   void on_rx_data_indication(const fapi::rx_data_indication& msg) override;
@@ -47,6 +48,7 @@ public:
 
 private:
   const unsigned                        sector_id;
+  ocudulog::basic_logger&               logger;
   mac_cell_rach_handler*                rach_handler;
   mac_pdu_handler*                      pdu_handler;
   mac_cell_control_information_handler* cell_control_handler;

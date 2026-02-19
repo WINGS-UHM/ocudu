@@ -266,11 +266,6 @@ o_du_high_unit ocudu::make_o_du_high_unit(const o_du_high_unit_config&  o_du_hig
                                                       du_high_unit_cfg.test_mode_cfg.test_ue.i_2};
   }
 
-  // FAPI configuration.
-  const fapi_unit_config& fapi_cfg      = o_du_high_unit_cfg.fapi_cfg;
-  o_du_high_cfg.fapi.log_level          = fapi_cfg.fapi_level;
-  o_du_high_cfg.fapi.l2_nof_slots_ahead = fapi_cfg.l2_nof_slots_ahead;
-
   // Create O-DU high.
   odu_unit.o_du_hi = odu::make_o_du_high(o_du_high_cfg, std::move(dependencies.o_du_hi_dependencies));
   report_error_if_not(odu_unit.o_du_hi, "Invalid O-DU high");

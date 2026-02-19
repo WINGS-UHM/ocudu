@@ -224,6 +224,7 @@ include-guards:
     KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
     KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
     CHECK_PER_FILE_TIMEOUT: 600
+  timeout: 3 hours
   before_script:
     - |
       CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
@@ -337,7 +338,6 @@ cppcheck:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   interruptible: false
-  timeout: 2 hours
   retry: 2
   variables:
     ANALYZER: cppcheck

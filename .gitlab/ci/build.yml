@@ -150,7 +150,7 @@ variables:
 
     - build_ocudu_extended
     - launch_tests
-  timeout: 6h
+  timeout: 3 hours
   after_script:
     - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_1.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_1.xml   || true
     - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_2.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_2.xml   || true
@@ -279,7 +279,6 @@ variables:
 
 smoke relwithdeb cached:
   extends: .smoke relwithdeb
-  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -290,7 +289,6 @@ smoke relwithdeb cached:
 smoke tsan cached:
   extends: .smoke tsan
   stage: manual
-  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -305,7 +303,6 @@ smoke tsan cached:
 smoke archlinux cached:
   extends: .smoke archlinux
   stage: manual
-  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -320,7 +317,6 @@ smoke archlinux cached:
 smoke dpdk cached:
   extends: .smoke dpdk
   stage: manual
-  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -335,7 +331,6 @@ smoke dpdk cached:
 smoke pretty printers cached:
   extends: .smoke printers
   stage: manual
-  timeout: 2 hours
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
@@ -392,7 +387,6 @@ intermediate commits cached:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-cache/
       when: never
     - if: $ON_MR
-  timeout: 2 hours
   script:
     - *script_functions
     - &fetch_branches |
@@ -748,7 +742,6 @@ ubsan avx2:
     TEST_MODE: default
     MARCH: x86-64-v3
   tags: [saas-linux-large-amd64]
-  timeout: 2 hours
 
 ###################
 # Alternative OSs #

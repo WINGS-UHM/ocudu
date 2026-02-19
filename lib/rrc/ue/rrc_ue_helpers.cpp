@@ -83,6 +83,22 @@ rrc_ue_capabilities_t ocudu::ocucp::get_capabilities(asn1::rrc_nr::ue_nr_cap_s& 
     logger.log_debug("RRC Inactive supported by UE");
   }
 
+  // Set CHO support flags (Rel-16, per-band — any band supporting the feature is sufficient).
+  for (const auto& band : ue_capabilities.rf_params.supported_band_list_nr) {
+    if (band.cond_ho_r16_present) {
+      capabilities.conditional_handover_supported = true;
+    }
+    if (band.cond_ho_two_trigger_events_r16_present) {
+      capabilities.conditional_handover_two_trigger_events_supported = true;
+    }
+  }
+  if (capabilities.conditional_handover_supported) {
+    logger.log_debug("CHO (Rel-16) supported by UE");
+  }
+  if (capabilities.conditional_handover_two_trigger_events_supported) {
+    logger.log_debug("CHO two-trigger-events (Rel-16) supported by UE");
+  }
+
   return capabilities;
 }
 

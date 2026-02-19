@@ -13,7 +13,9 @@
 namespace ocudu::ocucp {
 
 struct rrc_ue_capabilities_t {
-  bool rrc_inactive_supported = false;
+  bool rrc_inactive_supported                            = false;
+  bool conditional_handover_supported                    = false;
+  bool conditional_handover_two_trigger_events_supported = false;
 };
 
 } // namespace ocudu::ocucp

@@ -497,6 +497,12 @@ public:
 
   /// \brief Check if RRC Inactive is supported by the UE.
   virtual bool is_rrc_inactive_supported() const = 0;
+
+  /// \brief Check if Conditional Handover (Rel-16) is supported by the UE.
+  virtual bool is_conditional_handover_supported() const = 0;
+
+  /// \brief Check if CHO with two trigger events (Rel-16) is supported by the UE.
+  virtual bool is_conditional_handover_two_trigger_events_supported() const = 0;
 };
 
 class rrc_ue_event_notifier

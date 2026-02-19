@@ -819,6 +819,8 @@ public:
 
   // RRC UE capability handler.
   bool is_rrc_inactive_supported() const override { return rrc_inactive_supported; }
+  bool is_conditional_handover_supported() const override { return true; }
+  bool is_conditional_handover_two_trigger_events_supported() const override { return true; }
 
   // RRC UE Reestablishment proc notifier.
   void on_new_as_security_context() override {}

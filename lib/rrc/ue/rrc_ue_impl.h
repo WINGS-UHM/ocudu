@@ -99,6 +99,14 @@ public:
 
   // rrc_ue_capability_handler
   bool is_rrc_inactive_supported() const override { return context.capabilities.rrc_inactive_supported; }
+  bool is_conditional_handover_supported() const override
+  {
+    return context.capabilities.conditional_handover_supported;
+  }
+  bool is_conditional_handover_two_trigger_events_supported() const override
+  {
+    return context.capabilities.conditional_handover_two_trigger_events_supported;
+  }
 
 private:
   void stop() override;

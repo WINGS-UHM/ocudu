@@ -119,3 +119,23 @@ size_t ngap_repository::get_nof_ngap_ues()
   }
   return nof_ues;
 }
+
+std::vector<supported_tracking_area> ngap_repository::get_supported_tracking_areas() const
+{
+  std::vector<supported_tracking_area> supported_tas;
+  for (const auto& ngap : ngap_db) {
+    const auto& ngap_supported_tas = ngap.second.ngap->get_ngap_context().supported_tas;
+    supported_tas.insert(supported_tas.end(), ngap_supported_tas.begin(), ngap_supported_tas.end());
+  }
+  return supported_tas;
+}
+
+std::vector<guami_t> ngap_repository::get_served_guamis() const
+{
+  std::vector<guami_t> served_guamis;
+  for (const auto& ngap : ngap_db) {
+    const auto& ngap_served_guamis = ngap.second.ngap->get_ngap_context().served_guami_list;
+    served_guamis.insert(served_guamis.end(), ngap_served_guamis.begin(), ngap_served_guamis.end());
+  }
+  return served_guamis;
+}

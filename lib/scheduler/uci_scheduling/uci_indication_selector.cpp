@@ -109,12 +109,38 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
     snr             = f0f1->ul_sinr_dB;
     ret.sr_detected = f0f1->sr_detected;
     ret.harq_ack_bits.resize(f0f1->harqs.size());
-    for (unsigned i = 0; i != f0f1->harqs.size(); ++i) {
+    for (unsigned i = 0, e = f0f1->harqs.size(); i != e; ++i) {
       if (f0f1->harqs[i] == mac_harq_ack_report_status::ack) {
         ret.harq_ack_bits.set(i);
       }
       is_dtx |= f0f1->harqs[i] == mac_harq_ack_report_status::dtx;
     }
+  } else if (const auto* f2f3f4 = std::get_if<uci_indication::uci_pdu::uci_pucch_f2_or_f3_or_f4_pdu>(&pdu.pdu)) {
+    snr             = f2f3f4->ul_sinr_dB;
+    ret.sr_detected = f2f3f4->sr_info.any();
+    ret.harq_ack_bits.resize(f2f3f4->harqs.size());
+    for (unsigned i = 0, e = f2f3f4->harqs.size(); i != e; ++i) {
+      if (f2f3f4->harqs[i] == mac_harq_ack_report_status::ack) {
+        ret.harq_ack_bits.set(i);
+      }
+      is_dtx |= f2f3f4->harqs[i] == mac_harq_ack_report_status::dtx;
+    }
+  } else {
+    const auto& pusch = std::get<uci_indication::uci_pdu::uci_pusch_pdu>(pdu.pdu);
+    ret.harq_ack_bits.resize(pusch.harqs.size());
+    for (unsigned i = 0, e = pusch.harqs.size(); i != e; ++i) {
+      if (pusch.harqs[i] == mac_harq_ack_report_status::ack) {
+        ret.harq_ack_bits.set(i);
+      }
+      is_dtx |= pusch.harqs[i] == mac_harq_ack_report_status::dtx;
+    }
+  }
+
+  if (not std::holds_alternative<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(pdu.pdu)) {
+    // It is not PUCCH F1. We do not need to decide which is the best PUCCH candidate.
+    ocudu_sanity_check(entry.pucchs_to_rx <= 1, "Invalid pucch_to_rx value");
+    entry.pucchs_to_rx = 0;
+    return ret;
   }
 
   if (not is_dtx and (not entry.last_snr.has_value() or (snr.has_value() and entry.last_snr.value() < snr.value()))) {

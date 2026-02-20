@@ -7,6 +7,7 @@
 #include "apps/units/flexible_o_du/o_du_high/du_high/du_high_config_translators.h"
 #include "apps/units/flexible_o_du/o_du_high/o_du_high_unit_config_translators.h"
 #include "apps/units/flexible_o_du/o_du_high/o_du_high_unit_config_yaml_writer.h"
+#include "apps/units/flexible_o_du/split_6/o_du_high/split6_o_du_low_fapi_adaptor_configuration.h"
 #include "split6_o_du_factory.h"
 #include "split6_o_du_unit_cli11_schema.h"
 #include "split6_o_du_unit_config_validator.h"
@@ -65,8 +66,20 @@ o_du_unit split6_o_du_application_unit_impl::create_flexible_o_du_unit(const o_d
   odu::du_high_configuration du_hi_cfg;
   generate_du_high_config(du_hi_cfg, unit_cfg.odu_high_cfg.du_high_cfg.config);
 
+  // Get the du_high FAPI specific configuration.
+  fapi_adaptor::split6_o_du_low_fapi_adaptor_configuration fapi_cfg;
+  for (const auto& cell : du_hi_cfg.ran.cells) {
+    fapi_cfg.cells.emplace_back(fapi_adaptor::split6_o_du_low_fapi_adaptor_cell_config{
+        .scs_common                       = cell.ran.ul_cfg_common.init_ul_bwp.generic_params.scs,
+        .num_tx_ant                       = static_cast<uint16_t>(cell.ran.ul_carrier.nof_ant),
+        .dmrs_typeA_pos                   = cell.ran.dmrs_typeA_pos,
+        .enable_csi_rs_pdsch_multiplexing = du_hi_cfg.ran.sched_cfg.ue.enable_csi_rs_pdsch_multiplexing,
+        .pdsch_td_alloc_list              = cell.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list,
+        .pusch_td_alloc_list              = cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list});
+  }
+
   // Create the adaptors.
-  auto fapi_ctrl = plugin->create_fapi_adaptor(du_hi_cfg, dependencies);
+  auto fapi_ctrl = plugin->create_fapi_adaptor(fapi_cfg, dependencies);
   report_error_if_not(fapi_ctrl, "Could not create PHY-FAPI adaptor");
   auto du_impl = create_o_du_split6(unit_cfg, dependencies, std::move(fapi_ctrl));
   report_error_if_not(du_impl.unit, "Could not create split 6 DU");

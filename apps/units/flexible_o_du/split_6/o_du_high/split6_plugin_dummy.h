@@ -28,8 +28,8 @@ public:
 
   // See interface for documentation.
   std::unique_ptr<fapi_adaptor::phy_fapi_adaptor>
-  create_fapi_adaptor(const odu::du_high_configuration& du_high_cfg,
-                      const o_du_unit_dependencies&     dependencies) override;
+  create_fapi_adaptor(const fapi_adaptor::split6_o_du_low_fapi_adaptor_configuration& fapi_cfg,
+                      const o_du_unit_dependencies&                                   dependencies) override;
 };
 
 } // namespace ocudu

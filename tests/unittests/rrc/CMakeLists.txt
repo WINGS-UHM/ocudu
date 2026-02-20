@@ -25,3 +25,8 @@ add_executable(rrc_ue_test ${SOURCES})
 target_include_directories(rrc_ue_test PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(rrc_ue_test rrc_ue_test_helpers ocudu_rrc ocudu_cu_cp ocudu_support ocudulog gtest gtest_main)
 gtest_discover_tests(rrc_ue_test PROPERTIES "LABELS;rrc_ue")
+
+add_executable(rrc_cond_trigger_asn1_test rrc_cond_trigger_asn1_test.cpp)
+target_include_directories(rrc_cond_trigger_asn1_test PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(rrc_cond_trigger_asn1_test ocudu_rrc ocudu_support gtest gtest_main)
+gtest_discover_tests(rrc_cond_trigger_asn1_test PROPERTIES "LABELS;rrc_ue")

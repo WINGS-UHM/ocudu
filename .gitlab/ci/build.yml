@@ -1,10 +1,6 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
 
 include:
   - project: ocudu/ocudu_packaging
@@ -370,12 +366,12 @@ intermediate commits cached:
       git config advice.detachedHead false
       if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_PATH" != "$CI_PROJECT_PATH" ]; then
         git remote add fork $CI_MERGE_REQUEST_SOURCE_PROJECT_URL
-        git fetch --deepen=50 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-        git fetch --deepen=50 fork $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git fetch --deepen=100 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+        git fetch --deepen=100 fork $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME fork/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       else
-        git fetch --deepen=50 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git fetch --deepen=100 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       fi

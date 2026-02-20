@@ -22,13 +22,16 @@ cu_cp_controller::cu_cp_controller(const cu_cp_configuration&      config_,
                                    ngap_repository&                ngaps_,
                                    cu_up_processor_repository&     cu_ups_,
                                    du_processor_repository&        dus_,
+                                   xnap_repository&                xncs_,
                                    task_executor&                  ctrl_exec_) :
   cfg(config_),
   ctrl_exec(ctrl_exec_),
   logger(ocudulog::fetch_basic_logger("CU-CP")),
   amf_mng(ngaps_, cu_cp_notifier, *cfg.services.timers, ctrl_exec_, common_task_sched_),
   du_mng(cfg.admission.max_nof_dus, dus_, ctrl_exec, common_task_sched_),
-  cu_up_mng(cfg.admission.max_nof_cu_ups, cu_ups_, ctrl_exec, common_task_sched_)
+  cu_up_mng(cfg.admission.max_nof_cu_ups, cu_ups_, ctrl_exec, common_task_sched_),
+  xnc_mng(xncs_, ctrl_exec_, common_task_sched_)
+
 {
 }
 

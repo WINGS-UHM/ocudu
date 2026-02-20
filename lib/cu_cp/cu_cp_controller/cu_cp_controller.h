@@ -16,11 +16,11 @@
 #include "cu_up_connection_manager.h"
 #include "du_connection_manager.h"
 #include "node_connection_notifier.h"
+#include "xnc_connection_manager.h"
 #include "ocudu/cu_cp/common_task_scheduler.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class cu_up_processor_repository;
 class ue_manager;
@@ -42,11 +42,14 @@ public:
                    ngap_repository&                ngaps_,
                    cu_up_processor_repository&     cu_ups_,
                    du_processor_repository&        dus_,
+                   xnap_repository&                xncs_,
                    task_executor&                  ctrl_exec);
 
   void stop();
 
   amf_connection_manager& amf_connection_handler() { return amf_mng; }
+
+  xnc_connection_manager& xnc_connection_handler() { return xnc_mng; }
 
   bool handle_du_setup_request(du_index_t du_idx, const std::set<plmn_identity>& plmn_ids);
 
@@ -58,6 +61,7 @@ public:
 
   cu_cp_f1c_handler& get_f1c_handler() { return du_mng; }
   cu_cp_e1_handler&  get_e1_handler() { return cu_up_mng; }
+  cu_cp_xnc_handler& get_xnc_handler() { return xnc_mng; }
 
 private:
   const cu_cp_configuration& cfg;
@@ -67,10 +71,10 @@ private:
   amf_connection_manager   amf_mng;
   du_connection_manager    du_mng;
   cu_up_connection_manager cu_up_mng;
+  xnc_connection_manager   xnc_mng;
 
   std::mutex mutex;
   bool       running = true;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

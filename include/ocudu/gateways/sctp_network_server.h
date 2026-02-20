@@ -15,6 +15,11 @@
 
 namespace ocudu {
 
+struct sctp_association_info {
+  int                     assoc_id;
+  transport_layer_address peer_addr;
+};
+
 /// Factory of new SCTP association handlers.
 class sctp_network_association_factory
 {

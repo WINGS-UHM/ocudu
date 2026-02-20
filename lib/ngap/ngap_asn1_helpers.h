@@ -484,6 +484,11 @@ inline bool fill_ngap_initial_context_setup_request(ngap_init_context_setup_requ
     request.ue_radio_cap_for_paging = ue_radio_cap_for_paging;
   }
 
+  // Fill Location Report Request Type.
+  if (asn1_request->location_report_request_type_present) {
+    request.location_report_request_type = asn1_to_location_report_request(asn1_request->location_report_request_type);
+  }
+
   // TODO: Add missing optional values.
 
   return true;
@@ -1029,7 +1034,10 @@ inline bool fill_ngap_handover_request(ngap_handover_request& request, const asn
 
   // TODO: Add Mob restrict list.
 
-  // TODO: Add Location report request type.
+  // Fill Location Report Request Type.
+  if (asn1_request->location_report_request_type_present) {
+    request.location_report_request_type = asn1_to_location_report_request(asn1_request->location_report_request_type);
+  }
 
   // Fill RRC Inactive Transition Report Request.
   if (asn1_request->rrc_inactive_transition_report_request_present) {
@@ -1182,13 +1190,11 @@ inline void fill_asn1_rrc_inactive_transition_report(asn1::ngap::rrc_inactive_tr
   user_loc_info_nr       = cu_cp_user_location_info_to_asn1(report.user_location_info);
 }
 
-/// \brief Convert NGAP ASN1 Location Reporting Control structure to common type.
+/// \brief Convert NGAP ASN1 Location Reporting Control message to common type.
 inline void fill_ngap_location_report_request(ngap_location_report_request&             location_report_ctrl,
                                               const asn1::ngap::location_report_ctrl_s& asn1_location_report_ctrl)
 {
-  location_report_ctrl.location_reporting_type =
-      asn1_to_location_reporting_control_event_type(asn1_location_report_ctrl->location_report_request_type.event_type);
-  // TODO: add rest of the fields
+  location_report_ctrl = asn1_to_location_report_request(asn1_location_report_ctrl->location_report_request_type);
 }
 
 } // namespace ocudu::ocucp

@@ -27,7 +27,11 @@ struct ngap_location_report_request {
     change_of_serving_cell_and_ue_presence_in_the_area_of_interest,
     nulltype
   };
-  event_type location_reporting_type;
+
+  enum class report_area { cell };
+
+  event_type  location_reporting_type = event_type::nulltype;
+  report_area location_report_area    = report_area::cell;
 };
 
 struct ngap_location_report {

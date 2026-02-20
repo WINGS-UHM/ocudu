@@ -1094,7 +1094,7 @@ inline ngap_core_network_assist_info_for_inactive asn1_to_core_network_assist_in
 }
 
 inline ngap_location_report_request::event_type
-asn1_to_location_reporting_control_event_type(const asn1::ngap::event_type_e& asn1_reporting_trigger)
+asn1_to_location_reporting_event_type(const asn1::ngap::event_type_e& asn1_reporting_trigger)
 {
   switch (asn1_reporting_trigger) {
     case asn1::ngap::event_type_opts::options::direct:
@@ -1114,6 +1114,17 @@ asn1_to_location_reporting_control_event_type(const asn1::ngap::event_type_e& as
     default:
       return ngap_location_report_request::event_type::nulltype;
   }
+}
+
+/// \brief Convert NGAP ASN1 LocationReportingRequestType IE to common type.
+inline ngap_location_report_request
+asn1_to_location_report_request(const asn1::ngap::location_report_request_type_s& asn1_type)
+{
+  ngap_location_report_request req;
+  req.location_reporting_type = asn1_to_location_reporting_event_type(asn1_type.event_type);
+  req.location_report_area    = ngap_location_report_request::report_area::cell;
+  // TODO: add area_of_interest_list and ie_exts handling
+  return req;
 }
 
 } // namespace ocudu::ocucp

@@ -21,6 +21,10 @@ struct cu_cp_unit_pcap_config {
     bool        enabled  = false;
   } ngap;
   struct {
+    std::string filename = "/tmp/cu_xnap.pcap";
+    bool        enabled  = false;
+  } xnap;
+  struct {
     std::string filename = "/tmp/cu_e1ap.pcap";
     bool        enabled  = false;
   } e1ap;

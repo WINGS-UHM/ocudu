@@ -80,6 +80,11 @@ std::unique_ptr<dlt_pcap> ocudu::create_ngap_pcap(const std::string& filename, t
   return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "NGAP", filename, "ngap", backend_exec);
 }
 
+std::unique_ptr<dlt_pcap> ocudu::create_xnap_pcap(const std::string& filename, task_executor& backend_exec)
+{
+  return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "XNAP", filename, "xnap", backend_exec);
+}
+
 std::unique_ptr<dlt_pcap> ocudu::create_f1ap_pcap(const std::string& filename, task_executor& backend_exec)
 {
   return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "F1AP", filename, "f1ap", backend_exec);

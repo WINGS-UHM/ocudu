@@ -72,6 +72,7 @@ public:
 
   task_executor& get_f1ap_executor() override { return *common_exec; }
   task_executor& get_ngap_executor() override { return *common_exec; }
+  task_executor& get_xnap_executor() override { return *common_exec; }
   task_executor& get_e1ap_executor() override { return *common_exec; }
   task_executor& get_e2ap_executor() override { return *common_exec; }
   task_executor& get_n3_executor() override { return *n3_exec; }

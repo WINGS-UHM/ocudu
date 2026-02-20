@@ -43,6 +43,7 @@ public:
 /// \brief Creates a layer DLT PCAP sink that writes the incoming PDUs to a pcap file.
 std::unique_ptr<dlt_pcap> create_null_dlt_pcap();
 std::unique_ptr<dlt_pcap> create_ngap_pcap(const std::string& filename, task_executor& backend_exec);
+std::unique_ptr<dlt_pcap> create_xnap_pcap(const std::string& filename, task_executor& backend_exec);
 std::unique_ptr<dlt_pcap> create_f1ap_pcap(const std::string& filename, task_executor& backend_exec);
 std::unique_ptr<dlt_pcap> create_e1ap_pcap(const std::string& filename, task_executor& backend_exec);
 std::unique_ptr<dlt_pcap> create_gtpu_pcap(const std::string& filename, task_executor& backend_exec);

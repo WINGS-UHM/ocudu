@@ -48,6 +48,9 @@ public:
   /// Retrieves the executor for NGAP PCAP writing.
   virtual task_executor& get_ngap_executor() = 0;
 
+  /// Retrieves the executor for XNAP PCAP writing.
+  virtual task_executor& get_xnap_executor() = 0;
+
   /// Retrieves the executor for E2AP PCAP writing.
   virtual task_executor& get_e2ap_executor() = 0;
 

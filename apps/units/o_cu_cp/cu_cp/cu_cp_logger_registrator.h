@@ -44,6 +44,10 @@ inline void register_cu_cp_loggers(const cu_cp_unit_logger_config& log_cfg)
   ngap_logger.set_level(log_cfg.ngap_level);
   ngap_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
+  auto& xnap_logger = ocudulog::fetch_basic_logger("XNAP", false);
+  xnap_logger.set_level(log_cfg.xnap_level);
+  xnap_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
+
   auto& nrppa_logger = ocudulog::fetch_basic_logger("NRPPA", false);
   nrppa_logger.set_level(log_cfg.nrppa_level);
   nrppa_logger.set_hex_dump_max_size(log_cfg.hex_max_size);

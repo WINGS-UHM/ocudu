@@ -22,6 +22,7 @@ struct cu_cp_unit_logger_config {
   ocudulog::basic_levels pdcp_level  = ocudulog::basic_levels::warning;
   ocudulog::basic_levels rrc_level   = ocudulog::basic_levels::warning;
   ocudulog::basic_levels ngap_level  = ocudulog::basic_levels::warning;
+  ocudulog::basic_levels xnap_level  = ocudulog::basic_levels::warning;
   ocudulog::basic_levels nrppa_level = ocudulog::basic_levels::warning;
   ocudulog::basic_levels sec_level   = ocudulog::basic_levels::warning;
   /// Maximum number of bytes to write when dumping hex arrays.

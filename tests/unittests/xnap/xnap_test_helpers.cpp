@@ -22,23 +22,14 @@ void xnap_test::SetUp()
   ocudulog::fetch_basic_logger("XNAP", false).set_level(ocudulog::basic_levels::debug);
   ocudulog::fetch_basic_logger("XNAP", false).set_hex_dump_max_size(100);
 
-  auto assoc = std::make_unique<dummy_xnap_message_notifier>();
-  xnap       = std::make_unique<xnap_impl>(xnap_local_cfg, xnc_gw, ctrl_worker);
-  tx_assoc   = assoc.get();
-  xnap->set_tx_association_notifier(std::move(assoc));
+  xnap =
+      std::make_unique<xnap_impl>(xnap_local_cfg,
+                                  xnc_gw.get_init_tx_notifier(transport_layer_address::create_from_string("127.0.0.1")),
+                                  ctrl_worker);
 }
 
 void xnap_test::TearDown()
 {
   // Flush logger after each test.
   ocudulog::flush();
-  tx_assoc = nullptr;
-}
-
-std::optional<xnap_message> xnap_test::get_last_message()
-{
-  if (tx_assoc == nullptr) {
-    return std::nullopt;
-  }
-  return tx_assoc->last_msg;
 }

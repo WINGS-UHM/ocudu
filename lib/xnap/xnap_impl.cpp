@@ -19,9 +19,12 @@ using namespace ocudu;
 using namespace asn1::xnap;
 using namespace ocucp;
 
-xnap_impl::xnap_impl(const xnap_configuration& xnap_cfg_, xnc_connection_gateway& xnc_gw_, task_executor& ctrl_exec_) :
-  logger(ocudulog::fetch_basic_logger("XNAP")), xnap_cfg(xnap_cfg_), xnc_gw(xnc_gw_), ctrl_exec(ctrl_exec_)
+xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
+                     std::unique_ptr<xnap_message_notifier> tx_notifier_,
+                     task_executor&                         ctrl_exec_) :
+  logger(ocudulog::fetch_basic_logger("XNAP")), xnap_cfg(xnap_cfg_), ctrl_exec(ctrl_exec_)
 {
+  tx_notifier.connect(std::move(tx_notifier_));
 }
 
 void xnap_impl::handle_message(const xnap_message& msg)
@@ -69,10 +72,9 @@ void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& msg)
   // TODO.
 }
 
-// TODO Implement XN setup procedure.
 async_task<void> xnap_impl::handle_xn_setup_request_required()
 {
-  return launch_async<xn_setup_procedure>(xnap_cfg, xnc_gw, logger);
+  return launch_async<xn_setup_procedure>(xnap_cfg, tx_notifier, logger);
 }
 
 void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)

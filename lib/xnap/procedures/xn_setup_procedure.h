@@ -10,20 +10,21 @@
 
 #pragma once
 
+#include "../xnap_tx_pdu_notifier_with_log.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/support/async/async_task.h"
-#include "ocudu/xnap/gateways/xnc_connection_gateway.h"
 #include "ocudu/xnap/xnap.h"
 #include "ocudu/xnap/xnap_configuration.h"
 #include "ocudu/xnap/xnap_message.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class xn_setup_procedure
 {
 public:
-  xn_setup_procedure(xnap_configuration xnap_cfg, xnc_connection_gateway& xnc_gw, ocudulog::basic_logger& logger_);
+  xn_setup_procedure(const xnap_configuration&          xnap_cfg,
+                     xnap_tx_pdu_notifier_with_logging& tx_notifier_,
+                     ocudulog::basic_logger&            logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -32,11 +33,11 @@ public:
 private:
   void send_xn_setup_message();
 
-  xnap_configuration      xnap_cfg;
-  xnap_message            xn_setup_req;
-  xnc_connection_gateway& xnc_gw;
-  ocudulog::basic_logger& logger;
+  const xnap_configuration&          xnap_cfg;
+  xnap_tx_pdu_notifier_with_logging& tx_notifier;
+  ocudulog::basic_logger&            logger;
+
+  xnap_message xn_setup_req;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

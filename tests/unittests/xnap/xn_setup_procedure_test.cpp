@@ -38,12 +38,11 @@ TEST_F(xn_setup_procedure_test, when_correct_setup_received_from_peer_setup_comp
 {
   xnap_message xn_setup_req = generate_asn1_xn_setup_request(xnap_peer_cfg);
   xnap->handle_message(xn_setup_req);
-  std::optional<xnap_message> rep = get_last_message();
 
   // Check XN setup response.
-  ASSERT_TRUE(rep.has_value());
-  ASSERT_EQ(rep->pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::successful_outcome);
-  ASSERT_EQ(rep->pdu.successful_outcome().value.type(),
+  xnap_message rep = xnc_gw.get_last_tx_message();
+  ASSERT_EQ(rep.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::successful_outcome);
+  ASSERT_EQ(rep.pdu.successful_outcome().value.type(),
             asn1::xnap::xnap_elem_procs_o::successful_outcome_c::types_opts::xn_setup_resp);
 }
 
@@ -56,14 +55,8 @@ TEST_F(xn_setup_procedure_test, when_xn_setup_request_required_then_setup_is_sen
 
   ASSERT_TRUE(t.ready());
 
-  // Check XN setup request sent to peer.
-  ASSERT_FALSE(xnc_gw.last_xnap_msgs.empty());
-  xnap_message   setup_req;
-  asn1::cbit_ref bref{xnc_gw.last_xnap_msgs.back()};
-  ASSERT_EQ(setup_req.pdu.unpack(bref), asn1::OCUDUASN_SUCCESS)
-      << "Failed to decode last XNAP message sent by the CU-CP";
-
   // Check XN setup request.
+  xnap_message setup_req = xnc_gw.get_last_tx_message();
   ASSERT_EQ(setup_req.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::init_msg);
   ASSERT_EQ(setup_req.pdu.init_msg().value.type(),
             asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);

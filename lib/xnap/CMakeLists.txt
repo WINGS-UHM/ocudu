@@ -6,11 +6,13 @@
 # the distribution.
 #
 
+add_subdirectory(gateways)
+
 set(SOURCES
-        xnap_impl.cpp
-        xnap_asn1_utils.cpp
         log_helpers.cpp
         procedures/xn_setup_procedure.cpp
+        xnap_asn1_utils.cpp
+        xnap_impl.cpp
     )
 
 

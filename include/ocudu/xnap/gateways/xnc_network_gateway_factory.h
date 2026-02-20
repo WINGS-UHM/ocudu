@@ -1,0 +1,38 @@
+/*
+ *
+ * Copyright 2021-2026 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/gateways/sctp_network_gateway.h"
+#include "ocudu/xnap/gateways/xnc_connection_gateway.h"
+
+namespace ocudu {
+
+class dlt_pcap;
+class io_broker;
+class task_executor;
+
+/// Configuration of an SCTP-based XN-C Gateway.
+struct xnc_sctp_gateway_config {
+  /// SCTP configuration.
+  sctp_network_gateway_config sctp;
+  /// IO broker responsible for handling SCTP Rx data and notifications.
+  io_broker& broker;
+  /// Execution context used to process received SCTP packets.
+  task_executor& io_rx_executor;
+  /// PCAP writer for the XNAP messages.
+  dlt_pcap& pcap;
+};
+
+/// Creates an XN-C Gateway server that listens for incoming SCTP connections, packs/unpacks XNAP PDUs and forwards
+/// them to the GW/CU-CP XNAP handler.
+std::unique_ptr<ocucp::xnc_connection_gateway> create_xnc_connection_gateway(const xnc_sctp_gateway_config& params);
+
+} // namespace ocudu

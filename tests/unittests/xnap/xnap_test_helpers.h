@@ -13,6 +13,8 @@
 #include "lib/xnap/xnap_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/xnap/gateways/xnc_connection_gateway.h"
+#include "ocudu/xnap/xnap_message.h"
 #include "ocudu/xnap/xnap_message_notifier.h"
 #include <gtest/gtest.h>
 
@@ -22,6 +24,7 @@ namespace ocudu::ocucp {
 class dummy_xnap_message_notifier : public xnap_message_notifier
 {
 public:
+  dummy_xnap_message_notifier(xnap_message& last_msg_) : last_msg(last_msg_) {}
   ~dummy_xnap_message_notifier() override = default;
 
   bool on_new_message(const xnap_message& msg) override
@@ -30,7 +33,7 @@ public:
     return true;
   }
 
-  xnap_message last_msg;
+  xnap_message& last_msg;
 };
 
 /// Reusable class that stores the messages sent over XNAP for test inspection.
@@ -39,17 +42,19 @@ class dummy_xnc_gateway : public xnc_connection_gateway
 public:
   dummy_xnc_gateway() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
-  void init_association(transport_layer_address dest_addr, byte_buffer payload) override
+  std::unique_ptr<xnap_message_notifier> get_init_tx_notifier(transport_layer_address peer_addr) override
   {
-    logger.info("Received request to init association with peer at {}. Payload size: {} bytes",
-                dest_addr.to_string(),
-                payload.length());
-    last_xnap_msgs.push_back(std::move(payload));
+    return std::make_unique<dummy_xnap_message_notifier>(last_tx_msg);
   }
 
-  std::vector<byte_buffer> last_xnap_msgs;
+  void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) override { logger.info("CU-CP attached to XN-C gateway"); }
+
+  std::optional<uint16_t> get_listen_port() const override { return std::nullopt; }
+
+  xnap_message get_last_tx_message() const { return last_tx_msg; }
 
 private:
+  xnap_message            last_tx_msg;
   ocudulog::basic_logger& logger;
 };
 
@@ -74,13 +79,11 @@ protected:
   xnap_configuration     xnap_local_cfg           = {
       local_gnb_id,
       std::vector<supported_tracking_area>{{local_tac, std::vector<plmn_item>{{local_plmn, local_slice_support_list}}}},
-      std::vector<guami_t>{{.plmn = local_plmn, .amf_set_id = 0, .amf_pointer = 0, .amf_region_id = 1}},
-      transport_layer_address::create_from_string("127.0.0.1")};
+      std::vector<guami_t>{{.plmn = local_plmn, .amf_set_id = 0, .amf_pointer = 0, .amf_region_id = 1}}};
 
   std::optional<xnap_message> get_last_message();
 
 private:
-  dummy_xnap_message_notifier* tx_assoc;
 };
 
 } // namespace ocudu::ocucp

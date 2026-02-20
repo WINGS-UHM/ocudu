@@ -50,6 +50,8 @@ const uint16_t MAX_NOF_CU_UPS = 65535;
 const uint64_t MAX_NOF_CU_UES = 4294967295; // 2^32 - 1
 /// Maximum number of AMFs supported by CU-CP (implementation-defined).
 const uint16_t MAX_NOF_AMFS = 65535;
+/// Maximum number of XN-C peers supported by CU-CP (implementation-defined).
+const uint16_t MAX_NOF_XNC_PEERS = 65535;
 
 /// \brief ue_index internally used to identify the UE CU-CP-wide.
 /// \remark The ue_index is derived from the maximum number of DUs and the maximum number of UEs per DU.
@@ -125,6 +127,15 @@ constexpr amf_index_t uint_to_amf_index(std::underlying_type_t<amf_index_t> inde
 constexpr std::underlying_type_t<amf_index_t> amf_index_to_uint(amf_index_t amf_index)
 {
   return static_cast<std::underlying_type_t<amf_index_t>>(amf_index);
+}
+
+/// Maximum number of XN-C peers supported by CU-CP (implementation-defined).
+enum class xnc_peer_index_t : uint16_t { min = 0, max = MAX_NOF_XNC_PEERS - 1, invalid = MAX_NOF_XNC_PEERS };
+
+/// Convert integer to AMF index type.
+constexpr xnc_peer_index_t uint_to_xnc_peer_index(std::underlying_type_t<xnc_peer_index_t> index)
+{
+  return static_cast<xnc_peer_index_t>(index);
 }
 
 /// Notification from the E1AP/F1AP that transaction reference information for some UEs has been lost.
@@ -720,6 +731,25 @@ struct formatter<ocudu::ocucp::amf_index_t> {
   auto format(const ocudu::ocucp::amf_index_t& idx, FormatContext& ctx) const
   {
     if (idx == ocudu::ocucp::amf_index_t::invalid) {
+      return format_to(ctx.out(), "invalid");
+    }
+    return format_to(ctx.out(), "{}", (unsigned)idx);
+  }
+};
+
+// XNC peer index formatter.
+template <>
+struct formatter<ocudu::ocucp::xnc_peer_index_t> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::ocucp::xnc_peer_index_t& idx, FormatContext& ctx) const
+  {
+    if (idx == ocudu::ocucp::xnc_peer_index_t::invalid) {
       return format_to(ctx.out(), "invalid");
     }
     return format_to(ctx.out(), "{}", (unsigned)idx);

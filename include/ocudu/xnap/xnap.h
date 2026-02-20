@@ -40,6 +40,15 @@ public:
   virtual void set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) = 0;
 };
 
+/// XNAP notifier to the CU-CP.
+class xnap_cu_cp_notifier
+{
+public:
+  virtual ~xnap_cu_cp_notifier() = default;
+
+  // TODO.
+};
+
 /// Combined entry point for the XNAP object.
 class xnap_interface : public xnap_message_handler, public xnap_connection_manager
 {

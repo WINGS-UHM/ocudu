@@ -60,6 +60,7 @@ set(SOURCES
         ue_manager/cu_cp_ue_impl.cpp
         ue_manager/ue_manager_impl.cpp
         ue_manager/ue_task_scheduler_impl.cpp
+        xnap_repository.cpp
 )
 
 add_library(ocudu_cu_cp STATIC ${SOURCES})

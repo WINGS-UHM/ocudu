@@ -43,7 +43,7 @@ trigger builder:
           - docker/scripts/**/*
   trigger:
     include: .gitlab/ci/builders/.gitlab-ci.yml
-    strategy: depend
+    strategy: mirror
   needs:
     - job: trigger buildkit
       optional: true
@@ -62,7 +62,7 @@ trigger buildkit:
           - .gitlab/ci/buildkit-cli/**/*
   trigger:
     include: .gitlab/ci/buildkit-cli/.gitlab-ci.yml
-    strategy: depend
+    strategy: mirror
 
 trigger docker:
   stage: ci
@@ -84,7 +84,7 @@ trigger docker:
         CI_PIPELINE_SCHEDULE_DESCRIPTION: Weekly
   trigger:
     include: .gitlab/ci/docker/.gitlab-ci.yml
-    strategy: depend
+    strategy: mirror
   needs:
     - job: trigger buildkit
       optional: true
@@ -103,7 +103,7 @@ trigger doxygen:
           - .gitlab/ci/doxygen/**/*
   trigger:
     include: .gitlab/ci/doxygen/.gitlab-ci.yml
-    strategy: depend
+    strategy: mirror
   needs:
     - job: trigger buildkit
       optional: true
@@ -124,7 +124,7 @@ trigger static:
           - .gitlab/ci/static/**/*
   trigger:
     include: .gitlab/ci/static/.gitlab-ci.yml
-    strategy: depend
+    strategy: mirror
   needs:
     - job: trigger buildkit
       optional: true

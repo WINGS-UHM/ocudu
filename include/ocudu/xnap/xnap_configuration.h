@@ -21,7 +21,6 @@ struct xnap_configuration {
   gnb_id_t                             gnb_id;
   std::vector<supported_tracking_area> tai_support_list;
   std::vector<guami_t>                 guami_list;
-  transport_layer_address              peer_addr;
 };
 
 } // namespace ocudu::ocucp

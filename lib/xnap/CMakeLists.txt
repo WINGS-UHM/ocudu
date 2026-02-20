@@ -12,6 +12,7 @@ set(SOURCES
         log_helpers.cpp
         procedures/xn_setup_procedure.cpp
         xnap_asn1_utils.cpp
+        xnap_factory.cpp
         xnap_impl.cpp
     )
 

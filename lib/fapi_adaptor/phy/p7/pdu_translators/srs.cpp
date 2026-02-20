@@ -27,23 +27,21 @@ void ocudu::fapi_adaptor::convert_srs_fapi_to_phy(uplink_pdu_slot_repository::sr
   context.is_positioning_report_requested                  = fapi_pdu.enable_positioning_report;
 
   // Fill SRS resource configuration.
-  pdu.config.context                    = srs_context(sector_id, fapi_pdu.rnti);
-  pdu.config.slot                       = slot;
-  pdu.config.resource.nof_antenna_ports = fapi_pdu.num_ant_ports;
-  pdu.config.resource.nof_symbols =
-      static_cast<srs_resource_configuration::one_two_four_enum>(fapi_pdu.ofdm_symbols.length());
+  pdu.config.context                      = srs_context(sector_id, fapi_pdu.rnti);
+  pdu.config.slot                         = slot;
+  pdu.config.resource.nof_antenna_ports   = fapi_pdu.num_ant_ports;
+  pdu.config.resource.nof_symbols         = static_cast<srs_nof_symbols>(fapi_pdu.ofdm_symbols.length());
   pdu.config.resource.start_symbol        = fapi_pdu.time_start_position;
   pdu.config.resource.configuration_index = fapi_pdu.config_index;
   pdu.config.resource.sequence_id         = fapi_pdu.sequence_id;
   pdu.config.resource.bandwidth_index     = fapi_pdu.bandwidth_index;
-  pdu.config.resource.comb_size           = static_cast<srs_resource_configuration::comb_size_enum>(fapi_pdu.comb_size);
+  pdu.config.resource.comb_size           = static_cast<tx_comb_size>(fapi_pdu.comb_size);
   pdu.config.resource.comb_offset         = fapi_pdu.comb_offset;
   pdu.config.resource.cyclic_shift        = fapi_pdu.cyclic_shift;
   pdu.config.resource.freq_position       = fapi_pdu.frequency_position;
   pdu.config.resource.freq_shift          = fapi_pdu.frequency_shift;
   pdu.config.resource.freq_hopping        = fapi_pdu.frequency_hopping;
-  pdu.config.resource.hopping =
-      static_cast<srs_resource_configuration::group_or_sequence_hopping_enum>(fapi_pdu.group_or_sequence_hopping);
+  pdu.config.resource.hopping = static_cast<srs_group_or_sequence_hopping>(fapi_pdu.group_or_sequence_hopping);
   // SRS frequency hopping not currently supported.
 
   // GCC gives a false positive of type Werror=stringop-overflow.

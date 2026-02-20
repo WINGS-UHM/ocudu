@@ -47,7 +47,7 @@ struct formatter<ocudu::srs_estimator_configuration> {
 
     // Format CRBs and REs only if the resource is supported.
     if (config.resource.is_valid() && !config.resource.has_frequency_hopping() &&
-        (config.resource.hopping == ocudu::srs_resource_configuration::group_or_sequence_hopping_enum::neither)) {
+        (config.resource.hopping == ocudu::srs_group_or_sequence_hopping::neither)) {
       ocudu::bounded_bitset<ocudu::NOF_SUBCARRIERS_PER_RB> re_mask(ocudu::NOF_SUBCARRIERS_PER_RB);
       ocudu::srs_information                               info = {};
       for (unsigned i_antenna_port = 0, nof_antennas = static_cast<unsigned>(config.resource.nof_antenna_ports);

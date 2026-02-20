@@ -28,7 +28,7 @@ error_type<std::string> srs_validator_generic_impl::is_valid(const srs_estimator
   }
 
   // Sequence and group hopping is not supported.
-  if (config.resource.hopping != srs_resource_configuration::group_or_sequence_hopping_enum::neither) {
+  if (config.resource.hopping != srs_group_or_sequence_hopping::neither) {
     return make_unexpected("The SRS estimator does not support group or sequence hopping.");
   }
 

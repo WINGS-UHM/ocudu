@@ -18,7 +18,7 @@ using namespace ocudu;
 
 static constexpr unsigned N_RB_SC = 12;
 
-static constexpr unsigned get_sequence_length(unsigned m_srs_b, srs_resource_configuration::comb_size_enum comb_size)
+static constexpr unsigned get_sequence_length(unsigned m_srs_b, tx_comb_size comb_size)
 {
   return (m_srs_b * N_RB_SC) / static_cast<unsigned>(comb_size);
 }
@@ -34,8 +34,7 @@ srs_information ocudu::get_srs_information(const srs_resource_configuration& res
                resource.bandwidth_index);
 
   // Assert configuration parameters.
-  ocudu_assert(resource.hopping == srs_resource_configuration::group_or_sequence_hopping_enum::neither,
-               "No sequence nor group hopping supported.");
+  ocudu_assert(resource.hopping == srs_group_or_sequence_hopping::neither, "No sequence nor group hopping supported.");
   ocudu_assert(!resource.has_frequency_hopping(), "Frequency hopping is not supported.");
 
   // Calculate sequence length.
@@ -52,7 +51,7 @@ srs_information ocudu::get_srs_information(const srs_resource_configuration& res
   unsigned v = 0;
 
   // Maximum number of cyclic shifts depending on the comb size.
-  unsigned n_cs_max = (resource.comb_size == srs_resource_configuration::comb_size_enum::four) ? 12 : 8;
+  unsigned n_cs_max = (resource.comb_size == tx_comb_size::n4) ? 12 : 8;
 
   // Calculate cyclic shift. Note that n_cs_max is always multiple of the number of antenna ports (one, two or four).
   unsigned cyclic_shift_port = (resource.cyclic_shift.value() +

@@ -11,8 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/bounded_integer.h"
-#include "ocudu/ran/srs/srs_constants.h"
-#include <cstdint>
+#include "ocudu/ran/srs/srs_configuration.h"
 #include <optional>
 
 namespace ocudu {
@@ -24,10 +23,6 @@ namespace ocudu {
 struct srs_resource_configuration {
   /// Enumeration for attributes that accept only one, two, or four.
   enum class one_two_four_enum : uint8_t { one = 1, two = 2, four = 4 };
-  /// Frequency hopping selection.
-  enum class group_or_sequence_hopping_enum : uint8_t { neither = 0, group_hopping, sequence_hopping };
-  /// Enumeration for the comb size.
-  enum class comb_size_enum : uint8_t { two = 2, four = 4 };
 
   /// Collects parameters related to the SRS transmission periodicity.
   struct periodicity_and_offset {
@@ -43,7 +38,7 @@ struct srs_resource_configuration {
   ///
   /// It is given by the higher layer parameter \e nrofSymbols contained in the higher layer parameter
   /// \e resourceMapping.
-  one_two_four_enum nof_symbols;
+  srs_nof_symbols nof_symbols;
   /// \brief Starting position in the time domain, parameter \f$l_0\f$.
   ///
   /// The parameter is given by \f$l_0=N^{slot}_{symb}-1-l_{offset}\f$ where the offset \f$l_0\in\{0,1,...,5\}\f$
@@ -78,7 +73,7 @@ struct srs_resource_configuration {
   /// It is given by the higher-layer field \e transmissionComb.
   ///
   /// Valid values are 2 and 4.
-  comb_size_enum comb_size;
+  tx_comb_size comb_size;
   /// \brief Comb offset, parameter \f$\bar{k}_{TC}\f$.
   ///
   /// It is given by the higher-layer field \e combOffset-n2 or \e combOffset-n4 contained in the parameter
@@ -115,7 +110,7 @@ struct srs_resource_configuration {
   /// \brief Group or sequence hopping configuration.
   ///
   /// It is given by the higher layer parameter \e groupOrSequenceHopping.
-  group_or_sequence_hopping_enum hopping;
+  srs_group_or_sequence_hopping hopping;
   /// \brief Set if frequency hopping is enabled and the SRS resource is either periodic or semi-persistent.
   ///
   /// The periodicity and offset are given by the higher layer parameter \e resourceType.
@@ -135,7 +130,7 @@ struct srs_resource_configuration {
     }
 
     // The cyclic shift must not exceed 7 when the comb size is 2.
-    if ((comb_size == comb_size_enum::two) && (cyclic_shift > 7)) {
+    if ((comb_size == tx_comb_size::n2) && (cyclic_shift > 7)) {
       return false;
     }
 

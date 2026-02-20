@@ -129,7 +129,6 @@ gnb docker compose:
         paths:
           - docker/docker-compose.yml
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      interruptible: false
   before_script:
     - *docker_setup
   script:
@@ -157,7 +156,6 @@ gnb docker compose:
           - docker/open5gs/**/*
           - docker/docker-compose.yml
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      interruptible: false
   script:
     - docker compose -f docker/docker-compose.yml build --build-arg NUM_JOBS=${CPU_JOBS} 5gc
     - docker compose -f docker/docker-compose.yml run 5gc 5gc -v
@@ -172,7 +170,6 @@ grafana docker compose:
           - docker/grafana/**/*
           - docker/docker-compose.ui.yml
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      interruptible: false
   script:
     - docker compose -f docker/docker-compose.ui.yml run --no-deps grafana --version
 
@@ -186,7 +183,6 @@ influxdb and telegraf docker compose:
           - docker/telegraf/**/*
           - docker/docker-compose.ui.yml
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      interruptible: false
   script:
     - docker compose -f docker/docker-compose.ui.yml up influxdb telegraf -d --wait
     - |

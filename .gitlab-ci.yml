@@ -279,7 +279,6 @@ clang-tidy:
   extends: .codechecker
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  interruptible: false
   retry: 2
   variables:
     ANALYZER: clang-tidy
@@ -332,7 +331,6 @@ cppcheck:
   extends: .codechecker
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-  interruptible: false
   retry: 2
   variables:
     ANALYZER: cppcheck
@@ -350,7 +348,6 @@ clangsa:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: manual
       allow_failure: true
-  interruptible: false
   variables:
     ANALYZER: clangsa
     ANALYZER_ARGS: --ctu

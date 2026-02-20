@@ -49,12 +49,14 @@ workflow:
         ON_MR_FORK: "true"
         ON_MR: "true"
       auto_cancel:
-        on_new_commit: none
+        on_new_commit: interruptible
     - if: $CI_MERGE_REQUEST_IID
       # Why $CI_MERGE_REQUEST_IID instead of $CI_PIPELINE_SOURCE == "merge_request_event" ?
       # Child pipelines in a MR have CI_PIPELINE_SOURCE = parent_pipeline
       variables:
         ON_MR: "true"
+      auto_cancel:
+        on_new_commit: interruptible
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       variables:
         ON_DEFAULT_BRANCH: "true"

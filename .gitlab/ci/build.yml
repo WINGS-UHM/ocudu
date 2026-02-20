@@ -539,7 +539,6 @@ export on amd64:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 30 minutes
-  interruptible: false
   variables:
     COMPILER: gcc
     TEST_MODE: none
@@ -569,7 +568,6 @@ ubuntu-25.04 amd64 avx2:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 60 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v3
@@ -584,7 +582,6 @@ ubuntu-25.10 amd64 avx2:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 60 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v3
@@ -599,7 +596,6 @@ ubuntu-24.04 amd64 avx2:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 90 minutes
-  interruptible: false
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v3
@@ -617,7 +613,6 @@ ubuntu-24.04 amd64 avx512:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 90 minutes
-  interruptible: false
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
@@ -636,7 +631,6 @@ ubuntu-22.04 amd64 avx2:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 90 minutes
-  interruptible: false
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v3
@@ -653,7 +647,6 @@ ubuntu-24.04 arm neon:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 30 minutes
-  interruptible: false
   variables:
     OS: ubuntu-24.04
     MARCH: armv8.2-a+crypto+fp16+dotprod
@@ -673,7 +666,6 @@ ubuntu dpdk:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 120 minutes
-  interruptible: false
   variables:
     ENABLE_UHD: "False"
     ENABLE_ZEROMQ: "False"
@@ -724,7 +716,6 @@ archlinux amd64 avx2:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 30 minutes
-  interruptible: false
   variables:
     OS: archlinux-latest
     ENABLE_WERROR: "False"
@@ -738,7 +729,6 @@ archlinux amd64 avx512:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
-  interruptible: false
   variables:
     OS: archlinux-latest
     ENABLE_WERROR: "False"
@@ -755,7 +745,6 @@ debian 12 amd64 avx2:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 90 minutes
-  interruptible: false
   variables:
     OS: debian-12
     ENABLE_WERROR: "False"
@@ -771,7 +760,6 @@ debian 12 amd64 avx512:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 30 minutes
-  interruptible: false
   variables:
     OS: debian-12
     ENABLE_WERROR: "False"
@@ -788,7 +776,6 @@ debian 13 amd64 avx2:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 150 minutes
-  interruptible: false
   variables:
     OS: debian-13
     ENABLE_WERROR: "False"
@@ -804,7 +791,6 @@ debian 13 amd64 avx512:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 90 minutes
-  interruptible: false
   variables:
     OS: debian-13
     ENABLE_WERROR: "False"
@@ -839,7 +825,6 @@ check builders ubuntu versions:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
-  interruptible: false
   variables:
     ASSERT_LEVEL: PARANOID
     CMAKE_BUILD_TYPE: Debug
@@ -937,7 +922,6 @@ build uhd alt:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 15 minutes
-  interruptible: false
   variables:
     TEST_MODE: none
     ASSERT_LEVEL: PARANOID
@@ -967,7 +951,6 @@ gdb pretty printers:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 300 minutes
-  interruptible: false
   variables:
     <<: *gdb_printers_variables
   tags: [saas-linux-large-amd64]
@@ -980,7 +963,6 @@ ubuntu-25.04 amd64 avx512:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 430 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v4
@@ -996,7 +978,6 @@ ubuntu-25.04 arm neon:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 430 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.04
     MARCH: armv8.2-a+crypto+fp16+dotprod
@@ -1011,7 +992,6 @@ ubuntu-25.10 amd64 native:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.10
   tags: [saas-linux-large-amd64]
@@ -1025,7 +1005,6 @@ ubuntu-25.10 amd64 avx512:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v4
@@ -1041,7 +1020,6 @@ ubuntu-25.10 arm native:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.10
   tags: [saas-linux-large-arm64]
@@ -1055,7 +1033,6 @@ ubuntu-25.10 arm neon:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 30 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.10
     MARCH: armv8.2-a+crypto+fp16+dotprod
@@ -1070,7 +1047,6 @@ ubuntu-24.04 amd64 native:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 60 minutes
-  interruptible: false
   variables:
     OS: ubuntu-24.04
   tags: [saas-linux-large-amd64]
@@ -1087,7 +1063,6 @@ ubuntu-24.04 amd64 avx:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 400 minutes
-  interruptible: false
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v2
@@ -1105,7 +1080,6 @@ ubuntu-24.04 amd64 avx512 TRACE:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 400 minutes
-  interruptible: false
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
@@ -1125,7 +1099,6 @@ ubuntu-24.04 arm native:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 60 minutes
-  interruptible: false
   variables:
     OS: ubuntu-24.04
   tags: [saas-linux-large-arm64]
@@ -1142,7 +1115,6 @@ ubuntu-22.04 amd64 avx512:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 120 minutes
-  interruptible: false
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v4
@@ -1158,7 +1130,6 @@ ubuntu-22.04 arm neon:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 120 minutes
-  interruptible: false
   variables:
     OS: ubuntu-22.04
     MARCH: armv8.2-a+crypto+fp16+dotprod
@@ -1182,7 +1153,6 @@ ubuntu-22.04 amd64 avx2 dpdk:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 210 minutes
-  interruptible: false
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v3
@@ -1198,7 +1168,6 @@ ubuntu-22.04 amd64 avx512 dpdk:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 240 minutes
-  interruptible: false
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v4
@@ -1215,7 +1184,6 @@ ubuntu-24.04 amd64 avx2 dpdk:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 270 minutes
-  interruptible: false
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v3
@@ -1241,7 +1209,6 @@ ubuntu-24.04 amd64 avx512 dpdk:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 320 minutes
-  interruptible: false
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
@@ -1268,7 +1235,6 @@ ubuntu-25.10 amd64 avx2 dpdk:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 360 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v3
@@ -1284,7 +1250,6 @@ ubuntu-25.10 amd64 avx512 dpdk:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 360 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v4
@@ -1301,7 +1266,6 @@ ubuntu-25.04 amd64 avx2 dpdk:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 460 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v3
@@ -1317,7 +1281,6 @@ ubuntu-25.04 amd64 avx512 dpdk:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
       start_in: 460 minutes
-  interruptible: false
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v4

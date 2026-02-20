@@ -54,6 +54,7 @@ static void assert_cu_cp_configuration_valid(const cu_cp_configuration& cfg)
   for (const auto& ngap : cfg.ngap.ngaps) {
     ocudu_assert(ngap.n2_gw != nullptr, "Invalid N2 GW client handler");
   }
+  // TODO: add check for XNC gw.
   ocudu_assert(cfg.services.timers != nullptr, "Invalid timers");
 
   report_error_if_not(cfg.admission.max_nof_dus <= MAX_NOF_DUS, "Invalid max number of DUs");
@@ -76,6 +77,7 @@ cu_cp_impl::cu_cp_impl(const cu_cp_configuration& config_) :
   cu_up_db(cu_up_repository_config{cfg, e1ap_ev_notifier, common_task_sched, ocudulog::fetch_basic_logger("CU-CP")}),
   paging_handler(du_db),
   ngap_db(ngap_repository_config{cfg, get_cu_cp_ngap_handler(), paging_handler, ocudulog::fetch_basic_logger("CU-CP")}),
+  xnap_db(xnap_repository_config{cfg, ocudulog::fetch_basic_logger("CU-CP")}),
   mobility_mng(cfg.mobility.mobility_manager_config, mobility_manager_ev_notifier, ngap_db, du_db, ue_mng),
   controller(cfg,
              get_cu_cp_amf_reconnection_handler(),

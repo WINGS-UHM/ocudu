@@ -23,6 +23,7 @@
 #include "du_processor/du_processor_repository.h"
 #include "ngap_repository.h"
 #include "ue_manager/ue_manager_impl.h"
+#include "xnap_repository.h"
 #include "ocudu/cu_cp/cu_configurator.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
@@ -31,8 +32,7 @@
 #include <dlfcn.h>
 #include <memory>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class cu_cp_common_task_scheduler : public common_task_scheduler
 {
@@ -249,6 +249,9 @@ private:
   // AMF connections beeing managed by the CU-CP.
   ngap_repository ngap_db;
 
+  // XNAP connections beeing managed by the CU-CP.
+  xnap_repository xnap_db;
+
   // Mobility manager.
   mobility_manager mobility_mng;
 
@@ -268,5 +271,4 @@ private:
   std::unique_ptr<metrics_report_session> metrics_session;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

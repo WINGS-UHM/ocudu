@@ -31,7 +31,7 @@
       if [ "$NEW_VERSION" = "$OLD_VERSION" ]; then
           echo "ERROR: Version not changed."
           exit 1
-      elif [ "$OLD_VERSION" \> "$NEW_VERSION" ]; then
+      elif [ "$(printf '%s\n' "$OLD_VERSION" "$NEW_VERSION" | sort -V | tail -1)" != "$NEW_VERSION" ]; then
           echo "ERROR: Version decreased."
           exit 1
       fi

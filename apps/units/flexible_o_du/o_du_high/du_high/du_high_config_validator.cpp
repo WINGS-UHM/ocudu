@@ -692,7 +692,7 @@ static bool validate_srs_cell_unit_config(const du_high_unit_srs_config& config,
     }
 
     if (config.srs_type_enabled == "aperiodic" and config.srs_period_prohibit_time_ms < 20.0) {
-      fmt::print("For aperiodic SRS, the minimum prohibit time is set to 20ms\n");
+      fmt::print("For aperiodic SRS, the minimum period is set to 20ms\n");
       return false;
     }
   }

@@ -41,7 +41,7 @@ void xn_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
 
 void xn_setup_procedure::send_xn_setup_message()
 {
-  if (!tx_notifier.on_new_message(xn_setup_req)) {
+  if (!tx_notifier.on_xn_setup_request(xn_setup_req)) {
     logger.error("Failed to send XN Setup Request");
   } else {
     logger.debug("XNAP PDU sent");

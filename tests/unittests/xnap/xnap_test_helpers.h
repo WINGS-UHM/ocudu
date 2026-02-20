@@ -66,6 +66,11 @@ protected:
 
   void TearDown() override;
 
+  void init_sctp_association()
+  {
+    xnap->set_tx_association_notifier(std::make_unique<dummy_xnap_message_notifier>(last_tx_msg));
+  }
+
   ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("TEST", false);
   manual_task_worker         ctrl_worker{128};
   dummy_xnc_gateway          xnc_gw;
@@ -81,9 +86,10 @@ protected:
       std::vector<supported_tracking_area>{{local_tac, std::vector<plmn_item>{{local_plmn, local_slice_support_list}}}},
       std::vector<guami_t>{{.plmn = local_plmn, .amf_set_id = 0, .amf_pointer = 0, .amf_region_id = 1}}};
 
-  std::optional<xnap_message> get_last_message();
+  xnap_message get_last_message() { return last_tx_msg; }
 
 private:
+  xnap_message last_tx_msg;
 };
 
 } // namespace ocudu::ocucp

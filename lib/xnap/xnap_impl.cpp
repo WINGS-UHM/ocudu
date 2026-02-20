@@ -20,11 +20,13 @@ using namespace asn1::xnap;
 using namespace ocucp;
 
 xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
-                     std::unique_ptr<xnap_message_notifier> tx_notifier_,
+                     std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
                      task_executor&                         ctrl_exec_) :
-  logger(ocudulog::fetch_basic_logger("XNAP")), xnap_cfg(xnap_cfg_), ctrl_exec(ctrl_exec_)
+  logger(ocudulog::fetch_basic_logger("XNAP")),
+  xnap_cfg(xnap_cfg_),
+  ctrl_exec(ctrl_exec_),
+  tx_notifier(std::move(init_tx_notifier_))
 {
-  tx_notifier.connect(std::move(tx_notifier_));
 }
 
 void xnap_impl::handle_message(const xnap_message& msg)

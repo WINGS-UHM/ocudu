@@ -36,11 +36,14 @@ protected:
 
 TEST_F(xn_setup_procedure_test, when_correct_setup_received_from_peer_setup_complete_is_sent)
 {
+  // Conect TX notifier to the XNAP instance, so that we can capture the response to the setup request.
+  init_sctp_association();
+
   xnap_message xn_setup_req = generate_asn1_xn_setup_request(xnap_peer_cfg);
   xnap->handle_message(xn_setup_req);
 
   // Check XN setup response.
-  xnap_message rep = xnc_gw.get_last_tx_message();
+  xnap_message rep = get_last_message();
   ASSERT_EQ(rep.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::successful_outcome);
   ASSERT_EQ(rep.pdu.successful_outcome().value.type(),
             asn1::xnap::xnap_elem_procs_o::successful_outcome_c::types_opts::xn_setup_resp);

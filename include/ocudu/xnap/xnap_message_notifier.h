@@ -20,7 +20,7 @@ class xnap_message_notifier
 public:
   virtual ~xnap_message_notifier() = default;
 
-  /// This callback is invoked on each outgoing XNAP message.
+  /// This callback is invoked on each outgoing XNAP message aside the XN Setup request.
   virtual bool on_new_message(const xnap_message& msg) = 0;
 };
 

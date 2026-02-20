@@ -21,7 +21,7 @@ class xnap_impl final : public xnap_interface
 {
 public:
   xnap_impl(const xnap_configuration&              xnap_cfg_,
-            std::unique_ptr<xnap_message_notifier> tx_notifier,
+            std::unique_ptr<xnap_message_notifier> init_tx_notifier,
             task_executor&                         ctrl_exec_);
   ~xnap_impl() override = default;
 

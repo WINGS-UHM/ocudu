@@ -57,8 +57,8 @@ public:
   bool                                                        association_created   = false;
   bool                                                        association_destroyed = false;
 
-  std::unique_ptr<sctp_association_sdu_notifier>
-  create(std::unique_ptr<sctp_association_sdu_notifier> send_notifier) override
+  std::unique_ptr<sctp_association_sdu_notifier> create(std::unique_ptr<sctp_association_sdu_notifier> send_notifier,
+                                                        sctp_association_info assoc_info) override
   {
     association_created = true;
     association_senders.push_back(std::move(send_notifier));

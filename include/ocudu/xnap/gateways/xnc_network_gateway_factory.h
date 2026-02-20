@@ -33,6 +33,6 @@ struct xnc_sctp_gateway_config {
 
 /// Creates an XN-C Gateway server that listens for incoming SCTP connections, packs/unpacks XNAP PDUs and forwards
 /// them to the GW/CU-CP XNAP handler.
-std::unique_ptr<ocucp::xnc_connection_gateway> create_xnc_connection_gateway(const xnc_sctp_gateway_config& params);
+std::unique_ptr<ocucp::xnc_connection_gateway> create_xnc_connection_gateway(const xnc_sctp_gateway_config& cfg);
 
 } // namespace ocudu

@@ -83,7 +83,7 @@ protected:
     server_assoc_handler_factory(base_sctp_network_link_test& parent_) : parent(parent_) {}
 
     std::unique_ptr<sctp_association_sdu_notifier>
-    create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier) override
+    create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier, sctp_association_info assoc_info) override
     {
       // Note: Called from within io_broker execution context.
 

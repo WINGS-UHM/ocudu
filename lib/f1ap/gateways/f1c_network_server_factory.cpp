@@ -123,7 +123,7 @@ public:
   std::optional<uint16_t> get_listen_port() const override { return sctp_server->get_listen_port(); }
 
   std::unique_ptr<sctp_association_sdu_notifier>
-  create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier) override
+  create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier, sctp_association_info assoc_info) override
   {
     // Create an unpacked F1AP PDU notifier and pass it to the CU-CP.
     auto f1c_sender = std::make_unique<f1c_to_gw_pdu_notifier>(std::move(sctp_send_notifier), params.pcap, logger);

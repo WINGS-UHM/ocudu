@@ -942,33 +942,38 @@ void cu_cp_impl::handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf
 
 void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg)
 {
-  if (msg.location_reporting_type == ngap_location_report_request::event_type::direct) {
-    auto* ue = ue_mng.find_du_ue(ue_index);
-    if (ue == nullptr) {
-      logger.warning("ue={}: UE not found for handling location reporting control message", ue_index);
-      return;
-    }
-    auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
-    if (ngap == nullptr) {
-      logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
-      return;
-    }
-    ngap_location_report resp;
-    resp.ue_index    = ue_index;
+  auto* ue = ue_mng.find_du_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for location reporting control", ue_index);
+    return;
+  }
+
+  // Configure the location manager.
+  ue->get_location_manager().configure_location_reporting(msg);
+
+  // Send immediate location report if required, 3GPP TS 38.413 8.12.1.2 states that "if reporting upon change of
+  // serving cell is requested, the NG-RAN node shall send a report immediately"
+  using event_type = ngap_location_report_request::event_type;
+  if (msg.location_reporting_type == event_type::direct ||
+      msg.location_reporting_type == event_type::change_of_serve_cell ||
+      msg.location_reporting_type == event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
+    // Get cell info and build location report if needed.
     const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
     if (cell == nullptr) {
       logger.warning("ue={}: Cell not found for PCI={}", ue_index, ue->get_pci());
       return;
     }
-    resp.nr_cgi = cell->cgi;
-    resp.tai    = tai_t{cell->cgi.plmn_id, cell->tac};
-    ngap->handle_location_report_transmission(resp);
-  } else {
-    logger.warning(
-        "ue={}: Received NGAP Location Reporting Control message with unsupported location reporting type: {}",
-        ue_index,
-        msg.location_reporting_type);
-    // TODO: send Location Reporting Failure Indication if not supported?
+
+    auto report =
+        ue->get_location_manager().get_location_report(ue_index, cell->cgi, tai_t{cell->cgi.plmn_id, cell->tac});
+
+    auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+    if (ngap == nullptr) {
+      logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+      return;
+    }
+
+    ngap->handle_location_report_transmission(report);
   }
 }
 

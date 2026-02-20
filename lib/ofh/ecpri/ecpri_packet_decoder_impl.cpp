@@ -116,6 +116,16 @@ span<const uint8_t> packet_decoder_use_header_payload_size::decode_payload(span<
     return {};
   }
 
+  if (OCUDU_UNLIKELY(params.header.payload_size < ECPRI_IQ_DATA_PACKET_FIELDS_SIZE)) {
+    logger.info("Sector #{}: dropped received eCPRI packet as its size is '{}' bytes which is smaller than the eCPRI "
+                " Rtcid/Pcid and Seqid size which is '{}' bytes",
+                sector,
+                params.header.payload_size,
+                ECPRI_IQ_DATA_PACKET_FIELDS_SIZE);
+
+    return {};
+  }
+
   ofh::network_order_binary_deserializer deserializer(packet);
 
   switch (params.header.msg_type) {
@@ -140,6 +150,16 @@ span<const uint8_t> packet_decoder_use_header_payload_size::decode_payload(span<
 span<const uint8_t> packet_decoder_ignore_header_payload_size::decode_payload(span<const uint8_t> packet,
                                                                               packet_parameters&  params)
 {
+  if (OCUDU_UNLIKELY(units::bytes(packet.size()) < ECPRI_IQ_DATA_PACKET_FIELDS_SIZE)) {
+    logger.info("Sector #{}: dropped received eCPRI packet as its size is '{}' bytes which is smaller than the eCPRI "
+                " Rtcid/Pcid and Seqid size which is '{}' bytes",
+                sector,
+                packet.size(),
+                ECPRI_IQ_DATA_PACKET_FIELDS_SIZE);
+
+    return {};
+  }
+
   ofh::network_order_binary_deserializer deserializer(packet);
 
   switch (params.header.msg_type) {

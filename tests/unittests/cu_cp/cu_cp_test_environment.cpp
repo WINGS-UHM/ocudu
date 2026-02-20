@@ -18,6 +18,7 @@
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
+#include "tests/unittests/xnap/xnap_test_helpers.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
@@ -54,7 +55,8 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
   params(std::move(params_)),
   cu_cp_workers(std::make_unique<worker_manager>()),
   timers(64),
-  amf_configs(std::move(params.amf_configs))
+  amf_configs(std::move(params.amf_configs)),
+  xnc_gw(std::make_unique<dummy_xnc_gateway>())
 {
   // Initialize logging.
   test_logger.set_level(ocudulog::basic_levels::debug);
@@ -79,6 +81,9 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
   for (const auto& [amf_index, amf_config] : amf_configs) {
     cu_cp_cfg.ngap.ngaps.push_back(cu_cp_configuration::ngap_config{&*amf_config.amf_stub, amf_config.supported_tas});
   }
+  // Fill XNAP config.
+  cu_cp_cfg.xnap.xnc_gw = xnc_gw.get();
+
   // Fill Security config.
   cu_cp_cfg.security.int_algo_pref_list = {security::integrity_algorithm::nia2,
                                            security::integrity_algorithm::nia1,

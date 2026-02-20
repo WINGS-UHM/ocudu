@@ -17,6 +17,7 @@
 #include "test_doubles/mock_du.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
+#include "tests/unittests/xnap/xnap_test_helpers.h"
 #include "ocudu/cu_cp/cu_cp.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/ran/plmn_identity.h"
@@ -265,6 +266,9 @@ private:
 
   /// Notifiers for the CU-CP interface.
   std::map<unsigned, cu_cp_test_amf_config> amf_configs;
+
+  // Emulated XnC gateway.
+  std::unique_ptr<dummy_xnc_gateway> xnc_gw;
 
   // Emulated CU-UP nodes.
   std::unordered_map<unsigned, std::unique_ptr<mock_cu_up>> cu_ups;

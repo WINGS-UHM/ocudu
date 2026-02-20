@@ -100,6 +100,27 @@ static YAML::Node build_cu_cp_amf_section(const cu_cp_unit_amf_config& config)
   return node;
 }
 
+static YAML::Node build_cu_cp_xnap_item_section(const cu_cp_unit_xnap_config& config)
+{
+  YAML::Node node;
+
+  node["bind_addrs"] = config.bind_addrs;
+  node["peer_addrs"] = config.peer_addrs;
+
+  return node;
+}
+
+static YAML::Node build_cu_cp_xnap_section(const std::vector<cu_cp_unit_xnap_config>& xnap_configs)
+{
+  YAML::Node node;
+
+  for (const auto& xnap : xnap_configs) {
+    node.push_back(build_cu_cp_xnap_item_section(xnap));
+  }
+
+  return node;
+}
+
 static YAML::Node build_cu_cp_mobility_ncells_section(const cu_cp_unit_neighbor_cell_config_item& config)
 {
   YAML::Node node;
@@ -273,6 +294,9 @@ static YAML::Node build_cu_cp_section(const cu_cp_unit_config& config)
   if (!config.extra_amfs.empty()) {
     node["extra_amfs"] = build_cu_cp_extra_amfs_section(config.extra_amfs);
   }
+  if (!config.xnap_configs.empty()) {
+    node["xnaps"] = build_cu_cp_xnap_section(config.xnap_configs);
+  }
   node["mobility"] = build_cu_cp_mobility_section(config.mobility_config);
   node["rrc"]      = build_cu_cp_rrc_section(config.rrc_config);
   node["security"] = build_cu_cp_security_section(config.security_config);
@@ -287,6 +311,7 @@ static void fill_cu_cp_log_section(YAML::Node node, const cu_cp_unit_logger_conf
   node["pdcp_level"]        = ocudulog::basic_level_to_string(config.pdcp_level);
   node["rrc_level"]         = ocudulog::basic_level_to_string(config.rrc_level);
   node["ngap_level"]        = ocudulog::basic_level_to_string(config.ngap_level);
+  node["xnap_level"]        = ocudulog::basic_level_to_string(config.xnap_level);
   node["nrppa_level"]       = ocudulog::basic_level_to_string(config.nrppa_level);
   node["e1ap_level"]        = ocudulog::basic_level_to_string(config.e1ap_level);
   node["f1ap_level"]        = ocudulog::basic_level_to_string(config.f1ap_level);
@@ -301,6 +326,8 @@ static void fill_cu_cp_pcap_section(YAML::Node node, const cu_cp_unit_pcap_confi
 {
   node["ngap_filename"] = config.ngap.filename;
   node["ngap_enable"]   = config.ngap.enabled;
+  node["xnap_filename"] = config.xnap.filename;
+  node["xnap_enable"]   = config.xnap.enabled;
   node["f1ap_filename"] = config.f1ap.filename;
   node["f1ap_enable"]   = config.f1ap.enabled;
   node["e1ap_filename"] = config.e1ap.filename;

@@ -26,6 +26,7 @@ set(SOURCES
         pucch_scheduling/pucch_resource_manager.cpp
         uci_scheduling/uci_scheduler_impl.cpp
         uci_scheduling/uci_allocator_impl.cpp
+        uci_scheduling/uci_indication_selector.cpp
         slicing/inter_slice_scheduler.cpp
         slicing/ran_slice_instance.cpp
         slicing/slice_ue_repository.cpp

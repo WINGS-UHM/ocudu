@@ -8,6 +8,7 @@
 
 
 add_executable(uci_pucch_sched_test
+        uci_indication_selector_test.cpp
         pucch_alloc_common_harq_test.cpp
         pucch_alloc_ded_resources_test.cpp
         pucch_alloc_format_0_test.cpp

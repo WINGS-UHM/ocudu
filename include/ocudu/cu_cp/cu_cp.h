@@ -16,9 +16,9 @@
 #include "ocudu/cu_cp/cu_cp_f1c_handler.h"
 #include "ocudu/cu_cp/cu_cp_metrics_handler.h"
 #include "ocudu/cu_cp/cu_cp_ng_handler.h"
+#include "ocudu/cu_cp/cu_cp_xnc_handler.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Public interface for a CU-CP instance.
 class cu_cp
@@ -34,6 +34,9 @@ public:
 
   /// \brief Get handler of the NG interface of the CU-CP.
   virtual cu_cp_ng_handler& get_ng_handler() = 0;
+
+  /// \brief Get handler of the XN-C interface of the CU-CP.
+  virtual cu_cp_xnc_handler& get_xnc_handler() = 0;
 
   /// \brief Get the handler of external commands/events to the CU-CP.
   virtual cu_cp_command_handler& get_command_handler() = 0;
@@ -54,5 +57,4 @@ public:
   virtual void stop() = 0;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

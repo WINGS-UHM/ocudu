@@ -734,6 +734,7 @@ cu_cp_impl::handle_new_initial_context_setup_request(const ngap_init_context_set
                                                      *rrc_ue,
                                                      ngap->get_ngap_ue_radio_cap_management_handler(),
                                                      ue->get_security_manager(),
+                                                     ue->get_location_manager(),
                                                      du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
                                                      get_cu_cp_ngap_handler(),
                                                      logger);

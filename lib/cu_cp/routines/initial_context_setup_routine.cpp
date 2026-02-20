@@ -25,6 +25,7 @@ initial_context_setup_routine::initial_context_setup_routine(
     rrc_ue_interface&                            rrc_ue_,
     ngap_ue_radio_capability_management_handler& ngap_ue_radio_cap_handler_,
     ue_security_manager&                         security_mng_,
+    ue_location_manager&                         loc_mng_,
     f1ap_ue_context_manager&                     f1ap_ue_ctxt_mng_,
     cu_cp_ngap_handler&                          pdu_session_setup_handler_,
     ocudulog::basic_logger&                      logger_) :
@@ -32,6 +33,7 @@ initial_context_setup_routine::initial_context_setup_routine(
   rrc_ue(rrc_ue_),
   ngap_ue_radio_cap_handler(ngap_ue_radio_cap_handler_),
   security_mng(security_mng_),
+  loc_mng(loc_mng_),
   f1ap_ue_ctxt_mng(f1ap_ue_ctxt_mng_),
   pdu_session_setup_handler(pdu_session_setup_handler_),
   logger(logger_)
@@ -144,6 +146,11 @@ void initial_context_setup_routine::operator()(
     if (request.nas_pdu.has_value()) {
       handle_nas_pdu(request.nas_pdu.value().copy());
     }
+  }
+
+  // Configure location reporting if requested.
+  if (request.location_report_request_type.has_value()) {
+    loc_mng.configure_location_reporting(request.location_report_request_type.value());
   }
 
   // Schedule transmission of UE Radio Capability Info Indication.

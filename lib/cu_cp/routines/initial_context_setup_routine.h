@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "../ue_location_manager/ue_location_manager.h"
 #include "../ue_manager/ue_manager_impl.h"
 #include "ocudu/ngap/ngap_init_context_setup.h"
 #include "ocudu/ngap/ngap_ue_radio_capability_management.h"
@@ -25,6 +26,7 @@ public:
                                 rrc_ue_interface&                            rrc_ue_,
                                 ngap_ue_radio_capability_management_handler& ngap_ue_radio_cap_handler_,
                                 ue_security_manager&                         security_mng_,
+                                ue_location_manager&                         loc_mng_,
                                 f1ap_ue_context_manager&                     f1ap_ue_ctxt_mng_,
                                 cu_cp_ngap_handler&                          pdu_session_setup_handler_,
                                 ocudulog::basic_logger&                      logger_);
@@ -44,6 +46,7 @@ private:
   rrc_ue_interface&                            rrc_ue;
   ngap_ue_radio_capability_management_handler& ngap_ue_radio_cap_handler;
   ue_security_manager&                         security_mng;
+  ue_location_manager&                         loc_mng;
   f1ap_ue_context_manager&                     f1ap_ue_ctxt_mng;          // to trigger UE context setup at F1AP
   cu_cp_ngap_handler&                          pdu_session_setup_handler; // to setup PDU sessions
   ocudulog::basic_logger&                      logger;

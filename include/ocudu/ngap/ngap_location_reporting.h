@@ -15,7 +15,7 @@
 
 namespace ocudu::ocucp {
 
-struct ngap_location_reporting_control {
+struct ngap_location_report_request {
   enum class event_type {
     direct,
     change_of_serve_cell,
@@ -43,7 +43,7 @@ struct ngap_location_report_failure_indication {
 } // namespace ocudu::ocucp
 
 template <>
-struct fmt::formatter<ocudu::ocucp::ngap_location_reporting_control::event_type> {
+struct fmt::formatter<ocudu::ocucp::ngap_location_report_request::event_type> {
   template <typename ParseContext>
   auto parse(ParseContext& ctx)
   {
@@ -51,29 +51,29 @@ struct fmt::formatter<ocudu::ocucp::ngap_location_reporting_control::event_type>
   }
 
   template <typename FormatContext>
-  auto format(const ocudu::ocucp::ngap_location_reporting_control::event_type& cfg, FormatContext& ctx) const
+  auto format(const ocudu::ocucp::ngap_location_report_request::event_type& cfg, FormatContext& ctx) const
   {
     std::string_view str;
     switch (cfg) {
-      case ocudu::ocucp::ngap_location_reporting_control::event_type::direct:
+      case ocudu::ocucp::ngap_location_report_request::event_type::direct:
         str = "direct";
         break;
-      case ocudu::ocucp::ngap_location_reporting_control::event_type::change_of_serve_cell:
+      case ocudu::ocucp::ngap_location_report_request::event_type::change_of_serve_cell:
         str = "change_of_serve_cell";
         break;
-      case ocudu::ocucp::ngap_location_reporting_control::event_type::ue_presence_in_area_of_interest:
+      case ocudu::ocucp::ngap_location_report_request::event_type::ue_presence_in_area_of_interest:
         str = "ue_presence_in_area_of_interest";
         break;
-      case ocudu::ocucp::ngap_location_reporting_control::event_type::stop_change_of_serve_cell:
+      case ocudu::ocucp::ngap_location_report_request::event_type::stop_change_of_serve_cell:
         str = "stop_change_of_serve_cell";
         break;
-      case ocudu::ocucp::ngap_location_reporting_control::event_type::stop_ue_presence_in_area_of_interest:
+      case ocudu::ocucp::ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest:
         str = "stop_ue_presence_in_area_of_interest";
         break;
-      case ocudu::ocucp::ngap_location_reporting_control::event_type::cancel_location_report_for_the_ue:
+      case ocudu::ocucp::ngap_location_report_request::event_type::cancel_location_report_for_the_ue:
         str = "cancel_location_report_for_the_ue";
         break;
-      case ocudu::ocucp::ngap_location_reporting_control::event_type::
+      case ocudu::ocucp::ngap_location_report_request::event_type::
           change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
         str = "change_of_serving_cell_and_ue_presence_in_the_area_of_interest";
         break;

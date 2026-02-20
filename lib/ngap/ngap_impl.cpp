@@ -1037,10 +1037,10 @@ void ngap_impl::handle_location_reporting_control_message(const asn1::ngap::loca
     handle_inconsistent_ue_id_pair(uint_to_ran_ue_id(msg->ran_ue_ngap_id), uint_to_amf_ue_id(msg->amf_ue_ngap_id));
     return;
   }
-  ue_index_t                      ue_index = ue_ctxt_list[uint_to_ran_ue_id(msg->ran_ue_ngap_id)].ue_ids.ue_index;
-  ngap_location_reporting_control location_reporting_ctrl;
+  ue_index_t                   ue_index = ue_ctxt_list[uint_to_ran_ue_id(msg->ran_ue_ngap_id)].ue_ids.ue_index;
+  ngap_location_report_request location_reporting_ctrl;
 
-  fill_ngap_location_reporting_control(location_reporting_ctrl, msg);
+  fill_ngap_location_report_request(location_reporting_ctrl, msg);
   cu_cp_notifier.on_location_reporting_control_message(ue_index, location_reporting_ctrl);
 }
 

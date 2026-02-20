@@ -69,7 +69,7 @@ TEST_F(ngap_location_reporting_test,
   ASSERT_EQ(cu_cp_notifier.last_location_reporting_ctrl_ue_index.value(), ue_index);
   ASSERT_TRUE(cu_cp_notifier.last_location_reporting_ctrl.has_value());
   ASSERT_EQ(cu_cp_notifier.last_location_reporting_ctrl.value().location_reporting_type,
-            ngap_location_reporting_control::event_type::direct);
+            ngap_location_report_request::event_type::direct);
 }
 
 TEST_F(ngap_location_reporting_test, when_ngap_receives_location_report_message_from_cucp_it_forwards_it_to_amf)

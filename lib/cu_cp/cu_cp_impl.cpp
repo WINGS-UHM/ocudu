@@ -939,10 +939,9 @@ void cu_cp_impl::handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf
   nrppa_entity->get_nrppa_message_handler().handle_new_nrppa_pdu(nrppa_pdu, amf_index);
 }
 
-void cu_cp_impl::handle_location_reporting_control_message(ue_index_t                             ue_index,
-                                                           const ngap_location_reporting_control& msg)
+void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg)
 {
-  if (msg.location_reporting_type == ngap_location_reporting_control::event_type::direct) {
+  if (msg.location_reporting_type == ngap_location_report_request::event_type::direct) {
     auto* ue = ue_mng.find_du_ue(ue_index);
     if (ue == nullptr) {
       logger.warning("ue={}: UE not found for handling location reporting control message", ue_index);

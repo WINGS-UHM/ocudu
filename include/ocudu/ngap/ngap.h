@@ -228,8 +228,7 @@ public:
   virtual void on_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) = 0;
 
   /// \brief Notifies the CU-CP about a Location Reporting Control message.
-  virtual void on_location_reporting_control_message(ue_index_t                             ue_index,
-                                                     const ngap_location_reporting_control& msg) = 0;
+  virtual void on_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg) = 0;
 };
 
 /// Handle NGAP NAS Message procedures as defined in TS 38.413 section 8.6.

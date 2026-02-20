@@ -114,8 +114,7 @@ public:
   void       handle_n2_handover_execution(ue_index_t ue_index) override;
   void       handle_dl_ue_associated_nrppa_transport_pdu(ue_index_t ue_index, const byte_buffer& nrppa_pdu) override;
   void handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) override;
-  void handle_location_reporting_control_message(ue_index_t                             ue_index,
-                                                 const ngap_location_reporting_control& msg) override;
+  void handle_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg) override;
   void handle_n2_disconnection(amf_index_t amf_index) override;
 
   // cu_cp_nrppa_handler.

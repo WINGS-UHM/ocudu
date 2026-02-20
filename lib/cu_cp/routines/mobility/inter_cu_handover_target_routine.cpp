@@ -231,6 +231,11 @@ void inter_cu_handover_target_routine::operator()(
     handover_command_pdu = ue->get_rrc_ue()->get_rrc_handover_command(rrc_reconfig_args, transaction_id);
   }
 
+  // Configure location reporting if requested in the handover request.
+  if (request.location_report_request_type.has_value()) {
+    ue->get_location_manager().configure_location_reporting(request.location_report_request_type.value());
+  }
+
   CORO_RETURN(generate_handover_resource_allocation_response(true));
 }
 

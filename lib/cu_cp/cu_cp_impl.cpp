@@ -54,7 +54,9 @@ static void assert_cu_cp_configuration_valid(const cu_cp_configuration& cfg)
   for (const auto& ngap : cfg.ngap.ngaps) {
     ocudu_assert(ngap.n2_gw != nullptr, "Invalid N2 GW client handler");
   }
-  // TODO: add check for XNC gw.
+  if (!cfg.xnap.xnaps.empty()) {
+    ocudu_assert(cfg.xnap.xnc_gw != nullptr, "Invalid XN-C GW client handler");
+  }
   ocudu_assert(cfg.services.timers != nullptr, "Invalid timers");
 
   report_error_if_not(cfg.admission.max_nof_dus <= MAX_NOF_DUS, "Invalid max number of DUs");

@@ -14,6 +14,7 @@
 #include "../adapters/nrppa_adapters.h"
 #include "../adapters/rrc_ue_adapters.h"
 #include "../cell_meas_manager/measurement_context.h"
+#include "../ue_location_manager/ue_location_manager.h"
 #include "../ue_security_manager/ue_security_manager_impl.h"
 #include "../up_resource_manager/up_resource_manager_impl.h"
 #include "cu_cp_ue_impl_interface.h"
@@ -146,6 +147,9 @@ public:
   cu_cp_ue_context&                     get_ue_context() { return ue_ctxt; }
   [[nodiscard]] const cu_cp_ue_context& get_ue_context() const { return ue_ctxt; }
 
+  /// \brief Get the location manager of the UE.
+  ue_location_manager& get_location_manager() { return loc_mng; }
+
   /// \brief Get the measurement context of the UE.
   cell_meas_manager_ue_context& get_meas_context() { return meas_context; }
 
@@ -222,10 +226,7 @@ private:
   ue_task_scheduler_impl task_sched;
   up_resource_manager    up_mng;
   ue_security_manager    sec_mng;
-  // TODO: consider adding UE location manager:
-  // - track current location and timestamps,
-  // - track and store configured areas of interest
-  // - build location_report_request to be sent to AMF.
+  ue_location_manager    loc_mng;
 
   // DU/CU-UP UE context.
   cu_cp_ue_context ue_ctxt;

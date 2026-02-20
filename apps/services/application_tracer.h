@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/ocudulog/logger.h"
 #include "ocudu/support/ocudu_assert.h"
 #include "ocudu/support/tracing/event_tracing.h"
 #include <string_view>

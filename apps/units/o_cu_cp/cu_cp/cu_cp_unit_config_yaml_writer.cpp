@@ -173,13 +173,35 @@ static YAML::Node build_cu_cp_mobility_cells_section(const cu_cp_unit_cell_confi
   return node;
 }
 
+/// Convert time_point to ISO 8601 format string (YYYY-MM-DDTHH:MM:SS.mmm).
+static std::string timepoint_to_iso8601(const std::chrono::system_clock::time_point& tp)
+{
+  auto   ms           = std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch());
+  auto   secs         = std::chrono::duration_cast<std::chrono::seconds>(ms);
+  time_t time         = secs.count();
+  int    milliseconds = (ms.count() % 1000);
+
+  std::tm tm_utc = *std::gmtime(&time);
+  char    buf[32];
+  std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S", &tm_utc);
+
+  // Format milliseconds with leading zeros.
+  char ms_buf[8];
+  std::snprintf(ms_buf, sizeof(ms_buf), ".%03d", milliseconds);
+
+  return std::string(buf) + ms_buf;
+}
+
 static YAML::Node build_cu_cp_mobility_report_section(const cu_cp_unit_report_config& config)
 {
   YAML::Node node;
 
-  node["report_cfg_id"]      = config.report_cfg_id;
-  node["report_type"]        = config.report_type;
-  node["report_interval_ms"] = config.report_interval_ms;
+  node["report_cfg_id"] = config.report_cfg_id;
+  node["report_type"]   = config.report_type;
+  // Cond-trigger report configs do not have report interval semantics.
+  if (config.report_type != "cond_trigger") {
+    node["report_interval_ms"] = config.report_interval_ms;
+  }
 
   if (!config.event_triggered_report_type) {
     return node;
@@ -214,6 +236,35 @@ static YAML::Node build_cu_cp_mobility_report_section(const cu_cp_unit_report_co
   // A3, A6 - neighbour offset relative to serving cell.
   if (ev == "a3" or ev == "a6") {
     add_opt("meas_trigger_quantity_offset_db", config.meas_trigger_quantity_offset_db);
+  }
+
+  // D1/D2 - distance-based conditional events.
+  if (ev == "d1" or ev == "d2") {
+    add_opt("distance_thresh_from_ref1_km", config.distance_thresh_from_ref1_km);
+    add_opt("distance_thresh_from_ref2_km", config.distance_thresh_from_ref2_km);
+    add_opt("hysteresis_location_km", config.hysteresis_location_km);
+  }
+
+  // D1 - reference locations (serving and target cell).
+  if (ev == "d1") {
+    if (config.ref_location1.has_value()) {
+      node["ref_location1"]["latitude"]  = config.ref_location1->latitude;
+      node["ref_location1"]["longitude"] = config.ref_location1->longitude;
+    }
+    if (config.ref_location2.has_value()) {
+      node["ref_location2"]["latitude"]  = config.ref_location2->latitude;
+      node["ref_location2"]["longitude"] = config.ref_location2->longitude;
+    }
+  }
+
+  // T1 - time-based conditional event.
+  if (ev == "t1") {
+    if (config.t1_thres.has_value()) {
+      node["t1_thres"] = timepoint_to_iso8601(config.t1_thres.value());
+    }
+    if (config.duration.has_value()) {
+      node["duration_s"] = config.duration->count();
+    }
   }
 
   return node;

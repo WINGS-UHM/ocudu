@@ -29,6 +29,57 @@ static bool validate_event_trigger_params(const cu_cp_unit_report_config& cfg)
                cfg.report_cfg_id);
     return false;
   }
+
+  const std::string& ev = cfg.event_triggered_report_type.value();
+
+  // D/T distance- and time-based events are only valid for cond_trigger report type.
+  if (ev == "d1" or ev == "t1" or ev == "d2") {
+    if (cfg.report_type != "cond_trigger") {
+      fmt::print("report_cfg_id={}: event '{}' is only valid for report_type=cond_trigger\n", cfg.report_cfg_id, ev);
+      return false;
+    }
+    if (ev == "d1" or ev == "d2") {
+      // Common D1/D2: distance thresholds, hysteresis, and time-to-trigger are mandatory.
+      if (!cfg.distance_thresh_from_ref1_km.has_value() or !cfg.distance_thresh_from_ref2_km.has_value()) {
+        fmt::print(
+            "report_cfg_id={}: {} event requires distance_thresh_from_ref1_km and distance_thresh_from_ref2_km\n",
+            cfg.report_cfg_id,
+            ev);
+        return false;
+      }
+      if (!cfg.hysteresis_location_km.has_value()) {
+        fmt::print("report_cfg_id={}: {} event requires hysteresis_location_km\n", cfg.report_cfg_id, ev);
+        return false;
+      }
+      if (!cfg.time_to_trigger_ms.has_value()) {
+        fmt::print("report_cfg_id={}: {} event requires time_to_trigger_ms\n", cfg.report_cfg_id, ev);
+        return false;
+      }
+      // D1-only: range check (ASN.1 uses 50 m steps, upper bound 65535 -> 3276.75 km) and ref locations.
+      if (ev == "d1") {
+        if (cfg.distance_thresh_from_ref1_km.value() > 3276.75 or cfg.distance_thresh_from_ref2_km.value() > 3276.75) {
+          fmt::print("report_cfg_id={}: D1 distance thresholds must be in [0..3276.75] km\n", cfg.report_cfg_id);
+          return false;
+        }
+        if (!cfg.ref_location1.has_value() or !cfg.ref_location2.has_value()) {
+          fmt::print("report_cfg_id={}: D1 event requires ref_location1 and ref_location2\n", cfg.report_cfg_id);
+          return false;
+        }
+      }
+    } else if (ev == "t1") {
+      if (!cfg.t1_thres.has_value()) {
+        fmt::print("report_cfg_id={}: T1 event requires t1_thres\n", cfg.report_cfg_id);
+        return false;
+      }
+      if (!cfg.duration.has_value() or cfg.duration->count() < 0.1 or cfg.duration->count() > 600.0) {
+        fmt::print("report_cfg_id={}: T1 event requires duration_s in [0.1..600]\n", cfg.report_cfg_id);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // A-family events (a1-a6): require meas_trigger_quantity, hysteresis_db, time_to_trigger_ms.
   if (!cfg.meas_trigger_quantity.has_value() or !cfg.hysteresis_db.has_value() or !cfg.time_to_trigger_ms.has_value()) {
     fmt::print("report_cfg_id={}: meas_trigger_quantity, hysteresis_db, and time_to_trigger_ms are required\n",
                cfg.report_cfg_id);
@@ -42,7 +93,6 @@ static bool validate_event_trigger_params(const cu_cp_unit_report_config& cfg)
     return false;
   }
 
-  const std::string& ev  = cfg.event_triggered_report_type.value();
   const std::string& qty = cfg.meas_trigger_quantity.value();
 
   if (ev == "a3" or ev == "a6") {

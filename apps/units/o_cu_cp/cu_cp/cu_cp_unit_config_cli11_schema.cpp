@@ -12,11 +12,73 @@
 #include "apps/helpers/logger/logger_appconfig_cli11_utils.h"
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
 #include "cu_cp_unit_config.h"
+#include "ocudu/adt/expected.h"
 #include "ocudu/ran/nr_cell_identity.h"
 #include "ocudu/support/cli11_utils.h"
 #include "ocudu/support/config_parsers.h"
+#include <algorithm>
+#include <cstdlib>
+#include <ctime>
+#include <regex>
 
 using namespace ocudu;
+
+/// Returns true if \p s is a non-empty string of decimal digits.
+static bool is_number(const std::string& s)
+{
+  return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+}
+
+/// Returns true if \p s matches the ISO 8601 timestamp format YYYY-MM-DDTHH:MM:SS[.mmm].
+static bool is_valid_timestamp(const std::string& s)
+{
+  static const std::regex ts_regex{R"(^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?$)"};
+  return std::regex_match(s, ts_regex);
+}
+
+/// Parses a timestamp from either a Unix-ms integer string or ISO 8601 (YYYY-MM-DDTHH:MM:SS[.mmm]).
+/// Returns the parsed time_point on success, or an error description on failure.
+static expected<std::chrono::system_clock::time_point, std::string> parse_timestamp_ms(const std::string& datetime)
+{
+  if (is_number(datetime)) {
+    int64_t ms = std::stoll(datetime);
+    return std::chrono::system_clock::time_point{std::chrono::milliseconds{ms}};
+  }
+  // Try ISO 8601: YYYY-MM-DDTHH:MM:SS[.mmm]
+  std::tm     tm_val  = {};
+  int         frac_ms = 0;
+  const char* endptr  = strptime(datetime.c_str(), "%Y-%m-%dT%H:%M:%S", &tm_val);
+  if (endptr == nullptr) {
+    return make_unexpected(std::string{"Expected Unix ms integer or YYYY-MM-DDTHH:MM:SS[.mmm]"});
+  }
+  if (*endptr == '.') {
+    ++endptr;
+    char* end2    = nullptr;
+    long  frac    = strtol(endptr, &end2, 10);
+    int   ndigits = static_cast<int>(end2 - endptr);
+    while (ndigits < 3) {
+      frac *= 10;
+      ++ndigits;
+    }
+    while (ndigits > 3) {
+      frac /= 10;
+      --ndigits;
+    }
+    frac_ms = static_cast<int>(frac);
+  }
+  time_t t = timegm(&tm_val);
+  if (t == static_cast<time_t>(-1)) {
+    return make_unexpected(std::string{"Failed to convert timestamp to UTC"});
+  }
+  return std::chrono::system_clock::from_time_t(t) + std::chrono::milliseconds{frac_ms};
+}
+
+/// Registers CLI11 lat/lon options on \p app bound to \p loc.
+static void configure_cli11_geo_location(CLI::App& app, ocucp::rrc_geo_location& loc)
+{
+  add_option(app, "--latitude", loc.latitude, "Latitude [degrees, -90..90]")->check(CLI::Range(-90.0, 90.0));
+  add_option(app, "--longitude", loc.longitude, "Longitude [degrees, -180..180]")->check(CLI::Range(-180.0, 180.0));
+}
 
 static void configure_cli11_log_args(CLI::App& app, cu_cp_unit_logger_config& log_params)
 {
@@ -215,7 +277,7 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
              "--event_triggered_report_type",
              report_params.event_triggered_report_type,
              "Type of the event triggered report")
-      ->check(CLI::IsMember({"a1", "a2", "a3", "a4", "a5", "a6"}));
+      ->check(CLI::IsMember({"a1", "a2", "a3", "a4", "a5", "a6", "d1", "t1", "d2"}));
   add_option(app, "--report_interval_ms", report_params.report_interval_ms, "Report interval in ms")
       ->check(
           CLI::IsMember({120, 240, 480, 640, 1024, 2048, 5120, 10240, 20480, 40960, 60000, 360000, 720000, 1800000}));
@@ -264,6 +326,67 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
              "(out-of-sync) timer is already running and on its expiration triggers the RLF to speed up "
              "reestablishment to different cell.")
       ->check(CLI::IsMember({0, 50, 100, 200, 300, 400, 500, 1000}));
+
+  // D1/D2 distance-based conditional event options.
+  add_option(app,
+             "--distance_thresh_from_ref1_km",
+             report_params.distance_thresh_from_ref1_km,
+             "D1/D2: distance threshold 1 in km [0..3276.75] (50m steps, D1 max is 3276.25)")
+      ->check(CLI::Range(0.0, 3276.75));
+  add_option(app,
+             "--distance_thresh_from_ref2_km",
+             report_params.distance_thresh_from_ref2_km,
+             "D1/D2: distance threshold 2 in km [0..3276.75] (50m steps, D1 max is 3276.25)")
+      ->check(CLI::Range(0.0, 3276.75));
+  add_option(app,
+             "--hysteresis_location_km",
+             report_params.hysteresis_location_km,
+             "D1/D2: location hysteresis in km [0..327.68] (10m steps)")
+      ->check(CLI::Range(0.0, 327.68));
+
+  // D1 reference locations (nested subcommands for lat/lon).
+  static ocucp::rrc_geo_location ref_location1;
+  CLI::App*                      ref_loc1_sub =
+      app.add_subcommand("ref_location1", "D1: reference location 1 (serving cell)")->configurable();
+  configure_cli11_geo_location(*ref_loc1_sub, ref_location1);
+  ref_loc1_sub->parse_complete_callback([&]() {
+    if (app.get_subcommand("ref_location1")->count() != 0) {
+      report_params.ref_location1 = ref_location1;
+    }
+  });
+
+  static ocucp::rrc_geo_location ref_location2;
+  CLI::App*                      ref_loc2_sub =
+      app.add_subcommand("ref_location2", "D1: reference location 2 (target cell)")->configurable();
+  configure_cli11_geo_location(*ref_loc2_sub, ref_location2);
+  ref_loc2_sub->parse_complete_callback([&]() {
+    if (app.get_subcommand("ref_location2")->count() != 0) {
+      report_params.ref_location2 = ref_location2;
+    }
+  });
+
+  // T1 time-based conditional event options.
+  app.add_option_function<std::string>(
+         "--t1_thres",
+         [&report_params](const std::string& v) {
+           auto result = parse_timestamp_ms(v);
+           if (!result) {
+             throw CLI::ValidationError("--t1_thres", result.error());
+           }
+           report_params.t1_thres = result.value();
+         },
+         "T1: time threshold (Unix ms integer or YYYY-MM-DDTHH:MM:SS[.mmm])")
+      ->check([](const std::string& input) -> std::string {
+        if (!is_number(input) && !is_valid_timestamp(input)) {
+          return "Invalid timestamp format. Expected Unix time (ms) or YYYY-MM-DDTHH:MM:SS[.mmm]";
+        }
+        return {};
+      });
+  app.add_option_function<double>(
+         "--duration_s",
+         [&report_params](double v) { report_params.duration = std::chrono::duration<double>{v}; },
+         "T1: duration in seconds (each step=100ms, range [0.1..600])")
+      ->check(CLI::Range(0.1, 600.0));
 }
 
 static void configure_cli11_ncell_args(CLI::App& app, cu_cp_unit_neighbor_cell_config_item& config)

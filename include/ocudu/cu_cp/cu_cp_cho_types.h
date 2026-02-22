@@ -42,6 +42,7 @@ struct cu_cp_intra_cu_cho_response {
   bool success = false;
 };
 
+/// \brief Parameters for a single CHO candidate preparation request.
 struct cu_cp_cho_preparation_request {
   cond_recfg_id_t cond_recfg_id = 1; ///< CHO conditional reconfiguration ID (valid range 1..8).
 };

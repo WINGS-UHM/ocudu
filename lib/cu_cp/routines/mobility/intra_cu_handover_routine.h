@@ -40,7 +40,8 @@ public:
 private:
   bool generate_ue_context_setup_request(f1ap_ue_context_setup_request&               setup_request,
                                          const static_vector<srb_id_t, MAX_NOF_SRBS>& srbs,
-                                         const rrc_ue_transfer_context&               transfer_context);
+                                         const rrc_ue_transfer_context&               transfer_context,
+                                         bool                                         is_cho);
   void create_srb(cu_cp_ue* ue, srb_id_t srb_id);
 
   bool add_security_context_to_bearer_context_modification(const ocudu::security::sec_as_config& security_cfg);
@@ -74,6 +75,10 @@ private:
   f1ap_ue_context_setup_response        target_ue_context_setup_response;
   f1ap_ue_context_modification_response source_ue_context_modification_response;
   bool                                  rrc_reconfig_sent = false;
+
+  // CHO
+  bool                                    is_cho_preparation = false;
+  rrc_ue_handover_reconfiguration_context cho_cand_ctxt;
 };
 
 } // namespace ocucp

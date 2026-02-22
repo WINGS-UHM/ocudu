@@ -81,7 +81,17 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
     next_config        = to_config_update(source_rrc_context.up_ctx);
   }
 
-  logger.debug("ue={}: \"{}\" started...", request.source_ue_index, name());
+  if (request.cho_preparation.has_value()) {
+    is_cho_preparation = true;
+    response_msg.cho_preparation_result.emplace();
+    logger.debug("ue={}: \"{}\" started CHO preparation for target_pci={} cond_recfg_id={}...",
+                 request.source_ue_index,
+                 name(),
+                 request.target_pci,
+                 request.cho_preparation->cond_recfg_id);
+  } else {
+    logger.debug("ue={}: \"{}\" started...", request.source_ue_index, name());
+  }
 
   {
     // Allocate UE index at target DU.
@@ -100,8 +110,10 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
     ue_mng.find_du_ue(target_ue_context_setup_request.ue_index)->set_cu_up_index(source_ue->get_cu_up_index());
 
     // Prepare F1AP UE Context Setup Command and call F1AP notifier of target DU.
-    if (!generate_ue_context_setup_request(
-            target_ue_context_setup_request, source_ue->get_rrc_ue()->get_srbs(), source_rrc_context)) {
+    if (!generate_ue_context_setup_request(target_ue_context_setup_request,
+                                           source_ue->get_rrc_ue()->get_srbs(),
+                                           source_rrc_context,
+                                           is_cho_preparation)) {
       logger.warning("ue={}: \"{}\" failed to generate UeContextSetupRequest", request.source_ue_index, name());
       CORO_EARLY_RETURN(response_msg);
     }
@@ -123,6 +135,18 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
       CORO_AWAIT(cu_cp_handler.handle_ue_removal_request(target_ue_context_setup_request.ue_index));
       // Note: From this point the UE is removed and only the stored context can be accessed.
       CORO_EARLY_RETURN(response_msg);
+    }
+
+    if (is_cho_preparation) {
+      response_msg.cho_preparation_result->target_ue_index = target_ue_context_setup_response.ue_index;
+      // Store bearer context modification request for later use in cho_target_routine.
+      // This contains the new DL F1-U tunnel endpoints that CU-UP needs after CHO completion.
+      response_msg.cho_preparation_result->ng_ran_bearer_context_mod_request =
+          std::move(bearer_context_modification_request.ng_ran_bearer_context_mod_request);
+
+      logger.debug("ue={} target_ue={}: Stored E1AP bearer context modification for CHO completion",
+                   request.source_ue_index,
+                   target_ue_context_setup_response.ue_index);
     }
   }
 
@@ -164,31 +188,48 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
       }
     }
 
-    // Trigger RRC Reconfiguration.
-    CORO_AWAIT_VALUE(rrc_reconfig_sent,
-                     launch_async<handover_reconfiguration_routine>(rrc_reconfig_args,
-                                                                    bearer_context_modification_request,
-                                                                    target_ue_context_setup_response.ue_index,
-                                                                    *source_ue,
-                                                                    source_du_f1ap_ue_ctxt_mng,
-                                                                    cu_cp_handler,
-                                                                    logger));
-    if (!rrc_reconfig_sent) {
-      logger.warning(
-          "ue={}: \"{}\" failed to send RRC reconfiguration. Releasing target UE", request.source_ue_index, name());
+    if (not is_cho_preparation) {
+      // Trigger RRC Reconfiguration.
+      CORO_AWAIT_VALUE(rrc_reconfig_sent,
+                       launch_async<handover_reconfiguration_routine>(rrc_reconfig_args,
+                                                                      bearer_context_modification_request,
+                                                                      target_ue_context_setup_response.ue_index,
+                                                                      *source_ue,
+                                                                      source_du_f1ap_ue_ctxt_mng,
+                                                                      cu_cp_handler,
+                                                                      logger));
+      if (!rrc_reconfig_sent) {
+        logger.warning(
+            "ue={}: \"{}\" failed to send RRC reconfiguration. Releasing target UE", request.source_ue_index, name());
 
-      ue_context_release_command.ue_index             = target_ue->get_ue_index();
-      ue_context_release_command.cause                = ngap_cause_radio_network_t::unspecified;
-      ue_context_release_command.requires_rrc_release = false;
-      CORO_AWAIT(cu_cp_handler.handle_ue_context_release_command(ue_context_release_command));
-      logger.debug("ue={}: \"{}\" removed target UE context", ue_context_release_command.ue_index, name());
+        ue_context_release_command.ue_index             = target_ue->get_ue_index();
+        ue_context_release_command.cause                = ngap_cause_radio_network_t::unspecified;
+        ue_context_release_command.requires_rrc_release = false;
+        CORO_AWAIT(cu_cp_handler.handle_ue_context_release_command(ue_context_release_command));
+        logger.debug("ue={}: \"{}\" removed target UE context", ue_context_release_command.ue_index, name());
 
-      logger.debug("ue={}: \"{}\" failed", request.source_ue_index, name());
-      CORO_EARLY_RETURN(response_msg);
+        logger.debug("ue={}: \"{}\" failed", request.source_ue_index, name());
+        CORO_EARLY_RETURN(response_msg);
+      }
+
+      // Notify mobility manager about requested handover execution.
+      mobility_mng.get_metrics_handler().aggregate_requested_handover_execution();
+    } else {
+      // Get the packed RRC Reconfiguration for this CHO candidate.
+      rrc_reconfig_args.is_cho_preparation = true;
+      cho_cand_ctxt = source_ue->get_rrc_ue()->get_rrc_ue_handover_reconfiguration_context(rrc_reconfig_args);
+
+      if (cho_cand_ctxt.rrc_ue_handover_reconfiguration_pdu.empty()) {
+        logger.warning(
+            "ue={}: \"{}\" Failed to get CHO candidate reconfiguration context", request.source_ue_index, name());
+        CORO_AWAIT(cu_cp_handler.handle_ue_removal_request(target_ue_context_setup_request.ue_index));
+        CORO_EARLY_RETURN(response_msg);
+      }
+
+      // Store the plain ASN.1 RRC Reconfiguration and transaction ID in the response.
+      response_msg.cho_preparation_result->packed_rrc_recfg = cho_cand_ctxt.rrc_ue_handover_reconfiguration_pdu.copy();
+      response_msg.cho_preparation_result->transaction_id   = cho_cand_ctxt.transaction_id;
     }
-
-    // Notify mobility manager about requested handover execution.
-    mobility_mng.get_metrics_handler().aggregate_requested_handover_execution();
   }
 
   {
@@ -208,7 +249,8 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
 
 bool intra_cu_handover_routine::generate_ue_context_setup_request(f1ap_ue_context_setup_request& setup_request,
                                                                   const static_vector<srb_id_t, MAX_NOF_SRBS>& srbs,
-                                                                  const rrc_ue_transfer_context& transfer_context)
+                                                                  const rrc_ue_transfer_context& transfer_context,
+                                                                  bool                           is_cho)
 {
   setup_request.serv_cell_idx = 0; // TODO: Remove hardcoded value
   setup_request.sp_cell_id    = request.cgi;
@@ -224,6 +266,11 @@ bool intra_cu_handover_routine::generate_ue_context_setup_request(f1ap_ue_contex
   }
   setup_request.cu_to_du_rrc_info.ie_exts.value().ho_prep_info = std::move(buffer_copy.value());
   setup_request.cu_to_du_rrc_info.ue_cap_rat_container_list    = transfer_context.ue_cap_rat_container_list.copy();
+
+  if (is_cho) {
+    setup_request.conditional_inter_du_mobility_info.emplace();
+    setup_request.conditional_inter_du_mobility_info->cho_trigger = f1ap_cho_trigger::cho_initiation;
+  }
 
   for (const auto& srb_id : srbs) {
     f1ap_srb_to_setup srb_item;

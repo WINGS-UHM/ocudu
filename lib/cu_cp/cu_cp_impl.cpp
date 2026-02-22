@@ -1133,7 +1133,7 @@ cu_cp_impl::handle_intra_cu_cho_request(const cu_cp_intra_cu_cho_request& reques
       CORO_RETURN(cu_cp_intra_cu_cho_response{});
     });
   }
-  return launch_async<cho_coordinator_routine>(request, du_db, *this, ue_mng, logger);
+  return launch_async<cho_coordinator_routine>(request, du_db, *this, ue_mng, mobility_mng, logger);
 }
 
 void cu_cp_impl::handle_intra_cell_handover_required(ue_index_t ue_index)

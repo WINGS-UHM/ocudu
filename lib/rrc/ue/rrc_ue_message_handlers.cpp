@@ -514,27 +514,32 @@ rrc_ue_impl::get_rrc_ue_handover_reconfiguration_context(const rrc_reconfigurati
   rrc_transaction transaction   = event_mng->transactions.create_transaction();
   ho_reconf_ctxt.transaction_id = transaction.id();
 
-  // Pack RRCReconfiguration.
-  dl_dcch_msg_s dl_dcch_msg;
-  dl_dcch_msg.msg.set_c1().set_rrc_recfg().crit_exts.set_rrc_recfg();
-  fill_asn1_rrc_reconfiguration_msg(dl_dcch_msg.msg.c1().rrc_recfg(), ho_reconf_ctxt.transaction_id, request);
-
-  // Pack DL DCCH msg.
-  pdcp_tx_result pdcp_packing_result =
-      context.srbs.at(srb_id_t::srb1).pack_rrc_pdu(pack_into_pdu(dl_dcch_msg, "RRCReconfiguration"));
-  if (!pdcp_packing_result.is_successful()) {
-    logger.log_info("Requesting UE release. Cause: PDCP packing failed with {}",
-                    pdcp_packing_result.get_failure_cause());
-    on_ue_release_required(pdcp_packing_result.get_failure_cause());
-    return ho_reconf_ctxt;
+  if (request.is_cho_preparation) {
+    // CHO Preparation: Plain ASN.1, no DL-DCCH wrapper, no PDCP. Embedded in condRRCReconfiguration-r16.
+    rrc_recfg_s rrc_recfg;
+    rrc_recfg.crit_exts.set_rrc_recfg();
+    fill_asn1_rrc_reconfiguration_msg(rrc_recfg, ho_reconf_ctxt.transaction_id, request);
+    ho_reconf_ctxt.rrc_ue_handover_reconfiguration_pdu = pack_into_pdu(rrc_recfg, "CHO Candidate RRCReconfiguration");
+    logger.log_debug("ue={} CHO candidate: plain ASN.1 RRCReconfiguration (tid={}, size={})",
+                     context.ue_index,
+                     ho_reconf_ctxt.transaction_id,
+                     ho_reconf_ctxt.rrc_ue_handover_reconfiguration_pdu.length());
+  } else {
+    // Regular handover: DL-DCCH wrapped + PDCP protected.
+    dl_dcch_msg_s dl_dcch_msg;
+    dl_dcch_msg.msg.set_c1().set_rrc_recfg().crit_exts.set_rrc_recfg();
+    fill_asn1_rrc_reconfiguration_msg(dl_dcch_msg.msg.c1().rrc_recfg(), ho_reconf_ctxt.transaction_id, request);
+    pdcp_tx_result result =
+        context.srbs.at(srb_id_t::srb1).pack_rrc_pdu(pack_into_pdu(dl_dcch_msg, "RRCReconfiguration"));
+    if (!result.is_successful()) {
+      logger.log_info("Requesting UE release. Cause: PDCP packing failed with {}", result.get_failure_cause());
+      on_ue_release_required(result.get_failure_cause());
+      return ho_reconf_ctxt;
+    }
+    ho_reconf_ctxt.rrc_ue_handover_reconfiguration_pdu = result.pop_pdu();
+    log_rrc_message(
+        logger, Tx, ho_reconf_ctxt.rrc_ue_handover_reconfiguration_pdu, dl_dcch_msg, srb_id_t::srb1, "DCCH DL");
   }
-
-  ho_reconf_ctxt.rrc_ue_handover_reconfiguration_pdu = pdcp_packing_result.pop_pdu();
-
-  // Log Tx message.
-  log_rrc_message(
-      logger, Tx, ho_reconf_ctxt.rrc_ue_handover_reconfiguration_pdu, dl_dcch_msg, srb_id_t::srb1, "DCCH DL");
-
   return ho_reconf_ctxt;
 }
 

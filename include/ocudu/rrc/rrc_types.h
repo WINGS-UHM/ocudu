@@ -103,6 +103,10 @@ struct rrc_reconfiguration_procedure_request {
   // Optional measurement gap config to include in Reconfiguration.
   byte_buffer                        meas_gap_cfg;
   std::optional<rrc_recfg_v1530_ies> non_crit_ext;
+
+  /// When true the message is packed as plain ASN.1 (no DL-DCCH wrapper, no PDCP protection)
+  /// for embedding in condRRCReconfiguration-r16. Default false (regular handover path).
+  bool is_cho_preparation = false;
 };
 
 struct rrc_ue_capability_transfer_request {

@@ -45,6 +45,11 @@ void ue_configuration_procedure::operator()(coro_context<async_task<f1ap_ue_cont
     CORO_EARLY_RETURN(make_empty_ue_config_response());
   }
 
+  if (not handle_conditional_mobility_request()) {
+    proc_logger.log_proc_failure("Failed to process conditional mobility information");
+    CORO_EARLY_RETURN(make_ue_config_failure());
+  }
+
   prev_ue_res_cfg = ue->resources.value();
   ue_res_cfg_resp = ue->resources.update(
       ue->pcell_index, request, ue->reestablished_cfg_pending.get(), ue->reestablished_ue_caps_summary.get());
@@ -473,7 +478,18 @@ bool ue_configuration_procedure::changed_detected() const
 {
   return !request.drbs_to_setup.empty() || !request.drbs_to_mod.empty() || !request.srbs_to_setup.empty() ||
          !request.drbs_to_rem.empty() || !request.scells_to_setup.empty() || !request.scells_to_rem.empty() ||
-         !request.ho_prep_info.empty() || request.full_config_required;
+         !request.ho_prep_info.empty() || request.full_config_required || request.cho_trigger.has_value();
+}
+
+bool ue_configuration_procedure::handle_conditional_mobility_request()
+{
+  const bool inter_du_cho_present = request.cho_trigger.has_value();
+  if (!inter_du_cho_present) {
+    return true;
+  }
+
+  ue->cond_mobility.set_success_access_required();
+  return true;
 }
 
 void ue_configuration_procedure::handle_rrc_reconfiguration_complete_ind()

@@ -7,6 +7,7 @@
 #include "../ran_resource_management/du_ran_resource_manager.h"
 #include "../ran_resource_management/du_ue_resource_config.h"
 #include "du_ue_bearer_manager.h"
+#include "du_ue_cond_mobility_manager.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/rnti.h"
 
@@ -94,6 +95,9 @@ public:
   /// from the old UE.
   std::unique_ptr<du_ue_resource_config> reestablished_cfg_pending;
   std::unique_ptr<ue_capability_summary> reestablished_ue_caps_summary;
+
+  /// \brief Conditional mobility state for this UE.
+  du_ue_cond_mobility_manager cond_mobility;
 };
 
 } // namespace odu

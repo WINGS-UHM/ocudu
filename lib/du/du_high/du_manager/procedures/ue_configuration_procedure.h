@@ -27,6 +27,7 @@ public:
 
 private:
   bool changed_detected() const;
+  bool handle_conditional_mobility_request();
   // Stop activity in DRBs that need to be replaced.
   async_task<void> stop_drbs_to_rem();
   // Update DU UE bearers. This stage includes the creation/modification/removal of SRBs/DRBs, creation of RLC

@@ -33,6 +33,12 @@ public:
     return cu_cp_handler->handle_intra_cu_handover_request(request, source_du_index, target_du_index);
   }
 
+  async_task<cu_cp_intra_cu_cho_response> on_intra_cu_cho_required(const cu_cp_intra_cu_cho_request& request) override
+  {
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
+    return cu_cp_handler->handle_intra_cu_cho_request(request);
+  }
+
 private:
   cu_cp_mobility_manager_handler* cu_cp_handler = nullptr;
 };

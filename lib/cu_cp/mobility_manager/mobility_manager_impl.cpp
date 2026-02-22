@@ -11,6 +11,8 @@
 #include "mobility_manager_impl.h"
 #include "../du_processor/du_processor_repository.h"
 #include "ocudu/ran/nr_cgi.h"
+#include <set>
+#include <vector>
 
 using namespace ocudu;
 using namespace ocucp;
@@ -44,7 +46,116 @@ void mobility_manager::trigger_conditional_handover(pci_t                     so
                                                     span<const pci_t>         target_pcis,
                                                     std::chrono::milliseconds timeout)
 {
-  // TODO: Trigger CHO by preparing and then automatically executing.
+  // Trigger CHO by preparing and then automatically executing.
+  handle_conditional_handover(source_pci, rnti, target_pcis, timeout);
+}
+
+void mobility_manager::handle_conditional_handover(pci_t                     source_pci,
+                                                   rnti_t                    rnti,
+                                                   span<const pci_t>         target_pcis,
+                                                   std::chrono::milliseconds timeout)
+{
+  // Find UE by PCI and RNTI.
+  ue_index_t ue_index = ue_mng.get_ue_index(source_pci, rnti);
+  if (ue_index == ue_index_t::invalid) {
+    logger.warning("Could not prepare CHO, UE is invalid. rnti={} pci={}", rnti, source_pci);
+    return;
+  }
+
+  // Find the UE context.
+  cu_cp_ue* u = ue_mng.find_du_ue(ue_index);
+  if (u == nullptr) {
+    logger.error("ue={}: Couldn't find UE for CHO preparation", ue_index);
+    return;
+  }
+
+  // Check UE supports CHO before doing any candidate work.
+  if (u->get_rrc_ue() == nullptr || !u->get_rrc_ue()->is_conditional_handover_supported()) {
+    logger.warning("ue={}: UE does not support CHO (Rel-16); aborting preparation", ue_index);
+    return;
+  }
+
+  // Validate target PCIs.
+  if (target_pcis.empty()) {
+    logger.warning("ue={}: CHO preparation failed. No target PCIs specified", ue_index);
+    return;
+  }
+
+  std::set<pci_t>    seen_target_pcis;
+  std::vector<pci_t> unique_target_pcis;
+  unique_target_pcis.reserve(target_pcis.size());
+  for (pci_t target_pci : target_pcis) {
+    if (seen_target_pcis.insert(target_pci).second) {
+      unique_target_pcis.push_back(target_pci);
+    }
+  }
+  if (unique_target_pcis.size() != target_pcis.size()) {
+    logger.warning("ue={}: CHO request contains duplicate target PCIs. Duplicates were ignored", ue_index);
+  }
+
+  if (unique_target_pcis.size() > 8) {
+    logger.warning(
+        "ue={}: CHO preparation failed. Too many unique target PCIs ({} > 8)", ue_index, unique_target_pcis.size());
+    return;
+  }
+
+  // Validate all targets are intra-CU.
+  du_index_t source_du = u->get_du_index();
+  if (source_du == du_index_t::invalid) {
+    logger.warning("ue={}: CHO preparation failed. Source DU index is invalid", ue_index);
+    return;
+  }
+
+  std::vector<cu_cp_cho_target_candidate> targets;
+  for (pci_t target_pci : unique_target_pcis) {
+    du_index_t target_du = du_db.find_du(target_pci);
+    if (target_du == du_index_t::invalid) {
+      logger.warning("ue={}: CHO preparation failed. Target PCI {} not found in any local DU", ue_index, target_pci);
+      return;
+    }
+    // Lookup CGI at target DU.
+    std::optional<nr_cell_global_id_t> cgi =
+        du_db.get_du_processor(target_du).get_mobility_handler().get_cgi(target_pci);
+    if (!cgi.has_value()) {
+      logger.warning("ue={}: CHO preparation failed. Could not find CGI for PCI {}", ue_index, target_pci);
+      return;
+    }
+    targets.push_back({target_pci, cgi.value(), target_du});
+  }
+
+  // Check if CHO is already pending.
+  auto& cho_ctx = u->get_cho_context();
+  if (cho_ctx.has_value() && cho_ctx->state != cu_cp_ue_cho_context::state_t::idle) {
+    logger.warning(
+        "ue={}: CHO preparation failed. CHO already pending (state={})", ue_index, static_cast<int>(cho_ctx->state));
+    return;
+  }
+
+  // Initialize CHO context.
+  if (!cho_ctx.has_value()) {
+    cho_ctx.emplace();
+  }
+  cho_ctx->clear();
+
+  logger.info("ue={}: Starting intra-CU CHO with {} candidate(s)", ue_index, targets.size());
+
+  cu_cp_intra_cu_cho_request cho_request{};
+  cho_request.source_ue_index = ue_index;
+  cho_request.source_du_index = source_du;
+  cho_request.targets         = std::move(targets);
+  cho_request.timeout         = timeout;
+
+  auto cho_trigger = [this, cho_request = std::move(cho_request), cho_response = cu_cp_intra_cu_cho_response{}](
+                         coro_context<async_task<void>>& ctx) mutable {
+    CORO_BEGIN(ctx);
+    CORO_AWAIT_VALUE(cho_response, cu_cp_notifier.on_intra_cu_cho_required(cho_request));
+    if (!cho_response.success) {
+      logger.warning("ue={}: Intra-CU CHO failed", cho_request.source_ue_index);
+    }
+    CORO_RETURN();
+  };
+
+  u->get_task_sched().schedule_async_task(launch_async(std::move(cho_trigger)));
 }
 
 void mobility_manager::handle_neighbor_better_than_spcell(ue_index_t       ue_index,

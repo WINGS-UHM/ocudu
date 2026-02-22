@@ -895,6 +895,15 @@ public:
       CORO_RETURN(ocucp::cu_cp_intra_cu_handover_response{true});
     });
   }
+
+  async_task<ocucp::cu_cp_intra_cu_cho_response>
+  on_intra_cu_cho_required(const ocucp::cu_cp_intra_cu_cho_request& request) override
+  {
+    return launch_async([](coro_context<async_task<ocucp::cu_cp_intra_cu_cho_response>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(ocucp::cu_cp_intra_cu_cho_response{true});
+    });
+  }
 };
 
 class dummy_du_configurator : public odu::du_configurator

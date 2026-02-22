@@ -139,9 +139,13 @@ public:
 
   // cu_cp_mobility_manager_handler.
   async_task<cu_cp_intra_cu_handover_response>
-       handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_request& request,
-                                        du_index_t&                            source_du_index,
-                                        du_index_t&                            target_du_index) override;
+  handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_request& request,
+                                   du_index_t&                            source_du_index,
+                                   du_index_t&                            target_du_index) override;
+
+  async_task<cu_cp_intra_cu_cho_response>
+  handle_intra_cu_cho_request(const cu_cp_intra_cu_cho_request& request) override;
+
   void handle_intra_cell_handover_required(ue_index_t ue_index) override;
 
   // cu_cp_ue_removal_handler.

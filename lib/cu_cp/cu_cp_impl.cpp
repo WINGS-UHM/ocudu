@@ -1076,6 +1076,15 @@ cu_cp_impl::handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_reque
                                                  logger);
 }
 
+async_task<cu_cp_intra_cu_cho_response>
+cu_cp_impl::handle_intra_cu_cho_request(const cu_cp_intra_cu_cho_request& request)
+{
+  return launch_async([](coro_context<async_task<ocucp::cu_cp_intra_cu_cho_response>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_RETURN(cu_cp_intra_cu_cho_response{false});
+  });
+}
+
 void cu_cp_impl::handle_intra_cell_handover_required(ue_index_t ue_index)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);

@@ -86,6 +86,11 @@ private:
                                 du_index_t source_du_index,
                                 du_index_t target_du_index);
 
+  void handle_conditional_handover(pci_t                     source_pci,
+                                   rnti_t                    rnti,
+                                   span<const pci_t>         target_pcis,
+                                   std::chrono::milliseconds timeout);
+
   mobility_manager_cfg             cfg;
   mobility_manager_cu_cp_notifier& cu_cp_notifier;
   ngap_repository&                 ngap_db;

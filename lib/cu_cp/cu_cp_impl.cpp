@@ -14,6 +14,7 @@
 #include "routines/amf_connection_loss_routine.h"
 #include "routines/cell_activation_routine.h"
 #include "routines/initial_context_setup_routine.h"
+#include "routines/mobility/cho_coordinator_routine.h"
 #include "routines/mobility/inter_cu_handover_execution_target_routine.h"
 #include "routines/mobility/inter_cu_handover_source_routine.h"
 #include "routines/mobility/inter_cu_handover_target_routine.h"
@@ -1079,10 +1080,14 @@ cu_cp_impl::handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_reque
 async_task<cu_cp_intra_cu_cho_response>
 cu_cp_impl::handle_intra_cu_cho_request(const cu_cp_intra_cu_cho_request& request)
 {
-  return launch_async([](coro_context<async_task<ocucp::cu_cp_intra_cu_cho_response>>& ctx) {
-    CORO_BEGIN(ctx);
-    CORO_RETURN(cu_cp_intra_cu_cho_response{false});
-  });
+  if (request.source_du_index == du_index_t::invalid) {
+    logger.warning("ue={}: Invalid source DU index for intra-CU CHO coordinator", request.source_ue_index);
+    return launch_async([](coro_context<async_task<cu_cp_intra_cu_cho_response>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(cu_cp_intra_cu_cho_response{});
+    });
+  }
+  return launch_async<cho_coordinator_routine>(request, du_db, *this, ue_mng, logger);
 }
 
 void cu_cp_impl::handle_intra_cell_handover_required(ue_index_t ue_index)

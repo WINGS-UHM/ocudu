@@ -38,6 +38,7 @@ public:
   /// Register that a new grant was allocated for a given UE.
   void store_grant(unsigned nof_rbs)
   {
+    rb_count += nof_rbs;
     if constexpr (IsDl) {
       inst->store_pdsch_grant(nof_rbs, slot_tx);
     } else {
@@ -48,12 +49,8 @@ public:
   /// Remaining RBs available for allocation for the given slice.
   [[nodiscard]] unsigned remaining_rbs() const
   {
-    if constexpr (IsDl) {
-      return max_rbs < inst->pdsch_rb_count ? 0 : max_rbs - inst->pdsch_rb_count;
-    }
-    return max_rbs < inst->pusch_rb_count_per_slot[slot_tx.count() % inst->pusch_rb_count_per_slot.size()]
-               ? 0
-               : max_rbs - inst->pusch_rb_count_per_slot[slot_tx.count() % inst->pusch_rb_count_per_slot.size()];
+    ocudu_sanity_check(max_rbs >= rb_count, "RBs assigned to a slice cannot be more than its max");
+    return max_rbs - rb_count;
   }
 
   /// Returns slot at which PUSCH/PDSCH needs to be scheduled for this slice candidate.
@@ -62,6 +59,8 @@ public:
 protected:
   ran_slice_instance* inst    = nullptr;
   unsigned            max_rbs = 0;
+  /// Counts how many of this slice candidate's RBs have been used for UE allocation.
+  unsigned rb_count = 0;
   /// Slot at which PUSCH/PDSCH needs to be scheduled for this slice candidate.
   slot_point slot_tx;
 };

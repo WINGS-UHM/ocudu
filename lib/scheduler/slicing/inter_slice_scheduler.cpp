@@ -319,13 +319,17 @@ inter_slice_scheduler::get_next_candidate()
         chosen_slice.inst.cfg.rbs.dedicated() > rb_count ? chosen_slice.inst.cfg.rbs.dedicated() - rb_count : 0U;
     ocudu_assert(cell_max_rbs + rbs_to_discount >= nof_used_rbs,
                  "Remaining RB count cannot result in a negative value");
-    const unsigned rem_rbs           = cell_max_rbs + rbs_to_discount - nof_used_rbs;
-    const unsigned max_rbs_candidate = std::min(rb_lims.stop(), rem_rbs);
+    const unsigned rem_rbs = cell_max_rbs + rbs_to_discount - nof_used_rbs;
+    ocudu_sanity_check(rb_lims.stop() >= rb_count,
+                       "This slice has been allocated more RBs than its previous slice candidate rb_max");
+    // If the slice this candidate belongs to has been already allocated some RBs, then cap max_rbs_candidate to the
+    // difference rb_lims.stop() - rb_count.
+    const unsigned max_rbs_candidate = std::min(rb_lims.stop() - rb_count, rem_rbs);
     if (max_rbs_candidate == 0) {
       // We can skip this candidate, as there is no more RB space for it.
       continue;
     }
-    if (not rb_lims.contains(rb_count)) {
+    if (rb_lims.start() > rb_count) {
       // The number of RBs already allocated to this slice is outside the range of the candidate valid RB limits.
       // Note: This can happen when the scheduler could not fill up to minRB limit of the first candidate when
       // minRB > 0. At this point, we should skip the candidate {minRB, maxRB} as well.

@@ -1012,7 +1012,8 @@ TEST_P(fallback_scheduler_head_scheduling, test_ahead_scheduling_for_srb_allocat
     std::optional<dl_harq_process_handle> dl_harq =
         test_ue.get_pcell().harqs.find_dl_harq_waiting_ack(current_slot, bit_index_1_harq_only);
     if (dl_harq.has_value()) {
-      dl_harq->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt);
+      bool result = dl_harq->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt);
+      report_fatal_error_if_not(result, "dl_ack_info failed");
     }
   }
 }
@@ -1131,7 +1132,9 @@ protected:
           test_ue.get_pcell().harqs.find_dl_harq_waiting_ack(sl, bit_index_1_harq_only);
       if (dl_harq.has_value()) {
         ocudu_assert(dl_harq->id() == ongoing_h_id, "HARQ process mismatch");
-        dl_harq->dl_ack_info(ack_outcome ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
+        bool result =
+            dl_harq->dl_ack_info(ack_outcome ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
+        report_fatal_error_if_not(result, "dl_ack_info failed");
       }
     }
 
@@ -1339,7 +1342,9 @@ protected:
       if (dl_harq.has_value()) {
         static constexpr double ack_probability = 0.5f;
         const bool              ack             = test_rgen::bernoulli(ack_probability);
-        dl_harq->dl_ack_info(ack ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
+        bool                    result =
+            dl_harq->dl_ack_info(ack ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
+        report_fatal_error_if_not(result, "dl_ack_info failed");
         test_logger.debug("Slot={}, rnti={}: acking process h_id={} with {}",
                           sl,
                           test_ue.crnti,
@@ -1646,7 +1651,8 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_srb0_is_retx_ed_only_pucch_common
     std::optional<dl_harq_process_handle> dl_harq =
         u.get_pcell().harqs.find_dl_harq_waiting_ack(current_slot, bit_index_1_harq_only);
     if (dl_harq.has_value()) {
-      dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      bool result = dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      report_fatal_error_if_not(result, "dl_ack_info failed");
     }
   }
 
@@ -1704,7 +1710,8 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_reconf_is_after_reest_both_common
     std::optional<dl_harq_process_handle> dl_harq =
         u.get_pcell().harqs.find_dl_harq_waiting_ack(current_slot, bit_index_1_harq_only);
     if (dl_harq.has_value()) {
-      dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      bool result = dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      report_fatal_error_if_not(result, "dl_ack_info failed");
     }
   }
 
@@ -1756,7 +1763,8 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_srb1_is_scheduled_with_crnti_both
     std::optional<dl_harq_process_handle> dl_harq =
         u.get_pcell().harqs.find_dl_harq_waiting_ack(current_slot, bit_index_1_harq_only);
     if (dl_harq.has_value()) {
-      dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      bool result = dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      report_fatal_error_if_not(result, "dl_ack_info failed");
     }
   }
 

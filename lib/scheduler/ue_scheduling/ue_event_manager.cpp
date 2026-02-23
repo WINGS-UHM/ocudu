@@ -863,26 +863,26 @@ void ue_cell_event_manager::handle_harq_ind(ue_cell&                            
     }
 
     // Update UE HARQ state with received HARQ-ACK.
-    std::optional<ue_cell::dl_ack_info_result> result = ue_cc.handle_dl_ack_info(uci_sl, status, harq_idx, pucch_snr);
-    if (not result.has_value()) {
+    std::optional<dl_harq_process_handle> h_dl = ue_cc.handle_dl_ack_info(uci_sl, status, harq_idx, pucch_snr);
+    if (not h_dl.has_value()) {
       // HARQ process was not found or in invalid state. Move on to next HARQ bit.
       continue;
     }
-    const units::bytes tbs{result->h_dl.get_grant_params().tbs_bytes};
+    const units::bytes tbs{h_dl->get_grant_params().tbs_bytes};
 
     // Log Event.
     ev_logger.enqueue(scheduler_event_logger::harq_ack_event{
-        ue_cc.ue_index, ue_cc.rnti(), ue_cc.cell_index, uci_sl, result->h_dl.id(), status, tbs});
+        ue_cc.ue_index, ue_cc.rnti(), ue_cc.cell_index, uci_sl, h_dl->id(), status, tbs});
 
     // NOTE: this is for the first attachment only. In this case, the first ACK is the one that acks the ConRes or the
     // ConRes + MSG4; there is only 1 HARQ process waiting for ACKs, which acks the ConRes. Until this is acked, no
     // other DL grant should be scheduled.
-    if (ue_cc.is_pcell() and not ue_cc.get_pcell_state().conres_complete and result->h_dl.empty()) {
+    if (ue_cc.is_pcell() and not ue_cc.get_pcell_state().conres_complete and h_dl->empty()) {
       ue_cc.set_conres_state(true);
     }
 
     // Notify metrics handler with HARQ outcome.
-    metrics.handle_dl_harq_ack(ue_cc.ue_index, result->update == dl_harq_process_handle::status_update::acked, tbs);
+    metrics.handle_dl_harq_ack(ue_cc.ue_index, status == mac_harq_ack_report_status::ack, tbs);
   }
 }
 

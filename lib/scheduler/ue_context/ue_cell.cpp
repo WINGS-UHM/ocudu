@@ -123,10 +123,10 @@ void ue_cell::set_fallback_state(bool set_fallback, bool is_reconfig, bool reest
                pcell_state->in_fallback_mode ? "Entering" : "Leaving");
 }
 
-std::optional<ue_cell::dl_ack_info_result> ue_cell::handle_dl_ack_info(slot_point                 uci_slot,
-                                                                       mac_harq_ack_report_status ack_value,
-                                                                       unsigned                   harq_bit_idx,
-                                                                       std::optional<float>       pucch_snr)
+std::optional<dl_harq_process_handle> ue_cell::handle_dl_ack_info(slot_point                 uci_slot,
+                                                                  mac_harq_ack_report_status ack_value,
+                                                                  unsigned                   harq_bit_idx,
+                                                                  std::optional<float>       pucch_snr)
 {
   std::optional<dl_harq_process_handle> h_dl = harqs.find_dl_harq_waiting_ack(uci_slot, harq_bit_idx);
   if (not h_dl.has_value()) {
@@ -134,30 +134,32 @@ std::optional<ue_cell::dl_ack_info_result> ue_cell::handle_dl_ack_info(slot_poin
                    rnti(),
                    uci_slot,
                    harq_bit_idx);
-    return std::nullopt;
+    return h_dl;
   }
 
   // Update HARQ state.
-  dl_harq_process_handle::status_update outcome = h_dl->dl_ack_info(ack_value, pucch_snr);
-  if (outcome == dl_harq_process_handle::status_update::error) {
-    return std::nullopt;
+  const bool ret = h_dl->dl_ack_info(ack_value, pucch_snr);
+  if (not ret) {
+    // HARQ not in a valid state to be ACKed/NACKed.
+    h_dl.reset();
+    return h_dl;
   }
 
   // In case of NACK/DTX, extend DRX window, if needed.
-  if (outcome == dl_harq_process_handle::status_update::nacked) {
+  if (ack_value != mac_harq_ack_report_status::ack) {
     shared_ctx.drx_ctrl.on_dl_harq_nack(uci_slot);
   }
 
   // If the HARQ report was DTX, do not forward the feeback to the link adaptation controller, as the issue is not
   // necessarily in the PDSCH MCS.
   if (ack_value != mac_harq_ack_report_status::dtx) {
-    components.ue_mcs_calculator->handle_dl_ack_info(outcome == dl_harq_process_handle::status_update::acked,
+    components.ue_mcs_calculator->handle_dl_ack_info(ack_value == mac_harq_ack_report_status::ack,
                                                      h_dl->get_grant_params().mcs,
                                                      h_dl->get_grant_params().mcs_table,
                                                      h_dl->get_grant_params().olla_mcs);
   }
 
-  return dl_ack_info_result{outcome, h_dl.value()};
+  return h_dl;
 }
 
 int ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& crc_pdu)

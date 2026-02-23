@@ -297,8 +297,8 @@ public:
   /// \brief Update the state of the DL HARQ process waiting for an HARQ-ACK.
   /// \param[in] ack HARQ-ACK status received.
   /// \param[in] pucch_snr SNR of the PUCCH that carried the HARQ-ACK.
-  /// \return Status update after processing the ACK info.
-  status_update dl_ack_info(mac_harq_ack_report_status ack, std::optional<float> pucch_snr);
+  /// \return True if successfully updated and false if the HARQ is not in a valid state to be ACKed/NACKed.
+  [[nodiscard]] bool dl_ack_info(mac_harq_ack_report_status ack, const std::optional<float>& pucch_snr);
 
   /// \brief Stores grant parameters that are associated with the HARQ process (e.g. DCI format, PRBs, MCS) so that
   /// they can be later fetched and optionally reused.

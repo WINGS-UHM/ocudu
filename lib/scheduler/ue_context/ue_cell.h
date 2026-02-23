@@ -127,14 +127,10 @@ public:
            (not harqs.last_pusch_slot().valid() or harqs.last_pusch_slot() < pusch_slot);
   }
 
-  struct dl_ack_info_result {
-    dl_harq_process_handle::status_update update;
-    dl_harq_process_handle                h_dl;
-  };
-  std::optional<dl_ack_info_result> handle_dl_ack_info(slot_point                 uci_slot,
-                                                       mac_harq_ack_report_status ack_value,
-                                                       unsigned                   harq_bit_idx,
-                                                       std::optional<float>       pucch_snr);
+  std::optional<dl_harq_process_handle> handle_dl_ack_info(slot_point                 uci_slot,
+                                                           mac_harq_ack_report_status ack_value,
+                                                           unsigned                   harq_bit_idx,
+                                                           std::optional<float>       pucch_snr);
 
   uint8_t get_pdsch_rv(unsigned nof_retxs) const
   {

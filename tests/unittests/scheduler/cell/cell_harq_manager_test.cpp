@@ -283,7 +283,7 @@ TEST_F(single_harq_process_test, when_harq_is_allocated_then_harq_grant_params_h
 TEST_F(single_harq_process_test, positive_ack_sets_harq_to_empty)
 {
   float pucch_snr = 5;
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr), dl_harq_process_handle::status_update::acked);
+  ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr));
   ASSERT_FALSE(h_dl.is_waiting_ack());
   ASSERT_FALSE(h_dl.has_pending_retx());
   ASSERT_EQ(h_ul.ul_crc_info(true), pusch_info.tb_size_bytes);
@@ -295,7 +295,7 @@ TEST_F(single_harq_process_test, positive_ack_sets_harq_to_empty)
 
 TEST_F(single_harq_process_test, negative_ack_sets_harq_to_pending_retx)
 {
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, 5), dl_harq_process_handle::status_update::nacked);
+  ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, 5));
   ASSERT_FALSE(h_dl.is_waiting_ack());
   ASSERT_TRUE(h_dl.has_pending_retx());
   ASSERT_EQ(harq_ent.find_ul_harq_waiting_ack(current_slot + k2), h_ul);
@@ -307,17 +307,17 @@ TEST_F(single_harq_process_test, negative_ack_sets_harq_to_pending_retx)
 TEST_F(single_harq_process_test, ack_of_empty_harq_is_failure)
 {
   float pucch_snr = 5;
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr), dl_harq_process_handle::status_update::acked);
+  ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr));
   ASSERT_GE(h_ul.ul_crc_info(true), 0);
 
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr), dl_harq_process_handle::status_update::error);
+  ASSERT_FALSE(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr));
   ASSERT_LT(h_ul.ul_crc_info(true), 0);
 }
 
 TEST_F(single_harq_process_test, retx_of_empty_harq_is_failure)
 {
   float pucch_snr = 5;
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr), dl_harq_process_handle::status_update::acked);
+  ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr));
   ASSERT_GE(h_ul.ul_crc_info(true), 0);
 
   ASSERT_FALSE(h_dl.new_retx(current_slot, k1, 0));
@@ -335,7 +335,7 @@ TEST_F(single_harq_process_test, when_max_retxs_reached_then_harq_becomes_empty)
   bool old_dl_ndi = h_dl.ndi();
   bool old_ul_ndi = h_ul.ndi();
   for (unsigned i = 0; i != max_retxs; ++i) {
-    ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, 5), dl_harq_process_handle::status_update::nacked);
+    ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, 5));
     ASSERT_EQ(h_ul.ul_crc_info(false), 0);
     ASSERT_FALSE(h_dl.is_waiting_ack());
     ASSERT_FALSE(h_ul.is_waiting_ack());
@@ -350,7 +350,7 @@ TEST_F(single_harq_process_test, when_max_retxs_reached_then_harq_becomes_empty)
     ASSERT_EQ(old_dl_ndi, h_dl.ndi());
     ASSERT_EQ(old_ul_ndi, h_ul.ndi());
   }
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, 5), dl_harq_process_handle::status_update::nacked);
+  ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, 5));
   ASSERT_EQ(h_ul.ul_crc_info(false), 0);
   ASSERT_FALSE(h_dl.has_pending_retx());
   ASSERT_FALSE(h_ul.has_pending_retx());
@@ -362,7 +362,7 @@ TEST_F(single_harq_process_test, when_newtx_after_ack_then_ndi_flips)
 {
   float pucch_snr = 5;
   bool  dl_ndi = h_dl.ndi(), ul_ndi = h_ul.ndi();
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr), dl_harq_process_handle::status_update::acked);
+  ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr));
   ASSERT_GE(h_ul.ul_crc_info(true), 0);
 
   h_dl = harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0).value();
@@ -415,8 +415,7 @@ TEST_F(single_harq_process_test, when_harq_retx_is_cancelled_while_harq_waits_ac
   ASSERT_TRUE(h_dl.is_waiting_ack());
   ASSERT_TRUE(h_ul.is_waiting_ack());
 
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt),
-            dl_harq_process_handle::status_update::nacked);
+  ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt));
   ASSERT_EQ(h_ul.ul_crc_info(false), 0);
   ASSERT_TRUE(h_dl.empty());
   ASSERT_TRUE(h_ul.empty());
@@ -425,8 +424,7 @@ TEST_F(single_harq_process_test, when_harq_retx_is_cancelled_while_harq_waits_ac
 TEST_F(single_harq_process_test,
        when_harq_retx_is_cancelled_while_harq_has_pending_retx_then_harq_is_emptied_right_away)
 {
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt),
-            dl_harq_process_handle::status_update::nacked);
+  ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt));
   ASSERT_EQ(h_ul.ul_crc_info(false), 0);
   ASSERT_TRUE(h_dl.has_pending_retx());
   ASSERT_TRUE(h_ul.has_pending_retx());
@@ -471,8 +469,7 @@ TEST_F(single_ue_harq_entity_test, when_harq_is_nacked_then_harq_entity_finds_ha
 {
   auto h_dl = harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0);
   auto h_ul = harq_ent.alloc_ul_harq(current_slot, max_retxs);
-  ASSERT_EQ(h_dl.value().dl_ack_info(mac_harq_ack_report_status::nack, 5),
-            dl_harq_process_handle::status_update::nacked);
+  ASSERT_TRUE(h_dl.value().dl_ack_info(mac_harq_ack_report_status::nack, 5));
   ASSERT_EQ(h_ul.value().ul_crc_info(false), 0);
   ASSERT_EQ(harq_ent.find_dl_harq_waiting_ack(), std::nullopt);
   ASSERT_EQ(harq_ent.find_ul_harq_waiting_ack(), std::nullopt);
@@ -535,8 +532,7 @@ TEST_F(single_ue_harq_entity_test, when_max_retxs_reached_then_harq_entity_does_
   for (unsigned i = 0; i != max_retxs; ++i) {
     ASSERT_EQ(harq_ent.find_dl_harq_waiting_ack(current_slot + k1, 0), h_dl);
     ASSERT_EQ(harq_ent.find_ul_harq_waiting_ack(current_slot + k2), h_ul);
-    ASSERT_EQ(h_dl.value().dl_ack_info(mac_harq_ack_report_status::nack, 5),
-              dl_harq_process_handle::status_update::nacked);
+    ASSERT_TRUE(h_dl.value().dl_ack_info(mac_harq_ack_report_status::nack, 5));
     ASSERT_EQ(h_ul.value().ul_crc_info(false), 0);
     ASSERT_EQ(harq_ent.find_pending_dl_retx(), h_dl);
     ASSERT_EQ(harq_ent.find_pending_ul_retx(), h_ul);
@@ -551,8 +547,7 @@ TEST_F(single_ue_harq_entity_test, when_max_retxs_reached_then_harq_entity_does_
     ASSERT_EQ(harq_ent.find_pending_dl_retx(), std::nullopt);
     ASSERT_EQ(harq_ent.find_pending_ul_retx(), std::nullopt);
   }
-  ASSERT_EQ(h_dl.value().dl_ack_info(mac_harq_ack_report_status::nack, 5),
-            dl_harq_process_handle::status_update::nacked);
+  ASSERT_TRUE(h_dl.value().dl_ack_info(mac_harq_ack_report_status::nack, 5));
   ASSERT_EQ(h_ul.value().ul_crc_info(false), 0);
   ASSERT_EQ(harq_ent.find_dl_harq_waiting_ack(), std::nullopt);
   ASSERT_EQ(harq_ent.find_ul_harq_waiting_ack(), std::nullopt);
@@ -610,8 +605,7 @@ TEST_F(single_ue_harq_entity_harq_5bit_tester, when_5_harq_bits_are_acks_then_al
   // ACK received.
   for (unsigned i = 0; i != active_harqs; ++i) {
     auto h_dl = this->harq_ent.find_dl_harq_waiting_ack(pucch_slot, i);
-    ASSERT_EQ(h_dl->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt),
-              dl_harq_process_handle::status_update::acked);
+    ASSERT_TRUE(h_dl->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt));
   }
 
   for (unsigned i = 0; i != h_dls.size(); ++i) {
@@ -638,8 +632,7 @@ TEST_F(single_ue_harq_entity_harq_5bit_tester, when_5_harq_bits_are_nacks_then_a
   // NACK received.
   for (unsigned i = 0; i != active_harqs; ++i) {
     auto h_dl_ack = this->harq_ent.find_dl_harq_waiting_ack(pucch_slot, i);
-    ASSERT_EQ(h_dl_ack->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt),
-              dl_harq_process_handle::status_update::nacked);
+    ASSERT_TRUE(h_dl_ack->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt));
   }
 
   for (unsigned i = 0; i != h_dls.size(); ++i) {
@@ -708,13 +701,11 @@ TEST_F(multi_ue_harq_manager_test, when_harq_entities_are_nacked_then_they_appea
   ASSERT_TRUE(cell_harqs.pending_ul_retxs().empty());
   ASSERT_EQ(cell_harqs.pending_dl_retxs().begin(), cell_harqs.pending_dl_retxs().end());
 
-  ASSERT_EQ(harq_ent1.find_dl_harq_waiting_ack(current_slot + k1, 0)
-                ->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt),
-            dl_harq_process_handle::status_update::nacked);
+  ASSERT_TRUE(harq_ent1.find_dl_harq_waiting_ack(current_slot + k1, 0)
+                  ->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt));
   ASSERT_EQ(harq_ent1.find_ul_harq_waiting_ack(current_slot + k2)->ul_crc_info(false), 0);
-  ASSERT_EQ(harq_ent2.find_dl_harq_waiting_ack(current_slot + k1, 0)
-                ->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt),
-            dl_harq_process_handle::status_update::nacked);
+  ASSERT_TRUE(harq_ent2.find_dl_harq_waiting_ack(current_slot + k1, 0)
+                  ->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt));
   ASSERT_EQ(harq_ent2.find_ul_harq_waiting_ack(current_slot + k2)->ul_crc_info(false), 0);
 
   // HARQs are in the list of pending retxs.
@@ -761,12 +752,10 @@ TEST_F(multi_ue_harq_manager_test, pending_harq_retxs_are_ordered_from_oldest_to
   ASSERT_TRUE(harq_ent2.alloc_dl_harq(current_slot, k1, max_retxs, 0).has_value());
   ASSERT_TRUE(harq_ent1.alloc_ul_harq(current_slot + k2, max_retxs).has_value());
 
-  ASSERT_EQ(harq_ent1.find_dl_harq_waiting_ack(current_slot + k1, 0)
-                ->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt),
-            dl_harq_process_handle::status_update::nacked);
-  ASSERT_EQ(harq_ent2.find_dl_harq_waiting_ack(current_slot + k1, 0)
-                ->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt),
-            dl_harq_process_handle::status_update::nacked);
+  ASSERT_TRUE(harq_ent1.find_dl_harq_waiting_ack(current_slot + k1, 0)
+                  ->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt));
+  ASSERT_TRUE(harq_ent2.find_dl_harq_waiting_ack(current_slot + k1, 0)
+                  ->dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt));
   ASSERT_EQ(harq_ent2.find_ul_harq_waiting_ack(current_slot + k2)->ul_crc_info(false), 0);
   ASSERT_EQ(harq_ent1.find_ul_harq_waiting_ack(current_slot + k2)->ul_crc_info(false), 0);
 
@@ -798,8 +787,7 @@ TEST_F(multi_ue_harq_manager_test, when_new_tx_occur_for_different_ues_then_ndi_
   bool ndi_dl1 = h_dl->ndi();
   bool ndi_ul1 = h_ul->ndi();
 
-  ASSERT_EQ(h_dl->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt),
-            dl_harq_process_handle::status_update::acked);
+  ASSERT_TRUE(h_dl->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt));
   ASSERT_EQ(h_ul->ul_crc_info(true), 0);
 
   h_dl = harq_ent2.alloc_dl_harq(current_slot, k1, max_retxs, 0);
@@ -810,8 +798,7 @@ TEST_F(multi_ue_harq_manager_test, when_new_tx_occur_for_different_ues_then_ndi_
   ASSERT_EQ(h_dl->ndi(), ndi_dl1);
   ASSERT_EQ(h_ul->ndi(), ndi_ul1);
 
-  ASSERT_EQ(h_dl->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt),
-            dl_harq_process_handle::status_update::acked);
+  ASSERT_TRUE(h_dl->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt));
   ASSERT_EQ(h_ul->ul_crc_info(true), 0);
 
   h_dl = harq_ent1.alloc_dl_harq(current_slot, k1, max_retxs, 0);
@@ -941,8 +928,7 @@ TEST_F(single_ntn_ue_harq_normal_mode_process_test, when_ntn_normal_mode_wait_rt
       ASSERT_TRUE(h_dl.is_waiting_ack());
       ASSERT_EQ(h_dl, harq_ent.dl_harq(to_harq_id(0)));
     } else if (current_slot == dl_ack_slot) {
-      ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr),
-                dl_harq_process_handle::status_update::acked);
+      ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr));
       ASSERT_FALSE(h_dl.is_waiting_ack());
       ASSERT_FALSE(h_dl.has_pending_retx());
     } else {
@@ -1047,8 +1033,7 @@ TEST_F(single_ntn_ue_ul_harq_mode_b_process_test, when_ul_harq_gets_acked_then_i
     run_slot();
   }
   h_dl = harq_ent.find_dl_harq_waiting_ack(uci_slot, 0).value();
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt),
-            dl_harq_process_handle::status_update::acked);
+  ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt));
   ASSERT_EQ(h_dl.get_grant_params().tbs_bytes, ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
   while (current_slot != pusch_slot) {
     run_slot();

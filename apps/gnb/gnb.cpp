@@ -59,6 +59,7 @@
 #endif
 // Include ThreadSanitizer (TSAN) options if thread sanitization is enabled.
 // This include is not unused - it helps prevent false alarms from the thread sanitizer.
+#include "apps/services/remote_control/isac_metrics_publisher.h"
 #include "ocudu/support/tsan_options.h"
 
 using namespace ocudu;
@@ -354,6 +355,13 @@ int main(int argc, char** argv)
   app_services::remote_server_metrics_gateway* remote_server_gateway =
       remote_control_server ? remote_control_server->get_metrics_gateway() : nullptr;
 
+  std::unique_ptr<app_services::isac_metrics_publisher> isac_pub;
+
+  if (remote_server_gateway) {
+    isac_pub =
+        std::make_unique<app_services::isac_metrics_publisher>(*remote_server_gateway, std::chrono::milliseconds(gnb_cfg.metrics_cfg.metrics_service_cfg.app_usage_report_period));
+    isac_pub->start();
+  }
   // Instantiate executor metrics service.
   app_services::executor_metrics_service_and_metrics exec_metrics_service = build_executor_metrics_service(
       metrics_notifier_forwarder, app_timers, gnb_cfg.metrics_cfg.executors_metrics_cfg, remote_server_gateway);
@@ -574,6 +582,10 @@ int main(int argc, char** argv)
 
   // Stop O-CU-CP activity.
   o_cucp_obj.get_operation_controller().stop();
+
+  if (isac_pub) {
+    isac_pub->stop();
+  }
 
   return 0;
 }

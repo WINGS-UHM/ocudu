@@ -32,7 +32,7 @@ jobs:
           cat > .github/badges/upstream-base.json <<EOF
           {
             "schemaVersion": 1,
-            "label": "upstream base",
+            "label": "Last Upstream Merge",
             "message": "${SHORT_SHA}",
             "color": "blue"
           }

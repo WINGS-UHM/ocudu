@@ -61,7 +61,7 @@ public:
     }
 
     // Forward packed XNAP Tx PDU to SCTP gateway to init the association.
-    sctp_server.init_association(peer_addr, std::move(tx_sdu));
+    sctp_server.init_association_with_msg(peer_addr, std::move(tx_sdu));
     return true;
   }
 

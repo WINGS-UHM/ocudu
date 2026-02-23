@@ -1,3 +1,25 @@
+# OCUDU – WINGS Lab ISAC-Enhanced Fork
+
+This repository is an independent research-focused fork of the official 
+[OCUDU project](https://gitlab.com/ocudu/ocudu).
+
+While the upstream project provides core O-RAN DU functionality and standard telemetry support, this fork extends the codebase with additional instrumentation and visualization pipelines tailored for **ISAC (Integrated Sensing and Communications) research**.
+
+Enhancements in this fork include:
+- ISAC-specific metric extraction
+- Extended WebSocket adapters
+- Research-oriented visualization hooks
+- Experimental sensing data integration
+
+This fork is independently maintained by WINGS Lab (University of Hawaiʻi at Mānoa) and is not officially affiliated with or endorsed by the original OCUDU project maintainers.
+
+We aim to periodically synchronize with upstream releases while preserving ISAC-specific research capabilities. 
+
+<a href="https://gitlab.com/ocudu/ocudu/-/commits/dev" target="_blank">
+  <img alt="Upstream base" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/WINGS-UHM/ocudu/main/.github/badges/upstream-base.json">
+</a>
+
+
 # The OCUDU Project
 
 ![Pipeline](https://gitlab.com/ocudu/ocudu/badges/main/pipeline.svg)

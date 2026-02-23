@@ -1,0 +1,51 @@
+name: Update upstream base badge
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add upstream remote and fetch
+        run: |
+          git remote add upstream https://gitlab.com/ocudu/ocudu.git || true
+          git fetch upstream --prune
+
+      - name: Compute upstream base commit and write badge JSON
+        run: |
+          UPSTREAM_BRANCH="dev"
+          BASE_SHA="$(git merge-base HEAD upstream/${UPSTREAM_BRANCH})"
+          SHORT_SHA="$(git rev-parse --short ${BASE_SHA})"
+
+          mkdir -p .github/badges
+          cat > .github/badges/upstream-base.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "upstream base",
+            "message": "${SHORT_SHA}",
+            "color": "blue"
+          }
+          EOF
+
+      - name: Commit & push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/badges/upstream-base.json
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "chore: update upstream base badge"
+            git push
+          fi

@@ -62,6 +62,9 @@ public:
 
   void handle_result(slot_point sl_tx, const sched_result& result);
 
+  /// \brief Called when an error indication is received for a given slot.
+  void handle_discarded_pucchs(slot_point sl_tx);
+
 private:
   static constexpr soa::row_id invalid_row_id{std::numeric_limits<uint32_t>::max()};
 
@@ -75,6 +78,9 @@ private:
   };
 
   std::optional<uci_action> handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry);
+
+  /// Helper to remove UCI entry from its linked list.
+  soa::row_id rem_uci_entry(soa::row_id& head, uci_entry* prev_entry, uci_entry& entry);
 
   const unsigned                   ack_timeout_slots;
   uci_indication_timeout_notifier& timeout_notifier;

@@ -33,7 +33,8 @@ std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point
 {
   soa::row_id& list_head = uci_wheel[sl_rx.count()];
 
-  for (soa::row_id prev_rid = invalid_row_id, rid = list_head; rid != invalid_row_id;) {
+  uci_entry* prev_entry = nullptr;
+  for (soa::row_id rid = list_head; rid != invalid_row_id;) {
     uci_entry& entry = uci_pool.at<slot_column_id::uci>(rid);
 
     if (pdu.crnti == entry.crnti) {
@@ -43,41 +44,10 @@ std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point
       auto action = handle_uci_pdu(pdu, entry);
 
       if (action.has_value()) {
-        // An action was generated. Before returning, remove entry from wheel linked lists and pool.
-        if (entry.short_timeout_wheel_pos.valid()) {
-          // The entry is in the short timeout wheel. Remove it.
-          auto& short_timeout = short_timeout_wheel[entry.short_timeout_wheel_pos.count()];
-          for (soa::row_id prev_rem_rid = invalid_row_id, rem_rid = short_timeout; rem_rid != invalid_row_id;) {
-            auto& rem_entry = uci_pool.at<slot_column_id::uci>(rem_rid);
-            if (&rem_entry == &entry) {
-              // Found matching entry in short timeout wheel. Remove it from the linked list.
-              if (prev_rem_rid != invalid_row_id) {
-                auto& prev_rem_entry = uci_pool.at<slot_column_id::uci>(prev_rem_rid);
-                prev_rem_entry.next  = rem_entry.next;
-              } else {
-                short_timeout = rem_entry.next;
-              }
-              break;
-            }
-            prev_rem_rid = rem_rid;
-            rem_rid      = rem_entry.next;
-          }
-        }
-
-        // Remote entry from main UCI wheel.
-        if (prev_rid != invalid_row_id) {
-          // Case where entry is not head of list.
-          uci_entry& prev_entry = uci_pool.at<slot_column_id::uci>(prev_rid);
-          prev_entry.next       = entry.next;
-        } else {
-          // It is head of the list.
-          list_head = entry.next;
-        }
-
-        // Delete UCI entry.
-        uci_pool.erase(rid);
+        // An action was generated. It means that all the combining is complete and we can erase the UCI entry.
+        rem_uci_entry(list_head, prev_entry, entry);
       } else {
-        // No action was generated. This means that the UCI is still expecting another PUCCH.
+        // No action was generated. This means that the UCI entry is still expecting more UCI indications.
         if (not entry.short_timeout_wheel_pos.valid()) {
           // We add the UCI grant in another linked list in the short timeout wheel, if not added yet.
           entry.short_timeout_wheel_pos = last_sl_tx + SHORT_PUCCH_TIMEOUT_SLOTS;
@@ -90,8 +60,8 @@ std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point
       return action;
     }
 
-    prev_rid = rid;
-    rid      = entry.next;
+    prev_entry = &entry;
+    rid        = entry.next;
   }
 
   logger.warning("rnti={}: UCI not found for slot={}", pdu.crnti, sl_rx);
@@ -181,28 +151,23 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
 {
   last_sl_tx = sl_tx;
 
-  // Handle UCI timeouts.
+  // Handle UCI entries that have timeout.
   slot_point sl_rx             = sl_tx - ack_timeout_slots;
   auto&      uci_wheel_timeout = uci_wheel[sl_rx.count()];
   for (soa::row_id rid = uci_wheel_timeout; rid != invalid_row_id;) {
     uci_entry& entry = uci_pool.at<slot_column_id::uci>(rid);
 
-    // Handle UCI timeout.
+    // Handle UCI timeout if there were still pending UCI indications.
     if (entry.pucchs_to_rx > 0) {
       timeout_notifier.on_timeout(sl_rx, entry.crnti, entry.chosen_action);
     }
 
     // Remove UCI grant entry from linked list and pool.
-    soa::row_id next = entry.next;
-    ocudu_sanity_check(entry.next_short_timeout == invalid_row_id,
-                       "Trying to erase entry that is still present in the short timeout wheel");
-    uci_pool.erase(rid);
-
-    rid = next;
+    rid = rem_uci_entry(uci_wheel_timeout, nullptr, entry);
   }
-  uci_wheel_timeout = invalid_row_id;
+  ocudu_sanity_check(uci_wheel_timeout == invalid_row_id, "Unexpected state for UCI time wheel");
 
-  // Handle UCIs that received at least one but not all the expected PUCCHs.
+  // Handle UCI entries that received at least one but not all the expected UCI indications.
   auto& rem_pucch_timeout = short_timeout_wheel[sl_tx.count()];
   for (soa::row_id rid = rem_pucch_timeout; rid != invalid_row_id;) {
     uci_entry& entry = uci_pool.at<slot_column_id::uci>(rid);
@@ -221,9 +186,9 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
   }
   rem_pucch_timeout = invalid_row_id;
 
-  // Handle new UCI grants.
+  // Handle new UCI grants scheduled in this slot.
   auto& uci_wheel_sl_tx = uci_wheel[sl_tx.count()];
-  ocudu_sanity_check(uci_wheel_sl_tx == invalid_row_id, "The wheel should be empty");
+  ocudu_sanity_check(uci_wheel_sl_tx == invalid_row_id, "The wheel should be empty for slot tx");
   for (const pucch_info& pucch : result.ul.pucchs) {
     if (pucch.uci_bits.harq_ack_nof_bits == 0) {
       // Only PUCCHs with HARQ-ACK bits need to be buffered for timeout handling.
@@ -257,4 +222,72 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
     soa::row_id rid = uci_pool.insert(entry);
     uci_wheel_sl_tx = rid;
   }
+}
+
+void uci_indication_selector::handle_discarded_pucchs(slot_point sl_tx)
+{
+  auto&      uci_wheel_sl_tx = uci_wheel[sl_tx.count()];
+  uci_entry* prev_entry      = nullptr;
+  for (soa::row_id rid = uci_wheel_sl_tx; rid != invalid_row_id;) {
+    uci_entry& entry = uci_pool.at<slot_column_id::uci>(rid);
+
+    // The lower layers will not attempt to decode the PUCCH and will not send any UCI indication.
+    if (not entry.chosen_action.harq_ack_bits.empty() and entry.pucchs_to_rx > 0) {
+      // Note: To avoid a long DL HARQ timeout window (due to lack of UCI indication), it is important to force a
+      // timeout in the DL HARQ processes with UCI falling in this slot.
+      // Note: We don't use this cancellation to update the DL OLLA, as we shouldn't take lates into account in link
+      // adaptation.
+      timeout_notifier.on_timeout(sl_tx, entry.crnti, entry.chosen_action);
+      rem_uci_entry(uci_wheel_sl_tx, prev_entry, entry);
+      break;
+    }
+
+    prev_entry = &entry;
+    rid        = entry.next;
+  }
+}
+
+soa::row_id uci_indication_selector::rem_uci_entry(soa::row_id& head, uci_entry* prev_entry, uci_entry& entry)
+{
+  soa::row_id       entry_rid  = invalid_row_id;
+  const soa::row_id entry_next = entry.next;
+  if (prev_entry == nullptr) {
+    // Entry is the head of the linked list.
+    entry_rid = head;
+    head      = entry.next;
+  } else {
+    // Entry is not the head of the linked list.
+    entry_rid        = prev_entry->next;
+    prev_entry->next = entry.next;
+  }
+  entry.next = invalid_row_id;
+
+  if (entry.short_timeout_wheel_pos.valid()) {
+    // Entry is also in the short combining timeout list.
+    // Do O(N) removal; however, list should be very short.
+    soa::row_id& rem_entry_head = short_timeout_wheel[entry.short_timeout_wheel_pos.count()];
+    if (rem_entry_head == entry_rid) {
+      // It is the head of the short timeout list.
+      rem_entry_head           = entry.next_short_timeout;
+      entry.next_short_timeout = invalid_row_id;
+    } else {
+      for (soa::row_id rid = rem_entry_head; rid != invalid_row_id;) {
+        auto& rem_entry = uci_pool.at<slot_column_id::uci>(rid);
+
+        if (rem_entry.next_short_timeout == entry_rid) {
+          // Next is the entry to be removed.
+          rem_entry.next_short_timeout  = entry.next_short_timeout;
+          entry.next_short_timeout      = invalid_row_id;
+          entry.short_timeout_wheel_pos = {};
+          break;
+        }
+
+        rid = rem_entry.next;
+      }
+    }
+    ocudu_sanity_check(entry.next_short_timeout == invalid_row_id, "Unable to find UCI in the short timeout list");
+  }
+
+  uci_pool.erase(entry_rid);
+  return entry_next;
 }

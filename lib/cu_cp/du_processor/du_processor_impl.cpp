@@ -123,10 +123,13 @@ du_setup_result du_processor_impl::handle_du_setup_request(const du_setup_reques
     meas_cfg.plmn              = cgi.plmn_id;
     meas_cfg.pci               = cell_info.nr_pci;
     meas_cfg.band              = cell_info.band;
-    // TODO: which meas timing to use here?
-    meas_cfg.ssb_mtc   = cell_info.meas_timings.begin()->freq_and_timing.value().ssb_meas_timing_cfg;
-    meas_cfg.ssb_arfcn = cell_info.meas_timings.begin()->freq_and_timing.value().carrier_freq;
-    meas_cfg.ssb_scs   = cell_info.meas_timings.begin()->freq_and_timing.value().ssb_subcarrier_spacing;
+    if (!cell_info.meas_timings.empty() && cell_info.meas_timings.begin()->freq_and_timing.has_value()) {
+      // TODO: which meas timing to use when multiple are present?
+      const auto& freq_timing = cell_info.meas_timings.begin()->freq_and_timing.value();
+      meas_cfg.ssb_mtc        = freq_timing.ssb_meas_timing_cfg;
+      meas_cfg.ssb_arfcn      = freq_timing.carrier_freq;
+      meas_cfg.ssb_scs        = freq_timing.ssb_subcarrier_spacing;
+    }
 
     meas_config_db.emplace(cgi.nci, meas_cfg);
   }

@@ -91,7 +91,7 @@ static sch_prbs_tbs linear_search_nof_prbs_upper_bound(const prbs_calculator_sch
                                        pdsch_cfg.nof_layers,
                                        pdsch_cfg.tb_scaling_field,
                                        nof_prbs_estimate};
-  unsigned                     tbs_bits_ub = tbs_calculator_calculate(tbs_cfg);
+  unsigned                     tbs_bits_ub = tbs_calculator_calculate(tbs_cfg).to_bits().value();
 
   // Given that the nof_prbs_estimate is an estimate of the required PRBs, this can be greater (leading to a TBS >>
   // payload size) or smaller than the actual wanted value (leading to a TBS < payload size). Depending on the two
@@ -104,7 +104,7 @@ static sch_prbs_tbs linear_search_nof_prbs_upper_bound(const prbs_calculator_sch
   unsigned tbs_bits_lb = tbs_bits_ub;
   for (unsigned nof_prb_dec = 1; nof_prb_dec < tbs_cfg.n_prb and tbs_bits_lb >= payload_size_bits; ++nof_prb_dec) {
     tbs_cfg.n_prb = nof_prbs_estimate - nof_prb_dec;
-    tbs_bits_lb   = tbs_calculator_calculate(tbs_cfg);
+    tbs_bits_lb   = tbs_calculator_calculate(tbs_cfg).to_bits().value();
 
     // if tbs_bits_lb < payload_size, return the previous iteration as the solution.
     if (tbs_bits_lb < payload_size_bits) {
@@ -120,7 +120,7 @@ static sch_prbs_tbs linear_search_nof_prbs_upper_bound(const prbs_calculator_sch
                                  tbs_cfg.n_prb < max_nof_available_rbs;
        ++nof_prb_inc) {
     tbs_cfg.n_prb = nof_prbs_estimate + nof_prb_inc;
-    tbs_bits_ub   = tbs_calculator_calculate(tbs_cfg);
+    tbs_bits_ub   = tbs_calculator_calculate(tbs_cfg).to_bits().value();
   }
 
   return {tbs_cfg.n_prb, tbs_bits_ub / NOF_BITS_PER_BYTE};

@@ -761,7 +761,7 @@ ue_fallback_scheduler::select_tbs(const pdsch_config_params&          pdsch_cfg,
                                            pdsch_cfg.nof_layers,
                                            pdsch_cfg.tb_scaling_field,
                                            prbs_tbs.nof_prbs};
-      prbs_tbs.tbs_bytes = units::bits{tbs_calculator_calculate(tbs_cfg)}.round_up_to_bytes().value();
+      prbs_tbs.tbs_bytes = tbs_calculator_calculate(tbs_cfg).value();
     }
 
     // As \c txDirectCurrentLocation, in \c SCS-SpecificCarrier, TS 38.331, "If this field (\c

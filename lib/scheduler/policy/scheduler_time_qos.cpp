@@ -122,8 +122,7 @@ rate_estimator::rate_estimator(const cell_configuration& cell_cfg) :
 
 unsigned rate_estimator::estimate_max_dl_tbs(const ue_cell& ue_cc) const
 {
-  static constexpr unsigned        NOF_BITS_PER_BYTE = 8U;
-  static constexpr pdsch_mcs_table ref_mcs_table     = pdsch_mcs_table::qam256;
+  static constexpr pdsch_mcs_table ref_mcs_table = pdsch_mcs_table::qam256;
 
   auto mcs = ue_cc.link_adaptation_controller().calculate_dl_mcs(ref_mcs_table);
   if (not mcs.has_value()) {
@@ -133,7 +132,7 @@ unsigned rate_estimator::estimate_max_dl_tbs(const ue_cell& ue_cc) const
 
   const unsigned            nof_layers = ue_cc.channel_state_manager().get_nof_dl_layers();
   const sch_mcs_description mcs_info   = pdsch_mcs_get_config(ref_mcs_table, mcs.value());
-  const unsigned            tbs_bits =
+  const units::bytes        tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh  = dl_tbs_cfg_ref.nof_symb_sh,
                                                             .nof_dmrs_prb = dl_dmrs_rbs_per_nof_layers[nof_layers - 1],
                                                             .nof_oh_prb   = dl_tbs_cfg_ref.nof_oh_prb,
@@ -141,21 +140,20 @@ unsigned rate_estimator::estimate_max_dl_tbs(const ue_cell& ue_cc) const
                                                             .nof_layers   = nof_layers,
                                                             .tb_scaling_field = dl_tbs_cfg_ref.tb_scaling_field,
                                                             .n_prb            = dl_tbs_cfg_ref.n_prb});
-  return tbs_bits / NOF_BITS_PER_BYTE;
+  return tbs_bytes.value();
 }
 
 unsigned rate_estimator::estimate_max_ul_tbs(const ue_cell& ue_cc) const
 {
   static constexpr pusch_mcs_table ref_mcs_table          = pusch_mcs_table::qam256;
   static constexpr bool            use_transform_precoder = false;
-  static constexpr unsigned        NOF_BITS_PER_BYTE      = 8U;
 
   const sch_mcs_index mcs = ue_cc.link_adaptation_controller().calculate_ul_mcs(ref_mcs_table, false);
 
   const unsigned            nof_layers = ue_cc.channel_state_manager().get_nof_ul_layers();
   const sch_mcs_description mcs_info   = pusch_mcs_get_config(ref_mcs_table, mcs, use_transform_precoder, false);
 
-  unsigned tbs_bits =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh  = ul_tbs_cfg_ref.nof_symb_sh,
                                                             .nof_dmrs_prb = ul_dmrs_rbs_per_nof_layers[nof_layers - 1],
                                                             .nof_oh_prb   = ul_tbs_cfg_ref.nof_oh_prb,
@@ -165,7 +163,7 @@ unsigned rate_estimator::estimate_max_ul_tbs(const ue_cell& ue_cc) const
                                                             .n_prb            = ul_tbs_cfg_ref.n_prb});
 
   // Return the estimated throughput, considering that the number of bytes is for a slot.
-  return tbs_bits / NOF_BITS_PER_BYTE;
+  return tbs_bytes.value();
 }
 
 scheduler_time_qos::scheduler_time_qos(const time_qos_scheduler_config& policy_cfg_,

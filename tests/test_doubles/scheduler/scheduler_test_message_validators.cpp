@@ -159,8 +159,8 @@ static unsigned is_ulsch_tbs_valid(const ul_sched_info& grant)
                                                             .mcs_descr        = grant.pusch_cfg.mcs_descr,
                                                             .nof_layers       = grant.pusch_cfg.nof_layers,
                                                             .tb_scaling_field = tb_scaling_field,
-                                                            .n_prb            = nof_rbs}) /
-      8U;
+                                                            .n_prb            = nof_rbs})
+          .value();
 
   return grant.pusch_cfg.tb_size_bytes == tbs_bytes;
 }

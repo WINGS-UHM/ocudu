@@ -468,7 +468,7 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
         tbs_config.nof_layers                   = precoding_config.get_nof_layers();
         tbs_config.nof_symb_sh                  = profile.nof_symbols;
         tbs_config.nof_dmrs_prb = dmrs.nof_dmrs_per_rb() * dmrs_symbol_mask.count() * nof_cdm_groups_without_data;
-        unsigned tbs            = tbs_calculator_calculate(tbs_config);
+        units::bits tbs         = tbs_calculator_calculate(tbs_config).to_bits();
 
         // Build the PDSCH PDU configuration.
         pdsch_processor::pdu_t config = {
@@ -496,7 +496,7 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
             .ratio_pdsch_dmrs_to_sss_dB  = 0.0,
             .ratio_pdsch_data_to_sss_dB  = 0.0,
             .precoding                   = precoding_config};
-        test_case_set.emplace_back(std::tuple<pdsch_processor::pdu_t, unsigned>(config, tbs));
+        test_case_set.emplace_back(std::tuple<pdsch_processor::pdu_t, unsigned>(config, tbs.value()));
       }
     }
   }

@@ -218,7 +218,7 @@ std::optional<sch_mcs_tbs> ocudu::compute_dl_mcs_tbs(const pdsch_config_params& 
   sch_mcs_description     mcs_info                = pdsch_mcs_get_config(pdsch_params.mcs_table, max_mcs);
   unsigned                nof_symbols             = pdsch_params.symbols.length();
 
-  unsigned tbs_bits =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,
                                                             .nof_dmrs_prb     = dmrs_prbs,
                                                             .nof_oh_prb       = pdsch_params.nof_oh_prb,
@@ -228,7 +228,7 @@ std::optional<sch_mcs_tbs> ocudu::compute_dl_mcs_tbs(const pdsch_config_params& 
                                                             .n_prb            = nof_prbs});
 
   // > Compute the effective code rate.
-  dlsch_configuration dlsch_info{.tbs                = static_cast<units::bits>(tbs_bits),
+  dlsch_configuration dlsch_info{.tbs                = tbs_bytes.to_bits(),
                                  .mcs_descr          = mcs_info,
                                  .nof_rb             = nof_prbs,
                                  .start_symbol_index = pdsch_params.symbols.start(),
@@ -246,16 +246,16 @@ std::optional<sch_mcs_tbs> ocudu::compute_dl_mcs_tbs(const pdsch_config_params& 
   sch_mcs_index mcs = max_mcs;
   while (effective_code_rate > max_supported_code_rate and mcs > 0) {
     --mcs;
-    mcs_info = pdsch_mcs_get_config(pdsch_params.mcs_table, mcs);
-    tbs_bits = tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,
-                                                                     .nof_dmrs_prb     = dmrs_prbs,
-                                                                     .nof_oh_prb       = pdsch_params.nof_oh_prb,
-                                                                     .mcs_descr        = mcs_info,
-                                                                     .nof_layers       = pdsch_params.nof_layers,
-                                                                     .tb_scaling_field = pdsch_params.tb_scaling_field,
-                                                                     .n_prb            = nof_prbs});
+    mcs_info  = pdsch_mcs_get_config(pdsch_params.mcs_table, mcs);
+    tbs_bytes = tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,
+                                                                      .nof_dmrs_prb     = dmrs_prbs,
+                                                                      .nof_oh_prb       = pdsch_params.nof_oh_prb,
+                                                                      .mcs_descr        = mcs_info,
+                                                                      .nof_layers       = pdsch_params.nof_layers,
+                                                                      .tb_scaling_field = pdsch_params.tb_scaling_field,
+                                                                      .n_prb            = nof_prbs});
 
-    dlsch_info.tbs         = static_cast<units::bits>(tbs_bits);
+    dlsch_info.tbs         = tbs_bytes.to_bits();
     dlsch_info.mcs_descr   = mcs_info;
     dlsch_info.contains_dc = contains_dc;
     effective_code_rate    = get_dlsch_information(dlsch_info).get_effective_code_rate();
@@ -266,8 +266,7 @@ std::optional<sch_mcs_tbs> ocudu::compute_dl_mcs_tbs(const pdsch_config_params& 
     return std::nullopt;
   }
 
-  const unsigned tbs_bytes = tbs_bits / NOF_BITS_PER_BYTE;
-  return std::optional<sch_mcs_tbs>{sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes}};
+  return std::optional<sch_mcs_tbs>{sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes.value()}};
 }
 
 expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const pusch_config_params& pusch_cfg,
@@ -281,19 +280,18 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const 
       pusch_cfg.mcs_table, max_mcs, pusch_cfg.use_transform_precoder, pusch_cfg.tp_pi2bpsk_present);
   const unsigned nof_symbols = pusch_cfg.symbols.length();
 
-  unsigned tbs_bytes =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,
                                                             .nof_dmrs_prb     = dmrs_prbs,
                                                             .nof_oh_prb       = pusch_cfg.nof_oh_prb,
                                                             .mcs_descr        = mcs_info,
                                                             .nof_layers       = pusch_cfg.nof_layers,
                                                             .tb_scaling_field = pusch_cfg.tb_scaling_field,
-                                                            .n_prb            = nof_prbs}) /
-      NOF_BITS_PER_BYTE;
+                                                            .n_prb            = nof_prbs});
 
   // > Compute the effective code rate.
   ulsch_configuration ulsch_cfg =
-      build_ulsch_info(pusch_cfg, active_bwp_cfg, tbs_bytes, mcs_info, nof_prbs, contains_dc);
+      build_ulsch_info(pusch_cfg, active_bwp_cfg, tbs_bytes.value(), mcs_info, nof_prbs, contains_dc);
   ulsch_information info = get_ulsch_information(ulsch_cfg);
 
   // > Decrease the MCS and recompute TBS until the effective code rate is not above the 0.95 threshold.
@@ -310,10 +308,9 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const 
                                                                       .mcs_descr        = mcs_info,
                                                                       .nof_layers       = pusch_cfg.nof_layers,
                                                                       .tb_scaling_field = pusch_cfg.tb_scaling_field,
-                                                                      .n_prb            = nof_prbs}) /
-                NOF_BITS_PER_BYTE;
+                                                                      .n_prb            = nof_prbs});
 
-    update_ulsch_info(ulsch_cfg, tbs_bytes, mcs_info);
+    update_ulsch_info(ulsch_cfg, tbs_bytes.value(), mcs_info);
     info = get_ulsch_information(ulsch_cfg);
   }
 
@@ -322,7 +319,7 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const 
     return make_unexpected(error);
   }
 
-  return sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes};
+  return sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes.value()};
 }
 
 std::optional<unsigned> ocudu::compute_ul_tbs(const pusch_config_params& pusch_cfg,
@@ -336,23 +333,22 @@ std::optional<unsigned> ocudu::compute_ul_tbs(const pusch_config_params& pusch_c
       pusch_mcs_get_config(pusch_cfg.mcs_table, mcs, pusch_cfg.use_transform_precoder, pusch_cfg.tp_pi2bpsk_present);
   const unsigned nof_symbols = pusch_cfg.symbols.length();
 
-  unsigned tbs_bytes =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,
                                                             .nof_dmrs_prb     = dmrs_prbs,
                                                             .nof_oh_prb       = pusch_cfg.nof_oh_prb,
                                                             .mcs_descr        = mcs_info,
                                                             .nof_layers       = pusch_cfg.nof_layers,
                                                             .tb_scaling_field = pusch_cfg.tb_scaling_field,
-                                                            .n_prb            = nof_prbs}) /
-      NOF_BITS_PER_BYTE;
+                                                            .n_prb            = nof_prbs});
 
   // > Compute the effective code rate.
   const ulsch_configuration ulsch_cfg =
-      build_ulsch_info(pusch_cfg, active_bwp_cfg, tbs_bytes, mcs_info, nof_prbs, contains_dc);
+      build_ulsch_info(pusch_cfg, active_bwp_cfg, tbs_bytes.value(), mcs_info, nof_prbs, contains_dc);
   const ulsch_information info = get_ulsch_information(ulsch_cfg);
 
   if (::is_pusch_effective_rate_valid(pusch_cfg, info, mcs_info, nof_prbs) == compute_ul_mcs_tbs_error::none) {
-    return tbs_bytes;
+    return tbs_bytes.value();
   }
   return std::nullopt;
 }
@@ -366,18 +362,17 @@ bool ocudu::is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,
   const unsigned            dmrs_prbs = calculate_nof_dmrs_per_rb(pusch_cfg.dmrs);
   const sch_mcs_description mcs_info =
       pusch_mcs_get_config(pusch_cfg.mcs_table, mcs, pusch_cfg.use_transform_precoder, pusch_cfg.tp_pi2bpsk_present);
-  unsigned tbs_bytes =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = pusch_cfg.symbols.length(),
                                                             .nof_dmrs_prb     = dmrs_prbs,
                                                             .nof_oh_prb       = pusch_cfg.nof_oh_prb,
                                                             .mcs_descr        = mcs_info,
                                                             .nof_layers       = pusch_cfg.nof_layers,
                                                             .tb_scaling_field = pusch_cfg.tb_scaling_field,
-                                                            .n_prb            = nof_prbs}) /
-      NOF_BITS_PER_BYTE;
+                                                            .n_prb            = nof_prbs});
 
   const ulsch_configuration ulsch_cfg =
-      build_ulsch_info(pusch_cfg, active_bwp_cfg, tbs_bytes, mcs_info, nof_prbs, contains_dc);
+      build_ulsch_info(pusch_cfg, active_bwp_cfg, tbs_bytes.value(), mcs_info, nof_prbs, contains_dc);
   const ulsch_information info = get_ulsch_information(ulsch_cfg);
   return ::is_pusch_effective_rate_valid(pusch_cfg, info, mcs_info, nof_prbs) == compute_ul_mcs_tbs_error::none;
 }
@@ -395,6 +390,6 @@ unsigned ocudu::compute_ul_tbs_unsafe(const pusch_config_params& pusch_cfg, sch_
                                                                .mcs_descr        = mcs_info,
                                                                .nof_layers       = pusch_cfg.nof_layers,
                                                                .tb_scaling_field = pusch_cfg.tb_scaling_field,
-                                                               .n_prb            = nof_prbs}) /
-         NOF_BITS_PER_BYTE;
+                                                               .n_prb            = nof_prbs})
+      .value();
 }

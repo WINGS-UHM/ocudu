@@ -219,11 +219,11 @@ private:
     tbs_config.nof_layers                   = nof_layers;
     tbs_config.nof_symb_sh                  = nof_ofdm_symbols;
     tbs_config.nof_dmrs_prb = dmrs.nof_dmrs_per_rb() * dmrs_symbol_mask.count() * nof_cdm_groups_without_data;
-    unsigned tbs            = tbs_calculator_calculate(tbs_config);
+    units::bytes tbs        = tbs_calculator_calculate(tbs_config);
 
     // Select LDPC base graph.
     ldpc_base_graph_type ldpc_base_graph =
-        get_ldpc_base_graph(mcs_descr.get_normalised_target_code_rate(), units::bits(tbs));
+        get_ldpc_base_graph(mcs_descr.get_normalised_target_code_rate(), tbs.to_bits());
 
     // Generate frequency allocation.
     rb_allocation freq_alloc =
@@ -333,8 +333,8 @@ private:
     }
 
     // Resize data to accomodate the transport block.
-    tx_data.resize(tbs / 8);
-    rx_data.resize(tbs / 8);
+    tx_data.resize(tbs.value());
+    rx_data.resize(tbs.value());
 
     emulator = std::make_unique<channel_emulator>(channel_delay_profile,
                                                   channel_fading_distribution,

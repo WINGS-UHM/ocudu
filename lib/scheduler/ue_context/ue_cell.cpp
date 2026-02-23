@@ -463,13 +463,11 @@ void ue_cell::apply_link_adaptation_procedures(const csi_report_data& csi_report
 
 double ue_cell::get_estimated_dl_rate(const pdsch_config_params& pdsch_cfg, sch_mcs_index mcs, unsigned nof_prbs) const
 {
-  static constexpr unsigned NOF_BITS_PER_BYTE = 8U;
-
   const unsigned      dmrs_prbs   = calculate_nof_dmrs_per_rb(pdsch_cfg.dmrs);
   sch_mcs_description mcs_info    = pdsch_mcs_get_config(pdsch_cfg.mcs_table, mcs);
   unsigned            nof_symbols = pdsch_cfg.symbols.length();
 
-  unsigned tbs_bits =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,
                                                             .nof_dmrs_prb     = dmrs_prbs,
                                                             .nof_oh_prb       = pdsch_cfg.nof_oh_prb,
@@ -479,19 +477,17 @@ double ue_cell::get_estimated_dl_rate(const pdsch_config_params& pdsch_cfg, sch_
                                                             .n_prb            = nof_prbs});
 
   // Return the estimated throughput, considering that the number of bytes is for a slot.
-  return tbs_bits / NOF_BITS_PER_BYTE;
+  return tbs_bytes.value();
 }
 
 double ue_cell::get_estimated_ul_rate(const pusch_config_params& pusch_cfg, sch_mcs_index mcs, unsigned nof_prbs) const
 {
-  static constexpr unsigned NOF_BITS_PER_BYTE = 8U;
-
   const unsigned      dmrs_prbs = calculate_nof_dmrs_per_rb(pusch_cfg.dmrs);
   sch_mcs_description mcs_info =
       pusch_mcs_get_config(pusch_cfg.mcs_table, mcs, pusch_cfg.use_transform_precoder, pusch_cfg.tp_pi2bpsk_present);
   unsigned nof_symbols = pusch_cfg.symbols.length();
 
-  unsigned tbs_bits =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,
                                                             .nof_dmrs_prb     = dmrs_prbs,
                                                             .nof_oh_prb       = pusch_cfg.nof_oh_prb,
@@ -501,7 +497,7 @@ double ue_cell::get_estimated_ul_rate(const pusch_config_params& pusch_cfg, sch_
                                                             .n_prb            = nof_prbs});
 
   // Return the estimated throughput, considering that the number of bytes is for a slot.
-  return tbs_bits / NOF_BITS_PER_BYTE;
+  return tbs_bytes.value();
 }
 
 void ue_cell::set_conres_state(bool state)

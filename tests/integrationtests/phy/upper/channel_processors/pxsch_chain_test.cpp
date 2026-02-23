@@ -199,7 +199,7 @@ TEST_P(PxschChainFixture, Ideal)
   tbs_params.nof_layers       = nof_layers;
   tbs_params.tb_scaling_field = 0;
   tbs_params.n_prb            = rb_mapping.length();
-  units::bits tbs             = units::bits(tbs_calculator_calculate(tbs_params));
+  units::bits tbs             = tbs_calculator_calculate(tbs_params).to_bits();
 
   // Get PxSCH information.
   dlsch_configuration dlsch_params;

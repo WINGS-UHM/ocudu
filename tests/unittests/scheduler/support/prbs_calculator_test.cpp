@@ -43,14 +43,14 @@ prbs_calculator_sch_config get_prb_calc_pdsch_config(unsigned        payload_byt
 
 unsigned get_tbs_bytes(const prbs_calculator_sch_config& pdsch_cfg, unsigned nof_prbs)
 {
-  unsigned tbs_bits_lb = tbs_calculator_calculate(tbs_calculator_configuration{pdsch_cfg.nof_symb_sh,
-                                                                               pdsch_cfg.nof_dmrs_prb,
-                                                                               pdsch_cfg.nof_oh_prb,
-                                                                               pdsch_cfg.mcs_descr,
-                                                                               pdsch_cfg.nof_layers,
-                                                                               pdsch_cfg.tb_scaling_field,
-                                                                               nof_prbs});
-  return tbs_bits_lb / 8;
+  return tbs_calculator_calculate(tbs_calculator_configuration{pdsch_cfg.nof_symb_sh,
+                                                               pdsch_cfg.nof_dmrs_prb,
+                                                               pdsch_cfg.nof_oh_prb,
+                                                               pdsch_cfg.mcs_descr,
+                                                               pdsch_cfg.nof_layers,
+                                                               pdsch_cfg.tb_scaling_field,
+                                                               nof_prbs})
+      .value();
 }
 
 using prb_calculator_tester_params = std::tuple<unsigned, unsigned>;

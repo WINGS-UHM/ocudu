@@ -14,6 +14,7 @@
 #pragma once
 
 #include "ocudu/ran/sch/sch_mcs.h"
+#include "ocudu/support/units.h"
 #include <array>
 
 namespace ocudu {
@@ -95,7 +96,9 @@ unsigned tbs_calculator_table_find_smallest_not_less_than(unsigned nof_info_prim
 /// \brief Calculates the TBS for a given SCH transmission.
 ///
 /// Implemented as per TS38.214 Section 5.1.3.2.
+///
+/// \param[in] config Configuration for the determination of the transport block size (TBS).
 /// \return The TBS in bits.
-unsigned tbs_calculator_calculate(const tbs_calculator_configuration& config);
+units::bytes tbs_calculator_calculate(const tbs_calculator_configuration& config);
 
 } // namespace ocudu

@@ -293,6 +293,10 @@ public:
   e1ap_message e1ap_pdu;
 };
 
+//----------------------------------------------------------------------------------//
+// CU-CP initiated release                                                          //
+//----------------------------------------------------------------------------------//
+
 TEST_F(cu_cp_ue_context_release_test, when_ue_rrc_setup_fails_then_ue_is_released)
 {
   // Inject Initial UL RRC Message Transfer containing RRC Setup Request.
@@ -324,6 +328,36 @@ TEST_F(cu_cp_ue_context_release_test, when_ue_rrc_setup_fails_then_ue_is_release
   // Wait for DL RRC message transfer. This should fail.
   ASSERT_FALSE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu, std::chrono::milliseconds{1000}));
 }
+TEST_F(cu_cp_ue_context_release_test,
+       when_ue_release_was_requested_and_error_indication_is_received_then_ue_is_released)
+{
+  // Attach UE.
+  ASSERT_TRUE(attach_ue());
+
+  // Expire request_pdu_session_timer.
+  ASSERT_FALSE(tick_until(this->get_cu_cp_cfg().ue.request_pdu_session_timeout, [&]() { return false; }, false));
+
+  // UE release is requested from AMF.
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu)) << "Failed to receive NGAP UE Context Release Request";
+  ASSERT_TRUE(test_helpers::is_valid_ue_context_release_request(ngap_pdu)) << "Invalid NGAP UE Context Release Request";
+
+  // Receive Error Indication from AMF.
+
+  // Inject NGAP Error Indication and await F1AP UE Context Release Command.
+  ASSERT_TRUE(send_error_indication_and_await_f1ap_ue_context_release_command(
+      ngap_cause_radio_network_t::unknown_local_ue_ngap_id));
+
+  // Inject F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
+
+  // STATUS: UE should be removed at this stage.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
+}
+
+//----------------------------------------------------------------------------------//
+// AMF initiated release                                                            //
+//----------------------------------------------------------------------------------//
 
 TEST_F(cu_cp_ue_context_release_test,
        when_ue_context_release_command_but_no_pdu_session_setup_received_then_release_succeeds)
@@ -345,7 +379,7 @@ TEST_F(cu_cp_ue_context_release_test,
 TEST_F(cu_cp_ue_context_release_test,
        when_pdu_session_resource_setup_request_is_received_during_release_then_error_indication_is_sent)
 {
-  // Setup PDU Session.
+  // Attach UE and setup PDU Session.
   ASSERT_TRUE(setup_ue_pdu_session());
 
   // Inject NGAP UE Context Release Command and await Bearer Context Release Command.
@@ -370,7 +404,7 @@ TEST_F(cu_cp_ue_context_release_test,
 
 TEST_F(cu_cp_ue_context_release_test, when_ue_context_release_command_received_then_release_succeeds)
 {
-  // Setup PDU Session.
+  // Attach UE and setup PDU Session.
   ASSERT_TRUE(setup_ue_pdu_session());
 
   // Inject NGAP UE Context Release Command and await Bearer Context Release Command.
@@ -387,10 +421,14 @@ TEST_F(cu_cp_ue_context_release_test, when_ue_context_release_command_received_t
   ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
 }
 
+//----------------------------------------------------------------------------------//
+// DU initiated release                                                             //
+//----------------------------------------------------------------------------------//
+
 TEST_F(cu_cp_ue_context_release_test,
        when_du_initiated_ue_context_release_received_then_ue_context_release_request_is_sent)
 {
-  // Setup PDU Session.
+  // Attach UE and setup PDU Session.
   ASSERT_TRUE(setup_ue_pdu_session());
 
   // Inject F1AP UE Context Release Request and await NGAP UE Context Release Request.
@@ -447,10 +485,14 @@ TEST_F(
   ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
 }
 
+//----------------------------------------------------------------------------------//
+// CU-UP initiated release                                                          //
+//----------------------------------------------------------------------------------//
+
 TEST_F(cu_cp_ue_context_release_test,
        when_cu_up_initiated_bearer_context_release_received_then_ue_context_release_request_is_sent)
 {
-  // Setup PDU Session.
+  // Attach UE and setup PDU Session.
   ASSERT_TRUE(setup_ue_pdu_session());
 
   // Inject E1AP Bearer Context Release Request and await NGAP UE Context Release Request.
@@ -468,31 +510,4 @@ TEST_F(cu_cp_ue_context_release_test, when_pdu_session_setup_is_not_requested_th
   // UE release is requested from AMF.
   ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu)) << "Failed to receive NGAP UE Context Release Request";
   ASSERT_TRUE(test_helpers::is_valid_ue_context_release_request(ngap_pdu)) << "Invalid NGAP UE Context Release Request";
-}
-
-TEST_F(cu_cp_ue_context_release_test,
-       when_ue_release_was_requested_and_error_indication_is_received_then_ue_is_released)
-{
-  // Attach UE.
-  ASSERT_TRUE(attach_ue());
-
-  // Expire request_pdu_session_timer.
-  ASSERT_FALSE(tick_until(this->get_cu_cp_cfg().ue.request_pdu_session_timeout, [&]() { return false; }, false));
-
-  // UE release is requested from AMF.
-  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu)) << "Failed to receive NGAP UE Context Release Request";
-  ASSERT_TRUE(test_helpers::is_valid_ue_context_release_request(ngap_pdu)) << "Invalid NGAP UE Context Release Request";
-
-  // Receive Error Indication from AMF.
-
-  // Inject NGAP Error Indication and await F1AP UE Context Release Command.
-  ASSERT_TRUE(send_error_indication_and_await_f1ap_ue_context_release_command(
-      ngap_cause_radio_network_t::unknown_local_ue_ngap_id));
-
-  // Inject F1AP UE Context Release Complete.
-  ASSERT_TRUE(send_f1ap_ue_context_release_complete(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
-
-  // STATUS: UE should be removed at this stage.
-  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
 }

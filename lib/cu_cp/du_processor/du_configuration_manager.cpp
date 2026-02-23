@@ -99,9 +99,12 @@ static du_cell_configuration create_du_cell_config(du_cell_index_t              
 {
   const auto&           cell_req = f1ap_cell_cfg.served_cell_info;
   du_cell_configuration cell;
-  cell.cell_index        = cell_idx;
-  cell.cgi               = cell_req.nr_cgi;
-  cell.tac               = cell_req.five_gs_tac.value();
+  cell.cell_index = cell_idx;
+  cell.cgi        = cell_req.nr_cgi;
+  if (cell_req.five_gs_tac.has_value()) {
+    // TODO: How to handle missing TAC?
+    cell.tac = cell_req.five_gs_tac.value();
+  }
   cell.pci               = cell_req.nr_pci;
   cell.served_plmns      = cell_req.served_plmns;
   cell.deactivated_plmns = {};

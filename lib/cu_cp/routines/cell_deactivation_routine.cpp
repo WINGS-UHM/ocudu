@@ -71,8 +71,11 @@ void cell_deactivation_routine::operator()(coro_context<async_task<void>>& ctx)
 
     CORO_AWAIT_VALUE(f1ap_cu_cfg_update_response, du_proc->handle_configuration_update(f1ap_cu_cfg_update));
     if (!f1ap_cu_cfg_update_response.success) {
-      logger.info(
-          "Configuration update for du={} failed. Cause: {}", *du_idx_it, f1ap_cu_cfg_update_response.cause.value());
+      logger.info("Configuration update for du={} failed. Cause: {}",
+                  *du_idx_it,
+                  f1ap_cu_cfg_update_response.cause.has_value()
+                      ? fmt::to_string(f1ap_cu_cfg_update_response.cause.value())
+                      : "timeout");
       routine_success = false;
     }
   }

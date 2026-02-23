@@ -182,6 +182,34 @@ TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_then_connected_ues_a
   }
 }
 
+TEST_F(cu_cp_connectivity_test,
+       when_amf_connection_is_lost_and_gnb_cu_configuration_update_times_out_then_cell_deactivation_completes)
+{
+  // This test reproduces an std::bad_optional_access exception in log after GNBCU Configuration Update timeout.
+  run_ng_setup();
+
+  // Setup DU.
+  auto ret = connect_new_du();
+  ASSERT_TRUE(ret.has_value());
+  unsigned du_idx = ret.value();
+  ASSERT_TRUE(this->run_f1_setup(du_idx));
+
+  // Drop AMF connection - triggers cell_deactivation_routine.
+  ASSERT_TRUE(drop_amf_connection(0));
+
+  // Cell deactivation sends GNB-CU Configuration Update to the DU.
+  f1ap_message f1ap_pdu;
+  ASSERT_TRUE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu)) << "GNB-CU Configuration Update not sent to DU";
+  ASSERT_TRUE(test_helpers::is_valid_gnb_cu_configuration_update(f1ap_pdu));
+
+  // Do NOT inject a DU response - let the F1AP transaction timer fire.
+  ASSERT_FALSE(tick_until(
+      this->get_cu_cp_cfg().f1ap.proc_timeout + std::chrono::milliseconds{1000}, [&]() { return false; }, false));
+
+  // After the timeout the routine should have completed gracefully without crashing.
+  ASSERT_FALSE(this->get_cu_cp().get_ng_handler().amfs_are_connected());
+}
+
 TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_and_ue_release_times_out_then_cell_deactivation_completes)
 {
   // This test reproduces a bug where cell_deactivation_routine would hang forever.

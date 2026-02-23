@@ -78,8 +78,6 @@ struct base_harq_process : public intrusive_double_linked_list_element<>,
   unsigned nof_retxs = 0;
   /// Maximum number of retransmission before Transport Block is reset.
   unsigned max_nof_harq_retxs = 0;
-  /// Whether to set the HARQ as ACKed or NACKed when the timeout expires.
-  bool ack_on_timeout = false;
   /// Whether retransmissions for this HARQ process have been cancelled.
   bool retxs_cancelled = false;
 };

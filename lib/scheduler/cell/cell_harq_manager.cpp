@@ -264,7 +264,6 @@ void cell_harq_repository<IsDl>::handle_harq_ack_timeout(harq_type& h, slot_poin
     return;
   }
 
-  bool ack_val = h.ack_on_timeout;
   if (h.status == harq_state_t::pending_retx) {
     // This HARQ is being starved by the scheduler.
     logger.info("rnti={} h_id={}: Discarding {} HARQ. Cause: The scheduler took too long to reschedule this HARQ "
@@ -274,31 +273,21 @@ void cell_harq_repository<IsDl>::handle_harq_ack_timeout(harq_type& h, slot_poin
                 IsDl ? std::string_view{"DL"} : std::string_view{"UL"},
                 h.slot_timeout - h.slot_ack);
   } else {
-    if (ack_val) {
-      // Case: Not all HARQ-ACKs were received, but at least one positive ACK was received.
-      logger.debug("rnti={} h_id={}: Setting {} HARQ to \"ACKed\" state. Cause: Timeout was reached ({} slots), but "
-                   "there are still missing PUCCH HARQ-ACK indications. However, one positive ACK was received.",
+    // The UCI outcome was never propagated to the HARQ.
+    logger.warning("rnti={} h_id={}: Discarding {} HARQ. Cause: Timeout was reached ({} slots) to receive the "
+                   "respective HARQ-ACK indication from lower layers (HARQ-ACK slot={})",
                    h.rnti,
                    fmt::underlying(h.h_id),
                    IsDl ? std::string_view{"DL"} : std::string_view{"UL"},
-                   h.slot_timeout - h.slot_ack);
-    } else {
-      // At least one of the expected ACKs went missing and we haven't received any positive ACK.
-      logger.warning("rnti={} h_id={}: Discarding {} HARQ. Cause: Timeout was reached ({} slots) to receive the "
-                     "respective HARQ-ACK indication from lower layers (HARQ-ACK slot={})",
-                     h.rnti,
-                     fmt::underlying(h.h_id),
-                     IsDl ? std::string_view{"DL"} : std::string_view{"UL"},
-                     h.slot_timeout - h.slot_ack,
-                     h.slot_ack);
-    }
+                   h.slot_timeout - h.slot_ack,
+                   h.slot_ack);
+
+    // Report timeout with NACK after we delete the HARQ to avoid reentrancy.
+    timeout_notifier.on_harq_timeout(h.ue_idx, IsDl, false);
   }
 
   // Deallocate HARQ.
   dealloc_harq(h);
-
-  // Report timeout with NACK after we delete the HARQ to avoid reentrancy.
-  timeout_notifier.on_harq_timeout(h.ue_idx, IsDl, ack_val);
 }
 
 template <bool IsDl>
@@ -338,7 +327,6 @@ typename cell_harq_repository<IsDl>::harq_type* cell_harq_repository<IsDl>::allo
   h.nof_retxs          = 0;
   h.ndi                = !h.ndi;
   h.max_nof_harq_retxs = max_nof_harq_retxs;
-  h.ack_on_timeout     = false;
   h.retxs_cancelled    = false;
 
   // Set UE HARQ entity common params.
@@ -468,10 +456,9 @@ bool cell_harq_repository<IsDl>::handle_new_retx(harq_type& h, slot_point sl_tx,
   h.slot_timeout = {};
 
   // Update HARQ common parameters.
-  h.status         = harq_state_t::waiting_ack;
-  h.slot_tx        = sl_tx;
-  h.slot_ack       = sl_ack;
-  h.ack_on_timeout = false;
+  h.status   = harq_state_t::waiting_ack;
+  h.slot_tx  = sl_tx;
+  h.slot_ack = sl_ack;
   h.nof_retxs++;
 
   // Set UE HARQ entity common params.

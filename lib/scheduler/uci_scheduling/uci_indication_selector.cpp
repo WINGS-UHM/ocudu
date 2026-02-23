@@ -165,6 +165,7 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
 
 void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result& result)
 {
+  ocudu_sanity_check(not last_sl_tx.valid() or sl_tx == last_sl_tx + 1, "Unexpected slot indication");
   last_sl_tx = sl_tx;
 
   // Handle UCI entries that have timeout.
@@ -190,7 +191,23 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
 
     // Handle UCI timeout.
     if (entry.uci_pdus_to_rx > 0) {
+      // Case: Not all UCIs were received within the short timeout window.
       entry.uci_pdus_to_rx = 0;
+      if (entry.chosen_action.uci_valid) {
+        logger.debug("rnti={}: Flushing DL HARQ processes after timeout. Cause: Timeout was reached ({} slots), "
+                     "but there are still missing PUCCH HARQ-ACK indications. However, at least a valid UCI PDU "
+                     "was received (HARQ-ACK slot={}).",
+                     entry.crnti,
+                     SHORT_PUCCH_TIMEOUT_SLOTS,
+                     sl_tx - SHORT_PUCCH_TIMEOUT_SLOTS);
+      } else {
+        // At least one of the expected ACKs went missing and we haven't received any valid UCI.
+        logger.warning("rnti={}: Discarding DL HARQ processes. Cause: Timeout was reached ({} slots) to receive "
+                       "the respective HARQ-ACK indication from lower layers (HARQ-ACK slot={})",
+                       entry.crnti,
+                       SHORT_PUCCH_TIMEOUT_SLOTS,
+                       sl_tx - SHORT_PUCCH_TIMEOUT_SLOTS);
+      }
       timeout_notifier.on_timeout(sl_rx, entry.crnti, entry.chosen_action);
     }
 

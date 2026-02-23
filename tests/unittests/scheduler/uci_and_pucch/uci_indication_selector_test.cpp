@@ -51,13 +51,18 @@ protected:
     return result;
   }
 
-  static pucch_info make_pucch_grant(rnti_t crnti, pucch_format format, unsigned nof_harq_bits, bool sr = false)
+  static pucch_info make_pucch_grant(rnti_t       crnti,
+                                     pucch_format format,
+                                     unsigned     nof_harq_bits,
+                                     bool         sr           = false,
+                                     unsigned     nof_csi_bits = 0)
   {
     pucch_info pucch{};
-    pucch.crnti                      = crnti;
-    pucch.bwp_cfg                    = nullptr;
-    pucch.uci_bits.harq_ack_nof_bits = nof_harq_bits;
-    pucch.uci_bits.sr_bits           = sr ? sr_nof_bits::one : sr_nof_bits::no_sr;
+    pucch.crnti                       = crnti;
+    pucch.bwp_cfg                     = nullptr;
+    pucch.uci_bits.harq_ack_nof_bits  = nof_harq_bits;
+    pucch.uci_bits.sr_bits            = sr ? sr_nof_bits::one : sr_nof_bits::no_sr;
+    pucch.uci_bits.csi_part1_nof_bits = nof_csi_bits;
     pucch.set_format(format);
     return pucch;
   }
@@ -80,6 +85,43 @@ protected:
     return pdu;
   }
 
+  static uci_indication::uci_pdu make_f2_pdu(rnti_t                                            crnti,
+                                             std::initializer_list<mac_harq_ack_report_status> harq_bits,
+                                             std::initializer_list<bool>                       sr_bits,
+                                             bool                                              has_csi = false,
+                                             std::optional<float>                              snr_dB  = std::nullopt)
+  {
+    uci_indication::uci_pdu pdu{};
+    pdu.ue_index = to_du_ue_index(0);
+    pdu.crnti    = crnti;
+    auto& f2     = pdu.pdu.emplace<uci_indication::uci_pdu::uci_pucch_f2_or_f3_or_f4_pdu>();
+
+    f2.harqs.resize(harq_bits.size());
+    std::copy(harq_bits.begin(), harq_bits.end(), f2.harqs.begin());
+
+    if (sr_bits.size() > 0) {
+      f2.sr_info = bounded_bitset<uci_indication::uci_pdu::uci_pucch_f2_or_f3_or_f4_pdu::MAX_SR_PAYLOAD_SIZE_BITS>(
+          sr_bits.begin(), sr_bits.end());
+    }
+
+    if (has_csi) {
+      f2.csi.emplace();
+      f2.csi->valid = true;
+      f2.csi->first_tb_wideband_cqi.emplace(15);
+    }
+
+    f2.ul_sinr_dB = snr_dB;
+
+    return pdu;
+  }
+
+  void advance_slots(unsigned nof_slots)
+  {
+    for (slot_point slot_timeout = next_sl_tx + nof_slots; next_sl_tx != slot_timeout; ++next_sl_tx) {
+      selector.handle_result(next_sl_tx, make_sched_result({}));
+    }
+  }
+
   test_timeout_notifier   timeout_notifier;
   uci_indication_selector selector{timeout_notifier, timeout_slots, MAX_PUCCH_PDUS_PER_SLOT};
 
@@ -89,73 +131,69 @@ protected:
                             NOF_SFNS* NOF_SUBFRAMES_PER_FRAME* get_nof_slots_per_subframe(subcarrier_spacing::kHz30))};
 };
 
-TEST_F(uci_indication_selector_test, returns_selected_action_for_matching_pdu)
+TEST_F(uci_indication_selector_test, returns_selected_action_for_matching_pdu_without_harq_bits)
 {
+  // Event: One PUCCH grant got scheduled.
+  selector.handle_result(next_sl_tx,
+                         make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_2, 0, false, 4)}));
+
+  // Event: Respective UCI gets processed.
+  auto action = selector.handle_uci_ind_pdu(next_sl_tx, make_f2_pdu(first_rnti, {}, {false}, true, 10.0F));
+
+  // Test: UCI action matches UCI PDU content.
+  ASSERT_TRUE(action.has_value());
+  ASSERT_TRUE(action->uci_valid);
+  ASSERT_FALSE(action->sr_detected);
+  ASSERT_TRUE(action->harq_ack_bits.empty());
+  ASSERT_TRUE(action->csi.has_value());
+  ASSERT_TRUE(action->csi->first_tb_wideband_cqi.has_value());
+
+  // Test: No timeout is ever triggered.
+  ++next_sl_tx;
+  advance_slots(timeout_slots);
+  ASSERT_TRUE(timeout_notifier.events.empty());
+}
+
+TEST_F(uci_indication_selector_test, returns_selected_action_for_matching_pdu_with_harq_bits)
+{
+  // Event: One PUCCH grant got scheduled.
   selector.handle_result(next_sl_tx, make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 2)}));
 
+  // Event: Respective UCI gets processed.
   auto action = selector.handle_uci_ind_pdu(
       next_sl_tx,
       make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::ack, mac_harq_ack_report_status::nack}, true, 10.0F));
 
+  // Test: UCI action matches UCI PDU content.
   ASSERT_TRUE(action.has_value());
-  EXPECT_TRUE(action->sr_detected);
+  ASSERT_TRUE(action->sr_detected);
   ASSERT_EQ(action->harq_ack_bits.size(), 2U);
-  EXPECT_TRUE(action->harq_ack_bits.test(0));
+  ASSERT_TRUE(action->harq_ack_bits.test(0));
   ASSERT_FALSE(action->harq_ack_bits.test(1));
-  EXPECT_TRUE(timeout_notifier.events.empty());
+  ASSERT_TRUE(action->ul_sinr_dB.has_value());
+  ASSERT_TRUE(timeout_notifier.events.empty());
+
+  // Test: No timeout is ever triggered.
+  ++next_sl_tx;
+  advance_slots(timeout_slots);
+  ASSERT_TRUE(timeout_notifier.events.empty());
 }
 
 TEST_F(uci_indication_selector_test, returns_nullopt_when_rnti_is_not_found)
 {
+  // Event: PUCCH grant with HARQ-ACK bits got scheduled.
   selector.handle_result(next_sl_tx, make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1)}));
 
+  // Event: UCI arrives but with wrong C-RNTI.
   auto action =
       selector.handle_uci_ind_pdu(next_sl_tx, make_f0_or_f1_pdu(second_rnti, {mac_harq_ack_report_status::ack}));
 
+  // Test: No action is performed.
   ASSERT_FALSE(action.has_value());
-  EXPECT_TRUE(timeout_notifier.events.empty());
+  ASSERT_TRUE(timeout_notifier.events.empty());
 }
 
-TEST_F(uci_indication_selector_test, triggers_timeout_when_no_uci_indication_arrives)
-{
-  slot_point start_sl_tx = next_sl_tx;
-  selector.handle_result(next_sl_tx++, make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 2)}));
-
-  for (slot_point last_slot = next_sl_tx + timeout_slots; next_sl_tx != last_slot; ++next_sl_tx) {
-    ASSERT_TRUE(timeout_notifier.events.empty());
-    selector.handle_result(next_sl_tx, make_sched_result({}));
-  }
-
-  ASSERT_EQ(timeout_notifier.events.size(), 1U);
-  ASSERT_EQ(timeout_notifier.events.front().sl_rx, start_sl_tx);
-  ASSERT_EQ(timeout_notifier.events.front().crnti, first_rnti);
-  ASSERT_EQ(timeout_notifier.events.front().action.harq_ack_bits.size(), 2U);
-  ASSERT_FALSE(timeout_notifier.events.front().action.harq_ack_bits.test(0));
-  ASSERT_FALSE(timeout_notifier.events.front().action.harq_ack_bits.test(1));
-}
-
-TEST_F(uci_indication_selector_test, picks_higher_snr_for_multiple_expected_pucch_indications)
-{
-  selector.handle_result(next_sl_tx,
-                         make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1),
-                                            make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1, true)}));
-
-  const bool  first_is_higher = test_rgen::uniform_int(0, 1) == 0;
-  const float first_snr       = first_is_higher ? 10.0 : 1.0;
-  const float second_snr      = first_is_higher ? 1.0 : 10.0;
-  auto        first_action    = selector.handle_uci_ind_pdu(
-      next_sl_tx, make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::ack}, false, first_snr));
-  auto second_action = selector.handle_uci_ind_pdu(
-      next_sl_tx, make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::nack}, true, second_snr));
-
-  ASSERT_FALSE(first_action.has_value());
-  ASSERT_TRUE(second_action.has_value());
-  ASSERT_EQ(second_action->harq_ack_bits.size(), 1U);
-  ASSERT_EQ(first_is_higher, second_action->harq_ack_bits.test(0));
-  ASSERT_NE(first_is_higher, second_action->sr_detected);
-}
-
-TEST_F(uci_indication_selector_test, removes_single_entry_without_losing_other_slot_entries)
+TEST_F(uci_indication_selector_test, handles_out_of_order_uci_pdu_arrival)
 {
   selector.handle_result(next_sl_tx,
                          make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1),
@@ -164,23 +202,108 @@ TEST_F(uci_indication_selector_test, removes_single_entry_without_losing_other_s
   auto second_rnti_action =
       selector.handle_uci_ind_pdu(next_sl_tx, make_f0_or_f1_pdu(second_rnti, {mac_harq_ack_report_status::ack}));
   auto first_rnti_action =
-      selector.handle_uci_ind_pdu(next_sl_tx, make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::ack}));
+      selector.handle_uci_ind_pdu(next_sl_tx, make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::nack}));
 
-  ASSERT_TRUE(second_rnti_action.has_value());
   ASSERT_TRUE(first_rnti_action.has_value());
+  ASSERT_FALSE(first_rnti_action->harq_ack_bits.test(0));
+  ASSERT_TRUE(second_rnti_action.has_value());
+  ASSERT_TRUE(second_rnti_action->harq_ack_bits.test(0));
+}
+
+TEST_F(uci_indication_selector_test, triggers_timeout_when_no_uci_indication_arrives)
+{
+  // Event: PUCCH grant with HARQ-ACK bits got scheduled.
+  slot_point start_sl_tx = next_sl_tx;
+  selector.handle_result(next_sl_tx++, make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 2)}));
+
+  // Event: No timeout event gets triggered before deadline expires.
+  for (slot_point last_slot = next_sl_tx + timeout_slots; next_sl_tx != last_slot; ++next_sl_tx) {
+    ASSERT_TRUE(timeout_notifier.events.empty());
+    selector.handle_result(next_sl_tx, make_sched_result({}));
+  }
+
+  // Test: Timeout expired.
+  ASSERT_EQ(timeout_notifier.events.size(), 1U);
+  auto& ev = timeout_notifier.events.front();
+  ASSERT_EQ(ev.sl_rx, start_sl_tx);
+  ASSERT_EQ(ev.crnti, first_rnti);
+  ASSERT_FALSE(ev.action.uci_valid);
+  ASSERT_EQ(ev.action.harq_ack_bits.size(), 2U);
+  ASSERT_TRUE(ev.action.harq_ack_bits.none());
+}
+
+TEST_F(uci_indication_selector_test, selects_pucch_with_highest_snr_for_multiple_expected_pucch_indications)
+{
+  auto uci_slot = next_sl_tx;
+  selector.handle_result(next_sl_tx,
+                         make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1),
+                                            make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1, true)}));
+
+  const bool     first_is_higher          = test_rgen::uniform_int(0, 1) == 0;
+  const unsigned second_pucch_delay_slots = test_rgen::uniform_int(0, 4);
+  const float    first_snr                = first_is_higher ? 10.0 : 1.0;
+  const float    second_snr               = first_is_higher ? 1.0 : 10.0;
+  auto           first_action             = selector.handle_uci_ind_pdu(
+      uci_slot, make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::ack}, false, first_snr));
+  for (unsigned i = 0; i != second_pucch_delay_slots; ++i) {
+    ASSERT_TRUE(timeout_notifier.events.empty());
+    selector.handle_result(++next_sl_tx, make_sched_result({}));
+  }
+  auto second_action = selector.handle_uci_ind_pdu(
+      uci_slot, make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::nack}, true, second_snr));
+
+  ASSERT_TRUE(timeout_notifier.events.empty());
+  ASSERT_FALSE(first_action.has_value());
+  ASSERT_TRUE(second_action.has_value());
+  ASSERT_EQ(second_action->harq_ack_bits.size(), 1U);
+  ASSERT_EQ(first_is_higher, second_action->harq_ack_bits.test(0));
+  ASSERT_NE(first_is_higher, second_action->sr_detected);
+}
+
+TEST_F(uci_indication_selector_test, selects_non_dtx_for_multiple_expected_pucch_indications)
+{
+  auto uci_slot = next_sl_tx;
+  selector.handle_result(next_sl_tx,
+                         make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1),
+                                            make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1, true)}));
+  const bool     first_is_dtx             = test_rgen::uniform_int(0, 1) == 0;
+  const unsigned second_pucch_delay_slots = test_rgen::uniform_int(0, 4);
+  auto           first_action             = selector.handle_uci_ind_pdu(
+      uci_slot,
+      make_f0_or_f1_pdu(
+          first_rnti, {first_is_dtx ? mac_harq_ack_report_status::dtx : mac_harq_ack_report_status::ack}, false, -10));
+  for (unsigned i = 0; i != second_pucch_delay_slots; ++i) {
+    ASSERT_TRUE(timeout_notifier.events.empty());
+    selector.handle_result(++next_sl_tx, make_sched_result({}));
+  }
+  auto second_action = selector.handle_uci_ind_pdu(
+      uci_slot,
+      make_f0_or_f1_pdu(
+          first_rnti, {first_is_dtx ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::dtx}, true, -10));
+
+  ASSERT_TRUE(timeout_notifier.events.empty());
+  ASSERT_FALSE(first_action.has_value());
+  ASSERT_TRUE(second_action.has_value());
+  ASSERT_EQ(second_action->harq_ack_bits.size(), 1U);
+  ASSERT_TRUE(second_action->harq_ack_bits.test(0));
+  ASSERT_EQ(first_is_dtx, second_action->sr_detected);
 }
 
 TEST_F(uci_indication_selector_test, timeout_is_triggered_if_only_one_of_two_pucch_ucis_is_received)
 {
+  // Event: Two PUCCH grants are scheduled.
   selector.handle_result(next_sl_tx,
                          make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 2, true),
                                             make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 2)}));
 
-  auto first_action = selector.handle_uci_ind_pdu(
-      next_sl_tx++, make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::ack, mac_harq_ack_report_status::nack}));
+  // Event: First PUCCH arrives.
+  const auto first_bit  = static_cast<mac_harq_ack_report_status>(test_rgen::uniform_int(0, 2));
+  const auto second_bit = static_cast<mac_harq_ack_report_status>(test_rgen::uniform_int(0, 2));
+  auto first_action = selector.handle_uci_ind_pdu(next_sl_tx, make_f0_or_f1_pdu(first_rnti, {first_bit, second_bit}));
   ASSERT_FALSE(first_action.has_value());
 
   // Event: Advance slots until short timeout trigger.
+  ++next_sl_tx;
   for (slot_point slot_timeout = next_sl_tx + uci_indication_selector::SHORT_PUCCH_TIMEOUT_SLOTS;
        next_sl_tx != slot_timeout;
        ++next_sl_tx) {
@@ -190,11 +313,15 @@ TEST_F(uci_indication_selector_test, timeout_is_triggered_if_only_one_of_two_puc
 
   // Test Case: Short timeout got triggered.
   ASSERT_EQ(timeout_notifier.events.size(), 1U);
-  ASSERT_EQ(timeout_notifier.events.front().crnti, first_rnti);
-  ASSERT_EQ(timeout_notifier.events.front().action.harq_ack_bits.size(), 2U);
-  ASSERT_TRUE(timeout_notifier.events.front().action.harq_ack_bits.test(0));
-  ASSERT_FALSE(timeout_notifier.events.front().action.harq_ack_bits.test(1));
-  ASSERT_FALSE(timeout_notifier.events.front().action.sr_detected);
+  const auto& ev = timeout_notifier.events.front();
+  ASSERT_EQ(ev.crnti, first_rnti);
+  const bool expected_uci_valid =
+      first_bit != mac_harq_ack_report_status::dtx and second_bit != mac_harq_ack_report_status::dtx;
+  ASSERT_EQ(ev.action.uci_valid, expected_uci_valid);
+  ASSERT_EQ(ev.action.harq_ack_bits.size(), 2U);
+  ASSERT_EQ(ev.action.harq_ack_bits.test(0), expected_uci_valid and first_bit == mac_harq_ack_report_status::ack);
+  ASSERT_EQ(ev.action.harq_ack_bits.test(1), expected_uci_valid and second_bit == mac_harq_ack_report_status::ack);
+  ASSERT_FALSE(ev.action.sr_detected);
 
   // Test Case: Ensure timeout does not get triggered again.
   timeout_notifier.events.clear();

@@ -288,6 +288,25 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool send_error_indication_and_await_bearer_context_release_command(ngap_cause_t cause)
+  {
+    report_fatal_error_if_not(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
+                              "there are still NGAP messages to pop from AMF");
+    report_fatal_error_if_not(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu),
+                              "there are still F1AP DL messages to pop from DU");
+    report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
+                              "there are still E1AP messages to pop from CU-UP");
+
+    // Inject Error Indication and wait for Bearer Context Release Command..
+    get_amf().push_tx_pdu(
+        generate_error_indication_message(ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value(), cause));
+    report_fatal_error_if_not(this->wait_for_e1ap_tx_pdu(cu_up_idx, e1ap_pdu),
+                              "Failed to receive Bearer Context Release Command");
+    report_fatal_error_if_not(test_helpers::is_valid_bearer_context_release_command(e1ap_pdu),
+                              "Invalid Bearer Context Release Command");
+    return true;
+  }
+
   [[nodiscard]] bool timeout_rrc_setup_and_await_f1ap_ue_context_release_command()
   {
     // Fail RRC Setup (UE doesn't respond) and wait for F1AP UE Context Release Command.
@@ -372,8 +391,30 @@ TEST_F(cu_cp_ue_context_release_test,
   ASSERT_TRUE(test_helpers::is_valid_ue_context_release_request(ngap_pdu)) << "Invalid NGAP UE Context Release Request";
 
   // Inject NGAP Error Indication and await F1AP UE Context Release Command.
-  ASSERT_TRUE(send_error_indication_and_await_f1ap_ue_context_release_command(
+  ASSERT_TRUE(send_error_indication_and_await_f1ap_ue_context_release_command(ngap_cause_radio_network_t::unspecified));
+
+  // Inject F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
+
+  // STATUS: UE should be removed at this stage.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
+}
+
+TEST_F(cu_cp_ue_context_release_test,
+       when_error_indication_with_cause_unknown_local_ue_ngap_id_is_received_then_ue_is_released_locally)
+{
+  // Attach UE and setup PDU Session.
+  ASSERT_TRUE(setup_ue_pdu_session());
+
+  // Receive Error Indication from AMF.
+
+  // Inject NGAP Error Indication and await E1AP Bearer Context Release Command.
+  ASSERT_TRUE(send_error_indication_and_await_bearer_context_release_command(
       ngap_cause_radio_network_t::unknown_local_ue_ngap_id));
+
+  // Inject Bearer Context Release Complete and await F1AP UE Context Release Command.
+  ASSERT_TRUE(send_bearer_context_release_complete_and_await_f1ap_ue_context_release_command());
 
   // Inject F1AP UE Context Release Complete.
   ASSERT_TRUE(send_f1ap_ue_context_release_complete(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));

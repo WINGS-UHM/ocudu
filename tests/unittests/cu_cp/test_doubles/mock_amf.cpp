@@ -95,6 +95,8 @@ public:
     }
   }
 
+  void allow_reconnection() override { connection_dropped = false; }
+
 private:
   using ngap_pdu_queue = concurrent_queue<ngap_message,
                                           concurrent_queue_policy::locking_mpmc,

@@ -31,6 +31,9 @@ public:
 
   /// Simulate a drop of the AMF connection.
   virtual void drop_connection() = 0;
+
+  /// Allow a new TNL connection after a previous drop (simulates AMF becoming reachable again).
+  virtual void allow_reconnection() = 0;
 };
 
 /// Creates a mock AMF to interface with the CU-CP.

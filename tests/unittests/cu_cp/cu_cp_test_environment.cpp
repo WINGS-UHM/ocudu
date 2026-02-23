@@ -335,6 +335,23 @@ bool cu_cp_test_environment::drop_amf_connection(unsigned amf_idx)
   return true;
 }
 
+bool cu_cp_test_environment::reconnect_amf(unsigned amf_idx)
+{
+  auto it = amf_configs.find(amf_idx);
+  if (it == amf_configs.end()) {
+    return false;
+  }
+
+  it->second.amf_stub->allow_reconnection();
+
+  it->second.amf_stub->enqueue_next_tx_pdu(ocucp::generate_ng_setup_response());
+
+  tick_until(cu_cp_cfg.ngap.amf_reconnection_retry_time, [&]() { return false; }, false);
+
+  ngap_message ng_setup_req;
+  return wait_for_ngap_tx_pdu(ng_setup_req, std::chrono::milliseconds{1000}, amf_idx);
+}
+
 std::optional<unsigned> cu_cp_test_environment::connect_new_du()
 {
   auto du_stub = create_mock_du({get_cu_cp().get_f1c_handler()});

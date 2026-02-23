@@ -94,6 +94,9 @@ public:
   void run_ng_setup();
   /// Drop TNL connection between the AMF and the CU-CP.
   bool drop_amf_connection(unsigned amf_idx);
+  /// Simulate AMF becoming reachable again and complete the NG Setup procedure.
+  /// Returns true if the AMF is successfully reconnected.
+  bool reconnect_amf(unsigned amf_idx);
 
   /// Establish a TNL connection between a DU and the CU-CP.
   std::optional<unsigned> connect_new_du();

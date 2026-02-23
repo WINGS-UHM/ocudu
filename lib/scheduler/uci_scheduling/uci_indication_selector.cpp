@@ -13,9 +13,9 @@
 
 using namespace ocudu;
 
-uci_indication_selector::uci_indication_selector(unsigned                         uci_ack_timeout,
-                                                 unsigned                         max_pucch_grants_per_slot,
-                                                 uci_indication_timeout_notifier& timeout_notifier_) :
+uci_indication_selector::uci_indication_selector(uci_indication_timeout_notifier& timeout_notifier_,
+                                                 unsigned                         uci_ack_timeout,
+                                                 unsigned                         max_pucch_grants_per_slot) :
   ack_timeout_slots(uci_ack_timeout),
   timeout_notifier(timeout_notifier_),
   logger(ocudulog::fetch_basic_logger("SCHED")),
@@ -99,15 +99,16 @@ std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point
   return std::nullopt;
 }
 
-std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry)
+/// Convert UCI indication to an action.
+static uci_action create_action(const uci_indication::uci_pdu& pdu)
 {
-  // Retrieve info from different PUCCH/PUSCH formats.
-  uci_action           ret;
-  bool                 is_dtx = false;
-  std::optional<float> snr;
+  uci_action ret;
+  bool       is_dtx = false;
   if (const auto* f0f1 = std::get_if<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(&pdu.pdu)) {
-    snr             = f0f1->ul_sinr_dB;
-    ret.sr_detected = f0f1->sr_detected;
+    ret.type                = uci_action::pdu_type::pucch_f0f1;
+    ret.ul_sinr_dB          = f0f1->ul_sinr_dB;
+    ret.time_advance_offset = f0f1->time_advance_offset;
+    ret.sr_detected         = f0f1->sr_detected;
     ret.harq_ack_bits.resize(f0f1->harqs.size());
     for (unsigned i = 0, e = f0f1->harqs.size(); i != e; ++i) {
       if (f0f1->harqs[i] == mac_harq_ack_report_status::ack) {
@@ -116,8 +117,10 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
       is_dtx |= f0f1->harqs[i] == mac_harq_ack_report_status::dtx;
     }
   } else if (const auto* f2f3f4 = std::get_if<uci_indication::uci_pdu::uci_pucch_f2_or_f3_or_f4_pdu>(&pdu.pdu)) {
-    snr             = f2f3f4->ul_sinr_dB;
-    ret.sr_detected = f2f3f4->sr_info.any();
+    ret.type                = uci_action::pdu_type::pucch_f2f3f4;
+    ret.ul_sinr_dB          = f2f3f4->ul_sinr_dB;
+    ret.time_advance_offset = f2f3f4->time_advance_offset;
+    ret.sr_detected         = f2f3f4->sr_info.any();
     ret.harq_ack_bits.resize(f2f3f4->harqs.size());
     for (unsigned i = 0, e = f2f3f4->harqs.size(); i != e; ++i) {
       if (f2f3f4->harqs[i] == mac_harq_ack_report_status::ack) {
@@ -125,8 +128,10 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
       }
       is_dtx |= f2f3f4->harqs[i] == mac_harq_ack_report_status::dtx;
     }
+    ret.csi = f2f3f4->csi;
   } else {
     const auto& pusch = std::get<uci_indication::uci_pdu::uci_pusch_pdu>(pdu.pdu);
+    ret.type          = uci_action::pdu_type::pusch;
     ret.harq_ack_bits.resize(pusch.harqs.size());
     for (unsigned i = 0, e = pusch.harqs.size(); i != e; ++i) {
       if (pusch.harqs[i] == mac_harq_ack_report_status::ack) {
@@ -134,7 +139,17 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
       }
       is_dtx |= pusch.harqs[i] == mac_harq_ack_report_status::dtx;
     }
+    ret.csi = pusch.csi;
   }
+  ret.uci_valid =
+      (ret.sr_detected or (not ret.harq_ack_bits.empty() and not is_dtx) or (ret.csi.has_value() and ret.csi->valid));
+  return ret;
+}
+
+std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry)
+{
+  // Retrieve info from different PUCCH/PUSCH formats.
+  uci_action ret = create_action(pdu);
 
   if (not std::holds_alternative<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(pdu.pdu)) {
     // It is not PUCCH F1. We do not need to decide which is the best PUCCH candidate.
@@ -143,10 +158,11 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
     return ret;
   }
 
-  if (not is_dtx and (not entry.last_snr.has_value() or (snr.has_value() and entry.last_snr.value() < snr.value()))) {
+  if (ret.uci_valid and
+      (not entry.chosen_action.ul_sinr_dB.has_value() or
+       (ret.ul_sinr_dB.has_value() and entry.chosen_action.ul_sinr_dB.value() < ret.ul_sinr_dB.value()))) {
     // Case: If there was no previous HARQ-ACK decoded or the previous HARQ-ACK had lower SNR, this HARQ-ACK is chosen.
     entry.chosen_action = ret;
-    entry.last_snr      = snr;
   }
 
   if (entry.pucchs_to_rx <= 1) {

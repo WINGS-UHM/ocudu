@@ -20,8 +20,20 @@ namespace ocudu {
 
 /// Action to be taken on the reception of a UCI indication PDU.
 struct uci_action {
-  bool                          sr_detected = false;
+  enum class pdu_type : uint8_t { pucch_f0f1, pucch_f2f3f4, pusch };
+
+  /// Which type of UCI indication event led to this action.
+  pdu_type type = pdu_type::pucch_f0f1;
+  /// Whether the decoding of the UCI was successful.
+  bool uci_valid = false;
+  /// Whether an SR was detected.
+  bool sr_detected = false;
+  /// HARQ-ACK bits.
   bounded_bitset<MAX_NOF_HARQS> harq_ack_bits;
+  std::optional<float>          ul_sinr_dB;
+  /// Timing Advance Offset measured for the UE.
+  std::optional<phy_time_unit>   time_advance_offset;
+  std::optional<csi_report_data> csi;
 };
 
 class uci_indication_timeout_notifier
@@ -38,10 +50,13 @@ public:
   /// \brief Timeout value to use when the PUCCH has been ACKed/NACKed, but it is expecting another PUCCH before being
   /// cleared (implementation-defined).
   static constexpr unsigned SHORT_PUCCH_TIMEOUT_SLOTS = 8U;
+  /// \brief Default timeout in slots after which the HARQ process assumes that the CRC/ACK went missing
+  /// (implementation-defined).
+  static constexpr unsigned DEFAULT_ACK_TIMEOUT_SLOTS = 256U;
 
-  uci_indication_selector(unsigned                         ack_timeout_slots,
-                          unsigned                         max_pucch_grants_per_slot,
-                          uci_indication_timeout_notifier& timeout_notifier);
+  uci_indication_selector(uci_indication_timeout_notifier& timeout_notifier,
+                          unsigned                         ack_timeout_slots         = DEFAULT_ACK_TIMEOUT_SLOTS,
+                          unsigned                         max_pucch_grants_per_slot = MAX_PUCCH_PDUS_PER_SLOT);
 
   std::optional<uci_action> handle_uci_ind_pdu(slot_point sl_rx, const uci_indication::uci_pdu& pdu);
 
@@ -51,13 +66,12 @@ private:
   static constexpr soa::row_id invalid_row_id{std::numeric_limits<uint32_t>::max()};
 
   struct uci_entry {
-    rnti_t               crnti        = rnti_t::INVALID_RNTI;
-    uint8_t              pucchs_to_rx = 0;
-    uci_action           chosen_action;
-    std::optional<float> last_snr;
-    soa::row_id          next               = invalid_row_id;
-    soa::row_id          next_short_timeout = invalid_row_id;
-    slot_point           short_timeout_wheel_pos;
+    rnti_t      crnti        = rnti_t::INVALID_RNTI;
+    uint8_t     pucchs_to_rx = 0;
+    uci_action  chosen_action;
+    soa::row_id next               = invalid_row_id;
+    soa::row_id next_short_timeout = invalid_row_id;
+    slot_point  short_timeout_wheel_pos;
   };
 
   std::optional<uci_action> handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry);

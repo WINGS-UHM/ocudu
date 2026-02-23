@@ -81,7 +81,7 @@ protected:
   }
 
   test_timeout_notifier   timeout_notifier;
-  uci_indication_selector selector{timeout_slots, MAX_PUCCH_PDUS_PER_SLOT, timeout_notifier};
+  uci_indication_selector selector{timeout_notifier, timeout_slots, MAX_PUCCH_PDUS_PER_SLOT};
 
   slot_point next_sl_tx{subcarrier_spacing::kHz30,
                         test_rgen::uniform_int<unsigned>(

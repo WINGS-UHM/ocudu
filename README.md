@@ -1,11 +1,12 @@
 # The OCUDU Project
 
-![Pipeline](https://gitlab.com/ocudu/ocudu/badges/main/pipeline.svg)
+[![Pipeline](https://gitlab.com/ocudu/ocudu/badges/main/pipeline.svg)](https://gitlab.com/ocudu/ocudu/-/pipelines?scope=branches)
+[![Documentation](https://img.shields.io/badge/docs-built-green?logo=docusaurus)](https://docs.ocudu.org)
 ![Code](https://img.shields.io/badge/code-C++17-informational)
 ![Build](https://img.shields.io/badge/build-CMake-informational)
-![License](https://img.shields.io/badge/license-BSD--3--Clause-blue)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause--Open--MPI-blue)](https://spdx.org/licenses/BSD-3-Clause-Open-MPI.html)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11899/badge)](https://www.bestpractices.dev/projects/11899)
-![Coverage](https://gitlab.com/ocudu/ocudu/badges/main/coverage.svg?min_good=98&min_acceptable=60)
+[![Coverage](https://gitlab.com/ocudu/ocudu/badges/main/coverage.svg?min_good=98&min_acceptable=60)](https://docs.ocudu.org/coverage/index.html)
 
 <img src="https://srs.io/wp-content/uploads/ocudu_color.png" alt="image" width="50%"/>
 

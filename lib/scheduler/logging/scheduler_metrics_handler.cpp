@@ -10,6 +10,7 @@
 
 #include "scheduler_metrics_handler.h"
 #include "../config/cell_configuration.h"
+#include "../uci_scheduling/uci_indication_selector.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/resource_allocation/rb_bitmap.h"
 #include "ocudu/ran/slot_point.h"
@@ -252,62 +253,45 @@ void cell_metrics_handler::handle_harq_timeout(du_ue_index_t ue_index, bool is_d
   }
 }
 
-void cell_metrics_handler::handle_uci_pdu_indication(const uci_indication::uci_pdu& pdu, bool is_sr_opportunity_and_f1)
+void cell_metrics_handler::handle_uci_pdu_indication(du_ue_index_t ue_index, const uci_action& action)
 {
   if (not enabled()) {
     return;
   }
-  if (ues.contains(pdu.ue_index)) {
-    auto& u = ues[pdu.ue_index];
+  if (ues.contains(ue_index)) {
+    auto& u = ues[ue_index];
 
-    if (const auto* f0f1 = std::get_if<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(&pdu.pdu)) {
-      if (f0f1->ul_sinr_dB.has_value()) {
-        handle_pucch_sinr(u, f0f1->ul_sinr_dB.value());
-      }
+    if (action.ul_sinr_dB.has_value()) {
+      handle_pucch_sinr(u, *action.ul_sinr_dB);
+    }
 
-      if (f0f1->time_advance_offset.has_value()) {
-        u.data.ta.update(f0f1->time_advance_offset->to_seconds());
-        u.data.pucch_ta.update(f0f1->time_advance_offset->to_seconds());
-      }
+    if (action.time_advance_offset.has_value()) {
+      u.data.ta.update(action.time_advance_offset->to_seconds());
+      u.data.pucch_ta.update(action.time_advance_offset->to_seconds());
+    }
 
-      if (not is_sr_opportunity_and_f1 and not f0f1->harqs.empty() and
-          f0f1->harqs[0] == mac_harq_ack_report_status::dtx) {
-        ++u.data.nof_pucch_f0f1_invalid_harqs;
+    if (not action.uci_valid and not action.harq_ack_bits.empty()) {
+      switch (action.type) {
+        case uci_action::pdu_type::pucch_f0f1:
+          ++u.data.nof_pucch_f0f1_invalid_harqs;
+          break;
+        case uci_action::pdu_type::pucch_f2f3f4:
+          ++u.data.nof_pucch_f2f3f4_invalid_harqs;
+          break;
+        default:
+          ++u.data.nof_pusch_invalid_harqs;
       }
-    } else if (const auto* f2f3f4 = std::get_if<uci_indication::uci_pdu::uci_pucch_f2_or_f3_or_f4_pdu>(&pdu.pdu)) {
-      if (f2f3f4->ul_sinr_dB.has_value()) {
-        handle_pucch_sinr(u, f2f3f4->ul_sinr_dB.value());
-      }
+    }
 
-      if (f2f3f4->csi.has_value()) {
-        if (f2f3f4->csi->valid) {
-          handle_csi_report(u, f2f3f4->csi.value());
-        } else {
+    if (action.csi.has_value()) {
+      if (action.csi->valid) {
+        handle_csi_report(u, action.csi.value());
+      } else {
+        if (action.type == uci_action::pdu_type::pucch_f2f3f4) {
           ++u.data.nof_pucch_f2f3f4_invalid_csis;
-        }
-      }
-
-      if (f2f3f4->time_advance_offset.has_value()) {
-        u.data.ta.update(f2f3f4->time_advance_offset->to_seconds());
-        u.data.pucch_ta.update(f2f3f4->time_advance_offset->to_seconds());
-      }
-
-      if (not f2f3f4->harqs.empty() and f2f3f4->harqs[0] == mac_harq_ack_report_status::dtx) {
-        ++u.data.nof_pucch_f2f3f4_invalid_harqs;
-      }
-    } else {
-      // PUSCH case.
-      const auto& pusch = std::get<uci_indication::uci_pdu::uci_pusch_pdu>(pdu.pdu);
-
-      if (pusch.csi.has_value()) {
-        if (pusch.csi->valid) {
-          handle_csi_report(u, pusch.csi.value());
         } else {
           ++u.data.nof_pusch_invalid_csis;
         }
-      }
-      if (not pusch.harqs.empty() and pusch.harqs[0] == mac_harq_ack_report_status::dtx) {
-        ++u.data.nof_pusch_invalid_harqs;
       }
     }
   }

@@ -87,7 +87,7 @@ struct base_harq_process : public intrusive_double_linked_list_element<>,
 /// Parameters of a DL HARQ process.
 struct dl_harq_process_impl : public base_harq_process {
   /// \brief Update to the HARQ process state after a HARQ-ACK is received.
-  enum class status_update { acked, nacked, no_update, error };
+  enum class status_update { acked, nacked, error };
 
   /// \brief Parameters relative to the last used PDSCH PDU that get stored in the HARQ process for future reuse.
   struct alloc_params {
@@ -116,10 +116,6 @@ struct dl_harq_process_impl : public base_harq_process {
   alloc_params prev_tx_params;
   /// HARQ-bit index corresponding to this HARQ process in the UCI PDU indication.
   uint8_t harq_bit_idx = 0;
-  /// Keeps the count of how many PUCCH grants are allocate for this harq_process.
-  unsigned pucch_ack_to_receive{0};
-  /// Chosen ACK status for this HARQ process transmission, given one or more HARQ-ACK bits received.
-  mac_harq_ack_report_status chosen_ack = mac_harq_ack_report_status::dtx;
   /// Stores the highest recorded PUCCH SNR for this HARQ process.
   std::optional<float> last_pucch_snr;
 };
@@ -282,10 +278,6 @@ class dl_harq_process_handle : public harq_utils::base_harq_process_handle<true>
   using base_type = harq_utils::base_harq_process_handle<true>;
 
 public:
-  /// \brief Timeout value to use when the HARQ has been ACKed/NACKed, but it is expecting another PUCCH before being
-  /// cleared (implementation-defined).
-  static constexpr unsigned SHORT_ACK_TIMEOUT_DTX = 8U;
-
   using status_update = harq_utils::dl_harq_process_impl::status_update;
   using grant_params  = harq_utils::dl_harq_process_impl::alloc_params;
 
@@ -309,8 +301,6 @@ public:
   /// \param[in] pucch_snr SNR of the PUCCH that carried the HARQ-ACK.
   /// \return Status update after processing the ACK info.
   status_update dl_ack_info(mac_harq_ack_report_status ack, std::optional<float> pucch_snr);
-
-  void increment_pucch_counter();
 
   /// \brief Stores grant parameters that are associated with the HARQ process (e.g. DCI format, PRBs, MCS) so that
   /// they can be later fetched and optionally reused.
@@ -613,12 +603,6 @@ public:
   /// \param[in] pusch_slot Slot when the PUSCH was transmitted.
   /// \return Active UL HARQ process with matching PUSCH slot, if found.
   std::optional<ul_harq_process_handle> find_ul_harq_waiting_ack(slot_point pusch_slot);
-
-  /// \brief The UCI scheduling associated with a given slot was cancelled. The associated DL HARQs will be NACKed, and
-  /// won't expect further UCIs.
-  ///
-  /// This function can be called for instance when there is an error indication coming from lower layers.
-  void uci_sched_failed(slot_point uci_slot);
 
   /// Determines the sum of the number of bytes that are in active UL HARQ processes.
   unsigned total_ul_bytes_waiting_ack() const;

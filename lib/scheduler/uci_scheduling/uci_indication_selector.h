@@ -69,12 +69,18 @@ private:
   static constexpr soa::row_id invalid_row_id{std::numeric_limits<uint32_t>::max()};
 
   struct uci_entry {
-    rnti_t      crnti        = rnti_t::INVALID_RNTI;
-    uint8_t     pucchs_to_rx = 0;
-    uci_action  chosen_action;
-    soa::row_id next               = invalid_row_id;
+    rnti_t crnti = rnti_t::INVALID_RNTI;
+    /// Number of UCI PDUs that need to be combined until a decision is made relative to the UCI outcome.
+    uint8_t uci_pdus_to_rx = 0;
+    /// Buffered action when several UCI PDUs need to be combined.
+    uci_action chosen_action;
+    /// Next element in the linked list of UCI entries expected for a given slot Rx.
+    soa::row_id next = invalid_row_id;
+    /// Next element in the linked list of UCI entries that will expire in a given slot if the remaining UCI PDUs
+    /// for this grant do not arrive to the scheduler.
     soa::row_id next_short_timeout = invalid_row_id;
-    slot_point  short_timeout_wheel_pos;
+    /// Slot at which the UCI entry will expire if the remaining UCI PDUs do not arrive on time.
+    slot_point short_timeout_wheel_pos;
   };
 
   std::optional<uci_action> handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry);

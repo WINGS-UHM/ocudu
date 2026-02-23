@@ -27,6 +27,8 @@ class uci_scheduler_impl;
 class cell_harq_manager;
 class srs_scheduler;
 class pdu_indication_pool;
+class uci_indication_selector;
+struct uci_action;
 
 struct cell_creation_event {
   cell_resource_allocator& cell_res_grid;
@@ -35,6 +37,7 @@ struct cell_creation_event {
   uci_scheduler_impl&      uci_sched;
   inter_slice_scheduler&   slice_sched;
   srs_scheduler&           srs_sched;
+  uci_indication_selector& uci_selector;
   cell_metrics_handler&    metrics;
   scheduler_event_logger&  ev_logger;
 };
@@ -91,6 +94,9 @@ public:
   // Handle slice reconfiguration request.
   void handle_slice_reconfiguration_request(const du_cell_slice_reconfig_request& req);
 
+  // Handle UCI indication timeouts.
+  void handle_uci_indication_timeout(slot_point uci_slot, rnti_t rnti, const uci_action& action);
+
 private:
   class ue_dl_buffer_occupancy_manager;
 
@@ -136,11 +142,13 @@ private:
   /// Log event when UE does not have a carrier for this cell.
   void log_invalid_cc(du_ue_index_t ue_idx, const char* event_name, bool warn_if_ignored = true) const;
 
-  void handle_harq_ind(ue_cell&                               ue_cc,
-                       slot_point                             uci_sl,
-                       span<const mac_harq_ack_report_status> harq_bits,
-                       std::optional<float>                   pucch_snr);
-  void handle_csi(ue_cell& ue_cc, slot_point sl_rx, const csi_report_data& csi_rep);
+  void         handle_harq_ind(ue_cell&                             ue_cc,
+                               slot_point                           uci_sl,
+                               bool                                 uci_valid,
+                               const bounded_bitset<MAX_NOF_HARQS>& harq_bits,
+                               std::optional<float>                 pucch_snr);
+  void         handle_csi(ue_cell& ue_cc, slot_point sl_rx, const csi_report_data& csi_rep);
+  event_result handle_uci_pdu(slot_point uci_sl, const uci_indication::uci_pdu& uci_pdu);
 
   // shared parameters.
   ue_event_manager&       parent;
@@ -154,6 +162,7 @@ private:
   uci_scheduler_impl&       uci_sched;
   inter_slice_scheduler&    slice_sched;
   srs_scheduler&            srs_sched;
+  uci_indication_selector&  uci_selector;
   cell_metrics_handler&     metrics;
   scheduler_event_logger&   ev_logger;
 

@@ -709,11 +709,9 @@ harq_utils::dl_harq_process_impl* cell_harq_manager::new_dl_tx(du_ue_index_t ue_
   }
 
   // Save DL-specific parameters.
-  h->prev_tx_params       = {};
-  h->harq_bit_idx         = harq_bit_idx;
-  h->pucch_ack_to_receive = 0;
-  h->chosen_ack           = mac_harq_ack_report_status::dtx;
-  h->last_pucch_snr       = std::nullopt;
+  h->prev_tx_params = {};
+  h->harq_bit_idx   = harq_bit_idx;
+  h->last_pucch_snr = std::nullopt;
 
   return h;
 }
@@ -741,10 +739,8 @@ bool dl_harq_process_handle::new_retx(slot_point pdsch_slot, unsigned ack_delay,
     return false;
   }
   // Reset DL-only HARQ parameters.
-  impl->harq_bit_idx         = harq_bit_idx;
-  impl->pucch_ack_to_receive = 0;
-  impl->chosen_ack           = mac_harq_ack_report_status::dtx;
-  impl->last_pucch_snr       = std::nullopt;
+  impl->harq_bit_idx   = harq_bit_idx;
+  impl->last_pucch_snr = std::nullopt;
   return true;
 }
 
@@ -761,44 +757,15 @@ dl_harq_process_handle::status_update dl_harq_process_handle::dl_ack_info(mac_ha
   if (impl->mode == harq_mode_t::feedback_disabled_or_mode_b) {
     harq_repo->logger.warning(
         "rnti={} h_id={}: ACK arrived for DL HARQ with feedback disabled", impl->rnti, fmt::underlying(impl->h_id));
-    return status_update::no_update;
+    return status_update::error;
   }
 
-  if (ack != mac_harq_ack_report_status::dtx and
-      (not impl->last_pucch_snr.has_value() or
-       (pucch_snr.has_value() and impl->last_pucch_snr.value() < pucch_snr.value()))) {
-    // Case: If there was no previous HARQ-ACK decoded or the previous HARQ-ACK had lower SNR, this HARQ-ACK is chosen.
-    impl->chosen_ack     = ack;
-    impl->last_pucch_snr = pucch_snr;
-  }
+  // Update HARQ state
+  impl->last_pucch_snr = pucch_snr;
+  const bool final_ack = ack == mac_harq_ack_report_status::ack;
+  harq_repo->handle_ack(*impl, final_ack);
 
-  if (impl->pucch_ack_to_receive <= 1) {
-    // Case: This is the last HARQ-ACK that is expected for this HARQ process.
-
-    // Update HARQ state
-    bool final_ack = impl->chosen_ack == mac_harq_ack_report_status::ack;
-    harq_repo->handle_ack(*impl, final_ack);
-
-    return final_ack ? status_update::acked : status_update::nacked;
-  }
-
-  // Case: This is not the last PUCCH HARQ-ACK that is expected for this HARQ process.
-  impl->pucch_ack_to_receive--;
-  impl->ack_on_timeout = impl->chosen_ack == mac_harq_ack_report_status::ack;
-
-  // We reduce the HARQ process timeout to receive the next HARQ-ACK. This is done because the two HARQ-ACKs should
-  // arrive almost simultaneously, and in case the second goes missing, we don't want to block the HARQ for too long.
-  auto& wheel = harq_repo->harq_timeout_wheel;
-  wheel[impl->slot_timeout.to_uint() % wheel.size()].pop(impl);
-  impl->slot_timeout = harq_repo->last_sl_ind + SHORT_ACK_TIMEOUT_DTX;
-  wheel[impl->slot_timeout.to_uint() % wheel.size()].push_front(impl);
-
-  return status_update::no_update;
-}
-
-void dl_harq_process_handle::increment_pucch_counter()
-{
-  ++impl->pucch_ack_to_receive;
+  return final_ack ? status_update::acked : status_update::nacked;
 }
 
 void dl_harq_process_handle::save_grant_params(const dl_harq_alloc_context& ctx, const dl_msg_alloc& ue_pdsch)
@@ -1201,20 +1168,6 @@ std::optional<ul_harq_process_handle> unique_ue_harq_entity::find_ul_harq_waitin
     }
   }
   return std::nullopt;
-}
-
-void unique_ue_harq_entity::uci_sched_failed(slot_point uci_slot)
-{
-  std::vector<dl_harq_process_impl>& dl_harqs = cell_harq_mgr->dl.ues[ue_index].harqs;
-  for (dl_harq_process_impl& h : dl_harqs) {
-    if (h.status == harq_utils::harq_state_t::waiting_ack and h.slot_ack == uci_slot) {
-      unsigned nof_nacks = std::max(h.pucch_ack_to_receive, 1U);
-      auto     h_handle  = dl_harq_process_handle(cell_harq_mgr->dl, h);
-      for (unsigned i = 0; i != nof_nacks; ++i) {
-        h_handle.dl_ack_info(mac_harq_ack_report_status::dtx, std::nullopt);
-      }
-    }
-  }
 }
 
 unsigned unique_ue_harq_entity::total_ul_bytes_waiting_ack() const

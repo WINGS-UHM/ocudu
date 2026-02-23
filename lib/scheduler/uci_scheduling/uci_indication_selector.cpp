@@ -28,47 +28,6 @@ uci_indication_selector::uci_indication_selector(uci_indication_timeout_notifier
   report_fatal_error_if_not(uci_ack_timeout > SHORT_PUCCH_TIMEOUT_SLOTS, "Invalid UCI ACK timeout");
 }
 
-std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point                     sl_rx,
-                                                                      const uci_indication::uci_pdu& pdu)
-{
-  soa::row_id& list_head = uci_wheel[sl_rx.count()];
-
-  uci_entry* prev_entry = nullptr;
-  for (soa::row_id rid = list_head; rid != invalid_row_id;) {
-    uci_entry& entry = uci_pool.at<slot_column_id::uci>(rid);
-
-    if (pdu.crnti == entry.crnti) {
-      // RNTIs match. The grant was found.
-
-      // Generate an action.
-      auto action = handle_uci_pdu(pdu, entry);
-
-      if (action.has_value()) {
-        // An action was generated. It means that all the combining is complete and we can erase the UCI entry.
-        rem_uci_entry(list_head, prev_entry, entry);
-      } else {
-        // No action was generated. This means that the UCI entry is still expecting more UCI indications.
-        if (not entry.short_timeout_wheel_pos.valid()) {
-          // We add the UCI grant in another linked list in the short timeout wheel, if not added yet.
-          entry.short_timeout_wheel_pos = last_sl_tx + SHORT_PUCCH_TIMEOUT_SLOTS;
-          auto& short_timeout_head      = short_timeout_wheel[entry.short_timeout_wheel_pos.count()];
-          entry.next_short_timeout      = short_timeout_head;
-          short_timeout_head            = rid;
-        }
-      }
-
-      return action;
-    }
-
-    prev_entry = &entry;
-    rid        = entry.next;
-  }
-
-  logger.warning("rnti={}: UCI not found for slot={}", pdu.crnti, sl_rx);
-
-  return std::nullopt;
-}
-
 /// Convert UCI indication to an action.
 static uci_action create_action(const uci_indication::uci_pdu& pdu)
 {
@@ -116,6 +75,63 @@ static uci_action create_action(const uci_indication::uci_pdu& pdu)
   return ret;
 }
 
+static bool has_harq_ack_bits(const uci_indication::uci_pdu& pdu)
+{
+  if (auto* f0f1 = std::get_if<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(&pdu.pdu)) {
+    return not f0f1->harqs.empty();
+  }
+  if (auto* f2f3f4 = std::get_if<uci_indication::uci_pdu::uci_pucch_f2_or_f3_or_f4_pdu>(&pdu.pdu)) {
+    return not f2f3f4->harqs.empty();
+  }
+  return not std::get<uci_indication::uci_pdu::uci_pusch_pdu>(pdu.pdu).harqs.empty();
+}
+
+std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point                     sl_rx,
+                                                                      const uci_indication::uci_pdu& pdu)
+{
+  // If the PDU has no HARQ-ACK bits, it was not registered for timeout tracking (e.g. SR-only or CSI-only PUCCH).
+  // In this case, create and return an action directly.
+  if (not has_harq_ack_bits(pdu)) {
+    return create_action(pdu);
+  }
+
+  soa::row_id& list_head  = uci_wheel[sl_rx.count()];
+  uci_entry*   prev_entry = nullptr;
+  for (soa::row_id rid = list_head; rid != invalid_row_id;) {
+    uci_entry& entry = uci_pool.at<slot_column_id::uci>(rid);
+
+    if (pdu.crnti == entry.crnti) {
+      // RNTIs match. The grant was found.
+
+      // Generate an action.
+      auto action = handle_uci_pdu(pdu, entry);
+
+      if (action.has_value()) {
+        // An action was generated. It means that all the combining is complete and we can erase the UCI entry.
+        rem_uci_entry(list_head, prev_entry, entry);
+      } else {
+        // No action was generated. This means that the UCI entry is still expecting more UCI indications.
+        if (not entry.short_timeout_wheel_pos.valid()) {
+          // We add the UCI grant in another linked list in the short timeout wheel, if not added yet.
+          entry.short_timeout_wheel_pos = last_sl_tx + SHORT_PUCCH_TIMEOUT_SLOTS;
+          auto& short_timeout_head      = short_timeout_wheel[entry.short_timeout_wheel_pos.count()];
+          entry.next_short_timeout      = short_timeout_head;
+          short_timeout_head            = rid;
+        }
+      }
+
+      return action;
+    }
+
+    prev_entry = &entry;
+    rid        = entry.next;
+  }
+
+  logger.warning("rnti={}: UCI not found for slot={}", pdu.crnti, sl_rx);
+
+  return std::nullopt;
+}
+
 std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry)
 {
   // Retrieve info from different PUCCH/PUSCH formats.
@@ -123,8 +139,8 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
 
   if (not std::holds_alternative<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(pdu.pdu)) {
     // It is not PUCCH F1. We do not need to decide which is the best PUCCH candidate.
-    ocudu_sanity_check(entry.pucchs_to_rx <= 1, "Invalid pucch_to_rx value");
-    entry.pucchs_to_rx = 0;
+    ocudu_sanity_check(entry.uci_pdus_to_rx <= 1, "Invalid pucch_to_rx value");
+    entry.uci_pdus_to_rx = 0;
     return ret;
   }
 
@@ -135,14 +151,14 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
     entry.chosen_action = ret;
   }
 
-  if (entry.pucchs_to_rx <= 1) {
+  if (entry.uci_pdus_to_rx <= 1) {
     // Case: This is the last PUCCH that is expected for this UCI grant.
-    entry.pucchs_to_rx = 0;
+    entry.uci_pdus_to_rx = 0;
     return entry.chosen_action;
   }
 
   // Case: This is not the last PUCCH that is expected for this UCI grant.
-  entry.pucchs_to_rx--;
+  entry.uci_pdus_to_rx--;
 
   return std::nullopt;
 }
@@ -158,7 +174,7 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
     uci_entry& entry = uci_pool.at<slot_column_id::uci>(rid);
 
     // Handle UCI timeout if there were still pending UCI indications.
-    if (entry.pucchs_to_rx > 0) {
+    if (entry.uci_pdus_to_rx > 0) {
       timeout_notifier.on_timeout(sl_rx, entry.crnti, entry.chosen_action);
     }
 
@@ -173,8 +189,8 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
     uci_entry& entry = uci_pool.at<slot_column_id::uci>(rid);
 
     // Handle UCI timeout.
-    if (entry.pucchs_to_rx > 0) {
-      entry.pucchs_to_rx = 0;
+    if (entry.uci_pdus_to_rx > 0) {
+      entry.uci_pdus_to_rx = 0;
       timeout_notifier.on_timeout(sl_rx, entry.crnti, entry.chosen_action);
     }
 
@@ -186,7 +202,7 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
   }
   rem_pucch_timeout = invalid_row_id;
 
-  // Handle new UCI grants scheduled in this slot.
+  // Handle new PUCCH grants scheduled in this slot.
   auto& uci_wheel_sl_tx = uci_wheel[sl_tx.count()];
   ocudu_sanity_check(uci_wheel_sl_tx == invalid_row_id, "The wheel should be empty for slot tx");
   for (const pucch_info& pucch : result.ul.pucchs) {
@@ -201,7 +217,7 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
       while (rid != invalid_row_id) {
         auto& entry = uci_pool.at<slot_column_id::uci>(rid);
         if (entry.crnti == pucch.crnti) {
-          entry.pucchs_to_rx++;
+          entry.uci_pdus_to_rx++;
           break;
         }
         rid = entry.next;
@@ -214,10 +230,27 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
 
     // Create new UCI entry and save it in the UCI wheel.
     uci_entry entry;
-    entry.crnti        = pucch.crnti;
-    entry.pucchs_to_rx = 1;
+    entry.crnti          = pucch.crnti;
+    entry.uci_pdus_to_rx = 1;
     // The chosen action set here is what will be propagated in case of timeout.
     entry.chosen_action.harq_ack_bits.resize(pucch.uci_bits.harq_ack_nof_bits);
+    entry.next      = uci_wheel_sl_tx;
+    soa::row_id rid = uci_pool.insert(entry);
+    uci_wheel_sl_tx = rid;
+  }
+
+  // Handle new PUSCH with UCI grants scheduled in this slot.
+  for (const ul_sched_info& pusch : result.ul.puschs) {
+    if (not pusch.uci.has_value() or not pusch.uci->harq.has_value() or pusch.uci->harq->harq_ack_nof_bits == 0) {
+      // Only UCI with HARQ-ACK bits need to be buffered for timeout handling.
+      continue;
+    }
+
+    // Create new UCI entry and save it in the UCI wheel.
+    uci_entry entry;
+    entry.crnti          = pusch.pusch_cfg.rnti;
+    entry.uci_pdus_to_rx = 1;
+    entry.chosen_action.harq_ack_bits.resize(pusch.uci->harq->harq_ack_nof_bits);
     entry.next      = uci_wheel_sl_tx;
     soa::row_id rid = uci_pool.insert(entry);
     uci_wheel_sl_tx = rid;
@@ -232,7 +265,7 @@ void uci_indication_selector::handle_discarded_pucchs(slot_point sl_tx)
     uci_entry& entry = uci_pool.at<slot_column_id::uci>(rid);
 
     // The lower layers will not attempt to decode the PUCCH and will not send any UCI indication.
-    if (not entry.chosen_action.harq_ack_bits.empty() and entry.pucchs_to_rx > 0) {
+    if (not entry.chosen_action.harq_ack_bits.empty() and entry.uci_pdus_to_rx > 0) {
       // Note: To avoid a long DL HARQ timeout window (due to lack of UCI indication), it is important to force a
       // timeout in the DL HARQ processes with UCI falling in this slot.
       // Note: We don't use this cancellation to update the DL OLLA, as we shouldn't take lates into account in link

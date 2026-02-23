@@ -17,16 +17,16 @@ using namespace ocudu;
 
 namespace {
 
-// Generate random PUCCH SNR value.
-float random_snr()
-{
-  return static_cast<float>(std::uniform_real_distribution<float>{-20.0F, 30.0F}(test_rgen::get()));
-}
+// // Generate random PUCCH SNR value.
+// float random_snr()
+// {
+//   return static_cast<float>(std::uniform_real_distribution<float>{-20.0F, 30.0F}(test_rgen::get()));
+// }
 
-mac_harq_ack_report_status get_random_harq_ack()
-{
-  return static_cast<mac_harq_ack_report_status>(test_rgen::uniform_int<unsigned>(0, 2));
-}
+// mac_harq_ack_report_status get_random_harq_ack()
+// {
+//   return static_cast<mac_harq_ack_report_status>(test_rgen::uniform_int<unsigned>(0, 2));
+// }
 
 dl_msg_alloc make_dummy_ue_pdsch_info()
 {
@@ -201,49 +201,49 @@ protected:
   ul_harq_process_handle h_ul{harq_ent.alloc_ul_harq(current_slot + k2 + ntn_cs_koffset, max_retxs).value()};
 };
 
-class dl_harq_process_multi_pucch_test : public base_single_harq_entity_test, public ::testing::Test
-{
-protected:
-  dl_harq_process_multi_pucch_test()
-  {
-    // Expect two PUCCHs.
-    h_dl.increment_pucch_counter();
-    h_dl.increment_pucch_counter();
-  }
+// class dl_harq_process_multi_pucch_test : public base_single_harq_entity_test, public ::testing::Test
+// {
+// protected:
+//   dl_harq_process_multi_pucch_test()
+//   {
+//     // Expect two PUCCHs.
+//     h_dl.increment_pucch_counter();
+//     h_dl.increment_pucch_counter();
+//   }
+//
+//   dl_harq_process_handle h_dl{harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0).value()};
+// };
+//
+// // Parameters of test with 2 PUCCHs - dl_harq_process_two_pucch_param_test
+// struct two_ack_test_params {
+//   std::array<uint8_t, 2> ack;
+//   std::array<float, 2>   snr;
+//   bool                   outcome;
+// };
 
-  dl_harq_process_handle h_dl{harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0).value()};
-};
+// void PrintTo(const two_ack_test_params& params, ::std::ostream* os)
+// {
+//   *os << fmt::format("{{ack={} snr={:.2}}} + {{ack={} snr={:.2}}} -> outcome={}",
+//                      params.ack[0],
+//                      params.snr[0],
+//                      params.ack[1],
+//                      params.snr[1],
+//                      params.outcome ? "ACK" : "NACK");
+// }
 
-// Parameters of test with 2 PUCCHs - dl_harq_process_two_pucch_param_test
-struct two_ack_test_params {
-  std::array<uint8_t, 2> ack;
-  std::array<float, 2>   snr;
-  bool                   outcome;
-};
-
-void PrintTo(const two_ack_test_params& params, ::std::ostream* os)
-{
-  *os << fmt::format("{{ack={} snr={:.2}}} + {{ack={} snr={:.2}}} -> outcome={}",
-                     params.ack[0],
-                     params.snr[0],
-                     params.ack[1],
-                     params.snr[1],
-                     params.outcome ? "ACK" : "NACK");
-}
-
-class dl_harq_process_two_pucch_param_test : public base_single_harq_entity_test,
-                                             public ::testing::TestWithParam<two_ack_test_params>
-{
-protected:
-  dl_harq_process_two_pucch_param_test()
-  {
-    // Expect two PUCCHs.
-    h_dl.increment_pucch_counter();
-    h_dl.increment_pucch_counter();
-  }
-
-  dl_harq_process_handle h_dl{harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0).value()};
-};
+// class dl_harq_process_two_pucch_param_test : public base_single_harq_entity_test,
+//                                              public ::testing::TestWithParam<two_ack_test_params>
+// {
+// protected:
+//   dl_harq_process_two_pucch_param_test()
+//   {
+//     // Expect two PUCCHs.
+//     h_dl.increment_pucch_counter();
+//     h_dl.increment_pucch_counter();
+//   }
+//
+//   dl_harq_process_handle h_dl{harq_ent.alloc_dl_harq(current_slot, k1, max_retxs, 0).value()};
+// };
 
 enum harq_state_outcome { ACKed, NACKed, DTX_timeout };
 
@@ -253,40 +253,40 @@ struct test_2_harq_bits_params {
   std::array<harq_state_outcome, 2>   outcome;
 };
 
-// In this test suite, we test the scenario where two HARQ bits arrive in a single PUCCH PDU to the scheduler.
-class single_ue_harq_entity_2_bits_tester : public base_single_harq_entity_test,
-                                            public ::testing::TestWithParam<test_2_harq_bits_params>
-{
-protected:
-  single_ue_harq_entity_2_bits_tester()
-  {
-    // Allocate 2 HARQs with same PUCCH slot.
-    // > First HARQ, DAI=0.
-    run_slot();
-    auto h_dl1 = harq_ent.alloc_dl_harq(current_slot, this->k1 + 1, this->max_retxs, 0);
-    h_dl1->increment_pucch_counter();
-    h_dls.push_back(h_dl1->id());
-    // > Second HARQ, DAI=1.
-    run_slot();
-    auto h_dl2 = harq_ent.alloc_dl_harq(current_slot, this->k1, this->max_retxs, 1);
-    h_dl2->increment_pucch_counter();
-    h_dls.push_back(h_dl2->id());
-    if (GetParam().ack.size() > 1) {
-      h_dl1->increment_pucch_counter();
-      h_dl2->increment_pucch_counter();
-    }
-
-    pucch_slot = current_slot + this->k1;
-
-    while (current_slot <= pucch_slot + pucch_process_delay) {
-      run_slot();
-    }
-  }
-
-  const unsigned         pucch_process_delay = 4;
-  slot_point             pucch_slot;
-  std::vector<harq_id_t> h_dls;
-};
+// // In this test suite, we test the scenario where two HARQ bits arrive in a single PUCCH PDU to the scheduler.
+// class single_ue_harq_entity_2_bits_tester : public base_single_harq_entity_test,
+//                                             public ::testing::TestWithParam<test_2_harq_bits_params>
+// {
+// protected:
+//   single_ue_harq_entity_2_bits_tester()
+//   {
+//     // Allocate 2 HARQs with same PUCCH slot.
+//     // > First HARQ, DAI=0.
+//     run_slot();
+//     auto h_dl1 = harq_ent.alloc_dl_harq(current_slot, this->k1 + 1, this->max_retxs, 0);
+//     h_dl1->increment_pucch_counter();
+//     h_dls.push_back(h_dl1->id());
+//     // > Second HARQ, DAI=1.
+//     run_slot();
+//     auto h_dl2 = harq_ent.alloc_dl_harq(current_slot, this->k1, this->max_retxs, 1);
+//     h_dl2->increment_pucch_counter();
+//     h_dls.push_back(h_dl2->id());
+//     if (GetParam().ack.size() > 1) {
+//       h_dl1->increment_pucch_counter();
+//       h_dl2->increment_pucch_counter();
+//     }
+//
+//     pucch_slot = current_slot + this->k1;
+//
+//     while (current_slot <= pucch_slot + pucch_process_delay) {
+//       run_slot();
+//     }
+//   }
+//
+//   const unsigned         pucch_process_delay = 4;
+//   slot_point             pucch_slot;
+//   std::vector<harq_id_t> h_dls;
+// };
 
 // In this test suite, we test the scenario where 5 HARQ bits arrive in a single PUCCH PDU to the scheduler.
 class single_ue_harq_entity_harq_5bit_tester : public base_single_harq_entity_test, public ::testing::Test
@@ -535,130 +535,132 @@ TEST_F(single_harq_process_test,
   ASSERT_TRUE(h_ul.empty());
 }
 
-// DL HARQ process with multi PUCCH test
-
-TEST_F(dl_harq_process_multi_pucch_test, when_dtx_received_after_ack_then_dtx_is_ignored)
-{
-  slot_point pucch_slot = current_slot + k1;
-  while (current_slot != pucch_slot) {
-    run_slot();
-  }
-
-  // ACK received.
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt),
-            dl_harq_process_handle::status_update::no_update);
-
-  // DTX received one slot late.
-  run_slot();
-  ASSERT_TRUE(h_dl.is_waiting_ack());
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::dtx, std::nullopt),
-            dl_harq_process_handle::status_update::acked);
-}
-
-// Note: When two F1 PUCCHs are decoded (one with SR and the other without), there is a small chance that none of them
-// are DTX.
-TEST_F(dl_harq_process_multi_pucch_test, when_stronger_ack_received_after_nack_then_process_becomes_empty)
-{
-  slot_point pucch_slot = current_slot + k1;
-  while (current_slot != pucch_slot) {
-    run_slot();
-  }
-
-  // NACK received.
-  harq_id_t h_id = h_dl.id();
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, 1.0F), dl_harq_process_handle::status_update::no_update);
-
-  // ACK received.
-  ASSERT_EQ(harq_ent.dl_harq(h_id), h_dl);
-  ASSERT_TRUE(h_dl.is_waiting_ack());
-  ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, 2.0F), dl_harq_process_handle::status_update::acked);
-
-  // HARQ should be empty.
-  ASSERT_FALSE(harq_ent.dl_harq(h_id).has_value());
-}
-
-TEST_F(dl_harq_process_multi_pucch_test,
-       when_one_harq_ack_is_received_and_other_goes_missing_then_harq_timeout_is_shortened)
-{
-  const mac_harq_ack_report_status ack_val        = get_random_harq_ack();
-  const unsigned                   first_ack_slot = 1;
-
-  for (unsigned i = 0; i != this->max_ack_wait_timeout + k1 + 1; ++i) {
-    // Notify HARQ process with DTX (ACK not decoded).
-    if (i == first_ack_slot) {
-      ASSERT_EQ(h_dl.dl_ack_info(ack_val, random_snr()), dl_harq_process_handle::status_update::no_update);
-    }
-
-    // Before reaching the ack_wait_slots, the HARQ should be neither empty nor have pending reTX.
-    if (i < dl_harq_process_handle::SHORT_ACK_TIMEOUT_DTX + first_ack_slot) {
-      ASSERT_FALSE(h_dl.has_pending_retx());
-      ASSERT_TRUE(h_dl.is_waiting_ack());
-      ASSERT_EQ(timeout_handler.last_ue_index, INVALID_DU_UE_INDEX);
-    }
-    // Once the shortened_ack_wait_slots has passed, expect HARQ to be reset.
-    else {
-      ASSERT_TRUE(h_dl.empty());
-      ASSERT_EQ(timeout_handler.last_ue_index, to_du_ue_index(0));
-      ASSERT_TRUE(timeout_handler.last_dir_is_dl);
-      if (ack_val == ocudu::mac_harq_ack_report_status::ack) {
-        ASSERT_TRUE(timeout_handler.last_was_ack);
-      } else {
-        // In case of NACK/DTX, the HARQ should report the timeout.
-        ASSERT_FALSE(timeout_handler.last_was_ack);
-      }
-      break;
-    }
-    run_slot();
-  }
-}
-
-TEST_P(dl_harq_process_two_pucch_param_test, two_harq_acks_received)
-{
-  auto     params         = GetParam();
-  unsigned first_ack_slot = 1, second_ack_slot = 2;
-
-  for (unsigned i = 0; i != max_ack_wait_timeout + k1 + 1; ++i) {
-    if (i == first_ack_slot) {
-      ASSERT_EQ(h_dl.dl_ack_info(static_cast<mac_harq_ack_report_status>(params.ack[0]), params.snr[0]),
-                dl_harq_process_handle::status_update::no_update);
-    }
-    if (i == second_ack_slot) {
-      ASSERT_EQ(h_dl.dl_ack_info(static_cast<mac_harq_ack_report_status>(params.ack[1]), params.snr[1]),
-                params.outcome ? dl_harq_process_handle::status_update::acked
-                               : dl_harq_process_handle::status_update::nacked);
-    }
-
-    if (i < second_ack_slot) {
-      // Before second HARQ-ACK, the process is waiting for an ACK.
-      ASSERT_TRUE(h_dl.is_waiting_ack());
-    } else {
-      // When second HARQ-ACK arrives, the process should be set as either empty or pending reTX.
-      ASSERT_FALSE(h_dl.is_waiting_ack());
-      if (params.outcome) {
-        ASSERT_TRUE(h_dl.empty());
-      } else {
-        ASSERT_TRUE(h_dl.has_pending_retx());
-      }
-      break;
-    }
-    run_slot();
-  }
-
-  ASSERT_EQ(timeout_handler.last_ue_index, INVALID_DU_UE_INDEX) << "Timeout should not expire";
-}
-
-INSTANTIATE_TEST_SUITE_P(
-    dl_harq_process_test,
-    dl_harq_process_two_pucch_param_test,
-    testing::Values(two_ack_test_params{.ack = {2, 1}, .snr = {random_snr(), random_snr()}, .outcome = true},
-                    two_ack_test_params{.ack = {1, 2}, .snr = {random_snr(), random_snr()}, .outcome = true},
-                    two_ack_test_params{.ack = {2, 0}, .snr = {random_snr(), random_snr()}, .outcome = false},
-                    two_ack_test_params{.ack = {0, 2}, .snr = {random_snr(), random_snr()}, .outcome = false},
-                    two_ack_test_params{.ack = {0, 1}, .snr = {10.0, 11.0}, .outcome = true},
-                    two_ack_test_params{.ack = {0, 1}, .snr = {10.0, 9.0}, .outcome = false},
-                    two_ack_test_params{.ack = {2, 2}, .snr = {random_snr(), random_snr()}, .outcome = false},
-                    two_ack_test_params{.ack = {0, 0}, .snr = {random_snr(), random_snr()}, .outcome = false},
-                    two_ack_test_params{.ack = {1, 1}, .snr = {random_snr(), random_snr()}, .outcome = true}));
+// // DL HARQ process with multi PUCCH test
+//
+// TEST_F(dl_harq_process_multi_pucch_test, when_dtx_received_after_ack_then_dtx_is_ignored)
+// {
+//   slot_point pucch_slot = current_slot + k1;
+//   while (current_slot != pucch_slot) {
+//     run_slot();
+//   }
+//
+//   // ACK received.
+//   ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt),
+//             dl_harq_process_handle::status_update::no_update);
+//
+//   // DTX received one slot late.
+//   run_slot();
+//   ASSERT_TRUE(h_dl.is_waiting_ack());
+//   ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::dtx, std::nullopt),
+//             dl_harq_process_handle::status_update::acked);
+// }
+//
+// // Note: When two F1 PUCCHs are decoded (one with SR and the other without), there is a small chance that none of
+// them
+// // are DTX.
+// TEST_F(dl_harq_process_multi_pucch_test, when_stronger_ack_received_after_nack_then_process_becomes_empty)
+// {
+//   slot_point pucch_slot = current_slot + k1;
+//   while (current_slot != pucch_slot) {
+//     run_slot();
+//   }
+//
+//   // NACK received.
+//   harq_id_t h_id = h_dl.id();
+//   ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::nack, 1.0F),
+//   dl_harq_process_handle::status_update::no_update);
+//
+//   // ACK received.
+//   ASSERT_EQ(harq_ent.dl_harq(h_id), h_dl);
+//   ASSERT_TRUE(h_dl.is_waiting_ack());
+//   ASSERT_EQ(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, 2.0F), dl_harq_process_handle::status_update::acked);
+//
+//   // HARQ should be empty.
+//   ASSERT_FALSE(harq_ent.dl_harq(h_id).has_value());
+// }
+//
+// TEST_F(dl_harq_process_multi_pucch_test,
+//        when_one_harq_ack_is_received_and_other_goes_missing_then_harq_timeout_is_shortened)
+// {
+//   const mac_harq_ack_report_status ack_val        = get_random_harq_ack();
+//   const unsigned                   first_ack_slot = 1;
+//
+//   for (unsigned i = 0; i != this->max_ack_wait_timeout + k1 + 1; ++i) {
+//     // Notify HARQ process with DTX (ACK not decoded).
+//     if (i == first_ack_slot) {
+//       ASSERT_EQ(h_dl.dl_ack_info(ack_val, random_snr()), dl_harq_process_handle::status_update::no_update);
+//     }
+//
+//     // Before reaching the ack_wait_slots, the HARQ should be neither empty nor have pending reTX.
+//     if (i < dl_harq_process_handle::SHORT_ACK_TIMEOUT_DTX + first_ack_slot) {
+//       ASSERT_FALSE(h_dl.has_pending_retx());
+//       ASSERT_TRUE(h_dl.is_waiting_ack());
+//       ASSERT_EQ(timeout_handler.last_ue_index, INVALID_DU_UE_INDEX);
+//     }
+//     // Once the shortened_ack_wait_slots has passed, expect HARQ to be reset.
+//     else {
+//       ASSERT_TRUE(h_dl.empty());
+//       ASSERT_EQ(timeout_handler.last_ue_index, to_du_ue_index(0));
+//       ASSERT_TRUE(timeout_handler.last_dir_is_dl);
+//       if (ack_val == ocudu::mac_harq_ack_report_status::ack) {
+//         ASSERT_TRUE(timeout_handler.last_was_ack);
+//       } else {
+//         // In case of NACK/DTX, the HARQ should report the timeout.
+//         ASSERT_FALSE(timeout_handler.last_was_ack);
+//       }
+//       break;
+//     }
+//     run_slot();
+//   }
+// }
+//
+// TEST_P(dl_harq_process_two_pucch_param_test, two_harq_acks_received)
+// {
+//   auto     params         = GetParam();
+//   unsigned first_ack_slot = 1, second_ack_slot = 2;
+//
+//   for (unsigned i = 0; i != max_ack_wait_timeout + k1 + 1; ++i) {
+//     if (i == first_ack_slot) {
+//       ASSERT_EQ(h_dl.dl_ack_info(static_cast<mac_harq_ack_report_status>(params.ack[0]), params.snr[0]),
+//                 dl_harq_process_handle::status_update::no_update);
+//     }
+//     if (i == second_ack_slot) {
+//       ASSERT_EQ(h_dl.dl_ack_info(static_cast<mac_harq_ack_report_status>(params.ack[1]), params.snr[1]),
+//                 params.outcome ? dl_harq_process_handle::status_update::acked
+//                                : dl_harq_process_handle::status_update::nacked);
+//     }
+//
+//     if (i < second_ack_slot) {
+//       // Before second HARQ-ACK, the process is waiting for an ACK.
+//       ASSERT_TRUE(h_dl.is_waiting_ack());
+//     } else {
+//       // When second HARQ-ACK arrives, the process should be set as either empty or pending reTX.
+//       ASSERT_FALSE(h_dl.is_waiting_ack());
+//       if (params.outcome) {
+//         ASSERT_TRUE(h_dl.empty());
+//       } else {
+//         ASSERT_TRUE(h_dl.has_pending_retx());
+//       }
+//       break;
+//     }
+//     run_slot();
+//   }
+//
+//   ASSERT_EQ(timeout_handler.last_ue_index, INVALID_DU_UE_INDEX) << "Timeout should not expire";
+// }
+//
+// INSTANTIATE_TEST_SUITE_P(
+//     dl_harq_process_test,
+//     dl_harq_process_two_pucch_param_test,
+//     testing::Values(two_ack_test_params{.ack = {2, 1}, .snr = {random_snr(), random_snr()}, .outcome = true},
+//                     two_ack_test_params{.ack = {1, 2}, .snr = {random_snr(), random_snr()}, .outcome = true},
+//                     two_ack_test_params{.ack = {2, 0}, .snr = {random_snr(), random_snr()}, .outcome = false},
+//                     two_ack_test_params{.ack = {0, 2}, .snr = {random_snr(), random_snr()}, .outcome = false},
+//                     two_ack_test_params{.ack = {0, 1}, .snr = {10.0, 11.0}, .outcome = true},
+//                     two_ack_test_params{.ack = {0, 1}, .snr = {10.0, 9.0}, .outcome = false},
+//                     two_ack_test_params{.ack = {2, 2}, .snr = {random_snr(), random_snr()}, .outcome = false},
+//                     two_ack_test_params{.ack = {0, 0}, .snr = {random_snr(), random_snr()}, .outcome = false},
+//                     two_ack_test_params{.ack = {1, 1}, .snr = {random_snr(), random_snr()}, .outcome = true}));
 
 // HARQ entity tests
 
@@ -816,64 +818,64 @@ TEST_F(single_ue_harq_entity_test, after_max_ack_wait_timeout_dl_harqs_are_avail
   }
 }
 
-// DL HARQ entity test when two HARQs match in UCI slot.
-
-TEST_P(single_ue_harq_entity_2_bits_tester, handle_pucchs)
-{
-  auto params = GetParam();
-
-  // First PUCCH, 2 HARQ bits, different indexes.
-  auto h_dl1 = harq_ent.find_dl_harq_waiting_ack(pucch_slot, 0);
-  auto h_dl2 = harq_ent.find_dl_harq_waiting_ack(pucch_slot, 1);
-  h_dl1->dl_ack_info((mac_harq_ack_report_status)params.ack[0][0], std::nullopt);
-  h_dl2->dl_ack_info((mac_harq_ack_report_status)params.ack[0][1], std::nullopt);
-
-  // Second PUCCH, 2 HARQ bits, different indexes.
-  if (params.ack.size() > 1) {
-    h_dl1 = harq_ent.find_dl_harq_waiting_ack(pucch_slot, 0);
-    h_dl2 = harq_ent.find_dl_harq_waiting_ack(pucch_slot, 1);
-    h_dl1->dl_ack_info((mac_harq_ack_report_status)params.ack[1][0], std::nullopt);
-    h_dl2->dl_ack_info((mac_harq_ack_report_status)params.ack[1][1], std::nullopt);
-  }
-
-  bool check_timeout = false;
-  for (unsigned i = 0; i != params.outcome.size(); ++i) {
-    if (params.outcome[i] == ACKed) {
-      ASSERT_FALSE(harq_ent.dl_harq(h_dls[i]).has_value());
-    } else {
-      ASSERT_TRUE(harq_ent.dl_harq(h_dls[i]).value().has_pending_retx());
-    }
-
-    if (params.outcome[i] == DTX_timeout) {
-      // DTX_timeout
-      check_timeout = true;
-    }
-  }
-
-  // Check if HARQs timeout in case of HARQ-ACK set to DTX.
-  if (check_timeout) {
-    for (unsigned i = 0; i != dl_harq_process_handle::SHORT_ACK_TIMEOUT_DTX; ++i) {
-      run_slot();
-    }
-    for (unsigned i = 0; i != params.outcome.size(); ++i) {
-      if (params.outcome[i] == DTX_timeout) {
-        ASSERT_TRUE(harq_ent.dl_harq(h_dls[i]).value().has_pending_retx());
-      }
-    }
-  }
-}
-
-INSTANTIATE_TEST_SUITE_P(
-    harq_manager_test,
-    single_ue_harq_entity_2_bits_tester,
-    testing::Values(test_2_harq_bits_params{.ack = {{1, 1}}, .outcome = {ACKed, ACKed}},
-                    test_2_harq_bits_params{.ack = {{0, 0}}, .outcome = {NACKed, NACKed}},
-                    test_2_harq_bits_params{.ack = {{2, 2}}, .outcome = {DTX_timeout, DTX_timeout}},
-                    test_2_harq_bits_params{.ack = {{2, 1}}, .outcome = {DTX_timeout, ACKed}},
-                    test_2_harq_bits_params{.ack = {{1, 1}, {2, 2}}, .outcome = {ACKed, ACKed}},
-                    test_2_harq_bits_params{.ack = {{0, 0}, {2, 2}}, .outcome = {NACKed, NACKed}},
-                    test_2_harq_bits_params{.ack = {{2, 2}, {2, 1}}, .outcome = {NACKed, ACKed}},
-                    test_2_harq_bits_params{.ack = {{2, 2}, {2, 2}}, .outcome = {NACKed, NACKed}}));
+// // DL HARQ entity test when two HARQs match in UCI slot.
+//
+// TEST_P(single_ue_harq_entity_2_bits_tester, handle_pucchs)
+// {
+//   auto params = GetParam();
+//
+//   // First PUCCH, 2 HARQ bits, different indexes.
+//   auto h_dl1 = harq_ent.find_dl_harq_waiting_ack(pucch_slot, 0);
+//   auto h_dl2 = harq_ent.find_dl_harq_waiting_ack(pucch_slot, 1);
+//   h_dl1->dl_ack_info((mac_harq_ack_report_status)params.ack[0][0], std::nullopt);
+//   h_dl2->dl_ack_info((mac_harq_ack_report_status)params.ack[0][1], std::nullopt);
+//
+//   // Second PUCCH, 2 HARQ bits, different indexes.
+//   if (params.ack.size() > 1) {
+//     h_dl1 = harq_ent.find_dl_harq_waiting_ack(pucch_slot, 0);
+//     h_dl2 = harq_ent.find_dl_harq_waiting_ack(pucch_slot, 1);
+//     h_dl1->dl_ack_info((mac_harq_ack_report_status)params.ack[1][0], std::nullopt);
+//     h_dl2->dl_ack_info((mac_harq_ack_report_status)params.ack[1][1], std::nullopt);
+//   }
+//
+//   bool check_timeout = false;
+//   for (unsigned i = 0; i != params.outcome.size(); ++i) {
+//     if (params.outcome[i] == ACKed) {
+//       ASSERT_FALSE(harq_ent.dl_harq(h_dls[i]).has_value());
+//     } else {
+//       ASSERT_TRUE(harq_ent.dl_harq(h_dls[i]).value().has_pending_retx());
+//     }
+//
+//     if (params.outcome[i] == DTX_timeout) {
+//       // DTX_timeout
+//       check_timeout = true;
+//     }
+//   }
+//
+//   // Check if HARQs timeout in case of HARQ-ACK set to DTX.
+//   if (check_timeout) {
+//     for (unsigned i = 0; i != dl_harq_process_handle::SHORT_ACK_TIMEOUT_DTX; ++i) {
+//       run_slot();
+//     }
+//     for (unsigned i = 0; i != params.outcome.size(); ++i) {
+//       if (params.outcome[i] == DTX_timeout) {
+//         ASSERT_TRUE(harq_ent.dl_harq(h_dls[i]).value().has_pending_retx());
+//       }
+//     }
+//   }
+// }
+//
+// INSTANTIATE_TEST_SUITE_P(
+//     harq_manager_test,
+//     single_ue_harq_entity_2_bits_tester,
+//     testing::Values(test_2_harq_bits_params{.ack = {{1, 1}}, .outcome = {ACKed, ACKed}},
+//                     test_2_harq_bits_params{.ack = {{0, 0}}, .outcome = {NACKed, NACKed}},
+//                     test_2_harq_bits_params{.ack = {{2, 2}}, .outcome = {DTX_timeout, DTX_timeout}},
+//                     test_2_harq_bits_params{.ack = {{2, 1}}, .outcome = {DTX_timeout, ACKed}},
+//                     test_2_harq_bits_params{.ack = {{1, 1}, {2, 2}}, .outcome = {ACKed, ACKed}},
+//                     test_2_harq_bits_params{.ack = {{0, 0}, {2, 2}}, .outcome = {NACKed, NACKed}},
+//                     test_2_harq_bits_params{.ack = {{2, 2}, {2, 1}}, .outcome = {NACKed, ACKed}},
+//                     test_2_harq_bits_params{.ack = {{2, 2}, {2, 2}}, .outcome = {NACKed, NACKed}}));
 
 TEST_F(single_ue_harq_entity_harq_5bit_tester, when_5_harq_bits_are_acks_then_all_5_active_harqs_are_updated)
 {

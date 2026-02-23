@@ -13,8 +13,10 @@
 #include "../logging/scheduler_metrics_handler.h"
 #include "../srs/srs_scheduler.h"
 #include "../support/sr_helper.h"
+#include "../uci_scheduling/uci_indication_selector.h"
 #include "../uci_scheduling/uci_scheduler_impl.h"
 #include "../ue_scheduling/ue_cell_grid_allocator.h"
+#include "ocudu/scheduler/scheduler_feedback_handler.h"
 #include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include <memory>
 
@@ -205,6 +207,7 @@ ue_cell_event_manager::ue_cell_event_manager(ue_event_manager&          parent_,
   uci_sched(cell_ev.uci_sched),
   slice_sched(cell_ev.slice_sched),
   srs_sched(cell_ev.srs_sched),
+  uci_selector(cell_ev.uci_selector),
   metrics(cell_ev.metrics),
   ev_logger(cell_ev.ev_logger),
   ind_pdu_pool(std::make_unique<pdu_indication_pool>(logger)),
@@ -502,6 +505,72 @@ void ue_cell_event_manager::handle_crc_indication(const ul_crc_indication& crc_i
   }
 }
 
+ue_cell_event_manager::event_result ue_cell_event_manager::handle_uci_pdu(slot_point                     uci_sl,
+                                                                          const uci_indication::uci_pdu& uci_pdu)
+{
+  // Fetch UE objects.
+  if (not ue_db.contains(uci_pdu.ue_index)) {
+    return event_result::invalid_ue;
+  }
+  ue&      u     = ue_db[uci_pdu.ue_index];
+  ue_cell* ue_cc = u.find_cell(cfg.cell_index);
+  if (ue_cc == nullptr) {
+    return event_result::invalid_ue_cc;
+  }
+
+  // Process the PDU and determine resulting action.
+  auto action = uci_selector.handle_uci_ind_pdu(uci_sl, uci_pdu);
+  if (not action.has_value()) {
+    // No action came out of this UCI PDU (likely needs to combine more UCI PDUs).
+    return event_result::processed;
+  }
+
+  // Process DL HARQ-ACK bits.
+  if (not action->harq_ack_bits.empty()) {
+    handle_harq_ind(*ue_cc, uci_sl, action->uci_valid, action->harq_ack_bits, action->ul_sinr_dB);
+  }
+
+  // Process SRs.
+  if (action->sr_detected) {
+    // Handle SR indication.
+    u.handle_sr_indication();
+
+    if (ue_cc->is_in_fallback_mode()) {
+      fallback_sched.handle_sr_indication(ue_cc->ue_index);
+    }
+
+    // Log SR event.
+    ev_logger.enqueue(scheduler_event_logger::sr_event{ue_cc->ue_index, ue_cc->rnti()});
+
+    // Report SR to metrics.
+    metrics.handle_sr_indication(ue_cc->ue_index, uci_sl);
+  }
+
+  // Process CSI, if present.
+  if (action->csi.has_value()) {
+    handle_csi(*ue_cc, uci_sl, *action->csi);
+  }
+
+  // Process SINR and Timing Advance Offset.
+  if (action->uci_valid and action->ul_sinr_dB.has_value()) {
+    if (action->type == uci_action::pdu_type::pucch_f2f3f4) {
+      ue_cc->get_pucch_power_controller().update_pucch_sinr_f2_f3_f4(
+          uci_sl, action->ul_sinr_dB.value(), not action->harq_ack_bits.empty(), action->csi.has_value());
+    } else {
+      ue_cc->get_pucch_power_controller().update_pucch_sinr_f0_f1(uci_sl, *action->ul_sinr_dB);
+    }
+
+    if (action->time_advance_offset.has_value()) {
+      u.handle_ul_n_ta_update_indication(ue_cc->cell_index, action->ul_sinr_dB.value(), *action->time_advance_offset);
+    }
+  }
+
+  // Report the UCI PDU to the metrics handler.
+  metrics.handle_uci_pdu_indication(uci_pdu.ue_index, *action);
+
+  return event_result::processed;
+}
+
 void ue_cell_event_manager::handle_uci_indication(const uci_indication& ind)
 {
   for (unsigned i = 0, e = ind.ucis.size(); i != e; ++i) {
@@ -511,125 +580,8 @@ void ue_cell_event_manager::handle_uci_indication(const uci_indication& ind)
     }
 
     auto uci_handle_impl = [this, uci_sl = ind.slot_rx, uci_pdu = std::move(uci_ptr)]() {
-      // Fetch UE objects.
-      if (not ue_db.contains(uci_pdu->ue_index)) {
-        return event_result::invalid_ue;
-      }
-      ue&      u     = ue_db[uci_pdu->ue_index];
-      ue_cell* ue_cc = u.find_cell(cfg.cell_index);
-      if (ue_cc == nullptr) {
-        return event_result::invalid_ue_cc;
-      }
-
-      bool is_sr_opportunity_and_f1 = false;
-      if (const auto* pucch_f0f1 = std::get_if<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(&uci_pdu->pdu)) {
-        // Check if this UCI is from slot with a SR opportunity.
-        if (ue_cc->cfg().init_bwp().ul_ded.has_value() and ue_cc->cfg().init_bwp().ul_ded->pucch_cfg.has_value()) {
-          const auto& pucch_cfg = ue_cc->cfg().init_bwp().ul_ded->pucch_cfg.value();
-
-          bool is_format_1 = false;
-          for (const auto& pucch_res : pucch_cfg.pucch_res_list) {
-            if (pucch_res.format == pucch_format::FORMAT_1) {
-              is_format_1 = true;
-              break;
-            }
-            if (pucch_res.format == pucch_format::FORMAT_0) {
-              break;
-            }
-          }
-
-          // This check is only needed for PUCCH Format 1.
-          is_sr_opportunity_and_f1 = is_format_1 and sr_helper::is_sr_opportunity_slot(pucch_cfg, uci_sl);
-        }
-
-        // Process DL HARQ ACKs.
-        if (not pucch_f0f1->harqs.empty()) {
-          handle_harq_ind(*ue_cc, uci_sl, pucch_f0f1->harqs, pucch_f0f1->ul_sinr_dB);
-        }
-
-        // Process SRs.
-        if (pucch_f0f1->sr_detected) {
-          // Handle SR indication.
-          u.handle_sr_indication();
-
-          if (ue_cc->is_in_fallback_mode()) {
-            fallback_sched.handle_sr_indication(ue_cc->ue_index);
-          }
-
-          // Log SR event.
-          ev_logger.enqueue(scheduler_event_logger::sr_event{ue_cc->ue_index, ue_cc->rnti()});
-
-          // Report SR to metrics.
-          metrics.handle_sr_indication(ue_cc->ue_index, uci_sl);
-        }
-
-        const bool is_uci_valid = not pucch_f0f1->harqs.empty() or pucch_f0f1->sr_detected;
-        // Process SINR and Timing Advance Offset.
-        if (is_uci_valid and pucch_f0f1->ul_sinr_dB.has_value()) {
-          ue_cc->get_pucch_power_controller().update_pucch_sinr_f0_f1(uci_sl, pucch_f0f1->ul_sinr_dB.value());
-
-          if (pucch_f0f1->time_advance_offset.has_value()) {
-            u.handle_ul_n_ta_update_indication(
-                ue_cc->cell_index, pucch_f0f1->ul_sinr_dB.value(), pucch_f0f1->time_advance_offset.value());
-          }
-        }
-      } else if (const auto* pusch_pdu = std::get_if<uci_indication::uci_pdu::uci_pusch_pdu>(&uci_pdu->pdu)) {
-        // Process DL HARQ ACKs.
-        if (not pusch_pdu->harqs.empty()) {
-          handle_harq_ind(*ue_cc, uci_sl, pusch_pdu->harqs, std::nullopt);
-        }
-
-        // Process CSI.
-        if (pusch_pdu->csi.has_value()) {
-          handle_csi(*ue_cc, uci_sl, *pusch_pdu->csi);
-        }
-      } else if (const auto* pucch_f2f3f4 =
-                     std::get_if<uci_indication::uci_pdu::uci_pucch_f2_or_f3_or_f4_pdu>(&uci_pdu->pdu)) {
-        // Process DL HARQ ACKs.
-        if (not pucch_f2f3f4->harqs.empty()) {
-          handle_harq_ind(*ue_cc, uci_sl, pucch_f2f3f4->harqs, pucch_f2f3f4->ul_sinr_dB);
-        }
-
-        // Process SRs.
-        const size_t sr_bit_position_with_1_sr_bit = 0;
-        if (not pucch_f2f3f4->sr_info.empty() and pucch_f2f3f4->sr_info.test(sr_bit_position_with_1_sr_bit)) {
-          // Handle SR indication.
-          u.handle_sr_indication();
-
-          // Log SR event.
-          ev_logger.enqueue(scheduler_event_logger::sr_event{ue_cc->ue_index, ue_cc->rnti()});
-
-          // Report SR to metrics.
-          metrics.handle_sr_indication(ue_cc->ue_index, uci_sl);
-        }
-
-        // Process CSI.
-        if (pucch_f2f3f4->csi.has_value()) {
-          handle_csi(*ue_cc, uci_sl, *pucch_f2f3f4->csi);
-        }
-
-        const bool is_uci_valid =
-            not pucch_f2f3f4->harqs.empty() or
-            (not pucch_f2f3f4->sr_info.empty() and pucch_f2f3f4->sr_info.test(sr_bit_position_with_1_sr_bit)) or
-            pucch_f2f3f4->csi.has_value();
-        // Process SINR and Timing Advance Offset.
-        if (is_uci_valid and pucch_f2f3f4->ul_sinr_dB.has_value()) {
-          ue_cc->get_pucch_power_controller().update_pucch_sinr_f2_f3_f4(
-              uci_sl, pucch_f2f3f4->ul_sinr_dB.value(), not pucch_f2f3f4->harqs.empty(), pucch_f2f3f4->csi.has_value());
-
-          if (pucch_f2f3f4->time_advance_offset.has_value()) {
-            u.handle_ul_n_ta_update_indication(
-                ue_cc->cell_index, pucch_f2f3f4->ul_sinr_dB.value(), pucch_f2f3f4->time_advance_offset.value());
-          }
-        }
-      }
-
-      // Report the UCI PDU to the metrics handler.
-      metrics.handle_uci_pdu_indication(*uci_pdu, is_sr_opportunity_and_f1);
-
-      return event_result::processed;
+      return handle_uci_pdu(uci_sl, *uci_pdu);
     };
-
     push_event(ind.cell_index,
                event_t{"UCI",
                        ind.ucis[i].ue_index,
@@ -818,35 +770,6 @@ static void handle_discarded_pusch(const cell_slot_resource_allocator& prev_slot
         h_ul->ul_crc_info(false);
       }
     }
-
-    // - The lower layers will not attempt to decode any UCI in the PUSCH and will not send any UCI indication.
-    if (grant.uci.has_value() and grant.uci->harq.has_value() and grant.uci->harq->harq_ack_nof_bits > 0) {
-      // To avoid a long DL HARQ timeout window (due to lack of UCI indication), it is important to NACK the
-      // DL HARQ processes with UCI falling in this slot.
-      // Note: We don't use this cancellation to update the DL OLLA, as we shouldn't take lates into account in link
-      // adaptation.
-      u->get_pcell().harqs.uci_sched_failed(prev_slot_result.slot);
-    }
-  }
-}
-
-static void handle_discarded_pucch(const cell_slot_resource_allocator& prev_slot_result, ue_repository& ue_db)
-{
-  for (const auto& pucch : prev_slot_result.result.ul.pucchs) {
-    ue* u = ue_db.find_by_rnti(pucch.crnti);
-    if (u == nullptr) {
-      // UE has been removed.
-      continue;
-    }
-
-    // - The lower layers will not attempt to decode the PUCCH and will not send any UCI indication.
-    if (pucch.uci_bits.harq_ack_nof_bits > 0) {
-      // Note: To avoid a long DL HARQ timeout window (due to lack of UCI indication), it is important to force a NACK
-      // in the DL HARQ processes with UCI falling in this slot.
-      // Note: We don't use this cancellation to update the DL OLLA, as we shouldn't take lates into account in link
-      // adaptation.
-      u->get_pcell().harqs.uci_sched_failed(prev_slot_result.slot);
-    }
   }
 }
 
@@ -888,7 +811,7 @@ void ue_cell_event_manager::handle_error_indication(slot_point sl_tx, scheduler_
     if (event.pusch_and_pucch_discarded) {
       handle_discarded_pusch(*prev_slot_result, ue_db);
 
-      handle_discarded_pucch(*prev_slot_result, ue_db);
+      uci_selector.handle_discarded_pucchs(sl_tx);
     }
 
     // Log event.
@@ -923,37 +846,43 @@ void ue_cell_event_manager::handle_slice_reconfiguration_request(const du_cell_s
   push_event(cfg.cell_index, event_t{"slice_reconf", std::move(handle_slice_reconfig_impl)});
 }
 
-void ue_cell_event_manager::handle_harq_ind(ue_cell&                               ue_cc,
-                                            slot_point                             uci_sl,
-                                            span<const mac_harq_ack_report_status> harq_bits,
-                                            std::optional<float>                   pucch_snr)
+void ue_cell_event_manager::handle_harq_ind(ue_cell&                             ue_cc,
+                                            slot_point                           uci_sl,
+                                            bool                                 uci_valid,
+                                            const bounded_bitset<MAX_NOF_HARQS>& harq_bits,
+                                            std::optional<float>                 pucch_snr)
 {
   metrics.handle_uci_with_harq_ack(ue_cc.ue_index, uci_sl, pucch_snr.has_value());
+
+  mac_harq_ack_report_status status = mac_harq_ack_report_status::dtx;
   for (unsigned harq_idx = 0, harq_end_idx = harq_bits.size(); harq_idx != harq_end_idx; ++harq_idx) {
-    // Update UE HARQ state with received HARQ-ACK.
-    std::optional<ue_cell::dl_ack_info_result> result =
-        ue_cc.handle_dl_ack_info(uci_sl, harq_bits[harq_idx], harq_idx, pucch_snr);
-    if (result.has_value()) {
-      // Respective HARQ was found.
-      const units::bytes tbs{result->h_dl.get_grant_params().tbs_bytes};
-
-      // Log Event.
-      ev_logger.enqueue(scheduler_event_logger::harq_ack_event{
-          ue_cc.ue_index, ue_cc.rnti(), ue_cc.cell_index, uci_sl, result->h_dl.id(), harq_bits[harq_idx], tbs});
-
-      // NOTE: this is for the first attachment only. In this case, the first ACK is the one that acks the ConRes or the
-      // ConRes + MSG4; there is only 1 HARQ process waiting for ACKs, which acks the ConRes. Until this is acked, no
-      // other DL grant should be scheduled.
-      if (ue_cc.is_pcell() and not ue_cc.get_pcell_state().conres_complete and result->h_dl.empty()) {
-        ue_cc.set_conres_state(true);
-      }
-
-      // In case the HARQ process is not waiting for more HARQ-ACK bits. Notify metrics handler with HARQ outcome.
-      if (result->update == dl_harq_process_handle::status_update::acked or
-          result->update == dl_harq_process_handle::status_update::nacked) {
-        metrics.handle_dl_harq_ack(ue_cc.ue_index, result->update == dl_harq_process_handle::status_update::acked, tbs);
-      }
+    // Possible report scenarios: (i) ACK, (ii) NACK, (iii) UCI invalid, (iv) UCI timeout.
+    // The (iii) and (iv) are treated as HARQ report status "DTX" to not affect the DL OLLA.
+    if (uci_valid) {
+      status = harq_bits.test(harq_idx) ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack;
     }
+
+    // Update UE HARQ state with received HARQ-ACK.
+    std::optional<ue_cell::dl_ack_info_result> result = ue_cc.handle_dl_ack_info(uci_sl, status, harq_idx, pucch_snr);
+    if (not result.has_value()) {
+      // HARQ process was not found or in invalid state. Move on to next HARQ bit.
+      continue;
+    }
+    const units::bytes tbs{result->h_dl.get_grant_params().tbs_bytes};
+
+    // Log Event.
+    ev_logger.enqueue(scheduler_event_logger::harq_ack_event{
+        ue_cc.ue_index, ue_cc.rnti(), ue_cc.cell_index, uci_sl, result->h_dl.id(), status, tbs});
+
+    // NOTE: this is for the first attachment only. In this case, the first ACK is the one that acks the ConRes or the
+    // ConRes + MSG4; there is only 1 HARQ process waiting for ACKs, which acks the ConRes. Until this is acked, no
+    // other DL grant should be scheduled.
+    if (ue_cc.is_pcell() and not ue_cc.get_pcell_state().conres_complete and result->h_dl.empty()) {
+      ue_cc.set_conres_state(true);
+    }
+
+    // Notify metrics handler with HARQ outcome.
+    metrics.handle_dl_harq_ack(ue_cc.ue_index, result->update == dl_harq_process_handle::status_update::acked, tbs);
   }
 }
 
@@ -964,6 +893,45 @@ void ue_cell_event_manager::handle_csi(ue_cell& ue_cc, slot_point sl_rx, const c
 
   // Log event.
   ev_logger.enqueue(scheduler_event_logger::csi_report_event{ue_cc.ue_index, ue_cc.rnti(), sl_rx, csi_rep});
+}
+
+void ue_cell_event_manager::handle_uci_indication_timeout(slot_point uci_slot, rnti_t crnti, const uci_action& action)
+{
+  // Notify respective DL HARQ that the UCI went missing.
+  ue* u = parent.ue_db.find_by_rnti(crnti);
+  if (u == nullptr) {
+    parent.logger.warning("rnti={}: UCI timeout detected for unknown UE at UCI slot={}", crnti, uci_slot);
+    return;
+  }
+  ue_cell* ue_cc = u->find_cell(cfg.cell_index);
+  if (ue_cc == nullptr) {
+    parent.logger.warning("cell={} rnti={} ue={}: UCI timeout detected for unknown UE carrier at UCI slot={}",
+                          cfg.cell_index,
+                          crnti,
+                          u->ue_index,
+                          uci_slot);
+    return;
+  }
+
+  // Forward HARQ-ACK bits.
+  if (not action.harq_ack_bits.empty()) {
+    handle_harq_ind(*ue_cc, uci_slot, action.uci_valid, action.harq_ack_bits, action.ul_sinr_dB);
+  }
+
+  // Forward SR indication, if pending.
+  if (action.sr_detected) {
+    u->handle_sr_indication();
+
+    if (ue_cc->is_in_fallback_mode()) {
+      fallback_sched.handle_sr_indication(ue_cc->ue_index);
+    }
+
+    // Log SR event.
+    ev_logger.enqueue(scheduler_event_logger::sr_event{ue_cc->ue_index, ue_cc->rnti()});
+
+    // Report SR to metrics.
+    metrics.handle_sr_indication(ue_cc->ue_index, uci_slot);
+  }
 }
 
 void ue_cell_event_manager::push_event(du_cell_index_t cell_index, event_t event)

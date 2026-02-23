@@ -134,15 +134,20 @@ std::optional<ue_cell::dl_ack_info_result> ue_cell::handle_dl_ack_info(slot_poin
     return std::nullopt;
   }
 
+  // Update HARQ state.
   dl_harq_process_handle::status_update outcome = h_dl->dl_ack_info(ack_value, pucch_snr);
+  if (outcome == dl_harq_process_handle::status_update::error) {
+    return std::nullopt;
+  }
 
+  // In case of NACK/DTX, extend DRX window, if needed.
   if (outcome == dl_harq_process_handle::status_update::nacked) {
     shared_ctx.drx_ctrl.on_dl_harq_nack(uci_slot);
   }
 
-  if (outcome == dl_harq_process_handle::status_update::acked or
-      outcome == dl_harq_process_handle::status_update::nacked) {
-    // HARQ is not expecting more ACK bits. Consider the feedback in the link adaptation controller.
+  // If the HARQ report was DTX, do not forward the feeback to the link adaptation controller, as the issue is not
+  // necessarily in the PDSCH MCS.
+  if (ack_value != mac_harq_ack_report_status::dtx) {
     components.ue_mcs_calculator->handle_dl_ack_info(outcome == dl_harq_process_handle::status_update::acked,
                                                      h_dl->get_grant_params().mcs,
                                                      h_dl->get_grant_params().mcs_table,

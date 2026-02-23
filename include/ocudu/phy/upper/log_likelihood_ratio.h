@@ -319,28 +319,10 @@ inline int log_likelihood_ratio::norm_squared(const T& x)
 /// \return \c true if none of the soft bits are zero. Otherwise, \c false.
 bool hard_decision(bit_buffer& hard_bits, span<const log_likelihood_ratio> soft_bits, unsigned offset = 0);
 
+/// FMT formatting function.
+inline int format_as(log_likelihood_ratio llr)
+{
+  return llr.to_int();
+}
+
 } // namespace ocudu
-
-namespace fmt {
-
-/// \brief Custom formatter for ocudu::log_likelihood_ratio.
-///
-/// See https://fmt.dev/latest/api.html#formatting-user-defined-types.
-template <>
-struct formatter<ocudu::log_likelihood_ratio> {
-  /// Parser.
-  template <typename ParseContext>
-  auto parse(ParseContext& ctx)
-  {
-    return ctx.begin();
-  }
-
-  /// Formatter.
-  template <typename FormatContext>
-  auto format(ocudu::log_likelihood_ratio llr, FormatContext& ctx) const
-  {
-    return format_to(ctx.out(), "{}", static_cast<ocudu::log_likelihood_ratio::value_type>(llr));
-  }
-};
-
-} // namespace fmt

@@ -51,6 +51,8 @@ public:
     parent.handle_du_initiated_ue_context_release_request(req);
   }
 
+  void on_access_success(const f1ap_access_success& msg) override { parent.handle_access_success(msg); }
+
   bool schedule_async_task(async_task<void> task) override
   {
     return common_task_sched->schedule_async_task(std::move(task));
@@ -345,6 +347,30 @@ void du_processor_impl::handle_du_initiated_ue_context_release_request(const f1a
             {request.ue_index, ue->get_up_resource_manager().get_pdu_sessions(), f1ap_to_ngap_cause(request.cause)}));
         CORO_RETURN();
       }));
+}
+
+void du_processor_impl::handle_access_success(const f1ap_access_success& msg)
+{
+  logger.debug("ue={}: Received Access Success notification from DU for cell plmn={} nci={}",
+               msg.ue_index,
+               msg.cgi.plmn_id,
+               msg.cgi.nci);
+
+  cu_cp_ue* ue = ue_mng.find_du_ue(msg.ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: Dropping Access Success notification. UE does not exist", msg.ue_index);
+    return;
+  }
+
+  cu_cp_access_success_indication ind;
+  ind.ue_index = msg.ue_index;
+  ind.cgi      = msg.cgi;
+
+  ue->get_task_sched().schedule_async_task(launch_async([this, ind](coro_context<async_task<void>>& ctx) mutable {
+    CORO_BEGIN(ctx);
+    CORO_AWAIT(cu_cp_notifier.on_access_success(ind));
+    CORO_RETURN();
+  }));
 }
 
 bool du_processor_impl::has_cell(pci_t pci)

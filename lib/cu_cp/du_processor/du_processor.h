@@ -112,6 +112,10 @@ public:
   /// \param[in] request The release request.
   virtual async_task<void> on_ue_release_required(const cu_cp_ue_context_release_request& request) = 0;
 
+  /// \brief Notify the CU-CP that a UE has successfully accessed a CHO target cell.
+  /// \param[in] msg The access success indication.
+  virtual async_task<void> on_access_success(const cu_cp_access_success_indication& msg) = 0;
+
   /// \brief Notify that the F1 transaction information was lost for some UEs.
   virtual async_task<void> on_transaction_info_loss(const ue_transaction_info_loss_event& ev) = 0;
 };

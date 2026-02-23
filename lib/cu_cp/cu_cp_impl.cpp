@@ -670,6 +670,16 @@ async_task<void> cu_cp_impl::handle_ue_context_release(const cu_cp_ue_context_re
       request, ngap ? &ngap->get_ngap_control_message_handler() : nullptr, *this, logger);
 }
 
+async_task<void> cu_cp_impl::handle_access_success(const cu_cp_access_success_indication& msg)
+{
+  // TODO: Trigger CHO completion procedure in CU-CP state machine.
+  logger.debug("ue={}: Access Success for CHO target cell received. CHO completion not yet implemented.", msg.ue_index);
+  return launch_async([](coro_context<async_task<void>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_RETURN();
+  });
+}
+
 async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(const cu_cp_rrc_resume_request& request)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);

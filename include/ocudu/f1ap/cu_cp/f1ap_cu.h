@@ -116,6 +116,10 @@ public:
   /// section 8.3.2.
   virtual void on_du_initiated_ue_context_release_request(const f1ap_ue_context_release_request& req) = 0;
 
+  /// \brief Indicates that the UE has successfully accessed a target cell during CHO execution (TS 38.473
+  /// Section 8.3.8).
+  virtual void on_access_success(const f1ap_access_success& msg) = 0;
+
   /// \brief Indicates that there was some loss of transaction information for some UEs.
   /// Called when an F1 removal or F1 Reset is received, or when the DU disconnects.
   /// \return Asynchronous task that handles the event

@@ -288,6 +288,10 @@ public:
   /// \param[in] request The release request.
   virtual async_task<void> handle_ue_context_release(const cu_cp_ue_context_release_request& request) = 0;
 
+  /// \brief Handle an access success indication (UE has accessed a CHO target cell).
+  /// \param[in] msg The access success indication.
+  virtual async_task<void> handle_access_success(const cu_cp_access_success_indication& msg) = 0;
+
   /// \brief Handle the trasmission of the handover reconfiguration by notifying the target RRC UE to await a RRC
   /// Reconfiguration Complete.
   /// \param[in] request The intra CU handover target request.

@@ -57,6 +57,12 @@ public:
     return ue_context_handler->handle_ue_context_release(request);
   }
 
+  async_task<void> on_access_success(const cu_cp_access_success_indication& msg) override
+  {
+    ocudu_assert(ue_context_handler != nullptr, "UE context handler must not be nullptr");
+    return ue_context_handler->handle_access_success(msg);
+  }
+
   async_task<void> on_transaction_info_loss(const ue_transaction_info_loss_event& ev) override
   {
     return cu_cp_handler->handle_transaction_info_loss(ev);

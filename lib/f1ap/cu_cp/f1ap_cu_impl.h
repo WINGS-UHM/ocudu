@@ -127,6 +127,11 @@ private:
   /// \param[in] msg The UE Context Release Request message.
   void handle_ue_context_release_request(const asn1::f1ap::ue_context_release_request_s& msg);
 
+  /// \brief Handle the reception of an Access Success message from the DU.
+  /// \param[in] msg The Access Success message, indicating that the UE has successfully accessed the target cell
+  ///                during a Conditional Handover execution.
+  void handle_access_success(const asn1::f1ap::access_success_s& msg);
+
   /// \brief Handle the reception of a gNB-DU Configuration Update.
   /// \param[in] msg The gNB-DU Configuration Update message.
   void handle_du_cfg_update(const asn1::f1ap::gnb_du_cfg_upd_s& request);

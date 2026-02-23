@@ -67,6 +67,10 @@ public:
   {
     return adapted->handle_ue_context_release_request(request);
   }
+  void handle_access_success(const f1ap_access_success_event& msg) override
+  {
+    return adapted->handle_access_success(msg);
+  }
   async_task<f1ap_ue_context_modification_confirm>
   handle_ue_context_modification_required(const f1ap_ue_context_modification_required& msg) override
   {

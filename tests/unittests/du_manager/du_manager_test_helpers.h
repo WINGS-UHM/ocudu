@@ -167,6 +167,8 @@ public:
     last_ue_release_req = msg;
   }
 
+  void handle_access_success(const f1ap_access_success_event& msg) override {}
+
   async_task<f1ap_ue_context_modification_confirm>
   handle_ue_context_modification_required(const f1ap_ue_context_modification_required& msg) override
   {

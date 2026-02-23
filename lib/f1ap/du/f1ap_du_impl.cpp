@@ -626,6 +626,31 @@ du_ue_index_t f1ap_du_impl::get_ue_index(const gnb_cu_ue_f1ap_id_t& gnb_cu_ue_f1
   return du_ue_index;
 }
 
+void f1ap_du_impl::handle_access_success(const f1ap_access_success_event& msg)
+{
+  f1ap_du_ue* ue = ues.find(msg.ue_index);
+  if (ue == nullptr) {
+    logger.error("ue={}: Skipping AccessSuccess transmission. Cause: UE not found", fmt::underlying(msg.ue_index));
+    return;
+  }
+  if (ue->context.gnb_cu_ue_f1ap_id == gnb_cu_ue_f1ap_id_t::invalid) {
+    logger.warning("ue={} du_ue_id={}: Skipping AccessSuccess transmission. Cause: gNB-CU-UE-F1AP-ID does not exist",
+                   msg.ue_index,
+                   fmt::underlying(ue->context.gnb_du_ue_f1ap_id));
+    return;
+  }
+
+  f1ap_message f1ap_msg;
+  f1ap_msg.pdu.set_init_msg().load_info_obj(ASN1_F1AP_ID_ACCESS_SUCCESS);
+  auto& access_succ = f1ap_msg.pdu.init_msg().value.access_success();
+
+  access_succ->gnb_du_ue_f1ap_id = gnb_du_ue_f1ap_id_to_uint(ue->context.gnb_du_ue_f1ap_id);
+  access_succ->gnb_cu_ue_f1ap_id = gnb_cu_ue_f1ap_id_to_uint(ue->context.gnb_cu_ue_f1ap_id);
+  access_succ->nr_cgi            = cgi_to_asn1(msg.cgi);
+
+  ue->f1ap_msg_notifier.on_new_message(f1ap_msg);
+}
+
 void f1ap_du_impl::log_pdu(bool is_rx, const f1ap_message& msg)
 {
   using namespace asn1::f1ap;

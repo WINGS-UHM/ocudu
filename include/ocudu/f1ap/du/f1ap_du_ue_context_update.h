@@ -104,6 +104,14 @@ struct f1ap_ue_context_release_request {
   cause_type    cause;
 };
 
+/// \brief Notification that a UE has successfully accessed a target cell, (e.g., during CHO execution). See TS 38.473
+/// Section 8.3.8.
+struct f1ap_access_success_event {
+  du_ue_index_t ue_index;
+  /// NR-CGI of the cell where the UE successfully performed random access.
+  nr_cell_global_id_t cgi;
+};
+
 /// \brief Request Command for F1AP UE CONTEXT Modification Required.
 struct f1ap_ue_context_modification_required {};
 

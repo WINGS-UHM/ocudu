@@ -74,6 +74,10 @@ private:
   /// \param[in] req The F1AP UE Context Release Request.
   void handle_du_initiated_ue_context_release_request(const f1ap_ue_context_release_request& request);
 
+  /// \brief Handle the reception of an F1AP Access Success notification from the DU.
+  /// \param[in] msg The Access Success message received from the DU.
+  void handle_access_success(const f1ap_access_success& msg);
+
   /// \brief Create RRC UE object for given UE.
   /// \return True on success, falso otherwise.
   bool create_rrc_ue(cu_cp_ue&                              ue,

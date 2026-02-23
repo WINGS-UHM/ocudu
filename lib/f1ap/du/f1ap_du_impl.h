@@ -54,6 +54,7 @@ public:
 
   // F1AP UE context manager functions
   void handle_ue_context_release_request(const f1ap_ue_context_release_request& request) override;
+  void handle_access_success(const f1ap_access_success_event& msg) override;
   async_task<f1ap_ue_context_modification_confirm>
        handle_ue_context_modification_required(const f1ap_ue_context_modification_required& msg) override;
   void handle_ue_inactivity_notification(const f1ap_ue_inactivity_notification_message& msg) override {}

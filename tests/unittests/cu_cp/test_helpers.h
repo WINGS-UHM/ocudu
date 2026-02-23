@@ -101,6 +101,14 @@ public:
     });
   }
 
+  async_task<void> on_access_success(const cu_cp_access_success_indication& msg) override
+  {
+    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+      CORO_RETURN();
+    });
+  }
+
 private:
   ocudulog::basic_logger&   logger              = ocudulog::fetch_basic_logger("TEST");
   ue_manager*               ue_mng              = nullptr;
@@ -151,6 +159,14 @@ public:
   void initialize_rna_update_timer(ue_index_t ue_index) override
   {
     logger.info("ue={}: Initializing RNA update timer", ue_index);
+  }
+
+  async_task<void> handle_access_success(const cu_cp_access_success_indication& msg) override
+  {
+    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+      CORO_RETURN();
+    });
   }
 
   unsigned last_transaction_id = 99999;

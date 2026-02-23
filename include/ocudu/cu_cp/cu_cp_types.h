@@ -517,6 +517,12 @@ struct cu_cp_ue_context_release_request {
   ngap_cause_t                  cause;
 };
 
+/// \brief Indication from a DU that a UE has successfully accessed a target cell (CHO execution).
+struct cu_cp_access_success_indication {
+  ue_index_t          ue_index = ue_index_t::invalid;
+  nr_cell_global_id_t cgi;
+};
+
 struct cu_cp_recommended_cell_item {
   nr_cell_global_id_t     ngran_cgi;
   std::optional<uint16_t> time_stayed_in_cell;

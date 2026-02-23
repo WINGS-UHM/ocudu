@@ -181,14 +181,14 @@ bool du_processor_impl::create_rrc_ue(cu_cp_ue&                              ue,
                                       byte_buffer                            du_to_cu_rrc_container,
                                       std::optional<rrc_ue_transfer_context> rrc_context)
 {
-  // Create RRC UE to F1AP adapter
+  // Create RRC UE to F1AP adapter.
   rrc_ue_f1ap_adapters.emplace(std::piecewise_construct,
                                std::forward_as_tuple(ue.get_ue_index()),
                                std::forward_as_tuple(f1ap->get_f1ap_rrc_message_handler(), ue.get_ue_index()));
 
   const du_cell_configuration& cell = *cfg.du_cfg_hdlr->get_context().find_cell(cgi);
 
-  // Create new RRC UE entity
+  // Create new RRC UE entity.
   rrc_ue_creation_message rrc_ue_create_msg{};
   rrc_ue_create_msg.ue_index              = ue.get_ue_index();
   rrc_ue_create_msg.c_rnti                = c_rnti;
@@ -274,7 +274,7 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
     if (ue_index == ue_index_t::invalid) {
       // RRC Resume not requested or failed - create a new UE.
 
-      // Add new CU-CP UE
+      // Add new CU-CP UE.
       ue_index = ue_mng.add_ue(cfg.du_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index);
       if (ue_index == ue_index_t::invalid) {
         logger.warning("CU-CP UE creation failed");
@@ -299,9 +299,9 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
   if (not is_resume_request) {
     if (not create_rrc_ue(*ue, req.c_rnti, req.cgi, req.du_to_cu_rrc_container.copy(), req.prev_context)) {
       logger.warning("ue={}: Could not create RRC UE object", ue_index);
-      // Remove the UE from the UE manager
+      // Remove the UE from the UE manager.
       ue_mng.remove_ue(ue_index);
-      // Return the RRCReject container
+      // Return the RRCReject container.
       return make_unexpected(rrc->get_rrc_reject());
     }
 
@@ -334,7 +334,7 @@ void du_processor_impl::handle_du_initiated_ue_context_release_request(const f1a
 
   logger.debug("ue={}: Handling DU initiated UE context release request", request.ue_index);
 
-  // Schedule on UE task scheduler
+  // Schedule on UE task scheduler.
   ue->get_task_sched().schedule_async_task(
       launch_async([this, request, ue](coro_context<async_task<void>>& ctx) mutable {
         CORO_BEGIN(ctx);

@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "../adapters/du_processor_adapters.h"
 #include "../adapters/f1ap_adapters.h"
 #include "../adapters/rrc_ue_adapters.h"
 #include "../ue_manager/ue_manager_impl.h"
@@ -18,15 +17,13 @@
 #include "du_processor.h"
 #include "du_processor_config.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
-#include "ocudu/cu_cp/du_processor_context.h"
 #include "ocudu/f1ap/cu_cp/f1ap_cu.h"
 #include "ocudu/f1ap/cu_cp/f1ap_cu_configuration_update.h"
+#include "ocudu/f1ap/f1ap_message_notifier.h"
 #include "ocudu/ran/nr_cgi.h"
-#include "ocudu/support/executors/task_executor.h"
 #include <string>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class du_processor_impl : public du_processor, public du_metrics_handler, public du_processor_mobility_handler
 {
@@ -38,7 +35,7 @@ public:
                     ue_manager&                  ue_mng_);
   ~du_processor_impl() override = default;
 
-  // getter functions
+  // Getter functions.
 
   f1ap_cu& get_f1ap_handler() override { return *f1ap; }
 
@@ -98,14 +95,14 @@ private:
   f1ap_message_notifier&       f1ap_pdu_notifier;
   ue_manager&                  ue_mng;
 
-  // F1AP to DU processor adapter
+  // F1AP to DU processor adapter.
   std::unique_ptr<f1ap_du_processor_notifier> f1ap_ev_notifier;
 
-  // F1AP to RRC UE adapters
+  // F1AP to RRC UE adapters.
   std::unordered_map<ue_index_t, f1ap_rrc_ul_ccch_adapter>            f1ap_rrc_ccch_adapters;
   std::unordered_map<ue_index_t, f1ap_rrc_ul_dcch_adapter_collection> f1ap_rrc_dcch_adapters;
 
-  // RRC UE to F1AP adapters
+  // RRC UE to F1AP adapters.
   std::unordered_map<ue_index_t, rrc_ue_f1ap_pdu_adapter> rrc_ue_f1ap_adapters;
 
   // Components
@@ -113,5 +110,4 @@ private:
   std::unique_ptr<rrc_du>  rrc;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

@@ -148,4 +148,9 @@ TEST_F(sctp_network_server_peer_test, when_association_requested_association_ini
   ASSERT_EQ(2, assoc_factory1.association_count());
   ASSERT_EQ(2, assoc_factory2.association_count());
   ASSERT_EQ(2, assoc_factory3.association_count());
+
+  /// Close servers
+  server1.reset();
+  server2.reset();
+  server3.reset();
 }

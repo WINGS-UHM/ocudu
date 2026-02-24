@@ -21,6 +21,7 @@ xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
   xnap_cfg(xnap_cfg_),
   timers(timers_),
   ctrl_exec(ctrl_exec_),
+  ev_mng(timer_factory{timers, ctrl_exec}),
   tx_notifier(std::move(init_tx_notifier_))
 {
 }

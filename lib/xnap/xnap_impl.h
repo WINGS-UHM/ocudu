@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "procedures/xnap_transaction_manager.h"
 #include "xnap_tx_pdu_notifier_with_log.h"
 #include "ocudu/xnap/xnap.h"
 #include "ocudu/xnap/xnap_configuration.h"
@@ -43,6 +44,8 @@ private:
   xnap_configuration xnap_cfg;
   timer_manager&     timers;
   task_executor&     ctrl_exec;
+
+  xnap_transaction_manager ev_mng;
 
   xnap_tx_pdu_notifier_with_logging tx_notifier;
 };

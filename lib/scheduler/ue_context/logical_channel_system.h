@@ -848,7 +848,7 @@ private:
 /// \return Total number of bytes allocated (including MAC subheaders).
 unsigned allocate_mac_sdus(dl_msg_tb_info&                tb_info,
                            ue_logical_channel_repository& lch_mng,
-                           unsigned                       total_tbs,
+                           units::bytes                   total_tbs,
                            lcid_t                         lcid = INVALID_LCID);
 
 /// \brief Allocate MAC subPDUs for pending MAC CEs.
@@ -857,7 +857,7 @@ unsigned allocate_mac_sdus(dl_msg_tb_info&                tb_info,
 /// \param[in] total_tbs available space in bytes for subPDUs.
 /// \return Total number of bytes allocated (including MAC subheaders).
 /// \remark Excludes UE Contention Resolution Identity CE.
-unsigned allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, unsigned total_tbs);
+unsigned allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, units::bytes total_tbs);
 
 /// \brief Allocate MAC subPDUs for pending UE Contention Resolution Identity MAC CE.
 /// \param[in] tb_info TB on which MAC subPDUs will be stored.
@@ -865,7 +865,7 @@ unsigned allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository
 /// \param[in] total_tbs available space in bytes for subPDUs.
 /// \return Total number of bytes allocated (including MAC subheaders).
 unsigned
-allocate_ue_con_res_id_mac_ce(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, unsigned total_tbs);
+allocate_ue_con_res_id_mac_ce(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, units::bytes total_tbs);
 
 /// \brief Defines the list of subPDUs, including LCID and payload size, that will compose the transport block for
 /// SRB0 or for SRB1 in fallback mode.
@@ -873,7 +873,7 @@ allocate_ue_con_res_id_mac_ce(dl_msg_tb_info& tb_info, ue_logical_channel_reposi
 /// \return Returns the number of bytes reserved in the TB for subPDUs (other than padding).
 unsigned build_dl_fallback_transport_block_info(dl_msg_tb_info&                tb_info,
                                                 ue_logical_channel_repository& lch_mng,
-                                                unsigned                       tb_size_bytes);
+                                                units::bytes                   tb_size_bytes);
 
 /// \brief Defines the list of subPDUs, including LCID and payload size, that will compose the transport block for a
 /// given RAN slice.
@@ -881,7 +881,7 @@ unsigned build_dl_fallback_transport_block_info(dl_msg_tb_info&                t
 /// \remark Excludes SRB0, as this operation is specific to a given RAN slice.
 unsigned build_dl_transport_block_info(dl_msg_tb_info&                tb_info,
                                        ue_logical_channel_repository& lch_mng,
-                                       unsigned                       tb_size_bytes,
+                                       units::bytes                   tb_size_bytes,
                                        ran_slice_id_t                 slice_id);
 
 } // namespace ocudu

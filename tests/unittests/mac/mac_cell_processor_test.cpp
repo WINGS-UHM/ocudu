@@ -78,20 +78,20 @@ protected:
       sib_grant.version        = 0;
       sib_grant.pdsch_cfg.rnti = rnti_t::SI_RNTI;
       sib_grant.pdsch_cfg.codewords.resize(1);
-      sib_grant.pdsch_cfg.codewords[0].tb_size_bytes = 128;
+      sib_grant.pdsch_cfg.codewords[0].tb_size_bytes = units::bytes{128};
     }
     sched_adapter.next_sched_result.dl.rar_grants.resize(params.nof_rar_allocated);
     for (auto& rar_grant : sched_adapter.next_sched_result.dl.rar_grants) {
       rar_grant.pdsch_cfg.rnti = to_rnti(0x1);
       rar_grant.pdsch_cfg.codewords.resize(1);
-      rar_grant.pdsch_cfg.codewords[0].tb_size_bytes = 128;
+      rar_grant.pdsch_cfg.codewords[0].tb_size_bytes = units::bytes{128};
       rar_grant.grants.resize(1);
     }
     sched_adapter.next_sched_result.dl.ue_grants.resize(params.nof_ue_allocated);
     for (auto& ue_grant : sched_adapter.next_sched_result.dl.ue_grants) {
       ue_grant.pdsch_cfg.rnti = to_rnti(0x4601);
       ue_grant.pdsch_cfg.codewords.resize(1);
-      ue_grant.pdsch_cfg.codewords[0].tb_size_bytes = 128;
+      ue_grant.pdsch_cfg.codewords[0].tb_size_bytes = units::bytes{128};
     }
 
     // Start cell.

@@ -57,7 +57,7 @@ private:
                        crb_interval                  sib1_crbs_grant,
                        unsigned                      time_resource,
                        const dmrs_information&       dmrs_info,
-                       unsigned                      tbs) const;
+                       units::bytes                  tbs) const;
 
   void handle_pending_sib1_update();
 

@@ -29,7 +29,7 @@ struct ue_newtx_dl_grant_request {
   /// Slot at which PDSCH will take place.
   slot_point pdsch_slot;
   /// Pending newTx bytes to allocate.
-  unsigned pending_bytes;
+  units::bytes pending_bytes;
   /// Whether interleaving VRB-to-PRB mapping is enabled.
   bool interleaving_enabled;
 };
@@ -55,7 +55,7 @@ struct ue_newtx_ul_grant_request {
   /// Slot at which PUSCH will take place.
   slot_point pusch_slot;
   /// Pending newTx bytes to allocate.
-  unsigned pending_bytes;
+  units::bytes pending_bytes;
   /// Symbols that can be used for PUSCH allocation.
   ofdm_symbol_range allowed_symbols;
 };

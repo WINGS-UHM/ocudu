@@ -118,7 +118,7 @@ span<const uint8_t> rar_pdu_assembler::encode_rar_pdu(const rar_information& rar
   ocudu_assert(not rar.grants.empty(), "Cannot encode RAR without UL grants");
 
   // Fetch PDU buffer where RAR grant payload is going to be encoded.
-  span<uint8_t> pdu_bytes = pdu_pool.allocate_buffer(rar.pdsch_cfg.codewords[0].tb_size_bytes);
+  span<uint8_t> pdu_bytes = pdu_pool.allocate_buffer(rar.pdsch_cfg.codewords[0].tb_size_bytes.value());
 
   // Encode RAR PDU.
   rar_pdu_encoder pdu_encoder{rar};

@@ -116,23 +116,17 @@ void ocudu::fapi_adaptor::convert_pusch_mac_to_fapi(fapi::ul_pusch_pdu_builder& 
   builder.set_allocation_in_time_parameters(pusch_pdu.symbols);
 
   // Sending data through PUSCH is optional, but for now, the MAC does not signal this, use the TB size to catch it.
-  ocudu_assert(pusch_pdu.tb_size_bytes, "Transport block of null size");
+  ocudu_assert(pusch_pdu.tb_size_bytes.value() != 0, "Transport block of null size");
 
   // Add PUSCH Data.
-  builder.add_optional_pusch_data(pusch_pdu.rv_index,
-                                  pusch_pdu.harq_id,
-                                  pusch_pdu.new_data,
-                                  units::bytes{pusch_pdu.tb_size_bytes},
-                                  pusch_pdu.num_cb,
-                                  {});
+  builder.add_optional_pusch_data(
+      pusch_pdu.rv_index, pusch_pdu.harq_id, pusch_pdu.new_data, pusch_pdu.tb_size_bytes, pusch_pdu.num_cb, {});
 
   // NOTE: MAC uses the value of the target code rate x[1024], as per TS38.214, Section 6.1.4.1, Table 6.1.4.1-1.
   float              R                  = pusch_pdu.mcs_descr.get_normalised_target_code_rate();
   const units::bytes tb_size_lbrm_bytes = tbs_lbrm_default;
   builder.set_maintenance_v3_frequency_allocation_parameters(
-      pusch_pdu.pusch_second_hop_prb,
-      get_ldpc_base_graph(R, units::bytes{pusch_pdu.tb_size_bytes}.to_bits()),
-      tb_size_lbrm_bytes);
+      pusch_pdu.pusch_second_hop_prb, get_ldpc_base_graph(R, pusch_pdu.tb_size_bytes.to_bits()), tb_size_lbrm_bytes);
 
   builder.set_maintenance_v3_dmrs_parameters(static_cast<unsigned>(pusch_pdu.dmrs_hopping_mode));
 

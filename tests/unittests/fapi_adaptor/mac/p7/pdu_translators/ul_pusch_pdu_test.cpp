@@ -72,9 +72,9 @@ TEST(mac_to_fapi_pusch_pdu_test, valid_pusch_pdu_should_pass)
   // Maintenance v3.
   ASSERT_EQ(units::bytes(159749), fapi_pdu.pusch_maintenance_v3.tb_size_lbrm_bytes);
   ASSERT_EQ(pusch_cfg.pusch_second_hop_prb, fapi_pdu.pusch_maintenance_v3.pusch_second_hop_prb);
-  ASSERT_EQ(get_ldpc_base_graph(pusch_cfg.mcs_descr.get_normalised_target_code_rate(),
-                                units::bytes(pusch_cfg.tb_size_bytes).to_bits()),
-            fapi_pdu.pusch_maintenance_v3.ldpc_base_graph);
+  ASSERT_EQ(
+      get_ldpc_base_graph(pusch_cfg.mcs_descr.get_normalised_target_code_rate(), pusch_cfg.tb_size_bytes.to_bits()),
+      fapi_pdu.pusch_maintenance_v3.ldpc_base_graph);
   ASSERT_EQ(static_cast<unsigned>(pusch_cfg.dmrs_hopping_mode),
             fapi_pdu.pusch_maintenance_v3.group_or_sequence_hopping);
 
@@ -82,7 +82,7 @@ TEST(mac_to_fapi_pusch_pdu_test, valid_pusch_pdu_should_pass)
   ASSERT_EQ(pusch_cfg.rv_index, data.rv_index);
   ASSERT_EQ(pusch_cfg.harq_id, data.harq_process_id);
   ASSERT_EQ(pusch_cfg.new_data, data.new_data);
-  ASSERT_EQ(pusch_cfg.tb_size_bytes, data.tb_size.value());
+  ASSERT_EQ(pusch_cfg.tb_size_bytes.value(), data.tb_size.value());
   ASSERT_EQ(pusch_cfg.num_cb, data.num_cb);
 
   const fapi::ul_pusch_uci& fapi_uci = fapi_pdu.pusch_uci;

@@ -46,7 +46,7 @@ static sib_information make_sib_pdu(std::optional<unsigned> si_msg_index, si_ver
   result.version       = si_version;
   result.is_repetition = false;
   result.pdsch_cfg.codewords.emplace_back();
-  result.pdsch_cfg.codewords[0].tb_size_bytes = tbs.value();
+  result.pdsch_cfg.codewords[0].tb_size_bytes = tbs;
   return result;
 }
 

@@ -124,7 +124,7 @@ private:
                          unsigned                         time_resource,
                          const std::vector<ue_paging_id>& ues_paging_ids,
                          const dmrs_information&          dmrs_info,
-                         unsigned                         tbs);
+                         units::bytes                     tbs);
 
   /// Determine whether the current slot is a paging opportunity for the given Paging information.
   /// \param[in] pdcch_slot PDCCH slot point.

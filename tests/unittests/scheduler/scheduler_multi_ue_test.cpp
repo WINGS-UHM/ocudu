@@ -393,7 +393,7 @@ TEST_F(scheduler_buffer_occupancy_test, when_bsr_is_received_then_enough_ul_byte
     for (const auto& grant : last_sched_result()->ul.puschs) {
       auto& ue_sched_bytes = ue_ul_drb_sched[grant.context.ue_index];
       auto& ue_bsr         = ue_bsrs[grant.context.ue_index];
-      if (ue_sched_bytes < ue_bsr and ue_sched_bytes + grant.pusch_cfg.tb_size_bytes >= ue_bsr) {
+      if (ue_sched_bytes < ue_bsr and ue_sched_bytes + grant.pusch_cfg.tb_size_bytes.value() >= ue_bsr) {
         ues_completed++;
         if (ues_completed == test_params.nof_ues) {
           test_logger.info("All UEs have received enough UL bytes after {} slots", i + 1);
@@ -401,7 +401,7 @@ TEST_F(scheduler_buffer_occupancy_test, when_bsr_is_received_then_enough_ul_byte
           max_nof_slots = i + 100;
         }
       }
-      ue_sched_bytes += grant.pusch_cfg.tb_size_bytes;
+      ue_sched_bytes += grant.pusch_cfg.tb_size_bytes.value();
 
       // The UE sends BSR updates in the scheduled UL grants.
       ul_bsr_indication_message bsr{

@@ -12,6 +12,7 @@
 
 #include "../pdcch_scheduling/pdcch_resource_allocator.h"
 #include "ocudu/ocudulog/logger.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -54,7 +55,7 @@ private:
                      crb_interval                  si_crbs_grant,
                      uint8_t                       time_resource,
                      const dmrs_information&       dmrs_info,
-                     unsigned                      tbs,
+                     units::bytes                  tbs,
                      const message_window_context& message_context);
 
   // Configuration of the broadcast SI messages.

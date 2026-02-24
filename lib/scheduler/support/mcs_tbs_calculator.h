@@ -26,7 +26,7 @@ struct sch_mcs_tbs {
   /// MCS to use for the UE's PDSCH and PUSCH.
   sch_mcs_index mcs;
   /// TBS to be allocated on the UE's PDSCH and PUSCH.
-  unsigned tbs;
+  units::bytes tbs;
 };
 
 /// \brief Computes the PDSCH MCS and TBS such that the effective code rate does not exceed 0.95.
@@ -114,7 +114,7 @@ std::optional<units::bytes> compute_ul_tbs(const pusch_config_params& pusch_para
 /// \param[in] mcs Value to be applied for the MCS.
 /// \param[in] nof_prbs Number of PRBs available for the PUSCH transmission.
 /// \return TBS in bytes.
-unsigned compute_ul_tbs_unsafe(const pusch_config_params& pusch_params, sch_mcs_index mcs, unsigned nof_prbs);
+units::bytes compute_ul_tbs_unsafe(const pusch_config_params& pusch_params, sch_mcs_index mcs, unsigned nof_prbs);
 
 /// \brief Determines if the selected MCS, TBS and number of PRBs leads to a valid effective code rate and UCI.
 bool is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,

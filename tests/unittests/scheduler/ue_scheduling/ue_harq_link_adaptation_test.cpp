@@ -73,8 +73,11 @@ protected:
     dl_harq_process_handle h_dl = ue_cc->harqs.alloc_dl_harq(next_slot, k1, 4, 0).value();
 
     // Create dummy PDSCH grant.
-    const pdsch_codeword cw{
-        sch_mcs_description{modulation_scheme::QAM256, 0.9}, sch_mcs_index{5}, pdsch_mcs_table::qam64, 0, 128};
+    const pdsch_codeword    cw{sch_mcs_description{modulation_scheme::QAM256, 0.9},
+                            sch_mcs_index{5},
+                            pdsch_mcs_table::qam64,
+                            0,
+                            units::bytes{128}};
     const pdsch_information pdsch{ue_ptr->crnti,
                                   &ss.bwp->dl_common->value().generic_params,
                                   &ss.coreset->cfg(),
@@ -91,7 +94,7 @@ protected:
                                   std::nullopt};
     const dl_msg_alloc      ue_pdsch{
         pdsch,
-             {{dl_msg_tb_info{{dl_msg_lc_info{lcid_dl_sch_t{lcid_t::LCID_SRB1}, cw.tb_size_bytes - 4, {}}}}}},
+             {{dl_msg_tb_info{{dl_msg_lc_info{lcid_dl_sch_t{lcid_t::LCID_SRB1}, cw.tb_size_bytes.value() - 4, {}}}}}},
              {ue_ptr->ue_index}};
 
     dl_harq_alloc_context ctxt{dci_dl_rnti_config_type::c_rnti_f1_1, pdsch.codewords[0].mcs_index, std::nullopt, 15};

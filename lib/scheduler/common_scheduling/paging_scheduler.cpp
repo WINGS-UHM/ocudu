@@ -469,7 +469,7 @@ void paging_scheduler::fill_paging_grant(dl_paging_allocation&            pg_gra
                                          unsigned                         time_resource,
                                          const std::vector<ue_paging_id>& ue_paging_ids,
                                          const dmrs_information&          dmrs_info,
-                                         unsigned                         tbs)
+                                         units::bytes                     tbs)
 {
   // Fill Paging DCI.
   build_dci_f1_0_p_rnti(

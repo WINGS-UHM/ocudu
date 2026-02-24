@@ -12,6 +12,7 @@
 
 #include "ocudu/scheduler/result/pdsch_info.h"
 #include "ocudu/scheduler/result/pusch_info.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -34,7 +35,7 @@ const ue_sched_priority max_sched_priority = std::numeric_limits<ue_sched_priori
 struct ue_newtx_candidate {
   const slice_ue*   ue;
   ue_sched_priority priority;
-  unsigned          pending_bytes;
+  units::bytes      pending_bytes;
 };
 
 /// Interface of data scheduler that is used to allocate UE DL and UL grants in a given slot

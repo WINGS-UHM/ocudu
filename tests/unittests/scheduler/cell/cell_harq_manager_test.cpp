@@ -26,12 +26,12 @@ dl_msg_alloc make_dummy_ue_pdsch_info()
   pdsch.codewords.resize(1);
   pdsch.codewords[0].mcs_table     = ocudu::pdsch_mcs_table::qam64;
   pdsch.codewords[0].mcs_index     = 10;
-  pdsch.codewords[0].tb_size_bytes = 10000;
+  pdsch.codewords[0].tb_size_bytes = units::bytes{10000};
   pdsch.rbs                        = vrb_interval{5, 10};
   msg.context.ue_index             = to_du_ue_index(0);
   msg.context.ss_id                = to_search_space_id(2);
   msg.tb_list.push_back(
-      dl_msg_tb_info{{dl_msg_lc_info{lcid_dl_sch_t{LCID_SRB1}, pdsch.codewords[0].tb_size_bytes - 4}}});
+      dl_msg_tb_info{{dl_msg_lc_info{lcid_dl_sch_t{LCID_SRB1}, pdsch.codewords[0].tb_size_bytes.value() - 4}}});
   return msg;
 }
 
@@ -42,7 +42,7 @@ pusch_information make_dummy_pusch_info()
   pusch.harq_id       = to_harq_id(0);
   pusch.mcs_table     = pusch_mcs_table::qam64;
   pusch.mcs_index     = 10;
-  pusch.tb_size_bytes = 10000;
+  pusch.tb_size_bytes = units::bytes{10000};
   pusch.rbs           = vrb_interval{5, 10};
   return pusch;
 }
@@ -274,7 +274,7 @@ TEST_F(single_harq_process_test, when_harq_is_allocated_then_harq_grant_params_h
 {
   ASSERT_EQ(h_dl.get_grant_params().mcs, ue_pdsch.pdsch_cfg.codewords[0].mcs_index);
   ASSERT_EQ(h_dl.get_grant_params().mcs_table, ue_pdsch.pdsch_cfg.codewords[0].mcs_table);
-  ASSERT_EQ(h_dl.get_grant_params().tbs.value(), ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
+  ASSERT_EQ(h_dl.get_grant_params().tbs, ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
   ASSERT_EQ(h_dl.get_grant_params().rbs.type1(), ue_pdsch.pdsch_cfg.rbs.type1());
   ASSERT_EQ(h_dl.get_grant_params().dci_cfg_type, dci_dl_rnti_config_type::c_rnti_f1_0);
   ASSERT_EQ(h_ul.get_grant_params().tbs, harq_ent.total_ul_bytes_waiting_ack());
@@ -286,7 +286,7 @@ TEST_F(single_harq_process_test, positive_ack_sets_harq_to_empty)
   ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, pucch_snr));
   ASSERT_FALSE(h_dl.is_waiting_ack());
   ASSERT_FALSE(h_dl.has_pending_retx());
-  ASSERT_EQ(h_ul.ul_crc_info(true).value().value(), pusch_info.tb_size_bytes);
+  ASSERT_EQ(h_ul.ul_crc_info(true).value(), pusch_info.tb_size_bytes);
   ASSERT_FALSE(h_ul.is_waiting_ack());
   ASSERT_FALSE(h_ul.has_pending_retx());
 
@@ -939,7 +939,7 @@ TEST_F(single_ntn_ue_harq_normal_mode_process_test, when_ntn_normal_mode_wait_rt
       ASSERT_TRUE(h_ul.is_waiting_ack());
       ASSERT_EQ(h_ul, harq_ent.ul_harq(to_harq_id(0)));
     } else if (current_slot == ul_ack_slot) {
-      ASSERT_EQ(h_ul.ul_crc_info(true), units::bytes{pusch_info.tb_size_bytes});
+      ASSERT_EQ(h_ul.ul_crc_info(true), pusch_info.tb_size_bytes);
       ASSERT_FALSE(h_ul.is_waiting_ack());
       ASSERT_FALSE(h_ul.has_pending_retx());
     } else {
@@ -997,14 +997,14 @@ TEST_F(single_ntn_ue_ul_harq_mode_b_process_test, ul_harq_history_is_reachable_a
     if (current_slot < pusch_slot) {
       h_ul = harq_ent.find_ul_harq_waiting_ack(pusch_slot).value();
       ASSERT_FALSE(h_ul.empty());
-      ASSERT_EQ(h_ul.get_grant_params().tbs, units::bytes{pusch_info.tb_size_bytes});
+      ASSERT_EQ(h_ul.get_grant_params().tbs, pusch_info.tb_size_bytes);
       ASSERT_EQ(h_ul.get_grant_params().tbs, harq_ent.total_ul_bytes_waiting_ack());
     } else if (current_slot == pusch_slot) {
       // At pusch_slot, UL HARQ history still waiting for ACK.
       h_ul = harq_ent.find_ul_harq_waiting_ack(pusch_slot).value();
       ASSERT_FALSE(h_ul.empty());
       ASSERT_TRUE(h_ul.is_waiting_ack());
-      ASSERT_EQ(h_ul.get_grant_params().tbs, units::bytes{pusch_info.tb_size_bytes});
+      ASSERT_EQ(h_ul.get_grant_params().tbs, pusch_info.tb_size_bytes);
       ASSERT_EQ(h_ul.get_grant_params().tbs, harq_ent.total_ul_bytes_waiting_ack());
       ASSERT_TRUE(h_ul.ul_crc_info(true));
       ASSERT_TRUE(h_ul.empty());
@@ -1034,12 +1034,12 @@ TEST_F(single_ntn_ue_ul_harq_mode_b_process_test, when_ul_harq_gets_acked_then_i
   }
   h_dl = harq_ent.find_dl_harq_waiting_ack(uci_slot, 0).value();
   ASSERT_TRUE(h_dl.dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt));
-  ASSERT_EQ(h_dl.get_grant_params().tbs, units::bytes{ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes});
+  ASSERT_EQ(h_dl.get_grant_params().tbs, ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
   while (current_slot != pusch_slot) {
     run_slot();
   }
   h_ul = harq_ent.find_ul_harq_waiting_ack(pusch_slot).value();
-  ASSERT_EQ(harq_ent.total_ul_bytes_waiting_ack(), units::bytes{pusch_info.tb_size_bytes});
+  ASSERT_EQ(harq_ent.total_ul_bytes_waiting_ack(), pusch_info.tb_size_bytes);
   ASSERT_EQ(h_ul.ul_crc_info(true), units::bytes{pusch_info.tb_size_bytes});
   ASSERT_EQ(harq_ent.total_ul_bytes_waiting_ack(), units::bytes{0});
 }
@@ -1063,7 +1063,7 @@ TEST_F(single_ntn_ue_harq_dl_feedback_disabled_process_test, release_dl_harq_aft
     } else {
       ASSERT_TRUE(h_dl.empty());
       ASSERT_FALSE(harq_ent.dl_harq(to_harq_id(nof_normal_mode_harqs)).has_value());
-      ASSERT_EQ(timeout_handler.last_tbs.value(), ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
+      ASSERT_EQ(timeout_handler.last_tbs, ue_pdsch.pdsch_cfg.codewords[0].tb_size_bytes);
     }
     run_slot();
   }

@@ -76,7 +76,7 @@ TEST_P(dl_mcs_tbs_calculator_test_bench, test_values)
 
   ASSERT_TRUE(test.has_value());
   ASSERT_EQ(GetParam().final_mcs, test.value().mcs);
-  ASSERT_EQ(GetParam().tbs_bytes, test.value().tbs);
+  ASSERT_EQ(GetParam().tbs_bytes, test.value().tbs.value());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -122,7 +122,7 @@ TEST_P(ul_mcs_tbs_prbs_calculator_test_bench, test_values)
 
   ASSERT_TRUE(test.has_value());
   ASSERT_EQ(GetParam().final_mcs, test.value().mcs);
-  ASSERT_EQ(GetParam().tbs_bytes, test.value().tbs);
+  ASSERT_EQ(GetParam().tbs_bytes, test.value().tbs.value());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -170,7 +170,7 @@ TEST_P(ul_mcs_tbs_prbs_calculator_dci_0_1_test_bench, test_values_with_uci)
 
   ASSERT_TRUE(test.has_value());
   ASSERT_EQ(GetParam().final_mcs, test.value().mcs);
-  ASSERT_EQ(GetParam().tbs_bytes, test.value().tbs);
+  ASSERT_EQ(GetParam().tbs_bytes, test.value().tbs.value());
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -221,7 +221,7 @@ TEST_F(ul_mcs_tbs_prbs_calculator_low_mcs_test_bench, test_values_with_uci)
 
   ASSERT_TRUE(test.has_value()) << to_string(test.error());
   ASSERT_EQ(test_1_prb.final_mcs, test.value().mcs);
-  ASSERT_EQ(test_1_prb.tbs_bytes, test.value().tbs);
+  ASSERT_EQ(test_1_prb.tbs_bytes, test.value().tbs.value());
 
   // Verify the MCS < 5 and 1 PRB do NOT yield to a valid MCS-PRB allocation.
   test_1_prb.max_mcs = 4;
@@ -240,7 +240,7 @@ TEST_F(ul_mcs_tbs_prbs_calculator_low_mcs_test_bench, test_values_with_uci)
       pusch_cfg, ue_cell_cfg.init_bwp(), sch_mcs_index(test_2_prb.max_mcs), test_2_prb.nof_prbs, false);
   ASSERT_TRUE(test.has_value());
   ASSERT_EQ(test_2_prb.final_mcs, test.value().mcs);
-  ASSERT_EQ(test_2_prb.tbs_bytes, test.value().tbs);
+  ASSERT_EQ(test_2_prb.tbs_bytes, test.value().tbs.value());
 
   // Verify that, even in the worst case of MCS 0, 2 PRBs yield to a valid MCS-PRB allocation.
   mcs_test_entry test_2_prb_mcs_0{.final_mcs = 0, .tbs_bytes = 7, .max_mcs = 0, .nof_prbs = 2};
@@ -250,7 +250,7 @@ TEST_F(ul_mcs_tbs_prbs_calculator_low_mcs_test_bench, test_values_with_uci)
       pusch_cfg, ue_cell_cfg.init_bwp(), sch_mcs_index(test_2_prb_mcs_0.max_mcs), test_2_prb_mcs_0.nof_prbs, false);
   ASSERT_TRUE(test.has_value());
   ASSERT_EQ(test_2_prb_mcs_0.final_mcs, test.value().mcs);
-  ASSERT_EQ(test_2_prb_mcs_0.tbs_bytes, test.value().tbs);
+  ASSERT_EQ(test_2_prb_mcs_0.tbs_bytes, test.value().tbs.value());
 }
 
 class ul_mcs_tbs_prbs_calculator_with_harq_ack : public common_mcs_tbs_calculator_test, public ::testing::Test
@@ -281,7 +281,7 @@ TEST_F(ul_mcs_tbs_prbs_calculator_with_harq_ack, test_values_with_2_harq_bits)
 
   ASSERT_TRUE(test.has_value());
   ASSERT_EQ(test_1_prb.final_mcs, test.value().mcs);
-  ASSERT_EQ(test_1_prb.tbs_bytes, test.value().tbs);
+  ASSERT_EQ(test_1_prb.tbs_bytes, test.value().tbs.value());
 }
 
 class ul_mcs_tbs_prbs_calculator_error : public common_mcs_tbs_calculator_test, public ::testing::Test

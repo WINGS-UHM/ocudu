@@ -84,9 +84,6 @@ struct base_harq_process : public intrusive_double_linked_list_element<>,
 
 /// Parameters of a DL HARQ process.
 struct dl_harq_process_impl : public base_harq_process {
-  /// \brief Update to the HARQ process state after a HARQ-ACK is received.
-  enum class status_update { acked, nacked, error };
-
   /// \brief Parameters relative to the last used PDSCH PDU that get stored in the HARQ process for future reuse.
   struct alloc_params {
     struct lc_alloc_info {
@@ -276,8 +273,7 @@ class dl_harq_process_handle : public harq_utils::base_harq_process_handle<true>
   using base_type = harq_utils::base_harq_process_handle<true>;
 
 public:
-  using status_update = harq_utils::dl_harq_process_impl::status_update;
-  using grant_params  = harq_utils::dl_harq_process_impl::alloc_params;
+  using grant_params = harq_utils::dl_harq_process_impl::alloc_params;
 
   using base_type::base_type;
 

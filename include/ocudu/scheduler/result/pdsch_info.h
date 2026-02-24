@@ -24,6 +24,7 @@
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/result/dmrs_info.h"
 #include "ocudu/scheduler/result/vrb_alloc.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -51,7 +52,7 @@ struct pdsch_codeword {
   /// Redundancy version index (see TS38.212 Table 5.4.2.1-2, and TS38.214 Table 5.1.2.1-2).
   uint8_t rv_index;
   /// Transport block size, in bytes (see TS38.214 Section 5.1.3.2).
-  uint32_t tb_size_bytes;
+  units::bytes tb_size_bytes;
   /// Whether this is the first Tx or retx of the HARQ codeword.
   bool new_data;
 };

@@ -52,7 +52,7 @@ rar_information make_random_rar_info(unsigned nof_ul_grants = 1, unsigned paddin
 {
   rar_information rar{};
   rar.pdsch_cfg.codewords.resize(1);
-  rar.pdsch_cfg.codewords[0].tb_size_bytes = nof_ul_grants * RAR_PDU_SIZE + padding_bytes;
+  rar.pdsch_cfg.codewords[0].tb_size_bytes = units::bytes{nof_ul_grants * RAR_PDU_SIZE + padding_bytes};
   rar.grants.resize(nof_ul_grants);
   for (unsigned i = 0; i < nof_ul_grants; ++i) {
     rar.grants[i] = make_random_ul_grant();

@@ -19,6 +19,7 @@
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/result/dmrs_info.h"
 #include "ocudu/scheduler/result/vrb_alloc.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -71,7 +72,7 @@ struct pusch_information {
   /// but is set to 1.
   bool new_data;
   /// Transport block size in bytes.
-  uint32_t tb_size_bytes;
+  units::bytes tb_size_bytes;
   /// \brief Number of CBs in the TB (could be more than the number of CBs in this PUSCH transmission). Should be set
   /// to zero in any of the following conditions: 1) CBG is not supported or requested 2) newData=1 (new transmission)
   /// 3) tbSize=0.

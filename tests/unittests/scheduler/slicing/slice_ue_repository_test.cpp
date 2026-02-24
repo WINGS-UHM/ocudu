@@ -185,7 +185,7 @@ TEST_F(
   pusch.rnti          = to_rnti(0x4601 + ue_idx);
   pusch.harq_id       = h_ul->id();
   pusch.new_data      = true;
-  pusch.tb_size_bytes = 2000;
+  pusch.tb_size_bytes = units::bytes{2000};
   h_ul->save_grant_params(ctxt, pusch);
 
   ue_db[ue_idx].handle_sr_indication();

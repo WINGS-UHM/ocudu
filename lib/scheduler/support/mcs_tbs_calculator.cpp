@@ -266,7 +266,7 @@ std::optional<sch_mcs_tbs> ocudu::compute_dl_mcs_tbs(const pdsch_config_params& 
     return std::nullopt;
   }
 
-  return std::optional<sch_mcs_tbs>{sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes.value()}};
+  return std::optional<sch_mcs_tbs>{sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes}};
 }
 
 expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const pusch_config_params& pusch_cfg,
@@ -319,7 +319,7 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const 
     return make_unexpected(error);
   }
 
-  return sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes.value()};
+  return sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes};
 }
 
 std::optional<units::bytes> ocudu::compute_ul_tbs(const pusch_config_params& pusch_cfg,
@@ -377,7 +377,7 @@ bool ocudu::is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,
   return ::is_pusch_effective_rate_valid(pusch_cfg, info, mcs_info, nof_prbs) == compute_ul_mcs_tbs_error::none;
 }
 
-unsigned ocudu::compute_ul_tbs_unsafe(const pusch_config_params& pusch_cfg, sch_mcs_index mcs, unsigned nof_prbs)
+units::bytes ocudu::compute_ul_tbs_unsafe(const pusch_config_params& pusch_cfg, sch_mcs_index mcs, unsigned nof_prbs)
 {
   const unsigned            dmrs_prbs = calculate_nof_dmrs_per_rb(pusch_cfg.dmrs);
   const sch_mcs_description mcs_info =
@@ -390,6 +390,5 @@ unsigned ocudu::compute_ul_tbs_unsafe(const pusch_config_params& pusch_cfg, sch_
                                                                .mcs_descr        = mcs_info,
                                                                .nof_layers       = pusch_cfg.nof_layers,
                                                                .tb_scaling_field = pusch_cfg.tb_scaling_field,
-                                                               .n_prb            = nof_prbs})
-      .value();
+                                                               .n_prb            = nof_prbs});
 }

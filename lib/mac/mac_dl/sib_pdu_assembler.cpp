@@ -252,7 +252,7 @@ void sib_pdu_assembler::save_buffers(si_version_type si_version, const mac_cell_
 
 span<const uint8_t> sib_pdu_assembler::encode_si_pdu(slot_point_extended sl_tx, const sib_information& si_info)
 {
-  const unsigned tbs = si_info.pdsch_cfg.codewords[0].tb_size_bytes;
+  const unsigned tbs = si_info.pdsch_cfg.codewords[0].tb_size_bytes.value();
   ocudu_assert(tbs <= MAX_BCCH_DL_SCH_PDU_SIZE, "BCCH-DL-SCH is too long. Revisit constant");
 
   if (si_info.version != current_buffers.version) {

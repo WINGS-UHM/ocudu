@@ -743,7 +743,7 @@ void dl_harq_process_handle::save_grant_params(const dl_harq_alloc_context& ctx,
   dl_harq_process_impl::alloc_params& prev_params = impl->prev_tx_params;
 
   if (impl->nof_retxs == 0) {
-    prev_params.tbs          = units::bytes{cw.tb_size_bytes};
+    prev_params.tbs          = cw.tb_size_bytes;
     prev_params.dci_cfg_type = ctx.dci_cfg_type;
     prev_params.nof_layers   = pdsch.nof_layers;
     prev_params.olla_mcs     = ctx.olla_mcs;
@@ -757,7 +757,7 @@ void dl_harq_process_handle::save_grant_params(const dl_harq_alloc_context& ctx,
   } else {
     ocudu_assert(ctx.dci_cfg_type == prev_params.dci_cfg_type,
                  "DCI format and RNTI type cannot change during DL HARQ retxs");
-    ocudu_assert(prev_params.tbs.value() == cw.tb_size_bytes,
+    ocudu_assert(prev_params.tbs == cw.tb_size_bytes,
                  "TBS cannot change during DL HARQ retxs ({}!={}). Previous MCS={}, RBs={}. New MCS={}, RBs={}",
                  prev_params.tbs,
                  cw.tb_size_bytes,
@@ -807,12 +807,12 @@ void ul_harq_process_handle::save_grant_params(const ul_harq_alloc_context& ctx,
   if (impl->nof_retxs == 0) {
     prev_tx_params.dci_cfg_type = ctx.dci_cfg_type;
     prev_tx_params.olla_mcs     = ctx.olla_mcs;
-    prev_tx_params.tbs          = units::bytes{pusch.tb_size_bytes};
+    prev_tx_params.tbs          = pusch.tb_size_bytes;
     prev_tx_params.slice_id     = ctx.slice_id;
   } else {
     ocudu_assert(ctx.dci_cfg_type == prev_tx_params.dci_cfg_type,
                  "DCI format and RNTI type cannot change during HARQ retxs");
-    ocudu_assert(prev_tx_params.tbs.value() == pusch.tb_size_bytes, "TBS cannot change during HARQ retxs");
+    ocudu_assert(prev_tx_params.tbs == pusch.tb_size_bytes, "TBS cannot change during HARQ retxs");
   }
   prev_tx_params.mcs_table   = pusch.mcs_table;
   prev_tx_params.mcs         = pusch.mcs_index;
@@ -916,48 +916,44 @@ bool unique_ue_harq_entity::has_empty_dl_harqs(bool select_normal_mode_only) con
 {
   if (select_normal_mode_only and get_dl_ue().feedback_disabled_or_mode_b_harq_present) {
     return std::any_of(get_dl_ue().free_harq_ids.begin(), get_dl_ue().free_harq_ids.end(), [&](auto h_id) {
-      return (get_dl_ue().harqs[h_id].mode == harq_utils::harq_mode_t::normal and
-              get_dl_ue().harqs[h_id].status == harq_utils::harq_state_t::empty);
+      return (get_dl_ue().harqs[h_id].mode == harq_mode_t::normal and
+              get_dl_ue().harqs[h_id].status == harq_state_t::empty);
     });
-  } else {
-    return not get_dl_ue().free_harq_ids.empty();
   }
+  return not get_dl_ue().free_harq_ids.empty();
 }
 
 bool unique_ue_harq_entity::has_empty_ul_harqs(bool select_normal_mode_only) const
 {
   if (select_normal_mode_only and get_ul_ue().feedback_disabled_or_mode_b_harq_present) {
     return std::any_of(get_ul_ue().free_harq_ids.begin(), get_ul_ue().free_harq_ids.end(), [&](auto h_id) {
-      return (get_ul_ue().harqs[h_id].mode == harq_utils::harq_mode_t::normal and
-              get_ul_ue().harqs[h_id].status == harq_utils::harq_state_t::empty);
+      return (get_ul_ue().harqs[h_id].mode == harq_mode_t::normal and
+              get_ul_ue().harqs[h_id].status == harq_state_t::empty);
     });
-  } else {
-    return not get_ul_ue().free_harq_ids.empty();
   }
+  return not get_ul_ue().free_harq_ids.empty();
 }
 
 size_t unique_ue_harq_entity::nof_empty_dl_harqs(bool select_normal_mode_only) const
 {
   if (select_normal_mode_only and get_dl_ue().feedback_disabled_or_mode_b_harq_present) {
     return std::count_if(get_dl_ue().free_harq_ids.begin(), get_dl_ue().free_harq_ids.end(), [&](auto h_id) {
-      return (get_dl_ue().harqs[h_id].mode == harq_utils::harq_mode_t::normal and
-              get_dl_ue().harqs[h_id].status == harq_utils::harq_state_t::empty);
+      return (get_dl_ue().harqs[h_id].mode == harq_mode_t::normal and
+              get_dl_ue().harqs[h_id].status == harq_state_t::empty);
     });
-  } else {
-    return get_dl_ue().free_harq_ids.size();
   }
+  return get_dl_ue().free_harq_ids.size();
 }
 
 size_t unique_ue_harq_entity::nof_empty_ul_harqs(bool select_normal_mode_only) const
 {
   if (select_normal_mode_only and get_ul_ue().feedback_disabled_or_mode_b_harq_present) {
     return std::count_if(get_ul_ue().free_harq_ids.begin(), get_ul_ue().free_harq_ids.end(), [&](auto h_id) {
-      return (get_ul_ue().harqs[h_id].mode == harq_utils::harq_mode_t::normal and
-              get_ul_ue().harqs[h_id].status == harq_utils::harq_state_t::empty);
+      return (get_ul_ue().harqs[h_id].mode == harq_mode_t::normal and
+              get_ul_ue().harqs[h_id].status == harq_state_t::empty);
     });
-  } else {
-    return get_ul_ue().free_harq_ids.size();
   }
+  return get_ul_ue().free_harq_ids.size();
 }
 
 void unique_ue_harq_entity::reset()

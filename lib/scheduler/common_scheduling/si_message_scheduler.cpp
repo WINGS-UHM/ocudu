@@ -219,7 +219,7 @@ void si_message_scheduler::fill_si_grant(cell_slot_resource_allocator& res_grid,
                                          crb_interval                  si_crbs_grant,
                                          uint8_t                       time_resource,
                                          const dmrs_information&       dmrs_info,
-                                         unsigned                      tbs,
+                                         units::bytes                  tbs,
                                          const message_window_context& message_context)
 {
   // System information indicator for SI message as per TS 38.212, Section 7.3.1.2.1 and Table 7.3.1.2.1-2.

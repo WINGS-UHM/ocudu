@@ -1128,11 +1128,11 @@ void ue_logical_channel_repository::reset_sr_indication()
 
 unsigned ocudu::allocate_mac_sdus(dl_msg_tb_info&                tb_info,
                                   ue_logical_channel_repository& lch_mng,
-                                  unsigned                       total_tbs,
+                                  units::bytes                   total_tbs,
                                   lcid_t                         lcid)
 {
   static constexpr unsigned min_mac_sdu_space = 4; // Needs to fit at least MAC SDU subheader and RLC header.
-  unsigned                  rem_tbs           = total_tbs;
+  unsigned                  rem_tbs           = total_tbs.value();
 
   // If we do not have enough bytes to fit MAC subheader, skip MAC SDU allocation.
   // Note: We assume upper layer accounts for its own subheaders when updating the buffer state.
@@ -1150,12 +1150,13 @@ unsigned ocudu::allocate_mac_sdus(dl_msg_tb_info&                tb_info,
     rem_tbs -= alloc_bytes;
   }
 
-  return total_tbs - rem_tbs;
+  return total_tbs.value() - rem_tbs;
 }
 
-unsigned ocudu::allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, unsigned total_tbs)
+unsigned
+ocudu::allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, units::bytes total_tbs)
 {
-  unsigned rem_tbs = total_tbs;
+  unsigned rem_tbs = total_tbs.value();
 
   while (lch_mng.has_pending_ces() and not tb_info.lc_chs_to_sched.full()) {
     dl_msg_lc_info subpdu;
@@ -1170,14 +1171,14 @@ unsigned ocudu::allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_rep
     // Update remaining space taking into account the MAC CE subheader.
     rem_tbs -= alloc_bytes;
   }
-  return total_tbs - rem_tbs;
+  return total_tbs.value() - rem_tbs;
 }
 
 unsigned ocudu::allocate_ue_con_res_id_mac_ce(dl_msg_tb_info&                tb_info,
                                               ue_logical_channel_repository& lch_mng,
-                                              unsigned                       total_tbs)
+                                              units::bytes                   total_tbs)
 {
-  unsigned rem_tbs = total_tbs;
+  unsigned rem_tbs = total_tbs.value();
 
   if (not tb_info.lc_chs_to_sched.full()) {
     dl_msg_lc_info subpdu;
@@ -1190,35 +1191,38 @@ unsigned ocudu::allocate_ue_con_res_id_mac_ce(dl_msg_tb_info&                tb_
       rem_tbs -= alloc_bytes;
     }
   }
-  return total_tbs - rem_tbs;
+  return total_tbs.value() - rem_tbs;
 }
 
 unsigned ocudu::build_dl_fallback_transport_block_info(dl_msg_tb_info&                tb_info,
                                                        ue_logical_channel_repository& lch_mng,
-                                                       unsigned                       tb_size_bytes)
+                                                       units::bytes                   tb_size_bytes)
 {
   unsigned total_subpdu_bytes = 0;
   total_subpdu_bytes += allocate_ue_con_res_id_mac_ce(tb_info, lch_mng, tb_size_bytes);
   // Since SRB0 PDU cannot be segmented, skip SRB0 if remaining TB size is not enough to fit entire PDU.
   if (lch_mng.has_pending_bytes(LCID_SRB0) and
-      ((tb_size_bytes - total_subpdu_bytes) >= lch_mng.pending_bytes(LCID_SRB0))) {
-    total_subpdu_bytes += allocate_mac_sdus(tb_info, lch_mng, tb_size_bytes - total_subpdu_bytes, LCID_SRB0);
+      ((tb_size_bytes.value() - total_subpdu_bytes) >= lch_mng.pending_bytes(LCID_SRB0))) {
+    total_subpdu_bytes +=
+        allocate_mac_sdus(tb_info, lch_mng, units::bytes{tb_size_bytes.value() - total_subpdu_bytes}, LCID_SRB0);
     return total_subpdu_bytes;
   }
-  total_subpdu_bytes += allocate_mac_sdus(tb_info, lch_mng, tb_size_bytes - total_subpdu_bytes, LCID_SRB1);
+  total_subpdu_bytes +=
+      allocate_mac_sdus(tb_info, lch_mng, units::bytes{tb_size_bytes.value() - total_subpdu_bytes}, LCID_SRB1);
   return total_subpdu_bytes;
 }
 
 unsigned ocudu::build_dl_transport_block_info(dl_msg_tb_info&                tb_info,
                                               ue_logical_channel_repository& lch_mng,
-                                              unsigned                       tb_size_bytes,
+                                              units::bytes                   tb_size_bytes,
                                               ran_slice_id_t                 slice_id)
 {
   unsigned total_subpdu_bytes = 0;
   total_subpdu_bytes += allocate_mac_ces(tb_info, lch_mng, tb_size_bytes);
   for (const auto lcid : lch_mng.get_prioritized_logical_channels()) {
     if (lch_mng.get_slice_id(lcid) == slice_id) {
-      total_subpdu_bytes += allocate_mac_sdus(tb_info, lch_mng, tb_size_bytes - total_subpdu_bytes, uint_to_lcid(lcid));
+      total_subpdu_bytes += allocate_mac_sdus(
+          tb_info, lch_mng, units::bytes{tb_size_bytes.value() - total_subpdu_bytes}, uint_to_lcid(lcid));
     }
   }
   return total_subpdu_bytes;

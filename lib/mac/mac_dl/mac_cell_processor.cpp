@@ -501,16 +501,19 @@ void mac_cell_processor::assemble_dl_data_request(mac_dl_data_result&    data_re
     for (unsigned cw_idx = 0, e = grant.pdsch_cfg.codewords.size(); cw_idx != e; ++cw_idx) {
       const pdsch_codeword& cw = grant.pdsch_cfg.codewords[cw_idx];
       if (cw.new_data) {
-        data_res.ue_pdus.emplace_back(
-            cw_idx,
-            dlsch_assembler.assemble_newtx_pdu(
-                grant.pdsch_cfg.rnti, grant.pdsch_cfg.harq_id, cw_idx, grant.tb_list[cw_idx], cw.tb_size_bytes));
+        data_res.ue_pdus.emplace_back(cw_idx,
+                                      dlsch_assembler.assemble_newtx_pdu(grant.pdsch_cfg.rnti,
+                                                                         grant.pdsch_cfg.harq_id,
+                                                                         cw_idx,
+                                                                         grant.tb_list[cw_idx],
+                                                                         cw.tb_size_bytes.value()));
         continue;
       }
 
       data_res.ue_pdus.emplace_back(
           cw_idx,
-          dlsch_assembler.assemble_retx_pdu(grant.pdsch_cfg.rnti, grant.pdsch_cfg.harq_id, cw_idx, cw.tb_size_bytes));
+          dlsch_assembler.assemble_retx_pdu(
+              grant.pdsch_cfg.rnti, grant.pdsch_cfg.harq_id, cw_idx, cw.tb_size_bytes.value()));
     }
   }
 

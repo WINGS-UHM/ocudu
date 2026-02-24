@@ -108,7 +108,7 @@ static sch_prbs_tbs linear_search_nof_prbs_upper_bound(const prbs_calculator_sch
 
     // if tbs_bits_lb < payload_size, return the previous iteration as the solution.
     if (tbs_bits_lb < payload_size_bits) {
-      return {tbs_cfg.n_prb + 1, tbs_bits_ub / NOF_BITS_PER_BYTE};
+      return {tbs_cfg.n_prb + 1, units::bytes{tbs_bits_ub / NOF_BITS_PER_BYTE}};
     }
     tbs_bits_ub = tbs_bits_lb;
   }
@@ -123,7 +123,7 @@ static sch_prbs_tbs linear_search_nof_prbs_upper_bound(const prbs_calculator_sch
     tbs_bits_ub   = tbs_calculator_calculate(tbs_cfg).to_bits().value();
   }
 
-  return {tbs_cfg.n_prb, tbs_bits_ub / NOF_BITS_PER_BYTE};
+  return {tbs_cfg.n_prb, units::bytes{tbs_bits_ub / NOF_BITS_PER_BYTE}};
 }
 
 sch_prbs_tbs ocudu::get_nof_prbs(const prbs_calculator_sch_config& sch_config, unsigned max_nof_available_rbs)

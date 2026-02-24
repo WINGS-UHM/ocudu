@@ -212,7 +212,7 @@ void sib1_scheduler::fill_sib1_grant(cell_slot_resource_allocator& res_grid,
                                      crb_interval                  sib1_crbs_grant,
                                      unsigned                      time_resource,
                                      const dmrs_information&       dmrs_info,
-                                     unsigned                      tbs) const
+                                     units::bytes                  tbs) const
 {
   // System information indicator for SIB1, in DCI 1_0. Refer to Section 7.3.1.2.1 and Table 7.3.1.2.1-2, TS 38.212.
   static constexpr unsigned sib1_si_indicator = 0;

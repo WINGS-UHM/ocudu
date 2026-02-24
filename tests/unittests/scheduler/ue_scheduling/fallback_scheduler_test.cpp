@@ -271,7 +271,7 @@ protected:
         continue;
       }
       for (const auto& cw : grant.pdsch_cfg.codewords) {
-        total_cw_tb_size_bytes += cw.tb_size_bytes;
+        total_cw_tb_size_bytes += cw.tb_size_bytes.value();
       }
     }
     return total_cw_tb_size_bytes >= exp_size;

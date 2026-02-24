@@ -696,8 +696,8 @@ std::optional<ue_newtx_candidate> intra_slice_scheduler::create_newtx_dl_candida
   ocudu_assert(ue_cc.is_active() and not ue_cc.is_in_fallback_mode(), "Invalid slice UE state");
 
   // Check if the UE has pending data to transmit.
-  unsigned pending_bytes = u.pending_dl_newtx_bytes();
-  if (pending_bytes == 0) {
+  units::bytes pending_bytes{u.pending_dl_newtx_bytes()};
+  if (pending_bytes.value() == 0) {
     return std::nullopt;
   }
 
@@ -729,8 +729,8 @@ std::optional<ue_newtx_candidate> intra_slice_scheduler::create_newtx_ul_candida
   ocudu_assert(ue_cc.is_active() and not ue_cc.is_in_fallback_mode(), "Invalid slice UE state");
 
   // Check if the UE has pending data to transmit.
-  unsigned pending_bytes = u.pending_ul_newtx_bytes();
-  if (pending_bytes == 0) {
+  units::bytes pending_bytes{u.pending_ul_newtx_bytes()};
+  if (pending_bytes.value() == 0) {
     return std::nullopt;
   }
 

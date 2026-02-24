@@ -14,6 +14,7 @@
 #include "ocudu/ran/sch/modulation_scheme.h"
 #include "ocudu/ran/sch/sch_mcs.h"
 #include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -59,7 +60,7 @@ struct sch_prbs_tbs {
   /// Number of PRBs required for a given PDSCH transmission.
   unsigned nof_prbs;
   /// TBS in bytes corresponding to the PRBs required for a given PDSCH transmission.
-  unsigned tbs_bytes;
+  units::bytes tbs_bytes;
 };
 
 /// \brief Computes the required number of PRBs necessary to transmit a given payload size.

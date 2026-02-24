@@ -555,7 +555,7 @@ private:
     metrics.slot_ul_count++;
     metrics.nof_ul_grants += slot_ul_result.ul_res->puschs.size();
     for (const ul_sched_info& pusch : slot_ul_result.ul_res->puschs) {
-      metrics.nof_ul_bytes += pusch.pusch_cfg.tb_size_bytes;
+      metrics.nof_ul_bytes += pusch.pusch_cfg.tb_size_bytes.value();
     }
   }
 };
@@ -1017,13 +1017,13 @@ public:
     rx_ind.sl_rx      = sim_phy.slot_ul_result.slot;
     rx_ind.cell_index = to_du_cell_index(0);
     for (const ul_sched_info& pusch : sim_phy.slot_ul_result.ul_res->puschs) {
-      unsigned payload_len = std::min(mac_pdu.length(), static_cast<size_t>(pusch.pusch_cfg.tb_size_bytes));
+      unsigned payload_len = std::min(mac_pdu.length(), static_cast<size_t>(pusch.pusch_cfg.tb_size_bytes.value()));
 
       // 1 Byte for LCID and other fields and 1/2 Byte(s) for payload length.
       static const uint8_t mac_header_size = payload_len > 255 ? 3 : 2;
 
       // Early return - the TB is too small.
-      if (pusch.pusch_cfg.tb_size_bytes <= mac_header_size + bsr_mac_subpdu.length()) {
+      if (pusch.pusch_cfg.tb_size_bytes.value() <= mac_header_size + bsr_mac_subpdu.length()) {
         return;
       }
 

@@ -9,6 +9,7 @@
 #include "routines/cell_activation_routine.h"
 #include "routines/initial_context_setup_routine.h"
 #include "routines/mobility/cho_coordinator_routine.h"
+#include "routines/mobility/cho_source_routine.h"
 #include "routines/mobility/cho_target_routine.h"
 #include "routines/mobility/inter_cu_handover_execution_target_routine.h"
 #include "routines/mobility/inter_cu_handover_source_routine.h"
@@ -672,12 +673,7 @@ async_task<void> cu_cp_impl::handle_ue_context_release(const cu_cp_ue_context_re
 
 async_task<void> cu_cp_impl::handle_access_success(const cu_cp_access_success_indication& msg)
 {
-  // TODO: Trigger CHO completion procedure in CU-CP state machine.
-  logger.debug("ue={}: Access Success for CHO target cell received. CHO completion not yet implemented.", msg.ue_index);
-  return launch_async([](coro_context<async_task<void>>& ctx) {
-    CORO_BEGIN(ctx);
-    CORO_RETURN();
-  });
+  return launch_async<cho_source_routine>(msg, ue_mng, du_db, cu_up_db, *this, *this, mobility_mng, logger);
 }
 
 async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(const cu_cp_rrc_resume_request& request)

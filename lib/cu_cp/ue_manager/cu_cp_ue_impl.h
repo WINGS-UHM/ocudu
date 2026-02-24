@@ -83,6 +83,19 @@ struct cu_cp_ue_cho_context {
     return nullptr;
   }
 
+  /// \brief Find candidate by target CGI.
+  /// \param[in] cgi Target CGI to search for.
+  /// \return Pointer to candidate if found, nullptr otherwise.
+  cu_cp_cho_candidate* find_candidate(const nr_cell_global_id_t& cgi)
+  {
+    for (auto& candidate : candidates) {
+      if (candidate.target_cgi == cgi) {
+        return &candidate;
+      }
+    }
+    return nullptr;
+  }
+
   /// \brief Clear CHO context and reset to idle state.
   void clear()
   {

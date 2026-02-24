@@ -115,7 +115,27 @@ void du_manager_impl::handle_ul_ccch_indication(const ul_ccch_indication_message
 
 void du_manager_impl::handle_crnti_ce_indication(const ul_crnti_ce_indication_message& msg)
 {
-  // Placeholder to connect F1AP Access Success.
+  if (not params.services.du_mng_exec.execute([this, msg]() {
+        du_ue* ue = ue_mng.find_ue(msg.ue_index);
+        if (ue == nullptr || !cell_mng.has_cell(msg.cell_index)) {
+          return;
+        }
+
+        const bool reached_prepared_target = ue->cond_mobility.handle_crnti_ce_indication();
+        if (not reached_prepared_target) {
+          logger.debug("ue={} cell={}: C-RNTI CE received but no Access Success is expected. Ignoring.",
+                       fmt::underlying(msg.ue_index),
+                       fmt::underlying(msg.cell_index));
+          return;
+        }
+
+        const auto target_cgi = cell_mng.get_cell_cfg(msg.cell_index).nr_cgi;
+        params.f1ap.ue_mng.handle_access_success({msg.ue_index, target_cgi});
+      })) {
+    logger.warning("cell={} ue={}: Discarding C-RNTI CE indication. Cause: DU manager task queue is full",
+                   fmt::underlying(msg.cell_index),
+                   fmt::underlying(msg.ue_index));
+  }
 }
 
 void du_manager_impl::handle_f1c_connection_loss()

@@ -113,6 +113,11 @@ void du_manager_impl::handle_ul_ccch_indication(const ul_ccch_indication_message
   }
 }
 
+void du_manager_impl::handle_crnti_ce_indication(const ul_crnti_ce_indication_message& msg)
+{
+  // Placeholder to connect F1AP Access Success.
+}
+
 void du_manager_impl::handle_f1c_connection_loss()
 {
   schedule_async_task(launch_async<f1c_disconnection_handling_procedure>(proc_ctxt));

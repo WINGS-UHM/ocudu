@@ -115,9 +115,11 @@ public:
 class dummy_mac_event_indicator : public mac_ul_ccch_notifier
 {
 public:
-  std::optional<ul_ccch_indication_message> last_ccch_ind;
+  std::optional<ul_ccch_indication_message>     last_ccch_ind;
+  std::optional<ul_crnti_ce_indication_message> last_crnti_ce_ind;
 
   void on_ul_ccch_msg_received(const ul_ccch_indication_message& msg) override { last_ccch_ind = msg; }
+  void on_crnti_ce_received(const ul_crnti_ce_indication_message& msg) override { last_crnti_ce_ind = msg; }
 
   bool verify_ul_ccch_msg(const ul_ccch_indication_message& test_msg)
   {

@@ -50,12 +50,19 @@ struct ul_ccch_indication_message {
   byte_buffer     subpdu;
 };
 
+/// Used to indicate Msg3 C-RNTI CE detection.
+struct ul_crnti_ce_indication_message {
+  du_cell_index_t cell_index;
+  du_ue_index_t   ue_index;
+};
+
 /// Methods used by MAC to notify events.
 class mac_ul_ccch_notifier
 {
 public:
-  virtual ~mac_ul_ccch_notifier()                                             = default;
-  virtual void on_ul_ccch_msg_received(const ul_ccch_indication_message& msg) = 0;
+  virtual ~mac_ul_ccch_notifier()                                              = default;
+  virtual void on_ul_ccch_msg_received(const ul_ccch_indication_message& msg)  = 0;
+  virtual void on_crnti_ce_received(const ul_crnti_ce_indication_message& msg) = 0;
 };
 
 } // namespace ocudu

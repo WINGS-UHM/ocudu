@@ -26,6 +26,11 @@ public:
     du_mng->handle_ul_ccch_indication(msg);
   }
 
+  void on_crnti_ce_received(const ul_crnti_ce_indication_message& msg) override
+  {
+    du_mng->handle_crnti_ce_indication(msg);
+  }
+
   void on_new_metrics_report(const mac_metric_report& report) override
   {
     metrics_handler->aggregate_mac_metrics_report(report);

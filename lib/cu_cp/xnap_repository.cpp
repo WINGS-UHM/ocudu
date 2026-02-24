@@ -34,8 +34,10 @@ xnap_interface* xnap_repository::add_xnap(xnc_peer_index_t               xnc_ind
 
   // Create XNAP object with initial Tx notifier. The notifier will be replaced with the one from the association once
   // the association is established.
-  std::unique_ptr<xnap_interface> xnap_entity =
-      create_xnap(xnap_cfg, cfg.cu_cp.xnap.xnc_gw->get_init_tx_notifier(peer_addr), *cfg.cu_cp.services.cu_cp_executor);
+  std::unique_ptr<xnap_interface> xnap_entity = create_xnap(xnap_cfg,
+                                                            cfg.cu_cp.xnap.xnc_gw->get_init_tx_notifier(peer_addr),
+                                                            *cfg.cu_cp.services.timers,
+                                                            *cfg.cu_cp.services.cu_cp_executor);
   if (xnap_entity == nullptr) {
     logger.error("Failed to create XNAP");
     xnap_db.erase(it.first);

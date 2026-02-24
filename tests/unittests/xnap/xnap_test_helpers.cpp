@@ -19,6 +19,7 @@ void xnap_test::SetUp()
   xnap =
       std::make_unique<xnap_impl>(xnap_local_cfg,
                                   xnc_gw.get_init_tx_notifier(transport_layer_address::create_from_string("127.0.0.1")),
+                                  timers,
                                   ctrl_worker);
 }
 

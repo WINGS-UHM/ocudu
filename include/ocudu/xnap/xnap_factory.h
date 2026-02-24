@@ -12,7 +12,8 @@ namespace ocudu::ocucp {
 
 /// Creates an instance of an XNAP interface, notifying outgoing packets on the specified listener object.
 std::unique_ptr<xnap_interface> create_xnap(const xnap_configuration&              xnap_cfg_,
-                                            std::unique_ptr<xnap_message_notifier> tx_notifier_,
+                                            std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
+                                            timer_manager&                         timers_,
                                             task_executor&                         ctrl_exec_);
 
 } // namespace ocudu::ocucp

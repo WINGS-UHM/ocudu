@@ -66,6 +66,7 @@ protected:
   }
 
   ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("TEST", false);
+  timer_manager              timers;
   manual_task_worker         ctrl_worker{128};
   dummy_xnc_gateway          xnc_gw;
   std::unique_ptr<xnap_impl> xnap = nullptr;

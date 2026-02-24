@@ -11,9 +11,10 @@ using namespace ocudu;
 using namespace ocucp;
 
 std::unique_ptr<xnap_interface> ocudu::ocucp::create_xnap(const xnap_configuration&              xnap_cfg_,
-                                                          std::unique_ptr<xnap_message_notifier> tx_notifier_,
+                                                          std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
+                                                          timer_manager&                         timers_,
                                                           task_executor&                         ctrl_exec_)
 {
-  auto xnap = std::make_unique<xnap_impl>(xnap_cfg_, std::move(tx_notifier_), ctrl_exec_);
+  auto xnap = std::make_unique<xnap_impl>(xnap_cfg_, std::move(init_tx_notifier_), timers_, ctrl_exec_);
   return xnap;
 }

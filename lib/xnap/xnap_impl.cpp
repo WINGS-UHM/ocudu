@@ -15,9 +15,11 @@ using namespace ocucp;
 
 xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
                      std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
+                     timer_manager&                         timers_,
                      task_executor&                         ctrl_exec_) :
   logger(ocudulog::fetch_basic_logger("XNAP")),
   xnap_cfg(xnap_cfg_),
+  timers(timers_),
   ctrl_exec(ctrl_exec_),
   tx_notifier(std::move(init_tx_notifier_))
 {

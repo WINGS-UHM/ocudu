@@ -69,6 +69,7 @@ o_cu_cp_unit ocudu::build_o_cu_cp(const o_cu_cp_unit_config& unit_cfg, o_cu_cp_u
   cu_cp_cfg.services.cu_cp_executor         = &dependencies.executor_mapper->ctrl_executor();
   cu_cp_cfg.services.cu_cp_e2_exec          = &dependencies.executor_mapper->e2_executor();
   cu_cp_cfg.services.timers                 = dependencies.timers;
+  cu_cp_cfg.xnap.xnc_gw                     = dependencies.xnc_gw;
 
   o_cu_cp_unit ocucp;
 

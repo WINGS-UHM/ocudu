@@ -20,6 +20,7 @@ target_link_libraries(ocucp PRIVATE
         ocudu_e1_gateway
         ocudu_e2
         ocudu_f1c_gateway
+        ocudu_xnc_gateway
         ocudu_ngap
         ocudu_o_cu_cp_app_unit
         ocudu_pcap

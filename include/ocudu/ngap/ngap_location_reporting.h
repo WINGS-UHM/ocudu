@@ -58,6 +58,7 @@ struct ngap_location_report_request {
   report_area                             location_report_area    = report_area::cell;
   std::vector<ngap_area_of_interest_item> area_of_interest_list;
   std::optional<uint8_t>                  location_report_ref_id_to_be_cancelled;
+  std::vector<uint8_t>                    additional_location_report_ref_ids_to_be_cancelled;
 };
 
 struct ngap_location_report {

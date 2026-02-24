@@ -35,6 +35,9 @@ void ue_location_manager::configure_location_reporting(const ngap_location_repor
       if (ctrl.location_report_ref_id_to_be_cancelled.has_value()) {
         area_of_interest_list.erase(ctrl.location_report_ref_id_to_be_cancelled.value());
       }
+      for (const auto& ref_id : ctrl.additional_location_report_ref_ids_to_be_cancelled) {
+        area_of_interest_list.erase(ref_id);
+      }
       return;
     case ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
       report_on_cell_change     = true;

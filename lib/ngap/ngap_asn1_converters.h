@@ -1164,6 +1164,12 @@ asn1_to_location_report_request(const asn1::ngap::location_report_request_type_s
     req.location_report_ref_id_to_be_cancelled = asn1_type.location_report_ref_id_to_be_cancelled;
   }
 
+  if (asn1_type.ie_exts_present && asn1_type.ie_exts.add_cancelledlocation_report_ref_id_list_present) {
+    for (const auto& item : asn1_type.ie_exts.add_cancelledlocation_report_ref_id_list) {
+      req.additional_location_report_ref_ids_to_be_cancelled.push_back(item.location_report_ref_id_to_be_cancelled);
+    }
+  }
+
   return req;
 }
 

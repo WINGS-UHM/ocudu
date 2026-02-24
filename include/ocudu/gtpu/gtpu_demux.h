@@ -12,9 +12,9 @@
 
 #include "ocudu/adt/batched_dispatch_queue.h"
 #include "ocudu/adt/byte_buffer.h"
-#include "ocudu/gtpu/gtpu_teid.h"
 #include "ocudu/gtpu/gtpu_tunnel_common_rx.h"
 #include "ocudu/gtpu/gtpu_tunnel_common_tx.h"
+#include "ocudu/ran/gtpu/gtpu_teid.h"
 #include "ocudu/support/executors/task_executor.h"
 #include <sys/socket.h>
 

@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/expected.h"
-#include "ocudu/gtpu/gtpu_teid.h"
+#include "ocudu/ran/gtpu/gtpu_teid.h"
 #include "ocudu/support/compiler.h"
 
 namespace ocudu {

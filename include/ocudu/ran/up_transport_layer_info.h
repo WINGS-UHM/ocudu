@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/gtpu/gtpu_teid.h"
+#include "ocudu/ran/gtpu/gtpu_teid.h"
 #include "ocudu/support/io/transport_layer_address.h"
 
 namespace ocudu {

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/gtpu/gtpu_teid.h"
+#include "ocudu/ran/gtpu/gtpu_teid.h"
 #include "ocudu/support/rate_limiting/token_bucket.h"
 #include "fmt/format.h"
 #include <chrono>

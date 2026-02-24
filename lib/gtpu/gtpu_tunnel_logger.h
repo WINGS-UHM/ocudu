@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "ocudu/gtpu/gtpu_teid.h"
+#include "ocudu/ran/gtpu/gtpu_teid.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
 #include "ocudu/support/format/prefixed_logger.h"
 #include "fmt/format.h"

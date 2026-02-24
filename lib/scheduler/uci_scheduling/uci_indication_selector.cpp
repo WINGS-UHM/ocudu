@@ -137,17 +137,10 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
   // Retrieve info from different PUCCH/PUSCH formats.
   uci_action ret = create_action(pdu);
 
-  if (not std::holds_alternative<uci_indication::uci_pdu::uci_pucch_f0_or_f1_pdu>(pdu.pdu)) {
-    // It is not PUCCH F1. We do not need to decide which is the best PUCCH candidate.
-    ocudu_sanity_check(entry.uci_pdus_to_rx <= 1, "Invalid pucch_to_rx value");
-    entry.uci_pdus_to_rx = 0;
-    return ret;
-  }
-
+  // Case: If there was no previous UCI PDU decoded, it had lower SNR or was invalid, this UCI PDU is chosen.
   if (ret.uci_valid and
       (not entry.chosen_action.ul_sinr_dB.has_value() or
        (ret.ul_sinr_dB.has_value() and entry.chosen_action.ul_sinr_dB.value() < ret.ul_sinr_dB.value()))) {
-    // Case: If there was no previous HARQ-ACK decoded or the previous HARQ-ACK had lower SNR, this HARQ-ACK is chosen.
     entry.chosen_action = ret;
   }
 
@@ -163,12 +156,9 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
   return std::nullopt;
 }
 
-void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result& result)
+void uci_indication_selector::handle_timeouts(slot_point sl_tx)
 {
-  ocudu_sanity_check(not last_sl_tx.valid() or sl_tx == last_sl_tx + 1, "Unexpected slot indication");
-  last_sl_tx = sl_tx;
-
-  // Handle UCI entries that have timeout.
+  // Handle UCI entries that reach their timeout and never received any UCI PDU.
   slot_point sl_rx             = sl_tx - ack_timeout_slots;
   auto&      uci_wheel_timeout = uci_wheel[sl_rx.count()];
   for (soa::row_id rid = uci_wheel_timeout; rid != invalid_row_id;) {
@@ -218,6 +208,19 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
     entry.short_timeout_wheel_pos = {};
   }
   rem_pucch_timeout = invalid_row_id;
+}
+
+void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result& result)
+{
+  // Handle UCI grant timeouts accounting for potential slot indication skips.
+  unsigned skipped_slots = 1;
+  if (OCUDU_LIKELY(last_sl_tx.valid())) {
+    skipped_slots = std::min<unsigned>(sl_tx - last_sl_tx, uci_wheel.size());
+  }
+  for (unsigned i = 0; i != skipped_slots; ++i) {
+    handle_timeouts(sl_tx + 1 - skipped_slots + i);
+  }
+  last_sl_tx = sl_tx;
 
   // Handle new PUCCH grants scheduled in this slot.
   auto& uci_wheel_sl_tx = uci_wheel[sl_tx.count()];
@@ -228,8 +231,9 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
       continue;
     }
 
-    if (pucch.format() == pucch_format::FORMAT_1) {
-      // Check if there is another PUCCH F1 (SR + HARQ-ACK case). If so, increment pucchs_to_rx.
+    // Check if there is another PUCCH (e.g. F1 SR + F1 HARQ-ACK case or during transition from fallback).
+    // If so, increment uci_pdus_to_rx.
+    {
       auto rid = uci_wheel_sl_tx;
       while (rid != invalid_row_id) {
         auto& entry = uci_pool.at<slot_column_id::uci>(rid);

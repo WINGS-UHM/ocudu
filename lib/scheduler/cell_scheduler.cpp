@@ -89,7 +89,7 @@ void cell_scheduler::run_slot(slot_point_extended sl_tx_ext)
   if (OCUDU_LIKELY(res_grid.slot_tx().valid())) {
     while (OCUDU_UNLIKELY(res_grid.slot_tx() + 1 != sl_tx)) {
       slot_point skipped_slot = res_grid.slot_tx() + 1;
-      logger.info("cell={}: Detected skipped slot={}.", fmt::underlying(cell_cfg.cell_index), skipped_slot);
+      logger.info("cell={}: Detected skipped slot={}.", cell_cfg.cell_index, skipped_slot);
       reset_resource_grid(skipped_slot);
     }
   } else {

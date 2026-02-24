@@ -83,6 +83,9 @@ private:
     slot_point short_timeout_wheel_pos;
   };
 
+  /// Handle UCI grant timeouts.
+  void handle_timeouts(slot_point sl_tx);
+
   std::optional<uci_action> handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry);
 
   /// Helper to remove UCI entry from its linked list.

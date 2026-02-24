@@ -162,6 +162,45 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool send_ul_rrc_message_transfer_and_await_f1ap_ue_context_release_command()
+  {
+    report_fatal_error_if_not(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu),
+                              "there are still F1AP DL messages to pop from DU");
+
+    // UE sends unexpected UL RRC Message Transfer with NAS Transport Message.
+    f1ap_message ul_rrc_msg = test_helpers::generate_ul_rrc_message_transfer(
+        du_ue_f1ap_id,
+        gnb_cu_ue_f1ap_id_t::min,
+        srb_id_t::srb1,
+        make_byte_buffer("00003a0abf002b96882dac46355c4f34464ddaf7b43fde37ae8000000000").value());
+    test_logger.info("Injecting unexpected UL RRC Message Transfer with UL NAS Transport message");
+    get_du(du_idx).push_ul_pdu(ul_rrc_msg);
+
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
+                              "Failed to receive F1AP UE Context Release Command");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_command(f1ap_pdu),
+                              "Invalid F1AP UE Context Release Command");
+
+    const auto& ue_rel = f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd();
+    cu_ue_id           = int_to_gnb_cu_ue_f1ap_id(ue_rel->gnb_cu_ue_f1ap_id);
+    report_fatal_error_if_not(ue_rel->rrc_container_present, "RRC container not present");
+    // Check that the SRB ID is set if the RRC Container is included.
+    report_fatal_error_if_not(ue_rel->srb_id_present, "SRB ID not present");
+    report_fatal_error_if_not(ue_rel->srb_id == 1, "Unexpected SRB ID");
+
+    // Check that the UE Context Release command contains an RRC Reject.
+    asn1::rrc_nr::dl_ccch_msg_s ccch;
+    {
+      asn1::cbit_ref bref{f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd()->rrc_container};
+      report_fatal_error_if_not(ccch.unpack(bref) == asn1::OCUDUASN_SUCCESS, "Failed to unpack RRC container");
+    }
+    report_fatal_error_if_not(ccch.msg.c1().type().value ==
+                                  asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject,
+                              "Unexpected RRC message type");
+
+    return true;
+  }
+
 protected:
   unsigned du_idx    = 0;
   unsigned cu_up_idx = 0;
@@ -248,6 +287,30 @@ TEST_F(cu_cp_setup_test, when_du_sends_initial_ul_rrc_message_without_du_to_cu_c
   ASSERT_EQ(report.ues[0].rnti, to_rnti(0x4601));
 
   // Inject F1AP UE Context Release Complete.
+  auto rel_complete = test_helpers::generate_ue_context_release_complete(cu_ue_id.value(), du_ue_f1ap_id);
+  get_du(du_idx).push_ul_pdu(rel_complete);
+
+  // TEST: UE context removed from CU-CP.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_TRUE(report.ues.empty());
+}
+
+TEST_F(cu_cp_setup_test, when_unexpected_ul_nas_transport_message_is_received_during_rrc_setup_then_ue_is_released)
+{
+  // Check no UEs.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_TRUE(report.ues.empty());
+
+  // Create UE by sending Initial UL RRC Message and await DL RRC Message Transfer.
+  ASSERT_TRUE(send_initial_ul_rrc_message_and_await_dl_rrc_message_transfer());
+
+  // Inject unexpected UL RRC Message Transfer with NAS Transport Message and await F1AP UE Context Release Command.
+  ASSERT_TRUE(send_ul_rrc_message_transfer_and_await_f1ap_ue_context_release_command());
+
+  // Verify AMF is not notified of NAS Transport Message.
+  ASSERT_FALSE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+
+  // Injects F1AP UE Context Release Complete.
   auto rel_complete = test_helpers::generate_ue_context_release_complete(cu_ue_id.value(), du_ue_f1ap_id);
   get_du(du_idx).push_ul_pdu(rel_complete);
 

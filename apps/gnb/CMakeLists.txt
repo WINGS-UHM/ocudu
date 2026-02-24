@@ -26,6 +26,7 @@ target_link_libraries(gnb_base PRIVATE
         ocudu_support
         ocudu_versioning
         ocudu_f1c_gateway
+        ocudu_xnc_gateway
         ocudu_e1_gateway
         ocudu_o_cu_cp_app_unit
         ocudu_o_cu_up_app_unit

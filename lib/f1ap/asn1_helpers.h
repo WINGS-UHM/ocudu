@@ -11,11 +11,38 @@
 #pragma once
 
 #include "ocudu/asn1/f1ap/f1ap_pdu_items.h"
+#include "ocudu/f1ap/common/f1ap_cho_types.h"
 #include "ocudu/f1ap/du/f1ap_du_positioning_handler.h"
 #include "ocudu/f1ap/ue_context_management_configs.h"
 #include "ocudu/ran/nr_cgi.h"
 
 namespace ocudu {
+
+/// \brief Convert \c f1ap_cho_trigger to F1AP ASN.1 inter-DU type.
+inline asn1::f1ap::ch_otrigger_inter_du_e cho_trigger_to_asn1_inter_du(f1ap_cho_trigger trigger)
+{
+  switch (trigger) {
+    case f1ap_cho_trigger::cho_initiation:
+      return asn1::f1ap::ch_otrigger_inter_du_opts::options::cho_initiation;
+    case f1ap_cho_trigger::cho_replace:
+      return asn1::f1ap::ch_otrigger_inter_du_opts::options::cho_replace;
+    default:
+      report_fatal_error("Cannot convert f1ap_cho_trigger to ASN.1 inter-DU type");
+  }
+}
+
+/// \brief Convert F1AP ASN.1 inter-DU CHO trigger to \c f1ap_cho_trigger.
+inline f1ap_cho_trigger asn1_to_cho_trigger_inter_du(asn1::f1ap::ch_otrigger_inter_du_e asn1_trigger)
+{
+  switch (asn1_trigger) {
+    case asn1::f1ap::ch_otrigger_inter_du_opts::options::cho_initiation:
+      return f1ap_cho_trigger::cho_initiation;
+    case asn1::f1ap::ch_otrigger_inter_du_opts::options::cho_replace:
+      return f1ap_cho_trigger::cho_replace;
+    default:
+      report_fatal_error("Cannot convert ASN.1 ch_otrigger_inter_du_e to f1ap_cho_trigger");
+  }
+}
 
 /// \brief Convert F1AP ASN.1 Cause to \c f1ap_cause_t type.
 /// \param asn1_cause The F1AP Cause.

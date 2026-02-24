@@ -125,6 +125,16 @@ void f1ap_du_ue_context_setup_procedure::operator()(coro_context<async_task<void
     ue->context.gnb_cu_ue_f1ap_id = int_to_gnb_cu_ue_f1ap_id(msg->gnb_cu_ue_f1ap_id);
   }
 
+  // Conditional inter DU mobility info.
+  if (msg->conditional_inter_du_mob_info_present &&
+      msg->conditional_inter_du_mob_info.cho_trigger == asn1::f1ap::ch_otrigger_inter_du_opts::options::cho_replace &&
+      !msg->conditional_inter_du_mob_info.target_gnb_du_ue_f1ap_id_present) {
+    logger.warning("{}: UE Context Setup rejected. Cause: Missing Target gNB-DU UE F1AP ID for CHO replace",
+                   f1ap_log_prefix{ue->context, name()});
+    send_ue_context_setup_failure();
+    CORO_EARLY_RETURN();
+  }
+
   // Setup new UE configuration in DU.
   CORO_AWAIT_VALUE(du_ue_cfg_response, request_du_ue_config());
   if (not du_ue_cfg_response.result) {
@@ -261,6 +271,18 @@ async_task<f1ap_ue_context_update_response> f1ap_du_ue_context_setup_procedure::
     }
   }
 
+  // > ConditionalInterDUMobilityInformation IE.
+  // [TS 38.473, 8.3.1.2] If the ConditionalInterDUMobilityInformation IE is included in the UE CONTEXT SETUP REQUEST
+  // message, the gNB-DU shall handle the conditional handover procedure accordingly.
+  if (msg->conditional_inter_du_mob_info_present) {
+    const auto& cho_info   = msg->conditional_inter_du_mob_info;
+    du_request.cho_trigger = asn1_to_cho_trigger_inter_du(cho_info.cho_trigger);
+    // Target GNB-DU-UE-F1AP-ID is conditional on trigger == cho-replace (TS 38.473 Section 9.3.1.x).
+    if (du_request.cho_trigger == f1ap_cho_trigger::cho_replace and cho_info.target_gnb_du_ue_f1ap_id_present) {
+      du_request.cho_target_gnb_du_ue_f1ap_id = int_to_gnb_du_ue_f1ap_id(cho_info.target_gnb_du_ue_f1ap_id);
+    }
+  }
+
   return ue->du_handler.request_ue_context_update(du_request);
 }
 
@@ -322,6 +344,14 @@ void f1ap_du_ue_context_setup_procedure::send_ue_context_setup_response()
         make_serving_cell_mo_encoded_in_cgc_list(du_ue_cfg_response.serving_cell_mo_encoded_in_cgc_list);
   }
 
+  // > RequestedTargetCellGlobalID IE.
+  // If the request contained a ConditionalInterDUMobilityInformation IE, include the SpCell ID of this cell as the
+  // RequestedTargetCellGlobalID so the CU-CP can identify the target cell that was selected.
+  if (msg->conditional_inter_du_mob_info_present) {
+    resp->requested_target_cell_global_id_present = true;
+    resp->requested_target_cell_global_id         = msg->sp_cell_id;
+  }
+
   // Send Response to CU-CP.
   ue->f1ap_msg_notifier.on_new_message(f1ap_msg);
 
@@ -342,6 +372,14 @@ void f1ap_du_ue_context_setup_procedure::send_ue_context_setup_failure()
   }
 
   resp->cause.set_radio_network().value = asn1::f1ap::cause_radio_network_opts::no_radio_res_available;
+
+  // > RequestedTargetCellGlobalID IE.
+  // [TS 38.473, 8.3.1] When a CHO-related setup fails, report the SpCell ID as the target cell so
+  // the CU-CP can correlate the failure with the correct CHO candidate.
+  if (msg->conditional_inter_du_mob_info_present) {
+    resp->requested_target_cell_global_id_present = true;
+    resp->requested_target_cell_global_id         = msg->sp_cell_id;
+  }
 
   // Send UE CONTEXT SETUP FAILURE to CU-CP.
   if (ue != nullptr) {

@@ -11,6 +11,7 @@
 #pragma once
 
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/f1ap/common/f1ap_cho_types.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/f1ap/ue_context_management_configs.h"
 #include "ocudu/ran/cause/f1ap_cause.h"
@@ -76,30 +77,36 @@ struct f1ap_res_coordination_transfer_info {
   nr_cell_identity m_enb_cell_id;
 };
 
+struct f1ap_conditional_inter_du_mobility_info {
+  f1ap_cho_trigger                   cho_trigger;
+  std::optional<gnb_du_ue_f1ap_id_t> target_gnb_du_ue_f1ap_id; // present iff cho_replace
+};
+
 /// \brief Request from CU to F1AP-CU to start an F1AP "UE Context Setup" procedure, as per TS38.473 8.3.1.
 struct f1ap_ue_context_setup_request {
-  ue_index_t                                         ue_index = ue_index_t::invalid;
-  nr_cell_global_id_t                                sp_cell_id;
-  uint8_t                                            serv_cell_idx;
-  std::optional<f1ap_cell_ul_cfg>                    sp_cell_ul_cfg;
-  f1ap_cu_to_du_rrc_info                             cu_to_du_rrc_info;
-  std::vector<f1ap_candidate_sp_cell_item>           candidate_sp_cell_list; // max size = 64
-  std::optional<f1ap_drx_cycle>                      drx_cycle;
-  byte_buffer                                        res_coordination_transfer_container;
-  std::vector<f1ap_scell_to_be_setup_mod_item>       scell_to_be_setup_list; // max size = 32
-  std::vector<f1ap_srb_to_setup>                     srbs_to_be_setup_list;  // max size = 8
-  std::vector<f1ap_drb_to_setup>                     drbs_to_be_setup_list;  // max size = 64
-  std::optional<bool>                                inactivity_monitoring_request;
-  std::optional<f1ap_rat_freq_prio_info>             rat_freq_prio_info;
-  byte_buffer                                        rrc_container;
-  std::optional<uint64_t>                            masked_imeisv;
-  std::optional<std::string>                         serving_plmn;
-  std::optional<uint64_t>                            gnb_du_ue_ambr_ul;
-  std::optional<bool>                                rrc_delivery_status_request;
-  std::optional<f1ap_res_coordination_transfer_info> res_coordination_transfer_info;
-  std::optional<uint8_t>                             serving_cell_mo;
-  std::optional<gnb_cu_ue_f1ap_id_t>                 new_gnb_cu_ue_f1ap_id;
-  std::optional<ran_ue_id_t>                         ran_ue_id;
+  ue_index_t                                             ue_index = ue_index_t::invalid;
+  nr_cell_global_id_t                                    sp_cell_id;
+  uint8_t                                                serv_cell_idx;
+  std::optional<f1ap_cell_ul_cfg>                        sp_cell_ul_cfg;
+  f1ap_cu_to_du_rrc_info                                 cu_to_du_rrc_info;
+  std::vector<f1ap_candidate_sp_cell_item>               candidate_sp_cell_list; // max size = 64
+  std::optional<f1ap_drx_cycle>                          drx_cycle;
+  byte_buffer                                            res_coordination_transfer_container;
+  std::vector<f1ap_scell_to_be_setup_mod_item>           scell_to_be_setup_list; // max size = 32
+  std::vector<f1ap_srb_to_setup>                         srbs_to_be_setup_list;  // max size = 8
+  std::vector<f1ap_drb_to_setup>                         drbs_to_be_setup_list;  // max size = 64
+  std::optional<bool>                                    inactivity_monitoring_request;
+  std::optional<f1ap_rat_freq_prio_info>                 rat_freq_prio_info;
+  byte_buffer                                            rrc_container;
+  std::optional<uint64_t>                                masked_imeisv;
+  std::optional<std::string>                             serving_plmn;
+  std::optional<uint64_t>                                gnb_du_ue_ambr_ul;
+  std::optional<bool>                                    rrc_delivery_status_request;
+  std::optional<f1ap_res_coordination_transfer_info>     res_coordination_transfer_info;
+  std::optional<uint8_t>                                 serving_cell_mo;
+  std::optional<gnb_cu_ue_f1ap_id_t>                     new_gnb_cu_ue_f1ap_id;
+  std::optional<ran_ue_id_t>                             ran_ue_id;
+  std::optional<f1ap_conditional_inter_du_mobility_info> conditional_inter_du_mobility_info;
 };
 
 struct f1ap_du_to_cu_rrc_info {
@@ -138,6 +145,7 @@ struct f1ap_ue_context_setup_response {
   std::vector<f1ap_scell_failed_to_setup_mod_item> scell_failed_to_setup_list;
   std::optional<bool>                              inactivity_monitoring_resp;
   std::vector<f1ap_srbs_setup_mod_item>            srbs_setup_list;
+  std::optional<nr_cell_global_id_t>               requested_target_cell_id; // present when CHO was requested
 
   // UE Context Setup Failure
   std::optional<f1ap_cause_t>              cause;

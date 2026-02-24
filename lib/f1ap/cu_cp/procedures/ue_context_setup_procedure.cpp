@@ -381,6 +381,19 @@ static void fill_asn1_ue_context_setup_request(asn1::f1ap::ue_context_setup_requ
     asn1_request->ran_ue_id_present = true;
     asn1_request->ran_ue_id.from_number(ran_ue_id_to_uint(request.ran_ue_id.value()));
   }
+
+  // Conditional inter DU mobility info.
+  if (request.conditional_inter_du_mobility_info.has_value()) {
+    const auto& cho_info                                    = request.conditional_inter_du_mobility_info.value();
+    asn1_request->conditional_inter_du_mob_info_present     = true;
+    asn1_request->conditional_inter_du_mob_info.cho_trigger = cho_trigger_to_asn1_inter_du(cho_info.cho_trigger);
+    // [TS 38.473, 9.3.1.x] Target GNB-DU-UE-F1AP-ID is present if CHO-Trigger is cho-replace.
+    if (cho_info.cho_trigger == f1ap_cho_trigger::cho_replace and cho_info.target_gnb_du_ue_f1ap_id.has_value()) {
+      asn1_request->conditional_inter_du_mob_info.target_gnb_du_ue_f1ap_id_present = true;
+      asn1_request->conditional_inter_du_mob_info.target_gnb_du_ue_f1ap_id =
+          gnb_du_ue_f1ap_id_to_uint(cho_info.target_gnb_du_ue_f1ap_id.value());
+    }
+  }
 }
 
 static void fill_f1ap_ue_context_setup_response(f1ap_ue_context_setup_response&            response,
@@ -402,6 +415,14 @@ static void fill_f1ap_ue_context_setup_response(f1ap_ue_context_setup_response& 
           cgi_from_asn1(asn1_potential_sp_cell_item->potential_sp_cell_item().potential_sp_cell_id).value();
 
       response.potential_sp_cell_list.push_back(potential_sp_cell_item);
+    }
+  }
+
+  // Requested target cell global ID (present when CHO was requested and setup failed).
+  if (asn1_failure->requested_target_cell_global_id_present) {
+    auto cgi = cgi_from_asn1(asn1_failure->requested_target_cell_global_id);
+    if (cgi.has_value()) {
+      response.requested_target_cell_id = cgi.value();
     }
   }
 }
@@ -487,6 +508,14 @@ static void fill_f1ap_ue_context_setup_response(f1ap_ue_context_setup_response& 
     for (auto asn1_srbs_setup_list_item : asn1_response->srbs_setup_list) {
       auto& asn1_srbs_setup_item = asn1_srbs_setup_list_item.value().srbs_setup_item();
       response.srbs_setup_list.push_back(asn1_to_f1ap_srbs_setup_mod_item(asn1_srbs_setup_item));
+    }
+  }
+
+  // Requested target cell global ID (present when CHO was requested).
+  if (asn1_response->requested_target_cell_global_id_present) {
+    auto cgi = cgi_from_asn1(asn1_response->requested_target_cell_global_id);
+    if (cgi.has_value()) {
+      response.requested_target_cell_id = cgi.value();
     }
   }
 }

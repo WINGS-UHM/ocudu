@@ -1128,6 +1128,7 @@ inline ngap_area_of_interest asn1_to_area_of_interest(const asn1::ngap::area_of_
   for (const auto& asn1_cell_item : asn1_aoi.area_of_interest_cell_list) {
     if (asn1_cell_item.ngran_cgi.type() != asn1::ngap::ngran_cgi_c::types_opts::nr_cgi) {
       ocudulog::fetch_basic_logger("NGAP").warning("Ignoring non-NR CGI in AreaOfInterest cell list");
+      // TODO: add handling for other types of CGIs
       continue;
     }
     aoi.cell_list.push_back(ngap_asn1_to_nr_cgi(asn1_cell_item.ngran_cgi.nr_cgi()));
@@ -1136,6 +1137,7 @@ inline ngap_area_of_interest asn1_to_area_of_interest(const asn1::ngap::area_of_
   for (const auto& asn1_ran_node_item : asn1_aoi.area_of_interest_ran_node_list) {
     if (asn1_ran_node_item.global_ran_node_id.type() != asn1::ngap::global_ran_node_id_c::types_opts::global_gnb_id) {
       ocudulog::fetch_basic_logger("NGAP").warning("Ignoring non-gNB RAN node ID in AreaOfInterest RAN node list");
+      // TODO: add handling for other types of RAN Node IDs
       continue;
     }
 

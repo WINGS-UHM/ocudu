@@ -78,6 +78,30 @@ ngap_location_report_request::event_type ue_location_manager::get_current_locati
   return ngap_location_report_request::event_type::nulltype;
 }
 
+ngap_ue_presence ue_location_manager::check_ue_presence(const ngap_area_of_interest&       aoi,
+                                                        const cu_cp_user_location_info_nr& loc)
+{
+  for (const auto& cell : aoi.cell_list) {
+    // TODO: add handling for other types of CGIs
+    if (cell == loc.nr_cgi) {
+      return ngap_ue_presence::in;
+    }
+  }
+
+  for (const auto& tai : aoi.tai_list) {
+    if (tai.plmn_id == loc.tai.plmn_id && tai.tac == loc.tai.tac) {
+      return ngap_ue_presence::in;
+    }
+  }
+
+  if (!aoi.ran_node_list.empty()) {
+    // TODO: add handling for other types of RAN Nodes, take gNB ID from NR-CGI?
+    return ngap_ue_presence::unknown;
+  }
+
+  return ngap_ue_presence::out;
+}
+
 ngap_location_report ue_location_manager::get_location_report(ue_index_t                         ue_index,
                                                               const cu_cp_user_location_info_nr& user_location_info)
 {
@@ -92,6 +116,16 @@ ngap_location_report ue_location_manager::get_location_report(ue_index_t        
     item.location_report_ref_id = ref_id;
     item.area_of_interest       = aoi;
     report.request.area_of_interest_list.push_back(item);
+  }
+
+  if (report_ue_presence_in_aoi && !area_of_interest_list.empty()) {
+    report.ue_presence_in_area_of_interest_list.emplace();
+    for (const auto& [ref_id, aoi] : area_of_interest_list) {
+      ngap_ue_presence_in_area_of_interest_item item;
+      item.location_report_ref_id = ref_id;
+      item.ue_presence            = check_ue_presence(aoi, user_location_info);
+      report.ue_presence_in_area_of_interest_list->push_back(item);
+    }
   }
 
   return report;

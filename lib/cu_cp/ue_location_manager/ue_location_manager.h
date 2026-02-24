@@ -36,6 +36,8 @@ private:
 
   ngap_location_report_request::event_type get_current_location_reporting_type() const;
 
+  static ngap_ue_presence check_ue_presence(const ngap_area_of_interest& aoi, const cu_cp_user_location_info_nr& loc);
+
   std::map<location_report_ref_id_t, ngap_area_of_interest> area_of_interest_list;
   ocudulog::basic_logger&                                   logger;
 };

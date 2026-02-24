@@ -1167,4 +1167,95 @@ asn1_to_location_report_request(const asn1::ngap::location_report_request_type_s
   return req;
 }
 
+/// \brief Convert common type event_type to NGAP ASN1 event_type_e.
+inline asn1::ngap::event_type_e event_type_to_asn1(ngap_location_report_request::event_type event_type)
+{
+  switch (event_type) {
+    case ngap_location_report_request::event_type::direct:
+      return asn1::ngap::event_type_opts::options::direct;
+    case ngap_location_report_request::event_type::change_of_serve_cell:
+      return asn1::ngap::event_type_opts::options::change_of_serve_cell;
+    case ngap_location_report_request::event_type::ue_presence_in_area_of_interest:
+      return asn1::ngap::event_type_opts::options::ue_presence_in_area_of_interest;
+    case ngap_location_report_request::event_type::stop_change_of_serve_cell:
+      return asn1::ngap::event_type_opts::options::stop_change_of_serve_cell;
+    case ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest:
+      return asn1::ngap::event_type_opts::options::stop_ue_presence_in_area_of_interest;
+    case ngap_location_report_request::event_type::cancel_location_report_for_the_ue:
+      return asn1::ngap::event_type_opts::options::cancel_location_report_for_the_ue;
+    case ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
+      return asn1::ngap::event_type_opts::options::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
+    default:
+      return asn1::ngap::event_type_opts::options::direct;
+  }
+}
+
+/// \brief Convert common type ngap_ue_presence to NGAP ASN1 ue_presence_e.
+inline asn1::ngap::ue_presence_e ue_presence_to_asn1(ngap_ue_presence ue_presence)
+{
+  switch (ue_presence) {
+    case ngap_ue_presence::in:
+      return asn1::ngap::ue_presence_opts::options::in;
+    case ngap_ue_presence::out:
+      return asn1::ngap::ue_presence_opts::options::out;
+    default:
+      return asn1::ngap::ue_presence_opts::options::unknown;
+  }
+}
+
+/// \brief Convert common type AreaOfInterest to NGAP ASN1 area_of_interest_s.
+inline asn1::ngap::area_of_interest_s area_of_interest_to_asn1(const ngap_area_of_interest& aoi)
+{
+  asn1::ngap::area_of_interest_s asn1_aoi;
+
+  for (const auto& tai : aoi.tai_list) {
+    asn1::ngap::area_of_interest_tai_item_s asn1_tai_item;
+    asn1_tai_item.tai.plmn_id = tai.plmn_id.to_bytes();
+    asn1_tai_item.tai.tac.from_number(tai.tac);
+    asn1_aoi.area_of_interest_tai_list.push_back(asn1_tai_item);
+  }
+
+  for (const auto& cgi : aoi.cell_list) {
+    asn1::ngap::area_of_interest_cell_item_s asn1_cell_item;
+    auto&                                    asn1_nr_cgi = asn1_cell_item.ngran_cgi.set_nr_cgi();
+    asn1_nr_cgi.nr_cell_id.from_number(cgi.nci.value());
+    asn1_nr_cgi.plmn_id = cgi.plmn_id.to_bytes();
+    asn1_aoi.area_of_interest_cell_list.push_back(asn1_cell_item);
+  }
+
+  for (const auto& gnb : aoi.ran_node_list) {
+    asn1::ngap::area_of_interest_ran_node_item_s asn1_ran_node_item;
+    auto&                                        asn1_gnb = asn1_ran_node_item.global_ran_node_id.set_global_gnb_id();
+    asn1_gnb.plmn_id                                      = gnb.plmn_id.to_bytes();
+    asn1_gnb.gnb_id.set_gnb_id().from_number(gnb.gnb_id.id, gnb.gnb_id.bit_length);
+    asn1_aoi.area_of_interest_ran_node_list.push_back(asn1_ran_node_item);
+  }
+
+  return asn1_aoi;
+}
+
+/// \brief Convert common type LocationReportingRequestType to NGAP ASN1 location_report_request_type_s.
+inline asn1::ngap::location_report_request_type_s
+location_report_request_to_asn1(const ngap_location_report_request& req)
+{
+  asn1::ngap::location_report_request_type_s asn1_req;
+
+  asn1_req.event_type  = event_type_to_asn1(req.location_reporting_type);
+  asn1_req.report_area = asn1::ngap::report_area_opts::options::cell;
+
+  for (const auto& aoi_item : req.area_of_interest_list) {
+    asn1::ngap::area_of_interest_item_s asn1_aoi_item;
+    asn1_aoi_item.location_report_ref_id = aoi_item.location_report_ref_id;
+    asn1_aoi_item.area_of_interest       = area_of_interest_to_asn1(aoi_item.area_of_interest);
+    asn1_req.area_of_interest_list.push_back(asn1_aoi_item);
+  }
+
+  if (req.location_report_ref_id_to_be_cancelled.has_value()) {
+    asn1_req.location_report_ref_id_to_be_cancelled_present = true;
+    asn1_req.location_report_ref_id_to_be_cancelled         = req.location_report_ref_id_to_be_cancelled.value();
+  }
+
+  return asn1_req;
+}
+
 } // namespace ocudu::ocucp

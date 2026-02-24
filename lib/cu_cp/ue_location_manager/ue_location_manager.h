@@ -24,8 +24,8 @@ public:
   /// \brief Store a location reporting configuration received from AMF.
   void configure_location_reporting(const ngap_location_report_request& ctrl);
 
-  /// \brief Build and return a location.
-  ngap_location_report get_location_report(ue_index_t ue_index, const nr_cell_global_id_t& nr_cgi, const tai_t& tai);
+  /// \brief Build and return a location report.
+  ngap_location_report get_location_report(ue_index_t ue_index, const cu_cp_user_location_info_nr& user_location_info);
 
 private:
   std::optional<ngap_location_report_request> active_config;

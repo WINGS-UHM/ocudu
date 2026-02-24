@@ -27,7 +27,16 @@ struct ngap_area_of_interest {
 /// \brief Area of Interest item, as defined in TS 38.413 9.3.1.65.
 struct ngap_area_of_interest_item {
   ngap_area_of_interest area_of_interest;
-  uint8_t               location_report_ref_id = 1; // 1..64
+  uint8_t               location_report_ref_id = 1; // 1..64 (TS 38.413 9.3.1.76).
+};
+
+/// \brief UE Presence status, as defined in TS 38.413 9.3.1.67.
+enum class ngap_ue_presence { in, out, unknown };
+
+/// \brief UE Presence in Area of Interest item, as defined in TS 38.413 9.3.1.67.
+struct ngap_ue_presence_in_area_of_interest_item {
+  uint8_t          location_report_ref_id = 1; // 1..64 (TS 38.413 9.3.1.76).
+  ngap_ue_presence ue_presence            = ngap_ue_presence::unknown;
 };
 
 struct ngap_location_report_request {
@@ -52,9 +61,11 @@ struct ngap_location_report_request {
 };
 
 struct ngap_location_report {
-  ue_index_t          ue_index = ue_index_t::invalid;
-  nr_cell_global_id_t nr_cgi;
-  tai_t               tai;
+  ue_index_t                                                            ue_index = ue_index_t::invalid;
+  cu_cp_user_location_info_nr                                           user_location_info;
+  std::optional<std::vector<ngap_ue_presence_in_area_of_interest_item>> ue_presence_in_area_of_interest_list;
+  // Location Reporting Request Type to which the Location Report refers to (build from multiple combined requests).
+  ngap_location_report_request request;
 };
 
 struct ngap_location_report_failure_indication {

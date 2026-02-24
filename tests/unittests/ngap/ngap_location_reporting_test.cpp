@@ -91,12 +91,12 @@ TEST_F(ngap_location_reporting_test, when_ngap_receives_location_report_message_
   run_dl_nas_transport(ue_index);
 
   // Send NGAP Location Reporting message
-  ngap_location_report location_report = {};
-  location_report.ue_index             = ue_index;
-  location_report.nr_cgi.plmn_id       = plmn_identity::test_value();
-  location_report.nr_cgi.nci           = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
-  location_report.tai.plmn_id          = plmn_identity::test_value();
-  location_report.tai.tac              = 7;
+  ngap_location_report location_report              = {};
+  location_report.ue_index                          = ue_index;
+  location_report.user_location_info.nr_cgi.plmn_id = plmn_identity::test_value();
+  location_report.user_location_info.nr_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+  location_report.user_location_info.tai.plmn_id    = plmn_identity::test_value();
+  location_report.user_location_info.tai.tac        = 7;
   ngap->handle_location_report_transmission(location_report);
 
   // Check that AMF notifier received the location report message.
@@ -161,12 +161,12 @@ TEST_F(ngap_location_reporting_test, when_location_report_ue_index_is_invalid_me
   size_t n_msgs_before = n2_gw.last_ngap_msgs.size();
 
   // Send location report with invalid UE index.
-  ngap_location_report location_report = {};
-  location_report.ue_index             = ue_index_t::invalid;
-  location_report.nr_cgi.plmn_id       = plmn_identity::test_value();
-  location_report.nr_cgi.nci           = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
-  location_report.tai.plmn_id          = plmn_identity::test_value();
-  location_report.tai.tac              = 7;
+  ngap_location_report location_report              = {};
+  location_report.ue_index                          = ue_index_t::invalid;
+  location_report.user_location_info.nr_cgi.plmn_id = plmn_identity::test_value();
+  location_report.user_location_info.nr_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+  location_report.user_location_info.tai.plmn_id    = plmn_identity::test_value();
+  location_report.user_location_info.tai.tac        = 7;
   ngap->handle_location_report_transmission(location_report);
 
   // Verify no new message was sent to AMF.

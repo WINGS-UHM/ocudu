@@ -964,8 +964,10 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
       return;
     }
 
-    auto report =
-        ue->get_location_manager().get_location_report(ue_index, cell->cgi, tai_t{cell->cgi.plmn_id, cell->tac});
+    cu_cp_user_location_info_nr user_location_info;
+    user_location_info.nr_cgi = cell->cgi;
+    user_location_info.tai    = {cell->cgi.plmn_id, cell->tac};
+    auto report               = ue->get_location_manager().get_location_report(ue_index, user_location_info);
 
     auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
     if (ngap == nullptr) {

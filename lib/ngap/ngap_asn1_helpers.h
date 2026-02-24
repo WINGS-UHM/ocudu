@@ -1197,4 +1197,27 @@ inline void fill_ngap_location_report_request(ngap_location_report_request&     
   location_report_ctrl = asn1_to_location_report_request(asn1_location_report_ctrl->location_report_request_type);
 }
 
+/// \brief Fill ASN1 Location Report IEs from common type.
+/// \note Caller is responsible for filling amf_ue_ngap_id and ran_ue_ngap_id.
+inline void fill_asn1_location_report(asn1::ngap::location_report_ies_container& asn1_msg,
+                                      const ngap_location_report&                report)
+{
+  // Fill user location info.
+  asn1_msg.user_location_info.set_user_location_info_nr() = cu_cp_user_location_info_to_asn1(report.user_location_info);
+
+  // Fill location report request type (echo back the triggering config).
+  asn1_msg.location_report_request_type = location_report_request_to_asn1(report.request);
+
+  // Fill UE presence in area of interest list (optional).
+  if (report.ue_presence_in_area_of_interest_list.has_value()) {
+    asn1_msg.ue_presence_in_area_of_interest_list_present = true;
+    for (const auto& item : report.ue_presence_in_area_of_interest_list.value()) {
+      asn1::ngap::ue_presence_in_area_of_interest_item_s asn1_item;
+      asn1_item.location_report_ref_id = item.location_report_ref_id;
+      asn1_item.ue_presence            = ue_presence_to_asn1(item.ue_presence);
+      asn1_msg.ue_presence_in_area_of_interest_list.push_back(asn1_item);
+    }
+  }
+}
+
 } // namespace ocudu::ocucp

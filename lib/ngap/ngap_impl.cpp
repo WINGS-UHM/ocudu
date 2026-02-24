@@ -276,16 +276,7 @@ void ngap_impl::handle_location_report_transmission(const ngap_location_report& 
   }
   location_report_msg->amf_ue_ngap_id = amf_ue_id_to_uint(amf_ue_id);
 
-  // Fill location report request type.
-  location_report_msg->location_report_request_type.event_type  = asn1::ngap::event_type_opts::options::direct;
-  location_report_msg->location_report_request_type.report_area = asn1::ngap::report_area_opts::options::cell;
-
-  // Fill user location info.
-  auto& user_loc_info_nr = location_report_msg->user_location_info.set_user_location_info_nr();
-  user_loc_info_nr.nr_cgi.nr_cell_id.from_number(msg.nr_cgi.nci.value());
-  user_loc_info_nr.nr_cgi.plmn_id = msg.nr_cgi.plmn_id.to_bytes();
-  user_loc_info_nr.tai.plmn_id    = msg.tai.plmn_id.to_bytes();
-  user_loc_info_nr.tai.tac.from_number(msg.tai.tac);
+  fill_asn1_location_report(*location_report_msg, msg);
 
   // Forward message to AMF.
   if (!tx_pdu_notifier.on_new_message(ngap_msg)) {

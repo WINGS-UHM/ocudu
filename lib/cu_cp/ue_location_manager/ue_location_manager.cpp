@@ -27,11 +27,13 @@ void ue_location_manager::configure_location_reporting(const ngap_location_repor
 }
 
 ngap_location_report
-ue_location_manager::get_location_report(ue_index_t ue_index, const nr_cell_global_id_t& nr_cgi, const tai_t& tai)
+ue_location_manager::get_location_report(ue_index_t ue_index, const cu_cp_user_location_info_nr& user_location_info)
 {
   ngap_location_report report;
-  report.ue_index = ue_index;
-  report.nr_cgi   = nr_cgi;
-  report.tai      = tai;
+  report.ue_index           = ue_index;
+  report.user_location_info = user_location_info;
+  if (active_config.has_value()) {
+    report.request = active_config.value();
+  }
   return report;
 }

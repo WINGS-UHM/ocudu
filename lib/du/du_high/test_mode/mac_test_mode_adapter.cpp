@@ -398,8 +398,11 @@ void mac_test_mode_cell_adapter::on_cell_results_completion(slot_point slot)
   // Check if more test mode UEs need to be created.
   // Note: The UE creation should only start after last_slot_ind is valid, i.e., after we have the guarantee that
   // the cell is active.
+  // Note: We interleave the creation of UEs of different cells across the ue_creation_stagger_slots period to avoid
+  // creating many UEs in the same slot.
+  const unsigned cell_offset_mod = test_ue_cfg.ue_creation_stagger_slots * cell_index / MAX_NOF_DU_CELLS;
   if (nof_test_ues_created < test_ue_cfg.nof_ues and last_slot_ind.valid() and
-      slot.count() % test_ue_cfg.ue_creation_stagger_slots == 0) {
+      slot.count() % test_ue_cfg.ue_creation_stagger_slots == cell_offset_mod) {
     auto ulcch_buf = byte_buffer::create({0x34, 0x1e, 0x4f, 0xc0, 0x4f, 0xa6, 0x06, 0x3f, 0x00, 0x00, 0x00});
     if (not ulcch_buf.has_value()) {
       logger.warning("TEST_MODE: Postponing creation of test mode ue={}. Cause: Unable to allocate byte_buffer for "

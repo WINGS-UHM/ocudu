@@ -322,11 +322,11 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const 
   return sch_mcs_tbs{.mcs = mcs, .tbs = tbs_bytes.value()};
 }
 
-std::optional<unsigned> ocudu::compute_ul_tbs(const pusch_config_params& pusch_cfg,
-                                              const bwp_config&          active_bwp_cfg,
-                                              sch_mcs_index              mcs,
-                                              unsigned                   nof_prbs,
-                                              bool                       contains_dc)
+std::optional<units::bytes> ocudu::compute_ul_tbs(const pusch_config_params& pusch_cfg,
+                                                  const bwp_config&          active_bwp_cfg,
+                                                  sch_mcs_index              mcs,
+                                                  unsigned                   nof_prbs,
+                                                  bool                       contains_dc)
 {
   const unsigned            dmrs_prbs = calculate_nof_dmrs_per_rb(pusch_cfg.dmrs);
   const sch_mcs_description mcs_info =
@@ -348,7 +348,7 @@ std::optional<unsigned> ocudu::compute_ul_tbs(const pusch_config_params& pusch_c
   const ulsch_information info = get_ulsch_information(ulsch_cfg);
 
   if (::is_pusch_effective_rate_valid(pusch_cfg, info, mcs_info, nof_prbs) == compute_ul_mcs_tbs_error::none) {
-    return tbs_bytes.value();
+    return tbs_bytes;
   }
   return std::nullopt;
 }

@@ -162,7 +162,7 @@ std::optional<dl_harq_process_handle> ue_cell::handle_dl_ack_info(slot_point    
   return h_dl;
 }
 
-int ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& crc_pdu)
+expected<units::bytes> ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& crc_pdu)
 {
   // Find UL HARQ with matching PUSCH slot.
   std::optional<ul_harq_process_handle> h_ul = harqs.find_ul_harq_waiting_ack(pusch_slot);
@@ -171,13 +171,13 @@ int ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& 
                    rnti(),
                    fmt::underlying(crc_pdu.harq_id),
                    pusch_slot);
-    return -1;
+    return make_unexpected(default_error_t{});
   }
 
   // Update UL HARQ state.
-  int tbs = h_ul->ul_crc_info(crc_pdu.tb_crc_success);
+  auto tbs_ret = h_ul->ul_crc_info(crc_pdu.tb_crc_success);
 
-  if (tbs >= 0) {
+  if (tbs_ret.has_value()) {
     // HARQ with matching ID and UCI slot was found.
 
     // Update link adaptation controller.
@@ -192,7 +192,7 @@ int ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& 
     }
   }
 
-  return tbs;
+  return tbs_ret;
 }
 
 void ue_cell::handle_srs_channel_matrix(const srs_channel_matrix& channel_matrix)

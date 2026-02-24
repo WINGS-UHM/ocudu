@@ -819,7 +819,7 @@ public:
   /// \brief Register the scheduling of an UL grant for this UE.
   ///
   /// This event will be used to update estimated bit rates.
-  void handle_ul_grant(unsigned grant_size);
+  void handle_ul_grant(units::bytes grant_size);
 
   /// Clear SR indication pending flag.
   void reset_sr_indication();

@@ -455,7 +455,7 @@ static std::optional<ul_sched_context> get_ul_sched_context(const slice_ue&     
       // Note: We take the conservative approach of assuming the reTx will intersect the DC.
       static constexpr bool contains_dc = true;
       auto                  tbs_res     = compute_ul_tbs(pusch_cfg, ue_cc.active_bwp(), mcs, nof_rbs, contains_dc);
-      if (not tbs_res.has_value() or tbs_res.value() != h_ul->get_grant_params().tbs_bytes) {
+      if (not tbs_res.has_value() or tbs_res.value() != h_ul->get_grant_params().tbs) {
         // Unable to keep the same TBS for PUSCH reTx.
         continue;
       }

@@ -1088,14 +1088,14 @@ unsigned ue_logical_channel_repository::allocate_ue_con_res_id_mac_ce(dl_msg_lc_
   return parent->allocate_ue_con_res_id_mac_ce(ue_row_id, lch_info, rem_bytes);
 }
 
-void ue_logical_channel_repository::handle_ul_grant(unsigned grant_size)
+void ue_logical_channel_repository::handle_ul_grant(units::bytes grant_size)
 {
   // Reset any pending SR indication.
   reset_sr_indication();
 
   // Update estimates of logical channel bit rates.
   auto& lcgs = get_ue_row().at<ue_ul_channel_context>().lcgs;
-  for (auto it = lcgs.begin(); it != lcgs.end() and grant_size > 0; ++it) {
+  for (auto it = lcgs.begin(); it != lcgs.end() and grant_size.value() > 0; ++it) {
     const soa::row_id lcg_rid = it->second;
     if (auto qos_rid = parent->lc_mapper.ul_qos_row(lcg_rid); not qos_rid.has_value()) {
       // This LCG is not being tracked for QoS.
@@ -1114,10 +1114,10 @@ void ue_logical_channel_repository::handle_ul_grant(unsigned grant_size)
     }
 
     // Update scheduled bytes for this LCG.
-    const unsigned bytes_sched = std::min(buf_st.value() - *accum_bytes, grant_size);
+    const unsigned bytes_sched = std::min(buf_st.value() - *accum_bytes, grant_size.value());
     *parent->lc_mapper.last_ul_sched_bytes(lcg_rid) += bytes_sched;
     *accum_bytes += bytes_sched;
-    grant_size -= bytes_sched;
+    grant_size -= units::bytes{bytes_sched};
   }
 }
 

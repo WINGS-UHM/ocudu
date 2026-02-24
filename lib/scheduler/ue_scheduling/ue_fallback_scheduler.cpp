@@ -574,7 +574,7 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
     // Use the same MCS, nof PRBs and TBS as the last allocation.
     mcs_idx            = h_dl_retx->get_grant_params().mcs;
     prbs_tbs.nof_prbs  = h_dl_retx->get_grant_params().rbs.type1().length();
-    prbs_tbs.tbs_bytes = h_dl_retx->get_grant_params().tbs_bytes;
+    prbs_tbs.tbs_bytes = h_dl_retx->get_grant_params().tbs.value();
 
     if (unused_crbs.length() < prbs_tbs.nof_prbs) {
       // In case of HARQ retxs, the number of RBs cannot change.
@@ -943,7 +943,7 @@ ue_fallback_scheduler::ul_srb_sched_outcome ue_fallback_scheduler::schedule_ul_u
 {
   std::optional<ul_harq_process_handle> h_ul_retx     = u.get_pcell().harqs.find_pending_ul_retx();
   const bool                            is_retx       = h_ul_retx.has_value();
-  const unsigned                        pending_bytes = u.pending_ul_newtx_bytes();
+  const unsigned                        pending_bytes = u.pending_ul_newtx_bytes().value();
   if (not is_retx and pending_bytes == 0) {
     return ul_srb_sched_outcome::next_ue;
   }
@@ -1112,7 +1112,7 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
   if (is_retx) {
     const unsigned final_nof_prbs = h_ul_retx->get_grant_params().rbs.type1().length();
     final_mcs_tbs.mcs             = h_ul_retx->get_grant_params().mcs;
-    final_mcs_tbs.tbs             = h_ul_retx->get_grant_params().tbs_bytes;
+    final_mcs_tbs.tbs             = h_ul_retx->get_grant_params().tbs.value();
 
     ue_grant_crbs = rb_helper::find_empty_interval_of_length(used_crbs, final_nof_prbs);
     if (ue_grant_crbs.empty() or ue_grant_crbs.length() < final_nof_prbs) {
@@ -1129,7 +1129,7 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
     sch_mcs_description ul_mcs_cfg =
         pusch_mcs_get_config(fallback_mcs_table, mcs, cell_cfg.use_msg3_transform_precoder(), false);
 
-    unsigned pending_bytes = u.pending_ul_newtx_bytes();
+    unsigned pending_bytes = u.pending_ul_newtx_bytes().value();
 
     sch_prbs_tbs prbs_tbs = get_nof_prbs(prbs_calculator_sch_config{pending_bytes,
                                                                     pusch_td.symbols.length(),
@@ -1305,7 +1305,7 @@ void ue_fallback_scheduler::fill_ul_srb_grant(ue&                               
   h_ul->save_grant_params(ul_harq_alloc_context{pdcch.dci.type}, msg.pusch_cfg);
 
   // Notify UL TB scheduling.
-  u.logical_channels().handle_ul_grant(msg.pusch_cfg.tb_size_bytes);
+  u.logical_channels().handle_ul_grant(units::bytes{msg.pusch_cfg.tb_size_bytes});
 }
 
 const pdsch_time_domain_resource_allocation& ue_fallback_scheduler::get_pdsch_td_cfg(unsigned pdsch_time_res_idx) const
@@ -1506,7 +1506,7 @@ void ue_fallback_scheduler::slot_indication(slot_point sl)
     }
     const auto& harqs               = ue.get_pcell().harqs;
     bool        all_harqs_are_empty = harqs.nof_ul_harqs() == harqs.nof_empty_ul_harqs();
-    if (all_harqs_are_empty and ue.pending_ul_newtx_bytes() == 0) {
+    if (all_harqs_are_empty and ue.pending_ul_newtx_bytes().value() == 0) {
       // UE has no pending data.
       ue_it = pending_ul_ues.erase(ue_it);
       continue;

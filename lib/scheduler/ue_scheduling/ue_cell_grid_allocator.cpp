@@ -272,7 +272,7 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
   sch_mcs_tbs mcs_tbs_info;
   if (is_retx) {
     // It is a reTx.
-    mcs_tbs_info = {grant.h_dl.get_grant_params().mcs, grant.h_dl.get_grant_params().tbs_bytes};
+    mcs_tbs_info = {grant.h_dl.get_grant_params().mcs, grant.h_dl.get_grant_params().tbs.value()};
   } else {
     // It is a newTx.
     auto mcs_or_error = calculate_dl_mcs_tbs(pdsch_alloc, ss_info, pdsch_td_res_index, crbs, mcs, nof_layers);
@@ -679,7 +679,7 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
   } else {
     // If it's a reTx, fetch the MCS, TBS and number of layers from the previous transmission.
     const auto& prev_params = grant.h_ul.get_grant_params();
-    mcs_tbs_info.emplace(sch_mcs_tbs{.mcs = prev_params.mcs, .tbs = prev_params.tbs_bytes});
+    mcs_tbs_info.emplace(sch_mcs_tbs{.mcs = prev_params.mcs, .tbs = prev_params.tbs.value()});
     ocudu_sanity_check(prev_params.mcs_table == pusch_cfg.mcs_table, "MCS table cannot change across HARQ reTxs");
   }
 
@@ -826,7 +826,7 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
   grant.h_ul.save_grant_params(pusch_sched_ctx, msg.pusch_cfg);
 
   // Register UL allocations for this slot.
-  u.logical_channels().handle_ul_grant(grant.h_ul.get_grant_params().tbs_bytes);
+  u.logical_channels().handle_ul_grant(grant.h_ul.get_grant_params().tbs);
 
   // Update DRX state given the new allocation.
   u.drx_controller().on_new_ul_pdcch_alloc(pdcch_alloc.slot, pusch_alloc.slot);

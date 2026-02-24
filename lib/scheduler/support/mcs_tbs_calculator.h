@@ -12,6 +12,7 @@
 
 #include "ocudu/adt/expected.h"
 #include "ocudu/ran/sch/sch_mcs.h"
+#include "ocudu/support/units.h"
 #include <optional>
 
 namespace ocudu {
@@ -102,11 +103,11 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> compute_ul_mcs_tbs(const pusch_c
 /// \param[in] nof_prbs Number of PRBs available for the PUSCH transmission.
 /// \param[in] contains_dc Set to true if the transmission overlaps with the position of the DC.
 /// \return TBS in bytes, in case the PUSCH code rate and paramters are valid; else, std::nullopt.
-std::optional<unsigned> compute_ul_tbs(const pusch_config_params& pusch_params,
-                                       const bwp_config&          active_bwp_cfg,
-                                       sch_mcs_index              mcs,
-                                       unsigned                   nof_prbs,
-                                       bool                       contains_dc);
+std::optional<units::bytes> compute_ul_tbs(const pusch_config_params& pusch_params,
+                                           const bwp_config&          active_bwp_cfg,
+                                           sch_mcs_index              mcs,
+                                           unsigned                   nof_prbs,
+                                           bool                       contains_dc);
 
 /// \brief Determines the PUSCH TBS without checking if the coderate is valid.
 /// \param[in] pusch_params PUSCH parameters needed to compute the TBS.

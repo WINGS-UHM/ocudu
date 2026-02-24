@@ -1261,8 +1261,8 @@ protected:
 
         std::optional<dl_harq_process_handle> h_dl = test_ue.get_pcell().harqs.dl_harq(h_id);
         if (h_dl.has_value() and h_dl->is_waiting_ack() and h_dl->nof_retxs() == 0 and h_dl->pdsch_slot() == sl) {
-          const unsigned tx_bytes = h_dl->get_grant_params().tbs_bytes > MAX_MAC_SDU_SUBHEADER_SIZE
-                                        ? h_dl->get_grant_params().tbs_bytes - MAX_MAC_SDU_SUBHEADER_SIZE
+          const unsigned tx_bytes = h_dl->get_grant_params().tbs.value() > MAX_MAC_SDU_SUBHEADER_SIZE
+                                        ? h_dl->get_grant_params().tbs.value() - MAX_MAC_SDU_SUBHEADER_SIZE
                                         : 0U;
           if (pending_srb1_bytes > tx_bytes) {
             pending_srb1_bytes -= tx_bytes;
@@ -1301,8 +1301,8 @@ protected:
 
         std::optional<dl_harq_process_handle> h_dl = test_ue.get_pcell().harqs.dl_harq(h_id);
         if (h_dl.has_value() and h_dl->is_waiting_ack() and h_dl->nof_retxs() == 0 and h_dl->pdsch_slot() == sl) {
-          const unsigned tx_bytes = h_dl->get_grant_params().tbs_bytes > MAX_MAC_SDU_SUBHEADER_SIZE
-                                        ? h_dl->get_grant_params().tbs_bytes - MAX_MAC_SDU_SUBHEADER_SIZE
+          const unsigned tx_bytes = h_dl->get_grant_params().tbs.value() > MAX_MAC_SDU_SUBHEADER_SIZE
+                                        ? h_dl->get_grant_params().tbs.value() - MAX_MAC_SDU_SUBHEADER_SIZE
                                         : 0U;
           pending_srb1_bytes > tx_bytes ? pending_srb1_bytes -= tx_bytes : pending_srb1_bytes = 0U;
           test_logger.debug("rnti={}, slot={}: RLC buffer state update for h_id={} with {} bytes",
@@ -1463,7 +1463,7 @@ protected:
         std::optional<ul_harq_process_handle> h_ul = test_ue.get_pcell().harqs.ul_harq(h_id);
         if (h_ul.has_value() and h_ul->is_waiting_ack() and h_ul->pusch_slot() == sl) {
           bool           ack             = ack_harq_process(sl, *h_ul);
-          const unsigned delivered_bytes = ack ? h_ul->get_grant_params().tbs_bytes - 10U : 0U;
+          const unsigned delivered_bytes = ack ? h_ul->get_grant_params().tbs.value() - 10U : 0U;
           buffer_bytes > delivered_bytes ? buffer_bytes -= delivered_bytes : buffer_bytes = 0U;
           test_logger.info(
               "rnti={}, slot={}: generating BSR indication with {} bytes", test_ue.crnti, sl, buffer_bytes);

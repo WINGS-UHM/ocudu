@@ -131,17 +131,17 @@ public:
     return std::nullopt;
   }
 
-  unsigned sum_pending_ul_tbs(du_ue_index_t ue_idx) const
+  units::bytes sum_pending_ul_tbs(du_ue_index_t ue_idx) const
   {
     if (not last_sl_ack.valid() or last_sl_ack < last_sl_ind) {
-      return 0;
+      return units::bytes{0};
     }
-    unsigned sum     = 0;
-    unsigned end_idx = get_current_index(last_sl_ack + 1);
+    units::bytes sum{0};
+    unsigned     end_idx = get_current_index(last_sl_ack + 1);
     for (unsigned idx = get_current_index(last_sl_ind); idx != end_idx; idx = mod(idx + 1)) {
       for (const ul_harq_process_impl& h : history[idx]) {
         if (h.ue_idx == ue_idx and h.status != harq_state_t::empty) {
-          sum += h.prev_tx_params.tbs_bytes;
+          sum += h.prev_tx_params.tbs;
           break;
         }
       }
@@ -230,7 +230,7 @@ void cell_harq_repository<IsDl>::handle_harq_ack_timeout(harq_type& h, slot_poin
   if (h.mode == harq_mode_t::feedback_disabled_or_mode_b) {
     if (IsDl) {
       // No feedback from UE is expected, we need to inject ACK so the metrics are displayed correctly.
-      timeout_notifier.on_feedback_disabled_harq_timeout(h.ue_idx, IsDl, units::bytes(h.prev_tx_params.tbs_bytes));
+      timeout_notifier.on_feedback_disabled_harq_timeout(h.ue_idx, IsDl, h.prev_tx_params.tbs);
     }
     // Deallocate HARQ so it can be reused without waiting for feedback.
     dealloc_harq(h);
@@ -366,14 +366,14 @@ void cell_harq_repository<IsDl>::handle_ack(harq_type& h, bool ack)
                    h.rnti,
                    fmt::underlying(h.h_id),
                    IsDl ? std::string_view{"DL"} : std::string_view{"UL"},
-                   h.prev_tx_params.tbs_bytes);
+                   h.prev_tx_params.tbs);
     } else {
       logger.info(
           "rnti={} h_id={}: Discarding {} HARQ process TB with tbs={}. Cause: Maximum number of reTxs {} exceeded",
           h.rnti,
           fmt::underlying(h.h_id),
           IsDl ? std::string_view{"DL"} : std::string_view{"UL"},
-          h.prev_tx_params.tbs_bytes,
+          h.prev_tx_params.tbs,
           h.max_nof_harq_retxs);
     }
   }
@@ -743,7 +743,7 @@ void dl_harq_process_handle::save_grant_params(const dl_harq_alloc_context& ctx,
   dl_harq_process_impl::alloc_params& prev_params = impl->prev_tx_params;
 
   if (impl->nof_retxs == 0) {
-    prev_params.tbs_bytes    = cw.tb_size_bytes;
+    prev_params.tbs          = units::bytes{cw.tb_size_bytes};
     prev_params.dci_cfg_type = ctx.dci_cfg_type;
     prev_params.nof_layers   = pdsch.nof_layers;
     prev_params.olla_mcs     = ctx.olla_mcs;
@@ -757,9 +757,9 @@ void dl_harq_process_handle::save_grant_params(const dl_harq_alloc_context& ctx,
   } else {
     ocudu_assert(ctx.dci_cfg_type == prev_params.dci_cfg_type,
                  "DCI format and RNTI type cannot change during DL HARQ retxs");
-    ocudu_assert(prev_params.tbs_bytes == cw.tb_size_bytes,
+    ocudu_assert(prev_params.tbs.value() == cw.tb_size_bytes,
                  "TBS cannot change during DL HARQ retxs ({}!={}). Previous MCS={}, RBs={}. New MCS={}, RBs={}",
-                 prev_params.tbs_bytes,
+                 prev_params.tbs,
                  cw.tb_size_bytes,
                  prev_params.mcs,
                  prev_params.rbs,
@@ -779,19 +779,19 @@ bool ul_harq_process_handle::new_retx(slot_point pusch_slot)
   return harq_repo->handle_new_retx(*impl, pusch_slot, pusch_slot);
 }
 
-int ul_harq_process_handle::ul_crc_info(bool ack)
+expected<units::bytes> ul_harq_process_handle::ul_crc_info(bool ack)
 {
   if (impl->status != harq_state_t::waiting_ack) {
     // HARQ is not expecting CRC info.
     harq_repo->logger.warning("rnti={} h_id={}: Discarding CRC. Cause: UL HARQ process is not expecting any CRC",
                               impl->rnti,
                               fmt::underlying(impl->h_id));
-    return -1;
+    return make_unexpected(default_error_t{});
   }
 
   harq_repo->handle_ack(*impl, ack);
 
-  return ack ? (int)impl->prev_tx_params.tbs_bytes : 0;
+  return ack ? impl->prev_tx_params.tbs : units::bytes{0};
 }
 
 void ul_harq_process_handle::save_grant_params(const ul_harq_alloc_context& ctx, const pusch_information& pusch)
@@ -807,12 +807,12 @@ void ul_harq_process_handle::save_grant_params(const ul_harq_alloc_context& ctx,
   if (impl->nof_retxs == 0) {
     prev_tx_params.dci_cfg_type = ctx.dci_cfg_type;
     prev_tx_params.olla_mcs     = ctx.olla_mcs;
-    prev_tx_params.tbs_bytes    = pusch.tb_size_bytes;
+    prev_tx_params.tbs          = units::bytes{pusch.tb_size_bytes};
     prev_tx_params.slice_id     = ctx.slice_id;
   } else {
     ocudu_assert(ctx.dci_cfg_type == prev_tx_params.dci_cfg_type,
                  "DCI format and RNTI type cannot change during HARQ retxs");
-    ocudu_assert(prev_tx_params.tbs_bytes == pusch.tb_size_bytes, "TBS cannot change during HARQ retxs");
+    ocudu_assert(prev_tx_params.tbs.value() == pusch.tb_size_bytes, "TBS cannot change during HARQ retxs");
   }
   prev_tx_params.mcs_table   = pusch.mcs_table;
   prev_tx_params.mcs         = pusch.mcs_index;
@@ -1129,19 +1129,19 @@ std::optional<ul_harq_process_handle> unique_ue_harq_entity::find_ul_harq_waitin
   return std::nullopt;
 }
 
-unsigned unique_ue_harq_entity::total_ul_bytes_waiting_ack() const
+units::bytes unique_ue_harq_entity::total_ul_bytes_waiting_ack() const
 {
-  unsigned ntn_mode_b_ul_bytes = 0;
+  units::bytes ntn_mode_b_ul_bytes{0};
   if (cell_harq_mgr->ul.is_ntn_harq_mode_b_enabled()) {
     // Note: HARQs in alloc_hist are still pending ACK.
     ntn_mode_b_ul_bytes = cell_harq_mgr->ul.alloc_hist->sum_pending_ul_tbs(ue_index);
   }
 
-  unsigned harq_bytes = 0;
+  units::bytes harq_bytes{0};
   for (unsigned i = 0, e = nof_ul_harqs(); i != e; ++i) {
     if (get_ul_ue().harqs[i].status != harq_utils::harq_state_t::empty and
         get_ul_ue().harqs[i].mode == harq_mode_t::normal) {
-      harq_bytes += get_ul_ue().harqs[i].prev_tx_params.tbs_bytes;
+      harq_bytes += get_ul_ue().harqs[i].prev_tx_params.tbs;
     }
   }
 

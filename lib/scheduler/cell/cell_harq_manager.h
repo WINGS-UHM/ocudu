@@ -47,10 +47,10 @@ public:
 namespace harq_utils {
 
 /// Possible states of a HARQ process.
-enum class harq_state_t { empty, pending_retx, waiting_ack };
+enum class harq_state_t : uint8_t { empty, pending_retx, waiting_ack };
 
 /// HARQ operation modes as per TS38.300, Section 16.14.2.
-enum class harq_mode_t {
+enum class harq_mode_t : uint8_t {
   normal,                     // Standard Stop-and-Wait Operation (NTN: DL Feedback Enabled, UL Mode A)
   feedback_disabled_or_mode_b // Re-use allowed before RTT elapses (NTN: DL Feedback Disabled, UL Mode B)
 };
@@ -74,12 +74,12 @@ struct base_harq_process : public intrusive_double_linked_list_element<>,
   slot_point slot_timeout;
   /// New Data Indicator. Its value should flip for every new Tx.
   bool ndi = false;
-  /// Number of retransmissions that took place for the current Transport Block.
-  unsigned nof_retxs = 0;
-  /// Maximum number of retransmission before Transport Block is reset.
-  unsigned max_nof_harq_retxs = 0;
   /// Whether retransmissions for this HARQ process have been cancelled.
   bool retxs_cancelled = false;
+  /// Number of retransmissions that took place for the current Transport Block.
+  uint8_t nof_retxs = 0;
+  /// Maximum number of retransmission before Transport Block is reset.
+  uint8_t max_nof_harq_retxs = 0;
 };
 
 /// Parameters of a DL HARQ process.
@@ -96,13 +96,13 @@ struct dl_harq_process_impl : public base_harq_process {
 
     dci_dl_rnti_config_type                     dci_cfg_type;
     vrb_alloc                                   rbs;
-    unsigned                                    nof_symbols;
-    unsigned                                    nof_layers{1};
+    uint8_t                                     nof_symbols;
+    uint8_t                                     nof_layers{1};
     bool                                        is_fallback{false};
     cqi_value                                   cqi;
     pdsch_mcs_table                             mcs_table;
     sch_mcs_index                               mcs;
-    unsigned                                    tbs_bytes;
+    units::bytes                                tbs;
     static_vector<lc_alloc_info, MAX_LC_PER_TB> lc_sched_info;
     /// RAN slice identifier.
     std::optional<ran_slice_id_t> slice_id;
@@ -126,9 +126,9 @@ struct ul_harq_process_impl : public base_harq_process {
     vrb_alloc                     rbs;
     pusch_mcs_table               mcs_table;
     sch_mcs_index                 mcs;
-    unsigned                      tbs_bytes;
-    unsigned                      nof_symbols;
-    unsigned                      nof_layers;
+    units::bytes                  tbs;
+    uint8_t                       nof_symbols;
+    uint8_t                       nof_layers;
     std::optional<ran_slice_id_t> slice_id;
     std::optional<sch_mcs_index>  olla_mcs;
   };
@@ -337,7 +337,7 @@ public:
 
   /// Update UL HARQ state given the received CRC indication.
   /// \return Transport Block size of the HARQ whose state was updated.
-  int ul_crc_info(bool ack);
+  expected<units::bytes> ul_crc_info(bool ack);
 
   /// \brief Stores grant parameters that are associated with the HARQ process (e.g. DCI format, PRBs, MCS) so that
   /// they can be later fetched and optionally reused.
@@ -353,8 +353,8 @@ namespace harq_utils {
 template <bool IsDl>
 class harq_pending_retx_list_impl
 {
-  using harq_pool      = harq_utils::cell_harq_repository<IsDl>;
-  using harq_impl_type = std::conditional_t<IsDl, harq_utils::dl_harq_process_impl, harq_utils::ul_harq_process_impl>;
+  using harq_pool      = cell_harq_repository<IsDl>;
+  using harq_impl_type = std::conditional_t<IsDl, dl_harq_process_impl, ul_harq_process_impl>;
   using handle_type    = std::conditional_t<IsDl, dl_harq_process_handle, ul_harq_process_handle>;
   using harq_impl_it_t = typename intrusive_double_linked_list<harq_impl_type, pending_retx_list_tag>::iterator;
 
@@ -447,7 +447,8 @@ public:
   void stop();
 
   /// Create new UE HARQ entity.
-  /// \param rnti RNTI of the UE
+  /// \param ue_idx Index of the UE.
+  /// \param crnti C-RNTI of the UE.
   /// \param nof_dl_harq_procs Number of DL HARQ processes that the UE can support. This value is derived based on
   /// the UE capabilities, and passed to the UE via RRC signalling. See TS38.331, "nrofHARQ-ProcessesForPDSCH".
   /// Values: {2, 4, 6, 10, 12, 16, 32}.
@@ -486,7 +487,7 @@ private:
                                               unsigned      max_harq_nof_retxs,
                                               bool          select_normal_mode = true);
 
-  const unsigned                         max_harqs_per_ue;
+  const uint8_t                          max_harqs_per_ue;
   std::unique_ptr<harq_timeout_notifier> dl_timeout_notifier;
   std::unique_ptr<harq_timeout_notifier> ul_timeout_notifier;
   ocudulog::basic_logger&                logger;
@@ -603,7 +604,7 @@ public:
   std::optional<ul_harq_process_handle> find_ul_harq_waiting_ack(slot_point pusch_slot);
 
   /// Determines the sum of the number of bytes that are in active UL HARQ processes.
-  unsigned total_ul_bytes_waiting_ack() const;
+  units::bytes total_ul_bytes_waiting_ack() const;
 
 private:
   dl_harq_ent_impl&       get_dl_ue() { return cell_harq_mgr->dl.ues[ue_index]; }

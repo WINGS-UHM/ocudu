@@ -18,7 +18,7 @@ namespace ocudu {
 ///
 /// The identifiers are inspired by TS38.331 Section as 6.3.2 (see field \e mcs-Table in various Information Elements).
 /// For the actual tables and the selection procedure, see TS38.214 Section 5.1.3.1.
-enum class pdsch_mcs_table {
+enum class pdsch_mcs_table : uint8_t {
   /// Identifies MCS index table 1, TS38.214 Table 5.1.3.1-1.
   qam64 = 0,
   /// Identifies MCS index table 2, TS38.214 Table 5.1.3.1-2.

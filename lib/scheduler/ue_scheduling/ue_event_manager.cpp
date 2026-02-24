@@ -474,8 +474,8 @@ void ue_cell_event_manager::handle_crc_indication(const ul_crc_indication& crc_i
       }
 
       // Update HARQ.
-      const int tbs = ue_cc->handle_crc_pdu(sl_rx, *crc_ptr);
-      if (tbs < 0) {
+      const auto tbs = ue_cc->handle_crc_pdu(sl_rx, *crc_ptr);
+      if (not tbs.has_value()) {
         return event_result::processed;
       }
 
@@ -495,7 +495,7 @@ void ue_cell_event_manager::handle_crc_indication(const ul_crc_indication& crc_i
                                                           crc_ptr->ul_sinr_dB});
 
       // Notify metrics handler.
-      metrics.handle_crc_indication(sl_rx, *crc_ptr, units::bytes{(unsigned)tbs});
+      metrics.handle_crc_indication(sl_rx, *crc_ptr, tbs.value());
 
       return event_result::processed;
     };
@@ -868,7 +868,7 @@ void ue_cell_event_manager::handle_harq_ind(ue_cell&                            
       // HARQ process was not found or in invalid state. Move on to next HARQ bit.
       continue;
     }
-    const units::bytes tbs{h_dl->get_grant_params().tbs_bytes};
+    const units::bytes tbs{h_dl->get_grant_params().tbs};
 
     // Log Event.
     ev_logger.enqueue(scheduler_event_logger::harq_ack_event{

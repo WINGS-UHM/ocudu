@@ -99,7 +99,7 @@ public:
 
   /// \brief Computes the number of UL pending bytes that are not already allocated in a UL HARQ. The value is used
   /// to derive the required transport block size for an UL grant.
-  unsigned pending_ul_newtx_bytes() const;
+  units::bytes pending_ul_newtx_bytes() const;
 
   /// \brief Retrieves UE DRX controller.
   ue_drx_controller& drx_controller() { return drx; }

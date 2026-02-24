@@ -24,7 +24,7 @@ struct cce_position {
 };
 
 /// Defines which fields are stored in the DCI payload, based on the chosen DCI format and RNTI type.
-enum class dci_dl_rnti_config_type { si_f1_0, ra_f1_0, c_rnti_f1_0, tc_rnti_f1_0, p_rnti_f1_0, c_rnti_f1_1 };
+enum class dci_dl_rnti_config_type : uint8_t { si_f1_0, ra_f1_0, c_rnti_f1_0, tc_rnti_f1_0, p_rnti_f1_0, c_rnti_f1_1 };
 
 /// Retrieve DCI format from DCI DL payload format.
 inline dci_dl_format get_dci_format(dci_dl_rnti_config_type rnti_dci_type)
@@ -61,7 +61,7 @@ struct dci_dl_info {
 };
 
 /// Defines which fields are stored in the DCI payload, based on the chosen DCI format and RNTI type.
-enum class dci_ul_rnti_config_type { tc_rnti_f0_0, c_rnti_f0_0, c_rnti_f0_1 };
+enum class dci_ul_rnti_config_type : uint8_t { tc_rnti_f0_0, c_rnti_f0_0, c_rnti_f0_1 };
 
 inline const char* dci_ul_rnti_config_rnti_type(dci_ul_rnti_config_type type)
 {

@@ -32,10 +32,17 @@ public:
   }
 
 private:
-  /// Message handling.
+  /// \brief Notify about the reception of an initiating message.
+  /// \param[in] msg The received initiating message.
   void handle_initiating_message(const asn1::xnap::init_msg_s& msg);
-  void handle_successful_outcome(const asn1::xnap::successful_outcome_s& msg);
-  void handle_unsuccessful_outcome(const asn1::xnap::unsuccessful_outcome_s& msg);
+
+  /// \brief Notify about the reception of a successful outcome message.
+  /// \param[in] outcome The successful outcome message.
+  void handle_successful_outcome(const asn1::xnap::successful_outcome_s& outcome);
+
+  /// \brief Notify about the reception of an unsuccessful outcome message.
+  /// \param[in] outcome The unsuccessful outcome message.
+  void handle_unsuccessful_outcome(const asn1::xnap::unsuccessful_outcome_s& outcome);
 
   void handle_xn_setup_request(const asn1::xnap::xn_setup_request_s& msg);
 

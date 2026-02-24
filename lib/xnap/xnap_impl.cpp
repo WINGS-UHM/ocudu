@@ -61,14 +61,26 @@ void xnap_impl::handle_initiating_message(const init_msg_s& msg)
   }
 }
 
-void xnap_impl::handle_successful_outcome(const successful_outcome_s& msg)
+void xnap_impl::handle_successful_outcome(const successful_outcome_s& outcome)
 {
-  // TODO.
+  switch (outcome.value.type().value) {
+    case xnap_elem_procs_o::successful_outcome_c::types_opts::xn_setup_resp: {
+      ev_mng.xn_setup_outcome.set(outcome.value.xn_setup_resp());
+    } break;
+    default:
+      logger.error("Successful outcome of type {} is not supported", outcome.value.type().to_string());
+  }
 }
 
-void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& msg)
+void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcome)
 {
-  // TODO.
+  switch (outcome.value.type().value) {
+    case xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::xn_setup_fail: {
+      ev_mng.xn_setup_outcome.set(outcome.value.xn_setup_fail());
+    } break;
+    default:
+      logger.error("Unsuccessful outcome of type {} is not supported", outcome.value.type().to_string());
+  }
 }
 
 async_task<void> xnap_impl::handle_xn_setup_request_required()

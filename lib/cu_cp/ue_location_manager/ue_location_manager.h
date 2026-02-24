@@ -12,7 +12,7 @@
 
 #include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include <optional>
+#include <map>
 
 namespace ocudu::ocucp {
 
@@ -28,10 +28,16 @@ public:
   ngap_location_report get_location_report(ue_index_t ue_index, const cu_cp_user_location_info_nr& user_location_info);
 
 private:
-  std::optional<ngap_location_report_request> active_config;
-  bool                                        direct_report_pending = false;
+  // using event_type               = ngap_location_report_request::event_type;
+  using location_report_ref_id_t = uint8_t; // (1..64)
 
-  ocudulog::basic_logger& logger;
+  bool report_on_cell_change     = false;
+  bool report_ue_presence_in_aoi = false;
+
+  ngap_location_report_request::event_type get_current_location_reporting_type() const;
+
+  std::map<location_report_ref_id_t, ngap_area_of_interest> area_of_interest_list;
+  ocudulog::basic_logger&                                   logger;
 };
 
 } // namespace ocudu::ocucp

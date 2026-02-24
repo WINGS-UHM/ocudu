@@ -38,6 +38,8 @@ struct controller_config {
   int gps_Beta;
   /// If set to true, logs late events as warnings, otherwise as info.
   bool enable_log_warnings_for_lates;
+  /// Busy waiting enabled flag.
+  bool enable_busy_waiting;
 };
 
 /// Creates an Open Fronthaul timing manager with the given parameters.

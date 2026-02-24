@@ -32,8 +32,12 @@ std::unique_ptr<timing_manager> ocudu::ofh::create_ofh_timing_manager(const cont
                                                                       ocudulog::basic_logger&  logger,
                                                                       task_executor&           executor)
 {
-  realtime_worker_cfg rt_cfg = {
-      config.cp, config.scs, config.gps_Alpha, config.gps_Beta, config.enable_log_warnings_for_lates};
+  realtime_worker_cfg rt_cfg = {config.cp,
+                                config.scs,
+                                config.gps_Alpha,
+                                config.gps_Beta,
+                                config.enable_log_warnings_for_lates,
+                                config.enable_busy_waiting};
 
   return std::make_unique<timing_manager_impl>(logger, executor, rt_cfg);
 }

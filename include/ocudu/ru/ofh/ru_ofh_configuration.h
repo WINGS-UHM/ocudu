@@ -28,6 +28,8 @@ struct ru_ofh_configuration {
   unsigned gps_Alpha;
   /// GPS Beta - Valid value range: [-32768, 32767].
   int gps_Beta;
+  /// Busy waiting enabled flag.
+  bool enable_busy_waiting = false;
 };
 
 /// Radio Unit dependencies for the Open Fronthaul implementation.

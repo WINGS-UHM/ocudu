@@ -167,6 +167,8 @@ struct ru_ofh_unit_cpu_affinities_cell_config {
 struct ru_ofh_unit_expert_execution_config {
   /// RU timing thread.
   os_sched_affinity_bitmask ru_timing_cpu;
+  /// Busy waiting enabled flag.
+  bool enable_busy_waiting = false;
   /// CPU affinities per RU txrx thread.
   std::vector<os_sched_affinity_bitmask> txrx_affinities;
   /// CPU affinities per cell.

@@ -48,6 +48,10 @@ static void fill_ru_ofh_expert_execution_section(YAML::Node node, const ru_ofh_u
 
     ++index;
   }
+
+  YAML::Node threads_node            = node["threads"];
+  YAML::Node ofh_threads             = threads_node["ofh"];
+  ofh_threads["enable_busy_waiting"] = config.enable_busy_waiting;
 }
 
 static void fill_ru_ofh_hal_section(YAML::Node node, const std::optional<ru_ofh_unit_hal_config>& config)

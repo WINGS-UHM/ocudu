@@ -443,6 +443,16 @@ static void configure_cli11_expert_execution_args(CLI::App& app, ru_ofh_unit_exp
         }
       },
       "Sets the cell CPU affinities configuration on a per cell basis");
+
+  // Threads section.
+  CLI::App* threads_subcmd = add_subcommand(app, "threads", "Threads configuration")->configurable();
+
+  CLI::App* ofh_threads = add_subcommand(*threads_subcmd, "ofh", "Open Fronthaul thread configuration")->configurable();
+
+  // Enable busy waiting of the RU timing worker.
+  add_option(
+      *ofh_threads, "--enable_busy_waiting", config.enable_busy_waiting, "Enable busy waiting of the RU timing worker")
+      ->capture_default_str();
 }
 
 #ifdef DPDK_FOUND

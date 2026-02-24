@@ -38,6 +38,8 @@ struct realtime_worker_cfg {
   int gps_Beta;
   /// If set to true, logs late events as warnings, otherwise as info.
   bool enable_log_warnings_for_lates;
+  /// Busy waiting enabled flag.
+  bool enable_busy_waiting;
 };
 
 /// Realtime worker that generates OTA symbol notifications.
@@ -82,6 +84,7 @@ class realtime_timing_worker : public operation_controller, public ota_symbol_bo
   const std::chrono::duration<double, std::nano> symbol_duration;
   const std::chrono::nanoseconds                 sleep_time;
   bool                                           enable_log_warnings_for_lates;
+  const bool                                     enable_busy_waiting;
   unsigned                                       previous_symb_index       = 0;
   gps_clock::rep                                 previous_time_since_epoch = 0;
   std::chrono::steady_clock::time_point          last_wakeup_tp;

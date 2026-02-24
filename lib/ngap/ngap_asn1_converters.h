@@ -1116,6 +1116,35 @@ asn1_to_location_reporting_event_type(const asn1::ngap::event_type_e& asn1_repor
   }
 }
 
+/// \brief Convert NGAP ASN1 AreaOfInterest IE to common type.
+inline ngap_area_of_interest asn1_to_area_of_interest(const asn1::ngap::area_of_interest_s& asn1_aoi)
+{
+  ngap_area_of_interest aoi;
+
+  for (const auto& asn1_tai_item : asn1_aoi.area_of_interest_tai_list) {
+    aoi.tai_list.push_back(ngap_asn1_to_tai(asn1_tai_item.tai));
+  }
+
+  for (const auto& asn1_cell_item : asn1_aoi.area_of_interest_cell_list) {
+    if (asn1_cell_item.ngran_cgi.type() != asn1::ngap::ngran_cgi_c::types_opts::nr_cgi) {
+      ocudulog::fetch_basic_logger("NGAP").warning("Ignoring non-NR CGI in AreaOfInterest cell list");
+      continue;
+    }
+    aoi.cell_list.push_back(ngap_asn1_to_nr_cgi(asn1_cell_item.ngran_cgi.nr_cgi()));
+  }
+
+  for (const auto& asn1_ran_node_item : asn1_aoi.area_of_interest_ran_node_list) {
+    if (asn1_ran_node_item.global_ran_node_id.type() != asn1::ngap::global_ran_node_id_c::types_opts::global_gnb_id) {
+      ocudulog::fetch_basic_logger("NGAP").warning("Ignoring non-gNB RAN node ID in AreaOfInterest RAN node list");
+      continue;
+    }
+
+    aoi.ran_node_list.push_back(ngap_asn1_to_global_gnb_id(asn1_ran_node_item.global_ran_node_id.global_gnb_id()));
+  }
+
+  return aoi;
+}
+
 /// \brief Convert NGAP ASN1 LocationReportingRequestType IE to common type.
 inline ngap_location_report_request
 asn1_to_location_report_request(const asn1::ngap::location_report_request_type_s& asn1_type)
@@ -1123,7 +1152,18 @@ asn1_to_location_report_request(const asn1::ngap::location_report_request_type_s
   ngap_location_report_request req;
   req.location_reporting_type = asn1_to_location_reporting_event_type(asn1_type.event_type);
   req.location_report_area    = ngap_location_report_request::report_area::cell;
-  // TODO: add area_of_interest_list and ie_exts handling
+
+  for (const auto& asn1_aoi_item : asn1_type.area_of_interest_list) {
+    ngap_area_of_interest_item aoi_item;
+    aoi_item.location_report_ref_id = asn1_aoi_item.location_report_ref_id;
+    aoi_item.area_of_interest       = asn1_to_area_of_interest(asn1_aoi_item.area_of_interest);
+    req.area_of_interest_list.push_back(std::move(aoi_item));
+  }
+
+  if (asn1_type.location_report_ref_id_to_be_cancelled_present) {
+    req.location_report_ref_id_to_be_cancelled = asn1_type.location_report_ref_id_to_be_cancelled;
+  }
+
   return req;
 }
 

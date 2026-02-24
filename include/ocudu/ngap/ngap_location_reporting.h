@@ -12,8 +12,23 @@
 
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "fmt/base.h"
+#include <optional>
+#include <vector>
 
 namespace ocudu::ocucp {
+
+/// \brief Area of Interest, as defined in TS 38.413 9.3.1.66.
+struct ngap_area_of_interest {
+  std::vector<tai_t>               tai_list;
+  std::vector<nr_cell_global_id_t> cell_list;
+  std::vector<cu_cp_global_gnb_id> ran_node_list;
+};
+
+/// \brief Area of Interest item, as defined in TS 38.413 9.3.1.65.
+struct ngap_area_of_interest_item {
+  ngap_area_of_interest area_of_interest;
+  uint8_t               location_report_ref_id = 1; // 1..64
+};
 
 struct ngap_location_report_request {
   enum class event_type {
@@ -30,8 +45,10 @@ struct ngap_location_report_request {
 
   enum class report_area { cell };
 
-  event_type  location_reporting_type = event_type::nulltype;
-  report_area location_report_area    = report_area::cell;
+  event_type                              location_reporting_type = event_type::nulltype;
+  report_area                             location_report_area    = report_area::cell;
+  std::vector<ngap_area_of_interest_item> area_of_interest_list;
+  std::optional<uint8_t>                  location_report_ref_id_to_be_cancelled;
 };
 
 struct ngap_location_report {

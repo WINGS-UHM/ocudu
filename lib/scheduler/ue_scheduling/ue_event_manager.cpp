@@ -811,7 +811,7 @@ void ue_cell_event_manager::handle_error_indication(slot_point sl_tx, scheduler_
     if (event.pusch_and_pucch_discarded) {
       handle_discarded_pusch(*prev_slot_result, ue_db);
 
-      uci_selector.handle_discarded_pucchs(sl_tx);
+      uci_selector.handle_discarded_ucis(sl_tx);
     }
 
     // Log event.

@@ -36,14 +36,22 @@ struct uci_action {
   std::optional<csi_report_data> csi;
 };
 
+/// Notifier for UCI grants whose respective UCI indication feedback did not arrive to the scheduler before a timeout.
 class uci_indication_timeout_notifier
 {
 public:
   virtual ~uci_indication_timeout_notifier() = default;
 
+  /// Notifies that an UCI grant did not receive all the expected UCI PDUs before a deadline, and provides the course
+  /// of action for the UCI grant.
   virtual void on_timeout(slot_point sl_rx, rnti_t crnti, const uci_action& action) = 0;
 };
 
+/// This class processes the scheduled PUCCH and PUSCH+UCI grants and the received UCI indication feedback from lower
+/// layers and determines:
+/// - if there are UCI grants that never received all the expected UCI feedback within a given timeout window.
+/// - combines UCI indication PDUs into a single action for the case that a given UCI leads to more than one PUCCH
+/// allocation (e.g. PUCCH F1 HARQ and HARQ-SR case).
 class uci_indication_selector
 {
 public:
@@ -60,14 +68,17 @@ public:
 
   std::optional<uci_action> handle_uci_ind_pdu(slot_point sl_rx, const uci_indication::uci_pdu& pdu);
 
+  /// Called on every slot indication when a scheduler result is produced.
   void handle_result(slot_point sl_tx, const sched_result& result);
 
-  /// \brief Called when an error indication is received for a given slot.
-  void handle_discarded_pucchs(slot_point sl_tx);
+  /// \brief Called when an error indication is received for a given slot to reset all UCI grants with pending feedback.
+  void handle_discarded_ucis(slot_point sl_tx);
 
 private:
   static constexpr soa::row_id invalid_row_id{std::numeric_limits<uint32_t>::max()};
 
+  /// \brief Represents a scheduled UCI grant that is waiting for its respective UCI feedback.
+  /// \remark An UCI entry can represent a PUSCH with UCI grant or one or more PUCCH grants (PUCCH F1 HARQ+SR case).
   struct uci_entry {
     rnti_t crnti = rnti_t::INVALID_RNTI;
     /// Number of UCI PDUs that need to be combined until a decision is made relative to the UCI outcome.
@@ -91,6 +102,7 @@ private:
   /// Helper to remove UCI entry from its linked list.
   soa::row_id rem_uci_entry(soa::row_id& head, uci_entry* prev_entry, uci_entry& entry);
 
+  /// Timeout to receive HARQ-ACK feedback.
   const unsigned                   ack_timeout_slots;
   uci_indication_timeout_notifier& timeout_notifier;
   ocudulog::basic_logger&          logger;

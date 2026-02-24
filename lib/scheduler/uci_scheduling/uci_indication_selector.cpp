@@ -89,8 +89,8 @@ static bool has_harq_ack_bits(const uci_indication::uci_pdu& pdu)
 std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point                     sl_rx,
                                                                       const uci_indication::uci_pdu& pdu)
 {
-  // If the PDU has no HARQ-ACK bits, it was not registered for timeout tracking (e.g. SR-only or CSI-only PUCCH).
-  // In this case, create and return an action directly.
+  // If the PDU has no HARQ-ACK bits, it was not registered for timeout tracking (e.g. SR-only, CSI-only or SR-CSI-only
+  // PUCCH). In this case, create and return an action directly.
   if (not has_harq_ack_bits(pdu)) {
     return create_action(pdu);
   }
@@ -278,7 +278,7 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
   }
 }
 
-void uci_indication_selector::handle_discarded_pucchs(slot_point sl_tx)
+void uci_indication_selector::handle_discarded_ucis(slot_point sl_tx)
 {
   auto&      uci_wheel_sl_tx = uci_wheel[sl_tx.count()];
   uci_entry* prev_entry      = nullptr;

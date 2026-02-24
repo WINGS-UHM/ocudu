@@ -35,9 +35,10 @@ public:
     initial_ue_msg_received = true;
   }
 
-  void on_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg) override
+  bool on_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg) override
   {
     logger.info("Received UL NAS Transport message");
+    return true;
   }
 
   bool initial_ue_msg_received = false;

@@ -14,10 +14,9 @@
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/rrc/rrc_ue.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
-/// Adapter between RRC UE and F1AP to pass RRC PDUs
+/// Adapter between RRC UE and F1AP to pass RRC PDUs.
 class rrc_ue_f1ap_pdu_adapter : public rrc_pdu_f1ap_notifier
 {
 public:
@@ -40,7 +39,7 @@ private:
   const ue_index_t          ue_index;
 };
 
-// Adapter between RRC UE and NGAP
+// Adapter between RRC UE and NGAP.
 class rrc_ue_ngap_adapter : public rrc_ue_ngap_notifier
 {
 public:
@@ -52,17 +51,20 @@ public:
     ngap->get_ngap_nas_message_handler().handle_initial_ue_message(msg);
   }
 
-  void on_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg) override
+  [[nodiscard]] bool on_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg) override
   {
-    ocudu_assert(ngap != nullptr, "ue={}: NGAP not found", msg.ue_index);
+    if (ngap == nullptr) {
+      return false;
+    }
     ngap->get_ngap_nas_message_handler().handle_ul_nas_transport_message(msg);
+    return true;
   }
 
 private:
   ngap_interface* ngap = nullptr;
 };
 
-/// Adapter between RRC UE and CU-CP UE
+/// Adapter between RRC UE and CU-CP UE.
 class rrc_ue_cu_cp_ue_adapter : public rrc_ue_cu_cp_ue_notifier
 {
 public:
@@ -89,50 +91,50 @@ public:
     return ue->get_task_sched().get_executor();
   }
 
-  /// \brief Get the AS configuration for the RRC domain
+  /// \brief Get the AS configuration for the RRC domain.
   security::sec_as_config get_rrc_as_config() override
   {
     ocudu_assert(ue != nullptr, "CU-CP UE must not be nullptr");
     return ue->get_security_manager().get_rrc_as_config();
   }
 
-  /// \brief Get the AS configuration for the RRC domain with 128-bit keys
+  /// \brief Get the AS configuration for the RRC domain with 128-bit keys.
   security::sec_128_as_config get_rrc_128_as_config() override
   {
     ocudu_assert(ue != nullptr, "CU-CP UE must not be nullptr");
     return ue->get_security_manager().get_rrc_128_as_config();
   }
 
-  /// \brief Enable security
+  /// \brief Enable security.
   void enable_security() override
   {
     ocudu_assert(ue != nullptr, "CU-CP UE must not be nullptr");
     ue->get_security_manager().enable_security();
   }
 
-  /// \brief Get the current security context
+  /// \brief Get the current security context.
   security::security_context get_security_context() override
   {
     ocudu_assert(ue != nullptr, "CU-CP UE must not be nullptr");
     return ue->get_security_manager().get_security_context();
   }
 
-  /// \brief Get the selected security algorithms
+  /// \brief Get the selected security algorithms.
   security::sec_selected_algos get_security_algos() override
   {
     ocudu_assert(ue != nullptr, "CU-CP UE must not be nullptr");
     return ue->get_security_manager().get_security_algos();
   }
 
-  /// \brief Update the security context
-  /// \param[in] sec_ctxt The new security context
+  /// \brief Update the security context.
+  /// \param[in] sec_ctxt The new security context.
   void update_security_context(const security::security_context& sec_ctxt) override
   {
     ocudu_assert(ue != nullptr, "CU-CP UE must not be nullptr");
     ue->get_security_manager().update_security_context(sec_ctxt);
   }
 
-  /// \brief Perform horizontal key derivation
+  /// \brief Perform horizontal key derivation.
   void perform_horizontal_key_derivation(pci_t target_pci, unsigned target_ssb_arfcn) override
   {
     ocudu_assert(ue != nullptr, "CU-CP UE must not be nullptr");
@@ -143,7 +145,7 @@ private:
   cu_cp_ue_impl_interface* ue = nullptr;
 };
 
-/// Adapter between RRC UE and CU-CP
+/// Adapter between RRC UE and CU-CP.
 class rrc_ue_cu_cp_adapter : public rrc_ue_context_update_notifier, public rrc_ue_measurement_notifier
 {
 public:
@@ -198,7 +200,7 @@ public:
     cu_cp_rrc_ue_handler->handle_rrc_reestablishment_complete(old_ue_index);
   }
 
-  virtual void on_rrc_reconfiguration_complete_indicator() override
+  void on_rrc_reconfiguration_complete_indicator() override
   {
     ocudu_assert(cu_cp_rrc_ue_handler != nullptr, "CU-CP handler must not be nullptr");
     cu_cp_rrc_ue_handler->handle_rrc_reconf_complete_indicator(ue_index);
@@ -272,5 +274,4 @@ private:
   ue_index_t                     ue_index;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

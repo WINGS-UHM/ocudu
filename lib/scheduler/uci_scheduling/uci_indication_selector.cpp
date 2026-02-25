@@ -111,12 +111,12 @@ std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point
         rem_uci_entry(list_head, prev_entry, entry);
       } else {
         // No action was generated. This means that the UCI entry is still expecting more UCI indications.
-        if (not entry.short_timeout_wheel_pos.valid()) {
+        if (not entry.short_timeout_slot.valid()) {
           // We add the UCI grant in another linked list in the short timeout wheel, if not added yet.
-          entry.short_timeout_wheel_pos = last_sl_tx + SHORT_PUCCH_TIMEOUT_SLOTS;
-          auto& short_timeout_head      = short_timeout_wheel[entry.short_timeout_wheel_pos.count()];
-          entry.next_short_timeout      = short_timeout_head;
-          short_timeout_head            = id;
+          entry.short_timeout_slot = last_sl_tx + SHORT_PUCCH_TIMEOUT_SLOTS;
+          auto& short_timeout_head = short_timeout_wheel[entry.short_timeout_slot.count()];
+          entry.next_short_timeout = short_timeout_head;
+          short_timeout_head       = id;
         }
       }
 
@@ -127,7 +127,9 @@ std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point
     id         = entry.next;
   }
 
-  logger.warning("rnti={}: UCI not found for slot={}", pdu.crnti, sl_rx);
+  logger.warning("rnti={}: Discarding UCI indication PDU. Cause: Respective UCI grant was not found (UCI slot={})",
+                 pdu.crnti,
+                 sl_rx);
 
   return std::nullopt;
 }
@@ -159,58 +161,62 @@ std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indi
 void uci_indication_selector::handle_timeouts(slot_point sl_tx)
 {
   // Handle UCI entries that reach their timeout and never received any UCI PDU.
-  slot_point sl_rx             = sl_tx - ack_timeout_slots;
-  auto&      uci_wheel_timeout = uci_wheel[sl_rx.count()];
-  for (stable_id_t id = uci_wheel_timeout; id != invalid_entry_id;) {
-    uci_entry& entry = uci_pool[id];
+  slot_point sl_rx = sl_tx - ack_timeout_slots;
+  for (auto& uci_ids_to_rem = uci_wheel[sl_rx.count()]; uci_ids_to_rem != invalid_entry_id;) {
+    uci_entry& entry = uci_pool[uci_ids_to_rem];
+    ocudu_sanity_check(entry.uci_slot == sl_rx, "Invalid wheel state");
+
+    logger.warning("rnti={}: Forcing \"NACK\" for {} DL HARQ processes. Cause: Timeout was reached ({} slots) "
+                   "but no UCI indication feedback has been received yet from lower layers (UCI slot={})",
+                   entry.crnti,
+                   entry.chosen_action.harq_ack_bits.size(),
+                   ack_timeout_slots,
+                   entry.uci_slot);
 
     // Handle UCI timeout if there were still pending UCI indications.
-    if (entry.uci_pdus_to_rx > 0) {
-      timeout_notifier.on_timeout(sl_rx, entry.crnti, entry.chosen_action);
-    }
+    timeout_notifier.on_timeout(sl_rx, entry.crnti, entry.chosen_action);
 
     // Remove UCI grant entry from linked list and pool.
-    id = rem_uci_entry(uci_wheel_timeout, nullptr, entry);
+    rem_uci_entry(uci_ids_to_rem, nullptr, entry);
   }
-  ocudu_sanity_check(uci_wheel_timeout == invalid_entry_id, "Unexpected state for UCI time wheel");
+  ocudu_sanity_check(uci_wheel[sl_rx.count()] == invalid_entry_id, "Unexpected state for UCI time wheel");
 
-  // Handle UCI entries that received at least one but not all the expected UCI indications.
-  auto& rem_pucch_timeout = short_timeout_wheel[sl_tx.count()];
-  for (stable_id_t id = rem_pucch_timeout; id != invalid_entry_id;) {
-    uci_entry& entry = uci_pool[id];
+  // Handle UCI entries that received at least one but not all the expected UCI indications (within the short timeout
+  // window).
+  for (auto& uci_ids_to_rem = short_timeout_wheel[sl_tx.count()]; uci_ids_to_rem != invalid_entry_id;) {
+    uci_entry& entry = uci_pool[uci_ids_to_rem];
 
     // Handle UCI timeout.
-    if (entry.uci_pdus_to_rx > 0) {
-      // Case: Not all UCIs were received within the short timeout window.
-      entry.uci_pdus_to_rx = 0;
-      if (entry.chosen_action.uci_valid) {
-        logger.debug("rnti={}: Forwarding HARQ-ACK bits={:b} to UE DL HARQ processes without all UCI indication "
-                     "feedback having been received. Cause: Timeout was reached ({} slots), but at least a valid UCI "
-                     "PDU was received (UCI slot={}).",
+    if (entry.chosen_action.uci_valid) {
+      logger.debug("rnti={}: Forwarding HARQ-ACK bits=0b{:b} to UE DL HARQ processes without all UCI indication "
+                   "feedback having been received. Cause: Timeout was reached ({} slots), but at least a valid UCI "
+                   "PDU was received (UCI slot={}).",
+                   entry.crnti,
+                   entry.chosen_action.harq_ack_bits,
+                   SHORT_PUCCH_TIMEOUT_SLOTS,
+                   entry.uci_slot);
+    } else {
+      // At least one of the expected ACKs went missing and we haven't received any valid UCI.
+      logger.warning("rnti={}: Forcing \"NACK\" for {} DL HARQ processes. Cause: Timeout was reached ({} slots) "
+                     "to receive the respective UCI indication feedback and no valid UCI PDU has been received yet "
+                     "(UCI slot={})",
                      entry.crnti,
-                     entry.chosen_action.harq_ack_bits,
+                     entry.chosen_action.harq_ack_bits.size(),
                      SHORT_PUCCH_TIMEOUT_SLOTS,
                      entry.uci_slot);
-      } else {
-        // At least one of the expected ACKs went missing and we haven't received any valid UCI.
-        logger.warning("rnti={}: Forcing \"NACK\" for {} DL HARQ processes. Cause: Timeout was reached ({} slots) "
-                       "to receive the respective UCI indication feedback and no valid UCI PDU has been received yet "
-                       "(UCI slot={})",
-                       entry.crnti,
-                       entry.chosen_action.harq_ack_bits.size(),
-                       SHORT_PUCCH_TIMEOUT_SLOTS,
-                       entry.uci_slot);
-      }
-      timeout_notifier.on_timeout(entry.uci_slot, entry.crnti, entry.chosen_action);
     }
 
-    // We remove the entry from the short timeout linked list, but we don't delete the entry as it is still present
-    // in the main uci wheel.
-    id                            = entry.next_short_timeout;
-    entry.next_short_timeout      = invalid_entry_id;
-    entry.short_timeout_wheel_pos = {};
+    // Propagate timeout.
+    timeout_notifier.on_timeout(entry.uci_slot, entry.crnti, entry.chosen_action);
+
+    // Delete entry from both wheels and pool.
+    auto id_to_rem = uci_ids_to_rem;
+    uci_ids_to_rem = entry.next_short_timeout;
+    find_and_rem_uci_entry<true>(id_to_rem);
+    uci_pool.erase(id_to_rem);
   }
-  rem_pucch_timeout = invalid_entry_id;
+  ocudu_sanity_check(short_timeout_wheel[sl_tx.count()] == invalid_entry_id,
+                     "Unexpected state for short UCI timeout wheel");
 }
 
 void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result& result)
@@ -288,12 +294,14 @@ void uci_indication_selector::handle_discarded_ucis(slot_point sl_tx)
   for (auto& id_to_rem = uci_wheel[sl_tx.count()]; id_to_rem != invalid_entry_id;) {
     uci_entry& entry = uci_pool[id_to_rem];
 
-    // The lower layers will not attempt to decode the PUCCHs and PUSCH UCIs and will not send any UCI indication    //
+    // The lower layers will not attempt to decode the PUCCHs and PUSCH UCIs and will not send any UCI indication
     // feedback. To avoid a long DL HARQ timeout window (due to lack of UCI indication), it is important to force a DTX
     // for the DL HARQ processes with UCI falling in this slot.
     // Note: We don't use this cancellation to update the DL OLLA (UCI is invalid), as we shouldn't take lates into
     // account in link adaptation.
     timeout_notifier.on_timeout(sl_tx, entry.crnti, entry.chosen_action);
+
+    // Erase UCI entry.
     rem_uci_entry(id_to_rem, nullptr, entry);
   }
 }
@@ -313,32 +321,48 @@ stable_id_t uci_indication_selector::rem_uci_entry(stable_id_t& head, uci_entry*
   }
   entry.next = invalid_entry_id;
 
-  if (entry.short_timeout_wheel_pos.valid()) {
+  if (entry.short_timeout_slot.valid()) {
     // Entry is also in the short combining timeout list.
     // Do O(N) removal; however, list should be very short.
-    stable_id_t& rem_entry_head = short_timeout_wheel[entry.short_timeout_wheel_pos.count()];
-    if (rem_entry_head == entry_rid) {
-      // It is the head of the short timeout list.
-      rem_entry_head           = entry.next_short_timeout;
-      entry.next_short_timeout = invalid_entry_id;
-    } else {
-      for (stable_id_t id = rem_entry_head; id != invalid_entry_id;) {
-        auto& rem_entry = uci_pool[id];
-
-        if (rem_entry.next_short_timeout == entry_rid) {
-          // Next is the entry to be removed.
-          rem_entry.next_short_timeout  = entry.next_short_timeout;
-          entry.next_short_timeout      = invalid_entry_id;
-          entry.short_timeout_wheel_pos = {};
-          break;
-        }
-
-        id = rem_entry.next;
-      }
-    }
-    ocudu_sanity_check(entry.next_short_timeout == invalid_entry_id, "Unable to find UCI in the short timeout list");
+    find_and_rem_uci_entry<false>(entry_rid);
   }
 
   uci_pool.erase(entry_rid);
   return entry_next;
+}
+
+template <bool MainTimeoutWheel>
+void uci_indication_selector::find_and_rem_uci_entry(stable_id_t id_to_rem)
+{
+  auto&        rem_entry   = uci_pool[id_to_rem];
+  stable_id_t& uci_id_head = MainTimeoutWheel ? uci_wheel[rem_entry.uci_slot.count()]
+                                              : short_timeout_wheel[rem_entry.short_timeout_slot.count()];
+  auto         get_next    = [](uci_entry& entry) -> stable_id_t& {
+    return MainTimeoutWheel ? entry.next : entry.next_short_timeout;
+  };
+
+  if (uci_id_head == id_to_rem) {
+    // The element to remove is at the head of the list.
+    uci_id_head = get_next(rem_entry);
+  } else {
+    for (stable_id_t id = uci_id_head; id != invalid_entry_id;) {
+      auto& prev_entry = uci_pool[id];
+
+      if (get_next(prev_entry) == id_to_rem) {
+        // Next is the entry to be removed.
+        get_next(prev_entry) = get_next(rem_entry);
+        break;
+      }
+
+      id = get_next(prev_entry);
+    }
+  }
+
+  // Clear next pointers.
+  get_next(rem_entry) = invalid_entry_id;
+  if (MainTimeoutWheel) {
+    rem_entry.uci_slot = {};
+  } else {
+    rem_entry.short_timeout_slot = {};
+  }
 }

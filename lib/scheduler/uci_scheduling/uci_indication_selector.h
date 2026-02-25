@@ -93,7 +93,7 @@ private:
     /// for this grant do not arrive to the scheduler.
     stable_id_t next_short_timeout = invalid_entry_id;
     /// Slot at which the UCI entry will expire if the remaining UCI PDUs do not arrive on time.
-    slot_point short_timeout_wheel_pos;
+    slot_point short_timeout_slot;
   };
 
   /// Handle UCI grant timeouts.
@@ -103,6 +103,13 @@ private:
 
   /// Helper to remove UCI entry from its linked list.
   stable_id_t rem_uci_entry(stable_id_t& head, uci_entry* prev_entry, uci_entry& entry);
+
+  /// Finds UCI entry and removes it from the linked list.
+  /// \tparam MainTimeoutWheel Whether the linked list from where the UCI entry is removed is the main wheel or short
+  /// timeout wheel.
+  /// \param[in] id_to_rem ID of the entry to remove.
+  template <bool MainTimeoutWheel>
+  void find_and_rem_uci_entry(stable_id_t id_to_rem);
 
   /// Timeout to receive HARQ-ACK feedback.
   const unsigned                   ack_timeout_slots;

@@ -433,16 +433,21 @@ TEST_F(uci_indication_selector_test, wrong_slot_for_correct_rnti_is_ignored)
   slot_point start_sl_tx = next_sl_tx;
   selector.handle_result(next_sl_tx++, make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1)}));
 
+  // Event: UCI PDU has the wrong slot.
   auto action_wrong_slot = selector.handle_uci_ind_pdu(
       start_sl_tx + 1, make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::ack}, false, 10.0F));
+
+  // Test Case: No action is produced.
   ASSERT_FALSE(action_wrong_slot.has_value());
   ASSERT_TRUE(timeout_notifier.events.empty());
 
+  // Event: Slots elapse until timeout.
   for (slot_point last_slot = next_sl_tx + timeout_slots; next_sl_tx != last_slot; ++next_sl_tx) {
     ASSERT_TRUE(timeout_notifier.events.empty());
     selector.handle_result(next_sl_tx, make_sched_result({}));
   }
 
+  // Test Case: There should be a timeout.
   ASSERT_EQ(timeout_notifier.events.size(), 1U);
   ASSERT_EQ(timeout_notifier.events.front().crnti, first_rnti);
   ASSERT_EQ(timeout_notifier.events.front().sl_rx, start_sl_tx);

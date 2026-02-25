@@ -67,8 +67,16 @@ struct cu_cp_ue_cho_context {
     completion           ///< Finalizing winner/cleanup before returning to idle.
   };
 
-  state_t                          state = state_t::idle; ///< Current CHO state.
-  std::vector<cu_cp_cho_candidate> candidates;            ///< CHO candidate cells (1-8).
+  /// \brief Role of the UE in the CHO procedure.
+  enum class role_t {
+    source, ///< This UE is the CHO source.
+    target, ///< This UE is a CHO target candidate, awaiting Access Success.
+  };
+
+  role_t                           role            = role_t::source;      ///< CHO role of this UE.
+  ue_index_t                       source_ue_index = ue_index_t::invalid; ///< For target UEs: the source UE index.
+  state_t                          state           = state_t::idle;       ///< Current CHO state.
+  std::vector<cu_cp_cho_candidate> candidates;                            ///< CHO candidate cells (1-8).
 
   /// \brief Find candidate by target UE index.
   /// \param[in] target_ue_idx Target UE index to search for.
@@ -99,7 +107,9 @@ struct cu_cp_ue_cho_context {
   /// \brief Clear CHO context and reset to idle state.
   void clear()
   {
-    state = state_t::idle;
+    role            = role_t::source;
+    source_ue_index = ue_index_t::invalid;
+    state           = state_t::idle;
     candidates.clear();
   }
 };

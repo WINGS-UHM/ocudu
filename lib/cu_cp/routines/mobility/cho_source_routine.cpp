@@ -115,6 +115,11 @@ void cho_source_routine::operator()(coro_context<async_task<void>>& ctx)
     }
   }
 
+  // Clear CHO context on both the source and the winning target UE.
+  // Target is reset first so winner->target_ue_index is still valid before candidates are cleared.
+  if (auto* winning_ue = ue_mng.find_du_ue(winner->target_ue_index); winning_ue != nullptr) {
+    winning_ue->get_cho_context().reset();
+  }
   source_ue->get_cho_context()->clear();
   mobility_mng.get_metrics_handler().aggregate_successful_handover_execution();
 
@@ -184,23 +189,14 @@ bool cho_source_routine::resolve_source_ue()
   }
 
   // Access Success can arrive on either source or target UE-associated signalling context.
-  if (!source_ue->get_cho_context().has_value() ||
-      source_ue->get_cho_context()->state == cu_cp_ue_cho_context::state_t::idle) {
-    auto related_ues = ue_mng.find_ues(source_ue->get_ue_context().plmn);
-    for (auto* ue : related_ues) {
-      if (ue == nullptr || !ue->get_cho_context().has_value() ||
-          ue->get_cho_context()->state == cu_cp_ue_cho_context::state_t::idle) {
-        continue;
-      }
-      if (ue->get_cho_context()->find_candidate(msg.ue_index) != nullptr ||
-          ue->get_cho_context()->find_candidate(msg.cgi) != nullptr) {
-        source_ue = ue;
-        break;
-      }
-    }
+  // If this UE is tagged as a target candidate, look up the source UE directly via backlink.
+  if (source_ue->get_cho_context().has_value() &&
+      source_ue->get_cho_context()->role == cu_cp_ue_cho_context::role_t::target &&
+      source_ue->get_cho_context()->source_ue_index != ue_index_t::invalid) {
+    source_ue = ue_mng.find_du_ue(source_ue->get_cho_context()->source_ue_index);
   }
 
-  if (!source_ue->get_cho_context().has_value() ||
+  if (source_ue == nullptr || !source_ue->get_cho_context().has_value() ||
       source_ue->get_cho_context()->state == cu_cp_ue_cho_context::state_t::idle) {
     logger.debug("ue={}: Access Success received but no active CHO context", msg.ue_index);
     return false;

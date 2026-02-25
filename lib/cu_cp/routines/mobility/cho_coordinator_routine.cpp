@@ -120,7 +120,18 @@ void cho_coordinator_routine::operator()(coro_context<async_task<cu_cp_intra_cu_
       }
 
       if (source_ue->get_cho_context().has_value()) {
+        const ue_index_t target_ue_idx = candidate.target_ue_index;
         source_ue->get_cho_context()->candidates.push_back(std::move(candidate));
+
+        // Set source_ue_idx on target UE so the source UE can be fetched directly.
+        if (target_ue_idx != request.source_ue_index) {
+          auto* target_ue_ptr = ue_mng.find_du_ue(target_ue_idx);
+          if (target_ue_ptr != nullptr) {
+            target_ue_ptr->get_cho_context().emplace();
+            target_ue_ptr->get_cho_context()->role            = cu_cp_ue_cho_context::role_t::target;
+            target_ue_ptr->get_cho_context()->source_ue_index = request.source_ue_index;
+          }
+        }
       }
     }
 

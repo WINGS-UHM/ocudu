@@ -218,6 +218,18 @@ telegraf image:
     matrix:
       - PLATFORM: ["arm64", "amd64"]
 
+telegraf manifest:
+  extends: .docker manifest
+  variables:
+    <<: *telegraf_image_variables
+  before_script:
+    - |
+      export VERSION="${CI_SHARED_TELEGRAF_IMAGE_VERSION}"
+  needs:
+    - job: telegraf image
+      artifacts: true
+      optional: false
+
 telegraf manifest latest:
   extends: .docker manifest
   variables:
@@ -260,6 +272,18 @@ grafana image:
   parallel:
     matrix:
       - PLATFORM: ["arm64", "amd64"]
+
+grafana manifest:
+  extends: .docker manifest
+  variables:
+    <<: *grafana_image_variables
+  before_script:
+    - |
+      export VERSION="${CI_SHARED_GRAFANA_IMAGE_VERSION}"
+  needs:
+    - job: grafana image
+      artifacts: true
+      optional: false
 
 grafana manifest latest:
   extends: .docker manifest

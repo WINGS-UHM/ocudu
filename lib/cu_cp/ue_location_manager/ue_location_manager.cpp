@@ -17,51 +17,66 @@ ue_location_manager::ue_location_manager() : logger(ocudulog::fetch_basic_logger
 
 void ue_location_manager::configure_location_reporting(const ngap_location_report_request& ctrl)
 {
-  switch (ctrl.location_reporting_type) {
-    case ngap_location_report_request::event_type::direct:
-      // Direct reports are handled by the caller without configuration change.
-      return;
-    case ngap_location_report_request::event_type::change_of_serve_cell:
-      cfg.report_on_cell_change = true;
-      break;
-    case ngap_location_report_request::event_type::stop_change_of_serve_cell:
-      cfg.report_on_cell_change = false;
-      return;
-    case ngap_location_report_request::event_type::ue_presence_in_area_of_interest:
-      cfg.report_ue_presence_in_aoi = true;
-      break;
-    case ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest:
-      if (ctrl.location_report_ref_id_to_be_cancelled.has_value()) {
-        cfg.area_of_interest_list.erase(ctrl.location_report_ref_id_to_be_cancelled.value());
-      }
-      for (const auto& ref_id : ctrl.additional_location_report_ref_ids_to_be_cancelled) {
-        cfg.area_of_interest_list.erase(ref_id);
-      }
-      if (cfg.area_of_interest_list.empty()) {
-        cfg.report_ue_presence_in_aoi = false;
-      }
-      return;
-    case ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
-      cfg.report_on_cell_change     = true;
-      cfg.report_ue_presence_in_aoi = true;
-      break;
-    case ngap_location_report_request::event_type::cancel_location_report_for_the_ue:
-      cfg.report_on_cell_change     = false;
-      cfg.report_ue_presence_in_aoi = false;
-      cfg.area_of_interest_list.clear();
-      return;
-    default:
-      logger.warning("Unhandled location reporting event type: {}", ctrl.location_reporting_type);
-      return;
+  using event_type = ngap_location_report_request::event_type;
+  auto req_type    = ctrl.location_reporting_type;
+
+  if (req_type == event_type::nulltype) {
+    // Reject malformed requests.
+    logger.error("Received malformed Location Report Request with event type = null");
+    return;
   }
 
-  // Add/update area of interest entries if list was sent by AMF.
-  for (const auto& item : ctrl.area_of_interest_list) {
-    auto [it, inserted] = cfg.area_of_interest_list.emplace(item.location_report_ref_id, item.area_of_interest);
-    if (!inserted) {
-      // TODO: send LocationReportingFailureIndication instead of overriding.
-      logger.warning("Location report ref_id={} already exists - overriding", item.location_report_ref_id);
-      it->second = item.area_of_interest;
+  if (req_type == event_type::direct) {
+    // Ignore direct reports, those should be handled with get_direct_location_report(), not for configuration.
+    logger.error("Direct type Location Report Request should not be used for location reporting configuration");
+    return;
+  }
+
+  if (req_type == event_type::cancel_location_report_for_the_ue) {
+    // Cancel location reporting for the UE.
+    cfg.report_on_cell_change     = false;
+    cfg.report_ue_presence_in_aoi = false;
+    cfg.area_of_interest_list.clear();
+  }
+
+  if (req_type == event_type::stop_change_of_serve_cell) {
+    // Cancel change of serve cell reporting for the UE.
+    cfg.report_on_cell_change = false;
+    return;
+  }
+
+  if (req_type == event_type::stop_ue_presence_in_area_of_interest) {
+    // Cancel UE presence in area of interest reporting for requested report reference IDs.
+    if (ctrl.location_report_ref_id_to_be_cancelled.has_value()) {
+      cfg.area_of_interest_list.erase(ctrl.location_report_ref_id_to_be_cancelled.value());
+    }
+    for (const auto& ref_id : ctrl.additional_location_report_ref_ids_to_be_cancelled) {
+      cfg.area_of_interest_list.erase(ref_id);
+    }
+    // Cancel UE presence in area of interest reporting for the UE if no configured areas left.
+    if (cfg.area_of_interest_list.empty()) {
+      cfg.report_ue_presence_in_aoi = false;
+    }
+    return;
+  }
+
+  if (req_type == event_type::change_of_serve_cell ||
+      req_type == event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
+    // Enable change of serve cell reporting for the UE.
+    cfg.report_on_cell_change = true;
+  }
+
+  if (req_type == event_type::ue_presence_in_area_of_interest ||
+      req_type == event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
+    // Enable  UE presence in area of interest reporting for requested report reference IDs.
+    cfg.report_ue_presence_in_aoi = true;
+    for (const auto& item : ctrl.area_of_interest_list) {
+      auto [it, inserted] = cfg.area_of_interest_list.emplace(item.location_report_ref_id, item.area_of_interest);
+      if (!inserted) {
+        // TODO: send LocationReportingFailureIndication instead of overriding.
+        logger.warning("Location report ref_id={} already exists - overriding", item.location_report_ref_id);
+        it->second = item.area_of_interest;
+      }
     }
   }
 }

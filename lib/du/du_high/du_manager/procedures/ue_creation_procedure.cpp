@@ -4,9 +4,10 @@
 
 #include "ue_creation_procedure.h"
 #include "../converters/asn1_rrc_config_helpers.h"
+#include "../converters/rlc_config_helpers.h"
 #include "../converters/scheduler_configuration_helpers.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
 #include "ocudu/rlc/rlc_factory.h"
-#include "ocudu/rlc/rlc_rx.h"
 #include "ocudu/rlc/rlc_srb_config_factory.h"
 
 using namespace ocudu;

@@ -10,7 +10,8 @@
 #include "ocudu/ran/du_types.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
-#include <map>
+#include "ocudu/scheduler/config/ue_bwp_config.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
 namespace ocudu {
 
@@ -29,7 +30,7 @@ public:
   const cell_configuration& cell_cfg() const { return cell_cfg_inst; }
   cell_configuration&       cell_cfg() { return cell_cfg_inst; }
 
-  ue_cell_config_ptr update_ue(const serving_cell_config& ue_cell);
+  ue_cell_config_ptr update_ue(const ue_cell_config& ue_cell);
 
 private:
   void add_bwp(ue_cell_res_config&           out,
@@ -37,7 +38,8 @@ private:
                const bwp_downlink_common&    dl_bwp_common,
                const bwp_downlink_dedicated& dl_bwp_ded,
                const bwp_uplink_common*      ul_bwp_common,
-               const bwp_uplink_dedicated*   ul_bwp_ded);
+               const bwp_uplink_dedicated*   ul_bwp_ded,
+               const ue_bwp_config&          ue_bwp_cfg);
 
   /// Cell common configuration.
   cell_configuration cell_cfg_inst;
@@ -65,16 +67,16 @@ class du_cell_group_config_pool
 public:
   /// Creates handles to the resources associated with common cell configuration.
   cell_configuration& add_cell(const scheduler_expert_config&                  expert_cfg,
-                               const sched_cell_configuration_request_message& cell_cfg);
+                               const sched_cell_configuration_request_message& cell_cfg_req);
 
   /// Remove cell and respective resources.
   void rem_cell(du_cell_index_t cell_index);
 
   /// Creates handles to the resources associated with a specific UE during its creation.
-  ue_creation_params add_ue(const sched_ue_creation_request_message& creation_req);
+  ue_creation_params add_ue(const sched_ue_creation_request_message& ue_creation_req);
 
   /// Creates handles to the resources associated with a specific UE during its reconfiguration.
-  ue_reconfig_params reconf_ue(const sched_ue_reconfiguration_message& cfg_req);
+  ue_reconfig_params reconf_ue(const sched_ue_reconfiguration_message& ue_reconf_req);
 
 private:
   logical_channel_config_pool lc_ch_pool;

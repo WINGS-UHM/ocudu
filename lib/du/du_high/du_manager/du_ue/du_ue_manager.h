@@ -31,13 +31,13 @@ public:
   void handle_ue_create_request(const ul_ccch_indication_message& msg);
 
   /// \brief Handle the creation of a new UE context by F1AP request.
-  async_task<f1ap_ue_context_creation_response> handle_ue_create_request(const f1ap_ue_context_creation_request& msg);
+  async_task<f1ap_ue_context_creation_response> handle_ue_create_request(const f1ap_ue_context_creation_request& req);
 
   /// \brief Handle the update of an existing UE context by F1AP request.
-  async_task<f1ap_ue_context_update_response> handle_ue_config_request(const f1ap_ue_context_update_request& msg);
+  async_task<f1ap_ue_context_update_response> handle_ue_config_request(const f1ap_ue_context_update_request& req);
 
   /// \brief Handle the removal of an existing UE context by F1AP request.
-  async_task<void> handle_ue_delete_request(const f1ap_ue_delete_request& msg);
+  async_task<void> handle_ue_delete_request(const f1ap_ue_delete_request& req);
 
   /// \brief Handle the DRB deactivation of an existing UE context by F1AP request.
   async_task<void> handle_ue_drb_deactivation_request(du_ue_index_t ue_index);
@@ -47,7 +47,7 @@ public:
   void handle_ue_config_applied(du_ue_index_t ue_index);
 
   /// \brief Handle the configuration of an existing UE context by RIC request.
-  async_task<du_mac_sched_control_config_response> handle_ue_config_request(const du_mac_sched_control_config& msg);
+  async_task<du_mac_sched_control_config_response> handle_ue_config_request(const du_mac_sched_control_config& req);
 
   /// \brief Force the interruption of all UE activity.
   async_task<void> stop();

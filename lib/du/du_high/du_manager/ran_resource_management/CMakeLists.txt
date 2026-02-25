@@ -16,9 +16,9 @@ add_library(du_resource_manager
         du_srs_aperiodic_res_mng.cpp
         du_srs_manager_helpers.cpp
 )
-target_link_libraries(
-        du_resource_manager
+target_link_libraries(du_resource_manager
         du_manager_converters
         ocudu_du_config_validators
         mac_configuration_helpers
-        sched_config)
+        sched_config
+        sched_config_manager)

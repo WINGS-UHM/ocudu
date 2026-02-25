@@ -9,8 +9,8 @@
 #include "../procedures/ue_creation_procedure.h"
 #include "../procedures/ue_deletion_procedure.h"
 #include "ocudu/gtpu/gtpu_teid_pool_factory.h"
+#include "ocudu/mac/mac_pdu_handler.h"
 #include "ocudu/support/async/async_no_op_task.h"
-#include "ocudu/support/async/execute_on.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -64,33 +64,33 @@ void du_ue_manager::handle_ue_create_request(const ul_ccch_indication_message& m
 }
 
 async_task<f1ap_ue_context_creation_response>
-du_ue_manager::handle_ue_create_request(const f1ap_ue_context_creation_request& msg)
+du_ue_manager::handle_ue_create_request(const f1ap_ue_context_creation_request& req)
 {
-  ocudu_assert(msg.ue_index != INVALID_DU_UE_INDEX, "Invalid DU UE index");
+  ocudu_assert(req.ue_index != INVALID_DU_UE_INDEX, "Invalid DU UE index");
   ocudu_assert(
-      not ue_db.contains(msg.ue_index), "Creating a ue={} but it already exists", fmt::underlying(msg.ue_index));
+      not ue_db.contains(req.ue_index), "Creating a ue={} but it already exists", fmt::underlying(req.ue_index));
   if (stop_accepting_ues) {
     logger.info("ue={}: UE creation request ignored. Caused: The DU is being shut down.",
-                fmt::underlying(msg.ue_index));
+                fmt::underlying(req.ue_index));
     return launch_no_op_task(f1ap_ue_context_creation_response{false, rnti_t::INVALID_RNTI});
   }
 
   // Initiate UE creation procedure and respond back to F1AP with allocated C-RNTI.
-  return launch_async([this, msg](coro_context<async_task<f1ap_ue_context_creation_response>>& ctx) {
+  return launch_async([this, req](coro_context<async_task<f1ap_ue_context_creation_response>>& ctx) {
     CORO_BEGIN(ctx);
 
     CORO_AWAIT(launch_async<ue_creation_procedure>(
-        du_ue_creation_request{msg.ue_index, msg.pcell_index, rnti_t::INVALID_RNTI, {}}, *this, cfg, cell_res_alloc));
+        du_ue_creation_request{req.ue_index, req.pcell_index, rnti_t::INVALID_RNTI, {}}, *this, cfg, cell_res_alloc));
 
-    bool result = ue_db.contains(msg.ue_index);
-    CORO_RETURN(f1ap_ue_context_creation_response{result, result ? find_ue(msg.ue_index)->rnti : rnti_t::INVALID_RNTI});
+    bool result = ue_db.contains(req.ue_index);
+    CORO_RETURN(f1ap_ue_context_creation_response{result, result ? find_ue(req.ue_index)->rnti : rnti_t::INVALID_RNTI});
   });
 }
 
 async_task<f1ap_ue_context_update_response>
-du_ue_manager::handle_ue_config_request(const f1ap_ue_context_update_request& msg)
+du_ue_manager::handle_ue_config_request(const f1ap_ue_context_update_request& req)
 {
-  return launch_async<ue_configuration_procedure>(msg, *this, cell_mng, cfg);
+  return launch_async<ue_configuration_procedure>(req, *this, cell_mng, cfg);
 }
 
 async_task<void> du_ue_manager::handle_ue_delete_request(const f1ap_ue_delete_request& req)
@@ -111,7 +111,7 @@ async_task<void> du_ue_manager::handle_ue_drb_deactivation_request(du_ue_index_t
 void du_ue_manager::handle_reestablishment_request(du_ue_index_t new_ue_index, du_ue_index_t old_ue_index)
 {
   ocudu_assert(ue_db.contains(new_ue_index), "Invalid UE index={}", fmt::underlying(new_ue_index));
-  auto old_ue_it = find_ue(old_ue_index);
+  auto* old_ue_it = find_ue(old_ue_index);
   ocudu_assert(old_ue_it != nullptr, "Invalid UE index={}", fmt::underlying(old_ue_index));
   auto& new_ue = ue_db[new_ue_index];
 
@@ -139,9 +139,9 @@ void du_ue_manager::handle_ue_config_applied(du_ue_index_t ue_index)
 }
 
 async_task<du_mac_sched_control_config_response>
-du_ue_manager::handle_ue_config_request(const du_mac_sched_control_config& msg)
+du_ue_manager::handle_ue_config_request(const du_mac_sched_control_config& req)
 {
-  return launch_async<du_ue_ric_configuration_procedure>(msg, *this, cfg);
+  return launch_async<du_ue_ric_configuration_procedure>(req, *this, cfg);
 }
 
 async_task<void> du_ue_manager::stop()

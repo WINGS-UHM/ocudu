@@ -168,7 +168,7 @@ private:
     slot_context() : pucch_res_grid({}) {}
 
     slot_context(const cell_configuration& cell_cfg) :
-      current_state(pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES + cell_cfg.ded_pucch_resources.size()),
+      current_state(pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES + cell_cfg.init_bwp.ul.pucch.resources.size()),
       pucch_res_grid(cell_cfg.ul_cfg_common.freq_info_ul.scs_carrier_list)
     {
     }

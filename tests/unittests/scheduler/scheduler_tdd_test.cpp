@@ -5,7 +5,6 @@
 /// \file
 /// \brief Unit test for scheduler using different TDD patterns.
 
-#include "test_utils/indication_generators.h"
 #include "test_utils/scheduler_test_simulator.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
@@ -52,8 +51,9 @@ protected:
     ue_cfg.ue_index = ue_idx;
     ue_cfg.crnti    = ue_rnti;
     // Increase PUCCH Format 2 code rate to support TDD configuration of DDDDDDDDSU.
-    ocudu_assert((*ue_cfg.cfg.cells)[0].ul_config->init_ul_bwp.pucch_cfg.has_value(), "The PUCCH config is not set");
-    auto& pucch_cfg                             = (*ue_cfg.cfg.cells)[0].ul_config->init_ul_bwp.pucch_cfg.value();
+    ocudu_assert((*ue_cfg.cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value(),
+                 "The PUCCH config is not set");
+    auto& pucch_cfg = (*ue_cfg.cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value();
     pucch_cfg.format_2_common_param->max_c_rate = max_pucch_code_rate::dot_35;
     pucch_res_id_t any_res_f2_id                = pucch_cfg.pucch_res_set[1].pucch_res_id_list.front();
     auto*          res_f2                       = std::find_if(pucch_cfg.pucch_res_list.begin(),

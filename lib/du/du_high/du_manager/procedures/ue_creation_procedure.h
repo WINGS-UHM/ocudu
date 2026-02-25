@@ -7,7 +7,7 @@
 #include "../du_ue/du_ue.h"
 #include "../du_ue/du_ue_manager_repository.h"
 #include "procedure_logger.h"
-#include "ocudu/mac/mac.h"
+#include "ocudu/f1ap/du/f1ap_du_ue_config.h"
 #include "ocudu/mac/mac_ue_configurator.h"
 #include "ocudu/support/async/async_task.h"
 

@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_ue_ric_configuration_procedure.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/support/async/execute_on_blocking.h"

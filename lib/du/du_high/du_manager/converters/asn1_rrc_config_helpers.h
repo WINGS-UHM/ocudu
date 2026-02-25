@@ -7,6 +7,8 @@
 #include "../ran_resource_management/du_ue_resource_config.h"
 #include "ocudu/asn1/rrc_nr/cell_group_config.h"
 #include "ocudu/asn1/rrc_nr/rrc_nr.h"
+#include "ocudu/du/du_cell_config.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 
 namespace ocudu {
 namespace odu {

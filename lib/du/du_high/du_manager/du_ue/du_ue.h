@@ -8,6 +8,7 @@
 #include "../ran_resource_management/du_ue_resource_config.h"
 #include "du_ue_bearer_manager.h"
 #include "du_ue_cond_mobility_manager.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/rnti.h"
 

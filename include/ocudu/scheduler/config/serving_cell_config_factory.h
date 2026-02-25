@@ -12,6 +12,7 @@
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
 namespace ocudu {
 namespace config_helpers {
@@ -73,9 +74,8 @@ csi_meas_config make_csi_meas_config(const cell_config_builder_params_extended& 
 serving_cell_config
 create_default_initial_ue_serving_cell_config(const cell_config_builder_params_extended& params = {});
 
-/// \brief Creates a default UE PSCell configuration.
-serving_cell_config
-create_default_initial_ue_spcell_cell_config(const cell_config_builder_params_extended& params = {});
+/// \brief Creates a default UE Serving Cell configuration.
+ue_cell_config create_default_initial_ue_cell_config(const cell_config_builder_params_extended& params = {});
 
 /// \brief Computes maximum nof. candidates that can be accommodated in a CORESET for a given aggregation level.
 /// \return Maximum nof. candidates for a aggregation level.

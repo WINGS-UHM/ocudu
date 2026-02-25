@@ -6,7 +6,6 @@
 /// \brief In this file, we verify the correct operation of the MAC scheduler, as a whole, in case of DL/UL HARQ
 /// retransmissions. The objective is to cover and verify the integration of the scheduler building blocks.
 
-#include "test_utils/config_generators.h"
 #include "test_utils/indication_generators.h"
 #include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_simulator.h"
@@ -148,7 +147,7 @@ TEST_F(scheduler_missing_ack_tester, when_no_harq_ack_arrives_then_harq_eventual
   sched_ue_creation_request_message ue_create_req = sched_config_helper::create_default_sched_ue_creation_request();
   ue_create_req.crnti                             = rnti;
   ue_create_req.ue_index                          = to_du_ue_index(0);
-  (*ue_create_req.cfg.cells)[0].pdsch_serv_cell_cfg->nof_harq_proc =
+  (*ue_create_req.cfg.cells)[0].serv_cell_cfg.pdsch_serv_cell_cfg->nof_harq_proc =
       (pdsch_serving_cell_config::nof_harq_proc_for_pdsch)nof_harqs;
   bench.add_ue(ue_create_req);
 

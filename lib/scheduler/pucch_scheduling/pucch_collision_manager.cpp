@@ -140,7 +140,7 @@ cell_resource_list make_cell_resource_list(const cell_configuration& cell_cfg)
   for (unsigned r_pucch = 0; r_pucch != pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES; ++r_pucch) {
     all_resources.push_back(make_common_resource_info(common_default_res, r_pucch, init_ul_bwp_cfg));
   }
-  for (const auto& res : cell_cfg.ded_pucch_resources) {
+  for (const auto& res : cell_cfg.init_bwp.ul.pucch.resources) {
     all_resources.push_back(make_ded_resource_info(res, init_ul_bwp_cfg));
   }
 
@@ -273,10 +273,10 @@ bool pucch_collision_manager::free_ded(cell_slot_resource_grid& ul_res_grid, slo
 
 unsigned pucch_collision_manager::get_ded_idx(unsigned cell_res_id) const
 {
-  ocudu_assert(cell_res_id < cell_cfg.ded_pucch_resources.size(),
+  ocudu_assert(cell_res_id < cell_cfg.init_bwp.ul.pucch.resources.size(),
                "Dedicated PUCCH resource index {} exceeds the maximum allowed {}.",
                cell_res_id,
-               cell_cfg.ded_pucch_resources.size());
+               cell_cfg.init_bwp.ul.pucch.resources.size());
   return pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES + cell_res_id;
 }
 

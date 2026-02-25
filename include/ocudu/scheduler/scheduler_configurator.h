@@ -7,21 +7,15 @@
 #include "ocudu/ran/drx_config.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/meas_gap_config.h"
-#include "ocudu/ran/phy_time_unit.h"
-#include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/rrm.h"
-#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
-#include "ocudu/ran/sr_configuration.h"
-#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
-#include "ocudu/ran/time_alignment_config.h"
-#include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/logical_channel_config.h"
 #include "ocudu/scheduler/config/ran_cell_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/si_scheduling_config.h"
 #include "ocudu/scheduler/config/slice_rrm_policy_config.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
 
 namespace ocudu {
 
@@ -73,12 +67,18 @@ struct sched_ue_resource_alloc_config {
   rrm_policy_ratio_group rrm_policy_group;
 };
 
+struct ue_cell_config {
+  serving_cell_config serv_cell_cfg;
+  // List of BWP configurations for this UE in this cell.
+  std::vector<ue_bwp_config> bwps;
+};
+
 /// Request for a new UE configuration provided to the scheduler during UE creation or reconfiguration.
 struct sched_ue_config_request {
   /// List of configured Logical Channels. See \c mac-LogicalChannelConfig, TS38.331.
   std::optional<std::vector<logical_channel_config>> lc_config_list;
   /// UE-dedicated configuration for the PCell and SCells.
-  std::optional<std::vector<serving_cell_config>> cells;
+  std::optional<std::vector<ue_cell_config>> cells;
   /// Resource allocation configuration for the given UE.
   std::optional<sched_ue_resource_alloc_config> res_alloc_cfg;
   /// DRX-Config.

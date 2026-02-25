@@ -1,0 +1,80 @@
+/*
+ *
+ * Copyright 2021-2026 Software Radio Systems Limited
+ *
+ * By using this file, you agree to the terms and conditions set
+ * forth in the LICENSE file which can be found at the top level of
+ * the distribution.
+ *
+ */
+
+#pragma once
+
+#include "ocudu/ran/pusch/tx_scheme_configuration.h"
+#include "ocudu/ran/srs/srs_configuration.h"
+#include <optional>
+
+namespace ocudu {
+
+/// \brief UE-specific information related to PUCCH configuration.
+struct ue_pucch_config {
+  unsigned res_set_cfg;
+  unsigned sr_res;
+  unsigned sr_offset;
+
+  bool operator==(const ue_pucch_config& other) const
+  {
+    return res_set_cfg == other.res_set_cfg and sr_res == other.sr_res and sr_offset == other.sr_offset;
+  }
+};
+
+/// \brief UE-specific information related to periodic CSI reporting configuration.
+struct ue_periodic_csi_config {
+  unsigned pucch_res;
+  unsigned offset;
+
+  bool operator==(const ue_periodic_csi_config& other) const
+  {
+    return pucch_res == other.pucch_res and offset == other.offset;
+  }
+};
+
+struct ue_pusch_config {
+  tx_scheme_codebook tx_cfg;
+  /// Whether to enable TP?
+
+  bool operator==(const ue_pusch_config& other) const { return tx_cfg == other.tx_cfg; }
+};
+
+struct ue_srs_config {
+  srs_config::srs_resource::nof_srs_ports nof_ports;
+  /// Offset (periodicity is common).
+
+  bool operator==(const ue_srs_config& other) const { return nof_ports == other.nof_ports; }
+};
+
+/// \brief UE-specific information of an UL BWP configuration.
+///
+/// This structure contains all the UL BWP parameters that may vary per UE. Together with \ref
+/// cell_uplink_bwp_config, it defines the complete configuration of a BWP for a specific UE.
+///
+/// \remark Only meaningful when associated to its \ref cell_uplink_bwp_config.
+struct ue_uplink_bwp_config {
+  ue_pucch_config pucch;
+  // Only present if periodic CSI reporting is enabled in the cell.
+  std::optional<ue_periodic_csi_config> periodic_csi_report;
+  ue_pusch_config                       pusch;
+  ue_srs_config                         srs;
+
+  bool operator==(const ue_uplink_bwp_config& other) const
+  {
+    return pucch == other.pucch and periodic_csi_report == other.periodic_csi_report and pusch == other.pusch and
+           srs == other.srs;
+  }
+};
+
+struct ue_bwp_config {
+  ue_uplink_bwp_config ul;
+};
+
+} // namespace ocudu

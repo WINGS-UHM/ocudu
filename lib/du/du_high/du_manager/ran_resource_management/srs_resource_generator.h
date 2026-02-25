@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "du_ue_resource_config.h"
+#include "ocudu/du/du_cell_config.h"
 
 namespace ocudu::odu {
 

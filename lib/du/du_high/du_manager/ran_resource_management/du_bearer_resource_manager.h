@@ -5,6 +5,10 @@
 #pragma once
 
 #include "du_ue_resource_config.h"
+#include "ocudu/du/du_high/du_qos_config.h"
+#include "ocudu/du/du_high/du_srb_config.h"
+#include "ocudu/f1ap/ue_context_management_configs.h"
+#include <map>
 
 namespace ocudu {
 namespace odu {

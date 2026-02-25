@@ -6,6 +6,7 @@
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/resource_block.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
@@ -53,9 +54,7 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   dmrs_typeA_pos(msg.ran.dmrs_typeA_pos),
   ul_carrier(msg.ran.ul_carrier),
   init_bwp_res(pci, to_bwp_id(0), dl_cfg_common.init_dl_bwp, nullptr),
-  ded_pucch_resources(
-      config_helpers::build_pucch_resource_list(msg.ran.init_bwp_builder.pucch.resources,
-                                                msg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length())),
+  init_bwp(make_cell_bwp_config(msg.ran)),
   zp_csi_rs_list(make_zp_csi_rs_list(msg.ran)),
   nzp_csi_rs_list(make_nzp_csi_rs_list(msg.ran)),
   dl_data_to_ul_ack(time_domain_resource_helper::generate_k1_candidates(msg.ran.tdd_ul_dl_cfg_common,

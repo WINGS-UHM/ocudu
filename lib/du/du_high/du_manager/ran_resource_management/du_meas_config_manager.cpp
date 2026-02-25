@@ -90,7 +90,8 @@ void du_meas_config_manager::update(du_ue_resource_config& ue_cfg, const byte_bu
     return;
   }
 
-  const du_cell_config& pcell_common = cell_cfg_list[ue_cfg.cell_group.cells.at(SERVING_PCELL_IDX).cell_index];
+  const du_cell_config& pcell_common =
+      cell_cfg_list[ue_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.cell_index];
 
   for (const auto& asn1measobj : meas_cfg.meas_obj_to_add_mod_list) {
     if (asn1measobj.meas_obj.type().value != meas_obj_to_add_mod_s::meas_obj_c_::types_opts::meas_obj_nr) {

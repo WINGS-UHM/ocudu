@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include "../support/pdcch/search_space_helper.h"
 #include "ocudu/adt/slotted_vector.h"
-#include "ocudu/scheduler/scheduler_configurator.h"
+#include "ocudu/ran/pdcch/aggregation_level.h"
+#include "ocudu/ran/pdcch/pdcch_constants.h"
+#include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 
 namespace ocudu {
 

@@ -16,7 +16,7 @@ using namespace ocudu;
 static odu::du_ue_resource_config make_initial_du_ue_resource_config()
 {
   odu::du_ue_resource_config dest_cfg{};
-  dest_cfg.cell_group.cells.emplace(SERVING_PCELL_IDX, config_helpers::create_default_initial_ue_spcell_cell_config());
+  dest_cfg.cell_group.cells.emplace(SERVING_PCELL_IDX, config_helpers::create_default_initial_ue_cell_config());
   dest_cfg.cell_group.mcg_cfg = config_helpers::make_initial_mac_cell_group_config();
   return dest_cfg;
 }
@@ -114,7 +114,7 @@ TEST(serving_cell_config_converter_test, test_default_initial_ue_pdcch_cfg_conve
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.init_dl_bwp_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.init_dl_bwp.pdcch_cfg_present, dest_sp_cell_cfg_ded.init_dl_bwp.pdcch_cfg.has_value());
@@ -136,7 +136,7 @@ TEST(serving_cell_config_converter_test, test_ue_pdcch_cfg_release_conversion)
 {
   auto                       src_cfg  = make_initial_du_ue_resource_config();
   odu::du_ue_resource_config dest_cfg = make_initial_du_ue_resource_config();
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).init_dl_bwp.pdcch_cfg.reset();
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.init_dl_bwp.pdcch_cfg.reset();
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
 
@@ -144,7 +144,7 @@ TEST(serving_cell_config_converter_test, test_ue_pdcch_cfg_release_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.init_dl_bwp_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.init_dl_bwp.pdcch_cfg_present,
@@ -163,7 +163,7 @@ TEST(serving_cell_config_converter_test, test_default_initial_ue_pdsch_cfg_conve
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.init_dl_bwp_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.init_dl_bwp.pdsch_cfg_present, dest_sp_cell_cfg_ded.init_dl_bwp.pdsch_cfg.has_value());
@@ -197,7 +197,7 @@ TEST(serving_cell_config_converter_test, test_ue_pdsch_cfg_release_conversion)
 {
   odu::du_ue_resource_config dest_cfg = make_initial_du_ue_resource_config();
   auto                       src_cfg  = dest_cfg;
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).init_dl_bwp.pdsch_cfg.reset();
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.init_dl_bwp.pdsch_cfg.reset();
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
 
@@ -205,7 +205,7 @@ TEST(serving_cell_config_converter_test, test_ue_pdsch_cfg_release_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.init_dl_bwp_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.init_dl_bwp.pdsch_cfg_present,
@@ -219,7 +219,7 @@ TEST(serving_cell_config_converter_test, test_ue_custom_pdsch_cfg_conversion)
   auto                       src_cfg = make_initial_du_ue_resource_config();
   odu::du_ue_resource_config dest_cfg{src_cfg};
   // Add new configuration to be setup.
-  auto& dest_pdsch_cfg = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).init_dl_bwp.pdsch_cfg.value();
+  auto& dest_pdsch_cfg = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.init_dl_bwp.pdsch_cfg.value();
   dest_pdsch_cfg.tci_states.push_back(tci_state{
       .state_id  = static_cast<tci_state_id_t>(1),
       .qcl_type1 = {.ref_sig  = {.type   = qcl_info::reference_signal::reference_signal_type::csi_rs,
@@ -236,7 +236,7 @@ TEST(serving_cell_config_converter_test, test_ue_custom_pdsch_cfg_conversion)
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.init_dl_bwp_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.init_dl_bwp.pdsch_cfg_present, dest_sp_cell_cfg_ded.init_dl_bwp.pdsch_cfg.has_value());
@@ -261,7 +261,7 @@ TEST(serving_cell_config_converter_test, test_default_initial_ue_uplink_cfg_conv
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_EQ(rrc_sp_cell_cfg_ded.ul_cfg_present, dest_sp_cell_cfg_ded.ul_config.has_value());
 
@@ -322,7 +322,7 @@ TEST(serving_cell_config_converter_test, test_default_initial_ue_dl_bwp_conversi
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_EQ(rrc_sp_cell_cfg_ded.dl_bwp_to_add_mod_list.size(), dest_sp_cell_cfg_ded.dl_bwps.size());
   ASSERT_EQ(rrc_sp_cell_cfg_ded.dl_bwp_to_release_list.size(), 0);
@@ -338,7 +338,7 @@ TEST(serving_cell_config_converter_test, test_default_initial_ue_pucch_cfg_conve
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg_present);
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp_present);
@@ -391,7 +391,7 @@ TEST(serving_cell_config_converter_test, test_ue_custom_pucch_cfg_conversion)
   odu::du_ue_resource_config dest_cfg{src_cfg};
   // Add new configuration to be setup. Assume PUCCH Config is present in initial cell group config.
   auto& dest_pucch_cfg =
-      dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.pucch_cfg.value();
+      dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
 
   // >> PUCCH Resource Set 1.
   dest_pucch_cfg.pucch_res_set.emplace_back();
@@ -451,7 +451,7 @@ TEST(serving_cell_config_converter_test, test_ue_custom_pucch_cfg_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg_present);
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp_present);
@@ -493,7 +493,7 @@ TEST(serving_cell_config_converter_test, test_ue_pucch_cfg_release_conversion)
 {
   auto                       src_cfg = make_initial_du_ue_resource_config();
   odu::du_ue_resource_config dest_cfg{src_cfg};
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.pucch_cfg.reset();
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.reset();
 
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
@@ -502,7 +502,7 @@ TEST(serving_cell_config_converter_test, test_ue_pucch_cfg_release_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg_present);
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp_present);
@@ -515,7 +515,8 @@ TEST(serving_cell_config_converter_test, test_ue_pucch_cfg_release_conversion)
 TEST(serving_cell_config_converter_test, test_initial_pusch_cfg_conversion)
 {
   auto dest_cfg = make_initial_du_ue_resource_config();
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.pusch_cfg = make_initial_pusch_config();
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.pusch_cfg =
+      make_initial_pusch_config();
 
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, {}, dest_cfg);
@@ -524,7 +525,7 @@ TEST(serving_cell_config_converter_test, test_initial_pusch_cfg_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg_present);
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp_present);
@@ -579,11 +580,12 @@ TEST(serving_cell_config_converter_test, test_initial_pusch_cfg_conversion)
 TEST(serving_cell_config_converter_test, test_ue_custom_pusch_cfg_conversion)
 {
   auto src_cfg = make_initial_du_ue_resource_config();
-  src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.pusch_cfg = make_initial_pusch_config();
+  src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.pusch_cfg =
+      make_initial_pusch_config();
 
   odu::du_ue_resource_config dest_cfg{src_cfg};
   auto&                      dest_pusch_cfg =
-      dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.pusch_cfg.value();
+      dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.pusch_cfg.value();
   // Add new/remove configurations.
   dest_pusch_cfg.pusch_mapping_type_a_dmrs.emplace();
   dest_pusch_cfg.pusch_mapping_type_a_dmrs.value().trans_precoder_enabled.emplace(
@@ -625,7 +627,7 @@ TEST(serving_cell_config_converter_test, test_ue_custom_pusch_cfg_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg_present);
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp_present);
@@ -670,9 +672,10 @@ TEST(serving_cell_config_converter_test, test_ue_custom_pusch_cfg_conversion)
 TEST(serving_cell_config_converter_test, test_ue_pusch_cfg_release_conversion)
 {
   auto src_cfg = make_initial_du_ue_resource_config();
-  src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.pusch_cfg = make_initial_pusch_config();
+  src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.pusch_cfg =
+      make_initial_pusch_config();
   odu::du_ue_resource_config dest_cfg{src_cfg};
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.pusch_cfg.reset();
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.pusch_cfg.reset();
 
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
@@ -681,7 +684,7 @@ TEST(serving_cell_config_converter_test, test_ue_pusch_cfg_release_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg_present);
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp_present);
@@ -694,7 +697,8 @@ TEST(serving_cell_config_converter_test, test_ue_pusch_cfg_release_conversion)
 TEST(serving_cell_config_converter_test, test_initial_srs_cfg_conversion)
 {
   auto dest_cfg = make_initial_du_ue_resource_config();
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.srs_cfg = make_initial_srs_config();
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg =
+      make_initial_srs_config();
 
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, {}, dest_cfg);
@@ -703,7 +707,7 @@ TEST(serving_cell_config_converter_test, test_initial_srs_cfg_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg_present);
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp_present);
@@ -726,10 +730,12 @@ TEST(serving_cell_config_converter_test, test_initial_srs_cfg_conversion)
 TEST(serving_cell_config_converter_test, test_ue_custom_srs_cfg_conversion)
 {
   auto src_cfg = make_initial_du_ue_resource_config();
-  src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.srs_cfg = make_initial_srs_config();
+  src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg =
+      make_initial_srs_config();
 
   odu::du_ue_resource_config dest_cfg{src_cfg};
-  auto& dest_pusch_cfg = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.srs_cfg.value();
+  auto&                      dest_pusch_cfg =
+      dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
   // Add new/remove configurations.
   srs_config::srs_resource_set::semi_persistent_resource_type semi_persistent_resource;
   semi_persistent_resource.associated_csi_rs = static_cast<nzp_csi_rs_res_id_t>(1);
@@ -775,7 +781,7 @@ TEST(serving_cell_config_converter_test, test_ue_custom_srs_cfg_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg_present);
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp_present);
@@ -796,9 +802,10 @@ TEST(serving_cell_config_converter_test, test_ue_custom_srs_cfg_conversion)
 TEST(serving_cell_config_converter_test, test_ue_srs_cfg_release_conversion)
 {
   auto src_cfg = make_initial_du_ue_resource_config();
-  src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.srs_cfg = make_initial_srs_config();
+  src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg =
+      make_initial_srs_config();
   odu::du_ue_resource_config dest_cfg{src_cfg};
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).ul_config.value().init_ul_bwp.srs_cfg.reset();
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.reset();
 
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
@@ -807,7 +814,7 @@ TEST(serving_cell_config_converter_test, test_ue_srs_cfg_release_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg_present);
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.ul_cfg.init_ul_bwp_present);
@@ -821,7 +828,7 @@ TEST(serving_cell_config_converter_test, test_initial_pdsch_serving_cell_cfg_con
 {
   auto dest_cfg = make_initial_du_ue_resource_config();
 
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).pdsch_serv_cell_cfg->nof_harq_proc =
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.pdsch_serv_cell_cfg->nof_harq_proc =
       pdsch_serving_cell_config::nof_harq_proc_for_pdsch::n8;
 
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
@@ -831,7 +838,7 @@ TEST(serving_cell_config_converter_test, test_initial_pdsch_serving_cell_cfg_con
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.pdsch_serving_cell_cfg_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.pdsch_serving_cell_cfg_present, dest_sp_cell_cfg_ded.pdsch_serv_cell_cfg.has_value());
@@ -849,7 +856,8 @@ TEST(serving_cell_config_converter_test, test_custom_pdsch_serving_cell_cfg_conv
   auto src_cfg = make_initial_du_ue_resource_config();
 
   odu::du_ue_resource_config dest_cfg{src_cfg};
-  auto& dest_pdsch_serving_cell_cfg = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).pdsch_serv_cell_cfg.value();
+  auto&                      dest_pdsch_serving_cell_cfg =
+      dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.pdsch_serv_cell_cfg.value();
   // Add new/remove configurations. Need not be valid configuration.
   dest_pdsch_serving_cell_cfg.code_block_group_tx.emplace(pdsch_code_block_group_transmission{
       .max_cbg_per_tb                   = pdsch_code_block_group_transmission::max_code_block_groups_per_tb::n8,
@@ -867,7 +875,7 @@ TEST(serving_cell_config_converter_test, test_custom_pdsch_serving_cell_cfg_conv
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.pdsch_serving_cell_cfg_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.pdsch_serving_cell_cfg_present, dest_sp_cell_cfg_ded.pdsch_serv_cell_cfg.has_value());
@@ -886,7 +894,7 @@ TEST(serving_cell_config_converter_test, test_pdsch_serving_cell_cfg_release_con
 {
   auto                       src_cfg = make_initial_du_ue_resource_config();
   odu::du_ue_resource_config dest_cfg{src_cfg};
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).pdsch_serv_cell_cfg.reset();
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.pdsch_serv_cell_cfg.reset();
 
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
@@ -895,7 +903,7 @@ TEST(serving_cell_config_converter_test, test_pdsch_serving_cell_cfg_release_con
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.pdsch_serving_cell_cfg_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.pdsch_serving_cell_cfg_present,
@@ -919,8 +927,8 @@ TEST(serving_cell_config_converter_test, test_initial_csi_meas_cfg_conversion)
 {
   auto dest_cfg = make_initial_du_ue_resource_config();
 
-  if (not dest_cfg.cell_group.cells.begin()->second.csi_meas_cfg.has_value()) {
-    dest_cfg.cell_group.cells.begin()->second.csi_meas_cfg = make_test_csi_meas_cfg();
+  if (not dest_cfg.cell_group.cells.begin()->second.serv_cell_cfg.csi_meas_cfg.has_value()) {
+    dest_cfg.cell_group.cells.begin()->second.serv_cell_cfg.csi_meas_cfg = make_test_csi_meas_cfg();
   }
 
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
@@ -930,7 +938,7 @@ TEST(serving_cell_config_converter_test, test_initial_csi_meas_cfg_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.csi_meas_cfg_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.csi_meas_cfg_present, dest_sp_cell_cfg_ded.csi_meas_cfg.has_value());
@@ -969,16 +977,16 @@ TEST(serving_cell_config_converter_test, test_initial_csi_meas_cfg_conversion)
 TEST(serving_cell_config_converter_test, test_custom_csi_meas_cfg_conversion)
 {
   auto src_cfg = make_initial_du_ue_resource_config();
-  if (not src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).csi_meas_cfg.has_value()) {
-    src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).csi_meas_cfg = make_test_csi_meas_cfg();
+  if (not src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.csi_meas_cfg.has_value()) {
+    src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.csi_meas_cfg = make_test_csi_meas_cfg();
   }
-  auto& src_meas = src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).csi_meas_cfg.value();
+  auto& src_meas = src_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.csi_meas_cfg.value();
   src_meas.nzp_csi_rs_res_list.resize(1);
   src_meas.nzp_csi_rs_res_set_list.resize(1);
   src_meas.csi_res_cfg_list.resize(1);
 
   odu::du_ue_resource_config dest_cfg{src_cfg};
-  auto&                      dest_csi_meas_cfg = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).csi_meas_cfg.value();
+  auto& dest_csi_meas_cfg = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.csi_meas_cfg.value();
   // Add new/remove configurations. Configuration need not be valid.
   // Resource 1.
   dest_csi_meas_cfg.nzp_csi_rs_res_list.push_back(dest_csi_meas_cfg.nzp_csi_rs_res_list[0]);
@@ -1145,7 +1153,7 @@ TEST(serving_cell_config_converter_test, test_custom_csi_meas_cfg_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.csi_meas_cfg_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.csi_meas_cfg_present, dest_sp_cell_cfg_ded.csi_meas_cfg.has_value());
@@ -1184,12 +1192,12 @@ TEST(serving_cell_config_converter_test, test_csi_meas_cfg_release_conversion)
 {
   auto src_cfg = make_initial_du_ue_resource_config();
 
-  if (not src_cfg.cell_group.cells.begin()->second.csi_meas_cfg.has_value()) {
-    src_cfg.cell_group.cells.begin()->second.csi_meas_cfg = make_test_csi_meas_cfg();
+  if (not src_cfg.cell_group.cells.begin()->second.serv_cell_cfg.csi_meas_cfg.has_value()) {
+    src_cfg.cell_group.cells.begin()->second.serv_cell_cfg.csi_meas_cfg = make_test_csi_meas_cfg();
   }
 
   odu::du_ue_resource_config dest_cfg{src_cfg};
-  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).csi_meas_cfg.reset();
+  dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.csi_meas_cfg.reset();
 
   asn1::rrc_nr::cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
@@ -1198,7 +1206,7 @@ TEST(serving_cell_config_converter_test, test_csi_meas_cfg_release_conversion)
   ASSERT_TRUE(rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
   auto& rrc_sp_cell_cfg_ded  = rrc_cell_grp_cfg.sp_cell_cfg.sp_cell_cfg_ded;
-  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  auto& dest_sp_cell_cfg_ded = dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
 
   ASSERT_TRUE(rrc_sp_cell_cfg_ded.csi_meas_cfg_present);
   ASSERT_EQ(rrc_sp_cell_cfg_ded.csi_meas_cfg_present, not dest_sp_cell_cfg_ded.csi_meas_cfg.has_value());
@@ -1215,7 +1223,7 @@ TEST(serving_cell_config_converter_test, test_rlm_cfg_conversion)
     ASSERT_TRUE(cell_gr_cfg.sp_cell_cfg_present);
     ASSERT_TRUE(cell_gr_cfg.sp_cell_cfg.sp_cell_cfg_ded_present);
 
-    auto& rrc_sp_cell_cfg_ded = cell_gr_cfg.sp_cell_cfg.sp_cell_cfg_ded;
+    const auto& rrc_sp_cell_cfg_ded = cell_gr_cfg.sp_cell_cfg.sp_cell_cfg_ded;
     ASSERT_TRUE(rrc_sp_cell_cfg_ded.init_dl_bwp_present);
     ASSERT_TRUE(rrc_sp_cell_cfg_ded.init_dl_bwp.radio_link_monitoring_cfg_present);
     ASSERT_TRUE(rrc_sp_cell_cfg_ded.init_dl_bwp.radio_link_monitoring_cfg.is_setup());
@@ -1266,8 +1274,8 @@ TEST(serving_cell_config_converter_test, test_rlm_cfg_conversion)
 
   auto src_cfg = make_initial_du_ue_resource_config();
 
-  if (not src_cfg.cell_group.cells.begin()->second.csi_meas_cfg.has_value()) {
-    src_cfg.cell_group.cells.begin()->second.csi_meas_cfg = make_test_csi_meas_cfg();
+  if (not src_cfg.cell_group.cells.begin()->second.serv_cell_cfg.csi_meas_cfg.has_value()) {
+    src_cfg.cell_group.cells.begin()->second.serv_cell_cfg.csi_meas_cfg = make_test_csi_meas_cfg();
   }
 
   odu::du_ue_resource_config dest_cfg{src_cfg};
@@ -1278,8 +1286,9 @@ TEST(serving_cell_config_converter_test, test_rlm_cfg_conversion)
   rlm_helper::rlm_builder_params rlm_params(rlm_resource_type::ssb, L_max, ssb_bitmap_t(0b1000, L_max), ssb_ids);
 
   dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX)
-      .init_dl_bwp.rlm_cfg.emplace(rlm_helper::make_radio_link_monitoring_config(
-          rlm_params, dest_cfg.cell_group.cells.begin()->second.csi_meas_cfg.value().nzp_csi_rs_res_list));
+      .serv_cell_cfg.init_dl_bwp.rlm_cfg.emplace(rlm_helper::make_radio_link_monitoring_config(
+          rlm_params,
+          dest_cfg.cell_group.cells.begin()->second.serv_cell_cfg.csi_meas_cfg.value().nzp_csi_rs_res_list));
 
   cell_group_cfg_s rrc_cell_grp_cfg;
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
@@ -1296,8 +1305,9 @@ TEST(serving_cell_config_converter_test, test_rlm_cfg_conversion)
   src_cfg = dest_cfg;
 
   dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX)
-      .init_dl_bwp.rlm_cfg.emplace(rlm_helper::make_radio_link_monitoring_config(
-          rlm_params, dest_cfg.cell_group.cells.begin()->second.csi_meas_cfg.value().nzp_csi_rs_res_list));
+      .serv_cell_cfg.init_dl_bwp.rlm_cfg.emplace(rlm_helper::make_radio_link_monitoring_config(
+          rlm_params,
+          dest_cfg.cell_group.cells.begin()->second.serv_cell_cfg.csi_meas_cfg.value().nzp_csi_rs_res_list));
 
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
 
@@ -1318,8 +1328,9 @@ TEST(serving_cell_config_converter_test, test_rlm_cfg_conversion)
   src_cfg = dest_cfg;
 
   dest_cfg.cell_group.cells.at(SERVING_PCELL_IDX)
-      .init_dl_bwp.rlm_cfg.emplace(rlm_helper::make_radio_link_monitoring_config(
-          rlm_params, dest_cfg.cell_group.cells.begin()->second.csi_meas_cfg.value().nzp_csi_rs_res_list));
+      .serv_cell_cfg.init_dl_bwp.rlm_cfg.emplace(rlm_helper::make_radio_link_monitoring_config(
+          rlm_params,
+          dest_cfg.cell_group.cells.begin()->second.serv_cell_cfg.csi_meas_cfg.value().nzp_csi_rs_res_list));
 
   odu::calculate_cell_group_config_diff(rrc_cell_grp_cfg, src_cfg, dest_cfg);
 

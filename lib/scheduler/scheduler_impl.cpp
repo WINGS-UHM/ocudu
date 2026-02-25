@@ -4,7 +4,6 @@
 
 #include "scheduler_impl.h"
 #include "ue_scheduling/ue_scheduler_impl.h"
-#include "ocudu/scheduler/config/scheduler_cell_config_validator.h"
 #include "ocudu/support/rtsan.h"
 
 using namespace ocudu;

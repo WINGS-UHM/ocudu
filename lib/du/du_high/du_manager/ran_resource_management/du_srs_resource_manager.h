@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include "srs_resource_generator.h"
-#include "ocudu/du/du_cell_config.h"
-#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/ran/du_types.h"
 
 namespace ocudu {
 namespace odu {

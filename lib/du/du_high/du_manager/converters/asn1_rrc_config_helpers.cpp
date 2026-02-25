@@ -3298,9 +3298,9 @@ void ocudu::odu::calculate_cell_group_config_diff(asn1::rrc_nr::cell_group_cfg_s
   if (dest.cell_group.cells.contains(SERVING_PCELL_IDX)) {
     out.sp_cell_cfg.sp_cell_cfg_ded_present = calculate_serving_cell_config_diff(
         out.sp_cell_cfg.sp_cell_cfg_ded,
-        src.cell_group.cells.contains(SERVING_PCELL_IDX) ? src.cell_group.cells.at(SERVING_PCELL_IDX)
+        src.cell_group.cells.contains(SERVING_PCELL_IDX) ? src.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg
                                                          : serving_cell_config{},
-        dest.cell_group.cells.at(SERVING_PCELL_IDX));
+        dest.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg);
 
     out.sp_cell_cfg_present = out.sp_cell_cfg.sp_cell_cfg_ded_present;
   }

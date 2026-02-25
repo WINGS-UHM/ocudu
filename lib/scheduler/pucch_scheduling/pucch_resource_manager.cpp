@@ -37,9 +37,10 @@ static pucch_res_id_t get_csi_res_id(const ue_cell_configuration& ue_cell_cfg)
 pucch_resource_manager::pucch_resource_manager(const cell_configuration& cell_cfg_) :
   cell_cfg(cell_cfg_),
   collision_manager(cell_cfg_),
-  slots_ctx(get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg_.ntn_cs_koffset)),
-            {static_vector<rnti_t, pucch_constants::MAX_NOF_CELL_DED_RESOURCES>(cell_cfg_.ded_pucch_resources.size(),
-                                                                                rnti_t::INVALID_RNTI)})
+  slots_ctx(
+      get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg_.ntn_cs_koffset)),
+      {static_vector<rnti_t, pucch_constants::MAX_NOF_CELL_DED_RESOURCES>(cell_cfg_.init_bwp.ul.pucch.resources.size(),
+                                                                          rnti_t::INVALID_RNTI)})
 {
 }
 
@@ -202,7 +203,7 @@ const pucch_resource* pucch_resource_manager::ue_reservation_guard::peek_sr_reso
   // We assume each UE only has 1 SR Resource Config configured.
   ocudu_sanity_check(pucch_cfg.sr_res_list.size() == 1, "UE SR resource list must have size 1.");
   const pucch_res_id_t res_id = pucch_cfg.sr_res_list[0].pucch_res_id;
-  ocudu_assert(res_id.cell_res_id < parent->cell_cfg.ded_pucch_resources.size(),
+  ocudu_assert(res_id.cell_res_id < parent->cell_cfg.init_bwp.ul.pucch.resources.size(),
                "rnti={}: SR PUCCH resource index exceeds the size of the cell resource array",
                rnti);
 
@@ -215,7 +216,7 @@ const pucch_resource* pucch_resource_manager::ue_reservation_guard::peek_csi_res
 
   // Get CSI specific PUCCH resource ID from the CSI meas config.
   const pucch_res_id_t res_id = get_csi_res_id(ue_cfg);
-  ocudu_assert(res_id.cell_res_id < parent->cell_cfg.ded_pucch_resources.size(),
+  ocudu_assert(res_id.cell_res_id < parent->cell_cfg.init_bwp.ul.pucch.resources.size(),
                "rnti={}: CSI PUCCH resource index exceeds the size of the cell resource array",
                rnti);
 

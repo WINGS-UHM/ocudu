@@ -352,7 +352,7 @@ protected:
     // Set alpha value for Fractional path-loss compensation.
     ue_req.cfg.cells.value()
         .front()
-        .ul_config.value()
+        .serv_cell_cfg.ul_config.value()
         .init_ul_bwp.pusch_cfg.value()
         .pusch_pwr_ctrl.value()
         .p0_alphasets.front()
@@ -368,7 +368,7 @@ protected:
         static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
                          static_cast<int>(ue_req.cfg.cells.value()
                                               .front()
-                                              .ul_config.value()
+                                              .serv_cell_cfg.ul_config.value()
                                               .init_ul_bwp.pusch_cfg.value()
                                               .pusch_pwr_ctrl.value()
                                               .p0_alphasets.front()
@@ -557,7 +557,7 @@ protected:
     // Set alpha value for Fractional path-loss compensation.
     ue_req.cfg.cells.value()
         .front()
-        .ul_config.value()
+        .serv_cell_cfg.ul_config.value()
         .init_ul_bwp.pusch_cfg.value()
         .pusch_pwr_ctrl.value()
         .p0_alphasets.front()
@@ -569,7 +569,7 @@ protected:
         static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
                          static_cast<int>(ue_req.cfg.cells.value()
                                               .front()
-                                              .ul_config.value()
+                                              .serv_cell_cfg.ul_config.value()
                                               .init_ul_bwp.pusch_cfg.value()
                                               .pusch_pwr_ctrl.value()
                                               .p0_alphasets.front()

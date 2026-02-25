@@ -6,20 +6,18 @@
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 #include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
 #include "ocudu/ran/pdcch/search_space.h"
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_helper.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_info.h"
-#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
 #include <algorithm>
-#include <set>
 #include <vector>
 
 using namespace ocudu;
@@ -650,10 +648,26 @@ ocudu::config_helpers::create_default_initial_ue_serving_cell_config(const cell_
   return serv_cell;
 }
 
-serving_cell_config
-ocudu::config_helpers::create_default_initial_ue_spcell_cell_config(const cell_config_builder_params_extended& params)
+ue_cell_config
+ocudu::config_helpers::create_default_initial_ue_cell_config(const cell_config_builder_params_extended& params)
 {
-  return create_default_initial_ue_serving_cell_config(params);
+  ue_cell_config cfg{};
+
+  cfg.serv_cell_cfg = create_default_initial_ue_serving_cell_config(params);
+
+  auto& init_bwp = cfg.bwps.emplace_back();
+  if (params.csi_rs_enabled) {
+    const csi_helper::csi_meas_config_builder_params csi_params = make_default_csi_builder_params(params);
+    init_bwp.ul.periodic_csi_report.emplace(
+        ue_periodic_csi_config{.pucch_res = 0, .offset = csi_params.csi_params.csi_report_slot_offset.value()});
+  }
+  init_bwp.ul.pucch.res_set_cfg = 0;
+  init_bwp.ul.pucch.sr_res      = 0;
+  init_bwp.ul.pucch.sr_offset =
+      params.tdd_ul_dl_cfg_common.has_value() ? find_next_tdd_full_ul_slot(*params.tdd_ul_dl_cfg_common).value() : 0;
+  init_bwp.ul.pusch.tx_cfg = {.max_rank = 1, .codebook_subset = tx_scheme_codebook_subset::non_coherent};
+
+  return cfg;
 }
 
 uint8_t ocudu::config_helpers::compute_max_nof_candidates(aggregation_level            aggr_lvl,

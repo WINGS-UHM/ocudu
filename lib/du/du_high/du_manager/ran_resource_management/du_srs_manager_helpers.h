@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "ocudu/du/du_cell_config_helpers.h"
 #include <optional>
 
 namespace ocudu {

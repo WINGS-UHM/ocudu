@@ -14,9 +14,6 @@ namespace sched_config_helper {
 sched_cell_configuration_request_message
 make_default_sched_cell_configuration_request(const cell_config_builder_params& params = {});
 
-/// Create a default UE-dedicated SPCell cell configuration.
-serving_cell_config create_test_initial_ue_spcell_cell_config(const cell_config_builder_params& params = {});
-
 /// Create a default UE creation request.
 sched_ue_creation_request_message
 create_default_sched_ue_creation_request(const cell_config_builder_params& params      = {},

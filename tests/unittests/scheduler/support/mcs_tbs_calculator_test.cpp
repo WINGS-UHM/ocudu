@@ -4,14 +4,10 @@
 
 #include "../test_utils/config_generators.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
-#include "lib/scheduler/support/dmrs_helpers.h"
 #include "lib/scheduler/support/mcs_tbs_calculator.h"
 #include "lib/scheduler/support/sch_pdu_builder.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -36,7 +32,7 @@ public:
   const sched_cell_configuration_request_message cell_req =
       sched_config_helper::make_default_sched_cell_configuration_request();
   const cell_configuration&    cell_cfg{*cfg_mng.add_cell(cell_req)};
-  const serving_cell_config    serv_cell_cfg{(*cfg_mng.get_default_ue_config_request().cfg.cells)[0]};
+  const serving_cell_config    serv_cell_cfg{(*cfg_mng.get_default_ue_config_request().cfg.cells)[0].serv_cell_cfg};
   const ue_configuration&      ue_cfg{*cfg_mng.add_ue(cfg_mng.get_default_ue_config_request())};
   const ue_cell_configuration& ue_cell_cfg{ue_cfg.pcell_cfg()};
 };

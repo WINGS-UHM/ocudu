@@ -8,7 +8,7 @@
 #include "ocudu/mac/mac_positioning_measurement_handler.h"
 #include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 #include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
-#include "ocudu/support/async/async_test_utils.h"
+#include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
@@ -169,11 +169,12 @@ protected:
 
     // create UE
     mac_ue_create_request req      = test_helpers::make_default_ue_creation_request(builder);
-    req.sched_cfg.cells.value()[0] = config_helpers::create_default_initial_ue_spcell_cell_config(builder);
+    req.sched_cfg.cells.value()[0] = config_helpers::create_default_initial_ue_cell_config(builder);
     adapter.get_ue_configurator().handle_ue_create_request(req);
     ocudu_assert(mac_events.last_ue_created.has_value(), "UE creation request was not forwarded to MAC");
 
-    csi_cfg = create_csi_report_configuration(*mac_events.last_ue_created->sched_cfg.cells.value()[0].csi_meas_cfg);
+    csi_cfg = create_csi_report_configuration(
+        *mac_events.last_ue_created->sched_cfg.cells.value()[0].serv_cell_cfg.csi_meas_cfg);
   }
 
   void run_slot()

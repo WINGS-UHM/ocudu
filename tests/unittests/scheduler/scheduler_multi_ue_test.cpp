@@ -103,7 +103,7 @@ public:
     report_fatal_error_if_not(pucch_cfg_builder.add_build_new_ue_pucch_cfg(ue_cfg.cfg.cells.value()[0]),
                               "Failed to allocate PUCCH resources");
     csi_period = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-                     ue_cfg.cfg.cells.value()[0].csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type)
+                     ue_cfg.cfg.cells.value()[0].serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type)
                      .report_slot_period;
     scheduler_test_simulator::add_ue(ue_cfg, true);
   }

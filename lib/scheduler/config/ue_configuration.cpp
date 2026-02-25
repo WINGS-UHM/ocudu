@@ -3,12 +3,10 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_configuration.h"
-#include "../support/pdcch/pdcch_mapping.h"
 #include "../support/pdsch/pdsch_default_time_allocation.h"
 #include "../support/pdsch/pdsch_resource_allocation.h"
 #include "../support/pusch/pusch_default_time_allocation.h"
 #include "../support/pusch/pusch_resource_allocation.h"
-#include "sched_config_manager.h"
 #include "sched_config_params.h"
 #include "ocudu/ran/pdcch/dci_format.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
@@ -691,9 +689,9 @@ void ue_cell_configuration::reconfigure(const ue_cell_config_ptr&             ue
   }
 }
 
-void ue_cell_configuration::set_rrm_config(const sched_ue_resource_alloc_config& rrm_cfg_)
+void ue_cell_configuration::set_rrm_config(const sched_ue_resource_alloc_config& ue_res_alloc_cfg_)
 {
-  ue_res_alloc_cfg = rrm_cfg_;
+  ue_res_alloc_cfg = ue_res_alloc_cfg_;
 }
 
 void ue_cell_configuration::configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_downlink_common& bwp_dl_common)
@@ -835,8 +833,8 @@ void ue_configuration::update(const cell_common_configuration_list& common_cells
     for (const std::unique_ptr<ue_cell_configuration>& ue_cell : du_cells) {
       if (std::none_of(cfg_req.cells->begin(),
                        cfg_req.cells->end(),
-                       [cell_idx = ue_cell->cell_cfg_common.cell_index](const serving_cell_config& ded_cell) {
-                         return ded_cell.cell_index == cell_idx;
+                       [cell_idx = ue_cell->cell_cfg_common.cell_index](const ue_cell_config& ded_cell) {
+                         return ded_cell.serv_cell_cfg.cell_index == cell_idx;
                        })) {
         // Handle cell deletion.
         du_cells.erase(ue_cell->cell_cfg_common.cell_index);
@@ -845,7 +843,7 @@ void ue_configuration::update(const cell_common_configuration_list& common_cells
 
     // Check for cells that have been added/modified.
     for (unsigned i = 0, e = cfg_req.cells->size(); i != e; ++i) {
-      const serving_cell_config& ded_cell   = cfg_req.cells.value()[i];
+      const serving_cell_config& ded_cell   = cfg_req.cells.value()[i].serv_cell_cfg;
       const du_cell_index_t      cell_index = ded_cell.cell_index;
 
       if (not du_cells.contains(cell_index)) {
@@ -862,7 +860,7 @@ void ue_configuration::update(const cell_common_configuration_list& common_cells
     // Update UE cell to DU cell indexing
     ue_cell_to_du_cell_index.resize(cfg_req.cells.value().size());
     for (unsigned i = 0, e = cfg_req.cells->size(); i != e; ++i) {
-      ue_cell_to_du_cell_index[i] = cfg_req.cells.value()[i].cell_index;
+      ue_cell_to_du_cell_index[i] = cfg_req.cells.value()[i].serv_cell_cfg.cell_index;
     }
   }
 

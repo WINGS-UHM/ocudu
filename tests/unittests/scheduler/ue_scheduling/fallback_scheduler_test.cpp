@@ -282,7 +282,7 @@ protected:
     ue_create_req.ue_index           = ue_index;
     ue_create_req.starts_in_fallback = true;
     if (enable_pusch_transform_precoding) {
-      ue_create_req.cfg.cells.value()[0].ul_config.value().init_ul_bwp.pusch_cfg.value().trans_precoder =
+      ue_create_req.cfg.cells.value()[0].serv_cell_cfg.ul_config.value().init_ul_bwp.pusch_cfg.value().trans_precoder =
           pusch_config::transform_precoder::enabled;
     }
     if (msg3_rx_slot.valid()) {

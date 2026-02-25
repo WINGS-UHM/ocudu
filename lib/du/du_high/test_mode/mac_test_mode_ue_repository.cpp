@@ -56,7 +56,7 @@ const sched_ue_config_request* mac_test_mode_ue_repository::find_sched_ue_cfg_re
 bool mac_test_mode_ue_repository::is_msg4_rxed(rnti_t rnti) const
 {
   unsigned cell_idx = get_cell_index(rnti);
-  if (cells[cell_idx]->rnti_to_ue_info_lookup.find(rnti) != cells[cell_idx]->rnti_to_ue_info_lookup.end()) {
+  if (cells[cell_idx]->rnti_to_ue_info_lookup.contains(rnti)) {
     return cells[cell_idx]->rnti_to_ue_info_lookup.at(rnti).msg4_rx_flag;
   }
   return false;
@@ -65,7 +65,7 @@ bool mac_test_mode_ue_repository::is_msg4_rxed(rnti_t rnti) const
 void mac_test_mode_ue_repository::msg4_rxed(rnti_t rnti, bool msg4_rx_flag_)
 {
   unsigned cell_idx = get_cell_index(rnti);
-  if (cells[cell_idx]->rnti_to_ue_info_lookup.find(rnti) != cells[cell_idx]->rnti_to_ue_info_lookup.end()) {
+  if (cells[cell_idx]->rnti_to_ue_info_lookup.contains(rnti)) {
     cells[cell_idx]->rnti_to_ue_info_lookup.at(rnti).msg4_rx_flag = msg4_rx_flag_;
   }
 }
@@ -77,13 +77,13 @@ void mac_test_mode_ue_repository::add_ue(rnti_t                         rnti,
   if (not is_test_ue(rnti) or not is_test_ue(ue_idx)) {
     return;
   }
-  const du_cell_index_t pcell_index = sched_ue_cfg_req.cells.value()[0].cell_index;
+  const du_cell_index_t pcell_index = sched_ue_cfg_req.cells.value()[0].serv_cell_cfg.cell_index;
   ocudu_assert(is_cell_test_ue(pcell_index, rnti), "Invalid rnti={} for cell={}", rnti, fmt::underlying(pcell_index));
 
   // Dispatch creation of UE to du_cell thread.
   while (not event_handler.schedule(
       pcell_index, [this, rnti, ue_idx, cfg = std::make_unique<sched_ue_config_request>(sched_ue_cfg_req)]() mutable {
-        const du_cell_index_t cellidx = cfg->cells.value()[0].cell_index;
+        const du_cell_index_t cellidx = cfg->cells.value()[0].serv_cell_cfg.cell_index;
         cells[cellidx]->rnti_to_ue_info_lookup.emplace(
             rnti, test_ue_info{.ue_idx = ue_idx, .sched_ue_cfg_req = std::move(cfg), .msg4_rx_flag = false});
       })) {
@@ -96,7 +96,7 @@ void mac_test_mode_ue_repository::remove_ue(rnti_t rnti)
   unsigned cell_idx = get_cell_index(rnti);
   while (not event_handler.schedule(to_du_cell_index(cell_idx), [this, rnti]() {
     unsigned idx = get_cell_index(rnti);
-    if (cells[idx]->rnti_to_ue_info_lookup.find(rnti) != cells[idx]->rnti_to_ue_info_lookup.end()) {
+    if (cells[idx]->rnti_to_ue_info_lookup.contains(rnti)) {
       cells[idx]->rnti_to_ue_info_lookup.erase(rnti);
     }
   })) {

@@ -5,6 +5,7 @@
 #include "du_srs_periodic_res_mng.h"
 #include "du_srs_manager_helpers.h"
 #include "du_ue_resource_config.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -126,7 +127,7 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
   // First, check there are available SRS resources in each UE's cell.
   bool alloc_succeeded = true;
   for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
-    auto&       cell_cfg_ded = cell_cfg_ded_entry.second;
+    auto&       cell_cfg_ded = cell_cfg_ded_entry.second.serv_cell_cfg;
     const auto& ue_du_cell   = cells[cell_cfg_ded.cell_index];
 
     ocudu_assert(cell_cfg_ded.ul_config.has_value() and not cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.has_value(),
@@ -152,7 +153,7 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
   // Reset the UE configuration in each cell before existing with failure.
   if (not alloc_succeeded) {
     for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
-      auto& cell_cfg_ded = cell_cfg_ded_entry.second;
+      auto& cell_cfg_ded = cell_cfg_ded_entry.second.serv_cell_cfg;
       cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.reset();
     }
     return false;
@@ -160,7 +161,7 @@ bool du_srs_policy_max_ul_rate::alloc_resources(cell_group_config& cell_grp_cfg)
 
   // From this point on, the allocation is expected to succeed, as there are SRS resources available in each cell.
   for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
-    auto& ue_cell_cfg = cell_cfg_ded_entry.second;
+    auto& ue_cell_cfg = cell_cfg_ded_entry.second.serv_cell_cfg;
     auto& ue_du_cell  = cells[ue_cell_cfg.cell_index];
 
     // The UE SRS configuration is taken from a base configuration, saved in the GNB. The UE specific parameters will be
@@ -283,7 +284,7 @@ du_srs_policy_max_ul_rate::cell_context::find_optimal_ue_srs_resource()
 void du_srs_policy_max_ul_rate::dealloc_resources(cell_group_config& cell_grp_cfg)
 {
   for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
-    auto& cell_cfg_ded = cell_cfg_ded_entry.second;
+    auto& cell_cfg_ded = cell_cfg_ded_entry.second.serv_cell_cfg;
     // This is the cell index inside the DU.
     auto& ue_du_cell = cells[cell_cfg_ded.cell_index];
 

@@ -5,7 +5,6 @@
 #include "../test_utils/config_generators.h"
 #include "lib/scheduler/srs/srs_scheduler_impl.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
-#include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
@@ -46,7 +45,7 @@ create_sched_ue_creation_request_for_srs_cfg(const sched_ue_creation_request_mes
                                              const std::optional<tdd_ul_dl_config_common>& tdd_cfg)
 {
   sched_ue_creation_request_message ue_req = base_ue_req;
-  auto& ue_srs_cfg = ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.value();
+  auto& ue_srs_cfg = ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
 
   // Set SRS resource set periodic.
   ue_srs_cfg.srs_res_set_list.front().res_type.emplace<srs_config::srs_resource_set::periodic_resource_type>();
@@ -385,7 +384,7 @@ TEST_F(srs_positioning_scheduler_test, when_neighbor_cell_ue_positioning_is_requ
                                                    srs_period,
                                                    cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
                                                    cell_cfg.tdd_cfg_common);
-  auto& ue_srs_cfg = dummy_ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.value();
+  auto& ue_srs_cfg = dummy_ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
   this->srs_sched.handle_positioning_measurement_request(
       make_positioning_cell_request(pos_rnti, std::nullopt, to_du_cell_index(0), ue_srs_cfg));
 

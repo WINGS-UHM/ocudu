@@ -8,6 +8,7 @@
 #include "ocudu/adt/slotted_vector.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
 
 namespace ocudu {
 
@@ -33,6 +34,8 @@ struct bwp_config {
   slotted_id_vector<coreset_id, coreset_config_ptr> coresets;
   /// Search Spaces associated with this BWP.
   slotted_id_vector<search_space_id, search_space_config_ptr> search_spaces;
+
+  ue_bwp_config bwp;
 
   bool operator==(const bwp_config& other) const
   {

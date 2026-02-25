@@ -57,6 +57,8 @@ bool is_valid_ul_ran_status_transfer(const ocucp::ngap_message& msg);
 
 bool is_valid_ng_reset(const ocucp::ngap_message& msg);
 
+bool is_valid_location_report(const ocucp::ngap_message& msg);
+
 bool is_valid_ul_ue_associated_nrppa_transport(const ocucp::ngap_message& msg);
 
 bool is_valid_ul_non_ue_associated_nrppa_transport(const ocucp::ngap_message& msg);

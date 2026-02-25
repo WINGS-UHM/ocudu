@@ -1114,3 +1114,12 @@ ngap_message ocudu::ocucp::generate_location_reporting_control_message(amf_ue_id
 
   return ngap_msg;
 }
+
+ngap_message ocudu::ocucp::generate_location_reporting_control_message_with_cell_change(amf_ue_id_t amf_ue_id,
+                                                                                        ran_ue_id_t ran_ue_id)
+{
+  ngap_message ngap_msg = generate_location_reporting_control_message(amf_ue_id, ran_ue_id);
+  ngap_msg.pdu.init_msg().value.location_report_ctrl()->location_report_request_type.event_type =
+      asn1::ngap::event_type_opts::options::change_of_serve_cell;
+  return ngap_msg;
+}

@@ -515,6 +515,43 @@ TEST_F(cu_cp_intra_du_handover_test, when_ho_succeeds_then_source_ue_is_removed)
   ASSERT_EQ(report.ues.size(), 1) << "Source UE should be removed";
 }
 
+TEST_F(cu_cp_intra_du_handover_test,
+       when_cell_change_reporting_configured_then_location_report_is_sent_immediately_and_after_ho)
+{
+  // Configure cell change location reporting.
+  get_amf().push_tx_pdu(
+      generate_location_reporting_control_message_with_cell_change(amf_ue_id, ue_ctx->ran_ue_id.value()));
+
+  // Check that location report was sent upon configuration of cell change reporting (3GPP TS 38.413 8.12.1.2).
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+
+  // Inject Measurement Report and await F1AP UE Context Setup Request.
+  ASSERT_TRUE(send_rrc_measurement_report_and_await_ue_context_setup_request());
+
+  // Inject UE Context Setup Response and await UE Context Modification Request.
+  ASSERT_TRUE(send_ue_context_setup_response_and_await_ue_context_modification_request());
+
+  // Inject UE Context Modification Response.
+  ASSERT_TRUE(send_ue_context_modification_response());
+
+  // Inject RRC Reconfiguration Complete and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_bearer_context_modification_request("80000800db659eb2"));
+
+  // Inject Bearer Context Modification Response and await UE Context Modification Request.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ue_context_modification_request());
+
+  // Inject UE Context Modification Response and await UE Context Release Command.
+  ASSERT_TRUE(send_ue_context_modification_response_and_await_ue_context_release_command());
+
+  // Check that an NGAP Location Report was sent to the AMF after intra DU handover.
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+
+  // Inject F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
+}
+
 TEST_F(cu_cp_intra_du_handover_test, when_ho_fails_and_ue_is_gone_then_source_and_target_ue_are_removed)
 {
   // Inject Measurement Report and await F1AP UE Context Setup Request.

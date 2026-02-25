@@ -1155,20 +1155,26 @@ asn1_to_location_report_request(const asn1::ngap::location_report_request_type_s
   req.location_reporting_type = asn1_to_location_reporting_event_type(asn1_type.event_type);
   req.location_report_area    = ngap_location_report_request::report_area::cell;
 
-  for (const auto& asn1_aoi_item : asn1_type.area_of_interest_list) {
-    ngap_area_of_interest_item aoi_item;
-    aoi_item.location_report_ref_id = asn1_aoi_item.location_report_ref_id;
-    aoi_item.area_of_interest       = asn1_to_area_of_interest(asn1_aoi_item.area_of_interest);
-    req.area_of_interest_list.push_back(std::move(aoi_item));
+  if (req.location_reporting_type == ngap_location_report_request::event_type::ue_presence_in_area_of_interest ||
+      req.location_reporting_type ==
+          ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
+    for (const auto& asn1_aoi_item : asn1_type.area_of_interest_list) {
+      ngap_area_of_interest_item aoi_item;
+      aoi_item.location_report_ref_id = asn1_aoi_item.location_report_ref_id;
+      aoi_item.area_of_interest       = asn1_to_area_of_interest(asn1_aoi_item.area_of_interest);
+      req.area_of_interest_list.push_back(std::move(aoi_item));
+    }
   }
 
-  if (asn1_type.location_report_ref_id_to_be_cancelled_present) {
-    req.location_report_ref_id_to_be_cancelled = asn1_type.location_report_ref_id_to_be_cancelled;
-  }
+  if (req.location_reporting_type == ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest) {
+    if (asn1_type.location_report_ref_id_to_be_cancelled_present) {
+      req.location_report_ref_id_to_be_cancelled = asn1_type.location_report_ref_id_to_be_cancelled;
+    }
 
-  if (asn1_type.ie_exts_present && asn1_type.ie_exts.add_cancelledlocation_report_ref_id_list_present) {
-    for (const auto& item : asn1_type.ie_exts.add_cancelledlocation_report_ref_id_list) {
-      req.additional_location_report_ref_ids_to_be_cancelled.push_back(item.location_report_ref_id_to_be_cancelled);
+    if (asn1_type.ie_exts_present && asn1_type.ie_exts.add_cancelledlocation_report_ref_id_list_present) {
+      for (const auto& item : asn1_type.ie_exts.add_cancelledlocation_report_ref_id_list) {
+        req.additional_location_report_ref_ids_to_be_cancelled.push_back(item.location_report_ref_id_to_be_cancelled);
+      }
     }
   }
 

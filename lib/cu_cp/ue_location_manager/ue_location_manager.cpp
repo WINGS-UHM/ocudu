@@ -31,12 +31,14 @@ void ue_location_manager::configure_location_reporting(const ngap_location_repor
       cfg.report_ue_presence_in_aoi = true;
       break;
     case ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest:
-      cfg.report_ue_presence_in_aoi = false;
       if (ctrl.location_report_ref_id_to_be_cancelled.has_value()) {
         cfg.area_of_interest_list.erase(ctrl.location_report_ref_id_to_be_cancelled.value());
       }
       for (const auto& ref_id : ctrl.additional_location_report_ref_ids_to_be_cancelled) {
         cfg.area_of_interest_list.erase(ref_id);
+      }
+      if (cfg.area_of_interest_list.empty()) {
+        cfg.report_ue_presence_in_aoi = false;
       }
       return;
     case ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:

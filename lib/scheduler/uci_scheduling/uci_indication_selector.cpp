@@ -184,21 +184,24 @@ void uci_indication_selector::handle_timeouts(slot_point sl_tx)
       // Case: Not all UCIs were received within the short timeout window.
       entry.uci_pdus_to_rx = 0;
       if (entry.chosen_action.uci_valid) {
-        logger.debug("rnti={}: Flushing DL HARQ processes after timeout. Cause: Timeout was reached ({} slots), "
-                     "but there are still missing PUCCH HARQ-ACK indications. However, at least a valid UCI PDU "
-                     "was received (HARQ-ACK slot={}).",
+        logger.debug("rnti={}: Forwarding HARQ-ACK bits={:b} to UE DL HARQ processes without all UCI indication "
+                     "feedback having been received. Cause: Timeout was reached ({} slots), but at least a valid UCI "
+                     "PDU was received (UCI slot={}).",
                      entry.crnti,
+                     entry.chosen_action.harq_ack_bits,
                      SHORT_PUCCH_TIMEOUT_SLOTS,
-                     sl_tx - SHORT_PUCCH_TIMEOUT_SLOTS);
+                     entry.uci_slot);
       } else {
         // At least one of the expected ACKs went missing and we haven't received any valid UCI.
-        logger.warning("rnti={}: Discarding DL HARQ processes. Cause: Timeout was reached ({} slots) to receive "
-                       "the respective HARQ-ACK indication from lower layers (HARQ-ACK slot={})",
+        logger.warning("rnti={}: Forcing \"NACK\" for {} DL HARQ processes. Cause: Timeout was reached ({} slots) "
+                       "to receive the respective UCI indication feedback and no valid UCI PDU has been received yet "
+                       "(UCI slot={})",
                        entry.crnti,
+                       entry.chosen_action.harq_ack_bits.size(),
                        SHORT_PUCCH_TIMEOUT_SLOTS,
-                       sl_tx - SHORT_PUCCH_TIMEOUT_SLOTS);
+                       entry.uci_slot);
       }
-      timeout_notifier.on_timeout(sl_rx, entry.crnti, entry.chosen_action);
+      timeout_notifier.on_timeout(entry.uci_slot, entry.crnti, entry.chosen_action);
     }
 
     // We remove the entry from the short timeout linked list, but we don't delete the entry as it is still present
@@ -253,6 +256,7 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
     uci_entry entry;
     entry.crnti          = pucch.crnti;
     entry.uci_pdus_to_rx = 1;
+    entry.uci_slot       = sl_tx;
     // The chosen action set here is what will be propagated in case of timeout.
     entry.chosen_action.harq_ack_bits.resize(pucch.uci_bits.harq_ack_nof_bits);
     entry.next      = uci_wheel_sl_tx;
@@ -271,6 +275,7 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
     uci_entry entry;
     entry.crnti          = pusch.pusch_cfg.rnti;
     entry.uci_pdus_to_rx = 1;
+    entry.uci_slot       = sl_tx;
     entry.chosen_action.harq_ack_bits.resize(pusch.uci->harq->harq_ack_nof_bits);
     entry.next      = uci_wheel_sl_tx;
     stable_id_t id  = uci_pool.insert(entry);

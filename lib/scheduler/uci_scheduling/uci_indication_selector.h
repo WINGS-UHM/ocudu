@@ -85,6 +85,8 @@ private:
     uint8_t uci_pdus_to_rx = 0;
     /// Buffered action when several UCI PDUs need to be combined.
     uci_action chosen_action;
+    /// Slot at which the UCI grant was scheduled (i.e. the slot used as key in the main UCI wheel).
+    slot_point uci_slot;
     /// Next element in the linked list of UCI entries expected for a given slot Rx.
     stable_id_t next = invalid_entry_id;
     /// Next element in the linked list of UCI entries that will expire in a given slot if the remaining UCI PDUs

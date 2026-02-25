@@ -292,19 +292,24 @@ TEST_F(uci_indication_selector_test, selects_non_dtx_for_multiple_expected_pucch
 TEST_F(uci_indication_selector_test, timeout_is_triggered_if_only_one_of_two_pucch_ucis_is_received)
 {
   // Event: Two PUCCH grants are scheduled.
+  slot_point uci_slot = next_sl_tx;
   selector.handle_result(next_sl_tx,
                          make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 2, true),
                                             make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 2)}));
 
+  // Event: One slot has elapsed.
+  ++next_sl_tx;
+  selector.handle_result(next_sl_tx, make_sched_result({}));
+  ASSERT_TRUE(timeout_notifier.events.empty());
+
   // Event: First PUCCH arrives.
   const auto first_bit  = static_cast<mac_harq_ack_report_status>(test_rgen::uniform_int(0, 2));
   const auto second_bit = static_cast<mac_harq_ack_report_status>(test_rgen::uniform_int(0, 2));
-  auto first_action = selector.handle_uci_ind_pdu(next_sl_tx, make_f0_or_f1_pdu(first_rnti, {first_bit, second_bit}));
+  auto first_action     = selector.handle_uci_ind_pdu(uci_slot, make_f0_or_f1_pdu(first_rnti, {first_bit, second_bit}));
   ASSERT_FALSE(first_action.has_value());
 
   // Event: Advance slots until short timeout trigger.
-  ++next_sl_tx;
-  for (slot_point slot_timeout = next_sl_tx + uci_indication_selector::SHORT_PUCCH_TIMEOUT_SLOTS;
+  for (slot_point slot_timeout = next_sl_tx + uci_indication_selector::SHORT_PUCCH_TIMEOUT_SLOTS + 1;
        next_sl_tx != slot_timeout;
        ++next_sl_tx) {
     ASSERT_TRUE(timeout_notifier.events.empty());
@@ -314,6 +319,7 @@ TEST_F(uci_indication_selector_test, timeout_is_triggered_if_only_one_of_two_puc
   // Test Case: Short timeout got triggered.
   ASSERT_EQ(timeout_notifier.events.size(), 1U);
   const auto& ev = timeout_notifier.events.front();
+  ASSERT_EQ(ev.sl_rx, uci_slot);
   ASSERT_EQ(ev.crnti, first_rnti);
   const bool expected_uci_valid =
       first_bit != mac_harq_ack_report_status::dtx and second_bit != mac_harq_ack_report_status::dtx;

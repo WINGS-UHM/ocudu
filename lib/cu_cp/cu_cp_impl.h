@@ -92,6 +92,9 @@ public:
                                             const cu_cp_ue_context_release_request& ue_context_release_request) override;
   void initialize_rna_update_timer(ue_index_t ue_index) override;
 
+  // cu_cp_location_manager_handler.
+  void handle_location_update(ue_index_t ue_index) override;
+
   // cu_cp_ngap_handler.
   bool handle_handover_request(ue_index_t                        ue_index,
                                const plmn_identity&              selected_plmn,
@@ -170,6 +173,7 @@ public:
   cu_cp_measurement_handler&             get_cu_cp_measurement_handler() override { return *this; }
   cu_cp_measurement_config_handler&      get_cu_cp_measurement_config_handler() override { return *this; }
   cu_cp_mobility_manager_handler&        get_cu_cp_mobility_manager_handler() override { return *this; }
+  cu_cp_location_manager_handler&        get_cu_cp_location_manager_handler() override { return *this; }
   cu_cp_ue_removal_handler&              get_cu_cp_ue_removal_handler() override { return *this; }
   cu_cp_ue_context_manipulation_handler& get_cu_cp_ue_context_handler() override { return *this; }
   cu_cp_amf_reconnection_handler&        get_cu_cp_amf_reconnection_handler() override { return *this; }

@@ -104,31 +104,48 @@ ngap_ue_presence ue_location_manager::check_ue_presence(const ngap_area_of_inter
   return ngap_ue_presence::out;
 }
 
-ngap_location_report ue_location_manager::get_location_report(ue_index_t                         ue_index,
-                                                              const cu_cp_user_location_info_nr& user_location_info)
+std::optional<ngap_location_report>
+ue_location_manager::get_location_report(ue_index_t ue_index, const cu_cp_user_location_info_nr& user_location_info)
 {
+  if (!cfg.report_on_cell_change && !cfg.report_ue_presence_in_aoi) {
+    return std::nullopt;
+  }
+
   ngap_location_report report;
   report.ue_index           = ue_index;
   report.user_location_info = user_location_info;
 
+  // Build ngap_location_report_request that the report refers to from current configuration.
   report.request.location_reporting_type = get_current_location_reporting_type();
   report.request.location_report_area    = ngap_location_report_request::report_area::cell;
   for (const auto& [ref_id, aoi] : cfg.area_of_interest_list) {
-    ngap_area_of_interest_item item;
-    item.location_report_ref_id = ref_id;
-    item.area_of_interest       = aoi;
-    report.request.area_of_interest_list.push_back(item);
+    report.request.area_of_interest_list.push_back({aoi, ref_id});
   }
 
   if (cfg.report_ue_presence_in_aoi && !cfg.area_of_interest_list.empty()) {
     report.ue_presence_in_area_of_interest_list.emplace();
     for (const auto& [ref_id, aoi] : cfg.area_of_interest_list) {
-      ngap_ue_presence_in_area_of_interest_item item;
-      item.location_report_ref_id = ref_id;
-      item.ue_presence            = check_ue_presence(aoi, user_location_info);
-      report.ue_presence_in_area_of_interest_list->push_back(item);
+      report.ue_presence_in_area_of_interest_list->push_back({ref_id, check_ue_presence(aoi, user_location_info)});
     }
   }
 
+  return report;
+}
+
+ngap_location_report
+ue_location_manager::get_direct_location_report(ue_index_t                          ue_index,
+                                                const cu_cp_user_location_info_nr&  user_location_info,
+                                                const ngap_location_report_request& request)
+{
+  ngap_location_report report;
+  report.ue_index           = ue_index;
+  report.user_location_info = user_location_info;
+  report.request            = request;
+  if (!request.area_of_interest_list.empty()) {
+    report.ue_presence_in_area_of_interest_list.emplace();
+    for (const auto& [aio, ref_id] : request.area_of_interest_list) {
+      report.ue_presence_in_area_of_interest_list->push_back({ref_id, check_ue_presence(aio, user_location_info)});
+    }
+  }
   return report;
 }

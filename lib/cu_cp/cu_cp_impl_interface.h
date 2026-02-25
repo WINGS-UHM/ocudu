@@ -372,6 +372,17 @@ public:
   virtual void handle_intra_cell_handover_required(ue_index_t ue_index) = 0;
 };
 
+/// Interface to handle location reporting updates for UEs.
+class cu_cp_location_manager_handler
+{
+public:
+  virtual ~cu_cp_location_manager_handler() = default;
+
+  /// \brief Handle a UE location change and send NGAP Location Report if needed.
+  /// \param[in] ue_index The index of the UE.
+  virtual void handle_location_update(ue_index_t ue_index) = 0;
+};
+
 /// Interface to handle ue removals.
 class cu_cp_ue_removal_handler
 {
@@ -406,6 +417,7 @@ class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,
                              public cu_cp_nrppa_handler,
                              public cu_cp_ue_context_manipulation_handler,
                              public cu_cp_mobility_manager_handler,
+                             public cu_cp_location_manager_handler,
                              public cu_cp_ue_removal_handler,
                              public cu_cp_amf_reconnection_handler
 {
@@ -420,6 +432,7 @@ public:
   virtual cu_cp_measurement_handler&             get_cu_cp_measurement_handler()        = 0;
   virtual cu_cp_measurement_config_handler&      get_cu_cp_measurement_config_handler() = 0;
   virtual cu_cp_mobility_manager_handler&        get_cu_cp_mobility_manager_handler()   = 0;
+  virtual cu_cp_location_manager_handler&        get_cu_cp_location_manager_handler()   = 0;
   virtual cu_cp_ue_removal_handler&              get_cu_cp_ue_removal_handler()         = 0;
   virtual cu_cp_amf_reconnection_handler&        get_cu_cp_amf_reconnection_handler()   = 0;
 };

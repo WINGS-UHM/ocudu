@@ -603,6 +603,7 @@ void cu_cp_impl::handle_handover_reconfiguration_sent(const cu_cp_intra_cu_hando
       *this,
       get_cu_cp_ue_removal_handler(),
       *this,
+      get_cu_cp_location_manager_handler(),
       ue_mng,
       mobility_mng,
       logger));
@@ -973,7 +974,7 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
     cu_cp_user_location_info_nr user_location_info;
     user_location_info.nr_cgi = cell->cgi;
     user_location_info.tai    = {cell->cgi.plmn_id, cell->tac};
-    auto report               = ue->get_location_manager().get_location_report(ue_index, user_location_info);
+    auto report = ue->get_location_manager().get_direct_location_report(ue_index, user_location_info, msg);
 
     auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
     if (ngap == nullptr) {
@@ -983,6 +984,38 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
 
     ngap->handle_location_report_transmission(report);
   }
+}
+
+void cu_cp_impl::handle_location_update(ue_index_t ue_index)
+{
+  auto* ue = ue_mng.find_du_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for cell change location report", ue_index);
+    return;
+  }
+
+  const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
+  if (cell == nullptr) {
+    logger.warning("ue={}: Cell not found for PCI={}", ue_index, ue->get_pci());
+    return;
+  }
+
+  cu_cp_user_location_info_nr user_location_info;
+  user_location_info.nr_cgi = cell->cgi;
+  user_location_info.tai    = {cell->cgi.plmn_id, cell->tac};
+
+  auto opt_report = ue->get_location_manager().get_location_report(ue_index, user_location_info);
+  if (!opt_report.has_value()) {
+    return;
+  }
+
+  auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+  if (ngap == nullptr) {
+    logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+    return;
+  }
+
+  ngap->handle_location_report_transmission(opt_report.value());
 }
 
 nrppa_cu_cp_ue_notifier* cu_cp_impl::handle_new_nrppa_ue(ue_index_t ue_index)

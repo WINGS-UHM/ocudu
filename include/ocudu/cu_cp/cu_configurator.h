@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "ocudu/cu_cp/cu_cp_intra_cu_ho_types.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/cu_types.h"

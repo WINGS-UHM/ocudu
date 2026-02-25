@@ -13,6 +13,7 @@
 #include "../../cu_cp_impl_interface.h"
 #include "../../mobility_manager/mobility_manager_impl.h"
 #include "../../ue_manager/ue_manager_impl.h"
+#include "ocudu/cu_cp/cu_cp_intra_cu_ho_types.h"
 #include "ocudu/support/async/async_task.h"
 
 namespace ocudu {

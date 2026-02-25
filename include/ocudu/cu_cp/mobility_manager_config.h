@@ -11,6 +11,7 @@
 #pragma once
 
 #include "cu_cp_cho_types.h"
+#include "cu_cp_intra_cu_ho_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/support/async/async_task.h"
 

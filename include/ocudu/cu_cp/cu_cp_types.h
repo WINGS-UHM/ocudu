@@ -619,18 +619,6 @@ struct cu_cp_inactivity_notification {
   std::vector<pdu_session_id_t> inactive_pdu_sessions;
 };
 
-struct cu_cp_intra_cu_handover_request {
-  ue_index_t          source_ue_index = ue_index_t::invalid;
-  du_index_t          target_du_index = du_index_t::invalid;
-  nr_cell_global_id_t cgi;
-  pci_t               target_pci = INVALID_PCI;
-};
-
-struct cu_cp_intra_cu_handover_response {
-  // Place-holder for possible return values.
-  bool success = false;
-};
-
 struct cu_cp_rrc_resume_request {
   ue_index_t          ue_index = ue_index_t::invalid;
   nr_cell_global_id_t cgi;

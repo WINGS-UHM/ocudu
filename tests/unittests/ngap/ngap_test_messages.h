@@ -123,7 +123,8 @@ ngap_message generate_initial_context_setup_request_base(amf_ue_id_t amf_ue_id, 
 ngap_message generate_valid_initial_context_setup_request_message(
     amf_ue_id_t                                               amf_ue_id,
     ran_ue_id_t                                               ran_ue_id,
-    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt);
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
+    std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt);
 
 /// \brief Generate a valid dummy Initial Context Setup Request Message with a PDUSessionResourceSetupListCxtReq.
 ngap_message generate_valid_initial_context_setup_request_message_with_pdu_session(amf_ue_id_t amf_ue_id,

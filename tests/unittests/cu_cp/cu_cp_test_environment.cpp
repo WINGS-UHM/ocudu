@@ -545,7 +545,8 @@ bool cu_cp_test_environment::setup_ue_security_and_ue_capabilies(
     unsigned                                                  du_idx,
     gnb_du_ue_f1ap_id_t                                       du_ue_id,
     std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
-    bool                                                      rrc_inactive_supported)
+    bool                                                      rrc_inactive_supported,
+    std::optional<ngap_location_report_request>               location_reporting_request)
 {
   ngap_message ngap_pdu;
   ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
@@ -555,8 +556,11 @@ bool cu_cp_test_environment::setup_ue_security_and_ue_capabilies(
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
   // Inject NGAP Initial Context Setup Request.
-  ngap_message init_ctxt_setup_req = generate_valid_initial_context_setup_request_message(
-      ue_ctx.amf_ue_id.value(), ue_ctx.ran_ue_id.value(), std::move(cn_assist_info_for_inactive));
+  ngap_message init_ctxt_setup_req =
+      generate_valid_initial_context_setup_request_message(ue_ctx.amf_ue_id.value(),
+                                                           ue_ctx.ran_ue_id.value(),
+                                                           std::move(cn_assist_info_for_inactive),
+                                                           std::move(location_reporting_request));
   get_amf().push_tx_pdu(init_ctxt_setup_req);
 
   // Wait for F1AP UE Context Setup Request (containing Security Mode Command).
@@ -938,7 +942,8 @@ bool cu_cp_test_environment::attach_ue(
     byte_buffer                                               rrc_setup_complete,
     byte_buffer                                               rrc_reconfiguration_complete,
     std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
-    bool                                                      rrc_inactive_supported)
+    bool                                                      rrc_inactive_supported,
+    std::optional<ngap_location_report_request>               location_reporting_request)
 {
   if (not connect_new_ue(du_idx, du_ue_id, crnti, plmn_identity::test_value(), std::move(rrc_setup_complete))) {
     return false;
@@ -946,8 +951,11 @@ bool cu_cp_test_environment::attach_ue(
   if (not authenticate_ue(du_idx, du_ue_id, amf_ue_id)) {
     return false;
   }
-  if (not setup_ue_security_and_ue_capabilies(
-          du_idx, du_ue_id, std::move(cn_assist_info_for_inactive), rrc_inactive_supported)) {
+  if (not setup_ue_security_and_ue_capabilies(du_idx,
+                                              du_ue_id,
+                                              std::move(cn_assist_info_for_inactive),
+                                              rrc_inactive_supported,
+                                              std::move(location_reporting_request))) {
     return false;
   }
   if (not finish_ue_registration(du_idx, cu_up_idx, du_ue_id)) {

@@ -254,7 +254,8 @@ ngap_message ocudu::ocucp::generate_initial_context_setup_request_base(amf_ue_id
 ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message(
     amf_ue_id_t                                               amf_ue_id,
     ran_ue_id_t                                               ran_ue_id,
-    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive)
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
+    std::optional<ngap_location_report_request>               location_reporting_request)
 {
   ngap_message ngap_msg = generate_initial_context_setup_request_base(amf_ue_id, ran_ue_id);
 
@@ -288,6 +289,11 @@ ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message(
       "1111111000001101100111110001011010001110110010111010001100110111100111011000110110011010000110000011000010111000"
       "0010001100001010000001111111100000100111101011000011110000110101110010001010001010101000101100101100100000001110"
       "00010001000110001101110101100110"); // fe0d9f168ecba3379d8d9a1830b8230a07f827ac3c35c8a2a8b2c80e1118dd66
+
+  if (location_reporting_request.has_value()) {
+    init_context_setup_req->location_report_request_type_present = true;
+    init_context_setup_req->location_report_request_type = location_report_request_to_asn1(*location_reporting_request);
+  }
 
   return ngap_msg;
 }

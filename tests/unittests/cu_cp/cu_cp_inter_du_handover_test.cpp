@@ -16,6 +16,7 @@
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/e1ap/common/e1ap_types.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
@@ -29,7 +30,9 @@ using namespace ocucp;
 class cu_cp_inter_du_handover_test : public cu_cp_test_environment, public ::testing::Test
 {
 public:
-  cu_cp_inter_du_handover_test() : cu_cp_test_environment(cu_cp_test_env_params{})
+  explicit cu_cp_inter_du_handover_test(
+      const std::optional<ngap_location_report_request>& location_reporting_request = std::nullopt) :
+    cu_cp_test_environment(cu_cp_test_env_params{})
   {
     // Run NG setup to completion.
     run_ng_setup();
@@ -53,8 +56,21 @@ public:
     EXPECT_TRUE(this->run_e1_setup(cu_up_idx));
 
     // Connect UE 0x4601.
-    EXPECT_TRUE(cu_cp_test_environment::attach_ue(
-        source_du_idx, cu_up_idx, du_ue_id, crnti, amf_ue_id, cu_up_e1ap_id, psi, drb_id_t::drb1, qfi));
+    EXPECT_TRUE(
+        cu_cp_test_environment::attach_ue(source_du_idx,
+                                          cu_up_idx,
+                                          du_ue_id,
+                                          crnti,
+                                          amf_ue_id,
+                                          cu_up_e1ap_id,
+                                          psi,
+                                          drb_id_t::drb1,
+                                          qfi,
+                                          test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete()),
+                                          make_byte_buffer("00070e00cc6fcda5").value(),
+                                          std::nullopt,
+                                          true,
+                                          location_reporting_request));
     ue_ctx = this->find_ue_context(source_du_idx, du_ue_id);
 
     EXPECT_NE(ue_ctx, nullptr);
@@ -285,6 +301,25 @@ public:
     return true;
   }
 
+  void verify_ngap_location_report(const ngap_message& msg) const
+  {
+    ASSERT_TRUE(test_helpers::is_valid_location_report(msg));
+    const auto& report = msg.pdu.init_msg().value.location_report();
+    EXPECT_EQ(report->amf_ue_ngap_id, amf_ue_id_to_uint(amf_ue_id));
+    // Verify the configured event type is echoed back.
+    EXPECT_EQ(report->location_report_request_type.event_type,
+              asn1::ngap::event_type_opts::options::change_of_serve_cell);
+    EXPECT_EQ(report->location_report_request_type.report_area.value, asn1::ngap::report_area_opts::options::cell);
+    // Verify user location info points to the target cell.
+    ASSERT_EQ(report->user_location_info.type(),
+              asn1::ngap::user_location_info_c::types_opts::options::user_location_info_nr);
+    const auto& loc = report->user_location_info.user_location_info_nr();
+    EXPECT_EQ(loc.nr_cgi.nr_cell_id.to_number(), target_cell_info.nci.value());
+    EXPECT_EQ(loc.nr_cgi.plmn_id.to_number(), plmn_identity::test_value().to_bcd());
+    EXPECT_EQ(loc.tai.tac.to_number(), 7U);
+    EXPECT_EQ(loc.tai.plmn_id.to_number(), plmn_identity::test_value().to_bcd());
+  }
+
   unsigned source_du_idx = 0;
   unsigned target_du_idx = 0;
   unsigned cu_up_idx     = 0;
@@ -475,6 +510,51 @@ TEST_F(cu_cp_inter_du_handover_test, when_controller_triggered_ho_succeeds_then_
   ASSERT_EQ(report.ues.size(), 1) << "UE should be removed";
 }
 
+/// Fixture that attaches the UE with cell-change location reporting configured via Initial Context Setup.
+class cu_cp_inter_du_handover_initial_context_setup_location_reporting_test : public cu_cp_inter_du_handover_test
+{
+public:
+  cu_cp_inter_du_handover_initial_context_setup_location_reporting_test() :
+    cu_cp_inter_du_handover_test([] {
+      ngap_location_report_request req;
+      req.location_report_area    = ngap_location_report_request::report_area::cell;
+      req.location_reporting_type = ngap_location_report_request::event_type::change_of_serve_cell;
+      return req;
+    }())
+  {
+  }
+};
+
+TEST_F(cu_cp_inter_du_handover_initial_context_setup_location_reporting_test,
+       when_cell_change_reporting_configured_in_initial_context_setup_then_location_report_is_sent_after_ho)
+{
+  // Inject Measurement Report and await F1AP UE Context Setup Request.
+  ASSERT_TRUE(send_rrc_measurement_report_and_await_ue_context_setup_request());
+
+  // Inject UE Context Setup Response and await UE Context Modification Request.
+  ASSERT_TRUE(send_ue_context_setup_response_and_await_ue_context_modification_request());
+
+  // Inject UE Context Modification Response.
+  ASSERT_TRUE(send_ue_context_modification_response(source_du_idx));
+
+  // Inject RRC Reconfiguration Complete and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_bearer_context_modification_request());
+
+  // Inject Bearer Context Modification Response and await UE Context Modification Request.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ue_context_modification_request());
+
+  // Inject UE Context Modification Response and await UE Context Release Command.
+  // The location report is sent to the AMF before the source UE is released.
+  ASSERT_TRUE(send_ue_context_modification_response_and_await_ue_context_release_command());
+
+  // Check that an NGAP Location Report was sent to the AMF after inter DU handover.
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_NO_FATAL_FAILURE(verify_ngap_location_report(ngap_pdu));
+
+  // Inject F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete(source_du_idx));
+}
+
 TEST_F(cu_cp_inter_du_handover_test,
        when_cell_change_reporting_configured_then_location_report_is_sent_immediately_and_after_ho)
 {
@@ -506,7 +586,7 @@ TEST_F(cu_cp_inter_du_handover_test,
 
   // Check that an NGAP Location Report was sent to the AMF after inter DU handover.
   ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
-  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+  ASSERT_NO_FATAL_FAILURE(verify_ngap_location_report(ngap_pdu));
 
   // Inject F1AP UE Context Release Complete.
   ASSERT_TRUE(send_f1ap_ue_context_release_complete(source_du_idx));

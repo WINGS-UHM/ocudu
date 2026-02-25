@@ -18,7 +18,7 @@
 
 namespace ocudu {
 
-/// Type representing a row ID.
+/// Type representing an ID of a stable_id_map.
 struct stable_id_tag;
 using stable_id_t = strong_type<uint32_t, stable_id_tag, strong_equality, strong_comparison>;
 
@@ -29,7 +29,7 @@ class stable_id_map
 {
   struct sentinel {};
 
-  /// Iterator of objects. The iterator is not sorted by row ID.
+  /// Iterator of objects. The iterator is not sorted by stable ID.
   template <typename TableType>
   class iter_impl
   {
@@ -129,7 +129,7 @@ public:
   /// Get the internal offset of the object with given ID.
   unsigned get_offset(stable_id_t id) const
   {
-    ocudu_assert(contains(id), "Invalid row_id");
+    ocudu_assert(contains(id), "Invalid stable_id");
     return index_map[id.value()];
   }
 
@@ -207,7 +207,7 @@ public:
   span<const T> unsorted() const { return objs; }
   span<T>       unsorted() { return objs; }
 
-  /// Get iterator of rows pointing to the beginning. Note: this iterator is not sorted by stable_id.
+  /// Get iterator of elements pointing to the beginning. Note: this iterator is not sorted by stable_id.
   iterator       begin() { return iterator{*this, 0}; }
   const_iterator begin() const { return const_iterator{*this, 0}; }
   const_iterator cbegin() const { return const_iterator{*this, 0}; }
@@ -217,11 +217,13 @@ public:
 private:
   /// List of objects in contiguous memory storage.
   std::vector<T> objs;
-  /// Map from stable_id to offset in the columns vectors.
+  /// This vector serves two purposes:
+  /// - for stable_ids under use, it maps the stable_id (the index of index_map) to an index/offset in the objs vector
+  /// - for stable_ids not under use, it serves as the next stable_id in an intrusive linked list of free stable_ids.
   std::vector<unsigned> index_map;
-  /// Map from offset in the columns vectors to row_id.
+  /// Map from offset/index of the objs vector back to its respective stable_id.
   std::vector<stable_id_t> index_reverse_map;
-  /// Linked List of free row_ids (using holes of index_map as next pointer).
+  /// Intrusive linked list of free stable_ids (using holes of index_map as the node next stable_id element).
   unsigned free_list_head{0};
 };
 

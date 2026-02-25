@@ -206,12 +206,24 @@ telegraf image:
         paths:
           - docker/telegraf/**/*
   variables:
-    NAME: telegraf
     CONTEXT: ${CI_PROJECT_DIR}/docker/telegraf
     MODE: publish
   before_script:
     - |
+      export NAME="telegraf_${SUFFIX}"
       export VERSION=$(cat ${CONTEXT}/version.yml | grep OCUDU_TELEGRAF_VERSION | cut -d'"' -f2)
+  parallel: &matrix-telegraf-image-variants
+    matrix:
+      # AMD
+      - SUFFIX: amd64
+        MARCH: x86-64-v3
+        TAG: amd64
+        PLATFORM: amd64
+      # ARM
+      - SUFFIX: arm64
+        MARCH: armv8.2-a+crypto+fp16+dotprod
+        TAG: arm64
+        PLATFORM: arm64
 
 telegraf image latest:
   extends: telegraf image
@@ -219,6 +231,7 @@ telegraf image latest:
     OVERWRITE: "true"
   before_script:
     - |
+      export NAME="telegraf_${SUFFIX}"
       export VERSION=latest
 
 grafana image:
@@ -234,12 +247,24 @@ grafana image:
         paths:
           - docker/grafana/**/*
   variables:
-    NAME: grafana
     CONTEXT: ${CI_PROJECT_DIR}/docker/grafana
     MODE: publish
   before_script:
     - |
+      export NAME="grafana_${SUFFIX}"
       export VERSION=$(cat docker/grafana/version.yml | grep OCUDU_GF_VERSION | cut -d'"' -f2)
+  parallel: &matrix-grafana-image-variants
+    matrix:
+      # AMD
+      - SUFFIX: amd64
+        MARCH: x86-64-v3
+        TAG: amd64
+        PLATFORM: amd64
+      # ARM
+      - SUFFIX: arm64
+        MARCH: armv8.2-a+crypto+fp16+dotprod
+        TAG: arm64
+        PLATFORM: arm64
 
 grafana image latest:
   extends: grafana image
@@ -247,4 +272,5 @@ grafana image latest:
     OVERWRITE: "true"
   before_script:
     - |
+      export NAME="grafana_${SUFFIX}"
       export VERSION=latest

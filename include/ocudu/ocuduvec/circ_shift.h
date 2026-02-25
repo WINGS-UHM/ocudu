@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "ocudu/adt/span.h"
+#include "ocudu/ocuduvec/type_traits.h"
 #include "ocudu/ocuduvec/types.h"
 
 namespace ocudu {

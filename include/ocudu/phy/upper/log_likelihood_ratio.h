@@ -18,7 +18,6 @@
 
 #include "ocudu/adt/bit_buffer.h"
 #include "ocudu/adt/span.h"
-#include "ocudu/ocuduvec/type_traits.h"
 #include "ocudu/support/ocudu_assert.h"
 #include "fmt/format.h"
 #include <numeric>
@@ -46,10 +45,9 @@ public:
   /// \tparam    T    The input type. Must be an integral type.
   /// \param[in] val  The value the LLR is set to.
   /// \remark Implicit conversions are allowed on purpose.
-  template <typename T>
+  template <typename T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
   constexpr log_likelihood_ratio(T val)
   {
-    static_assert(std::is_integral<T>::value, "LLRs must be initialized with integer values.");
     ocudu_assert(((val <= LLR_MAX) && (val >= -LLR_MAX)) || (val == LLR_INFTY) || (val == -LLR_INFTY),
                  "Invalid LLR value.");
     value = static_cast<value_type>(val);

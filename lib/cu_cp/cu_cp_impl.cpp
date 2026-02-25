@@ -8,6 +8,7 @@
 #include "routines/amf_connection_loss_routine.h"
 #include "routines/cell_activation_routine.h"
 #include "routines/initial_context_setup_routine.h"
+#include "routines/mobility/cho_cancellation_routine.h"
 #include "routines/mobility/cho_coordinator_routine.h"
 #include "routines/mobility/cho_source_routine.h"
 #include "routines/mobility/cho_target_routine.h"
@@ -1337,6 +1338,34 @@ void cu_cp_impl::initialize_rna_update_timer(ue_index_t ue_index)
   rna_update_timer.set(cfg.ue.t380 + rna_guard_time,
                        [this, ue_idx = ue_index](timer_id_t /*tid*/) { request_release_of_inactive_ue(ue_idx); });
   rna_update_timer.run();
+}
+
+void cu_cp_impl::initialize_cho_execution_timer(ue_index_t ue_index, std::chrono::milliseconds timeout)
+{
+  if (timeout.count() == 0) {
+    return;
+  }
+
+  cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+  if (ue == nullptr || !ue->get_cho_context().has_value()) {
+    return;
+  }
+
+  if (ue->get_cho_context()->cho_execution_timer.is_running()) {
+    logger.warning("ue={}: CHO execution timer already running", ue_index);
+    return;
+  }
+
+  ue->get_cho_context()->cho_execution_timer = ue->get_task_sched().create_timer();
+  ue->get_cho_context()->cho_execution_timer.set(timeout, [this, ue_index](timer_id_t /*tid*/) {
+    cu_cp_ue* ue2 = ue_mng.find_du_ue(ue_index);
+    if (ue2 == nullptr || !ue2->get_cho_context().has_value()) {
+      return;
+    }
+    ue2->get_task_sched().schedule_async_task(launch_async<cho_cancellation_routine>(ue_index, *this, ue_mng, logger));
+  });
+  ue->get_cho_context()->cho_execution_timer.run();
+  logger.debug("ue={}: CHO execution timer started ({}ms)", ue_index, timeout.count());
 }
 
 // private

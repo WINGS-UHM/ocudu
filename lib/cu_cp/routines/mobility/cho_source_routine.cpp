@@ -44,6 +44,11 @@ void cho_source_routine::operator()(coro_context<async_task<void>>& ctx)
   }
   source_ue_index = source_ue->get_ue_index();
 
+  // Access Success arrived, normal completion takes over.Stop CHO execution timer.
+  if (source_ue->get_cho_context().has_value()) {
+    source_ue->get_cho_context()->cho_execution_timer.stop();
+  }
+
   winner = source_ue->get_cho_context()->find_candidate(msg.cgi);
   if (winner == nullptr) {
     winner = source_ue->get_cho_context()->find_candidate(msg.ue_index);

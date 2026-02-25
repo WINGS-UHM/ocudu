@@ -163,6 +163,10 @@ void cho_coordinator_routine::operator()(coro_context<async_task<cu_cp_intra_cu_
     logger.warning("ue={}: CHO coordinator failed. Reconfiguration phase failed", request.source_ue_index);
     CORO_EARLY_RETURN(response);
   }
+
+  // Start cancellation timer. Fires cho_cancellation_routine if UE never executes CHO.
+  cu_cp_handler.initialize_cho_execution_timer(request.source_ue_index, request.timeout);
+
   // Phase 3: CHO completion is handled asynchronously by cho_source_routine after Access Success.
 
   logger.debug("ue={}: \"{}\" finished successfully", source_ue->get_ue_index(), name());

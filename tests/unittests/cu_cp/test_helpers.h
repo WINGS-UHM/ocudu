@@ -161,6 +161,11 @@ public:
     logger.info("ue={}: Initializing RNA update timer", ue_index);
   }
 
+  void initialize_cho_execution_timer(ue_index_t source_ue_index, std::chrono::milliseconds timeout) override
+  {
+    logger.info("ue={}: Initializing CHO execution timer (timeout={}ms)", source_ue_index, timeout.count());
+  }
+
   async_task<void> handle_access_success(const cu_cp_access_success_indication& msg) override
   {
     return launch_async([](coro_context<async_task<void>>& ctx) mutable {

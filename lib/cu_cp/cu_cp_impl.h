@@ -87,6 +87,7 @@ public:
                                             std::chrono::milliseconds               handover_ue_release_timeout,
                                             const cu_cp_ue_context_release_request& ue_context_release_request) override;
   void initialize_rna_update_timer(ue_index_t ue_index) override;
+  void initialize_cho_execution_timer(ue_index_t source_ue_index, std::chrono::milliseconds timeout) override;
 
   // cu_cp_location_manager_handler.
   void handle_location_update(ue_index_t ue_index) override;

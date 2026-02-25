@@ -323,6 +323,11 @@ public:
   /// \brief Initialize a RNA update timer. When the timeout is reached, a release request is sent to the AMF.
   /// \param[in] ue_index The index of the UE.
   virtual void initialize_rna_update_timer(ue_index_t ue_index) = 0;
+
+  /// \brief Start CHO execution cancellation timer. Fires cho_cancellation_routine on expiry.
+  /// \param[in] source_ue_index Index of the source UE.
+  /// \param[in] timeout Duration; 0ms disables the timer (no-op).
+  virtual void initialize_cho_execution_timer(ue_index_t source_ue_index, std::chrono::milliseconds timeout) = 0;
 };
 
 /// Methods used by CU-CP to transfer the RRC UE context e.g. for RRC Reestablishments.

@@ -54,6 +54,7 @@ set(SOURCES
         routines/mobility/inter_cu_handover_target_routine.cpp
         routines/mobility/inter_cu_handover_execution_target_routine.cpp
         routines/mobility/handover_reconfiguration_routine.cpp
+        routines/mobility/cho_cancellation_routine.cpp
         routines/mobility/cho_coordinator_routine.cpp
         routines/mobility/cho_reconfiguration_routine.cpp
         routines/mobility/cho_source_routine.cpp

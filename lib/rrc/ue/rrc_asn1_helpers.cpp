@@ -285,6 +285,20 @@ void ocudu::ocucp::fill_asn1_rrc_reconfiguration_msg(asn1::rrc_nr::rrc_recfg_s& 
 
     // TODO: add further extensions
   }
+
+  // CHO cancellation: condRecfgToRemList-r16.
+  if (rrc_reconf.cho_cancellation_ids.has_value() && !rrc_reconf.cho_cancellation_ids->empty()) {
+    asn1_reconfig_ies.non_crit_ext_present                                        = true;
+    asn1_reconfig_ies.non_crit_ext.non_crit_ext_present                           = true;
+    asn1_reconfig_ies.non_crit_ext.non_crit_ext.non_crit_ext_present              = true;
+    asn1_reconfig_ies.non_crit_ext.non_crit_ext.non_crit_ext.non_crit_ext_present = true;
+    auto& v1610                         = asn1_reconfig_ies.non_crit_ext.non_crit_ext.non_crit_ext.non_crit_ext;
+    v1610.conditional_recfg_r16_present = true;
+    auto& cond_recfg                    = v1610.conditional_recfg_r16;
+    for (cond_recfg_id_t id : *rrc_reconf.cho_cancellation_ids) {
+      cond_recfg.cond_recfg_to_rem_list_r16.push_back(id.value());
+    }
+  }
 }
 
 void ocudu::ocucp::fill_asn1_rrc_resume_msg(asn1::rrc_nr::rrc_resume_s&        asn1_rrc_resume,

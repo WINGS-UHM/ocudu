@@ -24,6 +24,12 @@ struct ntn_cell_config_update_info {
   std::optional<ta_info_t>                                ta_info;
   std::optional<feeder_link_info_t>                       feeder_link_info;
   std::optional<geodetic_coordinates_t>                   ntn_gateway_location;
+  // SIB19 value-tag-tracked fields (changes require SIB1 systemInfoValueTag increment).
+  std::optional<geodetic_coordinates_t> reference_location;
+  std::optional<unsigned>               distance_threshold;
+  std::optional<time_point>             t_service;
+  std::optional<ntn_polarization_t>     polarization;
+  std::optional<bool>                   ta_report;
 };
 
 /// NTN Config update message to be received over a websocket interface.

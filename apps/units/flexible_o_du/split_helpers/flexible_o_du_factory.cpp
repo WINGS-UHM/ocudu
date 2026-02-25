@@ -132,7 +132,7 @@ static ocudu_ntn::ntn_assistance_info convert_ntn_config_to_assistance_info(cons
   ocudu_ntn::ntn_assistance_info info = {};
 
   // SIB19 fields exempt from valuetag.
-  info.moving_reference_location = cfg.reference_location;
+  info.moving_reference_location = cfg.moving_ref_location;
   info.ephemeris_info            = cfg.ephemeris_info;
   info.ta_info                   = cfg.ta_info;
   info.epoch_time                = cfg.epoch_time;

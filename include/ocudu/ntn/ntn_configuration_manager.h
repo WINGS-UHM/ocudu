@@ -30,6 +30,8 @@ struct ntn_cell_config_update_info {
   std::optional<time_point>             t_service;
   std::optional<ntn_polarization_t>     polarization;
   std::optional<bool>                   ta_report;
+  // SIB19 exempt fields (changes do not trigger SIB1 systemInfoValueTag increment).
+  std::optional<geodetic_coordinates_t> moving_ref_location;
 };
 
 /// NTN Config update message to be received over a websocket interface.

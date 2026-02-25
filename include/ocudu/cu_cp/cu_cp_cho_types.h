@@ -11,8 +11,11 @@
 #pragma once
 
 #include "ocudu/adt/bounded_integer.h"
+#include "ocudu/adt/byte_buffer.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/common/e1ap_types.h"
 #include <chrono>
+#include <optional>
 
 namespace ocudu::ocucp {
 
@@ -37,6 +40,20 @@ struct cu_cp_intra_cu_cho_request {
 /// \brief Response from intra-CU CHO orchestration.
 struct cu_cp_intra_cu_cho_response {
   bool success = false;
+};
+
+struct cu_cp_cho_preparation_request {
+  cond_recfg_id_t cond_recfg_id = 1; ///< CHO conditional reconfiguration ID (valid range 1..8).
+};
+
+/// \brief Result of a single CHO candidate preparation.
+/// Only populated when cu_cp_intra_cu_handover_request::cho_preparation is set.
+struct cu_cp_cho_preparation_result {
+  ue_index_t  target_ue_index = ue_index_t::invalid; ///< Target UE allocated/prepared for this candidate.
+  byte_buffer packed_rrc_recfg;                      ///< Packed RRCReconfiguration for deferred CHO execution.
+  unsigned    transaction_id = 0;                    ///< RRC transaction ID of packed_rrc_recfg.
+  /// CU-UP bearer update payload collected during target preparation.
+  std::optional<e1ap_ng_ran_bearer_context_mod_request> ng_ran_bearer_context_mod_request;
 };
 
 } // namespace ocudu::ocucp

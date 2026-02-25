@@ -5,6 +5,7 @@
 #include "mobility_manager_impl.h"
 #include "../du_processor/du_processor_repository.h"
 #include "ocudu/ran/nr_cgi.h"
+#include <optional>
 #include <set>
 #include <vector>
 
@@ -35,19 +36,23 @@ void mobility_manager::trigger_handover(pci_t source_pci, rnti_t rnti, pci_t tar
   handle_handover(ue_index, gnb_id_t{}, nr_cell_identity{}, target_pci); // TODO: define gNB-ID and NCI
 }
 
-void mobility_manager::trigger_conditional_handover(pci_t                     source_pci,
-                                                    rnti_t                    rnti,
-                                                    span<const pci_t>         target_pcis,
-                                                    std::chrono::milliseconds timeout)
+void mobility_manager::trigger_conditional_handover(
+    pci_t                                                source_pci,
+    rnti_t                                               rnti,
+    span<const pci_t>                                    target_pcis,
+    std::chrono::milliseconds                            timeout,
+    std::optional<std::chrono::system_clock::time_point> t1_thres_override)
 {
   // Trigger CHO by preparing and then automatically executing.
-  handle_conditional_handover(source_pci, rnti, target_pcis, timeout);
+  handle_conditional_handover(source_pci, rnti, target_pcis, timeout, t1_thres_override);
 }
 
-void mobility_manager::handle_conditional_handover(pci_t                     source_pci,
-                                                   rnti_t                    rnti,
-                                                   span<const pci_t>         target_pcis,
-                                                   std::chrono::milliseconds timeout)
+void mobility_manager::handle_conditional_handover(
+    pci_t                                                source_pci,
+    rnti_t                                               rnti,
+    span<const pci_t>                                    target_pcis,
+    std::chrono::milliseconds                            timeout,
+    std::optional<std::chrono::system_clock::time_point> t1_thres_override)
 {
   // Find UE by PCI and RNTI.
   ue_index_t ue_index = ue_mng.get_ue_index(source_pci, rnti);
@@ -134,10 +139,11 @@ void mobility_manager::handle_conditional_handover(pci_t                     sou
   logger.info("ue={}: Starting intra-CU CHO with {} candidate(s)", ue_index, targets.size());
 
   cu_cp_intra_cu_cho_request cho_request{};
-  cho_request.source_ue_index = ue_index;
-  cho_request.source_du_index = source_du;
-  cho_request.targets         = std::move(targets);
-  cho_request.timeout         = timeout;
+  cho_request.source_ue_index   = ue_index;
+  cho_request.source_du_index   = source_du;
+  cho_request.targets           = std::move(targets);
+  cho_request.timeout           = timeout;
+  cho_request.t1_thres_override = t1_thres_override;
 
   auto cho_trigger = [this, cho_request = std::move(cho_request), cho_response = cu_cp_intra_cu_cho_response{}](
                          coro_context<async_task<void>>& ctx) mutable {

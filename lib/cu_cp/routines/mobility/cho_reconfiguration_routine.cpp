@@ -187,6 +187,17 @@ byte_buffer cho_reconfiguration_routine::build_conditional_reconfiguration_messa
     // Continue without measurement config - this may cause CHO to fail.
   }
 
+  // Apply runtime T1 threshold override.
+  if (request.t1_thres_override.has_value() && rrc_request.meas_cfg.has_value()) {
+    for (auto& report_cfg_entry : rrc_request.meas_cfg->report_cfg_to_add_mod_list) {
+      if (auto* cond = std::get_if<rrc_cond_trigger_cfg>(&report_cfg_entry.report_cfg)) {
+        if (cond->cond_event_id.id == rrc_event_id::event_id_t::t1) {
+          cond->cond_event_id.t1_thres = request.t1_thres_override;
+        }
+      }
+    }
+  }
+
   for (const auto& candidate : cho_ctx->candidates) {
     cu_cp_ue_cho_candidate cho_cand;
     cho_cand.cond_recfg_id      = candidate.cond_recfg_id;

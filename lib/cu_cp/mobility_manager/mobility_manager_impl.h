@@ -54,10 +54,12 @@ public:
 
   void trigger_handover(pci_t source_pci, rnti_t rnti, pci_t target_pci) override;
 
-  void trigger_conditional_handover(pci_t                     source_pci,
-                                    rnti_t                    rnti,
-                                    span<const pci_t>         target_pcis,
-                                    std::chrono::milliseconds timeout) override;
+  void trigger_conditional_handover(
+      pci_t                                                source_pci,
+      rnti_t                                               rnti,
+      span<const pci_t>                                    target_pcis,
+      std::chrono::milliseconds                            timeout,
+      std::optional<std::chrono::system_clock::time_point> t1_thres_override = std::nullopt) override;
 
   void handle_neighbor_better_than_spcell(ue_index_t       ue_index,
                                           gnb_id_t         neighbor_gnb_id,
@@ -80,10 +82,11 @@ private:
                                 du_index_t source_du_index,
                                 du_index_t target_du_index);
 
-  void handle_conditional_handover(pci_t                     source_pci,
-                                   rnti_t                    rnti,
-                                   span<const pci_t>         target_pcis,
-                                   std::chrono::milliseconds timeout);
+  void handle_conditional_handover(pci_t                                                source_pci,
+                                   rnti_t                                               rnti,
+                                   span<const pci_t>                                    target_pcis,
+                                   std::chrono::milliseconds                            timeout,
+                                   std::optional<std::chrono::system_clock::time_point> t1_thres_override);
 
   mobility_manager_cfg             cfg;
   mobility_manager_cu_cp_notifier& cu_cp_notifier;

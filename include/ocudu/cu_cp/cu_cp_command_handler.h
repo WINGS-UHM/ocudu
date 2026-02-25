@@ -9,6 +9,7 @@
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/rnti.h"
 #include <chrono>
+#include <optional>
 
 namespace ocudu {
 namespace ocucp {
@@ -33,10 +34,13 @@ public:
   /// \param[in] rnti UE RNTI on the serving cell.
   /// \param[in] target_pcis Target cell PCIs (1-8 candidates supported per 3GPP).
   /// \param[in] timeout Maximum time to wait for CHO completion.
-  virtual void trigger_conditional_handover(pci_t                     source_pci,
-                                            rnti_t                    rnti,
-                                            span<const pci_t>         target_pcis,
-                                            std::chrono::milliseconds timeout) = 0;
+  /// \param[in] t1_thres_override Optional runtime override for the T1 conditional event threshold.
+  virtual void trigger_conditional_handover(
+      pci_t                                                source_pci,
+      rnti_t                                               rnti,
+      span<const pci_t>                                    target_pcis,
+      std::chrono::milliseconds                            timeout,
+      std::optional<std::chrono::system_clock::time_point> t1_thres_override = std::nullopt) = 0;
 };
 
 /// Handler for external commands to the CU-CP.

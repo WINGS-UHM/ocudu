@@ -147,9 +147,10 @@ void cho_coordinator_routine::operator()(coro_context<async_task<cu_cp_intra_cu_
   }
 
   // Phase 2: CHO Execution.
-  source_ue->get_cho_context()->state  = cu_cp_ue_cho_context::state_t::rrc_reconfiguration;
-  cho_reconfig_request.source_ue_index = request.source_ue_index;
-  cho_reconfig_request.timeout         = request.timeout;
+  source_ue->get_cho_context()->state    = cu_cp_ue_cho_context::state_t::rrc_reconfiguration;
+  cho_reconfig_request.source_ue_index   = request.source_ue_index;
+  cho_reconfig_request.timeout           = request.timeout;
+  cho_reconfig_request.t1_thres_override = request.t1_thres_override;
   CORO_AWAIT_VALUE(
       cho_reconfig_result,
       launch_async<cho_reconfiguration_routine>(cho_reconfig_request,

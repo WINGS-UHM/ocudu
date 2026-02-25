@@ -35,6 +35,8 @@ struct cu_cp_intra_cu_cho_request {
   du_index_t                              source_du_index = du_index_t::invalid;
   std::vector<cu_cp_cho_target_candidate> targets;
   std::chrono::milliseconds               timeout = std::chrono::milliseconds{10000};
+  /// Runtime override for the T1 conditional event threshold. Replaces the configured value when set.
+  std::optional<std::chrono::system_clock::time_point> t1_thres_override;
 };
 
 /// \brief Response from intra-CU CHO orchestration.

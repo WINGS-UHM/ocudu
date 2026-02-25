@@ -6,11 +6,12 @@
 
 #include "apps/services/cmdline/cmdline_command.h"
 #include "apps/services/cmdline/cmdline_command_dispatcher_utils.h"
-#include "ocudu/adt/expected.h"
+#include "cu_cp_unit_config_helpers.h"
 #include "ocudu/cu_cp/cu_cp_command_handler.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/rnti.h"
 #include <chrono>
+#include <optional>
 #include <vector>
 
 namespace ocudu {
@@ -80,7 +81,8 @@ public:
   // See interface for documentation.
   std::string_view get_description() const override
   {
-    return " <serving pci> <rnti> <target pci> [<target pci2> ...] [timeout <s>]: trigger conditional handover";
+    return " <serving pci> <rnti> <target pci> [<target pci2> ...] [timeout <s>] [t1 <datetime>]: trigger conditional "
+           "handover";
   }
 
   // See interface for documentation.
@@ -88,7 +90,8 @@ public:
   {
     if (args.size() < 3) {
       fmt::print("Invalid cho command structure.\n");
-      fmt::print("Usage: cho <serving pci> <rnti> <target pci1> [<target pci2> ... <target pci8>] [timeout <s>]\n");
+      fmt::print("Usage: cho <serving pci> <rnti> <target pci1> [<target pci2> ... <target pci8>] [timeout <s>] [t1 "
+                 "<datetime>]\n");
       return;
     }
 
@@ -110,12 +113,14 @@ public:
     }
     ++arg;
 
-    // Parse target PCIs and optional timeout.
-    // Timeout is specified with keyword "timeout" followed by value in seconds.
-    // Examples: "cho 1 0x1234 100 200" -> 2 PCIs, default timeout
-    //           "cho 1 0x1234 100 200 timeout 30" -> 2 PCIs, 30s timeout
-    std::vector<pci_t>        target_pcis;
-    std::chrono::milliseconds timeout{10000}; // default 10 seconds
+    // Parse target PCIs and optional keywords (timeout, t1).
+    // Examples: "cho 1 0x4601 100 200" -> 2 PCIs, default timeout
+    //           "cho 1 0x4601 100 200 timeout 30" -> 2 PCIs, 30s timeout
+    //           "cho 1 0x4601 100 t1 2026-03-01T10:00:00" -> 1 PCI, T1 override
+    //           "cho 1 0x4601 100 timeout 30 t1 2026-03-01T10:00:00" -> 1 PCI, both
+    std::vector<pci_t>                                   target_pcis;
+    std::chrono::milliseconds                            timeout{10000}; // default 10 seconds
+    std::optional<std::chrono::system_clock::time_point> t1_thres_override;
 
     while (arg != args.end()) {
       if (*arg == "timeout") {
@@ -131,7 +136,23 @@ public:
         }
         timeout = std::chrono::seconds{timeout_s.value()};
         ++arg;
-        break; // timeout must be last
+        continue;
+      }
+
+      if (*arg == "t1") {
+        ++arg;
+        if (arg == args.end()) {
+          fmt::print("Missing datetime value after 't1' keyword.\n");
+          return;
+        }
+        auto t1_result = parse_timestamp_ms(*arg);
+        if (not t1_result.has_value()) {
+          fmt::print("Invalid t1 datetime '{}': {}.\n", *arg, t1_result.error());
+          return;
+        }
+        t1_thres_override = t1_result.value();
+        ++arg;
+        continue;
       }
 
       expected<unsigned, std::string> target_pci = app_services::parse_int<unsigned>(*arg);
@@ -152,8 +173,11 @@ public:
       return;
     }
 
-    cu_cp.get_mobility_command_handler().trigger_conditional_handover(
-        static_cast<pci_t>(serving_pci.value()), static_cast<rnti_t>(rnti.value()), target_pcis, timeout);
+    cu_cp.get_mobility_command_handler().trigger_conditional_handover(static_cast<pci_t>(serving_pci.value()),
+                                                                      static_cast<rnti_t>(rnti.value()),
+                                                                      target_pcis,
+                                                                      timeout,
+                                                                      t1_thres_override);
     fmt::print("CHO triggered for UE with pci={} rnti={} to {} target(s) with timeout={}s.\n",
                serving_pci.value(),
                static_cast<rnti_t>(rnti.value()),

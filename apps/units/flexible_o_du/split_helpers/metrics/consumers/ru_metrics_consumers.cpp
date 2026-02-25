@@ -159,22 +159,25 @@ static void log_ru_ofh_metrics(ocudulog::log_channel&   log_chan,
   fmt::basic_memory_buffer<char, str_buffer_size> buffer;
 
   fmt::format_to(std::back_inserter(buffer),
-                 "OFH metrics: timing metrics: nof_skipped_symbols={} skipped_symbols_max_burst={} "
-                 "symbol_notification_max_latency={:.2f}us symbol_notification_avg_latency={:.2f}us; ",
+                 "OFH timing metrics: nof_skipped_symbols={} skipped_symbols_max_burst={} "
+                 "symbol_notification_max_latency={:.2f}us symbol_notification_avg_latency={:.2f}us",
                  metrics.timing.nof_skipped_symbols,
                  metrics.timing.skipped_symbols_max_burst,
                  metrics.timing.notification_max_latency_us,
                  metrics.timing.notification_avg_latency_us);
+  log_chan("{}", to_c_str(buffer));
 
   for (const auto& cell_metrics : metrics.sectors) {
     const ofh::received_messages_metrics& rx_ofh_metrics    = cell_metrics.rx_metrics.rx_messages_metrics;
     const ofh::closed_rx_window_metrics&  rx_closed_metrics = cell_metrics.rx_metrics.closed_window_metrics;
 
+    buffer.clear();
+
     fmt::format_to(
         std::back_inserter(buffer),
-        "sector#{} pci={} received messages stats: rx_total={} rx_early={} "
+        "OFH sector#{} metrics: pci={} received messages stats: rx_total={} rx_early={} "
         "rx_on_time={} rx_late={} earliest_msg_us={:.2f} latest_msg_us={:.2f}, nof_missed_uplink_symbols={} "
-        "nof_missed_prach_occasions={}; ",
+        "nof_missed_prach_occasions={}",
         cell_metrics.sector_id,
         static_cast<unsigned>(pci_sector_map[cell_metrics.sector_id]),
         rx_ofh_metrics.nof_early_messages + rx_ofh_metrics.nof_on_time_messages + rx_ofh_metrics.nof_late_messages,
@@ -190,8 +193,9 @@ static void log_ru_ofh_metrics(ocudulog::log_channel&   log_chan,
     if (verbose) {
       log_ru_ofh_performance_metrics_verbose(buffer, cell_metrics);
     }
+
+    log_chan("{}", to_c_str(buffer));
   }
-  log_chan("{}", to_c_str(buffer));
 }
 
 void ru_metrics_consumer_log::handle_metric(const ru_metrics& metric)

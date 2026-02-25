@@ -85,6 +85,6 @@ add_executable(flat_map_test flat_map_test.cpp)
 target_link_libraries(flat_map_test ocudulog ocudu_support gtest gtest_main)
 add_test(flat_map_test flat_map_test)
 
-add_executable(soa_table_test soa_table_test.cpp)
+add_executable(soa_table_test soa_table_test.cpp stable_id_map_test.cpp)
 target_link_libraries(soa_table_test ocudulog ocudu_support gtest gtest_main)
 add_test(soa_table_test soa_table_test)

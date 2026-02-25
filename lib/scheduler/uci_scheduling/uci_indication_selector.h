@@ -11,7 +11,7 @@
 #pragma once
 
 #include "ocudu/adt/circular_vector.h"
-#include "ocudu/adt/soa_table.h"
+#include "ocudu/adt/stable_id_map.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/scheduler/result/sched_result.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
@@ -75,7 +75,7 @@ public:
   void handle_discarded_ucis(slot_point sl_tx);
 
 private:
-  static constexpr soa::row_id invalid_row_id{std::numeric_limits<uint32_t>::max()};
+  static constexpr stable_id_t invalid_entry_id{std::numeric_limits<uint32_t>::max()};
 
   /// \brief Represents a scheduled UCI grant that is waiting for its respective UCI feedback.
   /// \remark An UCI entry can represent a PUSCH with UCI grant or one or more PUCCH grants (PUCCH F1 HARQ+SR case).
@@ -86,10 +86,10 @@ private:
     /// Buffered action when several UCI PDUs need to be combined.
     uci_action chosen_action;
     /// Next element in the linked list of UCI entries expected for a given slot Rx.
-    soa::row_id next = invalid_row_id;
+    stable_id_t next = invalid_entry_id;
     /// Next element in the linked list of UCI entries that will expire in a given slot if the remaining UCI PDUs
     /// for this grant do not arrive to the scheduler.
-    soa::row_id next_short_timeout = invalid_row_id;
+    stable_id_t next_short_timeout = invalid_entry_id;
     /// Slot at which the UCI entry will expire if the remaining UCI PDUs do not arrive on time.
     slot_point short_timeout_wheel_pos;
   };
@@ -100,7 +100,7 @@ private:
   std::optional<uci_action> handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry);
 
   /// Helper to remove UCI entry from its linked list.
-  soa::row_id rem_uci_entry(soa::row_id& head, uci_entry* prev_entry, uci_entry& entry);
+  stable_id_t rem_uci_entry(stable_id_t& head, uci_entry* prev_entry, uci_entry& entry);
 
   /// Timeout to receive HARQ-ACK feedback.
   const unsigned                   ack_timeout_slots;
@@ -109,11 +109,10 @@ private:
 
   slot_point last_sl_tx;
 
-  enum class slot_column_id { uci };
-  soa::table<slot_column_id, uci_entry> uci_pool;
+  stable_id_map<uci_entry> uci_pool;
 
-  circular_vector<soa::row_id> uci_wheel;
-  circular_vector<soa::row_id> short_timeout_wheel;
+  circular_vector<stable_id_t> uci_wheel;
+  circular_vector<stable_id_t> short_timeout_wheel;
 };
 
 } // namespace ocudu

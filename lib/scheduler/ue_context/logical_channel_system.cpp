@@ -48,15 +48,13 @@ logical_channel_system_utils::logical_channel_mapper::logical_channel_mapper() :
 void logical_channel_system_utils::logical_channel_mapper::slot_indication()
 {
   // Update the bit rates of the UE logical channels with tracked bit rates.
-  for (auto row_view : qos_channels) {
-    auto& item = row_view.at<lc_qos_context>();
-    item.dl_avg_bytes_per_slot.push(item.dl_last_sched_bytes);
-    item.dl_last_sched_bytes = 0;
+  for (lc_qos_context& lc : qos_channels) {
+    lc.dl_avg_bytes_per_slot.push(lc.dl_last_sched_bytes);
+    lc.dl_last_sched_bytes = 0;
   }
-  for (auto row_view : qos_lcgs) {
-    auto& item = row_view.at<lcg_qos_context>();
-    item.ul_avg_bytes_per_slot.push(item.ul_last_sched_bytes);
-    item.ul_last_sched_bytes = 0;
+  for (lcg_qos_context& lcg : qos_lcgs) {
+    lcg.ul_avg_bytes_per_slot.push(lcg.ul_last_sched_bytes);
+    lcg.ul_last_sched_bytes = 0;
   }
 }
 
@@ -105,14 +103,14 @@ logical_channel_system_utils::logical_channel_mapper::addmod_lc_and_lcg(du_ue_in
       dl_qrow = qos_channels.insert(lc_qos_context{0, exp_average_fast_start<float>{alpha}});
     } else {
       // Update QoS DL tracking window decay factor.
-      qos_channels.row(*dl_qrow).at<lc_qos_context>().dl_avg_bytes_per_slot.set_alpha(alpha);
+      qos_channels[*dl_qrow].dl_avg_bytes_per_slot.set_alpha(alpha);
     }
     if (not ul_qrow.has_value()) {
       // Initiate QoS UL tracking.
       ul_qrow = qos_lcgs.insert(lcg_qos_context{0, 0, exp_average_fast_start<float>{alpha}});
     } else {
       // Update QoS UL tracking window decay factor.
-      qos_lcgs.row(*ul_qrow).at<lcg_qos_context>().ul_avg_bytes_per_slot.set_alpha(alpha);
+      qos_lcgs[*ul_qrow].ul_avg_bytes_per_slot.set_alpha(alpha);
     }
   } else {
     // Disable DL QoS tracking, if previously enabled.
@@ -187,7 +185,7 @@ void logical_channel_system_utils::logical_channel_mapper::deregister_lcg_slice(
 unsigned* logical_channel_system_utils::logical_channel_mapper::last_dl_sched_bytes(soa::row_id lc_rid)
 {
   if (auto& qos_row_opt = dl_qos_row(lc_rid); qos_row_opt.has_value()) {
-    return &qos_channels.row(*qos_row_opt).at<lc_qos_context>().dl_last_sched_bytes;
+    return &qos_channels[*qos_row_opt].dl_last_sched_bytes;
   }
   return nullptr;
 }
@@ -195,7 +193,7 @@ unsigned* logical_channel_system_utils::logical_channel_mapper::last_dl_sched_by
 unsigned* logical_channel_system_utils::logical_channel_mapper::last_ul_sched_bytes(soa::row_id lc_rid)
 {
   if (auto& qos_row_opt = ul_qos_row(lc_rid); qos_row_opt.has_value()) {
-    return &qos_lcgs.row(*qos_row_opt).at<lcg_qos_context>().ul_last_sched_bytes;
+    return &qos_lcgs[*qos_row_opt].ul_last_sched_bytes;
   }
   return nullptr;
 }
@@ -203,7 +201,7 @@ unsigned* logical_channel_system_utils::logical_channel_mapper::last_ul_sched_by
 unsigned* logical_channel_system_utils::logical_channel_mapper::ul_sched_bytes_accum(soa::row_id lcg_rid)
 {
   if (auto& qos_row_opt = ul_qos_row(lcg_rid); qos_row_opt.has_value()) {
-    return &qos_lcgs.row(*qos_row_opt).at<lcg_qos_context>().sched_bytes_accum;
+    return &qos_lcgs[*qos_row_opt].sched_bytes_accum;
   }
   return nullptr;
 }
@@ -211,7 +209,7 @@ unsigned* logical_channel_system_utils::logical_channel_mapper::ul_sched_bytes_a
 double logical_channel_system_utils::logical_channel_mapper::avg_dl_bits_per_slot(soa::row_id lc_rid) const
 {
   if (auto& qos_row_opt = dl_qos_row(lc_rid); qos_row_opt.has_value()) {
-    return qos_channels.row(*qos_row_opt).at<lc_qos_context>().dl_avg_bytes_per_slot.average() * 8U;
+    return qos_channels[*qos_row_opt].dl_avg_bytes_per_slot.average() * 8U;
   }
   return 0.0;
 }
@@ -219,7 +217,7 @@ double logical_channel_system_utils::logical_channel_mapper::avg_dl_bits_per_slo
 double logical_channel_system_utils::logical_channel_mapper::avg_ul_bits_per_slot(soa::row_id lcg_rid) const
 {
   if (auto& qos_row_opt = ul_qos_row(lcg_rid); qos_row_opt.has_value()) {
-    return qos_lcgs.row(*qos_row_opt).at<lcg_qos_context>().ul_avg_bytes_per_slot.average() * 8U;
+    return qos_lcgs[*qos_row_opt].ul_avg_bytes_per_slot.average() * 8U;
   }
   return 0.0;
 }
@@ -484,8 +482,8 @@ void logical_channel_system::deactivate(soa::row_id ue_rid)
 
   // Clear UE pending CEs.
   ue_ctx.pending_con_res_id = false;
-  for (std::optional<soa::row_id> ce_rid = ue_ch.pending_ces; ce_rid.has_value();) {
-    auto next = pending_ces.at<mac_ce_context>(*ce_rid).next_ue_ce;
+  for (std::optional<stable_id_t> ce_rid = ue_ch.pending_ces; ce_rid.has_value();) {
+    auto next = pending_ces[*ce_rid].next_ue_ce;
     pending_ces.erase(*ce_rid);
     ce_rid = next;
   }
@@ -731,9 +729,9 @@ void logical_channel_system::handle_mac_ce_indication(soa::row_id ue_row_id, con
     return;
   }
   auto&                      ue_ch_ctx = u.at<ue_dl_channel_context>();
-  std::optional<soa::row_id> prev_ce_it;
+  std::optional<stable_id_t> prev_ce_it;
   for (auto it = ue_ch_ctx.pending_ces; it.has_value();) {
-    auto& ce_ctx = pending_ces.at<mac_ce_context>(it.value());
+    auto& ce_ctx = pending_ces[it.value()];
     if (ce.ce_lcid == lcid_dl_sch_t::TA_CMD and ce_ctx.info.ce_lcid == lcid_dl_sch_t::TA_CMD) {
       // Overwrite previous TA CMD CE.
       // Note: Size of TA CMD CE is fixed, so no need to update pending CE bytes.
@@ -747,7 +745,7 @@ void logical_channel_system::handle_mac_ce_indication(soa::row_id ue_row_id, con
   auto ce_rid = pending_ces.insert(mac_ce_context{ce, std::nullopt});
   if (prev_ce_it.has_value()) {
     // Append CE to the end of the list.
-    pending_ces.at<mac_ce_context>(prev_ce_it.value()).next_ue_ce = ce_rid;
+    pending_ces[prev_ce_it.value()].next_ue_ce = ce_rid;
   } else {
     // New head of the list.
     ue_ch_ctx.pending_ces = ce_rid;
@@ -904,8 +902,8 @@ unsigned logical_channel_system::allocate_mac_ce(soa::row_id ue_rid, dl_msg_lc_i
   if (not ue_ch_ctx.pending_ces.has_value()) {
     return 0;
   }
-  soa::row_id         ce_row_id = *ue_ch_ctx.pending_ces;
-  const auto&         ce_node   = pending_ces.at<mac_ce_context>(ce_row_id);
+  stable_id_t         ce_row_id = *ue_ch_ctx.pending_ces;
+  const auto&         ce_node   = pending_ces[ce_row_id];
   const lcid_dl_sch_t lcid      = ce_node.info.ce_lcid;
 
   // Derive space needed for CE subheader + payload.

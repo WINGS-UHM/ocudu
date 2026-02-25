@@ -628,6 +628,12 @@ void cu_cp_impl::handle_handover_ue_context_push(ue_index_t source_ue_index, ue_
   }
   // Transfer E1AP UE Context to new UE and remove old context.
   cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->update_ue_index(target_ue_index, source_ue_index);
+
+  // Transfer location reporting configuration from source UE to target UE.
+  auto* source_ue = ue_mng.find_ue(source_ue_index);
+  if (source_ue != nullptr) {
+    ue->get_location_manager().set_config(source_ue->get_location_manager().get_config());
+  }
 }
 
 async_task<void> cu_cp_impl::handle_ue_context_release(const cu_cp_ue_context_release_request& request)

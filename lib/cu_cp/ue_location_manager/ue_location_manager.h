@@ -16,10 +16,24 @@
 
 namespace ocudu::ocucp {
 
+using location_report_ref_id_t = uint8_t; // (1..64)
+
+struct ue_location_manager_cfg {
+  bool                                                      report_on_cell_change     = false;
+  bool                                                      report_ue_presence_in_aoi = false;
+  std::map<location_report_ref_id_t, ngap_area_of_interest> area_of_interest_list;
+};
+
 class ue_location_manager
 {
 public:
   ue_location_manager();
+
+  /// \brief Restore location reporting state (e.g. after intra-CU handover).
+  void set_config(const ue_location_manager_cfg& new_cfg) { cfg = new_cfg; }
+
+  /// \brief Extract the current location reporting state for transfer.
+  ue_location_manager_cfg get_config() const { return cfg; }
 
   /// \brief Store a location reporting configuration received from AMF.
   void configure_location_reporting(const ngap_location_report_request& ctrl);
@@ -28,18 +42,12 @@ public:
   ngap_location_report get_location_report(ue_index_t ue_index, const cu_cp_user_location_info_nr& user_location_info);
 
 private:
-  // using event_type               = ngap_location_report_request::event_type;
-  using location_report_ref_id_t = uint8_t; // (1..64)
-
-  bool report_on_cell_change     = false;
-  bool report_ue_presence_in_aoi = false;
-
   ngap_location_report_request::event_type get_current_location_reporting_type() const;
 
   static ngap_ue_presence check_ue_presence(const ngap_area_of_interest& aoi, const cu_cp_user_location_info_nr& loc);
 
-  std::map<location_report_ref_id_t, ngap_area_of_interest> area_of_interest_list;
-  ocudulog::basic_logger&                                   logger;
+  ue_location_manager_cfg cfg;
+  ocudulog::basic_logger& logger;
 };
 
 } // namespace ocudu::ocucp

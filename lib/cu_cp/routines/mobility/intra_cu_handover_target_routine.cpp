@@ -63,7 +63,7 @@ void intra_cu_handover_target_routine::operator()(coro_context<async_task<void>>
   mobility_mng.get_metrics_handler().aggregate_successful_handover_execution();
 
   {
-    // Transfer old UE context (NGAP and E1AP) to new UE context and remove old UE context.
+    // Transfer old UE context (NGAP, E1AP, location manager) to new UE context and remove old UE context.
     cu_cp_handler.handle_handover_ue_context_push(request.source_ue_index, request.target_ue_index);
   }
 

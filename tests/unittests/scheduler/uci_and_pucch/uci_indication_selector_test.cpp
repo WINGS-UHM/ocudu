@@ -450,4 +450,41 @@ TEST_F(uci_indication_selector_test, wrong_slot_for_correct_rnti_is_ignored)
   ASSERT_FALSE(timeout_notifier.events.front().action.harq_ack_bits.test(0));
 }
 
+TEST_F(uci_indication_selector_test, on_slot_discard_multiple_ucis_timeout)
+{
+  // Event: Two PUCCH grants are scheduled.
+  auto uci_slot = next_sl_tx;
+  selector.handle_result(next_sl_tx,
+                         make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1),
+                                            make_pucch_grant(second_rnti, pucch_format::FORMAT_1, 2)}));
+
+  // Event: Slot elapses.
+  ++next_sl_tx;
+  selector.handle_result(next_sl_tx, make_sched_result({}));
+  ASSERT_TRUE(timeout_notifier.events.empty());
+
+  // Event: Error indication arrived.
+  selector.handle_discarded_ucis(uci_slot);
+
+  // Test Case: Timeouts for the respective UCIs are forwarded.
+  ASSERT_EQ(timeout_notifier.events.size(), 2U);
+  bounded_bitset<2> visited_rntis(2);
+  for (unsigned i = 0; i != 2U; ++i) {
+    auto& ev = timeout_notifier.events[i];
+    if (ev.crnti == first_rnti) {
+      visited_rntis.set(0);
+      ASSERT_FALSE(ev.action.uci_valid);
+      ASSERT_EQ(ev.action.harq_ack_bits.size(), 1);
+      ASSERT_TRUE(ev.action.harq_ack_bits.none());
+    } else {
+      visited_rntis.set(1);
+      ASSERT_EQ(ev.crnti, second_rnti);
+      ASSERT_FALSE(ev.action.uci_valid);
+      ASSERT_EQ(ev.action.harq_ack_bits.size(), 2);
+      ASSERT_TRUE(ev.action.harq_ack_bits.none());
+    }
+  }
+  ASSERT_TRUE(visited_rntis.all());
+}
+
 } // namespace

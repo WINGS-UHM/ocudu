@@ -285,24 +285,16 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
 
 void uci_indication_selector::handle_discarded_ucis(slot_point sl_tx)
 {
-  auto&      uci_wheel_sl_tx = uci_wheel[sl_tx.count()];
-  uci_entry* prev_entry      = nullptr;
-  for (stable_id_t id = uci_wheel_sl_tx; id != invalid_entry_id;) {
-    uci_entry& entry = uci_pool[id];
+  for (auto& id_to_rem = uci_wheel[sl_tx.count()]; id_to_rem != invalid_entry_id;) {
+    uci_entry& entry = uci_pool[id_to_rem];
 
-    // The lower layers will not attempt to decode the PUCCH and will not send any UCI indication.
-    if (not entry.chosen_action.harq_ack_bits.empty() and entry.uci_pdus_to_rx > 0) {
-      // Note: To avoid a long DL HARQ timeout window (due to lack of UCI indication), it is important to force a
-      // timeout in the DL HARQ processes with UCI falling in this slot.
-      // Note: We don't use this cancellation to update the DL OLLA, as we shouldn't take lates into account in link
-      // adaptation.
-      timeout_notifier.on_timeout(sl_tx, entry.crnti, entry.chosen_action);
-      rem_uci_entry(uci_wheel_sl_tx, prev_entry, entry);
-      break;
-    }
-
-    prev_entry = &entry;
-    id         = entry.next;
+    // The lower layers will not attempt to decode the PUCCHs and PUSCH UCIs and will not send any UCI indication    //
+    // feedback. To avoid a long DL HARQ timeout window (due to lack of UCI indication), it is important to force a DTX
+    // for the DL HARQ processes with UCI falling in this slot.
+    // Note: We don't use this cancellation to update the DL OLLA (UCI is invalid), as we shouldn't take lates into
+    // account in link adaptation.
+    timeout_notifier.on_timeout(sl_tx, entry.crnti, entry.chosen_action);
+    rem_uci_entry(id_to_rem, nullptr, entry);
   }
 }
 

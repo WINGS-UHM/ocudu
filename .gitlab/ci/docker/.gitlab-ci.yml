@@ -202,9 +202,6 @@ telegraf image:
     - if: $ON_MR_FORK
       when: never
     - if: $ON_MR
-      changes:
-        paths:
-          - docker/telegraf/**/*
   variables:
     CONTEXT: ${CI_PROJECT_DIR}/docker/telegraf
     MODE: publish
@@ -243,9 +240,6 @@ grafana image:
     - if: $ON_MR_FORK
       when: never
     - if: $ON_MR
-      changes:
-        paths:
-          - docker/grafana/**/*
   variables:
     CONTEXT: ${CI_PROJECT_DIR}/docker/grafana
     MODE: publish

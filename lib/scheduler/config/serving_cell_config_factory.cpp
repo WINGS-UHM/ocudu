@@ -658,11 +658,11 @@ ocudu::config_helpers::create_default_initial_ue_cell_config(const cell_config_b
   auto& init_bwp = cfg.bwps.emplace_back();
   if (params.csi_rs_enabled) {
     const csi_helper::csi_meas_config_builder_params csi_params = make_default_csi_builder_params(params);
-    init_bwp.ul.periodic_csi_report.emplace(
-        ue_periodic_csi_config{.pucch_res = 0, .offset = csi_params.csi_params.csi_report_slot_offset.value()});
+    init_bwp.ul.periodic_csi_report.emplace(ue_periodic_csi_config{
+        .pucch_res_id = pucch_csi_resource_id(0), .offset = csi_params.csi_params.csi_report_slot_offset.value()});
   }
-  init_bwp.ul.pucch.res_set_cfg = 0;
-  init_bwp.ul.pucch.sr_res      = 0;
+  init_bwp.ul.pucch.res_set_cfg_id = pucch_resource_set_config_id(0);
+  init_bwp.ul.pucch.sr_res_id      = pucch_sr_resource_id(0);
   init_bwp.ul.pucch.sr_offset =
       params.tdd_ul_dl_cfg_common.has_value() ? find_next_tdd_full_ul_slot(*params.tdd_ul_dl_cfg_common).value() : 0;
   init_bwp.ul.pusch.tx_cfg = {.max_rank = 1, .codebook_subset = tx_scheme_codebook_subset::non_coherent};

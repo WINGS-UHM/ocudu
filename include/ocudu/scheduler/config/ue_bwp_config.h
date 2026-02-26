@@ -16,26 +16,34 @@
 
 namespace ocudu {
 
+// Strong types for UCI specific PUCCH resource IDs.
+struct pucch_resource_set_config_id_tag;
+using pucch_resource_set_config_id = strong_type<uint8_t, struct pucch_res_set_cfg_id_tag, strong_equality>;
+struct pucch_sr_resource_id_tag;
+using pucch_sr_resource_id = strong_type<uint8_t, struct pucch_sr_resource_id_tag, strong_equality>;
+struct pucch_csi_resource_id_tag;
+using pucch_csi_resource_id = strong_type<uint8_t, struct pucch_csi_resource_id_tag, strong_equality>;
+
 /// \brief UE-specific information related to PUCCH configuration.
 struct ue_pucch_config {
-  unsigned res_set_cfg;
-  unsigned sr_res;
-  unsigned sr_offset;
+  pucch_resource_set_config_id res_set_cfg_id;
+  pucch_sr_resource_id         sr_res_id;
+  unsigned                     sr_offset;
 
   bool operator==(const ue_pucch_config& other) const
   {
-    return res_set_cfg == other.res_set_cfg and sr_res == other.sr_res and sr_offset == other.sr_offset;
+    return res_set_cfg_id == other.res_set_cfg_id and sr_res_id == other.sr_res_id and sr_offset == other.sr_offset;
   }
 };
 
 /// \brief UE-specific information related to periodic CSI reporting configuration.
 struct ue_periodic_csi_config {
-  unsigned pucch_res;
-  unsigned offset;
+  pucch_csi_resource_id pucch_res_id;
+  unsigned              offset;
 
   bool operator==(const ue_periodic_csi_config& other) const
   {
-    return pucch_res == other.pucch_res and offset == other.offset;
+    return pucch_res_id == other.pucch_res_id and offset == other.offset;
   }
 };
 

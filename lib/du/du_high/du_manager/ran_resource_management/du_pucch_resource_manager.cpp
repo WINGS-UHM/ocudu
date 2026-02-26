@@ -16,6 +16,7 @@
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
 #include <limits>
 #include <numeric>
 #include <utility>
@@ -185,14 +186,15 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
 
   // Update the BWP configuration for this UE with the allocated SR and CSI resources.
   {
-    auto& ul_bwp             = cell_cfg.bwps[0].ul;
-    ul_bwp.pucch.res_set_cfg = cell_ctx.ue_idx % cell_ctx.bwp_params.pucch.resources.nof_cell_res_set_configs;
-    ul_bwp.pucch.sr_res      = sr_cfg->res;
-    ul_bwp.pucch.sr_offset   = sr_cfg->offset;
+    auto& ul_bwp = cell_cfg.bwps[0].ul;
+    ul_bwp.pucch.res_set_cfg_id =
+        pucch_resource_set_config_id(cell_ctx.ue_idx % cell_ctx.bwp_params.pucch.resources.nof_cell_res_set_configs);
+    ul_bwp.pucch.sr_res_id = pucch_sr_resource_id(sr_cfg->res);
+    ul_bwp.pucch.sr_offset = sr_cfg->offset;
     if (csi_cfg.has_value()) {
-      auto& periodic_csi_report_cfg     = ul_bwp.periodic_csi_report.emplace();
-      periodic_csi_report_cfg.pucch_res = csi_cfg->res;
-      periodic_csi_report_cfg.offset    = csi_cfg->offset;
+      auto& periodic_csi_report_cfg        = ul_bwp.periodic_csi_report.emplace();
+      periodic_csi_report_cfg.pucch_res_id = pucch_csi_resource_id(csi_cfg->res);
+      periodic_csi_report_cfg.offset       = csi_cfg->offset;
     }
   }
 
@@ -211,14 +213,14 @@ void du_pucch_resource_manager::dealloc_resources(cell_group_config& cell_grp_cf
   }
 
   // Return SR resource/offset to the free list.
-  cell_ctx.free_sr_configs.emplace_back(periodic_pucch_config{ul_bwp.pucch.sr_res, ul_bwp.pucch.sr_offset});
+  cell_ctx.free_sr_configs.emplace_back(periodic_pucch_config{ul_bwp.pucch.sr_res_id.value(), ul_bwp.pucch.sr_offset});
 
   ocudu_assert(cell_ctx.default_csi_report_cfg.has_value() == ul_bwp.periodic_csi_report.has_value(),
                "Periodic CSI report configuration presence mismatch between cell and UE");
   // Return CSI resource/offset to the free list if periodic CSI is configured for this cell.
   if (cell_ctx.default_csi_report_cfg.has_value()) {
     cell_ctx.free_csi_configs.emplace_back(
-        periodic_pucch_config{ul_bwp.periodic_csi_report->pucch_res, ul_bwp.periodic_csi_report->offset});
+        periodic_pucch_config{ul_bwp.periodic_csi_report->pucch_res_id.value(), ul_bwp.periodic_csi_report->offset});
   }
 
   // Remove the SR and CSI offsets from the PUCCH grants-per-slot counter.
@@ -246,8 +248,9 @@ du_pucch_resource_manager::get_compatible_csi_cfg(const cell_resource_context&  
                                                   unsigned                                  max_pucch_payload,
                                                   unsigned                                  csi_report_size) const
 {
-  const pucch_resource& sr_res = cell_ctx.cell_pucch_cfg.resources.at(
-      ocudu::bwp_config_helpers::get_pucch_sr_cell_res_idx(cell_ctx.bwp_params.pucch.resources, sr_cfg.res));
+  const pucch_resource& sr_res =
+      cell_ctx.cell_pucch_cfg.resources.at(ocudu::bwp_config_helpers::get_pucch_sr_cell_res_idx(
+          cell_ctx.bwp_params.pucch.resources, pucch_sr_resource_id(sr_cfg.res)));
   const auto sr_symbols    = ofdm_symbol_range::start_and_len(sr_res.starting_sym_idx, sr_res.nof_symbols);
   const auto is_compatible = [&](const periodic_pucch_config& csi_cfg) {
     // Ensure the max PUCCH grants limit is not exceeded.
@@ -256,8 +259,9 @@ du_pucch_resource_manager::get_compatible_csi_cfg(const cell_resource_context&  
     }
 
     // Ensure the CSI and SR resources collide in OFDM symbols, so they are multiplexed.
-    const pucch_resource& csi_res = cell_ctx.cell_pucch_cfg.resources.at(
-        ocudu::bwp_config_helpers::get_pucch_csi_cell_res_idx(cell_ctx.bwp_params.pucch.resources, csi_cfg.res));
+    const pucch_resource& csi_res =
+        cell_ctx.cell_pucch_cfg.resources.at(ocudu::bwp_config_helpers::get_pucch_csi_cell_res_idx(
+            cell_ctx.bwp_params.pucch.resources, pucch_csi_resource_id(csi_cfg.res)));
     const auto csi_symbols = ofdm_symbol_range::start_and_len(csi_res.starting_sym_idx, csi_res.nof_symbols);
     if (not csi_symbols.overlaps(sr_symbols)) {
       return false;

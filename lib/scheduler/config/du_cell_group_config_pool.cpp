@@ -35,7 +35,7 @@ ue_cell_config_ptr du_cell_config_pool::update_ue(const ue_cell_config& ue_cell)
   }
   ret.tag_id = ue_cell.serv_cell_cfg.tag_id;
 
-  for (unsigned bwp_id = 0; bwp_id < ue_cell.bwps.size(); bwp_id++) {
+  for (unsigned bwp_id = 0, nof_bwps = ue_cell.bwps.size(); bwp_id != nof_bwps; ++bwp_id) {
     if (bwp_id == 0) {
       // Initial BWP.
       add_bwp(ret,

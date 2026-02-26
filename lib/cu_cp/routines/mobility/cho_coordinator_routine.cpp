@@ -67,6 +67,22 @@ void cho_coordinator_routine::operator()(coro_context<async_task<cu_cp_intra_cu_
     CORO_EARLY_RETURN(response);
   }
 
+  // Pre-start: verify CHO measurement config can be generated before preparing any targets.
+  {
+    rrc_ue_transfer_context source_rrc_context = source_ue->get_rrc_ue()->get_transfer_context();
+    std::vector<pci_t>      candidate_target_pcis;
+    for (const auto& target : request.targets) {
+      candidate_target_pcis.push_back(target.pci);
+    }
+    if (!source_ue->get_rrc_ue()
+             ->generate_meas_config(source_rrc_context.meas_cfg, true, candidate_target_pcis)
+             .has_value()) {
+      logger.warning("ue={}: CHO aborted. No conditional trigger configs match UE capabilities",
+                     request.source_ue_index);
+      CORO_EARLY_RETURN(response);
+    }
+  }
+
   // Phase 1: CHO Preparation.
   source_ue->get_cho_context()->state = cu_cp_ue_cho_context::state_t::targets_preparation;
   for (candidate_idx = 0; candidate_idx < request.targets.size(); ++candidate_idx) {

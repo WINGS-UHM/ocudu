@@ -43,14 +43,15 @@ struct pucch_f1_params {
 
 /// Collects the parameters for PUCCH Format 2 that can be configured.
 struct pucch_f2_params {
+  /// Number of OFDM symbols.
+  /// \remark For intraslot-freq-hopping, \c nof_symbols must be set to 2.
   bounded_integer<unsigned, 1, 2> nof_symbols{2};
   unsigned                        max_nof_rbs{1};
   /// Maximum payload in bits that can be carried by PUCCH Format 2. When this field is set, \c max_nof_rbs is ignored
   /// and the maximum number of RBs is computed according to \ref get_pucch_format2_max_nof_prbs.
   std::optional<unsigned> max_payload_bits;
   max_pucch_code_rate     max_code_rate{max_pucch_code_rate::dot_25};
-  /// For intraslot-freq-hopping, \c nof_symbols must be set to 2.
-  bool intraslot_freq_hopping{false};
+  bool                    intraslot_freq_hopping{false};
 };
 
 /// Collects the parameters for PUCCH Format 3 that can be configured.
@@ -78,6 +79,14 @@ struct pucch_f4_params {
   pucch_f4_occ_len occ_length{pucch_f4_occ_len::n2};
 };
 
+// Strong types for UCI specific PUCCH resource IDs.
+struct pucch_resource_set_config_id_tag;
+using pucch_resource_set_config_id = strong_type<uint8_t, struct pucch_res_set_cfg_id_tag, strong_equality>;
+struct pucch_sr_resource_id_tag;
+using pucch_sr_resource_id = strong_type<uint8_t, struct pucch_sr_resource_id_tag, strong_equality>;
+struct pucch_csi_resource_id_tag;
+using pucch_csi_resource_id = strong_type<uint8_t, struct pucch_csi_resource_id_tag, strong_equality>;
+
 /// \brief Parameters for PUCCH configuration.
 /// Defines the parameters that are used for the PUCCH configuration builder. These parameters are used to define the
 /// number of PUCCH resources, as well as the PUCCH format-specific parameters.
@@ -100,9 +109,8 @@ struct pucch_resource_builder_params {
   /// \brief Defines how many PUCCH F2/F3/F4 resources should be dedicated for CSI at cell level.
   /// Each UE will be allocated 1 resource for CSI.
   unsigned nof_cell_csi_resources = 1;
-
   /// PUCCH Format specific parameters.
-  // NOTE: Having \c pucch_f1_params first forces the variant to use the Format 1 in the default constructor.
+  /// \remark Having \c pucch_f1_params first forces the variant to use the Format 1 in the default constructor.
   std::variant<pucch_f1_params, pucch_f0_params>                  f0_or_f1_params;
   std::variant<pucch_f2_params, pucch_f3_params, pucch_f4_params> f2_or_f3_or_f4_params;
   /// Maximum number of symbols per UL slot dedicated for PUCCH.
@@ -110,6 +118,70 @@ struct pucch_resource_builder_params {
   /// the PUCCH resources do not overlap in symbols with the SRS resources.
   /// \remark This parameter should be computed by the GNB and not exposed to the user configuration interface.
   bounded_integer<unsigned, 1, 14> max_nof_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
+
+  // \brief Get the position of a given Resource Set ID 0 resource in the cell PUCCH resource list.
+  //
+  // \param res_set_cfg_id The resource set config index.
+  // \param pri The index of the resource within the resource set.
+  // \return The index of the PUCCH resource in the cell PUCCH resource list.
+  unsigned get_res_set_0_cell_res_idx(pucch_resource_set_config_id res_set_cfg_id, unsigned pri) const
+  {
+    ocudu_assert(res_set_cfg_id.value() < nof_cell_res_set_configs,
+                 "Resource set config index={} exceeds configured number of resource set configs={}",
+                 res_set_cfg_id.value(),
+                 nof_cell_res_set_configs);
+    ocudu_assert(pri < res_set_0_size.value(),
+                 "Resource index={} exceeds configured resource set size={}",
+                 pri,
+                 res_set_0_size.value());
+    return res_set_cfg_id.value() * res_set_0_size.value() + pri;
+  }
+
+  // \brief Get the position of a given Resource Set ID 1 resource in the cell PUCCH resource list.
+  //
+  // \param res_set_cfg_id The resource set config index.
+  // \param pri The index of the resource within the resource set.
+  // \return The index of the PUCCH resource in the cell PUCCH resource list.
+  unsigned get_res_set_1_cell_res_idx(pucch_resource_set_config_id res_set_cfg_id, unsigned pri) const
+  {
+    ocudu_assert(res_set_cfg_id.value() < nof_cell_res_set_configs,
+                 "Resource set config index={} exceeds configured number of resource set configs={}",
+                 res_set_cfg_id.value(),
+                 nof_cell_res_set_configs);
+    ocudu_assert(pri < res_set_1_size.value(),
+                 "Resource index={} exceeds configured resource set size={}",
+                 pri,
+                 res_set_1_size.value());
+    return nof_cell_res_set_configs * res_set_0_size.value() + nof_cell_sr_resources +
+           res_set_cfg_id.value() * res_set_1_size.value() + pri;
+  }
+
+  // \brief Get the position of a given PUCCH resource for SR in the cell PUCCH resource list.
+  //
+  // \param sr_res_id The SR PUCCH resource index.
+  // \return The index of the PUCCH resource in the cell PUCCH resource list.
+  unsigned get_sr_cell_res_idx(pucch_sr_resource_id sr_res_id) const
+  {
+    ocudu_assert(sr_res_id.value() < nof_cell_sr_resources,
+                 "SR resource index={} exceeds configured number of SR resources={}",
+                 sr_res_id.value(),
+                 nof_cell_sr_resources);
+    return nof_cell_res_set_configs * res_set_0_size.value() + sr_res_id.value();
+  }
+
+  // \brief Get the position of a given PUCCH resource for CSI in the cell PUCCH resource list.
+  //
+  // \param csi_res_id The CSI PUCCH resource index.
+  // \return The index of the PUCCH resource in the cell PUCCH resource list.
+  unsigned get_csi_cell_res_idx(pucch_csi_resource_id csi_res_id) const
+  {
+    ocudu_assert(csi_res_id.value() < nof_cell_csi_resources,
+                 "CSI resource index={} exceeds configured number of CSI resources={}",
+                 csi_res_id.value(),
+                 nof_cell_csi_resources);
+    return nof_cell_res_set_configs * res_set_0_size.value() + nof_cell_sr_resources +
+           nof_cell_res_set_configs * res_set_1_size.value() + csi_res_id.value();
+  }
 };
 
 } // namespace ocudu

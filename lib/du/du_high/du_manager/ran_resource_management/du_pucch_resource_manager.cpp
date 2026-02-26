@@ -10,7 +10,6 @@
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/serv_cell_index.h"
-#include "ocudu/scheduler/config/bwp_config_helpers.h"
 #include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
@@ -248,9 +247,8 @@ du_pucch_resource_manager::get_compatible_csi_cfg(const cell_resource_context&  
                                                   unsigned                                  max_pucch_payload,
                                                   unsigned                                  csi_report_size) const
 {
-  const pucch_resource& sr_res =
-      cell_ctx.cell_pucch_cfg.resources.at(ocudu::bwp_config_helpers::get_pucch_sr_cell_res_idx(
-          cell_ctx.bwp_params.pucch.resources, pucch_sr_resource_id(sr_cfg.res)));
+  const pucch_resource& sr_res = cell_ctx.cell_pucch_cfg.resources.at(
+      cell_ctx.bwp_params.pucch.resources.get_sr_cell_res_idx(pucch_sr_resource_id(sr_cfg.res)));
   const auto sr_symbols    = ofdm_symbol_range::start_and_len(sr_res.starting_sym_idx, sr_res.nof_symbols);
   const auto is_compatible = [&](const periodic_pucch_config& csi_cfg) {
     // Ensure the max PUCCH grants limit is not exceeded.
@@ -259,9 +257,8 @@ du_pucch_resource_manager::get_compatible_csi_cfg(const cell_resource_context&  
     }
 
     // Ensure the CSI and SR resources collide in OFDM symbols, so they are multiplexed.
-    const pucch_resource& csi_res =
-        cell_ctx.cell_pucch_cfg.resources.at(ocudu::bwp_config_helpers::get_pucch_csi_cell_res_idx(
-            cell_ctx.bwp_params.pucch.resources, pucch_csi_resource_id(csi_cfg.res)));
+    const pucch_resource& csi_res = cell_ctx.cell_pucch_cfg.resources.at(
+        cell_ctx.bwp_params.pucch.resources.get_csi_cell_res_idx(pucch_csi_resource_id(csi_cfg.res)));
     const auto csi_symbols = ofdm_symbol_range::start_and_len(csi_res.starting_sym_idx, csi_res.nof_symbols);
     if (not csi_symbols.overlaps(sr_symbols)) {
       return false;

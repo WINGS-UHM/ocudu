@@ -275,20 +275,48 @@ void ocudu::ocucp::log_meas_objects(const ocudulog::basic_logger&               
 
 std::vector<report_cfg_id_t> ocudu::ocucp::collect_cond_trigger_report_configs(const cell_meas_manager_cfg& cfg,
                                                                                rrc_meas_cfg&                meas_cfg,
-                                                                               unsigned                     max_configs)
+                                                                               const rrc_ue_capability_handler& ue_caps,
+                                                                               ocudulog::basic_logger&          logger)
 {
+  if (!ue_caps.is_conditional_handover_supported()) {
+    logger.debug("UE does not support CHO (Rel-16); no conditional trigger configs will be added");
+    return {};
+  }
+  const bool     two_trigger_capable = ue_caps.is_conditional_handover_two_trigger_events_supported();
+  const unsigned max_configs         = two_trigger_capable ? 2U : 1U;
+
   std::vector<report_cfg_id_t> cond_trigger_ids;
   for (const auto& [report_cfg_id, report_cfg] : cfg.report_config_ids) {
     if (cond_trigger_ids.size() >= max_configs) {
       break;
     }
-    if (std::holds_alternative<rrc_cond_trigger_cfg>(report_cfg)) {
-      rrc_report_cfg_to_add_mod report_cfg_to_add;
-      report_cfg_to_add.report_cfg_id = report_cfg_id;
-      report_cfg_to_add.report_cfg    = report_cfg;
-      meas_cfg.report_cfg_to_add_mod_list.push_back(report_cfg_to_add);
-      cond_trigger_ids.push_back(report_cfg_id);
+    if (!std::holds_alternative<rrc_cond_trigger_cfg>(report_cfg)) {
+      continue;
     }
+    // Filter Rel-17 trigger types by UE capability.
+    const auto& cond_trigger = std::get<rrc_cond_trigger_cfg>(report_cfg);
+    const auto  event_id     = cond_trigger.cond_event_id.id;
+    if (event_id == rrc_event_id::event_id_t::a4 && !ue_caps.is_conditional_handover_event_a4_supported()) {
+      logger.debug("Skipping event-A4 CHO trigger (report_cfg_id={}): UE does not support eventA4BasedCondHandover-r17",
+                   fmt::underlying(report_cfg_id));
+      continue;
+    }
+    if (event_id == rrc_event_id::event_id_t::d1 && !ue_caps.is_conditional_handover_location_based_supported()) {
+      logger.debug(
+          "Skipping event-D1 CHO trigger (report_cfg_id={}): UE does not support locationBasedCondHandover-r17",
+          fmt::underlying(report_cfg_id));
+      continue;
+    }
+    if (event_id == rrc_event_id::event_id_t::t1 && !ue_caps.is_conditional_handover_time_based_supported()) {
+      logger.debug("Skipping event-T1 CHO trigger (report_cfg_id={}): UE does not support timeBasedCondHandover-r17",
+                   fmt::underlying(report_cfg_id));
+      continue;
+    }
+    rrc_report_cfg_to_add_mod report_cfg_to_add;
+    report_cfg_to_add.report_cfg_id = report_cfg_id;
+    report_cfg_to_add.report_cfg    = report_cfg;
+    meas_cfg.report_cfg_to_add_mod_list.push_back(report_cfg_to_add);
+    cond_trigger_ids.push_back(report_cfg_id);
   }
   return cond_trigger_ids;
 }

@@ -178,14 +178,13 @@ byte_buffer cho_reconfiguration_routine::build_conditional_reconfiguration_messa
   auto cho_meas_result =
       source_ue.get_rrc_ue()->generate_meas_config(source_rrc_context.meas_cfg, true, candidate_target_pcis);
 
-  if (cho_meas_result.has_value()) {
-    cho_meas_id_map_t cho_nci_to_meas_ids = cho_meas_result->nci_to_meas_ids;
-    rrc_request.meas_cfg                  = std::move(cho_meas_result);
-    rrc_request.cho_nci_to_meas_ids       = std::move(cho_nci_to_meas_ids);
-  } else {
+  if (!cho_meas_result.has_value()) {
     logger.warning("ue={}: Failed to generate CHO measurement config", source_ue.get_ue_index());
-    // Continue without measurement config - this may cause CHO to fail.
+    return {};
   }
+  cho_meas_id_map_t cho_nci_to_meas_ids = cho_meas_result->nci_to_meas_ids;
+  rrc_request.meas_cfg                  = std::move(cho_meas_result);
+  rrc_request.cho_nci_to_meas_ids       = std::move(cho_nci_to_meas_ids);
 
   // Apply runtime T1 threshold override.
   if (request.t1_thres_override.has_value() && rrc_request.meas_cfg.has_value()) {

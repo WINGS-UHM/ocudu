@@ -1003,7 +1003,7 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
   if (msg.location_reporting_type == event_type::direct ||
       msg.location_reporting_type == event_type::change_of_serve_cell ||
       msg.location_reporting_type == event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
-    // Get cell info and build location report if needed.
+    // Get cell info and build location report immediately.
     const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
     if (cell == nullptr) {
       logger.warning("ue={}: Cell not found for PCI={}", ue_index, ue->get_pci());

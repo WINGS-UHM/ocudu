@@ -161,11 +161,9 @@ ue_location_manager::get_direct_location_report(ue_index_t                      
   report.ue_index           = ue_index;
   report.user_location_info = user_location_info;
   report.request            = request;
-  if (!request.area_of_interest_list.empty()) {
-    report.ue_presence_in_area_of_interest_list.emplace();
-    for (const auto& [aio, ref_id] : request.area_of_interest_list) {
-      report.ue_presence_in_area_of_interest_list->push_back({ref_id, check_ue_presence(aio, user_location_info)});
-    }
+  auto report_from_config   = get_location_report(ue_index, user_location_info);
+  if (report_from_config.has_value()) {
+    report.ue_presence_in_area_of_interest_list = report_from_config->ue_presence_in_area_of_interest_list;
   }
   return report;
 }

@@ -10,6 +10,8 @@
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
+#include "ocudu/asn1/ngap/ngap_ies.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include "ocudu/ngap/ngap_message.h"
@@ -1199,4 +1201,38 @@ TEST_F(cu_cp_rrc_inactive_test, when_ran_paging_timer_expires_then_ue_release_is
 
   // Timeout RAN paging and await NGAP UE Context Release Request.
   ASSERT_TRUE(timeout_ran_paging_and_await_ngap_ue_context_release_request());
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_location_reporting_is_configured_and_ue_resumes_then_location_report_is_sent)
+{
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
+  // Drain any pending NGAP messages.
+  while (get_amf().try_pop_rx_pdu(ngap_pdu)) {
+  }
+
+  // Configure cell-change location reporting via Location Reporting Control.
+  // An immediate location report is sent upon configuration for the change-of-serve-cell event type.
+  get_amf().push_tx_pdu(generate_location_reporting_control_message_with_cell_change(ue_ctx->amf_ue_id.value(),
+                                                                                     ue_ctx->ran_ue_id.value()));
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+
+  // Transition UE to RRC Inactive state.
+  ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
+
+  // Resume UE from RRC Inactive (UE connects from a new cell with new C-RNTI).
+  ASSERT_TRUE(
+      resume_ue(du_ue_id_2, crnti_2, 0x36000, "1111010001000010", make_byte_buffer("000020400033b01cab").value()));
+
+  // Expect a Location Report to be sent to the AMF after the resume.
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+
+  const auto& location_report = ngap_pdu.pdu.init_msg().value.location_report();
+  ASSERT_EQ(location_report->amf_ue_ngap_id, amf_ue_id_to_uint(ue_ctx->amf_ue_id.value()));
+  ASSERT_EQ(location_report->ran_ue_ngap_id, ran_ue_id_to_uint(ue_ctx->ran_ue_id.value()));
+  ASSERT_EQ(location_report->location_report_request_type.event_type,
+            asn1::ngap::event_type_opts::options::change_of_serve_cell);
 }

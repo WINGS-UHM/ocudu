@@ -21,6 +21,7 @@ public:
                     cu_cp_ue_context_manipulation_handler& ue_context_handler_,
                     e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
                     ue_manager&                            ue_mng_,
+                    cu_cp_location_manager_handler&        loc_mng_handler_,
                     ocudulog::basic_logger&                logger_);
 
   void operator()(coro_context<async_task<rrc_resume_request_response>>& ctx);
@@ -59,6 +60,7 @@ private:
   cu_cp_ue_context_manipulation_handler& ue_context_handler;
   e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng; // to trigger bearer context modification at CU-UP
   ue_manager&                            ue_mng;               // to remove UE context from source DU processor
+  cu_cp_location_manager_handler&        loc_mng_handler;
   up_config_update                       next_config;
   ocudulog::basic_logger&                logger;
 

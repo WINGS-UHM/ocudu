@@ -691,6 +691,7 @@ async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(co
                                          get_cu_cp_ue_context_handler(),
                                          cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_handler(),
                                          ue_mng,
+                                         get_cu_cp_location_manager_handler(),
                                          logger);
 }
 

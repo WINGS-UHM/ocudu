@@ -33,6 +33,7 @@ ue_resume_routine::ue_resume_routine(const cu_cp_rrc_resume_request&        requ
                                      cu_cp_ue_context_manipulation_handler& ue_context_handler_,
                                      e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
                                      ue_manager&                            ue_mng_,
+                                     cu_cp_location_manager_handler&        loc_mng_handler_,
                                      ocudulog::basic_logger&                logger_) :
   request(request_),
   ue_cfg(ue_cfg_),
@@ -40,6 +41,7 @@ ue_resume_routine::ue_resume_routine(const cu_cp_rrc_resume_request&        requ
   ue_context_handler(ue_context_handler_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
   ue_mng(ue_mng_),
+  loc_mng_handler(loc_mng_handler_),
   logger(logger_)
 {
 }
@@ -182,6 +184,9 @@ void ue_resume_routine::operator()(coro_context<async_task<rrc_resume_request_re
     logger.debug("ue={}: \"{}\" finished successfully", request.ue_index, name());
     response_msg.success = true;
   }
+
+  // Send a location report if needed.
+  loc_mng_handler.handle_location_update(request.ue_index);
 
   CORO_RETURN(response_msg);
 }

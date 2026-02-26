@@ -196,12 +196,15 @@ influxdb and telegraf docker compose:
 telegraf image:
   extends: .docker-builder
   stage: publish
-  rules:
+  rules: &telegraf_image_rules
     - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
       when: never
     - if: $ON_MR_FORK
       when: never
     - if: $ON_MR
+      changes:
+        paths:
+          - docker/telegraf/**/*
   variables: &telegraf_image_variables
     CONTEXT: ${CI_PROJECT_DIR}/docker/telegraf
     NAME: telegraf
@@ -220,6 +223,7 @@ telegraf image:
 
 telegraf manifest:
   extends: .docker manifest
+  rules: *telegraf_image_rules
   variables:
     <<: *telegraf_image_variables
   before_script:
@@ -232,6 +236,7 @@ telegraf manifest:
 
 telegraf manifest latest:
   extends: .docker manifest
+  rules: *telegraf_image_rules
   variables:
     <<: *telegraf_image_variables
   script:
@@ -251,12 +256,15 @@ telegraf manifest latest:
 grafana image:
   extends: .docker-builder
   stage: publish
-  rules:
+  rules: &grafana_image_rules
     - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
       when: never
     - if: $ON_MR_FORK
       when: never
     - if: $ON_MR
+      changes:
+        paths:
+          - docker/grafana/**/*
   variables: &grafana_image_variables
     CONTEXT: ${CI_PROJECT_DIR}/docker/grafana
     NAME: grafana
@@ -275,6 +283,7 @@ grafana image:
 
 grafana manifest:
   extends: .docker manifest
+  rules: *grafana_image_rules
   variables:
     <<: *grafana_image_variables
   before_script:
@@ -287,6 +296,7 @@ grafana manifest:
 
 grafana manifest latest:
   extends: .docker manifest
+  rules: *grafana_image_rules
   variables:
     <<: *grafana_image_variables
   script:

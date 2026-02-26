@@ -263,7 +263,7 @@ class TlExpectedPrinter(printer_base):
 _ocudu_printers.append(PrinterSetup('tl expected', '^tl::expected<.*>$', TlExpectedPrinter))
 
 
-######  Strong Type (strong_type<T, ...>) ######
+######  Strong Type (strong_type<T, ...>) and derived types ######
 
 class StrongTypePrinter(printer_base):
     # Test: tests/utils/gdb/pretty_printers/pretty_printer_strong_type_test.cpp
@@ -272,12 +272,42 @@ class StrongTypePrinter(printer_base):
         self.__val = val
 
     def to_string(self):
-        return f'{{val = {self.__val["val"]}}}'
+        val = self.__val['val']
+        if val.type.strip_typedefs().code == gdb.TYPE_CODE_INT and val.type.strip_typedefs().sizeof == 1:
+            # I cast to int in case of uint8_t/int8_t, to avoid that gdb prints a char.
+            val = val.cast(gdb.lookup_type('int'))
+        return f'{{val = {val}}}'
 
     def display_hint(self):
         return None
 
-_ocudu_printers.append(PrinterSetup('strong type', '^ocudu::strong_type<.*>$', StrongTypePrinter))
+
+class StrongTypeLookup:
+    """Pretty-printer lookup that matches any type inheriting from ocudu::strong_type<...>."""
+
+    def __init__(self):
+        self.name = 'strong_type_lookup'
+        self.enabled = True
+        self.subprinters = []
+
+    def __call__(self, val):
+        if self._has_strong_type_base(val.type):
+            return StrongTypePrinter(val)
+        return None
+
+    @staticmethod
+    def _has_strong_type_base(ty):
+        """Check if a type is or inherits from ocudu::strong_type<...>."""
+        type_name = str(ty.strip_typedefs())
+        if type_name.startswith('ocudu::strong_type<'):
+            return True
+        try:
+            for field in ty.strip_typedefs().fields():
+                if field.is_base_class and StrongTypeLookup._has_strong_type_base(field.type):
+                    return True
+        except:
+            pass
+        return False
 
 
 ###### Log Likelihood Ratio (log_likelihood_ratio) ######
@@ -314,3 +344,7 @@ def register_printers(objfile):
     [pp.add_printer(x.name, x.regex, x.printer) for x in _ocudu_printers]
 
     gdb.printing.register_pretty_printer(objfile, pp)
+
+    # Register the strong_type lookup separately since it needs to walk the type hierarchy
+    # rather than matching a single regex against the type name.
+    gdb.printing.register_pretty_printer(objfile, StrongTypeLookup())

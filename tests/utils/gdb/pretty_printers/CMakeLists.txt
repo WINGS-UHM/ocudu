@@ -49,7 +49,9 @@ add_test(NAME pretty_printer_static_vector_test
 
 add_executable(pretty_printer_strong_type_test pretty_printer_strong_type_test.cpp)
 add_test(NAME pretty_printer_strong_type_test
-         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_strong_type_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep '{val = 42}'")
+         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_strong_type_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'a = {val = 42}'")
+add_test(NAME pretty_printer_strong_type_derived_test
+         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_strong_type_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'b = {val = 8}'")
 
 add_executable(pretty_printer_tl_expected_test pretty_printer_tl_expected_test.cpp)
 add_test(NAME pretty_printer_tl_expected_value_test

@@ -108,3 +108,64 @@ TEST_F(cu_cp_location_reporting_test,
   ASSERT_EQ(user_loc_info.tai.plmn_id.to_number(), plmn_identity::test_value().to_bcd());
   ASSERT_EQ(user_loc_info.tai.tac.to_number(), 7);
 }
+
+TEST_F(cu_cp_location_reporting_test,
+       when_location_reporting_control_with_duplicate_ref_ids_is_received_then_failure_indication_is_sent)
+{
+  ASSERT_TRUE(attach_ue());
+
+  // Drain any pending NGAP messages.
+  while (get_amf().try_pop_rx_pdu(ngap_pdu)) {
+  }
+
+  // Inject Location Reporting Control with duplicate ref_ids (22, 22) in the Area of Interest list.
+  get_amf().push_tx_pdu(generate_location_reporting_control_message_with_ue_presence(
+      ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value(), {22, 22}));
+
+  // Expect a Location Reporting Failure Indication to be sent to the AMF.
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_reporting_failure_indication(ngap_pdu));
+
+  const auto& fail_ind = ngap_pdu.pdu.init_msg().value.location_report_fail_ind();
+  ASSERT_EQ(fail_ind->amf_ue_ngap_id, amf_ue_id_to_uint(ue_ctx->amf_ue_id.value()));
+  ASSERT_EQ(fail_ind->ran_ue_ngap_id, ran_ue_id_to_uint(ue_ctx->ran_ue_id.value()));
+  ASSERT_EQ(fail_ind->cause.type(), asn1::ngap::cause_c::types_opts::radio_network);
+  ASSERT_EQ(fail_ind->cause.radio_network().value,
+            asn1::ngap::cause_radio_network_opts::multiple_location_report_ref_id_instances);
+}
+
+TEST_F(cu_cp_location_reporting_test,
+       when_location_reporting_control_collides_with_configured_ref_id_then_failure_indication_is_sent)
+{
+  ASSERT_TRUE(attach_ue());
+
+  // Drain any pending NGAP messages.
+  while (get_amf().try_pop_rx_pdu(ngap_pdu)) {
+  }
+
+  // Configure ref_id=22 successfully (UE presence type sends no immediate report).
+  get_amf().push_tx_pdu(generate_location_reporting_control_message_with_ue_presence(
+      ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value(), {22}));
+
+  // Send another control message with different ref_id=21, which does not collide with the configured one.
+  get_amf().push_tx_pdu(generate_location_reporting_control_message_with_ue_presence(
+      ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value(), {21}));
+
+  // Verify that the two valid messages do not cause failure indication.
+  ASSERT_FALSE(this->wait_for_ngap_tx_pdu(ngap_pdu, std::chrono::milliseconds{5}));
+
+  // Send another control message with the same ref_id=22, which collides with the first one.
+  get_amf().push_tx_pdu(generate_location_reporting_control_message_with_ue_presence(
+      ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value(), {22}));
+
+  // Expect a Location Reporting Failure Indication for the colliding message.
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_reporting_failure_indication(ngap_pdu));
+
+  const auto& fail_ind = ngap_pdu.pdu.init_msg().value.location_report_fail_ind();
+  ASSERT_EQ(fail_ind->amf_ue_ngap_id, amf_ue_id_to_uint(ue_ctx->amf_ue_id.value()));
+  ASSERT_EQ(fail_ind->ran_ue_ngap_id, ran_ue_id_to_uint(ue_ctx->ran_ue_id.value()));
+  ASSERT_EQ(fail_ind->cause.type(), asn1::ngap::cause_c::types_opts::radio_network);
+  ASSERT_EQ(fail_ind->cause.radio_network().value,
+            asn1::ngap::cause_radio_network_opts::multiple_location_report_ref_id_instances);
+}

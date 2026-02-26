@@ -134,6 +134,13 @@ bool ocudu::test_helpers::is_valid_location_report(const ocucp::ngap_message& ms
   return true;
 }
 
+bool ocudu::test_helpers::is_valid_location_reporting_failure_indication(const ocucp::ngap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type() == asn1::ngap::ngap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_NGAP_ID_LOCATION_REPORT_FAIL_IND);
+  return true;
+}
+
 bool ocudu::test_helpers::is_valid_ng_reset(const ocucp::ngap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::ngap::ngap_pdu_c::types_opts::init_msg);

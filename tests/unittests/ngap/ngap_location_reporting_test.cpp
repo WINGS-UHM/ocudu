@@ -5,6 +5,7 @@
 #include "ngap_test_helpers.h"
 #include "ocudu/asn1/ngap/ngap_ies.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/support/async/async_test_utils.h"
@@ -23,6 +24,12 @@ protected:
   {
     return n2_gw.last_ngap_msgs.back().pdu.init_msg().value.type() ==
            asn1::ngap::ngap_elem_procs_o::init_msg_c::types_opts::location_report;
+  }
+
+  bool was_location_reporting_failure_indication_forwarded() const
+  {
+    return n2_gw.last_ngap_msgs.back().pdu.init_msg().value.type() ==
+           asn1::ngap::ngap_elem_procs_o::init_msg_c::types_opts::location_report_fail_ind;
   }
 
   bool was_error_indication_sent() const
@@ -64,6 +71,43 @@ TEST_F(ngap_location_reporting_test,
   ASSERT_TRUE(cu_cp_notifier.last_location_reporting_ctrl.has_value());
   ASSERT_EQ(cu_cp_notifier.last_location_reporting_ctrl.value().location_reporting_type,
             ngap_location_report_request::event_type::direct);
+}
+
+TEST_F(ngap_location_reporting_test,
+       when_ngap_receives_location_reporting_failure_indication_message_from_cucp_it_forwards_it_to_amf)
+{
+  ASSERT_EQ(ngap->get_nof_ues(), 0);
+
+  // Test preamble.
+  ue_index_t ue_index = this->start_procedure();
+
+  auto& ue = test_ues.at(ue_index);
+
+  // Check that initial UE message is sent to AMF and that UE objects has been created.
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.type().value, asn1::ngap::ngap_pdu_c::types_opts::init_msg);
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.type(),
+            asn1::ngap::ngap_elem_procs_o::init_msg_c::types_opts::init_ue_msg);
+  ASSERT_EQ(ngap->get_nof_ues(), 1);
+
+  // Inject DL NAS Transport to assign AMF UE ID in the NGAP UE context.
+  run_dl_nas_transport(ue_index);
+
+  // Send NGAP Location Reporting Failure Indication message
+  ngap_location_report_failure_indication location_report_failure_ind = {};
+  location_report_failure_ind.ue_index                                = ue_index;
+  location_report_failure_ind.cause = ngap_cause_radio_network_t::multiple_location_report_ref_id_instances;
+  ngap->handle_location_reporting_failure_indication_transmission(location_report_failure_ind);
+
+  // Check that AMF notifier received the location reporting failure indication message.
+  ASSERT_TRUE(was_location_reporting_failure_indication_forwarded());
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.location_report_fail_ind()->amf_ue_ngap_id,
+            amf_ue_id_to_uint(ue.amf_ue_id.value()));
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.location_report_fail_ind()->ran_ue_ngap_id,
+            ran_ue_id_to_uint(ue.ran_ue_id.value()));
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.location_report_fail_ind()->cause.type(),
+            asn1::ngap::cause_c::types_opts::radio_network);
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.location_report_fail_ind()->cause.radio_network().value,
+            asn1::ngap::cause_radio_network_opts::multiple_location_report_ref_id_instances);
 }
 
 TEST_F(ngap_location_reporting_test, when_ngap_receives_location_report_message_from_cucp_it_forwards_it_to_amf)

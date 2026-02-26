@@ -1018,7 +1018,6 @@ void ngap_impl::handle_location_reporting_control_message(const asn1::ngap::loca
   if (not validate_consistent_ue_id_pair(uint_to_ran_ue_id(msg->ran_ue_ngap_id),
                                          uint_to_amf_ue_id(msg->amf_ue_ngap_id))) {
     // Release old UE context and send error indication with the received UE IDs to the AMF.
-    // TODO: check if that should be error indication and release or just Location Reporting Failure Indication?
     handle_inconsistent_ue_id_pair(uint_to_ran_ue_id(msg->ran_ue_ngap_id), uint_to_amf_ue_id(msg->amf_ue_ngap_id));
     return;
   }

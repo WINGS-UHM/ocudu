@@ -1,13 +1,12 @@
 # SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
-
 variables:
   BUILDKIT_CLI_VERSION: "0.23.2"
 
 .docker-builder:
   tags:
-    - saas-linux-medium-${PLATFORM}
+    - ${OCUDU_RUNNER_TAG}-${PLATFORM}
   variables:
     NAME: ""
     CONTEXT: ""

@@ -78,6 +78,7 @@ variables:
   OCUDU_REGISTRY_SERVER: registry.gitlab.com # $CI_TEMPLATE_REGISTRY_HOST
   OCUDU_PROJECT_PATH: ocudu/ocudu # $CI_PROJECT_PATH
   OCUDU_REGISTRY_URI: ${OCUDU_REGISTRY_SERVER}/${OCUDU_PROJECT_PATH}
+  OCUDU_RUNNER_TAG: saas-linux-medium
 
 default:
   interruptible: true

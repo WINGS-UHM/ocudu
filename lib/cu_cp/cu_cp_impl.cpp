@@ -965,12 +965,15 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
     return;
   }
 
-  // Configure the location manager.
-  ue->get_location_manager().configure_location_reporting(msg);
+  using event_type = ngap_location_report_request::event_type;
+
+  // Configure the location manager for all report types beside "direct".
+  if (msg.location_reporting_type != event_type::direct) {
+    ue->get_location_manager().configure_location_reporting(msg);
+  }
 
   // Send immediate location report if required, 3GPP TS 38.413 8.12.1.2 states that "if reporting upon change of
   // serving cell is requested, the NG-RAN node shall send a report immediately"
-  using event_type = ngap_location_report_request::event_type;
   if (msg.location_reporting_type == event_type::direct ||
       msg.location_reporting_type == event_type::change_of_serve_cell ||
       msg.location_reporting_type == event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {

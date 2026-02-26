@@ -116,9 +116,12 @@ ngap_ue_presence ue_location_manager::check_ue_presence(const ngap_area_of_inter
     }
   }
 
-  if (!aoi.ran_node_list.empty()) {
-    // TODO: add handling for other types of RAN Nodes, take gNB ID from NR-CGI?
-    return ngap_ue_presence::unknown;
+  for (const auto& ran_node : aoi.ran_node_list) {
+    // TODO: add handling for other types of RAN Nodes
+    if (ran_node.plmn_id == loc.nr_cgi.plmn_id &&
+        ran_node.gnb_id == loc.nr_cgi.nci.gnb_id(ran_node.gnb_id.bit_length)) {
+      return ngap_ue_presence::in;
+    }
   }
 
   return ngap_ue_presence::out;

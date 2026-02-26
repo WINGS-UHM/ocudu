@@ -25,6 +25,7 @@ else(MBEDTLS_FOUND)
 endif (MBEDTLS_FOUND)
 
 set(SOURCES
+  security_engine_factory.cpp
   ciphering_engine_nea1.cpp
   ciphering_engine_nea2.cpp
   ciphering_engine_nea3.cpp

@@ -274,9 +274,9 @@ class StrongTypePrinter(printer_base):
     def to_string(self):
         val = self.__val['val']
         if val.type.strip_typedefs().code == gdb.TYPE_CODE_INT and val.type.strip_typedefs().sizeof == 1:
-            # I cast to int in case of uint8_t/int8_t, to avoid that gdb prints a char.
+            # Cast to int for uint8_t/int8_t, to avoid that gdb prints a char.
             val = val.cast(gdb.lookup_type('int'))
-        return f'{{val = {val}}}'
+        return f'{val}'
 
     def display_hint(self):
         return None

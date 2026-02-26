@@ -343,8 +343,9 @@ def register_printers(objfile):
     pp = gdb.printing.RegexpCollectionPrettyPrinter("ocudu_printer")
     [pp.add_printer(x.name, x.regex, x.printer) for x in _ocudu_printers]
 
-    gdb.printing.register_pretty_printer(objfile, pp)
-
-    # Register the strong_type lookup separately since it needs to walk the type hierarchy
-    # rather than matching a single regex against the type name.
+    # Register the strong_type lookup first so it has lower priority than the regex collection.
+    # GDB searches printers in reverse registration order, so the regex collection (registered
+    # last) takes precedence for types like bf16_t that have a more specific printer.
     gdb.printing.register_pretty_printer(objfile, StrongTypeLookup())
+
+    gdb.printing.register_pretty_printer(objfile, pp)

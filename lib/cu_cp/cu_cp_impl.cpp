@@ -31,6 +31,8 @@
 #include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/nrppa/nrppa.h"
 #include "ocudu/nrppa/nrppa_factory.h"
+#include "ocudu/ran/cause/common.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/time/radio_frame.h"
 #include "ocudu/support/async/coroutine.h"
@@ -967,7 +969,22 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
 
   using event_type = ngap_location_report_request::event_type;
 
+  // Reject events with "nulltype" and send Location Reporting Failure Indication.
+  if (msg.location_reporting_type == event_type::nulltype) {
+    logger.error("ue={}: received NGAP Location Reporting Control message with nulltype event type, rejecting",
+                 ue_index);
+    auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+    if (ngap == nullptr) {
+      logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+      return;
+    }
+    ngap->handle_location_reporting_failure_indication_transmission(
+        {ue_index, cause_protocol_t::abstract_syntax_error_falsely_constructed_msg});
+    return;
+  }
+
   // Configure the location manager for all report types beside "direct".
+  // Send Location Reporting Failure Indication if configuration failed.
   if (msg.location_reporting_type != event_type::direct) {
     auto failure_cause = ue->get_location_manager().configure_location_reporting(msg);
     if (failure_cause.has_value()) {

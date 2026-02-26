@@ -110,6 +110,33 @@ TEST_F(cu_cp_location_reporting_test,
 }
 
 TEST_F(cu_cp_location_reporting_test,
+       when_location_reporting_control_with_nulltype_event_type_is_received_then_failure_indication_is_sent)
+{
+  ASSERT_TRUE(attach_ue());
+
+  // Drain any pending NGAP messages.
+  while (get_amf().try_pop_rx_pdu(ngap_pdu)) {
+  }
+
+  // Inject malformed Location Reporting Control message with event type = "nulltype".
+  auto msg = generate_location_reporting_control_message(ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value());
+  msg.pdu.init_msg().value.location_report_ctrl()->location_report_request_type.event_type =
+      asn1::ngap::event_type_opts::options::nulltype;
+  get_amf().push_tx_pdu(msg);
+
+  // Expect a Location Reporting Failure Indication to be sent to the AMF.
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_reporting_failure_indication(ngap_pdu));
+
+  const auto& fail_ind = ngap_pdu.pdu.init_msg().value.location_report_fail_ind();
+  ASSERT_EQ(fail_ind->amf_ue_ngap_id, amf_ue_id_to_uint(ue_ctx->amf_ue_id.value()));
+  ASSERT_EQ(fail_ind->ran_ue_ngap_id, ran_ue_id_to_uint(ue_ctx->ran_ue_id.value()));
+  ASSERT_EQ(fail_ind->cause.type(), asn1::ngap::cause_c::types_opts::protocol);
+  ASSERT_EQ(fail_ind->cause.protocol().value,
+            asn1::ngap::cause_protocol_opts::abstract_syntax_error_falsely_constructed_msg);
+}
+
+TEST_F(cu_cp_location_reporting_test,
        when_location_reporting_control_with_duplicate_ref_ids_is_received_then_failure_indication_is_sent)
 {
   ASSERT_TRUE(attach_ue());

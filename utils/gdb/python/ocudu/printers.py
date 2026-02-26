@@ -238,6 +238,31 @@ class BFloat16ComplexPrinter(printer_base):
 _ocudu_printers.append(PrinterSetup('complex bf16', '^ocudu::cbf16_t$', BFloat16ComplexPrinter))
 
 
+######  tl::expected<T, E> ######
+
+class TlExpectedPrinter(printer_base):
+    # Test: tests/utils/gdb/pretty_printers/pretty_printer_tl_expected_test.cpp
+
+    def __init__(self, val):
+        self.__val = val
+
+    def children(self):
+        if self.__val['m_has_val']:
+            yield '[0]', self.__val['m_val']
+        else:
+            yield '[0]', self.__val['m_unexpect']['m_val']
+
+    def to_string(self):
+        if self.__val['m_has_val']:
+            return 'expected (has value)'
+        return 'expected (has error)'
+
+    def display_hint(self):
+        return 'array'
+
+_ocudu_printers.append(PrinterSetup('tl expected', '^tl::expected<.*>$', TlExpectedPrinter))
+
+
 ######  Strong Type (strong_type<T, ...>) ######
 
 class StrongTypePrinter(printer_base):

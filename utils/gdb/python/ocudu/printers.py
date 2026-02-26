@@ -264,8 +264,9 @@ class LogLikelihoodRatioPrinter(printer_base):
         self.__val = val
 
     def to_string(self):
-        # Maybe there is a better way to do this.
-        return f'{self.__val.cast(gdb.lookup_type('int8_t')).cast(gdb.lookup_type('int'))}'
+        value_int8 = self.__val['value']
+        intval = value_int8.cast(gdb.lookup_type('int'))
+        return f'{intval}'
 
     def display_hint(self):
         return None

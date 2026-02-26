@@ -1192,7 +1192,6 @@ inline void fill_ngap_location_report_request(ngap_location_report_request&     
 }
 
 /// \brief Fill ASN1 Location Report IEs from common type.
-/// \note Caller is responsible for filling amf_ue_ngap_id and ran_ue_ngap_id.
 inline void fill_asn1_location_report(asn1::ngap::location_report_ies_container& asn1_msg,
                                       const ngap_location_report&                report)
 {

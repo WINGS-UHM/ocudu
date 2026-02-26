@@ -247,6 +247,9 @@ public:
   virtual ~ngap_location_reporting_handler() = default;
   /// \brief Initiates Location Report procedure as per TS 38.413 section 8.12.3.
   virtual void handle_location_report_transmission(const ngap_location_report& msg) = 0;
+  /// \brief Initiates Location Reporting Failure Indication procedure as per TS 38.413 section 8.12.2.
+  virtual void
+  handle_location_reporting_failure_indication_transmission(const ngap_location_report_failure_indication& msg) = 0;
 };
 
 /// Handle NGAP UE Radio Capability Management Messages as per TS 38.413 section 8.14.

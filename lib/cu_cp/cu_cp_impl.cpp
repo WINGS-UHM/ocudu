@@ -969,7 +969,16 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
 
   // Configure the location manager for all report types beside "direct".
   if (msg.location_reporting_type != event_type::direct) {
-    ue->get_location_manager().configure_location_reporting(msg);
+    auto failure_cause = ue->get_location_manager().configure_location_reporting(msg);
+    if (failure_cause.has_value()) {
+      auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+      if (ngap == nullptr) {
+        logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+        return;
+      }
+      ngap->handle_location_reporting_failure_indication_transmission({ue_index, failure_cause.value()});
+      return;
+    }
   }
 
   // Send immediate location report if required, 3GPP TS 38.413 8.12.1.2 states that "if reporting upon change of

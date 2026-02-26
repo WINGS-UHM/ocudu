@@ -64,6 +64,7 @@ struct ngap_location_report {
 };
 
 struct ngap_location_report_failure_indication {
+  ue_index_t   ue_index = ue_index_t::invalid;
   ngap_cause_t cause;
 };
 

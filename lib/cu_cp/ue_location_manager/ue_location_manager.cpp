@@ -15,7 +15,7 @@ using namespace ocudu::ocucp;
 
 ue_location_manager::ue_location_manager() : logger(ocudulog::fetch_basic_logger("CU-CP")) {}
 
-void ue_location_manager::configure_location_reporting(const ngap_location_report_request& ctrl)
+std::optional<ngap_cause_t> ue_location_manager::configure_location_reporting(const ngap_location_report_request& ctrl)
 {
   using event_type = ngap_location_report_request::event_type;
   auto req_type    = ctrl.location_reporting_type;
@@ -23,13 +23,13 @@ void ue_location_manager::configure_location_reporting(const ngap_location_repor
   if (req_type == event_type::nulltype) {
     // Reject malformed requests.
     logger.error("Received malformed Location Report Request with event type = null");
-    return;
+    return std::nullopt;
   }
 
   if (req_type == event_type::direct) {
     // Ignore direct reports, those should be handled with get_direct_location_report(), not for configuration.
     logger.error("Direct type Location Report Request should not be used for location reporting configuration");
-    return;
+    return std::nullopt;
   }
 
   if (req_type == event_type::cancel_location_report_for_the_ue) {
@@ -42,7 +42,7 @@ void ue_location_manager::configure_location_reporting(const ngap_location_repor
   if (req_type == event_type::stop_change_of_serve_cell) {
     // Cancel change of serve cell reporting for the UE.
     cfg.report_on_cell_change = false;
-    return;
+    return std::nullopt;
   }
 
   if (req_type == event_type::stop_ue_presence_in_area_of_interest) {
@@ -57,7 +57,7 @@ void ue_location_manager::configure_location_reporting(const ngap_location_repor
     if (cfg.area_of_interest_list.empty()) {
       cfg.report_ue_presence_in_aoi = false;
     }
-    return;
+    return std::nullopt;
   }
 
   if (req_type == event_type::change_of_serve_cell ||
@@ -68,17 +68,22 @@ void ue_location_manager::configure_location_reporting(const ngap_location_repor
 
   if (req_type == event_type::ue_presence_in_area_of_interest ||
       req_type == event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
-    // Enable  UE presence in area of interest reporting for requested report reference IDs.
     cfg.report_ue_presence_in_aoi = true;
+    // Validate input, reject on ref_ids duplicated within the message or current configuration (TS 38.413 8.12.1.3).
+    std::map<location_report_ref_id_t, ngap_area_of_interest> incoming;
     for (const auto& item : ctrl.area_of_interest_list) {
-      auto [it, inserted] = cfg.area_of_interest_list.emplace(item.location_report_ref_id, item.area_of_interest);
-      if (!inserted) {
-        // TODO: send LocationReportingFailureIndication instead of overriding.
-        logger.warning("Location report ref_id={} already exists - overriding", item.location_report_ref_id);
-        it->second = item.area_of_interest;
+      if (!(incoming.emplace(item.location_report_ref_id, item.area_of_interest).second) ||
+          cfg.area_of_interest_list.count(item.location_report_ref_id) != 0) {
+        logger.error("Location Reporting Control contains duplicate or conflicting Location Reporting Reference IDs");
+        return ngap_cause_radio_network_t::multiple_location_report_ref_id_instances;
       }
     }
+
+    // Apply all validated entries.
+    cfg.area_of_interest_list.insert(incoming.begin(), incoming.end());
   }
+
+  return std::nullopt;
 }
 
 ngap_location_report_request::event_type ue_location_manager::get_current_location_reporting_type() const

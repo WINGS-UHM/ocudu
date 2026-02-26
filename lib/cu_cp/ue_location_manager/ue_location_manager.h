@@ -36,7 +36,8 @@ public:
   ue_location_manager_cfg get_config() const { return cfg; }
 
   /// \brief Store a location reporting configuration received from AMF.
-  void configure_location_reporting(const ngap_location_report_request& ctrl);
+  /// \returns nullopt on success, or a Location Reporting Failure Indication cause if the configuration failed.
+  std::optional<ngap_cause_t> configure_location_reporting(const ngap_location_report_request& ctrl);
 
   /// \brief Build and return a location report, if location reporting is configured.
   std::optional<ngap_location_report> get_location_report(ue_index_t                         ue_index,

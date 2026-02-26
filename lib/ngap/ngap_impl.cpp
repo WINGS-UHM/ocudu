@@ -279,6 +279,39 @@ void ngap_impl::handle_location_report_transmission(const ngap_location_report& 
   }
 }
 
+void ngap_impl::handle_location_reporting_failure_indication_transmission(
+    const ngap_location_report_failure_indication& msg)
+{
+  if (!ue_ctxt_list.contains(msg.ue_index)) {
+    logger.warning("ue={}: Dropping Location Reporting Failure Indication. UE context does not exist", msg.ue_index);
+    return;
+  }
+
+  ngap_ue_context& ue_ctxt = ue_ctxt_list[msg.ue_index];
+
+  amf_ue_id_t amf_ue_id = ue_ctxt.ue_ids.amf_ue_id;
+  if (amf_ue_id == amf_ue_id_t::invalid) {
+    ue_ctxt.logger.log_warning("Dropping Location Reporting Failure Indication. UE AMF ID not found");
+    return;
+  }
+
+  ngap_message ngap_msg = {};
+  ngap_msg.pdu.set_init_msg();
+  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_LOCATION_REPORT_FAIL_IND);
+
+  auto& fail_ind_msg = ngap_msg.pdu.init_msg().value.location_report_fail_ind();
+
+  fail_ind_msg->amf_ue_ngap_id = amf_ue_id_to_uint(amf_ue_id);
+  fail_ind_msg->ran_ue_ngap_id = ran_ue_id_to_uint(ue_ctxt.ue_ids.ran_ue_id);
+  fail_ind_msg->cause          = cause_to_asn1(msg.cause);
+
+  // Forward message to AMF.
+  if (!tx_pdu_notifier.on_new_message(ngap_msg)) {
+    ue_ctxt.logger.log_warning("AMF notifier is not set. Cannot send LocationReportingFailureIndication");
+    return;
+  }
+}
+
 void ngap_impl::handle_tx_ue_radio_capability_info_indication_required(
     const ngap_ue_radio_capability_info_indication& msg)
 {

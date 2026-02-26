@@ -422,6 +422,7 @@ async_task<bool> cu_cp_impl::handle_rrc_reestablishment_context_modification_req
       get_cu_cp_rrc_ue_interface(),
       ue->get_task_sched(),
       ue->get_up_resource_manager(),
+      get_cu_cp_location_manager_handler(),
       logger);
 }
 
@@ -550,6 +551,9 @@ async_task<bool> cu_cp_impl::handle_ue_context_transfer(ue_index_t ue_index, ue_
 
     // Transfer E1AP UE Context to new UE and remove old context.
     cu_up_db.find_cu_up_processor(source_ue->get_cu_up_index())->update_ue_index(ue_index, old_ue_index);
+
+    // Transfer location reporting configuration from source UE to new UE.
+    ue->get_location_manager().set_config(source_ue->get_location_manager().get_config());
 
     return true;
   };

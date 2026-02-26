@@ -20,6 +20,7 @@ reestablishment_context_modification_routine::reestablishment_context_modificati
     cu_cp_rrc_ue_interface&               cu_cp_notifier_,
     ue_task_scheduler&                    ue_task_sched_,
     up_resource_manager&                  up_resource_mng_,
+    cu_cp_location_manager_handler&       loc_mng_handler_,
     ocudulog::basic_logger&               logger_) :
   ue_index(ue_index_),
   security_cfg(security_cfg_),
@@ -29,6 +30,7 @@ reestablishment_context_modification_routine::reestablishment_context_modificati
   cu_cp_notifier(cu_cp_notifier_),
   ue_task_sched(ue_task_sched_),
   up_resource_mng(up_resource_mng_),
+  loc_mng_handler(loc_mng_handler_),
   logger(logger_)
 {
 }
@@ -147,6 +149,9 @@ void reestablishment_context_modification_routine::operator()(coro_context<async
 
   // Mark unused DRB IDs as clean after successful re-establishment.
   up_resource_mng.refresh_drb_id_after_key_change();
+
+  // Send a location report if needed.
+  loc_mng_handler.handle_location_update(ue_index);
 
   logger.debug("ue={}: \"{}\" finished successfully...", ue_index, name());
 

@@ -196,3 +196,30 @@ TEST_F(cu_cp_location_reporting_test,
   ASSERT_EQ(fail_ind->cause.radio_network().value,
             asn1::ngap::cause_radio_network_opts::multiple_location_report_ref_id_instances);
 }
+
+TEST_F(cu_cp_location_reporting_test,
+       when_location_reporting_is_configured_and_ue_reestablishes_then_location_report_is_sent)
+{
+  // Attach UE.
+  ASSERT_TRUE(attach_ue());
+
+  // Configure cell-change location reporting via Location Reporting Control.
+  // An immediate location report is sent upon configuration for the change-of-serve-cell event type.
+  get_amf().push_tx_pdu(generate_location_reporting_control_message_with_cell_change(ue_ctx->amf_ue_id.value(),
+                                                                                     ue_ctx->ran_ue_id.value()));
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+
+  // Trigger RRC reestablishment (UE moves to a new cell with new C-RNTI, same DU).
+  ASSERT_TRUE(reestablish_ue(du_idx, cu_up_idx, int_to_gnb_du_ue_f1ap_id(1), to_rnti(0x4602), crnti, pci_t{0}));
+
+  // Expect a Location Report to be sent to the AMF after the reestablishment.
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+
+  const auto& location_report = ngap_pdu.pdu.init_msg().value.location_report();
+  ASSERT_EQ(location_report->amf_ue_ngap_id, amf_ue_id_to_uint(ue_ctx->amf_ue_id.value()));
+  ASSERT_EQ(location_report->ran_ue_ngap_id, ran_ue_id_to_uint(ue_ctx->ran_ue_id.value()));
+  ASSERT_EQ(location_report->location_report_request_type.event_type,
+            asn1::ngap::event_type_opts::options::change_of_serve_cell);
+}

@@ -22,6 +22,7 @@ struct ue_location_manager_cfg {
   bool                                                      report_on_cell_change     = false;
   bool                                                      report_ue_presence_in_aoi = false;
   std::map<location_report_ref_id_t, ngap_area_of_interest> area_of_interest_list;
+  std::optional<cu_cp_user_location_info_nr>                last_reported_location;
 };
 
 class ue_location_manager
@@ -52,6 +53,9 @@ private:
   ngap_location_report_request::event_type get_current_location_reporting_type() const;
 
   static ngap_ue_presence check_ue_presence(const ngap_area_of_interest& aoi, const cu_cp_user_location_info_nr& loc);
+
+  std::optional<std::vector<ngap_ue_presence_in_area_of_interest_item>>
+  build_ue_presence_list(const cu_cp_user_location_info_nr& user_location_info) const;
 
   ue_location_manager_cfg cfg;
   ocudulog::basic_logger& logger;

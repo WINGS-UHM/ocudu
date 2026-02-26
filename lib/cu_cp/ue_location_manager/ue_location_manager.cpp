@@ -131,6 +131,12 @@ ue_location_manager::get_location_report(ue_index_t ue_index, const cu_cp_user_l
     return std::nullopt;
   }
 
+  // Suppress report if only change_of_serve_cell reporting is active and the cell hasn't changed since the last report.
+  if (cfg.report_on_cell_change && !cfg.report_ue_presence_in_aoi && cfg.last_reported_location.has_value() &&
+      cfg.last_reported_location->nr_cgi == user_location_info.nr_cgi) {
+    return std::nullopt;
+  }
+
   ngap_location_report report;
   report.ue_index           = ue_index;
   report.user_location_info = user_location_info;
@@ -142,13 +148,9 @@ ue_location_manager::get_location_report(ue_index_t ue_index, const cu_cp_user_l
     report.request.area_of_interest_list.push_back({aoi, ref_id});
   }
 
-  if (cfg.report_ue_presence_in_aoi && !cfg.area_of_interest_list.empty()) {
-    report.ue_presence_in_area_of_interest_list.emplace();
-    for (const auto& [ref_id, aoi] : cfg.area_of_interest_list) {
-      report.ue_presence_in_area_of_interest_list->push_back({ref_id, check_ue_presence(aoi, user_location_info)});
-    }
-  }
+  report.ue_presence_in_area_of_interest_list = build_ue_presence_list(user_location_info);
 
+  cfg.last_reported_location = user_location_info;
   return report;
 }
 
@@ -158,12 +160,24 @@ ue_location_manager::get_direct_location_report(ue_index_t                      
                                                 const ngap_location_report_request& request)
 {
   ngap_location_report report;
-  report.ue_index           = ue_index;
-  report.user_location_info = user_location_info;
-  report.request            = request;
-  auto report_from_config   = get_location_report(ue_index, user_location_info);
-  if (report_from_config.has_value()) {
-    report.ue_presence_in_area_of_interest_list = report_from_config->ue_presence_in_area_of_interest_list;
-  }
+  report.ue_index                             = ue_index;
+  report.user_location_info                   = user_location_info;
+  report.request                              = request;
+  report.ue_presence_in_area_of_interest_list = build_ue_presence_list(user_location_info);
+  cfg.last_reported_location                  = user_location_info;
   return report;
+}
+
+std::optional<std::vector<ngap_ue_presence_in_area_of_interest_item>>
+ue_location_manager::build_ue_presence_list(const cu_cp_user_location_info_nr& user_location_info) const
+{
+  if (!cfg.report_ue_presence_in_aoi || cfg.area_of_interest_list.empty()) {
+    return std::nullopt;
+  }
+  std::vector<ngap_ue_presence_in_area_of_interest_item> list;
+  list.reserve(cfg.area_of_interest_list.size());
+  for (const auto& [ref_id, aoi] : cfg.area_of_interest_list) {
+    list.push_back({ref_id, check_ue_presence(aoi, user_location_info)});
+  }
+  return list;
 }

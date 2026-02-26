@@ -1124,6 +1124,26 @@ ngap_message ocudu::ocucp::generate_location_reporting_control_message_with_cell
   return ngap_msg;
 }
 
+ngap_message ocudu::ocucp::generate_location_reporting_control_message_with_cell_change_and_ue_presence(
+    amf_ue_id_t                 amf_ue_id,
+    ran_ue_id_t                 ran_ue_id,
+    const std::vector<uint8_t>& ref_ids)
+{
+  ngap_message ngap_msg = generate_location_reporting_control_message(amf_ue_id, ran_ue_id);
+
+  auto& loc_rep_ctrl = ngap_msg.pdu.init_msg().value.location_report_ctrl();
+  loc_rep_ctrl->location_report_request_type.event_type =
+      asn1::ngap::event_type_opts::options::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
+
+  for (uint8_t ref_id : ref_ids) {
+    asn1::ngap::area_of_interest_item_s aoi_item;
+    aoi_item.location_report_ref_id = ref_id;
+    loc_rep_ctrl->location_report_request_type.area_of_interest_list.push_back(aoi_item);
+  }
+
+  return ngap_msg;
+}
+
 ngap_message
 ocudu::ocucp::generate_location_reporting_control_message_with_ue_presence(amf_ue_id_t                 amf_ue_id,
                                                                            ran_ue_id_t                 ran_ue_id,

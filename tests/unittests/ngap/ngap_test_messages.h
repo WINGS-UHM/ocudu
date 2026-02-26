@@ -250,8 +250,16 @@ ngap_message generate_location_reporting_control_message(amf_ue_id_t amf_ue_id, 
 /// \brief Generate a valid dummy Location Reporting Control message with change-of-serving-cell event type.
 ngap_message generate_location_reporting_control_message_with_cell_change(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);
 
-/// \brief Generate a Location Reporting Control message with the combined cell-change-and-UE-presence event type and
-/// the given Location Reporting Reference IDs in the Area of Interest list.
+/// \brief Generate a Location Reporting Control message with
+/// change_of_serving_cell_and_ue_presence_in_the_area_of_interest event type and the given Location Reporting Reference
+/// IDs in the Area of Interest list.
+ngap_message
+generate_location_reporting_control_message_with_cell_change_and_ue_presence(amf_ue_id_t                 amf_ue_id,
+                                                                             ran_ue_id_t                 ran_ue_id,
+                                                                             const std::vector<uint8_t>& ref_ids);
+
+/// \brief Generate a Location Reporting Control message with the UE-presence-in-area-of-interest event type and the
+/// given Location Reporting Reference IDs in the Area of Interest list.
 ngap_message generate_location_reporting_control_message_with_ue_presence(amf_ue_id_t                 amf_ue_id,
                                                                           ran_ue_id_t                 ran_ue_id,
                                                                           const std::vector<uint8_t>& ref_ids);

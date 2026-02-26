@@ -103,6 +103,18 @@ public:
   {
     return context.capabilities.conditional_handover_two_trigger_events_supported;
   }
+  bool is_conditional_handover_event_a4_supported() const override
+  {
+    return context.capabilities.conditional_handover_event_a4_supported;
+  }
+  bool is_conditional_handover_location_based_supported() const override
+  {
+    return context.capabilities.conditional_handover_location_based_supported;
+  }
+  bool is_conditional_handover_time_based_supported() const override
+  {
+    return context.capabilities.conditional_handover_time_based_supported;
+  }
 
 private:
   void stop() override;

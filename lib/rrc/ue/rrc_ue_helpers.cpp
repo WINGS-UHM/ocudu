@@ -77,20 +77,41 @@ rrc_ue_capabilities_t ocudu::ocucp::get_capabilities(asn1::rrc_nr::ue_nr_cap_s& 
     logger.log_debug("RRC Inactive supported by UE");
   }
 
-  // Set CHO support flags (Rel-16, per-band — any band supporting the feature is sufficient).
+  // Set CHO support flags. Per TS 38.306 Section 4.2.7.2 each capability must be set consistently
+  // across all bands in the same band group, so a single OR across all bands is sufficient.
   for (const auto& band : ue_capabilities.rf_params.supported_band_list_nr) {
     if (band.cond_ho_r16_present) {
       capabilities.conditional_handover_supported = true;
     }
+    // TODO: parse condHandoverFailure-r16 (band.cond_ho_fail_r16_present)
     if (band.cond_ho_two_trigger_events_r16_present) {
       capabilities.conditional_handover_two_trigger_events_supported = true;
     }
+    if (band.event_a4_based_cond_ho_r17_present) {
+      capabilities.conditional_handover_event_a4_supported = true;
+    }
+    if (band.location_based_cond_ho_r17_present) {
+      capabilities.conditional_handover_location_based_supported = true;
+    }
+    if (band.time_based_cond_ho_r17_present) {
+      capabilities.conditional_handover_time_based_supported = true;
+    }
   }
+  // TODO: parse condHandoverFDD-TDD-r16 and condHandoverFR1-FR2-r16
   if (capabilities.conditional_handover_supported) {
     logger.log_debug("CHO (Rel-16) supported by UE");
   }
   if (capabilities.conditional_handover_two_trigger_events_supported) {
     logger.log_debug("CHO two-trigger-events (Rel-16) supported by UE");
+  }
+  if (capabilities.conditional_handover_event_a4_supported) {
+    logger.log_debug("CHO event-A4-based (Rel-17) supported by UE");
+  }
+  if (capabilities.conditional_handover_location_based_supported) {
+    logger.log_debug("CHO location-based (Rel-17) supported by UE");
+  }
+  if (capabilities.conditional_handover_time_based_supported) {
+    logger.log_debug("CHO time-based (Rel-17) supported by UE");
   }
 
   return capabilities;

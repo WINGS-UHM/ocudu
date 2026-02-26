@@ -508,6 +508,15 @@ public:
 
   /// \brief Check if CHO with two trigger events (Rel-16) is supported by the UE.
   virtual bool is_conditional_handover_two_trigger_events_supported() const = 0;
+
+  /// \brief Check if CHO with event-A4-based trigger (Rel-17) is supported by the UE.
+  virtual bool is_conditional_handover_event_a4_supported() const = 0;
+
+  /// \brief Check if location-based CHO (Rel-17) is supported by the UE.
+  virtual bool is_conditional_handover_location_based_supported() const = 0;
+
+  /// \brief Check if time-based CHO (Rel-17) is supported by the UE.
+  virtual bool is_conditional_handover_time_based_supported() const = 0;
 };
 
 class rrc_ue_event_notifier

@@ -28,9 +28,9 @@ class pucch_detector_format1
 {
 public:
   /// \brief Number of available initial cyclic shifts.
-  static constexpr unsigned nof_initial_cyclic_shifts = pucch_constants::format1_initial_cyclic_shift_range.stop();
+  static constexpr unsigned nof_initial_cyclic_shifts = pucch_constants::f1::INITIAL_CYCLIC_SHIFT.stop();
   /// \brief Maximum number of available time-domain OCC indices.
-  static constexpr unsigned nof_time_domain_occs = pucch_constants::format1_time_domain_occ_range.stop();
+  static constexpr unsigned nof_time_domain_occs = pucch_constants::f1::TD_OCC.stop();
   /// \brief Maximum number of REs allocated to PUCCH Format 1.
   ///
   /// The allocated resources are at most one PRB over all OFDM symbols.

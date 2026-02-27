@@ -23,9 +23,10 @@ public:
   /// Constructor: builds the sequences \e w from the coefficients in \ref pucch_format1_phi.
   pucch_orthogonal_sequence_format1()
   {
-    for (unsigned n_pucch = 0, max_n_pucch = pucch_constants::FORMAT1_N_MAX; n_pucch != max_n_pucch; ++n_pucch) {
-      for (unsigned i_seq = 0; i_seq != pucch_constants::FORMAT1_N_MAX; ++i_seq) {
-        for (unsigned i_term = 0; i_term != pucch_constants::FORMAT1_N_MAX; ++i_term) {
+    for (unsigned n_pucch = 0, max_n_pucch = pucch_constants::f1::NOF_DATA_SYMS.stop(); n_pucch != max_n_pucch;
+         ++n_pucch) {
+      for (unsigned i_seq = 0; i_seq != pucch_constants::f1::NOF_DATA_SYMS.stop(); ++i_seq) {
+        for (unsigned i_term = 0; i_term != pucch_constants::f1::NOF_DATA_SYMS.stop(); ++i_term) {
           auto rho                                    = static_cast<float>(pucch_format1_phi[n_pucch][i_seq][i_term]);
           orthogonal_sequence[n_pucch][i_seq][i_term] = std::polar(1.0F, TWOPI * rho / static_cast<float>(n_pucch + 1));
           orthogonal_sequence_conj[n_pucch][i_seq][i_term] = std::conj(orthogonal_sequence[n_pucch][i_seq][i_term]);
@@ -45,10 +46,10 @@ public:
   /// \warning An assertion is thrown if the indices do not match the limits above.
   cf_t get_sequence_value(unsigned n_pucch, unsigned i, unsigned m) const
   {
-    ocudu_assert(n_pucch >= 1 && n_pucch <= pucch_constants::FORMAT1_N_MAX,
+    ocudu_assert(n_pucch >= 1 && n_pucch <= pucch_constants::f1::NOF_DATA_SYMS.stop(),
                  "Invalid n_pucch {}: valid values from 1 to {}.",
                  n_pucch,
-                 pucch_constants::FORMAT1_N_MAX);
+                 pucch_constants::f1::NOF_DATA_SYMS.stop());
     ocudu_assert(i < n_pucch, "Invalid sequence index i = {}, valid values from 0 to {}.", i, n_pucch - 1);
     ocudu_assert(m < n_pucch, "Invalid value index m = {}, valid values from 0 to {}.", m, n_pucch - 1);
 
@@ -64,10 +65,10 @@ public:
   /// \warning An assertion is thrown if the inputs do not match the limits above.
   span<const cf_t> get_sequence_conj(unsigned n_pucch, unsigned i) const
   {
-    ocudu_assert(n_pucch >= 1 && n_pucch <= pucch_constants::FORMAT1_N_MAX,
+    ocudu_assert(n_pucch >= 1 && n_pucch <= pucch_constants::f1::NOF_DATA_SYMS.stop(),
                  "Invalid n_pucch {}: valid values from 1 to {}.",
                  n_pucch,
-                 pucch_constants::FORMAT1_N_MAX);
+                 pucch_constants::f1::NOF_DATA_SYMS.stop());
     ocudu_assert(i < n_pucch, "Invalid sequence index i = {}, valid values from 0 to {}.", i, n_pucch - 1);
 
     return span<const cf_t>(orthogonal_sequence_conj[n_pucch - 1][i]).first(n_pucch);
@@ -75,16 +76,16 @@ public:
 
 private:
   /// Alias for sequence table type.
-  using w_array =
-      std::array<std::array<std::array<cf_t, pucch_constants::FORMAT1_N_MAX>, pucch_constants::FORMAT1_N_MAX>,
-                 pucch_constants::FORMAT1_N_MAX>;
+  using w_array = std::array<std::array<std::array<cf_t, pucch_constants::f1::NOF_DATA_SYMS.stop()>,
+                                        pucch_constants::f1::NOF_DATA_SYMS.stop()>,
+                             pucch_constants::f1::NOF_DATA_SYMS.stop()>;
 
   /// \brief Coefficients \f$\phi(m)\f$ for sequence generation.
   ///
   /// See TS38.211 Table 6.3.2.4.1-2: Orthogonal sequences for PUCCH Format 1.
-  static constexpr std::array<
-      std::array<std::array<unsigned, pucch_constants::FORMAT1_N_MAX>, pucch_constants::FORMAT1_N_MAX>,
-      pucch_constants::FORMAT1_N_MAX>
+  static constexpr std::array<std::array<std::array<unsigned, pucch_constants::f1::NOF_DATA_SYMS.stop()>,
+                                         pucch_constants::f1::NOF_DATA_SYMS.stop()>,
+                              pucch_constants::f1::NOF_DATA_SYMS.stop()>
       pucch_format1_phi = {
           {{{{0}, {}, {}, {}, {}, {}, {}}},
            {{{0, 0}, {0, 1}, {}, {}, {}, {}, {}}},

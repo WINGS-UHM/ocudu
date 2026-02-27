@@ -25,10 +25,10 @@ static inline void extract_re(span<cbf16_t> out, span<const cbf16_t> in)
 {
   ocudu_assert(in.size() % NOF_SUBCARRIERS_PER_RB == 0, "Invalid output size.");
   unsigned nof_prb = in.size() / NOF_SUBCARRIERS_PER_RB;
-  ocudu_assert(out.size() == nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC,
+  ocudu_assert(out.size() == nof_prb * pucch_constants::f2::NOF_DATA_SUBC_PER_RB,
                "Invalid output size (i.e., {}), expected {}.",
                out.size(),
-               nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC);
+               nof_prb * pucch_constants::f2::NOF_DATA_SUBC_PER_RB);
 
 #if defined(__AVX2__)
   const int* in_ptr   = reinterpret_cast<const int*>(in.data());
@@ -57,7 +57,7 @@ static inline void extract_re(span<cbf16_t> out, span<const cbf16_t> in)
 
     // Interleave and store.
     vst2q_s32(out_ptr, data_s32);
-    out_ptr += pucch_constants::FORMAT2_NOF_DATA_SC;
+    out_ptr += pucch_constants::f2::NOF_DATA_SUBCARRIERS_PER_RB;
   }
 #else
   for (unsigned k = 0, k_end = nof_prb * NOF_SUBCARRIERS_PER_RB, count = 0; k != k_end; ++k) {
@@ -80,13 +80,13 @@ void pucch_demodulator_format2::demodulate(span<log_likelihood_ratio>           
   auto nof_rx_ports = static_cast<unsigned>(config.rx_ports.size());
 
   // Number of data Resource Elements in a slot for a single Rx port.
-  unsigned nof_re_port = pucch_constants::FORMAT2_NOF_DATA_SC * config.nof_prb * config.nof_symbols;
+  unsigned nof_re_port = pucch_constants::f2::NOF_DATA_SUBC_PER_RB * config.nof_prb * config.nof_symbols;
 
   // Assert that allocations are valid.
-  ocudu_assert(config.nof_prb && config.nof_prb <= pucch_constants::FORMAT2_MAX_NPRB,
+  ocudu_assert(config.nof_prb && config.nof_prb <= pucch_constants::f2::NOF_RBS.stop(),
                "Invalid Number of PRB allocated to PUCCH Format 2, i.e., {}. Valid range is 1 to {}.",
                config.nof_prb,
-               pucch_constants::FORMAT2_MAX_NPRB);
+               pucch_constants::f2::NOF_RBS.stop());
 
   ocudu_assert((config.first_prb + config.nof_prb) * NOF_SUBCARRIERS_PER_RB <= grid.get_nof_subc(),
                "PUCCH Format 2: PRB allocation outside grid (first hop). Requested [{}, {}), grid has {} PRBs.",
@@ -101,14 +101,14 @@ void pucch_demodulator_format2::demodulate(span<log_likelihood_ratio>           
                *config.second_hop_prb + config.nof_prb,
                grid.get_nof_subc() / NOF_SUBCARRIERS_PER_RB);
 
-  ocudu_assert(config.nof_symbols && config.nof_symbols <= pucch_constants::FORMAT2_MAX_NSYMB,
+  ocudu_assert(config.nof_symbols && config.nof_symbols <= pucch_constants::f2::NOF_SYMS.stop(),
                "Invalid Number of OFDM symbols allocated to PUCCH Format 2, i.e., {}. Valid range is 1 to {}.",
                config.nof_symbols,
-               pucch_constants::FORMAT2_MAX_NSYMB);
+               pucch_constants::f2::NOF_SYMS.stop());
 
   // Resize data and channel estimation buffers.
   ch_re.resize(nof_rx_ports, nof_re_port);
-  ch_estimates.resize(nof_re_port, nof_rx_ports, pucch_constants::MAX_LAYERS);
+  ch_estimates.resize(nof_re_port, nof_rx_ports, pucch_constants::NOF_LAYERS);
 
   // Resize equalized data and post equalization noise variance buffers.
   eq_re.resize(nof_re_port);
@@ -171,14 +171,14 @@ void pucch_demodulator_format2::get_data_re_ests(const resource_grid_reader&    
                                             .subspan(first_subc, config.nof_prb * NOF_SUBCARRIERS_PER_RB);
 
       // Extract data resource elements.
-      extract_re(re_port_buffer.first(config.nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC), grid_view);
-      extract_re(ests_port_buffer.first(config.nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC), ests_symbol);
+      extract_re(re_port_buffer.first(config.nof_prb * pucch_constants::f2::NOF_DATA_SUBC_PER_RB), grid_view);
+      extract_re(ests_port_buffer.first(config.nof_prb * pucch_constants::f2::NOF_DATA_SUBC_PER_RB), ests_symbol);
 
       // Advance buffers.
       re_port_buffer =
-          re_port_buffer.last(re_port_buffer.size() - config.nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC);
+          re_port_buffer.last(re_port_buffer.size() - config.nof_prb * pucch_constants::f2::NOF_DATA_SUBC_PER_RB);
       ests_port_buffer =
-          ests_port_buffer.last(ests_port_buffer.size() - config.nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC);
+          ests_port_buffer.last(ests_port_buffer.size() - config.nof_prb * pucch_constants::f2::NOF_DATA_SUBC_PER_RB);
     }
 
     // Assert that all port data RE buffer elements have been filled.

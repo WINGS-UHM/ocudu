@@ -9,87 +9,103 @@
 
 namespace ocudu::pucch_constants {
 
+namespace f0 {
+
+/// Range of number of OFDM symbols for a PUCCH Format 0.
+constexpr interval<unsigned, true> NOF_SYMS(1, 2);
+/// Number of RBs for a PUCCH Format 0.
+const unsigned NOF_RBS = 1;
+/// Range of initial cyclic shift values for a PUCCH Format 0.
+constexpr interval<unsigned, false> INITIAL_CYCLIC_SHIFT(0, 12);
+
+/// Range of number of HARQ-ACK feedback bits for a PUCCH Format 0.
+constexpr interval<unsigned, true> NOF_HARQ_ACK_BITS(0, 2);
+
+} // namespace f0
+
+namespace f1 {
+
+/// Range of number of OFDM symbols for a PUCCH Format 1.
+constexpr interval<unsigned, true> NOF_SYMS(4, 14);
+/// Number of RBs for a PUCCH Format 1.
+const unsigned NOF_RBS = 1;
+/// Range of initial cyclic shift values for a PUCCH Format 1.
+constexpr interval<unsigned, false> INITIAL_CYCLIC_SHIFT(0, 12);
+/// Range of time domain OCC values for a PUCCH Format 1.
+constexpr interval<unsigned, false> TD_OCC(0, 7);
+
+/// Range of number of symbols in a PUCCH Format 1 used for the UCI payload (i.e., excluding DM-RS symbols).
+constexpr interval<unsigned, true> NOF_DATA_SYMS(1, 7);
+/// Range of number of HARQ-ACK feedback bits for a PUCCH Format 1.
+constexpr interval<unsigned, true> NOF_HARQ_ACK_BITS(0, 2);
+
+} // namespace f1
+
+namespace f2 {
+
+/// Range of number of OFDM symbols for a PUCCH Format 2.
+constexpr interval<unsigned, true> NOF_SYMS(1, 2);
+/// Range of number of RBs for a PUCCH Format 2.
+constexpr interval<unsigned, true> NOF_RBS(1, 16);
+
+/// Number of subcarriers per RB that are used for the UCI payload in a PUCCH Format 2.
+constexpr unsigned NOF_DATA_SUBC_PER_RB = 8;
+/// Range of maximum effective code rate for a PUCCH Format 2, as per Table 9.2.5.2-1, TS 38.213.
+constexpr interval<float, true> MAX_CODE_RATE(0.08F, 0.80F);
+/// Range of UCI payload size in bits for a PUCCH Format 2.
+constexpr interval<unsigned, true> NOF_DATA_BITS(3, 1706);
+
+} // namespace f2
+
+namespace f3 {
+
+/// Range of number of OFDM symbols for a PUCCH Format 3.
+constexpr interval<unsigned, true> NOF_SYMS(4, 14);
+/// Range of number of RBs for a PUCCH Format 3.
+constexpr interval<unsigned, true> NOF_RBS(1, 16);
+
+/// Range of number of OFDM symbols in a PUCCH Format 3 used for DM-RS.
+constexpr interval<unsigned, true> NOF_DMRS_SYMS(1, 4);
+/// Range of maximum effective code rate for a PUCCH Format 3, as per Table 9.2.5.2-1, TS 38.213.
+constexpr interval<float, true> MAX_CODE_RATE(0.08F, 0.80F);
+/// Range of UCI payload size in bits for a PUCCH Format 3.
+constexpr interval<unsigned, true> NOF_DATA_BITS(3, 1706);
+
+} // namespace f3
+
+namespace f4 {
+
+/// Range of number of OFDM symbols for a PUCCH Format 4.
+constexpr interval<unsigned, true> NOF_SYMS(4, 14);
+/// Number of RBs for a PUCCH Format 4.
+constexpr unsigned NOF_RBS = 1;
+
+/// Range of number of OFDM symbols in a PUCCH Format 4 used for DM-RS.
+constexpr interval<unsigned, true> NOF_DMRS_SYMS(1, 4);
+/// Range of maximum effective code rate for a PUCCH Format 4, as per Table 9.2.5.2-1, TS 38.213.
+constexpr interval<float, true> MAX_CODE_RATE(0.08F, 0.80F);
+/// Range of UCI payload size in bits for a PUCCH Format 4.
+constexpr interval<unsigned, true> NOF_DATA_BITS(3, 1706);
+
+} // namespace f4
+
+/// Number of layers for PUCCH transmission (PUCCH doesn't use spatial multiplexing).
+constexpr unsigned NOF_LAYERS = 1;
+
 /// PUCCH hopping identifier, parameter \f$n_{ID}\f$ range.
-constexpr interval<unsigned, false> n_id_range(0, 1024);
-
-/// PUCCH does not make use of spatial multiplexing.
-constexpr unsigned MAX_LAYERS = 1;
-
-/// PUCCH Format 0 number of OFDM symbols range.
-constexpr interval<unsigned, true> format0_nof_symbols_range(1, 2);
-
-/// PUCCH Format 0 range for number of HARQ-ACK feedback bits.
-constexpr interval<unsigned, true> format0_nof_harq_ack_range(0, 2);
-
-/// PUCCH Format 0 initial cyclic shift range.
-constexpr interval<unsigned, false> format0_initial_cyclic_shift_range(0, 12);
-
-/// Maximum number of PRBs allocated for PUCCH Formats 0, 1 and 4.
-constexpr unsigned FORMAT0_1_4_MAX_NPRB = 1;
-
-/// Maximum number of symbols (without DM-RS) that PUCCH Format 1 can transmit.
-constexpr unsigned FORMAT1_N_MAX = 7;
-
-/// Minimum number of symbols that PUCCH Format 2 can transmit.
-constexpr unsigned FORMAT2_MIN_NSYMB = 1;
-
-/// Maximum number of symbols that PUCCH Format 2 can transmit.
-constexpr unsigned FORMAT2_MAX_NSYMB = 2;
-
-/// Maximum number of PRBs allocated for PUCCH Format 2.
-constexpr unsigned FORMAT2_MAX_NPRB = 16;
-
-/// Minimum number of UCI payload bits carried by a PUCCH Format 2 resource.
-constexpr unsigned FORMAT2_MIN_UCI_NBITS = 3;
-
-/// Number of control data subcarriers per Resource Block for PUCCH Format 2, as per TS38.213 Section 9.1.5.2.
-constexpr unsigned FORMAT2_NOF_DATA_SC = 8;
-
-/// PUCCH Format 1 initial cyclic shift range.
-constexpr interval<unsigned, false> format1_initial_cyclic_shift_range(0, 12);
-
-/// PUCCH Format 1 initial OCC range.
-constexpr interval<unsigned, false> format1_time_domain_occ_range(0, 7);
-
-/// Minimum number of symbols that PUCCH Format 3 can transmit.
-constexpr unsigned FORMAT3_MIN_NSYMB = 4;
-
-/// Maximum number of symbols that PUCCH Format 3 can transmit.
-constexpr unsigned FORMAT3_MAX_NSYMB = 14;
-
-/// Maximum number of PRBs allocated for PUCCH Format 3.
-constexpr unsigned FORMAT3_MAX_NPRB = 16;
-
-/// Minimum number of UCI payload bits carried by a PUCCH Format 3 resource.
-constexpr unsigned FORMAT3_MIN_UCI_NBITS = 3;
-
-/// Minimum number of OFDM symbols allocated to a PUCCH Format 4 transmission.
-constexpr unsigned FORMAT4_MIN_NSYMB = 4;
-
-/// Maximum number of symbols that PUCCH Format 4 can transmit.
-constexpr unsigned FORMAT4_MAX_NSYMB = 14;
-
-/// Minimum number of UCI payload bits carried by a PUCCH Format 4 resource.
-constexpr unsigned FORMAT4_MIN_UCI_NBITS = 3;
+constexpr interval<unsigned, false> N_ID(0, 1024);
 
 /// \brief Maximum number of resource elements used by PUCCH.
 ///
-/// It corresponds to PUCCH Format 3 with a bandwidth of 16 PRBs and a duration of 14 symbols, two of which are occupied
-/// by the DM-RS.
-constexpr unsigned MAX_NOF_RE = NOF_SUBCARRIERS_PER_RB * 16 * (14 - 2);
+/// It corresponds to PUCCH Format 3 with a maximum number of OFDM symbols and RBs, and 2 DM-RS symbols.
+constexpr unsigned MAX_NOF_RE = NOF_SUBCARRIERS_PER_RB * f3::NOF_RBS.stop() * (f3::NOF_SYMS.stop() - 2);
 
 /// \brief Maximum number of LLRs corresponding to a PUCCH.
 ///
-/// Derives from \ref PUCCH_MAX_NOF_RE assuming QPSK modulation.
+/// Derives from \ref MAX_NOF_RE assuming QPSK modulation.
 constexpr unsigned MAX_NOF_LLR = MAX_NOF_RE * 2;
 
-/// \brief Maximum effective code rate for PUCCH formats 2, 3 and 4.
-///
-/// Maximum value given by TS38.213 Table 9.2.5.2-1 and TS38.331 Section 6.3.2 Enumeration \e PUCCH-MaxCodeRate within
-/// Information Element \e PUCCH-FormatConfig.
-constexpr float MAX_CODE_RATE = 0.80F;
-
-/// Maximum number of common PUCCH resources in a cell.
+/// Number of common PUCCH resources in a cell.
 /// \remark See TS 38.331, section 9.2.1, maximum value is given by the number of possible values of r_PUCCH, which
 /// is 16.
 constexpr size_t MAX_NOF_CELL_COMMON_PUCCH_RESOURCES = 16;
@@ -99,8 +115,5 @@ constexpr size_t MAX_NOF_CELL_DED_RESOURCES = 256;
 
 /// [Implementation-defined] Maximum number of total PUCCH resources in a cell (common + dedicated).
 constexpr size_t MAX_NOF_TOT_CELL_RESOURCES = MAX_NOF_CELL_COMMON_PUCCH_RESOURCES + MAX_NOF_CELL_DED_RESOURCES;
-
-/// Maximum supported UCI payload length in number of bits for PUCCH Formats 2, 3 and 4.
-constexpr unsigned FORMATS_2_3_4_MAX_UCI_NBITS = 1706;
 
 } // namespace ocudu::pucch_constants

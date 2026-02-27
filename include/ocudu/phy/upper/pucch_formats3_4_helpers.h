@@ -25,9 +25,9 @@ namespace ocudu {
 /// \param[in] additional_dmrs   Whether \e additionalDMRS parameter is set for the PUCCH resource.
 /// \returns The symbol mask for symbols containing DM-RS for that configuration, as per TS38.211 Table 6.4.1.3.3.2-1.
 inline symbol_slot_mask get_pucch_formats3_4_dmrs_symbol_mask(
-    bounded_integer<unsigned, pucch_constants::FORMAT3_MIN_NSYMB, pucch_constants::FORMAT3_MAX_NSYMB> nof_symbols,
-    bool                                                                                              frequency_hopping,
-    bool                                                                                              additional_dmrs)
+    bounded_integer<unsigned, pucch_constants::f3::NOF_SYMS.start(), pucch_constants::f3::NOF_SYMS.stop()> nof_symbols,
+    bool frequency_hopping,
+    bool additional_dmrs)
 {
   symbol_slot_mask mask(nof_symbols.value());
 
@@ -184,7 +184,7 @@ inline void pucch_3_4_extract_and_equalize(span<cf_t>                  eq_re,
 
     // Create modular buffers to hold the spans for this symbol.
     modular_re_buffer_reader<cbf16_t, MAX_PORTS> re_symb(nof_rx_ports, nof_re_symb);
-    modular_ch_est_list<MAX_PORTS>               estimates_symb(nof_re_symb, nof_rx_ports, pucch_constants::MAX_LAYERS);
+    modular_ch_est_list<MAX_PORTS>               estimates_symb(nof_re_symb, nof_rx_ports, pucch_constants::NOF_LAYERS);
 
     for (unsigned i_port = 0, i_port_end = nof_rx_ports; i_port != i_port_end; ++i_port) {
       // Extract data RE from the resource grid.

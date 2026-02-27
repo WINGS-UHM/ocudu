@@ -301,7 +301,7 @@ static pucch_processor_factory& get_pucch_processor_factory()
   TESTASSERT(dft_factory);
 
   std::shared_ptr<transform_precoder_factory> precoding_factory =
-      create_dft_transform_precoder_factory(dft_factory, pucch_constants::FORMAT3_MAX_NPRB + 1);
+      create_dft_transform_precoder_factory(dft_factory, pucch_constants::f3::NOF_RBS.stop() + 1);
   TESTASSERT(precoding_factory);
 
   // Create PUCCH demodulator factory.
@@ -356,7 +356,7 @@ static pucch_processor_factory& get_pucch_processor_factory()
   channel_estimate::channel_estimate_dimensions max_dimensions = {.nof_prb       = bwp_size_rb,
                                                                   .nof_symbols   = get_nsymb_per_slot(cy_prefix),
                                                                   .nof_rx_ports  = max_nof_ports,
-                                                                  .nof_tx_layers = pucch_constants::MAX_LAYERS};
+                                                                  .nof_tx_layers = pucch_constants::NOF_LAYERS};
   pucch_proc_factory                                           = create_pucch_processor_factory_sw(
       estimator_factory, detector_factory, pucch_demod_factory, uci_dec_factory, max_dimensions);
   TESTASSERT(pucch_proc_factory);

@@ -72,11 +72,11 @@ public:
         time_execution([this, &results, &grid, &config]() { results = processor->process(grid, config); });
 
     // Iterate each of the UE dedicated configuration.
-    for (unsigned initial_cyclic_shift = pucch_constants::format1_initial_cyclic_shift_range.start();
-         initial_cyclic_shift != pucch_constants::format1_initial_cyclic_shift_range.stop();
+    for (unsigned initial_cyclic_shift = pucch_constants::f1::INITIAL_CYCLIC_SHIFT.start();
+         initial_cyclic_shift != pucch_constants::f1::INITIAL_CYCLIC_SHIFT.stop();
          ++initial_cyclic_shift) {
-      for (unsigned time_domain_occ = pucch_constants::format1_time_domain_occ_range.start();
-           time_domain_occ != pucch_constants::format1_time_domain_occ_range.stop();
+      for (unsigned time_domain_occ = pucch_constants::f1::TD_OCC.start();
+           time_domain_occ != pucch_constants::f1::TD_OCC.stop();
            ++time_domain_occ) {
         // Skip result if it is not available.
         if (!config.entries.contains(initial_cyclic_shift, time_domain_occ) ||

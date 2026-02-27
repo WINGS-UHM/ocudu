@@ -276,7 +276,7 @@ static std::vector<pucch_grant> compute_f2_res(unsigned                         
                                                                    to_max_code_rate_float(params.max_code_rate))
                                                 : params.max_nof_rbs;
 
-  if (f2_max_rbs > pucch_constants::FORMAT2_MAX_NPRB) {
+  if (f2_max_rbs > pucch_constants::f2::NOF_RBS.stop()) {
     return {};
   }
 
@@ -370,7 +370,7 @@ static std::vector<pucch_grant> compute_f3_res(unsigned                         
                                                                    params.pi2_bpsk)
                                                 : params.max_nof_rbs;
 
-  if (f3_max_rbs > pucch_constants::FORMAT3_MAX_NPRB) {
+  if (f3_max_rbs > pucch_constants::f3::NOF_RBS.stop()) {
     return {};
   }
 
@@ -602,7 +602,7 @@ error_type<std::string> config_helpers::pucch_parameters_validator(
                                                                      to_max_code_rate_float(f2_params.max_code_rate))
                                     : f2_params.max_nof_rbs;
 
-    if (f2_max_rbs > pucch_constants::FORMAT2_MAX_NPRB) {
+    if (f2_max_rbs > pucch_constants::f2::NOF_RBS.stop()) {
       return make_unexpected("The number of PRBs for PUCCH Format 2 exceeds the limit of 16");
     }
 
@@ -633,7 +633,7 @@ error_type<std::string> config_helpers::pucch_parameters_validator(
                                                                      f3_params.pi2_bpsk)
                                     : f3_params.max_nof_rbs;
 
-    if (f3_max_rbs > pucch_constants::FORMAT3_MAX_NPRB) {
+    if (f3_max_rbs > pucch_constants::f3::NOF_RBS.stop()) {
       return make_unexpected("The number of PRBs for PUCCH Format 3 exceeds the limit of 16");
     }
 

@@ -18,7 +18,7 @@ public:
       .nof_prb       = MAX_NOF_PRBS,
       .nof_symbols   = MaxNofSymbols,
       .nof_rx_ports  = MaxNofRxPorts,
-      .nof_tx_layers = pucch_constants::MAX_LAYERS,
+      .nof_tx_layers = pucch_constants::NOF_LAYERS,
   };
 
 protected:
@@ -65,7 +65,7 @@ protected:
     ASSERT_NE(demod_factory, nullptr) << "Cannot create channel modulation factory.";
 
     std::shared_ptr<transform_precoder_factory> precoding_factory =
-        create_dft_transform_precoder_factory(dft_factory, pucch_constants::FORMAT3_MAX_NPRB + 1);
+        create_dft_transform_precoder_factory(dft_factory, pucch_constants::f3::NOF_RBS.stop() + 1);
     ASSERT_NE(precoding_factory, nullptr) << "Cannot create transform precoder factory.";
 
     // Create PUCCH demodulator factory.

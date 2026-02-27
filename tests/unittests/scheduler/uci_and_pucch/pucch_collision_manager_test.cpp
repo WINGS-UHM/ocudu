@@ -142,7 +142,7 @@ TEST(pucch_collision_manager_test, multiplexed_resources_collide_if_different_ti
 TEST(pucch_collision_manager_test, f0_multiplexed_resources_dont_collide)
 {
   std::vector<pucch_resource> ded_res_list;
-  for (uint8_t ics = 0; ics != pucch_constants::format0_initial_cyclic_shift_range.stop(); ++ics) {
+  for (uint8_t ics = 0; ics != pucch_constants::f0::INITIAL_CYCLIC_SHIFT.stop(); ++ics) {
     ded_res_list.push_back(pucch_resource{
         .res_id           = {ics, ics},
         .starting_prb     = 0,
@@ -168,8 +168,8 @@ TEST(pucch_collision_manager_test, f0_multiplexed_resources_dont_collide)
 TEST(pucch_collision_manager_test, f1_multiplexed_resources_dont_collide)
 {
   std::vector<pucch_resource> ded_res_list;
-  for (uint8_t ics = 0; ics != pucch_constants::format1_initial_cyclic_shift_range.stop(); ++ics) {
-    for (uint8_t occ = 0; occ != pucch_constants::format1_time_domain_occ_range.stop(); ++occ) {
+  for (uint8_t ics = 0; ics != pucch_constants::f1::INITIAL_CYCLIC_SHIFT.stop(); ++ics) {
+    for (uint8_t occ = 0; occ != pucch_constants::f1::TD_OCC.stop(); ++occ) {
       ded_res_list.push_back(pucch_resource{
           .res_id           = {static_cast<unsigned>(ded_res_list.size()), static_cast<unsigned>(ded_res_list.size())},
           .starting_prb     = 0,

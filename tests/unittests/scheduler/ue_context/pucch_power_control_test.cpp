@@ -55,7 +55,7 @@ static float compute_delta_tf(pucch_format   format,
       const unsigned payload_plus_crc_bits = nof_uci_bits + get_uci_nof_crc_bits(nof_uci_bits, e_uci);
 
       // Number of resource elements.
-      const unsigned n_re = nof_prbs * nof_symb * pucch_constants::FORMAT2_NOF_DATA_SC;
+      const unsigned n_re = nof_prbs * nof_symb * pucch_constants::f2::NOF_DATA_SUBC_PER_RB;
 
       // For the following computation, refer to the relevant section for the used formula.
       delta_tf = compute_delta_tf_format_2_3_4(nof_uci_bits, payload_plus_crc_bits, n_re);

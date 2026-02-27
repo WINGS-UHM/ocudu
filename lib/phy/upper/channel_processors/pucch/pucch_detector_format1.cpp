@@ -33,7 +33,7 @@ using namespace ocudu;
 static const pucch_orthogonal_sequence_format1 occ;
 
 // The number of available initial cyclic shifts is the same as the number of RE per PRB, i.e., 12.
-static constexpr unsigned NSHIFTS = pucch_constants::format1_initial_cyclic_shift_range.stop();
+static constexpr unsigned NSHIFTS = pucch_constants::f1::INITIAL_CYCLIC_SHIFT.stop();
 
 static void validate_config(const pucch_detector::format1_configuration& config,
                             const pucch_format1_map<unsigned>&           mux_nof_harq_ack)
@@ -150,8 +150,8 @@ pucch_detector_format1::detect(const resource_grid_reader&                  grid
     dmrs_mask.set(i_symbol);
   }
 
-  static_vector<hop_contribution_mux, NSHIFTS * pucch_constants::format1_time_domain_occ_range.stop()> metrics_hop0(0);
-  static_vector<hop_contribution_mux, NSHIFTS * pucch_constants::format1_time_domain_occ_range.stop()> metrics_hop1(0);
+  static_vector<hop_contribution_mux, NSHIFTS * pucch_constants::f1::TD_OCC.stop()> metrics_hop0(0);
+  static_vector<hop_contribution_mux, NSHIFTS * pucch_constants::f1::TD_OCC.stop()> metrics_hop1(0);
   hop_contribution_common hop0           = process_hop(metrics_hop0, grid, config, mux_nof_harq_ack, /*i_hop=*/0);
   float                   epre           = hop0.epre_contribution;
   unsigned                epre_samples0  = hop0.nof_epre_samples;

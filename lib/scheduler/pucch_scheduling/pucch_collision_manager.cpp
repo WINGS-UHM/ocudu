@@ -33,11 +33,11 @@ make_common_resource_info(const pucch_default_resource& res, unsigned r_pucch, c
                       .first_hop = grant_info(
               bwp_cfg.scs,
               {res.first_symbol_index, res.first_symbol_index + res.nof_symbols / 2},
-              prb_to_crb(bwp_cfg, prb_interval::start_and_len(prbs.first, pucch_constants::FORMAT0_1_4_MAX_NPRB))),
+              prb_to_crb(bwp_cfg, prb_interval::start_and_len(prbs.first, pucch_constants::f0::NOF_RBS))),
                       .second_hop = grant_info(
               bwp_cfg.scs,
               {res.first_symbol_index + res.nof_symbols / 2, res.first_symbol_index + res.nof_symbols},
-              prb_to_crb(bwp_cfg, prb_interval::start_and_len(prbs.second, pucch_constants::FORMAT0_1_4_MAX_NPRB))),
+              prb_to_crb(bwp_cfg, prb_interval::start_and_len(prbs.second, pucch_constants::f0::NOF_RBS))),
       }};
 }
 
@@ -58,7 +58,7 @@ static resource_info make_ded_resource_info(const pucch_resource& res, const bwp
       const auto& f1_params = std::get<pucch_format_1_cfg>(res.format_params);
       info.multiplexing_index =
           f1_params.initial_cyclic_shift +
-          f1_params.time_domain_occ * pucch_constants::format1_initial_cyclic_shift_range.length();
+          f1_params.time_domain_occ * pucch_constants::f1::INITIAL_CYCLIC_SHIFT.length();
     } break;
     case pucch_format::FORMAT_4: {
       // For PUCCH Format 4, the OCC index is mapped to a cyclic shift value, as per Table 6.4.1.3.3.1-1, TS 38.211.

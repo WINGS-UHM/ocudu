@@ -84,7 +84,7 @@ void dmrs_pucch_estimator_formats3_4::estimate(channel_estimate&           estim
   re_measurement_dimensions dims;
   dims.nof_subc    = config.nof_prb * NOF_SUBCARRIERS_PER_RB;
   dims.nof_symbols = dmrs_symb_mask.count();
-  dims.nof_slices  = pucch_constants::MAX_LAYERS;
+  dims.nof_slices  = pucch_constants::NOF_LAYERS;
 
   // Resize DM-RS symbol buffer.
   temp_symbols.resize(dims);

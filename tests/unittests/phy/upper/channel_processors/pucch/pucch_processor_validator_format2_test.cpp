@@ -16,7 +16,7 @@ using namespace ocudu;
 namespace {
 
 // Maximum number of UCI payload bits supported by the current PUCCH Format 2 implementation.
-constexpr unsigned PUCCH_F2_IMPL_MAX_NBITS = 1706;
+constexpr unsigned PUCCH_F2_IMPL_MAX_NBITS = pucch_constants::f2::NOF_DATA_BITS.stop();
 
 // Valid PUCCH Format 2 configuration.
 const pucch_processor::format2_configuration base_format_2_config = {
@@ -49,7 +49,7 @@ const pucch_processor::format2_configuration base_format_2_config = {
     // N_ID_0.
     0,
     // Number of HARQ-ACK bits.
-    pucch_constants::FORMAT2_MIN_UCI_NBITS,
+    pucch_constants::f2::NOF_DATA_BITS.start(),
     // Number of SR bits.
     0,
     // Number of CSI Part 1 bits.
@@ -175,7 +175,7 @@ static const auto processor_validator_test_data = to_array<test_case_t>(
          [] {
            test_params entry          = {};
            entry.config               = base_format_2_config;
-           entry.config.nof_harq_ack  = pucch_constants::FORMAT2_MIN_UCI_NBITS - 1;
+           entry.config.nof_harq_ack  = pucch_constants::f2::NOF_DATA_BITS.start() - 1;
            entry.config.nof_sr        = 0;
            entry.config.nof_csi_part1 = 0;
            entry.config.nof_csi_part2 = 0;
@@ -183,7 +183,7 @@ static const auto processor_validator_test_data = to_array<test_case_t>(
                R"(UCI Payload length\, i\.e\.\, {} is not supported\. Payload length must be {} to {} bits\.)",
                entry.config.nof_harq_ack + entry.config.nof_sr + entry.config.nof_csi_part1 +
                    entry.config.nof_csi_part2,
-               pucch_constants::FORMAT2_MIN_UCI_NBITS,
+               pucch_constants::f2::NOF_DATA_BITS.start(),
                PUCCH_F2_IMPL_MAX_NBITS);
            return entry;
          },
@@ -214,7 +214,7 @@ static const auto processor_validator_test_data = to_array<test_case_t>(
                R"(UCI Payload length\, i\.e\.\, {} is not supported\. Payload length must be {} to {} bits\.)",
                entry.config.nof_harq_ack + entry.config.nof_sr + entry.config.nof_csi_part1 +
                    entry.config.nof_csi_part2,
-               pucch_constants::FORMAT2_MIN_UCI_NBITS,
+               pucch_constants::f2::NOF_DATA_BITS.start(),
                PUCCH_F2_IMPL_MAX_NBITS);
            return entry;
          },

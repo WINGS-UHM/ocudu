@@ -307,8 +307,8 @@ void ocudu::test_pucch_consistency(const cell_configuration& cell_cfg, span<cons
 {
   ASSERT_LE(pucchs.size(), cell_cfg.expert_cfg.ue.max_pucchs_per_slot);
 
-  constexpr unsigned max_f0_or_f1_multiplexing = pucch_constants::format1_initial_cyclic_shift_range.length() *
-                                                 pucch_constants::format1_time_domain_occ_range.length();
+  constexpr unsigned max_f0_or_f1_multiplexing =
+      pucch_constants::f1::INITIAL_CYCLIC_SHIFT.length() * pucch_constants::f1::TD_OCC.length();
 
   // Note: The grid at index max_f0_or_f1_multiplexing is used to track the union of all F0/F1 grids.
   // [Implementation defined] This assumes that either Format 0 or Format 1 is used, but not both.
@@ -349,7 +349,7 @@ void ocudu::test_pucch_consistency(const cell_configuration& cell_cfg, span<cons
         const auto&    f1_params = std::get<pucch_format_1>(pucch.format_params);
         const unsigned multiplexing_idx =
             f1_params.initial_cyclic_shift +
-            f1_params.time_domain_occ * pucch_constants::format0_initial_cyclic_shift_range.length();
+            f1_params.time_domain_occ * pucch_constants::f0::INITIAL_CYCLIC_SHIFT.length();
         // Multiplexed by initial cyclic shift and time domain OCC.
         // Check the general grid, the union of the F4 grids and the F1 specific grid.
         // Write to both the F1 union grid and the F1 specific grid.

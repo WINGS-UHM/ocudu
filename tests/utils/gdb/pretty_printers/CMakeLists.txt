@@ -96,14 +96,14 @@ add_custom_target(pretty_printer_tests)
 add_dependencies(pretty_printer_tests
         pretty_printer_bf16_test
         pretty_printer_bounded_bitset_test
+        pretty_printer_byte_buffer_test
         pretty_printer_cbf16_test
         pretty_printer_llr_test
         pretty_printer_slotted_array_test
         pretty_printer_slotted_vector_test
+        pretty_printer_span_test
         pretty_printer_static_vector_test
         pretty_printer_strong_type_test
-        pretty_printer_span_test
-        pretty_printer_byte_buffer_test
-        pretty_printer_tl_expected_test
         pretty_printer_tiny_optional_test
+        pretty_printer_tl_expected_test
 )

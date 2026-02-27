@@ -30,6 +30,8 @@ struct ntn_cell_config_update_info {
   std::optional<time_point>             t_service;
   std::optional<ntn_polarization_t>     polarization;
   std::optional<bool>                   ta_report;
+  // SIB19 tracked neighbor-cell list.
+  std::optional<std::vector<neighbor_ntn_cell>> ncells;
   // SIB19 exempt fields (changes do not trigger SIB1 systemInfoValueTag increment).
   std::optional<geodetic_coordinates_t> moving_ref_location;
   // SIB19 tracked sat-switch field.

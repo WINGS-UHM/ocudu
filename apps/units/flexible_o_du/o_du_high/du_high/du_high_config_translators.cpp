@@ -239,9 +239,12 @@ static sib16_info create_sib16_info(const du_high_unit_sib_config::sib16_config&
 static sib19_info create_sib19_info(const du_high_unit_cell_ntn_config& config)
 {
   sib19_info sib19;
-  sib19.t_service              = config.t_service;
-  sib19.ref_location           = config.reference_location;
-  sib19.distance_thres         = config.distance_threshold;
+  sib19.t_service      = config.t_service;
+  sib19.ref_location   = config.reference_location;
+  sib19.distance_thres = config.distance_threshold;
+  for (const auto& ncell : config.ncells) {
+    sib19.ncells.push_back(ncell);
+  }
   sib19.moving_ref_location    = config.moving_ref_location;
   sib19.sat_switch_with_resync = config.sat_switch_with_resync;
 

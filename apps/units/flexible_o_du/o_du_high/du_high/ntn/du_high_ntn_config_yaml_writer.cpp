@@ -158,6 +158,22 @@ void ocudu::fill_ntn_config_in_yaml_schema(YAML::Node& node, const du_high_unit_
     ntn_node["moving_ref_location"] = mov_ref_node;
   }
 
+  // NTN neighbor cells.
+  if (!config.ncells.empty()) {
+    YAML::Node ncells_node;
+    for (const auto& ncell : config.ncells) {
+      YAML::Node ncell_node;
+      if (ncell.phys_cell_id.has_value()) {
+        ncell_node["pci"] = static_cast<unsigned>(ncell.phys_cell_id.value());
+      }
+      if (ncell.carrier_freq.has_value()) {
+        ncell_node["carrier_freq"] = ncell.carrier_freq.value().value();
+      }
+      ncells_node.push_back(ncell_node);
+    }
+    ntn_node["ncells"] = ncells_node;
+  }
+
   // Satellite switch with resynchronization (R18 extension).
   if (config.sat_switch_with_resync.has_value()) {
     const auto& sat_sw = config.sat_switch_with_resync.value();

@@ -8,6 +8,7 @@
 #include <chrono>
 #include <optional>
 #include <variant>
+#include <vector>
 
 namespace ocudu {
 
@@ -63,6 +64,8 @@ struct du_high_unit_cell_ntn_config {
   std::optional<geodetic_coordinates_t> moving_ref_location;
   /// Satellite switch with resynchronization parameters (R18).
   std::optional<sat_switch_with_resync_t> sat_switch_with_resync;
+  /// List of NTN neighbor cells.
+  std::vector<neighbor_ntn_cell> ncells;
 };
 
 } // namespace ocudu

@@ -147,6 +147,11 @@ static ocudu_ntn::ntn_assistance_info convert_ntn_config_to_assistance_info(cons
   info.polarization          = cfg.polarization;
   info.ta_report             = cfg.ta_report;
 
+  // SIB19 neighbor cells.
+  for (const auto& ncell : cfg.ncells) {
+    info.ncells.push_back(ncell);
+  }
+
   // SIB19 tracked fields (R18 extensions).
   info.sat_switch_with_resync = cfg.sat_switch_with_resync;
 

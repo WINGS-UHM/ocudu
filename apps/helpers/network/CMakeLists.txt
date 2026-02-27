@@ -9,3 +9,4 @@ set(SOURCES udp_cli11_schema.cpp
 
 add_library(ocudu_network_app_helpers STATIC ${SOURCES})
 target_include_directories(ocudu_network_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_network_app_helpers PRIVATE ocudu::yaml-cpp)

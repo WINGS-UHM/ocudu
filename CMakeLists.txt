@@ -473,8 +473,6 @@ endif (ENABLE_UHD)
 # Yaml-cpp
 find_package(YAMLCPP REQUIRED)
 if (YAML_CPP_FOUND)
-    include_directories(${YAML_CPP_INCLUDE_DIR})
-    link_directories(${YAML_CPP_LIBRARY_DIR})
     sbom_add(
         PACKAGE            "yaml-cpp"
         DOWNLOAD_LOCATION  "https://github.com/jbeder/yaml-cpp"

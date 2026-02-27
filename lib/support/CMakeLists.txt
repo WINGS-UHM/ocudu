@@ -42,7 +42,7 @@ set(SOURCES
 
 add_library(ocudu_support STATIC ${SOURCES})
 target_link_libraries(ocudu_support
-        PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${YAML_CPP_LIBRARIES} ${NUMA_LIBRARIES} ocudulog
+        PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${NUMA_LIBRARIES} ocudulog ocudu::yaml-cpp
         INTERFACE ocudu_support_math)
 add_backward(ocudu_support)
 

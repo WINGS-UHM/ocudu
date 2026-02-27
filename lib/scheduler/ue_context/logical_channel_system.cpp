@@ -344,7 +344,7 @@ void ue_logical_channel_repository::set_fallback_state(bool enter_fallback)
       parent->on_single_channel_buf_st_update(
           u, parent->lc_mapper.dl_slice_id(lc_rid), parent->lc_mapper.dl_buf_st(lc_rid).value(), 0);
     }
-    if (ue_ch.pending_ces.has_value()) {
+    if (not ue_ch.pending_ces.empty()) {
       parent->ues_with_pending_ces.set(ueidx);
     }
     auto& ue_ul_ch = u.at<ue_ul_channel_context>();
@@ -476,12 +476,10 @@ void logical_channel_system::deactivate(soa::row_id ue_rid)
 
   // Clear UE pending CEs.
   ue_ctx.pending_con_res_id = false;
-  for (std::optional<stable_id_t> ce_rid = ue_ch.pending_ces; ce_rid.has_value();) {
-    auto next = pending_ces[*ce_rid].next_ue_ce;
-    pending_ces.erase(*ce_rid);
-    ce_rid = next;
+  auto ce_list              = ue_ch.pending_ces.get_list(pending_ces);
+  while (not ce_list.empty()) {
+    pending_ces.erase(ce_list.pop_front());
   }
-  ue_ch.pending_ces       = std::nullopt;
   ue_ctx.pending_ce_bytes = 0;
   ues_with_pending_ces.reset(ue_idx);
 
@@ -722,28 +720,21 @@ void logical_channel_system::handle_mac_ce_indication(soa::row_id ue_row_id, con
     ue_ctx.pending_con_res_id = true;
     return;
   }
-  auto&                      ue_ch_ctx = u.at<ue_dl_channel_context>();
-  std::optional<stable_id_t> prev_ce_it;
-  for (auto it = ue_ch_ctx.pending_ces; it.has_value();) {
-    auto& ce_ctx = pending_ces[it.value()];
-    if (ce.ce_lcid == lcid_dl_sch_t::TA_CMD and ce_ctx.info.ce_lcid == lcid_dl_sch_t::TA_CMD) {
+  auto& ue_ch_ctx = u.at<ue_dl_channel_context>();
+  auto  ce_list   = ue_ch_ctx.pending_ces.get_list(pending_ces);
+  auto  tail      = ce_list.before_begin();
+  for (auto it = ce_list.begin(); it != ce_list.end(); ++it) {
+    if (ce.ce_lcid == lcid_dl_sch_t::TA_CMD and it->info.ce_lcid == lcid_dl_sch_t::TA_CMD) {
       // Overwrite previous TA CMD CE.
       // Note: Size of TA CMD CE is fixed, so no need to update pending CE bytes.
-      ce_ctx.info.ce_payload = ce.ce_payload;
+      pending_ces[it.id()].info.ce_payload = ce.ce_payload;
       return;
     }
-    prev_ce_it = it;
-    it         = ce_ctx.next_ue_ce;
+    tail = it;
   }
   // New CE, append to the list.
-  auto ce_rid = pending_ces.insert(mac_ce_context{ce, std::nullopt});
-  if (prev_ce_it.has_value()) {
-    // Append CE to the end of the list.
-    pending_ces[prev_ce_it.value()].next_ue_ce = ce_rid;
-  } else {
-    // New head of the list.
-    ue_ch_ctx.pending_ces = ce_rid;
-  }
+  auto ce_rid = pending_ces.insert(mac_ce_context{ce, {}});
+  ce_list.insert_after(tail, ce_rid);
   // Update sum of pending CE bytes.
   unsigned                  new_ce_bytes         = ue_ctx.pending_ce_bytes + (ce.ce_lcid.is_var_len_ce()
                                                                                   ? get_mac_sdu_required_bytes(ce.ce_lcid.sizeof_ce())
@@ -893,12 +884,12 @@ unsigned logical_channel_system::allocate_mac_ce(soa::row_id ue_rid, dl_msg_lc_i
 
   auto  u         = get_ue(ue_rid);
   auto& ue_ch_ctx = u.at<ue_dl_channel_context>();
-  if (not ue_ch_ctx.pending_ces.has_value()) {
+  auto  ce_list   = ue_ch_ctx.pending_ces.get_list(pending_ces);
+  if (ce_list.empty()) {
     return 0;
   }
-  stable_id_t         ce_row_id = *ue_ch_ctx.pending_ces;
-  const auto&         ce_node   = pending_ces[ce_row_id];
-  const lcid_dl_sch_t lcid      = ce_node.info.ce_lcid;
+  auto                it   = ce_list.begin();
+  const lcid_dl_sch_t lcid = it->info.ce_lcid;
 
   // Derive space needed for CE subheader + payload.
   const unsigned ce_size = lcid.sizeof_ce();
@@ -915,14 +906,14 @@ unsigned logical_channel_system::allocate_mac_ce(soa::row_id ue_rid, dl_msg_lc_i
 
   subpdu.lcid        = lcid;
   subpdu.sched_bytes = ce_size;
-  subpdu.ce_payload  = ce_node.info.ce_payload;
+  subpdu.ce_payload  = it->info.ce_payload;
 
   // Pop MAC CE.
-  ue_ch_ctx.pending_ces = ce_node.next_ue_ce;
+  stable_id_t ce_row_id = ce_list.pop_front();
   // Update sum of pending CE bytes.
   u.at<ue_context>().pending_ce_bytes -= alloc_bytes;
   pending_ces.erase(ce_row_id);
-  if (not ue_ch_ctx.pending_ces.has_value()) {
+  if (ce_list.empty()) {
     ues_with_pending_ces.set(u.at<ue_config_context>().ue_index, false);
   }
 

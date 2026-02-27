@@ -518,3 +518,95 @@ TEST(stable_id_map_intrusive_list, erase_after_iteration_pattern)
   ++it;
   ASSERT_EQ(it, r.end());
 }
+
+TEST(stable_id_map_intrusive_list, insert_after_before_begin_inserts_at_head)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+
+  // Insert at head using before_begin().
+  r.insert_after(r.before_begin(), id1);
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 20);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, insert_after_tail_appends)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto id2 = table.insert(node{30, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+
+  // Append after the tail (id0, which is last).
+  auto tail = r.begin();
+  ++tail;
+  ASSERT_EQ(tail->value, 10);
+  r.insert_after(tail, id2);
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 20);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it->value, 30);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, insert_after_middle)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto id2 = table.insert(node{30, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+
+  // Insert after head (id1).
+  r.insert_after(r.begin(), id2);
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 20);
+  ++it;
+  ASSERT_EQ(it->value, 30);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, insert_after_into_empty_list)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{42, {}});
+  auto r   = list.get_list(table);
+
+  // Insert into empty list via before_begin().
+  r.insert_after(r.before_begin(), id0);
+
+  ASSERT_FALSE(r.empty());
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 42);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}

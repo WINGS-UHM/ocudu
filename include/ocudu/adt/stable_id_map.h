@@ -331,6 +331,17 @@ public:
     /// Erase the element pointed to by an iterator. Returns true if the element was found and removed.
     bool erase(iterator it) { return erase(it.id()); }
 
+    /// Insert an element after the given position. Use before_begin() to insert at the head.
+    void insert_after(iterator prev, stable_id_t id)
+    {
+      if (prev.id() == invalid_stable_id) {
+        push_front(id);
+      } else {
+        (*map)[id].*NextMember        = (*map)[prev.id()].*NextMember;
+        (*map)[prev.id()].*NextMember = id;
+      }
+    }
+
     /// Erase the element after prev (O(1)). Returns the stable ID of the erased element.
     /// Use before_begin() as prev to erase the head.
     stable_id_t erase_after(iterator prev)

@@ -380,6 +380,30 @@ class ByteBufferSlicePrinter(printer_base):
 _ocudu_printers.append(PrinterSetup('byte buffer slice', '^ocudu::byte_buffer_slice$', ByteBufferSlicePrinter))
 
 
+######  span<T> ######
+
+class SpanPrinter(printer_base):
+    # Test: tests/utils/gdb/pretty_printers/pretty_printer_span_test.cpp
+
+    def __init__(self, val):
+        self.__val = val
+
+    def children(self):
+        ptr = self.__val['ptr']
+        length = int(self.__val['len'])
+        for i in range(length):
+            yield f'[{i}]', ptr[i]
+
+    def to_string(self):
+        length = int(self.__val['len'])
+        return f'span of length {length}'
+
+    def display_hint(self):
+        return 'array'
+
+_ocudu_printers.append(PrinterSetup('span', '^ocudu::span<.*>$', SpanPrinter))
+
+
 ######  Strong Type (strong_type<T, ...>) and derived types ######
 
 class StrongTypePrinter(printer_base):

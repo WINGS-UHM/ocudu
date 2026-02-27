@@ -53,6 +53,12 @@ add_test(NAME pretty_printer_strong_type_test
 add_test(NAME pretty_printer_strong_type_derived_test
          COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_strong_type_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'b = 8'")
 
+add_executable(pretty_printer_span_test pretty_printer_span_test.cpp)
+add_test(NAME pretty_printer_span_nonempty_test
+         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_span_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'a = span of length 3 = {10, 20, 30}'")
+add_test(NAME pretty_printer_span_empty_test
+         COMMAND sh -c "gdb $<TARGET_FILE:pretty_printer_span_test> -x ${CMAKE_CURRENT_SOURCE_DIR}/pretty_printer_gdb_commands.txt --batch | grep 'b = span of length 0'")
+
 add_executable(pretty_printer_byte_buffer_test pretty_printer_byte_buffer_test.cpp)
 target_link_libraries(pretty_printer_byte_buffer_test PRIVATE ocudu_support)
 add_test(NAME pretty_printer_byte_buffer_nonempty_test
@@ -96,6 +102,7 @@ add_dependencies(pretty_printer_tests
         pretty_printer_slotted_vector_test
         pretty_printer_static_vector_test
         pretty_printer_strong_type_test
+        pretty_printer_span_test
         pretty_printer_byte_buffer_test
         pretty_printer_tl_expected_test
         pretty_printer_tiny_optional_test

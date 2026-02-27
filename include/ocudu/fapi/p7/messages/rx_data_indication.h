@@ -29,3 +29,30 @@ struct rx_data_indication {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::rx_data_indication> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::rx_data_indication& msg, FormatContext& ctx) const
+  {
+    format_to(ctx.out(), "Rx_Data.indication slot={}", msg.slot);
+
+    for (const auto& pdu : msg.pdus) {
+      format_to(ctx.out(),
+                "\n\t- PDU rnti={} harq_id={} tbs={}",
+                pdu.rnti,
+                underlying(pdu.harq_id),
+                pdu.transport_block.size());
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

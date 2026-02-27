@@ -33,3 +33,40 @@ struct dl_csi_rs_pdu {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::dl_csi_rs_pdu> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::dl_csi_rs_pdu& pdu, FormatContext& ctx) const
+  {
+    if (pdu.type == ocudu::csi_rs_type::CSI_RS_NZP) {
+      return format_to(ctx.out(),
+                       "\n\t- NZP-CSI-RS crbs={} type={} freq_domain={} row={} symbL0={} symbL1={} cdm_type={} "
+                       "freq_density={} scramb_id={}",
+                       pdu.crbs,
+                       to_string(pdu.type),
+                       pdu.freq_domain,
+                       pdu.row,
+                       pdu.symb_L0,
+                       pdu.symb_L1,
+                       to_string(pdu.cdm_type),
+                       to_string(pdu.freq_density),
+                       pdu.scramb_id);
+    }
+
+    if (pdu.type == ocudu::csi_rs_type::CSI_RS_ZP) {
+      return fmt::format_to(
+          ctx.out(), "\n\t- ZP-CSI-RS crbs={} row={} symbL0={} symbL1={}", pdu.crbs, pdu.row, pdu.symb_L0, pdu.symb_L1);
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

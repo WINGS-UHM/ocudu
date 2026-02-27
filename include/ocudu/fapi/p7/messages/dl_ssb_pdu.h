@@ -30,3 +30,30 @@ struct dl_ssb_pdu {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::dl_ssb_pdu> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::dl_ssb_pdu& pdu, FormatContext& ctx) const
+  {
+    return format_to(ctx.out(),
+                     "\n\t- SSB pci={} beta_pss_profile={} ssb_block_index={} k_SSB={} pointA={} "
+                     "ssb_pattern_case={} scs={} L_max={}",
+                     pdu.phys_cell_id,
+                     underlying(pdu.beta_pss_profile_nr),
+                     underlying(pdu.ssb_block_index),
+                     pdu.subcarrier_offset.value(),
+                     pdu.ssb_offset_pointA.value(),
+                     to_string(pdu.case_type),
+                     to_string(pdu.scs),
+                     pdu.L_max);
+  }
+};
+} // namespace fmt

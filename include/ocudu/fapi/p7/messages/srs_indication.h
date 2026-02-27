@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "formatter/formatter_helpers.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
@@ -38,3 +38,39 @@ struct srs_indication {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::srs_indication> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::srs_indication& msg, FormatContext& ctx) const
+  {
+    format_to(ctx.out(), "SRS.indication slot={}", msg.slot);
+
+    for (const auto& pdu : msg.pdus) {
+      format_to(ctx.out(), "\n\t-  rnti={}", pdu.rnti);
+
+      ocudu::fapi::append_time_advance(ctx, pdu.timing_advance_offset, msg.slot.scs());
+
+      if (!pdu.positioning.has_value()) {
+        continue;
+      }
+
+      if (pdu.positioning->ul_relative_toa) {
+        format_to(ctx.out(), " RTOA_s={}", *pdu.positioning->rsrp);
+      }
+      if (pdu.positioning->rsrp) {
+        format_to(ctx.out(), " RSRP={}", *pdu.positioning->rsrp);
+      }
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

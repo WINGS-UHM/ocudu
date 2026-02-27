@@ -4,7 +4,6 @@
 
 #include "fapi_to_mac_error_indication_fastpath_translator.h"
 #include "ocudu/fapi/common/error_indication.h"
-#include "ocudu/fapi/message_loggers.h"
 #include "ocudu/mac/mac_cell_slot_handler.h"
 
 using namespace ocudu;
@@ -79,7 +78,9 @@ void fapi_to_mac_error_indication_fastpath_translator::on_error_indication(const
     return;
   }
 
-  log_error_indication(msg, sector_id, logger);
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
+    logger.debug("Sector#{}: {}", sector_id, msg);
+  }
 
   mac_slot_handler->handle_error_indication(msg.slot.value(), to_error_event(msg.error_code, msg.message_id));
 }

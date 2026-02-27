@@ -29,3 +29,27 @@ struct dl_prs_pdu {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::dl_prs_pdu> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::dl_prs_pdu& pdu, FormatContext& ctx) const
+  {
+    return format_to(ctx.out(),
+                     "\n\t- PRS comb_size={} comb_offset={} symb={}:{} CRBs={} n_id={}",
+                     underlying(pdu.comb_size),
+                     pdu.comb_offset,
+                     pdu.first_symbol,
+                     underlying(pdu.num_symbols),
+                     pdu.crbs,
+                     pdu.nid_prs);
+  }
+};
+} // namespace fmt

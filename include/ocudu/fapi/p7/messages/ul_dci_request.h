@@ -22,3 +22,26 @@ struct ul_dci_request {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::ul_dci_request> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::ul_dci_request& msg, FormatContext& ctx) const
+  {
+    format_to(ctx.out(), "UL_DCI.request slot={}", msg.slot);
+
+    for (const auto& pdu : msg.pdus) {
+      format_to(ctx.out(), "{}", pdu.pdu);
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

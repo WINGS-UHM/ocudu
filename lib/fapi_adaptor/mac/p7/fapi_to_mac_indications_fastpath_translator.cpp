@@ -3,7 +3,6 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "fapi_to_mac_indications_fastpath_translator.h"
-#include "ocudu/fapi/message_loggers.h"
 #include "ocudu/fapi/p7/messages/crc_indication.h"
 #include "ocudu/fapi/p7/messages/rach_indication.h"
 #include "ocudu/fapi/p7/messages/rx_data_indication.h"
@@ -126,7 +125,9 @@ void fapi_to_mac_indications_fastpath_translator::on_rx_data_indication(const fa
 
   // Only invoke the MAC when there are successfully decoded PDUs available.
   if (!indication.pdus.empty()) {
-    log_rx_data_indication(msg, sector_id, logger);
+    if (OCUDU_UNLIKELY(logger.debug.enabled())) {
+      logger.debug("Sector#{}: {}", sector_id, msg);
+    }
 
     pdu_handler->handle_rx_data_indication(std::move(indication));
   }
@@ -148,7 +149,9 @@ void fapi_to_mac_indications_fastpath_translator::on_crc_indication(const fapi::
     pdu.time_advance_offset = fapi_pdu.timing_advance_offset;
   }
 
-  log_crc_indication(msg, sector_id, logger);
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
+    logger.debug("Sector#{}: {}", sector_id, msg);
+  }
 
   cell_control_handler->handle_crc(indication);
 }
@@ -287,7 +290,9 @@ void fapi_to_mac_indications_fastpath_translator::on_uci_indication(const fapi::
     }
   }
 
-  log_uci_indication(msg, sector_id, logger);
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
+    logger.debug("Sector#{}: {}", sector_id, msg);
+  }
 
   cell_control_handler->handle_uci(mac_msg);
 }
@@ -311,7 +316,9 @@ void fapi_to_mac_indications_fastpath_translator::on_srs_indication(const fapi::
     }
   }
 
-  log_srs_indication(msg, sector_id, logger);
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
+    logger.debug("Sector#{}: {}", sector_id, msg);
+  }
 
   cell_control_handler->handle_srs(mac_msg);
 }
@@ -373,7 +380,10 @@ void fapi_to_mac_indications_fastpath_translator::on_rach_indication(const fapi:
     }
   }
 
-  log_rach_indication(msg, sector_id, logger);
+  if (OCUDU_UNLIKELY(logger.debug.enabled())) {
+    logger.debug("Sector#{}: {}", sector_id, msg);
+  }
+
   rach_handler->handle_rach_indication(indication);
 }
 

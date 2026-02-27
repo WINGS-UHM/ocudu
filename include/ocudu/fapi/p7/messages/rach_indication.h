@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "formatter/formatter_helpers.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 #include <optional>
@@ -39,3 +39,60 @@ struct rach_indication {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::rach_indication> {
+private:
+  /// Converts the given FAPI RACH occasion RSSI to dB as per SCF-222 v4.0 section 3.4.11.
+  static float to_rach_rssi_dB(int fapi_rssi) { return (fapi_rssi - 140000) * 0.001F; }
+
+  /// Converts the given FAPI RACH occasion SNR to dB as per SCF-222 v4.0 section 3.4.11.
+  static float to_rach_snr_dB(int fapi_snr) { return (fapi_snr - 128) * 0.5F; }
+
+  /// Converts the given FAPI RACH preamble power to dB as per SCF-222 v4.0 section 3.4.11.
+  static float to_rach_preamble_power_dB(int fapi_power) { return static_cast<float>(fapi_power - 140000) * 0.001F; }
+
+  /// Converts the given FAPI RACH preamble SNR to dB as per SCF-222 v4.0 section 3.4.11.
+  static float to_rach_preamble_snr_dB(int fapi_snr) { return (fapi_snr - 128) * 0.5F; }
+
+public:
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::rach_indication& msg, FormatContext& ctx) const
+  {
+    format_to(ctx.out(), "RACH.indication slot={}", msg.slot);
+
+    for (const auto& pdu : msg.pdus) {
+      format_to(
+          ctx.out(), "\n\t- PRACH symb_idx={} slot_idx={} ra_index={}", pdu.symbol_index, pdu.slot_index, pdu.ra_index);
+      if (pdu.avg_rssi != std::numeric_limits<decltype(pdu.avg_rssi)>::max()) {
+        format_to(ctx.out(), " rssi={:.1f}", to_rach_rssi_dB(pdu.avg_rssi));
+      }
+      format_to(ctx.out(), " avg_snr={:.1f}", to_rach_snr_dB(pdu.avg_snr));
+      format_to(ctx.out(), " nof_preambles={}:", pdu.preambles.size());
+
+      // Log the preambles.
+      for (const auto& preamble : pdu.preambles) {
+        format_to(ctx.out(), "\n\t\t- PREAMBLE index={}", preamble.preamble_index);
+
+        ocudu::fapi::append_time_advance(ctx, preamble.timing_advance_offset, msg.slot.scs());
+
+        if (preamble.preamble_pwr != std::numeric_limits<decltype(preamble.preamble_pwr)>::max()) {
+          format_to(ctx.out(), " pwr={:.1f}", to_rach_preamble_power_dB(preamble.preamble_pwr));
+        }
+        if (preamble.preamble_snr != std::numeric_limits<decltype(preamble.preamble_snr)>::max()) {
+          format_to(ctx.out(), " snr={:.1f}", to_rach_preamble_snr_dB(preamble.preamble_snr));
+        }
+      }
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

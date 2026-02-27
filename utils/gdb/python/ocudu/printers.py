@@ -276,10 +276,8 @@ _ocudu_printers.append(PrinterSetup('tl expected', '^tl::expected<.*>$', TlExpec
 
 ######  byte_buffer / byte_buffer_view ######
 
+# Helper to format byte_buffer, byte_buffer_slice and byte_buffer_view.
 def _format_byte_buffer_segment_list(type_name, node, start_offset, total_len):
-    """
-    Helper to format byte_buffer, byte_buffer_slice and byte_buffer_view.
-    """
     if total_len == 0:
         return f'{type_name} of length 0'
     hex_bytes = []
@@ -321,8 +319,8 @@ class ByteBufferPrinter(printer_base):
 _ocudu_printers.append(PrinterSetup('byte buffer', '^ocudu::byte_buffer$', ByteBufferPrinter))
 
 
+# Format a byte_buffer_view/byte_buffer_slice (with 'it' and 'it_end' fields).
 def _format_byte_buffer_view(type_name, view_val):
-    """Format a byte_buffer_view gdb.Value (with 'it' and 'it_end' fields)."""
     it = view_val['it']
     it_end = view_val['it_end']
     node = it['current_segment']
@@ -424,7 +422,7 @@ class StrongTypePrinter(printer_base):
 
 
 class StrongTypeLookup:
-    """Pretty-printer lookup that matches any type inheriting from ocudu::strong_type<...>."""
+    # Pretty-printer lookup that matches any type inheriting from ocudu::strong_type<...>.
 
     def __init__(self):
         self.name = 'strong_type_lookup'
@@ -438,7 +436,7 @@ class StrongTypeLookup:
 
     @staticmethod
     def _has_strong_type_base(ty):
-        """Check if a type is or inherits from ocudu::strong_type<...>."""
+        # Check if a type is or inherits from ocudu::strong_type<...>.
         type_name = str(ty.strip_typedefs())
         if type_name.startswith('ocudu::strong_type<'):
             return True

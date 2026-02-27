@@ -470,8 +470,6 @@ package:
   stage: build and unit tests
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 45 minutes
   variables:
     PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"
@@ -522,8 +520,6 @@ export on amd64:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 30 minutes
   variables:
     COMPILER: gcc
     TEST_MODE: none
@@ -554,7 +550,7 @@ ubuntu-25.04 amd64 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 60 minutes
+      start_in: 1 hour
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v3
@@ -567,7 +563,7 @@ ubuntu-25.10 amd64 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 60 minutes
+      start_in: 2 hours
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v3
@@ -580,7 +576,7 @@ ubuntu-24.04 amd64 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 90 minutes
+      start_in: 5 hours
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v3
@@ -596,7 +592,7 @@ ubuntu-24.04 amd64 avx512:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 90 minutes
+      start_in: 6 hours
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
@@ -617,7 +613,7 @@ ubuntu-22.04 amd64 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 90 minutes
+      start_in: 3 hours
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v3
@@ -631,8 +627,6 @@ ubuntu-24.04 arm neon:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-      when: delayed
-      start_in: 30 minutes
   variables:
     OS: ubuntu-24.04
     MARCH: armv8.2-a+crypto+fp16+dotprod
@@ -652,7 +646,7 @@ ubuntu dpdk:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 120 minutes
+      start_in: 4 hours
   variables:
     ENABLE_UHD: "False"
     ENABLE_ZEROMQ: "False"
@@ -681,7 +675,7 @@ ubsan avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
-      start_in: 120 minutes
+      start_in: 4 hours
   variables:
     OS: ubuntu-25.04
     COMPILER: gcc

@@ -21,16 +21,18 @@ include:
 
 .headers:
   extends: .static
-  variables:
-    IGNORE_PATH: ""
   rules:
     - if: $ON_MR
       allow_failure: true
   script:
     - |
       check_headers() {
-        update_headers.sh "$IGNORE_PATH"
-        is-pristine-repo.sh
+        EXIT_CODE=0
+        reuse --version || EXIT_CODE=$?
+        reuse lint || EXIT_CODE=$?
+        annotate_headers.sh || EXIT_CODE=$?
+        is-pristine-repo.sh || EXIT_CODE=$?
+        exit $EXIT_CODE
       }
     - check_headers
 

@@ -441,3 +441,80 @@ TEST(stable_id_map_intrusive_list, erase_by_iterator)
   ++it;
   ASSERT_EQ(it, r.end());
 }
+
+TEST(stable_id_map_intrusive_list, erase_after_head)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+
+  // Erase head using before_begin().
+  auto erased = r.erase_after(r.before_begin());
+  ASSERT_EQ(erased, id1);
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, erase_after_middle)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto id2 = table.insert(node{30, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+  r.push_front(id2);
+
+  // Erase element after head (value 20), using head as prev.
+  auto erased = r.erase_after(r.begin());
+  ASSERT_EQ(erased, id1);
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 30);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, erase_after_iteration_pattern)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto id2 = table.insert(node{30, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+  r.push_front(id2);
+
+  // Erase all elements matching value==20 using the before_begin/erase_after pattern.
+  for (auto prev = r.before_begin(), it = r.begin(); it != r.end();) {
+    if (it->value == 20) {
+      r.erase_after(prev);
+      break;
+    }
+    prev = it;
+    ++it;
+  }
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 30);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}

@@ -290,6 +290,8 @@ public:
 
     range(map_type& map_, stable_id_t& head_) : map(&map_), head(&head_) {}
 
+    /// Iterator to the element before the head. Only valid as argument to erase_after.
+    iterator before_begin() const { return iterator{*map, invalid_stable_id}; }
     iterator begin() const { return iterator{*map, *head}; }
     sentinel end() const { return sentinel{}; }
     bool     empty() const { return *head == invalid_stable_id; }
@@ -328,6 +330,21 @@ public:
 
     /// Erase the element pointed to by an iterator. Returns true if the element was found and removed.
     bool erase(iterator it) { return erase(it.id()); }
+
+    /// Erase the element after prev (O(1)). Returns the stable ID of the erased element.
+    /// Use before_begin() as prev to erase the head.
+    stable_id_t erase_after(iterator prev)
+    {
+      stable_id_t erased_id;
+      if (prev.id() == invalid_stable_id) {
+        erased_id = *head;
+        *head     = (*map)[erased_id].*NextMember;
+      } else {
+        erased_id                     = (*map)[prev.id()].*NextMember;
+        (*map)[prev.id()].*NextMember = (*map)[erased_id].*NextMember;
+      }
+      return erased_id;
+    }
 
   private:
     map_type*    map;

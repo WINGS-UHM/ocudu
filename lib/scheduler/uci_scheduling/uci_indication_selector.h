@@ -95,16 +95,6 @@ private:
 
   std::optional<uci_action> handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry);
 
-  /// Helper to remove UCI entry from its linked list.
-  stable_id_t rem_uci_entry(stable_id_t& head, uci_entry* prev_entry, uci_entry& entry);
-
-  /// Finds UCI entry and removes it from the linked list.
-  /// \tparam MainTimeoutWheel Whether the linked list from where the UCI entry is removed is the main wheel or short
-  /// timeout wheel.
-  /// \param[in] id_to_rem ID of the entry to remove.
-  template <bool MainTimeoutWheel>
-  void find_and_rem_uci_entry(stable_id_t id_to_rem);
-
   /// Timeout to receive HARQ-ACK feedback.
   const unsigned                   ack_timeout_slots;
   uci_indication_timeout_notifier& timeout_notifier;
@@ -114,8 +104,8 @@ private:
 
   stable_id_map<uci_entry> uci_pool;
 
-  circular_vector<stable_id_t> uci_wheel;
-  circular_vector<stable_id_t> short_timeout_wheel;
+  circular_vector<stable_id_intrusive_list<&uci_entry::next>>               uci_wheel;
+  circular_vector<stable_id_intrusive_list<&uci_entry::next_short_timeout>> short_timeout_wheel;
 };
 
 } // namespace ocudu

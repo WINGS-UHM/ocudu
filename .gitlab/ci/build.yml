@@ -530,7 +530,7 @@ export on amd64:
       - OS: [ubuntu-25.10, ubuntu-24.04, ubuntu-22.04]
         MARCH: x86-64-v3
 
-export on amd64 avx512:
+export on avx512:
   extends: export on amd64
   variables:
     TEST_MODE: full
@@ -545,7 +545,7 @@ export on amd64 avx512:
 
 # Build + unit tests combinations
 
-ubuntu-25.04 amd64 avx2:
+ubuntu-25.04 avx2:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
@@ -558,7 +558,7 @@ ubuntu-25.04 amd64 avx2:
     matrix:
       - <<: *basic_combinations
 
-ubuntu-25.10 amd64 avx2:
+ubuntu-25.10 avx2:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
@@ -571,7 +571,7 @@ ubuntu-25.10 amd64 avx2:
     matrix:
       - <<: *basic_combinations
 
-ubuntu-24.04 amd64 avx2:
+ubuntu-24.04 avx2:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
@@ -587,7 +587,7 @@ ubuntu-24.04 amd64 avx2:
         ENABLE_FFTW: "False"
         ENABLE_MKL: "True"
 
-ubuntu-24.04 amd64 avx512:
+ubuntu-24.04 avx512:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
@@ -608,7 +608,7 @@ ubuntu-24.04 amd64 avx512:
         ENABLE_FFTW: "False"
         ENABLE_MKL: "True"
 
-ubuntu-22.04 amd64 avx2:
+ubuntu-22.04 avx2:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
@@ -689,7 +689,7 @@ ubsan avx2:
 ###################
 # Alternative OSs #
 ###################
-archlinux amd64 avx2:
+archlinux avx2:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -703,7 +703,7 @@ archlinux amd64 avx2:
     matrix:
       - <<: *basic_combinations
 
-archlinux amd64 avx512:
+archlinux avx512:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -720,7 +720,7 @@ archlinux amd64 avx512:
     matrix:
       - <<: *basic_combinations
 
-debian 12 amd64 avx2:
+debian 12 avx2:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -734,7 +734,7 @@ debian 12 amd64 avx2:
     matrix:
       - <<: *basic_combinations
 
-debian 12 amd64 avx512:
+debian 12 avx512:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -753,7 +753,7 @@ debian 12 amd64 avx512:
     matrix:
       - <<: *basic_combinations
 
-debian 13 amd64 avx2:
+debian 13 avx2:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -767,7 +767,7 @@ debian 13 amd64 avx2:
     matrix:
       - <<: *basic_combinations
 
-debian 13 amd64 avx512:
+debian 13 avx512:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -808,14 +808,16 @@ check builders ubuntu versions:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      when: delayed
-      start_in: 30 minutes
   variables:
     ASSERT_LEVEL: PARANOID
     CMAKE_BUILD_TYPE: Debug
 
-sanitizers amd64 avx2:
+sanitizers avx2:
   extends: .weekly sanitizers
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+      when: delayed
+      start_in: 1 hour
   variables:
     MARCH: x86-64-v3
   parallel:
@@ -843,8 +845,12 @@ sanitizers amd64 avx2:
         GTEST_DISCOVERY_TIMEOUT: 120
         TEST_MODE: default
 
-sanitizers amd64 avx512:
+sanitizers avx512:
   extends: .weekly sanitizers
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+      when: delayed
+      start_in: 1 hour
   variables:
     MARCH: x86-64-v4
   tags:
@@ -910,8 +916,6 @@ build uhd alt:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
-      when: delayed
-      start_in: 15 minutes
   variables:
     TEST_MODE: none
     ASSERT_LEVEL: PARANOID
@@ -939,18 +943,18 @@ gdb pretty printers:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 300 minutes
+      start_in: 1 hour
   variables:
     <<: *gdb_printers_variables
 
 # Build + unit tests combinations
 
-ubuntu-25.04 amd64 avx512:
+ubuntu-25.04 avx512:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 430 minutes
+      start_in: 4 hours
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v4
@@ -968,7 +972,7 @@ ubuntu-25.04 arm neon:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 430 minutes
+      start_in: 2 hours
   variables:
     OS: ubuntu-25.04
     MARCH: armv8.2-a+crypto+fp16+dotprod
@@ -983,19 +987,19 @@ ubuntu-25.10 amd64 native:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 30 minutes
+      start_in: 2 hours
   variables:
     OS: ubuntu-25.10
   parallel:
     matrix:
       - <<: *basic_combinations
 
-ubuntu-25.10 amd64 avx512:
+ubuntu-25.10 avx512:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 30 minutes
+      start_in: 3 hours
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v4
@@ -1013,7 +1017,7 @@ ubuntu-25.10 arm native:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 30 minutes
+      start_in: 1 hour
   variables:
     OS: ubuntu-25.10
   tags:
@@ -1027,7 +1031,7 @@ ubuntu-25.10 arm neon:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 30 minutes
+      start_in: 1 hour
   variables:
     OS: ubuntu-25.10
     MARCH: armv8.2-a+crypto+fp16+dotprod
@@ -1052,12 +1056,12 @@ ubuntu-24.04 amd64 native:
         ENABLE_FFTW: "False"
         ENABLE_MKL: "True"
 
-ubuntu-24.04 amd64 avx:
+ubuntu-24.04 avx:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 400 minutes
+      start_in: 11 hours
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v2
@@ -1068,12 +1072,12 @@ ubuntu-24.04 amd64 avx:
         ENABLE_FFTW: "False"
         ENABLE_MKL: "True"
 
-ubuntu-24.04 amd64 avx512 TRACE:
+ubuntu-24.04 avx512 TRACE:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 400 minutes
+      start_in: 12 hours
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
@@ -1107,7 +1111,7 @@ ubuntu-24.04 arm native:
         ENABLE_FFTW: "False"
         ENABLE_ARMPL: "True"
 
-ubuntu-22.04 amd64 avx512:
+ubuntu-22.04 avx512:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -1149,7 +1153,7 @@ ubuntu-22.04 arm neon:
   ENABLE_DPDK: "True"
   COMPILER: [gcc, clang]
 
-ubuntu-22.04 amd64 avx2 dpdk:
+ubuntu-22.04 avx2 dpdk:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -1163,7 +1167,7 @@ ubuntu-22.04 amd64 avx2 dpdk:
       - <<: *basic_combinations_dpdk
         DPDK_VERSION: ["22.11.8_avx2", "23.11.4_avx2", "24.11.2_avx2"]
 
-ubuntu-22.04 amd64 avx512 dpdk:
+ubuntu-22.04 avx512 dpdk:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -1182,39 +1186,50 @@ ubuntu-22.04 amd64 avx512 dpdk:
       - <<: *basic_combinations_dpdk
         DPDK_VERSION: ["22.11.8_avx512", "23.11.4_avx512", "24.11.2_avx512"]
 
-ubuntu-24.04 amd64 avx2 dpdk:
+ubuntu-24.04 avx2 dpdk 23.11:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 270 minutes
+      start_in: 7 hours
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v3
+    DPDK_VERSION: "23.11.4_avx2"
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
-        DPDK_VERSION: "23.11.4_avx2"
       - <<: *basic_combinations
-        DPDK_VERSION: "23.11.4_avx2"
-        ENABLE_FFTW: "False"
-        ENABLE_MKL: "True"
-      - <<: *basic_combinations_dpdk
-        DPDK_VERSION: "24.11.2_avx2"
-      - <<: *basic_combinations
-        DPDK_VERSION: "24.11.2_avx2"
         ENABLE_FFTW: "False"
         ENABLE_MKL: "True"
 
-ubuntu-24.04 amd64 avx512 dpdk:
+ubuntu-24.04 avx2 dpdk 24.11:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 320 minutes
+      start_in: 8 hours
+  variables:
+    OS: ubuntu-24.04
+    MARCH: x86-64-v3
+    DPDK_VERSION: "24.11.2_avx2"
+  parallel:
+    matrix:
+      - <<: *basic_combinations_dpdk
+      - <<: *basic_combinations
+        ENABLE_FFTW: "False"
+        ENABLE_MKL: "True"
+
+ubuntu-24.04 avx512 dpdk 23.11:
+  extends: .build_and_unit
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+      when: delayed
+      start_in: 9 hours
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4
+    DPDK_VERSION: "23.11.4_avx512"
     TEST_MODE: full
   tags:
     - ${OCUDU_RUNNER_TAG}-amd64
@@ -1223,42 +1238,53 @@ ubuntu-24.04 amd64 avx512 dpdk:
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
-        DPDK_VERSION: "23.11.4_avx512"
       - <<: *basic_combinations
-        DPDK_VERSION: "23.11.4_avx512"
-        ENABLE_FFTW: "False"
-        ENABLE_MKL: "True"
-      - <<: *basic_combinations_dpdk
-        DPDK_VERSION: "24.11.2_avx512"
-      - <<: *basic_combinations
-        DPDK_VERSION: "24.11.2_avx512"
         ENABLE_FFTW: "False"
         ENABLE_MKL: "True"
 
-ubuntu-25.10 amd64 avx2 dpdk:
+ubuntu-24.04 avx512 dpdk 24.11:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 360 minutes
+      start_in: 10 hours
   variables:
-    OS: ubuntu-25.10
-    MARCH: x86-64-v3
+    OS: ubuntu-24.04
+    MARCH: x86-64-v4
+    DPDK_VERSION: "24.11.2_avx512"
+    TEST_MODE: full
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
-        DPDK_VERSION: "24.11.2_avx2"
+      - <<: *basic_combinations
+        ENABLE_FFTW: "False"
+        ENABLE_MKL: "True"
 
-ubuntu-25.10 amd64 avx512 dpdk:
+ubuntu-25.10 avx2 dpdk 24.11:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
-      start_in: 360 minutes
+      start_in: 5 hours
+  variables:
+    OS: ubuntu-25.10
+    MARCH: x86-64-v3
+    DPDK_VERSION: "24.11.2_avx2"
+  parallel:
+    matrix:
+      - <<: *basic_combinations_dpdk
+
+ubuntu-25.10 avx512 dpdk 24.11:
+  extends: .build_and_unit
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
+      when: delayed
+      start_in: 6 hours
   variables:
     OS: ubuntu-25.10
     MARCH: x86-64-v4
     TEST_MODE: full
+    DPDK_VERSION: "24.11.2_avx512"
   tags:
     - ${OCUDU_RUNNER_TAG}-amd64
     - avx512
@@ -1266,9 +1292,8 @@ ubuntu-25.10 amd64 avx512 dpdk:
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
-        DPDK_VERSION: "24.11.2_avx512"
 
-ubuntu-25.04 amd64 avx2 dpdk:
+ubuntu-25.04 avx2 dpdk 24.11:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -1277,12 +1302,12 @@ ubuntu-25.04 amd64 avx2 dpdk:
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v3
+    DPDK_VERSION: "24.11.2_avx2"
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
-        DPDK_VERSION: "24.11.2_avx2"
 
-ubuntu-25.04 amd64 avx512 dpdk:
+ubuntu-25.04 avx512 dpdk 24.11:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
@@ -1291,6 +1316,7 @@ ubuntu-25.04 amd64 avx512 dpdk:
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v4
+    DPDK_VERSION: "24.11.2_avx512"
     TEST_MODE: full
   tags:
     - ${OCUDU_RUNNER_TAG}-amd64
@@ -1299,4 +1325,3 @@ ubuntu-25.04 amd64 avx512 dpdk:
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
-        DPDK_VERSION: "24.11.2_avx512"

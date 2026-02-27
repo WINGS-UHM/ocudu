@@ -147,6 +147,9 @@ static ocudu_ntn::ntn_assistance_info convert_ntn_config_to_assistance_info(cons
   info.polarization          = cfg.polarization;
   info.ta_report             = cfg.ta_report;
 
+  // SIB19 tracked fields (R18 extensions).
+  info.sat_switch_with_resync = cfg.sat_switch_with_resync;
+
   // Metadata fields.
   info.epoch_timestamp      = cfg.epoch_timestamp;
   info.epoch_sfn_offset     = cfg.epoch_sfn_offset;

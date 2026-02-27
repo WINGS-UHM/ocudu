@@ -694,7 +694,7 @@ archlinux avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 30 minutes
+      start_in: 1 hour
   variables:
     OS: archlinux-latest
     ENABLE_WERROR: "False"
@@ -725,7 +725,7 @@ debian 12 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 90 minutes
+      start_in: 2 hours
   variables:
     OS: debian-12
     ENABLE_WERROR: "False"
@@ -739,7 +739,7 @@ debian 12 avx512:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 30 minutes
+      start_in: 1 hour
   variables:
     OS: debian-12
     ENABLE_WERROR: "False"
@@ -758,7 +758,7 @@ debian 13 avx2:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 150 minutes
+      start_in: 3 hours
   variables:
     OS: debian-13
     ENABLE_WERROR: "False"
@@ -772,7 +772,7 @@ debian 13 avx512:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 90 minutes
+      start_in: 2 hours
   variables:
     OS: debian-13
     ENABLE_WERROR: "False"
@@ -1046,7 +1046,7 @@ ubuntu-24.04 amd64 native:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 60 minutes
+      start_in: 4 hours
   variables:
     OS: ubuntu-24.04
   parallel:
@@ -1098,8 +1098,6 @@ ubuntu-24.04 arm native:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
-      when: delayed
-      start_in: 60 minutes
   variables:
     OS: ubuntu-24.04
   tags:
@@ -1116,7 +1114,7 @@ ubuntu-22.04 avx512:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 120 minutes
+      start_in: 3 hours
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v4
@@ -1134,7 +1132,7 @@ ubuntu-22.04 arm neon:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 120 minutes
+      start_in: 1 hour
   variables:
     OS: ubuntu-22.04
     MARCH: armv8.2-a+crypto+fp16+dotprod
@@ -1153,30 +1151,45 @@ ubuntu-22.04 arm neon:
   ENABLE_DPDK: "True"
   COMPILER: [gcc, clang]
 
+ubuntu-22.04 avx2 dpdk 22.11:
+  extends: .build_and_unit
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
+      when: delayed
+      start_in: 5 hours
+  variables:
+    OS: ubuntu-22.04
+    MARCH: x86-64-v3
+    DPDK_VERSION: "22.11.8_avx2"
+  parallel:
+    matrix:
+      - <<: *basic_combinations_dpdk
+
 ubuntu-22.04 avx2 dpdk:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 210 minutes
+      start_in: 6 hours
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v3
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
-        DPDK_VERSION: ["22.11.8_avx2", "23.11.4_avx2", "24.11.2_avx2"]
+        DPDK_VERSION: ["23.11.4_avx2", "24.11.2_avx2"]
 
-ubuntu-22.04 avx512 dpdk:
+ubuntu-22.04 avx512 dpdk 22.11:
   extends: .build_and_unit
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 240 minutes
+      start_in: 7 hours
   variables:
     OS: ubuntu-22.04
     MARCH: x86-64-v4
     TEST_MODE: full
+    DPDK_VERSION: "22.11.8_avx512"
   tags:
     - ${OCUDU_RUNNER_TAG}-amd64
     - avx512
@@ -1184,7 +1197,20 @@ ubuntu-22.04 avx512 dpdk:
   parallel:
     matrix:
       - <<: *basic_combinations_dpdk
-        DPDK_VERSION: ["22.11.8_avx512", "23.11.4_avx512", "24.11.2_avx512"]
+
+ubuntu-22.04 avx512 dpdk:
+  extends: .build_and_unit
+  rules:
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
+      when: delayed
+      start_in: 8 hours
+  variables:
+    OS: ubuntu-22.04
+    MARCH: x86-64-v3
+  parallel:
+    matrix:
+      - <<: *basic_combinations_dpdk
+        DPDK_VERSION: ["23.11.4_avx512", "24.11.2_avx512"]
 
 ubuntu-24.04 avx2 dpdk 23.11:
   extends: .build_and_unit
@@ -1298,7 +1324,7 @@ ubuntu-25.04 avx2 dpdk 24.11:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 460 minutes
+      start_in: 9 hours
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v3
@@ -1312,7 +1338,7 @@ ubuntu-25.04 avx512 dpdk 24.11:
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Alternative OSs/
       when: delayed
-      start_in: 460 minutes
+      start_in: 9 hours
   variables:
     OS: ubuntu-25.04
     MARCH: x86-64-v4

@@ -14,6 +14,7 @@ else:
 # Use the new style pretty printing.
 import gdb.printing
 
+
 # For each pretty printer, store
 # - name       unique identifier of the pretty printer
 # - regex      the regular expression used to select the pretty printer
@@ -24,7 +25,9 @@ class PrinterSetup:
         self.regex = regex
         self.printer = printer
 
+
 _ocudu_printers = []
+
 
 ############################################
 #            Pretty-Printers
@@ -59,6 +62,7 @@ class StaticVectorPrinter(printer_base):
     def display_hint(self):
         return 'array'
 
+
 _ocudu_printers.append(PrinterSetup('static vector', '^ocudu::static_vector<.*>$', StaticVectorPrinter))
 
 
@@ -81,11 +85,12 @@ class BoundedBitsetPrinter(printer_base):
             bitstring += '{:064b}'.format(int(buffer[idx]))
         # last word might have a lower number of bits
         last_word_nof_bits = length % 64
-        bitstring = bitstring[64-last_word_nof_bits::]
+        bitstring = bitstring[64 - last_word_nof_bits::]
         return f'bounded_bitset of length {length}, capacity {capacity} = {bitstring}'
 
     def display_hint(self):
         return 'array'
+
 
 _ocudu_printers.append(PrinterSetup('bounded bitset', '^ocudu::bounded_bitset<.*>$', BoundedBitsetPrinter))
 
@@ -124,7 +129,7 @@ class TinyOptionalPrinter(printer_base):
             val_str = val_str[0:val_str.find('}')]
             val_int = int(val_str, 16)
             return val_int != 0
-        return True #TODO: tiny_optional with flag
+        return True  # TODO: tiny_optional with flag
 
     @staticmethod
     def get_value(gdb_val):
@@ -133,6 +138,7 @@ class TinyOptionalPrinter(printer_base):
         if f_type_str.startswith('std::optional<'):
             return gdb_val['_M_payload']['_M_payload']['_M_value']
         return gdb_val['val']
+
 
 _ocudu_printers.append(PrinterSetup('tiny optional', '^ocudu::tiny_optional<.*>$', TinyOptionalPrinter))
 
@@ -166,6 +172,7 @@ class SlotArrayPrinter(printer_base):
     def display_hint(self):
         return 'map'
 
+
 _ocudu_printers.append(PrinterSetup('slotted array', '^ocudu::slotted_array<.*>$', SlotArrayPrinter))
 
 
@@ -183,7 +190,7 @@ class SlotVectorPrinter(printer_base):
     def children(self):
         indexmapper = self.val['index_mapper']
         nof_idxs = int(indexmapper['_M_impl']['_M_finish'] - indexmapper['_M_impl']['_M_start'])
-        max_int = 2**64 - 1
+        max_int = 2 ** 64 - 1
         indexmapper_ptr = indexmapper['_M_impl']['_M_start']
         object_ptr = self.objects['_M_impl']['_M_start']
         count = 0
@@ -199,6 +206,7 @@ class SlotVectorPrinter(printer_base):
 
     def display_hint(self):
         return 'map'
+
 
 _ocudu_printers.append(PrinterSetup('slotted vector', '^ocudu::slotted_vector<.*>$', SlotVectorPrinter))
 
@@ -220,6 +228,7 @@ class BFloat16Printer(printer_base):
     def display_hint(self):
         return None
 
+
 _ocudu_printers.append(PrinterSetup('bf16', 'ocudu::strong_bf16_tag', BFloat16Printer))
 
 
@@ -234,6 +243,7 @@ class BFloat16ComplexPrinter(printer_base):
 
     def display_hint(self):
         return None
+
 
 _ocudu_printers.append(PrinterSetup('complex bf16', '^ocudu::cbf16_t$', BFloat16ComplexPrinter))
 
@@ -260,7 +270,114 @@ class TlExpectedPrinter(printer_base):
     def display_hint(self):
         return 'array'
 
+
 _ocudu_printers.append(PrinterSetup('tl expected', '^tl::expected<.*>$', TlExpectedPrinter))
+
+
+######  byte_buffer / byte_buffer_view ######
+
+def _format_byte_buffer_segment_list(type_name, node, start_offset, total_len):
+    """
+    Helper to format byte_buffer, byte_buffer_slice and byte_buffer_view.
+    """
+    if total_len == 0:
+        return f'{type_name} of length 0'
+    hex_bytes = []
+    remaining = total_len
+    first = True
+    while int(node) != 0 and remaining > 0:
+        seg = node.dereference()
+        payload_ptr = seg['payload']['ptr']
+        payload_len = int(seg['payload']['len'])
+        seg_offset = start_offset if first else 0
+        first = False
+        count = min(payload_len - seg_offset, remaining)
+        for i in range(count):
+            hex_bytes.append(f'{int(payload_ptr[seg_offset + i]):02x}')
+        remaining -= count
+        node = seg['next']
+    return f'{type_name} of length {total_len} = [{" ".join(hex_bytes)}]'
+
+
+class ByteBufferPrinter(printer_base):
+    # Test: tests/utils/gdb/pretty_printers/pretty_printer_byte_buffer_test.cpp
+
+    def __init__(self, val):
+        self.__val = val
+
+    def to_string(self):
+        type_name = 'byte_buffer'
+        ctrl_blk = self.__val['ctrl_blk_ptr']['ptr']
+        if int(ctrl_blk) == 0:
+            return f'{type_name} of length 0'
+        pkt_len = int(ctrl_blk.dereference()['pkt_len'])
+        node = ctrl_blk.dereference()['segments']['head']
+        return _format_byte_buffer_segment_list(type_name, node, 0, pkt_len)
+
+    def display_hint(self):
+        return None
+
+
+_ocudu_printers.append(PrinterSetup('byte buffer', '^ocudu::byte_buffer$', ByteBufferPrinter))
+
+
+def _format_byte_buffer_view(type_name, view_val):
+    """Format a byte_buffer_view gdb.Value (with 'it' and 'it_end' fields)."""
+    it = view_val['it']
+    it_end = view_val['it_end']
+    node = it['current_segment']
+    if int(node) == 0:
+        return f'{type_name} of length 0'
+    # Compute total length by walking segments from it to it_end.
+    start_offset = int(it['offset'])
+    node_end = it_end['current_segment']
+    end_offset = int(it_end['offset'])
+    total_len = 0
+    cur = node
+    first = True
+    while int(cur) != 0:
+        seg = cur.dereference()
+        seg_offset = start_offset if first else 0
+        first = False
+        if int(cur) == int(node_end):
+            total_len += end_offset - seg_offset
+            break
+        total_len += int(seg['payload']['len']) - seg_offset
+        cur = seg['next']
+    # Format buffer.
+    return _format_byte_buffer_segment_list(type_name, node, start_offset, total_len)
+
+
+class ByteBufferViewPrinter(printer_base):
+    # Test: tests/utils/gdb/pretty_printers/pretty_printer_byte_buffer_test.cpp
+
+    def __init__(self, val):
+        self.__val = val
+
+    def to_string(self):
+        return _format_byte_buffer_view('byte_buffer_view', self.__val)
+
+    def display_hint(self):
+        return None
+
+
+_ocudu_printers.append(PrinterSetup('byte buffer view', '^ocudu::byte_buffer_view$', ByteBufferViewPrinter))
+
+
+class ByteBufferSlicePrinter(printer_base):
+    # Test: tests/utils/gdb/pretty_printers/pretty_printer_byte_buffer_test.cpp
+
+    def __init__(self, val):
+        self.__val = val
+
+    def to_string(self):
+        return _format_byte_buffer_view('byte_buffer_slice', self.__val['sliced_view'])
+
+    def display_hint(self):
+        return None
+
+
+_ocudu_printers.append(PrinterSetup('byte buffer slice', '^ocudu::byte_buffer_slice$', ByteBufferSlicePrinter))
 
 
 ######  Strong Type (strong_type<T, ...>) and derived types ######
@@ -325,6 +442,7 @@ class LogLikelihoodRatioPrinter(printer_base):
 
     def display_hint(self):
         return None
+
 
 _ocudu_printers.append(PrinterSetup('llr', 'ocudu::log_likelihood_ratio', LogLikelihoodRatioPrinter))
 

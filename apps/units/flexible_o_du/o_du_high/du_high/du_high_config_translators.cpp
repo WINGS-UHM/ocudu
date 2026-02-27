@@ -17,7 +17,6 @@
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/ran/sib/cell_reselection.h"
-#include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/rlc/rlc_srb_config_factory.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
 #include "ocudu/scheduler/config/csi_helper.h"
@@ -453,7 +452,7 @@ static std::optional<si_scheduling_info_config> make_si_sched_info_config(const 
 }
 
 /// Helper to generate MAC cell group parameters.
-mac_cell_group_params make_mac_cell_group_params(const du_high_unit_base_cell_config& cli_cfg)
+static mac_cell_group_params make_mac_cell_group_params(const du_high_unit_base_cell_config& cli_cfg)
 {
   mac_cell_group_params mcg_params;
   mcg_params.periodic_timer = to_periodic_bsr_timer(cli_cfg.mcg_cfg.bsr_cfg.periodic_bsr_timer);
@@ -478,7 +477,7 @@ mac_cell_group_params make_mac_cell_group_params(const du_high_unit_base_cell_co
   return mcg_params;
 }
 
-void fill_si_acquisition_info(si_acquisition_info& si, const du_high_unit_base_cell_config& cli_cfg)
+static void fill_si_acquisition_info(si_acquisition_info& si, const du_high_unit_base_cell_config& cli_cfg)
 {
   // Cell selection parameters.
   si.cell_sel_info.q_rx_lev_min = cli_cfg.q_rx_lev_min;
@@ -920,15 +919,15 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     du_pucch_cfg.max_nof_symbols = config_helpers::compute_max_nof_pucch_symbols(du_srs_cfg);
     if (user_srs_cfg.srs_type_enabled == "periodic" or user_srs_cfg.srs_type_enabled == "aperiodic") {
       if (std::holds_alternative<pucch_f1_params>(du_pucch_cfg.f0_or_f1_params)) {
-        auto& f1_params       = std::get<pucch_f1_params>(du_pucch_cfg.f0_or_f1_params);
-        f1_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.value(), f1_params.nof_symbols.value());
+        auto& f1_params    = std::get<pucch_f1_params>(du_pucch_cfg.f0_or_f1_params);
+        f1_params.nof_syms = std::min(du_pucch_cfg.max_nof_symbols.value(), f1_params.nof_syms.value());
       }
       if (std::holds_alternative<pucch_f3_params>(du_pucch_cfg.f2_or_f3_or_f4_params)) {
-        auto& f3_params       = std::get<pucch_f3_params>(du_pucch_cfg.f2_or_f3_or_f4_params);
-        f3_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.value(), f3_params.nof_symbols.value());
+        auto& f3_params    = std::get<pucch_f3_params>(du_pucch_cfg.f2_or_f3_or_f4_params);
+        f3_params.nof_syms = std::min(du_pucch_cfg.max_nof_symbols.value(), f3_params.nof_syms.value());
       } else if (std::holds_alternative<pucch_f4_params>(du_pucch_cfg.f2_or_f3_or_f4_params)) {
-        auto& f4_params       = std::get<pucch_f4_params>(du_pucch_cfg.f2_or_f3_or_f4_params);
-        f4_params.nof_symbols = std::min(du_pucch_cfg.max_nof_symbols.value(), f4_params.nof_symbols.value());
+        auto& f4_params    = std::get<pucch_f4_params>(du_pucch_cfg.f2_or_f3_or_f4_params);
+        f4_params.nof_syms = std::min(du_pucch_cfg.max_nof_symbols.value(), f4_params.nof_syms.value());
       }
       // Add extra PUSCH time-domain resources to enable PUSCH on symbols not used by the SRS.
       config_helpers::recompute_pusch_time_domain_resources(

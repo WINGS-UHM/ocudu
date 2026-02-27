@@ -4,6 +4,7 @@
 
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 #include "fmt/ostream.h"
@@ -14,31 +15,31 @@ using namespace ocudu;
 namespace sched_pucch_gen {
 // Test struct.
 struct pucch_gen_params {
-  unsigned                         nof_res_f0;
-  unsigned                         nof_res_f1;
-  unsigned                         nof_res_f2;
-  unsigned                         nof_res_f3;
-  unsigned                         nof_res_f4;
-  bounded_integer<unsigned, 1, 2>  f0_nof_symbols{2};
-  bool                             f0_intraslot_freq_hopping{false};
-  pucch_nof_cyclic_shifts          nof_cyc_shifts{pucch_nof_cyclic_shifts::no_cyclic_shift};
-  bool                             occ_supported{false};
-  bounded_integer<unsigned, 4, 14> f1_nof_symbols{14};
-  bool                             f1_intraslot_freq_hopping{false};
-  bounded_integer<unsigned, 1, 2>  f2_nof_symbols{1};
-  unsigned                         max_nof_rbs{1};
-  std::optional<unsigned>          max_payload_bits;
-  max_pucch_code_rate              max_code_rate{max_pucch_code_rate::dot_25};
-  bool                             f2_intraslot_freq_hopping{false};
-  bounded_integer<unsigned, 4, 14> f3_nof_symbols{4};
-  bool                             f3_intraslot_freq_hopping{false};
-  bool                             f3_additional_dmrs{false};
-  bool                             f3_pi2_bpsk{false};
-  bounded_integer<unsigned, 4, 14> f4_nof_symbols{4};
-  bool                             f4_intraslot_freq_hopping{false};
-  bool                             f4_additional_dmrs{false};
-  bool                             f4_pi2_bpsk{false};
-  pucch_f4_occ_len                 f4_occ_length{pucch_f4_occ_len::n2};
+  unsigned                     nof_res_f0;
+  unsigned                     nof_res_f1;
+  unsigned                     nof_res_f2;
+  unsigned                     nof_res_f3;
+  unsigned                     nof_res_f4;
+  pucch_f2_params::nof_symbols f0_nof_symbols{2};
+  bool                         f0_intraslot_freq_hopping{false};
+  pucch_nof_cyclic_shifts      nof_cyc_shifts{pucch_nof_cyclic_shifts::no_cyclic_shift};
+  bool                         occ_supported{false};
+  pucch_f1_params::nof_symbols f1_nof_symbols{14};
+  bool                         f1_intraslot_freq_hopping{false};
+  pucch_f2_params::nof_symbols f2_nof_symbols{1};
+  unsigned                     max_nof_rbs{1};
+  std::optional<unsigned>      max_payload_bits;
+  max_pucch_code_rate          max_code_rate{max_pucch_code_rate::dot_25};
+  bool                         f2_intraslot_freq_hopping{false};
+  pucch_f3_params::nof_symbols f3_nof_symbols{4};
+  bool                         f3_intraslot_freq_hopping{false};
+  bool                         f3_additional_dmrs{false};
+  bool                         f3_pi2_bpsk{false};
+  pucch_f4_params::nof_symbols f4_nof_symbols{4};
+  bool                         f4_intraslot_freq_hopping{false};
+  bool                         f4_additional_dmrs{false};
+  bool                         f4_pi2_bpsk{false};
+  pucch_f4_occ_len             f4_occ_length{pucch_f4_occ_len::n2};
 };
 
 // Dummy function overload of template <typename T> void testing::internal::PrintTo(const T& value, ::std::ostream* os).
@@ -618,31 +619,31 @@ TEST_P(test_pucch_res_generator_params, test_pucch_res_given_number)
   ASSERT_FALSE((nof_res_f2 != 0) + (nof_res_f3 != 0) + (nof_res_f4 != 0) > 1)
       << "PUCCH Format 2/3/4 resources cannot be used together";
 
-  pucch_f0_params params_f0{.nof_symbols            = GetParam().f0_nof_symbols,
+  pucch_f0_params params_f0{.nof_syms               = GetParam().f0_nof_symbols,
                             .intraslot_freq_hopping = GetParam().f0_intraslot_freq_hopping};
 
-  pucch_f1_params params_f1{.nof_cyc_shifts         = GetParam().nof_cyc_shifts,
-                            .occ_supported          = GetParam().occ_supported,
-                            .nof_symbols            = GetParam().f1_nof_symbols,
-                            .intraslot_freq_hopping = GetParam().f1_intraslot_freq_hopping};
+  pucch_f1_params params_f1{.nof_syms               = GetParam().f1_nof_symbols,
+                            .intraslot_freq_hopping = GetParam().f1_intraslot_freq_hopping,
+                            .nof_cyc_shifts         = GetParam().nof_cyc_shifts,
+                            .occ_supported          = GetParam().occ_supported};
 
-  pucch_f2_params params_f2{.nof_symbols            = GetParam().f2_nof_symbols,
+  pucch_f2_params params_f2{.nof_syms               = GetParam().f2_nof_symbols,
                             .max_nof_rbs            = GetParam().max_nof_rbs,
+                            .intraslot_freq_hopping = GetParam().f2_intraslot_freq_hopping,
                             .max_payload_bits       = GetParam().max_payload_bits,
-                            .max_code_rate          = GetParam().max_code_rate,
-                            .intraslot_freq_hopping = GetParam().f2_intraslot_freq_hopping};
+                            .max_code_rate          = GetParam().max_code_rate};
 
-  pucch_f3_params params_f3{.nof_symbols            = GetParam().f3_nof_symbols,
+  pucch_f3_params params_f3{.nof_syms               = GetParam().f3_nof_symbols,
                             .max_nof_rbs            = GetParam().max_nof_rbs,
-                            .max_payload_bits       = GetParam().max_payload_bits,
-                            .max_code_rate          = GetParam().max_code_rate,
                             .intraslot_freq_hopping = GetParam().f3_intraslot_freq_hopping,
+                            .max_payload_bits       = GetParam().max_payload_bits,
+                            .max_code_rate          = GetParam().max_code_rate,
                             .additional_dmrs        = GetParam().f3_additional_dmrs,
                             .pi2_bpsk               = GetParam().f3_pi2_bpsk};
 
-  pucch_f4_params params_f4{.nof_symbols            = GetParam().f4_nof_symbols,
-                            .max_code_rate          = GetParam().max_code_rate,
+  pucch_f4_params params_f4{.nof_syms               = GetParam().f4_nof_symbols,
                             .intraslot_freq_hopping = GetParam().f4_intraslot_freq_hopping,
+                            .max_code_rate          = GetParam().max_code_rate,
                             .additional_dmrs        = GetParam().f4_additional_dmrs,
                             .pi2_bpsk               = GetParam().f4_pi2_bpsk};
 
@@ -1040,24 +1041,24 @@ protected:
     nof_harq_cfg_per_ue(GetParam().nof_harq_cfg),
     nof_sr_res_per_cell(GetParam().nof_res_sr),
     nof_csi_res_per_cell(GetParam().nof_res_csi),
-    f0_params(pucch_f0_params{.nof_symbols = 2, .intraslot_freq_hopping = false}),
-    f1_params(pucch_f1_params{.nof_cyc_shifts         = pucch_nof_cyclic_shifts::no_cyclic_shift,
-                              .occ_supported          = false,
-                              .nof_symbols            = 14,
-                              .intraslot_freq_hopping = true}),
-    f2_params(pucch_f2_params{.nof_symbols            = 2,
+    f0_params(pucch_f0_params{.nof_syms = 2, .intraslot_freq_hopping = false}),
+    f1_params(pucch_f1_params{.nof_syms               = 14,
+                              .intraslot_freq_hopping = true,
+                              .nof_cyc_shifts         = pucch_nof_cyclic_shifts::no_cyclic_shift,
+                              .occ_supported          = false}),
+    f2_params(pucch_f2_params{.nof_syms               = 2,
                               .max_nof_rbs            = 2,
-                              .max_code_rate          = max_pucch_code_rate::dot_25,
-                              .intraslot_freq_hopping = false}),
-    f3_params(pucch_f3_params{.nof_symbols            = 4,
-                              .max_nof_rbs            = 2,
-                              .max_code_rate          = max_pucch_code_rate::dot_25,
                               .intraslot_freq_hopping = false,
+                              .max_code_rate          = max_pucch_code_rate::dot_25}),
+    f3_params(pucch_f3_params{.nof_syms               = 4,
+                              .max_nof_rbs            = 2,
+                              .intraslot_freq_hopping = false,
+                              .max_code_rate          = max_pucch_code_rate::dot_25,
                               .additional_dmrs        = false,
                               .pi2_bpsk               = false}),
-    f4_params(pucch_f4_params{.nof_symbols            = 4,
-                              .max_code_rate          = max_pucch_code_rate::dot_25,
+    f4_params(pucch_f4_params{.nof_syms               = 4,
                               .intraslot_freq_hopping = false,
+                              .max_code_rate          = max_pucch_code_rate::dot_25,
                               .additional_dmrs        = false,
                               .pi2_bpsk               = false,
                               .occ_supported          = false,

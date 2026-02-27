@@ -7,10 +7,22 @@
 #include "ocudu/adt/bounded_integer.h"
 #include "ocudu/ran/frame_types.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 #include <optional>
 #include <variant>
 
 namespace ocudu {
+
+/// Parameters for the generation of PUCCH Format 0 resources.
+struct pucch_f0_params {
+  using nof_symbols =
+      bounded_integer<unsigned, pucch_constants::f0::NOF_SYMS.start(), pucch_constants::f0::NOF_SYMS.stop()>;
+
+  /// Number of OFDM symbols.
+  nof_symbols nof_syms{pucch_constants::f0::NOF_SYMS.stop()};
+  /// Whether to configure intraslot frequency hopping.
+  bool intraslot_freq_hopping{false};
+};
 
 /// \brief Options for the number of Initial Cyclic Shifts that can be set for PUCCH Format 1.
 ///
@@ -24,58 +36,86 @@ inline unsigned format1_cp_step_to_uint(pucch_nof_cyclic_shifts opt)
   return static_cast<unsigned>(opt);
 }
 
-/// Collects the parameters for PUCCH Format 0 that can be configured.
-struct pucch_f0_params {
-  bounded_integer<unsigned, 1, 2> nof_symbols{2};
-  bool                            intraslot_freq_hopping{false};
-};
-
-/// Collects the parameters for PUCCH Format 1 that can be configured.
+/// Parameters for the generation of PUCCH Format 1 resources.
 struct pucch_f1_params {
-  /// Number of possible Initial Cyclic Shifts, equally spaced within the range {0,...,11}, as per \c PUCCH-format1, in
-  /// \c PUCCH-Config, TS 38.331.
+  using nof_symbols =
+      bounded_integer<unsigned, pucch_constants::f1::NOF_SYMS.start(), pucch_constants::f1::NOF_SYMS.stop()>;
+
+  /// Number of OFDM symbols.
+  nof_symbols nof_syms{pucch_constants::f1::NOF_SYMS.stop()};
+  bool        intraslot_freq_hopping{false};
+  /// Number of Initial Cyclic Shifts to use.
   pucch_nof_cyclic_shifts nof_cyc_shifts{pucch_nof_cyclic_shifts::no_cyclic_shift};
-  /// Indicates whether OCCs (as per \c PUCCH-format1, in \c PUCCH-Config, TS 38.331) are supported.
-  bool                             occ_supported{false};
-  bounded_integer<unsigned, 4, 14> nof_symbols{14};
-  bool                             intraslot_freq_hopping{false};
+  /// Whether to configure the resources with different OCCs.
+  bool occ_supported{false};
 };
 
-/// Collects the parameters for PUCCH Format 2 that can be configured.
+/// Parameters for the generation of PUCCH Format 2 resources.
 struct pucch_f2_params {
-  /// Number of OFDM symbols.
+  using nof_symbols =
+      bounded_integer<unsigned, pucch_constants::f2::NOF_SYMS.start(), pucch_constants::f2::NOF_SYMS.stop()>;
+  using nof_rbs = bounded_integer<unsigned, pucch_constants::f2::NOF_RBS.start(), pucch_constants::f2::NOF_RBS.stop()>;
+
+  /// \brief Number of OFDM symbols.
+  ///
   /// \remark For intraslot-freq-hopping, \c nof_symbols must be set to 2.
-  bounded_integer<unsigned, 1, 2> nof_symbols{2};
-  unsigned                        max_nof_rbs{1};
-  /// Maximum payload in bits that can be carried by PUCCH Format 2. When this field is set, \c max_nof_rbs is ignored
-  /// and the maximum number of RBs is computed according to \ref get_pucch_format2_max_nof_prbs.
+  nof_symbols nof_syms{pucch_constants::f2::NOF_SYMS.stop()};
+  /// Number of RBs.
+  nof_rbs max_nof_rbs{pucch_constants::f2::NOF_RBS.start()};
+  /// Whether to configure intraslot frequency hopping.
+  bool intraslot_freq_hopping{false};
+  /// \brief Maximum payload in bits to be carried.
+  ///
+  /// \remark When this field is set, \c max_nof_rbs is ignored and the maximum number of RBs is computed according to
+  ///         \ref get_pucch_format2_max_nof_prbs.
   std::optional<unsigned> max_payload_bits;
-  max_pucch_code_rate     max_code_rate{max_pucch_code_rate::dot_25};
-  bool                    intraslot_freq_hopping{false};
+  /// Maximum allowed effective code rate.
+  max_pucch_code_rate max_code_rate{max_pucch_code_rate::dot_25};
 };
 
 /// Collects the parameters for PUCCH Format 3 that can be configured.
 struct pucch_f3_params {
-  bounded_integer<unsigned, 4, 14> nof_symbols{4};
-  unsigned                         max_nof_rbs{1};
-  /// Maximum payload in bits that can be carried by PUCCH Format 3. When this field is set, \c max_nof_rbs is ignored
-  /// and the maximum number of RBs is computed according to \ref get_pucch_format3_max_nof_prbs.
+  using nof_symbols =
+      bounded_integer<unsigned, pucch_constants::f3::NOF_SYMS.start(), pucch_constants::f3::NOF_SYMS.stop()>;
+  using nof_rbs = bounded_integer<unsigned, pucch_constants::f3::NOF_RBS.start(), pucch_constants::f3::NOF_RBS.stop()>;
+
+  /// Number of OFDM symbols.
+  nof_symbols nof_syms{pucch_constants::f3::NOF_SYMS.start()};
+  /// Number of RBs.
+  nof_rbs max_nof_rbs{pucch_constants::f3::NOF_RBS.start()};
+  /// Whether to configure intraslot frequency hopping.
+  bool intraslot_freq_hopping{false};
+  /// \brief Maximum payload in bits to be carried.
+  ///
+  /// \remark When this field is set, \c max_nof_rbs is ignored and the maximum number of RBs is computed according to
+  ///         \ref get_pucch_format3_max_nof_prbs.
   std::optional<unsigned> max_payload_bits;
-  max_pucch_code_rate     max_code_rate{max_pucch_code_rate::dot_25};
-  bool                    intraslot_freq_hopping{false};
-  bool                    additional_dmrs{false};
-  bool                    pi2_bpsk{false};
+  /// Maximum allowed effective code rate.
+  max_pucch_code_rate max_code_rate{max_pucch_code_rate::dot_25};
+  /// Whether to configure the resources with additional DM-RS symbols.
+  bool additional_dmrs{false};
+  /// Whether to configure the resources with pi/2-BPSK modulation.
+  bool pi2_bpsk{false};
 };
 
 /// Collects the parameters for PUCCH Format 4 that can be configured.
 struct pucch_f4_params {
-  bounded_integer<unsigned, 4, 14> nof_symbols{14};
-  max_pucch_code_rate              max_code_rate{max_pucch_code_rate::dot_25};
-  bool                             intraslot_freq_hopping{false};
-  bool                             additional_dmrs{false};
-  bool                             pi2_bpsk{false};
-  /// Indicates whether OCCs (as per \c PUCCH-format4, in \c PUCCH-Config, TS 38.331) are supported.
-  bool             occ_supported{false};
+  using nof_symbols =
+      bounded_integer<unsigned, pucch_constants::f4::NOF_SYMS.start(), pucch_constants::f4::NOF_SYMS.stop()>;
+
+  /// Number of OFDM symbols.
+  nof_symbols nof_syms{pucch_constants::f4::NOF_SYMS.stop()};
+  /// Whether to configure intraslot frequency hopping.
+  bool intraslot_freq_hopping{false};
+  /// Maximum allowed effective code rate.
+  max_pucch_code_rate max_code_rate{max_pucch_code_rate::dot_25};
+  /// Whether to configure the resources with additional DM-RS symbols.
+  bool additional_dmrs{false};
+  /// Whether to configure the resources with pi/2-BPSK modulation.
+  bool pi2_bpsk{false};
+  /// Whether to configure the resources with different OCCs.
+  bool occ_supported{false};
+  /// OCC length to use for PUCCH Format 4 resources.
   pucch_f4_occ_len occ_length{pucch_f4_occ_len::n2};
 };
 
@@ -91,17 +131,19 @@ using pucch_csi_resource_id = strong_type<uint8_t, struct pucch_csi_resource_id_
 /// Defines the parameters that are used for the PUCCH configuration builder. These parameters are used to define the
 /// number of PUCCH resources, as well as the PUCCH format-specific parameters.
 struct pucch_resource_builder_params {
-  /// UE specific parameters. Use to set the number of resources per UE for HARQ-ACK reporting (not including SR/CSI
-  /// dedicated resources). NOTE: by default, each UE is assigned 1 SR and 1 CSI resource.
-  /// \remark Format 0 and Format 1 resources are mutually exclusive.
-  /// \remark Format 2 and Format 3 and Format 4 resources are mutually exclusive.
-  bounded_integer<unsigned, 1, 8> res_set_0_size = 6;
-  bounded_integer<unsigned, 1, 8> res_set_1_size = 6;
+  static constexpr unsigned max_res_set_size = 8;
+  using resource_set_size                    = bounded_integer<unsigned, 1, max_res_set_size>;
+
+  /// Number of resources to use for Resource Set ID 0.
+  resource_set_size res_set_0_size = 6;
+  /// Number of resources to use for Resource Set ID 1.
+  resource_set_size res_set_1_size = 6;
   /// \brief Number of separate PUCCH resource set configurations for HARQ-ACK reporting that are available in a cell.
-  /// \remark A resource set configuration defines the PUCCH resources present in Resource Set ID 0 and Resource Set ID
-  /// 1 for a given UE. UEs will be distributed possibly over different configurations. The more configurations, the
-  /// fewer UEs will have to share the same set, which reduces the chances that UEs won't be allocated PUCCH due to lack
-  /// of resources. However, the usage of PUCCH-dedicated REs will be proportional to the number of sets.
+  ///
+  /// \remark Each resource set configuration defines different resources for Resource Set ID 0 and 1.
+  /// \remark UEs will be distributed possibly over different configurations. The more configurations, the fewer UEs
+  ///         will have to share the same set, reducing the chance that UEs won't be allocated PUCCH due to lack of
+  ///         resources. However, the usage of PUCCH-dedicated REs will be proportional to the number of sets.
   unsigned nof_cell_res_set_configs = 1;
   /// \brief Defines how many PUCCH F0/F1 resources should be dedicated for SR at cell level.
   /// Each UE will be allocated 1 resource for SR.
@@ -109,13 +151,15 @@ struct pucch_resource_builder_params {
   /// \brief Defines how many PUCCH F2/F3/F4 resources should be dedicated for CSI at cell level.
   /// Each UE will be allocated 1 resource for CSI.
   unsigned nof_cell_csi_resources = 1;
-  /// PUCCH Format specific parameters.
+  /// \brief Parameters for the generation of PUCCH Format 0 or Format 1 resources.
+  ///
   /// \remark Having \c pucch_f1_params first forces the variant to use the Format 1 in the default constructor.
-  std::variant<pucch_f1_params, pucch_f0_params>                  f0_or_f1_params;
+  std::variant<pucch_f1_params, pucch_f0_params> f0_or_f1_params;
+  /// Parameters for the generation of PUCCH Format 2, Format 3 or Format 4 resources.
   std::variant<pucch_f2_params, pucch_f3_params, pucch_f4_params> f2_or_f3_or_f4_params;
   /// Maximum number of symbols per UL slot dedicated for PUCCH.
   /// \remark In case of Sounding Reference Signals (SRS) being used, the number of symbols should be reduced so that
-  /// the PUCCH resources do not overlap in symbols with the SRS resources.
+  ///         the PUCCH resources do not overlap in symbols with the SRS resources.
   /// \remark This parameter should be computed by the GNB and not exposed to the user configuration interface.
   bounded_integer<unsigned, 1, 14> max_nof_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
 

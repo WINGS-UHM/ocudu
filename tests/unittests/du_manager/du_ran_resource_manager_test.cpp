@@ -869,7 +869,7 @@ static du_cell_config make_custom_pucch_srs_cell_config(bool pucch_has_more_res_
       du_cfg.ran.tdd_ul_dl_cfg_common.has_value() ? srs_periodicity::sl10 : srs_periodicity::sl1;
 
   pucch_params.max_nof_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - srs_cfg.max_nof_symbols.value();
-  f1_params.nof_symbols        = std::min(f1_params.nof_symbols.value(), pucch_params.max_nof_symbols.value());
+  f1_params.nof_syms           = std::min(f1_params.nof_syms.value(), pucch_params.max_nof_symbols.value());
 
   return du_cfg;
 }

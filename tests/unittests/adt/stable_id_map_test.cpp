@@ -211,3 +211,233 @@ TEST(stable_id_map_test, move_only_columns)
   ASSERT_FALSE(table.contains(id0));
   ASSERT_EQ(*table[id1], 43);
 }
+
+struct node {
+  int         value;
+  stable_id_t next;
+};
+
+TEST(stable_id_map_intrusive_list, empty_list)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+  ASSERT_TRUE(list.empty());
+  auto r = list.get_list(table);
+  ASSERT_EQ(r.begin(), r.end());
+}
+
+TEST(stable_id_map_intrusive_list, push_front_one)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{42, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+
+  ASSERT_FALSE(r.empty());
+  ASSERT_FALSE(list.empty());
+  auto it = r.begin();
+  ASSERT_NE(it, r.end());
+  ASSERT_EQ(it->value, 42);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, push_front_preserves_lifo_order)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto id2 = table.insert(node{30, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+  r.push_front(id2);
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 30);
+  ++it;
+  ASSERT_EQ(it->value, 20);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, pop_front)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+
+  auto popped = r.pop_front();
+  ASSERT_EQ(popped, id1);
+  ASSERT_FALSE(list.empty());
+
+  popped = r.pop_front();
+  ASSERT_EQ(popped, id0);
+  ASSERT_TRUE(list.empty());
+}
+
+TEST(stable_id_map_intrusive_list, push_pop_push)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+
+  r.pop_front();
+
+  auto id2 = table.insert(node{30, {}});
+  r.push_front(id2);
+
+  auto it = r.begin();
+  ASSERT_NE(it, r.end());
+  ASSERT_EQ(it->value, 30);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+// stable_id_map_intrusive_list
+
+TEST(stable_id_map_intrusive_list, const_get_list)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{42, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+
+  const stable_id_map<node>&                   cref  = table;
+  const stable_id_intrusive_list<&node::next>& clist = list;
+  auto                                         cr    = clist.get_list(cref);
+  auto                                         it    = cr.begin();
+  ASSERT_NE(it, cr.end());
+  ASSERT_EQ(it->value, 42);
+  ++it;
+  ASSERT_EQ(it, cr.end());
+}
+
+TEST(stable_id_map_intrusive_list, erase_head_by_id)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto id2 = table.insert(node{30, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+  r.push_front(id2);
+
+  ASSERT_TRUE(r.erase(id2));
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 20);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, erase_middle_by_id)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto id2 = table.insert(node{30, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+  r.push_front(id2);
+
+  ASSERT_TRUE(r.erase(id1));
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 30);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, erase_tail_by_id)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto id2 = table.insert(node{30, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+  r.push_front(id2);
+
+  ASSERT_TRUE(r.erase(id0));
+
+  auto it = r.begin();
+  ASSERT_EQ(it->value, 30);
+  ++it;
+  ASSERT_EQ(it->value, 20);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}
+
+TEST(stable_id_map_intrusive_list, erase_nonexistent_returns_false)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+
+  ASSERT_FALSE(r.erase(stable_id_t{99}));
+  ASSERT_FALSE(r.empty());
+}
+
+TEST(stable_id_map_intrusive_list, erase_by_iterator)
+{
+  stable_id_map<node>                   table;
+  stable_id_intrusive_list<&node::next> list;
+
+  auto id0 = table.insert(node{10, {}});
+  auto id1 = table.insert(node{20, {}});
+  auto id2 = table.insert(node{30, {}});
+  auto r   = list.get_list(table);
+  r.push_front(id0);
+  r.push_front(id1);
+  r.push_front(id2);
+
+  // Erase the middle element (value 20) via iterator.
+  auto it = r.begin();
+  ++it;
+  ASSERT_EQ(it->value, 20);
+  ASSERT_TRUE(r.erase(it));
+
+  it = r.begin();
+  ASSERT_EQ(it->value, 30);
+  ++it;
+  ASSERT_EQ(it->value, 10);
+  ++it;
+  ASSERT_EQ(it, r.end());
+}

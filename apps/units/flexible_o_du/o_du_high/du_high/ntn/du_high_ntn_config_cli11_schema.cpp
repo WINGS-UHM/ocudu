@@ -84,6 +84,109 @@ static void configure_cli11_ephemeris_info_orbital(CLI::App& app, orbital_coordi
       ->check(CLI::Range(0.0, 6.28407400155));
 }
 
+static void configure_cli11_ntn_polarization(CLI::App& app, ntn_polarization_t& polarization)
+{
+  add_option_function<std::string>(
+      app,
+      "--dl",
+      [&polarization](const std::string& value) {
+        if (value == "lhcp") {
+          polarization.dl = ntn_polarization_t::polarization_type::lhcp;
+        } else if (value == "rhcp") {
+          polarization.dl = ntn_polarization_t::polarization_type::rhcp;
+        } else {
+          polarization.dl = ntn_polarization_t::polarization_type::linear;
+        }
+      },
+      "Polarization information for downlink transmission on service link")
+      ->check(CLI::IsMember({"lhcp", "rhcp", "linear"}, CLI::ignore_case));
+
+  add_option_function<std::string>(
+      app,
+      "--ul",
+      [&polarization](const std::string& value) {
+        if (value == "lhcp") {
+          polarization.ul = ntn_polarization_t::polarization_type::lhcp;
+        } else if (value == "rhcp") {
+          polarization.ul = ntn_polarization_t::polarization_type::rhcp;
+        } else {
+          polarization.ul = ntn_polarization_t::polarization_type::linear;
+        }
+      },
+      "Polarization information for downlink transmission on service link")
+      ->check(CLI::IsMember({"lhcp", "rhcp", "linear"}, CLI::ignore_case));
+}
+
+void ocudu::configure_cli11_ntn_config_args(CLI::App& app, ntn_config& config)
+{
+  static epoch_time_t epoch_time;
+  CLI::App*           epoch_time_subcmd = add_subcommand(app, "epoch_time", "Epoch time for the NTN assistance info");
+  configure_cli11_epoch_time(*epoch_time_subcmd, epoch_time);
+  epoch_time_subcmd->parse_complete_callback([&]() {
+    if (app.get_subcommand("epoch_time")->count() != 0) {
+      config.epoch_time = epoch_time;
+    }
+  });
+
+  app.add_option_function<unsigned>(
+         "--ntn_ul_sync_validity_dur",
+         [&config](unsigned value) { config.ntn_ul_sync_validity_dur = value; },
+         "An UL sync validity duration")
+      ->check(CLI::IsMember({5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 120, 180, 240, 900}));
+
+  app.add_option_function<unsigned>(
+         "--cell_specific_koffset",
+         [&config](unsigned value) { config.cell_specific_koffset = std::chrono::milliseconds(value); },
+         "Cell-specific k-offset to be used for NTN [ms].")
+      ->check(CLI::Range(1U, 1023U));
+
+  static ta_info_t ta_info;
+  CLI::App*        ta_info_subcmd = add_subcommand(app, "ta_info", "TA Info for the NTN assistance information");
+  configure_cli11_ta_info(*ta_info_subcmd, ta_info);
+  ta_info_subcmd->parse_complete_callback([&]() {
+    if (app.get_subcommand("ta_info")->count() != 0) {
+      config.ta_info = ta_info;
+    }
+  });
+
+  static ntn_polarization_t polarization;
+  CLI::App*                 polarization_subcmd =
+      add_subcommand(app, "polarization", "Polarization information for downlink/uplink transmission");
+  configure_cli11_ntn_polarization(*polarization_subcmd, polarization);
+  polarization_subcmd->parse_complete_callback([&]() {
+    if (app.get_subcommand("polarization")->count() != 0) {
+      config.polarization = polarization;
+    }
+  });
+
+  // Ephemeris configuration: ECEF state vector.
+  static ecef_coordinates_t ecef_coordinates;
+  CLI::App*                 ephem_subcmd_ecef =
+      add_subcommand(app, "ephemeris_info_ecef", "Ephermeris information of the satellite in ecef coordinates");
+  configure_cli11_ephemeris_info_ecef(*ephem_subcmd_ecef, ecef_coordinates);
+  ephem_subcmd_ecef->parse_complete_callback([&]() {
+    if (app.get_subcommand("ephemeris_info_ecef")->count() != 0) {
+      config.ephemeris_info = ecef_coordinates;
+    }
+  });
+
+  // Ephemeris configuration: Orbital parameters.
+  static orbital_coordinates_t orbital_coordinates;
+  CLI::App*                    ephem_subcmd_orbital =
+      add_subcommand(app, "ephemeris_orbital", "Ephermeris information of the satellite in orbital coordinates");
+  configure_cli11_ephemeris_info_orbital(*ephem_subcmd_orbital, orbital_coordinates);
+  ephem_subcmd_orbital->parse_complete_callback([&]() {
+    if (app.get_subcommand("ephemeris_orbital")->count() != 0) {
+      config.ephemeris_info = orbital_coordinates;
+    }
+  });
+
+  app.add_option_function<bool>(
+      "--ta_report",
+      [&config](bool value) { config.ta_report = value; },
+      "When this field is included in SIB19, it indicates reporting of timing advanced is enabled");
+}
+
 static void configure_cli11_ntn_args(CLI::App& app, du_high_unit_cell_ntn_config& config)
 {
   add_option(

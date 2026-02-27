@@ -9,7 +9,13 @@
 
 namespace ocudu {
 
+struct ntn_config;
 struct du_high_unit_cell_ntn_config;
+
+/// Configures shared NTN config CLI11 options.
+/// \param app The CLI11 application or subcommand to configure.
+/// \param config NTN config to populate.
+void configure_cli11_ntn_config_args(CLI::App& app, ntn_config& config);
 
 /// Configures advanced/enterprise NTN CLI11 options.
 /// \param app The CLI11 application or subcommand to configure.

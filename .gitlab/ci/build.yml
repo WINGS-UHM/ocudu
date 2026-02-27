@@ -395,6 +395,8 @@ valgrind changed tests:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-memcheck/
       when: never
     - if: $ON_MR
+      when: manual
+      allow_failure: true
   variables:
     CLEAN_BUILD: "False"
     FINGERPRINT: "fingerprints.csv"

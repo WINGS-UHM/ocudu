@@ -17,6 +17,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     # volumes:
     #   - /tmp/metrics.txt:/etc/ocudu/metrics.txt:ro # Uncomment to use an input metrics file
     networks:

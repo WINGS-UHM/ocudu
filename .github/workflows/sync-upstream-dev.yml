@@ -1,0 +1,27 @@
+name: Weekly mirror of GitLab dev -> upstream-dev
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 10 * * 1" 
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add/fetch upstream (GitLab)
+        run: |
+          git remote add upstream https://gitlab.com/ocudu/ocudu.git || true
+          git fetch upstream --prune
+
+      - name: Force-update upstream-dev to match upstream/dev
+        run: |
+          git push origin refs/remotes/upstream/dev:refs/heads/upstream-dev --force

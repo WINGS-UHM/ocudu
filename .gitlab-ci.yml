@@ -155,8 +155,7 @@ headers:
   extends: .headers
   rules:
     - if: $ON_MR
-      when: manual
-      allow_failure: true
+      allow_failure: false
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   needs:
     - job: trigger static

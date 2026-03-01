@@ -10,7 +10,8 @@ services:
       target: open5gs
       args:
         OS_VERSION: "22.04"
-        OPEN5GS_VERSION: "v2.7.0"
+        OPEN5GS_VERSION: "v2.7.6"
+        # OPEN5GS_VERSION: "v2.7.0"  WAS upgraded for some minor bug fixes, but it is not expected to cause any issue. 
     env_file:
       - ${OPEN_5GS_ENV_FILE:-open5gs/open5gs.env}
     privileged: true

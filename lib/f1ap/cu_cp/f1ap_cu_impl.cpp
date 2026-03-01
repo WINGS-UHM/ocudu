@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "f1ap_cu_impl.h"
 #include "asn1_helpers.h"
@@ -253,6 +247,9 @@ void f1ap_cu_impl::handle_initiating_message(const asn1::f1ap::init_msg_s& msg)
     case asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::options::ue_context_release_request:
       handle_ue_context_release_request(msg.value.ue_context_release_request());
       break;
+    case asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::options::access_success:
+      handle_access_success(msg.value.access_success());
+      break;
     case asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::options::gnb_du_cfg_upd:
       handle_du_cfg_update(msg.value.gnb_du_cfg_upd());
       break;
@@ -260,6 +257,31 @@ void f1ap_cu_impl::handle_initiating_message(const asn1::f1ap::init_msg_s& msg)
       logger.warning("Initiating message of type {} is not supported", msg.value.type().to_string());
       break;
   }
+}
+
+void f1ap_cu_impl::handle_access_success(const asn1::f1ap::access_success_s& msg)
+{
+  if (!ue_ctxt_list.contains(int_to_gnb_cu_ue_f1ap_id(msg->gnb_cu_ue_f1ap_id))) {
+    logger.warning("cu_ue={} du_ue={}: Dropping \"AccessSuccess\". UE context does not exist",
+                   msg->gnb_cu_ue_f1ap_id,
+                   msg->gnb_du_ue_f1ap_id);
+    return;
+  }
+
+  f1ap_ue_context& ue_ctxt = ue_ctxt_list[int_to_gnb_cu_ue_f1ap_id(msg->gnb_cu_ue_f1ap_id)];
+  ue_ctxt.logger.log_debug("Received \"AccessSuccess\"");
+
+  auto cgi = cgi_from_asn1(msg->nr_cgi);
+  if (!cgi.has_value()) {
+    logger.warning("cu_ue={}: Dropping \"AccessSuccess\". Cause: Failed to parse NR-CGI", msg->gnb_cu_ue_f1ap_id);
+    return;
+  }
+
+  f1ap_access_success ind;
+  ind.ue_index = ue_ctxt.ue_ids.ue_index;
+  ind.cgi      = cgi.value();
+
+  du_processor_notifier.on_access_success(ind);
 }
 
 void f1ap_cu_impl::handle_du_cfg_update(const asn1::f1ap::gnb_du_cfg_upd_s& request)

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_positioning_measurement_procedure.h"
 
@@ -183,10 +177,10 @@ positioning_measurement_procedure::prepare_mac_cell_positioning_request(du_cell_
   for (const auto& u : ue_mng.get_du_ues()) {
     for (const auto& cell_entry : u.resources->cell_group.cells) {
       const auto& c = cell_entry.second;
-      if (c.cell_index != cell_index or not c.ul_config->init_ul_bwp.srs_cfg.has_value()) {
+      if (c.serv_cell_cfg.cell_index != cell_index or not c.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value()) {
         continue;
       }
-      const srs_config& ue_srs_cfg = c.ul_config->init_ul_bwp.srs_cfg.value();
+      const srs_config& ue_srs_cfg = c.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
 
       if (srs_config_matches(ue_srs_cfg, carrier.srs_cfg)) {
         // Found a UE with matching SRSConfig

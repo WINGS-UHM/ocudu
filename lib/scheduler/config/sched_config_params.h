@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -14,6 +8,7 @@
 #include "ocudu/adt/slotted_vector.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
 
 namespace ocudu {
 
@@ -39,6 +34,8 @@ struct bwp_config {
   slotted_id_vector<coreset_id, coreset_config_ptr> coresets;
   /// Search Spaces associated with this BWP.
   slotted_id_vector<search_space_id, search_space_config_ptr> search_spaces;
+
+  ue_bwp_config bwp;
 
   bool operator==(const bwp_config& other) const
   {

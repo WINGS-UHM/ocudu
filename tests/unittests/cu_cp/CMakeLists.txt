@@ -1,10 +1,7 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+# Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
 
 set_directory_properties(PROPERTIES LABELS "cu_cp")
 
@@ -62,6 +59,7 @@ add_executable(cu_cp_test
                cu_cp_rrc_inactive_test.cpp
                cu_cp_setup_test.cpp
                cu_cp_ue_context_release_test.cpp
+               cu_cp_xnap_test.cpp
                )
 set_target_properties(cu_cp_test PROPERTIES UNITY_BUILD ON)
 target_link_libraries(cu_cp_test

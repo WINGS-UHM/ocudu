@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "prbs_calculator.h"
 #include "ocudu/ran/sch/tbs_calculator.h"
@@ -91,7 +85,7 @@ static sch_prbs_tbs linear_search_nof_prbs_upper_bound(const prbs_calculator_sch
                                        pdsch_cfg.nof_layers,
                                        pdsch_cfg.tb_scaling_field,
                                        nof_prbs_estimate};
-  unsigned                     tbs_bits_ub = tbs_calculator_calculate(tbs_cfg);
+  unsigned                     tbs_bits_ub = tbs_calculator_calculate(tbs_cfg).to_bits().value();
 
   // Given that the nof_prbs_estimate is an estimate of the required PRBs, this can be greater (leading to a TBS >>
   // payload size) or smaller than the actual wanted value (leading to a TBS < payload size). Depending on the two
@@ -104,11 +98,11 @@ static sch_prbs_tbs linear_search_nof_prbs_upper_bound(const prbs_calculator_sch
   unsigned tbs_bits_lb = tbs_bits_ub;
   for (unsigned nof_prb_dec = 1; nof_prb_dec < tbs_cfg.n_prb and tbs_bits_lb >= payload_size_bits; ++nof_prb_dec) {
     tbs_cfg.n_prb = nof_prbs_estimate - nof_prb_dec;
-    tbs_bits_lb   = tbs_calculator_calculate(tbs_cfg);
+    tbs_bits_lb   = tbs_calculator_calculate(tbs_cfg).to_bits().value();
 
     // if tbs_bits_lb < payload_size, return the previous iteration as the solution.
     if (tbs_bits_lb < payload_size_bits) {
-      return {tbs_cfg.n_prb + 1, tbs_bits_ub / NOF_BITS_PER_BYTE};
+      return {tbs_cfg.n_prb + 1, units::bytes{tbs_bits_ub / NOF_BITS_PER_BYTE}};
     }
     tbs_bits_ub = tbs_bits_lb;
   }
@@ -120,10 +114,10 @@ static sch_prbs_tbs linear_search_nof_prbs_upper_bound(const prbs_calculator_sch
                                  tbs_cfg.n_prb < max_nof_available_rbs;
        ++nof_prb_inc) {
     tbs_cfg.n_prb = nof_prbs_estimate + nof_prb_inc;
-    tbs_bits_ub   = tbs_calculator_calculate(tbs_cfg);
+    tbs_bits_ub   = tbs_calculator_calculate(tbs_cfg).to_bits().value();
   }
 
-  return {tbs_cfg.n_prb, tbs_bits_ub / NOF_BITS_PER_BYTE};
+  return {tbs_cfg.n_prb, units::bytes{tbs_bits_ub / NOF_BITS_PER_BYTE}};
 }
 
 sch_prbs_tbs ocudu::get_nof_prbs(const prbs_calculator_sch_config& sch_config, unsigned max_nof_available_rbs)

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "o_cu_cp_builder.h"
 #include "apps/helpers/metrics/metrics_helpers.h"
@@ -69,6 +63,7 @@ o_cu_cp_unit ocudu::build_o_cu_cp(const o_cu_cp_unit_config& unit_cfg, o_cu_cp_u
   cu_cp_cfg.services.cu_cp_executor         = &dependencies.executor_mapper->ctrl_executor();
   cu_cp_cfg.services.cu_cp_e2_exec          = &dependencies.executor_mapper->e2_executor();
   cu_cp_cfg.services.timers                 = dependencies.timers;
+  cu_cp_cfg.xnap.xnc_gw                     = dependencies.xnc_gw;
 
   o_cu_cp_unit ocucp;
 
@@ -113,6 +108,8 @@ o_cu_cp_unit ocudu::build_o_cu_cp(const o_cu_cp_unit_config& unit_cfg, o_cu_cp_u
   // Add the commands;
   ocucp.commands.cmdline.commands.push_back(
       std::make_unique<handover_app_command>(ocucp.unit->get_cu_cp().get_command_handler()));
+  ocucp.commands.cmdline.commands.push_back(
+      std::make_unique<cho_app_command>(ocucp.unit->get_cu_cp().get_command_handler()));
 
   return ocucp;
 }

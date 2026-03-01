@@ -1,18 +1,13 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "../config/logical_channel_list_config.h"
 #include "../slicing/ran_slice_id.h"
 #include "ocudu/adt/soa_table.h"
+#include "ocudu/adt/stable_id_map.h"
 #include "ocudu/adt/static_flat_map.h"
 #include "ocudu/mac/mac_pdu_format.h"
 #include "ocudu/ran/logical_channel/lcid_dl_sch.h"
@@ -106,13 +101,13 @@ public:
     return std::nullopt;
   }
 
-  std::optional<soa::row_id>& dl_qos_row(soa::row_id lc_rid) { return dl_fields.at<dl_field_type::qos_row>(lc_rid); }
-  const std::optional<soa::row_id>& dl_qos_row(soa::row_id lc_rid) const
+  std::optional<stable_id_t>& dl_qos_row(soa::row_id lc_rid) { return dl_fields.at<dl_field_type::qos_row>(lc_rid); }
+  const std::optional<stable_id_t>& dl_qos_row(soa::row_id lc_rid) const
   {
     return dl_fields.at<dl_field_type::qos_row>(lc_rid);
   }
-  std::optional<soa::row_id>& ul_qos_row(soa::row_id lcg_rid) { return ul_fields.at<ul_field_type::qos_row>(lcg_rid); }
-  const std::optional<soa::row_id>& ul_qos_row(soa::row_id lcg_rid) const
+  std::optional<stable_id_t>& ul_qos_row(soa::row_id lcg_rid) { return ul_fields.at<ul_field_type::qos_row>(lcg_rid); }
+  const std::optional<stable_id_t>& ul_qos_row(soa::row_id lcg_rid) const
   {
     return ul_fields.at<ul_field_type::qos_row>(lcg_rid);
   }
@@ -207,10 +202,9 @@ private:
   /// Mapping from (UE, LCG-ID) to UL row IDs.
   std::vector<uint16_t> ue_lcgid_to_ul_row_id;
 
-  enum class qos_column_id { context };
   /// Table holding QoS contexts for logical channels with QoS tracking enabled.
-  soa::table<qos_column_id, lc_qos_context>  qos_channels;
-  soa::table<qos_column_id, lcg_qos_context> qos_lcgs;
+  stable_id_map<lc_qos_context>  qos_channels;
+  stable_id_map<lcg_qos_context> qos_lcgs;
 
   /// Table mapping from row ID to DL Logical Channel (LC).
   enum class dl_field_type {
@@ -223,7 +217,7 @@ private:
     /// Head-of-line (HOL) time-of-arrival
     hol_toa
   };
-  soa::table<dl_field_type, units::bytes, ran_slice_id_t, std::optional<soa::row_id>, slot_point> dl_fields;
+  soa::table<dl_field_type, units::bytes, ran_slice_id_t, std::optional<stable_id_t>, slot_point> dl_fields;
 
   /// Table mapping from row ID to UL Logical Channel Group (LCG).
   enum class ul_field_type {
@@ -234,7 +228,7 @@ private:
     /// In case QoS statistics are being tracked, holds the row in the \c qos_channels table.
     qos_row,
   };
-  soa::table<ul_field_type, units::bytes, ran_slice_id_t, std::optional<soa::row_id>> ul_fields;
+  soa::table<ul_field_type, units::bytes, ran_slice_id_t, std::optional<stable_id_t>> ul_fields;
 };
 
 } // namespace logical_channel_system_utils
@@ -305,7 +299,7 @@ private:
     /// Information relative to the MAC CE to be scheduled.
     mac_ce_info info;
     /// Next CE node in the linked list.
-    std::optional<soa::row_id> next_ue_ce;
+    std::optional<stable_id_t> next_ue_ce;
   };
   /// UE context relative to its configuration.
   struct ue_config_context {
@@ -319,7 +313,7 @@ private:
   /// UE context relative to its DL channel management.
   struct ue_dl_channel_context {
     /// Currently enqueued CEs for this UE.
-    std::optional<soa::row_id> pending_ces;
+    std::optional<stable_id_t> pending_ces;
     /// List of active logical channel IDs sorted in decreasing order of priority. i.e. first element has the highest
     /// priority.
     static_vector<lcid_t, MAX_NOF_RB_LCIDS> sorted_channels;
@@ -443,8 +437,7 @@ private:
   flat_map<ran_slice_id_t, ran_slice_context> slices;
 
   /// List of MAC CEs pending transmission.
-  enum class ce_column_id { ce };
-  soa::table<ce_column_id, mac_ce_context> pending_ces;
+  stable_id_map<mac_ce_context> pending_ces;
 
   /// List of UE contexts.
   ue_table ues;
@@ -820,7 +813,7 @@ public:
   /// \brief Register the scheduling of an UL grant for this UE.
   ///
   /// This event will be used to update estimated bit rates.
-  void handle_ul_grant(unsigned grant_size);
+  void handle_ul_grant(units::bytes grant_size);
 
   /// Clear SR indication pending flag.
   void reset_sr_indication();
@@ -849,7 +842,7 @@ private:
 /// \return Total number of bytes allocated (including MAC subheaders).
 unsigned allocate_mac_sdus(dl_msg_tb_info&                tb_info,
                            ue_logical_channel_repository& lch_mng,
-                           unsigned                       total_tbs,
+                           units::bytes                   total_tbs,
                            lcid_t                         lcid = INVALID_LCID);
 
 /// \brief Allocate MAC subPDUs for pending MAC CEs.
@@ -858,7 +851,7 @@ unsigned allocate_mac_sdus(dl_msg_tb_info&                tb_info,
 /// \param[in] total_tbs available space in bytes for subPDUs.
 /// \return Total number of bytes allocated (including MAC subheaders).
 /// \remark Excludes UE Contention Resolution Identity CE.
-unsigned allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, unsigned total_tbs);
+unsigned allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, units::bytes total_tbs);
 
 /// \brief Allocate MAC subPDUs for pending UE Contention Resolution Identity MAC CE.
 /// \param[in] tb_info TB on which MAC subPDUs will be stored.
@@ -866,7 +859,7 @@ unsigned allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository
 /// \param[in] total_tbs available space in bytes for subPDUs.
 /// \return Total number of bytes allocated (including MAC subheaders).
 unsigned
-allocate_ue_con_res_id_mac_ce(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, unsigned total_tbs);
+allocate_ue_con_res_id_mac_ce(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, units::bytes total_tbs);
 
 /// \brief Defines the list of subPDUs, including LCID and payload size, that will compose the transport block for
 /// SRB0 or for SRB1 in fallback mode.
@@ -874,7 +867,7 @@ allocate_ue_con_res_id_mac_ce(dl_msg_tb_info& tb_info, ue_logical_channel_reposi
 /// \return Returns the number of bytes reserved in the TB for subPDUs (other than padding).
 unsigned build_dl_fallback_transport_block_info(dl_msg_tb_info&                tb_info,
                                                 ue_logical_channel_repository& lch_mng,
-                                                unsigned                       tb_size_bytes);
+                                                units::bytes                   tb_size_bytes);
 
 /// \brief Defines the list of subPDUs, including LCID and payload size, that will compose the transport block for a
 /// given RAN slice.
@@ -882,7 +875,7 @@ unsigned build_dl_fallback_transport_block_info(dl_msg_tb_info&                t
 /// \remark Excludes SRB0, as this operation is specific to a given RAN slice.
 unsigned build_dl_transport_block_info(dl_msg_tb_info&                tb_info,
                                        ue_logical_channel_repository& lch_mng,
-                                       unsigned                       tb_size_bytes,
+                                       units::bytes                   tb_size_bytes,
                                        ran_slice_id_t                 slice_id);
 
 } // namespace ocudu

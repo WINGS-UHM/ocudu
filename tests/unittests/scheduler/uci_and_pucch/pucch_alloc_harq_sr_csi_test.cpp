@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "../test_utils/scheduler_test_suite.h"
 #include "pucch_alloc_base_tester.h"
@@ -26,12 +20,12 @@ public:
 
     // This PUCCH grant will be for 5 HARQ bits, which fit in 1 PRB.
     pucch_expected_harq_only = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, t_bench.cell_cfg.ded_pucch_resources[8], {.harq_ack_nof_bits = 5U}, max_code_rate);
+        t_bench.cell_cfg, t_bench.cell_cfg.init_bwp.ul.pucch.resources[8], {.harq_ack_nof_bits = 5U}, max_code_rate);
     pucch_expected_harq_only.resources.prbs.resize(1);
 
     // This PUCCH grant will be for 4 CSI bits only, which are encoded in the maximum number of PRBs.
     pucch_expected_csi_only = test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
-                                                                t_bench.cell_cfg.ded_pucch_resources[14],
+                                                                t_bench.cell_cfg.init_bwp.ul.pucch.resources[14],
                                                                 {.csi_part1_nof_bits = default_csi_part1_bits},
                                                                 max_code_rate);
     pucch_expected_csi_only.resources.prbs.resize(3);

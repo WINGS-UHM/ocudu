@@ -1,18 +1,15 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "sched_bwp_config.h"
+#include "ocudu/scheduler/config/bwp_builder_params.h"
+#include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
+#include <variant>
 
 namespace ocudu {
 
@@ -52,8 +49,7 @@ public:
   /// List of BWP config resources handled by this cell.
   slotted_id_vector<bwp_id_t, sched_bwp_config> ded_bwp_res;
 
-  /// List of dedicated PUCCH resources.
-  std::vector<pucch_resource> ded_pucch_resources;
+  cell_bwp_config init_bwp;
 
   /// List of zp-CSI-RS resources.
   std::vector<zp_csi_rs_resource> zp_csi_rs_list;
@@ -186,10 +182,8 @@ public:
   /// Checks if the cell is configured with PUCCH Format 0 and Format 2 resources.
   bool is_pucch_f0_and_f2() const
   {
-    // [Implementation-defined] Format 0/1 resources are at the beginning of the list, while Format 2/3/4 are at the
-    // end.
-    return not ded_pucch_resources.empty() and ded_pucch_resources.front().format == pucch_format::FORMAT_0 and
-           ded_pucch_resources.back().format == pucch_format::FORMAT_2;
+    return std::holds_alternative<pucch_f0_params>(init_bwp_builder.pucch.resources.f0_or_f1_params) and
+           std::holds_alternative<pucch_f2_params>(init_bwp_builder.pucch.resources.f2_or_f3_or_f4_params);
   }
 
   /// \brief Determines the use of transform precoding according to the parameter \e msg3-transformPrecoder.

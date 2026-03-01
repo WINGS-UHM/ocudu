@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_controller.h"
 #include "../cu_up_processor/cu_up_processor_repository.h"
@@ -22,13 +16,15 @@ cu_cp_controller::cu_cp_controller(const cu_cp_configuration&      config_,
                                    ngap_repository&                ngaps_,
                                    cu_up_processor_repository&     cu_ups_,
                                    du_processor_repository&        dus_,
+                                   xnap_repository&                xncs_,
                                    task_executor&                  ctrl_exec_) :
   cfg(config_),
   ctrl_exec(ctrl_exec_),
   logger(ocudulog::fetch_basic_logger("CU-CP")),
   amf_mng(ngaps_, cu_cp_notifier, *cfg.services.timers, ctrl_exec_, common_task_sched_),
   du_mng(cfg.admission.max_nof_dus, dus_, ctrl_exec, common_task_sched_),
-  cu_up_mng(cfg.admission.max_nof_cu_ups, cu_ups_, ctrl_exec, common_task_sched_)
+  cu_up_mng(cfg.admission.max_nof_cu_ups, cu_ups_, ctrl_exec, common_task_sched_),
+  xnc_mng(xncs_, ctrl_exec_, common_task_sched_)
 {
 }
 

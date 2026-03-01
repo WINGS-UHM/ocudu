@@ -1,18 +1,13 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "../../cu_cp_impl_interface.h"
 #include "../../mobility_manager/mobility_manager_impl.h"
 #include "../../ue_manager/ue_manager_impl.h"
+#include "ocudu/cu_cp/cu_cp_intra_cu_ho_types.h"
 #include "ocudu/support/async/async_task.h"
 
 namespace ocudu {
@@ -39,7 +34,8 @@ public:
 private:
   bool generate_ue_context_setup_request(f1ap_ue_context_setup_request&               setup_request,
                                          const static_vector<srb_id_t, MAX_NOF_SRBS>& srbs,
-                                         const rrc_ue_transfer_context&               transfer_context);
+                                         const rrc_ue_transfer_context&               transfer_context,
+                                         bool                                         is_cho);
   void create_srb(cu_cp_ue* ue, srb_id_t srb_id);
 
   bool add_security_context_to_bearer_context_modification(const ocudu::security::sec_as_config& security_cfg);
@@ -73,6 +69,10 @@ private:
   f1ap_ue_context_setup_response        target_ue_context_setup_response;
   f1ap_ue_context_modification_response source_ue_context_modification_response;
   bool                                  rrc_reconfig_sent = false;
+
+  // CHO
+  bool                                    is_cho_preparation = false;
+  rrc_ue_handover_reconfiguration_context cho_cand_ctxt;
 };
 
 } // namespace ocucp

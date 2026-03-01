@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_impl.h"
 #include "du_processor/du_processor_repository.h"
@@ -14,6 +8,10 @@
 #include "routines/amf_connection_loss_routine.h"
 #include "routines/cell_activation_routine.h"
 #include "routines/initial_context_setup_routine.h"
+#include "routines/mobility/cho_cancellation_routine.h"
+#include "routines/mobility/cho_coordinator_routine.h"
+#include "routines/mobility/cho_source_routine.h"
+#include "routines/mobility/cho_target_routine.h"
 #include "routines/mobility/inter_cu_handover_execution_target_routine.h"
 #include "routines/mobility/inter_cu_handover_source_routine.h"
 #include "routines/mobility/inter_cu_handover_target_routine.h"
@@ -35,6 +33,8 @@
 #include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/nrppa/nrppa.h"
 #include "ocudu/nrppa/nrppa_factory.h"
+#include "ocudu/ran/cause/common.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/time/radio_frame.h"
 #include "ocudu/support/async/coroutine.h"
@@ -53,6 +53,9 @@ static void assert_cu_cp_configuration_valid(const cu_cp_configuration& cfg)
   ocudu_assert(!cfg.ngap.ngaps.empty(), "No NGAPs configured");
   for (const auto& ngap : cfg.ngap.ngaps) {
     ocudu_assert(ngap.n2_gw != nullptr, "Invalid N2 GW client handler");
+  }
+  if (!cfg.xnap.xnaps.empty()) {
+    ocudu_assert(cfg.xnap.xnc_gw != nullptr, "Invalid XN-C GW client handler");
   }
   ocudu_assert(cfg.services.timers != nullptr, "Invalid timers");
 
@@ -76,6 +79,7 @@ cu_cp_impl::cu_cp_impl(const cu_cp_configuration& config_) :
   cu_up_db(cu_up_repository_config{cfg, e1ap_ev_notifier, common_task_sched, ocudulog::fetch_basic_logger("CU-CP")}),
   paging_handler(du_db),
   ngap_db(ngap_repository_config{cfg, get_cu_cp_ngap_handler(), paging_handler, ocudulog::fetch_basic_logger("CU-CP")}),
+  xnap_db(xnap_repository_config{cfg, ocudulog::fetch_basic_logger("CU-CP")}),
   mobility_mng(cfg.mobility.mobility_manager_config, mobility_manager_ev_notifier, ngap_db, du_db, ue_mng),
   controller(cfg,
              get_cu_cp_amf_reconnection_handler(),
@@ -83,6 +87,7 @@ cu_cp_impl::cu_cp_impl(const cu_cp_configuration& config_) :
              ngap_db,
              cu_up_db,
              du_db,
+             xnap_db,
              *cfg.services.cu_cp_executor),
   metrics_hdlr(std::make_unique<metrics_handler_impl>(*cfg.services.cu_cp_executor,
                                                       *cfg.services.timers,
@@ -133,7 +138,32 @@ bool cu_cp_impl::start()
     report_fatal_error("Failed to initiate CU-CP setup");
   }
   // Block waiting for CU-CP setup to complete.
-  return fut.get();
+  if (not fut.get()) {
+    return false; // Could not connect to AMF.
+  }
+
+  // Setup succeeded, add XNAPs and try to connect to peers.
+  if (not cfg.services.cu_cp_executor->execute([this]() {
+        uint32_t xnc_idx = 0;
+        for (const auto& xnap : cfg.xnap.xnaps) {
+          xnap_configuration xnc_cfg{.gnb_id           = cfg.node.gnb_id,
+                                     .tai_support_list = ngap_db.get_supported_tracking_areas(),
+                                     .guami_list       = ngap_db.get_served_guamis()};
+
+          // TODO: pass init tx notifier.
+          xnap_interface* xnap_entity = xnap_db.add_xnap(uint_to_xnc_peer_index(xnc_idx), xnap.peer_addr, xnc_cfg);
+          if (xnap_entity == nullptr) {
+            report_fatal_error("Failed to create XNAP entity for peer address {}", xnap.peer_addr);
+          }
+          ++xnc_idx;
+        }
+
+        // Initialize CU-CP XNC connection procedures.
+        controller.xnc_connection_handler().start();
+      })) {
+    report_fatal_error("Failed to initiate XNC CU-CP setup");
+  }
+  return true;
 }
 
 void cu_cp_impl::stop()
@@ -394,6 +424,7 @@ async_task<bool> cu_cp_impl::handle_rrc_reestablishment_context_modification_req
       get_cu_cp_rrc_ue_interface(),
       ue->get_task_sched(),
       ue->get_up_resource_manager(),
+      get_cu_cp_location_manager_handler(),
       logger);
 }
 
@@ -523,6 +554,9 @@ async_task<bool> cu_cp_impl::handle_ue_context_transfer(ue_index_t ue_index, ue_
     // Transfer E1AP UE Context to new UE and remove old context.
     cu_up_db.find_cu_up_processor(source_ue->get_cu_up_index())->update_ue_index(ue_index, old_ue_index);
 
+    // Transfer location reporting configuration from source UE to new UE.
+    ue->get_location_manager().set_config(source_ue->get_location_manager().get_config());
+
     return true;
   };
 
@@ -572,9 +606,25 @@ void cu_cp_impl::handle_handover_reconfiguration_sent(const cu_cp_intra_cu_hando
       *this,
       get_cu_cp_ue_removal_handler(),
       *this,
+      get_cu_cp_location_manager_handler(),
       ue_mng,
       mobility_mng,
       logger));
+}
+
+void cu_cp_impl::handle_cho_reconfiguration_sent(const cu_cp_cho_target_request& request)
+{
+  if (ue_mng.find_du_ue(request.target_ue_index) == nullptr) {
+    logger.warning("CHO target UE index={} got removed", request.target_ue_index);
+    return;
+  }
+
+  cu_cp_ue* ue = ue_mng.find_du_ue(request.target_ue_index);
+
+  // Schedule cho_target_routine on the target UE's task scheduler.
+  // This routine only waits for target-side RRCReconfigurationComplete.
+  // Source-side CHO completion is handled separately (Access Success / cho_source_routine).
+  ue->get_task_sched().schedule_async_task(launch_async<cho_target_routine>(request, ue_mng, logger));
 }
 
 void cu_cp_impl::handle_handover_ue_context_push(ue_index_t source_ue_index, ue_index_t target_ue_index)
@@ -597,6 +647,12 @@ void cu_cp_impl::handle_handover_ue_context_push(ue_index_t source_ue_index, ue_
   }
   // Transfer E1AP UE Context to new UE and remove old context.
   cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->update_ue_index(target_ue_index, source_ue_index);
+
+  // Transfer location reporting configuration from source UE to target UE.
+  auto* source_ue = ue_mng.find_ue(source_ue_index);
+  if (source_ue != nullptr) {
+    ue->get_location_manager().set_config(source_ue->get_location_manager().get_config());
+  }
 }
 
 async_task<void> cu_cp_impl::handle_ue_context_release(const cu_cp_ue_context_release_request& request)
@@ -614,6 +670,11 @@ async_task<void> cu_cp_impl::handle_ue_context_release(const cu_cp_ue_context_re
 
   return launch_async<ue_amf_context_release_request_routine>(
       request, ngap ? &ngap->get_ngap_control_message_handler() : nullptr, *this, logger);
+}
+
+async_task<void> cu_cp_impl::handle_access_success(const cu_cp_access_success_indication& msg)
+{
+  return launch_async<cho_source_routine>(msg, ue_mng, du_db, cu_up_db, *this, *this, mobility_mng, logger);
 }
 
 async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(const cu_cp_rrc_resume_request& request)
@@ -641,6 +702,7 @@ async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(co
                                          get_cu_cp_ue_context_handler(),
                                          cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_handler(),
                                          ue_mng,
+                                         get_cu_cp_location_manager_handler(),
                                          logger);
 }
 
@@ -703,6 +765,7 @@ cu_cp_impl::handle_new_initial_context_setup_request(const ngap_init_context_set
                                                      *rrc_ue,
                                                      ngap->get_ngap_ue_radio_cap_management_handler(),
                                                      ue->get_security_manager(),
+                                                     ue->get_location_manager(),
                                                      du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
                                                      get_cu_cp_ngap_handler(),
                                                      logger);
@@ -908,37 +971,102 @@ void cu_cp_impl::handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf
   nrppa_entity->get_nrppa_message_handler().handle_new_nrppa_pdu(nrppa_pdu, amf_index);
 }
 
-void cu_cp_impl::handle_location_reporting_control_message(ue_index_t                             ue_index,
-                                                           const ngap_location_reporting_control& msg)
+void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg)
 {
-  if (msg.location_reporting_type == ngap_location_reporting_control::event_type::direct) {
-    auto* ue = ue_mng.find_du_ue(ue_index);
-    if (ue == nullptr) {
-      logger.warning("ue={}: UE not found for handling location reporting control message", ue_index);
-      return;
-    }
+  auto* ue = ue_mng.find_du_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for location reporting control", ue_index);
+    return;
+  }
+
+  using event_type = ngap_location_report_request::event_type;
+
+  // Reject events with "nulltype" and send Location Reporting Failure Indication.
+  if (msg.location_reporting_type == event_type::nulltype) {
+    logger.error("ue={}: received NGAP Location Reporting Control message with nulltype event type, rejecting",
+                 ue_index);
     auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
     if (ngap == nullptr) {
       logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
       return;
     }
-    ngap_location_report resp;
-    resp.ue_index    = ue_index;
+    ngap->handle_location_reporting_failure_indication_transmission(
+        {ue_index, cause_protocol_t::abstract_syntax_error_falsely_constructed_msg});
+    return;
+  }
+
+  // Configure the location manager for all report types beside "direct".
+  // Send Location Reporting Failure Indication if configuration failed.
+  if (msg.location_reporting_type != event_type::direct) {
+    auto failure_cause = ue->get_location_manager().configure_location_reporting(msg);
+    if (failure_cause.has_value()) {
+      auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+      if (ngap == nullptr) {
+        logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+        return;
+      }
+      ngap->handle_location_reporting_failure_indication_transmission({ue_index, failure_cause.value()});
+      return;
+    }
+  }
+
+  // Send immediate location report if required, 3GPP TS 38.413 8.12.1.2 states that "if reporting upon change of
+  // serving cell is requested, the NG-RAN node shall send a report immediately"
+  if (msg.location_reporting_type == event_type::direct ||
+      msg.location_reporting_type == event_type::change_of_serve_cell ||
+      msg.location_reporting_type == event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
+    // Get cell info and build location report immediately.
     const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
     if (cell == nullptr) {
       logger.warning("ue={}: Cell not found for PCI={}", ue_index, ue->get_pci());
       return;
     }
-    resp.nr_cgi = cell->cgi;
-    resp.tai    = tai_t{cell->cgi.plmn_id, cell->tac};
-    ngap->handle_location_report_transmission(resp);
-  } else {
-    logger.warning(
-        "ue={}: Received NGAP Location Reporting Control message with unsupported location reporting type: {}",
-        ue_index,
-        msg.location_reporting_type);
-    // TODO: send Location Reporting Failure Indication if not supported?
+
+    cu_cp_user_location_info_nr user_location_info;
+    user_location_info.nr_cgi = cell->cgi;
+    user_location_info.tai    = {cell->cgi.plmn_id, cell->tac};
+    auto report = ue->get_location_manager().get_direct_location_report(ue_index, user_location_info, msg);
+
+    auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+    if (ngap == nullptr) {
+      logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+      return;
+    }
+
+    ngap->handle_location_report_transmission(report);
   }
+}
+
+void cu_cp_impl::handle_location_update(ue_index_t ue_index)
+{
+  auto* ue = ue_mng.find_du_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for cell change location report", ue_index);
+    return;
+  }
+
+  const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
+  if (cell == nullptr) {
+    logger.warning("ue={}: Cell not found for PCI={}", ue_index, ue->get_pci());
+    return;
+  }
+
+  cu_cp_user_location_info_nr user_location_info;
+  user_location_info.nr_cgi = cell->cgi;
+  user_location_info.tai    = {cell->cgi.plmn_id, cell->tac};
+
+  auto opt_report = ue->get_location_manager().get_location_report(ue_index, user_location_info);
+  if (!opt_report.has_value()) {
+    return;
+  }
+
+  auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+  if (ngap == nullptr) {
+    logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+    return;
+  }
+
+  ngap->handle_location_report_transmission(opt_report.value());
 }
 
 nrppa_cu_cp_ue_notifier* cu_cp_impl::handle_new_nrppa_ue(ue_index_t ue_index)
@@ -1044,6 +1172,19 @@ cu_cp_impl::handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_reque
                                                  ue_mng,
                                                  mobility_mng,
                                                  logger);
+}
+
+async_task<cu_cp_intra_cu_cho_response>
+cu_cp_impl::handle_intra_cu_cho_request(const cu_cp_intra_cu_cho_request& request)
+{
+  if (request.source_du_index == du_index_t::invalid) {
+    logger.warning("ue={}: Invalid source DU index for intra-CU CHO coordinator", request.source_ue_index);
+    return launch_async([](coro_context<async_task<cu_cp_intra_cu_cho_response>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(cu_cp_intra_cu_cho_response{});
+    });
+  }
+  return launch_async<cho_coordinator_routine>(request, du_db, *this, ue_mng, mobility_mng, logger);
 }
 
 void cu_cp_impl::handle_intra_cell_handover_required(ue_index_t ue_index)
@@ -1197,6 +1338,34 @@ void cu_cp_impl::initialize_rna_update_timer(ue_index_t ue_index)
   rna_update_timer.set(cfg.ue.t380 + rna_guard_time,
                        [this, ue_idx = ue_index](timer_id_t /*tid*/) { request_release_of_inactive_ue(ue_idx); });
   rna_update_timer.run();
+}
+
+void cu_cp_impl::initialize_cho_execution_timer(ue_index_t ue_index, std::chrono::milliseconds timeout)
+{
+  if (timeout.count() == 0) {
+    return;
+  }
+
+  cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+  if (ue == nullptr || !ue->get_cho_context().has_value()) {
+    return;
+  }
+
+  if (ue->get_cho_context()->cho_execution_timer.is_running()) {
+    logger.warning("ue={}: CHO execution timer already running", ue_index);
+    return;
+  }
+
+  ue->get_cho_context()->cho_execution_timer = ue->get_task_sched().create_timer();
+  ue->get_cho_context()->cho_execution_timer.set(timeout, [this, ue_index](timer_id_t /*tid*/) {
+    cu_cp_ue* ue2 = ue_mng.find_du_ue(ue_index);
+    if (ue2 == nullptr || !ue2->get_cho_context().has_value()) {
+      return;
+    }
+    ue2->get_task_sched().schedule_async_task(launch_async<cho_cancellation_routine>(ue_index, *this, ue_mng, logger));
+  });
+  ue->get_cho_context()->cho_execution_timer.run();
+  logger.debug("ue={}: CHO execution timer started ({}ms)", ue_index, timeout.count());
 }
 
 // private

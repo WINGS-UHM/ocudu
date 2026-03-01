@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #include "sctp_network_server_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
@@ -310,7 +303,8 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
   assoc_ctxt.addr                          = transport_layer_address::create_from_sockaddr(src_addr, src_addr_len);
   assoc_ctxt.association_shutdown_received = std::make_shared<std::atomic<bool>>(false);
   assoc_ctxt.sctp_data_recv_notifier =
-      assoc_factory.create(std::make_unique<sctp_send_notifier>(*this, assoc_ctxt, logger));
+      assoc_factory.create(std::make_unique<sctp_send_notifier>(*this, assoc_ctxt, logger),
+                           sctp_association_info{assoc_ctxt.assoc_id, assoc_ctxt.addr});
   if (assoc_ctxt.sctp_data_recv_notifier == nullptr) {
     associations.erase(assoc_id);
     logger.error("{} assoc={} client={}: Unable to create a new SCTP association handler",

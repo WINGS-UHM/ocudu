@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -14,11 +8,14 @@
 #include "../adapters/nrppa_adapters.h"
 #include "../adapters/rrc_ue_adapters.h"
 #include "../cell_meas_manager/measurement_context.h"
+#include "../ue_location_manager/ue_location_manager.h"
 #include "../ue_security_manager/ue_security_manager_impl.h"
 #include "../up_resource_manager/up_resource_manager_impl.h"
 #include "cu_cp_ue_impl_interface.h"
 #include "ue_task_scheduler_impl.h"
+#include "ocudu/cu_cp/cu_cp_cho_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/e1ap/cu_cp/e1ap_cu_cp_bearer_context_update.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <optional>
 
@@ -42,6 +39,82 @@ struct cu_cp_ue_context {
 struct cu_cp_ue_handover_context {
   ue_index_t target_ue_index = ue_index_t::invalid;
   uint8_t    rrc_reconfig_transaction_id;
+};
+
+/// \brief Single CHO candidate cell context.
+struct cu_cp_cho_candidate {
+  cond_recfg_id_t cond_recfg_id{
+      cond_recfg_id_t(bounded_integer_invalid_tag{})};       ///< Conditional reconfiguration ID (1-8 per 3GPP).
+  pci_t               target_pci = INVALID_PCI;              ///< Target cell PCI.
+  nr_cell_global_id_t target_cgi;                            ///< Target cell global identity.
+  ue_index_t          target_ue_index = ue_index_t::invalid; ///< Target UE index allocated for this candidate.
+  byte_buffer         prepared_rrc_recfg;                    ///< Pre-packed RRCReconfiguration for this target.
+  unsigned            rrc_reconfig_transaction_id = 0; ///< RRC transaction ID for this candidate's reconfiguration.
+
+  /// \brief E1AP bearer context modification request for CU-UP tunnel update after CHO completion.
+  e1ap_bearer_context_modification_request bearer_context_mod_request;
+};
+
+/// \brief CHO context for a UE (supports 1-8 candidates per 3GPP).
+struct cu_cp_ue_cho_context {
+  /// \brief CHO state machine states.
+  /// Phases follow the CHO flow: targets preparation -> source RRC reconfiguration -> execution -> completion.
+  enum class state_t {
+    idle,                ///< No CHO configured.
+    targets_preparation, ///< Preparing candidate target contexts.
+    rrc_reconfiguration, ///< Sending/waiting source UE CHO reconfiguration.
+    execution,           ///< UE executing CHO towards a target.
+    completion           ///< Finalizing winner/cleanup before returning to idle.
+  };
+
+  /// \brief Role of the UE in the CHO procedure.
+  enum class role_t {
+    source, ///< This UE is the CHO source.
+    target, ///< This UE is a CHO target candidate, awaiting Access Success.
+  };
+
+  role_t                           role            = role_t::source;      ///< CHO role of this UE.
+  ue_index_t                       source_ue_index = ue_index_t::invalid; ///< For target UEs: the source UE index.
+  state_t                          state           = state_t::idle;       ///< Current CHO state.
+  std::vector<cu_cp_cho_candidate> candidates;                            ///< CHO candidate cells (1-8).
+  unique_timer                     cho_execution_timer; ///< Fires cho_cancellation_routine if UE never executes CHO.
+
+  /// \brief Find candidate by target UE index.
+  /// \param[in] target_ue_idx Target UE index to search for.
+  /// \return Pointer to candidate if found, nullptr otherwise.
+  cu_cp_cho_candidate* find_candidate(ue_index_t target_ue_idx)
+  {
+    for (auto& candidate : candidates) {
+      if (candidate.target_ue_index == target_ue_idx) {
+        return &candidate;
+      }
+    }
+    return nullptr;
+  }
+
+  /// \brief Find candidate by target CGI.
+  /// \param[in] cgi Target CGI to search for.
+  /// \return Pointer to candidate if found, nullptr otherwise.
+  cu_cp_cho_candidate* find_candidate(const nr_cell_global_id_t& cgi)
+  {
+    for (auto& candidate : candidates) {
+      if (candidate.target_cgi == cgi) {
+        return &candidate;
+      }
+    }
+    return nullptr;
+  }
+
+  /// \brief Clear CHO context and reset to idle state.
+  /// Stops the execution timer first to prevent stale callbacks after reset.
+  void clear()
+  {
+    cho_execution_timer.stop();
+    role            = role_t::source;
+    source_ue_index = ue_index_t::invalid;
+    state           = state_t::idle;
+    candidates.clear();
+  }
 };
 
 class cu_cp_ue : public cu_cp_ue_impl_interface
@@ -93,6 +166,9 @@ public:
 
   cu_cp_ue_context&                     get_ue_context() { return ue_ctxt; }
   [[nodiscard]] const cu_cp_ue_context& get_ue_context() const { return ue_ctxt; }
+
+  /// \brief Get the location manager of the UE.
+  ue_location_manager& get_location_manager() { return loc_mng; }
 
   /// \brief Get the measurement context of the UE.
   cell_meas_manager_ue_context& get_meas_context() { return meas_context; }
@@ -161,16 +237,16 @@ public:
 
   std::optional<cu_cp_ue_handover_context>& get_ho_context() { return ho_context; }
 
+  /// \brief Get the Conditional Handover context of the UE.
+  std::optional<cu_cp_ue_cho_context>& get_cho_context() { return cho_context; }
+
 private:
   // Common context.
   ue_index_t             ue_index = ue_index_t::invalid;
   ue_task_scheduler_impl task_sched;
   up_resource_manager    up_mng;
   ue_security_manager    sec_mng;
-  // TODO: consider adding UE location manager:
-  // - track current location and timestamps,
-  // - track and store configured areas of interest
-  // - build location_report_request to be sent to AMF.
+  ue_location_manager    loc_mng;
 
   // DU/CU-UP UE context.
   cu_cp_ue_context ue_ctxt;
@@ -196,6 +272,7 @@ private:
   unique_timer                             ran_paging_timer;
   unique_timer                             rna_update_timer;
   std::optional<cu_cp_ue_handover_context> ho_context;
+  std::optional<cu_cp_ue_cho_context>      cho_context; ///< Conditional Handover context.
 };
 
 } // namespace ocucp

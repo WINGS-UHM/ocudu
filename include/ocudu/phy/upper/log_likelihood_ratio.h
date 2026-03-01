@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 /// \file
 /// \brief Log-likelihood ratio type declaration.
@@ -18,7 +12,6 @@
 
 #include "ocudu/adt/bit_buffer.h"
 #include "ocudu/adt/span.h"
-#include "ocudu/ocuduvec/type_traits.h"
 #include "ocudu/support/ocudu_assert.h"
 #include "fmt/format.h"
 #include <numeric>
@@ -46,10 +39,9 @@ public:
   /// \tparam    T    The input type. Must be an integral type.
   /// \param[in] val  The value the LLR is set to.
   /// \remark Implicit conversions are allowed on purpose.
-  template <typename T>
+  template <typename T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
   constexpr log_likelihood_ratio(T val)
   {
-    static_assert(std::is_integral<T>::value, "LLRs must be initialized with integer values.");
     ocudu_assert(((val <= LLR_MAX) && (val >= -LLR_MAX)) || (val == LLR_INFTY) || (val == -LLR_INFTY),
                  "Invalid LLR value.");
     value = static_cast<value_type>(val);
@@ -321,28 +313,10 @@ inline int log_likelihood_ratio::norm_squared(const T& x)
 /// \return \c true if none of the soft bits are zero. Otherwise, \c false.
 bool hard_decision(bit_buffer& hard_bits, span<const log_likelihood_ratio> soft_bits, unsigned offset = 0);
 
+/// FMT formatting function.
+inline int format_as(log_likelihood_ratio llr)
+{
+  return llr.to_int();
+}
+
 } // namespace ocudu
-
-namespace fmt {
-
-/// \brief Custom formatter for ocudu::log_likelihood_ratio.
-///
-/// See https://fmt.dev/latest/api.html#formatting-user-defined-types.
-template <>
-struct formatter<ocudu::log_likelihood_ratio> {
-  /// Parser.
-  template <typename ParseContext>
-  auto parse(ParseContext& ctx)
-  {
-    return ctx.begin();
-  }
-
-  /// Formatter.
-  template <typename FormatContext>
-  auto format(ocudu::log_likelihood_ratio llr, FormatContext& ctx) const
-  {
-    return format_to(ctx.out(), "{}", static_cast<ocudu::log_likelihood_ratio::value_type>(llr));
-  }
-};
-
-} // namespace fmt

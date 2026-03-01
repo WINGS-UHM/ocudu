@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #include "dlt_pcap_impl.h"
 #include "pcap_dlts.h"
@@ -78,6 +71,11 @@ std::unique_ptr<dlt_pcap> ocudu::create_null_dlt_pcap()
 std::unique_ptr<dlt_pcap> ocudu::create_ngap_pcap(const std::string& filename, task_executor& backend_exec)
 {
   return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "NGAP", filename, "ngap", backend_exec);
+}
+
+std::unique_ptr<dlt_pcap> ocudu::create_xnap_pcap(const std::string& filename, task_executor& backend_exec)
+{
+  return create_dlt_pcap(PCAP_EXPORT_PDU_DLT, "XNAP", filename, "xnap", backend_exec);
 }
 
 std::unique_ptr<dlt_pcap> ocudu::create_f1ap_pcap(const std::string& filename, task_executor& backend_exec)

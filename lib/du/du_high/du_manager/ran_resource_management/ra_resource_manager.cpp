@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ra_resource_manager.h"
 
@@ -40,7 +34,7 @@ void ra_resource_manager::allocate_cfra_resources(du_ue_resource_config& ue_res_
     return;
   }
 
-  du_cell_index_t  pcell_index = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX).cell_index;
+  du_cell_index_t  pcell_index = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.cell_index;
   cell_ra_context& pcell_ra    = cells[pcell_index];
 
   if (pcell_ra.free_preamble_idx_list.empty()) {
@@ -61,7 +55,7 @@ void ra_resource_manager::deallocate_cfra_resources(du_ue_resource_config& ue_re
 {
   if (ue_res_cfg.cfra.has_value()) {
     // Return allocated CFRA preamble to the pool.
-    cell_ra_context& cell = cells[ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX).cell_index];
+    cell_ra_context& cell = cells[ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.cell_index];
     cell.free_preamble_idx_list.push_back(ue_res_cfg.cfra.value().preamble_id);
 
     // Reset CFRA resources.

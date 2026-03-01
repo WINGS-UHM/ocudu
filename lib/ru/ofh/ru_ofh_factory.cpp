@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/ru/ofh/ru_ofh_factory.h"
 #include "ru_ofh_impl.h"
@@ -33,6 +27,7 @@ std::unique_ptr<radio_unit> ocudu::create_ofh_ru(const ru_ofh_configuration& con
   controller_cfg.gps_Alpha                     = config.gps_Alpha;
   controller_cfg.gps_Beta                      = config.gps_Beta;
   controller_cfg.enable_log_warnings_for_lates = config.sector_configs.back().enable_log_warnings_for_lates;
+  controller_cfg.enable_busy_waiting           = config.enable_busy_waiting;
 
   // Create OFH timing controller.
   ofh_dependencies.timing_mngr =

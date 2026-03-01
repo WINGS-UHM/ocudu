@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "sib1_scheduler.h"
 #include "../support/dci_builder.h"
@@ -212,7 +206,7 @@ void sib1_scheduler::fill_sib1_grant(cell_slot_resource_allocator& res_grid,
                                      crb_interval                  sib1_crbs_grant,
                                      unsigned                      time_resource,
                                      const dmrs_information&       dmrs_info,
-                                     unsigned                      tbs) const
+                                     units::bytes                  tbs) const
 {
   // System information indicator for SIB1, in DCI 1_0. Refer to Section 7.3.1.2.1 and Table 7.3.1.2.1-2, TS 38.212.
   static constexpr unsigned sib1_si_indicator = 0;

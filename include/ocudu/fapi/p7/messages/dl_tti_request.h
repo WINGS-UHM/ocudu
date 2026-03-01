@@ -1,17 +1,8 @@
-
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #pragma once
 
-#include "ocudu/fapi/common/base_message.h"
 #include "ocudu/fapi/p7/messages/dl_csi_rs_pdu.h"
 #include "ocudu/fapi/p7/messages/dl_pdcch_pdu.h"
 #include "ocudu/fapi/p7/messages/dl_pdsch_pdu.h"
@@ -35,7 +26,7 @@ struct dl_tti_request_pdu {
 };
 
 /// Downlink TTI request message.
-struct dl_tti_request : public base_message {
+struct dl_tti_request {
   /// Array index for the number of DL DCIs.
   static constexpr unsigned DL_DCI_INDEX = 4;
   /// Maximum supported number of DL PDU types in this release.

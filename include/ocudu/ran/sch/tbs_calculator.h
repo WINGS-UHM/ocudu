@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 /// \file
 /// \brief TBS-related helper functions.
@@ -14,6 +8,7 @@
 #pragma once
 
 #include "ocudu/ran/sch/sch_mcs.h"
+#include "ocudu/support/units.h"
 #include <array>
 
 namespace ocudu {
@@ -95,7 +90,9 @@ unsigned tbs_calculator_table_find_smallest_not_less_than(unsigned nof_info_prim
 /// \brief Calculates the TBS for a given SCH transmission.
 ///
 /// Implemented as per TS38.214 Section 5.1.3.2.
+///
+/// \param[in] config Configuration for the determination of the transport block size (TBS).
 /// \return The TBS in bits.
-unsigned tbs_calculator_calculate(const tbs_calculator_configuration& config);
+units::bytes tbs_calculator_calculate(const tbs_calculator_configuration& config);
 
 } // namespace ocudu

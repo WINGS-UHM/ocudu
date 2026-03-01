@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -23,6 +17,7 @@
 #include "du_processor/du_processor_repository.h"
 #include "ngap_repository.h"
 #include "ue_manager/ue_manager_impl.h"
+#include "xnap_repository.h"
 #include "ocudu/cu_cp/cu_configurator.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
@@ -31,8 +26,7 @@
 #include <dlfcn.h>
 #include <memory>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class cu_cp_common_task_scheduler : public common_task_scheduler
 {
@@ -80,17 +74,23 @@ public:
   void             handle_rrc_reconf_complete_indicator(ue_index_t ue_index) override;
   async_task<bool> handle_ue_context_transfer(ue_index_t ue_index, ue_index_t old_ue_index) override;
   async_task<void> handle_ue_context_release(const cu_cp_ue_context_release_request& request) override;
+  async_task<void> handle_access_success(const cu_cp_access_success_indication& msg) override;
   async_task<rrc_resume_request_response> handle_rrc_resume_request(const cu_cp_rrc_resume_request& request) override;
   void                                    handle_ran_paging_required(ue_index_t ue_index) override;
 
   // cu_cp_ue_context_manipulation_handler.
   void handle_handover_reconfiguration_sent(const cu_cp_intra_cu_handover_target_request& request) override;
+  void handle_cho_reconfiguration_sent(const cu_cp_cho_target_request& request) override;
   void handle_handover_ue_context_push(ue_index_t source_ue_index, ue_index_t target_ue_index) override;
   void
        initialize_handover_ue_release_timer(ue_index_t                              ue_index,
                                             std::chrono::milliseconds               handover_ue_release_timeout,
                                             const cu_cp_ue_context_release_request& ue_context_release_request) override;
   void initialize_rna_update_timer(ue_index_t ue_index) override;
+  void initialize_cho_execution_timer(ue_index_t source_ue_index, std::chrono::milliseconds timeout) override;
+
+  // cu_cp_location_manager_handler.
+  void handle_location_update(ue_index_t ue_index) override;
 
   // cu_cp_ngap_handler.
   bool handle_handover_request(ue_index_t                        ue_index,
@@ -114,8 +114,7 @@ public:
   void       handle_n2_handover_execution(ue_index_t ue_index) override;
   void       handle_dl_ue_associated_nrppa_transport_pdu(ue_index_t ue_index, const byte_buffer& nrppa_pdu) override;
   void handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) override;
-  void handle_location_reporting_control_message(ue_index_t                             ue_index,
-                                                 const ngap_location_reporting_control& msg) override;
+  void handle_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg) override;
   void handle_n2_disconnection(amf_index_t amf_index) override;
 
   // cu_cp_nrppa_handler.
@@ -139,9 +138,13 @@ public:
 
   // cu_cp_mobility_manager_handler.
   async_task<cu_cp_intra_cu_handover_response>
-       handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_request& request,
-                                        du_index_t&                            source_du_index,
-                                        du_index_t&                            target_du_index) override;
+  handle_intra_cu_handover_request(const cu_cp_intra_cu_handover_request& request,
+                                   du_index_t&                            source_du_index,
+                                   du_index_t&                            target_du_index) override;
+
+  async_task<cu_cp_intra_cu_cho_response>
+  handle_intra_cu_cho_request(const cu_cp_intra_cu_cho_request& request) override;
+
   void handle_intra_cell_handover_required(ue_index_t ue_index) override;
 
   // cu_cp_ue_removal_handler.
@@ -157,6 +160,7 @@ public:
   // cu_cp public interface.
   cu_cp_f1c_handler&                     get_f1c_handler() override { return controller.get_f1c_handler(); }
   cu_cp_e1_handler&                      get_e1_handler() override { return controller.get_e1_handler(); }
+  cu_cp_xnc_handler&                     get_xnc_handler() override { return controller.get_xnc_handler(); }
   cu_cp_e1ap_event_handler&              get_cu_cp_e1ap_handler() override { return *this; }
   cu_cp_ng_handler&                      get_ng_handler() override { return *this; }
   cu_cp_ngap_handler&                    get_cu_cp_ngap_handler() override { return *this; }
@@ -166,6 +170,7 @@ public:
   cu_cp_measurement_handler&             get_cu_cp_measurement_handler() override { return *this; }
   cu_cp_measurement_config_handler&      get_cu_cp_measurement_config_handler() override { return *this; }
   cu_cp_mobility_manager_handler&        get_cu_cp_mobility_manager_handler() override { return *this; }
+  cu_cp_location_manager_handler&        get_cu_cp_location_manager_handler() override { return *this; }
   cu_cp_ue_removal_handler&              get_cu_cp_ue_removal_handler() override { return *this; }
   cu_cp_ue_context_manipulation_handler& get_cu_cp_ue_context_handler() override { return *this; }
   cu_cp_amf_reconnection_handler&        get_cu_cp_amf_reconnection_handler() override { return *this; }
@@ -249,6 +254,9 @@ private:
   // AMF connections beeing managed by the CU-CP.
   ngap_repository ngap_db;
 
+  // XNAP connections beeing managed by the CU-CP.
+  xnap_repository xnap_db;
+
   // Mobility manager.
   mobility_manager mobility_mng;
 
@@ -268,5 +276,4 @@ private:
   std::unique_ptr<metrics_report_session> metrics_session;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

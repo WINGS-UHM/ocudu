@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -54,6 +48,8 @@ public:
 
   // ngap_location_reporting_handler.
   void handle_location_report_transmission(const ngap_location_report& msg) override;
+  void handle_location_reporting_failure_indication_transmission(
+      const ngap_location_report_failure_indication& msg) override;
 
   // ngap_ue_radio_capability_management_handler.
   void

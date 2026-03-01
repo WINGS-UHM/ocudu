@@ -1,18 +1,13 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_creation_procedure.h"
 #include "../converters/asn1_rrc_config_helpers.h"
+#include "../converters/rlc_config_helpers.h"
 #include "../converters/scheduler_configuration_helpers.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
 #include "ocudu/rlc/rlc_factory.h"
-#include "ocudu/rlc/rlc_rx.h"
 #include "ocudu/rlc/rlc_srb_config_factory.h"
 
 using namespace ocudu;

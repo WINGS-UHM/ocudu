@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -28,6 +22,8 @@ struct ru_ofh_configuration {
   unsigned gps_Alpha;
   /// GPS Beta - Valid value range: [-32768, 32767].
   int gps_Beta;
+  /// Busy waiting enabled flag.
+  bool enable_busy_waiting = false;
 };
 
 /// Radio Unit dependencies for the Open Fronthaul implementation.

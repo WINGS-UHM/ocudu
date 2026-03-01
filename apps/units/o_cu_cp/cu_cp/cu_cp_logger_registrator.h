@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -43,6 +37,10 @@ inline void register_cu_cp_loggers(const cu_cp_unit_logger_config& log_cfg)
   auto& ngap_logger = ocudulog::fetch_basic_logger("NGAP", false);
   ngap_logger.set_level(log_cfg.ngap_level);
   ngap_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
+
+  auto& xnap_logger = ocudulog::fetch_basic_logger("XNAP", false);
+  xnap_logger.set_level(log_cfg.xnap_level);
+  xnap_logger.set_hex_dump_max_size(log_cfg.hex_max_size);
 
   auto& nrppa_logger = ocudulog::fetch_basic_logger("NRPPA", false);
   nrppa_logger.set_level(log_cfg.nrppa_level);

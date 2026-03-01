@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "uci_test_utils.h"
@@ -40,13 +34,15 @@ public:
                      .report_slot_period;
 
     // Set the expected SR grant to the SR resource.
-    pucch_sr_only_test = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, t_bench.cell_cfg.ded_pucch_resources[6], {.sr_bits = sr_nof_bits::one}, max_code_rate);
+    pucch_sr_only_test = test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                                           t_bench.cell_cfg.init_bwp.ul.pucch.resources[6],
+                                                           {.sr_bits = sr_nof_bits::one},
+                                                           max_code_rate);
 
     // Set the expected HARQ CSI grant to the CSI resource.
     pucch_sr_csi_test =
         test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
-                                          t_bench.cell_cfg.ded_pucch_resources[14],
+                                          t_bench.cell_cfg.init_bwp.ul.pucch.resources[14],
                                           {.sr_bits = sr_nof_bits::one, .csi_part1_nof_bits = default_csi_part1_bits},
                                           max_code_rate);
   }
@@ -134,7 +130,7 @@ public:
     // In the slots with SR + CSI, the expected format is Format 2.
     pucch_csi_and_sr_test =
         test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
-                                          t_bench.cell_cfg.ded_pucch_resources[14],
+                                          t_bench.cell_cfg.init_bwp.ul.pucch.resources[14],
                                           {.sr_bits = sr_nof_bits::one, .csi_part1_nof_bits = default_csi_part1_bits},
                                           max_code_rate);
 

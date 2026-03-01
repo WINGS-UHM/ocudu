@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -893,6 +887,15 @@ public:
     return launch_async([](coro_context<async_task<ocucp::cu_cp_intra_cu_handover_response>>& ctx) {
       CORO_BEGIN(ctx);
       CORO_RETURN(ocucp::cu_cp_intra_cu_handover_response{true});
+    });
+  }
+
+  async_task<ocucp::cu_cp_intra_cu_cho_response>
+  on_intra_cu_cho_required(const ocucp::cu_cp_intra_cu_cho_request& request) override
+  {
+    return launch_async([](coro_context<async_task<ocucp::cu_cp_intra_cu_cho_response>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(ocucp::cu_cp_intra_cu_cho_response{true});
     });
   }
 };

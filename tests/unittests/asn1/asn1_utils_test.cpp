@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/support/ocudu_test.h"
@@ -266,6 +260,33 @@ TEST(asn1_octet_string_test, pack_unpack_operators)
   ASSERT_EQ(b.distance(), (int)(hexstr.size() * 8 / 2 + 9));
   b.align_bytes_zero();
   TESTASSERT(b.distance() == (int)(hexstr.size() * 8 / 2 + 16));
+}
+
+TEST(asn1_octet_string_test, to_uint_and_to_octet_string_preserve_byte_order)
+{
+  constexpr uint64_t           number = 0x0123456789abcdefULL;
+  const std::array<uint8_t, 8> expected_full_octets{0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef};
+  constexpr uint64_t           small_number = 0x123456;
+  const std::array<uint8_t, 3> expected_small_octets{0x12, 0x34, 0x56};
+  std::array<uint8_t, 8>       span_full_octets{};
+  std::array<uint8_t, 3>       span_small_octets{};
+  ocudu::byte_buffer           byte_buffer_octets;
+
+  octet_string_helper::to_octet_string(span_full_octets, number);
+  TESTASSERT(std::equal(
+      span_full_octets.begin(), span_full_octets.end(), expected_full_octets.begin(), expected_full_octets.end()));
+  TESTASSERT(octet_string_helper::to_uint(span_full_octets) == number);
+
+  octet_string_helper::to_octet_string(span_small_octets, small_number);
+  TESTASSERT(std::equal(
+      span_small_octets.begin(), span_small_octets.end(), expected_small_octets.begin(), expected_small_octets.end()));
+  TESTASSERT(octet_string_helper::to_uint(span_small_octets) == small_number);
+
+  octet_string_helper::to_octet_string(byte_buffer_octets, number);
+  TESTASSERT(byte_buffer_octets.length() == expected_full_octets.size());
+  TESTASSERT(std::equal(
+      byte_buffer_octets.begin(), byte_buffer_octets.end(), expected_full_octets.begin(), expected_full_octets.end()));
+  TESTASSERT(octet_string_helper::to_uint(byte_buffer_octets) == number);
 }
 
 TEST(asn1_fixed_bit_string, integer_conversion)

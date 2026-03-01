@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_high_ntn_config_yaml_writer.h"
 #include "du_high_unit_cell_ntn_config.h"
@@ -162,6 +156,22 @@ void ocudu::fill_ntn_config_in_yaml_schema(YAML::Node& node, const du_high_unit_
     mov_ref_node["latitude"]        = config.moving_ref_location.value().latitude;
     mov_ref_node["longitude"]       = config.moving_ref_location.value().longitude;
     ntn_node["moving_ref_location"] = mov_ref_node;
+  }
+
+  // NTN neighbor cells.
+  if (!config.ncells.empty()) {
+    YAML::Node ncells_node;
+    for (const auto& ncell : config.ncells) {
+      YAML::Node ncell_node;
+      if (ncell.phys_cell_id.has_value()) {
+        ncell_node["pci"] = static_cast<unsigned>(ncell.phys_cell_id.value());
+      }
+      if (ncell.carrier_freq.has_value()) {
+        ncell_node["carrier_freq"] = ncell.carrier_freq.value().value();
+      }
+      ncells_node.push_back(ncell_node);
+    }
+    ntn_node["ncells"] = ncells_node;
   }
 
   // Satellite switch with resynchronization (R18 extension).

@@ -1,4 +1,8 @@
 #!/bin/sh
+
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
 #
 # Returns the number of CPU cores effectively available to this job.
 # Works for host/VM, Docker executor and Kubernetes executor (cgroup v1/v2).

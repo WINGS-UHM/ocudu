@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/support/prbs_calculator.h"
 #include "ocudu/ran/pdsch/pdsch_mcs.h"
@@ -41,16 +35,15 @@ prbs_calculator_sch_config get_prb_calc_pdsch_config(unsigned        payload_byt
           tb_scaling};
 }
 
-unsigned get_tbs_bytes(const prbs_calculator_sch_config& pdsch_cfg, unsigned nof_prbs)
+units::bytes get_tbs_bytes(const prbs_calculator_sch_config& pdsch_cfg, unsigned nof_prbs)
 {
-  unsigned tbs_bits_lb = tbs_calculator_calculate(tbs_calculator_configuration{pdsch_cfg.nof_symb_sh,
-                                                                               pdsch_cfg.nof_dmrs_prb,
-                                                                               pdsch_cfg.nof_oh_prb,
-                                                                               pdsch_cfg.mcs_descr,
-                                                                               pdsch_cfg.nof_layers,
-                                                                               pdsch_cfg.tb_scaling_field,
-                                                                               nof_prbs});
-  return tbs_bits_lb / 8;
+  return tbs_calculator_calculate(tbs_calculator_configuration{pdsch_cfg.nof_symb_sh,
+                                                               pdsch_cfg.nof_dmrs_prb,
+                                                               pdsch_cfg.nof_oh_prb,
+                                                               pdsch_cfg.mcs_descr,
+                                                               pdsch_cfg.nof_layers,
+                                                               pdsch_cfg.tb_scaling_field,
+                                                               nof_prbs});
 }
 
 using prb_calculator_tester_params = std::tuple<unsigned, unsigned>;
@@ -64,11 +57,11 @@ TEST_P(prbs_calculator_tester, calculated_nof_prbs_is_upper_bound)
       get_prb_calc_pdsch_config(std::get<0>(GetParam()), sch_mcs_index(std::get<1>(GetParam())));
   sch_prbs_tbs tbs_prb = get_nof_prbs(pdsch_cfg);
 
-  unsigned tbs_lb = get_tbs_bytes(pdsch_cfg, tbs_prb.nof_prbs - 1);
-  ASSERT_TRUE(tbs_lb < pdsch_cfg.payload_size_bytes) << fmt::format(
+  units::bytes tbs_lb = get_tbs_bytes(pdsch_cfg, tbs_prb.nof_prbs - 1);
+  ASSERT_TRUE(tbs_lb.value() < pdsch_cfg.payload_size_bytes) << fmt::format(
       "Lower bound nof_prb={},tbs={} is above payload={}", tbs_prb.nof_prbs - 1, tbs_lb, pdsch_cfg.payload_size_bytes);
-  unsigned tbs_ub = get_tbs_bytes(pdsch_cfg, tbs_prb.nof_prbs);
-  ASSERT_TRUE(tbs_ub >= pdsch_cfg.payload_size_bytes) << fmt::format(
+  units::bytes tbs_ub = get_tbs_bytes(pdsch_cfg, tbs_prb.nof_prbs);
+  ASSERT_TRUE(tbs_ub.value() >= pdsch_cfg.payload_size_bytes) << fmt::format(
       "Upper bound nof_prb={},tbs={} is below payload={}", tbs_prb.nof_prbs, tbs_ub, pdsch_cfg.payload_size_bytes);
 }
 
@@ -121,7 +114,7 @@ TEST(nof_prb_calculation, test_entries_match)
   for (const auto& test_entry : prbs_calculator_test_table) {
     sch_prbs_tbs test_results = get_nof_prbs(test_entry.params);
     ASSERT_EQ(test_entry.nof_prbs, test_results.nof_prbs);
-    ASSERT_EQ(test_entry.tbs, test_results.tbs_bytes);
+    ASSERT_EQ(test_entry.tbs, test_results.tbs_bytes.value());
   }
 }
 

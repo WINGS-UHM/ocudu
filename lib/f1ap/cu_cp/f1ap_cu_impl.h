@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -132,6 +126,11 @@ private:
   /// \brief Handle the reception of an UE Context Release Request.
   /// \param[in] msg The UE Context Release Request message.
   void handle_ue_context_release_request(const asn1::f1ap::ue_context_release_request_s& msg);
+
+  /// \brief Handle the reception of an Access Success message from the DU.
+  /// \param[in] msg The Access Success message, indicating that the UE has successfully accessed the target cell
+  ///                during a Conditional Handover execution.
+  void handle_access_success(const asn1::f1ap::access_success_s& msg);
 
   /// \brief Handle the reception of a gNB-DU Configuration Update.
   /// \param[in] msg The gNB-DU Configuration Update message.

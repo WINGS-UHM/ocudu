@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "pdu_rx_handler.h"
 #include "ocudu/instrumentation/traces/up_traces.h"
@@ -376,6 +370,9 @@ bool pdu_rx_handler::handle_crnti_ce(const decoded_mac_rx_pdu& ctx, const mac_ul
 
         // >> Notify scheduler of received C-RNTI CE.
         sched.handle_crnti_ce_indication(new_ctx.ue_index, new_ctx.cell_index_rx);
+
+        // >> Notify about reception of the C-RNTI CE to trigger Access Success notification.
+        ccch_notifier.on_crnti_ce_received({new_ctx.cell_index_rx, new_ctx.ue_index});
 
         // >> In case no positive BSR was provided, we force a positive BSR in the scheduler to complete the RA
         // procedure, as per TS 38.321, Section 5.1.5.

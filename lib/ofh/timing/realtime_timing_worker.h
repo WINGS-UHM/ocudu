@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #pragma once
 
@@ -38,6 +31,8 @@ struct realtime_worker_cfg {
   int gps_Beta;
   /// If set to true, logs late events as warnings, otherwise as info.
   bool enable_log_warnings_for_lates;
+  /// Busy waiting enabled flag.
+  bool enable_busy_waiting;
 };
 
 /// Realtime worker that generates OTA symbol notifications.
@@ -82,6 +77,7 @@ class realtime_timing_worker : public operation_controller, public ota_symbol_bo
   const std::chrono::duration<double, std::nano> symbol_duration;
   const std::chrono::nanoseconds                 sleep_time;
   bool                                           enable_log_warnings_for_lates;
+  const bool                                     enable_busy_waiting;
   unsigned                                       previous_symb_index       = 0;
   gps_clock::rep                                 previous_time_since_epoch = 0;
   std::chrono::steady_clock::time_point          last_wakeup_tp;

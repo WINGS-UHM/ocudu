@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -15,7 +9,13 @@
 
 namespace ocudu {
 
+struct ntn_config;
 struct du_high_unit_cell_ntn_config;
+
+/// Configures shared NTN config CLI11 options.
+/// \param app The CLI11 application or subcommand to configure.
+/// \param config NTN config to populate.
+void configure_cli11_ntn_config_args(CLI::App& app, ntn_config& config);
 
 /// Configures advanced/enterprise NTN CLI11 options.
 /// \param app The CLI11 application or subcommand to configure.

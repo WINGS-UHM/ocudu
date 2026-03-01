@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cell_activation_routine.h"
 #include "../du_processor/du_processor_repository.h"
@@ -51,8 +45,11 @@ void cell_activation_routine::operator()(coro_context<async_task<void>>& ctx)
 
     CORO_AWAIT_VALUE(f1ap_cu_cfg_update_response, du_proc->handle_configuration_update(f1ap_cu_cfg_update));
     if (!f1ap_cu_cfg_update_response.success) {
-      logger.info(
-          "Configuration update for du={} failed. Cause: {}", *du_idx_it, f1ap_cu_cfg_update_response.cause.value());
+      logger.info("Configuration update for du={} failed. Cause: {}",
+                  *du_idx_it,
+                  f1ap_cu_cfg_update_response.cause.has_value()
+                      ? fmt::to_string(f1ap_cu_cfg_update_response.cause.value())
+                      : "timeout");
       routine_success = false;
     }
   }

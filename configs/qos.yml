@@ -1,10 +1,6 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
 
 # Quality of Service (QoS) example configurations for 5QI 1, 2, 5, 7 and 9
 # Based on 5QI characteristics in TS 23.501 table 5.7.4-1

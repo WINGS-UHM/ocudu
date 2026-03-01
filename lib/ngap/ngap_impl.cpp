@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_impl.h"
 #include "log_helpers.h"
@@ -276,20 +270,44 @@ void ngap_impl::handle_location_report_transmission(const ngap_location_report& 
   }
   location_report_msg->amf_ue_ngap_id = amf_ue_id_to_uint(amf_ue_id);
 
-  // Fill location report request type.
-  location_report_msg->location_report_request_type.event_type  = asn1::ngap::event_type_opts::options::direct;
-  location_report_msg->location_report_request_type.report_area = asn1::ngap::report_area_opts::options::cell;
-
-  // Fill user location info.
-  auto& user_loc_info_nr = location_report_msg->user_location_info.set_user_location_info_nr();
-  user_loc_info_nr.nr_cgi.nr_cell_id.from_number(msg.nr_cgi.nci.value());
-  user_loc_info_nr.nr_cgi.plmn_id = msg.nr_cgi.plmn_id.to_bytes();
-  user_loc_info_nr.tai.plmn_id    = msg.tai.plmn_id.to_bytes();
-  user_loc_info_nr.tai.tac.from_number(msg.tai.tac);
+  fill_asn1_location_report(*location_report_msg, msg);
 
   // Forward message to AMF.
   if (!tx_pdu_notifier.on_new_message(ngap_msg)) {
     logger.warning("ue={}: AMF notifier is not set. Cannot send LocationReport", msg.ue_index);
+    return;
+  }
+}
+
+void ngap_impl::handle_location_reporting_failure_indication_transmission(
+    const ngap_location_report_failure_indication& msg)
+{
+  if (!ue_ctxt_list.contains(msg.ue_index)) {
+    logger.warning("ue={}: Dropping Location Reporting Failure Indication. UE context does not exist", msg.ue_index);
+    return;
+  }
+
+  ngap_ue_context& ue_ctxt = ue_ctxt_list[msg.ue_index];
+
+  amf_ue_id_t amf_ue_id = ue_ctxt.ue_ids.amf_ue_id;
+  if (amf_ue_id == amf_ue_id_t::invalid) {
+    ue_ctxt.logger.log_warning("Dropping Location Reporting Failure Indication. UE AMF ID not found");
+    return;
+  }
+
+  ngap_message ngap_msg = {};
+  ngap_msg.pdu.set_init_msg();
+  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_LOCATION_REPORT_FAIL_IND);
+
+  auto& fail_ind_msg = ngap_msg.pdu.init_msg().value.location_report_fail_ind();
+
+  fail_ind_msg->amf_ue_ngap_id = amf_ue_id_to_uint(amf_ue_id);
+  fail_ind_msg->ran_ue_ngap_id = ran_ue_id_to_uint(ue_ctxt.ue_ids.ran_ue_id);
+  fail_ind_msg->cause          = cause_to_asn1(msg.cause);
+
+  // Forward message to AMF.
+  if (!tx_pdu_notifier.on_new_message(ngap_msg)) {
+    ue_ctxt.logger.log_warning("AMF notifier is not set. Cannot send LocationReportingFailureIndication");
     return;
   }
 }
@@ -1033,14 +1051,13 @@ void ngap_impl::handle_location_reporting_control_message(const asn1::ngap::loca
   if (not validate_consistent_ue_id_pair(uint_to_ran_ue_id(msg->ran_ue_ngap_id),
                                          uint_to_amf_ue_id(msg->amf_ue_ngap_id))) {
     // Release old UE context and send error indication with the received UE IDs to the AMF.
-    // TODO: check if that should be error indication and release or just Location Reporting Failure Indication?
     handle_inconsistent_ue_id_pair(uint_to_ran_ue_id(msg->ran_ue_ngap_id), uint_to_amf_ue_id(msg->amf_ue_ngap_id));
     return;
   }
-  ue_index_t                      ue_index = ue_ctxt_list[uint_to_ran_ue_id(msg->ran_ue_ngap_id)].ue_ids.ue_index;
-  ngap_location_reporting_control location_reporting_ctrl;
+  ue_index_t                   ue_index = ue_ctxt_list[uint_to_ran_ue_id(msg->ran_ue_ngap_id)].ue_ids.ue_index;
+  ngap_location_report_request location_reporting_ctrl;
 
-  fill_ngap_location_reporting_control(location_reporting_ctrl, msg);
+  fill_ngap_location_report_request(location_reporting_ctrl, msg);
   cu_cp_notifier.on_location_reporting_control_message(ue_index, location_reporting_ctrl);
 }
 

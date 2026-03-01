@@ -1,21 +1,14 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "pdcp_entity_rx.h"
-#include "../security/security_engine_impl.h"
 #include "ocudu/instrumentation/traces/up_traces.h"
 #include "ocudu/rohc/rohc_decompressor.h"
 #include "ocudu/rohc/rohc_factory.h"
+#include "ocudu/security/security_engine_factory.h"
 #include "ocudu/support/bit_encoding.h"
 #include "ocudu/support/executors/execution_context_description.h"
-#include "ocudu/support/resource_usage/scoped_resource_usage.h"
 
 using namespace ocudu;
 
@@ -94,7 +87,7 @@ pdcp_entity_rx::pdcp_entity_rx(uint32_t                        ue_index,
   // Populate null security engines
   sec_engine_pool.reserve(max_nof_crypto_workers);
   for (uint32_t i = 0; i < max_nof_crypto_workers; i++) {
-    std::unique_ptr<security::security_engine_impl> null_engine;
+    std::unique_ptr<security::security_engine_rx> null_engine;
     sec_engine_pool.push_back(std::move(null_engine));
   }
 
@@ -749,8 +742,8 @@ void pdcp_entity_rx::configure_security(security::sec_128_as_config sec_cfg,
 
   // Populate new security engines
   for (uint32_t i = 0; i < max_nof_crypto_workers; i++) {
-    auto sec_engine = std::make_unique<security::security_engine_impl>(
-        sec_cfg, bearer_id, direction, integrity_enabled, ciphering_enabled);
+    std::unique_ptr<security::security_engine_rx> sec_engine = create_security_engine_rx(
+        security_engine_creation_message{sec_cfg, bearer_id, direction, integrity_enabled, ciphering_enabled});
     sec_engine_pool.push_back(std::move(sec_engine));
   }
 

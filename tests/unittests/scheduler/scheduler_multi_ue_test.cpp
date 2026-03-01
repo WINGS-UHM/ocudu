@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "test_utils/scheduler_test_simulator.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
@@ -109,7 +103,7 @@ public:
     report_fatal_error_if_not(pucch_cfg_builder.add_build_new_ue_pucch_cfg(ue_cfg.cfg.cells.value()[0]),
                               "Failed to allocate PUCCH resources");
     csi_period = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-                     ue_cfg.cfg.cells.value()[0].csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type)
+                     ue_cfg.cfg.cells.value()[0].serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type)
                      .report_slot_period;
     scheduler_test_simulator::add_ue(ue_cfg, true);
   }
@@ -393,7 +387,7 @@ TEST_F(scheduler_buffer_occupancy_test, when_bsr_is_received_then_enough_ul_byte
     for (const auto& grant : last_sched_result()->ul.puschs) {
       auto& ue_sched_bytes = ue_ul_drb_sched[grant.context.ue_index];
       auto& ue_bsr         = ue_bsrs[grant.context.ue_index];
-      if (ue_sched_bytes < ue_bsr and ue_sched_bytes + grant.pusch_cfg.tb_size_bytes >= ue_bsr) {
+      if (ue_sched_bytes < ue_bsr and ue_sched_bytes + grant.pusch_cfg.tb_size_bytes.value() >= ue_bsr) {
         ues_completed++;
         if (ues_completed == test_params.nof_ues) {
           test_logger.info("All UEs have received enough UL bytes after {} slots", i + 1);
@@ -401,7 +395,7 @@ TEST_F(scheduler_buffer_occupancy_test, when_bsr_is_received_then_enough_ul_byte
           max_nof_slots = i + 100;
         }
       }
-      ue_sched_bytes += grant.pusch_cfg.tb_size_bytes;
+      ue_sched_bytes += grant.pusch_cfg.tb_size_bytes.value();
 
       // The UE sends BSR updates in the scheduled UL grants.
       ul_bsr_indication_message bsr{

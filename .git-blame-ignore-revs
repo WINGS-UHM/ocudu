@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
 # This file lists all the commits that should be ignored by git-blame, like e.g.:
 # - namespace changes,
 # - formatting updates,

@@ -1,21 +1,18 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "apps/services/cmdline/cmdline_command.h"
 #include "apps/services/cmdline/cmdline_command_dispatcher_utils.h"
-#include "ocudu/adt/expected.h"
+#include "cu_cp_unit_config_helpers.h"
 #include "ocudu/cu_cp/cu_cp_command_handler.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/rnti.h"
+#include <chrono>
+#include <optional>
+#include <vector>
 
 namespace ocudu {
 
@@ -67,6 +64,125 @@ public:
                serving_pci.value(),
                static_cast<rnti_t>(rnti.value()),
                target_pci.value());
+  }
+};
+
+/// Application command to trigger a Conditional Handover (CHO).
+class cho_app_command : public app_services::cmdline_command
+{
+  ocucp::cu_cp_command_handler& cu_cp;
+
+public:
+  explicit cho_app_command(ocucp::cu_cp_command_handler& cu_cp_) : cu_cp(cu_cp_) {}
+
+  // See interface for documentation.
+  std::string_view get_name() const override { return "cho"; }
+
+  // See interface for documentation.
+  std::string_view get_description() const override
+  {
+    return " <serving pci> <rnti> <target pci> [<target pci2> ...] [timeout <s>] [t1 <datetime>]: trigger conditional "
+           "handover";
+  }
+
+  // See interface for documentation.
+  void execute(span<const std::string> args) override
+  {
+    if (args.size() < 3) {
+      fmt::print("Invalid cho command structure.\n");
+      fmt::print("Usage: cho <serving pci> <rnti> <target pci1> [<target pci2> ... <target pci8>] [timeout <s>] [t1 "
+                 "<datetime>]\n");
+      return;
+    }
+
+    const auto* arg = args.begin();
+
+    // Parse serving PCI
+    expected<unsigned, std::string> serving_pci = app_services::parse_int<unsigned>(*arg);
+    if (not serving_pci.has_value()) {
+      fmt::print("Invalid serving PCI.\n");
+      return;
+    }
+    ++arg;
+
+    // Parse RNTI
+    expected<unsigned, std::string> rnti = app_services::parse_unsigned_hex<unsigned>(*arg);
+    if (not rnti.has_value()) {
+      fmt::print("Invalid UE RNTI.\n");
+      return;
+    }
+    ++arg;
+
+    // Parse target PCIs and optional keywords (timeout, t1).
+    // Examples: "cho 1 0x4601 100 200" -> 2 PCIs, default timeout
+    //           "cho 1 0x4601 100 200 timeout 30" -> 2 PCIs, 30s timeout
+    //           "cho 1 0x4601 100 t1 2026-03-01T10:00:00" -> 1 PCI, T1 override
+    //           "cho 1 0x4601 100 timeout 30 t1 2026-03-01T10:00:00" -> 1 PCI, both
+    std::vector<pci_t>                                   target_pcis;
+    std::chrono::milliseconds                            timeout{10000}; // default 10 seconds
+    std::optional<std::chrono::system_clock::time_point> t1_thres_override;
+
+    while (arg != args.end()) {
+      if (*arg == "timeout") {
+        ++arg;
+        if (arg == args.end()) {
+          fmt::print("Missing timeout value after 'timeout' keyword.\n");
+          return;
+        }
+        expected<unsigned, std::string> timeout_s = app_services::parse_int<unsigned>(*arg);
+        if (not timeout_s.has_value()) {
+          fmt::print("Invalid timeout value: {}.\n", *arg);
+          return;
+        }
+        timeout = std::chrono::seconds{timeout_s.value()};
+        ++arg;
+        continue;
+      }
+
+      if (*arg == "t1") {
+        ++arg;
+        if (arg == args.end()) {
+          fmt::print("Missing datetime value after 't1' keyword.\n");
+          return;
+        }
+        auto t1_result = parse_timestamp_ms(*arg);
+        if (not t1_result.has_value()) {
+          fmt::print("Invalid t1 datetime '{}': {}.\n", *arg, t1_result.error());
+          return;
+        }
+        t1_thres_override = t1_result.value();
+        ++arg;
+        continue;
+      }
+
+      expected<unsigned, std::string> target_pci = app_services::parse_int<unsigned>(*arg);
+      if (not target_pci.has_value()) {
+        fmt::print("Invalid target PCI: {}.\n", *arg);
+        return;
+      }
+      target_pcis.push_back(static_cast<pci_t>(target_pci.value()));
+      ++arg;
+    }
+
+    if (target_pcis.empty()) {
+      fmt::print("No target PCIs provided.\n");
+      return;
+    }
+    if (target_pcis.size() > 8) {
+      fmt::print("Too many target PCIs: {}. Maximum 8 candidates supported per 3GPP.\n", target_pcis.size());
+      return;
+    }
+
+    cu_cp.get_mobility_command_handler().trigger_conditional_handover(static_cast<pci_t>(serving_pci.value()),
+                                                                      static_cast<rnti_t>(rnti.value()),
+                                                                      target_pcis,
+                                                                      timeout,
+                                                                      t1_thres_override);
+    fmt::print("CHO triggered for UE with pci={} rnti={} to {} target(s) with timeout={}s.\n",
+               serving_pci.value(),
+               static_cast<rnti_t>(rnti.value()),
+               target_pcis.size(),
+               std::chrono::duration_cast<std::chrono::seconds>(timeout).count());
   }
 };
 

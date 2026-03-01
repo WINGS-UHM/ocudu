@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/common_scheduling/csi_rs_scheduler.h"
 #include "lib/scheduler/config/sched_config_manager.h"
@@ -271,7 +265,7 @@ protected:
         continue;
       }
       for (const auto& cw : grant.pdsch_cfg.codewords) {
-        total_cw_tb_size_bytes += cw.tb_size_bytes;
+        total_cw_tb_size_bytes += cw.tb_size_bytes.value();
       }
     }
     return total_cw_tb_size_bytes >= exp_size;
@@ -288,7 +282,7 @@ protected:
     ue_create_req.ue_index           = ue_index;
     ue_create_req.starts_in_fallback = true;
     if (enable_pusch_transform_precoding) {
-      ue_create_req.cfg.cells.value()[0].ul_config.value().init_ul_bwp.pusch_cfg.value().trans_precoder =
+      ue_create_req.cfg.cells.value()[0].serv_cell_cfg.ul_config.value().init_ul_bwp.pusch_cfg.value().trans_precoder =
           pusch_config::transform_precoder::enabled;
     }
     if (msg3_rx_slot.valid()) {
@@ -1012,7 +1006,8 @@ TEST_P(fallback_scheduler_head_scheduling, test_ahead_scheduling_for_srb_allocat
     std::optional<dl_harq_process_handle> dl_harq =
         test_ue.get_pcell().harqs.find_dl_harq_waiting_ack(current_slot, bit_index_1_harq_only);
     if (dl_harq.has_value()) {
-      dl_harq->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt);
+      bool result = dl_harq->dl_ack_info(mac_harq_ack_report_status::ack, std::nullopt);
+      report_fatal_error_if_not(result, "dl_ack_info failed");
     }
   }
 }
@@ -1131,7 +1126,9 @@ protected:
           test_ue.get_pcell().harqs.find_dl_harq_waiting_ack(sl, bit_index_1_harq_only);
       if (dl_harq.has_value()) {
         ocudu_assert(dl_harq->id() == ongoing_h_id, "HARQ process mismatch");
-        dl_harq->dl_ack_info(ack_outcome ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
+        bool result =
+            dl_harq->dl_ack_info(ack_outcome ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
+        report_fatal_error_if_not(result, "dl_ack_info failed");
       }
     }
 
@@ -1258,8 +1255,8 @@ protected:
 
         std::optional<dl_harq_process_handle> h_dl = test_ue.get_pcell().harqs.dl_harq(h_id);
         if (h_dl.has_value() and h_dl->is_waiting_ack() and h_dl->nof_retxs() == 0 and h_dl->pdsch_slot() == sl) {
-          const unsigned tx_bytes = h_dl->get_grant_params().tbs_bytes > MAX_MAC_SDU_SUBHEADER_SIZE
-                                        ? h_dl->get_grant_params().tbs_bytes - MAX_MAC_SDU_SUBHEADER_SIZE
+          const unsigned tx_bytes = h_dl->get_grant_params().tbs.value() > MAX_MAC_SDU_SUBHEADER_SIZE
+                                        ? h_dl->get_grant_params().tbs.value() - MAX_MAC_SDU_SUBHEADER_SIZE
                                         : 0U;
           if (pending_srb1_bytes > tx_bytes) {
             pending_srb1_bytes -= tx_bytes;
@@ -1298,8 +1295,8 @@ protected:
 
         std::optional<dl_harq_process_handle> h_dl = test_ue.get_pcell().harqs.dl_harq(h_id);
         if (h_dl.has_value() and h_dl->is_waiting_ack() and h_dl->nof_retxs() == 0 and h_dl->pdsch_slot() == sl) {
-          const unsigned tx_bytes = h_dl->get_grant_params().tbs_bytes > MAX_MAC_SDU_SUBHEADER_SIZE
-                                        ? h_dl->get_grant_params().tbs_bytes - MAX_MAC_SDU_SUBHEADER_SIZE
+          const unsigned tx_bytes = h_dl->get_grant_params().tbs.value() > MAX_MAC_SDU_SUBHEADER_SIZE
+                                        ? h_dl->get_grant_params().tbs.value() - MAX_MAC_SDU_SUBHEADER_SIZE
                                         : 0U;
           pending_srb1_bytes > tx_bytes ? pending_srb1_bytes -= tx_bytes : pending_srb1_bytes = 0U;
           test_logger.debug("rnti={}, slot={}: RLC buffer state update for h_id={} with {} bytes",
@@ -1339,7 +1336,9 @@ protected:
       if (dl_harq.has_value()) {
         static constexpr double ack_probability = 0.5f;
         const bool              ack             = test_rgen::bernoulli(ack_probability);
-        dl_harq->dl_ack_info(ack ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
+        bool                    result =
+            dl_harq->dl_ack_info(ack ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
+        report_fatal_error_if_not(result, "dl_ack_info failed");
         test_logger.debug("Slot={}, rnti={}: acking process h_id={} with {}",
                           sl,
                           test_ue.crnti,
@@ -1458,7 +1457,7 @@ protected:
         std::optional<ul_harq_process_handle> h_ul = test_ue.get_pcell().harqs.ul_harq(h_id);
         if (h_ul.has_value() and h_ul->is_waiting_ack() and h_ul->pusch_slot() == sl) {
           bool           ack             = ack_harq_process(sl, *h_ul);
-          const unsigned delivered_bytes = ack ? h_ul->get_grant_params().tbs_bytes - 10U : 0U;
+          const unsigned delivered_bytes = ack ? h_ul->get_grant_params().tbs.value() - 10U : 0U;
           buffer_bytes > delivered_bytes ? buffer_bytes -= delivered_bytes : buffer_bytes = 0U;
           test_logger.info(
               "rnti={}, slot={}: generating BSR indication with {} bytes", test_ue.crnti, sl, buffer_bytes);
@@ -1646,7 +1645,8 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_srb0_is_retx_ed_only_pucch_common
     std::optional<dl_harq_process_handle> dl_harq =
         u.get_pcell().harqs.find_dl_harq_waiting_ack(current_slot, bit_index_1_harq_only);
     if (dl_harq.has_value()) {
-      dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      bool result = dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      report_fatal_error_if_not(result, "dl_ack_info failed");
     }
   }
 
@@ -1704,7 +1704,8 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_reconf_is_after_reest_both_common
     std::optional<dl_harq_process_handle> dl_harq =
         u.get_pcell().harqs.find_dl_harq_waiting_ack(current_slot, bit_index_1_harq_only);
     if (dl_harq.has_value()) {
-      dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      bool result = dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      report_fatal_error_if_not(result, "dl_ack_info failed");
     }
   }
 
@@ -1756,7 +1757,8 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_srb1_is_scheduled_with_crnti_both
     std::optional<dl_harq_process_handle> dl_harq =
         u.get_pcell().harqs.find_dl_harq_waiting_ack(current_slot, bit_index_1_harq_only);
     if (dl_harq.has_value()) {
-      dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      bool result = dl_harq->dl_ack_info(mac_harq_ack_report_status::nack, {});
+      report_fatal_error_if_not(result, "dl_ack_info failed");
     }
   }
 

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -1093,28 +1087,183 @@ inline ngap_core_network_assist_info_for_inactive asn1_to_core_network_assist_in
   return cn_assist_info_for_inactive;
 }
 
-inline ngap_location_reporting_control::event_type
-asn1_to_location_reporting_control_event_type(const asn1::ngap::event_type_e& asn1_reporting_trigger)
+inline ngap_location_report_request::event_type
+asn1_to_location_reporting_event_type(const asn1::ngap::event_type_e& asn1_reporting_trigger)
 {
   switch (asn1_reporting_trigger) {
     case asn1::ngap::event_type_opts::options::direct:
-      return ngap_location_reporting_control::event_type::direct;
+      return ngap_location_report_request::event_type::direct;
     case asn1::ngap::event_type_opts::options::change_of_serve_cell:
-      return ngap_location_reporting_control::event_type::change_of_serve_cell;
+      return ngap_location_report_request::event_type::change_of_serve_cell;
     case asn1::ngap::event_type_opts::options::ue_presence_in_area_of_interest:
-      return ngap_location_reporting_control::event_type::ue_presence_in_area_of_interest;
+      return ngap_location_report_request::event_type::ue_presence_in_area_of_interest;
     case asn1::ngap::event_type_opts::options::stop_change_of_serve_cell:
-      return ngap_location_reporting_control::event_type::stop_change_of_serve_cell;
+      return ngap_location_report_request::event_type::stop_change_of_serve_cell;
     case asn1::ngap::event_type_opts::options::stop_ue_presence_in_area_of_interest:
-      return ngap_location_reporting_control::event_type::stop_ue_presence_in_area_of_interest;
+      return ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest;
     case asn1::ngap::event_type_opts::options::cancel_location_report_for_the_ue:
-      return ngap_location_reporting_control::event_type::cancel_location_report_for_the_ue;
+      return ngap_location_report_request::event_type::cancel_location_report_for_the_ue;
     case asn1::ngap::event_type_opts::options::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
-      return ngap_location_reporting_control::event_type::
-          change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
+      return ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
     default:
-      return ngap_location_reporting_control::event_type::nulltype;
+      return ngap_location_report_request::event_type::nulltype;
   }
+}
+
+/// \brief Convert NGAP ASN1 AreaOfInterest IE to common type.
+inline ngap_area_of_interest asn1_to_area_of_interest(const asn1::ngap::area_of_interest_s& asn1_aoi)
+{
+  ngap_area_of_interest aoi;
+
+  for (const auto& asn1_tai_item : asn1_aoi.area_of_interest_tai_list) {
+    aoi.tai_list.push_back(ngap_asn1_to_tai(asn1_tai_item.tai));
+  }
+
+  for (const auto& asn1_cell_item : asn1_aoi.area_of_interest_cell_list) {
+    if (asn1_cell_item.ngran_cgi.type() != asn1::ngap::ngran_cgi_c::types_opts::nr_cgi) {
+      ocudulog::fetch_basic_logger("NGAP").warning("Ignoring non-NR CGI in AreaOfInterest cell list");
+      // TODO: add handling for other types of CGIs
+      continue;
+    }
+    aoi.cell_list.push_back(ngap_asn1_to_nr_cgi(asn1_cell_item.ngran_cgi.nr_cgi()));
+  }
+
+  for (const auto& asn1_ran_node_item : asn1_aoi.area_of_interest_ran_node_list) {
+    if (asn1_ran_node_item.global_ran_node_id.type() != asn1::ngap::global_ran_node_id_c::types_opts::global_gnb_id) {
+      ocudulog::fetch_basic_logger("NGAP").warning("Ignoring non-gNB RAN node ID in AreaOfInterest RAN node list");
+      // TODO: add handling for other types of RAN Node IDs
+      continue;
+    }
+
+    aoi.ran_node_list.push_back(ngap_asn1_to_global_gnb_id(asn1_ran_node_item.global_ran_node_id.global_gnb_id()));
+  }
+
+  return aoi;
+}
+
+/// \brief Convert NGAP ASN1 LocationReportingRequestType IE to common type.
+inline ngap_location_report_request
+asn1_to_location_report_request(const asn1::ngap::location_report_request_type_s& asn1_type)
+{
+  ngap_location_report_request req;
+  req.location_reporting_type = asn1_to_location_reporting_event_type(asn1_type.event_type);
+  req.location_report_area    = ngap_location_report_request::report_area::cell;
+
+  if (req.location_reporting_type == ngap_location_report_request::event_type::ue_presence_in_area_of_interest ||
+      req.location_reporting_type ==
+          ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
+    for (const auto& asn1_aoi_item : asn1_type.area_of_interest_list) {
+      ngap_area_of_interest_item aoi_item;
+      aoi_item.location_report_ref_id = asn1_aoi_item.location_report_ref_id;
+      aoi_item.area_of_interest       = asn1_to_area_of_interest(asn1_aoi_item.area_of_interest);
+      req.area_of_interest_list.push_back(std::move(aoi_item));
+    }
+  }
+
+  if (req.location_reporting_type == ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest) {
+    if (asn1_type.location_report_ref_id_to_be_cancelled_present) {
+      req.location_report_ref_id_to_be_cancelled = asn1_type.location_report_ref_id_to_be_cancelled;
+    }
+
+    if (asn1_type.ie_exts_present && asn1_type.ie_exts.add_cancelledlocation_report_ref_id_list_present) {
+      for (const auto& item : asn1_type.ie_exts.add_cancelledlocation_report_ref_id_list) {
+        req.additional_location_report_ref_ids_to_be_cancelled.push_back(item.location_report_ref_id_to_be_cancelled);
+      }
+    }
+  }
+
+  return req;
+}
+
+/// \brief Convert common type event_type to NGAP ASN1 event_type_e.
+inline asn1::ngap::event_type_e event_type_to_asn1(ngap_location_report_request::event_type event_type)
+{
+  switch (event_type) {
+    case ngap_location_report_request::event_type::direct:
+      return asn1::ngap::event_type_opts::options::direct;
+    case ngap_location_report_request::event_type::change_of_serve_cell:
+      return asn1::ngap::event_type_opts::options::change_of_serve_cell;
+    case ngap_location_report_request::event_type::ue_presence_in_area_of_interest:
+      return asn1::ngap::event_type_opts::options::ue_presence_in_area_of_interest;
+    case ngap_location_report_request::event_type::stop_change_of_serve_cell:
+      return asn1::ngap::event_type_opts::options::stop_change_of_serve_cell;
+    case ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest:
+      return asn1::ngap::event_type_opts::options::stop_ue_presence_in_area_of_interest;
+    case ngap_location_report_request::event_type::cancel_location_report_for_the_ue:
+      return asn1::ngap::event_type_opts::options::cancel_location_report_for_the_ue;
+    case ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
+      return asn1::ngap::event_type_opts::options::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
+    default:
+      return asn1::ngap::event_type_opts::options::direct;
+  }
+}
+
+/// \brief Convert common type ngap_ue_presence to NGAP ASN1 ue_presence_e.
+inline asn1::ngap::ue_presence_e ue_presence_to_asn1(ngap_ue_presence ue_presence)
+{
+  switch (ue_presence) {
+    case ngap_ue_presence::in:
+      return asn1::ngap::ue_presence_opts::options::in;
+    case ngap_ue_presence::out:
+      return asn1::ngap::ue_presence_opts::options::out;
+    default:
+      return asn1::ngap::ue_presence_opts::options::unknown;
+  }
+}
+
+/// \brief Convert common type AreaOfInterest to NGAP ASN1 area_of_interest_s.
+inline asn1::ngap::area_of_interest_s area_of_interest_to_asn1(const ngap_area_of_interest& aoi)
+{
+  asn1::ngap::area_of_interest_s asn1_aoi;
+
+  for (const auto& tai : aoi.tai_list) {
+    asn1::ngap::area_of_interest_tai_item_s asn1_tai_item;
+    asn1_tai_item.tai.plmn_id = tai.plmn_id.to_bytes();
+    asn1_tai_item.tai.tac.from_number(tai.tac);
+    asn1_aoi.area_of_interest_tai_list.push_back(asn1_tai_item);
+  }
+
+  for (const auto& cgi : aoi.cell_list) {
+    asn1::ngap::area_of_interest_cell_item_s asn1_cell_item;
+    auto&                                    asn1_nr_cgi = asn1_cell_item.ngran_cgi.set_nr_cgi();
+    asn1_nr_cgi.nr_cell_id.from_number(cgi.nci.value());
+    asn1_nr_cgi.plmn_id = cgi.plmn_id.to_bytes();
+    asn1_aoi.area_of_interest_cell_list.push_back(asn1_cell_item);
+  }
+
+  for (const auto& gnb : aoi.ran_node_list) {
+    asn1::ngap::area_of_interest_ran_node_item_s asn1_ran_node_item;
+    auto&                                        asn1_gnb = asn1_ran_node_item.global_ran_node_id.set_global_gnb_id();
+    asn1_gnb.plmn_id                                      = gnb.plmn_id.to_bytes();
+    asn1_gnb.gnb_id.set_gnb_id().from_number(gnb.gnb_id.id, gnb.gnb_id.bit_length);
+    asn1_aoi.area_of_interest_ran_node_list.push_back(asn1_ran_node_item);
+  }
+
+  return asn1_aoi;
+}
+
+/// \brief Convert common type LocationReportingRequestType to NGAP ASN1 location_report_request_type_s.
+inline asn1::ngap::location_report_request_type_s
+location_report_request_to_asn1(const ngap_location_report_request& req)
+{
+  asn1::ngap::location_report_request_type_s asn1_req;
+
+  asn1_req.event_type  = event_type_to_asn1(req.location_reporting_type);
+  asn1_req.report_area = asn1::ngap::report_area_opts::options::cell;
+
+  for (const auto& aoi_item : req.area_of_interest_list) {
+    asn1::ngap::area_of_interest_item_s asn1_aoi_item;
+    asn1_aoi_item.location_report_ref_id = aoi_item.location_report_ref_id;
+    asn1_aoi_item.area_of_interest       = area_of_interest_to_asn1(aoi_item.area_of_interest);
+    asn1_req.area_of_interest_list.push_back(asn1_aoi_item);
+  }
+
+  if (req.location_report_ref_id_to_be_cancelled.has_value()) {
+    asn1_req.location_report_ref_id_to_be_cancelled_present = true;
+    asn1_req.location_report_ref_id_to_be_cancelled         = req.location_report_ref_id_to_be_cancelled.value();
+  }
+
+  return asn1_req;
 }
 
 } // namespace ocudu::ocucp

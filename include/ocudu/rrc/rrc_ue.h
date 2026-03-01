@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -206,6 +200,11 @@ struct rrc_ue_handover_reconfiguration_context {
   byte_buffer rrc_ue_handover_reconfiguration_pdu;
 };
 
+struct rrc_ue_cond_reconfiguration_context {
+  unsigned    transaction_id;
+  byte_buffer rrc_ue_cond_reconfiguration_pdu; // PDCP-protected outer RRC Reconfiguration
+};
+
 struct rrc_inactivity_context {
   i_rntis_t                        i_rntis;
   uint8_t                          next_hop_chaining_count;
@@ -243,6 +242,12 @@ public:
   /// \returns The RRC handover reconfiguration context.
   virtual rrc_ue_handover_reconfiguration_context
   get_rrc_ue_handover_reconfiguration_context(const rrc_reconfiguration_procedure_request& msg) = 0;
+
+  /// \brief Get the RRC UE conditional reconfiguration context (conditionalReconfiguration).
+  /// \param[in] request The RRC reconfiguration request containing CHO candidates.
+  /// \returns The conditional reconfiguration context with transaction ID and PDCP-protected PDU.
+  virtual rrc_ue_cond_reconfiguration_context
+  get_rrc_ue_cond_reconfiguration_context(const rrc_reconfiguration_procedure_request& request) = 0;
 
   /// \brief Await a RRC Reconfiguration Complete for a handover.
   /// \param[in] transaction_id The transaction ID of the RRC Reconfiguration Complete.
@@ -497,6 +502,21 @@ public:
 
   /// \brief Check if RRC Inactive is supported by the UE.
   virtual bool is_rrc_inactive_supported() const = 0;
+
+  /// \brief Check if Conditional Handover (Rel-16) is supported by the UE.
+  virtual bool is_conditional_handover_supported() const = 0;
+
+  /// \brief Check if CHO with two trigger events (Rel-16) is supported by the UE.
+  virtual bool is_conditional_handover_two_trigger_events_supported() const = 0;
+
+  /// \brief Check if CHO with event-A4-based trigger (Rel-17) is supported by the UE.
+  virtual bool is_conditional_handover_event_a4_supported() const = 0;
+
+  /// \brief Check if location-based CHO (Rel-17) is supported by the UE.
+  virtual bool is_conditional_handover_location_based_supported() const = 0;
+
+  /// \brief Check if time-based CHO (Rel-17) is supported by the UE.
+  virtual bool is_conditional_handover_time_based_supported() const = 0;
 };
 
 class rrc_ue_event_notifier

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -43,7 +37,7 @@ std::optional<dl_sched_context> get_newtx_dl_sched_context(const slice_ue& u,
                                                            slot_point      pdcch_slot,
                                                            slot_point      pdsch_slot,
                                                            bool            interleaving_enabled,
-                                                           unsigned        pending_bytes);
+                                                           units::bytes    pending_bytes);
 
 /// Retrieve recommended PDCCH and PDSCH parameters for a reTx DL grant.
 std::optional<dl_sched_context> get_retx_dl_sched_context(const slice_ue&               u,
@@ -85,7 +79,7 @@ std::optional<ul_sched_context> get_newtx_ul_sched_context(const slice_ue&   u,
                                                            slot_point        pdcch_slot,
                                                            slot_point        pusch_slot,
                                                            unsigned          uci_nof_harq_bits,
-                                                           unsigned          pending_bytes,
+                                                           units::bytes      pending_bytes,
                                                            ofdm_symbol_range allowed_symbols);
 
 /// Retrieve recommended PDCCH and PUSCH parameters for a reTx UL grant.

@@ -1,18 +1,10 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #pragma once
 
 #include "ocudu/adt/span.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/fapi/common/base_message.h"
 #include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
@@ -30,7 +22,7 @@ struct rx_data_indication_pdu {
 };
 
 /// Reception data indication message.
-struct rx_data_indication : public base_message {
+struct rx_data_indication {
   slot_point                                                     slot;
   static_vector<rx_data_indication_pdu, MAX_PUSCH_PDUS_PER_SLOT> pdus;
 };

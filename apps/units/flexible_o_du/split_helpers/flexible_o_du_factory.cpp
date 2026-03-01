@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "flexible_o_du_factory.h"
 #include "apps/helpers/e2/e2_metric_connector_manager.h"
@@ -138,7 +132,7 @@ static ocudu_ntn::ntn_assistance_info convert_ntn_config_to_assistance_info(cons
   ocudu_ntn::ntn_assistance_info info = {};
 
   // SIB19 fields exempt from valuetag.
-  info.moving_reference_location = cfg.reference_location;
+  info.moving_reference_location = cfg.moving_ref_location;
   info.ephemeris_info            = cfg.ephemeris_info;
   info.ta_info                   = cfg.ta_info;
   info.epoch_time                = cfg.epoch_time;
@@ -152,6 +146,14 @@ static ocudu_ntn::ntn_assistance_info convert_ntn_config_to_assistance_info(cons
   info.k_mac                 = cfg.k_mac;
   info.polarization          = cfg.polarization;
   info.ta_report             = cfg.ta_report;
+
+  // SIB19 neighbor cells.
+  for (const auto& ncell : cfg.ncells) {
+    info.ncells.push_back(ncell);
+  }
+
+  // SIB19 tracked fields (R18 extensions).
+  info.sat_switch_with_resync = cfg.sat_switch_with_resync;
 
   // Metadata fields.
   info.epoch_timestamp      = cfg.epoch_timestamp;

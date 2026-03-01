@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -83,7 +77,7 @@ inline mac_ue_create_request make_default_ue_creation_request(const cell_config_
   pcg_cfg.pdsch_harq_codebook         = pdsch_harq_ack_codebook::dynamic;
 
   msg.sched_cfg.cells.emplace();
-  msg.sched_cfg.cells->push_back(config_helpers::create_default_initial_ue_spcell_cell_config(params));
+  msg.sched_cfg.cells->push_back(config_helpers::create_default_initial_ue_cell_config(params));
 
   return msg;
 }

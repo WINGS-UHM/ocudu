@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "rrc_ue_helpers.h"
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
@@ -81,6 +75,43 @@ rrc_ue_capabilities_t ocudu::ocucp::get_capabilities(asn1::rrc_nr::ue_nr_cap_s& 
   if (ue_capabilities.non_crit_ext_present and ue_capabilities.non_crit_ext.inactive_state_present) {
     capabilities.rrc_inactive_supported = true;
     logger.log_debug("RRC Inactive supported by UE");
+  }
+
+  // Set CHO support flags. Per TS 38.306 Section 4.2.7.2 each capability must be set consistently
+  // across all bands in the same band group, so a single OR across all bands is sufficient.
+  for (const auto& band : ue_capabilities.rf_params.supported_band_list_nr) {
+    if (band.cond_ho_r16_present) {
+      capabilities.conditional_handover_supported = true;
+    }
+    // TODO: parse condHandoverFailure-r16 (band.cond_ho_fail_r16_present)
+    if (band.cond_ho_two_trigger_events_r16_present) {
+      capabilities.conditional_handover_two_trigger_events_supported = true;
+    }
+    if (band.event_a4_based_cond_ho_r17_present) {
+      capabilities.conditional_handover_event_a4_supported = true;
+    }
+    if (band.location_based_cond_ho_r17_present) {
+      capabilities.conditional_handover_location_based_supported = true;
+    }
+    if (band.time_based_cond_ho_r17_present) {
+      capabilities.conditional_handover_time_based_supported = true;
+    }
+  }
+  // TODO: parse condHandoverFDD-TDD-r16 and condHandoverFR1-FR2-r16
+  if (capabilities.conditional_handover_supported) {
+    logger.log_debug("CHO (Rel-16) supported by UE");
+  }
+  if (capabilities.conditional_handover_two_trigger_events_supported) {
+    logger.log_debug("CHO two-trigger-events (Rel-16) supported by UE");
+  }
+  if (capabilities.conditional_handover_event_a4_supported) {
+    logger.log_debug("CHO event-A4-based (Rel-17) supported by UE");
+  }
+  if (capabilities.conditional_handover_location_based_supported) {
+    logger.log_debug("CHO location-based (Rel-17) supported by UE");
+  }
+  if (capabilities.conditional_handover_time_based_supported) {
+    logger.log_debug("CHO time-based (Rel-17) supported by UE");
   }
 
   return capabilities;

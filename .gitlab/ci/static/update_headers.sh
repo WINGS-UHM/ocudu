@@ -1,11 +1,8 @@
 #!/bin/bash
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
 
 set -e
 
@@ -72,12 +69,10 @@ find . -type f \( \
 
     # Replace header
     perl -0777 -pi -e "s/#[^!][\s\S]*?(?=\n.*?=|\n\n)/#
-# Copyright 2021-$(date +%Y) Software Radio Systems Limited
+
+# SPDX-FileCopyrightText: Copyright (C) 2021-$(date +%Y) Software Radio Systems Limited
 #
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#/" "$file"
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 done
 
@@ -99,11 +94,9 @@ find . -type f \( \
     ! -name "rfnoc_test.cc" \
     -exec perl -0777 -pi -e "s{/\*.*?\*/}{/*
  *
- * Copyright 2021-$(date +%Y) Software Radio Systems Limited
+ * SPDX-FileCopyrightText: Copyright (C) 2021-$(date +%Y) Software Radio Systems Limited
  *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
+ * SPDX-License-Identifier: BSD-3-Clause-Open-MPI
  *
  */}s" {} \;
 
@@ -117,11 +110,9 @@ find . -type f -name "*.m" \
     ! -name "hSkipWeakTimingOffset.m" \
     ! -name "HARQEntity.m" \
     -exec perl -0777 -pi -e "s/((?:%.*\n)+\n)(?:%.*\n)+/\$1%
-%   Copyright 2021-$(date +%Y) Software Radio Systems Limited
+% SPDX-FileCopyrightText: Copyright (C) 2021-$(date +%Y) Software Radio Systems Limited
 %
-%   By using this file, you agree to the terms and conditions set
-%   forth in the LICENSE file which can be found at the top level of
-%   the distribution.
+% SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 %
 /" {} \;
 
@@ -152,11 +143,9 @@ find . -type f -name "*.yang" \
 
     # Replace header
     perl -0777 -pi -e "s{//[\s\S]*?(?=\n\n)}{//
-// Copyright 2021-$(date +%Y) Software Radio Systems Limited
+// SPDX-FileCopyrightText: Copyright (C) 2021-$(date +%Y) Software Radio Systems Limited
 //
-// By using this file, you agree to the terms and conditions set
-// forth in the LICENSE file which can be found at the top level of
-// the distribution.
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 //}s" "$file"
 
 done
@@ -171,11 +160,9 @@ find . -type f -name "*.xml" \
     ! -path "*/build/*" \
     $ADDITIONAL_IGNORE \
     -exec perl -0777 -pi -e "s{<!--[\s\S]*?-->}{<!--
- Copyright 2021-$(date +%Y) Software Radio Systems Limited
+SPDX-FileCopyrightText: Copyright (C) 2021-$(date +%Y) Software Radio Systems Limited
 
- By using this file, you agree to the terms and conditions set
- forth in the LICENSE file which can be found at the top level of
- the distribution.
+SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 -->}s" {} \;
 
 # ============================================================================

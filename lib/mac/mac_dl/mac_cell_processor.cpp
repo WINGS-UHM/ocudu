@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "mac_cell_processor.h"
 #include "mac_dl_metric_handler.h"
@@ -501,16 +495,19 @@ void mac_cell_processor::assemble_dl_data_request(mac_dl_data_result&    data_re
     for (unsigned cw_idx = 0, e = grant.pdsch_cfg.codewords.size(); cw_idx != e; ++cw_idx) {
       const pdsch_codeword& cw = grant.pdsch_cfg.codewords[cw_idx];
       if (cw.new_data) {
-        data_res.ue_pdus.emplace_back(
-            cw_idx,
-            dlsch_assembler.assemble_newtx_pdu(
-                grant.pdsch_cfg.rnti, grant.pdsch_cfg.harq_id, cw_idx, grant.tb_list[cw_idx], cw.tb_size_bytes));
+        data_res.ue_pdus.emplace_back(cw_idx,
+                                      dlsch_assembler.assemble_newtx_pdu(grant.pdsch_cfg.rnti,
+                                                                         grant.pdsch_cfg.harq_id,
+                                                                         cw_idx,
+                                                                         grant.tb_list[cw_idx],
+                                                                         cw.tb_size_bytes.value()));
         continue;
       }
 
       data_res.ue_pdus.emplace_back(
           cw_idx,
-          dlsch_assembler.assemble_retx_pdu(grant.pdsch_cfg.rnti, grant.pdsch_cfg.harq_id, cw_idx, cw.tb_size_bytes));
+          dlsch_assembler.assemble_retx_pdu(
+              grant.pdsch_cfg.rnti, grant.pdsch_cfg.harq_id, cw_idx, cw.tb_size_bytes.value()));
     }
   }
 

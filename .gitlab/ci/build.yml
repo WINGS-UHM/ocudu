@@ -1,10 +1,6 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
 
 include:
   - project: ocudu/ocudu_packaging
@@ -370,12 +366,12 @@ intermediate commits cached:
       git config advice.detachedHead false
       if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_PATH" != "$CI_PROJECT_PATH" ]; then
         git remote add fork $CI_MERGE_REQUEST_SOURCE_PROJECT_URL
-        git fetch --deepen=50 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-        git fetch --deepen=50 fork $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git fetch --deepen=100 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+        git fetch --deepen=100 fork $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME fork/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       else
-        git fetch --deepen=50 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git fetch --deepen=100 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       fi
@@ -488,10 +484,6 @@ package:
   variables:
     PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"
-    KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
-    KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
-    KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
-    KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
     extraopts: -DMARCH=x86-64-v3
   tags: [saas-linux-large-amd64]
   before_script:
@@ -867,7 +859,8 @@ sanitizers amd64 avx512:
   parallel:
     matrix:
       # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
-      - OS: [ubuntu-25.10, ubuntu-24.04]
+      # TSAN Ubuntu 24.04 disabled - TSAN requires an ASLR config of 28 bits (instead of 32 bit as is by default on Ubuntu 24.04)
+      - OS: [ubuntu-25.10]
         SANITIZER: tsan
         COMPILER: [gcc, clang]
         ENABLE_TSAN: "True"
@@ -893,7 +886,8 @@ sanitizers arm neon:
   parallel:
     matrix:
       # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
-      - OS: [ubuntu-25.10, ubuntu-24.04]
+      # TSAN Ubuntu 24.04 disabled - TSAN requires an ASLR config of 28 bits (instead of 32 bit as is by default on Ubuntu 24.04)
+      - OS: [ubuntu-25.10]
         SANITIZER: tsan
         COMPILER: [gcc, clang]
         ENABLE_TSAN: "True"

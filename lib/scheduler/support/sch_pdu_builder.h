@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -64,7 +58,7 @@ pusch_config_params get_pusch_config_f0_1_c_rnti(const ue_cell_configuration&   
 /// \brief Builds PDSCH PDU for DCI format 1_0, scrambled by SI-RNTI.
 void build_pdsch_f1_0_si_rnti(pdsch_information&                   pdsch,
                               const cell_configuration&            cell_cfg,
-                              unsigned                             tbs_bytes,
+                              units::bytes                         tbs_bytes,
                               const dci_1_0_si_rnti_configuration& dci_cfg,
                               const crb_interval&                  crbs,
                               const ofdm_symbol_range&             symbols,
@@ -73,7 +67,7 @@ void build_pdsch_f1_0_si_rnti(pdsch_information&                   pdsch,
 /// \brief Builds PDSCH PDU for DCI format 1_0, scrambled by P-RNTI.
 void build_pdsch_f1_0_p_rnti(pdsch_information&                  pdsch,
                              const cell_configuration&           cell_cfg,
-                             unsigned                            tbs_bytes,
+                             units::bytes                        tbs_bytes,
                              const dci_1_0_p_rnti_configuration& dci_cfg,
                              const crb_interval&                 crbs,
                              const ofdm_symbol_range&            symbols,
@@ -81,7 +75,7 @@ void build_pdsch_f1_0_p_rnti(pdsch_information&                  pdsch,
 
 /// \brief Builds PDSCH PDU for DCI format 1_0, scrambled by RA-RNTI.
 void build_pdsch_f1_0_ra_rnti(pdsch_information&                   pdsch,
-                              unsigned                             tbs_bytes,
+                              units::bytes                         tbs_bytes,
                               rnti_t                               rnti,
                               const cell_configuration&            cell_cfg,
                               const dci_1_0_ra_rnti_configuration& dci_cfg,
@@ -91,7 +85,7 @@ void build_pdsch_f1_0_ra_rnti(pdsch_information&                   pdsch,
 /// \brief Builds PDSCH PDU for DCI format 1_0, scrambled by TC-RNTI.
 void build_pdsch_f1_0_tc_rnti(pdsch_information&                   pdsch,
                               const pdsch_config_params&           pdsch_cfg,
-                              unsigned                             tbs_bytes,
+                              units::bytes                         tbs_bytes,
                               rnti_t                               rnti,
                               const cell_configuration&            cell_cfg,
                               const dci_1_0_tc_rnti_configuration& dci_cfg,
@@ -101,7 +95,7 @@ void build_pdsch_f1_0_tc_rnti(pdsch_information&                   pdsch,
 /// \brief Builds PDSCH PDU for DCI format 1_0, scrambled by C-RNTI.
 void build_pdsch_f1_0_c_rnti(pdsch_information&                  pdsch,
                              const pdsch_config_params&          pdsch_cfg,
-                             unsigned                            tbs_bytes,
+                             units::bytes                        tbs_bytes,
                              rnti_t                              rnti,
                              const cell_configuration&           cell_cfg,
                              const search_space_info&            ss_info,
@@ -124,7 +118,7 @@ void build_pdsch_f1_1_c_rnti(pdsch_information&              pdsch,
 /// \brief Builds PUSCH PDU for DCI format 0_0, scrambled by TC-RNTI.
 void build_pusch_f0_0_tc_rnti(pusch_information&                   pusch,
                               const pusch_config_params&           pusch_cfg,
-                              unsigned                             tbs_bytes,
+                              units::bytes                         tbs_bytes,
                               rnti_t                               rnti,
                               const cell_configuration&            cell_cfg,
                               const dci_0_0_tc_rnti_configuration& dci_cfg,
@@ -135,7 +129,7 @@ void build_pusch_f0_0_tc_rnti(pusch_information&                   pusch,
 void build_pusch_f0_0_c_rnti(pusch_information&                  pusch,
                              rnti_t                              rnti,
                              const pusch_config_params&          pusch_cfg,
-                             unsigned                            tbs_bytes,
+                             units::bytes                        tbs_bytes,
                              const cell_configuration&           cell_cfg,
                              const bwp_uplink_common&            ul_bwp,
                              const dci_0_0_c_rnti_configuration& dci_cfg,

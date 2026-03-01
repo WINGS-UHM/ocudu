@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -22,6 +16,7 @@ struct cu_cp_unit_logger_config {
   ocudulog::basic_levels pdcp_level  = ocudulog::basic_levels::warning;
   ocudulog::basic_levels rrc_level   = ocudulog::basic_levels::warning;
   ocudulog::basic_levels ngap_level  = ocudulog::basic_levels::warning;
+  ocudulog::basic_levels xnap_level  = ocudulog::basic_levels::warning;
   ocudulog::basic_levels nrppa_level = ocudulog::basic_levels::warning;
   ocudulog::basic_levels sec_level   = ocudulog::basic_levels::warning;
   /// Maximum number of bytes to write when dumping hex arrays.

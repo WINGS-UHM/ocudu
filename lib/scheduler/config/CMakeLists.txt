@@ -1,10 +1,7 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+# Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
 
 set(SOURCES serving_cell_config_factory.cpp
         sched_cell_config_helpers.cpp
@@ -19,6 +16,7 @@ add_library(sched_config STATIC ${SOURCES})
 target_link_libraries(sched_config ocudu_ran du_resource_manager)
 
 add_library(sched_config_manager OBJECT
+	cell_bwp_config.cpp
         cell_configuration.cpp
         sched_bwp_config.cpp
         ue_configuration.cpp

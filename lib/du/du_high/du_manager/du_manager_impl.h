@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -35,6 +29,7 @@ public:
 
   // MAC interface
   void handle_ul_ccch_indication(const ul_ccch_indication_message& msg) override;
+  void handle_crnti_ce_indication(const ul_crnti_ce_indication_message& msg) override;
 
   // Task scheduling interface.
   void schedule_async_task(async_task<void>&& task) override { main_ctrl_loop.schedule(std::move(task)); }

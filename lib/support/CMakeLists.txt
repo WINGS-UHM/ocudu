@@ -1,12 +1,9 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
 
 add_subdirectory(versioning)
+add_subdirectory(math)
 
 set(SOURCES
         executors/metrics/executor_metrics_backend.cpp
@@ -41,12 +38,12 @@ set(SOURCES
         signal_handling.cpp
         sysinfo.cpp
         timers.cpp
-        math_utils.cpp
 )
 
 add_library(ocudu_support STATIC ${SOURCES})
-target_link_libraries(ocudu_support PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${YAML_CPP_LIBRARIES}
-	${NUMA_LIBRARIES} ocudulog)
+target_link_libraries(ocudu_support
+        PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${YAML_CPP_LIBRARIES} ${NUMA_LIBRARIES} ocudulog
+        INTERFACE ocudu_support_math)
 add_backward(ocudu_support)
 
 if (Backward_FOUND AND BACKWARD_HAS_EXTERNAL_LIBRARIES)

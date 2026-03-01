@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_test_message_validators.h"
 #include "ocudu/asn1/ngap/common.h"
@@ -130,6 +124,20 @@ bool ocudu::test_helpers::is_valid_ul_ran_status_transfer(const ocucp::ngap_mess
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::ngap::ngap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_NGAP_ID_UL_RAN_STATUS_TRANSFER);
+  return true;
+}
+
+bool ocudu::test_helpers::is_valid_location_report(const ocucp::ngap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type() == asn1::ngap::ngap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_NGAP_ID_LOCATION_REPORT);
+  return true;
+}
+
+bool ocudu::test_helpers::is_valid_location_reporting_failure_indication(const ocucp::ngap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type() == asn1::ngap::ngap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_NGAP_ID_LOCATION_REPORT_FAIL_IND);
   return true;
 }
 

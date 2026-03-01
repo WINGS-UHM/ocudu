@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -14,6 +8,7 @@
 #include <chrono>
 #include <optional>
 #include <variant>
+#include <vector>
 
 namespace ocudu {
 
@@ -69,6 +64,8 @@ struct du_high_unit_cell_ntn_config {
   std::optional<geodetic_coordinates_t> moving_ref_location;
   /// Satellite switch with resynchronization parameters (R18).
   std::optional<sat_switch_with_resync_t> sat_switch_with_resync;
+  /// List of NTN neighbor cells.
+  std::vector<neighbor_ntn_cell> ncells;
 };
 
 } // namespace ocudu

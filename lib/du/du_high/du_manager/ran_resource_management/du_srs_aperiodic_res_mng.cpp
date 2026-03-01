@@ -1,20 +1,15 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_srs_aperiodic_res_mng.h"
 #include "du_srs_manager_helpers.h"
 #include "du_ue_resource_config.h"
-#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/ran/srs/srs_configuration.h"
 #include "ocudu/ran/srs/srs_constants.h"
 #include "ocudu/scheduler/config/pusch_td_resource_indices.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -186,13 +181,13 @@ bool du_srs_aperiodic_res_mng::alloc_resources(cell_group_config& cell_grp_cfg)
 {
   for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
     auto& cell_cfg_ded = cell_cfg_ded_entry.second;
-    auto& ue_du_cell   = cells[cell_cfg_ded.cell_index];
+    auto& ue_du_cell   = cells[cell_cfg_ded.serv_cell_cfg.cell_index];
 
     // The UE SRS configuration is taken from a base configuration, saved in the GNB. The UE specific parameters will be
     // added later on in this function.
-    cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.emplace(ue_du_cell.default_srs_cfg);
+    cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.emplace(ue_du_cell.default_srs_cfg);
 
-    srs_config& ue_srs_cfg = cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.value();
+    srs_config& ue_srs_cfg = cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
 
     // Find the best resource ID this UE, according to the class policy.
     const auto opt_srs_res_it = std::min_element(ue_du_cell.srs_res_usage.begin(),
@@ -266,13 +261,13 @@ void du_srs_aperiodic_res_mng::dealloc_resources(cell_group_config& cell_grp_cfg
   for (auto cell_cfg_ded_entry : cell_grp_cfg.cells) {
     auto& cell_cfg_ded = cell_cfg_ded_entry.second;
     // This is the cell index inside the DU.
-    auto& ue_du_cell = cells[cell_cfg_ded.cell_index];
+    auto& ue_du_cell = cells[cell_cfg_ded.serv_cell_cfg.cell_index];
 
-    if (not cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.has_value()) {
+    if (not cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value()) {
       continue;
     }
 
-    const auto& ue_srs_cfg = cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.value();
+    const auto& ue_srs_cfg = cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.value();
 
     for (const auto& srs_res : ue_srs_cfg.srs_res_list) {
       const unsigned res_id_to_deallocate = srs_res.id.cell_res_id;
@@ -287,6 +282,6 @@ void du_srs_aperiodic_res_mng::dealloc_resources(cell_group_config& cell_grp_cfg
 
     // Reset the SRS configuration in this UE. This makes sure the DU will exit this function immediately when it gets
     // called again for the same UE (upon destructor's call).
-    cell_cfg_ded.ul_config->init_ul_bwp.srs_cfg.reset();
+    cell_cfg_ded.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.reset();
   }
 }

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -14,6 +8,7 @@
 #include "ocudu/adt/span.h"
 #include "ocudu/cu_cp/cell_meas_manager_config.h"
 #include "ocudu/rrc/meas_types.h"
+#include "ocudu/rrc/rrc_ue.h"
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -64,11 +59,17 @@ void generate_report_config(const cell_meas_manager_cfg&  cfg,
                             rrc_meas_cfg&                 meas_cfg,
                             cell_meas_manager_ue_context& ue_meas_context);
 
-/// \brief Collect all rrc_cond_trigger_cfg report configs from \p cfg into \p meas_cfg.
+/// \brief Collect rrc_cond_trigger_cfg report configs from \p cfg into \p meas_cfg, filtered by UE capabilities.
 /// Appends matching entries to meas_cfg.report_cfg_to_add_mod_list.
-/// \returns Vector of report_cfg_id_t for found conditional trigger configs.
-std::vector<report_cfg_id_t> collect_cond_trigger_report_configs(const cell_meas_manager_cfg& cfg,
-                                                                 rrc_meas_cfg&                meas_cfg);
+/// The number of collected triggers is capped at 1 when the UE does not support condHO-TwoTriggerEvents-r16,
+/// and at 2 otherwise. Trigger configs requiring Rel-17 capabilities (event-A4, location, time) are skipped
+/// if the UE does not advertise the corresponding capability.
+/// \returns Vector of report_cfg_id_t for the collected conditional trigger configs, or empty if the UE does
+///          not support CHO at all.
+std::vector<report_cfg_id_t> collect_cond_trigger_report_configs(const cell_meas_manager_cfg&     cfg,
+                                                                 rrc_meas_cfg&                    meas_cfg,
+                                                                 const rrc_ue_capability_handler& ue_caps,
+                                                                 ocudulog::basic_logger&          logger);
 
 /// \brief Build measurement IDs linking MOs to conditional trigger report configs for CHO.
 /// For each (mo_id, report_cfg_id) pair: allocates a meas_id, appends rrc_meas_id_to_add_mod,

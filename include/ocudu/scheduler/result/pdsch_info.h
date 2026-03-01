@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -24,6 +18,7 @@
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/result/dmrs_info.h"
 #include "ocudu/scheduler/result/vrb_alloc.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -51,7 +46,7 @@ struct pdsch_codeword {
   /// Redundancy version index (see TS38.212 Table 5.4.2.1-2, and TS38.214 Table 5.1.2.1-2).
   uint8_t rv_index;
   /// Transport block size, in bytes (see TS38.214 Section 5.1.3.2).
-  uint32_t tb_size_bytes;
+  units::bytes tb_size_bytes;
   /// Whether this is the first Tx or retx of the HARQ codeword.
   bool new_data;
 };

@@ -1,23 +1,14 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #pragma once
 
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/fapi/common/base_message.h"
 #include "ocudu/ran/phy_time_unit.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/srs/srs_channel_matrix.h"
-#include "ocudu/ran/srs/srs_configuration.h"
 #include <optional>
 
 namespace ocudu {
@@ -40,7 +31,7 @@ struct srs_indication_pdu {
 };
 
 /// SRS indication message.
-struct srs_indication : public base_message {
+struct srs_indication {
   slot_point                                                  slot;
   static_vector<srs_indication_pdu, MAX_SRS_PDUS_PER_SRS_IND> pdus;
 };

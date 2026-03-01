@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #pragma once
 
@@ -23,10 +16,9 @@ inline error_indication build_error_indication(slot_point slot, message_type_id 
 {
   error_indication msg;
 
-  msg.message_type = message_type_id::error_indication;
-  msg.slot         = slot;
-  msg.message_id   = msg_id;
-  msg.error_code   = error_id;
+  msg.slot       = slot;
+  msg.message_id = msg_id;
+  msg.error_code = error_id;
 
   return msg;
 }
@@ -39,7 +31,6 @@ build_out_of_sync_error_indication(slot_point slot, message_type_id msg_id, slot
 {
   error_indication msg;
 
-  msg.message_type  = message_type_id::error_indication;
   msg.slot          = slot;
   msg.message_id    = msg_id;
   msg.error_code    = error_code_id::out_of_sync;
@@ -56,7 +47,6 @@ build_invalid_sfn_error_indication(slot_point slot, message_type_id msg_id, slot
 {
   error_indication msg;
 
-  msg.message_type  = message_type_id::error_indication;
   msg.slot          = slot;
   msg.message_id    = msg_id;
   msg.error_code    = error_code_id::msg_invalid_sfn;
@@ -72,10 +62,9 @@ inline error_indication build_msg_error_indication(slot_point slot, message_type
 {
   error_indication msg;
 
-  msg.message_type = message_type_id::error_indication;
-  msg.slot         = slot;
-  msg.message_id   = msg_id;
-  msg.error_code   = error_code_id::msg_slot_err;
+  msg.slot       = slot;
+  msg.message_id = msg_id;
+  msg.error_code = error_code_id::msg_slot_err;
 
   return msg;
 }
@@ -87,10 +76,9 @@ inline error_indication build_msg_tx_error_indication(slot_point slot)
 {
   error_indication msg;
 
-  msg.message_type = message_type_id::error_indication;
-  msg.slot         = slot;
-  msg.message_id   = message_type_id::tx_data_request;
-  msg.error_code   = error_code_id::msg_tx_err;
+  msg.slot       = slot;
+  msg.message_id = message_type_id::tx_data_request;
+  msg.error_code = error_code_id::msg_tx_err;
 
   return msg;
 }
@@ -102,10 +90,9 @@ inline error_indication build_msg_ul_dci_error_indication(slot_point slot)
 {
   error_indication msg;
 
-  msg.message_type = message_type_id::error_indication;
-  msg.slot         = slot;
-  msg.message_id   = message_type_id::ul_dci_request;
-  msg.error_code   = error_code_id::msg_ul_dci_err;
+  msg.slot       = slot;
+  msg.message_id = message_type_id::ul_dci_request;
+  msg.error_code = error_code_id::msg_ul_dci_err;
 
   return msg;
 }

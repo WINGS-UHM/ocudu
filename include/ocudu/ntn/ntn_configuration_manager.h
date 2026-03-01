@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -30,6 +24,18 @@ struct ntn_cell_config_update_info {
   std::optional<ta_info_t>                                ta_info;
   std::optional<feeder_link_info_t>                       feeder_link_info;
   std::optional<geodetic_coordinates_t>                   ntn_gateway_location;
+  // SIB19 value-tag-tracked fields (changes require SIB1 systemInfoValueTag increment).
+  std::optional<geodetic_coordinates_t> reference_location;
+  std::optional<unsigned>               distance_threshold;
+  std::optional<time_point>             t_service;
+  std::optional<ntn_polarization_t>     polarization;
+  std::optional<bool>                   ta_report;
+  // SIB19 tracked neighbor-cell list.
+  std::optional<std::vector<neighbor_ntn_cell>> ncells;
+  // SIB19 exempt fields (changes do not trigger SIB1 systemInfoValueTag increment).
+  std::optional<geodetic_coordinates_t> moving_ref_location;
+  // SIB19 tracked sat-switch field.
+  std::optional<sat_switch_with_resync_t> sat_switch_with_resync;
 };
 
 /// NTN Config update message to be received over a websocket interface.

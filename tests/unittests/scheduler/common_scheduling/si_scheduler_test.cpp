@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "../test_utils/scheduler_test_suite.h"
 #include "lib/scheduler/common_scheduling/si_scheduler.h"
@@ -116,10 +110,10 @@ TEST_F(si_scheduler_test, when_sib1_is_cfg_then_sib1_gets_scheduled)
     for (const auto& sib : res_grid[0].result.dl.bc.sibs) {
       ASSERT_EQ(sib.version, 0);
       if (sib.si_indicator == sib_information::sib1) {
-        ASSERT_GE(sib.pdsch_cfg.codewords[0].tb_size_bytes, DEFAULT_SIB1_PAYLOAD_SIZE.value());
+        ASSERT_GE(sib.pdsch_cfg.codewords[0].tb_size_bytes, DEFAULT_SIB1_PAYLOAD_SIZE);
         si_scheduled[0] = true;
       } else {
-        ASSERT_GE(sib.pdsch_cfg.codewords[0].tb_size_bytes, DEFAULT_SI_SCHED_CFG.si_messages[0].msg_len.value());
+        ASSERT_GE(sib.pdsch_cfg.codewords[0].tb_size_bytes, DEFAULT_SI_SCHED_CFG.si_messages[0].msg_len);
         ASSERT_EQ(sib.si_msg_index.value(), 0);
         si_scheduled[1] = true;
       }
@@ -173,7 +167,7 @@ TEST_F(si_scheduler_test, when_si_is_updated_then_new_version_is_applied_at_si_c
         }
       }
 
-      unsigned tbs = sib.pdsch_cfg.codewords[0].tb_size_bytes;
+      unsigned tbs = sib.pdsch_cfg.codewords[0].tb_size_bytes.value();
       if (sib.version == 1) {
         ASSERT_GE(tbs,
                   sib.si_indicator == sib_information::sib1 ? new_sib1_len.value()

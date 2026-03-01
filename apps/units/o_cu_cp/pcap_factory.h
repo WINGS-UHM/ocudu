@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -19,11 +13,13 @@ namespace ocudu {
 
 struct o_cu_cp_dlt_pcaps {
   std::unique_ptr<dlt_pcap> ngap;
+  std::unique_ptr<dlt_pcap> xnap;
   std::unique_ptr<dlt_pcap> f1ap;
   std::unique_ptr<dlt_pcap> e1ap;
   std::unique_ptr<dlt_pcap> e2ap;
 
   std::unique_ptr<signal_observer> ngap_sig_handler;
+  std::unique_ptr<signal_observer> xnap_sig_handler;
   std::unique_ptr<signal_observer> f1ap_sig_handler;
   std::unique_ptr<signal_observer> e1ap_sig_handler;
   std::unique_ptr<signal_observer> e2ap_sig_handler;
@@ -33,6 +29,9 @@ struct o_cu_cp_dlt_pcaps {
   {
     if (ngap) {
       ngap->close();
+    }
+    if (xnap) {
+      xnap->close();
     }
     if (f1ap) {
       f1ap->close();
@@ -49,11 +48,13 @@ struct o_cu_cp_dlt_pcaps {
   void reset()
   {
     ngap_sig_handler.reset();
+    xnap_sig_handler.reset();
     f1ap_sig_handler.reset();
     e1ap_sig_handler.reset();
     e2ap_sig_handler.reset();
 
     ngap.reset();
+    xnap.reset();
     f1ap.reset();
     e1ap.reset();
     e2ap.reset();
@@ -70,6 +71,10 @@ inline o_cu_cp_dlt_pcaps create_o_cu_cp_dlt_pcap(const o_cu_cp_unit_config&  con
   pcaps.ngap = pcap_cfg.ngap.enabled ? create_ngap_pcap(pcap_cfg.ngap.filename, exec_mapper.get_ngap_executor())
                                      : create_null_dlt_pcap();
   pcaps.ngap_sig_handler = std::make_unique<signal_observer>(signal_source, [&pcaps]() { pcaps.ngap->flush(); });
+
+  pcaps.xnap = pcap_cfg.xnap.enabled ? create_xnap_pcap(pcap_cfg.xnap.filename, exec_mapper.get_xnap_executor())
+                                     : create_null_dlt_pcap();
+  pcaps.xnap_sig_handler = std::make_unique<signal_observer>(signal_source, [&pcaps]() { pcaps.xnap->flush(); });
 
   pcaps.f1ap = pcap_cfg.f1ap.enabled ? create_f1ap_pcap(pcap_cfg.f1ap.filename, exec_mapper.get_f1ap_executor())
                                      : create_null_dlt_pcap();

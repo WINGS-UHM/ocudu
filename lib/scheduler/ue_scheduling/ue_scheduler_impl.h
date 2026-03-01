@@ -1,17 +1,12 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "../slicing/inter_slice_scheduler.h"
 #include "../srs/srs_scheduler_impl.h"
+#include "../uci_scheduling/uci_indication_selector.h"
 #include "../uci_scheduling/uci_scheduler_impl.h"
 #include "../ue_context/ue_repository.h"
 #include "intra_slice_scheduler.h"
@@ -43,10 +38,7 @@ private:
 
   void run_sched_strategy(du_cell_index_t cell_index);
 
-  /// Counts the number of PUCCH grants that are allocated for a given user at a specific slot.
-  void update_harq_pucch_counter(cell_resource_allocator& cell_alloc);
-
-  struct cell_context : public ue_cell_scheduler {
+  struct cell_context final : public ue_cell_scheduler, public uci_indication_timeout_notifier {
     ue_scheduler_impl& parent;
 
     cell_resource_allocator* cell_res_alloc;
@@ -68,6 +60,9 @@ private:
 
     /// SRS scheduler
     srs_scheduler_impl srs_sched;
+
+    /// Handler of UCI indications.
+    uci_indication_selector uci_selector;
 
     /// Cell-specific event manager.
     std::unique_ptr<ue_cell_event_manager> ev_mng;
@@ -95,6 +90,11 @@ private:
     void start() override { parent.do_start_cell(cell_res_alloc->cfg.cell_index); }
 
     void stop() override { parent.do_stop_cell(cell_res_alloc->cfg.cell_index); }
+
+    void on_timeout(slot_point sl_rx, rnti_t crnti, const uci_action& action) override
+    {
+      ev_mng->handle_uci_indication_timeout(sl_rx, crnti, action);
+    }
   };
 
   const scheduler_ue_expert_config& expert_cfg;

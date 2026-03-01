@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -99,7 +93,7 @@ public:
 
   /// \brief Computes the number of UL pending bytes that are not already allocated in a UL HARQ. The value is used
   /// to derive the required transport block size for an UL grant.
-  unsigned pending_ul_newtx_bytes() const;
+  units::bytes pending_ul_newtx_bytes() const;
 
   /// \brief Retrieves UE DRX controller.
   ue_drx_controller& drx_controller() { return drx; }

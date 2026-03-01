@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -38,6 +32,9 @@ public:
 
   /// Gets task executor used to parallelize the reception of F1-C messages.
   virtual task_executor& f1c_rx_executor() = 0;
+
+  /// Gets task executor used to parallelize the reception of XN-C messages.
+  virtual task_executor& xnc_rx_executor() = 0;
 
   /// Gets task executor used to parallelize the reception of E1 messages.
   virtual task_executor& e1_rx_executor() = 0;

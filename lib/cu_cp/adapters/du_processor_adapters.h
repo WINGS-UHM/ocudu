@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -61,6 +55,12 @@ public:
   {
     ocudu_assert(ue_context_handler != nullptr, "UE context handler must not be nullptr");
     return ue_context_handler->handle_ue_context_release(request);
+  }
+
+  async_task<void> on_access_success(const cu_cp_access_success_indication& msg) override
+  {
+    ocudu_assert(ue_context_handler != nullptr, "UE context handler must not be nullptr");
+    return ue_context_handler->handle_access_success(msg);
   }
 
   async_task<void> on_transaction_info_loss(const ue_transaction_info_loss_event& ev) override

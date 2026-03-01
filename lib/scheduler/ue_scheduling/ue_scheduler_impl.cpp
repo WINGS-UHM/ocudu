@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_scheduler_impl.h"
 #include "../logging/scheduler_metrics_handler.h"
@@ -30,6 +24,7 @@ ue_cell_scheduler* ue_scheduler_impl::do_add_cell(const ue_cell_scheduler_creati
                                                        cell.uci_sched,
                                                        cell.slice_sched,
                                                        cell.srs_sched,
+                                                       cell.uci_selector,
                                                        *params.cell_metrics,
                                                        *params.ev_logger});
 
@@ -85,49 +80,6 @@ void ue_scheduler_impl::run_sched_strategy(du_cell_index_t cell_index)
   while (auto ul_slice_candidate = cell.slice_sched.get_next_ul_candidate()) {
     scheduler_policy& policy = cell.slice_sched.get_policy(ul_slice_candidate->id());
     cell.intra_slice_sched.ul_sched(ul_slice_candidate.value(), policy);
-  }
-}
-
-void ue_scheduler_impl::update_harq_pucch_counter(cell_resource_allocator& cell_alloc)
-{
-  // We need to update the PUCCH counter after the SR/CSI scheduler because the allocation of CSI/SR can add/remove
-  // PUCCH grants.
-  static constexpr unsigned HARQ_SLOT_DELAY = 0;
-  const auto&               slot_alloc      = cell_alloc[HARQ_SLOT_DELAY];
-
-  // Spans through the PUCCH grant list and update the HARQ-ACK PUCCH grant counter for the corresponding RNTI and HARQ
-  // process id.
-  for (const auto& pucch : slot_alloc.result.ul.pucchs) {
-    const unsigned nof_harqs_per_rnti_per_slot = pucch.uci_bits.harq_ack_nof_bits;
-    if (nof_harqs_per_rnti_per_slot == 0) {
-      continue;
-    }
-
-    ue* user = ue_db.find_by_rnti(pucch.crnti);
-    // This is to handle the case of a UE that gets removed after the PUCCH gets allocated and before this PUCCH is
-    // expected to be sent.
-    if (user == nullptr) {
-      logger.warning("rnti={}: No user with such RNTI found in the ue scheduler database. Skipping PUCCH grant counter",
-                     pucch.crnti,
-                     slot_alloc.slot);
-      continue;
-    }
-    // Each PUCCH grants can potentially carry ACKs for different HARQ processes (as many as the harq_ack_nof_bits)
-    // expecting to be acknowledged on the same slot.
-    for (unsigned harq_bit_idx = 0; harq_bit_idx != nof_harqs_per_rnti_per_slot; ++harq_bit_idx) {
-      std::optional<dl_harq_process_handle> h_dl =
-          user->get_pcell().harqs.find_dl_harq_waiting_ack(slot_alloc.slot, harq_bit_idx);
-      if (not h_dl.has_value() or not h_dl->is_waiting_ack()) {
-        logger.warning(
-            "ue={} rnti={}: No DL HARQ process with state waiting-for-ack found at slot={} for harq-bit-index={}",
-            fmt::underlying(user->ue_index),
-            user->crnti,
-            slot_alloc.slot,
-            harq_bit_idx);
-        continue;
-      };
-      h_dl->increment_pucch_counter();
-    }
   }
 }
 
@@ -202,8 +154,8 @@ void ue_scheduler_impl::run_slot_impl(slot_point sl_tx)
     // The post processing is done for DL and UL slots.
     group_cell.intra_slice_sched.post_process_results();
 
-    // Update the PUCCH counter after the UE DL and UL scheduler.
-    update_harq_pucch_counter(*group_cell.cell_res_alloc);
+    // Update the UCI indication handler after the slot scheduling.
+    group_cell.uci_selector.handle_result(sl_tx, (*group_cell.cell_res_alloc)[0].result);
 
     ocudu_sanity_check(puxch_grant_sanitizer(*group_cell.cell_res_alloc, logger),
                        "PUCCH and PUSCH found for the same UE in the same slot");
@@ -231,7 +183,8 @@ ue_scheduler_impl::cell_context::cell_context(ue_scheduler_impl&                
                     *params.cell_res_alloc,
                     *params.cell_metrics,
                     ocudulog::fetch_basic_logger("SCHED")),
-  srs_sched(params.cell_res_alloc->cfg, parent.ue_db)
+  srs_sched(params.cell_res_alloc->cfg, parent.ue_db),
+  uci_selector(*this)
 {
 }
 

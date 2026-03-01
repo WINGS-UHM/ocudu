@@ -1,20 +1,45 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "rrc_measurement_types_asn1_converters.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/error_handling.h"
-#include <type_traits>
+#include <cmath>
+#include <cstdio>
 
 using namespace ocudu;
 using namespace ocucp;
+
+/// Pack a 3GPP TS 23.032 Ellipsoid-Point into a 6-byte buffer.
+/// Bit layout: [1-bit N/S | 23-bit latitude | 24-bit longitude]
+/// Encodes a geographic point into the 6-byte Ellipsoid-Point format required by TS 38.331, TS 37.355 sec. 5.1,
+/// TS 23.032 sec. 6.1. for the ReferenceLocation-r17 IE (condEventD1-r17 / condEventD2-r18).
+static ocudu::byte_buffer pack_ellipsoid_point(const rrc_geo_location& loc)
+{
+  constexpr uint32_t lat_max   = 8388607u;
+  constexpr int32_t  lon_min   = -8388608;
+  constexpr int32_t  lon_max   = 8388607;
+  constexpr uint32_t lon_shift = 8388608u;
+
+  const bool south = loc.latitude < 0.0;
+  const auto lat_enc =
+      std::clamp(static_cast<uint32_t>(std::floor(std::abs(loc.latitude) * lat_max / 90.0)), 0u, lat_max);
+  const auto lon_raw =
+      std::clamp(static_cast<int32_t>(std::floor(loc.longitude * 16777215.0 / 360.0)), lon_min, lon_max);
+
+  // Keep manual packing byte-for-byte compatible with ASN.1 constrained INTEGER encoding.
+  const auto lon_enc = static_cast<uint32_t>(lon_raw + static_cast<int32_t>(lon_shift));
+  uint64_t   bits    = (static_cast<uint64_t>(south) << 47u) | (static_cast<uint64_t>(lat_enc) << 24u) |
+                  static_cast<uint64_t>(lon_enc & 0xffffffu);
+
+  uint8_t raw[6];
+  for (int i = 5; i >= 0; --i) {
+    raw[i] = static_cast<uint8_t>(bits & 0xffu);
+    bits >>= 8u;
+  }
+  return byte_buffer::create(raw, raw + 6).value();
+}
 
 rrc_ssb_mtc ocudu::ocucp::asn1_to_ssb_mtc(const asn1::rrc_nr::ssb_mtc_s& asn1_ssb_mtc)
 {
@@ -950,17 +975,65 @@ ocudu::ocucp::cond_trigger_cfg_to_rrc_asn1(const rrc_cond_trigger_cfg& cond_trig
   const auto& cond_event = cond_trigger_cfg.cond_event_id;
 
   // Convert conditional event based on ID.
+  // event a3
   if (cond_event.id == rrc_event_id::event_id_t::a3) {
-    auto& asn1_cond_event_a3 = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_a3();
-    meas_trigger_quant_to_rrc_asn1(asn1_cond_event_a3.a3_offset, cond_event.meas_trigger_quant_thres_or_offset.value());
-    asn1_cond_event_a3.hysteresis = cond_event.hysteresis;
-    asn1::number_to_enum(asn1_cond_event_a3.time_to_trigger, cond_event.time_to_trigger);
-  } else if (cond_event.id == rrc_event_id::event_id_t::a5) {
-    auto& asn1_cond_event_a5 = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_a5();
-    meas_trigger_quant_to_rrc_asn1(asn1_cond_event_a5.a5_thres1, cond_event.meas_trigger_quant_thres_or_offset.value());
-    meas_trigger_quant_to_rrc_asn1(asn1_cond_event_a5.a5_thres2, cond_event.meas_trigger_quant_thres_2.value());
-    asn1_cond_event_a5.hysteresis = cond_event.hysteresis;
-    asn1::number_to_enum(asn1_cond_event_a5.time_to_trigger, cond_event.time_to_trigger);
+    auto& ev = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_a3();
+    meas_trigger_quant_to_rrc_asn1(ev.a3_offset, cond_event.meas_trigger_quant_thres_or_offset.value());
+    ev.hysteresis = cond_event.hysteresis;
+    asn1::number_to_enum(ev.time_to_trigger, cond_event.time_to_trigger);
+  }
+
+  // event a4
+  if (cond_event.id == rrc_event_id::event_id_t::a4) {
+    auto& ev = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_a4_r17();
+    meas_trigger_quant_to_rrc_asn1(ev.a4_thres_r17, cond_event.meas_trigger_quant_thres_or_offset.value());
+    ev.hysteresis_r17 = cond_event.hysteresis;
+    asn1::number_to_enum(ev.time_to_trigger_r17, cond_event.time_to_trigger);
+  }
+
+  // event a5
+  if (cond_event.id == rrc_event_id::event_id_t::a5) {
+    auto& ev = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_a5();
+    meas_trigger_quant_to_rrc_asn1(ev.a5_thres1, cond_event.meas_trigger_quant_thres_or_offset.value());
+    meas_trigger_quant_to_rrc_asn1(ev.a5_thres2, cond_event.meas_trigger_quant_thres_2.value());
+    ev.hysteresis = cond_event.hysteresis;
+    asn1::number_to_enum(ev.time_to_trigger, cond_event.time_to_trigger);
+  }
+
+  // event d1
+  if (cond_event.id == rrc_event_id::event_id_t::d1) {
+    auto& ev = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_d1_r17();
+    // Convert meters with 50 m steps (round-down).
+    ev.distance_thresh_from_ref1_r17 = static_cast<uint16_t>(cond_event.distance_thresh_from_ref1.value() / 50);
+    ev.distance_thresh_from_ref2_r17 = static_cast<uint16_t>(cond_event.distance_thresh_from_ref2.value() / 50);
+    ev.ref_location1_r17             = pack_ellipsoid_point(cond_event.ref_location1.value());
+    ev.ref_location2_r17             = pack_ellipsoid_point(cond_event.ref_location2.value());
+    // Convert meters with 10 m steps (round-down).
+    ev.hysteresis_location_r17 = static_cast<uint16_t>(cond_event.hysteresis_location.value() / 10);
+    asn1::number_to_enum(ev.time_to_trigger_r17, cond_event.time_to_trigger);
+  }
+
+  // event t1
+  if (cond_event.id == rrc_event_id::event_id_t::t1) {
+    auto& ev = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_t1_r17();
+    // Convert UTC timepoint with 10 ms units since 1900-01-01 00:00:00 UTC.
+    constexpr int64_t ms_between_1900_and_1970 = 2208988800LL * 1000LL;
+    auto              ms_since_unix_epoch =
+        std::chrono::duration_cast<std::chrono::milliseconds>(cond_event.t1_thres.value().time_since_epoch()).count();
+    ev.t1_thres_r17 = static_cast<uint64_t>((ms_since_unix_epoch + ms_between_1900_and_1970) / 10);
+    // Convert ms duration with 100 ms steps (round-down).
+    ev.dur_r17 = static_cast<uint16_t>(cond_event.duration.value() / 100);
+  }
+
+  // event d2
+  if (cond_event.id == rrc_event_id::event_id_t::d2) {
+    auto& ev = asn1_cond_trigger_cfg.cond_event_id.set_cond_event_d2_r18();
+    // Convert meters with 50 m steps (round-down).
+    ev.distance_thresh_from_ref1_r18 = cond_event.distance_thresh_from_ref1.value() / 50;
+    ev.distance_thresh_from_ref2_r18 = cond_event.distance_thresh_from_ref2.value() / 50;
+    // Convert meters with 10 m steps (round-down).
+    ev.hysteresis_location_r18 = static_cast<uint16_t>(cond_event.hysteresis_location.value() / 10);
+    asn1::number_to_enum(ev.time_to_trigger_r18, cond_event.time_to_trigger);
   }
 
   // Set RS type

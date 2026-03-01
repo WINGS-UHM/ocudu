@@ -1,16 +1,9 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
 #include "ocudu/ran/duplex_mode.h"
@@ -66,9 +59,9 @@ protected:
     // Add UE
     auto ue_cfg = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg_builder_params_list[cell_idx],
                                                                                 {LCID_MIN_DRB});
-    ue_cfg.ue_index                   = to_du_ue_index(ue_idx);
-    ue_cfg.crnti                      = get_ue_crnti(ue_idx);
-    (*ue_cfg.cfg.cells)[0].cell_index = to_du_cell_index(cell_idx);
+    ue_cfg.ue_index                                 = to_du_ue_index(ue_idx);
+    ue_cfg.crnti                                    = get_ue_crnti(ue_idx);
+    (*ue_cfg.cfg.cells)[0].serv_cell_cfg.cell_index = to_du_cell_index(cell_idx);
 
     scheduler_test_simulator::add_ue(ue_cfg);
   }

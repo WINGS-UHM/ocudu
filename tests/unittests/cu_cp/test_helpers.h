@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -107,6 +101,14 @@ public:
     });
   }
 
+  async_task<void> on_access_success(const cu_cp_access_success_indication& msg) override
+  {
+    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+      CORO_RETURN();
+    });
+  }
+
 private:
   ocudulog::basic_logger&   logger              = ocudulog::fetch_basic_logger("TEST");
   ue_manager*               ue_mng              = nullptr;
@@ -135,6 +137,13 @@ public:
     last_transaction_id = request.transaction_id;
   }
 
+  void handle_cho_reconfiguration_sent(const cu_cp_cho_target_request& request) override
+  {
+    logger.info("target_ue={} source_ue={}: CHO reconfiguration sent, awaiting completion",
+                request.target_ue_index,
+                request.source_ue_index);
+  }
+
   void handle_handover_ue_context_push(ue_index_t source_ue_index, ue_index_t target_ue_index) override
   {
     logger.info("source_ue={} target_ue={}: Received handover ue context push", source_ue_index, target_ue_index);
@@ -150,6 +159,19 @@ public:
   void initialize_rna_update_timer(ue_index_t ue_index) override
   {
     logger.info("ue={}: Initializing RNA update timer", ue_index);
+  }
+
+  void initialize_cho_execution_timer(ue_index_t source_ue_index, std::chrono::milliseconds timeout) override
+  {
+    logger.info("ue={}: Initializing CHO execution timer (timeout={}ms)", source_ue_index, timeout.count());
+  }
+
+  async_task<void> handle_access_success(const cu_cp_access_success_indication& msg) override
+  {
+    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+      CORO_RETURN();
+    });
   }
 
   unsigned last_transaction_id = 99999;
@@ -683,6 +705,13 @@ public:
     return {test_transaction_id, byte_buffer{}};
   }
 
+  rrc_ue_cond_reconfiguration_context
+  get_rrc_ue_cond_reconfiguration_context(const rrc_reconfiguration_procedure_request& request) override
+  {
+    logger.info("Received a new CHO reconfiguration request (transaction_id={})", test_transaction_id);
+    return {test_transaction_id, byte_buffer{}};
+  }
+
   async_task<bool> handle_handover_reconfiguration_complete_expected(uint8_t                   transaction_id_,
                                                                      std::chrono::milliseconds timeout_ms) override
   {
@@ -819,6 +848,11 @@ public:
 
   // RRC UE capability handler.
   bool is_rrc_inactive_supported() const override { return rrc_inactive_supported; }
+  bool is_conditional_handover_supported() const override { return true; }
+  bool is_conditional_handover_two_trigger_events_supported() const override { return true; }
+  bool is_conditional_handover_event_a4_supported() const override { return true; }
+  bool is_conditional_handover_location_based_supported() const override { return true; }
+  bool is_conditional_handover_time_based_supported() const override { return true; }
 
   // RRC UE Reestablishment proc notifier.
   void on_new_as_security_context() override {}

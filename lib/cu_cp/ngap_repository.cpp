@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_repository.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
@@ -118,4 +112,24 @@ size_t ngap_repository::get_nof_ngap_ues()
     nof_ues += du.second.ngap->get_nof_ues();
   }
   return nof_ues;
+}
+
+std::vector<supported_tracking_area> ngap_repository::get_supported_tracking_areas() const
+{
+  std::vector<supported_tracking_area> supported_tas;
+  for (const auto& ngap : ngap_db) {
+    const auto& ngap_supported_tas = ngap.second.ngap->get_ngap_context().supported_tas;
+    supported_tas.insert(supported_tas.end(), ngap_supported_tas.begin(), ngap_supported_tas.end());
+  }
+  return supported_tas;
+}
+
+std::vector<guami_t> ngap_repository::get_served_guamis() const
+{
+  std::vector<guami_t> served_guamis;
+  for (const auto& ngap : ngap_db) {
+    const auto& ngap_served_guamis = ngap.second.ngap->get_ngap_context().served_guami_list;
+    served_guamis.insert(served_guamis.end(), ngap_served_guamis.begin(), ngap_served_guamis.end());
+  }
+  return served_guamis;
 }

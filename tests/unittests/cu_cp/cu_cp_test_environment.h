@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -17,8 +11,10 @@
 #include "test_doubles/mock_du.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
+#include "tests/unittests/xnap/xnap_test_helpers.h"
 #include "ocudu/cu_cp/cu_cp.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <optional>
 #include <unordered_map>
@@ -94,6 +90,9 @@ public:
   void run_ng_setup();
   /// Drop TNL connection between the AMF and the CU-CP.
   bool drop_amf_connection(unsigned amf_idx);
+  /// Simulate AMF becoming reachable again and complete the NG Setup procedure.
+  /// Returns true if the AMF is successfully reconnected.
+  bool reconnect_amf(unsigned amf_idx);
 
   /// Establish a TNL connection between a DU and the CU-CP.
   std::optional<unsigned> connect_new_du();
@@ -126,7 +125,8 @@ public:
       unsigned                                                  du_idx,
       gnb_du_ue_f1ap_id_t                                       du_ue_id,
       std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
-      bool                                                      rrc_inactive_supported      = true);
+      bool                                                      rrc_inactive_supported      = true,
+      std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt);
   /// Finishes the registration for a given UE.
   [[nodiscard]] bool finish_ue_registration(unsigned du_idx, unsigned cu_up_idx, gnb_du_ue_f1ap_id_t du_ue_id);
   /// Requests PDU Session Resource Setup
@@ -159,7 +159,8 @@ public:
             byte_buffer rrc_setup_complete = test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete()),
             byte_buffer rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
             std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
-            bool                                                      rrc_inactive_supported      = true);
+            bool                                                      rrc_inactive_supported      = true,
+            std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt);
   /// Reestablishes a UE connection, including RRC Reestablishment and RRC Reconfiguration procedures.
   /// \return True if the reestablishment was successful, false if RRC Setup/Reject was performed instead.
   [[nodiscard]] bool reestablish_ue(unsigned            du_idx,
@@ -262,6 +263,9 @@ private:
 
   /// Notifiers for the CU-CP interface.
   std::map<unsigned, cu_cp_test_amf_config> amf_configs;
+
+  // Emulated XnC gateway.
+  std::unique_ptr<dummy_xnc_gateway> xnc_gw;
 
   // Emulated CU-UP nodes.
   std::unordered_map<unsigned, std::unique_ptr<mock_cu_up>> cu_ups;

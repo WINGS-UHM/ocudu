@@ -1,15 +1,8 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_manager_test_helpers.h"
-#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/du/du_high/du_qos_config_helpers.h"
 #include "ocudu/mac/config/mac_cell_group_config_factory.h"
 #include "ocudu/mac/config/mac_config_helpers.h"
@@ -27,7 +20,7 @@ dummy_ue_resource_configurator_factory::dummy_ue_resource_configurator_factory()
   new_srb.rlc_cfg = make_default_srb_rlc_config();
   new_srb.mac_cfg = make_default_srb_mac_lc_config(LCID_SRB1);
   next_context_update_result.cell_group.cells.emplace(SERVING_PCELL_IDX,
-                                                      config_helpers::create_default_initial_ue_spcell_cell_config());
+                                                      config_helpers::create_default_initial_ue_cell_config());
   next_context_update_result.cell_group.mcg_cfg = config_helpers::make_initial_mac_cell_group_config();
   next_context_update_result.cell_group.pcg_cfg = {}; // TODO
 }
@@ -76,8 +69,8 @@ dummy_ue_resource_configurator_factory::create_ue_resource_configurator(du_ue_in
   last_ue_pcell = pcell_index;
   ue_resource_pool.emplace(ue_index, du_ue_resource_config{});
   ue_resource_pool[ue_index].cell_group.cells.emplace(SERVING_PCELL_IDX,
-                                                      config_helpers::create_default_initial_ue_spcell_cell_config());
-  ue_resource_pool[ue_index].cell_group.cells.at(SERVING_PCELL_IDX).cell_index = pcell_index;
+                                                      config_helpers::create_default_initial_ue_cell_config());
+  ue_resource_pool[ue_index].cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.cell_index = pcell_index;
   return ue_ran_resource_configurator{std::make_unique<dummy_resource_updater>(*this, ue_index)};
 }
 

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "dummy_ric.h"
 
@@ -114,7 +108,7 @@ public:
   std::optional<uint16_t> get_listen_port() const override { return sctp_server->get_listen_port(); }
 
   std::unique_ptr<sctp_association_sdu_notifier>
-  create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier) override
+  create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier, sctp_association_info assoc_info) override
   {
     // Create an unpacked E2AP PDU notifier and pass it to the RIC.
     auto e2_sender = std::make_unique<ric_to_gw_pdu_notifier>(std::move(sctp_send_notifier), params.pcap, logger);

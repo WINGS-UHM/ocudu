@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "rar_pdu_assembler.h"
 #include "ocudu/scheduler/result/pdsch_info.h"
@@ -118,7 +112,7 @@ span<const uint8_t> rar_pdu_assembler::encode_rar_pdu(const rar_information& rar
   ocudu_assert(not rar.grants.empty(), "Cannot encode RAR without UL grants");
 
   // Fetch PDU buffer where RAR grant payload is going to be encoded.
-  span<uint8_t> pdu_bytes = pdu_pool.allocate_buffer(rar.pdsch_cfg.codewords[0].tb_size_bytes);
+  span<uint8_t> pdu_bytes = pdu_pool.allocate_buffer(rar.pdsch_cfg.codewords[0].tb_size_bytes.value());
 
   // Encode RAR PDU.
   rar_pdu_encoder pdu_encoder{rar};

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -96,6 +90,15 @@ struct rrc_recfg_v1530_ies {
   // std::optional<rrc_recfg_v1540_ies> non_crit_ext;
 };
 
+using cond_recfg_id_t = ocudu::bounded_integer<uint8_t, 1, 8>;
+
+struct cu_cp_ue_cho_candidate {
+  cond_recfg_id_t     cond_recfg_id;
+  pci_t               target_pci;
+  nr_cell_global_id_t target_cgi;         // Target cell CGI (includes NCI) for measId lookup
+  byte_buffer         prepared_rrc_recfg; // Plain ASN.1-encoded RRC Reconfiguration for target cell
+};
+
 struct rrc_reconfiguration_procedure_request {
   std::optional<rrc_radio_bearer_config> radio_bearer_cfg;
   byte_buffer                            secondary_cell_group;
@@ -103,6 +106,15 @@ struct rrc_reconfiguration_procedure_request {
   // Optional measurement gap config to include in Reconfiguration.
   byte_buffer                        meas_gap_cfg;
   std::optional<rrc_recfg_v1530_ies> non_crit_ext;
+
+  /// When true the message is packed as plain ASN.1 (no DL-DCCH wrapper, no PDCP protection)
+  /// for embedding in condRRCReconfiguration-r16. Default false (regular handover path).
+  bool is_cho_preparation = false;
+  /// CHO-execution fields.
+  std::optional<std::vector<cu_cp_ue_cho_candidate>> cho_candidates;
+  std::optional<cho_meas_id_map_t>                   cho_nci_to_meas_ids; // Maps NCI to measIds for CHO candidates
+  /// Conditional reconfig IDs to remove (CHO cancellation). Adds condRecfgToRemList-r16 when set.
+  std::optional<std::vector<cond_recfg_id_t>> cho_cancellation_ids;
 };
 
 struct rrc_ue_capability_transfer_request {

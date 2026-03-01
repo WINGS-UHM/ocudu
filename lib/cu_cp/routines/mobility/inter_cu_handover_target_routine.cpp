@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "inter_cu_handover_target_routine.h"
 #include "../../cell_meas_manager/cell_meas_manager_impl.h"
@@ -229,6 +223,11 @@ void inter_cu_handover_target_routine::operator()(
 
     // Get RRC Handover Command container.
     handover_command_pdu = ue->get_rrc_ue()->get_rrc_handover_command(rrc_reconfig_args, transaction_id);
+  }
+
+  // Configure location reporting if requested in the handover request.
+  if (request.location_report_request_type.has_value()) {
+    ue->get_location_manager().configure_location_reporting(request.location_report_request_type.value());
   }
 
   CORO_RETURN(generate_handover_resource_allocation_response(true));

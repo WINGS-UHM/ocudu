@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 /// \file
 /// \brief Benchmark for hardware-accelerated PUSCH decoder implementations.
@@ -291,12 +285,12 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
       tbs_config.nof_layers                   = profile.nof_tx_layers;
       tbs_config.nof_symb_sh                  = profile.nof_symbols;
       tbs_config.nof_dmrs_prb = dmrs.nof_dmrs_per_rb() * dmrs_symbol_mask.count() * nof_cdm_groups_without_data;
-      unsigned tbs            = tbs_calculator_calculate(tbs_config);
+      units::bytes tbs        = tbs_calculator_calculate(tbs_config);
 
       // Build the LDPC segmenter configuration.
       segmenter_config config = {};
       config.Nref             = 0;
-      config.base_graph       = get_ldpc_base_graph(mcs.get_normalised_target_code_rate(), units::bits(tbs));
+      config.base_graph       = get_ldpc_base_graph(mcs.get_normalised_target_code_rate(), tbs.to_bits());
       config.mod              = mcs.modulation;
       config.nof_ch_symbols   = profile.nof_symbols * nof_prb * NOF_SUBCARRIERS_PER_RB;
       config.nof_layers       = profile.nof_tx_layers;
@@ -307,7 +301,7 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
       unsigned nof_llr         = config.nof_ch_symbols * bits_per_symbol;
 
       test_case_set.emplace_back(
-          std::tuple<segmenter_config, unsigned, unsigned, unsigned>(config, tbs, nof_llr, nof_prb));
+          std::tuple<segmenter_config, unsigned, unsigned, unsigned>(config, tbs.value(), nof_llr, nof_prb));
     }
   }
   return test_case_set;

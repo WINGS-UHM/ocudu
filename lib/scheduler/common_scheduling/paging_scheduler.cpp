@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "paging_scheduler.h"
 #include "../support/dci_builder.h"
@@ -469,7 +463,7 @@ void paging_scheduler::fill_paging_grant(dl_paging_allocation&            pg_gra
                                          unsigned                         time_resource,
                                          const std::vector<ue_paging_id>& ue_paging_ids,
                                          const dmrs_information&          dmrs_info,
-                                         unsigned                         tbs)
+                                         units::bytes                     tbs)
 {
   // Fill Paging DCI.
   build_dci_f1_0_p_rnti(

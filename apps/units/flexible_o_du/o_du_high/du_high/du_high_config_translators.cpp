@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_high_config_translators.h"
 #include "apps/services/worker_manager/worker_manager_config.h"
@@ -245,9 +239,15 @@ static sib16_info create_sib16_info(const du_high_unit_sib_config::sib16_config&
 static sib19_info create_sib19_info(const du_high_unit_cell_ntn_config& config)
 {
   sib19_info sib19;
-  sib19.distance_thres = config.distance_threshold;
-  sib19.ref_location   = config.reference_location;
   sib19.t_service      = config.t_service;
+  sib19.ref_location   = config.reference_location;
+  sib19.distance_thres = config.distance_threshold;
+  for (const auto& ncell : config.ncells) {
+    sib19.ncells.push_back(ncell);
+  }
+  sib19.moving_ref_location    = config.moving_ref_location;
+  sib19.sat_switch_with_resync = config.sat_switch_with_resync;
+
   sib19.ntn_cfg.emplace();
   sib19.ntn_cfg->cell_specific_koffset    = config.cell_specific_koffset;
   sib19.ntn_cfg->ephemeris_info           = config.ephemeris_info;

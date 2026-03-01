@@ -6,6 +6,7 @@
 
 #include "../cell/resource_grid.h"
 #include "../config/cell_configuration.h"
+#include "../support/pucch/pucch_collision_info.h"
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/adt/expected.h"
 #include "ocudu/adt/slotted_array.h"
@@ -13,59 +14,13 @@
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
 #include "ocudu/ran/slot_point.h"
-#include <optional>
 
 namespace ocudu {
 
 namespace detail {
 
-/// Represents the time-frequency grants of a PUCCH resource.
-struct pucch_grants {
-  /// Time-frequency grants of the first hop.
-  grant_info first_hop;
-  /// Time-frequency grant of the second hop (if intra-slot frequency hopping is enabled).
-  std::optional<grant_info> second_hop;
-
-  bool operator==(const pucch_grants& other) const
-  {
-    return first_hop == other.first_hop and second_hop == other.second_hop;
-  }
-  bool operator!=(const pucch_grants& other) const { return not(*this == other); }
-
-  /// Checks if this pucch_grants overlaps with another pucch_grants.
-  bool overlaps(const pucch_grants& other) const
-  {
-    // Check if the first grant overlaps with any of the other's grants.
-    if (first_hop.overlaps(other.first_hop) or
-        (other.second_hop.has_value() and first_hop.overlaps(*other.second_hop))) {
-      return true;
-    }
-    // Check if the second grant (if any) overlaps with any of the other's grants.
-    if (second_hop.has_value() and (second_hop->overlaps(other.first_hop) or
-                                    (other.second_hop.has_value() and second_hop->overlaps(*other.second_hop)))) {
-      return true;
-    }
-    return false;
-  }
-};
-
-/// Represents the relevant information of a PUCCH resource for collision checking.
-struct resource_info {
-  /// PUCCH format of the resource.
-  pucch_format format;
-  /// Multiplexing index of the resource. Resources with different multiplexing indices are orthogonal and do not
-  /// collide. It is computed from different parameters depending on the format:
-  ///  - Format 0: initial cyclic shift.
-  ///  - Format 1: initial cyclic shift, time domain OCC index.
-  ///  - Format 2/3: not multiplexed (always 0).
-  ///  - Format 4: OCC index.
-  unsigned multiplexing_index;
-  /// Time-frequency grants of the resource.
-  pucch_grants grants;
-};
-
 /// \brief List of all PUCCH resources (common + dedicated) in the cell configuration.
-using cell_resource_list = static_vector<resource_info, pucch_constants::MAX_NOF_TOT_CELL_RESOURCES>;
+using cell_resource_list = static_vector<pucch_collision_info, pucch_constants::MAX_NOF_TOT_CELL_RESOURCES>;
 
 /// Compute the collision matrix for all PUCCH resources in the cell configuration.
 cell_resource_list make_cell_resource_list(const cell_configuration& cell_cfg);

@@ -19,6 +19,7 @@ def add_user(imsi, key="00112233445566778899aabbccddeeff", op=None,
     slice_data = [
         {
             "sst": 1,
+            "sd": "ffffff",
             "default_indicator": True,
             "session": [
                 {

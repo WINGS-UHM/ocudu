@@ -5,9 +5,11 @@
 #pragma once
 
 #include "ocudu/adt/bounded_integer.h"
+#include "ocudu/adt/strong_type.h"
 #include "ocudu/ran/frame_types.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
 #include <optional>
 #include <variant>
 
@@ -121,11 +123,14 @@ struct pucch_f4_params {
 
 // Strong types for UCI specific PUCCH resource IDs.
 struct pucch_resource_set_config_id_tag;
-using pucch_resource_set_config_id = strong_type<uint8_t, struct pucch_res_set_cfg_id_tag, strong_equality>;
+using pucch_resource_set_config_id =
+    strong_type<uint8_t, struct pucch_res_set_cfg_id_tag, strong_equality, strong_increment_decrement>;
 struct pucch_sr_resource_id_tag;
-using pucch_sr_resource_id = strong_type<uint8_t, struct pucch_sr_resource_id_tag, strong_equality>;
+using pucch_sr_resource_id =
+    strong_type<uint8_t, struct pucch_sr_resource_id_tag, strong_equality, strong_increment_decrement>;
 struct pucch_csi_resource_id_tag;
-using pucch_csi_resource_id = strong_type<uint8_t, struct pucch_csi_resource_id_tag, strong_equality>;
+using pucch_csi_resource_id =
+    strong_type<uint8_t, struct pucch_csi_resource_id_tag, strong_equality, strong_increment_decrement>;
 
 /// \brief Parameters for PUCCH configuration.
 /// Defines the parameters that are used for the PUCCH configuration builder. These parameters are used to define the
@@ -162,6 +167,24 @@ struct pucch_resource_builder_params {
   ///         the PUCCH resources do not overlap in symbols with the SRS resources.
   /// \remark This parameter should be computed by the GNB and not exposed to the user configuration interface.
   bounded_integer<unsigned, 1, 14> max_nof_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
+
+  /// Get the PUCCH format used for Resource Set ID 0 and SR resources.
+  pucch_format format_01() const
+  {
+    return std::holds_alternative<pucch_f0_params>(f0_or_f1_params) ? pucch_format::FORMAT_0 : pucch_format::FORMAT_1;
+  }
+
+  /// Get the PUCCH format used for Resource Set ID 1 and CSI resources.
+  pucch_format format_234() const
+  {
+    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
+      return pucch_format::FORMAT_2;
+    }
+    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
+      return pucch_format::FORMAT_3;
+    }
+    return pucch_format::FORMAT_4;
+  }
 
   // \brief Get the position of a given Resource Set ID 0 resource in the cell PUCCH resource list.
   //
@@ -225,6 +248,63 @@ struct pucch_resource_builder_params {
                  nof_cell_csi_resources);
     return nof_cell_res_set_configs * res_set_0_size.value() + nof_cell_sr_resources +
            nof_cell_res_set_configs * res_set_1_size.value() + csi_res_id.value();
+  }
+
+  // \brief Get the position of a given Resource Set ID 0 resource in the UE PUCCH resource list.
+  //
+  // \param pri The index of the resource within the resource set.
+  // \return The index of the PUCCH resource in the UE PUCCH resource list.
+  unsigned get_res_set_0_ue_res_idx(unsigned pri) const
+  {
+    ocudu_assert(pri < res_set_0_size.value(),
+                 "Resource index={} exceeds configured resource set size={}",
+                 pri,
+                 res_set_0_size.value());
+    return pri;
+  }
+
+  // \brief Get the position of a given Resource Set ID 1 resource in the UE PUCCH resource list.
+  //
+  // \param pri The index of the resource within the resource set.
+  // \return The index of the PUCCH resource in the UE PUCCH resource list.
+  unsigned get_res_set_1_ue_res_idx(unsigned pri) const
+  {
+    ocudu_assert(pri < res_set_1_size.value(),
+                 "Resource index={} exceeds configured resource set size={}",
+                 pri,
+                 res_set_0_size.value());
+    static constexpr unsigned nof_sr_res_per_ue = 1;
+    if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
+      // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).
+      return res_set_0_size.value() + nof_sr_res_per_ue + pri + 1U;
+    }
+    return res_set_0_size.value() + nof_sr_res_per_ue + pri;
+  }
+
+  // \brief Get the position of the SR resource in the UE PUCCH resource list.
+  //
+  // \return The index of the PUCCH resource in the UE PUCCH resource list.
+  unsigned get_sr_ue_res_idx() const
+  {
+    if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
+      // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).
+      return res_set_0_size.value() + 1U;
+    }
+    return res_set_0_size.value();
+  }
+
+  // \brief Get the position of the CSI resource in the UE PUCCH resource list.
+  //
+  // \return The index of the PUCCH resource in the UE PUCCH resource list.
+  unsigned get_csi_ue_res_idx() const
+  {
+    static constexpr unsigned nof_sr_res_per_ue = 1;
+
+    if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
+      // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).
+      return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value() + 1U;
+    }
+    return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value();
   }
 };
 

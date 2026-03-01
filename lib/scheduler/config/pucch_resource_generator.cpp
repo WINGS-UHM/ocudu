@@ -3,12 +3,15 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
-#include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
+#include "ocudu/support/math/math_utils.h"
+#include <variant>
 
 using namespace ocudu;
 using namespace config_helpers;
@@ -532,64 +535,56 @@ static std::vector<pucch_grant> compute_f4_res(unsigned                         
   return res_list;
 }
 
-error_type<std::string> config_helpers::pucch_parameters_validator(
-    unsigned                                                               nof_res_f0_f1,
-    unsigned                                                               nof_res_f2_f3_f4,
-    const std::variant<pucch_f1_params, pucch_f0_params>&                  f0_f1_params,
-    const std::variant<pucch_f2_params, pucch_f3_params, pucch_f4_params>& f2_f3_f4_params,
-    unsigned                                                               bwp_size_rbs,
-    bounded_integer<unsigned, 1, 14>                                       max_nof_symbols)
+error_type<std::string> config_helpers::pucch_parameters_validator(const pucch_resource_builder_params& params,
+                                                                   unsigned                             bwp_size_rbs)
 {
-  const bool has_f0        = std::holds_alternative<pucch_f0_params>(f0_f1_params);
-  unsigned   nof_f0_f1_rbs = 0;
-
-  if (nof_res_f0_f1 == 0 || nof_res_f2_f3_f4 == 0) {
-    return make_unexpected("The number of F0/F1 resources and F2/F3/F4 resources must be greater than zero.");
+  if (params.nof_cell_sr_resources == 0) {
+    return make_unexpected("The number of PUCCH SR resources must be greater than zero.");
+  }
+  if (params.nof_cell_res_set_configs == 0) {
+    return make_unexpected("The number of PUCCH resource set configurations must be greater than zero.");
   }
 
-  if (has_f0) {
-    const auto& f0_params = std::get<pucch_f0_params>(f0_f1_params);
-    // > If intraslot_freq_hopping is enabled, check if PUCCH Format 0 has more than symbol.
-    if (has_f0 and f0_params.intraslot_freq_hopping and f0_params.nof_syms == 1) {
+  const unsigned max_nof_symbols = params.max_nof_symbols.value();
+
+  const unsigned nof_res_f0_f1 =
+      params.nof_cell_sr_resources + params.nof_cell_res_set_configs * params.res_set_0_size.value();
+  unsigned nof_rbs_f0_f1;
+  if (std::holds_alternative<pucch_f0_params>(params.f0_or_f1_params)) {
+    const auto& f0_params = std::get<pucch_f0_params>(params.f0_or_f1_params);
+    if (f0_params.intraslot_freq_hopping and f0_params.nof_syms == 1) {
       return make_unexpected("Intra-slot frequency hopping for PUCCH Format 0 requires 2 symbols");
     }
 
-    // We define a block as a set of Resources (either F0/F1 or F2/F3) aligned over the same starting PRB.
-    const unsigned nof_f0_per_block = max_nof_symbols.value() / f0_params.nof_syms.value();
-    nof_f0_f1_rbs =
-        static_cast<unsigned>(std::ceil(static_cast<float>(nof_res_f0_f1) / static_cast<float>(nof_f0_per_block)));
-    // With intraslot_freq_hopping, the nof of RBs is an even number.
-    if (f0_params.intraslot_freq_hopping) {
-      nof_f0_f1_rbs = static_cast<unsigned>(std::ceil(static_cast<float>(nof_f0_f1_rbs) / 2.0F)) * 2;
+    const unsigned nof_f0_res_per_rb = max_nof_symbols / f0_params.nof_syms.value();
+    nof_rbs_f0_f1                    = divide_ceil(nof_res_f0_f1, nof_f0_res_per_rb);
+    // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
+    if (f0_params.intraslot_freq_hopping and (nof_rbs_f0_f1 & 1) != 0) {
+      nof_rbs_f0_f1 += 1;
     }
   } else {
-    const auto& f1_params = std::get<pucch_f1_params>(f0_f1_params);
-    if (f1_params.nof_syms.value() > max_nof_symbols.value()) {
+    const auto& f1_params = std::get<pucch_f1_params>(params.f0_or_f1_params);
+    if (f1_params.nof_syms > max_nof_symbols) {
       return make_unexpected("The number of symbols for PUCCH Format 1 exceeds the maximum number of symbols available "
                              "for PUCCH resources");
     }
 
-    // > Compute the number of RBs required for the PUCCH Format 1 resources.
     const unsigned nof_occ_codes = f1_params.occ_supported ? format1_symb_to_spreading_factor(f1_params.nof_syms) : 1;
-
-    // We define a block as a set of Resources (either F0/F1 or F2/F3) aligned over the same starting PRB.
-    const unsigned nof_f1_per_block = nof_occ_codes * format1_cp_step_to_uint(f1_params.nof_cyc_shifts) *
-                                      (max_nof_symbols.value() / f1_params.nof_syms.value());
-    nof_f0_f1_rbs =
-        static_cast<unsigned>(std::ceil(static_cast<float>(nof_res_f0_f1) / static_cast<float>(nof_f1_per_block)));
-    // With intraslot_freq_hopping, the nof of RBs is an even number.
-    if (f1_params.intraslot_freq_hopping) {
-      nof_f0_f1_rbs = static_cast<unsigned>(std::ceil(static_cast<float>(nof_f0_f1_rbs) / 2.0F)) * 2;
+    const unsigned nof_css       = format1_cp_step_to_uint(f1_params.nof_cyc_shifts);
+    const unsigned nof_f1_res_per_rb = nof_occ_codes * nof_css * (max_nof_symbols / f1_params.nof_syms.value());
+    nof_rbs_f0_f1                    = divide_ceil(nof_res_f0_f1, nof_f1_res_per_rb);
+    // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
+    if (f1_params.intraslot_freq_hopping and (nof_rbs_f0_f1 & 1) != 0) {
+      nof_rbs_f0_f1 += 1;
     }
   }
 
-  unsigned nof_f2_f3_f4_rbs = 0;
+  const unsigned nof_res_f2_f3_f4 =
+      params.nof_cell_csi_resources + params.nof_cell_res_set_configs * params.res_set_1_size.value();
+  unsigned nof_rbs_f2_f3_f4;
+  if (std::holds_alternative<pucch_f2_params>(params.f2_or_f3_or_f4_params)) {
+    const auto& f2_params = std::get<pucch_f2_params>(params.f2_or_f3_or_f4_params);
 
-  if (std::holds_alternative<pucch_f2_params>(f2_f3_f4_params)) {
-    // PUCCH Format 2.
-    const auto& f2_params = std::get<pucch_f2_params>(f2_f3_f4_params);
-
-    // > If intraslot_freq_hopping is enabled, check if PUCCH Format 2 has more than symbol.
     if (f2_params.intraslot_freq_hopping and f2_params.nof_syms == 1) {
       return make_unexpected("Intra-slot frequency hopping for PUCCH Format 2 requires 2 symbols");
     }
@@ -599,25 +594,20 @@ error_type<std::string> config_helpers::pucch_parameters_validator(
                                                                      f2_params.nof_syms.value(),
                                                                      to_max_code_rate_float(f2_params.max_code_rate))
                                     : f2_params.max_nof_rbs.value();
-
     if (f2_max_rbs > pucch_constants::f2::NOF_RBS.stop()) {
-      return make_unexpected("The number of PRBs for PUCCH Format 2 exceeds the limit of 16");
+      return make_unexpected("The configured maximum number of RBs for PUCCH Format 2 exceeds the limit of 16");
     }
 
-    // We define a block as a set of Resources (either F0/F1 or F2/F3) aligned over the same starting PRB.
-    const unsigned nof_f2_blocks = max_nof_symbols.value() / f2_params.nof_syms.value();
-    nof_f2_f3_f4_rbs =
-        static_cast<unsigned>(std::ceil(static_cast<float>(nof_res_f2_f3_f4) / static_cast<float>(nof_f2_blocks))) *
-        f2_max_rbs;
-    // With intraslot_freq_hopping, the nof of RBs is an even number of the PUCCH resource size in RB.
-    if (f2_params.intraslot_freq_hopping) {
-      nof_f2_f3_f4_rbs = static_cast<unsigned>(std::ceil(static_cast<float>(nof_f2_f3_f4_rbs) / 2.0F)) * 2;
+    const unsigned nof_f2_res_per_rb = params.max_nof_symbols.value() / f2_params.nof_syms.value();
+    nof_rbs_f2_f3_f4                 = divide_ceil(nof_res_f2_f3_f4, nof_f2_res_per_rb) * f2_max_rbs;
+    // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
+    if (f2_params.intraslot_freq_hopping and (nof_rbs_f2_f3_f4 & 1) != 0) {
+      nof_rbs_f2_f3_f4 += 1;
     }
-  } else if (std::holds_alternative<pucch_f3_params>(f2_f3_f4_params)) {
-    // PUCCH Format 3.
-    const auto& f3_params = std::get<pucch_f3_params>(f2_f3_f4_params);
+  } else if (std::holds_alternative<pucch_f3_params>(params.f2_or_f3_or_f4_params)) {
+    const auto& f3_params = std::get<pucch_f3_params>(params.f2_or_f3_or_f4_params);
 
-    if (f3_params.nof_syms.value() > max_nof_symbols.value()) {
+    if (f3_params.nof_syms.value() > max_nof_symbols) {
       return make_unexpected("The number of symbols for PUCCH Format 3 exceeds the maximum number of symbols available "
                              "for PUCCH resources");
     }
@@ -630,64 +620,55 @@ error_type<std::string> config_helpers::pucch_parameters_validator(
                                                                      f3_params.additional_dmrs,
                                                                      f3_params.pi2_bpsk)
                                     : f3_params.max_nof_rbs.value();
-
     if (f3_max_rbs > pucch_constants::f3::NOF_RBS.stop()) {
       return make_unexpected("The number of PRBs for PUCCH Format 3 exceeds the limit of 16");
     }
 
-    const unsigned nof_f3_blocks = max_nof_symbols.value() / f3_params.nof_syms.value();
-    nof_f2_f3_f4_rbs =
-        static_cast<unsigned>(std::ceil(static_cast<float>(nof_res_f2_f3_f4) / static_cast<float>(nof_f3_blocks))) *
-        f3_max_rbs;
-    // With intraslot_freq_hopping, the nof of RBs is an even number of the PUCCH resource size in RB.
-    if (f3_params.intraslot_freq_hopping) {
-      nof_f2_f3_f4_rbs = static_cast<unsigned>(std::ceil(static_cast<float>(nof_f2_f3_f4_rbs) / 2.0F)) * 2;
+    const unsigned nof_f3_res_per_rb = max_nof_symbols / f3_params.nof_syms.value();
+    nof_rbs_f2_f3_f4                 = divide_ceil(nof_res_f2_f3_f4, nof_f3_res_per_rb) * f3_max_rbs;
+    // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
+    if (f3_params.intraslot_freq_hopping and (nof_rbs_f2_f3_f4 & 1) != 0) {
+      nof_rbs_f2_f3_f4 += 1;
     }
   } else {
-    // PUCCH Format 4.
-    const auto& f4_params = std::get<pucch_f4_params>(f2_f3_f4_params);
+    const auto& f4_params = std::get<pucch_f4_params>(params.f2_or_f3_or_f4_params);
 
-    const unsigned nof_occs      = f4_params.occ_supported ? static_cast<unsigned>(f4_params.occ_length) : 1U;
-    const unsigned nof_f4_blocks = nof_occs * max_nof_symbols.value() / f4_params.nof_syms.value();
-    nof_f2_f3_f4_rbs =
-        static_cast<unsigned>(std::ceil(static_cast<float>(nof_res_f2_f3_f4) / static_cast<float>(nof_f4_blocks)));
-    // With intraslot_freq_hopping, the nof of RBs is an even number of the PUCCH resource size in RB.
-    if (f4_params.intraslot_freq_hopping) {
-      nof_f2_f3_f4_rbs = static_cast<unsigned>(std::ceil(static_cast<float>(nof_f2_f3_f4_rbs) / 2.0F)) * 2;
+    const unsigned nof_occs          = f4_params.occ_supported ? static_cast<unsigned>(f4_params.occ_length) : 1U;
+    const unsigned nof_f4_res_per_rb = nof_occs * max_nof_symbols / f4_params.nof_syms.value();
+    nof_rbs_f2_f3_f4                 = divide_ceil(nof_res_f2_f3_f4, nof_f4_res_per_rb);
+    // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
+    if (f4_params.intraslot_freq_hopping and (nof_rbs_f2_f3_f4 & 1) != 0) {
+      nof_rbs_f2_f3_f4 += 1;
     }
   }
 
   // Verify the number of RBs for the PUCCH resources does not exceed the BWP size.
-  // [Implementation-defined] We do not allow the PUCCH resources to occupy more than 50% of the BWP. This is an extreme
-  // case, and ideally the PUCCH configuration should result in a much lower PRBs usage.
-  constexpr float max_allowed_prbs_usage = 0.5F;
-  if (static_cast<float>(nof_f0_f1_rbs + nof_f2_f3_f4_rbs) / static_cast<float>(bwp_size_rbs) >=
-      max_allowed_prbs_usage) {
+  // [Implementation-defined] We do not allow the PUCCH resources to occupy more than 50% of the BWP. This is an
+  // extreme case, and ideally the PUCCH configuration should result in a much lower PRBs usage.
+  static constexpr float max_allowed_rb_usage = 0.5F;
+  if (nof_rbs_f0_f1 + nof_rbs_f2_f3_f4 >= max_allowed_rb_usage * bwp_size_rbs) {
     return make_unexpected("With the given parameters, the number of PRBs for PUCCH exceeds the 50% of the BWP PRBs");
   }
-
   return {};
 }
 
 static std::vector<pucch_resource>
-merge_f0_f1_f2_f3_f4_resource_lists(const std::vector<pucch_grant>& pucch_f0_f1_resource_list,
-                                    const std::vector<pucch_grant>& pucch_f2_f3_f4_resource_list,
-                                    std::optional<unsigned>         nof_cs,
-                                    unsigned                        bwp_size_rbs,
-                                    pucch_f4_occ_len                f4_occ_len)
+merge_f0_f1_f2_f3_f4_resource_lists(const std::vector<pucch_grant>&      pucch_f0_f1_resource_list,
+                                    const std::vector<pucch_grant>&      pucch_f2_f3_f4_resource_list,
+                                    const pucch_resource_builder_params& params,
+                                    unsigned                             bwp_size_rbs)
 {
-  // This function merges the lists of PUCCH F0/F1 and F2/F3/F4 resource. It first allocates the F0/F1 resources on the
-  // sides of the BWP; second, it allocates the F2/F3/F4 resources beside F0/F1 ones.
+  // This function merges the lists of PUCCH F0/F1 and F2/F3/F4 resource. It first allocates the F0/F1 resources on
+  // the sides of the BWP; second, it allocates the F2/F3/F4 resources beside F0/F1 ones.
   std::vector<pucch_resource> resource_list;
-  const bool                  has_f0 = not nof_cs.has_value();
 
   // NOTE: PUCCH F0/F1 resource are located at the sides of the BWP. PUCCH F2/F3/F4 are located beside the F0/F1
-  // resources, specifically on F0/F1's right (on the frequency axis) for frequencies < BWP/2, and F0/F1's left (on the
-  // frequency axis) for frequencies > BWP/2 and < BWP.
+  // resources, specifically on F0/F1's right (on the frequency axis) for frequencies < BWP/2, and F0/F1's left (on
+  // the frequency axis) for frequencies > BWP/2 and < BWP.
   unsigned f0_f1_rbs_occupancy_low_freq = 0;
   unsigned f0_f1_rbs_occupancy_hi_freq  = 0;
 
-  if (has_f0) {
+  if (std::holds_alternative<pucch_f0_params>(params.f0_or_f1_params)) {
     for (const auto& res_f0 : pucch_f0_f1_resource_list) {
       auto res_id = static_cast<unsigned>(resource_list.size());
       // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the DU
@@ -761,169 +742,153 @@ merge_f0_f1_f2_f3_f4_resource_lists(const std::vector<pucch_grant>& pucch_f0_f1_
       res.starting_sym_idx = res_f1.symbols.start();
       ocudu_assert(res_f1.occ_cs_idx.has_value(),
                    "The index needed to compute OCC code and cyclic shift have not been found");
-      format1.initial_cyclic_shift = occ_cs_index_to_cyclic_shift(res_f1.occ_cs_idx.value(), nof_cs.value());
-      format1.time_domain_occ      = occ_cs_index_to_occ(res_f1.occ_cs_idx.value(), nof_cs.value());
+      const auto&    f1_params     = std::get<pucch_f1_params>(params.f0_or_f1_params);
+      const unsigned nof_css       = format1_cp_step_to_uint(f1_params.nof_cyc_shifts);
+      format1.initial_cyclic_shift = occ_cs_index_to_cyclic_shift(res_f1.occ_cs_idx.value(), nof_css);
+      format1.time_domain_occ      = occ_cs_index_to_occ(res_f1.occ_cs_idx.value(), nof_css);
       res.format_params.emplace<pucch_format_1_cfg>(format1);
       res.format = pucch_format::FORMAT_1;
       resource_list.emplace_back(res);
     }
   }
 
-  // The resource lists can't be empty as validated by `pucch_parameters_validator`.
-  const pucch_format set1_format = pucch_f2_f3_f4_resource_list[0].format;
-
-  switch (set1_format) {
-    case pucch_format::FORMAT_2: {
-      for (const auto& res_f2 : pucch_f2_f3_f4_resource_list) {
-        auto res_id = static_cast<unsigned>(resource_list.size());
-        // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the DU
-        // before assigning the resources to the UE.
-        pucch_resource res{.res_id = {res_id, 0}};
-        // Shift F2 RBs depending on previously allocated F0/F1 resources.
-        if (res_f2.prbs.start() < bwp_size_rbs / 2 - res_f2.prbs.length()) {
-          res.starting_prb = res_f2.prbs.start() + f0_f1_rbs_occupancy_low_freq;
-          if (res_f2.freq_hop_grant.has_value()) {
-            res.second_hop_prb.emplace(res_f2.freq_hop_grant.value().start() - f0_f1_rbs_occupancy_hi_freq);
-          }
-        } else if (res_f2.prbs.start() > bwp_size_rbs / 2) {
-          res.starting_prb = res_f2.prbs.start() - f0_f1_rbs_occupancy_hi_freq;
-          if (res_f2.freq_hop_grant.has_value()) {
-            res.second_hop_prb.emplace(res_f2.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
-          }
-        } else {
-          ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
-          return {};
+  if (std::holds_alternative<pucch_f2_params>(params.f2_or_f3_or_f4_params)) {
+    for (const auto& res_f2 : pucch_f2_f3_f4_resource_list) {
+      auto res_id = static_cast<unsigned>(resource_list.size());
+      // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the
+      // DU before assigning the resources to the UE.
+      pucch_resource res{.res_id = {res_id, 0}};
+      // Shift F2 RBs depending on previously allocated F0/F1 resources.
+      if (res_f2.prbs.start() < bwp_size_rbs / 2 - res_f2.prbs.length()) {
+        res.starting_prb = res_f2.prbs.start() + f0_f1_rbs_occupancy_low_freq;
+        if (res_f2.freq_hop_grant.has_value()) {
+          res.second_hop_prb.emplace(res_f2.freq_hop_grant.value().start() - f0_f1_rbs_occupancy_hi_freq);
         }
-
-        res.nof_symbols      = res_f2.symbols.length();
-        res.starting_sym_idx = res_f2.symbols.start();
-        pucch_format_2_3_cfg format2;
-        format2.nof_prbs = res_f2.prbs.length();
-        res.format_params.emplace<pucch_format_2_3_cfg>(format2);
-        res.format = pucch_format::FORMAT_2;
-        resource_list.emplace_back(res);
-      }
-    } break;
-    case pucch_format::FORMAT_3: {
-      for (const auto& res_f3 : pucch_f2_f3_f4_resource_list) {
-        auto res_id = static_cast<unsigned>(resource_list.size());
-        // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the DU
-        // before assigning the resources to the UE.
-        pucch_resource res{.res_id = {res_id, 0}};
-        // Shift F3 RBs depending on previously allocated F0/F1 resources.
-        if (res_f3.prbs.start() < bwp_size_rbs / 2 - res_f3.prbs.length()) {
-          res.starting_prb = res_f3.prbs.start() + f0_f1_rbs_occupancy_low_freq;
-          if (res_f3.freq_hop_grant.has_value()) {
-            res.second_hop_prb.emplace(res_f3.freq_hop_grant.value().start() - f0_f1_rbs_occupancy_hi_freq);
-          }
-        } else if (res_f3.prbs.start() > bwp_size_rbs / 2) {
-          res.starting_prb = res_f3.prbs.start() - f0_f1_rbs_occupancy_hi_freq;
-          if (res_f3.freq_hop_grant.has_value()) {
-            res.second_hop_prb.emplace(res_f3.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
-          }
-        } else {
-          ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
-          return {};
+      } else if (res_f2.prbs.start() > bwp_size_rbs / 2) {
+        res.starting_prb = res_f2.prbs.start() - f0_f1_rbs_occupancy_hi_freq;
+        if (res_f2.freq_hop_grant.has_value()) {
+          res.second_hop_prb.emplace(res_f2.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
         }
-
-        res.nof_symbols      = res_f3.symbols.length();
-        res.starting_sym_idx = res_f3.symbols.start();
-        pucch_format_2_3_cfg format3;
-        format3.nof_prbs = res_f3.prbs.length();
-        res.format_params.emplace<pucch_format_2_3_cfg>(format3);
-        res.format = pucch_format::FORMAT_3;
-        resource_list.emplace_back(res);
+      } else {
+        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
+        return {};
       }
-    } break;
-    case pucch_format::FORMAT_4: {
-      for (const auto& res_f4 : pucch_f2_f3_f4_resource_list) {
-        auto res_id = static_cast<unsigned>(resource_list.size());
-        // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the DU
-        // before assigning the resources to the UE.
-        pucch_resource res{.res_id = {res_id, 0}};
-        // Shift F4 RBs depending on previously allocated F0/F1 resources.
-        if (res_f4.prbs.start() < bwp_size_rbs / 2 - res_f4.prbs.length()) {
-          res.starting_prb = res_f4.prbs.start() + f0_f1_rbs_occupancy_low_freq;
-          if (res_f4.freq_hop_grant.has_value()) {
-            res.second_hop_prb.emplace(res_f4.freq_hop_grant.value().start() - f0_f1_rbs_occupancy_hi_freq);
-          }
-        } else if (res_f4.prbs.start() > bwp_size_rbs / 2) {
-          res.starting_prb = res_f4.prbs.start() - f0_f1_rbs_occupancy_hi_freq;
-          if (res_f4.freq_hop_grant.has_value()) {
-            res.second_hop_prb.emplace(res_f4.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
-          }
-        } else {
-          ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
-          return {};
+
+      res.nof_symbols      = res_f2.symbols.length();
+      res.starting_sym_idx = res_f2.symbols.start();
+      pucch_format_2_3_cfg format2;
+      format2.nof_prbs = res_f2.prbs.length();
+      res.format_params.emplace<pucch_format_2_3_cfg>(format2);
+      res.format = pucch_format::FORMAT_2;
+      resource_list.emplace_back(res);
+    }
+  } else if (std::holds_alternative<pucch_f3_params>(params.f2_or_f3_or_f4_params)) {
+    for (const auto& res_f3 : pucch_f2_f3_f4_resource_list) {
+      auto res_id = static_cast<unsigned>(resource_list.size());
+      // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the
+      // DU before assigning the resources to the UE.
+      pucch_resource res{.res_id = {res_id, 0}};
+      // Shift F3 RBs depending on previously allocated F0/F1 resources.
+      if (res_f3.prbs.start() < bwp_size_rbs / 2 - res_f3.prbs.length()) {
+        res.starting_prb = res_f3.prbs.start() + f0_f1_rbs_occupancy_low_freq;
+        if (res_f3.freq_hop_grant.has_value()) {
+          res.second_hop_prb.emplace(res_f3.freq_hop_grant.value().start() - f0_f1_rbs_occupancy_hi_freq);
         }
-
-        res.nof_symbols      = res_f4.symbols.length();
-        res.starting_sym_idx = res_f4.symbols.start();
-        pucch_format_4_cfg format4;
-        format4.occ_length = f4_occ_len;
-        format4.occ_index  = occ_cs_index_to_f4_occ(res_f4.occ_cs_idx.value());
-        res.format_params.emplace<pucch_format_4_cfg>(format4);
-        res.format = pucch_format::FORMAT_4;
-        resource_list.emplace_back(res);
+      } else if (res_f3.prbs.start() > bwp_size_rbs / 2) {
+        res.starting_prb = res_f3.prbs.start() - f0_f1_rbs_occupancy_hi_freq;
+        if (res_f3.freq_hop_grant.has_value()) {
+          res.second_hop_prb.emplace(res_f3.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
+        }
+      } else {
+        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
+        return {};
       }
-    } break;
-    default:
-      break;
+
+      res.nof_symbols      = res_f3.symbols.length();
+      res.starting_sym_idx = res_f3.symbols.start();
+      pucch_format_2_3_cfg format3;
+      format3.nof_prbs = res_f3.prbs.length();
+      res.format_params.emplace<pucch_format_2_3_cfg>(format3);
+      res.format = pucch_format::FORMAT_3;
+      resource_list.emplace_back(res);
+    }
+  } else {
+    for (const auto& res_f4 : pucch_f2_f3_f4_resource_list) {
+      auto res_id = static_cast<unsigned>(resource_list.size());
+      // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the
+      // DU before assigning the resources to the UE.
+      pucch_resource res{.res_id = {res_id, 0}};
+      // Shift F4 RBs depending on previously allocated F0/F1 resources.
+      if (res_f4.prbs.start() < bwp_size_rbs / 2 - res_f4.prbs.length()) {
+        res.starting_prb = res_f4.prbs.start() + f0_f1_rbs_occupancy_low_freq;
+        if (res_f4.freq_hop_grant.has_value()) {
+          res.second_hop_prb.emplace(res_f4.freq_hop_grant.value().start() - f0_f1_rbs_occupancy_hi_freq);
+        }
+      } else if (res_f4.prbs.start() > bwp_size_rbs / 2) {
+        res.starting_prb = res_f4.prbs.start() - f0_f1_rbs_occupancy_hi_freq;
+        if (res_f4.freq_hop_grant.has_value()) {
+          res.second_hop_prb.emplace(res_f4.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
+        }
+      } else {
+        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
+        return {};
+      }
+
+      res.nof_symbols      = res_f4.symbols.length();
+      res.starting_sym_idx = res_f4.symbols.start();
+
+      const auto&        f4_params = std::get<pucch_f4_params>(params.f2_or_f3_or_f4_params);
+      pucch_format_4_cfg format4;
+      format4.occ_length = f4_params.occ_length;
+      format4.occ_index  = occ_cs_index_to_f4_occ(res_f4.occ_cs_idx.value());
+      res.format_params.emplace<pucch_format_4_cfg>(format4);
+      res.format = pucch_format::FORMAT_4;
+      resource_list.emplace_back(res);
+    }
   }
 
   return resource_list;
 }
 
-std::vector<pucch_resource> config_helpers::generate_cell_pucch_res_list(
-    unsigned                                                               nof_res_f0_f1,
-    unsigned                                                               nof_res_f2_f3_f4,
-    const std::variant<pucch_f1_params, pucch_f0_params>&                  f0_f1_params,
-    const std::variant<pucch_f2_params, pucch_f3_params, pucch_f4_params>& f2_f3_f4_params,
-    unsigned                                                               bwp_size_rbs,
-    bounded_integer<unsigned, 1, 14>                                       max_nof_symbols)
+std::vector<pucch_resource> config_helpers::generate_cell_pucch_res_list(const pucch_resource_builder_params& params,
+                                                                         unsigned bwp_size_rbs)
 {
-  auto outcome = pucch_parameters_validator(
-      nof_res_f0_f1, nof_res_f2_f3_f4, f0_f1_params, f2_f3_f4_params, bwp_size_rbs, max_nof_symbols);
+  const unsigned nof_res_f0_f1 =
+      params.nof_cell_sr_resources + params.nof_cell_res_set_configs * params.res_set_0_size.value();
+  const unsigned nof_res_f2_f3_f4 =
+      params.nof_cell_csi_resources + params.nof_cell_res_set_configs * params.res_set_1_size.value();
+  const unsigned max_nof_symbols = params.max_nof_symbols.value();
+  auto           outcome         = pucch_parameters_validator(params, bwp_size_rbs);
   if (not outcome.has_value()) {
     ocudu_assertion_failure("The cell list could not be generated due to: {}", outcome.error());
     return {};
   }
 
-  const bool has_f0 = std::holds_alternative<pucch_f0_params>(f0_f1_params);
-
   // Compute the PUCCH F0/F1 and F2/F3/F4 resources separately.
-  std::vector<pucch_grant> pucch_f0_f1_resource_list;
-  unsigned                 nof_css = 0;
-  if (has_f0 and nof_res_f0_f1 > 0) {
-    const pucch_f0_params f0_params = std::get<pucch_f0_params>(f0_f1_params);
-    pucch_f0_f1_resource_list       = compute_f0_res(nof_res_f0_f1, f0_params, bwp_size_rbs, max_nof_symbols);
-  } else if (nof_res_f0_f1 > 0) {
-    const pucch_f1_params f1_params = std::get<pucch_f1_params>(f0_f1_params);
-    const unsigned nof_occ_codes = f1_params.occ_supported ? format1_symb_to_spreading_factor(f1_params.nof_syms) : 1;
-    nof_css                      = format1_cp_step_to_uint(f1_params.nof_cyc_shifts);
-    pucch_f0_f1_resource_list =
-        compute_f1_res(nof_res_f0_f1, f1_params, bwp_size_rbs, nof_css * nof_occ_codes, max_nof_symbols);
-  }
-
-  std::vector<pucch_grant> pucch_f2_f3_f4_resource_list;
-  pucch_f4_occ_len         f4_occ_len(pucch_f4_occ_len::n2);
-  if (std::holds_alternative<pucch_f2_params>(f2_f3_f4_params)) {
-    const auto& f2_params        = std::get<pucch_f2_params>(f2_f3_f4_params);
-    pucch_f2_f3_f4_resource_list = compute_f2_res(nof_res_f2_f3_f4, f2_params, bwp_size_rbs, max_nof_symbols);
-  } else if (std::holds_alternative<pucch_f3_params>(f2_f3_f4_params)) {
-    const auto& f3_params        = std::get<pucch_f3_params>(f2_f3_f4_params);
-    pucch_f2_f3_f4_resource_list = compute_f3_res(nof_res_f2_f3_f4, f3_params, bwp_size_rbs, max_nof_symbols);
+  std::vector<pucch_grant> f0_f1_res_list;
+  if (std::holds_alternative<pucch_f0_params>(params.f0_or_f1_params)) {
+    const auto& f0_params = std::get<pucch_f0_params>(params.f0_or_f1_params);
+    f0_f1_res_list        = compute_f0_res(nof_res_f0_f1, f0_params, bwp_size_rbs, max_nof_symbols);
   } else {
-    const auto& f4_params        = std::get<pucch_f4_params>(f2_f3_f4_params);
-    pucch_f2_f3_f4_resource_list = compute_f4_res(nof_res_f2_f3_f4, f4_params, bwp_size_rbs, max_nof_symbols);
-    f4_occ_len                   = f4_params.occ_length;
+    const auto&    f1_params     = std::get<pucch_f1_params>(params.f0_or_f1_params);
+    const unsigned nof_occ_codes = f1_params.occ_supported ? format1_symb_to_spreading_factor(f1_params.nof_syms) : 1;
+    const unsigned nof_css       = format1_cp_step_to_uint(f1_params.nof_cyc_shifts);
+    f0_f1_res_list = compute_f1_res(nof_res_f0_f1, f1_params, bwp_size_rbs, nof_css * nof_occ_codes, max_nof_symbols);
   }
 
-  auto res_list = merge_f0_f1_f2_f3_f4_resource_lists(pucch_f0_f1_resource_list,
-                                                      pucch_f2_f3_f4_resource_list,
-                                                      has_f0 ? std::nullopt : std::optional{nof_css},
-                                                      bwp_size_rbs,
-                                                      f4_occ_len);
+  std::vector<pucch_grant> f2_f3_f4_res_list;
+  if (std::holds_alternative<pucch_f2_params>(params.f2_or_f3_or_f4_params)) {
+    const auto& f2_params = std::get<pucch_f2_params>(params.f2_or_f3_or_f4_params);
+    f2_f3_f4_res_list     = compute_f2_res(nof_res_f2_f3_f4, f2_params, bwp_size_rbs, max_nof_symbols);
+  } else if (std::holds_alternative<pucch_f3_params>(params.f2_or_f3_or_f4_params)) {
+    const auto& f3_params = std::get<pucch_f3_params>(params.f2_or_f3_or_f4_params);
+    f2_f3_f4_res_list     = compute_f3_res(nof_res_f2_f3_f4, f3_params, bwp_size_rbs, max_nof_symbols);
+  } else {
+    const auto& f4_params = std::get<pucch_f4_params>(params.f2_or_f3_or_f4_params);
+    f2_f3_f4_res_list     = compute_f4_res(nof_res_f2_f3_f4, f4_params, bwp_size_rbs, max_nof_symbols);
+  }
+
+  auto res_list = merge_f0_f1_f2_f3_f4_resource_lists(f0_f1_res_list, f2_f3_f4_res_list, params, bwp_size_rbs);
 
   if (res_list.size() > pucch_constants::MAX_NOF_CELL_DED_RESOURCES) {
     ocudu_assertion_failure("With the given parameters, the number of PUCCH resources generated for the "
@@ -935,15 +900,52 @@ std::vector<pucch_resource> config_helpers::generate_cell_pucch_res_list(
   return res_list;
 }
 
-static unsigned cell_res_list_and_params_validator(
-    const std::vector<pucch_resource>&                     res_list,
-    bounded_integer<unsigned, 1, max_ue_f0_f1_res_harq>    nof_ue_pucch_f0_f1_res_harq,
-    bounded_integer<unsigned, 1, max_ue_f2_f3_f4_res_harq> nof_ue_pucch_f2_f3_f4_res_harq,
-    unsigned                                               nof_harq_pucch_cfgs,
-    unsigned                                               nof_cell_pucch_f0_f1_res_sr,
-    unsigned                                               nof_cell_pucch_f2_f3_f4_res_csi)
+static bool cell_res_list_and_params_validator(serving_cell_config&                         serv_cell_cfg,
+                                               const std::vector<pucch_resource>&           res_list,
+                                               const pucch_resource_builder_params&         params,
+                                               const ue_pucch_config&                       ue_pucch_cfg,
+                                               const std::optional<ue_periodic_csi_config>& ue_csi_cfg)
 {
-  static constexpr unsigned FAILURE_CASE = 0U;
+  if (ue_csi_cfg.has_value() != serv_cell_cfg.csi_meas_cfg.has_value()) {
+    ocudu_assertion_failure(
+        "ServingCell's CSI-MeasConfig and UE's periodic CSI configuration must be both present or both absent.");
+    return false;
+  }
+
+  const pucch_format first_res_format = res_list.front().format;
+  if (std::holds_alternative<pucch_f0_params>(params.f0_or_f1_params) and first_res_format != pucch_format::FORMAT_0) {
+    ocudu_assertion_failure("Expected first resource in the cell PUCCH resource list to be of Format 0");
+    return false;
+  }
+  if (std::holds_alternative<pucch_f1_params>(params.f0_or_f1_params) and first_res_format != pucch_format::FORMAT_1) {
+    ocudu_assertion_failure("Expected first resource in the cell PUCCH resource list to be of Format 1");
+    return false;
+  }
+
+  const pucch_format last_res_format = res_list.back().format;
+  if (std::holds_alternative<pucch_f2_params>(params.f2_or_f3_or_f4_params) and
+      last_res_format != pucch_format::FORMAT_2) {
+    ocudu_assertion_failure("Expected last resource in the cell PUCCH resource list to be of Format 2");
+    return false;
+  }
+  if (std::holds_alternative<pucch_f3_params>(params.f2_or_f3_or_f4_params) and
+      last_res_format != pucch_format::FORMAT_3) {
+    ocudu_assertion_failure("Expected last resource in the cell PUCCH resource list to be of Format 3");
+    return false;
+  }
+  if (std::holds_alternative<pucch_f4_params>(params.f2_or_f3_or_f4_params) and
+      last_res_format != pucch_format::FORMAT_4) {
+    ocudu_assertion_failure("Expected last resource in the cell PUCCH resource list to be of Format 4");
+    return false;
+  }
+
+  if (first_res_format == pucch_format::FORMAT_0 and last_res_format == pucch_format::FORMAT_2) {
+    if (params.res_set_0_size > 6 or params.res_set_1_size > 6) {
+      ocudu_assertion_failure("When using PUCCH Formats 0 and 2, resource set size cannot be greater than 6, as 2 "
+                              "resources in each set are reserved.");
+      return false;
+    }
+  }
 
   auto count_resources = [&res_list](pucch_format format) {
     unsigned cnt = 0;
@@ -954,113 +956,94 @@ static unsigned cell_res_list_and_params_validator(
     }
     return cnt;
   };
-
-  const auto contain_format_0 = std::find_if(res_list.begin(), res_list.end(), [](const pucch_resource& res) {
-                                  return res.format == pucch_format::FORMAT_0;
-                                }) != res_list.end();
-  const auto contain_format_2 = std::find_if(res_list.begin(), res_list.end(), [](const pucch_resource& res) {
-                                  return res.format == pucch_format::FORMAT_2;
-                                }) != res_list.end();
-
-  if (contain_format_0 and contain_format_2) {
-    if (nof_ue_pucch_f0_f1_res_harq.value() > 6U) {
-      ocudu_assertion_failure("With Format 0 and Format 2, nof_ue_pucch_f0_f1_res_harq cannot be greater than 6, as 2 "
-                              "resources in set 0 are reserved.");
-      return FAILURE_CASE;
-    }
-    if (nof_ue_pucch_f2_f3_f4_res_harq.value() > 6U) {
-      ocudu_assertion_failure(
-          "With Format 0 and Format 2, nof_ue_pucch_f2_f3_f4_res_harq cannot be greater than 6, as 2 "
-          "resources in set 1 are reserved.");
-      return FAILURE_CASE;
-    }
-  }
-
-  const unsigned tot_nof_f0_res = count_resources(pucch_format::FORMAT_0);
-  const unsigned tot_nof_f1_res = count_resources(pucch_format::FORMAT_1);
-  const unsigned tot_nof_f2_res = count_resources(pucch_format::FORMAT_2);
-  const unsigned tot_nof_f3_res = count_resources(pucch_format::FORMAT_3);
-  const unsigned tot_nof_f4_res = count_resources(pucch_format::FORMAT_4);
-
-  if (tot_nof_f0_res != 0 and tot_nof_f1_res != 0) {
+  const unsigned nof_res_f0 = count_resources(pucch_format::FORMAT_0);
+  const unsigned nof_res_f1 = count_resources(pucch_format::FORMAT_1);
+  if (nof_res_f0 != 0 and nof_res_f1 != 0) {
     ocudu_assertion_failure("The cell PUCCH resource list can contain either F0 or F1 PUCCH resources, but not both.");
-    return FAILURE_CASE;
+    return false;
   }
 
-  if (static_cast<unsigned>(tot_nof_f2_res != 0) + static_cast<unsigned>(tot_nof_f3_res != 0) +
-          static_cast<unsigned>(tot_nof_f4_res != 0) >
+  const unsigned nof_res_f2 = count_resources(pucch_format::FORMAT_2);
+  const unsigned nof_res_f3 = count_resources(pucch_format::FORMAT_3);
+  const unsigned nof_res_f4 = count_resources(pucch_format::FORMAT_4);
+  if (static_cast<unsigned>(nof_res_f2 != 0) + static_cast<unsigned>(nof_res_f3 != 0) +
+          static_cast<unsigned>(nof_res_f4 != 0) >
       1) {
-    ocudu_assertion_failure(
-        "The cell PUCCH resource list can contain either F2, F3 or F4 PUCCH resources, but not a mix of those types.");
-    return FAILURE_CASE;
+    ocudu_assertion_failure("The cell PUCCH resource list can contain either F2, F3 or F4 PUCCH resources, but not a "
+                            "mix of those types.");
+    return false;
   }
 
-  if (tot_nof_f0_res != 0 and (tot_nof_f3_res != 0 or tot_nof_f4_res != 0)) {
-    ocudu_assertion_failure("The implementation is not prepared to handle PUCCH F3 or F4 when Format 0 is used.");
-    return FAILURE_CASE;
+  if (nof_res_f0 != 0 and (nof_res_f3 != 0 or nof_res_f4 != 0)) {
+    ocudu_assertion_failure("The scheduler is not prepared to handle PUCCH Formats 3 and 4 when Format 0 is used.");
+    return false;
   }
 
-  const unsigned tot_nof_f0_f1_res    = tot_nof_f0_res + tot_nof_f1_res;
-  const unsigned tot_nof_f2_f3_f4_res = tot_nof_f2_res + tot_nof_f3_res + tot_nof_f4_res;
-
-  if (tot_nof_f0_f1_res + tot_nof_f2_f3_f4_res != res_list.size()) {
+  const unsigned nof_res_f0_f1    = nof_res_f0 + nof_res_f1;
+  const unsigned nof_res_f2_f3_f4 = nof_res_f2 + nof_res_f3 + nof_res_f4;
+  if (nof_res_f0_f1 + nof_res_f2_f3_f4 != res_list.size()) {
     ocudu_assertion_failure(
         "The sum of F0/F1 and F2/F3/F4 PUCCH resources must be equal to the cell PUCCH resource list size.");
-    return FAILURE_CASE;
+    return false;
+  }
+  if (const unsigned expected_res_f0_f1 =
+          params.nof_cell_sr_resources + params.nof_cell_res_set_configs * params.res_set_0_size.value();
+      nof_res_f0_f1 != expected_res_f0_f1) {
+    ocudu_assertion_failure("The number of F0/F1 PUCCH resources in the cell PUCCH resource list ({}) doesn't match "
+                            "the expected number ({})",
+                            nof_res_f0_f1,
+                            expected_res_f0_f1);
+    return false;
+  }
+  if (const unsigned expected_res_f2_f3_f4 =
+          params.nof_cell_csi_resources + params.nof_cell_res_set_configs * params.res_set_1_size.value();
+      nof_res_f2_f3_f4 != expected_res_f2_f3_f4) {
+    ocudu_assertion_failure("The number of F2/F3/F4 PUCCH resources in the cell PUCCH resource list ({}) doesn't match "
+                            "the expected number ({})",
+                            nof_res_f2_f3_f4,
+                            expected_res_f2_f3_f4);
+    return false;
   }
 
-  if (tot_nof_f0_f1_res < 2 or tot_nof_f2_f3_f4_res < 2) {
-    ocudu_assertion_failure(
-        "The cell PUCCH resource list must contain at least 2 F0/F1 and 2 F2/F3/F4 PUCCH resources.");
-    return FAILURE_CASE;
-  }
-
-  if (nof_ue_pucch_f0_f1_res_harq.value() > tot_nof_f0_f1_res - nof_cell_pucch_f0_f1_res_sr or
-      nof_ue_pucch_f2_f3_f4_res_harq.value() > tot_nof_f2_f3_f4_res - nof_cell_pucch_f2_f3_f4_res_csi) {
-    ocudu_assertion_failure(
-        "The nof requested UE PUCCH resources is greater than the nof of resources available in the cell.");
-    return FAILURE_CASE;
-  }
-
-  if ((nof_ue_pucch_f0_f1_res_harq.value() * nof_harq_pucch_cfgs > tot_nof_f0_f1_res - nof_cell_pucch_f0_f1_res_sr) or
-      (nof_ue_pucch_f2_f3_f4_res_harq.value() * nof_harq_pucch_cfgs >
-       tot_nof_f2_f3_f4_res - nof_cell_pucch_f2_f3_f4_res_csi)) {
-    ocudu_assertion_failure(
-        "The cell PUCCH resource list doesn't contain enough resources to allocate all requested UEs.");
-    return FAILURE_CASE;
-  }
-
-  for (unsigned res_idx = 0; res_idx != tot_nof_f0_f1_res; ++res_idx) {
-    if (res_list[res_idx].format == pucch_format::FORMAT_2 || res_list[res_idx].format == pucch_format::FORMAT_3 ||
+  for (unsigned res_idx = 0; res_idx != nof_res_f0_f1; ++res_idx) {
+    if (res_list[res_idx].format == pucch_format::FORMAT_2 or res_list[res_idx].format == pucch_format::FORMAT_3 or
         res_list[res_idx].format == pucch_format::FORMAT_4) {
       ocudu_assertion_failure(
           "The F0/F1 resources in the cell PUCCH resource list must precede all F2/F3/F4 resources.");
-      return FAILURE_CASE;
+      return false;
     }
   }
 
-  return tot_nof_f0_res != 0 ? tot_nof_f0_res : tot_nof_f1_res;
+  if (ue_pucch_cfg.res_set_cfg_id.value() >= params.nof_cell_res_set_configs) {
+    ocudu_assertion_failure(
+        "The Resource Set Config ID ({}) must be below the number of cell Resource Set configurations ({})",
+        ue_pucch_cfg.res_set_cfg_id.value(),
+        params.nof_cell_res_set_configs);
+    return false;
+  }
+  if (ue_pucch_cfg.sr_res_id.value() >= params.nof_cell_sr_resources) {
+    ocudu_assertion_failure("The SR Resource ID ({}) must be below the number of cell SR resources ({})",
+                            ue_pucch_cfg.sr_res_id.value(),
+                            params.nof_cell_sr_resources);
+    return false;
+  }
+
+  if ((ue_csi_cfg.has_value()) and (*ue_csi_cfg).pucch_res_id.value() >= params.nof_cell_csi_resources) {
+    ocudu_assertion_failure("The CSI Resource ID ({}) must be below the number of cell CSI resources ({})",
+                            (*ue_csi_cfg).pucch_res_id.value(),
+                            params.nof_cell_csi_resources);
+    return false;
+  }
+  return true;
 }
 
-bool config_helpers::ue_pucch_config_builder(
-    serving_cell_config&                                   serv_cell_cfg,
-    const std::vector<pucch_resource>&                     cell_res_list,
-    unsigned                                               cell_harq_set_idx,
-    unsigned                                               cell_sr_res_idx,
-    unsigned                                               cell_csi_res_idx,
-    bounded_integer<unsigned, 1, max_ue_f0_f1_res_harq>    nof_ue_pucch_f0_f1_res_harq,
-    bounded_integer<unsigned, 1, max_ue_f2_f3_f4_res_harq> nof_ue_pucch_f2_f3_f4_res_harq,
-    unsigned                                               nof_harq_pucch_sets,
-    unsigned                                               nof_cell_pucch_f0_f1_res_sr,
-    unsigned                                               nof_cell_pucch_f2_f3_f4_res_csi)
+bool config_helpers::ue_pucch_config_builder(serving_cell_config&                         serv_cell_cfg,
+                                             const std::vector<pucch_resource>&           cell_res_list,
+                                             const pucch_resource_builder_params&         params,
+                                             const ue_pucch_config&                       ue_pucch_cfg,
+                                             const std::optional<ue_periodic_csi_config>& ue_csi_cfg)
 {
-  const unsigned tot_nof_cell_f0_f1_res = cell_res_list_and_params_validator(cell_res_list,
-                                                                             nof_ue_pucch_f0_f1_res_harq,
-                                                                             nof_ue_pucch_f2_f3_f4_res_harq,
-                                                                             nof_harq_pucch_sets,
-                                                                             nof_cell_pucch_f0_f1_res_sr,
-                                                                             nof_cell_pucch_f2_f3_f4_res_csi);
-  if (tot_nof_cell_f0_f1_res == 0U) {
+  if (not cell_res_list_and_params_validator(serv_cell_cfg, cell_res_list, params, ue_pucch_cfg, ue_csi_cfg)) {
     return false;
   }
 
@@ -1079,15 +1062,13 @@ bool config_helpers::ue_pucch_config_builder(
   pucch_res_set_1.pucch_res_set_id = pucch_res_set_idx::set_1;
 
   // Offsets to access the correct HARQ-ACK resources in the cell_res_list.
-  const unsigned set_0_cell_idx_offset =
-      (cell_harq_set_idx % nof_harq_pucch_sets) * nof_ue_pucch_f0_f1_res_harq.value();
-  const unsigned set_1_cell_idx_offset =
-      tot_nof_cell_f0_f1_res + (cell_harq_set_idx % nof_harq_pucch_sets) * nof_ue_pucch_f2_f3_f4_res_harq.value();
+  const unsigned set_0_cell_idx_offset = params.get_res_set_0_cell_res_idx(ue_pucch_cfg.res_set_cfg_id, 0);
+  const unsigned set_1_cell_idx_offset = params.get_res_set_1_cell_res_idx(ue_pucch_cfg.res_set_cfg_id, 0);
 
-  // [Implementation-defined] We build the PUCCH-Config of all UEs in a way that will prevent the scheduling of multiple
-  // PUCCH transmissions per UE per slot, since not all UEs are capable of that. To achieve this, we make sure that
-  // there is always an option to schedule different UCI types on overlapping symbols, so that the UE will multiplex the
-  // different UCI types on a single PUCCH.
+  // [Implementation-defined] We build the PUCCH-Config of all UEs in a way that will prevent the scheduling of
+  // multiple PUCCH transmissions per UE per slot, since not all UEs are capable of that. To achieve this, we make
+  // sure that there is always an option to schedule different UCI types on overlapping symbols, so that the UE will
+  // multiplex the different UCI types on a single PUCCH.
   //
   // This is done differently depending on the configured PUCCH formats:
   // - F1 and F2/F3/F4: since we configure F1 resources to always take all available symbols in the slot, all F2/F3/F4
@@ -1110,8 +1091,6 @@ bool config_helpers::ue_pucch_config_builder(
   // - SR_F2 is a F2 resource in Resource Set ID 1 that overlaps in symbols with the SR (F0) resource.
   const bool is_f0_and_f2 = cell_res_list[set_0_cell_idx_offset].format == pucch_format::FORMAT_0 and
                             cell_res_list[set_1_cell_idx_offset].format == pucch_format::FORMAT_2;
-  const bool is_periodic_csi =
-      serv_cell_cfg.csi_meas_cfg.has_value() and not is_pusch_configured(*serv_cell_cfg.csi_meas_cfg);
 
   // Used to represent the cell resource ID of resources that do not exist in the gNB cell resource list.
   static constexpr unsigned invalid_cell_res_id = std::numeric_limits<unsigned>::max();
@@ -1121,7 +1100,7 @@ bool config_helpers::ue_pucch_config_builder(
   unsigned current_ue_res_id = 0;
 
   // Add Resource Set ID 0 resources for HARQ-ACK.
-  for (unsigned r_pucch = 0; r_pucch != nof_ue_pucch_f0_f1_res_harq.value(); ++r_pucch) {
+  for (unsigned r_pucch = 0; r_pucch != params.res_set_0_size.value(); ++r_pucch) {
     const auto& cell_res = cell_res_list[set_0_cell_idx_offset + r_pucch];
 
     // Add resource to both the PUCCH resource list and Resource Set ID 0.
@@ -1138,11 +1117,10 @@ bool config_helpers::ue_pucch_config_builder(
     ++current_ue_res_id;
   }
 
-  if (is_f0_and_f2 and is_periodic_csi) {
+  if (is_f0_and_f2 and ue_csi_cfg.has_value()) {
     // Add CSI_F0 resource to both the PUCCH resource list and Resource Set ID 0.
-    const unsigned csi_cell_res_idx =
-        tot_nof_cell_f0_f1_res + nof_ue_pucch_f2_f3_f4_res_harq.value() * nof_harq_pucch_sets + cell_csi_res_idx;
-    const auto& csi_cell_res = cell_res_list[csi_cell_res_idx];
+    const unsigned csi_cell_res_idx = params.get_csi_cell_res_idx(ue_csi_cfg->pucch_res_id);
+    const auto&    csi_cell_res     = cell_res_list[csi_cell_res_idx];
 
     // Note: this resource does not exist in the cell resource list.
     const pucch_res_id_t res_id = {invalid_cell_res_id, current_ue_res_id};
@@ -1161,8 +1139,8 @@ bool config_helpers::ue_pucch_config_builder(
   }
 
   // Add SR resource to both the PUCCH resource list and the SR resource list.
-  const unsigned sr_res_cell_list_idx = nof_ue_pucch_f0_f1_res_harq.value() * nof_harq_pucch_sets + cell_sr_res_idx;
-  const auto&    sr_cell_res          = cell_res_list[sr_res_cell_list_idx];
+  const unsigned       sr_cell_res_idx = params.get_sr_cell_res_idx(ue_pucch_cfg.sr_res_id);
+  const auto&          sr_cell_res     = cell_res_list[sr_cell_res_idx];
   const pucch_res_id_t sr_pucch_res_id{sr_cell_res.res_id.cell_res_id, current_ue_res_id};
   pucch_res_list.emplace_back(pucch_resource{.res_id           = sr_pucch_res_id,
                                              .starting_prb     = sr_cell_res.starting_prb,
@@ -1172,6 +1150,7 @@ bool config_helpers::ue_pucch_config_builder(
                                              .format           = sr_cell_res.format,
                                              .format_params    = sr_cell_res.format_params});
   sr_res_list.front().pucch_res_id = sr_pucch_res_id;
+  sr_res_list.front().offset       = ue_pucch_cfg.sr_offset;
 
   // Increment the PUCCH resource ID for ASN1 message.
   ++current_ue_res_id;
@@ -1182,7 +1161,7 @@ bool config_helpers::ue_pucch_config_builder(
   }
 
   // Add Resource Set ID 1 resources for HARQ-ACK.
-  for (unsigned r_pucch = 0; r_pucch != nof_ue_pucch_f2_f3_f4_res_harq.value(); ++r_pucch) {
+  for (unsigned r_pucch = 0; r_pucch != params.res_set_1_size.value(); ++r_pucch) {
     const auto& cell_res = cell_res_list[set_1_cell_idx_offset + r_pucch];
 
     // Add resource to both the PUCCH resource list and Resource Set ID 1.
@@ -1199,11 +1178,10 @@ bool config_helpers::ue_pucch_config_builder(
     ++current_ue_res_id;
   }
 
-  if (is_periodic_csi) {
+  if (ue_csi_cfg.has_value()) {
     // Add CSI resource to both the PUCCH resource list and the CSI resource list.
-    const unsigned csi_res_cell_list_idx =
-        tot_nof_cell_f0_f1_res + nof_ue_pucch_f2_f3_f4_res_harq.value() * nof_harq_pucch_sets + cell_csi_res_idx;
-    const auto&          csi_cell_res = cell_res_list[csi_res_cell_list_idx];
+    const unsigned       csi_cell_res_idx = params.get_csi_cell_res_idx(ue_csi_cfg->pucch_res_id);
+    const auto&          csi_cell_res     = cell_res_list[csi_cell_res_idx];
     const pucch_res_id_t csi_pucch_res_id{csi_cell_res.res_id.cell_res_id, current_ue_res_id};
     pucch_res_list.emplace_back(pucch_resource{.res_id           = csi_pucch_res_id,
                                                .starting_prb     = csi_cell_res.starting_prb,
@@ -1212,10 +1190,11 @@ bool config_helpers::ue_pucch_config_builder(
                                                .starting_sym_idx = csi_cell_res.starting_sym_idx,
                                                .format           = csi_cell_res.format,
                                                .format_params    = csi_cell_res.format_params});
-    std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type)
-        .pucch_csi_res_list.front()
-        .pucch_res_id = csi_pucch_res_id;
+
+    auto& report_cfg = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
+        serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type);
+    report_cfg.report_slot_offset                      = ue_csi_cfg->offset;
+    report_cfg.pucch_csi_res_list.front().pucch_res_id = csi_pucch_res_id;
 
     // Increment the PUCCH resource ID for ASN1 message.
     ++current_ue_res_id;

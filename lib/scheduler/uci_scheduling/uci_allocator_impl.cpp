@@ -10,6 +10,7 @@
 #include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
 #include "ocudu/ran/csi_report/csi_report_on_pusch_helpers.h"
 #include "ocudu/ran/csi_report/csi_report_size.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 
 using namespace ocudu;
 

@@ -6,6 +6,7 @@
 
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/ran_cell_config.h"
 #include "ocudu/scheduler/config/rlm_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
@@ -85,7 +86,7 @@ inline pucch_config make_pucch_config(const ran_cell_config& cell_cfg)
   const pucch_builder_params&          pucch_params   = cell_cfg.init_bwp_builder.pucch;
   const pucch_resource_builder_params& builder_params = pucch_params.resources;
   const unsigned                       bwp_size       = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
-  const auto                           cell_pucch_res_list = build_pucch_resource_list(builder_params, bwp_size);
+  const auto                           cell_pucch_res_list = generate_cell_pucch_res_list(builder_params, bwp_size);
 
   // >>> Resource Set ID 0.
   {

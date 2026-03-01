@@ -181,21 +181,20 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
     ++cell_ctx.periodic_pucchs_per_slot[offset];
   }
 
-  update_serv_cell_cfg(serv_cell_cfg, cell_ctx, *sr_cfg, csi_cfg, max_pucch_payload);
-
   // Update the BWP configuration for this UE with the allocated SR and CSI resources.
-  {
-    auto& ul_bwp = cell_cfg.bwps[0].ul;
-    ul_bwp.pucch.res_set_cfg_id =
-        pucch_resource_set_config_id(cell_ctx.ue_idx % cell_ctx.bwp_params.pucch.resources.nof_cell_res_set_configs);
-    ul_bwp.pucch.sr_res_id = pucch_sr_resource_id(sr_cfg->res);
-    ul_bwp.pucch.sr_offset = sr_cfg->offset;
-    if (csi_cfg.has_value()) {
-      auto& periodic_csi_report_cfg        = ul_bwp.periodic_csi_report.emplace();
-      periodic_csi_report_cfg.pucch_res_id = pucch_csi_resource_id(csi_cfg->res);
-      periodic_csi_report_cfg.offset       = csi_cfg->offset;
-    }
+  auto& ul_bwp = cell_cfg.bwps[0].ul;
+  ul_bwp.pucch.res_set_cfg_id =
+      pucch_resource_set_config_id(cell_ctx.ue_idx % cell_ctx.bwp_params.pucch.resources.nof_cell_res_set_configs);
+  ul_bwp.pucch.sr_res_id = pucch_sr_resource_id(sr_cfg->res);
+  ul_bwp.pucch.sr_offset = sr_cfg->offset;
+  if (csi_cfg.has_value()) {
+    auto& periodic_csi_report_cfg        = ul_bwp.periodic_csi_report.emplace();
+    periodic_csi_report_cfg.pucch_res_id = pucch_csi_resource_id(csi_cfg->res);
+    periodic_csi_report_cfg.offset       = csi_cfg->offset;
+  } else {
+    ul_bwp.periodic_csi_report.reset();
   }
+  update_serv_cell_cfg(serv_cell_cfg, cell_ctx, ul_bwp, max_pucch_payload);
 
   ++cell_ctx.ue_idx;
   return true;
@@ -361,34 +360,20 @@ bool du_pucch_resource_manager::sr_csi_offsets_collide(const cell_resource_conte
   return (sr_offset % g) == (csi_offset % g);
 }
 
-void du_pucch_resource_manager::update_serv_cell_cfg(serving_cell_config&                        serv_cell_cfg,
-                                                     const cell_resource_context&                cell_ctx,
-                                                     const periodic_pucch_config&                sr_cfg,
-                                                     const std::optional<periodic_pucch_config>& csi_cfg,
-                                                     unsigned                                    max_pucch_payload)
+void du_pucch_resource_manager::update_serv_cell_cfg(serving_cell_config&         serv_cell_cfg,
+                                                     const cell_resource_context& cell_ctx,
+                                                     const ue_uplink_bwp_config&  ul_bwp,
+                                                     unsigned                     max_pucch_payload)
 {
+  // Fill the serving cell config with the PUCCH-related configuration.
   auto& pucch_cfg = serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.emplace(cell_ctx.default_pucch_cfg);
-
-  // Generate PUCCH resource list for the UE.
   config_helpers::ue_pucch_config_builder(serv_cell_cfg,
                                           cell_ctx.cell_pucch_cfg.resources,
-                                          cell_ctx.ue_idx,
-                                          sr_cfg.res,
-                                          csi_cfg.has_value() ? csi_cfg.value().res : 0,
-                                          cell_ctx.bwp_params.pucch.resources.res_set_0_size,
-                                          cell_ctx.bwp_params.pucch.resources.res_set_1_size,
-                                          cell_ctx.bwp_params.pucch.resources.nof_cell_res_set_configs,
-                                          cell_ctx.bwp_params.pucch.resources.nof_cell_sr_resources,
-                                          cell_ctx.bwp_params.pucch.resources.nof_cell_csi_resources);
+                                          cell_ctx.bwp_params.pucch.resources,
+                                          ul_bwp.pucch,
+                                          ul_bwp.periodic_csi_report);
 
-  // Set the offsets for SR and CSI.
-  serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.front().offset = sr_cfg.offset;
-  if (csi_cfg.has_value()) {
-    std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type)
-        .report_slot_offset = csi_cfg->offset;
-  }
-
+  // TODO: remove.
   // Update the PUCCH max payload.
   // As per TS 38.231, Section 9.2.1, with PUCCH Format 1, we can have up to 2 HARQ-ACK bits (SR doesn't count as part
   // of the payload).

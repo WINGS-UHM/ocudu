@@ -8,7 +8,6 @@
 #include "../support/bwp_helpers.h"
 #include "ocudu/adt/circular_vector.h"
 #include "ocudu/ran/slot_point.h"
-#include "ocudu/scheduler/resource_grid_util.h"
 #include "ocudu/scheduler/result/sched_result.h"
 
 namespace ocudu {

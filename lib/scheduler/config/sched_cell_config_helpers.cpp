@@ -10,23 +10,6 @@
 
 using namespace ocudu;
 
-std::vector<pucch_resource>
-ocudu::config_helpers::build_pucch_resource_list(const pucch_resource_builder_params& user_params, unsigned bwp_size)
-{
-  // Compute the cell PUCCH resource list, depending on which parameter that has been passed.
-  auto res_list = generate_cell_pucch_res_list(
-      user_params.res_set_0_size.value() * user_params.nof_cell_res_set_configs + user_params.nof_cell_sr_resources,
-      user_params.res_set_1_size.value() * user_params.nof_cell_res_set_configs + user_params.nof_cell_csi_resources,
-      user_params.f0_or_f1_params,
-      user_params.f2_or_f3_or_f4_params,
-      bwp_size,
-      user_params.max_nof_symbols);
-
-  ocudu_assert(not res_list.empty(), "The PUCCH resource list cannot be empty");
-
-  return res_list;
-}
-
 unsigned
 ocudu::config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(const serving_cell_config& ue_cell_cfg,
                                                                            const dl_config_common&    dl_cfg_common)

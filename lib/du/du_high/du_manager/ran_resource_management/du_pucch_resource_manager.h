@@ -8,6 +8,7 @@
 #include "ocudu/scheduler/config/bwp_builder_params.h"
 #include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
 #include <optional>
 #include <set>
 
@@ -110,11 +111,10 @@ private:
   static bool sr_csi_offsets_collide(const cell_resource_context& cell_ctx, unsigned sr_offset, unsigned csi_offset);
 
   /// \brief Update the serving cell configuration of a UE with the given SR and CSI configurations.
-  static void update_serv_cell_cfg(serving_cell_config&                        serv_cell_cfg,
-                                   const cell_resource_context&                cell_ctx,
-                                   const periodic_pucch_config&                sr_cfg,
-                                   const std::optional<periodic_pucch_config>& csi_cfg,
-                                   unsigned                                    max_pucch_payload);
+  static void update_serv_cell_cfg(serving_cell_config&         serv_cell_cfg,
+                                   const cell_resource_context& cell_ctx,
+                                   const ue_uplink_bwp_config&  ul_bwp,
+                                   unsigned                     max_pucch_payload);
 
   /// Called when PUCCH allocation fails for a given UE.
   static void disable_pucch_cfg(serving_cell_config& serv_cell_cfg, const cell_resource_context& cell_ctx);

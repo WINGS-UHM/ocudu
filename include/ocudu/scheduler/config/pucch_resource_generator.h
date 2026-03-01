@@ -6,6 +6,7 @@
 
 #include "ocudu/adt/expected.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
 
 namespace ocudu {
 
@@ -13,50 +14,26 @@ struct serving_cell_config;
 
 namespace config_helpers {
 
-/// The following values have to be set according to the \ref pucch_resource_manager capabilities.
-/// Maximum number of PUCCH F0/F1 resources per UE for HARQ-ACK reporting.
-constexpr unsigned max_ue_f0_f1_res_harq = 8;
-/// Maximum number of PUCCH F2/F3/F4 resources per UE for HARQ-ACK reporting.
-constexpr unsigned max_ue_f2_f3_f4_res_harq = 8;
-
 /// \brief Validates the user-defined parameters for building the cell PUCCH resource list.
-/// \param[in] nof_res_f0_f1 number of PUCCH F0/F1 resources to be generated.
-/// \param[in] nof_res_f2_f3_f4 number of PUCCH F2/F3/F4 resources to be generated.
-/// \param[in] f0_f1_params PUCCH F0/F1 resource parameters.
-/// \param[in] f2_f3_f4_params PUCCH F2/F3/F4 resource parameters.
+/// \param[in] params PUCCH resource builder parameters.
 /// \param[in] bwp_size_rbs size of the BWP in RBs.
-/// \param[in] max_nof_symbols maximum number of symbols.
-/// \return In case an invalid parameter is detected, returns a string containing an error message.
-error_type<std::string>
-pucch_parameters_validator(unsigned                                                               nof_res_f0_f1,
-                           unsigned                                                               nof_res_f2_f3_f4,
-                           const std::variant<pucch_f1_params, pucch_f0_params>&                  f0_f1_params,
-                           const std::variant<pucch_f2_params, pucch_f3_params, pucch_f4_params>& f2_f3_f4_params,
-                           unsigned                                                               bwp_size_rbs,
-                           bounded_integer<unsigned, 1, 14>                                       max_nof_symbols);
+/// \return An error message if the parameters are not valid. Otherwise, success.
+error_type<std::string> pucch_parameters_validator(const pucch_resource_builder_params& params, unsigned bwp_size_rbs);
 
-/// \brief Generates the list of cell PUCCH resources (Format 0/1 and 2/3/4) given the number of requested resources.
+/// \brief Generates the list of cell PUCCH resources from the PUCCH resource builder parameters.
 ///
-/// PUCCH resources F0/F1 and F2/F3/F4 are allocated on different RBs. The function attempts to spread the resources on
-/// both sides of the BWP.
+/// The generated resources are packed on both ends of the BWP as tightly as possible (using multiplexing if
+/// configured), while ensuring they don't collide with each other.
+/// The resources for each UCI type are indexed according to the rules defined in \c pucch_resource_builder_params.
 ///
-/// \param[in] nof_res_f0_f1   number of PUCCH F0/F1 resources to be generated.
-/// \param[in] nof_res_f2_f3_f4   number of PUCCH F2/F3/F4 resources to be generated.
-/// \param[in] f0_f1_params    PUCCH F0/F1 resource parameters.
-/// \param[in] f2_f3_f4_params    PUCCH F2/F3/F4 resource parameters.
-/// \param[in] bwp_size_rbs    Size of the BWP in RBs.
-/// \param[in] max_nof_symbols Maximum number of symbols.
-/// \return The list of PUCCH resources for a cell. The list has the PUCCH Format 0/1 resources in front of the list,
-/// and the PUCCH Format 2/3/4 in the back of the list.
-/// \remark The function returns an empty list in the following cases: (i) If overall the RBs occupancy is larger than
-/// the BWP size. (ii) If F2 intra-slot frequency hopping is enabled with only 1 symbol.
-std::vector<pucch_resource>
-generate_cell_pucch_res_list(unsigned                                                               nof_res_f0_f1,
-                             unsigned                                                               nof_res_f2_f3_f4,
-                             const std::variant<pucch_f1_params, pucch_f0_params>&                  f0_f1_params,
-                             const std::variant<pucch_f2_params, pucch_f3_params, pucch_f4_params>& f2_f3_f4_params,
-                             unsigned                                                               bwp_size_rbs,
-                             bounded_integer<unsigned, 1, 14>                                       max_nof_symbols);
+/// \param[in] params PUCCH resource builder parameters.
+/// \param[in] bwp_size_rbs size of the BWP in RBs.
+/// \return The list of PUCCH resources for a cell.
+/// \remark The function returns an empty list in the following cases:
+///         (i) If overall the RBs occupancy is larger than the BWP size.
+///         (ii) If F2 intra-slot frequency hopping is enabled with only 1 symbol.
+std::vector<pucch_resource> generate_cell_pucch_res_list(const pucch_resource_builder_params& params,
+                                                         unsigned                             bwp_size_rbs);
 
 /// \brief Builds the PUCCH configuration for a given UE.
 ///
@@ -97,30 +74,18 @@ generate_cell_pucch_res_list(unsigned                                           
 ///
 /// \param[in,out] serv_cell_cfg default \c ServingCellConfig that will be overwritten by this function.
 /// \param[in] cell_res_list cell PUCCH resource list from which the function picks the UE PUCCH resources.
-/// \param[in] cell_harq_set_idx defines which PUCCH resource set for HARQ to be assigned to this UE among
-///            \ref nof_harq_pucch_sets possible ones; the chosen set for this UE has index
-///            cell_harq_set_idx % nof_harq_pucch_sets.
-/// \param[in] cell_sr_res_idx defines which PUCCH resource for SR to be assigned to this UE among
-///            \ref nof_cell_pucch_f0_f1_res_sr possible ones.  Values: {0, ..., nof_cell_pucch_f0_f1_res_sr-1}.
-/// \param[in] cell_csi_res_idx defines which PUCCH resource for CSI to be assigned to this UE among
-///            \ref nof_cell_pucch_f2_f3_f4_res_csi possible ones.  Values: {0, ..., nof_cell_pucch_f2_f3_f4_res_csi-1}.
-/// \param[in] nof_ue_pucch_f0_f1_res_harq desired number of UE PUCCH F0/F1 resources (HARQ-ACK) in UE configuration.
-/// \param[in] nof_ue_pucch_f2_f3_f4_res_harq desired number of UE PUCCH F2/F3/F4 resources (HARQ-ACK) in UE
-///            configuration.
-/// \param[in] nof_harq_pucch_sets number of possible HARQ sets available in the cell.
-/// \param[in] nof_cell_pucch_f0_f1_res_sr number of PUCCH F0/F1 resources for SR available in the cell.
-/// \param[in] nof_cell_pucch_f2_f3_f4_res_csi number of PUCCH F2/F3/F4 resources for CSI available in the cell.
+/// \param[in] params PUCCH resource builder parameters.
+/// \param[in] pucch_cfg UE PUCCH configuration parameters.
+/// \param[in] periodic_csi_cfg UE periodic CSI report configuration parameters.
+/// \param[in] res_set_cfg_id ID of the resource set configuration to assign to this UE.
+/// \param[in] sr_res_id ID of the SR resource to assign to this UE.
+/// \param[in] csi_res_id ID of the CSI resource to assign to this UE, if periodic CSI report is configured.
 /// \return true if the building is successful, false otherwise.
-bool ue_pucch_config_builder(serving_cell_config&                                   serv_cell_cfg,
-                             const std::vector<pucch_resource>&                     cell_res_list,
-                             unsigned                                               cell_harq_set_idx,
-                             unsigned                                               cell_sr_res_idx,
-                             unsigned                                               cell_csi_res_idx,
-                             bounded_integer<unsigned, 1, max_ue_f0_f1_res_harq>    nof_ue_pucch_f0_f1_res_harq,
-                             bounded_integer<unsigned, 1, max_ue_f2_f3_f4_res_harq> nof_ue_pucch_f2_f3_f4_res_harq,
-                             unsigned                                               nof_harq_pucch_sets,
-                             unsigned                                               nof_cell_pucch_f0_f1_res_sr,
-                             unsigned nof_cell_pucch_f2_f3_f4_res_csi = 1);
+bool ue_pucch_config_builder(serving_cell_config&                         serv_cell_cfg,
+                             const std::vector<pucch_resource>&           cell_res_list,
+                             const pucch_resource_builder_params&         params,
+                             const ue_pucch_config&                       pucch_cfg,
+                             const std::optional<ue_periodic_csi_config>& csi_cfg);
 
 } // namespace config_helpers
 } // namespace ocudu

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -171,6 +165,12 @@ public:
     // TODO
   }
 
+  void on_access_success(const ocucp::f1ap_access_success& msg) override
+  {
+    logger.info("Received AccessSuccess for ue={}", msg.ue_index);
+    last_access_success_msg = msg;
+  }
+
   bool schedule_async_task(async_task<void> task) override { return task_sched.schedule(std::move(task)); }
 
   async_task<void> on_transaction_info_loss(const ue_transaction_info_loss_event& ev) override
@@ -186,6 +186,7 @@ public:
   ocucp::du_setup_request last_f1_setup_request_msg;
   ocucp::du_setup_result  next_du_setup_resp;
 
+  std::optional<ocucp::f1ap_access_success>            last_access_success_msg;
   ocucp::ue_rrc_context_creation_request               last_ue_creation_msg;
   std::optional<ocucp::ue_index_t>                     last_created_ue_index;
   std::unique_ptr<dummy_f1ap_ul_ccch_message_notifier> f1ap_srb0_notifier =

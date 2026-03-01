@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #pragma once
 
@@ -14,6 +7,11 @@
 #include "ocudu/support/io/transport_layer_address.h"
 
 namespace ocudu {
+
+struct sctp_association_info {
+  int                     assoc_id;
+  transport_layer_address peer_addr;
+};
 
 /// Factory of new SCTP association handlers.
 class sctp_network_association_factory
@@ -23,7 +21,7 @@ public:
 
   /// Called on every SCTP association notification, to create a new SCTP association handler.
   virtual std::unique_ptr<sctp_association_sdu_notifier>
-  create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier) = 0;
+  create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier, sctp_association_info assoc_info) = 0;
 };
 
 /// SCTP network server interface, which will handle requests to start new SCTP associations.

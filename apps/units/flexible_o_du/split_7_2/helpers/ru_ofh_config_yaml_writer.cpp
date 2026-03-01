@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ru_ofh_config_yaml_writer.h"
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
@@ -48,6 +42,10 @@ static void fill_ru_ofh_expert_execution_section(YAML::Node node, const ru_ofh_u
 
     ++index;
   }
+
+  YAML::Node threads_node            = node["threads"];
+  YAML::Node ofh_threads             = threads_node["ofh"];
+  ofh_threads["enable_busy_waiting"] = config.enable_busy_waiting;
 }
 
 static void fill_ru_ofh_hal_section(YAML::Node node, const std::optional<ru_ofh_unit_hal_config>& config)

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/xnap/gateways/xnc_network_gateway_factory.h"
 #include "ocudu/asn1/xnap/xnap.h"
@@ -61,7 +55,7 @@ public:
     }
 
     // Forward packed XNAP Tx PDU to SCTP gateway to init the association.
-    sctp_server.init_association(peer_addr, std::move(tx_sdu));
+    sctp_server.init_association_with_msg(peer_addr, std::move(tx_sdu));
     return true;
   }
 
@@ -183,13 +177,13 @@ public:
   std::optional<uint16_t> get_listen_port() const override { return sctp_server->get_listen_port(); }
 
   std::unique_ptr<sctp_association_sdu_notifier>
-  create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier) override
+  create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier, sctp_association_info assoc_info) override
   {
     // Create an unpacked XNAP PDU notifier and pass it to the CU-CP.
     auto xnc_sender = std::make_unique<xnc_to_gw_pdu_notifier>(std::move(sctp_send_notifier), params.pcap, logger);
 
     std::unique_ptr<xnap_message_notifier> xnc_receiver =
-        xnc_handler->handle_new_xnc_cu_cp_connection(std::move(xnc_sender));
+        xnc_handler->handle_new_xnc_cu_cp_connection(std::move(xnc_sender), assoc_info);
 
     // Wrap the received XNAP Rx PDU notifier in an SCTP notifier and return it.
     if (xnc_receiver == nullptr) {

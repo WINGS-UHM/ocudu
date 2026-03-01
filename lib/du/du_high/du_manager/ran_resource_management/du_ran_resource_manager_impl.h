@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -28,7 +22,7 @@ class du_ran_resource_manager_impl;
 class du_ue_ran_resource_updater_impl final : public ue_ran_resource_configurator::resource_updater
 {
 public:
-  du_ue_ran_resource_updater_impl(du_ue_resource_config*                      cell_cfg_,
+  du_ue_ran_resource_updater_impl(du_ue_resource_config*                      cell_grp_cfg_,
                                   const std::optional<ue_capability_summary>& ue_caps_,
                                   du_ran_resource_manager_impl&               parent_,
                                   du_ue_index_t                               ue_index_);

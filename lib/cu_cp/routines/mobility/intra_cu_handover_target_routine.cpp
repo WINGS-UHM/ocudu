@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "intra_cu_handover_target_routine.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
@@ -22,6 +16,7 @@ intra_cu_handover_target_routine::intra_cu_handover_target_routine(
     cu_cp_ue_context_release_handler&             ue_context_release_handler_,
     cu_cp_ue_removal_handler&                     ue_removal_handler_,
     cu_cp_ue_context_manipulation_handler&        cu_cp_handler_,
+    cu_cp_location_manager_handler&               loc_mng_handler_,
     ue_manager&                                   ue_mng_,
     mobility_manager&                             mobility_mng_,
     ocudulog::basic_logger&                       logger_) :
@@ -31,6 +26,7 @@ intra_cu_handover_target_routine::intra_cu_handover_target_routine(
   ue_context_release_handler(ue_context_release_handler_),
   ue_removal_handler(ue_removal_handler_),
   cu_cp_handler(cu_cp_handler_),
+  loc_mng_handler(loc_mng_handler_),
   ue_mng(ue_mng_),
   mobility_mng(mobility_mng_),
   logger(logger_)
@@ -63,7 +59,7 @@ void intra_cu_handover_target_routine::operator()(coro_context<async_task<void>>
   mobility_mng.get_metrics_handler().aggregate_successful_handover_execution();
 
   {
-    // Transfer old UE context (NGAP and E1AP) to new UE context and remove old UE context.
+    // Transfer old UE context (NGAP, E1AP, location manager) to new UE context and remove old UE context.
     cu_cp_handler.handle_handover_ue_context_push(request.source_ue_index, request.target_ue_index);
   }
 
@@ -117,6 +113,9 @@ void intra_cu_handover_target_routine::operator()(coro_context<async_task<void>>
     CORO_AWAIT(
         target_du_f1ap_ue_ctxt_mng.handle_ue_context_modification_request(target_ue_context_modification_request));
   }
+
+  // Send a location report if needed.
+  loc_mng_handler.handle_location_update(request.target_ue_index);
 
   // Remove source UE context.
   if (ue_mng.find_du_ue(request.source_ue_index) == nullptr) {

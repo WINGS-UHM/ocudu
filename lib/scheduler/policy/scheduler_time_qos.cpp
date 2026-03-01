@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "scheduler_time_qos.h"
 #include "../slicing/slice_ue_repository.h"
@@ -59,7 +53,7 @@ void ue_history_repository::save_dl_newtx_grants(span<const dl_msg_alloc> dl_gra
   std::fill(last_samples_buffer.begin(), last_samples_buffer.begin() + dl_rate.size(), 0.0f);
   for (const dl_msg_alloc& grant : dl_grants) {
     unsigned offset = ue_db.get_offset(ue_row_ids[grant.context.ue_index]);
-    last_samples_buffer[offset] += grant.pdsch_cfg.codewords[0].tb_size_bytes;
+    last_samples_buffer[offset] += grant.pdsch_cfg.codewords[0].tb_size_bytes.value();
   }
   auto sample_it = last_samples_buffer.begin();
   for (auto rate_it = dl_rate.begin(), end_it = dl_rate.end(); rate_it != end_it; ++rate_it, ++sample_it) {
@@ -79,7 +73,7 @@ void ue_history_repository::save_ul_newtx_grants(span<const ul_sched_info> ul_gr
   std::fill(last_samples_buffer.begin(), last_samples_buffer.begin() + ul_rate.size(), 0.0f);
   for (const ul_sched_info& grant : ul_grants) {
     unsigned offset = ue_db.get_offset(ue_row_ids[grant.context.ue_index]);
-    last_samples_buffer[offset] += grant.pusch_cfg.tb_size_bytes;
+    last_samples_buffer[offset] += grant.pusch_cfg.tb_size_bytes.value();
   }
   auto sample_it = last_samples_buffer.begin();
   for (auto rate_it = ul_rate.begin(), end_it = ul_rate.end(); rate_it != end_it; ++rate_it, ++sample_it) {
@@ -122,8 +116,7 @@ rate_estimator::rate_estimator(const cell_configuration& cell_cfg) :
 
 unsigned rate_estimator::estimate_max_dl_tbs(const ue_cell& ue_cc) const
 {
-  static constexpr unsigned        NOF_BITS_PER_BYTE = 8U;
-  static constexpr pdsch_mcs_table ref_mcs_table     = pdsch_mcs_table::qam256;
+  static constexpr pdsch_mcs_table ref_mcs_table = pdsch_mcs_table::qam256;
 
   auto mcs = ue_cc.link_adaptation_controller().calculate_dl_mcs(ref_mcs_table);
   if (not mcs.has_value()) {
@@ -133,7 +126,7 @@ unsigned rate_estimator::estimate_max_dl_tbs(const ue_cell& ue_cc) const
 
   const unsigned            nof_layers = ue_cc.channel_state_manager().get_nof_dl_layers();
   const sch_mcs_description mcs_info   = pdsch_mcs_get_config(ref_mcs_table, mcs.value());
-  const unsigned            tbs_bits =
+  const units::bytes        tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh  = dl_tbs_cfg_ref.nof_symb_sh,
                                                             .nof_dmrs_prb = dl_dmrs_rbs_per_nof_layers[nof_layers - 1],
                                                             .nof_oh_prb   = dl_tbs_cfg_ref.nof_oh_prb,
@@ -141,21 +134,20 @@ unsigned rate_estimator::estimate_max_dl_tbs(const ue_cell& ue_cc) const
                                                             .nof_layers   = nof_layers,
                                                             .tb_scaling_field = dl_tbs_cfg_ref.tb_scaling_field,
                                                             .n_prb            = dl_tbs_cfg_ref.n_prb});
-  return tbs_bits / NOF_BITS_PER_BYTE;
+  return tbs_bytes.value();
 }
 
 unsigned rate_estimator::estimate_max_ul_tbs(const ue_cell& ue_cc) const
 {
   static constexpr pusch_mcs_table ref_mcs_table          = pusch_mcs_table::qam256;
   static constexpr bool            use_transform_precoder = false;
-  static constexpr unsigned        NOF_BITS_PER_BYTE      = 8U;
 
   const sch_mcs_index mcs = ue_cc.link_adaptation_controller().calculate_ul_mcs(ref_mcs_table, false);
 
   const unsigned            nof_layers = ue_cc.channel_state_manager().get_nof_ul_layers();
   const sch_mcs_description mcs_info   = pusch_mcs_get_config(ref_mcs_table, mcs, use_transform_precoder, false);
 
-  unsigned tbs_bits =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh  = ul_tbs_cfg_ref.nof_symb_sh,
                                                             .nof_dmrs_prb = ul_dmrs_rbs_per_nof_layers[nof_layers - 1],
                                                             .nof_oh_prb   = ul_tbs_cfg_ref.nof_oh_prb,
@@ -165,7 +157,7 @@ unsigned rate_estimator::estimate_max_ul_tbs(const ue_cell& ue_cc) const
                                                             .n_prb            = ul_tbs_cfg_ref.n_prb});
 
   // Return the estimated throughput, considering that the number of bytes is for a slot.
-  return tbs_bits / NOF_BITS_PER_BYTE;
+  return tbs_bytes.value();
 }
 
 scheduler_time_qos::scheduler_time_qos(const time_qos_scheduler_config& policy_cfg_,

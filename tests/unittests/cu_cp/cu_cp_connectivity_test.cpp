@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_test_environment.h"
 #include "tests/test_doubles/e1ap/e1ap_test_message_validators.h"
@@ -180,6 +174,72 @@ TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_then_connected_ues_a
     auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
     ASSERT_TRUE(report.ues.empty());
   }
+}
+
+TEST_F(cu_cp_connectivity_test,
+       when_amf_connection_is_lost_and_gnb_cu_configuration_update_times_out_then_cell_deactivation_completes)
+{
+  // This test reproduces an std::bad_optional_access exception in log after GNBCU Configuration Update timeout.
+  run_ng_setup();
+
+  // Setup DU.
+  auto ret = connect_new_du();
+  ASSERT_TRUE(ret.has_value());
+  unsigned du_idx = ret.value();
+  ASSERT_TRUE(this->run_f1_setup(du_idx));
+
+  // Drop AMF connection - triggers cell_deactivation_routine.
+  ASSERT_TRUE(drop_amf_connection(0));
+
+  // Cell deactivation sends GNB-CU Configuration Update to the DU.
+  f1ap_message f1ap_pdu;
+  ASSERT_TRUE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu)) << "GNB-CU Configuration Update not sent to DU";
+  ASSERT_TRUE(test_helpers::is_valid_gnb_cu_configuration_update(f1ap_pdu));
+
+  // Do NOT inject a DU response - let the F1AP transaction timer fire.
+  ASSERT_FALSE(tick_until(
+      this->get_cu_cp_cfg().f1ap.proc_timeout + std::chrono::milliseconds{1000}, [&]() { return false; }, false));
+
+  // After the timeout the routine should have completed gracefully without crashing.
+  ASSERT_FALSE(this->get_cu_cp().get_ng_handler().amfs_are_connected());
+}
+
+TEST_F(cu_cp_connectivity_test,
+       when_amf_reconnects_and_gnb_cu_configuration_update_times_out_then_cell_activation_completes)
+{
+  // This test reproduces an std::bad_optional_access exception in log after GNBCU Configuration Update timeout.
+  run_ng_setup();
+
+  // Setup DU.
+  auto ret = connect_new_du();
+  ASSERT_TRUE(ret.has_value());
+  unsigned du_idx = ret.value();
+  ASSERT_TRUE(this->run_f1_setup(du_idx));
+
+  // Drop AMF connection - triggers cell_deactivation_routine which moves cells to deactivated_cells.
+  ASSERT_TRUE(drop_amf_connection(0));
+
+  // Acknowledge the GNB-CU Configuration Update so cell_deactivation_routine completes cleanly,
+  // allowing amf_connection_loss_routine to proceed to the reconnection step.
+  f1ap_message f1ap_pdu;
+  ASSERT_TRUE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu)) << "GNB-CU Configuration Update not sent to DU";
+  ASSERT_TRUE(test_helpers::is_valid_gnb_cu_configuration_update(f1ap_pdu));
+  get_du(du_idx).push_ul_pdu(test_helpers::generate_gnb_cu_configuration_update_acknowledgement({}));
+
+  // Reconnect AMF - completes NG re-setup and triggers cell_activation_routine.
+  ASSERT_TRUE(reconnect_amf(0)) << "AMF did not reconnect within expected time";
+
+  // Cell activation sends GNB-CU Configuration Update to the DU.
+  ASSERT_TRUE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu, std::chrono::milliseconds{1000}))
+      << "GNB-CU Configuration Update not sent to DU after AMF reconnection";
+  ASSERT_TRUE(test_helpers::is_valid_gnb_cu_configuration_update(f1ap_pdu));
+
+  // Do NOT inject a DU response - let the F1AP transaction timer fire.
+  ASSERT_FALSE(tick_until(
+      this->get_cu_cp_cfg().f1ap.proc_timeout + std::chrono::milliseconds{1000}, [&]() { return false; }, false));
+
+  // After the timeout the routine should have completed gracefully without crashing.
+  ASSERT_TRUE(this->get_cu_cp().get_ng_handler().amfs_are_connected());
 }
 
 TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_and_ue_release_times_out_then_cell_deactivation_completes)

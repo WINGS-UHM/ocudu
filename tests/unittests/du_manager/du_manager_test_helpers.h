@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -172,6 +166,8 @@ public:
   {
     last_ue_release_req = msg;
   }
+
+  void handle_access_success(const f1ap_access_success_event& msg) override {}
 
   async_task<f1ap_ue_context_modification_confirm>
   handle_ue_context_modification_required(const f1ap_ue_context_modification_required& msg) override

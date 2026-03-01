@@ -1,16 +1,13 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "du_ue_resource_config.h"
+#include "ocudu/scheduler/config/bwp_builder_params.h"
+#include "ocudu/scheduler/config/cell_bwp_config.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 #include <optional>
 #include <set>
 
@@ -43,96 +40,84 @@ public:
   /// \brief Deallocate PUCCH resources previously given to a UE. The resources are returned back to a pool.
   void dealloc_resources(cell_group_config& cell_grp_cfg);
 
-  /// Gets the current number of free PUCCH SR resource ID and offset pairs.
-  unsigned get_nof_sr_free_res_offsets(du_cell_index_t cell_idx) const
-  {
-    return cells[cell_idx].sr_res_offset_free_list.size();
-  }
+  /// Gets the current number of free SR configurations for a given cell.
+  unsigned get_nof_free_sr_configs(du_cell_index_t cell_idx) const { return cells[cell_idx].free_sr_configs.size(); }
 
-  /// Gets the current number of free PUCCH CSI resource ID and offset pairs.
-  unsigned get_nof_csi_free_res_offsets(du_cell_index_t cell_idx) const
-  {
-    return cells[cell_idx].csi_res_offset_free_list.size();
-  }
+  /// Gets the current number of free periodic CSI configurations for a given cell.
+  unsigned get_nof_free_csi_configs(du_cell_index_t cell_idx) const { return cells[cell_idx].free_csi_configs.size(); }
 
   /// Whether a given cell is configured.
   bool contains(du_cell_index_t cell_index) const { return cells.contains(cell_index); }
 
 private:
-  struct cell_resource_context;
-
-  unsigned sr_du_res_idx_to_pucch_res_idx(du_cell_index_t cell_index, unsigned sr_du_res_idx) const;
-
-  /// \brief Computes the DU index for PUCCH SR resource from the UE's PUCCH-Config \ref res_id index.
-  ///
-  /// Each cell has nof_cell_pucch_f1_res_sr PUCCH Format 1 resources that can be used for SR. Within the DU, these
-  /// resources are indexed with the values: {0, ..., nof_cell_pucch_f1_res_sr-1}. However, in the UE's PUCCH-Config,
-  /// the PUCCH F1 resources use different indices (see \ref res_id in \ref pucch_resource). The mapping between the DU
-  /// index and the UE's PUCCH-Config for SR PUCCH resources is defined in \ref odu::ue_pucch_config_builder.
-  unsigned pucch_res_idx_to_sr_du_res_idx(du_cell_index_t cell_index, unsigned pucch_res_idx) const;
-
-  unsigned csi_du_res_idx_to_pucch_res_idx(du_cell_index_t cell_index, unsigned csi_du_res_idx) const;
-
-  /// \brief Computes the DU index for PUCCH CSI resource from the UE's PUCCH-Config \ref res_id index.
-  ///
-  /// Each cell has nof_cell_pucch_f2_res_csi PUCCH Format 2 resources that can be used for CSI. Within the DU, these
-  /// resources are indexed with the values: {0, ..., nof_cell_pucch_f2_res_csi-1}. However, in the UE's PUCCH-Config,
-  /// the PUCCH F2 resources use different indices (see \ref res_id in \ref pucch_resource). The mapping between the DU
-  /// index and the UE's PUCCH-Config for CSI PUCCH resources is defined in \ref odu::ue_pucch_config_builder.
-  unsigned pucch_res_idx_to_csi_du_res_idx(du_cell_index_t cell_index, unsigned pucch_res_idx) const;
-
-  std::vector<std::pair<unsigned, unsigned>>::const_iterator
-  find_optimal_csi_report_slot_offset(du_cell_index_t                                   cell_index,
-                                      const std::vector<std::pair<unsigned, unsigned>>& available_csi_slot_offsets,
-                                      unsigned                                          candidate_sr_offset,
-                                      const pucch_resource&                             sr_res_cfg,
-                                      const csi_meas_config&                            csi_meas_cfg);
-
-  /// Computes the CSI resource ID and offset, under the following constraints: (i) the PUCCH grants counter doesn't
-  /// exceed the max_pucch_grants_per_slot; (ii) the SR and CSI offsets will result in the PUCCH resource not exceeding
-  /// the maximum PUCCH F2 payload.
-  std::vector<std::pair<unsigned, unsigned>>::const_iterator
-  get_csi_resource_offset(du_cell_index_t                                   cell_index,
-                          const csi_meas_config&                            csi_meas_cfg,
-                          unsigned                                          candidate_sr_offset,
-                          const pucch_resource&                             sr_res_cfg,
-                          const std::vector<std::pair<unsigned, unsigned>>& free_csi_list);
-
-  /// Computes the SR and CSI PUCCH offsets and their repetitions within a given period, which is the Least Common
-  /// Multiple of SR and CSI periods. If SR and CSI results in having common offsets, this will be counted only once.
-  std::set<unsigned>
-  compute_sr_csi_pucch_offsets(du_cell_index_t cell_index, unsigned sr_offset, unsigned csi_offset = 0);
-
-  [[nodiscard]] bool
-  csi_offset_collides_with_sr(du_cell_index_t cell_index, unsigned sr_offset, unsigned csi_offset) const;
-
-  /// Called when PUCCH allocation fails for a given UE.
-  void disable_pucch_cfg(du_cell_index_t cell_index, cell_group_config& cell_grp_cfg);
-
-  const unsigned max_pucch_grants_per_slot;
+  struct periodic_pucch_config {
+    unsigned res;
+    unsigned offset;
+  };
 
   struct cell_resource_context {
     // Parameters for PUCCH configuration passed by the user.
-    pucch_resource_builder_params user_defined_pucch_cfg{};
-    std::vector<pucch_resource>   default_pucch_res_list;
-    pucch_config                  default_pucch_cfg{};
+    bwp_builder_params bwp_params;
+    cell_pucch_config  cell_pucch_cfg;
+    pucch_config       default_pucch_cfg;
     // Default CSI report configuration. Only set if periodic CSI reporting is configured.
     std::optional<csi_report_config> default_csi_report_cfg;
-    unsigned                         lcm_csi_sr_period = 0;
-    unsigned                         sr_period_slots   = 0;
-    unsigned                         csi_period_slots  = 0;
-    /// \brief Pool of PUCCH SR offsets currently available to be allocated to UEs. Each element is represented by a
-    /// pair (pucch_resource_id, slot_offset).
-    std::vector<std::pair<unsigned, unsigned>> sr_res_offset_free_list;
-    /// Pool of PUCCH CSI offsets currently available to be allocated to UEs.
-    std::vector<std::pair<unsigned, unsigned>> csi_res_offset_free_list;
+    unsigned                         lcm_csi_sr_period;
+    unsigned                         sr_period_slots;
+    unsigned                         csi_period_slots;
+    /// Pool of SR configurations currently available to be allocated to UEs.
+    std::vector<periodic_pucch_config> free_sr_configs;
+    /// Pool of periodic CSI configurations currently available to be allocated to UEs.
+    std::vector<periodic_pucch_config> free_csi_configs;
     /// UE index for randomization of resources.
     unsigned              ue_idx = 0;
-    std::vector<unsigned> pucch_grants_per_slot_cnt;
+    std::vector<unsigned> periodic_pucchs_per_slot;
   };
+
+  const unsigned max_pucch_grants_per_slot;
 
   /// Resources for the different cells of the DU.
   slotted_id_table<du_cell_index_t, cell_resource_context, MAX_NOF_DU_CELLS> cells;
+
+  /// \brief Get a free CSI configuration compatible with the given SR configuration, if any exists.
+  ///
+  /// For a CSI configuration to be compatible, the following must hold:
+  /// - The max PUCCH grants limits are respected.
+  /// - If the SR and CSI offsets collide, then the resulting UCI payload (SR + CSI) can still be transmitted within a
+  ///   single PUCCH transmission (i.e., it doesn't exceed the max PUCCH payload limits).
+  /// - If PUCCH is configured with Formats 0 and 2, the SR and CSI resources must collide in OFDM symbols.
+  ///
+  /// \return An iterator to a compatible CSI configuration in the free CSI list, or \c free_csi_list.end() if no
+  ///         compatible configuration is found.
+  std::vector<periodic_pucch_config>::const_iterator
+  get_compatible_csi_cfg(const cell_resource_context&              cell_ctx,
+                         const periodic_pucch_config&              sr_cfg,
+                         const std::vector<periodic_pucch_config>& free_csi_list,
+                         unsigned                                  max_pucch_payload,
+                         unsigned                                  csi_report_size) const;
+
+  /// Check whether allocating a UE with the given SR or CSI offset will exceed the max PUCCH grants limit in any slot.
+  bool offset_exceeds_limit(const cell_resource_context& cell_ctx, unsigned offset, bool csi) const;
+
+  /// \brief Get the list of slot offsets where the UE will be scheduled for periodic UCI.
+  ///
+  /// \remark The offsets are computed within a period lcm(sr_period, csi_period).
+  /// \remark Slot offsets common to SR and CSI are counted only once, as they will be sent together in one PUCCH.
+  static std::set<unsigned>
+  compute_periodic_uci_slot_offsets(const cell_resource_context& cell_ctx, unsigned sr_offset, unsigned csi_offset = 0);
+
+  /// Check whether the given offsets will result in SR and CSI being scheduled together in some slot.
+  static bool sr_csi_offsets_collide(const cell_resource_context& cell_ctx, unsigned sr_offset, unsigned csi_offset);
+
+  /// \brief Update the serving cell configuration of a UE with the given SR and CSI configurations.
+  static void update_serv_cell_cfg(serving_cell_config&                        serv_cell_cfg,
+                                   const cell_resource_context&                cell_ctx,
+                                   const periodic_pucch_config&                sr_cfg,
+                                   const std::optional<periodic_pucch_config>& csi_cfg,
+                                   unsigned                                    max_pucch_payload);
+
+  /// Called when PUCCH allocation fails for a given UE.
+  static void disable_pucch_cfg(serving_cell_config& serv_cell_cfg, const cell_resource_context& cell_ctx);
 };
 
 } // namespace odu

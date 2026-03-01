@@ -1,16 +1,11 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_test_helpers.h"
 #include "ocudu/asn1/ngap/ngap_ies.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/support/async/async_test_utils.h"
@@ -29,6 +24,12 @@ protected:
   {
     return n2_gw.last_ngap_msgs.back().pdu.init_msg().value.type() ==
            asn1::ngap::ngap_elem_procs_o::init_msg_c::types_opts::location_report;
+  }
+
+  bool was_location_reporting_failure_indication_forwarded() const
+  {
+    return n2_gw.last_ngap_msgs.back().pdu.init_msg().value.type() ==
+           asn1::ngap::ngap_elem_procs_o::init_msg_c::types_opts::location_report_fail_ind;
   }
 
   bool was_error_indication_sent() const
@@ -69,7 +70,44 @@ TEST_F(ngap_location_reporting_test,
   ASSERT_EQ(cu_cp_notifier.last_location_reporting_ctrl_ue_index.value(), ue_index);
   ASSERT_TRUE(cu_cp_notifier.last_location_reporting_ctrl.has_value());
   ASSERT_EQ(cu_cp_notifier.last_location_reporting_ctrl.value().location_reporting_type,
-            ngap_location_reporting_control::event_type::direct);
+            ngap_location_report_request::event_type::direct);
+}
+
+TEST_F(ngap_location_reporting_test,
+       when_ngap_receives_location_reporting_failure_indication_message_from_cucp_it_forwards_it_to_amf)
+{
+  ASSERT_EQ(ngap->get_nof_ues(), 0);
+
+  // Test preamble.
+  ue_index_t ue_index = this->start_procedure();
+
+  auto& ue = test_ues.at(ue_index);
+
+  // Check that initial UE message is sent to AMF and that UE objects has been created.
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.type().value, asn1::ngap::ngap_pdu_c::types_opts::init_msg);
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.type(),
+            asn1::ngap::ngap_elem_procs_o::init_msg_c::types_opts::init_ue_msg);
+  ASSERT_EQ(ngap->get_nof_ues(), 1);
+
+  // Inject DL NAS Transport to assign AMF UE ID in the NGAP UE context.
+  run_dl_nas_transport(ue_index);
+
+  // Send NGAP Location Reporting Failure Indication message
+  ngap_location_report_failure_indication location_report_failure_ind = {};
+  location_report_failure_ind.ue_index                                = ue_index;
+  location_report_failure_ind.cause = ngap_cause_radio_network_t::multiple_location_report_ref_id_instances;
+  ngap->handle_location_reporting_failure_indication_transmission(location_report_failure_ind);
+
+  // Check that AMF notifier received the location reporting failure indication message.
+  ASSERT_TRUE(was_location_reporting_failure_indication_forwarded());
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.location_report_fail_ind()->amf_ue_ngap_id,
+            amf_ue_id_to_uint(ue.amf_ue_id.value()));
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.location_report_fail_ind()->ran_ue_ngap_id,
+            ran_ue_id_to_uint(ue.ran_ue_id.value()));
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.location_report_fail_ind()->cause.type(),
+            asn1::ngap::cause_c::types_opts::radio_network);
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.location_report_fail_ind()->cause.radio_network().value,
+            asn1::ngap::cause_radio_network_opts::multiple_location_report_ref_id_instances);
 }
 
 TEST_F(ngap_location_reporting_test, when_ngap_receives_location_report_message_from_cucp_it_forwards_it_to_amf)
@@ -91,12 +129,12 @@ TEST_F(ngap_location_reporting_test, when_ngap_receives_location_report_message_
   run_dl_nas_transport(ue_index);
 
   // Send NGAP Location Reporting message
-  ngap_location_report location_report = {};
-  location_report.ue_index             = ue_index;
-  location_report.nr_cgi.plmn_id       = plmn_identity::test_value();
-  location_report.nr_cgi.nci           = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
-  location_report.tai.plmn_id          = plmn_identity::test_value();
-  location_report.tai.tac              = 7;
+  ngap_location_report location_report              = {};
+  location_report.ue_index                          = ue_index;
+  location_report.user_location_info.nr_cgi.plmn_id = plmn_identity::test_value();
+  location_report.user_location_info.nr_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+  location_report.user_location_info.tai.plmn_id    = plmn_identity::test_value();
+  location_report.user_location_info.tai.tac        = 7;
   ngap->handle_location_report_transmission(location_report);
 
   // Check that AMF notifier received the location report message.
@@ -161,12 +199,12 @@ TEST_F(ngap_location_reporting_test, when_location_report_ue_index_is_invalid_me
   size_t n_msgs_before = n2_gw.last_ngap_msgs.size();
 
   // Send location report with invalid UE index.
-  ngap_location_report location_report = {};
-  location_report.ue_index             = ue_index_t::invalid;
-  location_report.nr_cgi.plmn_id       = plmn_identity::test_value();
-  location_report.nr_cgi.nci           = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
-  location_report.tai.plmn_id          = plmn_identity::test_value();
-  location_report.tai.tac              = 7;
+  ngap_location_report location_report              = {};
+  location_report.ue_index                          = ue_index_t::invalid;
+  location_report.user_location_info.nr_cgi.plmn_id = plmn_identity::test_value();
+  location_report.user_location_info.nr_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+  location_report.user_location_info.tai.plmn_id    = plmn_identity::test_value();
+  location_report.user_location_info.tai.tac        = 7;
   ngap->handle_location_report_transmission(location_report);
 
   // Verify no new message was sent to AMF.

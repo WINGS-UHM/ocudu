@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -386,21 +380,21 @@ public:
     logger.error("DL non UE associated NRPPa transport failed. Cause: NRPPa transport PDUs not supported.");
   }
 
-  void on_location_reporting_control_message(ue_index_t ue_index, const ngap_location_reporting_control& msg) override
+  void on_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg) override
   {
     last_location_reporting_ctrl_ue_index = ue_index;
     last_location_reporting_ctrl          = msg;
   }
 
-  ue_index_t                                     last_ue = ue_index_t::invalid;
-  ngap_init_context_setup_request                last_init_ctxt_setup_request;
-  cu_cp_pdu_session_resource_setup_request       last_request;
-  cu_cp_pdu_session_resource_modify_request      last_modify_request;
-  cu_cp_pdu_session_resource_release_command     last_release_command;
-  std::optional<ue_index_t>                      last_created_ue_index;
-  cu_cp_paging_message                           last_paging_msg;
-  std::optional<ue_index_t>                      last_location_reporting_ctrl_ue_index;
-  std::optional<ngap_location_reporting_control> last_location_reporting_ctrl;
+  ue_index_t                                  last_ue = ue_index_t::invalid;
+  ngap_init_context_setup_request             last_init_ctxt_setup_request;
+  cu_cp_pdu_session_resource_setup_request    last_request;
+  cu_cp_pdu_session_resource_modify_request   last_modify_request;
+  cu_cp_pdu_session_resource_release_command  last_release_command;
+  std::optional<ue_index_t>                   last_created_ue_index;
+  cu_cp_paging_message                        last_paging_msg;
+  std::optional<ue_index_t>                   last_location_reporting_ctrl_ue_index;
+  std::optional<ngap_location_report_request> last_location_reporting_ctrl;
 
 private:
   ue_manager&             ue_mng;

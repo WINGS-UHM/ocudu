@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #include "realtime_timing_worker.h"
 #include "../support/logger_utils.h"
@@ -31,7 +24,8 @@ realtime_timing_worker::realtime_timing_worker(ocudulog::basic_logger&    logger
   nof_symbols_per_sec(nof_symbols_per_slot * get_nof_slots_per_subframe(scs) * NOF_SUBFRAMES_PER_FRAME * 100),
   symbol_duration(1e9 / nof_symbols_per_sec),
   sleep_time(std::chrono::duration_cast<std::chrono::nanoseconds>(symbol_duration) / 15),
-  enable_log_warnings_for_lates(cfg.enable_log_warnings_for_lates)
+  enable_log_warnings_for_lates(cfg.enable_log_warnings_for_lates),
+  enable_busy_waiting(cfg.enable_busy_waiting)
 {
   // The GPS time epoch starts on 1980.1.6 so make sure that the system time is set after this date.
   // For simplicity reasons, only allow dates after 1981.
@@ -143,8 +137,10 @@ void realtime_timing_worker::poll()
   if (delta_ns < 0) {
     logger.info("Real-time timing worker detected PTP-synchronized time going backward by {}ns", -delta_ns);
 
-    OCUDU_RTSAN_SCOPED_DISABLER(d);
-    std::this_thread::sleep_for(sleep_time);
+    if (!enable_busy_waiting) {
+      OCUDU_RTSAN_SCOPED_DISABLER(d);
+      std::this_thread::sleep_for(sleep_time);
+    }
     return;
   }
   // The values are updated after the condition above to avoid notifying again the symbols that have already been
@@ -154,8 +150,10 @@ void realtime_timing_worker::poll()
 
   // Are we still in the same symbol as before?
   if (delta == 0) {
-    OCUDU_RTSAN_SCOPED_DISABLER(d);
-    std::this_thread::sleep_for(sleep_time);
+    if (!enable_busy_waiting) {
+      OCUDU_RTSAN_SCOPED_DISABLER(d);
+      std::this_thread::sleep_for(sleep_time);
+    }
     return;
   }
 

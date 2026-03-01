@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "paging_pdu_assembler.h"
 #include "ocudu/asn1/rrc_nr/pcch_msg.h"
@@ -76,10 +70,10 @@ span<const uint8_t> paging_pdu_assembler::encode_paging_pdu(const dl_paging_allo
     const asn1::OCUDUASN_CODE       ret      = pcch_msg.pack(bref);
     ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack PCCH-PCH Paging message");
   }
-  ocudu_assert(pg.pdsch_cfg.codewords[0].tb_size_bytes >= payload.length(),
+  ocudu_assert(pg.pdsch_cfg.codewords[0].tb_size_bytes.value() >= payload.length(),
                "The TBS for Paging cannot be smaller than the Paging payload");
 
-  span<uint8_t> pdu_bytes = pdu_pool.allocate_buffer(pg.pdsch_cfg.codewords[0].tb_size_bytes);
+  span<uint8_t> pdu_bytes = pdu_pool.allocate_buffer(pg.pdsch_cfg.codewords[0].tb_size_bytes.value());
 
   // Copy the Paging payload to the PDU span.
   copy_segments(payload, pdu_bytes);

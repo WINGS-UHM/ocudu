@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -121,6 +115,10 @@ public:
   /// \brief Indicates the reception of a UE Context Release Request (gNB-DU initiated) as per TS 38.473
   /// section 8.3.2.
   virtual void on_du_initiated_ue_context_release_request(const f1ap_ue_context_release_request& req) = 0;
+
+  /// \brief Indicates that the UE has successfully accessed a target cell during CHO execution (TS 38.473
+  /// Section 8.3.8).
+  virtual void on_access_success(const f1ap_access_success& msg) = 0;
 
   /// \brief Indicates that there was some loss of transaction information for some UEs.
   /// Called when an F1 removal or F1 Reset is received, or when the DU disconnects.

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "lib/scheduler/cell/resource_grid.h"
@@ -504,7 +498,7 @@ void assert_rar_grant_msg3_pusch_consistency(const cell_configuration&      cell
 
     ASSERT_EQ(rar.pdsch_cfg.codewords.size(), 1);
     const units::bytes rar_pdu_size{8}; // MAC RAR PDU subheader + length (See TS38.321, 6.1.5 and 6.2.3).
-    ASSERT_GE(rar.pdsch_cfg.codewords[0].tb_size_bytes, rar_pdu_size.value() * rar.grants.size());
+    ASSERT_GE(rar.pdsch_cfg.codewords[0].tb_size_bytes.value(), rar_pdu_size.value() * rar.grants.size());
 
     // For all RAR grants within the same RAR, check that they are consistent with the respective Msg3 PUSCHs.
     for (const rar_ul_grant& rar_grant : rar.grants) {

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_test_messages.h"
 #include "lib/ngap/ngap_asn1_converters.h"
@@ -254,7 +248,8 @@ ngap_message ocudu::ocucp::generate_initial_context_setup_request_base(amf_ue_id
 ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message(
     amf_ue_id_t                                               amf_ue_id,
     ran_ue_id_t                                               ran_ue_id,
-    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive)
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
+    std::optional<ngap_location_report_request>               location_reporting_request)
 {
   ngap_message ngap_msg = generate_initial_context_setup_request_base(amf_ue_id, ran_ue_id);
 
@@ -288,6 +283,11 @@ ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message(
       "1111111000001101100111110001011010001110110010111010001100110111100111011000110110011010000110000011000010111000"
       "0010001100001010000001111111100000100111101011000011110000110101110010001010001010101000101100101100100000001110"
       "00010001000110001101110101100110"); // fe0d9f168ecba3379d8d9a1830b8230a07f827ac3c35c8a2a8b2c80e1118dd66
+
+  if (location_reporting_request.has_value()) {
+    init_context_setup_req->location_report_request_type_present = true;
+    init_context_setup_req->location_report_request_type = location_report_request_to_asn1(*location_reporting_request);
+  }
 
   return ngap_msg;
 }
@@ -1111,6 +1111,55 @@ ngap_message ocudu::ocucp::generate_location_reporting_control_message(amf_ue_id
 
   // Fill location reporting type.
   loc_rep_control->location_report_request_type.event_type = asn1::ngap::event_type_opts::options::direct;
+
+  return ngap_msg;
+}
+
+ngap_message ocudu::ocucp::generate_location_reporting_control_message_with_cell_change(amf_ue_id_t amf_ue_id,
+                                                                                        ran_ue_id_t ran_ue_id)
+{
+  ngap_message ngap_msg = generate_location_reporting_control_message(amf_ue_id, ran_ue_id);
+  ngap_msg.pdu.init_msg().value.location_report_ctrl()->location_report_request_type.event_type =
+      asn1::ngap::event_type_opts::options::change_of_serve_cell;
+  return ngap_msg;
+}
+
+ngap_message ocudu::ocucp::generate_location_reporting_control_message_with_cell_change_and_ue_presence(
+    amf_ue_id_t                 amf_ue_id,
+    ran_ue_id_t                 ran_ue_id,
+    const std::vector<uint8_t>& ref_ids)
+{
+  ngap_message ngap_msg = generate_location_reporting_control_message(amf_ue_id, ran_ue_id);
+
+  auto& loc_rep_ctrl = ngap_msg.pdu.init_msg().value.location_report_ctrl();
+  loc_rep_ctrl->location_report_request_type.event_type =
+      asn1::ngap::event_type_opts::options::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
+
+  for (uint8_t ref_id : ref_ids) {
+    asn1::ngap::area_of_interest_item_s aoi_item;
+    aoi_item.location_report_ref_id = ref_id;
+    loc_rep_ctrl->location_report_request_type.area_of_interest_list.push_back(aoi_item);
+  }
+
+  return ngap_msg;
+}
+
+ngap_message
+ocudu::ocucp::generate_location_reporting_control_message_with_ue_presence(amf_ue_id_t                 amf_ue_id,
+                                                                           ran_ue_id_t                 ran_ue_id,
+                                                                           const std::vector<uint8_t>& ref_ids)
+{
+  ngap_message ngap_msg = generate_location_reporting_control_message(amf_ue_id, ran_ue_id);
+
+  auto& loc_rep_ctrl = ngap_msg.pdu.init_msg().value.location_report_ctrl();
+  loc_rep_ctrl->location_report_request_type.event_type =
+      asn1::ngap::event_type_opts::options::ue_presence_in_area_of_interest;
+
+  for (uint8_t ref_id : ref_ids) {
+    asn1::ngap::area_of_interest_item_s aoi_item;
+    aoi_item.location_report_ref_id = ref_id;
+    loc_rep_ctrl->location_report_request_type.area_of_interest_list.push_back(aoi_item);
+  }
 
   return ngap_msg;
 }

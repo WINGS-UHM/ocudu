@@ -1,16 +1,11 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/crit_diagnostics.h"
 #include "ocudu/security/security.h"
@@ -36,7 +31,7 @@ struct ngap_init_context_setup_request {
   std::optional<ngap_rrc_inactive_transition_report_request> rrc_inactive_transition_report_request;
   std::optional<cu_cp_ue_radio_cap_for_paging>               ue_radio_cap_for_paging;
   // TODO: Add optional redirection_voice_fallback
-  // TODO: Add optional location_report_request_type
+  std::optional<ngap_location_report_request> location_report_request_type;
   // TODO: Add optional cn_assisted_ran_tuning
 };
 

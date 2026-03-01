@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -136,7 +130,7 @@ public:
     cu_cp_handler->handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index, nrppa_pdu);
   }
 
-  void on_location_reporting_control_message(ue_index_t ue_index, const ngap_location_reporting_control& msg) override
+  void on_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg) override
   {
     ocudu_assert(cu_cp_handler != nullptr, "CU-CP NGAP handler must not be nullptr");
     cu_cp_handler->handle_location_reporting_control_message(ue_index, msg);

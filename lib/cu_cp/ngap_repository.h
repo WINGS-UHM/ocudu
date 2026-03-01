@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -14,12 +8,10 @@
 #include "task_schedulers/ngap_task_scheduler.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
-#include "ocudu/ngap/gateways/n2_connection_client.h"
 #include "ocudu/ngap/ngap.h"
 #include "ocudu/ran/plmn_identity.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// Interface used to capture the NGAP metrics from all the connected AMFs to the CU-CP.
 class ngap_repository_metrics_handler
@@ -76,6 +68,12 @@ public:
   /// Number of UEs managed by the CU-CP.
   size_t get_nof_ngap_ues();
 
+  /// \brief Get all supported tracking areas across all connected NGAPs.
+  std::vector<supported_tracking_area> get_supported_tracking_areas() const;
+
+  /// \brief Get all served GUAMIs across all connected NGAPs.
+  std::vector<guami_t> get_served_guamis() const;
+
 private:
   struct ngap_context {
     // CU-CP handler of NGAP events.
@@ -96,5 +94,4 @@ private:
   std::map<amf_index_t, ngap_context>            ngap_db;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

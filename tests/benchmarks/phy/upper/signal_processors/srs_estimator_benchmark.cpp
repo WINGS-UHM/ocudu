@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/phy/support/resource_grid.h"
 #include "ocudu/phy/support/resource_grid_writer.h"
@@ -150,18 +144,18 @@ int main(int argc, char** argv)
 
   srs_resource_configuration srs_resource;
   srs_resource.nof_antenna_ports   = static_cast<srs_resource_configuration::one_two_four_enum>(nof_tx_ports);
-  srs_resource.nof_symbols         = static_cast<srs_resource_configuration::one_two_four_enum>(nof_symbols);
+  srs_resource.nof_symbols         = static_cast<srs_nof_symbols>(nof_symbols);
   srs_resource.start_symbol        = start_symbol;
   srs_resource.configuration_index = bw_config_index;
   srs_resource.sequence_id         = sequence_id;
   srs_resource.bandwidth_index     = bw_index;
-  srs_resource.comb_size           = srs_resource_configuration::comb_size_enum::four;
+  srs_resource.comb_size           = tx_comb_size::n4;
   srs_resource.comb_offset         = 0;
   srs_resource.cyclic_shift        = 0;
   srs_resource.freq_position       = 0;
   srs_resource.freq_shift          = 0;
   srs_resource.freq_hopping        = 0;
-  srs_resource.hopping             = srs_resource_configuration::group_or_sequence_hopping_enum::neither;
+  srs_resource.hopping             = srs_group_or_sequence_hopping::neither;
   srs_resource.periodicity         = srs_resource_configuration::periodicity_and_offset{0, 0};
 
   srs_estimator_configuration srs_config;

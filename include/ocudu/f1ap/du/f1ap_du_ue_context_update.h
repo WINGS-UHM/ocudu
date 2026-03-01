@@ -1,16 +1,12 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "ocudu/adt/byte_buffer.h"
+#include "ocudu/f1ap/common/f1ap_cho_types.h"
+#include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/f1ap/ue_context_management_configs.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/nr_cgi.h"
@@ -77,6 +73,10 @@ struct f1ap_ue_context_update_request {
   byte_buffer ue_cap_rat_list;
   /// Indiction that the CU-CP has received the RRC reconfiguration complete.
   bool rrc_recfg_complete_ind;
+  /// \brief Optional CHO trigger. If set, this context update is part of a Conditional Handover procedure.
+  std::optional<f1ap_cho_trigger> cho_trigger;
+  /// \brief Optional target gNB-DU-UE-F1AP-ID for the inter-DU CHO replace case.
+  std::optional<gnb_du_ue_f1ap_id_t> cho_target_gnb_du_ue_f1ap_id;
 };
 
 /// \brief Response from DU manager to DU F1AP with the result of the UE context update.
@@ -103,6 +103,14 @@ struct f1ap_ue_context_release_request {
 
   du_ue_index_t ue_index;
   cause_type    cause;
+};
+
+/// \brief Notification that a UE has successfully accessed a target cell, (e.g., during CHO execution). See TS 38.473
+/// Section 8.3.8.
+struct f1ap_access_success_event {
+  du_ue_index_t ue_index;
+  /// NR-CGI of the cell where the UE successfully performed random access.
+  nr_cell_global_id_t cgi;
 };
 
 /// \brief Request Command for F1AP UE CONTEXT Modification Required.

@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #pragma once
 
@@ -23,7 +16,10 @@ namespace ocudu {
 /// \note This type is meant for storage purposes only, no operations other than equality comparison are allowed.
 using bf16_t = strong_type<uint16_t, struct strong_bf16_tag, strong_equality>;
 
-/// Converts an IEEE 754 single-precision 32-bit float to \c bfloat16.
+/// \brief Converts an IEEE 754 single-precision 32-bit float to \c bfloat16.
+///
+/// The 16 least significant bits of the fractional part are removed. The remaining 7 (most significant) bits are
+/// rounded according to the "half to nearest even" method.
 inline bf16_t to_bf16(float value)
 {
   // Reinterpret the value as a 32-bit unsigned integer.

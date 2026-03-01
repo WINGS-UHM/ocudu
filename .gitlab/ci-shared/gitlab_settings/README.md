@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+-->
+
 # GitLab Project Configuration with Terraform
 
 This Terraform module manages the complete configuration of a GitLab project, including project settings, pipeline schedules, protected branches, approval rules and more.

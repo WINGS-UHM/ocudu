@@ -1,19 +1,14 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "../tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
-#include "lib/scheduler/config/sched_config_manager.h"
+#include "lib/scheduler/config/cell_configuration.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "tests/unittests/scheduler/test_utils/config_generators.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 #include <gtest/gtest.h>
-#include <random>
 
 using namespace ocudu;
 
@@ -23,7 +18,7 @@ protected:
   sched_pucch_res_builder_tester() :
     cell_cfg(config_helpers::make_default_scheduler_expert_config(),
              sched_config_helper::make_default_sched_cell_configuration_request()),
-    cell_cfg_dedicated(config_helpers::create_default_initial_ue_spcell_cell_config()),
+    cell_cfg_dedicated(ocudu::config_helpers::create_default_initial_ue_cell_config()),
     pucch_builder(GetParam() ? pucch_res_builder_test_helper(cell_cfg.ul_cfg_common.init_ul_bwp, std::nullopt)
                              : pucch_res_builder_test_helper())
   {
@@ -33,19 +28,19 @@ protected:
   }
 
   struct ue_info {
-    unsigned            ue_idx;
-    serving_cell_config serv_cell_cfg;
+    unsigned       ue_idx;
+    ue_cell_config ue_cell_cfg;
   };
 
   const ue_info* add_ue()
   {
-    ues.push_back(ue_info{ue_cnt++, config_helpers::create_default_initial_ue_spcell_cell_config()});
-    pucch_builder.add_build_new_ue_pucch_cfg(ues.back().serv_cell_cfg);
+    ues.push_back(ue_info{ue_cnt++, ocudu::config_helpers::create_default_initial_ue_cell_config()});
+    pucch_builder.add_build_new_ue_pucch_cfg(ues.back().ue_cell_cfg);
     return &ues.back();
   }
 
   cell_configuration            cell_cfg;
-  serving_cell_config           cell_cfg_dedicated;
+  ue_cell_config                cell_cfg_dedicated;
   pucch_resource_builder_params pucch_params;
   std::vector<ue_info>          ues;
   unsigned                      ue_cnt = 0;
@@ -63,26 +58,26 @@ TEST_P(sched_pucch_res_builder_tester, when_ues_are_added_their_cfg_have_differe
     ASSERT_NE(ue, nullptr);
 
     // Check that the SR is configured and all UEs have different SR offsets or PUCCH res id.
-    const auto& sr_res_list = ue->serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list;
+    const auto& sr_res_list = ue->ue_cell_cfg.serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list;
     ASSERT_FALSE(sr_res_list.empty());
     auto ue_sr_res_offset_pair = std::make_pair(sr_res_list[0].pucch_res_id.cell_res_id, sr_res_list[0].offset);
     ASSERT_EQ(sr_offsets.count(ue_sr_res_offset_pair), 0);
     sr_offsets.insert(ue_sr_res_offset_pair);
 
-    if (cell_cfg_dedicated.csi_meas_cfg.has_value()) {
+    if (cell_cfg_dedicated.serv_cell_cfg.csi_meas_cfg.has_value()) {
       // Check that the CSI is configured and all UEs have different CSI offsets or PUCCH res id.
-      const bool has_csi_cfg = ue->serv_cell_cfg.csi_meas_cfg.has_value() and
-                               not ue->serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.empty();
+      const bool has_csi_cfg = ue->ue_cell_cfg.serv_cell_cfg.csi_meas_cfg.has_value() and
+                               not ue->ue_cell_cfg.serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.empty();
       ASSERT_TRUE(has_csi_cfg);
       const auto& csi_res_cfg = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-          ue->serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.front().report_cfg_type);
+          ue->ue_cell_cfg.serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.front().report_cfg_type);
       auto ue_csi_res_offset_pair = std::make_pair(csi_res_cfg.pucch_csi_res_list.front().pucch_res_id.cell_res_id,
                                                    csi_res_cfg.report_slot_offset);
       ASSERT_EQ(csi_offsets.count(ue_csi_res_offset_pair), 0);
       csi_offsets.insert(ue_csi_res_offset_pair);
     }
 
-    const auto& ue_pucch_cfg = ue->serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
+    const auto& ue_pucch_cfg = ue->ue_cell_cfg.serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
     // Each UE should have 2 PUCCH resource sets configured
     ASSERT_EQ(ue_pucch_cfg.pucch_res_set.size(), 2);
     ASSERT_EQ(ue_pucch_cfg.pucch_res_set[0].pucch_res_id_list.size(), pucch_params.res_set_0_size);

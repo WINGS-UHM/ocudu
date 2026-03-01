@@ -1,17 +1,12 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "ocudu/scheduler/result/pdsch_info.h"
 #include "ocudu/scheduler/result/pusch_info.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -34,7 +29,7 @@ const ue_sched_priority max_sched_priority = std::numeric_limits<ue_sched_priori
 struct ue_newtx_candidate {
   const slice_ue*   ue;
   ue_sched_priority priority;
-  unsigned          pending_bytes;
+  units::bytes      pending_bytes;
 };
 
 /// Interface of data scheduler that is used to allocate UE DL and UL grants in a given slot

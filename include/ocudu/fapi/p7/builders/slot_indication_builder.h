@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #pragma once
 
@@ -22,7 +15,6 @@ inline slot_indication build_slot_indication(slot_point_extended                
                                              std::chrono::time_point<std::chrono::system_clock> time_point)
 {
   slot_indication msg;
-  msg.message_type = message_type_id::slot_indication;
 
   msg.slot       = slot;
   msg.time_point = time_point;

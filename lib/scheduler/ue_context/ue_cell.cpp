@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_cell.h"
 #include "../support/dmrs_helpers.h"
@@ -123,36 +117,46 @@ void ue_cell::set_fallback_state(bool set_fallback, bool is_reconfig, bool reest
                pcell_state->in_fallback_mode ? "Entering" : "Leaving");
 }
 
-std::optional<ue_cell::dl_ack_info_result> ue_cell::handle_dl_ack_info(slot_point                 uci_slot,
-                                                                       mac_harq_ack_report_status ack_value,
-                                                                       unsigned                   harq_bit_idx,
-                                                                       std::optional<float>       pucch_snr)
+std::optional<dl_harq_process_handle> ue_cell::handle_dl_ack_info(slot_point                 uci_slot,
+                                                                  mac_harq_ack_report_status ack_value,
+                                                                  unsigned                   harq_bit_idx,
+                                                                  std::optional<float>       pucch_snr)
 {
   std::optional<dl_harq_process_handle> h_dl = harqs.find_dl_harq_waiting_ack(uci_slot, harq_bit_idx);
   if (not h_dl.has_value()) {
-    logger.warning("rnti={}: Discarding ACK info. Cause: DL HARQ for uci slot={} not found.", rnti(), uci_slot);
-    return std::nullopt;
+    logger.warning("rnti={}: Discarding ACK info. Cause: DL HARQ for uci slot={} and HARQ-ACK bit={} not found.",
+                   rnti(),
+                   uci_slot,
+                   harq_bit_idx);
+    return h_dl;
   }
 
-  dl_harq_process_handle::status_update outcome = h_dl->dl_ack_info(ack_value, pucch_snr);
+  // Update HARQ state.
+  const bool ret = h_dl->dl_ack_info(ack_value, pucch_snr);
+  if (not ret) {
+    // HARQ not in a valid state to be ACKed/NACKed.
+    h_dl.reset();
+    return h_dl;
+  }
 
-  if (outcome == dl_harq_process_handle::status_update::nacked) {
+  // In case of NACK/DTX, extend DRX window, if needed.
+  if (ack_value != mac_harq_ack_report_status::ack) {
     shared_ctx.drx_ctrl.on_dl_harq_nack(uci_slot);
   }
 
-  if (outcome == dl_harq_process_handle::status_update::acked or
-      outcome == dl_harq_process_handle::status_update::nacked) {
-    // HARQ is not expecting more ACK bits. Consider the feedback in the link adaptation controller.
-    components.ue_mcs_calculator->handle_dl_ack_info(outcome == dl_harq_process_handle::status_update::acked,
+  // If the HARQ report was DTX, do not forward the feeback to the link adaptation controller, as the issue is not
+  // necessarily in the PDSCH MCS.
+  if (ack_value != mac_harq_ack_report_status::dtx) {
+    components.ue_mcs_calculator->handle_dl_ack_info(ack_value == mac_harq_ack_report_status::ack,
                                                      h_dl->get_grant_params().mcs,
                                                      h_dl->get_grant_params().mcs_table,
                                                      h_dl->get_grant_params().olla_mcs);
   }
 
-  return dl_ack_info_result{outcome, h_dl.value()};
+  return h_dl;
 }
 
-int ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& crc_pdu)
+expected<units::bytes> ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& crc_pdu)
 {
   // Find UL HARQ with matching PUSCH slot.
   std::optional<ul_harq_process_handle> h_ul = harqs.find_ul_harq_waiting_ack(pusch_slot);
@@ -161,13 +165,13 @@ int ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& 
                    rnti(),
                    fmt::underlying(crc_pdu.harq_id),
                    pusch_slot);
-    return -1;
+    return make_unexpected(default_error_t{});
   }
 
   // Update UL HARQ state.
-  int tbs = h_ul->ul_crc_info(crc_pdu.tb_crc_success);
+  auto tbs_ret = h_ul->ul_crc_info(crc_pdu.tb_crc_success);
 
-  if (tbs >= 0) {
+  if (tbs_ret.has_value()) {
     // HARQ with matching ID and UCI slot was found.
 
     // Update link adaptation controller.
@@ -182,7 +186,7 @@ int ue_cell::handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& 
     }
   }
 
-  return tbs;
+  return tbs_ret;
 }
 
 void ue_cell::handle_srs_channel_matrix(const srs_channel_matrix& channel_matrix)
@@ -455,13 +459,11 @@ void ue_cell::apply_link_adaptation_procedures(const csi_report_data& csi_report
 
 double ue_cell::get_estimated_dl_rate(const pdsch_config_params& pdsch_cfg, sch_mcs_index mcs, unsigned nof_prbs) const
 {
-  static constexpr unsigned NOF_BITS_PER_BYTE = 8U;
-
   const unsigned      dmrs_prbs   = calculate_nof_dmrs_per_rb(pdsch_cfg.dmrs);
   sch_mcs_description mcs_info    = pdsch_mcs_get_config(pdsch_cfg.mcs_table, mcs);
   unsigned            nof_symbols = pdsch_cfg.symbols.length();
 
-  unsigned tbs_bits =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,
                                                             .nof_dmrs_prb     = dmrs_prbs,
                                                             .nof_oh_prb       = pdsch_cfg.nof_oh_prb,
@@ -471,19 +473,17 @@ double ue_cell::get_estimated_dl_rate(const pdsch_config_params& pdsch_cfg, sch_
                                                             .n_prb            = nof_prbs});
 
   // Return the estimated throughput, considering that the number of bytes is for a slot.
-  return tbs_bits / NOF_BITS_PER_BYTE;
+  return tbs_bytes.value();
 }
 
 double ue_cell::get_estimated_ul_rate(const pusch_config_params& pusch_cfg, sch_mcs_index mcs, unsigned nof_prbs) const
 {
-  static constexpr unsigned NOF_BITS_PER_BYTE = 8U;
-
   const unsigned      dmrs_prbs = calculate_nof_dmrs_per_rb(pusch_cfg.dmrs);
   sch_mcs_description mcs_info =
       pusch_mcs_get_config(pusch_cfg.mcs_table, mcs, pusch_cfg.use_transform_precoder, pusch_cfg.tp_pi2bpsk_present);
   unsigned nof_symbols = pusch_cfg.symbols.length();
 
-  unsigned tbs_bits =
+  units::bytes tbs_bytes =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = nof_symbols,
                                                             .nof_dmrs_prb     = dmrs_prbs,
                                                             .nof_oh_prb       = pusch_cfg.nof_oh_prb,
@@ -493,7 +493,7 @@ double ue_cell::get_estimated_ul_rate(const pusch_config_params& pusch_cfg, sch_
                                                             .n_prb            = nof_prbs});
 
   // Return the estimated throughput, considering that the number of bytes is for a slot.
-  return tbs_bits / NOF_BITS_PER_BYTE;
+  return tbs_bytes.value();
 }
 
 void ue_cell::set_conres_state(bool state)

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_processor_impl.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
@@ -56,6 +50,8 @@ public:
   {
     parent.handle_du_initiated_ue_context_release_request(req);
   }
+
+  void on_access_success(const f1ap_access_success& msg) override { parent.handle_access_success(msg); }
 
   bool schedule_async_task(async_task<void> task) override
   {
@@ -123,10 +119,13 @@ du_setup_result du_processor_impl::handle_du_setup_request(const du_setup_reques
     meas_cfg.plmn              = cgi.plmn_id;
     meas_cfg.pci               = cell_info.nr_pci;
     meas_cfg.band              = cell_info.band;
-    // TODO: which meas timing to use here?
-    meas_cfg.ssb_mtc   = cell_info.meas_timings.begin()->freq_and_timing.value().ssb_meas_timing_cfg;
-    meas_cfg.ssb_arfcn = cell_info.meas_timings.begin()->freq_and_timing.value().carrier_freq;
-    meas_cfg.ssb_scs   = cell_info.meas_timings.begin()->freq_and_timing.value().ssb_subcarrier_spacing;
+    if (!cell_info.meas_timings.empty() && cell_info.meas_timings.begin()->freq_and_timing.has_value()) {
+      // TODO: which meas timing to use when multiple are present?
+      const auto& freq_timing = cell_info.meas_timings.begin()->freq_and_timing.value();
+      meas_cfg.ssb_mtc        = freq_timing.ssb_meas_timing_cfg;
+      meas_cfg.ssb_arfcn      = freq_timing.carrier_freq;
+      meas_cfg.ssb_scs        = freq_timing.ssb_subcarrier_spacing;
+    }
 
     meas_config_db.emplace(cgi.nci, meas_cfg);
   }
@@ -178,14 +177,14 @@ bool du_processor_impl::create_rrc_ue(cu_cp_ue&                              ue,
                                       byte_buffer                            du_to_cu_rrc_container,
                                       std::optional<rrc_ue_transfer_context> rrc_context)
 {
-  // Create RRC UE to F1AP adapter
+  // Create RRC UE to F1AP adapter.
   rrc_ue_f1ap_adapters.emplace(std::piecewise_construct,
                                std::forward_as_tuple(ue.get_ue_index()),
                                std::forward_as_tuple(f1ap->get_f1ap_rrc_message_handler(), ue.get_ue_index()));
 
   const du_cell_configuration& cell = *cfg.du_cfg_hdlr->get_context().find_cell(cgi);
 
-  // Create new RRC UE entity
+  // Create new RRC UE entity.
   rrc_ue_creation_message rrc_ue_create_msg{};
   rrc_ue_create_msg.ue_index              = ue.get_ue_index();
   rrc_ue_create_msg.c_rnti                = c_rnti;
@@ -271,7 +270,7 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
     if (ue_index == ue_index_t::invalid) {
       // RRC Resume not requested or failed - create a new UE.
 
-      // Add new CU-CP UE
+      // Add new CU-CP UE.
       ue_index = ue_mng.add_ue(cfg.du_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index);
       if (ue_index == ue_index_t::invalid) {
         logger.warning("CU-CP UE creation failed");
@@ -296,9 +295,9 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
   if (not is_resume_request) {
     if (not create_rrc_ue(*ue, req.c_rnti, req.cgi, req.du_to_cu_rrc_container.copy(), req.prev_context)) {
       logger.warning("ue={}: Could not create RRC UE object", ue_index);
-      // Remove the UE from the UE manager
+      // Remove the UE from the UE manager.
       ue_mng.remove_ue(ue_index);
-      // Return the RRCReject container
+      // Return the RRCReject container.
       return make_unexpected(rrc->get_rrc_reject());
     }
 
@@ -331,7 +330,15 @@ void du_processor_impl::handle_du_initiated_ue_context_release_request(const f1a
 
   logger.debug("ue={}: Handling DU initiated UE context release request", request.ue_index);
 
-  // Schedule on UE task scheduler
+  // The DU requested a UE release, so we cancel all ongoing RRC transactions for the UE.
+  auto* rrc_ue = ue->get_rrc_ue();
+  if (rrc_ue == nullptr) {
+    logger.warning("ue={}: Dropping DU initiated UE context release request. RRC UE does not exist", request.ue_index);
+    return;
+  }
+  rrc_ue->cancel_all_transactions();
+
+  // Schedule on UE task scheduler.
   ue->get_task_sched().schedule_async_task(
       launch_async([this, request, ue](coro_context<async_task<void>>& ctx) mutable {
         CORO_BEGIN(ctx);
@@ -340,6 +347,30 @@ void du_processor_impl::handle_du_initiated_ue_context_release_request(const f1a
             {request.ue_index, ue->get_up_resource_manager().get_pdu_sessions(), f1ap_to_ngap_cause(request.cause)}));
         CORO_RETURN();
       }));
+}
+
+void du_processor_impl::handle_access_success(const f1ap_access_success& msg)
+{
+  logger.debug("ue={}: Received Access Success notification from DU for cell plmn={} nci={}",
+               msg.ue_index,
+               msg.cgi.plmn_id,
+               msg.cgi.nci);
+
+  cu_cp_ue* ue = ue_mng.find_du_ue(msg.ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: Dropping Access Success notification. UE does not exist", msg.ue_index);
+    return;
+  }
+
+  cu_cp_access_success_indication ind;
+  ind.ue_index = msg.ue_index;
+  ind.cgi      = msg.cgi;
+
+  ue->get_task_sched().schedule_async_task(launch_async([this, ind](coro_context<async_task<void>>& ctx) mutable {
+    CORO_BEGIN(ctx);
+    CORO_AWAIT(cu_cp_notifier.on_access_success(ind));
+    CORO_RETURN();
+  }));
 }
 
 bool du_processor_impl::has_cell(pci_t pci)

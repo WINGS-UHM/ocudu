@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "helpers.h"
 #include <random>
@@ -273,7 +267,8 @@ static pdsch_information fill_valid_pdsch_information(coreset_configuration& cor
   info.harq_id         = to_harq_id(4);
   info.ss_set_type     = search_space_set_type::type0;
   info.dci_fmt         = dci_dl_format::f1_0;
-  info.codewords.push_back(pdsch_codeword{{modulation_scheme::QAM16, 220.F}, 5, pdsch_mcs_table::qam64, 2, 128});
+  info.codewords.push_back(
+      pdsch_codeword{{modulation_scheme::QAM16, 220.F}, 5, pdsch_mcs_table::qam64, 2, units::bytes{128}});
 
   if (nof_ports == 2) {
     pdsch_precoding_info& pm   = info.precoding.emplace();
@@ -545,7 +540,7 @@ ul_sched_info_test_helper unittests::build_valid_pusch_pdu()
   pusch.rv_index                   = 1;
   pusch.harq_id                    = to_harq_id(2);
   pusch.new_data                   = true;
-  pusch.tb_size_bytes              = 11;
+  pusch.tb_size_bytes              = units::bytes{11};
   pusch.num_cb                     = 0;
 
   // UCI.

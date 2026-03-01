@@ -1,10 +1,7 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+# Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
 
 add_library(ocudu_phy_support STATIC
         interpolator/interpolator_linear_impl.cpp
@@ -18,6 +15,6 @@ add_library(ocudu_phy_support STATIC
         resource_grid_reader_impl.cpp
         resource_grid_writer_impl.cpp
         support_factories.cpp)
-target_link_libraries(ocudu_phy_support ocuduvec ocudu_instrumentation ocudu_ran)
+target_link_libraries(ocudu_phy_support ocuduvec ocudu_instrumentation ocudu_ran ocudu_support_math)
 
 add_to_exported_libs(ocudu_phy_support)

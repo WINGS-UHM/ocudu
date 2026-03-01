@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -64,6 +58,8 @@ public:
   async_task<bool> handle_rrc_reconfiguration_request(const rrc_reconfiguration_procedure_request& msg) override;
   rrc_ue_handover_reconfiguration_context
   get_rrc_ue_handover_reconfiguration_context(const rrc_reconfiguration_procedure_request& request) override;
+  rrc_ue_cond_reconfiguration_context
+  get_rrc_ue_cond_reconfiguration_context(const rrc_reconfiguration_procedure_request& request) override;
   async_task<bool> handle_handover_reconfiguration_complete_expected(uint8_t                   transaction_id,
                                                                      std::chrono::milliseconds timeout_ms) override;
   bool             store_ue_capabilities(byte_buffer ue_capabilities) override;
@@ -99,6 +95,26 @@ public:
 
   // rrc_ue_capability_handler
   bool is_rrc_inactive_supported() const override { return context.capabilities.rrc_inactive_supported; }
+  bool is_conditional_handover_supported() const override
+  {
+    return context.capabilities.conditional_handover_supported;
+  }
+  bool is_conditional_handover_two_trigger_events_supported() const override
+  {
+    return context.capabilities.conditional_handover_two_trigger_events_supported;
+  }
+  bool is_conditional_handover_event_a4_supported() const override
+  {
+    return context.capabilities.conditional_handover_event_a4_supported;
+  }
+  bool is_conditional_handover_location_based_supported() const override
+  {
+    return context.capabilities.conditional_handover_location_based_supported;
+  }
+  bool is_conditional_handover_time_based_supported() const override
+  {
+    return context.capabilities.conditional_handover_time_based_supported;
+  }
 
 private:
   void stop() override;

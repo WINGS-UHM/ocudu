@@ -1,16 +1,14 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_capability_manager.h"
 #include "ocudu/asn1/rrc_nr/ul_dcch_msg_ies.h"
+#include "ocudu/du/du_cell_config.h"
+#include "ocudu/du/du_high/du_test_mode_config.h"
 #include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/pusch/tx_scheme_configuration.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -113,23 +111,25 @@ static void set_pusch_mcs_table(serving_cell_config& cell_cfg, pusch_mcs_table m
 }
 
 // Configure dedicated UE configuration to set UL-MIMO related parameters.
-static void set_ul_mimo(serving_cell_config&      cell_cfg,
+static void set_ul_mimo(ue_cell_config&           cell_cfg,
                         unsigned                  max_rank,
                         unsigned                  nof_srs_ports,
                         tx_scheme_codebook_subset codebook_subset)
 {
   // Skip if the UL configuration is not present.
-  if (OCUDU_UNLIKELY(!cell_cfg.ul_config.has_value() || !cell_cfg.ul_config->init_ul_bwp.pusch_cfg ||
-                     !cell_cfg.ul_config->init_ul_bwp.srs_cfg)) {
+  if (OCUDU_UNLIKELY(!cell_cfg.serv_cell_cfg.ul_config.has_value() ||
+                     !cell_cfg.serv_cell_cfg.ul_config->init_ul_bwp.pusch_cfg ||
+                     !cell_cfg.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg)) {
     return;
   }
 
   // Prepare codebook transmission parameters.
-  cell_cfg.ul_config->init_ul_bwp.pusch_cfg->tx_cfg =
+  cell_cfg.bwps[0].ul.pusch.tx_cfg = tx_scheme_codebook{.max_rank = max_rank, .codebook_subset = codebook_subset};
+  cell_cfg.serv_cell_cfg.ul_config->init_ul_bwp.pusch_cfg->tx_cfg =
       tx_scheme_codebook{.max_rank = max_rank, .codebook_subset = codebook_subset};
 
   // Force the number of ports for all SRS resources to the maximum the UE supports.
-  for (auto& srs_res : cell_cfg.ul_config->init_ul_bwp.srs_cfg->srs_res_list) {
+  for (auto& srs_res : cell_cfg.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg->srs_res_list) {
     srs_res.nof_ports = static_cast<srs_config::srs_resource::nof_srs_ports>(nof_srs_ports);
   }
 }
@@ -203,21 +203,21 @@ ue_capability_manager::ue_capability_manager(span<const du_cell_config> cell_cfg
 
 void ue_capability_manager::handle_ue_creation(du_ue_resource_config& ue_res_cfg)
 {
-  du_cell_index_t      cell_idx  = to_du_cell_index(0);
-  serving_cell_config& pcell_cfg = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  du_cell_index_t cell_idx  = to_du_cell_index(0);
+  ue_cell_config  pcell_cfg = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
 
   // Set default MCS tables and disable UL MIMO.
-  set_pdsch_mcs_table(pcell_cfg, select_pdsch_mcs_table(cell_idx));
-  set_pusch_mcs_table(pcell_cfg, select_pusch_mcs_table(cell_idx));
-  set_pdsch_interleaving(pcell_cfg, select_pdsch_interleaving(cell_idx));
+  set_pdsch_mcs_table(pcell_cfg.serv_cell_cfg, select_pdsch_mcs_table(cell_idx));
+  set_pusch_mcs_table(pcell_cfg.serv_cell_cfg, select_pusch_mcs_table(cell_idx));
+  set_pdsch_interleaving(pcell_cfg.serv_cell_cfg, select_pdsch_interleaving(cell_idx));
   set_ul_mimo(
       pcell_cfg, select_pusch_max_rank(cell_idx), select_srs_nof_ports(cell_idx), select_tx_codebook_subset(cell_idx));
-  set_max_dl_nof_harqs(pcell_cfg, select_max_dl_nof_harqs(cell_idx));
-  set_max_ul_nof_harqs(pcell_cfg, select_max_ul_nof_harqs(cell_idx));
-  set_dl_dci_harq_num_field_size(pcell_cfg, select_dl_dci_harq_num_field_size(cell_idx));
-  set_ul_dci_harq_num_field_size(pcell_cfg, select_ul_dci_harq_num_field_size(cell_idx));
-  set_dl_harq_feedback_disabled(pcell_cfg, select_disabled_dl_harq_feedback(cell_idx));
-  set_ul_harq_mode(pcell_cfg, select_ul_harq_mode(cell_idx));
+  set_max_dl_nof_harqs(pcell_cfg.serv_cell_cfg, select_max_dl_nof_harqs(cell_idx));
+  set_max_ul_nof_harqs(pcell_cfg.serv_cell_cfg, select_max_ul_nof_harqs(cell_idx));
+  set_dl_dci_harq_num_field_size(pcell_cfg.serv_cell_cfg, select_dl_dci_harq_num_field_size(cell_idx));
+  set_ul_dci_harq_num_field_size(pcell_cfg.serv_cell_cfg, select_ul_dci_harq_num_field_size(cell_idx));
+  set_dl_harq_feedback_disabled(pcell_cfg.serv_cell_cfg, select_disabled_dl_harq_feedback(cell_idx));
+  set_ul_harq_mode(pcell_cfg.serv_cell_cfg, select_ul_harq_mode(cell_idx));
 
   // Initialize UE with DRX disabled.
   drx_res_mng.handle_ue_creation(ue_res_cfg.cell_group);
@@ -245,35 +245,35 @@ void ue_capability_manager::update(du_ue_resource_config& ue_res_cfg, const ue_c
 
 void ue_capability_manager::update_impl(du_ue_resource_config& ue_res_cfg)
 {
-  du_cell_index_t      cell_idx  = to_du_cell_index(0);
-  serving_cell_config& pcell_cfg = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  du_cell_index_t cell_idx  = to_du_cell_index(0);
+  ue_cell_config& pcell_cfg = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
 
   // Enable 256QAM for PDSCH, if supported.
-  set_pdsch_mcs_table(pcell_cfg, select_pdsch_mcs_table(cell_idx));
+  set_pdsch_mcs_table(pcell_cfg.serv_cell_cfg, select_pdsch_mcs_table(cell_idx));
 
   // Enable 256QAM for PUSCH, if supported.
-  set_pusch_mcs_table(pcell_cfg, select_pusch_mcs_table(cell_idx));
+  set_pusch_mcs_table(pcell_cfg.serv_cell_cfg, select_pusch_mcs_table(cell_idx));
 
   // Enable VRB-to-PRB interleaving for PDSCH, if supported.
-  set_pdsch_interleaving(pcell_cfg, select_pdsch_interleaving(cell_idx));
+  set_pdsch_interleaving(pcell_cfg.serv_cell_cfg, select_pdsch_interleaving(cell_idx));
 
   // Setup UL MIMO parameters.
   set_ul_mimo(
       pcell_cfg, select_pusch_max_rank(cell_idx), select_srs_nof_ports(cell_idx), select_tx_codebook_subset(cell_idx));
 
   // Set max DL/UL nof HARQs.
-  set_max_dl_nof_harqs(pcell_cfg, select_max_dl_nof_harqs(cell_idx));
-  set_max_ul_nof_harqs(pcell_cfg, select_max_ul_nof_harqs(cell_idx));
+  set_max_dl_nof_harqs(pcell_cfg.serv_cell_cfg, select_max_dl_nof_harqs(cell_idx));
+  set_max_ul_nof_harqs(pcell_cfg.serv_cell_cfg, select_max_ul_nof_harqs(cell_idx));
 
   // Set DL/UL DCI HARQ Process Number size.
-  set_dl_dci_harq_num_field_size(pcell_cfg, select_dl_dci_harq_num_field_size(cell_idx));
-  set_ul_dci_harq_num_field_size(pcell_cfg, select_ul_dci_harq_num_field_size(cell_idx));
+  set_dl_dci_harq_num_field_size(pcell_cfg.serv_cell_cfg, select_dl_dci_harq_num_field_size(cell_idx));
+  set_ul_dci_harq_num_field_size(pcell_cfg.serv_cell_cfg, select_ul_dci_harq_num_field_size(cell_idx));
 
   // Set DL HARQ feedback disabled.
-  set_dl_harq_feedback_disabled(pcell_cfg, select_disabled_dl_harq_feedback(cell_idx));
+  set_dl_harq_feedback_disabled(pcell_cfg.serv_cell_cfg, select_disabled_dl_harq_feedback(cell_idx));
 
   // Set UL HARQ Mode B enabled.
-  set_ul_harq_mode(pcell_cfg, select_ul_harq_mode(cell_idx));
+  set_ul_harq_mode(pcell_cfg.serv_cell_cfg, select_ul_harq_mode(cell_idx));
 
   // Setup DRX config.
   update_drx(ue_res_cfg);
@@ -608,7 +608,7 @@ void ocudu::odu::decode_advanced_ue_nr_caps(odu::ue_capability_summary&      ue_
 {
   for (const auto& band : ue_cap.rf_params.supported_band_list_nr) {
     // Select band.
-    nr_band                                band_id  = static_cast<nr_band>(band.band_nr);
+    auto                                   band_id  = static_cast<nr_band>(band.band_nr);
     ue_capability_summary::supported_band& band_cap = ue_capability.bands.at(band_id);
 
     // Convert UL-MIMO related parameter.
@@ -645,7 +645,7 @@ void ocudu::odu::decode_advanced_ue_nr_caps(odu::ue_capability_summary&      ue_
     }
 
     // Get band identifier. Skip if the band is not in the band list.
-    nr_band band_id = static_cast<nr_band>(band_params.nr().band_nr);
+    auto band_id = static_cast<nr_band>(band_params.nr().band_nr);
     if (ue_capability.bands.count(band_id) == 0) {
       continue;
     }

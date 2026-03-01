@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -18,7 +12,6 @@
 #include "ocudu/adt/slotted_array.h"
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/ran/du_types.h"
-#include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 #include "ocudu/ran/serv_cell_index.h"
@@ -214,28 +207,10 @@ public:
   /// \brief Gets the PUSCH transmit scheme codebook configuration.
   ///
   /// The codebook subset selection procedure is described in TS 38.214 Section 6.1.1.1.
-  ///
-  /// \remark An assertion is triggered if the transmission scheme is not present or not set to codebook.
-  const tx_scheme_codebook& get_pusch_codebook_config() const
-  {
-    ocudu_assert(init_bwp().ul_ded.has_value(), "Missing dedicated UL configuration.");
-    const auto& ul_ded = init_bwp().ul_ded.value();
-    ocudu_assert(ul_ded.pusch_cfg.has_value(), "Missing dedicated PUSCH configuration.");
-    ocudu_assert(ul_ded.pusch_cfg.value().tx_cfg.has_value(), "Missing transmit configuration.");
-    ocudu_assert(std::holds_alternative<tx_scheme_codebook>(ul_ded.pusch_cfg.value().tx_cfg.value()),
-                 "PUSCH Transmission scheme must be set to codebook.");
-    return std::get<tx_scheme_codebook>(ul_ded.pusch_cfg.value().tx_cfg.value());
-  }
+  const tx_scheme_codebook& get_pusch_codebook_config() const { return init_bwp().bwp.ul.pusch.tx_cfg; }
 
   /// \brief Gets the SRS transmit number of ports.
-  /// \remark An assertion is triggered if no SRS resource is present.
-  const auto& get_srs_nof_ports() const
-  {
-    ocudu_assert(init_bwp().ul_ded.has_value(), "Missing dedicated UL configuration.");
-    ocudu_assert(init_bwp().ul_ded->srs_cfg.has_value(), "Missing dedicated SRS configuration.");
-    ocudu_assert(init_bwp().ul_ded->srs_cfg.value().srs_res_list.size() == 1, "SRS resource list size must be one.");
-    return init_bwp().ul_ded->srs_cfg.value().srs_res_list.front().nof_ports;
-  }
+  const auto& get_srs_nof_ports() const { return init_bwp().bwp.ul.srs.nof_ports; }
 
 private:
   void configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_downlink_common& bwp_dl_common);

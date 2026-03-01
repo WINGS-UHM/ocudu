@@ -1,28 +1,32 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_unit_config_cli11_schema.h"
 #include "apps/helpers/logger/logger_appconfig_cli11_utils.h"
 #include "apps/helpers/metrics/metrics_config_cli11_schema.h"
 #include "cu_cp_unit_config.h"
+#include "cu_cp_unit_config_helpers.h"
 #include "ocudu/ran/nr_cell_identity.h"
 #include "ocudu/support/cli11_utils.h"
 #include "ocudu/support/config_parsers.h"
+#include <algorithm>
 
 using namespace ocudu;
+
+/// Registers CLI11 lat/lon options on \p app bound to \p loc.
+static void configure_cli11_geo_location(CLI::App& app, ocucp::rrc_geo_location& loc)
+{
+  add_option(app, "--latitude", loc.latitude, "Latitude [degrees, -90..90]")->check(CLI::Range(-90.0, 90.0));
+  add_option(app, "--longitude", loc.longitude, "Longitude [degrees, -180..180]")->check(CLI::Range(-180.0, 180.0));
+}
 
 static void configure_cli11_log_args(CLI::App& app, cu_cp_unit_logger_config& log_params)
 {
   app_helpers::add_log_option(app, log_params.pdcp_level, "--pdcp_level", "PDCP log level");
   app_helpers::add_log_option(app, log_params.rrc_level, "--rrc_level", "RRC log level");
   app_helpers::add_log_option(app, log_params.ngap_level, "--ngap_level", "NGAP log level");
+  app_helpers::add_log_option(app, log_params.xnap_level, "--xnap_level", "XNAP log level");
   app_helpers::add_log_option(app, log_params.nrppa_level, "--nrppa_level", "NRPPA log level");
   app_helpers::add_log_option(app, log_params.e1ap_level, "--e1ap_level", "E1AP log level");
   app_helpers::add_log_option(app, log_params.f1ap_level, "--f1ap_level", "F1AP log level");
@@ -48,6 +52,8 @@ static void configure_cli11_pcap_args(CLI::App& app, cu_cp_unit_pcap_config& pca
       ->capture_default_str();
   add_option(app, "--ngap_enable", pcap_params.ngap.enabled, "Enable N3 GTP-U packet capture")
       ->always_capture_default();
+  add_option(app, "--xnap_filename", pcap_params.xnap.filename, "XNAP PCAP file output path")->capture_default_str();
+  add_option(app, "--xnap_enable", pcap_params.xnap.enabled, "Enable XNAP packet capture")->always_capture_default();
   add_option(app, "--f1ap_filename", pcap_params.f1ap.filename, "F1AP PCAP file output path")->capture_default_str();
   add_option(app, "--f1ap_enable", pcap_params.f1ap.enabled, "Enable F1AP packet capture")->always_capture_default();
   add_option(app, "--e1ap_filename", pcap_params.e1ap.filename, "E1AP PCAP file output path")->capture_default_str();
@@ -192,6 +198,16 @@ static void configure_cli11_amf_args(CLI::App& app, cu_cp_unit_amf_config& confi
   configure_cli11_amf_item_args(app, config.amf);
 }
 
+static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& config)
+{
+  add_option(app,
+             "--bind_addrs",
+             config.bind_addrs,
+             "Local IP addresses to bind for XNAP interface. Multiple addresses can be specified for SCTP "
+             "multi-homing. If left empty, implicit bind is performed");
+  add_option(app, "--peer_addrs", config.peer_addrs, "Peer IP addresses to connect for XNAP interface");
+}
+
 static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config& report_params)
 {
   add_option(app, "--report_cfg_id", report_params.report_cfg_id, "Report configuration id to be configured")
@@ -202,7 +218,7 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
              "--event_triggered_report_type",
              report_params.event_triggered_report_type,
              "Type of the event triggered report")
-      ->check(CLI::IsMember({"a1", "a2", "a3", "a4", "a5", "a6"}));
+      ->check(CLI::IsMember({"a1", "a2", "a3", "a4", "a5", "a6", "d1", "t1", "d2"}));
   add_option(app, "--report_interval_ms", report_params.report_interval_ms, "Report interval in ms")
       ->check(
           CLI::IsMember({120, 240, 480, 640, 1024, 2048, 5120, 10240, 20480, 40960, 60000, 360000, 720000, 1800000}));
@@ -251,6 +267,67 @@ static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config&
              "(out-of-sync) timer is already running and on its expiration triggers the RLF to speed up "
              "reestablishment to different cell.")
       ->check(CLI::IsMember({0, 50, 100, 200, 300, 400, 500, 1000}));
+
+  // D1/D2 distance-based conditional event options.
+  add_option(app,
+             "--distance_thresh_from_ref1_km",
+             report_params.distance_thresh_from_ref1_km,
+             "D1/D2: distance threshold 1 in km [0..3276.75] (50m steps, D1 max is 3276.25)")
+      ->check(CLI::Range(0.0, 3276.75));
+  add_option(app,
+             "--distance_thresh_from_ref2_km",
+             report_params.distance_thresh_from_ref2_km,
+             "D1/D2: distance threshold 2 in km [0..3276.75] (50m steps, D1 max is 3276.25)")
+      ->check(CLI::Range(0.0, 3276.75));
+  add_option(app,
+             "--hysteresis_location_km",
+             report_params.hysteresis_location_km,
+             "D1/D2: location hysteresis in km [0..327.68] (10m steps)")
+      ->check(CLI::Range(0.0, 327.68));
+
+  // D1 reference locations (nested subcommands for lat/lon).
+  static ocucp::rrc_geo_location ref_location1;
+  CLI::App*                      ref_loc1_sub =
+      app.add_subcommand("ref_location1", "D1: reference location 1 (serving cell)")->configurable();
+  configure_cli11_geo_location(*ref_loc1_sub, ref_location1);
+  ref_loc1_sub->parse_complete_callback([&]() {
+    if (app.get_subcommand("ref_location1")->count() != 0) {
+      report_params.ref_location1 = ref_location1;
+    }
+  });
+
+  static ocucp::rrc_geo_location ref_location2;
+  CLI::App*                      ref_loc2_sub =
+      app.add_subcommand("ref_location2", "D1: reference location 2 (target cell)")->configurable();
+  configure_cli11_geo_location(*ref_loc2_sub, ref_location2);
+  ref_loc2_sub->parse_complete_callback([&]() {
+    if (app.get_subcommand("ref_location2")->count() != 0) {
+      report_params.ref_location2 = ref_location2;
+    }
+  });
+
+  // T1 time-based conditional event options.
+  app.add_option_function<std::string>(
+         "--t1_thres",
+         [&report_params](const std::string& v) {
+           auto result = parse_timestamp_ms(v);
+           if (!result) {
+             throw CLI::ValidationError("--t1_thres", result.error());
+           }
+           report_params.t1_thres = result.value();
+         },
+         "T1: time threshold (Unix ms integer or YYYY-MM-DDTHH:MM:SS[.mmm])")
+      ->check([](const std::string& input) -> std::string {
+        if (!is_number(input) && !is_valid_timestamp(input)) {
+          return "Invalid timestamp format. Expected Unix time (ms) or YYYY-MM-DDTHH:MM:SS[.mmm]";
+        }
+        return {};
+      });
+  app.add_option_function<double>(
+         "--duration_s",
+         [&report_params](double v) { report_params.duration = std::chrono::duration<double>{v}; },
+         "T1: duration in seconds (each step=100ms, range [0.1..600])")
+      ->check(CLI::Range(0.1, 600.0));
 }
 
 static void configure_cli11_ncell_args(CLI::App& app, cu_cp_unit_neighbor_cell_config_item& config)
@@ -491,6 +568,23 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
         }
       },
       "Sets the list of extra AMFs for the CU-CP to connect to");
+
+  // XN-C parameters.
+  app.add_option_function<std::vector<std::string>>(
+      "--xnap_connections",
+      [&cu_cp_params](const std::vector<std::string>& values) {
+        cu_cp_params.xnap_configs.resize(values.size());
+
+        for (unsigned i = 0, e = values.size(); i != e; ++i) {
+          CLI::App subapp("XNAP parameters list");
+          subapp.config_formatter(create_yaml_config_parser());
+          subapp.allow_config_extras(CLI::config_extras_mode::error);
+          configure_cli11_xnap_args(subapp, cu_cp_params.xnap_configs[i]);
+          std::istringstream ss(values[i]);
+          subapp.parse_from_stream(ss);
+        }
+      },
+      "Sets the list of XN-C peer CU-CPs for the CU-CP to connect to");
 
   CLI::App* mobility_subcmd = app.add_subcommand("mobility", "Mobility configuration");
   configure_cli11_mobility_args(*mobility_subcmd, cu_cp_params.mobility_config);

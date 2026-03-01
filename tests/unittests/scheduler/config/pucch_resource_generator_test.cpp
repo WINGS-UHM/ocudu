@@ -1,15 +1,10 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/scheduler/scheduler_configurator.h"
 #include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
@@ -1067,10 +1062,10 @@ protected:
                               .pi2_bpsk               = false,
                               .occ_supported          = false,
                               .occ_length             = pucch_f4_occ_len::n2}),
-    serv_cell_cfg(sched_config_helper::create_default_sched_ue_creation_request().cfg.cells->front())
+    ue_cell_cfg(sched_config_helper::create_default_sched_ue_creation_request().cfg.cells->front())
   {
     if (GetParam().nof_res_f0_harq != 0) {
-      auto& pucch_res_list = serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->pucch_res_list;
+      auto& pucch_res_list = ue_cell_cfg.serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->pucch_res_list;
       for (auto& res : pucch_res_list) {
         if (res.format == pucch_format::FORMAT_1) {
           res.format = pucch_format::FORMAT_0;
@@ -1080,14 +1075,14 @@ protected:
     }
 
     if (GetParam().nof_res_f3_harq != 0) {
-      auto& pucch_res_list = serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->pucch_res_list;
+      auto& pucch_res_list = ue_cell_cfg.serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->pucch_res_list;
       for (auto& res : pucch_res_list) {
         if (res.format == pucch_format::FORMAT_2) {
           res.format = pucch_format::FORMAT_3;
         }
       }
     } else if (GetParam().nof_res_f4_harq != 0) {
-      auto& pucch_res_list = serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->pucch_res_list;
+      auto& pucch_res_list = ue_cell_cfg.serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg->pucch_res_list;
       for (auto& res : pucch_res_list) {
         if (res.format == pucch_format::FORMAT_2) {
           res.format = pucch_format::FORMAT_4;
@@ -1096,7 +1091,7 @@ protected:
     }
 
     if (GetParam().nof_res_csi == 0) {
-      serv_cell_cfg.csi_meas_cfg.reset();
+      ue_cell_cfg.serv_cell_cfg.csi_meas_cfg.reset();
     }
   }
 
@@ -1106,13 +1101,13 @@ protected:
                  "HARQ resources config index must be smaller than the number of HARQ resources configurations");
     ocudu_assert(sr_idx < nof_sr_res_per_cell,
                  "SR resource config index must be smaller than the number of cell SR resources");
-    const bool has_csi = serv_cell_cfg.csi_meas_cfg.has_value();
+    const bool has_csi = ue_cell_cfg.serv_cell_cfg.csi_meas_cfg.has_value();
     if (has_csi) {
       ocudu_assert(csi_idx < nof_csi_res_per_cell,
                    "CSI resource config index must be smaller than the number of cell CSI resources");
     }
 
-    const pucch_config& pucch_cfg          = serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
+    const pucch_config& pucch_cfg          = ue_cell_cfg.serv_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
     const unsigned      nof_sr_res_per_ue  = 1;
     const unsigned      nof_csi_res_per_ue = has_csi ? 1U : 0U;
 
@@ -1181,7 +1176,7 @@ protected:
 
     // Check CSI and related PUCCH resource.
     if (has_csi) {
-      const auto& csi_cfg = serv_cell_cfg.csi_meas_cfg.value();
+      const auto& csi_cfg = ue_cell_cfg.serv_cell_cfg.csi_meas_cfg.value();
       ocudu_assert(not csi_cfg.csi_report_cfg_list.empty() and
                        std::holds_alternative<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
                            csi_cfg.csi_report_cfg_list.front().report_cfg_type) and
@@ -1259,7 +1254,7 @@ protected:
         if (has_csi) {
           const pucch_res_id_t csi_res_id =
               std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-                  serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.front().report_cfg_type)
+                  ue_cell_cfg.serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.front().report_cfg_type)
                   .pucch_csi_res_list.front()
                   .pucch_res_id;
           pucch_cell_res_id_test =
@@ -1356,7 +1351,7 @@ protected:
       if (has_csi) {
         const pucch_res_id_t csi_res_id =
             std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-                serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.front().report_cfg_type)
+                ue_cell_cfg.serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list.front().report_cfg_type)
                 .pucch_csi_res_list.front()
                 .pucch_res_id;
 
@@ -1403,7 +1398,7 @@ protected:
   const pucch_f2_params f2_params;
   const pucch_f3_params f3_params;
   const pucch_f4_params f4_params;
-  serving_cell_config   serv_cell_cfg;
+  ue_cell_config        ue_cell_cfg;
 };
 
 TEST_P(test_ue_pucch_config_builder, test_validator_too_many_resources)
@@ -1466,7 +1461,7 @@ TEST_P(test_ue_pucch_config_builder, test_validator_too_many_resources)
   const auto csi_idx_cfg  = test_rgen::uniform_int<unsigned>(0, nof_csi_res_per_cell - 1);
 
   // Update pucch_cfg with the UE list of resources (with at max 8 HARQ F1, 8 HARQ F2, 4 SR).
-  config_helpers::ue_pucch_config_builder(serv_cell_cfg,
+  config_helpers::ue_pucch_config_builder(ue_cell_cfg.serv_cell_cfg,
                                           res_list,
                                           harq_idx_cfg,
                                           sr_idx_cfg,

@@ -1,10 +1,6 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+
 
 include:
   - local: .gitlab/ci-shared/docker.yml
@@ -88,11 +84,6 @@ telegraf version changed:
   tags: [saas-linux-medium-amd64]
   timeout: 2h
   retry: 2
-  variables:
-    KUBERNETES_CPU_REQUEST: ${SRS_CPU_LIMIT}
-    KUBERNETES_CPU_LIMIT: ${SRS_CPU_LIMIT}
-    KUBERNETES_MEMORY_REQUEST: ${SRS_MEMORY_LIMIT}
-    KUBERNETES_MEMORY_LIMIT: ${SRS_MEMORY_LIMIT}
   before_script: &docker_setup
     - |
       export DOCKER_HOST=unix:///var/run/docker.sock
@@ -201,7 +192,7 @@ influxdb and telegraf docker compose:
 telegraf image:
   extends: .docker-builder
   stage: publish
-  rules:
+  rules: &telegraf_image_rules
     - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
       when: never
     - if: $ON_MR_FORK
@@ -210,26 +201,58 @@ telegraf image:
       changes:
         paths:
           - docker/telegraf/**/*
-  variables:
-    NAME: telegraf
+  variables: &telegraf_image_variables
     CONTEXT: ${CI_PROJECT_DIR}/docker/telegraf
+    NAME: telegraf
+    MULTI_ARCH_BUILD: "true"
     MODE: publish
   before_script:
     - |
       export VERSION=$(cat ${CONTEXT}/version.yml | grep OCUDU_TELEGRAF_VERSION | cut -d'"' -f2)
+      echo "CI_SHARED_TELEGRAF_IMAGE_VERSION=${VERSION}" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env
+  parallel:
+    matrix:
+      - PLATFORM: ["arm64", "amd64"]
 
-telegraf image latest:
-  extends: telegraf image
+telegraf manifest:
+  extends: .docker manifest
+  rules: *telegraf_image_rules
   variables:
-    OVERWRITE: "true"
+    <<: *telegraf_image_variables
   before_script:
     - |
-      export VERSION=latest
+      export VERSION="${CI_SHARED_TELEGRAF_IMAGE_VERSION}"
+  needs:
+    - job: telegraf image
+      artifacts: true
+      optional: false
+
+telegraf manifest latest:
+  extends: .docker manifest
+  rules: *telegraf_image_rules
+  variables:
+    <<: *telegraf_image_variables
+  script:
+    - |
+      export VERSION="${CI_SHARED_TELEGRAF_IMAGE_VERSION}"
+      docker manifest create \
+        ${CI_REGISTRY_IMAGE}/${NAME}:latest \
+        --amend ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}-amd64 \
+        --amend ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}-arm64
+      docker manifest push ${CI_REGISTRY_IMAGE}/${NAME}:latest
+  needs:
+    - job: telegraf image
+      artifacts: true
+      optional: false
+
 
 grafana image:
   extends: .docker-builder
   stage: publish
-  rules:
+  rules: &grafana_image_rules
     - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
       when: never
     - if: $ON_MR_FORK
@@ -238,18 +261,49 @@ grafana image:
       changes:
         paths:
           - docker/grafana/**/*
-  variables:
-    NAME: grafana
+  variables: &grafana_image_variables
     CONTEXT: ${CI_PROJECT_DIR}/docker/grafana
+    NAME: grafana
+    MULTI_ARCH_BUILD: "true"
     MODE: publish
   before_script:
     - |
       export VERSION=$(cat docker/grafana/version.yml | grep OCUDU_GF_VERSION | cut -d'"' -f2)
+      echo "CI_SHARED_GRAFANA_IMAGE_VERSION=${VERSION}" >> variables.env
+  artifacts:
+    reports:
+      dotenv: variables.env
+  parallel:
+    matrix:
+      - PLATFORM: ["arm64", "amd64"]
 
-grafana image latest:
-  extends: grafana image
+grafana manifest:
+  extends: .docker manifest
+  rules: *grafana_image_rules
   variables:
-    OVERWRITE: "true"
+    <<: *grafana_image_variables
   before_script:
     - |
-      export VERSION=latest
+      export VERSION="${CI_SHARED_GRAFANA_IMAGE_VERSION}"
+  needs:
+    - job: grafana image
+      artifacts: true
+      optional: false
+
+grafana manifest latest:
+  extends: .docker manifest
+  rules: *grafana_image_rules
+  variables:
+    <<: *grafana_image_variables
+  script:
+    - |
+      export VERSION="${CI_SHARED_GRAFANA_IMAGE_VERSION}"
+      docker manifest create \
+        ${CI_REGISTRY_IMAGE}/${NAME}:latest \
+        --amend ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}-amd64 \
+        --amend ${CI_REGISTRY_IMAGE}/${NAME}:${VERSION}-arm64
+      docker manifest push ${CI_REGISTRY_IMAGE}/${NAME}:latest
+  needs:
+    - job: grafana image
+      artifacts: true
+      optional: false

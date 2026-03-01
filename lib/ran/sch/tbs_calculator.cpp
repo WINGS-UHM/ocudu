@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/ran/resource_block.h"
@@ -109,12 +103,10 @@ unsigned ocudu::tbs_calculator_table_find_smallest_not_less_than(unsigned nof_in
   return table_valid_tbs[index];
 }
 
-unsigned ocudu::tbs_calculator_calculate(const tbs_calculator_configuration& config)
+units::bytes ocudu::tbs_calculator_calculate(const tbs_calculator_configuration& config)
 {
-  static constexpr unsigned NOF_SC_RB = NOF_SUBCARRIERS_PER_RB;
-
   // Step 1. determine the number of REs within the slot.
-  unsigned nof_re_prime = NOF_SC_RB * config.nof_symb_sh - config.nof_dmrs_prb - config.nof_oh_prb;
+  unsigned nof_re_prime = NOF_SUBCARRIERS_PER_RB * config.nof_symb_sh - config.nof_dmrs_prb - config.nof_oh_prb;
   unsigned nof_re       = std::min(nof_re_prime, 156U) * config.n_prb;
 
   float scaling = tbs_calculator_pdsch_get_scaling_factor(config.tb_scaling_field);
@@ -124,9 +116,12 @@ unsigned ocudu::tbs_calculator_calculate(const tbs_calculator_configuration& con
                fmt::underlying(config.mcs_descr.modulation));
 
   // Step 2. Intermediate number of information bits.
-  return tbs_calculator_step2(scaling,
-                              nof_re,
-                              config.mcs_descr.get_normalised_target_code_rate(),
-                              get_bits_per_symbol(config.mcs_descr.modulation),
-                              config.nof_layers);
+  unsigned tbs_bits = tbs_calculator_step2(scaling,
+                                           nof_re,
+                                           config.mcs_descr.get_normalised_target_code_rate(),
+                                           get_bits_per_symbol(config.mcs_descr.modulation),
+                                           config.nof_layers);
+  ocudu_assert(tbs_bits % 8 == 0, "TBS size (i.e., {} bits) must be multiple of bytes.", tbs_bits);
+
+  return units::bytes(tbs_bits / 8U);
 }

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "sib_pdu_assembler.h"
 #include "ocudu/asn1/rrc_nr/bcch_dl_sch_msg.h"
@@ -252,7 +246,7 @@ void sib_pdu_assembler::save_buffers(si_version_type si_version, const mac_cell_
 
 span<const uint8_t> sib_pdu_assembler::encode_si_pdu(slot_point_extended sl_tx, const sib_information& si_info)
 {
-  const unsigned tbs = si_info.pdsch_cfg.codewords[0].tb_size_bytes;
+  const unsigned tbs = si_info.pdsch_cfg.codewords[0].tb_size_bytes.value();
   ocudu_assert(tbs <= MAX_BCCH_DL_SCH_PDU_SIZE, "BCCH-DL-SCH is too long. Revisit constant");
 
   if (si_info.version != current_buffers.version) {

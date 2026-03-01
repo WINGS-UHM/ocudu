@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -20,6 +14,8 @@
 #include "ocudu/ran/qos/five_qi.h"
 #include "ocudu/ran/s_nssai.h"
 #include "ocudu/ran/tac.h"
+#include "ocudu/rrc/meas_types.h"
+#include <chrono>
 #include <optional>
 #include <vector>
 
@@ -88,6 +84,18 @@ struct cu_cp_unit_report_config {
   int                     periodic_ho_rsrp_offset =
       -1; ///< -1 disables handovers from periodic measurements. [0..30] Note the actual value is field value * 0.5 dB.
           ///< E.g. putting a value of -6 here results in -3dB offset.
+
+  // D1/D2 conditional event fields
+  std::optional<double> distance_thresh_from_ref1_km;            ///< D1/D2: distance threshold 1 in km [0..3276.75]
+  std::optional<double> distance_thresh_from_ref2_km;            ///< D1/D2: distance threshold 2 in km [0..3276.75]
+  std::optional<ocucp::rrc_geo_location> ref_location1;          ///< D1: reference location for serving cell
+  std::optional<ocucp::rrc_geo_location> ref_location2;          ///< D1: reference location for target cell
+  std::optional<double>                  hysteresis_location_km; ///< D1/D2: hysteresis in km (10m steps, max 327.68)
+
+  // T1 conditional event fields
+  std::optional<std::chrono::system_clock::time_point> t1_thres; ///< T1: UTC time threshold
+  std::optional<std::chrono::duration<double>>
+      duration; ///< T1: duration in seconds (each step=100ms, range [0.1..600])
 };
 
 struct cu_cp_unit_neighbor_cell_config_item {
@@ -163,6 +171,12 @@ struct cu_cp_unit_f1ap_config {
 struct cu_cp_unit_e1ap_config {
   /// Timeout for the E1AP procedures in milliseconds.
   unsigned procedure_timeout = 1000;
+};
+
+/// XNAP-CU-CP configuration parameters.
+struct cu_cp_unit_xnap_config {
+  std::vector<std::string> bind_addrs = {"127.0.30.1"};
+  std::vector<std::string> peer_addrs;
 };
 
 /// RLC UM TX configuration
@@ -360,6 +374,8 @@ struct cu_cp_unit_config {
   cu_cp_unit_amf_config amf_config;
   // List of all AMFs the CU-CP should connect to.
   std::vector<cu_cp_unit_amf_config_item> extra_amfs;
+  /// XNAP configurations.
+  std::vector<cu_cp_unit_xnap_config> xnap_configs;
   /// Mobility configuration.
   cu_cp_unit_mobility_config mobility_config;
   /// RRC configuration.

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_test_environment.h"
 #include "tests/test_doubles/e1ap/e1ap_test_message_validators.h"
@@ -18,6 +12,7 @@
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
+#include "tests/unittests/xnap/xnap_test_helpers.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
@@ -54,7 +49,8 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
   params(std::move(params_)),
   cu_cp_workers(std::make_unique<worker_manager>()),
   timers(64),
-  amf_configs(std::move(params.amf_configs))
+  amf_configs(std::move(params.amf_configs)),
+  xnc_gw(std::make_unique<dummy_xnc_gateway>())
 {
   // Initialize logging.
   test_logger.set_level(ocudulog::basic_levels::debug);
@@ -79,6 +75,9 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
   for (const auto& [amf_index, amf_config] : amf_configs) {
     cu_cp_cfg.ngap.ngaps.push_back(cu_cp_configuration::ngap_config{&*amf_config.amf_stub, amf_config.supported_tas});
   }
+  // Fill XNAP config.
+  cu_cp_cfg.xnap.xnc_gw = xnc_gw.get();
+
   // Fill Security config.
   cu_cp_cfg.security.int_algo_pref_list = {security::integrity_algorithm::nia2,
                                            security::integrity_algorithm::nia1,
@@ -335,6 +334,23 @@ bool cu_cp_test_environment::drop_amf_connection(unsigned amf_idx)
   return true;
 }
 
+bool cu_cp_test_environment::reconnect_amf(unsigned amf_idx)
+{
+  auto it = amf_configs.find(amf_idx);
+  if (it == amf_configs.end()) {
+    return false;
+  }
+
+  it->second.amf_stub->allow_reconnection();
+
+  it->second.amf_stub->enqueue_next_tx_pdu(ocucp::generate_ng_setup_response());
+
+  tick_until(cu_cp_cfg.ngap.amf_reconnection_retry_time, [&]() { return false; }, false);
+
+  ngap_message ng_setup_req;
+  return wait_for_ngap_tx_pdu(ng_setup_req, std::chrono::milliseconds{1000}, amf_idx);
+}
+
 std::optional<unsigned> cu_cp_test_environment::connect_new_du()
 {
   auto du_stub = create_mock_du({get_cu_cp().get_f1c_handler()});
@@ -523,7 +539,8 @@ bool cu_cp_test_environment::setup_ue_security_and_ue_capabilies(
     unsigned                                                  du_idx,
     gnb_du_ue_f1ap_id_t                                       du_ue_id,
     std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
-    bool                                                      rrc_inactive_supported)
+    bool                                                      rrc_inactive_supported,
+    std::optional<ngap_location_report_request>               location_reporting_request)
 {
   ngap_message ngap_pdu;
   ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
@@ -533,8 +550,11 @@ bool cu_cp_test_environment::setup_ue_security_and_ue_capabilies(
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
   // Inject NGAP Initial Context Setup Request.
-  ngap_message init_ctxt_setup_req = generate_valid_initial_context_setup_request_message(
-      ue_ctx.amf_ue_id.value(), ue_ctx.ran_ue_id.value(), std::move(cn_assist_info_for_inactive));
+  ngap_message init_ctxt_setup_req =
+      generate_valid_initial_context_setup_request_message(ue_ctx.amf_ue_id.value(),
+                                                           ue_ctx.ran_ue_id.value(),
+                                                           std::move(cn_assist_info_for_inactive),
+                                                           std::move(location_reporting_request));
   get_amf().push_tx_pdu(init_ctxt_setup_req);
 
   // Wait for F1AP UE Context Setup Request (containing Security Mode Command).
@@ -916,7 +936,8 @@ bool cu_cp_test_environment::attach_ue(
     byte_buffer                                               rrc_setup_complete,
     byte_buffer                                               rrc_reconfiguration_complete,
     std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
-    bool                                                      rrc_inactive_supported)
+    bool                                                      rrc_inactive_supported,
+    std::optional<ngap_location_report_request>               location_reporting_request)
 {
   if (not connect_new_ue(du_idx, du_ue_id, crnti, plmn_identity::test_value(), std::move(rrc_setup_complete))) {
     return false;
@@ -924,8 +945,11 @@ bool cu_cp_test_environment::attach_ue(
   if (not authenticate_ue(du_idx, du_ue_id, amf_ue_id)) {
     return false;
   }
-  if (not setup_ue_security_and_ue_capabilies(
-          du_idx, du_ue_id, std::move(cn_assist_info_for_inactive), rrc_inactive_supported)) {
+  if (not setup_ue_security_and_ue_capabilies(du_idx,
+                                              du_ue_id,
+                                              std::move(cn_assist_info_for_inactive),
+                                              rrc_inactive_supported,
+                                              std::move(location_reporting_request))) {
     return false;
   }
   if (not finish_ue_registration(du_idx, cu_up_idx, du_ue_id)) {

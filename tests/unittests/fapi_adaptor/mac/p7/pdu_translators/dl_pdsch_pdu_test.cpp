@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "helpers.h"
 #include "pdsch.h"
@@ -34,7 +28,7 @@ static void validate_pdsch_information(const pdsch_information& pdsch_cfg, const
   ASSERT_EQ(static_cast<unsigned>(mac_cw.mcs_table), fapi_cw.mcs_table);
   ASSERT_EQ(mac_cw.mcs_index, fapi_cw.mcs_index);
   ASSERT_EQ(get_bits_per_symbol(mac_cw.mcs_descr.modulation), fapi_cw.qam_mod_order);
-  ASSERT_EQ(mac_cw.tb_size_bytes, fapi_cw.tb_size.value());
+  ASSERT_EQ(mac_cw.tb_size_bytes.value(), fapi_cw.tb_size.value());
 
   // DMRS.
   const dmrs_information& dmrs_cfg = pdsch_cfg.dmrs;

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -23,6 +17,7 @@
 #include "ocudu/rrc/rrc_ue_config.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/support/executors/task_executor.h"
+#include "ocudu/xnap/gateways/xnc_connection_gateway.h"
 #include <chrono>
 
 namespace ocudu {
@@ -90,6 +85,16 @@ struct cu_cp_configuration {
     bool no_core = false;
   };
 
+  struct xnap_config {
+    transport_layer_address peer_addr;
+  };
+
+  struct xnap_params {
+    /// XNAP configuration.
+    std::vector<xnap_config> xnaps;
+    xnc_connection_gateway*  xnc_gw = nullptr;
+  };
+
   struct rrc_params {
     /// Force re-establishment fallback.
     bool force_reestablishment_fallback = false;
@@ -136,6 +141,8 @@ struct cu_cp_configuration {
   admission_params admission;
   /// NGAP layer-specific parameters.
   ngap_params ngap;
+  /// XNAP layer-specific parameters.
+  xnap_params xnap;
   /// RRC layer-specific parameters.
   rrc_params rrc;
   /// F1AP layer-specific parameters.

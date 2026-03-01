@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #include "ocudu/ofh/ofh_factories.h"
 #include "ofh_sector_impl.h"
@@ -32,8 +25,12 @@ std::unique_ptr<timing_manager> ocudu::ofh::create_ofh_timing_manager(const cont
                                                                       ocudulog::basic_logger&  logger,
                                                                       task_executor&           executor)
 {
-  realtime_worker_cfg rt_cfg = {
-      config.cp, config.scs, config.gps_Alpha, config.gps_Beta, config.enable_log_warnings_for_lates};
+  realtime_worker_cfg rt_cfg = {config.cp,
+                                config.scs,
+                                config.gps_Alpha,
+                                config.gps_Beta,
+                                config.enable_log_warnings_for_lates,
+                                config.enable_busy_waiting};
 
   return std::make_unique<timing_manager_impl>(logger, executor, rt_cfg);
 }

@@ -1,15 +1,10 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_configuration_procedure.h"
 #include "../converters/asn1_rrc_config_helpers.h"
+#include "../converters/rlc_config_helpers.h"
 #include "../converters/scheduler_configuration_helpers.h"
 #include "ocudu/mac/mac_ue_configurator.h"
 #include "ocudu/rlc/rlc_factory.h"
@@ -49,6 +44,11 @@ void ue_configuration_procedure::operator()(coro_context<async_task<f1ap_ue_cont
     // Nothing to do (e.g. No SCells, DRBs or SRBs to setup or release)
     proc_logger.log_proc_completed();
     CORO_EARLY_RETURN(make_empty_ue_config_response());
+  }
+
+  if (not handle_conditional_mobility_request()) {
+    proc_logger.log_proc_failure("Failed to process conditional mobility information");
+    CORO_EARLY_RETURN(make_ue_config_failure());
   }
 
   prev_ue_res_cfg = ue->resources.value();
@@ -479,7 +479,18 @@ bool ue_configuration_procedure::changed_detected() const
 {
   return !request.drbs_to_setup.empty() || !request.drbs_to_mod.empty() || !request.srbs_to_setup.empty() ||
          !request.drbs_to_rem.empty() || !request.scells_to_setup.empty() || !request.scells_to_rem.empty() ||
-         !request.ho_prep_info.empty() || request.full_config_required;
+         !request.ho_prep_info.empty() || request.full_config_required || request.cho_trigger.has_value();
+}
+
+bool ue_configuration_procedure::handle_conditional_mobility_request()
+{
+  const bool inter_du_cho_present = request.cho_trigger.has_value();
+  if (!inter_du_cho_present) {
+    return true;
+  }
+
+  ue->cond_mobility.set_success_access_required();
+  return true;
 }
 
 void ue_configuration_procedure::handle_rrc_reconfiguration_complete_ind()

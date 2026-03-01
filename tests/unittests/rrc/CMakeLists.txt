@@ -1,10 +1,7 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+# Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
 
 set_directory_properties(PROPERTIES LABELS "rrc")
 
@@ -25,3 +22,8 @@ add_executable(rrc_ue_test ${SOURCES})
 target_include_directories(rrc_ue_test PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(rrc_ue_test rrc_ue_test_helpers ocudu_rrc ocudu_cu_cp ocudu_support ocudulog gtest gtest_main)
 gtest_discover_tests(rrc_ue_test PROPERTIES "LABELS;rrc_ue")
+
+add_executable(rrc_cond_trigger_asn1_test rrc_cond_trigger_asn1_test.cpp)
+target_include_directories(rrc_cond_trigger_asn1_test PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(rrc_cond_trigger_asn1_test ocudu_rrc ocudu_support gtest gtest_main)
+gtest_discover_tests(rrc_cond_trigger_asn1_test PROPERTIES "LABELS;rrc_ue")

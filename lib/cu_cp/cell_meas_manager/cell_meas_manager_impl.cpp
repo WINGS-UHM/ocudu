@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cell_meas_manager_impl.h"
 #include "cell_meas_manager_helpers.h"
@@ -145,7 +139,13 @@ cell_meas_manager::get_measurement_config(ue_index_t                         ue_
     new_cfg.report_cfg_to_add_mod_list.erase(end_it, new_cfg.report_cfg_to_add_mod_list.end());
     std::sort(new_cfg.report_cfg_to_add_mod_list.begin(), new_cfg.report_cfg_to_add_mod_list.end(), cmp_id);
   } else {
-    const auto cond_trigger_ids = collect_cond_trigger_report_configs(cfg, new_cfg);
+    const cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+    if (ue == nullptr || ue->get_rrc_ue() == nullptr) {
+      logger.error("ue={}: CHO meas config requested but UE/RRC context is missing", ue_index);
+      return std::nullopt;
+    }
+
+    const auto cond_trigger_ids = collect_cond_trigger_report_configs(cfg, new_cfg, *ue->get_rrc_ue(), logger);
     if (cond_trigger_ids.empty()) {
       logger.warning("ue={}: No conditional trigger report configs found for CHO measurement config", ue_index);
       return std::nullopt;

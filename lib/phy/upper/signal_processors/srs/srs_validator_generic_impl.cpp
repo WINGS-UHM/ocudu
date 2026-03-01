@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "srs_validator_generic_impl.h"
 #include "ocudu/phy/upper/signal_processors/srs/srs_estimator_configuration.h"
@@ -28,7 +22,7 @@ error_type<std::string> srs_validator_generic_impl::is_valid(const srs_estimator
   }
 
   // Sequence and group hopping is not supported.
-  if (config.resource.hopping != srs_resource_configuration::group_or_sequence_hopping_enum::neither) {
+  if (config.resource.hopping != srs_group_or_sequence_hopping::neither) {
     return make_unexpected("The SRS estimator does not support group or sequence hopping.");
   }
 

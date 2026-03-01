@@ -1,13 +1,8 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "ocudu/adt/bounded_integer.h"
 #include "ocudu/adt/strong_type.h"
 #include <cstdlib>
 
@@ -16,6 +11,7 @@ struct tag;
 int main()
 {
   ocudu::strong_type<int, tag, ocudu::strong_equality> a{42};
+  ocudu::bounded_integer<unsigned char, 0, 28>         b{8};
 
   std::abort();
 }

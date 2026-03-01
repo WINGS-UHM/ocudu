@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -39,9 +33,9 @@ public:
              const pucch_resource_builder_params&          pucch_cfg = {});
   void setup(const cell_configuration& cell_cfg, const pucch_resource_builder_params& pucch_cfg = {});
 
-  /// Build a new UE's PUCCH config (embedded in \ref serving_cell_config) and add this to the
+  /// Build a new UE's PUCCH config (embedded in \ref ue_cell_config) and add this to the
   /// \ref du_pucch_resource_manager to keep track of which cell PUCCH resources have been used.
-  bool add_build_new_ue_pucch_cfg(serving_cell_config& serv_cell_cfg);
+  bool add_build_new_ue_pucch_cfg(ue_cell_config& ue_cell_cfg);
 
 private:
   // Build the \ref du_pucch_resource_manager with the given configuration. This function is called only once, at the

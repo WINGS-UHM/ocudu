@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "logical_channel_system.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
@@ -48,15 +42,13 @@ logical_channel_system_utils::logical_channel_mapper::logical_channel_mapper() :
 void logical_channel_system_utils::logical_channel_mapper::slot_indication()
 {
   // Update the bit rates of the UE logical channels with tracked bit rates.
-  for (auto row_view : qos_channels) {
-    auto& item = row_view.at<lc_qos_context>();
-    item.dl_avg_bytes_per_slot.push(item.dl_last_sched_bytes);
-    item.dl_last_sched_bytes = 0;
+  for (lc_qos_context& lc : qos_channels) {
+    lc.dl_avg_bytes_per_slot.push(lc.dl_last_sched_bytes);
+    lc.dl_last_sched_bytes = 0;
   }
-  for (auto row_view : qos_lcgs) {
-    auto& item = row_view.at<lcg_qos_context>();
-    item.ul_avg_bytes_per_slot.push(item.ul_last_sched_bytes);
-    item.ul_last_sched_bytes = 0;
+  for (lcg_qos_context& lcg : qos_lcgs) {
+    lcg.ul_avg_bytes_per_slot.push(lcg.ul_last_sched_bytes);
+    lcg.ul_last_sched_bytes = 0;
   }
 }
 
@@ -105,14 +97,14 @@ logical_channel_system_utils::logical_channel_mapper::addmod_lc_and_lcg(du_ue_in
       dl_qrow = qos_channels.insert(lc_qos_context{0, exp_average_fast_start<float>{alpha}});
     } else {
       // Update QoS DL tracking window decay factor.
-      qos_channels.row(*dl_qrow).at<lc_qos_context>().dl_avg_bytes_per_slot.set_alpha(alpha);
+      qos_channels[*dl_qrow].dl_avg_bytes_per_slot.set_alpha(alpha);
     }
     if (not ul_qrow.has_value()) {
       // Initiate QoS UL tracking.
       ul_qrow = qos_lcgs.insert(lcg_qos_context{0, 0, exp_average_fast_start<float>{alpha}});
     } else {
       // Update QoS UL tracking window decay factor.
-      qos_lcgs.row(*ul_qrow).at<lcg_qos_context>().ul_avg_bytes_per_slot.set_alpha(alpha);
+      qos_lcgs[*ul_qrow].ul_avg_bytes_per_slot.set_alpha(alpha);
     }
   } else {
     // Disable DL QoS tracking, if previously enabled.
@@ -187,7 +179,7 @@ void logical_channel_system_utils::logical_channel_mapper::deregister_lcg_slice(
 unsigned* logical_channel_system_utils::logical_channel_mapper::last_dl_sched_bytes(soa::row_id lc_rid)
 {
   if (auto& qos_row_opt = dl_qos_row(lc_rid); qos_row_opt.has_value()) {
-    return &qos_channels.row(*qos_row_opt).at<lc_qos_context>().dl_last_sched_bytes;
+    return &qos_channels[*qos_row_opt].dl_last_sched_bytes;
   }
   return nullptr;
 }
@@ -195,7 +187,7 @@ unsigned* logical_channel_system_utils::logical_channel_mapper::last_dl_sched_by
 unsigned* logical_channel_system_utils::logical_channel_mapper::last_ul_sched_bytes(soa::row_id lc_rid)
 {
   if (auto& qos_row_opt = ul_qos_row(lc_rid); qos_row_opt.has_value()) {
-    return &qos_lcgs.row(*qos_row_opt).at<lcg_qos_context>().ul_last_sched_bytes;
+    return &qos_lcgs[*qos_row_opt].ul_last_sched_bytes;
   }
   return nullptr;
 }
@@ -203,7 +195,7 @@ unsigned* logical_channel_system_utils::logical_channel_mapper::last_ul_sched_by
 unsigned* logical_channel_system_utils::logical_channel_mapper::ul_sched_bytes_accum(soa::row_id lcg_rid)
 {
   if (auto& qos_row_opt = ul_qos_row(lcg_rid); qos_row_opt.has_value()) {
-    return &qos_lcgs.row(*qos_row_opt).at<lcg_qos_context>().sched_bytes_accum;
+    return &qos_lcgs[*qos_row_opt].sched_bytes_accum;
   }
   return nullptr;
 }
@@ -211,7 +203,7 @@ unsigned* logical_channel_system_utils::logical_channel_mapper::ul_sched_bytes_a
 double logical_channel_system_utils::logical_channel_mapper::avg_dl_bits_per_slot(soa::row_id lc_rid) const
 {
   if (auto& qos_row_opt = dl_qos_row(lc_rid); qos_row_opt.has_value()) {
-    return qos_channels.row(*qos_row_opt).at<lc_qos_context>().dl_avg_bytes_per_slot.average() * 8U;
+    return qos_channels[*qos_row_opt].dl_avg_bytes_per_slot.average() * 8U;
   }
   return 0.0;
 }
@@ -219,7 +211,7 @@ double logical_channel_system_utils::logical_channel_mapper::avg_dl_bits_per_slo
 double logical_channel_system_utils::logical_channel_mapper::avg_ul_bits_per_slot(soa::row_id lcg_rid) const
 {
   if (auto& qos_row_opt = ul_qos_row(lcg_rid); qos_row_opt.has_value()) {
-    return qos_lcgs.row(*qos_row_opt).at<lcg_qos_context>().ul_avg_bytes_per_slot.average() * 8U;
+    return qos_lcgs[*qos_row_opt].ul_avg_bytes_per_slot.average() * 8U;
   }
   return 0.0;
 }
@@ -484,8 +476,8 @@ void logical_channel_system::deactivate(soa::row_id ue_rid)
 
   // Clear UE pending CEs.
   ue_ctx.pending_con_res_id = false;
-  for (std::optional<soa::row_id> ce_rid = ue_ch.pending_ces; ce_rid.has_value();) {
-    auto next = pending_ces.at<mac_ce_context>(*ce_rid).next_ue_ce;
+  for (std::optional<stable_id_t> ce_rid = ue_ch.pending_ces; ce_rid.has_value();) {
+    auto next = pending_ces[*ce_rid].next_ue_ce;
     pending_ces.erase(*ce_rid);
     ce_rid = next;
   }
@@ -731,9 +723,9 @@ void logical_channel_system::handle_mac_ce_indication(soa::row_id ue_row_id, con
     return;
   }
   auto&                      ue_ch_ctx = u.at<ue_dl_channel_context>();
-  std::optional<soa::row_id> prev_ce_it;
+  std::optional<stable_id_t> prev_ce_it;
   for (auto it = ue_ch_ctx.pending_ces; it.has_value();) {
-    auto& ce_ctx = pending_ces.at<mac_ce_context>(it.value());
+    auto& ce_ctx = pending_ces[it.value()];
     if (ce.ce_lcid == lcid_dl_sch_t::TA_CMD and ce_ctx.info.ce_lcid == lcid_dl_sch_t::TA_CMD) {
       // Overwrite previous TA CMD CE.
       // Note: Size of TA CMD CE is fixed, so no need to update pending CE bytes.
@@ -747,7 +739,7 @@ void logical_channel_system::handle_mac_ce_indication(soa::row_id ue_row_id, con
   auto ce_rid = pending_ces.insert(mac_ce_context{ce, std::nullopt});
   if (prev_ce_it.has_value()) {
     // Append CE to the end of the list.
-    pending_ces.at<mac_ce_context>(prev_ce_it.value()).next_ue_ce = ce_rid;
+    pending_ces[prev_ce_it.value()].next_ue_ce = ce_rid;
   } else {
     // New head of the list.
     ue_ch_ctx.pending_ces = ce_rid;
@@ -904,8 +896,8 @@ unsigned logical_channel_system::allocate_mac_ce(soa::row_id ue_rid, dl_msg_lc_i
   if (not ue_ch_ctx.pending_ces.has_value()) {
     return 0;
   }
-  soa::row_id         ce_row_id = *ue_ch_ctx.pending_ces;
-  const auto&         ce_node   = pending_ces.at<mac_ce_context>(ce_row_id);
+  stable_id_t         ce_row_id = *ue_ch_ctx.pending_ces;
+  const auto&         ce_node   = pending_ces[ce_row_id];
   const lcid_dl_sch_t lcid      = ce_node.info.ce_lcid;
 
   // Derive space needed for CE subheader + payload.
@@ -1090,14 +1082,14 @@ unsigned ue_logical_channel_repository::allocate_ue_con_res_id_mac_ce(dl_msg_lc_
   return parent->allocate_ue_con_res_id_mac_ce(ue_row_id, lch_info, rem_bytes);
 }
 
-void ue_logical_channel_repository::handle_ul_grant(unsigned grant_size)
+void ue_logical_channel_repository::handle_ul_grant(units::bytes grant_size)
 {
   // Reset any pending SR indication.
   reset_sr_indication();
 
   // Update estimates of logical channel bit rates.
   auto& lcgs = get_ue_row().at<ue_ul_channel_context>().lcgs;
-  for (auto it = lcgs.begin(); it != lcgs.end() and grant_size > 0; ++it) {
+  for (auto it = lcgs.begin(); it != lcgs.end() and grant_size.value() > 0; ++it) {
     const soa::row_id lcg_rid = it->second;
     if (auto qos_rid = parent->lc_mapper.ul_qos_row(lcg_rid); not qos_rid.has_value()) {
       // This LCG is not being tracked for QoS.
@@ -1116,10 +1108,10 @@ void ue_logical_channel_repository::handle_ul_grant(unsigned grant_size)
     }
 
     // Update scheduled bytes for this LCG.
-    const unsigned bytes_sched = std::min(buf_st.value() - *accum_bytes, grant_size);
+    const unsigned bytes_sched = std::min(buf_st.value() - *accum_bytes, grant_size.value());
     *parent->lc_mapper.last_ul_sched_bytes(lcg_rid) += bytes_sched;
     *accum_bytes += bytes_sched;
-    grant_size -= bytes_sched;
+    grant_size -= units::bytes{bytes_sched};
   }
 }
 
@@ -1130,11 +1122,11 @@ void ue_logical_channel_repository::reset_sr_indication()
 
 unsigned ocudu::allocate_mac_sdus(dl_msg_tb_info&                tb_info,
                                   ue_logical_channel_repository& lch_mng,
-                                  unsigned                       total_tbs,
+                                  units::bytes                   total_tbs,
                                   lcid_t                         lcid)
 {
   static constexpr unsigned min_mac_sdu_space = 4; // Needs to fit at least MAC SDU subheader and RLC header.
-  unsigned                  rem_tbs           = total_tbs;
+  unsigned                  rem_tbs           = total_tbs.value();
 
   // If we do not have enough bytes to fit MAC subheader, skip MAC SDU allocation.
   // Note: We assume upper layer accounts for its own subheaders when updating the buffer state.
@@ -1152,12 +1144,13 @@ unsigned ocudu::allocate_mac_sdus(dl_msg_tb_info&                tb_info,
     rem_tbs -= alloc_bytes;
   }
 
-  return total_tbs - rem_tbs;
+  return total_tbs.value() - rem_tbs;
 }
 
-unsigned ocudu::allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, unsigned total_tbs)
+unsigned
+ocudu::allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_repository& lch_mng, units::bytes total_tbs)
 {
-  unsigned rem_tbs = total_tbs;
+  unsigned rem_tbs = total_tbs.value();
 
   while (lch_mng.has_pending_ces() and not tb_info.lc_chs_to_sched.full()) {
     dl_msg_lc_info subpdu;
@@ -1172,14 +1165,14 @@ unsigned ocudu::allocate_mac_ces(dl_msg_tb_info& tb_info, ue_logical_channel_rep
     // Update remaining space taking into account the MAC CE subheader.
     rem_tbs -= alloc_bytes;
   }
-  return total_tbs - rem_tbs;
+  return total_tbs.value() - rem_tbs;
 }
 
 unsigned ocudu::allocate_ue_con_res_id_mac_ce(dl_msg_tb_info&                tb_info,
                                               ue_logical_channel_repository& lch_mng,
-                                              unsigned                       total_tbs)
+                                              units::bytes                   total_tbs)
 {
-  unsigned rem_tbs = total_tbs;
+  unsigned rem_tbs = total_tbs.value();
 
   if (not tb_info.lc_chs_to_sched.full()) {
     dl_msg_lc_info subpdu;
@@ -1192,35 +1185,38 @@ unsigned ocudu::allocate_ue_con_res_id_mac_ce(dl_msg_tb_info&                tb_
       rem_tbs -= alloc_bytes;
     }
   }
-  return total_tbs - rem_tbs;
+  return total_tbs.value() - rem_tbs;
 }
 
 unsigned ocudu::build_dl_fallback_transport_block_info(dl_msg_tb_info&                tb_info,
                                                        ue_logical_channel_repository& lch_mng,
-                                                       unsigned                       tb_size_bytes)
+                                                       units::bytes                   tb_size_bytes)
 {
   unsigned total_subpdu_bytes = 0;
   total_subpdu_bytes += allocate_ue_con_res_id_mac_ce(tb_info, lch_mng, tb_size_bytes);
   // Since SRB0 PDU cannot be segmented, skip SRB0 if remaining TB size is not enough to fit entire PDU.
   if (lch_mng.has_pending_bytes(LCID_SRB0) and
-      ((tb_size_bytes - total_subpdu_bytes) >= lch_mng.pending_bytes(LCID_SRB0))) {
-    total_subpdu_bytes += allocate_mac_sdus(tb_info, lch_mng, tb_size_bytes - total_subpdu_bytes, LCID_SRB0);
+      ((tb_size_bytes.value() - total_subpdu_bytes) >= lch_mng.pending_bytes(LCID_SRB0))) {
+    total_subpdu_bytes +=
+        allocate_mac_sdus(tb_info, lch_mng, units::bytes{tb_size_bytes.value() - total_subpdu_bytes}, LCID_SRB0);
     return total_subpdu_bytes;
   }
-  total_subpdu_bytes += allocate_mac_sdus(tb_info, lch_mng, tb_size_bytes - total_subpdu_bytes, LCID_SRB1);
+  total_subpdu_bytes +=
+      allocate_mac_sdus(tb_info, lch_mng, units::bytes{tb_size_bytes.value() - total_subpdu_bytes}, LCID_SRB1);
   return total_subpdu_bytes;
 }
 
 unsigned ocudu::build_dl_transport_block_info(dl_msg_tb_info&                tb_info,
                                               ue_logical_channel_repository& lch_mng,
-                                              unsigned                       tb_size_bytes,
+                                              units::bytes                   tb_size_bytes,
                                               ran_slice_id_t                 slice_id)
 {
   unsigned total_subpdu_bytes = 0;
   total_subpdu_bytes += allocate_mac_ces(tb_info, lch_mng, tb_size_bytes);
   for (const auto lcid : lch_mng.get_prioritized_logical_channels()) {
     if (lch_mng.get_slice_id(lcid) == slice_id) {
-      total_subpdu_bytes += allocate_mac_sdus(tb_info, lch_mng, tb_size_bytes - total_subpdu_bytes, uint_to_lcid(lcid));
+      total_subpdu_bytes += allocate_mac_sdus(
+          tb_info, lch_mng, units::bytes{tb_size_bytes.value() - total_subpdu_bytes}, uint_to_lcid(lcid));
     }
   }
   return total_subpdu_bytes;

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -123,8 +117,8 @@ public:
   virtual void handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) = 0;
 
   /// \brief Handles Location Reporting Control message.
-  virtual void handle_location_reporting_control_message(ue_index_t                             ue_index,
-                                                         const ngap_location_reporting_control& msg) = 0;
+  virtual void handle_location_reporting_control_message(ue_index_t                          ue_index,
+                                                         const ngap_location_report_request& msg) = 0;
 
   /// \brief Handle N2 AMF connection drop.
   /// \param[in] amf_index The index of the dropped AMF.
@@ -271,6 +265,19 @@ struct cu_cp_intra_cu_handover_target_request {
   e1ap_bearer_context_modification_request bearer_context_modification_request;
 };
 
+/// Request with information for the target handler of conditional handover.
+struct cu_cp_cho_target_request {
+  ue_index_t                source_ue_index = ue_index_t::invalid;
+  ue_index_t                target_ue_index = ue_index_t::invalid;
+  cond_recfg_id_t           cond_recfg_id   = cond_recfg_id_t(bounded_integer_invalid_tag{});
+  pci_t                     target_pci      = INVALID_PCI;
+  unsigned                  transaction_id  = 0;
+  std::chrono::milliseconds timeout;
+
+  /// \brief E1AP bearer context modification request for CU-UP tunnel update after CHO completion.
+  e1ap_bearer_context_modification_request bearer_context_mod_request;
+};
+
 /// Interface for entities (e.g. DU processor) that wish to manipulate the context of a UE.
 class cu_cp_ue_context_manipulation_handler
 {
@@ -281,10 +288,23 @@ public:
   /// \param[in] request The release request.
   virtual async_task<void> handle_ue_context_release(const cu_cp_ue_context_release_request& request) = 0;
 
+  /// \brief Handle an access success indication (UE has accessed a CHO target cell).
+  /// \param[in] msg The access success indication.
+  virtual async_task<void> handle_access_success(const cu_cp_access_success_indication& msg) = 0;
+
   /// \brief Handle the trasmission of the handover reconfiguration by notifying the target RRC UE to await a RRC
   /// Reconfiguration Complete.
   /// \param[in] request The intra CU handover target request.
   virtual void handle_handover_reconfiguration_sent(const cu_cp_intra_cu_handover_target_request& request) = 0;
+
+  /// \brief Handle the transmission of the CHO reconfiguration by notifying a CHO target UE to await
+  /// RRCReconfigurationComplete.
+  ///
+  /// This starts the cho_target_routine on the specified target UE. CHO completion and cleanup
+  /// are finalized on the source side (via Access Success handling / cho_source_routine).
+  ///
+  /// \param[in] request The CHO target request.
+  virtual void handle_cho_reconfiguration_sent(const cu_cp_cho_target_request& request) = 0;
 
   /// \brief Handle a UE context push during handover.
   /// \param[in] source_ue_index The index of the UE that is the source of the handover.
@@ -303,6 +323,11 @@ public:
   /// \brief Initialize a RNA update timer. When the timeout is reached, a release request is sent to the AMF.
   /// \param[in] ue_index The index of the UE.
   virtual void initialize_rna_update_timer(ue_index_t ue_index) = 0;
+
+  /// \brief Start CHO execution cancellation timer. Fires cho_cancellation_routine on expiry.
+  /// \param[in] source_ue_index Index of the source UE.
+  /// \param[in] timeout Duration; 0ms disables the timer (no-op).
+  virtual void initialize_cho_execution_timer(ue_index_t source_ue_index, std::chrono::milliseconds timeout) = 0;
 };
 
 /// Methods used by CU-CP to transfer the RRC UE context e.g. for RRC Reestablishments.
@@ -363,9 +388,24 @@ public:
                                    du_index_t&                            source_du_index,
                                    du_index_t&                            target_du_index) = 0;
 
+  /// \brief Handle full intra-CU CHO coordinator request (prepare + execute/cancel).
+  virtual async_task<cu_cp_intra_cu_cho_response>
+  handle_intra_cu_cho_request(const cu_cp_intra_cu_cho_request& request) = 0;
+
   /// \brief Handle a intra-cell handover required to refresh KgNB key for the UE
   /// \param[in] ue_index The index of the UE that needs the intra-cell handover
   virtual void handle_intra_cell_handover_required(ue_index_t ue_index) = 0;
+};
+
+/// Interface to handle location reporting updates for UEs.
+class cu_cp_location_manager_handler
+{
+public:
+  virtual ~cu_cp_location_manager_handler() = default;
+
+  /// \brief Handle a UE location change and send NGAP Location Report if needed.
+  /// \param[in] ue_index The index of the UE.
+  virtual void handle_location_update(ue_index_t ue_index) = 0;
 };
 
 /// Interface to handle ue removals.
@@ -402,6 +442,7 @@ class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,
                              public cu_cp_nrppa_handler,
                              public cu_cp_ue_context_manipulation_handler,
                              public cu_cp_mobility_manager_handler,
+                             public cu_cp_location_manager_handler,
                              public cu_cp_ue_removal_handler,
                              public cu_cp_amf_reconnection_handler
 {
@@ -416,6 +457,7 @@ public:
   virtual cu_cp_measurement_handler&             get_cu_cp_measurement_handler()        = 0;
   virtual cu_cp_measurement_config_handler&      get_cu_cp_measurement_config_handler() = 0;
   virtual cu_cp_mobility_manager_handler&        get_cu_cp_mobility_manager_handler()   = 0;
+  virtual cu_cp_location_manager_handler&        get_cu_cp_location_manager_handler()   = 0;
   virtual cu_cp_ue_removal_handler&              get_cu_cp_ue_removal_handler()         = 0;
   virtual cu_cp_amf_reconnection_handler&        get_cu_cp_amf_reconnection_handler()   = 0;
 };

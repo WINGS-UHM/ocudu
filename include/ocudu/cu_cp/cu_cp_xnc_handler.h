@@ -1,15 +1,10 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
+#include "ocudu/gateways/sctp_network_server.h"
 #include "ocudu/xnap/xnap_message_notifier.h"
 #include <memory>
 
@@ -31,7 +26,8 @@ public:
   /// object go out of scope, the CU-CP will be notified that a GW event occurred that resulted in the association
   /// being shutdown.
   virtual std::unique_ptr<xnap_message_notifier>
-  handle_new_xnc_cu_cp_connection(std::unique_ptr<xnap_message_notifier> xnap_tx_pdu_notifier) = 0;
+  handle_new_xnc_cu_cp_connection(std::unique_ptr<xnap_message_notifier> xnap_tx_pdu_notifier,
+                                  const sctp_association_info&           assoc_info) = 0;
 };
 
 } // namespace ocudu::ocucp

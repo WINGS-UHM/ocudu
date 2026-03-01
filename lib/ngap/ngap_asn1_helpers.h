@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -482,6 +476,11 @@ inline bool fill_ngap_initial_context_setup_request(ngap_init_context_setup_requ
         asn1_request->ue_radio_cap_for_paging.ue_radio_cap_for_paging_of_nr.copy();
 
     request.ue_radio_cap_for_paging = ue_radio_cap_for_paging;
+  }
+
+  // Fill Location Report Request Type.
+  if (asn1_request->location_report_request_type_present) {
+    request.location_report_request_type = asn1_to_location_report_request(asn1_request->location_report_request_type);
   }
 
   // TODO: Add missing optional values.
@@ -1029,7 +1028,10 @@ inline bool fill_ngap_handover_request(ngap_handover_request& request, const asn
 
   // TODO: Add Mob restrict list.
 
-  // TODO: Add Location report request type.
+  // Fill Location Report Request Type.
+  if (asn1_request->location_report_request_type_present) {
+    request.location_report_request_type = asn1_to_location_report_request(asn1_request->location_report_request_type);
+  }
 
   // Fill RRC Inactive Transition Report Request.
   if (asn1_request->rrc_inactive_transition_report_request_present) {
@@ -1182,13 +1184,33 @@ inline void fill_asn1_rrc_inactive_transition_report(asn1::ngap::rrc_inactive_tr
   user_loc_info_nr       = cu_cp_user_location_info_to_asn1(report.user_location_info);
 }
 
-/// \brief Convert NGAP ASN1 Location Reporting Control structure to common type.
-inline void fill_ngap_location_reporting_control(ngap_location_reporting_control&          location_report_ctrl,
-                                                 const asn1::ngap::location_report_ctrl_s& asn1_location_report_ctrl)
+/// \brief Convert NGAP ASN1 Location Reporting Control message to common type.
+inline void fill_ngap_location_report_request(ngap_location_report_request&             location_report_ctrl,
+                                              const asn1::ngap::location_report_ctrl_s& asn1_location_report_ctrl)
 {
-  location_report_ctrl.location_reporting_type =
-      asn1_to_location_reporting_control_event_type(asn1_location_report_ctrl->location_report_request_type.event_type);
-  // TODO: add rest of the fields
+  location_report_ctrl = asn1_to_location_report_request(asn1_location_report_ctrl->location_report_request_type);
+}
+
+/// \brief Fill ASN1 Location Report IEs from common type.
+inline void fill_asn1_location_report(asn1::ngap::location_report_ies_container& asn1_msg,
+                                      const ngap_location_report&                report)
+{
+  // Fill user location info.
+  asn1_msg.user_location_info.set_user_location_info_nr() = cu_cp_user_location_info_to_asn1(report.user_location_info);
+
+  // Fill location report request type (echo back the triggering config).
+  asn1_msg.location_report_request_type = location_report_request_to_asn1(report.request);
+
+  // Fill UE presence in area of interest list (optional).
+  if (report.ue_presence_in_area_of_interest_list.has_value()) {
+    asn1_msg.ue_presence_in_area_of_interest_list_present = true;
+    for (const auto& item : report.ue_presence_in_area_of_interest_list.value()) {
+      asn1::ngap::ue_presence_in_area_of_interest_item_s asn1_item;
+      asn1_item.location_report_ref_id = item.location_report_ref_id;
+      asn1_item.ue_presence            = ue_presence_to_asn1(item.ue_presence);
+      asn1_msg.ue_presence_in_area_of_interest_list.push_back(asn1_item);
+    }
+  }
 }
 
 } // namespace ocudu::ocucp

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -127,14 +121,10 @@ public:
            (not harqs.last_pusch_slot().valid() or harqs.last_pusch_slot() < pusch_slot);
   }
 
-  struct dl_ack_info_result {
-    dl_harq_process_handle::status_update update;
-    dl_harq_process_handle                h_dl;
-  };
-  std::optional<dl_ack_info_result> handle_dl_ack_info(slot_point                 uci_slot,
-                                                       mac_harq_ack_report_status ack_value,
-                                                       unsigned                   harq_bit_idx,
-                                                       std::optional<float>       pucch_snr);
+  std::optional<dl_harq_process_handle> handle_dl_ack_info(slot_point                 uci_slot,
+                                                           mac_harq_ack_report_status ack_value,
+                                                           unsigned                   harq_bit_idx,
+                                                           std::optional<float>       pucch_snr);
 
   uint8_t get_pdsch_rv(unsigned nof_retxs) const
   {
@@ -146,7 +136,7 @@ public:
   }
 
   /// \brief Handle CRC PDU indication.
-  int handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& crc_pdu);
+  expected<units::bytes> handle_crc_pdu(slot_point pusch_slot, const ul_crc_pdu_indication& crc_pdu);
 
   /// \brief Handle Sounding Reference Signal (SRS) channel matrix.
   void handle_srs_channel_matrix(const srs_channel_matrix& channel_matrix);

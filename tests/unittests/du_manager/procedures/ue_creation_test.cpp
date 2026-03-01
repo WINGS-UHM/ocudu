@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/ue_creation_procedure.h"
@@ -80,7 +74,7 @@ protected:
   void set_sr_offset(du_ue_index_t ue_index, du_cell_index_t cell_idx, unsigned sr_offset)
   {
     this->cell_res_alloc.next_context_update_result.cell_group.cells.at(SERVING_PCELL_IDX)
-        .ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0]
+        .serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0]
         .offset = sr_offset;
   }
 
@@ -137,7 +131,7 @@ TEST_F(du_manager_ue_creation_tester,
   du_ue_index_t ue_idx1 = to_du_ue_index(0), ue_idx2 = to_du_ue_index(1);
   unsigned      sr_period =
       sr_periodicity_to_slot(this->cell_res_alloc.next_context_update_result.cell_group.cells.at(SERVING_PCELL_IDX)
-                                 .ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0]
+                                 .serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0]
                                  .period);
   unsigned sr_offset1 = test_rgen::uniform_int<unsigned>(0, sr_period - 1);
   unsigned sr_offset2 = test_rgen::uniform_int<unsigned>(0, sr_period - 1);
@@ -161,8 +155,8 @@ TEST_F(du_manager_ue_creation_tester,
   // > UE SR Offsets passed to scheduler match the ones generated.
   ASSERT_FALSE(req1.mac_cell_group_cfg.scheduling_request_config.empty());
   ASSERT_FALSE(req2.mac_cell_group_cfg.scheduling_request_config.empty());
-  const auto& sr_res_list1 = (*req1.sched_cfg.cells)[0].ul_config->init_ul_bwp.pucch_cfg->sr_res_list;
-  const auto& sr_res_list2 = (*req2.sched_cfg.cells)[0].ul_config->init_ul_bwp.pucch_cfg->sr_res_list;
+  const auto& sr_res_list1 = (*req1.sched_cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list;
+  const auto& sr_res_list2 = (*req2.sched_cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list;
   ASSERT_FALSE(sr_res_list1.empty());
   ASSERT_FALSE(sr_res_list2.empty());
   ASSERT_EQ(sr_res_list1[0].offset, sr_offset1);

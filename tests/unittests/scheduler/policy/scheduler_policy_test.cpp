@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "../test_utils/config_generators.h"
 #include "lib/scheduler/logging/scheduler_result_logger.h"
@@ -226,8 +220,8 @@ protected:
 TEST_P(scheduler_policy_css_test, when_coreset0_used_then_dl_grant_is_within_bounds_of_coreset0_rbs)
 {
   auto ue_req = make_ue_create_req(to_du_ue_index(0), to_rnti(0x4601), {uint_to_lcid(4)}, uint_to_lcg_id(0));
-  (*ue_req.cfg.cells)[0].init_dl_bwp.pdcch_cfg->search_spaces = make_search_spaces();
-  ue& u                                                       = add_ue(ue_req);
+  (*ue_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces = make_search_spaces();
+  ue& u                                                                     = add_ue(ue_req);
 
   // Note: set CQI=15 to use low aggregation level.
   u.get_pcell().handle_csi_report(

@@ -1,14 +1,9 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_ue_controller_impl.h"
+#include "ocudu/du/du_high/du_manager/du_manager_params.h"
 #include "ocudu/mac/mac_ue_configurator.h"
 #include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/async/execute_on_blocking.h"
@@ -279,7 +274,7 @@ async_task<void> du_ue_controller_impl::handle_rb_stop_request(bool stop_srbs)
   // Disconnect bearers from within the UE execution context.
   return run_in_ue_executor([this, stop_srbs]() {
     // > Disconnect all DRBs.
-    for (auto& drb_pair : bearers.drbs()) {
+    for (const auto& drb_pair : bearers.drbs()) {
       du_ue_drb& drb = *drb_pair.second;
       drb.stop();
     }
@@ -310,7 +305,7 @@ async_task<void> du_ue_controller_impl::handle_drb_stop_request(span<const drb_i
 
   return run_in_ue_executor([this, drbs_to_stop_cpy = std::move(drbs_to_stop_cpy)]() {
     // > Subset of DRBs will be stopped.
-    auto& ue_drbs = bearers.drbs();
+    const auto& ue_drbs = bearers.drbs();
     for (drb_id_t drb_id : drbs_to_stop_cpy) {
       auto it = ue_drbs.find(drb_id);
       if (it == ue_drbs.end()) {

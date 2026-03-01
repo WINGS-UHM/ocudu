@@ -1,15 +1,11 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
+#include "cu_cp_cho_types.h"
+#include "cu_cp_intra_cu_ho_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/support/async/async_task.h"
 
@@ -35,6 +31,12 @@ public:
   on_intra_cu_handover_required(const cu_cp_intra_cu_handover_request& request,
                                 du_index_t                             source_du_index,
                                 du_index_t                             target_du_index) = 0;
+
+  /// \brief Notify the CU-CP to run intra-CU CHO coordinator flow.
+  ///
+  /// This entrypoint executes preparation and (auto) execution/cancellation orchestration.
+  virtual async_task<cu_cp_intra_cu_cho_response>
+  on_intra_cu_cho_required(const cu_cp_intra_cu_cho_request& request) = 0;
 };
 
 } // namespace ocucp

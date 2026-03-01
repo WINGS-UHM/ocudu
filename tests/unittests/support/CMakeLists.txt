@@ -1,10 +1,7 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+# Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
 
 set_directory_properties(PROPERTIES LABELS "support")
 
@@ -104,6 +101,6 @@ add_executable(resource_usage_test tracing/resource_usage_test.cpp)
 target_link_libraries(resource_usage_test ocudu_support ocudulog gtest gtest_main)
 add_test(resource_usage_test resource_usage_test)
 
-add_executable(math_test math/mod_math_utils_test.cpp)
-target_link_libraries(math_test ocudu_support gtest gtest_main)
+add_executable(math_test math/mod_math_utils_test.cpp math/curve_fitting_find_max_test.cpp)
+target_link_libraries(math_test ocudu_support_math ocuduvec gtest gtest_main)
 add_test(math_test math_test)

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_unit_config_yaml_writer.h"
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
@@ -100,6 +94,27 @@ static YAML::Node build_cu_cp_amf_section(const cu_cp_unit_amf_config& config)
   return node;
 }
 
+static YAML::Node build_cu_cp_xnap_item_section(const cu_cp_unit_xnap_config& config)
+{
+  YAML::Node node;
+
+  node["bind_addrs"] = config.bind_addrs;
+  node["peer_addrs"] = config.peer_addrs;
+
+  return node;
+}
+
+static YAML::Node build_cu_cp_xnap_section(const std::vector<cu_cp_unit_xnap_config>& xnap_configs)
+{
+  YAML::Node node;
+
+  for (const auto& xnap : xnap_configs) {
+    node.push_back(build_cu_cp_xnap_item_section(xnap));
+  }
+
+  return node;
+}
+
 static YAML::Node build_cu_cp_mobility_ncells_section(const cu_cp_unit_neighbor_cell_config_item& config)
 {
   YAML::Node node;
@@ -152,13 +167,35 @@ static YAML::Node build_cu_cp_mobility_cells_section(const cu_cp_unit_cell_confi
   return node;
 }
 
+/// Convert time_point to ISO 8601 format string (YYYY-MM-DDTHH:MM:SS.mmm).
+static std::string timepoint_to_iso8601(const std::chrono::system_clock::time_point& tp)
+{
+  auto   ms           = std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch());
+  auto   secs         = std::chrono::duration_cast<std::chrono::seconds>(ms);
+  time_t time         = secs.count();
+  int    milliseconds = (ms.count() % 1000);
+
+  std::tm tm_utc = *std::gmtime(&time);
+  char    buf[32];
+  std::strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%S", &tm_utc);
+
+  // Format milliseconds with leading zeros.
+  char ms_buf[8];
+  std::snprintf(ms_buf, sizeof(ms_buf), ".%03d", milliseconds);
+
+  return std::string(buf) + ms_buf;
+}
+
 static YAML::Node build_cu_cp_mobility_report_section(const cu_cp_unit_report_config& config)
 {
   YAML::Node node;
 
-  node["report_cfg_id"]      = config.report_cfg_id;
-  node["report_type"]        = config.report_type;
-  node["report_interval_ms"] = config.report_interval_ms;
+  node["report_cfg_id"] = config.report_cfg_id;
+  node["report_type"]   = config.report_type;
+  // Cond-trigger report configs do not have report interval semantics.
+  if (config.report_type != "cond_trigger") {
+    node["report_interval_ms"] = config.report_interval_ms;
+  }
 
   if (!config.event_triggered_report_type) {
     return node;
@@ -193,6 +230,35 @@ static YAML::Node build_cu_cp_mobility_report_section(const cu_cp_unit_report_co
   // A3, A6 - neighbour offset relative to serving cell.
   if (ev == "a3" or ev == "a6") {
     add_opt("meas_trigger_quantity_offset_db", config.meas_trigger_quantity_offset_db);
+  }
+
+  // D1/D2 - distance-based conditional events.
+  if (ev == "d1" or ev == "d2") {
+    add_opt("distance_thresh_from_ref1_km", config.distance_thresh_from_ref1_km);
+    add_opt("distance_thresh_from_ref2_km", config.distance_thresh_from_ref2_km);
+    add_opt("hysteresis_location_km", config.hysteresis_location_km);
+  }
+
+  // D1 - reference locations (serving and target cell).
+  if (ev == "d1") {
+    if (config.ref_location1.has_value()) {
+      node["ref_location1"]["latitude"]  = config.ref_location1->latitude;
+      node["ref_location1"]["longitude"] = config.ref_location1->longitude;
+    }
+    if (config.ref_location2.has_value()) {
+      node["ref_location2"]["latitude"]  = config.ref_location2->latitude;
+      node["ref_location2"]["longitude"] = config.ref_location2->longitude;
+    }
+  }
+
+  // T1 - time-based conditional event.
+  if (ev == "t1") {
+    if (config.t1_thres.has_value()) {
+      node["t1_thres"] = timepoint_to_iso8601(config.t1_thres.value());
+    }
+    if (config.duration.has_value()) {
+      node["duration_s"] = config.duration->count();
+    }
   }
 
   return node;
@@ -273,6 +339,9 @@ static YAML::Node build_cu_cp_section(const cu_cp_unit_config& config)
   if (!config.extra_amfs.empty()) {
     node["extra_amfs"] = build_cu_cp_extra_amfs_section(config.extra_amfs);
   }
+  if (!config.xnap_configs.empty()) {
+    node["xnaps"] = build_cu_cp_xnap_section(config.xnap_configs);
+  }
   node["mobility"] = build_cu_cp_mobility_section(config.mobility_config);
   node["rrc"]      = build_cu_cp_rrc_section(config.rrc_config);
   node["security"] = build_cu_cp_security_section(config.security_config);
@@ -287,6 +356,7 @@ static void fill_cu_cp_log_section(YAML::Node node, const cu_cp_unit_logger_conf
   node["pdcp_level"]        = ocudulog::basic_level_to_string(config.pdcp_level);
   node["rrc_level"]         = ocudulog::basic_level_to_string(config.rrc_level);
   node["ngap_level"]        = ocudulog::basic_level_to_string(config.ngap_level);
+  node["xnap_level"]        = ocudulog::basic_level_to_string(config.xnap_level);
   node["nrppa_level"]       = ocudulog::basic_level_to_string(config.nrppa_level);
   node["e1ap_level"]        = ocudulog::basic_level_to_string(config.e1ap_level);
   node["f1ap_level"]        = ocudulog::basic_level_to_string(config.f1ap_level);
@@ -301,6 +371,8 @@ static void fill_cu_cp_pcap_section(YAML::Node node, const cu_cp_unit_pcap_confi
 {
   node["ngap_filename"] = config.ngap.filename;
   node["ngap_enable"]   = config.ngap.enabled;
+  node["xnap_filename"] = config.xnap.filename;
+  node["xnap_enable"]   = config.xnap.enabled;
   node["f1ap_filename"] = config.f1ap.filename;
   node["f1ap_enable"]   = config.f1ap.enabled;
   node["e1ap_filename"] = config.e1ap.filename;

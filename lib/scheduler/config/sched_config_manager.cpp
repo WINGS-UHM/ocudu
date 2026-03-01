@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "sched_config_manager.h"
 #include "../logging/scheduler_metrics_handler.h"
@@ -154,7 +148,7 @@ ue_config_update_event sched_config_manager::add_ue(const sched_ue_creation_requ
   }
 
   // Ensure configured cells exist.
-  const du_cell_index_t pcell_index = (*cfg_req.cfg.cells)[0].cell_index;
+  const du_cell_index_t pcell_index = (*cfg_req.cfg.cells)[0].serv_cell_cfg.cell_index;
   if (not contains(pcell_index)) {
     logger.warning("ue={} rnti={}: Discarding invalid UE creation request. Cause: PCell={} does not exist",
                    fmt::underlying(cfg_req.ue_index),

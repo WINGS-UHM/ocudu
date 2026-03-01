@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -18,7 +12,7 @@ namespace ocudu {
 ///
 /// The identifiers are inspired by TS38.331 Section as 6.3.2 (see field \e mcs-Table in various Information Elements).
 /// For the actual tables and the selection procedure, see TS38.214 Section 5.1.3.1.
-enum class pdsch_mcs_table {
+enum class pdsch_mcs_table : uint8_t {
   /// Identifies MCS index table 1, TS38.214 Table 5.1.3.1-1.
   qam64 = 0,
   /// Identifies MCS index table 2, TS38.214 Table 5.1.3.1-2.

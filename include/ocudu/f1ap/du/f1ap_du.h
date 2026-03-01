@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -81,6 +75,10 @@ public:
 
   /// \brief Initiates the UE Context Release Request (gNB-DU initiated) procedure as per TS 38.473 section 8.3.2.
   virtual void handle_ue_context_release_request(const f1ap_ue_context_release_request& request) = 0;
+
+  /// \brief Sends an ACCESS SUCCESS message to the CU-CP as per TS 38.473 Section 8.3.8.
+  /// Called by the DU when a UE successfully accesses the target cell (e.g., during CHO execution).
+  virtual void handle_access_success(const f1ap_access_success_event& msg) = 0;
 
   /// \brief Initiates the UE Context Modification Required procedure as per TS 38.473 section 8.3.5.
   /// \param[in] msg The UE Context Modification Required message to transmit.

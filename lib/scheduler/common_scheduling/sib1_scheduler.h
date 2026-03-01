@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -57,7 +51,7 @@ private:
                        crb_interval                  sib1_crbs_grant,
                        unsigned                      time_resource,
                        const dmrs_information&       dmrs_info,
-                       unsigned                      tbs) const;
+                       units::bytes                  tbs) const;
 
   void handle_pending_sib1_update();
 

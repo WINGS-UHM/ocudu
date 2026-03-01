@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -16,6 +10,7 @@
 #include "o_cu_cp_unit_impl.h"
 #include "ocudu/cu_cp/cu_cp.h"
 #include "ocudu/e2/e2_cu_metrics_connector.h"
+#include "ocudu/xnap/gateways/xnc_connection_gateway.h"
 
 namespace ocudu {
 
@@ -45,6 +40,7 @@ struct o_cu_cp_unit_dependencies {
   timer_manager*                               timers                 = nullptr;
   dlt_pcap*                                    ngap_pcap              = nullptr;
   io_broker*                                   broker                 = nullptr;
+  ocucp::xnc_connection_gateway*               xnc_gw                 = nullptr;
   e2_connection_client*                        e2_gw                  = nullptr;
   app_services::metrics_notifier*              metrics_notifier       = nullptr;
   app_services::remote_server_metrics_gateway* remote_metrics_gateway = nullptr;

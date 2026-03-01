@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_fallback_scheduler.h"
 #include "../pdcch_scheduling/pdcch_resource_allocator.h"
@@ -574,7 +568,7 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
     // Use the same MCS, nof PRBs and TBS as the last allocation.
     mcs_idx            = h_dl_retx->get_grant_params().mcs;
     prbs_tbs.nof_prbs  = h_dl_retx->get_grant_params().rbs.type1().length();
-    prbs_tbs.tbs_bytes = h_dl_retx->get_grant_params().tbs_bytes;
+    prbs_tbs.tbs_bytes = h_dl_retx->get_grant_params().tbs;
 
     if (unused_crbs.length() < prbs_tbs.nof_prbs) {
       // In case of HARQ retxs, the number of RBs cannot change.
@@ -598,7 +592,7 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
       ocudu_assert(fixed_mcs.has_value(), "Invalid Initial CQI {}", expert_cfg.initial_cqi);
     }
     std::tuple<unsigned, sch_mcs_index, units::bytes> result =
-        select_tbs(pdsch_cfg, pending_bytes, unused_crbs, fixed_mcs);
+        select_tbs(pdsch_cfg, units::bytes{pending_bytes}, unused_crbs, fixed_mcs);
     unsigned chosen_tbs = std::get<2>(result).value();
     if (chosen_tbs == 0) {
       logger.info("rnti={}: Fallback newTx allocation postponed. Cause: Unable to compute valid TBS for available RBs",
@@ -623,7 +617,7 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
       if (only_conres_bytes > 0 and only_srb0_bytes > 0) {
         // In case of both ConResCE and SRB0 are pending, we recompute the MCS, this time, just for scheduling ConRes
         // CE.
-        result     = select_tbs(pdsch_cfg, min_pending_bytes, unused_crbs, std::nullopt);
+        result     = select_tbs(pdsch_cfg, units::bytes{min_pending_bytes}, unused_crbs, std::nullopt);
         chosen_tbs = std::get<2>(result).value();
         if (chosen_tbs == 0) {
           logger.info(
@@ -635,7 +629,7 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
     }
 
     // Selection of Nof RBs, TBS and MCS complete.
-    prbs_tbs      = {std::get<0>(result), std::get<2>(result).value()};
+    prbs_tbs      = {std::get<0>(result), std::get<2>(result)};
     mcs_idx       = std::get<1>(result);
     ue_grant_crbs = {unused_crbs.start(), unused_crbs.start() + prbs_tbs.nof_prbs};
   }
@@ -717,13 +711,13 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
                            mcs_idx,
                            ue_grant_crbs,
                            pdsch_cfg,
-                           prbs_tbs.tbs_bytes,
+                           prbs_tbs.tbs_bytes.value(),
                            is_retx);
 }
 
 std::tuple<unsigned, sch_mcs_index, units::bytes>
 ue_fallback_scheduler::select_tbs(const pdsch_config_params&          pdsch_cfg,
-                                  unsigned                            pending_bytes,
+                                  units::bytes                        pending_bytes,
                                   const crb_interval&                 unused_crbs,
                                   const std::optional<sch_mcs_index>& fixed_mcs) const
 {
@@ -736,7 +730,7 @@ ue_fallback_scheduler::select_tbs(const pdsch_config_params&          pdsch_cfg,
 
     chosen_mcs_idx                       = *fixed_mcs;
     const sch_mcs_description mcs_config = pdsch_mcs_get_config(pdsch_cfg.mcs_table, *fixed_mcs);
-    prbs_tbs                             = get_nof_prbs(prbs_calculator_sch_config{pending_bytes,
+    prbs_tbs                             = get_nof_prbs(prbs_calculator_sch_config{pending_bytes.value(),
                                                        pdsch_cfg.symbols.length(),
                                                        nof_dmrs_per_rb,
                                                        pdsch_cfg.nof_oh_prb,
@@ -761,7 +755,7 @@ ue_fallback_scheduler::select_tbs(const pdsch_config_params&          pdsch_cfg,
                                            pdsch_cfg.nof_layers,
                                            pdsch_cfg.tb_scaling_field,
                                            prbs_tbs.nof_prbs};
-      prbs_tbs.tbs_bytes = units::bits{tbs_calculator_calculate(tbs_cfg)}.round_up_to_bytes().value();
+      prbs_tbs.tbs_bytes = tbs_calculator_calculate(tbs_cfg);
     }
 
     // As \c txDirectCurrentLocation, in \c SCS-SpecificCarrier, TS 38.331, "If this field (\c
@@ -794,7 +788,7 @@ ue_fallback_scheduler::select_tbs(const pdsch_config_params&          pdsch_cfg,
       // At this point, xOverhead is not configured yet. As per TS 38.214, Clause 5.1.3.2, xOverhead is assumed to be
       // 0.
       const sch_mcs_description mcs_config = pdsch_mcs_get_config(pdsch_mcs_table::qam64, next_mcs_idx);
-      prbs_tbs                             = get_nof_prbs(prbs_calculator_sch_config{pending_bytes,
+      prbs_tbs                             = get_nof_prbs(prbs_calculator_sch_config{pending_bytes.value(),
                                                          pdsch_cfg.symbols.length(),
                                                          nof_dmrs_per_rb,
                                                          pdsch_cfg.nof_oh_prb,
@@ -810,7 +804,7 @@ ue_fallback_scheduler::select_tbs(const pdsch_config_params&          pdsch_cfg,
     // No found solution found.
     return std::make_tuple(0, *fixed_mcs, units::bytes{0});
   }
-  return std::make_tuple(prbs_tbs.nof_prbs, chosen_mcs_idx, units::bytes{prbs_tbs.tbs_bytes});
+  return std::make_tuple(prbs_tbs.nof_prbs, chosen_mcs_idx, prbs_tbs.tbs_bytes);
 }
 
 dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&                                   u,
@@ -903,14 +897,20 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
 
   switch (dci_type) {
     case dci_dl_rnti_config_type::tc_rnti_f1_0: {
-      build_pdsch_f1_0_tc_rnti(
-          msg.pdsch_cfg, pdsch_params, tbs_bytes, u.crnti, cell_cfg, pdcch.dci.tc_rnti_f1_0, vrbs, not is_retx);
+      build_pdsch_f1_0_tc_rnti(msg.pdsch_cfg,
+                               pdsch_params,
+                               units::bytes{tbs_bytes},
+                               u.crnti,
+                               cell_cfg,
+                               pdcch.dci.tc_rnti_f1_0,
+                               vrbs,
+                               not is_retx);
       break;
     }
     case dci_dl_rnti_config_type::c_rnti_f1_0: {
       build_pdsch_f1_0_c_rnti(msg.pdsch_cfg,
                               pdsch_params,
-                              tbs_bytes,
+                              units::bytes{tbs_bytes},
                               u.crnti,
                               cell_cfg,
                               u.get_pcell().cfg().search_space(pdcch.ctx.context.ss_id),
@@ -943,7 +943,7 @@ ue_fallback_scheduler::ul_srb_sched_outcome ue_fallback_scheduler::schedule_ul_u
 {
   std::optional<ul_harq_process_handle> h_ul_retx     = u.get_pcell().harqs.find_pending_ul_retx();
   const bool                            is_retx       = h_ul_retx.has_value();
-  const unsigned                        pending_bytes = u.pending_ul_newtx_bytes();
+  const unsigned                        pending_bytes = u.pending_ul_newtx_bytes().value();
   if (not is_retx and pending_bytes == 0) {
     return ul_srb_sched_outcome::next_ue;
   }
@@ -1112,7 +1112,7 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
   if (is_retx) {
     const unsigned final_nof_prbs = h_ul_retx->get_grant_params().rbs.type1().length();
     final_mcs_tbs.mcs             = h_ul_retx->get_grant_params().mcs;
-    final_mcs_tbs.tbs             = h_ul_retx->get_grant_params().tbs_bytes;
+    final_mcs_tbs.tbs             = h_ul_retx->get_grant_params().tbs;
 
     ue_grant_crbs = rb_helper::find_empty_interval_of_length(used_crbs, final_nof_prbs);
     if (ue_grant_crbs.empty() or ue_grant_crbs.length() < final_nof_prbs) {
@@ -1129,7 +1129,7 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
     sch_mcs_description ul_mcs_cfg =
         pusch_mcs_get_config(fallback_mcs_table, mcs, cell_cfg.use_msg3_transform_precoder(), false);
 
-    unsigned pending_bytes = u.pending_ul_newtx_bytes();
+    unsigned pending_bytes = u.pending_ul_newtx_bytes().value();
 
     sch_prbs_tbs prbs_tbs = get_nof_prbs(prbs_calculator_sch_config{pending_bytes,
                                                                     pusch_td.symbols.length(),
@@ -1254,7 +1254,7 @@ void ue_fallback_scheduler::fill_ul_srb_grant(ue&                               
                                               sch_mcs_index                         mcs_idx,
                                               const crb_interval&                   ue_grant_crbs,
                                               const pusch_config_params&            pusch_params,
-                                              unsigned                              tbs_bytes,
+                                              units::bytes                          tbs_bytes,
                                               bool                                  is_retx)
 {
   if (is_retx) {
@@ -1506,7 +1506,7 @@ void ue_fallback_scheduler::slot_indication(slot_point sl)
     }
     const auto& harqs               = ue.get_pcell().harqs;
     bool        all_harqs_are_empty = harqs.nof_ul_harqs() == harqs.nof_empty_ul_harqs();
-    if (all_harqs_are_empty and ue.pending_ul_newtx_bytes() == 0) {
+    if (all_harqs_are_empty and ue.pending_ul_newtx_bytes().value() == 0) {
       // UE has no pending data.
       ue_it = pending_ul_ues.erase(ue_it);
       continue;

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -19,6 +13,7 @@
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/result/dmrs_info.h"
 #include "ocudu/scheduler/result/vrb_alloc.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -71,7 +66,7 @@ struct pusch_information {
   /// but is set to 1.
   bool new_data;
   /// Transport block size in bytes.
-  uint32_t tb_size_bytes;
+  units::bytes tb_size_bytes;
   /// \brief Number of CBs in the TB (could be more than the number of CBs in this PUSCH transmission). Should be set
   /// to zero in any of the following conditions: 1) CBG is not supported or requested 2) newData=1 (new transmission)
   /// 3) tbSize=0.

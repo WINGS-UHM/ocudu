@@ -1,10 +1,7 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+# Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
 
 add_executable(ocu
         cu.cpp
@@ -22,6 +19,7 @@ target_link_libraries(ocu PRIVATE
         ocudu_e1_gateway
         ocudu_e2
         ocudu_f1c_gateway
+        ocudu_xnc_gateway
         ocudu_f1u_cu_up_split_connector
         ocudu_ngap
         ocudu_o_cu_cp_app_unit

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -14,6 +8,7 @@
 #include "ocudu/ran/sch/modulation_scheme.h"
 #include "ocudu/ran/sch/sch_mcs.h"
 #include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 
@@ -59,7 +54,7 @@ struct sch_prbs_tbs {
   /// Number of PRBs required for a given PDSCH transmission.
   unsigned nof_prbs;
   /// TBS in bytes corresponding to the PRBs required for a given PDSCH transmission.
-  unsigned tbs_bytes;
+  units::bytes tbs_bytes;
 };
 
 /// \brief Computes the required number of PRBs necessary to transmit a given payload size.

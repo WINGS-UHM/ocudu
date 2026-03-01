@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "slice_ue_repository.h"
 
@@ -94,9 +88,9 @@ void slice_ue_repository::rem_ue(du_ue_index_t ue_index)
   ue_map.erase(ue_index);
 }
 
-static unsigned sum_allocated_ul_harq_bytes(const ue& u)
+static units::bytes sum_allocated_ul_harq_bytes(const ue& u)
 {
-  unsigned bytes_in_harqs = 0;
+  units::bytes bytes_in_harqs{0};
   for (unsigned cell_idx = 0, e = u.nof_cells(); cell_idx != e; ++cell_idx) {
     const ue_cell& cc = u.get_cell(to_serv_cell_index(cell_idx));
     bytes_in_harqs += cc.harqs.total_ul_bytes_waiting_ack();
@@ -113,7 +107,7 @@ unsigned slice_ue::pending_ul_newtx_bytes() const
 
   if (pending_bytes > 0) {
     // Subtract the bytes already allocated in UL HARQs.
-    harqs_in_bytes = sum_allocated_ul_harq_bytes(u);
+    harqs_in_bytes = static_cast<int>(sum_allocated_ul_harq_bytes(u).value());
     pending_bytes -= harqs_in_bytes;
     if (pending_bytes > 0) {
       return std::max(pending_bytes, 0);
@@ -126,7 +120,7 @@ unsigned slice_ue::pending_ul_newtx_bytes() const
     pending_bytes = u.logical_channels().ul_pending_bytes();
     if (harqs_in_bytes < 0) {
       // In case harq_in_bytes has not been computed earlier.
-      harqs_in_bytes = sum_allocated_ul_harq_bytes(u);
+      harqs_in_bytes = static_cast<int>(sum_allocated_ul_harq_bytes(u).value());
     }
     pending_bytes -= harqs_in_bytes;
     return pending_bytes <= 0 ? SR_GRANT_BYTES : 0;

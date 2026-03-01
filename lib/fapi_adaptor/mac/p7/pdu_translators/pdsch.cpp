@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "pdsch.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_mapper.h"
@@ -51,7 +45,7 @@ static void fill_codewords(fapi::dl_pdsch_pdu_builder& builder, span<const pdsch
                                     cw.mcs_index.value(),
                                     static_cast<unsigned>(cw.mcs_table),
                                     cw.rv_index,
-                                    units::bytes{cw.tb_size_bytes});
+                                    cw.tb_size_bytes);
   }
 
   const units::bytes    tb_size_lbrm_bytes           = tbs_lbrm_default;
@@ -61,7 +55,7 @@ static void fill_codewords(fapi::dl_pdsch_pdu_builder& builder, span<const pdsch
 
   // NOTE: MAC uses the value of the target code rate x[1024], as per TS 38.214, Section 5.1.3.1, table 5.1.3.1-1.
   float R = cw.mcs_descr.get_normalised_target_code_rate();
-  builder.set_maintenance_v3_codeword_parameters(get_ldpc_base_graph(R, units::bytes{cw.tb_size_bytes}.to_bits()),
+  builder.set_maintenance_v3_codeword_parameters(get_ldpc_base_graph(R, cw.tb_size_bytes.to_bits()),
                                                  tb_size_lbrm_bytes,
                                                  is_tb_crc_first_tb_required,
                                                  is_tb_crc_second_tb_required);

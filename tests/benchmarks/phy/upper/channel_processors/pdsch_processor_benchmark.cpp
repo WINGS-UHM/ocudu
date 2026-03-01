@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "../../../../unittests/phy/upper/channel_processors/pdsch/pdsch_processor_test_doubles.h"
 #include "ocudu/phy/antenna_ports.h"
@@ -468,7 +462,7 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
         tbs_config.nof_layers                   = precoding_config.get_nof_layers();
         tbs_config.nof_symb_sh                  = profile.nof_symbols;
         tbs_config.nof_dmrs_prb = dmrs.nof_dmrs_per_rb() * dmrs_symbol_mask.count() * nof_cdm_groups_without_data;
-        unsigned tbs            = tbs_calculator_calculate(tbs_config);
+        units::bits tbs         = tbs_calculator_calculate(tbs_config).to_bits();
 
         // Build the PDSCH PDU configuration.
         pdsch_processor::pdu_t config = {
@@ -496,7 +490,7 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
             .ratio_pdsch_dmrs_to_sss_dB  = 0.0,
             .ratio_pdsch_data_to_sss_dB  = 0.0,
             .precoding                   = precoding_config};
-        test_case_set.emplace_back(std::tuple<pdsch_processor::pdu_t, unsigned>(config, tbs));
+        test_case_set.emplace_back(std::tuple<pdsch_processor::pdu_t, unsigned>(config, tbs.value()));
       }
     }
   }

@@ -1,13 +1,11 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+# Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
 
 add_subdirectory(cell_meas_manager)
 add_subdirectory(mobility_manager)
+add_subdirectory(ue_location_manager)
 add_subdirectory(up_resource_manager)
 add_subdirectory(ue_security_manager)
 
@@ -20,6 +18,7 @@ set(SOURCES
         cu_cp_controller/amf_connection_manager.cpp
         cu_cp_controller/du_connection_manager.cpp
         cu_cp_controller/cu_up_connection_manager.cpp
+        cu_cp_controller/xnc_connection_manager.cpp
         cu_up_processor/cu_up_processor_impl.cpp
         cu_up_processor/cu_up_processor_factory.cpp
         cu_up_processor/cu_up_processor_repository.cpp
@@ -55,11 +54,17 @@ set(SOURCES
         routines/mobility/inter_cu_handover_target_routine.cpp
         routines/mobility/inter_cu_handover_execution_target_routine.cpp
         routines/mobility/handover_reconfiguration_routine.cpp
+        routines/mobility/cho_cancellation_routine.cpp
+        routines/mobility/cho_coordinator_routine.cpp
+        routines/mobility/cho_reconfiguration_routine.cpp
+        routines/mobility/cho_source_routine.cpp
+        routines/mobility/cho_target_routine.cpp
         routines/positioning/trp_information_exchange_routine.cpp
         task_schedulers/ngap_task_scheduler.cpp
         ue_manager/cu_cp_ue_impl.cpp
         ue_manager/ue_manager_impl.cpp
         ue_manager/ue_task_scheduler_impl.cpp
+        xnap_repository.cpp
 )
 
 add_library(ocudu_cu_cp STATIC ${SOURCES})
@@ -67,6 +72,7 @@ add_library(ocudu_cu_cp STATIC ${SOURCES})
 target_link_libraries(ocudu_cu_cp
         ocudu_cu_cp_cell_meas_manager
         ocudu_cu_cp_mobility_manager
+        ocudu_ue_location_manager
         ocudu_ue_security_manager
         ocudu_e1ap_cu_cp
         ocudu_f1ap_cu

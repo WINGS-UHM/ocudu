@@ -1,17 +1,12 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
 #include "ocudu/adt/expected.h"
 #include "ocudu/ran/sch/sch_mcs.h"
+#include "ocudu/support/units.h"
 #include <optional>
 
 namespace ocudu {
@@ -25,7 +20,7 @@ struct sch_mcs_tbs {
   /// MCS to use for the UE's PDSCH and PUSCH.
   sch_mcs_index mcs;
   /// TBS to be allocated on the UE's PDSCH and PUSCH.
-  unsigned tbs;
+  units::bytes tbs;
 };
 
 /// \brief Computes the PDSCH MCS and TBS such that the effective code rate does not exceed 0.95.
@@ -102,18 +97,18 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> compute_ul_mcs_tbs(const pusch_c
 /// \param[in] nof_prbs Number of PRBs available for the PUSCH transmission.
 /// \param[in] contains_dc Set to true if the transmission overlaps with the position of the DC.
 /// \return TBS in bytes, in case the PUSCH code rate and paramters are valid; else, std::nullopt.
-std::optional<unsigned> compute_ul_tbs(const pusch_config_params& pusch_params,
-                                       const bwp_config&          active_bwp_cfg,
-                                       sch_mcs_index              mcs,
-                                       unsigned                   nof_prbs,
-                                       bool                       contains_dc);
+std::optional<units::bytes> compute_ul_tbs(const pusch_config_params& pusch_params,
+                                           const bwp_config&          active_bwp_cfg,
+                                           sch_mcs_index              mcs,
+                                           unsigned                   nof_prbs,
+                                           bool                       contains_dc);
 
 /// \brief Determines the PUSCH TBS without checking if the coderate is valid.
 /// \param[in] pusch_params PUSCH parameters needed to compute the TBS.
 /// \param[in] mcs Value to be applied for the MCS.
 /// \param[in] nof_prbs Number of PRBs available for the PUSCH transmission.
 /// \return TBS in bytes.
-unsigned compute_ul_tbs_unsafe(const pusch_config_params& pusch_params, sch_mcs_index mcs, unsigned nof_prbs);
+units::bytes compute_ul_tbs_unsafe(const pusch_config_params& pusch_params, sch_mcs_index mcs, unsigned nof_prbs);
 
 /// \brief Determines if the selected MCS, TBS and number of PRBs leads to a valid effective code rate and UCI.
 bool is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,

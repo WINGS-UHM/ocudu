@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_config_translators.h"
 #include "apps/services/worker_manager/worker_manager_config.h"
@@ -264,7 +258,37 @@ static ocucp::rrc_meas_trigger_quant build_meas_trigger_offset(const std::string
 
 static ocucp::rrc_report_cfg_nr generate_cu_cp_trigger_report_config(const cu_cp_unit_report_config& report_cfg_item)
 {
-  const std::string& ev  = report_cfg_item.event_triggered_report_type.value();
+  const std::string& ev = report_cfg_item.event_triggered_report_type.value();
+
+  // Distance-based and time-based events are only valid for cond_trigger.
+  if (ev == "d1" or ev == "t1" or ev == "d2") {
+    ocucp::rrc_event_id event_id;
+    if (ev == "d1" or ev == "d2") {
+      event_id.id = (ev == "d1") ? ocucp::rrc_event_id::event_id_t::d1 : ocucp::rrc_event_id::event_id_t::d2;
+      event_id.distance_thresh_from_ref1 =
+          static_cast<uint32_t>(report_cfg_item.distance_thresh_from_ref1_km.value() * 1000.0);
+      event_id.distance_thresh_from_ref2 =
+          static_cast<uint32_t>(report_cfg_item.distance_thresh_from_ref2_km.value() * 1000.0);
+      event_id.hysteresis_location = static_cast<uint32_t>(report_cfg_item.hysteresis_location_km.value() * 1000.0);
+      event_id.time_to_trigger     = report_cfg_item.time_to_trigger_ms.value();
+      // D1-only: reference locations.
+      if (ev == "d1") {
+        event_id.ref_location1 = report_cfg_item.ref_location1.value();
+        event_id.ref_location2 = report_cfg_item.ref_location2.value();
+      }
+    } else if (ev == "t1") {
+      event_id.id       = ocucp::rrc_event_id::event_id_t::t1;
+      event_id.t1_thres = report_cfg_item.t1_thres.value();
+      event_id.duration = static_cast<unsigned>(
+          std::chrono::duration_cast<std::chrono::milliseconds>(report_cfg_item.duration.value()).count());
+    }
+    ocucp::rrc_cond_trigger_cfg cond_trigger_cfg;
+    cond_trigger_cfg.cond_event_id = event_id;
+    cond_trigger_cfg.rs_type       = ocucp::rrc_nr_rs_type::ssb;
+    return cond_trigger_cfg;
+  }
+
+  // A-family events (a1-a6).
   const std::string& qty = report_cfg_item.meas_trigger_quantity.value();
 
   // Build rrc_event_id (common to both event-triggered and conditional-trigger).
@@ -384,6 +408,18 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
       supported_tas.push_back({supported_ta.tac, plmn_list});
     }
     out_cfg.ngap.ngaps.push_back(ocucp::cu_cp_configuration::ngap_config{nullptr, supported_tas});
+  }
+
+  // XNAP.
+  if (!cu_cfg.xnap_configs.empty()) {
+    // TODO: support multiple XNAP config items.
+    const auto& xnap = cu_cfg.xnap_configs.front();
+    for (const auto& peer_addr : xnap.peer_addrs) {
+      ocucp::cu_cp_configuration::xnap_config xn_config{};
+      xn_config.peer_addr = transport_layer_address::create_from_string(peer_addr);
+      xn_config.peer_addr.set_port(XNAP_PORT);
+      out_cfg.xnap.xnaps.push_back(xn_config);
+    }
   }
 
   out_cfg.rrc.force_reestablishment_fallback = cu_cfg.rrc_config.force_reestablishment_fallback;

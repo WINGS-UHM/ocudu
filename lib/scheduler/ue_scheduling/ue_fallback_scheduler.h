@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -109,7 +103,7 @@ private:
 
   /// \brief For a number of pending bytes, select the appropriate MCS.
   std::tuple<unsigned, sch_mcs_index, units::bytes> select_tbs(const pdsch_config_params&          pdsch_cfg,
-                                                               unsigned                            pending_bytes,
+                                                               units::bytes                        pending_bytes,
                                                                const crb_interval&                 unused_crbs,
                                                                const std::optional<sch_mcs_index>& fixed_mcs) const;
 
@@ -154,7 +148,7 @@ private:
                          sch_mcs_index                         mcs_idx,
                          const crb_interval&                   ue_grant_crbs,
                          const pusch_config_params&            pusch_params,
-                         unsigned                              tbs_bytes,
+                         units::bytes                          tbs_bytes,
                          bool                                  is_retx);
 
   /// Returns the PDSCH time domain resource allocation for a given PDSCH time resource index.

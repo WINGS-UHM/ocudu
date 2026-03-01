@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "apps/helpers/metrics/metrics_helpers.h"
 #include "apps/services/app_execution_metrics/executor_metrics_manager.h"
@@ -53,6 +47,7 @@
 #include "ocudu/support/sysinfo.h"
 #include "ocudu/support/versioning/build_info.h"
 #include "ocudu/support/versioning/version.h"
+#include "ocudu/xnap/gateways/xnc_network_gateway_factory.h"
 #include <atomic>
 #ifdef DPDK_FOUND
 #include "ocudu/hal/dpdk/dpdk_eal_factory.h"
@@ -400,6 +395,24 @@ int main(int argc, char** argv)
       o_du_app_unit->get_o_du_high_unit_config(), workers.get_du_pcap_executors(), cleanup_signal_dispatcher);
   auto on_pcap_close_init = make_scope_exit([&gnb_logger]() { gnb_logger.info("Closing PCAP files..."); });
 
+  // Create XN-C GW (TODO cleanup port and PPID args with factory)
+  cu_cp_unit_config                              cp_unit_cfg = o_cu_cp_app_unit->get_o_cu_cp_unit_config().cucp_cfg;
+  std::unique_ptr<ocucp::xnc_connection_gateway> cu_xnc_gw;
+  if (!cp_unit_cfg.xnap_configs.empty()) {
+    // TODO: support multiple XNAP config items.
+    const auto& xnap_cfg = cp_unit_cfg.xnap_configs.front();
+
+    sctp_network_gateway_config xnc_sctp_cfg = {};
+    xnc_sctp_cfg.if_name                     = "XN-C";
+    xnc_sctp_cfg.bind_addresses              = xnap_cfg.bind_addrs;
+    xnc_sctp_cfg.bind_port                   = XNAP_PORT;
+    xnc_sctp_cfg.ppid                        = XNAP_PPID;
+    xnc_sctp_gateway_config xnc_server_cfg(
+        {xnc_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().xnc_rx_executor(), *cu_cp_dlt_pcaps.xnap});
+
+    cu_xnc_gw = create_xnc_connection_gateway(xnc_server_cfg);
+  }
+
   std::unique_ptr<f1c_local_connector> f1c_gw =
       create_f1c_local_connector(f1c_local_connector_config{*cu_cp_dlt_pcaps.f1ap});
   std::unique_ptr<e1_local_connector> e1_gw =
@@ -454,6 +467,7 @@ int main(int argc, char** argv)
   o_cucp_deps.timers                 = cu_timers;
   o_cucp_deps.ngap_pcap              = cu_cp_dlt_pcaps.ngap.get();
   o_cucp_deps.broker                 = epoll_broker.get();
+  o_cucp_deps.xnc_gw                 = cu_xnc_gw != nullptr ? cu_xnc_gw.get() : nullptr;
   o_cucp_deps.metrics_notifier       = &metrics_notifier_forwarder;
   o_cucp_deps.e2_gw                  = e2_gw_cu_cp.get();
   o_cucp_deps.remote_metrics_gateway = remote_server_gateway;
@@ -531,13 +545,18 @@ int main(int argc, char** argv)
   // Connect E1AP to O-CU-CP.
   e1_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_e1_handler());
 
-  // Start O-CU-CP
+  // Start O-CU-CP.
   gnb_logger.info("Starting CU-CP...");
   o_cucp_obj.get_operation_controller().start();
   gnb_logger.info("CU-CP started successfully");
 
   if (not o_cucp_obj.get_cu_cp().get_ng_handler().amfs_are_connected()) {
     report_error("CU-CP failed to connect to AMF");
+  }
+
+  if (cu_xnc_gw != nullptr) {
+    // Connect XN-C to O-CU-CP and start listening for new XN-C connection requests.
+    cu_xnc_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_xnc_handler());
   }
 
   // Configure the remote commands and start the service.

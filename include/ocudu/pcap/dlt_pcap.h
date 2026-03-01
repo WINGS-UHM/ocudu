@@ -1,12 +1,5 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 #pragma once
 
@@ -43,6 +36,7 @@ public:
 /// \brief Creates a layer DLT PCAP sink that writes the incoming PDUs to a pcap file.
 std::unique_ptr<dlt_pcap> create_null_dlt_pcap();
 std::unique_ptr<dlt_pcap> create_ngap_pcap(const std::string& filename, task_executor& backend_exec);
+std::unique_ptr<dlt_pcap> create_xnap_pcap(const std::string& filename, task_executor& backend_exec);
 std::unique_ptr<dlt_pcap> create_f1ap_pcap(const std::string& filename, task_executor& backend_exec);
 std::unique_ptr<dlt_pcap> create_e1ap_pcap(const std::string& filename, task_executor& backend_exec);
 std::unique_ptr<dlt_pcap> create_gtpu_pcap(const std::string& filename, task_executor& backend_exec);

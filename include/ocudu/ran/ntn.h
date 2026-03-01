@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -148,6 +142,10 @@ struct sat_switch_with_resync_t {
   using ssb_time_offset_t = bounded_integer<uint8_t, 0, 159>;
   /// NTN config.
   ntn_config ntn_cfg;
+  /// Indicate the epoch time for the NTN assistance information in the NTN-config. UTC timepoint.
+  std::optional<std::chrono::system_clock::time_point> epoch_timestamp;
+  /// Geodetic coordinates (in degrees) of the NTN Gateway location. Used to compute TA-info.
+  std::optional<geodetic_coordinates_t> ntn_gateway_location;
   /// Indicates the time information on when the target satellite is going to start serving the area currently covered
   /// by the serving satellite. The reference point for t-ServiceStart is the uplink time synchronization reference
   /// point of the serving satellite. UTC timepoint.

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "time_alignment_estimator_dft_impl.h"
 #include "ocudu/adt/bounded_bitset.h"
@@ -19,60 +13,11 @@
 #include "ocudu/phy/support/re_buffer.h"
 #include "ocudu/phy/support/time_alignment_estimator/time_alignment_measurement.h"
 #include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/support/math/curve_fitting_find_max.h"
 #include <algorithm>
 #include <utility>
 
 using namespace ocudu;
-
-/// \brief Estimates a fractional sample delay from samples around a maximum.
-///
-/// It uses a quadratic curve fitting of the input values to estimate the peak position. The result is expressed as a
-/// fraction of the sampling time with respect to the center input sample.
-///
-/// When the peak estimation is not meaningful, the function returns zero, meaning that one should consider the
-/// maximum input as the peak and no fractional refinement is possible. This happens if:
-///   - the number of input samples is neither three nor five; or
-///   - the estimation results in NaN or infinity.
-///
-/// \param[in] peak_center_correlation Odd number of samples containing a peak maximum in the center.
-/// \return The fractional sample estimation where the maximum is located if the result is valid.
-static float fractional_sample_delay(span<const float> peak_center_correlation)
-{
-  // Calculation coefficients for solving the equations.
-  static constexpr std::array<float, 5> num_weights_5 = {{-0.400000, -0.200000, 0.000000, 0.200000, 0.400000}};
-  static constexpr std::array<float, 5> den_weights_5 = {{0.571429, -0.285714, -0.571429, -0.285714, 0.571429}};
-  static constexpr std::array<float, 3> num_weights_3 = {{-0.5, 0.0, 0.5}};
-  static constexpr std::array<float, 3> den_weights_3 = {{0.5, -1.0, 0.5}};
-
-  float             correction = 1.0F;
-  span<const float> num_weights;
-  span<const float> den_weights;
-
-  // Select weight depending on the number of samples.
-  if (peak_center_correlation.size() == 5) {
-    num_weights = num_weights_5;
-    den_weights = den_weights_5;
-  } else if (peak_center_correlation.size() == 3) {
-    correction  = 0.5;
-    num_weights = num_weights_3;
-    den_weights = den_weights_3;
-  } else {
-    // The size is invalid.
-    return 0.0F;
-  }
-
-  // Solve equation.
-  float num    = ocuduvec::dot_prod(num_weights, peak_center_correlation, 0.0F);
-  float den    = ocuduvec::dot_prod(den_weights, peak_center_correlation, 0.0F);
-  float result = -correction * num / den;
-
-  // Make sure the function does not return a result greater than one, lower than minus one, infinity or NaN.
-  if (std::isnan(result) || std::isinf(result) || std::abs(result) > 1.0F) {
-    return 0.0F;
-  }
-
-  return result;
-}
 
 const unsigned time_alignment_estimator_dft_impl::min_dft_size = pow2(log2_ceil(static_cast<unsigned>(
     1.0F / (15000 * phy_time_unit::from_timing_advance(1, subcarrier_spacing::kHz15).to_seconds()))));
@@ -275,7 +220,7 @@ time_alignment_measurement time_alignment_estimator_dft_impl::estimate_ta_correl
     }
 
     // Calculate the fractional sample.
-    fractional_sample_index = fractional_sample_delay(peak_center_correlation);
+    fractional_sample_index = curve_fitting_fractional_max(peak_center_correlation);
   }
 
   // Final calculation of the time alignment in seconds.

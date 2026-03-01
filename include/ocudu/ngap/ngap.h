@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -228,8 +222,7 @@ public:
   virtual void on_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) = 0;
 
   /// \brief Notifies the CU-CP about a Location Reporting Control message.
-  virtual void on_location_reporting_control_message(ue_index_t                             ue_index,
-                                                     const ngap_location_reporting_control& msg) = 0;
+  virtual void on_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg) = 0;
 };
 
 /// Handle NGAP NAS Message procedures as defined in TS 38.413 section 8.6.
@@ -254,6 +247,9 @@ public:
   virtual ~ngap_location_reporting_handler() = default;
   /// \brief Initiates Location Report procedure as per TS 38.413 section 8.12.3.
   virtual void handle_location_report_transmission(const ngap_location_report& msg) = 0;
+  /// \brief Initiates Location Reporting Failure Indication procedure as per TS 38.413 section 8.12.2.
+  virtual void
+  handle_location_reporting_failure_indication_transmission(const ngap_location_report_failure_indication& msg) = 0;
 };
 
 /// Handle NGAP UE Radio Capability Management Messages as per TS 38.413 section 8.14.

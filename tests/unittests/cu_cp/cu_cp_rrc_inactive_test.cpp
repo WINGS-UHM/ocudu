@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_test_environment.h"
 #include "tests/test_doubles/e1ap/e1ap_test_message_validators.h"
@@ -16,6 +10,8 @@
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
+#include "ocudu/asn1/ngap/ngap_ies.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include "ocudu/ngap/ngap_message.h"
@@ -1205,4 +1201,61 @@ TEST_F(cu_cp_rrc_inactive_test, when_ran_paging_timer_expires_then_ue_release_is
 
   // Timeout RAN paging and await NGAP UE Context Release Request.
   ASSERT_TRUE(timeout_ran_paging_and_await_ngap_ue_context_release_request());
+}
+
+TEST_F(cu_cp_rrc_inactive_test, when_location_reporting_is_configured_and_ue_resumes_then_location_report_is_sent)
+{
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
+  // Drain any pending NGAP messages.
+  while (get_amf().try_pop_rx_pdu(ngap_pdu)) {
+  }
+
+  // Configure change_of_serving_cell_and_ue_presence_in_the_area_of_interest reporting, so that the report is not
+  // suppressed when the UE resumes on the same cell (cell-change-only suppresses same-cell duplicate reports).
+  get_amf().push_tx_pdu(generate_location_reporting_control_message_with_cell_change_and_ue_presence(
+      ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value(), {1}));
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+
+  // Transition UE to RRC Inactive state.
+  ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
+
+  // Resume UE from RRC Inactive (UE connects from a new cell with new C-RNTI).
+  ASSERT_TRUE(
+      resume_ue(du_ue_id_2, crnti_2, 0x36000, "1111010001000010", make_byte_buffer("000020400033b01cab").value()));
+
+  // Expect a Location Report to be sent to the AMF after the resume.
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+
+  const auto& location_report = ngap_pdu.pdu.init_msg().value.location_report();
+  ASSERT_EQ(location_report->amf_ue_ngap_id, amf_ue_id_to_uint(ue_ctx->amf_ue_id.value()));
+  ASSERT_EQ(location_report->ran_ue_ngap_id, ran_ue_id_to_uint(ue_ctx->ran_ue_id.value()));
+  ASSERT_EQ(location_report->location_report_request_type.event_type,
+            asn1::ngap::event_type_opts::options::change_of_serving_cell_and_ue_presence_in_the_area_of_interest);
+}
+
+TEST_F(cu_cp_rrc_inactive_test,
+       when_only_cell_change_reporting_is_configured_and_ue_resumes_to_same_cell_then_no_report_is_sent)
+{
+  // Connect UE with RRC Inactive support.
+  connect_ue_with_rrc_inactive_support();
+
+  // Configure change_of_serve_cell reporting. An immediate report is sent upon configuration.
+  get_amf().push_tx_pdu(generate_location_reporting_control_message_with_cell_change(ue_ctx->amf_ue_id.value(),
+                                                                                     ue_ctx->ran_ue_id.value()));
+  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+  ASSERT_TRUE(test_helpers::is_valid_location_report(ngap_pdu));
+
+  // Transition UE to RRC Inactive state.
+  ASSERT_TRUE(trigger_rrc_inactive(du_ue_id));
+
+  // Resume UE from RRC Inactive on the same cell — no cell change occurred.
+  ASSERT_TRUE(
+      resume_ue(du_ue_id_2, crnti_2, 0x36000, "1111010001000010", make_byte_buffer("000020400033b01cab").value()));
+
+  // No Location Report should be sent since the serving cell did not change.
+  ASSERT_FALSE(this->wait_for_ngap_tx_pdu(ngap_pdu, std::chrono::milliseconds{5}));
 }

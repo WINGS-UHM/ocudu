@@ -1,10 +1,7 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+# Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
 
 set_directory_properties(PROPERTIES LABELS "adt")
 
@@ -85,6 +82,6 @@ add_executable(flat_map_test flat_map_test.cpp)
 target_link_libraries(flat_map_test ocudulog ocudu_support gtest gtest_main)
 add_test(flat_map_test flat_map_test)
 
-add_executable(soa_table_test soa_table_test.cpp)
+add_executable(soa_table_test soa_table_test.cpp stable_id_map_test.cpp)
 target_link_libraries(soa_table_test ocudulog ocudu_support gtest gtest_main)
 add_test(soa_table_test soa_table_test)

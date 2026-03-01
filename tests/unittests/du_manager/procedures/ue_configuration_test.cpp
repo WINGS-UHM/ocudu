@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 /// \file
 /// \brief Unit tests for the DU UE configuration procedure.
@@ -14,7 +8,6 @@
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/ue_configuration_procedure.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
-#include "tests/test_doubles/rrc/rrc_packed_test_messages.h"
 #include "ocudu/asn1/rrc_nr/cell_group_config.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/mac/config/mac_config_helpers.h"
@@ -95,7 +88,7 @@ protected:
                 req.srbs_to_setup.size() + req.drbs_to_setup.size() + req.drbs_to_mod.size());
 
       for (srb_id_t srb_id : req.srbs_to_setup) {
-        auto srb_it =
+        auto* srb_it =
             std::find_if(cell_group.rlc_bearer_to_add_mod_list.begin(),
                          cell_group.rlc_bearer_to_add_mod_list.end(),
                          [srb_id](const auto& b) {
@@ -110,7 +103,7 @@ protected:
         ASSERT_FALSE(srb_it->reestablish_rlc_present);
       }
       for (const f1ap_drb_to_modify& drb : req.drbs_to_mod) {
-        auto drb_it =
+        auto* drb_it =
             std::find_if(cell_group.rlc_bearer_to_add_mod_list.begin(),
                          cell_group.rlc_bearer_to_add_mod_list.end(),
                          [&drb](const auto& b) {
@@ -153,13 +146,13 @@ protected:
     }
 
     for (const f1ap_drb_to_setup& drb : req.drbs_to_setup) {
-      auto drb_it = std::find_if(cell_group.rlc_bearer_to_add_mod_list.begin(),
-                                 cell_group.rlc_bearer_to_add_mod_list.end(),
-                                 [&drb](const auto& b) {
-                                   return b.served_radio_bearer.type().value ==
-                                              asn1::rrc_nr::rlc_bearer_cfg_s::served_radio_bearer_c_::types::drb_id and
-                                          b.served_radio_bearer.drb_id() == drb_id_to_uint(drb.drb_id);
-                                 });
+      auto* drb_it = std::find_if(cell_group.rlc_bearer_to_add_mod_list.begin(),
+                                  cell_group.rlc_bearer_to_add_mod_list.end(),
+                                  [&drb](const auto& b) {
+                                    return b.served_radio_bearer.type().value ==
+                                               asn1::rrc_nr::rlc_bearer_cfg_s::served_radio_bearer_c_::types::drb_id and
+                                           b.served_radio_bearer.drb_id() == drb_id_to_uint(drb.drb_id);
+                                  });
       ASSERT_NE(drb_it, cell_group.rlc_bearer_to_add_mod_list.end());
       ASSERT_FALSE(is_srb(uint_to_lcid(drb_it->lc_ch_id)));
       ASSERT_TRUE(drb_it->mac_lc_ch_cfg_present);

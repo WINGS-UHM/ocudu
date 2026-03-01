@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "si_message_scheduler.h"
 #include "../support/dci_builder.h"
@@ -219,7 +213,7 @@ void si_message_scheduler::fill_si_grant(cell_slot_resource_allocator& res_grid,
                                          crb_interval                  si_crbs_grant,
                                          uint8_t                       time_resource,
                                          const dmrs_information&       dmrs_info,
-                                         unsigned                      tbs,
+                                         units::bytes                  tbs,
                                          const message_window_context& message_context)
 {
   // System information indicator for SI message as per TS 38.212, Section 7.3.1.2.1 and Table 7.3.1.2.1-2.

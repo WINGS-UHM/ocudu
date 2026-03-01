@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "grant_params_selector.h"
 #include "../slicing/slice_ue_repository.h"
@@ -36,14 +30,14 @@ struct mcs_prbs_selection {
 
 static std::optional<mcs_prbs_selection> compute_newtx_required_mcs_and_prbs(const pdsch_config_params& pdsch_cfg,
                                                                              const ue_cell&             ue_cc,
-                                                                             unsigned                   pending_bytes,
+                                                                             units::bytes               pending_bytes,
                                                                              interval<unsigned>         nof_rb_lims)
 {
   // Note: At this point, CQI must be higher than 0, so MCS is valid.
   const sch_mcs_index       mcs = ue_cc.link_adaptation_controller().calculate_dl_mcs(pdsch_cfg.mcs_table).value();
   const sch_mcs_description mcs_config = pdsch_mcs_get_config(pdsch_cfg.mcs_table, mcs);
 
-  sch_prbs_tbs prbs_tbs = get_nof_prbs(prbs_calculator_sch_config{pending_bytes,
+  sch_prbs_tbs prbs_tbs = get_nof_prbs(prbs_calculator_sch_config{pending_bytes.value(),
                                                                   pdsch_cfg.symbols.length(),
                                                                   calculate_nof_dmrs_per_rb(pdsch_cfg.dmrs),
                                                                   pdsch_cfg.nof_oh_prb,
@@ -128,7 +122,7 @@ pusch_config_params static compute_retx_pusch_config_params(const ue_cell&      
 /// Derive recommended MCS and number of PRBs for a newTx PUSCH grant.
 static std::optional<mcs_prbs_selection> compute_newtx_required_mcs_and_prbs(const pusch_config_params& pusch_cfg,
                                                                              const ue_cell&             ue_cc,
-                                                                             unsigned                   pending_bytes,
+                                                                             units::bytes               pending_bytes,
                                                                              interval<unsigned>         nof_rb_lims)
 {
   sch_mcs_index mcs =
@@ -138,7 +132,7 @@ static std::optional<mcs_prbs_selection> compute_newtx_required_mcs_and_prbs(con
 
   const auto nof_symbols = pusch_cfg.symbols.length();
 
-  sch_prbs_tbs prbs_tbs = get_nof_prbs(prbs_calculator_sch_config{pending_bytes,
+  sch_prbs_tbs prbs_tbs = get_nof_prbs(prbs_calculator_sch_config{pending_bytes.value(),
                                                                   nof_symbols,
                                                                   calculate_nof_dmrs_per_rb(pusch_cfg.dmrs),
                                                                   pusch_cfg.nof_oh_prb,
@@ -191,7 +185,7 @@ static std::optional<dl_sched_context> get_dl_sched_context(const slice_ue&     
                                                             slot_point                    pdsch_slot,
                                                             bool                          interleaving_enabled,
                                                             const dl_harq_process_handle* h_dl,
-                                                            unsigned                      pending_bytes)
+                                                            units::bytes                  pending_bytes)
 {
   const ue_cell& ue_cc = u.get_cc();
 
@@ -295,7 +289,7 @@ std::optional<dl_sched_context> sched_helper::get_newtx_dl_sched_context(const s
                                                                          slot_point      pdcch_slot,
                                                                          slot_point      pdsch_slot,
                                                                          bool            interleaving_enabled,
-                                                                         unsigned        pending_bytes)
+                                                                         units::bytes    pending_bytes)
 {
   return get_dl_sched_context(u, pdcch_slot, pdsch_slot, interleaving_enabled, nullptr, pending_bytes);
 }
@@ -306,7 +300,7 @@ std::optional<dl_sched_context> sched_helper::get_retx_dl_sched_context(const sl
                                                                         bool            interleaving_enabled,
                                                                         const dl_harq_process_handle& h_dl)
 {
-  return get_dl_sched_context(u, pdcch_slot, pdsch_slot, interleaving_enabled, &h_dl, 0);
+  return get_dl_sched_context(u, pdcch_slot, pdsch_slot, interleaving_enabled, &h_dl, units::bytes{0});
 }
 
 static vrb_interval
@@ -341,7 +335,7 @@ static std::optional<ul_sched_context> get_ul_sched_context(const slice_ue&     
                                                             slot_point                    pusch_slot,
                                                             unsigned                      uci_nof_harq_bits,
                                                             const ul_harq_process_handle* h_ul,
-                                                            unsigned                      pending_bytes,
+                                                            units::bytes                  pending_bytes,
                                                             ofdm_symbol_range             allowed_symbols)
 {
   const ue_cell& ue_cc = u.get_cc();
@@ -455,7 +449,7 @@ static std::optional<ul_sched_context> get_ul_sched_context(const slice_ue&     
       // Note: We take the conservative approach of assuming the reTx will intersect the DC.
       static constexpr bool contains_dc = true;
       auto                  tbs_res     = compute_ul_tbs(pusch_cfg, ue_cc.active_bwp(), mcs, nof_rbs, contains_dc);
-      if (not tbs_res.has_value() or tbs_res.value() != h_ul->get_grant_params().tbs_bytes) {
+      if (not tbs_res.has_value() or tbs_res.value() != h_ul->get_grant_params().tbs) {
         // Unable to keep the same TBS for PUSCH reTx.
         continue;
       }
@@ -481,7 +475,7 @@ std::optional<ul_sched_context> sched_helper::get_newtx_ul_sched_context(const s
                                                                          slot_point        pdcch_slot,
                                                                          slot_point        pusch_slot,
                                                                          unsigned          uci_nof_harq_bits,
-                                                                         unsigned          pending_bytes,
+                                                                         units::bytes      pending_bytes,
                                                                          ofdm_symbol_range allowed_symbols)
 {
   return get_ul_sched_context(u, pdcch_slot, pusch_slot, uci_nof_harq_bits, nullptr, pending_bytes, allowed_symbols);
@@ -494,7 +488,7 @@ std::optional<ul_sched_context> sched_helper::get_retx_ul_sched_context(const sl
                                                                         const ul_harq_process_handle& h_ul,
                                                                         ofdm_symbol_range             allowed_symbols)
 {
-  return get_ul_sched_context(u, pdcch_slot, pusch_slot, uci_nof_harq_bits, &h_ul, 0, allowed_symbols);
+  return get_ul_sched_context(u, pdcch_slot, pusch_slot, uci_nof_harq_bits, &h_ul, units::bytes{0}, allowed_symbols);
 }
 
 static vrb_interval

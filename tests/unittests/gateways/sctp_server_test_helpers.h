@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -57,8 +51,8 @@ public:
   bool                                                        association_created   = false;
   bool                                                        association_destroyed = false;
 
-  std::unique_ptr<sctp_association_sdu_notifier>
-  create(std::unique_ptr<sctp_association_sdu_notifier> send_notifier) override
+  std::unique_ptr<sctp_association_sdu_notifier> create(std::unique_ptr<sctp_association_sdu_notifier> send_notifier,
+                                                        sctp_association_info assoc_info) override
   {
     association_created = true;
     association_senders.push_back(std::move(send_notifier));

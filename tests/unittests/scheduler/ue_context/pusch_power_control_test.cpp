@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/support/pusch_power_controller.h"
 #include "tests/unittests/scheduler/test_utils/sched_custom_test_bench.h"
@@ -358,7 +352,7 @@ protected:
     // Set alpha value for Fractional path-loss compensation.
     ue_req.cfg.cells.value()
         .front()
-        .ul_config.value()
+        .serv_cell_cfg.ul_config.value()
         .init_ul_bwp.pusch_cfg.value()
         .pusch_pwr_ctrl.value()
         .p0_alphasets.front()
@@ -374,7 +368,7 @@ protected:
         static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
                          static_cast<int>(ue_req.cfg.cells.value()
                                               .front()
-                                              .ul_config.value()
+                                              .serv_cell_cfg.ul_config.value()
                                               .init_ul_bwp.pusch_cfg.value()
                                               .pusch_pwr_ctrl.value()
                                               .p0_alphasets.front()
@@ -563,7 +557,7 @@ protected:
     // Set alpha value for Fractional path-loss compensation.
     ue_req.cfg.cells.value()
         .front()
-        .ul_config.value()
+        .serv_cell_cfg.ul_config.value()
         .init_ul_bwp.pusch_cfg.value()
         .pusch_pwr_ctrl.value()
         .p0_alphasets.front()
@@ -575,7 +569,7 @@ protected:
         static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
                          static_cast<int>(ue_req.cfg.cells.value()
                                               .front()
-                                              .ul_config.value()
+                                              .serv_cell_cfg.ul_config.value()
                                               .init_ul_bwp.pusch_cfg.value()
                                               .pusch_pwr_ctrl.value()
                                               .p0_alphasets.front()

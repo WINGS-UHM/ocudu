@@ -1,10 +1,7 @@
-#
-# Copyright 2021-2026 Software Radio Systems Limited
-#
-# By using this file, you agree to the terms and conditions set
-# forth in the LICENSE file which can be found at the top level of
-# the distribution.
-#
+# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+# Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
 
 set(CRC_CALCULATOR_SOURCES
         crc_calculator_generic_impl.cpp
@@ -34,10 +31,15 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
         }")
     check_cxx_source_compiles("${CHECK_ARM_CRYPTO_CODE}" HAVE_ARM_CRYPTO)
 
-    # If the compiler does not support the crypto features with the default compiler flags, try to append +crypto.
+    # If the compiler does not support the crypto features with the default compiler flags, try to append +crypto to -march.
     if (NOT HAVE_ARM_CRYPTO)
+        message(STATUS "Current compile options do not support crypto features.")
+        set(MARCH "native" CACHE STRING "Compiler -march flag. Default value is 'native' for aarch64.")
+        message(STATUS "Current CPU value is ${MCPU}")
+        message(STATUS "Current MARCH value is ${MARCH}")
+
         # Append +crypto to the required flags.
-        set(CMAKE_REQUIRED_FLAGS "-mcpu=${MCPU}+crypto")
+        set(CMAKE_REQUIRED_FLAGS "-march=${MARCH}+crypto")
         check_cxx_source_compiles("${CHECK_ARM_CRYPTO_CODE}" HAVE_PLUS_CRYPTO)
 
         # Print a fatal error if the +crypto appending is not supported.

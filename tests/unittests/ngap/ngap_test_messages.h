@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -123,7 +117,8 @@ ngap_message generate_initial_context_setup_request_base(amf_ue_id_t amf_ue_id, 
 ngap_message generate_valid_initial_context_setup_request_message(
     amf_ue_id_t                                               amf_ue_id,
     ran_ue_id_t                                               ran_ue_id,
-    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt);
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
+    std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt);
 
 /// \brief Generate a valid dummy Initial Context Setup Request Message with a PDUSessionResourceSetupListCxtReq.
 ngap_message generate_valid_initial_context_setup_request_message_with_pdu_session(amf_ue_id_t amf_ue_id,
@@ -249,8 +244,25 @@ ngap_message generate_handover_cancel_ack(amf_ue_id_t amf_ue_id, ran_ue_id_t ran
 
 ngap_message generate_ng_reset_ack(const asn1::ngap::ue_associated_lc_ng_conn_list_l& ng_reset_ues = {});
 
-/// \brief Generate a valid dummy Location Reporting Control message.
+/// \brief Generate a valid dummy Location Reporting Control message with direct event type.
 ngap_message generate_location_reporting_control_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);
+
+/// \brief Generate a valid dummy Location Reporting Control message with change-of-serving-cell event type.
+ngap_message generate_location_reporting_control_message_with_cell_change(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);
+
+/// \brief Generate a Location Reporting Control message with
+/// change_of_serving_cell_and_ue_presence_in_the_area_of_interest event type and the given Location Reporting Reference
+/// IDs in the Area of Interest list.
+ngap_message
+generate_location_reporting_control_message_with_cell_change_and_ue_presence(amf_ue_id_t                 amf_ue_id,
+                                                                             ran_ue_id_t                 ran_ue_id,
+                                                                             const std::vector<uint8_t>& ref_ids);
+
+/// \brief Generate a Location Reporting Control message with the UE-presence-in-area-of-interest event type and the
+/// given Location Reporting Reference IDs in the Area of Interest list.
+ngap_message generate_location_reporting_control_message_with_ue_presence(amf_ue_id_t                 amf_ue_id,
+                                                                          ran_ue_id_t                 ran_ue_id,
+                                                                          const std::vector<uint8_t>& ref_ids);
 
 } // namespace ocucp
 } // namespace ocudu

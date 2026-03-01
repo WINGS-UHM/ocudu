@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "../test_utils/config_generators.h"
 #include "../test_utils/dummy_test_components.h"
@@ -73,8 +67,11 @@ protected:
     dl_harq_process_handle h_dl = ue_cc->harqs.alloc_dl_harq(next_slot, k1, 4, 0).value();
 
     // Create dummy PDSCH grant.
-    const pdsch_codeword cw{
-        sch_mcs_description{modulation_scheme::QAM256, 0.9}, sch_mcs_index{5}, pdsch_mcs_table::qam64, 0, 128};
+    const pdsch_codeword    cw{sch_mcs_description{modulation_scheme::QAM256, 0.9},
+                            sch_mcs_index{5},
+                            pdsch_mcs_table::qam64,
+                            0,
+                            units::bytes{128}};
     const pdsch_information pdsch{ue_ptr->crnti,
                                   &ss.bwp->dl_common->value().generic_params,
                                   &ss.coreset->cfg(),
@@ -91,7 +88,7 @@ protected:
                                   std::nullopt};
     const dl_msg_alloc      ue_pdsch{
         pdsch,
-             {{dl_msg_tb_info{{dl_msg_lc_info{lcid_dl_sch_t{lcid_t::LCID_SRB1}, cw.tb_size_bytes - 4, {}}}}}},
+             {{dl_msg_tb_info{{dl_msg_lc_info{lcid_dl_sch_t{lcid_t::LCID_SRB1}, cw.tb_size_bytes.value() - 4, {}}}}}},
              {ue_ptr->ue_index}};
 
     dl_harq_alloc_context ctxt{dci_dl_rnti_config_type::c_rnti_f1_1, pdsch.codewords[0].mcs_index, std::nullopt, 15};
@@ -134,7 +131,8 @@ TEST_F(ue_harq_link_adaptation_test, harq_not_retx_when_cqi_drops_below_threshol
   ue_cc->handle_csi_report(csi);
 
   // Action: NACK the HARQ.
-  h.dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt);
+  bool ack_result = h.dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt);
+  report_fatal_error_if_not(ack_result, "dl_ack_info failed");
 
   // Result: There should not be retx for HARQ.
   ASSERT_EQ(ue_cc->harqs.find_pending_dl_retx(), std::nullopt) << "HARQ must not be retransmitted due to drop in CQI";
@@ -161,7 +159,8 @@ TEST_F(ue_harq_link_adaptation_test, harq_not_retx_when_ri_drops_below_threshold
   ue_cc->handle_csi_report(csi);
 
   // Action: NACK the HARQ.
-  h.dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt);
+  bool ack_result = h.dl_ack_info(mac_harq_ack_report_status::nack, std::nullopt);
+  report_fatal_error_if_not(ack_result, "dl_ack_info failed");
 
   // Result: There should not be retx for HARQ.
   ASSERT_EQ(ue_cc->harqs.find_pending_dl_retx(), std::nullopt) << "HARQ must not be retransmitted due to drop in RI";

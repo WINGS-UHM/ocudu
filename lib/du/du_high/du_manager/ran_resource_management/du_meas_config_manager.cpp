@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_meas_config_manager.h"
 #include "du_ue_resource_config.h"
@@ -96,7 +90,8 @@ void du_meas_config_manager::update(du_ue_resource_config& ue_cfg, const byte_bu
     return;
   }
 
-  const du_cell_config& pcell_common = cell_cfg_list[ue_cfg.cell_group.cells.at(SERVING_PCELL_IDX).cell_index];
+  const du_cell_config& pcell_common =
+      cell_cfg_list[ue_cfg.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.cell_index];
 
   for (const auto& asn1measobj : meas_cfg.meas_obj_to_add_mod_list) {
     if (asn1measobj.meas_obj.type().value != meas_obj_to_add_mod_s::meas_obj_c_::types_opts::meas_obj_nr) {

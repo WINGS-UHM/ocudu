@@ -1,19 +1,12 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "../test_utils/config_generators.h"
 #include "lib/scheduler/cell/resource_grid.h"
 #include "lib/scheduler/srs/srs_allocator_impl.h"
 #include "lib/scheduler/srs/srs_scheduler_impl.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
-#include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
@@ -44,10 +37,11 @@ static unsigned compute_c_srs(unsigned nof_ul_crbs)
 
 static void validate_default_ue_cfg_req(const sched_ue_creation_request_message& ue_req)
 {
-  ocudu_assert(ue_req.cfg.cells.value().front().ul_config.has_value(), "UL config is required for this test");
-  ocudu_assert(ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.has_value(),
+  ocudu_assert(ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.has_value(),
+               "UL config is required for this test");
+  ocudu_assert(ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.has_value(),
                "SRS config is required for this test");
-  const auto& srs_cfg = ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.value();
+  const auto& srs_cfg = ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
   ocudu_assert(srs_cfg.srs_res_set_list.size() == 1, "SRS Resource Set is expected to have size 1");
   const auto& srs_set = srs_cfg.srs_res_set_list.front();
   ocudu_assert(srs_set.srs_res_id_list.size() == 1 and
@@ -227,8 +221,11 @@ public:
     sched_ue_creation_request_message ue_req = base_ue_req;
 
     // Set SRS resource aperiodic.
-    srs_config::srs_resource& srs_res =
-        ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.value().srs_res_list.front();
+    srs_config::srs_resource& srs_res = ue_req.cfg.cells.value()
+                                            .front()
+                                            .serv_cell_cfg.ul_config.value()
+                                            .init_ul_bwp.srs_cfg.value()
+                                            .srs_res_list.front();
     srs_res.res_type = srs_resource_type::aperiodic;
 
     // The TX comb size is not used in this test to check collision among SRS resources, but only to check that the
@@ -259,8 +256,11 @@ public:
     srs_res.id.cell_res_id = next_srs_res_id;
     next_srs_res_id        = (next_srs_res_id + 1) % max_cell_srs_res;
 
-    auto& srs_set_cfg =
-        ue_req.cfg.cells.value().front().ul_config.value().init_ul_bwp.srs_cfg.value().srs_res_set_list.front();
+    auto& srs_set_cfg = ue_req.cfg.cells.value()
+                            .front()
+                            .serv_cell_cfg.ul_config.value()
+                            .init_ul_bwp.srs_cfg.value()
+                            .srs_res_set_list.front();
     srs_set_cfg.id      = srs_config::srs_res_set_id::MIN_SRS_RES_SET_ID;
     auto& aperiodic_set = std::get<srs_config::srs_resource_set::aperiodic_resource_type>(srs_set_cfg.res_type);
     aperiodic_set.aperiodic_srs_res_trigger = static_cast<unsigned>(srs_config::srs_res_set_id::MIN_SRS_RES_SET_ID) + 1;
@@ -377,13 +377,18 @@ TEST_P(srs_alloc_multi_ue_tester, multiple_ues_with_orthogonal_srs_res_is_alloca
   const auto srs_prohib_time_uint = static_cast<unsigned>(GetParam().srs_prohib_time);
 
   auto get_next_add_ue_slot = [](unsigned max_rnd_ue_gen_slot) {
-    return test_rgen::uniform_int<unsigned>(0, max_rnd_ue_gen_slot);
+    return test_rgen::uniform_int<unsigned>(1, max_rnd_ue_gen_slot);
   };
 
   // The first UE is randomly generated at a given slot (up to the res_grid.ring_size).
   auto add_ue_slot = get_next_add_ue_slot(res_grid.ring_size());
-  // Check at the allocation for at least 10 the size of the resource grid.
-  const unsigned nof_slots_to_test = add_ue_slot + std::max(srs_prohib_time_uint * 10, res_grid.ring_size() * 10);
+  // Add a few extra srs_prohib_time to ensure there is enough time to allocate the SRS after the last UE has been
+  // created.
+  constexpr unsigned extra_srs_prohib_time = 2U;
+  // Check the allocation for at least 10 the size of the resource grid.
+  const unsigned nof_slots_to_test =
+      add_ue_slot +
+      std::max(srs_prohib_time_uint * (GetParam().nof_ues_per_test + extra_srs_prohib_time), res_grid.ring_size() * 10);
 
   for (unsigned sl_cnt = 0; sl_cnt < nof_slots_to_test; ++sl_cnt, slot_indication(++current_sl_tx)) {
     // Add the UE at the specified random slot.
@@ -412,9 +417,9 @@ TEST_P(srs_alloc_multi_ue_tester, multiple_ues_with_orthogonal_srs_res_is_alloca
           test_ue.last_srs_slot = current_sl_tx + res.slot_offset;
           test_ue.at_least_one_alloc |= true;
           ASSERT_FALSE(res_grid[res.slot_offset].result.ul.srss.empty());
-          const auto ue_srs_pdu_it = std::find_if(res_grid[res.slot_offset].result.ul.srss.begin(),
-                                                  res_grid[res.slot_offset].result.ul.srss.end(),
-                                                  [rnti = u.crnti](const srs_info& srs) { return srs.crnti == rnti; });
+          auto* const ue_srs_pdu_it = std::find_if(res_grid[res.slot_offset].result.ul.srss.begin(),
+                                                   res_grid[res.slot_offset].result.ul.srss.end(),
+                                                   [rnti = u.crnti](const srs_info& srs) { return srs.crnti == rnti; });
           ASSERT_NE(ue_srs_pdu_it, res_grid[res.slot_offset].result.ul.srss.end());
           expected<bool, std::string> pdu_test = test_srs_pdu(*ue_srs_pdu_it, u.ue_index);
           ASSERT_TRUE(pdu_test.has_value())
@@ -435,6 +440,7 @@ TEST_P(srs_alloc_multi_ue_tester, multiple_ues_with_orthogonal_srs_res_is_alloca
           cell_srs_res_usage.cbegin(), cell_srs_res_usage.cend(), [](const unsigned usage) { return usage > 1U; }));
     }
   }
+  ASSERT_EQ(test_ues.size(), GetParam().nof_ues_per_test);
   for (auto& test_ue : test_ues) {
     ASSERT_TRUE(test_ue.at_least_one_alloc);
   }

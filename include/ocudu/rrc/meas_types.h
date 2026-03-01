@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -380,8 +374,14 @@ struct rrc_meas_trigger_quant {
 
 using rrc_meas_trigger_quant_offset = rrc_meas_trigger_quant;
 
+/// Geographic location (lat/lon only) for CHO distance-based conditional events.
+struct rrc_geo_location {
+  double latitude;  ///< degrees [-90..90]
+  double longitude; ///< degrees [-180..180]
+};
+
 struct rrc_event_id {
-  enum class event_id_t : uint8_t { a1, a2, a3, a4, a5, a6 };
+  enum class event_id_t : uint8_t { a1, a2, a3, a4, a5, a6, d1, t1, d2 };
   // common parameters
   event_id_t id;
 
@@ -397,6 +397,17 @@ struct rrc_event_id {
       meas_trigger_quant_thres_2; ///< Threshold 2 for the measurement trigger quantity of event A5
 
   std::optional<bool> use_allowed_cell_list; ///< For event A3/A4/A5/A6
+
+  // D1/D2: distance-based fields
+  std::optional<uint32_t>         distance_thresh_from_ref1; ///< in meters (D1:[0..65535*50] D2:[0..65535*50])
+  std::optional<uint32_t>         distance_thresh_from_ref2; ///< in meters
+  std::optional<rrc_geo_location> ref_location1;             ///< D1: reference location for serving cell
+  std::optional<rrc_geo_location> ref_location2;             ///< D1: reference location for target cell
+  std::optional<uint32_t>         hysteresis_location; ///< D1/D2: in meters [0..327680] (ASN.1 encodes in 10m steps)
+
+  // T1: time-based fields
+  std::optional<std::chrono::system_clock::time_point> t1_thres; ///< UTC time threshold
+  std::optional<unsigned>                              duration; ///< milliseconds [100..600000]
 };
 
 struct rrc_event_trigger_cfg {

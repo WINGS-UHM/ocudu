@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "configuration_procedure.h"
 #include "ocudu/fapi/common/error_indication.h"
@@ -73,7 +67,6 @@ void configuration_procedure::send_param_request(const fapi::param_request& msg)
 {
   // Do nothing for the PARAM.response.
   param_response response;
-  response.num_tlv = 0;
 
   // If current status is running, report back error code, as per SCF-222 v4.0 section 3.3.1.3.
   response.error_code = (status == cell_status::RUNNING) ? error_code_id::msg_invalid_state : error_code_id::msg_ok;

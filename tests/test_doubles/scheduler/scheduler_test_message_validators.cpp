@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "scheduler_test_message_validators.h"
 #include "../lib/scheduler/support/dmrs_helpers.h"
@@ -64,7 +58,7 @@ static bool is_pdsch_info_valid(const pdsch_information& pdsch, const std::optio
   TRUE_OR_RETURN(pdsch.bwp_cfg != nullptr);
   TRUE_OR_RETURN(not pdsch.codewords.empty());
   TRUE_OR_RETURN(pdsch.nof_layers > 0);
-  TRUE_OR_RETURN(pdsch.codewords[0].tb_size_bytes > 0);
+  TRUE_OR_RETURN(pdsch.codewords[0].tb_size_bytes.value() > 0);
   TRUE_OR_RETURN(are_crbs_valid(pdsch, coreset0));
 
   switch (pdsch.dci_fmt) {
@@ -99,7 +93,7 @@ bool test_helper::is_valid_dl_msg_alloc(const dl_msg_alloc& grant, const std::op
 static ulsch_configuration get_ulsch_config(const ul_sched_info& grant)
 {
   ulsch_configuration ulsch_cfg{};
-  ulsch_cfg.tbs       = units::bytes{grant.pusch_cfg.tb_size_bytes}.to_bits();
+  ulsch_cfg.tbs       = grant.pusch_cfg.tb_size_bytes.to_bits();
   ulsch_cfg.mcs_descr = grant.pusch_cfg.mcs_descr;
 
   if (grant.uci.has_value()) {
@@ -152,17 +146,16 @@ static unsigned is_ulsch_tbs_valid(const ul_sched_info& grant)
 
   const unsigned dmrs_prbs = calculate_nof_dmrs_per_rb(grant.pusch_cfg.dmrs);
 
-  unsigned tbs_bytes =
+  units::bytes tbs =
       tbs_calculator_calculate(tbs_calculator_configuration{.nof_symb_sh      = grant.pusch_cfg.symbols.length(),
                                                             .nof_dmrs_prb     = dmrs_prbs,
                                                             .nof_oh_prb       = grant.context.nof_oh_prb,
                                                             .mcs_descr        = grant.pusch_cfg.mcs_descr,
                                                             .nof_layers       = grant.pusch_cfg.nof_layers,
                                                             .tb_scaling_field = tb_scaling_field,
-                                                            .n_prb            = nof_rbs}) /
-      8U;
+                                                            .n_prb            = nof_rbs});
 
-  return grant.pusch_cfg.tb_size_bytes == tbs_bytes;
+  return grant.pusch_cfg.tb_size_bytes == tbs;
 }
 
 bool test_helper::is_valid_ul_sched_info(const ul_sched_info& grant)

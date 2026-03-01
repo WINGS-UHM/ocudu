@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_cell_grid_allocator.h"
 #include "../support/dci_builder.h"
@@ -272,7 +266,7 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
   sch_mcs_tbs mcs_tbs_info;
   if (is_retx) {
     // It is a reTx.
-    mcs_tbs_info = {grant.h_dl.get_grant_params().mcs, grant.h_dl.get_grant_params().tbs_bytes};
+    mcs_tbs_info = {grant.h_dl.get_grant_params().mcs, grant.h_dl.get_grant_params().tbs};
   } else {
     // It is a newTx.
     auto mcs_or_error = calculate_dl_mcs_tbs(pdsch_alloc, ss_info, pdsch_td_res_index, crbs, mcs, nof_layers);
@@ -285,7 +279,7 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
                      fmt::underlying(u.ue_index),
                      u.crnti);
     }
-    mcs_tbs_info = mcs_or_error.value_or(sch_mcs_tbs{sch_mcs_index{0}, 0});
+    mcs_tbs_info = mcs_or_error.value_or(sch_mcs_tbs{sch_mcs_index{0}, units::bytes{0}});
   }
 
   // Mark resources as occupied in the ResourceGrid.
@@ -679,7 +673,7 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
   } else {
     // If it's a reTx, fetch the MCS, TBS and number of layers from the previous transmission.
     const auto& prev_params = grant.h_ul.get_grant_params();
-    mcs_tbs_info.emplace(sch_mcs_tbs{.mcs = prev_params.mcs, .tbs = prev_params.tbs_bytes});
+    mcs_tbs_info.emplace(sch_mcs_tbs{.mcs = prev_params.mcs, .tbs = prev_params.tbs});
     ocudu_sanity_check(prev_params.mcs_table == pusch_cfg.mcs_table, "MCS table cannot change across HARQ reTxs");
   }
 
@@ -826,7 +820,7 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
   grant.h_ul.save_grant_params(pusch_sched_ctx, msg.pusch_cfg);
 
   // Register UL allocations for this slot.
-  u.logical_channels().handle_ul_grant(grant.h_ul.get_grant_params().tbs_bytes);
+  u.logical_channels().handle_ul_grant(grant.h_ul.get_grant_params().tbs);
 
   // Update DRX state given the new allocation.
   u.drx_controller().on_new_ul_pdcch_alloc(pdcch_alloc.slot, pusch_alloc.slot);

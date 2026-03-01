@@ -1,16 +1,12 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "scheduler_config_helper.h"
+#include "ocudu/ran/du_types.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
 using namespace ocudu;
@@ -34,12 +30,6 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
   return sched_req;
 }
 
-serving_cell_config
-sched_config_helper::create_test_initial_ue_spcell_cell_config(const cell_config_builder_params& params)
-{
-  return config_helpers::create_default_initial_ue_serving_cell_config(params);
-}
-
 sched_ue_creation_request_message
 sched_config_helper::create_default_sched_ue_creation_request(const cell_config_builder_params& params,
                                                               span<const lcid_t>                lcid_to_cfg)
@@ -50,7 +40,7 @@ sched_config_helper::create_default_sched_ue_creation_request(const cell_config_
   msg.crnti    = to_rnti(0x4601);
 
   msg.cfg.cells.emplace();
-  msg.cfg.cells->push_back(create_test_initial_ue_spcell_cell_config(params));
+  msg.cfg.cells->push_back(config_helpers::create_default_initial_ue_cell_config(params));
 
   msg.cfg.lc_config_list.emplace();
   msg.cfg.lc_config_list->resize(2);
@@ -80,10 +70,10 @@ sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(const cel
   msg.ue_index = to_du_ue_index(0);
   msg.crnti    = to_rnti(0x4601);
 
-  serving_cell_config  cfg;
-  serving_cell_config& serv_cell = cfg;
-
-  serv_cell.cell_index = to_du_cell_index(0);
+  ue_cell_config       cfg;
+  serving_cell_config& serv_cell = cfg.serv_cell_cfg;
+  serv_cell.cell_index           = to_du_cell_index(0);
+  cfg.bwps.emplace_back(ue_bwp_config{});
 
   msg.cfg.cells.emplace();
   msg.cfg.cells->push_back(cfg);

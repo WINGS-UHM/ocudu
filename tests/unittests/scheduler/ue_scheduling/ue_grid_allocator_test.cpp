@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "../test_utils/dummy_test_components.h"
 #include "lib/scheduler/config/sched_config_manager.h"
@@ -138,7 +132,7 @@ protected:
       ue_creation_req.cfg.lc_config_list->push_back(config_helpers::create_default_logical_channel_config(lcid));
     }
     // Set same dedicated PDCCH config.
-    (*ue_creation_req.cfg.cells)[0].init_dl_bwp.pdcch_cfg = cell_cfg.init_bwp_res.dl_ded()->pdcch_cfg;
+    (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg = cell_cfg.init_bwp_res.dl_ded()->pdcch_cfg;
 
     return add_ue(ue_creation_req);
   }
@@ -161,7 +155,7 @@ protected:
   }
 
   void allocate_dl_newtx_grant(const slice_ue&         user,
-                               unsigned                pending_bytes,
+                               units::bytes            pending_bytes,
                                bool                    interleaving_enabled,
                                std::optional<unsigned> max_nof_rbs = std::nullopt)
   {
@@ -193,7 +187,7 @@ protected:
   }
 
   alloc_status allocate_ul_newtx_grant(const slice_ue&         user,
-                                       unsigned                pending_bytes,
+                                       units::bytes            pending_bytes,
                                        std::optional<unsigned> max_nof_rbs = std::nullopt)
   {
     return allocate_ul_newtx_grant(get_next_ul_slot(current_slot), user, pending_bytes, max_nof_rbs);
@@ -201,7 +195,7 @@ protected:
 
   alloc_status allocate_ul_newtx_grant(slot_point              pusch_slot,
                                        const slice_ue&         user,
-                                       unsigned                pending_bytes,
+                                       units::bytes            pending_bytes,
                                        std::optional<unsigned> max_nof_rbs = std::nullopt)
   {
     const auto& init_ul_bwp = cell_cfg.ul_cfg_common.init_ul_bwp;
@@ -270,14 +264,15 @@ protected:
 TEST_P(ue_grid_allocator_css_test,
        when_ue_dedicated_ss_is_css_then_allocation_is_within_coreset_start_crb_and_coreset0_end_crb)
 {
-  static const unsigned nof_bytes_to_schedule = 40U;
+  static const units::bytes nof_bytes_to_schedule{40U};
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
-  ue_creation_req.cfg.cells->front().init_dl_bwp.pdcch_cfg = cell_cfg.ded_bwp_res[to_bwp_id(0)].dl_ded()->pdcch_cfg;
-  ue_creation_req.ue_index                                 = to_du_ue_index(0);
-  ue_creation_req.crnti                                    = to_rnti(0x4601);
-  ue& u                                                    = add_ue(ue_creation_req);
+  ue_creation_req.cfg.cells->front().serv_cell_cfg.init_dl_bwp.pdcch_cfg =
+      cell_cfg.ded_bwp_res[to_bwp_id(0)].dl_ded()->pdcch_cfg;
+  ue_creation_req.ue_index = to_du_ue_index(0);
+  ue_creation_req.crnti    = to_rnti(0x4601);
+  ue& u                    = add_ue(ue_creation_req);
 
   const auto&        cs1_cfg  = u.ue_cfg_dedicated()->pcell_cfg().coreset(to_coreset_id(1));
   const crb_interval cs1_crbs = get_coreset_crbs(cs1_cfg);
@@ -304,14 +299,14 @@ protected:
 
 TEST_P(ue_grid_allocator_default_cfg_test, when_using_non_fallback_dci_format_use_mcs_table_set_in_pdsch_cfg)
 {
-  static const unsigned nof_bytes_to_schedule = 40U;
+  static const units::bytes nof_bytes_to_schedule{40U};
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
   // Change PDSCH MCS table to be used when using non-fallback DCI format.
-  (*ue_creation_req.cfg.cells)[0].init_dl_bwp.pdsch_cfg->mcs_table = ocudu::pdsch_mcs_table::qam256;
-  ue_creation_req.ue_index                                         = to_du_ue_index(0);
-  ue_creation_req.crnti                                            = to_rnti(0x4601);
+  (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdsch_cfg->mcs_table = ocudu::pdsch_mcs_table::qam256;
+  ue_creation_req.ue_index                                                       = to_du_ue_index(0);
+  ue_creation_req.crnti                                                          = to_rnti(0x4601);
 
   const ue& u = add_ue(ue_creation_req);
 
@@ -330,8 +325,8 @@ TEST_P(ue_grid_allocator_default_cfg_test, allocates_pdsch_restricted_to_recomme
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);
 
-  static const unsigned sched_bytes             = 2000U;
-  const unsigned        max_nof_rbs_to_schedule = 10U;
+  static const units::bytes sched_bytes{2000U};
+  const unsigned            max_nof_rbs_to_schedule = 10U;
 
   ASSERT_TRUE(
       run_until([&]() { allocate_dl_newtx_grant(slice_ues[u1.ue_index], sched_bytes, max_nof_rbs_to_schedule); },
@@ -349,8 +344,8 @@ TEST_P(ue_grid_allocator_default_cfg_test, allocates_pusch_restricted_to_recomme
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);
 
-  const unsigned recommended_nof_bytes_to_schedule = 2000U;
-  const unsigned max_nof_rbs_to_schedule           = 10U;
+  const units::bytes recommended_nof_bytes_to_schedule{2000U};
+  const unsigned     max_nof_rbs_to_schedule = 10U;
 
   ASSERT_TRUE(run_until(
       [&]() {
@@ -382,7 +377,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, does_not_allocate_pusch_with_all_rema
 
 TEST_P(ue_grid_allocator_default_cfg_test, no_two_pdschs_are_allocated_in_same_slot_for_a_ue)
 {
-  static const unsigned nof_bytes_to_schedule = 400U;
+  static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -402,7 +397,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, no_two_pdschs_are_allocated_in_same_s
 
 TEST_P(ue_grid_allocator_default_cfg_test, no_two_puschs_are_allocated_in_same_slot_for_a_ue)
 {
-  static const unsigned nof_bytes_to_schedule = 400U;
+  static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -422,7 +417,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, no_two_puschs_are_allocated_in_same_s
 
 TEST_P(ue_grid_allocator_default_cfg_test, consecutive_puschs_for_a_ue_are_allocated_in_increasing_order_of_time)
 {
-  static const unsigned nof_bytes_to_schedule = 400U;
+  static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -448,7 +443,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, consecutive_puschs_for_a_ue_are_alloc
 
 TEST_P(ue_grid_allocator_default_cfg_test, consecutive_pdschs_for_a_ue_are_allocated_in_increasing_order_of_time)
 {
-  static const unsigned nof_bytes_to_schedule = 400U;
+  static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -469,7 +464,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, consecutive_pdschs_for_a_ue_are_alloc
 TEST_P(ue_grid_allocator_default_cfg_test,
        ack_slot_of_consecutive_pdschs_for_a_ue_must_be_greater_than_or_equal_to_last_ack_slot_allocated)
 {
-  static const unsigned nof_bytes_to_schedule = 400U;
+  static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -490,8 +485,8 @@ TEST_P(ue_grid_allocator_default_cfg_test,
 TEST_P(ue_grid_allocator_default_cfg_test,
        successfully_allocated_pdsch_even_with_large_gap_to_last_pdsch_slot_allocated)
 {
-  static const unsigned nof_bytes_to_schedule                       = 8U;
-  const unsigned        nof_slot_until_pdsch_is_allocated_threshold = SCHEDULER_MAX_K0;
+  static const units::bytes nof_bytes_to_schedule{8U};
+  const unsigned            nof_slot_until_pdsch_is_allocated_threshold = SCHEDULER_MAX_K0;
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -567,7 +562,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, successfully_allocates_pdsch_with_gbr
   push_dl_bs(u1.ue_index, gbr_bearer_lcid, 200);
   push_dl_bs(u1.ue_index, non_gbr_bearer_lcid, 1500);
 
-  static const unsigned sched_bytes = 2000U;
+  static const units::bytes sched_bytes{2000U};
 
   ASSERT_TRUE(run_until([&]() { allocate_dl_newtx_grant(slice_ues[u1.ue_index], sched_bytes, false); },
                         [&]() { return find_ue_pdsch(u1.crnti, res_grid[0].result.dl.ue_grants) != nullptr; }));
@@ -582,8 +577,8 @@ TEST_P(ue_grid_allocator_default_cfg_test, successfully_allocates_pdsch_with_gbr
 TEST_P(ue_grid_allocator_default_cfg_test,
        successfully_allocated_pusch_even_with_large_gap_to_last_pusch_slot_allocated)
 {
-  static const unsigned nof_bytes_to_schedule                       = 400U;
-  const unsigned        nof_slot_until_pusch_is_allocated_threshold = SCHEDULER_MAX_K2;
+  static const units::bytes nof_bytes_to_schedule{400U};
+  const unsigned            nof_slot_until_pusch_is_allocated_threshold = SCHEDULER_MAX_K2;
 
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
@@ -608,10 +603,9 @@ TEST_P(ue_grid_allocator_default_cfg_test,
   }
 
   // Second PUSCH grant for the UE.
-  ASSERT_TRUE(run_until(
-      [&]() { return allocate_ul_newtx_grant(slice_ues[u.ue_index], nof_bytes_to_schedule) == alloc_status::success; },
-      [&]() { return find_ue_pusch(u.crnti, res_grid[0].result.ul.puschs) != nullptr; },
-      nof_slot_until_pusch_is_allocated_threshold));
+  ASSERT_TRUE(run_until([&]() { allocate_ul_newtx_grant(slice_ues[u.ue_index], nof_bytes_to_schedule); },
+                        [&]() { return find_ue_pusch(u.crnti, res_grid[0].result.ul.puschs) != nullptr; },
+                        nof_slot_until_pusch_is_allocated_threshold));
 }
 
 class ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester : public ue_grid_allocator_default_cfg_test
@@ -638,8 +632,8 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester,
   const ue& u1             = add_ue(ue_creation_req);
 
   // Ensure the buffer status is low enough such that < 20 RBs (configured in constructor) are required to schedule.
-  static const unsigned sched_bytes             = 20U;
-  const unsigned        max_nof_rbs_to_schedule = 10U;
+  static const units::bytes sched_bytes{20U};
+  const unsigned            max_nof_rbs_to_schedule = 10U;
 
   ASSERT_TRUE(
       run_until([&]() { allocate_dl_newtx_grant(slice_ues[u1.ue_index], sched_bytes, max_nof_rbs_to_schedule); },
@@ -659,8 +653,8 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester,
   const ue& u1             = add_ue(ue_creation_req);
 
   // Ensure the buffer status is high enough such that > 40 RBs (configured in constructor) are required to schedule.
-  static const unsigned sched_bytes             = 20000U;
-  const unsigned        max_nof_rbs_to_schedule = 273U;
+  static const units::bytes sched_bytes{20000U};
+  const unsigned            max_nof_rbs_to_schedule = 273U;
 
   ASSERT_TRUE(
       run_until([&]() { allocate_dl_newtx_grant(slice_ues[u1.ue_index], sched_bytes, max_nof_rbs_to_schedule); },
@@ -680,8 +674,8 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester,
   const ue& u1             = add_ue(ue_creation_req);
 
   // Ensure the buffer status is low enough such that < 20 RBs (configured in constructor) are required to schedule.
-  const unsigned recommended_nof_bytes_to_schedule = 20U;
-  const unsigned max_nof_rbs_to_schedule           = 10U;
+  const units::bytes recommended_nof_bytes_to_schedule{20U};
+  const unsigned     max_nof_rbs_to_schedule = 10U;
 
   ASSERT_TRUE(run_until(
       [&]() {
@@ -703,8 +697,8 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester,
   const ue& u1             = add_ue(ue_creation_req);
 
   // Ensure the buffer status is high enough such that > 40 RBs (configured in constructor) are required to schedule.
-  const unsigned recommended_nof_bytes_to_schedule = 200000U;
-  const unsigned max_nof_rbs_to_schedule           = 273U;
+  const units::bytes recommended_nof_bytes_to_schedule{200000U};
+  const unsigned     max_nof_rbs_to_schedule = 273U;
 
   ASSERT_TRUE(run_until(
       [&]() {
@@ -749,8 +743,8 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_crb_limits_tester, allocates_pdsch_wit
   const ue& u1             = add_ue(ue_creation_req);
 
   // Ensure the buffer status is high enough such that > 20 RBs (configured in constructor) are required to schedule.
-  static const unsigned sched_bytes             = 20000U;
-  const unsigned        max_nof_rbs_to_schedule = 273U;
+  static const units::bytes sched_bytes{20000U};
+  const unsigned            max_nof_rbs_to_schedule = 273U;
 
   ASSERT_TRUE(
       run_until([&]() { allocate_dl_newtx_grant(slice_ues[u1.ue_index], sched_bytes, max_nof_rbs_to_schedule); },
@@ -768,8 +762,8 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_crb_limits_tester, allocates_pusch_wit
   const ue& u1             = add_ue(ue_creation_req);
 
   // Ensure the buffer status is high enough such that > 20 RBs (configured in constructor) are required to schedule.
-  const unsigned recommended_nof_bytes_to_schedule = 200000U;
-  const unsigned max_nof_rbs_to_schedule           = 273U;
+  const units::bytes recommended_nof_bytes_to_schedule{200000U};
+  const unsigned     max_nof_rbs_to_schedule = 273U;
 
   ASSERT_TRUE(run_until(
       [&]() {

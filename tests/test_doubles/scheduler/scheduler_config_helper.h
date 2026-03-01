@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #pragma once
 
@@ -19,9 +13,6 @@ namespace sched_config_helper {
 /// Create a default cell configuration request.
 sched_cell_configuration_request_message
 make_default_sched_cell_configuration_request(const cell_config_builder_params& params = {});
-
-/// Create a default UE-dedicated SPCell cell configuration.
-serving_cell_config create_test_initial_ue_spcell_cell_config(const cell_config_builder_params& params = {});
 
 /// Create a default UE creation request.
 sched_ue_creation_request_message

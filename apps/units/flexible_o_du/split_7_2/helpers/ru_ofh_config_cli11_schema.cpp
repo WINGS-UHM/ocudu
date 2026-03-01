@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ru_ofh_config_cli11_schema.h"
 #include "apps/helpers/logger/logger_appconfig_cli11_utils.h"
@@ -443,6 +437,16 @@ static void configure_cli11_expert_execution_args(CLI::App& app, ru_ofh_unit_exp
         }
       },
       "Sets the cell CPU affinities configuration on a per cell basis");
+
+  // Threads section.
+  CLI::App* threads_subcmd = add_subcommand(app, "threads", "Threads configuration")->configurable();
+
+  CLI::App* ofh_threads = add_subcommand(*threads_subcmd, "ofh", "Open Fronthaul thread configuration")->configurable();
+
+  // Enable busy waiting of the RU timing worker.
+  add_option(
+      *ofh_threads, "--enable_busy_waiting", config.enable_busy_waiting, "Enable busy waiting of the RU timing worker")
+      ->capture_default_str();
 }
 
 #ifdef DPDK_FOUND

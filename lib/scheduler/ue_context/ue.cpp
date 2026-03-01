@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue.h"
 #include "ocudu/ocudulog/ocudulog.h"
@@ -93,22 +87,22 @@ void ue::handle_dl_buffer_state_indication(lcid_t lcid, unsigned bs, slot_point 
   lc_ch_mgr.handle_dl_buffer_status_indication(lcid, pending_bytes, hol_toa);
 }
 
-unsigned ue::pending_ul_newtx_bytes() const
+units::bytes ue::pending_ul_newtx_bytes() const
 {
   static constexpr unsigned SR_GRANT_BYTES = 512;
 
   // Sum the last BSRs.
-  unsigned pending_bytes = lc_ch_mgr.ul_pending_bytes();
+  units::bytes pending_bytes{lc_ch_mgr.ul_pending_bytes()};
 
   // Subtract the bytes already allocated in UL HARQs.
   for (const ue_cell* ue_cc : cells.ue_cells) {
-    if (pending_bytes == 0) {
+    if (pending_bytes.value() == 0) {
       break;
     }
-    unsigned harq_bytes = ue_cc->harqs.total_ul_bytes_waiting_ack();
+    units::bytes harq_bytes = ue_cc->harqs.total_ul_bytes_waiting_ack();
     pending_bytes -= std::min(pending_bytes, harq_bytes);
   }
 
   // If there are no pending bytes, check if a SR is pending.
-  return pending_bytes > 0 ? pending_bytes : (lc_ch_mgr.has_pending_sr() ? SR_GRANT_BYTES : 0);
+  return pending_bytes.value() > 0 ? pending_bytes : units::bytes{lc_ch_mgr.has_pending_sr() ? SR_GRANT_BYTES : 0};
 }

@@ -1,12 +1,6 @@
-/*
- *
- * Copyright 2021-2026 Software Radio Systems Limited
- *
- * By using this file, you agree to the terms and conditions set
- * forth in the LICENSE file which can be found at the top level of
- * the distribution.
- *
- */
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/adt/mutexed_mpmc_queue.h"
 #include "ocudu/gateways/sctp_network_client_factory.h"
@@ -83,7 +77,7 @@ protected:
     server_assoc_handler_factory(base_sctp_network_link_test& parent_) : parent(parent_) {}
 
     std::unique_ptr<sctp_association_sdu_notifier>
-    create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier) override
+    create(std::unique_ptr<sctp_association_sdu_notifier> sctp_send_notifier, sctp_association_info assoc_info) override
     {
       // Note: Called from within io_broker execution context.
 

@@ -30,7 +30,9 @@ bool ocudu::test_helpers::is_valid_bearer_context_setup_request(const e1ap_messa
   return true;
 }
 
-bool ocudu::test_helpers::is_valid_security_indication_with_bearer_context_setup_request(const e1ap_message& msg)
+bool ocudu::test_helpers::is_valid_security_indication_with_bearer_context_setup_request(const e1ap_message&   msg,
+                                                                                         pdu_session_id_t      psi,
+                                                                                         security_indication_t sec_ind)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::e1ap::e1ap_pdu_c::types_opts::init_msg);
   TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_E1AP_ID_BEARER_CONTEXT_SETUP);
@@ -45,12 +47,32 @@ bool ocudu::test_helpers::is_valid_security_indication_with_bearer_context_setup
   asn1::e1ap::pdu_session_res_to_setup_list_l asn1_pdu_session_res_item =
       ng_ran_bearer_ctxt[0]->pdu_session_res_to_setup_list();
 
-  const asn1::e1ap::pdu_session_res_to_setup_item_s& pdu_session = asn1_pdu_session_res_item[0];
+  for (const asn1::e1ap::pdu_session_res_to_setup_item_s& pdu_session : asn1_pdu_session_res_item) {
+    if (pdu_session.pdu_session_id != pdu_session_id_to_uint(psi)) {
+      continue;
+    }
+    asn1::e1ap::security_ind_s security_indication = pdu_session.security_ind;
+    if (security_indication.integrity_protection_ind == asn1::e1ap::integrity_protection_ind_opts::required) {
+      TRUE_OR_RETURN(sec_ind.integrity_protection_ind == integrity_protection_indication_t::required);
+    } else if (security_indication.integrity_protection_ind == asn1::e1ap::integrity_protection_ind_opts::preferred) {
+      TRUE_OR_RETURN(sec_ind.integrity_protection_ind == integrity_protection_indication_t::preferred);
+    } else if (security_indication.integrity_protection_ind == asn1::e1ap::integrity_protection_ind_opts::not_needed) {
+      TRUE_OR_RETURN(sec_ind.integrity_protection_ind == integrity_protection_indication_t::not_needed);
+    }
 
-  asn1::e1ap::security_ind_s security_indication = pdu_session.security_ind;
-  TRUE_OR_RETURN(security_indication.integrity_protection_ind == asn1::e1ap::integrity_protection_ind_opts::required);
-  TRUE_OR_RETURN(security_indication.integrity_protection_ind == asn1::e1ap::integrity_protection_ind_opts::required);
-  TRUE_OR_RETURN(is_packable(msg));
+    if (security_indication.confidentiality_protection_ind ==
+        asn1::e1ap::confidentiality_protection_ind_opts::required) {
+      TRUE_OR_RETURN(sec_ind.confidentiality_protection_ind == confidentiality_protection_indication_t::required);
+    } else if (security_indication.confidentiality_protection_ind ==
+               asn1::e1ap::confidentiality_protection_ind_opts::preferred) {
+      TRUE_OR_RETURN(sec_ind.confidentiality_protection_ind == confidentiality_protection_indication_t::preferred);
+    } else if (security_indication.confidentiality_protection_ind ==
+               asn1::e1ap::confidentiality_protection_ind_opts::not_needed) {
+      TRUE_OR_RETURN(sec_ind.confidentiality_protection_ind == confidentiality_protection_indication_t::not_needed);
+    }
+
+    TRUE_OR_RETURN(is_packable(msg));
+  }
 
   return true;
 }

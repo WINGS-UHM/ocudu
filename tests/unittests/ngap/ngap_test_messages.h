@@ -155,7 +155,8 @@ struct pdu_session_test_params {
 ngap_message generate_valid_pdu_session_resource_setup_request_message(
     amf_ue_id_t                                                amf_ue_id,
     ran_ue_id_t                                                ran_ue_id,
-    const std::map<pdu_session_id_t, pdu_session_test_params>& pdu_sessions);
+    const std::map<pdu_session_id_t, pdu_session_test_params>& pdu_sessions,
+    std::optional<security_indication_t>                       sec_ind = std::nullopt);
 
 /// \brief Generate an invalid dummy PDU Session Resource Setup Request Message.
 ngap_message generate_invalid_pdu_session_resource_setup_request_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);

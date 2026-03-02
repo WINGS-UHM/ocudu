@@ -676,7 +676,8 @@ bool cu_cp_test_environment::request_pdu_session_resource_setup(unsigned        
   return true;
 }
 
-bool cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
+expected<e1ap_message>
+cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
     const ngap_message& pdu_session_resource_setup_request,
     unsigned            du_idx,
     unsigned            cu_up_idx,
@@ -697,7 +698,7 @@ bool cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_b
   ue_ctx.cu_cp_e1ap_id =
       int_to_gnb_cu_cp_ue_e1ap_id(e1ap_pdu.pdu.init_msg().value.bearer_context_setup_request()->gnb_cu_cp_ue_e1ap_id);
 
-  return true;
+  return e1ap_pdu;
 }
 
 bool cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_bearer_context_modification_request(

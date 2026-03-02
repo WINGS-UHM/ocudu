@@ -198,7 +198,7 @@ public:
   const cu_cp_configuration& get_cu_cp_cfg() const { return cu_cp_cfg; }
 
   // Helper functions
-  [[nodiscard]] bool send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
+  [[nodiscard]] expected<e1ap_message> send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
       const ngap_message& pdu_session_resource_setup_request,
       unsigned            du_idx,
       unsigned            cu_up_idx,

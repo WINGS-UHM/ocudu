@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "ocudu/ran/cu_types.h"
+
 namespace ocudu {
 
 struct e1ap_message;
@@ -16,7 +18,9 @@ bool is_valid_bearer_context_setup_request(const e1ap_message& msg);
 
 /// \brief Check if an E1AP message is a valid Bearer Context Setup Request message,
 /// with a valid security indication.
-bool is_valid_security_indication_with_bearer_context_setup_request(const e1ap_message& msg);
+bool is_valid_security_indication_with_bearer_context_setup_request(const e1ap_message&   msg,
+                                                                    pdu_session_id_t      psi,
+                                                                    security_indication_t sec_ind);
 
 /// \brief Check if an E1AP message is a valid Bearer Context Modification Request message.
 bool is_valid_bearer_context_modification_request(const e1ap_message& msg);

@@ -403,7 +403,8 @@ ngap_message ocudu::ocucp::generate_pdu_session_resource_setup_request_base(amf_
 ngap_message ocudu::ocucp::generate_valid_pdu_session_resource_setup_request_message(
     amf_ue_id_t                                                amf_ue_id,
     ran_ue_id_t                                                ran_ue_id,
-    const std::map<pdu_session_id_t, pdu_session_test_params>& pdu_sessions)
+    const std::map<pdu_session_id_t, pdu_session_test_params>& pdu_sessions,
+    std::optional<security_indication_t>                       sec_ind)
 {
   ngap_message ngap_msg = generate_pdu_session_resource_setup_request_base(amf_ue_id, ran_ue_id);
 
@@ -468,6 +469,11 @@ ngap_message ocudu::ocucp::generate_valid_pdu_session_resource_setup_request_mes
         qos_flow_setup_req_item.qos_flow_level_qos_params.gbr_qos_info.guaranteed_flow_bit_rate_ul = 1000000000U;
 
         asn1_setup_req_transfer->qos_flow_setup_request_list.push_back(qos_flow_setup_req_item);
+      }
+
+      if (sec_ind) {
+        asn1_setup_req_transfer->security_ind_present = true;
+        security_indication_to_asn1(asn1_setup_req_transfer->security_ind, *sec_ind);
       }
     }
     pdu_session_res_item.pdu_session_res_setup_request_transfer = pack_into_pdu(asn1_setup_req_transfer);

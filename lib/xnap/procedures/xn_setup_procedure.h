@@ -23,7 +23,7 @@ public:
       timer_factory                                                                                timers_,
       ocudulog::basic_logger&                                                                      logger_);
 
-  void operator()(coro_context<async_task<void>>& ctx);
+  void operator()(coro_context<async_task<bool>>& ctx);
 
   static const char* name() { return "XN Setup Procedure"; }
 

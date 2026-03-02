@@ -47,8 +47,8 @@ TEST_F(xn_setup_procedure_test, when_xn_setup_request_required_then_setup_is_sen
 {
   // Action 1: Launch XN setup procedure
   logger.info("Launch xn setup request procedure...");
-  async_task<void>         t = xnap->handle_xn_setup_request_required();
-  lazy_task_launcher<void> t_launcher(t);
+  async_task<bool>         t = xnap->handle_xn_setup_request_required();
+  lazy_task_launcher<bool> t_launcher(t);
 
   ASSERT_FALSE(t.ready());
 
@@ -64,6 +64,7 @@ TEST_F(xn_setup_procedure_test, when_xn_setup_request_required_then_setup_is_sen
 
   // Check procedure completion.
   ASSERT_TRUE(t.ready());
+  ASSERT_TRUE(t.get());
 }
 
 int main(int argc, char** argv)

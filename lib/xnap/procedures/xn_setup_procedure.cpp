@@ -27,7 +27,7 @@ xn_setup_procedure::xn_setup_procedure(
 {
 }
 
-void xn_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
+void xn_setup_procedure::operator()(coro_context<async_task<bool>>& ctx)
 {
   CORO_BEGIN(ctx);
 
@@ -43,8 +43,7 @@ void xn_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
     // Forward message to XN-C.
     if (!tx_notifier.on_xn_setup_request(xn_setup_req)) {
       logger.warning("Cannot send XNSetupRequest");
-      // TODO: Return XN setup failure
-      CORO_EARLY_RETURN();
+      CORO_EARLY_RETURN(false);
     }
 
     // Await XN Setup response.
@@ -63,8 +62,12 @@ void xn_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
 
   logger.info("\"{}\" finished successfully", name());
 
-  // TODO: Return XN setup response.
-  CORO_RETURN();
+  if (!transaction_sink.successful()) {
+    logger.warning("\"{}\" failed. No successful outcome received", name());
+    CORO_EARLY_RETURN(false);
+  }
+
+  CORO_RETURN(true);
 }
 
 bool xn_setup_procedure::retry_required()

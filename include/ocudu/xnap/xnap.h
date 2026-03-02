@@ -28,7 +28,8 @@ public:
   virtual ~xnap_connection_manager() = default;
 
   /// \brief Trigger the initiation of the XN setup procedure.
-  virtual async_task<void> handle_xn_setup_request_required() = 0;
+  /// \returns true if the procedure completed successfully, false otherwise.
+  virtual async_task<bool> handle_xn_setup_request_required() = 0;
 
   /// \brief Provide the SCTP association notifier after the SCTP association establishment.
   /// \param[in] tx_notifier_ The SCTP association notifier.

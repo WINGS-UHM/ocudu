@@ -129,6 +129,7 @@ static void set_ul_mimo(ue_cell_config&           cell_cfg,
       tx_scheme_codebook{.max_rank = max_rank, .codebook_subset = codebook_subset};
 
   // Force the number of ports for all SRS resources to the maximum the UE supports.
+  cell_cfg.bwps[0].ul.srs.nof_ports = static_cast<srs_config::srs_resource::nof_srs_ports>(nof_srs_ports);
   for (auto& srs_res : cell_cfg.serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg->srs_res_list) {
     srs_res.nof_ports = static_cast<srs_config::srs_resource::nof_srs_ports>(nof_srs_ports);
   }

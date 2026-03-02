@@ -156,7 +156,6 @@ headers:
   rules:
     - if: $ON_MR
       allow_failure: false
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   needs:
     - job: trigger static
       optional: true

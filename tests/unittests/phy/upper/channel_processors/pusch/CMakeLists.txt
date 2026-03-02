@@ -13,10 +13,10 @@ target_link_libraries(pusch_processor_validator_test
         ocudulog
         ocudu_upper_phy_support
         ocudu_transform_precoding
-        gtest
-        gtest_main)
+        GTest::gtest
+        GTest::gtest_main)
 add_test(pusch_processor_validator_test pusch_processor_validator_test)
 
 add_executable(pusch_processor_unittest pusch_processor_unittest.cpp)
-target_link_libraries(pusch_processor_unittest ocudu_channel_processors ocudulog gtest gtest_main)
+target_link_libraries(pusch_processor_unittest ocudu_channel_processors ocudulog GTest::gtest GTest::gtest_main)
 add_test(pusch_processor_unittest pusch_processor_unittest)

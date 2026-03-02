@@ -6,5 +6,5 @@
 set_directory_properties(PROPERTIES LABELS "fapi")
 
 add_executable(message_bufferer_slot_gateway_impl_test message_bufferer_slot_gateway_impl_test.cpp)
-target_link_libraries(message_bufferer_slot_gateway_impl_test ocudu_support ocudu_fapi_message_builder_test_helpers ocudulog ocudu_fapi gtest gtest_main)
+target_link_libraries(message_bufferer_slot_gateway_impl_test ocudu_support ocudu_fapi_message_builder_test_helpers ocudulog ocudu_fapi GTest::gtest GTest::gtest_main)
 gtest_discover_tests(message_bufferer_slot_gateway_impl_test)

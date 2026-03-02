@@ -12,7 +12,7 @@ add_subdirectory(rate_limiting)
 add_subdirectory(synchronization)
 
 add_executable(timer_test timer_test.cpp)
-target_link_libraries(timer_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(timer_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
 add_test(timer_test timer_test)
 set_tests_properties(timer_test PROPERTIES LABELS "tsan")
 
@@ -20,7 +20,7 @@ add_executable(function_signature_test function_signature_test.cpp)
 add_test(function_signature_test function_signature_test)
 
 add_executable(async_event_test async_event_test.cpp)
-target_link_libraries(async_event_test ocudulog gtest gtest_main)
+target_link_libraries(async_event_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(async_event_test async_event_test)
 
 add_executable(async_task_test async_task_test.cpp)
@@ -32,7 +32,7 @@ target_link_libraries(async_exec_test ocudulog ocudu_support)
 add_test(async_exec_test async_exec_test)
 
 add_executable(async_queue_test async_queue_test.cpp)
-target_link_libraries(async_queue_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(async_queue_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
 add_test(async_queue_test async_queue_test)
 
 add_executable(fifo_async_task_scheduler_test fifo_async_task_scheduler_test.cpp)
@@ -53,11 +53,11 @@ target_link_libraries(bit_encoding_test ocudulog ocudu_support)
 add_test(bit_encoding_test bit_encoding_test)
 
 add_executable(async_event_observer_test async_event_observer_test.cpp protocol_transaction_manager_test.cpp)
-target_link_libraries(async_event_observer_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(async_event_observer_test ocudulog ocudu_support GTest::gtest gtest_main)
 gtest_discover_tests(async_event_observer_test)
 
 add_executable(memory_block_list_test memory_block_list_test.cpp)
-target_link_libraries(memory_block_list_test ocudu_support gtest gtest_main)
+target_link_libraries(memory_block_list_test ocudu_support GTest::gtest gtest_main)
 add_test(memory_block_list_test memory_block_list_test)
 
 add_executable(ring_buffer_pool_test ring_buffer_pool_test.cpp)

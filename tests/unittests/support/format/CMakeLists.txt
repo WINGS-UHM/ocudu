@@ -6,5 +6,5 @@
 set_directory_properties(PROPERTIES LABELS "format")
 
 add_executable(format_optional_test format_optional_test.cpp)
-target_link_libraries(format_optional_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(format_optional_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
 gtest_discover_tests(format_optional_test)

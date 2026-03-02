@@ -6,11 +6,11 @@
 set_directory_properties(PROPERTIES LABELS "adt")
 
 add_executable(bounded_bitset_test bounded_bitset_test.cpp)
-target_link_libraries(bounded_bitset_test ocudulog gtest gtest_main)
+target_link_libraries(bounded_bitset_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(bounded_bitset_test bounded_bitset_test)
 
 add_executable(interval_test interval_test.cpp)
-target_link_libraries(interval_test ocudulog gtest gtest_main)
+target_link_libraries(interval_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(interval_test interval_test)
 
 add_executable(byte_buffer_test
@@ -18,19 +18,19 @@ add_executable(byte_buffer_test
         byte_buffer_test.cpp
         byte_buffer_chain_test.cpp
         transform_view_test.cpp)
-target_link_libraries(byte_buffer_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(byte_buffer_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
 add_test(byte_buffer_test byte_buffer_test)
 set_tests_properties(byte_buffer_test PROPERTIES LABELS "tsan")
 gtest_discover_tests(byte_buffer_test)
 
 add_executable(ring_buffer_test ring_buffer_test.cpp blocking_queue_test.cpp concurrent_queue_test.cpp)
-target_link_libraries(ring_buffer_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(ring_buffer_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
 add_test(ring_buffer_test ring_buffer_test)
 set_tests_properties(ring_buffer_test PROPERTIES LABELS "tsan")
 gtest_discover_tests(ring_buffer_test)
 
 add_executable(circular_map_test circular_map_test.cpp)
-target_link_libraries(circular_map_test ocudulog gtest gtest_main)
+target_link_libraries(circular_map_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(circular_map_test circular_map_test)
 gtest_discover_tests(circular_map_test)
 
@@ -39,11 +39,11 @@ target_link_libraries(expected_test ocudulog)
 add_test(expected_test expected_test)
 
 add_executable(tiny_optional_test tiny_optional_test.cpp)
-target_link_libraries(tiny_optional_test ocudulog gtest gtest_main)
+target_link_libraries(tiny_optional_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(tiny_optional_test tiny_optional_test)
 
 add_executable(slotted_array_test slotted_array_test.cpp)
-target_link_libraries(slotted_array_test ocudulog gtest gtest_main)
+target_link_libraries(slotted_array_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(slotted_array_test slotted_array_test)
 
 add_executable(span_formatter_test span_formatter_test.cpp)
@@ -51,7 +51,7 @@ target_link_libraries(span_formatter_test ocudulog)
 add_test(span_formatter_test span_formatter_test)
 
 add_executable(static_vector_test static_vector_test.cpp)
-target_link_libraries(static_vector_test ocudulog gtest gtest_main)
+target_link_libraries(static_vector_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(static_vector_test static_vector_test)
 
 add_executable(unique_function_test unique_function_test.cpp)
@@ -59,29 +59,29 @@ target_link_libraries(unique_function_test ocudulog)
 add_test(unique_function_test unique_function_test)
 
 add_executable(transform_view_test transform_view_test.cpp)
-target_link_libraries(transform_view_test ocudulog gtest gtest_main)
+target_link_libraries(transform_view_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(transform_view_test transform_view_test)
 
 add_executable(strong_type_test strong_type_test.cpp)
-target_link_libraries(strong_type_test ocudulog gtest gtest_main)
+target_link_libraries(strong_type_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(strong_type_test strong_type_test)
 
 add_executable(bounded_integer_test bounded_integer_test.cpp)
-target_link_libraries(bounded_integer_test ocudulog gtest gtest_main)
+target_link_libraries(bounded_integer_test ocudulog GTest::gtest GTest::gtest_main)
 gtest_discover_tests(bounded_integer_test)
 
 add_executable(lockfree_triple_buffer_test lockfree_triple_buffer_test.cpp)
-target_link_libraries(lockfree_triple_buffer_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(lockfree_triple_buffer_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
 add_test(lockfree_triple_buffer_test lockfree_triple_buffer_test)
 
 add_executable(batched_dispatch_queue_test batched_dispatch_queue_test.cpp)
-target_link_libraries(batched_dispatch_queue_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(batched_dispatch_queue_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
 add_test(batched_dispatch_queue_test batched_dispatch_queue_test)
 
 add_executable(flat_map_test flat_map_test.cpp)
-target_link_libraries(flat_map_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(flat_map_test ocudulog ocudulog GTest::gtest  GTest::gtest_main)
 add_test(flat_map_test flat_map_test)
 
 add_executable(soa_table_test soa_table_test.cpp stable_id_map_test.cpp)
-target_link_libraries(soa_table_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(soa_table_test ocudulog ocudulog GTest::gtest  GTest::gtest_main)
 add_test(soa_table_test soa_table_test)

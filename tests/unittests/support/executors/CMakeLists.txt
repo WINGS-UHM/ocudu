@@ -12,8 +12,7 @@ add_executable(task_worker_test
         task_execution_manager_test.cpp
         metrics_executor_test.cpp
         fork_limit_executor_test.cpp)
-target_link_libraries(task_worker_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(task_worker_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
 gtest_discover_tests(task_worker_test)
 add_test(task_worker_test task_worker_test)
 set_tests_properties(task_worker_test PROPERTIES LABELS "tsan")
-

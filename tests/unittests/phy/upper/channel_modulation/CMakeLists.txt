@@ -6,5 +6,5 @@
 set_directory_properties(PROPERTIES LABELS "phy")
 
 add_executable(evm_calculator_test evm_calculator_test.cpp)
-target_link_libraries(evm_calculator_test ocudu_channel_modulation ocuduvec ocudulog gtest gtest_main)
+target_link_libraries(evm_calculator_test ocudu_channel_modulation ocuduvec ocudulog GTest::gtest GTest::gtest_main)
 add_test(evm_calculator_test evm_calculator_test)

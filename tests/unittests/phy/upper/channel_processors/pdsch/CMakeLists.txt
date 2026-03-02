@@ -6,7 +6,7 @@
 set_directory_properties(PROPERTIES LABELS "phy")
 
 add_executable(pdsch_processor_unittest pdsch_processor_unittest.cpp)
-target_link_libraries(pdsch_processor_unittest ocudu_channel_processors ocudulog gtest gtest_main)
+target_link_libraries(pdsch_processor_unittest ocudu_channel_processors ocudulog GTest::gtest GTest::gtest_main)
 add_test(pdsch_processor_unittest pdsch_processor_unittest)
 
 add_executable(pdsch_processor_validator_test pdsch_processor_validator_test.cpp)
@@ -17,6 +17,6 @@ target_link_libraries(pdsch_processor_validator_test
         ocudu_phy_support
         ocudulog
         ocudu_upper_phy_support
-        gtest
-        gtest_main)
+        GTest::gtest
+        GTest::gtest_main)
 add_test(pdsch_processor_validator_test pdsch_processor_validator_test)

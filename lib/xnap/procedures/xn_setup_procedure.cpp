@@ -80,7 +80,7 @@ bool xn_setup_procedure::retry_required()
   if (transaction_sink.timeout_expired()) {
     // Timeout case.
     logger.warning("\"{}\" timed out after {}ms", name(), xn_setup_response_timeout.count());
-    fmt::print("\"{}\" timed out after {}ms", name(), xn_setup_response_timeout.count());
+    fmt::print("\"{}\" timed out after {}ms\n", name(), xn_setup_response_timeout.count());
     return false;
   }
 

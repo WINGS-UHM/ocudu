@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../xnap_tx_pdu_notifier_with_log.h"
+#include "xnap_transaction_manager.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/xnap/xnap.h"
@@ -16,8 +17,10 @@ namespace ocudu::ocucp {
 class xn_setup_procedure
 {
 public:
-  xn_setup_procedure(const xnap_configuration&          xnap_cfg,
+  xn_setup_procedure(const xnap_configuration&          xnap_cfg_,
                      xnap_tx_pdu_notifier_with_logging& tx_notifier_,
+                     xnap_transaction_manager&          ev_mng_,
+                     timer_factory                      timers_,
                      ocudulog::basic_logger&            logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
@@ -25,13 +28,23 @@ public:
   static const char* name() { return "XN Setup Procedure"; }
 
 private:
-  void send_xn_setup_message();
+  /// Checks whether the XNAP should attempt again to connect to XN-C peer.
+  bool retry_required();
+
+  static bool is_failure_misconfiguration(const asn1::xnap::cause_c& cause);
 
   const xnap_configuration&          xnap_cfg;
   xnap_tx_pdu_notifier_with_logging& tx_notifier;
+  xnap_transaction_manager&          ev_mng;
   ocudulog::basic_logger&            logger;
 
+  unique_timer xn_setup_wait_timer;
+
+  std::chrono::milliseconds time_to_wait{0};
+
   xnap_message xn_setup_req;
+
+  protocol_transaction_outcome_observer<asn1::xnap::xn_setup_resp_s, asn1::xnap::xn_setup_fail_s> transaction_sink;
 };
 
 } // namespace ocudu::ocucp

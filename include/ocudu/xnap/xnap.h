@@ -27,10 +27,11 @@ class xnap_connection_manager
 public:
   virtual ~xnap_connection_manager() = default;
 
-  /// Trigger the initiation of the XN setup procedure.
+  /// \brief Trigger the initiation of the XN setup procedure.
   virtual async_task<void> handle_xn_setup_request_required() = 0;
 
-  /// Provide the SCTP association notifier after the SCTP association establishment.
+  /// \brief Provide the SCTP association notifier after the SCTP association establishment.
+  /// \param[in] tx_notifier_ The SCTP association notifier.
   virtual void set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) = 0;
 };
 

@@ -50,13 +50,20 @@ TEST_F(xn_setup_procedure_test, when_xn_setup_request_required_then_setup_is_sen
   async_task<void>         t = xnap->handle_xn_setup_request_required();
   lazy_task_launcher<void> t_launcher(t);
 
-  ASSERT_TRUE(t.ready());
+  ASSERT_FALSE(t.ready());
 
   // Check XN setup request.
   xnap_message setup_req = xnc_gw.get_last_tx_message();
   ASSERT_EQ(setup_req.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::init_msg);
   ASSERT_EQ(setup_req.pdu.init_msg().value.type(),
             asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);
+
+  // Action 2: Send XN setup response from peer.
+  xnap_message setup_resp = generate_asn1_xn_setup_response(xnap_peer_cfg);
+  xnap->handle_message(setup_resp);
+
+  // Check procedure completion.
+  ASSERT_TRUE(t.ready());
 }
 
 int main(int argc, char** argv)

@@ -85,7 +85,7 @@ void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcom
 
 async_task<void> xnap_impl::handle_xn_setup_request_required()
 {
-  return launch_async<xn_setup_procedure>(xnap_cfg, tx_notifier, logger);
+  return launch_async<xn_setup_procedure>(xnap_cfg, tx_notifier, ev_mng, timer_factory{timers, ctrl_exec}, logger);
 }
 
 void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)

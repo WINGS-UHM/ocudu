@@ -21,8 +21,8 @@ xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
   xnap_cfg(xnap_cfg_),
   timers(timers_),
   ctrl_exec(ctrl_exec_),
-  ev_mng(timer_factory{timers, ctrl_exec}),
-  tx_notifier(std::move(init_tx_notifier_))
+  tx_notifier(std::move(init_tx_notifier_)),
+  xn_setup_outcome(timer_factory{timers, ctrl_exec})
 {
 }
 
@@ -65,7 +65,7 @@ void xnap_impl::handle_successful_outcome(const successful_outcome_s& outcome)
 {
   switch (outcome.value.type().value) {
     case xnap_elem_procs_o::successful_outcome_c::types_opts::xn_setup_resp: {
-      ev_mng.xn_setup_outcome.set(outcome.value.xn_setup_resp());
+      xn_setup_outcome.set(outcome.value.xn_setup_resp());
     } break;
     default:
       logger.error("Successful outcome of type {} is not supported", outcome.value.type().to_string());
@@ -76,7 +76,7 @@ void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcom
 {
   switch (outcome.value.type().value) {
     case xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::xn_setup_fail: {
-      ev_mng.xn_setup_outcome.set(outcome.value.xn_setup_fail());
+      xn_setup_outcome.set(outcome.value.xn_setup_fail());
     } break;
     default:
       logger.error("Unsuccessful outcome of type {} is not supported", outcome.value.type().to_string());
@@ -85,7 +85,8 @@ void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcom
 
 async_task<void> xnap_impl::handle_xn_setup_request_required()
 {
-  return launch_async<xn_setup_procedure>(xnap_cfg, tx_notifier, ev_mng, timer_factory{timers, ctrl_exec}, logger);
+  return launch_async<xn_setup_procedure>(
+      xnap_cfg, tx_notifier, xn_setup_outcome, timer_factory{timers, ctrl_exec}, logger);
 }
 
 void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)

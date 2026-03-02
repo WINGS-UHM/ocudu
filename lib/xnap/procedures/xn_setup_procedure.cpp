@@ -13,14 +13,15 @@ using namespace asn1::xnap;
 
 static constexpr std::chrono::milliseconds xn_setup_response_timeout{5000};
 
-xn_setup_procedure::xn_setup_procedure(const xnap_configuration&          xnap_cfg_,
-                                       xnap_tx_pdu_notifier_with_logging& tx_notifier_,
-                                       xnap_transaction_manager&          ev_mng_,
-                                       timer_factory                      timers_,
-                                       ocudulog::basic_logger&            logger_) :
+xn_setup_procedure::xn_setup_procedure(
+    const xnap_configuration&                                                                    xnap_cfg_,
+    xnap_tx_pdu_notifier_with_logging&                                                           tx_notifier_,
+    protocol_transaction_event_source<asn1::xnap::xn_setup_resp_s, asn1::xnap::xn_setup_fail_s>& xn_setup_outcome_,
+    timer_factory                                                                                timers_,
+    ocudulog::basic_logger&                                                                      logger_) :
   xnap_cfg(xnap_cfg_),
   tx_notifier(tx_notifier_),
-  ev_mng(ev_mng_),
+  xn_setup_outcome(xn_setup_outcome_),
   logger(logger_),
   xn_setup_wait_timer(timers_.create_timer())
 {
@@ -37,7 +38,7 @@ void xn_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
 
   while (true) {
     // Subscribe to respective publisher to receive XN SETUP RESPONSE/FAILURE message.
-    transaction_sink.subscribe_to(ev_mng.xn_setup_outcome, xn_setup_response_timeout);
+    transaction_sink.subscribe_to(xn_setup_outcome, xn_setup_response_timeout);
 
     // Forward message to XN-C.
     if (!tx_notifier.on_xn_setup_request(xn_setup_req)) {

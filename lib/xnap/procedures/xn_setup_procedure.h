@@ -5,9 +5,8 @@
 #pragma once
 
 #include "../xnap_tx_pdu_notifier_with_log.h"
-#include "xnap_transaction_manager.h"
+#include "ocudu/asn1/xnap/xnap_pdu_contents.h"
 #include "ocudu/ocudulog/logger.h"
-#include "ocudu/support/async/async_task.h"
 #include "ocudu/xnap/xnap.h"
 #include "ocudu/xnap/xnap_configuration.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -17,11 +16,12 @@ namespace ocudu::ocucp {
 class xn_setup_procedure
 {
 public:
-  xn_setup_procedure(const xnap_configuration&          xnap_cfg_,
-                     xnap_tx_pdu_notifier_with_logging& tx_notifier_,
-                     xnap_transaction_manager&          ev_mng_,
-                     timer_factory                      timers_,
-                     ocudulog::basic_logger&            logger_);
+  xn_setup_procedure(
+      const xnap_configuration&                                                                    xnap_cfg_,
+      xnap_tx_pdu_notifier_with_logging&                                                           tx_notifier_,
+      protocol_transaction_event_source<asn1::xnap::xn_setup_resp_s, asn1::xnap::xn_setup_fail_s>& xn_setup_outcome_,
+      timer_factory                                                                                timers_,
+      ocudulog::basic_logger&                                                                      logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -33,10 +33,10 @@ private:
 
   static bool is_failure_misconfiguration(const asn1::xnap::cause_c& cause);
 
-  const xnap_configuration&          xnap_cfg;
-  xnap_tx_pdu_notifier_with_logging& tx_notifier;
-  xnap_transaction_manager&          ev_mng;
-  ocudulog::basic_logger&            logger;
+  const xnap_configuration&                                                                    xnap_cfg;
+  xnap_tx_pdu_notifier_with_logging&                                                           tx_notifier;
+  protocol_transaction_event_source<asn1::xnap::xn_setup_resp_s, asn1::xnap::xn_setup_fail_s>& xn_setup_outcome;
+  ocudulog::basic_logger&                                                                      logger;
 
   unique_timer xn_setup_wait_timer;
 

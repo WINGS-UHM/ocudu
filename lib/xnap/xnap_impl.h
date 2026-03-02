@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "procedures/xnap_transaction_manager.h"
 #include "xnap_tx_pdu_notifier_with_log.h"
+#include "ocudu/asn1/xnap/xnap_pdu_contents.h"
 #include "ocudu/xnap/xnap.h"
 #include "ocudu/xnap/xnap_configuration.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -52,9 +52,10 @@ private:
   timer_manager&     timers;
   task_executor&     ctrl_exec;
 
-  xnap_transaction_manager ev_mng;
-
   xnap_tx_pdu_notifier_with_logging tx_notifier;
+
+  /// XN Setup Response/Failure Event Source.
+  protocol_transaction_event_source<asn1::xnap::xn_setup_resp_s, asn1::xnap::xn_setup_fail_s> xn_setup_outcome;
 };
 
 } // namespace ocudu::ocucp

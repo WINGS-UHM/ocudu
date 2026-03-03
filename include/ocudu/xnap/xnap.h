@@ -5,6 +5,7 @@
 #pragma once
 
 #include "xnap_message_notifier.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/support/async/async_task.h"
 
 namespace ocudu::ocucp {
@@ -42,7 +43,11 @@ class xnap_cu_cp_notifier
 public:
   virtual ~xnap_cu_cp_notifier() = default;
 
-  // TODO.
+  /// \brief Notify about the reception of a new Handover Command.
+  /// \param[in] ue_index The index of the UE.
+  /// \param[in] command The Handover Command.
+  /// \returns True if the Handover command is valid and was successfully handled by the DU.
+  virtual async_task<bool> on_new_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
 };
 
 /// Combined entry point for the XNAP object.

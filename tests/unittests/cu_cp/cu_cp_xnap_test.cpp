@@ -4,6 +4,7 @@
 
 #include "lib/cu_cp/xnap_repository.h"
 #include "tests/unittests/cu_cp/cu_cp_test_environment.h"
+#include "tests/unittests/cu_cp/test_helpers.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -13,11 +14,13 @@ class cu_cp_xnap_repository_test : public cu_cp_test_environment, public ::testi
 {
 public:
   cu_cp_xnap_repository_test() :
-    cu_cp_test_environment(cu_cp_test_env_params{}), xnap_db(xnap_repository_config{get_cu_cp_cfg(), test_logger})
+    cu_cp_test_environment(cu_cp_test_env_params{}),
+    xnap_db(xnap_repository_config{get_cu_cp_cfg(), cu_cp_xnap_handler, test_logger})
   {
   }
 
-  xnap_repository xnap_db;
+  dummy_cu_cp_xnap_handler cu_cp_xnap_handler;
+  xnap_repository          xnap_db;
 
   gnb_id_t                default_gnb_id{.id = 411, .bit_length = 22};
   transport_layer_address default_peer_addr = transport_layer_address::create_from_string("127.0.0.1");

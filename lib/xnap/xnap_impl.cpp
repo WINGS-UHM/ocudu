@@ -14,17 +14,21 @@ using namespace asn1::xnap;
 using namespace ocucp;
 
 xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
+                     xnap_cu_cp_notifier&                   cu_cp_notifier_,
                      std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
                      timer_manager&                         timers_,
                      task_executor&                         ctrl_exec_) :
   logger(ocudulog::fetch_basic_logger("XNAP")),
   ue_ctxt_list(logger),
   xnap_cfg(xnap_cfg_),
+  cu_cp_notifier(cu_cp_notifier_),
   timers(timers_),
   ctrl_exec(ctrl_exec_),
   tx_notifier(std::move(init_tx_notifier_)),
   xn_setup_outcome(timer_factory{timers, ctrl_exec})
 {
+  // TODO: Remove after the cu_cp_notifier is used in the implementation of the XNAP procedures.
+  (void)cu_cp_notifier;
 }
 
 void xnap_impl::handle_message(const xnap_message& msg)

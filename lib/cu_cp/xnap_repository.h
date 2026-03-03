@@ -18,6 +18,7 @@ struct cu_cp_configuration;
 
 struct xnap_repository_config {
   const cu_cp_configuration& cu_cp;
+  cu_cp_xnap_handler&        cu_cp_notifier;
   ocudulog::basic_logger&    logger;
 };
 

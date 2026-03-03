@@ -176,6 +176,7 @@ public:
   cu_cp_ue_removal_handler&              get_cu_cp_ue_removal_handler() override { return *this; }
   cu_cp_ue_context_manipulation_handler& get_cu_cp_ue_context_handler() override { return *this; }
   cu_cp_amf_reconnection_handler&        get_cu_cp_amf_reconnection_handler() override { return *this; }
+  cu_cp_xnap_handler&                    get_cu_cp_xnap_handler() override { return *this; }
   cu_configurator&                       get_cu_configurator() override { return cu_cp_cfgtr; }
 
 private:

@@ -17,6 +17,7 @@ class xnap_impl final : public xnap_interface
 {
 public:
   xnap_impl(const xnap_configuration&              xnap_cfg_,
+            xnap_cu_cp_notifier&                   cu_cp_notifier_,
             std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
             timer_manager&                         timers_,
             task_executor&                         ctrl_exec_);
@@ -52,9 +53,10 @@ private:
   /// Repository of UE Contexts.
   xnap_ue_context_list ue_ctxt_list;
 
-  xnap_configuration xnap_cfg;
-  timer_manager&     timers;
-  task_executor&     ctrl_exec;
+  xnap_configuration   xnap_cfg;
+  xnap_cu_cp_notifier& cu_cp_notifier;
+  timer_manager&       timers;
+  task_executor&       ctrl_exec;
 
   xnap_tx_pdu_notifier_with_logging tx_notifier;
 

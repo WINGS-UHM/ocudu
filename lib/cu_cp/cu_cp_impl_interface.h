@@ -15,8 +15,7 @@
 #include "ocudu/rrc/rrc_ue.h"
 #include <string>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class cu_cp_ue_context_release_handler
 {
@@ -442,6 +441,13 @@ public:
   virtual void handle_amf_reconnection(amf_index_t amf_index) = 0;
 };
 
+/// \brief Handler of the XNAP of the CU-CP. This interface is used to forward XNAP messages to the CU-CP.
+class cu_cp_xnap_handler : public cu_cp_inter_cu_handover_handler
+{
+public:
+  virtual ~cu_cp_xnap_handler() = default;
+};
+
 class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,
                              public cu_cp_du_event_handler,
                              public cu_cp_rrc_ue_interface,
@@ -453,7 +459,8 @@ class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,
                              public cu_cp_mobility_manager_handler,
                              public cu_cp_location_manager_handler,
                              public cu_cp_ue_removal_handler,
-                             public cu_cp_amf_reconnection_handler
+                             public cu_cp_amf_reconnection_handler,
+                             public cu_cp_xnap_handler
 {
 public:
   virtual ~cu_cp_impl_interface() = default;
@@ -469,7 +476,7 @@ public:
   virtual cu_cp_location_manager_handler&        get_cu_cp_location_manager_handler()   = 0;
   virtual cu_cp_ue_removal_handler&              get_cu_cp_ue_removal_handler()         = 0;
   virtual cu_cp_amf_reconnection_handler&        get_cu_cp_amf_reconnection_handler()   = 0;
+  virtual cu_cp_xnap_handler&                    get_cu_cp_xnap_handler()               = 0;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

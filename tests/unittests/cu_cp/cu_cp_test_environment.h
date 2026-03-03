@@ -143,7 +143,8 @@ public:
                     drb_id_t               drb_id                       = drb_id_t::drb1,
                     qos_flow_id_t          qfi                          = qos_flow_id_t::min,
                     byte_buffer            rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
-                    bool                   is_initial_session           = true);
+                    bool                   is_initial_session           = true,
+                    std::optional<security_indication_t> security_indication = std::nullopt);
   /// Runs RRC setup, authentication, security, RRC Reconfiguration, PDU session setup for a given UE.
 
   [[nodiscard]] bool
@@ -160,7 +161,8 @@ public:
             byte_buffer rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
             std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
             bool                                                      rrc_inactive_supported      = true,
-            std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt);
+            std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt,
+            std::optional<security_indication_t>                      security_indication         = std::nullopt);
   /// Reestablishes a UE connection, including RRC Reestablishment and RRC Reconfiguration procedures.
   /// \return True if the reestablishment was successful, false if RRC Setup/Reject was performed instead.
   [[nodiscard]] bool reestablish_ue(unsigned            du_idx,

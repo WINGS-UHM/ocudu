@@ -6,6 +6,7 @@
 #include "log_helpers.h"
 #include "procedures/xn_setup_procedure.h"
 #include "procedures/xn_setup_procedure_asn1_helpers.h"
+#include "procedures/xnap_handover_preparation_procedure.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
 #include "ocudu/xnap/xnap_message.h"
 
@@ -25,10 +26,9 @@ xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
   timers(timers_),
   ctrl_exec(ctrl_exec_),
   tx_notifier(std::move(init_tx_notifier_)),
-  xn_setup_outcome(timer_factory{timers, ctrl_exec})
+  xn_setup_outcome(timer_factory{timers, ctrl_exec}),
+  xn_handover_outcome(timer_factory{timers, ctrl_exec})
 {
-  // TODO: Remove after the cu_cp_notifier is used in the implementation of the XNAP procedures.
-  (void)cu_cp_notifier;
 }
 
 void xnap_impl::handle_message(const xnap_message& msg)
@@ -72,6 +72,9 @@ void xnap_impl::handle_successful_outcome(const successful_outcome_s& outcome)
     case xnap_elem_procs_o::successful_outcome_c::types_opts::xn_setup_resp: {
       xn_setup_outcome.set(outcome.value.xn_setup_resp());
     } break;
+    case xnap_elem_procs_o::successful_outcome_c::types_opts::ho_request_ack: {
+      xn_handover_outcome.set(outcome.value.ho_request_ack());
+    } break;
     default:
       logger.error("Successful outcome of type {} is not supported", outcome.value.type().to_string());
   }
@@ -82,6 +85,9 @@ void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcom
   switch (outcome.value.type().value) {
     case xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::xn_setup_fail: {
       xn_setup_outcome.set(outcome.value.xn_setup_fail());
+    } break;
+    case xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::ho_prep_fail: {
+      xn_handover_outcome.set(outcome.value.ho_prep_fail());
     } break;
     default:
       logger.error("Unsuccessful outcome of type {} is not supported", outcome.value.type().to_string());
@@ -103,4 +109,35 @@ void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
   if (not tx_notifier.on_new_message(xn_setup_resp)) {
     logger.error("Failed to send XN Setup Response. Cause: no SCTP association available");
   }
+}
+
+async_task<xnap_handover_preparation_response>
+xnap_impl::handle_handover_preparation_request(const xnap_handover_preparation_request& msg)
+{
+  auto err_function = [](coro_context<async_task<xnap_handover_preparation_response>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_RETURN(xnap_handover_preparation_response{false});
+  };
+
+  if (!ue_ctxt_list.contains(msg.ue_index)) {
+    // Allocate new XNAP UE context if it doesn't exist.
+    xnap_ue_id_t xnap_ue_id = ue_ctxt_list.allocate_xnap_ue_id();
+    if (xnap_ue_id == xnap_ue_id_t::invalid) {
+      logger.error("Failed to allocate XNAP UE ID for ue={}. Cannot handle HandoverPreparationRequest", msg.ue_index);
+      return launch_async(std::move(err_function));
+    }
+    ue_ctxt_list.add_ue(msg.ue_index, xnap_ue_id);
+  }
+
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[msg.ue_index];
+
+  ue_ctxt.logger.log_debug("Starting HO preparation");
+
+  return launch_async<xnap_handover_preparation_procedure>(msg,
+                                                           ue_ctxt.ue_ids.xnap_ue_id,
+                                                           tx_notifier,
+                                                           cu_cp_notifier,
+                                                           xn_handover_outcome,
+                                                           timer_factory{timers, ctrl_exec},
+                                                           ue_ctxt.logger);
 }

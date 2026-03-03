@@ -7,6 +7,7 @@
 #include "xnap_message_notifier.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/support/async/async_task.h"
+#include "ocudu/xnap/xnap_handover.h"
 
 namespace ocudu::ocucp {
 
@@ -37,6 +38,16 @@ public:
   virtual void set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) = 0;
 };
 
+class xnap_control_message_handler
+{
+public:
+  virtual ~xnap_control_message_handler() = default;
+
+  /// \brief Initiates a Handover Preparation procedure TS 38.423 section 8.2.1.
+  virtual async_task<xnap_handover_preparation_response>
+  handle_handover_preparation_request(const xnap_handover_preparation_request& msg) = 0;
+};
+
 /// XNAP notifier to the CU-CP.
 class xnap_cu_cp_notifier
 {
@@ -54,7 +65,7 @@ public:
 };
 
 /// Combined entry point for the XNAP object.
-class xnap_interface : public xnap_message_handler, public xnap_connection_manager
+class xnap_interface : public xnap_message_handler, public xnap_connection_manager, public xnap_control_message_handler
 {
 public:
   virtual ~xnap_interface() = default;

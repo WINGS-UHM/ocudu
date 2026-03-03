@@ -32,6 +32,8 @@ public:
   {
     tx_notifier.connect(std::move(tx_notifier_));
   }
+  async_task<xnap_handover_preparation_response>
+  handle_handover_preparation_request(const xnap_handover_preparation_request& msg) override;
 
 private:
   /// \brief Notify about the reception of an initiating message.
@@ -62,6 +64,9 @@ private:
 
   /// XN Setup Response/Failure Event Source.
   protocol_transaction_event_source<asn1::xnap::xn_setup_resp_s, asn1::xnap::xn_setup_fail_s> xn_setup_outcome;
+
+  /// XN Handover Request Ack/Handover Preparation Failure Event Source.
+  protocol_transaction_event_source<asn1::xnap::ho_request_ack_s, asn1::xnap::ho_prep_fail_s> xn_handover_outcome;
 };
 
 } // namespace ocudu::ocucp

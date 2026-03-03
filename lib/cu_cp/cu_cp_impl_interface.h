@@ -43,8 +43,23 @@ public:
   virtual bool schedule_ue_task(ue_index_t ue_index, async_task<void> task) = 0;
 };
 
+/// Interface for the inter-CU handover notifier to communicate with the CU-CP.
+class cu_cp_inter_cu_handover_handler
+{
+public:
+  virtual ~cu_cp_inter_cu_handover_handler() = default;
+
+  /// \brief Handle the reception of a new Handover Command.
+  /// \param[in] ue_index The index of the UE that received the Handover Command.
+  /// \param[in] command The received Handover Command.
+  /// \returns True if the Handover Command was successfully handled, false otherwise.
+  virtual async_task<bool> handle_new_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
+};
+
 /// Interface for the NGAP notifier to communicate with the CU-CP.
-class cu_cp_ngap_handler : public cu_cp_ue_context_release_handler, public cu_cp_task_scheduler_handler
+class cu_cp_ngap_handler : public cu_cp_ue_context_release_handler,
+                           public cu_cp_task_scheduler_handler,
+                           public cu_cp_inter_cu_handover_handler
 {
 public:
   virtual ~cu_cp_ngap_handler() = default;
@@ -94,12 +109,6 @@ public:
 
   /// \brief Handle the transmission of a handover required message to the AMF.
   virtual void handle_transmission_of_handover_required() = 0;
-
-  /// \brief Handle the reception of a new Handover Command.
-  /// \param[in] ue_index The index of the UE that received the Handover Command.
-  /// \param[in] command The received Handover Command.
-  /// \returns True if the Handover Command was successfully handled, false otherwise.
-  virtual async_task<bool> handle_new_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
 
   /// \brief Handle the handover execution phase of the handover at target gNB.
   /// \param[in] ue_index The index of the UE that is performing the handover.

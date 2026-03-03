@@ -13,21 +13,7 @@ using namespace ocudu::ocucp;
 
 /// Fixture class for XNAP Setup tests.
 class xn_setup_procedure_test : public xnap_test
-{
-protected:
-  /// Peer configuration.
-  gnb_id_t               peer_gnb_id             = {1, 22};
-  plmn_identity          peer_plmn               = plmn_identity::test_value();
-  tac_t                  peer_tac                = {7};
-  s_nssai_t              peer_slice              = {};
-  std::vector<s_nssai_t> peer_slice_support_list = {peer_slice};
-
-  xnap_configuration xnap_peer_cfg = {
-      peer_gnb_id,
-      std::vector<supported_tracking_area>{{peer_tac, std::vector<plmn_item>{{peer_plmn, peer_slice_support_list}}}},
-      std::vector<guami_t>{{peer_plmn, 1}},
-  };
-};
+{};
 
 TEST_F(xn_setup_procedure_test, when_correct_setup_received_from_peer_setup_complete_is_sent)
 {

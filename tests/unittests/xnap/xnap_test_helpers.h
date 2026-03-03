@@ -110,6 +110,7 @@ protected:
   dummy_xnap_cu_cp_notifier  cu_cp_notifier;
   std::unique_ptr<xnap_impl> xnap = nullptr;
 
+  /// Local configuration.
   gnb_id_t               local_gnb_id             = {0, 22};
   plmn_identity          local_plmn               = plmn_identity::test_value();
   tac_t                  local_tac                = {8};
@@ -119,6 +120,19 @@ protected:
       local_gnb_id,
       std::vector<supported_tracking_area>{{local_tac, std::vector<plmn_item>{{local_plmn, local_slice_support_list}}}},
       std::vector<guami_t>{{.plmn = local_plmn, .amf_set_id = 0, .amf_pointer = 0, .amf_region_id = 1}}};
+
+  /// Peer configuration.
+  gnb_id_t               peer_gnb_id             = {1, 22};
+  plmn_identity          peer_plmn               = plmn_identity::test_value();
+  tac_t                  peer_tac                = {7};
+  s_nssai_t              peer_slice              = {};
+  std::vector<s_nssai_t> peer_slice_support_list = {peer_slice};
+
+  xnap_configuration xnap_peer_cfg = {
+      peer_gnb_id,
+      std::vector<supported_tracking_area>{{peer_tac, std::vector<plmn_item>{{peer_plmn, peer_slice_support_list}}}},
+      std::vector<guami_t>{{peer_plmn, 1}},
+  };
 
   xnap_message get_last_message() { return last_tx_msg; }
 

@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/sched_custom_test_bench.h"
 #include "ocudu/ran/power_control/tpc_mapping.h"
 #include "ocudu/ran/pucch/pucch_info.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -238,7 +238,7 @@ protected:
   pucch_pw_control generate_pucch(slot_point sl) const
   {
     pucch_pw_control pucch;
-    pucch.format  = test_rgen::bernoulli(0.5) ? format_set_0 : format_set_1;
+    pucch.format  = test_random::bernoulli(0.5) ? format_set_0 : format_set_1;
     pucch.slot_rx = sl;
     switch (pucch.format) {
         // NOTE: the PRBs should be set based on the symbols and UCI bits, but this is not meaningful for the PUCCH
@@ -246,35 +246,35 @@ protected:
       case pucch_format::FORMAT_0:
         pucch.nof_prbs                   = 1U;
         pucch.nof_symb                   = 2U;
-        pucch.uci_bits.harq_ack_nof_bits = test_rgen::uniform_int(1U, 2U);
+        pucch.uci_bits.harq_ack_nof_bits = test_random::uniform_int(1U, 2U);
         break;
       case pucch_format::FORMAT_1:
         pucch.nof_prbs                   = 1U;
         pucch.nof_symb                   = 14U;
-        pucch.uci_bits.harq_ack_nof_bits = test_rgen::uniform_int(1U, 2U);
+        pucch.uci_bits.harq_ack_nof_bits = test_random::uniform_int(1U, 2U);
         break;
       case pucch_format::FORMAT_2:
-        pucch.nof_prbs                    = test_rgen::uniform_int(1U, 4U);
+        pucch.nof_prbs                    = test_random::uniform_int(1U, 4U);
         pucch.nof_symb                    = 2U;
-        pucch.uci_bits.harq_ack_nof_bits  = test_rgen::uniform_int(1U, 7U);
-        pucch.uci_bits.csi_part1_nof_bits = test_rgen::bernoulli(0.25f) ? 11U : 0U;
-        pucch.uci_bits.sr_bits = test_rgen::bernoulli(0.25f) ? ocudu::sr_nof_bits::one : ocudu::sr_nof_bits::no_sr;
+        pucch.uci_bits.harq_ack_nof_bits  = test_random::uniform_int(1U, 7U);
+        pucch.uci_bits.csi_part1_nof_bits = test_random::bernoulli(0.25f) ? 11U : 0U;
+        pucch.uci_bits.sr_bits = test_random::bernoulli(0.25f) ? ocudu::sr_nof_bits::one : ocudu::sr_nof_bits::no_sr;
         break;
       case pucch_format::FORMAT_3:
-        pucch.nof_prbs                    = test_rgen::uniform_int(1U, 4U);
+        pucch.nof_prbs                    = test_random::uniform_int(1U, 4U);
         pucch.nof_symb                    = 4U;
-        pucch.nof_prbs                    = test_rgen::uniform_int(1U, 4U);
+        pucch.nof_prbs                    = test_random::uniform_int(1U, 4U);
         pucch.nof_symb                    = 2U;
-        pucch.uci_bits.harq_ack_nof_bits  = test_rgen::uniform_int(1U, 7U);
-        pucch.uci_bits.csi_part1_nof_bits = test_rgen::bernoulli(0.25f) ? 11U : 0U;
-        pucch.uci_bits.sr_bits = test_rgen::bernoulli(0.25f) ? ocudu::sr_nof_bits::one : ocudu::sr_nof_bits::no_sr;
+        pucch.uci_bits.harq_ack_nof_bits  = test_random::uniform_int(1U, 7U);
+        pucch.uci_bits.csi_part1_nof_bits = test_random::bernoulli(0.25f) ? 11U : 0U;
+        pucch.uci_bits.sr_bits = test_random::bernoulli(0.25f) ? ocudu::sr_nof_bits::one : ocudu::sr_nof_bits::no_sr;
         break;
       case pucch_format::FORMAT_4:
         pucch.nof_prbs                    = 1U;
         pucch.nof_symb                    = 4U;
-        pucch.uci_bits.harq_ack_nof_bits  = test_rgen::uniform_int(1U, 7U);
-        pucch.uci_bits.csi_part1_nof_bits = test_rgen::bernoulli(0.25f) ? 11U : 0U;
-        pucch.uci_bits.sr_bits = test_rgen::bernoulli(0.25f) ? ocudu::sr_nof_bits::one : ocudu::sr_nof_bits::no_sr;
+        pucch.uci_bits.harq_ack_nof_bits  = test_random::uniform_int(1U, 7U);
+        pucch.uci_bits.csi_part1_nof_bits = test_random::bernoulli(0.25f) ? 11U : 0U;
+        pucch.uci_bits.sr_bits = test_random::bernoulli(0.25f) ? ocudu::sr_nof_bits::one : ocudu::sr_nof_bits::no_sr;
         break;
       default:
         ocudu_assertion_failure("Only PUCCH format 0, 1, 2, 3 and 4 are supported");
@@ -367,7 +367,7 @@ TEST_P(pucch_power_control_test_bench, when_phr_is_non_positive_cl_stops_increas
                                                         pucch.pi_2_bpsk,
                                                         pucch.additional_dmrs,
                                                         pucch.intraslot_freq_hopping);
-          const auto  gaussian_var   = test_rgen::normal_dist<float>(0, 0.5f);
+          const auto  gaussian_var   = test_random::normal_dist<float>(0, 0.5f);
           const float sinr_to_report = initial_sinr + pucch_sinr_var + gaussian_var + g_cl_pw_control;
           if (pucch.format == pucch_format::FORMAT_0 or pucch.format == pucch_format::FORMAT_1) {
             average_reported_sinr_f0.push(initial_sinr + gaussian_var + g_cl_pw_control);
@@ -402,7 +402,7 @@ TEST_P(pucch_power_control_test_bench, when_phr_is_non_positive_cl_stops_increas
     // NOTE: the TPC command would be sent during the DL slots, but we can ignore this for sake of simplifying the test.
     else {
       std::optional<pucch_pw_control>& pucch = slot_idx_tdd_slot == 8U ? pucch_1 : pucch_2;
-      if (test_rgen::bernoulli(0.5)) {
+      if (test_random::bernoulli(0.5)) {
         pucch             = generate_pucch(sl);
         const uint8_t tpc = pucch_pw_ctrl_manager->compute_tpc_command(sl);
         g_cl_pw_control += tpc_mapping(tpc);

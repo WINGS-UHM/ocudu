@@ -27,6 +27,16 @@ Integer uniform_int()
   return uniform_int(std::numeric_limits<Integer>::min(), std::numeric_limits<Integer>::max());
 }
 
+/// Returns a random boolean with probability \c p of being true.
+inline bool bernoulli(double p) { return std::bernoulli_distribution(p)(tls_gen()); }
+
+/// Returns a random floating point value with normal distribution.
+template <typename FloatingPoint>
+FloatingPoint normal_dist(FloatingPoint mean, FloatingPoint stddev)
+{
+  return std::normal_distribution<FloatingPoint>(mean, stddev)(tls_gen());
+}
+
 /// Return a vector of integers with specified size filled with random values.
 template <typename Integer>
 std::vector<Integer> vector_of_uniform_ints(size_t sz)

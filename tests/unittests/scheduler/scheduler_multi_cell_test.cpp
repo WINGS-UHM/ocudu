@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
@@ -68,13 +69,14 @@ protected:
 
   static rach_indication_message::preamble create_preamble()
   {
-    static auto next_rnti = test_rgen::uniform_int<unsigned>(to_value(rnti_t::MIN_CRNTI), to_value(rnti_t::MAX_CRNTI));
-    static const auto rnti_inc = test_rgen::uniform_int<unsigned>(1, 5);
+    static auto next_rnti =
+        test_random::uniform_int<unsigned>(to_value(rnti_t::MIN_CRNTI), to_value(rnti_t::MAX_CRNTI));
+    static const auto rnti_inc = test_random::uniform_int<unsigned>(1, 5);
 
     rach_indication_message::preamble preamble =
-        test_helper::create_preamble(test_rgen::uniform_int<unsigned>(0, 63), to_rnti(next_rnti));
+        test_helper::create_preamble(test_random::uniform_int<unsigned>(0, 63), to_rnti(next_rnti));
     preamble.time_advance =
-        phy_time_unit::from_seconds(std::uniform_real_distribution<double>{0, 2005e-6}(test_rgen::get()));
+        phy_time_unit::from_seconds(std::uniform_real_distribution<double>{0, 2005e-6}(test_random::tls_gen()));
 
     next_rnti += rnti_inc;
     return preamble;

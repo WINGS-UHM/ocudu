@@ -3,8 +3,8 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/cell/cell_harq_manager.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "ocudu/scheduler/result/sched_result.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -125,7 +125,7 @@ protected:
 
   cell_harq_manager cell_harqs;
 
-  slot_point current_slot{0, test_rgen::uniform_int<unsigned>(0, 10239)};
+  slot_point current_slot{0, test_random::uniform_int<unsigned>(0, 10239)};
 };
 
 class base_single_harq_entity_test : public base_harq_manager_test

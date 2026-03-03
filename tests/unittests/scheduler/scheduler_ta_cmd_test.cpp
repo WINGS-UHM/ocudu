@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
@@ -101,7 +102,7 @@ TEST_P(scheduler_ta_cmd_tester, ta_cmd_is_scheduled)
           ue_idx,
           pucch,
           ul_sinr,
-          test_rgen::uniform_int<unsigned>(min_timing_advance_offset_in_tc, max_timing_advance_offset_in_tc)));
+          test_random::uniform_int<unsigned>(min_timing_advance_offset_in_tc, max_timing_advance_offset_in_tc)));
     }
   }
 

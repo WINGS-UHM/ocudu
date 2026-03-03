@@ -8,7 +8,7 @@
 #include "lib/f1ap/f1ap_asn1_packer.h"
 #include "tests/integrationtests/du_high/test_utils/du_high_env_simulator.h"
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
-#include "tests/test_doubles/random/random_gtest.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/unittests/gateways/test_helpers.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"

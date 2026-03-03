@@ -4,9 +4,9 @@
 
 #include "lib/scheduler/support/mcs_calculator.h"
 #include "lib/scheduler/ue_context/ue_link_adaptation_controller.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -91,7 +91,7 @@ TEST_F(ue_link_adaptation_controller_test, cqi_positive_reports_non_empty_mcs)
   controller.handle_dl_ack_info(true, sch_mcs_index{5}, dl_mcs_table, sch_mcs_index{5});
 
   csi_report_data csi{};
-  csi.first_tb_wideband_cqi = cqi_value{test_rgen::uniform_int<uint8_t>(1, 15)};
+  csi.first_tb_wideband_cqi = cqi_value{test_random::uniform_int<uint8_t>(1, 15)};
   csi.valid                 = true;
   ue_channel_state.handle_csi_report(csi);
 

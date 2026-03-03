@@ -10,6 +10,7 @@
 #include "test_utils/indication_generators.h"
 #include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_simulator.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/ran/duplex_mode.h"
@@ -190,7 +191,7 @@ public:
   void enqueue_random_number_of_rach_indications()
   {
     rach_indication_message rach_ind{to_du_cell_index(0), next_slot_rx(), {{0, 0, {}}}};
-    auto                    nof_preambles = test_rgen::uniform_int<unsigned>(1, 10);
+    auto                    nof_preambles = test_random::uniform_int<unsigned>(1, 10);
     for (unsigned i = 0; i != nof_preambles; ++i) {
       rach_ind.occasions[0].preambles.push_back({i, to_rnti(static_cast<uint16_t>(rnti) + 1 + i), phy_time_unit{}});
     }
@@ -469,7 +470,7 @@ protected:
 TEST_P(scheduler_conres_expiry_test, when_conres_ce_arrives_after_conres_timer_expires_then_no_pdsch_is_scheduled)
 {
   // CE is enqueued after the ConRes timer expires.
-  auto ce_enqueue_slot = conres_expiry_slot + test_rgen::uniform_int<unsigned>(0, 10);
+  auto ce_enqueue_slot = conres_expiry_slot + test_random::uniform_int<unsigned>(0, 10);
   while (next_slot.without_hyper_sfn() < ce_enqueue_slot) {
     run_slot();
     ASSERT_EQ(find_ue_pdsch(rnti, *last_sched_result(cell_index)), nullptr)

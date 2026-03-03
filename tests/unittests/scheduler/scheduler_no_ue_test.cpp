@@ -10,12 +10,12 @@
 /// - handle RACH indication + RAR allocation.
 
 #include "lib/scheduler/scheduler_impl.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -50,7 +50,7 @@ TEST_F(sched_no_ue_tester, test_no_ues)
   sch.handle_cell_configuration_request(cell_cfg_msg);
 
   slot_point_extended sl_tx{subcarrier_spacing::kHz15,
-                            test_rgen::uniform_int<unsigned>(0, NOF_HYPER_SFNS * NOF_SFNS * 10 - 1)};
+                            test_random::uniform_int<unsigned>(0, NOF_HYPER_SFNS * NOF_SFNS * 10 - 1)};
 
   // Action 2: Run slot.
   const sched_result& res = sch.slot_indication(sl_tx, to_du_cell_index(0));

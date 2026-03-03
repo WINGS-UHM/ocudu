@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include "tests/test_doubles/random/test_random.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/subcarrier_spacing.h"
-#include "ocudu/support/test_utils.h"
+#include <array>
 
 namespace ocudu {
 namespace test_helper {
@@ -20,7 +21,7 @@ inline slot_point generate_random_slot_point(subcarrier_spacing scs)
       std::uniform_int_distribution<uint32_t>{0, (10240 * get_nof_slots_per_subframe(subcarrier_spacing::kHz120)) - 1},
       std::uniform_int_distribution<uint32_t>{0, (10240 * get_nof_slots_per_subframe(subcarrier_spacing::kHz240)) - 1}};
 
-  uint32_t count = scs_dists[to_numerology_value(scs)](test_rgen::get());
+  uint32_t count = scs_dists[to_numerology_value(scs)](test_random::tls_gen());
   return slot_point{scs, count};
 }
 

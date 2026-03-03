@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "random_gtest.h"
+#include "test_random.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/error_handling.h"
 #include <gtest/gtest.h>
@@ -26,11 +26,16 @@ public:
   {
     base_seed = GTEST_FLAG_GET(random_seed);
     if (base_seed == 0) {
-      // When seed == 0, it means that the user did not explicitly set a seed (according to gtest). We generate one.
+      // When seed == 0, it means that the user did not explicitly set a seed (using --gtest_random_seed=seed flag).
+      // We generate one.
       base_seed = std::random_device{}();
     }
+
+    // Mark seed as initialized.
     test_counter.store(0, std::memory_order_release);
-    fmt::print("[  TEST  ] RANDOM SEED: {}\n", base_seed);
+
+    // Print the used seed.
+    fmt::print("[   TEST   ] OCUDU Random Seed: {}.\n", base_seed);
   }
 };
 
@@ -47,7 +52,7 @@ private:
   {
     ocudulog::flush();
     if (test_info.result()->Failed()) {
-      fmt::print(stderr, "[  FAILED  ] Seed: {}\n", ocudu::test_random::seed());
+      fmt::print(stderr, "[  FAILED  ] OCUDU Random Seed: {}.\n", ocudu::test_random::seed());
     }
   }
 };
@@ -67,7 +72,7 @@ std::mt19937& ocudu::test_random::tls_gen()
   uint32_t cur_test_counter = test_counter.load(std::memory_order_acquire);
   report_fatal_error_if_not(cur_test_counter != invalid_test_counter, "RandomSeedEnvironment has not been setup");
   if (cur_test_counter != last_test_counter) {
-    // New test started. Reset generator.
+    // New test started. Reset generator back to original seed.
     last_test_counter = cur_test_counter;
     rng.seed(cur_test_counter);
   }

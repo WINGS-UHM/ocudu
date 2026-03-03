@@ -12,13 +12,13 @@
 #include "lib/scheduler/ue_context/ue.h"
 #include "lib/scheduler/ue_scheduling/intra_slice_scheduler.h"
 #include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "ocudu/adt/unique_function.h"
 #include "ocudu/ran/qos/five_qi_qos_mapping.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -188,7 +188,7 @@ protected:
   inter_slice_scheduler slice_sched;
   intra_slice_scheduler intra_slice_sched;
 
-  slot_point next_slot{0, test_rgen::uniform_int<unsigned>(0, 10239)};
+  slot_point next_slot{0, test_random::uniform_int<unsigned>(0, 10239)};
 };
 
 class scheduler_policy_css_test : public base_scheduler_policy_test,

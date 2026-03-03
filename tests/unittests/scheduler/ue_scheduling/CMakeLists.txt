@@ -16,6 +16,6 @@ target_link_libraries(ue_scheduler_test
         scheduler_test_suite
         sched_config
         gtest
-        gtest_main)
+        random_gtest_main)
 add_test(ue_scheduler_test ue_scheduler_test)
 gtest_discover_tests(ue_scheduler_test)

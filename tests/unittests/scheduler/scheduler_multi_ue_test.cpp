@@ -3,11 +3,11 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "test_utils/scheduler_test_simulator.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -78,7 +78,7 @@ public:
     {
       std::vector<unsigned> tmp(test_params.nof_ues, 0);
       std::iota(tmp.begin(), tmp.end(), 0);
-      std::shuffle(tmp.begin(), tmp.end(), test_rgen::get());
+      std::shuffle(tmp.begin(), tmp.end(), test_random::tls_gen());
       for (auto it = tmp.begin(); it != tmp.begin() + test_params.nof_no_traffic_ues; ++it) {
         no_traffic_ues.insert(to_rnti(0x4601 + *it));
       }
@@ -321,7 +321,7 @@ TEST_F(scheduler_buffer_occupancy_test, when_dl_bo_is_set_then_enough_dl_tbs_is_
   std::vector<unsigned> ue_dl_bos(test_params.nof_ues);
   std::vector<unsigned> ue_dl_drb_sched(test_params.nof_ues);
   for (unsigned i = 0; i != test_params.nof_ues; ++i) {
-    ue_dl_bos[i] = test_rgen::uniform_int<unsigned>(1, 20000);
+    ue_dl_bos[i] = test_random::uniform_int<unsigned>(1, 20000);
     dl_buffer_state_indication_message dl_buf_st{to_du_ue_index(i), LCID_MIN_DRB, ue_dl_bos[i], this->next_slot_rx()};
     this->push_dl_buffer_state(dl_buf_st);
   }
@@ -369,7 +369,7 @@ TEST_F(scheduler_buffer_occupancy_test, when_bsr_is_received_then_enough_ul_byte
   std::vector<unsigned> ue_bsrs(test_params.nof_ues);
   std::vector<unsigned> ue_ul_drb_sched(test_params.nof_ues);
   for (unsigned i = 0; i != test_params.nof_ues; ++i) {
-    ue_bsrs[i] = test_rgen::uniform_int<unsigned>(1, 20000);
+    ue_bsrs[i] = test_random::uniform_int<unsigned>(1, 20000);
     ul_bsr_indication_message bsr{to_du_cell_index(0),
                                   to_du_ue_index(i),
                                   to_rnti(0x4601 + i),

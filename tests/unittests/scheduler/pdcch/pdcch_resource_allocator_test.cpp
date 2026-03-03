@@ -5,13 +5,15 @@
 #include "../test_utils/config_generators.h"
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "lib/scheduler/support/pdcch/pdcch_mapping.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/scheduler_ue_config_validator.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
-#include "ocudu/support/test_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include "fmt/std.h"
 #include <gtest/gtest.h>
 #include <unordered_map>
@@ -245,7 +247,7 @@ protected:
 
   pdcch_resource_allocator_impl pdcch_sch{cell_cfg};
 
-  slot_point next_slot{0, test_rgen::uniform_int<unsigned>(0, 10239)};
+  slot_point next_slot{0, test_random::uniform_int<unsigned>(0, 10239)};
 
   std::unordered_map<rnti_t, test_ue> test_ues;
 };
@@ -304,7 +306,7 @@ TEST_F(common_pdcch_allocator_tester, single_pdcch_sib1_allocation)
 
 TEST_F(common_pdcch_allocator_tester, single_pdcch_rar_allocation)
 {
-  rnti_t                ra_rnti = to_rnti(test_rgen::uniform_int<unsigned>(1, 9));
+  rnti_t                ra_rnti = to_rnti(test_random::uniform_int<unsigned>(1, 9));
   pdcch_dl_information* pdcch =
       pdcch_sch.alloc_dl_pdcch_common(res_grid[0], ra_rnti, to_search_space_id(1), aggregation_level::n4);
 
@@ -324,8 +326,8 @@ TEST_F(common_pdcch_allocator_tester, single_pdcch_rar_allocation)
 
 TEST_F(common_pdcch_allocator_tester, when_no_pdcch_space_for_rar_then_allocation_fails)
 {
-  rnti_t                ra_rnti1 = to_rnti(test_rgen::uniform_int<unsigned>(1, 9));
-  rnti_t                ra_rnti2 = to_rnti(test_rgen::uniform_int<unsigned>(1, 9));
+  rnti_t                ra_rnti1 = to_rnti(test_random::uniform_int<unsigned>(1, 9));
+  rnti_t                ra_rnti2 = to_rnti(test_random::uniform_int<unsigned>(1, 9));
   pdcch_dl_information* pdcch1 =
       pdcch_sch.alloc_dl_pdcch_common(res_grid[0], ra_rnti1, to_search_space_id(1), aggregation_level::n4);
   pdcch_dl_information* pdcch2 =
@@ -389,7 +391,7 @@ protected:
 TEST_P(ue_pdcch_resource_allocator_scrambling_tester,
        if_no_candidates_are_monitored_in_the_slot_then_dl_pdcch_allocation_should_fail)
 {
-  const rnti_t rnti = to_rnti(0x4601 + test_rgen::uniform_int<unsigned>(0, 1000));
+  const rnti_t rnti = to_rnti(0x4601 + test_random::uniform_int<unsigned>(0, 1000));
   test_ue*     u    = this->add_ue(create_ue_cfg(rnti, params.ss2_type, params.cs1_pdcch_dmrs_scrambling_id));
 
   // If the PDCCH monitoring is not active or there are no candidates for this slot for this searchSpace, then the
@@ -422,7 +424,7 @@ TEST_P(ue_pdcch_resource_allocator_scrambling_tester,
 TEST_P(ue_pdcch_resource_allocator_scrambling_tester,
        if_no_candidates_are_monitored_in_the_slot_then_ul_pdcch_allocation_should_fail)
 {
-  rnti_t   rnti = to_rnti(0x4601 + test_rgen::uniform_int<unsigned>(0, 1000));
+  rnti_t   rnti = to_rnti(0x4601 + test_random::uniform_int<unsigned>(0, 1000));
   test_ue* u    = this->add_ue(create_ue_cfg(rnti, params.ss2_type, params.cs1_pdcch_dmrs_scrambling_id));
 
   // If the PDCCH monitoring is not active or there are no candidates for this slot for this searchSpace, then the
@@ -459,7 +461,7 @@ TEST(pdcch_resource_allocator_test, monitoring_period)
     for (unsigned duration = 1; duration < period - 1; ++duration) {
       for (unsigned offset = 0; offset < period - 1; ++offset) {
         // Note: First slot is one slot before the PDCCH monitoring window.
-        unsigned randint  = test_rgen::uniform_int<unsigned>(0, 10239);
+        unsigned randint  = test_random::uniform_int<unsigned>(0, 10239);
         unsigned first_sl = (((randint / period) * period) + offset + 10239) % 10240;
 
         sched_cell_configuration_request_message msg =

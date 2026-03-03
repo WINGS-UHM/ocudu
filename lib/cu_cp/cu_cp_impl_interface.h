@@ -446,6 +446,11 @@ class cu_cp_xnap_handler : public cu_cp_inter_cu_handover_handler
 {
 public:
   virtual ~cu_cp_xnap_handler() = default;
+
+  /// \brief Get packed handover preparation message for inter-gNB handover.
+  /// \param[in] ue_index The index of the UE.
+  /// \returns The packed handover preparation message.
+  virtual byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) = 0;
 };
 
 class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,

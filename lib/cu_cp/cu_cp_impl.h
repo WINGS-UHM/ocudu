@@ -118,6 +118,7 @@ public:
 
   // cu_cp_inter_cu_handover_handler.
   async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override;
+  byte_buffer      handle_handover_preparation_message_required(ue_index_t ue_index) override;
 
   // cu_cp_nrppa_handler.
   nrppa_cu_cp_ue_notifier* handle_new_nrppa_ue(ue_index_t ue_index) override;

@@ -939,6 +939,16 @@ async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t ue_index
       ue_index, std::move(command), ue_mng, du_db, cu_up_db, ngap->get_ngap_control_message_handler(), logger);
 }
 
+byte_buffer cu_cp_impl::handle_handover_preparation_message_required(ue_index_t ue_index)
+{
+  cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for handover preparation message handling", ue_index);
+    return {};
+  }
+  return ue->get_rrc_ue()->get_rrc_ue_control_message_handler().get_packed_handover_preparation_message();
+}
+
 ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn)
 {
   du_index_t du_index = du_db.find_du(cgi);

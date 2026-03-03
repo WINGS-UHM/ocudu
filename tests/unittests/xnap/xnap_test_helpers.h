@@ -57,6 +57,12 @@ class dummy_xnap_cu_cp_notifier : public xnap_cu_cp_notifier
 public:
   dummy_xnap_cu_cp_notifier() = default;
 
+  byte_buffer on_handover_preparation_message_required(ue_index_t ue_index) override
+  {
+    logger.info("Handover preparation message requested for UE index {}", ue_index);
+    return byte_buffer{};
+  }
+
   async_task<bool> on_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
   {
     logger.info("Received a new RRC Handover Command for UE index {}", ue_index);

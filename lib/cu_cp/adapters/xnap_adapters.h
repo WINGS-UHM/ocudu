@@ -21,6 +21,12 @@ public:
     return cu_cp_handler->handle_new_rrc_handover_command(ue_index, std::move(command));
   }
 
+  byte_buffer on_handover_preparation_message_required(ue_index_t ue_index) override
+  {
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
+    return cu_cp_handler->handle_handover_preparation_message_required(ue_index);
+  }
+
 private:
   cu_cp_xnap_handler* cu_cp_handler = nullptr;
 };

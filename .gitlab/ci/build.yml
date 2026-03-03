@@ -686,6 +686,7 @@ ubsan avx2:
     TEST_MODE: default
     MARCH: x86-64-v3
     KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "100G"
+    KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "100G"
 
 ###################
 # Alternative OSs #
@@ -846,6 +847,7 @@ sanitizers avx2:
         GTEST_DISCOVERY_TIMEOUT: 120
         TEST_MODE: default
         KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "100G"
+        KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "100G"
 
 sanitizers avx512:
   extends: .weekly sanitizers
@@ -881,6 +883,7 @@ sanitizers avx512:
         GTEST_DISCOVERY_TIMEOUT: 120
         TEST_MODE: full
         KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "100G"
+        KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "100G"
 
 sanitizers arm neon:
   extends: .weekly sanitizers
@@ -907,6 +910,7 @@ sanitizers arm neon:
         COMPILER: gcc
         TEST_MODE: valgrind
         KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "100G"
+        KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "100G"
       - OS: [ubuntu-25.10, ubuntu-24.04]
         SANITIZER: ubsan
         COMPILER: [gcc, clang]
@@ -914,6 +918,7 @@ sanitizers arm neon:
         GTEST_DISCOVERY_TIMEOUT: 120
         TEST_MODE: default
         KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "100G"
+        KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "100G"
 
 # UHD Alternatives
 

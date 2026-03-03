@@ -290,7 +290,7 @@ public:
 
     range(map_type& map_, stable_id_t& head_) : map(&map_), head(&head_) {}
 
-    /// Iterator to the element before the head. Only valid as argument to erase_after.
+    /// Iterator to the element before the head. Only valid as argument to erase_after and insert_after.
     iterator before_begin() const { return iterator{*map, invalid_stable_id}; }
     iterator begin() const { return iterator{*map, *head}; }
     sentinel end() const { return sentinel{}; }

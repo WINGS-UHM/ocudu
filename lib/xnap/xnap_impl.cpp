@@ -18,6 +18,7 @@ xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
                      timer_manager&                         timers_,
                      task_executor&                         ctrl_exec_) :
   logger(ocudulog::fetch_basic_logger("XNAP")),
+  ue_ctxt_list(logger),
   xnap_cfg(xnap_cfg_),
   timers(timers_),
   ctrl_exec(ctrl_exec_),

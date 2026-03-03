@@ -381,6 +381,11 @@ static bool update_setup_list_with_bearer_ctxt_setup_mod_response(
     }
 
     up_pdu_session_context_update& next_cfg_pdu_session = next_config.pdu_sessions_to_setup_list.at(psi);
+    next_cfg_pdu_session.integrity_protection_result =
+        integrity_enabled ? integrity_protection_result_t::performed : integrity_protection_result_t::not_performed;
+    next_cfg_pdu_session.confidentiality_protection_result = ciphering_enabled
+                                                                 ? confidentiality_protection_result_t::performed
+                                                                 : confidentiality_protection_result_t::not_performed;
 
     for (const auto& e1ap_drb_item : e1ap_item.drb_setup_list_ng_ran) {
       const auto& drb_id = e1ap_drb_item.drb_id;

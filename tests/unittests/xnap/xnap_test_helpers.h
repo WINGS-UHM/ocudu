@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "lib/xnap/xnap_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/executors/manual_task_worker.h"
@@ -83,7 +84,7 @@ private:
 class xnap_test : public ::testing::Test
 {
 protected:
-  void SetUp() override;
+  xnap_test();
 
   void TearDown() override;
 
@@ -92,20 +93,32 @@ protected:
     xnap->set_tx_association_notifier(std::make_unique<dummy_xnap_message_notifier>(last_tx_msg));
   }
 
+  /// \brief Helper method to successfully run XN setup in XNAP.
+  bool run_xn_setup(const xnap_configuration& peer_cfg);
+
+  /// \brief Helper method to successfully create UE instance in ue manager.
+  ue_index_t create_ue(rnti_t rnti = rnti_t::MIN_CRNTI);
+
   /// \brief Manually tick timers.
   template <typename T>
-  void tick(async_task<T>& task, std::chrono::milliseconds duration)
+  bool tick(async_task<T>& task, std::chrono::milliseconds duration)
   {
     for (unsigned msec_elapsed = 0; msec_elapsed < duration.count(); ++msec_elapsed) {
-      ASSERT_FALSE(task.ready());
+      if (task.ready()) {
+        return false;
+      };
       timers.tick();
       ctrl_worker.run_pending_tasks();
     }
+    return true;
   }
 
-  ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("TEST", false);
-  timer_manager              timers;
-  manual_task_worker         ctrl_worker{128};
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
+  timer_manager           timers;
+  manual_task_worker      ctrl_worker{128};
+  cu_cp_configuration     cu_cp_cfg;
+
+  ue_manager                 ue_mng{cu_cp_cfg};
   dummy_xnc_gateway          xnc_gw;
   dummy_xnap_cu_cp_notifier  cu_cp_notifier;
   std::unique_ptr<xnap_impl> xnap = nullptr;

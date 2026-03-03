@@ -72,18 +72,18 @@ fi
 
 # Filter C++ files to apply single-line comments for the headers
 match_cpp="\.(cpp|c|h)$"
-grep    -E ${match_cpp} ${files_filtered} > ${files_cpp}
-grep -v -E ${match_cpp} ${files_filtered} > ${files_generic}
+grep    -E ${match_cpp} ${files_filtered} > ${files_cpp} || true
+grep -v -E ${match_cpp} ${files_filtered} > ${files_generic} || true
 
 # Filter files that shall use the alternative (alt) header (if filter is defined)
 if [[ -f "${match_alt}" ]]; then
   # C++ files
-  grep -v -E -f ${match_alt} ${files_cpp} > ${files_cpp_default}
-  grep    -E -f ${match_alt} ${files_cpp} > ${files_cpp_alt}
+  grep -v -E -f ${match_alt} ${files_cpp} > ${files_cpp_default} || true
+  grep    -E -f ${match_alt} ${files_cpp} > ${files_cpp_alt} || true
 
   # Other files
-  grep -v -E -f ${match_alt} ${files_generic} > ${files_generic_default}
-  grep    -E -f ${match_alt} ${files_generic} > ${files_generic_alt}
+  grep -v -E -f ${match_alt} ${files_generic} > ${files_generic_default} || true
+  grep    -E -f ${match_alt} ${files_generic} > ${files_generic_alt} || true
 else
   # C++ files
   cat "${files_cpp}" > "${files_cpp_default}"

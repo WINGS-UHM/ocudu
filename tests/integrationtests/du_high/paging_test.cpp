@@ -215,12 +215,13 @@ TEST_F(edrx_paging_test, when_f1_edrx_paging_is_received_then_it_is_sent_to_lowe
   ocudu_assert(success, "Invalid conversion");
   this->du_hi->get_f1ap_du().handle_message(msg);
 
-  // Maximum time that can be observed without paging (accounts for the eDRX PTW and DRX SFN).
+  // Maximum time that can be observed without paging (accounts for the eDRX PTW, DRX SFN, and the paging scheduler's
+  // look-ahead offset).
   const radio_frames forbid_edrx = edrx_cycle - ptw_len;
   const unsigned     MAX_SLOT_COUNT =
-      (forbid_edrx.count() + paging->paging_drx.to_number()) * next_slot.nof_slots_per_frame();
+      (forbid_edrx.count() + paging->paging_drx.to_number() + 1) * next_slot.nof_slots_per_frame();
   bool found = false;
-  for (unsigned i = 0; i != MAX_SLOT_COUNT; ++i) {
+  for (unsigned i = 0; i != MAX_SLOT_COUNT and not found; ++i) {
     this->run_slot();
     if (this->phy.cells[0].last_dl_res.has_value() and
         not this->phy.cells[0].last_dl_res->dl_res->paging_grants.empty()) {

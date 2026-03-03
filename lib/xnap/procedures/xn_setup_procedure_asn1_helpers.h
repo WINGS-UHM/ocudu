@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "../xnap_asn1_converters.h"
 #include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/asn1/xnap/common.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
@@ -119,35 +120,6 @@ inline xnap_message generate_asn1_xn_setup_response(const xnap_configuration& xn
     }
   }
   return xn_setup_resp;
-}
-
-/// \brief Convert \c xnap_cause_t type to XNAP cause.
-/// \param[in] cause The xnap_cause_t type.
-/// \return The XNAP cause.
-inline asn1::xnap::cause_c cause_to_asn1(xnap_cause_t cause)
-{
-  asn1::xnap::cause_c asn1_cause;
-
-  if (const auto* result = std::get_if<xnap_cause_radio_network_t>(&cause)) {
-    asn1_cause.set_radio_network() = static_cast<asn1::xnap::cause_radio_network_layer_opts::options>(*result);
-    return asn1_cause;
-  }
-  if (const auto* result = std::get_if<xnap_cause_transport_t>(&cause)) {
-    asn1_cause.set_transport() = static_cast<asn1::xnap::cause_transport_layer_opts::options>(*result);
-    return asn1_cause;
-  }
-
-  if (const auto* result = std::get_if<cause_protocol_t>(&cause)) {
-    asn1_cause.set_protocol() = static_cast<asn1::xnap::cause_protocol_opts::options>(*result);
-    return asn1_cause;
-  }
-  if (const auto* result = std::get_if<xnap_cause_misc_t>(&cause)) {
-    asn1_cause.set_misc() = static_cast<asn1::xnap::cause_misc_opts::options>(*result);
-    return asn1_cause;
-  }
-
-  report_fatal_error("Cannot convert cause to XNAP type:{}", cause);
-  return asn1_cause;
 }
 
 inline xnap_message

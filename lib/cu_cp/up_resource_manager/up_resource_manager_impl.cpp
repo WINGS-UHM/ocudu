@@ -91,7 +91,7 @@ void up_resource_manager::apply_config_update(const up_config_update_result& res
   // Apply config update in an additive way.
   for (const auto& session : result.pdu_sessions_added_list) {
     // Create new PDU session context.
-    up_pdu_session_context new_ctxt(session.id);
+    up_pdu_session_context new_ctxt(session.id, session.type);
 
     // Add new DRBs.
     apply_update_for_new_drbs(new_ctxt, context, session.drb_to_add);

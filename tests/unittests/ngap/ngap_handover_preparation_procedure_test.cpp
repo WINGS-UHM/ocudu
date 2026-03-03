@@ -20,7 +20,8 @@ TEST_F(ngap_test, when_source_gnb_handover_preparation_triggered_then_ho_command
   run_dl_nas_transport(ue_index); // needed to allocate AMF UE id.
 
   // Manually add existing PDU sessions to UP manager.
-  add_pdu_session_to_up_manager(ue_index, uint_to_pdu_session_id(1), uint_to_drb_id(1), uint_to_qos_flow_id(0));
+  add_pdu_session_to_up_manager(
+      ue_index, uint_to_pdu_session_id(1), pdu_session_type_t::ipv4, uint_to_drb_id(1), uint_to_qos_flow_id(0));
 
   auto& ue = test_ues.at(ue_index);
   ue.rrc_ue_handler.set_ho_preparation_message({});

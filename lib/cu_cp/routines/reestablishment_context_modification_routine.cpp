@@ -111,8 +111,9 @@ void reestablishment_context_modification_routine::operator()(coro_context<async
       // Convert pdu session context.
       std::map<pdu_session_id_t, up_pdu_session_context_update> pdu_sessions_to_setup_list;
       for (const auto& pdu_session_id : up_resource_mng.get_pdu_sessions()) {
-        up_pdu_session_context_update context_update{pdu_session_id};
-        context_update.drb_to_add = up_resource_mng.get_pdu_session_context(pdu_session_id).drbs;
+        const auto&                   session_ctxt = up_resource_mng.get_pdu_session_context(pdu_session_id);
+        up_pdu_session_context_update context_update{session_ctxt.id, session_ctxt.type};
+        context_update.drb_to_add = session_ctxt.drbs;
 
         pdu_sessions_to_setup_list.emplace(pdu_session_id, context_update);
       }

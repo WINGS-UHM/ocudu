@@ -7,14 +7,13 @@
 #include "ocudu/cu_cp/up_context.h"
 #include <map>
 
-namespace ocudu {
-
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Update for a PDU session.
 struct up_pdu_session_context_update {
-  up_pdu_session_context_update(pdu_session_id_t id_) : id(id_) {}
+  up_pdu_session_context_update(pdu_session_id_t id_, pdu_session_type_t type_) : id(id_), type(type_) {}
   pdu_session_id_t                   id;
+  pdu_session_type_t                 type;
   std::map<drb_id_t, up_drb_context> drb_to_add;
   std::map<drb_id_t, up_drb_context> drb_to_modify;
   std::vector<drb_id_t>              drb_to_remove;
@@ -87,7 +86,7 @@ public:
   const std::map<pdu_session_id_t, up_pdu_session_context>& get_pdu_sessions_map() const;
 
 private:
-  bool   valid_5qi(const five_qi_t five_qi);
+  bool   valid_5qi(five_qi_t five_qi);
   size_t get_nof_stale_drb_ids() const;
   size_t get_nof_available_drb_ids() const;
 
@@ -98,6 +97,4 @@ private:
   ocudulog::basic_logger& logger;
 };
 
-} // namespace ocucp
-
-} // namespace ocudu
+} // namespace ocudu::ocucp

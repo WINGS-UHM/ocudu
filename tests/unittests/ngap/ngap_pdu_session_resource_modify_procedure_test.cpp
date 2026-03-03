@@ -30,7 +30,8 @@ protected:
 
     // Inject PDU Session Resource Setup Request
     run_pdu_session_resource_setup(ue_index, pdu_session_id);
-    add_pdu_session_to_up_manager(ue_index, pdu_session_id, uint_to_drb_id(1), uint_to_qos_flow_id(1));
+    add_pdu_session_to_up_manager(
+        ue_index, pdu_session_id, pdu_session_type_t::ipv4, uint_to_drb_id(1), uint_to_qos_flow_id(1));
 
     return ue_index;
   }

@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include <gtest/gtest.h>
+#pragma once
+
 #include <random>
 #include <vector>
 
@@ -28,11 +29,15 @@ Integer uniform_int()
 
 /// Return a vector of integers with specified size filled with random values.
 template <typename Integer>
-std::vector<Integer> random_vector(size_t sz)
+std::vector<Integer> vector_of_uniform_ints(size_t sz)
 {
+  static constexpr std::uniform_int_distribution<Integer> dist{std::numeric_limits<Integer>::min(),
+                                                               std::numeric_limits<Integer>::max()};
+  auto&                                                   rng = tls_gen();
+
   std::vector<Integer> vec(sz);
   for (unsigned i = 0; i != sz; ++i) {
-    vec[i] = uniform_int<Integer>();
+    vec[i] = dist(rng);
   }
   return vec;
 }

@@ -4,12 +4,17 @@
 
 #include "random_gtest.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/support/error_handling.h"
+#include <gtest/gtest.h>
 
 /// Global base random seed that can be either set via command line (--gtest_random_seed=) or automatically generated.
 static uint32_t base_seed = 0;
 
+/// Sentinel value for \c test_counter in uninitialized state.
+constexpr uint32_t invalid_test_counter = std::numeric_limits<uint32_t>::max();
+
 /// Global counter of tests run.
-static std::atomic<uint32_t> test_counter{0};
+static std::atomic<uint32_t> test_counter = invalid_test_counter;
 
 namespace {
 
@@ -19,12 +24,13 @@ class RandomSeedEnvironment : public ::testing::Environment
 public:
   RandomSeedEnvironment()
   {
-    base_seed = ::testing::UnitTest::GetInstance()->random_seed();
+    base_seed = GTEST_FLAG_GET(random_seed);
     if (base_seed == 0) {
       // When seed == 0, it means that the user did not explicitly set a seed (according to gtest). We generate one.
       base_seed = std::random_device{}();
     }
-    fmt::print("[TEST] --- RANDOM SEED: {} ---\n", base_seed);
+    test_counter.store(0, std::memory_order_release);
+    fmt::print("[  TEST  ] RANDOM SEED: {}\n", base_seed);
   }
 };
 
@@ -59,6 +65,7 @@ std::mt19937& ocudu::test_random::tls_gen()
   thread_local uint32_t     last_test_counter{0};
 
   uint32_t cur_test_counter = test_counter.load(std::memory_order_acquire);
+  report_fatal_error_if_not(cur_test_counter != invalid_test_counter, "RandomSeedEnvironment has not been setup");
   if (cur_test_counter != last_test_counter) {
     // New test started. Reset generator.
     last_test_counter = cur_test_counter;

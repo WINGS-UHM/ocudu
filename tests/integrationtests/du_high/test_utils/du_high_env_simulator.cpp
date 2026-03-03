@@ -6,6 +6,7 @@
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/test_doubles/mac/mac_test_messages.h"
+#include "tests/test_doubles/random/random_gtest.h"
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
 #include "tests/unittests/scheduler/test_utils/result_test_helpers.h"
 #include "ocudu/asn1/f1ap/common.h"
@@ -18,7 +19,6 @@
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/support/error_handling.h"
 #include "ocudu/support/io/io_broker_factory.h"
-#include "ocudu/support/test_utils.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -111,7 +111,7 @@ du_high_env_simulator::du_high_env_simulator(const du_high_configuration& du_hi_
   du_hi(make_du_high(du_high_cfg, du_hi_dependencies)),
   phy(du_high_cfg.ran.cells.size(), workers.test_worker),
   next_slot(du_high_cfg.ran.cells[0].ran.dl_cfg_common.init_dl_bwp.generic_params.scs,
-            test_rgen::uniform_int<unsigned>(
+            test_random::uniform_int<unsigned>(
                 0,
                 NOF_SFNS * NOF_HYPER_SFNS * NOF_SUBFRAMES_PER_FRAME *
                         get_nof_slots_per_subframe(

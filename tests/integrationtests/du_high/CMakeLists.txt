@@ -31,7 +31,7 @@ target_link_libraries(du_high_test
         ocudu_du_high_unit_helpers
         ocudu_gateway
         gtest
-        gtest_main)
+        random_gtest_main)
 target_include_directories(du_high_test PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(du_high_test du_high_test)
 set_tests_properties(du_high_test PROPERTIES LABELS "tsan")

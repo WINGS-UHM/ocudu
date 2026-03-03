@@ -7,15 +7,14 @@ add_subdirectory(gateways)
 
 set(SOURCES
         log_helpers.cpp
+        procedures/xnap_handover_preparation_procedure.cpp
         procedures/xn_setup_procedure.cpp
         xnap_asn1_utils.cpp
         xnap_factory.cpp
         xnap_impl.cpp
     )
 
-
 add_library(ocudu_xnap STATIC ${SOURCES})
-
 target_link_libraries(ocudu_xnap
 	ocudu_cu_cp
 	xnap_asn1

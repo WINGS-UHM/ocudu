@@ -17,6 +17,9 @@ struct up_pdu_session_context_update {
   std::map<drb_id_t, up_drb_context> drb_to_add;
   std::map<drb_id_t, up_drb_context> drb_to_modify;
   std::vector<drb_id_t>              drb_to_remove;
+
+  integrity_protection_result_t       integrity_protection_result;
+  confidentiality_protection_result_t confidentiality_protection_result;
 };
 
 // Struct that contains all fields required to update the UP config based on an incoming

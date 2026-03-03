@@ -60,7 +60,10 @@ drb_id_t allocate_drb_id(const up_pdu_session_context_update& new_session_contex
                          const ocudulog::basic_logger&        logger);
 
 // \brief Returns valid RRC PDCP config for a given FiveQI
-pdcp_config   set_rrc_pdcp_config(five_qi_t five_qi, const up_resource_manager_cfg& cfg);
+pdcp_config   set_rrc_pdcp_config(five_qi_t                           five_qi,
+                                  const up_resource_manager_cfg&      cfg,
+                                  integrity_protection_result_t       integrity,
+                                  confidentiality_protection_result_t ciphering);
 sdap_config_t set_rrc_sdap_config(const up_drb_context& context);
 
 unsigned get_used_drb_index(drb_id_t drb_id);

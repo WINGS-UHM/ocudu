@@ -380,7 +380,7 @@ static bool update_setup_list_with_bearer_ctxt_setup_mod_response(
       }
     }
 
-    auto& next_cfg_pdu_session = next_config.pdu_sessions_to_setup_list.at(psi);
+    up_pdu_session_context_update& next_cfg_pdu_session = next_config.pdu_sessions_to_setup_list.at(psi);
 
     for (const auto& e1ap_drb_item : e1ap_item.drb_setup_list_ng_ran) {
       const auto& drb_id = e1ap_drb_item.drb_id;

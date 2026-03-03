@@ -93,6 +93,10 @@ void up_resource_manager::apply_config_update(const up_config_update_result& res
     // Create new PDU session context.
     up_pdu_session_context new_ctxt(session.id, session.type);
 
+    // Make sure that DRB integrity/ciphering settings are saved.
+    new_ctxt.integrity_protection_result       = session.integrity_protection_result;
+    new_ctxt.confidentiality_protection_result = session.confidentiality_protection_result;
+
     // Add new DRBs.
     apply_update_for_new_drbs(new_ctxt, context, session.drb_to_add);
 

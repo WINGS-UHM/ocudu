@@ -65,6 +65,9 @@ protected:
     xnap->set_tx_association_notifier(std::make_unique<dummy_xnap_message_notifier>(last_tx_msg));
   }
 
+  /// \brief Manually tick timers.
+  void tick();
+
   ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("TEST", false);
   timer_manager              timers;
   manual_task_worker         ctrl_worker{128};

@@ -47,9 +47,13 @@ ocudu::config_validators::validate_sched_ue_creation_request_message(const sched
       if (serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value() and
           serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value() and
           cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {
-        const pucch_config_common& pucch_cfg_common = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value();
-        HANDLE_ERROR(validate_pucch_cfg(
-            serv_cell_cfg, cell_cfg.init_bwp.ul.pucch.resources, pucch_cfg_common, cell_cfg.dl_carrier.nof_ant));
+        const pucch_config_common& pucch_cfg_common  = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value();
+        const unsigned             max_pucch_payload = cell_cfg.init_bwp_builder.pucch.resources.max_payload_234();
+        HANDLE_ERROR(validate_pucch_cfg(serv_cell_cfg,
+                                        cell_cfg.init_bwp.ul.pucch.resources,
+                                        pucch_cfg_common,
+                                        cell_cfg.dl_carrier.nof_ant,
+                                        max_pucch_payload));
         HANDLE_ERROR(validate_srs_cfg(serv_cell_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs));
       }
 

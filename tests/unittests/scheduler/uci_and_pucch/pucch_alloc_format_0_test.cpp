@@ -151,11 +151,7 @@ TEST_F(pucch_alloc_format_0_test, test_harq_allocation_2_bits)
 
 TEST_F(pucch_alloc_format_0_test, alloc_ded_harq_ack_with_existing_sr_succeeds_until_max_payload_reached)
 {
-  const unsigned max_payload_f2 = t_bench.get_main_ue()
-                                      .ue_cfg_dedicated()
-                                      ->ue_cell_cfg(to_du_cell_index(0))
-                                      .init_bwp()
-                                      .ul_ded->pucch_cfg->get_max_payload(pucch_format::FORMAT_2);
+  const unsigned max_payload_f2 = t_bench.params.pucch_ded_params.max_payload_234();
 
   // Add HARQ grants to reach the max_payload.
   alloc_sr_opportunity(t_bench.get_main_ue());
@@ -201,11 +197,7 @@ TEST_F(pucch_alloc_format_0_test, alloc_ded_harq_ack_with_existing_sr_succeeds_u
 
 TEST_F(pucch_alloc_format_0_test, alloc_ded_harq_ack_with_existing_csi_succeeds_until_max_payload_reached)
 {
-  const unsigned max_payload_f2 = t_bench.get_main_ue()
-                                      .ue_cfg_dedicated()
-                                      ->ue_cell_cfg(to_du_cell_index(0))
-                                      .init_bwp()
-                                      .ul_ded->pucch_cfg->get_max_payload(pucch_format::FORMAT_2);
+  const unsigned max_payload_f2 = t_bench.params.pucch_ded_params.max_payload_234();
 
   // Add HARQ grants to reach the max_payload.
   alloc_csi_opportunity(t_bench.get_main_ue(), default_csi_part1_bits);

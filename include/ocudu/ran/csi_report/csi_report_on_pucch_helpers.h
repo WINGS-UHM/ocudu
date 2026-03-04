@@ -8,7 +8,6 @@
 #include "ocudu/ran/csi_report/csi_report_data.h"
 #include "ocudu/ran/csi_report/csi_report_packed.h"
 #include "ocudu/ran/csi_report/csi_report_size.h"
-#include "ocudu/support/units.h"
 
 namespace ocudu {
 

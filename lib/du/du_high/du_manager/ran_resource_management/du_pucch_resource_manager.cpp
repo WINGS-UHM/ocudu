@@ -7,10 +7,10 @@
 #include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
 #include "ocudu/ran/csi_rs/csi_meas_config.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
-#include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/serv_cell_index.h"
 #include "ocudu/scheduler/config/cell_bwp_config.h"
+#include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
@@ -113,29 +113,6 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
     return false;
   }
 
-  unsigned max_pucch_payload;
-  if (std::holds_alternative<pucch_f2_params>(cell_ctx.bwp_params.pucch.resources.f2_or_f3_or_f4_params)) {
-    const auto& f2_params = std::get<pucch_f2_params>(cell_ctx.bwp_params.pucch.resources.f2_or_f3_or_f4_params);
-    max_pucch_payload     = get_pucch_format2_max_payload(
-        f2_params.max_nof_rbs.value(), f2_params.nof_syms.value(), to_max_code_rate_float(f2_params.max_code_rate));
-  } else if (std::holds_alternative<pucch_f3_params>(cell_ctx.bwp_params.pucch.resources.f2_or_f3_or_f4_params)) {
-    const auto& f3_params = std::get<pucch_f3_params>(cell_ctx.bwp_params.pucch.resources.f2_or_f3_or_f4_params);
-    max_pucch_payload     = get_pucch_format3_max_payload(f3_params.max_nof_rbs.value(),
-                                                      f3_params.nof_syms.value(),
-                                                      to_max_code_rate_float(f3_params.max_code_rate),
-                                                      f3_params.intraslot_freq_hopping,
-                                                      f3_params.additional_dmrs,
-                                                      f3_params.pi2_bpsk);
-  } else {
-    const auto& f4_params = std::get<pucch_f4_params>(cell_ctx.bwp_params.pucch.resources.f2_or_f3_or_f4_params);
-    max_pucch_payload     = get_pucch_format4_max_payload(f4_params.nof_syms.value(),
-                                                      to_max_code_rate_float(f4_params.max_code_rate),
-                                                      f4_params.intraslot_freq_hopping,
-                                                      f4_params.additional_dmrs,
-                                                      f4_params.pi2_bpsk,
-                                                      f4_params.occ_length);
-  }
-
   std::optional<periodic_pucch_config> sr_cfg;
   std::optional<periodic_pucch_config> csi_cfg;
   for (auto sr_cfg_it = free_sr_configs.begin(); sr_cfg_it != free_sr_configs.end(); ++sr_cfg_it) {
@@ -154,8 +131,8 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
     serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list = {*cell_ctx.default_csi_report_cfg};
     const auto csi_report_cfg                       = create_csi_report_configuration(*serv_cell_cfg.csi_meas_cfg);
     const auto csi_report_size                      = get_csi_report_pucch_size(csi_report_cfg);
-    auto       optimal_res_it                       = get_compatible_csi_cfg(
-        cell_ctx, *sr_cfg_it, free_csi_configs, max_pucch_payload, csi_report_size.part1_size.value());
+    auto       optimal_res_it =
+        get_compatible_csi_cfg(cell_ctx, *sr_cfg_it, free_csi_configs, csi_report_size.part1_size.value());
 
     if (optimal_res_it != free_csi_configs.end()) {
       // Allocation successful. Remove SR and CSI resources assigned to this UE from the lists of free resources.
@@ -194,7 +171,14 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
   } else {
     ul_bwp.periodic_csi_report.reset();
   }
-  update_serv_cell_cfg(serv_cell_cfg, cell_ctx, ul_bwp, max_pucch_payload);
+
+  // Fill the serving cell config with the PUCCH-related configuration.
+  serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.emplace(cell_ctx.default_pucch_cfg);
+  config_helpers::ue_pucch_config_builder(serv_cell_cfg,
+                                          cell_ctx.cell_pucch_cfg.resources,
+                                          cell_ctx.bwp_params.pucch.resources,
+                                          ul_bwp.pucch,
+                                          ul_bwp.periodic_csi_report);
 
   ++cell_ctx.ue_idx;
   return true;
@@ -243,13 +227,13 @@ std::vector<du_pucch_resource_manager::periodic_pucch_config>::const_iterator
 du_pucch_resource_manager::get_compatible_csi_cfg(const cell_resource_context&              cell_ctx,
                                                   const periodic_pucch_config&              sr_cfg,
                                                   const std::vector<periodic_pucch_config>& free_csi_list,
-                                                  unsigned                                  max_pucch_payload,
                                                   unsigned                                  csi_report_size) const
 {
   const pucch_resource& sr_res = cell_ctx.cell_pucch_cfg.resources.at(
       cell_ctx.bwp_params.pucch.resources.get_sr_cell_res_idx(pucch_sr_resource_id(sr_cfg.res)));
-  const auto sr_symbols    = ofdm_symbol_range::start_and_len(sr_res.starting_sym_idx, sr_res.nof_symbols);
-  const auto is_compatible = [&](const periodic_pucch_config& csi_cfg) {
+  const auto     sr_symbols        = ofdm_symbol_range::start_and_len(sr_res.starting_sym_idx, sr_res.nof_symbols);
+  const unsigned max_pucch_payload = cell_ctx.bwp_params.pucch.resources.max_payload_234();
+  const auto     is_compatible     = [&](const periodic_pucch_config& csi_cfg) {
     // Ensure the max PUCCH grants limit is not exceeded.
     if (offset_exceeds_limit(cell_ctx, csi_cfg.offset, true)) {
       return false;
@@ -264,7 +248,10 @@ du_pucch_resource_manager::get_compatible_csi_cfg(const cell_resource_context&  
     }
 
     // Ensure the SR and CSI reports can be sent together in the same PUCCH if their offsets collide.
-    const unsigned nof_sr_bits        = sr_csi_offsets_collide(cell_ctx, sr_cfg.offset, csi_cfg.offset) ? 1 : 0;
+    const unsigned nof_sr_bits        = csi_helper::sr_csi_offsets_collide(
+                                     cell_ctx.sr_period_slots, sr_cfg.offset, cell_ctx.csi_period_slots, csi_cfg.offset)
+                                                    ? 1
+                                                    : 0;
     const unsigned candidate_uci_bits = nof_sr_bits + csi_report_size;
     return candidate_uci_bits <= max_pucch_payload;
   };
@@ -284,7 +271,8 @@ du_pucch_resource_manager::get_compatible_csi_cfg(const cell_resource_context&  
         (csi_rs_period + candidate_csi_cfg.offset - csi_rs_offset - MINIMUM_CSI_RS_REPORT_DISTANCE) % csi_rs_period;
 
     // We increase the weight if the CSI report offset collides with an SR slot offset.
-    if (sr_csi_offsets_collide(cell_ctx, sr_cfg.offset, candidate_csi_cfg.offset)) {
+    if (csi_helper::sr_csi_offsets_collide(
+            cell_ctx.sr_period_slots, sr_cfg.offset, cell_ctx.csi_period_slots, candidate_csi_cfg.offset)) {
       weight += csi_rs_period;
     }
 
@@ -338,61 +326,6 @@ std::set<unsigned> du_pucch_resource_manager::compute_periodic_uci_slot_offsets(
     }
   }
   return slot_offsets;
-}
-
-bool du_pucch_resource_manager::sr_csi_offsets_collide(const cell_resource_context& cell_ctx,
-                                                       unsigned                     sr_offset,
-                                                       unsigned                     csi_offset)
-{
-  // The CSI and SR offsets will collide if there exists a slot index s such that:
-  // - s = sr_offset mod sr_period
-  // - s = csi_offset mod csi_period
-  // We use the Chinese Remainder Theorem to check whether a solution for s exists.
-  const unsigned g = std::gcd(cell_ctx.sr_period_slots, cell_ctx.csi_period_slots);
-  if (g == 1) {
-    // If both periods are coprime, CRT states there will always be a solution for s for any choice of offsets.
-    return true;
-  }
-
-  // Else, generalized CRT states there is a solution if and only if: i mod gcd(X, Y) = j mod gcd(X, Y), where:
-  //  - i and j are the offsets for SR and CSI, respectively.
-  //  - X and Y are the periods for SR and CSI, respectively.
-  return (sr_offset % g) == (csi_offset % g);
-}
-
-void du_pucch_resource_manager::update_serv_cell_cfg(serving_cell_config&         serv_cell_cfg,
-                                                     const cell_resource_context& cell_ctx,
-                                                     const ue_uplink_bwp_config&  ul_bwp,
-                                                     unsigned                     max_pucch_payload)
-{
-  // Fill the serving cell config with the PUCCH-related configuration.
-  auto& pucch_cfg = serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.emplace(cell_ctx.default_pucch_cfg);
-  config_helpers::ue_pucch_config_builder(serv_cell_cfg,
-                                          cell_ctx.cell_pucch_cfg.resources,
-                                          cell_ctx.bwp_params.pucch.resources,
-                                          ul_bwp.pucch,
-                                          ul_bwp.periodic_csi_report);
-
-  // TODO: remove.
-  // Update the PUCCH max payload.
-  // As per TS 38.231, Section 9.2.1, with PUCCH Format 1, we can have up to 2 HARQ-ACK bits (SR doesn't count as part
-  // of the payload).
-  static constexpr unsigned pucch_f0_f1_max_harq_payload = 2U;
-  if (std::holds_alternative<pucch_f0_params>(cell_ctx.bwp_params.pucch.resources.f0_or_f1_params)) {
-    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_0)] = pucch_f0_f1_max_harq_payload;
-  } else {
-    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_1)] = pucch_f0_f1_max_harq_payload;
-  }
-  if (std::holds_alternative<pucch_f2_params>(cell_ctx.bwp_params.pucch.resources.f2_or_f3_or_f4_params)) {
-    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] = max_pucch_payload;
-    pucch_cfg.set_1_format                                                     = pucch_format::FORMAT_2;
-  } else if (std::holds_alternative<pucch_f3_params>(cell_ctx.bwp_params.pucch.resources.f2_or_f3_or_f4_params)) {
-    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_3)] = max_pucch_payload;
-    pucch_cfg.set_1_format                                                     = pucch_format::FORMAT_3;
-  } else {
-    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_4)] = max_pucch_payload;
-    pucch_cfg.set_1_format                                                     = pucch_format::FORMAT_4;
-  }
 }
 
 void du_pucch_resource_manager::disable_pucch_cfg(serving_cell_config&         serv_cell_cfg,

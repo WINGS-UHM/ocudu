@@ -254,6 +254,9 @@ private:
   /// Returns whether there is space for new PUCCH grants in the given scheduler result.
   bool is_there_space_for_new_pucch_grants(const sched_result& slot_result, unsigned nof_grants_to_allocate) const;
 
+  /// Returns the maximum number of UCI bits that can be carried in a PUCCH of a given format.
+  unsigned get_max_payload(pucch_format format) const;
+
   /// \brief Fills the PUCCH PDU for common HARQ-ACK resources.
   /// \param[out] pucch_pdu PUCCH PDU to be filled.
   /// \param[in] pucch_res PUCCH resource configuration.
@@ -285,6 +288,7 @@ private:
   const cell_configuration& cell_cfg;
   const unsigned            max_pucch_grants_per_slot;
   const unsigned            max_ul_grants_per_slot;
+  const unsigned            max_pucch_payload_234;
   slot_point                last_sl_ind;
   pucch_resource_manager    resource_manager;
 

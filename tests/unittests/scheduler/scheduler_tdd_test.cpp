@@ -8,7 +8,6 @@
 #include "test_utils/scheduler_test_simulator.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config_formatters.h"
 #include <gtest/gtest.h>
 
@@ -44,7 +43,10 @@ protected:
     params.min_k2               = testparams.min_k;
 
     // Add Cell.
-    this->add_cell(sched_config_helper::make_default_sched_cell_configuration_request(params));
+    auto cell_req = sched_config_helper::make_default_sched_cell_configuration_request(params);
+    std::get<pucch_f2_params>(cell_req.ran.init_bwp_builder.pucch.resources.f2_or_f3_or_f4_params).max_code_rate =
+        max_pucch_code_rate::dot_35;
+    this->add_cell(cell_req);
 
     // Add UE
     auto ue_cfg     = sched_config_helper::create_default_sched_ue_creation_request(params, {ue_drb_lcid});
@@ -60,10 +62,6 @@ protected:
                                 pucch_cfg.pucch_res_list.end(),
                                 [any_res_f2_id](const auto& res) { return res.res_id == any_res_f2_id; });
     ocudu_assert(res_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH resource F2 not found");
-    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
-        get_pucch_format2_max_payload(std::get<pucch_format_2_3_cfg>(res_f2->format_params).nof_prbs,
-                                      res_f2->nof_symbols,
-                                      to_max_code_rate_float(pucch_cfg.format_2_common_param.value().max_c_rate));
 
     this->add_ue(ue_cfg);
   }

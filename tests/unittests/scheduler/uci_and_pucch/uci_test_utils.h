@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../test_utils/config_generators.h"
-#include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/pucch_scheduling/pucch_allocator_impl.h"
 #include "lib/scheduler/uci_scheduling/uci_allocator_impl.h"
 #include "lib/scheduler/uci_scheduling/uci_scheduler_impl.h"

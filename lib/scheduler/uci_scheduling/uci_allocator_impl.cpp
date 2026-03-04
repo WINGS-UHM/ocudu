@@ -17,7 +17,9 @@ using namespace ocudu;
 ////////////    C-tors and d-tors    ////////////
 
 uci_allocator_impl::uci_allocator_impl(const cell_configuration& cell_cfg_, pucch_allocator& pucch_alloc_) :
-  pucch_alloc{pucch_alloc_}, logger(ocudulog::fetch_basic_logger("SCHED"))
+  pucch_alloc{pucch_alloc_},
+  logger(ocudulog::fetch_basic_logger("SCHED")),
+  max_pucch_payload(cell_cfg_.init_bwp_builder.pucch.resources.max_payload_234())
 {
   const unsigned ring_size = get_allocator_ring_size_gt_min(get_max_slot_ul_alloc_delay(cell_cfg_.ntn_cs_koffset));
   uci_alloc_grid.resize(ring_size);
@@ -191,7 +193,6 @@ std::optional<uci_allocation> uci_allocator_impl::alloc_harq_ack(cell_resource_a
     const bool is_sr_opportunity =
         sr_helper::is_sr_opportunity_slot(ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value(), uci_slot);
     const unsigned scheduled_harq_bits     = get_scheduled_pdsch_counter_in_ue_uci(slot_alloc.slot, crnti);
-    const auto&    pucch_cfg               = ue_cell_cfg.init_bwp().ul_ded.value().pucch_cfg.value();
     unsigned       nof_available_harq_bits = 0U;
 
     if (ue_cell_cfg.csi_meas_cfg() != nullptr and not is_pusch_configured(*ue_cell_cfg.csi_meas_cfg()) and
@@ -200,12 +201,10 @@ std::optional<uci_allocation> uci_allocator_impl::alloc_harq_ack(cell_resource_a
       const auto     csi_report_cfg  = create_csi_report_configuration(*ue_cell_cfg.csi_meas_cfg());
       const unsigned csi_report_size = get_csi_report_pucch_size(csi_report_cfg).part1_size.value();
       // NOTE: This is only to avoid allocating more than 2 HARQ bits in PUCCH that are expected to carry CSI reporting.
-      nof_available_harq_bits = std::min(pucch_cfg.get_max_payload(pucch_cfg.get_set_1_format()) - csi_report_size -
-                                             static_cast<unsigned>(is_sr_opportunity),
+      nof_available_harq_bits = std::min(max_pucch_payload - csi_report_size - static_cast<unsigned>(is_sr_opportunity),
                                          static_cast<unsigned>(max_harq_bits_per_uci));
     } else {
-      nof_available_harq_bits =
-          pucch_cfg.get_max_payload(pucch_cfg.get_set_1_format()) - static_cast<unsigned>(is_sr_opportunity);
+      nof_available_harq_bits = max_pucch_payload - static_cast<unsigned>(is_sr_opportunity);
     }
 
     if (scheduled_harq_bits >= nof_available_harq_bits) {

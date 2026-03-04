@@ -134,6 +134,7 @@ pucch_allocator_impl::pucch_allocator_impl(const cell_configuration& cell_cfg_,
   cell_cfg(cell_cfg_),
   max_pucch_grants_per_slot(max_pucchs_per_slot),
   max_ul_grants_per_slot(max_ul_grants_per_slot_),
+  max_pucch_payload_234(cell_cfg.init_bwp_builder.pucch.resources.max_payload_234()),
   resource_manager(cell_cfg_),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
@@ -836,7 +837,7 @@ void pucch_allocator_impl::allocate_csi_grant(cell_slot_resource_allocator& pucc
   // When this function is called, it means that there are no SR grants to be multiplexed with CSI; thus, the CSI bits
   // are the only UCI bits to be considered.
   // It's the validator that should make sure the CSI bits fit into a PUCCH Format 2/3/4 resource.
-  const unsigned max_payload = ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(csi_res->format);
+  const unsigned max_payload = get_max_payload(csi_res->format);
   ocudu_assert(csi_part1_bits <= max_payload,
                "rnti={}: PUCCH F2/F3/F4 max payload {} is insufficient for {} candidate UCI bits",
                alloc_ctx.rnti,
@@ -1114,7 +1115,7 @@ pucch_allocator_impl::allocate_without_multiplexing(cell_slot_resource_allocator
   // In any case, we only need to update the HARQ-ACK bits in the HARQ-ACK PDU.
   else {
     if (current_grants.pucch_grants.get_uci_bits().get_total_bits() >=
-        ue_cell_cfg.init_bwp().ul_ded->pucch_cfg.value().get_max_payload(existing_pdus.harq_pdu->format())) {
+        get_max_payload(existing_pdus.harq_pdu->format())) {
       alloc_ctx.log_skipped_alloc(logger.debug, "UCI bits exceed PUCCH payload");
       return std::nullopt;
     }
@@ -1269,7 +1270,6 @@ pucch_allocator_impl::merge_pucch_resources(pucch_resource_manager::ue_reservati
     return std::nullopt;
   }
 
-  const auto& pucch_cfg = guard.get_ue_cfg().init_bwp().ul_ded->pucch_cfg.value();
   if (resources_to_merge.size() == 2) {
     const pucch_grant& r_0 = resources_to_merge[0];
     const pucch_grant& r_1 = resources_to_merge[1];
@@ -1333,7 +1333,7 @@ pucch_allocator_impl::merge_pucch_resources(pucch_resource_manager::ue_reservati
       new_resource.bits.csi_part1_nof_bits = r_harq.bits.csi_part1_nof_bits;
       new_resource.bits.sr_bits            = r_sr.bits.sr_bits;
       // Check if the UCI payload fits in the PUCCH resource.
-      if (new_resource.bits.get_total_bits() > pucch_cfg.get_max_payload(new_resource.format)) {
+      if (new_resource.bits.get_total_bits() > get_max_payload(new_resource.format)) {
         return std::nullopt;
       }
       return new_resource;
@@ -1354,7 +1354,7 @@ pucch_allocator_impl::merge_pucch_resources(pucch_resource_manager::ue_reservati
       new_resource.bits.sr_bits = r_sr.bits.sr_bits;
 
       // Check if the UCI payload fits in the PUCCH resource.
-      if (new_resource.bits.get_total_bits() > pucch_cfg.get_max_payload(new_resource.format)) {
+      if (new_resource.bits.get_total_bits() > get_max_payload(new_resource.format)) {
         return std::nullopt;
       }
       return new_resource;
@@ -1402,7 +1402,7 @@ pucch_allocator_impl::merge_pucch_resources(pucch_resource_manager::ue_reservati
       }
 
       // Check if the UCI payload fits in the PUCCH resource.
-      if (new_resource.bits.get_total_bits() > pucch_cfg.get_max_payload(new_resource.format)) {
+      if (new_resource.bits.get_total_bits() > get_max_payload(new_resource.format)) {
         return std::nullopt;
       }
       return new_resource;
@@ -1457,7 +1457,7 @@ pucch_allocator_impl::merge_pucch_resources(pucch_resource_manager::ue_reservati
     new_resource.bits.csi_part1_nof_bits = r_csi->bits.csi_part1_nof_bits;
 
     // Check if the UCI payload fits in the PUCCH resource.
-    if (new_resource.bits.get_total_bits() > pucch_cfg.get_max_payload(new_resource.format)) {
+    if (new_resource.bits.get_total_bits() > get_max_payload(new_resource.format)) {
       return std::nullopt;
     }
     return new_resource;
@@ -1641,6 +1641,23 @@ bool pucch_allocator_impl::is_there_space_for_new_pucch_grants(const sched_resul
 
   const int nof_total_pucchs = slot_result.ul.pucchs.size() + nof_grants_to_allocate;
   return nof_total_pucchs <= max_nof_pucch_grants;
+}
+
+unsigned pucch_allocator_impl::get_max_payload(pucch_format format) const
+{
+  switch (format) {
+    case pucch_format::FORMAT_0:
+    case pucch_format::FORMAT_1:
+      // PUCCH Format 0 and 1 can carry at most 2 HARQ-ACK bits.
+      return 2U;
+    case pucch_format::FORMAT_2:
+    case pucch_format::FORMAT_3:
+    case pucch_format::FORMAT_4:
+      return max_pucch_payload_234;
+    default:
+      ocudu_assertion_failure("Invalid PUCCH format");
+      return 0;
+  }
 }
 
 void pucch_allocator_impl::fill_common_pdu(pucch_info&                pucch_pdu,

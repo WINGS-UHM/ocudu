@@ -10,7 +10,6 @@
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_helper.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
-#include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
@@ -469,22 +468,6 @@ uplink_config ocudu::config_helpers::make_default_ue_uplink_config(const cell_co
       pucch_common_all_formats{.max_c_rate = max_c_rate, .simultaneous_harq_ack_csi = true});
   pucch_cfg.dl_data_to_ul_ack =
       time_domain_resource_helper::generate_k1_candidates(params.tdd_ul_dl_cfg_common, params.min_k1);
-
-  // Compute the max UCI payload per format.
-  // As per TS 38.231, Section 9.2.1, with PUCCH Format 1, we can have up to 2 HARQ-ACK bits (SR doesn't count as part
-  // of the payload).
-  {
-    static constexpr unsigned pucch_f1_max_harq_payload                        = 2U;
-    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_1)] = pucch_f1_max_harq_payload;
-
-    const pucch_resource& res_f2        = pucch_cfg.pucch_res_list.back();
-    const auto&           res_f2_params = std::get<pucch_format_2_3_cfg>(res_f2.format_params);
-    pucch_cfg.format_max_payload[pucch_format_to_uint(pucch_format::FORMAT_2)] =
-        get_pucch_format2_max_payload(res_f2_params.nof_prbs,
-                                      res_f2.nof_symbols,
-                                      to_max_code_rate_float(pucch_cfg.format_2_common_param.value().max_c_rate));
-    pucch_cfg.set_1_format = pucch_format::FORMAT_2;
-  }
 
   // Add the PUCCH power configuration.
   auto& pucch_pw_ctrl          = pucch_cfg.pucch_pw_control.emplace();

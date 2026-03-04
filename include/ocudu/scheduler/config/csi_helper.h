@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ocudu/ran/csi_rs/csi_meas_config.h"
+#include "ocudu/ran/csi_rs/csi_report_config.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/pdsch/pdsch_mcs.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config.h"
@@ -71,6 +72,10 @@ csi_resource_periodicity get_max_csi_rs_period(subcarrier_spacing pdsch_scs);
 /// - it is one that the UE expects it for the CSI-RS for tracking.
 [[nodiscard]] bool is_csi_rs_period_valid(csi_resource_periodicity       csi_rs_period,
                                           const tdd_ul_dl_config_common& tdd_cfg);
+
+/// Checks whether the given SR and CSI periods+offsets will result in SR and CSI being scheduled together in some slot.
+[[nodiscard]] bool
+sr_csi_offsets_collide(unsigned sr_period, unsigned sr_offset, unsigned csi_period, unsigned csi_offset);
 
 /// \brief Searches for a valid CSI-RS periodicity, while constrained by TDD pattern periodicity.
 std::optional<csi_resource_periodicity> find_valid_csi_rs_period(const tdd_ul_dl_config_common& tdd_cfg);

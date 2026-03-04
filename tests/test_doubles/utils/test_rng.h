@@ -28,7 +28,10 @@ Integer uniform_int()
 }
 
 /// Returns a random boolean with probability \c p of being true.
-inline bool bernoulli(double p) { return std::bernoulli_distribution(p)(tls_gen()); }
+inline bool bernoulli(double p)
+{
+  return std::bernoulli_distribution(p)(tls_gen());
+}
 
 /// Returns a random floating point value with normal distribution.
 template <typename FloatingPoint>

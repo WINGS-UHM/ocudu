@@ -6,7 +6,7 @@
 #include "tests/test_doubles/du/test_du_high_worker_manager.h"
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/mac/mac_test_messages.h"
-#include "tests/test_doubles/random/test_rng.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
 #include "ocudu/cu_cp/cu_cp_factory.h"

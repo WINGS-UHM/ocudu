@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "tests/test_doubles/random/test_rng.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <array>

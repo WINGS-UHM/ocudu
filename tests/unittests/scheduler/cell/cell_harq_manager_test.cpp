@@ -3,7 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/cell/cell_harq_manager.h"
-#include "tests/test_doubles/random/test_rng.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/scheduler/result/sched_result.h"
 #include <gtest/gtest.h>
 

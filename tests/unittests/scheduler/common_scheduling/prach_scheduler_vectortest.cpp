@@ -4,8 +4,8 @@
 
 #include "lib/scheduler/common_scheduling/prach_scheduler.h"
 #include "prach_scheduler_test_data.h"
-#include "tests/test_doubles/random/test_rng.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/prach/prach_cyclic_shifts.h"
 #include "ocudu/ran/prach/prach_preamble_information.h"

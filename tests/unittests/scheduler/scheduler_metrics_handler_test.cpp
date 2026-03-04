@@ -4,8 +4,8 @@
 
 #include "lib/scheduler/config/cell_configuration.h"
 #include "lib/scheduler/logging/scheduler_metrics_handler.h"
-#include "tests/test_doubles/random/test_rng.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/result/sched_result.h"
 #include <gtest/gtest.h>

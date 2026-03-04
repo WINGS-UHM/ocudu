@@ -7,8 +7,8 @@
 
 #include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_simulator.h"
-#include "tests/test_doubles/random/test_rng.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/scheduler/resource_grid_util.h"
 #include <gtest/gtest.h>
 

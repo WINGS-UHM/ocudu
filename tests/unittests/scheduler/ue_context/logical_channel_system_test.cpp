@@ -4,7 +4,7 @@
 
 #include "lib/scheduler/config/logical_channel_config_pool.h"
 #include "lib/scheduler/ue_context/logical_channel_system.h"
-#include "tests/test_doubles/random/test_rng.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
 #include <gtest/gtest.h>
 

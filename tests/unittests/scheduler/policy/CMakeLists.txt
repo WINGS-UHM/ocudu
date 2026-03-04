@@ -10,5 +10,5 @@ target_link_libraries(scheduler_policy_test
         sched_test_doubles
         ocudulog
         gtest
-        random_gtest_main)
+        ocudu_gtest_main)
 gtest_discover_tests(scheduler_policy_test)

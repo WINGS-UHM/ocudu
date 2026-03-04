@@ -15,6 +15,6 @@ target_link_libraries(scheduler_cell_resource_test
         scheduler_test_utils
         sched_test_doubles
         gtest
-        random_gtest_main)
+        ocudu_gtest_main)
 add_test(scheduler_cell_resource_test scheduler_cell_resource_test)
 

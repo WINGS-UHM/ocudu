@@ -13,5 +13,5 @@ target_link_libraries(srs_sched_test
         sched_config
         sched_test_doubles
         gtest
-        random_gtest_main)
+        ocudu_gtest_main)
 gtest_discover_tests(srs_sched_test)

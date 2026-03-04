@@ -2,5 +2,5 @@
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 # Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-add_library(random_gtest_main random_gtest_main.cpp)
-target_link_libraries(random_gtest_main PRIVATE gtest)
+add_library(ocudu_gtest_main ocudu_gtest_main.cpp)
+target_link_libraries(ocudu_gtest_main PRIVATE gtest)

@@ -43,8 +43,56 @@ void update_current_seed(uint32_t iteration_counter)
              new_seed);
 }
 
-/// Gtest environment for setting up random seeds.
-class RandomSeedEnvironment : public ::testing::Environment
+/// Setup a default log level for loggers based on a provided cmd line parameter "--log_level=", if present.
+void setup_default_log_level(int argc, char** argv)
+{
+  // Parse logging level passed via command line arguments.
+  ocudulog::basic_levels chosen_level = ocudulog::basic_levels::debug;
+
+  for (int i = 1; i < argc; ++i) {
+    std::string cmd_arg = argv[i];
+    if (cmd_arg.find("--log_level") == 0) {
+      // Log level specified in command line.
+      size_t pos = cmd_arg.find("=");
+      if (pos != std::string::npos and cmd_arg.size() > pos + 1) {
+        cmd_arg               = cmd_arg.substr(pos + 1, cmd_arg.size());
+        auto parsed_log_level = ocudulog::str_to_basic_level(cmd_arg);
+        if (parsed_log_level.has_value()) {
+          chosen_level = *parsed_log_level;
+          i            = argc;
+          break;
+        }
+      } else {
+        for (; i < argc; ++i) {
+          cmd_arg = argv[i];
+          if (not cmd_arg.empty()) {
+            auto parsed_log_level = ocudulog::str_to_basic_level(cmd_arg);
+            if (parsed_log_level.has_value()) {
+              chosen_level = *parsed_log_level;
+              i            = argc;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Setup default log level.
+  // TODO: Support setting a default log level in ocudulog instead of individual loggers.
+  ocudulog::fetch_basic_logger("TEST").set_level(chosen_level);
+  ocudulog::fetch_basic_logger("SCHED", true).set_level(chosen_level);
+  ocudulog::fetch_basic_logger("MAC", true).set_level(chosen_level);
+  ocudulog::fetch_basic_logger("RLC").set_level(chosen_level);
+  ocudulog::fetch_basic_logger("DU-MNG").set_level(chosen_level);
+  ocudulog::fetch_basic_logger("DU-F1").set_level(chosen_level);
+
+  // Init ocudulog.
+  ocudulog::init();
+}
+
+/// Gtest environment for setting up random seeds and log level.
+class OCUDUTestEnvironment : public ::testing::Environment
 {
 public:
   void SetUp() override
@@ -54,6 +102,7 @@ public:
     // afterwards.
     base_seed = ::testing::UnitTest::GetInstance()->random_seed();
   }
+
   void TearDown() override
   {
     // Ensure logs are flushed.
@@ -103,7 +152,7 @@ std::mt19937& ocudu::test_rng::tls_gen()
 
   uint32_t cur_test_counter = test_counter.load(std::memory_order_acquire);
   report_fatal_error_if_not(cur_test_counter != invalid_test_counter,
-                            "RandomSeedEnvironment has not yet been setup. Are you trying to generate random "
+                            "OCUDUTestEnvironment has not yet been setup. Are you trying to generate random "
                             "parameters before main() is called?");
   if (cur_test_counter != last_test_counter) {
     // New test started. Rewind generator back to original iteration seed.
@@ -115,10 +164,14 @@ std::mt19937& ocudu::test_rng::tls_gen()
 
 int main(int argc, char** argv)
 {
+  // Parse --log_level= if it exists to set the default log level.
+  setup_default_log_level(argc, argv);
+
+  // Init Gtest.
   ::testing::InitGoogleTest(&argc, argv);
 
   // Set up global seed.
-  ::testing::AddGlobalTestEnvironment(new RandomSeedEnvironment{});
+  ::testing::AddGlobalTestEnvironment(new OCUDUTestEnvironment{});
 
   // Setup test random listener.
   auto& listeners = ::testing::UnitTest::GetInstance()->listeners();

@@ -23,14 +23,7 @@ using namespace ocudu;
 namespace sched_no_ue_test {
 
 class sched_no_ue_tester : public ::testing::Test
-{
-protected:
-  void SetUp() override
-  {
-    ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::info);
-    ocudulog::init();
-  }
-};
+{};
 
 } // namespace sched_no_ue_test
 

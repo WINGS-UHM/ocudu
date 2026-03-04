@@ -1,4 +1,6 @@
 /\.git/
+/\.reuse/
+/REUSE\.toml$
 /build/
 /docs/doxygen/
 /external/

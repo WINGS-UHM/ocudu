@@ -16,13 +16,13 @@ namespace ocucp {
 ///
 /// Sends an RRCReconfiguration removing the conditional reconfig from the UE,
 /// then releases all target UE contexts and clears the source CHO context.
-class cho_cancellation_routine
+class conditional_handover_cancellation_routine
 {
 public:
-  cho_cancellation_routine(ue_index_t                        source_ue_index,
-                           cu_cp_ue_context_release_handler& ue_context_release_handler,
-                           ue_manager&                       ue_mng,
-                           ocudulog::basic_logger&           logger);
+  conditional_handover_cancellation_routine(ue_index_t                        source_ue_index,
+                                            cu_cp_ue_context_release_handler& ue_context_release_handler,
+                                            ue_manager&                       ue_mng,
+                                            ocudulog::basic_logger&           logger);
 
   void operator()(coro_context<async_task<void>>& ctx);
 

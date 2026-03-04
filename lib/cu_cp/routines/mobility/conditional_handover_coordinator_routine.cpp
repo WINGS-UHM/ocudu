@@ -2,21 +2,22 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "cho_coordinator_routine.h"
+#include "conditional_handover_coordinator_routine.h"
 #include "../../du_processor/du_processor_repository.h"
 #include "../../ue_manager/ue_manager_impl.h"
-#include "cho_reconfiguration_routine.h"
+#include "conditional_handover_reconfiguration_routine.h"
 #include "intra_cu_handover_routine.h"
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
 
-cho_coordinator_routine::cho_coordinator_routine(const cu_cp_intra_cu_cho_request& request_,
-                                                 du_processor_repository&          du_db_,
-                                                 cu_cp_impl_interface&             cu_cp_handler_,
-                                                 ue_manager&                       ue_mng_,
-                                                 mobility_manager&                 mobility_mng_,
-                                                 ocudulog::basic_logger&           logger_) :
+conditional_handover_coordinator_routine::conditional_handover_coordinator_routine(
+    const cu_cp_intra_cu_cho_request& request_,
+    du_processor_repository&          du_db_,
+    cu_cp_impl_interface&             cu_cp_handler_,
+    ue_manager&                       ue_mng_,
+    mobility_manager&                 mobility_mng_,
+    ocudulog::basic_logger&           logger_) :
   request(request_),
   du_db(du_db_),
   cu_cp_handler(cu_cp_handler_),
@@ -26,7 +27,7 @@ cho_coordinator_routine::cho_coordinator_routine(const cu_cp_intra_cu_cho_reques
 {
 }
 
-async_task<void> cho_coordinator_routine::release_prepared_targets()
+async_task<void> conditional_handover_coordinator_routine::release_prepared_targets()
 {
   return launch_async(
       [this, idx = size_t{0}, result = cu_cp_ue_context_release_complete{}, cmd = cu_cp_ue_context_release_command{}](
@@ -43,7 +44,7 @@ async_task<void> cho_coordinator_routine::release_prepared_targets()
       });
 }
 
-void cho_coordinator_routine::operator()(coro_context<async_task<cu_cp_intra_cu_cho_response>>& ctx)
+void conditional_handover_coordinator_routine::operator()(coro_context<async_task<cu_cp_intra_cu_cho_response>>& ctx)
 {
   CORO_BEGIN(ctx);
 
@@ -161,24 +162,24 @@ void cho_coordinator_routine::operator()(coro_context<async_task<cu_cp_intra_cu_
   cho_reconfig_request.source_ue_index   = request.source_ue_index;
   cho_reconfig_request.timeout           = request.timeout;
   cho_reconfig_request.t1_thres_override = request.t1_thres_override;
-  CORO_AWAIT_VALUE(
-      cho_reconfig_result,
-      launch_async<cho_reconfiguration_routine>(cho_reconfig_request,
-                                                *source_ue,
-                                                du_db.get_du_processor(request.source_du_index).get_f1ap_handler(),
-                                                cu_cp_handler,
-                                                cu_cp_handler,
-                                                ue_mng,
-                                                logger));
+  CORO_AWAIT_VALUE(cho_reconfig_result,
+                   launch_async<conditional_handover_reconfiguration_routine>(
+                       cho_reconfig_request,
+                       *source_ue,
+                       du_db.get_du_processor(request.source_du_index).get_f1ap_handler(),
+                       cu_cp_handler,
+                       cu_cp_handler,
+                       ue_mng,
+                       logger));
   if (!cho_reconfig_result) {
     logger.warning("ue={}: CHO coordinator failed. Reconfiguration phase failed", request.source_ue_index);
     CORO_EARLY_RETURN(response);
   }
 
-  // Start cancellation timer. Fires cho_cancellation_routine if UE never executes CHO.
+  // Start cancellation timer. Fires conditional_handover_cancellation_routine if UE never executes CHO.
   cu_cp_handler.initialize_cho_execution_timer(request.source_ue_index, request.timeout);
 
-  // Phase 3: CHO completion is handled asynchronously by cho_source_routine after Access Success.
+  // Phase 3: CHO completion is handled asynchronously by conditional_handover_source_routine after Access Success.
 
   logger.debug("ue={}: \"{}\" finished successfully", source_ue->get_ue_index(), name());
   response.success = true;

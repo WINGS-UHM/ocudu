@@ -2,19 +2,19 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "cho_target_routine.h"
+#include "conditional_handover_target_routine.h"
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
 
-cho_target_routine::cho_target_routine(const cu_cp_cho_target_request& request_,
-                                       ue_manager&                     ue_mng_,
-                                       ocudulog::basic_logger&         logger_) :
+conditional_handover_target_routine::conditional_handover_target_routine(const cu_cp_cho_target_request& request_,
+                                                                         ue_manager&                     ue_mng_,
+                                                                         ocudulog::basic_logger&         logger_) :
   request(request_), ue_mng(ue_mng_), logger(logger_)
 {
 }
 
-void cho_target_routine::operator()(coro_context<async_task<void>>& ctx)
+void conditional_handover_target_routine::operator()(coro_context<async_task<void>>& ctx)
 {
   CORO_BEGIN(ctx);
 

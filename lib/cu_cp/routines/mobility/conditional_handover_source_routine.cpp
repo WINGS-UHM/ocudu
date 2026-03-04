@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "cho_source_routine.h"
+#include "conditional_handover_source_routine.h"
 #include "../../cu_up_processor/cu_up_processor_repository.h"
 #include "../../du_processor/du_processor_repository.h"
 #include "../../mobility_manager/mobility_manager_impl.h"
@@ -10,14 +10,15 @@
 using namespace ocudu;
 using namespace ocudu::ocucp;
 
-cho_source_routine::cho_source_routine(const cu_cp_access_success_indication& msg_,
-                                       ue_manager&                            ue_mng_,
-                                       du_processor_repository&               du_db_,
-                                       cu_up_processor_repository&            cu_up_db_,
-                                       cu_cp_ue_context_manipulation_handler& cu_cp_handler_,
-                                       cu_cp_ue_context_release_handler&      ue_context_release_handler_,
-                                       mobility_manager&                      mobility_mng_,
-                                       ocudulog::basic_logger&                logger_) :
+conditional_handover_source_routine::conditional_handover_source_routine(
+    const cu_cp_access_success_indication& msg_,
+    ue_manager&                            ue_mng_,
+    du_processor_repository&               du_db_,
+    cu_up_processor_repository&            cu_up_db_,
+    cu_cp_ue_context_manipulation_handler& cu_cp_handler_,
+    cu_cp_ue_context_release_handler&      ue_context_release_handler_,
+    mobility_manager&                      mobility_mng_,
+    ocudulog::basic_logger&                logger_) :
   msg(msg_),
   ue_mng(ue_mng_),
   du_db(du_db_),
@@ -29,7 +30,7 @@ cho_source_routine::cho_source_routine(const cu_cp_access_success_indication& ms
 {
 }
 
-void cho_source_routine::operator()(coro_context<async_task<void>>& ctx)
+void conditional_handover_source_routine::operator()(coro_context<async_task<void>>& ctx)
 {
   CORO_BEGIN(ctx);
 
@@ -153,8 +154,9 @@ void cho_source_routine::operator()(coro_context<async_task<void>>& ctx)
   CORO_RETURN();
 }
 
-bool cho_source_routine::fill_bearer_context_security_info(e1ap_bearer_context_modification_request& request,
-                                                           const security::sec_as_config&            sec_cfg)
+bool conditional_handover_source_routine::fill_bearer_context_security_info(
+    e1ap_bearer_context_modification_request& request,
+    const security::sec_as_config&            sec_cfg)
 {
   request.security_info.emplace();
   request.security_info->security_algorithm.ciphering_algo                 = sec_cfg.cipher_algo;
@@ -179,7 +181,7 @@ bool cho_source_routine::fill_bearer_context_security_info(e1ap_bearer_context_m
   return true;
 }
 
-bool cho_source_routine::resolve_source_ue()
+bool conditional_handover_source_routine::resolve_source_ue()
 {
   source_ue = ue_mng.find_du_ue(msg.ue_index);
   if (source_ue == nullptr) {

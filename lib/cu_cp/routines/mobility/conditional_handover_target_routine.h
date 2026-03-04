@@ -18,10 +18,12 @@ namespace ocucp {
 /// reconfiguration is sent to the source UE. It waits for target-side
 /// RRCReconfigurationComplete or timeout.
 ///
-class cho_target_routine
+class conditional_handover_target_routine
 {
 public:
-  cho_target_routine(const cu_cp_cho_target_request& request_, ue_manager& ue_mng_, ocudulog::basic_logger& logger_);
+  conditional_handover_target_routine(const cu_cp_cho_target_request& request_,
+                                      ue_manager&                     ue_mng_,
+                                      ocudulog::basic_logger&         logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 

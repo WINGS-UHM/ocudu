@@ -33,20 +33,20 @@ struct cu_cp_cho_reconfiguration_request {
 ///
 /// Steps:
 /// 1. Build RRCReconfiguration with conditionalReconfiguration-r16 for all candidates.
-/// 2. Notify CU-CP to start cho_target_routine on each target UE.
+/// 2. Notify CU-CP to start conditional_handover_target_routine on each target UE.
 /// 3. Send via F1AP UE Context Modification without stopping source-UE data transmission.
 /// 4. Wait for RRCReconfigurationComplete on SOURCE UE (acknowledgment).
 /// 5. Set CHO state to executing.
-class cho_reconfiguration_routine
+class conditional_handover_reconfiguration_routine
 {
 public:
-  cho_reconfiguration_routine(const cu_cp_cho_reconfiguration_request& request_,
-                              cu_cp_ue&                                source_ue_,
-                              f1ap_ue_context_manager&                 source_du_f1ap_ue_ctxt_mng_,
-                              cu_cp_ue_context_manipulation_handler&   cu_cp_handler_,
-                              cu_cp_ue_context_release_handler&        ue_context_release_handler_,
-                              ue_manager&                              ue_mng_,
-                              ocudulog::basic_logger&                  logger_);
+  conditional_handover_reconfiguration_routine(const cu_cp_cho_reconfiguration_request& request_,
+                                               cu_cp_ue&                                source_ue_,
+                                               f1ap_ue_context_manager&                 source_du_f1ap_ue_ctxt_mng_,
+                                               cu_cp_ue_context_manipulation_handler&   cu_cp_handler_,
+                                               cu_cp_ue_context_release_handler&        ue_context_release_handler_,
+                                               ue_manager&                              ue_mng_,
+                                               ocudulog::basic_logger&                  logger_);
 
   void operator()(coro_context<async_task<bool>>& ctx);
 

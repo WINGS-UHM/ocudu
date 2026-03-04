@@ -300,8 +300,8 @@ public:
   /// \brief Handle the transmission of the CHO reconfiguration by notifying a CHO target UE to await
   /// RRCReconfigurationComplete.
   ///
-  /// This starts the cho_target_routine on the specified target UE. CHO completion and cleanup
-  /// are finalized on the source side (via Access Success handling / cho_source_routine).
+  /// This starts the conditional_handover_target_routine on the specified target UE. CHO completion and cleanup
+  /// are finalized on the source side (via Access Success handling / conditional_handover_source_routine).
   ///
   /// \param[in] request The CHO target request.
   virtual void handle_cho_reconfiguration_sent(const cu_cp_cho_target_request& request) = 0;
@@ -324,7 +324,7 @@ public:
   /// \param[in] ue_index The index of the UE.
   virtual void initialize_rna_update_timer(ue_index_t ue_index) = 0;
 
-  /// \brief Start CHO execution cancellation timer. Fires cho_cancellation_routine on expiry.
+  /// \brief Start CHO execution cancellation timer. Fires conditional_handover_cancellation_routine on expiry.
   /// \param[in] source_ue_index Index of the source UE.
   /// \param[in] timeout Duration; 0ms disables the timer (no-op).
   virtual void initialize_cho_execution_timer(ue_index_t source_ue_index, std::chrono::milliseconds timeout) = 0;

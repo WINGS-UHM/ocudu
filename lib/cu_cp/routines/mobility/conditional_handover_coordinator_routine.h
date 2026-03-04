@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "cho_reconfiguration_routine.h"
+#include "conditional_handover_reconfiguration_routine.h"
 #include "ocudu/cu_cp/cu_cp_cho_types.h"
 #include "ocudu/cu_cp/cu_cp_intra_cu_ho_types.h"
 #include "ocudu/ocudulog/logger.h"
@@ -27,15 +27,15 @@ struct prepared_cho_target {
 };
 
 /// \brief Coordinates full intra-CU CHO flow: preparation and execution/cancellation decision.
-class cho_coordinator_routine
+class conditional_handover_coordinator_routine
 {
 public:
-  cho_coordinator_routine(const cu_cp_intra_cu_cho_request& request_,
-                          du_processor_repository&          du_db_,
-                          cu_cp_impl_interface&             cu_cp_handler_,
-                          ue_manager&                       ue_mng_,
-                          mobility_manager&                 mobility_mng_,
-                          ocudulog::basic_logger&           logger_);
+  conditional_handover_coordinator_routine(const cu_cp_intra_cu_cho_request& request_,
+                                           du_processor_repository&          du_db_,
+                                           cu_cp_impl_interface&             cu_cp_handler_,
+                                           ue_manager&                       ue_mng_,
+                                           mobility_manager&                 mobility_mng_,
+                                           ocudulog::basic_logger&           logger_);
 
   void operator()(coro_context<async_task<cu_cp_intra_cu_cho_response>>& ctx);
 

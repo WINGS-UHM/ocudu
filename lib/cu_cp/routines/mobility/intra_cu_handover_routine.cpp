@@ -133,7 +133,7 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
 
     if (is_cho_preparation) {
       response_msg.cho_preparation_result->target_ue_index = target_ue_context_setup_response.ue_index;
-      // Store bearer context modification request for later use in cho_target_routine.
+      // Store bearer context modification request for later use in conditional_handover_target_routine.
       // This contains the new DL F1-U tunnel endpoints that CU-UP needs after CHO completion.
       response_msg.cho_preparation_result->ng_ran_bearer_context_mod_request =
           std::move(bearer_context_modification_request.ng_ran_bearer_context_mod_request);

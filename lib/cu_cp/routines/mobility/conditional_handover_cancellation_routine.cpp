@@ -2,17 +2,18 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "cho_cancellation_routine.h"
+#include "conditional_handover_cancellation_routine.h"
 #include "../../ue_manager/ue_manager_impl.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
 
-cho_cancellation_routine::cho_cancellation_routine(ue_index_t                        source_ue_index_,
-                                                   cu_cp_ue_context_release_handler& ue_context_release_handler_,
-                                                   ue_manager&                       ue_mng_,
-                                                   ocudulog::basic_logger&           logger_) :
+conditional_handover_cancellation_routine::conditional_handover_cancellation_routine(
+    ue_index_t                        source_ue_index_,
+    cu_cp_ue_context_release_handler& ue_context_release_handler_,
+    ue_manager&                       ue_mng_,
+    ocudulog::basic_logger&           logger_) :
   source_ue_index(source_ue_index_),
   ue_context_release_handler(ue_context_release_handler_),
   ue_mng(ue_mng_),
@@ -20,7 +21,7 @@ cho_cancellation_routine::cho_cancellation_routine(ue_index_t                   
 {
 }
 
-void cho_cancellation_routine::operator()(coro_context<async_task<void>>& ctx)
+void conditional_handover_cancellation_routine::operator()(coro_context<async_task<void>>& ctx)
 {
   CORO_BEGIN(ctx);
 
@@ -30,13 +31,13 @@ void cho_cancellation_routine::operator()(coro_context<async_task<void>>& ctx)
   }
 
   // Only proceed if CHO is still in the execution state.
-  // cho_source_routine claims completion by transitioning to completion first.
+  // conditional_handover_source_routine claims completion by transitioning to completion first.
   if (!source_ue->get_cho_context().has_value() ||
       source_ue->get_cho_context()->state != cu_cp_ue_cho_context::state_t::execution) {
     CORO_EARLY_RETURN();
   }
 
-  // Claim ownership before any CORO_AWAIT to prevent cho_source_routine from racing.
+  // Claim ownership before any CORO_AWAIT to prevent conditional_handover_source_routine from racing.
   source_ue->get_cho_context()->state = cu_cp_ue_cho_context::state_t::completion;
 
   logger.info("ue={}: CHO execution timed out. Cancelling.", source_ue_index);

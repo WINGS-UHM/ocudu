@@ -77,7 +77,7 @@ struct cu_cp_ue_cho_context {
   ue_index_t                       source_ue_index = ue_index_t::invalid; ///< For target UEs: the source UE index.
   state_t                          state           = state_t::idle;       ///< Current CHO state.
   std::vector<cu_cp_cho_candidate> candidates;                            ///< CHO candidate cells (1-8).
-  unique_timer                     cho_execution_timer; ///< Fires cho_cancellation_routine if UE never executes CHO.
+  unique_timer cho_execution_timer; ///< Fires conditional_handover_cancellation_routine if UE never executes CHO.
 
   /// \brief Find candidate by target UE index.
   /// \param[in] target_ue_idx Target UE index to search for.

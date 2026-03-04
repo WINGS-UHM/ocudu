@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "cho_reconfiguration_routine.h"
+#include "conditional_handover_reconfiguration_routine.h"
 #include <algorithm>
 
 using namespace ocudu;
@@ -10,13 +10,14 @@ using namespace ocudu::ocucp;
 
 using namespace asn1::rrc_nr;
 
-cho_reconfiguration_routine::cho_reconfiguration_routine(const cu_cp_cho_reconfiguration_request& request_,
-                                                         cu_cp_ue&                                source_ue_,
-                                                         f1ap_ue_context_manager& source_du_f1ap_ue_ctxt_mng_,
-                                                         cu_cp_ue_context_manipulation_handler& cu_cp_handler_,
-                                                         cu_cp_ue_context_release_handler& ue_context_release_handler_,
-                                                         ue_manager&                       ue_mng_,
-                                                         ocudulog::basic_logger&           logger_) :
+conditional_handover_reconfiguration_routine::conditional_handover_reconfiguration_routine(
+    const cu_cp_cho_reconfiguration_request& request_,
+    cu_cp_ue&                                source_ue_,
+    f1ap_ue_context_manager&                 source_du_f1ap_ue_ctxt_mng_,
+    cu_cp_ue_context_manipulation_handler&   cu_cp_handler_,
+    cu_cp_ue_context_release_handler&        ue_context_release_handler_,
+    ue_manager&                              ue_mng_,
+    ocudulog::basic_logger&                  logger_) :
   request(request_),
   source_ue(source_ue_),
   source_du_f1ap_ue_ctxt_mng(source_du_f1ap_ue_ctxt_mng_),
@@ -27,7 +28,7 @@ cho_reconfiguration_routine::cho_reconfiguration_routine(const cu_cp_cho_reconfi
   ocudu_assert(source_ue.get_ue_index() != ue_index_t::invalid, "Invalid source UE index {}", source_ue.get_ue_index());
 }
 
-void cho_reconfiguration_routine::operator()(coro_context<async_task<bool>>& ctx)
+void conditional_handover_reconfiguration_routine::operator()(coro_context<async_task<bool>>& ctx)
 {
   CORO_BEGIN(ctx);
 
@@ -60,7 +61,8 @@ void cho_reconfiguration_routine::operator()(coro_context<async_task<bool>>& ctx
   {
     auto& cho_ctx = source_ue.get_cho_context();
     // Only one target observer per target UE index is required.
-    // In intra-DU CHO all candidates map to source_ue_index, so exactly one cho_target_routine is started.
+    // In intra-DU CHO all candidates map to source_ue_index, so exactly one conditional_handover_target_routine is
+    // started.
     std::vector<ue_index_t> armed_target_ues;
     for (const auto& candidate : cho_ctx->candidates) {
       if (std::find(armed_target_ues.begin(), armed_target_ues.end(), candidate.target_ue_index) !=
@@ -147,7 +149,7 @@ void cho_reconfiguration_routine::operator()(coro_context<async_task<bool>>& ctx
   CORO_RETURN(true);
 }
 
-byte_buffer cho_reconfiguration_routine::build_conditional_reconfiguration_message()
+byte_buffer conditional_handover_reconfiguration_routine::build_conditional_reconfiguration_message()
 {
   auto& cho_ctx = source_ue.get_cho_context();
   if (!cho_ctx.has_value() || cho_ctx->candidates.empty()) {
@@ -229,7 +231,7 @@ byte_buffer cho_reconfiguration_routine::build_conditional_reconfiguration_messa
   return std::move(cond_reconf_ctxt.rrc_ue_cond_reconfiguration_pdu);
 }
 
-void cho_reconfiguration_routine::generate_ue_context_modification_request()
+void conditional_handover_reconfiguration_routine::generate_ue_context_modification_request()
 {
   ue_context_mod_request.ue_index      = source_ue.get_ue_index();
   ue_context_mod_request.rrc_container = rrc_container.copy();
@@ -239,7 +241,7 @@ void cho_reconfiguration_routine::generate_ue_context_modification_request()
   // Traffic stop/switch is handled later by CHO completion on Access Success.
 }
 
-async_task<void> cho_reconfiguration_routine::cleanup_targets()
+async_task<void> conditional_handover_reconfiguration_routine::cleanup_targets()
 {
   return launch_async([this](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);

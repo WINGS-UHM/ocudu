@@ -21,17 +21,17 @@ class mobility_manager;
 /// This routine resolves the source UE CHO context, determines winner candidate,
 /// performs inter-DU completion actions (context transfer, CU-UP update, target DU
 /// confirmation), releases non-winners, and clears source CHO context.
-class cho_source_routine
+class conditional_handover_source_routine
 {
 public:
-  cho_source_routine(const cu_cp_access_success_indication& msg_,
-                     ue_manager&                            ue_mng_,
-                     du_processor_repository&               du_db_,
-                     cu_up_processor_repository&            cu_up_db_,
-                     cu_cp_ue_context_manipulation_handler& cu_cp_handler_,
-                     cu_cp_ue_context_release_handler&      ue_context_release_handler_,
-                     mobility_manager&                      mobility_mng_,
-                     ocudulog::basic_logger&                logger_);
+  conditional_handover_source_routine(const cu_cp_access_success_indication& msg_,
+                                      ue_manager&                            ue_mng_,
+                                      du_processor_repository&               du_db_,
+                                      cu_up_processor_repository&            cu_up_db_,
+                                      cu_cp_ue_context_manipulation_handler& cu_cp_handler_,
+                                      cu_cp_ue_context_release_handler&      ue_context_release_handler_,
+                                      mobility_manager&                      mobility_mng_,
+                                      ocudulog::basic_logger&                logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 

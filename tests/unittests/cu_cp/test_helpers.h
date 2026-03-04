@@ -886,9 +886,9 @@ struct dummy_cu_cp_xnap_handler : public cu_cp_xnap_handler {
 public:
   dummy_cu_cp_xnap_handler() = default;
 
-  async_task<bool> handle_new_handover_command(ue_index_t ue_index, byte_buffer command) override
+  async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
   {
-    logger.info("ue={}: Received a new handover command", ue_index);
+    logger.info("ue={}: Received a new RRC Handover Command", ue_index);
     last_handover_command = std::move(command);
     return launch_async([](coro_context<async_task<bool>>& ctx) mutable {
       CORO_BEGIN(ctx);

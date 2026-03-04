@@ -16,8 +16,7 @@
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/support/async/async_task.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 struct ngap_message;
 struct up_pdu_session_context;
@@ -189,11 +188,11 @@ public:
   /// \brief Notifiy about the transmission of a handover required message to the AMF.
   virtual void on_transmission_of_handover_required() = 0;
 
-  /// \brief Notify about the reception of a new Handover Command.
+  /// \brief Notify about the reception of a new RRC Handover Command (TS 38.331 section 11.2.2).
   /// \param[in] ue_index The index of the UE.
-  /// \param[in] command The Handover Command.
+  /// \param[in] command The RRC container containing the Handover Command.
   /// \returns True if the Handover command is valid and was successfully handled by the DU.
-  virtual async_task<bool> on_new_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
+  virtual async_task<bool> on_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
 
   /// \brief Notify the CU-CP to await the RRC Reconfiguration Complete and the DL Status Transfer.
   /// \param[in] ue_index The index of the UE.
@@ -393,6 +392,4 @@ public:
   virtual ngap_ue_id_translator&                       get_ngap_ue_id_translator()                = 0;
 };
 
-} // namespace ocucp
-
-} // namespace ocudu
+} // namespace ocudu::ocucp

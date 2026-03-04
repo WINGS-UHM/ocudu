@@ -48,11 +48,11 @@ class cu_cp_inter_cu_handover_handler
 public:
   virtual ~cu_cp_inter_cu_handover_handler() = default;
 
-  /// \brief Handle the reception of a new Handover Command.
-  /// \param[in] ue_index The index of the UE that received the Handover Command.
-  /// \param[in] command The received Handover Command.
-  /// \returns True if the Handover Command was successfully handled, false otherwise.
-  virtual async_task<bool> handle_new_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
+  /// \brief Handle the reception of a new RRC Handover Command.
+  /// \param[in] ue_index The index of the UE that received the RRC Handover Command.
+  /// \param[in] command The received RRC container containing the Handover Command.
+  /// \returns True if the RRC Handover Command was successfully handled, false otherwise.
+  virtual async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
 };
 
 /// Interface for the NGAP notifier to communicate with the CU-CP.

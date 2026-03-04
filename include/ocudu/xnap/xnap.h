@@ -43,11 +43,11 @@ class xnap_cu_cp_notifier
 public:
   virtual ~xnap_cu_cp_notifier() = default;
 
-  /// \brief Notify about the reception of a new Handover Command.
+  /// \brief Notify about the reception of a new RRC Handover Command (TS 38.331 section 11.2.2).
   /// \param[in] ue_index The index of the UE.
-  /// \param[in] command The Handover Command.
+  /// \param[in] command The RRC container containing the Handover Command.
   /// \returns True if the Handover command is valid and was successfully handled by the DU.
-  virtual async_task<bool> on_new_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
+  virtual async_task<bool> on_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
 };
 
 /// Combined entry point for the XNAP object.

@@ -66,7 +66,15 @@ protected:
   }
 
   /// \brief Manually tick timers.
-  void tick();
+  template <typename T>
+  void tick(async_task<T>& task, std::chrono::milliseconds duration)
+  {
+    for (unsigned msec_elapsed = 0; msec_elapsed < duration.count(); ++msec_elapsed) {
+      ASSERT_FALSE(task.ready());
+      timers.tick();
+      ctrl_worker.run_pending_tasks();
+    }
+  }
 
   ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("TEST", false);
   timer_manager              timers;

@@ -61,10 +61,7 @@ TEST_F(xnap_test, when_xn_setup_procedure_times_out_then_setup_failure_is_return
             asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);
 
   // Status: Fail XN setup procedure (XN-C peer doesn't respond).
-  for (unsigned msec_elapsed = 0; msec_elapsed < 5000; ++msec_elapsed) {
-    ASSERT_FALSE(t.ready());
-    this->tick();
-  }
+  this->tick(t, std::chrono::milliseconds(5000));
 
   ASSERT_TRUE(t.ready());
   ASSERT_FALSE(t.get());
@@ -92,10 +89,7 @@ TEST_F(xn_setup_procedure_test,
   xnap->handle_message(setup_fail);
 
   // Status: XN-C peer does not receive new XN Setup Request until time-to-wait has ended.
-  for (unsigned msec_elapsed = 0; msec_elapsed < 10000; ++msec_elapsed) {
-    ASSERT_FALSE(t.ready());
-    this->tick();
-  }
+  this->tick(t, std::chrono::milliseconds(10000));
 
   // Check XN setup request is sent again.
   setup_req = xnc_gw.get_last_tx_message();

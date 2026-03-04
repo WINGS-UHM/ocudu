@@ -28,9 +28,3 @@ void xnap_test::TearDown()
   // Flush logger after each test.
   ocudulog::flush();
 }
-
-void xnap_test::tick()
-{
-  timers.tick();
-  ctrl_worker.run_pending_tasks();
-}

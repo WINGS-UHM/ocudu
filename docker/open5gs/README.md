@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
-SPDX-License-Identifier: BSD-3-Clause-Open-MPI
--->
-
 # Open5GS Container
 
 This is a all-in-one Docker container for Open5GS. At build, the container will use the specified version of the open5gs repository (default v2.6.6

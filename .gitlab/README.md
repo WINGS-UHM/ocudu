@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
-SPDX-License-Identifier: BSD-3-Clause-Open-MPI
--->
-
 # Setting Up Your OCUDU Fork
 
 This guide explains how to fork and configure the OCUDU repository to replicate the CI/CD infrastructure in your own GitLab instance.

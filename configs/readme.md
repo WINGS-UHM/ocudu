@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
-SPDX-License-Identifier: BSD-3-Clause-Open-MPI
--->
-
 # Configuration Examples
 
 This folder contains a number of selected example configuration files that represent some

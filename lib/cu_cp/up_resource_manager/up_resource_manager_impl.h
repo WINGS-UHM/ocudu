@@ -86,7 +86,6 @@ public:
   const std::map<pdu_session_id_t, up_pdu_session_context>& get_pdu_sessions_map() const;
 
 private:
-  bool   valid_5qi(five_qi_t five_qi);
   size_t get_nof_stale_drb_ids() const;
   size_t get_nof_available_drb_ids() const;
 

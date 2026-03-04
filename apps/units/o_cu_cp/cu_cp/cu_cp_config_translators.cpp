@@ -589,4 +589,7 @@ void ocudu::fill_cu_cp_worker_manager_config(worker_manager_config& config, cons
   if (unit_cfg.pcap_cfg.ngap.enabled) {
     pcap_cfg.is_ngap_enabled = true;
   }
+  if (unit_cfg.pcap_cfg.xnap.enabled) {
+    pcap_cfg.is_xnap_enabled = true;
+  }
 }

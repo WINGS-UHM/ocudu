@@ -45,7 +45,8 @@ public:
   {
     // These layers have very low throughput, so no point in instantiating more than one strand.
     // This means that there is no parallelization in pcap writing across these layers.
-    if (config.is_f1ap_enabled or config.is_ngap_enabled or config.is_e1ap_enabled or config.is_e2ap_enabled) {
+    if (config.is_f1ap_enabled or config.is_ngap_enabled or config.is_xnap_enabled or config.is_e1ap_enabled or
+        config.is_e2ap_enabled) {
       common_exec =
           make_task_strand_ptr<concurrent_queue_policy::lockfree_mpmc>(pool_task_exec, task_worker_queue_size);
     }

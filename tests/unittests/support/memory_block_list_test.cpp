@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/memory_pool/memory_block_list.h"
-#include "ocudu/support/test_utils.h"
+#include <algorithm>
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -35,7 +36,7 @@ TEST_F(memory_block_list_tester, free_list_starts_empty)
 
 TEST_F(memory_block_list_tester, push_blocks)
 {
-  create_and_push_blocks(test_rgen::uniform_int<unsigned>(1, 10));
+  create_and_push_blocks(test_rng::uniform_int<unsigned>(1, 10));
 
   ASSERT_FALSE(list.empty());
   ASSERT_EQ(list.size(), this->blocks.size());
@@ -43,7 +44,7 @@ TEST_F(memory_block_list_tester, push_blocks)
 
 TEST_F(memory_block_list_tester, pop_blocks)
 {
-  create_and_push_blocks(test_rgen::uniform_int<unsigned>(1, 10));
+  create_and_push_blocks(test_rng::uniform_int<unsigned>(1, 10));
 
   std::vector<void*> popped_blocks;
   for (unsigned i = 0; i != this->blocks.size(); ++i) {
@@ -61,7 +62,7 @@ TEST_F(memory_block_list_tester, pop_blocks)
 
 TEST_F(memory_block_list_tester, clear)
 {
-  create_and_push_blocks(test_rgen::uniform_int<unsigned>(1, 10));
+  create_and_push_blocks(test_rng::uniform_int<unsigned>(1, 10));
 
   ASSERT_FALSE(list.empty());
   list.clear();
@@ -71,9 +72,9 @@ TEST_F(memory_block_list_tester, clear)
 
 TEST_F(memory_block_list_tester, try_pop_batch)
 {
-  create_and_push_blocks(test_rgen::uniform_int<unsigned>(1, 10));
+  create_and_push_blocks(test_rng::uniform_int<unsigned>(1, 10));
 
-  unsigned               n     = test_rgen::uniform_int<unsigned>(0, blocks.size());
+  unsigned               n     = test_rng::uniform_int<unsigned>(0, blocks.size());
   free_memory_block_list list2 = list.try_pop_batch(n);
 
   ASSERT_EQ(list2.size(), n);
@@ -90,8 +91,8 @@ TEST_F(memory_block_list_tester, try_pop_batch)
 
 TEST_F(memory_block_list_tester, steal_blocks)
 {
-  create_and_push_blocks(test_rgen::uniform_int<unsigned>(1, 10));
-  std::vector<std::array<uint8_t, 128>> blocks2(test_rgen::uniform_int<unsigned>(0, blocks.size()));
+  create_and_push_blocks(test_rng::uniform_int<unsigned>(1, 10));
+  std::vector<std::array<uint8_t, 128>> blocks2(test_rng::uniform_int<unsigned>(0, blocks.size()));
   free_memory_block_list                list2;
   for (unsigned i = 0; i != blocks2.size(); ++i) {
     list2.push(&blocks2[i]);

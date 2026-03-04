@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/memory_pool/ring_buffer_pool.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -15,7 +15,7 @@ TEST(ring_buffer_pool,
 
   span<const uint8_t> total_allocs;
   for (unsigned i = 0; i < 128;) {
-    unsigned      sz     = test_rgen::uniform_int<unsigned>(1, 128 - i);
+    unsigned      sz     = test_rng::uniform_int<unsigned>(1, 128 - i);
     span<uint8_t> buffer = pool.allocate_buffer(sz);
     ASSERT_EQ(buffer.size(), sz) << "Invalid byte span size returned from the allocator";
     if (total_allocs.empty()) {
@@ -32,9 +32,9 @@ TEST(ring_buffer_pool,
 
 TEST(ring_buffer_pool, when_pool_limit_is_reached_then_next_allocated_byte_span_wraps_around_the_pool)
 {
-  ring_buffer_pool pool(test_rgen::uniform_int<unsigned>(2, 256));
+  ring_buffer_pool pool(test_rng::uniform_int<unsigned>(2, 256));
 
-  unsigned      sz            = test_rgen::uniform_int<unsigned>(1, pool.size());
+  unsigned      sz            = test_rng::uniform_int<unsigned>(1, pool.size());
   span<uint8_t> first_buffer  = pool.allocate_buffer(sz);
   unsigned      sz2           = std::min(pool.size() - sz + 1, pool.size());
   span<uint8_t> second_buffer = pool.allocate_buffer(sz2);
@@ -45,13 +45,13 @@ TEST(ring_buffer_pool, when_pool_limit_is_reached_then_next_allocated_byte_span_
 
 TEST(ticking_ring_buffer_pool, ticking_clears_allocated_bytes)
 {
-  unsigned                 nof_ticks_depth    = test_rgen::uniform_int<unsigned>(32, 256);
-  unsigned                 max_bytes_per_tick = test_rgen::uniform_int<unsigned>(32, 256);
+  unsigned                 nof_ticks_depth    = test_rng::uniform_int<unsigned>(32, 256);
+  unsigned                 max_bytes_per_tick = test_rng::uniform_int<unsigned>(32, 256);
   ticking_ring_buffer_pool pool(
       max_bytes_per_tick, nof_ticks_depth, std::numeric_limits<ticking_ring_buffer_pool::tick_t>::max());
 
   // Deplete pool.
-  unsigned tic = test_rgen::uniform_int<ticking_ring_buffer_pool::tick_t>();
+  unsigned tic = test_rng::uniform_int<ticking_ring_buffer_pool::tick_t>();
   for (unsigned i = 0; i != nof_ticks_depth; ++i) {
     pool.tick(tic++);
 
@@ -70,14 +70,14 @@ TEST(ticking_ring_buffer_pool, ticking_clears_allocated_bytes)
 #if ASSERTS_ENABLED
 TEST(ticking_ring_buffer_pool, tick_wrap_around_does_not_erroneously_deallocate_buffers)
 {
-  unsigned                 nof_ticks_depth    = test_rgen::uniform_int<unsigned>(32, 256);
-  unsigned                 max_bytes_per_tick = test_rgen::uniform_int<unsigned>(32, 256);
+  unsigned                 nof_ticks_depth    = test_rng::uniform_int<unsigned>(32, 256);
+  unsigned                 max_bytes_per_tick = test_rng::uniform_int<unsigned>(32, 256);
   unsigned                 wrap_around        = 10240;
   ticking_ring_buffer_pool pool(max_bytes_per_tick, nof_ticks_depth, wrap_around);
 
   // Deplete pool and wrap-around in the process.
   ticking_ring_buffer_pool::tick_t tick =
-      wrap_around - test_rgen::uniform_int<ticking_ring_buffer_pool::tick_t>(1, nof_ticks_depth - 1);
+      wrap_around - test_rng::uniform_int<ticking_ring_buffer_pool::tick_t>(1, nof_ticks_depth - 1);
   for (unsigned i = 0; i != nof_ticks_depth; ++i) {
     pool.tick(tick);
     tick = (tick + 1) % wrap_around;

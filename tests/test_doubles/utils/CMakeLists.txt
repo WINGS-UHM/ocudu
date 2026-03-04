@@ -3,4 +3,4 @@
 # Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 add_library(ocudu_gtest_main ocudu_gtest_main.cpp)
-target_link_libraries(ocudu_gtest_main PRIVATE gtest)
+target_link_libraries(ocudu_gtest_main PRIVATE gtest ocudulog ocudu_support)

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/executors/task_worker_pool.h"
 #include "ocudu/support/memory_pool/bounded_object_pool.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 // Disable GCC 5's -Wsuggest-override warnings in gtest.
@@ -82,7 +82,7 @@ TYPED_TEST(common_bounded_object_pool_test, stress_pool)
       std::vector<typename TypeParam::ptr> allocated_objs;
       allocated_objs.reserve(nof_operations);
       for (unsigned j = 0; j != nof_operations; ++j) {
-        int randn = test_rgen::uniform_int(0, 100);
+        int randn = test_rng::uniform_int(0, 100);
         if (randn < 50) {
           auto obj = this->pool.get();
           if (obj != nullptr) {

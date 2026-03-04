@@ -8,7 +8,7 @@
 #include "lib/f1ap/f1ap_asn1_packer.h"
 #include "tests/integrationtests/du_high/test_utils/du_high_env_simulator.h"
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "tests/unittests/gateways/test_helpers.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
@@ -192,7 +192,7 @@ TEST_F(edrx_paging_test, when_edrx_enabled_then_hypersfn_is_updated_in_sib1)
 
 TEST_F(edrx_paging_test, when_f1_edrx_paging_is_received_then_it_is_sent_to_lower_layers)
 {
-  const uint64_t five_g_tmsi = test_random::uniform_int<uint64_t>() & mask_lsb_ones<uint64_t>(48);
+  const uint64_t five_g_tmsi = test_rng::uniform_int<uint64_t>() & mask_lsb_ones<uint64_t>(48);
   // Note: We set a Paging Time Window that is almost the length of the full eDRX cycle, to minimize the duration
   /// of this test.
   const hyper_frames edrx_cycle{2};

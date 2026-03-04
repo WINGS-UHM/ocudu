@@ -5,7 +5,7 @@
 #include "../test_utils/sched_custom_test_bench.h"
 #include "lib/scheduler/cell/resource_grid.h"
 #include "lib/scheduler/common_scheduling/ssb_scheduler.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/ran/frame_types.h"
@@ -61,7 +61,7 @@ static unsigned generate_random_offset_to_point_A(const ssb_params& params)
 
   const ssb_pattern_case ssb_case = band_helper::get_ssb_pattern(params.band, params.ssb_scs);
 
-  unsigned offset_to_point_A = test_random::uniform_int<unsigned>(0, get_max_offset_to_point_A(ssb_case) - 1);
+  unsigned offset_to_point_A = test_rng::uniform_int<unsigned>(0, get_max_offset_to_point_A(ssb_case) - 1);
 
   if (ssb_case == ssb_pattern_case::B or ssb_case == ssb_pattern_case::C) {
     // With case B and C, offset_to_point_A must be an even number.
@@ -86,7 +86,7 @@ static uint8_t generate_k_ssb(const ssb_params& params)
   };
 
   const ssb_pattern_case ssb_case = band_helper::get_ssb_pattern(params.band, params.ssb_scs);
-  const uint8_t          k_ssb    = test_random::uniform_int<unsigned>(0, get_max_k_SSB(ssb_case) - 1);
+  const uint8_t          k_ssb    = test_rng::uniform_int<unsigned>(0, get_max_k_SSB(ssb_case) - 1);
 
   return k_ssb;
 }
@@ -104,8 +104,8 @@ static sched_cell_configuration_request_message make_cell_cfg_req_msg(const ssb_
   msg.ran.ssb_cfg.scs                                  = params.ssb_scs;
 
   // Generate a random
-  msg.ran.ssb_cfg.ssb_bitmap = ssb_bitmap_t(test_random::uniform_int<uint8_t>(1, params.L_max - 1), params.L_max);
-  msg.ran.ssb_cfg.ssb_period = params.periodicity;
+  msg.ran.ssb_cfg.ssb_bitmap        = ssb_bitmap_t(test_rng::uniform_int<uint8_t>(1, params.L_max - 1), params.L_max);
+  msg.ran.ssb_cfg.ssb_period        = params.periodicity;
   msg.ran.ssb_cfg.offset_to_point_A = offset_to_point_A;
   msg.ran.ssb_cfg.k_ssb             = k_ssb;
   // Change Carrier parameters when SCS is 15kHz.

@@ -7,7 +7,7 @@
 
 #include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_simulator.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/scheduler/resource_grid_util.h"
 #include <gtest/gtest.h>
@@ -73,8 +73,8 @@ TEST_F(sched_ue_removal_test,
        when_ue_has_no_pending_txs_then_ue_removal_waits_for_all_pending_csi_and_sr_to_be_scheduled)
 {
   // Create UE.
-  du_ue_index_t ue_index = (du_ue_index_t)test_random::uniform_int<unsigned>(0, MAX_DU_UE_INDEX);
-  rnti_t        rnti     = to_rnti(test_random::uniform_int<unsigned>(0x4601, to_value(rnti_t::MAX_CRNTI)));
+  du_ue_index_t ue_index = (du_ue_index_t)test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX);
+  rnti_t        rnti     = to_rnti(test_rng::uniform_int<unsigned>(0x4601, to_value(rnti_t::MAX_CRNTI)));
   add_ue(ue_index, rnti);
   ASSERT_FALSE(notif.last_ue_index_deleted.has_value());
 
@@ -104,8 +104,8 @@ TEST_F(sched_ue_removal_test,
 TEST_F(sched_ue_removal_test, when_ue_has_pending_harqs_then_scheduler_waits_for_harq_clear_before_deleting_ue)
 {
   // Create UE.
-  du_ue_index_t ue_index = (du_ue_index_t)test_random::uniform_int<unsigned>(0, MAX_DU_UE_INDEX);
-  rnti_t        rnti     = to_rnti(test_random::uniform_int<unsigned>(0x4601, to_value(rnti_t::MAX_CRNTI)));
+  du_ue_index_t ue_index = (du_ue_index_t)test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX);
+  rnti_t        rnti     = to_rnti(test_rng::uniform_int<unsigned>(0x4601, to_value(rnti_t::MAX_CRNTI)));
   add_ue(ue_index, rnti);
 
   // Push DL buffer status update for UE DRB.
@@ -179,8 +179,8 @@ TEST_F(sched_ue_removal_test, when_ue_is_removed_then_any_pending_uci_does_not_c
   unsigned initial_nof_warnings = test_spy.get_warning_counter() + test_spy.get_error_counter();
 
   // Create UE.
-  du_ue_index_t ue_index = (du_ue_index_t)test_random::uniform_int<unsigned>(0, MAX_DU_UE_INDEX);
-  rnti_t        rnti     = to_rnti(test_random::uniform_int<unsigned>(0x4601, to_value(rnti_t::MAX_CRNTI)));
+  du_ue_index_t ue_index = (du_ue_index_t)test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX);
+  rnti_t        rnti     = to_rnti(test_rng::uniform_int<unsigned>(0x4601, to_value(rnti_t::MAX_CRNTI)));
   add_ue(ue_index, rnti);
   ASSERT_FALSE(notif.last_ue_index_deleted.has_value());
 
@@ -216,8 +216,8 @@ TEST_F(sched_ue_removal_test,
        when_ue_is_being_removed_but_keeps_receiving_sr_indications_then_scheduler_ignores_indications)
 {
   // Create UE.
-  du_ue_index_t ue_index = (du_ue_index_t)test_random::uniform_int<unsigned>(0, MAX_DU_UE_INDEX);
-  rnti_t        rnti     = to_rnti(test_random::uniform_int<unsigned>(0x4601, to_value(rnti_t::MAX_CRNTI)));
+  du_ue_index_t ue_index = (du_ue_index_t)test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX);
+  rnti_t        rnti     = to_rnti(test_rng::uniform_int<unsigned>(0x4601, to_value(rnti_t::MAX_CRNTI)));
   add_ue(ue_index, rnti);
 
   // Push BSR update for UE.

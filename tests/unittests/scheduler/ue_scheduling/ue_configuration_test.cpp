@@ -3,7 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/ue_context/ue_repository.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
@@ -162,13 +162,13 @@ TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpa
                                      config_helpers::compute_max_nof_candidates(aggregation_level::n16, cset_cfg)});
 
   const cell_configuration& cell_cfg = add_cell();
-  rnti_t crnti = to_rnti(test_random::uniform_int<uint16_t>(to_value(rnti_t::MIN_CRNTI), to_value(rnti_t::MAX_CRNTI)));
+  rnti_t crnti = to_rnti(test_rng::uniform_int<uint16_t>(to_value(rnti_t::MIN_CRNTI), to_value(rnti_t::MAX_CRNTI)));
   ue_cell_configuration ue_cfg{crnti, cell_cfg, cfg_pool.add_ue(ue_create_msg).cells[cell_cfg.cell_index]};
 
   const bwp_config& bwp            = ue_cfg.bwp(to_bwp_id(0));
   const unsigned    max_candidates = max_nof_monitored_pdcch_candidates(bwp.dl_common->value().generic_params.scs);
 
-  unsigned       sfn = test_random::uniform_int<unsigned>(0, 1023);
+  unsigned       sfn = test_rng::uniform_int<unsigned>(0, 1023);
   const unsigned slots_to_test =
       msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[0].get_monitoring_slot_periodicity();
   slot_point start_slot{params.scs_common, sfn, 0}, end_slot = start_slot + slots_to_test;

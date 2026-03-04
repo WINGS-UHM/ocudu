@@ -12,7 +12,7 @@
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/test_doubles/mac/mac_test_messages.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "tests/test_doubles/scheduler/scheduler_result_finder.h"
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
 #include "ocudu/asn1/f1ap/common.h"
@@ -283,7 +283,7 @@ TEST_F(du_high_tester, when_ue_context_setup_received_for_inexistent_ue_then_ue_
   cu_notifier.f1ap_ul_msgs.clear();
 
   gnb_cu_ue_f1ap_id_t cu_ue_id =
-      int_to_gnb_cu_ue_f1ap_id(test_random::uniform_int<uint64_t>(0, (uint64_t)gnb_cu_ue_f1ap_id_t::max));
+      int_to_gnb_cu_ue_f1ap_id(test_rng::uniform_int<uint64_t>(0, (uint64_t)gnb_cu_ue_f1ap_id_t::max));
   f1ap_message cu_cp_msg = test_helpers::generate_ue_context_setup_request(
       cu_ue_id, std::nullopt, 0, {drb_id_t::drb1}, {plmn_identity::test_value(), nr_cell_identity::create(0).value()});
   this->du_hi->get_f1ap_du().handle_message(cu_cp_msg);

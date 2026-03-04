@@ -4,7 +4,7 @@
 
 #include "lib/scheduler/config/logical_channel_config_pool.h"
 #include "lib/scheduler/ue_context/logical_channel_system.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
 #include <gtest/gtest.h>
 
@@ -15,8 +15,8 @@ static constexpr unsigned RLC_SEGMENTATION_OVERHEAD = 3;
 
 static lcid_dl_sch_t get_random_dl_mac_ce()
 {
-  return (lcid_dl_sch_t)test_random::uniform_int<unsigned>((unsigned)lcid_dl_sch_t::SCELL_ACTIV_4_OCTET,
-                                                           (unsigned)lcid_dl_sch_t::UE_CON_RES_ID);
+  return (lcid_dl_sch_t)test_rng::uniform_int<unsigned>((unsigned)lcid_dl_sch_t::SCELL_ACTIV_4_OCTET,
+                                                        (unsigned)lcid_dl_sch_t::UE_CON_RES_ID);
 }
 
 static ul_bsr_indication_message make_sbsr(lcg_id_t lcgid, unsigned bsr)
@@ -253,7 +253,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, when_buffer_state_is_zero_no_tx
 TEST_F(single_ue_dl_logical_channel_system_test, buffer_state_indication_has_no_effect_in_inactive_bearer)
 {
   lcid_t   lcid   = uint_to_lcid(lcid_t::LCID_MIN_DRB + 1); // Not configured LCID.
-  unsigned buf_st = test_random::uniform_int<unsigned>(0, 10000);
+  unsigned buf_st = test_rng::uniform_int<unsigned>(0, 10000);
   ue_lchs.handle_dl_buffer_status_indication(lcid, buf_st);
 
   ASSERT_EQ(ue_lchs.total_dl_pending_bytes(), 0);
@@ -265,8 +265,8 @@ TEST_F(single_ue_dl_logical_channel_system_test, buffer_state_indication_has_no_
 
 TEST_F(single_ue_dl_logical_channel_system_test, buffer_status_indication_updates_tx_pending_bytes)
 {
-  lcid_t   lcid   = test_random::uniform_int(0U, 1U) == 0 ? LCID_SRB1 : LCID_MIN_DRB;
-  unsigned buf_st = test_random::uniform_int<unsigned>(0, 10000);
+  lcid_t   lcid   = test_rng::uniform_int(0U, 1U) == 0 ? LCID_SRB1 : LCID_MIN_DRB;
+  unsigned buf_st = test_rng::uniform_int<unsigned>(0, 10000);
   ue_lchs.handle_dl_buffer_status_indication(lcid, buf_st);
 
   ASSERT_EQ(ue_lchs.total_dl_pending_bytes(), get_mac_sdu_required_bytes(buf_st));
@@ -287,7 +287,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, srb0_not_reported_in_has_pendin
 TEST_F(single_ue_dl_logical_channel_system_test, deactivate_ue)
 {
   lcid_t   lcid   = uint_to_lcid(lcid_t::LCID_MIN_DRB);
-  unsigned buf_st = test_random::uniform_int<unsigned>(1, 10000);
+  unsigned buf_st = test_rng::uniform_int<unsigned>(1, 10000);
   ue_lchs.handle_dl_buffer_status_indication(lcid, buf_st);
 
   ASSERT_EQ(ue_lchs.cfg().size(), 3);
@@ -309,7 +309,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, total_pending_bytes_equal_sum_o
 {
   std::vector<unsigned> buf_st_inds;
   for (lcid_t lcid : lcids) {
-    unsigned dl_bs = test_random::uniform_int<unsigned>(0, 10000);
+    unsigned dl_bs = test_rng::uniform_int<unsigned>(0, 10000);
     buf_st_inds.push_back(get_mac_sdu_required_bytes(dl_bs));
     ue_lchs.handle_dl_buffer_status_indication(lcid, dl_bs);
   }
@@ -345,7 +345,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, mac_ce_is_scheduled_if_tb_has_s
   lcid_dl_sch_t ce_lcid = get_random_dl_mac_ce();
   ue_lchs.handle_mac_ce_indication({.ce_lcid = ce_lcid});
   const unsigned mac_ce_required_bytes = lcid_dl_sch_t{ce_lcid}.sizeof_ce() + FIXED_SIZED_MAC_CE_SUBHEADER_SIZE;
-  const unsigned tb_size               = test_random::uniform_int<unsigned>(0, 50);
+  const unsigned tb_size               = test_rng::uniform_int<unsigned>(0, 50);
 
   dl_msg_lc_info subpdu;
 
@@ -395,9 +395,9 @@ TEST_F(single_ue_dl_logical_channel_system_test, multiple_mac_ces_are_scheduled_
 TEST_F(single_ue_dl_logical_channel_system_test, mac_sdu_is_scheduled_if_tb_has_space)
 {
   lcid_t   lcid     = LCID_SRB1;
-  unsigned sdu_size = test_random::uniform_int<unsigned>(1, 1000);
+  unsigned sdu_size = test_rng::uniform_int<unsigned>(1, 1000);
   ue_lchs.handle_dl_buffer_status_indication(lcid, sdu_size);
-  unsigned tb_size = test_random::uniform_int<unsigned>(0, sdu_size * 2);
+  unsigned tb_size = test_rng::uniform_int<unsigned>(0, sdu_size * 2);
   assert_ue_lch_valid(ue_lchs);
 
   unsigned rem_bytes = tb_size, rem_sdu_size = sdu_size;
@@ -678,7 +678,7 @@ TEST_F(single_ue_dl_logical_channel_system_test, qos_gbr_bearer_bitrate_is_track
   const lcid_t drb_lcid = LCID_MIN_DRB;
   lch_system.slot_indication();
   ASSERT_EQ(ue_lchs.average_dl_bit_rate(drb_lcid), 0);
-  const unsigned sdu_size = test_random::uniform_int<unsigned>(1, 1000);
+  const unsigned sdu_size = test_rng::uniform_int<unsigned>(1, 1000);
   ue_lchs.handle_dl_buffer_status_indication(drb_lcid, sdu_size);
   unsigned       tb_size = sdu_size + 10;
   dl_msg_lc_info subpdu;
@@ -731,7 +731,7 @@ class multi_ue_dl_logical_channel_system_test : public logical_channel_system_te
 
 TEST_F(multi_ue_dl_logical_channel_system_test, multiple_ue_creation)
 {
-  const auto                                 nof_ues = test_random::uniform_int<unsigned>(2, 10);
+  const auto                                 nof_ues = test_rng::uniform_int<unsigned>(2, 10);
   std::vector<ue_logical_channel_repository> ues;
   for (unsigned i = 0; i != nof_ues; ++i) {
     ues.push_back(lch_system.create_ue(
@@ -790,16 +790,16 @@ TEST_F(single_ue_ul_logical_channel_system_test, bsr_has_no_effect_in_ue_with_no
 {
   ue_lchs.reset();
   ue_lchs = lch_system.create_ue(to_du_ue_index(0), subcarrier_spacing::kHz30, false, create_empty_config());
-  const lcg_id_t lcgid = uint_to_lcg_id(test_random::uniform_int<unsigned>(1U, MAX_LCG_ID));
-  ue_lchs.handle_bsr_indication(make_sbsr(lcgid, test_random::uniform_int<unsigned>(1, 1000)));
+  const lcg_id_t lcgid = uint_to_lcg_id(test_rng::uniform_int<unsigned>(1U, MAX_LCG_ID));
+  ue_lchs.handle_bsr_indication(make_sbsr(lcgid, test_rng::uniform_int<unsigned>(1, 1000)));
   ASSERT_EQ(ue_lchs.pending_bytes(lcgid), 0);
   ASSERT_EQ(ue_lchs.ul_pending_bytes(), 0);
 }
 
 TEST_F(single_ue_ul_logical_channel_system_test, bsr_has_no_effect_in_inactive_ue)
 {
-  const lcg_id_t lcgid = uint_to_lcg_id(test_random::uniform_int<unsigned>(1U, MAX_LCG_ID));
-  ue_lchs.handle_bsr_indication(make_sbsr(lcgid, test_random::uniform_int<unsigned>(1, 1000)));
+  const lcg_id_t lcgid = uint_to_lcg_id(test_rng::uniform_int<unsigned>(1U, MAX_LCG_ID));
+  ue_lchs.handle_bsr_indication(make_sbsr(lcgid, test_rng::uniform_int<unsigned>(1, 1000)));
   ue_lchs.deactivate();
 
   ASSERT_EQ(ue_lchs.pending_bytes(lcgid), 0);
@@ -812,7 +812,7 @@ TEST_F(single_ue_ul_logical_channel_system_test, bsr_updates_tx_pending_bytes)
   auto bsr = make_sbsr(uint_to_lcg_id(0), 0);
   bsr.reported_lcgs.clear();
   for (const auto& [lcid, lcgid] : lcids) {
-    bsr.reported_lcgs.push_back(ul_bsr_lcg_report{lcgid, test_random::uniform_int<unsigned>(1, 100)});
+    bsr.reported_lcgs.push_back(ul_bsr_lcg_report{lcgid, test_rng::uniform_int<unsigned>(1, 100)});
   }
   ue_lchs.handle_bsr_indication(bsr);
 
@@ -830,7 +830,7 @@ TEST_F(single_ue_ul_logical_channel_system_test, only_lcg0_reported_in_total_pen
   auto bsr = make_sbsr(uint_to_lcg_id(0), 0);
   bsr.reported_lcgs.clear();
   for (const auto& [lcid, lcgid] : lcids) {
-    bsr.reported_lcgs.push_back(ul_bsr_lcg_report{lcgid, test_random::uniform_int<unsigned>(1, 100)});
+    bsr.reported_lcgs.push_back(ul_bsr_lcg_report{lcgid, test_rng::uniform_int<unsigned>(1, 100)});
   }
   ue_lchs.handle_bsr_indication(bsr);
 
@@ -851,7 +851,7 @@ TEST_F(single_ue_ul_logical_channel_system_test, total_pending_bytes_equal_sum_o
   ue_lchs.configure(create_lcid_config(test_lcids));
   std::vector<unsigned> bsrs;
   for (unsigned i = 0; i != MAX_NOF_LCGS; ++i) {
-    unsigned bsr = test_random::uniform_int<unsigned>(0, 10000);
+    unsigned bsr = test_rng::uniform_int<unsigned>(0, 10000);
     bsrs.push_back(add_ul_header_bytes(uint_to_lcg_id(i), bsr));
     ue_lchs.handle_bsr_indication(make_sbsr(uint_to_lcg_id(i), bsr));
   }
@@ -869,12 +869,12 @@ TEST_F(single_ue_ul_logical_channel_system_test,
   const lcg_id_t lcgid = uint_to_lcg_id(uint_to_lcg_id(2));
 
   // With the first BSR, the number of UL pending bytes is greater than 150kB.
-  const unsigned bsr = test_random::uniform_int<unsigned>(150001, 700000);
+  const unsigned bsr = test_rng::uniform_int<unsigned>(150001, 700000);
   ue_lchs.handle_bsr_indication(make_sbsr(lcgid, bsr));
   const unsigned pending_bytes = ue_lchs.ul_pending_bytes();
 
   // After receiving the LSBR, the pending bytes will remain unchanged.
-  const unsigned new_bsr = test_random::uniform_int<unsigned>(150001, 700000);
+  const unsigned new_bsr = test_rng::uniform_int<unsigned>(150001, 700000);
   ue_lchs.handle_bsr_indication(make_sbsr(lcgid, new_bsr));
   const unsigned new_pending_bytes = ue_lchs.ul_pending_bytes();
   ASSERT_EQ(pending_bytes, new_pending_bytes);
@@ -886,11 +886,11 @@ TEST_F(single_ue_ul_logical_channel_system_test,
   const lcg_id_t lcgid = uint_to_lcg_id(2);
 
   // With the first BSR, the number of UL pending bytes is greater than 150kB.
-  const unsigned bsr = test_random::uniform_int<unsigned>(150001, 700000);
+  const unsigned bsr = test_rng::uniform_int<unsigned>(150001, 700000);
   ue_lchs.handle_bsr_indication(make_lbsr(lcgid, bsr));
 
   // After receiving the LSBR, the pending bytes will be updated based on this new BSR.
-  const unsigned new_bsr = test_random::uniform_int<unsigned>(150001, 700000);
+  const unsigned new_bsr = test_rng::uniform_int<unsigned>(150001, 700000);
   ue_lchs.handle_bsr_indication(make_lbsr(lcgid, new_bsr));
   ASSERT_EQ(ue_lchs.pending_bytes(lcgid), add_ul_header_bytes(lcgid, new_bsr));
 }

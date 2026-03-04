@@ -6,7 +6,7 @@
 #include "lib/scheduler/config/logical_channel_config_pool.h"
 #include "lib/scheduler/ue_context/logical_channel_system.h"
 #include "lib/scheduler/ue_context/ue_drx_controller.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include <gtest/gtest.h>
 
@@ -90,8 +90,8 @@ TEST_F(ue_drx_controller_test, when_pdcch_sent_then_on_duration_extended_by_inac
   next_slot = slot_point{to_numerology_value(scs), 0};
 
   // Make sure drx-InactivityTimer stops after drx-onDurationTimer.
-  const unsigned pdcch_idx  = test_random::uniform_int<unsigned>(offset_slot + on_dur_slots - inactivity_slots + 1,
-                                                                offset_slot + on_dur_slots - 1);
+  const unsigned pdcch_idx  = test_rng::uniform_int<unsigned>(offset_slot + on_dur_slots - inactivity_slots + 1,
+                                                             offset_slot + on_dur_slots - 1);
   const unsigned active_end = pdcch_idx + inactivity_slots;
 
   for (unsigned i = 0; i != period_slots; ++i) {
@@ -232,8 +232,8 @@ TEST_F(ue_drx_controller_retx_ul_test, when_pdcch_sent_then_on_duration_extended
 
   static constexpr unsigned k2 = 4;
   // Make sure drx-RetransmissionTimerUL stops after drx-onDurationTimer.
-  const unsigned pusch_idx = test_random::uniform_int<unsigned>(offset_slot + on_dur_slots - drx_cfg->retx_timer_ul + 1,
-                                                                offset_slot + on_dur_slots - 1);
+  const unsigned pusch_idx = test_rng::uniform_int<unsigned>(offset_slot + on_dur_slots - drx_cfg->retx_timer_ul + 1,
+                                                             offset_slot + on_dur_slots - 1);
   const unsigned pdcch_idx = pusch_idx - k2;
   ASSERT_TRUE(pdcch_idx > offset_slot);
   const unsigned active_end = pusch_idx + drx_cfg->retx_timer_ul;
@@ -276,8 +276,8 @@ TEST_F(ue_drx_controller_retx_dl_test,
   static constexpr unsigned k1 = 4;
 
   // Make sure drx-RetransmissionTimerDL stops after drx-onDurationTimer.
-  const unsigned pucch_idx = test_random::uniform_int<unsigned>(offset_slot + on_dur_slots - drx_cfg->retx_timer_dl + 1,
-                                                                offset_slot + on_dur_slots - 1);
+  const unsigned pucch_idx = test_rng::uniform_int<unsigned>(offset_slot + on_dur_slots - drx_cfg->retx_timer_dl + 1,
+                                                             offset_slot + on_dur_slots - 1);
   const unsigned pdcch_idx = pucch_idx - (k0 + k1);
   ASSERT_TRUE(pdcch_idx > offset_slot);
   const unsigned active_end = pucch_idx + drx_cfg->retx_timer_dl;
@@ -315,8 +315,8 @@ TEST_F(ue_drx_controller_retx_dl_test,
   static constexpr unsigned k1 = 4;
 
   // Make sure drx-RetransmissionTimerDL stops after drx-onDurationTimer.
-  const unsigned pucch_idx = test_random::uniform_int<unsigned>(offset_slot + on_dur_slots - drx_cfg->retx_timer_dl + 1,
-                                                                offset_slot + on_dur_slots - 1);
+  const unsigned pucch_idx = test_rng::uniform_int<unsigned>(offset_slot + on_dur_slots - drx_cfg->retx_timer_dl + 1,
+                                                             offset_slot + on_dur_slots - 1);
   const unsigned pdcch_idx = pucch_idx - (k0 + k1);
   ASSERT_TRUE(pdcch_idx > offset_slot);
   const unsigned active_end = offset_slot + on_dur_slots;

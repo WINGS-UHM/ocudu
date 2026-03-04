@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "test_random.h"
+#include "test_rng.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/error_handling.h"
 #include <gtest/gtest.h>
@@ -47,14 +47,17 @@ void update_current_seed(uint32_t iteration_counter)
 class RandomSeedEnvironment : public ::testing::Environment
 {
 public:
-  RandomSeedEnvironment()
+  void SetUp() override
   {
-    base_seed = GTEST_FLAG_GET(random_seed);
-    if (base_seed == 0) {
-      // When seed == 0, it means that the user did not explicitly set a seed (using --gtest_random_seed=seed flag).
-      // We generate one.
-      base_seed = std::random_device{}();
-    }
+    // Setup the base seed based on which other test iteration seeds will be generated.
+    // Note: We do not do this at ctor, because ::testing::UnitTest::GetInstance()->random_seed() is only set
+    // afterwards.
+    base_seed = ::testing::UnitTest::GetInstance()->random_seed();
+  }
+  void TearDown() override
+  {
+    // Ensure logs are flushed.
+    ocudulog::flush();
   }
 };
 
@@ -78,24 +81,22 @@ private:
 
   void OnTestEnd(const testing::TestInfo& test_info) override
   {
-    ocudulog::flush();
     if (test_info.result()->Failed()) {
-      fmt::print(stderr,
-                 "[  FAILED  ] OCUDU Random Seed: base_seed={}, iter_seed={}.\n",
-                 base_seed,
-                 ocudu::test_random::seed());
+      ocudulog::flush();
+      fmt::print(
+          stderr, "[  FAILED  ] OCUDU Random Seed: base_seed={}, iter_seed={}.\n", base_seed, ocudu::test_rng::seed());
     }
   }
 };
 
 } // namespace
 
-uint32_t ocudu::test_random::seed()
+uint32_t ocudu::test_rng::seed()
 {
   return iter_seed.load(std::memory_order_acquire);
 }
 
-std::mt19937& ocudu::test_random::tls_gen()
+std::mt19937& ocudu::test_rng::tls_gen()
 {
   thread_local std::mt19937 rng(seed());
   thread_local uint32_t     last_test_counter{0};
@@ -105,7 +106,7 @@ std::mt19937& ocudu::test_random::tls_gen()
                             "RandomSeedEnvironment has not yet been setup. Are you trying to generate random "
                             "parameters before main() is called?");
   if (cur_test_counter != last_test_counter) {
-    // New test started. Reset generator back to original seed.
+    // New test started. Rewind generator back to original iteration seed.
     last_test_counter = cur_test_counter;
     rng.seed(seed());
   }

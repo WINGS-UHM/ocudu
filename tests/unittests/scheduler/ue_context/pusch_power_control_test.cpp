@@ -3,7 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/support/pusch_power_controller.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/sched_custom_test_bench.h"
 #include "ocudu/ran/power_control/tpc_mapping.h"
 #include <gtest/gtest.h>
@@ -115,7 +115,7 @@ TEST_P(phr_ul_power_control_test_bench, pw_control_reduces_prbs_when_estimated_p
 
   // Generate random PUSCH to PHR delay.
   auto pusch_to_phr_delay =
-      test_random::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
+      test_rng::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
   test_logger.debug("Initial PUSCH to PHR delay: {}", pusch_to_phr_delay);
 
   slot_point sl = slot_point(to_numerology_value(subcarrier_spacing::kHz30), 0U);
@@ -126,9 +126,9 @@ TEST_P(phr_ul_power_control_test_bench, pw_control_reduces_prbs_when_estimated_p
     if (sl.to_uint() % phr_periodic_timer_sl == 0) {
       // Set a random value from -20 to 10 dB for the PH value to report. This is to simulate both cases of positive and
       // negative PHRs.
-      ph_value_to_report.emplace(test_random::uniform_int<int>(-20, 10));
+      ph_value_to_report.emplace(test_rng::uniform_int<int>(-20, 10));
       pusch_to_phr_delay =
-          test_random::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
+          test_rng::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
       test_logger.debug(
           "Slot={}: Generating PHR={}dBm PUSCH-PHR delay={}", sl, ph_value_to_report.value(), pusch_to_phr_delay);
     }
@@ -142,7 +142,7 @@ TEST_P(phr_ul_power_control_test_bench, pw_control_reduces_prbs_when_estimated_p
       const float PUSCH_tx_prob = GetParam().phr_periodic_timer_sf < 50 ? 0.5f : 0.1f;
       if (PUSCH_tx_prob) {
         // Generate a random number of PRBs from 1 to 50.
-        const auto nof_prbs = test_random::uniform_int<unsigned>(1, 50);
+        const auto nof_prbs = test_rng::uniform_int<unsigned>(1, 50);
 
         // We can check the number of PRBs allocated to the PUSCH only if we have received a PHR report.
         if (latest_phr.has_value()) {
@@ -218,7 +218,7 @@ TEST_P(phr_ul_power_control_test_bench, pw_control_reduces_prbs_when_estimated_p
       // grant of 1 PRB.
       constexpr unsigned min_n_prbs_negative_ph = 10U;
       const int          ph_value = pusch_prb_it->nof_prbs >= min_n_prbs_negative_ph ? ph_value_to_report.value()
-                                                                                     : test_random::uniform_int<int>(0, 10);
+                                                                                     : test_rng::uniform_int<int>(0, 10);
       if (pusch_prb_it->nof_prbs < min_n_prbs_negative_ph) {
         test_logger.debug("Slot={}: Recomputed PH value={}dBm", sl, ph_value);
       }
@@ -302,7 +302,7 @@ protected:
   void slot_indication()
   {
     // This approximates small SINR variations over time.
-    sinr = test_random::normal_dist<float>(initial_pusch_sinr_dB, 0.5f);
+    sinr = test_rng::normal_dist<float>(initial_pusch_sinr_dB, 0.5f);
   }
 
   // Keep track of the PUSCH power control parameters.
@@ -374,7 +374,7 @@ protected:
                                               .p0_alphasets.front()
                                               .p0.value()));
 
-    actual_path_loss_dB = static_cast<float>(test_random::uniform_int(60, 100));
+    actual_path_loss_dB = static_cast<float>(test_rng::uniform_int(60, 100));
 
     // This is the maximum value of the closed-loop power control parameter that prevents negative PHR.
     f_cl_pw_control_max =
@@ -387,23 +387,23 @@ protected:
         pusch_sinr_target_dB + (1 - alpha_fractional_pl) * (ref_path_loss_for_target_sinr - actual_path_loss_dB);
 
     // Suppose the intial SINR is the target SINR plus a random value between -15 and 15 dB.
-    initial_pusch_sinr_dB = pusch_sinr_target_dB + static_cast<float>(test_random::uniform_int(-15, 15));
+    initial_pusch_sinr_dB = pusch_sinr_target_dB + static_cast<float>(test_rng::uniform_int(-15, 15));
 
     // Recompute the SINR and path-loss values until the condition is satisfied. This ensures the PHR will be positive.
     while (pl_dependent_pusch_sinr_target_dB > initial_pusch_sinr_dB + f_cl_pw_control_max) {
-      actual_path_loss_dB = static_cast<float>(test_random::uniform_int(60, 100));
+      actual_path_loss_dB = static_cast<float>(test_rng::uniform_int(60, 100));
       f_cl_pw_control_max =
           p_cmax_dbm.start() -
           static_cast<int>(std::round(pw_per_prb + convert_power_to_dB(static_cast<float>(NOF_PUSCH_PRBS)) +
                                       alpha_fractional_pl * actual_path_loss_dB));
       pl_dependent_pusch_sinr_target_dB =
           pusch_sinr_target_dB + (1 - alpha_fractional_pl) * (ref_path_loss_for_target_sinr - actual_path_loss_dB);
-      initial_pusch_sinr_dB = pusch_sinr_target_dB + static_cast<float>(test_random::uniform_int(-15, 15));
+      initial_pusch_sinr_dB = pusch_sinr_target_dB + static_cast<float>(test_rng::uniform_int(-15, 15));
     }
 
     // Generate random PUSCH to PHR delay.
     pusch_to_phr_delay =
-        test_random::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
+        test_rng::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
 
     add_ue(ue_req);
     sinr = initial_pusch_sinr_dB;
@@ -458,7 +458,7 @@ TEST_P(pusch_closed_loop_power_control_test_bench, with_cl_pw_control_pusch_reac
     if (sl.to_uint() % phr_periodic_timer_sl == 0) {
       phr_to_report = true;
       pusch_to_phr_delay =
-          test_random::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
+          test_rng::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
     }
 
     // > At UL slots, check if the PUSCH transmission is to be performed.
@@ -466,7 +466,7 @@ TEST_P(pusch_closed_loop_power_control_test_bench, with_cl_pw_control_pusch_reac
     const bool     is_tdd_slot       = slot_idx_tdd_slot > 7U;
     if (is_tdd_slot) {
       // Simulate a PUSCH transmission with probability 0.5 at every UL slot in the TDD pattern.
-      if (test_random::bernoulli(0.5)) {
+      if (test_rng::bernoulli(0.5)) {
         // We assume the instantaneous SINR that is reported to the UE is the one achieved with the power control.
         const float sinr_pw_control = sinr_no_pw_ctrl + f_cl_pw_control;
         average_reported_sinr_dB.push(sinr_pw_control);
@@ -582,7 +582,7 @@ protected:
 
     // Generate random PUSCH to PHR delay.
     pusch_to_phr_delay =
-        test_random::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
+        test_rng::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
 
     add_ue(ue_req);
     sinr = initial_pusch_sinr_dB;
@@ -632,7 +632,7 @@ TEST_F(pusch_cl_pw_control_bounds_test_bench, when_phr_is_non_positive_cl_stops_
     if (sl.to_uint() % phr_periodic_timer_sl == 0) {
       phr_to_report = true;
       pusch_to_phr_delay =
-          test_random::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
+          test_rng::uniform_int<unsigned>(PUSCH_TO_PHR_DELAY_BOUNDS.start(), PUSCH_TO_PHR_DELAY_BOUNDS.stop() - 1);
     }
 
     // > At UL slots, check if the PUSCH transmission is to be performed.
@@ -640,7 +640,7 @@ TEST_F(pusch_cl_pw_control_bounds_test_bench, when_phr_is_non_positive_cl_stops_
     const bool     is_tdd_slot       = slot_idx_tdd_slot > 7U;
     if (is_tdd_slot) {
       // Simulate a PUSCH transmission with probability 0.5 at every UL slot in the TDD pattern.
-      if (test_random::bernoulli(0.5)) {
+      if (test_rng::bernoulli(0.5)) {
         // We assume the instantaneous SINR that is reported to the UE is the one achieved with the power control.
         const float sinr_pw_control = sinr + f_cl_pw_control;
         ch_state_manager->update_pusch_snr(sinr_pw_control);

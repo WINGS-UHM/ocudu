@@ -7,7 +7,7 @@
 #include <random>
 #include <vector>
 
-namespace ocudu::test_random {
+namespace ocudu::test_rng {
 
 /// Fetch the seed under use for unit tests. The user can force a seed via --gtest_random_seed= command line option.
 uint32_t seed();
@@ -52,4 +52,4 @@ std::vector<Integer> vector_of_uniform_ints(size_t sz)
   return vec;
 }
 
-} // namespace ocudu::test_random
+} // namespace ocudu::test_rng

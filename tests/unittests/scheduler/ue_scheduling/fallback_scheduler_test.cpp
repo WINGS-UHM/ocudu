@@ -12,7 +12,7 @@
 #include "lib/scheduler/uci_scheduling/uci_allocator_impl.h"
 #include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
 #include "lib/scheduler/ue_scheduling/ue_fallback_scheduler.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
@@ -797,13 +797,13 @@ TEST_P(fallback_scheduler_tester, test_srb0_buffer_size_exceeding_max_msg4_mcs_i
 
 TEST_P(fallback_scheduler_tester, sanity_check_with_random_max_mcs_and_payload_size)
 {
-  const sch_mcs_index max_msg4_mcs = test_random::uniform_int<unsigned>(0, 27);
+  const sch_mcs_index max_msg4_mcs = test_rng::uniform_int<unsigned>(0, 27);
   setup_sched(create_expert_config(max_msg4_mcs), create_custom_cell_config_request(params.k0));
   // Add UE.
   const du_ue_index_t ue_idx = to_du_ue_index(0);
   add_ue(to_rnti(0x4601), ue_idx);
   // Random payload size.
-  const auto mac_srb0_sdu_size = test_random::uniform_int<unsigned>(1, 458);
+  const auto mac_srb0_sdu_size = test_rng::uniform_int<unsigned>(1, 458);
   push_buffer_state_to_dl_ue(to_du_ue_index(0), current_slot, mac_srb0_sdu_size, true);
 
   ocudulog::basic_logger& logger(ocudulog::fetch_basic_logger("TEST"));
@@ -889,12 +889,12 @@ protected:
   }
 
   // Helper that generates the slot for the SRB0 buffer update.
-  static unsigned generate_srb0_traffic_slot() { return test_random::uniform_int(20U, 30U); }
+  static unsigned generate_srb0_traffic_slot() { return test_rng::uniform_int(20U, 30U); }
 
   // Helper that generates the number of slot during the scheduler res grid is fully used.
   unsigned generate_nof_slot_grid_occupancy() const
   {
-    return test_random::uniform_int(1U, MAX_NOF_SLOTS_GRID_IS_BUSY + 1);
+    return test_rng::uniform_int(1U, MAX_NOF_SLOTS_GRID_IS_BUSY + 1);
   }
 
   // Returns the next DL slot starting from the input slot.
@@ -1079,7 +1079,7 @@ protected:
 
           if (h_dl.has_value() and h_dl->uci_slot() == sl) {
             static constexpr double ack_probability = 0.5f;
-            ack_outcome                             = test_random::bernoulli(ack_probability);
+            ack_outcome                             = test_rng::bernoulli(ack_probability);
             if (ack_outcome) {
               ++successful_tx_cnt;
               state = ue_state::reset_harq;
@@ -1135,7 +1135,7 @@ protected:
     static unsigned generate_srb1_next_update_delay()
     {
       // Generate a random number of slots to wait until the next SRB1 buffer update.
-      return test_random::uniform_int(20U, 40U);
+      return test_rng::uniform_int(20U, 40U);
     }
 
     const cell_configuration& cell_cfg;
@@ -1335,7 +1335,7 @@ protected:
           test_ue.get_pcell().harqs.find_dl_harq_waiting_ack(sl, bit_index_1_harq_only);
       if (dl_harq.has_value()) {
         static constexpr double ack_probability = 0.5f;
-        const bool              ack             = test_random::bernoulli(ack_probability);
+        const bool              ack             = test_rng::bernoulli(ack_probability);
         bool                    result =
             dl_harq->dl_ack_info(ack ? mac_harq_ack_report_status::ack : mac_harq_ack_report_status::nack, {});
         report_fatal_error_if_not(result, "dl_ack_info failed");
@@ -1347,11 +1347,11 @@ protected:
       }
     }
 
-    unsigned generate_srb1_buffer_size() const { return test_random::uniform_int(128U, parent->MAX_MAC_SRB0_SDU_SIZE); }
+    unsigned generate_srb1_buffer_size() const { return test_rng::uniform_int(128U, parent->MAX_MAC_SRB0_SDU_SIZE); }
     static unsigned generate_srb1_next_update_delay()
     {
       // Generate a random number of slots to wait until the next SRB1 buffer update.
-      return test_random::uniform_int(20U, 40U);
+      return test_rng::uniform_int(20U, 40U);
     }
 
     const cell_configuration&             cell_cfg;
@@ -1438,13 +1438,13 @@ protected:
       cell_cfg(cell_cfg_), test_ue(test_ue_), parent(parent_)
     {
       slot_generate_srb_traffic = slot_point{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs),
-                                             test_random::uniform_int(20U, 40U)};
+                                             test_rng::uniform_int(20U, 40U)};
     }
 
     void slot_indication(slot_point sl)
     {
       if (sl == slot_generate_srb_traffic) {
-        const unsigned srb_buffer = test_random::uniform_int(128U, parent->MAX_MAC_UL_SRB1_SDU_SIZE);
+        const unsigned srb_buffer = test_rng::uniform_int(128U, parent->MAX_MAC_UL_SRB1_SDU_SIZE);
         parent->push_buffer_state_to_ul_ue(test_ue.ue_index, sl, srb_buffer);
         buffer_bytes            = srb_buffer;
         initied_with_ul_traffic = true;
@@ -1471,7 +1471,7 @@ protected:
       static constexpr double ack_probability = 0.5f;
 
       // NOTE: to simply the generation of SRB1 buffer, we only allow max 3 NACKs.
-      const bool ack = h_ul.nof_retxs() <= 3U ? test_random::bernoulli(ack_probability) : true;
+      const bool ack = h_ul.nof_retxs() <= 3U ? test_rng::bernoulli(ack_probability) : true;
       h_ul.ul_crc_info(ack);
       test_logger.info("Slot={}, rnti={}: ACKing process h_id={} with {}",
                        sl,
@@ -1546,7 +1546,7 @@ protected:
     setup_sched(config_helpers::make_default_scheduler_expert_config(), msg);
     slot_generate_srb_traffic =
         slot_point{to_numerology_value(bench->cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs),
-                   test_random::uniform_int(20U, 40U)};
+                   test_rng::uniform_int(20U, 40U)};
   }
 
   ul_fallback_sched_test_params params;
@@ -1602,7 +1602,7 @@ protected:
   }
 
   // Helper that generates the slot for the SRB0 buffer update.
-  static unsigned generate_srb_traffic_slot() { return test_random::uniform_int(20U, 30U); }
+  static unsigned generate_srb_traffic_slot() { return test_rng::uniform_int(20U, 30U); }
 
   const unsigned MAC_SRB_SDU_SIZE   = 101;
   const unsigned MAX_TEST_RUN_SLOTS = 50;

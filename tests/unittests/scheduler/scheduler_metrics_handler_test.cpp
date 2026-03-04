@@ -4,7 +4,7 @@
 
 #include "lib/scheduler/config/cell_configuration.h"
 #include "lib/scheduler/logging/scheduler_metrics_handler.h"
-#include "tests/test_doubles/random/test_random.h"
+#include "tests/test_doubles/random/test_rng.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/result/sched_result.h"
@@ -48,7 +48,7 @@ class scheduler_metrics_handler_tester : public ::testing::Test
 {
 protected:
   scheduler_metrics_handler_tester(
-      std::chrono::milliseconds period = std::chrono::milliseconds{test_random::uniform_int<unsigned>(2, 100)}) :
+      std::chrono::milliseconds period = std::chrono::milliseconds{test_rng::uniform_int<unsigned>(2, 100)}) :
     report_period(period),
     cell_cfg(config_helpers::make_default_scheduler_expert_config(),
              sched_config_helper::make_default_sched_cell_configuration_request()),
@@ -80,17 +80,17 @@ protected:
   test_scheduler_cell_metrics_notifier metrics_notif;
   cell_configuration                   cell_cfg;
   cell_metrics_handler                 metrics;
-  du_ue_index_t test_ue_index = to_du_ue_index(test_random::uniform_int<unsigned>(0, MAX_NOF_DU_UES - 1));
+  du_ue_index_t test_ue_index = to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_NOF_DU_UES - 1));
 
   slot_point_extended next_sl_tx{
       subcarrier_spacing::kHz15,
-      test_random::uniform_int<unsigned>(0, NOF_HYPER_SFNS* NOF_SFNS* NOF_SUBFRAMES_PER_FRAME - 1)};
+      test_rng::uniform_int<unsigned>(0, NOF_HYPER_SFNS* NOF_SFNS* NOF_SUBFRAMES_PER_FRAME - 1)};
   unsigned slot_count = 0;
 };
 
 TEST_F(scheduler_metrics_handler_tester, metrics_sent_with_defined_periodicity)
 {
-  unsigned nof_reports = test_random::uniform_int<unsigned>(1, 10);
+  unsigned nof_reports = test_rng::uniform_int<unsigned>(1, 10);
   ASSERT_TRUE(metrics_notif.last_report.ue_metrics.empty());
 
   // Discard first report, as it may have not enough slots.
@@ -135,8 +135,8 @@ TEST_F(scheduler_metrics_handler_tester, when_no_events_took_place_then_metrics_
 
 TEST_F(scheduler_metrics_handler_tester, compute_nof_dl_oks_and_noks)
 {
-  unsigned nof_acks  = test_random::uniform_int<unsigned>(1, 100);
-  unsigned nof_nacks = test_random::uniform_int<unsigned>(1, 100);
+  unsigned nof_acks  = test_rng::uniform_int<unsigned>(1, 100);
+  unsigned nof_nacks = test_rng::uniform_int<unsigned>(1, 100);
 
   for (unsigned i = 0; i != nof_acks; ++i) {
     metrics.handle_dl_harq_ack(test_ue_index, true, units::bytes{1});
@@ -160,8 +160,8 @@ TEST_F(scheduler_metrics_handler_tester, compute_nof_dl_oks_and_noks)
 
 TEST_F(scheduler_metrics_handler_tester, compute_nof_ul_oks_and_noks)
 {
-  unsigned nof_acks  = test_random::uniform_int<unsigned>(1, 100);
-  unsigned nof_nacks = test_random::uniform_int<unsigned>(1, 100);
+  unsigned nof_acks  = test_rng::uniform_int<unsigned>(1, 100);
+  unsigned nof_nacks = test_rng::uniform_int<unsigned>(1, 100);
 
   ul_crc_pdu_indication crc_pdu;
   crc_pdu.rnti           = to_rnti(0x4601);
@@ -191,8 +191,8 @@ TEST_F(scheduler_metrics_handler_tester, compute_nof_ul_oks_and_noks)
 
 TEST_F(scheduler_metrics_handler_tester, compute_mcs)
 {
-  sch_mcs_index dl_mcs{test_random::uniform_int<uint8_t>(1, 28)};
-  sch_mcs_index ul_mcs{test_random::uniform_int<uint8_t>(1, 28)};
+  sch_mcs_index dl_mcs{test_rng::uniform_int<uint8_t>(1, 28)};
+  sch_mcs_index ul_mcs{test_rng::uniform_int<uint8_t>(1, 28)};
 
   // Discard first report, as it may have not enough slots.
   get_next_metric();
@@ -227,8 +227,8 @@ TEST_F(scheduler_metrics_handler_tester, compute_mcs)
 
 TEST_F(scheduler_metrics_handler_tester, compute_bitrate)
 {
-  units::bytes dl_tbs{test_random::uniform_int<unsigned>(1, 1000)};
-  units::bytes ul_tbs{test_random::uniform_int<unsigned>(1, 1000)};
+  units::bytes dl_tbs{test_rng::uniform_int<unsigned>(1, 1000)};
+  units::bytes ul_tbs{test_rng::uniform_int<unsigned>(1, 1000)};
 
   // Slot with bytes ACKed.
   metrics.handle_dl_harq_ack(test_ue_index, true, dl_tbs);

@@ -389,7 +389,7 @@ int main(int argc, char** argv)
 
   // Create XN-C GW (TODO cleanup port and PPID args with factory)
   cu_cp_unit_config                              cp_unit_cfg = o_cu_cp_app_unit->get_o_cu_cp_unit_config().cucp_cfg;
-  std::unique_ptr<ocucp::xnc_connection_gateway> cu_xnc_gw;
+  std::unique_ptr<ocucp::xnc_connection_gateway> xnc_gw;
   if (!cp_unit_cfg.xnap_configs.empty()) {
     // TODO: support multiple XNAP config items.
     const auto& xnap_cfg = cp_unit_cfg.xnap_configs.front();
@@ -402,7 +402,7 @@ int main(int argc, char** argv)
     xnc_sctp_gateway_config xnc_server_cfg(
         {xnc_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().xnc_rx_executor(), *cu_cp_dlt_pcaps.xnap});
 
-    cu_xnc_gw = create_xnc_connection_gateway(xnc_server_cfg);
+    xnc_gw = create_xnc_connection_gateway(xnc_server_cfg);
   }
 
   std::unique_ptr<f1c_local_connector> f1c_gw =
@@ -459,7 +459,7 @@ int main(int argc, char** argv)
   o_cucp_deps.timers                 = cu_timers;
   o_cucp_deps.ngap_pcap              = cu_cp_dlt_pcaps.ngap.get();
   o_cucp_deps.broker                 = epoll_broker.get();
-  o_cucp_deps.xnc_gw                 = cu_xnc_gw != nullptr ? cu_xnc_gw.get() : nullptr;
+  o_cucp_deps.xnc_gw                 = xnc_gw.get();
   o_cucp_deps.metrics_notifier       = &metrics_notifier_forwarder;
   o_cucp_deps.e2_gw                  = e2_gw_cu_cp.get();
   o_cucp_deps.remote_metrics_gateway = remote_server_gateway;
@@ -538,6 +538,11 @@ int main(int argc, char** argv)
   // Connect E1AP to O-CU-CP.
   e1_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_e1_handler());
 
+  if (xnc_gw != nullptr) {
+    // Connect XN-C to O-CU-CP and start listening for new XN-C connection requests.
+    xnc_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_xnc_handler());
+  }
+
   // Start O-CU-CP.
   gnb_logger.info("Starting CU-CP...");
   o_cucp_obj.get_operation_controller().start();
@@ -545,11 +550,6 @@ int main(int argc, char** argv)
 
   if (not o_cucp_obj.get_cu_cp().get_ng_handler().amfs_are_connected()) {
     report_error("CU-CP failed to connect to AMF");
-  }
-
-  if (cu_xnc_gw != nullptr) {
-    // Connect XN-C to O-CU-CP and start listening for new XN-C connection requests.
-    cu_xnc_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_xnc_handler());
   }
 
   // Configure the remote commands and start the service.

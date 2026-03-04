@@ -11,12 +11,37 @@
 static uint32_t base_seed = 0;
 
 /// Sentinel value for \c test_counter in uninitialized state.
-constexpr uint32_t invalid_test_counter = std::numeric_limits<uint32_t>::max();
+static constexpr uint32_t invalid_test_counter = std::numeric_limits<uint32_t>::max();
 
 /// Global counter of tests run.
 static std::atomic<uint32_t> test_counter = invalid_test_counter;
 
+/// Current random seed, computed based on base_seed and iteration counter.
+static std::atomic<uint32_t> iter_seed = 0;
+
 namespace {
+
+/// Integer mixing function to turn an integer into a well-scrambled bit output.
+uint32_t split_mix_32(uint32_t x)
+{
+  x += 0x9e3779b9u;
+  x = (x ^ (x >> 16)) * 0x85ebca6bu;
+  x = (x ^ (x >> 13)) * 0xc2b2ae35u;
+  return x ^ (x >> 16);
+}
+
+/// Called each time the seed is updated.
+void update_current_seed(uint32_t iteration_counter)
+{
+  // Note: Apply golden ratio hashing number to spread the iteration index before combining it with base_seed.
+  auto new_seed = split_mix_32(base_seed ^ (iteration_counter * 0x9e3779b9u));
+  iter_seed.store(new_seed, std::memory_order_release);
+
+  fmt::print("[   TEST   ] OCUDU Random Seed: base_seed={}, iteration={} -> iter_seed={}.\n",
+             base_seed,
+             iteration_counter,
+             new_seed);
+}
 
 /// Gtest environment for setting up random seeds.
 class RandomSeedEnvironment : public ::testing::Environment
@@ -30,18 +55,21 @@ public:
       // We generate one.
       base_seed = std::random_device{}();
     }
-
-    // Mark seed as initialized.
-    test_counter.store(0, std::memory_order_release);
-
-    // Print the used seed.
-    fmt::print("[   TEST   ] OCUDU Random Seed: {}.\n", base_seed);
   }
 };
 
 class RandomGeneratorResetListener final : public ::testing::EmptyTestEventListener
 {
 private:
+  void OnTestIterationStart(const testing::UnitTest& unit_test, int iteration) override
+  {
+    // On each test iteration increment, we update the seed.
+    update_current_seed(iteration);
+
+    // Mark seed as initialized.
+    test_counter.store(0, std::memory_order_release);
+  }
+
   void OnTestStart(const testing::TestInfo& test_info) override
   {
     // On each test start, we bump the test counter.
@@ -52,7 +80,10 @@ private:
   {
     ocudulog::flush();
     if (test_info.result()->Failed()) {
-      fmt::print(stderr, "[  FAILED  ] OCUDU Random Seed: {}.\n", ocudu::test_random::seed());
+      fmt::print(stderr,
+                 "[  FAILED  ] OCUDU Random Seed: base_seed={}, iter_seed={}.\n",
+                 base_seed,
+                 ocudu::test_random::seed());
     }
   }
 };
@@ -61,7 +92,7 @@ private:
 
 uint32_t ocudu::test_random::seed()
 {
-  return base_seed;
+  return iter_seed.load(std::memory_order_acquire);
 }
 
 std::mt19937& ocudu::test_random::tls_gen()
@@ -70,11 +101,13 @@ std::mt19937& ocudu::test_random::tls_gen()
   thread_local uint32_t     last_test_counter{0};
 
   uint32_t cur_test_counter = test_counter.load(std::memory_order_acquire);
-  report_fatal_error_if_not(cur_test_counter != invalid_test_counter, "RandomSeedEnvironment has not been setup");
+  report_fatal_error_if_not(cur_test_counter != invalid_test_counter,
+                            "RandomSeedEnvironment has not yet been setup. Are you trying to generate random "
+                            "parameters before main() is called?");
   if (cur_test_counter != last_test_counter) {
     // New test started. Reset generator back to original seed.
     last_test_counter = cur_test_counter;
-    rng.seed(cur_test_counter);
+    rng.seed(seed());
   }
   return rng;
 }

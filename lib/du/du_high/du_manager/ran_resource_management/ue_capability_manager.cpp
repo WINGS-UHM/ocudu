@@ -205,7 +205,7 @@ ue_capability_manager::ue_capability_manager(span<const du_cell_config> cell_cfg
 void ue_capability_manager::handle_ue_creation(du_ue_resource_config& ue_res_cfg)
 {
   du_cell_index_t cell_idx  = to_du_cell_index(0);
-  ue_cell_config  pcell_cfg = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
+  ue_cell_config& pcell_cfg = ue_res_cfg.cell_group.cells.at(SERVING_PCELL_IDX);
 
   // Set default MCS tables and disable UL MIMO.
   set_pdsch_mcs_table(pcell_cfg.serv_cell_cfg, select_pdsch_mcs_table(cell_idx));

@@ -30,6 +30,31 @@ bool ocudu::test_helpers::is_valid_bearer_context_setup_request(const e1ap_messa
   return true;
 }
 
+bool ocudu::test_helpers::is_valid_security_indication_with_bearer_context_setup_request(const e1ap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type() == asn1::e1ap::e1ap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_E1AP_ID_BEARER_CONTEXT_SETUP);
+
+  const asn1::e1ap::bearer_context_setup_request_s& req_ies = msg.pdu.init_msg().value.bearer_context_setup_request();
+
+  TRUE_OR_RETURN(asn1::e1ap::sys_bearer_context_setup_request_c::types_opts::ng_ran_bearer_context_setup_request ==
+                 req_ies->sys_bearer_context_setup_request.type());
+  const asn1::protocol_ie_container_l<asn1::e1ap::ng_ran_bearer_context_setup_request_o>& ng_ran_bearer_ctxt =
+      req_ies->sys_bearer_context_setup_request.ng_ran_bearer_context_setup_request();
+
+  asn1::e1ap::pdu_session_res_to_setup_list_l asn1_pdu_session_res_item =
+      ng_ran_bearer_ctxt[0]->pdu_session_res_to_setup_list();
+
+  const asn1::e1ap::pdu_session_res_to_setup_item_s& pdu_session = asn1_pdu_session_res_item[0];
+
+  asn1::e1ap::security_ind_s security_indication = pdu_session.security_ind;
+  TRUE_OR_RETURN(security_indication.integrity_protection_ind == asn1::e1ap::integrity_protection_ind_opts::required);
+  TRUE_OR_RETURN(security_indication.integrity_protection_ind == asn1::e1ap::integrity_protection_ind_opts::required);
+  TRUE_OR_RETURN(is_packable(msg));
+
+  return true;
+}
+
 bool ocudu::test_helpers::is_valid_bearer_context_modification_request(const e1ap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::e1ap::e1ap_pdu_c::types_opts::init_msg);

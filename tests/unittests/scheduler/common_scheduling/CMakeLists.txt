@@ -20,5 +20,5 @@ target_link_libraries(common_scheduler_test
         scheduler_test_suite
         sched_test_doubles
         gtest
-        gtest_main)
+        random_gtest_main)
 add_test(common_scheduler_test common_scheduler_test)

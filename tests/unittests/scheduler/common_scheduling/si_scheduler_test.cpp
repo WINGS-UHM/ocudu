@@ -6,6 +6,7 @@
 #include "lib/scheduler/common_scheduling/si_scheduler.h"
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "lib/scheduler/support/paging_helpers.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/adt/bounded_bitset.h"
@@ -14,7 +15,6 @@
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/result/dci_info.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -67,7 +67,7 @@ public:
   ocudulog::basic_logger&       logger;
 
   slot_point next_slot{to_numerology_value(cell_cfg.scs_common),
-                       test_rgen::uniform_int<unsigned>(0, 1024 * get_nof_slots_per_subframe(cell_cfg.scs_common))};
+                       test_random::uniform_int<unsigned>(0, 1024 * get_nof_slots_per_subframe(cell_cfg.scs_common))};
 };
 
 TEST(no_si_scheduler_test, when_no_si_is_provided_then_nothing_is_scheduled)

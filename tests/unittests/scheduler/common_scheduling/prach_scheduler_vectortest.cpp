@@ -4,12 +4,12 @@
 
 #include "lib/scheduler/common_scheduling/prach_scheduler.h"
 #include "prach_scheduler_test_data.h"
+#include "tests/test_doubles/random/test_random.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/prach/prach_cyclic_shifts.h"
 #include "ocudu/ran/prach/prach_preamble_information.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -156,8 +156,8 @@ protected:
     }
 
     // Generate random parameters.
-    pci_t    pci = test_rgen::uniform_int<pci_t>();
-    uint16_t zcz = test_rgen::uniform_int<uint16_t>();
+    pci_t    pci = test_random::uniform_int<pci_t>();
+    uint16_t zcz = test_random::uniform_int<uint16_t>();
 
     // Obtain PRACH configuration. Skip if the preamble format is invalid.
     prach_cfg = prach_configuration_get(fr, dplx_mode, prach_config_index);

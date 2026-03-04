@@ -3,10 +3,10 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/f1ap/asn1_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/up_transport_layer_info.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -38,13 +38,13 @@ TEST(f1ap_asn1_helpers_test, test_ngi_converter_for_invalid_plmn)
 
 static std::string create_random_ipv4_string()
 {
-  std::vector<uint8_t> nums = test_rgen::random_vector<uint8_t>(4);
+  std::vector<uint8_t> nums = test_rng::vector_of_uniform_ints<uint8_t>(4);
   return fmt::format("{}.{}.{}.{}", nums[0], nums[1], nums[2], nums[3]);
 }
 
 static std::string create_random_ipv6_string()
 {
-  std::vector<uint16_t> nums = test_rgen::random_vector<uint16_t>(8);
+  std::vector<uint16_t> nums = test_rng::vector_of_uniform_ints<uint16_t>(8);
   return fmt::format("{:x}:{:x}:{:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
                      nums[0],
                      nums[1],
@@ -58,7 +58,7 @@ static std::string create_random_ipv6_string()
 
 static std::string generate_random_ipv4_bitstring()
 {
-  uint32_t    random_number = test_rgen::uniform_int<uint32_t>();
+  uint32_t    random_number = test_rng::uniform_int<uint32_t>();
   std::string bitstr        = fmt::format("{:032b}", random_number);
 
   return bitstr;
@@ -69,7 +69,7 @@ static std::string generate_random_ipv6_bitstring()
   std::string bitstr;
 
   for (int i = 0; i < 2; i++) { // we need 128 bits for ipv6
-    uint64_t random_number = test_rgen::uniform_int<uint64_t>();
+    uint64_t random_number = test_rng::uniform_int<uint64_t>();
     bitstr                 = bitstr + fmt::format("{:064b}", random_number);
   }
 
@@ -78,7 +78,7 @@ static std::string generate_random_ipv6_bitstring()
 
 static uint32_t generate_gtp_teid()
 {
-  return test_rgen::uniform_int<uint32_t>();
+  return test_rng::uniform_int<uint32_t>();
 }
 
 TEST(f1ap_asn1_helpers_test, test_up_transport_layer_converter)

@@ -12,7 +12,7 @@ target_include_directories(du_manager_test_helpers PUBLIC ${CMAKE_SOURCE_DIR})
 target_link_libraries(du_manager_test_helpers ocudu_du_manager ocudu_support ocudulog)
 
 add_executable(du_bearer_test du_ue/du_bearer_test.cpp)
-target_link_libraries(du_bearer_test du_manager_test_helpers ocudu_du_manager ocudu_support ocudulog gtest gtest_main)
+target_link_libraries(du_bearer_test du_manager_test_helpers ocudu_du_manager ocudu_support ocudulog gtest ocudu_gtest_main)
 gtest_discover_tests(du_bearer_test)
 
 add_executable(ue_manager_test du_ue/ue_manager_test.cpp)
@@ -22,7 +22,7 @@ target_link_libraries(ue_manager_test
         ocudu_support
         ocudulog
         gtest
-        gtest_main)
+        ocudu_gtest_main)
 target_include_directories(ue_manager_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(ue_manager_test)
 
@@ -34,23 +34,23 @@ target_link_libraries(sib_test
         ocudu_support
         ocudulog
         gtest
-        gtest_main)
+        ocudu_gtest_main)
 target_include_directories(sib_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(sib_test)
 
 add_executable(serving_cell_config_converter_test ../du_manager/serving_cell_config_converter_test.cpp)
-target_link_libraries(serving_cell_config_converter_test ocudu_du_manager ocudu_support asn1_utils rrc_nr_asn1 ocudulog gtest gtest_main)
+target_link_libraries(serving_cell_config_converter_test ocudu_du_manager ocudu_support asn1_utils rrc_nr_asn1 ocudulog gtest ocudu_gtest_main)
 add_test(serving_cell_config_converter_test serving_cell_config_converter_test)
 gtest_discover_tests(serving_cell_config_converter_test)
 
 add_executable(mac_cell_group_config_converter_test ../du_manager/mac_cell_group_config_converter_test.cpp)
-target_link_libraries(mac_cell_group_config_converter_test ocudu_du_manager ocudu_support asn1_utils rrc_nr_asn1 ocudulog gtest gtest_main)
+target_link_libraries(mac_cell_group_config_converter_test ocudu_du_manager ocudu_support asn1_utils rrc_nr_asn1 ocudulog gtest ocudu_gtest_main)
 add_test(mac_cell_group_config_converter_test mac_cell_group_config_converter_test)
 gtest_discover_tests(mac_cell_group_config_converter_test)
 
 add_executable(du_manager_ue_creation_test procedures/ue_creation_test.cpp)
 target_include_directories(du_manager_ue_creation_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(du_manager_ue_creation_test du_manager_test_helpers gtest gtest_main)
+target_link_libraries(du_manager_ue_creation_test du_manager_test_helpers gtest ocudu_gtest_main)
 gtest_discover_tests(du_manager_ue_creation_test)
 
 add_executable(du_ue_config_test
@@ -58,14 +58,14 @@ add_executable(du_ue_config_test
         procedures/ue_deletion_test.cpp
         procedures/du_ue_ric_configuration_procedure_test.cpp)
 target_include_directories(du_ue_config_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(du_ue_config_test du_manager_test_helpers rrc_test_doubles pdcp_test_doubles gtest gtest_main)
+target_link_libraries(du_ue_config_test du_manager_test_helpers rrc_test_doubles pdcp_test_doubles gtest ocudu_gtest_main)
 gtest_discover_tests(du_ue_config_test)
 
 add_executable(du_manager_procedure_test
         procedures/du_param_config_procedure_test.cpp
 )
 target_include_directories(du_manager_procedure_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(du_manager_procedure_test du_manager_test_helpers gtest gtest_main)
+target_link_libraries(du_manager_procedure_test du_manager_test_helpers gtest ocudu_gtest_main)
 gtest_discover_tests(du_manager_procedure_test)
 
 add_executable(du_ran_resource_manager_test
@@ -73,25 +73,25 @@ add_executable(du_ran_resource_manager_test
         du_drx_resource_manager_test.cpp
         decode_ue_nr_cap_container_test.cpp)
 target_include_directories(du_ran_resource_manager_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(du_ran_resource_manager_test du_manager_test_helpers sched_test_doubles gtest gtest_main)
+target_link_libraries(du_ran_resource_manager_test du_manager_test_helpers sched_test_doubles gtest ocudu_gtest_main)
 gtest_discover_tests(du_ran_resource_manager_test)
 
 add_executable(srs_resource_generator_test srs_resource_generator_test.cpp)
 target_include_directories(srs_resource_generator_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(srs_resource_generator_test du_manager_test_helpers gtest gtest_main)
+target_link_libraries(srs_resource_generator_test du_manager_test_helpers gtest ocudu_gtest_main)
 gtest_discover_tests(srs_resource_generator_test)
 
 add_executable(du_periodic_srs_res_mng_test du_periodic_srs_res_mng_test.cpp)
 target_include_directories(du_periodic_srs_res_mng_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(du_periodic_srs_res_mng_test du_manager_test_helpers sched_test_doubles gtest gtest_main)
+target_link_libraries(du_periodic_srs_res_mng_test du_manager_test_helpers sched_test_doubles gtest ocudu_gtest_main)
 gtest_discover_tests(du_periodic_srs_res_mng_test)
 
 add_executable(du_aperiodic_srs_res_mng_test du_aperiodic_srs_res_mng_test.cpp)
 target_include_directories(du_aperiodic_srs_res_mng_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(du_aperiodic_srs_res_mng_test du_manager_test_helpers sched_test_doubles gtest gtest_main)
+target_link_libraries(du_aperiodic_srs_res_mng_test du_manager_test_helpers sched_test_doubles gtest ocudu_gtest_main)
 gtest_discover_tests(du_aperiodic_srs_res_mng_test)
 
 add_executable(cbs_encoder_test cbs/cbs_encoder_test.cpp)
 target_include_directories(cbs_encoder_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(cbs_encoder_test ocudu_cbs_encoder ocudu_support gtest gtest_main)
+target_link_libraries(cbs_encoder_test ocudu_cbs_encoder ocudu_support gtest ocudu_gtest_main)
 gtest_discover_tests(cbs_encoder_test)

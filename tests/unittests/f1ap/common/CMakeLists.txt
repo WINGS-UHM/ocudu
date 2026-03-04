@@ -12,6 +12,6 @@ target_link_libraries(f1ap_asn1_packer_test
         f1ap_asn1
         ocudu_ran
         gtest
-        gtest_main)
+        ocudu_gtest_main)
 target_include_directories(f1ap_asn1_packer_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(f1ap_asn1_packer_test)

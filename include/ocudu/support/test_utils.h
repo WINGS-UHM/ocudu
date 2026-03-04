@@ -275,24 +275,6 @@ public:
 
   static bool bernoulli(double p) { return std::bernoulli_distribution(p)(get()); }
 
-  template <typename FloatingPoint>
-  static FloatingPoint normal_dist(FloatingPoint mean, FloatingPoint stddev)
-  {
-    ocudu_assert(std::is_floating_point<FloatingPoint>::value, "result_type must be a floating point type");
-    return std::normal_distribution<FloatingPoint>(mean, stddev)(get());
-  }
-
-  /// Return a vector of integers with specified size filled with random values.
-  template <typename Integer>
-  static std::vector<Integer> random_vector(size_t sz)
-  {
-    std::vector<Integer> vec(sz);
-    for (unsigned i = 0; i != sz; ++i) {
-      vec[i] = test_rgen::uniform_int<Integer>();
-    }
-    return vec;
-  }
-
 private:
   static std::mt19937& init(uint32_t seed)
   {

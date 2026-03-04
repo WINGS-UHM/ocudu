@@ -50,6 +50,7 @@
 #include "ocudu/support/test_utils.h"
 #include "ocudu/support/tracing/event_tracing.h"
 #include <pthread.h>
+#include <random>
 
 using namespace ocudu;
 using namespace odu;
@@ -223,6 +224,17 @@ static void print_args(const bench_params& params)
     fmt::print("- Policys scheduler: time_rr\n");
   }
   fmt::print("- Scheduler tracing: {}\n", params.sched_trace_enabled ? "enabled" : "disabled");
+}
+
+static std::vector<uint8_t> generate_bytes(size_t sz)
+{
+  thread_local std::mt19937              gen{std::random_device{}()};
+  std::uniform_int_distribution<uint8_t> dist{};
+  std::vector<uint8_t>                   data(sz);
+  for (unsigned i = 0; i != sz; ++i) {
+    data[i] = dist(gen);
+  }
+  return data;
 }
 
 class dummy_metrics_handler : public odu::du_metrics_notifier
@@ -626,13 +638,12 @@ public:
     du_hi = std::make_unique<du_high_impl>(cfg, dependencies);
 
     // Create PDCP PDU Payload.
-    report_fatal_error_if_not(
-        pdcp_pdu_payload.append(test_rgen::random_vector<uint8_t>(f1u_pdu_size.value() - PDCP_MAX_HDR_LEN)),
-        "Unable to allocate PDU");
-    // Create MAC PDU.
-    report_fatal_error_if_not(mac_pdu.append(test_rgen::random_vector<uint8_t>(
-                                  buff_size_field_to_bytes(lbsr_buff_sz, ocudu::bsr_format::LONG_BSR))),
+    report_fatal_error_if_not(pdcp_pdu_payload.append(generate_bytes(f1u_pdu_size.value() - PDCP_MAX_HDR_LEN)),
                               "Unable to allocate PDU");
+    // Create MAC PDU.
+    report_fatal_error_if_not(
+        mac_pdu.append(generate_bytes(buff_size_field_to_bytes(lbsr_buff_sz, ocudu::bsr_format::LONG_BSR))),
+        "Unable to allocate PDU");
 
     // Start DU-high operation.
     du_hi->start();

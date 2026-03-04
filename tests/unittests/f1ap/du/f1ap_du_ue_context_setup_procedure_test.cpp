@@ -4,9 +4,9 @@
 
 #include "f1ap_du_test_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/du/du_cell_config_helpers.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -22,7 +22,7 @@ protected:
   /// \brief Called when it is the DU taking the initiative to create a UE in the F1AP (e.g. PRACH).
   void du_creates_f1_logical_connection()
   {
-    du_ue_index_t ue_index = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
+    du_ue_index_t ue_index = to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
     test_ue                = run_f1ap_ue_create(ue_index);
   }
 
@@ -191,7 +191,7 @@ TEST_F(f1ap_du_ue_context_setup_test, when_f1ap_receives_request_then_new_srbs_b
   ASSERT_EQ(this->f1ap_du_cfg_handler.last_ue_cfg_response->f1c_bearers_added.size(), 1);
   f1c_bearer* srb2 = this->f1ap_du_cfg_handler.last_ue_cfg_response->f1c_bearers_added[0].bearer;
   byte_buffer ul_rrc_msg =
-      byte_buffer::create(test_rgen::random_vector<uint8_t>(test_rgen::uniform_int<unsigned>(1, 100))).value();
+      byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(test_rng::uniform_int<unsigned>(1, 100))).value();
   srb2->handle_sdu(byte_buffer_chain::create(ul_rrc_msg.copy()).value());
   ASSERT_EQ(this->f1c_gw.last_tx_pdu().pdu.type().value, f1ap_pdu_c::types_opts::init_msg);
   ASSERT_EQ(this->f1c_gw.last_tx_pdu().pdu.init_msg().value.type().value,

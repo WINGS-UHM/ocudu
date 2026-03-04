@@ -5,6 +5,7 @@
 #pragma once
 
 #include "lib/mac/mac_sched/mac_scheduler_adapter.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/slotted_array.h"
 #include "ocudu/mac/config/mac_cell_group_config_factory.h"
 #include "ocudu/mac/config/mac_config_helpers.h"
@@ -19,7 +20,6 @@
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/mac_scheduler.h"
 #include "ocudu/scheduler/result/sched_result.h"
-#include "ocudu/support/test_utils.h"
 
 namespace ocudu {
 
@@ -194,7 +194,7 @@ public:
 
   size_t on_new_tx_sdu(span<uint8_t> mac_sdu_buf) override
   {
-    previous_tx_sdu = byte_buffer::create(test_rgen::random_vector<uint8_t>(mac_sdu_buf.size())).value();
+    previous_tx_sdu = byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(mac_sdu_buf.size())).value();
     auto out_it     = mac_sdu_buf.begin();
     for (span<const uint8_t> seg : previous_tx_sdu.segments()) {
       out_it = std::copy(seg.begin(), seg.end(), out_it);

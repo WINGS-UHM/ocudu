@@ -38,6 +38,6 @@ set_tests_properties(du_high_test PROPERTIES LABELS "tsan")
 gtest_discover_tests(du_high_test)
 
 add_executable(mac_test_mode_adapter_test mac_test_mode_adapter_test.cpp)
-target_link_libraries(mac_test_mode_adapter_test ocudu_du_high gtest gtest_main)
+target_link_libraries(mac_test_mode_adapter_test ocudu_du_high gtest ocudu_gtest_main)
 target_include_directories(mac_test_mode_adapter_test PRIVATE ${CMAKE_SOURCE_DIR})
 add_test(mac_test_mode_adapter_test mac_test_mode_adapter_test)

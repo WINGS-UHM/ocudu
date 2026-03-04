@@ -5,8 +5,8 @@
 #include "f1ap_du_test_helpers.h"
 #include "test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "test_doubles/f1ap/f1ap_test_messages.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/async/async_test_utils.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -22,7 +22,8 @@ static gnbdu_config_update_request create_du_config_update(const f1_setup_reques
   req.cells_to_mod[0].du_sys_info = f1setup.served_cells[0].du_sys_info;
 
   // Alter SIB1
-  req.cells_to_mod[0].du_sys_info->packed_sib1 = byte_buffer::create(test_rgen::random_vector<uint8_t>(100)).value();
+  req.cells_to_mod[0].du_sys_info->packed_sib1 =
+      byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(100)).value();
 
   return req;
 }

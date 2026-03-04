@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/adt/interval.h"
-#include "ocudu/support/test_utils.h"
 #include <bitset>
 #include <gtest/gtest.h>
 
@@ -20,6 +20,8 @@ using namespace ocudu;
 template <typename T>
 class bitmask_test : public ::testing::Test
 {
+  static_assert(std::is_unsigned_v<T>, "Invalid type T");
+
 protected:
   using Integer                    = T;
   static constexpr size_t nof_bits = sizeof(Integer) * 8U;
@@ -112,7 +114,7 @@ TYPED_TEST(bitmask_test, first_lsb_one)
   // test all combinations.
   for (unsigned one_idx = 0; one_idx != this->nof_bits - 1; ++one_idx) {
     IntegerType mask  = mask_lsb_zeros<IntegerType>(one_idx);
-    IntegerType value = rd_int(test_rgen::get()) & mask;
+    IntegerType value = test_rng::uniform_int<IntegerType>() & mask;
 
     ASSERT_EQ(find_first_lsb_one(mask), one_idx);
     ASSERT_GE(find_first_lsb_one(value), one_idx) << fmt::format("for value {:#b}", value);
@@ -122,7 +124,6 @@ TYPED_TEST(bitmask_test, first_lsb_one)
 TYPED_TEST(bitmask_test, first_msb_one)
 {
   using IntegerType = typename TestFixture::Integer;
-  std::uniform_int_distribution<IntegerType> rd_int{0, std::numeric_limits<IntegerType>::max()};
 
   // sanity checks.
   ASSERT_EQ(std::numeric_limits<IntegerType>::digits, find_first_msb_one<IntegerType>(0));
@@ -134,7 +135,7 @@ TYPED_TEST(bitmask_test, first_msb_one)
   // test all combinations.
   for (unsigned one_idx = 0; one_idx != this->nof_bits - 1; ++one_idx) {
     IntegerType mask  = mask_lsb_ones<IntegerType>(one_idx + 1);
-    IntegerType value = std::max((IntegerType)(rd_int(test_rgen::get()) & mask), (IntegerType)1U);
+    IntegerType value = std::max<IntegerType>(test_rng::uniform_int<IntegerType>() & mask, 1U);
 
     ASSERT_EQ(one_idx, find_first_msb_one(mask));
     ASSERT_LE(find_first_msb_one(value), one_idx) << fmt::format("for value {:#b}", value);
@@ -164,7 +165,7 @@ protected:
   unsigned get_random_size(unsigned min_val = 1, unsigned max_val = bitset_type::max_size()) const
   {
     ocudu_assert(max_val <= bitset_type::max_size(), "Invalid test bitset size argument");
-    return test_rgen::uniform_int<unsigned>(min_val, max_val);
+    return test_rng::uniform_int<unsigned>(min_val, max_val);
   }
 
   bitset_type create_bitset_with_zeros(unsigned size) const { return bitset_type(size); }
@@ -179,7 +180,7 @@ protected:
   {
     std::vector<bool> data(size);
     for (auto it = data.begin(); it != data.end(); ++it) {
-      *it = std::bernoulli_distribution{}(test_rgen::get());
+      *it = test_rng::bernoulli();
     }
     return bitset_type(data.begin(), data.end());
   }
@@ -188,7 +189,7 @@ protected:
   {
     std::vector<bool> vec(size);
     for (auto it = vec.begin(); it != vec.end(); ++it) {
-      *it = std::bernoulli_distribution{}(test_rgen::get());
+      *it = test_rng::bernoulli();
     }
     return vec;
   }
@@ -424,9 +425,9 @@ TYPED_TEST(bounded_bitset_tester, slice)
 
   constexpr size_t N_small   = TestFixture::bitset_type::max_size() / 2;
   using small_bitset_type    = bounded_bitset<N_small, big_bitset_type::bit_order()>;
-  unsigned small_bitset_size = test_rgen::uniform_int<unsigned>(0, std::min((unsigned)N_small, big_bitset_size - 1));
-  unsigned offset            = test_rgen::uniform_int<unsigned>(0, small_bitset_size);
-  unsigned end_offset        = test_rgen::uniform_int<unsigned>(offset, small_bitset_size);
+  unsigned small_bitset_size = test_rng::uniform_int<unsigned>(0, std::min((unsigned)N_small, big_bitset_size - 1));
+  unsigned offset            = test_rng::uniform_int<unsigned>(0, small_bitset_size);
+  unsigned end_offset        = test_rng::uniform_int<unsigned>(offset, small_bitset_size);
 
   small_bitset_type small_bitmap = big_bitmap.template slice<N_small>(offset, end_offset);
   ASSERT_EQ(end_offset - offset, small_bitmap.size());
@@ -544,8 +545,8 @@ TYPED_TEST(bounded_bitset_tester, push_back)
 
 TYPED_TEST(bounded_bitset_tester, push_back_multiple_bits)
 {
-  std::vector<bool> vec      = this->create_random_vector(this->get_random_size());
-  const unsigned    bit_step = test_rgen::uniform_int<unsigned>(1U, std::min(32U, (unsigned)vec.size()));
+  std::vector<bool>                 vec      = this->create_random_vector(this->get_random_size());
+  const unsigned                    bit_step = test_rng::uniform_int<unsigned>(1U, std::min(32U, (unsigned)vec.size()));
   typename TestFixture::bitset_type bitmap;
 
   for (unsigned offset = 0; offset < vec.size(); offset += bit_step) {
@@ -569,7 +570,7 @@ TYPED_TEST(bounded_bitset_tester, push_back_multiple_bits)
 TEST(bounded_bitset_test, bitset_integer_conversion_consistent_with_std_bitset)
 {
   unsigned bitset_size = 23;
-  unsigned nof_ones    = test_rgen::uniform_int<unsigned>(1, bitset_size);
+  unsigned nof_ones    = test_rng::uniform_int<unsigned>(1, bitset_size);
   unsigned integermask = mask_lsb_ones<unsigned>(nof_ones);
 
   bounded_bitset<25> mask(bitset_size);
@@ -964,8 +965,8 @@ TEST(BoundedBitset, extract)
   std::vector<std::array<uint64_t, 3>> data;
 
   for (unsigned i_value = 0, offset = 0; i_value != nof_values; ++i_value) {
-    uint64_t size  = test_rgen::uniform_int(1, 64);
-    uint64_t value = (test_rgen::get()() & mask_lsb_ones<uint64_t>(size));
+    uint64_t size  = test_rng::uniform_int(1, 64);
+    uint64_t value = (test_rng::uniform_int<uint64_t>() & mask_lsb_ones<uint64_t>(size));
 
     bitset.push_back(value, size);
 
@@ -992,8 +993,8 @@ TEST(BoundedBitset, extract_inverted)
   std::vector<std::array<uint64_t, 3>>  data;
 
   for (unsigned i_value = 0, offset = 0; i_value != nof_values; ++i_value) {
-    uint64_t size  = test_rgen::uniform_int(1, 64);
-    uint64_t value = (test_rgen::get()() & mask_lsb_ones<uint64_t>(size));
+    uint64_t size  = test_rng::uniform_int(1, 64);
+    uint64_t value = (test_rng::uniform_int<uint64_t>() & mask_lsb_ones<uint64_t>(size));
 
     bitset.push_back(value, size);
 

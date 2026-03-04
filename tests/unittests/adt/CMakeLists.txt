@@ -5,8 +5,10 @@
 
 set_directory_properties(PROPERTIES LABELS "adt")
 
+include_directories(../../..)
+
 add_executable(bounded_bitset_test bounded_bitset_test.cpp)
-target_link_libraries(bounded_bitset_test ocudulog GTest::gtest GTest::gtest_main)
+target_link_libraries(bounded_bitset_test ocudulog GTest::gtest ocudu_gtest_main)
 add_test(bounded_bitset_test bounded_bitset_test)
 
 add_executable(interval_test interval_test.cpp)
@@ -18,13 +20,13 @@ add_executable(byte_buffer_test
         byte_buffer_test.cpp
         byte_buffer_chain_test.cpp
         transform_view_test.cpp)
-target_link_libraries(byte_buffer_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
+target_link_libraries(byte_buffer_test ocudulog ocudu_support GTest::gtest ocudu_gtest_main)
 add_test(byte_buffer_test byte_buffer_test)
 set_tests_properties(byte_buffer_test PROPERTIES LABELS "tsan")
 gtest_discover_tests(byte_buffer_test)
 
 add_executable(ring_buffer_test ring_buffer_test.cpp blocking_queue_test.cpp concurrent_queue_test.cpp)
-target_link_libraries(ring_buffer_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
+target_link_libraries(ring_buffer_test ocudulog ocudu_support GTest::gtest ocudu_gtest_main)
 add_test(ring_buffer_test ring_buffer_test)
 set_tests_properties(ring_buffer_test PROPERTIES LABELS "tsan")
 gtest_discover_tests(ring_buffer_test)
@@ -51,7 +53,7 @@ target_link_libraries(span_formatter_test ocudulog)
 add_test(span_formatter_test span_formatter_test)
 
 add_executable(static_vector_test static_vector_test.cpp)
-target_link_libraries(static_vector_test ocudulog GTest::gtest GTest::gtest_main)
+target_link_libraries(static_vector_test ocudulog GTest::gtest ocudu_gtest_main)
 add_test(static_vector_test static_vector_test)
 
 add_executable(unique_function_test unique_function_test.cpp)
@@ -67,7 +69,7 @@ target_link_libraries(strong_type_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(strong_type_test strong_type_test)
 
 add_executable(bounded_integer_test bounded_integer_test.cpp)
-target_link_libraries(bounded_integer_test ocudulog GTest::gtest GTest::gtest_main)
+target_link_libraries(bounded_integer_test ocudulog GTest::gtest ocudu_gtest_main)
 gtest_discover_tests(bounded_integer_test)
 
 add_executable(lockfree_triple_buffer_test lockfree_triple_buffer_test.cpp)

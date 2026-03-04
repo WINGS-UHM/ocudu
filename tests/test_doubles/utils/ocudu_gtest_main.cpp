@@ -152,7 +152,7 @@ std::mt19937& ocudu::test_rng::tls_gen()
 
   uint32_t cur_test_counter = test_counter.load(std::memory_order_acquire);
   report_fatal_error_if_not(cur_test_counter != invalid_test_counter,
-                            "OCUDUTestEnvironment has not yet been setup. Are you trying to generate random "
+                            "OCUDUTestEnvironment called before being setup. Are you trying to generate random "
                             "parameters before main() is called?");
   if (cur_test_counter != last_test_counter) {
     // New test started. Rewind generator back to original iteration seed.

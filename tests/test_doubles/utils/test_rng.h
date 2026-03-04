@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <limits>
 #include <random>
 #include <vector>
 
@@ -28,7 +29,7 @@ Integer uniform_int()
 }
 
 /// Returns a random boolean with probability \c p of being true.
-inline bool bernoulli(double p)
+inline bool bernoulli(double p = 0.5)
 {
   return std::bernoulli_distribution(p)(tls_gen());
 }
@@ -44,9 +45,8 @@ FloatingPoint normal_dist(FloatingPoint mean, FloatingPoint stddev)
 template <typename Integer>
 std::vector<Integer> vector_of_uniform_ints(size_t sz)
 {
-  static constexpr std::uniform_int_distribution<Integer> dist{std::numeric_limits<Integer>::min(),
-                                                               std::numeric_limits<Integer>::max()};
-  auto&                                                   rng = tls_gen();
+  std::uniform_int_distribution<Integer> dist{std::numeric_limits<Integer>::min(), std::numeric_limits<Integer>::max()};
+  auto&                                  rng = tls_gen();
 
   std::vector<Integer> vec(sz);
   for (unsigned i = 0; i != sz; ++i) {

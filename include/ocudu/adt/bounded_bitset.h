@@ -264,7 +264,7 @@ public:
 
     for (unsigned bit_index = 0; bit_index != nof_bits; ++bit_index) {
       if (test(startpos + bit_index)) {
-        val |= 1U << (nof_bits - 1 - bit_index);
+        val |= Integer{1} << (nof_bits - 1 - bit_index);
       }
     }
 

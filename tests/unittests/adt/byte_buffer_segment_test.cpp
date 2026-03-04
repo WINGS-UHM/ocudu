@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/detail/byte_buffer_segment.h"
 #include "ocudu/adt/detail/byte_buffer_segment_list.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -42,7 +42,7 @@ TEST(byte_buffer_segment_test, append_bytes_on_empty_buffer)
 {
   std::vector<uint8_t>       buffer(1024);
   byte_buffer_segment        segment{buffer, 16};
-  const std::vector<uint8_t> bytes = test_rgen::random_vector<uint8_t>(6);
+  const std::vector<uint8_t> bytes = test_rng::vector_of_uniform_ints<uint8_t>(6);
 
   segment.append(bytes);
   ASSERT_EQ(bytes.size(), segment.length());
@@ -56,7 +56,7 @@ TEST(byte_buffer_segment_test, prepend_bytes_on_empty_buffer)
   std::vector<uint8_t> buffer(1024);
   byte_buffer_segment  segment{buffer, 16};
 
-  const std::vector<uint8_t> bytes = test_rgen::random_vector<uint8_t>(6);
+  const std::vector<uint8_t> bytes = test_rng::vector_of_uniform_ints<uint8_t>(6);
   segment.prepend(bytes);
   ASSERT_EQ(bytes.size(), segment.length());
   ASSERT_EQ(segment, bytes);
@@ -70,7 +70,7 @@ TEST(byte_buffer_segment_test, multiple_appends)
   std::vector<uint8_t> tot_bytes;
 
   for (unsigned i = 0; i != 5; ++i) {
-    const std::vector<uint8_t> bytes = test_rgen::random_vector<uint8_t>(6);
+    const std::vector<uint8_t> bytes = test_rng::vector_of_uniform_ints<uint8_t>(6);
     tot_bytes.insert(tot_bytes.end(), bytes.begin(), bytes.end());
     segment.append(bytes);
   }
@@ -81,10 +81,10 @@ TEST(byte_buffer_segment_test, trim_head)
 {
   std::vector<uint8_t>       buffer(1024);
   byte_buffer_segment        segment{buffer, 16};
-  const std::vector<uint8_t> bytes = test_rgen::random_vector<uint8_t>(6);
+  const std::vector<uint8_t> bytes = test_rng::vector_of_uniform_ints<uint8_t>(6);
   segment.append(bytes);
 
-  const unsigned n = test_rgen::uniform_int<unsigned>(1, bytes.size());
+  const unsigned n = test_rng::uniform_int<unsigned>(1, bytes.size());
   segment.trim_head(n);
   ASSERT_EQ(segment, span<const uint8_t>{bytes}.subspan(n, bytes.size() - n));
   ASSERT_TRUE(std::equal(segment.begin(), segment.end(), bytes.begin() + n, bytes.end()));
@@ -94,10 +94,10 @@ TEST(byte_buffer_segment_test, trim_tail)
 {
   std::vector<uint8_t>       buffer(1024);
   byte_buffer_segment        segment{buffer, 16};
-  const std::vector<uint8_t> bytes = test_rgen::random_vector<uint8_t>(6);
+  const std::vector<uint8_t> bytes = test_rng::vector_of_uniform_ints<uint8_t>(6);
   segment.append(bytes);
 
-  const unsigned n = test_rgen::uniform_int<unsigned>(1, bytes.size());
+  const unsigned n = test_rng::uniform_int<unsigned>(1, bytes.size());
   segment.trim_tail(n);
   ASSERT_EQ(segment, span<const uint8_t>{bytes}.subspan(0, bytes.size() - n));
   ASSERT_TRUE(std::equal(segment.begin(), segment.end(), bytes.begin(), bytes.end() - n));
@@ -107,7 +107,7 @@ TEST(byte_buffer_segment_test, copy_ctor)
 {
   std::vector<uint8_t>       buffer(1024);
   byte_buffer_segment        segment{buffer, 16};
-  const std::vector<uint8_t> bytes = test_rgen::random_vector<uint8_t>(6);
+  const std::vector<uint8_t> bytes = test_rng::vector_of_uniform_ints<uint8_t>(6);
   segment.append(bytes);
 
   byte_buffer_segment segment2 = segment;
@@ -127,7 +127,7 @@ TEST(byte_buffer_segment_test, move_ctor)
 {
   std::vector<uint8_t>       buffer(1024);
   byte_buffer_segment        segment{buffer, 32};
-  const std::vector<uint8_t> bytes = test_rgen::random_vector<uint8_t>(6);
+  const std::vector<uint8_t> bytes = test_rng::vector_of_uniform_ints<uint8_t>(6);
   segment.append(bytes);
 
   byte_buffer_segment segment2 = std::move(segment);
@@ -217,13 +217,13 @@ TEST(byte_buffer_segment_list_span_iterator, multi_segment_comparison)
   detail::byte_buffer_segment_list::node_t node{buffer, 32}, node2{buffer2, 32};
   list.push_back(node);
   list.push_back(node2);
-  std::vector<uint8_t> bytes1 = test_rgen::random_vector<uint8_t>(32);
-  std::vector<uint8_t> bytes2 = test_rgen::random_vector<uint8_t>(32);
+  std::vector<uint8_t> bytes1 = test_rng::vector_of_uniform_ints<uint8_t>(32);
+  std::vector<uint8_t> bytes2 = test_rng::vector_of_uniform_ints<uint8_t>(32);
   node.append(bytes1);
   node2.append(bytes2);
 
-  unsigned start_idx = test_rgen::uniform_int<unsigned>(0, 5);
-  unsigned length    = bytes1.size() + bytes2.size() - start_idx - test_rgen::uniform_int<unsigned>(0, 5);
+  unsigned start_idx = test_rng::uniform_int<unsigned>(0, 5);
+  unsigned length    = bytes1.size() + bytes2.size() - start_idx - test_rng::uniform_int<unsigned>(0, 5);
   byte_buffer_segment_span_range range{&list.front(), start_idx, length};
 
   auto it    = range.begin();

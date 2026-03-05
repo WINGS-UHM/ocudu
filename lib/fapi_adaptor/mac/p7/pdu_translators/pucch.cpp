@@ -170,7 +170,8 @@ void ocudu::fapi_adaptor::convert_pucch_mac_to_fapi(fapi::ul_pucch_pdu_builder& 
 
   const prb_interval& hop_prbs = mac_pdu.resources.second_hop_prbs;
   builder.set_time_allocation_parameters(mac_pdu.resources.symbols)
-      .set_hopping_information_parameters(hop_prbs.start());
+      .set_hopping_information_parameters((hop_prbs.empty()) ? std::nullopt
+                                                             : std::optional<uint16_t>(hop_prbs.start()));
 
   fill_format_parameters(builder, mac_pdu);
 }

@@ -120,9 +120,9 @@ public:
   /// \brief Sets the PUCCH PDU hopping information parameters and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table PUCCH PDU.
-  ul_pucch_pdu_builder& set_hopping_information_parameters(uint16_t second_hop_prb)
+  ul_pucch_pdu_builder& set_hopping_information_parameters(std::optional<uint16_t> second_hop_prb)
   {
-    pdu.second_hop_prb = std::make_optional<uint16_t>(second_hop_prb);
+    pdu.second_hop_prb = second_hop_prb;
 
     return *this;
   }

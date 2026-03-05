@@ -64,7 +64,12 @@ public:
   OCUDUTestEnvironment()
   {
     // Note: ::testing::UnitTest::GetInstance()->random_seed()  does not match the seed passed by --gtest_random_seed=
-    ocudu::test_rng::init_base_seed(::testing::GTEST_FLAG(random_seed));
+    uint32_t base_seed = ::testing::GTEST_FLAG(random_seed);
+    if (base_seed == 0) {
+      // The user didn't specify the seed via --gtest_random_seed=. We generate our own.
+      base_seed = std::random_device{}();
+    }
+    ocudu::test_rng::init_base_seed(base_seed);
   }
 
   void TearDown() override
@@ -86,22 +91,24 @@ private:
 
   void OnTestStart(const testing::TestInfo& test_info) override { ocudu::test_rng::rewind_rng(); }
 
-  void OnTestEnd(const testing::TestInfo& test_info) override
+  void OnTestEnd(const testing::TestInfo& test_info) override {}
+
+  void OnTestPartResult(const testing::TestPartResult& test_part_result) override
   {
-    if (test_info.result()->Failed()) {
+    if (test_part_result.failed()) {
       ocudulog::flush();
-      // Note: We cast to int for printing, because that's the type that gtest_random_seed uses.
-      const int iter_seed = static_cast<int>(ocudu::test_rng::seed());
+      // Note: We cast to int32_t for printing, because that's the type that gtest_random_seed uses.
+      const int iter_seed = static_cast<int32_t>(ocudu::test_rng::seed());
       fmt::print(stderr,
                  "[  FAILED  ] OCUDU Random Seed: base_seed={}, iteration={}, iter_seed={}.\n",
-                 static_cast<int>(ocudu::test_rng::base_seed()),
+                 static_cast<int32_t>(ocudu::test_rng::base_seed()),
                  last_iteration,
                  iter_seed);
       if (last_iteration > 0) {
         fmt::print(stderr,
                    "[  FAILED  ] Note: To reproduce iter_seed={} at iteration=0, use base_seed={}.\n",
                    iter_seed,
-                   static_cast<int>(ocudu::test_rng::compute_base_seed_at_iter0(last_iteration)));
+                   static_cast<int32_t>(ocudu::test_rng::compute_base_seed_at_iter0(last_iteration)));
       }
     }
   }

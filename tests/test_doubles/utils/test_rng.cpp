@@ -105,9 +105,9 @@ void test_rng::advance_iter_seed(uint32_t iteration_counter)
 
     // Note: we cast seed to int, because that's what gtest_random_seed uses.
     fmt::print("[   TEST   ] OCUDU Random Seed: base_seed={}, iteration={} -> iter_seed={}.\n",
-               static_cast<int>(state.base_seed),
-               static_cast<int>(iteration_counter),
-               static_cast<int>(new_seed));
+               static_cast<int32_t>(state.base_seed),
+               static_cast<int32_t>(iteration_counter),
+               static_cast<int32_t>(new_seed));
   }
 }
 

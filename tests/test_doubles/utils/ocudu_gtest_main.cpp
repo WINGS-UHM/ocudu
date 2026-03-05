@@ -90,17 +90,18 @@ private:
   {
     if (test_info.result()->Failed()) {
       ocudulog::flush();
-      const uint32_t iter_seed = ocudu::test_rng::seed();
+      // Note: We cast to int for printing, because that's the type that gtest_random_seed uses.
+      const int iter_seed = static_cast<int>(ocudu::test_rng::seed());
       fmt::print(stderr,
                  "[  FAILED  ] OCUDU Random Seed: base_seed={}, iteration={}, iter_seed={}.\n",
-                 ocudu::test_rng::base_seed(),
+                 static_cast<int>(ocudu::test_rng::base_seed()),
                  last_iteration,
                  iter_seed);
       if (last_iteration > 0) {
         fmt::print(stderr,
                    "[  FAILED  ] Note: To reproduce iter_seed={} at iteration=0, use base_seed={}.\n",
                    iter_seed,
-                   ocudu::test_rng::compute_base_seed_at_iter0(last_iteration));
+                   static_cast<int>(ocudu::test_rng::compute_base_seed_at_iter0(last_iteration)));
       }
     }
   }

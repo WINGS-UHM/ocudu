@@ -3,11 +3,11 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "e1ap_cu_cp_test_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
 #include "ocudu/e1ap/cu_cp/e1ap_cu_cp_factory.h"
 #include "ocudu/support/async/async_test_utils.h"
-#include "ocudu/support/test_utils.h"
 
 using namespace ocudu;
 using namespace ocucp;
@@ -79,7 +79,7 @@ e1ap_cu_cp_test::test_ue& e1ap_cu_cp_test::create_ue()
   auto request = generate_bearer_context_setup_request(ue_index);
 
   run_bearer_context_setup(request.ue_index,
-                           int_to_gnb_cu_up_ue_e1ap_id(test_rgen::uniform_int<uint64_t>(
+                           int_to_gnb_cu_up_ue_e1ap_id(test_rng::uniform_int<uint64_t>(
                                gnb_cu_up_ue_e1ap_id_to_uint(gnb_cu_up_ue_e1ap_id_t::min),
                                gnb_cu_up_ue_e1ap_id_to_uint(gnb_cu_up_ue_e1ap_id_t::max) - 1)));
 

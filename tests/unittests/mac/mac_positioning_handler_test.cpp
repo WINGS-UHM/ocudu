@@ -3,12 +3,12 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/mac/mac_sched/positioning_handler.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/mac/mac_positioning_measurement_handler.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/scheduler/scheduler_positioning_handler.h"
 #include "ocudu/support/async/async_test_utils.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -251,7 +251,7 @@ TEST_F(multi_cell_positioning_handler_test,
   mac_positioning_measurement_request                      req       = make_positioning_request_for_connected_ue(2);
   rnti_t                                                   pos_rnti1 = req.cells[0].rnti.value();
   rnti_t                                                   pos_rnti2 = req.cells[1].rnti.value();
-  unsigned                                                 rand_slot_offset = test_rgen::uniform_int(0, 100);
+  unsigned                                                 rand_slot_offset = test_rng::uniform_int(0, 100);
   auto                                                     t = pos_handler->handle_positioning_measurement_request(req);
   lazy_task_launcher<mac_positioning_measurement_response> t_launcher(t);
 
@@ -301,7 +301,7 @@ TEST_F(
     when_positioning_measurement_is_initiated_for_multiple_cells_then_it_does_not_complete_until_cells_reports_match_in_slots)
 {
   mac_positioning_measurement_request                      req = make_positioning_request_for_connected_ue(2);
-  unsigned                                                 rand_slot_offset = test_rgen::uniform_int(1, 100);
+  unsigned                                                 rand_slot_offset = test_rng::uniform_int(1, 100);
   rnti_t                                                   pos_rnti1        = req.cells[0].rnti.value();
   rnti_t                                                   pos_rnti2        = req.cells[1].rnti.value();
   auto                                                     t = pos_handler->handle_positioning_measurement_request(req);

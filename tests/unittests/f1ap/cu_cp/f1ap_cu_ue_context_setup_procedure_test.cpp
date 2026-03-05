@@ -4,8 +4,8 @@
 
 #include "f1ap_cu_test_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/async/async_test_utils.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -76,7 +76,7 @@ TEST_F(f1ap_cu_ue_context_setup_test, when_response_received_then_procedure_succ
   // Start UE CONTEXT SETUP procedure and return back the response from the DU.
   this->start_procedure(create_ue_context_setup_request({drb_id_t::drb1}));
   f1ap_message response = test_helpers::generate_ue_context_setup_response(
-      int_to_gnb_cu_ue_f1ap_id(0), int_to_gnb_du_ue_f1ap_id(test_rgen::uniform_int<uint32_t>()));
+      int_to_gnb_cu_ue_f1ap_id(0), int_to_gnb_du_ue_f1ap_id(test_rng::uniform_int<uint32_t>()));
   f1ap->handle_message(response);
 
   // The UE CONTEXT SETUP RESPONSE was received and the F1AP-CU completed the procedure.
@@ -89,7 +89,7 @@ TEST_F(f1ap_cu_ue_context_setup_test, when_ue_setup_failure_received_then_proced
   this->start_procedure(create_ue_context_setup_request({drb_id_t::drb1}));
 
   f1ap_message response = test_helpers::generate_ue_context_setup_failure(
-      int_to_gnb_cu_ue_f1ap_id(0), int_to_gnb_du_ue_f1ap_id(test_rgen::uniform_int<uint32_t>()));
+      int_to_gnb_cu_ue_f1ap_id(0), int_to_gnb_du_ue_f1ap_id(test_rng::uniform_int<uint32_t>()));
   f1ap->handle_message(response);
 
   // The UE CONTEXT SETUP FAILURE was received and the F1AP-CU completed the procedure with failure.

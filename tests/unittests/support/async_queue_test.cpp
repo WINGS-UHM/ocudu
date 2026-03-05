@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/async/async_queue.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/support/async/eager_async_task.h"
@@ -33,7 +34,7 @@ TEST(async_queue_test, when_we_push_to_async_queue_awaiting_coroutine_is_resumed
 {
   async_queue<int>      q{5};
   eager_async_task<int> t   = launch_async<read_queue_coroutine<int>>(q);
-  int                   val = test_rgen::uniform_int<int>();
+  int                   val = test_rng::uniform_int<int>();
 
   ASSERT_FALSE(t.ready());
   ASSERT_TRUE(q.try_push(val));
@@ -45,8 +46,8 @@ TEST(async_queue_test, when_we_push_to_async_queue_awaiting_coroutine_is_resumed
 TEST(async_queue_test, when_coroutine_awaits_non_empty_queue_it_does_not_suspend)
 {
   async_queue<int> q{5};
-  int              val  = test_rgen::uniform_int<int>();
-  int              val2 = test_rgen::uniform_int<int>();
+  int              val  = test_rng::uniform_int<int>();
+  int              val2 = test_rng::uniform_int<int>();
 
   ASSERT_TRUE(q.try_push(val));
   ASSERT_TRUE(q.try_push(val2));
@@ -65,7 +66,7 @@ TEST(async_queue_test, when_coroutine_awaits_non_empty_queue_it_does_not_suspend
 TEST(async_queue_test, async_queue_works_for_consecutive_push_pops)
 {
   async_queue<int> q{5};
-  int              val = test_rgen::uniform_int<int>();
+  int              val = test_rng::uniform_int<int>();
 
   for (unsigned i = 0; i != 5; ++i) {
     eager_async_task<int> t = launch_async<read_queue_coroutine<int>>(q);
@@ -85,7 +86,7 @@ TEST(async_queue_test, queue_pushes_resumes_awaiting_coroutines_in_fifo_order)
 
   ASSERT_TRUE(std::none_of(awaiting_tasks.begin(), awaiting_tasks.end(), [](const auto& c) { return c.ready(); }));
   for (unsigned i = 0; i != awaiting_tasks.size(); ++i) {
-    int val = test_rgen::uniform_int<int>();
+    int val = test_rng::uniform_int<int>();
     ASSERT_FALSE(awaiting_tasks[i].ready());
     ASSERT_TRUE(q.try_push(val));
     ASSERT_TRUE(awaiting_tasks[i].ready());
@@ -114,7 +115,7 @@ TEST(async_queue_test, async_queue_supports_move_only_objects)
   async_queue<moveonly_test_object>      q(64);
   eager_async_task<moveonly_test_object> t   = launch_async<read_queue_coroutine<moveonly_test_object>>(q);
   eager_async_task<moveonly_test_object> t2  = launch_async<read_queue_coroutine<moveonly_test_object>>(q);
-  int                                    val = test_rgen::uniform_int<int>();
+  int                                    val = test_rng::uniform_int<int>();
 
   ASSERT_TRUE(q.try_push(moveonly_test_object(val)));
   ASSERT_TRUE(t.ready());

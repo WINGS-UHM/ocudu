@@ -6,8 +6,8 @@
 #include "lib/du/du_high/du_manager/ran_resource_management/du_srs_manager_helpers.h"
 #include "lib/du/du_high/du_manager/ran_resource_management/du_ue_resource_config.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
-#include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -77,7 +77,7 @@ public:
     if (bin.count() == 0) {
       return std::nullopt;
     }
-    unsigned draw_pos = test_rgen::uniform_int<unsigned>(0, bin.count() - 1);
+    unsigned draw_pos = test_rng::uniform_int<unsigned>(0, bin.count() - 1);
     for (unsigned i = 0; i != N; ++i) {
       if (bin.test(i)) {
         if (draw_pos == 0) {
@@ -97,7 +97,7 @@ public:
     if (bin.count() == N) {
       return std::nullopt;
     }
-    unsigned readd_pos = test_rgen::uniform_int<unsigned>(0, N - bin.count() - 1);
+    unsigned readd_pos = test_rng::uniform_int<unsigned>(0, N - bin.count() - 1);
     for (unsigned i = 0; i != N; ++i) {
       if (not bin.test(i)) {
         if (readd_pos == 0) {
@@ -145,8 +145,8 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   srs_cfg.srs_type_enabled = srs_type::aperiodic;
 
   // Generates a random SRS configuration.
-  srs_cfg.tx_comb         = test_rgen::bernoulli(0.5) ? tx_comb_size::n2 : tx_comb_size::n4;
-  srs_cfg.max_nof_symbols = test_rgen::uniform_int<unsigned>(1U, 6U);
+  srs_cfg.tx_comb         = test_rng::bernoulli(0.5) ? tx_comb_size::n2 : tx_comb_size::n4;
+  srs_cfg.max_nof_symbols = test_rng::uniform_int<unsigned>(1U, 6U);
   constexpr std::array<srs_nof_symbols, 3> nof_symb_values = {
       srs_nof_symbols::n1, srs_nof_symbols::n2, srs_nof_symbols::n4};
   unsigned max_nof_symbols = srs_cfg.max_nof_symbols.value();
@@ -155,9 +155,9 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
     max_nof_symbols =
         std::min(du_cfg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols, srs_cfg.max_nof_symbols.value());
   }
-  srs_cfg.nof_symbols = nof_symb_values[test_rgen::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
+  srs_cfg.nof_symbols = nof_symb_values[test_rng::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
   while (srs_cfg.nof_symbols > max_nof_symbols) {
-    srs_cfg.nof_symbols = nof_symb_values[test_rgen::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
+    srs_cfg.nof_symbols = nof_symb_values[test_rng::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
   }
 
   // The TX comb cyclic shift value depends on the TX comb size.
@@ -165,7 +165,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
     constexpr std::array<nof_cyclic_shifts, 3> srs_cyclic_shift_values = {
         nof_cyclic_shifts::no_cyclic_shift, nof_cyclic_shifts::two, nof_cyclic_shifts::four};
     srs_cfg.cyclic_shift_reuse_factor =
-        srs_cyclic_shift_values[test_rgen::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
+        srs_cyclic_shift_values[test_rng::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
   } else {
     constexpr std::array<nof_cyclic_shifts, 6> srs_cyclic_shift_values = {nof_cyclic_shifts::no_cyclic_shift,
                                                                           nof_cyclic_shifts::two,
@@ -174,12 +174,12 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
                                                                           nof_cyclic_shifts::six,
                                                                           nof_cyclic_shifts::twelve};
     srs_cfg.cyclic_shift_reuse_factor =
-        srs_cyclic_shift_values[test_rgen::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
+        srs_cyclic_shift_values[test_rng::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
   }
   // [Implementation-defined] These are the values in the gNB, \ref sequence_id_reuse_factor.
   constexpr std::array<unsigned, 8> srs_seq_id_values = {1, 2, 3, 5, 6, 10, 15, 30};
   srs_cfg.sequence_id_reuse_factor =
-      srs_seq_id_values[test_rgen::uniform_int<unsigned>(0, srs_seq_id_values.size() - 1)];
+      srs_seq_id_values[test_rng::uniform_int<unsigned>(0, srs_seq_id_values.size() - 1)];
 
   srs_cfg.srs_period_prohib_time = srs_periodicity::sl80;
 
@@ -372,7 +372,7 @@ TEST_P(du_aperiodic_srs_res_mng_tester, when_random_ues_are_removed_and_added_ne
 
   // Choose random UEs to be added or removed.
   for (unsigned n = 0; n != 20; ++n) {
-    const int nof_ues_to_add_rem = test_rgen::uniform_int<int>(-30, 30);
+    const int nof_ues_to_add_rem = test_rng::uniform_int<int>(-30, 30);
     if (nof_ues_to_add_rem > 0) {
       for (unsigned i = 0; i != static_cast<unsigned>(nof_ues_to_add_rem); ++i) {
         std::optional<unsigned> ue_to_reinsert = ues_bin.add_random_ue();

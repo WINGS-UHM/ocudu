@@ -4,6 +4,7 @@
 
 #include "f1ap_cu_test_helpers.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg_ies.h"
@@ -14,14 +15,13 @@
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/qos/five_qi.h"
 #include "ocudu/support/async/async_test_utils.h"
-#include "ocudu/support/test_utils.h"
 
 using namespace ocudu;
 using namespace ocucp;
 
 gnb_cu_ue_f1ap_id_t ocudu::ocucp::generate_random_gnb_cu_ue_f1ap_id()
 {
-  return int_to_gnb_cu_ue_f1ap_id(test_rgen::uniform_int<uint64_t>(
+  return int_to_gnb_cu_ue_f1ap_id(test_rng::uniform_int<uint64_t>(
       gnb_cu_ue_f1ap_id_to_uint(gnb_cu_ue_f1ap_id_t::min), gnb_cu_ue_f1ap_id_to_uint(gnb_cu_ue_f1ap_id_t::max) - 1));
 }
 
@@ -69,7 +69,7 @@ f1ap_cu_test::test_ue& f1ap_cu_test::run_ue_context_setup()
       this->f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.ue_context_setup_request()->gnb_cu_ue_f1ap_id);
 
   // Generate random DU ID
-  gnb_du_ue_f1ap_id_t du_ue_id = int_to_gnb_du_ue_f1ap_id(test_rgen::uniform_int<uint32_t>());
+  gnb_du_ue_f1ap_id_t du_ue_id = int_to_gnb_du_ue_f1ap_id(test_rng::uniform_int<uint32_t>());
 
   // Handle response from DU.
   f1ap_message response = test_helpers::generate_ue_context_setup_response(cu_ue_id, du_ue_id);

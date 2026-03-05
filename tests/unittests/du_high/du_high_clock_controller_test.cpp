@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_high/du_high_clock_controller.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include "ocudu/support/executors/task_worker.h"
 #include "ocudu/support/io/io_broker_factory.h"
-#include "ocudu/support/test_utils.h"
 #include "ocudu/support/timers.h"
 #include <gtest/gtest.h>
 
@@ -125,7 +125,7 @@ TEST_F(du_high_time_source_test, cell_slot_now_is_updated_on_slot_indication)
 
 TEST_F(du_high_time_source_test, when_cell_is_deactivated_then_ticking_becomes_automatic)
 {
-  std::vector<std::unique_ptr<mac_cell_clock_controller>> cells(test_rgen::uniform_int<unsigned>(1, 5));
+  std::vector<std::unique_ptr<mac_cell_clock_controller>> cells(test_rng::uniform_int<unsigned>(1, 5));
   slot_point_extended                                     cur_sl_tx = {subcarrier_spacing::kHz30, 0};
   for (auto& cell : cells) {
     cell = timer_ctrl->add_cell(to_du_cell_index(std::distance(cells.data(), &cell)));

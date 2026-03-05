@@ -3,8 +3,8 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/ngap/ue_context/ngap_ue_context.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include <cstdint>
 #include <gtest/gtest.h>
 
@@ -39,13 +39,13 @@ protected:
   ue_index_t generate_random_ue_index()
   {
     return uint_to_ue_index(
-        test_rgen::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
+        test_rng::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
   }
 
   ran_ue_id_t generate_random_ran_ue_id()
   {
     return uint_to_ran_ue_id(
-        test_rgen::uniform_int<uint64_t>(ran_ue_id_to_uint(ran_ue_id_t::min), ran_ue_id_to_uint(ran_ue_id_t::max) - 1));
+        test_rng::uniform_int<uint64_t>(ran_ue_id_to_uint(ran_ue_id_t::min), ran_ue_id_to_uint(ran_ue_id_t::max) - 1));
   }
 
   ocudulog::basic_logger&      ngap_logger = ocudulog::fetch_basic_logger("NGAP");

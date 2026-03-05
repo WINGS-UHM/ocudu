@@ -3,10 +3,10 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_test_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/rb_id.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -102,7 +102,7 @@ TEST_F(ngap_pdu_session_resource_modify_procedure_test,
        when_valid_pdu_session_resource_modify_request_received_then_pdu_session_modification_succeeds)
 {
   // Test preamble
-  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rgen::uniform_int<uint16_t>(
+  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rng::uniform_int<uint16_t>(
       pdu_session_id_to_uint(pdu_session_id_t::min), pdu_session_id_to_uint(pdu_session_id_t::max)));
   ue_index_t       ue_index       = this->start_procedure(pdu_session_id);
   auto&            ue             = test_ues.at(ue_index);
@@ -124,7 +124,7 @@ TEST_F(ngap_pdu_session_resource_modify_procedure_test,
        when_invalid_pdu_session_resource_modify_request_received_then_pdu_session_modification_failed)
 {
   // Test preamble
-  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rgen::uniform_int<uint16_t>(
+  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rng::uniform_int<uint16_t>(
       pdu_session_id_to_uint(pdu_session_id_t::min), pdu_session_id_to_uint(pdu_session_id_t::max)));
   ue_index_t       ue_index       = this->start_procedure(pdu_session_id);
   auto&            ue             = test_ues.at(ue_index);
@@ -143,7 +143,7 @@ TEST_F(ngap_pdu_session_resource_modify_procedure_test,
        when_valid_pdu_session_resource_modify_request_received_twice_then_error_indication_is_send)
 {
   // Test preamble
-  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rgen::uniform_int<uint16_t>(
+  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rng::uniform_int<uint16_t>(
       pdu_session_id_to_uint(pdu_session_id_t::min), pdu_session_id_to_uint(pdu_session_id_t::max)));
   ue_index_t       ue_index       = this->start_procedure(pdu_session_id);
   auto&            ue             = test_ues.at(ue_index);

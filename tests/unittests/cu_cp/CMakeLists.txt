@@ -77,11 +77,11 @@ target_link_libraries(cu_cp_test
         f1ap_test_doubles
         ngap_test_doubles
         gtest
-        gtest_main)
+        ocudu_gtest_main)
 target_include_directories(cu_cp_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(cu_cp_test)
 
 add_executable(cu_cp_config_test cu_cp_config_test.cpp)
-target_link_libraries(cu_cp_config_test cu_cp_test_helpers ocudu_cu_cp GTest::gtest GTest::gtest_main)
+target_link_libraries(cu_cp_config_test cu_cp_test_helpers ocudu_cu_cp GTest::gtest ocudu_gtest_main)
 target_include_directories(cu_cp_config_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(cu_cp_config_test)

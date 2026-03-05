@@ -27,5 +27,5 @@ set(SOURCES
 add_executable(ngap_test ${SOURCES})
 target_include_directories(ngap_test PRIVATE ${CMAKE_SOURCE_DIR})
 set_target_properties(ngap_test PROPERTIES UNITY_BUILD ON)
-target_link_libraries(ngap_test ngap_test_helpers ocudu_ngap ocudu_support ngap_asn1 ocudu_ran ocudulog GTest::gtest GTest::gtest_main)
+target_link_libraries(ngap_test ngap_test_helpers ocudu_ngap ocudu_support ngap_asn1 ocudu_ran ocudulog GTest::gtest ocudu_gtest_main)
 gtest_discover_tests(ngap_test PROPERTIES "LABELS;ngap")

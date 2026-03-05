@@ -14,7 +14,7 @@ add_subdirectory(rate_limiting)
 add_subdirectory(synchronization)
 
 add_executable(timer_test timer_test.cpp)
-target_link_libraries(timer_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
+target_link_libraries(timer_test ocudulog ocudu_support GTest::gtest ocudu_gtest_main)
 add_test(timer_test timer_test)
 set_tests_properties(timer_test PROPERTIES LABELS "tsan")
 
@@ -22,7 +22,7 @@ add_executable(function_signature_test function_signature_test.cpp)
 add_test(function_signature_test function_signature_test)
 
 add_executable(async_event_test async_event_test.cpp)
-target_link_libraries(async_event_test ocudulog GTest::gtest GTest::gtest_main)
+target_link_libraries(async_event_test ocudulog GTest::gtest ocudu_gtest_main)
 add_test(async_event_test async_event_test)
 
 add_executable(async_task_test async_task_test.cpp)
@@ -34,7 +34,7 @@ target_link_libraries(async_exec_test ocudulog ocudu_support)
 add_test(async_exec_test async_exec_test)
 
 add_executable(async_queue_test async_queue_test.cpp)
-target_link_libraries(async_queue_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
+target_link_libraries(async_queue_test ocudulog ocudu_support GTest::gtest ocudu_gtest_main)
 add_test(async_queue_test async_queue_test)
 
 add_executable(fifo_async_task_scheduler_test fifo_async_task_scheduler_test.cpp)
@@ -71,12 +71,12 @@ target_link_libraries(object_pool_test ocudu_support gtest ocudu_gtest_main)
 add_test(object_pool_test object_pool_test)
 
 add_executable(fixed_size_memory_pool_test fixed_size_memory_pool_test.cpp)
-target_link_libraries(fixed_size_memory_pool_test ocudu_support gtest gtest_main)
+target_link_libraries(fixed_size_memory_pool_test ocudu_support gtest ocudu_gtest_main)
 add_test(fixed_size_memory_pool_test fixed_size_memory_pool_test)
 set_tests_properties(fixed_size_memory_pool_test PROPERTIES LABELS "tsan")
 
 add_executable(units_test units_test.cpp)
-target_link_libraries(units_test ocudulog ocudu_support gtest gtest_main)
+target_link_libraries(units_test ocudulog ocudu_support gtest ocudu_gtest_main)
 add_test(units_test units_test)
 
 add_executable(backtrace_test backtrace_test.cpp)
@@ -84,25 +84,25 @@ target_link_libraries(backtrace_test PRIVATE ocudu_support)
 add_backward(backtrace_test)
 
 add_executable(validator_helpers_test config/validator_helpers_test.cpp)
-target_link_libraries(validator_helpers_test ocudu_support gtest gtest_main)
+target_link_libraries(validator_helpers_test ocudu_support gtest ocudu_gtest_main)
 add_test(validator_helpers_test validator_helpers_test)
 
 add_executable(event_tracer_test tracing/event_tracer_test.cpp)
-target_link_libraries(event_tracer_test ocudu_support gtest gtest_main)
+target_link_libraries(event_tracer_test ocudu_support gtest ocudu_gtest_main)
 add_test(event_tracer_test event_tracer_test)
 
 add_executable(complex_normal_random_test complex_normal_random_test.cpp)
-target_link_libraries(complex_normal_random_test ocudulog gtest gtest_main)
+target_link_libraries(complex_normal_random_test ocudulog gtest ocudu_gtest_main)
 add_test(complex_normal_random_test complex_normal_random_test)
 
 add_executable(transform_optional_test transform_optional_test.cpp)
-target_link_libraries(transform_optional_test ocudulog gtest gtest_main)
+target_link_libraries(transform_optional_test ocudulog gtest ocudu_gtest_main)
 add_test(transform_optional_test transform_optional_test)
 
 add_executable(resource_usage_test tracing/resource_usage_test.cpp)
-target_link_libraries(resource_usage_test ocudu_support ocudulog gtest gtest_main)
+target_link_libraries(resource_usage_test ocudu_support ocudulog gtest ocudu_gtest_main)
 add_test(resource_usage_test resource_usage_test)
 
 add_executable(math_test math/mod_math_utils_test.cpp math/curve_fitting_find_max_test.cpp)
-target_link_libraries(math_test ocudu_support_math ocuduvec gtest gtest_main)
+target_link_libraries(math_test ocudu_support_math ocuduvec gtest ocudu_gtest_main)
 add_test(math_test math_test)

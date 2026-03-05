@@ -4,9 +4,9 @@
 
 #include "lib/du/du_high/du_manager/du_ue/du_bearer.h"
 #include "lib/du/du_high/du_manager/du_ue/du_ue_bearer_manager.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/du_manager/du_manager_test_helpers.h"
 #include "ocudu/du/du_cell_config_helpers.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -83,7 +83,7 @@ TEST_F(du_ue_bearer_manager_test, when_all_drbs_are_allocated_then_no_lcid_is_av
 {
   std::vector<unsigned> lcids(MAX_NOF_DRBS);
   std::iota(lcids.begin(), lcids.end(), (unsigned)LCID_MIN_DRB);
-  std::shuffle(lcids.begin(), lcids.end(), test_rgen::get());
+  std::shuffle(lcids.begin(), lcids.end(), test_rng::tls_gen());
 
   du_ue_bearer_manager bearers;
   for (unsigned i = 0; i != MAX_NOF_DRBS; ++i) {
@@ -97,10 +97,10 @@ TEST_F(du_ue_bearer_manager_test, when_there_is_a_hole_in_allocated_lcids_then_a
 {
   std::vector<unsigned> lcids(MAX_NOF_DRBS);
   std::iota(lcids.begin(), lcids.end(), (unsigned)LCID_MIN_DRB);
-  std::shuffle(lcids.begin(), lcids.end(), test_rgen::get());
+  std::shuffle(lcids.begin(), lcids.end(), test_rng::tls_gen());
   lcid_t lcid_hole = uint_to_lcid(lcids.back());
   lcids.pop_back();
-  std::shuffle(lcids.begin(), lcids.end(), test_rgen::get());
+  std::shuffle(lcids.begin(), lcids.end(), test_rng::tls_gen());
 
   du_ue_bearer_manager bearers;
   for (unsigned i = 0; i != lcids.size(); ++i) {

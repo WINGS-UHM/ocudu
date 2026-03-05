@@ -26,5 +26,5 @@ target_link_libraries(e1ap_cu_cp_test
         ocudulog
         e1ap_asn1
         GTest::gtest
-        GTest::gtest_main)
+        ocudu_gtest_main)
 gtest_discover_tests(e1ap_cu_cp_test PROPERTIES "LABELS;e1ap;e1ap_cu_cp")

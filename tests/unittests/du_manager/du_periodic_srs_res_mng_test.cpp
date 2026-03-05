@@ -6,9 +6,9 @@
 #include "lib/du/du_high/du_manager/ran_resource_management/du_srs_periodic_res_mng.h"
 #include "lib/du/du_high/du_manager/ran_resource_management/du_ue_resource_config.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
-#include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -80,22 +80,22 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
     const std::optional<unsigned> c_srs_valid_max = du_srs_mng_details::compute_c_srs(bw_nof_rbs);
     ocudu_assert(c_srs_valid_max.has_value(), "C_SRS is required for this unittest");
     // Pick a random C_SRS value.
-    srs_cfg.c_srs.emplace(test_rgen::uniform_int<size_t>(0U, c_srs_valid_max.value()));
+    srs_cfg.c_srs.emplace(test_rng::uniform_int<size_t>(0U, c_srs_valid_max.value()));
     // Compute the Frequency Domain Shift based on the BWP BW and on the SRS BW.
     constexpr uint8_t b_srs_0     = 0;
     const auto        srs_cfg_val = srs_configuration_get(srs_cfg.c_srs.value(), b_srs_0);
     ocudu_assert(srs_cfg_val.has_value(), "Invalid SRS configuration");
-    srs_cfg.freq_domain_shift = test_rgen::uniform_int<size_t>(0U, bw_nof_rbs - srs_cfg_val.value().m_srs);
+    srs_cfg.freq_domain_shift = test_rng::uniform_int<size_t>(0U, bw_nof_rbs - srs_cfg_val.value().m_srs);
   }
 
   // Generates a random SRS configuration.
-  srs_cfg.tx_comb         = test_rgen::bernoulli(0.5) ? tx_comb_size::n2 : tx_comb_size::n4;
-  srs_cfg.max_nof_symbols = test_rgen::uniform_int<unsigned>(1U, 6U);
+  srs_cfg.tx_comb         = test_rng::bernoulli(0.5) ? tx_comb_size::n2 : tx_comb_size::n4;
+  srs_cfg.max_nof_symbols = test_rng::uniform_int<unsigned>(1U, 6U);
   constexpr std::array<srs_nof_symbols, 3> nof_symb_values = {
       srs_nof_symbols::n1, srs_nof_symbols::n2, srs_nof_symbols::n4};
-  srs_cfg.nof_symbols = nof_symb_values[test_rgen::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
+  srs_cfg.nof_symbols = nof_symb_values[test_rng::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
   while (srs_cfg.nof_symbols > srs_cfg.max_nof_symbols) {
-    srs_cfg.nof_symbols = nof_symb_values[test_rgen::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
+    srs_cfg.nof_symbols = nof_symb_values[test_rng::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
   }
 
   // The TX comb cyclic shift value depends on the TX comb size.
@@ -103,7 +103,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
     constexpr std::array<nof_cyclic_shifts, 3> srs_cyclic_shift_values = {
         nof_cyclic_shifts::no_cyclic_shift, nof_cyclic_shifts::two, nof_cyclic_shifts::four};
     srs_cfg.cyclic_shift_reuse_factor =
-        srs_cyclic_shift_values[test_rgen::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
+        srs_cyclic_shift_values[test_rng::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
   } else {
     constexpr std::array<nof_cyclic_shifts, 6> srs_cyclic_shift_values = {nof_cyclic_shifts::no_cyclic_shift,
                                                                           nof_cyclic_shifts::two,
@@ -112,12 +112,12 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
                                                                           nof_cyclic_shifts::six,
                                                                           nof_cyclic_shifts::twelve};
     srs_cfg.cyclic_shift_reuse_factor =
-        srs_cyclic_shift_values[test_rgen::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
+        srs_cyclic_shift_values[test_rng::uniform_int<unsigned>(0, srs_cyclic_shift_values.size() - 1)];
   }
   // [Implementation-defined] These are the values in the gNB, \ref sequence_id_reuse_factor.
   constexpr std::array<unsigned, 8> srs_seq_id_values = {1, 2, 3, 5, 6, 10, 15, 30};
   srs_cfg.sequence_id_reuse_factor =
-      srs_seq_id_values[test_rgen::uniform_int<unsigned>(0, srs_seq_id_values.size() - 1)];
+      srs_seq_id_values[test_rng::uniform_int<unsigned>(0, srs_seq_id_values.size() - 1)];
 
   if (du_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
     std::array<srs_periodicity, 8> period_values = {srs_periodicity::sl10,
@@ -128,7 +128,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
                                                     srs_periodicity::sl320,
                                                     srs_periodicity::sl640,
                                                     srs_periodicity::sl1280};
-    srs_cfg.srs_period_prohib_time = period_values[test_rgen::uniform_int<unsigned>(0, period_values.size() - 1)];
+    srs_cfg.srs_period_prohib_time = period_values[test_rng::uniform_int<unsigned>(0, period_values.size() - 1)];
   } else {
     std::array<srs_periodicity, 10> period_values = {srs_periodicity::sl1,
                                                      srs_periodicity::sl2,
@@ -140,7 +140,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
                                                      srs_periodicity::sl20,
                                                      srs_periodicity::sl32,
                                                      srs_periodicity::sl40};
-    srs_cfg.srs_period_prohib_time = period_values[test_rgen::uniform_int<unsigned>(0, period_values.size() - 1)];
+    srs_cfg.srs_period_prohib_time = period_values[test_rng::uniform_int<unsigned>(0, period_values.size() - 1)];
   }
 
   return du_cfg;
@@ -332,7 +332,7 @@ TEST_P(du_periodic_srs_res_mng_tester, ue_are_assigned_orthogonal_srs_resources)
   }
 
   // Erase a random UE and attempt.
-  const du_ue_index_t ue_idx_to_rem    = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, ues.size() - 1));
+  const du_ue_index_t ue_idx_to_rem    = to_du_ue_index(test_rng::uniform_int<unsigned>(0, ues.size() - 1));
   auto&               ue_to_be_removed = ues[ue_idx_to_rem];
   // First, find the SRS resource of the ue to be removed and removed it from the vector of used resources.
   srs_res_params srs_res_to_be_removed(

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include "ocudu/support/executors/task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include "ocudu/support/timers.h"
 #include "fmt/std.h"
 #include <gtest/gtest.h>
@@ -34,7 +34,7 @@ protected:
     ocudulog::init();
 
     // randomize time wheel start.
-    unsigned nof_ticks = test_rgen::uniform_int<unsigned>(0, 100);
+    unsigned nof_ticks = test_rng::uniform_int<unsigned>(0, 100);
     for (unsigned i = 0; i != nof_ticks; ++i) {
       tick();
     }
@@ -97,7 +97,7 @@ TEST_F(unique_timer_manual_tester, set_duration)
 {
   unique_timer t = this->create_timer();
 
-  timer_duration dur{test_rgen::uniform_int<unsigned>(1, 100)};
+  timer_duration dur{test_rng::uniform_int<unsigned>(1, 100)};
   t.set(dur);
   ASSERT_TRUE(t.is_set());
   ASSERT_FALSE(t.is_running());
@@ -110,7 +110,7 @@ TEST_F(unique_timer_manual_tester, single_run)
 {
   unique_timer t = this->create_timer();
 
-  timer_duration dur{test_rgen::uniform_int<unsigned>(1, 100)};
+  timer_duration dur{test_rng::uniform_int<unsigned>(1, 100)};
   bool           expiry_callback_triggered = false;
   t.set(dur, callback_flag_setter(expiry_callback_triggered));
   t.run();
@@ -143,7 +143,7 @@ TEST_F(unique_timer_manual_tester, single_run_and_move)
 {
   unique_timer t = this->create_timer();
 
-  timer_duration dur{test_rgen::uniform_int<unsigned>(1, 100)};
+  timer_duration dur{test_rng::uniform_int<unsigned>(1, 100)};
   bool           expiry_callback_triggered = false;
   t.set(dur, callback_flag_setter(expiry_callback_triggered));
   t.run();
@@ -193,8 +193,8 @@ TEST_F(unique_timer_manual_tester, move_to_running_timer)
 
 TEST_F(unique_timer_manual_tester, multiple_timers_with_same_duration_and_timeout)
 {
-  timer_duration            dur{test_rgen::uniform_int<unsigned>(1, 100)};
-  std::vector<unique_timer> timers(test_rgen::uniform_int<unsigned>(1, 10));
+  timer_duration            dur{test_rng::uniform_int<unsigned>(1, 100)};
+  std::vector<unique_timer> timers(test_rng::uniform_int<unsigned>(1, 10));
   for (unsigned i = 0; i != timers.size(); ++i) {
     timers[i] = this->create_timer();
     timers[i].set(dur);
@@ -215,8 +215,8 @@ TEST_F(unique_timer_manual_tester, multiple_timers_with_same_duration_and_timeou
 
 TEST_F(unique_timer_manual_tester, multiple_timers_with_same_timeout_but_different_durations)
 {
-  std::vector<unique_timer> timers(test_rgen::uniform_int<unsigned>(1, 10));
-  timer_duration            dur{timers.size() + test_rgen::uniform_int<unsigned>(1, 100)};
+  std::vector<unique_timer> timers(test_rng::uniform_int<unsigned>(1, 10));
+  timer_duration            dur{timers.size() + test_rng::uniform_int<unsigned>(1, 100)};
   for (unsigned i = 0; i != timers.size(); ++i) {
     timers[i] = this->create_timer();
     timers[i].set(dur - timer_duration{i});
@@ -245,8 +245,8 @@ TEST_F(unique_timer_manual_tester, single_run_and_stop_does_not_trigger_expiry)
 {
   unique_timer t = this->create_timer();
 
-  timer_duration dur{test_rgen::uniform_int<unsigned>(1, 100)};
-  unsigned       stop_tick                 = test_rgen::uniform_int<unsigned>(0, dur.count() - 1);
+  timer_duration dur{test_rng::uniform_int<unsigned>(1, 100)};
+  unsigned       stop_tick                 = test_rng::uniform_int<unsigned>(0, dur.count() - 1);
   bool           expiry_callback_triggered = false;
   t.set(dur, callback_flag_setter(expiry_callback_triggered));
   t.run();
@@ -276,7 +276,7 @@ protected:
   unique_timer_cancel_already_launched_expiry_callback_tester()
   {
     t   = this->create_timer();
-    dur = timer_duration{test_rgen::uniform_int<unsigned>(1, 100)};
+    dur = timer_duration{test_rng::uniform_int<unsigned>(1, 100)};
 
     t.set(dur, callback_flag_setter(expiry_callback_triggered));
     t.run();
@@ -346,9 +346,9 @@ TEST_F(unique_timer_manual_tester, calling_run_on_running_timer_restarts_timer)
   t.run();
 
   // Restart the timer several times without letting the timer expire.
-  unsigned nof_restarts = test_rgen::uniform_int<unsigned>(0, 10);
+  unsigned nof_restarts = test_rng::uniform_int<unsigned>(0, 10);
   for (unsigned i = 0; i != nof_restarts; ++i) {
-    unsigned rerun_tick = test_rgen::uniform_int<unsigned>(1, dur.count() - 1);
+    unsigned rerun_tick = test_rng::uniform_int<unsigned>(1, dur.count() - 1);
     for (unsigned n = 0; n != rerun_tick; ++n) {
       this->tick();
     }
@@ -444,8 +444,8 @@ protected:
       return;
     }
 
-    timer_event event    = (timer_event)test_rgen::uniform_int<unsigned>(0, (unsigned)timer_event::rem);
-    unsigned    timer_id = test_rgen::uniform_int<unsigned>(0, timers.size() - 1);
+    timer_event event    = (timer_event)test_rng::uniform_int<unsigned>(0, (unsigned)timer_event::rem);
+    unsigned    timer_id = test_rng::uniform_int<unsigned>(0, timers.size() - 1);
     switch (event) {
       case timer_event::create: {
         run_timer_creation();

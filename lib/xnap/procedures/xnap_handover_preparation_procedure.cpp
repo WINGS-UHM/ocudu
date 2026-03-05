@@ -5,6 +5,7 @@
 #include "xnap_handover_preparation_procedure.h"
 #include "../xnap_asn1_converters.h"
 #include "ocudu/asn1/xnap/common.h"
+#include "ocudu/security/security_asn1_utils.h"
 #include "ocudu/xnap/xnap_message.h"
 #include "ocudu/xnap/xnap_types.h"
 
@@ -126,11 +127,12 @@ bool xnap_handover_preparation_procedure::send_handover_request()
   ue_context_info.cp_tnl_info_source.set_endpoint_ip_address();
   ue_context_info.cp_tnl_info_source.endpoint_ip_address().from_string(request.amf_addr.to_bitstring());
   // > Fill UE security capabilities.
-  auto& sec_cap                              = ue_context_info.ue_security_cap;
-  sec_cap.nr_encyption_algorithms            = supported_algorithms_to_asn1(request.sec_ctxt.supported_enc_algos);
-  sec_cap.nr_integrity_protection_algorithms = supported_algorithms_to_asn1(request.sec_ctxt.supported_int_algos);
+  auto& sec_cap                   = ue_context_info.ue_security_cap;
+  sec_cap.nr_encyption_algorithms = security::supported_algorithms_to_asn1(request.sec_ctxt.supported_enc_algos);
+  sec_cap.nr_integrity_protection_algorithms =
+      security::supported_algorithms_to_asn1(request.sec_ctxt.supported_int_algos);
   // > Fill AS security information.
-  ue_context_info.security_info.key_ng_ran_star = key_to_asn1(request.sec_ctxt.k);
+  ue_context_info.security_info.key_ng_ran_star = security::key_to_asn1(request.sec_ctxt.k);
   ue_context_info.security_info.ncc             = request.sec_ctxt.ncc;
   // > Fill UE aggregated maximum bit rate.
   ue_context_info.ue_ambr.dl_ue_ambr = request.aggregate_maximum_bit_rate_dl;

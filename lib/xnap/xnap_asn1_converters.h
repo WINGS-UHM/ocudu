@@ -68,27 +68,6 @@ inline asn1::xnap::guami_s guami_to_asn1(const guami_t& guami)
   return asn1_guami;
 }
 
-inline asn1::fixed_bitstring<16, true, true>
-supported_algorithms_to_asn1(const security::supported_algorithms& supported_algos)
-{
-  asn1::fixed_bitstring<16, true, true> asn1_supported_algos;
-  uint16_t                              tmp = 0;
-  for (uint16_t i = 0; i < 3; ++i) {
-    tmp |= (supported_algos[i] ? 1 : 0) << (15 - i);
-  }
-  *reinterpret_cast<uint16_t*>(asn1_supported_algos.data()) = tmp;
-  return asn1_supported_algos;
-}
-
-inline asn1::fixed_bitstring<256, false, true> key_to_asn1(security::sec_key& sec_key)
-{
-  asn1::fixed_bitstring<256, false, true> asn1_key;
-  for (uint32_t i = 0; i < asn1_key.nof_octets(); ++i) {
-    asn1_key.data()[asn1_key.nof_octets() - 1 - i] = sec_key[i];
-  }
-  return asn1_key;
-}
-
 /// \brief Converts common S-NSSAI type to ASN.1.
 /// \param[out] s_nssai Common type S-NSSAI.
 /// \return ASN.1 S-NSSAI type.

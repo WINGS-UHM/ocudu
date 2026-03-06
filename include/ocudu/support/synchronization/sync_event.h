@@ -18,15 +18,7 @@ class scoped_sync_token;
 class sync_event
 {
 public:
-  ~sync_event()
-  {
-    wait();
-
-    // Polite spinning in case the token got preempted between the fetch_sub and futex wake.
-    while (dtor_guard.load(std::memory_order_acquire)) {
-      std::this_thread::yield();
-    }
-  }
+  ~sync_event() { wait(); }
 
   /// Creates a new observer of wait() requests.
   [[nodiscard]] scoped_sync_token get_token();
@@ -48,29 +40,26 @@ private:
   friend class scoped_sync_token;
 
   std::atomic<uint32_t> token_count{0};
-  /// \brief Variable use to protect token_count from destruction when token still has to call futex wake.
-  /// Useful reference about the issue: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2616r4.html
-  std::atomic<bool> dtor_guard{false};
 };
 
 /// Scoped token that notifies the associated sync_event when it gets destroyed or reset.
 class scoped_sync_token
 {
   friend class sync_event;
-  explicit scoped_sync_token(sync_event& parent_) : parent(&parent_) { inc_token(); }
+  explicit scoped_sync_token(std::atomic<uint32_t>& token_count_) : token_count(&token_count_) { inc_token(); }
 
 public:
   scoped_sync_token() = default;
 
-  scoped_sync_token(const scoped_sync_token& other) : parent(other.parent) { inc_token(); }
+  scoped_sync_token(const scoped_sync_token& other) : token_count(other.token_count) { inc_token(); }
 
-  scoped_sync_token(scoped_sync_token&& other) noexcept : parent(std::exchange(other.parent, nullptr)) {}
+  scoped_sync_token(scoped_sync_token&& other) noexcept : token_count(std::exchange(other.token_count, nullptr)) {}
 
   scoped_sync_token& operator=(const scoped_sync_token& other)
   {
     if (this != &other) {
       reset();
-      parent = other.parent;
+      token_count = other.token_count;
       inc_token();
     }
     return *this;
@@ -78,46 +67,44 @@ public:
   scoped_sync_token& operator=(scoped_sync_token&& other) noexcept
   {
     reset();
-    parent = std::exchange(other.parent, nullptr);
+    token_count = std::exchange(other.token_count, nullptr);
     return *this;
   }
 
   ~scoped_sync_token()
   {
-    if (parent != nullptr) {
-      auto cur = parent->token_count.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    if (token_count != nullptr) {
+      auto cur = token_count->fetch_sub(1, std::memory_order_acq_rel) - 1;
       if (cur == 0) {
         // Count is zero. Wake all waiters.
-        futex_util::wake_all(parent->token_count);
-        // Update dtor guard.
-        parent->dtor_guard.store(false, std::memory_order_release);
+        // Note: wake_all may be called when \c token_count has already be freed. This is OK as per the futex API that
+        // only depends on the bit representation of the \c token_count address.
+        // Useful reference about the issue: https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/p2616r4.html
+        futex_util::wake_all(*token_count);
       }
-      parent = nullptr;
+      token_count = nullptr;
     }
   }
 
   /// Destroys the token and potentially unlocks sync_event::wait().
   void reset() { scoped_sync_token{}.swap(*this); }
 
-  void swap(scoped_sync_token& other) noexcept { std::swap(parent, other.parent); }
+  void swap(scoped_sync_token& other) noexcept { std::swap(token_count, other.token_count); }
 
 private:
   void inc_token()
   {
-    if (parent != nullptr) {
-      if (parent->token_count.fetch_add(1, std::memory_order_relaxed) == 0) {
-        // Transition from 0 to 1. Lock dtor guard.
-        parent->dtor_guard.store(true, std::memory_order_release);
-      }
+    if (token_count != nullptr) {
+      token_count->fetch_add(1, std::memory_order_relaxed);
     }
   }
 
-  sync_event* parent = nullptr;
+  std::atomic<uint32_t>* token_count = nullptr;
 };
 
 inline scoped_sync_token sync_event::get_token()
 {
-  return scoped_sync_token{*this};
+  return scoped_sync_token{token_count};
 }
 
 } // namespace ocudu

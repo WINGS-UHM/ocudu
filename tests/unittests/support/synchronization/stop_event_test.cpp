@@ -128,3 +128,25 @@ TYPED_TEST(stop_event_test, token_to_already_stopped_event_is_empty)
   auto obs = this->ev.get_token();
   ASSERT_TRUE(obs.is_stop_requested());
 }
+
+TEST(stop_event_dtor_test, event_concurrent_destruction_many_threads)
+{
+  // Note: I use std::unique_ptr, because with std::optional, ASAN/TSAN do not catch any heap-use-after-free.
+  std::unique_ptr<stop_event_source> ev;
+  const unsigned                     nof_workers = 4;
+  for (unsigned i = 0, nof_runs = 1000; i != nof_runs; i++) {
+    std::vector<std::thread> workers;
+    workers.reserve(nof_workers);
+    ev = std::make_unique<stop_event_source>();
+
+    for (unsigned j = 0; j != nof_workers - 1; j++) {
+      workers.emplace_back([tk = ev->get_token()]() mutable { tk.reset(); });
+    }
+    workers.emplace_back([&ev]() { ev.reset(); });
+
+    while (not workers.empty()) {
+      workers.back().join();
+      workers.pop_back();
+    }
+  }
+}

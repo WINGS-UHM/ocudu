@@ -51,6 +51,7 @@ public:
   {
     if (not connected()) {
       parent.logger.warning("Discarding Rx XNAP message. Cause: CU-CP XN-C connection has been closed");
+      return;
     }
 
     // Forward message.

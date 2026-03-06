@@ -17,14 +17,47 @@ public:
 
   async_task<bool> on_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
   {
-    ocudu_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");
     return cu_cp_handler->handle_new_rrc_handover_command(ue_index, std::move(command));
   }
 
   byte_buffer on_handover_preparation_message_required(ue_index_t ue_index) override
   {
-    ocudu_assert(cu_cp_handler != nullptr, "CU-CP handler must not be nullptr");
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");
     return cu_cp_handler->handle_handover_preparation_message_required(ue_index);
+  }
+
+  ue_index_t request_new_ue_index_allocation(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override
+  {
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");
+    return cu_cp_handler->handle_ue_index_allocation_request(cgi, plmn);
+  }
+
+  bool on_handover_request_received(ue_index_t                        ue_index,
+                                    const plmn_identity&              selected_plmn,
+                                    const security::security_context& sec_ctxt) override
+  {
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");
+    return cu_cp_handler->handle_handover_request(ue_index, selected_plmn, sec_ctxt);
+  }
+
+  bool schedule_async_task(ue_index_t ue_index, async_task<void> task) override
+  {
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");
+    return cu_cp_handler->schedule_ue_task(ue_index, std::move(task));
+  }
+
+  async_task<cu_cp_handover_resource_allocation_response>
+  on_xnap_handover_request(const xnap_handover_request& request) override
+  {
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");
+    return cu_cp_handler->handle_xnap_handover_request(request);
+  }
+
+  void on_xn_handover_execution(ue_index_t ue_index) override
+  {
+    ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");
+    cu_cp_handler->handle_inter_cu_target_handover_execution(ue_index);
   }
 
 private:

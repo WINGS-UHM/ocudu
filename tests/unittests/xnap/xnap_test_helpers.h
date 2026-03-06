@@ -56,7 +56,7 @@ private:
 class dummy_xnap_cu_cp_notifier : public xnap_cu_cp_notifier
 {
 public:
-  dummy_xnap_cu_cp_notifier() = default;
+  dummy_xnap_cu_cp_notifier(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST")) {}
 
   byte_buffer on_handover_preparation_message_required(ue_index_t ue_index) override
   {
@@ -74,10 +74,50 @@ public:
     });
   }
 
+  ue_index_t request_new_ue_index_allocation(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override
+  {
+    return ue_index_t::invalid;
+  }
+
+  bool on_handover_request_received(ue_index_t                        ue_index,
+                                    const plmn_identity&              selected_plmn,
+                                    const security::security_context& sec_ctxt) override
+  {
+    ocudu_assert(ue_mng.find_ue(ue_index) != nullptr, "UE must be present");
+    logger.info("Received a handover request");
+
+    if (!ue_mng.find_ue(ue_index)->get_security_manager().init_security_context(sec_ctxt)) {
+      logger.info("Failed to initialize security context");
+      return false;
+    }
+
+    return true;
+  }
+
+  bool schedule_async_task(ue_index_t ue_index, async_task<void> task) override
+  {
+    ocudu_assert(ue_mng.find_ue_task_scheduler(ue_index) != nullptr, "UE task scheduler must be present");
+    return ue_mng.find_ue_task_scheduler(ue_index)->schedule_async_task(std::move(task));
+  }
+
+  async_task<cu_cp_handover_resource_allocation_response>
+  on_xnap_handover_request(const xnap_handover_request& request) override
+  {
+    return launch_async([res = cu_cp_handover_resource_allocation_response{}](
+                            coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+
+      CORO_RETURN(res);
+    });
+  }
+
+  void on_xn_handover_execution(ue_index_t ue_index) override {}
+
   byte_buffer last_handover_command;
 
 private:
-  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
+  ue_manager&             ue_mng;
+  ocudulog::basic_logger& logger;
 };
 
 /// Fixture class for XNAP Setup tests.
@@ -120,7 +160,7 @@ protected:
 
   ue_manager                 ue_mng{cu_cp_cfg};
   dummy_xnc_gateway          xnc_gw;
-  dummy_xnap_cu_cp_notifier  cu_cp_notifier;
+  dummy_xnap_cu_cp_notifier  cu_cp_notifier{ue_mng};
   std::unique_ptr<xnap_impl> xnap = nullptr;
 
   /// Local configuration.

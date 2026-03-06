@@ -7,7 +7,8 @@ add_subdirectory(gateways)
 
 set(SOURCES
         log_helpers.cpp
-        procedures/xnap_handover_preparation_procedure.cpp
+        procedures/xnap_source_handover_preparation_procedure.cpp
+        procedures/xnap_target_handover_preparation_procedure.cpp
         procedures/xn_setup_procedure.cpp
         xnap_asn1_utils.cpp
         xnap_factory.cpp

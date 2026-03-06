@@ -95,9 +95,6 @@ public:
   void handle_location_update(ue_index_t ue_index) override;
 
   // cu_cp_ngap_handler.
-  bool handle_handover_request(ue_index_t                        ue_index,
-                               const plmn_identity&              selected_plmn,
-                               const security::security_context& sec_ctxt) override;
   async_task<expected<ngap_init_context_setup_response, ngap_init_context_setup_failure>>
   handle_new_initial_context_setup_request(const ngap_init_context_setup_request& request) override;
   async_task<cu_cp_pdu_session_resource_setup_response>
@@ -109,18 +106,25 @@ public:
   async_task<cu_cp_ue_context_release_complete>
   handle_ue_context_release_command(const cu_cp_ue_context_release_command& command) override;
   async_task<cu_cp_handover_resource_allocation_response>
-             handle_ngap_handover_request(const ngap_handover_request& request) override;
-  void       handle_transmission_of_handover_required() override;
-  ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override;
-  void       handle_n2_handover_execution(ue_index_t ue_index) override;
-  void       handle_dl_ue_associated_nrppa_transport_pdu(ue_index_t ue_index, const byte_buffer& nrppa_pdu) override;
+       handle_ngap_handover_request(const ngap_handover_request& request) override;
+  void handle_transmission_of_handover_required() override;
+  void handle_dl_ue_associated_nrppa_transport_pdu(ue_index_t ue_index, const byte_buffer& nrppa_pdu) override;
   void handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) override;
   void handle_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg) override;
   void handle_n2_disconnection(amf_index_t amf_index) override;
 
   // cu_cp_inter_cu_handover_handler.
   async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override;
-  byte_buffer      handle_handover_preparation_message_required(ue_index_t ue_index) override;
+  ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override;
+  bool       handle_handover_request(ue_index_t                        ue_index,
+                                     const plmn_identity&              selected_plmn,
+                                     const security::security_context& sec_ctxt) override;
+  void       handle_inter_cu_target_handover_execution(ue_index_t ue_index) override;
+
+  // cu_cp_xnap_handler.
+  byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) override;
+  async_task<cu_cp_handover_resource_allocation_response>
+  handle_xnap_handover_request(const xnap_handover_request& request) override;
 
   // cu_cp_nrppa_handler.
   nrppa_cu_cp_ue_notifier* handle_new_nrppa_ue(ue_index_t ue_index) override;

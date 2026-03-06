@@ -869,7 +869,7 @@ cu_cp_impl::handle_ngap_handover_request(const ngap_handover_request& request)
   return handle_inter_cu_handover_request(inter_cu_handover_request);
 }
 
-void cu_cp_impl::handle_n2_handover_execution(ue_index_t ue_index)
+void cu_cp_impl::handle_inter_cu_target_handover_execution(ue_index_t ue_index)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
   ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
@@ -934,6 +934,20 @@ byte_buffer cu_cp_impl::handle_handover_preparation_message_required(ue_index_t 
     return {};
   }
   return ue->get_rrc_ue()->get_rrc_ue_control_message_handler().get_packed_handover_preparation_message();
+}
+
+async_task<cu_cp_handover_resource_allocation_response>
+cu_cp_impl::handle_xnap_handover_request(const xnap_handover_request& request)
+{
+  // Convert the XNAP handover request to an intra-CU handover target request.
+  cu_cp_inter_cu_handover_request inter_cu_handover_request;
+  inter_cu_handover_request.from_xnap_handover_request(request);
+
+  // TODO: Implement handling of XNAP handover request in inter_cu_handover_routine.
+  return launch_async([request](coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_RETURN(cu_cp_handover_request_failure{.ue_index = request.ue_index, .cause = xnap_cause_misc_t::unspecified});
+  });
 }
 
 ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn)

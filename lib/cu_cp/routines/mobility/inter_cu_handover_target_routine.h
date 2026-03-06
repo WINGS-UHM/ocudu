@@ -71,6 +71,26 @@ struct cu_cp_inter_cu_handover_request {
     idx_to_rfsp               = ng_handover_request.source_to_target_transparent_container.idx_to_rfsp;
     ue_history_info           = ng_handover_request.source_to_target_transparent_container.ue_history_info;
   }
+
+  void from_xnap_handover_request(const xnap_handover_request& xnap_request)
+  {
+    // Fill common fields.
+    ue_index         = xnap_request.ue_index;
+    cause            = xnap_request.cause;
+    target_cell_id   = xnap_request.nr_cgi;
+    security_context = xnap_request.ue_context_info_ho_request.security_context;
+    guami            = xnap_request.guami;
+    ue_ambr          = xnap_request.ue_context_info_ho_request.ue_ambr;
+    for (const auto& pdu_session_res_info : xnap_request.ue_context_info_ho_request.pdu_session_res_to_be_setup_list) {
+      pdu_session_res_setup_list.emplace(pdu_session_res_info.pdu_session_id, pdu_session_res_info);
+    }
+    rrc_handover_preparation_information =
+        xnap_request.ue_context_info_ho_request.rrc_handover_preparation_information.copy();
+
+    // Fill XNAP handover specific fields.
+    amf_ue_id = xnap_request.ue_context_info_ho_request.amf_ue_id;
+    amf_addr  = xnap_request.ue_context_info_ho_request.amf_addr;
+  }
 };
 
 class inter_cu_handover_target_routine

@@ -4,9 +4,14 @@
 
 #include "xnap_impl.h"
 #include "log_helpers.h"
+#include "procedures/xn_handover_asn1_helpers.h"
 #include "procedures/xn_setup_procedure.h"
 #include "procedures/xn_setup_procedure_asn1_helpers.h"
-#include "procedures/xnap_handover_preparation_procedure.h"
+#include "procedures/xnap_source_handover_preparation_procedure.h"
+#include "procedures/xnap_target_handover_preparation_procedure.h"
+#include "ocudu/asn1/xnap/common.h"
+#include "ocudu/asn1/xnap/xnap.h"
+#include "ocudu/asn1/xnap/xnap_ies.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
 #include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -69,6 +74,9 @@ void xnap_impl::handle_initiating_message(const init_msg_s& msg)
     case xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request:
       handle_xn_setup_request(msg.value.xn_setup_request());
       break;
+    case xnap_elem_procs_o::init_msg_c::types_opts::ho_request:
+      handle_handover_request(msg.value.ho_request());
+      break;
     default:
       logger.error("Initiating message of type {} is not supported", msg.value.type().to_string());
   }
@@ -119,6 +127,68 @@ void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
   }
 }
 
+void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
+{
+  // Add lambda that generates and transmits Handover Preparation Failure message.
+  auto send_handover_failure = [this](uint64_t local_xnap_ue_id) {
+    xnap_message xnap_msg;
+    xnap_msg.pdu.set_unsuccessful_outcome();
+    xnap_msg.pdu.unsuccessful_outcome().load_info_obj(ASN1_XNAP_ID_HO_PREP);
+    auto& ho_fail                           = xnap_msg.pdu.unsuccessful_outcome().value.ho_prep_fail();
+    ho_fail->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id;
+    ho_fail->cause.set_protocol() =
+        asn1::xnap::cause_protocol_e::options::abstract_syntax_error_falsely_constructed_msg;
+
+    if (!tx_notifier.on_new_message(xnap_msg)) {
+      logger.warning("XN-C association is not set. Cannot send HandoverFailure");
+      return;
+    }
+    logger.warning("Sending HandoverFailure");
+  };
+
+  // Convert Handover Request to common type.
+  xnap_handover_request ho_request;
+  if (!asn1_to_handover_request(ho_request, msg)) {
+    logger.info("Received invalid HandoverRequest");
+    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id);
+    return;
+  }
+
+  logger.info("HandoverRequest - extracted target cell. plmn={}, target cell_id={}",
+              ho_request.nr_cgi.plmn_id,
+              ho_request.nr_cgi.nci);
+
+  // Create UE in target cell.
+  ho_request.ue_index = cu_cp_notifier.request_new_ue_index_allocation(ho_request.nr_cgi, ho_request.guami.plmn);
+  if (ho_request.ue_index == ue_index_t::invalid) {
+    logger.debug("Couldn't allocate UE index for handover target cell");
+    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id);
+    return;
+  }
+
+  // Inititialize security context of target UE.
+  if (!cu_cp_notifier.on_handover_request_received(
+          ho_request.ue_index, ho_request.guami.plmn, ho_request.ue_context_info_ho_request.security_context)) {
+    logger.debug("Failed to initialize security context for UE index {}. Rejecting handover request",
+                 ho_request.ue_index);
+    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id);
+    return;
+  }
+
+  if (!cu_cp_notifier.schedule_async_task(ho_request.ue_index,
+                                          launch_async<xnap_target_handover_preparation_procedure>(
+                                              ho_request,
+                                              uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id),
+                                              ue_ctxt_list,
+                                              cu_cp_notifier,
+                                              tx_notifier,
+                                              logger))) {
+    logger.debug("Couldn't schedule targer handover preparation procedure");
+    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id);
+    return;
+  }
+}
+
 async_task<xnap_handover_preparation_response>
 xnap_impl::handle_handover_request_required(const xnap_handover_request& request)
 {
@@ -135,13 +205,13 @@ xnap_impl::handle_handover_request_required(const xnap_handover_request& request
 
   xnap_ue_context& ue_ctxt = ue_ctxt_list[request.ue_index];
 
-  ue_ctxt.logger.log_debug("Starting HO preparation");
+  ue_ctxt.logger.log_debug("Starting HO source preparation");
 
-  return launch_async<xnap_handover_preparation_procedure>(request,
-                                                           ue_ctxt.ue_ids.local_xnap_ue_id,
-                                                           tx_notifier,
-                                                           cu_cp_notifier,
-                                                           xn_handover_outcome,
-                                                           timer_factory{timers, ctrl_exec},
-                                                           ue_ctxt.logger);
+  return launch_async<xnap_source_handover_preparation_procedure>(request,
+                                                                  ue_ctxt.ue_ids.local_xnap_ue_id,
+                                                                  tx_notifier,
+                                                                  cu_cp_notifier,
+                                                                  xn_handover_outcome,
+                                                                  timer_factory{timers, ctrl_exec},
+                                                                  ue_ctxt.logger);
 }

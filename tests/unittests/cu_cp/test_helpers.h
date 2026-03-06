@@ -884,7 +884,7 @@ private:
 
 struct dummy_cu_cp_xnap_handler : public cu_cp_xnap_handler {
 public:
-  dummy_cu_cp_xnap_handler() = default;
+  dummy_cu_cp_xnap_handler(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST")) {}
 
   byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) override
   {
@@ -902,10 +902,50 @@ public:
     });
   }
 
+  ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override
+  {
+    return ue_index_t::invalid;
+  }
+
+  bool handle_handover_request(ue_index_t                        ue_index,
+                               const plmn_identity&              selected_plmn,
+                               const security::security_context& sec_ctxt) override
+  {
+    ocudu_assert(ue_mng.find_ue(ue_index) != nullptr, "UE must be present");
+    logger.info("Received a handover request");
+
+    if (!ue_mng.find_ue(ue_index)->get_security_manager().init_security_context(sec_ctxt)) {
+      logger.info("Failed to initialize security context");
+      return false;
+    }
+
+    return true;
+  }
+
+  bool schedule_ue_task(ue_index_t ue_index, async_task<void> task) override
+  {
+    ocudu_assert(ue_mng.find_ue_task_scheduler(ue_index) != nullptr, "UE task scheduler must be present");
+    return ue_mng.find_ue_task_scheduler(ue_index)->schedule_async_task(std::move(task));
+  }
+
+  async_task<cu_cp_handover_resource_allocation_response>
+  handle_xnap_handover_request(const xnap_handover_request& request) override
+  {
+    return launch_async([res = cu_cp_handover_resource_allocation_response{}](
+                            coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+
+      CORO_RETURN(res);
+    });
+  }
+
+  void handle_inter_cu_target_handover_execution(ue_index_t ue_index) override {}
+
   byte_buffer last_handover_command;
 
 private:
-  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
+  ue_manager&             ue_mng;
+  ocudulog::basic_logger& logger;
 };
 
 } // namespace ocudu::ocucp

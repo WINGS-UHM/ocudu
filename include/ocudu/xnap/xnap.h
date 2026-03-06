@@ -6,6 +6,7 @@
 
 #include "xnap_message_notifier.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/xnap/xnap_handover.h"
 
@@ -70,6 +71,32 @@ public:
   /// \param[in] command The RRC container containing the Handover Command.
   /// \returns True if the Handover command is valid and was successfully handled by the DU.
   virtual async_task<bool> on_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
+
+  /// \brief Request UE index allocation on the CU-CP on XNAP handover request.
+  virtual ue_index_t request_new_ue_index_allocation(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) = 0;
+
+  /// \brief Notify the CU-CP about a handover request received.
+  /// \param[in] ue_index Index of the UE.
+  /// \param[in] selected_plmn The selected PLMN identity of the UE.
+  /// \param[in] sec_ctxt The received security context.
+  /// \return True if the handover request handling is successful, false otherwise.
+  virtual bool on_handover_request_received(ue_index_t                        ue_index,
+                                            const plmn_identity&              selected_plmn,
+                                            const security::security_context& sec_ctxt) = 0;
+
+  /// \brief Request scheduling a task for a UE.
+  /// \param[in] ue_index The index of the UE.
+  /// \param[in] task The task to schedule.
+  /// \returns True if the task was successfully scheduled, false otherwise.
+  virtual bool schedule_async_task(ue_index_t ue_index, async_task<void> task) = 0;
+
+  /// \brief Notifies the CU-CP about a Handover Request.
+  virtual async_task<cu_cp_handover_resource_allocation_response>
+  on_xnap_handover_request(const xnap_handover_request& request) = 0;
+
+  /// \brief Notify the CU-CP to await the RRC Reconfiguration Complete and the DL Status Transfer.
+  /// \param[in] ue_index The index of the UE.
+  virtual void on_xn_handover_execution(ue_index_t ue_index) = 0;
 };
 
 /// Combined entry point for the XNAP object.

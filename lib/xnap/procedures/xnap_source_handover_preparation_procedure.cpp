@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "xnap_handover_preparation_procedure.h"
+#include "xnap_source_handover_preparation_procedure.h"
 #include "../xnap_asn1_converters.h"
 #include "ocudu/asn1/xnap/common.h"
 #include "ocudu/security/security_asn1_utils.h"
@@ -13,7 +13,7 @@ using namespace ocudu;
 using namespace ocucp;
 using namespace asn1::xnap;
 
-xnap_handover_preparation_procedure::xnap_handover_preparation_procedure(
+xnap_source_handover_preparation_procedure::xnap_source_handover_preparation_procedure(
     const xnap_handover_request& request_,
     const local_xnap_ue_id_t&    ue_id_,
     xnap_message_notifier&       xnc_notifier_,
@@ -32,7 +32,8 @@ xnap_handover_preparation_procedure::xnap_handover_preparation_procedure(
 {
 }
 
-void xnap_handover_preparation_procedure::operator()(coro_context<async_task<xnap_handover_preparation_response>>& ctx)
+void xnap_source_handover_preparation_procedure::operator()(
+    coro_context<async_task<xnap_handover_preparation_response>>& ctx)
 {
   CORO_BEGIN(ctx);
   logger.log_debug("\"{}\" started...", name());
@@ -95,7 +96,7 @@ void xnap_handover_preparation_procedure::operator()(coro_context<async_task<xna
   CORO_RETURN(xnap_handover_preparation_response{true});
 }
 
-bool xnap_handover_preparation_procedure::send_handover_request()
+bool xnap_source_handover_preparation_procedure::send_handover_request()
 {
   xnap_message msg = {};
   // Set XNAP PDU contents.
@@ -153,7 +154,7 @@ bool xnap_handover_preparation_procedure::send_handover_request()
   return true;
 }
 
-bool xnap_handover_preparation_procedure::send_handover_cancel()
+bool xnap_source_handover_preparation_procedure::send_handover_cancel()
 {
   xnap_message msg = {};
   // Set XNAP PDU contents.
@@ -175,7 +176,7 @@ bool xnap_handover_preparation_procedure::send_handover_cancel()
   return true;
 }
 
-void xnap_handover_preparation_procedure::fill_asn1_pdu_session_res_list(
+void xnap_source_handover_preparation_procedure::fill_asn1_pdu_session_res_list(
     pdu_session_res_to_be_setup_list_l& pdu_session_res_list)
 {
   for (const auto& pdu_session_item : request.ue_context_info_ho_request.pdu_session_res_to_be_setup_list) {

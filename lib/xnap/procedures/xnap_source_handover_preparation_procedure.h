@@ -13,10 +13,10 @@
 
 namespace ocudu::ocucp {
 
-class xnap_handover_preparation_procedure
+class xnap_source_handover_preparation_procedure
 {
 public:
-  xnap_handover_preparation_procedure(
+  xnap_source_handover_preparation_procedure(
       const xnap_handover_request& request_,
       const local_xnap_ue_id_t&    ue_id_,
       xnap_message_notifier&       xnc_notifier_,

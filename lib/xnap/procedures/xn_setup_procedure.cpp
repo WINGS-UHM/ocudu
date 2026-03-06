@@ -60,12 +60,12 @@ void xn_setup_procedure::operator()(coro_context<async_task<bool>>& ctx)
         async_wait_for(xn_setup_wait_timer, std::chrono::duration_cast<std::chrono::milliseconds>(time_to_wait)));
   }
 
-  logger.info("\"{}\" finished successfully", name());
-
   if (!transaction_sink.successful()) {
     logger.warning("\"{}\" failed. No successful outcome received", name());
     CORO_EARLY_RETURN(false);
   }
+
+  logger.info("\"{}\" finished successfully", name());
 
   CORO_RETURN(true);
 }
@@ -80,7 +80,6 @@ bool xn_setup_procedure::retry_required()
   if (transaction_sink.timeout_expired()) {
     // Timeout case.
     logger.warning("\"{}\" timed out after {}ms", name(), xn_setup_response_timeout.count());
-    fmt::print("\"{}\" timed out after {}ms\n", name(), xn_setup_response_timeout.count());
     return false;
   }
 

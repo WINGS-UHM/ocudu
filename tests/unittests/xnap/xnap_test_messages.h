@@ -10,9 +10,9 @@
 namespace ocudu::ocucp {
 
 /// \brief Generate a dummy Handover Preparation Failure message.
-xnap_message generate_handover_preparation_failure(xnap_ue_id_t xnap_ue_id);
+xnap_message generate_handover_preparation_failure(local_xnap_ue_id_t local_xnap_ue_id);
 
 /// \brief Generate a dummy Handover Request Ack message.
-xnap_message generate_handover_request_ack(xnap_ue_id_t source_xnap_ue_id, xnap_ue_id_t target_xnap_ue_id);
+xnap_message generate_handover_request_ack(local_xnap_ue_id_t local_xnap_ue_id, peer_xnap_ue_id_t peer_xnap_ue_id);
 
 } // namespace ocudu::ocucp

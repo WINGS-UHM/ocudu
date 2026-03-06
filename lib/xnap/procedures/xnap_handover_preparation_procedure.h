@@ -18,7 +18,7 @@ class xnap_handover_preparation_procedure
 public:
   xnap_handover_preparation_procedure(
       const xnap_handover_preparation_request& request_,
-      const xnap_ue_id_t&                      ue_id_,
+      const local_xnap_ue_id_t&                ue_id_,
       xnap_message_notifier&                   xnc_notifier_,
       xnap_cu_cp_notifier&                     cu_cp_notifier_,
       protocol_transaction_event_source<asn1::xnap::ho_request_ack_s, asn1::xnap::ho_prep_fail_s>&
@@ -31,7 +31,7 @@ public:
   static const char* name() { return "Handover Preparation Procedure"; }
 
   const xnap_handover_preparation_request request;
-  const xnap_ue_id_t&                     ue_id;
+  const local_xnap_ue_id_t&               ue_id;
   xnap_message_notifier&                  xnc_notifier;
   xnap_cu_cp_notifier&                    cu_cp_notifier;
   protocol_transaction_event_source<asn1::xnap::ho_request_ack_s, asn1::xnap::ho_prep_fail_s>&

@@ -15,7 +15,7 @@ using namespace asn1::xnap;
 
 xnap_handover_preparation_procedure::xnap_handover_preparation_procedure(
     const xnap_handover_preparation_request& request_,
-    const xnap_ue_id_t&                      ue_id_,
+    const local_xnap_ue_id_t&                ue_id_,
     xnap_message_notifier&                   xnc_notifier_,
     xnap_cu_cp_notifier&                     cu_cp_notifier_,
     protocol_transaction_event_source<asn1::xnap::ho_request_ack_s, asn1::xnap::ho_prep_fail_s>&
@@ -37,8 +37,8 @@ void xnap_handover_preparation_procedure::operator()(coro_context<async_task<xna
   CORO_BEGIN(ctx);
   logger.log_debug("\"{}\" started...", name());
 
-  if (ue_id == xnap_ue_id_t::invalid) {
-    logger.log_error("\"{}\" failed. Cause: Invalid XNAP UE ID", name());
+  if (ue_id == local_xnap_ue_id_t::invalid) {
+    logger.log_error("\"{}\" failed. Cause: Invalid LOCAL XNAP UE ID", name());
     CORO_EARLY_RETURN(xnap_handover_preparation_response{false});
   }
 
@@ -107,7 +107,7 @@ bool xnap_handover_preparation_procedure::send_handover_request()
   ho_request_s& ho_request = msg.pdu.init_msg().value.ho_request();
 
   // Fill XNAP UE ID.
-  ho_request->source_ng_ra_nnode_ue_xn_ap_id = xnap_ue_id_to_uint(ue_id);
+  ho_request->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(ue_id);
 
   // Fill cause.
   ho_request->cause.set_radio_network();
@@ -161,7 +161,7 @@ bool xnap_handover_preparation_procedure::send_handover_cancel()
   msg.pdu.init_msg().load_info_obj(ASN1_XNAP_ID_HO_CANCEL);
   ho_cancel_s& ho_cancel = msg.pdu.init_msg().value.ho_cancel();
 
-  ho_cancel->source_ng_ra_nnode_ue_xn_ap_id = xnap_ue_id_to_uint(ue_id);
+  ho_cancel->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(ue_id);
 
   ho_cancel->cause.set_radio_network();
   ho_cancel->cause.set_radio_network() = cause_radio_network_layer_opts::txn_relo_cprep_expiry;

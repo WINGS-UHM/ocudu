@@ -111,3 +111,25 @@ TEST(sync_event_dtor_test, event_concurrent_destruction)
 
   worker.join();
 }
+
+TEST(sync_event_dtor_test, event_concurrent_destruction_many_threads)
+{
+  // Note: I use std::unique_ptr, because with std::optional, ASAN/TSAN do not catch any heap-use-after-free.
+  std::unique_ptr<sync_event> ev;
+  const unsigned              nof_workers = 4;
+  for (unsigned i = 0, nof_runs = 100; i != nof_runs; i++) {
+    std::vector<std::thread> workers;
+    workers.reserve(nof_workers);
+    ev = std::make_unique<sync_event>();
+
+    for (unsigned j = 0; j != nof_workers - 1; j++) {
+      workers.emplace_back([tk = ev->get_token()]() mutable { tk.reset(); });
+    }
+    workers.emplace_back([&ev]() { ev.reset(); });
+
+    while (not workers.empty()) {
+      workers.back().join();
+      workers.pop_back();
+    }
+  }
+}

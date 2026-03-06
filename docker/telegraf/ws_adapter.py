@@ -18,8 +18,8 @@ def _on_message(_ws: websocket.WebSocketApp, message: str):
     with suppress(json.JSONDecodeError):
         metric = json.loads(message)
         if "cmd" not in metric:
-            print("-" * 60)
-            print(json.dumps(metric, indent=2))
+            # print("-" * 60)
+            print(json.dumps(metric))
 
 
 if __name__ == "__main__":

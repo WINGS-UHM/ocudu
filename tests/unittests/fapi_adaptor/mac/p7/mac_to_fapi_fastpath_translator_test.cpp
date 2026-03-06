@@ -88,7 +88,8 @@ class mac_to_fapi_translator_fixture : public ::testing::Test
 protected:
   p7_requests_gateway_spy                                                                           gateway_spy;
   slot_last_message_notifier_spy                                                                    notifier_spy;
-  const unsigned                                                                                    nof_prbs = 51U;
+  const unsigned                                                                                    nof_prbs  = 51U;
+  const unsigned                                                                                    sector_id = 1U;
   std::pair<std::unique_ptr<precoding_matrix_mapper>, std::unique_ptr<precoding_matrix_repository>> pm_tools =
       generate_precoding_matrix_tables(1, 0);
   std::pair<std::unique_ptr<uci_part2_correspondence_mapper>, std::unique_ptr<uci_part2_correspondence_repository>>
@@ -96,8 +97,12 @@ protected:
   mac_to_fapi_fastpath_translator translator;
 
   mac_to_fapi_translator_fixture() :
-    translator({nof_prbs},
-               {gateway_spy, notifier_spy, std::move(std::get<0>(pm_tools)), std::move(std::get<0>(uci_part2_tools))})
+    translator({nof_prbs, sector_id},
+               {gateway_spy,
+                notifier_spy,
+                std::move(std::get<0>(pm_tools)),
+                std::move(std::get<0>(uci_part2_tools)),
+                ocudulog::fetch_basic_logger("FAPI")})
   {
   }
 };
@@ -115,11 +120,11 @@ TEST_F(mac_to_fapi_translator_fixture, valid_dl_sched_results_generate_correct_d
   ASSERT_TRUE(gateway_spy.has_dl_tti_request_method_called());
   const fapi::dl_tti_request& msg = gateway_spy.dl_tti_request_msg();
   ASSERT_EQ(msg.pdus.size(), 7U);
-  ASSERT_EQ((msg.pdus.begin() + 1)->pdu_type, fapi::dl_pdu_type::PDCCH);
-  ASSERT_EQ(msg.pdus.back().pdu_type, fapi::dl_pdu_type::PDSCH);
-  ASSERT_EQ(msg.pdus.front().pdu_type, fapi::dl_pdu_type::PDCCH);
-  ASSERT_EQ((msg.pdus.end() - 2)->pdu_type, fapi::dl_pdu_type::SSB);
-  ASSERT_EQ((msg.pdus.end() - 3)->pdu_type, fapi::dl_pdu_type::SSB);
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_pdcch_pdu>((msg.pdus.begin() + 1)->pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_pdsch_pdu>(msg.pdus.back().pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_pdcch_pdu>(msg.pdus.front().pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_ssb_pdu>((msg.pdus.end() - 2)->pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::dl_ssb_pdu>((msg.pdus.end() - 3)->pdu));
 }
 
 TEST_F(mac_to_fapi_translator_fixture, valid_ul_sched_results_generate_correct_ul_tti_request)
@@ -133,10 +138,10 @@ TEST_F(mac_to_fapi_translator_fixture, valid_ul_sched_results_generate_correct_u
   ASSERT_TRUE(gateway_spy.has_ul_tti_request_method_called());
   const fapi::ul_tti_request& msg = gateway_spy.ul_tti_request_msg();
   ASSERT_EQ(msg.pdus.size(), 4U);
-  ASSERT_EQ(msg.pdus.front().pdu_type, fapi::ul_pdu_type::PRACH);
-  ASSERT_EQ((msg.pdus.begin() + 1)->pdu_type, fapi::ul_pdu_type::PUSCH);
-  ASSERT_EQ((msg.pdus.end() - 2)->pdu_type, fapi::ul_pdu_type::PUCCH);
-  ASSERT_EQ(msg.pdus.back().pdu_type, fapi::ul_pdu_type::PUCCH);
+  ASSERT_TRUE(std::holds_alternative<fapi::ul_prach_pdu>(msg.pdus.front().pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::ul_pusch_pdu>((msg.pdus.begin() + 1)->pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::ul_pucch_pdu>((msg.pdus.end() - 2)->pdu));
+  ASSERT_TRUE(std::holds_alternative<fapi::ul_pucch_pdu>(msg.pdus.back().pdu));
 }
 
 TEST_F(mac_to_fapi_translator_fixture, valid_dl_data_results_generate_correct_tx_data_request)

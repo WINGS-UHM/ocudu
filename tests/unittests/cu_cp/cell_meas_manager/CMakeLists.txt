@@ -5,7 +5,7 @@
 
 add_library(cell_meas_manager_helpers cell_meas_manager_test_helpers.cpp)
 target_include_directories(cell_meas_manager_helpers PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(cell_meas_manager_helpers ocudu_cu_cp_cell_meas_manager ocudu_support ocudulog gtest gtest_main)
+target_link_libraries(cell_meas_manager_helpers ocudu_cu_cp_cell_meas_manager ocudu_support ocudulog GTest::gtest gtest_main)
 
 set(SOURCES
         cell_meas_manager_test.cpp)

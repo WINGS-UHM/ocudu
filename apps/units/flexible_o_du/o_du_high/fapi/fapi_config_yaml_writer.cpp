@@ -15,6 +15,4 @@ static void fill_du_low_log_section(YAML::Node node, ocudulog::basic_levels leve
 void ocudu::fill_fapi_config_in_yaml_schema(YAML::Node& node, const fapi_unit_config& config)
 {
   fill_du_low_log_section(node["log"], config.fapi_level);
-  auto fapi_node                  = node["fapi"];
-  fapi_node["l2_nof_slots_ahead"] = config.l2_nof_slots_ahead;
 }

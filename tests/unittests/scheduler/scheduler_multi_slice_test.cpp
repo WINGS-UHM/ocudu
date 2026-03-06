@@ -4,6 +4,7 @@
 
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
 #include "ocudu/adt/ranges/transform.h"
 #include <gtest/gtest.h>
@@ -101,8 +102,8 @@ TEST_F(single_slice_limited_max_rbs_scheduler_test, single_ue_limited_to_max_rbs
 TEST_F(single_slice_limited_max_rbs_scheduler_test, multi_ue_limited_to_max_rbs)
 {
   // Create UE and fill its buffer.
-  unsigned            nof_ues = test_rgen::uniform_int<unsigned>(2, 10);
-  unsigned            dl_bo   = test_rgen::uniform_int<unsigned>(1, 50);
+  unsigned            nof_ues = test_rng::uniform_int<unsigned>(2, 10);
+  unsigned            dl_bo   = test_rng::uniform_int<unsigned>(1, 50);
   std::vector<rnti_t> rntis;
   for (unsigned i = 0; i < nof_ues; i++) {
     rntis.push_back(this->add_ue({std::make_pair(LCID_MIN_DRB, get_nssai(1, 1))}));
@@ -122,8 +123,8 @@ TEST_F(single_slice_limited_max_rbs_scheduler_test, multi_ue_limited_to_max_rbs)
 TEST_F(single_slice_limited_max_rbs_scheduler_test, multi_ue_limited_to_max_rbs_reconf)
 {
   // Create UE and fill its buffer.
-  unsigned            nof_ues = test_rgen::uniform_int<unsigned>(2, 10);
-  unsigned            dl_bo   = test_rgen::uniform_int<unsigned>(10, 50);
+  unsigned            nof_ues = test_rng::uniform_int<unsigned>(2, 10);
+  unsigned            dl_bo   = test_rng::uniform_int<unsigned>(10, 50);
   std::vector<rnti_t> rntis;
   unsigned            nof_rbs = 0;
   for (unsigned i = 0; i < nof_ues; i++) {

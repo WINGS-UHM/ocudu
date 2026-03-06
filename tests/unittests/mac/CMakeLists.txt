@@ -35,6 +35,6 @@ target_link_libraries(mac_test
         ocudu_mac
         sched_config
         sched_test_doubles
-        gtest
-        gtest_main)
+        GTest::gtest
+        GTest::gtest_main)
 gtest_discover_tests(mac_test)

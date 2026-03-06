@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/blocking_queue.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
@@ -10,7 +11,7 @@ using namespace ocudu;
 
 TEST(blocking_queue_test, blocking_push_from_main_thread_and_pop_from_another_thread)
 {
-  unsigned            qsize = test_rgen::uniform_int<unsigned>(1, 10000);
+  unsigned            qsize = test_rng::uniform_int<unsigned>(1, 10000);
   blocking_queue<int> queue(qsize);
 
   std::atomic<int> count{0};
@@ -25,7 +26,7 @@ TEST(blocking_queue_test, blocking_push_from_main_thread_and_pop_from_another_th
     }
   });
 
-  unsigned nof_objs = test_rgen::uniform_int<unsigned>(1, 100000);
+  unsigned nof_objs = test_rng::uniform_int<unsigned>(1, 100000);
   for (unsigned i = 0; i < nof_objs; ++i) {
     queue.push_blocking(i);
   }
@@ -42,10 +43,10 @@ TEST(blocking_queue_test, blocking_push_from_another_thread_and_pop_in_main_thre
 {
   std::thread t;
 
-  unsigned            qsize = test_rgen::uniform_int<unsigned>(1, 10000);
+  unsigned            qsize = test_rng::uniform_int<unsigned>(1, 10000);
   blocking_queue<int> queue(qsize);
 
-  unsigned nof_objs = test_rgen::uniform_int<unsigned>(1, 100000);
+  unsigned nof_objs = test_rng::uniform_int<unsigned>(1, 100000);
   t                 = std::thread([&queue, nof_objs]() {
     int count = 0;
     while ((unsigned)count != nof_objs and queue.push_blocking(count++)) {
@@ -66,15 +67,15 @@ TEST(blocking_queue_test, blocking_push_and_pop_in_batches_in_separate_threads)
 {
   std::thread t;
 
-  std::vector<int> vec(test_rgen::uniform_int<unsigned>(1, 10000));
+  std::vector<int> vec(test_rng::uniform_int<unsigned>(1, 10000));
   for (unsigned i = 0; i != vec.size(); ++i) {
     vec[i] = i;
   }
 
-  blocking_queue<int> queue(test_rgen::uniform_int<unsigned>(100, 1000));
+  blocking_queue<int> queue(test_rng::uniform_int<unsigned>(100, 1000));
   t = std::thread([&queue, &vec]() {
     for (unsigned i = 0; i < vec.size();) {
-      unsigned batch_size = test_rgen::uniform_int<unsigned>(1, vec.size() - i);
+      unsigned batch_size = test_rng::uniform_int<unsigned>(1, vec.size() - i);
       unsigned n          = queue.push_blocking(span<int>(vec).subspan(i, batch_size));
       EXPECT_LE(n, batch_size);
       i += n;
@@ -83,7 +84,7 @@ TEST(blocking_queue_test, blocking_push_and_pop_in_batches_in_separate_threads)
 
   std::vector<int> vec2(vec.size());
   for (unsigned i = 0; i < vec.size();) {
-    unsigned batch_size = test_rgen::uniform_int<unsigned>(1, vec.size() - i);
+    unsigned batch_size = test_rng::uniform_int<unsigned>(1, vec.size() - i);
     unsigned n          = queue.pop_blocking(vec2.begin() + i, vec2.begin() + i + batch_size);
     i += n;
   }

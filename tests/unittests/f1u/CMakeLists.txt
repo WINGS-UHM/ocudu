@@ -13,8 +13,8 @@ ocudu_f1u_du
 ocudu_f1u_cu_up
 ocudu_support
 ocudulog
-gtest
-gtest_main)
+GTest::gtest
+GTest::gtest_main)
 
 target_include_directories(f1u_local_connector_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(f1u_local_connector_test)
@@ -26,8 +26,8 @@ ocudu_f1u_cu_up
 ocudu_gtpu
 ocudu_support
 ocudulog
-gtest
-gtest_main)
+GTest::gtest
+GTest::gtest_main)
 
 target_include_directories(f1u_cu_up_split_connector_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(f1u_cu_up_split_connector_test)
@@ -39,8 +39,8 @@ ocudu_f1u_du
 ocudu_gtpu
 ocudu_support
 ocudulog
-gtest
-gtest_main)
+GTest::gtest
+GTest::gtest_main)
 
 target_include_directories(f1u_du_split_connector_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(f1u_du_split_connector_test)
@@ -50,8 +50,8 @@ target_link_libraries(f1u_session_manager_test
 ocudu_f1u_split_connector
 ocudu_support
 ocudulog
-gtest
-gtest_main)
+GTest::gtest
+GTest::gtest_main)
 
 target_include_directories(f1u_session_manager_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(f1u_session_manager_test)

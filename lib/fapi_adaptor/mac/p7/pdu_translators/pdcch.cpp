@@ -9,16 +9,6 @@
 using namespace ocudu;
 using namespace fapi_adaptor;
 
-void ocudu::fapi_adaptor::convert_pdcch_mac_to_fapi(fapi::dl_pdcch_pdu&            fapi_pdu,
-                                                    const dci_context_information& context_information,
-                                                    const dci_payload&             payload,
-                                                    const precoding_matrix_mapper& pm_mapper,
-                                                    unsigned                       cell_nof_prbs)
-{
-  fapi::dl_pdcch_pdu_builder builder(fapi_pdu);
-  convert_pdcch_mac_to_fapi(builder, context_information, payload, pm_mapper, cell_nof_prbs);
-}
-
 static void fill_bwp_parameters(fapi::dl_pdcch_pdu_builder&  builder,
                                 const bwp_configuration&     bwp_cfg,
                                 const coreset_configuration& coreset_cfg)

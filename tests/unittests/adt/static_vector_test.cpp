@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/static_vector.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
@@ -26,7 +27,7 @@ std::vector<int> create_test_vector(size_t sz)
 {
   std::vector<int> v(sz);
   for (int& i : v) {
-    i = test_rgen::uniform_int<int>();
+    i = test_rng::uniform_int<int>();
   }
   return v;
 }
@@ -52,7 +53,7 @@ TYPED_TEST(static_vector_tester, default_ctor_creates_empty_vector)
 
 TYPED_TEST(static_vector_tester, size_ctor_sets_size)
 {
-  size_t                                              sz = test_rgen::uniform_int(1, 10);
+  size_t                                              sz = test_rng::uniform_int(1, 10);
   static_vector<typename TestFixture::value_type, 10> vec(sz);
   ASSERT_FALSE(vec.empty());
   ASSERT_EQ(vec.full(), vec.size() == vec.capacity());
@@ -63,8 +64,8 @@ TYPED_TEST(static_vector_tester, size_ctor_sets_size)
 
 TEST(static_vector_test, size_value_ctor_sets_size_and_value)
 {
-  size_t                 sz = test_rgen::uniform_int(1, 10);
-  int                    val{test_rgen::uniform_int<int>()};
+  size_t                 sz = test_rng::uniform_int(1, 10);
+  int                    val{test_rng::uniform_int<int>()};
   static_vector<int, 10> vec(sz, val);
   ASSERT_FALSE(vec.empty());
   ASSERT_EQ(vec.full(), vec.size() == vec.capacity());
@@ -103,7 +104,7 @@ TEST(static_vector_test, move_ctor_sets_vector_values)
 
 TEST(static_vector_test, copy_assignment_sets_vector_values)
 {
-  std::vector<int>       expected = create_test_vector(test_rgen::uniform_int(0, 10));
+  std::vector<int>       expected = create_test_vector(test_rng::uniform_int(0, 10));
   static_vector<int, 10> vec(expected.begin(), expected.end());
   static_vector<int, 10> vec2;
   vec2 = vec;
@@ -114,7 +115,7 @@ TEST(static_vector_test, copy_assignment_sets_vector_values)
 TYPED_TEST(static_vector_tester, move_assignment_sets_vector_values)
 {
   using T                       = typename TestFixture::value_type;
-  std::vector<int>     expected = create_test_vector(test_rgen::uniform_int(0, 10));
+  std::vector<int>     expected = create_test_vector(test_rng::uniform_int(0, 10));
   static_vector<T, 10> vec(expected.begin(), expected.end());
   static_vector<T, 10> vec2;
   ASSERT_TRUE(vec2.empty());
@@ -156,7 +157,7 @@ TYPED_TEST(static_vector_tester, element_access_returns_correct_value)
 TYPED_TEST(static_vector_tester, push_back_creates_new_element_at_the_back)
 {
   using T                       = typename TestFixture::value_type;
-  std::vector<int>     expected = create_test_vector(test_rgen::uniform_int<size_t>(0, 10));
+  std::vector<int>     expected = create_test_vector(test_rng::uniform_int<size_t>(0, 10));
   static_vector<T, 10> vec;
 
   for (int i : expected) {
@@ -170,7 +171,7 @@ TYPED_TEST(static_vector_tester, push_back_creates_new_element_at_the_back)
 TYPED_TEST(static_vector_tester, clear_removes_all_elements)
 {
   using T                       = typename TestFixture::value_type;
-  std::vector<int>     expected = create_test_vector(test_rgen::uniform_int(0, 10));
+  std::vector<int>     expected = create_test_vector(test_rng::uniform_int(0, 10));
   static_vector<T, 10> vec(expected.begin(), expected.end());
 
   vec.clear();
@@ -182,8 +183,8 @@ TYPED_TEST(static_vector_tester, clear_removes_all_elements)
 TYPED_TEST(static_vector_tester, resize_with_growth_does_not_affect_existing_elements)
 {
   using T                        = typename TestFixture::value_type;
-  size_t               first_sz  = test_rgen::uniform_int<size_t>(0, 10);
-  size_t               second_sz = test_rgen::uniform_int<size_t>(first_sz, 10);
+  size_t               first_sz  = test_rng::uniform_int<size_t>(0, 10);
+  size_t               second_sz = test_rng::uniform_int<size_t>(first_sz, 10);
   std::vector<int>     expected  = create_test_vector(first_sz);
   static_vector<T, 10> vec(expected.begin(), expected.end());
 
@@ -195,8 +196,8 @@ TYPED_TEST(static_vector_tester, resize_with_growth_does_not_affect_existing_ele
 TYPED_TEST(static_vector_tester, resize_with_shrink_correctly_removes_extra_elements)
 {
   using T                        = typename TestFixture::value_type;
-  size_t               first_sz  = test_rgen::uniform_int<size_t>(0, 10);
-  size_t               second_sz = test_rgen::uniform_int<size_t>(0, first_sz);
+  size_t               first_sz  = test_rng::uniform_int<size_t>(0, 10);
+  size_t               second_sz = test_rng::uniform_int<size_t>(0, first_sz);
   std::vector<int>     expected  = create_test_vector(first_sz);
   static_vector<T, 10> vec(expected.begin(), expected.end());
 
@@ -208,8 +209,8 @@ TYPED_TEST(static_vector_tester, resize_with_shrink_correctly_removes_extra_elem
 TYPED_TEST(static_vector_tester, assign_removes_previous_elements)
 {
   using T                        = typename TestFixture::value_type;
-  std::vector<int>     expected  = create_test_vector(test_rgen::uniform_int(0, 10));
-  std::vector<int>     expected2 = create_test_vector(test_rgen::uniform_int(0, 10));
+  std::vector<int>     expected  = create_test_vector(test_rng::uniform_int(0, 10));
+  std::vector<int>     expected2 = create_test_vector(test_rng::uniform_int(0, 10));
   static_vector<T, 10> vec(expected.begin(), expected.end());
 
   ASSERT_TRUE(std::equal(vec.begin(), vec.end(), expected.begin(), expected.end()));
@@ -220,8 +221,8 @@ TYPED_TEST(static_vector_tester, assign_removes_previous_elements)
 TYPED_TEST(static_vector_tester, pop_back_removes_last_elements)
 {
   using T                        = typename TestFixture::value_type;
-  size_t               first_sz  = test_rgen::uniform_int<size_t>(0, 10);
-  size_t               second_sz = test_rgen::uniform_int<size_t>(0, first_sz);
+  size_t               first_sz  = test_rng::uniform_int<size_t>(0, 10);
+  size_t               second_sz = test_rng::uniform_int<size_t>(0, first_sz);
   std::vector<int>     expected  = create_test_vector(first_sz);
   static_vector<T, 10> vec(expected.begin(), expected.end());
 
@@ -234,9 +235,9 @@ TYPED_TEST(static_vector_tester, pop_back_removes_last_elements)
 TYPED_TEST(static_vector_tester, erase_shifts_last_elements)
 {
   using T                       = typename TestFixture::value_type;
-  std::vector<int>     expected = create_test_vector(test_rgen::uniform_int<size_t>(1, 10));
+  std::vector<int>     expected = create_test_vector(test_rng::uniform_int<size_t>(1, 10));
   static_vector<T, 10> vec(expected.begin(), expected.end());
-  size_t               pos_to_erase = test_rgen::uniform_int<size_t>(0, expected.size() - 1);
+  size_t               pos_to_erase = test_rng::uniform_int<size_t>(0, expected.size() - 1);
 
   vec.erase(vec.begin() + pos_to_erase);
   expected.erase(expected.begin() + pos_to_erase);
@@ -246,8 +247,8 @@ TYPED_TEST(static_vector_tester, erase_shifts_last_elements)
 TYPED_TEST(static_vector_tester, swap_keeps_values)
 {
   using T                        = typename TestFixture::value_type;
-  std::vector<int>     expected  = create_test_vector(test_rgen::uniform_int<size_t>(1, 10));
-  std::vector<int>     expected2 = create_test_vector(test_rgen::uniform_int<size_t>(1, 10));
+  std::vector<int>     expected  = create_test_vector(test_rng::uniform_int<size_t>(1, 10));
+  std::vector<int>     expected2 = create_test_vector(test_rng::uniform_int<size_t>(1, 10));
   static_vector<T, 10> vec(expected.begin(), expected.end());
   static_vector<T, 10> vec2(expected2.begin(), expected2.end());
 
@@ -260,24 +261,27 @@ TYPED_TEST(static_vector_tester, swap_keeps_values)
 TYPED_TEST(static_vector_tester, emplace_with_hint)
 {
   using T                       = typename TestFixture::value_type;
-  size_t               first_sz = test_rgen::uniform_int<size_t>(0, 10);
+  size_t               first_sz = test_rng::uniform_int<size_t>(0, 10);
   std::vector<int>     expected = create_test_vector(first_sz);
   static_vector<T, 11> vec(expected.begin(), expected.end());
 
-  size_t pos = test_rgen::uniform_int<size_t>(0, first_sz);
+  size_t pos = test_rng::uniform_int<size_t>(0, first_sz);
   vec.emplace(vec.begin() + pos, 42);
   expected.insert(expected.begin() + pos, 42);
 
   ASSERT_TRUE(std::equal(vec.begin(), vec.end(), expected.begin(), expected.end()));
 }
 
-int main(int argc, char** argv)
+/// Test environment to check that all moveonly_test_object instances were correctly destroyed.
+class StaticVectorTestEnvironment : public ::testing::Environment
 {
-  ::testing::InitGoogleTest(&argc, argv);
+public:
+  void TearDown() override
+  {
+    ocudu_assert(moveonly_test_object::object_count() == 0,
+                 "number of ctor calls matches number of dtor calls for test object");
+  }
+};
 
-  int ret = RUN_ALL_TESTS();
-  ocudu_assert(moveonly_test_object::object_count() == 0,
-               "number of ctor calls matches number of dtor calls for test object");
-
-  return ret;
-}
+static ::testing::Environment* const static_vec_env =
+    ::testing::AddGlobalTestEnvironment(new StaticVectorTestEnvironment{});

@@ -1,0 +1,11 @@
+{#
+SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+#}
+
+{% for contributor_line in contributor_lines %}
+SPDX-FileContributor: {{ contributor_line }}
+{% endfor %}
+{% for expression in spdx_expressions %}
+SPDX-License-Identifier: {{ expression }}
+{% endfor %}

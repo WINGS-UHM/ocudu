@@ -52,6 +52,27 @@ private:
   ocudulog::basic_logger& logger;
 };
 
+class dummy_xnap_cu_cp_notifier : public xnap_cu_cp_notifier
+{
+public:
+  dummy_xnap_cu_cp_notifier() = default;
+
+  async_task<bool> on_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
+  {
+    logger.info("Received a new RRC Handover Command for UE index {}", ue_index);
+    last_handover_command = std::move(command);
+    return launch_async([](coro_context<async_task<bool>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(true);
+    });
+  }
+
+  byte_buffer last_handover_command;
+
+private:
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
+};
+
 /// Fixture class for XNAP Setup tests.
 class xnap_test : public ::testing::Test
 {
@@ -65,9 +86,22 @@ protected:
     xnap->set_tx_association_notifier(std::make_unique<dummy_xnap_message_notifier>(last_tx_msg));
   }
 
+  /// \brief Manually tick timers.
+  template <typename T>
+  void tick(async_task<T>& task, std::chrono::milliseconds duration)
+  {
+    for (unsigned msec_elapsed = 0; msec_elapsed < duration.count(); ++msec_elapsed) {
+      ASSERT_FALSE(task.ready());
+      timers.tick();
+      ctrl_worker.run_pending_tasks();
+    }
+  }
+
   ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("TEST", false);
+  timer_manager              timers;
   manual_task_worker         ctrl_worker{128};
   dummy_xnc_gateway          xnc_gw;
+  dummy_xnap_cu_cp_notifier  cu_cp_notifier;
   std::unique_ptr<xnap_impl> xnap = nullptr;
 
   gnb_id_t               local_gnb_id             = {0, 22};

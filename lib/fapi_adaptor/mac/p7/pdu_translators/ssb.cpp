@@ -44,15 +44,6 @@ static uint32_t generate_bch_payload(const dl_ssb_pdu& mac_pdu, uint32_t sfn, bo
   return pbch_mib_pack(msg);
 }
 
-void ocudu::fapi_adaptor::convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu& fapi_pdu,
-                                                  const dl_ssb_pdu& mac_pdu,
-                                                  slot_point        slot)
-{
-  fapi::dl_ssb_pdu_builder builder(fapi_pdu);
-
-  convert_ssb_mac_to_fapi(builder, mac_pdu, slot);
-}
-
 void ocudu::fapi_adaptor::convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu_builder& builder,
                                                   const dl_ssb_pdu&         mac_pdu,
                                                   slot_point                slot)

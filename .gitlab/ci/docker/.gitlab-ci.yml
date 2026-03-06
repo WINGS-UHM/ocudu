@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
-
 include:
   - local: .gitlab/ci-shared/docker.yml
   - local: .gitlab/ci-shared/version_check.yml
@@ -81,7 +80,8 @@ telegraf version changed:
 .docker compose:
   stage: compose
   image: docker:24.0.7-dind
-  tags: [saas-linux-medium-amd64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-amd64
   timeout: 2h
   retry: 2
   before_script: &docker_setup
@@ -247,7 +247,6 @@ telegraf manifest latest:
     - job: telegraf image
       artifacts: true
       optional: false
-
 
 grafana image:
   extends: .docker-builder

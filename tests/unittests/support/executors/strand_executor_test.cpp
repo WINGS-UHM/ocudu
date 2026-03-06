@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/executors/strand_executor.h"
 #include "ocudu/support/executors/task_worker.h"
 #include "ocudu/support/executors/task_worker_pool.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <numeric>
 
@@ -49,7 +49,7 @@ static void run_count_test(task_executor&       strand,
 
   auto push_increments = [&strand, &inc_count_task, increments_per_producer, last_inc_count_task]() {
     // Random sleep to shuffle the order of pushers.
-    std::this_thread::sleep_for(std::chrono::microseconds{test_rgen::uniform_int(0, 100)});
+    std::this_thread::sleep_for(std::chrono::microseconds{test_rng::uniform_int(0, 100)});
 
     for (unsigned i = 0; i != increments_per_producer - 1; ++i) {
       ASSERT_TRUE(strand.defer(inc_count_task));

@@ -9,3 +9,4 @@ set(SOURCES
 
 add_library(ocudu_cu_up_metrics_json_generators_helpers STATIC ${SOURCES})
 target_include_directories(ocudu_cu_up_metrics_json_generators_helpers PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/apps/helpers/metrics)
+target_link_libraries(ocudu_cu_up_metrics_json_generators_helpers PRIVATE ocudu::yaml-cpp)

@@ -4,9 +4,9 @@
 
 
 add_executable(radio_zmq_loopback_test radio_zmq_loopback_test.cpp)
-target_link_libraries(radio_zmq_loopback_test ocudu_radio ocudu_support gtest gtest_main)
+target_link_libraries(radio_zmq_loopback_test ocudu_radio ocudu_support GTest::gtest GTest::gtest_main)
 add_test(radio_zmq_loopback_test radio_zmq_loopback_test)
 
 add_executable(radio_zmq_validator_test radio_zmq_validator_test.cpp)
-target_link_libraries(radio_zmq_validator_test ocudu_radio ocudu_support gtest gtest_main)
+target_link_libraries(radio_zmq_validator_test ocudu_radio ocudu_support GTest::gtest GTest::gtest_main)
 add_test(radio_zmq_validator_test radio_zmq_validator_test)

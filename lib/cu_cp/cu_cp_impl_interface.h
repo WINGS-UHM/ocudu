@@ -15,8 +15,7 @@
 #include "ocudu/rrc/rrc_ue.h"
 #include <string>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class cu_cp_ue_context_release_handler
 {
@@ -43,8 +42,23 @@ public:
   virtual bool schedule_ue_task(ue_index_t ue_index, async_task<void> task) = 0;
 };
 
+/// Interface for the inter-CU handover notifier to communicate with the CU-CP.
+class cu_cp_inter_cu_handover_handler
+{
+public:
+  virtual ~cu_cp_inter_cu_handover_handler() = default;
+
+  /// \brief Handle the reception of a new RRC Handover Command.
+  /// \param[in] ue_index The index of the UE that received the RRC Handover Command.
+  /// \param[in] command The received RRC container containing the Handover Command.
+  /// \returns True if the RRC Handover Command was successfully handled, false otherwise.
+  virtual async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
+};
+
 /// Interface for the NGAP notifier to communicate with the CU-CP.
-class cu_cp_ngap_handler : public cu_cp_ue_context_release_handler, public cu_cp_task_scheduler_handler
+class cu_cp_ngap_handler : public cu_cp_ue_context_release_handler,
+                           public cu_cp_task_scheduler_handler,
+                           public cu_cp_inter_cu_handover_handler
 {
 public:
   virtual ~cu_cp_ngap_handler() = default;
@@ -94,12 +108,6 @@ public:
 
   /// \brief Handle the transmission of a handover required message to the AMF.
   virtual void handle_transmission_of_handover_required() = 0;
-
-  /// \brief Handle the reception of a new Handover Command.
-  /// \param[in] ue_index The index of the UE that received the Handover Command.
-  /// \param[in] command The received Handover Command.
-  /// \returns True if the Handover Command was successfully handled, false otherwise.
-  virtual async_task<bool> handle_new_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
 
   /// \brief Handle the handover execution phase of the handover at target gNB.
   /// \param[in] ue_index The index of the UE that is performing the handover.
@@ -300,8 +308,8 @@ public:
   /// \brief Handle the transmission of the CHO reconfiguration by notifying a CHO target UE to await
   /// RRCReconfigurationComplete.
   ///
-  /// This starts the cho_target_routine on the specified target UE. CHO completion and cleanup
-  /// are finalized on the source side (via Access Success handling / cho_source_routine).
+  /// This starts the conditional_handover_target_routine on the specified target UE. CHO completion and cleanup
+  /// are finalized on the source side (via Access Success handling / conditional_handover_source_routine).
   ///
   /// \param[in] request The CHO target request.
   virtual void handle_cho_reconfiguration_sent(const cu_cp_cho_target_request& request) = 0;
@@ -324,7 +332,7 @@ public:
   /// \param[in] ue_index The index of the UE.
   virtual void initialize_rna_update_timer(ue_index_t ue_index) = 0;
 
-  /// \brief Start CHO execution cancellation timer. Fires cho_cancellation_routine on expiry.
+  /// \brief Start CHO execution cancellation timer. Fires conditional_handover_cancellation_routine on expiry.
   /// \param[in] source_ue_index Index of the source UE.
   /// \param[in] timeout Duration; 0ms disables the timer (no-op).
   virtual void initialize_cho_execution_timer(ue_index_t source_ue_index, std::chrono::milliseconds timeout) = 0;
@@ -433,6 +441,13 @@ public:
   virtual void handle_amf_reconnection(amf_index_t amf_index) = 0;
 };
 
+/// \brief Handler of the XNAP of the CU-CP. This interface is used to forward XNAP messages to the CU-CP.
+class cu_cp_xnap_handler : public cu_cp_inter_cu_handover_handler
+{
+public:
+  virtual ~cu_cp_xnap_handler() = default;
+};
+
 class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,
                              public cu_cp_du_event_handler,
                              public cu_cp_rrc_ue_interface,
@@ -444,7 +459,8 @@ class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,
                              public cu_cp_mobility_manager_handler,
                              public cu_cp_location_manager_handler,
                              public cu_cp_ue_removal_handler,
-                             public cu_cp_amf_reconnection_handler
+                             public cu_cp_amf_reconnection_handler,
+                             public cu_cp_xnap_handler
 {
 public:
   virtual ~cu_cp_impl_interface() = default;
@@ -460,7 +476,7 @@ public:
   virtual cu_cp_location_manager_handler&        get_cu_cp_location_manager_handler()   = 0;
   virtual cu_cp_ue_removal_handler&              get_cu_cp_ue_removal_handler()         = 0;
   virtual cu_cp_amf_reconnection_handler&        get_cu_cp_amf_reconnection_handler()   = 0;
+  virtual cu_cp_xnap_handler&                    get_cu_cp_xnap_handler()               = 0;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

@@ -8,6 +8,7 @@
 #include "ocudu/fapi/p7/builders/ul_pusch_pdu_builder.h"
 #include "ocudu/fapi/p7/builders/ul_srs_pdu_builder.h"
 #include "ocudu/fapi/p7/messages/ul_tti_request.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
 
 namespace ocudu {
 namespace fapi {
@@ -18,19 +19,15 @@ namespace fapi {
 class ul_tti_request_builder
 {
   ul_tti_request& msg;
-  using pdu_type = ul_tti_request::pdu_type;
 
 public:
-  explicit ul_tti_request_builder(ul_tti_request& msg_) : msg(msg_) { msg.num_pdus_of_each_type.fill(0); }
+  explicit ul_tti_request_builder(ul_tti_request& msg_) : msg(msg_) {}
 
   /// Sets the UL_TTI.request basic parameters and returns a reference to the builder.
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3 in table UL_TTI,request message body.
   ul_tti_request_builder& set_basic_parameters(slot_point slot)
   {
     msg.slot = slot;
-
-    // NOTE: number of PDU groups set to 0, because groups are not enabled in this FAPI message at the moment.
-    msg.num_groups = 0;
 
     return *this;
   }
@@ -39,12 +36,8 @@ public:
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.1 in table PRACH PDU.
   ul_prach_pdu_builder add_prach_pdu()
   {
-    auto& pdu    = msg.pdus.emplace_back();
-    pdu.pdu_type = ul_pdu_type::PRACH;
-
-    ++msg.num_pdus_of_each_type[static_cast<unsigned>(pdu_type::PRACH)];
-
-    ul_prach_pdu_builder builder(pdu.prach_pdu);
+    auto&                pdu = msg.pdus.emplace_back();
+    ul_prach_pdu_builder builder(pdu.pdu.emplace<ul_prach_pdu>());
 
     return builder;
   }
@@ -53,17 +46,31 @@ public:
   /// parameters.
   ul_pucch_pdu_builder add_pucch_pdu(pucch_format format_type)
   {
-    auto& pdu    = msg.pdus.emplace_back();
-    pdu.pdu_type = ul_pdu_type::PUCCH;
+    auto& pdu          = msg.pdus.emplace_back();
+    auto& emplaced_pdu = pdu.pdu.emplace<ul_pucch_pdu>();
 
-    if (format_type == pucch_format::FORMAT_0 || format_type == pucch_format::FORMAT_1) {
-      ++msg.num_pdus_of_each_type[static_cast<unsigned>(pdu_type::PUCCH_format01)];
-    } else {
-      ++msg.num_pdus_of_each_type[static_cast<unsigned>(pdu_type::PUCCH_format234)];
+    ul_pucch_pdu_builder builder(emplaced_pdu);
+
+    switch (format_type) {
+      case pucch_format::FORMAT_0:
+        emplaced_pdu.format.emplace<ul_pucch_pdu_format_0>();
+        break;
+      case pucch_format::FORMAT_1:
+        emplaced_pdu.format.emplace<ul_pucch_pdu_format_1>();
+        break;
+      case pucch_format::FORMAT_2:
+        emplaced_pdu.format.emplace<ul_pucch_pdu_format_2>();
+        break;
+      case pucch_format::FORMAT_3:
+        emplaced_pdu.format.emplace<ul_pucch_pdu_format_3>();
+        break;
+      case pucch_format::FORMAT_4:
+        emplaced_pdu.format.emplace<ul_pucch_pdu_format_4>();
+        break;
+      case pucch_format::NOF_FORMATS:
+      default:
+        break;
     }
-
-    ul_pucch_pdu_builder builder(pdu.pucch_pdu);
-    pdu.pucch_pdu.format_type = format_type;
 
     return builder;
   }
@@ -82,12 +89,8 @@ public:
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
   ul_pusch_pdu_builder add_pusch_pdu()
   {
-    auto& pdu    = msg.pdus.emplace_back();
-    pdu.pdu_type = ul_pdu_type::PUSCH;
-
-    ++msg.num_pdus_of_each_type[static_cast<unsigned>(pdu_type::PUSCH)];
-
-    ul_pusch_pdu_builder builder(pdu.pusch_pdu);
+    auto&                pdu = msg.pdus.emplace_back();
+    ul_pusch_pdu_builder builder(pdu.pdu.emplace<ul_pusch_pdu>());
 
     return builder;
   }
@@ -106,12 +109,8 @@ public:
   /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table SRS PDU.
   ul_srs_pdu_builder add_srs_pdu()
   {
-    auto& pdu    = msg.pdus.emplace_back();
-    pdu.pdu_type = ul_pdu_type::SRS;
-
-    ++msg.num_pdus_of_each_type[static_cast<unsigned>(pdu_type::SRS)];
-
-    ul_srs_pdu_builder builder(pdu.srs_pdu);
+    auto&              pdu = msg.pdus.emplace_back();
+    ul_srs_pdu_builder builder(pdu.pdu.emplace<ul_srs_pdu>());
 
     return builder;
   }

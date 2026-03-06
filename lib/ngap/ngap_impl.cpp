@@ -1105,9 +1105,12 @@ void ngap_impl::handle_error_indication(const asn1::ngap::error_ind_s& msg)
 
   ue_ctxt.logger.log_info("Received ErrorIndication{}", msg_cause.empty() ? "" : ". Cause: " + msg_cause);
 
-  // If an Error Indication was received while waiting for a UE Context Release Command, we consider the request failed
-  // and release the UE locally.
-  if (ue_ctxt.release_requested) {
+  // Release the UE locally if:
+  // - an Error Indication was received while waiting for a UE Context Release Command: We consider the request failed.
+  // - an Error Indication was received with cause "unknown-local-UE-NGAP-UE-ID": The UE was removed at the AMF.
+  if (ue_ctxt.release_requested ||
+      (msg->cause_present && msg->cause.type() == asn1::ngap::cause_c::types_opts::options::radio_network &&
+       msg->cause.radio_network() == asn1::ngap::cause_radio_network_opts::options::unknown_local_ue_ngap_id)) {
     ue_ctxt.release_requested = false;
     ue_ctxt.release_scheduled = true;
 
@@ -1127,8 +1130,6 @@ void ngap_impl::handle_error_indication(const asn1::ngap::error_ind_s& msg)
         cu_cp_ue_context_release_request{ue_index, {}, ngap_cause_radio_network_t::unspecified}));
     CORO_RETURN();
   }));
-
-  // TODO: handle error indication.
 }
 
 void ngap_impl::handle_successful_outcome(const successful_outcome_s& outcome)

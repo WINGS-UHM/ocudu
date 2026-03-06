@@ -10,3 +10,4 @@ set(SOURCES
 
 add_library(ocudu_metrics_app_service STATIC ${SOURCES})
 target_include_directories(ocudu_metrics_app_service PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(ocudu_metrics_app_service PRIVATE ocudu::yaml-cpp)

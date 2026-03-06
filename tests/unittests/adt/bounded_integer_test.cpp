@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/bounded_integer.h"
-#include "ocudu/support/test_utils.h"
 #include <cstdint>
 #include <gtest/gtest.h>
 
@@ -17,13 +17,13 @@ static_assert(bounded_integer<int, 2, 5>(2) == bounded_integer<int, 2, 5>(2), "C
 
 TEST(bounded_integer_test, valid_method)
 {
-  bounded_integer<unsigned, 5, 1000> val(test_rgen::uniform_int<unsigned>(5, 1000));
+  bounded_integer<unsigned, 5, 1000> val(test_rng::uniform_int<unsigned>(5, 1000));
   ASSERT_TRUE(val.valid());
 }
 
 TEST(bounded_integer_test, value_comparison)
 {
-  unsigned                         num = test_rgen::uniform_int<unsigned>(2, 10);
+  unsigned                         num = test_rng::uniform_int<unsigned>(2, 10);
   bounded_integer<unsigned, 2, 10> val = num;
   ASSERT_EQ(val, num);
   ASSERT_EQ(num, val);
@@ -34,33 +34,33 @@ TEST(bounded_integer_test, value_comparison)
 
 TEST(bounded_integer_test, cast_to_integer)
 {
-  unsigned                        num = test_rgen::uniform_int<uint8_t>(2, 10);
+  unsigned                        num = test_rng::uniform_int<uint8_t>(2, 10);
   bounded_integer<uint8_t, 2, 10> val = num;
 
-  TESTASSERT_EQ(num, static_cast<uint8_t>(val));
-  TESTASSERT_EQ(num, val.value());
+  ASSERT_EQ(num, static_cast<uint8_t>(val));
+  ASSERT_EQ(num, val.value());
 }
 
 TEST(bounded_integer_test, copy_ctor)
 {
-  bounded_integer<unsigned, 5, 1000> val(test_rgen::uniform_int<unsigned>(5, 1000));
+  bounded_integer<unsigned, 5, 1000> val(test_rng::uniform_int<unsigned>(5, 1000));
   bounded_integer<unsigned, 5, 1000> val2{val};
 
-  TESTASSERT_EQ(val, val2);
+  ASSERT_EQ(val, val2);
 }
 
 TEST(bounded_integer_test, copy_assignment)
 {
-  bounded_integer<int, -5, 1000> val(test_rgen::uniform_int<int>(-5, 1000));
-  bounded_integer<int, -5, 1000> val2(test_rgen::uniform_int<int>(-5, 1000));
+  bounded_integer<int, -5, 1000> val(test_rng::uniform_int<int>(-5, 1000));
+  bounded_integer<int, -5, 1000> val2(test_rng::uniform_int<int>(-5, 1000));
 
   val2 = val;
-  TESTASSERT_EQ(val, val2);
+  ASSERT_EQ(val, val2);
 }
 
 TEST(bounded_integer_test, increment_decrement_operator)
 {
-  int                            num = test_rgen::uniform_int<int>(-4, 999);
+  int                            num = test_rng::uniform_int<int>(-4, 999);
   bounded_integer<int, -5, 1000> val(num);
 
   ASSERT_EQ(val, num);
@@ -73,7 +73,7 @@ TEST(bounded_integer_test, increment_decrement_operator)
 
 TEST(bounded_integer_test, addition_subtraction_with_raw_integers)
 {
-  int                             num = test_rgen::uniform_int<int>(-5, 995);
+  int                             num = test_rng::uniform_int<int>(-5, 995);
   bounded_integer<int, -10, 1000> val(num);
 
   ASSERT_EQ(val, num);
@@ -91,8 +91,8 @@ TEST(bounded_integer_test, addition_subtraction_with_raw_integers)
 
 TEST(bounded_integer_test, addition_subtraction_with_other_bounded_integers)
 {
-  int                               num  = test_rgen::uniform_int<int>(-500, 500);
-  int                               num2 = test_rgen::uniform_int<int>(-500, 500);
+  int                               num  = test_rng::uniform_int<int>(-500, 500);
+  int                               num2 = test_rng::uniform_int<int>(-500, 500);
   bounded_integer<int, -1000, 1000> val(num);
   bounded_integer<int, -1000, 1000> val2(num2);
 
@@ -109,7 +109,7 @@ TEST(bounded_integer_test, addition_subtraction_with_other_bounded_integers)
 
 TEST(bounded_integer_test, fmt_format)
 {
-  int                            num = test_rgen::uniform_int<int>(-5, 1000);
+  int                            num = test_rng::uniform_int<int>(-5, 1000);
   bounded_integer<int, -5, 1000> val(num);
 
   std::string s = fmt::format("{}", val);
@@ -120,5 +120,5 @@ TEST(bounded_integer_test, fmt_format_when_out_of_bounds)
 {
   bounded_integer<int, 4, 10> val{bounded_integer_invalid_tag{}};
   std::string                 s = fmt::format("{}", val);
-  TESTASSERT_EQ("INVALID", s);
+  ASSERT_EQ("INVALID", s);
 }

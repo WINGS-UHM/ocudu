@@ -7,7 +7,6 @@
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
 #include "ocudu/support/async/async_then.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "xnap_message_notifier.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/support/async/async_task.h"
 
 namespace ocudu::ocucp {
@@ -27,10 +28,12 @@ class xnap_connection_manager
 public:
   virtual ~xnap_connection_manager() = default;
 
-  /// Trigger the initiation of the XN setup procedure.
-  virtual async_task<void> handle_xn_setup_request_required() = 0;
+  /// \brief Trigger the initiation of the XN setup procedure.
+  /// \returns true if the procedure completed successfully, false otherwise.
+  virtual async_task<bool> handle_xn_setup_request_required() = 0;
 
-  /// Provide the SCTP association notifier after the SCTP association establishment.
+  /// \brief Provide the SCTP association notifier after the SCTP association establishment.
+  /// \param[in] tx_notifier_ The SCTP association notifier.
   virtual void set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) = 0;
 };
 
@@ -40,7 +43,11 @@ class xnap_cu_cp_notifier
 public:
   virtual ~xnap_cu_cp_notifier() = default;
 
-  // TODO.
+  /// \brief Notify about the reception of a new RRC Handover Command (TS 38.331 section 11.2.2).
+  /// \param[in] ue_index The index of the UE.
+  /// \param[in] command The RRC container containing the Handover Command.
+  /// \returns True if the Handover command is valid and was successfully handled by the DU.
+  virtual async_task<bool> on_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
 };
 
 /// Combined entry point for the XNAP object.

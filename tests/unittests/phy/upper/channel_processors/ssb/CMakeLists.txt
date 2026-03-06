@@ -6,5 +6,6 @@
 set_directory_properties(PROPERTIES LABELS "phy")
 
 add_executable(ssb_processor_unittest ssb_processor_unittest.cpp)
-target_link_libraries(ssb_processor_unittest ocudu_channel_processors ocudulog)
+target_link_libraries(ssb_processor_unittest ocudu_channel_processors ocudulog gtest
+        gtest_main)
 add_test(ssb_processor_unittest ssb_processor_unittest)

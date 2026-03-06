@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
-
 include:
   - local: .gitlab/ci/builders/version.yml
 
@@ -51,7 +50,7 @@ include:
     KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "50G"
     KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "50G"
   tags:
-    - saas-linux-medium-amd64
+    - ${OCUDU_RUNNER_TAG}-amd64
   before_script:
     - |
       for var in \

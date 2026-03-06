@@ -30,14 +30,11 @@ TEST(dl_ssb_pdu_builder, add_pdcch_pdu_passes)
   dl_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::PDCCH)]);
 
   builder.add_pdcch_pdu();
 
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::PDCCH)]);
   ASSERT_EQ(1U, msg.pdus.size());
-  ASSERT_EQ(dl_pdu_type::PDCCH, msg.pdus.back().pdu_type);
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_tti_request::DL_DCI_INDEX)]);
+  ASSERT_TRUE(std::holds_alternative<dl_pdcch_pdu>(msg.pdus.back().pdu));
 }
 
 TEST(dl_ssb_pdu_builder, add_pdsch_pdu_passes)
@@ -46,13 +43,11 @@ TEST(dl_ssb_pdu_builder, add_pdsch_pdu_passes)
   dl_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::PDSCH)]);
 
   builder.add_pdsch_pdu();
 
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::PDSCH)]);
   ASSERT_EQ(1U, msg.pdus.size());
-  ASSERT_EQ(dl_pdu_type::PDSCH, msg.pdus.back().pdu_type);
+  ASSERT_TRUE(std::holds_alternative<dl_pdsch_pdu>(msg.pdus.back().pdu));
 }
 
 TEST(dl_ssb_pdu_builder, add_ssb_pdu_passes)
@@ -61,13 +56,11 @@ TEST(dl_ssb_pdu_builder, add_ssb_pdu_passes)
   dl_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::SSB)]);
 
   builder.add_ssb_pdu();
 
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::SSB)]);
   ASSERT_EQ(1U, msg.pdus.size());
-  ASSERT_EQ(dl_pdu_type::SSB, msg.pdus.back().pdu_type);
+  ASSERT_TRUE(std::holds_alternative<dl_ssb_pdu>(msg.pdus.back().pdu));
 }
 
 TEST(dl_ssb_pdu_builder, add_csi_pdu_passes)
@@ -76,7 +69,6 @@ TEST(dl_ssb_pdu_builder, add_csi_pdu_passes)
   dl_tti_request_builder builder(msg);
 
   ASSERT_TRUE(msg.pdus.empty());
-  ASSERT_EQ(0, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::CSI_RS)]);
 
   uint16_t                  start_rb      = 3;
   uint16_t                  nof_rbs       = 4;
@@ -96,7 +88,6 @@ TEST(dl_ssb_pdu_builder, add_csi_pdu_passes)
       .set_time_domain_parameters(symb_l0, symb_l1)
       .set_resource_block_parameters({start_rb, nof_rbs});
 
-  ASSERT_EQ(1U, msg.num_pdus_of_each_type[static_cast<unsigned>(dl_pdu_type::CSI_RS)]);
   ASSERT_EQ(1U, msg.pdus.size());
-  ASSERT_EQ(dl_pdu_type::CSI_RS, msg.pdus.back().pdu_type);
+  ASSERT_TRUE(std::holds_alternative<dl_csi_rs_pdu>(msg.pdus.back().pdu));
 }

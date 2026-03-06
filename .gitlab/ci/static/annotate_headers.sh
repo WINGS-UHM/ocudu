@@ -1,26 +1,38 @@
 #!/bin/bash
 
-# SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
-# SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-
 set -euo pipefail
 
-HDR_OCUDU="ocudu-default"
-HDR_OCUDU_3GPP="ocudu-with-3gpp-notice"
-
+# Assign default configuration, allow override from file
+TEMPLATE_HDR_DEFAULT="header-default"
+TEMPLATE_HDR_ALT="header-alt"
+TEMPLATE_HDR_PRUNED="header-pruned"
 COPYRIGHT_PREFIX="spdx-string-c"
 COPYRIGHT_YEAR="2021-$(date +%Y)"
 COPYRIGHT_HOLDER="Software Radio Systems Limited"
-
 LICENSE="BSD-3-Clause-Open-MPI"
 
+config_env=".reuse/annotate-env.txt"
+match_alt=".reuse/annotate-alt.txt"
+match_exclude=".reuse/annotate-exclude.txt"
+
+# Override config from file (skip empty file/lines and commented lines)
+while IFS='=' read -r key value; do
+  [[ -z "$key" || "$key" =~ ^# ]] && continue
+  export "$key=$value"
+done < "${config_env}"
+
+# Parse args
+PRUNE=false
 VERBOSE=false
 
-# parse flags
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -v|--verbose)
       VERBOSE=true
+      shift
+      ;;
+    -p|--prune)
+      PRUNE=true
       shift
       ;;
     *)
@@ -29,84 +41,64 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-dirs_with_hdr_ocudu_3gpp=(
-/apps/
-/asn1/
-/cu_cp/
-/cu_up/
-/du/
-/e1ap/
-/e2/
-/f1ap/
-/f1u/
-/gtpu/
-/mac/
-/ngap/
-/nrppa/
-/nru/
-/ntn/
-/pdcp/
-/phy/
-/psup/
-/ran/
-/rlc/
-/rohc/
-/rrc/
-/scheduler/
-/sdap/
-/security/
-/xnap/
-/ru/
-/tests/
-)
+# Prepare temporary directory and filenames for lists of files
+tmpdir=$(mktemp -d)
 
-tmpfiles=()
+files_all="${tmpdir}/files_all.txt"
+files_filtered="${tmpdir}/files_filtered.txt"
 
-files_all=$(mktemp)
-tmpfiles+=("${files_all}")
-files_cpp=$(mktemp)
-tmpfiles+=("${files_cpp}")
-files_generic=$(mktemp)
-tmpfiles+=("${files_generic}")
+files_cpp="${tmpdir}/files_cpp.txt"
+files_generic="${tmpdir}/files_generic.txt"
 
-files_cpp_ocudu=$(mktemp)
-tmpfiles+=("${files_cpp_ocudu}")
-files_cpp_ocudu_3gpp=$(mktemp)
-tmpfiles+=("${files_cpp_ocudu_3gpp}")
+files_cpp_default="${tmpdir}/files_cpp_default.txt"
+files_cpp_alt="${tmpdir}/files_cpp_alt.txt"
 
-files_generic_ocudu=$(mktemp)
-tmpfiles+=("${files_generic_ocudu}")
-files_generic_ocudu_3gpp=$(mktemp)
-tmpfiles+=("${files_generic_ocudu_3gpp}")
+files_generic_default="${tmpdir}/files_generic_default.txt"
+files_generic_alt="${tmpdir}/files_generic_alt.txt"
 
-match_ocudu_3gpp=$(mktemp)
-tmpfiles+=("${match_ocudu_3gpp}")
-printf "%s\n" "${dirs_with_hdr_ocudu_3gpp[@]}" > ${match_ocudu_3gpp}
-
-EXCLUDES=(-name build -o -name .git -o -name external)
-
-find . \
-    \( -type d \( "${EXCLUDES[@]}" \) -prune \) -o \
-    \( -type f \) > "${files_all}"
+# Scan the current directory
+find . -type f > "${files_all}"
 
 if $VERBOSE; then
   echo "Written to ${files_all}"
 fi
 
+# Filter excluded files (if filter is defined)
+if [[ -f "${match_exclude}" ]]; then
+  grep -v -E -f "${match_exclude}" ${files_all} > "${files_filtered}"
+else
+  cat "${files_all}" > "${files_filtered}"
+fi
+
+# Filter C++ files to apply single-line comments for the headers
 match_cpp="\.(cpp|c|h)$"
-grep    -E ${match_cpp} ${files_all} > ${files_cpp}
-grep -v -E ${match_cpp} ${files_all} > ${files_generic}
+grep    -E ${match_cpp} ${files_filtered} > ${files_cpp} || true
+grep -v -E ${match_cpp} ${files_filtered} > ${files_generic} || true
 
-grep    -E -f ${match_ocudu_3gpp} ${files_cpp} > ${files_cpp_ocudu_3gpp}
-grep -v -E -f ${match_ocudu_3gpp} ${files_cpp} > ${files_cpp_ocudu}
+# Filter files that shall use the alternative (alt) header (if filter is defined)
+if [[ -f "${match_alt}" ]]; then
+  # C++ files
+  grep -v -E -f ${match_alt} ${files_cpp} > ${files_cpp_default} || true
+  grep    -E -f ${match_alt} ${files_cpp} > ${files_cpp_alt} || true
 
-grep    -E -f ${match_ocudu_3gpp} ${files_generic} > ${files_generic_ocudu_3gpp}
-grep -v -E -f ${match_ocudu_3gpp} ${files_generic} > ${files_generic_ocudu}
+  # Other files
+  grep -v -E -f ${match_alt} ${files_generic} > ${files_generic_default} || true
+  grep    -E -f ${match_alt} ${files_generic} > ${files_generic_alt} || true
+else
+  # C++ files
+  cat "${files_cpp}" > "${files_cpp_default}"
+  touch "${files_cpp_alt}"
 
+  # Other files
+  cat "${files_generic}" > "${files_generic_default}"
+  touch "${files_generic_alt}"
+fi
 
+# Prepare Reuse application and params
 REUSE_APP="reuse"
 REUSE_BASE_ARGS=(
   "annotate"
+  "--merge-copyrights"
   "--copyright-prefix=${COPYRIGHT_PREFIX}"
   "--year=${COPYRIGHT_YEAR}"
   "--copyright=${COPYRIGHT_HOLDER}"
@@ -118,11 +110,14 @@ REUSE_CPP_ARGS=(
 REUSE_GENERIC_ARGS=(
   "--skip-unrecognised"
 )
-REUSE_HDR_OCUDU=(
-  "--template=${HDR_OCUDU}"
+REUSE_HDR_DEFAULT=(
+  "--template=${TEMPLATE_HDR_DEFAULT}"
 )
-REUSE_HDR_OCUDU_3GPP=(
-  "--template=${HDR_OCUDU_3GPP}"
+REUSE_HDR_ALT=(
+  "--template=${TEMPLATE_HDR_ALT}"
+)
+REUSE_HDR_PRUNED=(
+  "--template=${TEMPLATE_HDR_PRUNED}"
 )
 
 XARGS_APP="xargs"
@@ -133,9 +128,16 @@ XARGS_BASE_ARGS=(
   "--max-procs=${XARGS_PROCS}"
 )
 
-"${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_cpp_ocudu_3gpp}"     "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_CPP_ARGS}" "${REUSE_HDR_OCUDU_3GPP}"
-"${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_cpp_ocudu}"          "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_CPP_ARGS}" "${REUSE_HDR_OCUDU}"
-"${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_generic_ocudu_3gpp}" "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_GENERIC_ARGS}" "${REUSE_HDR_OCUDU_3GPP}"
-"${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_generic_ocudu}"      "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_GENERIC_ARGS}" "${REUSE_HDR_OCUDU}"
+# Prune copyright (if enabled)
+if $PRUNE; then
+  "${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_cpp}"     "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_CPP_ARGS}"     "${REUSE_HDR_PRUNED}"
+  "${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_generic}" "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_GENERIC_ARGS}" "${REUSE_HDR_PRUNED}"
+fi
 
-rm ${tmpfiles[@]}
+# Apply new headers
+"${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_cpp_default}"     "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_CPP_ARGS}"     "${REUSE_HDR_DEFAULT}"
+"${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_cpp_alt}"         "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_CPP_ARGS}"     "${REUSE_HDR_ALT}"
+"${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_generic_default}" "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_GENERIC_ARGS}" "${REUSE_HDR_DEFAULT}"
+"${XARGS_APP}" "${XARGS_BASE_ARGS[@]}" -a "${files_generic_alt}"     "${REUSE_APP}" "${REUSE_BASE_ARGS[@]}" "${REUSE_GENERIC_ARGS}" "${REUSE_HDR_ALT}"
+
+rm -rf "${tmpdir}"

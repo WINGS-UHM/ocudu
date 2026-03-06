@@ -45,11 +45,6 @@ struct worker_manager_config {
   /// RU dummy worker configuration.
   struct ru_dummy_config {};
 
-  /// FAPI worker configuration.
-  struct fapi_config {
-    unsigned nof_cells;
-  };
-
   /// DU low worker configuration.
   struct du_low_config {
     bool     is_sequential_mode_active;
@@ -101,6 +96,7 @@ struct worker_manager_config {
     bool is_f1ap_enabled = false;
     bool is_ngap_enabled = false;
     bool is_e1ap_enabled = false;
+    bool is_xnap_enabled = false;
     bool is_e2ap_enabled = false;
     bool is_n3_enabled   = false;
     bool is_f1u_enabled  = false;
@@ -130,8 +126,6 @@ struct worker_manager_config {
   std::optional<cu_cp_config> cu_cp_cfg;
   /// DU high configuration.
   std::optional<du_high_config> du_hi_cfg;
-  /// FAPI configuration.
-  std::optional<fapi_config> fapi_cfg;
   /// DU low configuration
   std::optional<du_low_config> du_low_cfg;
   /// RU SDR configuration.

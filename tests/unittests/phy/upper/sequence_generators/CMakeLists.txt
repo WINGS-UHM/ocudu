@@ -6,5 +6,5 @@
 set_directory_properties(PROPERTIES LABELS "phy")
 
 add_executable(pseudo_random_test pseudo_random_generator_test.cpp)
-target_link_libraries(pseudo_random_test ocudu_sequence_generators ocuduvec ocudulog gtest gtest_main)
+target_link_libraries(pseudo_random_test ocudu_sequence_generators ocuduvec ocudulog GTest::gtest GTest::gtest_main)
 add_test(pseudo_random_test pseudo_random_test)

@@ -11,4 +11,4 @@ set(SOURCES
 
 add_library(ocudu_resource_usage_app_service STATIC ${SOURCES})
 target_include_directories(ocudu_resource_usage_app_service PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(ocudu_resource_usage_app_service PRIVATE ocudu_metrics_app_helpers ocudu_metrics_json_generators)
+target_link_libraries(ocudu_resource_usage_app_service PRIVATE ocudu_metrics_app_helpers ocudu_metrics_json_generators ocudu::yaml-cpp)

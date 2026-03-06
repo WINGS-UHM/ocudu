@@ -31,19 +31,14 @@ using namespace ocudu;
 
 static fapi::carrier_config generate_carrier_config_tlv(const odu::du_cell_config& du_cell)
 {
-  const subcarrier_spacing scs_common = du_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
-  // Deduce common numerology and grid size for DL and UL.
-  unsigned numerology       = to_numerology_value(scs_common);
-  unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
+  const subcarrier_spacing scs_common       = du_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  unsigned                 grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
       du_cell.ran.dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(du_cell.ran.dl_carrier.band));
 
   fapi::carrier_config fapi_config = {};
 
-  // NOTE; for now we only need to fill the nof_prb_ul_grid and nof_prb_dl_grid for the common SCS.
-  fapi_config.dl_grid_size             = {};
-  fapi_config.dl_grid_size[numerology] = grid_size_bw_prb;
-  fapi_config.ul_grid_size             = {};
-  fapi_config.ul_grid_size[numerology] = grid_size_bw_prb;
+  fapi_config.dl_grid_size = grid_size_bw_prb;
+  fapi_config.ul_grid_size = grid_size_bw_prb;
 
   // Number of transmit and receive antenna ports.
   fapi_config.num_tx_ant = du_cell.ran.dl_carrier.nof_ant;
@@ -285,8 +280,7 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
         .timer_mng          = dependencies.timer_ctrl->get_timer_manager(),
         .fapi_ctrl_executor = dependencies.workers->get_cmd_line_executor(),
         .mac_ctrl_executor  = dependencies.workers->get_du_high_executor_mapper().du_control_executor(),
-        .fapi_executor =
-            config.odu_high_cfg.fapi_cfg.l2_nof_slots_ahead != 0 ? dependencies.workers->fapi_exec[i] : nullptr,
+        .fapi_logger        = *dependencies.fapi_logger,
     };
 
     odu_hi_unit_dependencies.o_du_hi_dependencies.sectors.push_back(sector_dependencies);

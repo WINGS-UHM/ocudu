@@ -12,8 +12,8 @@ target_link_libraries(pucch_processor_format1_unittest
         ocudu_dft
         ocudu_transform_precoding
         ocudulog
-        gtest
-        gtest_main)
+        GTest::gtest
+        GTest::gtest_main)
 add_test(pucch_processor_format1_unittest pucch_processor_format1_unittest)
 
 add_executable(pucch_processor_validators_test
@@ -30,6 +30,6 @@ target_link_libraries(pucch_processor_validators_test
         ocudu_transform_precoding
         ocudu_upper_phy_support
         ocudulog
-        gtest
-        gtest_main)
+        GTest::gtest
+        GTest::gtest_main)
 add_test(pucch_processor_validators_test pucch_processor_validators_test)

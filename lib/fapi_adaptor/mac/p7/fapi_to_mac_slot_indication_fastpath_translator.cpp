@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "fapi_to_mac_slot_indication_fastpath_translator.h"
+#include "ocudu/fapi/message_loggers.h"
 #include "ocudu/fapi/p7/messages/slot_indication.h"
 #include "ocudu/mac/mac_cell_slot_handler.h"
 #include "ocudu/mac/mac_cell_timing_context.h"
@@ -27,13 +28,17 @@ public:
 static mac_cell_slot_handler_dummy mac_dummy_handler;
 
 fapi_to_mac_slot_indication_fastpath_translator::fapi_to_mac_slot_indication_fastpath_translator(
-    mac_cell_slot_handler& fapi_slot_handler_) :
-  fapi_slot_handler(fapi_slot_handler_), mac_slot_handler(&mac_dummy_handler)
+    unsigned                sector_id_,
+    mac_cell_slot_handler&  fapi_slot_handler_,
+    ocudulog::basic_logger& logger_) :
+  sector_id(sector_id_), fapi_slot_handler(fapi_slot_handler_), mac_slot_handler(&mac_dummy_handler), logger(logger_)
 {
 }
 
 void fapi_to_mac_slot_indication_fastpath_translator::on_slot_indication(const fapi::slot_indication& msg)
 {
+  log_slot_indication(msg, sector_id, logger);
+
   mac_cell_timing_context context{.sl_tx = msg.slot, .time_point = msg.time_point};
   fapi_slot_handler.handle_slot_indication(context);
   mac_slot_handler->handle_slot_indication(context);

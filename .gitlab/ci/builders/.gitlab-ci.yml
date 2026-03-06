@@ -118,14 +118,16 @@ builder version increased:
 
 ubuntu-rohc-builder avx2:
   extends: .ubuntu-rohc-builder
-  tags: [saas-linux-medium-amd64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-amd64
   variables:
     arch_name: amd64
     target_arch: x86-64-v3
 
 ubuntu-rohc-builder arm64:
   extends: .ubuntu-rohc-builder
-  tags: [saas-linux-medium-arm64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-arm64
   variables:
     arch_name: arm64
     target_arch: armv8.2-a+crypto+fp16+dotprod
@@ -209,14 +211,16 @@ ubuntu-rohc-builder arm64:
 
 ubuntu-uhd-builder avx2:
   extends: .ubuntu-uhd-builder
-  tags: [saas-linux-medium-amd64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-amd64
   variables:
     arch_name: amd64
     target_arch: x86-64-v3
 
 ubuntu-uhd-builder arm64:
   extends: .ubuntu-uhd-builder
-  tags: [saas-linux-medium-arm64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-arm64
   variables:
     arch_name: arm64
     target_arch: armv8.2-a+crypto+fp16+dotprod
@@ -310,7 +314,8 @@ ubuntu-uhd-builder arm64:
 
 ubuntu-dpdk-builder no isa:
   extends: .ubuntu-dpdk-builder
-  tags: [saas-linux-medium-amd64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-amd64
   variables:
     arch_name: amd64
     target_arch: x86-64
@@ -320,7 +325,8 @@ ubuntu-dpdk-builder no isa:
 
 ubuntu-dpdk-builder avx2:
   extends: .ubuntu-dpdk-builder
-  tags: [saas-linux-medium-amd64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-amd64
   variables:
     arch_name: amd64
     extra_arch_name: _avx2
@@ -334,7 +340,8 @@ ubuntu-dpdk-builder avx2:
 
 ubuntu-dpdk-builder avx512:
   extends: .ubuntu-dpdk-builder
-  tags: [saas-linux-medium-amd64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-amd64
   variables:
     arch_name: amd64
     extra_arch_name: _avx512
@@ -348,7 +355,8 @@ ubuntu-dpdk-builder avx512:
 
 ubuntu-dpdk-builder arm64:
   extends: .ubuntu-dpdk-builder
-  tags: [saas-linux-medium-arm64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-arm64
   variables:
     arch_name: arm64
     target_arch: armv8.2-a+crypto+fp16+dotprod
@@ -366,7 +374,7 @@ ubuntu-dpdk-builder arm64:
     MULTI_ARCH_BUILD: "true"
     MODE: publish
   tags:
-    - saas-linux-medium-${PLATFORM}
+    - $OCUDU_RUNNER_TAG-${PLATFORM}
   timeout: 2 hours
   rules:
     - if: $ON_MR

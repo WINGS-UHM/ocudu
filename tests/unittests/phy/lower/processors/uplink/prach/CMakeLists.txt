@@ -4,5 +4,5 @@
 
 
 add_executable(prach_processor_test prach_processor_test.cpp)
-target_link_libraries(prach_processor_test ocudu_lower_phy_prach_processor ocudulog gtest gtest_main)
+target_link_libraries(prach_processor_test ocudu_lower_phy_prach_processor ocudulog GTest::gtest GTest::gtest_main)
 add_test(prach_processor_test prach_processor_test)

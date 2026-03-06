@@ -66,8 +66,7 @@ void split_8_o_du_application_unit_impl::dump_config(YAML::Node& node) const
 
 void split_8_o_du_application_unit_impl::fill_worker_manager_config(worker_manager_config& config)
 {
-  bool     is_blocking_mode_enable = unit_cfg.ru_cfg.device_driver == "zmq";
-  unsigned nof_cells               = unit_cfg.odu_high_cfg.du_high_cfg.config.cells_cfg.size();
+  bool is_blocking_mode_enable = unit_cfg.ru_cfg.device_driver == "zmq";
   fill_du_high_worker_manager_config(config, unit_cfg.odu_high_cfg.du_high_cfg.config, is_blocking_mode_enable);
   std::vector<unsigned> nof_dl_antennas;
   std::vector<unsigned> nof_ul_antennas;
@@ -77,6 +76,5 @@ void split_8_o_du_application_unit_impl::fill_worker_manager_config(worker_manag
   }
   fill_du_low_worker_manager_config(
       config, unit_cfg.du_low_cfg, is_blocking_mode_enable, nof_dl_antennas, nof_ul_antennas);
-  fill_fapi_worker_manager_config(config, unit_cfg.odu_high_cfg.fapi_cfg, nof_cells);
   fill_sdr_worker_manager_config(config, unit_cfg.ru_cfg);
 }

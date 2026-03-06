@@ -1,4 +1,3 @@
-// Copyright 2021-2026 Software Radio Systems Limited
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
@@ -121,6 +120,7 @@ void xnc_connection_manager::start()
         // TODO try to connect to all neighbours.
         for (xn_it = xnaps_map.begin(); xn_it != xnaps_map.end(); ++xn_it) {
           CORO_AWAIT(xn_it->second->handle_xn_setup_request_required());
+          // TODO: Handle setup failure
         }
 
         CORO_RETURN();
@@ -132,6 +132,7 @@ void xnc_connection_manager::connect_to_neighbours()
   std::map<xnc_peer_index_t, xnap_interface*> xn = xnaps.get_xnaps();
   for (const std::pair<const xnc_peer_index_t, xnap_interface*>& xnap_it : xn) {
     xnap_it.second->handle_xn_setup_request_required();
+    // TODO: Handle setup failure
   }
 }
 

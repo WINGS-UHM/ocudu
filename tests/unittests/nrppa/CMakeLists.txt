@@ -11,5 +11,5 @@ set(SOURCES
 add_executable(nrppa_test ${SOURCES})
 target_include_directories(nrppa_test PRIVATE ${CMAKE_SOURCE_DIR})
 set_target_properties(nrppa_test PROPERTIES UNITY_BUILD ON)
-target_link_libraries(nrppa_test nrppa_test_doubles ocudu_nrppa ocudu_support nrppa_asn1 ocudu_ran ocudulog gtest gtest_main)
+target_link_libraries(nrppa_test nrppa_test_doubles ocudu_nrppa ocudu_support nrppa_asn1 ocudu_ran ocudulog GTest::gtest GTest::gtest_main)
 gtest_discover_tests(nrppa_test PROPERTIES "LABELS;nrppa")

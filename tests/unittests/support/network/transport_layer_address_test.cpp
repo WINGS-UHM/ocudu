@@ -2,21 +2,21 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/io/transport_layer_address.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
 
 std::string create_random_ipv4_string()
 {
-  std::vector<uint8_t> nums = test_rgen::random_vector<uint8_t>(4);
+  std::vector<uint8_t> nums = test_rng::vector_of_uniform_ints<uint8_t>(4);
   return fmt::format("{}.{}.{}.{}", nums[0], nums[1], nums[2], nums[3]);
 }
 
 std::string create_random_ipv6_string()
 {
-  std::vector<uint16_t> nums = test_rgen::random_vector<uint16_t>(8);
+  std::vector<uint16_t> nums = test_rng::vector_of_uniform_ints<uint16_t>(8);
   return fmt::format("{:x}:{:x}:{:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
                      nums[0],
                      nums[1],

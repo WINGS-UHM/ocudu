@@ -10,21 +10,43 @@ using namespace ocudu;
 using namespace fapi_adaptor;
 using namespace unittest;
 
-static void check_context_parameters(const ul_pucch_context&   context,
-                                     const fapi::ul_pucch_pdu& fapi_pdu,
-                                     slot_point                slot,
-                                     pucch_format              format)
+static void assert_format(pucch_format expected_format, fapi::ul_pucch_pdu::ul_pucch_pdu_format fapi_format)
+{
+  switch (expected_format) {
+    case pucch_format::FORMAT_0:
+      ASSERT_TRUE(std::holds_alternative<fapi::ul_pucch_pdu_format_0>(fapi_format));
+      break;
+    case pucch_format::FORMAT_1:
+      ASSERT_TRUE(std::holds_alternative<fapi::ul_pucch_pdu_format_1>(fapi_format));
+      break;
+    case pucch_format::FORMAT_2:
+      ASSERT_TRUE(std::holds_alternative<fapi::ul_pucch_pdu_format_2>(fapi_format));
+      break;
+    case pucch_format::FORMAT_3:
+      ASSERT_TRUE(std::holds_alternative<fapi::ul_pucch_pdu_format_3>(fapi_format));
+      break;
+    case pucch_format::FORMAT_4:
+      ASSERT_TRUE(std::holds_alternative<fapi::ul_pucch_pdu_format_4>(fapi_format));
+      break;
+    case pucch_format::NOF_FORMATS:
+    default:
+      break;
+  }
+}
+
+static void
+check_context_parameters(const ul_pucch_context& context, const fapi::ul_pucch_pdu& fapi_pdu, slot_point slot)
 {
   ASSERT_EQ(slot, context.slot);
   ASSERT_EQ(fapi_pdu.rnti, context.rnti);
-  ASSERT_EQ(fapi_pdu.format_type, context.format);
+  assert_format(context.format, fapi_pdu.format);
 }
 
-static void check_context_f0_or_f1_parameters(const ul_pucch_context& context, const fapi::ul_pucch_pdu& fapi_pdu)
+static void check_context_f1_parameters(const ul_pucch_context& context, const fapi::ul_pucch_pdu_format_1& format1)
 {
   ASSERT_TRUE(context.context_f0_f1.has_value());
   const ul_pucch_f0_f1_context& ctx = context.context_f0_f1.value();
-  ASSERT_EQ(fapi_pdu.sr_bit_len == 1, ctx.is_sr_opportunity);
+  ASSERT_EQ(format1.sr_present, ctx.is_sr_opportunity);
 }
 
 TEST(FAPIPPHYULPUCCHAdaptorTest, ValidFormat1PDUPass)
@@ -40,12 +62,16 @@ TEST(FAPIPPHYULPUCCHAdaptorTest, ValidFormat1PDUPass)
   uplink_pdu_slot_repository::pucch_pdu pdu;
   convert_pucch_fapi_to_phy(pdu, fapi_pdu, slot, nof_rx_antennas);
 
+  const auto* format1 = std::get_if<fapi::ul_pucch_pdu_format_1>(&fapi_pdu.format);
+
+  ASSERT_TRUE(format1 != nullptr);
+
   // Format 1 custom parameters.
   const auto& phy_pdu = std::get<pucch_processor::format1_configuration>(pdu.config);
   ASSERT_EQ(fapi_pdu.symbols.start(), phy_pdu.start_symbol_index);
   ASSERT_EQ(fapi_pdu.symbols.length(), phy_pdu.nof_symbols);
-  ASSERT_EQ(fapi_pdu.time_domain_occ_index, phy_pdu.time_domain_occ);
-  ASSERT_EQ(fapi_pdu.initial_cyclic_shift, phy_pdu.initial_cyclic_shift);
+  ASSERT_EQ(format1->time_domain_occ_index, phy_pdu.time_domain_occ);
+  ASSERT_EQ(format1->initial_cyclic_shift, phy_pdu.initial_cyclic_shift);
 
   // Common parameters.
   ASSERT_EQ(slot, phy_pdu.slot);
@@ -57,8 +83,8 @@ TEST(FAPIPPHYULPUCCHAdaptorTest, ValidFormat1PDUPass)
   if (phy_pdu.second_hop_prb.has_value()) {
     ASSERT_EQ(fapi_pdu.second_hop_prb, phy_pdu.second_hop_prb.value());
   }
-  ASSERT_EQ(fapi_pdu.bit_len_harq, phy_pdu.nof_harq_ack);
-  ASSERT_EQ(fapi_pdu.nid_pucch_hopping, phy_pdu.n_id);
+  ASSERT_EQ(format1->bit_len_harq.value(), phy_pdu.nof_harq_ack);
+  ASSERT_EQ(format1->nid_pucch_hopping, phy_pdu.n_id);
 
   // Ports.
   ASSERT_EQ(nof_rx_antennas, phy_pdu.ports.size());
@@ -67,8 +93,7 @@ TEST(FAPIPPHYULPUCCHAdaptorTest, ValidFormat1PDUPass)
   }
 
   // Context parameters.
-  check_context_parameters(pdu.context, fapi_pdu, slot, pucch_format::FORMAT_1);
+  check_context_parameters(pdu.context, fapi_pdu, slot);
 
-  // Context Format 0 or Format 1 parameters.
-  check_context_f0_or_f1_parameters(pdu.context, fapi_pdu);
+  check_context_f1_parameters(pdu.context, *format1);
 }

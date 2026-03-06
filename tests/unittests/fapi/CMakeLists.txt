@@ -4,7 +4,6 @@
 
 
 add_subdirectory(common)
-add_subdirectory(message_buffering)
 add_subdirectory(p7)
 
 add_library(ocudu_fapi_message_builder_test_helpers STATIC message_builder_helpers.cpp)

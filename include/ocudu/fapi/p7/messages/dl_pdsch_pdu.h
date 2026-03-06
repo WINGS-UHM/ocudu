@@ -7,6 +7,7 @@
 #include "ocudu/fapi/p7/messages/pxsch_parameters.h"
 #include "ocudu/fapi/p7/messages/tx_precoding_and_beamforming_pdu.h"
 #include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/pci.h"
 #include "ocudu/ran/pdsch/pdsch_context.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
@@ -130,7 +131,7 @@ struct dl_pdsch_pdu {
   pdsch_ref_point_type                                 ref_point;
   uint16_t                                             dl_dmrs_symb_pos;
   uint16_t                                             pdsch_dmrs_scrambling_id;
-  dmrs_cfg_type                                        dmrs_type;
+  dmrs_config_type                                     dmrs_type;
   uint16_t                                             pdsch_dmrs_scrambling_id_compl;
   low_papr_dmrs_type                                   low_papr_dmrs;
   uint8_t                                              nscid;

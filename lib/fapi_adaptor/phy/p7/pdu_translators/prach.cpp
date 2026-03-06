@@ -30,7 +30,7 @@ void ocudu::fapi_adaptor::convert_prach_fapi_to_phy(prach_buffer_context&       
 
   context.pusch_scs       = slot.scs();
   context.restricted_set  = prach_cfg.restricted_set;
-  context.nof_prb_ul_grid = carrier_cfg.ul_grid_size[to_numerology_value(context.pusch_scs)];
+  context.nof_prb_ul_grid = carrier_cfg.ul_grid_size;
 
   context.rb_offset             = prach_cfg.rach_cfg_generic.msg1_frequency_start;
   context.root_sequence_index   = prach_cfg.prach_root_seq_index;

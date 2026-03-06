@@ -180,8 +180,8 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
 
                       std::array<uint8_t, 36> rb_bitmap = {};
 
-                      fapi::dl_pdsch_pdu         pdu;
-                      fapi::dl_pdsch_pdu_builder builder(pdu);
+                      fapi::dl_pdsch_pdu         fapi_pdu;
+                      fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
 
                       builder.set_basic_parameters(rnti);
 
@@ -226,7 +226,7 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
                       builder.get_tx_precoding_and_beamforming_pdu_builder().set_pmi(0).set_prg_parameters(51);
 
                       pdsch_processor::pdu_t proc_pdu;
-                      convert_pdsch_fapi_to_phy(proc_pdu, pdu, slot, {}, pm_repo);
+                      convert_pdsch_fapi_to_phy(proc_pdu, fapi_pdu, slot, {}, pm_repo);
 
                       // Test basic parameters.
                       ASSERT_EQ(slot, proc_pdu.slot);

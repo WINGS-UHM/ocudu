@@ -4,8 +4,8 @@
 
 #include "lib/scheduler/ue_context/logical_channel_system.h"
 #include "lib/scheduler/ue_context/ta_management_system.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -35,8 +35,7 @@ protected:
     ta_sys(expert_cfg.ue.ta_control),
     next_sl_tx(
         ul_scs,
-        test_rgen::uniform_int<unsigned>(0,
-                                         NOF_SFNS * NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(ul_scs) - 1))
+        test_rng::uniform_int<unsigned>(0, NOF_SFNS * NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(ul_scs) - 1))
   {
   }
 
@@ -186,7 +185,7 @@ TEST_F(single_ue_ta_manager_test, ta_cmd_is_not_triggered_when_reported_ul_n_ta_
 TEST_F(single_ue_ta_manager_test, when_n_ta_update_with_high_snr_then_ta_cmd_is_successfully_triggered)
 {
   // Start from a random slot.
-  unsigned rand_start_slot = test_rgen::uniform_int<unsigned>(0, expert_cfg.ue.ta_control.measurement_period - 1);
+  unsigned rand_start_slot = test_rng::uniform_int<unsigned>(0, expert_cfg.ue.ta_control.measurement_period - 1);
   for (unsigned i = 0; i < rand_start_slot; ++i) {
     run_slot();
   }
@@ -405,9 +404,9 @@ TEST_F(multi_ue_ta_manager_test, test_random_ue_creation_and_ta_cmd_triggers)
 {
   const unsigned                        run_nof_slots = 10000;
   std::uniform_real_distribution<float> randf(0.0f, 1.0f);
-  auto                                  is_triggered = [&randf](float prob) { return randf(test_rgen::get()) < prob; };
-  const uint8_t                         new_ta_cmd   = 33;
-  const float                           ul_sinr = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
+  auto          is_triggered = [&randf](float prob) { return randf(test_rng::tls_gen()) < prob; };
+  const uint8_t new_ta_cmd   = 33;
+  const float   ul_sinr      = expert_cfg.ue.ta_control.update_measurement_ul_sinr_threshold + 10;
 
   for (unsigned slot = 0; slot < run_nof_slots; ++slot) {
     ASSERT_EQ(ues.size(), ta_sys.nof_active_ues());
@@ -418,7 +417,7 @@ TEST_F(multi_ue_ta_manager_test, test_random_ue_creation_and_ta_cmd_triggers)
 
     // Randomly remove UEs.
     if (not ues.empty() and is_triggered(0.1)) {
-      unsigned ue_to_rem = test_rgen::uniform_int<unsigned>(0, ues.size() - 1);
+      unsigned ue_to_rem = test_rng::uniform_int<unsigned>(0, ues.size() - 1);
       unsigned ue_idx    = ues.keys()[ue_to_rem];
       rem_ue(ue_idx);
     }

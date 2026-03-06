@@ -3,9 +3,9 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
-#include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -1456,9 +1456,9 @@ TEST_P(test_ue_pucch_config_builder, test_validator_too_many_resources)
   res_list = config_helpers::generate_cell_pucch_res_list(
       nof_res_f0_f1, nof_res_f2_f3_f4, f0_f1_params, f2_f3_f4_params, bwp_size, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP);
 
-  const auto harq_idx_cfg = test_rgen::uniform_int<unsigned>(0, nof_harq_cfg_per_ue - 1);
-  const auto sr_idx_cfg   = test_rgen::uniform_int<unsigned>(0, nof_sr_res_per_cell - 1);
-  const auto csi_idx_cfg  = test_rgen::uniform_int<unsigned>(0, nof_csi_res_per_cell - 1);
+  const auto harq_idx_cfg = test_rng::uniform_int<unsigned>(0, nof_harq_cfg_per_ue - 1);
+  const auto sr_idx_cfg   = test_rng::uniform_int<unsigned>(0, nof_sr_res_per_cell - 1);
+  const auto csi_idx_cfg  = test_rng::uniform_int<unsigned>(0, nof_csi_res_per_cell - 1);
 
   // Update pucch_cfg with the UE list of resources (with at max 8 HARQ F1, 8 HARQ F2, 4 SR).
   config_helpers::ue_pucch_config_builder(ue_cell_cfg.serv_cell_cfg,

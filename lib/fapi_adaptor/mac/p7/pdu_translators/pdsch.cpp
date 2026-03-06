@@ -16,17 +16,6 @@ using namespace fapi_adaptor;
 /// CORESET0 is configured for the cell.
 static constexpr bool is_coreset0_configured_for_cell = true;
 
-void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu&            fapi_pdu,
-                                                    const sib_information&         mac_pdu,
-                                                    unsigned                       nof_csi_pdus,
-                                                    const precoding_matrix_mapper& pm_mapper,
-                                                    unsigned                       cell_nof_prbs)
-{
-  fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
-
-  convert_pdsch_mac_to_fapi(builder, mac_pdu, nof_csi_pdus, pm_mapper, cell_nof_prbs);
-}
-
 static crb_interval get_crb_interval(const pdsch_information& pdsch_cfg)
 {
   if (pdsch_cfg.coreset_cfg->get_id() == to_coreset_id(0)) {
@@ -283,17 +272,6 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
   builder.set_maintenance_v3_csi_rm_references(csi_rm_indexes);
 }
 
-void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu&            fapi_pdu,
-                                                    const rar_information&         mac_pdu,
-                                                    unsigned                       nof_csi_pdus,
-                                                    const precoding_matrix_mapper& pm_mapper,
-                                                    unsigned                       cell_nof_prbs)
-{
-  fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
-
-  convert_pdsch_mac_to_fapi(builder, mac_pdu, nof_csi_pdus, pm_mapper, cell_nof_prbs);
-}
-
 void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder&    builder,
                                                     const rar_information&         mac_pdu,
                                                     unsigned                       nof_csi_pdus,
@@ -337,17 +315,6 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
   static_vector<uint16_t, MAX_CSI_RS_PDUS_PER_SLOT> csi_rm_indexes(nof_csi_pdus);
   std::iota(csi_rm_indexes.begin(), csi_rm_indexes.end(), 0U);
   builder.set_maintenance_v3_csi_rm_references(csi_rm_indexes);
-}
-
-void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu&            fapi_pdu,
-                                                    const dl_msg_alloc&            mac_pdu,
-                                                    unsigned                       nof_csi_pdus,
-                                                    const precoding_matrix_mapper& pm_mapper,
-                                                    unsigned                       cell_nof_prbs)
-{
-  fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
-
-  convert_pdsch_mac_to_fapi(builder, mac_pdu, nof_csi_pdus, pm_mapper, cell_nof_prbs);
 }
 
 void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder&    builder,
@@ -442,15 +409,4 @@ void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu_builder& 
   static_vector<uint16_t, MAX_CSI_RS_PDUS_PER_SLOT> csi_rm_indexes(nof_csi_pdus);
   std::iota(csi_rm_indexes.begin(), csi_rm_indexes.end(), 0U);
   builder.set_maintenance_v3_csi_rm_references(csi_rm_indexes);
-}
-
-void ocudu::fapi_adaptor::convert_pdsch_mac_to_fapi(fapi::dl_pdsch_pdu&            fapi_pdu,
-                                                    const dl_paging_allocation&    mac_pdu,
-                                                    unsigned                       nof_csi_pdus,
-                                                    const precoding_matrix_mapper& pm_mapper,
-                                                    unsigned                       cell_nof_prbs)
-{
-  fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
-
-  convert_pdsch_mac_to_fapi(builder, mac_pdu, nof_csi_pdus, pm_mapper, cell_nof_prbs);
 }

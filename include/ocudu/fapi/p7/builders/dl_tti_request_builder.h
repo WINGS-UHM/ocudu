@@ -35,15 +35,8 @@ public:
   dl_pdcch_pdu_builder add_pdcch_pdu()
   {
     // Add a new pdu.
-    dl_tti_request_pdu& pdu = msg.pdus.emplace_back();
-
-    // Increase the number of PDCCH pdus in the request.
-    ++msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::PDCCH)];
-    ++msg.num_pdus_of_each_type[dl_tti_request::DL_DCI_INDEX];
-
-    pdu.pdu_type = dl_pdu_type::PDCCH;
-
-    dl_pdcch_pdu_builder builder(pdu.pdcch_pdu);
+    dl_tti_request_pdu&  pdu = msg.pdus.emplace_back();
+    dl_pdcch_pdu_builder builder(pdu.pdu.emplace<dl_pdcch_pdu>());
 
     return builder;
   }
@@ -63,18 +56,8 @@ public:
   dl_pdsch_pdu_builder add_pdsch_pdu()
   {
     // Add a new PDU.
-    dl_tti_request_pdu& pdu = msg.pdus.emplace_back();
-
-    // Fill the PDSCH PDU index value. The index value will be the index of the PDU in the array of PDSCH PDUs.
-    auto& num_pdsch_pdu     = msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::PDSCH)];
-    pdu.pdsch_pdu.pdu_index = num_pdsch_pdu;
-
-    // Increase the number of PDSCH PDU.
-    ++num_pdsch_pdu;
-
-    pdu.pdu_type = dl_pdu_type::PDSCH;
-
-    dl_pdsch_pdu_builder builder(pdu.pdsch_pdu);
+    dl_tti_request_pdu&  pdu = msg.pdus.emplace_back();
+    dl_pdsch_pdu_builder builder(pdu.pdu.emplace<dl_pdsch_pdu>());
 
     return builder;
   }
@@ -83,17 +66,8 @@ public:
   dl_csi_rs_pdu_builder add_csi_rs_pdu()
   {
     // Add a new PDU.
-    dl_tti_request_pdu& pdu = msg.pdus.emplace_back();
-
-    // Fill the CSI PDU index value. The index value will be the index of the PDU in the array of CSI PDUs.
-    auto& num_csi_pdu = msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::CSI_RS)];
-
-    // Increase the number of CSI PDU.
-    ++num_csi_pdu;
-
-    pdu.pdu_type = dl_pdu_type::CSI_RS;
-
-    dl_csi_rs_pdu_builder builder(pdu.csi_rs_pdu);
+    dl_tti_request_pdu&   pdu = msg.pdus.emplace_back();
+    dl_csi_rs_pdu_builder builder(pdu.pdu.emplace<dl_csi_rs_pdu>());
 
     return builder;
   }
@@ -103,14 +77,7 @@ public:
   {
     // Add a new PDU.
     dl_tti_request_pdu& pdu = msg.pdus.emplace_back();
-
-    // Increase the number of SSB PDUs in the request.
-    auto& num_ssb_pdu = msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::SSB)];
-    ++num_ssb_pdu;
-
-    pdu.pdu_type = dl_pdu_type::SSB;
-
-    dl_ssb_pdu_builder builder(pdu.ssb_pdu);
+    dl_ssb_pdu_builder  builder(pdu.pdu.emplace<dl_ssb_pdu>());
 
     return builder;
   }
@@ -120,17 +87,7 @@ public:
   {
     // Add a new PDU.
     dl_tti_request_pdu& pdu = msg.pdus.emplace_back();
-
-    // Fill the PRS PDU index value. The index value will be the index of the PDU in the array of PRS PDUs.
-    dl_prs_pdu& info        = pdu.prs_pdu;
-    auto&       num_prs_pdu = msg.num_pdus_of_each_type[static_cast<size_t>(dl_pdu_type::PRS)];
-
-    // Increase the number of SSB PDUs in the request.
-    ++num_prs_pdu;
-
-    pdu.pdu_type = dl_pdu_type::PRS;
-
-    dl_prs_pdu_builder builder(info);
+    dl_prs_pdu_builder  builder(pdu.pdu.emplace<dl_prs_pdu>());
 
     return builder;
   }

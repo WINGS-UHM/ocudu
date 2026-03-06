@@ -108,7 +108,9 @@ struct sib_test_bench {
                                             duplx_mode)},
     sl_tx{to_numerology_value(cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
   {
+    test_logger.set_level(ocudulog::basic_levels::info);
     test_logger.set_context(0, 0);
+    sched_logger.set_level(ocudulog::basic_levels::debug);
     sched_logger.set_context(0, 0);
     res_grid.slot_indication(sl_tx);
   }
@@ -772,14 +774,3 @@ INSTANTIATE_TEST_SUITE_P(sib1_scheduler_test,
                              .carrier_bw_mhz    = 20,
                              .sib1_rtx_period   = sib1_rtx_periodicity::ms10,
                              .ssb_period        = ssb_periodicity::ms10}));
-
-int main(int argc, char** argv)
-{
-  ocudulog::init();
-  ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
-  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::info);
-
-  ::testing::InitGoogleTest(&argc, argv);
-
-  return RUN_ALL_TESTS();
-}

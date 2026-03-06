@@ -55,6 +55,7 @@ struct o_du_unit_dependencies {
   e2_connection_client*                        e2_client_handler      = nullptr;
   app_services::metrics_notifier*              metrics_notifier       = nullptr;
   app_services::remote_server_metrics_gateway* remote_metrics_gateway = nullptr;
+  ocudulog::basic_logger*                      fapi_logger            = nullptr;
 };
 
 } // namespace ocudu

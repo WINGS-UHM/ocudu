@@ -299,7 +299,7 @@ private:
     /// Information relative to the MAC CE to be scheduled.
     mac_ce_info info;
     /// Next CE node in the linked list.
-    std::optional<stable_id_t> next_ue_ce;
+    stable_id_t next_ue_ce;
   };
   /// UE context relative to its configuration.
   struct ue_config_context {
@@ -313,7 +313,7 @@ private:
   /// UE context relative to its DL channel management.
   struct ue_dl_channel_context {
     /// Currently enqueued CEs for this UE.
-    std::optional<stable_id_t> pending_ces;
+    stable_id_intrusive_list<&mac_ce_context::next_ue_ce> pending_ces;
     /// List of active logical channel IDs sorted in decreasing order of priority. i.e. first element has the highest
     /// priority.
     static_vector<lcid_t, MAX_NOF_RB_LCIDS> sorted_channels;

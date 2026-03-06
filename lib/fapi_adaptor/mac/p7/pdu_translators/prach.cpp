@@ -8,13 +8,6 @@
 using namespace ocudu;
 using namespace fapi_adaptor;
 
-void ocudu::fapi_adaptor::convert_prach_mac_to_fapi(fapi::ul_prach_pdu& fapi_pdu, const prach_occasion_info& mac_pdu)
-{
-  fapi::ul_prach_pdu_builder builder(fapi_pdu);
-
-  convert_prach_mac_to_fapi(builder, mac_pdu);
-}
-
 void ocudu::fapi_adaptor::convert_prach_mac_to_fapi(fapi::ul_prach_pdu_builder& builder,
                                                     const prach_occasion_info&  mac_pdu)
 {

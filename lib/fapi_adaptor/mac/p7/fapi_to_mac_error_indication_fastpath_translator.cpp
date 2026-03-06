@@ -4,8 +4,8 @@
 
 #include "fapi_to_mac_error_indication_fastpath_translator.h"
 #include "ocudu/fapi/common/error_indication.h"
+#include "ocudu/fapi/message_loggers.h"
 #include "ocudu/mac/mac_cell_slot_handler.h"
-#include "ocudu/mac/mac_cell_timing_context.h"
 
 using namespace ocudu;
 using namespace fapi_adaptor;
@@ -27,8 +27,9 @@ public:
 static mac_cell_slot_handler_dummy mac_dummy_handler;
 
 fapi_to_mac_error_indication_fastpath_translator::fapi_to_mac_error_indication_fastpath_translator(
+    unsigned                sector_id_,
     ocudulog::basic_logger& logger_) :
-  mac_slot_handler(&mac_dummy_handler), logger(logger_)
+  sector_id(sector_id_), mac_slot_handler(&mac_dummy_handler), logger(logger_)
 {
 }
 
@@ -77,6 +78,8 @@ void fapi_to_mac_error_indication_fastpath_translator::on_error_indication(const
     logger.warning("Invalid slot point when receiving an error indication.");
     return;
   }
+
+  log_error_indication(msg, sector_id, logger);
 
   mac_slot_handler->handle_error_indication(msg.slot.value(), to_error_event(msg.error_code, msg.message_id));
 }

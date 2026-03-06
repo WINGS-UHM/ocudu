@@ -3,12 +3,13 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/fapi/p7/builders/ul_pucch_pdu_builder.h"
+#include "ocudu/support/units.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
 using namespace fapi;
 
-TEST(ul_pucch_pdu_builder, valid_basic_parameters_passes)
+TEST(ul_pucch_pdu_builder, valid_ue_specific_parameters_passes)
 {
   rnti_t rnti = to_rnti(14);
 
@@ -21,20 +22,149 @@ TEST(ul_pucch_pdu_builder, valid_basic_parameters_passes)
   ASSERT_EQ(0, pdu.handle);
 }
 
-TEST(ul_pucch_pdu_builder, valid_format_common_parameters_passes)
+TEST(ul_pucch_pdu_builder, valid_allocation_time_parameters_passes)
 {
-  pucch_format             format_type = pucch_format::FORMAT_1;
-  pucch_repetition_tx_slot multi_slot  = ocudu::pucch_repetition_tx_slot::no_multi_slot;
-  bool                     pi2         = false;
+  ofdm_symbol_range symbols = {4, 6};
 
   ul_pucch_pdu         pdu;
   ul_pucch_pdu_builder builder(pdu);
 
-  builder.set_common_parameters(format_type, multi_slot, pi2);
+  builder.set_time_allocation_parameters(symbols);
 
-  ASSERT_EQ(format_type, pdu.format_type);
-  ASSERT_EQ(multi_slot, pdu.multi_slot_tx_indicator);
+  ASSERT_EQ(symbols, pdu.symbols);
+}
+
+TEST(ul_pucch_pdu_builder, valid_format0_parameters_passes)
+{
+  uint16_t    nid_pucch_hopping    = 200;
+  uint16_t    initial_cyclic_shift = 7;
+  bool        sr_present           = true;
+  units::bits bit_len_harq(190);
+
+  ul_pucch_pdu_format_0         pdu;
+  ul_pucch_format_0_pdu_builder builder(pdu);
+
+  builder.set_hopping_parameters(nid_pucch_hopping)
+      .set_cyclic_shift_parameters(initial_cyclic_shift)
+      .set_payload_parameters(sr_present, bit_len_harq);
+
+  ASSERT_EQ(nid_pucch_hopping, pdu.nid_pucch_hopping);
+  ASSERT_EQ(initial_cyclic_shift, pdu.initial_cyclic_shift);
+  ASSERT_EQ(sr_present, pdu.sr_present);
+  ASSERT_EQ(bit_len_harq, pdu.bit_len_harq);
+}
+
+TEST(ul_pucch_pdu_builder, valid_format1_parameters_passes)
+{
+  uint16_t    nid_pucch_hopping     = 200;
+  uint16_t    initial_cyclic_shift  = 7;
+  uint8_t     time_domain_occ_index = 3;
+  bool        sr_present            = true;
+  units::bits bit_len_harq(190);
+
+  ul_pucch_pdu_format_1         pdu;
+  ul_pucch_format_1_pdu_builder builder(pdu);
+
+  builder.set_hopping_parameters(nid_pucch_hopping)
+      .set_cyclic_shift_parameters(initial_cyclic_shift)
+      .set_time_domain_parameters(time_domain_occ_index)
+      .set_payload_parameters(sr_present, bit_len_harq);
+
+  ASSERT_EQ(nid_pucch_hopping, pdu.nid_pucch_hopping);
+  ASSERT_EQ(initial_cyclic_shift, pdu.initial_cyclic_shift);
+  ASSERT_EQ(time_domain_occ_index, pdu.time_domain_occ_index);
+  ASSERT_EQ(sr_present, pdu.sr_present);
+  ASSERT_EQ(bit_len_harq, pdu.bit_len_harq);
+}
+
+TEST(ul_pucch_pdu_builder, valid_format2_parameters_passes)
+{
+  uint16_t    nid_pucch_scrambling       = 500;
+  uint16_t    nid0_pucch_dmrs_scrambling = 34567;
+  sr_nof_bits sr_bit_len                 = sr_nof_bits::one;
+  units::bits csi_part1_bit_length(1024);
+  units::bits bit_len_harq(190);
+
+  ul_pucch_pdu_format_2         pdu;
+  ul_pucch_format_2_pdu_builder builder(pdu);
+
+  builder.set_scrambling_parameters(nid_pucch_scrambling, nid0_pucch_dmrs_scrambling)
+      .set_payload_parameters(sr_bit_len, csi_part1_bit_length, bit_len_harq);
+
+  ASSERT_EQ(nid_pucch_scrambling, pdu.nid_pucch_scrambling);
+  ASSERT_EQ(nid0_pucch_dmrs_scrambling, pdu.nid0_pucch_dmrs_scrambling);
+  ASSERT_EQ(sr_bit_len, pdu.sr_bit_len);
+  ASSERT_EQ(csi_part1_bit_length, pdu.csi_part1_bit_length);
+  ASSERT_EQ(bit_len_harq, pdu.bit_len_harq);
+}
+
+TEST(ul_pucch_pdu_builder, valid_format3_parameters_passes)
+{
+  bool        pi2                        = false;
+  uint16_t    nid_pucch_hopping          = 200;
+  uint16_t    nid_pucch_scrambling       = 500;
+  bool        add_dmrs_flag              = false;
+  uint16_t    nid0_pucch_dmrs_scrambling = 0;
+  uint8_t     m0_pucch_dmrs_cyclic_shift = 8;
+  sr_nof_bits sr_bit_len                 = sr_nof_bits::one;
+  units::bits csi_part1_bit_length(1024);
+  units::bits bit_len_harq(190);
+
+  ul_pucch_pdu_format_3         pdu;
+  ul_pucch_format_3_pdu_builder builder(pdu);
+
+  builder.set_modulation_parameters(pi2)
+      .set_hopping_parameters(nid_pucch_hopping)
+      .set_scrambling_parameters(nid_pucch_scrambling)
+      .set_dmrs_parameters(add_dmrs_flag, nid0_pucch_dmrs_scrambling, m0_pucch_dmrs_cyclic_shift)
+      .set_payload_parameters(sr_bit_len, csi_part1_bit_length, bit_len_harq);
+
   ASSERT_EQ(pi2, pdu.pi2_bpsk);
+  ASSERT_EQ(nid_pucch_hopping, pdu.nid_pucch_hopping);
+  ASSERT_EQ(nid_pucch_scrambling, pdu.nid_pucch_scrambling);
+  ASSERT_EQ(add_dmrs_flag, pdu.add_dmrs_flag);
+  ASSERT_EQ(nid0_pucch_dmrs_scrambling, pdu.nid0_pucch_dmrs_scrambling);
+  ASSERT_EQ(m0_pucch_dmrs_cyclic_shift, pdu.m0_pucch_dmrs_cyclic_shift);
+  ASSERT_EQ(sr_bit_len, pdu.sr_bit_len);
+  ASSERT_EQ(csi_part1_bit_length, pdu.csi_part1_bit_length);
+  ASSERT_EQ(bit_len_harq, pdu.bit_len_harq);
+}
+
+TEST(ul_pucch_pdu_builder, valid_format4_parameters_passes)
+{
+  bool        pi2                        = false;
+  uint16_t    nid_pucch_hopping          = 200;
+  uint8_t     pre_dft_occ_idx            = 1;
+  uint8_t     pre_dft_occ_len            = 2;
+  uint16_t    nid_pucch_scrambling       = 500;
+  bool        add_dmrs_flag              = false;
+  uint16_t    nid0_pucch_dmrs_scrambling = 0;
+  uint8_t     m0_pucch_dmrs_cyclic_shift = 8;
+  sr_nof_bits sr_bit_len                 = sr_nof_bits::one;
+  units::bits csi_part1_bit_length(1024);
+  units::bits bit_len_harq(190);
+
+  ul_pucch_pdu_format_4         pdu;
+  ul_pucch_format_4_pdu_builder format_4_builder(pdu);
+
+  format_4_builder.set_modulation_parameters(pi2)
+      .set_hopping_parameters(nid_pucch_hopping)
+      .set_occ_parameters(pre_dft_occ_idx, pre_dft_occ_len)
+      .set_scrambling_parameters(nid_pucch_scrambling)
+      .set_dmrs_parameters(add_dmrs_flag, nid0_pucch_dmrs_scrambling, m0_pucch_dmrs_cyclic_shift)
+      .set_payload_parameters(sr_bit_len, csi_part1_bit_length, bit_len_harq);
+
+  ASSERT_EQ(pi2, pdu.pi2_bpsk);
+  ASSERT_EQ(nid_pucch_hopping, pdu.nid_pucch_hopping);
+  ASSERT_EQ(pre_dft_occ_idx, pdu.pre_dft_occ_idx);
+  ASSERT_EQ(pre_dft_occ_len, pdu.pre_dft_occ_len);
+  ASSERT_EQ(nid_pucch_scrambling, pdu.nid_pucch_scrambling);
+  ASSERT_EQ(add_dmrs_flag, pdu.add_dmrs_flag);
+  ASSERT_EQ(nid0_pucch_dmrs_scrambling, pdu.nid0_pucch_dmrs_scrambling);
+  ASSERT_EQ(m0_pucch_dmrs_cyclic_shift, pdu.m0_pucch_dmrs_cyclic_shift);
+  ASSERT_EQ(sr_bit_len, pdu.sr_bit_len);
+  ASSERT_EQ(csi_part1_bit_length, pdu.csi_part1_bit_length);
+  ASSERT_EQ(bit_len_harq, pdu.bit_len_harq);
 }
 
 TEST(ul_pucch_pdu_builder, valid_bwp_parameters_passes)
@@ -55,179 +185,25 @@ TEST(ul_pucch_pdu_builder, valid_bwp_parameters_passes)
 
 TEST(ul_pucch_pdu_builder, valid_frequency_allocation_parameters_passes)
 {
-  prb_interval prbs = {8, 10};
+  prb_interval prbs{8, 10};
 
   ul_pucch_pdu         pdu;
   ul_pucch_pdu_builder builder(pdu);
 
-  builder.set_allocation_in_frequency_parameters(prbs);
+  builder.set_frequency_allocation_parameters(prbs);
 
   ASSERT_EQ(prbs, pdu.prbs);
 }
 
-TEST(ul_pucch_pdu_builder, valid_time_allocation_parameters_passes)
-{
-  ofdm_symbol_range symbols = {4, 7};
-
-  ul_pucch_pdu         pdu;
-  ul_pucch_pdu_builder builder(pdu);
-
-  builder.set_allocation_in_time_parameters(symbols);
-
-  ASSERT_EQ(symbols, pdu.symbols);
-}
-
 TEST(ul_pucch_pdu_builder, valid_hopping_information_parameters_passes)
 {
-  bool                intra_slot_freq      = true;
-  unsigned            second_hop_prb       = 100;
-  pucch_group_hopping pucch_grp_hopping    = pucch_group_hopping::NEITHER;
-  unsigned            nid_pucch_hopping    = 200;
-  unsigned            inicial_cyclic_shift = 7;
+  unsigned second_hop_prb = 100;
 
   ul_pucch_pdu         pdu;
   ul_pucch_pdu_builder builder(pdu);
 
-  builder.set_hopping_information_parameters(
-      intra_slot_freq, second_hop_prb, pucch_grp_hopping, nid_pucch_hopping, inicial_cyclic_shift);
+  builder.set_hopping_information_parameters(second_hop_prb);
 
-  ASSERT_EQ(intra_slot_freq, pdu.intra_slot_frequency_hopping);
-  ASSERT_EQ(second_hop_prb, pdu.second_hop_prb);
-  ASSERT_EQ(pucch_grp_hopping, pdu.pucch_grp_hopping);
-  ASSERT_EQ(nid_pucch_hopping, pdu.nid_pucch_hopping);
-  ASSERT_EQ(inicial_cyclic_shift, pdu.initial_cyclic_shift);
-}
-
-TEST(ul_pucch_pdu_builder, valid_scrambling_parameters_passes)
-{
-  unsigned nid_scrambling = 500;
-
-  ul_pucch_pdu         pdu;
-  ul_pucch_pdu_builder builder(pdu);
-  builder.set_scrambling_parameters(nid_scrambling);
-
-  ASSERT_EQ(nid_scrambling, pdu.nid_pucch_scrambling);
-}
-
-TEST(ul_pucch_pdu_builder, valid_pucch_format1_parameters_passes)
-{
-  unsigned time_domain_occ = 3;
-
-  ul_pucch_pdu         pdu;
-  ul_pucch_pdu_builder builder(pdu);
-  builder.set_format1_parameters(time_domain_occ);
-
-  ASSERT_EQ(time_domain_occ, pdu.time_domain_occ_index);
-}
-
-TEST(ul_pucch_pdu_builder, valid_pucch_format4_parameters_passes)
-{
-  unsigned pre_dft_idx = 1;
-  unsigned pre_dft_len = 2;
-
-  ul_pucch_pdu         pdu;
-  ul_pucch_pdu_builder builder(pdu);
-
-  builder.set_format4_parameters(pre_dft_idx, pre_dft_len);
-
-  ASSERT_EQ(pre_dft_idx, pdu.pre_dft_occ_idx);
-  ASSERT_EQ(pre_dft_len, pdu.pre_dft_occ_len);
-}
-
-TEST(ul_pucch_pdu_builder, valid_pucch_format2_parameters_passes)
-{
-  unsigned nid0_dmrs_scrambling = 34567;
-
-  ul_pucch_pdu         pdu;
-  ul_pucch_pdu_builder builder(pdu);
-
-  builder.set_dmrs_scrambling(nid0_dmrs_scrambling);
-
-  ASSERT_EQ(nid0_dmrs_scrambling, pdu.nid0_pucch_dmrs_scrambling);
-}
-
-TEST(ul_pucch_pdu_builder, valid_dmrs_parameters_passes)
-{
-  bool     dmrs_flag                  = false;
-  uint16_t nid0_pucch_dmrs_scrambling = 0;
-  unsigned m0_cyclic_shift            = 8;
-
-  ul_pucch_pdu         pdu;
-  ul_pucch_pdu_builder builder(pdu);
-
-  builder.set_dmrs_parameters(dmrs_flag, nid0_pucch_dmrs_scrambling, m0_cyclic_shift);
-
-  ASSERT_EQ(dmrs_flag, pdu.add_dmrs_flag);
-  ASSERT_EQ(m0_cyclic_shift, pdu.m0_pucch_dmrs_cyclic_shift);
-}
-
-TEST(ul_pucch_pdu_builder, valid_bit_length_parameters_passes)
-{
-  unsigned sr_bit_len        = 3;
-  unsigned harq_bit_len      = 190;
-  unsigned csi_part1_bit_len = 1024;
-
-  ul_pucch_pdu         pdu;
-  ul_pucch_pdu_builder builder(pdu);
-
-  builder.set_bit_length_parameters(sr_bit_len, harq_bit_len, csi_part1_bit_len);
-
-  ASSERT_EQ(sr_bit_len, pdu.sr_bit_len);
-  ASSERT_EQ(harq_bit_len, pdu.bit_len_harq);
-  ASSERT_EQ(csi_part1_bit_len, pdu.csi_part1_bit_length);
-}
-
-TEST(ul_pucch_pdu_builder, valid_maintenance_v3_basic_parameters_passes)
-{
-  std::optional<unsigned> max_code_rate;
-  std::optional<unsigned> ul_bwp_id;
-
-  for (unsigned i = 0, e = 2; i != e; ++i) {
-    if (i) {
-      max_code_rate.emplace(5);
-      ul_bwp_id.emplace(3);
-    }
-
-    ul_pucch_pdu         pdu;
-    ul_pucch_pdu_builder builder(pdu);
-
-    builder.set_maintenance_v3_basic_parameters(max_code_rate, ul_bwp_id);
-
-    ASSERT_EQ((max_code_rate) ? static_cast<uint8_t>(max_code_rate.value()) : 255U,
-              pdu.pucch_maintenance_v3.max_code_rate);
-    ASSERT_EQ((ul_bwp_id) ? static_cast<uint8_t>(ul_bwp_id.value()) : 255U, pdu.pucch_maintenance_v3.ul_bwp_id);
-  }
-}
-
-TEST(ul_pucch_pdu_builder, valid_uci_part1_part2_parameters_passes)
-{
-  ul_pucch_pdu         pdu;
-  ul_pucch_pdu_builder builder(pdu);
-
-  ASSERT_TRUE(pdu.uci_correspondence.part2.empty());
-
-  unsigned nof_part2 = 2;
-  for (unsigned i = 0; i != nof_part2; ++i) {
-    unsigned                                             priority             = 3 * (i + 1);
-    static_vector<uint16_t, 4>                           offset               = {1, 2, 3};
-    static_vector<uint8_t, 4>                            size                 = {6, 3, 2};
-    unsigned                                             part2_size_map_index = 31 * (i + 1);
-    uci_part1_to_part2_correspondence_v3::map_scope_type part2_size_map_scope =
-        (i) ? uci_part1_to_part2_correspondence_v3::map_scope_type::common_context
-            : uci_part1_to_part2_correspondence_v3::map_scope_type::phy_context;
-
-    builder.add_uci_part1_part2_corresnpondence_v3(
-        priority, {offset}, {size}, part2_size_map_index, part2_size_map_scope);
-
-    const auto& correspondence = pdu.uci_correspondence.part2.back();
-    ASSERT_EQ(i + 1, pdu.uci_correspondence.part2.size());
-    ASSERT_EQ(priority, correspondence.priority);
-    ASSERT_EQ(part2_size_map_scope, correspondence.part2_size_map_scope);
-    ASSERT_EQ(part2_size_map_index, correspondence.part2_size_map_index);
-    ASSERT_EQ(priority, correspondence.priority);
-    ASSERT_TRUE(offset == correspondence.param_offsets);
-    ASSERT_TRUE(size == correspondence.param_sizes);
-  }
-
-  ASSERT_EQ(nof_part2, pdu.uci_correspondence.part2.size());
+  ASSERT_TRUE(pdu.second_hop_prb.has_value());
+  ASSERT_EQ(second_hop_prb, *pdu.second_hop_prb);
 }

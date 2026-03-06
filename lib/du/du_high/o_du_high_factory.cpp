@@ -8,8 +8,6 @@
 #include "ocudu/du/du_high/du_high_factory.h"
 #include "ocudu/du/du_high/o_du_high_config.h"
 #include "ocudu/e2/e2_du_factory.h"
-#include "ocudu/fapi/decorator_factory.h"
-#include "ocudu/fapi/p5/p5_requests_gateway.h"
 #include "ocudu/fapi_adaptor/mac/mac_fapi_fastpath_adaptor_factory.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
@@ -41,7 +39,6 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.duplex = (du_cell.ran.tdd_ul_dl_cfg_common) ? duplex_mode::TDD : duplex_mode::FDD;
   cell_cfg.pci    = du_cell.ran.pci;
 
-  unsigned numerology       = to_numerology_value(scs_common);
   unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
       du_cell.ran.dl_carrier.carrier_bw,
       scs_common,
@@ -53,11 +50,8 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.carrier_cfg.dl_f_ref_arfcn = du_cell.ran.dl_carrier.arfcn_f_ref.value();
   cell_cfg.carrier_cfg.ul_f_ref_arfcn = du_cell.ran.ul_carrier.arfcn_f_ref.value();
 
-  // NOTE; for now we only need to fill the nof_prb_ul_grid and nof_prb_dl_grid for the common SCS.
-  cell_cfg.carrier_cfg.dl_grid_size             = {};
-  cell_cfg.carrier_cfg.dl_grid_size[numerology] = grid_size_bw_prb;
-  cell_cfg.carrier_cfg.ul_grid_size             = {};
-  cell_cfg.carrier_cfg.ul_grid_size[numerology] = grid_size_bw_prb;
+  cell_cfg.carrier_cfg.dl_grid_size = grid_size_bw_prb;
+  cell_cfg.carrier_cfg.ul_grid_size = grid_size_bw_prb;
 
   // Number of transmit and receive antenna ports.
   cell_cfg.carrier_cfg.num_tx_ant     = du_cell.ran.dl_carrier.nof_ant;
@@ -83,12 +77,8 @@ generate_fapi_fastpath_adaptor_config(const o_du_high_config& config)
     const subcarrier_spacing scs_common = du_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
     unsigned                 nof_prb    = get_max_Nprb(
         du_cell.ran.dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(du_cell.ran.dl_carrier.band));
-    fapi_adaptor::mac_fapi_p7_sector_fastpath_adaptor_config p7_cfg = {.sector_id     = i,
-                                                                       .cell_nof_prbs = nof_prb,
-                                                                       .scs           = scs_common,
-                                                                       .log_level     = config.fapi.log_level,
-                                                                       .l2_nof_slots_ahead =
-                                                                           config.fapi.l2_nof_slots_ahead};
+    fapi_adaptor::mac_fapi_p7_sector_fastpath_adaptor_config p7_cfg = {
+        .sector_id = i, .cell_nof_prbs = nof_prb, .scs = scs_common};
 
     out_config.sectors.push_back({.p5_config = generate_fapi_p5_cell_config(du_cell), .p7_config = p7_cfg});
   }
@@ -101,13 +91,13 @@ generate_mac_fapi_p7_sector_adaptor_dependencies(const o_du_high_sector_dependen
                                                  unsigned                             nof_tx_antennas,
                                                  unsigned                             sector)
 {
-  return {.p7_gateway             = sector_dependencies.p7_gateway,
-          .p7_last_req_notifier   = sector_dependencies.p7_last_req_notifier,
-          .pm_mapper              = std::move(std::get<std::unique_ptr<fapi_adaptor::precoding_matrix_mapper>>(
+  return {.p7_gateway           = sector_dependencies.p7_gateway,
+          .p7_last_req_notifier = sector_dependencies.p7_last_req_notifier,
+          .pm_mapper            = std::move(std::get<std::unique_ptr<fapi_adaptor::precoding_matrix_mapper>>(
               fapi_adaptor::generate_precoding_matrix_tables(nof_tx_antennas, sector))),
-          .part2_mapper           = std::move(std::get<std::unique_ptr<fapi_adaptor::uci_part2_correspondence_mapper>>(
+          .part2_mapper         = std::move(std::get<std::unique_ptr<fapi_adaptor::uci_part2_correspondence_mapper>>(
               fapi_adaptor::generate_uci_part2_correspondence(1))),
-          .bufferer_task_executor = sector_dependencies.fapi_executor};
+          .fapi_logger          = sector_dependencies.fapi_logger};
 }
 
 static fapi_adaptor::mac_fapi_fastpath_adaptor_dependencies

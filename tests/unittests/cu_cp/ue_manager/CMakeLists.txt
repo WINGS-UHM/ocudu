@@ -12,5 +12,5 @@ set(SOURCES
 
 add_executable(cu_cp_ue_manager_test ${SOURCES})
 target_include_directories(cu_cp_ue_manager_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(cu_cp_ue_manager_test cu_cp_ue_manager_test_helpers ocudu_support ocudulog gtest gtest_main)
+target_link_libraries(cu_cp_ue_manager_test cu_cp_ue_manager_test_helpers ocudu_support ocudulog GTest::gtest GTest::gtest_main)
 gtest_discover_tests(cu_cp_ue_manager_test PROPERTIES "LABELS;cu_cp_ue_manager")

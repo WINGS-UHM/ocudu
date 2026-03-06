@@ -6,5 +6,5 @@
 set_directory_properties(PROPERTIES LABELS "fapi")
 
 add_executable(error_indication_builder_test error_indication_test.cpp)
-target_link_libraries(error_indication_builder_test ocudu_support ocudulog gtest gtest_main)
+target_link_libraries(error_indication_builder_test ocudu_support ocudulog GTest::gtest GTest::gtest_main)
 gtest_discover_tests(error_indication_builder_test)

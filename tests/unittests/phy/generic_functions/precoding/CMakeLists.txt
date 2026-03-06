@@ -13,7 +13,7 @@ target_link_libraries(
         ocudu_ran
         ocudulog
         ocuduvec
-        gtest
-        gtest_main)
+        GTest::gtest
+        GTest::gtest_main)
 
 add_test(channel_precoder_test channel_precoder_test)

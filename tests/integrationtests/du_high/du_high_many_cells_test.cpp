@@ -8,10 +8,10 @@
 #include "tests/test_doubles/mac/mac_test_messages.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
 #include "tests/test_doubles/scheduler/scheduler_result_finder.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include "ocudu/f1ap/f1ap_message.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -197,7 +197,7 @@ TEST_P(du_high_many_cells_tester, when_cell_stopped_then_ues_are_released)
   }
 
   // Stop one cell via F1AP gNB-CU Configuration Update.
-  const unsigned rem_cell_idx = test_rgen::uniform_int<unsigned>(0, GetParam().nof_cells - 1);
+  const unsigned rem_cell_idx = test_rng::uniform_int<unsigned>(0, GetParam().nof_cells - 1);
   this->cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message req = test_helpers::generate_gnb_cu_configuration_update_request(
       0, {}, {{nr_cell_global_id_t{plmn_identity::test_value(), nr_cell_identity::create(rem_cell_idx).value()}}});
@@ -250,7 +250,7 @@ TEST_P(du_high_many_cells_tester, when_cell_restarted_then_ues_can_be_created)
   }
 
   // Stop one cell via F1AP gNB-CU Configuration Update.
-  const unsigned      rem_cell_idx = test_rgen::uniform_int<unsigned>(0, GetParam().nof_cells - 1);
+  const unsigned      rem_cell_idx = test_rng::uniform_int<unsigned>(0, GetParam().nof_cells - 1);
   nr_cell_global_id_t rem_cgi{plmn_identity::test_value(), nr_cell_identity::create(rem_cell_idx).value()};
   f1ap_message        req = test_helpers::generate_gnb_cu_configuration_update_request(0, {}, {{rem_cgi}});
   this->du_hi->get_f1ap_du().handle_message(req);
@@ -265,7 +265,7 @@ TEST_P(du_high_many_cells_tester, when_cell_restarted_then_ues_can_be_created)
   }));
 
   // Random number of slots elapsed.
-  const unsigned nof_slots_before_reactivation = test_rgen::uniform_int<unsigned>(0, 500);
+  const unsigned nof_slots_before_reactivation = test_rng::uniform_int<unsigned>(0, 500);
   for (unsigned i = 0; i != nof_slots_before_reactivation; ++i) {
     this->run_slot();
   }

@@ -6,6 +6,7 @@
 #include "tests/test_doubles/du/test_du_high_worker_manager.h"
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/mac/mac_test_messages.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
 #include "ocudu/cu_cp/cu_cp_factory.h"
@@ -15,7 +16,6 @@
 #include "ocudu/mac/mac_cell_timing_context.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/support/io/io_broker_factory.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -132,7 +132,7 @@ void du_high_cu_test_simulator::start_dus()
 
     // Setup DU-specific slot index.
     du_ctxt.next_slot = {subcarrier_spacing::kHz15,
-                         test_rgen::uniform_int<unsigned>(0, NOF_HYPER_SFNS * NOF_SFNS * NOF_SUBFRAMES_PER_FRAME - 1)};
+                         test_rng::uniform_int<unsigned>(0, NOF_HYPER_SFNS * NOF_SFNS * NOF_SUBFRAMES_PER_FRAME - 1)};
 
     // Instantiate DU-high.
     odu::du_high_configuration& du_hi_cfg = du_ctxt.du_high_cfg;

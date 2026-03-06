@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/ring_buffer.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
@@ -37,9 +38,9 @@ protected:
           int> = 0>
   ring_type create_empty_ring()
   {
-    ring_type ring{test_rgen::uniform_int<unsigned>(2, 1000)};
+    ring_type ring{test_rng::uniform_int<unsigned>(2, 1000)};
     // randomize read position of the ring.
-    unsigned nof_objs = test_rgen::uniform_int<unsigned>(0, ring.max_size());
+    unsigned nof_objs = test_rng::uniform_int<unsigned>(0, ring.max_size());
     for (unsigned i = 0; i != nof_objs; ++i) {
       ring.push(create_value());
       ring.pop();
@@ -55,7 +56,7 @@ protected:
   {
     ring_type ring;
     // randomize read position of the ring.
-    unsigned nof_objs = test_rgen::uniform_int<unsigned>(0, ring.max_size());
+    unsigned nof_objs = test_rng::uniform_int<unsigned>(0, ring.max_size());
     for (unsigned i = 0; i != nof_objs; ++i) {
       ring.push(create_value());
       ring.pop();
@@ -66,14 +67,14 @@ protected:
   ring_type create_semi_filled_ring()
   {
     ring_type ring     = create_empty_ring();
-    unsigned  nof_objs = test_rgen::uniform_int<unsigned>(1, ring.max_size() - 1);
+    unsigned  nof_objs = test_rng::uniform_int<unsigned>(1, ring.max_size() - 1);
     for (unsigned i = 0; i != nof_objs; ++i) {
       ring.push(create_value());
     }
     return ring;
   }
 
-  elem_type create_value(int v = test_rgen::uniform_int<int>()) { return elem_type{v}; }
+  elem_type create_value(int v = test_rng::uniform_int<int>()) { return elem_type{v}; }
 };
 using test_value_types = ::testing::Types<static_ring_buffer<int, 10>,
                                           static_ring_buffer<int, 200>,
@@ -151,7 +152,7 @@ TYPED_TEST(ring_buffer_test, when_clear_is_called_then_ring_becomes_empty)
 TYPED_TEST(ring_buffer_test, pop_and_top_in_reverse_order_of_push)
 {
   auto     ring     = this->create_empty_ring();
-  unsigned nof_objs = test_rgen::uniform_int<unsigned>(1, ring.max_size());
+  unsigned nof_objs = test_rng::uniform_int<unsigned>(1, ring.max_size());
   for (unsigned i = 0; i != nof_objs; ++i) {
     ring.push(this->create_value(i));
   }
@@ -168,7 +169,7 @@ TYPED_TEST(ring_buffer_test, pop_and_top_in_reverse_order_of_push)
 TYPED_TEST(ring_buffer_test, iterator_remains_valid_after_pushes)
 {
   auto     ring     = this->create_empty_ring();
-  unsigned nof_objs = test_rgen::uniform_int<unsigned>(1, ring.max_size());
+  unsigned nof_objs = test_rng::uniform_int<unsigned>(1, ring.max_size());
   for (unsigned i = 0; i != nof_objs; ++i) {
     ring.push(this->create_value(i));
   }
@@ -190,7 +191,7 @@ TYPED_TEST(ring_buffer_test, iterator_remains_valid_after_pushes)
 TYPED_TEST(ring_buffer_test, when_move_ctor_is_called_then_elements_are_moved)
 {
   auto     ring1    = this->create_empty_ring();
-  unsigned nof_objs = test_rgen::uniform_int<unsigned>(1, ring1.max_size());
+  unsigned nof_objs = test_rng::uniform_int<unsigned>(1, ring1.max_size());
   for (unsigned i = 0; i != nof_objs; ++i) {
     ring1.push(this->create_value(i));
   }
@@ -215,7 +216,7 @@ TYPED_TEST(ring_buffer_test, when_move_assignment_is_called_then_lhs_elements_ar
 {
   auto     ring1     = this->create_semi_filled_ring();
   auto     ring2     = this->create_empty_ring();
-  unsigned nof_objs2 = test_rgen::uniform_int<unsigned>(0, ring2.max_size());
+  unsigned nof_objs2 = test_rng::uniform_int<unsigned>(0, ring2.max_size());
   for (unsigned i = 0; i != nof_objs2; ++i) {
     ring2.push(this->create_value(i));
   }
@@ -245,7 +246,7 @@ TYPED_TEST(copyable_ring_tester, operator_equal_for_different_scenarios)
   ASSERT_EQ(ring_eq, ring1);
 
   auto ring_diff_val(ring1);
-  ring_diff_val[test_rgen::uniform_int<unsigned>(0, ring_diff_val.size() - 1)]++;
+  ring_diff_val[test_rng::uniform_int<unsigned>(0, ring_diff_val.size() - 1)]++;
   ASSERT_NE(ring_diff_val, ring1);
 
   auto ring_shorter(ring1);
@@ -261,7 +262,7 @@ TYPED_TEST(copyable_ring_tester, operator_equal_for_different_scenarios)
 
 TEST(dyn_ring_buffer_test, when_force_power2_flag_is_set_then_buffer_size_is_automatically_set_to_closest_power_of_2)
 {
-  unsigned               buffer_size = test_rgen::uniform_int<unsigned>(1, 1024);
+  unsigned               buffer_size = test_rng::uniform_int<unsigned>(1, 1024);
   ring_buffer<int, true> buf(buffer_size);
   ASSERT_EQ(buf.size(), 0);
   ASSERT_GE(buf.max_size(), buffer_size);
@@ -271,14 +272,14 @@ TEST(dyn_ring_buffer_test, when_force_power2_flag_is_set_then_buffer_size_is_aut
 TEST(dyn_ring_buffer_test,
      when_dtor_of_buffer_of_moveonly_objects_is_called_then_buffer_elements_destructors_are_called)
 {
-  unsigned buffer_size = test_rgen::uniform_int<unsigned>(1, 20);
-  unsigned nof_objs    = test_rgen::uniform_int<unsigned>(1, buffer_size);
+  unsigned buffer_size = test_rng::uniform_int<unsigned>(1, 20);
+  unsigned nof_objs    = test_rng::uniform_int<unsigned>(1, buffer_size);
   using C              = moveonly_test_object;
   ASSERT_EQ(C::object_count(), 0);
   {
     ring_buffer<C> circ_buffer(buffer_size);
     for (unsigned i = 0; i != nof_objs; ++i) {
-      circ_buffer.push(C{test_rgen::uniform_int<int>()});
+      circ_buffer.push(C{test_rng::uniform_int<int>()});
     }
     ASSERT_EQ(C::object_count(), nof_objs);
   }
@@ -289,7 +290,7 @@ TYPED_TEST(copyable_ring_tester, push_in_batches)
 {
   auto                                             ring = this->create_empty_ring();
   std::vector<typename decltype(ring)::value_type> vec;
-  unsigned                                         nof_objs = test_rgen::uniform_int<unsigned>(1, ring.max_size());
+  unsigned                                         nof_objs = test_rng::uniform_int<unsigned>(1, ring.max_size());
   for (unsigned i = 0; i != nof_objs; ++i) {
     vec.push_back(this->create_value());
   }
@@ -303,7 +304,7 @@ TYPED_TEST(copyable_ring_tester, pop_in_batches)
 {
   auto                                             ring = this->create_empty_ring();
   std::vector<typename decltype(ring)::value_type> vec, vec2;
-  unsigned                                         nof_objs = test_rgen::uniform_int<unsigned>(1, ring.max_size());
+  unsigned                                         nof_objs = test_rng::uniform_int<unsigned>(1, ring.max_size());
   for (unsigned i = 0; i != nof_objs; ++i) {
     vec.push_back(this->create_value());
   }

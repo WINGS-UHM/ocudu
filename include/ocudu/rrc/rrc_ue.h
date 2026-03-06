@@ -175,7 +175,8 @@ public:
 
   /// \brief Notify about an Uplink NAS Transport message.
   /// \param[in] msg The Uplink NAS Transport message.
-  virtual void on_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg) = 0;
+  /// \returns True if the message was forwarded successfully, false otherwise.
+  virtual bool on_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg) = 0;
 };
 
 struct rrc_reconfiguration_response_message {

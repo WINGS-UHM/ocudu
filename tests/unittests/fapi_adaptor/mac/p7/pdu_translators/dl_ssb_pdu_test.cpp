@@ -33,9 +33,10 @@ TEST(mac_fapi_ssb_pdu_conversor_test, valid_pdu_should_pass)
 {
   ocudu::dl_ssb_pdu pdu = build_valid_dl_ssb_pdu();
 
-  fapi::dl_ssb_pdu fapi_pdu;
-  slot_point       slot(1, 0);
-  convert_ssb_mac_to_fapi(fapi_pdu, pdu, slot_point(1, 0));
+  fapi::dl_ssb_pdu         fapi_pdu;
+  fapi::dl_ssb_pdu_builder builder(fapi_pdu);
+  slot_point               slot(1, 0);
+  convert_ssb_mac_to_fapi(builder, pdu, slot_point(1, 0));
 
   ASSERT_EQ(pdu.pci, fapi_pdu.phys_cell_id);
   ASSERT_EQ(static_cast<unsigned>(pdu.pss_to_sss_epre), static_cast<unsigned>(fapi_pdu.beta_pss_profile_nr));

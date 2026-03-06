@@ -306,7 +306,13 @@ void rrc_ue_impl::handle_ul_info_transfer(const ul_info_transfer_ies_s& ul_info_
   ul_nas_msg.user_location_info.tai.plmn_id = context.plmn_id;
   ul_nas_msg.user_location_info.tai.tac     = context.cell.tac;
 
-  ngap_notifier.on_ul_nas_transport_message(ul_nas_msg);
+  if (!ngap_notifier.on_ul_nas_transport_message(ul_nas_msg)) {
+    logger.log_info(
+        "Requesting UE release. Cause: Received unexpected UL NAS Transport message and failed to forward it to NGAP");
+    cancel_all_transactions();
+    on_ue_release_required(cause_protocol_t::msg_not_compatible_with_receiver_state);
+    return;
+  }
 }
 
 void rrc_ue_impl::handle_measurement_report(const asn1::rrc_nr::meas_report_s& msg)

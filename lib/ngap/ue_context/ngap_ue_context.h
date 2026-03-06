@@ -11,8 +11,7 @@
 #include "ocudu/support/timers.h"
 #include <unordered_map>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 struct ngap_ue_ids {
   ue_index_t        ue_index  = ue_index_t::invalid;
@@ -253,7 +252,7 @@ public:
     // Check if the next_ran_ue_id is available.
     if (ues.find(next_ran_ue_id) == ues.end()) {
       ran_ue_id_t ret = next_ran_ue_id;
-      // Increase the next CU UE F1AP ID.
+      // Increase the next RAN-UE-ID.
       increase_next_ran_ue_id();
       return ret;
     }
@@ -268,12 +267,12 @@ public:
       // Return the ID if it is not already used.
       if (it == ue_index_to_ran_ue_id.end()) {
         ran_ue_id_t ret = next_ran_ue_id;
-        // Increase the next CU-UE-F1AP-ID.
+        // Increase the next RAN-UE-ID.
         increase_next_ran_ue_id();
         return ret;
       }
 
-      // Increase the next CU-UE-F1AP-ID and try again.
+      // Increase the next RAN-UE-ID and try again.
       increase_next_ran_ue_id();
     }
 
@@ -304,5 +303,4 @@ private:
   std::unordered_map<ran_ue_id_t, ngap_ue_context> ues;                    // indexed by ran_ue_id_t
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

@@ -20,18 +20,10 @@ class p7_requests_gateway;
 
 namespace odu {
 
-/// FAPI configuration for the O-RAN DU high.
-struct o_du_high_fapi_config {
-  ocudulog::basic_levels log_level;
-  unsigned               l2_nof_slots_ahead;
-};
-
 /// Base O-DU high configuration.
 struct o_du_high_config {
   /// Configuration of the DU-high that comprises the MAC, RLC and F1 layers.
   odu::du_high_configuration du_hi;
-  /// O-RAN DU high FAPI configuration.
-  o_du_high_fapi_config fapi;
   /// E2AP configuration.
   e2ap_configuration e2ap_config;
 };
@@ -47,8 +39,8 @@ struct o_du_high_sector_dependencies {
   task_executor& fapi_ctrl_executor;
   /// MAC control executor.
   task_executor& mac_ctrl_executor;
-  /// FAPI message bufferer executor.
-  task_executor* fapi_executor = nullptr;
+  /// FAPI logger.
+  ocudulog::basic_logger& fapi_logger;
 };
 
 /// O-RAN DU high dependencies.

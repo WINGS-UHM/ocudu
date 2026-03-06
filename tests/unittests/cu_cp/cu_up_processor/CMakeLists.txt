@@ -13,5 +13,5 @@ set(SOURCES
 
 add_executable(cu_up_processor_test ${SOURCES})
 target_include_directories(cu_up_processor_test PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(cu_up_processor_test cu_up_processor_test_helpers ocudu_support ocudulog gtest gtest_main)
+target_link_libraries(cu_up_processor_test cu_up_processor_test_helpers ocudu_support ocudulog GTest::gtest GTest::gtest_main)
 gtest_discover_tests(cu_up_processor_test PROPERTIES "LABELS;cu_up_processor")

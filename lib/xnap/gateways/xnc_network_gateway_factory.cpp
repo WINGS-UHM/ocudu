@@ -60,10 +60,10 @@ public:
   }
 
 private:
-  const transport_layer_address& peer_addr;
-  sctp_network_server&           sctp_server;
-  dlt_pcap&                      pcap_writer;
-  ocudulog::basic_logger&        logger;
+  const transport_layer_address peer_addr;
+  sctp_network_server&          sctp_server;
+  dlt_pcap&                     pcap_writer;
+  ocudulog::basic_logger&       logger;
 };
 
 /// Notifier passed to the CU-CP, which the CU-CP will use to send XNAP Tx PDUs.

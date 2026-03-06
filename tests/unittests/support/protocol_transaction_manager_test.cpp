@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/async/eager_async_task.h"
 #include "ocudu/support/async/protocol_transaction_manager.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -53,7 +53,7 @@ TEST_F(protocol_transaction_test, when_transaction_ids_are_all_occupied_then_tra
   ASSERT_FALSE(tr.valid());
 
   // Delete one running transaction.
-  auto id = test_rgen::uniform_int<protocol_transaction_id_t>(0, NOF_TRANSACTIONS - 1);
+  auto id = test_rng::uniform_int<protocol_transaction_id_t>(0, NOF_TRANSACTIONS - 1);
   transactions.erase(transactions.begin() + id);
 
   // It should be possible to create a new one now.

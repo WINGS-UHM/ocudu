@@ -5,10 +5,10 @@
 #include "../test_utils/config_generators.h"
 #include "lib/scheduler/srs/srs_scheduler_impl.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -59,12 +59,12 @@ create_sched_ue_creation_request_for_srs_cfg(const sched_ue_creation_request_mes
     ocudu_assert(static_cast<unsigned>(srs_period) >= tdd_cfg.value().pattern1.dl_ul_tx_period_nof_slots,
                  "SRS period cannot be smaller than the TDD period");
 
-    srs_offset = test_rgen::uniform_int<uint16_t>(0, static_cast<uint16_t>(srs_period) - 1);
+    srs_offset = test_rng::uniform_int<uint16_t>(0, static_cast<uint16_t>(srs_period) - 1);
     while (not is_ul_slot(srs_offset, tdd_cfg.value())) {
-      srs_offset = test_rgen::uniform_int<uint16_t>(0, static_cast<uint16_t>(srs_period) - 1);
+      srs_offset = test_rng::uniform_int<uint16_t>(0, static_cast<uint16_t>(srs_period) - 1);
     }
   } else {
-    srs_offset = test_rgen::uniform_int<uint16_t>(0, static_cast<uint16_t>(srs_period) - 1);
+    srs_offset = test_rng::uniform_int<uint16_t>(0, static_cast<uint16_t>(srs_period) - 1);
   }
   srs_res.periodicity_and_offset.emplace(srs_config::srs_periodicity_and_offset{srs_period, srs_offset});
 
@@ -273,7 +273,7 @@ TEST_P(srs_scheduler_tester, test_different_periods)
 {
   const auto srs_period_uint = static_cast<unsigned>(GetParam().period);
 
-  const auto add_ue_slot = test_rgen::uniform_int<unsigned>(0, res_grid.ring_size());
+  const auto add_ue_slot = test_rng::uniform_int<unsigned>(0, res_grid.ring_size());
   // Check at the allocation for at least 4 the size of the resource grid.
   const unsigned nof_slots_to_test = add_ue_slot + std::max(srs_period_uint * 4, res_grid.ring_size() * 4);
 

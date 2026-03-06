@@ -94,7 +94,7 @@ void ngap_handover_preparation_procedure::operator()(coro_context<async_task<nga
 
     // Forward RRC Handover Command to DU Processor.
     CORO_AWAIT_VALUE(rrc_reconfig_success,
-                     cu_cp_notifier.on_new_handover_command(request.ue_index, std::move(rrc_ho_cmd_pdu)));
+                     cu_cp_notifier.on_new_rrc_handover_command(request.ue_index, std::move(rrc_ho_cmd_pdu)));
     if (!rrc_reconfig_success) {
       logger.log_warning("\"{}\" failed. Cause: Received invalid HandoverCommand", name());
       CORO_EARLY_RETURN(ngap_handover_preparation_response{false});

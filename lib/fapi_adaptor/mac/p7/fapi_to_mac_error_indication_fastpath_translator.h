@@ -6,7 +6,6 @@
 
 #include "ocudu/fapi/common/error_indication_notifier.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include "ocudu/ran/subcarrier_spacing.h"
 
 namespace ocudu {
 
@@ -18,7 +17,7 @@ namespace fapi_adaptor {
 class fapi_to_mac_error_indication_fastpath_translator : public fapi::error_indication_notifier
 {
 public:
-  explicit fapi_to_mac_error_indication_fastpath_translator(ocudulog::basic_logger& logger_);
+  fapi_to_mac_error_indication_fastpath_translator(unsigned sector_id_, ocudulog::basic_logger& logger_);
 
   // See interface for documentation.
   void on_error_indication(const fapi::error_indication& msg) override;
@@ -27,6 +26,7 @@ public:
   void set_cell_slot_handler(mac_cell_slot_handler& handler) { mac_slot_handler = &handler; }
 
 private:
+  const unsigned          sector_id;
   mac_cell_slot_handler*  mac_slot_handler;
   ocudulog::basic_logger& logger;
 };

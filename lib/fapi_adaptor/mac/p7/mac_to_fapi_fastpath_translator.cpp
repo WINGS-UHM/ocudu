@@ -11,6 +11,7 @@
 #include "pdu_translators/pusch.h"
 #include "pdu_translators/srs.h"
 #include "pdu_translators/ssb.h"
+#include "ocudu/fapi/message_loggers.h"
 #include "ocudu/fapi/p7/builders/dl_tti_request_builder.h"
 #include "ocudu/fapi/p7/builders/tx_data_request_builder.h"
 #include "ocudu/fapi/p7/builders/ul_dci_request_builder.h"
@@ -26,10 +27,12 @@ mac_to_fapi_fastpath_translator::mac_to_fapi_fastpath_translator(
     const mac_to_fapi_fastpath_translator_config& config,
     mac_to_fapi_fastpath_translator_dependencies  dependencies) :
   cell_nof_prbs(config.cell_nof_prbs),
+  sector_id(config.sector_id),
   p7_gateway(dependencies.p7_gateway),
   p7_last_req_notifier(dependencies.p7_last_req_notifier),
   pm_mapper(std::move(dependencies.pm_mapper)),
-  part2_mapper(std::move(dependencies.part2_mapper))
+  part2_mapper(std::move(dependencies.part2_mapper)),
+  fapi_logger(dependencies.fapi_logger)
 {
   ocudu_assert(pm_mapper, "Invalid precoding matrix mapper");
   ocudu_assert(part2_mapper, "Invalid Part2 mapper");
@@ -154,6 +157,8 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const ma
                                *pm_mapper,
                                cell_nof_prbs);
 
+  log_dl_tti_request(msg, sector_id, fapi_logger);
+
   // Send the message.
   p7_gateway.send_dl_tti_request(msg);
 
@@ -214,6 +219,8 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_data(const mac_dl_data_res
     }
   }
 
+  log_tx_data_request(msg, sector_id, fapi_logger);
+
   // Send the message.
   p7_gateway.send_tx_data_request(msg);
 }
@@ -255,6 +262,8 @@ void mac_to_fapi_fastpath_translator::on_new_uplink_scheduler_results(const mac_
     convert_srs_mac_to_fapi(pdu_builder, pdu);
   }
 
+  log_ul_tti_request(msg, sector_id, fapi_logger);
+
   // Send the message.
   p7_gateway.send_ul_tti_request(msg);
 }
@@ -274,6 +283,8 @@ void mac_to_fapi_fastpath_translator::handle_ul_dci_request(span<const pdcch_ul_
   builder.set_slot(slot);
 
   add_pdcch_pdus_to_builder(builder, pdcch_info, payloads, *pm_mapper, cell_nof_prbs);
+
+  log_ul_dci_request(msg, sector_id, fapi_logger);
 
   // Send the message.
   p7_gateway.send_ul_dci_request(msg);

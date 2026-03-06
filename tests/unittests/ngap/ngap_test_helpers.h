@@ -11,6 +11,7 @@
 #include "ocudu/ngap/ngap.h"
 #include "ocudu/ngap/ngap_configuration.h"
 #include "ocudu/ngap/ngap_factory.h"
+#include "ocudu/ran/cu_types.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
@@ -58,10 +59,11 @@ protected:
   void run_pdu_session_resource_setup(ue_index_t ue_index, pdu_session_id_t pdu_session_id);
 
   // Manually add existing PDU sessions to UP manager
-  void add_pdu_session_to_up_manager(ue_index_t       ue_index,
-                                     pdu_session_id_t pdu_session_id,
-                                     drb_id_t         drb_id,
-                                     qos_flow_id_t    qos_flow_id);
+  void add_pdu_session_to_up_manager(ue_index_t         ue_index,
+                                     pdu_session_id_t   pdu_session_id,
+                                     pdu_session_type_t pdu_session_type,
+                                     drb_id_t           drb_id,
+                                     qos_flow_id_t      qos_flow_id);
 
   /// \brief Manually tick timers.
   void tick();

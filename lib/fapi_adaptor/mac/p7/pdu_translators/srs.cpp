@@ -8,13 +8,6 @@
 using namespace ocudu;
 using namespace fapi_adaptor;
 
-void fapi_adaptor::convert_srs_mac_to_fapi(fapi::ul_srs_pdu& fapi_pdu, const srs_info& mac_pdu)
-{
-  fapi::ul_srs_pdu_builder builder(fapi_pdu);
-
-  convert_srs_mac_to_fapi(builder, mac_pdu);
-}
-
 void fapi_adaptor::convert_srs_mac_to_fapi(fapi::ul_srs_pdu_builder& builder, const srs_info& mac_pdu)
 {
   const bwp_configuration& bwp = *mac_pdu.bwp_cfg;

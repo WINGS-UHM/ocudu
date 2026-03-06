@@ -3,54 +3,92 @@
 
 #pragma once
 
-#include "ocudu/fapi/p7/messages/uci_part1_to_part2_correspondence_v3.h"
 #include "ocudu/ran/cyclic_prefix.h"
-#include "ocudu/ran/pucch/pucch_mapping.h"
+#include "ocudu/ran/pucch/pucch_uci_bits.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/support/units.h"
+#include <optional>
+#include <variant>
 
 namespace ocudu {
 namespace fapi {
 
-/// PUCCH PDU maintenance information added in FAPIv3.
-struct ul_pucch_maintenance_v3 {
-  uint8_t max_code_rate;
-  uint8_t ul_bwp_id;
+/// Holds the definition of the structure for the PUCCH PDU format 0.
+struct ul_pucch_pdu_format_0 {
+  uint16_t    nid_pucch_hopping;
+  uint16_t    initial_cyclic_shift;
+  bool        sr_present;
+  units::bits bit_len_harq;
+};
+
+/// Holds the definition of the structure for the PUCCH PDU format 1.
+struct ul_pucch_pdu_format_1 {
+  uint16_t    nid_pucch_hopping;
+  uint16_t    initial_cyclic_shift;
+  uint8_t     time_domain_occ_index;
+  bool        sr_present;
+  units::bits bit_len_harq;
+};
+
+/// Holds the definition of the structure for the PUCCH PDU format 2.
+struct ul_pucch_pdu_format_2 {
+  uint16_t    nid_pucch_scrambling;
+  uint16_t    nid0_pucch_dmrs_scrambling;
+  sr_nof_bits sr_bit_len;
+  units::bits csi_part1_bit_length;
+  units::bits bit_len_harq;
+};
+
+/// Holds the definition of the structure for the PUCCH PDU format 3.
+struct ul_pucch_pdu_format_3 {
+  bool        pi2_bpsk;
+  uint16_t    nid_pucch_hopping;
+  uint16_t    nid_pucch_scrambling;
+  bool        add_dmrs_flag;
+  uint16_t    nid0_pucch_dmrs_scrambling;
+  uint8_t     m0_pucch_dmrs_cyclic_shift;
+  sr_nof_bits sr_bit_len;
+  units::bits csi_part1_bit_length;
+  units::bits bit_len_harq;
+};
+
+/// Holds the definition of the structure for the PUCCH PDU format 4.
+struct ul_pucch_pdu_format_4 {
+  bool        pi2_bpsk;
+  uint16_t    nid_pucch_hopping;
+  uint16_t    nid_pucch_scrambling;
+  uint8_t     pre_dft_occ_idx;
+  uint8_t     pre_dft_occ_len;
+  bool        add_dmrs_flag;
+  uint16_t    nid0_pucch_dmrs_scrambling;
+  uint8_t     m0_pucch_dmrs_cyclic_shift;
+  sr_nof_bits sr_bit_len;
+  units::bits csi_part1_bit_length;
+  units::bits bit_len_harq;
 };
 
 /// Encodes PUCCH pdu.
 struct ul_pucch_pdu {
-  rnti_t                   rnti;
-  uint32_t                 handle = 0;
-  crb_interval             bwp;
-  subcarrier_spacing       scs;
-  cyclic_prefix            cp;
-  pucch_format             format_type;
-  pucch_repetition_tx_slot multi_slot_tx_indicator;
-  bool                     pi2_bpsk;
-  prb_interval             prbs;
-  ofdm_symbol_range        symbols;
-  bool                     intra_slot_frequency_hopping;
-  uint16_t                 second_hop_prb;
-  pucch_group_hopping      pucch_grp_hopping;
-  uint8_t                  reserved;
-  uint16_t                 nid_pucch_hopping;
-  uint16_t                 initial_cyclic_shift;
-  uint16_t                 nid_pucch_scrambling;
-  uint8_t                  time_domain_occ_index;
-  uint8_t                  pre_dft_occ_idx;
-  uint8_t                  pre_dft_occ_len;
-  bool                     add_dmrs_flag;
-  uint16_t                 nid0_pucch_dmrs_scrambling;
-  uint8_t                  m0_pucch_dmrs_cyclic_shift;
-  uint8_t                  sr_bit_len;
-  uint16_t                 bit_len_harq;
-  uint16_t                 csi_part1_bit_length;
-  //: TODO: beamforming struct
-  ul_pucch_maintenance_v3              pucch_maintenance_v3;
-  uci_part1_to_part2_correspondence_v3 uci_correspondence;
+  /// Holds the possible PUCCH PDU format.
+  using ul_pucch_pdu_format = std::variant<std::monostate,
+                                           ul_pucch_pdu_format_0,
+                                           ul_pucch_pdu_format_1,
+                                           ul_pucch_pdu_format_2,
+                                           ul_pucch_pdu_format_3,
+                                           ul_pucch_pdu_format_4>;
+
+  rnti_t                  rnti;
+  uint32_t                handle = 0;
+  crb_interval            bwp;
+  subcarrier_spacing      scs;
+  cyclic_prefix           cp;
+  ul_pucch_pdu_format     format;
+  prb_interval            prbs;
+  ofdm_symbol_range       symbols;
+  std::optional<uint16_t> second_hop_prb;
 };
 
 } // namespace fapi

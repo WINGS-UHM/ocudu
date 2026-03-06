@@ -93,12 +93,12 @@ Different pipeline types use different runner tags:
 | Tag | When Used | Runner Type | Requirements |
 |-----|-----------|-------------|--------------|
 | (no tag) | All pipelines | Free GitLab Shared Runners | Small tasks, minimal resources |
-| `saas-linux-medium-amd64` | MR pipelines | Free GitLab Shared Runners | Available to all GitLab users |
-| `saas-linux-medium-arm64` | MR pipelines | Free GitLab Shared Runners | Available to all GitLab users |
-| `saas-linux-large-amd64` | Scheduled pipelines | Premium GitLab Shared Runners | Requires Premium or Ultimate subscription |
-| `saas-linux-large-arm64` | Scheduled pipelines | Premium GitLab Shared Runners | Requires Premium or Ultimate subscription |
+| `saas-linux-medium-amd64` | MR pipelines & Scheduled pipelines* | Free GitLab Shared Runners | Available to all GitLab users |
+| `saas-linux-medium-arm64` | MR pipelines & Scheduled pipelines* | Free GitLab Shared Runners | Available to all GitLab users |
 | `avx512` | Scheduled pipelines | Custom Runner | AVX512 instruction set support (typically combined with `saas-linux-large-amd64`) |
 | `sctp` | Scheduled pipelines | Custom Runner | SCTP kernel module active (typically combined with `saas-linux-large-amd64` or `saas-linux-large-arm64`) |
+
+> The CI is using `OCUDU_RUNNER_TAG` variable with value `saas-linux-medium` to define the default runner type for OCUDU builds. You can change that variable at group / project level and select other runners in your forked repo. For example, setting `OCUDU_RUNNER_TAG` to `saas-linux-large` will use `saas-linux-large-amd64` / `saas-linux-large-arm64` in all OCUDU build jobs.
 
 #### Default Behavior
 

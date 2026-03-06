@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ocudu/fapi/p5/config_request_tlvs.h"
+#include "ocudu/fapi/cell_config.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_repository.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_repository.h"
 #include "ocudu/ocudulog/logger.h"

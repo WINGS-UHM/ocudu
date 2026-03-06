@@ -25,7 +25,7 @@ ocudu image:
     DOCKER_DPDK_VERSION: "24.11.2"
   timeout: 2 hours
   tags:
-    - saas-linux-medium-${PLATFORM}
+    - $OCUDU_RUNNER_TAG-${PLATFORM}
   before_script:
     # Set variables
     - |

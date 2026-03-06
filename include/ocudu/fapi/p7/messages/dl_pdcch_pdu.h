@@ -10,7 +10,6 @@
 #include "ocudu/ran/pdcch/pdcch_context.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/rnti.h"
-#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 
 namespace ocudu {

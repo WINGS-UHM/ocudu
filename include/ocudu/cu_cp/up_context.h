@@ -9,9 +9,7 @@
 #include "ocudu/ran/rlc_mode.h"
 #include <map>
 
-namespace ocudu {
-
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief List of all supported 5QIs and their corresponding PDCP/SDAP configs
 struct up_resource_manager_cfg {
@@ -39,8 +37,9 @@ struct up_drb_context {
 };
 
 struct up_pdu_session_context {
-  up_pdu_session_context(pdu_session_id_t id_) : id(id_) {}
+  up_pdu_session_context(pdu_session_id_t id_, pdu_session_type_t type_) : id(id_), type(type_) {}
   pdu_session_id_t                   id = pdu_session_id_t::invalid;
+  pdu_session_type_t                 type;
   std::map<drb_id_t, up_drb_context> drbs;
 };
 
@@ -56,6 +55,4 @@ struct up_context {
   std::bitset<MAX_NOF_DRBS> used_drb_ids;
 };
 
-} // namespace ocucp
-
-} // namespace ocudu
+} // namespace ocudu::ocucp

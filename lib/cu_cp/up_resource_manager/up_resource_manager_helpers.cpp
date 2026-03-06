@@ -291,7 +291,7 @@ ocudu::ocucp::calculate_update(const slotted_id_vector<pdu_session_id_t, cu_cp_p
     ocudu_assert(context.pdu_sessions.find(pdu_session.pdu_session_id) == context.pdu_sessions.end(),
                  "PDU session already exists");
     // Create new PDU session context.
-    up_pdu_session_context_update new_ctxt(pdu_session.pdu_session_id);
+    up_pdu_session_context_update new_ctxt(pdu_session.pdu_session_id, pdu_session.pdu_session_type);
     for (const auto& flow_item : pdu_session.qos_flow_setup_request_items) {
       auto drb_id = allocate_qos_flow(new_ctxt, flow_item, config, context, cfg, logger);
       if (drb_id == drb_id_t::invalid) {
@@ -348,7 +348,8 @@ up_config_update ocudu::ocucp::calculate_update(const cu_cp_pdu_session_resource
     ocudu_assert(context.pdu_sessions.find(modify_item.pdu_session_id) != context.pdu_sessions.end(),
                  "PDU session does not exist.");
 
-    up_pdu_session_context_update ctxt_update(modify_item.pdu_session_id);
+    up_pdu_session_context_update ctxt_update(modify_item.pdu_session_id,
+                                              context.pdu_sessions.at(modify_item.pdu_session_id).type);
     for (const auto& flow_item : modify_item.transfer.qos_flow_add_or_modify_request_list) {
       // If QoS flow already exists, modify it.
       if (context.qos_flow_map.find(flow_item.qos_flow_id) != context.qos_flow_map.end()) {
@@ -452,7 +453,7 @@ up_config_update ocudu::ocucp::to_config_update(const up_context& old_context)
 
   for (const auto& pdu_session : old_context.pdu_sessions) {
     // Create new PDU session context.
-    up_pdu_session_context_update new_ctxt(pdu_session.first);
+    up_pdu_session_context_update new_ctxt(pdu_session.first, pdu_session.second.type);
     for (const auto& drb : pdu_session.second.drbs) {
       // Add all existing DRBs.
       new_ctxt.drb_to_add.emplace(drb.first, drb.second);

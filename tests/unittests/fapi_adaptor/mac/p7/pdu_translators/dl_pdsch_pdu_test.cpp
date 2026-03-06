@@ -33,9 +33,7 @@ static void validate_pdsch_information(const pdsch_information& pdsch_cfg, const
   // DMRS.
   const dmrs_information& dmrs_cfg = pdsch_cfg.dmrs;
   ASSERT_EQ(dmrs_cfg.dmrs_symb_pos.to_uint64(), fapi_pdu.dl_dmrs_symb_pos);
-  ASSERT_EQ((dmrs_cfg.config_type == ocudu::dmrs_config_type::type1) ? fapi::dmrs_cfg_type::type_1
-                                                                     : fapi::dmrs_cfg_type::type_2,
-            fapi_pdu.dmrs_type);
+  ASSERT_EQ(dmrs_cfg.config_type, fapi_pdu.dmrs_type);
   ASSERT_EQ(dmrs_cfg.dmrs_scrambling_id, fapi_pdu.pdsch_dmrs_scrambling_id);
   ASSERT_EQ(dmrs_cfg.dmrs_scrambling_id_complement, fapi_pdu.pdsch_dmrs_scrambling_id_compl);
   ASSERT_EQ(dmrs_cfg.low_papr_dmrs ? fapi::low_papr_dmrs_type::dependent_cdm_group
@@ -59,9 +57,10 @@ TEST(mac_fapi_pdsch_pdu_conversor_test, valid_sib1_pdu_should_pass)
   unsigned                    nof_csi_pdus = 2;
   unsigned                    nof_prbs     = 51U;
 
-  fapi::dl_pdsch_pdu fapi_pdu;
-  auto               pm_tools = generate_precoding_matrix_tables(1, 0);
-  convert_pdsch_mac_to_fapi(fapi_pdu, pdu, nof_csi_pdus, *std::get<0>(pm_tools), nof_prbs);
+  fapi::dl_pdsch_pdu         fapi_pdu;
+  fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
+  auto                       pm_tools = generate_precoding_matrix_tables(1, 0);
+  convert_pdsch_mac_to_fapi(builder, pdu, nof_csi_pdus, *std::get<0>(pm_tools), nof_prbs);
 
   validate_pdsch_information(pdu.pdsch_cfg, fapi_pdu);
 
@@ -80,9 +79,10 @@ TEST(mac_fapi_pdsch_pdu_conversor_test, valid_rar_pdu_should_pass)
   unsigned                    nof_csi_pdus = 2;
   unsigned                    nof_prbs     = 51U;
 
-  fapi::dl_pdsch_pdu fapi_pdu;
-  auto               pm_tools = generate_precoding_matrix_tables(2, 0);
-  convert_pdsch_mac_to_fapi(fapi_pdu, pdu, nof_csi_pdus, *std::get<0>(pm_tools), nof_prbs);
+  fapi::dl_pdsch_pdu         fapi_pdu;
+  fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
+  auto                       pm_tools = generate_precoding_matrix_tables(2, 0);
+  convert_pdsch_mac_to_fapi(builder, pdu, nof_csi_pdus, *std::get<0>(pm_tools), nof_prbs);
 
   validate_pdsch_information(pdu.pdsch_cfg, fapi_pdu);
 
@@ -105,9 +105,10 @@ TEST(mac_fapi_pdsch_pdu_conversor_test, valid_dl_paging_pdu_should_pass)
   unsigned                         nof_csi_pdus = 2;
   unsigned                         nof_prbs     = 51U;
 
-  fapi::dl_pdsch_pdu fapi_pdu;
-  auto               pm_tools = generate_precoding_matrix_tables(1, 0);
-  convert_pdsch_mac_to_fapi(fapi_pdu, pdu, nof_csi_pdus, *std::get<0>(pm_tools), nof_prbs);
+  fapi::dl_pdsch_pdu         fapi_pdu;
+  fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
+  auto                       pm_tools = generate_precoding_matrix_tables(1, 0);
+  convert_pdsch_mac_to_fapi(builder, pdu, nof_csi_pdus, *std::get<0>(pm_tools), nof_prbs);
 
   validate_pdsch_information(pdu.pdsch_cfg, fapi_pdu);
 
@@ -126,9 +127,10 @@ TEST(mac_fapi_pdsch_pdu_conversor_test, valid_dl_msg_alloc_pdu_should_pass)
   unsigned                      nof_csi_pdus = 2;
   unsigned                      nof_prbs     = 51U;
 
-  fapi::dl_pdsch_pdu fapi_pdu;
-  auto               pm_tools = generate_precoding_matrix_tables(4, 0);
-  convert_pdsch_mac_to_fapi(fapi_pdu, pdu, nof_csi_pdus, *std::get<0>(pm_tools), nof_prbs);
+  fapi::dl_pdsch_pdu         fapi_pdu;
+  fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
+  auto                       pm_tools = generate_precoding_matrix_tables(4, 0);
+  convert_pdsch_mac_to_fapi(builder, pdu, nof_csi_pdus, *std::get<0>(pm_tools), nof_prbs);
 
   validate_pdsch_information(pdu.pdsch_cfg, fapi_pdu);
 

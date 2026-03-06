@@ -8,6 +8,7 @@
 #include "lib/f1ap/f1ap_asn1_packer.h"
 #include "tests/integrationtests/du_high/test_utils/du_high_env_simulator.h"
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/gateways/test_helpers.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
@@ -15,7 +16,6 @@
 #include "ocudu/asn1/rrc_nr/sys_info.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ran/pcch/paging_helper.h"
-#include "ocudu/support/test_utils.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -192,7 +192,7 @@ TEST_F(edrx_paging_test, when_edrx_enabled_then_hypersfn_is_updated_in_sib1)
 
 TEST_F(edrx_paging_test, when_f1_edrx_paging_is_received_then_it_is_sent_to_lower_layers)
 {
-  const uint64_t five_g_tmsi = test_rgen::uniform_int<uint64_t>() & mask_lsb_ones<uint64_t>(48);
+  const uint64_t five_g_tmsi = test_rng::uniform_int<uint64_t>() & mask_lsb_ones<uint64_t>(48);
   // Note: We set a Paging Time Window that is almost the length of the full eDRX cycle, to minimize the duration
   /// of this test.
   const hyper_frames edrx_cycle{2};
@@ -215,12 +215,13 @@ TEST_F(edrx_paging_test, when_f1_edrx_paging_is_received_then_it_is_sent_to_lowe
   ocudu_assert(success, "Invalid conversion");
   this->du_hi->get_f1ap_du().handle_message(msg);
 
-  // Maximum time that can be observed without paging (accounts for the eDRX PTW and DRX SFN).
+  // Maximum time that can be observed without paging (accounts for the eDRX PTW, DRX SFN, and the paging scheduler's
+  // look-ahead offset).
   const radio_frames forbid_edrx = edrx_cycle - ptw_len;
   const unsigned     MAX_SLOT_COUNT =
-      (forbid_edrx.count() + paging->paging_drx.to_number()) * next_slot.nof_slots_per_frame();
+      (forbid_edrx.count() + paging->paging_drx.to_number() + 1) * next_slot.nof_slots_per_frame();
   bool found = false;
-  for (unsigned i = 0; i != MAX_SLOT_COUNT; ++i) {
+  for (unsigned i = 0; i != MAX_SLOT_COUNT and not found; ++i) {
     this->run_slot();
     if (this->phy.cells[0].last_dl_res.has_value() and
         not this->phy.cells[0].last_dl_res->dl_res->paging_grants.empty()) {

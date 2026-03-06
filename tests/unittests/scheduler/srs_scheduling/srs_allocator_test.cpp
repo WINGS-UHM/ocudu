@@ -7,10 +7,10 @@
 #include "lib/scheduler/srs/srs_allocator_impl.h"
 #include "lib/scheduler/srs/srs_scheduler_impl.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -290,7 +290,7 @@ TEST_P(srs_alloc_tester, with_only_1_ue_srs_is_allocated_every_time_prohibit_tim
 {
   const auto srs_prohib_time_uint = static_cast<unsigned>(GetParam().srs_prohib_time);
 
-  const auto add_ue_slot = test_rgen::uniform_int<unsigned>(0, res_grid.ring_size());
+  const auto add_ue_slot = test_rng::uniform_int<unsigned>(0, res_grid.ring_size());
   // Check at the allocation for at least 4 the size of the resource grid.
   const unsigned nof_slots_to_test = add_ue_slot + std::max(srs_prohib_time_uint * 4, res_grid.ring_size() * 4);
 
@@ -377,7 +377,7 @@ TEST_P(srs_alloc_multi_ue_tester, multiple_ues_with_orthogonal_srs_res_is_alloca
   const auto srs_prohib_time_uint = static_cast<unsigned>(GetParam().srs_prohib_time);
 
   auto get_next_add_ue_slot = [](unsigned max_rnd_ue_gen_slot) {
-    return test_rgen::uniform_int<unsigned>(1, max_rnd_ue_gen_slot);
+    return test_rng::uniform_int<unsigned>(1, max_rnd_ue_gen_slot);
   };
 
   // The first UE is randomly generated at a given slot (up to the res_grid.ring_size).

@@ -8,6 +8,7 @@
 #include "lib/scheduler/logging/scheduler_result_logger.h"
 #include "lib/scheduler/support/csi_rs_helpers.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/adt/noop_functor.h"
@@ -15,7 +16,6 @@
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 #include <ostream>
 
@@ -128,7 +128,7 @@ protected:
 
     auto& pusch_list = req.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     if (t_params.k2s.empty()) {
-      pusch_list[0].k2 = test_rgen::uniform_int<unsigned>(2, 4);
+      pusch_list[0].k2 = test_rng::uniform_int<unsigned>(2, 4);
     } else {
       pusch_list.resize(t_params.k2s.size(), pusch_list[0]);
       for (unsigned i = 0; i != t_params.k2s.size(); ++i) {
@@ -185,13 +185,13 @@ protected:
 
   static rach_indication_message::preamble create_preamble()
   {
-    static auto next_rnti = test_rgen::uniform_int<unsigned>(to_value(rnti_t::MIN_CRNTI), to_value(rnti_t::MAX_CRNTI));
-    static const auto rnti_inc = test_rgen::uniform_int<unsigned>(1, 5);
+    static auto next_rnti = test_rng::uniform_int<unsigned>(to_value(rnti_t::MIN_CRNTI), to_value(rnti_t::MAX_CRNTI));
+    static const auto rnti_inc = test_rng::uniform_int<unsigned>(1, 5);
 
     rach_indication_message::preamble preamble{};
-    preamble.preamble_id = test_rgen::uniform_int<unsigned>(0, 63);
+    preamble.preamble_id = test_rng::uniform_int<unsigned>(0, 63);
     preamble.time_advance =
-        phy_time_unit::from_seconds(std::uniform_real_distribution<double>{0, 2005e-6}(test_rgen::get()));
+        phy_time_unit::from_seconds(std::uniform_real_distribution<double>{0, 2005e-6}(test_rng::tls_gen()));
     preamble.tc_rnti = to_rnti(next_rnti);
     next_rnti += rnti_inc;
     return preamble;
@@ -439,7 +439,7 @@ protected:
   scheduler_result_logger             result_logger{false, cell_cfg.pci};
 
   slot_point next_slot{to_numerology_value(params.scs),
-                       test_rgen::uniform_int<unsigned>(0, (10240 << to_numerology_value(params.scs)) - 1)};
+                       test_rng::uniform_int<unsigned>(0, (10240 << to_numerology_value(params.scs)) - 1)};
 
   // We use this value to account for the case when the PDSCH or PUSCH is allocated several slots in advance.
   unsigned max_k_value = 0;
@@ -476,7 +476,7 @@ TEST_P(ra_scheduler_fdd_test, schedules_one_rar_per_slot_when_multi_preambles_wi
 {
   // Forward single RACH occasion with multiple preambles.
   rach_indication_message one_rach =
-      create_rach_indication(test_rgen::uniform_int<unsigned>(1, MAX_PREAMBLES_PER_PRACH_OCCASION));
+      create_rach_indication(test_rng::uniform_int<unsigned>(1, MAX_PREAMBLES_PER_PRACH_OCCASION));
   handle_rach_indication(one_rach);
 
   unsigned   ra_win_size  = cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window;
@@ -529,7 +529,7 @@ TEST_P(ra_scheduler_fdd_test, schedules_one_rar_per_slot_when_multi_preambles_wi
 TEST_P(ra_scheduler_fdd_test, schedules_multiple_rars_per_slot_when_multiple_prach_occasions)
 {
   // Forward multiple RACH occasions with one preamble.
-  auto                    nof_occasions = test_rgen::uniform_int<unsigned>(1, MAX_PRACH_OCCASIONS_PER_SLOT);
+  auto                    nof_occasions = test_rng::uniform_int<unsigned>(1, MAX_PRACH_OCCASIONS_PER_SLOT);
   rach_indication_message rach_ind      = create_rach_indication(0);
   for (unsigned i = 0; i != nof_occasions; ++i) {
     rach_ind.occasions.emplace_back();
@@ -575,7 +575,7 @@ TEST_P(ra_scheduler_tdd_test, schedules_rar_in_valid_slots_when_tdd)
   // Forward single RACH occasion with multiple preambles.
   // Note: The number of preambles is small enough to fit all grants in one slot.
   run_slot_until_next_rach_opportunity();
-  rach_indication_message rach_ind = create_rach_indication(test_rgen::uniform_int<unsigned>(1, 10));
+  rach_indication_message rach_ind = create_rach_indication(test_rng::uniform_int<unsigned>(1, 10));
   handle_rach_indication(rach_ind);
 
   for (unsigned nof_sched_grants = 0; nof_sched_grants < rach_ind.occasions[0].preambles.size();) {
@@ -613,7 +613,7 @@ TEST_P(ra_scheduler_tdd_test, schedules_msg3_retx_in_valid_slots_when_tdd)
   // Forward single RACH occasion with multiple preambles.
   // Note: The number of preambles is small enough to fit all grants in one slot.
   run_slot_until_next_rach_opportunity();
-  rach_indication_message rach_ind = create_rach_indication(test_rgen::uniform_int<unsigned>(1, 10));
+  rach_indication_message rach_ind = create_rach_indication(test_rng::uniform_int<unsigned>(1, 10));
   handle_rach_indication(rach_ind);
 
   unsigned       msg3_retx_count = 0;
@@ -750,7 +750,7 @@ TEST_F(failed_rar_scheduler_test, when_rar_grants_not_scheduled_within_window_th
   unsigned grant_count = 0;
   while (grant_count < MAX_NOF_DU_UES) {
     run_slot_until_next_rach_opportunity(ack_msg3s);
-    rach_indication_message rach_ind = create_rach_indication(test_rgen::uniform_int<unsigned>(1, 10));
+    rach_indication_message rach_ind = create_rach_indication(test_rng::uniform_int<unsigned>(1, 10));
     handle_rach_indication(rach_ind);
 
     for (unsigned nof_sched_grants = 0; nof_sched_grants < rach_ind.occasions[0].preambles.size();) {

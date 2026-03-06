@@ -7,6 +7,7 @@
 #include "ocudu/fapi_adaptor/precoding_matrix_mapper.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_mapper.h"
 #include "ocudu/mac/mac_cell_result.h"
+#include "ocudu/ocudulog/logger.h"
 #include "ocudu/scheduler/result/pdcch_info.h"
 #include "ocudu/support/synchronization/stop_event.h"
 
@@ -23,6 +24,8 @@ namespace fapi_adaptor {
 struct mac_to_fapi_fastpath_translator_config {
   /// Cell number of PRBs.
   unsigned cell_nof_prbs;
+  /// Sector identifier.
+  unsigned sector_id;
 };
 
 /// MAC-to-FAPI fastpath translator dependencies.
@@ -35,6 +38,8 @@ struct mac_to_fapi_fastpath_translator_dependencies {
   std::unique_ptr<precoding_matrix_mapper> pm_mapper;
   /// UCI Part 2 correspondence mapper.
   std::unique_ptr<uci_part2_correspondence_mapper> part2_mapper;
+  /// FAPI logger.
+  ocudulog::basic_logger& fapi_logger;
 };
 
 /// \brief MAC-to-FAPI fastpath translator.
@@ -73,6 +78,8 @@ private:
 private:
   /// Cell number of resource blocks.
   const unsigned cell_nof_prbs;
+  /// Sector identifier.
+  const unsigned sector_id;
   /// FAPI P7 gateway.
   fapi::p7_requests_gateway& p7_gateway;
   /// P7 last requests notifier.
@@ -81,6 +88,8 @@ private:
   std::unique_ptr<precoding_matrix_mapper> pm_mapper;
   /// UCI Part2 correspondence mapper.
   std::unique_ptr<uci_part2_correspondence_mapper> part2_mapper;
+  /// FAPI logger.
+  ocudulog::basic_logger& fapi_logger;
   /// Stop manager.
   rt_stop_event_source stop_manager;
   /// Stop token. This token is used to track when a slot is being used. It is set on new scheduler results (downlink,

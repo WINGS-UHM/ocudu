@@ -1,4 +1,3 @@
-// Copyright 2021-2026 Software Radio Systems Limited
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
@@ -96,16 +95,6 @@ private:
 
   std::optional<uci_action> handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry);
 
-  /// Helper to remove UCI entry from its linked list.
-  stable_id_t rem_uci_entry(stable_id_t& head, uci_entry* prev_entry, uci_entry& entry);
-
-  /// Finds UCI entry and removes it from the linked list.
-  /// \tparam MainTimeoutWheel Whether the linked list from where the UCI entry is removed is the main wheel or short
-  /// timeout wheel.
-  /// \param[in] id_to_rem ID of the entry to remove.
-  template <bool MainTimeoutWheel>
-  void find_and_rem_uci_entry(stable_id_t id_to_rem);
-
   /// Timeout to receive HARQ-ACK feedback.
   const unsigned                   ack_timeout_slots;
   uci_indication_timeout_notifier& timeout_notifier;
@@ -113,10 +102,15 @@ private:
 
   slot_point last_sl_tx;
 
+  /// Shared pool of UCI entries.
   stable_id_map<uci_entry> uci_pool;
 
-  circular_vector<stable_id_t> uci_wheel;
-  circular_vector<stable_id_t> short_timeout_wheel;
+  /// \brief Each element of the circular vector maps a slot to a linked list with the UCI entries expected to be
+  /// received in that slot.
+  circular_vector<stable_id_intrusive_list<&uci_entry::next>> uci_wheel;
+  /// \brief Each element of the circular vector maps a slot to a linked list with the UCI entries expected to timeout
+  /// in that slot.
+  circular_vector<stable_id_intrusive_list<&uci_entry::next_short_timeout>> short_timeout_wheel;
 };
 
 } // namespace ocudu

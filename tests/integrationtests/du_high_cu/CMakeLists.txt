@@ -21,6 +21,6 @@ target_link_libraries(cu_du_test ocudu_cu_cp
         f1ap_asn1
         ngap_asn1
         gtest
-        gtest_main)
+        ocudu_gtest_main)
 target_include_directories(cu_du_test PRIVATE ${CMAKE_SOURCE_DIR})
 gtest_discover_tests(cu_du_test)

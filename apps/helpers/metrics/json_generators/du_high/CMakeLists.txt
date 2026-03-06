@@ -10,3 +10,4 @@ set(SOURCES
 
 add_library(ocudu_du_high_metrics_json_generators_helpers STATIC ${SOURCES})
 target_include_directories(ocudu_du_high_metrics_json_generators_helpers PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/apps/helpers/metrics)
+target_link_libraries(ocudu_du_high_metrics_json_generators_helpers PRIVATE ocudu::yaml-cpp)

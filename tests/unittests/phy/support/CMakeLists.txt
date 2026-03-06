@@ -14,7 +14,7 @@ target_link_libraries(resource_grid_test ocuduvec ocudu_phy_support ocudu_channe
 add_test(resource_grid_test resource_grid_test)
 
 add_executable(interpolator_test interpolator_test.cpp)
-target_link_libraries(interpolator_test ocudu_phy_support ocudulog gtest gtest_main)
+target_link_libraries(interpolator_test ocudu_phy_support ocudulog GTest::gtest GTest::gtest_main)
 add_test(interpolator_test interpolator_test)
 
 add_executable(resource_grid_mapper_test resource_grid_mapper_test.cpp)
@@ -25,18 +25,17 @@ target_link_libraries(resource_grid_mapper_test
         ocudu_channel_precoder
         ocudu_ran
         ocudulog
-        gtest
-        gtest_main)
+        GTest::gtest
+        GTest::gtest_main)
 gtest_discover_tests(resource_grid_mapper_test)
 
 add_executable(precoding_configuration_test precoding_configuration_test.cpp)
 target_link_libraries(precoding_configuration_test
         ocudulog
-        gtest
-        gtest_main)
+        GTest::gtest
+        GTest::gtest_main)
 gtest_discover_tests(precoding_configuration_test)
 
 add_executable(re_pattern_test re_pattern_test.cpp)
 target_link_libraries(re_pattern_test ocudu_phy_support ocudulog)
 add_test(re_pattern_test re_pattern_test)
-

@@ -155,9 +155,7 @@ headers:
   extends: .headers
   rules:
     - if: $ON_MR
-      when: manual
-      allow_failure: true
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
+      allow_failure: false
   needs:
     - job: trigger static
       optional: true
@@ -205,7 +203,8 @@ include-guards:
 .codechecker:
   image: ${OCUDU_REGISTRY_URI}/codechecker:${DOCKER_BUILDER_VERSION}
   stage: static
-  tags: [saas-linux-large-amd64]
+  tags:
+    - ${OCUDU_RUNNER_TAG}-amd64
   needs:
     - job: trigger builder
       optional: true
@@ -281,7 +280,6 @@ clang-tidy incremental:
   extends: clang-tidy
   rules:
     - if: $ON_MR
-  tags: [saas-linux-medium-amd64]
   variables:
     CCACHE_MAXSIZE: 3G
     CACHE_COMPRESSION_LEVEL: slowest
@@ -293,12 +291,12 @@ clang-tidy incremental:
       git config --local core.hooksPath /dev/null
       if [ "$CI_MERGE_REQUEST_SOURCE_PROJECT_PATH" != "$CI_PROJECT_PATH" ]; then
         git remote add fork $CI_MERGE_REQUEST_SOURCE_PROJECT_URL
-        git fetch --deepen=100 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-        git fetch --deepen=100 fork $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git fetch --unshallow origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+        git fetch --unshallow fork $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME fork/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       else
-        git fetch --deepen=100 origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
+        git fetch --unshallow origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME origin/$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
         git branch $CI_MERGE_REQUEST_TARGET_BRANCH_NAME origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
       fi

@@ -50,8 +50,7 @@ o_du_unit ocudu::create_o_du_split6(const split6_o_du_unit_config&              
         .fapi_ctrl_executor   = du_dependencies.workers->get_cmd_line_executor(),
         // :TODO: create executor mapper for split 6 and pass correct executor here
         .mac_ctrl_executor = du_dependencies.workers->get_du_high_executor_mapper().du_control_executor(),
-        .fapi_executor =
-            du_unit_cfg.odu_high_cfg.fapi_cfg.l2_nof_slots_ahead != 0 ? du_dependencies.workers->fapi_exec[i] : nullptr,
+        .fapi_logger       = *du_dependencies.fapi_logger,
     };
 
     odu_hi_unit_dependencies.o_du_hi_dependencies.sectors.push_back(sector_dependencies);

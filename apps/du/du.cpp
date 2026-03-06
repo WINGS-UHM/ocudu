@@ -366,6 +366,7 @@ int main(int argc, char** argv)
   du_dependencies.e2_client_handler      = e2_gw.get();
   du_dependencies.metrics_notifier       = &metrics_notifier_forwarder;
   du_dependencies.remote_metrics_gateway = remote_server_gateway;
+  du_dependencies.fapi_logger            = &ocudulog::fetch_basic_logger("FAPI");
 
   auto du_inst_and_cmds = o_du_app_unit->create_flexible_o_du_unit(du_dependencies);
 

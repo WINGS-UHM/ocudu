@@ -97,6 +97,10 @@ public:
   /// \brief Notify the CU-CP to await the RRC Reconfiguration Complete and the DL Status Transfer.
   /// \param[in] ue_index The index of the UE.
   virtual void on_xn_handover_execution(ue_index_t ue_index) = 0;
+
+  /// \brief Notify the CU-CP about the reception of a Handover Cancel message.
+  /// \param[in] ue_index The index of the UE.
+  virtual void on_handover_cancel_received(ue_index_t ue_index) = 0;
 };
 
 /// Combined entry point for the XNAP object.

@@ -874,7 +874,15 @@ public:
     return launch_no_op_task(cu_cp_handover_resource_allocation_response{});
   }
 
-  void handle_inter_cu_target_handover_execution(ue_index_t ue_index) override {}
+  void handle_inter_cu_target_handover_execution(ue_index_t ue_index) override
+  {
+    logger.info("ue={}: Received a new request to handle inter-CU target handover execution", ue_index);
+  }
+
+  void handle_handover_cancel_received(ue_index_t ue_index) override
+  {
+    logger.info("ue={}: Received a handover cancel message", ue_index);
+  }
 
   byte_buffer last_handover_command;
 

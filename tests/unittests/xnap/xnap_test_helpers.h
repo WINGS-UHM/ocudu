@@ -148,7 +148,15 @@ public:
     });
   }
 
-  void on_xn_handover_execution(ue_index_t ue_index) override {}
+  void on_xn_handover_execution(ue_index_t ue_index) override
+  {
+    logger.info("Requested XN handover execution for UE index {}", ue_index);
+  }
+
+  void on_handover_cancel_received(ue_index_t ue_index) override
+  {
+    logger.info("Received a handover cancel for UE index {}", ue_index);
+  }
 
   byte_buffer last_handover_command;
 

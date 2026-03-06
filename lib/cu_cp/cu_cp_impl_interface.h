@@ -457,6 +457,10 @@ public:
   /// See TS 38.423 section 8.2.1.
   virtual async_task<cu_cp_handover_resource_allocation_response>
   handle_xnap_handover_request(const xnap_handover_request& request) = 0;
+
+  /// \brief Handle the reception of a Handover Cancel message.
+  /// \param[in] ue_index The index of the UE that is the target of the handover cancel.
+  virtual void handle_handover_cancel_received(ue_index_t ue_index) = 0;
 };
 
 class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,

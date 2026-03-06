@@ -42,9 +42,13 @@ private:
   /// \param[in] msg The received initiating message.
   void handle_initiating_message(const asn1::xnap::init_msg_s& msg);
 
-  /// \brief Notify about the reception of a Handover request message.
+  /// \brief Notify about the reception of a Handover Request message.
   /// \param[in] msg The received handover request message.
   void handle_handover_request(const asn1::xnap::ho_request_s& msg);
+
+  /// \brief Notify about the reception of a Handover Cancel message.
+  /// \param[in] msg The received handover cancel message.
+  void handle_handover_cancel(const asn1::xnap::ho_cancel_s& msg);
 
   /// \brief Notify about the reception of a successful outcome message.
   /// \param[in] outcome The successful outcome message.

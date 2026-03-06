@@ -77,6 +77,9 @@ void xnap_impl::handle_initiating_message(const init_msg_s& msg)
     case xnap_elem_procs_o::init_msg_c::types_opts::ho_request:
       handle_handover_request(msg.value.ho_request());
       break;
+    case xnap_elem_procs_o::init_msg_c::types_opts::ho_cancel:
+      handle_handover_cancel(msg.value.ho_cancel());
+      break;
     default:
       logger.error("Initiating message of type {} is not supported", msg.value.type().to_string());
   }
@@ -188,6 +191,22 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
     send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id, xnap_cause_misc_t::not_enough_user_plane_processing_res);
     return;
   }
+}
+
+void xnap_impl::handle_handover_cancel(const asn1::xnap::ho_cancel_s& msg)
+{
+  if (!ue_ctxt_list.contains(uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id))) {
+    logger.info("Received HandoverCancel for unknown UE. peer_xnap_ue_id={}", msg->source_ng_ra_nnode_ue_xn_ap_id);
+    return;
+  }
+
+  ue_index_t ue_index = ue_ctxt_list[uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id)].ue_ids.ue_index;
+
+  // Request CU-CP to release the UE context.
+  cu_cp_notifier.on_handover_cancel_received(ue_index);
+
+  // Remove local UE context.
+  ue_ctxt_list.remove_ue_context(ue_index);
 }
 
 async_task<xnap_handover_preparation_response>

@@ -17,8 +17,8 @@ namespace ocudu {
 template <typename T>
 class pucch_format1_map
 {
-  static constexpr unsigned nof_time_domain_occs      = pucch_constants::f1::TD_OCC.stop();
-  static constexpr unsigned nof_initial_cyclic_shifts = pucch_constants::f1::INITIAL_CYCLIC_SHIFT.stop();
+  static constexpr unsigned nof_time_domain_occs      = pucch_constants::f1::NOF_TD_OCC;
+  static constexpr unsigned nof_initial_cyclic_shifts = pucch_constants::f1::NOF_ICS;
 
 public:
   /// \brief Read-only iterator.

@@ -109,7 +109,7 @@ const std::vector<test_case_t> pucch_processor_validator_test_data = {
           entry.config                    = base_format_0_config;
           entry.config.slot               = slot_point(2, 0);
           entry.config.cp                 = cyclic_prefix::EXTENDED;
-          entry.config.nof_symbols        = pucch_constants::f0::NOF_SYMS.start();
+          entry.config.nof_symbols        = pucch_constants::f0::MIN_NOF_SYMS;
           entry.config.start_symbol_index = get_nsymb_per_slot(entry.config.cp) - entry.config.nof_symbols + 1;
           entry.assert_message            = fmt::format(
               R"(OFDM symbol allocation goes up to symbol {}\, exceeding the number of symbols in the given slot with {} CP\, i\.e\.\, {}\.)",
@@ -123,7 +123,7 @@ const std::vector<test_case_t> pucch_processor_validator_test_data = {
         [] {
           test_params entry        = {};
           entry.config             = base_format_0_config;
-          entry.config.nof_symbols = pucch_constants::f0::NOF_SYMS.stop() + 1;
+          entry.config.nof_symbols = pucch_constants::f0::MAX_NOF_SYMS + 1;
           entry.assert_message     = R"(Number of symbols \(i\.e\., 3\) is out of the range \[1\.\.2\]\.)";
           return entry;
         },
@@ -132,7 +132,7 @@ const std::vector<test_case_t> pucch_processor_validator_test_data = {
         [] {
           test_params entry                 = {};
           entry.config                      = base_format_0_config;
-          entry.config.initial_cyclic_shift = pucch_constants::f0::INITIAL_CYCLIC_SHIFT.stop() + 1;
+          entry.config.initial_cyclic_shift = pucch_constants::f0::NOF_ICS + 1;
           entry.assert_message = R"(The initial cyclic shift \(i\.e\., 13\) is out of the range \[0\.\.12\)\.)";
           return entry;
         },
@@ -151,7 +151,7 @@ const std::vector<test_case_t> pucch_processor_validator_test_data = {
         [] {
           test_params entry         = {};
           entry.config              = base_format_0_config;
-          entry.config.nof_harq_ack = pucch_constants::f0::NOF_HARQ_ACK_BITS.stop() + 1;
+          entry.config.nof_harq_ack = pucch_constants::f0::MAX_NOF_HARQ_ACK_BITS + 1;
           entry.assert_message      = R"(The number of HARQ-ACK bits \(i\.e\., 3\) is out of the range \[0\.\.2\]\.)";
           return entry;
         },

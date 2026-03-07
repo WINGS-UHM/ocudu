@@ -17,11 +17,10 @@ namespace ocudu {
 
 /// Parameters for the generation of PUCCH Format 0 resources.
 struct pucch_f0_params {
-  using nof_symbols =
-      bounded_integer<unsigned, pucch_constants::f0::NOF_SYMS.start(), pucch_constants::f0::NOF_SYMS.stop()>;
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f0::MIN_NOF_SYMS, pucch_constants::f0::MAX_NOF_SYMS>;
 
   /// Number of OFDM symbols.
-  nof_symbols nof_syms{pucch_constants::f0::NOF_SYMS.stop()};
+  nof_symbols nof_syms{pucch_constants::f0::MAX_NOF_SYMS};
   /// Whether to configure intraslot frequency hopping.
   bool intraslot_freq_hopping{false};
 };
@@ -40,11 +39,10 @@ inline unsigned format1_cp_step_to_uint(pucch_nof_cyclic_shifts opt)
 
 /// Parameters for the generation of PUCCH Format 1 resources.
 struct pucch_f1_params {
-  using nof_symbols =
-      bounded_integer<unsigned, pucch_constants::f1::NOF_SYMS.start(), pucch_constants::f1::NOF_SYMS.stop()>;
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f1::MIN_NOF_SYMS, pucch_constants::f1::MAX_NOF_SYMS>;
 
   /// Number of OFDM symbols.
-  nof_symbols nof_syms{pucch_constants::f1::NOF_SYMS.stop()};
+  nof_symbols nof_syms{pucch_constants::f1::MAX_NOF_SYMS};
   bool        intraslot_freq_hopping{false};
   /// Number of Initial Cyclic Shifts to use.
   pucch_nof_cyclic_shifts nof_cyc_shifts{pucch_nof_cyclic_shifts::no_cyclic_shift};
@@ -54,16 +52,15 @@ struct pucch_f1_params {
 
 /// Parameters for the generation of PUCCH Format 2 resources.
 struct pucch_f2_params {
-  using nof_symbols =
-      bounded_integer<unsigned, pucch_constants::f2::NOF_SYMS.start(), pucch_constants::f2::NOF_SYMS.stop()>;
-  using nof_rbs = bounded_integer<unsigned, pucch_constants::f2::NOF_RBS.start(), pucch_constants::f2::NOF_RBS.stop()>;
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f2::MIN_NOF_SYMS, pucch_constants::f2::MAX_NOF_SYMS>;
+  using nof_rbs     = bounded_integer<unsigned, pucch_constants::f2::MIN_NOF_RBS, pucch_constants::f2::MAX_NOF_RBS>;
 
   /// \brief Number of OFDM symbols.
   ///
   /// \remark For intraslot-freq-hopping, \c nof_symbols must be set to 2.
-  nof_symbols nof_syms{pucch_constants::f2::NOF_SYMS.stop()};
+  nof_symbols nof_syms{pucch_constants::f2::MAX_NOF_SYMS};
   /// Number of RBs.
-  nof_rbs max_nof_rbs{pucch_constants::f2::NOF_RBS.start()};
+  nof_rbs max_nof_rbs{pucch_constants::f2::MIN_NOF_RBS};
   /// Whether to configure intraslot frequency hopping.
   bool intraslot_freq_hopping{false};
   /// \brief Maximum payload in bits to be carried.
@@ -77,14 +74,13 @@ struct pucch_f2_params {
 
 /// Collects the parameters for PUCCH Format 3 that can be configured.
 struct pucch_f3_params {
-  using nof_symbols =
-      bounded_integer<unsigned, pucch_constants::f3::NOF_SYMS.start(), pucch_constants::f3::NOF_SYMS.stop()>;
-  using nof_rbs = bounded_integer<unsigned, pucch_constants::f3::NOF_RBS.start(), pucch_constants::f3::NOF_RBS.stop()>;
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f3::MIN_NOF_SYMS, pucch_constants::f3::MAX_NOF_SYMS>;
+  using nof_rbs     = bounded_integer<unsigned, pucch_constants::f3::MIN_NOF_RBS, pucch_constants::f3::MAX_NOF_RBS>;
 
   /// Number of OFDM symbols.
-  nof_symbols nof_syms{pucch_constants::f3::NOF_SYMS.start()};
+  nof_symbols nof_syms{pucch_constants::f3::MIN_NOF_SYMS};
   /// Number of RBs.
-  nof_rbs max_nof_rbs{pucch_constants::f3::NOF_RBS.start()};
+  nof_rbs max_nof_rbs{pucch_constants::f3::MIN_NOF_RBS};
   /// Whether to configure intraslot frequency hopping.
   bool intraslot_freq_hopping{false};
   /// \brief Maximum payload in bits to be carried.
@@ -102,11 +98,10 @@ struct pucch_f3_params {
 
 /// Collects the parameters for PUCCH Format 4 that can be configured.
 struct pucch_f4_params {
-  using nof_symbols =
-      bounded_integer<unsigned, pucch_constants::f4::NOF_SYMS.start(), pucch_constants::f4::NOF_SYMS.stop()>;
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f4::MIN_NOF_SYMS, pucch_constants::f4::MAX_NOF_SYMS>;
 
   /// Number of OFDM symbols.
-  nof_symbols nof_syms{pucch_constants::f4::NOF_SYMS.stop()};
+  nof_symbols nof_syms{pucch_constants::f4::MAX_NOF_SYMS};
   /// Whether to configure intraslot frequency hopping.
   bool intraslot_freq_hopping{false};
   /// Maximum allowed effective code rate.
@@ -186,31 +181,27 @@ struct pucch_resource_builder_params {
     return pucch_format::FORMAT_4;
   }
 
-  // \brief Get the position of a given Resource Set ID 0 resource in the cell PUCCH resource list.
+  // \brief Get the position of a given Resource Set ID 0/1 resource in the cell PUCCH resource list.
   //
+  // \param res_set_id The Resource Set ID (0 or 1).
   // \param res_set_cfg_id The resource set config index.
-  // \param pri The index of the resource within the resource set.
+  // \param pri the index of the resource within the resource set (PUCCH Resource Indicator).
   // \return The index of the PUCCH resource in the cell PUCCH resource list.
-  unsigned get_res_set_0_cell_res_idx(pucch_resource_set_config_id res_set_cfg_id, unsigned pri) const
+  template <unsigned ResourceSetId>
+  unsigned get_res_set_cell_res_idx(pucch_resource_set_config_id res_set_cfg_id, unsigned pri) const
   {
-    ocudu_assert(res_set_cfg_id.value() < nof_cell_res_set_configs,
-                 "Resource set config index={} exceeds configured number of resource set configs={}",
-                 res_set_cfg_id.value(),
-                 nof_cell_res_set_configs);
-    ocudu_assert(pri < res_set_0_size.value(),
-                 "Resource index={} exceeds configured resource set size={}",
-                 pri,
-                 res_set_0_size.value());
-    return res_set_cfg_id.value() * res_set_0_size.value() + pri;
-  }
-
-  // \brief Get the position of a given Resource Set ID 1 resource in the cell PUCCH resource list.
-  //
-  // \param res_set_cfg_id The resource set config index.
-  // \param pri The index of the resource within the resource set.
-  // \return The index of the PUCCH resource in the cell PUCCH resource list.
-  unsigned get_res_set_1_cell_res_idx(pucch_resource_set_config_id res_set_cfg_id, unsigned pri) const
-  {
+    static_assert(ResourceSetId == 0 or ResourceSetId == 1, "Only Resource Sets ID 0 and 1 are supported");
+    if constexpr (ResourceSetId == 0) {
+      ocudu_assert(res_set_cfg_id.value() < nof_cell_res_set_configs,
+                   "Resource set config index={} exceeds configured number of resource set configs={}",
+                   res_set_cfg_id.value(),
+                   nof_cell_res_set_configs);
+      ocudu_assert(pri < res_set_0_size.value(),
+                   "Resource index={} exceeds configured resource set size={}",
+                   pri,
+                   res_set_0_size.value());
+      return res_set_cfg_id.value() * res_set_0_size.value() + pri;
+    }
     ocudu_assert(res_set_cfg_id.value() < nof_cell_res_set_configs,
                  "Resource set config index={} exceeds configured number of resource set configs={}",
                  res_set_cfg_id.value(),
@@ -250,29 +241,26 @@ struct pucch_resource_builder_params {
            nof_cell_res_set_configs * res_set_1_size.value() + csi_res_id.value();
   }
 
-  // \brief Get the position of a given Resource Set ID 0 resource in the UE PUCCH resource list.
+  // \brief Get the position of a given Resource Set ID 0/1 resource in the UE PUCCH resource list.
   //
-  // \param pri The index of the resource within the resource set.
+  // \param res_set_id The Resource Set ID (0 or 1).
+  // \param pri the index of the resource within the resource set (PUCCH Resource Indicator).
   // \return The index of the PUCCH resource in the UE PUCCH resource list.
-  unsigned get_res_set_0_ue_res_idx(unsigned pri) const
+  template <unsigned ResourceSetId>
+  unsigned get_res_set_ue_res_idx(unsigned pri) const
   {
-    ocudu_assert(pri < res_set_0_size.value(),
-                 "Resource index={} exceeds configured resource set size={}",
-                 pri,
-                 res_set_0_size.value());
-    return pri;
-  }
-
-  // \brief Get the position of a given Resource Set ID 1 resource in the UE PUCCH resource list.
-  //
-  // \param pri The index of the resource within the resource set.
-  // \return The index of the PUCCH resource in the UE PUCCH resource list.
-  unsigned get_res_set_1_ue_res_idx(unsigned pri) const
-  {
+    static_assert(ResourceSetId == 0 or ResourceSetId == 1, "Only Resource Sets ID 0 and 1 are supported");
+    if constexpr (ResourceSetId == 0) {
+      ocudu_assert(pri < res_set_0_size.value(),
+                   "Resource index={} exceeds configured resource set size={}",
+                   pri,
+                   res_set_0_size.value());
+      return pri;
+    }
     ocudu_assert(pri < res_set_1_size.value(),
                  "Resource index={} exceeds configured resource set size={}",
                  pri,
-                 res_set_0_size.value());
+                 res_set_1_size.value());
     static constexpr unsigned nof_sr_res_per_ue = 1;
     if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
       // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).

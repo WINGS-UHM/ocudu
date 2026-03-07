@@ -44,8 +44,8 @@ void pucch_demodulator_format4::demodulate(span<log_likelihood_ratio>           
                *config.second_hop_prb,
                grid.get_nof_subc() / NOF_SUBCARRIERS_PER_RB);
 
-  interval<unsigned, true> nof_symbols_range(pucch_constants::f4::NOF_SYMS.start(),
-                                             pucch_constants::f4::NOF_SYMS.stop());
+  static constexpr interval<unsigned, true> nof_symbols_range(pucch_constants::f4::MIN_NOF_SYMS,
+                                                              pucch_constants::f4::MAX_NOF_SYMS);
   ocudu_assert(nof_symbols_range.contains(config.nof_symbols),
                "Invalid Number of OFDM symbols allocated to PUCCH Format 4, i.e., {}. Valid range is {}.",
                config.nof_symbols,

@@ -25,9 +25,9 @@ namespace ocudu {
 /// \param[in] additional_dmrs   Whether \e additionalDMRS parameter is set for the PUCCH resource.
 /// \returns The symbol mask for symbols containing DM-RS for that configuration, as per TS38.211 Table 6.4.1.3.3.2-1.
 inline symbol_slot_mask get_pucch_formats3_4_dmrs_symbol_mask(
-    bounded_integer<unsigned, pucch_constants::f3::NOF_SYMS.start(), pucch_constants::f3::NOF_SYMS.stop()> nof_symbols,
-    bool frequency_hopping,
-    bool additional_dmrs)
+    bounded_integer<unsigned, pucch_constants::f3::MIN_NOF_SYMS, pucch_constants::f3::MAX_NOF_SYMS> nof_symbols,
+    bool                                                                                            frequency_hopping,
+    bool                                                                                            additional_dmrs)
 {
   symbol_slot_mask mask(nof_symbols.value());
 

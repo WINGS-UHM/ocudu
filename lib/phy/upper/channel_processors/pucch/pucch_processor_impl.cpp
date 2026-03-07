@@ -4,6 +4,7 @@
 
 #include "pucch_processor_impl.h"
 #include "ocudu/phy/upper/pucch_formats3_4_helpers.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/support/transform_optional.h"
 
@@ -408,9 +409,11 @@ error_type<std::string> pucch_pdu_validator_impl::is_valid(const pucch_processor
   }
 
   // The number of symbols shall be in the range.
-  if (!pucch_constants::f0::NOF_SYMS.contains(config.nof_symbols)) {
-    return make_unexpected(fmt::format(
-        "Number of symbols (i.e., {}) is out of the range {}.", config.nof_symbols, pucch_constants::f0::NOF_SYMS));
+  static constexpr auto nof_symbols_range =
+      interval<unsigned, true>(pucch_constants::f0::MIN_NOF_SYMS, pucch_constants::f0::MAX_NOF_SYMS);
+  if (!nof_symbols_range.contains(config.nof_symbols)) {
+    return make_unexpected(
+        fmt::format("Number of symbols (i.e., {}) is out of the range {}.", config.nof_symbols, nof_symbols_range));
   }
 
   // None of the occupied symbols can exceed the configured maximum slot size, or the slot size given by the CP.
@@ -424,10 +427,10 @@ error_type<std::string> pucch_pdu_validator_impl::is_valid(const pucch_processor
   }
 
   // Initial cyclic shift must be in range.
-  if (!pucch_constants::f0::INITIAL_CYCLIC_SHIFT.contains(config.initial_cyclic_shift)) {
-    return make_unexpected(fmt::format("The initial cyclic shift (i.e., {}) is out of the range {}.",
-                                       config.initial_cyclic_shift,
-                                       pucch_constants::f0::INITIAL_CYCLIC_SHIFT));
+  static constexpr auto ics_range = interval<unsigned, false>(0, pucch_constants::f0::NOF_ICS);
+  if (!ics_range.contains(config.initial_cyclic_shift)) {
+    return make_unexpected(fmt::format(
+        "The initial cyclic shift (i.e., {}) is out of the range {}.", config.initial_cyclic_shift, ics_range));
   }
 
   // Hopping identifier must be in range.
@@ -442,10 +445,11 @@ error_type<std::string> pucch_pdu_validator_impl::is_valid(const pucch_processor
   }
 
   // Number of HARQ-ACK exceeds maximum.
-  if (!pucch_constants::f0::NOF_HARQ_ACK_BITS.contains(config.nof_harq_ack)) {
-    return make_unexpected(fmt::format("The number of HARQ-ACK bits (i.e., {}) is out of the range {}.",
-                                       config.nof_harq_ack,
-                                       pucch_constants::f0::NOF_HARQ_ACK_BITS));
+  static constexpr auto nof_harq_ack_range =
+      interval<unsigned, true>(pucch_constants::f0::MIN_NOF_HARQ_ACK_BITS, pucch_constants::f0::MAX_NOF_HARQ_ACK_BITS);
+  if (!nof_harq_ack_range.contains(config.nof_harq_ack)) {
+    return make_unexpected(fmt::format(
+        "The number of HARQ-ACK bits (i.e., {}) is out of the range {}.", config.nof_harq_ack, nof_harq_ack_range));
   }
 
   // The number of receive ports must not be empty.
@@ -497,6 +501,14 @@ error_type<std::string> pucch_pdu_validator_impl::is_valid(const pucch_processor
                                        "number of slot symbols, i.e., {}.",
                                        config.start_symbol_index + config.nof_symbols,
                                        ce_dims.nof_symbols));
+  }
+
+  // Number of HARQ-ACK exceeds maximum.
+  static constexpr auto nof_harq_ack_range =
+      interval<unsigned, true>(pucch_constants::f1::MIN_NOF_HARQ_ACK_BITS, pucch_constants::f1::MAX_NOF_HARQ_ACK_BITS);
+  if (!nof_harq_ack_range.contains(config.nof_harq_ack)) {
+    return make_unexpected(fmt::format(
+        "The number of HARQ-ACK bits (i.e., {}) is out of the range {}.", config.nof_harq_ack, nof_harq_ack_range));
   }
 
   // The number of receive ports is either zero or exceeds the configured maximum number of receive ports.
@@ -571,20 +583,18 @@ error_type<std::string> pucch_pdu_validator_impl::is_valid(const pucch_processor
   float effective_code_rate = pucch_format2_code_rate(config.nof_prb, config.nof_symbols, nof_uci_bits);
 
   // The code rate shall not exceed the maximum.
-  if (effective_code_rate > pucch_constants::f2::MAX_CODE_RATE.stop()) {
+  if (effective_code_rate > pucch_constants::f2::MAX_CODE_RATE) {
     return make_unexpected(fmt::format("The effective code rate (i.e., {}) exceeds the maximum allowed {}.",
                                        effective_code_rate,
-                                       static_cast<float>(pucch_constants::f2::MAX_CODE_RATE.stop())));
+                                       static_cast<float>(pucch_constants::f2::MAX_CODE_RATE)));
   }
 
   // UCI payload exceeds the UCI payload size boundaries.
-  if (nof_uci_bits < pucch_constants::f2::NOF_DATA_BITS.start() ||
-      nof_uci_bits > pucch_constants::f2::NOF_DATA_BITS.stop()) {
-    return make_unexpected(
-        fmt::format("UCI Payload length, i.e., {} is not supported. Payload length must be {} to {} bits.",
-                    nof_uci_bits,
-                    pucch_constants::f2::NOF_DATA_BITS.start(),
-                    pucch_constants::f2::NOF_DATA_BITS.stop()));
+  static constexpr auto nof_uci_bits_range =
+      interval<unsigned, true>(pucch_constants::f2::MIN_NOF_DATA_BITS, pucch_constants::f2::MAX_NOF_DATA_BITS);
+  if (!nof_uci_bits_range.contains(nof_uci_bits)) {
+    return make_unexpected(fmt::format(
+        "UCI Payload length (i.e., {}) is outside the supported range (i.e., {}).", nof_uci_bits, nof_uci_bits_range));
   }
 
   return default_success_t();
@@ -651,15 +661,15 @@ error_type<std::string> pucch_pdu_validator_impl::is_valid(const pucch_processor
       config.nof_prb, config.nof_symbols - dmrs_symb_mask.count(), config.pi2_bpsk, nof_uci_bits);
 
   // The code rate shall not exceed the maximum.
-  if (effective_code_rate > pucch_constants::f3::MAX_CODE_RATE.stop()) {
+  if (effective_code_rate > pucch_constants::f3::MAX_CODE_RATE) {
     return make_unexpected(fmt::format("The effective code rate (i.e., {}) exceeds the maximum allowed {}.",
                                        effective_code_rate,
-                                       static_cast<float>(pucch_constants::f3::MAX_CODE_RATE.stop())));
+                                       static_cast<float>(pucch_constants::f3::MAX_CODE_RATE)));
   }
 
   // UCI payload exceeds the UCI payload size boundaries.
-  interval<unsigned, true> nof_uci_bits_range(pucch_constants::f3::NOF_DATA_BITS.start(),
-                                              pucch_constants::f3::NOF_DATA_BITS.stop());
+  static constexpr interval<unsigned, true> nof_uci_bits_range(pucch_constants::f3::MIN_NOF_DATA_BITS,
+                                                               pucch_constants::f3::MAX_NOF_DATA_BITS);
   if (!nof_uci_bits_range.contains(nof_uci_bits)) {
     return make_unexpected(fmt::format(
         "UCI Payload length (i.e., {}) is outside the supported range (i.e., {}).", nof_uci_bits, nof_uci_bits_range));
@@ -738,15 +748,15 @@ error_type<std::string> pucch_pdu_validator_impl::is_valid(const pucch_processor
       config.occ_length, config.nof_symbols - dmrs_symb_mask.count(), config.pi2_bpsk, nof_uci_bits);
 
   // The code rate shall not exceed the maximum.
-  if (effective_code_rate > pucch_constants::f4::MAX_CODE_RATE.stop()) {
+  if (effective_code_rate > pucch_constants::f4::MAX_CODE_RATE) {
     return make_unexpected(fmt::format("The effective code rate (i.e., {}) exceeds the maximum allowed {}.",
                                        effective_code_rate,
-                                       static_cast<float>(pucch_constants::f4::MAX_CODE_RATE.stop())));
+                                       static_cast<float>(pucch_constants::f4::MAX_CODE_RATE)));
   }
 
   // UCI payload exceeds the UCI payload size boundaries.
-  interval<unsigned, true> nof_uci_bits_range(pucch_constants::f4::NOF_DATA_BITS.start(),
-                                              pucch_constants::f4::NOF_DATA_BITS.stop());
+  static constexpr interval<unsigned, true> nof_uci_bits_range(pucch_constants::f4::MIN_NOF_DATA_BITS,
+                                                               pucch_constants::f4::MAX_NOF_DATA_BITS);
   if (!nof_uci_bits_range.contains(nof_uci_bits)) {
     return make_unexpected(fmt::format(
         "UCI Payload length (i.e., {}) is outside the supported range (i.e., {}).", nof_uci_bits, nof_uci_bits_range));

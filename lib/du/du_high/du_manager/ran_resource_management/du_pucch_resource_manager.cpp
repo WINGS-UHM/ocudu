@@ -182,7 +182,7 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
   }
 
   // Update the BWP configuration for this UE with the allocated SR and CSI resources.
-  auto& ul_bwp = cell_cfg.bwps[0].ul;
+  auto& ul_bwp = cell_cfg.init_bwp().ul;
   ul_bwp.pucch.res_set_cfg_id =
       pucch_resource_set_config_id(cell_ctx.ue_idx % cell_ctx.bwp_params.pucch.resources.nof_cell_res_set_configs);
   ul_bwp.pucch.sr_res_id = pucch_sr_resource_id(sr_cfg->res);
@@ -203,7 +203,7 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
 void du_pucch_resource_manager::dealloc_resources(cell_group_config& cell_grp_cfg)
 {
   auto&       serv_cell_cfg = cell_grp_cfg.cells.at(SERVING_PCELL_IDX).serv_cell_cfg;
-  const auto& ul_bwp        = cell_grp_cfg.cells.at(SERVING_PCELL_IDX).bwps[0].ul;
+  const auto& ul_bwp        = cell_grp_cfg.cells.at(SERVING_PCELL_IDX).init_bwp().ul;
   auto&       cell_ctx      = cells[serv_cell_cfg.cell_index];
 
   if (not serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value()) {

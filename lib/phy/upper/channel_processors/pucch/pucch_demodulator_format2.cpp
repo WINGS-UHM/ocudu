@@ -83,10 +83,10 @@ void pucch_demodulator_format2::demodulate(span<log_likelihood_ratio>           
   unsigned nof_re_port = pucch_constants::f2::NOF_DATA_SUBC_PER_RB * config.nof_prb * config.nof_symbols;
 
   // Assert that allocations are valid.
-  ocudu_assert(config.nof_prb && config.nof_prb <= pucch_constants::f2::NOF_RBS.stop(),
+  ocudu_assert(config.nof_prb && config.nof_prb <= pucch_constants::f2::MAX_NOF_RBS,
                "Invalid Number of PRB allocated to PUCCH Format 2, i.e., {}. Valid range is 1 to {}.",
                config.nof_prb,
-               pucch_constants::f2::NOF_RBS.stop());
+               pucch_constants::f2::MAX_NOF_RBS);
 
   ocudu_assert((config.first_prb + config.nof_prb) * NOF_SUBCARRIERS_PER_RB <= grid.get_nof_subc(),
                "PUCCH Format 2: PRB allocation outside grid (first hop). Requested [{}, {}), grid has {} PRBs.",
@@ -101,10 +101,10 @@ void pucch_demodulator_format2::demodulate(span<log_likelihood_ratio>           
                *config.second_hop_prb + config.nof_prb,
                grid.get_nof_subc() / NOF_SUBCARRIERS_PER_RB);
 
-  ocudu_assert(config.nof_symbols && config.nof_symbols <= pucch_constants::f2::NOF_SYMS.stop(),
+  ocudu_assert(config.nof_symbols && config.nof_symbols <= pucch_constants::f2::MAX_NOF_SYMS,
                "Invalid Number of OFDM symbols allocated to PUCCH Format 2, i.e., {}. Valid range is 1 to {}.",
                config.nof_symbols,
-               pucch_constants::f2::NOF_SYMS.stop());
+               pucch_constants::f2::MAX_NOF_SYMS);
 
   // Resize data and channel estimation buffers.
   ch_re.resize(nof_rx_ports, nof_re_port);

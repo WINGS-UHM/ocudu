@@ -278,7 +278,7 @@ static std::vector<pucch_grant> compute_f2_res(unsigned                         
                                                                    to_max_code_rate_float(params.max_code_rate))
                                                 : params.max_nof_rbs.value();
 
-  if (f2_max_rbs > pucch_constants::f2::NOF_RBS.stop()) {
+  if (f2_max_rbs > pucch_constants::f2::MAX_NOF_RBS) {
     return {};
   }
 
@@ -372,7 +372,7 @@ static std::vector<pucch_grant> compute_f3_res(unsigned                         
                                                                    params.pi2_bpsk)
                                                 : params.max_nof_rbs.value();
 
-  if (f3_max_rbs > pucch_constants::f3::NOF_RBS.stop()) {
+  if (f3_max_rbs > pucch_constants::f3::MAX_NOF_RBS) {
     return {};
   }
 
@@ -556,10 +556,11 @@ error_type<std::string> config_helpers::pucch_parameters_validator(const pucch_r
       return make_unexpected("Intra-slot frequency hopping for PUCCH Format 0 requires 2 symbols");
     }
 
-    const unsigned nof_f0_res_per_rb = max_nof_symbols / f0_params.nof_syms.value();
-    nof_rbs_f0_f1                    = divide_ceil(nof_res_f0_f1, nof_f0_res_per_rb);
+    // We define a block as a set of resources of the same format aligned over the same starting PRB.
+    const unsigned nof_f0_blocks = max_nof_symbols / f0_params.nof_syms.value();
+    nof_rbs_f0_f1                = divide_ceil(nof_res_f0_f1, nof_f0_blocks);
     // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
-    if (f0_params.intraslot_freq_hopping and (nof_rbs_f0_f1 & 1) != 0) {
+    if (f0_params.intraslot_freq_hopping and (nof_rbs_f0_f1 & 1U) != 0) {
       nof_rbs_f0_f1 += 1;
     }
   } else {
@@ -571,17 +572,18 @@ error_type<std::string> config_helpers::pucch_parameters_validator(const pucch_r
 
     const unsigned nof_occ_codes = f1_params.occ_supported ? format1_symb_to_spreading_factor(f1_params.nof_syms) : 1;
     const unsigned nof_css       = format1_cp_step_to_uint(f1_params.nof_cyc_shifts);
-    const unsigned nof_f1_res_per_rb = nof_occ_codes * nof_css * (max_nof_symbols / f1_params.nof_syms.value());
-    nof_rbs_f0_f1                    = divide_ceil(nof_res_f0_f1, nof_f1_res_per_rb);
+    // We define a block as a set of resources of the same format aligned over the same starting PRB.
+    const unsigned nof_f1_blocks = nof_occ_codes * nof_css * (max_nof_symbols / f1_params.nof_syms.value());
+    nof_rbs_f0_f1                = divide_ceil(nof_res_f0_f1, nof_f1_blocks);
     // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
-    if (f1_params.intraslot_freq_hopping and (nof_rbs_f0_f1 & 1) != 0) {
+    if (f1_params.intraslot_freq_hopping and (nof_rbs_f0_f1 & 1U) != 0) {
       nof_rbs_f0_f1 += 1;
     }
   }
 
   const unsigned nof_res_f2_f3_f4 =
       params.nof_cell_csi_resources + params.nof_cell_res_set_configs * params.res_set_1_size.value();
-  unsigned nof_rbs_f2_f3_f4;
+  unsigned nof_rbs_f2_f3_f4 = 0;
   if (std::holds_alternative<pucch_f2_params>(params.f2_or_f3_or_f4_params)) {
     const auto& f2_params = std::get<pucch_f2_params>(params.f2_or_f3_or_f4_params);
 
@@ -594,14 +596,15 @@ error_type<std::string> config_helpers::pucch_parameters_validator(const pucch_r
                                                                      f2_params.nof_syms.value(),
                                                                      to_max_code_rate_float(f2_params.max_code_rate))
                                     : f2_params.max_nof_rbs.value();
-    if (f2_max_rbs > pucch_constants::f2::NOF_RBS.stop()) {
+    if (f2_max_rbs > pucch_constants::f2::MAX_NOF_RBS) {
       return make_unexpected("The configured maximum number of RBs for PUCCH Format 2 exceeds the limit of 16");
     }
 
-    const unsigned nof_f2_res_per_rb = params.max_nof_symbols.value() / f2_params.nof_syms.value();
-    nof_rbs_f2_f3_f4                 = divide_ceil(nof_res_f2_f3_f4, nof_f2_res_per_rb) * f2_max_rbs;
+    // We define a block as a set of resources of the same format aligned over the same starting PRB.
+    const unsigned nof_f2_blocks = params.max_nof_symbols.value() / f2_params.nof_syms.value();
+    nof_rbs_f2_f3_f4             = divide_ceil(nof_res_f2_f3_f4, nof_f2_blocks) * f2_max_rbs;
     // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
-    if (f2_params.intraslot_freq_hopping and (nof_rbs_f2_f3_f4 & 1) != 0) {
+    if (f2_params.intraslot_freq_hopping and (nof_rbs_f2_f3_f4 & 1U) != 0) {
       nof_rbs_f2_f3_f4 += 1;
     }
   } else if (std::holds_alternative<pucch_f3_params>(params.f2_or_f3_or_f4_params)) {
@@ -620,24 +623,26 @@ error_type<std::string> config_helpers::pucch_parameters_validator(const pucch_r
                                                                      f3_params.additional_dmrs,
                                                                      f3_params.pi2_bpsk)
                                     : f3_params.max_nof_rbs.value();
-    if (f3_max_rbs > pucch_constants::f3::NOF_RBS.stop()) {
+    if (f3_max_rbs > pucch_constants::f3::MAX_NOF_RBS) {
       return make_unexpected("The number of PRBs for PUCCH Format 3 exceeds the limit of 16");
     }
 
-    const unsigned nof_f3_res_per_rb = max_nof_symbols / f3_params.nof_syms.value();
-    nof_rbs_f2_f3_f4                 = divide_ceil(nof_res_f2_f3_f4, nof_f3_res_per_rb) * f3_max_rbs;
+    // We define a block as a set of resources of the same format aligned over the same starting PRB.
+    const unsigned nof_f3_blocks = max_nof_symbols / f3_params.nof_syms.value();
+    nof_rbs_f2_f3_f4             = divide_ceil(nof_res_f2_f3_f4, nof_f3_blocks) * f3_max_rbs;
     // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
-    if (f3_params.intraslot_freq_hopping and (nof_rbs_f2_f3_f4 & 1) != 0) {
+    if (f3_params.intraslot_freq_hopping and (nof_rbs_f2_f3_f4 & 1U) != 0) {
       nof_rbs_f2_f3_f4 += 1;
     }
   } else {
     const auto& f4_params = std::get<pucch_f4_params>(params.f2_or_f3_or_f4_params);
 
-    const unsigned nof_occs          = f4_params.occ_supported ? static_cast<unsigned>(f4_params.occ_length) : 1U;
-    const unsigned nof_f4_res_per_rb = nof_occs * max_nof_symbols / f4_params.nof_syms.value();
-    nof_rbs_f2_f3_f4                 = divide_ceil(nof_res_f2_f3_f4, nof_f4_res_per_rb);
+    const unsigned nof_occs = f4_params.occ_supported ? static_cast<unsigned>(f4_params.occ_length) : 1U;
+    // We define a block as a set of resources of the same format aligned over the same starting PRB.
+    const unsigned nof_f4_blocks = nof_occs * max_nof_symbols / f4_params.nof_syms.value();
+    nof_rbs_f2_f3_f4             = divide_ceil(nof_res_f2_f3_f4, nof_f4_blocks);
     // With intraslot_freq_hopping, the number of RBs is even. Round up to the nearest even number if it's odd.
-    if (f4_params.intraslot_freq_hopping and (nof_rbs_f2_f3_f4 & 1) != 0) {
+    if (f4_params.intraslot_freq_hopping and (nof_rbs_f2_f3_f4 & 1U) != 0) {
       nof_rbs_f2_f3_f4 += 1;
     }
   }
@@ -975,7 +980,7 @@ static bool cell_res_list_and_params_validator(serving_cell_config&             
   }
 
   if (nof_res_f0 != 0 and (nof_res_f3 != 0 or nof_res_f4 != 0)) {
-    ocudu_assertion_failure("The scheduler is not prepared to handle PUCCH Formats 3 and 4 when Format 0 is used.");
+    ocudu_assertion_failure("PUCCH Formats 3/4 not currently supported with PUCCH Format 0");
     return false;
   }
 
@@ -1062,8 +1067,8 @@ bool config_helpers::ue_pucch_config_builder(serving_cell_config&               
   pucch_res_set_1.pucch_res_set_id = pucch_res_set_idx::set_1;
 
   // Offsets to access the correct HARQ-ACK resources in the cell_res_list.
-  const unsigned set_0_cell_idx_offset = params.get_res_set_0_cell_res_idx(ue_pucch_cfg.res_set_cfg_id, 0);
-  const unsigned set_1_cell_idx_offset = params.get_res_set_1_cell_res_idx(ue_pucch_cfg.res_set_cfg_id, 0);
+  const unsigned set_0_cell_idx_offset = params.get_res_set_cell_res_idx<0>(ue_pucch_cfg.res_set_cfg_id, 0);
+  const unsigned set_1_cell_idx_offset = params.get_res_set_cell_res_idx<1>(ue_pucch_cfg.res_set_cfg_id, 0);
 
   // [Implementation-defined] We build the PUCCH-Config of all UEs in a way that will prevent the scheduling of
   // multiple PUCCH transmissions per UE per slot, since not all UEs are capable of that. To achieve this, we make

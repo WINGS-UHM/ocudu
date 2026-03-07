@@ -44,7 +44,7 @@ const pucch_processor::format4_configuration base_format_4_config = {
     // N_ID for sequence hopping.
     0,
     // Number of HARQ-ACK bits.
-    pucch_constants::f4::NOF_DATA_BITS.start(),
+    pucch_constants::f4::MIN_NOF_DATA_BITS,
     // Number of SR bits.
     0,
     // Number of CSI Part 1 bits.
@@ -178,7 +178,7 @@ static const auto pucch_processor_validator_test_data = to_array<test_case_t>(
          [] {
            test_params entry          = {};
            entry.config               = base_format_4_config;
-           entry.config.nof_harq_ack  = pucch_constants::f4::NOF_DATA_BITS.start() - 1;
+           entry.config.nof_harq_ack  = pucch_constants::f4::MIN_NOF_DATA_BITS - 1;
            entry.config.nof_sr        = 0;
            entry.config.nof_csi_part1 = 0;
            entry.config.nof_csi_part2 = 0;

@@ -32,7 +32,7 @@ public:
 
 private:
   /// Maximum number of RE used for PUCCH Format 0. Recall that PUCCH format 0 occupies a single RB.
-  static constexpr unsigned max_nof_re = NOF_SUBCARRIERS_PER_RB * MAX_PORTS * pucch_constants::f0::NOF_SYMS.stop();
+  static constexpr unsigned max_nof_re = NOF_SUBCARRIERS_PER_RB * MAX_PORTS * pucch_constants::f0::MAX_NOF_SYMS;
 
   /// Temporary RE storage tensor dimensions.
   enum class dims : unsigned { re = 0, symbol = 1, rx_port = 2, nof_dims = 3 };

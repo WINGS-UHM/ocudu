@@ -65,7 +65,7 @@ protected:
     ASSERT_NE(demod_factory, nullptr) << "Cannot create channel modulation factory.";
 
     std::shared_ptr<transform_precoder_factory> precoding_factory =
-        create_dft_transform_precoder_factory(dft_factory, pucch_constants::f3::NOF_RBS.stop() + 1);
+        create_dft_transform_precoder_factory(dft_factory, pucch_constants::f3::MAX_NOF_RBS + 1);
     ASSERT_NE(precoding_factory, nullptr) << "Cannot create transform precoder factory.";
 
     // Create PUCCH demodulator factory.

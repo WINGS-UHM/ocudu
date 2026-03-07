@@ -31,10 +31,10 @@ void pucch_demodulator_format3::demodulate(span<log_likelihood_ratio>           
   const unsigned nof_re_port = (config.nof_symbols - dmrs_symb_mask.count()) * nof_re_symb;
 
   // Assert that allocations are valid.
-  ocudu_assert(config.nof_prb && config.nof_prb <= pucch_constants::f3::NOF_RBS.stop(),
+  ocudu_assert(config.nof_prb && config.nof_prb <= pucch_constants::f3::MAX_NOF_RBS,
                "Invalid Number of PRB allocated to PUCCH Format 3, i.e., {}. Valid range is 1 to {}.",
                config.nof_prb,
-               pucch_constants::f3::NOF_RBS.stop());
+               pucch_constants::f3::MAX_NOF_RBS);
 
   ocudu_assert((config.first_prb + config.nof_prb) * NOF_SUBCARRIERS_PER_RB <= grid.get_nof_subc(),
                "PUCCH Format 3: PRB allocation outside grid (first hop). Requested [{}, {}), grid has {} PRBs.",
@@ -49,8 +49,8 @@ void pucch_demodulator_format3::demodulate(span<log_likelihood_ratio>           
                *config.second_hop_prb + config.nof_prb,
                grid.get_nof_subc() / NOF_SUBCARRIERS_PER_RB);
 
-  interval<unsigned, true> nof_symbols_range(pucch_constants::f3::NOF_SYMS.start(),
-                                             pucch_constants::f3::NOF_SYMS.stop());
+  static constexpr interval<unsigned, true> nof_symbols_range(pucch_constants::f3::MIN_NOF_SYMS,
+                                                              pucch_constants::f3::MAX_NOF_SYMS);
   ocudu_assert(nof_symbols_range.contains(config.nof_symbols),
                "Invalid Number of OFDM symbols allocated to PUCCH Format 3, i.e., {}. Valid range is {}.",
                config.nof_symbols,

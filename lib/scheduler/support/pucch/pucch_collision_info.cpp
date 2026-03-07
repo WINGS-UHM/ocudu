@@ -58,8 +58,7 @@ pucch_collision_info::pucch_collision_info(const pucch_resource& res, const bwp_
       // For PUCCH Format 1, two sequences are orthogonal unless both the initial cyclic shift and the time domain OCC
       // index are the same.
       const auto& f1_params = std::get<pucch_format_1_cfg>(res.format_params);
-      multiplexing_index    = f1_params.initial_cyclic_shift +
-                           f1_params.time_domain_occ * pucch_constants::f1::INITIAL_CYCLIC_SHIFT.length();
+      multiplexing_index    = f1_params.initial_cyclic_shift + f1_params.time_domain_occ * pucch_constants::f1::NOF_ICS;
     } break;
     case pucch_format::FORMAT_4: {
       // For PUCCH Format 4, the OCC index is mapped to a cyclic shift value, as per Table 6.4.1.3.3.1-1, TS 38.211.

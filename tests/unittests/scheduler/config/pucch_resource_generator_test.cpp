@@ -126,8 +126,8 @@ TEST_P(pucch_resource_generator_test, ue_pucch_config_builder_test)
         ASSERT_EQ(params.res_set_0_size.value() + extra_res_per_res_set, res_set_0.pucch_res_id_list.size());
 
         for (unsigned pri = 0; pri != params.res_set_0_size.value(); ++pri) {
-          const pucch_res_id_t expected_res_id{params.get_res_set_0_cell_res_idx(res_set_cfg_id, pri),
-                                               params.get_res_set_0_ue_res_idx(pri)};
+          const pucch_res_id_t expected_res_id{params.get_res_set_cell_res_idx<0>(res_set_cfg_id, pri),
+                                               params.get_res_set_ue_res_idx<0>(pri)};
 
           ASSERT_EQ(expected_res_id, res_set_0.pucch_res_id_list[pri]);
 
@@ -149,8 +149,8 @@ TEST_P(pucch_resource_generator_test, ue_pucch_config_builder_test)
         ASSERT_EQ(params.res_set_0_size.value() + extra_res_per_res_set, res_set_1.pucch_res_id_list.size());
 
         for (unsigned pri = 0; pri != params.res_set_1_size.value(); ++pri) {
-          const pucch_res_id_t expected_res_id{params.get_res_set_1_cell_res_idx(res_set_cfg_id, pri),
-                                               params.get_res_set_1_ue_res_idx(pri)};
+          const pucch_res_id_t expected_res_id{params.get_res_set_cell_res_idx<1>(res_set_cfg_id, pri),
+                                               params.get_res_set_ue_res_idx<1>(pri)};
           ASSERT_EQ(expected_res_id, res_set_1.pucch_res_id_list[pri]);
 
           const pucch_resource& res = pucch_cfg.pucch_res_list[expected_res_id.ue_res_id];
@@ -201,13 +201,13 @@ static constexpr pucch_f0_params f0_freq_hop{
 };
 
 static constexpr pucch_f1_params f1_low_density{
-    .nof_syms       = pucch_constants::f1::NOF_SYMS.stop(),
+    .nof_syms       = pucch_constants::f1::MAX_NOF_SYMS,
     .nof_cyc_shifts = pucch_nof_cyclic_shifts::no_cyclic_shift,
     .occ_supported  = false,
 
 };
 static constexpr pucch_f1_params f1_high_density{
-    .nof_syms       = pucch_constants::f1::NOF_SYMS.start(),
+    .nof_syms       = pucch_constants::f1::MIN_NOF_SYMS,
     .nof_cyc_shifts = pucch_nof_cyclic_shifts::twelve,
     .occ_supported  = true,
 };
@@ -221,10 +221,10 @@ static constexpr pucch_f2_params f2_freq_hop{
 };
 
 static constexpr pucch_f3_params f3_low_density{.nof_syms = 7, .max_nof_rbs = 1, .intraslot_freq_hopping = true};
-static constexpr pucch_f3_params f3_high_density{.nof_syms = pucch_constants::f3::NOF_SYMS.start()};
+static constexpr pucch_f3_params f3_high_density{.nof_syms = pucch_constants::f3::MIN_NOF_SYMS};
 
 static constexpr pucch_f4_params f4_low_density{.nof_syms = 7, .intraslot_freq_hopping = true};
-static constexpr pucch_f4_params f4_high_density{.nof_syms      = pucch_constants::f3::NOF_SYMS.start(),
+static constexpr pucch_f4_params f4_high_density{.nof_syms      = pucch_constants::f3::MIN_NOF_SYMS,
                                                  .occ_supported = true,
                                                  .occ_length    = pucch_f4_occ_len::n4};
 

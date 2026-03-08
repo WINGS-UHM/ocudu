@@ -4,13 +4,13 @@
 
 /// \file
 /// \brief PUSCH demodulator implementation definition.
-
 #include "pusch_demodulator_impl.h"
 #include "ocudu/isac/isac_sink.h"
 #include "ocudu/ocuduvec/simd.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_codeword_buffer.h"
 #include "ocudu/phy/upper/channel_processors/pusch/pusch_demodulator_notifier.h"
 #include "ocudu/support/transform_optional.h"
+#include <cmath>
 #if defined(__SSE3__)
 #include <immintrin.h>
 #elif defined(__aarch64__)
@@ -346,51 +346,62 @@ void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&              code
       precoder->deprecode_ofdm_symbol(eq_re, eq_re);
       precoder->deprecode_ofdm_symbol_noise(eq_noise_vars, eq_noise_vars);
     }
-    // // Add ISAC Tap
-    // {
-    //   const auto now       = std::chrono::high_resolution_clock::now().time_since_epoch();
-    //   uint64_t   tstamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
 
-    //   constexpr unsigned CONST_DECIM = 4;
-
-    //   float ci[ocudu::isac_snapshot::MAX_CONST];
-    //   float cq[ocudu::isac_snapshot::MAX_CONST];
-
-    //   unsigned n_const = 0;
-
-    //   for (unsigned i = 0; i < temp_eq_re.size() && n_const < ocudu::isac_snapshot::MAX_CONST; i += CONST_DECIM) {
-    //     const auto& s = temp_eq_re[i];
-    //     ci[n_const]   = s.real();
-    //     cq[n_const]   = s.imag();
-    //     n_const++;
-    //   }
-
-    //   ocudu::get_isac_sink().write(ci, cq, n_const, nullptr, nullptr, 0, tstamp_ns);
-    // }
-    // ==== ISAC DEBUG TAP ====
+    // ==== ISAC TAP ====
     {
       const auto now       = std::chrono::high_resolution_clock::now().time_since_epoch();
       uint64_t   tstamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
 
-      fprintf(stderr,
-              "[ISAC DEBUG] ts=%lu symbol=%u | eq_re=%zu | eq_noise_vars=%zu | nof_re_symbol=%u | rx_ports=%u | "
-              "layers=%u\n",
-              tstamp_ns,
-              i_symbol,
-              eq_re.size(),
-              eq_noise_vars.size(),
-              nof_re_symbol,
-              nof_rx_ports,
-              config.nof_tx_layers);
+      float ci[ocudu::isac_snapshot::MAX_CONST];
+      float cq[ocudu::isac_snapshot::MAX_CONST];
+      float mag[ocudu::isac_snapshot::MAX_CSI];
+      float phase[ocudu::isac_snapshot::MAX_CSI];
 
-      fprintf(stderr,
-              "[ISAC DEBUG] sink.write(ci=%p cq=%p n_const=? mag=%p phase=%p n_csi=? ts=%lu)\n",
-              (void*)nullptr,
-              (void*)nullptr,
-              (void*)nullptr,
-              (void*)nullptr,
-              tstamp_ns);
+      unsigned n_const = std::min<unsigned>(eq_re.size(), ocudu::isac_snapshot::MAX_CONST);
+      for (unsigned i = 0; i < n_const; ++i) {
+        const auto& s = eq_re[i];
+        ci[i]         = s.real();
+        cq[i]         = s.imag();
+      }
+
+      span<const cbf16_t> h = ch_estimates.get_channel(0, 0);
+
+      unsigned n_csi = std::min<unsigned>(h.size(), ocudu::isac_snapshot::MAX_CSI);
+      for (unsigned i = 0; i < n_csi; ++i) {
+        float hr = ocudu::to_float(h[i].real);
+        float hi = ocudu::to_float(h[i].imag);
+
+        mag[i]   = hr; // raw CSI real
+        phase[i] = hi; // raw CSI imag
+      }
+
+      ocudu::get_isac_sink().write(ci, cq, n_const, mag, phase, n_csi, tstamp_ns);
     }
+
+    // ==== ISAC DEBUG TAP ====
+    // {
+    //   const auto now       = std::chrono::high_resolution_clock::now().time_since_epoch();
+    //   uint64_t   tstamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(now).count();
+
+    //   fprintf(stderr,
+    //           "[ISAC DEBUG] ts=%lu symbol=%u | eq_re=%zu | eq_noise_vars=%zu | nof_re_symbol=%u | rx_ports=%u | "
+    //           "layers=%u\n",
+    //           tstamp_ns,
+    //           i_symbol,
+    //           eq_re.size(),
+    //           eq_noise_vars.size(),
+    //           nof_re_symbol,
+    //           nof_rx_ports,
+    //           config.nof_tx_layers);
+
+    //   fprintf(stderr,
+    //           "[ISAC DEBUG] sink.write(ci=%p cq=%p n_const=? mag=%p phase=%p n_csi=? ts=%lu)\n",
+    //           (void*)nullptr,
+    //           (void*)nullptr,
+    //           (void*)nullptr,
+    //           (void*)nullptr,
+    //           tstamp_ns);
+    // }
     // Estimate post equalization Signal-to-Interference-plus-Noise Ratio.
     if (compute_post_eq_sinr) {
       symbol_noise_var_accumulate += filter_infinite_and_accumulate(symbol_sinr_softbit_count, eq_noise_vars);

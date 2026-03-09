@@ -19,11 +19,11 @@ protected:
     cell_cfg(config_helpers::make_default_scheduler_expert_config(),
              sched_config_helper::make_default_sched_cell_configuration_request()),
     cell_cfg_dedicated(ocudu::config_helpers::create_default_initial_ue_cell_config()),
-    pucch_builder(GetParam() ? pucch_res_builder_test_helper(cell_cfg.ul_cfg_common.init_ul_bwp, std::nullopt)
+    pucch_builder(GetParam() ? pucch_res_builder_test_helper(cell_cfg.params.ul_cfg_common.init_ul_bwp, std::nullopt)
                              : pucch_res_builder_test_helper())
   {
     if (not GetParam()) {
-      pucch_builder.setup(cell_cfg.ul_cfg_common.init_ul_bwp, std::nullopt);
+      pucch_builder.setup(cell_cfg.params.ul_cfg_common.init_ul_bwp, std::nullopt);
     }
   }
 

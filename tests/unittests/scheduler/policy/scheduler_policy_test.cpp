@@ -199,8 +199,7 @@ protected:
     base_scheduler_policy_test(test_params{.policy = GetParam(), .cell_cfg_req = []() {
                                              auto cell_req =
                                                  sched_config_helper::make_default_sched_cell_configuration_request();
-                                             cell_req.ran.init_bwp_builder.pdcch_cfg->search_spaces =
-                                                 make_search_spaces();
+                                             cell_req.ran.init_bwp.pdcch_cfg->search_spaces = make_search_spaces();
                                              return cell_req;
                                            }()})
   {
@@ -232,7 +231,7 @@ TEST_P(scheduler_policy_css_test, when_coreset0_used_then_dl_grant_is_within_bou
 
   ASSERT_FALSE(this->res_grid[0].result.dl.ue_grants.empty());
   ASSERT_EQ(this->res_grid[0].result.dl.ue_grants.back().context.ue_index, u.ue_index);
-  crb_interval crbs         = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs();
+  crb_interval crbs         = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs();
   prb_interval alloced_prbs = prb_interval{this->res_grid[0].result.dl.ue_grants.back().pdsch_cfg.rbs.type1().start(),
                                            this->res_grid[0].result.dl.ue_grants.back().pdsch_cfg.rbs.type1().stop()};
   ASSERT_EQ(prb_to_crb(crbs, alloced_prbs), crbs);
@@ -277,7 +276,7 @@ TEST_P(scheduler_policy_test, scheduler_allocates_more_than_one_ue_in_case_their
   ASSERT_NE(this->res_grid[0].result.dl.ul_pdcchs[0].ctx.rnti, this->res_grid[0].result.dl.ul_pdcchs[1].ctx.rnti);
   // NOTE: Both UEs have same PUSCH time domain resources configured.
   span<const pusch_time_domain_resource_allocation> pusch_td_res_list =
-      u1.get_pcell().cfg().cell_cfg_common.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
+      u1.get_pcell().cfg().cell_cfg_common.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
   // In default UE dedicated configuration, SearchSpace#2 is configured to use DCI format 1_1/0_1.
   if (this->res_grid[0].result.dl.ul_pdcchs[0].dci.c_rnti_f0_1.time_resource ==
       this->res_grid[0].result.dl.ul_pdcchs[1].dci.c_rnti_f0_1.time_resource) {
@@ -733,7 +732,7 @@ TEST_P(scheduler_pf_qos_test, pf_upholds_qos_in_dl_gbr_flows)
   // Add UE with no GBR bearer.
   ue& ue_with_no_gbr = add_ue(make_ue_create_req(to_du_ue_index(1), to_rnti(0x4602), {non_gbr_bearer_lcid}, lcg_id));
 
-  const double expected_rate = to_bytes_per_slot(brate, cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs);
+  const double expected_rate = to_bytes_per_slot(brate, cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs);
 
   push_dl_bs(ue_with_gbr.ue_index, gbr_bearer_lcid, expected_rate);
   push_dl_bs(ue_with_no_gbr.ue_index, non_gbr_bearer_lcid, 1000000);

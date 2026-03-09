@@ -3,21 +3,20 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "pdcch_resource_allocator_impl.h"
-#include "../support/pdcch/pdcch_mapping.h"
 #include "../support/pdcch/pdcch_pdu_parameters.h"
 #include "pdcch_slot_resource_allocator.h"
-#include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 
 using namespace ocudu;
 
 pdcch_resource_allocator_impl::pdcch_resource_allocator_impl(const cell_configuration& cell_cfg_) : cell_cfg(cell_cfg_)
 {
-  for (const search_space_configuration& ss : cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
+  for (const search_space_configuration& ss : cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
     pdcch_common_candidates.emplace(ss.get_id());
-    const coreset_configuration& cs_cfg = (ss.get_coreset_id() == to_coreset_id(0))
-                                              ? (*cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0)
-                                              : cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value();
+    const coreset_configuration& cs_cfg =
+        (ss.get_coreset_id() == to_coreset_id(0))
+            ? (*cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0)
+            : cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value();
 
     for (unsigned lidx = 0; lidx != NOF_AGGREGATION_LEVELS; ++lidx) {
       const aggregation_level aggr_lvl            = aggregation_index_to_level(lidx);
@@ -52,9 +51,9 @@ pdcch_dl_information* pdcch_resource_allocator_impl::alloc_dl_pdcch_common(cell_
                                                                            aggregation_level             aggr_lvl)
 {
   // Find Common BWP and CORESET configurations.
-  const bwp_configuration&          bwp_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params;
+  const bwp_configuration&          bwp_cfg = cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params;
   const search_space_configuration& ss_cfg =
-      cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[(size_t)ss_id];
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[(size_t)ss_id];
   const sched_coreset_config& cs_cfg = cell_cfg.init_bwp_res.coresets()[ss_cfg.get_coreset_id()];
 
   return alloc_dl_pdcch_helper(slot_alloc,
@@ -72,9 +71,9 @@ pdcch_ul_information* pdcch_resource_allocator_impl::alloc_ul_pdcch_common(cell_
                                                                            aggregation_level             aggr_lvl)
 {
   // Find Common BWP and CORESET configurations.
-  const bwp_configuration&          bwp_cfg = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+  const bwp_configuration&          bwp_cfg = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
   const search_space_configuration& ss_cfg =
-      cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[(size_t)ss_id];
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[(size_t)ss_id];
   const sched_coreset_config& cs_cfg = cell_cfg.init_bwp_res.coresets()[ss_cfg.get_coreset_id()];
 
   return alloc_ul_pdcch_helper(slot_alloc,
@@ -136,9 +135,9 @@ pdcch_ul_information* pdcch_resource_allocator_impl::alloc_ul_pdcch_helper(cell_
   // [Implementation-defined] We allocate the DCI on the SearchSpace starting from symbols 0.
   pdcch.ctx.starting_symbol   = 0;
   pdcch.ctx.cces.aggr_lvl     = aggr_lvl;
-  pdcch.ctx.n_id_pdcch_data   = get_scrambling_n_ID(cell_cfg.pci, cs_cfg.cfg(), ss_cfg);
+  pdcch.ctx.n_id_pdcch_data   = get_scrambling_n_ID(cell_cfg.params.pci, cs_cfg.cfg(), ss_cfg);
   pdcch.ctx.n_rnti_pdcch_data = get_scrambling_n_RNTI(rnti, cs_cfg.cfg(), ss_cfg);
-  pdcch.ctx.n_id_pdcch_dmrs   = get_N_ID_dmrs(cell_cfg.pci, cs_cfg.cfg());
+  pdcch.ctx.n_id_pdcch_dmrs   = get_N_ID_dmrs(cell_cfg.params.pci, cs_cfg.cfg());
   pdcch.ctx.context.ss_id     = ss_cfg.get_id();
   pdcch.ctx.context.dci_format =
       (ss_cfg.is_common_search_space() ||
@@ -184,9 +183,9 @@ pdcch_dl_information* pdcch_resource_allocator_impl::alloc_dl_pdcch_helper(cell_
   // [Implementation-defined] We allocate the DCI on the SearchSpace starting from symbols 0.
   pdcch.ctx.starting_symbol   = 0;
   pdcch.ctx.cces.aggr_lvl     = aggr_lvl;
-  pdcch.ctx.n_id_pdcch_data   = get_scrambling_n_ID(cell_cfg.pci, cs_cfg.cfg(), ss_cfg);
+  pdcch.ctx.n_id_pdcch_data   = get_scrambling_n_ID(cell_cfg.params.pci, cs_cfg.cfg(), ss_cfg);
   pdcch.ctx.n_rnti_pdcch_data = get_scrambling_n_RNTI(rnti, cs_cfg.cfg(), ss_cfg);
-  pdcch.ctx.n_id_pdcch_dmrs   = get_N_ID_dmrs(cell_cfg.pci, cs_cfg.cfg());
+  pdcch.ctx.n_id_pdcch_dmrs   = get_N_ID_dmrs(cell_cfg.params.pci, cs_cfg.cfg());
   pdcch.ctx.context.ss_id     = ss_cfg.get_id();
   pdcch.ctx.context.dci_format =
       (ss_cfg.is_common_search_space() ||

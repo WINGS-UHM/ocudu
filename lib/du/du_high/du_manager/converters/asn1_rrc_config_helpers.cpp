@@ -3424,10 +3424,9 @@ bool ocudu::odu::calculate_reconfig_with_sync_diff(asn1::rrc_nr::recfg_with_sync
   out.sp_cell_cfg_common.ssb_subcarrier_spacing.value   = get_asn1_scs(du_cell_cfg.ran.ssb_cfg.scs);
 
   // > tdd-UL-DL-ConfigurationCommon TDD-UL-DL-ConfigCommon OPTIONAL, -- Cond TDD
-  out.sp_cell_cfg_common.tdd_ul_dl_cfg_common_present = du_cell_cfg.ran.tdd_ul_dl_cfg_common.has_value();
-  if (du_cell_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
-    out.sp_cell_cfg_common.tdd_ul_dl_cfg_common =
-        make_asn1_rrc_tdd_ul_dl_cfg_common(du_cell_cfg.ran.tdd_ul_dl_cfg_common.value());
+  out.sp_cell_cfg_common.tdd_ul_dl_cfg_common_present = du_cell_cfg.ran.tdd_cfg.has_value();
+  if (du_cell_cfg.ran.tdd_cfg.has_value()) {
+    out.sp_cell_cfg_common.tdd_ul_dl_cfg_common = make_asn1_rrc_tdd_ul_dl_cfg_common(du_cell_cfg.ran.tdd_cfg.value());
   }
 
   // ss-PBCH-BlockPower INTEGER (-60..50)

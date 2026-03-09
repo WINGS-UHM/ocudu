@@ -95,10 +95,10 @@ get_prach_grant_info(const cell_configuration&                                  
     return grants;
   }
 
-  prach_configuration prach_cfg =
-      prach_configuration_get(band_helper::get_freq_range(cell_cfg.band),
-                              cell_cfg.paired_spectrum ? duplex_mode::FDD : duplex_mode::TDD,
-                              cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index);
+  prach_configuration prach_cfg = prach_configuration_get(
+      band_helper::get_freq_range(cell_cfg.band()),
+      cell_cfg.paired_spectrum() ? duplex_mode::FDD : duplex_mode::TDD,
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index);
 
   // Derive PRACH duration information.
   // The parameter \c is_last_prach_occasion is arbitrarily set to false, as it doesn't affect the PRACH number of
@@ -109,17 +109,18 @@ get_prach_grant_info(const cell_configuration&                                  
           ? get_prach_preamble_long_info(prach_cfg.format)
           : get_prach_preamble_short_info(
                 prach_cfg.format,
-                to_ra_subcarrier_spacing(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs),
+                to_ra_subcarrier_spacing(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs),
                 is_last_prach_occasion);
   const unsigned prach_nof_prbs =
-      prach_frequency_mapping_get(info.scs, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs).nof_rb_ra;
+      prach_frequency_mapping_get(info.scs, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs).nof_rb_ra;
 
   for (const prach_occasion_info& prach : prachs) {
     ofdm_symbol_range symbols{prach.start_symbol, static_cast<uint8_t>(prach.start_symbol + prach_cfg.duration)};
-    unsigned     prb_start = cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start;
+    unsigned          prb_start =
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start;
     prb_interval prbs{prb_start, prb_start + prach_nof_prbs};
-    crb_interval crbs = prb_to_crb(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params, prbs);
-    grants.emplace_back(grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs, symbols, crbs});
+    crb_interval crbs = prb_to_crb(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params, prbs);
+    grants.emplace_back(grant_info{cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, symbols, crbs});
   }
   return grants;
 }

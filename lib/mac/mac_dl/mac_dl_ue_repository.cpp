@@ -3,8 +3,6 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "mac_dl_ue_repository.h"
-#include "ocudu/ran/pdsch/pdsch_constants.h"
-#include "ocudu/support/timers.h"
 
 using namespace ocudu;
 

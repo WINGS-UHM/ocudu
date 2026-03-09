@@ -12,10 +12,11 @@ si_scheduler::si_scheduler(const cell_configuration&                       cfg_,
                            pdcch_resource_allocator&                       pdcch_sch_,
                            const sched_cell_configuration_request_message& msg) :
   cell_cfg(cfg_),
-  scs_common(cell_cfg.scs_common),
+  scs_common(cell_cfg.scs_common()),
   paging_helper(cfg_),
-  default_paging_cycle(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle)),
-  si_change_mod_period(default_paging_cycle * static_cast<unsigned>(cell_cfg.dl_cfg_common.bcch_cfg.mod_period_coeff)),
+  default_paging_cycle(static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.default_paging_cycle)),
+  si_change_mod_period(default_paging_cycle *
+                       static_cast<unsigned>(cell_cfg.params.dl_cfg_common.bcch_cfg.mod_period_coeff)),
   pdcch_sch(pdcch_sch_),
   logger(ocudulog::fetch_basic_logger("SCHED")),
   sib1_sched(cell_cfg, pdcch_sch, msg.si_scheduling.sib1_payload_size),
@@ -144,8 +145,8 @@ void si_scheduler::try_schedule_short_message(cell_slot_resource_allocator& slot
   // in all paging occasions.
   // DRX cycle in radio frames.
   const unsigned drx_cycle            = default_paging_cycle;
-  const unsigned nof_pf_per_drx_cycle = static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.nof_pf);
-  const unsigned paging_frame_offset  = cell_cfg.dl_cfg_common.pcch_cfg.paging_frame_offset;
+  const unsigned nof_pf_per_drx_cycle = static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.nof_pf);
+  const unsigned paging_frame_offset  = cell_cfg.params.dl_cfg_common.pcch_cfg.paging_frame_offset;
   // Number of total paging frames in a drx_cycle.
   const unsigned N = drx_cycle / nof_pf_per_drx_cycle;
 
@@ -157,7 +158,7 @@ void si_scheduler::try_schedule_short_message(cell_slot_resource_allocator& slot
   }
 
   // Number of paging occasions in a paging frame.
-  const unsigned Ns = static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.ns);
+  const unsigned Ns = static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.ns);
 
   // Traverse all possible PO indices (i_s).
   // i_s = floor (UE_ID/N) mod Ns.
@@ -178,7 +179,7 @@ void si_scheduler::try_schedule_short_message(cell_slot_resource_allocator& slot
 
 void si_scheduler::allocate_short_message(cell_slot_resource_allocator& slot_alloc)
 {
-  const auto ss_id = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
+  const auto ss_id = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
 
   // > Allocate DCI_1_0 for Paging on PDCCH.
   pdcch_dl_information* pdcch =
@@ -191,5 +192,5 @@ void si_scheduler::allocate_short_message(cell_slot_resource_allocator& slot_all
   // Fill Paging DCI.
   // Set the systemInfoModification bit, as per TS 38.331 Table 6.5-1.
   static constexpr unsigned si_modification_short_message = 0b10000000;
-  build_dci_f1_0_p_rnti(pdcch->dci, cell_cfg.dl_cfg_common.init_dl_bwp, si_modification_short_message);
+  build_dci_f1_0_p_rnti(pdcch->dci, cell_cfg.params.dl_cfg_common.init_dl_bwp, si_modification_short_message);
 }

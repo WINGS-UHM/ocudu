@@ -85,9 +85,9 @@ static error_type<std::string> validate_rach_cfg_common(const sched_cell_configu
   subcarrier_spacing pusch_scs = msg.ran.ul_cfg_common.init_ul_bwp.generic_params.scs;
 
   // Check if the PRACH preambles fall into UL slots
-  if (msg.ran.tdd_ul_dl_cfg_common.has_value()) {
+  if (msg.ran.tdd_cfg.has_value()) {
     auto ret = prach_helper::prach_fits_in_tdd_pattern(
-        pusch_scs, rach_cfg_cmn.rach_cfg_generic.prach_config_index, *msg.ran.tdd_ul_dl_cfg_common);
+        pusch_scs, rach_cfg_cmn.rach_cfg_generic.prach_config_index, *msg.ran.tdd_cfg);
     if (not ret.has_value()) {
       std::string s = fmt::format("PRACH configuration index {} not supported with current TDD pattern.",
                                   rach_cfg_cmn.rach_cfg_generic.prach_config_index);
@@ -166,8 +166,7 @@ static error_type<std::string> validate_pusch_cfg_common(const sched_cell_config
   }
 
   const auto& pusch_lst = msg.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list;
-  HANDLE_CODE(
-      validade_pusch_td_res_list(pusch_lst, msg.ran.tdd_ul_dl_cfg_common, msg.ran.init_bwp_builder.pusch.min_k2));
+  HANDLE_CODE(validade_pusch_td_res_list(pusch_lst, msg.ran.tdd_cfg, msg.ran.init_bwp.pusch.min_k2));
 
   return {};
 }
@@ -255,9 +254,9 @@ error_type<std::string> config_validators::validate_sched_cell_configuration_req
 
   HANDLE_CODE(validate_paging_cfg(expert_cfg));
 
-  if (msg.ran.init_bwp_builder.csi.has_value()) {
+  if (msg.ran.init_bwp.csi.has_value()) {
     auto csi_meas = *config_helpers::make_csi_meas_config(msg.ran);
-    HANDLE_CODE(validate_nzp_csi_rs_list(csi_meas.nzp_csi_rs_res_list, msg.ran.tdd_ul_dl_cfg_common));
+    HANDLE_CODE(validate_nzp_csi_rs_list(csi_meas.nzp_csi_rs_res_list, msg.ran.tdd_cfg));
   }
 
   // TODO: Validate other parameters.

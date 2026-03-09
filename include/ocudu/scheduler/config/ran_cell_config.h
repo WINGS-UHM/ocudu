@@ -33,9 +33,9 @@ struct ran_cell_config {
   /// Cell-specific UL configuration used by common searchSpaces.
   ul_config_common ul_cfg_common;
   /// Defines the TDD DL-UL pattern and periodicity. If no value is set, the cell is in FDD mode.
-  std::optional<tdd_ul_dl_config_common> tdd_ul_dl_cfg_common;
+  std::optional<tdd_ul_dl_config_common> tdd_cfg;
   /// Parameters for the initial UE-dedicated BWP config generation.
-  bwp_builder_params init_bwp_builder;
+  bwp_builder_params init_bwp;
   /// NTN configuration for this cell. When empty, the cell operates in terrestrial mode.
   std::optional<ntn_cell_params> ntn_params;
 };

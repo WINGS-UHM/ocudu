@@ -36,7 +36,7 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.scs_common = scs_common;
   cell_cfg.cp         = du_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.cp;
 
-  cell_cfg.duplex = (du_cell.ran.tdd_ul_dl_cfg_common) ? duplex_mode::TDD : duplex_mode::FDD;
+  cell_cfg.duplex = (du_cell.ran.tdd_cfg) ? duplex_mode::TDD : duplex_mode::FDD;
   cell_cfg.pci    = du_cell.ran.pci;
 
   unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
@@ -59,7 +59,7 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.carrier_cfg.dmrs_typeA_pos = du_cell.ran.dmrs_typeA_pos;
 
   cell_cfg.ssb_cfg              = du_cell.ran.ssb_cfg;
-  cell_cfg.tdd_ul_dl_cfg_common = du_cell.ran.tdd_ul_dl_cfg_common;
+  cell_cfg.tdd_ul_dl_cfg_common = du_cell.ran.tdd_cfg;
   report_error_if_not(du_cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common, "RACH configuration not present");
 
   cell_cfg.prach_cfg = *du_cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common;

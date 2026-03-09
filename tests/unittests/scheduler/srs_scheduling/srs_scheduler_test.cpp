@@ -137,7 +137,7 @@ public:
     ues(expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
     srs_sched(cell_cfg, ues),
-    current_sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
+    current_sl_tx{to_numerology_value(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
   {
     slot_indication(current_sl_tx);
     mac_logger.set_level(ocudulog::basic_levels::debug);
@@ -162,11 +162,11 @@ public:
   // Class methods.
   void add_ue(srs_periodicity srs_period)
   {
-    sched_ue_creation_request_message ue_req =
-        create_sched_ue_creation_request_for_srs_cfg(cfg_mng.get_default_ue_config_request(),
-                                                     srs_period,
-                                                     cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
-                                                     cell_cfg.tdd_cfg_common);
+    sched_ue_creation_request_message ue_req = create_sched_ue_creation_request_for_srs_cfg(
+        cfg_mng.get_default_ue_config_request(),
+        srs_period,
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
+        cell_cfg.params.tdd_cfg);
     ue_ded_cfgs.emplace_back(cfg_mng.add_ue(ue_req));
     report_error_if_not(ue_ded_cfgs.back() != nullptr, "Failed to create UE configuration");
     ues.add_ue(*ue_ded_cfgs.back(), ue_req.starts_in_fallback, std::nullopt);
@@ -188,10 +188,10 @@ public:
     if (srs_pdu.crnti != ues[to_du_ue_index(0)].crnti) {
       return make_unexpected(std::string("RNTI mismatch"));
     }
-    if (srs_pdu.bwp_cfg != &cell_cfg.ul_cfg_common.init_ul_bwp.generic_params) {
+    if (srs_pdu.bwp_cfg != &cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params) {
       return make_unexpected(std::string("BWP mismatch"));
     }
-    if (srs_pdu.nof_antenna_ports != cell_cfg.ul_carrier.nof_ant) {
+    if (srs_pdu.nof_antenna_ports != cell_cfg.params.ul_carrier.nof_ant) {
       return make_unexpected(std::string("Nof antenna ports mismatch"));
     }
     if (srs_pdu.symbols != ofdm_symbol_range{NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - 1 - srs_res_cfg.res_mapping.start_pos,
@@ -364,7 +364,7 @@ TEST_F(srs_positioning_scheduler_test, when_connected_ue_positioning_is_requeste
   ASSERT_FALSE(is_positioning_being_requested());
 
   // Positioning requested.
-  auto& ue_srs_cfg = ues[to_du_ue_index(0)].ue_cfg_dedicated()->pcell_cfg().init_bwp().ul_ded->srs_cfg.value();
+  const auto& ue_srs_cfg = ues[to_du_ue_index(0)].ue_cfg_dedicated()->pcell_cfg().init_bwp().ul_ded->srs_cfg.value();
   this->srs_sched.handle_positioning_measurement_request(
       make_positioning_cell_request(rnti, to_du_ue_index(0), to_du_cell_index(0), ue_srs_cfg));
   ASSERT_TRUE(is_positioning_being_requested());
@@ -379,11 +379,11 @@ TEST_F(srs_positioning_scheduler_test, when_neighbor_cell_ue_positioning_is_requ
   constexpr rnti_t pos_rnti = rnti_t::MIN_RESERVED_RNTI;
 
   // Initiate Positioning measurement.
-  sched_ue_creation_request_message dummy_ue_req =
-      create_sched_ue_creation_request_for_srs_cfg(cfg_mng.get_default_ue_config_request(),
-                                                   srs_period,
-                                                   cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
-                                                   cell_cfg.tdd_cfg_common);
+  sched_ue_creation_request_message dummy_ue_req = create_sched_ue_creation_request_for_srs_cfg(
+      cfg_mng.get_default_ue_config_request(),
+      srs_period,
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
+      cell_cfg.params.tdd_cfg);
   auto& ue_srs_cfg = dummy_ue_req.cfg.cells.value().front().serv_cell_cfg.ul_config.value().init_ul_bwp.srs_cfg.value();
   this->srs_sched.handle_positioning_measurement_request(
       make_positioning_cell_request(pos_rnti, std::nullopt, to_du_cell_index(0), ue_srs_cfg));

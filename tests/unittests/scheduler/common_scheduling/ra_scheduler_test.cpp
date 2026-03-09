@@ -14,8 +14,8 @@
 #include "ocudu/adt/noop_functor.h"
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <ostream>
 
@@ -46,20 +46,18 @@ protected:
   base_ra_scheduler_test(duplex_mode dplx_mode, const test_params& params_) :
     params(params_),
     cell_cfg(sched_cfg, get_sched_req(dplx_mode, params)),
-    ev_logger(to_du_cell_index(0), cell_cfg.pci),
+    ev_logger(to_du_cell_index(0), cell_cfg.params.pci),
     metrics_hdlr(cell_cfg, std::nullopt)
   {
     mac_logger.set_level(ocudulog::basic_levels::debug);
     test_logger.set_level(ocudulog::basic_levels::info);
     ocudulog::init();
 
-    const auto& dl_lst = cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
+    const auto& dl_lst = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
     for (const auto& pdsch : dl_lst) {
-      if (pdsch.k0 > max_k_value) {
-        max_k_value = pdsch.k0;
-      }
+      max_k_value = std::max<unsigned int>(pdsch.k0, max_k_value);
     }
-    const auto& ul_lst = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
+    const auto& ul_lst = cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     for (const auto& pusch : ul_lst) {
       if (pusch.k2 > max_k_value) {
         constexpr unsigned max_msg3_delta = 6;
@@ -112,7 +110,7 @@ protected:
         sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
 
     if (dplx_mode == ocudu::duplex_mode::TDD and t_params.tdd_config.has_value()) {
-      req.ran.tdd_ul_dl_cfg_common = t_params.tdd_config;
+      req.ran.tdd_cfg = t_params.tdd_config;
     }
 
     req.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
@@ -158,7 +156,8 @@ protected:
     for (const rar_information& rar : scheduled_rars(0)) {
       nof_grants += rar.grants.size();
     }
-    for (unsigned i = 0; i != cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list.size(); ++i) {
+    for (unsigned i = 0; i != cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list.size();
+         ++i) {
       unsigned nof_msg3_matches = 0;
       ASSERT_TRUE(msg3_consistent_with_rars(scheduled_rars(0), scheduled_msg3_newtxs(i), nof_msg3_matches))
           << "Msg3 PUSCHs parameters must match the content of the RAR grants";
@@ -232,21 +231,21 @@ protected:
 
   const pusch_time_domain_resource_allocation& get_pusch_td_resource(uint8_t time_resource) const
   {
-    return cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list[time_resource];
+    return cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list[time_resource];
   }
 
   span<const pdcch_dl_information> scheduled_dl_pdcchs() const { return res_grid[0].result.dl.dl_pdcchs; }
 
   span<const rar_information> scheduled_rars(uint8_t time_resource) const
   {
-    unsigned k0 = cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[time_resource].k0;
+    unsigned k0 = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[time_resource].k0;
     return res_grid[k0].result.dl.rar_grants;
   }
 
   span<const ul_sched_info> scheduled_msg3_newtxs(uint8_t time_resource) const
   {
     return res_grid[get_msg3_delay(get_pusch_td_resource(time_resource),
-                                   cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs)]
+                                   cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs)]
         .result.ul.puschs;
   }
 
@@ -266,7 +265,7 @@ protected:
                                                   const rach_indication_message::preamble& preamb) const
   {
     return rar_grant.temp_crnti == preamb.tc_rnti and rar_grant.rapid == preamb.preamble_id and
-           rar_grant.ta == preamb.time_advance.to_Ta(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs);
+           rar_grant.ta == preamb.time_advance.to_Ta(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
   }
 
   /// \brief Checks whether the parameters of the scheduled RAR grants, namely "rapid" and "TA", match those found
@@ -286,11 +285,12 @@ protected:
       // reference 15kHz for long PRACH Formats (i.e, slot_idx = subframe index); whereas, for short PRACH formats, it
       // uses the same numerology as the SCS common (i.e, slot_idx = actual slot index within the frame).
       const unsigned slot_idx =
-          is_long_preamble(prach_configuration_get(
-                               band_helper::get_freq_range(cell_cfg.band),
-                               band_helper::get_duplex_mode(cell_cfg.band),
-                               cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)
-                               .format)
+          is_long_preamble(
+              prach_configuration_get(
+                  band_helper::get_freq_range(cell_cfg.band()),
+                  band_helper::get_duplex_mode(cell_cfg.band()),
+                  cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)
+                  .format)
               ? rach_ind.slot_rx.subframe_index()
               : rach_ind.slot_rx.slot_index();
       rnti_t                 ra_rnti = to_rnti(get_ra_rnti(slot_idx, occ.start_symbol, occ.frequency_index));
@@ -333,7 +333,7 @@ protected:
       // slot for PDCCH is not DL slot.
       return false;
     }
-    const auto& pdsch_list = cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
+    const auto& pdsch_list = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
     if (std::none_of(pdsch_list.begin(), pdsch_list.end(), [this, &pdcch_slot](const auto& pdsch) {
           return cell_cfg.is_dl_enabled(pdcch_slot + pdsch.k0) and
                  not csi_helper::is_csi_rs_slot(cell_cfg, pdcch_slot + pdsch.k0);
@@ -341,10 +341,10 @@ protected:
       // slot for PDSCH is not DL slot.
       return false;
     }
-    const auto& pusch_list = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
+    const auto& pusch_list = cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     return not std::none_of(pusch_list.begin(), pusch_list.end(), [this, &pdcch_slot](const auto& pusch) {
-      return cell_cfg.is_fully_ul_enabled(pdcch_slot +
-                                          get_msg3_delay(pusch, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs));
+      return cell_cfg.is_fully_ul_enabled(
+          pdcch_slot + get_msg3_delay(pusch, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs));
     });
   }
 
@@ -361,7 +361,7 @@ protected:
       return false;
     }
 
-    const auto& pusch_list = cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
+    const auto& pusch_list = cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     return not std::none_of(pusch_list.begin(), pusch_list.end(), [this, &pdcch_slot](const auto& pusch) {
       return cell_cfg.is_fully_ul_enabled(pdcch_slot + pusch.k2);
     });
@@ -380,12 +380,12 @@ protected:
         if (it != ul_grants.end()) {
           const pusch_information& pusch           = it->pusch_cfg;
           uint8_t                  freq_assignment = ra_frequency_type1_get_riv(
-              ra_frequency_type1_configuration{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
+              ra_frequency_type1_configuration{cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
                                                pusch.rbs.type1().start(),
                                                pusch.rbs.type1().length()});
           bool grant_matches = pusch.symbols == get_pusch_td_resource(grant.time_resource_assignment).symbols and
                                freq_assignment == grant.freq_resource_assignment and
-                               *pusch.bwp_cfg == cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+                               *pusch.bwp_cfg == cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
           if (not grant_matches) {
             return false;
           }
@@ -406,7 +406,7 @@ protected:
       }
     }
     return {rar_win_start,
-            rar_win_start + cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window};
+            rar_win_start + cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window};
   }
 
   bool is_in_rar_window(slot_point rach_slot_rx) const
@@ -436,7 +436,7 @@ protected:
   cell_resource_allocator             res_grid{cell_cfg};
   dummy_pdcch_resource_allocator      pdcch_sch;
   ra_scheduler                        ra_sch{sched_cfg.ra, cell_cfg, pdcch_sch, ev_logger, metrics_hdlr};
-  scheduler_result_logger             result_logger{false, cell_cfg.pci};
+  scheduler_result_logger             result_logger{false, cell_cfg.params.pci};
 
   slot_point next_slot{to_numerology_value(params.scs),
                        test_rng::uniform_int<unsigned>(0, (10240 << to_numerology_value(params.scs)) - 1)};
@@ -479,7 +479,7 @@ TEST_P(ra_scheduler_fdd_test, schedules_one_rar_per_slot_when_multi_preambles_wi
       create_rach_indication(test_rng::uniform_int<unsigned>(1, MAX_PREAMBLES_PER_PRACH_OCCASION));
   handle_rach_indication(one_rach);
 
-  unsigned   ra_win_size  = cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window;
+  unsigned   ra_win_size  = cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window;
   slot_point last_slot_tx = next_slot_rx() + ra_win_size;
 
   unsigned nof_sched_grants = 0;
@@ -616,8 +616,8 @@ TEST_P(ra_scheduler_tdd_test, schedules_msg3_retx_in_valid_slots_when_tdd)
   rach_indication_message rach_ind = create_rach_indication(test_rng::uniform_int<unsigned>(1, 10));
   handle_rach_indication(rach_ind);
 
-  unsigned       msg3_retx_count = 0;
-  const unsigned MAX_COUNT       = 100;
+  unsigned                  msg3_retx_count = 0;
+  static constexpr unsigned MAX_COUNT       = 100;
   for (unsigned count = 0; count != MAX_COUNT; ++count) {
     run_slot();
 

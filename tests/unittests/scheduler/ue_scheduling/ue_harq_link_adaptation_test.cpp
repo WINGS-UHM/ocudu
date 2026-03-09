@@ -3,14 +3,11 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "../test_utils/config_generators.h"
-#include "../test_utils/dummy_test_components.h"
 #include "../test_utils/sched_random_utils.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/logging/scheduler_metrics_handler.h"
 #include "lib/scheduler/ue_context/ue.h"
 #include "lib/scheduler/ue_context/ue_repository.h"
-#include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
@@ -37,7 +34,7 @@ protected:
     const sched_cell_configuration_request_message sched_cell_cfg_req = cfg_mng.get_default_cell_config_request();
     cell_cfg                                                          = cfg_mng.add_cell(sched_cell_cfg_req);
     ues.add_cell(*cell_cfg, nullptr);
-    next_slot = test_helper::generate_random_slot_point(cell_cfg->dl_cfg_common.init_dl_bwp.generic_params.scs);
+    next_slot = test_helper::generate_random_slot_point(cell_cfg->params.dl_cfg_common.init_dl_bwp.generic_params.scs);
 
     // Create UE.
     sched_ue_creation_request_message ue_creation_req = cfg_mng.get_default_ue_config_request();
@@ -79,7 +76,7 @@ protected:
                                   ss.pdsch_time_domain_list[0].symbols,
                                   {cw},
                                   {},
-                                  ue_cc->cfg().cell_cfg_common.pci,
+                                  ue_cc->cfg().cell_cfg_common.params.pci,
                                   2,
                                   vrb_to_prb::mapping_type::non_interleaved,
                                   search_space_set_type::ue_specific,

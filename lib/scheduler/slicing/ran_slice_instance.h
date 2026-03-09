@@ -85,8 +85,7 @@ public:
   /// Nof. of previous slots in which RB count needs to be cleared in \c pusch_rb_count_per_slot upon receiving slot
   /// indication.
   /// \remark This is needed since slot_indication() is called only over DL slots.
-  unsigned nof_slots_to_clear =
-      cell_cfg->tdd_cfg_common.has_value() ? nof_slots_per_tdd_period(*cell_cfg->tdd_cfg_common) : 1;
+  unsigned nof_slots_to_clear = cell_cfg->is_tdd() ? nof_slots_per_tdd_period(*cell_cfg->params.tdd_cfg) : 1;
 
 private:
   // Last slot that the PDSCH was allocated.

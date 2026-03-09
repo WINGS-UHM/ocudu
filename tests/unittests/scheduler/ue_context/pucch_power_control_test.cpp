@@ -135,7 +135,7 @@ class pucch_power_control_test_bench : public ::testing::TestWithParam<pucch_pw_
     auto req = sched_config_helper::make_default_sched_cell_configuration_request(make_cell_config_params());
 
     // Overwrite the default list of dedicated PUCCH resources.
-    req.ran.init_bwp_builder.pucch.resources = make_pucch_builder_params();
+    req.ran.init_bwp.pucch.resources = make_pucch_builder_params();
     if (tparams.format_set_0 == pucch_format::FORMAT_0) {
       req.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 0;
     } else if (tparams.format_set_0 == pucch_format::FORMAT_1) {

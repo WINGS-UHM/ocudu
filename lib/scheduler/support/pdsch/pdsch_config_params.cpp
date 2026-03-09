@@ -23,7 +23,7 @@ sched_helper::get_pdsch_config_f1_0_tc_rnti(const cell_configuration&           
 
   pdsch_config_params pdsch;
 
-  pdsch.dmrs = make_dmrs_info_common(pdsch_td_cfg, cell_cfg_common.pci, cell_cfg_common.dmrs_typeA_pos);
+  pdsch.dmrs = make_dmrs_info_common(pdsch_td_cfg, cell_cfg_common.params.pci, cell_cfg_common.params.dmrs_typeA_pos);
 
   pdsch.nof_oh_prb                   = nof_oh_prb;
   pdsch.symbols                      = pdsch_td_cfg.symbols;
@@ -46,7 +46,7 @@ sched_helper::get_pdsch_config_f1_0_c_rnti(const cell_configuration&            
 
   pdsch_config_params pdsch;
 
-  pdsch.dmrs = make_dmrs_info_common(pdsch_td_cfg, cell_cfg_common.pci, cell_cfg_common.dmrs_typeA_pos);
+  pdsch.dmrs = make_dmrs_info_common(pdsch_td_cfg, cell_cfg_common.params.pci, cell_cfg_common.params.dmrs_typeA_pos);
   // NOTE: x_overhead::not_set is mapped to 0.
   pdsch.nof_oh_prb                   = static_cast<unsigned>(0);
   pdsch.symbols                      = pdsch_td_cfg.symbols;
@@ -87,11 +87,11 @@ sched_helper::get_pdsch_config_f1_1_c_rnti(const cell_configuration&            
   pdsch_config_params pdsch;
 
   pdsch.dmrs = make_dmrs_info_dedicated(pdsch_td_cfg,
-                                        cell_cfg_common.pci,
-                                        cell_cfg_common.dmrs_typeA_pos,
+                                        cell_cfg_common.params.pci,
+                                        cell_cfg_common.params.dmrs_typeA_pos,
                                         pdsch_cfg.pdsch_mapping_type_a_dmrs.value(),
                                         nof_layers,
-                                        cell_cfg_common.dl_carrier.nof_ant,
+                                        cell_cfg_common.params.dl_carrier.nof_ant,
                                         are_both_cws_enabled);
 
   // According to TS 38.214, Section 5.1.3.2, nof_oh_prb is set equal to xOverhead, when set; else nof_oh_prb = 0.

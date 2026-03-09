@@ -15,15 +15,15 @@ pusch_power_controller::pusch_power_controller(const ue_cell_configuration&    u
   rnti(ue_cell_cfg.crnti),
   cl_pw_control_enabled(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.enable_pusch_cl_pw_control),
   phr_bw_adaptation_enabled(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.enable_phr_bw_adaptation),
-  p0_nominal_pusch(
-      ue_cell_cfg.cell_cfg_common.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value()),
+  p0_nominal_pusch(ue_cell_cfg.cell_cfg_common.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value()
+                       .p0_nominal_with_grant.value()),
   channel_state_manager(ch_state_manager),
   pusch_sinr_target_dB(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.target_pusch_sinr),
   ref_path_loss_for_target_sinr(
       ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.path_loss_for_target_pusch_sinr),
   tpc_adjust_prohibit_time_sl([&ue_cell_cfg]() -> unsigned {
     return tpc_adjust_prohibit_time_ms << to_numerology_value(
-               ue_cell_cfg.cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params.scs);
+               ue_cell_cfg.cell_cfg_common.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
   }()),
   logger(logger_)
 {

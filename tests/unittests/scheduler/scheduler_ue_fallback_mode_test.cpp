@@ -6,7 +6,6 @@
 /// \brief In this file, we test the correct behaviour of the scheduler when handling UE contention resolution, and
 /// TC-RNTI to C-RNTI transitions.
 
-#include "test_utils/config_generators.h"
 #include "test_utils/indication_generators.h"
 #include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_simulator.h"
@@ -16,7 +15,6 @@
 #include "ocudu/ran/duplex_mode.h"
 #include <functional>
 #include <gtest/gtest.h>
-#include <tuple>
 
 using namespace ocudu;
 
@@ -66,7 +64,7 @@ public:
             pdsch_alloc->tb_list.size() != 1) {
           return false;
         }
-        for (auto& lg_ch : pdsch_alloc->tb_list[0].lc_chs_to_sched) {
+        for (const auto& lg_ch : pdsch_alloc->tb_list[0].lc_chs_to_sched) {
           if (lg_ch.lcid == grant_lcid) {
             grant_allocated = true;
             return true;
@@ -106,7 +104,7 @@ public:
       return nullptr;
     }
 
-    for (auto& lg_ch : pdsch_alloc->tb_list[0].lc_chs_to_sched) {
+    for (const auto& lg_ch : pdsch_alloc->tb_list[0].lc_chs_to_sched) {
       if (lg_ch.lcid == msg4_lcid) {
         if (lg_ch.lcid == LCID_SRB0 or lg_ch.lcid == LCID_SRB1) {
           return &lg_ch;
@@ -228,7 +226,7 @@ TEST_P(scheduler_con_res_msg4_test,
 
   // If the allocation is done in a slot where the SSB is also allocated, then there is only space for ConRes. The Msg4
   // will be sent in a separate PDSCH grant.
-  auto msg4_lc_info = get_msg4_msg_lc_info(rnti, params.msg4_lcid);
+  const auto* msg4_lc_info = get_msg4_msg_lc_info(rnti, params.msg4_lcid);
   if (msg4_lc_info == nullptr) {
     // If only the ConRes was scheduled, we need to wait for the PUCCH to be sent and inject an ACK, to confirm the
     // ConRes was received by the UE. Without this, the scheduler won't allocate any other PDSCH grant.
@@ -358,7 +356,7 @@ TEST_P(scheduler_con_res_msg4_test, while_ue_is_in_fallback_then_common_ss_is_us
   bool                              is_common_ss_used = false;
   const search_space_configuration* ss_used           = nullptr;
   for (const search_space_configuration& ss :
-       cell_cfg(to_du_cell_index(0)).dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
+       cell_cfg(to_du_cell_index(0)).params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
     if (dl_pdcch.ctx.context.ss_id == ss.get_id()) {
       is_common_ss_used = true;
       ss_used           = &ss;

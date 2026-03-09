@@ -298,9 +298,9 @@ static asn1::rrc_nr::serving_cell_cfg_common_sib_s make_asn1_rrc_cell_serving_ce
   }
 
   // TDD config.
-  if (du_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
+  if (du_cfg.ran.tdd_cfg.has_value()) {
     cell.tdd_ul_dl_cfg_common_present = true;
-    cell.tdd_ul_dl_cfg_common = odu::make_asn1_rrc_tdd_ul_dl_cfg_common(du_cfg.ran.tdd_ul_dl_cfg_common.value());
+    cell.tdd_ul_dl_cfg_common         = odu::make_asn1_rrc_tdd_ul_dl_cfg_common(du_cfg.ran.tdd_cfg.value());
   }
   // TODO: Fill remaining fields.
 
@@ -482,7 +482,7 @@ static asn1::rrc_nr::sib1_s make_asn1_rrc_cell_sib1(const du_cell_config& du_cfg
   ret = asn1::number_to_enum(sib1.ue_timers_and_consts.t319, du_cfg.si.ue_timers_and_constants.t319.count());
   ocudu_assert(ret, "Invalid value for T319: {}", du_cfg.si.ue_timers_and_constants.t319.count());
 
-  if (du_cfg.ran.init_bwp_builder.paging.edrx_enabled) {
+  if (du_cfg.ran.init_bwp.paging.edrx_enabled) {
     sib1.non_crit_ext_present                           = true;
     sib1.non_crit_ext.non_crit_ext_present              = true;
     sib1.non_crit_ext.non_crit_ext.non_crit_ext_present = true;

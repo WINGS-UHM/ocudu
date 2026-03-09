@@ -85,31 +85,31 @@ rate_estimator::rate_estimator(const cell_configuration& cell_cfg) :
   dl_tbs_cfg_ref{.nof_symb_sh      = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
                  .nof_oh_prb       = 0,
                  .tb_scaling_field = 1,
-                 .n_prb            = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()},
+                 .n_prb            = cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()},
   ul_tbs_cfg_ref{.nof_symb_sh      = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
                  .nof_oh_prb       = 0,
                  .tb_scaling_field = 1,
-                 .n_prb            = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()}
+                 .n_prb            = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()}
 {
-  dl_dmrs_rbs_per_nof_layers.resize(cell_cfg.dl_carrier.nof_ant);
+  dl_dmrs_rbs_per_nof_layers.resize(cell_cfg.params.dl_carrier.nof_ant);
   for (unsigned nof_layers = 1, max_layers = dl_dmrs_rbs_per_nof_layers.size(); nof_layers <= max_layers;
        ++nof_layers) {
     const pdsch_time_domain_resource_allocation pdsch_td_cfg{
         0, sch_mapping_type::typeA, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}};
     const dmrs_downlink_config dmrs_cfg{};
     auto                       dmrs = make_dmrs_info_dedicated(
-        pdsch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
+        pdsch_td_cfg, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
     dl_dmrs_rbs_per_nof_layers[nof_layers - 1] = calculate_nof_dmrs_per_rb(dmrs);
   }
 
-  ul_dmrs_rbs_per_nof_layers.resize(cell_cfg.ul_carrier.nof_ant);
+  ul_dmrs_rbs_per_nof_layers.resize(cell_cfg.params.ul_carrier.nof_ant);
   for (unsigned nof_layers = 1, max_layers = ul_dmrs_rbs_per_nof_layers.size(); nof_layers <= max_layers;
        ++nof_layers) {
     const pusch_time_domain_resource_allocation pusch_td_cfg{
         2, sch_mapping_type::typeA, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}};
     const dmrs_uplink_config dmrs_cfg{};
     auto                     dmrs = make_dmrs_info_dedicated(
-        pusch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
+        pusch_td_cfg, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
     ul_dmrs_rbs_per_nof_layers[nof_layers - 1] = calculate_nof_dmrs_per_rb(dmrs);
   }
 }

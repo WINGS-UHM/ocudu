@@ -128,9 +128,10 @@ void si_message_scheduler::schedule_pending_si_messages(cell_slot_resource_alloc
     }
 
     // Check if the searchSpaceOtherSystemInformation has monitored PDCCH candidates.
-    const search_space_id ss_id = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.other_si_search_space_id.value_or(
-        cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id);
-    const search_space_configuration& ss = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
+    const search_space_id ss_id =
+        cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.other_si_search_space_id.value_or(
+            cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id);
+    const search_space_configuration& ss = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
     if (not pdcch_helper::is_pdcch_monitoring_active(res_grid.slot, ss)) {
       continue;
     }
@@ -153,16 +154,16 @@ bool si_message_scheduler::allocate_si_message(unsigned si_message, cell_slot_re
   const units::bytes si_msg_payload_size = si_sched_cfg.si_messages[si_message].msg_len;
 
   const auto& pdsch_td_res_alloc_list =
-      get_si_rnti_type0A_common_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common,
-                                                       cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp,
-                                                       cell_cfg.dmrs_typeA_pos);
+      get_si_rnti_type0A_common_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common,
+                                                       cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                                                       cell_cfg.params.dmrs_typeA_pos);
   const ofdm_symbol_range si_ofdm_symbols = pdsch_td_res_alloc_list[time_resource].symbols;
   const unsigned          nof_symb_sh     = si_ofdm_symbols.length();
 
   // Generate dmrs information to be passed to (i) the fnc that computes number of RE used for DMRS per RB and (ii) to
   // the fnc that fills the DCI.
-  const dmrs_information dmrs_info =
-      make_dmrs_info_common(pdsch_td_res_alloc_list, time_resource, cell_cfg.pci, cell_cfg.dmrs_typeA_pos);
+  const dmrs_information dmrs_info = make_dmrs_info_common(
+      pdsch_td_res_alloc_list, time_resource, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos);
 
   // Compute the number of RBs necessary for the allocation.
   const sch_mcs_description mcs_descr   = pdsch_mcs_get_config(pdsch_mcs_table::qam64, expert_cfg.si_message_mcs_index);
@@ -174,14 +175,16 @@ bool si_message_scheduler::allocate_si_message(unsigned si_message, cell_slot_re
                                                                            nof_layers});
 
   // > Find available RBs in PDSCH for SI message BCCH grant.
-  const search_space_id ss_id = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.other_si_search_space_id.value_or(
-      cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id);
+  const search_space_id ss_id =
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.other_si_search_space_id.value_or(
+          cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id);
   crb_interval si_crbs;
   {
-    const crb_interval crb_lims   = pdsch_helper::get_ra_crb_limits_common(cell_cfg.dl_cfg_common.init_dl_bwp, ss_id);
-    const unsigned     nof_si_rbs = si_prbs_tbs.nof_prbs;
-    const crb_bitmap&  used_crbs  = res_grid.dl_res_grid.used_crbs(
-        cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs, crb_lims, si_ofdm_symbols);
+    const crb_interval crb_lims =
+        pdsch_helper::get_ra_crb_limits_common(cell_cfg.params.dl_cfg_common.init_dl_bwp, ss_id);
+    const unsigned    nof_si_rbs = si_prbs_tbs.nof_prbs;
+    const crb_bitmap& used_crbs  = res_grid.dl_res_grid.used_crbs(
+        cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs, crb_lims, si_ofdm_symbols);
     si_crbs = rb_helper::find_empty_interval_of_length(used_crbs, nof_si_rbs);
     if (si_crbs.length() < nof_si_rbs) {
       // early exit
@@ -200,7 +203,7 @@ bool si_message_scheduler::allocate_si_message(unsigned si_message, cell_slot_re
 
   // > Now that we are sure there is space in both PDCCH and PDSCH, set SI CRBs as used.
   res_grid.dl_res_grid.fill(
-      grant_info{cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs, si_ofdm_symbols, si_crbs});
+      grant_info{cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs, si_ofdm_symbols, si_crbs});
 
   // > Delegate filling SI message grants to helper function.
   fill_si_grant(
@@ -218,14 +221,14 @@ void si_message_scheduler::fill_si_grant(cell_slot_resource_allocator& res_grid,
 {
   // System information indicator for SI message as per TS 38.212, Section 7.3.1.2.1 and Table 7.3.1.2.1-2.
 
-  const auto& pdsch_td_res_alloc_list =
-      get_si_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.dmrs_typeA_pos);
+  const auto& pdsch_td_res_alloc_list = get_si_rnti_pdsch_time_domain_list(
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.params.dmrs_typeA_pos);
 
   // Fill SI-message DCI.
   static constexpr unsigned si_indicator = 1;
   auto&                     si_pdcch     = res_grid.result.dl.dl_pdcchs.back();
   build_dci_f1_0_si_rnti(si_pdcch.dci,
-                         cell_cfg.dl_cfg_common.init_dl_bwp,
+                         cell_cfg.params.dl_cfg_common.init_dl_bwp,
                          si_crbs_grant,
                          time_resource,
                          expert_cfg.sib1_mcs_index,

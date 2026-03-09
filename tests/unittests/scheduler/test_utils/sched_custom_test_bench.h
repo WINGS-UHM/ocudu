@@ -7,10 +7,7 @@
 #include "../test_utils/config_generators.h"
 #include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "lib/scheduler/ue_context/ue_repository.h"
-#include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
-#include "ocudu/ran/srs/srs_bandwidth_configuration.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 namespace ocudu {
@@ -35,7 +32,7 @@ public:
                                                               : cfg_mng.get_default_cell_config_request())),
     ues(expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
-    current_sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
+    current_sl_tx{to_numerology_value(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
   {
     slot_indication(current_sl_tx);
     mac_logger.set_level(ocudulog::basic_levels::debug);

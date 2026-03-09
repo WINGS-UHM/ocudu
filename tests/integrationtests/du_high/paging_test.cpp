@@ -142,8 +142,8 @@ class edrx_paging_test : public du_high_env_simulator, public testing::Test
 protected:
   edrx_paging_test() :
     du_high_env_simulator([]() {
-      auto cfg = create_du_high_configuration(du_high_env_sim_params{});
-      cfg.ran.cells[0].ran.init_bwp_builder.paging.edrx_enabled = true;
+      auto cfg                                          = create_du_high_configuration(du_high_env_sim_params{});
+      cfg.ran.cells[0].ran.init_bwp.paging.edrx_enabled = true;
       return cfg;
     }())
   {

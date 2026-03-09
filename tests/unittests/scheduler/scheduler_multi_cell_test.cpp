@@ -128,9 +128,10 @@ protected:
     if (last_sched_result(to_du_cell_index(cell_idx)) == nullptr) {
       return {};
     }
-    auto* pucch_res = std::find_if(last_sched_result(to_du_cell_index(cell_idx))->ul.pucchs.begin(),
-                                   last_sched_result(to_du_cell_index(cell_idx))->ul.pucchs.end(),
-                                   [ue_idx](const pucch_info& pucch) { return pucch.crnti == get_ue_crnti(ue_idx); });
+    const auto* pucch_res =
+        std::find_if(last_sched_result(to_du_cell_index(cell_idx))->ul.pucchs.begin(),
+                     last_sched_result(to_du_cell_index(cell_idx))->ul.pucchs.end(),
+                     [ue_idx](const pucch_info& pucch) { return pucch.crnti == get_ue_crnti(ue_idx); });
     if (pucch_res == last_sched_result(to_du_cell_index(cell_idx))->ul.pucchs.end()) {
       return {};
     }
@@ -158,7 +159,7 @@ public:
 TEST_P(multi_cell_scheduler_tester, test_ssb_allocation_for_multiple_cells)
 {
   const auto ssb_period_slots =
-      ssb_periodicity_to_value(cell_cfg(to_du_cell_index(0)).ssb_cfg.ssb_period) *
+      ssb_periodicity_to_value(cell_cfg(to_du_cell_index(0)).params.ssb_cfg.ssb_period) *
       get_nof_slots_per_subframe(cell_cfg_builder_params_list[to_du_cell_index(0)].scs_common);
 
   std::vector<bool> is_ssb_scheduled_atleast_once(cell_cfg_builder_params_list.size(), false);
@@ -180,7 +181,7 @@ TEST_P(multi_cell_scheduler_tester, test_ssb_allocation_for_multiple_cells)
 TEST_P(multi_cell_scheduler_tester, test_sib1_allocation_for_multiple_cells)
 {
   const auto sib1_period_slots =
-      std::max(ssb_periodicity_to_value(cell_cfg(to_du_cell_index(0)).ssb_cfg.ssb_period),
+      std::max(ssb_periodicity_to_value(cell_cfg(to_du_cell_index(0)).params.ssb_cfg.ssb_period),
                sib1_rtx_periodicity_to_value(sched_cfg.si.sib1_retx_period)) *
       get_nof_slots_per_subframe(cell_cfg_builder_params_list[to_du_cell_index(0)].scs_common);
 

@@ -306,7 +306,7 @@ static void fill_csi_resources(odu::du_cell_config& out_cell, const du_high_unit
   }
 
   // Store DU CSI parameters to generate csiMeasConfig inside the DU.
-  out_cell.ran.init_bwp_builder.csi = du_csi;
+  out_cell.ran.init_bwp.csi = du_csi;
 }
 
 /// Converts and returns the given gnb application configuration to a DU slice RRM policy configuration list.
@@ -654,48 +654,47 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
 
     // Set builder for initial BWP UE-dedicated parameters.
     // > PDSCH
-    out_cell.ran.init_bwp_builder.pdsch.nof_harq_procs =
+    out_cell.ran.init_bwp.pdsch.nof_harq_procs =
         static_cast<uint8_t>(config.cells_cfg.front().cell.pdsch_cfg.nof_harqs);
-    out_cell.ran.init_bwp_builder.pdsch.dl_harq_feedback_disabled = base_cell.pdsch_cfg.harq_feedback_disabled;
-    out_cell.ran.init_bwp_builder.pdsch.mcs_table                 = base_cell.pdsch_cfg.mcs_table;
-    out_cell.ran.init_bwp_builder.pdsch.additional_positions =
+    out_cell.ran.init_bwp.pdsch.dl_harq_feedback_disabled = base_cell.pdsch_cfg.harq_feedback_disabled;
+    out_cell.ran.init_bwp.pdsch.mcs_table                 = base_cell.pdsch_cfg.mcs_table;
+    out_cell.ran.init_bwp.pdsch.additional_positions =
         uint_to_dmrs_additional_positions(base_cell.pdsch_cfg.dmrs_add_pos);
-    out_cell.ran.init_bwp_builder.pdsch.interleaving_bundle_size = base_cell.pdsch_cfg.interleaving_bundle_size;
+    out_cell.ran.init_bwp.pdsch.interleaving_bundle_size = base_cell.pdsch_cfg.interleaving_bundle_size;
     // > PUSCH
-    out_cell.ran.init_bwp_builder.pusch.min_k2                      = base_cell.pusch_cfg.min_k2;
-    out_cell.ran.init_bwp_builder.pusch.transform_precoding_enabled = base_cell.pusch_cfg.enable_transform_precoding;
-    out_cell.ran.init_bwp_builder.pusch.mcs_table                   = base_cell.pusch_cfg.mcs_table;
-    out_cell.ran.init_bwp_builder.pusch.additional_positions =
+    out_cell.ran.init_bwp.pusch.min_k2                      = base_cell.pusch_cfg.min_k2;
+    out_cell.ran.init_bwp.pusch.transform_precoding_enabled = base_cell.pusch_cfg.enable_transform_precoding;
+    out_cell.ran.init_bwp.pusch.mcs_table                   = base_cell.pusch_cfg.mcs_table;
+    out_cell.ran.init_bwp.pusch.additional_positions =
         uint_to_dmrs_additional_positions(base_cell.pusch_cfg.dmrs_add_pos);
     // Determine the PUSCH transmission maximum number of layers:
     //  - one layer if transform precoding is enabled; or
     //  - selects the most limiting number of layers among the physical layer capability, the number of antennas and
     //    configured maximum rank.
-    out_cell.ran.init_bwp_builder.pusch.max_nof_layers =
+    out_cell.ran.init_bwp.pusch.max_nof_layers =
         cell.cell.pusch_cfg.enable_transform_precoding
             ? 1
             : std::min({cell.cell.nof_antennas_ul, pusch_constants::MAX_NOF_LAYERS, cell.cell.pusch_cfg.max_rank});
     beta_offsets b_offsets{};
-    b_offsets.beta_offset_ack_idx_1                      = base_cell.pusch_cfg.beta_offset_ack_idx_1;
-    b_offsets.beta_offset_ack_idx_2                      = base_cell.pusch_cfg.beta_offset_ack_idx_2;
-    b_offsets.beta_offset_ack_idx_3                      = base_cell.pusch_cfg.beta_offset_ack_idx_3;
-    b_offsets.beta_offset_csi_p1_idx_1                   = base_cell.pusch_cfg.beta_offset_csi_p1_idx_1;
-    b_offsets.beta_offset_csi_p1_idx_2                   = base_cell.pusch_cfg.beta_offset_csi_p1_idx_2;
-    b_offsets.beta_offset_csi_p2_idx_1                   = base_cell.pusch_cfg.beta_offset_csi_p2_idx_1;
-    b_offsets.beta_offset_csi_p2_idx_2                   = base_cell.pusch_cfg.beta_offset_csi_p2_idx_2;
-    out_cell.ran.init_bwp_builder.pusch.uci_beta_offsets = b_offsets;
-    out_cell.ran.init_bwp_builder.pusch.p0_pusch_alpha =
-        float_to_alpha(base_cell.pusch_cfg.path_loss_compensation_factor);
-    out_cell.ran.init_bwp_builder.pusch.nof_harq_procs = static_cast<uint8_t>(base_cell.pusch_cfg.nof_harqs);
-    out_cell.ran.init_bwp_builder.pusch.ul_harq_mode   = ~base_cell.pusch_cfg.harq_mode_b;
+    b_offsets.beta_offset_ack_idx_1              = base_cell.pusch_cfg.beta_offset_ack_idx_1;
+    b_offsets.beta_offset_ack_idx_2              = base_cell.pusch_cfg.beta_offset_ack_idx_2;
+    b_offsets.beta_offset_ack_idx_3              = base_cell.pusch_cfg.beta_offset_ack_idx_3;
+    b_offsets.beta_offset_csi_p1_idx_1           = base_cell.pusch_cfg.beta_offset_csi_p1_idx_1;
+    b_offsets.beta_offset_csi_p1_idx_2           = base_cell.pusch_cfg.beta_offset_csi_p1_idx_2;
+    b_offsets.beta_offset_csi_p2_idx_1           = base_cell.pusch_cfg.beta_offset_csi_p2_idx_1;
+    b_offsets.beta_offset_csi_p2_idx_2           = base_cell.pusch_cfg.beta_offset_csi_p2_idx_2;
+    out_cell.ran.init_bwp.pusch.uci_beta_offsets = b_offsets;
+    out_cell.ran.init_bwp.pusch.p0_pusch_alpha   = float_to_alpha(base_cell.pusch_cfg.path_loss_compensation_factor);
+    out_cell.ran.init_bwp.pusch.nof_harq_procs   = static_cast<uint8_t>(base_cell.pusch_cfg.nof_harqs);
+    out_cell.ran.init_bwp.pusch.ul_harq_mode     = ~base_cell.pusch_cfg.harq_mode_b;
     // > PUCCH
-    out_cell.ran.init_bwp_builder.pucch.min_k1    = base_cell.pucch_cfg.min_k1;
-    out_cell.ran.init_bwp_builder.pucch.sr_period = static_cast<sr_periodicity>(
+    out_cell.ran.init_bwp.pucch.min_k1    = base_cell.pucch_cfg.min_k1;
+    out_cell.ran.init_bwp.pucch.sr_period = static_cast<sr_periodicity>(
         static_cast<unsigned>(get_nof_slots_per_subframe(base_cell.common_scs) * base_cell.pucch_cfg.sr_period_msec));
     // > RACH.
-    out_cell.ran.init_bwp_builder.rach.cfra_enabled   = base_cell.prach_cfg.cfra_enabled;
-    out_cell.ran.init_bwp_builder.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
-    out_cell.ran.init_bwp_builder.rlm.type            = base_cell.rlm_cfg.resource_type;
+    out_cell.ran.init_bwp.rach.cfra_enabled   = base_cell.prach_cfg.cfra_enabled;
+    out_cell.ran.init_bwp.paging.edrx_enabled = base_cell.paging_cfg.edrx_enabled;
+    out_cell.ran.init_bwp.rlm.type            = base_cell.rlm_cfg.resource_type;
     // > NTN.
     if (base_cell.ntn_cfg.has_value()) {
       out_cell.ran.ntn_params = make_ntn_cell_params(base_cell.ntn_cfg.value(), base_cell.pusch_cfg.harq_mode_b.any());
@@ -717,8 +716,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
                         (cset1_start_crb / pdcch_constants::NOF_RB_PER_FREQ_RESOURCE) + coreset1_nof_resources,
                         true);
 
-    search_space_configuration& ss2_cfg   = out_cell.ran.init_bwp_builder.pdcch_cfg->search_spaces[0];
-    coreset_configuration&      cset1_cfg = out_cell.ran.init_bwp_builder.pdcch_cfg->coresets[0];
+    search_space_configuration& ss2_cfg   = out_cell.ran.init_bwp.pdcch_cfg->search_spaces[0];
+    coreset_configuration&      cset1_cfg = out_cell.ran.init_bwp.pdcch_cfg->coresets[0];
     cset1_cfg.set_freq_domain_resources(freq_resources);
     cset1_cfg.set_non_coreset0_duration(base_cell.pdcch_cfg.dedicated.coreset1_duration.value_or(
         out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->duration()));
@@ -752,8 +751,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
       };
 
       static constexpr uint8_t min_nof_pdcch_candidates = 1;
-      while (config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(
-                 *out_cell.ran.init_bwp_builder.pdcch_cfg, out_cell.ran.dl_cfg_common) >
+      while (config_helpers::compute_tot_nof_monitored_pdcch_candidates_per_slot(*out_cell.ran.init_bwp.pdcch_cfg,
+                                                                                 out_cell.ran.dl_cfg_common) >
                  max_nof_monitored_pdcch_candidates(param.scs_common) and
              std::accumulate(ss2_cfg.get_nof_candidates().begin(), ss2_cfg.get_nof_candidates().end(), 0U) >
                  min_nof_pdcch_candidates) {
@@ -775,7 +774,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
              0});
       }
     } else if (not base_cell.pdcch_cfg.dedicated.dci_format_0_1_and_1_1) {
-      search_space_configuration& ss_cfg = out_cell.ran.init_bwp_builder.pdcch_cfg->search_spaces[0];
+      search_space_configuration& ss_cfg = out_cell.ran.init_bwp.pdcch_cfg->search_spaces[0];
       ss_cfg.set_non_ss0_monitored_dci_formats(search_space_configuration::ue_specific_dci_format::f0_0_and_f1_0);
     }
 
@@ -783,13 +782,13 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     // configuration.
     out_cell.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
         time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
-            out_cell.ran.tdd_ul_dl_cfg_common,
+            out_cell.ran.tdd_cfg,
             out_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
             time_domain_resource_helper::calculate_minimum_pdsch_symbol(
-                out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common, out_cell.ran.init_bwp_builder.pdcch_cfg));
+                out_cell.ran.dl_cfg_common.init_dl_bwp.pdcch_common, out_cell.ran.init_bwp.pdcch_cfg));
 
     // Parameters for PUCCH-Config builder (these parameters will be used later on to generate the PUCCH resources).
-    pucch_resource_builder_params&   du_pucch_cfg                  = out_cell.ran.init_bwp_builder.pucch.resources;
+    pucch_resource_builder_params&   du_pucch_cfg                  = out_cell.ran.init_bwp.pucch.resources;
     const du_high_unit_pucch_config& user_pucch_cfg_pre_processing = base_cell.pucch_cfg;
     du_high_unit_pucch_config        user_pucch_cfg                = user_pucch_cfg_pre_processing;
     // For 5MHz BW or for 10MHz TDD, the default PUCCH configuration would use too many PRBs, we need to reduce them not
@@ -884,7 +883,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     }
 
     // Parameters for SRS-Config.
-    srs_builder_params&            du_srs_cfg   = out_cell.ran.init_bwp_builder.srs_cfg;
+    srs_builder_params&            du_srs_cfg   = out_cell.ran.init_bwp.srs_cfg;
     const du_high_unit_srs_config& user_srs_cfg = base_cell.srs_cfg;
     if (user_srs_cfg.srs_type_enabled == "periodic") {
       du_srs_cfg.srs_type_enabled = srs_type::periodic;
@@ -933,7 +932,7 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
       config_helpers::recompute_pusch_time_domain_resources(
           out_cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list,
           du_srs_cfg,
-          out_cell.ran.tdd_ul_dl_cfg_common);
+          out_cell.ran.tdd_cfg);
     }
 
     // Parameters for csiMeasConfig.

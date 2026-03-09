@@ -13,8 +13,8 @@ using namespace ocudu;
 du_cell_config_pool::du_cell_config_pool(const scheduler_expert_config&                  sched_cfg_,
                                          const sched_cell_configuration_request_message& req) :
   cell_cfg_inst(sched_cfg_, req),
-  init_dl_bwp(cell_cfg_inst.dl_cfg_common.init_dl_bwp),
-  init_ul_bwp(cell_cfg_inst.ul_cfg_common.init_ul_bwp)
+  init_dl_bwp(cell_cfg_inst.params.dl_cfg_common.init_dl_bwp),
+  init_ul_bwp(cell_cfg_inst.params.ul_cfg_common.init_ul_bwp)
 {
 }
 

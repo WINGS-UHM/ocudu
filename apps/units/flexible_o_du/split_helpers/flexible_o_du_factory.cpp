@@ -90,8 +90,8 @@ static o_du_low_unit_config generate_o_du_low_config(const du_low_unit_config&  
     du_low_cell.prach_config_index =
         cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index;
     du_low_cell.max_puschs_per_slot  = du_hi_cell.cell.pusch_cfg.max_puschs_per_slot;
-    du_low_cell.pusch_max_nof_layers = cell.ran.init_bwp_builder.pusch.max_nof_layers;
-    du_low_cell.tdd_pattern          = cell.ran.tdd_ul_dl_cfg_common;
+    du_low_cell.pusch_max_nof_layers = cell.ran.init_bwp.pusch.max_nof_layers;
+    du_low_cell.tdd_pattern          = cell.ran.tdd_cfg;
   }
 
   return odu_low_cfg;
@@ -112,7 +112,7 @@ generate_o_du_ru_config(span<const odu::du_cell_config> cells, unsigned max_proc
     out_cell.scs                        = scs_common;
     out_cell.dl_arfcn                   = cell.ran.dl_carrier.arfcn_f_ref.value();
     out_cell.ul_arfcn                   = cell.ran.ul_carrier.arfcn_f_ref.value();
-    out_cell.tdd_config                 = cell.ran.tdd_ul_dl_cfg_common;
+    out_cell.tdd_config                 = cell.ran.tdd_cfg;
     out_cell.bw                         = cell.ran.dl_carrier.carrier_bw;
     out_cell.freq_range                 = band_helper::get_freq_range(cell.ran.dl_carrier.band);
     out_cell.cp                         = cell.ran.dl_cfg_common.init_dl_bwp.generic_params.cp;

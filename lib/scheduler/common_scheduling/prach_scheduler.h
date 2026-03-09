@@ -43,7 +43,10 @@ private:
     prach_occasion_info occasion;
   };
 
-  const rach_config_common& rach_cfg_common() const { return *cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common; }
+  const rach_config_common& rach_cfg_common() const
+  {
+    return *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+  }
 
   /// \brief Performs PRACH allocation for this slot.
   ///

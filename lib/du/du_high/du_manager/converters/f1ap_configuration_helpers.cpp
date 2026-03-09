@@ -69,7 +69,7 @@ du_served_cell_info ocudu::odu::make_f1ap_du_cell_info(const du_cell_config& du_
   serv_cell.nr_cgi     = du_cfg.nr_cgi;
   serv_cell.pci        = du_cfg.ran.pci;
   serv_cell.tac        = du_cfg.tac;
-  serv_cell.duplx_mode = du_cfg.ran.tdd_ul_dl_cfg_common.has_value() ? duplex_mode::TDD : duplex_mode::FDD;
+  serv_cell.duplx_mode = du_cfg.ran.tdd_cfg.has_value() ? duplex_mode::TDD : duplex_mode::FDD;
   serv_cell.scs_common = du_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
   serv_cell.dl_carrier = du_cfg.ran.dl_carrier;
   if (serv_cell.duplx_mode == duplex_mode::FDD) {

@@ -7,9 +7,6 @@
 #include "lib/scheduler/support/pdcch/pdcch_mapping.h"
 #include "lib/scheduler/support/sched_result_helpers.h"
 #include "ocudu/ran/pdcch/cce_to_prb_mapping.h"
-#include "ocudu/ran/prach/prach_configuration.h"
-#include "ocudu/ran/prach/prach_frequency_mapping.h"
-#include "ocudu/ran/prach/prach_preamble_information.h"
 #include "ocudu/ran/resource_allocation/vrb_to_prb.h"
 
 using namespace ocudu;
@@ -92,13 +89,12 @@ std::pair<grant_info, grant_info> ocudu::get_pdsch_grant_info(const bwp_downlink
                    ue_grant.pdsch_cfg.symbols,
                    prb_to_crb(ue_grant.pdsch_cfg.bwp_cfg->crbs, prbs.second)},
     };
-  } else {
-    crb_interval crbs = {vrbs.start() + ref_rb, vrbs.stop() + ref_rb};
-    return {
-        grant_info{ue_grant.pdsch_cfg.bwp_cfg->scs, ue_grant.pdsch_cfg.symbols, crbs},
-        grant_info{},
-    };
   }
+  crb_interval crbs = {vrbs.start() + ref_rb, vrbs.stop() + ref_rb};
+  return {
+      grant_info{ue_grant.pdsch_cfg.bwp_cfg->scs, ue_grant.pdsch_cfg.symbols, crbs},
+      grant_info{},
+  };
 }
 
 std::vector<test_grant_info> ocudu::get_dl_grants(const cell_configuration& cell_cfg, const dl_sched_result& dl_res)
@@ -110,12 +106,12 @@ std::vector<test_grant_info> ocudu::get_dl_grants(const cell_configuration& cell
     grants.emplace_back();
     grants.back().type  = test_grant_info::SSB;
     grants.back().rnti  = rnti_t::INVALID_RNTI;
-    grants.back().grant = grant_info{cell_cfg.ssb_cfg.scs, ssb.symbols, ssb.crbs};
+    grants.back().grant = grant_info{cell_cfg.params.ssb_cfg.scs, ssb.symbols, ssb.crbs};
   }
 
   // Fill DL PDCCHs.
   for (const pdcch_dl_information& pdcch : dl_res.dl_pdcchs) {
-    std::vector<grant_info> grant_res_list = get_pdcch_grant_info(cell_cfg.pci, pdcch);
+    std::vector<grant_info> grant_res_list = get_pdcch_grant_info(cell_cfg.params.pci, pdcch);
     for (const grant_info& grant : grant_res_list) {
       grants.emplace_back();
       grants.back().type  = test_grant_info::DL_PDCCH;
@@ -126,7 +122,7 @@ std::vector<test_grant_info> ocudu::get_dl_grants(const cell_configuration& cell
 
   // Fill UL PDCCHs.
   for (const pdcch_ul_information& pdcch : dl_res.ul_pdcchs) {
-    std::vector<grant_info> grant_res_list = get_pdcch_grant_info(cell_cfg.pci, pdcch);
+    std::vector<grant_info> grant_res_list = get_pdcch_grant_info(cell_cfg.params.pci, pdcch);
     for (const grant_info& grant : grant_res_list) {
       grants.emplace_back();
       grants.back().type  = test_grant_info::UL_PDCCH;
@@ -140,7 +136,7 @@ std::vector<test_grant_info> ocudu::get_dl_grants(const cell_configuration& cell
     grants.emplace_back();
     grants.back().type  = test_grant_info::SIB;
     grants.back().rnti  = sib.pdsch_cfg.rnti;
-    grants.back().grant = get_pdsch_grant_info(cell_cfg.dl_cfg_common.init_dl_bwp, sib);
+    grants.back().grant = get_pdsch_grant_info(cell_cfg.params.dl_cfg_common.init_dl_bwp, sib);
   }
 
   // Register RAR PDSCHs.
@@ -148,13 +144,13 @@ std::vector<test_grant_info> ocudu::get_dl_grants(const cell_configuration& cell
     grants.emplace_back();
     grants.back().type  = test_grant_info::RAR;
     grants.back().rnti  = rar.pdsch_cfg.rnti;
-    grants.back().grant = get_pdsch_grant_info(cell_cfg.dl_cfg_common.init_dl_bwp, rar);
+    grants.back().grant = get_pdsch_grant_info(cell_cfg.params.dl_cfg_common.init_dl_bwp, rar);
   }
 
   // Register UE PDSCHs.
   for (const dl_msg_alloc& ue_pdsch : dl_res.ue_grants) {
     const auto pdsch_grants = get_pdsch_grant_info(
-        cell_cfg.dl_cfg_common.init_dl_bwp, ue_pdsch, cell_cfg.expert_cfg.ue.pdsch_interleaving_bundle_size);
+        cell_cfg.params.dl_cfg_common.init_dl_bwp, ue_pdsch, cell_cfg.expert_cfg.ue.pdsch_interleaving_bundle_size);
     grants.emplace_back();
     grants.back().type  = test_grant_info::UE_DL;
     grants.back().rnti  = ue_pdsch.pdsch_cfg.rnti;
@@ -171,7 +167,7 @@ std::vector<test_grant_info> ocudu::get_dl_grants(const cell_configuration& cell
     grants.emplace_back();
     grants.back().type  = test_grant_info::PAGING;
     grants.back().rnti  = pg.pdsch_cfg.rnti;
-    grants.back().grant = get_pdsch_grant_info(cell_cfg.dl_cfg_common.init_dl_bwp, pg);
+    grants.back().grant = get_pdsch_grant_info(cell_cfg.params.dl_cfg_common.init_dl_bwp, pg);
   }
 
   return grants;

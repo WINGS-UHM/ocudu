@@ -95,7 +95,7 @@ public:
     ues(expert_cfg.ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
     srs_alloc(cell_cfg, expert_cfg.ue.srs_prohibit_time.value()),
-    current_sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
+    current_sl_tx{to_numerology_value(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
   {
     slot_indication(current_sl_tx);
     mac_logger.set_level(ocudulog::basic_levels::debug);
@@ -125,10 +125,10 @@ public:
   // Class methods.
   du_ue_index_t add_ue(const srs_params& params)
   {
-    sched_ue_creation_request_message ue_req =
-        create_sched_ue_creation_request_for_srs_cfg(cfg_mng.get_default_ue_config_request(),
-                                                     cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
-                                                     params.slot_offset);
+    sched_ue_creation_request_message ue_req = create_sched_ue_creation_request_for_srs_cfg(
+        cfg_mng.get_default_ue_config_request(),
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(),
+        params.slot_offset);
     ue_req.ue_index = next_du_ue_idx;
     ue_req.crnti    = next_rnti;
     next_du_ue_idx  = to_du_ue_index(static_cast<unsigned>(next_du_ue_idx) + 1);
@@ -160,10 +160,10 @@ public:
     if (srs_pdu.crnti != ues[du_ue_idx].crnti) {
       return make_unexpected(std::string("RNTI mismatch"));
     }
-    if (srs_pdu.bwp_cfg != &cell_cfg.ul_cfg_common.init_ul_bwp.generic_params) {
+    if (srs_pdu.bwp_cfg != &cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params) {
       return make_unexpected(std::string("BWP mismatch"));
     }
-    if (srs_pdu.nof_antenna_ports != cell_cfg.ul_carrier.nof_ant) {
+    if (srs_pdu.nof_antenna_ports != cell_cfg.params.ul_carrier.nof_ant) {
       return make_unexpected(std::string("Nof antenna ports mismatch"));
     }
     if (srs_pdu.symbols != ofdm_symbol_range{NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - 1 - srs_res_cfg.res_mapping.start_pos,

@@ -60,10 +60,10 @@ public:
                                                      .nof_cell_res_set_configs = 2,
                                                      .nof_cell_sr_resources    = 80,
                                                      .nof_cell_csi_resources   = 80};
-    auto&                         f1_params           = pucch_basic_params.f0_or_f1_params.emplace<pucch_f1_params>();
-    f1_params.nof_cyc_shifts                          = pucch_nof_cyclic_shifts::twelve;
-    f1_params.occ_supported                           = true;
-    cell_cfg_req.ran.init_bwp_builder.pucch.resources = pucch_basic_params;
+    auto&                         f1_params   = pucch_basic_params.f0_or_f1_params.emplace<pucch_f1_params>();
+    f1_params.nof_cyc_shifts                  = pucch_nof_cyclic_shifts::twelve;
+    f1_params.occ_supported                   = true;
+    cell_cfg_req.ran.init_bwp.pucch.resources = pucch_basic_params;
     this->add_cell(cell_cfg_req);
 
     // Create PUCCH builder that will be used to add UEs.
@@ -171,7 +171,7 @@ public:
 };
 
 template <typename T>
-T sum(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
+T sum(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
 {
   T sum = 0;
   for (const auto& u : ues) {
@@ -181,7 +181,7 @@ T sum(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
 }
 
 template <typename T>
-double jain_index(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
+double jain_index(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
 {
   T      sum_val = sum(ues, member);
   double sq      = 0;
@@ -192,7 +192,7 @@ double jain_index(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::
 }
 
 template <typename T>
-std::vector<T> extract(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
+std::vector<T> extract(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
 {
   std::vector<T> res;
   for (const auto& u : ues) {
@@ -269,10 +269,10 @@ TEST_P(scheduler_rb_distribution_test, when_equal_ue_cfgs_then_rbs_are_fully_uti
 
   // TEST CASE: The RB usage should be close to the number of cell RBs.
   if (test_params.auto_dl_bs > 0) {
-    EXPECT_GE(pdsch_rbs_per_slot, 0.95 * cell_cfg().dl_cfg_common.init_dl_bwp.generic_params.crbs.length());
+    EXPECT_GE(pdsch_rbs_per_slot, 0.95 * cell_cfg().params.dl_cfg_common.init_dl_bwp.generic_params.crbs.length());
   }
   if (test_params.auto_ul_bs > 0) {
-    EXPECT_GE(pusch_rbs_per_slot, 0.95 * cell_cfg().ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+    EXPECT_GE(pusch_rbs_per_slot, 0.95 * cell_cfg().params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
   }
 
   // TEST CASE: Jain index for PDSCH and PUSCH RBs and bitrates should be very high.

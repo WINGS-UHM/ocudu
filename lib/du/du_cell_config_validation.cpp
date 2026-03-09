@@ -269,7 +269,7 @@ static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 {
   const subcarrier_spacing scs_common = cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
-  const auto&              pdcch_cfg  = cell_cfg.ran.init_bwp_builder.pdcch_cfg;
+  const auto&              pdcch_cfg  = cell_cfg.ran.init_bwp.pdcch_cfg;
   const auto               pdsch_cfg  = config_helpers::make_pdsch_config(cell_cfg.ran);
 
   // PDCCH
@@ -474,11 +474,10 @@ static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
       cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start,
       cell_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_fdm);
 
-  if (cell_cfg.ran.init_bwp_builder.srs_cfg.srs_type_enabled == srs_type::aperiodic and
-      cell_cfg.ran.tdd_ul_dl_cfg_common.has_value() and
-      cell_cfg.ran.tdd_ul_dl_cfg_common.value().pattern2.has_value()) {
-    CHECK_TRUE(cell_cfg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols ==
-                   cell_cfg.ran.tdd_ul_dl_cfg_common.value().pattern2.value().nof_ul_symbols,
+  if (cell_cfg.ran.init_bwp.srs_cfg.srs_type_enabled == srs_type::aperiodic and cell_cfg.ran.tdd_cfg.has_value() and
+      cell_cfg.ran.tdd_cfg.value().pattern2.has_value()) {
+    CHECK_TRUE(cell_cfg.ran.tdd_cfg.value().pattern1.nof_ul_symbols ==
+                   cell_cfg.ran.tdd_cfg.value().pattern2.value().nof_ul_symbols,
                "With aperiodic SRS, the TDD pattern 1 and 2 must have the same number of symbols.");
   }
 
@@ -487,9 +486,9 @@ static check_outcome check_ul_config_common(const du_cell_config& cell_cfg)
 
 static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
 {
-  const auto&                       pusch_params = cell_cfg.ran.init_bwp_builder.pusch;
+  const auto&                       pusch_params = cell_cfg.ran.init_bwp.pusch;
   const pusch_mcs_table             mcs_table    = pusch_params.mcs_table;
-  const search_space_configuration& ss2          = cell_cfg.ran.init_bwp_builder.pdcch_cfg->search_spaces.back();
+  const search_space_configuration& ss2          = cell_cfg.ran.init_bwp.pdcch_cfg->search_spaces.back();
   const bool                        fallback_dci_format_in_ss2 =
       ss2.is_common_search_space() or
       not(std::get<search_space_configuration::ue_specific_dci_format>(ss2.get_monitored_dci_formats()) ==
@@ -507,9 +506,9 @@ static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
     CHECK_TRUE(cell_cfg.ran.dmrs_typeA_pos == dmrs_typeA_position::pos2,
                "PUSCH dmrs-Additional-Position of pos3 is only supported when dmrs-TypeA-Position is equal to pos2");
   }
-  if (cell_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
-    CHECK_TRUE(sr_periodicity_to_slot(cell_cfg.ran.init_bwp_builder.pucch.sr_period) %
-                       nof_slots_per_tdd_period(cell_cfg.ran.tdd_ul_dl_cfg_common.value()) ==
+  if (cell_cfg.ran.tdd_cfg.has_value()) {
+    CHECK_TRUE(sr_periodicity_to_slot(cell_cfg.ran.init_bwp.pucch.sr_period) %
+                       nof_slots_per_tdd_period(cell_cfg.ran.tdd_cfg.value()) ==
                    0,
                "Scheduling request resource periodicity that is not a submultiple of the TDD "
                "configuration periodicity is not supported.");
@@ -519,7 +518,7 @@ static check_outcome check_ul_config_dedicated(const du_cell_config& cell_cfg)
 
 static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
 {
-  if (not cell_cfg.ran.tdd_ul_dl_cfg_common.has_value()) {
+  if (not cell_cfg.ran.tdd_cfg.has_value()) {
     return {};
   }
 
@@ -527,7 +526,7 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
   static constexpr unsigned pdsch_mapping_typeA_min_L_value = 3;
 
   const pdcch_config_common&                  common_pdcch_cfg = cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common;
-  const pdcch_config&                         ded_pdcch_cfg    = cell_cfg.ran.init_bwp_builder.pdcch_cfg.value();
+  const pdcch_config&                         ded_pdcch_cfg    = cell_cfg.ran.init_bwp.pdcch_cfg.value();
   const std::optional<coreset_configuration>& coreset0         = common_pdcch_cfg.coreset0;
   const std::optional<coreset_configuration>& common_coreset   = common_pdcch_cfg.common_coreset;
   const auto                                  ss0_idx          = common_pdcch_cfg.get_searchspace0();
@@ -538,7 +537,7 @@ static check_outcome check_tdd_ul_dl_config(const du_cell_config& cell_cfg)
       pdcch_type0_css_occasions_get_pattern1(pdcch_type0_css_occasion_pattern1_configuration{
           .is_fr2 = false, .ss0_index = ss0_idx.value(), .nof_symb_coreset = coreset0->duration()});
 
-  const auto& tdd_cfg = cell_cfg.ran.tdd_ul_dl_cfg_common.value();
+  const auto& tdd_cfg = cell_cfg.ran.tdd_cfg.value();
   CHECK_TRUE(
       (get_nof_slots_per_subframe(tdd_cfg.ref_scs) * NOF_SUBFRAMES_PER_FRAME) % nof_slots_per_tdd_period(tdd_cfg) == 0,
       "TDD configuration periodicity that is not a submultiple of the number of slots in a radio frame is "
@@ -728,8 +727,7 @@ static check_outcome check_prach_config(const du_cell_config& cell_cfg)
       rach_cfg.rach_cfg_generic.msg1_frequency_start + rach_cfg.rach_cfg_generic.msg1_fdm * prach_nof_prbs;
 
   prb_interval prb_interval_no_pucch = config_helpers::find_largest_prb_interval_without_pucch(
-      cell_cfg.ran.init_bwp_builder.pucch.resources,
-      cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      cell_cfg.ran.init_bwp.pucch.resources, cell_cfg.ran.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
 
   // This is to preserve a guardband between the PUCCH and PRACH.
   const unsigned pucch_to_prach_guardband = is_long_preamble(prach_cfg.format) ? 0U : 3U;
@@ -791,14 +789,13 @@ check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
   HANDLE_ERROR(check_ul_config_common(cell_cfg));
   HANDLE_ERROR(check_ssb_configuration(cell_cfg));
   HANDLE_ERROR(check_tdd_ul_dl_config(cell_cfg));
-  HANDLE_ERROR(
-      config_helpers::pucch_parameters_validator(cell_cfg.ran.init_bwp_builder.pucch.resources,
-                                                 cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()));
+  HANDLE_ERROR(config_helpers::pucch_parameters_validator(
+      cell_cfg.ran.init_bwp.pucch.resources, cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()));
   HANDLE_ERROR(check_prach_config(cell_cfg));
   const serving_cell_config ue_serv_cell_cfg =
       config_helpers::make_ue_serving_cell_config(cell_cfg.ran, to_du_cell_index(0));
-  HANDLE_ERROR(config_validators::validate_csi_meas_cfg(
-      ue_serv_cell_cfg, cell_cfg.ran.tdd_ul_dl_cfg_common, cell_cfg.ran.ul_cfg_common));
+  HANDLE_ERROR(
+      config_validators::validate_csi_meas_cfg(ue_serv_cell_cfg, cell_cfg.ran.tdd_cfg, cell_cfg.ran.ul_cfg_common));
   HANDLE_ERROR(check_dl_config_dedicated(cell_cfg));
   HANDLE_ERROR(check_ul_config_dedicated(cell_cfg));
   HANDLE_ERROR(check_ntn_config(cell_cfg));

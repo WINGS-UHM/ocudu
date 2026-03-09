@@ -40,7 +40,7 @@ class ue_grid_allocator_test : public ::testing::TestWithParam<duplex_mode>
   {
     sched_cell_configuration_request_message req;
     req = sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
-    req.ran.init_bwp_builder.pdcch_cfg->search_spaces[0].set_non_ss0_monitored_dci_formats(params.ss2_dci_fmt);
+    req.ran.init_bwp.pdcch_cfg->search_spaces[0].set_non_ss0_monitored_dci_formats(params.ss2_dci_fmt);
     return req;
   }
 
@@ -87,7 +87,7 @@ protected:
     ues.slot_indication(current_slot);
 
     // Prepare CRB bitmask that will be used to find available CRBs.
-    const auto& init_dl_bwp = cell_cfg.dl_cfg_common.init_dl_bwp;
+    const auto& init_dl_bwp = cell_cfg.params.dl_cfg_common.init_dl_bwp;
     const auto  prb_lims    = crb_to_prb(init_dl_bwp.generic_params.crbs,
                                      cell_cfg.expert_cfg.ue.pdsch_crb_limits & init_dl_bwp.generic_params.crbs);
     auto        used_prbs   = res_grid[0].dl_res_grid.used_prbs(init_dl_bwp.generic_params.scs,
@@ -159,7 +159,7 @@ protected:
                                bool                    interleaving_enabled,
                                std::optional<unsigned> max_nof_rbs = std::nullopt)
   {
-    const auto& init_dl_bwp = cell_cfg.dl_cfg_common.init_dl_bwp;
+    const auto& init_dl_bwp = cell_cfg.params.dl_cfg_common.init_dl_bwp;
     auto        result =
         alloc.allocate_dl_grant(ue_newtx_dl_grant_request{user, current_slot, pending_bytes, interleaving_enabled});
     if (not result.has_value()) {
@@ -198,7 +198,7 @@ protected:
                                        units::bytes            pending_bytes,
                                        std::optional<unsigned> max_nof_rbs = std::nullopt)
   {
-    const auto& init_ul_bwp = cell_cfg.ul_cfg_common.init_ul_bwp;
+    const auto& init_ul_bwp = cell_cfg.params.ul_cfg_common.init_ul_bwp;
     auto        result      = alloc.allocate_ul_grant(ue_newtx_ul_grant_request{
         user, pusch_slot, pending_bytes, ofdm_symbol_range{0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}});
     if (not result.has_value()) {
@@ -238,7 +238,7 @@ protected:
   srs_allocator_impl   srs_alloc{cell_cfg, std::nullopt};
 
   ocudulog::basic_logger& logger{ocudulog::fetch_basic_logger("SCHED")};
-  scheduler_result_logger res_logger{false, cell_cfg.pci};
+  scheduler_result_logger res_logger{false, cell_cfg.params.pci};
 
   ue_repository           ues;
   ue_cell_repository&     cell_ues;
@@ -278,7 +278,7 @@ TEST_P(ue_grid_allocator_css_test,
   const crb_interval cs1_crbs = get_coreset_crbs(cs1_cfg);
   const crb_interval crb_lims = {
       cs1_crbs.start(),
-      cs1_crbs.start() + cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs().length()};
+      cs1_crbs.start() + cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs().length()};
 
   ASSERT_TRUE(run_until([&]() { allocate_dl_newtx_grant(slice_ues[u.ue_index], nof_bytes_to_schedule, false); },
                         [&]() { return find_ue_pdsch(u.crnti, res_grid[0].result.dl.ue_grants) != nullptr; }));
@@ -366,8 +366,8 @@ TEST_P(ue_grid_allocator_default_cfg_test, does_not_allocate_pusch_with_all_rema
   // Trigger a SR indication.
   u1.handle_sr_indication();
 
-  const crb_interval cell_crbs = {cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.start(),
-                                  cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.stop()};
+  const crb_interval cell_crbs = {cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.start(),
+                                  cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.stop()};
 
   ASSERT_TRUE(run_until([&]() { allocate_ul_newtx_grant(slice_ues[u1.ue_index], u1.pending_ul_newtx_bytes()); },
                         [&]() { return find_ue_pusch(u1.crnti, res_grid[0].result.ul) != nullptr; }));
@@ -723,10 +723,10 @@ public:
   {
     // Assume SS#2 is USS configured with DCI format 1_1/0_1 and is the only SS used for UE PDSCH/PUSCH scheduling.
     const prb_interval pdsch_prbs =
-        crb_to_prb(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs, sched_cfg.ue.pdsch_crb_limits);
+        crb_to_prb(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs, sched_cfg.ue.pdsch_crb_limits);
     pdsch_vrb_limits = vrb_interval{pdsch_prbs.start(), pdsch_prbs.stop()};
     pusch_vrb_limits = rb_helper::crb_to_vrb_ul_non_interleaved(
-        sched_cfg.ue.pusch_crb_limits, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.start());
+        sched_cfg.ue.pusch_crb_limits, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.start());
   }
 
 protected:

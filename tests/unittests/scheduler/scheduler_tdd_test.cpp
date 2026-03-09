@@ -44,7 +44,7 @@ protected:
 
     // Add Cell.
     auto cell_req = sched_config_helper::make_default_sched_cell_configuration_request(params);
-    std::get<pucch_f2_params>(cell_req.ran.init_bwp_builder.pucch.resources.f2_or_f3_or_f4_params).max_code_rate =
+    std::get<pucch_f2_params>(cell_req.ran.init_bwp.pucch.resources.f2_or_f3_or_f4_params).max_code_rate =
         max_pucch_code_rate::dot_35;
     this->add_cell(cell_req);
 
@@ -116,7 +116,7 @@ public:
     this->push_bsr(bsr);
 
     // Run some slots to ensure that there is space for PDCCH to be scheduled.
-    unsigned tdd_period = nof_slots_per_tdd_period(*cell_cfg(to_du_cell_index(0)).tdd_cfg_common);
+    unsigned tdd_period = nof_slots_per_tdd_period(*cell_cfg(to_du_cell_index(0)).params.tdd_cfg);
     for (unsigned i = 0; i != 2 * tdd_period; ++i) {
       run_slot();
     }

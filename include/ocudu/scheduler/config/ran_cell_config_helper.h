@@ -46,33 +46,33 @@ inline ran_cell_config make_default_ran_cell_config(const cell_config_builder_pa
   cfg.ul_cfg_common = make_default_ul_config_common(params);
   cfg.ssb_cfg       = make_default_ssb_config(params);
   // The CORESET duration of 3 symbols is only permitted if dmrs-typeA-Position is set to 3. Refer TS 38.211, 7.3.2.2.
-  cfg.dmrs_typeA_pos       = cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value().duration() >= 3U
-                                 ? dmrs_typeA_position::pos3
-                                 : dmrs_typeA_position::pos2;
-  cfg.tdd_ul_dl_cfg_common = params.tdd_ul_dl_cfg_common;
-  cfg.init_bwp_builder     = make_default_bwp_builder_params(params);
+  cfg.dmrs_typeA_pos = cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value().duration() >= 3U
+                           ? dmrs_typeA_position::pos3
+                           : dmrs_typeA_position::pos2;
+  cfg.tdd_cfg        = params.tdd_ul_dl_cfg_common;
+  cfg.init_bwp       = make_default_bwp_builder_params(params);
   return cfg;
 }
 
 /// Builds CSI meas config builder parameters from DU cell configuration.
 inline csi_helper::csi_meas_config_builder_params make_csi_meas_config_builder_params(const ran_cell_config& cell_cfg)
 {
-  ocudu_assert(cell_cfg.init_bwp_builder.csi.has_value(), "CSI parameters are required to build CSI resources");
+  ocudu_assert(cell_cfg.init_bwp.csi.has_value(), "CSI parameters are required to build CSI resources");
 
   csi_helper::csi_meas_config_builder_params csi_params;
   csi_params.pci            = cell_cfg.pci;
   csi_params.nof_rbs        = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
   csi_params.nof_ports      = cell_cfg.dl_carrier.nof_ant;
-  csi_params.max_nof_layers = cell_cfg.init_bwp_builder.pdsch.max_nof_layers.value_or(csi_params.nof_ports);
-  csi_params.mcs_table      = cell_cfg.init_bwp_builder.pdsch.mcs_table;
-  csi_params.csi_params     = cell_cfg.init_bwp_builder.csi.value();
+  csi_params.max_nof_layers = cell_cfg.init_bwp.pdsch.max_nof_layers.value_or(csi_params.nof_ports);
+  csi_params.mcs_table      = cell_cfg.init_bwp.pdsch.mcs_table;
+  csi_params.csi_params     = cell_cfg.init_bwp.csi.value();
   return csi_params;
 }
 
 /// Builds a CSI-MeasConfig from DU cell configuration.
 inline std::optional<csi_meas_config> make_csi_meas_config(const ran_cell_config& cell_cfg)
 {
-  if (!cell_cfg.init_bwp_builder.csi.has_value()) {
+  if (!cell_cfg.init_bwp.csi.has_value()) {
     return std::nullopt;
   }
   const csi_helper::csi_meas_config_builder_params csi_params = make_csi_meas_config_builder_params(cell_cfg);
@@ -85,7 +85,7 @@ inline std::optional<csi_meas_config> make_csi_meas_config(const ran_cell_config
 inline pucch_config make_pucch_config(const ran_cell_config& cell_cfg)
 {
   pucch_config                         pucch_cfg{};
-  const pucch_builder_params&          pucch_params   = cell_cfg.init_bwp_builder.pucch;
+  const pucch_builder_params&          pucch_params   = cell_cfg.init_bwp.pucch;
   const pucch_resource_builder_params& builder_params = pucch_params.resources;
   const unsigned                       bwp_size       = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
   const auto                           cell_pucch_res_list = generate_cell_pucch_res_list(builder_params, bwp_size);
@@ -104,9 +104,7 @@ inline pucch_config make_pucch_config(const ran_cell_config& cell_cfg)
   // >>> SR Resource.
   {
     const sr_periodicity sr_period = pucch_params.sr_period;
-    const unsigned       sr_offset = cell_cfg.tdd_ul_dl_cfg_common.has_value()
-                                         ? find_next_tdd_full_ul_slot(*cell_cfg.tdd_ul_dl_cfg_common).value()
-                                         : 0;
+    const unsigned sr_offset = cell_cfg.tdd_cfg.has_value() ? find_next_tdd_full_ul_slot(*cell_cfg.tdd_cfg).value() : 0;
     auto& sr_res = pucch_cfg.pucch_res_list.emplace_back(cell_pucch_res_list[builder_params.res_set_0_size.value()]);
     sr_res.res_id.ue_res_id = pucch_cfg.pucch_res_list.size() - 1;
     pucch_cfg.sr_res_list.push_back(scheduling_request_resource_config{.sr_res_id    = 1,
@@ -155,7 +153,7 @@ inline pucch_config make_pucch_config(const ran_cell_config& cell_cfg)
         pucch_common_all_formats{.max_c_rate = f4_params->max_code_rate, .simultaneous_harq_ack_csi = true});
   }
   pucch_cfg.dl_data_to_ul_ack =
-      time_domain_resource_helper::generate_k1_candidates(cell_cfg.tdd_ul_dl_cfg_common, pucch_params.min_k1);
+      time_domain_resource_helper::generate_k1_candidates(cell_cfg.tdd_cfg, pucch_params.min_k1);
 
   // Add the PUCCH power configuration.
   auto& pucch_pw_ctrl          = pucch_cfg.pucch_pw_control.emplace();
@@ -226,7 +224,7 @@ inline srs_config make_srs_config(const srs_builder_params& user_params, pci_t p
 /// Builds a Radio Link Monitoring configuration from DU cell configuration.
 inline std::optional<radio_link_monitoring_config> make_rlm_config(const ran_cell_config& cell_cfg)
 {
-  const rlm_resource_type rlm_type = cell_cfg.init_bwp_builder.rlm.type;
+  const rlm_resource_type rlm_type = cell_cfg.init_bwp.rlm.type;
   if (rlm_type == rlm_resource_type::default_type) {
     return std::nullopt;
   }
@@ -260,7 +258,7 @@ inline std::optional<pdsch_config> make_pdsch_config(const ran_cell_config& cell
   pdsch_config pdsch_cfg;
 
   pdsch_cfg.pdsch_mapping_type_a_dmrs.emplace();
-  pdsch_cfg.pdsch_mapping_type_a_dmrs->additional_positions = cell_cfg.init_bwp_builder.pdsch.additional_positions;
+  pdsch_cfg.pdsch_mapping_type_a_dmrs->additional_positions = cell_cfg.init_bwp.pdsch.additional_positions;
 
   pdsch_cfg.tci_states.push_back(tci_state{
       .state_id  = static_cast<tci_state_id_t>(0),
@@ -272,8 +270,8 @@ inline std::optional<pdsch_config> make_pdsch_config(const ran_cell_config& cell
   pdsch_cfg.res_alloc = pdsch_config::resource_allocation::resource_allocation_type_1;
   pdsch_cfg.rbg_sz    = rbg_size::config1;
 
-  pdsch_cfg.vrb_to_prb_interleaving = cell_cfg.init_bwp_builder.pdsch.interleaving_bundle_size;
-  pdsch_cfg.mcs_table               = cell_cfg.init_bwp_builder.pdsch.mcs_table;
+  pdsch_cfg.vrb_to_prb_interleaving = cell_cfg.init_bwp.pdsch.interleaving_bundle_size;
+  pdsch_cfg.mcs_table               = cell_cfg.init_bwp.pdsch.mcs_table;
 
   pdsch_cfg.harq_process_num_size_dci_1_1 = pdsch_config::harq_process_num_dci_1_1_size::n4;
   pdsch_cfg.harq_process_num_size_dci_1_2 = pdsch_config::harq_process_num_dci_1_2_size::n4;
@@ -300,7 +298,7 @@ inline std::optional<pdsch_config> make_pdsch_config(const ran_cell_config& cell
       break;
   }
 
-  if (cell_cfg.init_bwp_builder.csi.has_value()) {
+  if (cell_cfg.init_bwp.csi.has_value()) {
     const csi_helper::csi_meas_config_builder_params csi_params = make_csi_meas_config_builder_params(cell_cfg);
     pdsch_cfg.zp_csi_rs_res_list = csi_helper::make_periodic_zp_csi_rs_resource_list(csi_params);
     pdsch_cfg.p_zp_csi_rs_res    = csi_helper::make_periodic_zp_csi_rs_resource_set(csi_params);
@@ -374,15 +372,15 @@ inline serving_cell_config make_ue_serving_cell_config(const ran_cell_config& ce
 {
   serving_cell_config cfg{};
   cfg.cell_index            = cell_index;
-  cfg.init_dl_bwp.pdcch_cfg = cell_cfg.init_bwp_builder.pdcch_cfg;
-  cfg.pdsch_serv_cell_cfg   = make_pdsch_serv_cell_config(cell_cfg.init_bwp_builder.pdsch);
+  cfg.init_dl_bwp.pdcch_cfg = cell_cfg.init_bwp.pdcch_cfg;
+  cfg.pdsch_serv_cell_cfg   = make_pdsch_serv_cell_config(cell_cfg.init_bwp.pdsch);
   if (!cfg.ul_config.has_value()) {
     cfg.ul_config.emplace();
   }
   cfg.ul_config->init_ul_bwp.pucch_cfg = make_pucch_config(cell_cfg);
-  cfg.ul_config->init_ul_bwp.srs_cfg   = make_srs_config(cell_cfg.init_bwp_builder.srs_cfg, cell_cfg.pci);
-  cfg.ul_config->init_ul_bwp.pusch_cfg = make_pusch_config(cell_cfg.init_bwp_builder.pusch);
-  cfg.ul_config->pusch_serv_cell_cfg   = make_pusch_serv_cell_config(cell_cfg.init_bwp_builder.pusch);
+  cfg.ul_config->init_ul_bwp.srs_cfg   = make_srs_config(cell_cfg.init_bwp.srs_cfg, cell_cfg.pci);
+  cfg.ul_config->init_ul_bwp.pusch_cfg = make_pusch_config(cell_cfg.init_bwp.pusch);
+  cfg.ul_config->pusch_serv_cell_cfg   = make_pusch_serv_cell_config(cell_cfg.init_bwp.pusch);
   cfg.csi_meas_cfg                     = make_csi_meas_config(cell_cfg);
   cfg.init_dl_bwp.pdsch_cfg            = make_pdsch_config(cell_cfg);
   cfg.init_dl_bwp.rlm_cfg              = make_rlm_config(cell_cfg);
@@ -418,16 +416,14 @@ inline ue_bwp_config make_ue_bwp_config(const ran_cell_config& cell_cfg)
 
   cfg.ul.pucch.res_set_cfg_id = pucch_resource_set_config_id(0);
   cfg.ul.pucch.sr_res_id      = pucch_sr_resource_id(0);
-  cfg.ul.pucch.sr_offset      = cell_cfg.tdd_ul_dl_cfg_common.has_value()
-                                    ? find_next_tdd_full_ul_slot(*cell_cfg.tdd_ul_dl_cfg_common).value()
-                                    : 0;
+  cfg.ul.pucch.sr_offset = cell_cfg.tdd_cfg.has_value() ? find_next_tdd_full_ul_slot(*cell_cfg.tdd_cfg).value() : 0;
 
   cfg.ul.pusch.tx_cfg = tx_scheme_codebook{.max_rank = 1, .codebook_subset = tx_scheme_codebook_subset::non_coherent};
 
   cfg.ul.srs.nof_ports = srs_config::srs_resource::nof_srs_ports::port1;
 
-  if (cell_cfg.init_bwp_builder.csi.has_value() and not cell_cfg.init_bwp_builder.csi->enable_aperiodic_report) {
-    const unsigned csi_offset = cell_cfg.init_bwp_builder.csi->csi_report_slot_offset.value();
+  if (cell_cfg.init_bwp.csi.has_value() and not cell_cfg.init_bwp.csi->enable_aperiodic_report) {
+    const unsigned csi_offset = cell_cfg.init_bwp.csi->csi_report_slot_offset.value();
     cfg.ul.periodic_csi_report.emplace(
         ue_periodic_csi_config{.pucch_res_id = pucch_csi_resource_id(0), .offset = csi_offset});
   }

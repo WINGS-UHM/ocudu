@@ -40,7 +40,7 @@ static mac_cell_creation_request make_mac_cell_config(du_cell_index_t           
   for (auto& msg : si_messages) {
     mac_cfg.sys_info.si_messages.push_back(msg);
   }
-  mac_cfg.sys_info.sib1_contains_hypersfn = du_cfg.ran.init_bwp_builder.paging.edrx_enabled;
+  mac_cfg.sys_info.sib1_contains_hypersfn = du_cfg.ran.init_bwp.paging.edrx_enabled;
   mac_cfg.sched_req                       = sched_cell_cfg;
 
   return mac_cfg;

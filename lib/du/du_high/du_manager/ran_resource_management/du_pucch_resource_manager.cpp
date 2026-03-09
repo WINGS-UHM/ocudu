@@ -36,7 +36,7 @@ void du_pucch_resource_manager::add_cell(du_cell_index_t cell_idx, const ran_cel
 
   cell_resource_context cell;
 
-  cell.bwp_params     = cell_cfg.init_bwp_builder;
+  cell.bwp_params     = cell_cfg.init_bwp;
   cell.cell_pucch_cfg = make_cell_bwp_config(cell_cfg).ul.pucch;
   // TODO: remove these after we get rid of \c serving_cell_config.
   cell.default_pucch_cfg = config_helpers::make_pucch_config(cell_cfg);
@@ -50,8 +50,8 @@ void du_pucch_resource_manager::add_cell(du_cell_index_t cell_idx, const ran_cel
   cell.sr_period_slots = sr_periodicity_to_slot(cell.default_pucch_cfg.sr_res_list[0].period);
   for (unsigned res = 0; res < cell.bwp_params.pucch.resources.nof_cell_sr_resources; ++res) {
     for (unsigned offset = 0; offset != cell.sr_period_slots; ++offset) {
-      if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
-        const tdd_ul_dl_config_common& tdd_cfg = *cell_cfg.tdd_ul_dl_cfg_common;
+      if (cell_cfg.tdd_cfg.has_value()) {
+        const tdd_ul_dl_config_common& tdd_cfg = *cell_cfg.tdd_cfg;
         const unsigned slot_index = offset % (NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(tdd_cfg.ref_scs));
         if (get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length() !=
             NOF_OFDM_SYM_PER_SLOT_NORMAL_CP) {
@@ -71,8 +71,8 @@ void du_pucch_resource_manager::add_cell(du_cell_index_t cell_idx, const ran_cel
     cell.lcm_csi_sr_period = std::lcm(cell.sr_period_slots, cell.csi_period_slots);
     for (unsigned res = 0; res < cell.bwp_params.pucch.resources.nof_cell_csi_resources; ++res) {
       for (unsigned offset = 0; offset != cell.csi_period_slots; ++offset) {
-        if (cell_cfg.tdd_ul_dl_cfg_common.has_value()) {
-          const tdd_ul_dl_config_common& tdd_cfg = *cell_cfg.tdd_ul_dl_cfg_common;
+        if (cell_cfg.tdd_cfg.has_value()) {
+          const tdd_ul_dl_config_common& tdd_cfg = *cell_cfg.tdd_cfg;
           const unsigned slot_index = offset % (NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(tdd_cfg.ref_scs));
           if (get_active_tdd_ul_symbols(tdd_cfg, slot_index, cyclic_prefix::NORMAL).length() !=
               NOF_OFDM_SYM_PER_SLOT_NORMAL_CP) {

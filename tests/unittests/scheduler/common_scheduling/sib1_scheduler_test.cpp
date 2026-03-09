@@ -28,12 +28,12 @@ public:
                                               aggregation_level             aggr_lvl) override
   {
     TESTASSERT_EQ(fmt::underlying(ss_id),
-                  fmt::underlying(slot_alloc.cfg.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id));
+                  fmt::underlying(slot_alloc.cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id));
     slot_alloc.result.dl.dl_pdcchs.emplace_back();
     slot_alloc.result.dl.dl_pdcchs.back().ctx.rnti    = rnti;
-    slot_alloc.result.dl.dl_pdcchs.back().ctx.bwp_cfg = &slot_alloc.cfg.dl_cfg_common.init_dl_bwp.generic_params;
+    slot_alloc.result.dl.dl_pdcchs.back().ctx.bwp_cfg = &slot_alloc.cfg.params.dl_cfg_common.init_dl_bwp.generic_params;
     slot_alloc.result.dl.dl_pdcchs.back().ctx.coreset_cfg =
-        &*slot_alloc.cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;
+        &*slot_alloc.cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;
     slot_alloc.result.dl.dl_pdcchs.back().ctx.cces = {0, ocudu::aggregation_level::n4};
     return &slot_alloc.result.dl.dl_pdcchs[0];
   }
@@ -106,7 +106,7 @@ struct sib_test_bench {
                                             ssb_period,
                                             carrier_bw_mhz,
                                             duplx_mode)},
-    sl_tx{to_numerology_value(cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
+    sl_tx{to_numerology_value(cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
   {
     test_logger.set_level(ocudulog::basic_levels::info);
     test_logger.set_context(0, 0);
@@ -120,7 +120,7 @@ struct sib_test_bench {
                  sib1_rtx_periodicity                            sib1_rtx_period = sib1_rtx_periodicity::ms160) :
     sched_cfg(make_scheduler_expert_cfg({10, aggregation_level::n4, 10, aggregation_level::n4, sib1_rtx_period})),
     cfg_msg{msg},
-    sl_tx{to_numerology_value(cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
+    sl_tx{to_numerology_value(cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
   {
     test_logger.set_context(0, 0);
     sched_logger.set_context(0, 0);
@@ -198,9 +198,9 @@ struct sib_test_bench {
 
     if (duplx_mode == ocudu::duplex_mode::TDD) {
       // Change TDD pattern so that PDCCH slots falls in DL slot when using 5Mhz carrier BW.
-      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.dl_ul_tx_period_nof_slots = 20;
-      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots              = 12;
-      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots              = 7;
+      msg.ran.tdd_cfg.value().pattern1.dl_ul_tx_period_nof_slots = 20;
+      msg.ran.tdd_cfg.value().pattern1.nof_dl_slots              = 12;
+      msg.ran.tdd_cfg.value().pattern1.nof_ul_slots              = 7;
     }
 
     return msg;
@@ -238,9 +238,9 @@ struct sib_test_bench {
 
     if (band_helper::get_duplex_mode(band_helper::get_band_from_dl_arfcn(freq_arfcn)) == ocudu::duplex_mode::TDD) {
       // Change TDD pattern so that PDCCH slots falls in DL slot when using 5Mhz carrier BW.
-      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.dl_ul_tx_period_nof_slots = 20;
-      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots              = 12;
-      msg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots              = 7;
+      msg.ran.tdd_cfg.value().pattern1.dl_ul_tx_period_nof_slots = 20;
+      msg.ran.tdd_cfg.value().pattern1.nof_dl_slots              = 12;
+      msg.ran.tdd_cfg.value().pattern1.nof_ul_slots              = 7;
     }
 
     return msg;
@@ -278,10 +278,11 @@ struct sib_test_bench {
   {
     // Tests if PRBs have been allocated.
     if (got_allocated) {
-      TESTASSERT(res_grid[0].dl_res_grid.used_crbs(cfg.dl_cfg_common.init_dl_bwp.generic_params, {0, 14}).any());
+      TESTASSERT(res_grid[0].dl_res_grid.used_crbs(cfg.params.dl_cfg_common.init_dl_bwp.generic_params, {0, 14}).any());
     } else {
       // Tests if PRBs are still unused.
-      TESTASSERT(res_grid[0].dl_res_grid.used_crbs(cfg.dl_cfg_common.init_dl_bwp.generic_params, {0, 14}).none());
+      TESTASSERT(
+          res_grid[0].dl_res_grid.used_crbs(cfg.params.dl_cfg_common.init_dl_bwp.generic_params, {0, 14}).none());
     }
   }
 };
@@ -323,7 +324,8 @@ void test_sib1_scheduler(subcarrier_spacing                         scs_common,
     // Verify if for any active beam, the SIB1 got allocated within the proper n0 slots.
     for (size_t ssb_idx = 0; ssb_idx != l_max; ++ssb_idx) {
       // Only check for the active slots.
-      if (t_bench.cfg.ssb_cfg.ssb_bitmap.test(ssb_idx) && (sl_idx % sib1_period_slots == sib1_pdcch_slots[ssb_idx])) {
+      if (t_bench.cfg.params.ssb_cfg.ssb_bitmap.test(ssb_idx) &&
+          (sl_idx % sib1_period_slots == sib1_pdcch_slots[ssb_idx])) {
         // Verify that the scheduler results list contain 1 element with the SIB1 information.
         ASSERT_EQ(1, res_slot_grid.result.dl.bc.sibs.size()) << fmt::format("Slot {}", t_bench.res_grid[0].slot);
         // Verify the PDCCH grants and DCI have been filled correctly.
@@ -690,7 +692,7 @@ protected:
                                                               GetParam().ssb_period,
                                                               GetParam().carrier_bw_mhz,
                                                               ocudu::duplex_mode::TDD);
-          msg.ran.tdd_ul_dl_cfg_common = GetParam().tdd_config;
+          msg.ran.tdd_cfg = GetParam().tdd_config;
           // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
           msg.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
               time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(

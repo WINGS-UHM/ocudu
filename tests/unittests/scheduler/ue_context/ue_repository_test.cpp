@@ -106,7 +106,7 @@ TEST_F(sched_ue_test, when_dl_nof_prb_allocated_increases_estimated_dl_rate_incr
 
   for (unsigned nof_prbs = 0; nof_prbs < MAX_NOF_PRBS; ++nof_prbs) {
     for (const auto& pdsch_td_cfg :
-         ue_cc.cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
+         ue_cc.cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
       const pdsch_config_params pdsch_cfg      = get_pdsch_cfg_params(ue_cc, pdsch_td_cfg, dci_type);
       const double              estimated_rate = ue_cc.get_estimated_dl_rate(pdsch_cfg, ue_mcs, nof_prbs);
       ASSERT_GE(estimated_rate, current_rate);
@@ -131,7 +131,7 @@ TEST_F(sched_ue_test, when_mcs_increases_estimated_dl_rate_increases)
 
   for (sch_mcs_index ue_mcs = 1; ue_mcs < max_mcs; ++ue_mcs) {
     for (const auto& pdsch_td_cfg :
-         ue_cc.cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
+         ue_cc.cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
       const pdsch_config_params pdsch_cfg      = get_pdsch_cfg_params(ue_cc, pdsch_td_cfg, dci_type);
       const double              estimated_rate = ue_cc.get_estimated_dl_rate(pdsch_cfg, ue_mcs, nof_prbs);
       // NOTE: In case of 64QAM MCS table MCS 17 has lower spectral density than MCS 16 but the estimated bitrate will
@@ -154,7 +154,7 @@ TEST_F(sched_ue_test, when_ul_nof_prb_allocated_increases_estimated_ul_rate_incr
 
   for (unsigned nof_prbs = 0; nof_prbs < MAX_NOF_PRBS; ++nof_prbs) {
     for (const auto& pusch_td_cfg :
-         ue_cc.cfg().cell_cfg_common.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
+         ue_cc.cfg().cell_cfg_common.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
       const pusch_config_params pusch_cfg      = get_pusch_cfg_params(ue_cc, pusch_td_cfg, dci_type);
       const double              estimated_rate = ue_cc.get_estimated_ul_rate(pusch_cfg, ue_mcs, nof_prbs);
       ASSERT_GE(estimated_rate, current_rate);
@@ -179,7 +179,7 @@ TEST_F(sched_ue_test, when_mcs_increases_estimated_ul_rate_increases)
 
   for (sch_mcs_index ue_mcs = 1; ue_mcs < max_mcs; ++ue_mcs) {
     for (const auto& pusch_td_cfg :
-         ue_cc.cfg().cell_cfg_common.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
+         ue_cc.cfg().cell_cfg_common.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
       const pusch_config_params pusch_cfg      = get_pusch_cfg_params(ue_cc, pusch_td_cfg, dci_type);
       const double              estimated_rate = ue_cc.get_estimated_ul_rate(pusch_cfg, ue_mcs, nof_prbs);
       // NOTE: In case of 64QAM MCS table MCS 17 has lower spectral density than MCS 16 but the estimated bitrate will

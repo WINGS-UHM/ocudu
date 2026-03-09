@@ -134,7 +134,7 @@ pucch_allocator_impl::pucch_allocator_impl(const cell_configuration& cell_cfg_,
   cell_cfg(cell_cfg_),
   max_pucch_grants_per_slot(max_pucchs_per_slot),
   max_ul_grants_per_slot(max_ul_grants_per_slot_),
-  max_pucch_payload_234(cell_cfg.init_bwp_builder.pucch.resources.max_payload_234()),
+  max_pucch_payload_234(cell_cfg.params.init_bwp.pucch.resources.max_payload_234()),
   resource_manager(cell_cfg_),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
@@ -561,11 +561,11 @@ pucch_allocator_impl::alloc_pucch_common_res_harq(cell_slot_resource_allocator& 
                                                   const dci_context_information& dci_info)
 {
   // Get the parameter N_bwp_size, which is the Initial UL BWP size in PRBs, as per TS 38.213, Section 9.2.1.
-  const unsigned size_ul_bwp = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+  const unsigned size_ul_bwp = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
 
   // Get PUCCH common resource config from Table 9.2.1-1, TS 38.213.
   pucch_default_resource pucch_res = get_pucch_default_resource(
-      cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common, size_ul_bwp);
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common, size_ul_bwp);
 
   // Get N_CCE (nof_coreset_cces) and n_{CCE,0} (start_cce_idx), as per TS 38.213, Section 9.2.1.
   const unsigned nof_coreset_cces = dci_info.coreset_cfg->get_nof_cces();
@@ -578,7 +578,7 @@ pucch_allocator_impl::alloc_pucch_common_res_harq(cell_slot_resource_allocator& 
   const ofdm_symbol_range second_hop_symbols{pucch_res.first_symbol_index + pucch_res.nof_symbols / 2,
                                              pucch_res.first_symbol_index + pucch_res.nof_symbols};
 
-  const bwp_configuration& init_ul_bwp_param = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+  const bwp_configuration& init_ul_bwp_param = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
 
   // As per Section 9.2.1, TS 38.213, this is the max value of \f$\Delta_{PRI}\f$, which is a 3-bit unsigned.
   static constexpr unsigned max_d_pri = 7;
@@ -656,15 +656,15 @@ void pucch_allocator_impl::compute_pucch_common_params_and_alloc(cell_slot_resou
                                                                  pucch_common_params           pucch_params)
 {
   // Get the parameter N_bwp_size, which is the Initial UL BWP size in PRBs, as per TS 38.213, Section 9.2.1.
-  const unsigned size_ul_bwp = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+  const unsigned size_ul_bwp = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
 
   // Get PUCCH common resource config from Table 9.2.1-1, TS 38.213.
   pucch_default_resource pucch_res = get_pucch_default_resource(
-      cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common, size_ul_bwp);
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common, size_ul_bwp);
 
   // Compute the PUCCH resource common configuration parameters.
-  const auto grant_infos =
-      get_common_pucch_grants(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params, pucch_res, pucch_params.r_pucch);
+  const auto grant_infos = get_common_pucch_grants(
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params, pucch_res, pucch_params.r_pucch);
 
   // Compute CS index as per Section 9.2.1, TS 38.213.
   const uint8_t cyclic_shift =
@@ -1666,7 +1666,7 @@ void pucch_allocator_impl::fill_common_pdu(pucch_info&                pucch_pdu,
 {
   pucch_pdu.crnti = rnti;
   pucch_pdu.set_format(pucch_res.format);
-  pucch_pdu.bwp_cfg                   = &cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+  pucch_pdu.bwp_cfg                   = &cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
   pucch_pdu.resources.prbs            = crb_to_prb(*pucch_pdu.bwp_cfg, pucch_res.first_hop_res.crbs);
   pucch_pdu.resources.second_hop_prbs = crb_to_prb(*pucch_pdu.bwp_cfg, pucch_res.second_hop_res.crbs);
   pucch_pdu.resources.symbols =
@@ -1676,10 +1676,10 @@ void pucch_allocator_impl::fill_common_pdu(pucch_info&                pucch_pdu,
   switch (pucch_res.format) {
     case pucch_format::FORMAT_0: {
       auto& format_0         = std::get<pucch_format_0>(pucch_pdu.format_params);
-      format_0.group_hopping = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
-      format_0.n_id_hopping  = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
-                                   ? cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
-                                   : static_cast<unsigned>(cell_cfg.pci);
+      format_0.group_hopping = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
+      format_0.n_id_hopping  = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
+                                   ? cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
+                                   : static_cast<unsigned>(cell_cfg.params.pci);
       // \c initialCyclicShift, as per TS 38.331, or Section 9.2.1, TS 38.211.
       format_0.initial_cyclic_shift = pucch_res.cs;
       // SR cannot be reported using common PUCCH resources.
@@ -1691,10 +1691,10 @@ void pucch_allocator_impl::fill_common_pdu(pucch_info&                pucch_pdu,
     }
     case pucch_format::FORMAT_1: {
       auto& format_1                = std::get<pucch_format_1>(pucch_pdu.format_params);
-      format_1.group_hopping        = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
-      format_1.n_id_hopping         = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
-                                          ? cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
-                                          : static_cast<unsigned>(cell_cfg.pci);
+      format_1.group_hopping        = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
+      format_1.n_id_hopping         = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
+                                          ? cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
+                                          : static_cast<unsigned>(cell_cfg.params.pci);
       format_1.initial_cyclic_shift = pucch_res.cs;
       // SR cannot be reported using common PUCCH resources.
       pucch_pdu.uci_bits.sr_bits = sr_nof_bits::no_sr;
@@ -1719,11 +1719,11 @@ void pucch_allocator_impl::fill_ded_pdu(pucch_info&                  pucch_pdu,
                                         rnti_t                       rnti,
                                         bool                         adjust_prbs) const
 {
-  pucch_pdu.bwp_cfg = &cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+  pucch_pdu.bwp_cfg = &cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
 
   pucch_pdu.crnti = rnti;
   pucch_pdu.set_format(pucch_res.format);
-  pucch_pdu.bwp_cfg = &cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+  pucch_pdu.bwp_cfg = &cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
 
   unsigned nof_prbs = 1;
   if (const auto* format_2_3_cfg = std::get_if<pucch_format_2_3_cfg>(&pucch_res.format_params)) {
@@ -1774,10 +1774,10 @@ void pucch_allocator_impl::fill_ded_pdu(pucch_info&                  pucch_pdu,
       auto&       format_0 = pucch_pdu.format_params.emplace<pucch_format_0>();
 
       // \c pucch-GroupHopping and \c hoppingId are set as per TS 38.211, Section 6.3.2.2.1.
-      format_0.group_hopping        = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
-      format_0.n_id_hopping         = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
-                                          ? cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
-                                          : cell_cfg.pci;
+      format_0.group_hopping        = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
+      format_0.n_id_hopping         = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
+                                          ? cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
+                                          : cell_cfg.params.pci;
       format_0.initial_cyclic_shift = res_f0.initial_cyclic_shift;
     } break;
     case pucch_format::FORMAT_1: {
@@ -1785,10 +1785,10 @@ void pucch_allocator_impl::fill_ded_pdu(pucch_info&                  pucch_pdu,
       auto&       format_1 = pucch_pdu.format_params.emplace<pucch_format_1>();
 
       // \c pucch-GroupHopping and \c hoppingId are set as per TS 38.211, Section 6.3.2.2.1.
-      format_1.group_hopping        = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
-      format_1.n_id_hopping         = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
-                                          ? cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
-                                          : cell_cfg.pci;
+      format_1.group_hopping        = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
+      format_1.n_id_hopping         = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
+                                          ? cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
+                                          : cell_cfg.params.pci;
       format_1.initial_cyclic_shift = res_f1.initial_cyclic_shift;
       format_1.time_domain_occ      = res_f1.time_domain_occ;
       // For PUCCH Format 1, only 1 SR bit.
@@ -1802,26 +1802,26 @@ void pucch_allocator_impl::fill_ded_pdu(pucch_info&                  pucch_pdu,
       const auto& init_ul_bwp  = ue_cell_cfg.init_bwp().ul_ded.value();
       format_2.n_id_scrambling = init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.has_value()
                                      ? init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.value()
-                                     : cell_cfg.pci;
+                                     : cell_cfg.params.pci;
       // \f$N_{ID}^0\f$ as per TS 38.211, Section 6.4.1.3.2.1.
-      format_2.n_id_0_scrambling = get_n_id0_scrambling(ue_cell_cfg, cell_cfg.pci);
+      format_2.n_id_0_scrambling = get_n_id0_scrambling(ue_cell_cfg, cell_cfg.params.pci);
       format_2.max_code_rate     = init_ul_bwp.pucch_cfg.value().format_2_common_param.value().max_c_rate;
     } break;
     case pucch_format::FORMAT_3: {
       auto& format_3 = pucch_pdu.format_params.emplace<pucch_format_3>();
 
-      format_3.group_hopping = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
-      format_3.n_id_hopping  = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
-                                   ? cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
-                                   : cell_cfg.pci;
+      format_3.group_hopping = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
+      format_3.n_id_hopping  = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
+                                   ? cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
+                                   : cell_cfg.params.pci;
       // [Implementation-defined] We do not implement PUCCH over several slots.
       format_3.slot_repetition = pucch_repetition_tx_slot::no_multi_slot;
       // \f$n_{ID}\f$ as per Section 6.3.2.5.1 and 6.3.2.6.1, TS 38.211.
       const auto& init_ul_bwp    = ue_cell_cfg.init_bwp().ul_ded.value();
       format_3.n_id_scrambling   = init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.has_value()
                                        ? init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.value()
-                                       : cell_cfg.pci;
-      format_3.n_id_0_scrambling = get_n_id0_scrambling(ue_cell_cfg, cell_cfg.pci);
+                                       : cell_cfg.params.pci;
+      format_3.n_id_0_scrambling = get_n_id0_scrambling(ue_cell_cfg, cell_cfg.params.pci);
       format_3.pi_2_bpsk         = init_ul_bwp.pucch_cfg.value().format_3_common_param.value().pi_2_bpsk;
       format_3.additional_dmrs   = init_ul_bwp.pucch_cfg.value().format_3_common_param.value().additional_dmrs;
       // \f$N_{ID}^0\f$ as per TS 38.211, Section 6.4.1.3.2.1.
@@ -1832,17 +1832,17 @@ void pucch_allocator_impl::fill_ded_pdu(pucch_info&                  pucch_pdu,
       const auto& res_f4      = std::get<pucch_format_4_cfg>(pucch_res.format_params);
       auto&       format_4    = pucch_pdu.format_params.emplace<pucch_format_4>();
 
-      format_4.group_hopping = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
-      format_4.n_id_hopping  = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
-                                   ? cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
-                                   : cell_cfg.pci;
+      format_4.group_hopping = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->group_hopping;
+      format_4.n_id_hopping  = cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.has_value()
+                                   ? cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->hopping_id.value()
+                                   : cell_cfg.params.pci;
       // [Implementation-defined] We do not implement PUCCH over several slots.
       format_4.slot_repetition = pucch_repetition_tx_slot::no_multi_slot;
       // \f$n_{ID}\f$ as per Section 6.3.2.5.1 and 6.3.2.6.1, TS 38.211.
       format_4.n_id_scrambling   = init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.has_value()
                                        ? init_ul_bwp.pusch_cfg.value().data_scrambling_id_pusch.value()
-                                       : cell_cfg.pci;
-      format_4.n_id_0_scrambling = get_n_id0_scrambling(ue_cell_cfg, cell_cfg.pci);
+                                       : cell_cfg.params.pci;
+      format_4.n_id_0_scrambling = get_n_id0_scrambling(ue_cell_cfg, cell_cfg.params.pci);
       format_4.pi_2_bpsk         = init_ul_bwp.pucch_cfg.value().format_4_common_param.value().pi_2_bpsk;
       format_4.additional_dmrs   = init_ul_bwp.pucch_cfg.value().format_4_common_param.value().additional_dmrs;
       // \f$N_{ID}^0\f$ as per TS 38.211, Section 6.4.1.3.2.1.

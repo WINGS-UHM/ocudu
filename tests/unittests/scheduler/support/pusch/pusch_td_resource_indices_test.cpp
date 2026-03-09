@@ -3,10 +3,10 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "include/ocudu/scheduler/config/pusch_td_resource_indices.h"
+#include "lib/scheduler/config/cell_configuration.h"
 #include "lib/scheduler/support/pusch/pusch_default_time_allocation.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config_formatters.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
 #include "ocudu/support/format/custom_formattable.h"
@@ -43,20 +43,21 @@ protected:
     cell_cfg = std::make_unique<cell_configuration>(expert_cfg, sched_cell_cfg_req);
 
     // Generate the list to verify.
-    ocudu_assert(cell_cfg->ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(), "PUSCH Config Common expected");
-    pusch_td_res_indxes_list_per_slot =
-        get_fairly_distributed_pusch_td_resource_indices(cell_cfg->scs_common,
-                                                         cell_cfg->tdd_cfg_common,
-                                                         cell_cfg->ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
-                                                         cell_cfg->dl_data_to_ul_ack);
+    ocudu_assert(cell_cfg->params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(),
+                 "PUSCH Config Common expected");
+    pusch_td_res_indxes_list_per_slot = get_fairly_distributed_pusch_td_resource_indices(
+        cell_cfg->scs_common(),
+        cell_cfg->params.tdd_cfg,
+        cell_cfg->params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+        cell_cfg->dl_data_to_ul_ack);
 
     // Populate slot indexes.
     if (cell_cfg->is_tdd()) {
-      for (unsigned slot_idx = 0, e = nof_slots_per_tdd_period(*cell_cfg->tdd_cfg_common); slot_idx != e; ++slot_idx) {
-        if (has_active_tdd_dl_symbols(*cell_cfg->tdd_cfg_common, slot_idx)) {
+      for (unsigned slot_idx = 0, e = nof_slots_per_tdd_period(*cell_cfg->params.tdd_cfg); slot_idx != e; ++slot_idx) {
+        if (has_active_tdd_dl_symbols(*cell_cfg->params.tdd_cfg, slot_idx)) {
           dl_slot_indexes.push_back(slot_idx);
         }
-        if (is_tdd_full_ul_slot(*cell_cfg->tdd_cfg_common, slot_idx)) {
+        if (is_tdd_full_ul_slot(*cell_cfg->params.tdd_cfg, slot_idx)) {
           ul_slot_indexes.push_back(slot_idx);
         }
       }
@@ -85,10 +86,9 @@ TEST_P(pusch_td_resource_indices_test, all_ul_slots_have_one_pdcch_slot_to_sched
 {
   // Fetch the relevant PUSCH time domain resource list.
   span<const pusch_time_domain_resource_allocation> pusch_time_domain_list =
-      get_c_rnti_pusch_time_domain_list(true, to_coreset_id(0), cell_cfg->ul_cfg_common.init_ul_bwp, nullptr);
+      get_c_rnti_pusch_time_domain_list(true, to_coreset_id(0), cell_cfg->params.ul_cfg_common.init_ul_bwp, nullptr);
 
-  unsigned slot_mod = cell_cfg->tdd_cfg_common.has_value() ? nof_slots_per_tdd_period(cell_cfg->tdd_cfg_common.value())
-                                                           : SCHEDULER_MAX_K2;
+  unsigned slot_mod = cell_cfg->is_tdd() ? nof_slots_per_tdd_period(*cell_cfg->params.tdd_cfg) : SCHEDULER_MAX_K2;
 
   auto ul_slot_idx_it = ul_slot_indexes.begin();
   while (ul_slot_idx_it != ul_slot_indexes.end()) {

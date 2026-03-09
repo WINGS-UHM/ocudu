@@ -36,9 +36,9 @@ ue_fallback_scheduler::ue_fallback_scheduler(const scheduler_ue_expert_config& e
   pucch_alloc(pucch_alloc_),
   uci_alloc(uci_alloc_),
   ues(ues_),
-  initial_active_dl_bwp(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params),
-  ss_cfg(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common
-             .search_spaces[cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id]),
+  initial_active_dl_bwp(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params),
+  ss_cfg(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common
+             .search_spaces[cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id]),
   cs_cfg(cell_cfg.get_common_coreset(ss_cfg.get_coreset_id())),
   pucch_crbs(ocudu::compute_pucch_crbs(cell_cfg)),
   logger(ocudulog::fetch_basic_logger("SCHED"))
@@ -54,7 +54,7 @@ ue_fallback_scheduler::ue_fallback_scheduler(const scheduler_ue_expert_config& e
   // implementations that we work with do not handle well the value k1=8. Instead, in the particular context of RRC
   // Reestablishment, they PRACH instead of sending the PUCCH.
   static constexpr unsigned max_k1 = 7U;
-  const unsigned            min_k1 = cell_cfg.init_bwp_builder.pucch.min_k1;
+  const unsigned            min_k1 = cell_cfg.params.init_bwp.pucch.min_k1;
   ocudu_sanity_check(min_k1 <= max_k1, "Invalid min_k1 value");
   for (unsigned k1_value = min_k1; k1_value <= max_k1; ++k1_value) {
     dci_1_0_k1_values.push_back(k1_value);
@@ -62,7 +62,7 @@ ue_fallback_scheduler::ue_fallback_scheduler(const scheduler_ue_expert_config& e
   slots_with_no_pdxch_space.fill(false);
 
   // NOTE: verify PUSCH Config Common has been configured.
-  ocudu_sanity_check(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(),
+  ocudu_sanity_check(cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(),
                      "The Fallback scheduler requires the PUSCH Config Common");
 }
 
@@ -329,7 +329,7 @@ ue_fallback_scheduler::schedule_dl_srb(cell_resource_allocator&              res
                                        ue&                                   u,
                                        std::optional<dl_harq_process_handle> h_dl_retx)
 {
-  const auto& bwp_cfg_common = cell_cfg.dl_cfg_common.init_dl_bwp;
+  const auto& bwp_cfg_common = cell_cfg.params.dl_cfg_common.init_dl_bwp;
   // Search valid PDSCH time domain resource.
 
   const bool is_retx = h_dl_retx.has_value();
@@ -526,8 +526,8 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
                                    slot_point                            most_recent_ack_slot,
                                    std::optional<dl_harq_process_handle> h_dl_retx)
 {
-  ue_cell&                                     ue_pcell     = u.get_pcell();
-  const subcarrier_spacing                     scs          = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  ue_cell&                                     ue_pcell = u.get_pcell();
+  const subcarrier_spacing                     scs      = cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs;
   const pdsch_time_domain_resource_allocation& pdsch_td_cfg = get_pdsch_td_cfg(pdsch_time_res);
   const bool                                   is_retx      = h_dl_retx.has_value();
 
@@ -548,7 +548,8 @@ ue_fallback_scheduler::alloc_grant(ue&                                   u,
   // for the cell, as per TS 38.213, Section 7.3.1.0, we should consider the size of CORESET#0 as the size for the
   // BWP.
   cell_slot_resource_allocator& pdsch_alloc = res_alloc[slot_offset + pdsch_td_cfg.k0];
-  auto cset0_crbs_lim = pdsch_helper::get_ra_crb_limits_common(cell_cfg.dl_cfg_common.init_dl_bwp, ss_cfg.get_id());
+  auto                          cset0_crbs_lim =
+      pdsch_helper::get_ra_crb_limits_common(cell_cfg.params.dl_cfg_common.init_dl_bwp, ss_cfg.get_id());
   crb_bitmap used_crbs =
       pdsch_alloc.dl_res_grid.used_crbs(initial_active_dl_bwp.scs, cset0_crbs_lim, pdsch_cfg.symbols);
 
@@ -763,9 +764,10 @@ ue_fallback_scheduler::select_tbs(const pdsch_config_params&          pdsch_cfg,
     // the UE assumes the default value of 3300 (i.e. "Outside the carrier")".
     crb_interval grant_crbs{unused_crbs.start(), unused_crbs.start() + prbs_tbs.nof_prbs};
     bool         contains_dc = false;
-    if (cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list.back().tx_direct_current_location.has_value()) {
+    if (cell_cfg.params.dl_cfg_common.freq_info_dl.scs_carrier_list.back().tx_direct_current_location.has_value()) {
       contains_dc = dc_offset_helper::is_contained(
-          cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list.back().tx_direct_current_location.value(), grant_crbs);
+          cell_cfg.params.dl_cfg_common.freq_info_dl.scs_carrier_list.back().tx_direct_current_location.value(),
+          grant_crbs);
     }
     std::optional<sch_mcs_tbs> mcs_tbs = compute_dl_mcs_tbs(pdsch_cfg, chosen_mcs_idx, prbs_tbs.nof_prbs, contains_dc);
     if (mcs_tbs.has_value()) {
@@ -838,7 +840,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
   vrb_interval vrbs;
   switch (dci_type) {
     case dci_dl_rnti_config_type::tc_rnti_f1_0: {
-      const crb_interval cs0_crbs = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs();
+      const crb_interval cs0_crbs = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs();
       vrbs                        = crb_to_vrb_f1_0_common_ss_non_interleaved(ue_grant_crbs, cs0_crbs.start());
     } break;
     case dci_dl_rnti_config_type::c_rnti_f1_0: {
@@ -858,7 +860,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
   switch (dci_type) {
     case dci_dl_rnti_config_type::tc_rnti_f1_0: {
       build_dci_f1_0_tc_rnti(pdcch.dci,
-                             cell_cfg.dl_cfg_common.init_dl_bwp,
+                             cell_cfg.params.dl_cfg_common.init_dl_bwp,
                              vrbs,
                              pdsch_time_res,
                              uci.k1,
@@ -869,10 +871,10 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
       break;
     }
     case dci_dl_rnti_config_type::c_rnti_f1_0: {
-      const unsigned DAI_MOD = 4U;
+      static constexpr unsigned DAI_MOD = 4U;
       build_dci_f1_0_c_rnti(pdcch.dci,
                             u.get_pcell().cfg().search_space(pdcch.ctx.context.ss_id),
-                            cell_cfg.dl_cfg_common.init_dl_bwp,
+                            cell_cfg.params.dl_cfg_common.init_dl_bwp,
                             vrbs,
                             pdsch_time_res,
                             uci.k1,
@@ -956,8 +958,8 @@ ue_fallback_scheduler::ul_srb_sched_outcome ue_fallback_scheduler::schedule_ul_u
   // NOTE: We run cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value() sanity check in the constructor.
   static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS> pusch_td_res_index_list =
       get_pusch_td_resource_indices(pdcch_slot,
-                                    cell_cfg.tdd_cfg_common,
-                                    cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+                                    cell_cfg.params.tdd_cfg,
+                                    cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
                                     cell_cfg.dl_data_to_ul_ack);
 
   if (is_retx) {
@@ -1079,10 +1081,10 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
   cell_slot_resource_allocator& pdcch_alloc = res_alloc[0];
   cell_slot_resource_allocator& pusch_alloc = res_alloc[pusch_td.k2 + cell_cfg.ntn_cs_koffset];
 
-  const crb_interval init_ul_bwp_crbs = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs;
+  const crb_interval init_ul_bwp_crbs = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs;
 
   crb_bitmap used_crbs = pusch_alloc.ul_res_grid.used_crbs(
-      cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs, init_ul_bwp_crbs, pusch_td.symbols);
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, init_ul_bwp_crbs, pusch_td.symbols);
   // Mark the CRBs used by PUCCH as occupied.
   used_crbs |= pucch_crbs;
 
@@ -1104,8 +1106,12 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
   // In fallback, we do not multiplex any HARQ-ACK or CSI within the PUSCH.
   const unsigned      uci_bits_overallocation = 0U;
   const bool          is_csi_report_slot      = false;
-  pusch_config_params pusch_cfg               = get_pusch_config_f0_0_c_rnti(
-      cell_cfg, nullptr, cell_cfg.ul_cfg_common.init_ul_bwp, pusch_td, uci_bits_overallocation, is_csi_report_slot);
+  pusch_config_params pusch_cfg               = get_pusch_config_f0_0_c_rnti(cell_cfg,
+                                                               nullptr,
+                                                               cell_cfg.params.ul_cfg_common.init_ul_bwp,
+                                                               pusch_td,
+                                                               uci_bits_overallocation,
+                                                               is_csi_report_slot);
 
   crb_interval ue_grant_crbs;
   sch_mcs_tbs  final_mcs_tbs;
@@ -1220,7 +1226,7 @@ ue_fallback_scheduler::schedule_ul_srb(ue&                                      
 
   // Mark resources as occupied in the ResourceGrid.
   pusch_alloc.ul_res_grid.fill(
-      grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs, pusch_td.symbols, ue_grant_crbs});
+      grant_info{cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, pusch_td.symbols, ue_grant_crbs});
 
   // Update the number of PRBs used in the PUSCH allocation.
   u.get_pcell().get_pusch_power_controller().update_pusch_pw_ctrl_state(pusch_alloc.slot, ue_grant_crbs.length());
@@ -1275,7 +1281,7 @@ void ue_fallback_scheduler::fill_ul_srb_grant(ue&                               
       u.get_pcell().cfg().search_space(pdcch.ctx.context.ss_id).bwp->ul_common->value().generic_params.crbs.start());
   build_dci_f0_0_c_rnti(pdcch.dci,
                         u.get_pcell().cfg().search_space(pdcch.ctx.context.ss_id),
-                        cell_cfg.ul_cfg_common.init_ul_bwp,
+                        cell_cfg.params.ul_cfg_common.init_ul_bwp,
                         vrbs,
                         pusch_time_res,
                         mcs_idx,
@@ -1296,7 +1302,7 @@ void ue_fallback_scheduler::fill_ul_srb_grant(ue&                               
                           pusch_params,
                           tbs_bytes,
                           cell_cfg,
-                          cell_cfg.ul_cfg_common.init_ul_bwp,
+                          cell_cfg.params.ul_cfg_common.init_ul_bwp,
                           pdcch.dci.c_rnti_f0_0,
                           vrbs,
                           not is_retx);
@@ -1310,7 +1316,7 @@ void ue_fallback_scheduler::fill_ul_srb_grant(ue&                               
 
 const pdsch_time_domain_resource_allocation& ue_fallback_scheduler::get_pdsch_td_cfg(unsigned pdsch_time_res_idx) const
 {
-  return cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[pdsch_time_res_idx];
+  return cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[pdsch_time_res_idx];
 }
 
 std::optional<unsigned>

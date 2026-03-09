@@ -123,17 +123,17 @@ void ue_repository::add_ue(const ue_configuration&   ue_cfg,
   const du_ue_index_t      ue_index  = ue_cfg.ue_index;
   const rnti_t             rnti      = ue_cfg.crnti;
   const auto&              pcell_cmn = ue_cfg.pcell_common_cfg();
-  const subcarrier_spacing scs       = pcell_cmn.dl_cfg_common.init_dl_bwp.generic_params.scs;
+  const subcarrier_spacing scs       = pcell_cmn.params.dl_cfg_common.init_dl_bwp.generic_params.scs;
   auto ue_lc_mng = lc_ch_sys.create_ue(ue_index, scs, starts_in_fallback, ue_cfg.logical_channels());
   ue_drx_controllers.emplace(ue_index,
-                             pcell_cmn.ul_cfg_common.init_ul_bwp.generic_params.scs,
-                             pcell_cmn.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer,
+                             pcell_cmn.params.ul_cfg_common.init_ul_bwp.generic_params.scs,
+                             pcell_cmn.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer,
                              ue_cfg.drx_cfg(),
                              ue_lc_mng.view(),
                              ul_ccch_slot_rx,
                              logger);
   auto ue_ta_mgr = ta_mgr_sys.add_ue(
-      ue_cfg.pcell_cfg().tag_id(), pcell_cmn.ul_cfg_common.init_ul_bwp.generic_params.scs, ue_lc_mng.view());
+      ue_cfg.pcell_cfg().tag_id(), pcell_cmn.params.ul_cfg_common.init_ul_bwp.generic_params.scs, ue_lc_mng.view());
 
   // Setup UE cells.
   ue_cell_lookups.emplace(ue_index);

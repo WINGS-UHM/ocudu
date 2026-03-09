@@ -39,8 +39,8 @@ ue_cell_repository::ue_cell_repository(const cell_configuration& cell_cfg, cell_
              cell_cfg.ntn_cs_koffset > 0 ? MAX_NOF_HARQS : MAX_NOF_HARQS_NON_NTN,
              cell_metrics != nullptr ? std::make_unique<harq_manager_timeout_notifier>(*cell_metrics) : nullptr,
              cell_metrics != nullptr ? std::make_unique<harq_manager_timeout_notifier>(*cell_metrics) : nullptr,
-             cell_cfg.expert_cfg.ue.dl_harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common),
-             cell_cfg.expert_cfg.ue.ul_harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common),
+             cell_cfg.expert_cfg.ue.dl_harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common()),
+             cell_cfg.expert_cfg.ue.ul_harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common()),
              cell_harq_manager::DEFAULT_ACK_TIMEOUT_SLOTS,
              cell_cfg.ntn_cs_koffset,
              cell_cfg.ul_harq_mode_b)
@@ -65,7 +65,7 @@ ue_cell& ue_cell_repository::add_ue(const ue_configuration&   ue_cfg,
                                     std::optional<slot_point> msg3_slot_rx)
 {
   ocudu_assert(not ues.contains(ue_cfg.ue_index), "UE with duplicate index being added to the cell UE repository");
-  auto& ue_cell_cfg = ue_cfg.ue_cell_cfg(serv_cell_index);
+  const auto& ue_cell_cfg = ue_cfg.ue_cell_cfg(serv_cell_index);
 
   // Create UE cell components.
   channel_states.emplace(ue_cfg.ue_index, ue_cell_cfg.cell_cfg_common.expert_cfg.ue, ue_cell_cfg.get_nof_dl_ports());

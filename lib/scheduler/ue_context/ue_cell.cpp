@@ -4,11 +4,9 @@
 
 #include "ue_cell.h"
 #include "../support/dmrs_helpers.h"
-#include "../support/mcs_calculator.h"
 #include "../support/pdcch_aggregation_level_calculator.h"
 #include "../support/sch_pdu_builder.h"
 #include "ue_drx_controller.h"
-#include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/sch/tbs_calculator.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
 
@@ -244,7 +242,7 @@ ue_cell::get_active_dl_search_spaces(slot_point                             pdcc
   if (required_dci_rnti_type == dci_dl_rnti_config_type::tc_rnti_f1_0) {
     // In case of TC-RNTI, use Type-1 PDCCH CSS for a UE.
     active_search_spaces.push_back(
-        &cfg().search_space(cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id));
+        &cfg().search_space(cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id));
     return active_search_spaces;
   }
 
@@ -254,7 +252,7 @@ ue_cell::get_active_dl_search_spaces(slot_point                             pdcc
                      required_dci_rnti_type == dci_dl_rnti_config_type::c_rnti_f1_0,
                  "Invalid required dci-rnti parameter");
     for (const search_space_configuration& ss :
-         ue_cfg->cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
+         ue_cfg->cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
       if (pdcch_helper::is_pdcch_monitoring_active(pdcch_slot, ss)) {
         active_search_spaces.push_back(&ue_cfg->search_space(ss.get_id()));
       }
@@ -283,11 +281,11 @@ ue_cell::get_active_dl_search_spaces(slot_point                             pdcc
                                              }) != pdcch_config_ss_lst.end();
 
       const bool is_ss_for_ra =
-          ss.cfg->get_id() == cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
+          ss.cfg->get_id() == cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
       const bool is_ss_for_paging =
-          not cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value() or
+          not cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value() or
           ss.cfg->get_id() ==
-              cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
+              cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
 
       // [Implementation-defined] We exclude SearchSpace#0 to avoid the complexity of computing the SearchSpace#0 PDCCH
       // candidates monitoring occasions associated with a SS/PBCH block as mentioned in TS 38.213, clause 10.1.
@@ -326,7 +324,7 @@ ue_cell::get_active_ul_search_spaces(slot_point                             pdcc
                      required_dci_rnti_type == dci_ul_rnti_config_type::c_rnti_f0_0,
                  "Invalid required dci-rnti parameter");
     for (const search_space_configuration& ss :
-         ue_cfg->cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
+         ue_cfg->cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
       if (pdcch_helper::is_pdcch_monitoring_active(pdcch_slot, ss)) {
         active_search_spaces.push_back(&ue_cfg->search_space(ss.get_id()));
       }
@@ -355,11 +353,11 @@ ue_cell::get_active_ul_search_spaces(slot_point                             pdcc
                                              }) != pdcch_config_ss_lst.end();
 
       const bool is_ss_for_ra =
-          ss.cfg->get_id() == cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
+          ss.cfg->get_id() == cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
       const bool is_ss_for_paging =
-          not cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value() or
+          not cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value() or
           ss.cfg->get_id() ==
-              cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
+              cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
 
       // [Implementation-defined] We exclude SearchSpace#0 to avoid the complexity of computing the SearchSpace#0 PDCCH
       // candidates monitoring occasions associated with a SS/PBCH block as mentioned in TS 38.213, clause 10.1.
@@ -413,7 +411,8 @@ aggregation_level ue_cell::get_aggregation_level(float cqi, const search_space_i
   }
 
   // Apply the configured offset to the CQI and make sure it is in the allowed range.
-  static constexpr float MAX_CQI_VALUE = 15.0f, MIN_CQI_VALUE = 0.0f;
+  static constexpr float MIN_CQI_VALUE = 0.0f;
+  static constexpr float MAX_CQI_VALUE = 15.0f;
   cqi = std::max(std::min(MAX_CQI_VALUE, cqi + expert_cfg.pdcch_al_cqi_offset), MIN_CQI_VALUE);
   return map_cqi_to_aggregation_level(cqi, cqi_table, ss_info.cfg->get_nof_candidates(), dci_size);
 }

@@ -22,7 +22,7 @@ inter_slice_scheduler::inter_slice_scheduler(const cell_configuration& cell_cfg_
   slices.reserve(capacity);
 
   // NOTE: We assume nof. CRBs in a cell for both DL and UL are same.
-  const unsigned cell_max_rbs = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
+  const unsigned cell_max_rbs = cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs.length();
 
   // Create RAN slice instances.
   // > Default SRB slice.
@@ -58,12 +58,12 @@ inter_slice_scheduler::inter_slice_scheduler(const cell_configuration& cell_cfg_
   }
 
   // Generate the slot ring context.
-  ocudu_assert(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(), "Expected PUSCH config common");
-  auto pusch_list =
-      get_fairly_distributed_pusch_td_resource_indices(cell_cfg.scs_common,
-                                                       cell_cfg.tdd_cfg_common,
-                                                       cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
-                                                       cell_cfg.dl_data_to_ul_ack);
+  ocudu_assert(cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(), "Expected PUSCH config common");
+  auto pusch_list = get_fairly_distributed_pusch_td_resource_indices(
+      cell_cfg.scs_common(),
+      cell_cfg.params.tdd_cfg,
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+      cell_cfg.dl_data_to_ul_ack);
   slot_ring.resize(pusch_list.size());
   for (unsigned i = 0, sz = pusch_list.size(); i != sz; ++i) {
     slot_ring[i].valid_pusch_td_list.assign(pusch_list[i].begin(), pusch_list[i].end());
@@ -124,7 +124,7 @@ void inter_slice_scheduler::slot_indication(slot_point slot_tx, const cell_resou
 
   // TODO: Revisit when PUSCH time domain resource list is also defined in UE dedicated configuration.
   span<const pusch_time_domain_resource_allocation> pusch_time_domain_list =
-      cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list;
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list;
   for (const auto& slice : slices) {
     std::optional<unsigned> allocated_k2;
     for (const unsigned pusch_td_res_idx : slot_ring[slot_tx.count() % slot_ring.size()].valid_pusch_td_list) {
@@ -145,8 +145,8 @@ void inter_slice_scheduler::slot_indication(slot_point slot_tx, const cell_resou
       }
 
       const crb_bitmap pusch_used_crbs =
-          pusch_alloc.ul_res_grid.used_crbs(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs,
-                                            cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs,
+          pusch_alloc.ul_res_grid.used_crbs(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs,
+                                            cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs,
                                             pusch_time_domain_list[pusch_td_res_idx].symbols);
       if (pusch_used_crbs.all()) {
         // No more RBs left to allocated so skip adding slice candidate.
@@ -301,8 +301,8 @@ inter_slice_scheduler::get_next_candidate()
     }
 
     // Compute how many RBs can be allocated for this slice scheduling opportunity.
-    const unsigned cell_max_rbs = IsDownlink ? cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()
-                                             : cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+    const unsigned cell_max_rbs = IsDownlink ? cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()
+                                             : cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
     // Consider the limit imposed by dedicated resources or RBs allocated for already scheduled slices.
     const unsigned nof_used_rbs = get_nof_used_reserved_rbs<IsDownlink>(pxsch_slot);
     const unsigned rb_count =

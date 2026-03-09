@@ -71,14 +71,13 @@ static ran_cell_config generate_ran_cell_config(const bwp_uplink_common&        
     cell_cfg.pci                = pci_t{0};
     cell_cfg.dl_carrier.nof_ant = 1;
   }
-  cell_cfg.ul_cfg_common.init_ul_bwp        = init_ul_bwp;
-  cell_cfg.tdd_ul_dl_cfg_common             = tdd_ul_dl_cfg_common;
-  cell_cfg.init_bwp_builder.pdcch_cfg       = base_ue_cfg.init_dl_bwp.pdcch_cfg;
-  cell_cfg.init_bwp_builder.pucch.resources = pucch_cfg;
+  cell_cfg.ul_cfg_common.init_ul_bwp = init_ul_bwp;
+  cell_cfg.tdd_cfg                   = tdd_ul_dl_cfg_common;
+  cell_cfg.init_bwp.pdcch_cfg        = base_ue_cfg.init_dl_bwp.pdcch_cfg;
+  cell_cfg.init_bwp.pucch.resources  = pucch_cfg;
   if (base_ue_cfg.ul_config.has_value() && base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value() &&
       !base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.empty()) {
-    cell_cfg.init_bwp_builder.pucch.sr_period =
-        base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.front().period;
+    cell_cfg.init_bwp.pucch.sr_period = base_ue_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list.front().period;
   }
   {
     pdsch_builder_params params{};
@@ -94,7 +93,7 @@ static ran_cell_config generate_ran_cell_config(const bwp_uplink_common&        
         params.additional_positions = pdsch_cfg.pdsch_mapping_type_a_dmrs->additional_positions;
       }
     }
-    cell_cfg.init_bwp_builder.pdsch = params;
+    cell_cfg.init_bwp.pdsch = params;
   }
   {
     pusch_builder_params params{};
@@ -128,9 +127,9 @@ static ran_cell_config generate_ran_cell_config(const bwp_uplink_common&        
         }
       }
     }
-    cell_cfg.init_bwp_builder.pusch = params;
+    cell_cfg.init_bwp.pusch = params;
   }
-  cell_cfg.init_bwp_builder.csi = derive_csi_builder_params(base_ue_cfg);
+  cell_cfg.init_bwp.csi = derive_csi_builder_params(base_ue_cfg);
   return cell_cfg;
 }
 
@@ -149,14 +148,14 @@ pucch_res_builder_test_helper::pucch_res_builder_test_helper(
 
 pucch_res_builder_test_helper::pucch_res_builder_test_helper(const cell_configuration&            cell_cfg,
                                                              const pucch_resource_builder_params& pucch_cfg) :
-  required_info(pucch_res_builder_info{.init_ul_bwp          = cell_cfg.ul_cfg_common.init_ul_bwp,
-                                       .tdd_ul_dl_cfg_common = cell_cfg.tdd_cfg_common,
+  required_info(pucch_res_builder_info{.init_ul_bwp          = cell_cfg.params.ul_cfg_common.init_ul_bwp,
+                                       .tdd_ul_dl_cfg_common = cell_cfg.params.tdd_cfg,
                                        .pucch_cfg            = pucch_cfg}),
   pucch_res_mgr(max_pucch_grants_per_slot)
 {
   // Sanity check to ensure the cell_cfg and the pucch_cfg use the same parameters.
   const auto ded_pucch_resource_list = config_helpers::generate_cell_pucch_res_list(
-      pucch_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      pucch_cfg, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
   ocudu_assert(cell_cfg.init_bwp.ul.pucch.resources == ded_pucch_resource_list,
                "Mismatch between the PUCCH parameters used for cell_cfg and for the UE PUCCH configuration");
 }
@@ -177,10 +176,10 @@ void pucch_res_builder_test_helper::setup(const cell_configuration&            c
 {
   // Sanity check to ensure the cell_cfg and the pucch_cfg use the same parameters.
   const auto ded_pucch_resource_list = config_helpers::generate_cell_pucch_res_list(
-      pucch_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+      pucch_cfg, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
   ocudu_assert(cell_cfg.init_bwp.ul.pucch.resources == ded_pucch_resource_list,
                "Mismatch between the PUCCH parameters used for cell_cfg and for the UE PUCCH configuration");
-  setup(cell_cfg.ul_cfg_common.init_ul_bwp, cell_cfg.tdd_cfg_common, pucch_cfg);
+  setup(cell_cfg.params.ul_cfg_common.init_ul_bwp, cell_cfg.params.tdd_cfg, pucch_cfg);
 }
 
 bool pucch_res_builder_test_helper::add_build_new_ue_pucch_cfg(ue_cell_config& ue_cell_cfg)

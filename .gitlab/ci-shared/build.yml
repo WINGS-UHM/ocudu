@@ -33,6 +33,7 @@ include:
     FORCE_DEBUG_INFO: "" # Empty for cmake default
     MARCH: "" # Empty for cmake default
     MTUNE: "" # Empty for cmake default
+    MCPU: ""  # Empty for cmake default
     OCUDU_TARGET: "" # Empty for cmake default
     # CACHE
     CCACHE_MAXSIZE: 3G
@@ -61,7 +62,7 @@ include:
         ENABLE_ASAN ENABLE_TSAN ENABLE_GCOV \
         ENABLE_UBSAN ENABLE_UBSAN_MIN ENABLE_RTSAN \
         ENABLE_WERROR TEST_GDB_PRINTERS \
-        FORCE_DEBUG_INFO MARCH MTUNE \
+        FORCE_DEBUG_INFO MARCH MTUNE MCPU \
       ; do
         if [ -n "${!var}" ]; then
           BUILD_ARGS="-D${var}=${!var} ${BUILD_ARGS}"

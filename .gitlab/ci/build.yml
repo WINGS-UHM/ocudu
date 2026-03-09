@@ -654,7 +654,7 @@ ubuntu-24.04 arm neon:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
   variables:
     OS: ubuntu-24.04
-    MARCH: armv8.2-a+crypto+fp16+dotprod
+    MCPU: neoverse-n1+crc+crypto+ssbs
   tags:
     - ${OCUDU_RUNNER_TAG}-arm64
   parallel:
@@ -891,7 +891,7 @@ sanitizers arm neon:
   tags:
     - ${OCUDU_RUNNER_TAG}-arm64
   variables:
-    MARCH: armv8.2-a+crypto+fp16+dotprod
+    MCPU: neoverse-n1+crc+crypto+ssbs
   parallel:
     matrix:
       # ubuntu-22.04 disabled due to https://github.com/google/sanitizers/issues/1259#issuecomment-642312392
@@ -994,7 +994,7 @@ ubuntu-22.04 arm neon:
       start_in: 1 hour
   variables:
     OS: ubuntu-22.04
-    MARCH: armv8.2-a+crypto+fp16+dotprod
+    MCPU: neoverse-n1+crc+crypto+ssbs
   tags:
     - ${OCUDU_RUNNER_TAG}-arm64
   parallel:
@@ -1123,7 +1123,7 @@ ubuntu-25.10 arm neon:
       start_in: 4 hours
   variables:
     OS: ubuntu-25.10
-    MARCH: armv8.2-a+crypto+fp16+dotprod
+    MCPU: neoverse-n1+crc+crypto+ssbs
   tags:
     - ${OCUDU_RUNNER_TAG}-arm64
   parallel:
@@ -1138,7 +1138,7 @@ ubuntu-26.04 arm neon:
       start_in: 5 hours
   variables:
     OS: ubuntu-26.04
-    MARCH: armv8.2-a+crypto+fp16+dotprod
+    MCPU: neoverse-n1+crc+crypto+ssbs
   tags:
     - ${OCUDU_RUNNER_TAG}-arm64
   parallel:
@@ -1358,6 +1358,10 @@ ubuntu-24.04 avx512 dpdk 25.11:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Weekly/
       when: delayed
       start_in: 19 hours
+  tags:
+    - ${OCUDU_RUNNER_TAG}-amd64
+    - avx512
+    - sctp
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4

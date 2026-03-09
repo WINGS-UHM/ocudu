@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
-
 ################################################################################
 # Deploy Docker images
 ################################################################################
@@ -64,12 +63,12 @@ ocudu image:
         PLATFORM: amd64
       # ARM
       - SUFFIX: arm64
-        MARCH: armv8.2-a+crypto+fp16+dotprod
+        MARCH: neoverse-n1+crc+crypto+ssbs  # keep using MARCH as a job variable here. It's converted to mcpu in the dockerfile
         TAG: arm64
         PLATFORM: arm64
       - SUFFIX: arm64_debug
         EXTRA_CMAKE_ARGS: -DFORCE_DEBUG_INFO=On
-        MARCH: armv8.2-a+crypto+fp16+dotprod
+        MARCH: neoverse-n1+crc+crypto+ssbs  # keep using MARCH as a job variable here. It's converted to mcpu in the dockerfile
         TAG: arm64
         PLATFORM: arm64
   needs: []

@@ -56,9 +56,9 @@ private:
   std::unique_ptr<scheduler_metrics_notifier> hub_metrics;
 
   // DU-high Layers.
-  std::unique_ptr<du_manager_interface> du_manager;
-  std::unique_ptr<f1ap_du>              f1ap;
-  std::unique_ptr<mac_interface>        mac;
+  std::unique_ptr<du_manager>    du_mng;
+  std::unique_ptr<f1ap_du>       f1ap;
+  std::unique_ptr<mac_interface> mac;
 };
 
 } // namespace odu

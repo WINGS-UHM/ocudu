@@ -30,13 +30,13 @@ public:
     dependencies.mac.mac_cell.wait_stop.ready_ev.set();
 
     // Start DU manager.
-    du_mng->start();
+    du_mng->get_controller().start();
   }
   ~du_manager_procedure_tester()
   {
     std::atomic<bool> done{false};
     worker.push_task_blocking([this, &done]() {
-      du_mng->stop();
+      du_mng->get_controller().stop();
       done = true;
     });
     while (not done) {
@@ -46,10 +46,10 @@ public:
     worker.wait_pending_tasks();
   }
 
-  task_worker                           worker{"worker", 16};
-  std::vector<du_cell_config>           cell_cfgs;
-  du_manager_test_bench                 dependencies;
-  std::unique_ptr<du_manager_interface> du_mng;
+  task_worker                 worker{"worker", 16};
+  std::vector<du_cell_config> cell_cfgs;
+  du_manager_test_bench       dependencies;
+  std::unique_ptr<du_manager> du_mng;
 };
 
 static du_param_config_request make_dummy_request(span<const du_cell_config> cell_cfgs)

@@ -108,28 +108,34 @@ public:
   virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
 };
 
+/// Interface to initiate and stop the DU manager activity.
 class du_manager_controller
 {
 public:
   virtual ~du_manager_controller() = default;
-  virtual void start()             = 0;
+
+  /// \brief Initiate the DU manager. This call is blocking and only returns once the DU finishes its setul.
+  virtual void start() = 0;
 
   /// \brief Stop the DU manager. This call is blocking and only returns once all tasks in the DU manager are completed.
   virtual void stop() = 0;
 };
 
-class du_manager_interface : public du_manager_interface_query,
-                             public du_manager_time_mapper_accessor,
-                             public du_manager_controller,
-                             public du_manager_configurator,
-                             public du_manager_mac_event_handler,
-                             public du_configurator
+/// Interface that provides a handle to the DU manager.
+class du_manager : public du_manager_interface_query,
+                   public du_manager_time_mapper_accessor,
+                   public du_manager_configurator,
+                   public du_manager_mac_event_handler,
+                   public du_configurator
 {
 public:
-  virtual ~du_manager_interface() = default;
+  ~du_manager() override = default;
 
   /// Get entity responsibly for aggregating metrics from all DU layers.
   virtual du_manager_mac_metric_aggregator& get_metrics_aggregator() = 0;
+
+  /// Get controller to DU manager to start and stop its activity.
+  virtual du_manager_controller& get_controller() = 0;
 };
 
 } // namespace odu

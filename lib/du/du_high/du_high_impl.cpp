@@ -27,10 +27,10 @@ public:
   }
 
   /// Connect layers of the DU-high.
-  void connect(du_manager_interface& du_mng, mac_interface& mac_inst)
+  void connect(du_manager& du_mng_, mac_interface& mac_inst)
   {
-    mac_ev_notifier.connect(du_mng, du_mng.get_metrics_aggregator());
-    f1_to_du_notifier.connect(du_mng);
+    mac_ev_notifier.connect(du_mng_, du_mng_.get_metrics_aggregator());
+    f1_to_du_notifier.connect(du_mng_);
     f1ap_paging_notifier.connect(mac_inst.get_cell_paging_info_handler());
   }
 
@@ -75,7 +75,7 @@ du_high_impl::du_high_impl(const du_high_configuration& config_, const du_high_d
                              timers,
                              cfg.test_cfg);
 
-  du_manager = create_du_manager(du_manager_params{
+  du_mng = create_du_manager(du_manager_params{
       {cfg.ran.gnb_du_name, cfg.ran.gnb_du_id, 1, cfg.ran.cells, cfg.ran.srbs, cfg.ran.qos},
       {timers,
        dependencies.exec_mapper->du_control_executor(),
@@ -93,7 +93,7 @@ du_high_impl::du_high_impl(const du_high_configuration& config_, const du_high_d
       cfg.test_cfg});
 
   // Connect Layer<->DU manager adapters.
-  adapters->connect(*du_manager, *mac);
+  adapters->connect(*du_mng, *mac);
 }
 
 du_high_impl::~du_high_impl()
@@ -104,7 +104,7 @@ du_high_impl::~du_high_impl()
 void du_high_impl::start()
 {
   logger.info("Starting DU-High...");
-  du_manager->start();
+  du_mng->get_controller().start();
   logger.info("DU-High started successfully");
 }
 
@@ -115,7 +115,7 @@ void du_high_impl::stop()
   }
 
   logger.info("Stopping DU-High...");
-  du_manager->stop();
+  du_mng->get_controller().stop();
   logger.info("DU-High stopped successfully");
 }
 
@@ -146,10 +146,10 @@ mac_cell_control_information_handler& du_high_impl::get_control_info_handler(du_
 
 du_configurator& du_high_impl::get_du_configurator()
 {
-  return *du_manager;
+  return *du_mng;
 }
 
 du_manager_time_mapper_accessor& du_high_impl::get_du_manager_time_mapper_accessor()
 {
-  return *du_manager;
+  return *du_mng;
 }

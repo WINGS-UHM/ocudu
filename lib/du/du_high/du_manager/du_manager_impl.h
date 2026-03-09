@@ -12,20 +12,21 @@
 #include "ran_resource_management/du_ran_resource_manager_impl.h"
 #include "ocudu/du/du_high/du_manager/du_manager.h"
 #include "ocudu/du/du_high/du_manager/du_manager_params.h"
-#include <condition_variable>
+#include "ocudu/support/synchronization/sync_event.h"
 
 namespace ocudu {
 namespace odu {
 
-class du_manager_impl final : public du_manager_interface
+class du_manager_impl final : public du_manager, public du_manager_controller
 {
 public:
   explicit du_manager_impl(const du_manager_params& params_);
   ~du_manager_impl() override;
 
   // Controller interface.
-  void start() override;
-  void stop() override;
+  du_manager_controller& get_controller() override { return *this; }
+  void                   start() override;
+  void                   stop() override;
 
   // MAC interface
   void handle_ul_ccch_indication(const ul_ccch_indication_message& msg) override;
@@ -78,7 +79,7 @@ public:
 
 private:
   /// Handle transition from operational to idle state.
-  void handle_du_stop_request();
+  void handle_du_stop_request(scoped_sync_token tk);
 
   // DU manager configuration that will be visible to all running procedures
   du_manager_params       params;
@@ -93,11 +94,12 @@ private:
   du_manager_metrics_aggregator_impl           metrics;
   du_proc_context_view                         proc_ctxt;
 
-  std::mutex              mutex;
-  std::condition_variable cvar;
-
   // Handler for DU tasks.
   fifo_async_task_scheduler main_ctrl_loop;
+
+  // State of the DU manager from the POV outside its executor.
+  // Note: The du_manager start/stop public API is serialised.
+  bool running = false;
 };
 
 } // namespace odu

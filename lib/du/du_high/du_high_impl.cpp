@@ -149,7 +149,7 @@ du_configurator& du_high_impl::get_du_configurator()
   return *du_mng;
 }
 
-du_manager_time_mapper_accessor& du_high_impl::get_du_manager_time_mapper_accessor()
+mac_subframe_time_mapper& du_high_impl::get_subframe_time_mapper()
 {
-  return *du_mng;
+  return mac->get_subframe_time_mapper();
 }

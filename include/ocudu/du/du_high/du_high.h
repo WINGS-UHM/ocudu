@@ -9,6 +9,7 @@
 #include "ocudu/mac/mac_cell_rach_handler.h"
 #include "ocudu/mac/mac_cell_slot_handler.h"
 #include "ocudu/mac/mac_pdu_handler.h"
+#include "ocudu/mac/mac_subframe_time_mapper.h"
 #include "ocudu/ran/du_types.h"
 
 namespace ocudu {
@@ -51,7 +52,7 @@ public:
   virtual du_configurator& get_du_configurator() = 0;
 
   /// Returns handler to get Cell MAC slot-time mapper.
-  virtual du_manager_time_mapper_accessor& get_du_manager_time_mapper_accessor() = 0;
+  virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
 };
 
 } // namespace odu

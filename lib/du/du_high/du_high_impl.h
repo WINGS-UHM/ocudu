@@ -37,7 +37,7 @@ public:
 
   du_configurator& get_du_configurator() override;
 
-  du_manager_time_mapper_accessor& get_du_manager_time_mapper_accessor() override;
+  mac_subframe_time_mapper& get_subframe_time_mapper() override;
 
 private:
   class layer_connector;

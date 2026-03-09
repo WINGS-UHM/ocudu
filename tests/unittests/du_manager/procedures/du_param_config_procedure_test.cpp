@@ -79,14 +79,6 @@ TEST_F(du_manager_du_config_update_test, when_sib1_change_required_then_mac_is_r
   ASSERT_TRUE(resp.success);
 }
 
-TEST_F(du_manager_du_config_update_test, check_if_slot_time_mapping_is_available)
-{
-  mac_subframe_time_mapper& mapper = du_mng->get_subframe_time_mapper();
-  auto                      resp   = mapper.get_last_mapping(subcarrier_spacing::kHz15);
-  ASSERT_TRUE(resp.has_value());
-  ASSERT_EQ(resp.value().sl_tx, slot_point(to_numerology_value(subcarrier_spacing::kHz15), 1));
-}
-
 static du_param_config_request make_dummy_rrm_request()
 {
   du_param_config_request req;

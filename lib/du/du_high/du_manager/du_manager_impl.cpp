@@ -142,11 +142,6 @@ size_t du_manager_impl::nof_ues()
   return result;
 }
 
-mac_subframe_time_mapper& du_manager_impl::get_subframe_time_mapper()
-{
-  return params.mac.mgr.get_subframe_time_mapper();
-}
-
 async_task<du_mac_sched_control_config_response>
 du_manager_impl::configure_ue_mac_scheduler(du_mac_sched_control_config reconf)
 {

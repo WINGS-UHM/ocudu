@@ -99,15 +99,6 @@ public:
   virtual size_t nof_ues()              = 0;
 };
 
-/// Interface to access the DU MAC time-slot mapper.
-class du_manager_time_mapper_accessor
-{
-public:
-  virtual ~du_manager_time_mapper_accessor() = default;
-  /// Get DU MAC subframe-time mapper.
-  virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
-};
-
 /// Interface to initiate and stop the DU manager activity.
 class du_manager_controller
 {
@@ -123,7 +114,6 @@ public:
 
 /// Interface that provides a handle to the DU manager.
 class du_manager : public du_manager_interface_query,
-                   public du_manager_time_mapper_accessor,
                    public du_manager_configurator,
                    public du_manager_mac_event_handler,
                    public du_configurator

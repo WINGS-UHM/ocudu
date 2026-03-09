@@ -364,13 +364,13 @@ o_du_unit flexible_o_du_factory::create_flexible_o_du(const o_du_unit_dependenci
       generate_ntn_configuration_manager_config(du_hi.gnb_id, du_hi.cells_cfg);
 
   if (not ntn_manager_config.cells.empty()) {
-    o_du.ntn_configurator_manager = create_ntn_configuration_manager(
-        ntn_manager_config,
-        odu_instance->get_o_du_high().get_du_high().get_du_configurator(),
-        odu_instance->get_o_du_high().get_du_high().get_du_manager_time_mapper_accessor(),
-        ru->get_controller(),
-        dependencies.timer_ctrl->get_timer_manager(),
-        dependencies.workers->get_du_high_executor_mapper().du_control_executor());
+    o_du.ntn_configurator_manager =
+        create_ntn_configuration_manager(ntn_manager_config,
+                                         odu_instance->get_o_du_high().get_du_high().get_du_configurator(),
+                                         odu_instance->get_o_du_high().get_du_high().get_subframe_time_mapper(),
+                                         ru->get_controller(),
+                                         dependencies.timer_ctrl->get_timer_manager(),
+                                         dependencies.workers->get_du_high_executor_mapper().du_control_executor());
 
     if (o_du.ntn_configurator_manager) {
       add_ntn_config_update_remote_command(o_du.commands, *o_du.ntn_configurator_manager);

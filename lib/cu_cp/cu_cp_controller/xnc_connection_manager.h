@@ -7,6 +7,8 @@
 #include "../xnap_repository.h"
 #include "ocudu/cu_cp/common_task_scheduler.h"
 #include "ocudu/cu_cp/cu_cp_xnc_handler.h"
+#include <condition_variable>
+#include <mutex>
 
 namespace ocudu::ocucp {
 
@@ -26,6 +28,8 @@ public:
   handle_new_xnc_cu_cp_connection(std::unique_ptr<xnap_message_notifier> xnap_tx_pdu_notifier,
                                   const sctp_association_info&           assoc_info) override;
 
+  void handle_xnc_gw_connection_closed(xnc_peer_index_t xnc_idx);
+
   void stop();
 
 private:
@@ -41,7 +45,10 @@ private:
 
   std::map<xnc_peer_index_t, std::shared_ptr<shared_xnc_connection_context>> xnc_connections;
 
-  std::atomic<bool> stopped{false};
+  std::atomic<bool>       stopped{false};
+  std::mutex              stop_mutex;
+  std::condition_variable stop_cvar;
+  bool                    stop_completed = false;
 };
 
 } // namespace ocudu::ocucp

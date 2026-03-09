@@ -8,6 +8,7 @@
 #include "procedures/xn_setup_procedure_asn1_helpers.h"
 #include "procedures/xnap_handover_preparation_procedure.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
+#include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/xnap/xnap_message.h"
 
 using namespace ocudu;
@@ -29,6 +30,13 @@ xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
   xn_setup_outcome(timer_factory{timers, ctrl_exec}),
   xn_handover_outcome(timer_factory{timers, ctrl_exec})
 {
+}
+
+async_task<void> xnap_impl::stop()
+{
+  // Stop XN setup procedure if in progress.
+  xn_setup_outcome.stop();
+  return launch_no_op_task();
 }
 
 void xnap_impl::handle_message(const xnap_message& msg)

@@ -26,6 +26,8 @@ public:
   // XNAP message handling.
   void handle_message(const xnap_message& msg) override;
 
+  async_task<void> stop() override;
+
   // XNAP connection manager functions.
   async_task<bool> handle_xn_setup_request_required() override;
   void             set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) override

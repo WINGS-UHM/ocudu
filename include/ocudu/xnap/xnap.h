@@ -48,6 +48,14 @@ public:
   handle_handover_preparation_request(const xnap_handover_preparation_request& msg) = 0;
 };
 
+/// This interface for the CU-CP to stop an XNAP instance.
+class xnap_controller
+{
+public:
+  virtual ~xnap_controller()      = default;
+  virtual async_task<void> stop() = 0;
+};
+
 /// XNAP notifier to the CU-CP.
 class xnap_cu_cp_notifier
 {
@@ -65,7 +73,10 @@ public:
 };
 
 /// Combined entry point for the XNAP object.
-class xnap_interface : public xnap_message_handler, public xnap_connection_manager, public xnap_control_message_handler
+class xnap_interface : public xnap_message_handler,
+                       public xnap_connection_manager,
+                       public xnap_control_message_handler,
+                       public xnap_controller
 {
 public:
   virtual ~xnap_interface() = default;

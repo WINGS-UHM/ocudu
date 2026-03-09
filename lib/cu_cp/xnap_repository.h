@@ -53,6 +53,8 @@ public:
 
   void connect_association(xnc_peer_index_t idx, std::unique_ptr<xnap_message_notifier> sender_notifier);
 
+  async_task<void> remove_xnap(xnc_peer_index_t idx);
+
 private:
   struct xnap_context {
     // Peer address.

@@ -4,14 +4,14 @@
 #pragma once
 
 #include "ocudu/support/async/async_queue.h"
-#include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/async_task_scheduler.h"
 #include "ocudu/support/async/eager_async_task.h"
 #include "ocudu/support/async/event_sender_receiver.h"
 
 namespace ocudu {
 
 /// Asynchronous task that sequentially runs other enqueued asynchronous tasks.
-class fifo_async_task_scheduler
+class fifo_async_task_scheduler final : public async_task_scheduler
 {
 public:
   explicit fifo_async_task_scheduler(size_t queue_size) : queue(queue_size) { run(); }
@@ -19,11 +19,7 @@ public:
   fifo_async_task_scheduler(const fifo_async_task_scheduler&)            = delete;
   fifo_async_task_scheduler& operator=(const fifo_async_task_scheduler&) = delete;
 
-  template <typename R>
-  bool schedule(async_task<R>&& t)
-  {
-    return queue.try_push(std::move(t));
-  }
+  bool schedule(async_task<void> t) override { return queue.try_push(std::move(t)); }
 
   template <typename AsyncTask, typename... Args>
   bool schedule(Args&&... args)

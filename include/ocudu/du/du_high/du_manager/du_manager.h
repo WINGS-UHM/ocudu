@@ -131,11 +131,11 @@ class du_manager : public du_manager_interface_query,
 public:
   ~du_manager() override = default;
 
-  /// Get entity responsibly for aggregating metrics from all DU layers.
-  virtual du_manager_mac_metric_aggregator& get_metrics_aggregator() = 0;
-
   /// Get controller to DU manager to start and stop its activity.
   virtual du_manager_controller& get_controller() = 0;
+
+  /// Get entity responsibly for aggregating metrics from all DU layers.
+  virtual du_manager_mac_metric_aggregator& get_metrics_aggregator() = 0;
 };
 
 } // namespace odu

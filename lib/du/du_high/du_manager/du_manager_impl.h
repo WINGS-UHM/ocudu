@@ -6,27 +6,24 @@
 
 #include "du_cell_manager.h"
 #include "du_manager_context.h"
+#include "du_manager_controller_impl.h"
 #include "du_metrics_aggregator_impl.h"
 #include "du_ue/du_ue_manager.h"
 #include "procedures/du_proc_context_view.h"
 #include "ran_resource_management/du_ran_resource_manager_impl.h"
 #include "ocudu/du/du_high/du_manager/du_manager.h"
 #include "ocudu/du/du_high/du_manager/du_manager_params.h"
-#include "ocudu/support/synchronization/sync_event.h"
 
 namespace ocudu {
 namespace odu {
 
-class du_manager_impl final : public du_manager, public du_manager_controller
+class du_manager_impl final : public du_manager
 {
 public:
   explicit du_manager_impl(const du_manager_params& params_);
-  ~du_manager_impl() override;
 
   // Controller interface.
-  du_manager_controller& get_controller() override { return *this; }
-  void                   start() override;
-  void                   stop() override;
+  du_manager_controller& get_controller() override { return controller; }
 
   // MAC interface
   void handle_ul_ccch_indication(const ul_ccch_indication_message& msg) override;
@@ -78,12 +75,12 @@ public:
   du_manager_mac_metric_aggregator& get_metrics_aggregator() override { return metrics; }
 
 private:
-  /// Handle transition from operational to idle state.
-  void handle_du_stop_request(scoped_sync_token tk);
-
   // DU manager configuration that will be visible to all running procedures
   du_manager_params       params;
   ocudulog::basic_logger& logger;
+
+  // Handler for DU tasks.
+  fifo_async_task_scheduler main_ctrl_loop;
 
   // Components
   du_manager_context                           ctxt;
@@ -93,13 +90,8 @@ private:
   std::unique_ptr<f1ap_du_positioning_handler> positioning_handler;
   du_manager_metrics_aggregator_impl           metrics;
   du_proc_context_view                         proc_ctxt;
-
-  // Handler for DU tasks.
-  fifo_async_task_scheduler main_ctrl_loop;
-
-  // State of the DU manager from the POV outside its executor.
-  // Note: The du_manager start/stop public API is serialised.
-  bool running = false;
+  /// Handle to control the start and stop of the DU activity.
+  du_manager_controller_impl controller;
 };
 
 } // namespace odu

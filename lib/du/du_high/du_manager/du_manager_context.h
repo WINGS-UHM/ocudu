@@ -12,6 +12,7 @@ struct du_manager_context {
   /// Whether the DU is in operational mode.
   bool running = false;
   /// Flag used to signal that the DU was commanded to stop.
+  /// \note This may serve as a cancellation signal to other long on-going procedures.
   bool stop_command_received = false;
 };
 

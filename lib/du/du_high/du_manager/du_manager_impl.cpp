@@ -26,73 +26,15 @@ using namespace odu;
 du_manager_impl::du_manager_impl(const du_manager_params& params_) :
   params(params_),
   logger(ocudulog::fetch_basic_logger("DU-MNG")),
+  main_ctrl_loop(128),
   cell_mng(params),
   cell_res_alloc(params.ran.cells, params.mac.sched_cfg, params.ran.srbs, params.ran.qos, params.test_cfg),
   ue_mng(params, cell_res_alloc, cell_mng),
   positioning_handler(create_du_positioning_handler(params, cell_mng, ue_mng, logger)),
   metrics(params.metrics, params.services.du_mng_exec, params.services.timers, params.f1ap.metrics),
   proc_ctxt{params, ctxt, cell_mng, ue_mng, metrics, logger},
-  main_ctrl_loop(128)
+  controller(proc_ctxt, main_ctrl_loop)
 {
-}
-
-du_manager_impl::~du_manager_impl()
-{
-  stop();
-}
-
-void du_manager_impl::start()
-{
-  if (running) {
-    logger.warning("Ignoring start request. Cause: DU Manager already started.");
-    return;
-  }
-  running = true;
-  logger.info("DU manager starting...");
-
-  sync_event ev;
-  if (not params.services.du_mng_exec.execute([this, tk = ev.get_token()]() mutable {
-        main_ctrl_loop.schedule([this, tk = std::move(tk)](coro_context<async_task<void>>& ctx) {
-          CORO_BEGIN(ctx);
-
-          // Connect to CU-CP and send F1 Setup Request and await for F1 setup response.
-          CORO_AWAIT(launch_async<du_setup_procedure>(proc_ctxt));
-
-          // Update running state.
-          ctxt.running = true;
-
-          // On tk destruction, caller thread that the operation is complete.
-          CORO_RETURN();
-        });
-      })) {
-    report_fatal_error("Unable to initiate DU setup procedure");
-  }
-
-  // Block waiting for DU setup to complete.
-  ev.wait();
-  logger.info("DU manager started successfully.");
-  ocudu_sanity_check(running, "DU manager start()/stop() being used in an non-sequential manner");
-}
-
-void du_manager_impl::stop()
-{
-  if (not running) {
-    // Stop was already requested. Do nothing.
-    return;
-  }
-  running = false;
-
-  sync_event ev;
-  while (not params.services.du_mng_exec.execute(
-      [this, tk = ev.get_token()]() mutable { handle_du_stop_request(std::move(tk)); })) {
-    logger.error("Unable to dispatch DU Manager shutdown. Retrying...");
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    return;
-  }
-
-  // Block waiting for async task to complete.
-  ev.wait();
-  ocudu_sanity_check(not running, "DU manager start()/stop() being used in an non-sequential manner");
 }
 
 void du_manager_impl::handle_ul_ccch_indication(const ul_ccch_indication_message& msg)
@@ -137,46 +79,6 @@ void du_manager_impl::handle_crnti_ce_indication(const ul_crnti_ce_indication_me
 void du_manager_impl::handle_f1c_connection_loss()
 {
   schedule_async_task(launch_async<f1c_disconnection_handling_procedure>(proc_ctxt));
-}
-
-void du_manager_impl::handle_du_stop_request(scoped_sync_token tk)
-{
-  if (not ctxt.running) {
-    // Already stopped.
-    return;
-  }
-
-  // Notify other procedures that the DU needs to stop.
-  ctxt.stop_command_received = true;
-
-  // Start DU stop procedure.
-  schedule_async_task(launch_async([this, tk = std::move(tk)](coro_context<async_task<void>>& ctx) mutable {
-    CORO_BEGIN(ctx);
-
-    if (not ctxt.running) {
-      // Already stopped.
-      CORO_EARLY_RETURN();
-    }
-
-    // Tear down activity in remaining layers.
-    CORO_AWAIT(launch_async<du_stop_procedure>(ue_mng, cell_mng, params.f1ap.conn_mng));
-
-    // DU stop successfully finished.
-    // Dispatch main async task loop destruction via defer so that the current coroutine ends successfully before
-    // we start destroying the DU manager (in case stop is called from dtor).
-    while (not params.services.du_mng_exec.defer([this, tk = std::move(tk)]() {
-      // Let main loop go out of scope and be destroyed.
-      auto main_loop = main_ctrl_loop.request_stop();
-
-      ctxt.running               = false;
-      ctxt.stop_command_received = false;
-    })) {
-      logger.warning("Unable to stop DU Manager. Retrying...");
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-
-    CORO_RETURN();
-  }));
 }
 
 du_ue_index_t du_manager_impl::find_unused_du_ue_index()

@@ -672,6 +672,10 @@ ubuntu-24.04 avx512 dpdk 24.11:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
       when: delayed
       start_in: 6 hours
+  tags:
+    - ${OCUDU_RUNNER_TAG}-amd64
+    - avx512
+    - sctp
   variables:
     OS: ubuntu-24.04
     MARCH: x86-64-v4

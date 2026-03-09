@@ -68,7 +68,7 @@ TEST_F(du_manager_du_config_update_test, when_sib1_change_required_then_mac_is_r
 {
   // Initiate procedure.
   du_param_config_request  req  = make_dummy_request(cell_cfgs);
-  du_param_config_response resp = du_mng->handle_sync_operator_config(req);
+  du_param_config_response resp = du_mng->get_operation_configurator().handle_sync_operator_config(req);
 
   // MAC received config request.
   ASSERT_TRUE(dependencies.mac.mac_cell.last_cell_recfg_req.has_value());
@@ -125,7 +125,7 @@ TEST_F(du_manager_du_rrm_config_update_test, when_rrm_policy_change_required_the
 {
   // Initiate procedure.
   du_param_config_request  req  = make_dummy_rrm_request();
-  du_param_config_response resp = du_mng->handle_sync_operator_config(req);
+  du_param_config_response resp = du_mng->get_operation_configurator().handle_sync_operator_config(req);
 
   // MAC received config request.
   ASSERT_TRUE(dependencies.mac.mac_cell.last_cell_recfg_req.has_value());
@@ -340,7 +340,7 @@ TEST_F(du_manager_value_tag_test, when_sib_updated_then_value_tag_increments_fro
 {
   // Send SIB update request (initial value_tag is 0 from fixture setup).
   du_param_config_request  req  = make_sib_update_request(create_modified_sib2());
-  du_param_config_response resp = du_mng->handle_sync_operator_config(req);
+  du_param_config_response resp = du_mng->get_operation_configurator().handle_sync_operator_config(req);
 
   // Process any pending tasks.
   dependencies.worker.run_pending_tasks();
@@ -362,21 +362,21 @@ TEST_F(du_manager_value_tag_test, when_sib_updated_multiple_times_then_value_tag
 {
   // Perform first update (0 -> 1, initial value_tag is 0 from fixture setup).
   du_param_config_request  req1  = make_sib_update_request(create_modified_sib2());
-  du_param_config_response resp1 = du_mng->handle_sync_operator_config(req1);
+  du_param_config_response resp1 = du_mng->get_operation_configurator().handle_sync_operator_config(req1);
   dependencies.worker.run_pending_tasks();
   ASSERT_TRUE(resp1.success);
   ASSERT_EQ(get_value_tag_for_sib(sib_type::sib2).value(), 1);
 
   // Perform second update (1 -> 2).
   du_param_config_request  req2  = make_sib_update_request(create_default_sib2());
-  du_param_config_response resp2 = du_mng->handle_sync_operator_config(req2);
+  du_param_config_response resp2 = du_mng->get_operation_configurator().handle_sync_operator_config(req2);
   dependencies.worker.run_pending_tasks();
   ASSERT_TRUE(resp2.success);
   ASSERT_EQ(get_value_tag_for_sib(sib_type::sib2).value(), 2);
 
   // Perform third update (2 -> 3).
   du_param_config_request  req3  = make_sib_update_request(create_modified_sib2());
-  du_param_config_response resp3 = du_mng->handle_sync_operator_config(req3);
+  du_param_config_response resp3 = du_mng->get_operation_configurator().handle_sync_operator_config(req3);
   dependencies.worker.run_pending_tasks();
   ASSERT_TRUE(resp3.success);
   ASSERT_EQ(get_value_tag_for_sib(sib_type::sib2).value(), 3);
@@ -387,7 +387,7 @@ TEST_F(du_manager_value_tag_test, when_value_tag_reaches_31_then_wraps_to_0)
   // Perform 31 updates to reach value_tag = 31 (starting from 0).
   for (int i = 0; i < 31; i++) {
     du_param_config_request  req = make_sib_update_request(i % 2 == 0 ? create_modified_sib2() : create_default_sib2());
-    du_param_config_response resp = du_mng->handle_sync_operator_config(req);
+    du_param_config_response resp = du_mng->get_operation_configurator().handle_sync_operator_config(req);
     dependencies.worker.run_pending_tasks();
     ASSERT_TRUE(resp.success);
   }
@@ -397,7 +397,7 @@ TEST_F(du_manager_value_tag_test, when_value_tag_reaches_31_then_wraps_to_0)
 
   // Perform one more update to test wrapping (31 -> 0).
   du_param_config_request  final_req  = make_sib_update_request(create_modified_sib2());
-  du_param_config_response final_resp = du_mng->handle_sync_operator_config(final_req);
+  du_param_config_response final_resp = du_mng->get_operation_configurator().handle_sync_operator_config(final_req);
   dependencies.worker.run_pending_tasks();
 
   // Verify response success.
@@ -415,7 +415,7 @@ TEST_F(du_manager_value_tag_test, when_sib19_updated_then_value_tag_increments_i
 {
   // Send SIB19 update request (initial value_tag is 0 from fixture setup).
   du_param_config_request  req  = make_sib_update_request(create_modified_sib19());
-  du_param_config_response resp = du_mng->handle_sync_operator_config(req);
+  du_param_config_response resp = du_mng->get_operation_configurator().handle_sync_operator_config(req);
 
   // Process any pending tasks.
   dependencies.worker.run_pending_tasks();

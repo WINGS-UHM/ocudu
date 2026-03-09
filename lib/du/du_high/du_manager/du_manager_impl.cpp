@@ -40,12 +40,12 @@ du_manager_impl::du_manager_impl(const du_manager_params& params_) :
 void du_manager_impl::handle_ul_ccch_indication(const ul_ccch_indication_message& msg)
 {
   // Switch DU Manager exec context
-  if (not params.services.du_mng_exec.execute([this, msg = std::move(msg)]() {
+  if (not params.services.du_mng_exec.execute([this, msg]() {
         // Start UE create procedure
         ue_mng.handle_ue_create_request(msg);
       })) {
     logger.warning("Discarding UL-CCCH message cell={} tc-rnti={} slot_rx={}. Cause: DU manager task queue is full",
-                   fmt::underlying(msg.cell_index),
+                   msg.cell_index,
                    msg.tc_rnti,
                    msg.slot_rx);
   }
@@ -62,8 +62,8 @@ void du_manager_impl::handle_crnti_ce_indication(const ul_crnti_ce_indication_me
         const bool reached_prepared_target = ue->cond_mobility.handle_crnti_ce_indication();
         if (not reached_prepared_target) {
           logger.debug("ue={} cell={}: C-RNTI CE received but no Access Success is expected. Ignoring.",
-                       fmt::underlying(msg.ue_index),
-                       fmt::underlying(msg.cell_index));
+                       msg.ue_index,
+                       msg.cell_index);
           return;
         }
 
@@ -71,8 +71,8 @@ void du_manager_impl::handle_crnti_ce_indication(const ul_crnti_ce_indication_me
         params.f1ap.ue_mng.handle_access_success({msg.ue_index, target_cgi});
       })) {
     logger.warning("cell={} ue={}: Discarding C-RNTI CE indication. Cause: DU manager task queue is full",
-                   fmt::underlying(msg.cell_index),
-                   fmt::underlying(msg.ue_index));
+                   msg.cell_index,
+                   msg.ue_index);
   }
 }
 

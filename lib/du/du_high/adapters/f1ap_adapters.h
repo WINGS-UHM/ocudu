@@ -27,12 +27,12 @@ public:
 
   void schedule_async_task(async_task<void>&& task) override { du_mng->schedule_async_task(ue_index, std::move(task)); }
 
-  void connect(du_manager_configurator& du_mng_) { du_mng = &du_mng_; }
+  void connect(du_manager_context_configurator& du_mng_) { du_mng = &du_mng_; }
 
 private:
-  du_ue_index_t            ue_index;
-  timer_factory            timers;
-  du_manager_configurator* du_mng = nullptr;
+  du_ue_index_t                    ue_index;
+  timer_factory                    timers;
+  du_manager_context_configurator* du_mng = nullptr;
 };
 
 class f1ap_du_configurator_adapter : public f1ap_du_configurator
@@ -45,7 +45,7 @@ public:
     }
   }
 
-  void connect(du_manager_configurator& du_mng_)
+  void connect(du_manager_context_configurator& du_mng_)
   {
     du_mng = &du_mng_;
     for (unsigned i = 0; i != MAX_NOF_DU_UES; ++i) {
@@ -107,7 +107,7 @@ public:
 
 private:
   timer_factory                                                 timers;
-  du_manager_configurator*                                      du_mng = nullptr;
+  du_manager_context_configurator*                              du_mng = nullptr;
   slotted_array<f1ap_ue_task_scheduler_adapter, MAX_NOF_DU_UES> ues;
 };
 

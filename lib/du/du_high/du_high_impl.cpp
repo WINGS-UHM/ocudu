@@ -9,7 +9,6 @@
 #include "test_mode/f1ap_test_mode_adapter.h"
 #include "ocudu/du/du_high/du_high_clock_controller.h"
 #include "ocudu/du/du_high/du_manager/du_manager_factory.h"
-#include "ocudu/mac/mac_cell_timing_context.h"
 #include "ocudu/mac/mac_metrics_notifier.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/timers.h"
@@ -29,8 +28,8 @@ public:
   /// Connect layers of the DU-high.
   void connect(du_manager& du_mng_, mac_interface& mac_inst)
   {
-    mac_ev_notifier.connect(du_mng_, du_mng_.get_metrics_aggregator());
-    f1_to_du_notifier.connect(du_mng_);
+    mac_ev_notifier.connect(du_mng_.get_mac_event_handler(), du_mng_.get_metrics_aggregator());
+    f1_to_du_notifier.connect(du_mng_.get_context_configurator());
     f1ap_paging_notifier.connect(mac_inst.get_cell_paging_info_handler());
   }
 
@@ -146,7 +145,7 @@ mac_cell_control_information_handler& du_high_impl::get_control_info_handler(du_
 
 du_configurator& du_high_impl::get_du_configurator()
 {
-  return *du_mng;
+  return du_mng->get_operation_configurator();
 }
 
 mac_subframe_time_mapper& du_high_impl::get_subframe_time_mapper()

@@ -17,7 +17,10 @@
 namespace ocudu {
 namespace odu {
 
-class du_manager_impl final : public du_manager
+class du_manager_impl final : public du_manager,
+                              public du_manager_mac_event_handler,
+                              public du_manager_context_configurator,
+                              public du_configurator
 {
 public:
   explicit du_manager_impl(const du_manager_params& params_);
@@ -25,11 +28,13 @@ public:
   // Controller interface.
   du_manager_controller& get_controller() override { return controller; }
 
-  // MAC interface
-  void handle_ul_ccch_indication(const ul_ccch_indication_message& msg) override;
-  void handle_crnti_ce_indication(const ul_crnti_ce_indication_message& msg) override;
+  // MAC event handling interface
+  du_manager_mac_event_handler& get_mac_event_handler() override { return *this; }
+  void                          handle_ul_ccch_indication(const ul_ccch_indication_message& msg) override;
+  void                          handle_crnti_ce_indication(const ul_crnti_ce_indication_message& msg) override;
 
   // Task scheduling interface.
+  du_manager_context_configurator& get_context_configurator() override { return *this; }
   void schedule_async_task(async_task<void>&& task) override { main_ctrl_loop.schedule(std::move(task)); }
   void schedule_async_task(du_ue_index_t ue_index, async_task<void>&& task) override
   {
@@ -57,6 +62,8 @@ public:
   void handle_ue_reestablishment(du_ue_index_t new_ue_index, du_ue_index_t old_ue_index) override;
 
   void handle_ue_config_applied(du_ue_index_t ue_index) override;
+
+  du_configurator& get_operation_configurator() override { return *this; }
 
   async_task<du_mac_sched_control_config_response>
   configure_ue_mac_scheduler(du_mac_sched_control_config reconf) override;

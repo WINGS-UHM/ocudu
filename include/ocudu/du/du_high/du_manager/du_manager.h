@@ -44,10 +44,10 @@ public:
 };
 
 /// This class handles updates in cell and UE configurations. TODO: Better naming needed.
-class du_manager_configurator
+class du_manager_context_configurator
 {
 public:
-  virtual ~du_manager_configurator() = default;
+  virtual ~du_manager_context_configurator() = default;
 
   /// \brief Schedule asynchronous task in a DU-wide scope.
   virtual void schedule_async_task(async_task<void>&& task) = 0;
@@ -106,16 +106,25 @@ public:
 };
 
 /// Interface that provides a handle to the DU manager.
-class du_manager : public du_manager_configurator, public du_manager_mac_event_handler, public du_configurator
+class du_manager
 {
 public:
-  ~du_manager() override = default;
+  virtual ~du_manager() = default;
 
   /// Get controller to DU manager to start and stop its activity.
   virtual du_manager_controller& get_controller() = 0;
 
+  /// Get handler of MAC events.
+  virtual du_manager_mac_event_handler& get_mac_event_handler() = 0;
+
   /// Get entity responsibly for aggregating metrics from all DU layers.
   virtual du_manager_mac_metric_aggregator& get_metrics_aggregator() = 0;
+
+  /// Get configuration handling interface of the DU manager.
+  virtual du_manager_context_configurator& get_context_configurator() = 0;
+
+  /// Get configuration interface with the procedures that are triggered externally to the DU.
+  virtual du_configurator& get_operation_configurator() = 0;
 };
 
 } // namespace odu

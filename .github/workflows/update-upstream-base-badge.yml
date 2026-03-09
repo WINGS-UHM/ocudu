@@ -3,7 +3,7 @@ name: Update upstream base badge
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: write
@@ -25,10 +25,16 @@ jobs:
       - name: Compute upstream base commit and write badge JSON
         run: |
           UPSTREAM_BRANCH="dev"
+
           BASE_SHA="$(git merge-base HEAD upstream/${UPSTREAM_BRANCH})"
           SHORT_SHA="$(git rev-parse --short ${BASE_SHA})"
 
+          # ISO style date of that commit
+          MERGE_DATE="$(git show -s --format=%cs ${BASE_SHA})"
+
           mkdir -p .github/badges
+
+          # SHA badge
           cat > .github/badges/upstream-base.json <<EOF
           {
             "schemaVersion": 1,
@@ -38,14 +44,24 @@ jobs:
           }
           EOF
 
+          # DATE badge
+          cat > .github/badges/upstream-date.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "Last Upstream Sync",
+            "message": "${MERGE_DATE}",
+            "color": "brightgreen"
+          }
+          EOF
+
       - name: Commit & push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .github/badges/upstream-base.json
+          git add .github/badges/upstream-base.json .github/badges/upstream-date.json
           if git diff --cached --quiet; then
             echo "No changes."
           else
-            git commit -m "chore: update upstream base badge"
+            git commit -m "[update] upstream badges"
             git push
           fi

@@ -22,7 +22,7 @@ We aim to periodically synchronize with upstream releases while preserving ISAC-
 <a href="https://gitlab.com/ocudu/ocudu/-/commits/dev" target="_blank">
   <img alt="Upstream base" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/WINGS-UHM/ocudu/main/.github/badges/upstream-base.json">
 </a>
-
+<a href= "https://gitlab.com/ocudu/ocudu/-/commits/dev" target="_blank"><img alt="Upstrem Date" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/<user>/<repo>/main/.github/badges/upstream-date.json"> </a>
 
 # The OCUDU Project
 

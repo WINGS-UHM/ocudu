@@ -3,7 +3,7 @@ name: Weekly mirror of GitLab dev -> upstream-dev
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 10 * * 1" 
+    - cron: "20 10 * * 1,5" 
 
 permissions:
   contents: write
@@ -16,12 +16,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Add/fetch upstream (GitLab)
         run: |
           git remote add upstream https://gitlab.com/ocudu/ocudu.git || true
           git fetch upstream --prune
-
-      - name: Force-update upstream-dev to match upstream/dev
+          git fetch origin upstream-dev || true
+      - name: Update upstream-dev on GitHub if upstream/dev has new commits
         run: |
-          git push origin refs/remotes/upstream/dev:refs/heads/upstream-dev --force
+          UPSTREAM=$(git rev-parse upstream/dev)
+          CURRENT=$(git rev-parse origin/upstream-dev 2>/dev/null || echo "none")
+
+          echo "Upstream commit: $UPSTREAM"
+          echo "Current upstream-dev: $CURRENT"
+
+          if [ "$UPSTREAM" != "$CURRENT" ]; then
+            echo "New upstream commit detected. Updating upstream-dev."
+            git push origin refs/remotes/upstream/dev:refs/heads/upstream-dev --force
+          else
+            echo "No updates in upstream/dev. Skipping push."
+          fi

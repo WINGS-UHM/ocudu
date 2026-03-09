@@ -392,16 +392,7 @@ void pusch_demodulator_impl::demodulate(pusch_codeword_buffer&              code
     //           eq_noise_vars.size(),
     //           nof_re_symbol,
     //           nof_rx_ports,
-    //           config.nof_tx_layers);
-
-    //   fprintf(stderr,
-    //           "[ISAC DEBUG] sink.write(ci=%p cq=%p n_const=? mag=%p phase=%p n_csi=? ts=%lu)\n",
-    //           (void*)nullptr,
-    //           (void*)nullptr,
-    //           (void*)nullptr,
-    //           (void*)nullptr,
-    //           tstamp_ns);
-    // }
+    //           config.nof_tx_layers);0}
     // Estimate post equalization Signal-to-Interference-plus-Noise Ratio.
     if (compute_post_eq_sinr) {
       symbol_noise_var_accumulate += filter_infinite_and_accumulate(symbol_sinr_softbit_count, eq_noise_vars);

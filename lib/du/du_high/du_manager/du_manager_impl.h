@@ -58,8 +58,6 @@ public:
 
   void handle_ue_config_applied(du_ue_index_t ue_index) override;
 
-  size_t nof_ues() override;
-
   async_task<du_mac_sched_control_config_response>
   configure_ue_mac_scheduler(du_mac_sched_control_config reconf) override;
 

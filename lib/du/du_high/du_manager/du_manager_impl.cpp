@@ -129,19 +129,6 @@ void du_manager_impl::handle_ue_config_applied(du_ue_index_t ue_index)
   ue_mng.handle_ue_config_applied(ue_index);
 }
 
-size_t du_manager_impl::nof_ues()
-{
-  // TODO: This is temporary code.
-  size_t     result = 0;
-  sync_event ev;
-  if (not params.services.du_mng_exec.execute(
-          [this, &result, tk = ev.get_token()]() mutable { result = ue_mng.nof_ues(); })) {
-    logger.warning("Unable to compute the number of UEs active in the DU");
-    return std::numeric_limits<size_t>::max();
-  }
-  return result;
-}
-
 async_task<du_mac_sched_control_config_response>
 du_manager_impl::configure_ue_mac_scheduler(du_mac_sched_control_config reconf)
 {

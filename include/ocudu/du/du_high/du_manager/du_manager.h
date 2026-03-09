@@ -92,13 +92,6 @@ public:
   virtual f1ap_du_positioning_handler& get_positioning_handler() = 0;
 };
 
-class du_manager_interface_query
-{
-public:
-  virtual ~du_manager_interface_query() = default;
-  virtual size_t nof_ues()              = 0;
-};
-
 /// Interface to initiate and stop the DU manager activity.
 class du_manager_controller
 {
@@ -113,10 +106,7 @@ public:
 };
 
 /// Interface that provides a handle to the DU manager.
-class du_manager : public du_manager_interface_query,
-                   public du_manager_configurator,
-                   public du_manager_mac_event_handler,
-                   public du_configurator
+class du_manager : public du_manager_configurator, public du_manager_mac_event_handler, public du_configurator
 {
 public:
   ~du_manager() override = default;

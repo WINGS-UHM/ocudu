@@ -5,8 +5,12 @@
 #pragma once
 
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/cause/xnap_cause.h"
+#include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/up_transport_layer_info.h"
+#include "ocudu/security/security.h"
 
 namespace ocudu::ocucp {
 
@@ -77,5 +81,63 @@ struct cu_cp_handover_request_failure {
 
 using cu_cp_handover_resource_allocation_response =
     std::variant<cu_cp_handover_request_ack, cu_cp_handover_request_failure>;
+
+struct cu_cp_user_plane_security_info {
+  security_result_t     security_result;
+  security_indication_t security_ind;
+};
+
+struct cu_cp_pdu_session_res_to_be_switched_dl_item {
+  pdu_session_id_t                              pdu_session_id = pdu_session_id_t::invalid;
+  up_transport_layer_info                       dl_ngu_up_tnl_info;
+  bool                                          dl_ngu_tnl_info_reused = false;
+  std::optional<cu_cp_user_plane_security_info> user_plane_security_info;
+  std::vector<qos_flow_id_t>                    qos_flow_accepted_list;
+};
+
+struct cu_cp_pdu_session_res_failed_to_setup_item {
+  pdu_session_id_t                         pdu_session_id = pdu_session_id_t::invalid;
+  std::variant<ngap_cause_t, xnap_cause_t> cause;
+};
+
+struct cu_cp_path_switch_request {
+  ue_index_t                                                ue_index = ue_index_t::invalid;
+  unsigned                                                  source_amf_ue_ngap_id;
+  cu_cp_user_location_info_nr                               user_location_info;
+  security::supported_algorithms                            supported_enc_algos;
+  security::supported_algorithms                            supported_int_algos;
+  std::vector<cu_cp_pdu_session_res_to_be_switched_dl_item> pdu_session_res_to_be_switched_dl_list;
+  std::vector<cu_cp_pdu_session_res_failed_to_setup_item>   pdu_session_res_failed_to_setup_list_ps_req;
+  // Note: per 3GPP TS 38.413, section 9.2.3.8 this is a establishment cause, although it is named "RRC resume cause".
+  std::optional<establishment_cause_t> rrc_resume_cause;
+};
+
+struct cu_cp_pdu_session_res_switched_item {
+  pdu_session_id_t                       pdu_session_id = pdu_session_id_t::invalid;
+  std::optional<up_transport_layer_info> ul_ngu_up_tnl_info;
+  std::optional<security_indication_t>   security_ind;
+};
+
+struct cu_cp_pdu_session_res_released_item {
+  pdu_session_id_t pdu_session_id = pdu_session_id_t::invalid;
+  ngap_cause_t     cause;
+};
+
+struct cu_cp_path_switch_request_ack {
+  ue_index_t                                                 ue_index = ue_index_t::invalid;
+  security::security_context                                 security_context;
+  std::vector<cu_cp_pdu_session_res_switched_item>           pdu_session_res_switched_list;
+  std::vector<cu_cp_pdu_session_res_released_item>           pdu_session_res_released_list;
+  std::vector<s_nssai_t>                                     allowed_nssai;
+  std::optional<ngap_core_network_assist_info_for_inactive>  core_network_assist_info_for_inactive;
+  std::optional<ngap_rrc_inactive_transition_report_request> rrc_inactive_transition_report_request;
+};
+
+struct cu_cp_path_switch_request_failure {
+  ue_index_t                                       ue_index = ue_index_t::invalid;
+  std::vector<cu_cp_pdu_session_res_released_item> pdu_session_res_released_list;
+};
+
+using cu_cp_path_switch_response = std::variant<cu_cp_path_switch_request_ack, cu_cp_path_switch_request_failure>;
 
 } // namespace ocudu::ocucp

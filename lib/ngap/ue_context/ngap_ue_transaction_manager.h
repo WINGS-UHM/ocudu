@@ -7,14 +7,16 @@
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/support/async/protocol_transaction_manager.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class ngap_ue_transaction_manager
 {
 public:
   ngap_ue_transaction_manager(timer_factory timers) :
-    handover_preparation_outcome(timers), handover_cancel_outcome(timers), dl_ran_status_transfer_outcome(timers)
+    handover_preparation_outcome(timers),
+    handover_cancel_outcome(timers),
+    dl_ran_status_transfer_outcome(timers),
+    path_switch_outcome(timers)
   {
   }
 
@@ -32,7 +34,10 @@ public:
 
   /// DL RAN Status Transfer source.
   protocol_transaction_event_source<asn1::ngap::dl_ran_status_transfer_s> dl_ran_status_transfer_outcome;
+
+  /// Path Switch Request Ack/Failure Event Source.
+  protocol_transaction_event_source<asn1::ngap::path_switch_request_ack_s, asn1::ngap::path_switch_request_fail_s>
+      path_switch_outcome;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

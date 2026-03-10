@@ -17,9 +17,7 @@
 #include "ocudu/support/executors/task_executor.h"
 #include <memory>
 
-namespace ocudu {
-
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class ngap_impl final : public ngap_interface
 {
@@ -74,6 +72,8 @@ public:
   async_task<void> handle_ul_non_ue_associated_nrppa_transport(const byte_buffer& nrppa_pdu) override;
   async_task<bool>
   handle_rrc_inactive_transition_report_required(const ngap_rrc_inactive_transition_report& report) override;
+  async_task<cu_cp_path_switch_response>
+  handle_path_switch_request_required(const cu_cp_path_switch_request& request) override;
 
   // ngap_metrics_handler.
   ngap_info handle_ngap_metrics_report_request() const override;
@@ -244,6 +244,4 @@ private:
   tx_pdu_notifier_with_logging tx_pdu_notifier;
 };
 
-} // namespace ocucp
-
-} // namespace ocudu
+} // namespace ocudu::ocucp

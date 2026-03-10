@@ -263,6 +263,8 @@ ocudu::ocucp::asn1_utils::get_amf_ue_id(const asn1::ngap::successful_outcome_s& 
       return uint_to_amf_ue_id(success_outcome.value.ue_context_suspend_resp()->amf_ue_ngap_id);
     case success_types::ue_radio_cap_check_resp:
       return uint_to_amf_ue_id(success_outcome.value.ue_radio_cap_check_resp()->amf_ue_ngap_id);
+    case success_types::path_switch_request_ack:
+      return uint_to_amf_ue_id(success_outcome.value.path_switch_request_ack()->amf_ue_ngap_id);
     default:
       break;
   }
@@ -289,6 +291,9 @@ ocudu::ocucp::asn1_utils::get_amf_ue_id(const asn1::ngap::unsuccessful_outcome_s
       return uint_to_amf_ue_id(unsuccessful_outcome.value.ue_context_resume_fail()->amf_ue_ngap_id);
     case unsuccess_types::ue_context_suspend_fail:
       return uint_to_amf_ue_id(unsuccessful_outcome.value.ue_context_suspend_fail()->amf_ue_ngap_id);
+    case unsuccess_types::path_switch_request_fail:
+      return uint_to_amf_ue_id(unsuccessful_outcome.value.path_switch_request_fail()->amf_ue_ngap_id);
+
     default:
       break;
   }

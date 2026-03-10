@@ -302,6 +302,12 @@ public:
   /// \brief Initiates the transmission of a RRC inactive transition report.
   virtual async_task<bool>
   handle_rrc_inactive_transition_report_required(const ngap_rrc_inactive_transition_report& report) = 0;
+
+  /// \brief Initiates the transmission of a Path Switch Request message.
+  /// \param[in] path_switch_request The information about the Path Switch Request to send.
+  /// \returns The response of the Path Switch Request procedure.
+  virtual async_task<cu_cp_path_switch_response>
+  handle_path_switch_request_required(const cu_cp_path_switch_request& request) = 0;
 };
 
 /// Interface to control the NGAP.

@@ -82,6 +82,27 @@ struct cu_cp_handover_request_failure {
 using cu_cp_handover_resource_allocation_response =
     std::variant<cu_cp_handover_request_ack, cu_cp_handover_request_failure>;
 
+struct cu_cp_drb_status_ul_t {
+  pdcp_sn_size    sn_size;
+  pdcp_count_info ul_count;
+};
+
+struct cu_cp_drb_status_dl_t {
+  pdcp_sn_size    sn_size;
+  pdcp_count_info dl_count;
+};
+
+struct cu_cp_drbs_subject_to_status_transfer_item {
+  drb_id_t              drb_id;
+  cu_cp_drb_status_dl_t drb_status_dl;
+  cu_cp_drb_status_ul_t drb_status_ul;
+};
+
+struct cu_cp_status_transfer {
+  ue_index_t                                                              ue_index = ue_index_t::invalid;
+  slotted_id_vector<drb_id_t, cu_cp_drbs_subject_to_status_transfer_item> drbs_subject_to_status_transfer_list;
+};
+
 struct cu_cp_user_plane_security_info {
   security_result_t     security_result;
   security_indication_t security_ind;

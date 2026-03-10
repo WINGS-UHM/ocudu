@@ -46,7 +46,7 @@ private:
   e1ap_bearer_context_modification_response bearer_mod_resp         = {};
   f1ap_ue_context_modification_response     ue_context_mod_response = {};
   f1ap_ue_context_modification_request      ue_context_mod_request  = {};
-  ngap_ul_ran_status_transfer               ul_ran_status_transfer  = {};
+  cu_cp_status_transfer                     ul_ran_status_transfer  = {};
 };
 
 } // namespace ocudu::ocucp

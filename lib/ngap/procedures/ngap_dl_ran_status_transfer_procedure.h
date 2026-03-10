@@ -6,7 +6,7 @@
 
 #include "ue_context/ngap_ue_logger.h"
 #include "ue_context/ngap_ue_transaction_manager.h"
-#include "ocudu/ngap/ngap_handover.h"
+#include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/support/async/async_task.h"
 
 namespace ocudu::ocucp {
@@ -15,11 +15,9 @@ namespace ocudu::ocucp {
 class ngap_dl_ran_status_transfer_procedure
 {
 public:
-  ngap_dl_ran_status_transfer_procedure(ngap_ue_transaction_manager& ev_mng,
-                                        timer_factory                timers,
-                                        ngap_ue_logger&              logger_);
+  ngap_dl_ran_status_transfer_procedure(ngap_ue_transaction_manager& ev_mng, ngap_ue_logger& logger_);
 
-  void operator()(coro_context<async_task<expected<ngap_dl_ran_status_transfer>>>& ctx);
+  void operator()(coro_context<async_task<expected<cu_cp_status_transfer>>>& ctx);
 
 private:
   static const char* name() { return "DL RAN Status Transfer Procedure"; }
@@ -28,8 +26,8 @@ private:
   ngap_ue_transaction_manager& ev_mng;
   ngap_ue_logger&              logger;
 
-  ue_index_t                  ue_index;
-  ngap_dl_ran_status_transfer dl_ran_status_transfer;
+  ue_index_t            ue_index;
+  cu_cp_status_transfer dl_ran_status_transfer;
 
   protocol_transaction_outcome_observer<asn1::ngap::dl_ran_status_transfer_s> transaction_sink;
   protocol_transaction_outcome_observer<asn1::ngap::ho_cancel_ack_s> dl_status_transfer_cancel_transaction_sink;

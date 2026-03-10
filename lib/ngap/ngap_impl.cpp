@@ -953,7 +953,7 @@ void ngap_impl::handle_dl_ran_status_transfer(const asn1::ngap::dl_ran_status_tr
   ue_ctxt.ev_mng.dl_ran_status_transfer_outcome.set(msg);
 }
 
-void ngap_impl::handle_ul_ran_status_transfer(const ngap_ul_ran_status_transfer& ul_ran_status_transfer)
+void ngap_impl::handle_ul_ran_status_transfer(const cu_cp_status_transfer& ul_ran_status_transfer)
 {
   const ue_index_t ue_index = ul_ran_status_transfer.ue_index;
   if (!ue_ctxt_list.contains(ue_index)) {
@@ -980,12 +980,12 @@ void ngap_impl::handle_ul_ran_status_transfer(const ngap_ul_ran_status_transfer&
   }
 }
 
-async_task<expected<ngap_dl_ran_status_transfer>> ngap_impl::handle_dl_ran_status_transfer_required(ue_index_t ue_index)
+async_task<expected<cu_cp_status_transfer>> ngap_impl::handle_dl_ran_status_transfer_required(ue_index_t ue_index)
 {
   if (!ue_ctxt_list.contains(ue_index)) {
     logger.warning("ue={}: Cannot await DLRANStatusTransfer. UE context does not exist", ue_index);
 
-    auto err_function = [](coro_context<async_task<expected<ngap_dl_ran_status_transfer>>>& ctx) {
+    auto err_function = [](coro_context<async_task<expected<cu_cp_status_transfer>>>& ctx) {
       CORO_BEGIN(ctx);
       CORO_RETURN(make_unexpected(default_error_t{}));
     };
@@ -993,8 +993,7 @@ async_task<expected<ngap_dl_ran_status_transfer>> ngap_impl::handle_dl_ran_statu
   }
 
   ngap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
-  return launch_async<ngap_dl_ran_status_transfer_procedure>(
-      ue_ctxt.ev_mng, timer_factory{timers, ctrl_exec}, ue_ctxt.logger);
+  return launch_async<ngap_dl_ran_status_transfer_procedure>(ue_ctxt.ev_mng, ue_ctxt.logger);
 }
 
 void ngap_impl::handle_dl_ue_associated_nrppa_transport(const asn1::ngap::dl_ue_associated_nrppa_transport_s& msg)

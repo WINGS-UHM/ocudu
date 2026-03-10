@@ -103,30 +103,4 @@ struct ngap_handover_request {
   // TODO: Add optional cn_assisted_ran_tuning
 };
 
-struct ngap_drb_status_ul_t {
-  pdcp_sn_size    sn_size;
-  pdcp_count_info ul_count;
-};
-
-struct ngap_drb_status_dl_t {
-  pdcp_sn_size    sn_size;
-  pdcp_count_info dl_count;
-};
-
-struct ngap_drbs_subject_to_status_transfer_item {
-  drb_id_t             drb_id;
-  ngap_drb_status_dl_t drb_status_dl;
-  ngap_drb_status_ul_t drb_status_ul;
-};
-
-struct ngap_ul_ran_status_transfer {
-  ue_index_t                                                             ue_index = ue_index_t::invalid;
-  slotted_id_vector<drb_id_t, ngap_drbs_subject_to_status_transfer_item> drbs_subject_to_status_transfer_list;
-};
-
-struct ngap_dl_ran_status_transfer {
-  ue_index_t                                                             ue_index = ue_index_t::invalid;
-  slotted_id_vector<drb_id_t, ngap_drbs_subject_to_status_transfer_item> drbs_subject_to_status_transfer_list;
-};
-
 } // namespace ocudu::ocucp

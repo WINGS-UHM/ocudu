@@ -280,11 +280,10 @@ public:
   handle_handover_preparation_request(const ngap_handover_preparation_request& msg) = 0;
 
   /// \brief Initiates the transmission of an UL RAN status transfer message.
-  virtual void handle_ul_ran_status_transfer(const ngap_ul_ran_status_transfer& ul_status_transfer) = 0;
+  virtual void handle_ul_ran_status_transfer(const cu_cp_status_transfer& ul_status_transfer) = 0;
 
   /// \brief Prepares the reception of a DL RAN status transfer message.
-  virtual async_task<expected<ngap_dl_ran_status_transfer>>
-  handle_dl_ran_status_transfer_required(ue_index_t ue_index) = 0;
+  virtual async_task<expected<cu_cp_status_transfer>> handle_dl_ran_status_transfer_required(ue_index_t ue_index) = 0;
 
   /// \brief Handle the reception of an inter CU handover related RRC Reconfiguration Complete.
   virtual void

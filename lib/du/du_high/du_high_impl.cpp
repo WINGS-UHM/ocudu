@@ -102,6 +102,11 @@ du_high_impl::~du_high_impl()
 
 void du_high_impl::start()
 {
+  if (std::exchange(is_running, true)) {
+    logger.warning("Discarding DU start request. Cause: DU already started.");
+    return;
+  }
+
   logger.info("Starting DU-High...");
   du_mng->get_controller().start();
   logger.info("DU-High started successfully");
@@ -109,7 +114,7 @@ void du_high_impl::start()
 
 void du_high_impl::stop()
 {
-  if (not is_running.exchange(false, std::memory_order::memory_order_relaxed)) {
+  if (not std::exchange(is_running, false)) {
     return;
   }
 
@@ -118,7 +123,12 @@ void du_high_impl::stop()
   logger.info("DU-High stopped successfully");
 }
 
-f1ap_du& du_high_impl::get_f1ap_du()
+f1ap_message_handler& du_high_impl::get_f1ap_pdu_handler()
+{
+  return *f1ap;
+}
+
+f1ap_ue_id_translator& du_high_impl::get_f1ap_ue_id_translator()
 {
   return *f1ap;
 }

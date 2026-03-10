@@ -10,7 +10,6 @@
 
 namespace ocudu {
 
-class task_executor;
 class fifo_async_task_scheduler;
 
 namespace odu {
@@ -37,8 +36,9 @@ private:
   fifo_async_task_scheduler&  main_task_sched;
   const du_proc_context_view& proc_ctxt;
 
-  /// State of the DU seen from the caller side.
-  bool frontend_running = false;
+  /// \brief State of the DU seen from the caller side (instead of the DU manager execution context).
+  /// This flag is useful to avoid redundant start/stop tasks.
+  bool running_guard_flag = false;
 };
 
 } // namespace odu

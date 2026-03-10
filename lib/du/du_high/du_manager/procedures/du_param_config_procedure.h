@@ -35,14 +35,13 @@ private:
   const du_param_config_request request;
   const du_manager_params&      du_params;
   du_cell_manager&              du_cells;
-  error_type<std::string>       req_validation_outcome;
   ocudulog::basic_logger&       logger;
 
   unsigned next_cell_idx = 0;
 
   static_vector<du_cell_reconfig_result, MAX_NOF_DU_CELLS> changed_cells;
 
-  du_param_config_response resp;
+  du_param_config_response resp{};
 };
 
 } // namespace odu

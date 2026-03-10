@@ -98,10 +98,12 @@ class du_manager_controller
 public:
   virtual ~du_manager_controller() = default;
 
-  /// \brief Initiate the DU manager. This call is blocking and only returns once the DU finishes its setul.
+  /// \brief Initiate the DU manager.
+  /// \remark This call is blocking and only returns once the DU finishes its setup.
   virtual void start() = 0;
 
-  /// \brief Stop the DU manager. This call is blocking and only returns once all tasks in the DU manager are completed.
+  /// \brief Stop the DU manager.
+  /// \remark This call is blocking and only returns once all tasks in the DU manager have completed.
   virtual void stop() = 0;
 };
 

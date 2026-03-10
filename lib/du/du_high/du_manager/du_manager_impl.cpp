@@ -8,13 +8,10 @@
 #include "procedures/du_cell_stop_procedure.h"
 #include "procedures/du_mac_ntn_param_update_procedure.h"
 #include "procedures/du_param_config_procedure.h"
-#include "procedures/du_setup_procedure.h"
-#include "procedures/du_stop_procedure.h"
 #include "procedures/du_ue_reset_procedure.h"
 #include "procedures/du_ue_ric_configuration_procedure.h"
 #include "procedures/f1c_disconnection_handling_procedure.h"
 #include "ocudu/mac/mac_pdu_handler.h"
-#include "ocudu/support/async/async_timer.h"
 #include "ocudu/support/async/execute_on_blocking.h"
 #include "ocudu/support/executors/execute_until_success.h"
 #include "ocudu/support/synchronization/sync_event.h"
@@ -130,7 +127,7 @@ void du_manager_impl::handle_ue_config_applied(du_ue_index_t ue_index)
 }
 
 async_task<du_mac_sched_control_config_response>
-du_manager_impl::configure_ue_mac_scheduler(du_mac_sched_control_config reconf)
+du_manager_impl::configure_ue_mac_scheduler(const du_mac_sched_control_config& reconf)
 {
   return launch_async<du_ue_ric_configuration_procedure>(reconf, ue_mng, params);
 }

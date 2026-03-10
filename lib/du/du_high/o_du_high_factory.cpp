@@ -149,7 +149,7 @@ std::unique_ptr<o_du_high> ocudu::odu::make_o_du_high(const o_du_high_config&  c
   auto e2agent = create_e2_du_agent(config.e2ap_config,
                                     *odu_dependencies.e2_client,
                                     odu_dependencies.e2_du_metric_iface,
-                                    &du_hi->get_f1ap_du(),
+                                    &du_hi->get_f1ap_ue_id_translator(),
                                     &du_hi->get_du_configurator(),
                                     timer_factory{odu_dependencies.du_hi.timer_ctrl->get_timer_manager(),
                                                   odu_dependencies.du_hi.exec_mapper->du_e2_executor()},

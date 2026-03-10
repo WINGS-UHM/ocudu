@@ -22,12 +22,11 @@ du_manager_controller_impl::du_manager_controller_impl(const du_proc_context_vie
 void du_manager_controller_impl::start()
 {
   // Check if not already running.
-  if (frontend_running) {
+  if (running_guard_flag) {
     proc_ctxt.logger.warning("Discarding DU start request. Cause: DU Manager already started.");
     return;
   }
-  frontend_running = true;
-  proc_ctxt.logger.info("DU manager starting...");
+  running_guard_flag = true;
 
   sync_event ev;
   if (not proc_ctxt.params.services.du_mng_exec.execute([this, tk = ev.get_token()]() mutable {
@@ -49,17 +48,16 @@ void du_manager_controller_impl::start()
 
   // Block waiting for DU setup to complete.
   ev.wait();
-  proc_ctxt.logger.info("DU manager started successfully.");
-  ocudu_sanity_check(frontend_running, "DU manager start()/stop() being used in an non-sequential manner");
+  ocudu_sanity_check(running_guard_flag, "DU manager start()/stop() being used in an non-sequential manner");
 }
 
 void du_manager_controller_impl::stop()
 {
-  if (not frontend_running) {
+  if (not running_guard_flag) {
     // Stop was already requested. Do nothing.
     return;
   }
-  frontend_running = false;
+  running_guard_flag = false;
 
   sync_event ev;
   while (not proc_ctxt.params.services.du_mng_exec.execute(
@@ -71,7 +69,7 @@ void du_manager_controller_impl::stop()
 
   // Block waiting for async task to complete.
   ev.wait();
-  ocudu_sanity_check(not frontend_running, "DU manager start()/stop() being used in an non-sequential manner");
+  ocudu_sanity_check(not running_guard_flag, "DU manager start()/stop() being used in an non-sequential manner");
 }
 
 void du_manager_controller_impl::handle_du_stop_request(scoped_sync_token tk)

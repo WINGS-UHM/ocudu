@@ -16,7 +16,6 @@ namespace ocudu {
 namespace odu {
 
 class du_configurator;
-class du_manager_time_mapper_accessor;
 
 /// Interface to DU-high class, which owns and manages the interaction between MAC, RLC and F1 layers.
 class du_high
@@ -24,14 +23,17 @@ class du_high
 public:
   virtual ~du_high() = default;
 
-  /// Starts this DU high.
+  /// Starts this DU, setting it in operational mode. If the DU was already in operational mode, it does nothing.
   virtual void start() = 0;
 
-  /// Stops this DU high.
+  /// Stops this DU operation.
   virtual void stop() = 0;
 
-  /// Get the F1AP DU.
-  virtual f1ap_du& get_f1ap_du() = 0;
+  /// Get handler to received F1AP PDUs.
+  virtual f1ap_message_handler& get_f1ap_pdu_handler() = 0;
+
+  /// Get handler to F1AP ID translator.
+  virtual f1ap_ue_id_translator& get_f1ap_ue_id_translator() = 0;
 
   /// \brief Returns handler of slot indications for a cell with provided cell_index.
   /// \param cell_index Index of cell currently activated in the DU.
@@ -45,13 +47,14 @@ public:
   /// \param cell_index Index of cell currently activated in the DU.
   virtual mac_cell_control_information_handler& get_control_info_handler(du_cell_index_t cell_index) = 0;
 
-  /// Returns MAC Rx PDU handler.
+  /// \brief Returns MAC Rx PDU handler.
+  /// The lower layers will use this interface to forward decoded UL PDUs to the MAC.
   virtual mac_pdu_handler& get_pdu_handler() = 0;
 
-  /// Returns handler to configure and control the UEs attached to this DU.
+  /// Returns handler to configure the operational serving cells and UEs attached to this DU.
   virtual du_configurator& get_du_configurator() = 0;
 
-  /// Returns handler to get Cell MAC slot-time mapper.
+  /// Returns a mapper of slots to system time.
   virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
 };
 

@@ -66,7 +66,7 @@ public:
   du_configurator& get_operation_configurator() override { return *this; }
 
   async_task<du_mac_sched_control_config_response>
-  configure_ue_mac_scheduler(du_mac_sched_control_config reconf) override;
+  configure_ue_mac_scheduler(const du_mac_sched_control_config& reconf) override;
 
   du_param_config_response             handle_sync_operator_config(const du_param_config_request& req) override;
   async_task<du_param_config_response> handle_operator_config(const du_param_config_request& req,

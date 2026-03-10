@@ -269,7 +269,7 @@ bool du_high_env_simulator::run_rrc_reestablishment(rnti_t rnti, rnti_t old_rnti
   // Run F1AP UE Context Modification procedure.
   msg = test_helpers::generate_ue_context_modification_request(*u.du_ue_id, *u.cu_ue_id, {}, {drb_id_t::drb1}, {});
   cu_notifier.f1ap_ul_msgs.clear();
-  du_hi->get_f1ap_du().handle_message(msg);
+  du_hi->get_f1ap_pdu_handler().handle_message(msg);
   bool ret = run_until([this]() { return not cu_notifier.f1ap_ul_msgs.empty(); });
   if (not ret) {
     test_logger.error("rnti={}: F1AP UE Context Modification Request not sent back to the CU-CP", u.rnti);
@@ -320,7 +320,7 @@ bool du_high_env_simulator::send_dl_rrc_msg_and_await_ul_rrc_msg(const ue_sim_co
   lcid_t dl_lcid = uint_to_lcid(dl_msg.pdu.init_msg().value.dl_rrc_msg_transfer()->srb_id);
   lcid_t ul_lcid = dl_lcid == LCID_SRB0 ? LCID_SRB1 : dl_lcid;
 
-  du_hi->get_f1ap_du().handle_message(dl_msg);
+  du_hi->get_f1ap_pdu_handler().handle_message(dl_msg);
 
   // Wait for DL message to be sent to the PHY.
   if (not await_dl_msg_sched(u, dl_lcid)) {
@@ -377,7 +377,7 @@ bool du_high_env_simulator::run_ue_context_setup(rnti_t rnti)
                            0x39, 0x51, 0x40, 0x00, 0x40, 0x00, 0x02, 0x59, 0x65, 0x40, 0x0d, 0x2a, 0xaa, 0x1e, 0x00,
                            0x0e, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x08, 0x01, 0x00, 0x20, 0x48, 0x14})
           .value();
-  this->du_hi->get_f1ap_du().handle_message(msg);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(msg);
 
   // Wait until DU sends UE Context Setup Response and the whole RRC container is scheduled.
   const unsigned MAX_SLOT_COUNT   = 1000;
@@ -444,7 +444,7 @@ bool du_high_env_simulator::run_ue_context_release(rnti_t rnti, srb_id_t srb_id)
   // Send UE Context Release Command which contains dummy RRC Release.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message msg = test_helpers::generate_ue_context_release_command(*u.cu_ue_id, *u.du_ue_id, srb_id);
-  du_hi->get_f1ap_du().handle_message(msg);
+  du_hi->get_f1ap_pdu_handler().handle_message(msg);
 
   // Await for RRC container to be scheduled in the MAC.
   lcid_t lcid = srb_id_to_lcid(srb_id);
@@ -768,7 +768,7 @@ du_high_env_simulator::launch_ue_context_release_task(rnti_t rnti, srb_id_t srb_
       // Send UE Context Release Command which contains dummy RRC Release.
       msgno   = cu_notifier.next_ul_message_number();
       rel_cmd = test_helpers::generate_ue_context_release_command(*u->cu_ue_id, *u->du_ue_id, srb_id);
-      du_hi->get_f1ap_du().handle_message(rel_cmd);
+      du_hi->get_f1ap_pdu_handler().handle_message(rel_cmd);
     }
 
     // Await for RRC container to be scheduled in the MAC.
@@ -843,7 +843,7 @@ async_task<bool> du_high_env_simulator::launch_send_dl_rrc_msg_and_await_ul_rrc_
     CORO_BEGIN(ctx);
 
     // Send DL RRC Message.
-    du_hi->get_f1ap_du().handle_message(dl_msg);
+    du_hi->get_f1ap_pdu_handler().handle_message(dl_msg);
 
     // Wait until DL message is scheduled in the MAC.
     CORO_AWAIT(launch_await_dl_msg_sched_task(u, dl_lcid));

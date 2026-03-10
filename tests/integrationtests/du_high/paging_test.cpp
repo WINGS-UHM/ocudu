@@ -114,7 +114,7 @@ TEST_F(paging_tester, when_paging_message_is_received_its_relayed_to_ue)
   // Receive F1AP paging message.
   cu_notifier.f1ap_ul_msgs.clear();
   const auto& du_cell_cfg = this->du_high_cfg.ran.cells[0];
-  this->du_hi->get_f1ap_du().handle_message(generate_paging_message(five_g_tmsi, du_cell_cfg.nr_cgi));
+  this->du_hi->get_f1ap_pdu_handler().handle_message(generate_paging_message(five_g_tmsi, du_cell_cfg.nr_cgi));
   // Flag indicating whether UE is Paged or not.
   bool ue_is_paged{false};
 
@@ -213,7 +213,7 @@ TEST_F(edrx_paging_test, when_f1_edrx_paging_is_received_then_it_is_sent_to_lowe
   paging->nr_paginge_drx_info.nrpaging_time_win_present = true;
   success = asn1::number_to_enum(paging->nr_paginge_drx_info.nrpaging_time_win, paging_win_coeff);
   ocudu_assert(success, "Invalid conversion");
-  this->du_hi->get_f1ap_du().handle_message(msg);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(msg);
 
   // Maximum time that can be observed without paging (accounts for the eDRX PTW, DRX SFN, and the paging scheduler's
   // look-ahead offset).

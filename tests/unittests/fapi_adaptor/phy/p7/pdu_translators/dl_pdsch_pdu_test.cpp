@@ -4,7 +4,6 @@
 
 #include "pdsch.h"
 #include "ocudu/fapi/p7/builders/dl_pdsch_pdu_builder.h"
-#include "ocudu/fapi/p7/messages/pxsch_parameters.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/ran/pdcch/dci_format.h"
 #include "ocudu/ran/sch/sch_constants.h"
@@ -166,6 +165,7 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
                     unsigned              rb_start = std::min(start_symbol_index_dist(gen), rb_size);
                     fapi::dmrs_ports_mask dmrs_ports(11);
                     dmrs_ports.from_uint64(0);
+                    unsigned nof_csi_pdus_for_rm = 0U;
 
                     fapi::dl_pdsch_pdu         fapi_pdu;
                     fapi::dl_pdsch_pdu_builder builder(fapi_pdu);
@@ -177,7 +177,8 @@ TEST(fapi_to_phy_pdsch_conversion_test, valid_pdu_conversion_success)
                         .set_codeword_generation_parameters(nid_pdsch, 0, ref_point)
                         .set_dmrs_parameters(
                             dl_dmrs_symbol, config_type, scrambling_id, n_scid, dmrs_cdm_grps_no_data, dmrs_ports)
-                        .set_codeword_parameters(tb_size_lbrm_bytes);
+                        .set_codeword_parameters(tb_size_lbrm_bytes)
+                        .set_number_of_csi_puds(nof_csi_pdus_for_rm);
 
                     auto builder_cw = builder.add_codeword();
 

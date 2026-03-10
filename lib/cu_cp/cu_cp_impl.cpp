@@ -447,7 +447,10 @@ void cu_cp_impl::handle_rrc_reestablishment_complete(ue_index_t old_ue_index)
 void cu_cp_impl::handle_rrc_reconf_complete_indicator(ue_index_t ue_index)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
-  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: Could not find UE, dropping RRC Reconfiguration Complete Indicator", ue_index);
+    return;
+  }
 
   if (ue != nullptr) {
     ue->get_task_sched().schedule_async_task(

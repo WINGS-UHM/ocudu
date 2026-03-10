@@ -74,9 +74,6 @@ private:
 
   /// XN Setup Response/Failure Event Source.
   protocol_transaction_event_source<asn1::xnap::xn_setup_resp_s, asn1::xnap::xn_setup_fail_s> xn_setup_outcome;
-
-  /// XN Handover Request Ack/Handover Preparation Failure Event Source.
-  protocol_transaction_event_source<asn1::xnap::ho_request_ack_s, asn1::xnap::ho_prep_fail_s> xn_handover_outcome;
 };
 
 } // namespace ocudu::ocucp

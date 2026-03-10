@@ -3,7 +3,10 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "xnap_asn1_utils.h"
+#include "ocudu/asn1/xnap/xnap.h"
 #include "ocudu/asn1/xnap/xnap_ies.h"
+#include "ocudu/asn1/xnap/xnap_pdu_contents.h"
+#include "ocudu/xnap/xnap_types.h"
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
@@ -40,4 +43,36 @@ const char* ocudu::ocucp::asn1_utils::get_message_type_str(const asn1::xnap::xn_
       break;
   }
   report_fatal_error("Invalid XNAP PDU type \"{}\"", pdu.type().to_string());
+}
+
+std::optional<local_xnap_ue_id_t>
+ocudu::ocucp::asn1_utils::get_local_xnap_ue_id(const asn1::xnap::successful_outcome_s& success_outcome)
+{
+  using namespace asn1::xnap;
+  using success_types = xnap_elem_procs_o::successful_outcome_c::types_opts;
+
+  switch (success_outcome.value.type()) {
+    case success_types::ho_request_ack:
+      return uint_to_local_xnap_ue_id(success_outcome.value.ho_request_ack()->source_ng_ra_nnode_ue_xn_ap_id);
+    default:
+      break;
+  }
+
+  return std::nullopt;
+}
+
+std::optional<local_xnap_ue_id_t>
+ocudu::ocucp::asn1_utils::get_local_xnap_ue_id(const asn1::xnap::unsuccessful_outcome_s& unsuccessful_outcome)
+{
+  using namespace asn1::xnap;
+  using unsuccess_types = xnap_elem_procs_o::unsuccessful_outcome_c::types_opts;
+
+  switch (unsuccessful_outcome.value.type()) {
+    case unsuccess_types::ho_prep_fail:
+      return uint_to_local_xnap_ue_id(unsuccessful_outcome.value.ho_prep_fail()->source_ng_ra_nnode_ue_xn_ap_id);
+    default:
+      break;
+  }
+
+  return std::nullopt;
 }

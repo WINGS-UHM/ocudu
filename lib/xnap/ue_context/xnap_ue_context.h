@@ -4,6 +4,9 @@
 
 #pragma once
 #include "xnap_ue_logger.h"
+#include "ocudu/asn1/xnap/xnap_pdu_contents.h"
+#include "ocudu/support/async/protocol_transaction_manager.h"
+#include "ocudu/support/timers.h"
 #include "ocudu/xnap/xnap_types.h"
 
 namespace ocudu::ocucp {
@@ -18,8 +21,16 @@ struct xnap_ue_context {
   xnap_ue_ids    ue_ids;
   xnap_ue_logger logger;
 
-  xnap_ue_context(ue_index_t ue_index_, local_xnap_ue_id_t local_xnap_ue_id_) :
-    ue_ids({ue_index_, local_xnap_ue_id_}), logger("XNAP", {ue_index_, local_xnap_ue_id_})
+  /// XN Handover Request Ack/Handover Preparation Failure Event Source.
+  protocol_transaction_event_source<asn1::xnap::ho_request_ack_s, asn1::xnap::ho_prep_fail_s> xn_handover_outcome;
+
+  xnap_ue_context(ue_index_t              ue_index_,
+                  local_xnap_ue_id_t      local_xnap_ue_id_,
+                  timer_factory           timer_db,
+                  ocudulog::basic_logger& logger_) :
+    ue_ids({ue_index_, local_xnap_ue_id_}),
+    logger("XNAP", {ue_index_, local_xnap_ue_id_}),
+    xn_handover_outcome(timer_db)
   {
   }
 };
@@ -27,7 +38,10 @@ struct xnap_ue_context {
 class xnap_ue_context_list
 {
 public:
-  xnap_ue_context_list(ocudulog::basic_logger& logger_) : logger(logger_) {}
+  xnap_ue_context_list(timer_manager& timers_, task_executor& ctrl_exec_, ocudulog::basic_logger& logger_) :
+    timers(timers_), ctrl_exec(ctrl_exec_), logger(logger_)
+  {
+  }
 
   /// \brief Checks whether a UE with the given LOCAL XNAP UE ID exists.
   /// \param[in] xnap_ue_id The LOCAL XNAP UE ID used to find the UE.
@@ -132,8 +146,9 @@ public:
     ocudu_assert(xnap_ue_id != local_xnap_ue_id_t::invalid, "Invalid xnap_ue_id={}", fmt::underlying(xnap_ue_id));
 
     logger.debug("ue={} xnap_ue={}: XNAP UE context created", fmt::underlying(ue_index), fmt::underlying(xnap_ue_id));
-    ues.emplace(
-        std::piecewise_construct, std::forward_as_tuple(xnap_ue_id), std::forward_as_tuple(ue_index, xnap_ue_id));
+    ues.emplace(std::piecewise_construct,
+                std::forward_as_tuple(xnap_ue_id),
+                std::forward_as_tuple(ue_index, xnap_ue_id, timer_factory{timers, ctrl_exec}, logger));
     ue_index_to_local_xnap_ue_id.emplace(ue_index, xnap_ue_id);
     return ues.at(xnap_ue_id);
   }
@@ -154,7 +169,9 @@ public:
     if (ue.ue_ids.peer_xnap_ue_id == peer_xnap_ue_id) {
       // If the peer XNAP UE ID is already set, we don't want to change it.
       return;
-    } else if (ue.ue_ids.peer_xnap_ue_id == peer_xnap_ue_id_t::invalid) {
+    }
+
+    if (ue.ue_ids.peer_xnap_ue_id == peer_xnap_ue_id_t::invalid) {
       // If it was not set before, we add it.
       ue.logger.log_debug("Setting peer_xnap_ue_id={}", fmt::underlying(peer_xnap_ue_id));
       ue.ue_ids.peer_xnap_ue_id = peer_xnap_ue_id;
@@ -268,6 +285,8 @@ protected:
   local_xnap_ue_id_t next_local_xnap_ue_id = local_xnap_ue_id_t::min;
 
 private:
+  timer_manager&          timers;
+  task_executor&          ctrl_exec;
   ocudulog::basic_logger& logger;
 
   void increase_next_local_xnap_ue_id()

@@ -9,12 +9,14 @@
 #include "procedures/xn_setup_procedure_asn1_helpers.h"
 #include "procedures/xnap_source_handover_preparation_procedure.h"
 #include "procedures/xnap_target_handover_preparation_procedure.h"
+#include "xnap_asn1_utils.h"
 #include "ocudu/asn1/xnap/common.h"
 #include "ocudu/asn1/xnap/xnap.h"
 #include "ocudu/asn1/xnap/xnap_ies.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
 #include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/xnap/xnap_message.h"
+#include "ocudu/xnap/xnap_types.h"
 
 using namespace ocudu;
 using namespace asn1::xnap;
@@ -26,14 +28,13 @@ xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
                      timer_manager&                         timers_,
                      task_executor&                         ctrl_exec_) :
   logger(ocudulog::fetch_basic_logger("XNAP")),
-  ue_ctxt_list(logger),
+  ue_ctxt_list(timers_, ctrl_exec_, logger),
   xnap_cfg(xnap_cfg_),
   cu_cp_notifier(cu_cp_notifier_),
   timers(timers_),
   ctrl_exec(ctrl_exec_),
   tx_notifier(std::move(init_tx_notifier_)),
-  xn_setup_outcome(timer_factory{timers, ctrl_exec}),
-  xn_handover_outcome(timer_factory{timers, ctrl_exec})
+  xn_setup_outcome(timer_factory{timers, ctrl_exec})
 {
 }
 
@@ -87,12 +88,33 @@ void xnap_impl::handle_initiating_message(const init_msg_s& msg)
 
 void xnap_impl::handle_successful_outcome(const successful_outcome_s& outcome)
 {
+  auto get_ue_ctxt_in_ue_assoc_msg = [this](const asn1::xnap::successful_outcome_s& outcome_) -> xnap_ue_context* {
+    std::optional<local_xnap_ue_id_t> local_xnap_ue_id = asn1_utils::get_local_xnap_ue_id(outcome_);
+    // The Local NG-RAN node UE XnAP ID field is mandatory in all UE associated successful messages.
+    if (!local_xnap_ue_id.has_value()) {
+      logger.warning("Discarding received \"{}\". Cause: Local NG-RAN node UE XnAP ID field is mandatory",
+                     outcome_.value.type().to_string());
+      return nullptr;
+    }
+
+    xnap_ue_context* ue_ctxt = ue_ctxt_list.find(*local_xnap_ue_id);
+    if (ue_ctxt == nullptr) {
+      logger.warning("local_xnap_ue={}: Discarding received \"{}\". Cause: UE was not found.",
+                     fmt::underlying(*local_xnap_ue_id),
+                     outcome_.value.type().to_string());
+      return nullptr;
+    }
+    return ue_ctxt;
+  };
+
   switch (outcome.value.type().value) {
     case xnap_elem_procs_o::successful_outcome_c::types_opts::xn_setup_resp: {
       xn_setup_outcome.set(outcome.value.xn_setup_resp());
     } break;
     case xnap_elem_procs_o::successful_outcome_c::types_opts::ho_request_ack: {
-      xn_handover_outcome.set(outcome.value.ho_request_ack());
+      if (auto* ue_ctxt = get_ue_ctxt_in_ue_assoc_msg(outcome)) {
+        ue_ctxt->xn_handover_outcome.set(outcome.value.ho_request_ack());
+      }
     } break;
     default:
       logger.error("Successful outcome of type {} is not supported", outcome.value.type().to_string());
@@ -101,12 +123,33 @@ void xnap_impl::handle_successful_outcome(const successful_outcome_s& outcome)
 
 void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcome)
 {
+  auto get_ue_ctxt_in_ue_assoc_msg = [this](const asn1::xnap::unsuccessful_outcome_s& outcome_) -> xnap_ue_context* {
+    std::optional<local_xnap_ue_id_t> local_xnap_ue_id = asn1_utils::get_local_xnap_ue_id(outcome_);
+    // The Source NG-RAN node UE XnAP ID field is mandatory in all UE associated unsuccessful messages.
+    if (!local_xnap_ue_id.has_value()) {
+      logger.warning("Discarding received \"{}\". Cause: Source NG-RAN node UE XnAP ID field is mandatory",
+                     outcome_.value.type().to_string());
+      return nullptr;
+    }
+
+    xnap_ue_context* ue_ctxt = ue_ctxt_list.find(*local_xnap_ue_id);
+    if (ue_ctxt == nullptr) {
+      logger.warning("local_xnap_ue={}: Discarding received \"{}\". Cause: UE was not found.",
+                     fmt::underlying(*local_xnap_ue_id),
+                     outcome_.value.type().to_string());
+      return nullptr;
+    }
+    return ue_ctxt;
+  };
+
   switch (outcome.value.type().value) {
     case xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::xn_setup_fail: {
       xn_setup_outcome.set(outcome.value.xn_setup_fail());
     } break;
     case xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::ho_prep_fail: {
-      xn_handover_outcome.set(outcome.value.ho_prep_fail());
+      if (auto* ue_ctxt = get_ue_ctxt_in_ue_assoc_msg(outcome)) {
+        ue_ctxt->xn_handover_outcome.set(outcome.value.ho_prep_fail());
+      }
     } break;
     default:
       logger.error("Unsuccessful outcome of type {} is not supported", outcome.value.type().to_string());
@@ -231,7 +274,7 @@ xnap_impl::handle_handover_request_required(const xnap_handover_request& request
                                                                   ue_ctxt.ue_ids.local_xnap_ue_id,
                                                                   tx_notifier,
                                                                   cu_cp_notifier,
-                                                                  xn_handover_outcome,
+                                                                  ue_ctxt.xn_handover_outcome,
                                                                   timer_factory{timers, ctrl_exec},
                                                                   ue_ctxt.logger);
 }

@@ -202,7 +202,7 @@ void xnap_handover_preparation_procedure::fill_asn1_pdu_session_res_list(
         // Set QFI.
         qos_flow_setup_item.qfi = qos_flow_id_to_uint(qfi);
         // Fill QoS flow level QoS parameters.
-        qos_flow_setup_item.qos_flow_level_qos_params = fill_asn1_qos_flow_info_item(qos_flow.qos_params);
+        qos_flow_setup_item.qos_flow_level_qos_params = qos_flow_level_qos_parameters_to_asn1(qos_flow.qos_params);
         pdu_session_item.qos_flows_to_be_setup_list.push_back(qos_flow_setup_item);
       }
     }

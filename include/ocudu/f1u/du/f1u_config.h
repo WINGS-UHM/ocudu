@@ -22,8 +22,6 @@ struct f1u_config {
   bool buffer_ul_on_startup = false;
   /// Size of UL buffer for handover.
   uint32_t ul_buffer_size = 4096;
-  /// How long to wait to wait for confirmation of finished handover.
-  std::chrono::milliseconds ul_buffer_timeout{700};
 
   bool operator==(const f1u_config& other) const
   {

@@ -43,11 +43,11 @@ public:
   virtual void aggregate_mac_metrics_report(const mac_metric_report& report) = 0;
 };
 
-/// This class handles updates in cell and UE configurations. TODO: Better naming needed.
-class du_manager_context_configurator
+/// This class handles updates in cell and UE configurations coming from the F1AP.
+class du_manager_f1ap_event_handler
 {
 public:
-  virtual ~du_manager_context_configurator() = default;
+  virtual ~du_manager_f1ap_event_handler() = default;
 
   /// \brief Schedule asynchronous task in a DU-wide scope.
   virtual void schedule_async_task(async_task<void>&& task) = 0;
@@ -122,8 +122,8 @@ public:
   /// Get entity responsibly for aggregating metrics from all DU layers.
   virtual du_manager_mac_metric_aggregator& get_metrics_aggregator() = 0;
 
-  /// Get configuration handling interface of the DU manager.
-  virtual du_manager_context_configurator& get_context_configurator() = 0;
+  /// Get F1AP configuration handling interface of the DU manager.
+  virtual du_manager_f1ap_event_handler& get_f1ap_event_handler() = 0;
 
   /// Get configuration interface with the procedures that are triggered externally to the DU.
   virtual du_configurator& get_operation_configurator() = 0;

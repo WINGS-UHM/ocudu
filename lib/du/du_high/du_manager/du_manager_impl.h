@@ -19,7 +19,7 @@ namespace odu {
 
 class du_manager_impl final : public du_manager,
                               public du_manager_mac_event_handler,
-                              public du_manager_context_configurator,
+                              public du_manager_f1ap_event_handler,
                               public du_configurator
 {
 public:
@@ -34,7 +34,7 @@ public:
   void                          handle_crnti_ce_indication(const ul_crnti_ce_indication_message& msg) override;
 
   // Task scheduling interface.
-  du_manager_context_configurator& get_context_configurator() override { return *this; }
+  du_manager_f1ap_event_handler& get_f1ap_event_handler() override { return *this; }
   void schedule_async_task(async_task<void>&& task) override { main_ctrl_loop.schedule(std::move(task)); }
   void schedule_async_task(du_ue_index_t ue_index, async_task<void>&& task) override
   {

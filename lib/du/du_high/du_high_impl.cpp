@@ -29,7 +29,7 @@ public:
   void connect(du_manager& du_mng_, mac_interface& mac_inst)
   {
     mac_ev_notifier.connect(du_mng_.get_mac_event_handler(), du_mng_.get_metrics_aggregator());
-    f1_to_du_notifier.connect(du_mng_.get_context_configurator());
+    f1_to_du_notifier.connect(du_mng_.get_f1ap_event_handler());
     f1ap_paging_notifier.connect(mac_inst.get_cell_paging_info_handler());
   }
 

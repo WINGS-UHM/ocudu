@@ -26,11 +26,6 @@ constexpr amf_ue_id_t uint_to_amf_ue_id(std::underlying_type_t<amf_ue_id_t> id)
   return static_cast<amf_ue_id_t>(id);
 }
 
-struct ngap_ue_aggr_max_bit_rate {
-  uint64_t ue_aggr_max_bit_rate_dl;
-  uint64_t ue_aggr_max_bit_rate_ul;
-};
-
 enum class ngap_rrc_inactive_transition_report_request : uint8_t {
   // Send RRC Inactive Transition Reports when the UE enters or leaves RRC_INACTIVE state.
   subsequent_state_transition_report = 0,

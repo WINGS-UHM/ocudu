@@ -160,7 +160,7 @@ ocudu::ocucp::generate_pdu_session_resource_modification_with_qos_flow_removal(q
   cu_cp_pdu_session_res_modify_request_transfer transfer;
 
   // Add item to remove inexisting QoS flow.
-  cu_cp_qos_flow_with_cause_item release_item;
+  cu_cp_qos_flow_failed_to_setup_item release_item;
   release_item.qos_flow_id = flow_id;
   release_item.cause       = ngap_cause_radio_network_t::unspecified;
   transfer.qos_flow_to_release_list.emplace(release_item.qos_flow_id, release_item);

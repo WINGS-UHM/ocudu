@@ -103,7 +103,7 @@ public:
 
   /// \brief Handle the handover request of the handover resource allocation procedure handover procedure.
   /// See TS 38.413 section 8.4.2.2.
-  virtual async_task<ngap_handover_resource_allocation_response>
+  virtual async_task<cu_cp_handover_resource_allocation_response>
   handle_ngap_handover_request(const ngap_handover_request& request) = 0;
 
   /// \brief Handle the transmission of a handover required message to the AMF.

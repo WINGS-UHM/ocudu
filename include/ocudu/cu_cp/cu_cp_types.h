@@ -352,12 +352,10 @@ struct cu_cp_associated_qos_flow {
   qos_flow_id_t                         qos_flow_id = qos_flow_id_t::invalid;
   std::optional<cu_cp_qos_flow_map_ind> qos_flow_map_ind;
 };
-struct cu_cp_qos_flow_with_cause_item {
+struct cu_cp_qos_flow_failed_to_setup_item {
   qos_flow_id_t qos_flow_id = qos_flow_id_t::invalid;
   ngap_cause_t  cause;
 };
-
-using cu_cp_qos_flow_failed_to_setup_item = cu_cp_qos_flow_with_cause_item;
 
 struct cu_cp_qos_flow_per_tnl_information {
   up_transport_layer_info                                     up_tp_layer_info;
@@ -458,7 +456,7 @@ struct cu_cp_pdu_session_res_modify_request_transfer {
   // id-QosFlowAddOrModifyRequestList
   slotted_id_vector<qos_flow_id_t, cu_cp_qos_flow_add_or_mod_item> qos_flow_add_or_modify_request_list;
   // id-QosFlowToReleaseList
-  slotted_id_vector<qos_flow_id_t, cu_cp_qos_flow_with_cause_item> qos_flow_to_release_list;
+  slotted_id_vector<qos_flow_id_t, cu_cp_qos_flow_failed_to_setup_item> qos_flow_to_release_list;
   // id-AdditionalUL-NGU-UP-TNLInformation
   // id-CommonNetworkInstance
   // id-AdditionalRedundantUL-NGU-UP-TNLInformation
@@ -624,6 +622,11 @@ struct cu_cp_rrc_resume_request {
   nr_cell_global_id_t cgi;
   rnti_t              new_c_rnti;
   resume_cause_t      cause;
+};
+
+struct cu_cp_aggregate_maximum_bit_rate {
+  uint64_t dl = 0;
+  uint64_t ul = 0;
 };
 
 } // namespace ocudu::ocucp

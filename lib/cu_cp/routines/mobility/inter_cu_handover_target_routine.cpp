@@ -5,7 +5,6 @@
 #include "inter_cu_handover_target_routine.h"
 #include "../../cell_meas_manager/cell_meas_manager_impl.h"
 #include "../pdu_session_routine_helpers.h"
-#include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ran/cause/e1ap_cause_converters.h"
 
 using namespace ocudu;
@@ -29,14 +28,14 @@ static bool handle_ue_context_setup_response(e1ap_bearer_context_modification_re
                                              const ocudulog::basic_logger&             logger);
 
 inter_cu_handover_target_routine::inter_cu_handover_target_routine(
-    const ngap_handover_request& request_,
-    e1ap_bearer_context_manager& e1ap_bearer_ctxt_mng_,
-    f1ap_ue_context_manager&     f1ap_ue_ctxt_mng_,
-    cu_cp_ue_removal_handler&    ue_removal_handler_,
-    ue_manager&                  ue_mng_,
-    cell_meas_manager&           cell_meas_mng_,
-    const security_indication_t& default_security_indication_,
-    ocudulog::basic_logger&      logger_) :
+    const cu_cp_inter_cu_handover_request& request_,
+    e1ap_bearer_context_manager&           e1ap_bearer_ctxt_mng_,
+    f1ap_ue_context_manager&               f1ap_ue_ctxt_mng_,
+    cu_cp_ue_removal_handler&              ue_removal_handler_,
+    ue_manager&                            ue_mng_,
+    cell_meas_manager&                     cell_meas_mng_,
+    const security_indication_t&           default_security_indication_,
+    ocudulog::basic_logger&                logger_) :
   request(request_),
   e1ap_bearer_ctxt_mng(e1ap_bearer_ctxt_mng_),
   f1ap_ue_ctxt_mng(f1ap_ue_ctxt_mng_),
@@ -52,7 +51,7 @@ inter_cu_handover_target_routine::inter_cu_handover_target_routine(
 }
 
 void inter_cu_handover_target_routine::operator()(
-    coro_context<async_task<ngap_handover_resource_allocation_response>>& ctx)
+    coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx)
 {
   CORO_BEGIN(ctx);
 
@@ -61,7 +60,7 @@ void inter_cu_handover_target_routine::operator()(
   ue = ue_mng.find_du_ue(request.ue_index);
 
   // Perform initial sanity checks on incoming message.
-  if (!ue->get_up_resource_manager().validate_request(request.pdu_session_res_setup_list_ho_req)) {
+  if (!ue->get_up_resource_manager().validate_request(request.pdu_session_res_setup_list)) {
     logger.warning("ue={}: \"{}\" failed. Cause: Invalid PduSessionResourceSetupRequest during Handover",
                    request.ue_index,
                    name());
@@ -70,7 +69,7 @@ void inter_cu_handover_target_routine::operator()(
 
   {
     // Calculate next user-plane configuration based on incoming setup message.
-    next_config = ue->get_up_resource_manager().calculate_update(request.pdu_session_res_setup_list_ho_req);
+    next_config = ue->get_up_resource_manager().calculate_update(request.pdu_session_res_setup_list);
   }
 
   // Prepare E1AP Bearer Context Setup Request and call E1AP notifier.
@@ -82,7 +81,7 @@ void inter_cu_handover_target_routine::operator()(
     }
 
     // Perform horizontal key derivation.
-    cell_cfg = cell_meas_mng.get_cell_config(request.source_to_target_transparent_container.target_cell_id.nci);
+    cell_cfg = cell_meas_mng.get_cell_config(request.target_cell_id.nci);
     if (!cell_cfg.has_value() || !cell_cfg->serving_cell_cfg.pci.has_value() ||
         !cell_cfg->serving_cell_cfg.ssb_arfcn.has_value()) {
       logger.warning("ue={}: \"{}\" failed. Cause: Could not find PCI and SSB-ARFCN", request.ue_index, name());
@@ -103,7 +102,7 @@ void inter_cu_handover_target_routine::operator()(
     // Handle Bearer Context Setup Response.
     if (!handle_bearer_context_setup_response(ue_context_setup_request,
                                               next_config,
-                                              request.pdu_session_res_setup_list_ho_req,
+                                              request.pdu_session_res_setup_list,
                                               bearer_context_setup_response,
                                               ue->get_up_resource_manager(),
                                               logger)) {
@@ -116,23 +115,20 @@ void inter_cu_handover_target_routine::operator()(
   {
     // Add remaining fields to UE Context Setup Request.
     ue_context_setup_request.ue_index      = request.ue_index;
-    ue_context_setup_request.sp_cell_id    = request.source_to_target_transparent_container.target_cell_id;
+    ue_context_setup_request.sp_cell_id    = request.target_cell_id;
     ue_context_setup_request.serv_cell_idx = 0;
     ue_context_setup_request.cu_to_du_rrc_info.ie_exts.emplace();
     ue_context_setup_request.cu_to_du_rrc_info.ie_exts.value().ho_prep_info =
-        request.source_to_target_transparent_container.rrc_container.copy();
+        request.rrc_handover_preparation_information.copy();
     ue_context_setup_request.cu_to_du_rrc_info.ue_cap_rat_container_list = rrc_context.ue_cap_rat_container_list.copy();
 
     // Generate and add Measurement Configuration to set ServingCellMO. Note that the RRC UE doesn't exist yet.
-    meas_cfg = cell_meas_mng.get_measurement_config(
-        request.ue_index, request.source_to_target_transparent_container.target_cell_id.nci, std::nullopt);
+    meas_cfg = cell_meas_mng.get_measurement_config(request.ue_index, request.target_cell_id.nci, std::nullopt);
     if (meas_cfg.has_value()) {
-      if (ue_mng.get_measurement_context(request.ue_index)
-              .nci_to_meas_obj_id.find(request.source_to_target_transparent_container.target_cell_id.nci) !=
+      if (ue_mng.get_measurement_context(request.ue_index).nci_to_meas_obj_id.find(request.target_cell_id.nci) !=
           ue_mng.get_measurement_context(request.ue_index).nci_to_meas_obj_id.end()) {
         ue_context_setup_request.serving_cell_mo = meas_obj_id_to_uint(
-            ue_mng.get_measurement_context(request.ue_index)
-                .nci_to_meas_obj_id.at(request.source_to_target_transparent_container.target_cell_id.nci));
+            ue_mng.get_measurement_context(request.ue_index).nci_to_meas_obj_id.at(request.target_cell_id.nci));
       }
     }
 
@@ -162,8 +158,7 @@ void inter_cu_handover_target_routine::operator()(
   {
     if (!ue_mng.find_du_ue(request.ue_index)
              ->get_rrc_ue()
-             ->handle_rrc_handover_preparation_info(
-                 request.source_to_target_transparent_container.rrc_container.copy())) {
+             ->handle_rrc_handover_preparation_info(request.rrc_handover_preparation_information.copy())) {
       logger.warning("ue={}: \"{}\" failed handle HandoverPreparationInfo at RRC", request.ue_index, name());
       CORO_AWAIT(ue_removal_handler.handle_ue_removal_request(ue_context_setup_response.ue_index));
       // Note: From this point the UE is removed and only the stored context can be accessed.
@@ -374,9 +369,9 @@ bool inter_cu_handover_target_routine::fill_e1ap_bearer_context_setup_request(co
         std::move(k_int_buffer.value());
   }
 
-  bearer_context_setup_request.ue_dl_aggregate_maximum_bit_rate = request.ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl;
-  bearer_context_setup_request.serving_plmn = request.source_to_target_transparent_container.target_cell_id.plmn_id;
-  bearer_context_setup_request.activity_notif_level = "ue"; // TODO: Remove hardcoded value
+  bearer_context_setup_request.ue_dl_aggregate_maximum_bit_rate = request.ue_ambr.dl;
+  bearer_context_setup_request.serving_plmn                     = request.target_cell_id.plmn_id;
+  bearer_context_setup_request.activity_notif_level             = "ue"; // TODO: Remove hardcoded value
   if (bearer_context_setup_request.activity_notif_level == "ue") {
     bearer_context_setup_request.ue_inactivity_timer = ue_mng.get_ue_config().inactivity_timer;
   }
@@ -385,7 +380,7 @@ bool inter_cu_handover_target_routine::fill_e1ap_bearer_context_setup_request(co
   fill_e1ap_pdu_session_res_to_setup_list(bearer_context_setup_request.pdu_session_res_to_setup_list,
                                           logger,
                                           next_config,
-                                          request.pdu_session_res_setup_list_ho_req,
+                                          request.pdu_session_res_setup_list,
                                           ue_mng.get_ue_config(),
                                           default_security_indication);
 
@@ -403,12 +398,13 @@ void inter_cu_handover_target_routine::create_srb(srb_id_t srb_id)
   ue_mng.find_du_ue(request.ue_index)->get_rrc_ue()->create_srb(srb_msg);
 }
 
-ngap_handover_resource_allocation_response
+cu_cp_handover_resource_allocation_response
 inter_cu_handover_target_routine::generate_handover_resource_allocation_response(bool success)
 {
   if (success) {
-    response.success  = true;
-    response.ue_index = ue->get_ue_index();
+    cu_cp_handover_request_ack ho_request_ack;
+
+    ho_request_ack.ue_index = ue->get_ue_index();
 
     // Prepare update for UP resource manager.
     up_config_update_result result;
@@ -420,23 +416,24 @@ inter_cu_handover_target_routine::generate_handover_resource_allocation_response
     // Fill handover request ACK.
     // Fill PDU session res admitted list.
     for (const auto& pdu_session : bearer_context_setup_response.pdu_session_resource_setup_list) {
-      ngap_pdu_session_res_admitted_item admitted_item;
+      // TODO: Add support for XN PDU session res admitted item.
+      cu_cp_ng_pdu_session_res_admitted_item admitted_item;
 
       // Fill PDU session ID.
       admitted_item.pdu_session_id = pdu_session.pdu_session_id;
 
       // Fill HO request ack transfer.
       // Fill DL NGU UP TNL info.
-      admitted_item.ho_request_ack_transfer.dl_ngu_up_tnl_info = pdu_session.ng_dl_up_tnl_info;
+      admitted_item.dl_ngu_up_tnl_info = pdu_session.ng_dl_up_tnl_info;
 
       for (const auto& drb_setup_item : pdu_session.drb_setup_list_ng_ran) {
         // Fill QoS flow setup resp list.
         for (const auto& flow_setup_item : drb_setup_item.flow_setup_list) {
-          ngap_qos_flow_item_with_data_forwarding qos_flow_item;
+          cu_cp_qos_flow_with_data_forwarding_item qos_flow_item;
           // Fill QoS flow ID.
           qos_flow_item.qos_flow_id = flow_setup_item.qos_flow_id;
 
-          admitted_item.ho_request_ack_transfer.qos_flow_setup_resp_list.push_back(qos_flow_item);
+          admitted_item.qos_flows_setup_list.push_back(qos_flow_item);
         }
 
         // Fill QoS flow failed to setup list.
@@ -447,38 +444,40 @@ inter_cu_handover_target_routine::generate_handover_resource_allocation_response
           // Fill Cause.
           qos_flow_item.cause = e1ap_to_ngap_cause(flow_failed_item.cause);
 
-          admitted_item.ho_request_ack_transfer.qos_flow_failed_to_setup_list.push_back(qos_flow_item);
+          admitted_item.qos_flows_failed_to_setup_list.push_back(qos_flow_item);
         }
 
         // Fill Data forwarding resp DRB list.
-        ngap_data_forwarding_resp_drb_item drb_item;
+        cu_cp_data_forwarding_resp_drb_item drb_item;
         drb_item.drb_id = drb_setup_item.drb_id;
-        admitted_item.ho_request_ack_transfer.data_forwarding_resp_drb_list.push_back(drb_item);
+        admitted_item.data_forwarding_info_from_target.data_forwarding_resp_drb_item_list.push_back(drb_item);
       }
 
-      response.pdu_session_res_admitted_list.emplace(admitted_item.pdu_session_id, admitted_item);
+      ho_request_ack.pdu_session_res_admitted_list.push_back(admitted_item);
     }
 
     // Fill PDU session res failed to setup list HO ack.
     for (const auto& pdu_session : bearer_context_setup_response.pdu_session_resource_failed_list) {
-      cu_cp_pdu_session_res_setup_failed_item failed_item;
+      cu_cp_pdu_session_with_cause_item failed_item;
 
       // Fill PDU session ID.
       failed_item.pdu_session_id = pdu_session.pdu_session_id;
 
       // Fill NGAP HO res alloc unsuccessful transfer.
       // Fill Cause.
-      failed_item.unsuccessful_transfer.cause = cause_protocol_t::unspecified;
+      failed_item.cause = ngap_cause_t{cause_protocol_t::unspecified};
 
-      response.pdu_session_res_failed_to_setup_list_ho_ack.emplace(failed_item.pdu_session_id, failed_item);
+      ho_request_ack.pdu_session_failed_to_setup_list.push_back(failed_item);
     }
     // Fill Target to source transparent container.
-    response.target_to_source_transparent_container.rrc_container = handover_command_pdu.copy();
-  } else {
-    response.success  = false;
-    response.ue_index = request.ue_index;
-    response.cause    = cause_protocol_t::unspecified;
+    ho_request_ack.rrc_handover_command = handover_command_pdu.copy();
+
+    return ho_request_ack;
   }
 
-  return response;
+  cu_cp_handover_request_failure ho_request_failure;
+  ho_request_failure.ue_index = request.ue_index;
+  ho_request_failure.cause    = ngap_cause_t{cause_protocol_t::unspecified};
+
+  return ho_request_failure;
 }

@@ -29,8 +29,10 @@ private:
   bool create_ngap_ue(ue_index_t ue_index);
 
   // Result senders.
-  bool send_handover_request_ack(ue_index_t ue_index, ran_ue_id_t ran_ue_id);
-  void send_handover_failure();
+  bool send_handover_request_ack(ue_index_t                        ue_index,
+                                 ran_ue_id_t                       ran_ue_id,
+                                 const cu_cp_handover_request_ack& ho_request_ack);
+  void send_handover_failure(const cu_cp_handover_request_failure& ho_request_failure);
 
   const ngap_handover_request request;
   const amf_ue_id_t           amf_ue_id;
@@ -40,7 +42,7 @@ private:
   ocudulog::basic_logger&     logger;
 
   // (sub-)routine results
-  ngap_handover_resource_allocation_response response;
+  cu_cp_handover_resource_allocation_response response;
 };
 
 } // namespace ocudu::ocucp

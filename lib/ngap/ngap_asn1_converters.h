@@ -7,6 +7,7 @@
 #include "ngap_asn1_utils.h"
 #include "ocudu/asn1/ngap/ngap_ies.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ocudulog/ocudulog.h"
@@ -167,19 +168,6 @@ inline ngap_cause_t asn1_to_cause(asn1::ngap::cause_c asn1_cause)
   return cause;
 }
 
-/// \brief Convert CU-CP QoS Flow Failed to Setup Item to NGAP QoS Flow With Cause Item.
-/// \param[in] cu_cp_failed_item The CU-CP QoS Flow Failed to Setup Item.
-/// \return The NGAP QoS Flow With Cause Item.
-inline asn1::ngap::qos_flow_with_cause_item_s cu_cp_qos_flow_failed_to_setup_item_to_ngap_qos_flow_with_cause_item(
-    cu_cp_qos_flow_failed_to_setup_item cu_cp_failed_item)
-{
-  asn1::ngap::qos_flow_with_cause_item_s asn1_failed_item;
-  asn1_failed_item.qos_flow_id = qos_flow_id_to_uint(cu_cp_failed_item.qos_flow_id);
-  asn1_failed_item.cause       = cause_to_asn1(cu_cp_failed_item.cause);
-
-  return asn1_failed_item;
-}
-
 /// \brief Convert CU-CP NRCGI to NR Cell Identity.
 /// \param[in] ngap_cgi The NGAP NRCGI.
 /// \return The NR Cell Identity.
@@ -300,8 +288,9 @@ inline bool pdu_session_res_setup_response_item_to_asn1(template_asn1_item&     
 
   // Fill QoS flow failed to setup list.
   for (const auto& failed_item : resp.pdu_session_resource_setup_response_transfer.qos_flow_failed_to_setup_list) {
-    asn1::ngap::qos_flow_with_cause_item_s asn1_failed_item =
-        cu_cp_qos_flow_failed_to_setup_item_to_ngap_qos_flow_with_cause_item(failed_item);
+    asn1::ngap::qos_flow_with_cause_item_s asn1_failed_item;
+    asn1_failed_item.qos_flow_id = qos_flow_id_to_uint(failed_item.qos_flow_id);
+    asn1_failed_item.cause       = cause_to_asn1(failed_item.cause);
     response_transfer.qos_flow_failed_to_setup_list.push_back(asn1_failed_item);
   }
 
@@ -754,34 +743,34 @@ inline cu_cp_global_gnb_id ngap_asn1_to_global_gnb_id(const asn1::ngap::global_g
 /// \param[out] asn1_admitted_item The ASN.1 PDU session resource admitted item.
 /// \param[in] admitted_item The common type PDU session resource admitted item.
 /// \return True on success, otherwise false.
-inline bool pdu_session_res_admitted_item_to_asn1(asn1::ngap::pdu_session_res_admitted_item_s& asn1_admitted_item,
-                                                  const ngap_pdu_session_res_admitted_item&    admitted_item)
+inline bool pdu_session_res_admitted_item_to_asn1(asn1::ngap::pdu_session_res_admitted_item_s&  asn1_admitted_item,
+                                                  const cu_cp_ng_pdu_session_res_admitted_item& admitted_item)
 {
   // Fill PDU session ID.
   asn1_admitted_item.pdu_session_id = pdu_session_id_to_uint(admitted_item.pdu_session_id);
 
   // Fill HO request ACK transfer.
   asn1::ngap::ho_request_ack_transfer_s asn1_req_ack_transfer;
+
   // Fill DL NGU UP TNL info.
-  up_transport_layer_info_to_asn1(asn1_req_ack_transfer.dl_ngu_up_tnl_info,
-                                  admitted_item.ho_request_ack_transfer.dl_ngu_up_tnl_info);
+  up_transport_layer_info_to_asn1(asn1_req_ack_transfer.dl_ngu_up_tnl_info, admitted_item.dl_ngu_up_tnl_info);
 
   // Fill DL forwarding UP TNL info.
-  if (admitted_item.ho_request_ack_transfer.dl_forwarding_up_tnl_info.has_value()) {
+  if (admitted_item.dl_forwarding_up_tnl_info.has_value()) {
     asn1_req_ack_transfer.dl_forwarding_up_tnl_info_present = true;
     up_transport_layer_info_to_asn1(asn1_req_ack_transfer.dl_forwarding_up_tnl_info,
-                                    admitted_item.ho_request_ack_transfer.dl_forwarding_up_tnl_info.value());
+                                    admitted_item.dl_forwarding_up_tnl_info.value());
   }
 
   // Fill security result.
-  if (admitted_item.ho_request_ack_transfer.security_result.has_value()) {
+  if (admitted_item.security_result.has_value()) {
     asn1_req_ack_transfer.security_result_present = true;
     asn1_req_ack_transfer.security_result =
-        cu_cp_security_result_to_ngap_security_result(admitted_item.ho_request_ack_transfer.security_result.value());
+        cu_cp_security_result_to_ngap_security_result(admitted_item.security_result.value());
   }
 
   // Fill QoS flow setup resp list.
-  for (const auto& qos_flow_item : admitted_item.ho_request_ack_transfer.qos_flow_setup_resp_list) {
+  for (const auto& qos_flow_item : admitted_item.qos_flows_setup_list) {
     asn1::ngap::qos_flow_item_with_data_forwarding_s asn1_qos_flow_item;
 
     // Fill QoS flow ID.
@@ -797,32 +786,33 @@ inline bool pdu_session_res_admitted_item_to_asn1(asn1::ngap::pdu_session_res_ad
   }
 
   // Fill QoS flow failed to setup list.
-  for (const auto& qos_flow_failed_item : admitted_item.ho_request_ack_transfer.qos_flow_failed_to_setup_list) {
-    asn1::ngap::qos_flow_with_cause_item_s asn1_qos_flow_failed_item =
-        cu_cp_qos_flow_failed_to_setup_item_to_ngap_qos_flow_with_cause_item(qos_flow_failed_item);
-
+  for (const auto& qos_flow_failed_item : admitted_item.qos_flows_failed_to_setup_list) {
+    if (!std::holds_alternative<ngap_cause_t>(qos_flow_failed_item.cause)) {
+      return false;
+    }
+    asn1::ngap::qos_flow_with_cause_item_s asn1_qos_flow_failed_item;
+    asn1_qos_flow_failed_item.qos_flow_id = qos_flow_id_to_uint(qos_flow_failed_item.qos_flow_id);
+    asn1_qos_flow_failed_item.cause       = cause_to_asn1(std::get<ngap_cause_t>(qos_flow_failed_item.cause));
     asn1_req_ack_transfer.qos_flow_failed_to_setup_list.push_back(asn1_qos_flow_failed_item);
   }
 
   // Fill data forwarding resp DRB list.
-  for (const auto& drb_item : admitted_item.ho_request_ack_transfer.data_forwarding_resp_drb_list) {
+  for (const auto& drb_item : admitted_item.data_forwarding_info_from_target.data_forwarding_resp_drb_item_list) {
     asn1::ngap::data_forwarding_resp_drb_item_s asn1_drb_item;
 
     // Fill DRB ID.
     asn1_drb_item.drb_id = drb_id_to_uint(drb_item.drb_id);
 
     // Fill DL forwarding UP TNL info.
-    if (drb_item.dl_forwarding_up_tnl_info.has_value()) {
+    if (drb_item.dl_forwarding_up_tnl.has_value()) {
       asn1_drb_item.dl_forwarding_up_tnl_info_present = true;
-      up_transport_layer_info_to_asn1(asn1_drb_item.dl_forwarding_up_tnl_info,
-                                      drb_item.dl_forwarding_up_tnl_info.value());
+      up_transport_layer_info_to_asn1(asn1_drb_item.dl_forwarding_up_tnl_info, drb_item.dl_forwarding_up_tnl.value());
     }
 
     // Fill UL forwarding UP TNL info.
-    if (drb_item.ul_forwarding_up_tnl_info.has_value()) {
+    if (drb_item.ul_forwarding_up_tnl.has_value()) {
       asn1_drb_item.ul_forwarding_up_tnl_info_present = true;
-      up_transport_layer_info_to_asn1(asn1_drb_item.ul_forwarding_up_tnl_info,
-                                      drb_item.ul_forwarding_up_tnl_info.value());
+      up_transport_layer_info_to_asn1(asn1_drb_item.ul_forwarding_up_tnl_info, drb_item.ul_forwarding_up_tnl.value());
     }
 
     // Fill data forwarding resp DRB list.
@@ -845,7 +835,7 @@ inline bool pdu_session_res_admitted_item_to_asn1(asn1::ngap::pdu_session_res_ad
 /// \return True on success, otherwise false.
 inline bool pdu_session_res_failed_to_setup_item_ho_ack_to_asn1(
     asn1::ngap::pdu_session_res_failed_to_setup_item_ho_ack_s& asn1_failed_item,
-    const cu_cp_pdu_session_res_setup_failed_item&             failed_item)
+    const cu_cp_pdu_session_with_cause_item&                   failed_item)
 {
   // Fill PDU session ID.
   asn1_failed_item.pdu_session_id = pdu_session_id_to_uint(failed_item.pdu_session_id);
@@ -854,7 +844,10 @@ inline bool pdu_session_res_failed_to_setup_item_ho_ack_to_asn1(
   asn1::ngap::ho_res_alloc_unsuccessful_transfer_s asn1_ho_res_alloc_unsuccessful_transfer;
 
   // Fill cause.
-  asn1_ho_res_alloc_unsuccessful_transfer.cause = cause_to_asn1(failed_item.unsuccessful_transfer.cause);
+  if (!std::holds_alternative<ngap_cause_t>(failed_item.cause)) {
+    return false;
+  }
+  asn1_ho_res_alloc_unsuccessful_transfer.cause = cause_to_asn1(std::get<ngap_cause_t>(failed_item.cause));
 
   // TODO: Add crit diagnostics
 
@@ -872,12 +865,10 @@ inline bool pdu_session_res_failed_to_setup_item_ho_ack_to_asn1(
 /// \param[out] asn1_container The ASN.1 target to source transport container.
 /// \param[in] container The common type target to source transport container.
 /// \return True on success, otherwise false.
-inline bool target_to_source_transport_container_to_asn1(
-    byte_buffer&                                                             asn1_container,
-    const ngap_target_ngran_node_to_source_ngran_node_transparent_container& container)
+inline bool target_to_source_transport_container_to_asn1(byte_buffer& asn1_container, const byte_buffer& container)
 {
   asn1::ngap::target_ngran_node_to_source_ngran_node_transparent_container_s asn1_container_struct;
-  asn1_container_struct.rrc_container = container.rrc_container.copy();
+  asn1_container_struct.rrc_container = container.copy();
 
   asn1_container = pack_into_pdu(asn1_container_struct);
   if (asn1_container.empty()) {

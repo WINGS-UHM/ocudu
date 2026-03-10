@@ -16,11 +16,13 @@
 #include "cu_up_processor/cu_up_processor_repository.h"
 #include "du_processor/du_processor_repository.h"
 #include "ngap_repository.h"
+#include "routines/mobility/inter_cu_handover_target_routine.h"
 #include "ue_manager/ue_manager_impl.h"
 #include "xnap_repository.h"
 #include "ocudu/cu_cp/cu_configurator.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/nrppa/nrppa.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <dlfcn.h>
@@ -106,7 +108,7 @@ public:
   handle_new_pdu_session_resource_release_command(const cu_cp_pdu_session_resource_release_command& command) override;
   async_task<cu_cp_ue_context_release_complete>
   handle_ue_context_release_command(const cu_cp_ue_context_release_command& command) override;
-  async_task<ngap_handover_resource_allocation_response>
+  async_task<cu_cp_handover_resource_allocation_response>
              handle_ngap_handover_request(const ngap_handover_request& request) override;
   void       handle_transmission_of_handover_required() override;
   ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override;
@@ -205,6 +207,13 @@ private:
   /// \brief Request the release of an inactive UE that failed to resume within the expected time.
   /// \param[in] ue_index The index of the UE to release.
   void request_release_of_inactive_ue(ue_index_t ue_index);
+
+  /// \brief Handle the reception of an inter-CU handover request message from the source CU.
+  /// \param[in] request The inter-CU handover request message.
+  /// \returns An asynchronous task that will complete with the response to the inter-CU handover request. The response
+  /// indicates whether the handover preparation was successful and, if not, the cause of the failure.
+  async_task<cu_cp_handover_resource_allocation_response>
+  handle_inter_cu_handover_request(const cu_cp_inter_cu_handover_request& request);
 
   void on_statistics_report_timer_expired();
 

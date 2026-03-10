@@ -859,27 +859,14 @@ cu_cp_impl::handle_ue_context_release_command(const cu_cp_ue_context_release_com
                                                   logger);
 }
 
-async_task<ngap_handover_resource_allocation_response>
+async_task<cu_cp_handover_resource_allocation_response>
 cu_cp_impl::handle_ngap_handover_request(const ngap_handover_request& request)
 {
-  cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
-  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
+  // Convert the NGAP handover request to an intra-CU handover target request.
+  cu_cp_inter_cu_handover_request inter_cu_handover_request;
+  inter_cu_handover_request.from_ngap_handover_request(request);
 
-  // Select a CU-UP to serve the UE.
-  ue->set_cu_up_index(cu_up_db.select_cu_up());
-  ocudu_assert(ue->get_cu_up_index() != cu_up_index_t::invalid,
-               "ue={}: could not find a CU-UP to serve the UE",
-               request.ue_index);
-
-  return launch_async<inter_cu_handover_target_routine>(
-      request,
-      cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_bearer_context_manager(),
-      du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
-      get_cu_cp_ue_removal_handler(),
-      ue_mng,
-      cell_meas_mng,
-      cfg.security.default_security_indication,
-      logger);
+  return handle_inter_cu_handover_request(inter_cu_handover_request);
 }
 
 void cu_cp_impl::handle_n2_handover_execution(ue_index_t ue_index)
@@ -1537,6 +1524,29 @@ void cu_cp_impl::request_release_of_inactive_ue(ue_index_t ue_index)
   }
 
   request_ue_release(*ue, ngap_cause_radio_network_t::ue_in_rrc_inactive_state_not_reachable);
+}
+
+async_task<cu_cp_handover_resource_allocation_response>
+cu_cp_impl::handle_inter_cu_handover_request(const cu_cp_inter_cu_handover_request& request)
+{
+  cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
+
+  // Select a CU-UP to serve the UE.
+  ue->set_cu_up_index(cu_up_db.select_cu_up());
+  ocudu_assert(ue->get_cu_up_index() != cu_up_index_t::invalid,
+               "ue={}: could not find a CU-UP to serve the UE",
+               request.ue_index);
+
+  return launch_async<inter_cu_handover_target_routine>(
+      request,
+      cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_bearer_context_manager(),
+      du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
+      get_cu_cp_ue_removal_handler(),
+      ue_mng,
+      cell_meas_mng,
+      cfg.security.default_security_indication,
+      logger);
 }
 
 void cu_cp_impl::on_statistics_report_timer_expired()

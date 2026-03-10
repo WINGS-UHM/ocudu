@@ -46,22 +46,6 @@ std::optional<amf_ue_id_t> get_amf_ue_id(const asn1::ngap::successful_outcome_s&
 std::optional<amf_ue_id_t> get_amf_ue_id(const asn1::ngap::unsuccessful_outcome_s& unsuccessful_outcome);
 std::optional<amf_ue_id_t> get_amf_ue_id(const asn1::ngap::ngap_pdu_c& pdu);
 
-inline void copy_asn1_key(security::sec_key& key_out, const asn1::fixed_bitstring<256, false, true>& key_in)
-{
-  for (uint32_t i = 0; i < key_in.nof_octets(); ++i) {
-    key_out[i] = key_in.data()[key_in.nof_octets() - 1 - i];
-  }
-}
-
-inline void fill_supported_algorithms(security::supported_algorithms&              supported_algos_out,
-                                      const asn1::fixed_bitstring<16, true, true>& supported_algos_in)
-{
-  uint16_t tmp = *reinterpret_cast<const uint16_t*>(supported_algos_in.data());
-  for (uint16_t i = 0; i < 3; ++i) {
-    supported_algos_out[i] = ((tmp >> (15 - i)) & 0x01U) == 1; // interesting bits are in the second byte
-  }
-}
-
 } // namespace asn1_utils
 } // namespace ocucp
 } // namespace ocudu

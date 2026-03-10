@@ -572,8 +572,8 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
 
   // Store UE Aggregate Maximum Bitrate if it is set.
   if (init_ctxt_setup_req.ue_aggr_max_bit_rate.has_value()) {
-    ue_ctxt.aggregate_maximum_bit_rate_dl = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().ue_aggr_max_bit_rate_dl;
-    ue_ctxt.aggregate_maximum_bit_rate_ul = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().ue_aggr_max_bit_rate_ul;
+    ue_ctxt.aggregate_maximum_bit_rate_dl = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().dl;
+    ue_ctxt.aggregate_maximum_bit_rate_ul = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().ul;
   } else {
     // Add stored UE Aggregate Maximum Bitrate to request.
     if (ue_ctxt.aggregate_maximum_bit_rate_dl > 0 && ue_ctxt.aggregate_maximum_bit_rate_ul > 0) {

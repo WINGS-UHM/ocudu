@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ngap/ngap_context.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ngap/ngap_init_context_setup.h"
@@ -209,7 +210,7 @@ public:
   virtual ue_index_t request_new_ue_index_allocation(nr_cell_global_id_t cgi, const plmn_identity& plmn) = 0;
 
   /// \brief Notifies the CU-CP about a Handover Request.
-  virtual async_task<ngap_handover_resource_allocation_response>
+  virtual async_task<cu_cp_handover_resource_allocation_response>
   on_ngap_handover_request(const ngap_handover_request& request) = 0;
 
   /// \brief Notifies the CU-CP about a DL UE associated NRPPa transport.

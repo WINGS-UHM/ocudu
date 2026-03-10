@@ -44,6 +44,41 @@ async_task<void> conditional_handover_coordinator_routine::release_prepared_targ
       });
 }
 
+std::vector<async_task<cu_cp_intra_cu_handover_response>> conditional_handover_coordinator_routine::build_prep_tasks()
+{
+  std::vector<async_task<cu_cp_intra_cu_handover_response>> tasks;
+  tasks.reserve(request.targets.size());
+  prep_target_du_indices.reserve(request.targets.size());
+
+  for (size_t i = 0; i < request.targets.size(); ++i) {
+    const auto& target = request.targets[i];
+
+    cu_cp_intra_cu_handover_request req;
+    req.source_ue_index = request.source_ue_index;
+    req.target_du_index = target.du_index;
+    req.target_pci      = target.pci;
+    req.cgi             = target.cgi;
+    req.cho_preparation.emplace();
+    req.cho_preparation->cond_recfg_id = static_cast<cond_recfg_id_t>(i + 1);
+
+    const du_index_t target_du = target.du_index;
+    byte_buffer      sib1      = du_db.get_du_processor(target_du).get_mobility_handler().get_packed_sib1(target.cgi);
+
+    prep_target_du_indices.push_back(target_du);
+    tasks.push_back(
+        launch_async<intra_cu_handover_routine>(req,
+                                                sib1,
+                                                du_db.get_du_processor(request.source_du_index).get_f1ap_handler(),
+                                                du_db.get_du_processor(target_du).get_f1ap_handler(),
+                                                cu_cp_handler,
+                                                ue_mng,
+                                                mobility_mng,
+                                                logger));
+  }
+
+  return tasks;
+}
+
 void conditional_handover_coordinator_routine::operator()(coro_context<async_task<cu_cp_intra_cu_cho_response>>& ctx)
 {
   CORO_BEGIN(ctx);
@@ -78,75 +113,53 @@ void conditional_handover_coordinator_routine::operator()(coro_context<async_tas
     }
   }
 
-  // Phase 1: CHO Preparation.
+  // Phase 1: CHO Preparation — launch all candidates in parallel.
   source_ue->get_cho_context()->state = cu_cp_ue_cho_context::state_t::targets_preparation;
-  for (candidate_idx = 0; candidate_idx < request.targets.size(); ++candidate_idx) {
-    prep_request.source_ue_index = request.source_ue_index;
-    prep_request.target_du_index = request.targets[candidate_idx].du_index;
-    prep_request.target_pci      = request.targets[candidate_idx].pci;
-    prep_request.cgi             = request.targets[candidate_idx].cgi;
-    prep_request.cho_preparation.emplace();
-    prep_request.cho_preparation->cond_recfg_id = cond_recfg_id;
+  CORO_AWAIT_VALUE(prep_responses, when_all(build_prep_tasks()));
 
-    source_du_index  = request.source_du_index;
-    target_du_index  = prep_request.target_du_index;
-    target_cell_sib1 = du_db.get_du_processor(target_du_index).get_mobility_handler().get_packed_sib1(prep_request.cgi);
-    CORO_AWAIT_VALUE(prep_response,
-                     launch_async<intra_cu_handover_routine>(prep_request,
-                                                             target_cell_sib1,
-                                                             du_db.get_du_processor(source_du_index).get_f1ap_handler(),
-                                                             du_db.get_du_processor(target_du_index).get_f1ap_handler(),
-                                                             cu_cp_handler,
-                                                             ue_mng,
-                                                             mobility_mng,
-                                                             logger));
+  // No need to re-fetch source UE here: this routine runs on the source UE's
+  // per-UE fifo_task_scheduler, which serializes same-UE procedures and
+  // prevents concurrent UE release/procedure execution for this UE.
+  ocudu_assert(source_ue != nullptr, "ue={}: Unexpected null source UE after CHO preparation", request.source_ue_index);
 
-    // Re-fetch source UE after every CORO_AWAIT, it may have been released during the async op.
-    source_ue = ue_mng.find_du_ue(request.source_ue_index);
-    if (source_ue == nullptr) {
-      logger.warning("ue={}: Source UE removed during CHO preparation. Releasing {} prepared CHO target(s)",
-                     request.source_ue_index,
-                     prepared_cho_targets.size());
-      CORO_AWAIT(release_prepared_targets());
-      CORO_EARLY_RETURN(response);
-    }
+  // Process all preparation responses.
+  for (size_t i = 0; i < prep_responses.size(); ++i) {
+    auto& prep_response = prep_responses[i];
 
     if (!prep_response.success || !prep_response.cho_preparation_result.has_value()) {
-      logger.warning("ue={}: CHO candidate preparation failed for target_pci={}",
-                     request.source_ue_index,
-                     request.targets[candidate_idx].pci);
-    } else {
-      cu_cp_cho_candidate candidate         = {};
-      candidate.cond_recfg_id               = cond_recfg_id;
-      candidate.target_pci                  = request.targets[candidate_idx].pci;
-      candidate.target_cgi                  = request.targets[candidate_idx].cgi;
-      candidate.target_ue_index             = prep_response.cho_preparation_result->target_ue_index;
-      candidate.prepared_rrc_recfg          = std::move(prep_response.cho_preparation_result->packed_rrc_recfg);
-      candidate.rrc_reconfig_transaction_id = prep_response.cho_preparation_result->transaction_id;
-      candidate.bearer_context_mod_request.ng_ran_bearer_context_mod_request =
-          std::move(prep_response.cho_preparation_result->ng_ran_bearer_context_mod_request);
+      logger.warning(
+          "ue={}: CHO candidate preparation failed for target_pci={}", request.source_ue_index, request.targets[i].pci);
+      continue;
+    }
 
-      if (candidate.target_ue_index != request.source_ue_index) {
-        prepared_cho_targets.push_back({candidate.target_ue_index, target_du_index});
-      }
+    cu_cp_cho_candidate candidate         = {};
+    candidate.cond_recfg_id               = static_cast<cond_recfg_id_t>(i + 1);
+    candidate.target_pci                  = request.targets[i].pci;
+    candidate.target_cgi                  = request.targets[i].cgi;
+    candidate.target_ue_index             = prep_response.cho_preparation_result->target_ue_index;
+    candidate.prepared_rrc_recfg          = std::move(prep_response.cho_preparation_result->packed_rrc_recfg);
+    candidate.rrc_reconfig_transaction_id = prep_response.cho_preparation_result->transaction_id;
+    candidate.bearer_context_mod_request.ng_ran_bearer_context_mod_request =
+        std::move(prep_response.cho_preparation_result->ng_ran_bearer_context_mod_request);
 
-      if (source_ue->get_cho_context().has_value()) {
-        const ue_index_t target_ue_idx = candidate.target_ue_index;
-        source_ue->get_cho_context()->candidates.push_back(std::move(candidate));
+    if (candidate.target_ue_index != request.source_ue_index) {
+      prepared_cho_targets.push_back({candidate.target_ue_index, prep_target_du_indices[i]});
+    }
 
-        // Set source_ue_idx on target UE so the source UE can be fetched directly.
-        if (target_ue_idx != request.source_ue_index) {
-          auto* target_ue_ptr = ue_mng.find_du_ue(target_ue_idx);
-          if (target_ue_ptr != nullptr) {
-            target_ue_ptr->get_cho_context().emplace();
-            target_ue_ptr->get_cho_context()->role            = cu_cp_ue_cho_context::role_t::target;
-            target_ue_ptr->get_cho_context()->source_ue_index = request.source_ue_index;
-          }
+    if (source_ue->get_cho_context().has_value()) {
+      const ue_index_t target_ue_idx = candidate.target_ue_index;
+      source_ue->get_cho_context()->candidates.push_back(std::move(candidate));
+
+      // Set source_ue_idx on target UE so the source UE can be fetched directly.
+      if (target_ue_idx != request.source_ue_index) {
+        auto* target_ue_ptr = ue_mng.find_du_ue(target_ue_idx);
+        if (target_ue_ptr != nullptr) {
+          target_ue_ptr->get_cho_context().emplace();
+          target_ue_ptr->get_cho_context()->role            = cu_cp_ue_cho_context::role_t::target;
+          target_ue_ptr->get_cho_context()->source_ue_index = request.source_ue_index;
         }
       }
     }
-
-    ++cond_recfg_id;
   }
 
   // Finalize CHO preparation state on source UE.

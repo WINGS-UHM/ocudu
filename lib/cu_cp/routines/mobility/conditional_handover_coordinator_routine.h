@@ -9,6 +9,7 @@
 #include "ocudu/cu_cp/cu_cp_intra_cu_ho_types.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/support/async/async_task.h"
+#include "ocudu/support/async/when_all.h"
 
 namespace ocudu {
 namespace ocucp {
@@ -51,16 +52,14 @@ private:
 
   cu_cp_intra_cu_cho_response response{};
 
-  cu_cp_ue*                         source_ue = nullptr;
-  byte_buffer                       target_cell_sib1;
-  du_index_t                        source_du_index = du_index_t::invalid;
-  du_index_t                        target_du_index = du_index_t::invalid;
-  size_t                            candidate_idx   = 0;
-  cond_recfg_id_t                   cond_recfg_id   = 1;
-  cu_cp_intra_cu_handover_request   prep_request;
-  cu_cp_intra_cu_handover_response  prep_response;
-  cu_cp_cho_reconfiguration_request cho_reconfig_request;
-  bool                              cho_reconfig_result = false;
+  cu_cp_ue*                                     source_ue = nullptr;
+  std::vector<du_index_t>                       prep_target_du_indices;
+  std::vector<cu_cp_intra_cu_handover_response> prep_responses;
+  cu_cp_cho_reconfiguration_request             cho_reconfig_request;
+  bool                                          cho_reconfig_result = false;
+
+  /// \brief Builds one intra-CU handover task per candidate target and populates prep_target_du_indices.
+  std::vector<async_task<cu_cp_intra_cu_handover_response>> build_prep_tasks();
 
   /// \brief Releases all tracked inter-DU target UE contexts.
   /// Called when the source UE disappears before CHO completes.

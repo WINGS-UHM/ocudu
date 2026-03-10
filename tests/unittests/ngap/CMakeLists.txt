@@ -8,20 +8,21 @@ target_include_directories(ngap_test_helpers PRIVATE ${CMAKE_SOURCE_DIR})
 target_link_libraries(ngap_test_helpers ocudu_support ngap_asn1 ocudulog)
 
 set(SOURCES
-        ngap_asn1_packer_test.cpp
-        ngap_validators_test.cpp
-        ngap_ue_context_test.cpp
         ng_setup_procedure_test.cpp
-        ngap_nas_message_test.cpp
-        ngap_ue_context_management_procedure_test.cpp
-        ngap_pdu_session_resource_setup_procedure_test.cpp
-        ngap_pdu_session_resource_release_procedure_test.cpp
-        ngap_pdu_session_resource_modify_procedure_test.cpp
-        ngap_paging_test.cpp
+        ngap_asn1_packer_test.cpp
         ngap_error_indication_test.cpp
-        ngap_location_reporting_test.cpp
         ngap_handover_preparation_procedure_test.cpp
         ngap_handover_test.cpp
+        ngap_location_reporting_test.cpp
+        ngap_nas_message_test.cpp
+        ngap_paging_test.cpp
+        ngap_path_switch_procedure_test.cpp
+        ngap_pdu_session_resource_setup_procedure_test.cpp
+        ngap_pdu_session_resource_modify_procedure_test.cpp
+        ngap_pdu_session_resource_release_procedure_test.cpp
+        ngap_ue_context_management_procedure_test.cpp
+        ngap_ue_context_test.cpp
+        ngap_validators_test.cpp
         )
 
 add_executable(ngap_test ${SOURCES})

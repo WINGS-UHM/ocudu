@@ -1169,3 +1169,66 @@ ocudu::ocucp::generate_location_reporting_control_message_with_ue_presence(amf_u
 
   return ngap_msg;
 }
+
+ngap_message
+ocudu::ocucp::generate_path_switch_request_failure(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id, ngap_cause_t cause)
+{
+  ngap_message ngap_msg;
+  ngap_msg.pdu.set_unsuccessful_outcome();
+  ngap_msg.pdu.unsuccessful_outcome().load_info_obj(ASN1_NGAP_ID_PATH_SWITCH_REQUEST);
+  auto& path_switch_req_fail = ngap_msg.pdu.unsuccessful_outcome().value.path_switch_request_fail();
+
+  path_switch_req_fail->amf_ue_ngap_id = amf_ue_id_to_uint(amf_ue_id);
+  path_switch_req_fail->ran_ue_ngap_id = ran_ue_id_to_uint(ran_ue_id);
+
+  pdu_session_res_released_item_ps_fail_s pdu_session_res_released_item_ps_fail;
+  pdu_session_res_released_item_ps_fail.pdu_session_id = 1;
+
+  path_switch_request_unsuccessful_transfer_s path_switch_request_unsuccessful_transfer;
+  path_switch_request_unsuccessful_transfer.cause = cause_to_asn1(cause);
+  pdu_session_res_released_item_ps_fail.path_switch_request_unsuccessful_transfer =
+      pack_into_pdu(path_switch_request_unsuccessful_transfer);
+
+  path_switch_req_fail->pdu_session_res_released_list_ps_fail.push_back(pdu_session_res_released_item_ps_fail);
+
+  return ngap_msg;
+}
+
+ngap_message ocudu::ocucp::generate_path_switch_request_ack(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
+{
+  ngap_message ngap_msg;
+  ngap_msg.pdu.set_successful_outcome();
+  ngap_msg.pdu.successful_outcome().load_info_obj(ASN1_NGAP_ID_PATH_SWITCH_REQUEST);
+  auto& path_switch_req_ack = ngap_msg.pdu.successful_outcome().value.path_switch_request_ack();
+
+  path_switch_req_ack->amf_ue_ngap_id = amf_ue_id_to_uint(amf_ue_id);
+  path_switch_req_ack->ran_ue_ngap_id = ran_ue_id_to_uint(ran_ue_id);
+
+  // Fill UE security capabilities.
+  path_switch_req_ack->ue_security_cap.nr_encryption_algorithms.from_number(49152);
+  path_switch_req_ack->ue_security_cap.nr_integrity_protection_algorithms.from_number(49152);
+  path_switch_req_ack->ue_security_cap.eutr_aencryption_algorithms.from_number(0);
+  path_switch_req_ack->ue_security_cap.eutr_aintegrity_protection_algorithms.from_number(0);
+
+  // Fill security context.
+  path_switch_req_ack->security_context.next_hop_chaining_count = 2;
+  path_switch_req_ack->security_context.next_hop_nh.from_string(
+      "1000100100100011110101001110000001001000000001111000010110011110001010011100101010110010000001010110110000100111"
+      "0110101111001100000001100111100010001011111000111111101000100110011101110111100010101101000101000010100001000001"
+      "00000101010000111100001010001001"); // 8923d4e04807859e29cab2056c276bcc06788be3fa267778ad1428410543c289
+
+  // Fill PDU session resource switched list.
+  pdu_session_res_switched_item_s pdu_session_res_switched_item;
+  pdu_session_res_switched_item.pdu_session_id = 1;
+
+  path_switch_request_ack_transfer_s path_switch_request_ack_transfer;
+  pdu_session_res_switched_item.path_switch_request_ack_transfer = pack_into_pdu(path_switch_request_ack_transfer);
+  path_switch_req_ack->pdu_session_res_switched_list.push_back(pdu_session_res_switched_item);
+
+  // Fill allowed NSSAI.
+  asn1::ngap::allowed_nssai_item_s allowed_nssai;
+  allowed_nssai.s_nssai.sst.from_number(1);
+  path_switch_req_ack->allowed_nssai.push_back(allowed_nssai);
+
+  return ngap_msg;
+}

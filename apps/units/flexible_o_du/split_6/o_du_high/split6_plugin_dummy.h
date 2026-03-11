@@ -21,6 +21,9 @@ public:
   bool on_configuration_validation() const override { return false; }
 
   // See interface for documentation.
+  bool is_ran_config_supported(const odu::du_high_ran_config& configuration) const override { return false; }
+
+  // See interface for documentation.
   void on_loggers_registration() override {}
 
   // See interface for documentation.

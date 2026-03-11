@@ -51,7 +51,15 @@ bool split6_o_du_application_unit_impl::on_configuration_validation() const
     return false;
   }
 
-  return validate_split6_o_du_unit_config(unit_cfg);
+  if (!validate_split6_o_du_unit_config(unit_cfg)) {
+    return false;
+  }
+
+  // Get the du_high configuration.
+  odu::du_high_configuration du_hi_cfg;
+  generate_du_high_config(du_hi_cfg, unit_cfg.odu_high_cfg.du_high_cfg.config);
+
+  return plugin->is_ran_config_supported(du_hi_cfg.ran);
 }
 
 void split6_o_du_application_unit_impl::on_parsing_configuration_registration(CLI::App& app)
@@ -70,12 +78,8 @@ o_du_unit split6_o_du_application_unit_impl::create_flexible_o_du_unit(const o_d
   fapi_adaptor::split6_o_du_low_fapi_adaptor_configuration fapi_cfg;
   for (const auto& cell : du_hi_cfg.ran.cells) {
     fapi_cfg.cells.emplace_back(fapi_adaptor::split6_o_du_low_fapi_adaptor_cell_config{
-        .scs_common                       = cell.ran.ul_cfg_common.init_ul_bwp.generic_params.scs,
-        .num_tx_ant                       = static_cast<uint16_t>(cell.ran.ul_carrier.nof_ant),
-        .dmrs_typeA_pos                   = cell.ran.dmrs_typeA_pos,
-        .enable_csi_rs_pdsch_multiplexing = du_hi_cfg.ran.sched_cfg.ue.enable_csi_rs_pdsch_multiplexing,
-        .pdsch_td_alloc_list              = cell.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list,
-        .pusch_td_alloc_list              = cell.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list});
+        .scs_common = cell.ran.ul_cfg_common.init_ul_bwp.generic_params.scs,
+        .num_tx_ant = static_cast<uint16_t>(cell.ran.ul_carrier.nof_ant)});
   }
 
   // Create the adaptors.

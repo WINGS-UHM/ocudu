@@ -8,6 +8,7 @@
 #include "../ue_manager/ue_manager_impl.h"
 #include "ocudu/cu_cp/common_task_scheduler.h"
 #include "ocudu/cu_cp/cu_cp.h"
+#include "ocudu/cu_cp/cu_cp_ng_setup_notifier.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <future>
 
@@ -20,11 +21,12 @@ struct cu_cp_configuration;
 class amf_connection_manager
 {
 public:
-  amf_connection_manager(ngap_repository&                ngaps_,
-                         cu_cp_amf_reconnection_handler& cu_cp_notifier_,
-                         timer_manager&                  timers_,
-                         task_executor&                  cu_cp_exec_,
-                         common_task_scheduler&          common_task_sched_);
+  amf_connection_manager(ngap_repository&                  ngaps_,
+                         cu_cp_amf_reconnection_handler&   cu_cp_notifier_,
+                         timer_manager&                    timers_,
+                         task_executor&                    cu_cp_exec_,
+                         common_task_scheduler&            common_task_sched_,
+                         cu_cp_ng_setup_complete_notifier* ng_setup_notifier_ = nullptr);
 
   /// \brief Initiates the connection to the AMF.
   /// A promise is passed as a parameter to enable blocking synchronization between the completion of the scheduled
@@ -57,12 +59,13 @@ private:
   void        handle_connection_setup_result(amf_index_t amf_index, bool success);
   amf_index_t plmn_to_amf_index(plmn_identity plmn) const;
 
-  ngap_repository&                ngaps;
-  cu_cp_amf_reconnection_handler& cu_cp_notifier;
-  timer_manager&                  timers;
-  task_executor&                  cu_cp_exec;
-  common_task_scheduler&          common_task_sched;
-  ocudulog::basic_logger&         logger;
+  ngap_repository&                  ngaps;
+  cu_cp_amf_reconnection_handler&   cu_cp_notifier;
+  timer_manager&                    timers;
+  task_executor&                    cu_cp_exec;
+  common_task_scheduler&            common_task_sched;
+  ocudulog::basic_logger&           logger;
+  cu_cp_ng_setup_complete_notifier* ng_setup_notifier;
 
   std::unordered_map<amf_index_t, std::atomic<bool>> amfs_connected;
 

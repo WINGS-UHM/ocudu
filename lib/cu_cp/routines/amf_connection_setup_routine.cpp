@@ -12,16 +12,19 @@ using namespace ocucp;
 
 async_task<bool>
 ocudu::ocucp::start_amf_connection_setup(ngap_repository&                                    ngap_db,
-                                         std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected)
+                                         std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected,
+                                         cu_cp_ng_setup_complete_notifier*                   ng_setup_notifier)
 {
-  return launch_async<amf_connection_setup_routine>(ngap_db, amfs_connected);
+  return launch_async<amf_connection_setup_routine>(ngap_db, amfs_connected, ng_setup_notifier);
 }
 
 amf_connection_setup_routine::amf_connection_setup_routine(
     ngap_repository&                                    ngap_db_,
-    std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected_) :
+    std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected_,
+    cu_cp_ng_setup_complete_notifier*                   ng_setup_notifier_) :
   ngap_db(ngap_db_),
   amfs_connected(amfs_connected_),
+  ng_setup_notifier(ng_setup_notifier_),
   ngaps(ngap_db_.get_ngaps()),
   logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
@@ -49,6 +52,13 @@ void amf_connection_setup_routine::operator()(coro_context<async_task<bool>>& ct
     handle_connection_setup_result();
 
     if (success) {
+      // Notify successful NG Setup and deliver packed NG setup PDU bytes via notifier.
+      if (ng_setup_notifier != nullptr) {
+        auto& ng_resp = std::get<ngap_ng_setup_response>(result_msg);
+        ng_setup_notifier->on_ng_setup_complete(
+            std::move(ng_resp.packed_ng_setup_request), std::move(ng_resp.packed_ng_setup_response), ng_resp.amf_name);
+      }
+
       // Update PLMN lookups in NGAP repository after successful NGSetup.
       ngap_db.update_plmn_lookup(amf_index);
 

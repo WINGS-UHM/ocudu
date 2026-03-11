@@ -6,6 +6,7 @@
 
 #include "ocudu/cu_cp/cell_meas_manager_config.h"
 #include "ocudu/cu_cp/cu_cp_metrics_notifier.h"
+#include "ocudu/cu_cp/cu_cp_ng_setup_notifier.h"
 #include "ocudu/cu_cp/mobility_manager_config.h"
 #include "ocudu/cu_cp/ue_configuration.h"
 #include "ocudu/e1ap/cu_cp/e1ap_configuration.h"
@@ -83,6 +84,8 @@ struct cu_cp_configuration {
     std::chrono::milliseconds amf_reconnection_retry_time = std::chrono::milliseconds{1000};
     /// Option to run CU-CP without a core.
     bool no_core = false;
+    /// Optional notifier invoked once after a successful NG Setup.
+    cu_cp_ng_setup_complete_notifier* ng_setup_notifier = nullptr;
   };
 
   struct xnap_config {

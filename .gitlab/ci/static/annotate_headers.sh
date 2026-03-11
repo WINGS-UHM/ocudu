@@ -24,6 +24,7 @@ done < "${config_env}"
 # Parse args
 PRUNE=false
 VERBOSE=false
+SCAN=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -33,6 +34,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -p|--prune)
       PRUNE=true
+      shift
+      ;;
+    -s|--scan)
+      SCAN=true
       shift
       ;;
     *)
@@ -56,8 +61,11 @@ files_cpp_alt="${tmpdir}/files_cpp_alt.txt"
 files_generic_default="${tmpdir}/files_generic_default.txt"
 files_generic_alt="${tmpdir}/files_generic_alt.txt"
 
-# Scan the current directory
-find . -type f > "${files_all}"
+if $SCAN || [ -t 0 ]; then
+    find . -type f > "${files_all}"
+else
+    cat > "${files_all}"
+fi
 
 if $VERBOSE; then
   echo "Written to ${files_all}"

@@ -32,4 +32,5 @@ cell_cfg:
         - pci: 3
           q_offset_cell: 3
       intra_freq_excluded_cell_list:
-        - 4,5,6
+        - start: 4
+          size: 4

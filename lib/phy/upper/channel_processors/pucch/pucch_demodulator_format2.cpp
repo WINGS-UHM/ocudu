@@ -57,7 +57,7 @@ static inline void extract_re(span<cbf16_t> out, span<const cbf16_t> in)
 
     // Interleave and store.
     vst2q_s32(out_ptr, data_s32);
-    out_ptr += pucch_constants::f2::NOF_DATA_SUBCARRIERS_PER_RB;
+    out_ptr += pucch_constants::f2::NOF_DATA_SUBC_PER_RB;
   }
 #else
   for (unsigned k = 0, k_end = nof_prb * NOF_SUBCARRIERS_PER_RB, count = 0; k != k_end; ++k) {

@@ -53,8 +53,8 @@ public:
   /// These parameters are specified in SCF-222 v4.0 section 3.4.2.1, in table DL DCI PDU.
   dl_dci_pdu_builder& set_profile_nr_tx_power_info_parameters(int power_control_offset_ss_dB)
   {
-    auto& power                   = pdu.power_config.emplace<dl_dci_pdu::power_profile_nr>();
-    power.power_control_offset_ss = power_control_offset_ss_dB;
+    auto& power                      = pdu.power_config.emplace<dl_dci_pdu::power_profile_nr>();
+    power.power_control_offset_ss_db = power_control_offset_ss_dB;
 
     return *this;
   }

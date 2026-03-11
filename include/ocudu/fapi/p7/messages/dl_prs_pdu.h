@@ -23,7 +23,7 @@ struct dl_prs_pdu {
   prs_num_symbols                  num_symbols;
   uint8_t                          first_symbol;
   crb_interval                     crbs;
-  std::optional<float>             prs_power_offset;
+  std::optional<float>             prs_power_offset_db;
   tx_precoding_and_beamforming_pdu precoding_and_beamforming;
 };
 
@@ -42,14 +42,20 @@ struct formatter<ocudu::fapi::dl_prs_pdu> {
   template <typename FormatContext>
   auto format(const ocudu::fapi::dl_prs_pdu& pdu, FormatContext& ctx) const
   {
-    return format_to(ctx.out(),
-                     "\n\t- PRS comb_size={} comb_offset={} symb={}:{} CRBs={} n_id={}",
-                     underlying(pdu.comb_size),
-                     pdu.comb_offset,
-                     pdu.first_symbol,
-                     underlying(pdu.num_symbols),
-                     pdu.crbs,
-                     pdu.nid_prs);
+    format_to(ctx.out(),
+              "\n\t- PRS comb_size={} comb_offset={} symb={}:{} CRBs={} n_id={}",
+              underlying(pdu.comb_size),
+              pdu.comb_offset,
+              pdu.first_symbol,
+              underlying(pdu.num_symbols),
+              pdu.crbs,
+              pdu.nid_prs);
+
+    if (pdu.prs_power_offset_db.has_value()) {
+      format_to(ctx.out(), " prs_power_offset_db={}", *pdu.prs_power_offset_db);
+    }
+
+    return ctx.out();
   }
 };
 } // namespace fmt

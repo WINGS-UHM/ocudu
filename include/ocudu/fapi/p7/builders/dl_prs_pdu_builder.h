@@ -64,7 +64,7 @@ public:
   /// These parameters are specified in SCF-222 v8.0 section 3.4.2.4a in table PRS PDU.
   dl_prs_pdu_builder& set_power_offset(std::optional<float> power_offset)
   {
-    pdu.prs_power_offset = power_offset;
+    pdu.prs_power_offset_db = power_offset;
 
     return *this;
   }

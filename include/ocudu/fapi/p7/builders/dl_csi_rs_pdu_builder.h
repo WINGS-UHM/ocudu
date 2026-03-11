@@ -75,14 +75,27 @@ public:
     return *this;
   }
 
-  /// \brief Sets the CSI-RS PDU tx power info parameters and returns a reference to the builder.
+  /// \brief Sets the CSI-RS PDU NR tx power info parameters and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.2.3 in table CSI-RS PDU.
-  dl_csi_rs_pdu_builder& set_tx_power_info_parameters(int                     power_control_offset,
-                                                      power_control_offset_ss power_control_offset_ss)
+  dl_csi_rs_pdu_builder& set_profile_nr_tx_power_info_parameters(int                     pwr_control_offset,
+                                                                 power_control_offset_ss pwr_control_offset_ss)
   {
-    pdu.power_control_offset_ss_profile_nr = power_control_offset_ss;
-    pdu.power_control_offset_profile_nr    = power_control_offset;
+    auto& power = pdu.power_config.emplace<dl_csi_rs_pdu::power_profile_nr>();
+
+    power.pwr_control_offset_db = pwr_control_offset;
+    power.pwr_control_offset_ss = pwr_control_offset_ss;
+
+    return *this;
+  }
+
+  /// \brief Sets the CSI-RS PDU SSS tx power info parameters and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.2.3 in table CSI-RS PDU.
+  dl_csi_rs_pdu_builder& set_profile_sss_tx_power_info_parameters(float pwr_offset_db)
+  {
+    auto& power         = pdu.power_config.emplace<dl_csi_rs_pdu::power_profile_sss>();
+    power.pwr_offset_db = pwr_offset_db;
 
     return *this;
   }

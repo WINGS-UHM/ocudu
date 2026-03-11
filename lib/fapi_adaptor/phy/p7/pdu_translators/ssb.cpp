@@ -18,16 +18,23 @@ static void unpack_bch_payload(span<uint8_t> dest, const fapi::dl_ssb_pdu& fapi_
 /// Returns the coefficient \f$\beta_{PSS}\f$ from the given SSB PDU (see TS38.213, Section 4.1).
 static float convert_to_beta_pss(const fapi::dl_ssb_pdu& fapi_pdu)
 {
-  switch (fapi_pdu.beta_pss_profile_nr) {
-    case fapi::beta_pss_profile_type::dB_0:
-      return 0.F;
-    case fapi::beta_pss_profile_type::dB_3:
-      return 3.F;
-    default:
-      // NOTE: Unreachable code as the FAPI message should have been validated.
-      ocudu_assert(0, "Invalid beta PSS profile");
-      return 0;
+  if (const auto* profile_nr = std::get_if<fapi::dl_ssb_pdu::power_profile_nr>(&fapi_pdu.power_config)) {
+    switch (profile_nr->beta_pss) {
+      case ssb_pss_to_sss_epre::dB_0:
+        return 0.F;
+      case ssb_pss_to_sss_epre::dB_3:
+        return 3.F;
+      default:
+        ocudu_assert(0, "Invalid beta PSS profile");
+        return 0;
+    }
   }
+
+  if (const auto* profile_sss = std::get_if<fapi::dl_ssb_pdu::power_profile_sss>(&fapi_pdu.power_config)) {
+    return profile_sss->beta_pss_db;
+  }
+
+  return 0;
 }
 
 void ocudu::fapi_adaptor::convert_ssb_fapi_to_phy(ssb_processor::pdu_t&   proc_pdu,

@@ -39,7 +39,9 @@ TEST(mac_fapi_ssb_pdu_conversor_test, valid_pdu_should_pass)
   convert_ssb_mac_to_fapi(builder, pdu, slot_point(1, 0));
 
   ASSERT_EQ(pdu.pci, fapi_pdu.phys_cell_id);
-  ASSERT_EQ(static_cast<unsigned>(pdu.pss_to_sss_epre), static_cast<unsigned>(fapi_pdu.beta_pss_profile_nr));
+  const auto* profile_nr = std::get_if<fapi::dl_ssb_pdu::power_profile_nr>(&fapi_pdu.power_config);
+  ASSERT_TRUE(profile_nr != nullptr);
+  ASSERT_EQ(static_cast<unsigned>(pdu.pss_to_sss_epre), static_cast<unsigned>(profile_nr->beta_pss));
   ASSERT_EQ(pdu.ssb_index, fapi_pdu.ssb_block_index);
   ASSERT_EQ(pdu.subcarrier_offset, fapi_pdu.subcarrier_offset);
   ASSERT_EQ(pdu.offset_to_pointA.value(), fapi_pdu.ssb_offset_pointA.value());

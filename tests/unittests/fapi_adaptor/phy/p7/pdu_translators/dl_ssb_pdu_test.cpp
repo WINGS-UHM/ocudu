@@ -64,8 +64,7 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
                                               subcarrier_spacing::kHz30,
                                               subcarrier_spacing::kHz60,
                                               subcarrier_spacing::kHz120}) {
-          for (fapi::beta_pss_profile_type beta_pss :
-               {fapi::beta_pss_profile_type::dB_0, fapi::beta_pss_profile_type::dB_3}) {
+          for (ssb_pss_to_sss_epre beta_pss : {ssb_pss_to_sss_epre::dB_0, ssb_pss_to_sss_epre::dB_3}) {
             for (ssb_pattern_case pattern_case : {ssb_pattern_case::A,
                                                   ssb_pattern_case::B,
                                                   ssb_pattern_case::C,
@@ -87,7 +86,7 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               fapi::dl_ssb_pdu_builder builder(fapi_pdu);
               builder.set_carrier_parameters(scs)
                   .set_cell_parameters(pci)
-                  .set_power_parameters(beta_pss)
+                  .set_nr_power_parameters(beta_pss)
                   .set_ssb_parameters(ssb_id_t(ssb_idx), subcarrier_offset, offset_pointA, pattern_case, lmax);
 
               uint32_t mib_payload = generate_bch_payload(subcarrier_offset,
@@ -112,13 +111,11 @@ TEST(fapi_to_phy_ssb_conversion_test, valid_pdu_conversion_success)
               ASSERT_EQ(pdu.slot.slot_index(), slot.slot_index());
               ASSERT_EQ(pdu.phys_cell_id, pci);
               switch (beta_pss) {
-                case fapi::beta_pss_profile_type::dB_0:
+                case ssb_pss_to_sss_epre::dB_0:
                   ASSERT_EQ(pdu.beta_pss, 0.0);
                   break;
-                case fapi::beta_pss_profile_type::dB_3:
+                case ssb_pss_to_sss_epre::dB_3:
                   ASSERT_EQ(pdu.beta_pss, 3.0);
-                  break;
-                case fapi::beta_pss_profile_type::beta_pss_profile_sss:
                   break;
               }
               ASSERT_EQ(pdu.ssb_idx, ssb_idx);

@@ -38,7 +38,11 @@ void ocudu::fapi_adaptor::convert_csi_rs_fapi_to_phy(nzp_csi_rs_generator::confi
   proc_pdu.freq_density  = fapi_pdu.freq_density;
   proc_pdu.scrambling_id = fapi_pdu.scramb_id;
 
-  proc_pdu.amplitude = translate_amplitude(fapi_pdu.power_control_offset_ss_profile_nr);
+  if (const auto* profile_nr = std::get_if<fapi::dl_csi_rs_pdu::power_profile_nr>(&fapi_pdu.power_config)) {
+    proc_pdu.amplitude = translate_amplitude(profile_nr->pwr_control_offset_ss);
+  } else if (const auto* profile_sss = std::get_if<fapi::dl_csi_rs_pdu::power_profile_sss>(&fapi_pdu.power_config)) {
+    proc_pdu.amplitude = convert_dB_to_amplitude(profile_sss->pwr_offset_db);
+  }
 
   unsigned nof_ports = csi_rs::get_nof_csi_rs_ports(fapi_pdu.row);
   proc_pdu.precoding = precoding_configuration::make_wideband(make_identity(nof_ports));

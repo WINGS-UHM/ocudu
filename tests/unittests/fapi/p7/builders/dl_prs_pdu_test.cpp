@@ -64,7 +64,7 @@ TEST(dl_prs_pdu_builder, valid_power_offset_parameter_passes)
   std::optional<float> power = -10;
   builder.set_power_offset(power);
 
-  ASSERT_EQ(power, pdu.prs_power_offset);
+  ASSERT_EQ(power, pdu.prs_power_offset_db);
 }
 
 TEST(dl_prs_pdu_builder, valid_comb_parameters_passes)

@@ -34,12 +34,24 @@ public:
     return *this;
   }
 
-  /// \brief Sets the power parameters for the fields of the SSB/PBCH PDU.
+  /// \brief Sets the NR power parameters for the fields of the SSB/PBCH PDU.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.2.4, in table SSB/PBCH PDU.
-  dl_ssb_pdu_builder& set_power_parameters(beta_pss_profile_type beta_pss_profile_nr)
+  dl_ssb_pdu_builder& set_nr_power_parameters(ssb_pss_to_sss_epre beta_pss)
   {
-    pdu.beta_pss_profile_nr = beta_pss_profile_nr;
+    auto& power    = pdu.power_config.emplace<dl_ssb_pdu::power_profile_nr>();
+    power.beta_pss = beta_pss;
+
+    return *this;
+  }
+
+  /// \brief Sets the SSS power parameters for the fields of the SSB/PBCH PDU.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.2.4, in table SSB/PBCH PDU.
+  dl_ssb_pdu_builder& set_sss_power_parameters(float beta_pss)
+  {
+    auto& power       = pdu.power_config.emplace<dl_ssb_pdu::power_profile_sss>();
+    power.beta_pss_db = beta_pss;
 
     return *this;
   }

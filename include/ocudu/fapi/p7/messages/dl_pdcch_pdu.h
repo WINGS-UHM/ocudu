@@ -25,7 +25,7 @@ struct dl_dci_pdu {
 
   /// PDCCH PDU profile NR power parameters.
   struct power_profile_nr {
-    int8_t power_control_offset_ss;
+    int8_t power_control_offset_ss_db;
   };
 
   rnti_t                                            rnti;
@@ -101,11 +101,13 @@ public:
 
     if (const auto* power_profile_nr_in_pdu =
             std::get_if<ocudu::fapi::dl_dci_pdu::power_profile_nr>(&pdu.power_config)) {
-      fmt::format_to(ctx.out(), " power_control_offset_ss={}", power_profile_nr_in_pdu->power_control_offset_ss);
+      fmt::format_to(ctx.out(),
+                     " Power configuration profile NR: power_control_offset_ss_db={}",
+                     power_profile_nr_in_pdu->power_control_offset_ss_db);
     } else if (const auto* power_profile_sss_in_pdu =
                    std::get_if<ocudu::fapi::dl_dci_pdu::power_profile_sss>(&pdu.power_config)) {
       fmt::format_to(ctx.out(),
-                     " dmrs_power_offset_db={} data_power_offset_db={}",
+                     " Power configuration profile SSS: dmrs_power_offset_db={} data_power_offset_db={}",
                      to_power_sss_ul_dci(power_profile_sss_in_pdu->dmrs_power_offset_db),
                      to_power_sss_ul_dci(power_profile_sss_in_pdu->data_power_offset_db));
     }

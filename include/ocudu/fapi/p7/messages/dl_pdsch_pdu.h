@@ -39,14 +39,14 @@ enum class pdsch_ref_point_type : uint8_t { point_a, subcarrier_0 };
 struct dl_pdsch_pdu {
   /// Profile NR power parameters.
   struct power_profile_nr {
-    int                     power_control_offset_profile_nr;
-    power_control_offset_ss power_control_offset_ss_profile_nr;
+    int                     pwr_control_offset_db;
+    power_control_offset_ss pwr_control_offset_ss;
   };
 
   /// Profile SSS power parameters.
   struct power_profile_sss {
-    float dmrs_power_offset_sss_db;
-    float data_power_offset_sss_db;
+    float dmrs_pwr_offset_db;
+    float data_pwr_offset_db;
   };
 
   /// VRB to PRB mapping non interleaved common search space.
@@ -155,17 +155,16 @@ struct formatter<ocudu::fapi::dl_pdsch_pdu> {
     format_to(ctx.out(), " Resource allocation type 1: vrbs={}", pdu.resource_alloc.vrbs);
 
     if (const auto* power_prof_nr = std::get_if<ocudu::fapi::dl_pdsch_pdu::power_profile_nr>(&pdu.power_config)) {
-      format_to(
-          ctx.out(),
-          " Power configuration profile NR: power_control_offset_profile_nr={} power_control_offset_ss_profile_nr={}",
-          power_prof_nr->power_control_offset_profile_nr,
-          underlying(power_prof_nr->power_control_offset_ss_profile_nr));
+      format_to(ctx.out(),
+                " Power configuration profile NR: power_control_offset_db={} power_control_offset_ss={}",
+                power_prof_nr->pwr_control_offset_db,
+                underlying(power_prof_nr->pwr_control_offset_ss));
     } else if (const auto* power_prof_sss =
                    std::get_if<ocudu::fapi::dl_pdsch_pdu::power_profile_sss>(&pdu.power_config)) {
       format_to(ctx.out(),
-                " Power configuration profile SSS: dmrs_power_offset_sss_db={} data_power_offset_sss_db={}",
-                power_prof_sss->dmrs_power_offset_sss_db,
-                power_prof_sss->data_power_offset_sss_db);
+                " Power configuration profile SSS: dmrs_power_offset_db={} data_power_offset_db={}",
+                power_prof_sss->dmrs_pwr_offset_db,
+                power_prof_sss->data_pwr_offset_db);
     }
 
     if (const auto* non_interleaved_common_ss_mapping =

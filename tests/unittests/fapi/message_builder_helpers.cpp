@@ -174,15 +174,17 @@ dl_ssb_pdu unittest::build_valid_dl_ssb_pdu()
 {
   dl_ssb_pdu pdu;
 
-  pdu.phys_cell_id        = generate_pci();
-  pdu.beta_pss_profile_nr = beta_pss_profile_type::dB_0;
-  pdu.ssb_block_index     = generate_block_index();
-  pdu.subcarrier_offset   = generate_subcarrier_offset();
-  pdu.ssb_offset_pointA   = generate_offset_point_A();
-  pdu.bch_payload         = 0;
-  pdu.case_type           = generate_case_pattern();
-  pdu.scs                 = subcarrier_spacing::kHz240;
-  pdu.L_max               = 4;
+  pdu.phys_cell_id = generate_pci();
+
+  auto& power           = pdu.power_config.emplace<dl_ssb_pdu::power_profile_nr>();
+  power.beta_pss        = ssb_pss_to_sss_epre::dB_0;
+  pdu.ssb_block_index   = generate_block_index();
+  pdu.subcarrier_offset = generate_subcarrier_offset();
+  pdu.ssb_offset_pointA = generate_offset_point_A();
+  pdu.bch_payload       = 0;
+  pdu.case_type         = generate_case_pattern();
+  pdu.scs               = subcarrier_spacing::kHz240;
+  pdu.L_max             = 4;
 
   return pdu;
 }
@@ -211,11 +213,11 @@ dl_pdcch_pdu unittest::build_valid_dl_pdcch_pdu()
     pdu.freq_domain_resource.set(i, generate_bool());
   }
   // Add the DCI.
-  pdu.dl_dci.rnti                                                                               = generate_rnti();
-  pdu.dl_dci.nid_pdcch_data                                                                     = generate_uint16();
-  pdu.dl_dci.nrnti_pdcch_data                                                                   = generate_uint16();
-  pdu.dl_dci.dci_aggregation_level                                                              = aggregation_level::n2;
-  pdu.dl_dci.power_config.emplace<fapi::dl_dci_pdu::power_profile_nr>().power_control_offset_ss = 0;
+  pdu.dl_dci.rnti                  = generate_rnti();
+  pdu.dl_dci.nid_pdcch_data        = generate_uint16();
+  pdu.dl_dci.nrnti_pdcch_data      = generate_uint16();
+  pdu.dl_dci.dci_aggregation_level = aggregation_level::n2;
+  pdu.dl_dci.power_config.emplace<fapi::dl_dci_pdu::power_profile_nr>().power_control_offset_ss_db = 0;
   pdu.dl_dci.payload                   = {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0};
   pdu.dl_dci.precoding_and_beamforming = build_valid_tx_precoding_and_beamforming_pdu();
   pdu.dl_dci.nid_pdcch_dmrs            = generate_uint16();
@@ -237,13 +239,13 @@ dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
   pdu.pdsch_dmrs_scrambling_id = 31;
   pdu.dmrs_type                = dmrs_config_type::type1;
   pdu.nscid                    = 0;
-  pdu.num_dmrs_cdm_grps_no_data            = 2;
-  pdu.resource_alloc.vrbs                  = {42, 89};
-  pdu.vrb_to_prb_mapping                   = vrb_to_prb::mapping_type::interleaved_n2;
-  pdu.symbols                              = generate_symbols();
-  auto& power                              = pdu.power_config.emplace<dl_pdsch_pdu::power_profile_nr>();
-  power.power_control_offset_profile_nr    = 6;
-  power.power_control_offset_ss_profile_nr = fapi::power_control_offset_ss::dB3;
+  pdu.num_dmrs_cdm_grps_no_data = 2;
+  pdu.resource_alloc.vrbs       = {42, 89};
+  pdu.vrb_to_prb_mapping        = vrb_to_prb::mapping_type::interleaved_n2;
+  pdu.symbols                   = generate_symbols();
+  auto& power                   = pdu.power_config.emplace<dl_pdsch_pdu::power_profile_nr>();
+  power.pwr_control_offset_db   = 6;
+  power.pwr_control_offset_ss   = fapi::power_control_offset_ss::dB3;
 
   pdu.dl_dmrs_symb_pos = dmrs_symbol_mask(13);
   pdu.dl_dmrs_symb_pos.from_uint64(0);
@@ -258,15 +260,15 @@ ocudu::fapi::dl_prs_pdu unittest::build_valid_dl_prs_pdu()
 {
   dl_prs_pdu pdu;
 
-  pdu.scs              = subcarrier_spacing::kHz240;
-  pdu.cp               = cyclic_prefix::NORMAL;
-  pdu.nid_prs          = 1;
-  pdu.comb_size        = prs_comb_size::two;
-  pdu.comb_offset      = 0;
-  pdu.num_symbols      = prs_num_symbols::four;
-  pdu.first_symbol     = 8;
-  pdu.crbs             = {24, 28};
-  pdu.prs_power_offset = -13.3;
+  pdu.scs                 = subcarrier_spacing::kHz240;
+  pdu.cp                  = cyclic_prefix::NORMAL;
+  pdu.nid_prs             = 1;
+  pdu.comb_size           = prs_comb_size::two;
+  pdu.comb_offset         = 0;
+  pdu.num_symbols         = prs_num_symbols::four;
+  pdu.first_symbol        = 8;
+  pdu.crbs                = {24, 28};
+  pdu.prs_power_offset_db = -13.3;
 
   // Precoding.
   pdu.precoding_and_beamforming.prg_size = 276;
@@ -280,20 +282,21 @@ dl_csi_rs_pdu unittest::build_valid_dl_csi_pdu()
 {
   dl_csi_rs_pdu pdu;
 
-  pdu.scs                                = subcarrier_spacing::kHz15;
-  pdu.cp                                 = cyclic_prefix::NORMAL;
-  pdu.crbs                               = {23, 28};
-  pdu.type                               = csi_rs_type::CSI_RS_NZP;
-  pdu.row                                = 1;
-  pdu.freq_domain                        = {1, 0, 0, 0, 0, 0};
-  pdu.symb_L0                            = 8;
-  pdu.symb_L1                            = 7;
-  pdu.cdm_type                           = csi_rs_cdm_type::no_CDM;
-  pdu.freq_density                       = csi_rs_freq_density_type::three;
-  pdu.scramb_id                          = 123;
-  pdu.power_control_offset_profile_nr    = 0;
-  pdu.power_control_offset_ss_profile_nr = power_control_offset_ss::dB0;
-  pdu.bwp                                = {56U, 60U};
+  pdu.scs                     = subcarrier_spacing::kHz15;
+  pdu.cp                      = cyclic_prefix::NORMAL;
+  pdu.crbs                    = {23, 28};
+  pdu.type                    = csi_rs_type::CSI_RS_NZP;
+  pdu.row                     = 1;
+  pdu.freq_domain             = {1, 0, 0, 0, 0, 0};
+  pdu.symb_L0                 = 8;
+  pdu.symb_L1                 = 7;
+  pdu.cdm_type                = csi_rs_cdm_type::no_CDM;
+  pdu.freq_density            = csi_rs_freq_density_type::three;
+  pdu.scramb_id               = 123;
+  auto& power                 = pdu.power_config.emplace<dl_csi_rs_pdu::power_profile_nr>();
+  power.pwr_control_offset_db = 6;
+  power.pwr_control_offset_ss = fapi::power_control_offset_ss::dB3;
+  pdu.bwp                     = {56U, 60U};
 
   return pdu;
 }

@@ -147,7 +147,7 @@ TEST(dl_pdcch_pdu_builder, valid_dci_tx_power_parameters_passes)
 
     const auto* profile = std::get_if<dl_dci_pdu::power_profile_nr>(&pdu.dl_dci.power_config);
     ASSERT_TRUE(profile);
-    ASSERT_EQ(i, profile->power_control_offset_ss);
+    ASSERT_EQ(i, profile->power_control_offset_ss_db);
   }
 }
 

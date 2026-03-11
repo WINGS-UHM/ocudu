@@ -75,6 +75,9 @@ struct f1_setup_request_message {
 /// Outcome of the F1 Setup procedure.
 struct f1_setup_success {
   std::vector<f1ap_cell_to_activate> cells_to_activate;
+  /// Packed F1AP PDUs captured during the setup exchange.
+  byte_buffer packed_f1_setup_request;
+  byte_buffer packed_f1_setup_response;
 };
 struct f1_setup_failure {
   /// Possible result outcomes for F1 Setup failure.

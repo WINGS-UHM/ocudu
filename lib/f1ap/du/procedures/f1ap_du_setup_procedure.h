@@ -5,6 +5,7 @@
 #pragma once
 
 #include "f1ap_du_event_manager.h"
+#include "ocudu/adt/byte_buffer.h"
 #include "ocudu/f1ap/du/f1ap_du.h"
 #include "ocudu/f1ap/f1ap_message_notifier.h"
 #include "ocudu/support/async/async_task.h"
@@ -49,7 +50,9 @@ private:
   f1ap_transaction     transaction;
   unsigned             f1_setup_retry_no = 0;
   std::chrono::seconds time_to_wait{0};
-}; // namespace odu
+  /// Packed F1SetupRequest PDU bytes.
+  byte_buffer captured_request;
+};
 
 } // namespace odu
 } // namespace ocudu

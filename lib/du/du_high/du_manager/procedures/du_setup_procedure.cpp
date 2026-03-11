@@ -125,6 +125,14 @@ void du_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
   // Handle F1 setup result and activate cells.
   CORO_AWAIT(handle_f1_setup_response(response_msg));
 
+  // Notify successful setup and deliver packed F1 setup PDU bytes via notifier.
+  if (ctxt.params.f1ap.f1_setup_complete_notifier != nullptr) {
+    ctxt.params.f1ap.f1_setup_complete_notifier->on_f1_setup_complete(
+        std::move(response_msg.value().packed_f1_setup_request),
+        std::move(response_msg.value().packed_f1_setup_response),
+        ctxt.params.ran.gnb_du_id);
+  }
+
   proc_logger.log_proc_completed();
 
   CORO_RETURN();

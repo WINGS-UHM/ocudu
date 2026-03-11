@@ -7,6 +7,7 @@
 #include "../../f1ap_asn1_utils.h"
 #include "../f1ap_asn1_converters.h"
 #include "../f1ap_du_context.h"
+#include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/support/async/async_timer.h"
@@ -100,6 +101,17 @@ void f1ap_du_setup_procedure::send_f1_setup_request()
     f1ap_cell.gnb_du_sys_info_present  = true;
     f1ap_cell.gnb_du_sys_info.mib_msg  = cell_cfg.du_sys_info.packed_mib.copy();
     f1ap_cell.gnb_du_sys_info.sib1_msg = cell_cfg.du_sys_info.packed_sib1.copy();
+  }
+
+  // Capture packed request bytes for later use.
+  {
+    byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
+    asn1::bit_ref bref(packed);
+    if (msg.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
+      captured_request = std::move(packed);
+    } else {
+      logger.warning("\"{}\": failed to pack F1SetupRequest", name());
+    }
   }
 
   // send request
@@ -205,6 +217,20 @@ f1_setup_result f1ap_du_setup_procedure::create_f1_setup_result()
 
   const auto&      asn1_success = *cu_pdu_response.value().value.f1_setup_resp();
   f1_setup_success success{};
+
+  // Capture packed response bytes.
+  success.packed_f1_setup_request = std::move(captured_request);
+  {
+    f1ap_message resp_msg                 = {};
+    resp_msg.pdu.set_successful_outcome() = cu_pdu_response.value();
+    byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
+    asn1::bit_ref bref(packed);
+    if (resp_msg.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
+      success.packed_f1_setup_response = std::move(packed);
+    } else {
+      logger.warning("\"{}\": failed to pack F1SetupResponse", name());
+    }
+  }
 
   // Update F1 DU Context (taking values from request).
   du_ctxt.du_id       = request.gnb_du_id;

@@ -43,9 +43,9 @@ class xnap_control_message_handler
 public:
   virtual ~xnap_control_message_handler() = default;
 
-  /// \brief Initiates a Handover Preparation procedure TS 38.423 section 8.2.1.
+  /// \brief Initiates a Handover Preparation procedure as defined in TS 38.423 section 8.2.1.
   virtual async_task<xnap_handover_preparation_response>
-  handle_handover_preparation_request(const xnap_handover_preparation_request& msg) = 0;
+  handle_handover_request_required(const xnap_handover_request& request) = 0;
 };
 
 /// This interface for the CU-CP to stop an XNAP instance.

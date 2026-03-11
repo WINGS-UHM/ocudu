@@ -14,10 +14,10 @@ using namespace ocucp;
 using namespace asn1::xnap;
 
 xnap_handover_preparation_procedure::xnap_handover_preparation_procedure(
-    const xnap_handover_preparation_request& request_,
-    const local_xnap_ue_id_t&                ue_id_,
-    xnap_message_notifier&                   xnc_notifier_,
-    xnap_cu_cp_notifier&                     cu_cp_notifier_,
+    const xnap_handover_request& request_,
+    const local_xnap_ue_id_t&    ue_id_,
+    xnap_message_notifier&       xnc_notifier_,
+    xnap_cu_cp_notifier&         cu_cp_notifier_,
     protocol_transaction_event_source<asn1::xnap::ho_request_ack_s, asn1::xnap::ho_prep_fail_s>&
                     handover_preparation_outcome_,
     timer_factory   timers,
@@ -42,11 +42,8 @@ void xnap_handover_preparation_procedure::operator()(coro_context<async_task<xna
     CORO_EARLY_RETURN(xnap_handover_preparation_response{false});
   }
 
-  if (request.pdu_sessions.empty() || request.pdu_sessions.begin()->second.drbs.empty()) {
-    logger.log_error("\"{}\" failed. Cause: {}",
-                     name(),
-                     request.pdu_sessions.empty() ? fmt::format("PDU session list is empty")
-                                                  : fmt::format("DRB list is empty"));
+  if (request.ue_context_info_ho_request.pdu_session_res_to_be_setup_list.empty()) {
+    logger.log_error("\"{}\" failed. Cause: PDU session list is empty", name());
     CORO_EARLY_RETURN(xnap_handover_preparation_response{false});
   }
 
@@ -120,27 +117,30 @@ bool xnap_handover_preparation_procedure::send_handover_request()
   ho_request->guami = guami_to_asn1(request.guami);
 
   // Fill Context information.
-  auto& ue_context_info = ho_request->ue_context_info_ho_request;
+  auto& asn1_ue_context_info = ho_request->ue_context_info_ho_request;
   // > Fill NG-C UE associated signalling reference.
-  ue_context_info.ng_c_ue_ref = request.amf_ue_id;
+  asn1_ue_context_info.ng_c_ue_ref = request.ue_context_info_ho_request.amf_ue_id;
   // > Fill AMF address.
-  ue_context_info.cp_tnl_info_source.set_endpoint_ip_address();
-  ue_context_info.cp_tnl_info_source.endpoint_ip_address().from_string(request.amf_addr.to_bitstring());
+  asn1_ue_context_info.cp_tnl_info_source.set_endpoint_ip_address();
+  asn1_ue_context_info.cp_tnl_info_source.endpoint_ip_address().from_string(
+      request.ue_context_info_ho_request.amf_addr.to_bitstring());
   // > Fill UE security capabilities.
-  auto& sec_cap                   = ue_context_info.ue_security_cap;
-  sec_cap.nr_encyption_algorithms = security::supported_algorithms_to_asn1(request.sec_ctxt.supported_enc_algos);
+  auto& sec_cap = asn1_ue_context_info.ue_security_cap;
+  sec_cap.nr_encyption_algorithms =
+      security::supported_algorithms_to_asn1(request.ue_context_info_ho_request.security_context.supported_enc_algos);
   sec_cap.nr_integrity_protection_algorithms =
-      security::supported_algorithms_to_asn1(request.sec_ctxt.supported_int_algos);
+      security::supported_algorithms_to_asn1(request.ue_context_info_ho_request.security_context.supported_int_algos);
   // > Fill AS security information.
-  ue_context_info.security_info.key_ng_ran_star = security::key_to_asn1(request.sec_ctxt.k);
-  ue_context_info.security_info.ncc             = request.sec_ctxt.ncc;
+  asn1_ue_context_info.security_info.key_ng_ran_star =
+      security::key_to_asn1(request.ue_context_info_ho_request.security_context.k);
+  asn1_ue_context_info.security_info.ncc = request.ue_context_info_ho_request.security_context.ncc;
   // > Fill UE aggregated maximum bit rate.
-  ue_context_info.ue_ambr.dl_ue_ambr = request.aggregate_maximum_bit_rate_dl;
-  ue_context_info.ue_ambr.ul_ue_ambr = request.aggregate_maximum_bit_rate_ul;
+  asn1_ue_context_info.ue_ambr.dl_ue_ambr = request.ue_context_info_ho_request.ue_ambr.dl;
+  asn1_ue_context_info.ue_ambr.ul_ue_ambr = request.ue_context_info_ho_request.ue_ambr.ul;
   // > Fill PDU session resource setup list.
-  fill_asn1_pdu_session_res_list(ue_context_info.pdu_session_res_to_be_setup_list);
+  fill_asn1_pdu_session_res_list(asn1_ue_context_info.pdu_session_res_to_be_setup_list);
   // > Fill RRC container (containing HandoverPreparationInformation).
-  ue_context_info.rrc_context = cu_cp_notifier.on_handover_preparation_message_required(request.ue_index);
+  asn1_ue_context_info.rrc_context = cu_cp_notifier.on_handover_preparation_message_required(request.ue_index);
 
   // Forward message to XN-C peer.
   if (!xnc_notifier.on_new_message(msg)) {
@@ -178,35 +178,32 @@ bool xnap_handover_preparation_procedure::send_handover_cancel()
 void xnap_handover_preparation_procedure::fill_asn1_pdu_session_res_list(
     pdu_session_res_to_be_setup_list_l& pdu_session_res_list)
 {
-  for (const auto& [pid, pdu_session_ctxt] : request.pdu_sessions) {
-    pdu_session_res_to_be_setup_item_s pdu_session_item;
-    pdu_session_item.pdu_session_id = pdu_session_id_to_uint(pid);
+  for (const auto& pdu_session_item : request.ue_context_info_ho_request.pdu_session_res_to_be_setup_list) {
+    pdu_session_res_to_be_setup_item_s asn1_pdu_session_item;
+    asn1_pdu_session_item.pdu_session_id = pdu_session_id_to_uint(pdu_session_item.pdu_session_id);
 
-    // TODO: move pdu session specific members to pdu session context.
-    // For now the PDU session specific information is extracted from the first DRB of the PDU session context.
-    const auto& session_ctxt = pdu_session_ctxt.drbs.begin()->second;
-    pdu_session_item.s_nssai = s_nssai_to_asn1(session_ctxt.s_nssai);
-    pdu_session_item.ul_ng_u_tnl_at_up_f.set_gtp_tunnel();
-    pdu_session_item.ul_ng_u_tnl_at_up_f.gtp_tunnel().gtp_teid.from_number(
-        session_ctxt.ul_up_tnl_info_to_be_setup_list.begin()->gtp_teid.value());
-    pdu_session_item.ul_ng_u_tnl_at_up_f.gtp_tunnel().tnl_address.from_string(
-        session_ctxt.ul_up_tnl_info_to_be_setup_list.begin()->tp_address.to_bitstring());
-
+    // Fill S-NSSAI.
+    asn1_pdu_session_item.s_nssai = s_nssai_to_asn1(pdu_session_item.s_nssai);
+    // Fill UL NGU TNL at UPF.
+    asn1_pdu_session_item.ul_ng_u_tnl_at_up_f.set_gtp_tunnel();
+    asn1_pdu_session_item.ul_ng_u_tnl_at_up_f.gtp_tunnel().gtp_teid.from_number(
+        pdu_session_item.ul_ngu_up_tnl_info.gtp_teid.value());
+    asn1_pdu_session_item.ul_ng_u_tnl_at_up_f.gtp_tunnel().tnl_address.from_string(
+        pdu_session_item.ul_ngu_up_tnl_info.tp_address.to_bitstring());
     // Fill PDU session type.
-    pdu_session_item.pdu_session_type = pdu_session_type_to_asn1(pdu_session_ctxt.type);
+    asn1_pdu_session_item.pdu_session_type = pdu_session_type_to_asn1(pdu_session_item.pdu_session_type);
 
-    // Iterate over all DRBs of the PDU session and collect all QoS flows.
-    for (const auto& [drb_id, drb_ctxt] : pdu_session_ctxt.drbs) {
-      for (const auto& [qfi, qos_flow] : drb_ctxt.qos_flows) {
-        qos_flows_to_be_setup_item_s qos_flow_setup_item = {};
-        // Set QFI.
-        qos_flow_setup_item.qfi = qos_flow_id_to_uint(qfi);
-        // Fill QoS flow level QoS parameters.
-        qos_flow_setup_item.qos_flow_level_qos_params = qos_flow_level_qos_parameters_to_asn1(qos_flow.qos_params);
-        pdu_session_item.qos_flows_to_be_setup_list.push_back(qos_flow_setup_item);
-      }
+    // Fill QoS flow setup request items.
+    for (const auto& qos_flow : pdu_session_item.qos_flow_setup_request_items) {
+      qos_flows_to_be_setup_item_s qos_flow_setup_item = {};
+      // Set QFI.
+      qos_flow_setup_item.qfi = qos_flow_id_to_uint(qos_flow.qos_flow_id);
+      // Fill QoS flow level QoS parameters.
+      qos_flow_setup_item.qos_flow_level_qos_params =
+          qos_flow_level_qos_parameters_to_asn1(qos_flow.qos_flow_level_qos_params);
+      asn1_pdu_session_item.qos_flows_to_be_setup_list.push_back(qos_flow_setup_item);
     }
 
-    pdu_session_res_list.push_back(pdu_session_item);
+    pdu_session_res_list.push_back(asn1_pdu_session_item);
   }
 }

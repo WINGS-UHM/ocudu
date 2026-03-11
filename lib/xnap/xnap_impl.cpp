@@ -120,28 +120,24 @@ void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
 }
 
 async_task<xnap_handover_preparation_response>
-xnap_impl::handle_handover_preparation_request(const xnap_handover_preparation_request& msg)
+xnap_impl::handle_handover_request_required(const xnap_handover_request& request)
 {
-  auto err_function = [](coro_context<async_task<xnap_handover_preparation_response>>& ctx) {
-    CORO_BEGIN(ctx);
-    CORO_RETURN(xnap_handover_preparation_response{false});
-  };
-
-  if (!ue_ctxt_list.contains(msg.ue_index)) {
+  if (!ue_ctxt_list.contains(request.ue_index)) {
     // Allocate new local XNAP UE context if it doesn't exist.
     local_xnap_ue_id_t local_xnap_ue_id = ue_ctxt_list.allocate_local_xnap_ue_id();
     if (local_xnap_ue_id == local_xnap_ue_id_t::invalid) {
-      logger.error("Failed to allocate XNAP UE ID for ue={}. Cannot handle HandoverPreparationRequest", msg.ue_index);
-      return launch_async(std::move(err_function));
+      logger.error("Failed to allocate XNAP UE ID for ue={}. Cannot handle HandoverPreparationRequest",
+                   request.ue_index);
+      return launch_no_op_task(xnap_handover_preparation_response{false});
     }
-    ue_ctxt_list.add_ue(msg.ue_index, local_xnap_ue_id);
+    ue_ctxt_list.add_ue(request.ue_index, local_xnap_ue_id);
   }
 
-  xnap_ue_context& ue_ctxt = ue_ctxt_list[msg.ue_index];
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[request.ue_index];
 
   ue_ctxt.logger.log_debug("Starting HO preparation");
 
-  return launch_async<xnap_handover_preparation_procedure>(msg,
+  return launch_async<xnap_handover_preparation_procedure>(request,
                                                            ue_ctxt.ue_ids.local_xnap_ue_id,
                                                            tx_notifier,
                                                            cu_cp_notifier,

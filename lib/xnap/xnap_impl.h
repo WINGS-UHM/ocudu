@@ -35,7 +35,7 @@ public:
     tx_notifier.connect(std::move(tx_notifier_));
   }
   async_task<xnap_handover_preparation_response>
-  handle_handover_preparation_request(const xnap_handover_preparation_request& msg) override;
+  handle_handover_request_required(const xnap_handover_request& request) override;
 
 private:
   /// \brief Notify about the reception of an initiating message.

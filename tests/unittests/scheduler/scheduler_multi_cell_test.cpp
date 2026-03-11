@@ -8,6 +8,7 @@
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
 #include "ocudu/ran/duplex_mode.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -58,8 +59,8 @@ protected:
   void add_ue(uint16_t cell_idx, uint16_t ue_idx)
   {
     // Add UE
-    auto ue_cfg = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg_builder_params_list[cell_idx],
-                                                                                {LCID_MIN_DRB});
+    auto ue_cfg = sched_config_helper::create_default_sched_ue_creation_request(
+        cell_cfg(to_du_cell_index(cell_idx)).params, {LCID_MIN_DRB});
     ue_cfg.ue_index                                 = to_du_ue_index(ue_idx);
     ue_cfg.crnti                                    = get_ue_crnti(ue_idx);
     (*ue_cfg.cfg.cells)[0].serv_cell_cfg.cell_index = to_du_cell_index(cell_idx);

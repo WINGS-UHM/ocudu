@@ -67,7 +67,7 @@ public:
     this->add_cell(cell_cfg_req);
 
     // Create PUCCH builder that will be used to add UEs.
-    pucch_cfg_builder.setup(cell_cfg(), pucch_basic_params);
+    pucch_cfg_builder.setup(cell_cfg().params);
 
     // Add UEs.
     for (unsigned i = 0, sz = test_params.nof_ues; i != sz; ++i) {
@@ -97,7 +97,8 @@ public:
 
   void add_ue(rnti_t rnti)
   {
-    auto ue_cfg     = sched_config_helper::create_default_sched_ue_creation_request(params, {LCID_MIN_DRB});
+    auto ue_cfg = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg(to_du_cell_index(0)).params,
+                                                                                {LCID_MIN_DRB});
     ue_cfg.ue_index = to_du_ue_index((unsigned)rnti - 0x4601);
     ue_cfg.crnti    = rnti;
     report_fatal_error_if_not(pucch_cfg_builder.add_build_new_ue_pucch_cfg(ue_cfg.cfg.cells.value()[0]),
@@ -171,7 +172,7 @@ public:
 };
 
 template <typename T>
-T sum(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
+T sum(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
 {
   T sum = 0;
   for (const auto& u : ues) {
@@ -181,7 +182,7 @@ T sum(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
 }
 
 template <typename T>
-double jain_index(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
+double jain_index(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
 {
   T      sum_val = sum(ues, member);
   double sq      = 0;
@@ -192,7 +193,7 @@ double jain_index(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::
 }
 
 template <typename T>
-std::vector<T> extract(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::* member)
+std::vector<T> extract(span<const scheduler_ue_metrics> ues, T scheduler_ue_metrics::*member)
 {
   std::vector<T> res;
   for (const auto& u : ues) {

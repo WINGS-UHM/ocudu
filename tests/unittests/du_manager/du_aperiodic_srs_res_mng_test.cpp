@@ -8,6 +8,7 @@
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -77,7 +78,7 @@ public:
     if (bin.count() == 0) {
       return std::nullopt;
     }
-    unsigned draw_pos = test_rng::uniform_int<unsigned>(0, bin.count() - 1);
+    auto draw_pos = test_rng::uniform_int<unsigned>(0, bin.count() - 1);
     for (unsigned i = 0; i != N; ++i) {
       if (bin.test(i)) {
         if (draw_pos == 0) {
@@ -97,7 +98,7 @@ public:
     if (bin.count() == N) {
       return std::nullopt;
     }
-    unsigned readd_pos = test_rng::uniform_int<unsigned>(0, N - bin.count() - 1);
+    auto readd_pos = test_rng::uniform_int<unsigned>(0, N - bin.count() - 1);
     for (unsigned i = 0; i != N; ++i) {
       if (not bin.test(i)) {
         if (readd_pos == 0) {
@@ -208,7 +209,8 @@ protected:
 
     cell_group_config                  cell_grp_cfg;
     std::unique_ptr<cell_group_config> cell_grp_cfg_ptr = std::make_unique<cell_group_config>();
-    cell_grp_cfg.cells.emplace(SERVING_PCELL_IDX, config_helpers::create_default_initial_ue_cell_config(params));
+    cell_grp_cfg.cells.emplace(SERVING_PCELL_IDX,
+                               config_helpers::make_default_ue_cell_config(cell_cfg_list.front().ran));
     ues.insert(ue_idx, cell_grp_cfg);
     auto& ue = ues[ue_idx];
     ues_bin.add_ue_to_repo(static_cast<unsigned>(ue_idx));

@@ -9,6 +9,7 @@
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -224,7 +225,8 @@ protected:
 
     cell_group_config                  cell_grp_cfg;
     std::unique_ptr<cell_group_config> cell_grp_cfg_ptr = std::make_unique<cell_group_config>();
-    cell_grp_cfg.cells.emplace(SERVING_PCELL_IDX, config_helpers::create_default_initial_ue_cell_config(params));
+    cell_grp_cfg.cells.emplace(SERVING_PCELL_IDX,
+                               config_helpers::make_default_ue_cell_config(cell_cfg_list.front().ran));
     ues.insert(ue_idx, cell_grp_cfg);
     auto& ue = ues[ue_idx];
 

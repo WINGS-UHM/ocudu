@@ -9,6 +9,7 @@
 #include "test_utils/scheduler_test_simulator.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
+#include "ocudu/ran/du_types.h"
 #include "ocudu/scheduler/resource_grid_util.h"
 #include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
@@ -41,7 +42,8 @@ protected:
   void add_ue(du_ue_index_t ue_index, rnti_t rnti)
   {
     // Create a UE with a DRB active.
-    auto ue_cfg     = sched_config_helper::create_default_sched_ue_creation_request({}, {test_lcid_drb});
+    auto ue_cfg = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg(to_du_cell_index(0)).params,
+                                                                                {test_lcid_drb});
     ue_cfg.ue_index = ue_index;
     ue_cfg.crnti    = rnti;
     scheduler_test_simulator::add_ue(ue_cfg, true);

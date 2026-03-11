@@ -6,11 +6,11 @@
 #include "scheduler_test_doubles.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/adt/circular_array.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/result/sched_result.h"
 #include "ocudu/scheduler/scheduler_factory.h"
 #include "ocudu/support/benchmark_utils.h"
@@ -99,7 +99,7 @@ public:
   void add_ue()
   {
     sched_ue_creation_request_message ue_cfg_msg = sched_config_helper::create_default_sched_ue_creation_request(
-        builder_params, {lcid_t::LCID_SRB2, lcid_t::LCID_MIN_DRB});
+        cell_cfgs[0], {lcid_t::LCID_SRB2, lcid_t::LCID_MIN_DRB});
     ue_cfg_msg.ue_index           = to_du_ue_index(ue_count);
     ue_cfg_msg.crnti              = to_rnti(0x4601 + ue_count);
     ue_cfg_msg.starts_in_fallback = false;

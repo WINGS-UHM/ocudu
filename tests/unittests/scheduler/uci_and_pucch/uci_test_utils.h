@@ -11,6 +11,7 @@
 #include "lib/scheduler/ue_context/ue.h"
 #include "lib/scheduler/ue_context/ue_repository.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
+#include "ocudu/ran/csi_rs/csi_meas_config.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 
@@ -44,18 +45,18 @@ bool find_pucch_pdu(const static_vector<pucch_info, MAX_PUCCH_PDUS_PER_SLOT>& pu
 bool pucch_info_match(const pucch_info& expected, const pucch_info& test);
 
 struct test_bench_params {
-  pucch_resource_builder_params         pucch_ded_params{};
-  max_pucch_code_rate                   max_code_rate = max_pucch_code_rate::dot_25;
-  std::optional<unsigned>               pucch_res_common;
-  unsigned                              n_cces                 = 0;
-  unsigned                              max_pucchs_per_slot    = 32U;
-  unsigned                              max_ul_grants_per_slot = 32U;
-  unsigned                              nof_ul_dl_ports        = 1U;
-  bool                                  tdd                    = false;
-  sr_periodicity                        sr_period              = sr_periodicity::sl_40;
-  unsigned                              sr_offset              = 0;
-  std::optional<csi_report_periodicity> csi_period             = csi_report_periodicity::slots320;
-  unsigned                              csi_offset             = 9;
+  pucch_resource_builder_params           pucch_ded_params{};
+  max_pucch_code_rate                     max_code_rate = max_pucch_code_rate::dot_25;
+  std::optional<unsigned>                 pucch_res_common;
+  unsigned                                n_cces                 = 0;
+  unsigned                                max_pucchs_per_slot    = 32U;
+  unsigned                                max_ul_grants_per_slot = 32U;
+  unsigned                                nof_ul_dl_ports        = 1U;
+  bool                                    tdd                    = false;
+  sr_periodicity                          sr_period              = sr_periodicity::sl_40;
+  unsigned                                sr_offset              = 0;
+  std::optional<csi_resource_periodicity> csi_period             = csi_resource_periodicity::slots320;
+  unsigned                                csi_offset             = 9;
 };
 
 class test_bench

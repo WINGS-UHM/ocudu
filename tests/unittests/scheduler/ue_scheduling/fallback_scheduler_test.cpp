@@ -274,9 +274,9 @@ protected:
   add_ue(rnti_t tc_rnti, du_ue_index_t ue_index, bool remove_ded_cfg = false, slot_point msg3_rx_slot = slot_point())
   {
     // Add cell to UE cell grid allocator.
-    auto ue_create_req               = remove_ded_cfg
-                                           ? sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request()
-                                           : sched_config_helper::create_default_sched_ue_creation_request(bench->builder_params);
+    auto ue_create_req =
+        remove_ded_cfg ? sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(bench->cell_cfg.params)
+                       : sched_config_helper::create_default_sched_ue_creation_request(bench->cell_cfg.params);
     ue_create_req.crnti              = tc_rnti;
     ue_create_req.ue_index           = ue_index;
     ue_create_req.starts_in_fallback = true;
@@ -1663,7 +1663,7 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_reconf_is_after_reest_both_common
   ASSERT_TRUE(u.get_pcell().cfg().init_bwp().ul_ded.has_value());
 
   // Signal a UE reconfiguration that happens after re-establishment.
-  auto ue_cfg              = sched_config_helper::create_default_sched_ue_creation_request(bench->builder_params);
+  auto ue_cfg              = sched_config_helper::create_default_sched_ue_creation_request(bench->cell_cfg.params);
   ue_cfg.cfg.reestablished = true;
   sched_ue_reconfiguration_message reconf_msg{.ue_index = du_ue_index, .crnti = rnti, .cfg = ue_cfg.cfg};
   auto                             ev = bench->cfg_mng.update_ue(reconf_msg);

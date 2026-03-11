@@ -7,6 +7,7 @@
 #include "ocudu/mac/config/mac_cell_group_config_factory.h"
 #include "ocudu/mac/config/mac_config_helpers.h"
 #include "ocudu/rlc/rlc_srb_config_factory.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
 using namespace ocudu;
@@ -19,8 +20,8 @@ dummy_ue_resource_configurator_factory::dummy_ue_resource_configurator_factory()
   new_srb.srb_id  = srb_id_t::srb1;
   new_srb.rlc_cfg = make_default_srb_rlc_config();
   new_srb.mac_cfg = make_default_srb_mac_lc_config(LCID_SRB1);
-  next_context_update_result.cell_group.cells.emplace(SERVING_PCELL_IDX,
-                                                      config_helpers::create_default_initial_ue_cell_config());
+  next_context_update_result.cell_group.cells.emplace(
+      SERVING_PCELL_IDX, config_helpers::make_default_ue_cell_config(config_helpers::make_default_ran_cell_config()));
   next_context_update_result.cell_group.mcg_cfg = config_helpers::make_initial_mac_cell_group_config();
   next_context_update_result.cell_group.pcg_cfg = {}; // TODO
 }
@@ -68,8 +69,8 @@ dummy_ue_resource_configurator_factory::create_ue_resource_configurator(du_ue_in
   last_ue_index = ue_index;
   last_ue_pcell = pcell_index;
   ue_resource_pool.emplace(ue_index, du_ue_resource_config{});
-  ue_resource_pool[ue_index].cell_group.cells.emplace(SERVING_PCELL_IDX,
-                                                      config_helpers::create_default_initial_ue_cell_config());
+  ue_resource_pool[ue_index].cell_group.cells.emplace(
+      SERVING_PCELL_IDX, config_helpers::make_default_ue_cell_config(config_helpers::make_default_ran_cell_config()));
   ue_resource_pool[ue_index].cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.cell_index = pcell_index;
   return ue_ran_resource_configurator{std::make_unique<dummy_resource_updater>(*this, ue_index)};
 }

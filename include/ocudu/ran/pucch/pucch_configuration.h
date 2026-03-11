@@ -218,7 +218,6 @@ struct pucch_power_control {
 /// \c PUCCH-Config, TS 38.331.
 struct pucch_config {
   /// \c PUCCH-ResourceSet, from 0 to 3.
-  // NOTE: PUCCH resource set ID 0 can only contain PUCCH format 0 and 1.
   static_vector<pucch_resource_set, MAX_NOF_PUCCH_RESOURCE_SETS> pucch_res_set;
   /// List of \c PUCCH-Resource.
   static_vector<pucch_resource, MAX_NOF_UE_PUCCH_RESOURCES> pucch_res_list;
@@ -234,14 +233,7 @@ struct pucch_config {
   /// \c dl-DataToUL-ACK. Values {0..15}.
   static_vector<uint8_t, 8> dl_data_to_ul_ack;
 
-  /// Helper variable to avoid iterating over several lists to retrieve the PUCCH format.
-  pucch_format set_1_format = pucch_format::NOF_FORMATS;
-
   std::optional<pucch_power_control> pucch_pw_control;
-
-  /// Returns the PUCCH format of the resources from PUCCH resource set 1.
-  /// \remark The PUCCH resource set 1 can only contain PUCCH format 2, 3 or 4.
-  pucch_format get_set_1_format() const { return set_1_format; }
 
   bool operator==(const pucch_config& rhs) const
   {

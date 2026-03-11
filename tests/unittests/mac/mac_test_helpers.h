@@ -4,26 +4,24 @@
 
 #pragma once
 
-#include "lib/mac/mac_sched/mac_scheduler_adapter.h"
+#include "lib/mac/mac_dl/mac_scheduler_cell_info_handler.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/slotted_array.h"
+#include "ocudu/mac/cell_configuration.h"
 #include "ocudu/mac/config/mac_cell_group_config_factory.h"
-#include "ocudu/mac/config/mac_config_helpers.h"
 #include "ocudu/mac/mac_cell_result.h"
 #include "ocudu/mac/mac_clock_controller.h"
 #include "ocudu/mac/mac_subframe_time_mapper.h"
 #include "ocudu/mac/mac_ue_configurator.h"
-#include "ocudu/pcap/dlt_pcap.h"
-#include "ocudu/pcap/rlc_pcap.h"
 #include "ocudu/ran/rrm.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/mac_scheduler.h"
 #include "ocudu/scheduler/result/sched_result.h"
+#include "ocudu/support/timers.h"
 
-namespace ocudu {
-
-namespace test_helpers {
+namespace ocudu::test_helpers {
 
 /// Generates default MAC Cell Configuration to be used in unit tests.
 inline mac_cell_creation_request make_default_mac_cell_config(const cell_config_builder_params& params = {})
@@ -77,7 +75,8 @@ inline mac_ue_create_request make_default_ue_creation_request(const cell_config_
   pcg_cfg.pdsch_harq_codebook         = pdsch_harq_ack_codebook::dynamic;
 
   msg.sched_cfg.cells.emplace();
-  msg.sched_cfg.cells->push_back(config_helpers::create_default_initial_ue_cell_config(params));
+  msg.sched_cfg.cells->push_back(
+      config_helpers::make_default_ue_cell_config(config_helpers::make_default_ran_cell_config(params)));
 
   return msg;
 }
@@ -195,7 +194,7 @@ public:
   size_t on_new_tx_sdu(span<uint8_t> mac_sdu_buf) override
   {
     previous_tx_sdu = byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(mac_sdu_buf.size())).value();
-    auto out_it     = mac_sdu_buf.begin();
+    auto* out_it    = mac_sdu_buf.begin();
     for (span<const uint8_t> seg : previous_tx_sdu.segments()) {
       out_it = std::copy(seg.begin(), seg.end(), out_it);
     }
@@ -291,6 +290,4 @@ struct mac_test_ue {
   mac_ue_create_request make_ue_create_request();
 };
 
-} // namespace test_helpers
-
-} // namespace ocudu
+} // namespace ocudu::test_helpers

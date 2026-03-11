@@ -6,6 +6,7 @@
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/du/du_high/du_qos_config_helpers.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -22,7 +23,8 @@ protected:
     du_cfg_param(du_cfg_param_),
     cell_cfg_list({du_cfg_param_}),
     qos_cfg_list(config_helpers::make_default_du_qos_config_list(/* warn_on_drop */ true, 1000)),
-    default_ue_cell_cfg(config_helpers::make_ue_serving_cell_config(du_cfg_param.ran, to_du_cell_index(0))),
+    default_ue_cell_cfg(
+        config_helpers::make_default_ue_cell_config(du_cfg_param.ran, to_du_cell_index(0)).serv_cell_cfg),
     res_mng(std::make_unique<du_ran_resource_manager_impl>(
         cell_cfg_list,
         scheduler_expert_config{.ue = {.max_pucchs_per_slot = max_pucch_grants}},

@@ -182,6 +182,18 @@ struct pucch_resource_builder_params {
     return pucch_format::FORMAT_4;
   }
 
+  /// Get the maximum effective code rate that can be achieved with the PUCCH Format 2, 3 or 4 resources.
+  max_pucch_code_rate max_code_rate_234() const
+  {
+    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f2_params>(f2_or_f3_or_f4_params).max_code_rate;
+    }
+    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f3_params>(f2_or_f3_or_f4_params).max_code_rate;
+    }
+    return std::get<pucch_f4_params>(f2_or_f3_or_f4_params).max_code_rate;
+  }
+
   // \brief Get the position of a given Resource Set ID 0/1 resource in the cell PUCCH resource list.
   //
   // \param res_set_id The Resource Set ID (0 or 1).

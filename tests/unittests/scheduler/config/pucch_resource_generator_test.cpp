@@ -7,28 +7,41 @@
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
-#include "ocudu/ran/resource_allocation/rb_interval.h"
+#include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
-#include "ocudu/scheduler/config/serving_cell_config.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/config/ran_cell_config.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
+#include "ocudu/scheduler/config/serving_cell_config_builder.h"
 #include "ocudu/scheduler/config/ue_bwp_config.h"
 #include <gtest/gtest.h>
 #include <limits>
 
 using namespace ocudu;
 
-struct pucch_res_gen_test_params {
-  pucch_resource_builder_params builder_params;
-  bwp_configuration             bwp_cfg;
-};
+static ran_cell_config make_custom_cell_config(const pucch_resource_builder_params& builder_params)
+{
+  // Standard BWP configuration: 15 kHz SCS, 5 MHz BW.
+  cell_config_builder_params cell_params{};
+  cell_params.dl_carrier.carrier_bw = bs_channel_bandwidth::MHz5;
+  cell_params.scs_common            = subcarrier_spacing::kHz15;
+  auto cfg                          = config_helpers::make_default_ran_cell_config(cell_params);
+  cfg.init_bwp.pucch.resources      = builder_params;
+  return cfg;
+}
 
-class pucch_resource_generator_test : public ::testing::TestWithParam<pucch_res_gen_test_params>
+class pucch_resource_generator_test : public ::testing::TestWithParam<pucch_resource_builder_params>
 {
 public:
-  pucch_resource_generator_test() : params(GetParam().builder_params), bwp_cfg(GetParam().bwp_cfg) {}
+  pucch_resource_generator_test() :
+    cell_cfg(make_custom_cell_config(GetParam())),
+    params(cell_cfg.init_bwp.pucch.resources),
+    bwp_cfg(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params)
+  {
+  }
 
 protected:
+  const ran_cell_config               cell_cfg;
   const pucch_resource_builder_params params;
   const bwp_configuration             bwp_cfg;
 };
@@ -73,15 +86,16 @@ TEST_P(pucch_resource_generator_test, ue_pucch_config_builder_test)
                 csi_res_id_end = pucch_csi_resource_id(params.nof_cell_csi_resources);
            csi_res_id != csi_res_id_end;
            ++csi_res_id) {
-        const ue_pucch_config        ue_pucch_cfg{.res_set_cfg_id = res_set_cfg_id, .sr_res_id = sr_res_id};
-        const ue_periodic_csi_config ue_csi_cfg{.pucch_res_id = csi_res_id};
-        serving_cell_config          serv_cell_cfg = config_helpers::create_default_initial_ue_serving_cell_config();
+        const ue_bwp_config ue_bwp_cfg{
+            .ul =
+                {
+                    .pucch               = {.res_set_cfg_id = res_set_cfg_id, .sr_res_id = sr_res_id},
+                    .periodic_csi_report = ue_periodic_csi_config{.pucch_res_id = csi_res_id},
+                },
+        };
 
-        // Verify that the builder succeeds for all valid configuration ID combinations.
-        ASSERT_TRUE(
-            config_helpers::ue_pucch_config_builder(serv_cell_cfg, cell_res_list, params, ue_pucch_cfg, ue_csi_cfg));
+        const auto pucch_cfg = config_helpers::build_pucch_config(cell_cfg, make_cell_bwp_config(cell_cfg), ue_bwp_cfg);
 
-        const auto&               pucch_cfg          = serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value();
         static constexpr unsigned nof_sr_res_per_ue  = 1;
         static constexpr unsigned nof_csi_res_per_ue = 1;
         // For F0+F2 case:
@@ -110,9 +124,13 @@ TEST_P(pucch_resource_generator_test, ue_pucch_config_builder_test)
         // Check the CSI resource.
         const pucch_res_id_t expected_csi_res_id{params.get_csi_cell_res_idx(csi_res_id), params.get_csi_ue_res_idx()};
 
-        ASSERT_EQ(1U, serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list.size());
+        const auto csi_meas_cfg =
+            config_helpers::build_csi_meas_config(cell_cfg, make_cell_bwp_config(cell_cfg), ue_bwp_cfg);
+
+        ASSERT_TRUE(csi_meas_cfg.has_value());
+        ASSERT_EQ(1U, csi_meas_cfg->csi_report_cfg_list.size());
         const auto& periodic_report_cfg = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-            serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list.front().report_cfg_type);
+            csi_meas_cfg->csi_report_cfg_list.front().report_cfg_type);
         ASSERT_EQ(1U, periodic_report_cfg.pucch_csi_res_list.size());
         ASSERT_EQ(expected_csi_res_id, periodic_report_cfg.pucch_csi_res_list.front().pucch_res_id);
 
@@ -187,11 +205,6 @@ TEST_P(pucch_resource_generator_test, ue_pucch_config_builder_test)
   }
 }
 
-// Standard BWP configuration: 15 kHz SCS, 5 MHz BW.
-static constexpr bwp_configuration default_bwp_cfg{.cp   = cyclic_prefix::NORMAL,
-                                                   .scs  = subcarrier_spacing::kHz15,
-                                                   .crbs = crb_interval::start_and_len(0, 25)};
-
 static constexpr pucch_f0_params f0_max_density{
     .nof_syms = 1,
 };
@@ -236,91 +249,59 @@ static constexpr pucch_f4_params f4_high_density{.nof_syms      = pucch_constant
 INSTANTIATE_TEST_SUITE_P(,
                          pucch_resource_generator_test,
                          ::testing::Values(
-                             pucch_res_gen_test_params{
-                                 .builder_params =
-                                     pucch_resource_builder_params{
-                                         .nof_cell_res_set_configs = 1,
-                                         .nof_cell_sr_resources    = 3,
-                                         .nof_cell_csi_resources   = 1,
-                                         .f0_or_f1_params          = f1_low_density,
-                                         .f2_or_f3_or_f4_params    = f2_multiple_rbs,
-                                     },
-                                 .bwp_cfg = default_bwp_cfg,
+                             pucch_resource_builder_params{
+                                 .nof_cell_res_set_configs = 1,
+                                 .nof_cell_sr_resources    = 3,
+                                 .nof_cell_csi_resources   = 1,
+                                 .f0_or_f1_params          = f1_low_density,
+                                 .f2_or_f3_or_f4_params    = f2_multiple_rbs,
                              },
-                             pucch_res_gen_test_params{
-                                 .builder_params =
-                                     pucch_resource_builder_params{
-                                         .nof_cell_res_set_configs = 10,
-                                         .nof_cell_sr_resources    = 84,
-                                         .nof_cell_csi_resources   = 10,
-                                         .f0_or_f1_params          = f1_high_density,
-                                         .f2_or_f3_or_f4_params    = f2_freq_hop,
-                                     },
-                                 .bwp_cfg = default_bwp_cfg,
+                             pucch_resource_builder_params{
+                                 .nof_cell_res_set_configs = 10,
+                                 .nof_cell_sr_resources    = 84,
+                                 .nof_cell_csi_resources   = 10,
+                                 .f0_or_f1_params          = f1_high_density,
+                                 .f2_or_f3_or_f4_params    = f2_freq_hop,
                              },
-                             pucch_res_gen_test_params{
-                                 .builder_params =
-                                     pucch_resource_builder_params{
-                                         .nof_cell_res_set_configs = 2,
-                                         .nof_cell_sr_resources    = 2,
-                                         .nof_cell_csi_resources   = 9,
-                                         .f0_or_f1_params          = f0_freq_hop,
-                                         .f2_or_f3_or_f4_params    = f2_multiple_rbs,
-                                     },
-                                 .bwp_cfg = default_bwp_cfg,
+                             pucch_resource_builder_params{
+                                 .nof_cell_res_set_configs = 2,
+                                 .nof_cell_sr_resources    = 2,
+                                 .nof_cell_csi_resources   = 9,
+                                 .f0_or_f1_params          = f0_freq_hop,
+                                 .f2_or_f3_or_f4_params    = f2_multiple_rbs,
                              },
-                             pucch_res_gen_test_params{
-                                 .builder_params =
-                                     pucch_resource_builder_params{
-                                         .nof_cell_res_set_configs = 8,
-                                         .nof_cell_sr_resources    = 8,
-                                         .nof_cell_csi_resources   = 8,
-                                         .f0_or_f1_params          = f0_max_density,
-                                         .f2_or_f3_or_f4_params    = f2_freq_hop,
-                                     },
-                                 .bwp_cfg = default_bwp_cfg,
+                             pucch_resource_builder_params{
+                                 .nof_cell_res_set_configs = 8,
+                                 .nof_cell_sr_resources    = 8,
+                                 .nof_cell_csi_resources   = 8,
+                                 .f0_or_f1_params          = f0_max_density,
+                                 .f2_or_f3_or_f4_params    = f2_freq_hop,
                              },
-                             pucch_res_gen_test_params{
-                                 .builder_params =
-                                     pucch_resource_builder_params{
-                                         .nof_cell_res_set_configs = 1,
-                                         .nof_cell_sr_resources    = 2,
-                                         .nof_cell_csi_resources   = 2,
-                                         .f0_or_f1_params          = f1_low_density,
-                                         .f2_or_f3_or_f4_params    = f3_low_density,
-                                     },
-                                 .bwp_cfg = default_bwp_cfg,
+                             pucch_resource_builder_params{
+                                 .nof_cell_res_set_configs = 1,
+                                 .nof_cell_sr_resources    = 2,
+                                 .nof_cell_csi_resources   = 2,
+                                 .f0_or_f1_params          = f1_low_density,
+                                 .f2_or_f3_or_f4_params    = f3_low_density,
                              },
-                             pucch_res_gen_test_params{
-                                 .builder_params =
-                                     pucch_resource_builder_params{
-                                         .nof_cell_res_set_configs = 5,
-                                         .nof_cell_sr_resources    = 42,
-                                         .nof_cell_csi_resources   = 3,
-                                         .f0_or_f1_params          = f1_high_density,
-                                         .f2_or_f3_or_f4_params    = f3_high_density,
-                                     },
-                                 .bwp_cfg = default_bwp_cfg,
+                             pucch_resource_builder_params{
+                                 .nof_cell_res_set_configs = 5,
+                                 .nof_cell_sr_resources    = 42,
+                                 .nof_cell_csi_resources   = 3,
+                                 .f0_or_f1_params          = f1_high_density,
+                                 .f2_or_f3_or_f4_params    = f3_high_density,
                              },
-                             pucch_res_gen_test_params{
-                                 .builder_params =
-                                     pucch_resource_builder_params{
-                                         .nof_cell_res_set_configs = 1,
-                                         .nof_cell_sr_resources    = 2,
-                                         .nof_cell_csi_resources   = 2,
-                                         .f0_or_f1_params          = f1_low_density,
-                                         .f2_or_f3_or_f4_params    = f4_low_density,
-                                     },
-                                 .bwp_cfg = default_bwp_cfg,
+                             pucch_resource_builder_params{
+                                 .nof_cell_res_set_configs = 1,
+                                 .nof_cell_sr_resources    = 2,
+                                 .nof_cell_csi_resources   = 2,
+                                 .f0_or_f1_params          = f1_low_density,
+                                 .f2_or_f3_or_f4_params    = f4_low_density,
                              },
-                             pucch_res_gen_test_params{
-                                 .builder_params =
-                                     pucch_resource_builder_params{
-                                         .nof_cell_res_set_configs = 20,
-                                         .nof_cell_sr_resources    = 8,
-                                         .nof_cell_csi_resources   = 8,
-                                         .f0_or_f1_params          = f1_high_density,
-                                         .f2_or_f3_or_f4_params    = f4_high_density,
-                                     },
-                                 .bwp_cfg = default_bwp_cfg,
+                             pucch_resource_builder_params{
+                                 .nof_cell_res_set_configs = 20,
+                                 .nof_cell_sr_resources    = 8,
+                                 .nof_cell_csi_resources   = 8,
+                                 .f0_or_f1_params          = f1_high_density,
+                                 .f2_or_f3_or_f4_params    = f4_high_density,
                              }));

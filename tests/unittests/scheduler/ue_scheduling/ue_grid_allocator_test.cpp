@@ -125,7 +125,7 @@ protected:
   ue& add_ue(du_ue_index_t ue_index, const std::initializer_list<lcid_t>& lcids_to_activate)
   {
     sched_ue_creation_request_message ue_creation_req =
-        sched_config_helper::create_default_sched_ue_creation_request(cfg_builder_params);
+        sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
     ue_creation_req.ue_index = ue_index;
     ue_creation_req.crnti    = to_rnti(0x4601 + (unsigned)ue_index);
     for (lcid_t lcid : lcids_to_activate) {
@@ -267,7 +267,7 @@ TEST_P(ue_grid_allocator_css_test,
   static const units::bytes nof_bytes_to_schedule{40U};
 
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.cfg.cells->front().serv_cell_cfg.init_dl_bwp.pdcch_cfg =
       cell_cfg.ded_bwp_res[to_bwp_id(0)].dl_ded()->pdcch_cfg;
   ue_creation_req.ue_index = to_du_ue_index(0);
@@ -302,7 +302,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, when_using_non_fallback_dci_format_us
   static const units::bytes nof_bytes_to_schedule{40U};
 
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   // Change PDSCH MCS table to be used when using non-fallback DCI format.
   (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdsch_cfg->mcs_table = ocudu::pdsch_mcs_table::qam256;
   ue_creation_req.ue_index                                                       = to_du_ue_index(0);
@@ -320,7 +320,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, when_using_non_fallback_dci_format_us
 TEST_P(ue_grid_allocator_default_cfg_test, allocates_pdsch_restricted_to_recommended_max_nof_rbs)
 {
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);
@@ -339,7 +339,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, allocates_pdsch_restricted_to_recomme
 TEST_P(ue_grid_allocator_default_cfg_test, allocates_pusch_restricted_to_recommended_max_nof_rbs)
 {
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);
@@ -359,7 +359,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, allocates_pusch_restricted_to_recomme
 TEST_P(ue_grid_allocator_default_cfg_test, does_not_allocate_pusch_with_all_remaining_rbs_if_its_a_sr_indication)
 {
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   ue& u1                   = add_ue(ue_creation_req);
@@ -380,7 +380,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, no_two_pdschs_are_allocated_in_same_s
   static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
   const ue& u = add_ue(ue_creation_req);
 
@@ -400,7 +400,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, no_two_puschs_are_allocated_in_same_s
   static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
   const ue& u = add_ue(ue_creation_req);
 
@@ -420,7 +420,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, consecutive_puschs_for_a_ue_are_alloc
   static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
   const ue& u = add_ue(ue_creation_req);
 
@@ -446,7 +446,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, consecutive_pdschs_for_a_ue_are_alloc
   static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
   const ue& u = add_ue(ue_creation_req);
 
@@ -467,7 +467,7 @@ TEST_P(ue_grid_allocator_default_cfg_test,
   static const units::bytes nof_bytes_to_schedule{400U};
 
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
   const ue& u = add_ue(ue_creation_req);
 
@@ -489,7 +489,7 @@ TEST_P(ue_grid_allocator_default_cfg_test,
   const unsigned            nof_slot_until_pdsch_is_allocated_threshold = SCHEDULER_MAX_K0;
 
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
   const ue& u = add_ue(ue_creation_req);
 
@@ -524,7 +524,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, successfully_allocates_pdsch_with_gbr
 
   // Add UE.
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   ue& u1                   = add_ue(ue_creation_req);
@@ -581,7 +581,7 @@ TEST_P(ue_grid_allocator_default_cfg_test,
   const unsigned            nof_slot_until_pusch_is_allocated_threshold = SCHEDULER_MAX_K2;
 
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
   const ue& u = add_ue(ue_creation_req);
 
@@ -626,7 +626,7 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester,
        allocates_pdsch_with_expert_cfg_min_nof_rbs_even_if_rbs_required_to_schedule_is_low)
 {
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);
@@ -647,7 +647,7 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester,
        allocates_pdsch_with_expert_cfg_max_nof_rbs_even_if_rbs_required_to_schedule_is_high)
 {
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);
@@ -668,7 +668,7 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester,
        allocates_pusch_with_expert_cfg_min_nof_rbs_even_if_rbs_required_to_schedule_is_low)
 {
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);
@@ -691,7 +691,7 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_nof_rbs_limits_tester,
        allocates_pusch_with_expert_cfg_max_nof_rbs_even_if_rbs_required_to_schedule_is_high)
 {
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);
@@ -737,7 +737,7 @@ protected:
 TEST_P(ue_grid_allocator_expert_cfg_pxsch_crb_limits_tester, allocates_pdsch_within_expert_cfg_pdsch_rb_limits)
 {
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);
@@ -756,7 +756,7 @@ TEST_P(ue_grid_allocator_expert_cfg_pxsch_crb_limits_tester, allocates_pdsch_wit
 TEST_P(ue_grid_allocator_expert_cfg_pxsch_crb_limits_tester, allocates_pusch_within_expert_cfg_pusch_rb_limits)
 {
   sched_ue_creation_request_message ue_creation_req =
-      sched_config_helper::create_default_sched_ue_creation_request(this->cfg_builder_params);
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   const ue& u1             = add_ue(ue_creation_req);

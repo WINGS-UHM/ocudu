@@ -7,6 +7,7 @@
 #include "ocudu/asn1/rrc_nr/cell_group_config.h"
 #include "ocudu/mac/config/mac_cell_group_config_factory.h"
 #include "ocudu/scheduler/config/csi_helper.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/rlm_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include <gtest/gtest.h>
@@ -16,7 +17,8 @@ using namespace ocudu;
 static odu::du_ue_resource_config make_initial_du_ue_resource_config()
 {
   odu::du_ue_resource_config dest_cfg{};
-  dest_cfg.cell_group.cells.emplace(SERVING_PCELL_IDX, config_helpers::create_default_initial_ue_cell_config());
+  dest_cfg.cell_group.cells.emplace(
+      SERVING_PCELL_IDX, config_helpers::make_default_ue_cell_config(config_helpers::make_default_ran_cell_config()));
   dest_cfg.cell_group.mcg_cfg = config_helpers::make_initial_mac_cell_group_config();
   return dest_cfg;
 }

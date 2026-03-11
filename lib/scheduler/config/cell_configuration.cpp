@@ -9,6 +9,7 @@
 #include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
 
 using namespace ocudu;
@@ -62,8 +63,8 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
 {
   // Initiate dedicated sched BWP configs.
   {
-    const auto                   rlm_cfg   = config_helpers::make_rlm_config(params);
-    const auto                   pdsch_cfg = config_helpers::make_pdsch_config(params);
+    const auto rlm_cfg   = config_helpers::make_default_ue_cell_config(params).serv_cell_cfg.init_dl_bwp.rlm_cfg;
+    const auto pdsch_cfg = config_helpers::make_default_ue_cell_config(params).serv_cell_cfg.init_dl_bwp.pdsch_cfg;
     const bwp_downlink_dedicated bwp_dl_ded{
         .pdcch_cfg = msg.ran.init_bwp.pdcch_cfg, .pdsch_cfg = pdsch_cfg, .rlm_cfg = rlm_cfg};
     ded_bwp_res.emplace(to_bwp_id(0), params.pci, to_bwp_id(0), params.dl_cfg_common.init_dl_bwp, &bwp_dl_ded);

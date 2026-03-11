@@ -19,6 +19,8 @@
 #include "ocudu/adt/unique_function.h"
 #include "ocudu/ran/qos/five_qi_qos_mapping.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -124,9 +126,10 @@ protected:
                                                        const std::initializer_list<lcid_t>& lcids_to_activate,
                                                        lcg_id_t                             lcg_id)
   {
-    sched_ue_creation_request_message req = sched_config_helper::create_default_sched_ue_creation_request(params);
-    req.ue_index                          = ue_index;
-    req.crnti                             = rnti;
+    sched_ue_creation_request_message req =
+        sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
+    req.ue_index = ue_index;
+    req.crnti    = rnti;
     // Set LCG ID for SRBs provided in the LCIDs to activate list.
     for (auto& lc_cfg : *req.cfg.lc_config_list) {
       if (lc_cfg.lcid < lcid_t::LCID_SRB2 and

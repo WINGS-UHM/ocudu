@@ -8,6 +8,7 @@
 #include "tests/unittests/scheduler/test_utils/sched_custom_test_bench.h"
 #include "ocudu/ran/power_control/tpc_mapping.h"
 #include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -202,7 +203,8 @@ protected:
                  "For PUCCH resources set 1, Format 0 and are not valid");
 
     sched_ue_creation_request_message ue_req = cfg_mng.get_default_ue_config_request();
-    pucch_res_builder_test_helper     pucch_builder(cell_cfg, make_pucch_builder_params());
+    pucch_res_builder_test_helper     pucch_builder(cell_cfg.expert_cfg.ue.max_pucchs_per_slot);
+    pucch_builder.setup(cell_cfg.params);
     pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells.value().front());
     add_ue(ue_req);
   }

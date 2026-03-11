@@ -49,7 +49,7 @@ protected:
     this->add_cell(cell_req);
 
     // Add UE
-    auto ue_cfg     = sched_config_helper::create_default_sched_ue_creation_request(params, {ue_drb_lcid});
+    auto ue_cfg     = sched_config_helper::create_default_sched_ue_creation_request(cell_req.ran, {ue_drb_lcid});
     ue_cfg.ue_index = ue_idx;
     ue_cfg.crnti    = ue_rnti;
     // Increase PUCCH Format 2 code rate to support TDD configuration of DDDDDDDDSU.

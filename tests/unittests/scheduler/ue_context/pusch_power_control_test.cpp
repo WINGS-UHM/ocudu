@@ -6,6 +6,7 @@
 #include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/sched_custom_test_bench.h"
 #include "ocudu/ran/power_control/tpc_mapping.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;

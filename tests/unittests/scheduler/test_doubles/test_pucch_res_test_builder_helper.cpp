@@ -12,19 +12,15 @@
 
 using namespace ocudu;
 
-class sched_pucch_res_builder_tester : public ::testing::TestWithParam<bool>
+class sched_pucch_res_builder_tester : public ::testing::Test
 {
 protected:
   sched_pucch_res_builder_tester() :
     cell_cfg(config_helpers::make_default_scheduler_expert_config(),
              sched_config_helper::make_default_sched_cell_configuration_request()),
-    cell_cfg_dedicated(ocudu::config_helpers::create_default_initial_ue_cell_config()),
-    pucch_builder(GetParam() ? pucch_res_builder_test_helper(cell_cfg.params.ul_cfg_common.init_ul_bwp, std::nullopt)
-                             : pucch_res_builder_test_helper())
+    cell_cfg_dedicated(ocudu::config_helpers::make_default_ue_cell_config(cell_cfg.params))
   {
-    if (not GetParam()) {
-      pucch_builder.setup(cell_cfg.params.ul_cfg_common.init_ul_bwp, std::nullopt);
-    }
+    pucch_builder.setup(cell_cfg.params);
   }
 
   struct ue_info {
@@ -34,7 +30,7 @@ protected:
 
   const ue_info* add_ue()
   {
-    ues.push_back(ue_info{ue_cnt++, ocudu::config_helpers::create_default_initial_ue_cell_config()});
+    ues.push_back(ue_info{ue_cnt++, ocudu::config_helpers::make_default_ue_cell_config(cell_cfg.params)});
     pucch_builder.add_build_new_ue_pucch_cfg(ues.back().ue_cell_cfg);
     return &ues.back();
   }
@@ -47,7 +43,7 @@ protected:
   pucch_res_builder_test_helper pucch_builder;
 };
 
-TEST_P(sched_pucch_res_builder_tester, when_ues_are_added_their_cfg_have_different_csi_and_sr)
+TEST_F(sched_pucch_res_builder_tester, when_ues_are_added_their_cfg_have_different_csi_and_sr)
 {
   std::set<std::pair<unsigned, unsigned>> sr_offsets;
   std::set<std::pair<unsigned, unsigned>> csi_offsets;
@@ -94,7 +90,3 @@ TEST_P(sched_pucch_res_builder_tester, when_ues_are_added_their_cfg_have_differe
 
   ASSERT_TRUE(true);
 }
-
-INSTANTIATE_TEST_SUITE_P(test_helper_inited_with_ctor_vs_setup,
-                         sched_pucch_res_builder_tester,
-                         ::testing::Values(true, false));

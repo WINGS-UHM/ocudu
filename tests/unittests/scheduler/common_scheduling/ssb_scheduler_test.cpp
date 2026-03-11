@@ -8,6 +8,7 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/ran/frame_types.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 

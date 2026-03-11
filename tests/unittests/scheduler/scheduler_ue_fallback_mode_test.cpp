@@ -12,6 +12,7 @@
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
+#include "ocudu/ran/du_types.h"
 #include "ocudu/ran/duplex_mode.h"
 #include <functional>
 #include <gtest/gtest.h>
@@ -132,7 +133,8 @@ public:
                  "This test assumes a setup with ZP CSI-RS enabled");
 
     // Create a UE with a DRB active.
-    auto ue_cfg               = sched_config_helper::create_default_sched_ue_creation_request(builder_params, {});
+    auto ue_cfg =
+        sched_config_helper::create_default_sched_ue_creation_request(cell_cfg(to_du_cell_index(0)).params, {});
     ue_cfg.ue_index           = ue_index;
     ue_cfg.crnti              = rnti;
     ue_cfg.starts_in_fallback = true;
@@ -442,7 +444,8 @@ protected:
     add_cell(cell_cfg_req);
 
     // Create a UE.
-    auto ue_cfg               = sched_config_helper::create_default_sched_ue_creation_request(builder_params, {});
+    auto ue_cfg =
+        sched_config_helper::create_default_sched_ue_creation_request(cell_cfg(to_du_cell_index(0)).params, {});
     ue_cfg.ue_index           = ue_index;
     ue_cfg.crnti              = rnti;
     ue_cfg.starts_in_fallback = true;
@@ -552,9 +555,9 @@ protected:
     add_cell(cell_cfg_req);
 
     // Create a UE without serv cell config.
-    auto ue_cfg               = sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(builder_params);
-    ue_cfg.ue_index           = ue_index;
-    ue_cfg.crnti              = rnti;
+    auto ue_cfg     = sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(cell_cfg_req.ran);
+    ue_cfg.ue_index = ue_index;
+    ue_cfg.crnti    = rnti;
     ue_cfg.starts_in_fallback = true;
     ue_cfg.ul_ccch_slot_rx    = next_slot.without_hyper_sfn();
     scheduler_test_simulator::add_ue(ue_cfg, true);

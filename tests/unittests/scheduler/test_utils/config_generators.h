@@ -6,9 +6,7 @@
 
 #include "lib/scheduler/config/sched_config_manager.h"
 #include "lib/scheduler/logging/scheduler_metrics_handler.h"
-#include "ocudu/scheduler/config/sched_cell_config_helpers.h"
-#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
+#include "ocudu/scheduler/config/cell_config_builder_params.h"
 
 namespace ocudu {
 

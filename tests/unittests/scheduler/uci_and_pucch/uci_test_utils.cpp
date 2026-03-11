@@ -245,6 +245,13 @@ make_custom_sched_cell_configuration_request(const test_bench_params& params)
     }
   }
   req.ran.init_bwp.pucch.resources = params.pucch_ded_params;
+  req.ran.init_bwp.pucch.sr_period = params.sr_period;
+  if (params.csi_period.has_value()) {
+    req.ran.init_bwp.csi.value().csi_rs_period          = params.csi_period.value();
+    req.ran.init_bwp.csi.value().csi_report_slot_offset = params.csi_offset;
+  } else {
+    req.ran.init_bwp.csi = std::nullopt;
+  }
 
   return req;
 }
@@ -269,7 +276,7 @@ test_bench::test_bench(const test_bench_params& params_) :
   cell_cfg(*cfg_mng.add_cell(make_custom_sched_cell_configuration_request(params))),
   ues(expert_cfg.ue),
   cell_ues(ues.add_cell(cell_cfg, nullptr)),
-  pucch_builder(cell_cfg, params.pucch_ded_params),
+  pucch_builder(cell_cfg.expert_cfg.ue.max_pucchs_per_slot),
   res_grid(cell_cfg),
   k0(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[0].k0),
   dci_info{make_default_dci(params.n_cces, &cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value())},
@@ -278,6 +285,8 @@ test_bench::test_bench(const test_bench_params& params_) :
   uci_sched{cell_cfg, uci_alloc, ues},
   sl_tx{to_numerology_value(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
 {
+  pucch_builder.setup(cell_cfg.params);
+
   // Add main UE.
   add_ue();
 
@@ -298,7 +307,7 @@ const ue& test_bench::get_ue(du_ue_index_t ue_idx) const
 void test_bench::add_ue()
 {
   sched_ue_creation_request_message ue_req =
-      sched_config_helper::create_default_sched_ue_creation_request(make_custom_cell_config_builder_params(params));
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
   if (ue_ded_cfgs.empty()) {
     ue_req.ue_index = main_ue_idx;
@@ -309,27 +318,16 @@ void test_bench::add_ue()
     ue_req.crnti = to_rnti(static_cast<std::underlying_type_t<rnti_t>>(ue_ded_cfgs.back()->crnti) + 1);
   }
 
-  // Configure SR and CSI periodicities.
-  auto& serv_cell_cfg                                                   = ue_req.cfg.cells->back().serv_cell_cfg;
-  serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].period = params.sr_period;
-  if (params.csi_period.has_value()) {
-    auto& csi_report = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
-    csi_report.report_slot_period = *params.csi_period;
-  } else {
-    ue_req.cfg.cells->back().serv_cell_cfg.csi_meas_cfg.reset();
-    ue_req.cfg.cells->back().serv_cell_cfg.init_dl_bwp.pdsch_cfg->zp_csi_rs_res_list.clear();
-    ue_req.cfg.cells->back().serv_cell_cfg.init_dl_bwp.pdsch_cfg->p_zp_csi_rs_res.reset();
-  }
-
   const bool success = pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back());
   ocudu_assert(success, "UE PUCCH configuration couldn't be built");
 
-  // Configure SR and CSI offsets.
+  // TODO: rewrite this test, we should never modify the UE cell config like this in unittests.
+  ue_req.cfg.cells->back().init_bwp().ul.pucch.sr_offset                                         = params.sr_offset;
   ue_req.cfg.cells->back().serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].offset = params.sr_offset;
   if (params.csi_period.has_value()) {
+    ue_req.cfg.cells->back().init_bwp().ul.periodic_csi_report.value().offset = params.csi_offset;
     auto& csi_report = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
+        ue_req.cfg.cells->back().serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
     csi_report.report_slot_offset = params.csi_offset;
   }
 

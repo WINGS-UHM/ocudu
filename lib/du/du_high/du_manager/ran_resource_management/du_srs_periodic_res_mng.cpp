@@ -5,7 +5,7 @@
 #include "du_srs_periodic_res_mng.h"
 #include "du_srs_manager_helpers.h"
 #include "du_ue_resource_config.h"
-#include "ocudu/scheduler/config/ran_cell_config_helper.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -31,7 +31,9 @@ static bool is_partially_ul_slot(unsigned offset, const std::optional<tdd_ul_dl_
 du_srs_policy_max_ul_rate::cell_context::cell_context(const du_cell_config& cfg) :
   cell_cfg(cfg),
   tdd_ul_dl_cfg_common(cfg.ran.tdd_cfg),
-  default_srs_cfg(config_helpers::make_srs_config(cell_cfg.ran.init_bwp.srs_cfg, cell_cfg.ran.pci))
+  default_srs_cfg(config_helpers::make_default_ue_cell_config(cell_cfg.ran)
+                      .serv_cell_cfg.ul_config.value()
+                      .init_ul_bwp.srs_cfg.value())
 {
   ocudu_assert(cfg.ran.init_bwp.srs_cfg.srs_type_enabled != srs_type::aperiodic, "Invalid SRS type");
 }

@@ -13,8 +13,9 @@
 #include "ocudu/ran/prach/prach_preamble_information.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
-#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
+#include "ocudu/scheduler/config/serving_cell_config.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_validator.h"
 #include "ocudu/support/config/validator_helpers.h"
 
@@ -208,11 +209,12 @@ static check_outcome check_dl_config_common(const du_cell_config& cell_cfg)
 
 static check_outcome check_rlm_config(const du_cell_config& cell_cfg)
 {
-  const auto rlm_cfg = config_helpers::make_rlm_config(cell_cfg.ran);
+  const auto serv_cell_cfg = config_helpers::make_default_ue_cell_config(cell_cfg.ran).serv_cell_cfg;
+  const auto rlm_cfg       = serv_cell_cfg.init_dl_bwp.rlm_cfg;
   if (not rlm_cfg.has_value()) {
     return {};
   }
-  const auto csi_meas_cfg = config_helpers::make_csi_meas_config(cell_cfg.ran);
+  const auto csi_meas_cfg = serv_cell_cfg.csi_meas_cfg;
   for (auto& rlm_res : rlm_cfg->rlm_resources) {
     CHECK_TRUE(rlm_res.resource_purpose == radio_link_monitoring_config::radio_link_monitoring_rs::purpose::rlf,
                "Radio Link Failure is the only supported Radio Link Monitoring purpose");
@@ -270,7 +272,7 @@ static check_outcome check_dl_config_dedicated(const du_cell_config& cell_cfg)
 {
   const subcarrier_spacing scs_common = cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs;
   const auto&              pdcch_cfg  = cell_cfg.ran.init_bwp.pdcch_cfg;
-  const auto               pdsch_cfg  = config_helpers::make_pdsch_config(cell_cfg.ran);
+  const auto pdsch_cfg = config_helpers::make_default_ue_cell_config(cell_cfg.ran).serv_cell_cfg.init_dl_bwp.pdsch_cfg;
 
   // PDCCH
   if (pdcch_cfg.has_value()) {
@@ -792,8 +794,7 @@ check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
   HANDLE_ERROR(config_helpers::pucch_parameters_validator(
       cell_cfg.ran.init_bwp.pucch.resources, cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()));
   HANDLE_ERROR(check_prach_config(cell_cfg));
-  const serving_cell_config ue_serv_cell_cfg =
-      config_helpers::make_ue_serving_cell_config(cell_cfg.ran, to_du_cell_index(0));
+  const serving_cell_config ue_serv_cell_cfg = config_helpers::make_default_ue_cell_config(cell_cfg.ran).serv_cell_cfg;
   HANDLE_ERROR(
       config_validators::validate_csi_meas_cfg(ue_serv_cell_cfg, cell_cfg.ran.tdd_cfg, cell_cfg.ran.ul_cfg_common));
   HANDLE_ERROR(check_dl_config_dedicated(cell_cfg));

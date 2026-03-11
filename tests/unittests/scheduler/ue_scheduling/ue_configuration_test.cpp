@@ -6,8 +6,8 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -17,7 +17,8 @@ class ue_configuration_test : public ::testing::Test
 protected:
   scheduler_expert_config                  sched_cfg = config_helpers::make_default_scheduler_expert_config();
   sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
-  sched_ue_creation_request_message ue_create_msg = sched_config_helper::create_default_sched_ue_creation_request();
+  sched_ue_creation_request_message        ue_create_msg =
+      sched_config_helper::create_default_sched_ue_creation_request(msg.ran);
 
   const cell_configuration& add_cell()
   {
@@ -150,7 +151,7 @@ TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpa
   params.dl_carrier.band        = nr_band::n41;
   params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz50;
   msg                           = sched_config_helper::make_default_sched_cell_configuration_request(params);
-  ue_create_msg                 = sched_config_helper::create_default_sched_ue_creation_request(params);
+  ue_create_msg                 = sched_config_helper::create_default_sched_ue_creation_request(msg.ran);
 
   auto&                        pdcch_cfg = *(*ue_create_msg.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg;
   const coreset_configuration& cset_cfg  = pdcch_cfg.coresets[0];

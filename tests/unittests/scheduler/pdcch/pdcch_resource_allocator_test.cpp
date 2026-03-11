@@ -9,6 +9,7 @@
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/scheduler_ue_config_validator.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
@@ -54,11 +55,11 @@ protected:
     test_ue(const ue_configuration& ue_cfg) : rnti(ue_cfg.crnti), cfg(&ue_cfg), pcell_cfg(&cfg->pcell_cfg()) {}
   };
 
-  base_pdcch_resource_allocator_tester(
-      rnti_t                                          crnti = to_rnti(0x4601),
-      const sched_cell_configuration_request_message& msg =
-          sched_config_helper::make_default_sched_cell_configuration_request(),
-      ue_cell_config ue_cell = config_helpers::create_default_initial_ue_cell_config()) :
+  base_pdcch_resource_allocator_tester(rnti_t                                          crnti = to_rnti(0x4601),
+                                       const sched_cell_configuration_request_message& msg =
+                                           sched_config_helper::make_default_sched_cell_configuration_request(),
+                                       ue_cell_config ue_cell = config_helpers::make_default_ue_cell_config(
+                                           sched_config_helper::make_default_sched_cell_configuration_request().ran)) :
     cell_cfg(*sched_cfg_mng.add_cell(msg)), default_ue_cell_req(std::move(ue_cell))
   {
     ocudulog::fetch_basic_logger("SCHED", true).set_level(ocudulog::basic_levels::debug);
@@ -367,7 +368,7 @@ class ue_pdcch_resource_allocator_scrambling_tester : public base_pdcch_resource
   }
   static ue_cell_config make_ue_base_req(const test_scrambling_params& params)
   {
-    ue_cell_config ue_cell   = config_helpers::create_default_initial_ue_cell_config();
+    ue_cell_config ue_cell   = config_helpers::make_default_ue_cell_config(make_cell_req(params).ran);
     auto&          pdcch_cfg = *ue_cell.serv_cell_cfg.init_dl_bwp.pdcch_cfg;
     pdcch_cfg.coresets[0].set_non_coreset0_pdcch_dmrs_scrambling_id(params.cs1_pdcch_dmrs_scrambling_id);
     if (params.ss2_type == ocudu::search_space_type::common) {
@@ -582,8 +583,9 @@ protected:
           return msg;
         }(),
         [tparams = GetParam()]() {
-          ue_cell_config ue_cell = config_helpers::create_default_initial_ue_cell_config(
-              cell_config_builder_params{.dl_carrier{.carrier_bw = tparams.cell_bw}});
+          ue_cell_config ue_cell =
+              config_helpers::make_default_ue_cell_config(config_helpers::make_default_ran_cell_config(
+                  cell_config_builder_params{.dl_carrier{.carrier_bw = tparams.cell_bw}}));
           if (tparams.ss2_nof_candidates.has_value()) {
             ue_cell.serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces[0].set_non_ss0_nof_candidates(
                 *tparams.ss2_nof_candidates);

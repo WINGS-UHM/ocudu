@@ -8,6 +8,8 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -21,13 +23,13 @@ protected:
     cfg_mng(scheduler_config{expert_cfg, metric_notif}, metrics_handler),
     sched_cfg(sched_config_helper::make_default_sched_cell_configuration_request(builder_params)),
     cell_cfg(*cfg_mng.add_cell(sched_cfg)),
-    serv_cell_cfg(config_helpers::create_default_initial_ue_serving_cell_config()),
+    serv_cell_cfg(config_helpers::make_default_ue_cell_config(cell_cfg.params).serv_cell_cfg),
     ue_db(expert_cfg.ue)
   {
     ue_db.add_cell(cell_cfg, nullptr);
 
     sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request(
-        builder_params, std::array<lcid_t, 3>{lcid_t::LCID_SRB1, lcid_t::LCID_SRB2, lcid_t::LCID_MIN_DRB});
+        cell_cfg.params, std::array<lcid_t, 3>{lcid_t::LCID_SRB1, lcid_t::LCID_SRB2, lcid_t::LCID_MIN_DRB});
     ue_config_update_event  ev     = cfg_mng.add_ue(ue_req);
     const ue_configuration& ue_cfg = ev.next_config();
     ue_db.add_ue(ue_cfg, ue_req.starts_in_fallback, ue_req.ul_ccch_slot_rx);

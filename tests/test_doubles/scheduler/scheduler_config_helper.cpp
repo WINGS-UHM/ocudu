@@ -5,6 +5,7 @@
 #include "scheduler_config_helper.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/ran_cell_config.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
@@ -22,17 +23,12 @@ sched_config_helper::make_default_sched_cell_configuration_request(const cell_co
   // SIB1 parameters.
   sched_req.si_scheduling.sib1_payload_size = units::bytes{101}; // Random size.
 
-  if (params.csi_rs_enabled) {
-    csi_helper::csi_meas_config_builder_params csi_params = config_helpers::make_default_csi_builder_params(params);
-    sched_req.ran.init_bwp.csi                            = csi_params.csi_params;
-  }
-
   return sched_req;
 }
 
 sched_ue_creation_request_message
-sched_config_helper::create_default_sched_ue_creation_request(const cell_config_builder_params& params,
-                                                              span<const lcid_t>                lcid_to_cfg)
+sched_config_helper::create_default_sched_ue_creation_request(const ran_cell_config& cell_cfg,
+                                                              span<const lcid_t>     lcid_to_cfg)
 {
   sched_ue_creation_request_message msg{};
 
@@ -40,7 +36,7 @@ sched_config_helper::create_default_sched_ue_creation_request(const cell_config_
   msg.crnti    = to_rnti(0x4601);
 
   msg.cfg.cells.emplace();
-  msg.cfg.cells->push_back(config_helpers::create_default_initial_ue_cell_config(params));
+  msg.cfg.cells->push_back(config_helpers::make_default_ue_cell_config(cell_cfg));
 
   msg.cfg.lc_config_list.emplace();
   msg.cfg.lc_config_list->resize(2);
@@ -56,14 +52,14 @@ sched_config_helper::create_default_sched_ue_creation_request(const cell_config_
 }
 
 sched_ue_creation_request_message
-sched_config_helper::create_default_sched_ue_creation_request(const cell_config_builder_params&    params,
+sched_config_helper::create_default_sched_ue_creation_request(const ran_cell_config&               cell_cfg,
                                                               const std::initializer_list<lcid_t>& lcid_to_cfg)
 {
-  return create_default_sched_ue_creation_request(params, span<const lcid_t>(lcid_to_cfg.begin(), lcid_to_cfg.end()));
+  return create_default_sched_ue_creation_request(cell_cfg, span<const lcid_t>(lcid_to_cfg.begin(), lcid_to_cfg.end()));
 }
 
 sched_ue_creation_request_message
-sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(const cell_config_builder_params& params)
+sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(const ran_cell_config& cell_cfg)
 {
   sched_ue_creation_request_message msg{};
 

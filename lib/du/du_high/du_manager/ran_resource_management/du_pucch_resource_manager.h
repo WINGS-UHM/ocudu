@@ -5,7 +5,6 @@
 #pragma once
 
 #include "du_ue_resource_config.h"
-#include "ocudu/scheduler/config/bwp_builder_params.h"
 #include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include <optional>
@@ -56,10 +55,8 @@ private:
   };
 
   struct cell_resource_context {
-    // Parameters for PUCCH configuration passed by the user.
-    bwp_builder_params bwp_params;
-    cell_pucch_config  cell_pucch_cfg;
-    pucch_config       default_pucch_cfg;
+    ran_cell_config cell_params;
+    cell_bwp_config cell_bwp_cfg;
     // Default CSI report configuration. Only set if periodic CSI reporting is configured.
     std::optional<csi_report_config> default_csi_report_cfg;
     unsigned                         lcm_csi_sr_period;

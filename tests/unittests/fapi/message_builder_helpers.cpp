@@ -464,13 +464,11 @@ rx_data_indication unittest::build_valid_rx_data_indication()
   auto     slot_index = generate_slot();
   msg.slot            = slot_point(scs, sfn, slot_index);
 
-  msg.pdus.emplace_back();
-  auto& pdu                                            = msg.pdus.back();
-  pdu.handle                                           = generate_handle();
-  pdu.rnti                                             = generate_rnti();
-  pdu.harq_id                                          = generate_harq();
+  msg.pdu.handle                                       = generate_handle();
+  msg.pdu.rnti                                         = generate_rnti();
+  msg.pdu.harq_id                                      = generate_harq();
   static std::array<uint8_t, 10> fixed_transport_block = {};
-  pdu.transport_block                                  = fixed_transport_block;
+  msg.pdu.transport_block                              = fixed_transport_block;
 
   return msg;
 }
@@ -687,7 +685,7 @@ uci_pucch_pdu_format_2_3_4 unittest::build_valid_uci_pucch_format234_pdu()
   return pdu;
 }
 
-uci_indication unittest::build_valid_uci_indication()
+uci_indication unittest::build_valid_uci_indication_with_pusch()
 {
   std::uniform_int_distribution<unsigned> sfn_dist(0, 1023);
   std::uniform_int_distribution<unsigned> slot_dist(0, 159);
@@ -699,17 +697,41 @@ uci_indication unittest::build_valid_uci_indication()
   auto     slot_index = slot_dist(gen);
   msg.slot            = slot_point(scs, sfn, slot_index);
 
-  // Add one PDU of each type.
-  msg.pdus.emplace_back();
-  msg.pdus.back() = build_valid_uci_pusch_pdu();
+  msg.pdu = build_valid_uci_pusch_pdu();
 
-  // Add one PDU of each type.
-  msg.pdus.emplace_back();
-  msg.pdus.back() = build_valid_uci_pucch_format01_pdu();
+  return msg;
+}
 
-  // Add one PDU of each type.
-  msg.pdus.emplace_back();
-  msg.pdus.back() = build_valid_uci_pucch_format234_pdu();
+uci_indication unittest::build_valid_uci_indication_with_pucch_format_01()
+{
+  std::uniform_int_distribution<unsigned> sfn_dist(0, 1023);
+  std::uniform_int_distribution<unsigned> slot_dist(0, 159);
+
+  uci_indication msg;
+
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = sfn_dist(gen);
+  auto     slot_index = slot_dist(gen);
+  msg.slot            = slot_point(scs, sfn, slot_index);
+
+  msg.pdu = build_valid_uci_pucch_format01_pdu();
+
+  return msg;
+}
+
+uci_indication unittest::build_valid_uci_indication_with_pucch_format_234()
+{
+  std::uniform_int_distribution<unsigned> sfn_dist(0, 1023);
+  std::uniform_int_distribution<unsigned> slot_dist(0, 159);
+
+  uci_indication msg;
+
+  auto     scs        = subcarrier_spacing::kHz240;
+  unsigned sfn        = sfn_dist(gen);
+  auto     slot_index = slot_dist(gen);
+  msg.slot            = slot_point(scs, sfn, slot_index);
+
+  msg.pdu = build_valid_uci_pucch_format234_pdu();
 
   return msg;
 }
@@ -1056,17 +1078,14 @@ rach_indication unittest::build_valid_rach_indication()
   auto     slot_index = generate_slot();
   msg.slot            = slot_point(scs, sfn, slot_index);
 
-  msg.pdus.emplace_back();
-  rach_indication_pdu& pdu = msg.pdus.back();
+  msg.pdu.symbol_index = generate_start_symbol_index();
+  msg.pdu.slot_index   = generate_slot_index();
+  msg.pdu.ra_index     = generate_ra_index();
+  msg.pdu.avg_rssi     = std::numeric_limits<uint32_t>::max();
+  msg.pdu.avg_snr      = std::numeric_limits<uint8_t>::max();
 
-  pdu.symbol_index = generate_start_symbol_index();
-  pdu.slot_index   = generate_slot_index();
-  pdu.ra_index     = generate_ra_index();
-  pdu.avg_rssi     = std::numeric_limits<uint32_t>::max();
-  pdu.avg_snr      = std::numeric_limits<uint8_t>::max();
-
-  pdu.preambles.emplace_back();
-  rach_indication_pdu_preamble& preamble = pdu.preambles.back();
+  msg.pdu.preambles.emplace_back();
+  rach_indication_pdu_preamble& preamble = msg.pdu.preambles.back();
 
   preamble.preamble_index        = generate_preamble_index();
   preamble.timing_advance_offset = phy_time_unit();
@@ -1101,16 +1120,14 @@ ocudu::fapi::crc_indication unittest::build_valid_crc_indication()
 {
   crc_indication msg;
 
-  msg.slot = slot_point(subcarrier_spacing::kHz240, 238, 3);
-  msg.pdus.emplace_back();
-  crc_ind_pdu& pdu          = msg.pdus.front();
-  pdu.rnti                  = to_rnti(34);
-  pdu.harq_id               = to_harq_id(2);
-  pdu.tb_crc_status_ok      = true;
-  pdu.ul_sinr_metric        = 0;
-  pdu.timing_advance_offset = phy_time_unit();
-  pdu.rssi                  = 100;
-  pdu.rsrp                  = 10;
+  msg.slot                      = slot_point(subcarrier_spacing::kHz240, 238, 3);
+  msg.pdu.rnti                  = to_rnti(34);
+  msg.pdu.harq_id               = to_harq_id(2);
+  msg.pdu.tb_crc_status_ok      = true;
+  msg.pdu.ul_sinr_metric        = 0;
+  msg.pdu.timing_advance_offset = phy_time_unit();
+  msg.pdu.rssi                  = 100;
+  msg.pdu.rsrp                  = 10;
 
   return msg;
 }
@@ -1134,11 +1151,9 @@ srs_indication unittest::build_valid_srs_indication()
   auto     slot_index = generate_slot();
   msg.slot            = slot_point(scs, sfn, slot_index);
 
-  msg.pdus.emplace_back();
-  auto& pdu                 = msg.pdus.back();
-  pdu.handle                = generate_handle();
-  pdu.rnti                  = generate_rnti();
-  pdu.timing_advance_offset = generate_timing_advance_offset();
+  msg.pdu.handle                = generate_handle();
+  msg.pdu.rnti                  = generate_rnti();
+  msg.pdu.timing_advance_offset = generate_timing_advance_offset();
 
   return msg;
 }

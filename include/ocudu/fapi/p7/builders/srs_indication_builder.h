@@ -76,12 +76,10 @@ public:
     return *this;
   }
 
-  /// Adds a SRS PDU to the \e SRS.indication message and returns a SRS PDU builder.
-  srs_indication_pdu_builder add_srs_pdu(rnti_t rnti)
+  /// Sets a SRS PDU to the \e SRS.indication message and returns a SRS PDU builder.
+  srs_indication_pdu_builder set_pdu(rnti_t rnti)
   {
-    auto& pdu = msg.pdus.emplace_back();
-
-    srs_indication_pdu_builder builder(pdu);
+    srs_indication_pdu_builder builder(msg.pdu);
     builder.set_ue_specific_parameters(rnti);
 
     return builder;

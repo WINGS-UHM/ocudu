@@ -90,9 +90,17 @@ ocudu::fapi::tx_data_request build_valid_tx_data_request();
 /// in SCF-222 v4.0 Section 3.4.2.5.
 ocudu::fapi::tx_precoding_and_beamforming_pdu build_valid_tx_precoding_and_beamforming_pdu();
 
-/// Builds and returns a valid UCI.indication message. Every parameter is within the range defined in SCF-222 v4.0
-/// Section 3.4.9.
-ocudu::fapi::uci_indication build_valid_uci_indication();
+/// Builds and returns a valid UCI.indication message with a PUSCH PDU. Every parameter is within the range defined in
+/// SCF-222 v4.0 Section 3.4.9.
+ocudu::fapi::uci_indication build_valid_uci_indication_with_pusch();
+
+/// Builds and returns a valid UCI.indication message with a PUCCH Format 0/1 PDU. Every parameter is within the range
+/// defined in SCF-222 v4.0 Section 3.4.9.
+ocudu::fapi::uci_indication build_valid_uci_indication_with_pucch_format_01();
+
+/// Builds and returns a valid UCI.indication message with a PUCCH format 2/3/4 PDU. Every parameter is within the range
+/// defined in SCF-222 v4.0 Section 3.4.9.
+ocudu::fapi::uci_indication build_valid_uci_indication_with_pucch_format_234();
 
 /// Builds and returns a valid UCI PUSCH PDU. Every parameter is within the range defined in SCF-222 v4.0
 /// Section 3.4.9.1.

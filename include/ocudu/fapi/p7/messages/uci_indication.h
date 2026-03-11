@@ -7,7 +7,6 @@
 #include "ocudu/fapi/p7/messages/uci_pucch_pdu_format_0_1.h"
 #include "ocudu/fapi/p7/messages/uci_pucch_pdu_format_2_3_4.h"
 #include "ocudu/fapi/p7/messages/uci_pusch_pdu.h"
-#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 #include <variant>
 
@@ -17,10 +16,11 @@ namespace fapi {
 /// UCI indication message.
 struct uci_indication {
   /// UCI indication PDU format.
-  using uci_indication_pdu = std::variant<uci_pusch_pdu, uci_pucch_pdu_format_0_1, uci_pucch_pdu_format_2_3_4>;
+  using uci_indication_pdu =
+      std::variant<std::monostate, uci_pusch_pdu, uci_pucch_pdu_format_0_1, uci_pucch_pdu_format_2_3_4>;
 
-  slot_point                                                  slot;
-  static_vector<uci_indication_pdu, MAX_UCI_PDUS_PER_UCI_IND> pdus;
+  slot_point         slot;
+  uci_indication_pdu pdu;
 };
 
 } // namespace fapi
@@ -44,7 +44,7 @@ private:
   static auto
   log_uci_pusch_pdu(FormatContext& ctx, const ocudu::fapi::uci_pusch_pdu& pdu, ocudu::subcarrier_spacing scs)
   {
-    format_to(ctx.out(), "\n\t- UCI PUSCH rnti={}", pdu.rnti);
+    format_to(ctx.out(), " PUSCH rnti={}", pdu.rnti);
 
     if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
       format_to(ctx.out(), " sinr={:.1f}", to_uci_ul_sinr(pdu.ul_sinr_metric));
@@ -88,7 +88,7 @@ private:
                                       const ocudu::fapi::uci_pucch_pdu_format_0_1& pdu,
                                       ocudu::subcarrier_spacing                    scs)
   {
-    format_to(ctx.out(), "\n\t- UCI PUCCH format 0/1 format={} rnti={}", underlying(pdu.pucch_format), pdu.rnti);
+    format_to(ctx.out(), " PUCCH format 0/1 format={} rnti={}", underlying(pdu.pucch_format), pdu.rnti);
 
     if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
       format_to(ctx.out(), " sinr={:.1f}", to_uci_ul_sinr(pdu.ul_sinr_metric));
@@ -127,7 +127,7 @@ private:
                                      const ocudu::fapi::uci_pucch_pdu_format_2_3_4& pdu,
                                      ocudu::subcarrier_spacing                      scs)
   {
-    format_to(ctx.out(), "\n\t- UCI PUCCH format 2/3/4 format={} rnti={}", underlying(pdu.pucch_format) + 2, pdu.rnti);
+    format_to(ctx.out(), " PUCCH format 2/3/4 format={} rnti={}", underlying(pdu.pucch_format) + 2, pdu.rnti);
 
     if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
       format_to(ctx.out(), " sinr={:.1f}", to_uci_ul_sinr(pdu.ul_sinr_metric));
@@ -180,14 +180,12 @@ public:
   {
     format_to(ctx.out(), "UCI.indication slot={}", msg.slot);
 
-    for (const auto& pdu : msg.pdus) {
-      if (const auto* uci_pusch = std::get_if<ocudu::fapi::uci_pusch_pdu>(&pdu)) {
-        log_uci_pusch_pdu(ctx, *uci_pusch, msg.slot.scs());
-      } else if (const auto* uci_pusch_format_0_1 = std::get_if<ocudu::fapi::uci_pucch_pdu_format_0_1>(&pdu)) {
-        log_uci_pucch_f0_f1_pdu(ctx, *uci_pusch_format_0_1, msg.slot.scs());
-      } else if (const auto* uci_pusch_format_2_3_4 = std::get_if<ocudu::fapi::uci_pucch_pdu_format_2_3_4>(&pdu)) {
-        log_uci_pucch_f234_pdu(ctx, *uci_pusch_format_2_3_4, msg.slot.scs());
-      }
+    if (const auto* uci_pusch = std::get_if<ocudu::fapi::uci_pusch_pdu>(&msg.pdu)) {
+      log_uci_pusch_pdu(ctx, *uci_pusch, msg.slot.scs());
+    } else if (const auto* uci_pusch_format_0_1 = std::get_if<ocudu::fapi::uci_pucch_pdu_format_0_1>(&msg.pdu)) {
+      log_uci_pucch_f0_f1_pdu(ctx, *uci_pusch_format_0_1, msg.slot.scs());
+    } else if (const auto* uci_pusch_format_2_3_4 = std::get_if<ocudu::fapi::uci_pucch_pdu_format_2_3_4>(&msg.pdu)) {
+      log_uci_pucch_f234_pdu(ctx, *uci_pusch_format_2_3_4, msg.slot.scs());
     }
 
     return ctx.out();

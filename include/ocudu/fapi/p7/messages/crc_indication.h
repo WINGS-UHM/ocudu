@@ -4,10 +4,8 @@
 #pragma once
 
 #include "formatter/formatter_helpers.h"
-#include "ocudu/adt/static_vector.h"
 #include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/rnti.h"
-#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 #include <optional>
 
@@ -28,8 +26,8 @@ struct crc_ind_pdu {
 
 /// CRC indication message.
 struct crc_indication {
-  slot_point                                          slot;
-  static_vector<crc_ind_pdu, MAX_PUSCH_PDUS_PER_SLOT> pdus;
+  slot_point  slot;
+  crc_ind_pdu pdu;
 };
 
 } // namespace fapi
@@ -58,26 +56,23 @@ public:
   template <typename FormatContext>
   auto format(const ocudu::fapi::crc_indication& msg, FormatContext& ctx) const
   {
-    format_to(ctx.out(), "CRC.indication slot={}", msg.slot);
+    format_to(ctx.out(),
+              "CRC.indication slot={} rnti={} harq_id={} tb_status={}",
+              msg.slot,
+              msg.pdu.rnti,
+              underlying(msg.pdu.harq_id),
+              msg.pdu.tb_crc_status_ok ? "OK" : "KO");
 
-    for (const auto& pdu : msg.pdus) {
-      format_to(ctx.out(),
-                "\n\t- CRC rnti={} harq_id={} tb_status={}",
-                pdu.rnti,
-                underlying(pdu.harq_id),
-                pdu.tb_crc_status_ok ? "OK" : "KO");
+    ocudu::fapi::append_time_advance(ctx, msg.pdu.timing_advance_offset, msg.slot.scs());
 
-      ocudu::fapi::append_time_advance(ctx, pdu.timing_advance_offset, msg.slot.scs());
-
-      if (pdu.ul_sinr_metric != std::numeric_limits<decltype(pdu.ul_sinr_metric)>::min()) {
-        format_to(ctx.out(), " sinr={:.1f}", to_crc_ul_sinr(pdu.ul_sinr_metric));
-      }
-      if (pdu.rssi != std::numeric_limits<decltype(pdu.rssi)>::max()) {
-        format_to(ctx.out(), " rssi={:.1f}", to_crc_ul_rssi(pdu.rssi));
-      }
-      if (pdu.rsrp != std::numeric_limits<decltype(pdu.rsrp)>::max()) {
-        format_to(ctx.out(), " rsrp={:.1f}", to_crc_ul_rsrp(pdu.rsrp));
-      }
+    if (msg.pdu.ul_sinr_metric != std::numeric_limits<decltype(msg.pdu.ul_sinr_metric)>::min()) {
+      format_to(ctx.out(), " sinr={:.1f}", to_crc_ul_sinr(msg.pdu.ul_sinr_metric));
+    }
+    if (msg.pdu.rssi != std::numeric_limits<decltype(msg.pdu.rssi)>::max()) {
+      format_to(ctx.out(), " rssi={:.1f}", to_crc_ul_rssi(msg.pdu.rssi));
+    }
+    if (msg.pdu.rsrp != std::numeric_limits<decltype(msg.pdu.rsrp)>::max()) {
+      format_to(ctx.out(), " rsrp={:.1f}", to_crc_ul_rsrp(msg.pdu.rsrp));
     }
 
     return ctx.out();

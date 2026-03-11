@@ -4,9 +4,7 @@
 #pragma once
 
 #include "formatter/formatter_helpers.h"
-#include "ocudu/adt/static_vector.h"
 #include "ocudu/ran/rnti.h"
-#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/srs/srs_channel_matrix.h"
 #include <optional>
@@ -32,8 +30,8 @@ struct srs_indication_pdu {
 
 /// SRS indication message.
 struct srs_indication {
-  slot_point                                                  slot;
-  static_vector<srs_indication_pdu, MAX_SRS_PDUS_PER_SRS_IND> pdus;
+  slot_point         slot;
+  srs_indication_pdu pdu;
 };
 
 } // namespace fapi
@@ -51,22 +49,16 @@ struct formatter<ocudu::fapi::srs_indication> {
   template <typename FormatContext>
   auto format(const ocudu::fapi::srs_indication& msg, FormatContext& ctx) const
   {
-    format_to(ctx.out(), "SRS.indication slot={}", msg.slot);
+    format_to(ctx.out(), "SRS.indication slot={} rnti={}", msg.slot, msg.pdu.rnti);
 
-    for (const auto& pdu : msg.pdus) {
-      format_to(ctx.out(), "\n\t-  rnti={}", pdu.rnti);
+    ocudu::fapi::append_time_advance(ctx, msg.pdu.timing_advance_offset, msg.slot.scs());
 
-      ocudu::fapi::append_time_advance(ctx, pdu.timing_advance_offset, msg.slot.scs());
-
-      if (!pdu.positioning.has_value()) {
-        continue;
+    if (msg.pdu.positioning.has_value()) {
+      if (msg.pdu.positioning->ul_relative_toa) {
+        format_to(ctx.out(), " RTOA_s={}", *msg.pdu.positioning->rsrp);
       }
-
-      if (pdu.positioning->ul_relative_toa) {
-        format_to(ctx.out(), " RTOA_s={}", *pdu.positioning->rsrp);
-      }
-      if (pdu.positioning->rsrp) {
-        format_to(ctx.out(), " RSRP={}", *pdu.positioning->rsrp);
+      if (msg.pdu.positioning->rsrp) {
+        format_to(ctx.out(), " RSRP={}", *msg.pdu.positioning->rsrp);
       }
     }
 

@@ -104,32 +104,23 @@ void fapi_to_mac_indications_fastpath_translator::on_rx_data_indication(const fa
   mac_rx_data_indication indication;
   indication.sl_rx      = msg.slot;
   indication.cell_index = to_du_cell_index(sector_id);
-  for (const auto& fapi_pdu : msg.pdus) {
-    // PDUs that were not successfully decoded have zero length.
-    if (fapi_pdu.transport_block.empty()) {
-      continue;
+
+  // PDUs that were not successfully decoded have zero length.
+  if (!msg.pdu.transport_block.empty()) {
+    if (auto pdu_buffer = byte_buffer::create(msg.pdu.transport_block); pdu_buffer.has_value()) {
+      mac_rx_pdu& pdu = indication.pdus.emplace_back();
+      pdu.harq_id     = msg.pdu.harq_id;
+      pdu.rnti        = msg.pdu.rnti;
+      pdu.pdu         = std::move(pdu_buffer.value());
+
+      if (OCUDU_UNLIKELY(logger.debug.enabled())) {
+        logger.debug("Sector#{}: {}", sector_id, msg);
+      }
+
+      pdu_handler->handle_rx_data_indication(std::move(indication));
+    } else {
+      logger.warning("Sector#{}: Unable to allocate memory for MAC RX PDU", sector_id);
     }
-
-    auto pdu_buffer = byte_buffer::create(fapi_pdu.transport_block);
-    if (not pdu_buffer.has_value()) {
-      ocudulog::fetch_basic_logger("FAPI").warning("Sector#{}: Unable to allocate memory for MAC RX PDU", sector_id);
-      // Avoid new buffer allocations for the same FAPI PDU.
-      break;
-    }
-
-    mac_rx_pdu& pdu = indication.pdus.emplace_back();
-    pdu.harq_id     = fapi_pdu.harq_id;
-    pdu.rnti        = fapi_pdu.rnti;
-    pdu.pdu         = std::move(pdu_buffer.value());
-  }
-
-  // Only invoke the MAC when there are successfully decoded PDUs available.
-  if (!indication.pdus.empty()) {
-    if (OCUDU_UNLIKELY(logger.debug.enabled())) {
-      logger.debug("Sector#{}: {}", sector_id, msg);
-    }
-
-    pdu_handler->handle_rx_data_indication(std::move(indication));
   }
 }
 
@@ -138,16 +129,14 @@ void fapi_to_mac_indications_fastpath_translator::on_crc_indication(const fapi::
   mac_crc_indication_message indication;
   indication.sl_rx = msg.slot;
 
-  for (const auto& fapi_pdu : msg.pdus) {
-    mac_crc_pdu& pdu = indication.crcs.emplace_back();
+  mac_crc_pdu& pdu = indication.crcs.emplace_back();
 
-    pdu.harq_id             = fapi_pdu.harq_id;
-    pdu.rnti                = fapi_pdu.rnti;
-    pdu.tb_crc_success      = fapi_pdu.tb_crc_status_ok;
-    pdu.ul_sinr_dB          = convert_fapi_to_mac_ul_sinr(fapi_pdu.ul_sinr_metric);
-    pdu.ul_rsrp_dBFS        = convert_fapi_to_mac_rsrp(fapi_pdu.rsrp);
-    pdu.time_advance_offset = fapi_pdu.timing_advance_offset;
-  }
+  pdu.harq_id             = msg.pdu.harq_id;
+  pdu.rnti                = msg.pdu.rnti;
+  pdu.tb_crc_success      = msg.pdu.tb_crc_status_ok;
+  pdu.ul_sinr_dB          = convert_fapi_to_mac_ul_sinr(msg.pdu.ul_sinr_metric);
+  pdu.ul_rsrp_dBFS        = convert_fapi_to_mac_rsrp(msg.pdu.rsrp);
+  pdu.time_advance_offset = msg.pdu.timing_advance_offset;
 
   if (OCUDU_UNLIKELY(logger.debug.enabled())) {
     logger.debug("Sector#{}: {}", sector_id, msg);
@@ -268,26 +257,25 @@ void fapi_to_mac_indications_fastpath_translator::on_uci_indication(const fapi::
 {
   mac_uci_indication_message mac_msg;
   mac_msg.sl_rx = msg.slot;
-  for (const auto& pdu : msg.pdus) {
-    if (const auto* uci_pusch = std::get_if<fapi::uci_pusch_pdu>(&pdu)) {
-      mac_uci_pdu& mac_pdu = mac_msg.ucis.emplace_back();
-      mac_pdu.rnti         = uci_pusch->rnti;
-      mac_uci_pdu::pusch_type pusch;
-      convert_fapi_to_mac_pusch_uci_ind(pusch, *uci_pusch);
-      mac_pdu.pdu = pusch;
-    } else if (const auto* uci_pusch_format_0_1 = std::get_if<fapi::uci_pucch_pdu_format_0_1>(&pdu)) {
-      mac_uci_pdu& mac_pdu = mac_msg.ucis.emplace_back();
-      mac_pdu.rnti         = uci_pusch_format_0_1->rnti;
-      mac_uci_pdu::pucch_f0_or_f1_type pucch;
-      convert_fapi_to_mac_pucch_f0_f1_uci_ind(pucch, *uci_pusch_format_0_1);
-      mac_pdu.pdu = pucch;
-    } else if (const auto* uci_pusch_format_2_3_4 = std::get_if<fapi::uci_pucch_pdu_format_2_3_4>(&pdu)) {
-      mac_uci_pdu& mac_pdu = mac_msg.ucis.emplace_back();
-      mac_pdu.rnti         = uci_pusch_format_2_3_4->rnti;
-      mac_uci_pdu::pucch_f2_or_f3_or_f4_type pucch;
-      convert_fapi_to_mac_pucch_f2_f3_f4_uci_ind(pucch, *uci_pusch_format_2_3_4);
-      mac_pdu.pdu = pucch;
-    }
+
+  if (const auto* uci_pusch = std::get_if<fapi::uci_pusch_pdu>(&msg.pdu)) {
+    mac_uci_pdu& mac_pdu = mac_msg.ucis.emplace_back();
+    mac_pdu.rnti         = uci_pusch->rnti;
+    mac_uci_pdu::pusch_type pusch;
+    convert_fapi_to_mac_pusch_uci_ind(pusch, *uci_pusch);
+    mac_pdu.pdu = pusch;
+  } else if (const auto* uci_pusch_format_0_1 = std::get_if<fapi::uci_pucch_pdu_format_0_1>(&msg.pdu)) {
+    mac_uci_pdu& mac_pdu = mac_msg.ucis.emplace_back();
+    mac_pdu.rnti         = uci_pusch_format_0_1->rnti;
+    mac_uci_pdu::pucch_f0_or_f1_type pucch;
+    convert_fapi_to_mac_pucch_f0_f1_uci_ind(pucch, *uci_pusch_format_0_1);
+    mac_pdu.pdu = pucch;
+  } else if (const auto* uci_pusch_format_2_3_4 = std::get_if<fapi::uci_pucch_pdu_format_2_3_4>(&msg.pdu)) {
+    mac_uci_pdu& mac_pdu = mac_msg.ucis.emplace_back();
+    mac_pdu.rnti         = uci_pusch_format_2_3_4->rnti;
+    mac_uci_pdu::pucch_f2_or_f3_or_f4_type pucch;
+    convert_fapi_to_mac_pucch_f2_f3_f4_uci_ind(pucch, *uci_pusch_format_2_3_4);
+    mac_pdu.pdu = pucch;
   }
 
   if (OCUDU_UNLIKELY(logger.debug.enabled())) {
@@ -302,18 +290,16 @@ void fapi_to_mac_indications_fastpath_translator::on_srs_indication(const fapi::
   mac_srs_indication_message mac_msg;
   mac_msg.sl_rx = msg.slot;
 
-  for (const auto& pdu : msg.pdus) {
-    mac_srs_pdu& mac_pdu        = mac_msg.srss.emplace_back();
-    mac_pdu.rnti                = pdu.rnti;
-    mac_pdu.time_advance_offset = pdu.timing_advance_offset;
+  mac_srs_pdu& mac_pdu        = mac_msg.srss.emplace_back();
+  mac_pdu.rnti                = msg.pdu.rnti;
+  mac_pdu.time_advance_offset = msg.pdu.timing_advance_offset;
 
-    if (pdu.matrix) {
-      mac_pdu.report = mac_srs_pdu::normalized_channel_iq_matrix{*pdu.matrix};
-    }
+  if (msg.pdu.matrix) {
+    mac_pdu.report = mac_srs_pdu::normalized_channel_iq_matrix{*msg.pdu.matrix};
+  }
 
-    if (pdu.positioning) {
-      mac_pdu.report = mac_srs_pdu::positioning_report{pdu.positioning->ul_relative_toa, pdu.positioning->rsrp};
-    }
+  if (msg.pdu.positioning) {
+    mac_pdu.report = mac_srs_pdu::positioning_report{msg.pdu.positioning->ul_relative_toa, msg.pdu.positioning->rsrp};
   }
 
   if (OCUDU_UNLIKELY(logger.debug.enabled())) {
@@ -357,27 +343,25 @@ void fapi_to_mac_indications_fastpath_translator::on_rach_indication(const fapi:
 {
   mac_rach_indication indication;
   indication.slot_rx = msg.slot;
-  for (const auto& pdu : msg.pdus) {
-    mac_rach_indication::rach_occasion& occas = indication.occasions.emplace_back();
-    occas.frequency_index                     = pdu.ra_index;
-    occas.slot_index                          = pdu.slot_index;
-    occas.start_symbol                        = pdu.symbol_index;
-    occas.rssi_dBFS                           = convert_fapi_to_mac_rssi_dB(pdu.avg_rssi);
 
-    for (const auto& preamble : pdu.preambles) {
-      if (!preamble.timing_advance_offset) {
-        ocudulog::fetch_basic_logger("FAPI").warning(
-            "RACH indication for slot {}: Empty timing advance for slot index {}, ignoring PDU",
-            msg.slot,
-            pdu.slot_index);
-        continue;
-      }
+  mac_rach_indication::rach_occasion& occas = indication.occasions.emplace_back();
+  occas.frequency_index                     = msg.pdu.ra_index;
+  occas.slot_index                          = msg.pdu.slot_index;
+  occas.start_symbol                        = msg.pdu.symbol_index;
+  occas.rssi_dBFS                           = convert_fapi_to_mac_rssi_dB(msg.pdu.avg_rssi);
 
-      mac_rach_indication::rach_preamble& mac_pream = occas.preambles.emplace_back();
-      mac_pream.index                               = preamble.preamble_index;
-      mac_pream.pwr_dBFS                            = convert_fapi_to_mac_preamble_power_dB(preamble.preamble_pwr);
-      mac_pream.time_advance                        = preamble.timing_advance_offset.value();
+  for (const auto& preamble : msg.pdu.preambles) {
+    if (!preamble.timing_advance_offset) {
+      logger.warning("RACH indication for slot {}: Empty timing advance for slot index {}, ignoring PDU",
+                     msg.slot,
+                     msg.pdu.slot_index);
+      continue;
     }
+
+    mac_rach_indication::rach_preamble& mac_pream = occas.preambles.emplace_back();
+    mac_pream.index                               = preamble.preamble_index;
+    mac_pream.pwr_dBFS                            = convert_fapi_to_mac_preamble_power_dB(preamble.preamble_pwr);
+    mac_pream.time_advance                        = preamble.timing_advance_offset.value();
   }
 
   if (OCUDU_UNLIKELY(logger.debug.enabled())) {

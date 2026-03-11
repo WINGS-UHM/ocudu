@@ -20,7 +20,7 @@ TEST(srs_indication_builder, valid_srs_indication_passes)
   builder.set_basic_parameters(slot);
 
   rnti_t rnti        = to_rnti(3);
-  auto   pdu_builder = builder.add_srs_pdu(rnti);
+  auto   pdu_builder = builder.set_pdu(rnti);
 
   std::optional<phy_time_unit> timing = phy_time_unit::from_seconds(0);
 
@@ -31,16 +31,14 @@ TEST(srs_indication_builder, valid_srs_indication_passes)
   pdu_builder.set_codebook_report_matrix(matrix);
 
   ASSERT_EQ(slot, msg.slot);
-  ASSERT_EQ(1, msg.pdus.size());
 
-  const auto& pdu = msg.pdus.back();
-  ASSERT_EQ(0U, pdu.handle);
-  ASSERT_EQ(rnti, pdu.rnti);
+  ASSERT_EQ(0U, msg.pdu.handle);
+  ASSERT_EQ(rnti, msg.pdu.rnti);
 
-  ASSERT_EQ(timing ? timing.value() : phy_time_unit(), pdu.timing_advance_offset);
-  ASSERT_NE(pdu.matrix, std::nullopt);
-  ASSERT_EQ(matrix.get_nof_rx_ports(), pdu.matrix->get_nof_rx_ports());
-  ASSERT_EQ(matrix.get_nof_tx_ports(), pdu.matrix->get_nof_tx_ports());
+  ASSERT_EQ(timing ? timing.value() : phy_time_unit(), msg.pdu.timing_advance_offset);
+  ASSERT_NE(msg.pdu.matrix, std::nullopt);
+  ASSERT_EQ(matrix.get_nof_rx_ports(), msg.pdu.matrix->get_nof_rx_ports());
+  ASSERT_EQ(matrix.get_nof_tx_ports(), msg.pdu.matrix->get_nof_tx_ports());
 }
 
 TEST(srs_indication_builder, valid_srs_indication_with_positioning_report_passes)
@@ -55,7 +53,7 @@ TEST(srs_indication_builder, valid_srs_indication_with_positioning_report_passes
   builder.set_basic_parameters(slot);
 
   rnti_t rnti        = to_rnti(3);
-  auto   pdu_builder = builder.add_srs_pdu(rnti);
+  auto   pdu_builder = builder.set_pdu(rnti);
 
   std::optional<phy_time_unit> timing = phy_time_unit::from_seconds(0);
 
@@ -67,15 +65,13 @@ TEST(srs_indication_builder, valid_srs_indication_with_positioning_report_passes
   pdu_builder.set_positioning_report_parameters(ul_relative_toa, rsrp);
 
   ASSERT_EQ(slot, msg.slot);
-  ASSERT_EQ(1, msg.pdus.size());
 
-  const auto& pdu = msg.pdus.back();
-  ASSERT_EQ(0U, pdu.handle);
-  ASSERT_EQ(rnti, pdu.rnti);
+  ASSERT_EQ(0U, msg.pdu.handle);
+  ASSERT_EQ(rnti, msg.pdu.rnti);
 
-  ASSERT_EQ(timing ? timing.value() : phy_time_unit(), pdu.timing_advance_offset);
-  ASSERT_NE(pdu.positioning, std::nullopt);
+  ASSERT_EQ(timing ? timing.value() : phy_time_unit(), msg.pdu.timing_advance_offset);
+  ASSERT_NE(msg.pdu.positioning, std::nullopt);
 
-  ASSERT_EQ(ul_relative_toa, pdu.positioning->ul_relative_toa);
-  ASSERT_EQ(rsrp, pdu.positioning->rsrp);
+  ASSERT_EQ(ul_relative_toa, msg.pdu.positioning->ul_relative_toa);
+  ASSERT_EQ(rsrp, msg.pdu.positioning->rsrp);
 }

@@ -24,13 +24,17 @@ struct xnap_ue_context {
   /// XN Handover Request Ack/Handover Preparation Failure Event Source.
   protocol_transaction_event_source<asn1::xnap::ho_request_ack_s, asn1::xnap::ho_prep_fail_s> xn_handover_outcome;
 
+  /// XN Status Transfer Event Source.
+  protocol_transaction_event_source<asn1::xnap::sn_status_transfer_s> sn_status_transfer_outcome;
+
   xnap_ue_context(ue_index_t              ue_index_,
                   local_xnap_ue_id_t      local_xnap_ue_id_,
                   timer_factory           timer_db,
                   ocudulog::basic_logger& logger_) :
     ue_ids({ue_index_, local_xnap_ue_id_}),
     logger("XNAP", {ue_index_, local_xnap_ue_id_}),
-    xn_handover_outcome(timer_db)
+    xn_handover_outcome(timer_db),
+    sn_status_transfer_outcome(timer_db)
   {
   }
 };

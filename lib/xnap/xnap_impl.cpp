@@ -7,6 +7,7 @@
 #include "procedures/xn_handover_asn1_helpers.h"
 #include "procedures/xn_setup_procedure.h"
 #include "procedures/xn_setup_procedure_asn1_helpers.h"
+#include "procedures/xnap_sn_status_transfer_procedure.h"
 #include "procedures/xnap_source_handover_preparation_procedure.h"
 #include "procedures/xnap_target_handover_preparation_procedure.h"
 #include "xnap_asn1_utils.h"
@@ -80,6 +81,9 @@ void xnap_impl::handle_initiating_message(const init_msg_s& msg)
       break;
     case xnap_elem_procs_o::init_msg_c::types_opts::ho_cancel:
       handle_handover_cancel(msg.value.ho_cancel());
+      break;
+    case xnap_elem_procs_o::init_msg_c::types_opts::sn_status_transfer:
+      handle_sn_status_transfer(msg.value.sn_status_transfer());
       break;
     default:
       logger.error("Initiating message of type {} is not supported", msg.value.type().to_string());
@@ -252,6 +256,20 @@ void xnap_impl::handle_handover_cancel(const asn1::xnap::ho_cancel_s& msg)
   ue_ctxt_list.remove_ue_context(ue_index);
 }
 
+void xnap_impl::handle_sn_status_transfer(const asn1::xnap::sn_status_transfer_s& msg)
+{
+  if (!ue_ctxt_list.contains(uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id))) {
+    logger.warning("peer_xnap_ue={} local_xnap_ue={}: Dropping SNStatusTransfer. UE context does not exist",
+                   msg->source_ng_ra_nnode_ue_xn_ap_id,
+                   msg->target_ng_ra_nnode_ue_xn_ap_id);
+    return;
+  }
+
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id)];
+
+  ue_ctxt.sn_status_transfer_outcome.set(msg);
+}
+
 async_task<xnap_handover_preparation_response>
 xnap_impl::handle_handover_request_required(const xnap_handover_request& request)
 {
@@ -277,4 +295,16 @@ xnap_impl::handle_handover_request_required(const xnap_handover_request& request
                                                                   ue_ctxt.xn_handover_outcome,
                                                                   timer_factory{timers, ctrl_exec},
                                                                   ue_ctxt.logger);
+}
+
+async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer_required(ue_index_t ue_index)
+{
+  if (!ue_ctxt_list.contains(ue_index)) {
+    logger.warning("ue={}: Cannot await SNStatusTransfer. UE context does not exist", ue_index);
+    expected<cu_cp_status_transfer> ret = make_unexpected(default_error_t{});
+    return launch_no_op_task(ret);
+  }
+
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
+  return launch_async<xnap_sn_status_transfer_procedure>(ue_ctxt.sn_status_transfer_outcome, ue_ctxt.logger);
 }

@@ -36,6 +36,7 @@ public:
   }
   async_task<xnap_handover_preparation_response>
   handle_handover_request_required(const xnap_handover_request& request) override;
+  async_task<expected<cu_cp_status_transfer>> handle_sn_status_transfer_required(ue_index_t ue_index) override;
 
 private:
   /// \brief Notify about the reception of an initiating message.
@@ -49,6 +50,10 @@ private:
   /// \brief Notify about the reception of a Handover Cancel message.
   /// \param[in] msg The received handover cancel message.
   void handle_handover_cancel(const asn1::xnap::ho_cancel_s& msg);
+
+  /// \brief Notify about the reception of a SN Status Transfer message.
+  /// \param[in] msg The received SN Status Transfer message.
+  void handle_sn_status_transfer(const asn1::xnap::sn_status_transfer_s& msg);
 
   /// \brief Notify about the reception of a successful outcome message.
   /// \param[in] outcome The successful outcome message.

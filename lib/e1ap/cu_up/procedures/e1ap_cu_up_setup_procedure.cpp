@@ -4,6 +4,7 @@
 
 #include "e1ap_cu_up_setup_procedure.h"
 #include "../e1ap_cu_up_asn1_helpers.h"
+#include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include "ocudu/ran/bcd_helper.h"
 #include "ocudu/support/async/async_timer.h"
@@ -73,6 +74,17 @@ void e1ap_cu_up_setup_procedure::send_cu_up_e1_setup_request()
 
   setup_req->transaction_id = transaction.id();
 
+  // Capture packed request bytes for later use.
+  {
+    byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
+    asn1::bit_ref bref(packed);
+    if (msg.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
+      captured_request = std::move(packed);
+    } else {
+      logger.warning("\"{}\": failed to pack E1SetupRequest", name());
+    }
+  }
+
   // send request
   logger.info("Sending E1SetupRequest");
   cu_cp_notifier.on_new_message(msg);
@@ -132,6 +144,20 @@ cu_up_e1_setup_response e1ap_cu_up_setup_procedure::create_e1_setup_result()
 
     if (cu_cp_pdu_response.value().value.gnb_cu_up_e1_setup_resp()->gnb_cu_cp_name_present) {
       res.gnb_cu_cp_name = cu_cp_pdu_response.value().value.gnb_cu_up_e1_setup_resp()->gnb_cu_cp_name.to_string();
+    }
+
+    // Capture packed request/response bytes.
+    res.packed_e1_setup_request = std::move(captured_request);
+    {
+      e1ap_message resp_msg                 = {};
+      resp_msg.pdu.set_successful_outcome() = cu_cp_pdu_response.value();
+      byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
+      asn1::bit_ref bref(packed);
+      if (resp_msg.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
+        res.packed_e1_setup_response = std::move(packed);
+      } else {
+        logger.warning("\"{}\": failed to pack E1SetupResponse", name());
+      }
     }
 
     logger.info("\"{}\" finalized", name());

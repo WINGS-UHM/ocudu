@@ -60,6 +60,7 @@ cu_up::cu_up(const cu_up_config& config_, const cu_up_dependencies& dependencies
   cfg(config_),
   ctrl_executor(dependencies.exec_mapper->ctrl_executor()),
   timers(*dependencies.timers),
+  e1_setup_notifier(dependencies.e1_setup_notifier),
   main_ctrl_loop(128)
 {
   assert_cu_up_dependencies_valid(dependencies);
@@ -177,7 +178,9 @@ void cu_up::start()
           CORO_BEGIN(ctx);
 
           // Connect to CU-CP and send E1 Setup Request and await for E1 setup response.
-          CORO_AWAIT_VALUE(connected, launch_async<cu_up_setup_routine>(cfg.cu_up_id, cfg.cu_up_name, cfg.plmn, *e1ap));
+          CORO_AWAIT_VALUE(
+              connected,
+              launch_async<cu_up_setup_routine>(cfg.cu_up_id, cfg.cu_up_name, cfg.plmn, *e1ap, e1_setup_notifier));
 
           if (cfg.test_mode_cfg.enabled) {
             logger.info("enabling test mode...");

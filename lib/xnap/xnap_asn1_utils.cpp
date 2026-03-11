@@ -76,3 +76,49 @@ ocudu::ocucp::asn1_utils::get_local_xnap_ue_id(const asn1::xnap::unsuccessful_ou
 
   return std::nullopt;
 }
+
+xnap_ue_context*
+ocudu::ocucp::asn1_utils::get_ue_ctxt_in_ue_assoc_msg(const asn1::xnap::successful_outcome_s& successful_outcome,
+                                                      xnap_ue_context_list&                   ue_ctxts,
+                                                      ocudulog::basic_logger&                 logger)
+{
+  std::optional<local_xnap_ue_id_t> local_xnap_ue_id = asn1_utils::get_local_xnap_ue_id(successful_outcome);
+  // The Source NG-RAN node UE XnAP ID field is mandatory in all UE associated successful messages.
+  if (!local_xnap_ue_id.has_value()) {
+    logger.warning("Discarding get_local_xnap_ue_id \"{}\". Cause: Source NG-RAN node UE XnAP ID field is mandatory",
+                   successful_outcome.value.type().to_string());
+    return nullptr;
+  }
+
+  xnap_ue_context* ue_ctxt = ue_ctxts.find(*local_xnap_ue_id);
+  if (ue_ctxt == nullptr) {
+    logger.warning("local_xnap_ue={}: Discarding received \"{}\". Cause: UE was not found",
+                   fmt::underlying(*local_xnap_ue_id),
+                   successful_outcome.value.type().to_string());
+    return nullptr;
+  }
+  return ue_ctxt;
+}
+
+xnap_ue_context*
+ocudu::ocucp::asn1_utils::get_ue_ctxt_in_ue_assoc_msg(const asn1::xnap::unsuccessful_outcome_s& unsuccessful_outcome,
+                                                      xnap_ue_context_list&                     ue_ctxts,
+                                                      ocudulog::basic_logger&                   logger)
+{
+  std::optional<local_xnap_ue_id_t> local_xnap_ue_id = asn1_utils::get_local_xnap_ue_id(unsuccessful_outcome);
+  // The Source NG-RAN node UE XnAP ID field is mandatory in all UE associated unsuccessful messages.
+  if (!local_xnap_ue_id.has_value()) {
+    logger.warning("Discarding received \"{}\". Cause: Source NG-RAN node UE XnAP ID field is mandatory",
+                   unsuccessful_outcome.value.type().to_string());
+    return nullptr;
+  }
+
+  xnap_ue_context* ue_ctxt = ue_ctxts.find(*local_xnap_ue_id);
+  if (ue_ctxt == nullptr) {
+    logger.warning("local_xnap_ue={}: Discarding received \"{}\". Cause: UE was not found",
+                   fmt::underlying(*local_xnap_ue_id),
+                   unsuccessful_outcome.value.type().to_string());
+    return nullptr;
+  }
+  return ue_ctxt;
+}

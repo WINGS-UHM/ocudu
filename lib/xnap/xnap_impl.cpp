@@ -92,31 +92,12 @@ void xnap_impl::handle_initiating_message(const init_msg_s& msg)
 
 void xnap_impl::handle_successful_outcome(const successful_outcome_s& outcome)
 {
-  auto get_ue_ctxt_in_ue_assoc_msg = [this](const asn1::xnap::successful_outcome_s& outcome_) -> xnap_ue_context* {
-    std::optional<local_xnap_ue_id_t> local_xnap_ue_id = asn1_utils::get_local_xnap_ue_id(outcome_);
-    // The Local NG-RAN node UE XnAP ID field is mandatory in all UE associated successful messages.
-    if (!local_xnap_ue_id.has_value()) {
-      logger.warning("Discarding received \"{}\". Cause: Local NG-RAN node UE XnAP ID field is mandatory",
-                     outcome_.value.type().to_string());
-      return nullptr;
-    }
-
-    xnap_ue_context* ue_ctxt = ue_ctxt_list.find(*local_xnap_ue_id);
-    if (ue_ctxt == nullptr) {
-      logger.warning("local_xnap_ue={}: Discarding received \"{}\". Cause: UE was not found.",
-                     fmt::underlying(*local_xnap_ue_id),
-                     outcome_.value.type().to_string());
-      return nullptr;
-    }
-    return ue_ctxt;
-  };
-
   switch (outcome.value.type().value) {
     case xnap_elem_procs_o::successful_outcome_c::types_opts::xn_setup_resp: {
       xn_setup_outcome.set(outcome.value.xn_setup_resp());
     } break;
     case xnap_elem_procs_o::successful_outcome_c::types_opts::ho_request_ack: {
-      if (auto* ue_ctxt = get_ue_ctxt_in_ue_assoc_msg(outcome)) {
+      if (auto* ue_ctxt = asn1_utils::get_ue_ctxt_in_ue_assoc_msg(outcome, ue_ctxt_list, logger)) {
         ue_ctxt->xn_handover_outcome.set(outcome.value.ho_request_ack());
       }
     } break;
@@ -127,31 +108,12 @@ void xnap_impl::handle_successful_outcome(const successful_outcome_s& outcome)
 
 void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcome)
 {
-  auto get_ue_ctxt_in_ue_assoc_msg = [this](const asn1::xnap::unsuccessful_outcome_s& outcome_) -> xnap_ue_context* {
-    std::optional<local_xnap_ue_id_t> local_xnap_ue_id = asn1_utils::get_local_xnap_ue_id(outcome_);
-    // The Source NG-RAN node UE XnAP ID field is mandatory in all UE associated unsuccessful messages.
-    if (!local_xnap_ue_id.has_value()) {
-      logger.warning("Discarding received \"{}\". Cause: Source NG-RAN node UE XnAP ID field is mandatory",
-                     outcome_.value.type().to_string());
-      return nullptr;
-    }
-
-    xnap_ue_context* ue_ctxt = ue_ctxt_list.find(*local_xnap_ue_id);
-    if (ue_ctxt == nullptr) {
-      logger.warning("local_xnap_ue={}: Discarding received \"{}\". Cause: UE was not found.",
-                     fmt::underlying(*local_xnap_ue_id),
-                     outcome_.value.type().to_string());
-      return nullptr;
-    }
-    return ue_ctxt;
-  };
-
   switch (outcome.value.type().value) {
     case xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::xn_setup_fail: {
       xn_setup_outcome.set(outcome.value.xn_setup_fail());
     } break;
     case xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::ho_prep_fail: {
-      if (auto* ue_ctxt = get_ue_ctxt_in_ue_assoc_msg(outcome)) {
+      if (auto* ue_ctxt = asn1_utils::get_ue_ctxt_in_ue_assoc_msg(outcome, ue_ctxt_list, logger)) {
         ue_ctxt->xn_handover_outcome.set(outcome.value.ho_prep_fail());
       }
     } break;

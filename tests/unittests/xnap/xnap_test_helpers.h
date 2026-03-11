@@ -7,6 +7,7 @@
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "lib/xnap/xnap_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/cause/xnap_cause.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include "ocudu/xnap/gateways/xnc_connection_gateway.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -58,6 +59,8 @@ class dummy_xnap_cu_cp_notifier : public xnap_cu_cp_notifier
 public:
   dummy_xnap_cu_cp_notifier(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST")) {}
 
+  void set_xnap_handover_request_outcome(bool success) { ho_request_outcome = success; }
+
   byte_buffer on_handover_preparation_message_required(ue_index_t ue_index) override
   {
     logger.info("Handover preparation message requested for UE index {}", ue_index);
@@ -76,6 +79,9 @@ public:
 
   ue_index_t request_new_ue_index_allocation(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override
   {
+    if (ho_request_outcome) {
+      return ue_mng.add_ue(du_index_t::min);
+    }
     return ue_index_t::invalid;
   }
 
@@ -83,7 +89,7 @@ public:
                                     const plmn_identity&              selected_plmn,
                                     const security::security_context& sec_ctxt) override
   {
-    ocudu_assert(ue_mng.find_ue(ue_index) != nullptr, "UE must be present");
+    ocudu_assert(ue_mng.find_ue(ue_index) != nullptr, "UE must be present\n");
     logger.info("Received a handover request");
 
     if (!ue_mng.find_ue(ue_index)->get_security_manager().init_security_context(sec_ctxt)) {
@@ -103,7 +109,38 @@ public:
   async_task<cu_cp_handover_resource_allocation_response>
   on_xnap_handover_request(const xnap_handover_request& request) override
   {
-    return launch_async([res = cu_cp_handover_resource_allocation_response{}](
+    cu_cp_handover_resource_allocation_response response;
+    // Generate dummy response based on pre-configured outcome.
+    if (ho_request_outcome) {
+      cu_cp_handover_request_ack ho_ack;
+      ho_ack.ue_index = request.ue_index;
+      for (const auto& session_to_setup : request.ue_context_info_ho_request.pdu_session_res_to_be_setup_list) {
+        cu_cp_xn_pdu_session_res_admitted_item item;
+        item.pdu_session_id = session_to_setup.pdu_session_id;
+        item.data_forwarding_info_from_target.emplace();
+        for (const auto& qos_flow_to_setup : session_to_setup.qos_flow_setup_request_items) {
+          cu_cp_qos_flow_with_data_forwarding_item qos_flow_item;
+          qos_flow_item.qos_flow_id = qos_flow_to_setup.qos_flow_id;
+          item.qos_flows_setup_list.push_back(qos_flow_item);
+          item.data_forwarding_info_from_target->qos_flows_accepted_for_data_forwarding_list.push_back(
+              qos_flow_to_setup.qos_flow_id);
+        }
+        item.data_forwarding_info_from_target->data_forwarding_resp_drb_item_list.push_back({.drb_id = drb_id_t::drb1});
+
+        ho_ack.pdu_session_res_admitted_list.push_back(item);
+      }
+      ho_ack.rrc_handover_command = make_byte_buffer("deadbeef").value();
+
+      response = ho_ack;
+    } else {
+      cu_cp_handover_request_failure ho_fail;
+      ho_fail.ue_index = request.ue_index;
+      ho_fail.cause    = xnap_cause_radio_network_t::unspecified;
+
+      response = ho_fail;
+    }
+
+    return launch_async([res = std::move(response)](
                             coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx) mutable {
       CORO_BEGIN(ctx);
 
@@ -116,6 +153,8 @@ public:
   byte_buffer last_handover_command;
 
 private:
+  bool ho_request_outcome = false;
+
   ue_manager&             ue_mng;
   ocudulog::basic_logger& logger;
 };

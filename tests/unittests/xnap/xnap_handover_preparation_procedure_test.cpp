@@ -56,12 +56,18 @@ public:
 
     return request;
   }
+
+  void set_handover_procedure_outcome(bool outcome) { cu_cp_notifier.set_xnap_handover_request_outcome(outcome); }
 };
+
+///////////////////////////////////////////////////////////////////////////////
+//                             Source CU-CP
+///////////////////////////////////////////////////////////////////////////////
 
 /// Test unsuccessful handover preparation procedure.
 TEST_F(xnap_handover_preparation_procedure_test, when_handover_preparation_failure_received_then_procedure_fails)
 {
-  // Run XN setup..
+  // Run XN setup.
   run_xn_setup(xnap_peer_cfg);
 
   // Create UE context.
@@ -84,7 +90,7 @@ TEST_F(xnap_handover_preparation_procedure_test, when_handover_preparation_failu
   ASSERT_FALSE(t.ready());
 
   // Inject Handover Preparation Failure.
-  xnap_message ho_prep_fail = generate_handover_preparation_failure(local_xnap_ue_id_t::min);
+  xnap_message ho_prep_fail = test_helpers::generate_handover_preparation_failure(local_xnap_ue_id_t::min);
   xnap->handle_message(ho_prep_fail);
 
   // Procedure should have failed.
@@ -156,10 +162,57 @@ TEST_F(xnap_handover_preparation_procedure_test, when_handover_request_ack_recei
   ASSERT_FALSE(t.ready());
 
   // Inject Handover Request Acknowledge.
-  xnap_message ho_request_ack = generate_handover_request_ack(local_xnap_ue_id_t::min, peer_xnap_ue_id_t::min);
+  xnap_message ho_request_ack =
+      test_helpers::generate_handover_request_ack(local_xnap_ue_id_t::min, peer_xnap_ue_id_t::min);
   xnap->handle_message(ho_request_ack);
 
   // Procedure should have succeeded.
   ASSERT_TRUE(t.ready());
   ASSERT_TRUE(t.get().success);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//                             Target CU-CP
+///////////////////////////////////////////////////////////////////////////////
+
+/// Test unsuccessful handover resource allocation procedure.
+TEST_F(xnap_handover_preparation_procedure_test,
+       when_handover_request_received_and_local_preparation_fails_then_handover_failure_is_sent)
+{
+  // Run XN setup.
+  run_xn_setup(xnap_peer_cfg);
+
+  // Prepare handover to fail.
+  set_handover_procedure_outcome(false);
+
+  // Action 1: Inject Handover Request.
+  xnap_message request = test_helpers::generate_handover_request(local_xnap_ue_id_t::min);
+  xnap->handle_message(request);
+
+  // Check Handover Preparation Failure.
+  xnap_message rep = get_last_message();
+  ASSERT_EQ(rep.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::unsuccessful_outcome);
+  ASSERT_EQ(rep.pdu.unsuccessful_outcome().value.type(),
+            asn1::xnap::xnap_elem_procs_o::unsuccessful_outcome_c::types_opts::ho_prep_fail);
+}
+
+/// Test successful handover resource allocation procedure.
+TEST_F(xnap_handover_preparation_procedure_test,
+       when_handover_request_received_and_local_preparation_succeeds_then_handover_request_ack_is_sent)
+{
+  // Run XN setup.
+  run_xn_setup(xnap_peer_cfg);
+
+  // Prepare handover to succeed.
+  set_handover_procedure_outcome(true);
+
+  // Action 1: Inject Handover Request.
+  xnap_message request = test_helpers::generate_handover_request(local_xnap_ue_id_t::min);
+  xnap->handle_message(request);
+
+  // Check Handover Request Ack.
+  xnap_message rep = get_last_message();
+  ASSERT_EQ(rep.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::successful_outcome);
+  ASSERT_EQ(rep.pdu.successful_outcome().value.type(),
+            asn1::xnap::xnap_elem_procs_o::successful_outcome_c::types_opts::ho_request_ack);
 }

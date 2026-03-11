@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "xnap_test_messages.h"
+#include "lib/xnap/xnap_asn1_converters.h"
 #include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/asn1/xnap/common.h"
 #include "ocudu/asn1/xnap/xnap_ies.h"
@@ -14,7 +15,60 @@ using namespace ocudu;
 using namespace ocucp;
 using namespace asn1::xnap;
 
-xnap_message ocudu::ocucp::generate_handover_preparation_failure(local_xnap_ue_id_t local_xnap_ue_id)
+xnap_message ocudu::ocucp::test_helpers::generate_handover_request(local_xnap_ue_id_t local_xnap_ue_id)
+{
+  xnap_message xnap_msg;
+
+  xnap_msg.pdu.set_init_msg();
+  xnap_msg.pdu.init_msg().load_info_obj(ASN1_XNAP_ID_HO_PREP);
+
+  auto& ho_request = xnap_msg.pdu.init_msg().value.ho_request();
+
+  ho_request->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
+  ho_request->cause.set_radio_network() =
+      asn1::xnap::cause_radio_network_layer_opts::options::ho_desirable_for_radio_reasons;
+  ho_request->target_cell_global_id.set_nr() =
+      cgi_to_asn1(nr_cell_global_id_t{plmn_identity::test_value(), nr_cell_identity::create({1, 22}, 1).value()});
+  ho_request->guami = guami_to_asn1(
+      guami_t{.plmn = plmn_identity::test_value(), .amf_set_id = 1, .amf_pointer = 1, .amf_region_id = 1});
+  ho_request->ue_context_info_ho_request.ng_c_ue_ref = 1;
+
+  ho_request->ue_context_info_ho_request.cp_tnl_info_source.set_endpoint_ip_address();
+  ho_request->ue_context_info_ho_request.cp_tnl_info_source.endpoint_ip_address().from_string(
+      transport_layer_address::create_from_string("127.0.0.1").to_bitstring());
+  ho_request->ue_context_info_ho_request.ue_security_cap.nr_encyption_algorithms.from_number(49152);
+  ho_request->ue_context_info_ho_request.ue_security_cap.nr_integrity_protection_algorithms.from_number(49152);
+  ho_request->ue_context_info_ho_request.security_info.key_ng_ran_star.from_string(
+      "101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101"
+      "0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101"
+      "010101010101010101010101010101010");
+  ho_request->ue_context_info_ho_request.ue_ambr.dl_ue_ambr = 1000000000;
+  ho_request->ue_context_info_ho_request.ue_ambr.ul_ue_ambr = 1000000000;
+
+  pdu_session_res_to_be_setup_item_s pdu_session_item;
+  pdu_session_item.pdu_session_id = 1;
+  pdu_session_item.s_nssai =
+      s_nssai_to_asn1(s_nssai_t{.sst = slice_service_type{1}, .sd = slice_differentiator::create(1).value()});
+  up_transport_layer_info_to_asn1(
+      pdu_session_item.ul_ng_u_tnl_at_up_f,
+      up_transport_layer_info{transport_layer_address::create_from_string("127.0.0.1"), gtpu_teid_t{12345}});
+  pdu_session_item.pdu_session_type = pdu_session_type_e::ipv4;
+
+  qos_flows_to_be_setup_item_s qos_flow_item;
+  qos_flow_item.qfi = 1;
+  qos_flow_item.qos_flow_level_qos_params.qos_characteristics.set_non_dyn();
+  qos_flow_item.qos_flow_level_qos_params.alloc_and_retention_prio.pre_emption_cap =
+      asn1::xnap::allocand_retention_prio_s::pre_emption_cap_opts::options::shall_not_trigger_preemption;
+  qos_flow_item.qos_flow_level_qos_params.alloc_and_retention_prio.pre_emption_vulnerability =
+      asn1::xnap::allocand_retention_prio_s::pre_emption_vulnerability_opts::options::not_preemptable;
+
+  pdu_session_item.qos_flows_to_be_setup_list.push_back(qos_flow_item);
+  ho_request->ue_context_info_ho_request.pdu_session_res_to_be_setup_list.push_back(pdu_session_item);
+
+  return xnap_msg;
+}
+
+xnap_message ocudu::ocucp::test_helpers::generate_handover_preparation_failure(local_xnap_ue_id_t local_xnap_ue_id)
 {
   xnap_message xnap_msg;
 
@@ -31,8 +85,8 @@ xnap_message ocudu::ocucp::generate_handover_preparation_failure(local_xnap_ue_i
   return xnap_msg;
 }
 
-xnap_message ocudu::ocucp::generate_handover_request_ack(local_xnap_ue_id_t local_xnap_ue_id,
-                                                         peer_xnap_ue_id_t  peer_xnap_ue_id)
+xnap_message ocudu::ocucp::test_helpers::generate_handover_request_ack(local_xnap_ue_id_t local_xnap_ue_id,
+                                                                       peer_xnap_ue_id_t  peer_xnap_ue_id)
 {
   xnap_message xnap_msg;
 

@@ -1557,9 +1557,9 @@ static void configure_cli11_intra_freq_neigh_cell_info_args(
 
 static void configure_cli11_pci_range_args(CLI::App& app, pci_range_config& range)
 {
-  add_option(app, "--start", range.start, "Range start")->capture_default_str()->check(CLI::Range(0, 1007));
+  add_option(app, "--start", range.start, "Range start")->required()->check(CLI::Range(0, 1007));
   add_option(app, "--size", range.size, "Range size")
-      ->capture_default_str()
+      ->required()
       ->check(CLI::IsMember({1, 4, 8, 12, 16, 24, 32, 48, 64, 84, 96, 128, 168, 252, 504, 1008}));
 }
 

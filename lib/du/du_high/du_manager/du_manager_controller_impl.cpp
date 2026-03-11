@@ -64,7 +64,6 @@ void du_manager_controller_impl::stop()
       [this, tk = ev.get_token()]() mutable { handle_du_stop_request(std::move(tk)); })) {
     proc_ctxt.logger.error("Unable to dispatch DU Manager shutdown. Retrying...");
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    return;
   }
 
   // Block waiting for async task to complete.

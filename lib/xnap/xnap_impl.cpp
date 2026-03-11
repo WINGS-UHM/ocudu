@@ -130,14 +130,13 @@ void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
 void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
 {
   // Add lambda that generates and transmits Handover Preparation Failure message.
-  auto send_handover_failure = [this](uint64_t local_xnap_ue_id) {
+  auto send_handover_failure = [this](uint64_t local_xnap_ue_id, xnap_cause_t cause) {
     xnap_message xnap_msg;
     xnap_msg.pdu.set_unsuccessful_outcome();
     xnap_msg.pdu.unsuccessful_outcome().load_info_obj(ASN1_XNAP_ID_HO_PREP);
     auto& ho_fail                           = xnap_msg.pdu.unsuccessful_outcome().value.ho_prep_fail();
     ho_fail->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id;
-    ho_fail->cause.set_protocol() =
-        asn1::xnap::cause_protocol_e::options::abstract_syntax_error_falsely_constructed_msg;
+    ho_fail->cause                          = cause_to_asn1(cause);
 
     if (!tx_notifier.on_new_message(xnap_msg)) {
       logger.warning("XN-C association is not set. Cannot send HandoverFailure");
@@ -150,7 +149,9 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
   xnap_handover_request ho_request;
   if (!asn1_to_handover_request(ho_request, msg)) {
     logger.info("Received invalid HandoverRequest");
-    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id);
+    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id,
+                          cause_protocol_t::abstract_syntax_error_falsely_constructed_msg);
+
     return;
   }
 
@@ -162,7 +163,7 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
   ho_request.ue_index = cu_cp_notifier.request_new_ue_index_allocation(ho_request.nr_cgi, ho_request.guami.plmn);
   if (ho_request.ue_index == ue_index_t::invalid) {
     logger.debug("Couldn't allocate UE index for handover target cell");
-    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id);
+    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id, xnap_cause_misc_t::not_enough_user_plane_processing_res);
     return;
   }
 
@@ -171,7 +172,7 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
           ho_request.ue_index, ho_request.guami.plmn, ho_request.ue_context_info_ho_request.security_context)) {
     logger.debug("Failed to initialize security context for UE index {}. Rejecting handover request",
                  ho_request.ue_index);
-    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id);
+    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id, xnap_cause_misc_t::not_enough_user_plane_processing_res);
     return;
   }
 
@@ -184,7 +185,7 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
                                               tx_notifier,
                                               logger))) {
     logger.debug("Couldn't schedule targer handover preparation procedure");
-    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id);
+    send_handover_failure(msg->source_ng_ra_nnode_ue_xn_ap_id, xnap_cause_misc_t::not_enough_user_plane_processing_res);
     return;
   }
 }

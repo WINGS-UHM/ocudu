@@ -4,16 +4,15 @@
 
 #pragma once
 
+#include "../cell_meas_manager/cell_meas_manager_impl.h"
 #include "../ngap_repository.h"
 #include "../ue_manager/ue_manager_impl.h"
 #include "metrics/mobility_manager_metrics_aggregator.h"
 #include "ocudu/cu_cp/cu_cp_command_handler.h"
-#include "ocudu/cu_cp/cu_cp_f1c_handler.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/cu_cp/mobility_manager_config.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class du_processor_repository;
 
@@ -50,7 +49,8 @@ public:
                    mobility_manager_cu_cp_notifier& cu_cp_notifier_,
                    ngap_repository&                 ngap_db_,
                    du_processor_repository&         du_db_,
-                   ue_manager&                      ue_mng_);
+                   ue_manager&                      ue_mng_,
+                   cell_meas_manager&               cell_meas_mng_);
 
   void trigger_handover(pci_t source_pci, rnti_t rnti, pci_t target_pci) override;
 
@@ -93,11 +93,11 @@ private:
   ngap_repository&                 ngap_db;
   du_processor_repository&         du_db;
   ue_manager&                      ue_mng;
+  cell_meas_manager&               cell_meas_mng;
 
   mobility_manager_metrics_aggregator metrics_handler;
 
   ocudulog::basic_logger& logger;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

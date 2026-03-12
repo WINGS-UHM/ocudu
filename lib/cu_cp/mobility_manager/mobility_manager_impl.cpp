@@ -16,12 +16,14 @@ mobility_manager::mobility_manager(const mobility_manager_cfg&      cfg_,
                                    mobility_manager_cu_cp_notifier& cu_cp_notifier_,
                                    ngap_repository&                 ngap_db_,
                                    du_processor_repository&         du_db_,
-                                   ue_manager&                      ue_mng_) :
+                                   ue_manager&                      ue_mng_,
+                                   cell_meas_manager&               cell_meas_mng_) :
   cfg(cfg_),
   cu_cp_notifier(cu_cp_notifier_),
   ngap_db(ngap_db_),
   du_db(du_db_),
   ue_mng(ue_mng_),
+  cell_meas_mng(cell_meas_mng_),
   logger(ocudulog::fetch_basic_logger("CU-CP"))
 {
 }
@@ -33,7 +35,13 @@ void mobility_manager::trigger_handover(pci_t source_pci, rnti_t rnti, pci_t tar
     logger.warning("Could not trigger handover, UE is invalid. rnti={} pci={}", rnti, source_pci);
     return;
   }
-  handle_handover(ue_index, gnb_id_t{}, nr_cell_identity{}, target_pci); // TODO: define gNB-ID and NCI
+  expected<std::pair<unsigned, nr_cell_identity>> target = cell_meas_mng.find_neighbour_nci(target_pci);
+  if (not target) {
+    logger.warning("Could not trigger handover, unknown target cell. pci={}", target_pci);
+    return;
+  }
+
+  handle_handover(ue_index, target.value().second.gnb_id(target->first), target.value().second, target_pci);
 }
 
 void mobility_manager::trigger_conditional_handover(

@@ -391,6 +391,16 @@ void cell_meas_manager::update_measurement_object(nr_cell_identity              
   ssb_freq_to_meas_object.emplace(ssb_freq, generate_measurement_object(serving_cell_cfg));
 }
 
+expected<std::pair<unsigned, nr_cell_identity>> cell_meas_manager::find_neighbour_nci(pci_t pci)
+{
+  for (const auto& [nci, cell_cfg] : cfg.cells) {
+    if (cell_cfg.serving_cell_cfg.pci == pci) {
+      return std::make_pair(cell_cfg.serving_cell_cfg.gnb_id_bit_length, nci);
+    }
+  }
+  return make_unexpected(default_error_t{});
+}
+
 static expected<nr_cell_identity, std::string> find_nci(const cell_meas_manager_cfg& meas_mng_cfg, pci_t pci)
 {
   for (const auto& [nci, cell_cfg] : meas_mng_cfg.cells) {

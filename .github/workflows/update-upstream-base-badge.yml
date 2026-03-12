@@ -31,6 +31,8 @@ jobs:
 
           # ISO style date of that commit
           MERGE_DATE="$(git show -s --format=%cs ${BASE_SHA})"
+          LAG_COUNT="$(git rev-list --count HEAD..upstream/${UPSTREAM_BRANCH})"
+
 
           mkdir -p .github/badges
 
@@ -38,7 +40,7 @@ jobs:
           cat > .github/badges/upstream-base.json <<EOF
           {
             "schemaVersion": 1,
-            "label": "Last Upstream Merge",
+            "label": "Upstream Base",
             "message": "${SHORT_SHA}",
             "color": "blue"
           }
@@ -48,9 +50,27 @@ jobs:
           cat > .github/badges/upstream-date.json <<EOF
           {
             "schemaVersion": 1,
-            "label": "Last Upstream Sync",
+            "label": "Last Synced With Upstream",
             "message": "${MERGE_DATE}",
             "color": "brightgreen"
+          }
+          EOF
+          
+          # LAG badge
+          if [ "${LAG_COUNT}" -eq 0 ]; then
+            LAG_COLOR="brightgreen"
+          elif [ "${LAG_COUNT}" -le 10 ]; then
+            LAG_COLOR="yellow"
+          else
+            LAG_COLOR="red"
+          fi
+
+          cat > .github/badges/upstream-lag.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "Upstream Lag",
+            "message": "${LAG_COUNT} commits",
+            "color": "${LAG_COLOR}"
           }
           EOF
 

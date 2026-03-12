@@ -62,7 +62,7 @@ files_generic_default="${tmpdir}/files_generic_default.txt"
 files_generic_alt="${tmpdir}/files_generic_alt.txt"
 
 if $SCAN || [ -t 0 ]; then
-    find . -type f > "${files_all}"
+    find . -type f -printf "%P\n" > "${files_all}"
 else
     cat > "${files_all}"
 fi

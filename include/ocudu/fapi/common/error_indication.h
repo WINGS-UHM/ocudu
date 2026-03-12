@@ -61,6 +61,7 @@ struct formatter<ocudu::fapi::error_indication> {
               *msg.slot,
               underlying(msg.error_code),
               underlying(msg.message_id));
+
     if (msg.error_code == ocudu::fapi::error_code_id::out_of_sync && msg.expected_slot) {
       format_to(ctx.out(), " expected_slot={}", *msg.expected_slot);
     }

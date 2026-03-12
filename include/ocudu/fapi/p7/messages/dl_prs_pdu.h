@@ -43,13 +43,17 @@ struct formatter<ocudu::fapi::dl_prs_pdu> {
   auto format(const ocudu::fapi::dl_prs_pdu& pdu, FormatContext& ctx) const
   {
     format_to(ctx.out(),
-              "\n\t- PRS comb_size={} comb_offset={} symb={}:{} CRBs={} n_id={}",
+              "\n\t- PRS scs={} cp={} nid_prs={} comb_size={} comb_offset={} symb={}:{} CRBs={} Precoding and "
+              "Beamforming prg_size={}",
+              to_string(pdu.scs),
+              pdu.cp.to_string(),
+              pdu.nid_prs,
               underlying(pdu.comb_size),
               pdu.comb_offset,
               pdu.first_symbol,
               underlying(pdu.num_symbols),
               pdu.crbs,
-              pdu.nid_prs);
+              pdu.precoding_and_beamforming.prg_size);
 
     if (pdu.prs_power_offset_db.has_value()) {
       format_to(ctx.out(), " prs_power_offset_db={}", *pdu.prs_power_offset_db);

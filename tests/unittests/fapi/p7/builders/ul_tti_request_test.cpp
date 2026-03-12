@@ -18,7 +18,7 @@ TEST(ul_tti_request_builder, valid_basic_parameters_passes)
   ul_tti_request         msg;
   ul_tti_request_builder builder(msg);
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
 
   ASSERT_EQ(slot, msg.slot);
   ASSERT_TRUE(msg.pdus.empty());

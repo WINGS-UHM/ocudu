@@ -4,14 +4,14 @@
 #pragma once
 
 #include "ocudu/fapi/common/error_indication.h"
-#include <limits>
 
 namespace ocudu {
 namespace fapi {
 
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
-/// \note This builder is used to build any error code id but OUT_OF_SYNC error.
+///
+/// This builder is used to build any error code id but OUT_OF_SYNC error.
 inline error_indication build_error_indication(slot_point slot, message_type_id msg_id, error_code_id error_id)
 {
   error_indication msg;
@@ -25,7 +25,8 @@ inline error_indication build_error_indication(slot_point slot, message_type_id 
 
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
-/// \note This builder is used to build only an OUT_OF_SYNC error code.
+///
+/// This builder is used to build only an OUT_OF_SYNC error code.
 inline error_indication
 build_out_of_sync_error_indication(slot_point slot, message_type_id msg_id, slot_point expected_slot)
 {
@@ -41,7 +42,8 @@ build_out_of_sync_error_indication(slot_point slot, message_type_id msg_id, slot
 
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
-/// \note This builder is used to build only an MSG_INVALID_SFN error code.
+///
+/// This builder is used to build only an MSG_INVALID_SFN error code.
 inline error_indication
 build_invalid_sfn_error_indication(slot_point slot, message_type_id msg_id, slot_point expected_slot)
 {
@@ -57,7 +59,8 @@ build_invalid_sfn_error_indication(slot_point slot, message_type_id msg_id, slot
 
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
-/// \note This builder is used to build only a MSG_SLOT_ERR error code.
+///
+/// This builder is used to build only a MSG_SLOT_ERR error code.
 inline error_indication build_msg_error_indication(slot_point slot, message_type_id msg_id)
 {
   error_indication msg;
@@ -71,7 +74,8 @@ inline error_indication build_msg_error_indication(slot_point slot, message_type
 
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
-/// \note This builder is used to build only a MSG_TX_ERR error code.
+///
+/// This builder is used to build only a MSG_TX_ERR error code.
 inline error_indication build_msg_tx_error_indication(slot_point slot)
 {
   error_indication msg;
@@ -85,7 +89,8 @@ inline error_indication build_msg_tx_error_indication(slot_point slot)
 
 /// \brief Builds and returns an ERROR.indication message with the given parameters, as per SCF-222 v4.0 section 3.3.6.1
 /// in table ERROR.indication message body
-/// \note This builder is used to build only a MSG_UL_DCI_ERR error code.
+///
+/// This builder is used to build only a MSG_UL_DCI_ERR error code.
 inline error_indication build_msg_ul_dci_error_indication(slot_point slot)
 {
   error_indication msg;

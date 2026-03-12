@@ -7,7 +7,6 @@ namespace ocudu {
 namespace fapi {
 
 struct crc_indication;
-struct dl_tti_response;
 struct rach_indication;
 struct rx_data_indication;
 struct srs_indication;

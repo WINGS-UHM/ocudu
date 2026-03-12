@@ -17,7 +17,7 @@ TEST(srs_indication_builder, valid_srs_indication_passes)
   unsigned sfn        = 13;
   unsigned slot_index = 12;
   auto     slot       = slot_point(scs, sfn, slot_index);
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
 
   rnti_t rnti        = to_rnti(3);
   auto   pdu_builder = builder.set_pdu(rnti);
@@ -50,7 +50,7 @@ TEST(srs_indication_builder, valid_srs_indication_with_positioning_report_passes
   unsigned sfn        = 13;
   unsigned slot_index = 12;
   auto     slot       = slot_point(scs, sfn, slot_index);
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
 
   rnti_t rnti        = to_rnti(3);
   auto   pdu_builder = builder.set_pdu(rnti);

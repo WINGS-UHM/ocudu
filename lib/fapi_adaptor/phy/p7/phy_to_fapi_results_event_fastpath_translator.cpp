@@ -73,7 +73,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
   fapi::rach_indication         msg;
   fapi::rach_indication_builder builder(msg);
 
-  builder.set_slot_point(slot);
+  builder.set_slot(slot);
 
   // NOTE: Currently not supporting PRACH multiplexed in frequency domain.
   static constexpr unsigned fd_ra_index = 0U;
@@ -233,7 +233,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
   fapi::crc_indication         msg;
   fapi::crc_indication_builder builder(msg);
 
-  builder.set_basic_parameters(result.slot);
+  builder.set_slot(result.slot);
 
   // NOTE: Clamp values defined in SCF-222 v4.0 Section 3.4.8 Table CRC.indication message body.
   static constexpr float MIN_UL_SINR_VALUE = -65.534;
@@ -277,7 +277,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(co
   fapi::rx_data_indication         msg;
   fapi::rx_data_indication_builder builder(msg);
 
-  builder.set_slot_point(result.slot);
+  builder.set_slot(result.slot);
 
   // TODO: Remove the to_harq_id call once it is changed in the PHY layer.
   builder.set_pdu(result.rnti, to_harq_id(result.harq_id), result.payload);
@@ -494,7 +494,7 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_
   fapi::srs_indication_builder builder(msg);
 
   const ul_srs_context& context = result.context;
-  builder.set_basic_parameters(context.slot);
+  builder.set_slot(context.slot);
 
   if (context.is_normalized_channel_iq_matrix_report_requested) {
     fapi::srs_indication_pdu_builder srs_pdu_builder = builder.set_pdu(context.rnti);

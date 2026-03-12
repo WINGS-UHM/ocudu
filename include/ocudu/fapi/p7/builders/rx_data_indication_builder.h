@@ -18,10 +18,10 @@ class rx_data_indication_builder
 public:
   explicit rx_data_indication_builder(rx_data_indication& msg_) : msg(msg_) {}
 
-  /// \brief Sets the \e Rx_Data.indication slot point and returns a reference to the builder.
+  /// \brief Sets the \e Rx_Data.indication slot and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.7 in table Rx_Data.indication message body.
-  rx_data_indication_builder& set_slot_point(slot_point slot)
+  rx_data_indication_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "ocudu/adt/span.h"
 #include "ocudu/fapi/p7/messages/crc_indication.h"
 
 namespace ocudu {
@@ -17,17 +16,19 @@ class crc_indication_builder
 public:
   explicit crc_indication_builder(crc_indication& msg_) : msg(msg_) {}
 
-  /// Sets the \e CRC.indication basic parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
-  crc_indication_builder& set_basic_parameters(slot_point slot)
+  /// \brief Sets the \e CRC.indication slot and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
+  crc_indication_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 
     return *this;
   }
 
-  /// Sets a \e CRC.indication PDU to the message and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
+  /// \brief Sets a \e CRC.indication PDU to the message and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
   crc_indication_builder& set_pdu(rnti_t                       rnti,
                                   harq_id_t                    harq_id,
                                   bool                         tb_crc_status_ok,

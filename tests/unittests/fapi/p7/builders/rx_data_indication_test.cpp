@@ -18,7 +18,7 @@ TEST(rx_data_indication_builder, valid_basic_parameters_passes)
   rx_data_indication         msg;
   rx_data_indication_builder builder(msg);
 
-  builder.set_slot_point(slot);
+  builder.set_slot(slot);
 
   ASSERT_EQ(slot, msg.slot);
 }

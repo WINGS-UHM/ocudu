@@ -56,6 +56,7 @@ struct formatter<ocudu::fapi::dl_tti_request> {
         format_to(ctx.out(), "{}", *pdsch_pdu);
         continue;
       }
+
       if (const auto* ssb_pdu = std::get_if<ocudu::fapi::dl_ssb_pdu>(&pdu.pdu)) {
         format_to(ctx.out(), "{}", *ssb_pdu);
         continue;

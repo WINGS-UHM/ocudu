@@ -89,7 +89,7 @@ public:
   auto format(const ocudu::fapi::dl_dci_pdu& pdu, FormatContext& ctx) const
   {
     fmt::format_to(ctx.out(),
-                   " DCI rnti={} nid_pdcch_data={} nid_pdcch_dmrs={} nrnti_pdcch_data={} cce_index={} "
+                   "DCI rnti={} nid_pdcch_data={} nid_pdcch_dmrs={} nrnti_pdcch_data={} cce_index={} "
                    "dci_aggregation_level={} payload_size={}",
                    pdu.rnti,
                    pdu.nid_pdcch_data,
@@ -132,8 +132,10 @@ struct formatter<ocudu::fapi::dl_pdcch_pdu> {
   auto format(const ocudu::fapi::dl_pdcch_pdu& pdu, FormatContext& ctx) const
   {
     format_to(ctx.out(),
-              "\n\t- PDCCH bwp={} symb={} freq_domain_resource={} precoder_granularity={} {}",
+              "\n\t- PDCCH bwp={} scs={} cp{} symb={} freq_domain_resource={} precoder_granularity={} {}",
               pdu.coreset_bwp,
+              to_string(pdu.scs),
+              pdu.cp.to_string(),
               pdu.symbols,
               pdu.freq_domain_resource,
               underlying(pdu.precoder_granularity),

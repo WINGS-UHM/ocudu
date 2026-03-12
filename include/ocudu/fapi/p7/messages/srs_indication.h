@@ -62,6 +62,10 @@ struct formatter<ocudu::fapi::srs_indication> {
       }
     }
 
+    if (msg.pdu.matrix.has_value()) {
+      format_to(ctx.out(), " With channel matrix");
+    }
+
     return ctx.out();
   }
 };

@@ -66,12 +66,14 @@ private:
                 underlying(pdu.harq->detection_status),
                 pdu.harq->expected_bit_length);
     }
+
     if (pdu.csi_part1.has_value()) {
       format_to(ctx.out(),
                 " CSI1: detection={} bit_len={}",
                 underlying(pdu.csi_part1->detection_status),
                 pdu.csi_part1->expected_bit_length);
     }
+
     if (pdu.csi_part2.has_value()) {
       format_to(ctx.out(),
                 " CSI2: detection={} bit_len={}",
@@ -146,18 +148,21 @@ private:
     if (pdu.sr.has_value()) {
       format_to(ctx.out(), " SR: bit_len={}", pdu.sr->sr_payload.size());
     }
+
     if (pdu.harq.has_value()) {
       format_to(ctx.out(),
                 " HARQ: detection={} bit_len={}",
                 underlying(pdu.harq->detection_status),
                 pdu.harq->expected_bit_length);
     }
+
     if (pdu.csi_part1.has_value()) {
       format_to(ctx.out(),
                 " CSI1: detection={} bit_len={}",
                 underlying(pdu.csi_part1->detection_status),
                 pdu.csi_part1->expected_bit_length);
     }
+
     if (pdu.csi_part2.has_value()) {
       format_to(ctx.out(),
                 " CSI2: detection={} bit_len={}",

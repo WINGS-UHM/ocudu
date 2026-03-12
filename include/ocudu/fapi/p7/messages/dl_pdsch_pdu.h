@@ -125,7 +125,8 @@ struct formatter<ocudu::fapi::dl_pdsch_pdu> {
         "\n\t- PDSCH rnti={} bwp={} scs={} cp={} nid_pdsch={} num_layers={} ref_point={} dl_dmrs_symb_pos={} "
         "pdsch_dmrs_scrambling_id={} dmrs_type={} nscid={} num_dmrs_cdm_grps_no_data={} dmrs_ports={} "
         "vrb_to_prb_mapping={} symb={} precoding_and_beamforming.pm_index={} precoding_and_beamforming.prg_size={} "
-        "tb_size_lbrm={} ldpc_base_graph={} nof_csi_pdus={} CW: mod={} mcs_index={} mcs_table={} rv_idx={} tbs={}",
+        "tb_size_lbrm={} ldpc_base_graph={} nof_csi_pdus_for_rm={} CW: mod={} mcs_index={} mcs_table={} rv_idx={} "
+        "tbs={}",
         pdu.rnti,
         pdu.bwp,
         to_string(pdu.scs),

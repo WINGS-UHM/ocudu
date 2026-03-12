@@ -241,7 +241,7 @@ void mac_to_fapi_fastpath_translator::on_new_uplink_scheduler_results(const mac_
   fapi::ul_tti_request         msg;
   fapi::ul_tti_request_builder builder(msg);
 
-  builder.set_basic_parameters(ul_res.slot);
+  builder.set_slot(ul_res.slot);
 
   // Add PRACH PDUs to the UL_TTI.request message.
   for (const auto& pdu : ul_res.ul_res->prachs) {

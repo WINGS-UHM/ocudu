@@ -13,8 +13,6 @@
 namespace ocudu {
 namespace fapi {
 
-// :TODO: Review the builders documentation so it matches the UCI builder.
-
 /// UL_TTI.request message builder that helps to fill in the parameters specified in SCF-222 v4.0 section 3.4.3.
 class ul_tti_request_builder
 {
@@ -23,17 +21,19 @@ class ul_tti_request_builder
 public:
   explicit ul_tti_request_builder(ul_tti_request& msg_) : msg(msg_) {}
 
-  /// Sets the UL_TTI.request basic parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3 in table UL_TTI,request message body.
-  ul_tti_request_builder& set_basic_parameters(slot_point slot)
+  /// \brief Sets the UL_TTI.request slot and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.3 in table UL_TTI,request message body.
+  ul_tti_request_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 
     return *this;
   }
 
-  /// Adds a PRACH PDU to the message and returns a builder that helps to fill the parameters.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.1 in table PRACH PDU.
+  /// \brief Adds a PRACH PDU to the message and returns a builder that helps to fill the parameters.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.3.1 in table PRACH PDU.
   ul_prach_pdu_builder add_prach_pdu()
   {
     auto&                pdu = msg.pdus.emplace_back();
@@ -75,8 +75,9 @@ public:
     return builder;
   }
 
-  /// Adds a PUCCH PDU to the message and returns a builder that helps to fill the parameters.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table PUCCH PDU.
+  /// \brief Adds a PUCCH PDU to the message and returns a builder that helps to fill the parameters.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table PUCCH PDU.
   ul_pucch_pdu_builder add_pucch_pdu(rnti_t rnti, pucch_format format_type)
   {
     ul_pucch_pdu_builder builder = add_pucch_pdu(format_type);
@@ -85,8 +86,9 @@ public:
     return builder;
   }
 
-  /// Adds a PUSCH PDU to the message and returns a builder that helps to fill the parameters.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
+  /// \brief Adds a PUSCH PDU to the message and returns a builder that helps to fill the parameters.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
   ul_pusch_pdu_builder add_pusch_pdu()
   {
     auto&                pdu = msg.pdus.emplace_back();
@@ -95,8 +97,9 @@ public:
     return builder;
   }
 
-  /// Adds a PUSCH PDU to the message and returns a builder that helps to fill the parameters.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
+  /// \brief Adds a PUSCH PDU to the message and returns a builder that helps to fill the parameters.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
   ul_pusch_pdu_builder add_pusch_pdu(rnti_t rnti)
   {
     ul_pusch_pdu_builder builder = add_pusch_pdu();
@@ -105,8 +108,9 @@ public:
     return builder;
   }
 
-  /// Adds a SRS PDU to the message and returns a builder that helps to fill the parameters.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table SRS PDU.
+  /// \brief Adds an SRS PDU to the message and returns a builder that helps to fill the parameters.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.3.3 in table SRS PDU.
   ul_srs_pdu_builder add_srs_pdu()
   {
     auto&              pdu = msg.pdus.emplace_back();

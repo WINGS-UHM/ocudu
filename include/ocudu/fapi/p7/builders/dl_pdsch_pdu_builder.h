@@ -136,12 +136,12 @@ public:
   /// \brief Sets the profile NR Tx Power info parameters for the fields of the PDSCH PDU.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.2.2, in table PDSCH PDU.
-  dl_pdsch_pdu_builder& set_profile_nr_tx_power_info_parameters(int                     pwr_control_offset,
+  dl_pdsch_pdu_builder& set_profile_nr_tx_power_info_parameters(int                     pwr_control_offset_db,
                                                                 power_control_offset_ss pwr_control_offset_ss)
   {
     auto& power = pdu.power_config.emplace<dl_pdsch_pdu::power_profile_nr>();
 
-    power.pwr_control_offset_db = pwr_control_offset;
+    power.pwr_control_offset_db = pwr_control_offset_db;
     power.pwr_control_offset_ss = pwr_control_offset_ss;
 
     return *this;
@@ -181,7 +181,8 @@ public:
   }
 
   /// \brief Sets the VRB to PRB mapping for non interleaved other for the fields of the PDSCH PDU.
-  ///  /// These parameters are specified in SCF-222 v4.0 section 3.4.2.2, in table PDSCH maintenance parameters v3.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.2.2, in table PDSCH maintenance parameters v3.
   dl_pdsch_pdu_builder& set_vrb_to_prb_non_interleaved_other_parameters()
   {
     pdu.mapping.emplace<dl_pdsch_pdu::non_interleaved_other>();

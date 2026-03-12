@@ -102,10 +102,10 @@ class rach_indication_builder
 public:
   explicit rach_indication_builder(rach_indication& msg_) : msg(msg_) {}
 
-  /// \brief Sets the slot point of the \e RACH.indication message and returns a reference to the builder.
+  /// \brief Sets the slot of the \e RACH.indication message and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
-  rach_indication_builder& set_slot_point(slot_point slot)
+  rach_indication_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 

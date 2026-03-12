@@ -57,23 +57,21 @@ struct formatter<ocudu::fapi::dl_csi_rs_pdu> {
   template <typename FormatContext>
   auto format(const ocudu::fapi::dl_csi_rs_pdu& pdu, FormatContext& ctx) const
   {
-    if (pdu.type == ocudu::csi_rs_type::CSI_RS_NZP) {
-      format_to(ctx.out(),
-                "\n\t- NZP-CSI-RS crbs={} type={} freq_domain={} row={} symbL0={} symbL1={} cdm_type={} "
-                "freq_density={} scramb_id={}",
-                pdu.crbs,
-                to_string(pdu.type),
-                pdu.freq_domain,
-                pdu.row,
-                pdu.symb_L0,
-                pdu.symb_L1,
-                to_string(pdu.cdm_type),
-                to_string(pdu.freq_density),
-                pdu.scramb_id);
-    } else if (pdu.type == ocudu::csi_rs_type::CSI_RS_ZP) {
-      format_to(
-          ctx.out(), "\n\t- ZP-CSI-RS crbs={} row={} symbL0={} symbL1={}", pdu.crbs, pdu.row, pdu.symb_L0, pdu.symb_L1);
-    }
+    format_to(ctx.out(),
+              "\n\t- CSI-RS type={} scs={} cp={} crbs={} row={} freq_domain={} symbL0={} symbL1={} cdm_type={} "
+              "freq_density={} scramb_id={} bwp={}",
+              to_string(pdu.type),
+              to_string(pdu.scs),
+              pdu.cp.to_string(),
+              pdu.crbs,
+              pdu.row,
+              pdu.freq_domain,
+              pdu.symb_L0,
+              pdu.symb_L1,
+              to_string(pdu.cdm_type),
+              to_string(pdu.freq_density),
+              pdu.bwp,
+              pdu.scramb_id);
 
     if (const auto* profile_nr = std::get_if<ocudu::fapi::dl_csi_rs_pdu::power_profile_nr>(&pdu.power_config)) {
       format_to(ctx.out(),

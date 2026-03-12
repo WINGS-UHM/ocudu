@@ -19,7 +19,7 @@ TEST(crc_indication_builder, valid_indication_passes)
     unsigned slot_index = 15;
     auto     slot       = slot_point(scs, sfn, slot_index);
 
-    builder.set_basic_parameters(slot);
+    builder.set_slot(slot);
 
     rnti_t    rnti          = to_rnti(10);
     harq_id_t harq_id       = to_harq_id(0);
@@ -64,7 +64,7 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
   unsigned slot_index = 15;
   auto     slot       = slot_point(scs, sfn, slot_index);
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
 
   rnti_t    rnti          = to_rnti(10);
   harq_id_t harq_id       = to_harq_id(0);

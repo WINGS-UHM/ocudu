@@ -52,12 +52,13 @@ struct formatter<ocudu::fapi::dl_ssb_pdu> {
   auto format(const ocudu::fapi::dl_ssb_pdu& pdu, FormatContext& ctx) const
   {
     format_to(ctx.out(),
-              "\n\t- SSB pci={} ssb_block_index={} k_SSB={} pointA={} "
+              "\n\t- SSB pci={} ssb_block_index={} k_SSB={} pointA={} bch_payload={}"
               "ssb_pattern_case={} scs={} L_max={}",
               pdu.phys_cell_id,
               underlying(pdu.ssb_block_index),
               pdu.subcarrier_offset.value(),
               pdu.ssb_offset_pointA.value(),
+              pdu.bch_payload,
               to_string(pdu.case_type),
               to_string(pdu.scs),
               pdu.L_max);

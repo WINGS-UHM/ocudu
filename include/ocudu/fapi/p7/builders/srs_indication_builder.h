@@ -66,10 +66,10 @@ class srs_indication_builder
 public:
   explicit srs_indication_builder(srs_indication& msg_) : msg(msg_) {}
 
-  /// \brief Sets the \e SRS.indication basic parameters and returns a reference to the builder.
+  /// \brief Sets the \e SRS.indication slot and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 Section 3.4.10 in table SRS.indication message body.
-  srs_indication_builder& set_basic_parameters(slot_point slot)
+  srs_indication_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 

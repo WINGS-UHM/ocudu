@@ -57,23 +57,33 @@ struct formatter<ocudu::fapi::ul_srs_pdu> {
   template <typename FormatContext>
   auto format(const ocudu::fapi::ul_srs_pdu& pdu, FormatContext& ctx) const
   {
-    return format_to(
-        ctx.out(),
-        "\n\t- SRS rnti={} bwp={} nof_ports={} symb={}:{} config_idx={} comb=(size={} offset={} cyclic_shift={}) "
-        "freq_shift={} type={} normalized_channel_iq_matrix_req={} positioning_report_req={}",
-        pdu.rnti,
-        pdu.bwp,
-        underlying(pdu.num_ant_ports),
-        pdu.time_start_position,
-        pdu.ofdm_symbols.length(),
-        pdu.config_index,
-        underlying(pdu.comb_size),
-        pdu.comb_offset,
-        pdu.cyclic_shift,
-        pdu.frequency_shift,
-        to_string(pdu.resource_type),
-        pdu.enable_normalized_iq_matrix_report ? "enabled" : "disabled",
-        pdu.enable_positioning_report ? "enabled" : "disabled");
+    return format_to(ctx.out(),
+                     "\n\t- SRS rnti={} bwp={} scs={} cp={} nof_ports={} symb={}:{} config_idx={} sequence_id={} "
+                     "bandwidth_index={} comb=(size={} offset={} cyclic_shift={}) freq_position={} freq_shift={} "
+                     "freq_hopping={} group_or_sequence_hopping={} type={} srs_peridiocity={} slot_offset={} "
+                     "normalized_channel_iq_matrix_req={} positioning_report_req={}",
+                     pdu.rnti,
+                     pdu.bwp,
+                     to_string(pdu.scs),
+                     pdu.cp.to_string(),
+                     underlying(pdu.num_ant_ports),
+                     pdu.time_start_position,
+                     pdu.ofdm_symbols.length(),
+                     pdu.config_index,
+                     pdu.sequence_id,
+                     pdu.bandwidth_index,
+                     underlying(pdu.comb_size),
+                     pdu.comb_offset,
+                     pdu.cyclic_shift,
+                     pdu.frequency_position,
+                     pdu.frequency_shift,
+                     pdu.frequency_hopping,
+                     underlying(pdu.group_or_sequence_hopping),
+                     to_string(pdu.resource_type),
+                     underlying(pdu.t_srs),
+                     pdu.t_offset,
+                     pdu.enable_normalized_iq_matrix_report ? "enabled" : "disabled",
+                     pdu.enable_positioning_report ? "enabled" : "disabled");
   }
 };
 } // namespace fmt

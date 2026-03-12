@@ -10,8 +10,6 @@
 namespace ocudu {
 namespace fapi {
 
-// :TODO: Review the builders documentation so it matches the UCI builder.
-
 /// UCI PUSCH PDU Format 2, Format 3 or Format 4 builder that helps fill in the parameters specified in SCF-222 v4.0
 /// Section 3.4.9.3.
 class uci_pucch_pdu_format_2_3_4_builder

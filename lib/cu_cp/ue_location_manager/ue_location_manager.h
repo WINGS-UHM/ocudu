@@ -34,6 +34,10 @@ public:
   /// \returns nullopt on success, or a Location Reporting Failure Indication cause if the configuration failed.
   std::optional<ngap_cause_t> configure_location_reporting(const location_report_request& ctrl);
 
+  /// \brief Build the location reporting request from stored configuration, to be sent in Xn Handover Request.
+  /// \returns The location report request if location reporting is configured, nullopt otherwise.
+  std::optional<location_report_request> get_location_reporting_request() const;
+
   /// \brief Build and return a location report, if location reporting is configured.
   std::optional<location_report> get_location_report(ue_index_t                         ue_index,
                                                      const cu_cp_user_location_info_nr& user_location_info);

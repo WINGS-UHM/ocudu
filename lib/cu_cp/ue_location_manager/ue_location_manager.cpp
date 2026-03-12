@@ -94,6 +94,20 @@ location_report_request::event_type ue_location_manager::get_current_location_re
   return location_report_request::event_type::nulltype;
 }
 
+std::optional<location_report_request> ue_location_manager::get_location_reporting_request() const
+{
+  if (cfg.report_on_cell_change || cfg.report_ue_presence_in_aoi) {
+    location_report_request req;
+    req.location_reporting_type = get_current_location_reporting_type();
+    req.location_report_area    = location_report_request::report_area::cell;
+    for (const auto& [ref_id, aoi] : cfg.area_of_interest_list) {
+      req.area_of_interest_list.push_back({aoi, ref_id});
+    }
+    return req;
+  }
+  return std::nullopt;
+}
+
 ue_presence ue_location_manager::check_ue_presence(const area_of_interest& aoi, const cu_cp_user_location_info_nr& loc)
 {
   for (const auto& cell : aoi.cell_list) {

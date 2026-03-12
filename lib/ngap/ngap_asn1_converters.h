@@ -6,10 +6,10 @@
 
 #include "ngap_asn1_utils.h"
 #include "ocudu/asn1/ngap/ngap_ies.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ngap/ngap_handover.h"
-#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/cu_types.h"
@@ -1079,33 +1079,33 @@ inline ngap_core_network_assist_info_for_inactive asn1_to_core_network_assist_in
   return cn_assist_info_for_inactive;
 }
 
-inline ngap_location_report_request::event_type
+inline location_report_request::event_type
 asn1_to_location_reporting_event_type(const asn1::ngap::event_type_e& asn1_reporting_trigger)
 {
   switch (asn1_reporting_trigger) {
     case asn1::ngap::event_type_opts::options::direct:
-      return ngap_location_report_request::event_type::direct;
+      return location_report_request::event_type::direct;
     case asn1::ngap::event_type_opts::options::change_of_serve_cell:
-      return ngap_location_report_request::event_type::change_of_serve_cell;
+      return location_report_request::event_type::change_of_serve_cell;
     case asn1::ngap::event_type_opts::options::ue_presence_in_area_of_interest:
-      return ngap_location_report_request::event_type::ue_presence_in_area_of_interest;
+      return location_report_request::event_type::ue_presence_in_area_of_interest;
     case asn1::ngap::event_type_opts::options::stop_change_of_serve_cell:
-      return ngap_location_report_request::event_type::stop_change_of_serve_cell;
+      return location_report_request::event_type::stop_change_of_serve_cell;
     case asn1::ngap::event_type_opts::options::stop_ue_presence_in_area_of_interest:
-      return ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest;
+      return location_report_request::event_type::stop_ue_presence_in_area_of_interest;
     case asn1::ngap::event_type_opts::options::cancel_location_report_for_the_ue:
-      return ngap_location_report_request::event_type::cancel_location_report_for_the_ue;
+      return location_report_request::event_type::cancel_location_report_for_the_ue;
     case asn1::ngap::event_type_opts::options::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
-      return ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
+      return location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
     default:
-      return ngap_location_report_request::event_type::nulltype;
+      return location_report_request::event_type::nulltype;
   }
 }
 
 /// \brief Convert NGAP ASN1 AreaOfInterest IE to common type.
-inline ngap_area_of_interest asn1_to_area_of_interest(const asn1::ngap::area_of_interest_s& asn1_aoi)
+inline area_of_interest asn1_to_area_of_interest(const asn1::ngap::area_of_interest_s& asn1_aoi)
 {
-  ngap_area_of_interest aoi;
+  area_of_interest aoi;
 
   for (const auto& asn1_tai_item : asn1_aoi.area_of_interest_tai_list) {
     aoi.tai_list.push_back(ngap_asn1_to_tai(asn1_tai_item.tai));
@@ -1134,25 +1134,25 @@ inline ngap_area_of_interest asn1_to_area_of_interest(const asn1::ngap::area_of_
 }
 
 /// \brief Convert NGAP ASN1 LocationReportingRequestType IE to common type.
-inline ngap_location_report_request
+inline location_report_request
 asn1_to_location_report_request(const asn1::ngap::location_report_request_type_s& asn1_type)
 {
-  ngap_location_report_request req;
+  location_report_request req;
   req.location_reporting_type = asn1_to_location_reporting_event_type(asn1_type.event_type);
-  req.location_report_area    = ngap_location_report_request::report_area::cell;
+  req.location_report_area    = location_report_request::report_area::cell;
 
-  if (req.location_reporting_type == ngap_location_report_request::event_type::ue_presence_in_area_of_interest ||
+  if (req.location_reporting_type == location_report_request::event_type::ue_presence_in_area_of_interest ||
       req.location_reporting_type ==
-          ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
+          location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
     for (const auto& asn1_aoi_item : asn1_type.area_of_interest_list) {
-      ngap_area_of_interest_item aoi_item;
+      area_of_interest_item aoi_item;
       aoi_item.location_report_ref_id = asn1_aoi_item.location_report_ref_id;
-      aoi_item.area_of_interest       = asn1_to_area_of_interest(asn1_aoi_item.area_of_interest);
+      aoi_item.aio                    = asn1_to_area_of_interest(asn1_aoi_item.area_of_interest);
       req.area_of_interest_list.push_back(std::move(aoi_item));
     }
   }
 
-  if (req.location_reporting_type == ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest) {
+  if (req.location_reporting_type == location_report_request::event_type::stop_ue_presence_in_area_of_interest) {
     if (asn1_type.location_report_ref_id_to_be_cancelled_present) {
       req.location_report_ref_id_to_be_cancelled = asn1_type.location_report_ref_id_to_be_cancelled;
     }
@@ -1168,35 +1168,35 @@ asn1_to_location_report_request(const asn1::ngap::location_report_request_type_s
 }
 
 /// \brief Convert common type event_type to NGAP ASN1 event_type_e.
-inline asn1::ngap::event_type_e event_type_to_asn1(ngap_location_report_request::event_type event_type)
+inline asn1::ngap::event_type_e event_type_to_asn1(location_report_request::event_type event_type)
 {
   switch (event_type) {
-    case ngap_location_report_request::event_type::direct:
+    case location_report_request::event_type::direct:
       return asn1::ngap::event_type_opts::options::direct;
-    case ngap_location_report_request::event_type::change_of_serve_cell:
+    case location_report_request::event_type::change_of_serve_cell:
       return asn1::ngap::event_type_opts::options::change_of_serve_cell;
-    case ngap_location_report_request::event_type::ue_presence_in_area_of_interest:
+    case location_report_request::event_type::ue_presence_in_area_of_interest:
       return asn1::ngap::event_type_opts::options::ue_presence_in_area_of_interest;
-    case ngap_location_report_request::event_type::stop_change_of_serve_cell:
+    case location_report_request::event_type::stop_change_of_serve_cell:
       return asn1::ngap::event_type_opts::options::stop_change_of_serve_cell;
-    case ngap_location_report_request::event_type::stop_ue_presence_in_area_of_interest:
+    case location_report_request::event_type::stop_ue_presence_in_area_of_interest:
       return asn1::ngap::event_type_opts::options::stop_ue_presence_in_area_of_interest;
-    case ngap_location_report_request::event_type::cancel_location_report_for_the_ue:
+    case location_report_request::event_type::cancel_location_report_for_the_ue:
       return asn1::ngap::event_type_opts::options::cancel_location_report_for_the_ue;
-    case ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
+    case location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
       return asn1::ngap::event_type_opts::options::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
     default:
       return asn1::ngap::event_type_opts::options::direct;
   }
 }
 
-/// \brief Convert common type ngap_ue_presence to NGAP ASN1 ue_presence_e.
-inline asn1::ngap::ue_presence_e ue_presence_to_asn1(ngap_ue_presence ue_presence)
+/// \brief Convert common type ue_presence to NGAP ASN1 ue_presence_e.
+inline asn1::ngap::ue_presence_e ue_presence_to_asn1(ue_presence ue_presence)
 {
   switch (ue_presence) {
-    case ngap_ue_presence::in:
+    case ue_presence::in:
       return asn1::ngap::ue_presence_opts::options::in;
-    case ngap_ue_presence::out:
+    case ue_presence::out:
       return asn1::ngap::ue_presence_opts::options::out;
     default:
       return asn1::ngap::ue_presence_opts::options::unknown;
@@ -1204,7 +1204,7 @@ inline asn1::ngap::ue_presence_e ue_presence_to_asn1(ngap_ue_presence ue_presenc
 }
 
 /// \brief Convert common type AreaOfInterest to NGAP ASN1 area_of_interest_s.
-inline asn1::ngap::area_of_interest_s area_of_interest_to_asn1(const ngap_area_of_interest& aoi)
+inline asn1::ngap::area_of_interest_s area_of_interest_to_asn1(const area_of_interest& aoi)
 {
   asn1::ngap::area_of_interest_s asn1_aoi;
 
@@ -1235,8 +1235,7 @@ inline asn1::ngap::area_of_interest_s area_of_interest_to_asn1(const ngap_area_o
 }
 
 /// \brief Convert common type LocationReportingRequestType to NGAP ASN1 location_report_request_type_s.
-inline asn1::ngap::location_report_request_type_s
-location_report_request_to_asn1(const ngap_location_report_request& req)
+inline asn1::ngap::location_report_request_type_s location_report_request_to_asn1(const location_report_request& req)
 {
   asn1::ngap::location_report_request_type_s asn1_req;
 
@@ -1246,7 +1245,7 @@ location_report_request_to_asn1(const ngap_location_report_request& req)
   for (const auto& aoi_item : req.area_of_interest_list) {
     asn1::ngap::area_of_interest_item_s asn1_aoi_item;
     asn1_aoi_item.location_report_ref_id = aoi_item.location_report_ref_id;
-    asn1_aoi_item.area_of_interest       = area_of_interest_to_asn1(aoi_item.area_of_interest);
+    asn1_aoi_item.area_of_interest       = area_of_interest_to_asn1(aoi_item.aio);
     asn1_req.area_of_interest_list.push_back(asn1_aoi_item);
   }
 

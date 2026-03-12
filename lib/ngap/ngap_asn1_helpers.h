@@ -9,12 +9,12 @@
 #include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/asn1/ngap/ngap_ies.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ngap/ngap_context.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ngap/ngap_init_context_setup.h"
-#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ngap/ngap_nas.h"
 #include "ocudu/ngap/ngap_rrc_inactive_transition.h"
 #include "ocudu/ngap/ngap_setup.h"
@@ -1171,7 +1171,7 @@ inline void fill_asn1_rrc_inactive_transition_report(asn1::ngap::rrc_inactive_tr
 }
 
 /// \brief Convert NGAP ASN1 Location Reporting Control message to common type.
-inline void fill_ngap_location_report_request(ngap_location_report_request&             location_report_ctrl,
+inline void fill_ngap_location_report_request(location_report_request&                  location_report_ctrl,
                                               const asn1::ngap::location_report_ctrl_s& asn1_location_report_ctrl)
 {
   location_report_ctrl = asn1_to_location_report_request(asn1_location_report_ctrl->location_report_request_type);
@@ -1179,7 +1179,7 @@ inline void fill_ngap_location_report_request(ngap_location_report_request&     
 
 /// \brief Fill ASN1 Location Report IEs from common type.
 inline void fill_asn1_location_report(asn1::ngap::location_report_ies_container& asn1_msg,
-                                      const ngap_location_report&                report)
+                                      const location_report&                     report)
 {
   // Fill user location info.
   asn1_msg.user_location_info.set_user_location_info_nr() = cu_cp_user_location_info_to_asn1(report.user_location_info);
@@ -1193,7 +1193,7 @@ inline void fill_asn1_location_report(asn1::ngap::location_report_ies_container&
     for (const auto& item : report.ue_presence_in_area_of_interest_list.value()) {
       asn1::ngap::ue_presence_in_area_of_interest_item_s asn1_item;
       asn1_item.location_report_ref_id = item.location_report_ref_id;
-      asn1_item.ue_presence            = ue_presence_to_asn1(item.ue_presence);
+      asn1_item.ue_presence            = ue_presence_to_asn1(item.ue_presence_in_aio);
       asn1_msg.ue_presence_in_area_of_interest_list.push_back(asn1_item);
     }
   }

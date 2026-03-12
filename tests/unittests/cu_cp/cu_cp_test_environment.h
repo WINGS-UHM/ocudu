@@ -15,7 +15,7 @@
 #include "tests/unittests/xnap/xnap_test_helpers.h"
 #include "ocudu/cu_cp/cu_cp.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
-#include "ocudu/ngap/ngap_location_reporting.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <optional>
 #include <unordered_map>
@@ -141,7 +141,7 @@ public:
       gnb_du_ue_f1ap_id_t                                       du_ue_id,
       std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
       bool                                                      rrc_inactive_supported      = true,
-      std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt);
+      std::optional<location_report_request>                    location_reporting_request  = std::nullopt);
   /// Finishes the registration for a given UE.
   [[nodiscard]] bool finish_ue_registration(unsigned du_idx, unsigned cu_up_idx, gnb_du_ue_f1ap_id_t du_ue_id);
   /// Requests PDU Session Resource Setup
@@ -176,7 +176,7 @@ public:
             byte_buffer rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
             std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
             bool                                                      rrc_inactive_supported      = true,
-            std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt,
+            std::optional<location_report_request>                    location_reporting_request  = std::nullopt,
             std::optional<security_indication_t>                      security_indication         = std::nullopt);
   /// Reestablishes a UE connection, including RRC Reestablishment and RRC Reconfiguration procedures.
   /// \return True if the reestablishment was successful, false if RRC Setup/Reject was performed instead.

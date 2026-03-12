@@ -19,7 +19,7 @@ struct cu_cp_inter_cu_handover_request {
   byte_buffer                                                nasc;
   std::vector<s_nssai_t>                                     allowed_nssai;
   std::optional<uint64_t>                                    masked_imeisv;
-  std::optional<ngap_location_report_request>                location_report_request_type;
+  std::optional<location_report_request>                location_report_request_type;
   std::optional<ngap_rrc_inactive_transition_report_request> rrc_inactive_transition_report_request;
   std::vector<ngap_pdu_session_res_info_item>                pdu_session_res_info_list;
   std::vector<ngap_erab_info_item>                           erab_info_list;

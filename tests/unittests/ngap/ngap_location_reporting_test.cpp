@@ -6,7 +6,7 @@
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/ngap/ngap_ies.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
-#include "ocudu/ngap/ngap_location_reporting.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/support/async/async_test_utils.h"
@@ -70,7 +70,7 @@ TEST_F(ngap_location_reporting_test,
   ASSERT_EQ(cu_cp_notifier.last_location_reporting_ctrl_ue_index.value(), ue_index);
   ASSERT_TRUE(cu_cp_notifier.last_location_reporting_ctrl.has_value());
   ASSERT_EQ(cu_cp_notifier.last_location_reporting_ctrl.value().location_reporting_type,
-            ngap_location_report_request::event_type::direct);
+            location_report_request::event_type::direct);
 }
 
 TEST_F(ngap_location_reporting_test,
@@ -93,8 +93,8 @@ TEST_F(ngap_location_reporting_test,
   run_dl_nas_transport(ue_index);
 
   // Send NGAP Location Reporting Failure Indication message
-  ngap_location_report_failure_indication location_report_failure_ind = {};
-  location_report_failure_ind.ue_index                                = ue_index;
+  location_report_failure_indication location_report_failure_ind = {};
+  location_report_failure_ind.ue_index                           = ue_index;
   location_report_failure_ind.cause = ngap_cause_radio_network_t::multiple_location_report_ref_id_instances;
   ngap->handle_location_reporting_failure_indication_transmission(location_report_failure_ind);
 
@@ -129,7 +129,7 @@ TEST_F(ngap_location_reporting_test, when_ngap_receives_location_report_message_
   run_dl_nas_transport(ue_index);
 
   // Send NGAP Location Reporting message
-  ngap_location_report location_report              = {};
+  location_report location_report                   = {};
   location_report.ue_index                          = ue_index;
   location_report.user_location_info.nr_cgi.plmn_id = plmn_identity::test_value();
   location_report.user_location_info.nr_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
@@ -199,7 +199,7 @@ TEST_F(ngap_location_reporting_test, when_location_report_ue_index_is_invalid_me
   size_t n_msgs_before = n2_gw.last_ngap_msgs.size();
 
   // Send location report with invalid UE index.
-  ngap_location_report location_report              = {};
+  location_report location_report                   = {};
   location_report.ue_index                          = ue_index_t::invalid;
   location_report.user_location_info.nr_cgi.plmn_id = plmn_identity::test_value();
   location_report.user_location_info.nr_cgi.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();

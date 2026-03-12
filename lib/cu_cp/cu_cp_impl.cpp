@@ -28,9 +28,9 @@
 #include "routines/ue_resume_routine.h"
 #include "routines/ue_suspend_routine.h"
 #include "routines/ue_transaction_info_release_routine.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/f1ap/cu_cp/f1ap_cu.h"
-#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/nrppa/nrppa.h"
 #include "ocudu/nrppa/nrppa_factory.h"
 #include "ocudu/ran/cause/common.h"
@@ -1044,7 +1044,7 @@ void cu_cp_impl::handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf
   nrppa_entity->get_nrppa_message_handler().handle_new_nrppa_pdu(nrppa_pdu, amf_index);
 }
 
-void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg)
+void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, const location_report_request& msg)
 {
   auto* ue = ue_mng.find_du_ue(ue_index);
   if (ue == nullptr) {
@@ -1052,7 +1052,7 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
     return;
   }
 
-  using event_type = ngap_location_report_request::event_type;
+  using event_type = location_report_request::event_type;
 
   // Reject events with "nulltype" and send Location Reporting Failure Indication.
   if (msg.location_reporting_type == event_type::nulltype) {

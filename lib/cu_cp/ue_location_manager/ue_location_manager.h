@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ocudu/ngap/ngap_location_reporting.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include <map>
 
@@ -13,10 +13,10 @@ namespace ocudu::ocucp {
 using location_report_ref_id_t = uint8_t; // (1..64)
 
 struct ue_location_manager_cfg {
-  bool                                                      report_on_cell_change     = false;
-  bool                                                      report_ue_presence_in_aoi = false;
-  std::map<location_report_ref_id_t, ngap_area_of_interest> area_of_interest_list;
-  std::optional<cu_cp_user_location_info_nr>                last_reported_location;
+  bool                                                 report_on_cell_change     = false;
+  bool                                                 report_ue_presence_in_aoi = false;
+  std::map<location_report_ref_id_t, area_of_interest> area_of_interest_list;
+  std::optional<cu_cp_user_location_info_nr>           last_reported_location;
 };
 
 class ue_location_manager
@@ -32,23 +32,23 @@ public:
 
   /// \brief Store a location reporting configuration received from AMF.
   /// \returns nullopt on success, or a Location Reporting Failure Indication cause if the configuration failed.
-  std::optional<ngap_cause_t> configure_location_reporting(const ngap_location_report_request& ctrl);
+  std::optional<ngap_cause_t> configure_location_reporting(const location_report_request& ctrl);
 
   /// \brief Build and return a location report, if location reporting is configured.
-  std::optional<ngap_location_report> get_location_report(ue_index_t                         ue_index,
-                                                          const cu_cp_user_location_info_nr& user_location_info);
+  std::optional<location_report> get_location_report(ue_index_t                         ue_index,
+                                                     const cu_cp_user_location_info_nr& user_location_info);
 
   /// \brief Build and return a direct location report, using the provided request.
-  ngap_location_report get_direct_location_report(ue_index_t                          ue_index,
-                                                  const cu_cp_user_location_info_nr&  user_location_info,
-                                                  const ngap_location_report_request& request);
+  location_report get_direct_location_report(ue_index_t                         ue_index,
+                                             const cu_cp_user_location_info_nr& user_location_info,
+                                             const location_report_request&     request);
 
 private:
-  ngap_location_report_request::event_type get_current_location_reporting_type() const;
+  location_report_request::event_type get_current_location_reporting_type() const;
 
-  static ngap_ue_presence check_ue_presence(const ngap_area_of_interest& aoi, const cu_cp_user_location_info_nr& loc);
+  static ue_presence check_ue_presence(const area_of_interest& aoi, const cu_cp_user_location_info_nr& loc);
 
-  std::optional<std::vector<ngap_ue_presence_in_area_of_interest_item>>
+  std::optional<std::vector<ue_presence_in_area_of_interest_item>>
   build_ue_presence_list(const cu_cp_user_location_info_nr& user_location_info) const;
 
   ue_location_manager_cfg cfg;

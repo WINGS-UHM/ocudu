@@ -45,9 +45,9 @@ public:
   void handle_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg) override;
 
   // ngap_location_reporting_handler.
-  void handle_location_report_transmission(const ngap_location_report& msg) override;
-  void handle_location_reporting_failure_indication_transmission(
-      const ngap_location_report_failure_indication& msg) override;
+  void handle_location_report_transmission(const location_report& msg) override;
+  void
+  handle_location_reporting_failure_indication_transmission(const location_report_failure_indication& msg) override;
 
   // ngap_ue_radio_capability_management_handler.
   void

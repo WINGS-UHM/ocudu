@@ -9,9 +9,9 @@ using namespace ocudu::ocucp;
 
 ue_location_manager::ue_location_manager() : logger(ocudulog::fetch_basic_logger("CU-CP")) {}
 
-std::optional<ngap_cause_t> ue_location_manager::configure_location_reporting(const ngap_location_report_request& ctrl)
+std::optional<ngap_cause_t> ue_location_manager::configure_location_reporting(const location_report_request& ctrl)
 {
-  using event_type = ngap_location_report_request::event_type;
+  using event_type = location_report_request::event_type;
   auto req_type    = ctrl.location_reporting_type;
 
   if (req_type == event_type::nulltype) {
@@ -64,9 +64,9 @@ std::optional<ngap_cause_t> ue_location_manager::configure_location_reporting(co
       req_type == event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
     cfg.report_ue_presence_in_aoi = true;
     // Validate input, reject on ref_ids duplicated within the message or current configuration (TS 38.413 8.12.1.3).
-    std::map<location_report_ref_id_t, ngap_area_of_interest> incoming;
+    std::map<location_report_ref_id_t, area_of_interest> incoming;
     for (const auto& item : ctrl.area_of_interest_list) {
-      if (!(incoming.emplace(item.location_report_ref_id, item.area_of_interest).second) ||
+      if (!(incoming.emplace(item.location_report_ref_id, item.aio).second) ||
           cfg.area_of_interest_list.count(item.location_report_ref_id) != 0) {
         logger.error("Location Reporting Control contains duplicate or conflicting Location Reporting Reference IDs");
         return ngap_cause_radio_network_t::multiple_location_report_ref_id_instances;
@@ -80,33 +80,32 @@ std::optional<ngap_cause_t> ue_location_manager::configure_location_reporting(co
   return std::nullopt;
 }
 
-ngap_location_report_request::event_type ue_location_manager::get_current_location_reporting_type() const
+location_report_request::event_type ue_location_manager::get_current_location_reporting_type() const
 {
   if (cfg.report_on_cell_change && cfg.report_ue_presence_in_aoi) {
-    return ngap_location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
+    return location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
   }
   if (cfg.report_on_cell_change) {
-    return ngap_location_report_request::event_type::change_of_serve_cell;
+    return location_report_request::event_type::change_of_serve_cell;
   }
   if (cfg.report_ue_presence_in_aoi) {
-    return ngap_location_report_request::event_type::ue_presence_in_area_of_interest;
+    return location_report_request::event_type::ue_presence_in_area_of_interest;
   }
-  return ngap_location_report_request::event_type::nulltype;
+  return location_report_request::event_type::nulltype;
 }
 
-ngap_ue_presence ue_location_manager::check_ue_presence(const ngap_area_of_interest&       aoi,
-                                                        const cu_cp_user_location_info_nr& loc)
+ue_presence ue_location_manager::check_ue_presence(const area_of_interest& aoi, const cu_cp_user_location_info_nr& loc)
 {
   for (const auto& cell : aoi.cell_list) {
     // TODO: add handling for other types of CGIs
     if (cell == loc.nr_cgi) {
-      return ngap_ue_presence::in;
+      return ue_presence::in;
     }
   }
 
   for (const auto& tai : aoi.tai_list) {
     if (tai.plmn_id == loc.tai.plmn_id && tai.tac == loc.tai.tac) {
-      return ngap_ue_presence::in;
+      return ue_presence::in;
     }
   }
 
@@ -114,14 +113,14 @@ ngap_ue_presence ue_location_manager::check_ue_presence(const ngap_area_of_inter
     // TODO: add handling for other types of RAN Nodes
     if (ran_node.plmn_id == loc.nr_cgi.plmn_id &&
         ran_node.gnb_id == loc.nr_cgi.nci.gnb_id(ran_node.gnb_id.bit_length)) {
-      return ngap_ue_presence::in;
+      return ue_presence::in;
     }
   }
 
-  return ngap_ue_presence::out;
+  return ue_presence::out;
 }
 
-std::optional<ngap_location_report>
+std::optional<location_report>
 ue_location_manager::get_location_report(ue_index_t ue_index, const cu_cp_user_location_info_nr& user_location_info)
 {
   if (!cfg.report_on_cell_change && !cfg.report_ue_presence_in_aoi) {
@@ -134,13 +133,13 @@ ue_location_manager::get_location_report(ue_index_t ue_index, const cu_cp_user_l
     return std::nullopt;
   }
 
-  ngap_location_report report;
+  location_report report;
   report.ue_index           = ue_index;
   report.user_location_info = user_location_info;
 
-  // Build ngap_location_report_request that the report refers to from current configuration.
+  // Build location_report_request that the report refers to from current configuration.
   report.request.location_reporting_type = get_current_location_reporting_type();
-  report.request.location_report_area    = ngap_location_report_request::report_area::cell;
+  report.request.location_report_area    = location_report_request::report_area::cell;
   for (const auto& [ref_id, aoi] : cfg.area_of_interest_list) {
     report.request.area_of_interest_list.push_back({aoi, ref_id});
   }
@@ -151,12 +150,11 @@ ue_location_manager::get_location_report(ue_index_t ue_index, const cu_cp_user_l
   return report;
 }
 
-ngap_location_report
-ue_location_manager::get_direct_location_report(ue_index_t                          ue_index,
-                                                const cu_cp_user_location_info_nr&  user_location_info,
-                                                const ngap_location_report_request& request)
+location_report ue_location_manager::get_direct_location_report(ue_index_t                         ue_index,
+                                                                const cu_cp_user_location_info_nr& user_location_info,
+                                                                const location_report_request&     request)
 {
-  ngap_location_report report;
+  location_report report;
   report.ue_index                             = ue_index;
   report.user_location_info                   = user_location_info;
   report.request                              = request;
@@ -165,13 +163,13 @@ ue_location_manager::get_direct_location_report(ue_index_t                      
   return report;
 }
 
-std::optional<std::vector<ngap_ue_presence_in_area_of_interest_item>>
+std::optional<std::vector<ue_presence_in_area_of_interest_item>>
 ue_location_manager::build_ue_presence_list(const cu_cp_user_location_info_nr& user_location_info) const
 {
   if (!cfg.report_ue_presence_in_aoi || cfg.area_of_interest_list.empty()) {
     return std::nullopt;
   }
-  std::vector<ngap_ue_presence_in_area_of_interest_item> list;
+  std::vector<ue_presence_in_area_of_interest_item> list;
   list.reserve(cfg.area_of_interest_list.size());
   for (const auto& [ref_id, aoi] : cfg.area_of_interest_list) {
     list.push_back({ref_id, check_ue_presence(aoi, user_location_info)});

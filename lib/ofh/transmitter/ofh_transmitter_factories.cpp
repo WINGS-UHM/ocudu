@@ -42,7 +42,7 @@ create_data_flow_cplane_sched(const transmitter_config&                         
 
   ether::vlan_frame_params ether_params;
   ether_params.eth_type        = ether::ECPRI_ETH_TYPE;
-  ether_params.tci             = tx_config.tci_cp;
+  ether_params.vlan_config     = tx_config.vlan_cfg_cp;
   ether_params.mac_dst_address = tx_config.mac_dst_address;
   ether_params.mac_src_address = tx_config.mac_src_address;
 
@@ -51,12 +51,12 @@ create_data_flow_cplane_sched(const transmitter_config&                         
   dependencies.ul_cplane_context_repo    = std::move(ul_cplane_context_repo);
   dependencies.prach_cplane_context_repo = std::move(prach_cplane_context_repo);
   dependencies.frame_pool                = std::move(frame_pool);
-  dependencies.eth_builder =
-      (tx_config.tci_cp) ? ether::create_vlan_frame_builder(ether_params) : ether::create_frame_builder(ether_params);
-  dependencies.ecpri_builder = ecpri::create_ecpri_packet_builder();
-  dependencies.cp_builder    = (static_compr_header_enabled)
-                                   ? create_ofh_control_plane_static_compression_message_builder()
-                                   : create_ofh_control_plane_dynamic_compression_message_builder();
+  dependencies.eth_builder               = (tx_config.vlan_cfg_cp) ? ether::create_vlan_frame_builder(ether_params)
+                                                                   : ether::create_frame_builder(ether_params);
+  dependencies.ecpri_builder             = ecpri::create_ecpri_packet_builder();
+  dependencies.cp_builder                = (static_compr_header_enabled)
+                                               ? create_ofh_control_plane_static_compression_message_builder()
+                                               : create_ofh_control_plane_dynamic_compression_message_builder();
 
   auto data_flow_cplane = std::make_unique<data_flow_cplane_scheduling_commands_impl>(config, std::move(dependencies));
   if (!tx_config.are_metrics_enabled) {
@@ -83,15 +83,15 @@ create_data_flow_uplane_data(const transmitter_config&              tx_config,
 
   ether::vlan_frame_params ether_params;
   ether_params.eth_type        = ether::ECPRI_ETH_TYPE;
-  ether_params.tci             = tx_config.tci_up;
+  ether_params.vlan_config     = tx_config.vlan_cfg_up;
   ether_params.mac_dst_address = tx_config.mac_dst_address;
   ether_params.mac_src_address = tx_config.mac_src_address;
 
   data_flow_uplane_downlink_data_impl_dependencies dependencies;
-  dependencies.logger     = &logger;
-  dependencies.frame_pool = std::move(frame_pool);
-  dependencies.eth_builder =
-      (tx_config.tci_up) ? ether::create_vlan_frame_builder(ether_params) : ether::create_frame_builder(ether_params);
+  dependencies.logger        = &logger;
+  dependencies.frame_pool    = std::move(frame_pool);
+  dependencies.eth_builder   = (tx_config.vlan_cfg_up) ? ether::create_vlan_frame_builder(ether_params)
+                                                       : ether::create_frame_builder(ether_params);
   dependencies.ecpri_builder = ecpri::create_ecpri_packet_builder();
 
   std::array<std::unique_ptr<iq_compressor>, NOF_COMPRESSION_TYPES_SUPPORTED> compressors;
@@ -123,9 +123,9 @@ static std::shared_ptr<ether::eth_frame_pool> create_eth_frame_pool(const transm
       (tx_config.scs > subcarrier_spacing::kHz60) ? frequency_range::FR2 : frequency_range::FR1;
 
   auto eth_builder = [&tx_config]() {
-    if (tx_config.tci_up || tx_config.tci_cp) {
+    if (tx_config.vlan_cfg_up || tx_config.vlan_cfg_cp) {
       ether::vlan_frame_params ether_params{};
-      ether_params.tci.emplace(1);
+      ether_params.vlan_config = ether::vlan_parameters{.tci_vid = 1};
       return ether::create_vlan_frame_builder(ether_params);
     }
     ether::vlan_frame_params ether_params{};

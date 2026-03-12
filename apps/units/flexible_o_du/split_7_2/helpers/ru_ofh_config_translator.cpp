@@ -124,8 +124,14 @@ static void generate_config(ru_ofh_configuration&                            out
     sector_cfg.prach_compression_params        = {ofh::to_compression_type(ofh_cell_cfg.cell.compression_method_prach),
                                                   ofh_cell_cfg.cell.compression_bitwidth_prach};
 
-    sector_cfg.tci_cp = ofh_cell_cfg.vlan_tag_cp;
-    sector_cfg.tci_up = ofh_cell_cfg.vlan_tag_up;
+    if (ofh_cell_cfg.vlan_tag_cp.has_value()) {
+      sector_cfg.vlan_cfg_cp =
+          ether::vlan_parameters{.tci_vid = *ofh_cell_cfg.vlan_tag_cp, .tci_pcp = ofh_cell_cfg.vlan_pcp_cp.value_or(0)};
+    }
+    if (ofh_cell_cfg.vlan_tag_up.has_value()) {
+      sector_cfg.vlan_cfg_up =
+          ether::vlan_parameters{.tci_vid = *ofh_cell_cfg.vlan_tag_up, .tci_pcp = ofh_cell_cfg.vlan_pcp_up.value_or(0)};
+    }
     sector_cfg.prach_eaxc.assign(ofh_cell_cfg.ru_prach_port_id.begin(), ofh_cell_cfg.ru_prach_port_id.end());
     sector_cfg.dl_eaxc.assign(ofh_cell_cfg.ru_dl_port_id.begin(), ofh_cell_cfg.ru_dl_port_id.end());
     sector_cfg.ul_eaxc.assign(ofh_cell_cfg.ru_ul_port_id.begin(), ofh_cell_cfg.ru_ul_port_id.end());

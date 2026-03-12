@@ -60,7 +60,6 @@ static receiver_config generate_receiver_config(const sector_configuration& conf
   // In rx, dst and src addresses are swapped.
   rx_config.mac_dst_address  = config.mac_src_address;
   rx_config.mac_src_address  = config.mac_dst_address;
-  rx_config.tci              = config.tci_up;
   rx_config.rx_timing_params = config.rx_window_timing_params;
 
   return rx_config;
@@ -80,8 +79,8 @@ static transmitter_config generate_transmitter_config(const sector_configuration
   tx_config.is_prach_cp_enabled                  = sector_cfg.is_prach_control_plane_enabled;
   tx_config.mac_dst_address                      = sector_cfg.mac_dst_address;
   tx_config.mac_src_address                      = sector_cfg.mac_src_address;
-  tx_config.tci_cp                               = sector_cfg.tci_cp;
-  tx_config.tci_up                               = sector_cfg.tci_up;
+  tx_config.vlan_cfg_cp                          = sector_cfg.vlan_cfg_cp;
+  tx_config.vlan_cfg_up                          = sector_cfg.vlan_cfg_up;
   tx_config.interface                            = sector_cfg.interface;
   tx_config.is_promiscuous_mode_enabled          = sector_cfg.is_promiscuous_mode_enabled;
   tx_config.mtu_size                             = sector_cfg.mtu_size;

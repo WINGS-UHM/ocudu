@@ -17,7 +17,6 @@ static message_receiver_config get_message_receiver_configuration(const receiver
   config.scs                           = rx_config.scs;
   config.vlan_params.mac_src_address   = rx_config.mac_src_address;
   config.vlan_params.mac_dst_address   = rx_config.mac_dst_address;
-  config.vlan_params.tci               = rx_config.tci;
   config.vlan_params.eth_type          = ether::ECPRI_ETH_TYPE;
   config.warn_unreceived_frames        = rx_config.log_unreceived_ru_frames;
   config.are_metrics_enabled           = rx_config.are_metrics_enabled;

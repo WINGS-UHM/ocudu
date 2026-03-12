@@ -63,7 +63,7 @@ protected:
   const unsigned                          du_nof_prbs;
   const ether::vlan_frame_params          vlan_params  = {{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x11},
                                                           {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x22},
-                                                          1,
+                                                          ether::vlan_parameters{.tci_vid = 1, .tci_pcp = 7},
                                                           0xaabb};
   const ru_compression_params             compr_params = GetParam();
   data_flow_uplane_downlink_data_impl     data_flow;
@@ -159,7 +159,8 @@ TEST_P(ofh_data_flow_uplane_downlink_data_impl_fixture, calling_enqueue_section_
   ASSERT_EQ(vlan_params.eth_type, vlan.eth_type);
   ASSERT_EQ(vlan_params.mac_dst_address, vlan.mac_dst_address);
   ASSERT_EQ(vlan_params.mac_src_address, vlan.mac_src_address);
-  ASSERT_EQ(vlan_params.tci, vlan.tci);
+  ASSERT_EQ(vlan_params.vlan_config->tci_vid, vlan.vlan_config->tci_vid);
+  ASSERT_EQ(vlan_params.vlan_config->tci_pcp, vlan.vlan_config->tci_pcp);
 
   // Assert eCPRI parameters.
   ASSERT_TRUE(ecpri_builder->has_build_data_packet_method_been_called());
@@ -223,8 +224,10 @@ TEST(ofh_data_flow_uplane_downlink_data_impl,
   config.ru_nof_prbs  = 273;
   config.compr_params = {compression_type::BFP, 9};
 
-  ether::vlan_frame_params vlan_params = {
-      {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x11}, {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x22}, 1, 0xaabb};
+  ether::vlan_frame_params vlan_params = {{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x11},
+                                          {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x22},
+                                          ether::vlan_parameters{.tci_vid = 1},
+                                          0xaabb};
 
   data_flow_uplane_downlink_data_impl_dependencies dependencies;
   dependencies.logger         = &ocudulog::fetch_basic_logger("TEST");
@@ -287,8 +290,10 @@ TEST(ofh_data_flow_uplane_downlink_data_impl, frame_buffer_size_of_nof_prbs_gene
   config.ru_nof_prbs  = 273;
   config.compr_params = {compression_type::BFP, 9};
 
-  ether::vlan_frame_params vlan_params = {
-      {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x11}, {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x22}, 1, 0xaabb};
+  ether::vlan_frame_params vlan_params = {{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x11},
+                                          {0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0x22},
+                                          ether::vlan_parameters{.tci_vid = 1},
+                                          0xaabb};
 
   data_flow_uplane_downlink_data_impl_dependencies dependencies;
   dependencies.logger         = &ocudulog::fetch_basic_logger("TEST");

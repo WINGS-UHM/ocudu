@@ -77,7 +77,7 @@ static YAML::Node build_ru_ofh_cell_section(const ru_ofh_unit_cell_config& confi
   YAML::Node node;
 
   if (config.cell.ru_operating_bw.has_value()) {
-    node["ru_bandwidth_MHz"] = bs_channel_bandwidth_to_MHz(config.cell.ru_operating_bw.value());
+    node["ru_bandwidth_MHz"] = bs_channel_bandwidth_to_MHz(*config.cell.ru_operating_bw);
   }
   node["t1a_max_cp_dl"]              = config.cell.T1a_max_cp_dl.count();
   node["t1a_min_cp_dl"]              = config.cell.T1a_min_cp_dl.count();
@@ -122,10 +122,16 @@ static YAML::Node build_ru_ofh_cell_section(const ru_ofh_unit_cell_config& confi
   node["check_link_status"]  = config.check_link_status;
 
   if (config.vlan_tag_cp.has_value()) {
-    node["vlan_tag_cp"] = config.vlan_tag_cp.value();
+    node["vlan_tag_cp"] = *config.vlan_tag_cp;
   }
   if (config.vlan_tag_up.has_value()) {
-    node["vlan_tag_up"] = config.vlan_tag_up.value();
+    node["vlan_tag_up"] = *config.vlan_tag_up;
+  }
+  if (config.vlan_pcp_cp.has_value()) {
+    node["vlan_pcp_cp"] = static_cast<unsigned>(*config.vlan_pcp_cp);
+  }
+  if (config.vlan_pcp_up.has_value()) {
+    node["vlan_pcp_up"] = static_cast<unsigned>(*config.vlan_pcp_up);
   }
 
   node["prach_port_id"] = config.ru_prach_port_id;

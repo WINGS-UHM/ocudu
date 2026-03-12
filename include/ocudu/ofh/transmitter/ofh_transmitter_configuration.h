@@ -7,6 +7,7 @@
 #include "ocudu/ofh/compression/iq_compressor.h"
 #include "ocudu/ofh/ecpri/ecpri_packet_builder.h"
 #include "ocudu/ofh/ethernet/ethernet_mac_address.h"
+#include "ocudu/ofh/ethernet/ethernet_vlan_params.h"
 #include "ocudu/ofh/ofh_constants.h"
 #include "ocudu/ofh/serdes/ofh_cplane_message_properties.h"
 #include "ocudu/ofh/transmitter/ofh_transmitter_timing_parameters.h"
@@ -41,10 +42,10 @@ struct transmitter_config {
   ether::mac_address mac_dst_address;
   /// Source MAC address.
   ether::mac_address mac_src_address;
-  /// Tag control information field for C-Plane.
-  std::optional<uint16_t> tci_cp;
-  /// Tag control information field for U-Plane.
-  std::optional<uint16_t> tci_up;
+  /// VLAN configuration for C-Plane.
+  std::optional<ether::vlan_parameters> vlan_cfg_cp;
+  /// VLAN configuration for U-Plane.
+  std::optional<ether::vlan_parameters> vlan_cfg_up;
   /// Ethernet interface name or identifier.
   std::string interface;
   /// Promiscuous mode flag.

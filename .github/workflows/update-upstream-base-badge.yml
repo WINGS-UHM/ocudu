@@ -55,7 +55,7 @@ jobs:
             "color": "brightgreen"
           }
           EOF
-          
+
           # LAG badge
           if [ "${LAG_COUNT}" -eq 0 ]; then
             LAG_COLOR="brightgreen"
@@ -78,7 +78,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .github/badges/upstream-base.json .github/badges/upstream-date.json
+          git add .github/badges/*.json
           if git diff --cached --quiet; then
             echo "No changes."
           else

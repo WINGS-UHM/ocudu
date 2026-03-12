@@ -22,7 +22,7 @@ ocudu image:
     # Arguments
     DOCKER_UHD_VERSION: "4.9.0.0"
     DOCKER_DPDK_VERSION: "24.11.2"
-  timeout: 2 hours
+  timeout: 3 hours
   tags:
     - $OCUDU_RUNNER_TAG-${PLATFORM}
   before_script:

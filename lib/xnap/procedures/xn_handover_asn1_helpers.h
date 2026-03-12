@@ -74,6 +74,11 @@ inline bool asn1_to_ue_context_info_ho_request(xnap_ue_context_info_ho_request& 
   // Fill RRC container (RRC handover preparation information).
   request.rrc_handover_preparation_information = asn1_request.rrc_context.copy();
 
+  // Fill location reporting information.
+  if (asn1_request.location_report_info_present) {
+    request.location_report_info = asn1_to_location_report_info(asn1_request.location_report_info);
+  }
+
   return true;
 }
 

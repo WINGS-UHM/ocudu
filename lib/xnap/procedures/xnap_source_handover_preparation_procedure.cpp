@@ -153,6 +153,12 @@ bool xnap_source_handover_preparation_procedure::send_handover_request()
   fill_asn1_pdu_session_res_list(asn1_ue_context_info.pdu_session_res_to_be_setup_list);
   // > Fill RRC container (containing HandoverPreparationInformation).
   asn1_ue_context_info.rrc_context = request.ue_context_info_ho_request.rrc_handover_preparation_information.copy();
+  // > Fill location reporting information.
+  if (request.ue_context_info_ho_request.location_report_info.has_value()) {
+    asn1_ue_context_info.location_report_info_present = true;
+    asn1_ue_context_info.location_report_info =
+        location_report_info_to_asn1(request.ue_context_info_ho_request.location_report_info.value());
+  }
 
   // Fill UE history info.
   // TODO: Add real data.

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ocudu/asn1/xnap/xnap_ies.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ran/cause/xnap_cause.h"
 #include "ocudu/ran/cu_types.h"
@@ -624,6 +625,148 @@ inline cu_cp_nr_mode_info asn1_to_nr_mode_info(const asn1::xnap::nr_mode_info_c&
   }
 
   return nr_mode_info;
+}
+
+/// \brief Convert XNAP ASN1 event_type_e to common type event_type.
+/// \param[in] asn1_event_type The XNAP ASN1 event type.
+/// \return The common type event_type.
+inline location_report_request::event_type
+asn1_to_location_reporting_event_type(const asn1::xnap::event_type_e& asn1_event_type)
+{
+  switch (asn1_event_type) {
+    case asn1::xnap::event_type_opts::report_upon_change_of_serving_cell:
+      return location_report_request::event_type::change_of_serve_cell;
+    case asn1::xnap::event_type_opts::report_ue_moving_presence_into_or_out_of_the_area_of_interest:
+      return location_report_request::event_type::ue_presence_in_area_of_interest;
+    case asn1::xnap::event_type_opts::report_upon_change_of_serving_cell_and_area_of_interest:
+      return location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest;
+    default:
+      return location_report_request::event_type::nulltype;
+  }
+}
+
+/// \brief Convert common type event_type to XNAP ASN1 event_type_e.
+/// \param[in] event_type The common type event_type.
+/// \return The XNAP ASN1 event type.
+inline asn1::xnap::event_type_e location_reporting_event_type_to_asn1(location_report_request::event_type event_type)
+{
+  switch (event_type) {
+    case location_report_request::event_type::change_of_serve_cell:
+      return asn1::xnap::event_type_opts::report_upon_change_of_serving_cell;
+    case location_report_request::event_type::ue_presence_in_area_of_interest:
+      return asn1::xnap::event_type_opts::report_ue_moving_presence_into_or_out_of_the_area_of_interest;
+    case location_report_request::event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest:
+      return asn1::xnap::event_type_opts::report_upon_change_of_serving_cell_and_area_of_interest;
+    default:
+      return asn1::xnap::event_type_opts::nulltype;
+  }
+}
+
+/// \brief Convert XNAP ASN1 area_of_interest_item_s to common type.
+/// \param[in] asn1_aoi The XNAP ASN1 area of interest item.
+/// \return The common area of interest item.
+inline area_of_interest_item asn1_to_area_of_interest_item(const asn1::xnap::area_of_interest_item_s& asn1_aoi)
+{
+  area_of_interest_item aoi_item;
+  aoi_item.location_report_ref_id = asn1_aoi.request_ref_id;
+
+  for (const auto& asn1_tai : asn1_aoi.list_of_tai_sin_ao_i) {
+    tai_t tai;
+    tai.plmn_id = plmn_identity::from_bytes(asn1_tai.plmn_id.to_bytes()).value();
+    tai.tac     = asn1_tai.tac.to_number();
+    aoi_item.aio.tai_list.push_back(tai);
+  }
+
+  for (const auto& asn1_cell : asn1_aoi.list_of_cellsin_ao_i) {
+    if (asn1_cell.ng_ran_cell_id.type() != asn1::xnap::ng_ran_cell_id_c::types_opts::nr) {
+      continue;
+    }
+    nr_cell_global_id_t cgi;
+    cgi.plmn_id = plmn_identity::from_bytes(asn1_cell.plmn_id.to_bytes()).value();
+    cgi.nci     = nr_cell_identity::create(asn1_cell.ng_ran_cell_id.nr().to_number()).value();
+    aoi_item.aio.cell_list.push_back(cgi);
+  }
+
+  for (const auto& asn1_ran_node : asn1_aoi.list_of_ran_nodesin_ao_i) {
+    if (asn1_ran_node.global_ng_ran_node_id.type() != asn1::xnap::global_ng_ran_node_id_c::types_opts::gnb) {
+      continue;
+    }
+    const auto&         asn1_gnb = asn1_ran_node.global_ng_ran_node_id.gnb();
+    cu_cp_global_gnb_id gnb;
+    gnb.plmn_id = plmn_identity::from_bytes(asn1_gnb.plmn_id.to_bytes()).value();
+    if (asn1_gnb.gnb_id.type() == asn1::xnap::gnb_id_choice_c::types_opts::gnb_id) {
+      gnb.gnb_id.id         = asn1_gnb.gnb_id.gnb_id().to_number();
+      gnb.gnb_id.bit_length = asn1_gnb.gnb_id.gnb_id().length();
+    }
+    aoi_item.aio.ran_node_list.push_back(gnb);
+  }
+
+  return aoi_item;
+}
+
+/// \brief Convert XNAP ASN1 location_report_info_s to common type.
+/// \param[in] asn1_info The XNAP ASN1 location reporting information.
+/// \return The common location report request type.
+inline location_report_request asn1_to_location_report_info(const asn1::xnap::location_report_info_s& asn1_info)
+{
+  location_report_request req;
+  req.location_reporting_type = asn1_to_location_reporting_event_type(asn1_info.event_type);
+  req.location_report_area    = location_report_request::report_area::cell;
+
+  for (const auto& asn1_aoi_item : asn1_info.area_of_interest) {
+    req.area_of_interest_list.push_back(asn1_to_area_of_interest_item(asn1_aoi_item));
+  }
+
+  return req;
+}
+
+/// \brief Convert common type area of interest item to XNAP ASN1.
+/// \param[in] aoi_item The common area of interest item.
+/// \return The XNAP ASN1 area of interest item.
+inline asn1::xnap::area_of_interest_item_s area_of_interest_item_to_asn1(const area_of_interest_item& aoi_item)
+{
+  asn1::xnap::area_of_interest_item_s asn1_aoi;
+  asn1_aoi.request_ref_id = aoi_item.location_report_ref_id;
+
+  for (const auto& tai : aoi_item.aio.tai_list) {
+    asn1::xnap::tai_sin_ao_i_item_s asn1_tai;
+    asn1_tai.plmn_id = tai.plmn_id.to_bytes();
+    asn1_tai.tac.from_number(tai.tac);
+    asn1_aoi.list_of_tai_sin_ao_i.push_back(asn1_tai);
+  }
+
+  for (const auto& cgi : aoi_item.aio.cell_list) {
+    asn1::xnap::cellsin_ao_i_item_s asn1_cell;
+    asn1_cell.plmn_id = cgi.plmn_id.to_bytes();
+    asn1_cell.ng_ran_cell_id.set_nr().from_number(cgi.nci.value());
+    asn1_aoi.list_of_cellsin_ao_i.push_back(asn1_cell);
+  }
+
+  for (const auto& gnb : aoi_item.aio.ran_node_list) {
+    asn1::xnap::global_ng_ran_nodesin_ao_i_item_s asn1_ran_node;
+    auto&                                         asn1_gnb = asn1_ran_node.global_ng_ran_node_id.set_gnb();
+    asn1_gnb.plmn_id                                       = gnb.plmn_id.to_bytes();
+    asn1_gnb.gnb_id.set_gnb_id().from_number(gnb.gnb_id.id, gnb.gnb_id.bit_length);
+    asn1_aoi.list_of_ran_nodesin_ao_i.push_back(asn1_ran_node);
+  }
+
+  return asn1_aoi;
+}
+
+/// \brief Convert common type location report request to XNAP ASN1 location_report_info_s.
+/// \param[in] req The common location report request type.
+/// \return The XNAP ASN1 location reporting information.
+inline asn1::xnap::location_report_info_s location_report_info_to_asn1(const location_report_request& req)
+{
+  asn1::xnap::location_report_info_s asn1_info;
+  asn1_info.event_type  = location_reporting_event_type_to_asn1(req.location_reporting_type);
+  asn1_info.report_area = asn1::xnap::report_area_opts::cell;
+
+  for (const auto& aoi_item : req.area_of_interest_list) {
+    asn1_info.area_of_interest.push_back(area_of_interest_item_to_asn1(aoi_item));
+  }
+
+  return asn1_info;
 }
 
 } // namespace ocudu::ocucp

@@ -469,18 +469,18 @@ void ngap_impl::handle_dl_nas_transport_message(const asn1::ngap::dl_nas_transpo
     return;
   }
 
-  // Store UE Aggregate Maximum Bitrate.
-  if (msg->ue_aggr_max_bit_rate_present) {
-    ue_ctxt.aggregate_maximum_bit_rate_dl = msg->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl;
-    ue_ctxt.aggregate_maximum_bit_rate_ul = msg->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul;
-  }
-
   auto* ue = ue_ctxt.get_cu_cp_ue();
   ocudu_assert(ue != nullptr,
                "ue={} ran_ue={} amf_ue={}: UE for UE context doesn't exist",
                fmt::underlying(ue_ctxt.ue_ids.ue_index),
                fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
                fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+
+  // Store UE Aggregate Maximum Bitrate.
+  if (msg->ue_aggr_max_bit_rate_present) {
+    ue->set_ue_ambr(cu_cp_aggregate_maximum_bit_rate{msg->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl,
+                                                     msg->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul});
+  }
 
   // Add AMF UE ID to ue ngap context if it is not set (this is the first DL NAS Transport message).
   if (ue_ctxt.ue_ids.amf_ue_id == amf_ue_id_t::invalid) {
@@ -574,13 +574,12 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
 
   // Store UE Aggregate Maximum Bitrate if it is set.
   if (init_ctxt_setup_req.ue_aggr_max_bit_rate.has_value()) {
-    ue_ctxt.aggregate_maximum_bit_rate_dl = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().dl;
-    ue_ctxt.aggregate_maximum_bit_rate_ul = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().ul;
+    ue->set_ue_ambr(init_ctxt_setup_req.ue_aggr_max_bit_rate.value());
   } else {
     // Add stored UE Aggregate Maximum Bitrate to request.
-    if (ue_ctxt.aggregate_maximum_bit_rate_dl > 0 && ue_ctxt.aggregate_maximum_bit_rate_ul > 0) {
-      init_ctxt_setup_req.ue_aggr_max_bit_rate = {ue_ctxt.aggregate_maximum_bit_rate_dl,
-                                                  ue_ctxt.aggregate_maximum_bit_rate_ul};
+    cu_cp_aggregate_maximum_bit_rate ue_ambr = ue->get_ue_ambr();
+    if (ue_ambr.dl > 0 && ue_ambr.ul > 0) {
+      init_ctxt_setup_req.ue_aggr_max_bit_rate = ue_ambr;
     }
   }
 
@@ -640,8 +639,8 @@ void ngap_impl::handle_pdu_session_resource_setup_request(const asn1::ngap::pdu_
 
   // Store information in UE context.
   if (request->ue_aggr_max_bit_rate_present) {
-    ue_ctxt.aggregate_maximum_bit_rate_dl = request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl;
-    ue_ctxt.aggregate_maximum_bit_rate_ul = request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul;
+    ue->set_ue_ambr(cu_cp_aggregate_maximum_bit_rate{request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl,
+                                                     request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul});
   }
 
   // Convert to common type.
@@ -653,8 +652,7 @@ void ngap_impl::handle_pdu_session_resource_setup_request(const asn1::ngap::pdu_
     send_error_indication(tx_pdu_notifier, logger, ue_ctxt.ue_ids.ran_ue_id, ue_ctxt.ue_ids.amf_ue_id, {});
     return;
   }
-  msg.ue_aggregate_maximum_bit_rate_dl = ue_ctxt.aggregate_maximum_bit_rate_dl;
-  msg.ue_aggregate_maximum_bit_rate_ul = ue_ctxt.aggregate_maximum_bit_rate_ul;
+  msg.ue_ambr = ue->get_ue_ambr();
 
   // Start routine.
   ue->schedule_async_task(launch_async<ngap_pdu_session_resource_setup_procedure>(

@@ -19,18 +19,17 @@
 #include "ocudu/ran/plmn_identity.h"
 #include <optional>
 
-namespace ocudu {
-
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Context of a CU-CP UE.
 struct cu_cp_ue_context {
-  du_index_t    du_idx    = du_index_t::invalid;
-  cu_up_index_t cu_up_idx = cu_up_index_t::invalid;
-  plmn_identity plmn      = plmn_identity::test_value();
-  gnb_du_id_t   du_id     = gnb_du_id_t::invalid;
-  ue_index_t    ue_index  = ue_index_t::invalid;
-  rnti_t        crnti     = rnti_t::INVALID_RNTI;
+  du_index_t                       du_idx    = du_index_t::invalid;
+  cu_up_index_t                    cu_up_idx = cu_up_index_t::invalid;
+  plmn_identity                    plmn      = plmn_identity::test_value();
+  gnb_du_id_t                      du_id     = gnb_du_id_t::invalid;
+  ue_index_t                       ue_index  = ue_index_t::invalid;
+  rnti_t                           crnti     = rnti_t::INVALID_RNTI;
+  cu_cp_aggregate_maximum_bit_rate ue_ambr;
   /// \brief Flag to disable new UE reconfigurations. This can be used, for instance, to reconfigure UE contexts
   /// that are in the process of handover.
   bool reconfiguration_disabled = false;
@@ -198,8 +197,8 @@ public:
   /// \brief Set the CU-UP index of the UE.
   void set_cu_up_index(cu_up_index_t cu_up_idx) { ue_ctxt.cu_up_idx = cu_up_idx; }
 
-  /// \brief Get the RRC UE notifier of the UE.
-  ngap_rrc_ue_notifier& get_ngap_rrc_ue_notifier() override;
+  /// \brief Get the NGAP RRC UE notifier of the UE.
+  ngap_rrc_ue_notifier& get_ngap_rrc_ue_notifier() override { return ngap_rrc_ue_ev_notifier; }
 
   /// \brief Get the NGAP CU-CP UE notifier of the UE.
   ngap_cu_cp_ue_notifier& get_ngap_cu_cp_ue_notifier() { return ngap_cu_cp_ue_ev_notifier; }
@@ -232,6 +231,13 @@ public:
   {
     return meas_context.meas_results;
   }
+
+  /// \brief Set UE AMBR.
+  /// \param[in] ue_ambr The AMBR to set for the UE.
+  void set_ue_ambr(cu_cp_aggregate_maximum_bit_rate ue_ambr) override;
+
+  /// \brief Get UE AMBR.
+  cu_cp_aggregate_maximum_bit_rate get_ue_ambr() const override { return ue_ctxt.ue_ambr; }
 
   unique_timer& get_handover_ue_release_timer() { return handover_ue_release_timer; }
 
@@ -275,5 +281,4 @@ private:
   std::optional<cu_cp_ue_cho_context>      cho_context; ///< Conditional Handover context.
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

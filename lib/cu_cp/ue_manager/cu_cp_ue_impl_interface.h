@@ -8,9 +8,7 @@
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/nrppa/nrppa.h"
 
-namespace ocudu {
-
-namespace ocucp {
+namespace ocudu::ocucp {
 
 // Forward declarations.
 class up_resource_manager;
@@ -47,7 +45,13 @@ public:
 
   /// \brief Get the measurement results of the UE.
   virtual std::optional<cell_measurement_positioning_info>& get_measurement_results() = 0;
+
+  /// \brief Set UE AMBR.
+  /// \param[in] ue_ambr The AMBR to set for the UE.
+  virtual void set_ue_ambr(cu_cp_aggregate_maximum_bit_rate ue_ambr) = 0;
+
+  /// \brief Get UE AMBR.
+  virtual cu_cp_aggregate_maximum_bit_rate get_ue_ambr() const = 0;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

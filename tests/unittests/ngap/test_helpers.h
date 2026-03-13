@@ -15,8 +15,7 @@
 #include <gtest/gtest.h>
 #include <optional>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// Reusable class that a) stores the messages sent to the AMF for test inspection and b)
 /// calls the registered msg handler (if any). The handler can be added upon construction
@@ -465,9 +464,15 @@ public:
   /// \brief Check if security is enabled
   [[nodiscard]] bool is_security_enabled() const override { return true; }
 
+  /// \brief Set UE AMBR.
+  /// \param[in] ue_ambr The AMBR to set for the UE.
+  void set_ue_ambr(cu_cp_aggregate_maximum_bit_rate ue_ambr) override {}
+
+  /// \brief Get UE AMBR.
+  cu_cp_aggregate_maximum_bit_rate get_ue_ambr() const override { return cu_cp_aggregate_maximum_bit_rate{}; }
+
   std::optional<ue_index_t>   ue_index;
   dummy_ngap_rrc_ue_notifier* rrc_ue_notifier = nullptr;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

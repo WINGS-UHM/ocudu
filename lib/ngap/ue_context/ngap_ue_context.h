@@ -23,8 +23,6 @@ struct ngap_ue_context {
   ngap_ue_ids                                               ue_ids;
   ngap_cu_cp_ue_notifier*                                   ue = nullptr;
   guami_t                                                   serving_guami;
-  uint64_t                                                  aggregate_maximum_bit_rate_dl = 0;
-  uint64_t                                                  aggregate_maximum_bit_rate_ul = 0;
   unique_timer                                              request_pdu_session_timer;
   bool                                                      release_requested                     = false;
   bool                                                      release_scheduled                     = false;
@@ -170,7 +168,9 @@ public:
     if (ue.ue_ids.amf_ue_id == amf_ue_id) {
       // If the AMF-UE-ID is already set, we don't want to change it.
       return;
-    } else if (ue.ue_ids.amf_ue_id == amf_ue_id_t::invalid) {
+    }
+
+    if (ue.ue_ids.amf_ue_id == amf_ue_id_t::invalid) {
       // If it was not set before, we add it.
       ue.logger.log_debug("Setting AMF-UE-NGAP-ID={}", fmt::underlying(amf_ue_id));
       ue.ue_ids.amf_ue_id = amf_ue_id;
@@ -286,7 +286,7 @@ private:
   timer_factory           timers;
   ocudulog::basic_logger& logger;
 
-  inline void increase_next_ran_ue_id()
+  void increase_next_ran_ue_id()
   {
     if (next_ran_ue_id == ran_ue_id_t::max) {
       // Reset RAN-UE-ID counter.

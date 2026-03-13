@@ -181,7 +181,7 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
     return;
   }
 
-  logger.info("HandoverRequest - extracted target cell. plmn={}, target cell_id={}",
+  logger.info("HandoverRequest - extracted target cell. plmn={}, target cell_id=0x{:x}",
               ho_request.nr_cgi.plmn_id,
               ho_request.nr_cgi.nci);
 

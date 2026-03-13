@@ -5,6 +5,7 @@
 #include "xnap_source_handover_preparation_procedure.h"
 #include "../xnap_asn1_converters.h"
 #include "ocudu/asn1/xnap/common.h"
+#include "ocudu/asn1/xnap/xnap_ies.h"
 #include "ocudu/security/security_asn1_utils.h"
 #include "ocudu/xnap/xnap_message.h"
 #include "ocudu/xnap/xnap_types.h"
@@ -142,6 +143,12 @@ bool xnap_source_handover_preparation_procedure::send_handover_request()
   fill_asn1_pdu_session_res_list(asn1_ue_context_info.pdu_session_res_to_be_setup_list);
   // > Fill RRC container (containing HandoverPreparationInformation).
   asn1_ue_context_info.rrc_context = request.ue_context_info_ho_request.rrc_handover_preparation_information.copy();
+
+  // Fill UE history info.
+  // TODO: Add real data.
+  asn1::xnap::last_visited_cell_item_c last_visited_cell;
+  last_visited_cell.set_ng_ran_cell();
+  ho_request->ue_history_info.push_back(last_visited_cell);
 
   // Forward message to XN-C peer.
   if (!xnc_notifier.on_new_message(msg)) {

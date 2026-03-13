@@ -43,36 +43,37 @@ void xnap_target_handover_preparation_procedure::operator()(coro_context<async_t
   if (std::holds_alternative<cu_cp_handover_request_failure>(response)) {
     const auto& ho_fail = std::get<cu_cp_handover_request_failure>(response);
     send_handover_preparation_failure(ho_fail);
-    logger.debug("ue={}: \"{}\" failed", ho_fail.ue_index, name());
+    logger.debug("ue={}: \"{}\" failed. Cause: Handover request failure", ho_fail.ue_index, name());
     CORO_EARLY_RETURN();
   }
 
   const auto& ho_ack = std::get<cu_cp_handover_request_ack>(response);
 
   // Create XNAP UE.
-  if (create_xnap_ue(ho_ack.ue_index)) {
-    // Update UE with PEER XNAP UE ID.
-    xnap_ue_context& ue_ctxt = ue_ctxt_list[ho_ack.ue_index];
-    ue_ctxt_list.update_peer_xnap_ue_id(ue_ctxt.ue_ids.local_xnap_ue_id, target_xnap_ue_id);
-
-    if (send_handover_request_ack(ue_ctxt.ue_ids.ue_index, ue_ctxt.ue_ids.local_xnap_ue_id, ho_ack)) {
-      logger.debug("ue={}: \"{}\" finished successfully", ho_ack.ue_index, name());
-    } else {
-      logger.debug("ue={}: \"{}\" failed", ho_ack.ue_index, name());
-    }
-  } else {
+  if (!create_xnap_ue(ho_ack.ue_index)) {
     send_handover_preparation_failure(
         cu_cp_handover_request_failure{.ue_index = request.ue_index, .cause = xnap_cause_misc_t::unspecified});
-    logger.debug("ue={}: \"{}\" failed", request.ue_index, name());
+    logger.debug("ue={}: \"{}\" failed. Cause: Failed to create XNAP UE", request.ue_index, name());
+    CORO_EARLY_RETURN();
+  }
+
+  // Update UE with PEER XNAP UE ID.
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[ho_ack.ue_index];
+  ue_ctxt_list.update_peer_xnap_ue_id(ue_ctxt.ue_ids.local_xnap_ue_id, target_xnap_ue_id);
+
+  if (!send_handover_request_ack(ue_ctxt.ue_ids.ue_index, ue_ctxt.ue_ids.local_xnap_ue_id, ho_ack)) {
+    logger.debug("ue={}: \"{}\" failed. Cause: Failed to send Handover Request Ack", ho_ack.ue_index, name());
     CORO_EARLY_RETURN();
   }
 
   if (!prepare_execution_context(ho_ack)) {
-    send_handover_preparation_failure(cu_cp_handover_request_failure{
-        .ue_index = request.ue_index, .cause = xnap_cause_misc_t::not_enough_user_plane_processing_res});
-    logger.debug("ue={}: \"{}\" failed", request.ue_index, name());
+    send_handover_preparation_failure(
+        cu_cp_handover_request_failure{.ue_index = request.ue_index, .cause = xnap_cause_misc_t::unspecified});
+    logger.debug("ue={}: \"{}\" failed. Cause: Failed to prepare execution context", request.ue_index, name());
     CORO_EARLY_RETURN();
   }
+
+  logger.debug("ue={}: \"{}\" finished successfully", ho_ack.ue_index, name());
 
   // Notify CU-CP to await the RRC Reconfiguration Complete and SN Status Transfer.
   cu_cp_notifier.on_xn_handover_execution(request.ue_index, execution_context);

@@ -66,9 +66,6 @@ class xnap_cu_cp_notifier
 public:
   virtual ~xnap_cu_cp_notifier() = default;
 
-  /// \brief Get packed handover preparation message for inter-gNB handover.
-  virtual byte_buffer on_handover_preparation_message_required(ue_index_t ue_index) = 0;
-
   /// \brief Notify about the reception of a new RRC Handover Command (TS 38.331 section 11.2.2).
   /// \param[in] ue_index The index of the UE.
   /// \param[in] command The RRC container containing the Handover Command.

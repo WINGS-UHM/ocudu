@@ -21,12 +21,6 @@ public:
     return cu_cp_handler->handle_new_rrc_handover_command(ue_index, std::move(command));
   }
 
-  byte_buffer on_handover_preparation_message_required(ue_index_t ue_index) override
-  {
-    ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");
-    return cu_cp_handler->handle_handover_preparation_message_required(ue_index);
-  }
-
   ue_index_t request_new_ue_index_allocation(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override
   {
     ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");

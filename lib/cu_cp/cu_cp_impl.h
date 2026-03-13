@@ -122,7 +122,6 @@ public:
   void       handle_inter_cu_target_handover_execution(ue_index_t ue_index) override;
 
   // cu_cp_xnap_handler.
-  byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) override;
   async_task<cu_cp_handover_resource_allocation_response>
        handle_xnap_handover_request(const xnap_handover_request& request) override;
   void handle_handover_cancel_received(ue_index_t ue_index) override;

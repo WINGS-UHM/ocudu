@@ -829,12 +829,6 @@ struct dummy_cu_cp_xnap_handler : public cu_cp_xnap_handler {
 public:
   dummy_cu_cp_xnap_handler(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST")) {}
 
-  byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) override
-  {
-    logger.info("ue={}: Received a new request to handle XNAP handover preparation message", ue_index);
-    return byte_buffer{};
-  }
-
   async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
   {
     logger.info("ue={}: Received a new RRC Handover Command", ue_index);

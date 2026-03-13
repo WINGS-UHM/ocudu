@@ -448,11 +448,6 @@ class cu_cp_xnap_handler : public cu_cp_inter_cu_handover_handler, public cu_cp_
 public:
   virtual ~cu_cp_xnap_handler() = default;
 
-  /// \brief Get packed handover preparation message for inter-gNB handover.
-  /// \param[in] ue_index The index of the UE.
-  /// \returns The packed handover preparation message.
-  virtual byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) = 0;
-
   /// \brief Handle the received XNAP handover request of the handover preparation procedure.
   /// See TS 38.423 section 8.2.1.
   virtual async_task<cu_cp_handover_resource_allocation_response>

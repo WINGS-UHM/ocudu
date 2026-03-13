@@ -4,6 +4,7 @@
 #pragma once
 
 #include "ocudu/gateways/sctp_network_client.h"
+#include "ocudu/support/async/async_task.h"
 #include "ocudu/support/io/transport_layer_address.h"
 
 namespace ocudu {
@@ -38,6 +39,14 @@ public:
 
   /// \brief Initiate new SCTP association to peer.
   virtual bool init_association_with_msg(transport_layer_address dest_addr, byte_buffer payload) = 0;
+
+  /// \brief Initiate a new SCTP association to a peer in a non-blocking way via sctp_connectx().
+  ///
+  /// Returns an async_task<bool> that will complete with:
+  /// - true on SCTP_COMM_UP, followed by sctp_network_association_factory::create() callback
+  /// - false on SCTP_CANT_STR_ASSOC, immediate sctp_connectx failure, or if a connection to the same address is
+  ///   already pending.
+  virtual async_task<bool> connect(transport_layer_address dest_addr) = 0;
 };
 
 } // namespace ocudu

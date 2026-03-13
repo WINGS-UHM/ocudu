@@ -239,6 +239,48 @@ bool sctp_network_server_impl::init_association_with_msg(transport_layer_address
   return true;
 }
 
+async_task<bool> sctp_network_server_impl::connect(transport_layer_address dest_addr)
+{
+  return launch_async([this, dest_addr, event_ptr = (manual_event<bool>*)nullptr, result = false](
+                          coro_context<async_task<bool>>& ctx) mutable {
+    CORO_BEGIN(ctx);
+
+    logger.info("{}: Initiating SCTP connection to {}", node_cfg.if_name, dest_addr);
+
+    // Try to create pending connect event, fail and return early if duplicated.
+    if (not pending_connects.try_emplace(dest_addr).second) {
+      logger.warning(
+          "{}: Connection to {} already in progress, rejecting duplicate connect", node_cfg.if_name, dest_addr);
+      CORO_EARLY_RETURN(false);
+    }
+
+    {
+      // Initiate the connection via sctp_connectx().
+      transport_layer_address::native_type native_addr = dest_addr.native();
+      int                                  ret         = ::sctp_connectx(get_socket_fd(), native_addr.addr, 1, NULL);
+      if (ret == -1 && errno != EINPROGRESS) {
+        logger.error("{}: sctp_connectx to {} failed. errno={}", node_cfg.if_name, dest_addr, ::strerror(errno));
+      } else {
+        event_ptr = &pending_connects.at(dest_addr);
+      }
+    }
+
+    if (event_ptr == nullptr) {
+      // Clean up the event from pending_connects on sctp_connectx() immediate failure.
+      pending_connects.erase(dest_addr);
+      CORO_EARLY_RETURN(false);
+    }
+
+    // Wait for SCTP_COMM_UP or SCTP_CANT_STR_ASSOC.
+    CORO_AWAIT_VALUE(result, *event_ptr);
+
+    // Clean up the event from pending_connects after awaited SCTP notification received.
+    pending_connects.erase(dest_addr);
+
+    CORO_RETURN(result);
+  });
+}
+
 void sctp_network_server_impl::handle_notification(span<const uint8_t>           payload,
                                                    const struct sctp_sndrcvinfo& sri,
                                                    const sockaddr&               src_addr,
@@ -262,7 +304,7 @@ void sctp_network_server_impl::handle_notification(span<const uint8_t>          
           handle_association_shutdown(n->sac_assoc_id, "Communication was lost");
           break;
         case SCTP_CANT_STR_ASSOC:
-          handle_association_shutdown(n->sac_assoc_id, "Can't state association");
+          handle_cannot_start_association(n->sac_assoc_id, src_addr, src_addr_len);
           break;
         case SCTP_SHUTDOWN_COMP:
           handle_sctp_shutdown_comp(n->sac_assoc_id);
@@ -317,6 +359,44 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
   }
 
   logger.info("{} assoc={}: New client SCTP association (client_addr={})", node_cfg.if_name, assoc_id, assoc_ctxt.addr);
+
+  // If this was a pending outgoing connection, defer signaling success to app_exec.
+  transport_layer_address peer_addr = assoc_ctxt.addr;
+  while (not app_exec.defer([this, peer_addr]() {
+    auto pending_it = pending_connects.find(peer_addr);
+    if (pending_it != pending_connects.end()) {
+      pending_it->second.set(true);
+    }
+  })) {
+    // Note: This defer cannot fail. Keep trying.
+    logger.error("{}: Failed to defer pending connect resolution to app_exec. Cause: Task queue is full. Retrying...",
+                 node_cfg.if_name);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+}
+
+void sctp_network_server_impl::handle_cannot_start_association(int             assoc_id,
+                                                               const sockaddr& src_addr,
+                                                               socklen_t       src_addr_len)
+{
+  transport_layer_address addr = transport_layer_address::create_from_sockaddr(src_addr, src_addr_len);
+
+  logger.info("{} assoc={}: SCTP association could not start (peer_addr={})", node_cfg.if_name, assoc_id, addr);
+
+  // Defer pending connect failure signaling to app_exec.
+  while (not app_exec.defer([this, addr]() {
+    auto pending_it = pending_connects.find(addr);
+    if (pending_it != pending_connects.end()) {
+      pending_it->second.set(false);
+    } else {
+      logger.warning("{}: SCTP_CANT_STR_ASSOC for unknown peer {}", node_cfg.if_name, addr);
+    }
+  })) {
+    // Note: This defer cannot fail. Keep trying.
+    logger.error("{}: Failed to defer pending connect resolution to app_exec. Cause: Task queue is full. Retrying...",
+                 node_cfg.if_name);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
 }
 
 void sctp_network_server_impl::handle_association_shutdown(int assoc_id, const char* cause)

@@ -86,6 +86,7 @@ cu_cp_impl::cu_cp_impl(const cu_cp_configuration& config_) :
                mobility_manager_ev_notifier,
                ngap_db,
                du_db,
+               xnap_db,
                ue_mng,
                cell_meas_mng),
   controller(cfg,
@@ -958,13 +959,13 @@ async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t         
 async_task<cu_cp_handover_resource_allocation_response>
 cu_cp_impl::handle_xnap_handover_request(const xnap_handover_request& request)
 {
-  // Store UE AMBR in UE context.
   cu_cp_ue* ue = ue_mng.find_ue(request.ue_index);
   if (ue == nullptr) {
     logger.warning("ue={}: UE not found for handover request handling", request.ue_index);
     return launch_no_op_task(cu_cp_handover_resource_allocation_response{cu_cp_handover_request_failure{
         .ue_index = request.ue_index, .cause = xnap_cause_radio_network_t::unspecified}});
   }
+  // Store UE AMBR in UE context.
   ue->set_ue_ambr(request.ue_context_info_ho_request.ue_ambr);
 
   // Convert the XNAP handover request to an intra-CU handover target request.

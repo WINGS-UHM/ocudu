@@ -7,6 +7,7 @@
 #include "../cell_meas_manager/cell_meas_manager_impl.h"
 #include "../ngap_repository.h"
 #include "../ue_manager/ue_manager_impl.h"
+#include "../xnap_repository.h"
 #include "metrics/mobility_manager_metrics_aggregator.h"
 #include "ocudu/cu_cp/cu_cp_command_handler.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
@@ -49,6 +50,7 @@ public:
                    mobility_manager_cu_cp_notifier& cu_cp_notifier_,
                    ngap_repository&                 ngap_db_,
                    du_processor_repository&         du_db_,
+                   xnap_repository&                 xnap_db_,
                    ue_manager&                      ue_mng_,
                    cell_meas_manager&               cell_meas_mng_);
 
@@ -92,6 +94,7 @@ private:
   mobility_manager_cu_cp_notifier& cu_cp_notifier;
   ngap_repository&                 ngap_db;
   du_processor_repository&         du_db;
+  xnap_repository&                 xnap_db;
   ue_manager&                      ue_mng;
   cell_meas_manager&               cell_meas_mng;
 

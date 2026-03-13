@@ -141,7 +141,7 @@ bool xnap_source_handover_preparation_procedure::send_handover_request()
   // > Fill PDU session resource setup list.
   fill_asn1_pdu_session_res_list(asn1_ue_context_info.pdu_session_res_to_be_setup_list);
   // > Fill RRC container (containing HandoverPreparationInformation).
-  asn1_ue_context_info.rrc_context = cu_cp_notifier.on_handover_preparation_message_required(request.ue_index);
+  asn1_ue_context_info.rrc_context = request.ue_context_info_ho_request.rrc_handover_preparation_information.copy();
 
   // Forward message to XN-C peer.
   if (!xnc_notifier.on_new_message(msg)) {

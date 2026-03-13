@@ -294,7 +294,7 @@ public:
 
   /// \brief Handle the reception of an inter CU handover related RRC Reconfiguration Complete.
   virtual void
-  handle_inter_cu_ho_rrc_recfg_complete(const ue_index_t ue_index, const nr_cell_global_id_t& cgi, const tac_t tac) = 0;
+  handle_inter_cu_ho_rrc_recfg_complete(ue_index_t ue_index, const nr_cell_global_id_t& cgi, tac_t tac) = 0;
 
   /// \brief Get the supported PLMNs.
   virtual const ngap_context_t& get_ngap_context() const = 0;

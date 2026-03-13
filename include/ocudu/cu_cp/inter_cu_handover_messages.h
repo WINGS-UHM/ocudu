@@ -116,11 +116,6 @@ struct cu_cp_pdu_session_res_to_be_switched_dl_item {
   std::vector<qos_flow_id_t>                    qos_flow_accepted_list;
 };
 
-struct cu_cp_pdu_session_res_failed_to_setup_item {
-  pdu_session_id_t                         pdu_session_id = pdu_session_id_t::invalid;
-  std::variant<ngap_cause_t, xnap_cause_t> cause;
-};
-
 struct cu_cp_path_switch_request {
   ue_index_t                                                ue_index = ue_index_t::invalid;
   unsigned                                                  source_amf_ue_ngap_id;
@@ -128,7 +123,7 @@ struct cu_cp_path_switch_request {
   security::supported_algorithms                            supported_enc_algos;
   security::supported_algorithms                            supported_int_algos;
   std::vector<cu_cp_pdu_session_res_to_be_switched_dl_item> pdu_session_res_to_be_switched_dl_list;
-  std::vector<cu_cp_pdu_session_res_failed_to_setup_item>   pdu_session_res_failed_to_setup_list_ps_req;
+  std::vector<cu_cp_pdu_session_with_cause_item>            pdu_session_res_failed_to_setup_list_ps_req;
   // Note: per 3GPP TS 38.413, section 9.2.3.8 this is a establishment cause, although it is named "RRC resume cause".
   std::optional<establishment_cause_t> rrc_resume_cause;
 };

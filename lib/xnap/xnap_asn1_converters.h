@@ -517,4 +517,106 @@ inline bool pdu_session_res_admitted_item_to_asn1(asn1::xnap::pdu_session_res_ad
   return true;
 }
 
+/// \brief Convert XNAP ASN.1 to \c cu_cp_tx_bw.
+/// \param[in] asn1_tx_bw The ASN.1 type TX BW.
+/// \return The common type TX BW.
+inline cu_cp_tx_bw asn1_to_tx_bw(const asn1::xnap::nr_tx_bw_s& asn1_tx_bw)
+{
+  cu_cp_tx_bw tx_bw;
+
+  // Fill NR SCS.
+  tx_bw.nr_scs = to_subcarrier_spacing(asn1_tx_bw.nr_scs.to_string());
+
+  // Fill NR NRB.
+  tx_bw.nr_nrb = asn1_tx_bw.nr_nrb.to_number();
+
+  return tx_bw;
+}
+
+/// \brief Convert XNAP ASN.1 to \c cu_cp_nr_freq_info.
+/// \param[in] asn1_nr_freq_info The ASN.1 type NR freq info.
+/// \return The common type NR freq info.
+inline cu_cp_nr_freq_info asn1_to_nr_freq_info(const asn1::xnap::nr_freq_info_s& asn1_nr_freq_info)
+{
+  cu_cp_nr_freq_info nr_freq_info;
+
+  // Fill NR ARFCN.
+  nr_freq_info.nr_arfcn = asn1_nr_freq_info.nr_arfcn;
+
+  // Fill SUL info.
+  if (asn1_nr_freq_info.sul_info_present) {
+    cu_cp_sul_info sul_info;
+
+    // Fill SUL NR ARFCN.
+    sul_info.sul_nr_arfcn = asn1_nr_freq_info.sul_info.sul_freq_info;
+
+    // Fill SUL TX BW.
+    sul_info.sul_tx_bw = asn1_to_tx_bw(asn1_nr_freq_info.sul_info.sul_tx_bw);
+
+    nr_freq_info.sul_info = sul_info;
+  }
+
+  // Fill freq band list NR.
+  for (const auto& asn1_freq_band : asn1_nr_freq_info.freq_band_list) {
+    cu_cp_freq_band_nr_item freq_band;
+
+    // Fill freq band ind.
+    freq_band.freq_band_ind_nr = asn1_freq_band.nr_freq_band;
+
+    // Fill supported SUL band list.
+    for (const auto& asn1_sul_band : asn1_freq_band.supported_sul_band_list) {
+      freq_band.supported_sul_band_list.push_back(cu_cp_supported_sul_freq_band_item{asn1_sul_band.sul_band_item});
+    }
+
+    nr_freq_info.freq_band_list_nr.push_back(freq_band);
+  }
+
+  return nr_freq_info;
+}
+
+/// \brief Convert F1AP ASN.1 to \c cu_cp_nr_mode_info.
+/// \param[in] asn1_nr_mode_info The ASN.1 type NR mode info.
+/// \return The common type NR mode info.
+inline cu_cp_nr_mode_info asn1_to_nr_mode_info(const asn1::xnap::nr_mode_info_c& asn1_nr_mode_info)
+{
+  cu_cp_nr_mode_info nr_mode_info;
+
+  // FDD.
+  if (asn1_nr_mode_info.type() == asn1::xnap::nr_mode_info_c::types_opts::fdd) {
+    const asn1::xnap::nr_mode_info_fdd_s& asn1_fdd_info = asn1_nr_mode_info.fdd();
+
+    cu_cp_fdd_info fdd_info;
+
+    // Fill UL NR freq info.
+    fdd_info.ul_nr_freq_info = asn1_to_nr_freq_info(asn1_fdd_info.ul_nr_freq_info);
+
+    // Fill DL NR freq info.
+    fdd_info.dl_nr_freq_info = asn1_to_nr_freq_info(asn1_fdd_info.dl_nr_freq_info);
+
+    // Fill UL TX BW.
+    fdd_info.ul_tx_bw = asn1_to_tx_bw(asn1_fdd_info.ul_nr_transmisson_bw);
+
+    // Fill DL TX BW.
+    fdd_info.dl_tx_bw = asn1_to_tx_bw(asn1_fdd_info.dl_nr_transmisson_bw);
+
+    nr_mode_info = fdd_info;
+  } else if (asn1_nr_mode_info.type() == asn1::xnap::nr_mode_info_c::types_opts::tdd) {
+    const asn1::xnap::nr_mode_info_tdd_s& asn1_tdd_info = asn1_nr_mode_info.tdd();
+
+    cu_cp_tdd_info tdd_info;
+
+    // Fill NR freq info.
+    tdd_info.nr_freq_info = asn1_to_nr_freq_info(asn1_tdd_info.nr_freq_info);
+
+    // Fill TX BW.
+    tdd_info.tx_bw = asn1_to_tx_bw(asn1_tdd_info.nr_transmisson_bw);
+
+    nr_mode_info = tdd_info;
+  } else {
+    report_fatal_error("Invalid NR mode.");
+  }
+
+  return nr_mode_info;
+}
+
 } // namespace ocudu::ocucp

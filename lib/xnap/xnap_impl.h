@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ue_context/xnap_ue_context.h"
+#include "xnap_context.h"
 #include "xnap_tx_pdu_notifier_with_log.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
 #include "ocudu/xnap/xnap.h"
@@ -63,17 +64,17 @@ private:
   /// \param[in] outcome The unsuccessful outcome message.
   void handle_unsuccessful_outcome(const asn1::xnap::unsuccessful_outcome_s& outcome);
 
-  void handle_xn_setup_request(const asn1::xnap::xn_setup_request_s& msg);
+  void handle_xn_setup_request(const asn1::xnap::xn_setup_request_s& request);
 
   ocudulog::basic_logger& logger;
 
   /// Repository of UE Contexts.
-  xnap_ue_context_list ue_ctxt_list;
-
-  xnap_configuration   xnap_cfg;
-  xnap_cu_cp_notifier& cu_cp_notifier;
-  timer_manager&       timers;
-  task_executor&       ctrl_exec;
+  xnap_ue_context_list        ue_ctxt_list;
+  xnap_configuration          xnap_cfg;
+  std::optional<xnap_context> peer_ctxt;
+  xnap_cu_cp_notifier&        cu_cp_notifier;
+  timer_manager&              timers;
+  task_executor&              ctrl_exec;
 
   xnap_tx_pdu_notifier_with_logging tx_notifier;
 

@@ -5,6 +5,7 @@
 #include "xnap_impl.h"
 #include "log_helpers.h"
 #include "procedures/xn_handover_asn1_helpers.h"
+#include "procedures/xn_setup_asn1_helpers.h"
 #include "procedures/xn_setup_procedure.h"
 #include "procedures/xn_setup_procedure_asn1_helpers.h"
 #include "procedures/xnap_sn_status_transfer_procedure.h"
@@ -125,16 +126,27 @@ void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcom
 async_task<bool> xnap_impl::handle_xn_setup_request_required()
 {
   return launch_async<xn_setup_procedure>(
-      xnap_cfg, tx_notifier, xn_setup_outcome, timer_factory{timers, ctrl_exec}, logger);
+      xnap_cfg, peer_ctxt, tx_notifier, xn_setup_outcome, timer_factory{timers, ctrl_exec}, logger);
 }
 
-void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
+void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& request)
 {
-  // TODO check XN setup request is a valid message.
+  xnap_message xn_setup_result;
 
-  xnap_message xn_setup_resp = generate_asn1_xn_setup_response(xnap_cfg);
+  // Message content validation.
+  auto msgerr = validate_xn_setup_request_response(request);
+  if (not msgerr.has_value()) {
+    logger.warning("Rejecting XN Setup Request. Cause: {}", msgerr.error().second);
+    xn_setup_result = generate_asn1_xn_setup_failure(asn1_to_cause(msgerr.error().first));
+  } else {
+    // Store peer context information.
+    peer_ctxt = create_peer_xnap_context(request);
+    // Generate XN Setup Response.
+    xn_setup_result = generate_asn1_xn_setup_response(xnap_cfg);
+  }
 
-  if (not tx_notifier.on_new_message(xn_setup_resp)) {
+  // Transmit XN Setup Response/Failure.
+  if (not tx_notifier.on_new_message(xn_setup_result)) {
     logger.error("Failed to send XN Setup Response. Cause: no SCTP association available");
   }
 }

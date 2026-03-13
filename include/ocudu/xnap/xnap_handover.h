@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ran/cause/xnap_cause.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/guami.h"
@@ -36,6 +37,14 @@ struct xnap_handover_request {
 
 struct xnap_handover_preparation_response {
   bool success = false;
+};
+
+struct xnap_handover_target_execution_context {
+  xnc_peer_index_t                                    xnc_index;
+  ue_index_t                                          ue_index;
+  unsigned                                            amf_ue_id;
+  std::vector<cu_cp_xn_pdu_session_res_admitted_item> pdu_session_res_admitted_list;
+  std::vector<cu_cp_pdu_session_with_cause_item>      pdu_session_failed_to_setup_list;
 };
 
 } // namespace ocudu::ocucp

@@ -17,6 +17,7 @@ class xnap_target_handover_preparation_procedure
 {
 public:
   xnap_target_handover_preparation_procedure(const xnap_handover_request& request_,
+                                             xnc_peer_index_t             xnc_index_,
                                              peer_xnap_ue_id_t            target_xnap_ue_id_,
                                              xnap_ue_context_list&        ue_ctxt_list_,
                                              xnap_cu_cp_notifier&         cu_cp_notifier_,
@@ -35,8 +36,10 @@ private:
                                  local_xnap_ue_id_t                local_xnap_ue_id,
                                  const cu_cp_handover_request_ack& ho_ack);
   void send_handover_preparation_failure(const cu_cp_handover_request_failure& ho_failure);
+  bool prepare_execution_context(const cu_cp_handover_request_ack& ho_ack);
 
   const xnap_handover_request request;
+  const xnc_peer_index_t      xnc_index;
   const peer_xnap_ue_id_t     target_xnap_ue_id;
   xnap_ue_context_list&       ue_ctxt_list;
   xnap_cu_cp_notifier&        cu_cp_notifier;
@@ -45,6 +48,7 @@ private:
 
   // (sub-)routine results
   cu_cp_handover_resource_allocation_response response;
+  xnap_handover_target_execution_context      execution_context;
 };
 
 } // namespace ocudu::ocucp

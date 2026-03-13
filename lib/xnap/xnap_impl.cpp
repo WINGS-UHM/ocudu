@@ -205,6 +205,7 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
   if (!cu_cp_notifier.schedule_async_task(ho_request.ue_index,
                                           launch_async<xnap_target_handover_preparation_procedure>(
                                               ho_request,
+                                              xnc_index,
                                               uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id),
                                               ue_ctxt_list,
                                               cu_cp_notifier,

@@ -96,7 +96,9 @@ public:
 
   /// \brief Notify the CU-CP to await the RRC Reconfiguration Complete and the DL Status Transfer.
   /// \param[in] ue_index The index of the UE.
-  virtual void on_xn_handover_execution(ue_index_t ue_index) = 0;
+  /// \param[in] target_execution_context The information required for the target handover execution.
+  virtual void on_xn_handover_execution(ue_index_t                                    ue_index,
+                                        const xnap_handover_target_execution_context& target_execution_context) = 0;
 
   /// \brief Notify the CU-CP about the reception of a Handover Cancel message.
   /// \param[in] ue_index The index of the UE.

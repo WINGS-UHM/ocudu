@@ -10,6 +10,7 @@
 #include "ocudu/ngap/ngap.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/support/async/async_task.h"
+#include "ocudu/xnap/xnap.h"
 #include <chrono>
 
 namespace ocudu::ocucp {
@@ -19,10 +20,13 @@ namespace ocudu::ocucp {
 class inter_cu_handover_execution_target_routine
 {
 public:
-  inter_cu_handover_execution_target_routine(cu_cp_ue*                    ue_,
-                                             e1ap_bearer_context_manager& e1ap_,
-                                             ngap_interface&              ngap_,
-                                             ocudulog::basic_logger&      logger_);
+  inter_cu_handover_execution_target_routine(
+      cu_cp_ue*                                                    ue_,
+      const std::optional<xnap_handover_target_execution_context>& target_execution_context_,
+      e1ap_bearer_context_manager&                                 e1ap_,
+      ngap_interface&                                              ngap_,
+      xnap_interface*                                              xnap_,
+      ocudulog::basic_logger&                                      logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -31,18 +35,26 @@ public:
 private:
   void fill_e1ap_bearer_context_modification_request();
   bool initialize_reconfiguration_timeout();
+  static cu_cp_path_switch_request
+  fill_path_switch_request(const xnap_handover_target_execution_context& target_execution_ctxt,
+                           const rrc_cell_context&                       cell_context,
+                           const security::security_context&             security_context);
 
   // (sub-)routine requests
   e1ap_bearer_context_modification_request bearer_context_modification_request;
+  cu_cp_path_switch_request                path_switch_request;
 
   // (sub-)routine results
   expected<cu_cp_status_transfer>           sn_status;
   e1ap_bearer_context_modification_response bearer_context_modification_response;
+  cu_cp_path_switch_response                path_switch_response;
 
-  cu_cp_ue*                    ue = nullptr;
-  e1ap_bearer_context_manager& e1ap;
-  ngap_interface&              ngap;
-  ocudulog::basic_logger&      logger;
+  cu_cp_ue*                                                   ue = nullptr;
+  const std::optional<xnap_handover_target_execution_context> target_execution_context;
+  e1ap_bearer_context_manager&                                e1ap;
+  ngap_interface&                                             ngap;
+  xnap_interface*                                             xnap = nullptr;
+  ocudulog::basic_logger&                                     logger;
 
   std::chrono::milliseconds reconf_timeout;
   bool                      reconf_result = false;

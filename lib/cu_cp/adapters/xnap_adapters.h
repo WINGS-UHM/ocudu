@@ -48,10 +48,11 @@ public:
     return cu_cp_handler->handle_xnap_handover_request(request);
   }
 
-  void on_xn_handover_execution(ue_index_t ue_index) override
+  void on_xn_handover_execution(ue_index_t                                    ue_index,
+                                const xnap_handover_target_execution_context& target_execution_context) override
   {
     ocudu_assert(cu_cp_handler != nullptr, "CU-CP XNAP handler must not be nullptr");
-    cu_cp_handler->handle_inter_cu_target_handover_execution(ue_index);
+    cu_cp_handler->handle_inter_cu_target_handover_execution(ue_index, target_execution_context);
   }
 
   void on_handover_cancel_received(ue_index_t ue_index) override

@@ -868,9 +868,13 @@ public:
     return launch_no_op_task(cu_cp_handover_resource_allocation_response{});
   }
 
-  void handle_inter_cu_target_handover_execution(ue_index_t ue_index) override
+  void handle_inter_cu_target_handover_execution(
+      ue_index_t                                                   ue_index,
+      const std::optional<xnap_handover_target_execution_context>& target_execution_context) override
   {
-    logger.info("ue={}: Received a new request to handle inter-CU target handover execution", ue_index);
+    logger.info("ue={}: Received a new {} request to handle inter-CU target handover execution",
+                ue_index,
+                target_execution_context.has_value() ? "XN-C" : "NG");
   }
 
   void handle_handover_cancel_received(ue_index_t ue_index) override

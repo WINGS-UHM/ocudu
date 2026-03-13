@@ -119,7 +119,9 @@ public:
   bool       handle_handover_request(ue_index_t                        ue_index,
                                      const plmn_identity&              selected_plmn,
                                      const security::security_context& sec_ctxt) override;
-  void       handle_inter_cu_target_handover_execution(ue_index_t ue_index) override;
+  void       handle_inter_cu_target_handover_execution(
+            ue_index_t                                                   ue_index,
+            const std::optional<xnap_handover_target_execution_context>& target_execution_context = std::nullopt) override;
 
   // cu_cp_xnap_handler.
   async_task<cu_cp_handover_resource_allocation_response>

@@ -15,12 +15,14 @@ using namespace asn1::xnap;
 
 xnap_target_handover_preparation_procedure::xnap_target_handover_preparation_procedure(
     const xnap_handover_request& request_,
+    xnc_peer_index_t             xnc_index_,
     const peer_xnap_ue_id_t      target_xnap_ue_id_,
     xnap_ue_context_list&        ue_ctxt_list_,
     xnap_cu_cp_notifier&         cu_cp_notifier_,
     xnap_message_notifier&       tx_notifier_,
     ocudulog::basic_logger&      logger_) :
   request(request_),
+  xnc_index(xnc_index_),
   target_xnap_ue_id(target_xnap_ue_id_),
   ue_ctxt_list(ue_ctxt_list_),
   cu_cp_notifier(cu_cp_notifier_),
@@ -65,8 +67,15 @@ void xnap_target_handover_preparation_procedure::operator()(coro_context<async_t
     CORO_EARLY_RETURN();
   }
 
+  if (!prepare_execution_context(ho_ack)) {
+    send_handover_preparation_failure(cu_cp_handover_request_failure{
+        .ue_index = request.ue_index, .cause = xnap_cause_misc_t::not_enough_user_plane_processing_res});
+    logger.debug("ue={}: \"{}\" failed", request.ue_index, name());
+    CORO_EARLY_RETURN();
+  }
+
   // Notify CU-CP to await the RRC Reconfiguration Complete and SN Status Transfer.
-  cu_cp_notifier.on_xn_handover_execution(request.ue_index);
+  cu_cp_notifier.on_xn_handover_execution(request.ue_index, execution_context);
 
   CORO_RETURN();
 }
@@ -132,4 +141,20 @@ void xnap_target_handover_preparation_procedure::send_handover_preparation_failu
     logger.warning("XN-C association is not set. Cannot send HandoverFailure");
     return;
   }
+}
+
+bool xnap_target_handover_preparation_procedure::prepare_execution_context(const cu_cp_handover_request_ack& ho_ack)
+{
+  execution_context.xnc_index = xnc_index;
+  execution_context.ue_index  = ho_ack.ue_index;
+  execution_context.amf_ue_id = request.ue_context_info_ho_request.amf_ue_id;
+  for (const auto& variant_pdu_session_item : ho_ack.pdu_session_res_admitted_list) {
+    if (!std::holds_alternative<cu_cp_xn_pdu_session_res_admitted_item>(variant_pdu_session_item)) {
+      return false;
+    }
+    execution_context.pdu_session_res_admitted_list.push_back(
+        std::get<cu_cp_xn_pdu_session_res_admitted_item>(variant_pdu_session_item));
+  }
+  execution_context.pdu_session_failed_to_setup_list = ho_ack.pdu_session_failed_to_setup_list;
+  return true;
 }

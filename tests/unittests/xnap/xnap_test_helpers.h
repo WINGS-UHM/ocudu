@@ -142,7 +142,8 @@ public:
     });
   }
 
-  void on_xn_handover_execution(ue_index_t ue_index) override
+  void on_xn_handover_execution(ue_index_t                                    ue_index,
+                                const xnap_handover_target_execution_context& target_execution_context) override
   {
     logger.info("Requested XN handover execution for UE index {}", ue_index);
   }

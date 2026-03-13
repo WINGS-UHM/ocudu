@@ -53,6 +53,7 @@ struct cu_cp_ng_pdu_session_res_admitted_item {
 
 struct cu_cp_xn_pdu_session_res_admitted_item {
   pdu_session_id_t                                                  pdu_session_id = pdu_session_id_t::invalid;
+  up_transport_layer_info                                           dl_ngu_up_tnl_info;
   bool                                                              dl_ngu_tnl_info_unchanged = false;
   std::vector<cu_cp_qos_flow_with_data_forwarding_item>             qos_flows_setup_list;
   std::vector<cu_cp_qos_flow_with_cause_item>                       qos_flows_failed_to_setup_list;

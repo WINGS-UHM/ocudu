@@ -39,6 +39,7 @@
 #include "ocudu/ran/time/radio_frame.h"
 #include "ocudu/support/async/coroutine.h"
 #include "ocudu/support/synchronization/sync_event.h"
+#include "ocudu/xnap/xnap.h"
 #include <chrono>
 #include <dlfcn.h>
 #include <future>
@@ -877,7 +878,9 @@ cu_cp_impl::handle_ngap_handover_request(const ngap_handover_request& request)
   return handle_inter_cu_handover_request(inter_cu_handover_request);
 }
 
-void cu_cp_impl::handle_inter_cu_target_handover_execution(ue_index_t ue_index)
+void cu_cp_impl::handle_inter_cu_target_handover_execution(
+    ue_index_t                                                   ue_index,
+    const std::optional<xnap_handover_target_execution_context>& target_execution_context)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
   ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
@@ -899,8 +902,17 @@ void cu_cp_impl::handle_inter_cu_target_handover_execution(ue_index_t ue_index)
   }
   e1ap_bearer_context_manager& e1ap = cu_up->get_e1ap_bearer_context_manager();
 
-  ue->get_task_sched().schedule_async_task(
-      launch_async<inter_cu_handover_execution_target_routine>(ue, e1ap, *ngap, logger));
+  xnap_interface* xnap = nullptr;
+  if (target_execution_context.has_value()) {
+    xnap = xnap_db.find_xnap(target_execution_context->xnc_index);
+    if (xnap == nullptr) {
+      logger.warning("ue={}: XNAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+      return;
+    }
+  }
+
+  ue->get_task_sched().schedule_async_task(launch_async<inter_cu_handover_execution_target_routine>(
+      ue, target_execution_context, e1ap, *ngap, xnap, logger));
 }
 
 void cu_cp_impl::handle_transmission_of_handover_required()
@@ -941,11 +953,7 @@ cu_cp_impl::handle_xnap_handover_request(const xnap_handover_request& request)
   cu_cp_inter_cu_handover_request inter_cu_handover_request;
   inter_cu_handover_request.from_xnap_handover_request(request);
 
-  // TODO: Implement handling of XNAP handover request in inter_cu_handover_routine.
-  return launch_async([request](coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx) {
-    CORO_BEGIN(ctx);
-    CORO_RETURN(cu_cp_handover_request_failure{.ue_index = request.ue_index, .cause = xnap_cause_misc_t::unspecified});
-  });
+  return handle_inter_cu_handover_request(inter_cu_handover_request);
 }
 
 void cu_cp_impl::handle_handover_cancel_received(ue_index_t ue_index)

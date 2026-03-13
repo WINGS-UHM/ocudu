@@ -4,16 +4,22 @@
 
 #include "inter_cu_handover_execution_target_routine.h"
 #include "../pdu_session_routine_helpers.h"
+#include "ocudu/cu_cp/inter_cu_handover_messages.h"
+#include "ocudu/security/security.h"
+#include "ocudu/support/async/coroutine.h"
+#include "ocudu/xnap/xnap.h"
 
 using namespace ocudu;
 using namespace ocucp;
 
 inter_cu_handover_execution_target_routine::inter_cu_handover_execution_target_routine(
-    cu_cp_ue*                    ue_,
-    e1ap_bearer_context_manager& e1ap_,
-    ngap_interface&              ngap_,
-    ocudulog::basic_logger&      logger_) :
-  ue(ue_), e1ap(e1ap_), ngap(ngap_), logger(logger_)
+    cu_cp_ue*                                                    ue_,
+    const std::optional<xnap_handover_target_execution_context>& target_execution_context_,
+    e1ap_bearer_context_manager&                                 e1ap_,
+    ngap_interface&                                              ngap_,
+    xnap_interface*                                              xnap_,
+    ocudulog::basic_logger&                                      logger_) :
+  ue(ue_), target_execution_context(target_execution_context_), e1ap(e1ap_), ngap(ngap_), xnap(xnap_), logger(logger_)
 {
 }
 
@@ -26,12 +32,25 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
     CORO_EARLY_RETURN();
   }
 
+  if (target_execution_context.has_value() && xnap == nullptr) {
+    logger.warning("\"{}\" failed. Cause: XNAP interface is nullptr", name());
+    CORO_EARLY_RETURN();
+  }
+
   logger.debug("ue={}: \"{}\" started...", ue->get_ue_index(), name());
 
-  // Await for NGAP DL Status transfer.
-  CORO_AWAIT_VALUE(sn_status, ngap.handle_dl_ran_status_transfer_required(ue->get_ue_index()));
-  if (not sn_status.has_value()) {
-    CORO_EARLY_RETURN();
+  if (!target_execution_context.has_value()) {
+    // Await for NGAP DL Status transfer.
+    CORO_AWAIT_VALUE(sn_status, ngap.handle_dl_ran_status_transfer_required(ue->get_ue_index()));
+    if (not sn_status.has_value()) {
+      CORO_EARLY_RETURN();
+    }
+  } else {
+    // Await for SN Status transfer from source XN-C.
+    CORO_AWAIT_VALUE(sn_status, xnap->handle_sn_status_transfer_required(ue->get_ue_index()));
+    if (not sn_status.has_value()) {
+      CORO_EARLY_RETURN();
+    }
   }
 
   // Inform CU-UP of the current PDCP state.
@@ -51,9 +70,22 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
     CORO_EARLY_RETURN();
   }
 
-  // Send handover notify from here.
-  ngap.get_ngap_control_message_handler().handle_inter_cu_ho_rrc_recfg_complete(
-      ue->get_ue_index(), ue->get_rrc_ue()->get_cell_context().cgi, ue->get_rrc_ue()->get_cell_context().tac);
+  if (!target_execution_context.has_value()) {
+    // Send handover notify from here.
+    ngap.get_ngap_control_message_handler().handle_inter_cu_ho_rrc_recfg_complete(
+        ue->get_ue_index(), ue->get_rrc_ue()->get_cell_context().cgi, ue->get_rrc_ue()->get_cell_context().tac);
+  } else {
+    // Prepare Path Switch Request.
+    path_switch_request = fill_path_switch_request(target_execution_context.value(),
+                                                   ue->get_rrc_ue()->get_cell_context(),
+                                                   ue->get_security_manager().get_security_context());
+
+    // Send Path Switch Request from here.
+    CORO_AWAIT_VALUE(path_switch_response,
+                     ngap.get_ngap_control_message_handler().handle_path_switch_request_required(path_switch_request));
+    // TODO: Handle path switch response and proceed with the routine accordingly.
+    CORO_EARLY_RETURN();
+  }
 
   CORO_RETURN();
 }
@@ -103,4 +135,35 @@ bool inter_cu_handover_execution_target_routine::initialize_reconfiguration_time
       t304_ms.value() + std::chrono::milliseconds{/*We add 1s of extra time for the UE to reestablish*/ 1000};
 
   return true;
+}
+
+cu_cp_path_switch_request inter_cu_handover_execution_target_routine::fill_path_switch_request(
+    const xnap_handover_target_execution_context& target_execution_ctxt,
+    const rrc_cell_context&                       cell_context,
+    const security::security_context&             security_context)
+{
+  cu_cp_path_switch_request path_switch_req;
+  path_switch_req.ue_index              = target_execution_ctxt.ue_index;
+  path_switch_req.source_amf_ue_ngap_id = target_execution_ctxt.amf_ue_id;
+
+  path_switch_req.user_location_info.nr_cgi = cell_context.cgi;
+  path_switch_req.user_location_info.tai    = {cell_context.cgi.plmn_id, cell_context.tac};
+
+  path_switch_req.supported_enc_algos = security_context.supported_enc_algos;
+  path_switch_req.supported_int_algos = security_context.supported_int_algos;
+
+  for (const auto& pdu_session_item : target_execution_ctxt.pdu_session_res_admitted_list) {
+    cu_cp_pdu_session_res_to_be_switched_dl_item pdu_session_to_be_switched_item;
+    pdu_session_to_be_switched_item.pdu_session_id     = pdu_session_item.pdu_session_id;
+    pdu_session_to_be_switched_item.dl_ngu_up_tnl_info = pdu_session_item.dl_ngu_up_tnl_info;
+    for (const auto& qos_flow : pdu_session_item.qos_flows_setup_list) {
+      pdu_session_to_be_switched_item.qos_flow_accepted_list.push_back(qos_flow.qos_flow_id);
+    }
+
+    path_switch_req.pdu_session_res_to_be_switched_dl_list.push_back(pdu_session_to_be_switched_item);
+  }
+
+  path_switch_req.pdu_session_res_failed_to_setup_list_ps_req = target_execution_ctxt.pdu_session_failed_to_setup_list;
+
+  return path_switch_req;
 }

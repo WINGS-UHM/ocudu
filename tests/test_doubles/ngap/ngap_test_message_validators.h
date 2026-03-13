@@ -43,6 +43,8 @@ bool is_valid_handover_request_ack(const ocucp::ngap_message& msg);
 
 bool is_valid_handover_notify(const ocucp::ngap_message& msg);
 
+bool is_valid_path_switch_request(const ocucp::ngap_message& msg);
+
 bool is_valid_handover_required(const ocucp::ngap_message& msg);
 
 bool is_valid_handover_cancel(const ocucp::ngap_message& msg);

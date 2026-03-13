@@ -106,6 +106,13 @@ bool ocudu::test_helpers::is_valid_handover_notify(const ocucp::ngap_message& ms
   return true;
 }
 
+bool ocudu::test_helpers::is_valid_path_switch_request(const ocucp::ngap_message& msg)
+{
+  TRUE_OR_RETURN(msg.pdu.type() == asn1::ngap::ngap_pdu_c::types_opts::init_msg);
+  TRUE_OR_RETURN(msg.pdu.init_msg().proc_code == ASN1_NGAP_ID_PATH_SWITCH_REQUEST);
+  return true;
+}
+
 bool ocudu::test_helpers::is_valid_handover_required(const ocucp::ngap_message& msg)
 {
   TRUE_OR_RETURN(msg.pdu.type() == asn1::ngap::ngap_pdu_c::types_opts::init_msg);

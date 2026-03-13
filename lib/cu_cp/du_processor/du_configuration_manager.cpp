@@ -103,12 +103,12 @@ static du_cell_configuration create_du_cell_config(du_cell_index_t              
   cell.served_plmns      = cell_req.served_plmns;
   cell.deactivated_plmns = {};
   // Add band information.
-  if (cell_req.nr_mode_info.fdd.has_value()) {
-    for (const auto& band : cell_req.nr_mode_info.fdd.value().dl_nr_freq_info.freq_band_list_nr) {
+  if (std::holds_alternative<cu_cp_fdd_info>(cell_req.nr_mode_info)) {
+    for (const auto& band : std::get<cu_cp_fdd_info>(cell_req.nr_mode_info).dl_nr_freq_info.freq_band_list_nr) {
       cell.bands.push_back(uint_to_nr_band(band.freq_band_ind_nr));
     }
-  } else if (cell_req.nr_mode_info.tdd.has_value()) {
-    for (const auto& band : cell_req.nr_mode_info.tdd.value().nr_freq_info.freq_band_list_nr) {
+  } else if (std::holds_alternative<cu_cp_tdd_info>(cell_req.nr_mode_info)) {
+    for (const auto& band : std::get<cu_cp_tdd_info>(cell_req.nr_mode_info).nr_freq_info.freq_band_list_nr) {
       cell.bands.push_back(uint_to_nr_band(band.freq_band_ind_nr));
     }
   }

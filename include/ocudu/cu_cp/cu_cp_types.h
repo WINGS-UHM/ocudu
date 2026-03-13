@@ -19,6 +19,7 @@
 #include "ocudu/ran/i_rnti.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pci.h"
+#include "ocudu/ran/ranac.h"
 #include "ocudu/ran/rb_id.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/s_nssai.h"
@@ -257,27 +258,22 @@ struct cu_cp_tdd_info {
   cu_cp_tx_bw        tx_bw;
 };
 
-struct cu_cp_nr_mode_info {
-  // choice
-  std::optional<cu_cp_fdd_info> fdd;
-  std::optional<cu_cp_tdd_info> tdd;
-};
+using cu_cp_nr_mode_info = std::variant<cu_cp_fdd_info, cu_cp_tdd_info>;
 
 struct cu_cp_served_cell_info {
   nr_cell_global_id_t        nr_cgi;
   pci_t                      nr_pci;
   std::optional<tac_t>       five_gs_tac;
-  std::optional<tac_t>       cfg_eps_tac;
   std::vector<plmn_identity> served_plmns;
   cu_cp_nr_mode_info         nr_mode_info;
   byte_buffer                meas_timing_cfg;
+  std::optional<ranac_t>     ranac;
 
   cu_cp_served_cell_info() = default;
   cu_cp_served_cell_info(const cu_cp_served_cell_info& other) :
     nr_cgi(other.nr_cgi),
     nr_pci(other.nr_pci),
     five_gs_tac(other.five_gs_tac),
-    cfg_eps_tac(other.cfg_eps_tac),
     served_plmns(other.served_plmns),
     nr_mode_info(other.nr_mode_info),
     meas_timing_cfg(other.meas_timing_cfg.copy())
@@ -289,7 +285,6 @@ struct cu_cp_served_cell_info {
       nr_cgi          = other.nr_cgi;
       nr_pci          = other.nr_pci;
       five_gs_tac     = other.five_gs_tac;
-      cfg_eps_tac     = other.cfg_eps_tac;
       served_plmns    = other.served_plmns;
       nr_mode_info    = other.nr_mode_info;
       meas_timing_cfg = other.meas_timing_cfg.copy();

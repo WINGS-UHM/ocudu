@@ -38,14 +38,14 @@ rrc_du_impl::get_cell_info(const std::vector<cu_cp_du_served_cells_item>& served
     rrc_cell_info cell_info;
 
     // TODO: which freq band to use here?
-    if (served_cell.served_cell_info.nr_mode_info.fdd.has_value()) {
-      cell_info.band = (nr_band)served_cell.served_cell_info.nr_mode_info.fdd.value()
-                           .dl_nr_freq_info.freq_band_list_nr.begin()
-                           ->freq_band_ind_nr;
+    if (std::holds_alternative<cu_cp_fdd_info>(served_cell.served_cell_info.nr_mode_info)) {
+      cell_info.band = static_cast<nr_band>(std::get<cu_cp_fdd_info>(served_cell.served_cell_info.nr_mode_info)
+                                                .dl_nr_freq_info.freq_band_list_nr.begin()
+                                                ->freq_band_ind_nr);
     } else {
-      cell_info.band = (nr_band)served_cell.served_cell_info.nr_mode_info.tdd.value()
-                           .nr_freq_info.freq_band_list_nr.begin()
-                           ->freq_band_ind_nr;
+      cell_info.band = static_cast<nr_band>(std::get<cu_cp_tdd_info>(served_cell.served_cell_info.nr_mode_info)
+                                                .nr_freq_info.freq_band_list_nr.begin()
+                                                ->freq_band_ind_nr);
     }
     cell_info.nr_pci = served_cell.served_cell_info.nr_pci;
 

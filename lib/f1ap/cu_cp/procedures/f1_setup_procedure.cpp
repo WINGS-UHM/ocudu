@@ -56,9 +56,6 @@ du_setup_request ocudu::ocucp::create_du_setup_request(const asn1::f1ap::f1_setu
       if (asn1_served_cell.served_cell_info.five_gs_tac_present) {
         served_cell.served_cell_info.five_gs_tac = asn1_served_cell.served_cell_info.five_gs_tac.to_number();
       }
-      if (asn1_served_cell.served_cell_info.cfg_eps_tac_present) {
-        served_cell.served_cell_info.cfg_eps_tac = asn1_served_cell.served_cell_info.cfg_eps_tac.to_number();
-      }
       for (const auto& asn1_plmn : asn1_served_cell.served_cell_info.served_plmns) {
         auto result = plmn_identity::from_bytes(asn1_plmn.plmn_id.to_bytes());
         // Note: If the ASN.1 PLMN ID is not valid, it is not considered in the response back to the DU.
@@ -69,6 +66,12 @@ du_setup_request ocudu::ocucp::create_du_setup_request(const asn1::f1ap::f1_setu
       served_cell.served_cell_info.nr_mode_info =
           f1ap_asn1_to_nr_mode_info(asn1_served_cell.served_cell_info.nr_mode_info);
       served_cell.served_cell_info.meas_timing_cfg = asn1_served_cell.served_cell_info.meas_timing_cfg.copy();
+
+      if (asn1_served_cell.served_cell_info.ie_exts_present) {
+        if (asn1_served_cell.served_cell_info.ie_exts.ranac_present) {
+          served_cell.served_cell_info.ranac = asn1_served_cell.served_cell_info.ie_exts.ranac;
+        }
+      }
 
       // GNB DU sys info
       if (asn1_served_cell.gnb_du_sys_info_present) {

@@ -7,6 +7,7 @@
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/pdcp/pdcp_config.h"
 #include "ocudu/ran/cu_types.h"
+#include "ocudu/ran/ranac.h"
 #include "ocudu/ran/rb_id.h"
 #include "ocudu/ran/tac.h"
 #include "ocudu/rrc/meas_types.h"
@@ -121,12 +122,9 @@ struct rrc_ue_capability_transfer_request {
   // Empty for now but should include ratType and capabilityRequestFilter, etc.
 };
 
-// RAN area code.
-using rac_t = uint16_t;
-
 struct rrc_ran_area_cfg_t {
-  tac_t              tac;
-  std::vector<rac_t> ran_area_code_list;
+  tac_t                tac;
+  std::vector<ranac_t> ran_area_code_list;
 };
 
 struct rrc_plmn_ran_area_cfg_t {

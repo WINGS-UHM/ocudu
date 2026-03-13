@@ -213,7 +213,7 @@ inline cu_cp_nr_mode_info f1ap_asn1_to_nr_mode_info(const asn1::f1ap::nr_mode_in
     // Fill DL TX BW.
     fdd_info.dl_tx_bw = f1ap_asn1_to_tx_bw(asn1_fdd_info.dl_tx_bw);
 
-    nr_mode_info.fdd = fdd_info;
+    nr_mode_info = fdd_info;
   } else if (asn1_nr_mode_info.type() == asn1::f1ap::nr_mode_info_c::types_opts::tdd) {
     const asn1::f1ap::tdd_info_s& asn1_tdd_info = asn1_nr_mode_info.tdd();
 
@@ -225,7 +225,7 @@ inline cu_cp_nr_mode_info f1ap_asn1_to_nr_mode_info(const asn1::f1ap::nr_mode_in
     // Fill TX BW.
     tdd_info.tx_bw = f1ap_asn1_to_tx_bw(asn1_tdd_info.tx_bw);
 
-    nr_mode_info.tdd = tdd_info;
+    nr_mode_info = tdd_info;
   } else {
     report_fatal_error("Invalid NR mode.");
   }

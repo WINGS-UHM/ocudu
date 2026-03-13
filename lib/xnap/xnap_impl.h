@@ -17,7 +17,8 @@ namespace ocudu::ocucp {
 class xnap_impl final : public xnap_interface
 {
 public:
-  xnap_impl(const xnap_configuration&              xnap_cfg_,
+  xnap_impl(xnc_peer_index_t                       xnc_index_,
+            const xnap_configuration&              xnap_cfg_,
             xnap_cu_cp_notifier&                   cu_cp_notifier_,
             std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
             timer_manager&                         timers_,
@@ -69,7 +70,9 @@ private:
   ocudulog::basic_logger& logger;
 
   /// Repository of UE Contexts.
-  xnap_ue_context_list        ue_ctxt_list;
+  xnap_ue_context_list ue_ctxt_list;
+
+  const xnc_peer_index_t      xnc_index;
   xnap_configuration          xnap_cfg;
   std::optional<xnap_context> peer_ctxt;
   xnap_cu_cp_notifier&        cu_cp_notifier;

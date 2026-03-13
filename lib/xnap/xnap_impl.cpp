@@ -24,13 +24,15 @@ using namespace ocudu;
 using namespace asn1::xnap;
 using namespace ocucp;
 
-xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
+xnap_impl::xnap_impl(xnc_peer_index_t                       xnc_index_,
+                     const xnap_configuration&              xnap_cfg_,
                      xnap_cu_cp_notifier&                   cu_cp_notifier_,
                      std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
                      timer_manager&                         timers_,
                      task_executor&                         ctrl_exec_) :
   logger(ocudulog::fetch_basic_logger("XNAP")),
   ue_ctxt_list(timers_, ctrl_exec_, logger),
+  xnc_index(xnc_index_),
   xnap_cfg(xnap_cfg_),
   cu_cp_notifier(cu_cp_notifier_),
   timers(timers_),

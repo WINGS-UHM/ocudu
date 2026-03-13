@@ -25,7 +25,7 @@ public:
 
   void operator()(coro_context<async_task<void>>& ctx);
 
-  static const char* name() { return "Handover Resource Allocation Procedure"; }
+  static const char* name() { return "Target Handover Preparation Procedure"; }
 
 private:
   bool create_xnap_ue(ue_index_t ue_index);
@@ -37,7 +37,7 @@ private:
   void send_handover_preparation_failure(const cu_cp_handover_request_failure& ho_failure);
 
   const xnap_handover_request request;
-  const peer_xnap_ue_id_t     peer_xnap_ue_id;
+  const peer_xnap_ue_id_t     target_xnap_ue_id;
   xnap_ue_context_list&       ue_ctxt_list;
   xnap_cu_cp_notifier&        cu_cp_notifier;
   xnap_message_notifier&      tx_notifier;

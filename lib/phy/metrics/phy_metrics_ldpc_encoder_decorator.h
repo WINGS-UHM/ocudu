@@ -16,15 +16,6 @@ namespace ocudu {
 /// LDPC encoder metric decorator.
 class phy_metrics_ldpc_encoder_decorator : public ldpc_encoder
 {
-  /// Dummy LDPC encoder buffer.
-  class dummy_encoder_buffer : public ldpc_encoder_buffer
-  {
-    // See interface for documentation.
-    unsigned get_codeblock_length() const override { return 0; }
-    // See interface for documentation.
-    void write_codeblock(span<uint8_t> data, unsigned offset) const override {}
-  };
-
 public:
   /// Creates an LDPC encoder decorator from a base LDPC encoder instance and a metric notifier.
   phy_metrics_ldpc_encoder_decorator(std::unique_ptr<ldpc_encoder> base_encoder_,
@@ -37,19 +28,18 @@ public:
   // See interface for documentation.
   const ldpc_encoder_buffer& encode(const bit_buffer& input, const configuration& cfg) override
   {
-    static dummy_encoder_buffer                       dummy_buffer;
-    std::reference_wrapper<const ldpc_encoder_buffer> ret(dummy_buffer);
-
     ldpc_encoder_metrics metrics;
-    {
+
+    const auto& buffer = [this, &metrics](const bit_buffer&    bit_buf,
+                                          const configuration& config) -> const ldpc_encoder_buffer& {
       // Use scoped resource usage class to measure CPU usage of this block.
       resource_usage_utils::scoped_resource_usage rusage_tracker(metrics.measurements);
-      ret = base_encoder->encode(input, cfg);
-    }
+      return base_encoder->encode(bit_buf, config);
+    }(input, cfg);
     metrics.cb_sz = units::bits(input.size());
 
     notifier.on_new_metric(metrics);
-    return ret.get();
+    return buffer;
   }
 
 private:

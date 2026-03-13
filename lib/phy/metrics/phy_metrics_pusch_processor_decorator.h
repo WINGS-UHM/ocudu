@@ -94,7 +94,7 @@ private:
   /// the data decoding.
   void notify_metrics()
   {
-    static float invalid_sinr_and_evm = std::numeric_limits<float>::quiet_NaN();
+    static constexpr float invalid_sinr_and_evm = std::numeric_limits<float>::quiet_NaN();
 
     // The processing is considered complete if the processor has returned and notified the completion.
     uint64_t current_elapsed_data_and_return_ns = elapsed_data_and_return_ns;

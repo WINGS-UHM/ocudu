@@ -225,7 +225,7 @@ void inter_cu_handover_target_routine::operator()(
     ue->get_location_manager().configure_location_reporting(request.location_report_request_type.value());
   }
 
-  CORO_RETURN(generate_handover_resource_allocation_response(true));
+  CORO_RETURN(generate_handover_resource_allocation_response(true, request.amf_ue_id.has_value()));
 }
 
 /// \brief Processes the response of a Bearer Context Setup Request.
@@ -398,8 +398,101 @@ void inter_cu_handover_target_routine::create_srb(srb_id_t srb_id)
   ue_mng.find_du_ue(request.ue_index)->get_rrc_ue()->create_srb(srb_msg);
 }
 
+static inline void fill_ng_pdu_session_res_admitted_list(
+    std::vector<cu_cp_pdu_session_res_admitted_item>& pdu_session_res_admitted_list,
+    const slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_resource_setup_modification_item>&
+        pdu_session_resource_setup_list)
+{
+  for (const auto& pdu_session : pdu_session_resource_setup_list) {
+    cu_cp_ng_pdu_session_res_admitted_item admitted_item;
+
+    // Fill PDU session ID.
+    admitted_item.pdu_session_id = pdu_session.pdu_session_id;
+
+    // Fill HO request ack transfer.
+    // Fill DL NGU UP TNL info.
+    admitted_item.dl_ngu_up_tnl_info = pdu_session.ng_dl_up_tnl_info;
+
+    for (const auto& drb_setup_item : pdu_session.drb_setup_list_ng_ran) {
+      // Fill QoS flow setup resp list.
+      for (const auto& flow_setup_item : drb_setup_item.flow_setup_list) {
+        cu_cp_qos_flow_with_data_forwarding_item qos_flow_item;
+        // Fill QoS flow ID.
+        qos_flow_item.qos_flow_id = flow_setup_item.qos_flow_id;
+
+        admitted_item.qos_flows_setup_list.push_back(qos_flow_item);
+      }
+
+      // Fill QoS flow failed to setup list.
+      for (const auto& flow_failed_item : drb_setup_item.flow_failed_list) {
+        cu_cp_qos_flow_with_cause_item qos_flow_item;
+        // Fill QoS flow ID.
+        qos_flow_item.qos_flow_id = flow_failed_item.qos_flow_id;
+        // Fill Cause.
+        qos_flow_item.cause = e1ap_to_ngap_cause(flow_failed_item.cause);
+
+        admitted_item.qos_flows_failed_to_setup_list.push_back(qos_flow_item);
+      }
+
+      // Fill Data forwarding resp DRB list.
+      cu_cp_data_forwarding_resp_drb_item drb_item;
+      drb_item.drb_id = drb_setup_item.drb_id;
+      admitted_item.data_forwarding_info_from_target.data_forwarding_resp_drb_item_list.push_back(drb_item);
+    }
+
+    pdu_session_res_admitted_list.push_back(admitted_item);
+  }
+}
+
+static inline void fill_xn_pdu_session_res_admitted_list(
+    std::vector<cu_cp_pdu_session_res_admitted_item>& pdu_session_res_admitted_list,
+    const slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_resource_setup_modification_item>&
+        pdu_session_resource_setup_list)
+{
+  for (const auto& pdu_session : pdu_session_resource_setup_list) {
+    cu_cp_xn_pdu_session_res_admitted_item admitted_item;
+
+    // Fill PDU session ID.
+    admitted_item.pdu_session_id = pdu_session.pdu_session_id;
+
+    // Fill HO request ack transfer.
+    // Fill DL NGU UP TNL info.
+    admitted_item.dl_ngu_up_tnl_info = pdu_session.ng_dl_up_tnl_info;
+
+    admitted_item.data_forwarding_info_from_target.emplace();
+    for (const auto& drb_setup_item : pdu_session.drb_setup_list_ng_ran) {
+      // Fill QoS flow setup resp list.
+      for (const auto& flow_setup_item : drb_setup_item.flow_setup_list) {
+        cu_cp_qos_flow_with_data_forwarding_item qos_flow_item;
+        // Fill QoS flow ID.
+        qos_flow_item.qos_flow_id = flow_setup_item.qos_flow_id;
+
+        admitted_item.qos_flows_setup_list.push_back(qos_flow_item);
+      }
+
+      // Fill QoS flow failed to setup list.
+      for (const auto& flow_failed_item : drb_setup_item.flow_failed_list) {
+        cu_cp_qos_flow_with_cause_item qos_flow_item;
+        // Fill QoS flow ID.
+        qos_flow_item.qos_flow_id = flow_failed_item.qos_flow_id;
+        // Fill Cause.
+        qos_flow_item.cause = e1ap_to_ngap_cause(flow_failed_item.cause);
+
+        admitted_item.qos_flows_failed_to_setup_list.push_back(qos_flow_item);
+      }
+
+      // Fill Data forwarding resp DRB list.
+      cu_cp_data_forwarding_resp_drb_item drb_item;
+      drb_item.drb_id = drb_setup_item.drb_id;
+      admitted_item.data_forwarding_info_from_target->data_forwarding_resp_drb_item_list.push_back(drb_item);
+    }
+
+    pdu_session_res_admitted_list.push_back(admitted_item);
+  }
+}
+
 cu_cp_handover_resource_allocation_response
-inter_cu_handover_target_routine::generate_handover_resource_allocation_response(bool success)
+inter_cu_handover_target_routine::generate_handover_resource_allocation_response(bool success, bool is_xn_ho)
 {
   if (success) {
     cu_cp_handover_request_ack ho_request_ack;
@@ -414,62 +507,29 @@ inter_cu_handover_target_routine::generate_handover_resource_allocation_response
     ue->get_up_resource_manager().apply_config_update(result);
 
     // Fill handover request ACK.
-    // Fill PDU session res admitted list.
-    for (const auto& pdu_session : bearer_context_setup_response.pdu_session_resource_setup_list) {
-      // TODO: Add support for XN PDU session res admitted item.
-      cu_cp_ng_pdu_session_res_admitted_item admitted_item;
-
-      // Fill PDU session ID.
-      admitted_item.pdu_session_id = pdu_session.pdu_session_id;
-
-      // Fill HO request ack transfer.
-      // Fill DL NGU UP TNL info.
-      admitted_item.dl_ngu_up_tnl_info = pdu_session.ng_dl_up_tnl_info;
-
-      for (const auto& drb_setup_item : pdu_session.drb_setup_list_ng_ran) {
-        // Fill QoS flow setup resp list.
-        for (const auto& flow_setup_item : drb_setup_item.flow_setup_list) {
-          cu_cp_qos_flow_with_data_forwarding_item qos_flow_item;
-          // Fill QoS flow ID.
-          qos_flow_item.qos_flow_id = flow_setup_item.qos_flow_id;
-
-          admitted_item.qos_flows_setup_list.push_back(qos_flow_item);
-        }
-
-        // Fill QoS flow failed to setup list.
-        for (const auto& flow_failed_item : drb_setup_item.flow_failed_list) {
-          cu_cp_qos_flow_with_cause_item qos_flow_item;
-          // Fill QoS flow ID.
-          qos_flow_item.qos_flow_id = flow_failed_item.qos_flow_id;
-          // Fill Cause.
-          qos_flow_item.cause = e1ap_to_ngap_cause(flow_failed_item.cause);
-
-          admitted_item.qos_flows_failed_to_setup_list.push_back(qos_flow_item);
-        }
-
-        // Fill Data forwarding resp DRB list.
-        cu_cp_data_forwarding_resp_drb_item drb_item;
-        drb_item.drb_id = drb_setup_item.drb_id;
-        admitted_item.data_forwarding_info_from_target.data_forwarding_resp_drb_item_list.push_back(drb_item);
-      }
-
-      ho_request_ack.pdu_session_res_admitted_list.push_back(admitted_item);
+    // > Fill PDU session res admitted list.
+    if (is_xn_ho) {
+      fill_xn_pdu_session_res_admitted_list(ho_request_ack.pdu_session_res_admitted_list,
+                                            bearer_context_setup_response.pdu_session_resource_setup_list);
+    } else {
+      fill_ng_pdu_session_res_admitted_list(ho_request_ack.pdu_session_res_admitted_list,
+                                            bearer_context_setup_response.pdu_session_resource_setup_list);
     }
 
-    // Fill PDU session res failed to setup list HO ack.
+    // > Fill PDU session res failed to setup list HO ack.
     for (const auto& pdu_session : bearer_context_setup_response.pdu_session_resource_failed_list) {
       cu_cp_pdu_session_with_cause_item failed_item;
 
-      // Fill PDU session ID.
+      // >> Fill PDU session ID.
       failed_item.pdu_session_id = pdu_session.pdu_session_id;
 
-      // Fill NGAP HO res alloc unsuccessful transfer.
-      // Fill Cause.
+      // >> Fill NGAP HO res alloc unsuccessful transfer.
+      // >> Fill Cause.
       failed_item.cause = ngap_cause_t{cause_protocol_t::unspecified};
 
       ho_request_ack.pdu_session_failed_to_setup_list.push_back(failed_item);
     }
-    // Fill Target to source transparent container.
+    // > Fill Target to source transparent container.
     ho_request_ack.rrc_handover_command = handover_command_pdu.copy();
 
     return ho_request_ack;

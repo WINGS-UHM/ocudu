@@ -72,6 +72,16 @@ xnc_peer_index_t xnap_repository::find_xnap(const transport_layer_address& peer_
   return it->first;
 }
 
+xnap_interface* xnap_repository::find_xnap(const gnb_id_t& peer_gnb_id)
+{
+  for (const auto& xn : xnap_db) {
+    if (xn.second.xnap->has_peer_gnb_id(peer_gnb_id)) {
+      return xn.second.xnap.get();
+    }
+  }
+  return nullptr;
+}
+
 void xnap_repository::connect_association(xnc_peer_index_t idx, std::unique_ptr<xnap_message_notifier> sender_notifier)
 {
   auto it = xnap_db.find(idx);

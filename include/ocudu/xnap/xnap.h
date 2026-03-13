@@ -7,6 +7,7 @@
 #include "xnap_message_notifier.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/cu_cp/inter_cu_handover_messages.h"
+#include "ocudu/ran/gnb_id.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/xnap/xnap_handover.h"
 
@@ -138,6 +139,9 @@ public:
   virtual ~xnap_interface() = default;
 
   virtual xnap_ue_context_removal_handler& get_xnap_ue_context_removal_handler() = 0;
+
+  /// \brief Check if the connected XN-C peer has the given GNB ID.
+  virtual bool has_peer_gnb_id(const gnb_id_t& peer_gnb_id) const = 0;
 };
 
 } // namespace ocudu::ocucp

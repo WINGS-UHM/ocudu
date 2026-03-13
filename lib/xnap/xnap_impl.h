@@ -8,6 +8,7 @@
 #include "xnap_context.h"
 #include "xnap_tx_pdu_notifier_with_log.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
+#include "ocudu/ran/gnb_id.h"
 #include "ocudu/xnap/xnap.h"
 #include "ocudu/xnap/xnap_configuration.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -46,6 +47,11 @@ public:
   bool                                        handle_ue_context_release_required(ue_index_t ue_index) override;
 
   xnap_ue_context_removal_handler& get_xnap_ue_context_removal_handler() override { return *this; }
+
+  bool has_peer_gnb_id(const gnb_id_t& peer_gnb_id) const override
+  {
+    return peer_ctxt.has_value() && peer_ctxt->gnb_id == peer_gnb_id;
+  }
 
 private:
   /// \brief Notify about the reception of an initiating message.

@@ -35,15 +35,16 @@ protected:
 
   ~sctp_network_server_peer_test() override { ocudulog::flush(); }
 
-  sctp_network_server_config server_cfg1{{}, broker1, io_rx_executor, assoc_factory1};
-  sctp_network_server_config server_cfg2{{}, broker2, io_rx_executor, assoc_factory2};
-  sctp_network_server_config server_cfg3{{}, broker3, io_rx_executor, assoc_factory3};
+  sctp_network_server_config server_cfg1{{}, broker1, io_rx_executor, app_executor, assoc_factory1};
+  sctp_network_server_config server_cfg2{{}, broker2, io_rx_executor, app_executor, assoc_factory2};
+  sctp_network_server_config server_cfg3{{}, broker3, io_rx_executor, app_executor, assoc_factory3};
 
   dummy_io_broker broker1;
   dummy_io_broker broker2;
   dummy_io_broker broker3;
 
   inline_task_executor                 io_rx_executor;
+  inline_task_executor                 app_executor;
   std::unique_ptr<sctp_network_server> server1;
   std::unique_ptr<sctp_network_server> server2;
   std::unique_ptr<sctp_network_server> server3;

@@ -117,9 +117,10 @@ protected:
 
   void trigger_broker() { broker.handle_receive(); }
 
-  sctp_network_server_config server_cfg{{}, broker, io_rx_executor, assoc_factory};
+  sctp_network_server_config server_cfg{{}, broker, io_rx_executor, app_executor, assoc_factory};
 
   inline_task_executor                 io_rx_executor;
+  inline_task_executor                 app_executor;
   std::unique_ptr<sctp_network_server> server;
   dummy_sctp_client                    client;
 };

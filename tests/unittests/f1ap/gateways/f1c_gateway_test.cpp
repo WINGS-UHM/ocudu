@@ -61,8 +61,9 @@ public:
     pcap.enabled = pcap_enabled;
 
     if (use_sctp) {
-      broker    = create_io_broker(io_broker_type::epoll);
-      connector = create_f1c_local_connector(f1c_local_sctp_connector_config{pcap, *broker, inline_executor});
+      broker = create_io_broker(io_broker_type::epoll);
+      connector =
+          create_f1c_local_connector(f1c_local_sctp_connector_config{pcap, *broker, inline_executor, ctrl_executor});
     } else {
       connector = create_f1c_local_connector(f1c_local_connector_config{pcap});
     }
@@ -88,6 +89,7 @@ public:
   }
 
   inline_task_executor                 inline_executor;
+  inline_task_executor                 ctrl_executor;
   std::unique_ptr<io_broker>           broker;
   dummy_dlt_pcap                       pcap;
   std::unique_ptr<f1c_local_connector> connector;

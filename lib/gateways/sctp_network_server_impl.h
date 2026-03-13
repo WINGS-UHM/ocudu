@@ -20,6 +20,7 @@ class sctp_network_server_impl : public sctp_network_server, public sctp_network
   explicit sctp_network_server_impl(const sctp_network_gateway_config& sctp_cfg,
                                     io_broker&                         broker,
                                     task_executor&                     io_rx_executor,
+                                    task_executor&                     app_exec,
                                     sctp_network_association_factory&  assoc_factory);
 
 public:
@@ -28,6 +29,7 @@ public:
   static std::unique_ptr<sctp_network_server> create(const sctp_network_gateway_config& sctp_cfg,
                                                      io_broker&                         broker,
                                                      task_executor&                     io_rx_executor,
+                                                     task_executor&                     app_exec,
                                                      sctp_network_association_factory&  assoc_factory);
 
   int get_socket_fd() const override { return socket.fd().value(); }
@@ -79,6 +81,7 @@ private:
 
   io_broker&                        broker;
   task_executor&                    io_rx_executor;
+  [[maybe_unused]] task_executor&   app_exec; // TODO: remove maybe_unused
   sctp_network_association_factory& assoc_factory;
 
   association_map associations;

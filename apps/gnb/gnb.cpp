@@ -399,8 +399,11 @@ int main(int argc, char** argv)
     }
     xnc_sctp_cfg.bind_port = XNAP_PORT;
     xnc_sctp_cfg.ppid      = XNAP_PPID;
-    xnc_sctp_gateway_config xnc_server_cfg(
-        {xnc_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().xnc_rx_executor(), *cu_cp_dlt_pcaps.xnap});
+    xnc_sctp_gateway_config xnc_server_cfg({xnc_sctp_cfg,
+                                            *epoll_broker,
+                                            workers.get_cu_cp_executor_mapper().xnc_rx_executor(),
+                                            workers.get_cu_cp_executor_mapper().ctrl_executor(),
+                                            *cu_cp_dlt_pcaps.xnap});
 
     xnc_gw = create_xnc_connection_gateway(xnc_server_cfg);
   }

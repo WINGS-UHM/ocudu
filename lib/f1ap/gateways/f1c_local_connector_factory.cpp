@@ -103,7 +103,8 @@ public:
     sctp.bind_addresses = {"127.0.0.1"};
     // Use any bind port available.
     sctp.bind_port = 0;
-    server = create_f1c_gateway_server(f1c_cu_sctp_gateway_config{sctp, broker, cfg.io_rx_executor, pcap_writer});
+    server         = create_f1c_gateway_server(
+        f1c_cu_sctp_gateway_config{sctp, broker, cfg.io_rx_executor, cfg.ctrl_exec, pcap_writer});
   }
 
   void attach_cu_cp(ocucp::cu_cp_f1c_handler& cu_f1c_handler_) override

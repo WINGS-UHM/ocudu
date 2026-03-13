@@ -46,7 +46,7 @@ protected:
     // simulate RIC side
     ric_rx_e2_sniffer = std::make_unique<e2_sniffer>(*this);
     ric_pcap          = std::make_unique<dummy_e2ap_pcap>();
-    ric_sctp_gateway_config ric_server_sctp_cfg{{}, *ric_broker, rx_executor, *ric_pcap};
+    ric_sctp_gateway_config ric_server_sctp_cfg{{}, *ric_broker, rx_executor, ctrl_executor, *ric_pcap};
     ric_server_sctp_cfg.sctp.if_name        = "E2";
     ric_server_sctp_cfg.sctp.ppid           = NGAP_PPID;
     ric_server_sctp_cfg.sctp.bind_addresses = {"127.0.0.1"};
@@ -206,6 +206,7 @@ protected:
   };
 
   inline_task_executor                              rx_executor;
+  inline_task_executor                              ctrl_executor;
   std::unique_ptr<io_broker>                        ric_broker;
   std::unique_ptr<io_broker>                        agent_broker;
   std::unique_ptr<sctp_network_association_factory> assoc_factory;

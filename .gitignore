@@ -8,3 +8,5 @@
 
 /utils/gdb/python/ocudu/__pycache__
 build
+*csi_grid*
+*venv*

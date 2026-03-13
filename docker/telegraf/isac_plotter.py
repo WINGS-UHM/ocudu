@@ -9,6 +9,7 @@ from time import sleep
 import matplotlib.pyplot as plt
 import numpy as np
 import websocket
+import pickle
 
 # Check for WS_URL
 if os.environ.get("WS_URL") is None:
@@ -19,10 +20,11 @@ plt.ion()
 CONST_WINDOW = 2000
 CSI_TIME_WINDOW = 500
 CSI_INDEX = 10
-
+CSI_GRID = []
 # If no new data arrives for this many websocket reconnect failures, stop trying.
 MAX_RECONNECTS = 1
 RECONNECT_DELAY_SEC = 1.0
+CSI_BIN_PATH = "csi_grid.pkl"
 
 # Rolling buffers
 const_i_buf = deque(maxlen=CONST_WINDOW)
@@ -165,6 +167,7 @@ def update_plot(metric):
     n_csi = min(len(csi_real), len(csi_imag))
     if n_csi > 0:
         H = csi_real[:n_csi] + 1j * csi_imag[:n_csi]
+        CSI_GRID.append(H.tolist())
 
         # Guard CSI index
         idx = min(max(CSI_INDEX, 0), n_csi - 1)
@@ -236,5 +239,16 @@ if __name__ == "__main__":
         # Final draw and keep the last buffered points visible.
         redraw_from_buffers()
         plt.ioff()
+        max_re = 0
+        min_re = 1000000000
+        for i in range(len(CSI_GRID)):
+            if len(CSI_GRID[i]) > max_re:
+                max_re = len(CSI_GRID[i])
+            if len(CSI_GRID[i]) < min_re:
+                min_re = len(CSI_GRID[i])
+        print(f"\033[1;32m[INFO] Total CSI snapshots: {len(CSI_GRID)}\033[0m")
+        with open(CSI_BIN_PATH, "wb") as f:
+            pickle.dump(CSI_GRID, f)
+        print(f"\033[1;32m[INFO] Saving CSI data to {CSI_BIN_PATH}, Max RE={max_re}, Min RE={min_re}\033[0m")
         print("\033[1;32m[INFO] Plotting Remaining Data, Close window to exit.\033[0m")
         plt.show()

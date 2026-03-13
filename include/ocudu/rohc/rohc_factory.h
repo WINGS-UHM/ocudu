@@ -15,10 +15,10 @@ struct rohc_config;
 class rohc_factory
 {
 public:
-  virtual ~rohc_factory()             = default;
-  rohc_factory()                      = default;
-  rohc_factory(const rohc_factory&)   = delete;
-  void operator=(const rohc_factory&) = delete;
+  virtual ~rohc_factory()                      = default;
+  rohc_factory()                               = default;
+  rohc_factory(const rohc_factory&)            = delete;
+  rohc_factory& operator=(const rohc_factory&) = delete;
 
   virtual std::unique_ptr<rohc_compressor>   create_rohc_compressor(const rohc_config& cfg) const   = 0;
   virtual std::unique_ptr<rohc_decompressor> create_rohc_decompressor(const rohc_config& cfg) const = 0;

@@ -36,12 +36,12 @@ namespace ocudu {
 class gtpu_tunnel_common_rx_upper_layer_interface
 {
 public:
-  gtpu_tunnel_common_rx_upper_layer_interface()                                                               = default;
-  virtual ~gtpu_tunnel_common_rx_upper_layer_interface()                                                      = default;
-  gtpu_tunnel_common_rx_upper_layer_interface(const gtpu_tunnel_common_rx_upper_layer_interface&)             = delete;
-  gtpu_tunnel_common_rx_upper_layer_interface& operator=(const gtpu_tunnel_common_rx_upper_layer_interface&)  = delete;
-  gtpu_tunnel_common_rx_upper_layer_interface(const gtpu_tunnel_common_rx_upper_layer_interface&&)            = delete;
-  gtpu_tunnel_common_rx_upper_layer_interface& operator=(const gtpu_tunnel_common_rx_upper_layer_interface&&) = delete;
+  gtpu_tunnel_common_rx_upper_layer_interface()                                                              = default;
+  virtual ~gtpu_tunnel_common_rx_upper_layer_interface()                                                     = default;
+  gtpu_tunnel_common_rx_upper_layer_interface(const gtpu_tunnel_common_rx_upper_layer_interface&)            = delete;
+  gtpu_tunnel_common_rx_upper_layer_interface& operator=(const gtpu_tunnel_common_rx_upper_layer_interface&) = delete;
+  gtpu_tunnel_common_rx_upper_layer_interface(gtpu_tunnel_common_rx_upper_layer_interface&&)                 = delete;
+  gtpu_tunnel_common_rx_upper_layer_interface& operator=(gtpu_tunnel_common_rx_upper_layer_interface&&)      = delete;
 
   /// \brief Interface for the IO gateway to pass PDUs into the GTP-U
   /// \param pdu PDU to be handled

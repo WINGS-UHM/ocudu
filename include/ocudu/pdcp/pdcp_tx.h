@@ -36,12 +36,12 @@ namespace ocudu {
 class pdcp_tx_lower_notifier
 {
 public:
-  pdcp_tx_lower_notifier()                                          = default;
-  virtual ~pdcp_tx_lower_notifier()                                 = default;
-  pdcp_tx_lower_notifier(const pdcp_tx_lower_notifier&)             = delete;
-  pdcp_tx_lower_notifier& operator=(const pdcp_tx_lower_notifier&)  = delete;
-  pdcp_tx_lower_notifier(const pdcp_tx_lower_notifier&&)            = delete;
-  pdcp_tx_lower_notifier& operator=(const pdcp_tx_lower_notifier&&) = delete;
+  pdcp_tx_lower_notifier()                                         = default;
+  virtual ~pdcp_tx_lower_notifier()                                = default;
+  pdcp_tx_lower_notifier(const pdcp_tx_lower_notifier&)            = delete;
+  pdcp_tx_lower_notifier& operator=(const pdcp_tx_lower_notifier&) = delete;
+  pdcp_tx_lower_notifier(pdcp_tx_lower_notifier&&)                 = delete;
+  pdcp_tx_lower_notifier& operator=(pdcp_tx_lower_notifier&&)      = delete;
 
   virtual void on_new_pdu(byte_buffer pdu, bool is_retx) = 0; ///< Pass PDCP PDU to the lower layers.
   virtual void on_discard_pdu(uint32_t pdcp_sn)          = 0; ///< Order lower layers to discard PDU
@@ -56,12 +56,12 @@ public:
 class pdcp_tx_lower_interface
 {
 public:
-  pdcp_tx_lower_interface()                                           = default;
-  virtual ~pdcp_tx_lower_interface()                                  = default;
-  pdcp_tx_lower_interface(const pdcp_tx_lower_interface&)             = delete;
-  pdcp_tx_lower_interface& operator=(const pdcp_tx_lower_interface&)  = delete;
-  pdcp_tx_lower_interface(const pdcp_tx_lower_interface&&)            = delete;
-  pdcp_tx_lower_interface& operator=(const pdcp_tx_lower_interface&&) = delete;
+  pdcp_tx_lower_interface()                                          = default;
+  virtual ~pdcp_tx_lower_interface()                                 = default;
+  pdcp_tx_lower_interface(const pdcp_tx_lower_interface&)            = delete;
+  pdcp_tx_lower_interface& operator=(const pdcp_tx_lower_interface&) = delete;
+  pdcp_tx_lower_interface(pdcp_tx_lower_interface&&)                 = delete;
+  pdcp_tx_lower_interface& operator=(pdcp_tx_lower_interface&&)      = delete;
 
   /// \brief Handle desired buffer size from NR-U.
   /// This informs the PDCP of how many bytes it can TX without overflowing the RLC SDU queue.
@@ -114,12 +114,12 @@ public:
 class pdcp_tx_upper_data_interface
 {
 public:
-  pdcp_tx_upper_data_interface()                                                = default;
-  virtual ~pdcp_tx_upper_data_interface()                                       = default;
-  pdcp_tx_upper_data_interface(const pdcp_tx_upper_data_interface&)             = delete;
-  pdcp_tx_upper_data_interface& operator=(const pdcp_tx_upper_data_interface&)  = delete;
-  pdcp_tx_upper_data_interface(const pdcp_tx_upper_data_interface&&)            = delete;
-  pdcp_tx_upper_data_interface& operator=(const pdcp_tx_upper_data_interface&&) = delete;
+  pdcp_tx_upper_data_interface()                                               = default;
+  virtual ~pdcp_tx_upper_data_interface()                                      = default;
+  pdcp_tx_upper_data_interface(const pdcp_tx_upper_data_interface&)            = delete;
+  pdcp_tx_upper_data_interface& operator=(const pdcp_tx_upper_data_interface&) = delete;
+  pdcp_tx_upper_data_interface(pdcp_tx_upper_data_interface&&)                 = delete;
+  pdcp_tx_upper_data_interface& operator=(pdcp_tx_upper_data_interface&&)      = delete;
 
   /// Handle the incoming SDU.
   virtual void handle_sdu(byte_buffer sdu) = 0;
@@ -131,12 +131,12 @@ public:
 class pdcp_tx_upper_control_interface
 {
 public:
-  pdcp_tx_upper_control_interface()                                                   = default;
-  virtual ~pdcp_tx_upper_control_interface()                                          = default;
-  pdcp_tx_upper_control_interface(const pdcp_tx_upper_control_interface&)             = delete;
-  pdcp_tx_upper_control_interface& operator=(const pdcp_tx_upper_control_interface&)  = delete;
-  pdcp_tx_upper_control_interface(const pdcp_tx_upper_control_interface&&)            = delete;
-  pdcp_tx_upper_control_interface& operator=(const pdcp_tx_upper_control_interface&&) = delete;
+  pdcp_tx_upper_control_interface()                                                  = default;
+  virtual ~pdcp_tx_upper_control_interface()                                         = default;
+  pdcp_tx_upper_control_interface(const pdcp_tx_upper_control_interface&)            = delete;
+  pdcp_tx_upper_control_interface& operator=(const pdcp_tx_upper_control_interface&) = delete;
+  pdcp_tx_upper_control_interface(pdcp_tx_upper_control_interface&&)                 = delete;
+  pdcp_tx_upper_control_interface& operator=(pdcp_tx_upper_control_interface&&)      = delete;
 
   /// Setup security
   virtual void configure_security(security::sec_128_as_config sec_cfg,
@@ -183,12 +183,12 @@ public:
 class pdcp_tx_upper_control_notifier
 {
 public:
-  pdcp_tx_upper_control_notifier()                                                  = default;
-  virtual ~pdcp_tx_upper_control_notifier()                                         = default;
-  pdcp_tx_upper_control_notifier(const pdcp_tx_upper_control_notifier&)             = delete;
-  pdcp_tx_upper_control_notifier& operator=(const pdcp_tx_upper_control_notifier&)  = delete;
-  pdcp_tx_upper_control_notifier(const pdcp_tx_upper_control_notifier&&)            = delete;
-  pdcp_tx_upper_control_notifier& operator=(const pdcp_tx_upper_control_notifier&&) = delete;
+  pdcp_tx_upper_control_notifier()                                                 = default;
+  virtual ~pdcp_tx_upper_control_notifier()                                        = default;
+  pdcp_tx_upper_control_notifier(const pdcp_tx_upper_control_notifier&)            = delete;
+  pdcp_tx_upper_control_notifier& operator=(const pdcp_tx_upper_control_notifier&) = delete;
+  pdcp_tx_upper_control_notifier(pdcp_tx_upper_control_notifier&&)                 = delete;
+  pdcp_tx_upper_control_notifier& operator=(pdcp_tx_upper_control_notifier&&)      = delete;
 
   virtual void on_protocol_failure()  = 0;
   virtual void on_max_count_reached() = 0;

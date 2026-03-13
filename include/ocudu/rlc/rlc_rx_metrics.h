@@ -94,12 +94,12 @@ struct rlc_rx_metrics {
 class rlc_rx_metrics_interface
 {
 public:
-  rlc_rx_metrics_interface()                                            = default;
-  virtual ~rlc_rx_metrics_interface()                                   = default;
-  rlc_rx_metrics_interface(const rlc_rx_metrics_interface&)             = delete;
-  rlc_rx_metrics_interface& operator=(const rlc_rx_metrics_interface&)  = delete;
-  rlc_rx_metrics_interface(const rlc_rx_metrics_interface&&)            = delete;
-  rlc_rx_metrics_interface& operator=(const rlc_rx_metrics_interface&&) = delete;
+  rlc_rx_metrics_interface()                                           = default;
+  virtual ~rlc_rx_metrics_interface()                                  = default;
+  rlc_rx_metrics_interface(const rlc_rx_metrics_interface&)            = delete;
+  rlc_rx_metrics_interface& operator=(const rlc_rx_metrics_interface&) = delete;
+  rlc_rx_metrics_interface(rlc_rx_metrics_interface&&)                 = delete;
+  rlc_rx_metrics_interface& operator=(rlc_rx_metrics_interface&&)      = delete;
 
   virtual rlc_rx_metrics get_metrics()           = 0;
   virtual rlc_rx_metrics get_and_reset_metrics() = 0;

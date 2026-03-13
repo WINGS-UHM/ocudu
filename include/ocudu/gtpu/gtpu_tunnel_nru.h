@@ -15,12 +15,12 @@ namespace ocudu {
 class gtpu_tunnel_nru
 {
 public:
-  gtpu_tunnel_nru()                                   = default;
-  virtual ~gtpu_tunnel_nru()                          = default;
-  gtpu_tunnel_nru(const gtpu_tunnel_nru&)             = delete;
-  gtpu_tunnel_nru& operator=(const gtpu_tunnel_nru&)  = delete;
-  gtpu_tunnel_nru(const gtpu_tunnel_nru&&)            = delete;
-  gtpu_tunnel_nru& operator=(const gtpu_tunnel_nru&&) = delete;
+  gtpu_tunnel_nru()                                  = default;
+  virtual ~gtpu_tunnel_nru()                         = default;
+  gtpu_tunnel_nru(const gtpu_tunnel_nru&)            = delete;
+  gtpu_tunnel_nru& operator=(const gtpu_tunnel_nru&) = delete;
+  gtpu_tunnel_nru(gtpu_tunnel_nru&&)                 = delete;
+  gtpu_tunnel_nru& operator=(gtpu_tunnel_nru&&)      = delete;
 
   virtual gtpu_tunnel_common_rx_upper_layer_interface* get_rx_upper_layer_interface() = 0;
   virtual gtpu_tunnel_nru_tx_lower_layer_interface*    get_tx_lower_layer_interface() = 0;

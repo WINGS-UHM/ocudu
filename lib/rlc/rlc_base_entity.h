@@ -34,11 +34,11 @@ public:
     metrics_coll(gnb_du_id_, ue_index, rb_id_, metrics_period_, rlc_metrics_notifier_, ue_executor_)
   {
   }
-  ~rlc_base_entity() override                         = default;
-  rlc_base_entity(const rlc_base_entity&)             = delete;
-  rlc_base_entity& operator=(const rlc_base_entity&)  = delete;
-  rlc_base_entity(const rlc_base_entity&&)            = delete;
-  rlc_base_entity& operator=(const rlc_base_entity&&) = delete;
+  ~rlc_base_entity() override                        = default;
+  rlc_base_entity(const rlc_base_entity&)            = delete;
+  rlc_base_entity& operator=(const rlc_base_entity&) = delete;
+  rlc_base_entity(rlc_base_entity&&)                 = delete;
+  rlc_base_entity& operator=(rlc_base_entity&&)      = delete;
 
   void stop() final
   {

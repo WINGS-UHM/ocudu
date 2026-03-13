@@ -36,12 +36,12 @@ namespace ocudu {
 class gtpu_tunnel_nru_rx_lower_layer_notifier
 {
 public:
-  gtpu_tunnel_nru_rx_lower_layer_notifier()                                                           = default;
-  virtual ~gtpu_tunnel_nru_rx_lower_layer_notifier()                                                  = default;
-  gtpu_tunnel_nru_rx_lower_layer_notifier(const gtpu_tunnel_nru_rx_lower_layer_notifier&)             = delete;
-  gtpu_tunnel_nru_rx_lower_layer_notifier& operator=(const gtpu_tunnel_nru_rx_lower_layer_notifier&)  = delete;
-  gtpu_tunnel_nru_rx_lower_layer_notifier(const gtpu_tunnel_nru_rx_lower_layer_notifier&&)            = delete;
-  gtpu_tunnel_nru_rx_lower_layer_notifier& operator=(const gtpu_tunnel_nru_rx_lower_layer_notifier&&) = delete;
+  gtpu_tunnel_nru_rx_lower_layer_notifier()                                                          = default;
+  virtual ~gtpu_tunnel_nru_rx_lower_layer_notifier()                                                 = default;
+  gtpu_tunnel_nru_rx_lower_layer_notifier(const gtpu_tunnel_nru_rx_lower_layer_notifier&)            = delete;
+  gtpu_tunnel_nru_rx_lower_layer_notifier& operator=(const gtpu_tunnel_nru_rx_lower_layer_notifier&) = delete;
+  gtpu_tunnel_nru_rx_lower_layer_notifier(gtpu_tunnel_nru_rx_lower_layer_notifier&&)                 = delete;
+  gtpu_tunnel_nru_rx_lower_layer_notifier& operator=(gtpu_tunnel_nru_rx_lower_layer_notifier&&)      = delete;
 
   /// \brief Interface for the GTP-U to pass a SDU (i.e. NR-U DL message) into the lower layer.
   /// \param dl_message NR-U DL message with optional T-PDU.

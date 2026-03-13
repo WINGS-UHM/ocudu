@@ -28,10 +28,10 @@ public:
   ~executor_metrics_backend() override;
 
   /// Delete copy and move constructors, a single object is used application-wise.
-  executor_metrics_backend(const executor_metrics_backend& other) = delete;
-  executor_metrics_backend(executor_metrics_backend&& other)      = delete;
-  void operator=(const executor_metrics_backend& other)           = delete;
-  void operator=(executor_metrics_backend&& other)                = delete;
+  executor_metrics_backend(const executor_metrics_backend& other)            = delete;
+  executor_metrics_backend(executor_metrics_backend&& other)                 = delete;
+  executor_metrics_backend& operator=(const executor_metrics_backend& other) = delete;
+  executor_metrics_backend& operator=(executor_metrics_backend&& other)      = delete;
 
   // See interface for documentation.
   executor_metrics_channel& add_channel(const std::string& exec_name) override;

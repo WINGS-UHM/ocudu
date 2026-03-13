@@ -37,12 +37,12 @@ namespace ocudu {
 class gtpu_tunnel_common_tx_upper_layer_notifier
 {
 public:
-  gtpu_tunnel_common_tx_upper_layer_notifier()                                                              = default;
-  virtual ~gtpu_tunnel_common_tx_upper_layer_notifier()                                                     = default;
-  gtpu_tunnel_common_tx_upper_layer_notifier(const gtpu_tunnel_common_tx_upper_layer_notifier&)             = delete;
-  gtpu_tunnel_common_tx_upper_layer_notifier& operator=(const gtpu_tunnel_common_tx_upper_layer_notifier&)  = delete;
-  gtpu_tunnel_common_tx_upper_layer_notifier(const gtpu_tunnel_common_tx_upper_layer_notifier&&)            = delete;
-  gtpu_tunnel_common_tx_upper_layer_notifier& operator=(const gtpu_tunnel_common_tx_upper_layer_notifier&&) = delete;
+  gtpu_tunnel_common_tx_upper_layer_notifier()                                                             = default;
+  virtual ~gtpu_tunnel_common_tx_upper_layer_notifier()                                                    = default;
+  gtpu_tunnel_common_tx_upper_layer_notifier(const gtpu_tunnel_common_tx_upper_layer_notifier&)            = delete;
+  gtpu_tunnel_common_tx_upper_layer_notifier& operator=(const gtpu_tunnel_common_tx_upper_layer_notifier&) = delete;
+  gtpu_tunnel_common_tx_upper_layer_notifier(gtpu_tunnel_common_tx_upper_layer_notifier&&)                 = delete;
+  gtpu_tunnel_common_tx_upper_layer_notifier& operator=(gtpu_tunnel_common_tx_upper_layer_notifier&&)      = delete;
 
   /// \brief Interface for the GTP-U to pass PDUs to the IO gateway
   /// \param sdu PDU to be transmitted.

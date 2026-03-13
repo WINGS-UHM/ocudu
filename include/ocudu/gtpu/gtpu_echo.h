@@ -14,12 +14,12 @@ namespace ocudu {
 class gtpu_echo
 {
 public:
-  gtpu_echo()                             = default;
-  virtual ~gtpu_echo()                    = default;
-  gtpu_echo(const gtpu_echo&)             = delete;
-  gtpu_echo& operator=(const gtpu_echo&)  = delete;
-  gtpu_echo(const gtpu_echo&&)            = delete;
-  gtpu_echo& operator=(const gtpu_echo&&) = delete;
+  gtpu_echo()                            = default;
+  virtual ~gtpu_echo()                   = default;
+  gtpu_echo(const gtpu_echo&)            = delete;
+  gtpu_echo& operator=(const gtpu_echo&) = delete;
+  gtpu_echo(gtpu_echo&&)                 = delete;
+  gtpu_echo& operator=(gtpu_echo&&)      = delete;
 
   virtual gtpu_tunnel_common_rx_upper_layer_interface* get_rx_upper_layer_interface() = 0;
 };

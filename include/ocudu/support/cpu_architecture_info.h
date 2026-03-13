@@ -41,10 +41,10 @@ class cpu_architecture_info
   cpu_architecture_info() = default;
 
 public:
-  cpu_architecture_info(const cpu_architecture_info& other) = delete;
-  cpu_architecture_info(cpu_architecture_info&& other)      = delete;
-  void operator=(const cpu_architecture_info& other)        = delete;
-  void operator=(cpu_architecture_info&& other)             = delete;
+  cpu_architecture_info(const cpu_architecture_info& other)            = delete;
+  cpu_architecture_info(cpu_architecture_info&& other)                 = delete;
+  cpu_architecture_info& operator=(const cpu_architecture_info& other) = delete;
+  cpu_architecture_info& operator=(cpu_architecture_info&& other)      = delete;
 
   /// Returns reference to a static instance of this class.
   static cpu_architecture_info& get()

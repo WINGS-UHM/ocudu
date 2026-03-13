@@ -27,7 +27,7 @@ public:
                                   du_ran_resource_manager_impl&               parent_,
                                   du_ue_index_t                               ue_index_);
   du_ue_ran_resource_updater_impl(const du_ue_ran_resource_updater_impl&)            = delete;
-  du_ue_ran_resource_updater_impl(const du_ue_ran_resource_updater_impl&&)           = delete;
+  du_ue_ran_resource_updater_impl(du_ue_ran_resource_updater_impl&&)                 = delete;
   du_ue_ran_resource_updater_impl& operator=(const du_ue_ran_resource_updater_impl&) = delete;
   du_ue_ran_resource_updater_impl& operator=(du_ue_ran_resource_updater_impl&&)      = delete;
   ~du_ue_ran_resource_updater_impl() override;

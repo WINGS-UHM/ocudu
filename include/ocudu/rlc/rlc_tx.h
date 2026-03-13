@@ -61,12 +61,12 @@ struct rlc_sdu {
 class rlc_tx_upper_layer_data_interface
 {
 public:
-  rlc_tx_upper_layer_data_interface()                                                     = default;
-  virtual ~rlc_tx_upper_layer_data_interface()                                            = default;
-  rlc_tx_upper_layer_data_interface(const rlc_tx_upper_layer_data_interface&)             = delete;
-  rlc_tx_upper_layer_data_interface& operator=(const rlc_tx_upper_layer_data_interface&)  = delete;
-  rlc_tx_upper_layer_data_interface(const rlc_tx_upper_layer_data_interface&&)            = delete;
-  rlc_tx_upper_layer_data_interface& operator=(const rlc_tx_upper_layer_data_interface&&) = delete;
+  rlc_tx_upper_layer_data_interface()                                                    = default;
+  virtual ~rlc_tx_upper_layer_data_interface()                                           = default;
+  rlc_tx_upper_layer_data_interface(const rlc_tx_upper_layer_data_interface&)            = delete;
+  rlc_tx_upper_layer_data_interface& operator=(const rlc_tx_upper_layer_data_interface&) = delete;
+  rlc_tx_upper_layer_data_interface(rlc_tx_upper_layer_data_interface&&)                 = delete;
+  rlc_tx_upper_layer_data_interface& operator=(rlc_tx_upper_layer_data_interface&&)      = delete;
 
   /// \brief Interface for higher layers to pass SDUs into RLC
   /// \param sdu_buf SDU to be handled
@@ -123,12 +123,12 @@ public:
 class rlc_tx_upper_layer_control_notifier
 {
 public:
-  rlc_tx_upper_layer_control_notifier()                                                       = default;
-  virtual ~rlc_tx_upper_layer_control_notifier()                                              = default;
-  rlc_tx_upper_layer_control_notifier(const rlc_tx_upper_layer_control_notifier&)             = delete;
-  rlc_tx_upper_layer_control_notifier& operator=(const rlc_tx_upper_layer_control_notifier&)  = delete;
-  rlc_tx_upper_layer_control_notifier(const rlc_tx_upper_layer_control_notifier&&)            = delete;
-  rlc_tx_upper_layer_control_notifier& operator=(const rlc_tx_upper_layer_control_notifier&&) = delete;
+  rlc_tx_upper_layer_control_notifier()                                                      = default;
+  virtual ~rlc_tx_upper_layer_control_notifier()                                             = default;
+  rlc_tx_upper_layer_control_notifier(const rlc_tx_upper_layer_control_notifier&)            = delete;
+  rlc_tx_upper_layer_control_notifier& operator=(const rlc_tx_upper_layer_control_notifier&) = delete;
+  rlc_tx_upper_layer_control_notifier(rlc_tx_upper_layer_control_notifier&&)                 = delete;
+  rlc_tx_upper_layer_control_notifier& operator=(rlc_tx_upper_layer_control_notifier&&)      = delete;
 
   virtual void on_protocol_failure() = 0;
   virtual void on_max_retx()         = 0;
@@ -144,12 +144,12 @@ public:
 class rlc_tx_lower_layer_interface
 {
 public:
-  rlc_tx_lower_layer_interface()                                                = default;
-  virtual ~rlc_tx_lower_layer_interface()                                       = default;
-  rlc_tx_lower_layer_interface(const rlc_tx_lower_layer_interface&)             = delete;
-  rlc_tx_lower_layer_interface& operator=(const rlc_tx_lower_layer_interface&)  = delete;
-  rlc_tx_lower_layer_interface(const rlc_tx_lower_layer_interface&&)            = delete;
-  rlc_tx_lower_layer_interface& operator=(const rlc_tx_lower_layer_interface&&) = delete;
+  rlc_tx_lower_layer_interface()                                               = default;
+  virtual ~rlc_tx_lower_layer_interface()                                      = default;
+  rlc_tx_lower_layer_interface(const rlc_tx_lower_layer_interface&)            = delete;
+  rlc_tx_lower_layer_interface& operator=(const rlc_tx_lower_layer_interface&) = delete;
+  rlc_tx_lower_layer_interface(rlc_tx_lower_layer_interface&&)                 = delete;
+  rlc_tx_lower_layer_interface& operator=(rlc_tx_lower_layer_interface&&)      = delete;
 
   /// \brief Pulls a PDU from the lower end of the RLC TX entity
   /// No PDU is written if the size of \c rlc_pdu_buf is insufficient or the TX buffer is empty.
@@ -170,12 +170,12 @@ public:
 class rlc_tx_lower_layer_notifier
 {
 public:
-  rlc_tx_lower_layer_notifier()                                               = default;
-  virtual ~rlc_tx_lower_layer_notifier()                                      = default;
-  rlc_tx_lower_layer_notifier(const rlc_tx_lower_layer_notifier&)             = delete;
-  rlc_tx_lower_layer_notifier& operator=(const rlc_tx_lower_layer_notifier&)  = delete;
-  rlc_tx_lower_layer_notifier(const rlc_tx_lower_layer_notifier&&)            = delete;
-  rlc_tx_lower_layer_notifier& operator=(const rlc_tx_lower_layer_notifier&&) = delete;
+  rlc_tx_lower_layer_notifier()                                              = default;
+  virtual ~rlc_tx_lower_layer_notifier()                                     = default;
+  rlc_tx_lower_layer_notifier(const rlc_tx_lower_layer_notifier&)            = delete;
+  rlc_tx_lower_layer_notifier& operator=(const rlc_tx_lower_layer_notifier&) = delete;
+  rlc_tx_lower_layer_notifier(rlc_tx_lower_layer_notifier&&)                 = delete;
+  rlc_tx_lower_layer_notifier& operator=(rlc_tx_lower_layer_notifier&&)      = delete;
 
   /// \brief Method called by RLC bearer whenever its buffer state is updated and the respective result
   /// needs to be forwarded to lower layers.

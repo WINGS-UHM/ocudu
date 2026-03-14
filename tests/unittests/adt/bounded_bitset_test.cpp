@@ -613,6 +613,36 @@ TEST(bounded_bitset_test, bitset_integer_conversion_with_large_integer)
   ASSERT_EQ(mask.to_uint64(), 278099133963U);
 }
 
+TEST(bounded_bitset_test, to_uint64_and_from_uint64_are_inverse_lsb)
+{
+  bounded_bitset<18> mask(18);
+  mask.set(0);
+  mask.set(2);
+  mask.set(7);
+  mask.set(12);
+
+  const uint64_t     packed = mask.to_uint64();
+  bounded_bitset<18> restored(18);
+  restored.from_uint64(packed);
+
+  ASSERT_EQ(mask, restored);
+}
+
+TEST(bounded_bitset_test, to_uint64_and_from_uint64_are_inverse_msb)
+{
+  bounded_bitset<18, true> mask(18);
+  mask.set(0);
+  mask.set(2);
+  mask.set(7);
+  mask.set(12);
+
+  const uint64_t           packed = mask.to_uint64();
+  bounded_bitset<18, true> restored(18);
+  restored.from_uint64(packed);
+
+  ASSERT_EQ(mask, restored);
+}
+
 TEST(bounded_bitset_test, one_word_bitset_format)
 {
   bounded_bitset<25> bitset(23);

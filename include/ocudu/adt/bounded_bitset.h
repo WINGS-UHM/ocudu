@@ -811,7 +811,8 @@ public:
   {
     ocudu_assert(nof_words_() == 1, "ERROR: cannot convert bitset of size='{}' to uint64_t", size());
     if constexpr (LowestInfoBitIsMSB) {
-      return buffer[0] >> (bits_per_word - (size() % bits_per_word));
+      const size_t rem = size() % bits_per_word;
+      return (rem == 0) ? buffer[0] : (buffer[0] >> (bits_per_word - rem));
     }
     return buffer[0];
   }
@@ -826,7 +827,12 @@ public:
                  "ERROR: Provided mask='{}' does not fit in bitset of size='{}'",
                  v,
                  size());
-    buffer[0] = v;
+    if constexpr (LowestInfoBitIsMSB) {
+      const size_t rem = size() % bits_per_word;
+      buffer[0]        = (rem == 0) ? v : (v << (bits_per_word - rem));
+    } else {
+      buffer[0] = v;
+    }
   }
 
   /// \brief Converts the bitset to an array of packed bits. Each element of the resulting array will contain a bitmap.

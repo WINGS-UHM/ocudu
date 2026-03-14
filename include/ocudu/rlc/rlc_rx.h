@@ -39,12 +39,12 @@ namespace ocudu {
 class rlc_rx_lower_layer_interface
 {
 public:
-  rlc_rx_lower_layer_interface()                                                = default;
-  virtual ~rlc_rx_lower_layer_interface()                                       = default;
-  rlc_rx_lower_layer_interface(const rlc_rx_lower_layer_interface&)             = delete;
-  rlc_rx_lower_layer_interface& operator=(const rlc_rx_lower_layer_interface&)  = delete;
-  rlc_rx_lower_layer_interface(const rlc_rx_lower_layer_interface&&)            = delete;
-  rlc_rx_lower_layer_interface& operator=(const rlc_rx_lower_layer_interface&&) = delete;
+  rlc_rx_lower_layer_interface()                                               = default;
+  virtual ~rlc_rx_lower_layer_interface()                                      = default;
+  rlc_rx_lower_layer_interface(const rlc_rx_lower_layer_interface&)            = delete;
+  rlc_rx_lower_layer_interface& operator=(const rlc_rx_lower_layer_interface&) = delete;
+  rlc_rx_lower_layer_interface(rlc_rx_lower_layer_interface&&)                 = delete;
+  rlc_rx_lower_layer_interface& operator=(rlc_rx_lower_layer_interface&&)      = delete;
 
   /// Handle the incoming PDU.
   virtual void handle_pdu(byte_buffer_slice pdu) = 0;

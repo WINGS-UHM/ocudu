@@ -127,6 +127,13 @@ public:
   /// \brief Check if security is enabled.
   [[nodiscard]] virtual bool is_security_enabled() const = 0;
 
+  /// \brief Set UE AMBR.
+  /// \param[in] ue_ambr The AMBR to set for the UE.
+  virtual void set_ue_ambr(cu_cp_aggregate_maximum_bit_rate ue_ambr) = 0;
+
+  /// \brief Get UE AMBR.
+  virtual cu_cp_aggregate_maximum_bit_rate get_ue_ambr() const = 0;
+
   // TODO: should location reporting control and other UE messages be moved here?
 };
 
@@ -287,7 +294,7 @@ public:
 
   /// \brief Handle the reception of an inter CU handover related RRC Reconfiguration Complete.
   virtual void
-  handle_inter_cu_ho_rrc_recfg_complete(const ue_index_t ue_index, const nr_cell_global_id_t& cgi, const tac_t tac) = 0;
+  handle_inter_cu_ho_rrc_recfg_complete(ue_index_t ue_index, const nr_cell_global_id_t& cgi, tac_t tac) = 0;
 
   /// \brief Get the supported PLMNs.
   virtual const ngap_context_t& get_ngap_context() const = 0;

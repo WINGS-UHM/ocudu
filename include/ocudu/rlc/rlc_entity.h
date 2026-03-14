@@ -15,12 +15,12 @@ namespace ocudu {
 class rlc_entity
 {
 public:
-  rlc_entity()                              = default;
-  virtual ~rlc_entity()                     = default;
-  rlc_entity(const rlc_entity&)             = delete;
-  rlc_entity& operator=(const rlc_entity&)  = delete;
-  rlc_entity(const rlc_entity&&)            = delete;
-  rlc_entity& operator=(const rlc_entity&&) = delete;
+  rlc_entity()                             = default;
+  virtual ~rlc_entity()                    = default;
+  rlc_entity(const rlc_entity&)            = delete;
+  rlc_entity& operator=(const rlc_entity&) = delete;
+  rlc_entity(rlc_entity&&)                 = delete;
+  rlc_entity& operator=(rlc_entity&&)      = delete;
 
   /// \brief Stops all internal timers.
   ///

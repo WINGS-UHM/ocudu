@@ -166,12 +166,12 @@ struct rlc_tx_metrics {
 class rlc_tx_metrics_interface
 {
 public:
-  rlc_tx_metrics_interface()                                            = default;
-  virtual ~rlc_tx_metrics_interface()                                   = default;
-  rlc_tx_metrics_interface(const rlc_tx_metrics_interface&)             = delete;
-  rlc_tx_metrics_interface& operator=(const rlc_tx_metrics_interface&)  = delete;
-  rlc_tx_metrics_interface(const rlc_tx_metrics_interface&&)            = delete;
-  rlc_tx_metrics_interface& operator=(const rlc_tx_metrics_interface&&) = delete;
+  rlc_tx_metrics_interface()                                           = default;
+  virtual ~rlc_tx_metrics_interface()                                  = default;
+  rlc_tx_metrics_interface(const rlc_tx_metrics_interface&)            = delete;
+  rlc_tx_metrics_interface& operator=(const rlc_tx_metrics_interface&) = delete;
+  rlc_tx_metrics_interface(rlc_tx_metrics_interface&&)                 = delete;
+  rlc_tx_metrics_interface& operator=(rlc_tx_metrics_interface&&)      = delete;
 
   virtual rlc_tx_metrics get_metrics()           = 0;
   virtual rlc_tx_metrics get_and_reset_metrics() = 0;

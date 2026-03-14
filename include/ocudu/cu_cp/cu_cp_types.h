@@ -19,6 +19,7 @@
 #include "ocudu/ran/i_rnti.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/pci.h"
+#include "ocudu/ran/ranac.h"
 #include "ocudu/ran/rb_id.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/s_nssai.h"
@@ -257,27 +258,22 @@ struct cu_cp_tdd_info {
   cu_cp_tx_bw        tx_bw;
 };
 
-struct cu_cp_nr_mode_info {
-  // choice
-  std::optional<cu_cp_fdd_info> fdd;
-  std::optional<cu_cp_tdd_info> tdd;
-};
+using cu_cp_nr_mode_info = std::variant<cu_cp_fdd_info, cu_cp_tdd_info>;
 
 struct cu_cp_served_cell_info {
   nr_cell_global_id_t        nr_cgi;
   pci_t                      nr_pci;
   std::optional<tac_t>       five_gs_tac;
-  std::optional<tac_t>       cfg_eps_tac;
   std::vector<plmn_identity> served_plmns;
   cu_cp_nr_mode_info         nr_mode_info;
   byte_buffer                meas_timing_cfg;
+  std::optional<ranac_t>     ranac;
 
   cu_cp_served_cell_info() = default;
   cu_cp_served_cell_info(const cu_cp_served_cell_info& other) :
     nr_cgi(other.nr_cgi),
     nr_pci(other.nr_pci),
     five_gs_tac(other.five_gs_tac),
-    cfg_eps_tac(other.cfg_eps_tac),
     served_plmns(other.served_plmns),
     nr_mode_info(other.nr_mode_info),
     meas_timing_cfg(other.meas_timing_cfg.copy())
@@ -289,7 +285,6 @@ struct cu_cp_served_cell_info {
       nr_cgi          = other.nr_cgi;
       nr_pci          = other.nr_pci;
       five_gs_tac     = other.five_gs_tac;
-      cfg_eps_tac     = other.cfg_eps_tac;
       served_plmns    = other.served_plmns;
       nr_mode_info    = other.nr_mode_info;
       meas_timing_cfg = other.meas_timing_cfg.copy();
@@ -337,11 +332,15 @@ struct cu_cp_pdu_session_res_setup_item {
   slotted_id_vector<qos_flow_id_t, qos_flow_setup_request_item> qos_flow_setup_request_items;
 };
 
+struct cu_cp_aggregate_maximum_bit_rate {
+  uint64_t dl = 0;
+  uint64_t ul = 0;
+};
+
 struct cu_cp_pdu_session_resource_setup_request {
   ue_index_t                                                            ue_index = ue_index_t::invalid;
   slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item> pdu_session_res_setup_items;
-  uint64_t                                                              ue_aggregate_maximum_bit_rate_dl;
-  uint64_t                                                              ue_aggregate_maximum_bit_rate_ul;
+  cu_cp_aggregate_maximum_bit_rate                                      ue_ambr;
   plmn_identity                                                         serving_plmn = plmn_identity::test_value();
   byte_buffer                                                           nas_pdu; ///< optional NAS PDU
 };
@@ -622,11 +621,6 @@ struct cu_cp_rrc_resume_request {
   nr_cell_global_id_t cgi;
   rnti_t              new_c_rnti;
   resume_cause_t      cause;
-};
-
-struct cu_cp_aggregate_maximum_bit_rate {
-  uint64_t dl = 0;
-  uint64_t ul = 0;
 };
 
 } // namespace ocudu::ocucp

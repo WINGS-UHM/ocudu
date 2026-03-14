@@ -3,7 +3,6 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "initial_context_setup_routine.h"
-#include "pdu_session_routine_helpers.h"
 #include "ocudu/ran/cause/common.h"
 #include "ocudu/ran/cause/f1ap_cause_converters.h"
 #include "ocudu/ran/cause/ngap_cause.h"
@@ -118,10 +117,9 @@ void initial_context_setup_routine::operator()(
     request.pdu_session_res_setup_list_cxt_req.value().ue_index     = request.ue_index;
     request.pdu_session_res_setup_list_cxt_req.value().serving_plmn = request.guami.plmn;
     if (request.ue_aggr_max_bit_rate.has_value()) {
-      request.pdu_session_res_setup_list_cxt_req.value().ue_aggregate_maximum_bit_rate_dl =
-          request.ue_aggr_max_bit_rate->dl;
+      request.pdu_session_res_setup_list_cxt_req.value().ue_ambr.dl = request.ue_aggr_max_bit_rate->dl;
     } else {
-      request.pdu_session_res_setup_list_cxt_req.value().ue_aggregate_maximum_bit_rate_dl = 0;
+      request.pdu_session_res_setup_list_cxt_req.value().ue_ambr.dl = 0;
     }
 
     // Handle NAS PDUs from Initial Context Setup Request.

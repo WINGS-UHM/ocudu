@@ -168,7 +168,7 @@ void pdu_session_resource_setup_routine::operator()(
     ue_context_mod_request.cu_to_du_rrc_info.value().ue_cap_rat_container_list =
         rrc_ue->get_packed_ue_capability_rat_container_list();
     ue_context_mod_request.cu_to_du_rrc_info.value().meas_cfg = rrc_ue->get_packed_meas_config();
-    ue_context_mod_request.gnb_du_ue_ambr_ul                  = setup_msg.ue_aggregate_maximum_bit_rate_ul;
+    ue_context_mod_request.gnb_du_ue_ambr_ul                  = setup_msg.ue_ambr.ul;
     ue_context_mod_request.serving_cell_mo                    = rrc_ue->get_serving_cell_mo();
 
     // DRB setup have already added above.
@@ -732,7 +732,7 @@ bool pdu_session_resource_setup_routine::fill_e1ap_bearer_context_setup_request(
     e1ap_request.security_info.up_security_key.integrity_protection_key = std::move(k_int_buffer.value());
   }
 
-  e1ap_request.ue_dl_aggregate_maximum_bit_rate = setup_msg.ue_aggregate_maximum_bit_rate_dl;
+  e1ap_request.ue_dl_aggregate_maximum_bit_rate = setup_msg.ue_ambr.dl;
   e1ap_request.serving_plmn                     = setup_msg.serving_plmn;
   e1ap_request.activity_notif_level             = "ue"; // TODO: Remove hardcoded value
   if (e1ap_request.activity_notif_level == "ue") {

@@ -15,12 +15,12 @@ namespace ocudu {
 class gtpu_echo_tx_interface
 {
 public:
-  gtpu_echo_tx_interface()                                          = default;
-  virtual ~gtpu_echo_tx_interface()                                 = default;
-  gtpu_echo_tx_interface(const gtpu_echo_tx_interface&)             = delete;
-  gtpu_echo_tx_interface& operator=(const gtpu_echo_tx_interface&)  = delete;
-  gtpu_echo_tx_interface(const gtpu_echo_tx_interface&&)            = delete;
-  gtpu_echo_tx_interface& operator=(const gtpu_echo_tx_interface&&) = delete;
+  gtpu_echo_tx_interface()                                         = default;
+  virtual ~gtpu_echo_tx_interface()                                = default;
+  gtpu_echo_tx_interface(const gtpu_echo_tx_interface&)            = delete;
+  gtpu_echo_tx_interface& operator=(const gtpu_echo_tx_interface&) = delete;
+  gtpu_echo_tx_interface(gtpu_echo_tx_interface&&)                 = delete;
+  gtpu_echo_tx_interface& operator=(gtpu_echo_tx_interface&&)      = delete;
 
   /// Sends an echo request message to the \c dst_addr.
   /// \param dst_addr The destination address for the echo request message.

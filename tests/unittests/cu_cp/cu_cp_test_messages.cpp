@@ -28,8 +28,8 @@ cu_cp_pdu_session_resource_setup_request ocudu::ocucp::generate_pdu_session_reso
   cu_cp_pdu_session_resource_setup_request req;
   req.ue_index = ue_index;
 
-  req.ue_aggregate_maximum_bit_rate_dl = 1000;
-  req.ue_aggregate_maximum_bit_rate_ul = 1000;
+  req.ue_ambr.dl = 1000;
+  req.ue_ambr.ul = 1000;
 
   for (unsigned i = 0; i < num_pdu_sessions; ++i) {
     pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(i + 1);
@@ -72,8 +72,8 @@ ocudu::ocucp::generate_pdu_session_resource_setup(ue_index_t ue_index, pdu_sessi
   cu_cp_pdu_session_resource_setup_request req;
   req.ue_index = ue_index;
 
-  req.ue_aggregate_maximum_bit_rate_dl = 1000;
-  req.ue_aggregate_maximum_bit_rate_ul = 1000;
+  req.ue_ambr.dl = 1000;
+  req.ue_ambr.ul = 1000;
 
   cu_cp_pdu_session_res_setup_item item;
   item.pdu_session_id = psi;

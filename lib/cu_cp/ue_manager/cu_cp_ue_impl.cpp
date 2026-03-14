@@ -82,8 +82,7 @@ void cu_cp_ue::set_rrc_ue(rrc_ue_interface& rrc_ue_)
   rrc_ue = &rrc_ue_;
 }
 
-/// \brief Get the NGAP RRC UE notifier of the UE.
-ngap_rrc_ue_notifier& cu_cp_ue::get_ngap_rrc_ue_notifier()
+void cu_cp_ue::set_ue_ambr(cu_cp_aggregate_maximum_bit_rate ue_ambr)
 {
-  return ngap_rrc_ue_ev_notifier;
+  ue_ctxt.ue_ambr = ue_ambr;
 }

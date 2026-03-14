@@ -7,8 +7,9 @@ add_definitions(-DUWS_NO_ZLIB)
 
 set(SOURCES
         remote_control_appconfig_cli11_schema.cpp
-        remote_server.cpp)
+        remote_server.cpp
+        isac_metrics_publisher.cpp)
 
 add_library(ocudu_remote_control_app_service STATIC ${SOURCES})
 target_include_directories(ocudu_remote_control_app_service PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(ocudu_remote_control_app_service PRIVATE uSockets)
+target_link_libraries(ocudu_remote_control_app_service PRIVATE uSockets ocudu_isac)

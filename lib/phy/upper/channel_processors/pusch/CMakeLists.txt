@@ -6,6 +6,7 @@
 add_library(ocudu_pusch_demodulator STATIC
         pusch_demodulator_impl.cpp
         demodulator_factories.cpp)
+target_link_libraries(ocudu_pusch_demodulator PRIVATE ocudu_isac)
 
 add_library(ocudu_pusch_processor STATIC
         processor_factories.cpp

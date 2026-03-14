@@ -73,14 +73,14 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_prach_results(const u
   fapi::rach_indication         msg;
   fapi::rach_indication_builder builder(msg);
 
-  builder.set_slot_point(slot);
+  builder.set_slot(slot);
 
   // NOTE: Currently not supporting PRACH multiplexed in frequency domain.
   static constexpr unsigned fd_ra_index = 0U;
   // NOTE: Clamp values defined in SCF-222 v4.0 Section 3.4.11 Table RACH.indication message body.
   static constexpr float            MIN_AVG_RSSI_VALUE = -140.F;
   static constexpr float            MAX_AVG_RSSI_VALUE = 30.F;
-  fapi::rach_indication_pdu_builder builder_pdu        = builder.add_pdu(
+  fapi::rach_indication_pdu_builder builder_pdu        = builder.set_pdu(
       result.context.start_symbol,
       slot.slot_index(),
       fd_ra_index,
@@ -233,7 +233,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
   fapi::crc_indication         msg;
   fapi::crc_indication_builder builder(msg);
 
-  builder.set_basic_parameters(result.slot);
+  builder.set_slot(result.slot);
 
   // NOTE: Clamp values defined in SCF-222 v4.0 Section 3.4.8 Table CRC.indication message body.
   static constexpr float MIN_UL_SINR_VALUE = -65.534;
@@ -260,7 +260,7 @@ void phy_to_fapi_results_event_fastpath_translator::notify_crc_indication(const 
   }
 
   // TODO: Remove to_harq_id once this type has been changed in the PHY layer
-  builder.add_pdu(result.rnti,
+  builder.set_pdu(result.rnti,
                   to_harq_id(result.harq_id),
                   result.decoder_result.tb_crc_ok,
                   sinr_dB,
@@ -277,10 +277,10 @@ void phy_to_fapi_results_event_fastpath_translator::notify_rx_data_indication(co
   fapi::rx_data_indication         msg;
   fapi::rx_data_indication_builder builder(msg);
 
-  builder.set_slot_point(result.slot);
+  builder.set_slot(result.slot);
 
   // TODO: Remove the to_harq_id call once it is changed in the PHY layer.
-  builder.add_pdu(result.rnti, to_harq_id(result.harq_id), result.payload);
+  builder.set_pdu(result.rnti, to_harq_id(result.harq_id), result.payload);
 
   p7_notifier->on_rx_data_indication(msg);
 }
@@ -494,17 +494,17 @@ void phy_to_fapi_results_event_fastpath_translator::on_new_srs_results(const ul_
   fapi::srs_indication_builder builder(msg);
 
   const ul_srs_context& context = result.context;
-  builder.set_basic_parameters(context.slot);
+  builder.set_slot(context.slot);
 
   if (context.is_normalized_channel_iq_matrix_report_requested) {
-    fapi::srs_indication_pdu_builder srs_pdu_builder = builder.add_srs_pdu(context.rnti);
+    fapi::srs_indication_pdu_builder srs_pdu_builder = builder.set_pdu(context.rnti);
     srs_pdu_builder.set_metrics_parameters(
         phy_time_unit::from_seconds(result.processor_result.time_alignment.time_alignment));
     srs_pdu_builder.set_codebook_report_matrix(result.processor_result.channel_matrix);
   }
 
   if (context.is_positioning_report_requested) {
-    fapi::srs_indication_pdu_builder srs_pdu_builder = builder.add_srs_pdu(context.rnti);
+    fapi::srs_indication_pdu_builder srs_pdu_builder = builder.set_pdu(context.rnti);
     srs_pdu_builder.set_metrics_parameters(
         phy_time_unit::from_seconds(result.processor_result.time_alignment.time_alignment));
 

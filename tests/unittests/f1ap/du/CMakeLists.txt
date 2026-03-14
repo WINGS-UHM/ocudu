@@ -40,5 +40,5 @@ target_link_libraries(f1ap_du_test
         sched_config
         f1ap_du_test_helpers
         gtest
-        gtest_main)
+        ocudu_gtest_main)
 gtest_discover_tests(f1ap_du_test PROPERTIES "LABELS;f1ap_du")

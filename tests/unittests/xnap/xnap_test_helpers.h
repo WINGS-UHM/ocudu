@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "lib/xnap/xnap_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/cause/xnap_cause.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include "ocudu/xnap/gateways/xnc_connection_gateway.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -55,7 +57,15 @@ private:
 class dummy_xnap_cu_cp_notifier : public xnap_cu_cp_notifier
 {
 public:
-  dummy_xnap_cu_cp_notifier() = default;
+  dummy_xnap_cu_cp_notifier(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST")) {}
+
+  void set_xnap_handover_request_outcome(bool success) { ho_request_outcome = success; }
+
+  byte_buffer on_handover_preparation_message_required(ue_index_t ue_index) override
+  {
+    logger.info("Handover preparation message requested for UE index {}", ue_index);
+    return byte_buffer{};
+  }
 
   async_task<bool> on_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
   {
@@ -67,17 +77,101 @@ public:
     });
   }
 
+  ue_index_t request_new_ue_index_allocation(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override
+  {
+    if (ho_request_outcome) {
+      return ue_mng.add_ue(du_index_t::min);
+    }
+    return ue_index_t::invalid;
+  }
+
+  bool on_handover_request_received(ue_index_t                        ue_index,
+                                    const plmn_identity&              selected_plmn,
+                                    const security::security_context& sec_ctxt) override
+  {
+    ocudu_assert(ue_mng.find_ue(ue_index) != nullptr, "UE must be present\n");
+    logger.info("Received a handover request");
+
+    if (!ue_mng.find_ue(ue_index)->get_security_manager().init_security_context(sec_ctxt)) {
+      logger.info("Failed to initialize security context");
+      return false;
+    }
+
+    return true;
+  }
+
+  bool schedule_async_task(ue_index_t ue_index, async_task<void> task) override
+  {
+    ocudu_assert(ue_mng.find_ue_task_scheduler(ue_index) != nullptr, "UE task scheduler must be present");
+    return ue_mng.find_ue_task_scheduler(ue_index)->schedule_async_task(std::move(task));
+  }
+
+  async_task<cu_cp_handover_resource_allocation_response>
+  on_xnap_handover_request(const xnap_handover_request& request) override
+  {
+    cu_cp_handover_resource_allocation_response response;
+    // Generate dummy response based on pre-configured outcome.
+    if (ho_request_outcome) {
+      cu_cp_handover_request_ack ho_ack;
+      ho_ack.ue_index = request.ue_index;
+      for (const auto& session_to_setup : request.ue_context_info_ho_request.pdu_session_res_to_be_setup_list) {
+        cu_cp_xn_pdu_session_res_admitted_item item;
+        item.pdu_session_id = session_to_setup.pdu_session_id;
+        item.data_forwarding_info_from_target.emplace();
+        for (const auto& qos_flow_to_setup : session_to_setup.qos_flow_setup_request_items) {
+          cu_cp_qos_flow_with_data_forwarding_item qos_flow_item;
+          qos_flow_item.qos_flow_id = qos_flow_to_setup.qos_flow_id;
+          item.qos_flows_setup_list.push_back(qos_flow_item);
+          item.data_forwarding_info_from_target->qos_flows_accepted_for_data_forwarding_list.push_back(
+              qos_flow_to_setup.qos_flow_id);
+        }
+        item.data_forwarding_info_from_target->data_forwarding_resp_drb_item_list.push_back({.drb_id = drb_id_t::drb1});
+
+        ho_ack.pdu_session_res_admitted_list.push_back(item);
+      }
+      ho_ack.rrc_handover_command = make_byte_buffer("deadbeef").value();
+
+      response = ho_ack;
+    } else {
+      cu_cp_handover_request_failure ho_fail;
+      ho_fail.ue_index = request.ue_index;
+      ho_fail.cause    = xnap_cause_radio_network_t::unspecified;
+
+      response = ho_fail;
+    }
+
+    return launch_async([res = std::move(response)](
+                            coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+
+      CORO_RETURN(res);
+    });
+  }
+
+  void on_xn_handover_execution(ue_index_t ue_index) override
+  {
+    logger.info("Requested XN handover execution for UE index {}", ue_index);
+  }
+
+  void on_handover_cancel_received(ue_index_t ue_index) override
+  {
+    logger.info("Received a handover cancel for UE index {}", ue_index);
+  }
+
   byte_buffer last_handover_command;
 
 private:
-  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
+  bool ho_request_outcome = false;
+
+  ue_manager&             ue_mng;
+  ocudulog::basic_logger& logger;
 };
 
 /// Fixture class for XNAP Setup tests.
 class xnap_test : public ::testing::Test
 {
 protected:
-  void SetUp() override;
+  xnap_test();
 
   void TearDown() override;
 
@@ -86,24 +180,37 @@ protected:
     xnap->set_tx_association_notifier(std::make_unique<dummy_xnap_message_notifier>(last_tx_msg));
   }
 
+  /// \brief Helper method to successfully run XN setup in XNAP.
+  bool run_xn_setup(const xnap_configuration& peer_cfg);
+
+  /// \brief Helper method to successfully create UE instance in ue manager.
+  ue_index_t create_ue(rnti_t rnti = rnti_t::MIN_CRNTI);
+
   /// \brief Manually tick timers.
   template <typename T>
-  void tick(async_task<T>& task, std::chrono::milliseconds duration)
+  bool tick(async_task<T>& task, std::chrono::milliseconds duration)
   {
     for (unsigned msec_elapsed = 0; msec_elapsed < duration.count(); ++msec_elapsed) {
-      ASSERT_FALSE(task.ready());
+      if (task.ready()) {
+        return false;
+      };
       timers.tick();
       ctrl_worker.run_pending_tasks();
     }
+    return true;
   }
 
-  ocudulog::basic_logger&    logger = ocudulog::fetch_basic_logger("TEST", false);
-  timer_manager              timers;
-  manual_task_worker         ctrl_worker{128};
+  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST", false);
+  timer_manager           timers;
+  manual_task_worker      ctrl_worker{128};
+  cu_cp_configuration     cu_cp_cfg;
+
+  ue_manager                 ue_mng{cu_cp_cfg};
   dummy_xnc_gateway          xnc_gw;
-  dummy_xnap_cu_cp_notifier  cu_cp_notifier;
+  dummy_xnap_cu_cp_notifier  cu_cp_notifier{ue_mng};
   std::unique_ptr<xnap_impl> xnap = nullptr;
 
+  /// Local configuration.
   gnb_id_t               local_gnb_id             = {0, 22};
   plmn_identity          local_plmn               = plmn_identity::test_value();
   tac_t                  local_tac                = {8};
@@ -113,6 +220,19 @@ protected:
       local_gnb_id,
       std::vector<supported_tracking_area>{{local_tac, std::vector<plmn_item>{{local_plmn, local_slice_support_list}}}},
       std::vector<guami_t>{{.plmn = local_plmn, .amf_set_id = 0, .amf_pointer = 0, .amf_region_id = 1}}};
+
+  /// Peer configuration.
+  gnb_id_t               peer_gnb_id             = {1, 22};
+  plmn_identity          peer_plmn               = plmn_identity::test_value();
+  tac_t                  peer_tac                = {7};
+  s_nssai_t              peer_slice              = {};
+  std::vector<s_nssai_t> peer_slice_support_list = {peer_slice};
+
+  xnap_configuration xnap_peer_cfg = {
+      peer_gnb_id,
+      std::vector<supported_tracking_area>{{peer_tac, std::vector<plmn_item>{{peer_plmn, peer_slice_support_list}}}},
+      std::vector<guami_t>{{peer_plmn, 1}},
+  };
 
   xnap_message get_last_message() { return last_tx_msg; }
 

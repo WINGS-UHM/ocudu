@@ -4,8 +4,8 @@
 
 #include "lib/mac/mac_sched/rlf_detector.h"
 #include "mac_test_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -33,7 +33,7 @@ TEST_F(mac_rlf_detector_test, when_consecutive_harq_kos_reaches_limit_then_rlf_i
   const du_cell_index_t cell_index = to_du_cell_index(0);
   rlf_handler.add_ue(ue_index, rlf_notif);
 
-  unsigned nof_oks = test_rgen::uniform_int<unsigned>(0, MAX_KOS + 1);
+  unsigned nof_oks = test_rng::uniform_int<unsigned>(0, MAX_KOS + 1);
   for (unsigned i = 0; i != nof_oks; ++i) {
     rlf_handler.handle_ack(ue_index, cell_index, true);
   }
@@ -76,7 +76,7 @@ TEST_F(mac_rlf_detector_test, when_consecutive_undetected_csi_reaches_limit_then
   const du_cell_index_t cell_index = to_du_cell_index(0);
   rlf_handler.add_ue(ue_index, rlf_notif);
 
-  unsigned nof_oks = test_rgen::uniform_int<unsigned>(0, MAX_KOS + 1);
+  unsigned nof_oks = test_rng::uniform_int<unsigned>(0, MAX_KOS + 1);
   for (unsigned i = 0; i != nof_oks; ++i) {
     rlf_handler.handle_csi(ue_index, cell_index, true);
   }

@@ -85,7 +85,7 @@ struct ngap_handover_request {
   ue_index_t                                                            ue_index = ue_index_t::invalid;
   ngap_handov_type                                                      handov_type;
   ngap_cause_t                                                          cause;
-  ngap_ue_aggr_max_bit_rate                                             ue_aggr_max_bit_rate;
+  cu_cp_aggregate_maximum_bit_rate                                      ue_aggr_max_bit_rate;
   std::optional<ngap_core_network_assist_info_for_inactive>             core_network_assist_info_for_inactive;
   security::security_context                                            security_context;
   std::optional<bool>                                                   new_security_context_ind;
@@ -101,78 +101,6 @@ struct ngap_handover_request {
   guami_t                                                    guami;
   // TODO: Add optional redirection_voice_fallback
   // TODO: Add optional cn_assisted_ran_tuning
-};
-
-struct ngap_qos_flow_item_with_data_forwarding {
-  qos_flow_id_t       qos_flow_id = qos_flow_id_t::invalid;
-  std::optional<bool> data_forwarding_accepted;
-};
-
-struct ngap_data_forwarding_resp_drb_item {
-  drb_id_t                               drb_id = drb_id_t::invalid;
-  std::optional<up_transport_layer_info> dl_forwarding_up_tnl_info;
-  std::optional<up_transport_layer_info> ul_forwarding_up_tnl_info;
-};
-
-struct ngap_ho_request_ack_transfer {
-  up_transport_layer_info                              dl_ngu_up_tnl_info;
-  std::optional<up_transport_layer_info>               dl_forwarding_up_tnl_info;
-  std::optional<security_result_t>                     security_result;
-  std::vector<ngap_qos_flow_item_with_data_forwarding> qos_flow_setup_resp_list;
-  std::vector<cu_cp_qos_flow_with_cause_item>          qos_flow_failed_to_setup_list;
-  std::vector<ngap_data_forwarding_resp_drb_item>      data_forwarding_resp_drb_list;
-};
-
-struct ngap_pdu_session_res_admitted_item {
-  pdu_session_id_t             pdu_session_id = pdu_session_id_t::invalid;
-  ngap_ho_request_ack_transfer ho_request_ack_transfer;
-};
-
-struct ngap_target_ngran_node_to_source_ngran_node_transparent_container {
-  byte_buffer rrc_container;
-};
-
-struct ngap_handover_resource_allocation_response {
-  ue_index_t ue_index = ue_index_t::invalid;
-  bool       success  = false;
-
-  // handover request ack
-  slotted_id_vector<pdu_session_id_t, ngap_pdu_session_res_admitted_item> pdu_session_res_admitted_list;
-  slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_failed_item>
-                                                                    pdu_session_res_failed_to_setup_list_ho_ack;
-  ngap_target_ngran_node_to_source_ngran_node_transparent_container target_to_source_transparent_container;
-
-  // handover request failure
-  ngap_cause_t cause;
-
-  // common
-  std::optional<crit_diagnostics_t> crit_diagnostics;
-};
-
-struct ngap_drb_status_ul_t {
-  pdcp_sn_size    sn_size;
-  pdcp_count_info ul_count;
-};
-
-struct ngap_drb_status_dl_t {
-  pdcp_sn_size    sn_size;
-  pdcp_count_info dl_count;
-};
-
-struct ngap_drbs_subject_to_status_transfer_item {
-  drb_id_t             drb_id;
-  ngap_drb_status_dl_t drb_status_dl;
-  ngap_drb_status_ul_t drb_status_ul;
-};
-
-struct ngap_ul_ran_status_transfer {
-  ue_index_t                                                             ue_index = ue_index_t::invalid;
-  slotted_id_vector<drb_id_t, ngap_drbs_subject_to_status_transfer_item> drbs_subject_to_status_transfer_list;
-};
-
-struct ngap_dl_ran_status_transfer {
-  ue_index_t                                                             ue_index = ue_index_t::invalid;
-  slotted_id_vector<drb_id_t, ngap_drbs_subject_to_status_transfer_item> drbs_subject_to_status_transfer_list;
 };
 
 } // namespace ocudu::ocucp

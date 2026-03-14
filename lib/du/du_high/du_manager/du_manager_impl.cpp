@@ -8,13 +8,10 @@
 #include "procedures/du_cell_stop_procedure.h"
 #include "procedures/du_mac_ntn_param_update_procedure.h"
 #include "procedures/du_param_config_procedure.h"
-#include "procedures/du_setup_procedure.h"
-#include "procedures/du_stop_procedure.h"
 #include "procedures/du_ue_reset_procedure.h"
 #include "procedures/du_ue_ric_configuration_procedure.h"
 #include "procedures/f1c_disconnection_handling_procedure.h"
 #include "ocudu/mac/mac_pdu_handler.h"
-#include "ocudu/support/async/async_timer.h"
 #include "ocudu/support/async/execute_on_blocking.h"
 #include "ocudu/support/executors/execute_until_success.h"
 #include "ocudu/support/synchronization/sync_event.h"
@@ -26,88 +23,26 @@ using namespace odu;
 du_manager_impl::du_manager_impl(const du_manager_params& params_) :
   params(params_),
   logger(ocudulog::fetch_basic_logger("DU-MNG")),
+  main_ctrl_loop(128),
   cell_mng(params),
   cell_res_alloc(params.ran.cells, params.mac.sched_cfg, params.ran.srbs, params.ran.qos, params.test_cfg),
   ue_mng(params, cell_res_alloc, cell_mng),
   positioning_handler(create_du_positioning_handler(params, cell_mng, ue_mng, logger)),
   metrics(params.metrics, params.services.du_mng_exec, params.services.timers, params.f1ap.metrics),
   proc_ctxt{params, ctxt, cell_mng, ue_mng, metrics, logger},
-  main_ctrl_loop(128)
+  controller(proc_ctxt, main_ctrl_loop)
 {
-}
-
-du_manager_impl::~du_manager_impl()
-{
-  stop();
-}
-
-void du_manager_impl::start()
-{
-  {
-    std::unique_lock<std::mutex> lock(mutex);
-    if (ctxt.running) {
-      logger.warning("Ignoring start request. Cause: DU Manager already started.");
-      return;
-    }
-  }
-
-  logger.info("DU manager starting...");
-
-  if (not params.services.du_mng_exec.execute([this]() {
-        main_ctrl_loop.schedule([this](coro_context<async_task<void>>& ctx) {
-          CORO_BEGIN(ctx);
-
-          // Connect to CU-CP and send F1 Setup Request and await for F1 setup response.
-          CORO_AWAIT(launch_async<du_setup_procedure>(proc_ctxt));
-
-          // Signal start() caller thread that the operation is complete.
-          std::lock_guard<std::mutex> lock(mutex);
-          ctxt.running = true;
-          cvar.notify_all();
-
-          CORO_RETURN();
-        });
-      })) {
-    report_fatal_error("Unable to initiate DU setup procedure");
-  }
-
-  // Block waiting for DU setup to complete.
-  std::unique_lock<std::mutex> lock(mutex);
-  cvar.wait(lock, [this]() { return ctxt.running; });
-
-  logger.info("DU manager started successfully.");
-}
-
-void du_manager_impl::stop()
-{
-  {
-    // Avoid stopping the DU Manager multiple times.
-    std::lock_guard<std::mutex> lock(mutex);
-    if (not ctxt.running) {
-      return;
-    }
-  }
-
-  while (not params.services.du_mng_exec.execute([this]() { handle_du_stop_request(); })) {
-    logger.error("Unable to dispatch DU Manager shutdown. Retrying...");
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    return;
-  }
-
-  // Wait for the DU Manager thread to signal that the stop was completed.
-  std::unique_lock<std::mutex> lock(mutex);
-  cvar.wait(lock, [this]() { return not ctxt.running; });
 }
 
 void du_manager_impl::handle_ul_ccch_indication(const ul_ccch_indication_message& msg)
 {
   // Switch DU Manager exec context
-  if (not params.services.du_mng_exec.execute([this, msg = std::move(msg)]() {
+  if (not params.services.du_mng_exec.execute([this, msg]() {
         // Start UE create procedure
         ue_mng.handle_ue_create_request(msg);
       })) {
     logger.warning("Discarding UL-CCCH message cell={} tc-rnti={} slot_rx={}. Cause: DU manager task queue is full",
-                   fmt::underlying(msg.cell_index),
+                   msg.cell_index,
                    msg.tc_rnti,
                    msg.slot_rx);
   }
@@ -124,8 +59,8 @@ void du_manager_impl::handle_crnti_ce_indication(const ul_crnti_ce_indication_me
         const bool reached_prepared_target = ue->cond_mobility.handle_crnti_ce_indication();
         if (not reached_prepared_target) {
           logger.debug("ue={} cell={}: C-RNTI CE received but no Access Success is expected. Ignoring.",
-                       fmt::underlying(msg.ue_index),
-                       fmt::underlying(msg.cell_index));
+                       msg.ue_index,
+                       msg.cell_index);
           return;
         }
 
@@ -133,55 +68,14 @@ void du_manager_impl::handle_crnti_ce_indication(const ul_crnti_ce_indication_me
         params.f1ap.ue_mng.handle_access_success({msg.ue_index, target_cgi});
       })) {
     logger.warning("cell={} ue={}: Discarding C-RNTI CE indication. Cause: DU manager task queue is full",
-                   fmt::underlying(msg.cell_index),
-                   fmt::underlying(msg.ue_index));
+                   msg.cell_index,
+                   msg.ue_index);
   }
 }
 
 void du_manager_impl::handle_f1c_connection_loss()
 {
   schedule_async_task(launch_async<f1c_disconnection_handling_procedure>(proc_ctxt));
-}
-
-void du_manager_impl::handle_du_stop_request()
-{
-  if (not ctxt.running) {
-    // Already stopped.
-    return;
-  }
-
-  // Notify other procedures that the DU needs to stop.
-  ctxt.stop_command_received = true;
-
-  // Start DU stop procedure.
-  schedule_async_task(launch_async([this](coro_context<async_task<void>>& ctx) {
-    CORO_BEGIN(ctx);
-
-    if (not ctxt.running) {
-      // Already stopped.
-      CORO_EARLY_RETURN();
-    }
-
-    // Tear down activity in remaining layers.
-    CORO_AWAIT(launch_async<du_stop_procedure>(ue_mng, cell_mng, params.f1ap.conn_mng));
-
-    // DU stop successfully finished.
-    // Dispatch main async task loop destruction via defer so that the current coroutine ends successfully.
-    while (not params.services.du_mng_exec.defer([this]() {
-      // Let main loop go out of scope and be destroyed.
-      auto main_loop = main_ctrl_loop.request_stop();
-
-      std::lock_guard<std::mutex> lock(mutex);
-      ctxt.running               = false;
-      ctxt.stop_command_received = false;
-      cvar.notify_all();
-    })) {
-      logger.warning("Unable to stop DU Manager. Retrying...");
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-
-    CORO_RETURN();
-  }));
 }
 
 du_ue_index_t du_manager_impl::find_unused_du_ue_index()
@@ -232,26 +126,8 @@ void du_manager_impl::handle_ue_config_applied(du_ue_index_t ue_index)
   ue_mng.handle_ue_config_applied(ue_index);
 }
 
-size_t du_manager_impl::nof_ues()
-{
-  // TODO: This is temporary code.
-  size_t     result = 0;
-  sync_event ev;
-  if (not params.services.du_mng_exec.execute(
-          [this, &result, tk = ev.get_token()]() mutable { result = ue_mng.nof_ues(); })) {
-    logger.warning("Unable to compute the number of UEs active in the DU");
-    return std::numeric_limits<size_t>::max();
-  }
-  return result;
-}
-
-mac_subframe_time_mapper& du_manager_impl::get_subframe_time_mapper()
-{
-  return params.mac.mgr.get_subframe_time_mapper();
-}
-
 async_task<du_mac_sched_control_config_response>
-du_manager_impl::configure_ue_mac_scheduler(du_mac_sched_control_config reconf)
+du_manager_impl::configure_ue_mac_scheduler(const du_mac_sched_control_config& reconf)
 {
   return launch_async<du_ue_ric_configuration_procedure>(reconf, ue_mng, params);
 }

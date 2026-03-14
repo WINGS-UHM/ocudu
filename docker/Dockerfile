@@ -16,6 +16,7 @@ ARG UHD_VERSION=4.7.0.0
 ARG DPDK_VERSION=24.11.2
 ARG MARCH=native
 ARG NUM_JOBS=""
+ARG TARGETARCH
 
 ##################
 # Stage 1: Build #
@@ -55,13 +56,15 @@ ARG UHD_VERSION
 ARG DPDK_VERSION
 ARG MARCH
 ARG NUM_JOBS
+ARG TARGETARCH
 
 # Copy ROHC binaries and libraries installed in builder-rohc stage (without taking ROHC build deps that confuse DPDK build)
 COPY --from=builder-rohc /opt/rohc /opt/rohc
 
 # Compile UHD/DPDK
-RUN /src/docker/scripts/build_uhd.sh "${UHD_VERSION}" ${MARCH} ${NUM_JOBS} && \
-    /src/docker/scripts/build_dpdk.sh "${DPDK_VERSION}" ${MARCH} ${NUM_JOBS}
+RUN ARCH_FLAG=$([ "${TARGETARCH}" = "arm64" ] && echo "-mcpu=${MARCH}" || echo "-march=${MARCH}") && \
+    /src/docker/scripts/build_uhd.sh "${UHD_VERSION}" ${ARCH_FLAG} ${NUM_JOBS} && \
+    /src/docker/scripts/build_dpdk.sh "${DPDK_VERSION}" ${ARCH_FLAG} ${NUM_JOBS}
 
 # Compile OCUDU and install it in the OS
 ARG COMPILER=gcc
@@ -70,9 +73,10 @@ ENV ROHC_DIR=/opt/rohc
 ENV UHD_DIR=/opt/uhd/${UHD_VERSION}
 ENV DPDK_DIR=/opt/dpdk/${DPDK_VERSION}
 RUN if [ -z "$NUM_JOBS" ]; then NUM_JOBS=$(nproc); fi \
+    && ARCH_FLAG=$([ "${TARGETARCH}" = "arm64" ] && echo "-DMCPU=${MARCH}" || echo "-DMARCH=${MARCH}") \
     && \
     /src/docker/scripts/builder.sh -c ${COMPILER} -m "-j${NUM_JOBS} ocu odu odu_split_8 odu_split_7_2 gnb gnb_split_8 gnb_split_7_2 ru_emulator" \
-    -DBUILD_TESTING=False -DENABLE_UHD=On -DENABLE_DPDK=On -DMARCH=${MARCH} -DCMAKE_INSTALL_PREFIX=/opt/ocudu \
+    -DBUILD_TESTING=False -DENABLE_UHD=On -DENABLE_DPDK=On ${ARCH_FLAG} -DCMAKE_INSTALL_PREFIX=/opt/ocudu \
     ${EXTRA_CMAKE_ARGS} /src
 RUN cp /src/build/apps/cu/ocu             /tmp/ocu                     && \
     cp /src/build/apps/du/odu             /tmp/odu                     && \

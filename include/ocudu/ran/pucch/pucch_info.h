@@ -47,7 +47,7 @@ inline float pucch_format2_code_rate(unsigned nof_prb, unsigned nof_symbols, uns
   const unsigned payload_plus_crc_bits = nof_payload_bits + get_uci_nof_crc_bits(nof_payload_bits, e_uci);
 
   // PUCCH format 2 channel bits are modulated as QPSK and mapped to two of every three resource elements.
-  const unsigned nof_channel_bits = (nof_prb * pucch_constants::FORMAT2_NOF_DATA_SC * nof_symbols * 2);
+  const unsigned nof_channel_bits = (nof_prb * pucch_constants::f2::NOF_DATA_SUBC_PER_RB * nof_symbols * 2);
 
   // Calculate code rate.
   return static_cast<float>(payload_plus_crc_bits) / static_cast<float>(nof_channel_bits);
@@ -107,7 +107,8 @@ pucch_format4_code_rate(unsigned spreading_factor, unsigned nof_data_symbols, bo
 /// \param[in] max_code_rate     Maximum code rate for PUCCH format 2; it corresponds to \c maxCodeRate, part of
 ///                              \c PUCCH-FormatConfig, TS 38.331.
 /// \return The number of PRBs required for the transmission of nof_payload_bits with PUCCH format 2.
-/// \remark The returned number of PRBs is not capped to the maximum value of \ref FORMAT2_MAX_NPRB; it's up to the
+/// \remark The returned number of PRBs is not capped to the maximum value of \ref ocudu::pucch_constants::f2::NOF_RBS;
+/// it's up to the
 ///         caller to perform this check.
 /// \remark In case nof_payload_bits or nof_symbols is set to 0, the function returns 0.
 unsigned get_pucch_format2_max_nof_prbs(unsigned nof_payload_bits, unsigned nof_symbols, float max_code_rate);
@@ -165,7 +166,8 @@ inline unsigned get_pucch_format3_4_nof_dmrs_symbols(bounded_integer<unsigned, 4
 /// \param[in] additional_dmrs        Flag indicating if additional DM-RS is enabled.
 /// \param[in] pi2_bpsk               Flag indicating if pi/2-BPSK modulation is used.
 /// \return The number of PRBs required for the transmission of nof_payload_bits with PUCCH format 3.
-/// \remark The returned number of PRBs is not capped to the maximum value of \ref FORMAT3_MAX_NPRB; it's up to the
+/// \remark The returned number of PRBs is not capped to the maximum value of \ref ocudu::pucch_constants::f3::NOF_RBS;
+/// it's up to the
 ///         caller to perform this check.
 /// \remark In case nof_payload_bits is set to 0, the function returns 0.
 unsigned get_pucch_format3_max_nof_prbs(unsigned                         nof_payload_bits,

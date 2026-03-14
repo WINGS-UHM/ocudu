@@ -43,11 +43,11 @@ public:
   virtual void aggregate_mac_metrics_report(const mac_metric_report& report) = 0;
 };
 
-/// This class handles updates in cell and UE configurations. TODO: Better naming needed.
-class du_manager_configurator
+/// This class handles updates in cell and UE configurations coming from the F1AP.
+class du_manager_f1ap_event_handler
 {
 public:
-  virtual ~du_manager_configurator() = default;
+  virtual ~du_manager_f1ap_event_handler() = default;
 
   /// \brief Schedule asynchronous task in a DU-wide scope.
   virtual void schedule_async_task(async_task<void>&& task) = 0;
@@ -92,44 +92,41 @@ public:
   virtual f1ap_du_positioning_handler& get_positioning_handler() = 0;
 };
 
-class du_manager_interface_query
-{
-public:
-  virtual ~du_manager_interface_query() = default;
-  virtual size_t nof_ues()              = 0;
-};
-
-/// Interface to access the DU MAC time-slot mapper.
-class du_manager_time_mapper_accessor
-{
-public:
-  virtual ~du_manager_time_mapper_accessor() = default;
-  /// Get DU MAC subframe-time mapper.
-  virtual mac_subframe_time_mapper& get_subframe_time_mapper() = 0;
-};
-
+/// Interface to initiate and stop the DU manager activity.
 class du_manager_controller
 {
 public:
   virtual ~du_manager_controller() = default;
-  virtual void start()             = 0;
 
-  /// \brief Stop the DU manager. This call is blocking and only returns once all tasks in the DU manager are completed.
+  /// \brief Initiate the DU manager.
+  /// \remark This call is blocking and only returns once the DU finishes its setup.
+  virtual void start() = 0;
+
+  /// \brief Stop the DU manager.
+  /// \remark This call is blocking and only returns once all tasks in the DU manager have completed.
   virtual void stop() = 0;
 };
 
-class du_manager_interface : public du_manager_interface_query,
-                             public du_manager_time_mapper_accessor,
-                             public du_manager_controller,
-                             public du_manager_configurator,
-                             public du_manager_mac_event_handler,
-                             public du_configurator
+/// Interface that provides a handle to the DU manager.
+class du_manager
 {
 public:
-  virtual ~du_manager_interface() = default;
+  virtual ~du_manager() = default;
+
+  /// Get controller to DU manager to start and stop its activity.
+  virtual du_manager_controller& get_controller() = 0;
+
+  /// Get handler of MAC events.
+  virtual du_manager_mac_event_handler& get_mac_event_handler() = 0;
 
   /// Get entity responsibly for aggregating metrics from all DU layers.
   virtual du_manager_mac_metric_aggregator& get_metrics_aggregator() = 0;
+
+  /// Get F1AP configuration handling interface of the DU manager.
+  virtual du_manager_f1ap_event_handler& get_f1ap_event_handler() = 0;
+
+  /// Get configuration interface with the procedures that are triggered externally to the DU.
+  virtual du_configurator& get_operation_configurator() = 0;
 };
 
 } // namespace odu

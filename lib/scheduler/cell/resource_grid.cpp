@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "resource_grid.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 #include "ocudu/support/compiler.h"
 
 using namespace ocudu;

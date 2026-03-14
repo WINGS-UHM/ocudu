@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_test_environment.h"
+#include "tests/test_doubles/e1ap/e1ap_test_message_validators.h"
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/test_doubles/ngap/ngap_test_message_validators.h"
@@ -104,7 +105,7 @@ public:
     return true;
   }
 
-  [[nodiscard]] bool send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
+  [[nodiscard]] expected<e1ap_message> send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
       const ngap_message& pdu_session_resource_setup_request)
   {
     return cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
@@ -509,4 +510,37 @@ TEST_F(cu_cp_pdu_session_resource_setup_test, when_maximum_nof_drbs_per_ue_is_ex
 
   ASSERT_TRUE(send_pdu_session_resource_setup_request_and_await_pdu_session_setup_response(
       pdu_session_resource_setup_request, {}, {psi9}));
+}
+
+TEST_F(cu_cp_pdu_session_resource_setup_test, when_security_indication_present_then_e1_and_pdcp_security_also_present)
+{
+  security_indication_t sec_ind = {integrity_protection_indication_t::required,
+                                   confidentiality_protection_indication_t::required};
+
+  // Inject NGAP PDU Session Resource Setup Request and await Bearer Context Setup Request.
+  expected<e1ap_message> bearer_setup_req =
+      send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
+          generate_valid_pdu_session_resource_setup_request_message(ue_ctx->amf_ue_id.value(),
+                                                                    ue_ctx->ran_ue_id.value(),
+                                                                    {{psi, {pdu_session_type_t::ipv4, {{qfi, 9}}}}},
+                                                                    sec_ind));
+  ASSERT_TRUE(bearer_setup_req);
+
+  // Validate security indication was sent on bearer contet modification.
+  ASSERT_TRUE(
+      test_helpers::is_valid_security_indication_with_bearer_context_setup_request(*bearer_setup_req, psi, sec_ind));
+
+  // Inject Bearer Context Setup Response and await UE Context Modification Request.
+  ASSERT_TRUE(send_bearer_context_setup_response_and_await_ue_context_modification_request());
+
+  // Inject UE Context Modification Response and await Bearer Context Modification Request.
+  ASSERT_TRUE(send_ue_context_modification_response_and_await_bearer_context_modification_request());
+
+  // Inject Bearer Context Modification Response and await DL RRC Message Transfer containing RRC Reconfiguration.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_rrc_reconfiguration(
+      {}, {{psi, drb_id_t::drb1}}, std::vector<srb_id_t>{srb_id_t::srb2}, std::vector<drb_id_t>{drb_id_t::drb1}));
+
+  // Inject RRC Reconfiguration Complete and await successful PDU Session Resource Setup Response.
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_setup_response(
+      generate_rrc_reconfiguration_complete_pdu(3, 7), {psi}, {}));
 }

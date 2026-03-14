@@ -6,32 +6,35 @@
 
 #include "du_cell_manager.h"
 #include "du_manager_context.h"
+#include "du_manager_controller_impl.h"
 #include "du_metrics_aggregator_impl.h"
 #include "du_ue/du_ue_manager.h"
 #include "procedures/du_proc_context_view.h"
 #include "ran_resource_management/du_ran_resource_manager_impl.h"
 #include "ocudu/du/du_high/du_manager/du_manager.h"
 #include "ocudu/du/du_high/du_manager/du_manager_params.h"
-#include <condition_variable>
 
 namespace ocudu {
 namespace odu {
 
-class du_manager_impl final : public du_manager_interface
+class du_manager_impl final : public du_manager,
+                              public du_manager_mac_event_handler,
+                              public du_manager_f1ap_event_handler,
+                              public du_configurator
 {
 public:
   explicit du_manager_impl(const du_manager_params& params_);
-  ~du_manager_impl() override;
 
   // Controller interface.
-  void start() override;
-  void stop() override;
+  du_manager_controller& get_controller() override { return controller; }
 
-  // MAC interface
-  void handle_ul_ccch_indication(const ul_ccch_indication_message& msg) override;
-  void handle_crnti_ce_indication(const ul_crnti_ce_indication_message& msg) override;
+  // MAC event handling interface
+  du_manager_mac_event_handler& get_mac_event_handler() override { return *this; }
+  void                          handle_ul_ccch_indication(const ul_ccch_indication_message& msg) override;
+  void                          handle_crnti_ce_indication(const ul_crnti_ce_indication_message& msg) override;
 
   // Task scheduling interface.
+  du_manager_f1ap_event_handler& get_f1ap_event_handler() override { return *this; }
   void schedule_async_task(async_task<void>&& task) override { main_ctrl_loop.schedule(std::move(task)); }
   void schedule_async_task(du_ue_index_t ue_index, async_task<void>&& task) override
   {
@@ -60,11 +63,10 @@ public:
 
   void handle_ue_config_applied(du_ue_index_t ue_index) override;
 
-  size_t                    nof_ues() override;
-  mac_subframe_time_mapper& get_subframe_time_mapper() override;
+  du_configurator& get_operation_configurator() override { return *this; }
 
   async_task<du_mac_sched_control_config_response>
-  configure_ue_mac_scheduler(du_mac_sched_control_config reconf) override;
+  configure_ue_mac_scheduler(const du_mac_sched_control_config& reconf) override;
 
   du_param_config_response             handle_sync_operator_config(const du_param_config_request& req) override;
   async_task<du_param_config_response> handle_operator_config(const du_param_config_request& req,
@@ -77,12 +79,12 @@ public:
   du_manager_mac_metric_aggregator& get_metrics_aggregator() override { return metrics; }
 
 private:
-  /// Handle transition from operational to idle state.
-  void handle_du_stop_request();
-
   // DU manager configuration that will be visible to all running procedures
   du_manager_params       params;
   ocudulog::basic_logger& logger;
+
+  // Handler for DU tasks.
+  fifo_async_task_scheduler main_ctrl_loop;
 
   // Components
   du_manager_context                           ctxt;
@@ -92,12 +94,8 @@ private:
   std::unique_ptr<f1ap_du_positioning_handler> positioning_handler;
   du_manager_metrics_aggregator_impl           metrics;
   du_proc_context_view                         proc_ctxt;
-
-  std::mutex              mutex;
-  std::condition_variable cvar;
-
-  // Handler for DU tasks.
-  fifo_async_task_scheduler main_ctrl_loop;
+  /// Handle to control the start and stop of the DU activity.
+  du_manager_controller_impl controller;
 };
 
 } // namespace odu

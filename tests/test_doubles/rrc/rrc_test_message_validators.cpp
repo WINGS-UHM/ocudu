@@ -254,3 +254,30 @@ bool test_helpers::is_valid_sib1(const byte_buffer& packed_sib1)
   TRUE_OR_RETURN(msg.unpack(bref) == asn1::OCUDUASN_SUCCESS);
   return true;
 }
+
+bool test_helpers::is_valid_pdcp_security(const byte_buffer& dl_dcch_msg,
+                                          drb_id_t           drb_id,
+                                          bool               integrity_enabled,
+                                          bool               ciphering_enabled)
+{
+  asn1::cbit_ref              bref{dl_dcch_msg};
+  asn1::rrc_nr::dl_dcch_msg_s msg;
+  TRUE_OR_RETURN(msg.unpack(bref) == asn1::OCUDUASN_SUCCESS);
+
+  TRUE_OR_RETURN(msg.msg.type().value == asn1::rrc_nr::dl_dcch_msg_type_c::types_opts::c1);
+  TRUE_OR_RETURN(msg.msg.c1().type().value == asn1::rrc_nr::dl_dcch_msg_type_c::c1_c_::types_opts::rrc_recfg);
+  TRUE_OR_RETURN(msg.msg.c1().rrc_recfg().crit_exts.type().value ==
+                 asn1::rrc_nr::rrc_recfg_s::crit_exts_c_::types_opts::rrc_recfg);
+
+  for (const asn1::rrc_nr::drb_to_add_mod_s& drb :
+       msg.msg.c1().rrc_recfg().crit_exts.rrc_recfg().radio_bearer_cfg.drb_to_add_mod_list) {
+    if (drb.drb_id == (int)drb_id) {
+      bool integrity_correct = (drb.pdcp_cfg.drb.integrity_protection_present == integrity_enabled);
+      bool ciphering_correct = !(drb.pdcp_cfg.ciphering_disabled_present and ciphering_enabled);
+      if (integrity_correct and ciphering_correct) {
+        return true;
+      }
+    }
+  }
+  return false;
+}

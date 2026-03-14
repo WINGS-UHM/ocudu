@@ -9,7 +9,6 @@
 #include "test_mode/f1ap_test_mode_adapter.h"
 #include "ocudu/du/du_high/du_high_clock_controller.h"
 #include "ocudu/du/du_high/du_manager/du_manager_factory.h"
-#include "ocudu/mac/mac_cell_timing_context.h"
 #include "ocudu/mac/mac_metrics_notifier.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/timers.h"
@@ -27,10 +26,10 @@ public:
   }
 
   /// Connect layers of the DU-high.
-  void connect(du_manager_interface& du_mng, mac_interface& mac_inst)
+  void connect(du_manager& du_mng_, mac_interface& mac_inst)
   {
-    mac_ev_notifier.connect(du_mng, du_mng.get_metrics_aggregator());
-    f1_to_du_notifier.connect(du_mng);
+    mac_ev_notifier.connect(du_mng_.get_mac_event_handler(), du_mng_.get_metrics_aggregator());
+    f1_to_du_notifier.connect(du_mng_.get_f1ap_event_handler());
     f1ap_paging_notifier.connect(mac_inst.get_cell_paging_info_handler());
   }
 
@@ -75,7 +74,7 @@ du_high_impl::du_high_impl(const du_high_configuration& config_, const du_high_d
                              timers,
                              cfg.test_cfg);
 
-  du_manager = create_du_manager(du_manager_params{
+  du_mng = create_du_manager(du_manager_params{
       {cfg.ran.gnb_du_name, cfg.ran.gnb_du_id, 1, cfg.ran.cells, cfg.ran.srbs, cfg.ran.qos},
       {timers,
        dependencies.exec_mapper->du_control_executor(),
@@ -93,7 +92,7 @@ du_high_impl::du_high_impl(const du_high_configuration& config_, const du_high_d
       cfg.test_cfg});
 
   // Connect Layer<->DU manager adapters.
-  adapters->connect(*du_manager, *mac);
+  adapters->connect(*du_mng, *mac);
 }
 
 du_high_impl::~du_high_impl()
@@ -103,23 +102,33 @@ du_high_impl::~du_high_impl()
 
 void du_high_impl::start()
 {
+  if (std::exchange(is_running, true)) {
+    logger.warning("Discarding DU start request. Cause: DU already started.");
+    return;
+  }
+
   logger.info("Starting DU-High...");
-  du_manager->start();
+  du_mng->get_controller().start();
   logger.info("DU-High started successfully");
 }
 
 void du_high_impl::stop()
 {
-  if (not is_running.exchange(false, std::memory_order::memory_order_relaxed)) {
+  if (not std::exchange(is_running, false)) {
     return;
   }
 
   logger.info("Stopping DU-High...");
-  du_manager->stop();
+  du_mng->get_controller().stop();
   logger.info("DU-High stopped successfully");
 }
 
-f1ap_du& du_high_impl::get_f1ap_du()
+f1ap_message_handler& du_high_impl::get_f1ap_pdu_handler()
+{
+  return *f1ap;
+}
+
+f1ap_ue_id_translator& du_high_impl::get_f1ap_ue_id_translator()
 {
   return *f1ap;
 }
@@ -146,10 +155,10 @@ mac_cell_control_information_handler& du_high_impl::get_control_info_handler(du_
 
 du_configurator& du_high_impl::get_du_configurator()
 {
-  return *du_manager;
+  return du_mng->get_operation_configurator();
 }
 
-du_manager_time_mapper_accessor& du_high_impl::get_du_manager_time_mapper_accessor()
+mac_subframe_time_mapper& du_high_impl::get_subframe_time_mapper()
 {
-  return *du_manager;
+  return mac->get_subframe_time_mapper();
 }

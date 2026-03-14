@@ -1,10 +1,9 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/ofh/ethernet/ethernet_frame_pool.h"
 #include "ocudu/ran/cyclic_prefix.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -46,8 +45,8 @@ static void init_eth_buffers_with_rnd_data(span<scoped_frame_buffer>  reserved_b
                                            unsigned                   num_frames)
 {
   for (unsigned frame = 0; frame < num_frames; ++frame) {
-    auto pkt_size        = test_rgen::uniform_int<unsigned>(MIN_ETH_FRAME_LENGTH, test_mtu_size);
-    test_data[frame]     = test_rgen::random_vector<uint8_t>(pkt_size);
+    auto pkt_size        = test_rng::uniform_int<unsigned>(MIN_ETH_FRAME_LENGTH, test_mtu_size);
+    test_data[frame]     = test_rng::vector_of_uniform_ints<uint8_t>(pkt_size);
     span<uint8_t> buffer = reserved_buffers[frame]->get_buffer().first(pkt_size);
     std::copy(test_data[frame].begin(), test_data[frame].end(), buffer.begin());
     reserved_buffers[frame]->set_size(pkt_size);
@@ -99,7 +98,7 @@ TEST_P(EthFramePoolFixture, writing_small_pkt_is_rounded_to_min_eth_size)
   // Initialize slot to a random value.
   slot_point slot(to_numerology_value(scs), 0);
   unsigned   slots_per_system_frame = slot.nof_slots_per_hyper_system_frame();
-  slot += test_rgen::uniform_int<unsigned>(0, slots_per_system_frame);
+  slot += test_rng::uniform_int<unsigned>(0, slots_per_system_frame);
 
   for (unsigned slot_count = 0; slot_count < TEST_NUM_SLOTS; ++slot_count) {
     for (unsigned symbol = 0; symbol < nof_symbols; ++symbol) {
@@ -107,8 +106,8 @@ TEST_P(EthFramePoolFixture, writing_small_pkt_is_rounded_to_min_eth_size)
 
       // Generate small packet filled with random data.
       std::array<uint8_t, MIN_ETH_FRAME_LENGTH> zeros{0};
-      unsigned                                  pkt_size = test_rgen::uniform_int<unsigned>(1, MIN_ETH_FRAME_LENGTH);
-      std::vector<uint8_t>                      pkt_data = test_rgen::random_vector<uint8_t>(pkt_size);
+      unsigned                                  pkt_size = test_rng::uniform_int<unsigned>(1, MIN_ETH_FRAME_LENGTH);
+      std::vector<uint8_t>                      pkt_data = test_rng::vector_of_uniform_ints<uint8_t>(pkt_size);
       std::copy(pkt_data.begin(), pkt_data.end(), zeros.begin());
 
       // Reserve a frame buffer.
@@ -142,14 +141,14 @@ TEST_P(EthFramePoolFixture, read_after_write_should_return_correct_data)
   // Initialize slot to a random value.
   slot_point slot(to_numerology_value(scs), 0);
   unsigned   slots_per_system_frame = slot.nof_slots_per_hyper_system_frame();
-  slot += test_rgen::uniform_int<unsigned>(0, slots_per_system_frame);
+  slot += test_rng::uniform_int<unsigned>(0, slots_per_system_frame);
 
   for (unsigned slot_count = 0; slot_count < TEST_NUM_SLOTS; ++slot_count) {
     for (unsigned symbol = 0; symbol < nof_symbols; ++symbol) {
       ofh::slot_symbol_point symbol_point(slot, symbol, nof_symbols);
 
       // Number of Ethernet frames written in the current slot symbol.
-      auto                              num_frames = test_rgen::uniform_int<unsigned>(1, nof_frames);
+      auto                              num_frames = test_rng::uniform_int<unsigned>(1, nof_frames);
       std::vector<std::vector<uint8_t>> test_data(num_frames);
 
       {
@@ -193,20 +192,20 @@ TEST_P(EthFramePoolFixture, read_multiple_written_packets_per_symbol_should_retu
   // Initialize slot to a random value.
   slot_point slot(to_numerology_value(scs), 0);
   unsigned   slots_per_system_frame = slot.nof_slots_per_hyper_system_frame();
-  slot += test_rgen::uniform_int<unsigned>(0, slots_per_system_frame);
+  slot += test_rng::uniform_int<unsigned>(0, slots_per_system_frame);
 
   for (unsigned slot_count = 0; slot_count < TEST_NUM_SLOTS; ++slot_count) {
     for (unsigned symbol = 0; symbol < nof_symbols; ++symbol) {
       ofh::slot_symbol_point symbol_point(slot, symbol, nof_symbols);
 
       // Random test data for random number of eAxC.
-      unsigned                          num_antennas = test_rgen::uniform_int<unsigned>(1, ofh::MAX_NOF_SUPPORTED_EAXC);
+      unsigned                          num_antennas = test_rng::uniform_int<unsigned>(1, ofh::MAX_NOF_SUPPORTED_EAXC);
       std::vector<std::vector<uint8_t>> test_data;
       std::vector<unsigned>             eax_num_of_packets;
 
       for (unsigned eaxc = 0; eaxc != num_antennas; ++eaxc) {
         // Randomly choose number of Ethernet frames written in the current slot symbol for the current eAxC.
-        unsigned num_frames_needed = test_rgen::uniform_int<unsigned>(1, nof_frames);
+        unsigned num_frames_needed = test_rng::uniform_int<unsigned>(1, nof_frames);
 
         unsigned nof_reserved = 0;
         while (nof_reserved != num_frames_needed) {
@@ -252,9 +251,9 @@ TEST_P(EthFramePoolFixture, read_interval_should_return_correct_data)
   // Initialize slot to a random value.
   slot_point slot(to_numerology_value(scs), 0);
   unsigned   slots_per_system_frame = slot.nof_slots_per_hyper_system_frame();
-  slot += test_rgen::uniform_int<unsigned>(0, slots_per_system_frame);
+  slot += test_rng::uniform_int<unsigned>(0, slots_per_system_frame);
 
-  auto num_antennas = test_rgen::uniform_int<unsigned>(1, ofh::MAX_NOF_SUPPORTED_EAXC);
+  auto num_antennas = test_rng::uniform_int<unsigned>(1, ofh::MAX_NOF_SUPPORTED_EAXC);
 
   /// 1. Test C-Plane (prepare a packet for each antenna in symbol 0 and read back an interval including symbol 0).
   if (ofh_type == ofh::message_type::control_plane) {
@@ -320,7 +319,7 @@ TEST_P(EthFramePoolFixture, read_interval_should_return_correct_data)
   }
 
   /// 2. Test U-Plane.
-  unsigned               symbol_id = test_rgen::uniform_int<unsigned>(0, nof_symbols - 1);
+  unsigned               symbol_id = test_rng::uniform_int<unsigned>(0, nof_symbols - 1);
   ofh::slot_symbol_point middle_symbol_point(slot, symbol_id, nof_symbols);
   ofh::slot_symbol_point start_symbol_point = middle_symbol_point - 3U;
   ofh::slot_symbol_point end_symbol_point   = middle_symbol_point + 1U;
@@ -331,7 +330,7 @@ TEST_P(EthFramePoolFixture, read_interval_should_return_correct_data)
 
   for (unsigned eaxc = 0; eaxc != num_antennas; ++eaxc) {
     // First write buffers in the start symbol.
-    auto num_frames_needed = test_rgen::uniform_int<unsigned>(1, nof_frames);
+    auto num_frames_needed = test_rng::uniform_int<unsigned>(1, nof_frames);
     for (unsigned i = 0; i < num_frames_needed; ++i) {
       // Reserve buffer.
       auto wr_buffer = pool.reserve(start_symbol_point);
@@ -345,7 +344,7 @@ TEST_P(EthFramePoolFixture, read_interval_should_return_correct_data)
     }
 
     // Second write buffers in the middle symbol.
-    num_frames_needed = test_rgen::uniform_int<unsigned>(1, nof_frames);
+    num_frames_needed = test_rng::uniform_int<unsigned>(1, nof_frames);
     for (unsigned i = 0; i < num_frames_needed; ++i) {
       // Reserve buffer.
       auto wr_buffer = pool.reserve(middle_symbol_point);

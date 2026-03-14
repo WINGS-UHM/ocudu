@@ -8,11 +8,11 @@
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/ue_configuration_procedure.h"
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/rrc_nr/cell_group_config.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/mac/config/mac_config_helpers.h"
 #include "ocudu/rlc/rlc_srb_config_factory.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -24,7 +24,7 @@ protected:
   ue_config_tester() :
     du_manager_proc_tester(std::vector<du_cell_config>{config_helpers::make_default_du_cell_config()})
   {
-    test_ue = &create_ue(to_du_ue_index(test_rgen::uniform_int<unsigned>(0, MAX_DU_UE_INDEX)));
+    test_ue = &create_ue(to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX)));
   }
 
   void start_procedure(const f1ap_ue_context_update_request& req, const std::vector<drb_id_t>& failed_drbs = {})
@@ -230,7 +230,7 @@ TEST_F(ue_config_tester, when_du_manager_finishes_processing_ue_config_request_t
 {
   static const std::array<uint8_t, 2> dummy_rlc_header = {0x80, 0x0};
   byte_buffer                         test_payload     = test_helpers::create_pdcp_pdu(
-      pdcp_sn_size::size12bits, /* is_srb = */ true, 0, test_rgen::uniform_int<unsigned>(3, 100), 0);
+      pdcp_sn_size::size12bits, /* is_srb = */ true, 0, test_rng::uniform_int<unsigned>(3, 100), 0);
 
   // Run UE Configuration Procedure to completion.
   configure_ue(create_f1ap_ue_context_update_request(test_ue->ue_index, {srb_id_t::srb2}, {}));
@@ -263,7 +263,7 @@ TEST_F(ue_config_tester, when_du_manager_finishes_processing_ue_config_request_t
 {
   static const std::array<uint8_t, 2> dummy_rlc_header = {0x80, 0x0};
   byte_buffer                         test_payload     = test_helpers::create_pdcp_pdu(
-      pdcp_sn_size::size12bits, /* is_srb = */ false, 0, test_rgen::uniform_int<unsigned>(3, 100), 0);
+      pdcp_sn_size::size12bits, /* is_srb = */ false, 0, test_rng::uniform_int<unsigned>(3, 100), 0);
 
   // Run UE Configuration Procedure to completion.
   configure_ue(create_f1ap_ue_context_update_request(test_ue->ue_index, {}, {drb_id_t::drb1}));

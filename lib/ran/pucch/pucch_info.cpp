@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 
 unsigned ocudu::get_pucch_format2_max_nof_prbs(unsigned nof_payload_bits, unsigned nof_symbols, float max_code_rate)
 {
@@ -15,8 +16,7 @@ unsigned ocudu::get_pucch_format2_max_nof_prbs(unsigned nof_payload_bits, unsign
   // for PUCCH Format 2 is 512. As per Section 6.3.1.2.1, TS 38.212, any value less than 1088 is irrelevant for the CRC
   // length computation, therefore using the maximum number of PRBs instead of the actual number doesn't affect the
   // result.
-  const unsigned max_nof_pucch_f2_prbs = 16;
-  const unsigned e_uci                 = get_pucch_format2_E_total(max_nof_pucch_f2_prbs, nof_symbols);
+  const unsigned e_uci = get_pucch_format2_E_total(pucch_constants::f2::MAX_NOF_RBS, nof_symbols);
 
   // As per Sections 6.3.1.2.1 and 6.3.1.4.1, TS 38.212, the parameter \f$E\f$ used to derive the number of
   // code-blocks is \f$E_{UCI}\f$.
@@ -25,9 +25,10 @@ unsigned ocudu::get_pucch_format2_max_nof_prbs(unsigned nof_payload_bits, unsign
   constexpr unsigned nof_bits_qpsk_symbol = 2;
   // This is derived from the inequality (or constraint) on \f$M^{PUCCH}_{RB,min}\f$, in Section 9.2.5.1, TS 38.213. The
   // ceil operation guarantees that the number of PRBs is enough to satisfy the effective code rate constraint.
-  return static_cast<unsigned>(std::ceil(
-      static_cast<float>(payload_plus_crc_bits) /
-      (static_cast<float>(pucch_constants::FORMAT2_NOF_DATA_SC * nof_symbols * nof_bits_qpsk_symbol) * max_code_rate)));
+  return static_cast<unsigned>(
+      std::ceil(static_cast<float>(payload_plus_crc_bits) /
+                (static_cast<float>(pucch_constants::f2::NOF_DATA_SUBC_PER_RB * nof_symbols * nof_bits_qpsk_symbol) *
+                 max_code_rate)));
 }
 
 unsigned ocudu::get_pucch_format2_nof_prbs(unsigned nof_payload_bits,
@@ -55,9 +56,10 @@ unsigned ocudu::get_pucch_format2_max_payload(unsigned max_nof_prbs, unsigned no
   // max_code_rate.
   // NOTE: The maximum number of bits that can be carried by a PUCCH Format 2 resource is 409, which is obtained for 16
   // PRBs, 2 symbols and 0.8 max code rate.
-  unsigned estimated_pucch_f2_capacity = static_cast<unsigned>(std::floor(
-      static_cast<float>(pucch_constants::FORMAT2_NOF_DATA_SC * nof_symbols * nof_bits_qpsk_symbol * max_nof_prbs) *
-      max_code_rate));
+  unsigned estimated_pucch_f2_capacity =
+      static_cast<unsigned>(std::floor(static_cast<float>(pucch_constants::f2::NOF_DATA_SUBC_PER_RB * nof_symbols *
+                                                          nof_bits_qpsk_symbol * max_nof_prbs) *
+                                       max_code_rate));
 
   // Get the payload depending on the estimated PUCCH F2 capacity (which we define as the nof bits that the PUCCH F2 can
   // carry).
@@ -93,7 +95,7 @@ unsigned ocudu::get_pucch_format3_max_nof_prbs(unsigned                         
 {
   static constexpr auto valid_num_prbs          = to_array({1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16});
   const auto            round_to_valid_nof_prbs = [](unsigned& value) {
-    if (value > pucch_constants::FORMAT3_MAX_NPRB) {
+    if (value > pucch_constants::f3::MAX_NOF_RBS) {
       return;
     }
 
@@ -124,7 +126,7 @@ unsigned ocudu::get_pucch_format3_max_nof_prbs(unsigned                         
   round_to_valid_nof_prbs(nof_prbs);
 
   // The resulting number of PRBs is too big for PUCCH Format 3, so just return.
-  if (nof_prbs > pucch_constants::FORMAT3_MAX_NPRB) {
+  if (nof_prbs > pucch_constants::f3::MAX_NOF_RBS) {
     return nof_prbs;
   }
 
@@ -140,7 +142,7 @@ unsigned ocudu::get_pucch_format3_max_nof_prbs(unsigned                         
     round_to_valid_nof_prbs(++nof_prbs);
 
     // The resulting number of PRBs is too big for PUCCH Format 3, so just return.
-    if (nof_prbs > pucch_constants::FORMAT3_MAX_NPRB) {
+    if (nof_prbs > pucch_constants::f3::MAX_NOF_RBS) {
       return nof_prbs;
     }
 

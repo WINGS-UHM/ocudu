@@ -19,7 +19,8 @@ public:
   {
   }
 
-  dummy_cu_cp_xnap_handler cu_cp_xnap_handler;
+  ue_manager               ue_mng{get_cu_cp_cfg()};
+  dummy_cu_cp_xnap_handler cu_cp_xnap_handler{ue_mng};
   xnap_repository          xnap_db;
 
   gnb_id_t                default_gnb_id{.id = 411, .bit_length = 22};

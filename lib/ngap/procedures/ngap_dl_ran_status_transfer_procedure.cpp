@@ -9,14 +9,12 @@ using namespace ocudu::ocucp;
 using namespace asn1::ngap;
 
 ngap_dl_ran_status_transfer_procedure::ngap_dl_ran_status_transfer_procedure(ngap_ue_transaction_manager& ev_mng_,
-                                                                             timer_factory                timers,
                                                                              ngap_ue_logger&              logger_) :
   ev_mng(ev_mng_), logger(logger_)
 {
 }
 
-void ngap_dl_ran_status_transfer_procedure::operator()(
-    coro_context<async_task<expected<ngap_dl_ran_status_transfer>>>& ctx)
+void ngap_dl_ran_status_transfer_procedure::operator()(coro_context<async_task<expected<cu_cp_status_transfer>>>& ctx)
 {
   CORO_BEGIN(ctx);
   logger.log_debug("\"{}\" started...", name());
@@ -54,7 +52,7 @@ bool ngap_dl_ran_status_transfer_procedure::fill_ngap_dl_ran_status_transfer()
 
   for (const asn1::ngap::drbs_subject_to_status_transfer_item_s& drb_item_asn1 :
        transparent_cont.drbs_subject_to_status_transfer_list) {
-    ngap_drbs_subject_to_status_transfer_item drb_item;
+    cu_cp_drbs_subject_to_status_transfer_item drb_item;
 
     drb_item.drb_id = uint_to_drb_id(drb_item_asn1.drb_id);
     // Fill DL status

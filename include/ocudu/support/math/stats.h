@@ -225,7 +225,7 @@ private:
   /// Ensure the sample type is arithmetic.
   static_assert(std::is_arithmetic_v<T>, "Invalid type.");
   /// Records the maximum observed value.
-  T max = std::numeric_limits<T>::min();
+  T max = std::numeric_limits<T>::lowest();
   /// Records the minimum observed value.
   T min = std::numeric_limits<T>::max();
   /// Records the sample size.

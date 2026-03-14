@@ -11,7 +11,6 @@
 #include "pdu_translators/pusch.h"
 #include "pdu_translators/srs.h"
 #include "pdu_translators/ssb.h"
-#include "ocudu/fapi/message_loggers.h"
 #include "ocudu/fapi/p7/builders/dl_tti_request_builder.h"
 #include "ocudu/fapi/p7/builders/tx_data_request_builder.h"
 #include "ocudu/fapi/p7/builders/ul_dci_request_builder.h"
@@ -157,7 +156,9 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_scheduler_results(const ma
                                *pm_mapper,
                                cell_nof_prbs);
 
-  log_dl_tti_request(msg, sector_id, fapi_logger);
+  if (OCUDU_UNLIKELY(fapi_logger.debug.enabled())) {
+    fapi_logger.debug("Sector#{}: {}", sector_id, msg);
+  }
 
   // Send the message.
   p7_gateway.send_dl_tti_request(msg);
@@ -219,7 +220,9 @@ void mac_to_fapi_fastpath_translator::on_new_downlink_data(const mac_dl_data_res
     }
   }
 
-  log_tx_data_request(msg, sector_id, fapi_logger);
+  if (OCUDU_UNLIKELY(fapi_logger.debug.enabled())) {
+    fapi_logger.debug("Sector#{}: {}", sector_id, msg);
+  }
 
   // Send the message.
   p7_gateway.send_tx_data_request(msg);
@@ -238,7 +241,7 @@ void mac_to_fapi_fastpath_translator::on_new_uplink_scheduler_results(const mac_
   fapi::ul_tti_request         msg;
   fapi::ul_tti_request_builder builder(msg);
 
-  builder.set_basic_parameters(ul_res.slot);
+  builder.set_slot(ul_res.slot);
 
   // Add PRACH PDUs to the UL_TTI.request message.
   for (const auto& pdu : ul_res.ul_res->prachs) {
@@ -262,7 +265,9 @@ void mac_to_fapi_fastpath_translator::on_new_uplink_scheduler_results(const mac_
     convert_srs_mac_to_fapi(pdu_builder, pdu);
   }
 
-  log_ul_tti_request(msg, sector_id, fapi_logger);
+  if (OCUDU_UNLIKELY(fapi_logger.debug.enabled())) {
+    fapi_logger.debug("Sector#{}: {}", sector_id, msg);
+  }
 
   // Send the message.
   p7_gateway.send_ul_tti_request(msg);
@@ -284,7 +289,9 @@ void mac_to_fapi_fastpath_translator::handle_ul_dci_request(span<const pdcch_ul_
 
   add_pdcch_pdus_to_builder(builder, pdcch_info, payloads, *pm_mapper, cell_nof_prbs);
 
-  log_ul_dci_request(msg, sector_id, fapi_logger);
+  if (OCUDU_UNLIKELY(fapi_logger.debug.enabled())) {
+    fapi_logger.debug("Sector#{}: {}", sector_id, msg);
+  }
 
   // Send the message.
   p7_gateway.send_ul_dci_request(msg);

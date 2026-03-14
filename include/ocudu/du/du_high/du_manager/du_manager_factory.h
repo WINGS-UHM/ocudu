@@ -11,7 +11,7 @@ namespace ocudu {
 namespace odu {
 
 /// Creates an instance of a DU manager.
-std::unique_ptr<du_manager_interface> create_du_manager(const du_manager_params& params);
+std::unique_ptr<du_manager> create_du_manager(const du_manager_params& params);
 
 } // namespace odu
 } // namespace ocudu

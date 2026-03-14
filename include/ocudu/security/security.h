@@ -16,8 +16,7 @@
 #include <array>
 #include <cstdint>
 
-namespace ocudu {
-namespace security {
+namespace ocudu::security {
 
 /// MAC-I length in bytes.
 constexpr uint32_t sec_mac_len = 4;
@@ -285,8 +284,7 @@ sec_128_key truncate_key(const sec_key& key_in);
 /// Truncate 256-bit keys to 128-bit keys using the least significant bits, on a given security context.
 sec_128_as_config truncate_config(const sec_as_config& cfg_in);
 
-} // namespace security
-} // namespace ocudu
+} // namespace ocudu::security
 
 //
 // Formatters

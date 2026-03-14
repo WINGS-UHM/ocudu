@@ -68,7 +68,7 @@ public:
     return std::make_unique<dummy_ngap_message_notifier>(*this);
   }
 
-  std::vector<ngap_message> last_ngap_msgs = {};
+  std::vector<ngap_message> last_ngap_msgs;
 
 private:
   ocudulog::basic_logger& logger;
@@ -359,11 +359,11 @@ public:
     return ue_index_t::invalid;
   }
 
-  async_task<ngap_handover_resource_allocation_response>
+  async_task<cu_cp_handover_resource_allocation_response>
   on_ngap_handover_request(const ngap_handover_request& request) override
   {
-    return launch_async([res = ngap_handover_resource_allocation_response{}](
-                            coro_context<async_task<ngap_handover_resource_allocation_response>>& ctx) mutable {
+    return launch_async([res = cu_cp_handover_resource_allocation_response{}](
+                            coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx) mutable {
       CORO_BEGIN(ctx);
 
       CORO_RETURN(res);

@@ -171,7 +171,7 @@ static void log_ru_ofh_metrics(ocudulog::log_channel&   log_chan,
         std::back_inserter(buffer),
         "OFH sector#{} metrics: pci={} received messages stats: rx_total={} rx_early={} "
         "rx_on_time={} rx_late={} earliest_msg_us={:.2f} latest_msg_us={:.2f}, nof_missed_uplink_symbols={} "
-        "nof_missed_prach_occasions={}",
+        "nof_missed_prach_occasions={} ",
         cell_metrics.sector_id,
         static_cast<unsigned>(pci_sector_map[cell_metrics.sector_id]),
         rx_ofh_metrics.nof_early_messages + rx_ofh_metrics.nof_on_time_messages + rx_ofh_metrics.nof_late_messages,

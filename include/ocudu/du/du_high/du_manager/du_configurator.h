@@ -48,7 +48,8 @@ struct du_cell_param_config_request {
   {
   }
 
-  /// NR Cell Global ID of the cell being configured.
+  /// \brief NR Cell Global ID of the cell being configured. If not specified, the configuration is applied to all
+  /// configured cells.
   std::optional<nr_cell_global_id_t> nr_cgi;
   /// SSB power modification to be applied to the cell. If absent, no modification is applied.
   std::optional<int> ssb_pwr_mod;
@@ -114,14 +115,16 @@ struct du_ntn_param_update_response {
   bool success;
 };
 
-/// Interface to configure parameters of an already operational DU.
+/// Interface to configure parameters of a DU in operational mode.
+/// \note Use this interface to configure parameters that do not require stopping a cell and reconfiguring it.
 class du_configurator
 {
 public:
   virtual ~du_configurator() = default;
 
+  /// \brief Apply new config updates to a given UE present in the DU.
   virtual async_task<du_mac_sched_control_config_response>
-  configure_ue_mac_scheduler(du_mac_sched_control_config reconf) = 0;
+  configure_ue_mac_scheduler(const du_mac_sched_control_config& cfg_req) = 0;
 
   /// \brief Apply new config updates requested from outside the DU, in a blocking fashion.
   ///

@@ -3,18 +3,18 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/mac/mac_dl/sib_pdu_assembler.h"
-#include "ocudu/support/test_utils.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
 
-byte_buffer make_random_pdu(unsigned size = test_rgen::uniform_int<unsigned>(10, 200))
+byte_buffer make_random_pdu(unsigned size = test_rng::uniform_int<unsigned>(10, 200))
 {
-  return byte_buffer::create(test_rgen::random_vector<uint8_t>(size)).value();
+  return byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(size)).value();
 }
 
-std::vector<byte_buffer> make_random_segmented_pdu(unsigned segment_size = test_rgen::uniform_int<unsigned>(10, 200),
-                                                   unsigned nof_segments = test_rgen::uniform_int<unsigned>(2, 3))
+std::vector<byte_buffer> make_random_segmented_pdu(unsigned segment_size = test_rng::uniform_int<unsigned>(10, 200),
+                                                   unsigned nof_segments = test_rng::uniform_int<unsigned>(2, 3))
 {
   std::vector<byte_buffer> segmented_pdu;
   for (unsigned i_segment = 0; i_segment != nof_segments; ++i_segment) {
@@ -75,7 +75,7 @@ public:
 
 TEST_F(sib_pdu_assembler_test, when_sib1_is_scheduled_then_the_correct_payload_is_generated)
 {
-  units::bytes        padding_len{test_rgen::uniform_int<unsigned>(0, 20)};
+  units::bytes        padding_len{test_rng::uniform_int<unsigned>(0, 20)};
   units::bytes        tbs     = units::bytes{(unsigned)sys_info_cfg.sib1.length()} + padding_len;
   sib_information     si_info = make_sib_pdu(std::nullopt, 0, tbs);
   span<const uint8_t> pdu     = assembler.encode_si_pdu(current_slot, si_info);
@@ -88,7 +88,7 @@ TEST_F(sib_pdu_assembler_test, when_sib1_is_scheduled_then_the_correct_payload_i
 
 TEST_F(sib_pdu_assembler_test, when_invalid_si_msg_index_is_scheduled_then_a_pdu_of_zeros_is_generated)
 {
-  units::bytes        padding_len{test_rgen::uniform_int<unsigned>(0, 20)};
+  units::bytes        padding_len{test_rng::uniform_int<unsigned>(0, 20)};
   units::bytes        tbs     = units::bytes{(unsigned)sys_info_cfg.sib1.length()} + padding_len;
   sib_information     si_info = make_sib_pdu(2, 0, tbs);
   span<const uint8_t> pdu     = assembler.encode_si_pdu(current_slot, si_info);
@@ -108,7 +108,7 @@ TEST_F(sib_pdu_assembler_test, when_sib1_is_updated_and_old_version_is_scheduled
     current_slot++;
 
     // Old SIB1 version is scheduled, old SIB1 PDU is encoded.
-    units::bytes        padding_len{test_rgen::uniform_int<unsigned>(0, 20)};
+    units::bytes        padding_len{test_rng::uniform_int<unsigned>(0, 20)};
     units::bytes        tbs         = units::bytes{(unsigned)old_msg.length()} + padding_len;
     sib_information     old_si_info = make_sib_pdu(std::nullopt, 0, tbs);
     span<const uint8_t> pdu         = assembler.encode_si_pdu(current_slot, old_si_info);
@@ -130,7 +130,7 @@ TEST_F(sib_pdu_assembler_test, when_sib1_is_updated_then_encoding_accounts_for_n
     current_slot++;
 
     // Encoding new PDU.
-    units::bytes        padding_len{test_rgen::uniform_int<unsigned>(0, 20)};
+    units::bytes        padding_len{test_rng::uniform_int<unsigned>(0, 20)};
     units::bytes        tbs         = units::bytes{(unsigned)new_msg.length()} + padding_len;
     sib_information     new_si_info = make_sib_pdu(std::nullopt, 1, tbs);
     span<const uint8_t> pdu         = assembler.encode_si_pdu(current_slot, new_si_info);
@@ -149,7 +149,7 @@ TEST_F(sib_pdu_assembler_test, when_si_message_is_added_then_encoding_matched_ad
   this->update_si_pdus(sys_info_cfg.sib1, std::vector<bcch_dl_sch_payload_type>{{new_msg.copy()}});
   ASSERT_EQ(last_version, 1);
 
-  units::bytes        padding_len{test_rgen::uniform_int<unsigned>(0, 20)};
+  units::bytes        padding_len{test_rng::uniform_int<unsigned>(0, 20)};
   units::bytes        tbs         = units::bytes{(unsigned)new_msg.length()} + padding_len;
   sib_information     new_si_info = make_sib_pdu(0, 1, tbs);
   span<const uint8_t> pdu         = assembler.encode_si_pdu(current_slot, new_si_info);
@@ -168,7 +168,7 @@ TEST_F(sib_pdu_assembler_test, when_segmented_si_message_is_added_then_encoding_
   this->update_si_pdus(sys_info_cfg.sib1, std::vector<bcch_dl_sch_payload_type>{{new_msg}});
   ASSERT_EQ(last_version, 1);
 
-  units::bytes padding_len{test_rgen::uniform_int<unsigned>(0, 20)};
+  units::bytes padding_len{test_rng::uniform_int<unsigned>(0, 20)};
   units::bytes tbs = units::bytes{static_cast<unsigned>(new_msg[0].length())} + padding_len;
 
   sib_information new_si_info = make_sib_pdu(0, 1, tbs);

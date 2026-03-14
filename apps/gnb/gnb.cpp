@@ -399,14 +399,14 @@ int main(int argc, char** argv)
   cu_cp_unit_config                              cp_unit_cfg = o_cu_cp_app_unit->get_o_cu_cp_unit_config().cucp_cfg;
   std::unique_ptr<ocucp::xnc_connection_gateway> xnc_gw;
   if (!cp_unit_cfg.xnap_configs.empty()) {
-    // TODO: support multiple XNAP config items.
-    const auto& xnap_cfg = cp_unit_cfg.xnap_configs.front();
-
     sctp_network_gateway_config xnc_sctp_cfg = {};
     xnc_sctp_cfg.if_name                     = "XN-C";
-    xnc_sctp_cfg.bind_addresses              = xnap_cfg.bind_addrs;
-    xnc_sctp_cfg.bind_port                   = XNAP_PORT;
-    xnc_sctp_cfg.ppid                        = XNAP_PPID;
+    for (const auto& xnap_cfg : cp_unit_cfg.xnap_configs) {
+      xnc_sctp_cfg.bind_addresses.insert(
+          xnc_sctp_cfg.bind_addresses.end(), xnap_cfg.bind_addrs.begin(), xnap_cfg.bind_addrs.end());
+    }
+    xnc_sctp_cfg.bind_port = XNAP_PORT;
+    xnc_sctp_cfg.ppid      = XNAP_PPID;
     xnc_sctp_gateway_config xnc_server_cfg(
         {xnc_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().xnc_rx_executor(), *cu_cp_dlt_pcaps.xnap});
 

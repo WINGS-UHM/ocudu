@@ -108,7 +108,7 @@ public:
 
   /// \brief Map ue_index to gnb_cu_ue_f1ap_id.
   /// \param[in] ue_index of a given UE.
-  /// \param[out] gnb_cu_ue_f1ap_id of the given UE.
+  /// \param[out] gNB-CU-UE-F1AP-ID of the given UE.
   virtual std::optional<gnb_cu_ue_f1ap_id_t> get_gnb_cu_ue_f1ap_id(const du_ue_index_t& ue_index) const = 0;
 
   /// \brief Map gnb_du_ue_f1ap_id to gnb_cu_ue_f1ap_id.
@@ -230,7 +230,7 @@ class f1ap_du : public f1ap_message_handler,
                 public f1ap_ue_id_translator
 {
 public:
-  virtual ~f1ap_du() = default;
+  ~f1ap_du() override = default;
 
   /// \brief Retrieve the F1AP metrics collector.
   virtual f1ap_metrics_collector& get_metrics_collector() = 0;

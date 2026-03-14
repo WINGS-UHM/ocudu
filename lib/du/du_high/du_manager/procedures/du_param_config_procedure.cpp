@@ -47,11 +47,7 @@ static error_type<std::string> validate_du_param_config_request(const du_param_c
 du_param_config_procedure::du_param_config_procedure(const du_param_config_request& request_,
                                                      const du_manager_params&       du_params_,
                                                      du_cell_manager&               du_cells_) :
-  request(request_),
-  du_params(du_params_),
-  du_cells(du_cells_),
-  req_validation_outcome(validate_du_param_config_request(request)),
-  logger(ocudulog::fetch_basic_logger("DU-MNG"))
+  request(request_), du_params(du_params_), du_cells(du_cells_), logger(ocudulog::fetch_basic_logger("DU-MNG"))
 {
 }
 
@@ -59,8 +55,9 @@ void du_param_config_procedure::operator()(coro_context<async_task<du_param_conf
 {
   CORO_BEGIN(ctx);
 
-  if (not req_validation_outcome.has_value()) {
-    logger.warning("Invalid DU parameters config request. Cause: {}", req_validation_outcome.error());
+  // Verify that the request for configuration is valid.
+  if (auto validation_outcome = validate_du_param_config_request(request); not validation_outcome.has_value()) {
+    logger.warning("Invalid DU parameters config request. Cause: {}", validation_outcome.error());
     resp.success = false;
     CORO_EARLY_RETURN(resp);
   }
@@ -73,6 +70,7 @@ void du_param_config_procedure::operator()(coro_context<async_task<du_param_conf
 
   for (; next_cell_idx != changed_cells.size(); ++next_cell_idx) {
     // Reconfigure cell in the MAC.
+    // TODO: Use when_all.
     CORO_AWAIT_VALUE(mac_cell_reconfig_response macresp, handle_mac_cell_update(changed_cells[next_cell_idx]));
     if (changed_cells[next_cell_idx].sched_notif_required and not macresp.si_updated) {
       resp.success = false;

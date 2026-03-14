@@ -80,3 +80,28 @@ void xnap_repository::connect_association(xnc_peer_index_t idx, std::unique_ptr<
   xnap_context& ctx = it->second;
   ctx.xnap->set_tx_association_notifier(std::move(sender_notifier));
 }
+
+async_task<void> xnap_repository::remove_xnap(xnc_peer_index_t idx)
+{
+  ocudu_assert(idx != xnc_peer_index_t::invalid, "Invalid xnc_peer_index={}", idx);
+  logger.debug("Removing XNAP {}...", idx);
+
+  return launch_async([this, idx](coro_context<async_task<void>>& ctx) {
+    CORO_BEGIN(ctx);
+
+    // Remove XNAP
+    if (xnap_db.find(idx) == xnap_db.end()) {
+      logger.warning("Remove XNAP called for inexistent xnc_peer_index={}", idx);
+      return;
+    }
+
+    // Stop XNAP activity, eliminating pending transactions for the XNAP and respective UEs.
+    CORO_AWAIT(xnap_db.find(idx)->second.xnap->stop());
+
+    // Remove XNAP
+    xnap_db.erase(idx);
+    logger.info("Removed XNAP {}", idx);
+
+    CORO_RETURN();
+  });
+}

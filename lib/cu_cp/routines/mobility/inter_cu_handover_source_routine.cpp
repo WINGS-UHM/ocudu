@@ -112,7 +112,7 @@ bool inter_cu_handover_source_routine::fill_ngap_ul_ran_status_transfer()
         if (drb_ctx == pdu_session_ctx.drbs.end()) {
           return false;
         }
-        ngap_drbs_subject_to_status_transfer_item drb_item;
+        cu_cp_drbs_subject_to_status_transfer_item drb_item;
         drb_item.drb_id                     = drb_modified.drb_id;
         drb_item.drb_status_dl.sn_size      = drb_ctx->second.pdcp_cfg.tx.sn_size;
         drb_item.drb_status_dl.dl_count.hfn = drb_modified.pdcp_sn_status_info->pdcp_status_transfer_dl.hfn;

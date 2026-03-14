@@ -5,9 +5,9 @@
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/ue_configuration_procedure.h"
 #include "lib/du/du_high/du_manager/procedures/ue_creation_procedure.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/mac/config/mac_config_helpers.h"
 #include "ocudu/rlc/rlc_srb_config_factory.h"
-#include "ocudu/support/test_utils.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -17,8 +17,8 @@ ul_ccch_indication_message ocudu::odu::create_test_ul_ccch_message(rnti_t rnti)
   ul_ccch_indication_message ul_ccch_msg;
   ul_ccch_msg.cell_index = to_du_cell_index(0);
   ul_ccch_msg.tc_rnti    = rnti;
-  ul_ccch_msg.slot_rx    = {0, test_rgen::uniform_int<unsigned>(0, 10239)};
-  ul_ccch_msg.subpdu     = byte_buffer::create(test_rgen::random_vector<uint8_t>(6)).value();
+  ul_ccch_msg.slot_rx    = {0, test_rng::uniform_int<unsigned>(0, 10239)};
+  ul_ccch_msg.subpdu     = byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(6)).value();
   return ul_ccch_msg;
 }
 

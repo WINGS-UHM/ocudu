@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/fapi/p7/builders/rx_data_indication_builder.h"
 #include <gtest/gtest.h>
@@ -18,7 +17,7 @@ TEST(rx_data_indication_builder, valid_basic_parameters_passes)
   rx_data_indication         msg;
   rx_data_indication_builder builder(msg);
 
-  builder.set_slot_point(slot);
+  builder.set_slot(slot);
 
   ASSERT_EQ(slot, msg.slot);
 }
@@ -33,12 +32,11 @@ TEST(rx_data_indication_builder, add_custom_pdu_passes)
   rx_data_indication         msg;
   rx_data_indication_builder builder(msg);
 
-  builder.add_pdu(rnti, harq, {transport_block});
+  builder.set_pdu(rnti, harq, {transport_block});
 
-  const auto& pdu = msg.pdus.back();
-  ASSERT_EQ(0, pdu.handle);
-  ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(harq, pdu.harq_id);
-  ASSERT_EQ(transport_block.size(), pdu.transport_block.size());
-  ASSERT_EQ(transport_block.data(), pdu.transport_block.data());
+  ASSERT_EQ(0, msg.pdu.handle);
+  ASSERT_EQ(rnti, msg.pdu.rnti);
+  ASSERT_EQ(harq, msg.pdu.harq_id);
+  ASSERT_EQ(transport_block.size(), msg.pdu.transport_block.size());
+  ASSERT_EQ(transport_block.data(), msg.pdu.transport_block.data());
 }

@@ -55,5 +55,10 @@ bool is_valid_rrc_resume(const byte_buffer& dl_dcch_msg);
 
 bool is_valid_sib1(const byte_buffer& packed_sib1);
 
+bool is_valid_pdcp_security(const byte_buffer& dl_dcch_msg,
+                            drb_id_t           drb_id,
+                            bool               integrity_enabled,
+                            bool               ciphering_enabled);
+
 } // namespace test_helpers
 } // namespace ocudu

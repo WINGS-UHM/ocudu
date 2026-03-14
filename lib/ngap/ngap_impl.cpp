@@ -14,6 +14,7 @@
 #include "procedures/ngap_handover_preparation_procedure.h"
 #include "procedures/ngap_handover_resource_allocation_procedure.h"
 #include "procedures/ngap_initial_context_setup_procedure.h"
+#include "procedures/ngap_path_switch_procedure.h"
 #include "procedures/ngap_pdu_session_resource_modify_procedure.h"
 #include "procedures/ngap_pdu_session_resource_release_procedure.h"
 #include "procedures/ngap_pdu_session_resource_setup_procedure.h"
@@ -24,6 +25,7 @@
 #include "ocudu/ngap/ngap_setup.h"
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/cause/ngap_cause.h"
+#include "ocudu/support/async/async_no_op_task.h"
 
 using namespace ocudu;
 using namespace asn1::ngap;
@@ -572,8 +574,8 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
 
   // Store UE Aggregate Maximum Bitrate if it is set.
   if (init_ctxt_setup_req.ue_aggr_max_bit_rate.has_value()) {
-    ue_ctxt.aggregate_maximum_bit_rate_dl = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().ue_aggr_max_bit_rate_dl;
-    ue_ctxt.aggregate_maximum_bit_rate_ul = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().ue_aggr_max_bit_rate_ul;
+    ue_ctxt.aggregate_maximum_bit_rate_dl = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().dl;
+    ue_ctxt.aggregate_maximum_bit_rate_ul = init_ctxt_setup_req.ue_aggr_max_bit_rate.value().ul;
   } else {
     // Add stored UE Aggregate Maximum Bitrate to request.
     if (ue_ctxt.aggregate_maximum_bit_rate_dl > 0 && ue_ctxt.aggregate_maximum_bit_rate_ul > 0) {
@@ -951,7 +953,7 @@ void ngap_impl::handle_dl_ran_status_transfer(const asn1::ngap::dl_ran_status_tr
   ue_ctxt.ev_mng.dl_ran_status_transfer_outcome.set(msg);
 }
 
-void ngap_impl::handle_ul_ran_status_transfer(const ngap_ul_ran_status_transfer& ul_ran_status_transfer)
+void ngap_impl::handle_ul_ran_status_transfer(const cu_cp_status_transfer& ul_ran_status_transfer)
 {
   const ue_index_t ue_index = ul_ran_status_transfer.ue_index;
   if (!ue_ctxt_list.contains(ue_index)) {
@@ -978,12 +980,12 @@ void ngap_impl::handle_ul_ran_status_transfer(const ngap_ul_ran_status_transfer&
   }
 }
 
-async_task<expected<ngap_dl_ran_status_transfer>> ngap_impl::handle_dl_ran_status_transfer_required(ue_index_t ue_index)
+async_task<expected<cu_cp_status_transfer>> ngap_impl::handle_dl_ran_status_transfer_required(ue_index_t ue_index)
 {
   if (!ue_ctxt_list.contains(ue_index)) {
     logger.warning("ue={}: Cannot await DLRANStatusTransfer. UE context does not exist", ue_index);
 
-    auto err_function = [](coro_context<async_task<expected<ngap_dl_ran_status_transfer>>>& ctx) {
+    auto err_function = [](coro_context<async_task<expected<cu_cp_status_transfer>>>& ctx) {
       CORO_BEGIN(ctx);
       CORO_RETURN(make_unexpected(default_error_t{}));
     };
@@ -991,8 +993,7 @@ async_task<expected<ngap_dl_ran_status_transfer>> ngap_impl::handle_dl_ran_statu
   }
 
   ngap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
-  return launch_async<ngap_dl_ran_status_transfer_procedure>(
-      ue_ctxt.ev_mng, timer_factory{timers, ctrl_exec}, ue_ctxt.logger);
+  return launch_async<ngap_dl_ran_status_transfer_procedure>(ue_ctxt.ev_mng, ue_ctxt.logger);
 }
 
 void ngap_impl::handle_dl_ue_associated_nrppa_transport(const asn1::ngap::dl_ue_associated_nrppa_transport_s& msg)
@@ -1170,6 +1171,11 @@ void ngap_impl::handle_successful_outcome(const successful_outcome_s& outcome)
         ue_ctxt->ev_mng.handover_cancel_outcome.set(outcome.value.ho_cancel_ack());
       }
     } break;
+    case ngap_elem_procs_o::successful_outcome_c::types_opts::path_switch_request_ack: {
+      if (auto* ue_ctxt = get_ue_ctxt_in_ue_assoc_msg(outcome)) {
+        ue_ctxt->ev_mng.path_switch_outcome.set(outcome.value.path_switch_request_ack());
+      }
+    } break;
     default:
       logger.error("Successful outcome of type {} is not supported", outcome.value.type().to_string());
   }
@@ -1203,6 +1209,11 @@ void ngap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcom
     case ngap_elem_procs_o::unsuccessful_outcome_c::types_opts::ho_prep_fail: {
       if (auto* ue_ctxt = get_ue_ctxt_in_ue_assoc_msg(outcome)) {
         ue_ctxt->ev_mng.handover_preparation_outcome.set(outcome.value.ho_prep_fail());
+      }
+    } break;
+    case ngap_elem_procs_o::unsuccessful_outcome_c::types_opts::path_switch_request_fail: {
+      if (auto* ue_ctxt = get_ue_ctxt_in_ue_assoc_msg(outcome)) {
+        ue_ctxt->ev_mng.path_switch_outcome.set(outcome.value.path_switch_request_fail());
       }
     } break;
     default:
@@ -1481,6 +1492,37 @@ ngap_impl::handle_rrc_inactive_transition_report_required(const ngap_rrc_inactiv
 
     CORO_RETURN(true);
   });
+}
+
+async_task<cu_cp_path_switch_response>
+ngap_impl::handle_path_switch_request_required(const cu_cp_path_switch_request& request)
+{
+  cu_cp_path_switch_response        failure_response;
+  cu_cp_path_switch_request_failure failure;
+  failure.ue_index = request.ue_index;
+  failure_response = failure;
+
+  if (ue_ctxt_list.contains(request.ue_index)) {
+    logger.warning("ue={}: Dropping Path Switch Request. UE context already exists", request.ue_index);
+    return launch_no_op_task(failure_response);
+  }
+
+  // Create NGAP UE.
+  // Allocate RAN-UE-ID.
+  ran_ue_id_t ran_ue_id = ue_ctxt_list.allocate_ran_ue_id();
+  if (ran_ue_id == ran_ue_id_t::invalid) {
+    logger.error("ue={}: No RAN-UE-ID available, dropping Path Switch Request", request.ue_index);
+    return launch_no_op_task(failure_response);
+  }
+
+  // Create UE context and store it.
+  ngap_cu_cp_ue_notifier* ue_notifier = cu_cp_notifier.on_new_ngap_ue(request.ue_index);
+  ue_ctxt_list.add_ue(request.ue_index, ran_ue_id, *ue_notifier);
+  ue_ctxt_list.update_amf_ue_id(ran_ue_id, uint_to_amf_ue_id(request.source_amf_ue_ngap_id));
+
+  ngap_ue_context& ue_ctxt = ue_ctxt_list[request.ue_index];
+
+  return launch_async<ngap_path_switch_procedure>(request, ue_ctxt, tx_pdu_notifier);
 }
 
 ngap_info ngap_impl::handle_ngap_metrics_report_request() const

@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "ocudu/adt/span.h"
 #include "ocudu/fapi_adaptor/phy/phy_fapi_adaptor.h"
 #include <memory>
+#include <string_view>
 
 namespace CLI {
 class App;
@@ -17,8 +17,12 @@ namespace ocudu {
 struct o_du_unit_dependencies;
 struct worker_manager_config;
 
+namespace fapi_adaptor {
+struct split6_o_du_low_fapi_adaptor_configuration;
+}
+
 namespace odu {
-struct du_high_configuration;
+struct du_high_ran_config;
 }
 
 /// \brief Split 6 plugin interface.
@@ -35,12 +39,16 @@ public:
   /// Validates the configuration of this application unit. Returns true on success, otherwise false.
   virtual bool on_configuration_validation() const = 0;
 
+  /// Checks if the given RAN configuration is supported by the plugin.
+  virtual bool is_ran_config_supported(const odu::du_high_ran_config& configuration) const = 0;
+
   /// Registers the loggers of this application unit.
   virtual void on_loggers_registration() = 0;
 
   /// Creates and returns a vector of fapi adaptors, each of them representing a cell.
   virtual std::unique_ptr<fapi_adaptor::phy_fapi_adaptor>
-  create_fapi_adaptor(const odu::du_high_configuration& du_high_cfg, const o_du_unit_dependencies& dependencies) = 0;
+  create_fapi_adaptor(const fapi_adaptor::split6_o_du_low_fapi_adaptor_configuration& fapi_cfg,
+                      const o_du_unit_dependencies&                                   dependencies) = 0;
 
   /// Fills the given worker manager split 6 configuration.
   virtual void fill_worker_manager_config(worker_manager_config& config) = 0;

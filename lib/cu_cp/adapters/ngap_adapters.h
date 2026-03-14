@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../cu_cp_impl_interface.h"
-#include "../du_processor/du_processor.h"
 #include "../paging/paging_message_handler.h"
 #include "../ue_manager/cu_cp_ue_impl_interface.h"
 #include "ocudu/cu_cp/ue_task_scheduler.h"
@@ -13,8 +12,7 @@
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/rrc/rrc_ue.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// Adapter between NGAP and CU-CP
 class ngap_cu_cp_adapter : public ngap_cu_cp_notifier
@@ -32,7 +30,7 @@ public:
     paging_handler->handle_paging_message(msg);
   }
 
-  async_task<ngap_handover_resource_allocation_response>
+  async_task<cu_cp_handover_resource_allocation_response>
   on_ngap_handover_request(const ngap_handover_request& request) override
   {
     ocudu_assert(cu_cp_handler != nullptr, "CU-CP NGAP handler must not be nullptr");
@@ -109,7 +107,7 @@ public:
   void on_n2_handover_execution(ue_index_t ue_index) override
   {
     ocudu_assert(cu_cp_handler != nullptr, "CU-CP NGAP handler must not be nullptr");
-    cu_cp_handler->handle_n2_handover_execution(ue_index);
+    cu_cp_handler->handle_inter_cu_target_handover_execution(ue_index);
   }
 
   ue_index_t request_new_ue_index_allocation(nr_cell_global_id_t cgi, const plmn_identity& plmn) override
@@ -222,5 +220,4 @@ private:
   rrc_ngap_message_handler* rrc_ue_handler = nullptr;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

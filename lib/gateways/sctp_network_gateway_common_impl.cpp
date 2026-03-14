@@ -281,11 +281,18 @@ bool sctp_network_gateway_common_impl::validate_and_log_sctp_notification(span<c
       }
 
       const struct sctp_assoc_change* n = &notif->sn_assoc_change;
-      logger.debug("{}: Rx SCTP_ASSOC_CHANGE: sac_state={} sac_error={} sac_assoc_id={}",
-                   node_cfg.if_name,
-                   static_cast<sctp_sac_state>(n->sac_state),
-                   static_cast<sctp_sn_error>(n->sac_error),
-                   n->sac_assoc_id);
+      if (n->sac_state == SCTP_COMM_LOST || n->sac_state == SCTP_CANT_STR_ASSOC) {
+        logger.debug("{}: Rx SCTP_ASSOC_CHANGE: sac_state={} sac_error={} sac_assoc_id={}",
+                     node_cfg.if_name,
+                     static_cast<sctp_sac_state>(n->sac_state),
+                     static_cast<sctp_sn_error>(n->sac_error),
+                     n->sac_assoc_id);
+      } else {
+        logger.debug("{}: Rx SCTP_ASSOC_CHANGE: sac_state={} sac_assoc_id={}",
+                     node_cfg.if_name,
+                     static_cast<sctp_sac_state>(n->sac_state),
+                     n->sac_assoc_id);
+      }
     } break;
     case SCTP_SHUTDOWN_EVENT: {
       if (sizeof(struct sctp_shutdown_event) > payload.size_bytes()) {

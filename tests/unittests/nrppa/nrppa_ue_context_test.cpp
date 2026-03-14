@@ -4,8 +4,8 @@
 
 #include "lib/nrppa/ue_context/nrppa_ue_context.h"
 #include "test_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include <cstdint>
 #include <gtest/gtest.h>
 
@@ -38,19 +38,19 @@ protected:
   static ue_index_t generate_random_ue_index()
   {
     return uint_to_ue_index(
-        test_rgen::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
+        test_rng::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
   }
 
   static ran_ue_meas_id_t generate_random_ran_ue_meas_id()
   {
-    return uint_to_ran_ue_meas_id(test_rgen::uniform_int<uint64_t>(ran_ue_meas_id_to_uint(ran_ue_meas_id_t::min),
-                                                                   ran_ue_meas_id_to_uint(ran_ue_meas_id_t::max) - 1));
+    return uint_to_ran_ue_meas_id(test_rng::uniform_int<uint64_t>(ran_ue_meas_id_to_uint(ran_ue_meas_id_t::min),
+                                                                  ran_ue_meas_id_to_uint(ran_ue_meas_id_t::max) - 1));
   }
 
   static lmf_ue_meas_id_t generate_random_lmf_ue_meas_id()
   {
-    return uint_to_lmf_ue_meas_id(test_rgen::uniform_int<uint64_t>(lmf_ue_meas_id_to_uint(lmf_ue_meas_id_t::min),
-                                                                   lmf_ue_meas_id_to_uint(lmf_ue_meas_id_t::max) - 1));
+    return uint_to_lmf_ue_meas_id(test_rng::uniform_int<uint64_t>(lmf_ue_meas_id_to_uint(lmf_ue_meas_id_t::min),
+                                                                  lmf_ue_meas_id_to_uint(lmf_ue_meas_id_t::max) - 1));
   }
 
   ocudulog::basic_logger&       nrppa_logger = ocudulog::fetch_basic_logger("nrppa");

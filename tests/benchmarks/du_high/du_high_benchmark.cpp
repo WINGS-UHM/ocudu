@@ -29,6 +29,7 @@
 #include "tests/test_doubles/pdcp/pdcp_pdu_generator.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_result_finder.h"
+#include "tests/test_doubles/utils/test_rng_seed.h"
 #include "tests/unittests/f1ap/du/f1ap_du_test_helpers.h"
 #include "ocudu/adt/mpmc_queue.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
@@ -627,10 +628,10 @@ public:
 
     // Create PDCP PDU Payload.
     report_fatal_error_if_not(
-        pdcp_pdu_payload.append(test_rgen::random_vector<uint8_t>(f1u_pdu_size.value() - PDCP_MAX_HDR_LEN)),
+        pdcp_pdu_payload.append(test_rng::vector_of_uniform_ints<uint8_t>(f1u_pdu_size.value() - PDCP_MAX_HDR_LEN)),
         "Unable to allocate PDU");
     // Create MAC PDU.
-    report_fatal_error_if_not(mac_pdu.append(test_rgen::random_vector<uint8_t>(
+    report_fatal_error_if_not(mac_pdu.append(test_rng::vector_of_uniform_ints<uint8_t>(
                                   buff_size_field_to_bytes(lbsr_buff_sz, ocudu::bsr_format::LONG_BSR))),
                               "Unable to allocate PDU");
 
@@ -1332,6 +1333,9 @@ int main(int argc, char** argv)
 {
   static const std::size_t byte_buffer_nof_segments = 1U << 19U;
   static const std::size_t byte_buffer_segment_size = 2048;
+
+  // Setup random generation.
+  test_rng::init_base_seed(std::random_device{}());
 
   // Set DU-high logging.
   auto all_log_level  = ocudulog::basic_levels::warning;

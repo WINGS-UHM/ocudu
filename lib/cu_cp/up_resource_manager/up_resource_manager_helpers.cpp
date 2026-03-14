@@ -227,7 +227,10 @@ static drb_id_t allocate_qos_flow(up_pdu_session_context_update&     new_session
   drb_ctx.qos_flows.emplace(flow_ctx.qfi, flow_ctx);
 
   // Set PDCP/SDAP config.
-  drb_ctx.pdcp_cfg = set_rrc_pdcp_config(five_qi, cfg);
+  drb_ctx.pdcp_cfg = set_rrc_pdcp_config(five_qi,
+                                         cfg,
+                                         new_session_context.integrity_protection_result,
+                                         new_session_context.confidentiality_protection_result);
   drb_ctx.sdap_cfg = set_rrc_sdap_config(drb_ctx);
   drb_ctx.rlc_mod  = (drb_ctx.pdcp_cfg.rlc_mode == pdcp_rlc_mode::am) ? rlc_mode::am : rlc_mode::um_bidir;
 
@@ -266,7 +269,10 @@ static drb_id_t modify_qos_flow(up_pdu_session_context_update&     new_session_c
   drb_ctx.qos_flows.emplace(flow_ctx.qfi, flow_ctx);
 
   // Set PDCP/SDAP config.
-  drb_ctx.pdcp_cfg = set_rrc_pdcp_config(qos_flow.qos_flow_level_qos_params.qos_desc.get_5qi(), cfg);
+  drb_ctx.pdcp_cfg = set_rrc_pdcp_config(qos_flow.qos_flow_level_qos_params.qos_desc.get_5qi(),
+                                         cfg,
+                                         new_session_context.integrity_protection_result,
+                                         new_session_context.confidentiality_protection_result);
   drb_ctx.sdap_cfg = set_rrc_sdap_config(drb_ctx);
   drb_ctx.rlc_mod  = (drb_ctx.pdcp_cfg.rlc_mode == pdcp_rlc_mode::am) ? rlc_mode::am : rlc_mode::um_bidir;
 
@@ -348,8 +354,13 @@ up_config_update ocudu::ocucp::calculate_update(const cu_cp_pdu_session_resource
     ocudu_assert(context.pdu_sessions.find(modify_item.pdu_session_id) != context.pdu_sessions.end(),
                  "PDU session does not exist.");
 
+    const up_pdu_session_context& old_ctxt = context.pdu_sessions.at(modify_item.pdu_session_id);
     up_pdu_session_context_update ctxt_update(modify_item.pdu_session_id,
                                               context.pdu_sessions.at(modify_item.pdu_session_id).type);
+
+    ctxt_update.integrity_protection_result       = old_ctxt.integrity_protection_result;
+    ctxt_update.confidentiality_protection_result = old_ctxt.confidentiality_protection_result;
+
     for (const auto& flow_item : modify_item.transfer.qos_flow_add_or_modify_request_list) {
       // If QoS flow already exists, modify it.
       if (context.qos_flow_map.find(flow_item.qos_flow_id) != context.qos_flow_map.end()) {
@@ -436,15 +447,20 @@ sdap_config_t ocudu::ocucp::set_rrc_sdap_config(const up_drb_context& context)
   return sdap_cfg;
 }
 
-pdcp_config ocudu::ocucp::set_rrc_pdcp_config(five_qi_t five_qi, const up_resource_manager_cfg& cfg)
+pdcp_config ocudu::ocucp::set_rrc_pdcp_config(five_qi_t                           five_qi,
+                                              const up_resource_manager_cfg&      cfg,
+                                              integrity_protection_result_t       integrity,
+                                              confidentiality_protection_result_t ciphering)
 {
   ocudu_assert(cfg.five_qi_config.find(five_qi) != cfg.five_qi_config.end(),
                "Could not find PDCP configuration. 5QI {}",
                five_qi);
 
-  // TODO: Consider UE capabilities on ROHC support here.
+  pdcp_config pdcp_cfg                   = cfg.five_qi_config.at(five_qi).pdcp;
+  pdcp_cfg.integrity_protection_required = (integrity == integrity_protection_result_t::performed);
+  pdcp_cfg.ciphering_required            = (ciphering == confidentiality_protection_result_t::performed);
 
-  return cfg.five_qi_config.at(five_qi).pdcp;
+  return pdcp_cfg;
 }
 
 up_config_update ocudu::ocucp::to_config_update(const up_context& old_context)

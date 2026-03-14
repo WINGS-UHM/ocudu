@@ -71,9 +71,9 @@ void dmrs_pucch_estimator_format2::estimate(channel_estimate&                   
                                             const resource_grid_reader&                        grid,
                                             const dmrs_pucch_estimator::format2_configuration& config)
 {
-  ocudu_assert((!config.second_hop_prb.has_value() || (config.nof_symbols > pucch_constants::FORMAT2_MIN_NSYMB)),
+  ocudu_assert((!config.second_hop_prb.has_value() || (config.nof_symbols == pucch_constants::f2::MAX_NOF_SYMS)),
                "Frequency hopping requires {} OFDM symbols.",
-               pucch_constants::FORMAT2_MAX_NSYMB);
+               pucch_constants::f2::MAX_NOF_SYMS);
 
   unsigned nof_rx_ports = config.ports.size();
 
@@ -81,7 +81,7 @@ void dmrs_pucch_estimator_format2::estimate(channel_estimate&                   
   re_measurement_dimensions dims;
   dims.nof_subc    = config.nof_prb * NOF_DMRS_PER_RB;
   dims.nof_symbols = config.nof_symbols;
-  dims.nof_slices  = pucch_constants::MAX_LAYERS;
+  dims.nof_slices  = pucch_constants::NOF_LAYERS;
 
   // Resize DM-RS symbol buffer.
   temp_symbols.resize(dims);

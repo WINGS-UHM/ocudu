@@ -4,8 +4,9 @@
 
 #include "lib/mac/mac_ul/mac_ul_sch_pdu.h"
 #include "lib/mac/mac_ul/ul_phr.h"
+#include "tests/test_doubles/utils/test_rng.h"
+#include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/bit_encoding.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -459,9 +460,9 @@ TEST(mac_ul_pdu, decode_short_sdu)
   //               ...
   // |            PAYLOAD            |  Octet L + 2
 
-  size_t      L       = test_rgen::uniform_int<unsigned>(1, 255);
-  lcid_t      lcid    = uint_to_lcid(test_rgen::uniform_int<uint8_t>(LCID_SRB1, LCID_MAX_DRB));
-  byte_buffer payload = byte_buffer::create(test_rgen::random_vector<uint8_t>(L)).value();
+  size_t      L       = test_rng::uniform_int<unsigned>(1, 255);
+  lcid_t      lcid    = uint_to_lcid(test_rng::uniform_int<uint8_t>(LCID_SRB1, LCID_MAX_DRB));
+  byte_buffer payload = byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(L)).value();
 
   byte_buffer msg;
   bit_encoder enc(msg);
@@ -496,9 +497,9 @@ TEST(mac_ul_pdu, decode_long_sdu)
   //               ...
   // |            PAYLOAD            |  Octet L + 3
 
-  size_t      L       = test_rgen::uniform_int<unsigned>(256, 1000);
-  lcid_t      lcid    = uint_to_lcid(test_rgen::uniform_int<uint8_t>(LCID_SRB1, LCID_MAX_DRB));
-  byte_buffer payload = byte_buffer::create(test_rgen::random_vector<uint8_t>(L)).value();
+  size_t      L       = test_rng::uniform_int<unsigned>(256, 1000);
+  lcid_t      lcid    = uint_to_lcid(test_rng::uniform_int<uint8_t>(LCID_SRB1, LCID_MAX_DRB));
+  byte_buffer payload = byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(L)).value();
 
   byte_buffer msg;
   bit_encoder enc(msg);
@@ -534,7 +535,7 @@ TEST(mac_ul_pdu, handle_the_case_when_a_pdu_has_too_many_subpdus)
 
   size_t      L       = 1;
   lcid_t      lcid    = ocudu::LCID_SRB1;
-  byte_buffer payload = byte_buffer::create(test_rgen::random_vector<uint8_t>(L)).value();
+  byte_buffer payload = byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(L)).value();
 
   byte_buffer msg;
   bit_encoder enc(msg);
@@ -556,7 +557,7 @@ TEST(mac_ul_pdu, handle_the_case_when_pdu_length_is_too_short_to_decode_length_p
 {
   size_t      L       = 1;
   lcid_t      lcid    = ocudu::LCID_SRB1;
-  byte_buffer payload = byte_buffer::create(test_rgen::random_vector<uint8_t>(L)).value();
+  byte_buffer payload = byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(L)).value();
 
   byte_buffer msg;
   bit_encoder enc(msg);
@@ -567,15 +568,4 @@ TEST(mac_ul_pdu, handle_the_case_when_pdu_length_is_too_short_to_decode_length_p
 
   mac_ul_sch_pdu pdu;
   ASSERT_FALSE(pdu.unpack(msg)); // Should not crash.
-}
-
-int main(int argc, char** argv)
-{
-  ocudulog::fetch_basic_logger("MAC", true).set_level(ocudulog::basic_levels::debug);
-  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
-  ocudulog::init();
-
-  ::testing::InitGoogleTest(&argc, argv);
-
-  return RUN_ALL_TESTS();
 }

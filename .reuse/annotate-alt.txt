@@ -1,10 +1,14 @@
-/apps/
+^apps/
 /asn1/
 /cu_cp/
 /cu_up/
 /du/
+/du_high/
+/du_high_cu/
+/du_manager/
 /e1ap/
 /e2/
+/e2ap/
 /f1ap/
 /f1u/
 /gtpu/
@@ -25,4 +29,3 @@
 /security/
 /xnap/
 /ru/
-/tests/

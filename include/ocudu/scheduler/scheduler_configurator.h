@@ -71,6 +71,9 @@ struct ue_cell_config {
   serving_cell_config serv_cell_cfg;
   // List of BWP configurations for this UE in this cell.
   std::vector<ue_bwp_config> bwps;
+
+  /// Returns the initial BWP configuration for this UE in this cell.
+  ue_bwp_config& init_bwp() { return bwps[0]; }
 };
 
 /// Request for a new UE configuration provided to the scheduler during UE creation or reconfiguration.

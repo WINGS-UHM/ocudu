@@ -6,6 +6,7 @@
 #include "../lib/f1ap/asn1_helpers.h"
 #include "../pdcp/pdcp_pdu_generator.h"
 #include "../rrc/rrc_packed_test_messages.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_ies.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
@@ -13,7 +14,6 @@
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/positioning/positioning_ids.h"
-#include "ocudu/support/test_utils.h"
 
 using namespace ocudu;
 using namespace asn1::f1ap;
@@ -54,7 +54,7 @@ f1ap_message ocudu::test_helpers::generate_f1ap_reset_message(
 static byte_buffer generate_rrc_container(uint32_t pdcp_sn, unsigned pdu_len)
 {
   return test_helpers::create_pdcp_pdu(
-      pdcp_sn_size::size12bits, true, pdcp_sn, pdu_len, test_rgen::uniform_int<uint8_t>());
+      pdcp_sn_size::size12bits, true, pdcp_sn, pdu_len, test_rng::uniform_int<uint8_t>());
 }
 
 gnb_du_served_cells_item_s ocudu::test_helpers::generate_served_cells_item(const served_cell_item_info& info)
@@ -365,7 +365,7 @@ f1ap_message ocudu::test_helpers::generate_ue_context_setup_request(gnb_cu_ue_f1
 
   dl_msg->rrc_container_present = true;
   bool success                  = dl_msg->rrc_container.append(
-      generate_rrc_container(rrc_container_pdcp_sn, test_rgen::uniform_int<unsigned>(3, 100)));
+      generate_rrc_container(rrc_container_pdcp_sn, test_rng::uniform_int<unsigned>(3, 100)));
   report_error_if_not(success, "Failed to allocate RRC container");
 
   return msg;

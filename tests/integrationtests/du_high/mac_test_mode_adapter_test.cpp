@@ -145,9 +145,9 @@ static mac_uci_pdu make_random_uci_with_csi(rnti_t test_rnti = to_rnti(0x4601))
   mac_uci_pdu::pucch_f2_or_f3_or_f4_type f2;
   f2.csi_part1_info.emplace();
   f2.csi_part1_info->is_valid = false;
-  f2.csi_part1_info->payload.resize(test_rgen::uniform_int<unsigned>(0, 11));
+  f2.csi_part1_info->payload.resize(test_rng::uniform_int<unsigned>(0, 11));
   for (unsigned i = 0; i != f2.csi_part1_info->payload.size(); ++i) {
-    f2.csi_part1_info->payload.set(i, test_rgen::uniform_int<unsigned>(0, 1));
+    f2.csi_part1_info->payload.set(i, test_rng::uniform_int<unsigned>(0, 1));
   }
 
   pdu.pdu = f2;
@@ -262,7 +262,7 @@ TEST_F(mac_test_mode_test, when_test_mode_ue_has_pusch_grants_then_crc_indicatio
   ul_sched_result ul_res{};
   ul_sched_info&  ulgrant   = ul_res.puschs.emplace_back();
   ulgrant.pusch_cfg.rnti    = this->params.test_ue_cfg.rnti;
-  ulgrant.pusch_cfg.harq_id = to_harq_id(test_rgen::uniform_int(0, 15));
+  ulgrant.pusch_cfg.harq_id = to_harq_id(test_rng::uniform_int(0, 15));
   mac_events.next_ul_sched_res.emplace();
   mac_events.next_ul_sched_res->slot   = next_slot.without_hyper_sfn();
   mac_events.next_ul_sched_res->ul_res = &ul_res;
@@ -375,7 +375,7 @@ TEST_P(mac_test_mode_auto_uci_test, when_test_mode_ue_has_pusch_grants_then_crc_
   ul_sched_result ul_res{};
   ul_sched_info&  ulgrant   = ul_res.puschs.emplace_back();
   ulgrant.pusch_cfg.rnti    = this->params.test_ue_cfg.rnti;
-  ulgrant.pusch_cfg.harq_id = to_harq_id(test_rgen::uniform_int(0, 15));
+  ulgrant.pusch_cfg.harq_id = to_harq_id(test_rng::uniform_int(0, 15));
   mac_events.next_ul_sched_res.emplace();
   mac_events.next_ul_sched_res->slot   = next_slot.without_hyper_sfn();
   mac_events.next_ul_sched_res->ul_res = &ul_res;

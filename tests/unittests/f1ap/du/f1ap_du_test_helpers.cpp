@@ -5,19 +5,19 @@
 #include "f1ap_du_test_helpers.h"
 #include "lib/f1ap/f1ap_asn1_utils.h"
 #include "test_doubles/f1ap/f1ap_test_messages.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/ran/pdcp_sn_util.h"
 #include "ocudu/support/async/async_test_utils.h"
-#include "ocudu/support/test_utils.h"
 
 using namespace ocudu;
 using namespace odu;
 
 gnb_du_ue_f1ap_id_t ocudu::odu::generate_random_gnb_du_ue_f1ap_id()
 {
-  return int_to_gnb_du_ue_f1ap_id(test_rgen::uniform_int<uint64_t>(
+  return int_to_gnb_du_ue_f1ap_id(test_rng::uniform_int<uint64_t>(
       gnb_du_ue_f1ap_id_to_uint(gnb_du_ue_f1ap_id_t::min), gnb_du_ue_f1ap_id_to_uint(gnb_du_ue_f1ap_id_t::max) - 1));
 }
 

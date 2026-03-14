@@ -24,7 +24,7 @@ TEST_F(du_high_tester, when_trp_information_request_is_received_then_response_is
   // DU receives TRP INFORMATION REQUEST.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message msg = ocudu::test_helpers::generate_trp_information_request();
-  this->du_hi->get_f1ap_du().handle_message(msg);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(msg);
   this->test_logger.info("STATUS: TRP INFORMATION REQUEST received by DU. Waiting for TRP INFORMATION RESPONSE ACK...");
 
   // Wait for TRP INFORMATION RESPONSE to be sent to the CU.
@@ -37,7 +37,7 @@ TEST_F(du_high_tester, when_positioning_information_request_is_received_then_res
   // DU receives TRP INFORMATION REQUEST.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message trp_info_req = ocudu::test_helpers::generate_trp_information_request();
-  this->du_hi->get_f1ap_du().handle_message(trp_info_req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(trp_info_req);
   this->test_logger.info("STATUS: TRP INFORMATION REQUEST received by DU. Waiting for TRP INFORMATION RESPONSE ACK...");
 
   // Wait for TRP INFORMATION RESPONSE to be sent to the CU.
@@ -58,7 +58,7 @@ TEST_F(du_high_tester, when_positioning_information_request_is_received_then_res
   // DU receives POSITIONING INFORMATION REQUEST.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message pos_info_req = test_helpers::generate_positioning_information_request(du_ue_id, cu_ue_id);
-  this->du_hi->get_f1ap_du().handle_message(pos_info_req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(pos_info_req);
   this->test_logger.info(
       "STATUS: POSITIONING INFORMATION REQUEST received by DU. Waiting for POSITIONING INFORMATION RESPONSE ACK...");
 
@@ -100,7 +100,7 @@ TEST_P(du_high_pos_req_tester, when_positioning_measurement_request_is_received_
   // DU receives TRP INFORMATION REQUEST.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message trp_info_req = test_helpers::generate_trp_information_request();
-  this->du_hi->get_f1ap_du().handle_message(trp_info_req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(trp_info_req);
   this->test_logger.info("STATUS: TRP INFORMATION REQUEST received by DU. Waiting for TRP INFORMATION RESPONSE ACK...");
 
   // Wait for TRP INFORMATION RESPONSE to be sent to the CU.
@@ -121,7 +121,7 @@ TEST_P(du_high_pos_req_tester, when_positioning_measurement_request_is_received_
   // DU receives POSITIONING INFORMATION REQUEST.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message pos_info_req = test_helpers::generate_positioning_information_request(du_ue_id, cu_ue_id);
-  this->du_hi->get_f1ap_du().handle_message(pos_info_req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(pos_info_req);
   this->test_logger.info(
       "STATUS: POSITIONING INFORMATION REQUEST received by DU. Waiting for POSITIONING INFORMATION RESPONSE ACK...");
 
@@ -140,7 +140,7 @@ TEST_P(du_high_pos_req_tester, when_positioning_measurement_request_is_received_
   f1ap_message pos_meas_req = test_helpers::generate_positioning_measurement_request(
       {trp_id_t::min}, lmf_meas_id_t::min, ran_meas_id_t::min, meas_requests, subcarrier_spacing::kHz15, srs_offset);
 
-  this->du_hi->get_f1ap_du().handle_message(pos_meas_req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(pos_meas_req);
   this->test_logger.info(
       "STATUS: POSITIONING MEASUREMENT REQUEST received by DU. Waiting for POSITIONING MEASUREMENT RESPONSE...");
   {
@@ -226,7 +226,7 @@ TEST_F(du_high_pos_multi_cells_tester,
   // DU receives TRP INFORMATION REQUEST.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message trp_info_req = test_helpers::generate_trp_information_request();
-  this->du_hi->get_f1ap_du().handle_message(trp_info_req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(trp_info_req);
   this->test_logger.info("STATUS: TRP INFORMATION REQUEST received by DU. Waiting for TRP INFORMATION RESPONSE ACK...");
   {
     asn1::json_writer js;
@@ -258,7 +258,7 @@ TEST_F(du_high_pos_multi_cells_tester,
   // DU receives POSITIONING INFORMATION REQUEST.
   cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message pos_info_req = test_helpers::generate_positioning_information_request(du_ue_id, cu_ue_id);
-  this->du_hi->get_f1ap_du().handle_message(pos_info_req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(pos_info_req);
   this->test_logger.info(
       "STATUS: POSITIONING INFORMATION REQUEST received by DU. Waiting for POSITIONING INFORMATION RESPONSE ACK...");
 
@@ -280,7 +280,7 @@ TEST_F(du_high_pos_multi_cells_tester,
                                                               pos_meas_type_opts::options::ul_aoa},
                                                              subcarrier_spacing::kHz15);
 
-  this->du_hi->get_f1ap_du().handle_message(pos_meas_req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(pos_meas_req);
   this->test_logger.info(
       "STATUS: POSITIONING MEASUREMENT REQUEST received by DU. Waiting for POSITIONING MEASUREMENT RESPONSE...");
   {

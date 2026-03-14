@@ -5,12 +5,25 @@
 #pragma once
 
 #include "ocudu/adt/bounded_integer.h"
+#include "ocudu/adt/strong_type.h"
 #include "ocudu/ran/frame_types.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/pucch/pucch_mapping.h"
 #include <optional>
 #include <variant>
 
 namespace ocudu {
+
+/// Parameters for the generation of PUCCH Format 0 resources.
+struct pucch_f0_params {
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f0::MIN_NOF_SYMS, pucch_constants::f0::MAX_NOF_SYMS>;
+
+  /// Number of OFDM symbols.
+  nof_symbols nof_syms{pucch_constants::f0::MAX_NOF_SYMS};
+  /// Whether to configure intraslot frequency hopping.
+  bool intraslot_freq_hopping{false};
+};
 
 /// \brief Options for the number of Initial Cyclic Shifts that can be set for PUCCH Format 1.
 ///
@@ -24,75 +37,113 @@ inline unsigned format1_cp_step_to_uint(pucch_nof_cyclic_shifts opt)
   return static_cast<unsigned>(opt);
 }
 
-/// Collects the parameters for PUCCH Format 0 that can be configured.
-struct pucch_f0_params {
-  bounded_integer<unsigned, 1, 2> nof_symbols{2};
-  bool                            intraslot_freq_hopping{false};
-};
-
-/// Collects the parameters for PUCCH Format 1 that can be configured.
+/// Parameters for the generation of PUCCH Format 1 resources.
 struct pucch_f1_params {
-  /// Number of possible Initial Cyclic Shifts, equally spaced within the range {0,...,11}, as per \c PUCCH-format1, in
-  /// \c PUCCH-Config, TS 38.331.
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f1::MIN_NOF_SYMS, pucch_constants::f1::MAX_NOF_SYMS>;
+
+  /// Number of OFDM symbols.
+  nof_symbols nof_syms{pucch_constants::f1::MAX_NOF_SYMS};
+  bool        intraslot_freq_hopping{false};
+  /// Number of Initial Cyclic Shifts to use.
   pucch_nof_cyclic_shifts nof_cyc_shifts{pucch_nof_cyclic_shifts::no_cyclic_shift};
-  /// Indicates whether OCCs (as per \c PUCCH-format1, in \c PUCCH-Config, TS 38.331) are supported.
-  bool                             occ_supported{false};
-  bounded_integer<unsigned, 4, 14> nof_symbols{14};
-  bool                             intraslot_freq_hopping{false};
+  /// Whether to configure the resources with different OCCs.
+  bool occ_supported{false};
 };
 
-/// Collects the parameters for PUCCH Format 2 that can be configured.
+/// Parameters for the generation of PUCCH Format 2 resources.
 struct pucch_f2_params {
-  bounded_integer<unsigned, 1, 2> nof_symbols{2};
-  unsigned                        max_nof_rbs{1};
-  /// Maximum payload in bits that can be carried by PUCCH Format 2. When this field is set, \c max_nof_rbs is ignored
-  /// and the maximum number of RBs is computed according to \ref get_pucch_format2_max_nof_prbs.
-  std::optional<unsigned> max_payload_bits;
-  max_pucch_code_rate     max_code_rate{max_pucch_code_rate::dot_25};
-  /// For intraslot-freq-hopping, \c nof_symbols must be set to 2.
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f2::MIN_NOF_SYMS, pucch_constants::f2::MAX_NOF_SYMS>;
+  using nof_rbs     = bounded_integer<unsigned, pucch_constants::f2::MIN_NOF_RBS, pucch_constants::f2::MAX_NOF_RBS>;
+
+  /// \brief Number of OFDM symbols.
+  ///
+  /// \remark For intraslot-freq-hopping, \c nof_symbols must be set to 2.
+  nof_symbols nof_syms{pucch_constants::f2::MAX_NOF_SYMS};
+  /// Number of RBs.
+  nof_rbs max_nof_rbs{pucch_constants::f2::MIN_NOF_RBS};
+  /// Whether to configure intraslot frequency hopping.
   bool intraslot_freq_hopping{false};
+  /// \brief Maximum payload in bits to be carried.
+  ///
+  /// \remark When this field is set, \c max_nof_rbs is ignored and the maximum number of RBs is computed according to
+  ///         \ref get_pucch_format2_max_nof_prbs.
+  std::optional<unsigned> max_payload_bits;
+  /// Maximum allowed effective code rate.
+  max_pucch_code_rate max_code_rate{max_pucch_code_rate::dot_25};
 };
 
 /// Collects the parameters for PUCCH Format 3 that can be configured.
 struct pucch_f3_params {
-  bounded_integer<unsigned, 4, 14> nof_symbols{4};
-  unsigned                         max_nof_rbs{1};
-  /// Maximum payload in bits that can be carried by PUCCH Format 3. When this field is set, \c max_nof_rbs is ignored
-  /// and the maximum number of RBs is computed according to \ref get_pucch_format3_max_nof_prbs.
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f3::MIN_NOF_SYMS, pucch_constants::f3::MAX_NOF_SYMS>;
+  using nof_rbs     = bounded_integer<unsigned, pucch_constants::f3::MIN_NOF_RBS, pucch_constants::f3::MAX_NOF_RBS>;
+
+  /// Number of OFDM symbols.
+  nof_symbols nof_syms{pucch_constants::f3::MIN_NOF_SYMS};
+  /// Number of RBs.
+  nof_rbs max_nof_rbs{pucch_constants::f3::MIN_NOF_RBS};
+  /// Whether to configure intraslot frequency hopping.
+  bool intraslot_freq_hopping{false};
+  /// \brief Maximum payload in bits to be carried.
+  ///
+  /// \remark When this field is set, \c max_nof_rbs is ignored and the maximum number of RBs is computed according to
+  ///         \ref get_pucch_format3_max_nof_prbs.
   std::optional<unsigned> max_payload_bits;
-  max_pucch_code_rate     max_code_rate{max_pucch_code_rate::dot_25};
-  bool                    intraslot_freq_hopping{false};
-  bool                    additional_dmrs{false};
-  bool                    pi2_bpsk{false};
+  /// Maximum allowed effective code rate.
+  max_pucch_code_rate max_code_rate{max_pucch_code_rate::dot_25};
+  /// Whether to configure the resources with additional DM-RS symbols.
+  bool additional_dmrs{false};
+  /// Whether to configure the resources with pi/2-BPSK modulation.
+  bool pi2_bpsk{false};
 };
 
 /// Collects the parameters for PUCCH Format 4 that can be configured.
 struct pucch_f4_params {
-  bounded_integer<unsigned, 4, 14> nof_symbols{14};
-  max_pucch_code_rate              max_code_rate{max_pucch_code_rate::dot_25};
-  bool                             intraslot_freq_hopping{false};
-  bool                             additional_dmrs{false};
-  bool                             pi2_bpsk{false};
-  /// Indicates whether OCCs (as per \c PUCCH-format4, in \c PUCCH-Config, TS 38.331) are supported.
-  bool             occ_supported{false};
+  using nof_symbols = bounded_integer<unsigned, pucch_constants::f4::MIN_NOF_SYMS, pucch_constants::f4::MAX_NOF_SYMS>;
+
+  /// Number of OFDM symbols.
+  nof_symbols nof_syms{pucch_constants::f4::MAX_NOF_SYMS};
+  /// Whether to configure intraslot frequency hopping.
+  bool intraslot_freq_hopping{false};
+  /// Maximum allowed effective code rate.
+  max_pucch_code_rate max_code_rate{max_pucch_code_rate::dot_25};
+  /// Whether to configure the resources with additional DM-RS symbols.
+  bool additional_dmrs{false};
+  /// Whether to configure the resources with pi/2-BPSK modulation.
+  bool pi2_bpsk{false};
+  /// Whether to configure the resources with different OCCs.
+  bool occ_supported{false};
+  /// OCC length to use for PUCCH Format 4 resources.
   pucch_f4_occ_len occ_length{pucch_f4_occ_len::n2};
 };
+
+// Strong types for UCI specific PUCCH resource IDs.
+struct pucch_resource_set_config_id_tag;
+using pucch_resource_set_config_id =
+    strong_type<uint8_t, struct pucch_res_set_cfg_id_tag, strong_equality, strong_increment_decrement>;
+struct pucch_sr_resource_id_tag;
+using pucch_sr_resource_id =
+    strong_type<uint8_t, struct pucch_sr_resource_id_tag, strong_equality, strong_increment_decrement>;
+struct pucch_csi_resource_id_tag;
+using pucch_csi_resource_id =
+    strong_type<uint8_t, struct pucch_csi_resource_id_tag, strong_equality, strong_increment_decrement>;
 
 /// \brief Parameters for PUCCH configuration.
 /// Defines the parameters that are used for the PUCCH configuration builder. These parameters are used to define the
 /// number of PUCCH resources, as well as the PUCCH format-specific parameters.
 struct pucch_resource_builder_params {
-  /// UE specific parameters. Use to set the number of resources per UE for HARQ-ACK reporting (not including SR/CSI
-  /// dedicated resources). NOTE: by default, each UE is assigned 1 SR and 1 CSI resource.
-  /// \remark Format 0 and Format 1 resources are mutually exclusive.
-  /// \remark Format 2 and Format 3 and Format 4 resources are mutually exclusive.
-  bounded_integer<unsigned, 1, 8> res_set_0_size = 6;
-  bounded_integer<unsigned, 1, 8> res_set_1_size = 6;
+  static constexpr unsigned max_res_set_size = 8;
+  using resource_set_size                    = bounded_integer<unsigned, 1, max_res_set_size>;
+
+  /// Number of resources to use for Resource Set ID 0.
+  resource_set_size res_set_0_size = 6;
+  /// Number of resources to use for Resource Set ID 1.
+  resource_set_size res_set_1_size = 6;
   /// \brief Number of separate PUCCH resource set configurations for HARQ-ACK reporting that are available in a cell.
-  /// \remark A resource set configuration defines the PUCCH resources present in Resource Set ID 0 and Resource Set ID
-  /// 1 for a given UE. UEs will be distributed possibly over different configurations. The more configurations, the
-  /// fewer UEs will have to share the same set, which reduces the chances that UEs won't be allocated PUCCH due to lack
-  /// of resources. However, the usage of PUCCH-dedicated REs will be proportional to the number of sets.
+  ///
+  /// \remark Each resource set configuration defines different resources for Resource Set ID 0 and 1.
+  /// \remark UEs will be distributed possibly over different configurations. The more configurations, the fewer UEs
+  ///         will have to share the same set, reducing the chance that UEs won't be allocated PUCCH due to lack of
+  ///         resources. However, the usage of PUCCH-dedicated REs will be proportional to the number of sets.
   unsigned nof_cell_res_set_configs = 1;
   /// \brief Defines how many PUCCH F0/F1 resources should be dedicated for SR at cell level.
   /// Each UE will be allocated 1 resource for SR.
@@ -100,16 +151,149 @@ struct pucch_resource_builder_params {
   /// \brief Defines how many PUCCH F2/F3/F4 resources should be dedicated for CSI at cell level.
   /// Each UE will be allocated 1 resource for CSI.
   unsigned nof_cell_csi_resources = 1;
-
-  /// PUCCH Format specific parameters.
-  // NOTE: Having \c pucch_f1_params first forces the variant to use the Format 1 in the default constructor.
-  std::variant<pucch_f1_params, pucch_f0_params>                  f0_or_f1_params;
+  /// \brief Parameters for the generation of PUCCH Format 0 or Format 1 resources.
+  ///
+  /// \remark Having \c pucch_f1_params first forces the variant to use the Format 1 in the default constructor.
+  std::variant<pucch_f1_params, pucch_f0_params> f0_or_f1_params;
+  /// Parameters for the generation of PUCCH Format 2, Format 3 or Format 4 resources.
   std::variant<pucch_f2_params, pucch_f3_params, pucch_f4_params> f2_or_f3_or_f4_params;
   /// Maximum number of symbols per UL slot dedicated for PUCCH.
   /// \remark In case of Sounding Reference Signals (SRS) being used, the number of symbols should be reduced so that
-  /// the PUCCH resources do not overlap in symbols with the SRS resources.
+  ///         the PUCCH resources do not overlap in symbols with the SRS resources.
   /// \remark This parameter should be computed by the GNB and not exposed to the user configuration interface.
   bounded_integer<unsigned, 1, 14> max_nof_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
+
+  /// Get the PUCCH format used for Resource Set ID 0 and SR resources.
+  pucch_format format_01() const
+  {
+    return std::holds_alternative<pucch_f0_params>(f0_or_f1_params) ? pucch_format::FORMAT_0 : pucch_format::FORMAT_1;
+  }
+
+  /// Get the PUCCH format used for Resource Set ID 1 and CSI resources.
+  pucch_format format_234() const
+  {
+    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
+      return pucch_format::FORMAT_2;
+    }
+    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
+      return pucch_format::FORMAT_3;
+    }
+    return pucch_format::FORMAT_4;
+  }
+
+  // \brief Get the position of a given Resource Set ID 0/1 resource in the cell PUCCH resource list.
+  //
+  // \param res_set_id The Resource Set ID (0 or 1).
+  // \param res_set_cfg_id The resource set config index.
+  // \param pri the index of the resource within the resource set (PUCCH Resource Indicator).
+  // \return The index of the PUCCH resource in the cell PUCCH resource list.
+  template <unsigned ResourceSetId>
+  unsigned get_res_set_cell_res_idx(pucch_resource_set_config_id res_set_cfg_id, unsigned pri) const
+  {
+    static_assert(ResourceSetId == 0 or ResourceSetId == 1, "Only Resource Sets ID 0 and 1 are supported");
+    if constexpr (ResourceSetId == 0) {
+      ocudu_assert(res_set_cfg_id.value() < nof_cell_res_set_configs,
+                   "Resource set config index={} exceeds configured number of resource set configs={}",
+                   res_set_cfg_id.value(),
+                   nof_cell_res_set_configs);
+      ocudu_assert(pri < res_set_0_size.value(),
+                   "Resource index={} exceeds configured resource set size={}",
+                   pri,
+                   res_set_0_size.value());
+      return res_set_cfg_id.value() * res_set_0_size.value() + pri;
+    }
+    ocudu_assert(res_set_cfg_id.value() < nof_cell_res_set_configs,
+                 "Resource set config index={} exceeds configured number of resource set configs={}",
+                 res_set_cfg_id.value(),
+                 nof_cell_res_set_configs);
+    ocudu_assert(pri < res_set_1_size.value(),
+                 "Resource index={} exceeds configured resource set size={}",
+                 pri,
+                 res_set_1_size.value());
+    return nof_cell_res_set_configs * res_set_0_size.value() + nof_cell_sr_resources +
+           res_set_cfg_id.value() * res_set_1_size.value() + pri;
+  }
+
+  // \brief Get the position of a given PUCCH resource for SR in the cell PUCCH resource list.
+  //
+  // \param sr_res_id The SR PUCCH resource index.
+  // \return The index of the PUCCH resource in the cell PUCCH resource list.
+  unsigned get_sr_cell_res_idx(pucch_sr_resource_id sr_res_id) const
+  {
+    ocudu_assert(sr_res_id.value() < nof_cell_sr_resources,
+                 "SR resource index={} exceeds configured number of SR resources={}",
+                 sr_res_id.value(),
+                 nof_cell_sr_resources);
+    return nof_cell_res_set_configs * res_set_0_size.value() + sr_res_id.value();
+  }
+
+  // \brief Get the position of a given PUCCH resource for CSI in the cell PUCCH resource list.
+  //
+  // \param csi_res_id The CSI PUCCH resource index.
+  // \return The index of the PUCCH resource in the cell PUCCH resource list.
+  unsigned get_csi_cell_res_idx(pucch_csi_resource_id csi_res_id) const
+  {
+    ocudu_assert(csi_res_id.value() < nof_cell_csi_resources,
+                 "CSI resource index={} exceeds configured number of CSI resources={}",
+                 csi_res_id.value(),
+                 nof_cell_csi_resources);
+    return nof_cell_res_set_configs * res_set_0_size.value() + nof_cell_sr_resources +
+           nof_cell_res_set_configs * res_set_1_size.value() + csi_res_id.value();
+  }
+
+  // \brief Get the position of a given Resource Set ID 0/1 resource in the UE PUCCH resource list.
+  //
+  // \param res_set_id The Resource Set ID (0 or 1).
+  // \param pri the index of the resource within the resource set (PUCCH Resource Indicator).
+  // \return The index of the PUCCH resource in the UE PUCCH resource list.
+  template <unsigned ResourceSetId>
+  unsigned get_res_set_ue_res_idx(unsigned pri) const
+  {
+    static_assert(ResourceSetId == 0 or ResourceSetId == 1, "Only Resource Sets ID 0 and 1 are supported");
+    if constexpr (ResourceSetId == 0) {
+      ocudu_assert(pri < res_set_0_size.value(),
+                   "Resource index={} exceeds configured resource set size={}",
+                   pri,
+                   res_set_0_size.value());
+      return pri;
+    }
+    ocudu_assert(pri < res_set_1_size.value(),
+                 "Resource index={} exceeds configured resource set size={}",
+                 pri,
+                 res_set_1_size.value());
+    static constexpr unsigned nof_sr_res_per_ue = 1;
+    if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
+      // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).
+      return res_set_0_size.value() + nof_sr_res_per_ue + pri + 1U;
+    }
+    return res_set_0_size.value() + nof_sr_res_per_ue + pri;
+  }
+
+  // \brief Get the position of the SR resource in the UE PUCCH resource list.
+  //
+  // \return The index of the PUCCH resource in the UE PUCCH resource list.
+  unsigned get_sr_ue_res_idx() const
+  {
+    if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
+      // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).
+      return res_set_0_size.value() + 1U;
+    }
+    return res_set_0_size.value();
+  }
+
+  // \brief Get the position of the CSI resource in the UE PUCCH resource list.
+  //
+  // \return The index of the PUCCH resource in the UE PUCCH resource list.
+  unsigned get_csi_ue_res_idx() const
+  {
+    static constexpr unsigned nof_sr_res_per_ue = 1;
+
+    if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
+      // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).
+      return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value() + 1U;
+    }
+    return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value();
+  }
 };
 
 } // namespace ocudu

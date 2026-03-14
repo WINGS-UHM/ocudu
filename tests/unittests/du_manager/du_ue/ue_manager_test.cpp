@@ -4,11 +4,11 @@
 
 #include "lib/du/du_high/du_manager/du_cell_manager.h"
 #include "lib/du/du_high/du_manager/du_ue/du_ue_manager.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/du_manager/du_manager_test_helpers.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/mac/mac_pdu_handler.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 /// \file
@@ -116,13 +116,13 @@ TEST_F(du_ue_manager_tester, when_ue_create_request_is_received_du_manager_reque
   push_ul_ccch_message(ccch_ind);
 
   // TEST: F1AP received request to create UE.
-  TESTASSERT(f1ap_dummy.last_ue_create.has_value());
+  ASSERT_TRUE(f1ap_dummy.last_ue_create.has_value());
   du_ue_index_t ue_index = f1ap_dummy.last_ue_create.value().ue_index;
-  TESTASSERT(ue_index < MAX_NOF_DU_UES);
+  ASSERT_TRUE(ue_index < MAX_NOF_DU_UES);
 
   // TEST: MAC received UE creation request.
-  TESTASSERT(mac_dummy.last_ue_create_msg.has_value());
-  TESTASSERT_EQ(ccch_ind.tc_rnti, mac_dummy.last_ue_create_msg->crnti);
+  ASSERT_TRUE(mac_dummy.last_ue_create_msg.has_value());
+  ASSERT_EQ(ccch_ind.tc_rnti, mac_dummy.last_ue_create_msg->crnti);
 
   // TEST: DU UE manager registers UE being created.
   ASSERT_TRUE(ue_mng.find_ue(ue_index) != nullptr);
@@ -161,7 +161,7 @@ TEST_F(du_ue_manager_tester, when_mac_fails_to_create_ue_then_no_ue_is_created_i
 TEST_F(du_ue_manager_tester, inexistent_ue_index_removal_is_handled)
 {
   // Action: Request UE deletion for inexistent UE Index.
-  push_f1ap_ue_delete_request(to_du_ue_index(test_rgen::uniform_int<unsigned>(0, MAX_NOF_DU_UES - 1)));
+  push_f1ap_ue_delete_request(to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_NOF_DU_UES - 1)));
 
   // There should not be any reply from MAC and F1AP should receive failure signal
   ASSERT_EQ(ue_mng.nof_ues(), 0);
@@ -346,7 +346,7 @@ TEST_F(du_ue_manager_rlf_tester,
        when_rlf_is_triggered_then_timer_starts_and_on_timeout_f1ap_is_notified_of_ue_context_removal_request)
 {
   // Action: RLF is triggered.
-  const rlf_cause cause = static_cast<rlf_cause>(test_rgen::uniform_int<unsigned>(0, 2));
+  const rlf_cause cause = static_cast<rlf_cause>(test_rng::uniform_int<unsigned>(0, 2));
   this->rlf_detected(cause);
 
   // TEST: On RLF timer timeout, F1AP is notified of UE context removal request.
@@ -405,7 +405,7 @@ TEST_F(du_ue_manager_rlf_tester,
 TEST_F(du_ue_manager_rlf_tester, when_rlf_is_triggered_then_following_rlfs_have_no_effect)
 {
   // Action: RLF is triggered.
-  rlf_cause cause = static_cast<rlf_cause>(test_rgen::uniform_int<unsigned>(0, 2));
+  rlf_cause cause = static_cast<rlf_cause>(test_rng::uniform_int<unsigned>(0, 2));
   this->rlf_detected(cause);
 
   // TEST: First RLF is reported.
@@ -414,7 +414,7 @@ TEST_F(du_ue_manager_rlf_tester, when_rlf_is_triggered_then_following_rlfs_have_
   f1ap_dummy.last_ue_release_req.reset();
 
   // Action: RLF is triggered again.
-  cause = static_cast<rlf_cause>(test_rgen::uniform_int<unsigned>(0, 2));
+  cause = static_cast<rlf_cause>(test_rng::uniform_int<unsigned>(0, 2));
   this->rlf_detected(cause);
 
   // TEST: Second RLF is not reported.
@@ -433,7 +433,7 @@ TEST_F(du_ue_manager_rlf_tester, when_ue_is_being_deleted_then_rlf_should_have_n
   ASSERT_EQ(get_last_ue_index(), mac_dummy.last_ue_delete_msg->ue_index);
 
   // Action: RLF is triggered.
-  rlf_cause cause = static_cast<rlf_cause>(test_rgen::uniform_int<unsigned>(0, 2));
+  rlf_cause cause = static_cast<rlf_cause>(test_rng::uniform_int<unsigned>(0, 2));
   this->rlf_detected(cause);
 
   // Test: No RLF is reported.
@@ -444,7 +444,7 @@ TEST_F(du_ue_manager_rlf_tester, when_ue_is_being_deleted_then_rlf_should_have_n
 TEST_F(du_ue_manager_rlf_tester, when_rlf_is_triggered_but_ue_removal_starts_then_rlf_should_have_no_effect)
 {
   // Action: RLF is triggered.
-  rlf_cause cause = static_cast<rlf_cause>(test_rgen::uniform_int<unsigned>(0, 2));
+  rlf_cause cause = static_cast<rlf_cause>(test_rng::uniform_int<unsigned>(0, 2));
   this->rlf_detected(cause);
 
   // Action: Initiate UE removal.

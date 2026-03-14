@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/fapi/p7/builders/dl_pdcch_pdu_builder.h"
 #include <gtest/gtest.h>
@@ -147,7 +146,7 @@ TEST(dl_pdcch_pdu_builder, valid_dci_tx_power_parameters_passes)
 
     const auto* profile = std::get_if<dl_dci_pdu::power_profile_nr>(&pdu.dl_dci.power_config);
     ASSERT_TRUE(profile);
-    ASSERT_EQ(i, profile->power_control_offset_ss);
+    ASSERT_EQ(i, profile->power_control_offset_ss_db);
   }
 }
 

@@ -47,8 +47,24 @@ public:
     cu_up_idx = ret.value();
     EXPECT_TRUE(this->run_e1_setup(cu_up_idx));
 
+    security_indication_t security_ind = {integrity_protection_indication_t::required,
+                                          confidentiality_protection_indication_t::required};
     // Connect UE 0x4601.
-    EXPECT_TRUE(attach_ue(du_idx, cu_up_idx, du_ue_id, crnti, amf_ue_id, cu_up_e1ap_id, psi, drb_id_t::drb1, qfi));
+    EXPECT_TRUE(attach_ue(du_idx,
+                          cu_up_idx,
+                          du_ue_id,
+                          crnti,
+                          amf_ue_id,
+                          cu_up_e1ap_id,
+                          psi,
+                          drb_id_t::drb1,
+                          qfi,
+                          test_helpers::pack_ul_dcch_msg(test_helpers::create_rrc_setup_complete()),
+                          make_byte_buffer("00070e00cc6fcda5").value(),
+                          std::nullopt,
+                          true,
+                          std::nullopt,
+                          security_ind));
     ue_ctx = this->find_ue_context(du_idx, du_ue_id);
 
     EXPECT_NE(ue_ctx, nullptr);
@@ -238,7 +254,7 @@ public:
     return true;
   }
 
-  [[nodiscard]] bool send_bearer_context_modification_response_and_await_rrc_reconfiguration(
+  [[nodiscard]] expected<byte_buffer> send_bearer_context_modification_response_and_await_rrc_reconfiguration(
       pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(1),
       drb_id_t         drb_to_modify  = drb_id_t::drb2,
       bool             is_drb_release = false)
@@ -250,27 +266,21 @@ public:
                               "Failed to receive F1AP DL RRC Message (containing RRC Reconfiguration)");
     report_fatal_error_if_not(test_helpers::is_valid_dl_rrc_message_transfer(f1ap_pdu),
                               "Invalid DL RRC Message Transfer");
-    {
-      const byte_buffer& rrc_container = test_helpers::get_rrc_container(f1ap_pdu);
 
-      if (is_drb_release) {
-        report_fatal_error_if_not(
-            test_helpers::is_valid_rrc_reconfiguration(test_helpers::extract_dl_dcch_msg(rrc_container),
-                                                       false,
-                                                       std::vector<srb_id_t>{},
-                                                       std::vector<drb_id_t>{},
-                                                       std::vector<drb_id_t>{drb_to_modify}),
-            "Invalid RRC Reconfiguration");
-      } else {
-        report_fatal_error_if_not(
-            test_helpers::is_valid_rrc_reconfiguration(test_helpers::extract_dl_dcch_msg(rrc_container),
-                                                       false,
-                                                       std::vector<srb_id_t>{},
-                                                       std::vector<drb_id_t>{drb_to_modify}),
-            "Invalid RRC Reconfiguration");
-      }
+    const byte_buffer& rrc_container = test_helpers::get_rrc_container(f1ap_pdu);
+    byte_buffer        rrc_msg       = test_helpers::extract_dl_dcch_msg(rrc_container);
+
+    if (is_drb_release) {
+      report_fatal_error_if_not(
+          test_helpers::is_valid_rrc_reconfiguration(
+              rrc_msg, false, std::vector<srb_id_t>{}, std::vector<drb_id_t>{}, std::vector<drb_id_t>{drb_to_modify}),
+          "Invalid RRC Reconfiguration");
+    } else {
+      report_fatal_error_if_not(test_helpers::is_valid_rrc_reconfiguration(
+                                    rrc_msg, false, std::vector<srb_id_t>{}, std::vector<drb_id_t>{drb_to_modify}),
+                                "Invalid RRC Reconfiguration");
     }
-    return true;
+    return rrc_msg;
   }
 
   [[nodiscard]] bool timeout_rrc_reconfiguration_and_await_pdu_session_modify_response()
@@ -530,4 +540,33 @@ TEST_F(cu_cp_pdu_session_resource_modify_test,
 
   // Inject RRC Reconfiguration Complete and await successful PDU Session Resource Modify Response
   ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_modify_response());
+}
+
+TEST_F(cu_cp_pdu_session_resource_modify_test,
+       when_new_drb_is_created_pdcp_config_keeps_integrity_and_confidentiality_settings)
+{
+  // Add QoS flows until maximum number of DRBs is reached
+  drb_id_t      drb_id{2};
+  qos_flow_id_t qos_flow_id{2};
+  unsigned      count          = 8;
+  unsigned      transaction_id = 0;
+
+  // Inject PDU Session Resource Modify Request and await Bearer Context Modification Request
+  ASSERT_TRUE(send_pdu_session_modify_request_and_await_bearer_context_modification_request(psi, {qos_flow_id}, {}));
+
+  // Inject Bearer Context Modification Response and await UE Context Modification Request
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ue_context_modification_request(psi, drb_id));
+
+  // Inject UE Context Modification Response and await Bearer Context Modification Request
+  ASSERT_TRUE(send_ue_context_modification_response_and_await_bearer_context_modification_request());
+
+  // Inject Bearer Context Modification Response and await RRC Reconfiguration
+  expected<byte_buffer> rrc_reconf =
+      send_bearer_context_modification_response_and_await_rrc_reconfiguration(psi, drb_id);
+  ASSERT_TRUE(rrc_reconf);
+  ASSERT_TRUE(test_helpers::is_valid_pdcp_security(rrc_reconf.value(), drb_id, true, true));
+
+  // Inject RRC Reconfiguration Complete and await successful PDU Session Resource Modify Response
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_pdu_session_modify_response(
+      generate_rrc_reconfiguration_complete_pdu(transaction_id, count)));
 }

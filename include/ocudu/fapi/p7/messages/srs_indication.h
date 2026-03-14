@@ -3,10 +3,8 @@
 
 #pragma once
 
-#include "ocudu/adt/static_vector.h"
-#include "ocudu/ran/phy_time_unit.h"
+#include "formatter/formatter_helpers.h"
 #include "ocudu/ran/rnti.h"
-#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 #include "ocudu/ran/srs/srs_channel_matrix.h"
 #include <optional>
@@ -32,9 +30,43 @@ struct srs_indication_pdu {
 
 /// SRS indication message.
 struct srs_indication {
-  slot_point                                                  slot;
-  static_vector<srs_indication_pdu, MAX_SRS_PDUS_PER_SRS_IND> pdus;
+  slot_point         slot;
+  srs_indication_pdu pdu;
 };
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::srs_indication> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::srs_indication& msg, FormatContext& ctx) const
+  {
+    format_to(ctx.out(), "SRS.indication slot={} rnti={}", msg.slot, msg.pdu.rnti);
+
+    ocudu::fapi::append_time_advance(ctx, msg.pdu.timing_advance_offset, msg.slot.scs());
+
+    if (msg.pdu.positioning.has_value()) {
+      if (msg.pdu.positioning->ul_relative_toa) {
+        format_to(ctx.out(), " RTOA_s={}", *msg.pdu.positioning->rsrp);
+      }
+      if (msg.pdu.positioning->rsrp) {
+        format_to(ctx.out(), " RSRP={}", *msg.pdu.positioning->rsrp);
+      }
+    }
+
+    if (msg.pdu.matrix.has_value()) {
+      format_to(ctx.out(), " With channel matrix");
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

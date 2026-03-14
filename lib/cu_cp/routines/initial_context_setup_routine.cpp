@@ -64,7 +64,7 @@ void initial_context_setup_routine::operator()(
     ue_context_setup_request.serv_cell_idx = 0; // TODO: Remove hardcoded value
     ue_context_setup_request.rrc_container = rrc_smc_ctxt.rrc_ue_security_mode_command_pdu.copy();
     if (request.ue_aggr_max_bit_rate.has_value()) {
-      ue_context_setup_request.gnb_du_ue_ambr_ul = request.ue_aggr_max_bit_rate.value().ue_aggr_max_bit_rate_ul;
+      ue_context_setup_request.gnb_du_ue_ambr_ul = request.ue_aggr_max_bit_rate->ul;
     }
     ue_context_setup_request.serving_cell_mo = rrc_ue.get_serving_cell_mo();
 
@@ -119,7 +119,7 @@ void initial_context_setup_routine::operator()(
     request.pdu_session_res_setup_list_cxt_req.value().serving_plmn = request.guami.plmn;
     if (request.ue_aggr_max_bit_rate.has_value()) {
       request.pdu_session_res_setup_list_cxt_req.value().ue_aggregate_maximum_bit_rate_dl =
-          request.ue_aggr_max_bit_rate.value().ue_aggr_max_bit_rate_dl;
+          request.ue_aggr_max_bit_rate->dl;
     } else {
       request.pdu_session_res_setup_list_cxt_req.value().ue_aggregate_maximum_bit_rate_dl = 0;
     }

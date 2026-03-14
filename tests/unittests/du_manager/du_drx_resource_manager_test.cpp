@@ -4,9 +4,9 @@
 
 #include "lib/du/du_high/du_manager/ran_resource_management/du_drx_resource_manager.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
-#include "ocudu/support/test_utils.h"
 #include "gtest/gtest.h"
 
 using namespace ocudu;
@@ -171,7 +171,7 @@ TEST_F(du_drx_resource_manager_test, when_ue_drx_resources_are_deallocated_then_
 
   // Select one DRX offset at random, and deallocate DRX resources of some UEs that picked it.
   // > Select offset at random.
-  unsigned offset_to_rem_idx = test_rgen::uniform_int<unsigned>(0, histogram.size() - 1);
+  unsigned offset_to_rem_idx = test_rng::uniform_int<unsigned>(0, histogram.size() - 1);
   auto     it                = histogram.begin();
   std::advance(it, offset_to_rem_idx);
   const std::chrono::milliseconds selected_offset = it->first;

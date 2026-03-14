@@ -26,7 +26,7 @@ static void fill_dci(pdcch_processor::pdu_t&            proc_pdu,
   dci.aggregation_level = to_nof_cces(fapi_dci.dci_aggregation_level);
 
   if (const auto* profile_nr = std::get_if<fapi::dl_dci_pdu::power_profile_nr>(&fapi_dci.power_config)) {
-    dci.dmrs_power_offset_dB = profile_nr->power_control_offset_ss;
+    dci.dmrs_power_offset_dB = profile_nr->power_control_offset_ss_db;
     dci.data_power_offset_dB = dci.dmrs_power_offset_dB;
   } else if (const auto* profile_sss = std::get_if<fapi::dl_dci_pdu::power_profile_sss>(&fapi_dci.power_config)) {
     dci.dmrs_power_offset_dB = profile_sss->dmrs_power_offset_db;

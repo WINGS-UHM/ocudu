@@ -25,7 +25,9 @@ public:
 
   void stop() override;
 
-  f1ap_du& get_f1ap_du() override;
+  f1ap_message_handler& get_f1ap_pdu_handler() override;
+
+  f1ap_ue_id_translator& get_f1ap_ue_id_translator() override;
 
   mac_cell_slot_handler& get_slot_handler(du_cell_index_t cell_index) override;
 
@@ -37,7 +39,7 @@ public:
 
   du_configurator& get_du_configurator() override;
 
-  du_manager_time_mapper_accessor& get_du_manager_time_mapper_accessor() override;
+  mac_subframe_time_mapper& get_subframe_time_mapper() override;
 
 private:
   class layer_connector;
@@ -48,7 +50,9 @@ private:
 
   timer_manager& timers;
 
-  std::atomic<bool> is_running{true};
+  /// \brief Whether the DU is in operational mode.
+  /// \remark This doesn't need to be atomic as start/stop should be always called from the same thread.
+  bool is_running = false;
 
   // Connection between DU-high layers.
   std::unique_ptr<layer_connector> adapters;
@@ -56,9 +60,9 @@ private:
   std::unique_ptr<scheduler_metrics_notifier> hub_metrics;
 
   // DU-high Layers.
-  std::unique_ptr<du_manager_interface> du_manager;
-  std::unique_ptr<f1ap_du>              f1ap;
-  std::unique_ptr<mac_interface>        mac;
+  std::unique_ptr<du_manager>    du_mng;
+  std::unique_ptr<f1ap_du>       f1ap;
+  std::unique_ptr<mac_interface> mac;
 };
 
 } // namespace odu

@@ -8,23 +8,6 @@
 using namespace ocudu;
 using namespace fapi_adaptor;
 
-/// \brief Converts the given \c ssb_pss_to_sss_epre value into a \c beta_pss_profile_type value.
-///
-/// This value corresponds to the \e betaPssProfileNR parameter as defined by FAPI in SCF-222 v4.0 Section 3.4.2.4.
-/// \remark The MAC/Scheduler uses \c ssb_pss_to_sss_epre to prevent misusing 3GPP terminology.
-static fapi::beta_pss_profile_type convert_to_beta_pss_profile_nr(ssb_pss_to_sss_epre value)
-{
-  switch (value) {
-    case ssb_pss_to_sss_epre::dB_0:
-      return fapi::beta_pss_profile_type::dB_0;
-    case ssb_pss_to_sss_epre::dB_3:
-      return fapi::beta_pss_profile_type::dB_3;
-    default:
-      break;
-  }
-  return fapi::beta_pss_profile_type::dB_0;
-}
-
 /// \brief Encodes the full BCH payload for the given \c fapi_pdu.
 /// \return A packed BCH payload, as per TS38.212 Section 7.1.1.
 static uint32_t generate_bch_payload(const dl_ssb_pdu& mac_pdu, uint32_t sfn, bool hrf, subcarrier_spacing scs_common)
@@ -50,7 +33,7 @@ void ocudu::fapi_adaptor::convert_ssb_mac_to_fapi(fapi::dl_ssb_pdu_builder& buil
 {
   builder.set_carrier_parameters(mac_pdu.scs)
       .set_cell_parameters(mac_pdu.pci)
-      .set_power_parameters(convert_to_beta_pss_profile_nr(mac_pdu.pss_to_sss_epre))
+      .set_nr_power_parameters(mac_pdu.pss_to_sss_epre)
       .set_ssb_parameters(ssb_id_t(mac_pdu.ssb_index),
                           mac_pdu.subcarrier_offset.value(),
                           mac_pdu.offset_to_pointA,

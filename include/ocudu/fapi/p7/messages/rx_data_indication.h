@@ -4,10 +4,8 @@
 #pragma once
 
 #include "ocudu/adt/span.h"
-#include "ocudu/adt/static_vector.h"
 #include "ocudu/ran/harq_id.h"
 #include "ocudu/ran/rnti.h"
-#include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/ran/slot_point.h"
 
 namespace ocudu {
@@ -23,9 +21,31 @@ struct rx_data_indication_pdu {
 
 /// Reception data indication message.
 struct rx_data_indication {
-  slot_point                                                     slot;
-  static_vector<rx_data_indication_pdu, MAX_PUSCH_PDUS_PER_SLOT> pdus;
+  slot_point             slot;
+  rx_data_indication_pdu pdu;
 };
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::rx_data_indication> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::rx_data_indication& msg, FormatContext& ctx) const
+  {
+    return format_to(ctx.out(),
+                     "Rx_Data.indication slot={} rnti={} harq_id={} tbs={}",
+                     msg.slot,
+                     msg.pdu.rnti,
+                     underlying(msg.pdu.harq_id),
+                     msg.pdu.transport_block.size());
+  }
+};
+} // namespace fmt

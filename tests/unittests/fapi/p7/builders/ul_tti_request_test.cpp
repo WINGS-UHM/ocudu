@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/fapi/p7/builders/ul_tti_request_builder.h"
 #include <gtest/gtest.h>
@@ -18,7 +17,7 @@ TEST(ul_tti_request_builder, valid_basic_parameters_passes)
   ul_tti_request         msg;
   ul_tti_request_builder builder(msg);
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
 
   ASSERT_EQ(slot, msg.slot);
   ASSERT_TRUE(msg.pdus.empty());

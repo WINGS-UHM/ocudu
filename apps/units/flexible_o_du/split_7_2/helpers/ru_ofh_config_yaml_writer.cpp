@@ -5,6 +5,7 @@
 #include "ru_ofh_config_yaml_writer.h"
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
 #include "ru_ofh_config.h"
+#include "ocudu/support/math/math_utils.h"
 
 using namespace ocudu;
 
@@ -57,6 +58,20 @@ static void fill_ru_ofh_hal_section(YAML::Node node, const std::optional<ru_ofh_
   hal_node["eal_args"] = config.value().eal_args;
 }
 
+static unsigned translate_c_plane_prach_fft_len(ofh::cplane_fft_size c_plane_prach_fft_len)
+{
+  switch (c_plane_prach_fft_len) {
+    case ofh::cplane_fft_size::fft_noop:
+      return 0;
+    case ofh::cplane_fft_size::fft_1536:
+      return 1536;
+    case ofh::cplane_fft_size::fft_3072:
+      return 3072;
+    default:
+      return pow2(static_cast<unsigned>(c_plane_prach_fft_len));
+  }
+}
+
 static YAML::Node build_ru_ofh_cell_section(const ru_ofh_unit_cell_config& config)
 {
   YAML::Node node;
@@ -86,6 +101,7 @@ static YAML::Node build_ru_ofh_cell_section(const ru_ofh_unit_cell_config& confi
   node["compr_bitwidth_prach"]       = config.cell.compression_bitwidth_prach;
   node["enable_ul_static_compr_hdr"] = config.cell.is_uplink_static_comp_hdr_enabled;
   node["enable_dl_static_compr_hdr"] = config.cell.is_downlink_static_comp_hdr_enabled;
+  node["cplane_prach_fft_len"]       = translate_c_plane_prach_fft_len(config.cell.c_plane_prach_fft_len);
   if (const auto* scaling_params = std::get_if<ru_ofh_scaling_config>(&config.cell.iq_scaling_config)) {
     node["ru_reference_level_dBFS"] = scaling_params->ru_reference_level_dBFS;
 

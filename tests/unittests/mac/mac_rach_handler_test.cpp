@@ -44,13 +44,13 @@ protected:
 
   uint8_t create_cb_preamble() const
   {
-    return test_rgen::uniform_int(
+    return test_rng::uniform_int(
         0U, sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb - 1U);
   }
 
   uint8_t create_cf_preamble() const
   {
-    return test_rgen::uniform_int<unsigned>(
+    return test_rng::uniform_int<unsigned>(
         sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb,
         sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->total_nof_ra_preambles - 1U);
   }

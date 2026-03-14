@@ -19,6 +19,7 @@
 #include "ocudu/phy/upper/sequence_generators/low_papr_sequence_collection.h"
 #include "ocudu/phy/upper/sequence_generators/pseudo_random_generator.h"
 #include "ocudu/ran/cyclic_prefix.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 #include <memory>
 
 namespace ocudu {
@@ -28,9 +29,9 @@ class pucch_detector_format1
 {
 public:
   /// \brief Number of available initial cyclic shifts.
-  static constexpr unsigned nof_initial_cyclic_shifts = pucch_constants::format1_initial_cyclic_shift_range.stop();
+  static constexpr unsigned nof_initial_cyclic_shifts = pucch_constants::f1::NOF_ICS;
   /// \brief Maximum number of available time-domain OCC indices.
-  static constexpr unsigned nof_time_domain_occs = pucch_constants::format1_time_domain_occ_range.stop();
+  static constexpr unsigned nof_time_domain_occs = pucch_constants::f1::NOF_TD_OCC;
   /// \brief Maximum number of REs allocated to PUCCH Format 1.
   ///
   /// The allocated resources are at most one PRB over all OFDM symbols.

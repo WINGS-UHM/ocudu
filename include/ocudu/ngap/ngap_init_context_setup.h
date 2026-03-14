@@ -8,6 +8,7 @@
 #include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/crit_diagnostics.h"
+#include "ocudu/ran/guami.h"
 #include "ocudu/security/security.h"
 
 namespace ocudu::ocucp {
@@ -15,7 +16,7 @@ namespace ocudu::ocucp {
 struct ngap_init_context_setup_request {
   ue_index_t                                                ue_index = ue_index_t::invalid;
   std::optional<std::string>                                old_amf;
-  std::optional<ngap_ue_aggr_max_bit_rate>                  ue_aggr_max_bit_rate;
+  std::optional<cu_cp_aggregate_maximum_bit_rate>           ue_aggr_max_bit_rate;
   std::optional<ngap_core_network_assist_info_for_inactive> core_network_assist_info_for_inactive;
   guami_t                                                   guami;
   std::optional<cu_cp_pdu_session_resource_setup_request>   pdu_session_res_setup_list_cxt_req;

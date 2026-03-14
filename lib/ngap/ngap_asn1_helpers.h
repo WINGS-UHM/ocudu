@@ -10,6 +10,7 @@
 #include "ocudu/asn1/ngap/ngap_ies.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ngap/ngap_context.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ngap/ngap_init_context_setup.h"
@@ -17,11 +18,10 @@
 #include "ocudu/ngap/ngap_nas.h"
 #include "ocudu/ngap/ngap_rrc_inactive_transition.h"
 #include "ocudu/ngap/ngap_setup.h"
-#include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/tac.h"
-#include "ocudu/security/security.h"
 #include <string>
+#include <variant>
 #include <vector>
 
 namespace ocudu::ocucp {
@@ -407,10 +407,8 @@ inline bool fill_ngap_initial_context_setup_request(ngap_init_context_setup_requ
   // Fill UE aggregated max bit rate.
   if (asn1_request->ue_aggr_max_bit_rate_present) {
     request.ue_aggr_max_bit_rate.emplace();
-    request.ue_aggr_max_bit_rate.value().ue_aggr_max_bit_rate_dl =
-        asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl;
-    request.ue_aggr_max_bit_rate.value().ue_aggr_max_bit_rate_ul =
-        asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul;
+    request.ue_aggr_max_bit_rate.value().dl = asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl;
+    request.ue_aggr_max_bit_rate.value().ul = asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul;
   }
 
   // Fill core network assist info for inactive.
@@ -437,11 +435,11 @@ inline bool fill_ngap_initial_context_setup_request(ngap_init_context_setup_requ
   }
 
   // Fill security context.
-  asn1_utils::copy_asn1_key(request.security_context.k, asn1_request->security_key);
-  asn1_utils::fill_supported_algorithms(request.security_context.supported_int_algos,
-                                        asn1_request->ue_security_cap.nr_integrity_protection_algorithms);
-  asn1_utils::fill_supported_algorithms(request.security_context.supported_enc_algos,
-                                        asn1_request->ue_security_cap.nr_encryption_algorithms);
+  security::asn1_to_key(request.security_context.k, asn1_request->security_key);
+  security::asn1_to_supported_algorithms(request.security_context.supported_int_algos,
+                                         asn1_request->ue_security_cap.nr_integrity_protection_algorithms);
+  security::asn1_to_supported_algorithms(request.security_context.supported_enc_algos,
+                                         asn1_request->ue_security_cap.nr_encryption_algorithms);
 
   // Fill UE radio capabilities.
   if (asn1_request->ue_radio_cap_present) {
@@ -627,7 +625,7 @@ inline bool fill_cu_cp_pdu_session_resource_modify_item_base(
 
   if (asn1_modify_req_transfer->qos_flow_to_release_list_present) {
     for (const auto& asn1_flow_item : asn1_modify_req_transfer->qos_flow_to_release_list) {
-      cu_cp_qos_flow_with_cause_item qos_flow_release_item;
+      cu_cp_qos_flow_failed_to_setup_item qos_flow_release_item;
       qos_flow_release_item.qos_flow_id = uint_to_qos_flow_id(asn1_flow_item.qos_flow_id);
       qos_flow_release_item.cause       = asn1_to_cause(asn1_flow_item.cause);
       modify_item.transfer.qos_flow_to_release_list.emplace(qos_flow_release_item.qos_flow_id, qos_flow_release_item);
@@ -968,8 +966,8 @@ inline bool fill_ngap_handover_request(ngap_handover_request& request, const asn
   request.cause = asn1_to_cause(asn1_request->cause);
 
   // Fill UE aggregated max bit rate.
-  request.ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl = asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl;
-  request.ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul = asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul;
+  request.ue_aggr_max_bit_rate.dl = asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl;
+  request.ue_aggr_max_bit_rate.ul = asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul;
 
   // Fill core network assist info for inactive.
   if (asn1_request->core_network_assist_info_for_inactive_present) {
@@ -1049,72 +1047,60 @@ inline bool fill_ngap_handover_request(ngap_handover_request& request, const asn
   return true;
 }
 
-/// \brief Convert \c ngap_handover_resource_allocation_response common type struct to ASN.1.
+/// \brief Convert \c cu_cp_handover_request_ack common type struct to ASN.1.
 /// \param[out] asn1_ho_request_ack The Handover Request Ack ASN1 struct to fill.
-/// \param[in] ho_response The ngap_handover_resource_allocation_response common type struct.
+/// \param[in] ho_response The cu_cp_handover_request_ack common type struct.
 /// \returns True if the conversion was successful, false otherwise.
-inline bool
-fill_asn1_handover_resource_allocation_response(asn1::ngap::ho_request_ack_s&                     asn1_ho_request_ack,
-                                                const ngap_handover_resource_allocation_response& ho_response)
+inline bool fill_asn1_handover_resource_allocation_response(asn1::ngap::ho_request_ack_s&     asn1_ho_request_ack,
+                                                            const cu_cp_handover_request_ack& ho_response)
 {
-  if (ho_response.success) {
-    // Fill PDU session resource admitted list.
-    for (const auto& admitted_item : ho_response.pdu_session_res_admitted_list) {
-      asn1::ngap::pdu_session_res_admitted_item_s asn1_admitted_item;
-      if (!pdu_session_res_admitted_item_to_asn1(asn1_admitted_item, admitted_item)) {
-        return false;
-      }
-      asn1_ho_request_ack->pdu_session_res_admitted_list.push_back(asn1_admitted_item);
-    }
-
-    // Fill PDU session resource failed to setup list HO ACK.
-    if (!ho_response.pdu_session_res_failed_to_setup_list_ho_ack.empty()) {
-      asn1_ho_request_ack->pdu_session_res_failed_to_setup_list_ho_ack_present = true;
-      for (const auto& failed_item : ho_response.pdu_session_res_failed_to_setup_list_ho_ack) {
-        asn1::ngap::pdu_session_res_failed_to_setup_item_ho_ack_s asn1_failed_item;
-        if (!pdu_session_res_failed_to_setup_item_ho_ack_to_asn1(asn1_failed_item, failed_item)) {
-          return false;
-        }
-        asn1_ho_request_ack->pdu_session_res_failed_to_setup_list_ho_ack.push_back(asn1_failed_item);
-      }
-    }
-
-    // Fill target to source transparent container.
-    if (!target_to_source_transport_container_to_asn1(asn1_ho_request_ack->target_to_source_transparent_container,
-                                                      ho_response.target_to_source_transparent_container)) {
+  // Fill PDU session resource admitted list.
+  for (const auto& admitted_item : ho_response.pdu_session_res_admitted_list) {
+    if (!std::holds_alternative<cu_cp_ng_pdu_session_res_admitted_item>(admitted_item)) {
       return false;
     }
 
-    // Fill criticality diagnostics.
-    if (ho_response.crit_diagnostics.has_value()) {
-      // TODO: Add crit diagnostics.
+    asn1::ngap::pdu_session_res_admitted_item_s asn1_admitted_item;
+    if (!pdu_session_res_admitted_item_to_asn1(asn1_admitted_item,
+                                               std::get<cu_cp_ng_pdu_session_res_admitted_item>(admitted_item))) {
+      return false;
     }
-  } else {
+    asn1_ho_request_ack->pdu_session_res_admitted_list.push_back(asn1_admitted_item);
+  }
+
+  // Fill PDU session resource failed to setup list HO ACK.
+  if (!ho_response.pdu_session_failed_to_setup_list.empty()) {
+    asn1_ho_request_ack->pdu_session_res_failed_to_setup_list_ho_ack_present = true;
+    for (const auto& failed_item : ho_response.pdu_session_failed_to_setup_list) {
+      asn1::ngap::pdu_session_res_failed_to_setup_item_ho_ack_s asn1_failed_item;
+      if (!pdu_session_res_failed_to_setup_item_ho_ack_to_asn1(asn1_failed_item, failed_item)) {
+        return false;
+      }
+      asn1_ho_request_ack->pdu_session_res_failed_to_setup_list_ho_ack.push_back(asn1_failed_item);
+    }
+  }
+
+  // Fill target to source transparent container.
+  if (!target_to_source_transport_container_to_asn1(asn1_ho_request_ack->target_to_source_transparent_container,
+                                                    ho_response.rrc_handover_command)) {
     return false;
   }
 
   return true;
 }
 
-/// \brief Convert \c ngap_handover_resource_allocation_response common type struct to ASN.1.
+/// \brief Convert \c cu_cp_handover_request_failure common type struct to ASN.1.
 /// \param[out] asn1_ho_failure The Handover Request Failure ASN1 struct to fill.
-/// \param[in] ho_response The ngap_handover_resource_allocation_response common type struct.
+/// \param[in] ho_failure The cu_cp_handover_request_failure common type struct.
 /// \returns True if the conversion was successful, false otherwise.
-inline bool
-fill_asn1_handover_resource_allocation_response(asn1::ngap::ho_fail_s&                            asn1_ho_failure,
-                                                const ngap_handover_resource_allocation_response& ho_response)
+inline bool fill_asn1_handover_resource_allocation_response(asn1::ngap::ho_fail_s&                asn1_ho_failure,
+                                                            const cu_cp_handover_request_failure& ho_failure)
 {
-  if (!ho_response.success) {
-    // Fill cause.
-    asn1_ho_failure->cause = cause_to_asn1(ho_response.cause);
-
-    // Fill criticality diagnostics.
-    if (ho_response.crit_diagnostics.has_value()) {
-      // TODO: Add crit diagnostics.
-    }
-  } else {
+  // Fill cause.
+  if (!std::holds_alternative<ngap_cause_t>(ho_failure.cause)) {
     return false;
   }
+  asn1_ho_failure->cause = cause_to_asn1(std::get<ngap_cause_t>(ho_failure.cause));
 
   return true;
 }
@@ -1135,13 +1121,13 @@ fill_asn1_handover_notify(asn1::ngap::ho_notify_s& asn1_msg, const nr_cell_globa
 /// \brief Convert the UL RAN Status Transfer struct to ASN.1.
 /// \param[out] asn1_msg The UL RAN Status Transfer ASN1 struct to fill.
 /// \param[in] drb_list The list of DRB status transfer information.
-inline void
-fill_asn1_ul_ran_status_transfer(asn1::ngap::ul_ran_status_transfer_s&                                         asn1_msg,
-                                 const slotted_id_vector<drb_id_t, ngap_drbs_subject_to_status_transfer_item>& drb_list)
+inline void fill_asn1_ul_ran_status_transfer(
+    asn1::ngap::ul_ran_status_transfer_s&                                          asn1_msg,
+    const slotted_id_vector<drb_id_t, cu_cp_drbs_subject_to_status_transfer_item>& drb_list)
 {
   asn1::ngap::drbs_subject_to_status_transfer_list_l& asn1_drb_list =
       asn1_msg->ran_status_transfer_transparent_container.drbs_subject_to_status_transfer_list;
-  for (const ngap_drbs_subject_to_status_transfer_item& drb : drb_list) {
+  for (const cu_cp_drbs_subject_to_status_transfer_item& drb : drb_list) {
     asn1::ngap::drbs_subject_to_status_transfer_item_s asn1_drb_item = {};
     asn1_drb_item.drb_id                                             = drb_id_to_uint(drb.drb_id);
     if (drb.drb_status_ul.sn_size == pdcp_sn_size::size12bits) {

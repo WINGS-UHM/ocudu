@@ -4,6 +4,7 @@
 
 #include "ocudu/du/du_update_config_helpers.h"
 #include "ocudu/ran/pusch/pusch_constants.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/srs_builder_params.h"
 
@@ -53,7 +54,7 @@ prb_interval config_helpers::find_largest_prb_interval_without_pucch(const pucch
                                                                      unsigned                             bwp_size)
 {
   // Compute the cell PUCCH resource list, depending on which parameter that has been passed.
-  const std::vector<pucch_resource>& res_list = config_helpers::build_pucch_resource_list(user_params, bwp_size);
+  const std::vector<pucch_resource>& res_list = generate_cell_pucch_res_list(user_params, bwp_size);
 
   prb_interval prb_without_pucch = {0, bwp_size};
 

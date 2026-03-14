@@ -13,8 +13,7 @@
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Check that two NGAP PDUs have the same type.
 bool is_same_pdu_type(const ngap_message& lhs, const ngap_message& rhs);
@@ -155,7 +154,8 @@ struct pdu_session_test_params {
 ngap_message generate_valid_pdu_session_resource_setup_request_message(
     amf_ue_id_t                                                amf_ue_id,
     ran_ue_id_t                                                ran_ue_id,
-    const std::map<pdu_session_id_t, pdu_session_test_params>& pdu_sessions);
+    const std::map<pdu_session_id_t, pdu_session_test_params>& pdu_sessions,
+    std::optional<security_indication_t>                       sec_ind = std::nullopt);
 
 /// \brief Generate an invalid dummy PDU Session Resource Setup Request Message.
 ngap_message generate_invalid_pdu_session_resource_setup_request_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);
@@ -264,5 +264,10 @@ ngap_message generate_location_reporting_control_message_with_ue_presence(amf_ue
                                                                           ran_ue_id_t                 ran_ue_id,
                                                                           const std::vector<uint8_t>& ref_ids);
 
-} // namespace ocucp
-} // namespace ocudu
+/// \brief Generate a Path Switch Request Failure message with the given cause.
+ngap_message generate_path_switch_request_failure(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id, ngap_cause_t cause);
+
+/// \brief Generate a Path Switch Request Ack message.
+ngap_message generate_path_switch_request_ack(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);
+
+} // namespace ocudu::ocucp

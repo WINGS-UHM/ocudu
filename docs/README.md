@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
-SPDX-License-Identifier: BSD-3-Clause-Open-MPI
--->
-
 # OCUDU Documentation
 
 This directory contains the automated API documentation generation (Doxygen) for OCUDU code.

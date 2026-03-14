@@ -4,7 +4,7 @@
 
 #include "f1ap_du_test_helpers.h"
 #include "test_doubles/f1ap/f1ap_test_messages.h"
-#include "ocudu/support/test_utils.h"
+#include "tests/test_doubles/utils/test_rng.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -55,7 +55,7 @@ TEST_F(f1ap_du_ue_management_tester, f1ap_created_bearers_forward_messages_to_no
 
   // Send DL data through created F1-C bearer.
   byte_buffer dl_srb_buf =
-      byte_buffer::create(test_rgen::random_vector<uint8_t>(test_rgen::uniform_int<unsigned>(3, 100))).value();
+      byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(test_rng::uniform_int<unsigned>(3, 100))).value();
   ASSERT_TRUE(this->srb2_rx_sdu_notifier.last_pdu.empty());
   f1ap->handle_message(test_helpers::generate_dl_rrc_message_transfer(
       int_to_gnb_du_ue_f1ap_id(0), int_to_gnb_cu_ue_f1ap_id(0), srb_id_t::srb2, dl_srb_buf.copy()));
@@ -63,7 +63,7 @@ TEST_F(f1ap_du_ue_management_tester, f1ap_created_bearers_forward_messages_to_no
 
   // Send UL data through created F1-C bearer.
   byte_buffer ul_srb_buf =
-      byte_buffer::create(test_rgen::random_vector<uint8_t>(test_rgen::uniform_int<unsigned>(3, 100))).value();
+      byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(test_rng::uniform_int<unsigned>(3, 100))).value();
   resp.f1c_bearers_added[0].bearer->handle_sdu(byte_buffer_chain::create(ul_srb_buf.copy()).value());
   const auto& ul_f1ap_msg = this->f1c_gw.last_tx_pdu().pdu.init_msg().value.ul_rrc_msg_transfer();
   ASSERT_EQ(ul_f1ap_msg->rrc_container, ul_srb_buf);
@@ -83,7 +83,7 @@ TEST_F(f1ap_du_ue_management_tester, f1ap_created_bearers_do_not_forward_invalid
 
   // Send DL data through created F1-C bearer.
   byte_buffer dl_srb_buf =
-      byte_buffer::create(test_rgen::random_vector<uint8_t>(test_rgen::uniform_int<unsigned>(1, 2))).value();
+      byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(test_rng::uniform_int<unsigned>(1, 2))).value();
   ASSERT_TRUE(this->srb2_rx_sdu_notifier.last_pdu.empty());
   f1ap->handle_message(test_helpers::generate_dl_rrc_message_transfer(
       int_to_gnb_du_ue_f1ap_id(0), int_to_gnb_cu_ue_f1ap_id(0), srb_id_t::srb2, dl_srb_buf.copy()));

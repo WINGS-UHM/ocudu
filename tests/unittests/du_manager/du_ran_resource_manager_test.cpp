@@ -3,9 +3,9 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/du/du_high/du_manager/ran_resource_management/du_ran_resource_manager_impl.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/du/du_high/du_qos_config_helpers.h"
-#include "ocudu/support/test_utils.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -266,7 +266,7 @@ TEST_P(du_ran_resource_manager_tester, when_multiple_ues_are_created_then_they_u
   }
 
   // Removing one UE, should make one SR offset available.
-  const du_ue_index_t ue_idx_to_rem      = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, ues.size() - 1));
+  const du_ue_index_t ue_idx_to_rem      = to_du_ue_index(test_rng::uniform_int<unsigned>(0, ues.size() - 1));
   const unsigned      rem_pucch_resource = ues[ue_idx_to_rem]
                                           ->cell_group.cells.at(SERVING_PCELL_IDX)
                                           .serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0]
@@ -548,7 +548,7 @@ TEST_P(du_ran_res_mng_multiple_cfg_tester, test_correct_resource_creation_indexi
   }
 
   // Remove 1 UE and verify if the new resource can be allocated to another UE.
-  const du_ue_index_t ue_idx_to_rem         = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, ues.size() - 1));
+  const du_ue_index_t ue_idx_to_rem         = to_du_ue_index(test_rng::uniform_int<unsigned>(0, ues.size() - 1));
   const unsigned      rem_sr_pucch_resource = ues[ue_idx_to_rem]
                                              ->cell_group.cells.at(SERVING_PCELL_IDX)
                                              .serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0]
@@ -726,7 +726,7 @@ TEST_P(du_ran_res_mng_pucch_cnt_tester, test_du_pucch_cnt)
   }
 
   // Erase a random UE and attempt.
-  const du_ue_index_t ue_idx_to_rem = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, ues.size() - 1));
+  const du_ue_index_t ue_idx_to_rem = to_du_ue_index(test_rng::uniform_int<unsigned>(0, ues.size() - 1));
   ues.erase(ue_idx_to_rem);
 
   // Attempt a new allocation and verify it is successful.
@@ -804,7 +804,7 @@ TEST_P(du_ran_res_mng_pucch_cnt_sr_only_tester, test_du_pucch_cnt_sr_only)
   }
 
   // Erase a random UE and attempt.
-  const du_ue_index_t ue_idx_to_rem = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, ues.size() - 1));
+  const du_ue_index_t ue_idx_to_rem = to_du_ue_index(test_rng::uniform_int<unsigned>(0, ues.size() - 1));
   ues.erase(ue_idx_to_rem);
 
   // Attempt a new allocation and verify it is successful.
@@ -869,7 +869,7 @@ static du_cell_config make_custom_pucch_srs_cell_config(bool pucch_has_more_res_
       du_cfg.ran.tdd_ul_dl_cfg_common.has_value() ? srs_periodicity::sl10 : srs_periodicity::sl1;
 
   pucch_params.max_nof_symbols = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - srs_cfg.max_nof_symbols.value();
-  f1_params.nof_symbols        = std::min(f1_params.nof_symbols.value(), pucch_params.max_nof_symbols.value());
+  f1_params.nof_syms           = std::min(f1_params.nof_syms.value(), pucch_params.max_nof_symbols.value());
 
   return du_cfg;
 }

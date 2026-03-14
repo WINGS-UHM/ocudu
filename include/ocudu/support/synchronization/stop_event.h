@@ -21,20 +21,6 @@ struct futex_blocker {
 
   /// Wakes the thread currently waiting on state.
   static void wake(std::atomic<uint32_t>& state) { futex_util::wake_all(state); }
-
-  void acquire_dtor_guard() { dtor_guard.store(true, std::memory_order_release); }
-  void release_dtor_guard() { dtor_guard.store(false, std::memory_order_release); }
-  void wait_on_dtor_guard()
-  {
-    // Polite spinning in case the token got preempted between the fetch_sub and futex wake.
-    while (dtor_guard.load(std::memory_order_acquire)) {
-      std::this_thread::yield();
-    }
-  }
-
-private:
-  /// Variable used to protect token_count from destruction when token still has to call futex wake.
-  std::atomic<bool> dtor_guard{false};
 };
 
 /// \brief Blocking policy based on busy waiting.
@@ -53,11 +39,6 @@ struct busy_wait_blocker {
 
   /// No-op wake operation.
   static void wake(std::atomic<uint32_t>& state) {}
-
-  /// No-op operations.
-  void acquire_dtor_guard() {}
-  void release_dtor_guard() {}
-  void wait_on_dtor_guard() {}
 };
 
 template <typename BlockPolicy>
@@ -77,11 +58,7 @@ class stop_event_source_impl
   [[nodiscard]] bool was_stop_requested() const { return token_count.load(std::memory_order_acquire) >= stop_bit; }
 
 public:
-  ~stop_event_source_impl()
-  {
-    stop();
-    blocker.wait_on_dtor_guard();
-  }
+  ~stop_event_source_impl() { stop(); }
 
   /// Creates a new observer of stop() requests.
   [[nodiscard]] stop_event_token_impl<BlockPolicy> get_token();
@@ -123,12 +100,8 @@ public:
   [[nodiscard]] uint32_t nof_tokens_approx() const { return token_count.load(std::memory_order_relaxed) & count_mask; }
 
 private:
-  friend stop_event_token_impl<BlockPolicy>;
-
   /// State variable composed by 1 MSB bit for signalling stop and 31 LSB bits for counting observers.
   std::atomic<uint32_t> token_count{0};
-  /// Blocking policy implementation.
-  BlockPolicy blocker;
 };
 
 /// \brief Observer of calls to stop() on the associated stop_event_source.
@@ -141,19 +114,22 @@ class stop_event_token_impl
   static constexpr uint32_t count_mask = stop_bit - 1;
 
   friend class stop_event_source_impl<BlockPolicy>;
-  explicit stop_event_token_impl(stop_event_source_impl<BlockPolicy>& parent_) : parent(&parent_) { inc_token(); }
+
+  explicit stop_event_token_impl(std::atomic<uint32_t>& token_count_) : token_count(&token_count_) { inc_token(); }
 
 public:
   stop_event_token_impl() = default;
 
-  stop_event_token_impl(const stop_event_token_impl& other) : parent(other.parent) { inc_token(); }
-  stop_event_token_impl(stop_event_token_impl&& other) noexcept : parent(std::exchange(other.parent, nullptr)) {}
+  stop_event_token_impl(const stop_event_token_impl& other) : token_count(other.token_count) { inc_token(); }
+  stop_event_token_impl(stop_event_token_impl&& other) noexcept : token_count(std::exchange(other.token_count, nullptr))
+  {
+  }
 
   stop_event_token_impl& operator=(const stop_event_token_impl& other)
   {
     if (this != &other) {
       reset();
-      parent = other.parent;
+      token_count = other.token_count;
       inc_token();
     }
     return *this;
@@ -161,60 +137,54 @@ public:
   stop_event_token_impl& operator=(stop_event_token_impl&& other) noexcept
   {
     reset();
-    parent = std::exchange(other.parent, nullptr);
+    token_count = std::exchange(other.token_count, nullptr);
     return *this;
   }
 
   ~stop_event_token_impl()
   {
-    if (parent != nullptr) {
-      auto cur = parent->token_count.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    if (token_count != nullptr) {
+      auto cur = token_count->fetch_sub(1, std::memory_order_acq_rel) - 1;
       if ((cur & count_mask) == 0) {
         // Count reached zero.
         // Wake all stoppers.
-        BlockPolicy::wake(parent->token_count);
-        // Update dtor guard.
-        parent->blocker.release_dtor_guard();
+        BlockPolicy::wake(*token_count);
       }
-      parent = nullptr;
+      token_count = nullptr;
     }
   }
 
   /// Checks if the associated stop_event_source has been stopped.
   [[nodiscard]] bool is_stop_requested() const
   {
-    return (parent == nullptr) or ((parent->token_count.load(std::memory_order_acquire) & stop_bit) > 0);
+    return (token_count == nullptr) or ((token_count->load(std::memory_order_acquire) & stop_bit) > 0);
   }
 
   /// Destroys the observer.
   void reset() { stop_event_token_impl{}.swap(*this); }
 
-  void swap(stop_event_token_impl& other) noexcept { std::swap(parent, other.parent); }
+  void swap(stop_event_token_impl& other) noexcept { std::swap(token_count, other.token_count); }
 
 private:
   void inc_token()
   {
-    if (parent == nullptr) {
+    if (token_count == nullptr) {
       return;
     }
-    auto prev = parent->token_count.fetch_add(1, std::memory_order_relaxed);
-    if ((prev & count_mask) == 0) {
-      // Transition from 0 to 1. Update dtor guard.
-      parent->blocker.acquire_dtor_guard();
-    }
+    auto prev = token_count->fetch_add(1, std::memory_order_relaxed);
     if (prev & stop_bit) {
       // Stop was already requested. Release token.
       reset();
     }
   }
 
-  stop_event_source_impl<BlockPolicy>* parent = nullptr;
+  std::atomic<uint32_t>* token_count = nullptr;
 };
 
 template <typename BlockPolicy>
-inline stop_event_token_impl<BlockPolicy> stop_event_source_impl<BlockPolicy>::get_token()
+stop_event_token_impl<BlockPolicy> stop_event_source_impl<BlockPolicy>::get_token()
 {
-  return was_stop_requested() ? stop_event_token_impl<BlockPolicy>{} : stop_event_token_impl{*this};
+  return was_stop_requested() ? stop_event_token_impl<BlockPolicy>{} : stop_event_token_impl<BlockPolicy>{token_count};
 }
 
 } // namespace detail

@@ -4,8 +4,8 @@
 
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/du_ue_ric_configuration_procedure.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -17,7 +17,7 @@ protected:
   du_ue_ric_config_tester() :
     du_manager_proc_tester(std::vector<du_cell_config>{config_helpers::make_default_du_cell_config()})
   {
-    test_ue = &create_ue(to_du_ue_index(test_rgen::uniform_int<unsigned>(0, MAX_DU_UE_INDEX)));
+    test_ue = &create_ue(to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX)));
   }
 
   void start_procedure(const du_mac_sched_control_config& request)

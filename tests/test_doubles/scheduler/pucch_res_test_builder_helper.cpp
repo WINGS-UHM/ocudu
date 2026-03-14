@@ -4,6 +4,7 @@
 
 #include "pucch_res_test_builder_helper.h"
 #include "lib/scheduler/config/cell_configuration.h"
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 
@@ -154,7 +155,7 @@ pucch_res_builder_test_helper::pucch_res_builder_test_helper(const cell_configur
   pucch_res_mgr(max_pucch_grants_per_slot)
 {
   // Sanity check to ensure the cell_cfg and the pucch_cfg use the same parameters.
-  const auto ded_pucch_resource_list = config_helpers::build_pucch_resource_list(
+  const auto ded_pucch_resource_list = config_helpers::generate_cell_pucch_res_list(
       pucch_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
   ocudu_assert(cell_cfg.init_bwp.ul.pucch.resources == ded_pucch_resource_list,
                "Mismatch between the PUCCH parameters used for cell_cfg and for the UE PUCCH configuration");
@@ -175,7 +176,7 @@ void pucch_res_builder_test_helper::setup(const cell_configuration&            c
                                           const pucch_resource_builder_params& pucch_cfg)
 {
   // Sanity check to ensure the cell_cfg and the pucch_cfg use the same parameters.
-  const auto ded_pucch_resource_list = config_helpers::build_pucch_resource_list(
+  const auto ded_pucch_resource_list = config_helpers::generate_cell_pucch_res_list(
       pucch_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
   ocudu_assert(cell_cfg.init_bwp.ul.pucch.resources == ded_pucch_resource_list,
                "Mismatch between the PUCCH parameters used for cell_cfg and for the UE PUCCH configuration");

@@ -676,7 +676,8 @@ bool cu_cp_test_environment::request_pdu_session_resource_setup(unsigned        
   return true;
 }
 
-bool cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
+expected<e1ap_message>
+cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_bearer_context_setup_request(
     const ngap_message& pdu_session_resource_setup_request,
     unsigned            du_idx,
     unsigned            cu_up_idx,
@@ -697,7 +698,7 @@ bool cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_b
   ue_ctx.cu_cp_e1ap_id =
       int_to_gnb_cu_cp_ue_e1ap_id(e1ap_pdu.pdu.init_msg().value.bearer_context_setup_request()->gnb_cu_cp_ue_e1ap_id);
 
-  return true;
+  return e1ap_pdu;
 }
 
 bool cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_bearer_context_modification_request(
@@ -852,16 +853,17 @@ bool cu_cp_test_environment::send_rrc_reconfiguration_complete_and_await_pdu_ses
   return true;
 }
 
-bool cu_cp_test_environment::setup_pdu_session(unsigned               du_idx,
-                                               unsigned               cu_up_idx,
-                                               gnb_du_ue_f1ap_id_t    du_ue_id,
-                                               rnti_t                 crnti,
-                                               gnb_cu_up_ue_e1ap_id_t cu_up_e1ap_id,
-                                               pdu_session_id_t       psi,
-                                               drb_id_t               drb_id,
-                                               qos_flow_id_t          qfi,
-                                               byte_buffer            rrc_reconfiguration_complete,
-                                               bool                   is_initial_session)
+bool cu_cp_test_environment::setup_pdu_session(unsigned                             du_idx,
+                                               unsigned                             cu_up_idx,
+                                               gnb_du_ue_f1ap_id_t                  du_ue_id,
+                                               rnti_t                               crnti,
+                                               gnb_cu_up_ue_e1ap_id_t               cu_up_e1ap_id,
+                                               pdu_session_id_t                     psi,
+                                               drb_id_t                             drb_id,
+                                               qos_flow_id_t                        qfi,
+                                               byte_buffer                          rrc_reconfiguration_complete,
+                                               bool                                 is_initial_session,
+                                               std::optional<security_indication_t> security_indication)
 {
   ngap_message ngap_pdu;
   ocudu_assert(not this->get_amf().try_pop_rx_pdu(ngap_pdu), "there are still NGAP messages to pop from AMF");
@@ -873,8 +875,11 @@ bool cu_cp_test_environment::setup_pdu_session(unsigned               du_idx,
 
   auto& ue_ctx = attached_ues.at(du_ue_id_to_ran_ue_id_map.at(du_idx).at(du_ue_id));
 
-  ngap_message pdu_session_resource_setup_request = generate_valid_pdu_session_resource_setup_request_message(
-      ue_ctx.amf_ue_id.value(), ue_ctx.ran_ue_id.value(), {{psi, {pdu_session_type_t::ipv4, {{qfi, 9}}}}});
+  ngap_message pdu_session_resource_setup_request =
+      generate_valid_pdu_session_resource_setup_request_message(ue_ctx.amf_ue_id.value(),
+                                                                ue_ctx.ran_ue_id.value(),
+                                                                {{psi, {pdu_session_type_t::ipv4, {{qfi, 9}}}}},
+                                                                security_indication);
 
   if (is_initial_session) {
     // Inject PDU Session Resource Setup Request and wait for Bearer Context Setup Request.
@@ -937,7 +942,8 @@ bool cu_cp_test_environment::attach_ue(
     byte_buffer                                               rrc_reconfiguration_complete,
     std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
     bool                                                      rrc_inactive_supported,
-    std::optional<ngap_location_report_request>               location_reporting_request)
+    std::optional<ngap_location_report_request>               location_reporting_request,
+    std::optional<security_indication_t>                      security_indication)
 {
   if (not connect_new_ue(du_idx, du_ue_id, crnti, plmn_identity::test_value(), std::move(rrc_setup_complete))) {
     return false;

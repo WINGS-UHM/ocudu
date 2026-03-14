@@ -4,9 +4,9 @@
 
 #include "f1ap_du_test_helpers.h"
 #include "test_doubles/f1ap/f1ap_test_messages.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include "ocudu/ran/pcch/paging_helper.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -47,7 +47,7 @@ protected:
 
 TEST_F(f1ap_du_paging_test, when_f1ap_paging_message_received_then_it_is_propagated_to_lower_layers)
 {
-  const auto   tmsi = test_rgen::uniform_int<uint64_t>(0U, (static_cast<uint64_t>(1U) << 48U) - 1U);
+  const auto   tmsi = test_rng::uniform_int<uint64_t>(0U, (static_cast<uint64_t>(1U) << 48U) - 1U);
   f1ap_message msg  = test_helpers::generate_f1ap_paging_message(tmsi);
 
   ASSERT_FALSE(this->paging_handler.last_paging_info.has_value());
@@ -60,7 +60,7 @@ TEST_F(f1ap_du_paging_test, when_f1ap_paging_message_received_then_it_is_propaga
 
 TEST_F(f1ap_du_paging_test, when_f1ap_paging_message_received_with_edrx_then_the_ue_hashed_id_is_computed)
 {
-  const auto   tmsi        = test_rgen::uniform_int<uint64_t>(0U, (static_cast<uint64_t>(1U) << 48U) - 1U);
+  const auto   tmsi        = test_rng::uniform_int<uint64_t>(0U, (static_cast<uint64_t>(1U) << 48U) - 1U);
   f1ap_message msg         = test_helpers::generate_f1ap_paging_message(tmsi);
   auto&        asn1_paging = msg.pdu.init_msg().value.paging();
   asn1_paging->nr_paginge_drx_info_present                         = true;

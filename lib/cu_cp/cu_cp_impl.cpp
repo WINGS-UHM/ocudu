@@ -447,7 +447,10 @@ void cu_cp_impl::handle_rrc_reestablishment_complete(ue_index_t old_ue_index)
 void cu_cp_impl::handle_rrc_reconf_complete_indicator(ue_index_t ue_index)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
-  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: Could not find UE, dropping RRC Reconfiguration Complete Indicator", ue_index);
+    return;
+  }
 
   if (ue != nullptr) {
     ue->get_task_sched().schedule_async_task(
@@ -859,30 +862,17 @@ cu_cp_impl::handle_ue_context_release_command(const cu_cp_ue_context_release_com
                                                   logger);
 }
 
-async_task<ngap_handover_resource_allocation_response>
+async_task<cu_cp_handover_resource_allocation_response>
 cu_cp_impl::handle_ngap_handover_request(const ngap_handover_request& request)
 {
-  cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
-  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
+  // Convert the NGAP handover request to an intra-CU handover target request.
+  cu_cp_inter_cu_handover_request inter_cu_handover_request;
+  inter_cu_handover_request.from_ngap_handover_request(request);
 
-  // Select a CU-UP to serve the UE.
-  ue->set_cu_up_index(cu_up_db.select_cu_up());
-  ocudu_assert(ue->get_cu_up_index() != cu_up_index_t::invalid,
-               "ue={}: could not find a CU-UP to serve the UE",
-               request.ue_index);
-
-  return launch_async<inter_cu_handover_target_routine>(
-      request,
-      cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_bearer_context_manager(),
-      du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
-      get_cu_cp_ue_removal_handler(),
-      ue_mng,
-      cell_meas_mng,
-      cfg.security.default_security_indication,
-      logger);
+  return handle_inter_cu_handover_request(inter_cu_handover_request);
 }
 
-void cu_cp_impl::handle_n2_handover_execution(ue_index_t ue_index)
+void cu_cp_impl::handle_inter_cu_target_handover_execution(ue_index_t ue_index)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
   ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
@@ -937,6 +927,45 @@ async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t ue_index
   }
   return launch_async<inter_cu_handover_source_routine>(
       ue_index, std::move(command), ue_mng, du_db, cu_up_db, ngap->get_ngap_control_message_handler(), logger);
+}
+
+byte_buffer cu_cp_impl::handle_handover_preparation_message_required(ue_index_t ue_index)
+{
+  cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for handover preparation message handling", ue_index);
+    return {};
+  }
+  return ue->get_rrc_ue()->get_rrc_ue_control_message_handler().get_packed_handover_preparation_message();
+}
+
+async_task<cu_cp_handover_resource_allocation_response>
+cu_cp_impl::handle_xnap_handover_request(const xnap_handover_request& request)
+{
+  // Convert the XNAP handover request to an intra-CU handover target request.
+  cu_cp_inter_cu_handover_request inter_cu_handover_request;
+  inter_cu_handover_request.from_xnap_handover_request(request);
+
+  // TODO: Implement handling of XNAP handover request in inter_cu_handover_routine.
+  return launch_async([request](coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_RETURN(cu_cp_handover_request_failure{.ue_index = request.ue_index, .cause = xnap_cause_misc_t::unspecified});
+  });
+}
+
+void cu_cp_impl::handle_handover_cancel_received(ue_index_t ue_index)
+{
+  cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for handover cancel handling", ue_index);
+    return;
+  }
+
+  // Request UE release.
+  cu_cp_ue_context_release_request release_request;
+  release_request.ue_index = ue_index;
+  release_request.cause    = ngap_cause_radio_network_t::ho_cancelled;
+  ue->get_task_sched().schedule_async_task(handle_ue_context_release(release_request));
 }
 
 ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn)
@@ -1527,6 +1556,29 @@ void cu_cp_impl::request_release_of_inactive_ue(ue_index_t ue_index)
   }
 
   request_ue_release(*ue, ngap_cause_radio_network_t::ue_in_rrc_inactive_state_not_reachable);
+}
+
+async_task<cu_cp_handover_resource_allocation_response>
+cu_cp_impl::handle_inter_cu_handover_request(const cu_cp_inter_cu_handover_request& request)
+{
+  cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", request.ue_index);
+
+  // Select a CU-UP to serve the UE.
+  ue->set_cu_up_index(cu_up_db.select_cu_up());
+  ocudu_assert(ue->get_cu_up_index() != cu_up_index_t::invalid,
+               "ue={}: could not find a CU-UP to serve the UE",
+               request.ue_index);
+
+  return launch_async<inter_cu_handover_target_routine>(
+      request,
+      cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_bearer_context_manager(),
+      du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
+      get_cu_cp_ue_removal_handler(),
+      ue_mng,
+      cell_meas_mng,
+      cfg.security.default_security_indication,
+      logger);
 }
 
 void cu_cp_impl::on_statistics_report_timer_expired()

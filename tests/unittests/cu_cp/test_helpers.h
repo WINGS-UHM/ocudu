@@ -11,6 +11,7 @@
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/support/async/fifo_async_task_scheduler.h"
 #include <cstdint>
@@ -87,26 +88,17 @@ public:
   {
     logger.info("ue={}: Received UE release request", request.ue_index);
 
-    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN();
-    });
+    return launch_no_op_task();
   }
 
   async_task<void> on_transaction_info_loss(const ue_transaction_info_loss_event& ev) override
   {
-    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN();
-    });
+    return launch_no_op_task();
   }
 
   async_task<void> on_access_success(const cu_cp_access_success_indication& msg) override
   {
-    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN();
-    });
+    return launch_no_op_task();
   }
 
 private:
@@ -122,11 +114,7 @@ public:
   async_task<void> handle_ue_context_release(const cu_cp_ue_context_release_request& request) override
   {
     logger.info("ue={}: Received UE release request", request.ue_index);
-
-    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN();
-    });
+    return launch_no_op_task();
   }
 
   void handle_handover_reconfiguration_sent(const cu_cp_intra_cu_handover_target_request& request) override
@@ -168,10 +156,7 @@ public:
 
   async_task<void> handle_access_success(const cu_cp_access_success_indication& msg) override
   {
-    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN();
-    });
+    return launch_no_op_task();
   }
 
   unsigned last_transaction_id = 99999;
@@ -190,11 +175,7 @@ public:
     if (ue_mng != nullptr) {
       ue_mng->remove_ue(ue_index);
     }
-
-    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN();
-    });
+    return launch_no_op_task();
   }
 
   void handle_pending_ue_task_cancellation(ue_index_t ue_index) override {}
@@ -386,13 +367,8 @@ public:
   async_task<void> handle_bearer_context_release_command(const e1ap_bearer_context_release_command& cmd) override
   {
     logger.info("Received a new bearer context release command");
-
     last_release_command = cmd;
-
-    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN();
-    });
+    return launch_no_op_task();
   }
 
   void reset()
@@ -420,19 +396,13 @@ public:
   async_task<bool> handle_ue_context_release_request(const cu_cp_ue_context_release_request& msg) override
   {
     logger.info("Received a UE Context Release Request");
-    return launch_async([this](coro_context<async_task<bool>>& ctx) {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(release_request_outcome);
-    });
+    return launch_no_op_task(release_request_outcome);
   }
 
   async_task<ngap_handover_preparation_response>
   handle_handover_preparation_request(const ngap_handover_preparation_request& request) override
   {
-    return launch_async([](coro_context<async_task<ngap_handover_preparation_response>>& ctx) {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(ngap_handover_preparation_response{false});
-    });
+    return launch_no_op_task(ngap_handover_preparation_response{false});
   }
 
   void handle_inter_cu_ho_rrc_recfg_complete(const ue_index_t           ue_index,
@@ -519,11 +489,7 @@ public:
     last_release_command.cause           = msg.cause;
     last_release_command.rrc_release_pdu = msg.rrc_release_pdu.copy();
     last_release_command.srb_id          = msg.srb_id;
-
-    return launch_async([msg](coro_context<async_task<ue_index_t>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(msg.ue_index);
-    });
+    return launch_no_op_task(msg.ue_index);
   }
 
   bool handle_ue_id_update(ue_index_t ue_index, ue_index_t old_ue_index) override { return true; }
@@ -593,18 +559,13 @@ public:
   handle_rrc_reestablishment_request(pci_t old_pci, rnti_t old_c_rnti, ue_index_t ue_index) override
   {
     logger.info("ue={} old_pci={} old_c-rnti={}: Received RRC Reestablishment Request", ue_index, old_pci, old_c_rnti);
-
     return reest_context;
   }
 
   async_task<bool> handle_rrc_reestablishment_context_modification_required(ue_index_t ue_index) override
   {
     logger.info("ue={}: Received Reestablishment Context Modification Required");
-
-    return launch_async([](coro_context<async_task<bool>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(true);
-    });
+    return launch_no_op_task(true);
   }
 
   void handle_rrc_reestablishment_failure(const cu_cp_ue_context_release_request& request) override
@@ -620,10 +581,7 @@ public:
   async_task<bool> handle_ue_context_transfer(ue_index_t ue_index, ue_index_t old_ue_index) override
   {
     logger.info("ue={}: Requested a UE context transfer from old_ue={}", ue_index, old_ue_index);
-    return launch_async([](coro_context<async_task<bool>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(true);
-    });
+    return launch_no_op_task(true);
   }
 
   async_task<void> handle_ue_context_release(const cu_cp_ue_context_release_request& request) override
@@ -631,10 +589,7 @@ public:
     logger.info("ue={}: Requested a UE release", request.ue_index);
     last_cu_cp_ue_context_release_request = request;
 
-    return launch_async([](coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN();
-    });
+    return launch_no_op_task();
   }
 
   void handle_rrc_reconf_complete_indicator(ue_index_t ue_index) override {}
@@ -675,10 +630,7 @@ public:
   async_task<bool> handle_security_mode_complete_expected(uint8_t transaction_id) override
   {
     logger.info("Awaiting a RRC Security Mode Complete (transaction_id={})", transaction_id);
-    return launch_async([](coro_context<async_task<bool>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(true);
-    });
+    return launch_no_op_task(true);
   }
 
   byte_buffer get_packed_ue_capability_rat_container_list() const override
@@ -691,10 +643,7 @@ public:
     logger.info("Received a new RRC reconfiguration request");
     last_radio_bearer_cfg = msg.radio_bearer_cfg;
 
-    return launch_async([this](coro_context<async_task<bool>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(rrc_reconfiguration_outcome);
-    });
+    return launch_no_op_task(rrc_reconfiguration_outcome);
   }
 
   rrc_ue_handover_reconfiguration_context
@@ -717,10 +666,7 @@ public:
   {
     logger.info("Awaiting a RRC Reconfiguration Complete (transaction_id={})", transaction_id_);
     last_transaction_id = transaction_id_;
-    return launch_async([this](coro_context<async_task<bool>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(rrc_reconfiguration_outcome);
-    });
+    return launch_no_op_task(rrc_reconfiguration_outcome);
   }
 
   bool store_ue_capabilities(byte_buffer ue_capabilities) override
@@ -733,10 +679,7 @@ public:
   {
     logger.info("Received a new UE capability transfer request");
 
-    return launch_async([this](coro_context<async_task<bool>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(ue_cap_transfer_outcome);
-    });
+    return launch_no_op_task(ue_cap_transfer_outcome);
   }
 
   rrc_ue_release_context
@@ -884,22 +827,68 @@ private:
 
 struct dummy_cu_cp_xnap_handler : public cu_cp_xnap_handler {
 public:
-  dummy_cu_cp_xnap_handler() = default;
+  dummy_cu_cp_xnap_handler(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST")) {}
+
+  byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) override
+  {
+    logger.info("ue={}: Received a new request to handle XNAP handover preparation message", ue_index);
+    return byte_buffer{};
+  }
 
   async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
   {
     logger.info("ue={}: Received a new RRC Handover Command", ue_index);
     last_handover_command = std::move(command);
-    return launch_async([](coro_context<async_task<bool>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(true);
-    });
+    return launch_no_op_task(true);
+  }
+
+  ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override
+  {
+    return ue_index_t::invalid;
+  }
+
+  bool handle_handover_request(ue_index_t                        ue_index,
+                               const plmn_identity&              selected_plmn,
+                               const security::security_context& sec_ctxt) override
+  {
+    ocudu_assert(ue_mng.find_ue(ue_index) != nullptr, "UE must be present");
+    logger.info("Received a handover request");
+
+    if (!ue_mng.find_ue(ue_index)->get_security_manager().init_security_context(sec_ctxt)) {
+      logger.info("Failed to initialize security context");
+      return false;
+    }
+
+    return true;
+  }
+
+  bool schedule_ue_task(ue_index_t ue_index, async_task<void> task) override
+  {
+    ocudu_assert(ue_mng.find_ue_task_scheduler(ue_index) != nullptr, "UE task scheduler must be present");
+    return ue_mng.find_ue_task_scheduler(ue_index)->schedule_async_task(std::move(task));
+  }
+
+  async_task<cu_cp_handover_resource_allocation_response>
+  handle_xnap_handover_request(const xnap_handover_request& request) override
+  {
+    return launch_no_op_task(cu_cp_handover_resource_allocation_response{});
+  }
+
+  void handle_inter_cu_target_handover_execution(ue_index_t ue_index) override
+  {
+    logger.info("ue={}: Received a new request to handle inter-CU target handover execution", ue_index);
+  }
+
+  void handle_handover_cancel_received(ue_index_t ue_index) override
+  {
+    logger.info("ue={}: Received a handover cancel message", ue_index);
   }
 
   byte_buffer last_handover_command;
 
 private:
-  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("TEST");
+  ue_manager&             ue_mng;
+  ocudulog::basic_logger& logger;
 };
 
 } // namespace ocudu::ocucp

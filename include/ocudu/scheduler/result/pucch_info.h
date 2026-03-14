@@ -8,6 +8,7 @@
 #include "ocudu/ran/csi_report/csi_report_configuration.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/ran/pucch/pucch_uci_bits.h"
+#include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_pdu_capacity_constants.h"
 #include "ocudu/scheduler/result/pucch_format.h"
 

@@ -13,21 +13,7 @@ using namespace ocudu::ocucp;
 
 /// Fixture class for XNAP Setup tests.
 class xn_setup_procedure_test : public xnap_test
-{
-protected:
-  /// Peer configuration.
-  gnb_id_t               peer_gnb_id             = {1, 22};
-  plmn_identity          peer_plmn               = plmn_identity::test_value();
-  tac_t                  peer_tac                = {7};
-  s_nssai_t              peer_slice              = {};
-  std::vector<s_nssai_t> peer_slice_support_list = {peer_slice};
-
-  xnap_configuration xnap_peer_cfg = {
-      peer_gnb_id,
-      std::vector<supported_tracking_area>{{peer_tac, std::vector<plmn_item>{{peer_plmn, peer_slice_support_list}}}},
-      std::vector<guami_t>{{peer_plmn, 1}},
-  };
-};
+{};
 
 TEST_F(xn_setup_procedure_test, when_correct_setup_received_from_peer_setup_complete_is_sent)
 {
@@ -61,7 +47,7 @@ TEST_F(xnap_test, when_xn_setup_procedure_times_out_then_setup_failure_is_return
             asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);
 
   // Status: Fail XN setup procedure (XN-C peer doesn't respond).
-  this->tick(t, std::chrono::milliseconds(5000));
+  ASSERT_TRUE(this->tick(t, std::chrono::milliseconds(5000)));
 
   ASSERT_TRUE(t.ready());
   ASSERT_FALSE(t.get());
@@ -89,7 +75,7 @@ TEST_F(xn_setup_procedure_test,
   xnap->handle_message(setup_fail);
 
   // Status: XN-C peer does not receive new XN Setup Request until time-to-wait has ended.
-  this->tick(t, std::chrono::milliseconds(10000));
+  ASSERT_TRUE(this->tick(t, std::chrono::milliseconds(10000)));
 
   // Check XN setup request is sent again.
   setup_req = xnc_gw.get_last_tx_message();

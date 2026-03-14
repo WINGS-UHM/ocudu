@@ -1,8 +1,3 @@
-<!--
-SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
-SPDX-License-Identifier: BSD-3-Clause-Open-MPI
--->
-
 # OCUDU Software Architecture Documentation
 
 A primer on the O-RAN gNB architecture has already been outlined in the Knowledge Base, this can be found [here](https://docs.ocudu.org).

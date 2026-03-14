@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/fapi/p7/builders/crc_indication_builder.h"
 #include <gtest/gtest.h>
@@ -19,7 +18,7 @@ TEST(crc_indication_builder, valid_indication_passes)
     unsigned slot_index = 15;
     auto     slot       = slot_point(scs, sfn, slot_index);
 
-    builder.set_basic_parameters(slot);
+    builder.set_slot(slot);
 
     rnti_t    rnti          = to_rnti(10);
     harq_id_t harq_id       = to_harq_id(0);
@@ -38,19 +37,19 @@ TEST(crc_indication_builder, valid_indication_passes)
     rsrp_dB.emplace(-100);
     bool use_dB = i;
 
-    builder.add_pdu(rnti, harq_id, tb_crc_status, ul_sinr_dB, timing_advance_offset, rssi_dB, rsrp_dB, use_dB);
+    builder.set_pdu(rnti, harq_id, tb_crc_status, ul_sinr_dB, timing_advance_offset, rssi_dB, rsrp_dB, use_dB);
 
     ASSERT_EQ(slot, msg.slot);
 
-    const crc_ind_pdu& pdu = msg.pdus.back();
-    ASSERT_EQ(0, pdu.handle);
-    ASSERT_EQ(harq_id, pdu.harq_id);
-    ASSERT_EQ(rnti, pdu.rnti);
-    ASSERT_EQ(tb_crc_status, pdu.tb_crc_status_ok);
-    ASSERT_EQ(static_cast<int16_t>(ul_sinr_dB ? ul_sinr_dB.value() * 500.F : -32768), pdu.ul_sinr_metric);
-    ASSERT_EQ(timing_advance_offset ? timing_advance_offset.value() : phy_time_unit(), pdu.timing_advance_offset);
-    ASSERT_EQ(static_cast<uint16_t>(rssi_dB ? (rssi_dB.value() + 128.F) * 10.F : 65535), pdu.rssi);
-    ASSERT_EQ(static_cast<uint16_t>(rsrp_dB ? (rsrp_dB.value() + (use_dB ? 140.F : 128.F)) * 10.F : 65535), pdu.rsrp);
+    ASSERT_EQ(0, msg.pdu.handle);
+    ASSERT_EQ(harq_id, msg.pdu.harq_id);
+    ASSERT_EQ(rnti, msg.pdu.rnti);
+    ASSERT_EQ(tb_crc_status, msg.pdu.tb_crc_status_ok);
+    ASSERT_EQ(static_cast<int16_t>(ul_sinr_dB ? ul_sinr_dB.value() * 500.F : -32768), msg.pdu.ul_sinr_metric);
+    ASSERT_EQ(timing_advance_offset ? timing_advance_offset.value() : phy_time_unit(), msg.pdu.timing_advance_offset);
+    ASSERT_EQ(static_cast<uint16_t>(rssi_dB ? (rssi_dB.value() + 128.F) * 10.F : 65535), msg.pdu.rssi);
+    ASSERT_EQ(static_cast<uint16_t>(rsrp_dB ? (rsrp_dB.value() + (use_dB ? 140.F : 128.F)) * 10.F : 65535),
+              msg.pdu.rsrp);
   }
 }
 
@@ -64,7 +63,7 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
   unsigned slot_index = 15;
   auto     slot       = slot_point(scs, sfn, slot_index);
 
-  builder.set_basic_parameters(slot);
+  builder.set_slot(slot);
 
   rnti_t    rnti          = to_rnti(10);
   harq_id_t harq_id       = to_harq_id(0);
@@ -75,17 +74,16 @@ TEST(crc_indication_builder, valid_indication_with_no_metrics_passes)
   std::optional<float>         rssi_dB;
   std::optional<float>         rsrp_dB;
 
-  builder.add_pdu(rnti, harq_id, tb_crc_status, ul_sinr_dB, timing_advance_offset, rssi_dB, rsrp_dB);
+  builder.set_pdu(rnti, harq_id, tb_crc_status, ul_sinr_dB, timing_advance_offset, rssi_dB, rsrp_dB);
 
   ASSERT_EQ(slot, msg.slot);
 
-  const crc_ind_pdu& pdu = msg.pdus.back();
-  ASSERT_EQ(0, pdu.handle);
-  ASSERT_EQ(harq_id, pdu.harq_id);
-  ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(tb_crc_status, pdu.tb_crc_status_ok);
-  ASSERT_EQ(static_cast<int16_t>(ul_sinr_dB ? ul_sinr_dB.value() * 500.F : -32768), pdu.ul_sinr_metric);
-  ASSERT_EQ(timing_advance_offset, pdu.timing_advance_offset);
-  ASSERT_EQ(static_cast<uint16_t>(rssi_dB ? (rssi_dB.value() + 128) * 10.F : 65535), pdu.rssi);
-  ASSERT_EQ(static_cast<uint16_t>(ul_sinr_dB ? ul_sinr_dB.value() * 500.F : 65535), pdu.rsrp);
+  ASSERT_EQ(0, msg.pdu.handle);
+  ASSERT_EQ(harq_id, msg.pdu.harq_id);
+  ASSERT_EQ(rnti, msg.pdu.rnti);
+  ASSERT_EQ(tb_crc_status, msg.pdu.tb_crc_status_ok);
+  ASSERT_EQ(static_cast<int16_t>(ul_sinr_dB ? ul_sinr_dB.value() * 500.F : -32768), msg.pdu.ul_sinr_metric);
+  ASSERT_EQ(timing_advance_offset, msg.pdu.timing_advance_offset);
+  ASSERT_EQ(static_cast<uint16_t>(rssi_dB ? (rssi_dB.value() + 128) * 10.F : 65535), msg.pdu.rssi);
+  ASSERT_EQ(static_cast<uint16_t>(ul_sinr_dB ? ul_sinr_dB.value() * 500.F : 65535), msg.pdu.rsrp);
 }

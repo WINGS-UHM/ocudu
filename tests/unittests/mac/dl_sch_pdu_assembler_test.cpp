@@ -5,11 +5,11 @@
 #include "lib/mac/mac_dl/cell_dl_harq_buffer_pool.h"
 #include "lib/mac/mac_dl/dl_sch_pdu_assembler.h"
 #include "mac_test_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/mac/mac_pdu_format.h"
 #include "ocudu/ran/pdsch/pdsch_constants.h"
 #include "ocudu/support/bit_encoding.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include <deque>
 #include <gtest/gtest.h>
 
@@ -36,7 +36,7 @@ TEST(mac_dl_sch_pdu, mac_ce_con_res_id_pack)
   dl_sch_pdu           pdu(bytes);
   ue_con_res_id_t      conres = {};
   for (unsigned i = 0; i != UE_CON_RES_ID_LEN; ++i) {
-    conres[i] = test_rgen::uniform_int<uint8_t>();
+    conres[i] = test_rng::uniform_int<uint8_t>();
   }
   pdu.add_ue_con_res_id(conres);
   span<const uint8_t> result = pdu.get();
@@ -59,12 +59,12 @@ TEST(mac_dl_sch_pdu, mac_sdu_8bit_L_pack)
 
   std::vector<uint8_t> bytes(MAX_DL_PDU_LENGTH);
   dl_sch_pdu           pdu(bytes);
-  unsigned             payload_len = test_rgen::uniform_int<unsigned>(1, 255);
+  unsigned             payload_len = test_rng::uniform_int<unsigned>(1, 255);
   byte_buffer          payload;
   for (unsigned i = 0; i != payload_len; ++i) {
-    ASSERT_TRUE(payload.append(test_rgen::uniform_int<uint8_t>()));
+    ASSERT_TRUE(payload.append(test_rng::uniform_int<uint8_t>()));
   }
-  lcid_t lcid = (lcid_t)test_rgen::uniform_int<unsigned>(0, MAX_NOF_RB_LCIDS);
+  lcid_t lcid = (lcid_t)test_rng::uniform_int<unsigned>(0, MAX_NOF_RB_LCIDS);
   pdu.add_sdu(lcid, payload);
   span<const uint8_t> result = pdu.get();
 
@@ -92,12 +92,12 @@ TEST(mac_dl_sch_pdu, mac_sdu_16bit_L_pack)
   static constexpr unsigned HEADER_LEN = 3;
   std::vector<uint8_t>      bytes(MAX_DL_PDU_LENGTH);
   dl_sch_pdu                pdu(bytes);
-  unsigned                  payload_len = test_rgen::uniform_int<unsigned>(256, bytes.size() - HEADER_LEN);
+  unsigned                  payload_len = test_rng::uniform_int<unsigned>(256, bytes.size() - HEADER_LEN);
   byte_buffer               payload;
   for (unsigned i = 0; i != payload_len; ++i) {
-    ASSERT_TRUE(payload.append(test_rgen::uniform_int<uint8_t>()));
+    ASSERT_TRUE(payload.append(test_rng::uniform_int<uint8_t>()));
   }
-  lcid_t lcid = (lcid_t)test_rgen::uniform_int<unsigned>(0, MAX_NOF_RB_LCIDS);
+  lcid_t lcid = (lcid_t)test_rng::uniform_int<unsigned>(0, MAX_NOF_RB_LCIDS);
   ASSERT_EQ(pdu.add_sdu(lcid, payload), payload.length() + HEADER_LEN);
   span<const uint8_t> result = pdu.get();
 
@@ -125,7 +125,7 @@ public:
       next_rlc_pdu_sizes.pop_front();
     }
     for (unsigned i = 0; i != nof_bytes; ++i) {
-      mac_sdu_buf[i] = test_rgen::uniform_int<uint8_t>();
+      mac_sdu_buf[i] = test_rng::uniform_int<uint8_t>();
     }
     last_sdus.emplace_back(byte_buffer::create(mac_sdu_buf.first(nof_bytes)).value());
     return nof_bytes;
@@ -147,7 +147,7 @@ public:
     ocudulog::init();
 
     for (unsigned i = 0; i != UE_CON_RES_ID_LEN; ++i) {
-      report_fatal_error_if_not(msg3_pdu.append(test_rgen::uniform_int<uint8_t>()), "failed to allocate bytes");
+      report_fatal_error_if_not(msg3_pdu.append(test_rng::uniform_int<uint8_t>()), "failed to allocate bytes");
     }
 
     // Create UE.
@@ -197,9 +197,9 @@ protected:
 TEST_F(mac_dl_sch_assembler_tester, msg4_correctly_assembled)
 {
   const unsigned sdu_subheader_size = 2;
-  const unsigned sdu_size           = test_rgen::uniform_int<unsigned>(5, 255);
+  const unsigned sdu_size           = test_rng::uniform_int<unsigned>(5, 255);
   const unsigned conres_ce_size     = UE_CON_RES_ID_LEN + 1;
-  const unsigned tb_size = sdu_subheader_size + sdu_size + conres_ce_size + test_rgen::uniform_int<unsigned>(0, 100);
+  const unsigned tb_size = sdu_subheader_size + sdu_size + conres_ce_size + test_rng::uniform_int<unsigned>(0, 100);
 
   dl_msg_tb_info tb_info;
   tb_info.lc_chs_to_sched.push_back(dl_msg_lc_info{lcid_dl_sch_t::UE_CON_RES_ID, conres_ce_size});
@@ -235,13 +235,13 @@ TEST_F(mac_dl_sch_assembler_tester, msg4_correctly_assembled)
 
 TEST_F(mac_dl_sch_assembler_tester, pack_multiple_sdus_of_same_lcid)
 {
-  const unsigned nof_sdus                = test_rgen::uniform_int<unsigned>(2, 6);
+  const unsigned nof_sdus                = test_rng::uniform_int<unsigned>(2, 6);
   const unsigned MIN_LC_SCHED_BYTES_SIZE = 3; // Need to account MAC subheader.
 
   std::vector<unsigned> sdu_payload_sizes(nof_sdus);
   for (unsigned i = 0; i != nof_sdus; ++i) {
     // Generate SDU size.
-    sdu_payload_sizes[i] = test_rgen::uniform_int<unsigned>(MIN_LC_SCHED_BYTES_SIZE, 1000);
+    sdu_payload_sizes[i] = test_rng::uniform_int<unsigned>(MIN_LC_SCHED_BYTES_SIZE, 1000);
   }
 
   // Derive TB size.

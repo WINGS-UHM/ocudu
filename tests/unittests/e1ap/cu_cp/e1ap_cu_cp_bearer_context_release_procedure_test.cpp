@@ -3,8 +3,8 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "e1ap_cu_cp_test_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/async/async_test_utils.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -17,7 +17,7 @@ protected:
   void start_procedure(const e1ap_bearer_context_release_command& req)
   {
     run_bearer_context_setup(req.ue_index,
-                             int_to_gnb_cu_up_ue_e1ap_id(test_rgen::uniform_int<uint64_t>(
+                             int_to_gnb_cu_up_ue_e1ap_id(test_rng::uniform_int<uint64_t>(
                                  gnb_cu_up_ue_e1ap_id_to_uint(gnb_cu_up_ue_e1ap_id_t::min),
                                  gnb_cu_up_ue_e1ap_id_to_uint(gnb_cu_up_ue_e1ap_id_t::max) - 1)));
 
@@ -62,7 +62,7 @@ TEST_F(e1ap_cu_cp_bearer_context_release_test, when_command_sent_then_procedure_
 {
   // Test Preamble.
   auto command = generate_bearer_context_release_command(uint_to_ue_index(
-      test_rgen::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max))));
+      test_rng::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max))));
 
   // Start BEARER CONTEXT RELEASE procedure.
   this->start_procedure(command);
@@ -76,7 +76,7 @@ TEST_F(e1ap_cu_cp_bearer_context_release_test, when_bearer_release_complete_rece
 {
   // Test Preamble.
   auto command = generate_bearer_context_release_command(uint_to_ue_index(
-      test_rgen::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max))));
+      test_rng::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max))));
 
   // Start BEARER CONTEXT RELEASE procedure and return back the response from the CU-UP.
   this->start_procedure(command);

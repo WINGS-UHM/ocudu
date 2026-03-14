@@ -8,7 +8,7 @@
 using namespace ocudu;
 using namespace odu;
 
-std::unique_ptr<du_manager_interface> ocudu::odu::create_du_manager(const du_manager_params& params)
+std::unique_ptr<du_manager> ocudu::odu::create_du_manager(const du_manager_params& params)
 {
   auto du_manager = std::make_unique<du_manager_impl>(params);
   return du_manager;

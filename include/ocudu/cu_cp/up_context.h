@@ -41,6 +41,10 @@ struct up_pdu_session_context {
   pdu_session_id_t                   id = pdu_session_id_t::invalid;
   pdu_session_type_t                 type;
   std::map<drb_id_t, up_drb_context> drbs;
+
+  integrity_protection_result_t       integrity_protection_result = integrity_protection_result_t::performed;
+  confidentiality_protection_result_t confidentiality_protection_result =
+      confidentiality_protection_result_t::performed;
 };
 
 /// \brief This struct holds the UP configuration currently in place.

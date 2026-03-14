@@ -4,9 +4,9 @@
 
 #include "f1ap_cu_test_helpers.h"
 #include "lib/f1ap/cu_cp/ue_context/f1ap_cu_ue_context.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <memory>
@@ -46,7 +46,7 @@ protected:
   ue_index_t generate_random_ue_index()
   {
     return uint_to_ue_index(
-        test_rgen::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
+        test_rng::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
   }
 
   ocudulog::basic_logger&   f1ap_logger = ocudulog::fetch_basic_logger("CU-CP-F1");

@@ -13,6 +13,7 @@
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/rrc/rrc_du.h"
 #include "ocudu/rrc/rrc_ue.h"
+#include "ocudu/xnap/xnap_handover.h"
 #include <string>
 
 namespace ocudu::ocucp {
@@ -53,6 +54,22 @@ public:
   /// \param[in] command The received RRC container containing the Handover Command.
   /// \returns True if the RRC Handover Command was successfully handled, false otherwise.
   virtual async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
+
+  /// \brief Handles UE index allocation request for N2 handover at target gNB.
+  virtual ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) = 0;
+
+  /// \brief Handle a received handover request.
+  /// \param[in] ue_index Index of the UE.
+  /// \param[in] selected_plmn The selected PLMN identity of the UE.
+  /// \param[in] sec_ctxt The received security context.
+  /// \return True if the handover request was successfully handled, false otherwise.
+  virtual bool handle_handover_request(ue_index_t                        ue_index,
+                                       const plmn_identity&              selected_plmn,
+                                       const security::security_context& sec_ctxt) = 0;
+
+  /// \brief Handle the handover execution phase of the inter-CU handover at target gNB.
+  /// \param[in] ue_index The index of the UE that is performing the handover.
+  virtual void handle_inter_cu_target_handover_execution(ue_index_t ue_index) = 0;
 };
 
 /// Interface for the NGAP notifier to communicate with the CU-CP.
@@ -67,15 +84,6 @@ public:
   /// \param[in] ue_index The index of the new NGAP UE.
   /// \returns Pointer to the NGAP UE notifier.
   virtual ngap_cu_cp_ue_notifier* handle_new_ngap_ue(ue_index_t ue_index) = 0;
-
-  /// \brief Handle a reeceived handover request.
-  /// \param[in] ue_index Index of the UE.
-  /// \param[in] selected_plmn The selected PLMN identity of the UE.
-  /// \param[in] sec_ctxt The received security context.
-  /// \return True if the handover request was successfully handled, false otherwise.
-  virtual bool handle_handover_request(ue_index_t                        ue_index,
-                                       const plmn_identity&              selected_plmn,
-                                       const security::security_context& sec_ctxt) = 0;
 
   /// \brief Handle the reception of a new Initial Context Setup Request.
   /// \param[in] request The received Initial Context Setup Request.
@@ -103,18 +111,11 @@ public:
 
   /// \brief Handle the handover request of the handover resource allocation procedure handover procedure.
   /// See TS 38.413 section 8.4.2.2.
-  virtual async_task<ngap_handover_resource_allocation_response>
+  virtual async_task<cu_cp_handover_resource_allocation_response>
   handle_ngap_handover_request(const ngap_handover_request& request) = 0;
 
   /// \brief Handle the transmission of a handover required message to the AMF.
   virtual void handle_transmission_of_handover_required() = 0;
-
-  /// \brief Handle the handover execution phase of the handover at target gNB.
-  /// \param[in] ue_index The index of the UE that is performing the handover.
-  virtual void handle_n2_handover_execution(ue_index_t ue_index) = 0;
-
-  /// \brief Handles UE index allocation request for N2 handover at target gNB.
-  virtual ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) = 0;
 
   /// \brief Handles a DL UE associated NRPPa transport.
   virtual void handle_dl_ue_associated_nrppa_transport_pdu(ue_index_t ue_index, const byte_buffer& nrppa_pdu) = 0;
@@ -442,10 +443,24 @@ public:
 };
 
 /// \brief Handler of the XNAP of the CU-CP. This interface is used to forward XNAP messages to the CU-CP.
-class cu_cp_xnap_handler : public cu_cp_inter_cu_handover_handler
+class cu_cp_xnap_handler : public cu_cp_inter_cu_handover_handler, public cu_cp_task_scheduler_handler
 {
 public:
   virtual ~cu_cp_xnap_handler() = default;
+
+  /// \brief Get packed handover preparation message for inter-gNB handover.
+  /// \param[in] ue_index The index of the UE.
+  /// \returns The packed handover preparation message.
+  virtual byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) = 0;
+
+  /// \brief Handle the received XNAP handover request of the handover preparation procedure.
+  /// See TS 38.423 section 8.2.1.
+  virtual async_task<cu_cp_handover_resource_allocation_response>
+  handle_xnap_handover_request(const xnap_handover_request& request) = 0;
+
+  /// \brief Handle the reception of a Handover Cancel message.
+  /// \param[in] ue_index The index of the UE that is the target of the handover cancel.
+  virtual void handle_handover_cancel_received(ue_index_t ue_index) = 0;
 };
 
 class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,

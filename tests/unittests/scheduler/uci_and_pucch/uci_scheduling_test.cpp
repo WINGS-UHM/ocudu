@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "uci_test_utils.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -17,7 +17,7 @@ class uci_sched_sr_test : public ::testing::TestWithParam<sr_periodicity>
 public:
   uci_sched_sr_test() :
     sr_period(GetParam()),
-    sr_offset(test_rgen::uniform_int<unsigned>(0, sr_periodicity_to_slot(GetParam()) - 1)),
+    sr_offset(test_rng::uniform_int<unsigned>(0, sr_periodicity_to_slot(GetParam()) - 1)),
     t_bench{test_bench_params{.pucch_res_common = pucch_res_common,
                               .n_cces           = n_cces,
                               .sr_period        = sr_period,
@@ -70,7 +70,7 @@ TEST_P(uci_sched_sr_test, test_different_periods)
   const unsigned nof_slots_to_test = std::max(sr_periodicity_to_slot(sr_period) * 4, t_bench.res_grid.ring_size() * 2);
 
   // Randomize initial slot, as the UCI scheduler will be called only after the UE is added.
-  const auto starting_slot = test_rgen::uniform_int<unsigned>(0, 1000U);
+  const auto starting_slot = test_rng::uniform_int<unsigned>(0, 1000U);
   for (unsigned sl_cnt = starting_slot; sl_cnt < starting_slot + nof_slots_to_test; ++sl_cnt) {
     t_bench.uci_sched.run_slot(t_bench.res_grid);
     if ((t_bench.sl_tx - sr_offset).to_uint() % sr_periodicity_to_slot(sr_period) == 0) {
@@ -117,7 +117,7 @@ class uci_sched_csi_test : public ::testing::TestWithParam<csi_report_periodicit
 public:
   uci_sched_csi_test() :
     csi_period(GetParam()),
-    csi_offset(test_rgen::uniform_int<unsigned>(0, csi_report_periodicity_to_uint(GetParam()) - 1)),
+    csi_offset(test_rng::uniform_int<unsigned>(0, csi_report_periodicity_to_uint(GetParam()) - 1)),
     t_bench{test_bench_params{.csi_period = csi_period, .csi_offset = csi_offset}}
   {
     static constexpr max_pucch_code_rate max_code_rate = max_pucch_code_rate::dot_25;
@@ -160,7 +160,7 @@ TEST_P(uci_sched_csi_test, test_different_periods)
                                               static_cast<unsigned>(t_bench.res_grid.max_ul_slot_alloc_delay) * 2);
 
   // Randomize initial slot, as the UCI scheduler will be called only after the UE is added.
-  const auto starting_slot = test_rgen::uniform_int<unsigned>(0, 1000U);
+  const auto starting_slot = test_rng::uniform_int<unsigned>(0, 1000U);
   for (unsigned sl_cnt = starting_slot; sl_cnt < starting_slot + nof_slots_to_test; ++sl_cnt) {
     t_bench.uci_sched.run_slot(t_bench.res_grid);
     if ((t_bench.sl_tx - csi_offset).to_uint() % csi_report_periodicity_to_uint(csi_period) == 0) {

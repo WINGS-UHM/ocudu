@@ -17,9 +17,7 @@
 #include "ocudu/support/executors/task_executor.h"
 #include <memory>
 
-namespace ocudu {
-
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class ngap_impl final : public ngap_interface
 {
@@ -63,17 +61,18 @@ public:
   async_task<bool> handle_ue_context_release_request(const cu_cp_ue_context_release_request& msg) override;
   async_task<ngap_handover_preparation_response>
        handle_handover_preparation_request(const ngap_handover_preparation_request& msg) override;
-  void handle_ul_ran_status_transfer(const ngap_ul_ran_status_transfer& ul_ran_status_transfer) override;
-  async_task<expected<ngap_dl_ran_status_transfer>>
-                        handle_dl_ran_status_transfer_required(ue_index_t ue_index) override;
-  void                  handle_inter_cu_ho_rrc_recfg_complete(const ue_index_t           ue_index,
-                                                              const nr_cell_global_id_t& cgi,
-                                                              const unsigned             tac) override;
-  const ngap_context_t& get_ngap_context() const override { return context; }
+  void handle_ul_ran_status_transfer(const cu_cp_status_transfer& ul_ran_status_transfer) override;
+  async_task<expected<cu_cp_status_transfer>> handle_dl_ran_status_transfer_required(ue_index_t ue_index) override;
+  void                                        handle_inter_cu_ho_rrc_recfg_complete(const ue_index_t           ue_index,
+                                                                                    const nr_cell_global_id_t& cgi,
+                                                                                    const unsigned             tac) override;
+  const ngap_context_t&                       get_ngap_context() const override { return context; }
   void             handle_ul_ue_associated_nrppa_transport(ue_index_t ue_index, const byte_buffer& nrppa_pdu) override;
   async_task<void> handle_ul_non_ue_associated_nrppa_transport(const byte_buffer& nrppa_pdu) override;
   async_task<bool>
   handle_rrc_inactive_transition_report_required(const ngap_rrc_inactive_transition_report& report) override;
+  async_task<cu_cp_path_switch_response>
+  handle_path_switch_request_required(const cu_cp_path_switch_request& request) override;
 
   // ngap_metrics_handler.
   ngap_info handle_ngap_metrics_report_request() const override;
@@ -244,6 +243,4 @@ private:
   tx_pdu_notifier_with_logging tx_pdu_notifier;
 };
 
-} // namespace ocucp
-
-} // namespace ocudu
+} // namespace ocudu::ocucp

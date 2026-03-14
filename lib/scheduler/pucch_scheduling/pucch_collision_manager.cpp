@@ -7,122 +7,14 @@
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/adt/expected.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
-#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/scheduler/resource_grid_util.h"
 #include <algorithm>
 
 using namespace ocudu;
 using namespace ocudu::detail;
-
-/// Constructs resource_info for a common PUCCH resource.
-static resource_info
-make_common_resource_info(const pucch_default_resource& res, unsigned r_pucch, const bwp_configuration& bwp_cfg)
-{
-  // Compute PRB_first_hop and PRB_second_hop as per Section 9.2.1, TS 38.213.
-  const auto prbs =
-      get_pucch_default_prb_index(r_pucch, res.rb_bwp_offset, res.cs_indexes.size(), bwp_cfg.crbs.length());
-
-  return resource_info{
-      .format             = res.format,
-      .multiplexing_index = res.cs_indexes[get_pucch_default_cyclic_shift(r_pucch, res.cs_indexes.size())],
-      .grants             = {
-                      .first_hop = grant_info(
-              bwp_cfg.scs,
-              {res.first_symbol_index, res.first_symbol_index + res.nof_symbols / 2},
-              prb_to_crb(bwp_cfg, prb_interval::start_and_len(prbs.first, pucch_constants::FORMAT0_1_4_MAX_NPRB))),
-                      .second_hop = grant_info(
-              bwp_cfg.scs,
-              {res.first_symbol_index + res.nof_symbols / 2, res.first_symbol_index + res.nof_symbols},
-              prb_to_crb(bwp_cfg, prb_interval::start_and_len(prbs.second, pucch_constants::FORMAT0_1_4_MAX_NPRB))),
-      }};
-}
-
-/// Constructs resource_info for a dedicated PUCCH resource.
-static resource_info make_ded_resource_info(const pucch_resource& res, const bwp_configuration& bwp_cfg)
-{
-  resource_info info{.format = res.format};
-
-  // Compute multiplexing index.
-  switch (res.format) {
-    case pucch_format::FORMAT_0: {
-      const auto& f0_params   = std::get<pucch_format_0_cfg>(res.format_params);
-      info.multiplexing_index = f0_params.initial_cyclic_shift;
-    } break;
-    case pucch_format::FORMAT_1: {
-      // For PUCCH Format 1, two sequences are orthogonal unless both the initial cyclic shift and the time domain OCC
-      // index are the same.
-      const auto& f1_params = std::get<pucch_format_1_cfg>(res.format_params);
-      info.multiplexing_index =
-          f1_params.initial_cyclic_shift +
-          f1_params.time_domain_occ * pucch_constants::format1_initial_cyclic_shift_range.length();
-    } break;
-    case pucch_format::FORMAT_4: {
-      // For PUCCH Format 4, the OCC index is mapped to a cyclic shift value, as per Table 6.4.1.3.3.1-1, TS 38.211.
-      // Thus, resources with different OCC indices will never collide, even if they have different OCC lengths.
-      // Therefore, we can use the OCC index directly as the multiplexing index.
-      const auto& f4_params   = std::get<pucch_format_4_cfg>(res.format_params);
-      info.multiplexing_index = static_cast<unsigned>(f4_params.occ_index);
-    } break;
-    default:
-      // Non multiplexed formats.
-      info.multiplexing_index = 0;
-      break;
-  }
-
-  // Compute time-frequency grants.
-  unsigned nof_prbs = 1;
-  if (const auto* format_2_3 = std::get_if<pucch_format_2_3_cfg>(&res.format_params)) {
-    nof_prbs = format_2_3->nof_prbs;
-  }
-  if (res.second_hop_prb.has_value()) {
-    // Intra-slot frequency hopping.
-    info.grants = {
-        .first_hop = grant_info{bwp_cfg.scs,
-                                {res.starting_sym_idx, res.starting_sym_idx + res.nof_symbols / 2},
-                                prb_to_crb(bwp_cfg, prb_interval::start_and_len(res.starting_prb, nof_prbs))},
-        .second_hop =
-            grant_info{bwp_cfg.scs,
-                       {res.starting_sym_idx + res.nof_symbols / 2, res.starting_sym_idx + res.nof_symbols},
-                       prb_to_crb(bwp_cfg, prb_interval::start_and_len(res.second_hop_prb.value(), nof_prbs))}};
-  } else {
-    // No intra-slot frequency hopping.
-    info.grants = {
-        .first_hop  = grant_info{bwp_cfg.scs,
-                                ofdm_symbol_range::start_and_len(res.starting_sym_idx, res.nof_symbols),
-                                prb_to_crb(bwp_cfg, prb_interval::start_and_len(res.starting_prb, nof_prbs))},
-        .second_hop = std::nullopt,
-    };
-  }
-
-  return info;
-}
-
-/// Checks if two PUCCH resources collide.
-static bool do_resources_collide(const resource_info& res1, const resource_info& res2)
-{
-  if (not res1.grants.overlaps(res2.grants)) {
-    // Resources that do not overlap in time and frequency do not collide.
-    return false;
-  }
-
-  if (res1.format != res2.format) {
-    // Resources with different formats always collide if they overlap in time and frequency.
-    return true;
-  }
-
-  if (res1.grants != res2.grants) {
-    // We can only make sure resources have orthogonal sequences if they have the same time/frequency allocation.
-    return true;
-  }
-
-  // Resources with the same format and time/frequency grants only collide if they have the same multiplexing index.
-  // Note: resources with Format 2/3 always collide as they are not multiplexed (multiplexing index is always 0).
-  return res1.multiplexing_index == res2.multiplexing_index;
-}
 
 namespace ocudu::detail {
 
@@ -138,10 +30,10 @@ cell_resource_list make_cell_resource_list(const cell_configuration& cell_cfg)
   // Collect all resources (common + dedicated).
   cell_resource_list all_resources;
   for (unsigned r_pucch = 0; r_pucch != pucch_constants::MAX_NOF_CELL_COMMON_PUCCH_RESOURCES; ++r_pucch) {
-    all_resources.push_back(make_common_resource_info(common_default_res, r_pucch, init_ul_bwp_cfg));
+    all_resources.push_back(pucch_collision_info(common_default_res, r_pucch, init_ul_bwp_cfg));
   }
   for (const auto& res : cell_cfg.init_bwp.ul.pucch.resources) {
-    all_resources.push_back(make_ded_resource_info(res, init_ul_bwp_cfg));
+    all_resources.push_back(pucch_collision_info(res, init_ul_bwp_cfg));
   }
 
   return all_resources;
@@ -159,7 +51,7 @@ collision_matrix make_collision_matrix(const cell_resource_list& resources)
 
     // Note: The collision matrix is symmetric.
     for (size_t j = i + 1; j != resources.size(); ++j) {
-      if (do_resources_collide(resources[i], resources[j])) {
+      if (resources[i].collides(resources[j])) {
         matrix[i].set(j);
         matrix[j].set(i);
       }
@@ -180,7 +72,10 @@ mux_regions_matrix make_mux_regions_matrix(const cell_resource_list& resources)
     // Members of the region.
     bounded_bitset<pucch_constants::MAX_NOF_TOT_CELL_RESOURCES> members;
     // Check if a given resource belongs to this multiplexing region.
-    bool does_resource_belong(const resource_info& res) const { return res.format == format and res.grants == grants; }
+    bool does_resource_belong(const pucch_collision_info& res) const
+    {
+      return res.format == format and res.grants == grants;
+    }
   };
   static_vector<mux_region, pucch_constants::MAX_NOF_TOT_CELL_RESOURCES> tmp_regions;
 

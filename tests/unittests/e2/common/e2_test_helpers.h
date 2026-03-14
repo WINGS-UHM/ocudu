@@ -905,7 +905,7 @@ class dummy_du_configurator : public odu::du_configurator
 public:
   dummy_du_configurator() {}
   async_task<odu::du_mac_sched_control_config_response>
-  configure_ue_mac_scheduler(odu::du_mac_sched_control_config reconf) override
+  configure_ue_mac_scheduler(const odu::du_mac_sched_control_config& reconf) override
   {
     config = reconf;
     return launch_async([](coro_context<async_task<odu::du_mac_sched_control_config_response>>& ctx) {

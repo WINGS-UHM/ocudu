@@ -3,8 +3,8 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_test_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -80,7 +80,7 @@ TEST_F(ngap_pdu_session_resource_release_procedure_test,
        when_valid_pdu_session_resource_release_command_received_then_pdu_session_release_succeeds)
 {
   // Test preamble
-  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rgen::uniform_int<uint16_t>(
+  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rng::uniform_int<uint16_t>(
       pdu_session_id_to_uint(pdu_session_id_t::min), pdu_session_id_to_uint(pdu_session_id_t::max)));
 
   ue_index_t ue_index = this->start_procedure(pdu_session_id);
@@ -103,7 +103,7 @@ TEST_F(ngap_pdu_session_resource_release_procedure_test,
        when_pdu_session_resource_setup_request_received_after_release_command_then_pdu_session_setup_succeeds)
 {
   // Test preamble
-  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rgen::uniform_int<uint16_t>(
+  pdu_session_id_t pdu_session_id = uint_to_pdu_session_id(test_rng::uniform_int<uint16_t>(
       pdu_session_id_to_uint(pdu_session_id_t::min), pdu_session_id_to_uint(pdu_session_id_t::max)));
 
   ue_index_t ue_index = this->start_procedure(pdu_session_id);

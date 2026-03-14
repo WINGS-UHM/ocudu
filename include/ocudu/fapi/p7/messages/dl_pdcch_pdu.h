@@ -25,7 +25,7 @@ struct dl_dci_pdu {
 
   /// PDCCH PDU profile NR power parameters.
   struct power_profile_nr {
-    int8_t power_control_offset_ss;
+    int8_t power_control_offset_ss_db;
   };
 
   rnti_t                                            rnti;
@@ -70,3 +70,98 @@ struct dl_pdcch_pdu {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::dl_dci_pdu> {
+private:
+  /// Converts the given power offset to dB as per SCF-222 v4.0 section 3.4.8.
+  static float to_power_sss_ul_dci(float power_offset) { return power_offset * 0.001; }
+
+public:
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::dl_dci_pdu& pdu, FormatContext& ctx) const
+  {
+    fmt::format_to(ctx.out(),
+                   "DCI rnti={} nid_pdcch_data={} nid_pdcch_dmrs={} nrnti_pdcch_data={} cce_index={} "
+                   "dci_aggregation_level={} payload_size={}",
+                   pdu.rnti,
+                   pdu.nid_pdcch_data,
+                   pdu.nid_pdcch_dmrs,
+                   pdu.nrnti_pdcch_data,
+                   pdu.cce_index,
+                   fmt::underlying(pdu.dci_aggregation_level),
+                   pdu.payload.size());
+
+    if (const auto* power_profile_nr_in_pdu =
+            std::get_if<ocudu::fapi::dl_dci_pdu::power_profile_nr>(&pdu.power_config)) {
+      fmt::format_to(ctx.out(),
+                     " Power configuration profile NR: power_control_offset_ss_db={}",
+                     power_profile_nr_in_pdu->power_control_offset_ss_db);
+    } else if (const auto* power_profile_sss_in_pdu =
+                   std::get_if<ocudu::fapi::dl_dci_pdu::power_profile_sss>(&pdu.power_config)) {
+      fmt::format_to(ctx.out(),
+                     " Power configuration profile SSS: dmrs_power_offset_db={} data_power_offset_db={}",
+                     to_power_sss_ul_dci(power_profile_sss_in_pdu->dmrs_power_offset_db),
+                     to_power_sss_ul_dci(power_profile_sss_in_pdu->data_power_offset_db));
+    }
+
+    if (pdu.context.has_value()) {
+      fmt::format_to(ctx.out(), " with context");
+    }
+
+    return ctx.out();
+  }
+};
+
+template <>
+struct formatter<ocudu::fapi::dl_pdcch_pdu> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::dl_pdcch_pdu& pdu, FormatContext& ctx) const
+  {
+    format_to(ctx.out(),
+              "\n\t- PDCCH bwp={} scs={} cp{} symb={} freq_domain_resource={} precoder_granularity={} {}",
+              pdu.coreset_bwp,
+              to_string(pdu.scs),
+              pdu.cp.to_string(),
+              pdu.symbols,
+              pdu.freq_domain_resource,
+              underlying(pdu.precoder_granularity),
+              pdu.dl_dci);
+
+    if (const auto* dci_coreset_0 = std::get_if<ocudu::fapi::dl_pdcch_pdu::mapping_coreset_0>(&pdu.mapping)) {
+      format_to(ctx.out(),
+                " CORESET0 reg_bundle_sz={} interleaver_sz={} shift_index={}",
+                dci_coreset_0->interleaved.reg_bundle_sz,
+                dci_coreset_0->interleaved.interleaver_sz,
+                dci_coreset_0->interleaved.shift_index);
+
+    } else if (const auto* dci_interleaved =
+                   std::get_if<ocudu::fapi::dl_pdcch_pdu::mapping_interleaved>(&pdu.mapping)) {
+      format_to(ctx.out(),
+                " INTERLEAVED reg_bundle_sz={} interleaver_sz={} shift_index={}",
+                dci_interleaved->interleaved.reg_bundle_sz,
+                dci_interleaved->interleaved.interleaver_sz,
+                dci_interleaved->interleaved.shift_index);
+
+    } else if (const auto* dci_non_interleaved =
+                   std::get_if<ocudu::fapi::dl_pdcch_pdu::mapping_non_interleaved>(&pdu.mapping)) {
+      format_to(ctx.out(), " NON INTERLEAVED reg_bundle_sz={}", dci_non_interleaved->reg_bundle_sz);
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

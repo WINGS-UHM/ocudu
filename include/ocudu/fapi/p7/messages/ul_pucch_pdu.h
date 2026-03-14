@@ -93,3 +93,164 @@ struct ul_pucch_pdu {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::ul_pucch_pdu_format_0> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::ul_pucch_pdu_format_0& pdu, FormatContext& ctx) const
+  {
+    return format_to(ctx.out(),
+                     "nid_pucch_hopping={} initial_cyclic_shift={} sr_present={} harq_bit_len={}",
+                     pdu.nid_pucch_hopping,
+                     pdu.initial_cyclic_shift,
+                     pdu.sr_present,
+                     pdu.bit_len_harq.value());
+  }
+};
+
+template <>
+struct formatter<ocudu::fapi::ul_pucch_pdu_format_1> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::ul_pucch_pdu_format_1& pdu, FormatContext& ctx) const
+  {
+    return format_to(
+        ctx.out(),
+        "nid_pucch_hopping={} initial_cyclic_shift={} time_domain_occ_index={} sr_present={} harq_bit_len={}",
+        pdu.nid_pucch_hopping,
+        pdu.initial_cyclic_shift,
+        pdu.time_domain_occ_index,
+        pdu.sr_present,
+        pdu.bit_len_harq.value());
+  }
+};
+
+template <>
+struct formatter<ocudu::fapi::ul_pucch_pdu_format_2> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::ul_pucch_pdu_format_2& pdu, FormatContext& ctx) const
+  {
+    return format_to(
+        ctx.out(),
+        "nid_pucch_scrambling={} nid0_pucch_dmrs_scrambling={} sr_bit_len={} csi_part1_bit_length={} harq_bit_len={}",
+        pdu.nid_pucch_scrambling,
+        pdu.nid0_pucch_dmrs_scrambling,
+        underlying(pdu.sr_bit_len),
+        pdu.csi_part1_bit_length.value(),
+        pdu.bit_len_harq.value());
+  }
+};
+
+template <>
+struct formatter<ocudu::fapi::ul_pucch_pdu_format_3> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::ul_pucch_pdu_format_3& pdu, FormatContext& ctx) const
+  {
+    return format_to(ctx.out(),
+                     "nid_pucch_hopping={} nid_pucch_scrambling={} add_dmrs_flag={} nid0_pucch_dmrs_scrambling={} "
+                     "m0_pucch_dmrs_cyclic_shift={} sr_bit_len={} csi_part1_bit_length={} pi2_bpsk={} harq_bit_len={} ",
+                     pdu.nid_pucch_hopping,
+                     pdu.nid_pucch_scrambling,
+                     pdu.add_dmrs_flag,
+                     pdu.nid0_pucch_dmrs_scrambling,
+                     pdu.m0_pucch_dmrs_cyclic_shift,
+                     underlying(pdu.sr_bit_len),
+                     pdu.csi_part1_bit_length.value(),
+                     pdu.pi2_bpsk,
+                     pdu.bit_len_harq.value());
+  }
+};
+
+template <>
+struct formatter<ocudu::fapi::ul_pucch_pdu_format_4> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::ul_pucch_pdu_format_4& pdu, FormatContext& ctx) const
+  {
+    return format_to(ctx.out(),
+                     "nid_pucch_hopping={} nid_pucch_scrambling={} pre_dft_occ_idx={} pre_dft_occ_len={} "
+                     "add_dmrs_flag={} nid0_pucch_dmrs_scrambling={} m0_pucch_dmrs_cyclic_shift={} sr_bit_len={} "
+                     "csi_part1_bit_length={} pi2_bpsk={} harq_bit_len={}",
+                     pdu.nid_pucch_hopping,
+                     pdu.nid_pucch_scrambling,
+                     pdu.pre_dft_occ_idx,
+                     pdu.pre_dft_occ_len,
+                     pdu.add_dmrs_flag,
+                     pdu.nid0_pucch_dmrs_scrambling,
+                     pdu.m0_pucch_dmrs_cyclic_shift,
+                     underlying(pdu.sr_bit_len),
+                     pdu.csi_part1_bit_length.value(),
+                     pdu.pi2_bpsk,
+                     pdu.bit_len_harq.value());
+  }
+};
+
+template <>
+struct formatter<ocudu::fapi::ul_pucch_pdu> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::ul_pucch_pdu& pdu, FormatContext& ctx) const
+  {
+    format_to(ctx.out(),
+              "\n\t- PUCCH rnti={} bwp={} scs={} cp={} prb={} symb={}",
+              pdu.rnti,
+              pdu.bwp,
+              to_string(pdu.scs),
+              pdu.cp.to_string(),
+              pdu.prbs,
+              pdu.symbols);
+
+    if (pdu.second_hop_prb.has_value()) {
+      format_to(ctx.out(), " intra_slot_frequency_hopping={}", *pdu.second_hop_prb);
+    }
+
+    if (const auto* format0 = std::get_if<ocudu::fapi::ul_pucch_pdu_format_0>(&pdu.format)) {
+      format_to(ctx.out(), " FORMAT_0: {}", *format0);
+    } else if (const auto* format1 = std::get_if<ocudu::fapi::ul_pucch_pdu_format_1>(&pdu.format)) {
+      format_to(ctx.out(), " FORMAT_1: {}", *format1);
+    } else if (const auto* format2 = std::get_if<ocudu::fapi::ul_pucch_pdu_format_2>(&pdu.format)) {
+      format_to(ctx.out(), " FORMAT_2: {}", *format2);
+    } else if (const auto* format3 = std::get_if<ocudu::fapi::ul_pucch_pdu_format_3>(&pdu.format)) {
+      format_to(ctx.out(), " FORMAT_3: {}", *format3);
+    } else if (const auto* format4 = std::get_if<ocudu::fapi::ul_pucch_pdu_format_4>(&pdu.format)) {
+      format_to(ctx.out(), " FORMAT_4: {}", *format4);
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

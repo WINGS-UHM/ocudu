@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/fapi/p7/builders/dl_csi_rs_pdu_builder.h"
 #include <gtest/gtest.h>
@@ -83,7 +82,7 @@ TEST(dl_csi_pdu_builder, valid_bwp_parameters_passes)
   ASSERT_EQ(bwp, pdu.bwp);
 }
 
-TEST(dl_csi_pdu_builder, valid_tx_power_info_parameters_passes)
+TEST(dl_csi_pdu_builder, valid_nr_tx_power_info_parameters_passes)
 {
   for (auto power : {0, -8}) {
     dl_csi_rs_pdu         pdu;
@@ -91,9 +90,25 @@ TEST(dl_csi_pdu_builder, valid_tx_power_info_parameters_passes)
 
     power_control_offset_ss ss = power_control_offset_ss::dB3;
 
-    builder.set_tx_power_info_parameters(power, ss);
+    builder.set_profile_nr_tx_power_info_parameters(power, ss);
 
-    ASSERT_EQ(ss, pdu.power_control_offset_ss_profile_nr);
-    ASSERT_EQ(power, pdu.power_control_offset_profile_nr);
+    const auto* profile_nr = std::get_if<fapi::dl_csi_rs_pdu::power_profile_nr>(&pdu.power_config);
+    ASSERT_TRUE(profile_nr != nullptr);
+    ASSERT_EQ(ss, profile_nr->pwr_control_offset_ss);
+    ASSERT_EQ(power, profile_nr->pwr_control_offset_db);
   }
+}
+
+TEST(dl_csi_pdu_builder, valid_sss_tx_power_info_parameters_passes)
+{
+  dl_csi_rs_pdu         pdu;
+  dl_csi_rs_pdu_builder builder(pdu);
+
+  float power_offset_db = 10;
+
+  builder.set_profile_sss_tx_power_info_parameters(power_offset_db);
+
+  const auto* profile_sss = std::get_if<fapi::dl_csi_rs_pdu::power_profile_sss>(&pdu.power_config);
+  ASSERT_TRUE(profile_sss != nullptr);
+  ASSERT_EQ(power_offset_db, profile_sss->pwr_offset_db);
 }

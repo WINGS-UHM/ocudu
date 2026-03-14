@@ -102,7 +102,7 @@ public:
 
   /// \brief Sets the PUSCH PDU time allocation parameters and returns a reference to the builder.
   ///
-  ///  These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.3.2 in table PUSCH PDU.
   ul_pusch_pdu_builder& set_time_allocation_parameters(ofdm_symbol_range symbols)
   {
     pdu.symbols = symbols;

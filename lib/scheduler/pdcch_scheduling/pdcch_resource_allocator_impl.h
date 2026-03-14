@@ -6,7 +6,7 @@
 
 #include "../config/ue_configuration.h"
 #include "pdcch_resource_allocator.h"
-#include "ocudu/scheduler/result/dci_info.h"
+#include "ocudu/scheduler/resource_grid_util.h"
 
 namespace ocudu {
 

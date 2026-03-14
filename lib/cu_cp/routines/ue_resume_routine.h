@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../cu_cp_impl_interface.h"
+#include "../du_processor/du_processor.h"
 #include "../ue_manager/ue_manager_impl.h"
 #include "ocudu/e1ap/cu_cp/e1ap_cu_cp_bearer_context_update.h"
 #include "ocudu/support/async/async_task.h"

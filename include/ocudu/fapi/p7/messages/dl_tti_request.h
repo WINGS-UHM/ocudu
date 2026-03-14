@@ -26,3 +26,49 @@ struct dl_tti_request {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::dl_tti_request> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::dl_tti_request& msg, FormatContext& ctx) const
+  {
+    format_to(ctx.out(), "DL_TTI.request slot={}", msg.slot);
+
+    for (const auto& pdu : msg.pdus) {
+      if (const auto* csi_rs_pdu = std::get_if<ocudu::fapi::dl_csi_rs_pdu>(&pdu.pdu)) {
+        format_to(ctx.out(), "{}", *csi_rs_pdu);
+        continue;
+      }
+
+      if (const auto* pdcch_pdu = std::get_if<ocudu::fapi::dl_pdcch_pdu>(&pdu.pdu)) {
+        format_to(ctx.out(), "{}", *pdcch_pdu);
+        continue;
+      }
+
+      if (const auto* pdsch_pdu = std::get_if<ocudu::fapi::dl_pdsch_pdu>(&pdu.pdu)) {
+        format_to(ctx.out(), "{}", *pdsch_pdu);
+        continue;
+      }
+
+      if (const auto* ssb_pdu = std::get_if<ocudu::fapi::dl_ssb_pdu>(&pdu.pdu)) {
+        format_to(ctx.out(), "{}", *ssb_pdu);
+        continue;
+      }
+
+      if (const auto* prs_pdu = std::get_if<ocudu::fapi::dl_prs_pdu>(&pdu.pdu)) {
+        format_to(ctx.out(), "{}", *prs_pdu);
+        continue;
+      }
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

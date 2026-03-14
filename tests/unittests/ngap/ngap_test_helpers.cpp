@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_test_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/ngap/test_helpers.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
@@ -10,7 +11,6 @@
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/rb_id.h"
 #include "ocudu/support/async/async_test_utils.h"
-#include "ocudu/support/test_utils.h"
 #include <chrono>
 
 using namespace ocudu;
@@ -132,9 +132,9 @@ ue_index_t ngap_test::create_ue_without_init_ue_message(rnti_t rnti)
 void ngap_test::run_dl_nas_transport(ue_index_t ue_index)
 {
   auto& ue     = test_ues.at(ue_index);
-  ue.amf_ue_id = uint_to_amf_ue_id(test_rgen::uniform_int<uint64_t>(16, 128));
+  ue.amf_ue_id = uint_to_amf_ue_id(test_rng::uniform_int<uint64_t>(16, 128));
   ue.amf_ue_id = uint_to_amf_ue_id(
-      test_rgen::uniform_int<uint64_t>(amf_ue_id_to_uint(amf_ue_id_t::min), amf_ue_id_to_uint(amf_ue_id_t::max)));
+      test_rng::uniform_int<uint64_t>(amf_ue_id_to_uint(amf_ue_id_t::min), amf_ue_id_to_uint(amf_ue_id_t::max)));
 
   ngap_message dl_nas_transport = generate_downlink_nas_transport_message(ue.amf_ue_id.value(), ue.ran_ue_id.value());
   ngap->handle_message(dl_nas_transport);

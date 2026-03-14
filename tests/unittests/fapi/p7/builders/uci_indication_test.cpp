@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/fapi/p7/builders/uci_indication_builder.h"
+#include "fmt/chrono.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -312,12 +312,10 @@ TEST(uci_indication_builder, add_pusch_pdu_passes)
   auto pusch_builder = builder.add_pusch_pdu();
   pusch_builder.set_ue_specific_parameters(rnti);
 
-  ASSERT_EQ(1, msg.pdus.size());
-  ASSERT_TRUE(std::holds_alternative<uci_pusch_pdu>(msg.pdus.back()));
-
-  const auto& pdu = std::get<uci_pusch_pdu>(msg.pdus.back());
-  ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(0U, pdu.handle);
+  const auto* pdu = std::get_if<uci_pusch_pdu>(&msg.pdu);
+  ASSERT_TRUE(pdu != nullptr);
+  ASSERT_EQ(rnti, pdu->rnti);
+  ASSERT_EQ(0U, pdu->handle);
 }
 
 TEST(uci_indication_builder, add_pucch_f01_passes)
@@ -332,15 +330,13 @@ TEST(uci_indication_builder, add_pucch_f01_passes)
 
   builder_format01.set_ue_specific_parameters(rnti).set_format(format);
 
-  ASSERT_EQ(1, msg.pdus.size());
-  ASSERT_TRUE(std::holds_alternative<uci_pucch_pdu_format_0_1>(msg.pdus.back()));
-
-  const auto& pdu = std::get<uci_pucch_pdu_format_0_1>(msg.pdus.back());
-  ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(0U, pdu.handle);
+  const auto* pdu = std::get_if<uci_pucch_pdu_format_0_1>(&msg.pdu);
+  ASSERT_TRUE(pdu != nullptr);
+  ASSERT_EQ(rnti, pdu->rnti);
+  ASSERT_EQ(0U, pdu->handle);
   ASSERT_EQ((format == ocudu::pucch_format::FORMAT_0) ? uci_pucch_pdu_format_0_1::format_type::format_0
                                                       : uci_pucch_pdu_format_0_1::format_type::format_1,
-            pdu.pucch_format);
+            pdu->pucch_format);
 }
 
 TEST(uci_indication_builder, add_pucch_f234_passes)
@@ -355,11 +351,9 @@ TEST(uci_indication_builder, add_pucch_f234_passes)
 
   builder_format234.set_ue_specific_parameters(rnti).set_format(format);
 
-  ASSERT_EQ(1, msg.pdus.size());
-  ASSERT_TRUE(std::holds_alternative<uci_pucch_pdu_format_2_3_4>(msg.pdus.back()));
-
-  const auto& pdu = std::get<uci_pucch_pdu_format_2_3_4>(msg.pdus.back());
-  ASSERT_EQ(rnti, pdu.rnti);
-  ASSERT_EQ(0U, pdu.handle);
-  ASSERT_EQ((static_cast<unsigned>(format) - 2U), static_cast<unsigned>(pdu.pucch_format));
+  const auto* pdu = std::get_if<uci_pucch_pdu_format_2_3_4>(&msg.pdu);
+  ASSERT_TRUE(pdu != nullptr);
+  ASSERT_EQ(rnti, pdu->rnti);
+  ASSERT_EQ(0U, pdu->handle);
+  ASSERT_EQ((static_cast<unsigned>(format) - 2U), static_cast<unsigned>(pdu->pucch_format));
 }

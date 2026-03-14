@@ -14,10 +14,10 @@ class task_executor;
 class timer_manager;
 class ru_controller;
 struct application_unit_commands;
+class mac_subframe_time_mapper;
 
 namespace odu {
 class du_configurator;
-class du_manager_time_mapper_accessor;
 } // namespace odu
 
 /// NTN Configuration Manager factory interface.
@@ -31,7 +31,7 @@ class du_manager_time_mapper_accessor;
 std::unique_ptr<ocudu_ntn::ntn_configuration_manager>
 create_ntn_configuration_manager(const ocudu_ntn::ntn_configuration_manager_config& ntn_cfg,
                                  odu::du_configurator&                              du_cfgtr,
-                                 odu::du_manager_time_mapper_accessor&              du_time_mapper_accessor,
+                                 mac_subframe_time_mapper&                          du_time_mapper_accessor,
                                  ru_controller&                                     ru_ctrl,
                                  timer_manager&                                     timers,
                                  task_executor&                                     timer_exec);

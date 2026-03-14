@@ -29,8 +29,8 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
   logger.debug("ue={}: \"{}\" started...", ue->get_ue_index(), name());
 
   // Await for NGAP DL Status transfer.
-  CORO_AWAIT_VALUE(ngap_dl_ran_status, ngap.handle_dl_ran_status_transfer_required(ue->get_ue_index()));
-  if (not ngap_dl_ran_status.has_value()) {
+  CORO_AWAIT_VALUE(sn_status, ngap.handle_dl_ran_status_transfer_required(ue->get_ue_index()));
+  if (not sn_status.has_value()) {
     CORO_EARLY_RETURN();
   }
 
@@ -64,8 +64,7 @@ void inter_cu_handover_execution_target_routine::fill_e1ap_bearer_context_modifi
   ng_request.emplace();
   slotted_id_vector<pdu_session_id_t, e1ap_pdu_session_res_to_modify_item>& pdu_sessions =
       ng_request->pdu_session_res_to_modify_list;
-  for (const ngap_drbs_subject_to_status_transfer_item& ngap_drb :
-       ngap_dl_ran_status->drbs_subject_to_status_transfer_list) {
+  for (const cu_cp_drbs_subject_to_status_transfer_item& ngap_drb : sn_status->drbs_subject_to_status_transfer_list) {
     const up_drb_context& drb_ctx = ue->get_up_resource_manager().get_drb_context(ngap_drb.drb_id);
     pdu_session_id_t      psi     = drb_ctx.pdu_session_id;
 

@@ -4,10 +4,10 @@
 
 #include "../common/test_helpers.h"
 #include "lib/e1ap/cu_cp/ue_context/e1ap_cu_cp_ue_context.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ocudulog/logger.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -32,7 +32,7 @@ protected:
   ue_index_t generate_random_ue_index()
   {
     return uint_to_ue_index(
-        test_rgen::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
+        test_rng::uniform_int<uint64_t>(ue_index_to_uint(ue_index_t::min), ue_index_to_uint(ue_index_t::max) - 1));
   }
 
   timer_manager           timer_mng;

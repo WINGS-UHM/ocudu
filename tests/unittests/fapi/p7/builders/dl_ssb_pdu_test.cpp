@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/fapi/p7/builders/dl_ssb_pdu_builder.h"
 #include <gtest/gtest.h>
@@ -14,7 +13,7 @@ TEST(dl_ssb_pdu_builder, valid_basic_parameters_passes)
   dl_ssb_pdu_builder builder(pdu);
 
   pci_t                 pci               = 106;
-  beta_pss_profile_type pss_profile       = beta_pss_profile_type::dB_0;
+  ssb_pss_to_sss_epre   pss_profile       = ssb_pss_to_sss_epre::dB_0;
   auto                  block_index       = ssb_id_t(3);
   ssb_subcarrier_offset subcarrier_offset = 2;
   unsigned              offset_pointA     = 39;
@@ -24,11 +23,13 @@ TEST(dl_ssb_pdu_builder, valid_basic_parameters_passes)
 
   builder.set_carrier_parameters(scs)
       .set_cell_parameters(pci)
-      .set_power_parameters(pss_profile)
+      .set_nr_power_parameters(pss_profile)
       .set_ssb_parameters(block_index, subcarrier_offset, offset_pointA, case_type, L_max);
 
   ASSERT_EQ(pci, pdu.phys_cell_id);
-  ASSERT_EQ(pss_profile, pdu.beta_pss_profile_nr);
+  const auto* profile_nr = std::get_if<dl_ssb_pdu::power_profile_nr>(&pdu.power_config);
+  ASSERT_TRUE(profile_nr != nullptr);
+  ASSERT_EQ(pss_profile, profile_nr->beta_pss);
   ASSERT_EQ(block_index, pdu.ssb_block_index);
   ASSERT_EQ(subcarrier_offset, pdu.subcarrier_offset);
   ASSERT_EQ(offset_pointA, pdu.ssb_offset_pointA.value());

@@ -34,8 +34,11 @@ public:
   /// These parameters are specified in SCF-222 v4.0 Section 3.4.9 in table UCI.indication message body.
   uci_pusch_pdu_builder add_pusch_pdu()
   {
-    auto& pdu       = msg.pdus.emplace_back();
-    auto& pusch_pdu = pdu.emplace<uci_pusch_pdu>();
+    ocudu_assert(msg.pdu.index() == 0 || std::holds_alternative<uci_pusch_pdu>(msg.pdu),
+                 "Builder of PDU already called for a different PDU: {}",
+                 msg.pdu.index());
+
+    auto& pusch_pdu = msg.pdu.emplace<uci_pusch_pdu>();
 
     uci_pusch_pdu_builder builder(pusch_pdu);
 
@@ -48,8 +51,11 @@ public:
   /// These parameters are specified in SCF-222 v4.0 Section 3.4.9 in table UCI.indication message body.
   uci_pucch_pdu_format_0_1_builder add_format_0_1_pucch_pdu()
   {
-    auto& pdu            = msg.pdus.emplace_back();
-    auto& format_0_1_pdu = pdu.emplace<uci_pucch_pdu_format_0_1>();
+    ocudu_assert(msg.pdu.index() == 0 || std::holds_alternative<uci_pucch_pdu_format_0_1>(msg.pdu),
+                 "Builder of PDU already called for a different PDU: {}",
+                 msg.pdu.index());
+
+    auto& format_0_1_pdu = msg.pdu.emplace<uci_pucch_pdu_format_0_1>();
 
     uci_pucch_pdu_format_0_1_builder builder(format_0_1_pdu);
 
@@ -62,8 +68,11 @@ public:
   /// These parameters are specified in SCF-222 v4.0 Section 3.4.9 in table UCI.indication message body.
   uci_pucch_pdu_format_2_3_4_builder add_format_2_3_4_pucch_pdu()
   {
-    auto& pdu              = msg.pdus.emplace_back();
-    auto& format_2_3_4_pdu = pdu.emplace<uci_pucch_pdu_format_2_3_4>();
+    ocudu_assert(msg.pdu.index() == 0 || std::holds_alternative<uci_pucch_pdu_format_2_3_4>(msg.pdu),
+                 "Builder of PDU already called for a different PDU: {}",
+                 msg.pdu.index());
+
+    auto& format_2_3_4_pdu = msg.pdu.emplace<uci_pucch_pdu_format_2_3_4>();
 
     uci_pucch_pdu_format_2_3_4_builder builder(format_2_3_4_pdu);
 

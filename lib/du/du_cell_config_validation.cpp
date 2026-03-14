@@ -3,22 +3,19 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/du/du_cell_config_validation.h"
-#include "ocudu/asn1/rrc_nr/serving_cell.h"
 #include "ocudu/asn1/rrc_nr/sys_info.h"
-#include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/du/du_update_config_helpers.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
-#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
 #include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_frequency_mapping.h"
 #include "ocudu/ran/prach/prach_preamble_information.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config_validator.h"
-#include "ocudu/scheduler/sched_consts.h"
 #include "ocudu/support/config/validator_helpers.h"
 
 using namespace ocudu;
@@ -62,7 +59,7 @@ using check_outcome = error_type<std::string>;
 
 /// Helper function to verify if a number belongs to the list of possible values of an ASN.1 enumerated type.
 template <typename ASN1Enumerated, typename Number>
-bool is_valid_enum_number(Number number)
+static bool is_valid_enum_number(Number number)
 {
   ASN1Enumerated e;
   return asn1::number_to_enum(e, number);
@@ -794,14 +791,9 @@ check_outcome odu::is_du_cell_config_valid(const du_cell_config& cell_cfg)
   HANDLE_ERROR(check_ul_config_common(cell_cfg));
   HANDLE_ERROR(check_ssb_configuration(cell_cfg));
   HANDLE_ERROR(check_tdd_ul_dl_config(cell_cfg));
-  const pucch_resource_builder_params& pucch_cfg = cell_cfg.ran.init_bwp_builder.pucch.resources;
-  HANDLE_ERROR(config_helpers::pucch_parameters_validator(
-      pucch_cfg.res_set_0_size.value() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_sr_resources,
-      pucch_cfg.res_set_1_size.value() * pucch_cfg.nof_cell_res_set_configs + pucch_cfg.nof_cell_csi_resources,
-      pucch_cfg.f0_or_f1_params,
-      pucch_cfg.f2_or_f3_or_f4_params,
-      cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length(),
-      pucch_cfg.max_nof_symbols));
+  HANDLE_ERROR(
+      config_helpers::pucch_parameters_validator(cell_cfg.ran.init_bwp_builder.pucch.resources,
+                                                 cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()));
   HANDLE_ERROR(check_prach_config(cell_cfg));
   const serving_cell_config ue_serv_cell_cfg =
       config_helpers::make_ue_serving_cell_config(cell_cfg.ran, to_du_cell_index(0));

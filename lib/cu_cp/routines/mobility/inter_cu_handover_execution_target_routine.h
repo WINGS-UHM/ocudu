@@ -36,7 +36,7 @@ private:
   e1ap_bearer_context_modification_request bearer_context_modification_request;
 
   // (sub-)routine results
-  expected<ngap_dl_ran_status_transfer>     ngap_dl_ran_status;
+  expected<cu_cp_status_transfer>           sn_status;
   e1ap_bearer_context_modification_response bearer_context_modification_response;
 
   cu_cp_ue*                    ue = nullptr;

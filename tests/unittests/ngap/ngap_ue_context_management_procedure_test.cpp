@@ -3,9 +3,9 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_test_helpers.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/support/async/async_test_utils.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -155,7 +155,7 @@ TEST_F(ngap_ue_context_management_procedure_test,
   amf_ue_id_t new_id = old_id;
   while (new_id == old_id) {
     new_id = uint_to_amf_ue_id(
-        test_rgen::uniform_int<uint64_t>(amf_ue_id_to_uint(amf_ue_id_t::min), amf_ue_id_to_uint(amf_ue_id_t::max)));
+        test_rng::uniform_int<uint64_t>(amf_ue_id_to_uint(amf_ue_id_t::min), amf_ue_id_to_uint(amf_ue_id_t::max)));
   }
   ASSERT_NE(old_id, new_id);
 

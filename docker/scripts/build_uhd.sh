@@ -15,7 +15,7 @@ main() {
     fi
 
     local uhd_version=$1
-    local arch="${2:-native}"
+    local arch="${2:--march=native}"
     local ncores="${3:-$(nproc)}"
 
     cd /tmp
@@ -28,7 +28,7 @@ main() {
         -DENABLE_PYTHON_API=Off \
         -DENABLE_EXAMPLES=Off \
         -DENABLE_TESTS=Off \
-        -DCMAKE_CXX_FLAGS="-march=${arch}" ..
+        -DCMAKE_CXX_FLAGS="${arch}" ..
     cmake --build . -- -j"${ncores}"
     cmake --install .
 

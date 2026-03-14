@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "ocudu/adt/span.h"
 #include "ocudu/fapi/p7/messages/crc_indication.h"
 
 namespace ocudu {
@@ -17,18 +16,20 @@ class crc_indication_builder
 public:
   explicit crc_indication_builder(crc_indication& msg_) : msg(msg_) {}
 
-  /// Sets the \e CRC.indication basic parameters and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
-  crc_indication_builder& set_basic_parameters(slot_point slot)
+  /// \brief Sets the \e CRC.indication slot and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
+  crc_indication_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 
     return *this;
   }
 
-  /// Adds a \e CRC.indication PDU to the message and returns a reference to the builder.
-  /// \note These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
-  crc_indication_builder& add_pdu(rnti_t                       rnti,
+  /// \brief Sets a \e CRC.indication PDU to the message and returns a reference to the builder.
+  ///
+  /// These parameters are specified in SCF-222 v4.0 section 3.4.8 in table CRC.indication message body.
+  crc_indication_builder& set_pdu(rnti_t                       rnti,
                                   harq_id_t                    harq_id,
                                   bool                         tb_crc_status_ok,
                                   std::optional<float>         ul_sinr_dB,
@@ -37,12 +38,10 @@ public:
                                   std::optional<float>         rsrp,
                                   bool                         rsrp_use_dBm = false)
   {
-    auto& pdu = msg.pdus.emplace_back();
-
-    pdu.rnti                  = rnti;
-    pdu.harq_id               = harq_id;
-    pdu.tb_crc_status_ok      = tb_crc_status_ok;
-    pdu.timing_advance_offset = timing_advance_offset;
+    msg.pdu.rnti                  = rnti;
+    msg.pdu.harq_id               = harq_id;
+    msg.pdu.tb_crc_status_ok      = tb_crc_status_ok;
+    msg.pdu.timing_advance_offset = timing_advance_offset;
 
     unsigned rssi =
         (rssi_dB) ? static_cast<unsigned>((rssi_dB.value() + 128.F) * 10.F) : std::numeric_limits<uint16_t>::max();
@@ -52,7 +51,7 @@ public:
                  rssi,
                  std::numeric_limits<uint16_t>::max());
 
-    pdu.rssi = static_cast<uint16_t>(rssi);
+    msg.pdu.rssi = static_cast<uint16_t>(rssi);
 
     unsigned rsrp_value = (rsrp) ? static_cast<unsigned>((rsrp.value() + ((rsrp_use_dBm) ? 140.F : 128.F)) * 10.F)
                                  : std::numeric_limits<uint16_t>::max();
@@ -62,7 +61,7 @@ public:
                  rsrp_value,
                  std::numeric_limits<uint16_t>::max());
 
-    pdu.rsrp = static_cast<uint16_t>(rsrp_value);
+    msg.pdu.rsrp = static_cast<uint16_t>(rsrp_value);
 
     int ul_sinr = (ul_sinr_dB) ? static_cast<int>(ul_sinr_dB.value() * 500.F) : std::numeric_limits<int16_t>::min();
 
@@ -76,7 +75,7 @@ public:
                  ul_sinr,
                  std::numeric_limits<int16_t>::min());
 
-    pdu.ul_sinr_metric = static_cast<int16_t>(ul_sinr);
+    msg.pdu.ul_sinr_metric = static_cast<int16_t>(ul_sinr);
     return *this;
   }
 };

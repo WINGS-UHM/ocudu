@@ -66,22 +66,20 @@ class srs_indication_builder
 public:
   explicit srs_indication_builder(srs_indication& msg_) : msg(msg_) {}
 
-  /// \brief Sets the \e SRS.indication basic parameters and returns a reference to the builder.
+  /// \brief Sets the \e SRS.indication slot and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 Section 3.4.10 in table SRS.indication message body.
-  srs_indication_builder& set_basic_parameters(slot_point slot)
+  srs_indication_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 
     return *this;
   }
 
-  /// Adds a SRS PDU to the \e SRS.indication message and returns a SRS PDU builder.
-  srs_indication_pdu_builder add_srs_pdu(rnti_t rnti)
+  /// Sets a SRS PDU to the \e SRS.indication message and returns a SRS PDU builder.
+  srs_indication_pdu_builder set_pdu(rnti_t rnti)
   {
-    auto& pdu = msg.pdus.emplace_back();
-
-    srs_indication_pdu_builder builder(pdu);
+    srs_indication_pdu_builder builder(msg.pdu);
     builder.set_ue_specific_parameters(rnti);
 
     return builder;

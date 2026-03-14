@@ -32,3 +32,20 @@ struct tx_data_request {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::tx_data_request> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::tx_data_request& msg, FormatContext& ctx) const
+  {
+    return format_to(ctx.out(), "Tx_Data.request slot={} nof_pdus={}", msg.slot, msg.pdus.size());
+  }
+};
+} // namespace fmt

@@ -64,15 +64,12 @@ private:
     auto                  scs = subcarrier_spacing::kHz30;
     fapi_msg.slot             = slot_point(scs, sfn, slot);
 
-    fapi_msg.pdus.emplace_back();
-
-    fapi::rach_indication_pdu& pdu = fapi_msg.pdus.back();
-    pdu.avg_rssi                   = (rssi + 140) * 1000;
-    pdu.symbol_index               = start_symbol;
-    pdu.slot_index                 = slot_index;
-    pdu.ra_index                   = freq_index;
-    pdu.preambles.emplace_back();
-    fapi::rach_indication_pdu_preamble& preamble = pdu.preambles.back();
+    fapi_msg.pdu.avg_rssi     = (rssi + 140) * 1000;
+    fapi_msg.pdu.symbol_index = start_symbol;
+    fapi_msg.pdu.slot_index   = slot_index;
+    fapi_msg.pdu.ra_index     = freq_index;
+    fapi_msg.pdu.preambles.emplace_back();
+    fapi::rach_indication_pdu_preamble& preamble = fapi_msg.pdu.preambles.back();
     preamble.preamble_snr                        = (snr + 64) * 2;
     preamble.preamble_pwr                        = (power + 140) * 1000;
     preamble.timing_advance_offset               = phy_time_unit::from_seconds(time_advance_ns * 1e-9);

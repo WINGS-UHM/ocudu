@@ -6,23 +6,17 @@
 
 #include "ocudu/ran/pusch/tx_scheme_configuration.h"
 #include "ocudu/ran/srs/srs_configuration.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include <optional>
 
 namespace ocudu {
-
-// Strong types for UCI specific PUCCH resource IDs.
-struct pucch_resource_set_config_id_tag;
-using pucch_resource_set_config_id = strong_type<uint8_t, struct pucch_res_set_cfg_id_tag, strong_equality>;
-struct pucch_sr_resource_id_tag;
-using pucch_sr_resource_id = strong_type<uint8_t, struct pucch_sr_resource_id_tag, strong_equality>;
-struct pucch_csi_resource_id_tag;
-using pucch_csi_resource_id = strong_type<uint8_t, struct pucch_csi_resource_id_tag, strong_equality>;
 
 /// \brief UE-specific information related to PUCCH configuration.
 struct ue_pucch_config {
   pucch_resource_set_config_id res_set_cfg_id;
   pucch_sr_resource_id         sr_res_id;
   unsigned                     sr_offset;
+  unsigned                     max_pucch_payload;
 
   bool operator==(const ue_pucch_config& other) const
   {

@@ -7,8 +7,8 @@
 #include "mac_test_helpers.h"
 #include "tests/test_doubles/mac/dummy_mac_metrics_notifier.h"
 #include "tests/test_doubles/scheduler/dummy_scheduler_ue_metric_notifier.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/executors/manual_task_worker.h"
-#include "ocudu/support/test_utils.h"
 #include "ocudu/support/timers.h"
 #include <gtest/gtest.h>
 
@@ -191,7 +191,7 @@ TEST_F(mac_metric_handler_test, when_single_cell_and_multiple_full_periods_elaps
 {
   add_cell(to_du_cell_index(0));
 
-  unsigned nof_periods = test_rgen::uniform_int(2, 8);
+  unsigned nof_periods = test_rng::uniform_int(2, 8);
   unsigned wait_slots  = period_slots + aggr_timeout_slots;
 
   slot_point prev_start_slot;
@@ -243,7 +243,7 @@ TEST_F(mac_metric_handler_test, when_multi_cell_creation_staggered_then_reports_
   add_cell(to_du_cell_index(0));
 
   // Number of slots lower than period + timeout has elapsed.
-  const unsigned count_until_cell2 = test_rgen::uniform_int<unsigned>(0, period_slots - 2);
+  const unsigned count_until_cell2 = test_rng::uniform_int<unsigned>(0, period_slots - 2);
   for (unsigned i = 0; i != count_until_cell2; ++i) {
     ASSERT_FALSE(metric_notifier.last_report.has_value());
     run_slot();
@@ -271,7 +271,7 @@ TEST_F(mac_metric_handler_test, when_one_cell_gets_removed_then_last_report_stil
   add_cell(to_du_cell_index(0));
   add_cell(to_du_cell_index(1));
 
-  const unsigned count_until_cell_rem = test_rgen::uniform_int<unsigned>(1, period_slots);
+  const unsigned count_until_cell_rem = test_rng::uniform_int<unsigned>(1, period_slots);
   for (unsigned i = 0; i != count_until_cell_rem; ++i) {
     ASSERT_FALSE(metric_notifier.last_report.has_value());
     run_slot();

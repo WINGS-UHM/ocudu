@@ -5,6 +5,7 @@
 #include "pucch_processor_test_fixture.h"
 #include "ocudu/phy/upper/channel_processors/prach/formatters.h"
 #include "ocudu/phy/upper/channel_processors/pucch/formatters.h"
+#include "ocudu/ran/pucch/pucch_constants.h"
 #include <fmt/ostream.h>
 #include <gtest/gtest.h>
 #include <regex>
@@ -12,9 +13,6 @@
 using namespace ocudu;
 
 namespace {
-
-/// Minimum number of symbols (including DM-RS) that NR-PUCCH Format 1 can transmit.
-constexpr unsigned PUCCH_FORMAT1_MIN_NSYMB = 4;
 
 // Valid PUCCH Format 1 configuration.
 const pucch_processor::format1_configuration base_format_1_config = {
@@ -65,8 +63,9 @@ std::ostream& operator<<(std::ostream& os, const test_case_t& test_case)
 
 } // namespace
 
-using PucchProcessorFormat1Param   = test_case_t;
-using PucchProcessorFormat1Fixture = PucchProcessorTestFixture<PucchProcessorFormat1Param, PUCCH_FORMAT1_MIN_NSYMB, 1>;
+using PucchProcessorFormat1Param = test_case_t;
+using PucchProcessorFormat1Fixture =
+    PucchProcessorTestFixture<PucchProcessorFormat1Param, pucch_constants::f1::MIN_NOF_SYMS, 1>;
 template <>
 std::unique_ptr<pucch_processor> PucchProcessorFormat1Fixture::processor = nullptr;
 template <>
@@ -122,7 +121,7 @@ const std::vector<test_case_t> pucch_processor_validator_test_data = {
           entry.config                    = base_format_1_config;
           entry.config.slot               = slot_point(2, 0);
           entry.config.cp                 = cyclic_prefix::EXTENDED;
-          entry.config.nof_symbols        = PUCCH_FORMAT1_MIN_NSYMB;
+          entry.config.nof_symbols        = pucch_constants::f1::MIN_NOF_SYMS;
           entry.config.start_symbol_index = get_nsymb_per_slot(entry.config.cp) - entry.config.nof_symbols + 1;
           entry.assert_message            = fmt::format(
               R"(OFDM symbol allocation goes up to symbol {}\, exceeding the number of symbols in the given slot with {} CP\, i\.e\.\, {}\.)",
@@ -137,8 +136,8 @@ const std::vector<test_case_t> pucch_processor_validator_test_data = {
           test_params entry               = {};
           entry.config                    = base_format_1_config;
           entry.config.cp                 = cyclic_prefix::NORMAL;
-          entry.config.nof_symbols        = PUCCH_FORMAT1_MIN_NSYMB;
-          entry.config.start_symbol_index = max_dimensions.nof_symbols - PUCCH_FORMAT1_MIN_NSYMB + 1;
+          entry.config.nof_symbols        = pucch_constants::f1::MIN_NOF_SYMS;
+          entry.config.start_symbol_index = max_dimensions.nof_symbols - pucch_constants::f1::MIN_NOF_SYMS + 1;
           entry.assert_message            = fmt::format(
               R"(OFDM symbol allocation goes up to symbol {}\, exceeding the configured maximum number of slot symbols\, i\.e\.\, {}\.)",
               entry.config.start_symbol_index + entry.config.nof_symbols,

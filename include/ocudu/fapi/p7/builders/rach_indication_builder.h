@@ -102,28 +102,26 @@ class rach_indication_builder
 public:
   explicit rach_indication_builder(rach_indication& msg_) : msg(msg_) {}
 
-  /// \brief Sets the slot point of the \e RACH.indication message and returns a reference to the builder.
+  /// \brief Sets the slot of the \e RACH.indication message and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
-  rach_indication_builder& set_slot_point(slot_point slot)
+  rach_indication_builder& set_slot(slot_point slot)
   {
     msg.slot = slot;
 
     return *this;
   }
 
-  /// \brief Adds a PDU to the \e RACH.indication message and returns a reference to the builder.
+  /// \brief Sets a PDU to the \e RACH.indication message and returns a reference to the builder.
   ///
   /// These parameters are specified in SCF-222 v4.0 section 3.4.11 in table RACH.indication message body.
-  rach_indication_pdu_builder add_pdu(uint8_t              symbol_index,
+  rach_indication_pdu_builder set_pdu(uint8_t              symbol_index,
                                       uint8_t              slot_index,
                                       uint8_t              ra_index,
                                       std::optional<float> avg_rssi,
                                       std::optional<float> avg_snr)
   {
-    auto& pdu = msg.pdus.emplace_back();
-
-    rach_indication_pdu_builder builder(pdu);
+    rach_indication_pdu_builder builder(msg.pdu);
 
     builder.set_time_domain_parameters(symbol_index, slot_index)
         .set_frequency_domain_parameters(ra_index)

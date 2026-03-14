@@ -40,7 +40,8 @@ public:
       return;
     }
 
-    // TODO: Notify the CU-CP that the connection is closed.
+    // Notify the CU-CP that the connection is closed.
+    parent.handle_xnc_gw_connection_closed(xnc_idx);
 
     xnc_idx     = xnc_peer_index_t::invalid;
     msg_handler = nullptr;
@@ -51,6 +52,7 @@ public:
   {
     if (not connected()) {
       parent.logger.warning("Discarding Rx XNAP message. Cause: CU-CP XN-C connection has been closed");
+      return;
     }
 
     // Forward message.
@@ -138,13 +140,39 @@ void xnc_connection_manager::connect_to_neighbours()
 
 void xnc_connection_manager::stop()
 {
-  if (stopped) {
-    return;
+  // Note: Called from outside of the CU-CP execution context.
+  stop_completed = false;
+  stopped        = true;
+
+  while (not cu_cp_exec.execute([this]() mutable {
+    if (xnc_connections.empty()) {
+      // No XNAPs connected. Notify completion.
+      std::unique_lock<std::mutex> lock(stop_mutex);
+      stop_completed = true;
+      stop_cvar.notify_one();
+      return;
+    }
+
+    // For each created XNAP connection context, launch the deletion routine.
+    std::vector<xnc_peer_index_t> xnc_idxs;
+    xnc_idxs.reserve(xnc_connections.size());
+    for (const auto& [xnc_idx, ctxt] : xnc_connections) {
+      xnc_idxs.push_back(xnc_idx);
+    }
+    for (xnc_peer_index_t xnc_idx : xnc_idxs) {
+      // Disconnect CU-UP notifier.
+      xnc_connections[xnc_idx]->disconnect();
+    }
+  })) {
+    logger.debug("Failed to dispatch CU-CP CU-UP disconnection task. Retrying...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
-  // TODO: Disconnect from XNC neighbours and stop accepting new connections.
-
-  stopped = true;
+  // Wait for XNAP stop to complete.
+  {
+    std::unique_lock<std::mutex> lock(stop_mutex);
+    stop_cvar.wait(lock, [this] { return stop_completed; });
+  }
 }
 
 std::unique_ptr<xnap_message_notifier>
@@ -190,4 +218,31 @@ xnc_connection_manager::handle_new_xnc_cu_cp_connection(std::unique_ptr<xnap_mes
   }
 
   return rx_pdu_notifier;
+}
+
+void xnc_connection_manager::handle_xnc_gw_connection_closed(xnc_peer_index_t xnc_idx)
+{
+  // Note: Called from within CU-CP execution context.
+  common_task_sched.schedule_async_task(launch_async([this, xnc_idx](coro_context<async_task<void>>& ctx) {
+    CORO_BEGIN(ctx);
+    if (xnaps.find_xnap(xnc_idx) == nullptr) {
+      // XN-C was already removed.
+      CORO_EARLY_RETURN();
+    }
+
+    // Await for clean removal of the DU from the DU repository.
+    CORO_AWAIT(xnaps.remove_xnap(xnc_idx));
+
+    // Mark the connection as closed.
+    xnc_connections.erase(xnc_idx);
+
+    // Flag that all DUs got removed.
+    if (stopped and xnc_connections.empty()) {
+      std::unique_lock<std::mutex> lock(stop_mutex);
+      stop_completed = true;
+      stop_cvar.notify_one();
+    }
+
+    CORO_RETURN();
+  }));
 }

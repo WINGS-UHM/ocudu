@@ -411,15 +411,12 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
   }
 
   // XNAP.
-  if (!cu_cfg.xnap_configs.empty()) {
-    // TODO: support multiple XNAP config items.
-    const auto& xnap = cu_cfg.xnap_configs.front();
-    for (const auto& peer_addr : xnap.peer_addrs) {
-      ocucp::cu_cp_configuration::xnap_config xn_config{};
-      xn_config.peer_addr = transport_layer_address::create_from_string(peer_addr);
-      xn_config.peer_addr.set_port(XNAP_PORT);
-      out_cfg.xnap.xnaps.push_back(xn_config);
-    }
+  for (const auto& xnap : cu_cfg.xnap_configs) {
+    ocucp::cu_cp_configuration::xnap_config xn_config{};
+    // TODO: support multiple XNAP peer addresses configuration for SCTP multihoming.
+    xn_config.peer_addr = transport_layer_address::create_from_string(xnap.peer_addrs.front());
+    xn_config.peer_addr.set_port(XNAP_PORT);
+    out_cfg.xnap.xnaps.push_back(xn_config);
   }
 
   out_cfg.rrc.force_reestablishment_fallback = cu_cfg.rrc_config.force_reestablishment_fallback;

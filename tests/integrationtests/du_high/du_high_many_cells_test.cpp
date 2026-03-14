@@ -201,7 +201,7 @@ TEST_P(du_high_many_cells_tester, when_cell_stopped_then_ues_are_released)
   this->cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message req = test_helpers::generate_gnb_cu_configuration_update_request(
       0, {}, {{nr_cell_global_id_t{plmn_identity::test_value(), nr_cell_identity::create(rem_cell_idx).value()}}});
-  this->du_hi->get_f1ap_du().handle_message(req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(req);
 
   // Expect release request for UE connected to the cell being stopped.
   const rnti_t crnti = to_rnti(0x4601 + rem_cell_idx);
@@ -214,7 +214,7 @@ TEST_P(du_high_many_cells_tester, when_cell_stopped_then_ues_are_released)
   this->cu_notifier.f1ap_ul_msgs.clear();
   auto cmd_rel = test_helpers::generate_ue_context_release_command(
       u.cu_ue_id.value(), u.du_ue_id.value(), srb_id_t::srb1, byte_buffer::create({0x1, 0x2, 0x3}).value());
-  this->du_hi->get_f1ap_du().handle_message(cmd_rel);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(cmd_rel);
   ASSERT_TRUE(this->run_until([this]() { return not this->cu_notifier.f1ap_ul_msgs.empty(); }));
   ASSERT_TRUE(
       test_helpers::is_valid_ue_context_release_complete(this->cu_notifier.f1ap_ul_msgs.begin()->second, cmd_rel));
@@ -253,12 +253,12 @@ TEST_P(du_high_many_cells_tester, when_cell_restarted_then_ues_can_be_created)
   const unsigned      rem_cell_idx = test_rng::uniform_int<unsigned>(0, GetParam().nof_cells - 1);
   nr_cell_global_id_t rem_cgi{plmn_identity::test_value(), nr_cell_identity::create(rem_cell_idx).value()};
   f1ap_message        req = test_helpers::generate_gnb_cu_configuration_update_request(0, {}, {{rem_cgi}});
-  this->du_hi->get_f1ap_du().handle_message(req);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(req);
   const rnti_t crnti   = to_rnti(0x4601 + rem_cell_idx);
   auto&        u       = ues.at(crnti);
   auto         cmd_rel = test_helpers::generate_ue_context_release_command(
       u.cu_ue_id.value(), u.du_ue_id.value(), srb_id_t::srb1, byte_buffer::create({0x1, 0x2, 0x3}).value());
-  this->du_hi->get_f1ap_du().handle_message(cmd_rel);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(cmd_rel);
   ASSERT_TRUE(this->run_until([this, &req]() {
     return not this->cu_notifier.f1ap_ul_msgs.empty() and test_helpers::is_gnb_cu_config_update_acknowledge_valid(
                                                               this->cu_notifier.f1ap_ul_msgs.rbegin()->second, req);
@@ -273,7 +273,7 @@ TEST_P(du_high_many_cells_tester, when_cell_restarted_then_ues_can_be_created)
   // Restart the cell.
   this->cu_notifier.f1ap_ul_msgs.clear();
   f1ap_message req_restart = test_helpers::generate_gnb_cu_configuration_update_request(0, {{rem_cgi}}, {});
-  this->du_hi->get_f1ap_du().handle_message(req_restart);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(req_restart);
   ASSERT_TRUE(this->run_until([this, &req_restart]() {
     return not this->cu_notifier.f1ap_ul_msgs.empty() and
            test_helpers::is_gnb_cu_config_update_acknowledge_valid(this->cu_notifier.f1ap_ul_msgs.rbegin()->second,
@@ -342,7 +342,7 @@ TEST_F(du_high_many_cells_deferred_activation_test, when_cell_starts_deactivated
     cgis.push_back(nr_cell_global_id_t{plmn_identity::test_value(), nr_cell_identity::create(i).value()});
   }
   auto req_msg = test_helpers::generate_gnb_cu_configuration_update_request(0, cgis, {});
-  this->du_hi->get_f1ap_du().handle_message(req_msg);
+  this->du_hi->get_f1ap_pdu_handler().handle_message(req_msg);
   ASSERT_TRUE(this->run_until([this, req_msg]() {
     return not this->cu_notifier.f1ap_ul_msgs.empty() and test_helpers::is_gnb_cu_config_update_acknowledge_valid(
                                                               this->cu_notifier.f1ap_ul_msgs.rbegin()->second, req_msg);

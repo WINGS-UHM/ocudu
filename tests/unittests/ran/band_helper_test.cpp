@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/span.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/bs_channel_bandwidth.h"
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/ran/subcarrier_spacing.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -571,10 +571,10 @@ TEST(test_dl_arfcn_validator, test_different_fdd_bands)
   auto get_rnd_raster_point = [](span<const uint32_t> raster, bool outside_raster = false) -> uint32_t {
     const uint32_t raster_step = raster[1];
     if (outside_raster) {
-      return test_rgen::bernoulli(0.5) ? raster.front() - raster_step : raster.back() + raster_step;
+      return test_rng::bernoulli(0.5) ? raster.front() - raster_step : raster.back() + raster_step;
     }
     const unsigned nof_raster_points = (raster.back() - raster.front()) / raster_step + 1;
-    return test_rgen::uniform_int<unsigned>(0, nof_raster_points - 1) * raster_step + raster.front();
+    return test_rng::uniform_int<unsigned>(0, nof_raster_points - 1) * raster_step + raster.front();
   };
 
   // Definition of UL rasters for different bands.
@@ -638,10 +638,10 @@ TEST(test_dl_arfcn_validator, test_different_tdd_bands_with_regular_raster)
   auto get_rnd_raster_point = [](span<const uint32_t> raster, bool outside_raster = false) -> uint32_t {
     const uint32_t raster_step = raster[1];
     if (outside_raster) {
-      return test_rgen::bernoulli(0.5) ? raster.front() - raster_step : raster.back() + raster_step;
+      return test_rng::bernoulli(0.5) ? raster.front() - raster_step : raster.back() + raster_step;
     }
     const unsigned nof_raster_points = (raster.back() - raster.front()) / raster_step + 1;
-    return test_rgen::uniform_int<unsigned>(0, nof_raster_points - 1) * raster_step + raster.front();
+    return test_rng::uniform_int<unsigned>(0, nof_raster_points - 1) * raster_step + raster.front();
   };
 
   // Definition of UL rasters for different bands.
@@ -809,10 +809,10 @@ TEST(test_dl_arfcn_validator, test_tdd_bands_with_scs_dependent_raster)
   auto get_rnd_raster_point = [](span<const uint32_t> raster, bool outside_raster = false) -> uint32_t {
     const uint32_t raster_step = raster[1];
     if (outside_raster) {
-      return test_rgen::bernoulli(0.5) ? raster.front() - raster_step : raster.back() + raster_step;
+      return test_rng::bernoulli(0.5) ? raster.front() - raster_step : raster.back() + raster_step;
     }
     const unsigned nof_raster_points = (raster.back() - raster.front()) / raster_step + 1;
-    return test_rgen::uniform_int<unsigned>(0, nof_raster_points - 1) * raster_step + raster.front();
+    return test_rng::uniform_int<unsigned>(0, nof_raster_points - 1) * raster_step + raster.front();
   };
 
   // Definition of UL rasters for different bands.
@@ -924,10 +924,10 @@ TEST(test_ul_arfcn_validator, test_different_bands)
   auto get_rnd_raster_point = [](span<const uint32_t> raster, bool outside_raster = false) -> uint32_t {
     const uint32_t raster_step = raster[1];
     if (outside_raster) {
-      return test_rgen::bernoulli(0.5) ? raster.front() - raster_step : raster.back() + raster_step;
+      return test_rng::bernoulli(0.5) ? raster.front() - raster_step : raster.back() + raster_step;
     }
     const unsigned nof_raster_points = (raster.back() - raster.front()) / raster_step + 1;
-    return test_rgen::uniform_int<unsigned>(0, nof_raster_points - 1) * raster_step + raster.front();
+    return test_rng::uniform_int<unsigned>(0, nof_raster_points - 1) * raster_step + raster.front();
   };
 
   // Definition of UL rasters for different bands.

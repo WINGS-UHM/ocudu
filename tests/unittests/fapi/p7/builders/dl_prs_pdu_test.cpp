@@ -1,6 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
-// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/fapi/p7/builders/dl_prs_pdu_builder.h"
 #include <gtest/gtest.h>
@@ -64,7 +63,7 @@ TEST(dl_prs_pdu_builder, valid_power_offset_parameter_passes)
   std::optional<float> power = -10;
   builder.set_power_offset(power);
 
-  ASSERT_EQ(power, pdu.prs_power_offset);
+  ASSERT_EQ(power, pdu.prs_power_offset_db);
 }
 
 TEST(dl_prs_pdu_builder, valid_comb_parameters_passes)

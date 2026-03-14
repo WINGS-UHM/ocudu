@@ -43,3 +43,30 @@ struct error_indication {
 
 } // namespace fapi
 } // namespace ocudu
+
+namespace fmt {
+template <>
+struct formatter<ocudu::fapi::error_indication> {
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const ocudu::fapi::error_indication& msg, FormatContext& ctx) const
+  {
+    format_to(ctx.out(),
+              "Error.indication slot={} error_code={} msg_id={}",
+              *msg.slot,
+              underlying(msg.error_code),
+              underlying(msg.message_id));
+
+    if (msg.error_code == ocudu::fapi::error_code_id::out_of_sync && msg.expected_slot) {
+      format_to(ctx.out(), " expected_slot={}", *msg.expected_slot);
+    }
+
+    return ctx.out();
+  }
+};
+} // namespace fmt

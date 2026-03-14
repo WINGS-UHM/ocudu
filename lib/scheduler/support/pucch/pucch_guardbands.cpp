@@ -25,8 +25,8 @@ crb_bitmap ocudu::compute_pucch_crbs(const cell_configuration& cell_cfg)
     auto prbs = get_pucch_default_prb_index(
         r_pucch, common_default_res.rb_bwp_offset, common_default_res.cs_indexes.size(), size_ul_bwp);
 
-    pucch_crbs.fill(prbs.first, prbs.first + pucch_constants::FORMAT0_1_4_MAX_NPRB);
-    pucch_crbs.fill(prbs.second, prbs.second + pucch_constants::FORMAT0_1_4_MAX_NPRB);
+    pucch_crbs.fill(prbs.first, prbs.first + pucch_constants::f0::NOF_RBS);
+    pucch_crbs.fill(prbs.second, prbs.second + pucch_constants::f0::NOF_RBS);
   }
 
   // Fill the CRB bitmap with the PRBs used by the dedicated PUCCH resources.

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ngap/ngap_context.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ngap/ngap_init_context_setup.h"
@@ -209,7 +210,7 @@ public:
   virtual ue_index_t request_new_ue_index_allocation(nr_cell_global_id_t cgi, const plmn_identity& plmn) = 0;
 
   /// \brief Notifies the CU-CP about a Handover Request.
-  virtual async_task<ngap_handover_resource_allocation_response>
+  virtual async_task<cu_cp_handover_resource_allocation_response>
   on_ngap_handover_request(const ngap_handover_request& request) = 0;
 
   /// \brief Notifies the CU-CP about a DL UE associated NRPPa transport.
@@ -279,11 +280,10 @@ public:
   handle_handover_preparation_request(const ngap_handover_preparation_request& msg) = 0;
 
   /// \brief Initiates the transmission of an UL RAN status transfer message.
-  virtual void handle_ul_ran_status_transfer(const ngap_ul_ran_status_transfer& ul_status_transfer) = 0;
+  virtual void handle_ul_ran_status_transfer(const cu_cp_status_transfer& ul_status_transfer) = 0;
 
   /// \brief Prepares the reception of a DL RAN status transfer message.
-  virtual async_task<expected<ngap_dl_ran_status_transfer>>
-  handle_dl_ran_status_transfer_required(ue_index_t ue_index) = 0;
+  virtual async_task<expected<cu_cp_status_transfer>> handle_dl_ran_status_transfer_required(ue_index_t ue_index) = 0;
 
   /// \brief Handle the reception of an inter CU handover related RRC Reconfiguration Complete.
   virtual void
@@ -301,6 +301,12 @@ public:
   /// \brief Initiates the transmission of a RRC inactive transition report.
   virtual async_task<bool>
   handle_rrc_inactive_transition_report_required(const ngap_rrc_inactive_transition_report& report) = 0;
+
+  /// \brief Initiates the transmission of a Path Switch Request message.
+  /// \param[in] path_switch_request The information about the Path Switch Request to send.
+  /// \returns The response of the Path Switch Request procedure.
+  virtual async_task<cu_cp_path_switch_response>
+  handle_path_switch_request_required(const cu_cp_path_switch_request& request) = 0;
 };
 
 /// Interface to control the NGAP.

@@ -46,7 +46,7 @@ const pucch_processor::format3_configuration base_format_3_config = {
     // N_ID for sequence hopping.
     0,
     // Number of HARQ-ACK bits.
-    pucch_constants::FORMAT3_MIN_UCI_NBITS,
+    pucch_constants::f3::MIN_NOF_DATA_BITS,
     // Number of SR bits.
     0,
     // Number of CSI Part 1 bits.
@@ -175,7 +175,7 @@ static const auto pucch_processor_validator_test_data = to_array<test_case_t>(
          [] {
            test_params entry          = {};
            entry.config               = base_format_3_config;
-           entry.config.nof_harq_ack  = pucch_constants::FORMAT3_MIN_UCI_NBITS - 1;
+           entry.config.nof_harq_ack  = pucch_constants::f3::MIN_NOF_DATA_BITS - 1;
            entry.config.nof_sr        = 0;
            entry.config.nof_csi_part1 = 0;
            entry.config.nof_csi_part2 = 0;
@@ -198,10 +198,9 @@ static const auto pucch_processor_validator_test_data = to_array<test_case_t>(
      },
      {
          [] {
-           test_params entry               = {};
-           entry.config                    = base_format_3_config;
-           entry.config.nof_harq_ack       = pucch_constants::FORMATS_2_3_4_MAX_UCI_NBITS;
-           entry.config.nof_sr             = 1;
+           test_params entry         = {};
+           entry.config              = base_format_3_config;
+           entry.config.nof_harq_ack = pucch_constants::f3::MAX_NOF_DATA_BITS, entry.config.nof_sr = 1;
            entry.config.nof_csi_part1      = 0;
            entry.config.nof_csi_part2      = 0;
            entry.config.start_symbol_index = 0;

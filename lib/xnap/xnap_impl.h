@@ -26,17 +26,34 @@ public:
   // XNAP message handling.
   void handle_message(const xnap_message& msg) override;
 
+  async_task<void> stop() override;
+
   // XNAP connection manager functions.
   async_task<bool> handle_xn_setup_request_required() override;
   void             set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) override
   {
     tx_notifier.connect(std::move(tx_notifier_));
   }
+  async_task<xnap_handover_preparation_response>
+  handle_handover_request_required(const xnap_handover_request& request) override;
+  async_task<expected<cu_cp_status_transfer>> handle_sn_status_transfer_required(ue_index_t ue_index) override;
 
 private:
   /// \brief Notify about the reception of an initiating message.
   /// \param[in] msg The received initiating message.
   void handle_initiating_message(const asn1::xnap::init_msg_s& msg);
+
+  /// \brief Notify about the reception of a Handover Request message.
+  /// \param[in] msg The received handover request message.
+  void handle_handover_request(const asn1::xnap::ho_request_s& msg);
+
+  /// \brief Notify about the reception of a Handover Cancel message.
+  /// \param[in] msg The received handover cancel message.
+  void handle_handover_cancel(const asn1::xnap::ho_cancel_s& msg);
+
+  /// \brief Notify about the reception of a SN Status Transfer message.
+  /// \param[in] msg The received SN Status Transfer message.
+  void handle_sn_status_transfer(const asn1::xnap::sn_status_transfer_s& msg);
 
   /// \brief Notify about the reception of a successful outcome message.
   /// \param[in] outcome The successful outcome message.

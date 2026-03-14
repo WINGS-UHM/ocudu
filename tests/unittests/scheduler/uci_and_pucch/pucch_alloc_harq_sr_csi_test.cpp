@@ -187,13 +187,3 @@ TEST_F(pucch_alloc_reach_ul_grant_limits_test, test_csi_max_ul_allocations_reach
   alloc_csi_opportunity(t_bench.get_main_ue(), default_csi_part1_bits);
   ASSERT_EQ(0U, slot_grid.result.ul.pucchs.size());
 }
-
-int main(int argc, char** argv)
-{
-  ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::info);
-  ocudulog::init();
-
-  ::testing::InitGoogleTest(&argc, argv);
-
-  return RUN_ALL_TESTS();
-}

@@ -4,9 +4,9 @@
 
 #include "du_manager_procedure_test_helpers.h"
 #include "lib/du/du_high/du_manager/procedures/ue_creation_procedure.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/rrc_nr/cell_group_config.h"
 #include "ocudu/du/du_cell_config_helpers.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -86,8 +86,8 @@ TEST_F(du_manager_ue_creation_tester,
        when_du_manager_receives_ue_creation_request_then_mac_and_f1ap_get_request_to_create_ue)
 {
   // Start Procedure.
-  du_ue_index_t ue_index = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
-  rnti_t        rnti     = to_rnti(test_rgen::uniform_int<unsigned>(1, to_value(rnti_t::MAX_CRNTI)));
+  du_ue_index_t ue_index = to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
+  rnti_t        rnti     = to_rnti(test_rng::uniform_int<unsigned>(1, to_value(rnti_t::MAX_CRNTI)));
   start_procedure(ue_index, rnti);
 
   // Check MAC received request to create UE with valid params.
@@ -109,8 +109,8 @@ TEST_F(du_manager_ue_creation_tester,
        when_du_manager_starts_ue_creation_then_the_procedure_does_not_complete_until_mac_answers_back)
 {
   // Start Procedure.
-  du_ue_index_t ue_index = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
-  rnti_t        rnti     = to_rnti(test_rgen::uniform_int<unsigned>(1, to_value(rnti_t::MAX_CRNTI)));
+  du_ue_index_t ue_index = to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
+  rnti_t        rnti     = to_rnti(test_rng::uniform_int<unsigned>(1, to_value(rnti_t::MAX_CRNTI)));
   start_procedure(ue_index, rnti);
 
   ASSERT_FALSE(proc.ready());
@@ -133,8 +133,8 @@ TEST_F(du_manager_ue_creation_tester,
       sr_periodicity_to_slot(this->cell_res_alloc.next_context_update_result.cell_group.cells.at(SERVING_PCELL_IDX)
                                  .serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0]
                                  .period);
-  unsigned sr_offset1 = test_rgen::uniform_int<unsigned>(0, sr_period - 1);
-  unsigned sr_offset2 = test_rgen::uniform_int<unsigned>(0, sr_period - 1);
+  unsigned sr_offset1 = test_rng::uniform_int<unsigned>(0, sr_period - 1);
+  unsigned sr_offset2 = test_rng::uniform_int<unsigned>(0, sr_period - 1);
   // > Create first UE.
   set_sr_offset(ue_idx1, to_du_cell_index(0), sr_offset1);
   start_procedure(ue_idx1, to_rnti(0x4601));
@@ -166,8 +166,8 @@ TEST_F(du_manager_ue_creation_tester,
 TEST_F(du_manager_ue_creation_tester, when_ul_ccch_flush_fails_then_ue_is_destroyed)
 {
   // Start Procedure.
-  du_ue_index_t ue_index = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
-  rnti_t        rnti     = to_rnti(test_rgen::uniform_int<unsigned>(1, to_value(rnti_t::MAX_CRNTI)));
+  du_ue_index_t ue_index = to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
+  rnti_t        rnti     = to_rnti(test_rng::uniform_int<unsigned>(1, to_value(rnti_t::MAX_CRNTI)));
   start_procedure(ue_index, rnti);
 
   // MAC fails to dispatch UL-CCCH to upper layers.

@@ -4,8 +4,8 @@
 
 #include "f1ap_du_test_helpers.h"
 #include "test_doubles/f1ap/f1ap_test_message_validators.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -40,7 +40,7 @@ protected:
       auto& drb  = this->f1ap_du_cfg_handler.next_ue_context_update_response.drbs_setup.back();
       drb.drb_id = drb_id;
       drb.dluptnl_info_list.resize(1);
-      drb.dluptnl_info_list[0].gtp_teid   = int_to_gtpu_teid(test_rgen::uniform_int<uint32_t>());
+      drb.dluptnl_info_list[0].gtp_teid   = int_to_gtpu_teid(test_rng::uniform_int<uint32_t>());
       drb.dluptnl_info_list[0].tp_address = transport_layer_address::create_from_string("127.0.0.1");
     }
     this->f1ap_du_cfg_handler.next_ue_context_update_response.cell_group_cfg =
@@ -72,7 +72,7 @@ protected:
     return test_helpers::is_valid_ue_context_modification_response(resp, last_ue_ctxt_mod_req);
   }
 
-  du_ue_index_t test_ue_index = to_du_ue_index(test_rgen::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
+  du_ue_index_t test_ue_index = to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_DU_UE_INDEX));
 
   f1ap_message last_ue_ctxt_mod_req;
 };
@@ -93,7 +93,7 @@ TEST_F(f1ap_du_ue_context_modification_test, when_f1ap_receives_request_then_f1a
 TEST_F(f1ap_du_ue_context_modification_test,
        when_ue_context_mod_req_contains_rrc_container_then_rrc_container_is_sent_to_lower_layers)
 {
-  byte_buffer dl_dcch_msg   = byte_buffer::create(test_rgen::random_vector<uint8_t>(100)).value();
+  byte_buffer dl_dcch_msg   = byte_buffer::create(test_rng::vector_of_uniform_ints<uint8_t>(100)).value();
   byte_buffer rrc_container = test_helpers::create_dl_dcch_rrc_container(2, dl_dcch_msg);
   start_procedure({drb_id_t::drb1}, rrc_container.copy());
 

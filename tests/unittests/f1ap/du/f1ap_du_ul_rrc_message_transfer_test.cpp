@@ -5,8 +5,8 @@
 #include "f1ap_du_test_helpers.h"
 #include "lib/f1ap/du/ue_context/f1c_du_bearer_impl.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/f1ap/common.h"
-#include "ocudu/support/test_utils.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -23,7 +23,7 @@ TEST_F(f1ap_du_test, when_sdu_is_received_then_sdu_is_forwarded_to_tx_pdu_notifi
   run_ue_context_setup_procedure(ue->ue_index, msg);
   this->f1c_gw.clear_tx_pdus();
 
-  std::vector<uint8_t> bytes = test_rgen::random_vector<uint8_t>(test_rgen::uniform_int<unsigned>(1, 4000));
+  std::vector<uint8_t> bytes = test_rng::vector_of_uniform_ints<uint8_t>(test_rng::uniform_int<unsigned>(1, 4000));
   byte_buffer          sdu   = byte_buffer::create(bytes).value();
   ue->f1c_bearers[1].bearer->handle_sdu(byte_buffer_chain::create(sdu.copy()).value());
 

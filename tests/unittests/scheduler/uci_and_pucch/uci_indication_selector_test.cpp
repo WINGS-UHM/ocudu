@@ -3,7 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/uci_scheduling/uci_indication_selector.h"
-#include "ocudu/support/test_utils.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <vector>
@@ -120,7 +120,7 @@ protected:
   uci_indication_selector selector{timeout_notifier, timeout_slots, MAX_PUCCH_PDUS_PER_SLOT};
 
   slot_point next_sl_tx{subcarrier_spacing::kHz30,
-                        test_rgen::uniform_int<unsigned>(
+                        test_rng::uniform_int<unsigned>(
                             0,
                             NOF_SFNS* NOF_SUBFRAMES_PER_FRAME* get_nof_slots_per_subframe(subcarrier_spacing::kHz30))};
 };
@@ -233,8 +233,8 @@ TEST_F(uci_indication_selector_test, selects_pucch_with_highest_snr_for_multiple
                          make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1),
                                             make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1, true)}));
 
-  const bool     first_is_higher          = test_rgen::uniform_int(0, 1) == 0;
-  const unsigned second_pucch_delay_slots = test_rgen::uniform_int(0, 4);
+  const bool     first_is_higher          = test_rng::uniform_int(0, 1) == 0;
+  const unsigned second_pucch_delay_slots = test_rng::uniform_int(0, 4);
   const float    first_snr                = first_is_higher ? 10.0 : 1.0;
   const float    second_snr               = first_is_higher ? 1.0 : 10.0;
   auto           first_action             = selector.handle_uci_ind_pdu(
@@ -260,8 +260,8 @@ TEST_F(uci_indication_selector_test, selects_non_dtx_for_multiple_expected_pucch
   selector.handle_result(next_sl_tx,
                          make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1),
                                             make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1, true)}));
-  const bool     first_is_dtx             = test_rgen::uniform_int(0, 1) == 0;
-  const unsigned second_pucch_delay_slots = test_rgen::uniform_int(0, 4);
+  const bool     first_is_dtx             = test_rng::uniform_int(0, 1) == 0;
+  const unsigned second_pucch_delay_slots = test_rng::uniform_int(0, 4);
   auto           first_action             = selector.handle_uci_ind_pdu(
       uci_slot,
       make_f0_or_f1_pdu(
@@ -297,8 +297,8 @@ TEST_F(uci_indication_selector_test, timeout_is_triggered_if_only_one_of_two_puc
   ASSERT_TRUE(timeout_notifier.events.empty());
 
   // Event: First PUCCH arrives.
-  const auto first_bit  = static_cast<mac_harq_ack_report_status>(test_rgen::uniform_int(0, 2));
-  const auto second_bit = static_cast<mac_harq_ack_report_status>(test_rgen::uniform_int(0, 2));
+  const auto first_bit  = static_cast<mac_harq_ack_report_status>(test_rng::uniform_int(0, 2));
+  const auto second_bit = static_cast<mac_harq_ack_report_status>(test_rng::uniform_int(0, 2));
   auto first_action     = selector.handle_uci_ind_pdu(uci_slot, make_f0_or_f1_pdu(first_rnti, {first_bit, second_bit}));
   ASSERT_FALSE(first_action.has_value());
 

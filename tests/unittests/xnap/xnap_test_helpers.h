@@ -8,6 +8,7 @@
 #include "lib/xnap/xnap_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/cause/xnap_cause.h"
+#include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include "ocudu/xnap/gateways/xnc_connection_gateway.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -42,6 +43,8 @@ public:
   {
     return std::make_unique<dummy_xnap_message_notifier>(last_tx_msg);
   }
+
+  async_task<bool> connect_to_peer(transport_layer_address peer_addr) override { return launch_no_op_task(true); }
 
   void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) override { logger.info("CU-CP attached to XN-C gateway"); }
 

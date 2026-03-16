@@ -5,6 +5,7 @@
 #include "mock_xnc_cu_cp.h"
 #include "ocudu/adt/mutexed_mpmc_queue.h"
 #include "ocudu/cu_cp/cu_cp_xnc_handler.h"
+#include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/xnap/xnap_message.h"
 
 using namespace ocudu;
@@ -21,6 +22,8 @@ public:
   {
     return std::make_unique<xnap_tx_notifier>(*this);
   }
+
+  async_task<bool> connect_to_peer(transport_layer_address peer_addr) override { return launch_no_op_task(true); }
 
   void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) override
   {

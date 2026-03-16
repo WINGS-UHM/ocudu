@@ -7,6 +7,7 @@
 #include "ocudu/cu_cp/cu_cp_xnc_handler.h"
 #include "ocudu/gateways/sctp_network_server_factory.h"
 #include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/async/async_task.h"
 #include "ocudu/support/error_handling.h"
 #include "ocudu/support/io/transport_layer_address.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -174,6 +175,15 @@ public:
                params.sctp.if_name,
                fmt::join(params.sctp.bind_addresses, ","),
                params.sctp.bind_port);
+  }
+
+  async_task<bool> connect_to_peer(transport_layer_address peer_addr) override
+  {
+    return launch_async([this, peer_addr, result = false](coro_context<async_task<bool>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+      CORO_AWAIT_VALUE(result, sctp_server->connect(peer_addr));
+      CORO_RETURN(result);
+    });
   }
 
   std::optional<uint16_t> get_listen_port() const override { return sctp_server->get_listen_port(); }

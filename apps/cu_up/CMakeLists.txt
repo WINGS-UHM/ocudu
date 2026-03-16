@@ -21,6 +21,7 @@ target_link_libraries(ocuup PRIVATE
         ocudu_o_cu_up_app_unit
         ocudu_pcap
         ocudu_support
+        ocudu_yaml_util
         ocudu_versioning
 )
 

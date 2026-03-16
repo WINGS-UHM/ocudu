@@ -15,6 +15,7 @@ target_link_libraries(odu_low_base PRIVATE
         ocudu_app_helpers
         ocudu_app_services
         ocudu_support
+        ocudu_yaml_util
         ocudu_versioning)
 
 target_include_directories(odu_low_base PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/external)

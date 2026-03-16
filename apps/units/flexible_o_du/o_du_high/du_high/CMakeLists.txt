@@ -25,4 +25,5 @@ target_link_libraries(ocudu_du_high_unit_helpers
         ocudu_app_helpers
         ocudu_cpu_affinities_helper
         ocudu_du_high_unit_metrics_helpers
+        ocudu_yaml_util
         ocudu_pusch_processor)

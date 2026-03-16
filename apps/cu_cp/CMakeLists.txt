@@ -22,6 +22,7 @@ target_link_libraries(ocucp PRIVATE
         ocudu_o_cu_cp_app_unit
         ocudu_pcap
         ocudu_support
+        ocudu_yaml_util
         ocudu_versioning
 )
 

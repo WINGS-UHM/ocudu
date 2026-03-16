@@ -83,9 +83,6 @@ TEST_F(sctp_network_server_peer_test, when_config_is_valid_then_server_is_create
 
 TEST_F(sctp_network_server_peer_test, when_association_requested_association_initiates_successfully)
 {
-  std::array<uint8_t, 4> data = {0x00, 0x01, 0x02, 0x03};
-  span<uint8_t>          data_span(data.data(), data.size());
-
   server1 = create_sctp_network_server(server_cfg1);
   server2 = create_sctp_network_server(server_cfg2);
   server3 = create_sctp_network_server(server_cfg3);
@@ -113,48 +110,53 @@ TEST_F(sctp_network_server_peer_test, when_association_requested_association_ini
   addr3.set_port(*port3);
 
   // Create associations between S1 <-> S2
-  {
-    byte_buffer msg;
-    ASSERT_TRUE(msg.append(data_span));
-    server1->init_association_with_msg(addr2, std::move(msg));
-  }
+  async_task<bool>         connect1 = server1->connect(addr2);
+  lazy_task_launcher<bool> l1(connect1);
 
   ASSERT_EQ(0, assoc_factory1.association_count());
   ASSERT_EQ(0, assoc_factory2.association_count());
   ASSERT_EQ(0, assoc_factory3.association_count());
   broker1.handle_receive(); // CONN_UP
   broker2.handle_receive(); // CONN_UP
-  broker2.handle_receive(); // RX DATA
   ASSERT_EQ(1, assoc_factory1.association_count());
   ASSERT_EQ(1, assoc_factory2.association_count());
   ASSERT_EQ(0, assoc_factory3.association_count());
 
   // Create associations between S1 <-> S3
-  {
-    byte_buffer msg;
-    ASSERT_TRUE(msg.append(data_span));
-    server1->init_association_with_msg(addr3, std::move(msg));
-  }
+  async_task<bool>         connect2 = server1->connect(addr3);
+  lazy_task_launcher<bool> l2(connect2);
 
   broker1.handle_receive(); // CONN_UP
   broker3.handle_receive(); // CONN_UP
-  broker3.handle_receive(); // RX DATA
   ASSERT_EQ(2, assoc_factory1.association_count());
   ASSERT_EQ(1, assoc_factory2.association_count());
   ASSERT_EQ(1, assoc_factory3.association_count());
 
   // Create associations between S2 <-> S3
-  {
-    byte_buffer msg;
-    ASSERT_TRUE(msg.append(data_span));
-    server2->init_association_with_msg(addr3, std::move(msg));
-  }
+  async_task<bool>         connect3 = server2->connect(addr3);
+  lazy_task_launcher<bool> l3(connect3);
+
   broker2.handle_receive(); // CONN_UP
   broker3.handle_receive(); // CONN_UP
-  broker3.handle_receive(); // RX DATA
   ASSERT_EQ(2, assoc_factory1.association_count());
   ASSERT_EQ(2, assoc_factory2.association_count());
   ASSERT_EQ(2, assoc_factory3.association_count());
+
+  // Send data from S1 to S2 over the first association.
+  std::array<uint8_t, 4> data1 = {0x00, 0x01, 0x02, 0x03};
+  byte_buffer            tx_sdu;
+  ASSERT_TRUE(tx_sdu.append(data1));
+  ASSERT_TRUE(assoc_factory1.association_senders[0]->on_new_sdu(tx_sdu.copy()));
+  broker2.handle_receive(); // RX DATA
+  ASSERT_EQ(assoc_factory2.last_sdu, tx_sdu);
+
+  // Send data from S2 to S1.
+  std::array<uint8_t, 4> data2 = {0x04, 0x05, 0x06, 0x07};
+  byte_buffer            tx_sdu2;
+  ASSERT_TRUE(tx_sdu2.append(data2));
+  ASSERT_TRUE(assoc_factory2.association_senders[0]->on_new_sdu(tx_sdu2.copy()));
+  broker1.handle_receive(); // RX DATA
+  ASSERT_EQ(assoc_factory1.last_sdu, tx_sdu2);
 }
 
 TEST_F(sctp_network_server_peer_test, when_server_is_destroyed_then_associations_are_cleaned_up)

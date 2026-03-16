@@ -352,13 +352,13 @@ validator_result config_validators::validate_pucch_cfg(const serving_cell_config
            "PUCCH resource used for CSI is expected to be Format 2, Format 3 or Format 4");
 
     // Verify the CSI/SR bits do not exceed the PUCCH F2/F3/F4 payload.
-    const auto     csi_report_cfg  = create_csi_report_configuration(ue_cell_cfg.csi_meas_cfg.value());
-    const unsigned csi_report_size = get_csi_report_pucch_size(csi_report_cfg).part1_size.value();
-    const bool     csi_sr_collision =
-        csi_helper::sr_csi_offsets_collide(sr_periodicity_to_slot(pucch_cfg.sr_res_list.front().period),
-                                           pucch_cfg.sr_res_list.front().offset,
-                                           csi_report_periodicity_to_uint(csi.report_slot_period),
-                                           csi.report_slot_offset);
+    const auto     csi_report_cfg   = create_csi_report_configuration(ue_cell_cfg.csi_meas_cfg.value());
+    const unsigned csi_report_size  = get_csi_report_pucch_size(csi_report_cfg).part1_size.value();
+    const bool     csi_sr_collision = csi_helper::are_sr_and_csi_pucchs_scheduled_together(
+        sr_periodicity_to_slot(pucch_cfg.sr_res_list.front().period),
+        pucch_cfg.sr_res_list.front().offset,
+        csi_report_periodicity_to_uint(csi.report_slot_period),
+        csi.report_slot_offset);
 
     // Verify that, with Format 0 and Format 2, the CSI and SR don't fall on the same slot(s).
     if (pucch_res_sr->format == pucch_format::FORMAT_0 and csi_pucch_res->format == pucch_format::FORMAT_2) {

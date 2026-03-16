@@ -10,6 +10,7 @@
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_helper.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_validator.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
@@ -254,8 +255,9 @@ error_type<std::string> config_validators::validate_sched_cell_configuration_req
   HANDLE_CODE(validate_paging_cfg(expert_cfg));
 
   if (msg.ran.init_bwp.csi.has_value()) {
-    const auto csi_meas = *config_helpers::make_default_ue_cell_config(msg.ran).serv_cell_cfg.csi_meas_cfg;
-    HANDLE_CODE(validate_nzp_csi_rs_list(csi_meas.nzp_csi_rs_res_list, msg.ran.tdd_cfg));
+    const auto csi_helper          = config_helpers::make_csi_meas_config_builder_params(msg.ran);
+    const auto nzp_csi_rs_res_list = csi_helper::make_nzp_csi_rs_resource_list(csi_helper);
+    HANDLE_CODE(validate_nzp_csi_rs_list(nzp_csi_rs_res_list, msg.ran.tdd_cfg));
   }
 
   // TODO: Validate other parameters.

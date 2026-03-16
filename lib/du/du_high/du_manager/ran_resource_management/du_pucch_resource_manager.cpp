@@ -249,7 +249,7 @@ du_pucch_resource_manager::get_compatible_csi_cfg(const cell_resource_context&  
     }
 
     // Ensure the SR and CSI reports can be sent together in the same PUCCH if their offsets collide.
-    const unsigned nof_sr_bits        = csi_helper::sr_csi_offsets_collide(
+    const unsigned nof_sr_bits        = csi_helper::are_sr_and_csi_pucchs_scheduled_together(
                                      cell_ctx.sr_period_slots, sr_cfg.offset, cell_ctx.csi_period_slots, csi_cfg.offset)
                                                     ? 1
                                                     : 0;
@@ -272,7 +272,7 @@ du_pucch_resource_manager::get_compatible_csi_cfg(const cell_resource_context&  
         (csi_rs_period + candidate_csi_cfg.offset - csi_rs_offset - MINIMUM_CSI_RS_REPORT_DISTANCE) % csi_rs_period;
 
     // We increase the weight if the CSI report offset collides with an SR slot offset.
-    if (csi_helper::sr_csi_offsets_collide(
+    if (csi_helper::are_sr_and_csi_pucchs_scheduled_together(
             cell_ctx.sr_period_slots, sr_cfg.offset, cell_ctx.csi_period_slots, candidate_csi_cfg.offset)) {
       weight += csi_rs_period;
     }

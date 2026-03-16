@@ -74,8 +74,10 @@ csi_resource_periodicity get_max_csi_rs_period(subcarrier_spacing pdsch_scs);
                                           const tdd_ul_dl_config_common& tdd_cfg);
 
 /// Checks whether the given SR and CSI periods+offsets will result in SR and CSI being scheduled together in some slot.
-[[nodiscard]] bool
-sr_csi_offsets_collide(unsigned sr_period, unsigned sr_offset, unsigned csi_period, unsigned csi_offset);
+[[nodiscard]] bool are_sr_and_csi_pucchs_scheduled_together(unsigned sr_period,
+                                                            unsigned sr_offset,
+                                                            unsigned csi_period,
+                                                            unsigned csi_offset);
 
 /// \brief Searches for a valid CSI-RS periodicity, while constrained by TDD pattern periodicity.
 std::optional<csi_resource_periodicity> find_valid_csi_rs_period(const tdd_ul_dl_config_common& tdd_cfg);

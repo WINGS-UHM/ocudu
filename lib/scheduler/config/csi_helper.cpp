@@ -55,18 +55,18 @@ bool ocudu::csi_helper::is_csi_rs_period_valid(csi_resource_periodicity       cs
          csi_opt_msec.end();
 }
 
-[[nodiscard]] bool ocudu::csi_helper::sr_csi_offsets_collide(unsigned sr_period,
-                                                             unsigned sr_offset,
-                                                             unsigned csi_period,
-                                                             unsigned csi_offset)
+[[nodiscard]] bool ocudu::csi_helper::are_sr_and_csi_pucchs_scheduled_together(unsigned sr_period,
+                                                                               unsigned sr_offset,
+                                                                               unsigned csi_period,
+                                                                               unsigned csi_offset)
 {
-  // The CSI and SR offsets will collide if there exists a slot index s such that:
+  // The CSI and SR offsets collide if there exists a slot index s such that:
   // - s = sr_offset mod sr_period
   // - s = csi_offset mod csi_period
   // We use the Chinese Remainder Theorem to check whether a solution for s exists.
   const unsigned g = std::gcd(sr_period, csi_period);
   if (g == 1) {
-    // If both periods are coprime, CRT states there will always be a solution for s for any choice of offsets.
+    // If both periods are coprime, CRT states there is always a solution for s for any choice of offsets.
     return true;
   }
 

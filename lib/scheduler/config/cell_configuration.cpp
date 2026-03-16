@@ -63,10 +63,9 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
 {
   // Initiate dedicated sched BWP configs.
   {
-    const auto rlm_cfg   = config_helpers::make_default_ue_cell_config(params).serv_cell_cfg.init_dl_bwp.rlm_cfg;
-    const auto pdsch_cfg = config_helpers::make_default_ue_cell_config(params).serv_cell_cfg.init_dl_bwp.pdsch_cfg;
+    const auto init_dl_bwp = config_helpers::make_default_ue_cell_config(params).serv_cell_cfg.init_dl_bwp;
     const bwp_downlink_dedicated bwp_dl_ded{
-        .pdcch_cfg = msg.ran.init_bwp.pdcch_cfg, .pdsch_cfg = pdsch_cfg, .rlm_cfg = rlm_cfg};
+        .pdcch_cfg = msg.ran.init_bwp.pdcch_cfg, .pdsch_cfg = init_dl_bwp.pdsch_cfg, .rlm_cfg = init_dl_bwp.rlm_cfg};
     ded_bwp_res.emplace(to_bwp_id(0), params.pci, to_bwp_id(0), params.dl_cfg_common.init_dl_bwp, &bwp_dl_ded);
   }
 

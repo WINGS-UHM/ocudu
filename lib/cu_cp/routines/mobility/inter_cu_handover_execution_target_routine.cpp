@@ -47,7 +47,7 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
     }
   } else {
     // Await for SN Status transfer from source XN-C.
-    CORO_AWAIT_VALUE(sn_status, xnap->handle_sn_status_transfer_required(ue->get_ue_index()));
+    CORO_AWAIT_VALUE(sn_status, xnap->handle_sn_status_transfer_expected(ue->get_ue_index()));
     if (not sn_status.has_value()) {
       CORO_EARLY_RETURN();
     }

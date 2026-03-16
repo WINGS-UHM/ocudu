@@ -49,7 +49,7 @@ public:
   handle_handover_request_required(const xnap_handover_request& request) = 0;
 
   /// \brief Prepares the reception of a SN status transfer message.
-  virtual async_task<expected<cu_cp_status_transfer>> handle_sn_status_transfer_required(ue_index_t ue_index) = 0;
+  virtual async_task<expected<cu_cp_status_transfer>> handle_sn_status_transfer_expected(ue_index_t ue_index) = 0;
 };
 
 /// This interface for the CU-CP to stop an XNAP instance.

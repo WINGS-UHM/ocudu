@@ -274,7 +274,7 @@ xnap_impl::handle_handover_request_required(const xnap_handover_request& request
                                                                   ue_ctxt.logger);
 }
 
-async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer_required(ue_index_t ue_index)
+async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer_expected(ue_index_t ue_index)
 {
   if (!ue_ctxt_list.contains(ue_index)) {
     logger.warning("ue={}: Cannot await SNStatusTransfer. UE context does not exist", ue_index);

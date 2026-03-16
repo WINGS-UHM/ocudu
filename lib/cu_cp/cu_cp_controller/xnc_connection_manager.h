@@ -7,6 +7,7 @@
 #include "../xnap_repository.h"
 #include "ocudu/cu_cp/common_task_scheduler.h"
 #include "ocudu/cu_cp/cu_cp_xnc_handler.h"
+#include "ocudu/xnap/gateways/xnc_connection_gateway.h"
 #include <condition_variable>
 #include <mutex>
 
@@ -18,9 +19,10 @@ struct cu_cp_configuration;
 class xnc_connection_manager : public cu_cp_xnc_handler
 {
 public:
-  xnc_connection_manager(xnap_repository&       xnaps_,
-                         task_executor&         cu_cp_exec_,
-                         common_task_scheduler& common_task_sched_);
+  xnc_connection_manager(xnap_repository&        xnaps_,
+                         xnc_connection_gateway& xnc_gw_,
+                         task_executor&          cu_cp_exec_,
+                         common_task_scheduler&  common_task_sched_);
 
   void start();
 
@@ -39,6 +41,7 @@ private:
   void connect_to_neighbours();
 
   xnap_repository&        xnaps;
+  xnc_connection_gateway& xnc_gw;
   task_executor&          cu_cp_exec;
   common_task_scheduler&  common_task_sched;
   ocudulog::basic_logger& logger;

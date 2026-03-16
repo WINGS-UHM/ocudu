@@ -101,10 +101,12 @@ private:
   std::shared_ptr<shared_xnc_connection_context> ctxt;
 };
 
-xnc_connection_manager::xnc_connection_manager(xnap_repository&       xnaps_,
-                                               task_executor&         cu_cp_exec_,
-                                               common_task_scheduler& common_task_sched_) :
+xnc_connection_manager::xnc_connection_manager(xnap_repository&        xnaps_,
+                                               xnc_connection_gateway& xnc_gw_,
+                                               task_executor&          cu_cp_exec_,
+                                               common_task_scheduler&  common_task_sched_) :
   xnaps(xnaps_),
+  xnc_gw(xnc_gw_),
   cu_cp_exec(cu_cp_exec_),
   common_task_sched(common_task_sched_),
   logger(ocudulog::fetch_basic_logger("CU-CP"))
@@ -115,14 +117,29 @@ void xnc_connection_manager::start()
 {
   // Schedules setup routine to be executed in sequence with other CU-CP procedures.
   common_task_sched.schedule_async_task(
-      launch_async([xn_it     = std::map<xnc_peer_index_t, xnap_interface*>::iterator{},
-                    xnaps_map = xnaps.get_xnaps()](coro_context<async_task<void>>& ctx) mutable {
+      launch_async([this,
+                    xn_it          = std::map<xnc_peer_index_t, xnap_interface*>::iterator{},
+                    xnaps_map      = xnaps.get_xnaps(),
+                    peer_addr      = std::optional<transport_layer_address>{},
+                    connect_result = false](coro_context<async_task<void>>& ctx) mutable {
         CORO_BEGIN(ctx);
 
-        // TODO try to connect to all neighbours.
         for (xn_it = xnaps_map.begin(); xn_it != xnaps_map.end(); ++xn_it) {
+          peer_addr = xnaps.get_peer_addr(xn_it->first);
+          if (!peer_addr.has_value()) {
+            logger.warning("No peer address for XN-C peer {}", xn_it->first);
+            continue;
+          }
+
+          // Establish the SCTP association first.
+          CORO_AWAIT_VALUE(connect_result, xnc_gw.connect_to_peer(peer_addr.value()));
+          if (!connect_result) {
+            logger.warning("Failed to connect to XN-C peer {}", xn_it->first);
+            continue;
+          }
+
+          // Trigger XN Setup on the established association.
           CORO_AWAIT(xn_it->second->handle_xn_setup_request_required());
-          // TODO: Handle setup failure
         }
 
         CORO_RETURN();

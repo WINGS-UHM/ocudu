@@ -357,6 +357,11 @@ void cu_cp_test_environment::enqueue_procedure_outcome_pdus_and_start_cu_cp()
                                .tai_support_list = amf_configs.begin()->second.supported_tas}));
   }
 
+  // Attach XN-C handler before starting CU-CP (matching real app startup order).
+  if (not xnc_peers.empty()) {
+    cu_cp_cfg.xnap.xnc_gw->attach_cu_cp(get_cu_cp().get_xnc_handler());
+  }
+
   // Start CU-CP.
   report_fatal_error_if_not(get_cu_cp().start(), "Failed to start CU-CP");
 }
@@ -407,11 +412,9 @@ bool cu_cp_test_environment::reconnect_amf(unsigned amf_idx)
 
 void cu_cp_test_environment::run_xn_setup()
 {
-  cu_cp_cfg.xnap.xnc_gw->attach_cu_cp(get_cu_cp().get_xnc_handler());
-
   xnap_message xnap_pdu;
   for (const auto& [xnc_peer_idx, xnc_peer] : xnc_peers) {
-    report_fatal_error_if_not(get_xnc_cu_cp(xnc_peer_idx).try_pop_rx_pdu(xnap_pdu),
+    report_fatal_error_if_not(wait_for_xnap_tx_pdu(xnc_peer_idx, xnap_pdu),
                               "CU-CP did not send the XN Setup Request to the XN-C peer CU-CP {}",
                               xnc_peer_idx);
     report_fatal_error_if_not(

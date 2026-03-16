@@ -11,11 +11,10 @@
 namespace ocudu::ocucp {
 
 /// Creates an instance of an XNAP interface, notifying outgoing packets on the specified listener object.
-std::unique_ptr<xnap_interface> create_xnap(xnc_peer_index_t                       xnc_index,
-                                            const xnap_configuration&              xnap_cfg_,
-                                            xnap_cu_cp_notifier&                   cu_cp_notifier_,
-                                            std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
-                                            timer_manager&                         timers_,
-                                            task_executor&                         ctrl_exec_);
+std::unique_ptr<xnap_interface> create_xnap(xnc_peer_index_t          xnc_index,
+                                            const xnap_configuration& xnap_cfg_,
+                                            xnap_cu_cp_notifier&      cu_cp_notifier_,
+                                            timer_manager&            timers_,
+                                            task_executor&            ctrl_exec_);
 
 } // namespace ocudu::ocucp

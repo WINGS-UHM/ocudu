@@ -39,11 +39,6 @@ class dummy_xnc_gateway : public xnc_connection_gateway
 public:
   dummy_xnc_gateway() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
-  std::unique_ptr<xnap_message_notifier> get_init_tx_notifier(transport_layer_address peer_addr) override
-  {
-    return std::make_unique<dummy_xnap_message_notifier>(last_tx_msg);
-  }
-
   async_task<bool> connect_to_peer(transport_layer_address peer_addr) override { return launch_no_op_task(true); }
 
   void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) override { logger.info("CU-CP attached to XN-C gateway"); }
@@ -52,10 +47,7 @@ public:
 
   std::optional<uint16_t> get_listen_port() const override { return std::nullopt; }
 
-  xnap_message get_last_tx_message() const { return last_tx_msg; }
-
 private:
-  xnap_message            last_tx_msg;
   ocudulog::basic_logger& logger;
 };
 
@@ -179,11 +171,6 @@ protected:
   xnap_test();
 
   void TearDown() override;
-
-  void init_sctp_association()
-  {
-    xnap->set_tx_association_notifier(std::make_unique<dummy_xnap_message_notifier>(last_tx_msg));
-  }
 
   /// \brief Helper method to successfully run XN setup in XNAP.
   bool run_xn_setup(const xnap_configuration& peer_cfg);

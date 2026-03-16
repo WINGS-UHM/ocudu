@@ -18,32 +18,21 @@ class synchronized_mock_xnc_cu_cp : public mock_xnc_cu_cp
 public:
   explicit synchronized_mock_xnc_cu_cp() : rx_pdus(1024), pending_tx_pdus(16) {}
 
-  std::unique_ptr<xnap_message_notifier> get_init_tx_notifier(transport_layer_address peer_addr) override
+  async_task<bool> connect_to_peer(transport_layer_address peer_addr) override
   {
-    return std::make_unique<xnap_tx_notifier>(*this);
-  }
-
-  async_task<bool> connect_to_peer(transport_layer_address peer_addr) override { return launch_no_op_task(true); }
-
-  void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) override
-  {
-    // Create an unpacked XNAP PDU notifier and pass it to the CU-CP.
-    auto xnc_sender = std::make_unique<xnap_tx_notifier>(*this);
-
-    rx_pdu_notifier = xnc_handler_.handle_new_xnc_cu_cp_connection(
-        std::move(xnc_sender),
-        sctp_association_info{.assoc_id = 0, .peer_addr = transport_layer_address::create_from_string("127.0.0.1")});
-
-    // If a PDU response has been previously enqueued, we send it now.
-    if (not pending_tx_pdus.empty()) {
-      xnap_message tx_pdu;
-      bool         discard = pending_tx_pdus.try_pop(tx_pdu);
-      (void)discard;
-      push_tx_pdu(tx_pdu);
+    // Simulate SCTP_COMM_UP by creating the association (matching real gateway behavior).
+    if (xnc_handler != nullptr && rx_pdu_notifier == nullptr) {
+      auto xnc_sender = std::make_unique<xnap_tx_notifier>(*this);
+      rx_pdu_notifier = xnc_handler->handle_new_xnc_cu_cp_connection(
+          std::move(xnc_sender),
+          sctp_association_info{.assoc_id = 1, .peer_addr = transport_layer_address::create_from_string("127.0.0.1")});
     }
+    return launch_no_op_task(true);
   }
 
   void stop() override {}
+
+  void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) override { xnc_handler = &xnc_handler_; }
 
   std::optional<uint16_t> get_listen_port() const override { return std::nullopt; }
 
@@ -82,6 +71,8 @@ private:
   private:
     synchronized_mock_xnc_cu_cp& parent;
   };
+
+  cu_cp_xnc_handler* xnc_handler = nullptr;
 
   xnap_pdu_queue rx_pdus;
 

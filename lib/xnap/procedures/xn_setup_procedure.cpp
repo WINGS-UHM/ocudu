@@ -44,7 +44,7 @@ void xn_setup_procedure::operator()(coro_context<async_task<bool>>& ctx)
     transaction_sink.subscribe_to(xn_setup_outcome, xn_setup_response_timeout);
 
     // Forward message to XN-C.
-    if (!tx_notifier.on_xn_setup_request(xn_setup_req)) {
+    if (!tx_notifier.on_new_message(xn_setup_req)) {
       logger.warning("Cannot send XNSetupRequest");
       CORO_EARLY_RETURN(false);
     }

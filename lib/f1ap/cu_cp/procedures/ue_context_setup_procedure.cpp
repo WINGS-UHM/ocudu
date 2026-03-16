@@ -207,8 +207,9 @@ f1ap_ue_context_setup_response ue_context_setup_procedure::handle_procedure_resu
     fill_f1ap_ue_context_setup_response(resp, request.ue_index, transaction_sink.failure());
 
   } else {
-    logger.warning("{}: Procedure failed. Cause: Timeout reached while waiting for DU response.",
-                   f1ap_ue_log_prefix{ue_ctxt->ue_ids, name()});
+    logger.warning("{}: Procedure failed. Cause: Timeout reached while waiting for DU response, timeout={}ms",
+                   f1ap_ue_log_prefix{ue_ctxt->ue_ids, name()},
+                   f1ap_cfg.proc_timeout.count());
   }
 
   // Delete created F1AP UE context.

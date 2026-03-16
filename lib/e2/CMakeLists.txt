@@ -11,6 +11,7 @@ set(SOURCES
         procedures/e2_ric_control_procedure.cpp
         procedures/e2_connection_update_procedure.cpp
         common/e2_connection_handler.cpp
+        common/e2_node_component_config_collector.cpp
         common/e2_cu_cp_factory.cpp
         common/e2_cu_up_factory.cpp
         common/e2_du_factory.cpp
@@ -41,4 +42,4 @@ set(SOURCES
 add_library(ocudu_e2 STATIC ${SOURCES})
 target_link_libraries(ocudu_e2 e2ap_asn1 ocudu_support)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(ocudu_e2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

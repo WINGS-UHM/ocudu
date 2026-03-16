@@ -3,6 +3,7 @@
 
 #include "sctp_server_test_helpers.h"
 #include "ocudu/gateways/sctp_network_server_factory.h"
+#include "ocudu/support/async/async_test_utils.h"
 #include "ocudu/support/executors/inline_task_executor.h"
 #include <arpa/inet.h>
 #include <gtest/gtest.h>
@@ -154,4 +155,40 @@ TEST_F(sctp_network_server_peer_test, when_association_requested_association_ini
   ASSERT_EQ(2, assoc_factory1.association_count());
   ASSERT_EQ(2, assoc_factory2.association_count());
   ASSERT_EQ(2, assoc_factory3.association_count());
+}
+
+TEST_F(sctp_network_server_peer_test, when_server_is_destroyed_then_associations_are_cleaned_up)
+{
+  server1 = create_sctp_network_server(server_cfg1);
+  server2 = create_sctp_network_server(server_cfg2);
+  ASSERT_NE(server1, nullptr);
+  ASSERT_NE(server2, nullptr);
+
+  server1->listen();
+  server2->listen();
+
+  transport_layer_address addr2 = transport_layer_address::create_from_string(server2_addr_str);
+  std::optional<uint16_t> port2 = server2->get_listen_port();
+  ASSERT_TRUE(port2);
+  addr2.set_port(*port2);
+
+  // Create association S1 <-> S2.
+  async_task<bool>         connect_task = server1->connect(addr2);
+  lazy_task_launcher<bool> launcher(connect_task);
+  broker1.handle_receive(); // CONN_UP notification completes the connect task
+  broker2.handle_receive(); // CONN_UP
+  ASSERT_EQ(1, assoc_factory1.association_count());
+  ASSERT_EQ(1, assoc_factory2.association_count());
+  ASSERT_FALSE(assoc_factory1.association_destroyed);
+  ASSERT_FALSE(assoc_factory2.association_destroyed);
+
+  // Destroy server1. The destructor should clean up all its associations.
+  server1->stop();
+
+  ASSERT_TRUE(assoc_factory1.association_destroyed);
+  ASSERT_EQ(0, assoc_factory1.association_count());
+
+  // TODO: Once handle_socket_shutdown sends EOF to peers, verify peer-side cleanup here.
+
+  server2->stop();
 }

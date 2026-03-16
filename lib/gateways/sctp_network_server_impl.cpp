@@ -226,8 +226,9 @@ void sctp_network_server_impl::handle_socket_shutdown(const char* cause)
 {
   // Clean up all associations.
   while (not associations.empty()) {
+    // TO-DO: send EOF to close association gracefully
     handle_association_shutdown(associations.begin()->first, cause);
-    handle_sctp_shutdown_comp(associations.begin()->first);
+    remove_association(associations.begin()->first);
   }
 
   // Stop handling new SCTP events.
@@ -334,7 +335,7 @@ void sctp_network_server_impl::handle_notification(span<const uint8_t>          
           handle_sctp_comm_up(*n, src_addr, src_addr_len);
           break;
         case SCTP_COMM_LOST:
-          handle_association_shutdown(n->sac_assoc_id, "Communication was lost");
+          handle_sctp_comm_lost(n->sac_assoc_id);
           break;
         case SCTP_CANT_STR_ASSOC:
           handle_cannot_start_association(n->sac_assoc_id, src_addr, src_addr_len);
@@ -449,9 +450,20 @@ void sctp_network_server_impl::handle_association_shutdown(int assoc_id, const c
 
 void sctp_network_server_impl::handle_sctp_shutdown_comp(int assoc_id)
 {
+  remove_association(assoc_id);
+}
+
+void sctp_network_server_impl::handle_sctp_comm_lost(int assoc_id)
+{
+  handle_association_shutdown(assoc_id, "SCTP_COMM_LOST");
+  remove_association(assoc_id);
+}
+
+void sctp_network_server_impl::remove_association(int assoc_id)
+{
   auto assoc_it = associations.find(assoc_id);
   if (assoc_it == associations.end()) {
-    logger.error("{} assoc={}: Failed to shutdown SCTP association. Cause: SCTP association Id not found",
+    logger.error("{} assoc={}: Failed to remove SCTP association. Cause: SCTP association Id not found",
                  node_cfg.if_name,
                  assoc_id);
     return;

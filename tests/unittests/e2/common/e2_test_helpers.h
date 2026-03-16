@@ -21,6 +21,7 @@
 #include "ocudu/e2/e2.h"
 #include "ocudu/e2/e2_cu.h"
 #include "ocudu/e2/e2_du_factory.h"
+#include "ocudu/e2/e2_node_component_config_collector.h"
 #include "ocudu/e2/e2ap_configuration_helpers.h"
 #include "ocudu/e2/e2sm/e2sm.h"
 #include "ocudu/e2/e2sm/e2sm_manager.h"
@@ -966,6 +967,35 @@ public:
   }
 };
 
+/// Wraps a manual_event so test fixtures can fire it directly while satisfying e2_node_component_config_provider.
+class dummy_e2_node_component_config_provider : public e2_node_component_config_provider
+{
+public:
+  explicit dummy_e2_node_component_config_provider(manual_event<std::vector<e2_node_component_config>>& event_) :
+    event(event_)
+  {
+  }
+
+  async_task<std::vector<e2_node_component_config>> get_configs() override
+  {
+    return launch_async([this](coro_context<async_task<std::vector<e2_node_component_config>>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_AWAIT(event);
+      CORO_RETURN(event.get());
+    });
+  }
+
+  void on_timeout() override
+  {
+    if (!event.is_set()) {
+      event.set(std::vector<e2_node_component_config>{});
+    }
+  }
+
+private:
+  manual_event<std::vector<e2_node_component_config>>& event;
+};
+
 /// Fixture class for E2AP
 class e2_base
 {
@@ -1003,7 +1033,13 @@ protected:
   std::unique_ptr<e2sm_manager>                           e2sm_mngr;
   std::unique_ptr<e2_interface>                           e2;
   std::unique_ptr<e2_agent>                               e2agent;
-  ocudulog::basic_logger&                                 test_logger = ocudulog::fetch_basic_logger("TEST");
+  /// Used by e2_impl-based fixtures that drive the event directly.
+  manual_event<std::vector<e2_node_component_config>> node_cfg_event;
+  dummy_e2_node_component_config_provider             node_cfg_provider{node_cfg_event};
+  /// Used by e2_entity_test which goes through the full aggregator path.
+  /// Raw non-owning pointer; ownership is transferred to e2agent on construction.
+  e2_node_component_config_collector* node_component_config_collector = nullptr;
+  ocudulog::basic_logger&             test_logger                     = ocudulog::fetch_basic_logger("TEST");
 };
 
 class e2_test_base : public e2_base, public ::testing::Test
@@ -1025,8 +1061,15 @@ class e2_test : public e2_test_base
     factory              = timer_factory{timers, task_worker};
     e2sm_mngr            = std::make_unique<e2sm_manager>(test_logger);
     agent_notifier       = std::make_unique<dummy_e2_agent_mng>();
-    e2                   = std::make_unique<e2_impl>(
-        test_logger, cfg, *agent_notifier, factory, *e2_client, *e2_subscription_mngr, *e2sm_mngr, task_worker);
+    e2                   = std::make_unique<e2_impl>(test_logger,
+                                   cfg,
+                                   *agent_notifier,
+                                   factory,
+                                   *e2_client,
+                                   *e2_subscription_mngr,
+                                   *e2sm_mngr,
+                                   task_worker,
+                                   node_cfg_provider);
     // Packer allows to inject packed message into E2 interface.
     gw     = std::make_unique<dummy_sctp_association_sdu_notifier>();
     pcap   = std::make_unique<dummy_e2ap_pcap>();
@@ -1050,13 +1093,21 @@ class e2_entity_test : public e2_test_base
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.e2sm_kpm_enabled = true;
 
-    e2_client                = std::make_unique<dummy_e2_connection_client>();
-    du_metrics               = std::make_unique<dummy_e2_du_metrics>();
-    f1ap_ue_id_mapper        = std::make_unique<dummy_f1ap_ue_id_translator>();
-    factory                  = timer_factory{timers, task_worker};
-    du_rc_param_configurator = std::make_unique<dummy_du_configurator>();
-    e2agent                  = create_e2_du_agent(
-        cfg, *e2_client, &(*du_metrics), &(*f1ap_ue_id_mapper), &(*du_rc_param_configurator), factory, task_worker);
+    e2_client                       = std::make_unique<dummy_e2_connection_client>();
+    du_metrics                      = std::make_unique<dummy_e2_du_metrics>();
+    f1ap_ue_id_mapper               = std::make_unique<dummy_f1ap_ue_id_translator>();
+    factory                         = timer_factory{timers, task_worker};
+    du_rc_param_configurator        = std::make_unique<dummy_du_configurator>();
+    auto owned_collector            = std::make_unique<e2_node_component_config_collector>(task_worker, 1);
+    node_component_config_collector = owned_collector.get();
+    e2agent                         = create_e2_du_agent(cfg,
+                                 *e2_client,
+                                 &(*du_metrics),
+                                 &(*f1ap_ue_id_mapper),
+                                 &(*du_rc_param_configurator),
+                                 factory,
+                                 task_worker,
+                                 std::move(owned_collector));
     // Packer allows to inject packed message into E2 interface.
     gw     = std::make_unique<dummy_sctp_association_sdu_notifier>();
     pcap   = std::make_unique<dummy_e2ap_pcap>();
@@ -1092,8 +1143,15 @@ class e2_test_subscriber : public e2_test_base
     e2_subscription_mngr = std::make_unique<e2_subscription_manager_impl>(*e2sm_mngr);
     e2_subscription_mngr->add_ran_function_oid(1, "1.3.6.1.4.1.53148.1.2.2.2");
     agent_notifier = std::make_unique<dummy_e2_agent_mng>();
-    e2             = std::make_unique<e2_impl>(
-        test_logger, cfg, *agent_notifier, factory, *e2_client, *e2_subscription_mngr, *e2sm_mngr, task_worker);
+    e2             = std::make_unique<e2_impl>(test_logger,
+                                   cfg,
+                                   *agent_notifier,
+                                   factory,
+                                   *e2_client,
+                                   *e2_subscription_mngr,
+                                   *e2sm_mngr,
+                                   task_worker,
+                                   node_cfg_provider);
     // Packer allows to inject packed message into E2 interface.
     gw     = std::make_unique<dummy_sctp_association_sdu_notifier>();
     pcap   = std::make_unique<dummy_e2ap_pcap>();
@@ -1146,8 +1204,15 @@ class e2_test_setup : public e2_test_base
     e2sm_mngr->add_supported_ran_function(3, "1.3.6.1.4.1.53148.1.1.2.3");
     e2_subscription_mngr = std::make_unique<e2_subscription_manager_impl>(*e2sm_mngr);
     agent_notifier       = std::make_unique<dummy_e2_agent_mng>();
-    e2                   = std::make_unique<e2_impl>(
-        test_logger, cfg, *agent_notifier, factory, *e2_client, *e2_subscription_mngr, *e2sm_mngr, task_worker);
+    e2                   = std::make_unique<e2_impl>(test_logger,
+                                   cfg,
+                                   *agent_notifier,
+                                   factory,
+                                   *e2_client,
+                                   *e2_subscription_mngr,
+                                   *e2sm_mngr,
+                                   task_worker,
+                                   node_cfg_provider);
     // Packer allows to inject packed message into E2 interface.
     gw     = std::make_unique<dummy_sctp_association_sdu_notifier>();
     pcap   = std::make_unique<dummy_e2ap_pcap>();

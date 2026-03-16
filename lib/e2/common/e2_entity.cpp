@@ -11,7 +11,12 @@ using namespace ocudu;
 using namespace asn1::e2ap;
 
 e2_entity::e2_entity(e2_agent_dependencies&& dependencies) :
-  logger(*dependencies.logger), cfg(dependencies.cfg), task_exec(*dependencies.task_exec), main_ctrl_loop(128)
+  logger(*dependencies.logger),
+  cfg(dependencies.cfg),
+  task_exec(*dependencies.task_exec),
+  main_ctrl_loop(128),
+  node_cfg_timeout(dependencies.timers->create_timer()),
+  node_component_config_provider(std::move(dependencies.node_component_config_provider))
 {
   e2sm_mngr         = std::make_unique<e2sm_manager>(logger);
   subscription_mngr = std::make_unique<e2_subscription_manager_impl>(*e2sm_mngr);
@@ -30,13 +35,24 @@ e2_entity::e2_entity(e2_agent_dependencies&& dependencies) :
                                    *dependencies.e2_client,
                                    *subscription_mngr,
                                    *e2sm_mngr,
-                                   *dependencies.task_exec);
+                                   *dependencies.task_exec,
+                                   *node_component_config_provider);
 }
 
 void e2_entity::start()
 {
   // Create e2ap (sctp) connection to RIC
   e2ap->handle_e2_tnl_connection_request();
+
+  // Start a 5-second timeout so that the setup coroutine is not blocked indefinitely waiting for
+  // interface-setup bytes that may never arrive (e.g. if no F1/NG/E1 setup is performed).
+  // Dispatch the callback body to task_exec so the aggregator event is only accessed on the E2 thread.
+  node_cfg_timeout.set(std::chrono::milliseconds(5000), [this](timer_id_t) {
+    if (!task_exec.execute([this]() { node_component_config_provider->on_timeout(); })) {
+      logger.warning("Failed to dispatch node config timeout to E2 executor");
+    }
+  });
+  node_cfg_timeout.run();
 
   if (not task_exec.execute([this]() {
         main_ctrl_loop.schedule([this](coro_context<async_task<void>>& ctx) {
@@ -48,7 +64,7 @@ void e2_entity::start()
           CORO_RETURN();
         });
       })) {
-    report_fatal_error("Unable to initiate E2AP setup procedure");
+    report_fatal_error("Unable to dispatch E2AP setup procedure");
   }
 }
 
@@ -58,13 +74,12 @@ void e2_entity::stop()
         main_ctrl_loop.schedule([this](coro_context<async_task<void>>& ctx) {
           CORO_BEGIN(ctx);
 
-          // Send E2AP Setup Request and await for E2AP setup response.
           CORO_AWAIT(e2ap->handle_e2_disconnection_request());
 
           CORO_RETURN();
         });
       })) {
-    report_fatal_error("Unable to initiate E2AP setup procedure");
+    report_fatal_error("Unable to dispatch E2AP teardown");
   }
 }
 

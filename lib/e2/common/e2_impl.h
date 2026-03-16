@@ -11,6 +11,8 @@
 #include "e2_connection_handler.h"
 #include "ocudu/asn1/e2ap/e2ap.h"
 #include "ocudu/e2/e2.h"
+#include "ocudu/e2/e2_node_component_config.h"
+#include "ocudu/e2/e2_node_component_config_provider.h"
 #include "ocudu/e2/e2ap_configuration.h"
 #include "ocudu/e2/e2sm/e2sm.h"
 #include "ocudu/e2/e2sm/e2sm_manager.h"
@@ -18,6 +20,7 @@
 #include "ocudu/support/async/fifo_async_task_scheduler.h"
 #include <map>
 #include <memory>
+#include <vector>
 
 namespace ocudu {
 
@@ -26,14 +29,15 @@ class e2_event_manager;
 class e2_impl final : public e2_interface
 {
 public:
-  e2_impl(ocudulog::basic_logger&   logger_,
-          const e2ap_configuration& cfg_,
-          e2ap_e2agent_notifier&    agent_notifier_,
-          timer_factory             timers_,
-          e2_connection_client&     e2_client_,
-          e2_subscription_manager&  subscription_mngr_,
-          e2sm_manager&             e2sm_mngr_,
-          task_executor&            task_exec_);
+  e2_impl(ocudulog::basic_logger&            logger_,
+          const e2ap_configuration&          cfg_,
+          e2ap_e2agent_notifier&             agent_notifier_,
+          timer_factory                      timers_,
+          e2_connection_client&              e2_client_,
+          e2_subscription_manager&           subscription_mngr_,
+          e2sm_manager&                      e2sm_mngr_,
+          task_executor&                     task_exec_,
+          e2_node_component_config_provider& node_component_config_provider_);
 
   void start() override {}
   void stop() override {}
@@ -98,6 +102,7 @@ private:
   ocudulog::basic_logger&                             logger;
   const e2ap_configuration&                           cfg;
   timer_factory                                       timers;
+  e2_node_component_config_provider&                  node_component_config_provider;
   std::map<uint16_t, asn1::e2ap::ran_function_item_s> candidate_ran_functions;
   std::map<uint16_t, asn1::e2ap::ran_function_item_s> allowed_ran_functions;
   e2_subscription_proc&                               subscription_proc;

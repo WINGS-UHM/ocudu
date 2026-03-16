@@ -5,6 +5,7 @@
 #include "lib/e2/common/e2_impl.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
 #include "tests/unittests/e2/common/e2ap_asn1_packer.h"
+#include "ocudu/e2/e2_node_component_config_collector.h"
 #include "ocudu/e2/e2ap_configuration_helpers.h"
 #include "ocudu/e2/e2sm/e2sm_manager.h"
 #include "ocudu/e2/gateways/e2_network_client_factory.h"
@@ -173,34 +174,51 @@ protected:
     factory              = timer_factory{timers, ctrl_worker};
     e2_client            = std::make_unique<dummy_e2_con_client>(*adapter);
     e2agent_notifier     = std::make_unique<dummy_e2_agent_mng>();
-    e2ap                 = std::make_unique<e2_impl>(
-        test_logger, cfg, *e2agent_notifier, factory, *e2_client, *e2_subscription_mngr, *e2sm_mngr, ctrl_worker);
-    pcap = std::make_unique<dummy_e2ap_pcap>();
+    e2ap                 = std::make_unique<e2_impl>(test_logger,
+                                     cfg,
+                                     *e2agent_notifier,
+                                     factory,
+                                     *e2_client,
+                                     *e2_subscription_mngr,
+                                     *e2sm_mngr,
+                                     ctrl_worker,
+                                     node_cfg_provider);
+    pcap                 = std::make_unique<dummy_e2ap_pcap>();
     adapter->connect_e2ap(e2ap.get());
   }
 
-  e2ap_configuration                          cfg = {};
-  timer_factory                               factory;
-  timer_manager                               timers;
-  std::unique_ptr<e2ap_e2agent_notifier>      e2agent_notifier;
-  std::unique_ptr<dummy_e2ap_network_adapter> adapter;
-  manual_task_worker                          ctrl_worker{128};
-  std::unique_ptr<dummy_e2ap_pcap>            pcap;
-  std::unique_ptr<e2_subscription_manager>    e2_subscription_mngr;
-  std::unique_ptr<e2sm_handler>               e2sm_packer;
-  std::unique_ptr<e2_du_metrics_interface>    du_metrics;
-  std::unique_ptr<e2sm_kpm_meas_provider>     du_meas_provider;
-  std::unique_ptr<e2sm_manager>               e2sm_mngr;
-  std::unique_ptr<e2sm_interface>             e2sm_iface;
-  std::unique_ptr<e2_interface>               e2ap;
-  std::unique_ptr<dummy_e2_con_client>        e2_client;
-  ocudulog::basic_logger&                     test_logger = ocudulog::fetch_basic_logger("TEST");
+  e2ap_configuration                                  cfg = {};
+  timer_factory                                       factory;
+  timer_manager                                       timers;
+  std::unique_ptr<e2ap_e2agent_notifier>              e2agent_notifier;
+  std::unique_ptr<dummy_e2ap_network_adapter>         adapter;
+  manual_task_worker                                  ctrl_worker{128};
+  std::unique_ptr<dummy_e2ap_pcap>                    pcap;
+  std::unique_ptr<e2_subscription_manager>            e2_subscription_mngr;
+  std::unique_ptr<e2sm_handler>                       e2sm_packer;
+  std::unique_ptr<e2_du_metrics_interface>            du_metrics;
+  std::unique_ptr<e2sm_kpm_meas_provider>             du_meas_provider;
+  std::unique_ptr<e2sm_manager>                       e2sm_mngr;
+  std::unique_ptr<e2sm_interface>                     e2sm_iface;
+  std::unique_ptr<e2_interface>                       e2ap;
+  std::unique_ptr<dummy_e2_con_client>                e2_client;
+  manual_event<std::vector<e2_node_component_config>> node_cfg_event;
+  dummy_e2_node_component_config_provider             node_cfg_provider{node_cfg_event};
+  ocudulog::basic_logger&                             test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 /// Test successful e2 setup procedure
 TEST_F(e2ap_integration_test, when_e2_setup_response_received_then_ric_connected)
 {
   report_fatal_error_if_not(e2ap->handle_e2_tnl_connection_request(), "Unable to establish connection to RIC");
+
+  // Pre-fire the node component config event so the setup coroutine is not blocked awaiting it.
+  // This test exercises the network path, not the component-config path.
+  std::vector<e2_node_component_config> node_cfgs;
+  e2_node_component_config              dummy_cfg;
+  dummy_cfg.interface_type = e2_node_component_interface_type::ng;
+  node_cfgs.push_back(std::move(dummy_cfg));
+  node_cfg_event.set(std::move(node_cfgs));
 
   // Action 1: Launch E2 setup procedure
   test_logger.info("Launching E2 setup procedure...");
@@ -257,24 +275,32 @@ protected:
     f1ap_ue_id_mapper = std::make_unique<dummy_f1ap_ue_id_translator>();
     e2_client         = create_e2_gateway_client(
         e2_sctp_gateway_config{nw_config, *epoll_broker, rx_executor, *pcap, ocudulog::fetch_basic_logger("E2")});
-    du_param_configurator = std::make_unique<dummy_du_configurator>();
-    e2agent               = create_e2_du_agent(
-        cfg, *e2_client, &(*du_metrics), &(*f1ap_ue_id_mapper), &(*du_param_configurator), factory, ctrl_worker);
+    du_param_configurator           = std::make_unique<dummy_du_configurator>();
+    node_component_config_collector = std::make_unique<e2_node_component_config_collector>(ctrl_worker, 1);
+    e2agent                         = create_e2_du_agent(cfg,
+                                 *e2_client,
+                                 &(*du_metrics),
+                                 &(*f1ap_ue_id_mapper),
+                                 &(*du_param_configurator),
+                                 factory,
+                                 ctrl_worker,
+                                 std::move(node_component_config_collector));
   }
 
-  e2ap_configuration                           cfg = {};
-  inline_task_executor                         rx_executor;
-  std::unique_ptr<io_broker>                   epoll_broker;
-  timer_manager                                timers;
-  manual_task_worker                           ctrl_worker{128};
-  timer_factory                                factory;
-  std::unique_ptr<dummy_e2ap_pcap>             pcap;
-  std::unique_ptr<e2_du_metrics_interface>     du_metrics;
-  std::unique_ptr<dummy_f1ap_ue_id_translator> f1ap_ue_id_mapper;
-  std::unique_ptr<odu::du_configurator>        du_param_configurator;
-  std::unique_ptr<e2_connection_client>        e2_client;
-  std::unique_ptr<e2_agent>                    e2agent;
-  ocudulog::basic_logger&                      test_logger = ocudulog::fetch_basic_logger("TEST");
+  e2ap_configuration                                  cfg = {};
+  inline_task_executor                                rx_executor;
+  std::unique_ptr<io_broker>                          epoll_broker;
+  timer_manager                                       timers;
+  manual_task_worker                                  ctrl_worker{128};
+  timer_factory                                       factory;
+  std::unique_ptr<dummy_e2ap_pcap>                    pcap;
+  std::unique_ptr<e2_du_metrics_interface>            du_metrics;
+  std::unique_ptr<dummy_f1ap_ue_id_translator>        f1ap_ue_id_mapper;
+  std::unique_ptr<odu::du_configurator>               du_param_configurator;
+  std::unique_ptr<e2_connection_client>               e2_client;
+  std::unique_ptr<e2_node_component_config_collector> node_component_config_collector;
+  std::unique_ptr<e2_agent>                           e2agent;
+  ocudulog::basic_logger&                             test_logger = ocudulog::fetch_basic_logger("TEST");
 };
 
 /// Test successful e2 setup procedure, runs with an external nearRT-RIC.

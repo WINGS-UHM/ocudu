@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/du/du_high/o_du_high_factory.h"
+#include "adapters/f1_setup_e2_adapter.h"
 #include "o_du_high_impl.h"
 #include "ocudu/du/du_high/du_high_clock_controller.h"
 #include "ocudu/du/du_high/du_high_factory.h"
@@ -13,6 +14,7 @@
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/support/ocudu_assert.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -144,6 +146,11 @@ std::unique_ptr<o_du_high> ocudu::odu::make_o_du_high(const o_du_high_config&  c
     return odu;
   }
 
+  auto collector =
+      std::make_unique<e2_node_component_config_collector>(odu_dependencies.du_hi.exec_mapper->du_e2_executor(), 1);
+  auto adapter                             = std::make_unique<f1_setup_e2_adapter>(*collector);
+  odu_dependencies.du_hi.f1_setup_notifier = adapter.get();
+
   auto du_hi = make_du_high(du_hi_cfg, odu_dependencies.du_hi);
 
   auto e2agent = create_e2_du_agent(config.e2ap_config,
@@ -153,9 +160,10 @@ std::unique_ptr<o_du_high> ocudu::odu::make_o_du_high(const o_du_high_config&  c
                                     &du_hi->get_du_configurator(),
                                     timer_factory{odu_dependencies.du_hi.timer_ctrl->get_timer_manager(),
                                                   odu_dependencies.du_hi.exec_mapper->du_e2_executor()},
-                                    odu_dependencies.du_hi.exec_mapper->du_e2_executor());
+                                    odu_dependencies.du_hi.exec_mapper->du_e2_executor(),
+                                    std::move(collector));
 
-  odu->set_e2_agent(std::move(e2agent));
+  odu->set_e2_components(std::move(e2agent), std::move(adapter));
   odu->set_du_high(std::move(du_hi));
   logger->info("DU created successfully");
 

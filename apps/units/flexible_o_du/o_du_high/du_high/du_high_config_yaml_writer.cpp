@@ -133,12 +133,13 @@ static YAML::Node build_du_high_sib_section(const du_high_unit_sib_config& confi
 
   for (const auto& cell : config.si_sched_info) {
     YAML::Node si_node;
-    for (auto& period : cell.sib_mapping_info) {
-      si_node["sib_mapping"] = period;
-    }
-    si_node["si_period"].SetStyle(YAML::EmitterStyle::Flow);
+    si_node["si_period"] = cell.si_period_rf;
 
-    si_node["sib_mapping"] = cell.sib_mapping_info;
+    YAML::Node sib_mapping;
+    for (uint8_t sib_id : cell.sib_mapping_info) {
+      sib_mapping.push_back(static_cast<unsigned>(sib_id));
+    }
+    si_node["sib_mapping"] = sib_mapping;
 
     if (cell.si_window_position.has_value()) {
       si_node["si_window_position"] = cell.si_window_position.value();

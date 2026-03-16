@@ -37,7 +37,8 @@ public:
     tx_notifier.connect(std::move(tx_notifier_));
   }
   async_task<xnap_handover_preparation_response>
-  handle_handover_request_required(const xnap_handover_request& request) override;
+       handle_handover_request_required(const xnap_handover_request& request) override;
+  void handle_sn_status_transfer_required(const cu_cp_status_transfer& sn_status_transfer) override;
   async_task<expected<cu_cp_status_transfer>> handle_sn_status_transfer_expected(ue_index_t ue_index) override;
 
 private:

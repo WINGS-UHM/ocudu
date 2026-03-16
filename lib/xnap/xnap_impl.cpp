@@ -4,6 +4,7 @@
 
 #include "xnap_impl.h"
 #include "log_helpers.h"
+#include "procedures/sn_status_transfer_asn1_helpers.h"
 #include "procedures/xn_handover_asn1_helpers.h"
 #include "procedures/xn_setup_asn1_helpers.h"
 #include "procedures/xn_setup_procedure.h"
@@ -272,6 +273,33 @@ xnap_impl::handle_handover_request_required(const xnap_handover_request& request
                                                                   ue_ctxt.xn_handover_outcome,
                                                                   timer_factory{timers, ctrl_exec},
                                                                   ue_ctxt.logger);
+}
+
+void xnap_impl::handle_sn_status_transfer_required(const cu_cp_status_transfer& sn_status_transfer)
+{
+  const ue_index_t ue_index = sn_status_transfer.ue_index;
+  if (!ue_ctxt_list.contains(ue_index)) {
+    logger.warning("ue={}: Dropping SNStatusTransfer. UE context does not exist", ue_index);
+    return;
+  }
+
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
+
+  xnap_message xnap_msg = {};
+  xnap_msg.pdu.set_init_msg();
+  xnap_msg.pdu.init_msg().load_info_obj(ASN1_XNAP_ID_S_N_STATUS_TRANSFER);
+
+  sn_status_transfer_s& asn1_sn_status           = xnap_msg.pdu.init_msg().value.sn_status_transfer();
+  asn1_sn_status->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(ue_ctxt.ue_ids.local_xnap_ue_id);
+  asn1_sn_status->target_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(ue_ctxt.ue_ids.peer_xnap_ue_id);
+
+  sn_status_transfer_to_asn1(asn1_sn_status, sn_status_transfer.drbs_subject_to_status_transfer_list);
+
+  // Forward message to XN-C peer CU-CP.
+  if (!tx_notifier.on_new_message(xnap_msg)) {
+    ue_ctxt.logger.log_warning("XN-C association is not set. Cannot send SNStatusTransfer");
+    return;
+  }
 }
 
 async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer_expected(ue_index_t ue_index)

@@ -52,8 +52,12 @@ public:
   /// \brief Handle the reception of a new RRC Handover Command.
   /// \param[in] ue_index The index of the UE that received the RRC Handover Command.
   /// \param[in] command The received RRC container containing the Handover Command.
+  /// \param[in] xnc_index The XN-C index if the handover is a XN-C handover, std::nullopt otherwise.
   /// \returns True if the RRC Handover Command was successfully handled, false otherwise.
-  virtual async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
+  virtual async_task<bool>
+  handle_new_rrc_handover_command(ue_index_t                      ue_index,
+                                  byte_buffer                     command,
+                                  std::optional<xnc_peer_index_t> xnc_index = std::nullopt) = 0;
 
   /// \brief Handles UE index allocation request for N2 handover at target gNB.
   virtual ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) = 0;

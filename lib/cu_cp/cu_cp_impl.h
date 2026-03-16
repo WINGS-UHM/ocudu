@@ -114,7 +114,9 @@ public:
   void handle_n2_disconnection(amf_index_t amf_index) override;
 
   // cu_cp_inter_cu_handover_handler.
-  async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override;
+  async_task<bool> handle_new_rrc_handover_command(ue_index_t                      ue_index,
+                                                   byte_buffer                     command,
+                                                   std::optional<xnc_peer_index_t> xnc_index = std::nullopt) override;
   ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override;
   bool       handle_handover_request(ue_index_t                        ue_index,
                                      const plmn_identity&              selected_plmn,

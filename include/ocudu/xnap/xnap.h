@@ -48,6 +48,9 @@ public:
   virtual async_task<xnap_handover_preparation_response>
   handle_handover_request_required(const xnap_handover_request& request) = 0;
 
+  /// \brief Initiate the transmission of a SN Status Transfer message as defined in TS 38.423 section 9.1.1.4.
+  virtual void handle_sn_status_transfer_required(const cu_cp_status_transfer& sn_status_transfer) = 0;
+
   /// \brief Prepares the reception of a SN status transfer message.
   virtual async_task<expected<cu_cp_status_transfer>> handle_sn_status_transfer_expected(ue_index_t ue_index) = 0;
 };

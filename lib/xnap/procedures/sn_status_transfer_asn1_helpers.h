@@ -58,4 +58,37 @@ inline bool asn1_to_sn_status_transfer(cu_cp_status_transfer&                  s
   return true;
 }
 
+/// \brief Convert the SN Status Transfer struct to ASN.1.
+/// \param[out] asn1_msg The SN Status Transfer ASN1 struct to fill.
+/// \param[in] drb_list The list of DRB status transfer information.
+inline void
+sn_status_transfer_to_asn1(asn1::xnap::sn_status_transfer_s&                                              asn1_msg,
+                           const slotted_id_vector<drb_id_t, cu_cp_drbs_subject_to_status_transfer_item>& drb_list)
+{
+  asn1::xnap::drbs_subject_to_status_transfer_list_l& asn1_drb_list = asn1_msg->drbs_subject_to_status_transfer_list;
+  for (const cu_cp_drbs_subject_to_status_transfer_item& drb : drb_list) {
+    asn1::xnap::drbs_subject_to_status_transfer_item_s asn1_drb_item = {};
+    asn1_drb_item.drb_id                                             = drb_id_to_uint(drb.drb_id);
+    if (drb.drb_status_ul.sn_size == pdcp_sn_size::size12bits) {
+      asn1_drb_item.pdcp_status_transfer_ul.set_pdcp_sn_12bits();
+      asn1_drb_item.pdcp_status_transfer_ul.pdcp_sn_12bits().count_value.hfn_pdcp_sn12 = drb.drb_status_ul.ul_count.hfn;
+      asn1_drb_item.pdcp_status_transfer_ul.pdcp_sn_12bits().count_value.pdcp_sn12     = drb.drb_status_ul.ul_count.sn;
+    } else {
+      asn1_drb_item.pdcp_status_transfer_ul.set_pdcp_sn_18bits();
+      asn1_drb_item.pdcp_status_transfer_ul.pdcp_sn_18bits().count_value.hfn_pdcp_sn18 = drb.drb_status_ul.ul_count.hfn;
+      asn1_drb_item.pdcp_status_transfer_ul.pdcp_sn_18bits().count_value.pdcp_sn18     = drb.drb_status_ul.ul_count.sn;
+    }
+    if (drb.drb_status_dl.sn_size == pdcp_sn_size::size12bits) {
+      asn1_drb_item.pdcp_status_transfer_dl.set_pdcp_sn_12bits();
+      asn1_drb_item.pdcp_status_transfer_dl.pdcp_sn_12bits().count_value.hfn_pdcp_sn12 = drb.drb_status_dl.dl_count.hfn;
+      asn1_drb_item.pdcp_status_transfer_dl.pdcp_sn_12bits().count_value.pdcp_sn12     = drb.drb_status_dl.dl_count.sn;
+    } else {
+      asn1_drb_item.pdcp_status_transfer_dl.set_pdcp_sn_18bits();
+      asn1_drb_item.pdcp_status_transfer_dl.pdcp_sn_18bits().count_value.hfn_pdcp_sn18 = drb.drb_status_dl.dl_count.hfn;
+      asn1_drb_item.pdcp_status_transfer_dl.pdcp_sn_18bits().count_value.pdcp_sn18     = drb.drb_status_dl.dl_count.sn;
+    }
+    asn1_drb_list.push_back(asn1_drb_item);
+  }
+}
+
 } // namespace ocudu::ocucp

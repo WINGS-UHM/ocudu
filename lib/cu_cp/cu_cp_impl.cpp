@@ -37,6 +37,7 @@
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/time/radio_frame.h"
+#include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/async/coroutine.h"
 #include "ocudu/support/synchronization/sync_event.h"
 #include "ocudu/xnap/xnap.h"
@@ -921,7 +922,9 @@ void cu_cp_impl::handle_transmission_of_handover_required()
   mobility_mng.get_metrics_handler().aggregate_requested_handover_preparation();
 }
 
-async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command)
+async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t                      ue_index,
+                                                             byte_buffer                     command,
+                                                             std::optional<xnc_peer_index_t> xnc_index)
 {
   // Notify mobility manager metrics handler about the successful handover preparation.
   mobility_mng.get_metrics_handler().aggregate_successful_handover_preparation();
@@ -929,21 +932,25 @@ async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t ue_index
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
   if (ue == nullptr) {
     logger.warning("ue={}: UE not found for handover command handling", ue_index);
-    return launch_async([](coro_context<async_task<bool>>& ctx) {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(false);
-    });
+    return launch_no_op_task(false);
   }
   ngap_interface* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
   if (ngap == nullptr) {
     logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
-    return launch_async([](coro_context<async_task<bool>>& ctx) {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(false);
-    });
+    return launch_no_op_task(false);
   }
+
+  xnap_interface* xnap = nullptr;
+  if (xnc_index.has_value()) {
+    xnap = xnap_db.find_xnap(xnc_index.value());
+    if (xnap == nullptr) {
+      logger.warning("ue={}: XNC with index {} not found for handover command handling", ue_index, xnc_index.value());
+      return launch_no_op_task(false);
+    }
+  }
+
   return launch_async<inter_cu_handover_source_routine>(
-      ue_index, std::move(command), ue_mng, du_db, cu_up_db, ngap->get_ngap_control_message_handler(), logger);
+      ue_index, std::move(command), ue_mng, du_db, cu_up_db, ngap->get_ngap_control_message_handler(), xnap, logger);
 }
 
 async_task<cu_cp_handover_resource_allocation_response>

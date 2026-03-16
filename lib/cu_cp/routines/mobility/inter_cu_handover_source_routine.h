@@ -22,6 +22,7 @@ public:
                                    du_processor_repository&      du_db_,
                                    cu_up_processor_repository&   cu_up_db_,
                                    ngap_control_message_handler& ngap_,
+                                   xnap_interface*               xnap_,
                                    ocudulog::basic_logger&       logger_);
 
   void operator()(coro_context<async_task<bool>>& ctx);
@@ -30,7 +31,7 @@ public:
 
 private:
   void fill_e1ap_bearer_modification_request_pdcp_sn_query();
-  bool fill_ngap_ul_ran_status_transfer();
+  bool fill_status_transfer();
 
   ue_index_t                    ue_index;
   byte_buffer                   command;
@@ -38,6 +39,7 @@ private:
   du_processor_repository&      du_db;
   cu_up_processor_repository&   cu_up_db;
   ngap_control_message_handler& ngap;
+  xnap_interface*               xnap = nullptr;
 
   ocudulog::basic_logger& logger;
 
@@ -46,7 +48,7 @@ private:
   e1ap_bearer_context_modification_response bearer_mod_resp         = {};
   f1ap_ue_context_modification_response     ue_context_mod_response = {};
   f1ap_ue_context_modification_request      ue_context_mod_request  = {};
-  cu_cp_status_transfer                     ul_ran_status_transfer  = {};
+  cu_cp_status_transfer                     status_transfer         = {};
 };
 
 } // namespace ocudu::ocucp

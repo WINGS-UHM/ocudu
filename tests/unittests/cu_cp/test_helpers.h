@@ -829,9 +829,12 @@ struct dummy_cu_cp_xnap_handler : public cu_cp_xnap_handler {
 public:
   dummy_cu_cp_xnap_handler(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST")) {}
 
-  async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
+  async_task<bool> handle_new_rrc_handover_command(ue_index_t                      ue_index,
+                                                   byte_buffer                     command,
+                                                   std::optional<xnc_peer_index_t> xnc_index) override
   {
-    logger.info("ue={}: Received a new RRC Handover Command", ue_index);
+    logger.info(
+        "ue={}: Received a new RRC Handover Command for {} handover", ue_index, xnc_index.has_value() ? "XN" : "NG");
     last_handover_command = std::move(command);
     return launch_no_op_task(true);
   }

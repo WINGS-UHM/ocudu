@@ -30,7 +30,7 @@ xnap_interface* xnap_repository::add_xnap(xnc_peer_index_t               xnc_ind
   ocudu_assert(it.second, "Unable to insert XNAP in map");
   xnap_context& xnap_ctxt = it.first->second;
   xnap_ctxt.peer_addr     = peer_addr;
-  xnap_ctxt.xnap_to_cu_cp_notifier.connect_cu_cp(cfg.cu_cp_notifier);
+  xnap_ctxt.xnap_to_cu_cp_notifier.connect_cu_cp(cfg.cu_cp_notifier, xnc_index);
 
   // Create XNAP object with initial Tx notifier. The notifier will be replaced with the one from the association once
   // the association is established.

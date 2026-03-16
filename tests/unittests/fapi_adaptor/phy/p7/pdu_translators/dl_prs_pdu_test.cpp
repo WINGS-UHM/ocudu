@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "message_builder_helpers.h"
+#include "../message_builder_helpers.h"
 #include "prs.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/phy/upper/signal_processors/prs/prs_generator_configuration.h"

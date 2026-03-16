@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "../../../fapi/message_builder_helpers.h"
 #include "../../../phy/support/resource_grid_test_doubles.h"
 #include "../../../phy/upper/downlink_processor_test_doubles.h"
 #include "../../../phy/upper/uplink_request_processor_test_doubles.h"
 #include "fapi_to_phy_fastpath_translator.h"
+#include "message_builder_helpers.h"
 #include "ocudu/fapi_adaptor/precoding_matrix_table_generator.h"
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
 #include "ocudu/phy/support/resource_grid_pool.h"
@@ -37,7 +37,7 @@ public:
 
   bool has_on_error_indication_been_called() const { return error_indication_detected; }
 
-  const fapi::error_indication get_message() const { return message; }
+  const fapi::error_indication& get_message() const { return message; }
 };
 
 class downlink_pdu_validator_dummy : public downlink_pdu_validator

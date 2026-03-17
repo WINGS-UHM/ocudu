@@ -803,7 +803,7 @@ void pdcp_entity_tx::configure_security(security::sec_128_as_config sec_cfg,
   // integrity protection algorithm is used, 'NULL' ciphering algorithm is also used.
   // Ref: TS 38.331 Sec. 5.3.1.2
   //
-  // From TS 38.501 Sec. 6.7.3.6: UEs that are in limited service mode (LSM) and that cannot be authenticated (...)
+  // From TS 33.501 Sec. 6.7.3.6: UEs that are in limited service mode (LSM) and that cannot be authenticated (...)
   // may still be allowed to establish emergency session by sending the emergency registration request message. (...)
   if ((sec_cfg.integ_algo == security::integrity_algorithm::nia0) &&
       (!is_srb() || sec_cfg.cipher_algo != security::ciphering_algorithm::nea0)) {

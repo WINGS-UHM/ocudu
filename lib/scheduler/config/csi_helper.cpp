@@ -196,7 +196,7 @@ static zp_csi_rs_resource make_default_zp_csi_rs_resource(const csi_meas_config_
 
   zp_csi_rs_resource res{};
   res.id = static_cast<zp_csi_rs_res_id_t>(0);
-  // [Implementation-defined] The reason for using row 4 of Table 7.4.1.5.3-1 in TS 38.221 even in case of nof. ports <
+  // [Implementation-defined] The reason for using row 4 of Table 7.4.1.5.3-1 in TS 38.211 even in case of nof. ports <
   // 4 is due to some RUs not supporting more than 1 ZP CSI-RS resource per symbol. Also, the specification does not
   // restrict from using row 4 even in case of nof. ports < 4.
   // Freq Alloc -> Row4.

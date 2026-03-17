@@ -327,7 +327,7 @@ protected:
   void generate_sr_for_ue(du_ue_index_t ue_idx, slot_point sl)
   {
     // Notification from upper layers of UL .
-    bench->ue_db[ue_idx].handle_sr_indication();
+    bench->ue_db[ue_idx].handle_sr_indication(current_slot);
 
     // Notify scheduler of SR.
     bench->fallback_sched.handle_sr_indication(ue_idx);

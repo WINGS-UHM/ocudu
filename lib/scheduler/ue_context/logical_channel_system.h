@@ -324,6 +324,8 @@ private:
   struct ue_ul_channel_context {
     /// Context of logical channel groups (LCGs) currently configured.
     static_flat_map<lcg_id_t, soa::row_id, MAX_NOF_LCGS> lcgs;
+    /// Slot at which the oldest, unserved SR indication was received for this UE.
+    slot_point oldest_sr_sl_rx;
   };
   /// UE context relative to its DL state.
   struct ue_context {
@@ -376,6 +378,10 @@ private:
   handle_dl_buffer_status_indication(soa::row_id ue_row_id, lcid_t lcid, unsigned buffer_status, slot_point hol_toa);
   void handle_mac_ce_indication(soa::row_id ue_row_id, const mac_ce_info& ce);
   void handle_bsr_indication(soa::row_id ue_row_id, const ul_bsr_indication_message& bsr);
+
+  void       handle_sr_indication(soa::row_id ue_row_id, slot_point uci_slot);
+  void       reset_sr_indication(soa::row_id ue_row_id);
+  slot_point pending_sr_slot_rx(soa::row_id ue_row_id) const;
 
   unsigned allocate_mac_sdu(soa::row_id ue_rid, dl_msg_lc_info& subpdu, lcid_t lcid, unsigned rem_bytes);
   unsigned allocate_mac_sdu(soa::row_id ue_rid, dl_msg_lc_info& lch_info, unsigned rem_bytes, lcid_t lcid);
@@ -459,6 +465,9 @@ public:
   /// \brief Checks whether a SR indication handling is pending.
   [[nodiscard]] bool has_pending_sr() const { return parent->ues_with_pending_sr.test(ue_index); }
 
+  /// UCI slot since which the SR is pending.
+  [[nodiscard]] slot_point pending_sr_slot_rx() const;
+
   /// \brief Enqueue new MAC CE to be scheduled.
   void handle_mac_ce_indication(const mac_ce_info& ce);
 
@@ -500,6 +509,7 @@ public:
   // inherited methods
   using ue_logical_channel_repository_view::handle_mac_ce_indication;
   using ue_logical_channel_repository_view::has_pending_sr;
+  using ue_logical_channel_repository_view::pending_sr_slot_rx;
   using ue_logical_channel_repository_view::valid;
 
   ue_logical_channel_repository()                                     = default;
@@ -792,7 +802,8 @@ public:
   void handle_bsr_indication(const ul_bsr_indication_message& msg);
 
   /// \brief Indicate that the UE requested an UL grant.
-  void handle_sr_indication();
+  /// \param[in] uci_slot Slot at which SR was received.
+  void handle_sr_indication(slot_point uci_slot);
 
   /// \brief Allocates highest priority MAC SDU within space of \c rem_bytes bytes. Updates \c lch_info with allocated
   /// bytes for the MAC SDU (no MAC subheader).

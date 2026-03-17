@@ -527,7 +527,7 @@ ue_cell_event_manager::event_result ue_cell_event_manager::handle_uci_pdu(slot_p
   // Process SRs.
   if (action->sr_detected) {
     // Handle SR indication.
-    u.handle_sr_indication();
+    u.handle_sr_indication(uci_sl);
 
     if (ue_cc->is_in_fallback_mode()) {
       fallback_sched.handle_sr_indication(ue_cc->ue_index);
@@ -914,7 +914,7 @@ void ue_cell_event_manager::handle_uci_indication_timeout(slot_point uci_slot, r
 
   // Forward SR indication, if pending.
   if (action.sr_detected) {
-    u->handle_sr_indication();
+    u->handle_sr_indication(uci_slot);
 
     if (ue_cc->is_in_fallback_mode()) {
       fallback_sched.handle_sr_indication(ue_cc->ue_index);

@@ -67,7 +67,7 @@ public:
   void activate_cells(bounded_bitset<MAX_NOF_DU_CELLS> activ_bitmap) {}
 
   /// \brief Handle received SR indication.
-  void handle_sr_indication() { lc_ch_mgr.handle_sr_indication(); }
+  void handle_sr_indication(slot_point uci_slot) { lc_ch_mgr.handle_sr_indication(uci_slot); }
 
   /// \brief Handles received BSR indication by updating UE UL logical channel states.
   void handle_bsr_indication(const ul_bsr_indication_message& msg) { lc_ch_mgr.handle_bsr_indication(msg); }

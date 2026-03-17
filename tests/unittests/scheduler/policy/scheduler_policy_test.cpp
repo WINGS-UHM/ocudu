@@ -316,7 +316,7 @@ TEST_P(scheduler_policy_test, scheduler_allocates_ues_with_sr_opportunity_first_
   ue&       u2     = add_ue(make_ue_create_req(to_du_ue_index(1), to_rnti(0x4602), {uint_to_lcid(5)}, lcg_id));
 
   notify_ul_bsr(u1.ue_index, lcg_id, 200);
-  u2.handle_sr_indication();
+  u2.handle_sr_indication(next_slot);
 
   run_slot();
 
@@ -531,7 +531,7 @@ TEST_F(scheduler_round_robin_test, round_robin_must_not_attempt_to_allocate_twic
   // Action: Push buffer status notification for DL + Ul and a SR indication.
   push_dl_bs(u1.ue_index, uint_to_lcid(5), 20000000);
   notify_ul_bsr(u1.ue_index, lcg_id, 2000000);
-  u1.handle_sr_indication();
+  u1.handle_sr_indication(next_slot);
 
   // Action: Run for at least 256 slots or more so that there are some HARQs with pending reTx.
   // Status: Policy scheduler should not allocate reTx and new Tx for the same UE at the same time.

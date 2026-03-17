@@ -364,7 +364,7 @@ TEST_P(ue_grid_allocator_default_cfg_test, does_not_allocate_pusch_with_all_rema
   ue_creation_req.crnti    = to_rnti(0x4601);
   ue& u1                   = add_ue(ue_creation_req);
   // Trigger a SR indication.
-  u1.handle_sr_indication();
+  u1.handle_sr_indication(current_slot);
 
   const crb_interval cell_crbs = {cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.start(),
                                   cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.stop()};

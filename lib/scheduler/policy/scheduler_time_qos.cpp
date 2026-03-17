@@ -324,11 +324,21 @@ static double compute_dl_qos_weights(const slice_ue&                  u,
 static double compute_ul_qos_weights(const slice_ue&                  u,
                                      double                           estim_ul_rate,
                                      double                           avg_ul_rate,
-                                     const time_qos_scheduler_config& policy_params)
+                                     const time_qos_scheduler_config& policy_params,
+                                     slot_point                       pusch_slot)
 {
-  if (u.has_pending_sr() or avg_ul_rate == 0) {
-    // Highest priority to SRs and UEs that have not yet received any allocation.
+  if (avg_ul_rate == 0) {
+    // Highest priority to UEs that have not yet received any allocation.
     return max_sched_priority;
+  }
+
+  if (u.has_pending_sr()) {
+    // High priority given to UEs that have pending SRs, prioritizing those with the oldest SRs.
+    // We subtract to \c max_sched_priority a factor that is a multiple of \c slot_prio_sub and proportional to the
+    // the slot diffence between pusch_slot and the slot at which the SR was received.
+    static constexpr double slot_prio_coeff = 1e-6;
+    auto                    slot_diff       = pusch_slot - u.pending_sr_slot_rx();
+    return max_sched_priority - (pusch_slot.nof_slots_per_hyper_system_frame() - slot_diff) * slot_prio_coeff;
   }
 
   static constexpr uint16_t max_combined_prio_level = qos_prio_level_t::max() * arp_prio_level_t::max();
@@ -412,5 +422,5 @@ ue_sched_priority scheduler_time_qos::compute_ul_prio(const slice_ue& u, slot_po
   const double current_avg_rate = ue_history_db[u.ue_index()].ul_avg_rate();
 
   // Compute LC weight function.
-  return compute_ul_qos_weights(u, estimated_max_tbs, current_avg_rate, params);
+  return compute_ul_qos_weights(u, estimated_max_tbs, current_avg_rate, params, pusch_slot);
 }

@@ -57,25 +57,28 @@ struct two_arg_pod {
 // Compile-time checks
 // ---------------------------------------------------------------------------
 
-static_assert(std::is_default_constructible_v<type_list_buffer<int, float>>);
-static_assert(std::is_move_constructible_v<type_list_buffer<int, float>>);
-static_assert(std::is_copy_constructible_v<type_list_buffer<int, float>>);
+static_assert(std::is_default_constructible_v<dyn_type_list_buffer<int, float>>);
+static_assert(std::is_move_constructible_v<dyn_type_list_buffer<int, float>>);
+static_assert(std::is_copy_constructible_v<dyn_type_list_buffer<int, float>>);
+
+static_assert(!std::is_copy_constructible_v<static_type_list_buffer<int, float>>);
+static_assert(std::is_move_constructible_v<static_type_list_buffer<int, float>>);
 
 // ---------------------------------------------------------------------------
-// Tests
+// dyn_type_list_buffer tests
 // ---------------------------------------------------------------------------
 
-TEST(type_list_buffer, default_ctor_is_empty)
+TEST(dyn_type_list_buffer, default_ctor_is_empty)
 {
-  type_list_buffer<int, float, double> buf;
+  dyn_type_list_buffer<int, float, double> buf;
   ASSERT_TRUE(buf.empty());
   ASSERT_EQ(buf.size(), 0u);
   ASSERT_EQ(buf.byte_size(), 0u);
 }
 
-TEST(type_list_buffer, push_single_type_and_visit)
+TEST(dyn_type_list_buffer, push_single_type_and_visit)
 {
-  type_list_buffer<int> buf;
+  dyn_type_list_buffer<int> buf;
   buf.push(42);
   ASSERT_EQ(buf.size(), 1u);
 
@@ -85,9 +88,9 @@ TEST(type_list_buffer, push_single_type_and_visit)
   ASSERT_EQ(visited[0], 42);
 }
 
-TEST(type_list_buffer, push_multiple_types_preserves_order)
+TEST(dyn_type_list_buffer, push_multiple_types_preserves_order)
 {
-  type_list_buffer<small_pod, int, large_pod> buf;
+  dyn_type_list_buffer<small_pod, int, large_pod> buf;
 
   buf.push(small_pod{7});
   buf.push(1234);
@@ -117,9 +120,9 @@ TEST(type_list_buffer, push_multiple_types_preserves_order)
   ASSERT_EQ(kinds[4], 1);
 }
 
-TEST(type_list_buffer, visited_values_are_correct)
+TEST(dyn_type_list_buffer, visited_values_are_correct)
 {
-  type_list_buffer<small_pod, int, large_pod> buf;
+  dyn_type_list_buffer<small_pod, int, large_pod> buf;
   buf.push(small_pod{3});
   buf.push(-7);
   buf.push(large_pod{100, 200});
@@ -144,22 +147,22 @@ TEST(type_list_buffer, visited_values_are_correct)
   ASSERT_EQ(lp, (large_pod{100, 200}));
 }
 
-TEST(type_list_buffer, smaller_types_occupy_less_space_than_largest)
+TEST(dyn_type_list_buffer, smaller_types_occupy_less_space_than_largest)
 {
   // A single small_pod (1 byte) + uint8_t type index = 2 bytes.
   // A single large_pod (16 bytes) + uint8_t type index = 17 bytes.
   // Together: at most 2 + 17 = 19 bytes (ignoring any 1-byte alignment padding).
   // A variant<small_pod, large_pod>[2] would need 2 * (16 + 1) = 34 bytes.
-  type_list_buffer<small_pod, large_pod> buf;
+  dyn_type_list_buffer<small_pod, large_pod> buf;
   buf.push(small_pod{1});
   buf.push(large_pod{0, 0});
 
   ASSERT_LT(buf.byte_size(), 2 * (sizeof(large_pod) + sizeof(uint8_t)));
 }
 
-TEST(type_list_buffer, alignment_is_respected)
+TEST(dyn_type_list_buffer, alignment_is_respected)
 {
-  type_list_buffer<uint8_t, aligned8> buf;
+  dyn_type_list_buffer<uint8_t, aligned8> buf;
   buf.push(uint8_t{0xAB});
   buf.emplace<aligned8>(aligned8{0, 1, 2, 3, 4, 5, 6, 7});
 
@@ -173,9 +176,9 @@ TEST(type_list_buffer, alignment_is_respected)
   ASSERT_EQ(out, (aligned8{0, 1, 2, 3, 4, 5, 6, 7}));
 }
 
-TEST(type_list_buffer, mutable_for_each_allows_modification)
+TEST(dyn_type_list_buffer, mutable_for_each_allows_modification)
 {
-  type_list_buffer<int, float> buf;
+  dyn_type_list_buffer<int, float> buf;
   buf.push(10);
   buf.push(2.5f);
   buf.push(20);
@@ -199,9 +202,9 @@ TEST(type_list_buffer, mutable_for_each_allows_modification)
   ASSERT_EQ(ints[1], 40);
 }
 
-TEST(type_list_buffer, clear_resets_buffer)
+TEST(dyn_type_list_buffer, clear_resets_buffer)
 {
-  type_list_buffer<int, double> buf;
+  dyn_type_list_buffer<int, double> buf;
   buf.push(1);
   buf.push(2.0);
   ASSERT_EQ(buf.size(), 2u);
@@ -216,11 +219,11 @@ TEST(type_list_buffer, clear_resets_buffer)
   ASSERT_EQ(buf.size(), 1u);
 }
 
-TEST(type_list_buffer, non_trivial_destructors_are_called_on_clear)
+TEST(dyn_type_list_buffer, non_trivial_destructors_are_called_on_clear)
 {
   counted::reset();
   {
-    type_list_buffer<counted, int> buf;
+    dyn_type_list_buffer<counted, int> buf;
     buf.emplace<counted>(1);
     buf.push(0);
     buf.emplace<counted>(2);
@@ -239,11 +242,11 @@ TEST(type_list_buffer, non_trivial_destructors_are_called_on_clear)
   ASSERT_EQ(counted::destructions, counted::constructions);
 }
 
-TEST(type_list_buffer, non_trivial_destructors_called_on_scope_exit)
+TEST(dyn_type_list_buffer, non_trivial_destructors_called_on_scope_exit)
 {
   counted::reset();
   {
-    type_list_buffer<counted, int> buf;
+    dyn_type_list_buffer<counted, int> buf;
     buf.emplace<counted>(10);
     buf.emplace<counted>(20);
     // Relocation during growth may add extra move-constructions; two objects must be alive.
@@ -253,14 +256,14 @@ TEST(type_list_buffer, non_trivial_destructors_called_on_scope_exit)
   ASSERT_EQ(counted::destructions, counted::constructions);
 }
 
-TEST(type_list_buffer, copy_ctor_produces_independent_copy)
+TEST(dyn_type_list_buffer, copy_ctor_produces_independent_copy)
 {
-  type_list_buffer<int, float> original;
+  dyn_type_list_buffer<int, float> original;
   original.push(1);
   original.push(3.14f);
   original.push(2);
 
-  type_list_buffer<int, float> copy = original;
+  dyn_type_list_buffer<int, float> copy = original;
 
   ASSERT_EQ(copy.size(), original.size());
 
@@ -283,17 +286,17 @@ TEST(type_list_buffer, copy_ctor_produces_independent_copy)
   ASSERT_EQ(copy_ints[1], 2);
 }
 
-TEST(type_list_buffer, copy_ctor_calls_copy_constructor_for_non_trivial_types)
+TEST(dyn_type_list_buffer, copy_ctor_calls_copy_constructor_for_non_trivial_types)
 {
   counted::reset();
   {
-    type_list_buffer<counted, int> src;
+    dyn_type_list_buffer<counted, int> src;
     src.emplace<counted>(5);
     src.push(0);
 
     int constructions_before_copy = counted::constructions;
 
-    type_list_buffer<counted, int> dst = src;
+    dyn_type_list_buffer<counted, int> dst = src;
     ASSERT_EQ(counted::constructions, constructions_before_copy + 1);
 
     // Both src and dst hold one counted; both destructors must fire.
@@ -301,24 +304,24 @@ TEST(type_list_buffer, copy_ctor_calls_copy_constructor_for_non_trivial_types)
   ASSERT_EQ(counted::destructions, counted::constructions);
 }
 
-TEST(type_list_buffer, move_ctor_transfers_ownership)
+TEST(dyn_type_list_buffer, move_ctor_transfers_ownership)
 {
-  type_list_buffer<int, double> buf;
+  dyn_type_list_buffer<int, double> buf;
   buf.push(7);
   buf.push(3.0);
   const size_t orig_size    = buf.size();
   const size_t orig_byte_sz = buf.byte_size();
 
-  type_list_buffer<int, double> moved = std::move(buf);
+  dyn_type_list_buffer<int, double> moved = std::move(buf);
 
   ASSERT_EQ(moved.size(), orig_size);
   ASSERT_EQ(moved.byte_size(), orig_byte_sz);
 }
 
-TEST(type_list_buffer, emplace_constructs_in_place)
+TEST(dyn_type_list_buffer, emplace_constructs_in_place)
 {
   // Verifies that emplace forwards arguments to the object constructor.
-  type_list_buffer<two_arg_pod, int> buf;
+  dyn_type_list_buffer<two_arg_pod, int> buf;
   buf.emplace<two_arg_pod>(two_arg_pod{42u, 99u});
   buf.push(0);
 
@@ -344,9 +347,9 @@ struct self_ref {
   bool valid() const noexcept { return self == &value; }
 };
 
-TEST(type_list_buffer, non_trivially_relocatable_survives_growth)
+TEST(dyn_type_list_buffer, non_trivially_relocatable_survives_growth)
 {
-  type_list_buffer<self_ref> buf;
+  dyn_type_list_buffer<self_ref> buf;
   // Push enough elements to guarantee several reallocations.
   for (int i = 0; i < 64; ++i) {
     buf.emplace<self_ref>(i);
@@ -360,9 +363,9 @@ TEST(type_list_buffer, non_trivially_relocatable_survives_growth)
   ASSERT_EQ(idx, 64);
 }
 
-TEST(type_list_buffer, push_and_emplace_return_reference_to_stored_object)
+TEST(dyn_type_list_buffer, push_and_emplace_return_reference_to_stored_object)
 {
-  type_list_buffer<int, std::string> buf;
+  dyn_type_list_buffer<int, std::string> buf;
 
   int& i = buf.emplace<int>(7);
   ASSERT_EQ(i, 7);
@@ -377,10 +380,11 @@ TEST(type_list_buffer, push_and_emplace_return_reference_to_stored_object)
   std::vector<std::string> strs;
   buf.for_each([&](const auto& obj) {
     using T = std::decay_t<decltype(obj)>;
-    if constexpr (std::is_same_v<T, int>)
+    if constexpr (std::is_same_v<T, int>) {
       ints.push_back(obj);
-    else if constexpr (std::is_same_v<T, std::string>)
+    } else if constexpr (std::is_same_v<T, std::string>) {
       strs.push_back(obj);
+    }
   });
   ASSERT_EQ(ints.size(), 1u);
   ASSERT_EQ(ints[0], 99);
@@ -388,10 +392,10 @@ TEST(type_list_buffer, push_and_emplace_return_reference_to_stored_object)
   ASSERT_EQ(strs[0], "hello world");
 }
 
-TEST(type_list_buffer, large_number_of_elements)
+TEST(dyn_type_list_buffer, large_number_of_elements)
 {
-  type_list_buffer<uint8_t, uint32_t> buf;
-  constexpr int                       num_elements = 1000;
+  dyn_type_list_buffer<uint8_t, uint32_t> buf;
+  constexpr int                           num_elements = 1000;
   for (int i = 0; i < num_elements; ++i) {
     if (i % 2 == 0) {
       buf.push(static_cast<uint8_t>(i & 0xFF));
@@ -404,4 +408,127 @@ TEST(type_list_buffer, large_number_of_elements)
   int count = 0;
   buf.for_each([&](const auto&) { ++count; });
   ASSERT_EQ(count, num_elements);
+}
+
+// ---------------------------------------------------------------------------
+// static_type_list_buffer tests
+// ---------------------------------------------------------------------------
+
+TEST(static_type_list_buffer, basic_push_and_emplace)
+{
+  // Capacity: enough for one int and one float.
+  // int record:   type_idx(1 byte) + pad(3) + int(4)  = 8 bytes  (start=0, obj_pos=4)
+  // float record: type_idx(1 byte) + pad(3) + float(4) = 8 bytes (start=8, obj_pos=12)
+  static_type_list_buffer<int, float> buf(64);
+
+  int*   ip = buf.emplace<int>(42);
+  float* fp = buf.push(1.5f);
+
+  ASSERT_NE(ip, nullptr);
+  ASSERT_NE(fp, nullptr);
+  ASSERT_EQ(*ip, 42);
+  ASSERT_FLOAT_EQ(*fp, 1.5f);
+  ASSERT_EQ(buf.size(), 2u);
+}
+
+TEST(static_type_list_buffer, overflow_returns_nullptr)
+{
+  // Capacity = 1 byte: not enough even for the smallest record (needs at least 5 bytes for int).
+  static_type_list_buffer<int, float> buf(1);
+
+  int* p = buf.emplace<int>(7);
+  ASSERT_EQ(p, nullptr);
+  ASSERT_TRUE(buf.empty());
+  ASSERT_EQ(buf.size(), 0u);
+}
+
+TEST(static_type_list_buffer, overflow_after_partial_fill)
+{
+  // Capacity for exactly one int record (8 bytes); second push must fail.
+  static_type_list_buffer<int, float> buf(8);
+
+  int* first = buf.emplace<int>(10);
+  ASSERT_NE(first, nullptr);
+  ASSERT_EQ(*first, 10);
+
+  int* second = buf.emplace<int>(20);
+  ASSERT_EQ(second, nullptr);
+
+  // First element must still be intact.
+  ASSERT_EQ(buf.size(), 1u);
+  ASSERT_EQ(*first, 10);
+}
+
+TEST(static_type_list_buffer, for_each_visits_in_order)
+{
+  static_type_list_buffer<int, float> buf(64);
+
+  buf.emplace<int>(1);
+  buf.push(2.0f);
+  buf.emplace<int>(3);
+  buf.push(4.0f);
+
+  std::vector<int> order; // 0 = int, 1 = float
+  buf.for_each([&](const auto& obj) {
+    using T = std::decay_t<decltype(obj)>;
+    if constexpr (std::is_same_v<T, int>) {
+      order.push_back(0);
+    } else {
+      order.push_back(1);
+    }
+  });
+
+  ASSERT_EQ(order.size(), 4u);
+  ASSERT_EQ(order[0], 0);
+  ASSERT_EQ(order[1], 1);
+  ASSERT_EQ(order[2], 0);
+  ASSERT_EQ(order[3], 1);
+}
+
+TEST(static_type_list_buffer, references_remain_stable)
+{
+  static_type_list_buffer<int, float> buf(256);
+
+  int*   p0 = buf.emplace<int>(10);
+  float* p1 = buf.push(1.0f);
+  int*   p2 = buf.emplace<int>(20);
+  float* p3 = buf.push(2.0f);
+
+  ASSERT_NE(p0, nullptr);
+  ASSERT_NE(p1, nullptr);
+  ASSERT_NE(p2, nullptr);
+  ASSERT_NE(p3, nullptr);
+
+  // All pointers must still point to the original values after further insertions.
+  ASSERT_EQ(*p0, 10);
+  ASSERT_FLOAT_EQ(*p1, 1.0f);
+  ASSERT_EQ(*p2, 20);
+  ASSERT_FLOAT_EQ(*p3, 2.0f);
+}
+
+TEST(static_type_list_buffer, clear_destroys_and_allows_reuse)
+{
+  counted::reset();
+  {
+    static_type_list_buffer<counted, int> buf(256);
+
+    buf.emplace<counted>(1);
+    buf.push(0);
+    buf.emplace<counted>(2);
+
+    const int live = counted::constructions - counted::destructions;
+    ASSERT_EQ(live, 2);
+    const int dtors_before_clear = counted::destructions;
+
+    buf.clear();
+    ASSERT_EQ(counted::destructions, dtors_before_clear + 2);
+    ASSERT_TRUE(buf.empty());
+
+    // Buffer can be reused after clear.
+    auto* p = buf.emplace<counted>(99);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->value, 99);
+    ASSERT_EQ(buf.size(), 1u);
+  }
+  ASSERT_EQ(counted::destructions, counted::constructions);
 }

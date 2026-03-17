@@ -3,18 +3,186 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "scheduler_event_logger.h"
+#include "ocudu/adt/type_list_buffer.h"
 #include "ocudu/ran/csi_report/csi_report_formatters.h"
 #include "ocudu/ran/pusch/pusch_tpmi_formatter.h"
+#include "ocudu/support/format/custom_formattable.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
+#include "ocudu/support/memory_pool/bounded_object_pool.h"
 #include "fmt/std.h"
 
 using namespace ocudu;
+
+namespace {
+
+using sel = scheduler_event_logger;
+
+constexpr size_t slot_event_buffer_size = 2048;
+using slot_event_buffer                 = static_type_list_buffer<slot_event_buffer_size,
+                                                                   sel::prach_event,
+                                                                   sel::ue_creation_event,
+                                                                   sel::ue_reconf_event,
+                                                                   sched_ue_delete_message,
+                                                                   sel::ue_cfg_applied_event,
+                                                                   sel::ue_deactivation_event,
+                                                                   sel::crc_event>;
+
+/// Helper function to format a given event in info level.
+template <typename FormatContext, typename Event>
+void format_info_level(FormatContext& ctx, const Event& ev, bool first)
+{
+  const char* separator = first ? " " : ", ";
+  if constexpr (std::is_same_v<Event, sel::prach_event>) {
+    fmt::format_to(
+        ctx.out(), "{}prach(ra-rnti={} preamble={} tc-rnti={})", separator, ev.ra_rnti, ev.preamble_id, ev.tc_rnti);
+  } else if constexpr (std::is_same_v<Event, sel::error_indication_event>) {
+    fmt::format_to(ctx.out(), "{}ErrorIndication slot={}", separator, ev.sl_tx);
+  }
+}
+
+/// Helper function to format a given event in debug level.
+template <typename FormatContext, typename Event>
+void format_debug_level(FormatContext& ctx, const Event& ev)
+{
+  if constexpr (std::is_same_v<Event, sel::prach_event>) {
+    fmt::format_to(ctx.out(),
+                   "\n- PRACH: slot={} preamble={} ra-rnti={} temp_crnti={} ta_cmd={}",
+                   ev.slot_rx,
+                   ev.preamble_id,
+                   ev.ra_rnti,
+                   ev.tc_rnti,
+                   ev.ta);
+  } else if constexpr (std::is_same_v<Event, sel::ue_creation_event>) {
+    fmt::format_to(ctx.out(), "\n- UE creation: ue={} rnti={}", fmt::underlying(ev.ue_index), ev.rnti);
+  } else if constexpr (std::is_same_v<Event, sel::ue_reconf_event>) {
+    fmt::format_to(ctx.out(), "\n- UE reconfiguration: ue={} rnti={}", fmt::underlying(ev.ue_index), ev.rnti);
+  }
+}
+
+/// This class makes the slot event buffer copyable and formattable.
+struct slot_event_list {
+  slot_event_list() = default;
+  slot_event_list(bounded_rc_object_pool<slot_event_buffer>::ptr ptr_) : ptr(std::move(ptr_)) {}
+  slot_event_list(const slot_event_list& other) noexcept : ptr(other.ptr.clone()) {}
+  slot_event_list(slot_event_list&&) noexcept = default;
+  slot_event_list& operator=(const slot_event_list& other) noexcept
+  {
+    if (this != &other) {
+      ptr = other.ptr.clone();
+    }
+    return *this;
+  }
+  slot_event_list& operator=(slot_event_list&&) noexcept = default;
+
+  /// Format events in info level.
+  template <typename FormatContext>
+  auto format_info(FormatContext& ctx) const
+  {
+    ptr->for_each([&ctx, first = true](const auto& ev) mutable {
+      format_info_level(ctx, ev, first);
+      first = false;
+    });
+    return ctx.out();
+  }
+
+  /// Format events in debug level.
+  template <typename FormatContext>
+  auto format_debug(FormatContext& ctx) const
+  {
+    ptr->for_each([&ctx](const auto& ev) mutable { format_debug_level(ctx, ev); });
+    return ctx.out();
+  }
+
+private:
+  bounded_rc_object_pool<slot_event_buffer>::ptr ptr;
+};
+
+} // namespace
+
+namespace fmt {
+
+template <>
+struct formatter<slot_event_list> {
+  bool debug = false;
+
+  template <typename ParseContext>
+  auto parse(ParseContext& ctx)
+  {
+    auto it = ctx.begin();
+    while (it != ctx.end() and *it != '}') {
+      if (*it == 'd') {
+        debug = true;
+      }
+      ++it;
+    }
+    return it;
+  }
+
+  template <typename FormatContext>
+  auto format(const slot_event_list& obj, FormatContext& ctx) const
+  {
+    if (debug) {
+      obj.format_debug(ctx);
+    } else {
+      obj.format_info(ctx);
+    }
+    return ctx.out();
+  }
+};
+
+} // namespace fmt
+
+class scheduler_event_logger::event_buffer_writer
+{
+  using event_pool_type = bounded_rc_object_pool<slot_event_buffer>;
+
+public:
+  using ptr = event_pool_type::ptr;
+
+  event_buffer_writer(mode_t mode_, unsigned nof_buffers) : mode(mode_)
+  {
+    if (mode != none) {
+      pool.emplace(nof_buffers);
+      cur_buffer = pool->get();
+    }
+  }
+
+  template <typename EventType>
+  void push(const EventType& ev)
+  {
+    if (mode == none) {
+      return;
+    }
+    cur_buffer->push(ev);
+  }
+
+  /// Extract a formattable event list.
+  auto pop_event_list()
+  {
+    if (mode == mode_t::none) {
+      return slot_event_list{};
+    }
+
+    // Start a new current buffer.
+    slot_event_list p{std::move(cur_buffer)};
+    cur_buffer = pool->get();
+
+    // Make the previous buffer formattable.
+    return p;
+  }
+
+private:
+  mode_t                         mode = mode_t::none;
+  std::optional<event_pool_type> pool;
+  ptr                            cur_buffer;
+};
 
 scheduler_event_logger::scheduler_event_logger(du_cell_index_t cell_index_, pci_t pci_) :
   cell_index(cell_index_),
   pci(pci_),
   logger(ocudulog::fetch_basic_logger("SCHED")),
-  mode(logger.debug.enabled() ? mode_t::debug : (logger.info.enabled() ? mode_t::info : mode_t::none))
+  mode(logger.debug.enabled() ? mode_t::debug : (logger.info.enabled() ? mode_t::info : mode_t::none)),
+  slot_buffer_writer(std::make_unique<event_buffer_writer>(mode, 1024))
 {
   if (mode == debug) {
     fmt::format_to(std::back_inserter(fmtbuf), "\n- Cell creation: idx={} pci={}", fmt::underlying(cell_index), pci);
@@ -24,12 +192,16 @@ scheduler_event_logger::scheduler_event_logger(du_cell_index_t cell_index_, pci_
   }
 }
 
+scheduler_event_logger::~scheduler_event_logger() {}
+
 void scheduler_event_logger::log_impl()
 {
   if (mode == debug) {
+    logger.debug("Processed slot events pci={}:{:d}", pci, slot_buffer_writer->pop_event_list());
     logger.debug("Processed slot events pci={}:{}", pci, to_c_str(fmtbuf));
     fmtbuf.clear();
   } else if (mode == info) {
+    logger.info("Processed slot events pci={}:{:i}", pci, slot_buffer_writer->pop_event_list());
     logger.info("Processed slot events pci={}:{}", pci, to_c_str(fmtbuf));
     fmtbuf.clear();
   }
@@ -37,6 +209,7 @@ void scheduler_event_logger::log_impl()
 
 void scheduler_event_logger::enqueue_impl(const prach_event& rach_ev)
 {
+  slot_buffer_writer->push(rach_ev);
   if (mode == debug) {
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- PRACH: slot={} pci={} preamble={} ra-rnti={} temp_crnti={} ta_cmd={}",
@@ -84,6 +257,7 @@ void scheduler_event_logger::enqueue_impl(const rach_indication_message& rach_in
 void scheduler_event_logger::enqueue_impl(const ue_creation_event& ue_request)
 {
   if (mode == debug) {
+    slot_buffer_writer->push(ue_request);
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- UE creation: ue={} rnti={} pci={}",
                    fmt::underlying(ue_request.ue_index),
@@ -95,6 +269,7 @@ void scheduler_event_logger::enqueue_impl(const ue_creation_event& ue_request)
 void scheduler_event_logger::enqueue_impl(const ue_reconf_event& ue_request)
 {
   if (mode == debug) {
+    slot_buffer_writer->push(ue_request);
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- UE reconfiguration: ue={} rnti={}",
                    fmt::underlying(ue_request.ue_index),

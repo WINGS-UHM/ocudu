@@ -94,6 +94,7 @@ public:
   };
 
   scheduler_event_logger(du_cell_index_t cell_index_, pci_t pci_);
+  ~scheduler_event_logger();
 
   void log()
   {
@@ -116,6 +117,8 @@ public:
 
 private:
   enum mode_t { none, info, debug };
+
+  class event_buffer_writer;
 
   const char* separator() const;
 
@@ -149,6 +152,8 @@ private:
   mode_t                  mode = none;
 
   fmt::memory_buffer fmtbuf;
+
+  std::unique_ptr<event_buffer_writer> slot_buffer_writer;
 };
 
 } // namespace ocudu

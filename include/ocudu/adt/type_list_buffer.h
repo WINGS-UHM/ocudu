@@ -46,7 +46,38 @@ struct type_list_dispatch {
     return found ? next_pos : ~size_t{0};
   }
 
+  /// Relocates a single stored element from \p src_buf to \p dst_buf using move construction.
+  /// \p pos is the start of the record (type-index bytes); \p after_idx is \p pos + sizeof(type_idx_t).
+  /// Returns the offset of the first byte after the element.
+  template <size_t... Is>
+  static size_t relocate(size_t   type_idx,
+                         size_t   pos,
+                         size_t   after_idx,
+                         uint8_t* src_buf,
+                         uint8_t* dst_buf,
+                         std::index_sequence<Is...> /*seq*/) noexcept
+  {
+    size_t     next_pos = 0;
+    const bool found =
+        ((type_idx == Is ? (next_pos = relocate_one<Is>(pos, after_idx, src_buf, dst_buf), true) : false) || ...);
+    return found ? next_pos : ~size_t{0};
+  }
+
 private:
+  template <size_t I>
+  static size_t relocate_one(size_t pos, size_t after_idx, uint8_t* src_buf, uint8_t* dst_buf) noexcept
+  {
+    using T              = type_list_helper::type_at_t<I, type_list<Types...>>;
+    const size_t obj_pos = align_up_v(after_idx, alignof(T));
+    // Copy header bytes (type_idx + zero padding) verbatim.
+    std::memcpy(dst_buf + pos, src_buf + pos, obj_pos - pos);
+    // Move-construct at destination, destroy at source.
+    T* src_obj = std::launder(reinterpret_cast<T*>(src_buf + obj_pos));
+    new (dst_buf + obj_pos) T(std::move(*src_obj));
+    src_obj->~T();
+    return obj_pos + sizeof(T);
+  }
+
   template <size_t I, typename Visitor>
   static size_t invoke(size_t after_idx, byte_ptr* buf, Visitor& v)
   {
@@ -94,20 +125,6 @@ class type_list_buffer
   using const_dispatch = detail::type_list_dispatch<true, Types...>;
   using mut_dispatch   = detail::type_list_dispatch<false, Types...>;
 
-  std::vector<uint8_t> buf;
-  size_t               nof_elements = 0;
-
-  /// Calls the destructor of every stored object (no-op if all types are trivially destructible).
-  void destroy_all() noexcept
-  {
-    if constexpr (!std::conjunction_v<std::is_trivially_destructible<Types>...>) {
-      for_each([](auto& obj) {
-        using T = std::decay_t<decltype(obj)>;
-        obj.~T();
-      });
-    }
-  }
-
 public:
   type_list_buffer() = default;
   ~type_list_buffer() { destroy_all(); }
@@ -151,23 +168,30 @@ public:
   size_t byte_size() const noexcept { return buf.size(); }
 
   /// Hint the backing buffer to reserve at least \p bytes of storage.
-  void reserve(size_t bytes) { buf.reserve(bytes); }
+  void reserve(size_t bytes)
+  {
+    if (bytes > buf.capacity()) {
+      grow_buffer(bytes);
+    }
+  }
 
   /// Appends a copy or move of \p val to the buffer.
   /// \tparam T must appear in \c Types.
+  /// \returns A reference to the newly stored element.
   template <typename T>
-  void push(T&& val)
+  std::decay_t<T>& push(T&& val)
   {
     using U = std::decay_t<T>;
     static_assert(type_list_helper::contains_v<U, Types...>,
                   "push(): T is not present in this type_list_buffer's type list");
-    emplace<U>(std::forward<T>(val));
+    return emplace<U>(std::forward<T>(val));
   }
 
   /// Constructs a \c T in-place at the end of the buffer.
   /// \tparam T must appear in \c Types.
+  /// \returns A reference to the newly constructed element.
   template <typename T, typename... Args>
-  void emplace(Args&&... args)
+  T& emplace(Args&&... args)
   {
     static_assert(type_list_helper::contains_v<T, Types...>,
                   "emplace(): T is not present in this type_list_buffer's type list");
@@ -176,7 +200,11 @@ public:
     const size_t         start   = buf.size();
     const size_t         obj_pos = detail::align_up_v(start + sizeof(type_idx_t), alignof(T));
 
-    buf.resize(obj_pos + sizeof(T));
+    const size_t new_size = obj_pos + sizeof(T);
+    if (new_size > buf.capacity()) {
+      grow_buffer(new_size);
+    }
+    buf.resize(new_size);
 
     std::memcpy(buf.data() + start, &idx, sizeof(type_idx_t));
 
@@ -185,8 +213,9 @@ public:
       std::memset(buf.data() + start + sizeof(type_idx_t), 0, pad);
     }
 
-    new (buf.data() + obj_pos) T(std::forward<Args>(args)...);
+    T* obj = new (buf.data() + obj_pos) T(std::forward<Args>(args)...);
     ++nof_elements;
+    return *obj;
   }
 
   /// Calls \p v once for every stored element in insertion order (const overload).
@@ -230,6 +259,59 @@ public:
     buf.clear();
     nof_elements = 0;
   }
+
+private:
+  /// Grows the backing buffer to at least \p required_capacity bytes, relocating live objects
+  /// via their move constructors when any stored type is not trivially copyable.
+  void grow_buffer(size_t required_capacity)
+  {
+    const size_t new_cap = std::max(required_capacity, buf.capacity() == 0 ? required_capacity : buf.capacity() * 2);
+
+    if constexpr (std::conjunction_v<std::is_trivially_copyable<Types>...>) {
+      // In case of trivially copyable types, relocate is trivial as well. We can just rely on the byte-wise copy
+      // of the std::vector when its buffer grows.
+      buf.reserve(new_cap);
+      return;
+    }
+
+    // Create a new buffer with the required capacity and size of the current buffer.
+    std::vector<uint8_t> new_buf;
+    new_buf.reserve(new_cap);
+    new_buf.resize(buf.size());
+
+    // Objects will be relocated from the old to the new buffer at the same offsets.
+    size_t pos = 0;
+    while (pos < buf.size()) {
+      // Fetch type index.
+      type_idx_t idx;
+      std::memcpy(&idx, buf.data() + pos, sizeof(type_idx_t));
+      const size_t after_idx = pos + sizeof(type_idx_t);
+
+      // Relocate.
+      pos = mut_dispatch::relocate(static_cast<size_t>(idx), pos, after_idx, buf.data(), new_buf.data(), idx_seq{});
+      ocudu_assert(pos != ~size_t{0}, "Corrupt type_list_buffer during grow_buffer");
+    }
+
+    // Old buffer is freed here.
+    buf = std::move(new_buf);
+  }
+
+  /// Calls the destructor of every stored object (no-op if all types are trivially destructible).
+  void destroy_all() noexcept
+  {
+    if constexpr (!std::conjunction_v<std::is_trivially_destructible<Types>...>) {
+      for_each([](auto& obj) {
+        using T = std::decay_t<decltype(obj)>;
+        obj.~T();
+      });
+    }
+  }
+
+  /// Memory buffer for stored objects.
+  std::vector<uint8_t> buf;
+
+  /// Number of objects currently stored in the buffer.
+  size_t nof_elements = 0;
 };
 
 } // namespace ocudu

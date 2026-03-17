@@ -68,9 +68,9 @@ static_assert(std::is_copy_constructible_v<type_list_buffer<int, float>>);
 TEST(type_list_buffer, default_ctor_is_empty)
 {
   type_list_buffer<int, float, double> buf;
-  EXPECT_TRUE(buf.empty());
-  EXPECT_EQ(buf.size(), 0u);
-  EXPECT_EQ(buf.byte_size(), 0u);
+  ASSERT_TRUE(buf.empty());
+  ASSERT_EQ(buf.size(), 0u);
+  ASSERT_EQ(buf.byte_size(), 0u);
 }
 
 TEST(type_list_buffer, push_single_type_and_visit)
@@ -82,7 +82,7 @@ TEST(type_list_buffer, push_single_type_and_visit)
   std::vector<int> visited;
   buf.for_each([&](int v) { visited.push_back(v); });
   ASSERT_EQ(visited.size(), 1u);
-  EXPECT_EQ(visited[0], 42);
+  ASSERT_EQ(visited[0], 42);
 }
 
 TEST(type_list_buffer, push_multiple_types_preserves_order)
@@ -95,7 +95,7 @@ TEST(type_list_buffer, push_multiple_types_preserves_order)
   buf.push(small_pod{99});
   buf.push(-1);
 
-  EXPECT_EQ(buf.size(), 5u);
+  ASSERT_EQ(buf.size(), 5u);
 
   // Use a reference-capturing lambda so accumulated state is visible after for_each returns.
   std::vector<int> kinds; // 0=small_pod, 1=int, 2=large_pod
@@ -110,11 +110,11 @@ TEST(type_list_buffer, push_multiple_types_preserves_order)
     }
   });
   ASSERT_EQ(kinds.size(), 5u);
-  EXPECT_EQ(kinds[0], 0);
-  EXPECT_EQ(kinds[1], 1);
-  EXPECT_EQ(kinds[2], 2);
-  EXPECT_EQ(kinds[3], 0);
-  EXPECT_EQ(kinds[4], 1);
+  ASSERT_EQ(kinds[0], 0);
+  ASSERT_EQ(kinds[1], 1);
+  ASSERT_EQ(kinds[2], 2);
+  ASSERT_EQ(kinds[3], 0);
+  ASSERT_EQ(kinds[4], 1);
 }
 
 TEST(type_list_buffer, visited_values_are_correct)
@@ -139,9 +139,9 @@ TEST(type_list_buffer, visited_values_are_correct)
     }
   });
 
-  EXPECT_EQ(sp, (small_pod{3}));
-  EXPECT_EQ(iv, -7);
-  EXPECT_EQ(lp, (large_pod{100, 200}));
+  ASSERT_EQ(sp, (small_pod{3}));
+  ASSERT_EQ(iv, -7);
+  ASSERT_EQ(lp, (large_pod{100, 200}));
 }
 
 TEST(type_list_buffer, smaller_types_occupy_less_space_than_largest)
@@ -154,7 +154,7 @@ TEST(type_list_buffer, smaller_types_occupy_less_space_than_largest)
   buf.push(small_pod{1});
   buf.push(large_pod{0, 0});
 
-  EXPECT_LT(buf.byte_size(), 2 * (sizeof(large_pod) + sizeof(uint8_t)));
+  ASSERT_LT(buf.byte_size(), 2 * (sizeof(large_pod) + sizeof(uint8_t)));
 }
 
 TEST(type_list_buffer, alignment_is_respected)
@@ -170,7 +170,7 @@ TEST(type_list_buffer, alignment_is_respected)
     }
   });
 
-  EXPECT_EQ(out, (aligned8{0, 1, 2, 3, 4, 5, 6, 7}));
+  ASSERT_EQ(out, (aligned8{0, 1, 2, 3, 4, 5, 6, 7}));
 }
 
 TEST(type_list_buffer, mutable_for_each_allows_modification)
@@ -195,8 +195,8 @@ TEST(type_list_buffer, mutable_for_each_allows_modification)
   });
 
   ASSERT_EQ(ints.size(), 2u);
-  EXPECT_EQ(ints[0], 20);
-  EXPECT_EQ(ints[1], 40);
+  ASSERT_EQ(ints[0], 20);
+  ASSERT_EQ(ints[1], 40);
 }
 
 TEST(type_list_buffer, clear_resets_buffer)
@@ -204,16 +204,16 @@ TEST(type_list_buffer, clear_resets_buffer)
   type_list_buffer<int, double> buf;
   buf.push(1);
   buf.push(2.0);
-  EXPECT_EQ(buf.size(), 2u);
+  ASSERT_EQ(buf.size(), 2u);
 
   buf.clear();
-  EXPECT_TRUE(buf.empty());
-  EXPECT_EQ(buf.size(), 0u);
-  EXPECT_EQ(buf.byte_size(), 0u);
+  ASSERT_TRUE(buf.empty());
+  ASSERT_EQ(buf.size(), 0u);
+  ASSERT_EQ(buf.byte_size(), 0u);
 
   // Re-use after clear.
   buf.push(99);
-  EXPECT_EQ(buf.size(), 1u);
+  ASSERT_EQ(buf.size(), 1u);
 }
 
 TEST(type_list_buffer, non_trivial_destructors_are_called_on_clear)
@@ -224,14 +224,19 @@ TEST(type_list_buffer, non_trivial_destructors_are_called_on_clear)
     buf.emplace<counted>(1);
     buf.push(0);
     buf.emplace<counted>(2);
-    EXPECT_EQ(counted::constructions, 2);
-    EXPECT_EQ(counted::destructions, 0);
+
+    // Relocation during growth may add extra move-constructions, but two counted
+    // objects must be alive in the buffer at this point.
+    const int live = counted::constructions - counted::destructions;
+    ASSERT_EQ(live, 2);
+    const int dtors_before_clear = counted::destructions;
 
     buf.clear();
-    EXPECT_EQ(counted::destructions, 2);
+    // clear() must destroy exactly the two live objects.
+    ASSERT_EQ(counted::destructions, dtors_before_clear + 2);
   }
   // No extra destructions from the (now-empty) buffer's destructor.
-  EXPECT_EQ(counted::destructions, 2);
+  ASSERT_EQ(counted::destructions, counted::constructions);
 }
 
 TEST(type_list_buffer, non_trivial_destructors_called_on_scope_exit)
@@ -241,9 +246,11 @@ TEST(type_list_buffer, non_trivial_destructors_called_on_scope_exit)
     type_list_buffer<counted, int> buf;
     buf.emplace<counted>(10);
     buf.emplace<counted>(20);
-    EXPECT_EQ(counted::constructions, 2);
+    // Relocation during growth may add extra move-constructions; two objects must be alive.
+    ASSERT_EQ(counted::constructions - counted::destructions, 2);
   }
-  EXPECT_EQ(counted::destructions, 2);
+  // Every construction must be matched by a destruction.
+  ASSERT_EQ(counted::destructions, counted::constructions);
 }
 
 TEST(type_list_buffer, copy_ctor_produces_independent_copy)
@@ -255,7 +262,7 @@ TEST(type_list_buffer, copy_ctor_produces_independent_copy)
 
   type_list_buffer<int, float> copy = original;
 
-  EXPECT_EQ(copy.size(), original.size());
+  ASSERT_EQ(copy.size(), original.size());
 
   // Modify original; copy must be unaffected.
   original.for_each([](auto& obj) {
@@ -272,8 +279,8 @@ TEST(type_list_buffer, copy_ctor_produces_independent_copy)
   });
 
   ASSERT_EQ(copy_ints.size(), 2u);
-  EXPECT_EQ(copy_ints[0], 1);
-  EXPECT_EQ(copy_ints[1], 2);
+  ASSERT_EQ(copy_ints[0], 1);
+  ASSERT_EQ(copy_ints[1], 2);
 }
 
 TEST(type_list_buffer, copy_ctor_calls_copy_constructor_for_non_trivial_types)
@@ -287,11 +294,11 @@ TEST(type_list_buffer, copy_ctor_calls_copy_constructor_for_non_trivial_types)
     int constructions_before_copy = counted::constructions;
 
     type_list_buffer<counted, int> dst = src;
-    EXPECT_EQ(counted::constructions, constructions_before_copy + 1);
+    ASSERT_EQ(counted::constructions, constructions_before_copy + 1);
 
     // Both src and dst hold one counted; both destructors must fire.
   }
-  EXPECT_EQ(counted::destructions, counted::constructions);
+  ASSERT_EQ(counted::destructions, counted::constructions);
 }
 
 TEST(type_list_buffer, move_ctor_transfers_ownership)
@@ -304,8 +311,8 @@ TEST(type_list_buffer, move_ctor_transfers_ownership)
 
   type_list_buffer<int, double> moved = std::move(buf);
 
-  EXPECT_EQ(moved.size(), orig_size);
-  EXPECT_EQ(moved.byte_size(), orig_byte_sz);
+  ASSERT_EQ(moved.size(), orig_size);
+  ASSERT_EQ(moved.byte_size(), orig_byte_sz);
 }
 
 TEST(type_list_buffer, emplace_constructs_in_place)
@@ -321,7 +328,64 @@ TEST(type_list_buffer, emplace_constructs_in_place)
       result = obj;
     }
   });
-  EXPECT_EQ(result, (two_arg_pod{42u, 99u}));
+  ASSERT_EQ(result, (two_arg_pod{42u, 99u}));
+}
+
+// ---------------------------------------------------------------------------
+// Non-trivially-relocatable type: holds a pointer to its own member.
+// ---------------------------------------------------------------------------
+
+struct self_ref {
+  int  value;
+  int* self;
+  explicit self_ref(int v) noexcept : value(v), self(&value) {}
+  self_ref(const self_ref& o) noexcept : value(o.value), self(&value) {}
+  self_ref(self_ref&& o) noexcept : value(o.value), self(&value) {}
+  bool valid() const noexcept { return self == &value; }
+};
+
+TEST(type_list_buffer, non_trivially_relocatable_survives_growth)
+{
+  type_list_buffer<self_ref> buf;
+  // Push enough elements to guarantee several reallocations.
+  for (int i = 0; i < 64; ++i) {
+    buf.emplace<self_ref>(i);
+  }
+  int idx = 0;
+  buf.for_each([&](const self_ref& r) {
+    ASSERT_TRUE(r.valid()) << "self-pointer corrupted at index " << idx;
+    ASSERT_EQ(r.value, idx);
+    ++idx;
+  });
+  ASSERT_EQ(idx, 64);
+}
+
+TEST(type_list_buffer, push_and_emplace_return_reference_to_stored_object)
+{
+  type_list_buffer<int, std::string> buf;
+
+  int& i = buf.emplace<int>(7);
+  ASSERT_EQ(i, 7);
+  i = 99; // mutate through the returned reference
+
+  std::string& s = buf.push(std::string{"hello"});
+  ASSERT_EQ(s, "hello");
+  s += " world";
+
+  // Verify the mutations are visible through for_each.
+  std::vector<int>         ints;
+  std::vector<std::string> strs;
+  buf.for_each([&](const auto& obj) {
+    using T = std::decay_t<decltype(obj)>;
+    if constexpr (std::is_same_v<T, int>)
+      ints.push_back(obj);
+    else if constexpr (std::is_same_v<T, std::string>)
+      strs.push_back(obj);
+  });
+  ASSERT_EQ(ints.size(), 1u);
+  ASSERT_EQ(ints[0], 99);
+  ASSERT_EQ(strs.size(), 1u);
+  ASSERT_EQ(strs[0], "hello world");
 }
 
 TEST(type_list_buffer, large_number_of_elements)
@@ -335,9 +399,9 @@ TEST(type_list_buffer, large_number_of_elements)
       buf.push(static_cast<uint32_t>(i));
     }
   }
-  EXPECT_EQ(buf.size(), static_cast<size_t>(num_elements));
+  ASSERT_EQ(buf.size(), static_cast<size_t>(num_elements));
 
   int count = 0;
   buf.for_each([&](const auto&) { ++count; });
-  EXPECT_EQ(count, num_elements);
+  ASSERT_EQ(count, num_elements);
 }

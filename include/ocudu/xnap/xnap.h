@@ -64,6 +64,9 @@ public:
 
   /// \brief Prepares the reception of a SN status transfer message.
   virtual async_task<expected<cu_cp_status_transfer>> handle_sn_status_transfer_expected(ue_index_t ue_index) = 0;
+
+  /// \brief Initiate the transmission of a UE Context Release message as defined in TS 38.423 section 8.2.7.
+  virtual bool handle_ue_context_release_required(ue_index_t ue_index) = 0;
 };
 
 /// This interface for the CU-CP to stop an XNAP instance.
@@ -118,6 +121,10 @@ public:
   /// \brief Notify the CU-CP about the reception of a Handover Cancel message.
   /// \param[in] ue_index The index of the UE.
   virtual void on_handover_cancel_received(ue_index_t ue_index) = 0;
+
+  /// \brief Notify the CU-CP about the reception of a UE Context Release message.
+  /// \param[in] ue_index The index of the UE.
+  virtual void on_ue_context_release_received(ue_index_t ue_index) = 0;
 };
 
 /// Combined entry point for the XNAP object.

@@ -989,6 +989,23 @@ void cu_cp_impl::handle_handover_cancel_received(ue_index_t ue_index)
   ue->get_task_sched().schedule_async_task(handle_ue_context_release(release_request));
 }
 
+void cu_cp_impl::handle_xnap_ue_context_release_received(ue_index_t ue_index)
+{
+  cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for XNAP UE context release handling", ue_index);
+    return;
+  }
+
+  cu_cp_ue_context_release_request request;
+  request.ue_index = ue_index;
+  request.cause    = ngap_cause_radio_network_t::release_due_to_ngran_generated_reason;
+
+  // Schedule UE release.
+  ue->get_task_sched().schedule_async_task(
+      launch_async<ue_amf_context_release_request_routine>(request, nullptr, *this, logger));
+}
+
 ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn)
 {
   du_index_t du_index = du_db.find_du(cgi);

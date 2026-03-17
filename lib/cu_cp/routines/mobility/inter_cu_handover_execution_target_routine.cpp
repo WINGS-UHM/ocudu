@@ -89,6 +89,13 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
     CORO_AWAIT_VALUE(path_switch_response,
                      ngap.get_ngap_control_message_handler().handle_path_switch_request_required(path_switch_request));
     // TODO: Handle path switch response and proceed with the routine accordingly.
+
+    // Request for the release of the UE Context at the source CU-CP.
+    if (!xnap->handle_ue_context_release_required(ue->get_ue_index())) {
+      logger.warning("ue={}: \"{}\" failed. Cause: Failed to transmit UE Context Release", ue->get_ue_index(), name());
+      CORO_EARLY_RETURN();
+    }
+
     CORO_EARLY_RETURN();
   }
 

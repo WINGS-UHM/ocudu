@@ -885,6 +885,11 @@ public:
     logger.info("ue={}: Received a handover cancel message", ue_index);
   }
 
+  void handle_xnap_ue_context_release_received(ue_index_t ue_index) override
+  {
+    logger.info("ue={}: Received a XNAP UE context release message", ue_index);
+  }
+
   byte_buffer last_handover_command;
 
 private:

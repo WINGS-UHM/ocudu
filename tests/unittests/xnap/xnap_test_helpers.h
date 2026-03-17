@@ -153,6 +153,11 @@ public:
     logger.info("Received a handover cancel for UE index {}", ue_index);
   }
 
+  void on_ue_context_release_received(ue_index_t ue_index) override
+  {
+    logger.info("Received a UE context release for UE index {}", ue_index);
+  }
+
   byte_buffer last_handover_command;
 
 private:

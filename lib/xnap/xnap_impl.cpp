@@ -99,6 +99,9 @@ void xnap_impl::handle_initiating_message(const init_msg_s& msg)
     case xnap_elem_procs_o::init_msg_c::types_opts::sn_status_transfer:
       handle_sn_status_transfer(msg.value.sn_status_transfer());
       break;
+    case xnap_elem_procs_o::init_msg_c::types_opts::ue_context_release:
+      handle_ue_context_release(msg.value.ue_context_release());
+      break;
     default:
       logger.error("Initiating message of type {} is not supported", msg.value.type().to_string());
   }
@@ -258,6 +261,21 @@ void xnap_impl::handle_sn_status_transfer(const asn1::xnap::sn_status_transfer_s
   ue_ctxt.sn_status_transfer_outcome.set(msg);
 }
 
+void xnap_impl::handle_ue_context_release(const asn1::xnap::ue_context_release_s& msg)
+{
+  if (!ue_ctxt_list.contains(uint_to_local_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id))) {
+    logger.warning("local_xnap_ue={} peer_xnap_ue={}: Dropping UEContextRelease. UE context does not exist",
+                   msg->source_ng_ra_nnode_ue_xn_ap_id,
+                   msg->target_ng_ra_nnode_ue_xn_ap_id);
+    return;
+  }
+
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[uint_to_local_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id)];
+
+  // Request CU-CP to release the UE context.
+  cu_cp_notifier.on_ue_context_release_received(ue_ctxt.ue_ids.ue_index);
+}
+
 async_task<xnap_handover_preparation_response>
 xnap_impl::handle_handover_request_required(const xnap_handover_request& request)
 {
@@ -315,4 +333,33 @@ async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer
 
   xnap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
   return launch_async<xnap_sn_status_transfer_procedure>(ue_ctxt.sn_status_transfer_outcome, ue_ctxt.logger);
+}
+
+bool xnap_impl::handle_ue_context_release_required(ue_index_t ue_index)
+{
+  if (!ue_ctxt_list.contains(ue_index)) {
+    logger.warning("ue={}: Cannot transmit UEContextReleaseRequest. UE context does not exist", ue_index);
+    return false;
+  }
+
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
+
+  xnap_message xnap_msg = {};
+  xnap_msg.pdu.set_init_msg();
+  xnap_msg.pdu.init_msg().load_info_obj(ASN1_XNAP_ID_U_E_CONTEXT_RELEASE);
+
+  ue_context_release_s& ue_ctxt_release           = xnap_msg.pdu.init_msg().value.ue_context_release();
+  ue_ctxt_release->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(ue_ctxt.ue_ids.local_xnap_ue_id);
+  ue_ctxt_release->target_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(ue_ctxt.ue_ids.peer_xnap_ue_id);
+
+  // Forward message to XN-C peer CU-CP.
+  if (!tx_notifier.on_new_message(xnap_msg)) {
+    ue_ctxt.logger.log_warning("XN-C association is not set. Cannot send UEContextReleaseRequest");
+    return false;
+  }
+
+  // Remove UE context locally as well, as no further messages for this UE are expected.
+  ue_ctxt_list.remove_ue_context(ue_index);
+
+  return true;
 }

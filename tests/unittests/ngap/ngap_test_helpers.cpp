@@ -166,15 +166,16 @@ void ngap_test::run_pdu_session_resource_setup(ue_index_t ue_index, pdu_session_
   ngap->handle_message(pdu_session_resource_setup_request);
 }
 
-void ngap_test::add_pdu_session_to_up_manager(ue_index_t         ue_index,
-                                              pdu_session_id_t   pdu_session_id,
-                                              pdu_session_type_t pdu_session_type,
-                                              drb_id_t           drb_id,
-                                              qos_flow_id_t      qos_flow_id)
+void ngap_test::add_pdu_session_to_up_manager(ue_index_t              ue_index,
+                                              pdu_session_id_t        pdu_session_id,
+                                              pdu_session_type_t      pdu_session_type,
+                                              up_transport_layer_info ul_ngu_up_tnl_info,
+                                              drb_id_t                drb_id,
+                                              qos_flow_id_t           qos_flow_id)
 {
   auto&                                        up_mng = ue_mng.find_ue(ue_index)->get_up_resource_manager();
   up_config_update_result                      result;
-  up_pdu_session_context_update                ctxt_update{pdu_session_id, pdu_session_type};
+  up_pdu_session_context_update                ctxt_update{pdu_session_id, pdu_session_type, ul_ngu_up_tnl_info};
   std::map<qos_flow_id_t, up_qos_flow_context> qos_flows;
   qos_flows[qos_flow_id]         = {qos_flow_id, {}};
   ctxt_update.drb_to_add[drb_id] = {drb_id, pdu_session_id, {}, false, {}, {}, qos_flows, {}, {}, {}};

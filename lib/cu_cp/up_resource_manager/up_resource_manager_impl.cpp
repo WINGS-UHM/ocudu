@@ -91,7 +91,7 @@ void up_resource_manager::apply_config_update(const up_config_update_result& res
   // Apply config update in an additive way.
   for (const auto& session : result.pdu_sessions_added_list) {
     // Create new PDU session context.
-    up_pdu_session_context new_ctxt(session.id, session.type);
+    up_pdu_session_context new_ctxt(session.id, session.type, session.ul_ngu_up_tnl_info);
 
     // Make sure that DRB integrity/ciphering settings are saved.
     new_ctxt.integrity_protection_result       = session.integrity_protection_result;

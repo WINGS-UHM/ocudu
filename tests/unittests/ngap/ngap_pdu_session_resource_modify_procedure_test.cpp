@@ -31,7 +31,12 @@ protected:
     // Inject PDU Session Resource Setup Request
     run_pdu_session_resource_setup(ue_index, pdu_session_id);
     add_pdu_session_to_up_manager(
-        ue_index, pdu_session_id, pdu_session_type_t::ipv4, uint_to_drb_id(1), uint_to_qos_flow_id(1));
+        ue_index,
+        pdu_session_id,
+        pdu_session_type_t::ipv4,
+        up_transport_layer_info{transport_layer_address::create_from_string("127.0.0.1"), int_to_gtpu_teid(1)},
+        uint_to_drb_id(1),
+        uint_to_qos_flow_id(1));
 
     return ue_index;
   }

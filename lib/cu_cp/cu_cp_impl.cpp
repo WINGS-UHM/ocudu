@@ -956,6 +956,15 @@ async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t         
 async_task<cu_cp_handover_resource_allocation_response>
 cu_cp_impl::handle_xnap_handover_request(const xnap_handover_request& request)
 {
+  // Store UE AMBR in UE context.
+  cu_cp_ue* ue = ue_mng.find_ue(request.ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for handover request handling", request.ue_index);
+    return launch_no_op_task(cu_cp_handover_resource_allocation_response{cu_cp_handover_request_failure{
+        .ue_index = request.ue_index, .cause = xnap_cause_radio_network_t::unspecified}});
+  }
+  ue->set_ue_ambr(request.ue_context_info_ho_request.ue_ambr);
+
   // Convert the XNAP handover request to an intra-CU handover target request.
   cu_cp_inter_cu_handover_request inter_cu_handover_request;
   inter_cu_handover_request.from_xnap_handover_request(request);

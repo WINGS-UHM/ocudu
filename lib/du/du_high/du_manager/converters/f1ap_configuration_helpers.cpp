@@ -84,12 +84,37 @@ du_served_cell_info ocudu::odu::make_f1ap_du_cell_info(const du_cell_config& du_
   return serv_cell;
 }
 
-gnb_du_sys_info ocudu::odu::make_f1ap_du_sys_info(const du_cell_config& du_cfg, std::string* js_str)
+gnb_du_sys_info ocudu::odu::make_f1ap_du_sys_info(const du_cell_config&     du_cfg,
+                                                  std::string*              js_str,
+                                                  std::vector<std::string>* si_json_strs)
 {
   gnb_du_sys_info sys_info;
 
   sys_info.packed_mib  = asn1_packer::pack_mib(du_cfg);
   sys_info.packed_sib1 = asn1_packer::pack_sib1(du_cfg, js_str);
+
+  // Pack extra SI messages.
+  std::vector<std::string> all_msg_json;
+  auto all_msgs = asn1_packer::pack_all_bcch_dl_sch_msgs(du_cfg, si_json_strs != nullptr ? &all_msg_json : nullptr);
+  std::size_t nof_si_segments = 0;
+  for (std::size_t i = 1; i < all_msgs.size(); ++i) {
+    nof_si_segments += all_msgs[i].size();
+  }
+  sys_info.packed_si_msgs.reserve(nof_si_segments);
+  if (si_json_strs != nullptr) {
+    si_json_strs->clear();
+    si_json_strs->reserve(nof_si_segments);
+  }
+  for (std::size_t i = 1; i < all_msgs.size(); ++i) {
+    // Keep all encoded segments for each SI entry (SIB1 is at index 0 and is already copied to packed_sib1).
+    for (auto& segment : all_msgs[i]) {
+      sys_info.packed_si_msgs.push_back(std::move(segment));
+      if (si_json_strs != nullptr && i < all_msg_json.size()) {
+        // Segment-specific JSON is not currently generated; reuse the SI-entry JSON for all its segments.
+        si_json_strs->push_back(all_msg_json[i]);
+      }
+    }
+  }
 
   return sys_info;
 }

@@ -932,6 +932,13 @@ static void pack_si_message(byte_buffer& buffer, const asn1::rrc_nr::bcch_dl_sch
   ocudu_assert(ret == asn1::OCUDUASN_SUCCESS, "Failed to pack SI message");
 }
 
+static std::string bcch_dl_sch_msg_to_json(const asn1::rrc_nr::bcch_dl_sch_msg_s& msg)
+{
+  asn1::json_writer js;
+  msg.to_json(js);
+  return js.to_string();
+}
+
 /// Packs an SI message from the contents of a single SIB.
 static void pack_si_message(bcch_dl_sch_payload_type& buffer, const asn1::rrc_nr::sys_info_ies_s::item_c_& sib)
 {
@@ -946,9 +953,13 @@ static void pack_si_message(bcch_dl_sch_payload_type& buffer, const asn1::rrc_nr
   buffer.emplace_back(std::move(buf));
 }
 
-std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(const du_cell_config& du_cfg)
+std::vector<bcch_dl_sch_payload_type>
+asn1_packer::pack_all_bcch_dl_sch_msgs(const du_cell_config& du_cfg, std::vector<std::string>* bcch_dl_sch_json_msgs)
 {
   std::vector<bcch_dl_sch_payload_type> msgs;
+  if (bcch_dl_sch_json_msgs != nullptr) {
+    bcch_dl_sch_json_msgs->clear();
+  }
 
   // Pack SIB1.
   {
@@ -958,6 +969,9 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
     bcch_dl_sch_payload_type packed_sib(1);
     pack_si_message(packed_sib.front(), msg);
     msgs.emplace_back(std::move(packed_sib));
+    if (bcch_dl_sch_json_msgs != nullptr) {
+      bcch_dl_sch_json_msgs->push_back(bcch_dl_sch_msg_to_json(msg));
+    }
   }
 
   // Pack SI messages.
@@ -992,6 +1006,9 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
         bcch_dl_sch_payload_type packed_sib(1);
         pack_si_message(packed_sib.front(), msg);
         msgs.emplace_back(std::move(packed_sib));
+        if (bcch_dl_sch_json_msgs != nullptr) {
+          bcch_dl_sch_json_msgs->push_back(bcch_dl_sch_msg_to_json(msg));
+        }
       } else {
         // Pack SI messages that hold a single SIB.
         sib_type sib_id = si_sched.sib_mapping_info.front();
@@ -1016,8 +1033,22 @@ std::vector<bcch_dl_sch_payload_type> asn1_packer::pack_all_bcch_dl_sch_msgs(con
           pack_si_message(packed_sib, sib_list.front());
         }
         msgs.emplace_back(std::move(packed_sib));
+
+        if (bcch_dl_sch_json_msgs != nullptr) {
+          // If the SI message is segmented, keep JSON for the first SIB item only.
+          // Segment-specific JSON is not generated here; callers can reuse this SI-entry JSON for all segments.
+          asn1::rrc_nr::bcch_dl_sch_msg_s msg;
+          asn1::rrc_nr::sys_info_ies_s&   si_ies = msg.msg.set_c1().set_sys_info().crit_exts.set_sys_info();
+          si_ies.sib_type_and_info.push_back(sib_list.front());
+          bcch_dl_sch_json_msgs->push_back(bcch_dl_sch_msg_to_json(msg));
+        }
       }
     }
+  }
+
+  if (bcch_dl_sch_json_msgs != nullptr) {
+    ocudu_assert(bcch_dl_sch_json_msgs->size() == msgs.size(),
+                 "Unexpected mismatch between packed BCCH-DL-SCH and JSON lists");
   }
 
   return msgs;

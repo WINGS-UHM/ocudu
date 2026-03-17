@@ -7,6 +7,8 @@
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/du/du_cell_config.h"
 #include "ocudu/mac/cell_configuration.h"
+#include <string>
+#include <vector>
 
 namespace ocudu {
 
@@ -36,8 +38,11 @@ byte_buffer pack_sib19(const sib19_info& sib19_params, std::string* js_str = nul
 
 /// \brief Pack all cell BCCH-DL-SCH messages (SIB1 + SI messages) from DU cell configuration.
 /// \param[in] du_cfg DU Cell Configuration.
+/// \param[out] bcch_dl_sch_json_msgs Optional list of BCCH-DL-SCH messages serialized as JSON (one entry per returned
+/// message). If nullptr, no conversion takes place.
 /// \return A list of buffers with packed cell BCCH-DL-SCH message. First buffer is SIB1, the rest are SI messages.
-std::vector<bcch_dl_sch_payload_type> pack_all_bcch_dl_sch_msgs(const du_cell_config& du_cfg);
+std::vector<bcch_dl_sch_payload_type>
+pack_all_bcch_dl_sch_msgs(const du_cell_config& du_cfg, std::vector<std::string>* bcch_dl_sch_json_msgs = nullptr);
 
 } // namespace asn1_packer
 } // namespace odu

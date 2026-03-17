@@ -36,8 +36,9 @@ struct f1_reset_acknowledgement {
 
 /// System Information Update from the gNB-DU.
 struct gnb_du_sys_info {
-  byte_buffer packed_mib;
-  byte_buffer packed_sib1;
+  byte_buffer              packed_mib;
+  byte_buffer              packed_sib1;
+  std::vector<byte_buffer> packed_si_msgs;
 };
 
 /// Information of served cell being added/modified.

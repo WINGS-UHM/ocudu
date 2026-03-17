@@ -11,7 +11,7 @@
 namespace ocudu {
 namespace ocuup {
 
-/// This coroutines handles the E1AP CU UP release procedure as per TS 38.483, 8.2.7.2.2.
+/// This coroutines handles the E1AP CU UP release procedure as per TS 37.483, 8.2.7.2.2.
 class e1ap_cu_up_release_procedure
 {
 public:

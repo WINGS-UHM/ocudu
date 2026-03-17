@@ -14,11 +14,11 @@
 namespace ocudu {
 
 struct cell_selection_info {
-  /// \brief \c q-RxLevMin, part of \c cellSelectionInfo, \c SIB1, TS 38.311, in dBm.
-  /// Indicates the required minimum received RSRP level for cell selection/re-selection (see \c Q-RxLevMin, TS 38.311).
+  /// \brief \c q-RxLevMin, part of \c cellSelectionInfo, \c SIB1, TS 38.331, in dBm.
+  /// Indicates the required minimum received RSRP level for cell selection/re-selection (see \c Q-RxLevMin, TS 38.331).
   bounded_integer<int, -70, -22> q_rx_lev_min = -70;
-  /// \brief \c q-QualMin, part of \c cellSelectionInfo, \c SIB1, TS 38.311, in dB.
-  /// Indicates the required minimum received RSRQ level for cell selection/re-selection (see \c Q-QualMin, TS 38.311).
+  /// \brief \c q-QualMin, part of \c cellSelectionInfo, \c SIB1, TS 38.331, in dB.
+  /// Indicates the required minimum received RSRQ level for cell selection/re-selection (see \c Q-QualMin, TS 38.331).
   bounded_integer<int, -43, -12> q_qual_min = -20;
 };
 

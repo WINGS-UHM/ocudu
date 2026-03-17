@@ -192,10 +192,18 @@ static auto make_ul_pdcch_log_entry(const pdcch_ul_information& pdcch)
 
 static auto make_sib_info_log_entry(const sib_information& sib_info)
 {
-  return make_formattable([si_ind = sib_info.si_indicator,
-                           rbs    = sib_info.pdsch_cfg.rbs,
-                           tbs    = sib_info.pdsch_cfg.codewords[0].tb_size_bytes](auto& ctx) {
-    return fmt::format_to(ctx.out(), "SI{}: rb={} tbs={}", si_ind == sib_information::sib1 ? "B1" : "", rbs, tbs);
+  return make_formattable([si_ind       = sib_info.si_indicator,
+                           si_msg_index = sib_info.si_msg_index,
+                           rbs          = sib_info.pdsch_cfg.rbs,
+                           tbs          = sib_info.pdsch_cfg.codewords[0].tb_size_bytes](auto& ctx) {
+    if (si_ind == sib_information::sib1) {
+      return fmt::format_to(ctx.out(), "SIB1: rb={} tbs={}", rbs, tbs);
+    }
+    if (si_msg_index.has_value()) {
+      // SI message index is zero-based internally.
+      return fmt::format_to(ctx.out(), "SI-{}: rb={} tbs={}", static_cast<unsigned>(*si_msg_index) + 1U, rbs, tbs);
+    }
+    return fmt::format_to(ctx.out(), "SI-?: rb={} tbs={}", rbs, tbs);
   });
 }
 
@@ -419,20 +427,28 @@ static auto make_csi_rs_log_entry(const csi_rs_info& csi_rs)
 
 static auto make_sib_debug_log_entry(const sib_information& sib_info)
 {
-  return make_formattable([si_ind  = sib_info.si_indicator,
-                           rbs     = sib_info.pdsch_cfg.rbs,
-                           symbols = sib_info.pdsch_cfg.symbols,
-                           tbs     = sib_info.pdsch_cfg.codewords[0].tb_size_bytes,
-                           mcs     = sib_info.pdsch_cfg.codewords[0].mcs_index,
-                           rv      = sib_info.pdsch_cfg.codewords[0].rv_index](auto& ctx) {
-    return fmt::format_to(ctx.out(),
-                          "\n- SI{} PDSCH: rb={} symb={} tbs={} mcs={} rv={}",
-                          si_ind == sib_information::sib1 ? "B1" : "",
-                          rbs,
-                          symbols,
-                          tbs,
-                          mcs,
-                          rv);
+  return make_formattable([si_ind       = sib_info.si_indicator,
+                           si_msg_index = sib_info.si_msg_index,
+                           rbs          = sib_info.pdsch_cfg.rbs,
+                           symbols      = sib_info.pdsch_cfg.symbols,
+                           tbs          = sib_info.pdsch_cfg.codewords[0].tb_size_bytes,
+                           mcs          = sib_info.pdsch_cfg.codewords[0].mcs_index,
+                           rv           = sib_info.pdsch_cfg.codewords[0].rv_index](auto& ctx) {
+    if (si_ind == sib_information::sib1) {
+      return fmt::format_to(ctx.out(), "\n- SIB1 PDSCH: rb={} symb={} tbs={} mcs={} rv={}", rbs, symbols, tbs, mcs, rv);
+    }
+    if (si_msg_index.has_value()) {
+      // SI message index is zero-based internally.
+      return fmt::format_to(ctx.out(),
+                            "\n- SI-{} PDSCH: rb={} symb={} tbs={} mcs={} rv={}",
+                            static_cast<unsigned>(*si_msg_index) + 1U,
+                            rbs,
+                            symbols,
+                            tbs,
+                            mcs,
+                            rv);
+    }
+    return fmt::format_to(ctx.out(), "\n- SI-? PDSCH: rb={} symb={} tbs={} mcs={} rv={}", rbs, symbols, tbs, mcs, rv);
   });
 }
 

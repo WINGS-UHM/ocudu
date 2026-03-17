@@ -96,7 +96,7 @@ static check_outcome is_coreset0_ss0_idx_valid(const du_cell_config& cell_cfg)
   return {};
 }
 
-/// Checks whether CORESET#0 configuration matches the values specified in TS38.211-7.3.2.2.
+/// Checks whether CORESET#0 configuration matches the values specified in TS38.211 Section 7.3.2.2.
 static check_outcome is_coreset0_params_valid(const du_cell_config& cell_cfg)
 {
   const coreset_configuration& cs_cfg = *cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;

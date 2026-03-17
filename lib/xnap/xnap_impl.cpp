@@ -74,6 +74,16 @@ void xnap_impl::handle_message(const xnap_message& msg)
   }
 }
 
+void xnap_impl::remove_ue_context(ue_index_t ue_index)
+{
+  if (!ue_ctxt_list.contains(ue_index)) {
+    logger.debug("ue={}: UE context not found", ue_index);
+    return;
+  }
+
+  ue_ctxt_list.remove_ue_context(ue_index);
+}
+
 void xnap_impl::handle_initiating_message(const init_msg_s& msg)
 {
   switch (msg.value.type().value) {

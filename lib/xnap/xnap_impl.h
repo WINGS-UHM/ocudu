@@ -30,6 +30,9 @@ public:
 
   async_task<void> stop() override;
 
+  // XNAP ue context removal handler functions.
+  void remove_ue_context(ue_index_t ue_index) override;
+
   // XNAP connection manager functions.
   async_task<bool> handle_xn_setup_request_required() override;
   void             set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) override
@@ -40,6 +43,8 @@ public:
        handle_handover_request_required(const xnap_handover_request& request) override;
   void handle_sn_status_transfer_required(const cu_cp_status_transfer& sn_status_transfer) override;
   async_task<expected<cu_cp_status_transfer>> handle_sn_status_transfer_expected(ue_index_t ue_index) override;
+
+  xnap_ue_context_removal_handler& get_xnap_ue_context_removal_handler() override { return *this; }
 
 private:
   /// \brief Notify about the reception of an initiating message.

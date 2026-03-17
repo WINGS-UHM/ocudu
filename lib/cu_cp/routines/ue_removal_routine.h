@@ -4,12 +4,11 @@
 
 #pragma once
 
-#include "../cu_cp_impl_interface.h"
 #include "../ue_manager/ue_manager_impl.h"
 #include "ocudu/support/async/async_task.h"
+#include "ocudu/xnap/xnap.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Removes a UE from the CU-CP
 class ue_removal_routine
@@ -21,6 +20,7 @@ public:
                      f1ap_ue_context_removal_handler*     f1ap_removal_handler_,
                      ngap_ue_context_removal_handler*     ngap_removal_handler_,
                      nrppa_ue_context_removal_handler*    nrppa_removal_handler_,
+                     xnap_ue_context_removal_handler*     xnap_removal_handler_,
                      ue_manager&                          ue_mng_,
                      ocudulog::basic_logger&              logger_);
 
@@ -36,10 +36,10 @@ private:
   f1ap_ue_context_removal_handler*     f1ap_removal_handler  = nullptr;
   ngap_ue_context_removal_handler*     ngap_removal_handler  = nullptr;
   nrppa_ue_context_removal_handler*    nrppa_removal_handler = nullptr;
+  xnap_ue_context_removal_handler*     xnap_removal_handler  = nullptr;
   // To remove UE context from DU processor.
   ue_manager&             ue_mng;
   ocudulog::basic_logger& logger;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

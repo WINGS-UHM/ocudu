@@ -39,6 +39,17 @@ public:
   virtual void set_tx_association_notifier(std::unique_ptr<xnap_message_notifier> tx_notifier_) = 0;
 };
 
+/// Handle UE context removal.
+class xnap_ue_context_removal_handler
+{
+public:
+  virtual ~xnap_ue_context_removal_handler() = default;
+
+  /// \brief Remove the context of an UE.
+  /// \param[in] ue_index The index of the UE to remove.
+  virtual void remove_ue_context(ue_index_t ue_index) = 0;
+};
+
 class xnap_control_message_handler
 {
 public:
@@ -112,11 +123,14 @@ public:
 /// Combined entry point for the XNAP object.
 class xnap_interface : public xnap_message_handler,
                        public xnap_connection_manager,
+                       public xnap_ue_context_removal_handler,
                        public xnap_control_message_handler,
                        public xnap_controller
 {
 public:
   virtual ~xnap_interface() = default;
+
+  virtual xnap_ue_context_removal_handler& get_xnap_ue_context_removal_handler() = 0;
 };
 
 } // namespace ocudu::ocucp

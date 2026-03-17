@@ -947,6 +947,8 @@ async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t         
       logger.warning("ue={}: XNC with index {} not found for handover command handling", ue_index, xnc_index.value());
       return launch_no_op_task(false);
     }
+    // Set XNC peer index in UE context.
+    ue->set_xnc_peer_index(xnc_index.value());
   }
 
   return launch_async<inter_cu_handover_source_routine>(
@@ -1270,10 +1272,11 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
       CORO_RETURN();
     });
   }
-  auto* ue = ue_mng.find_ue(ue_index);
+  cu_cp_ue* ue = ue_mng.find_ue(ue_index);
 
-  du_index_t    du_index    = ue->get_du_index();
-  cu_up_index_t cu_up_index = ue->get_cu_up_index();
+  du_index_t       du_index    = ue->get_du_index();
+  cu_up_index_t    cu_up_index = ue->get_cu_up_index();
+  xnc_peer_index_t xnc_index   = ue->get_xnc_peer_index();
 
   e1ap_bearer_context_removal_handler* e1ap_removal_handler = nullptr;
   if (cu_up_index != cu_up_index_t::invalid) {
@@ -1290,7 +1293,7 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
     }
   }
 
-  auto*                            ngap                 = ngap_db.find_ngap(ue->get_ue_context().plmn);
+  ngap_interface*                  ngap                 = ngap_db.find_ngap(ue->get_ue_context().plmn);
   ngap_ue_context_removal_handler* ngap_removal_handler = nullptr;
   if (ngap != nullptr) {
     ngap_removal_handler = &ngap->get_ngap_ue_context_removal_handler();
@@ -1299,12 +1302,19 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
   nrppa_ue_context_removal_handler* nrppa_removal_handler = nullptr;
   nrppa_removal_handler                                   = &nrppa_entity->get_nrppa_ue_context_removal_handler();
 
+  xnap_interface*                  xnap                 = xnap_db.find_xnap(xnc_index);
+  xnap_ue_context_removal_handler* xnap_removal_handler = nullptr;
+  if (xnap != nullptr) {
+    xnap_removal_handler = &xnap->get_xnap_ue_context_removal_handler();
+  }
+
   return launch_async<ue_removal_routine>(ue_index,
                                           rrc_ue_removal_handler,
                                           e1ap_removal_handler,
                                           f1ap_removal_handler,
                                           ngap_removal_handler,
                                           nrppa_removal_handler,
+                                          xnap_removal_handler,
                                           ue_mng,
                                           logger);
 }

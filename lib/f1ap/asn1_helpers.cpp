@@ -222,7 +222,7 @@ static f1ap_drb_info drb_info_from_f1ap_asn1(const asn1::f1ap::qos_info_c& asn1_
   const bool  is_gbr         = five_qi_params && (five_qi_params->res_type == qos_flow_resource_type::gbr ||
                                          five_qi_params->res_type == qos_flow_resource_type::delay_critical_gbr);
 
-  // Note: As per TS 48.473, 9.3.1.45, "This IE shall be present for GBR QoS Flows only and is ignored otherwise."
+  // Note: As per TS 38.473, 9.3.1.45, "This IE shall be present for GBR QoS Flows only and is ignored otherwise."
   if (is_gbr and asn1_drb_info.drb_qos.gbr_qos_flow_info_present) {
     auto& gbr     = out.drb_qos.gbr_qos_info.emplace();
     gbr.max_br_dl = asn1_drb_info.drb_qos.gbr_qos_flow_info.max_flow_bit_rate_dl;

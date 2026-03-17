@@ -72,14 +72,14 @@ f1ap_srb_to_setup                       make_srb_to_setup(const asn1::f1ap::srbs
 asn1::f1ap::srbs_to_be_setup_list_l     make_srb_to_setup_list(span<const f1ap_srb_to_setup> srbs);
 asn1::f1ap::srbs_to_be_setup_mod_list_l make_srb_to_setupmod_list(span<const f1ap_srb_to_setup> srbs);
 
-/// \brief Conversion helpers between SRB setup/modified common types and respective ASN.1 TS 48.473 types.
+/// \brief Conversion helpers between SRB setup/modified common types and respective ASN.1 TS 38.473 types.
 asn1::f1ap::srbs_setup_list_l     make_srb_setup_list(span<const srb_id_t> srbs);
 asn1::f1ap::srbs_setup_mod_list_l make_srb_setupmod_list(span<const srb_id_t> srbs);
 
 f1ap_srb_failed_to_setup make_srb_failed_to_setupmod(const asn1::f1ap::srbs_failed_to_be_setup_item_s& asn1_type);
 f1ap_srb_failed_to_setup make_srb_failed_to_setupmod(const asn1::f1ap::srbs_failed_to_be_setup_mod_item_s& asn1_type);
 
-/// \brief Conversion helpers between DRB to_setup/to_modify common types and respective ASN.1 TS 48.473 types.
+/// \brief Conversion helpers between DRB to_setup/to_modify common types and respective ASN.1 TS 38.473 types.
 f1ap_drb_to_setup                       make_drb_to_setup(const asn1::f1ap::drbs_to_be_setup_item_s& drb_item);
 f1ap_drb_to_setup                       make_drb_to_setup(const asn1::f1ap::drbs_to_be_setup_mod_item_s& drb_item);
 f1ap_drb_to_modify                      make_drb_to_modify(const asn1::f1ap::drbs_to_be_modified_item_s& drb_item);
@@ -90,7 +90,7 @@ asn1::f1ap::drbs_to_be_setup_list_l     make_drb_to_setup_list(span<const f1ap_d
 asn1::f1ap::drbs_to_be_setup_mod_list_l make_drb_to_setupmod_list(span<const f1ap_drb_to_setup> drb_list);
 asn1::f1ap::drbs_to_be_modified_list_l  make_drb_to_modify_list(span<const f1ap_drb_to_modify> drb_list);
 
-/// Conversion helpers between DRB setup/setupmod/modified common types and respective ASN.1 TS 48.473 types.
+/// Conversion helpers between DRB setup/setupmod/modified common types and respective ASN.1 TS 38.473 types.
 asn1::f1ap::drbs_setup_list_l     make_drbs_setup_list(span<const f1ap_drb_setupmod> drbs);
 asn1::f1ap::drbs_setup_mod_list_l make_drbs_setup_mod_list(span<const f1ap_drb_setupmod> drbs);
 asn1::f1ap::drbs_modified_list_l  make_drbs_modified_list(span<const f1ap_drb_setupmod> drbs);
@@ -98,7 +98,7 @@ f1ap_drb_setupmod                 make_drb_setupmod(const asn1::f1ap::drbs_setup
 f1ap_drb_setupmod                 make_drb_setupmod(const asn1::f1ap::drbs_setup_mod_item_s& drb);
 f1ap_drb_setupmod                 make_drb_setupmod(const asn1::f1ap::drbs_modified_item_s& drb);
 
-/// Convert F1AP failed to setup/modify types to respective ASN.1 TS 48.473 types.
+/// Convert F1AP failed to setup/modify types to respective ASN.1 TS 38.473 types.
 asn1::f1ap::drbs_failed_to_be_setup_list_l
 make_drbs_failed_to_be_setup_list(span<const f1ap_drb_failed_to_setupmod> failed_drbs);
 asn1::f1ap::drbs_failed_to_be_setup_mod_list_l

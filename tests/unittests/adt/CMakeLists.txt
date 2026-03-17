@@ -86,3 +86,8 @@ add_test(flat_map_test flat_map_test)
 add_executable(soa_table_test soa_table_test.cpp stable_id_map_test.cpp)
 target_link_libraries(soa_table_test ocudulog ocudulog GTest::gtest  GTest::gtest_main)
 add_test(soa_table_test soa_table_test)
+
+add_executable(type_list_buffer_test type_list_buffer_test.cpp)
+target_link_libraries(type_list_buffer_test ocudulog GTest::gtest GTest::gtest_main)
+add_test(type_list_buffer_test type_list_buffer_test)
+gtest_discover_tests(type_list_buffer_test)

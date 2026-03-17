@@ -3,13 +3,13 @@
 
 #pragma once
 
+#include "ocudu/support/detail/type_list.h"
 #include "ocudu/support/ocudu_assert.h"
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <limits>
 #include <new>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -17,38 +17,6 @@
 namespace ocudu {
 
 namespace detail {
-
-/// \brief Finds the zero-based index of type \c T in the type pack \c Types.
-///
-/// Uses explicit specialization for the "found" case so the not-found base case is never instantiated when T is
-/// present (a ternary-based approach would eagerly instantiate both branches).
-template <typename T, typename... Types>
-struct type_list_index_helper;
-
-/// T matches the head of the pack: index is 0.
-template <typename T, typename... Rest>
-struct type_list_index_helper<T, T, Rest...> {
-  static constexpr size_t value = 0;
-};
-
-/// T does not match the head: advance by 1 and recurse into the tail.
-template <typename T, typename First, typename... Rest>
-struct type_list_index_helper<T, First, Rest...> {
-  static constexpr size_t value = 1 + type_list_index_helper<T, Rest...>::value;
-};
-
-/// T was not found in the pack: trigger a compile error.
-template <typename T>
-struct type_list_index_helper<T> {
-  template <typename>
-  static constexpr bool always_false = false;
-  static_assert(always_false<T>, "Type T is not present in the type_list_buffer's type list");
-  static constexpr size_t value = 0;
-};
-
-/// \brief Checks whether \c T appears in the type pack \c Types.
-template <typename T, typename... Types>
-inline constexpr bool type_list_contains_v = (std::is_same_v<T, Types> || ...);
 
 /// \brief Aligns \c val up to the nearest multiple of \c alignment (must be a power of two).
 constexpr size_t align_up_v(size_t val, size_t alignment) noexcept
@@ -70,11 +38,11 @@ struct type_list_dispatch {
   template <typename Visitor, size_t... Is>
   static size_t
   run(size_t type_idx, size_t after_idx, byte_ptr* buf, Visitor& v, std::index_sequence<Is...> /*seq*/) noexcept(
-      std::conjunction_v<std::is_nothrow_invocable<Visitor&, std::tuple_element_t<Is, std::tuple<Types...>>&>...>)
+      std::conjunction_v<std::is_nothrow_invocable<Visitor&, type_list_helper::type_at_t<Is, type_list<Types...>>&>...>)
   {
     size_t next_pos = 0;
     // Fold over all indices; short-circuits once the matching index is found.
-    bool found = ((type_idx == Is ? (next_pos = invoke<Is>(after_idx, buf, v), true) : false) || ...);
+    const bool found = ((type_idx == Is ? (next_pos = invoke<Is>(after_idx, buf, v), true) : false) || ...);
     return found ? next_pos : ~size_t{0};
   }
 
@@ -82,7 +50,7 @@ private:
   template <size_t I, typename Visitor>
   static size_t invoke(size_t after_idx, byte_ptr* buf, Visitor& v)
   {
-    using T              = std::tuple_element_t<I, std::tuple<Types...>>;
+    using T              = type_list_helper::type_at_t<I, type_list<Types...>>;
     using obj_ref        = std::conditional_t<IsConst, const T&, T&>;
     const size_t obj_pos = align_up_v(after_idx, alignof(T));
     v(static_cast<obj_ref>(*std::launder(reinterpret_cast<std::conditional_t<IsConst, const T, T>*>(buf + obj_pos))));
@@ -120,8 +88,7 @@ class type_list_buffer
       conditional_t<(sizeof...(Types) <= static_cast<size_t>(std::numeric_limits<uint8_t>::max())), uint8_t, uint16_t>;
 
   template <typename T>
-  static constexpr type_idx_t type_index_of_v =
-      static_cast<type_idx_t>(detail::type_list_index_helper<T, Types...>::value);
+  static constexpr type_idx_t type_index_of_v = static_cast<type_idx_t>(type_list_helper::type_index_v<T, Types...>);
 
   using idx_seq        = std::make_index_sequence<sizeof...(Types)>;
   using const_dispatch = detail::type_list_dispatch<true, Types...>;
@@ -192,7 +159,7 @@ public:
   void push(T&& val)
   {
     using U = std::decay_t<T>;
-    static_assert(detail::type_list_contains_v<U, Types...>,
+    static_assert(type_list_helper::contains_v<U, Types...>,
                   "push(): T is not present in this type_list_buffer's type list");
     emplace<U>(std::forward<T>(val));
   }
@@ -202,7 +169,7 @@ public:
   template <typename T, typename... Args>
   void emplace(Args&&... args)
   {
-    static_assert(detail::type_list_contains_v<T, Types...>,
+    static_assert(type_list_helper::contains_v<T, Types...>,
                   "emplace(): T is not present in this type_list_buffer's type list");
 
     constexpr type_idx_t idx     = type_index_of_v<T>;
@@ -225,7 +192,7 @@ public:
   /// Calls \p v once for every stored element in insertion order (const overload).
   /// \p v must be callable with each type in \c Types (e.g. a generic lambda or a struct with overloads).
   template <typename Visitor>
-  void for_each(Visitor v) const
+  void for_each(Visitor&& visitor) const
   {
     size_t pos = 0;
     while (pos < buf.size()) {
@@ -233,7 +200,7 @@ public:
       std::memcpy(&idx, buf.data() + pos, sizeof(type_idx_t));
       const size_t after_idx = pos + sizeof(type_idx_t);
 
-      const size_t next = const_dispatch::run(static_cast<size_t>(idx), after_idx, buf.data(), v, idx_seq{});
+      const size_t next = const_dispatch::run(static_cast<size_t>(idx), after_idx, buf.data(), visitor, idx_seq{});
       ocudu_assert(next != ~size_t{0}, "Corrupt type_list_buffer: invalid type index {}", static_cast<unsigned>(idx));
       pos = next;
     }
@@ -241,15 +208,16 @@ public:
 
   /// Calls \p v once for every stored element in insertion order (mutable overload).
   template <typename Visitor>
-  void for_each(Visitor v)
+  void for_each(Visitor&& visitor)
   {
     size_t pos = 0;
     while (pos < buf.size()) {
+      // Read type index.
       type_idx_t idx;
       std::memcpy(&idx, buf.data() + pos, sizeof(type_idx_t));
       const size_t after_idx = pos + sizeof(type_idx_t);
 
-      const size_t next = mut_dispatch::run(static_cast<size_t>(idx), after_idx, buf.data(), v, idx_seq{});
+      const size_t next = mut_dispatch::run(static_cast<size_t>(idx), after_idx, buf.data(), visitor, idx_seq{});
       ocudu_assert(next != ~size_t{0}, "Corrupt type_list_buffer: invalid type index {}", static_cast<unsigned>(idx));
       pos = next;
     }

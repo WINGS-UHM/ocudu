@@ -170,7 +170,9 @@ void sctp_network_server_impl::receive()
   if (rx_bytes == -1) {
     if (errno != EAGAIN) {
       logger.error("Error reading from SCTP socket: {}", ::strerror(errno));
-      handle_socket_shutdown(nullptr);
+      while (not app_exec.defer([this]() { handle_socket_shutdown(nullptr); })) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
     } else {
       if (!node_cfg.non_blocking_mode) {
         logger.debug("Socket timeout reached");
@@ -179,19 +181,22 @@ void sctp_network_server_impl::receive()
     return;
   }
 
-  span<const uint8_t> payload(temp_recv_buffer.data(), rx_bytes);
-  if (msg_flags & MSG_NOTIFICATION) {
-    handle_notification(payload, sri, (const sockaddr&)msg_src_addr, msg_src_addrlen);
-  } else {
-    handle_data(sri.sinfo_assoc_id, payload);
+  // Defer all processing after sctp_recvmsg to app_exec.
+  auto payload = std::vector<uint8_t>(temp_recv_buffer.begin(), temp_recv_buffer.begin() + rx_bytes);
+  while (not app_exec.defer([this, payload = std::move(payload), msg_flags, sri, msg_src_addr, msg_src_addrlen]() {
+    if (msg_flags & MSG_NOTIFICATION) {
+      handle_notification(payload, sri, reinterpret_cast<const sockaddr&>(msg_src_addr), msg_src_addrlen);
+    } else {
+      handle_data(sri.sinfo_assoc_id, payload);
+    }
+  })) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
 
 void sctp_network_server_impl::handle_socket_shutdown(const char* cause)
 {
-  // Signal to senders to all existing senders that the server was deleted, so they don't bother with sending EOF.
-  // Note: This function is called from within the io_broker. So, it safe to delete the associations while the io_broker
-  // subscription is still active.
+  // Clean up all associations.
   while (not associations.empty()) {
     handle_association_shutdown(associations.begin()->first, cause);
     handle_sctp_shutdown_comp(associations.begin()->first);
@@ -360,18 +365,10 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
 
   logger.info("{} assoc={}: New client SCTP association (client_addr={})", node_cfg.if_name, assoc_id, assoc_ctxt.addr);
 
-  // If this was a pending outgoing connection, defer signaling success to app_exec.
-  transport_layer_address peer_addr = assoc_ctxt.addr;
-  while (not app_exec.defer([this, peer_addr]() {
-    auto pending_it = pending_connects.find(peer_addr);
-    if (pending_it != pending_connects.end()) {
-      pending_it->second.set(true);
-    }
-  })) {
-    // Note: This defer cannot fail. Keep trying.
-    logger.error("{}: Failed to defer pending connect resolution to app_exec. Cause: Task queue is full. Retrying...",
-                 node_cfg.if_name);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  // If this was a pending outgoing connection, signal success.
+  auto pending_it = pending_connects.find(assoc_ctxt.addr);
+  if (pending_it != pending_connects.end()) {
+    pending_it->second.set(true);
   }
 }
 
@@ -383,19 +380,12 @@ void sctp_network_server_impl::handle_cannot_start_association(int             a
 
   logger.info("{} assoc={}: SCTP association could not start (peer_addr={})", node_cfg.if_name, assoc_id, addr);
 
-  // Defer pending connect failure signaling to app_exec.
-  while (not app_exec.defer([this, addr]() {
-    auto pending_it = pending_connects.find(addr);
-    if (pending_it != pending_connects.end()) {
-      pending_it->second.set(false);
-    } else {
-      logger.warning("{}: SCTP_CANT_STR_ASSOC for unknown peer {}", node_cfg.if_name, addr);
-    }
-  })) {
-    // Note: This defer cannot fail. Keep trying.
-    logger.error("{}: Failed to defer pending connect resolution to app_exec. Cause: Task queue is full. Retrying...",
-                 node_cfg.if_name);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  // Signal pending connect failure.
+  auto pending_it = pending_connects.find(addr);
+  if (pending_it != pending_connects.end()) {
+    pending_it->second.set(false);
+  } else {
+    logger.warning("{}: SCTP_CANT_STR_ASSOC for unknown peer {}", node_cfg.if_name, addr);
   }
 }
 
@@ -472,7 +462,9 @@ bool sctp_network_server_impl::subscribe_to_broker()
       [this]() { receive(); },
       [this](io_broker::error_code code) {
         logger.info("Connection loss due to IO error code={}.", (int)code);
-        handle_socket_shutdown(nullptr);
+        while (not app_exec.defer([this]() { handle_socket_shutdown(nullptr); })) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
       });
   return io_sub.registered();
 }

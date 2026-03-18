@@ -16,8 +16,8 @@ namespace ocudu {
 
 /// Implements an SCTP server, capable of handling multiple SCTP associations.
 ///
-/// The server handles Rx data and SCTP association state in the io_broker thread, but pending connect signalling is
-/// deferred to the app_exec thread.
+/// The io_broker thread only performs the raw sctp_recvmsg.
+//  All data and notification handling is deferred back to app_exec.
 class sctp_network_server_impl : public sctp_network_server, public sctp_network_gateway_common_impl
 {
   explicit sctp_network_server_impl(const sctp_network_gateway_config& sctp_cfg,
@@ -79,12 +79,8 @@ private:
                            socklen_t                     src_addr_len);
   void handle_association_shutdown(int assoc_id, const char* cause);
   void handle_sctp_shutdown_comp(int assoc_id);
-
-  /// Handle SCTP COMM UP event. Defers pending_connect success signaling to app_exec.
   void
   handle_sctp_comm_up(const struct sctp_assoc_change& assoc_change, const sockaddr& src_addr, socklen_t src_addr_len);
-
-  /// Handle SCTP CANT_STR_ASSOC event. Defers pending_connect failure signaling to app_exec.
   void handle_cannot_start_association(int assoc_id, const sockaddr& src_addr, socklen_t src_addr_len);
 
   io_broker&                        broker;
@@ -92,8 +88,8 @@ private:
   task_executor&                    app_exec;
   sctp_network_association_factory& assoc_factory;
 
-  association_map                                       associations;     // handled by io_rx_executor
-  std::map<transport_layer_address, manual_event<bool>> pending_connects; // handled by app_exec
+  association_map                                       associations;
+  std::map<transport_layer_address, manual_event<bool>> pending_connects;
 };
 
 } // namespace ocudu

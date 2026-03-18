@@ -119,7 +119,7 @@ cu_up_e1_setup_response e1ap_cu_up_setup_procedure::create_e1_setup_result()
 
   if (transaction.aborted()) {
     // Abortion/timeout case.
-    logger.warning("\"{}\" failed (timeout reached)");
+    logger.warning("\"{}\" failed (timeout reached)", name());
     res.success = false;
     return res;
   }

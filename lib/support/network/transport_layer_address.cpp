@@ -121,5 +121,5 @@ bool transport_layer_address::operator<(const transport_layer_address& other) co
   if (addrlen != other.addrlen) {
     return addrlen < other.addrlen;
   }
-  return std::memcmp(&addr_storage, &other.addrlen, addrlen) < 0;
+  return std::memcmp(&addr_storage, &other.addr_storage, addrlen) < 0;
 }

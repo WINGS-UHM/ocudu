@@ -19,6 +19,7 @@ add_library(cu_cp_test_helpers
         test_doubles/mock_cu_up.cpp
         test_doubles/mock_amf.cpp
         test_doubles/mock_du.cpp
+        test_doubles/mock_xnc_cu_cp.cpp
         cu_cp_test_environment.cpp
         cu_cp_test_messages.cpp
         du_processor_test_messages.cpp
@@ -33,11 +34,13 @@ target_link_libraries(cu_cp_test_helpers
         f1ap_test_doubles
         ngap_test_helpers
         ngap_test_doubles
+        xnap_test_doubles
         nrppa_test_doubles
         rrc_ue_test_helpers
         f1ap_asn1
         ngap_asn1
         nrppa_asn1
+        xnap_asn1
         e1ap_asn1 ocudu_e2)
 
 
@@ -45,7 +48,8 @@ add_executable(cu_cp_test
                cu_cp_connectivity_test.cpp
                cu_cp_inactivity_notification_test.cpp
                cu_cp_initial_context_setup_test.cpp
-               cu_cp_inter_cu_handover_test.cpp
+               cu_cp_inter_cu_ng_handover_test.cpp
+               cu_cp_inter_cu_xn_handover_test.cpp
                cu_cp_inter_du_handover_test.cpp
                cu_cp_intra_du_handover_test.cpp
                cu_cp_location_reporting_test.cpp
@@ -66,6 +70,7 @@ target_link_libraries(cu_cp_test
         cu_cp_test_helpers
         f1ap_cu_test_helpers
         ngap_test_helpers
+        xnap_test_helpers
         rrc_ue_test_helpers
         ocudu_cu_cp
         ocudu_support
@@ -76,6 +81,7 @@ target_link_libraries(cu_cp_test
         e1ap_test_doubles
         f1ap_test_doubles
         ngap_test_doubles
+        xnap_test_doubles
         gtest
         ocudu_gtest_main)
 target_include_directories(cu_cp_test PRIVATE ${CMAKE_SOURCE_DIR})

@@ -3,16 +3,17 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_test_environment.h"
+#include "lib/xnap/procedures/xn_setup_procedure_asn1_helpers.h"
 #include "tests/test_doubles/e1ap/e1ap_test_message_validators.h"
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/ngap/ngap_test_message_validators.h"
 #include "tests/test_doubles/rrc/rrc_test_message_validators.h"
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
+#include "tests/test_doubles/xnap/xnap_test_message_validators.h"
 #include "tests/unittests/cu_cp/test_doubles/mock_cu_up.h"
 #include "tests/unittests/cu_cp/test_helpers.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
-#include "tests/unittests/xnap/xnap_test_helpers.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
@@ -26,6 +27,7 @@
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/support/executors/task_worker.h"
+#include "ocudu/xnap/xnap_configuration.h"
 
 using namespace ocudu;
 using namespace ocucp;
@@ -50,7 +52,7 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
   cu_cp_workers(std::make_unique<worker_manager>()),
   timers(64),
   amf_configs(std::move(params.amf_configs)),
-  xnc_gw(std::make_unique<dummy_xnc_gateway>())
+  xnc_peers(std::move(params.peer_xnc_configs))
 {
   // Initialize logging.
   test_logger.set_level(ocudulog::basic_levels::debug);
@@ -76,7 +78,12 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
     cu_cp_cfg.ngap.ngaps.push_back(cu_cp_configuration::ngap_config{&*amf_config.amf_stub, amf_config.supported_tas});
   }
   // Fill XNAP config.
-  cu_cp_cfg.xnap.xnc_gw = xnc_gw.get();
+  for (const auto& [_, peer] : xnc_peers) {
+    cu_cp_cfg.xnap.xnaps.push_back(
+        cu_cp_configuration::xnap_config{.peer_addr = transport_layer_address::create_from_string("127.0.0.1")});
+    cu_cp_cfg.xnap.xnc_gw = peer.get();
+    next_xnc_peer_idx++;
+  }
 
   // Fill Security config.
   cu_cp_cfg.security.int_algo_pref_list = {security::integrity_algorithm::nia2,
@@ -106,6 +113,8 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
       nr_cell_identity nci2    = nr_cell_identity::create(gnb_id1, 1).value();
       gnb_id_t         gnb_id2 = {cu_cp_cfg.node.gnb_id.id + 1, cu_cp_cfg.node.gnb_id.bit_length};
       nr_cell_identity nci3    = nr_cell_identity::create(gnb_id2, 0).value();
+      gnb_id_t         gnb_id3 = {cu_cp_cfg.node.gnb_id.id + 2, cu_cp_cfg.node.gnb_id.bit_length};
+      nr_cell_identity nci4    = nr_cell_identity::create(gnb_id3, 0).value();
 
       // Create cell 1.
       {
@@ -114,9 +123,11 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
         cell_cfg_1.serving_cell_cfg.gnb_id_bit_length = gnb_id1.bit_length;
         cell_cfg_1.serving_cell_cfg.nci               = nci1;
         cell_cfg_1.ncells.push_back({nci2, {uint_to_report_cfg_id(2)}});
-        // Add external cell (for inter CU handover tests).
+        // Add external cells (for inter CU handover tests).
         cell_cfg_1.ncells.push_back({nci3, {uint_to_report_cfg_id(2)}});
-
+        if (!xnc_peers.empty()) {
+          cell_cfg_1.ncells.push_back({nci4, {uint_to_report_cfg_id(2)}});
+        }
         meas_mng_cfg.cells.emplace(nci1, cell_cfg_1);
       }
 
@@ -144,6 +155,24 @@ cu_cp_test_environment::cu_cp_test_environment(cu_cp_test_env_params params_) :
 
         cell_cfg_3.ncells.push_back({nci1, {uint_to_report_cfg_id(2)}});
         meas_mng_cfg.cells.emplace(nci3, cell_cfg_3);
+      }
+
+      if (!xnc_peers.empty()) {
+        // Create an external XN-C cell.
+        {
+          cell_meas_config cell_cfg_4;
+          cell_cfg_4.periodic_report_cfg_id             = uint_to_report_cfg_id(1);
+          cell_cfg_4.serving_cell_cfg.gnb_id_bit_length = gnb_id3.bit_length;
+          cell_cfg_4.serving_cell_cfg.nci               = nci4;
+          cell_cfg_4.serving_cell_cfg.pci               = 4;
+          cell_cfg_4.serving_cell_cfg.ssb_arfcn         = 621300;
+          cell_cfg_4.serving_cell_cfg.band              = nr_band::n78;
+          cell_cfg_4.serving_cell_cfg.ssb_scs           = subcarrier_spacing::kHz30;
+          cell_cfg_4.serving_cell_cfg.ssb_mtc = rrc_ssb_mtc{{rrc_periodicity_and_offset::periodicity_t::sf20, 0}, 5};
+
+          cell_cfg_4.ncells.push_back({nci1, {uint_to_report_cfg_id(2)}});
+          meas_mng_cfg.cells.emplace(nci4, cell_cfg_4);
+        }
       }
 
       // Add periodic event.
@@ -220,6 +249,7 @@ cu_cp_test_environment::~cu_cp_test_environment()
   cu_cp_inst->stop();
   dus.clear();
   cu_ups.clear();
+  xnc_peers.clear();
   cu_cp_workers->stop();
 
   ocudulog::flush();
@@ -276,6 +306,13 @@ bool cu_cp_test_environment::wait_for_ngap_tx_pdu(ngap_message&             pdu,
   return tick_until(timeout, [&]() { return amf_configs.at(amf_idx).amf_stub->try_pop_rx_pdu(pdu); });
 }
 
+bool cu_cp_test_environment::wait_for_xnap_tx_pdu(unsigned                  xnc_peer_idx,
+                                                  xnap_message&             pdu,
+                                                  std::chrono::milliseconds timeout)
+{
+  return tick_until(timeout, [&]() { return xnc_peers.at(xnc_peer_idx)->try_pop_rx_pdu(pdu); });
+}
+
 bool cu_cp_test_environment::wait_for_e1ap_tx_pdu(unsigned                  cu_up_idx,
                                                   e1ap_message&             pdu,
                                                   std::chrono::milliseconds timeout)
@@ -305,12 +342,29 @@ const cu_cp_test_environment::ue_context* cu_cp_test_environment::find_ue_contex
   return &attached_ues.at(it->second);
 }
 
-void cu_cp_test_environment::run_ng_setup()
+void cu_cp_test_environment::enqueue_procedure_outcome_pdus_and_start_cu_cp()
 {
+  // Enqueue NG Setup responses.s.
   for (const auto& [amf_index, amf_config] : amf_configs) {
     get_amf(amf_index).enqueue_next_tx_pdu(ocucp::generate_ng_setup_response());
   }
+
+  // Enqueue XN Setup responses.
+  for (const auto& [xnc_peer_idx, xnc_peer] : xnc_peers) {
+    get_xnc_cu_cp(xnc_peer_idx)
+        .enqueue_next_tx_pdu(generate_asn1_xn_setup_response(
+            xnap_configuration{.gnb_id = gnb_id_t{cu_cp_cfg.node.gnb_id.id + 2, cu_cp_cfg.node.gnb_id.bit_length},
+                               .tai_support_list = amf_configs.begin()->second.supported_tas}));
+  }
+
+  // Start CU-CP.
   report_fatal_error_if_not(get_cu_cp().start(), "Failed to start CU-CP");
+}
+
+void cu_cp_test_environment::run_ng_setup()
+{
+  // Enqueue NG setup procedure responses and start CU-CP.
+  enqueue_procedure_outcome_pdus_and_start_cu_cp();
 
   ngap_message ngap_pdu;
   for (const auto& [amf_index, amf_config] : amf_configs) {
@@ -349,6 +403,21 @@ bool cu_cp_test_environment::reconnect_amf(unsigned amf_idx)
 
   ngap_message ng_setup_req;
   return wait_for_ngap_tx_pdu(ng_setup_req, std::chrono::milliseconds{1000}, amf_idx);
+}
+
+void cu_cp_test_environment::run_xn_setup()
+{
+  cu_cp_cfg.xnap.xnc_gw->attach_cu_cp(get_cu_cp().get_xnc_handler());
+
+  xnap_message xnap_pdu;
+  for (const auto& [xnc_peer_idx, xnc_peer] : xnc_peers) {
+    report_fatal_error_if_not(get_xnc_cu_cp(xnc_peer_idx).try_pop_rx_pdu(xnap_pdu),
+                              "CU-CP did not send the XN Setup Request to the XN-C peer CU-CP {}",
+                              xnc_peer_idx);
+    report_fatal_error_if_not(
+        test_helpers::is_pdu_type(xnap_pdu, asn1::xnap::xnap_elem_procs_o::init_msg_c::types::xn_setup_request),
+        "CU-CP did not setup the XN-C connection");
+  }
 }
 
 std::optional<unsigned> cu_cp_test_environment::connect_new_du()

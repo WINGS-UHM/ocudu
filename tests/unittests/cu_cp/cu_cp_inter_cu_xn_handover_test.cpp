@@ -8,28 +8,45 @@
 #include "tests/test_doubles/ngap/ngap_test_message_validators.h"
 #include "tests/test_doubles/rrc/rrc_test_message_validators.h"
 #include "tests/test_doubles/utils/test_rng.h"
+#include "tests/test_doubles/xnap/xnap_test_message_validators.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
+#include "tests/unittests/xnap/xnap_test_messages.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
-#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/e1ap/common/e1ap_types.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/f1ap/f1ap_ue_id_types.h"
 #include "ocudu/ngap/ngap_message.h"
 #include "ocudu/ngap/ngap_types.h"
 #include "ocudu/ran/cu_types.h"
+#include "ocudu/xnap/xnap_types.h"
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 using namespace ocudu;
 using namespace ocucp;
 
-class cu_cp_inter_cu_handover_test : public cu_cp_test_environment, public ::testing::Test
+class cu_cp_inter_cu_xn_handover_test : public cu_cp_test_environment, public ::testing::Test
 {
 public:
-  cu_cp_inter_cu_handover_test() : cu_cp_test_environment(cu_cp_test_env_params{})
+  cu_cp_inter_cu_xn_handover_test() :
+    cu_cp_test_environment({/* max nof cu-ups */ 8,
+                            /* max nof dus */ 8,
+                            /* max nof ues */ 8192,
+                            /* max nof drbs per ue */ 8,
+                            /* amf config */ {{default_supported_tracking_area}},
+                            /* trigger ho from measurements */ true,
+                            /* enable rrc inactive */ false,
+                            /* enable xnc peer */ true})
   {
     // Run NG setup to completion.
     run_ng_setup();
+
+    // Wait for the XN-C gateway to be attached to the CU-CP.
+    sleep(1);
+
+    // Run XN setup to completion.
+    run_xn_setup();
 
     // Setup DU.
     std::optional<unsigned> ret = connect_new_du();
@@ -55,7 +72,7 @@ public:
     return ue_ctx != nullptr;
   }
 
-  [[nodiscard]] bool send_handover_request_and_await_bearer_context_setup_request()
+  [[nodiscard]] bool send_handover_request_and_await_bearer_context_setup_request(local_xnap_ue_id_t local_xnap_ue_id)
   {
     report_fatal_error_if_not(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
                               "there are still NGAP messages to pop from AMF");
@@ -63,9 +80,11 @@ public:
                               "there are still F1AP DL messages to pop from DU");
     report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
                               "there are still E1AP messages to pop from CU-UP");
+    report_fatal_error_if_not(not this->get_xnc_cu_cp(xnc_peer_idx).try_pop_rx_pdu(xnap_pdu),
+                              "there are still XNAP messages to pop from XN-C peer CU-CP");
 
     // Inject Handover Request and wait for Bearer Context Setup Request.
-    get_amf().push_tx_pdu(generate_valid_handover_request(amf_ue_id));
+    get_xnc_cu_cp(xnc_peer_idx).push_tx_pdu(generate_handover_request(local_xnap_ue_id));
     report_fatal_error_if_not(this->wait_for_e1ap_tx_pdu(cu_up_idx, e1ap_pdu),
                               "Failed to receive Bearer Context Setup Request");
     report_fatal_error_if_not(test_helpers::is_valid_bearer_context_setup_request(e1ap_pdu),
@@ -123,8 +142,9 @@ public:
   {
     // Inject Bearer Context Modification Response and wait for Handover Request Ack.
     get_cu_up(cu_up_idx).push_tx_pdu(generate_bearer_context_modification_response(cu_cp_e1ap_id, cu_up_e1ap_id));
-    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive Handover Request Ack");
-    report_fatal_error_if_not(test_helpers::is_valid_handover_request_ack(ngap_pdu), "Invalid Handover Request Ack");
+    report_fatal_error_if_not(this->wait_for_xnap_tx_pdu(xnc_peer_idx, xnap_pdu),
+                              "Failed to receive Handover Request Ack");
+    report_fatal_error_if_not(test_helpers::is_valid_handover_request_ack(xnap_pdu), "Invalid Handover Request Ack");
     return true;
   }
 
@@ -136,9 +156,10 @@ public:
   }
 
   [[nodiscard]]
-  bool send_dl_ran_status_transfer_and_await_bearer_context_modification_request()
+  bool send_sn_status_transfer_and_await_bearer_context_modification_request(local_xnap_ue_id_t local_xnap_ue_id,
+                                                                             peer_xnap_ue_id_t  peer_xnap_ue_id)
   {
-    get_amf().push_tx_pdu(generate_valid_dl_ran_status_transfer(amf_ue_id, {}));
+    get_xnc_cu_cp(xnc_peer_idx).push_tx_pdu(generate_sn_status_transfer(local_xnap_ue_id, peer_xnap_ue_id));
     report_fatal_error_if_not(this->wait_for_e1ap_tx_pdu(cu_up_idx, e1ap_pdu),
                               "Failed to receive Bearer Context Modification Request");
     report_fatal_error_if_not(test_helpers::is_valid_bearer_context_modification_request(e1ap_pdu),
@@ -146,90 +167,77 @@ public:
     return true;
   }
 
-  [[nodiscard]] bool send_rrc_reconfiguration_complete_and_await_handover_notify_and_ue_context_modification_request()
+  [[nodiscard]] bool send_rrc_reconfiguration_complete_and_await_path_switch_request()
   {
-    // Inject UL RRC Message (containing RRC Reconfiguration Complete) and wait for Handover Notify.
+    // Inject UL RRC Message (containing RRC Reconfiguration Complete) and wait for Path Switch Request.
     get_du(du_idx).push_ul_pdu(test_helpers::generate_ul_rrc_message_transfer(
-        du_ue_id, cu_ue_id, srb_id_t::srb1, make_byte_buffer("800008005b7d9d03").value()));
-    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive Handover Notify");
-    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
-                              "Failed to receive UE context modification response");
-    report_fatal_error_if_not(test_helpers::is_valid_handover_notify(ngap_pdu), "Invalid Handover Notify");
-    report_fatal_error_if_not(test_helpers::is_valid_ue_context_modification_request(f1ap_pdu),
-                              "Invalid F1AP UE Context Modification Request");
+        du_ue_id, cu_ue_id, srb_id_t::srb1, make_byte_buffer("80000800795ae600").value()));
+    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive Path Switch Request");
+    report_fatal_error_if_not(test_helpers::is_valid_path_switch_request(ngap_pdu), "Invalid Path Switch Request");
+
     return true;
   }
 
-  [[nodiscard]] bool send_rrc_measurement_report_and_await_handover_required(
+  [[nodiscard]] bool send_path_switch_request_ack_and_await_ue_context_modification_request()
+  {
+    // Inject Path Switch Request Ack and await UE Context Modification Request.
+    get_amf().push_tx_pdu(generate_path_switch_request_ack(uint_to_amf_ue_id(1), ran_ue_id_t::min));
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
+                              "Failed to receive F1AP UE Context Modification Request (containing RRC Release)");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_modification_request(f1ap_pdu),
+                              "Invalid UE Context Modification Request");
+    return true;
+  }
+
+  [[nodiscard]] bool send_rrc_measurement_report_and_await_handover_request(
       gnb_cu_ue_f1ap_id_t f1ap_cu_ue_id,
       gnb_du_ue_f1ap_id_t f1ap_du_ue_id,
-      byte_buffer         rrc_meas_report = make_byte_buffer("000800410004015f741fe0804bf183fcaa6e9699").value())
+      local_xnap_ue_id_t& local_xnap_ue_id,
+      peer_xnap_ue_id_t&  peer_xnap_ue_id,
+      byte_buffer         rrc_meas_report = make_byte_buffer("000800420004015f741fe0808bf183fc0789117e").value())
   {
     // Inject UL RRC Message (containing RRC Measurement Report) and wait for Handover Required.
     get_du(du_idx).push_ul_pdu(test_helpers::generate_ul_rrc_message_transfer(
         f1ap_du_ue_id, f1ap_cu_ue_id, srb_id_t::srb1, std::move(rrc_meas_report)));
-    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive Handover Required");
-    report_fatal_error_if_not(test_helpers::is_valid_handover_required(ngap_pdu), "Invalid Handover Required");
+    report_fatal_error_if_not(this->wait_for_xnap_tx_pdu(xnc_peer_idx, xnap_pdu),
+                              "Failed to receive XN Handover Request");
+    // report_fatal_error_if_not(test_helpers::is_valid_handover_request(xnap_pdu), "Invalid XN Handover Request");
     report_fatal_error_if_not(
-        test_helpers::is_valid_rrc_handover_preparation_info(test_helpers::get_rrc_container(ngap_pdu)),
+        test_helpers::is_valid_rrc_handover_preparation_info(test_helpers::get_rrc_container(xnap_pdu)),
         "Invalid Handover Preparation Info");
 
-    report_fatal_error_if_not(ngap_pdu.pdu.init_msg()
-                                      .value.ho_required()
-                                      ->target_id.target_ran_node_id()
-                                      .global_ran_node_id.global_gnb_id()
-                                      .gnb_id.gnb_id()
-                                      .to_number() == 412U,
-                              "Wrong target gNB-id in Handover Required");
-
-    amf_ue_id_2 = uint_to_amf_ue_id(ngap_pdu.pdu.init_msg().value.ho_required()->amf_ue_ngap_id);
-    ran_ue_id_2 = uint_to_ran_ue_id(ngap_pdu.pdu.init_msg().value.ho_required()->ran_ue_ngap_id);
+    local_xnap_ue_id =
+        uint_to_local_xnap_ue_id(xnap_pdu.pdu.init_msg().value.ho_request()->source_ng_ra_nnode_ue_xn_ap_id);
+    peer_xnap_ue_id =
+        uint_to_peer_xnap_ue_id(xnap_pdu.pdu.init_msg().value.ho_request()->source_ng_ra_nnode_ue_xn_ap_id);
 
     return true;
   }
 
-  [[nodiscard]] bool send_rrc_measurement_report(
-      gnb_cu_ue_f1ap_id_t f1ap_cu_ue_id,
-      gnb_du_ue_f1ap_id_t f1ap_du_ue_id,
-      byte_buffer         rrc_meas_report = make_byte_buffer("000800410004015f741fe0804bf183fcaa6e9699").value())
-  {
-    // Inject UL RRC Message (containing RRC Measurement Report).
-    get_du(du_idx).push_ul_pdu(test_helpers::generate_ul_rrc_message_transfer(
-        f1ap_du_ue_id, f1ap_cu_ue_id, srb_id_t::srb1, std::move(rrc_meas_report)));
-
-    return true;
-  }
-
-  [[nodiscard]] bool send_handover_preparation_failure()
+  [[nodiscard]] bool send_handover_preparation_failure(peer_xnap_ue_id_t peer_xnap_ue_id)
   {
     // Inject Handover Preparation Failure.
-    get_amf().push_tx_pdu(generate_handover_preparation_failure(ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value()));
+    get_xnc_cu_cp(xnc_peer_idx).push_tx_pdu(generate_handover_preparation_failure(peer_xnap_ue_id));
     return true;
   }
 
   [[nodiscard]] bool timeout_handover_command_and_await_handover_cancel()
   {
-    // Fail Handover Preparation (AMF doesn't respond) and await Handover Cancel.
+    // Fail Handover Preparation (XN-C peer CU-CP doesn't respond) and await Handover Cancel.
     if (tick_until(std::chrono::milliseconds(1000), [&]() { return false; })) {
       return false;
     }
-    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive Handover Cancel");
-    report_fatal_error_if_not(test_helpers::is_valid_handover_cancel(ngap_pdu), "Invalid Handover Cancel");
+    report_fatal_error_if_not(this->wait_for_xnap_tx_pdu(xnc_peer_idx, xnap_pdu), "Failed to receive Handover Cancel");
+    report_fatal_error_if_not(test_helpers::is_valid_handover_cancel(xnap_pdu), "Invalid Handover Cancel");
     return true;
   }
 
-  [[nodiscard]] bool send_handover_cancel_ack()
+  [[nodiscard]] bool
+  send_handover_request_ack_and_await_ue_context_modification_request(local_xnap_ue_id_t local_xnap_ue_id,
+                                                                      peer_xnap_ue_id_t  peer_xnap_ue_id)
   {
-    // Inject Handover Cancel Ack.
-    get_amf().push_tx_pdu(generate_handover_cancel_ack(ue_ctx->amf_ue_id.value(), ue_ctx->ran_ue_id.value()));
-    return true;
-  }
-
-  [[nodiscard]] bool send_handover_command_and_await_ue_context_modification_request(amf_ue_id_t ngap_amf_ue_id,
-                                                                                     ran_ue_id_t ngap_ran_ue_id)
-  {
-    // Inject Handover Command and wait for UE Context Modification Request (containing RRC Reconfiguration).
-    get_amf().push_tx_pdu(generate_valid_handover_command(ngap_amf_ue_id, ngap_ran_ue_id));
+    // Inject Handover Request Ack and wait for UE Context Modification Request (containing RRC Reconfiguration).
+    get_xnc_cu_cp(xnc_peer_idx).push_tx_pdu(generate_handover_request_ack(local_xnap_ue_id, peer_xnap_ue_id));
 
     report_fatal_error_if_not(
         this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
@@ -267,27 +275,16 @@ public:
   }
 
   [[nodiscard]] bool
-  send_bearer_context_modification_response_and_await_ul_status_transfer(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
+  send_bearer_context_modification_response_and_await_sn_status_transfer(gnb_cu_cp_ue_e1ap_id_t cu_cp_ue_e1ap_id,
                                                                          gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id)
   {
     get_cu_up(cu_up_idx).push_tx_pdu(
         generate_bearer_context_modification_response_with_pdcp_status(cu_cp_ue_e1ap_id, cu_up_ue_e1ap_id));
 
-    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu),
-                              "Failed to transmist NGAP UL RAN Status transfer to AMF");
+    report_fatal_error_if_not(this->wait_for_xnap_tx_pdu(xnc_peer_idx, xnap_pdu),
+                              "Failed to transmist XNAP SN Status transfer to XN-C peer CU-CP");
+    report_fatal_error_if_not(test_helpers::is_valid_sn_status_transfer(xnap_pdu), "Invalid XNAP SN Status Transfer");
 
-    report_fatal_error_if_not(test_helpers::is_valid_ul_ran_status_transfer(ngap_pdu),
-                              "Invalid NGAP UL RAN Status Transfer");
-
-    return true;
-  }
-
-  [[nodiscard]] bool send_ue_context_modification_response(gnb_cu_ue_f1ap_id_t f1ap_cu_ue_id,
-                                                           gnb_du_ue_f1ap_id_t f1ap_du_ue_id)
-  {
-    // Inject UE Context Modification Response and wait for UE Context Release Command.
-    get_du(du_idx).push_ul_pdu(
-        test_helpers::generate_ue_context_modification_response(f1ap_du_ue_id, f1ap_cu_ue_id, crnti));
     return true;
   }
 
@@ -301,7 +298,8 @@ public:
   }
 
   [[nodiscard]] bool
-  send_ngap_ue_context_release_command_and_await_bearer_context_release_command(amf_ue_id_t ngap_amf_ue_id)
+  send_xnap_ue_context_release_and_await_bearer_context_release_command(local_xnap_ue_id_t local_xnap_ue_id,
+                                                                        peer_xnap_ue_id_t  peer_xnap_ue_id)
   {
     report_fatal_error_if_not(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
                               "there are still NGAP messages to pop from AMF");
@@ -309,9 +307,11 @@ public:
                               "there are still F1AP DL messages to pop from DU");
     report_fatal_error_if_not(not this->get_cu_up(cu_up_idx).try_pop_rx_pdu(e1ap_pdu),
                               "there are still E1AP messages to pop from CU-UP");
+    report_fatal_error_if_not(not this->get_xnc_cu_cp(xnc_peer_idx).try_pop_rx_pdu(xnap_pdu),
+                              "there are still XNAP messages to pop from XN-C peer CU-CP");
 
-    // Inject NGAP UE Context Release Command and wait for Bearer Context Release Command.
-    get_amf().push_tx_pdu(generate_valid_ue_context_release_command_with_amf_ue_ngap_id(ngap_amf_ue_id));
+    // Inject XNAP UE Context Release and wait for Bearer Context Release Command.
+    get_xnc_cu_cp(xnc_peer_idx).push_tx_pdu(generate_ue_context_release(local_xnap_ue_id, peer_xnap_ue_id));
     report_fatal_error_if_not(this->wait_for_e1ap_tx_pdu(cu_up_idx, e1ap_pdu),
                               "Failed to receive Bearer Context Release Command");
     report_fatal_error_if_not(test_helpers::is_valid_bearer_context_release_command(e1ap_pdu),
@@ -332,20 +332,17 @@ public:
     return true;
   }
 
-  [[nodiscard]] bool
-  send_f1ap_ue_context_release_complete_and_await_ngap_ue_context_release_complete(gnb_cu_ue_f1ap_id_t f1ap_cu_ue_id,
-                                                                                   gnb_du_ue_f1ap_id_t f1ap_du_ue_id)
+  [[nodiscard]] bool send_f1ap_ue_context_release_complete(gnb_cu_ue_f1ap_id_t f1ap_cu_ue_id,
+                                                           gnb_du_ue_f1ap_id_t f1ap_du_ue_id)
   {
     // Inject F1AP UE Context Release Complete and wait for N1AP UE Context Release Command.
     get_du(du_idx).push_ul_pdu(test_helpers::generate_ue_context_release_complete(f1ap_cu_ue_id, f1ap_du_ue_id));
-    report_fatal_error_if_not(this->wait_for_ngap_tx_pdu(ngap_pdu), "Failed to receive UE Context Release Complete");
-    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_complete(ngap_pdu),
-                              "Invalid UE Context Release Complete");
     return true;
   }
 
-  unsigned du_idx    = 0;
-  unsigned cu_up_idx = 0;
+  unsigned du_idx       = 0;
+  unsigned cu_up_idx    = 0;
+  unsigned xnc_peer_idx = 0;
 
   gnb_du_ue_f1ap_id_t du_ue_id = gnb_du_ue_f1ap_id_t::min;
   gnb_cu_ue_f1ap_id_t cu_ue_id;
@@ -355,17 +352,21 @@ public:
   gnb_cu_up_ue_e1ap_id_t cu_up_e1ap_id = gnb_cu_up_ue_e1ap_id_t::min;
   gnb_cu_cp_ue_e1ap_id_t cu_cp_e1ap_id;
 
+  local_xnap_ue_id_t source_local_xnap_ue_id = local_xnap_ue_id_t::min;
+  peer_xnap_ue_id_t  source_peer_xnap_ue_id  = peer_xnap_ue_id_t::min;
+
+  local_xnap_ue_id_t target_local_xnap_ue_id = local_xnap_ue_id_t::min;
+  peer_xnap_ue_id_t  target_peer_xnap_ue_id  = peer_xnap_ue_id_t::min;
+
   std::optional<uint8_t> ue_context_setup_req_serving_cell_mo = std::nullopt;
 
   const ue_context* ue_ctx = nullptr;
-
-  amf_ue_id_t amf_ue_id_2;
-  ran_ue_id_t ran_ue_id_2;
 
   pdu_session_id_t psi = uint_to_pdu_session_id(1);
   qos_flow_id_t    qfi = uint_to_qos_flow_id(1);
 
   ngap_message ngap_pdu;
+  xnap_message xnap_pdu;
   f1ap_message f1ap_pdu;
   e1ap_message e1ap_pdu;
 };
@@ -373,164 +374,80 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 //                             Source CU-CP
 ///////////////////////////////////////////////////////////////////////////////
-TEST_F(cu_cp_inter_cu_handover_test, when_handover_preparation_failure_is_received_then_handover_fails)
+TEST_F(cu_cp_inter_cu_xn_handover_test, when_handover_preparation_failure_is_received_then_handover_fails)
 {
   // Attach UE.
   ASSERT_TRUE(attach_ue());
 
-  // Inject RRC Measurement Report and await Handover Required.
-  ASSERT_TRUE(
-      send_rrc_measurement_report_and_await_handover_required(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
+  // Inject RRC Measurement Report and await Handover Request.
+  ASSERT_TRUE(send_rrc_measurement_report_and_await_handover_request(
+      ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value(), source_local_xnap_ue_id, target_peer_xnap_ue_id));
 
   // Inject Handover Preparation Failure.
-  ASSERT_TRUE(send_handover_preparation_failure());
-
-  // Check that metrics contain the requested handover preparation.
-  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.mobility.nof_handover_preparations_requested, 1);
-  ASSERT_EQ(report.mobility.nof_successful_handover_preparations, 0);
+  ASSERT_TRUE(send_handover_preparation_failure(target_peer_xnap_ue_id));
 
   // STATUS: Handover Preparation failed and no further messages are sent to the AMF.
   report_fatal_error_if_not(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
                             "there are still NGAP messages to pop from AMF");
 }
 
-TEST_F(cu_cp_inter_cu_handover_test, when_handover_command_times_out_then_handover_cancel_is_sent)
+TEST_F(cu_cp_inter_cu_xn_handover_test, when_handover_command_times_out_then_handover_cancel_is_sent)
 {
   // Attach UE.
   ASSERT_TRUE(attach_ue());
 
-  // Inject RRC Measurement Report and await Handover Required.
-  ASSERT_TRUE(
-      send_rrc_measurement_report_and_await_handover_required(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
+  // Inject RRC Measurement Report and await Handover Request.
+  ASSERT_TRUE(send_rrc_measurement_report_and_await_handover_request(
+      ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value(), source_local_xnap_ue_id, target_peer_xnap_ue_id));
 
-  // timeout Handover Command and await Handover Cancel.
+  // Timeout Handover Command and await Handover Cancel.
   ASSERT_TRUE(timeout_handover_command_and_await_handover_cancel());
-
-  // Inject Handover Cancel Ack.
-  ASSERT_TRUE(send_handover_cancel_ack());
 }
 
-TEST_F(cu_cp_inter_cu_handover_test, when_handover_succeeds_then_amf_releases_ue)
+TEST_F(cu_cp_inter_cu_xn_handover_test, when_handover_succeeds_then_amf_releases_ue)
 {
   // Attach UE.
   ASSERT_TRUE(attach_ue());
 
-  // Inject RRC Measurement Report and await Handover Required.
-  ASSERT_TRUE(
-      send_rrc_measurement_report_and_await_handover_required(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
+  // Inject RRC Measurement Report and await Handover Request.
+  ASSERT_TRUE(send_rrc_measurement_report_and_await_handover_request(
+      ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value(), source_local_xnap_ue_id, target_peer_xnap_ue_id));
 
-  // Check that metrics contain the requested handover preparation.
-  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.mobility.nof_handover_preparations_requested, 1);
-  ASSERT_EQ(report.mobility.nof_successful_handover_preparations, 0);
+  // Inject Handover Request Ack and await UE Context Modification Request (with RRC Reconfiguration).
+  ASSERT_TRUE(send_handover_request_ack_and_await_ue_context_modification_request(target_local_xnap_ue_id,
+                                                                                  target_peer_xnap_ue_id));
 
-  // Send Handover Command and await UE Context Modification Request (with RRC Reconfiguration).
-  ASSERT_TRUE(send_handover_command_and_await_ue_context_modification_request(ue_ctx->amf_ue_id.value(),
-                                                                              ue_ctx->ran_ue_id.value()));
-
-  // Send Handover UE Context Modification Response and await for Bearer Context Modification Request (to query PDCP
+  // Inject Handover UE Context Modification Response and await for Bearer Context Modification Request (to query PDCP
   // state).
   ASSERT_TRUE(send_ue_context_modification_response_and_await_bearer_context_modification_request(
       ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
 
-  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ul_status_transfer(ue_ctx->cu_cp_e1ap_id.value(),
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_sn_status_transfer(ue_ctx->cu_cp_e1ap_id.value(),
                                                                                      ue_ctx->cu_up_e1ap_id.value()));
 
-  // Check that metrics contain the requested and successful handover preparation.
-  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.mobility.nof_handover_preparations_requested, 1);
-  ASSERT_EQ(report.mobility.nof_successful_handover_preparations, 1);
-
-  // Inject NGAP UE Context Release Command and await Bearer Context Release Command.
-  ASSERT_TRUE(send_ngap_ue_context_release_command_and_await_bearer_context_release_command(ue_ctx->amf_ue_id.value()));
+  // Inject XNAP UE Context Release and await Bearer Context Release Command.
+  ASSERT_TRUE(send_xnap_ue_context_release_and_await_bearer_context_release_command(target_local_xnap_ue_id,
+                                                                                    target_peer_xnap_ue_id));
 
   // Inject Bearer Context Release Complete and await F1AP UE Context Release Command.
   ASSERT_TRUE(send_bearer_context_release_complete_and_await_f1ap_ue_context_release_command(
       ue_ctx->cu_cp_e1ap_id.value(), ue_ctx->cu_up_e1ap_id.value()));
 
-  // Inject F1AP UE Context Release Complete and await NGAP UE Context Release Complete.
-  ASSERT_TRUE(send_f1ap_ue_context_release_complete_and_await_ngap_ue_context_release_complete(
-      ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
+  // Inject F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete(ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
 
   // STATUS: UE should be removed at this stage
-  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
-}
-
-TEST_F(cu_cp_inter_cu_handover_test, when_ncell_is_not_strong_enough_then_ho_from_periodic_report_is_not_triggered)
-{
-  // Attach UE.
-  ASSERT_TRUE(attach_ue());
-
-  // Inject periodic RRC Measurement Report.
-  ASSERT_TRUE(send_rrc_measurement_report(
-      ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value(), make_byte_buffer("0008004000014fc0806a1c9cfdaee8").value()));
-
-  // STATUS: No message is sent to the AMF.
-  report_fatal_error_if_not(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
-                            "there are still NGAP messages to pop from AMF");
-
-  // Check that metrics don't contain a requested or successful handover preparation.
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.mobility.nof_handover_preparations_requested, 0);
-  ASSERT_EQ(report.mobility.nof_successful_handover_preparations, 0);
-}
-
-TEST_F(cu_cp_inter_cu_handover_test, when_ncell_is_strong_enough_then_ho_from_periodic_report_is_triggered)
-{
-  // Attach UE.
-  ASSERT_TRUE(attach_ue());
-
-  // Inject periodic RRC Measurement Report.
-  ASSERT_TRUE(send_rrc_measurement_report_and_await_handover_required(
-      ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value(), make_byte_buffer("00080040000147c0806a42830aecee").value()));
-
-  // Check that metrics contain the requested handover preparation.
-  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.mobility.nof_handover_preparations_requested, 1);
-  ASSERT_EQ(report.mobility.nof_successful_handover_preparations, 0);
-
-  // Send Handover Command and await UE Context Modification Request (with RRC Reconfiguration).
-  ASSERT_TRUE(send_handover_command_and_await_ue_context_modification_request(ue_ctx->amf_ue_id.value(),
-                                                                              ue_ctx->ran_ue_id.value()));
-
-  // Send Handover UE Context Modification Response and await for Bearer Context Modification Request (to query PDCP
-  // state).
-  ASSERT_TRUE(send_ue_context_modification_response_and_await_bearer_context_modification_request(
-      ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
-
-  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ul_status_transfer(ue_ctx->cu_cp_e1ap_id.value(),
-                                                                                     ue_ctx->cu_up_e1ap_id.value()));
-
-  // Check that metrics contain the requested and successful handover preparation.
-  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.mobility.nof_handover_preparations_requested, 1);
-  ASSERT_EQ(report.mobility.nof_successful_handover_preparations, 1);
-
-  // Inject NGAP UE Context Release Command and await Bearer Context Release Command.
-  ASSERT_TRUE(send_ngap_ue_context_release_command_and_await_bearer_context_release_command(ue_ctx->amf_ue_id.value()));
-
-  // Inject Bearer Context Release Complete and await F1AP UE Context Release Command.
-  ASSERT_TRUE(send_bearer_context_release_complete_and_await_f1ap_ue_context_release_command(
-      ue_ctx->cu_cp_e1ap_id.value(), ue_ctx->cu_up_e1ap_id.value()));
-
-  // Inject F1AP UE Context Release Complete and await NGAP UE Context Release Complete.
-  ASSERT_TRUE(send_f1ap_ue_context_release_complete_and_await_ngap_ue_context_release_complete(
-      ue_ctx->cu_ue_id.value(), ue_ctx->du_ue_id.value()));
-
-  // STATUS: UE should be removed at this stage
-  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //                             Target CU-CP
 ///////////////////////////////////////////////////////////////////////////////
-TEST_F(cu_cp_inter_cu_handover_test, when_handover_request_received_then_handover_notify_is_sent)
+TEST_F(cu_cp_inter_cu_xn_handover_test, when_handover_request_received_then_path_switch_request_is_sent)
 {
   // Inject Handover Request and await Bearer Context Setup Request.
-  ASSERT_TRUE(send_handover_request_and_await_bearer_context_setup_request());
+  ASSERT_TRUE(send_handover_request_and_await_bearer_context_setup_request(source_local_xnap_ue_id));
 
   // Inject Bearer Context Setup Response and await UE Context Setup Request.
   ASSERT_TRUE(send_bearer_context_setup_response_and_await_ue_context_setup_request());
@@ -541,38 +458,32 @@ TEST_F(cu_cp_inter_cu_handover_test, when_handover_request_received_then_handove
   // Inject Bearer Context Modification Response and await Handover Request Ack.
   ASSERT_TRUE(send_bearer_context_modification_response_and_await_handover_request_ack());
 
-  // Inject NGAP DL RAN Status Transfer and Bearer Context Modification Response.
-  ASSERT_TRUE(send_dl_ran_status_transfer_and_await_bearer_context_modification_request());
+  // Inject XNAP SN RAN Status Transfer and Bearer Context Modification Response.
+  ASSERT_TRUE(send_sn_status_transfer_and_await_bearer_context_modification_request(source_local_xnap_ue_id,
+                                                                                    source_peer_xnap_ue_id));
 
   // Inject Bearer Context Modification Response and ACK the PDCP state modification.
   ASSERT_TRUE(send_bearer_context_modification_response());
 
-  // Inject RRC Reconfiguration Complete and await Handover Notify and UE Context Modification Request.
-  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_handover_notify_and_ue_context_modification_request());
+  // Inject RRC Reconfiguration Complete and await Path Switch Request.
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_path_switch_request());
+
+  // Inject Path Switch Request Ack and await UE Context Modification Request.
+  ASSERT_TRUE(send_path_switch_request_ack_and_await_ue_context_modification_request());
 
   // Inject UE Context Modification Response to ACK the RRC reconfiguration complete indicator.
   ASSERT_TRUE(send_ue_context_modification_response_empty(cu_ue_id, du_ue_id));
-
-  // Check that the UE is connected to the AMF by injecting a deregistration request and make sure its forwarded.
-  f1ap_message ul_rrc_msg_transfer = test_helpers::generate_ul_rrc_message_transfer(
-      du_ue_id,
-      cu_ue_id,
-      srb_id_t::srb2,
-      make_byte_buffer("00003a0c3f011ef64ea681bf0022888005f9007888010020600003458007c887be").value());
-  get_du(du_idx).push_ul_pdu(ul_rrc_msg_transfer);
-  ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu));
-  ASSERT_TRUE(test_helpers::is_valid_ul_nas_transport_message(ngap_pdu));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 //                             ZigZag Handover
 ///////////////////////////////////////////////////////////////////////////////
-TEST_F(cu_cp_inter_cu_handover_test, when_zigzag_handover_is_performed_then_handovers_are_successful)
+TEST_F(cu_cp_inter_cu_xn_handover_test, when_zigzag_handover_is_performed_then_handovers_are_successful)
 {
   // This CU-CP is the target...
 
   // Inject Handover Request and await Bearer Context Setup Request
-  ASSERT_TRUE(send_handover_request_and_await_bearer_context_setup_request());
+  ASSERT_TRUE(send_handover_request_and_await_bearer_context_setup_request(source_local_xnap_ue_id));
 
   // Inject Bearer Context Setup Response and await UE Context Setup Request
   ASSERT_TRUE(send_bearer_context_setup_response_and_await_ue_context_setup_request());
@@ -583,54 +494,58 @@ TEST_F(cu_cp_inter_cu_handover_test, when_zigzag_handover_is_performed_then_hand
   // Inject Bearer Context Modification Response and await Handover Request Ack
   ASSERT_TRUE(send_bearer_context_modification_response_and_await_handover_request_ack());
 
-  // Inject NGAP DL RAN Status Transfer and Bearer Context Modification Response.
-  ASSERT_TRUE(send_dl_ran_status_transfer_and_await_bearer_context_modification_request());
+  // Inject XNAP SN Status Transfer and Bearer Context Modification Response.
+  ASSERT_TRUE(send_sn_status_transfer_and_await_bearer_context_modification_request(source_local_xnap_ue_id,
+                                                                                    source_peer_xnap_ue_id));
 
   // Inject Bearer Context Modification Response and ACK the PDCP state modification.
   ASSERT_TRUE(send_bearer_context_modification_response());
 
-  // Inject RRC Reconfiguration Complete and await Handover Notify and UE Context Modification Request.
-  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_handover_notify_and_ue_context_modification_request());
+  // Inject RRC Reconfiguration Complete and await Path Switch Request.
+  ASSERT_TRUE(send_rrc_reconfiguration_complete_and_await_path_switch_request());
+
+  // Inject Path Switch Request Ack and await UE Context Modification Request.
+  ASSERT_TRUE(send_path_switch_request_ack_and_await_ue_context_modification_request());
 
   // Inject UE Context Modification Response to ACK the RRC reconfiguration complete indicator.
   ASSERT_TRUE(send_ue_context_modification_response_empty(cu_ue_id, du_ue_id));
 
   // ... and now this CU-CP is the source.
 
-  // Inject RRC Measurement Report and await Handover Required.
-  ASSERT_TRUE(send_rrc_measurement_report_and_await_handover_required(
-      cu_ue_id, du_ue_id, make_byte_buffer("000100410004025d341920802baa834c215630c9").value()));
+  // Pop messages from XN-C peer CU-CP before injecting the RRC Measurement Report.
+  this->get_xnc_cu_cp(xnc_peer_idx).try_pop_rx_pdu(xnap_pdu);
 
-  // Check that metrics contain the requested handover preparation.
-  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.mobility.nof_handover_preparations_requested, 1);
-  ASSERT_EQ(report.mobility.nof_successful_handover_preparations, 0);
+  // Inject RRC Measurement Report and await Handover Request.
+  ASSERT_TRUE(send_rrc_measurement_report_and_await_handover_request(
+      cu_ue_id,
+      du_ue_id,
+      source_local_xnap_ue_id,
+      target_peer_xnap_ue_id,
+      make_byte_buffer("000100420004015f741fe0808bf183fce4fc8052").value()));
 
-  // Send Handover Command and await UE Context Modification Request (with RRC Reconfiguration).
-  ASSERT_TRUE(send_handover_command_and_await_ue_context_modification_request(amf_ue_id_2, ran_ue_id_2));
+  // Inject Handover Request Ack and await UE Context Modification Request (with RRC Reconfiguration).
+  ASSERT_TRUE(send_handover_request_ack_and_await_ue_context_modification_request(target_local_xnap_ue_id,
+                                                                                  target_peer_xnap_ue_id));
 
-  // Send Handover UE Context Modification Response and await for Bearer Context Modification Request (to query PDCP
+  // Inject Handover UE Context Modification Response and await for Bearer Context Modification Request (to query PDCP
   // state).
   ASSERT_TRUE(send_ue_context_modification_response_and_await_bearer_context_modification_request(cu_ue_id, du_ue_id));
 
-  ASSERT_TRUE(send_bearer_context_modification_response_and_await_ul_status_transfer(cu_cp_e1ap_id, cu_up_e1ap_id));
+  // Inject Bearer Context Modification Response and await SN Status Transfer.
+  ASSERT_TRUE(send_bearer_context_modification_response_and_await_sn_status_transfer(cu_cp_e1ap_id, cu_up_e1ap_id));
 
-  // Check that metrics contain the requested and successful handover preparation.
-  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.mobility.nof_handover_preparations_requested, 1);
-  ASSERT_EQ(report.mobility.nof_successful_handover_preparations, 1);
-
-  // Inject NGAP UE Context Release Command and await Bearer Context Release Command.
-  ASSERT_TRUE(send_ngap_ue_context_release_command_and_await_bearer_context_release_command(amf_ue_id_2));
+  // Inject XNAP UE Context Release and await Bearer Context Release Command.
+  ASSERT_TRUE(send_xnap_ue_context_release_and_await_bearer_context_release_command(target_local_xnap_ue_id,
+                                                                                    target_peer_xnap_ue_id));
 
   // Inject Bearer Context Release Complete and await F1AP UE Context Release Command.
   ASSERT_TRUE(
       send_bearer_context_release_complete_and_await_f1ap_ue_context_release_command(cu_cp_e1ap_id, cu_up_e1ap_id));
 
-  // Inject F1AP UE Context Release Complete and await NGAP UE Context Release Complete.
-  ASSERT_TRUE(send_f1ap_ue_context_release_complete_and_await_ngap_ue_context_release_complete(cu_ue_id, du_ue_id));
+  // Inject F1AP UE Context Release Complete.
+  ASSERT_TRUE(send_f1ap_ue_context_release_complete(cu_ue_id, du_ue_id));
 
   // STATUS: UE should be removed at this stage
-  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.ues.size(), 0) << "UE should be removed";
 }

@@ -393,6 +393,7 @@ int main(int argc, char** argv)
   if (!cp_unit_cfg.xnap_configs.empty()) {
     sctp_network_gateway_config xnc_sctp_cfg = {};
     xnc_sctp_cfg.if_name                     = "XN-C";
+    xnc_sctp_cfg.non_blocking_mode           = true;
     for (const auto& xnap_cfg : cp_unit_cfg.xnap_configs) {
       xnc_sctp_cfg.bind_addresses.insert(
           xnc_sctp_cfg.bind_addresses.end(), xnap_cfg.bind_addrs.begin(), xnap_cfg.bind_addrs.end());

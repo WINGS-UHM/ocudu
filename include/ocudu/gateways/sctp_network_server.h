@@ -44,6 +44,7 @@ public:
   virtual bool init_association_with_msg(transport_layer_address dest_addr, byte_buffer payload) = 0;
 
   /// \brief Initiate a new SCTP association to a peer in a non-blocking way via sctp_connectx().
+  /// This can only be used with non-blocking socket, otherwise it will deadlock.
   ///
   /// Returns an async_task<bool> that will complete with:
   /// - true on SCTP_COMM_UP, followed by sctp_network_association_factory::create() callback

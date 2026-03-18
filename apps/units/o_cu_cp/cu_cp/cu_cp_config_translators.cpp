@@ -455,8 +455,11 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
   // Mobility.
   out_cfg.mobility.mobility_manager_config.trigger_handover_from_measurements =
       cu_cfg.mobility_config.trigger_handover_from_measurements;
-  out_cfg.mobility.mobility_manager_config.enable_ngap_metrics = cu_cfg.metrics.layers_cfg.enable_ngap;
-  out_cfg.mobility.mobility_manager_config.enable_rrc_metrics  = cu_cfg.metrics.layers_cfg.enable_rrc;
+  out_cfg.mobility.mobility_manager_config.enable_ngap_metrics     = cu_cfg.metrics.layers_cfg.enable_ngap;
+  out_cfg.mobility.mobility_manager_config.enable_rrc_metrics      = cu_cfg.metrics.layers_cfg.enable_rrc;
+  out_cfg.mobility.mobility_manager_config.trigger_cho_on_ue_setup = cu_cfg.mobility_config.trigger_cho_on_ue_setup;
+  out_cfg.mobility.mobility_manager_config.cho_timeout =
+      std::chrono::milliseconds{cu_cfg.mobility_config.cho_timeout_ms};
 
   // F1AP-CU config.
   out_cfg.f1ap.proc_timeout     = std::chrono::milliseconds{cu_cfg.f1ap_config.procedure_timeout};

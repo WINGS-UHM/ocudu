@@ -63,6 +63,10 @@ public:
       std::chrono::milliseconds                            timeout,
       std::optional<std::chrono::system_clock::time_point> t1_thres_override = std::nullopt) override;
 
+  /// \brief Trigger CHO automatically for an already known UE.
+  /// This path is only active when enabled in gNB config.
+  void trigger_auto_conditional_handover(ue_index_t ue_index);
+
   void handle_neighbor_better_than_spcell(ue_index_t       ue_index,
                                           gnb_id_t         neighbor_gnb_id,
                                           nr_cell_identity neighbor_nci,

@@ -269,6 +269,8 @@ static YAML::Node build_cu_cp_mobility_section(const cu_cp_unit_mobility_config&
   YAML::Node node;
 
   node["trigger_handover_from_measurements"] = config.trigger_handover_from_measurements;
+  node["trigger_cho_on_ue_setup"]            = config.trigger_cho_on_ue_setup;
+  node["cho_timeout_ms"]                     = config.cho_timeout_ms;
   for (const auto& cell : config.cells) {
     node["cells"].push_back(build_cu_cp_mobility_cells_section(cell));
   }

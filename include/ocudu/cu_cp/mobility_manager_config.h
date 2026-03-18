@@ -8,6 +8,7 @@
 #include "cu_cp_intra_cu_ho_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/support/async/async_task.h"
+#include <chrono>
 
 namespace ocudu {
 
@@ -18,6 +19,10 @@ struct mobility_manager_cfg {
   bool trigger_handover_from_measurements = false; ///< Set to true to trigger HO when neighbor becomes stronger.
   bool enable_ngap_metrics                = false; ///< Set to true to enable inter gNB handover metrics collection.
   bool enable_rrc_metrics                 = false; ///< Set to true to enable intra gNB metrics collection.
+  /// Auto-trigger CHO after UE setup if UE/cell readiness checks pass.
+  bool trigger_cho_on_ue_setup = false;
+  /// Default CHO execution timeout. If it expires before CHO completion, CHO is cancelled.
+  std::chrono::milliseconds cho_timeout{10000};
 };
 
 /// Methods used by mobility manager to signal handover events to the CU-CP.

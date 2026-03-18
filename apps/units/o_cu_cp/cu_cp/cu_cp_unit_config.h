@@ -141,6 +141,10 @@ struct cu_cp_unit_mobility_config {
   std::vector<cu_cp_unit_report_config> report_configs;
   /// Whether to start HO if neighbor cell measurements arrive.
   bool trigger_handover_from_measurements = false;
+  /// Whether to auto-trigger CHO after UE setup/capability phase when readiness checks pass.
+  bool trigger_cho_on_ue_setup = false;
+  /// Timeout used for auto-triggered CHO in milliseconds.
+  unsigned cho_timeout_ms = 10000;
 };
 
 /// RRC specific configuration parameters.

@@ -389,6 +389,14 @@ static void configure_cli11_mobility_args(CLI::App& app, cu_cp_unit_mobility_con
              config.trigger_handover_from_measurements,
              "Whether to start HO if neighbor cells become stronger")
       ->capture_default_str();
+  add_option(app,
+             "--trigger_cho_on_ue_setup",
+             config.trigger_cho_on_ue_setup,
+             "Whether to auto-trigger CHO after UE setup when readiness checks pass")
+      ->capture_default_str();
+  add_option(app, "--cho_timeout_ms", config.cho_timeout_ms, "Timeout in milliseconds used for auto-triggered CHO")
+      ->capture_default_str()
+      ->check(CLI::Range(1, 600000));
 
   // Cell map parameters.
   app.add_option_function<std::vector<std::string>>(

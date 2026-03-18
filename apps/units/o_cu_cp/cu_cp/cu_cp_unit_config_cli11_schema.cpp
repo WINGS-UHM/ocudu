@@ -394,7 +394,10 @@ static void configure_cli11_mobility_args(CLI::App& app, cu_cp_unit_mobility_con
              config.trigger_cho_on_ue_setup,
              "Whether to auto-trigger CHO after UE setup when readiness checks pass")
       ->capture_default_str();
-  add_option(app, "--cho_timeout_ms", config.cho_timeout_ms, "Timeout in milliseconds used for auto-triggered CHO")
+  add_option(app,
+             "--cho_timeout_ms",
+             config.cho_timeout_ms,
+             "Timeout in milliseconds used for auto-triggered CHO and as default timeout for manual CHO command")
       ->capture_default_str()
       ->check(CLI::Range(1, 600000));
 

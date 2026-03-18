@@ -143,7 +143,7 @@ struct cu_cp_unit_mobility_config {
   bool trigger_handover_from_measurements = false;
   /// Whether to auto-trigger CHO after UE setup/capability phase when readiness checks pass.
   bool trigger_cho_on_ue_setup = false;
-  /// Timeout used for auto-triggered CHO in milliseconds.
+  /// Timeout used for auto-triggered CHO and as default timeout for manual CHO command in milliseconds.
   unsigned cho_timeout_ms = 10000;
 };
 

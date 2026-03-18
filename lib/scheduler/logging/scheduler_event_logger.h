@@ -98,7 +98,7 @@ public:
 
   void log()
   {
-    if (mode == none or fmtbuf.size() == 0) {
+    if (mode == none) {
       return;
     }
     log_impl();
@@ -120,8 +120,6 @@ private:
 
   class event_buffer_writer;
 
-  const char* separator() const;
-
   void log_impl();
 
   void enqueue_impl(const prach_event& rach_ev);
@@ -130,7 +128,7 @@ private:
   void enqueue_impl(const ue_creation_event& ue_request);
   void enqueue_impl(const ue_reconf_event& ue_request);
   void enqueue_impl(const sched_ue_delete_message& ue_request);
-  void enqueue_impl(const ue_cfg_applied_event& ue_cfg_applied);
+  void enqueue_impl(const ue_cfg_applied_event& ev);
   void enqueue_impl(const ue_deactivation_event& req);
 
   void enqueue_impl(const error_indication_event& err_ind);
@@ -150,8 +148,6 @@ private:
   const pci_t             pci;
   ocudulog::basic_logger& logger;
   mode_t                  mode = none;
-
-  fmt::memory_buffer fmtbuf;
 
   std::unique_ptr<event_buffer_writer> slot_buffer_writer;
 };

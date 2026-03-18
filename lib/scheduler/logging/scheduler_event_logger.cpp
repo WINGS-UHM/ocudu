@@ -7,9 +7,7 @@
 #include "ocudu/ran/csi_report/csi_report_formatters.h"
 #include "ocudu/ran/pusch/pusch_tpmi_formatter.h"
 #include "ocudu/support/format/custom_formattable.h"
-#include "ocudu/support/format/fmt_to_c_str.h"
 #include "ocudu/support/memory_pool/bounded_object_pool.h"
-#include "fmt/std.h"
 
 using namespace ocudu;
 
@@ -17,34 +15,72 @@ namespace {
 
 using sel = scheduler_event_logger;
 
+struct cell_creation_event {
+  du_cell_index_t cell_index;
+};
+
+/// Storage type of events taking place during a slot.
 constexpr size_t slot_event_buffer_size = 2048;
-using slot_event_buffer                 = static_type_list_buffer<slot_event_buffer_size,
-                                                                   sel::prach_event,
-                                                                   sel::ue_creation_event,
-                                                                   sel::ue_reconf_event,
-                                                                   sched_ue_delete_message,
-                                                                   sel::ue_cfg_applied_event,
-                                                                   sel::ue_deactivation_event,
-                                                                   sel::crc_event>;
+using slot_event_buffer = static_type_list_buffer<slot_event_buffer_size,
+                                                  cell_creation_event,
+                                                  sel::prach_event,
+                                                  rach_indication_message,
+                                                  sel::ue_creation_event,
+                                                  sel::ue_reconf_event,
+                                                  sched_ue_delete_message,
+                                                  sel::ue_cfg_applied_event,
+                                                  sel::ue_deactivation_event,
+                                                  sel::error_indication_event,
+                                                  sel::sr_event,
+                                                  sel::csi_report_event,
+                                                  sel::bsr_event,
+                                                  sel::harq_ack_event,
+                                                  sel::crc_event,
+                                                  dl_mac_ce_indication,
+                                                  dl_buffer_state_indication_message,
+                                                  sel::phr_event,
+                                                  sel::srs_indication_event,
+                                                  sel::slice_reconfiguration_event>;
+
+/// Sentinel return type used by format_info_level to signal that an event has no info-level formatter.
+struct no_info_formatter {};
 
 /// Helper function to format a given event in info level.
 template <typename FormatContext, typename Event>
-void format_info_level(FormatContext& ctx, const Event& ev, bool first)
+auto format_info_level(FormatContext& ctx, const Event& ev, bool first)
 {
   const char* separator = first ? " " : ", ";
-  if constexpr (std::is_same_v<Event, sel::prach_event>) {
+  if constexpr (std::is_same_v<Event, cell_creation_event>) {
+    fmt::format_to(ctx.out(), "{}Cell creation idx={}", separator, fmt::underlying(ev.cell_index));
+  } else if constexpr (std::is_same_v<Event, sel::prach_event>) {
     fmt::format_to(
         ctx.out(), "{}prach(ra-rnti={} preamble={} tc-rnti={})", separator, ev.ra_rnti, ev.preamble_id, ev.tc_rnti);
+  } else if constexpr (std::is_same_v<Event, rach_indication_message>) {
+    fmt::format_to(ctx.out(), "{}RACH Ind slot_rx={}", separator, ev.slot_rx);
   } else if constexpr (std::is_same_v<Event, sel::error_indication_event>) {
     fmt::format_to(ctx.out(), "{}ErrorIndication slot={}", separator, ev.sl_tx);
+  } else {
+    // Signal via return that there is no formatter for this event type.
+    return no_info_formatter{};
   }
+}
+
+/// Metafunction to check if event type has an info level formatter.
+template <typename Event>
+constexpr bool has_info_formatter()
+{
+  using return_t =
+      decltype(format_info_level(std::declval<fmt::format_context&>(), std::declval<const Event&>(), true));
+  return not std::is_same_v<return_t, no_info_formatter>;
 }
 
 /// Helper function to format a given event in debug level.
 template <typename FormatContext, typename Event>
 void format_debug_level(FormatContext& ctx, const Event& ev)
 {
-  if constexpr (std::is_same_v<Event, sel::prach_event>) {
+  if constexpr (std::is_same_v<Event, cell_creation_event>) {
+    fmt::format_to(ctx.out(), "\n- Cell creation: idx={}", fmt::underlying(ev.cell_index));
+  } else if constexpr (std::is_same_v<Event, sel::prach_event>) {
     fmt::format_to(ctx.out(),
                    "\n- PRACH: slot={} preamble={} ra-rnti={} temp_crnti={} ta_cmd={}",
                    ev.slot_rx,
@@ -52,10 +88,140 @@ void format_debug_level(FormatContext& ctx, const Event& ev)
                    ev.ra_rnti,
                    ev.tc_rnti,
                    ev.ta);
+  } else if constexpr (std::is_same_v<Event, rach_indication_message>) {
+    fmt::format_to(ctx.out(), "\n- RACH ind: slot_rx={} PRACHs: ", ev.slot_rx);
+    unsigned count = 0;
+    for (unsigned i = 0; i != ev.occasions.size(); ++i) {
+      for (unsigned j = 0; j != ev.occasions[i].preambles.size(); ++j) {
+        const auto& preamble = ev.occasions[i].preambles[j];
+        fmt::format_to(ctx.out(),
+                       "{}{}: preamble={} tc-rnti={} freq_idx={} start_symbol={} TA={}s",
+                       count == 0 ? "" : ", ",
+                       count,
+                       preamble.preamble_id,
+                       preamble.tc_rnti,
+                       ev.occasions[i].frequency_index,
+                       ev.occasions[i].start_symbol,
+                       preamble.time_advance.to_seconds());
+        count++;
+      }
+    }
   } else if constexpr (std::is_same_v<Event, sel::ue_creation_event>) {
     fmt::format_to(ctx.out(), "\n- UE creation: ue={} rnti={}", fmt::underlying(ev.ue_index), ev.rnti);
   } else if constexpr (std::is_same_v<Event, sel::ue_reconf_event>) {
     fmt::format_to(ctx.out(), "\n- UE reconfiguration: ue={} rnti={}", fmt::underlying(ev.ue_index), ev.rnti);
+  } else if constexpr (std::is_same_v<Event, sched_ue_delete_message>) {
+    fmt::format_to(ctx.out(), "\n- UE removal: ue={} rnti={}", fmt::underlying(ev.ue_index), ev.crnti);
+  } else if constexpr (std::is_same_v<Event, sel::ue_cfg_applied_event>) {
+    fmt::format_to(ctx.out(), "\n- UE dedicated config applied: ue={} rnti={}", fmt::underlying(ev.ue_index), ev.rnti);
+  } else if constexpr (std::is_same_v<Event, sel::ue_deactivation_event>) {
+    fmt::format_to(ctx.out(), "\n- UE deactivation: ue={} rnti={}", fmt::underlying(ev.ue_index), ev.rnti);
+  } else if constexpr (std::is_same_v<Event, sel::error_indication_event>) {
+    fmt::format_to(ctx.out(),
+                   "\n- ErrorIndication: slot={}{}{}{}",
+                   ev.sl_tx,
+                   ev.outcome.pdcch_discarded ? ", PDCCH discarded" : "",
+                   ev.outcome.pdsch_discarded ? ", PDSCH discarded" : "",
+                   ev.outcome.pusch_and_pucch_discarded ? ", PUSCH and PUCCH discarded" : "");
+  } else if constexpr (std::is_same_v<Event, sel::sr_event>) {
+    fmt::format_to(ctx.out(), "\n- SR: ue={} rnti={}", fmt::underlying(ev.ue_index), ev.rnti);
+  } else if constexpr (std::is_same_v<Event, sel::csi_report_event>) {
+    fmt::format_to(ctx.out(), "\n- CSI: ue={} rnti={}: slot_rx={}", fmt::underlying(ev.ue_index), ev.rnti, ev.sl_rx);
+    if (not ev.csi.first_tb_wideband_cqi.has_value() and not ev.csi.ri.has_value() and not ev.csi.pmi.has_value()) {
+      fmt::format_to(ctx.out(), " invalid");
+      return;
+    }
+    if (ev.csi.first_tb_wideband_cqi.has_value()) {
+      fmt::format_to(ctx.out(), " cqi={}", *ev.csi.first_tb_wideband_cqi);
+    }
+    if (ev.csi.ri.has_value()) {
+      fmt::format_to(ctx.out(), " ri={}", ev.csi.ri.value());
+    }
+    if (ev.csi.pmi.has_value()) {
+      fmt::format_to(ctx.out(), " {}", *ev.csi.pmi);
+    }
+  } else if constexpr (std::is_same_v<Event, sel::bsr_event>) {
+    fmt::format_to(ctx.out(),
+                   "\n- BSR: ue={} rnti={} type=\"{}\" report={{",
+                   fmt::underlying(ev.ue_index),
+                   ev.rnti,
+                   to_string(ev.type));
+    if (ev.type == bsr_format::LONG_BSR or ev.type == bsr_format::LONG_TRUNC_BSR or ev.reported_lcgs.full()) {
+      std::array<int, MAX_NOF_LCGS> report;
+      std::fill(report.begin(), report.end(), -1);
+      for (unsigned i = 0; i != ev.reported_lcgs.size(); ++i) {
+        report[ev.reported_lcgs[i].lcg_id] = ev.reported_lcgs[i].nof_bytes;
+      }
+      for (unsigned i = 0; i != MAX_NOF_LCGS; ++i) {
+        fmt::format_to(ctx.out(), "{}", i == 0 ? "" : ", ");
+        if (report[i] < 0) {
+          fmt::format_to(ctx.out(), "-");
+        } else {
+          fmt::format_to(ctx.out(), "{}", report[i]);
+        }
+      }
+    } else {
+      for (unsigned i = 0; i != ev.reported_lcgs.size(); ++i) {
+        fmt::format_to(ctx.out(),
+                       "{}{}: {}",
+                       i == 0 ? "" : " ",
+                       fmt::underlying(ev.reported_lcgs[i].lcg_id),
+                       ev.reported_lcgs[i].nof_bytes);
+      }
+    }
+    fmt::format_to(ctx.out(), "}} pending_bytes={}", ev.tot_ul_pending_bytes);
+  } else if constexpr (std::is_same_v<Event, sel::harq_ack_event>) {
+    fmt::format_to(ctx.out(),
+                   "\n- HARQ-ACK: ue={} rnti={} slot_rx={} h_id={} ack={}",
+                   fmt::underlying(ev.ue_index),
+                   ev.rnti,
+                   ev.sl_ack_rx,
+                   fmt::underlying(ev.h_id),
+                   (unsigned)ev.ack);
+    if (ev.ack == mac_harq_ack_report_status::ack) {
+      fmt::format_to(ctx.out(), " tbs={}", ev.tbs);
+    }
+  } else if constexpr (std::is_same_v<Event, sel::crc_event>) {
+    if (ev.ul_sinr_db.has_value()) {
+      fmt::format_to(ctx.out(),
+                     "\n- CRC: ue={} rnti={} rx_slot={} h_id={} crc={} sinr={:.3}dB",
+                     fmt::underlying(ev.ue_index),
+                     ev.rnti,
+                     ev.sl_rx,
+                     fmt::underlying(ev.h_id),
+                     ev.crc,
+                     ev.ul_sinr_db.value());
+    } else {
+      fmt::format_to(ctx.out(),
+                     "\n- CRC: ue={} rnti={} rx_slot={} h_id={} crc={} sinr=N/A",
+                     fmt::underlying(ev.ue_index),
+                     ev.rnti,
+                     ev.sl_rx,
+                     fmt::underlying(ev.h_id),
+                     ev.crc);
+    }
+  } else if constexpr (std::is_same_v<Event, dl_mac_ce_indication>) {
+    fmt::format_to(ctx.out(), "\n- MAC CE: ue={} lcid={}", fmt::underlying(ev.ue_index), ev.ce_lcid.value());
+  } else if constexpr (std::is_same_v<Event, dl_buffer_state_indication_message>) {
+    fmt::format_to(ctx.out(),
+                   "\n- RLC Buffer State: ue={} lcid={} pending_bytes={}",
+                   fmt::underlying(ev.ue_index),
+                   fmt::underlying(ev.lcid),
+                   ev.bs);
+  } else if constexpr (std::is_same_v<Event, sel::phr_event>) {
+    fmt::format_to(ctx.out(), "\n- PHR: ue={} rnti={} ph={}dB", fmt::underlying(ev.ue_index), ev.rnti, ev.ph);
+    if (ev.p_cmax.has_value()) {
+      fmt::format_to(ctx.out(), " p_cmax={}dBm", ev.p_cmax.value());
+    }
+  } else if constexpr (std::is_same_v<Event, sel::srs_indication_event>) {
+    fmt::format_to(ctx.out(), "\n- SRS: ue={} rnti={}", fmt::underlying(ev.ue_index), ev.rnti);
+    if (ev.tpmi_info.has_value()) {
+      fmt::format_to(ctx.out(), " tpmi_info=[{:;}]", ev.tpmi_info.value());
+    }
+  } else if constexpr (std::is_same_v<Event, sel::slice_reconfiguration_event>) {
+    fmt::format_to(ctx.out(), "\n- Slice Reconfig: cell={}", fmt::underlying(ev.cell_index));
+  } else {
+    static_assert(false, "Detected event with no formatter");
   }
 }
 
@@ -101,6 +267,7 @@ private:
 
 namespace fmt {
 
+/// Formatter of slot_event_list that supports both info and debug modes.
 template <>
 struct formatter<slot_event_list> {
   bool debug = false;
@@ -132,6 +299,7 @@ struct formatter<slot_event_list> {
 
 } // namespace fmt
 
+/// Class that handles the pool of formattable slot events.
 class scheduler_event_logger::event_buffer_writer
 {
   using event_pool_type = bounded_rc_object_pool<slot_event_buffer>;
@@ -150,11 +318,13 @@ public:
   template <typename EventType>
   void push(const EventType& ev)
   {
-    if (mode == none) {
+    if (mode == none or (mode == info and not has_info_formatter<EventType>())) {
       return;
     }
     cur_buffer->push(ev);
   }
+
+  bool empty() const { return mode == mode_t::none or cur_buffer->empty(); }
 
   /// Extract a formattable event list.
   auto pop_event_list()
@@ -184,306 +354,109 @@ scheduler_event_logger::scheduler_event_logger(du_cell_index_t cell_index_, pci_
   mode(logger.debug.enabled() ? mode_t::debug : (logger.info.enabled() ? mode_t::info : mode_t::none)),
   slot_buffer_writer(std::make_unique<event_buffer_writer>(mode, 1024))
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf), "\n- Cell creation: idx={} pci={}", fmt::underlying(cell_index), pci);
-  } else if (mode == info) {
-    fmt::format_to(
-        std::back_inserter(fmtbuf), "{}Cell creation idx={} pci={}", separator(), fmt::underlying(cell_index), pci);
-  }
+  slot_buffer_writer->push(cell_creation_event{cell_index});
 }
 
-scheduler_event_logger::~scheduler_event_logger() {}
+scheduler_event_logger::~scheduler_event_logger() = default;
 
 void scheduler_event_logger::log_impl()
 {
+  if (slot_buffer_writer->empty()) {
+    return;
+  }
   if (mode == debug) {
     logger.debug("Processed slot events pci={}:{:d}", pci, slot_buffer_writer->pop_event_list());
-    logger.debug("Processed slot events pci={}:{}", pci, to_c_str(fmtbuf));
-    fmtbuf.clear();
   } else if (mode == info) {
-    logger.info("Processed slot events pci={}:{:i}", pci, slot_buffer_writer->pop_event_list());
-    logger.info("Processed slot events pci={}:{}", pci, to_c_str(fmtbuf));
-    fmtbuf.clear();
+    logger.info("Processed slot events pci={}:{}", pci, slot_buffer_writer->pop_event_list());
   }
 }
 
 void scheduler_event_logger::enqueue_impl(const prach_event& rach_ev)
 {
   slot_buffer_writer->push(rach_ev);
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- PRACH: slot={} pci={} preamble={} ra-rnti={} temp_crnti={} ta_cmd={}",
-                   rach_ev.slot_rx,
-                   pci,
-                   rach_ev.preamble_id,
-                   rach_ev.ra_rnti,
-                   rach_ev.tc_rnti,
-                   rach_ev.ta);
-  } else {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "{}prach(ra-rnti={} preamble={} tc-rnti={})",
-                   separator(),
-                   rach_ev.ra_rnti,
-                   rach_ev.preamble_id,
-                   rach_ev.tc_rnti);
-  }
 }
 
 void scheduler_event_logger::enqueue_impl(const rach_indication_message& rach_ind)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf), "\n- RACH ind: slot_rx={} pci={} PRACHs: ", rach_ind.slot_rx, pci);
-    unsigned count = 0;
-    for (unsigned i = 0; i != rach_ind.occasions.size(); ++i) {
-      for (unsigned j = 0; j != rach_ind.occasions[i].preambles.size(); ++j) {
-        const auto& preamble = rach_ind.occasions[i].preambles[j];
-        fmt::format_to(std::back_inserter(fmtbuf),
-                       "{}{}: preamble={} tc-rnti={} freq_idx={} start_symbol={} TA={}s",
-                       count == 0 ? "" : ", ",
-                       count,
-                       preamble.preamble_id,
-                       preamble.tc_rnti,
-                       rach_ind.occasions[i].frequency_index,
-                       rach_ind.occasions[i].start_symbol,
-                       preamble.time_advance.to_seconds());
-        count++;
-      }
-    }
-  } else {
-    fmt::format_to(std::back_inserter(fmtbuf), "{}RACH Ind slot_rx={}", separator(), rach_ind.slot_rx);
-  }
+  slot_buffer_writer->push(rach_ind);
 }
 
 void scheduler_event_logger::enqueue_impl(const ue_creation_event& ue_request)
 {
-  if (mode == debug) {
-    slot_buffer_writer->push(ue_request);
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- UE creation: ue={} rnti={} pci={}",
-                   fmt::underlying(ue_request.ue_index),
-                   ue_request.rnti,
-                   pci);
-  }
+  slot_buffer_writer->push(ue_request);
 }
 
 void scheduler_event_logger::enqueue_impl(const ue_reconf_event& ue_request)
 {
-  if (mode == debug) {
-    slot_buffer_writer->push(ue_request);
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- UE reconfiguration: ue={} rnti={}",
-                   fmt::underlying(ue_request.ue_index),
-                   ue_request.rnti);
-  }
+  slot_buffer_writer->push(ue_request);
 }
 
 void scheduler_event_logger::enqueue_impl(const sched_ue_delete_message& ue_request)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- UE removal: ue={} rnti={}",
-                   fmt::underlying(ue_request.ue_index),
-                   ue_request.crnti);
-  }
+  slot_buffer_writer->push(ue_request);
 }
 
 void scheduler_event_logger::enqueue_impl(const ue_cfg_applied_event& ev)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- UE dedicated config applied: ue={} rnti={}",
-                   fmt::underlying(ev.ue_index),
-                   ev.rnti);
-  }
+  slot_buffer_writer->push(ev);
 }
 
 void scheduler_event_logger::enqueue_impl(const ue_deactivation_event& req)
 {
-  if (mode == debug) {
-    fmt::format_to(
-        std::back_inserter(fmtbuf), "\n- UE deactivation: ue={} rnti={}", fmt::underlying(req.ue_index), req.rnti);
-  }
+  slot_buffer_writer->push(req);
 }
 
 void scheduler_event_logger::enqueue_impl(const error_indication_event& err_ind)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- ErrorIndication: slot={}{}{}{}",
-                   err_ind.sl_tx,
-                   err_ind.outcome.pdcch_discarded ? ", PDCCH discarded" : "",
-                   err_ind.outcome.pdsch_discarded ? ", PDSCH discarded" : "",
-                   err_ind.outcome.pusch_and_pucch_discarded ? ", PUSCH and PUCCH discarded" : "");
-  } else if (mode == info) {
-    fmt::format_to(std::back_inserter(fmtbuf), "{}ErrorIndication slot={}", separator(), err_ind.sl_tx);
-  }
+  slot_buffer_writer->push(err_ind);
 }
 
 void scheduler_event_logger::enqueue_impl(const sr_event& sr)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf), "\n- SR: ue={} rnti={}", fmt::underlying(sr.ue_index), sr.rnti);
-  }
+  slot_buffer_writer->push(sr);
 }
 
 void scheduler_event_logger::enqueue_impl(const csi_report_event& csi)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- CSI: ue={} rnti={}: slot_rx={}",
-                   fmt::underlying(csi.ue_index),
-                   csi.rnti,
-                   csi.sl_rx);
-    if (not csi.csi.first_tb_wideband_cqi.has_value() and not csi.csi.ri.has_value() and not csi.csi.pmi.has_value()) {
-      fmt::format_to(std::back_inserter(fmtbuf), " invalid");
-      return;
-    }
-    if (csi.csi.first_tb_wideband_cqi.has_value()) {
-      fmt::format_to(std::back_inserter(fmtbuf), " cqi={}", *csi.csi.first_tb_wideband_cqi);
-    }
-    if (csi.csi.ri.has_value()) {
-      fmt::format_to(std::back_inserter(fmtbuf), " ri={}", csi.csi.ri.value());
-    }
-    if (csi.csi.pmi.has_value()) {
-      fmt::format_to(std::back_inserter(fmtbuf), " {}", *csi.csi.pmi);
-    }
-  }
+  slot_buffer_writer->push(csi);
 }
 
 void scheduler_event_logger::enqueue_impl(const bsr_event& bsr)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- BSR: ue={} rnti={} type=\"{}\" report={{",
-                   fmt::underlying(bsr.ue_index),
-                   bsr.rnti,
-                   to_string(bsr.type));
-
-    if (bsr.type == bsr_format::LONG_BSR or bsr.type == bsr_format::LONG_TRUNC_BSR or bsr.reported_lcgs.full()) {
-      std::array<int, MAX_NOF_LCGS> report;
-      std::fill(report.begin(), report.end(), -1);
-      for (unsigned i = 0; i != bsr.reported_lcgs.size(); ++i) {
-        report[bsr.reported_lcgs[i].lcg_id] = bsr.reported_lcgs[i].nof_bytes;
-      }
-      for (unsigned i = 0; i != MAX_NOF_LCGS; ++i) {
-        fmt::format_to(std::back_inserter(fmtbuf), "{}", i == 0 ? "" : ", ");
-        if (report[i] < 0) {
-          fmt::format_to(std::back_inserter(fmtbuf), "-");
-        } else {
-          fmt::format_to(std::back_inserter(fmtbuf), "{}", report[i]);
-        }
-      }
-    } else {
-      for (unsigned i = 0; i != bsr.reported_lcgs.size(); ++i) {
-        fmt::format_to(std::back_inserter(fmtbuf),
-                       "{}{}: {}",
-                       i == 0 ? "" : " ",
-                       fmt::underlying(bsr.reported_lcgs[i].lcg_id),
-                       bsr.reported_lcgs[i].nof_bytes);
-      }
-    }
-    fmt::format_to(std::back_inserter(fmtbuf), "}} pending_bytes={}", bsr.tot_ul_pending_bytes);
-  }
+  slot_buffer_writer->push(bsr);
 }
 
 void scheduler_event_logger::enqueue_impl(const harq_ack_event& harq_ev)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- HARQ-ACK: ue={} rnti={} pci={} slot_rx={} h_id={} ack={}",
-                   fmt::underlying(harq_ev.ue_index),
-                   harq_ev.rnti,
-                   pci,
-                   harq_ev.sl_ack_rx,
-                   fmt::underlying(harq_ev.h_id),
-                   (unsigned)harq_ev.ack);
-    if (harq_ev.ack == mac_harq_ack_report_status::ack) {
-      fmt::format_to(std::back_inserter(fmtbuf), " tbs={}", harq_ev.tbs);
-    }
-  }
+  slot_buffer_writer->push(harq_ev);
 }
 
 void scheduler_event_logger::enqueue_impl(const crc_event& crc_ev)
 {
-  if (mode == debug) {
-    if (crc_ev.ul_sinr_db.has_value()) {
-      fmt::format_to(std::back_inserter(fmtbuf),
-                     "\n- CRC: ue={} rnti={} pci={} rx_slot={} h_id={} crc={} sinr={:.3}dB",
-                     fmt::underlying(crc_ev.ue_index),
-                     crc_ev.rnti,
-                     pci,
-                     crc_ev.sl_rx,
-                     fmt::underlying(crc_ev.h_id),
-                     crc_ev.crc,
-                     crc_ev.ul_sinr_db.value());
-    } else {
-      fmt::format_to(std::back_inserter(fmtbuf),
-                     "\n- CRC: ue={} rnti={} pci={} rx_slot={} h_id={} crc={} sinr=N/A",
-                     fmt::underlying(crc_ev.ue_index),
-                     crc_ev.rnti,
-                     pci,
-                     crc_ev.sl_rx,
-                     fmt::underlying(crc_ev.h_id),
-                     crc_ev.crc);
-    }
-  }
+  slot_buffer_writer->push(crc_ev);
 }
 
 void scheduler_event_logger::enqueue_impl(const dl_mac_ce_indication& mac_ce)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- MAC CE: ue={} lcid={}",
-                   fmt::underlying(mac_ce.ue_index),
-                   mac_ce.ce_lcid.value());
-  }
+  slot_buffer_writer->push(mac_ce);
 }
 
 void scheduler_event_logger::enqueue_impl(const dl_buffer_state_indication_message& bs)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- RLC Buffer State: ue={} lcid={} pending_bytes={}",
-                   fmt::underlying(bs.ue_index),
-                   fmt::underlying(bs.lcid),
-                   bs.bs);
-  }
+  slot_buffer_writer->push(bs);
 }
 
 void scheduler_event_logger::enqueue_impl(const phr_event& phr_ev)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- PHR: ue={} rnti={} pci={} ph={}dB",
-                   fmt::underlying(phr_ev.ue_index),
-                   phr_ev.rnti,
-                   pci,
-                   phr_ev.ph);
-    if (phr_ev.p_cmax.has_value()) {
-      fmt::format_to(std::back_inserter(fmtbuf), " p_cmax={}dBm", phr_ev.p_cmax.value());
-    }
-  }
+  slot_buffer_writer->push(phr_ev);
 }
 
 void scheduler_event_logger::enqueue_impl(const srs_indication_event& srs_ev)
 {
-  if (mode == debug) {
-    fmt::format_to(std::back_inserter(fmtbuf), "\n- SRS: ue={} rnti={}", fmt::underlying(srs_ev.ue_index), srs_ev.rnti);
-    if (srs_ev.tpmi_info.has_value()) {
-      fmt::format_to(std::back_inserter(fmtbuf), " tpmi_info=[{:;}]", srs_ev.tpmi_info.value());
-    }
-  }
+  slot_buffer_writer->push(srs_ev);
 }
 
 void scheduler_event_logger::enqueue_impl(const slice_reconfiguration_event& slice_reconf_ev)
 {
-  if (mode == debug) {
-    fmt::format_to(
-        std::back_inserter(fmtbuf), "\n- SLICE RECONF: cell={}", fmt::underlying(slice_reconf_ev.cell_index));
-  }
-}
-
-const char* scheduler_event_logger::separator() const
-{
-  return fmtbuf.size() > 0 ? ", " : " ";
+  slot_buffer_writer->push(slice_reconf_ev);
 }

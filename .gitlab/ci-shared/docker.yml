@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 variables:
-  BUILDKIT_CLI_VERSION: "0.23.2"
+  BUILDKIT_CLI_VERSION: "0.27.1"
 
 .docker-builder:
   tags:
@@ -100,12 +100,26 @@ variables:
     # Attestation
     - |
       if [ ${MODE} = "publish" ]; then
-        IMAGE_DIGEST="$IMAGE_NAME_VERSION@$(docker manifest inspect "$IMAGE_NAME_VERSION" | jq -r '.config.digest')"
-        if [ -z "$ATTESTATION_FILE" ]; then
-          cosign sign $IMAGE_DIGEST || true
+        IMAGE_DIGEST="${IMAGE_NAME_VERSION}@$(regctl image digest ${IMAGE_NAME_VERSION})"
+        echo "=== Signing image ==="
+        cosign sign ${IMAGE_DIGEST}
+        echo "=== Generating container SPDX ==="
+        SYFT_REGISTRY_AUTH_USERNAME="${CI_REGISTRY_USER}" \
+          SYFT_REGISTRY_AUTH_PASSWORD="${CI_REGISTRY_PASSWORD}" \
+          SYFT_REGISTRY_AUTH_AUTHORITY="${CI_REGISTRY}" \
+          syft registry:${IMAGE_NAME_VERSION} -o spdx-json \
+          --select-catalogers "os" > container.spdx
+        if [ -s container.spdx ]; then
+          echo "=== Attesting container SPDX ==="
+          # COSIGN_TLOG_UPLOAD=false: the SPDX payload could be too large for reliable Rekor upload
+          COSIGN_TLOG_UPLOAD=false cosign attest --predicate container.spdx --type spdx ${IMAGE_DIGEST}
         else
-          regctl image get-file ${IMAGE_NAME_VERSION} ${ATTESTATION_FILE} >image.spdx
-          cosign attest --predicate image.spdx --type spdx ${IMAGE_DIGEST}
+          echo "WARNING: syft produced an empty container.spdx, skipping container attestation"
+        fi
+        if [ -n "$ATTESTATION_FILE" ]; then
+          echo "=== Attesting $ATTESTATION_FILE ==="
+          regctl image get-file ${IMAGE_NAME_VERSION} ${ATTESTATION_FILE} > build.spdx
+          cosign attest --predicate build.spdx --type spdx ${IMAGE_DIGEST}
         fi
       fi
 

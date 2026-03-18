@@ -119,50 +119,6 @@ protected:
   using const_dispatch = detail::type_list_dispatch<true, Types...>;
   using mut_dispatch   = detail::type_list_dispatch<false, Types...>;
 
-  /// Number of objects currently stored in the buffer.
-  size_t nof_elements = 0;
-
-  Derived&       self() noexcept { return static_cast<Derived&>(*this); }
-  const Derived& self() const noexcept { return static_cast<const Derived&>(*this); }
-
-  /// Inserts a \c T constructed from \p args at the end of the buffer.
-  /// Returns a pointer to the new element, or \c nullptr if the buffer has no space.
-  template <typename T, typename... Args>
-  T* emplace_impl(Args&&... args)
-  {
-    constexpr type_idx_t idx      = type_index_of_v<T>;
-    const size_t         start    = self().buf_size_impl();
-    const size_t         obj_pos  = detail::align_up_v(start + sizeof(type_idx_t), alignof(T));
-    const size_t         new_size = obj_pos + sizeof(T);
-
-    if (!self().ensure_space(new_size)) {
-      return nullptr;
-    }
-
-    uint8_t* data = self().buf_data_impl();
-    std::memcpy(data + start, &idx, sizeof(type_idx_t));
-
-    // Zero-fill alignment-padding bytes so the buffer has no uninitialized reads.
-    if (const size_t pad = obj_pos - start - sizeof(type_idx_t); pad > 0) {
-      std::memset(data + start + sizeof(type_idx_t), 0, pad);
-    }
-
-    T* obj = new (data + obj_pos) T(std::forward<Args>(args)...);
-    ++nof_elements;
-    return obj;
-  }
-
-  /// Calls the destructor of every stored object (no-op if all types are trivially destructible).
-  void destroy_all() noexcept
-  {
-    if constexpr (!std::conjunction_v<std::is_trivially_destructible<Types>...>) {
-      for_each([](auto& obj) {
-        using T = std::decay_t<decltype(obj)>;
-        obj.~T();
-      });
-    }
-  }
-
 public:
   ~type_list_buffer_base() = default;
 
@@ -219,6 +175,52 @@ public:
     self().reset_buf_impl();
     nof_elements = 0;
   }
+
+protected:
+  // CRTP access to derived class.
+  Derived&       self() noexcept { return static_cast<Derived&>(*this); }
+  const Derived& self() const noexcept { return static_cast<const Derived&>(*this); }
+
+  /// Inserts a \c T constructed from \p args at the end of the buffer.
+  /// Returns a pointer to the new element, or \c nullptr if the buffer has no space.
+  template <typename T, typename... Args>
+  T* emplace_impl(Args&&... args)
+  {
+    constexpr type_idx_t idx      = type_index_of_v<T>;
+    const size_t         start    = self().buf_size_impl();
+    const size_t         obj_pos  = detail::align_up_v(start + sizeof(type_idx_t), alignof(T));
+    const size_t         new_size = obj_pos + sizeof(T);
+
+    if (!self().ensure_space(new_size)) {
+      return nullptr;
+    }
+
+    uint8_t* data = self().buf_data_impl();
+    std::memcpy(data + start, &idx, sizeof(type_idx_t));
+
+    // Zero-fill alignment-padding bytes so the buffer has no uninitialized reads.
+    if (const size_t pad = obj_pos - start - sizeof(type_idx_t); pad > 0) {
+      std::memset(data + start + sizeof(type_idx_t), 0, pad);
+    }
+
+    T* obj = new (data + obj_pos) T(std::forward<Args>(args)...);
+    ++nof_elements;
+    return obj;
+  }
+
+  /// Calls the destructor of every stored object (no-op if all types are trivially destructible).
+  void destroy_all() noexcept
+  {
+    if constexpr (!std::conjunction_v<std::is_trivially_destructible<Types>...>) {
+      for_each([](auto& obj) {
+        using T = std::decay_t<decltype(obj)>;
+        obj.~T();
+      });
+    }
+  }
+
+  /// Number of objects currently stored in the buffer.
+  size_t nof_elements = 0;
 };
 
 } // namespace detail
@@ -243,16 +245,106 @@ public:
 ///
 /// \tparam Types List of types that may be stored. All types must be destructible.
 template <typename... Types>
-class dyn_type_list_buffer : public detail::type_list_buffer_base<dyn_type_list_buffer<Types...>, Types...>
+class dyn_type_list_buffer : private detail::type_list_buffer_base<dyn_type_list_buffer<Types...>, Types...>
 {
   using base = detail::type_list_buffer_base<dyn_type_list_buffer<Types...>, Types...>;
+
+public:
+  // Inherited methods from the private base.
+  using base::byte_size;
+  using base::clear;
+  using base::empty;
+  using base::for_each;
+  using base::size;
+
+  dyn_type_list_buffer() = default;
+
+  ~dyn_type_list_buffer() { this->destroy_all(); }
+
+  dyn_type_list_buffer(const dyn_type_list_buffer& other)
+  {
+    if constexpr (std::conjunction_v<std::is_trivially_copyable<Types>...>) {
+      buf                = other.buf;
+      this->nof_elements = other.nof_elements;
+    } else {
+      buf.reserve(other.buf.size());
+      other.for_each([this](const auto& obj) { this->push(obj); });
+    }
+  }
+
+  dyn_type_list_buffer& operator=(const dyn_type_list_buffer& other)
+  {
+    if (this != &other) {
+      this->clear();
+      if constexpr (std::conjunction_v<std::is_trivially_copyable<Types>...>) {
+        buf                = other.buf;
+        this->nof_elements = other.nof_elements;
+      } else {
+        buf.reserve(other.buf.size());
+        other.for_each([this](const auto& obj) { this->push(obj); });
+      }
+    }
+    return *this;
+  }
+
+  dyn_type_list_buffer(dyn_type_list_buffer&& other) noexcept : buf(std::move(other.buf))
+  {
+    this->nof_elements = std::exchange(other.nof_elements, 0);
+  }
+
+  dyn_type_list_buffer& operator=(dyn_type_list_buffer&& other) noexcept
+  {
+    if (this != &other) {
+      this->destroy_all();
+      buf                = std::move(other.buf);
+      this->nof_elements = std::exchange(other.nof_elements, 0);
+    }
+    return *this;
+  }
+
+  /// Hint the backing buffer to reserve at least \p bytes of storage.
+  void reserve(size_t bytes)
+  {
+    if (bytes > buf.capacity()) {
+      grow_buffer(bytes);
+    }
+  }
+
+  /// Appends a copy or move of \p val to the buffer.
+  /// \tparam T must appear in \c Types.
+  /// \returns A reference to the newly stored element.
+  template <typename T>
+  std::decay_t<T>& push(T&& val)
+  {
+    using U = std::decay_t<T>;
+    static_assert(type_list_helper::contains_v<U, Types...>,
+                  "push(): T is not present in this dyn_type_list_buffer's type list");
+    return emplace<U>(std::forward<T>(val));
+  }
+
+  /// Constructs a \c T in-place at the end of the buffer.
+  /// \tparam T must appear in \c Types.
+  /// \returns A reference to the newly constructed element.
+  template <typename T, typename... Args>
+  T& emplace(Args&&... args)
+  {
+    static_assert(type_list_helper::contains_v<T, Types...>,
+                  "emplace(): T is not present in this dyn_type_list_buffer's type list");
+    T* obj = this->template emplace_impl<T>(std::forward<Args>(args)...);
+    ocudu_assert(obj != nullptr, "dyn_type_list_buffer::emplace returned nullptr");
+    return *obj;
+  }
+
+private:
   friend base;
 
-  // CRTP hooks (private; accessible to base via friend declaration).
+  // CRTP hooks used by base class.
   uint8_t*       buf_data_impl() noexcept { return buf.data(); }
   const uint8_t* buf_data_impl() const noexcept { return buf.data(); }
   size_t         buf_size_impl() const noexcept { return buf.size(); }
+  void           reset_buf_impl() noexcept { buf.clear(); }
 
+  // Resize buffer if needed.
   bool ensure_space(size_t new_size)
   {
     if (new_size > buf.capacity()) {
@@ -261,8 +353,6 @@ class dyn_type_list_buffer : public detail::type_list_buffer_base<dyn_type_list_
     buf.resize(new_size);
     return true;
   }
-
-  void reset_buf_impl() noexcept { buf.clear(); }
 
   /// Grows the backing buffer to at least \p required_capacity bytes, relocating live objects
   /// via their move constructors when any stored type is not trivially copyable.
@@ -302,87 +392,6 @@ class dyn_type_list_buffer : public detail::type_list_buffer_base<dyn_type_list_
 
   /// Memory buffer for stored objects.
   std::vector<uint8_t> buf;
-
-public:
-  dyn_type_list_buffer() = default;
-
-  ~dyn_type_list_buffer() { this->destroy_all(); }
-
-  dyn_type_list_buffer(const dyn_type_list_buffer& other)
-  {
-    if constexpr (std::conjunction_v<std::is_trivially_copyable<Types>...>) {
-      buf                = other.buf;
-      this->nof_elements = other.nof_elements;
-    } else {
-      buf.reserve(other.buf.size());
-      other.for_each([this](const auto& obj) { push(obj); });
-    }
-  }
-
-  dyn_type_list_buffer& operator=(const dyn_type_list_buffer& other)
-  {
-    if (this != &other) {
-      this->clear();
-      if constexpr (std::conjunction_v<std::is_trivially_copyable<Types>...>) {
-        buf                = other.buf;
-        this->nof_elements = other.nof_elements;
-      } else {
-        buf.reserve(other.buf.size());
-        other.for_each([this](const auto& obj) { push(obj); });
-      }
-    }
-    return *this;
-  }
-
-  dyn_type_list_buffer(dyn_type_list_buffer&& other) noexcept : buf(std::move(other.buf))
-  {
-    this->nof_elements = other.nof_elements;
-    other.nof_elements = 0;
-  }
-
-  dyn_type_list_buffer& operator=(dyn_type_list_buffer&& other) noexcept
-  {
-    if (this != &other) {
-      this->destroy_all();
-      buf                = std::move(other.buf);
-      this->nof_elements = other.nof_elements;
-      other.nof_elements = 0;
-    }
-    return *this;
-  }
-
-  /// Hint the backing buffer to reserve at least \p bytes of storage.
-  void reserve(size_t bytes)
-  {
-    if (bytes > buf.capacity()) {
-      grow_buffer(bytes);
-    }
-  }
-
-  /// Appends a copy or move of \p val to the buffer.
-  /// \tparam T must appear in \c Types.
-  /// \returns A reference to the newly stored element.
-  template <typename T>
-  std::decay_t<T>& push(T&& val)
-  {
-    using U = std::decay_t<T>;
-    static_assert(type_list_helper::contains_v<U, Types...>,
-                  "push(): T is not present in this dyn_type_list_buffer's type list");
-    return emplace<U>(std::forward<T>(val));
-  }
-
-  /// Constructs a \c T in-place at the end of the buffer.
-  /// \tparam T must appear in \c Types.
-  /// \returns A reference to the newly constructed element.
-  template <typename T, typename... Args>
-  T& emplace(Args&&... args)
-  {
-    static_assert(type_list_helper::contains_v<T, Types...>,
-                  "emplace(): T is not present in this dyn_type_list_buffer's type list");
-    T* obj = this->template emplace_impl<T>(std::forward<Args>(args)...);
-    ocudu_assert(obj != nullptr, "dyn_type_list_buffer::emplace returned nullptr");
-    return *obj;
-  }
 };
 
 // ---------------------------------------------------------------------------
@@ -397,32 +406,18 @@ public:
 ///
 /// \tparam Types List of types that may be stored. All types must be destructible.
 template <typename... Types>
-class static_type_list_buffer : public detail::type_list_buffer_base<static_type_list_buffer<Types...>, Types...>
+class static_type_list_buffer : private detail::type_list_buffer_base<static_type_list_buffer<Types...>, Types...>
 {
   using base = detail::type_list_buffer_base<static_type_list_buffer<Types...>, Types...>;
-  friend base;
-
-  // CRTP hooks (private; accessible to base via friend declaration).
-  uint8_t*       buf_data_impl() noexcept { return storage.get(); }
-  const uint8_t* buf_data_impl() const noexcept { return storage.get(); }
-  size_t         buf_size_impl() const noexcept { return used; }
-
-  bool ensure_space(size_t new_size) noexcept
-  {
-    if (new_size > cap) {
-      return false;
-    }
-    used = new_size;
-    return true;
-  }
-
-  void reset_buf_impl() noexcept { used = 0; }
-
-  std::unique_ptr<uint8_t[]> storage;
-  size_t                     cap  = 0;
-  size_t                     used = 0;
 
 public:
+  // Inherited methods from the private base.
+  using base::byte_size;
+  using base::clear;
+  using base::empty;
+  using base::for_each;
+  using base::size;
+
   /// Constructs a buffer with \p capacity_bytes bytes of pre-allocated storage.
   explicit static_type_list_buffer(size_t capacity_bytes) :
     storage(std::make_unique<uint8_t[]>(capacity_bytes)), cap(capacity_bytes)
@@ -436,11 +431,9 @@ public:
   static_type_list_buffer& operator=(const static_type_list_buffer&) = delete;
 
   static_type_list_buffer(static_type_list_buffer&& other) noexcept :
-    storage(std::move(other.storage)), cap(other.cap), used(other.used)
+    storage(std::move(other.storage)), cap(std::exchange(other.cap, 0)), used(std::exchange(other.used, 0))
   {
-    this->nof_elements = other.nof_elements;
-    other.used         = 0;
-    other.nof_elements = 0;
+    this->nof_elements = std::exchange(other.nof_elements, 0);
   }
 
   static_type_list_buffer& operator=(static_type_list_buffer&& other) noexcept
@@ -448,11 +441,9 @@ public:
     if (this != &other) {
       this->destroy_all();
       storage            = std::move(other.storage);
-      cap                = other.cap;
-      used               = other.used;
-      this->nof_elements = other.nof_elements;
-      other.used         = 0;
-      other.nof_elements = 0;
+      cap                = std::exchange(other.cap, 0);
+      used               = std::exchange(other.used, 0);
+      this->nof_elements = std::exchange(other.nof_elements, 0);
     }
     return *this;
   }
@@ -482,6 +473,28 @@ public:
                   "emplace(): T is not present in this static_type_list_buffer's type list");
     return this->template emplace_impl<T>(std::forward<Args>(args)...);
   }
+
+private:
+  friend base;
+
+  // CRTP hooks.
+  uint8_t*       buf_data_impl() noexcept { return storage.get(); }
+  const uint8_t* buf_data_impl() const noexcept { return storage.get(); }
+  size_t         buf_size_impl() const noexcept { return used; }
+  void           reset_buf_impl() noexcept { used = 0; }
+
+  bool ensure_space(size_t new_size) noexcept
+  {
+    if (new_size > cap) {
+      return false;
+    }
+    used = new_size;
+    return true;
+  }
+
+  std::unique_ptr<uint8_t[]> storage;
+  size_t                     cap  = 0;
+  size_t                     used = 0;
 };
 
 } // namespace ocudu

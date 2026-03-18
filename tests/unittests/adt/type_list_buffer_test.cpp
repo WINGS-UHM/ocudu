@@ -94,7 +94,7 @@ TEST(dyn_type_list_buffer, push_multiple_types_preserves_order)
 
   buf.push(small_pod{7});
   buf.push(1234);
-  buf.push(large_pod{0xAA, 0xBB});
+  buf.push(large_pod{0xaa, 0xbb});
   buf.push(small_pod{99});
   buf.push(-1);
 
@@ -163,7 +163,7 @@ TEST(dyn_type_list_buffer, smaller_types_occupy_less_space_than_largest)
 TEST(dyn_type_list_buffer, alignment_is_respected)
 {
   dyn_type_list_buffer<uint8_t, aligned8> buf;
-  buf.push(uint8_t{0xAB});
+  buf.push(uint8_t{0xab});
   buf.emplace<aligned8>(aligned8{0, 1, 2, 3, 4, 5, 6, 7});
 
   aligned8 out{};
@@ -398,7 +398,7 @@ TEST(dyn_type_list_buffer, large_number_of_elements)
   constexpr int                           num_elements = 1000;
   for (int i = 0; i < num_elements; ++i) {
     if (i % 2 == 0) {
-      buf.push(static_cast<uint8_t>(i & 0xFF));
+      buf.push(static_cast<uint8_t>(i & 0xff));
     } else {
       buf.push(static_cast<uint32_t>(i));
     }

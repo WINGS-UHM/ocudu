@@ -6,5 +6,4 @@
 add_executable(f1u_du_bearer_test f1u_du_bearer_test.cpp)
 target_link_libraries(f1u_du_bearer_test ocudu_f1u_du ocudu_support ocudulog GTest::gtest GTest::gtest_main)
 target_include_directories(f1u_du_bearer_test PRIVATE ${CMAKE_SOURCE_DIR})
-add_test(f1u_du_bearer_test f1u_du_bearer_test)
 gtest_discover_tests(f1u_du_bearer_test)

@@ -44,10 +44,7 @@ inline bool asn1_to_ue_context_info_ho_request(xnap_ue_context_info_ho_request& 
     if (asn1_pdu_session.ul_ng_u_tnl_at_up_f.type() != asn1::xnap::up_transport_layer_info_c::types_opts::gtp_tunnel) {
       return false;
     }
-    pdu_session_item.ul_ngu_up_tnl_info.tp_address.create_from_bitstring(
-        asn1_pdu_session.ul_ng_u_tnl_at_up_f.gtp_tunnel().tnl_address.to_string());
-    pdu_session_item.ul_ngu_up_tnl_info.gtp_teid =
-        int_to_gtpu_teid(asn1_pdu_session.ul_ng_u_tnl_at_up_f.gtp_tunnel().gtp_teid.to_number());
+    pdu_session_item.ul_ngu_up_tnl_info = asn1_to_up_transport_layer_info(asn1_pdu_session.ul_ng_u_tnl_at_up_f);
     // Fill PDU session type.
     pdu_session_item.pdu_session_type = asn1_to_pdu_session_type(asn1_pdu_session.pdu_session_type);
     // Fill Security indication.

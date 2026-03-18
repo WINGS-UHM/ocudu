@@ -93,7 +93,8 @@ RUN cp /src/build/apps/cu/ocu             /tmp/ocu                     && \
     mv /tmp/odu_split_7_2                 /opt/ocudu/bin/odu_split_7_2 && \
     mv /tmp/gnb                           /opt/ocudu/bin/gnb           && \
     mv /tmp/gnb_split_8                   /opt/ocudu/bin/gnb_split_8   && \
-    mv /tmp/gnb_split_7_2                 /opt/ocudu/bin/gnb_split_7_2
+    mv /tmp/gnb_split_7_2                 /opt/ocudu/bin/gnb_split_7_2 && \
+    rm -rf /src
 
 ################
 # Stage 2: Run #
@@ -127,39 +128,3 @@ RUN /usr/local/etc/install_ocudu_dependencies.sh run && \
     /usr/local/etc/install_dpdk_dependencies.sh run && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl ntpdate && \
     apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-#########################################################
-# Stage 3: Generate container SPDX and merge build SPDX #
-#########################################################
-
-FROM anchore/syft:v1.26.1 AS syft-bin
-FROM python:3.11.3-alpine AS spdx-merger
-COPY --from=syft-bin  /syft                       /syft
-COPY --from=runtime   /                           /rootfs
-COPY --from=builder   /opt/ocudu/share/ocudu.spdx /sbom/ocudu.spdx
-
-# Generate SPDX file for the container image
-RUN mkdir -p /sbom /usr/local/etc/ && /syft dir:/rootfs -o spdx > /sbom/container.spdx
-# Merge the container SPDX with the build SPDX
-RUN pip install spdxmerge==0.2.0 && \
-    sed -i -e '/def validate(self/,/return messages/ { /messages.append("ExtractedLicense text can not be None"/ { s#messages.append.*#return messages# } }' /usr/local/lib/python3.11/site-packages/spdx/license.py && \
-    sed -i -e 's|def write_text_value(tag, value, out):|def write_text_value(tag, value, out):\n    if value is None:\n        return|'  /usr/local/lib/python3.11/site-packages/spdx/writers/tagvalue.py && \
-    spdxmerge \
-      --docpath /sbom \
-      --outpath /usr/local/etc/ \
-      --name "ocudu-image" \
-      --mergetype 1 \
-      --author "Software Radio Systems Ltd" \
-      --email "srs@srs.io" \
-      --docnamespace "https://srs.io/spdxdocs/ocudu" \
-      --filetype T >/dev/null && \
-    sed -i 's/^\(FilesAnalyzed:[[:space:]]*\)True/\1true/; s/^\(FilesAnalyzed:[[:space:]]*\)False/\1false/' /usr/local/etc/merged-SBoM-deep.spdx && \
-    sed -i -E 's|^(LicenseID:.*)|\1\nExtractedText: NOASSERTION|' /usr/local/etc/merged-SBoM-deep.spdx && \
-    sed -i '/^Relationship:.*#/d' /usr/local/etc/merged-SBoM-deep.spdx
-
-######################################################
-# Final Stage: Resume run stage with final SPDX file #
-######################################################
-
-FROM runtime
-COPY --from=spdx-merger /usr/local/etc/merged-SBoM-deep.spdx /usr/local/etc/ocudu_image.spdx

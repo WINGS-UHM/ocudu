@@ -334,9 +334,9 @@ static double compute_ul_qos_weights(const slice_ue&                  u,
 
   if (u.has_pending_sr()) {
     // High priority given to UEs that have pending SRs, prioritizing those with the oldest SRs.
-    // We subtract to \c max_sched_priority a factor that is a multiple of \c slot_prio_sub and proportional to the
+    // We subtract to \c max_sched_priority a factor that is a multiple of \c slot_prio_coeff and proportional to the
     // the slot diffence between pusch_slot and the slot at which the SR was received.
-    static constexpr double slot_prio_coeff = 1e-6;
+    static constexpr double slot_prio_coeff = max_sched_priority * 1e-6;
     auto                    slot_diff       = pusch_slot - u.pending_sr_slot_rx();
     return max_sched_priority - (pusch_slot.nof_slots_per_hyper_system_frame() - slot_diff) * slot_prio_coeff;
   }

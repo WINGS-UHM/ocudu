@@ -69,11 +69,11 @@ public:
 
   /// \brief Handle the handover execution phase of the inter-CU handover at target gNB.
   /// \param[in] ue_index The index of the UE that is performing the handover.
-  /// \param[in] target_execution_context If the handover is a XN-C handover, the information required for the target
-  /// handover execution is included.
+  /// \param[in] xnap_ho_target_execution_ctxt If the handover is a XN-C handover, the information required for the
+  /// target handover execution is included.
   virtual void handle_inter_cu_target_handover_execution(
       ue_index_t                                                   ue_index,
-      const std::optional<xnap_handover_target_execution_context>& target_execution_context = std::nullopt) = 0;
+      const std::optional<xnap_handover_target_execution_context>& xnap_ho_target_execution_ctxt = std::nullopt) = 0;
 };
 
 /// Interface for the NGAP notifier to communicate with the CU-CP.

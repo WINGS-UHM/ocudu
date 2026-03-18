@@ -880,7 +880,7 @@ cu_cp_impl::handle_ngap_handover_request(const ngap_handover_request& request)
 
 void cu_cp_impl::handle_inter_cu_target_handover_execution(
     ue_index_t                                                   ue_index,
-    const std::optional<xnap_handover_target_execution_context>& target_execution_context)
+    const std::optional<xnap_handover_target_execution_context>& xnap_ho_target_execution_ctxt)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
   ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
@@ -903,8 +903,8 @@ void cu_cp_impl::handle_inter_cu_target_handover_execution(
   e1ap_bearer_context_manager& e1ap = cu_up->get_e1ap_bearer_context_manager();
 
   xnap_interface* xnap = nullptr;
-  if (target_execution_context.has_value()) {
-    xnap = xnap_db.find_xnap(target_execution_context->xnc_index);
+  if (xnap_ho_target_execution_ctxt.has_value()) {
+    xnap = xnap_db.find_xnap(xnap_ho_target_execution_ctxt->xnc_index);
     if (xnap == nullptr) {
       logger.warning("ue={}: XNAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
       return;
@@ -912,7 +912,7 @@ void cu_cp_impl::handle_inter_cu_target_handover_execution(
   }
 
   ue->get_task_sched().schedule_async_task(launch_async<inter_cu_handover_execution_target_routine>(
-      ue, target_execution_context, e1ap, *ngap, xnap, logger));
+      ue, xnap_ho_target_execution_ctxt, e1ap, *ngap, xnap, logger));
 }
 
 void cu_cp_impl::handle_transmission_of_handover_required()

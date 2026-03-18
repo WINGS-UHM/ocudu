@@ -143,7 +143,7 @@ public:
   }
 
   void on_xn_handover_execution(ue_index_t                                    ue_index,
-                                const xnap_handover_target_execution_context& target_execution_context) override
+                                const xnap_handover_target_execution_context& xnap_ho_target_execution_ctxt) override
   {
     logger.info("Requested XN handover execution for UE index {}", ue_index);
   }

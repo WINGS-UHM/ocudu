@@ -14,12 +14,17 @@ using namespace ocucp;
 
 inter_cu_handover_execution_target_routine::inter_cu_handover_execution_target_routine(
     cu_cp_ue*                                                    ue_,
-    const std::optional<xnap_handover_target_execution_context>& target_execution_context_,
+    const std::optional<xnap_handover_target_execution_context>& xnap_ho_target_execution_ctxt_,
     e1ap_bearer_context_manager&                                 e1ap_,
     ngap_interface&                                              ngap_,
     xnap_interface*                                              xnap_,
     ocudulog::basic_logger&                                      logger_) :
-  ue(ue_), target_execution_context(target_execution_context_), e1ap(e1ap_), ngap(ngap_), xnap(xnap_), logger(logger_)
+  ue(ue_),
+  xnap_ho_target_execution_ctxt(xnap_ho_target_execution_ctxt_),
+  e1ap(e1ap_),
+  ngap(ngap_),
+  xnap(xnap_),
+  logger(logger_)
 {
 }
 
@@ -32,14 +37,14 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
     CORO_EARLY_RETURN();
   }
 
-  if (target_execution_context.has_value() && xnap == nullptr) {
+  if (xnap_ho_target_execution_ctxt.has_value() && xnap == nullptr) {
     logger.warning("\"{}\" failed. Cause: XNAP interface is nullptr", name());
     CORO_EARLY_RETURN();
   }
 
   logger.debug("ue={}: \"{}\" started...", ue->get_ue_index(), name());
 
-  if (!target_execution_context.has_value()) {
+  if (!xnap_ho_target_execution_ctxt.has_value()) {
     // Await for NGAP DL Status transfer.
     CORO_AWAIT_VALUE(sn_status, ngap.handle_dl_ran_status_transfer_required(ue->get_ue_index()));
     if (not sn_status.has_value()) {
@@ -70,13 +75,13 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
     CORO_EARLY_RETURN();
   }
 
-  if (!target_execution_context.has_value()) {
+  if (!xnap_ho_target_execution_ctxt.has_value()) {
     // Send handover notify from here.
     ngap.get_ngap_control_message_handler().handle_inter_cu_ho_rrc_recfg_complete(
         ue->get_ue_index(), ue->get_rrc_ue()->get_cell_context().cgi, ue->get_rrc_ue()->get_cell_context().tac);
   } else {
     // Prepare Path Switch Request.
-    path_switch_request = fill_path_switch_request(target_execution_context.value(),
+    path_switch_request = fill_path_switch_request(xnap_ho_target_execution_ctxt.value(),
                                                    ue->get_rrc_ue()->get_cell_context(),
                                                    ue->get_security_manager().get_security_context());
 

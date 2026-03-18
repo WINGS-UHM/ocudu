@@ -22,7 +22,7 @@ class inter_cu_handover_execution_target_routine
 public:
   inter_cu_handover_execution_target_routine(
       cu_cp_ue*                                                    ue_,
-      const std::optional<xnap_handover_target_execution_context>& target_execution_context_,
+      const std::optional<xnap_handover_target_execution_context>& xnap_ho_target_execution_ctxt_,
       e1ap_bearer_context_manager&                                 e1ap_,
       ngap_interface&                                              ngap_,
       xnap_interface*                                              xnap_,
@@ -50,7 +50,7 @@ private:
   cu_cp_path_switch_response                path_switch_response;
 
   cu_cp_ue*                                                   ue = nullptr;
-  const std::optional<xnap_handover_target_execution_context> target_execution_context;
+  const std::optional<xnap_handover_target_execution_context> xnap_ho_target_execution_ctxt;
   e1ap_bearer_context_manager&                                e1ap;
   ngap_interface&                                             ngap;
   xnap_interface*                                             xnap = nullptr;

@@ -85,21 +85,31 @@ void mobility_manager::handle_conditional_handover(
     return;
   }
 
-  // Validate target PCIs.
+  std::vector<pci_t> requested_target_pcis;
   if (target_pcis.empty()) {
-    logger.warning("ue={}: CHO preparation failed. No target PCIs specified", ue_index);
-    return;
+    const nr_cell_identity serving_nci = u->get_rrc_ue()->get_cell_context().cgi.nci;
+    requested_target_pcis              = cell_meas_mng.get_neighbor_pcis(serving_nci);
+    if (requested_target_pcis.empty()) {
+      logger.warning(
+          "ue={}: CHO preparation failed. No neighbor targets configured for serving nci={:#x}", ue_index, serving_nci);
+      return;
+    }
+    logger.debug("ue={}: No CHO targets provided. Using all {} neighbor cells as candidates",
+                 ue_index,
+                 requested_target_pcis.size());
+  } else {
+    requested_target_pcis.assign(target_pcis.begin(), target_pcis.end());
   }
 
   std::set<pci_t>    seen_target_pcis;
   std::vector<pci_t> unique_target_pcis;
-  unique_target_pcis.reserve(target_pcis.size());
-  for (pci_t target_pci : target_pcis) {
+  unique_target_pcis.reserve(requested_target_pcis.size());
+  for (pci_t target_pci : requested_target_pcis) {
     if (seen_target_pcis.insert(target_pci).second) {
       unique_target_pcis.push_back(target_pci);
     }
   }
-  if (unique_target_pcis.size() != target_pcis.size()) {
+  if (unique_target_pcis.size() != requested_target_pcis.size()) {
     logger.warning("ue={}: CHO request contains duplicate target PCIs. Duplicates were ignored", ue_index);
   }
 

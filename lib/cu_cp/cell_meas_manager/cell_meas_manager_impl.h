@@ -44,6 +44,7 @@ public:
                                                          bool                               cond_meas      = false,
                                                          span<const pci_t>                  candidate_pcis = {});
   std::optional<cell_meas_config> get_cell_config(nr_cell_identity nci);
+  std::vector<pci_t>              get_neighbor_pcis(nr_cell_identity serving_nci) const;
   bool update_cell_config(nr_cell_identity nci, const serving_cell_meas_config& serv_cell_cfg);
   void report_measurement(ue_index_t ue_index, const rrc_meas_results& meas_results);
 

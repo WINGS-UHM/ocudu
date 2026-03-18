@@ -764,8 +764,8 @@ void logical_channel_system::reset_sr_indication(soa::row_id ue_row_id)
 
 slot_point logical_channel_system::pending_sr_slot_rx(soa::row_id ue_row_id) const
 {
-  auto  u     = get_ue(ue_row_id);
-  auto& ue_ch = u.at<ue_ul_channel_context>();
+  auto        u     = get_ue(ue_row_id);
+  const auto& ue_ch = u.at<ue_ul_channel_context>();
   return ue_ch.oldest_sr_sl_rx;
 }
 

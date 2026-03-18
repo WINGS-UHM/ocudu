@@ -37,7 +37,7 @@ void xnap_target_handover_preparation_procedure::operator()(coro_context<async_t
 
   logger.debug("ue={}: \"{}\" started...", request.ue_index, name());
 
-  // Notify DU repository about handover request and await request ack.
+  // Notify CU-CP repository about handover request and await request ack.
   CORO_AWAIT_VALUE(response, cu_cp_notifier.on_xnap_handover_request(request));
 
   if (std::holds_alternative<cu_cp_handover_request_failure>(response)) {

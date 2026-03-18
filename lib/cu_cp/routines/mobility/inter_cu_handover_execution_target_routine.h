@@ -36,9 +36,10 @@ private:
   void fill_e1ap_bearer_context_modification_request();
   bool initialize_reconfiguration_timeout();
   static cu_cp_path_switch_request
-  fill_path_switch_request(const xnap_handover_target_execution_context& target_execution_ctxt,
-                           const rrc_cell_context&                       cell_context,
-                           const security::security_context&             security_context);
+       fill_path_switch_request(const xnap_handover_target_execution_context& target_execution_ctxt,
+                                const rrc_cell_context&                       cell_context,
+                                const security::security_context&             security_context);
+  bool is_xn_handover() const { return xnap_ho_target_execution_ctxt.has_value(); }
 
   // (sub-)routine requests
   e1ap_bearer_context_modification_request bearer_context_modification_request;

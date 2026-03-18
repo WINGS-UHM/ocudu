@@ -112,8 +112,8 @@ public:
 private:
   bool fill_e1ap_bearer_context_setup_request(const security::sec_as_config& sec_info);
   void create_srb(srb_id_t srb_id);
-  cu_cp_handover_resource_allocation_response generate_handover_resource_allocation_response(bool success,
-                                                                                             bool is_xn_ho = false);
+  cu_cp_handover_resource_allocation_response generate_handover_resource_allocation_response(bool success);
+  bool                                        is_xn_handover() const { return request.amf_ue_id.has_value(); }
 
   const cu_cp_inter_cu_handover_request request;
 

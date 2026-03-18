@@ -225,7 +225,7 @@ void inter_cu_handover_target_routine::operator()(
     ue->get_location_manager().configure_location_reporting(request.location_report_request_type.value());
   }
 
-  CORO_RETURN(generate_handover_resource_allocation_response(true, request.amf_ue_id.has_value()));
+  CORO_RETURN(generate_handover_resource_allocation_response(true));
 }
 
 /// \brief Processes the response of a Bearer Context Setup Request.
@@ -492,7 +492,7 @@ static inline void fill_xn_pdu_session_res_admitted_list(
 }
 
 cu_cp_handover_resource_allocation_response
-inter_cu_handover_target_routine::generate_handover_resource_allocation_response(bool success, bool is_xn_ho)
+inter_cu_handover_target_routine::generate_handover_resource_allocation_response(bool success)
 {
   if (success) {
     cu_cp_handover_request_ack ho_request_ack;
@@ -508,7 +508,7 @@ inter_cu_handover_target_routine::generate_handover_resource_allocation_response
 
     // Fill handover request ACK.
     // > Fill PDU session res admitted list.
-    if (is_xn_ho) {
+    if (is_xn_handover()) {
       fill_xn_pdu_session_res_admitted_list(ho_request_ack.pdu_session_res_admitted_list,
                                             bearer_context_setup_response.pdu_session_resource_setup_list);
     } else {

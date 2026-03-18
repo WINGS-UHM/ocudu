@@ -52,6 +52,10 @@ private:
   /// \param[in] msg The received initiating message.
   void handle_initiating_message(const asn1::xnap::init_msg_s& msg);
 
+  /// \brief Notify about the reception of an XN Setup Request message.
+  /// \param[in] request The received XN Setup Request message.
+  void handle_xn_setup_request(const asn1::xnap::xn_setup_request_s& request);
+
   /// \brief Notify about the reception of a Handover Request message.
   /// \param[in] msg The received handover request message.
   void handle_handover_request(const asn1::xnap::ho_request_s& msg);
@@ -75,8 +79,6 @@ private:
   /// \brief Notify about the reception of an unsuccessful outcome message.
   /// \param[in] outcome The unsuccessful outcome message.
   void handle_unsuccessful_outcome(const asn1::xnap::unsuccessful_outcome_s& outcome);
-
-  void handle_xn_setup_request(const asn1::xnap::xn_setup_request_s& request);
 
   ocudulog::basic_logger& logger;
 

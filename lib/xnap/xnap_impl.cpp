@@ -300,7 +300,7 @@ void xnap_impl::handle_sn_status_transfer_required(const cu_cp_status_transfer& 
 {
   const ue_index_t ue_index = sn_status_transfer.ue_index;
   if (!ue_ctxt_list.contains(ue_index)) {
-    logger.warning("ue={}: Dropping SNStatusTransfer. UE context does not exist", ue_index);
+    logger.warning("ue={}: Cannot transmit SNStatusTransfer. UE context does not exist", ue_index);
     return;
   }
 

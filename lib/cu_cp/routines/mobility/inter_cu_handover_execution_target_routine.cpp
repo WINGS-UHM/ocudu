@@ -37,25 +37,29 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
     CORO_EARLY_RETURN();
   }
 
-  if (xnap_ho_target_execution_ctxt.has_value() && xnap == nullptr) {
-    logger.warning("\"{}\" failed. Cause: XNAP interface is nullptr", name());
+  if (is_xn_handover() && xnap == nullptr) {
+    logger.warning("\"{}\" failed. Cause: XNAP interface (xnc_peer_index={}) is nullptr",
+                   name(),
+                   xnap_ho_target_execution_ctxt->xnc_index);
     CORO_EARLY_RETURN();
   }
 
   logger.debug("ue={}: \"{}\" started...", ue->get_ue_index(), name());
 
-  if (!xnap_ho_target_execution_ctxt.has_value()) {
+  if (!is_xn_handover()) {
     // Await for NGAP DL Status transfer.
     CORO_AWAIT_VALUE(sn_status, ngap.handle_dl_ran_status_transfer_required(ue->get_ue_index()));
-    if (not sn_status.has_value()) {
-      CORO_EARLY_RETURN();
-    }
   } else {
     // Await for SN Status transfer from source XN-C.
     CORO_AWAIT_VALUE(sn_status, xnap->handle_sn_status_transfer_expected(ue->get_ue_index()));
-    if (not sn_status.has_value()) {
-      CORO_EARLY_RETURN();
-    }
+  }
+
+  if (not sn_status.has_value()) {
+    logger.warning("ue={}: \"{}\" failed. Cause: Failed to receive {} Status Transfer",
+                   ue->get_ue_index(),
+                   name(),
+                   is_xn_handover() ? "SN" : "DL RAN");
+    CORO_EARLY_RETURN();
   }
 
   // Inform CU-UP of the current PDCP state.
@@ -65,17 +69,19 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
 
   // Notify RRC UE to await ReconfigurationComplete.
   if (!initialize_reconfiguration_timeout()) {
-    logger.warning("ue={}: \"{}\" failed", ue->get_ue_index(), name());
+    logger.warning(
+        "ue={}: \"{}\" failed. Cause: Failed to initialize reconfiguration timeout", ue->get_ue_index(), name());
     CORO_EARLY_RETURN();
   }
   CORO_AWAIT_VALUE(reconf_result,
                    ue->get_rrc_ue()->handle_handover_reconfiguration_complete_expected(0, reconf_timeout));
   if (!reconf_result) {
-    logger.warning("ue={}: \"{}\" failed", ue->get_ue_index(), name());
+    logger.warning(
+        "ue={}: \"{}\" failed. Cause: Failed to receive RRC Reconfiguration Complete", ue->get_ue_index(), name());
     CORO_EARLY_RETURN();
   }
 
-  if (!xnap_ho_target_execution_ctxt.has_value()) {
+  if (!is_xn_handover()) {
     // Send handover notify from here.
     ngap.get_ngap_control_message_handler().handle_inter_cu_ho_rrc_recfg_complete(
         ue->get_ue_index(), ue->get_rrc_ue()->get_cell_context().cgi, ue->get_rrc_ue()->get_cell_context().tac);

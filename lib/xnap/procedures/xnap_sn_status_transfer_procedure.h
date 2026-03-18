@@ -12,7 +12,7 @@
 
 namespace ocudu::ocucp {
 
-/// Procedure used to await for the DL status
+/// Procedure used to await for the SN status.
 class xnap_sn_status_transfer_procedure
 {
 public:

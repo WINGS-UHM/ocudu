@@ -31,7 +31,6 @@
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/ran/tac.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
-#include "ocudu/scheduler/config/srs_builder_params.h"
 #include <map>
 #include <string>
 #include <vector>

@@ -13,7 +13,6 @@
 #include "ocudu/ran/du_types.h"
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
-#include "ocudu/ran/sib/cell_reselection.h"
 #include "ocudu/ran/slot_point_extended.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/support/cli11_utils.h"

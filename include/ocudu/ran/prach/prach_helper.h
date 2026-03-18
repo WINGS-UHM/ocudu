@@ -6,11 +6,9 @@
 
 #include "ocudu/adt/expected.h"
 #include "ocudu/adt/interval.h"
-#include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_format_type.h"
-#include "ocudu/ran/prach/rach_config_common.h"
 #include <optional>
 
 namespace ocudu {
@@ -21,13 +19,13 @@ namespace prach_helper {
 
 /// \brief Checks whether a given PRACH configuration index is valid for a given frequency range and duplex mode.
 /// \return \c default_success_t if the given parameters are supported, otherwise an error message is provided.
-error_type<std::string> prach_config_index_is_valid(uint8_t prach_cfg_idx, frequency_range fr, duplex_mode dplx_mode);
+error_type<std::string> prach_config_index_is_valid(uint16_t prach_cfg_idx, frequency_range fr, duplex_mode dplx_mode);
 
 /// \brief Checks whether a given PRACH Zero Correlation Zone (ZCZ) is valid for a given PRACH config index, frequency
 /// range, and duplex mode.
 /// \return \c default_success_t if the given parameters are supported, otherwise an error message is provided.
 error_type<std::string> zero_correlation_zone_is_valid(uint8_t         zero_correlation_zone,
-                                                       uint8_t         prach_cfg_idx,
+                                                       uint16_t        prach_cfg_idx,
                                                        frequency_range freq_range,
                                                        duplex_mode     dplx_mode);
 
@@ -35,7 +33,7 @@ error_type<std::string> zero_correlation_zone_is_valid(uint8_t         zero_corr
 /// \return In case of failure, returns the range of PRACH slots that did not fit in the TDD pattern. If the PRACH
 /// configuration is invalid, an empty interval of slots is returned.
 error_type<interval<uint8_t>>
-prach_fits_in_tdd_pattern(subcarrier_spacing pusch_scs, uint8_t prach_cfg_idx, const tdd_ul_dl_config_common& tdd_cfg);
+prach_fits_in_tdd_pattern(subcarrier_spacing pusch_scs, uint16_t prach_cfg_idx, const tdd_ul_dl_config_common& tdd_cfg);
 
 /// \brief Finds a PRACH configuration index that ensures that PRACH falls in an TDD UL slot.
 std::optional<uint8_t> find_valid_prach_config_index(subcarrier_spacing             pusch_scs,

@@ -14,6 +14,9 @@ public:
   /// \brief Mark that an Access Success is expected for this UE upon C-RNTI CE reception.
   void set_success_access_required();
 
+  /// \brief Indicates whether Access Success is currently expected for this UE.
+  bool is_success_access_required() const;
+
   /// \brief Handle a C-RNTI CE indication.
   ///
   /// Returns true and clears the flag if an Access Success was pending for this UE.
@@ -21,7 +24,7 @@ public:
   bool handle_crnti_ce_indication();
 
 private:
-  bool is_success_access_required = false;
+  bool success_access_required = false;
 };
 
 } // namespace odu

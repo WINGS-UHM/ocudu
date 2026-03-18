@@ -9,14 +9,19 @@ using namespace ocudu::odu;
 
 void du_ue_cond_mobility_manager::set_success_access_required()
 {
-  is_success_access_required = true;
+  success_access_required = true;
+}
+
+bool du_ue_cond_mobility_manager::is_success_access_required() const
+{
+  return success_access_required;
 }
 
 bool du_ue_cond_mobility_manager::handle_crnti_ce_indication()
 {
-  if (!is_success_access_required) {
+  if (!success_access_required) {
     return false;
   }
-  is_success_access_required = false;
+  success_access_required = false;
   return true;
 }

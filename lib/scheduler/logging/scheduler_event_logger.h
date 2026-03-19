@@ -98,7 +98,7 @@ public:
 
   void log()
   {
-    if (mode == none) {
+    if (mode == mode_t::none) {
       return;
     }
     log_impl();
@@ -107,16 +107,16 @@ public:
   template <typename Event>
   void enqueue(Event&& ev)
   {
-    if (mode == none) {
+    if (mode == mode_t::none) {
       return;
     }
     enqueue_impl(std::forward<Event>(ev));
   }
 
-  bool enabled() const { return mode != none; }
+  bool enabled() const { return mode != mode_t::none; }
 
 private:
-  enum mode_t { none, info, debug };
+  enum class mode_t { none, info, debug };
 
   class event_buffer_writer;
 
@@ -147,7 +147,7 @@ private:
   const du_cell_index_t   cell_index;
   const pci_t             pci;
   ocudulog::basic_logger& logger;
-  mode_t                  mode = none;
+  mode_t                  mode = mode_t::none;
 
   std::unique_ptr<event_buffer_writer> slot_buffer_writer;
 };

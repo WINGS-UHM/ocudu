@@ -42,6 +42,9 @@ using slot_event_buffer = static_type_list_buffer<slot_event_buffer_size,
                                                   sel::srs_indication_event,
                                                   sel::slice_reconfiguration_event>;
 
+/// Pool of event buffers
+using event_buffer_pool_type = bounded_rc_object_pool<slot_event_buffer>;
+
 /// Sentinel return type used by format_info_level to signal that an event has no info-level formatter.
 struct no_info_formatter {};
 
@@ -260,7 +263,7 @@ struct slot_event_list {
   }
 
 private:
-  bounded_rc_object_pool<slot_event_buffer>::ptr ptr;
+  event_buffer_pool_type::ptr ptr;
 };
 
 } // namespace
@@ -302,14 +305,12 @@ struct formatter<slot_event_list> {
 /// Class that handles the pool of formattable slot events.
 class scheduler_event_logger::event_buffer_writer
 {
-  using event_pool_type = bounded_rc_object_pool<slot_event_buffer>;
-
 public:
-  using ptr = event_pool_type::ptr;
+  using ptr = event_buffer_pool_type::ptr;
 
   event_buffer_writer(mode_t mode_, unsigned nof_buffers) : mode(mode_)
   {
-    if (mode != none) {
+    if (mode != mode_t::none) {
       pool.emplace(nof_buffers);
       cur_buffer = pool->get();
     }
@@ -318,7 +319,7 @@ public:
   template <typename EventType>
   void push(const EventType& ev)
   {
-    if (mode == none or (mode == info and not has_info_formatter<EventType>())) {
+    if (mode == mode_t::none or (mode == mode_t::info and not has_info_formatter<EventType>())) {
       return;
     }
     cur_buffer->push(ev);
@@ -342,9 +343,9 @@ public:
   }
 
 private:
-  mode_t                         mode = mode_t::none;
-  std::optional<event_pool_type> pool;
-  ptr                            cur_buffer;
+  mode_t                                mode = mode_t::none;
+  std::optional<event_buffer_pool_type> pool;
+  ptr                                   cur_buffer;
 };
 
 scheduler_event_logger::scheduler_event_logger(du_cell_index_t cell_index_, pci_t pci_) :
@@ -364,9 +365,9 @@ void scheduler_event_logger::log_impl()
   if (slot_buffer_writer->empty()) {
     return;
   }
-  if (mode == debug) {
+  if (mode == mode_t::debug) {
     logger.debug("Processed slot events pci={}:{:d}", pci, slot_buffer_writer->pop_event_list());
-  } else if (mode == info) {
+  } else if (mode == mode_t::info) {
     logger.info("Processed slot events pci={}:{}", pci, slot_buffer_writer->pop_event_list());
   }
 }

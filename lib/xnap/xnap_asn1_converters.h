@@ -452,12 +452,6 @@ inline bool pdu_session_res_admitted_item_to_asn1(asn1::xnap::pdu_session_res_ad
   asn1_admitted_item.pdu_session_id = pdu_session_id_to_uint(admitted_item.pdu_session_id);
 
   // Fill PDU session res admitted info.
-  // > Fill DL NGU UP TNL info unchanged.
-  if (admitted_item.dl_ngu_tnl_info_unchanged) {
-    asn1_admitted_item.pdu_session_res_admitted_info.dl_ng_u_tnl_info_unchanged_present = true;
-    asn1_admitted_item.pdu_session_res_admitted_info.dl_ng_u_tnl_info_unchanged =
-        asn1::xnap::pdu_session_res_admitted_info_s::dl_ng_u_tnl_info_unchanged_opts::options::true_value;
-  }
   // > Fill QoS flows admitted list.
   for (const auto& qos_flow_item : admitted_item.qos_flows_setup_list) {
     asn1::xnap::qos_flows_admitted_item_s asn1_qos_flow_admitted_item;

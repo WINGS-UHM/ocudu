@@ -111,8 +111,9 @@ bool xnap_target_handover_preparation_procedure::send_handover_request_ack(ue_in
   handover_request_ack_to_asn1(xnap_msg.pdu.successful_outcome().value.ho_request_ack(), ho_ack);
 
   auto& ho_request_ack = xnap_msg.pdu.successful_outcome().value.ho_request_ack();
-  // Set UE IDs. Note that this is the target CU-CP, so the source XNAP UE ID in the request becomes the target XNAP UE
-  // ID in the response and vice versa.
+  // Fill UE IDs.
+  // This is sent from the target to the source, so the source UE ID is the peer XNAP UE ID and the target UE ID is the
+  // local XNAP UE ID.
   ho_request_ack->source_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(target_xnap_ue_id);
   ho_request_ack->target_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
 
@@ -134,7 +135,8 @@ void xnap_target_handover_preparation_procedure::send_handover_preparation_failu
 
   handover_preparation_failure_to_asn1(xnap_msg.pdu.unsuccessful_outcome().value.ho_prep_fail(), ho_failure);
 
-  auto& ho_fail                           = xnap_msg.pdu.unsuccessful_outcome().value.ho_prep_fail();
+  auto& ho_fail = xnap_msg.pdu.unsuccessful_outcome().value.ho_prep_fail();
+  // This is sent from the target to the source, so the source UE ID is the peer XNAP UE ID.
   ho_fail->source_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(target_xnap_ue_id);
 
   // Forward message to XN-C peer.

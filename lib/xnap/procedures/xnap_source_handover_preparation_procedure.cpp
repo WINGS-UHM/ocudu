@@ -115,6 +115,7 @@ bool xnap_source_handover_preparation_procedure::send_handover_request()
   ho_request_s& ho_request = msg.pdu.init_msg().value.ho_request();
 
   // Fill XNAP UE ID.
+  // This is sent from the source to the target, so the source UE ID is the local XNAP UE ID.
   ho_request->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(ue_ctxt->ue_ids.local_xnap_ue_id);
 
   // Fill cause.
@@ -178,6 +179,7 @@ bool xnap_source_handover_preparation_procedure::send_handover_cancel()
   msg.pdu.init_msg().load_info_obj(ASN1_XNAP_ID_HO_CANCEL);
   ho_cancel_s& ho_cancel = msg.pdu.init_msg().value.ho_cancel();
 
+  // This is sent from the source to the target, so the source UE ID is the local XNAP UE ID.
   ho_cancel->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(ue_ctxt->ue_ids.local_xnap_ue_id);
 
   ho_cancel->cause.set_radio_network();

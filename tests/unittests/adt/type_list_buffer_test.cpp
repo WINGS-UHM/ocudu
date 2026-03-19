@@ -61,8 +61,8 @@ static_assert(std::is_default_constructible_v<dyn_type_list_buffer<int, float>>)
 static_assert(std::is_move_constructible_v<dyn_type_list_buffer<int, float>>);
 static_assert(std::is_copy_constructible_v<dyn_type_list_buffer<int, float>>);
 
-static_assert(!std::is_copy_constructible_v<static_type_list_buffer<int, float>>);
-static_assert(std::is_move_constructible_v<static_type_list_buffer<int, float>>);
+static_assert(!std::is_copy_constructible_v<static_type_list_buffer<64, int, float>>);
+static_assert(std::is_move_constructible_v<static_type_list_buffer<64, int, float>>);
 
 // ---------------------------------------------------------------------------
 // dyn_type_list_buffer tests
@@ -419,7 +419,7 @@ TEST(static_type_list_buffer, basic_push_and_emplace)
   // Capacity: enough for one int and one float.
   // int record:   type_idx(1 byte) + pad(3) + int(4)  = 8 bytes  (start=0, obj_pos=4)
   // float record: type_idx(1 byte) + pad(3) + float(4) = 8 bytes (start=8, obj_pos=12)
-  static_type_list_buffer<int, float> buf(64);
+  static_type_list_buffer<64, int, float> buf;
 
   int*   ip = buf.emplace<int>(42);
   float* fp = buf.push(1.5f);
@@ -434,7 +434,7 @@ TEST(static_type_list_buffer, basic_push_and_emplace)
 TEST(static_type_list_buffer, overflow_returns_nullptr)
 {
   // Capacity = 1 byte: not enough even for the smallest record (needs at least 5 bytes for int).
-  static_type_list_buffer<int, float> buf(1);
+  static_type_list_buffer<1, int, float> buf;
 
   int* p = buf.emplace<int>(7);
   ASSERT_EQ(p, nullptr);
@@ -445,7 +445,7 @@ TEST(static_type_list_buffer, overflow_returns_nullptr)
 TEST(static_type_list_buffer, overflow_after_partial_fill)
 {
   // Capacity for exactly one int record (8 bytes); second push must fail.
-  static_type_list_buffer<int, float> buf(8);
+  static_type_list_buffer<8, int, float> buf;
 
   int* first = buf.emplace<int>(10);
   ASSERT_NE(first, nullptr);
@@ -461,7 +461,7 @@ TEST(static_type_list_buffer, overflow_after_partial_fill)
 
 TEST(static_type_list_buffer, for_each_visits_in_order)
 {
-  static_type_list_buffer<int, float> buf(64);
+  static_type_list_buffer<64, int, float> buf;
 
   buf.emplace<int>(1);
   buf.push(2.0f);
@@ -487,7 +487,7 @@ TEST(static_type_list_buffer, for_each_visits_in_order)
 
 TEST(static_type_list_buffer, references_remain_stable)
 {
-  static_type_list_buffer<int, float> buf(256);
+  static_type_list_buffer<256, int, float> buf;
 
   int*   p0 = buf.emplace<int>(10);
   float* p1 = buf.push(1.0f);
@@ -510,7 +510,7 @@ TEST(static_type_list_buffer, clear_destroys_and_allows_reuse)
 {
   counted::reset();
   {
-    static_type_list_buffer<counted, int> buf(256);
+    static_type_list_buffer<256, counted, int> buf;
 
     buf.emplace<counted>(1);
     buf.push(0);

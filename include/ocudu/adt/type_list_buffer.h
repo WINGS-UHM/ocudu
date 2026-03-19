@@ -5,10 +5,10 @@
 
 #include "ocudu/support/detail/type_list.h"
 #include "ocudu/support/ocudu_assert.h"
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <limits>
-#include <memory>
 #include <new>
 #include <type_traits>
 #include <utility>
@@ -184,14 +184,14 @@ protected:
   /// Inserts a \c T constructed from \p args at the end of the buffer.
   /// Returns a pointer to the new element, or \c nullptr if the buffer has no space.
   template <typename T, typename... Args>
-  T* emplace_impl(Args&&... args)
+  T* base_emplace_impl(Args&&... args)
   {
     constexpr type_idx_t idx      = type_index_of_v<T>;
     const size_t         start    = self().buf_size_impl();
     const size_t         obj_pos  = detail::align_up_v(start + sizeof(type_idx_t), alignof(T));
     const size_t         new_size = obj_pos + sizeof(T);
 
-    if (!self().ensure_space(new_size)) {
+    if (!self().ensure_space_impl(new_size)) {
       return nullptr;
     }
 
@@ -330,7 +330,7 @@ public:
   {
     static_assert(type_list_helper::contains_v<T, Types...>,
                   "emplace(): T is not present in this dyn_type_list_buffer's type list");
-    T* obj = this->template emplace_impl<T>(std::forward<Args>(args)...);
+    T* obj = this->template base_emplace_impl<T>(std::forward<Args>(args)...);
     ocudu_assert(obj != nullptr, "dyn_type_list_buffer::emplace returned nullptr");
     return *obj;
   }
@@ -345,7 +345,7 @@ private:
   void           reset_buf_impl() noexcept { buf.clear(); }
 
   // Resize buffer if needed.
-  bool ensure_space(size_t new_size)
+  bool ensure_space_impl(size_t new_size)
   {
     if (new_size > buf.capacity()) {
       grow_buffer(new_size);
@@ -398,17 +398,18 @@ private:
 // static_type_list_buffer
 // ---------------------------------------------------------------------------
 
-/// \brief Heterogeneous container that stores a sequence of objects of a fixed type list in a fixed-size buffer.
+/// \brief Heterogeneous container that stores a sequence of objects of a fixed type list in a compile-time-sized
+/// inline buffer.
 ///
-/// The backing buffer is allocated at construction and never reallocated; all previously returned pointers remain
-/// valid as long as the container is live. \c push / \c emplace return a pointer to the newly stored element, or
-/// \c nullptr if the buffer is full.
+/// The backing buffer is a \c std::array<uint8_t, N> held directly inside the object (no heap allocation).
+/// \c push / \c emplace return a pointer to the newly stored element, or \c nullptr if the buffer is full.
 ///
+/// \tparam N     Capacity of the backing buffer in bytes.
 /// \tparam Types List of types that may be stored. All types must be destructible.
-template <typename... Types>
-class static_type_list_buffer : private detail::type_list_buffer_base<static_type_list_buffer<Types...>, Types...>
+template <size_t N, typename... Types>
+class static_type_list_buffer : private detail::type_list_buffer_base<static_type_list_buffer<N, Types...>, Types...>
 {
-  using base = detail::type_list_buffer_base<static_type_list_buffer<Types...>, Types...>;
+  using base = detail::type_list_buffer_base<static_type_list_buffer<N, Types...>, Types...>;
 
 public:
   // Inherited methods from the private base.
@@ -418,11 +419,7 @@ public:
   using base::for_each;
   using base::size;
 
-  /// Constructs a buffer with \p capacity_bytes bytes of pre-allocated storage.
-  explicit static_type_list_buffer(size_t capacity_bytes) :
-    storage(std::make_unique<uint8_t[]>(capacity_bytes)), cap(capacity_bytes)
-  {
-  }
+  static_type_list_buffer() = default;
 
   ~static_type_list_buffer() { this->destroy_all(); }
 
@@ -431,7 +428,7 @@ public:
   static_type_list_buffer& operator=(const static_type_list_buffer&) = delete;
 
   static_type_list_buffer(static_type_list_buffer&& other) noexcept :
-    storage(std::move(other.storage)), cap(std::exchange(other.cap, 0)), used(std::exchange(other.used, 0))
+    storage(other.storage), used(std::exchange(other.used, 0))
   {
     this->nof_elements = std::exchange(other.nof_elements, 0);
   }
@@ -440,16 +437,15 @@ public:
   {
     if (this != &other) {
       this->destroy_all();
-      storage            = std::move(other.storage);
-      cap                = std::exchange(other.cap, 0);
+      storage            = other.storage;
       used               = std::exchange(other.used, 0);
       this->nof_elements = std::exchange(other.nof_elements, 0);
     }
     return *this;
   }
 
-  /// Returns the capacity in bytes allocated at construction.
-  size_t capacity_bytes() const noexcept { return cap; }
+  /// Returns the capacity in bytes of the backing buffer.
+  static constexpr size_t capacity_bytes() noexcept { return N; }
 
   /// Appends a copy or move of \p val to the buffer.
   /// \tparam T must appear in \c Types.
@@ -471,30 +467,29 @@ public:
   {
     static_assert(type_list_helper::contains_v<T, Types...>,
                   "emplace(): T is not present in this static_type_list_buffer's type list");
-    return this->template emplace_impl<T>(std::forward<Args>(args)...);
+    return this->template base_emplace_impl<T>(std::forward<Args>(args)...);
   }
 
 private:
   friend base;
 
   // CRTP hooks.
-  uint8_t*       buf_data_impl() noexcept { return storage.get(); }
-  const uint8_t* buf_data_impl() const noexcept { return storage.get(); }
+  uint8_t*       buf_data_impl() noexcept { return storage.data(); }
+  const uint8_t* buf_data_impl() const noexcept { return storage.data(); }
   size_t         buf_size_impl() const noexcept { return used; }
   void           reset_buf_impl() noexcept { used = 0; }
 
-  bool ensure_space(size_t new_size) noexcept
+  bool ensure_space_impl(size_t new_size) noexcept
   {
-    if (new_size > cap) {
+    if (new_size > N) {
       return false;
     }
     used = new_size;
     return true;
   }
 
-  std::unique_ptr<uint8_t[]> storage;
-  size_t                     cap  = 0;
-  size_t                     used = 0;
+  std::array<uint8_t, N> storage;
+  size_t                 used = 0;
 };
 
 } // namespace ocudu

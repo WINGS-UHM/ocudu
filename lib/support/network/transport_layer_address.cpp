@@ -3,7 +3,6 @@
 
 #include "ocudu/support/io/transport_layer_address.h"
 #include "ocudu/support/ocudu_assert.h"
-#include <netinet/in.h>
 
 using namespace ocudu;
 
@@ -110,16 +109,13 @@ std::string transport_layer_address::to_bitstring() const
 
 bool transport_layer_address::operator==(const transport_layer_address& other) const
 {
-  if (addrlen != other.addrlen) {
-    return false;
+  if (empty() && other.empty()) {
+    return true;
   }
-  return std::memcmp(&addr_storage, &other.addr_storage, addrlen) == 0;
+  return sockaddr_storage_equal(addr_storage, other.addr_storage);
 }
 
 bool transport_layer_address::operator<(const transport_layer_address& other) const
 {
-  if (addrlen != other.addrlen) {
-    return addrlen < other.addrlen;
-  }
-  return std::memcmp(&addr_storage, &other.addr_storage, addrlen) < 0;
+  return sockaddr_storage_less{}(addr_storage, other.addr_storage);
 }

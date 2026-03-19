@@ -3,6 +3,7 @@
 
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/support/io/transport_layer_address.h"
+#include <arpa/inet.h>
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -68,6 +69,32 @@ TEST(transport_layer_address_test, ipv6_address_comparison)
   auto        addr2     = transport_layer_address::create_from_string(ipv6_str2);
   ASSERT_EQ(addr1, ipv6_str1);
   ASSERT_EQ(addr2, ipv6_str2);
+}
+
+TEST(transport_layer_address_test, ipv4_equal_ignores_sockaddr_padding)
+{
+  // Build a sockaddr_in with garbage in the sin_zero padding field.
+  sockaddr_in sa_dirty = {};
+  sa_dirty.sin_family  = AF_INET;
+  sa_dirty.sin_port    = htons(5000);
+  inet_pton(AF_INET, "10.0.0.1", &sa_dirty.sin_addr);
+  std::memset(sa_dirty.sin_zero, 0xff, sizeof(sa_dirty.sin_zero));
+
+  // Build a clean sockaddr_in with the same address but zero padding.
+  sockaddr_in sa_clean = {};
+  sa_clean.sin_family  = AF_INET;
+  sa_clean.sin_port    = htons(5000);
+  inet_pton(AF_INET, "10.0.0.1", &sa_clean.sin_addr);
+
+  auto addr_dirty =
+      transport_layer_address::create_from_sockaddr(*reinterpret_cast<sockaddr*>(&sa_dirty), sizeof(sa_dirty));
+  auto addr_clean =
+      transport_layer_address::create_from_sockaddr(*reinterpret_cast<sockaddr*>(&sa_clean), sizeof(sa_clean));
+
+  // Field-by-field comparison must treat these as equal despite different padding bytes.
+  ASSERT_EQ(addr_dirty, addr_clean);
+  ASSERT_FALSE(addr_dirty < addr_clean);
+  ASSERT_FALSE(addr_clean < addr_dirty);
 }
 
 TEST(transport_layer_address_test, ipv4_is_always_different_from_ipv6)

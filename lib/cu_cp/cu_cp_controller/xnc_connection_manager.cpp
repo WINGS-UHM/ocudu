@@ -141,15 +141,6 @@ void xnc_connection_manager::start()
   }
 }
 
-void xnc_connection_manager::connect_to_neighbours()
-{
-  std::map<xnc_peer_index_t, xnap_interface*> xn = xnaps.get_xnaps();
-  for (const std::pair<const xnc_peer_index_t, xnap_interface*>& xnap_it : xn) {
-    xnap_it.second->handle_xn_setup_request_required();
-    // TODO: Handle setup failure
-  }
-}
-
 void xnc_connection_manager::stop()
 {
   // Note: Called from outside of the CU-CP execution context.

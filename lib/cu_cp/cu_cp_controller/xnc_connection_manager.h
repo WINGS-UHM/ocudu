@@ -38,8 +38,6 @@ private:
   class shared_xnc_connection_context;
   class xnc_gw_to_cu_cp_pdu_adapter;
 
-  void connect_to_neighbours();
-
   xnap_repository&        xnaps;
   xnc_connection_gateway& xnc_gw;
   task_executor&          cu_cp_exec;

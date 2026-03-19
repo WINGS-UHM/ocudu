@@ -73,6 +73,8 @@ transport_layer_address transport_layer_address::create_from_bitstring(const std
 
 std::string transport_layer_address::to_bitstring() const
 {
+  // TODO: This may fail if getnameinfo() returns abbreviated IPv6 address
+  // Read the binary address bytes directly from sockaddr instead.
   char        ip_addr[NI_MAXHOST];
   const auto* saddr = reinterpret_cast<const sockaddr*>(&addr_storage);
   ::getnameinfo(saddr, addrlen, ip_addr, sizeof(ip_addr), nullptr, 0, NI_NUMERICHOST);

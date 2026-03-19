@@ -18,7 +18,7 @@ public:
   /// Underlying native type used to store a transport layer address.
   struct native_type {
     struct sockaddr* addr;
-    socklen_t        addrlen;
+    socklen_t        addrlen; // TO-DO: we should not store that, derive it from ss_family instead?
   };
 
   transport_layer_address() = default;

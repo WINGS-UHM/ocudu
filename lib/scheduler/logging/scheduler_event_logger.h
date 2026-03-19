@@ -116,6 +116,7 @@ public:
   bool enabled() const { return mode != mode_t::none; }
 
 private:
+  /// Level of verbosity of the scheduler event logger.
   enum class mode_t { none, info, debug };
 
   class event_buffer_writer;

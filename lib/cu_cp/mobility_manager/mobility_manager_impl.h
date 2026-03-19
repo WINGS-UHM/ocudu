@@ -83,6 +83,13 @@ private:
                                 pci_t      neighbor_pci,
                                 du_index_t source_du_index,
                                 du_index_t target_du_index);
+  static void
+       handle_ngap_handover(ngap_interface& ngap, cu_cp_ue& ue, gnb_id_t target_gnb_id, nr_cell_identity target_nci);
+  void handle_xnap_handover(ngap_interface&  ngap,
+                            xnap_interface&  xnap,
+                            cu_cp_ue&        ue,
+                            plmn_identity    plmn,
+                            nr_cell_identity target_nci);
 
   void handle_conditional_handover(pci_t                                                source_pci,
                                    rnti_t                                               rnti,

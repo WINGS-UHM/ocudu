@@ -289,58 +289,73 @@ void mobility_manager::handle_inter_cu_handover(ue_index_t       source_ue_index
     logger.debug("ue={}: Requesting NG handover. No XN-C peer CU-CP peer with gnb_id={} found",
                  source_ue_index,
                  target_gnb_id.id);
-
-    ngap_handover_preparation_request request = generate_ngap_handover_preparation_request(
-        source_ue_index, target_gnb_id, target_nci, ue->get_up_resource_manager().get_pdu_sessions_map());
-
-    // Send handover preparation request to the NGAP handler.
-    auto ho_trigger = [ngap, request, response = ngap_handover_preparation_response{}](
-                          coro_context<async_task<void>>& ctx) mutable {
-      CORO_BEGIN(ctx);
-      CORO_AWAIT_VALUE(response, ngap->get_ngap_control_message_handler().handle_handover_preparation_request(request));
-      CORO_RETURN();
-    };
-    ue->get_task_sched().schedule_async_task(launch_async(std::move(ho_trigger)));
+    handle_ngap_handover(*ngap, *ue, target_gnb_id, target_nci);
     return;
   }
 
   logger.debug("ue={}: Requesting XN handover for gnb_id={}", source_ue_index, target_gnb_id.id);
+  handle_xnap_handover(*ngap, *xnap, *ue, ue_ctxt.plmn, target_nci);
+}
 
-  const ngap_context_t& ngap_ctxt = ngap_db.find_ngap(ue_ctxt.plmn)->get_ngap_context();
+void mobility_manager::handle_ngap_handover(ngap_interface&  ngap,
+                                            cu_cp_ue&        ue,
+                                            gnb_id_t         target_gnb_id,
+                                            nr_cell_identity target_nci)
+{
+  ngap_handover_preparation_request request = generate_ngap_handover_preparation_request(
+      ue.get_ue_index(), target_gnb_id, target_nci, ue.get_up_resource_manager().get_pdu_sessions_map());
+
+  // Send handover preparation request to the NGAP handler.
+  auto ho_trigger = [&ngap, request, response = ngap_handover_preparation_response{}](
+                        coro_context<async_task<void>>& ctx) mutable {
+    CORO_BEGIN(ctx);
+    CORO_AWAIT_VALUE(response, ngap.get_ngap_control_message_handler().handle_handover_preparation_request(request));
+    CORO_RETURN();
+  };
+  ue.get_task_sched().schedule_async_task(launch_async(std::move(ho_trigger)));
+}
+
+void mobility_manager::handle_xnap_handover(ngap_interface&  ngap,
+                                            xnap_interface&  xnap,
+                                            cu_cp_ue&        ue,
+                                            plmn_identity    plmn,
+                                            nr_cell_identity target_nci)
+{
+  const ngap_context_t& ngap_ctxt = ngap.get_ngap_context();
 
   std::optional<guami_t> served_guami;
   for (const auto& guami : ngap_ctxt.served_guami_list) {
-    if (guami.plmn == ue_ctxt.plmn) {
+    if (guami.plmn == plmn) {
       served_guami = guami;
     }
   }
   if (!served_guami.has_value()) {
-    logger.error("ue={}: Couldn't find GUAMI for {}", source_ue_index, ue_ctxt.plmn);
+    logger.error("ue={}: Couldn't find GUAMI for {}", ue.get_ue_index(), plmn);
     return;
   }
 
-  amf_ue_id_t source_amf_ue_id = ngap->get_amf_ue_id(source_ue_index);
+  amf_ue_id_t source_amf_ue_id = ngap.get_amf_ue_id(ue.get_ue_index());
   if (source_amf_ue_id == amf_ue_id_t::invalid) {
-    logger.error("ue={}: UE has invalid AMF UE ID", source_ue_index);
+    logger.error("ue={}: UE has invalid AMF UE ID", ue.get_ue_index());
     return;
   }
 
   xnap_handover_request request = generate_xnap_handover_request(
-      source_ue_index,
-      nr_cell_global_id_t{ue_ctxt.plmn, target_nci},
+      ue.get_ue_index(),
+      nr_cell_global_id_t{served_guami->plmn, target_nci},
       served_guami.value(),
       source_amf_ue_id,
-      ue->get_ue_ambr(),
-      ue->get_security_manager().get_security_context(),
-      ue->get_up_resource_manager().get_pdu_sessions_map(),
-      ue->get_rrc_ue()->get_rrc_ue_control_message_handler().get_packed_handover_preparation_message());
+      ue.get_ue_ambr(),
+      ue.get_security_manager().get_security_context(),
+      ue.get_up_resource_manager().get_pdu_sessions_map(),
+      ue.get_rrc_ue()->get_rrc_ue_control_message_handler().get_packed_handover_preparation_message());
 
   // Send handover preparation request to the XN-C handler.
   auto ho_trigger =
-      [xnap, request, response = xnap_handover_preparation_response{}](coro_context<async_task<void>>& ctx) mutable {
+      [&xnap, request, response = xnap_handover_preparation_response{}](coro_context<async_task<void>>& ctx) mutable {
         CORO_BEGIN(ctx);
-        CORO_AWAIT_VALUE(response, xnap->handle_handover_request_required(request));
+        CORO_AWAIT_VALUE(response, xnap.handle_handover_request_required(request));
         CORO_RETURN();
       };
-  ue->get_task_sched().schedule_async_task(launch_async(std::move(ho_trigger)));
+  ue.get_task_sched().schedule_async_task(launch_async(std::move(ho_trigger)));
 }

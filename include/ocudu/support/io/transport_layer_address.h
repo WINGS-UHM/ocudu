@@ -74,8 +74,8 @@ public:
 private:
   explicit transport_layer_address(const struct sockaddr& addr_, socklen_t socklen);
 
-  storage_type addr_storage;
-  socklen_t    addrlen = 0;
+  storage_type addr_storage = {};
+  socklen_t    addrlen      = 0;
 };
 
 } // namespace ocudu

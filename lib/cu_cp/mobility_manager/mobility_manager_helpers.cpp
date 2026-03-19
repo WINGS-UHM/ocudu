@@ -40,7 +40,8 @@ ocudu::ocucp::generate_xnap_handover_request(ue_index_t                         
                                              cu_cp_aggregate_maximum_bit_rate                          ue_ambr,
                                              const security::security_context&                         security_context,
                                              const std::map<pdu_session_id_t, up_pdu_session_context>& pdu_sessions,
-                                             const byte_buffer& rrc_handover_preparation_information)
+                                             const byte_buffer& rrc_handover_preparation_information,
+                                             const std::optional<location_report_request>& location_report_cfg)
 {
   xnap_handover_request request;
   request.ue_index                             = source_ue_index;
@@ -82,6 +83,7 @@ ocudu::ocucp::generate_xnap_handover_request(ue_index_t                         
     request.ue_context_info_ho_request.pdu_session_res_to_be_setup_list.emplace(pid, pdu_session_item);
   }
   request.ue_context_info_ho_request.rrc_handover_preparation_information = rrc_handover_preparation_information.copy();
+  request.ue_context_info_ho_request.location_report_info                 = location_report_cfg;
 
   return request;
 }

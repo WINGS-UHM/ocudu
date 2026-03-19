@@ -348,7 +348,8 @@ void mobility_manager::handle_xnap_handover(ngap_interface&  ngap,
       ue.get_ue_ambr(),
       ue.get_security_manager().get_security_context(),
       ue.get_up_resource_manager().get_pdu_sessions_map(),
-      ue.get_rrc_ue()->get_rrc_ue_control_message_handler().get_packed_handover_preparation_message());
+      ue.get_rrc_ue()->get_rrc_ue_control_message_handler().get_packed_handover_preparation_message(),
+      ue.get_location_manager().get_location_reporting_request());
 
   // Send handover preparation request to the XN-C handler.
   auto ho_trigger =

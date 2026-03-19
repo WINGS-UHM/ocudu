@@ -31,6 +31,7 @@ generate_ngap_handover_preparation_request(ue_index_t                           
 /// \param[in] security_context The security context of the UE.
 /// \param[in] pdu_sessions The PDU sessions of the UE, including their QoS flows and UP context information.
 /// \param[in] rrc_handover_preparation_information The RRC Handover Preparation Information.
+/// \param[in] location_report_cfg The NGAP Location Reporting configuration.
 /// \returns The generated XNAP Handover Request message.
 xnap_handover_request
 generate_xnap_handover_request(ue_index_t                                                source_ue_index,
@@ -40,6 +41,7 @@ generate_xnap_handover_request(ue_index_t                                       
                                cu_cp_aggregate_maximum_bit_rate                          ue_ambr,
                                const security::security_context&                         security_context,
                                const std::map<pdu_session_id_t, up_pdu_session_context>& pdu_sessions,
-                               const byte_buffer& rrc_handover_preparation_information);
+                               const byte_buffer&                            rrc_handover_preparation_information,
+                               const std::optional<location_report_request>& location_report_cfg);
 
 } // namespace ocudu::ocucp

@@ -76,7 +76,7 @@ xnap_message ocudu::ocucp::generate_handover_request(local_xnap_ue_id_t local_xn
   return xnap_msg;
 }
 
-xnap_message ocudu::ocucp::generate_handover_preparation_failure(local_xnap_ue_id_t local_xnap_ue_id)
+xnap_message ocudu::ocucp::generate_handover_preparation_failure(peer_xnap_ue_id_t peer_xnap_ue_id)
 {
   xnap_message xnap_msg;
 
@@ -85,7 +85,7 @@ xnap_message ocudu::ocucp::generate_handover_preparation_failure(local_xnap_ue_i
 
   auto& ho_prep_fail = xnap_msg.pdu.unsuccessful_outcome().value.ho_prep_fail();
 
-  ho_prep_fail->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
+  ho_prep_fail->source_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(peer_xnap_ue_id);
 
   // Fill cause.
   ho_prep_fail->cause.set_radio_network() = asn1::xnap::cause_radio_network_layer_opts::options::unspecified;
@@ -103,8 +103,8 @@ xnap_message ocudu::ocucp::generate_handover_request_ack(local_xnap_ue_id_t loca
 
   auto& ho_request_ack = xnap_msg.pdu.successful_outcome().value.ho_request_ack();
 
-  ho_request_ack->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
-  ho_request_ack->target_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(peer_xnap_ue_id);
+  ho_request_ack->source_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(peer_xnap_ue_id);
+  ho_request_ack->target_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
 
   // Fill target to source ng ran node transparent container.
   // Create RRC container.

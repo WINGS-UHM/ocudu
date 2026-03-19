@@ -90,7 +90,7 @@ TEST_F(xnap_handover_preparation_procedure_test, when_handover_preparation_failu
   ASSERT_FALSE(t.ready());
 
   // Inject Handover Preparation Failure.
-  xnap_message ho_prep_fail = ::generate_handover_preparation_failure(local_xnap_ue_id_t::min);
+  xnap_message ho_prep_fail = ::generate_handover_preparation_failure(peer_xnap_ue_id_t::min);
   xnap->handle_message(ho_prep_fail);
 
   // Procedure should have failed.

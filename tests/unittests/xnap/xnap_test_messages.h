@@ -14,7 +14,7 @@ namespace ocudu::ocucp {
 xnap_message generate_handover_request(local_xnap_ue_id_t local_xnap_ue_id);
 
 /// \brief Generate a dummy Handover Preparation Failure message.
-xnap_message generate_handover_preparation_failure(local_xnap_ue_id_t local_xnap_ue_id);
+xnap_message generate_handover_preparation_failure(peer_xnap_ue_id_t peer_xnap_ue_id);
 
 /// \brief Generate a dummy Handover Request Ack message.
 xnap_message generate_handover_request_ack(local_xnap_ue_id_t local_xnap_ue_id, peer_xnap_ue_id_t peer_xnap_ue_id);

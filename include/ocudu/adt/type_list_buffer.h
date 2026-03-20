@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "ocudu/adt/span.h"
 #include "ocudu/support/detail/type_list.h"
 #include "ocudu/support/ocudu_assert.h"
 #include <array>
@@ -490,6 +491,103 @@ private:
 
   std::array<uint8_t, N> storage;
   size_t                 used = 0;
+};
+
+// ---------------------------------------------------------------------------
+// type_list_buffer_view
+// ---------------------------------------------------------------------------
+
+/// \brief Non-owning heterogeneous container that stores a sequence of objects of a fixed type list in a caller-
+/// supplied byte buffer.
+///
+/// The backing storage is a \c span<uint8_t> provided at construction time. This class does not allocate or free any
+/// memory; the caller is responsible for the lifetime of the underlying buffer. \c push / \c emplace return a pointer
+/// to the newly stored element, or \c nullptr if there is insufficient space remaining.
+///
+/// \tparam Types List of types that may be stored. All types must be destructible.
+template <typename... Types>
+class type_list_buffer_view : private detail::type_list_buffer_base<type_list_buffer_view<Types...>, Types...>
+{
+  using base = detail::type_list_buffer_base<type_list_buffer_view<Types...>, Types...>;
+
+public:
+  // Inherited methods from the private base.
+  using base::byte_size;
+  using base::clear;
+  using base::empty;
+  using base::for_each;
+  using base::size;
+
+  explicit type_list_buffer_view(span<uint8_t> storage) noexcept : buf(storage) {}
+
+  ~type_list_buffer_view() { this->destroy_all(); }
+
+  // Move-only: copying a view with potentially non-trivial objects is not supported.
+  type_list_buffer_view(const type_list_buffer_view&)            = delete;
+  type_list_buffer_view& operator=(const type_list_buffer_view&) = delete;
+
+  type_list_buffer_view(type_list_buffer_view&& other) noexcept : buf(other.buf), used(std::exchange(other.used, 0))
+  {
+    this->nof_elements = std::exchange(other.nof_elements, 0);
+  }
+
+  type_list_buffer_view& operator=(type_list_buffer_view&& other) noexcept
+  {
+    if (this != &other) {
+      this->destroy_all();
+      buf                = other.buf;
+      used               = std::exchange(other.used, 0);
+      this->nof_elements = std::exchange(other.nof_elements, 0);
+    }
+    return *this;
+  }
+
+  /// Returns the capacity in bytes of the backing span.
+  size_t capacity_bytes() const noexcept { return buf.size(); }
+
+  /// Appends a copy or move of \p val to the buffer.
+  /// \tparam T must appear in \c Types.
+  /// \returns A pointer to the newly stored element, or \c nullptr if the buffer is full.
+  template <typename T>
+  std::decay_t<T>* push(T&& val)
+  {
+    using U = std::decay_t<T>;
+    static_assert(type_list_helper::contains_v<U, Types...>,
+                  "push(): T is not present in this type_list_buffer_view's type list");
+    return emplace<U>(std::forward<T>(val));
+  }
+
+  /// Constructs a \c T in-place at the end of the buffer.
+  /// \tparam T must appear in \c Types.
+  /// \returns A pointer to the newly constructed element, or \c nullptr if the buffer is full.
+  template <typename T, typename... Args>
+  T* emplace(Args&&... args)
+  {
+    static_assert(type_list_helper::contains_v<T, Types...>,
+                  "emplace(): T is not present in this type_list_buffer_view's type list");
+    return this->template base_emplace_impl<T>(std::forward<Args>(args)...);
+  }
+
+private:
+  friend base;
+
+  // CRTP hooks.
+  uint8_t*       buf_data_impl() noexcept { return buf.data(); }
+  const uint8_t* buf_data_impl() const noexcept { return buf.data(); }
+  size_t         buf_size_impl() const noexcept { return used; }
+  void           reset_buf_impl() noexcept { used = 0; }
+
+  bool ensure_space_impl(size_t new_size) noexcept
+  {
+    if (new_size > buf.size()) {
+      return false;
+    }
+    used = new_size;
+    return true;
+  }
+
+  span<uint8_t> buf;
+  size_t        used = 0;
 };
 
 } // namespace ocudu

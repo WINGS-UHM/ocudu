@@ -532,3 +532,149 @@ TEST(static_type_list_buffer, clear_destroys_and_allows_reuse)
   }
   ASSERT_EQ(counted::destructions, counted::constructions);
 }
+
+// ---------------------------------------------------------------------------
+// type_list_buffer_view tests
+// ---------------------------------------------------------------------------
+
+static_assert(!std::is_default_constructible_v<type_list_buffer_view<int, float>>);
+static_assert(!std::is_copy_constructible_v<type_list_buffer_view<int, float>>);
+static_assert(std::is_move_constructible_v<type_list_buffer_view<int, float>>);
+
+TEST(type_list_buffer_view, basic_push_and_emplace)
+{
+  std::array<uint8_t, 64>           storage{};
+  type_list_buffer_view<int, float> buf{span<uint8_t>{storage}};
+
+  int*   ip = buf.emplace<int>(42);
+  float* fp = buf.push(1.5f);
+
+  ASSERT_NE(ip, nullptr);
+  ASSERT_NE(fp, nullptr);
+  ASSERT_EQ(*ip, 42);
+  ASSERT_FLOAT_EQ(*fp, 1.5f);
+  ASSERT_EQ(buf.size(), 2u);
+}
+
+TEST(type_list_buffer_view, capacity_bytes_reflects_span_size)
+{
+  std::array<uint8_t, 128>   storage{};
+  type_list_buffer_view<int> buf{span<uint8_t>{storage}};
+  ASSERT_EQ(buf.capacity_bytes(), 128u);
+}
+
+TEST(type_list_buffer_view, overflow_returns_nullptr)
+{
+  std::array<uint8_t, 1>     storage{};
+  type_list_buffer_view<int> buf{span<uint8_t>{storage}};
+
+  int* p = buf.emplace<int>(7);
+  ASSERT_EQ(p, nullptr);
+  ASSERT_TRUE(buf.empty());
+}
+
+TEST(type_list_buffer_view, overflow_after_partial_fill)
+{
+  // One int record needs 8 bytes (type_idx=1 + pad=3 + int=4).
+  std::array<uint8_t, 8>            storage{};
+  type_list_buffer_view<int, float> buf{span<uint8_t>{storage}};
+
+  int* first = buf.emplace<int>(10);
+  ASSERT_NE(first, nullptr);
+  ASSERT_EQ(*first, 10);
+
+  int* second = buf.emplace<int>(20);
+  ASSERT_EQ(second, nullptr);
+
+  ASSERT_EQ(buf.size(), 1u);
+  ASSERT_EQ(*first, 10);
+}
+
+TEST(type_list_buffer_view, for_each_visits_in_order)
+{
+  std::array<uint8_t, 64>           storage{};
+  type_list_buffer_view<int, float> buf{span<uint8_t>{storage}};
+
+  buf.emplace<int>(1);
+  buf.push(2.0f);
+  buf.emplace<int>(3);
+  buf.push(4.0f);
+
+  std::vector<int> order; // 0 = int, 1 = float
+  buf.for_each([&](const auto& obj) {
+    using T = std::decay_t<decltype(obj)>;
+    order.push_back(std::is_same_v<T, int> ? 0 : 1);
+  });
+
+  ASSERT_EQ(order, (std::vector<int>{0, 1, 0, 1}));
+}
+
+TEST(type_list_buffer_view, references_remain_stable)
+{
+  std::array<uint8_t, 256>          storage{};
+  type_list_buffer_view<int, float> buf{span<uint8_t>{storage}};
+
+  int*   p0 = buf.emplace<int>(10);
+  float* p1 = buf.push(1.0f);
+  int*   p2 = buf.emplace<int>(20);
+  float* p3 = buf.push(2.0f);
+
+  ASSERT_NE(p0, nullptr);
+  ASSERT_NE(p1, nullptr);
+  ASSERT_NE(p2, nullptr);
+  ASSERT_NE(p3, nullptr);
+
+  ASSERT_EQ(*p0, 10);
+  ASSERT_FLOAT_EQ(*p1, 1.0f);
+  ASSERT_EQ(*p2, 20);
+  ASSERT_FLOAT_EQ(*p3, 2.0f);
+}
+
+TEST(type_list_buffer_view, clear_destroys_and_allows_reuse)
+{
+  counted::reset();
+  {
+    std::array<uint8_t, 256>            storage{};
+    type_list_buffer_view<counted, int> buf{span<uint8_t>{storage}};
+
+    buf.emplace<counted>(1);
+    buf.push(0);
+    buf.emplace<counted>(2);
+
+    const int live = counted::constructions - counted::destructions;
+    ASSERT_EQ(live, 2);
+    const int dtors_before_clear = counted::destructions;
+
+    buf.clear();
+    ASSERT_EQ(counted::destructions, dtors_before_clear + 2);
+    ASSERT_TRUE(buf.empty());
+
+    auto* p = buf.emplace<counted>(99);
+    ASSERT_NE(p, nullptr);
+    ASSERT_EQ(p->value, 99);
+    ASSERT_EQ(buf.size(), 1u);
+  }
+  ASSERT_EQ(counted::destructions, counted::constructions);
+}
+
+TEST(type_list_buffer_view, move_transfers_elements)
+{
+  std::array<uint8_t, 256>          storage{};
+  type_list_buffer_view<int, float> src{span<uint8_t>{storage}};
+  src.emplace<int>(10);
+  src.push(2.5f);
+  src.emplace<int>(20);
+
+  type_list_buffer_view<int, float> dst(std::move(src));
+
+  ASSERT_TRUE(src.empty());
+  ASSERT_EQ(dst.size(), 3u);
+
+  std::vector<int> vals;
+  dst.for_each([&](const auto& v) {
+    if constexpr (std::is_same_v<std::decay_t<decltype(v)>, int>) {
+      vals.push_back(v);
+    }
+  });
+  ASSERT_EQ(vals, (std::vector<int>{10, 20}));
+}

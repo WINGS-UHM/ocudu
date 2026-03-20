@@ -699,7 +699,7 @@ bool byte_buffer::resize(size_t new_sz)
         }
       }
       size_t added = std::min(ctrl_blk_ptr->segments.tail->tailroom(), to_add);
-      ctrl_blk_ptr->segments.tail->resize(added);
+      ctrl_blk_ptr->segments.tail->resize(ctrl_blk_ptr->segments.tail->length() + added);
       to_add -= added;
     }
   } else {

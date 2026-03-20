@@ -86,3 +86,8 @@ add_executable(type_list_buffer_test type_list_buffer_test.cpp)
 target_link_libraries(type_list_buffer_test ocudulog GTest::gtest GTest::gtest_main)
 add_test(type_list_buffer_test type_list_buffer_test)
 gtest_discover_tests(type_list_buffer_test)
+
+add_executable(type_list_segment_buffer_test type_list_segment_buffer_test.cpp)
+target_link_libraries(type_list_segment_buffer_test ocudulog ocudu_support GTest::gtest ocudu_gtest_main)
+add_test(type_list_segment_buffer_test type_list_segment_buffer_test)
+gtest_discover_tests(type_list_segment_buffer_test)

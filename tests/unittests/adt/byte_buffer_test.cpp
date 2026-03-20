@@ -536,6 +536,26 @@ TEST_F(byte_buffer_tester, is_contiguous)
   ASSERT_TRUE(pdu.is_contiguous());
 }
 
+TEST_F(byte_buffer_tester, tailroom_capacity)
+{
+  byte_buffer buf;
+  // Empty buffer has no tail segment.
+  ASSERT_EQ(buf.tailroom_capacity(), 0u);
+
+  // After appending some bytes the tail has room left in its segment.
+  ASSERT_TRUE(buf.append(span<const uint8_t>{{0x01, 0x02, 0x03}}));
+  ASSERT_GT(buf.tailroom_capacity(), 0u);
+
+  // After resize to fill the tail segment exactly, tailroom drops to zero.
+  size_t filled = buf.length() + buf.tailroom_capacity();
+  ASSERT_TRUE(buf.resize(filled));
+  ASSERT_EQ(buf.tailroom_capacity(), 0u);
+
+  // The next resize forces a new segment; tailroom becomes positive again.
+  ASSERT_TRUE(buf.resize(filled + 1));
+  ASSERT_GT(buf.tailroom_capacity(), 0u);
+}
+
 TEST_F(byte_buffer_tester, hexdump)
 {
   std::vector<uint8_t> bytes{0x1, 0x2, 0x3, 0x4, 0x5, 0xff};

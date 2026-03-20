@@ -5,7 +5,6 @@
 #include "scheduler_event_logger.h"
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/adt/type_list_buffer.h"
-#include "ocudu/adt/type_list_segment_buffer.h"
 #include "ocudu/ran/csi_report/csi_report_formatters.h"
 #include "ocudu/ran/pusch/pusch_tpmi_formatter.h"
 #include "ocudu/support/format/custom_formattable.h"
@@ -22,25 +21,25 @@ struct cell_creation_event {
 };
 
 /// Storage type of events taking place during a slot.
-using slot_event_buffer = type_list_segment_buffer<cell_creation_event,
-                                                   sel::prach_event,
-                                                   rach_indication_message,
-                                                   sel::ue_creation_event,
-                                                   sel::ue_reconf_event,
-                                                   sched_ue_delete_message,
-                                                   sel::ue_cfg_applied_event,
-                                                   sel::ue_deactivation_event,
-                                                   sel::error_indication_event,
-                                                   sel::sr_event,
-                                                   sel::csi_report_event,
-                                                   sel::bsr_event,
-                                                   sel::harq_ack_event,
-                                                   sel::crc_event,
-                                                   dl_mac_ce_indication,
-                                                   dl_buffer_state_indication_message,
-                                                   sel::phr_event,
-                                                   sel::srs_indication_event,
-                                                   sel::slice_reconfiguration_event>;
+using slot_event_buffer = type_list_buffer_stream<cell_creation_event,
+                                                  sel::prach_event,
+                                                  rach_indication_message,
+                                                  sel::ue_creation_event,
+                                                  sel::ue_reconf_event,
+                                                  sched_ue_delete_message,
+                                                  sel::ue_cfg_applied_event,
+                                                  sel::ue_deactivation_event,
+                                                  sel::error_indication_event,
+                                                  sel::sr_event,
+                                                  sel::csi_report_event,
+                                                  sel::bsr_event,
+                                                  sel::harq_ack_event,
+                                                  sel::crc_event,
+                                                  dl_mac_ce_indication,
+                                                  dl_buffer_state_indication_message,
+                                                  sel::phr_event,
+                                                  sel::srs_indication_event,
+                                                  sel::slice_reconfiguration_event>;
 
 /// Sentinel return type used by format_info_level to signal that an event has no info-level formatter.
 struct no_info_formatter {};
@@ -268,7 +267,12 @@ struct formatter<slot_event_buffer> {
 class scheduler_event_logger::event_buffer_writer
 {
 public:
-  event_buffer_writer(mode_t mode_) : mode(mode_) {}
+  event_buffer_writer(mode_t mode_) :
+    mode(mode_),
+    cur_buffer(mode == mode_t::none ? slot_event_buffer{}
+                                    : *slot_event_buffer::make(get_default_fallback_byte_buffer_segment_pool()))
+  {
+  }
 
   template <typename EventType>
   void push(const EventType& ev)

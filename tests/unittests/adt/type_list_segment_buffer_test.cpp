@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
-#include "ocudu/adt/type_list_segment_buffer.h"
+#include "ocudu/adt/type_list_buffer.h"
 #include <gtest/gtest.h>
 #include <vector>
 
@@ -31,9 +31,9 @@ struct counted_seg {
 // Compile-time checks
 // ---------------------------------------------------------------------------
 
-static_assert(std::is_copy_constructible_v<type_list_segment_buffer<int, float>>);
-static_assert(std::is_move_constructible_v<type_list_segment_buffer<int, float>>);
-static_assert(std::is_default_constructible_v<type_list_segment_buffer<int, float>>);
+static_assert(std::is_copy_constructible_v<type_list_buffer_stream<int, float>>);
+static_assert(std::is_move_constructible_v<type_list_buffer_stream<int, float>>);
+static_assert(std::is_default_constructible_v<type_list_buffer_stream<int, float>>);
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -41,7 +41,7 @@ static_assert(std::is_default_constructible_v<type_list_segment_buffer<int, floa
 
 TEST(type_list_segment_buffer_test, basic_push_and_emplace)
 {
-  type_list_segment_buffer<int, float> buf;
+  type_list_buffer_stream<int, float> buf;
 
   int*   ip = buf.emplace<int>(42);
   float* fp = buf.push(1.5f);
@@ -55,7 +55,7 @@ TEST(type_list_segment_buffer_test, basic_push_and_emplace)
 
 TEST(type_list_segment_buffer_test, for_each_visits_in_order)
 {
-  type_list_segment_buffer<int, float> buf;
+  type_list_buffer_stream<int, float> buf;
 
   buf.emplace<int>(1);
   buf.push(2.0f);
@@ -73,8 +73,8 @@ TEST(type_list_segment_buffer_test, for_each_visits_in_order)
 
 TEST(type_list_segment_buffer_test, segment_overflow_creates_new_segment)
 {
-  type_list_segment_buffer<int> buf;
-  constexpr int                 num_elements = 500; // guaranteed to span multiple segments
+  type_list_buffer_stream<int> buf;
+  constexpr int                num_elements = 500; // guaranteed to span multiple segments
   for (int i = 0; i < num_elements; ++i) {
     ASSERT_NE(buf.emplace<int>(i), nullptr);
   }
@@ -88,7 +88,7 @@ TEST(type_list_segment_buffer_test, clear_destroys_and_allows_reuse)
 {
   counted_seg::reset();
   {
-    type_list_segment_buffer<counted_seg, int> buf;
+    type_list_buffer_stream<counted_seg, int> buf;
 
     buf.emplace<counted_seg>(1);
     buf.push(0);
@@ -111,12 +111,12 @@ TEST(type_list_segment_buffer_test, clear_destroys_and_allows_reuse)
 
 TEST(type_list_segment_buffer_test, move_transfers_elements)
 {
-  type_list_segment_buffer<int, float> src;
+  type_list_buffer_stream<int, float> src;
   src.emplace<int>(10);
   src.push(2.5f);
   src.emplace<int>(20);
 
-  type_list_segment_buffer<int, float> dst(std::move(src));
+  type_list_buffer_stream<int, float> dst(std::move(src));
 
   ASSERT_TRUE(src.empty());
   ASSERT_EQ(dst.size(), 3u);
@@ -134,7 +134,7 @@ TEST(type_list_segment_buffer_test, destructor_calls_dtors)
 {
   counted_seg::reset();
   {
-    type_list_segment_buffer<counted_seg, int> buf;
+    type_list_buffer_stream<counted_seg, int> buf;
     buf.emplace<counted_seg>(1);
     buf.emplace<counted_seg>(2);
     buf.emplace<counted_seg>(3);
@@ -143,14 +143,33 @@ TEST(type_list_segment_buffer_test, destructor_calls_dtors)
   ASSERT_EQ(counted_seg::destructions, 3);
 }
 
+TEST(type_list_segment_buffer_test, copy_assignment_destroys_existing_elements)
+{
+  counted_seg::reset();
+
+  type_list_buffer_stream<counted_seg, int> dst;
+  dst.emplace<counted_seg>(1);
+  dst.emplace<counted_seg>(2);
+  ASSERT_EQ(counted_seg::constructions - counted_seg::destructions, 2);
+
+  type_list_buffer_stream<counted_seg, int> src;
+  src.emplace<counted_seg>(99);
+
+  const int dtors_before = counted_seg::destructions;
+  dst                    = src;
+  // The two elements originally in dst must have been destroyed.
+  ASSERT_EQ(counted_seg::destructions, dtors_before + 2);
+  ASSERT_EQ(dst.size(), 1u);
+}
+
 TEST(type_list_segment_buffer_test, shallow_copy_shares_elements)
 {
-  type_list_segment_buffer<int, float> src;
+  type_list_buffer_stream<int, float> src;
   src.emplace<int>(7);
   src.push(3.14f);
 
   // Shallow copy: both see the same elements.
-  type_list_segment_buffer<int, float> c = src;
+  type_list_buffer_stream<int, float> c = src;
   ASSERT_EQ(c.size(), 2u);
 
   // Elements pushed after the copy are visible through both handles.

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "ocudu/adt/detail/byte_segment_list.h"
 #include "ocudu/adt/span.h"
 #include "ocudu/support/detail/type_list.h"
 #include "ocudu/support/ocudu_assert.h"
@@ -588,6 +589,179 @@ private:
 
   span<uint8_t> buf;
   size_t        used = 0;
+};
+
+/// \brief Heterogeneous container that stores a sequence of objects of a fixed type list backed by a
+/// \c detail::shared_byte_segment_list.
+///
+/// The buffer is organized as a linked list of segments. At the start of each segment a \c type_list_buffer_view is
+/// placement-constructed; the rest of the segment's payload is the view's backing store. Records are appended through
+/// the tail view. When it is full a fresh segment is allocated, a new view is placement-constructed there, and the
+/// record goes into that segment instead.
+///
+/// \note For types with non-trivial destructors, a shallow copy must not outlive the copy that ultimately destroys
+///       the buffer, since the destructor walks every segment and calls each view's destructor (which destroys the
+///       stored objects in the shared memory).
+///
+/// \tparam Types List of types that may be stored. All types must be destructible.
+template <typename... Types>
+class type_list_buffer_stream
+{
+  using view_t = type_list_buffer_view<Types...>;
+
+  /// Default segment size.
+  static constexpr size_t segment_size = 2048;
+
+public:
+  type_list_buffer_stream() = default;
+
+  /// Creates a type_list_buffer_stream with an eagerly allocated first segment from \p p.
+  static expected<type_list_buffer_stream> make(byte_buffer_memory_resource& p) noexcept
+  {
+    auto seg_list = detail::shared_byte_segment_list::make(segment_size, p);
+    if (not seg_list) {
+      return make_unexpected(default_error_t{});
+    }
+    type_list_buffer_stream result;
+    result.buf        = std::move(*seg_list);
+    span<uint8_t> seg = result.buf.tail();
+    new (seg.data()) view_t(span<uint8_t>{seg.data() + sizeof(view_t), seg.size() - sizeof(view_t)});
+    return result;
+  }
+
+  ~type_list_buffer_stream() { destroy_all(); }
+
+  type_list_buffer_stream(const type_list_buffer_stream& other) noexcept = default;
+  type_list_buffer_stream& operator=(const type_list_buffer_stream& other) noexcept
+  {
+    if (this != &other) {
+      destroy_all();
+      buf = other.buf;
+    }
+    return *this;
+  }
+
+  type_list_buffer_stream(type_list_buffer_stream&& other) noexcept = default;
+
+  type_list_buffer_stream& operator=(type_list_buffer_stream&& other) noexcept
+  {
+    if (this != &other) {
+      destroy_all();
+      buf = std::move(other.buf);
+    }
+    return *this;
+  }
+
+  /// Returns the total number of stored elements (O(number of segments)).
+  size_t size() const noexcept
+  {
+    size_t total = 0;
+    for (auto seg : buf) {
+      total += seg_to_view(seg)->size();
+    }
+    return total;
+  }
+
+  bool empty() const noexcept { return buf.empty(); }
+
+  /// Returns the total number of record bytes used across all segments.
+  size_t byte_size() const noexcept
+  {
+    size_t total = 0;
+    for (auto seg : buf) {
+      total += seg_to_view(seg)->byte_size();
+    }
+    return total;
+  }
+
+  /// Calls \p visitor once for every stored element in insertion order (const overload).
+  template <typename Visitor>
+  void for_each(Visitor&& visitor) const
+  {
+    for (auto seg : buf) {
+      seg_to_view(seg)->for_each(visitor);
+    }
+  }
+
+  /// Calls \p visitor once for every stored element in insertion order (mutable overload).
+  template <typename Visitor>
+  void for_each(Visitor&& visitor)
+  {
+    for (auto seg : buf) {
+      seg_to_view(seg)->for_each(visitor);
+    }
+  }
+
+  /// Destroys all stored elements and resets the buffer to an empty state.
+  void clear() noexcept
+  {
+    destroy_all();
+    buf.clear();
+  }
+
+  /// Appends a copy or move of \p val to the buffer.
+  /// \returns A pointer to the newly stored element, or \c nullptr on allocation failure.
+  template <typename T>
+  std::decay_t<T>* push(T&& val)
+  {
+    using U = std::decay_t<T>;
+    static_assert(type_list_helper::contains_v<U, Types...>,
+                  "push(): T is not present in this type_list_buffer_stream's type list");
+    return emplace<U>(std::forward<T>(val));
+  }
+
+  /// Constructs a \c T in-place at the end of the buffer.
+  /// \returns A pointer to the newly constructed element, or \c nullptr on allocation failure.
+  template <typename T, typename... Args>
+  T* emplace(Args&&... args)
+  {
+    static_assert(type_list_helper::contains_v<T, Types...>,
+                  "emplace(): T is not present in this type_list_buffer_stream's type list");
+    if (buf.empty() && !alloc_new_segment()) {
+      return nullptr;
+    }
+    T* obj = tail_view()->template emplace<T>(std::forward<Args>(args)...);
+    if (obj != nullptr) {
+      return obj;
+    }
+    // Current segment is full; allocate a new one and retry.
+    if (!alloc_new_segment()) {
+      return nullptr;
+    }
+    return tail_view()->template emplace<T>(std::forward<Args>(args)...);
+  }
+
+private:
+  static view_t* seg_to_view(span<uint8_t> seg) noexcept { return std::launder(reinterpret_cast<view_t*>(seg.data())); }
+
+  static const view_t* seg_to_view(span<const uint8_t> seg) noexcept
+  {
+    return std::launder(reinterpret_cast<const view_t*>(seg.data()));
+  }
+
+  /// Returns a pointer to the view in the tail segment. Requires \c !buf.empty().
+  view_t* tail_view() noexcept { return seg_to_view(buf.tail()); }
+
+  /// Allocates a fresh segment, placement-constructs a \c view_t at its start, and appends it to \c buf.
+  bool alloc_new_segment() noexcept
+  {
+    if (!buf.append_segment(segment_size)) {
+      return false;
+    }
+    span<uint8_t> new_seg = buf.tail();
+    new (new_seg.data()) view_t(span<uint8_t>{new_seg.data() + sizeof(view_t), new_seg.size() - sizeof(view_t)});
+    return true;
+  }
+
+  /// Calls the destructor of every \c view_t (which in turn destroys all stored objects).
+  void destroy_all() noexcept
+  {
+    for (auto seg : buf) {
+      seg_to_view(seg)->~view_t();
+    }
+  }
+
+  detail::shared_byte_segment_list buf;
 };
 
 } // namespace ocudu

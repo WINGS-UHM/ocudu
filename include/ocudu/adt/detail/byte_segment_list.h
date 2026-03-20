@@ -5,6 +5,7 @@
 
 #include "ocudu/adt/detail/byte_buffer_memory_resource.h"
 #include "ocudu/adt/detail/intrusive_ptr.h"
+#include "ocudu/adt/expected.h"
 #include "ocudu/adt/intrusive_list.h"
 #include "ocudu/adt/span.h"
 #include "ocudu/support/memory_pool/linear_memory_allocator.h"

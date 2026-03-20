@@ -239,7 +239,7 @@ docker compose -f docker/docker-compose.ui.yml up -d
 ```
 
 Alternatively, if using K8s service DNS from within the same cluster:
-`WS_URL=ocudu-gnb-metrics.ocudu.svc.cluster.local:8001`
+`WS_URL=ocudu-gnb-metrics.ocudu:8001`
 
 For more information on Kubernetes deployments, see [https://docs.ocudu.org](https://docs.ocudu.org).
 

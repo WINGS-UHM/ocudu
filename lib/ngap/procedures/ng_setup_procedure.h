@@ -10,15 +10,14 @@
 #include "ocudu/ngap/ngap_message.h"
 #include "ocudu/support/async/async_task.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class ng_setup_procedure
 {
 public:
   ng_setup_procedure(ngap_context_t&           context_,
                      const ngap_message&       request_,
-                     const unsigned            max_setup_retries_,
+                     unsigned                  max_setup_retries_,
                      ngap_message_notifier&    amf_notif_,
                      ngap_transaction_manager& ev_mng_,
                      timer_factory             timers,
@@ -37,6 +36,16 @@ private:
 
   static bool is_failure_misconfiguration(const asn1::ngap::cause_c& cause);
 
+  /// \brief Create the NG Setup Response.
+  /// \param[in] asn1_response The ASN.1 type NGSetupResponse.
+  /// \return The common type NGAP NG Setup Response.
+  static ngap_ng_setup_response create_ngap_ng_setup_response(const asn1::ngap::ng_setup_resp_s& asn1_response);
+
+  /// \brief Create the NG Setup Failure.
+  /// \param[in] asn1_fail The ASN.1 type NGSetupFailure.
+  /// \return The common type NGAP NG Setup Failure.
+  static ngap_ng_setup_failure create_ngap_ng_setup_failure(const asn1::ngap::ng_setup_fail_s& asn1_fail);
+
   ngap_context_t&           context;
   const ngap_message        request;
   const unsigned            max_setup_retries;
@@ -52,5 +61,4 @@ private:
   protocol_transaction_outcome_observer<asn1::ngap::ng_setup_resp_s, asn1::ngap::ng_setup_fail_s> transaction_sink;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

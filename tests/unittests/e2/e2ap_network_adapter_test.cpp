@@ -99,6 +99,7 @@ protected:
 
   void TearDown() override
   {
+    ric_net_adapter->stop();
     // flush logger after each test
     ocudulog::flush();
   }

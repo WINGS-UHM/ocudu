@@ -40,6 +40,8 @@ public:
     }
   }
 
+  void stop() override {}
+
   std::optional<uint16_t> get_listen_port() const override { return std::nullopt; }
 
   bool try_pop_rx_pdu(xnap_message& pdu) override { return rx_pdus.try_pop(pdu); }

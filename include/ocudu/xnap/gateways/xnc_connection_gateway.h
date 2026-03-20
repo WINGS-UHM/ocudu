@@ -25,6 +25,9 @@ public:
   /// Attach a CU-CP handler to the XN-C connection server.
   virtual void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) = 0;
 
+  /// Stop the XN-C connection gateway.
+  virtual void stop() = 0;
+
   /// Get port on which the XN-C Server is listening for new connections.
   ///
   /// This method is useful in testing, where we don't want to use a specific port.

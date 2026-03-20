@@ -538,5 +538,12 @@ int main(int argc, char** argv)
   // Stop O-CU-CP activity.
   o_cucp_obj.get_operation_controller().stop();
 
+  // Stop gateway SCTP servers.
+  cu_f1c_gw->stop();
+  e1_gw->stop();
+  if (xnc_gw) {
+    xnc_gw->stop();
+  }
+
   return 0;
 }

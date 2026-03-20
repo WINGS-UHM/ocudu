@@ -101,8 +101,7 @@ public:
     report_error_if_not(sctp_server != nullptr, "Failed to create SCTP server");
   }
 
-  // TODO: temporary solution for UT, stop should be exposed and called from the app controller.
-  ~f1c_sctp_server() override { sctp_server->stop(); }
+  void stop() override { sctp_server->stop(); }
 
   void attach_cu_cp(ocucp::cu_cp_f1c_handler& cu_f1c_handler_) override
   {

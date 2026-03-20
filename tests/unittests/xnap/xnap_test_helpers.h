@@ -45,6 +45,8 @@ public:
 
   void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) override { logger.info("CU-CP attached to XN-C gateway"); }
 
+  void stop() override {}
+
   std::optional<uint16_t> get_listen_port() const override { return std::nullopt; }
 
   xnap_message get_last_tx_message() const { return last_tx_msg; }

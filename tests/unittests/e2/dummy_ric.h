@@ -47,6 +47,9 @@ public:
   /// Attach a RIC handler to the E2 connection server.
   virtual void attach_ric(ric_e2_handler& ric_) = 0;
 
+  /// Stop the E2 connection server.
+  virtual void stop() = 0;
+
   /// Get port on which the E2 Server is listening for new connections.
   ///
   /// This method is useful in testing, where we don't want to use a specific port.

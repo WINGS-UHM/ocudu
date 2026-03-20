@@ -56,13 +56,7 @@ public:
     ocudulog::basic_logger&       logger = ocudulog::fetch_basic_logger("TEST");
   };
 
-  // TODO: temporary solution for UT, stop should be exposed and called from the app controller.
-  ~f1c_link()
-  {
-    cu_cp_tx_pdu_notifier.reset();
-    du_tx_pdu_notifier.reset();
-    connector.reset();
-  }
+  ~f1c_link() { connector->stop(); }
 
   f1c_link(bool use_sctp, bool pcap_enabled)
   {

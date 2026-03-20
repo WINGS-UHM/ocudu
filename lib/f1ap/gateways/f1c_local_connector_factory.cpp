@@ -54,6 +54,8 @@ public:
 
   void attach_cu_cp(ocucp::cu_cp_f1c_handler& cu_cp_du_mng_) override { cu_cp_du_mng = &cu_cp_du_mng_; }
 
+  void stop() override {}
+
   std::optional<uint16_t> get_listen_port() const override { return std::nullopt; }
 
   std::unique_ptr<f1ap_message_notifier>
@@ -106,6 +108,8 @@ public:
     server         = create_f1c_gateway_server(
         f1c_cu_sctp_gateway_config{sctp, broker, cfg.io_rx_executor, cfg.ctrl_exec, pcap_writer});
   }
+
+  void stop() override { server->stop(); }
 
   void attach_cu_cp(ocucp::cu_cp_f1c_handler& cu_f1c_handler_) override
   {

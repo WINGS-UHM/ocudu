@@ -6,6 +6,7 @@
 #include "log_helpers.h"
 #include "ngap_asn1_helpers.h"
 #include "ngap_asn1_utils.h"
+#include "ngap_asn1_validators.h"
 #include "ngap_error_indication_helper.h"
 #include "procedures/ng_reset_procedure.h"
 #include "procedures/ng_setup_procedure.h"
@@ -848,8 +849,10 @@ void ngap_impl::handle_paging(const asn1::ngap::paging_s& msg)
   // Notify metrics handler about received paging request.
   metrics_handler.aggregate_cn_initiated_paging_request();
 
-  if (msg->ue_paging_id.type() != asn1::ngap::ue_paging_id_c::types::five_g_s_tmsi) {
-    logger.warning("Dropping PDU. Unsupported UE Paging ID");
+  // Validate Paging message.
+  auto msgerr = validate_paging(msg);
+  if (not msgerr.has_value()) {
+    logger.warning("Dropping invalid Paging message. Cause: {}", msgerr.error());
     send_error_indication(tx_pdu_notifier, logger);
     return;
   }

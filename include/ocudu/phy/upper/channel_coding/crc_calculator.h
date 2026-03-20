@@ -9,33 +9,47 @@
 
 namespace ocudu {
 
-/// CRC cyclic generator polynomials identifiers.
-enum class crc_generator_poly : uint8_t {
-  CRC24A = 0,
-  CRC24B,
-  CRC24C,
-  CRC16,
-  CRC11,
-  CRC6,
-  // etc...
+/// \brief Cyclic Redundancy Check (CRC) calculator polynomials enumeration.
+///
+/// The CRC polynomials for 5G NR are given in TS38.212 Section 5.1.
+/// The hexadecimal value associated with each label expands to the generator polynomial, with the MSB being the
+/// highest-degree coefficient, e.g. `0x61` \f$\longrightarrow D^6 + D^5 + 1\f$.
+enum class crc_generator_poly : uint32_t {
+  CRC24A = 0x1864cfb,
+  CRC24B = 0x1800063,
+  CRC24C = 0x1b2b117,
+  CRC16  = 0x11021,
+  CRC11  = 0xe21,
+  CRC6   = 0x61
 };
 
-/// Returns the CRC size from its identifier.
-constexpr unsigned get_crc_size(crc_generator_poly poly)
+/// Creates a CRC polynomial that is not defined by the 5G NR specification.
+constexpr crc_generator_poly crc_polynomial_from_uint(uint32_t polynomial)
 {
-  switch (poly) {
-    case crc_generator_poly::CRC24A:
-    case crc_generator_poly::CRC24B:
-    case crc_generator_poly::CRC24C:
-      return 24;
-    case crc_generator_poly::CRC16:
-      return 16;
-    case crc_generator_poly::CRC11:
-      return 11;
-    case crc_generator_poly::CRC6:
-    default:
-      return 6;
+  return static_cast<crc_generator_poly>(polynomial);
+}
+
+/// Converts the CRC generator polynomial type enumeration to a 32-bit unsigned integer.
+constexpr uint32_t to_uint(crc_generator_poly polynomial)
+{
+  return static_cast<uint32_t>(polynomial);
+}
+
+/// \brief Returns the CRC size in bits from a polynomial.
+///
+/// The CRC size is derived from the polynomial order.
+inline unsigned get_crc_size(crc_generator_poly poly)
+{
+  uint32_t polynomial = to_uint(poly);
+#if defined(__GNUC__) || defined(__clang__)
+  return 31 - __builtin_clz(polynomial);
+#else  // defined(__GNUC__) || defined(__clang__)
+  unsigned int pos = 0;
+  while (polynomial >>= 1) {
+    ++pos;
   }
+  return pos;
+#endif // defined(__GNUC__) || defined(__clang__)
 }
 
 /// Checksum type.

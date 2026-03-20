@@ -2,230 +2,216 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "ocudu/adt/to_array.h"
 #include "ocudu/phy/upper/channel_coding/channel_coding_factories.h"
+#include "ocudu/support/cpu_features.h"
 #include "ocudu/support/ocudu_test.h"
+#include "fmt/ostream.h"
 #include <getopt.h>
+#include <gtest/gtest.h>
 #include <random>
-
-static std::mt19937 rgen(0);
 
 using namespace ocudu;
 
-crc_calculator_checksum_t crc_generic_calculator_byte(span<const uint8_t> data, unsigned poly, unsigned order)
+namespace {
+
+struct test_parameters {
+  std::string        factory_type;
+  crc_generator_poly polynomial;
+  units::bytes       nbytes;
+};
+
+std::ostream& operator<<(std::ostream& os, const test_parameters& params)
 {
-  uint64_t highbit   = 1U << order;
-  uint64_t remainder = 0;
+  fmt::print(os,
+             "type={} poly=0x{:x} order={} nbytes={}",
+             params.factory_type,
+             to_uint(params.polynomial),
+             get_crc_size(params.polynomial),
+             params.nbytes);
+  return os;
+}
 
-  for (uint8_t v : data) {
-    for (unsigned bit_idx = 0; bit_idx != 8; ++bit_idx) {
-      uint64_t bit = (static_cast<uint64_t>(v) >> (7UL - bit_idx)) & 1UL;
+class CRCCalculatorFixture : public ::testing::TestWithParam<test_parameters>
+{
+protected:
+  void SetUp() override
+  {
+    const test_parameters& params = GetParam();
 
+    std::shared_ptr<crc_calculator_factory> factory = create_crc_calculator_factory_sw(params.factory_type);
+    ASSERT_NE(factory, nullptr) << "Failed to create factory";
+
+    crc_calc = factory->create(params.polynomial);
+    ASSERT_NE(factory, nullptr) << "Failed to create CRC calculator.";
+  }
+
+  /// Generic CRC calculation for unpacked bits (one bit per byte).
+  static crc_calculator_checksum_t crc_generic_calculator_bit(const span<uint8_t>& data, crc_generator_poly polynomial)
+  {
+    unsigned poly  = to_uint(polynomial);
+    unsigned order = get_crc_size(polynomial);
+
+    uint64_t highbit   = 1U << order;
+    uint64_t remainder = 0;
+
+    for (uint8_t bit : data) {
       remainder = (remainder << 1U) | bit;
 
       if ((remainder & highbit) != 0) {
         remainder ^= poly;
       }
     }
-  }
 
-  for (unsigned bit_idx = 0; bit_idx != order; ++bit_idx) {
-    remainder = (remainder << 1U);
+    for (unsigned bit_idx = 0; bit_idx != order; ++bit_idx) {
+      remainder = (remainder << 1U);
 
-    if ((remainder & highbit) != 0) {
-      remainder ^= poly;
+      if ((remainder & highbit) != 0) {
+        remainder ^= poly;
+      }
     }
+
+    return static_cast<crc_calculator_checksum_t>(remainder & (highbit - 1));
   }
 
-  return static_cast<crc_calculator_checksum_t>(remainder & (highbit - 1));
-}
+  /// Generic CRC calculation for packed bits (eight bits per byte).
+  static crc_calculator_checksum_t crc_generic_calculator_byte(span<const uint8_t> data, crc_generator_poly polynomial)
+  {
+    unsigned poly  = to_uint(polynomial);
+    unsigned order = get_crc_size(polynomial);
 
-crc_calculator_checksum_t crc_generic_calculator_bit(const ocudu::span<uint8_t>& data, unsigned poly, unsigned order)
+    uint64_t highbit   = 1U << order;
+    uint64_t remainder = 0;
+
+    for (uint8_t v : data) {
+      for (unsigned bit_idx = 0; bit_idx != 8; ++bit_idx) {
+        uint64_t bit = (static_cast<uint64_t>(v) >> (7UL - bit_idx)) & 1UL;
+
+        remainder = (remainder << 1U) | bit;
+
+        if ((remainder & highbit) != 0) {
+          remainder ^= poly;
+        }
+      }
+    }
+
+    for (unsigned bit_idx = 0; bit_idx != order; ++bit_idx) {
+      remainder = (remainder << 1U);
+
+      if ((remainder & highbit) != 0) {
+        remainder ^= poly;
+      }
+    }
+
+    return static_cast<crc_calculator_checksum_t>(remainder & (highbit - 1));
+  }
+
+  /// Generic CRC calculation for packed bits using a reference to a bit buffer.
+  static crc_calculator_checksum_t crc_generic_calculator(const bit_buffer& data, crc_generator_poly polynomial)
+  {
+    return crc_generic_calculator_byte(data.get_buffer(), polynomial);
+  }
+
+  std::unique_ptr<crc_calculator> crc_calc;
+  static std::mt19937             rgen;
+};
+
+std::mt19937 CRCCalculatorFixture::rgen;
+
+} // namespace
+
+TEST_P(CRCCalculatorFixture, TestCRCBit)
 {
-  uint64_t highbit   = 1U << order;
-  uint64_t remainder = 0;
-
-  for (uint8_t bit : data) {
-    remainder = (remainder << 1U) | bit;
-
-    if ((remainder & highbit) != 0) {
-      remainder ^= poly;
-    }
-  }
-
-  for (unsigned bit_idx = 0; bit_idx != order; ++bit_idx) {
-    remainder = (remainder << 1U);
-
-    if ((remainder & highbit) != 0) {
-      remainder ^= poly;
-    }
-  }
-
-  return static_cast<crc_calculator_checksum_t>(remainder & (highbit - 1));
-}
-
-crc_calculator_checksum_t crc_generic_calculator(const bit_buffer& data, unsigned poly, unsigned order)
-{
-  uint64_t highbit   = 1U << order;
-  uint64_t remainder = 0;
-
-  for (unsigned i_bit = 0, i_bit_end = data.size(); i_bit != i_bit_end; ++i_bit) {
-    remainder = (remainder << 1U) | data.extract<uint64_t>(i_bit, 1);
-
-    if ((remainder & highbit) != 0) {
-      remainder ^= poly;
-    }
-  }
-
-  for (unsigned bit_idx = 0; bit_idx != order; ++bit_idx) {
-    remainder = (remainder << 1U);
-
-    if ((remainder & highbit) != 0) {
-      remainder ^= poly;
-    }
-  }
-
-  return static_cast<crc_calculator_checksum_t>(remainder & (highbit - 1));
-}
-
-void test_crc_byte(crc_calculator_factory& factory,
-                   std::size_t             nbytes,
-                   crc_generator_poly      poly,
-                   unsigned                polynom,
-                   unsigned                order)
-{
-  std::uniform_int_distribution<uint8_t> dist(0, UINT8_MAX);
+  const test_parameters& params = GetParam();
 
   // Create data buffer.
-  std::vector<uint8_t> data(nbytes);
-
-  // Fill buffer with random data.
-  for (uint8_t& v : data) {
-    v = static_cast<uint8_t>(dist(rgen) & 0xff);
-  }
-
-  std::unique_ptr<crc_calculator> crc_calculator = factory.create(poly);
-  TESTASSERT(crc_calculator);
+  std::vector<uint8_t> data;
+  data.reserve(params.nbytes.value());
+  std::generate_n(std::back_inserter(data), params.nbytes.value(), []() { return rgen() & 1; });
 
   // Calculate checksum in library.
-  crc_calculator_checksum_t checksum = crc_calculator->calculate_byte(data);
+  crc_calculator_checksum_t checksum = crc_calc->calculate_bit(data);
 
-  // Calculate ideal CRC24A.
-  crc_calculator_checksum_t checksum_gold = crc_generic_calculator_byte(data, polynom, order);
+  // Calculate ideal CRC checksum.
+  crc_calculator_checksum_t checksum_gold = crc_generic_calculator_bit(data, params.polynomial);
 
-  TESTASSERT_EQ(checksum, checksum_gold, "Byte CRC checksum failed {:06X}!={:06X}.", checksum, checksum_gold);
+  ASSERT_EQ(checksum, checksum_gold) << "Packed CRC calculator checksum failed";
 }
 
-void test_crc_bit(crc_calculator_factory& factory,
-                  std::size_t             nbits,
-                  crc_generator_poly      poly,
-                  unsigned                polynom,
-                  unsigned                order)
+TEST_P(CRCCalculatorFixture, TestCRCByte)
 {
-  std::uniform_int_distribution<uint8_t> dist(0, 1);
+  const test_parameters& params = GetParam();
 
   // Create data buffer.
-  std::vector<uint8_t> data(nbits);
-
-  // Fill buffer with random data.
-  for (uint8_t& v : data) {
-    v = dist(rgen);
-  }
-
-  std::unique_ptr<crc_calculator> crc_calculator = factory.create(poly);
-  TESTASSERT(crc_calculator);
+  std::vector<uint8_t> data;
+  data.reserve(params.nbytes.value());
+  std::generate_n(std::back_inserter(data), params.nbytes.value(), std::ref(rgen));
 
   // Calculate checksum in library.
-  crc_calculator_checksum_t checksum = crc_calculator->calculate_bit(data);
+  crc_calculator_checksum_t checksum = crc_calc->calculate_byte(data);
 
-  // Calculate ideal CRC24A.
-  crc_calculator_checksum_t checksum_gold = crc_generic_calculator_bit(data, polynom, order);
+  // Calculate ideal CRC checksum.
+  crc_calculator_checksum_t checksum_gold = crc_generic_calculator_byte(data, params.polynomial);
 
-  TESTASSERT_EQ(checksum, checksum_gold, "Bit CRC checksum failed.");
+  ASSERT_EQ(checksum, checksum_gold) << "Unpacked CRC calculator checksum failed";
 }
 
-void test_crc_bit_buffer(crc_calculator_factory& factory,
-                         std::size_t             nbits,
-                         crc_generator_poly      poly,
-                         unsigned                polynom,
-                         unsigned                order)
+TEST_P(CRCCalculatorFixture, TestCRCBitBuffer)
 {
+  const test_parameters& params = GetParam();
+
   // Create data buffer.
-  dynamic_bit_buffer data(nbits);
-
-  // Fill buffer with random data.
-  for (unsigned i_byte = 0, i_byte_end = nbits / 8; i_byte != i_byte_end; ++i_byte) {
-    data.set_byte(rgen() & mask_lsb_ones<unsigned>(8), i_byte);
-  }
-  if (nbits % 8 != 0) {
-    data.insert((rgen() & mask_lsb_ones<unsigned>(nbits % 8)), 8 * (nbits / 8), nbits % 8);
-  }
-
-  std::unique_ptr<crc_calculator> crc_calculator = factory.create(poly);
-  TESTASSERT(crc_calculator);
+  dynamic_bit_buffer data(params.nbytes.to_bits().value());
+  std::generate(data.get_buffer().begin(), data.get_buffer().end(), std::ref(rgen));
 
   // Calculate checksum in library.
-  crc_calculator_checksum_t checksum = crc_calculator->calculate(data);
+  crc_calculator_checksum_t checksum = crc_calc->calculate(data);
 
-  // Calculate ideal CRC24A.
-  crc_calculator_checksum_t checksum_gold = crc_generic_calculator(data, polynom, order);
+  // Calculate ideal CRC checksum.
+  crc_calculator_checksum_t checksum_gold = crc_generic_calculator(data, params.polynomial);
 
-  TESTASSERT_EQ(checksum, checksum_gold, "Bit buffer CRC checksum failed {:06X}!={:06X}.", checksum, checksum_gold);
+  ASSERT_EQ(checksum, checksum_gold) << "Bitbuffer CRC calculator checksum failed";
 }
 
-static std::string preferred_type = "auto";
-
-static void usage(const char* prog)
+static std::vector<test_parameters> generate_cases()
 {
-  fmt::print("Usage: {} [-F preferred algo] [-R repetitions]\n", prog);
-  fmt::print("\t-F Select CRC calculator preferred algorithm [Default {}]\n", preferred_type);
-  fmt::print("\t-h Show this message\n");
-}
+  using namespace units::literals;
 
-static void parse_args(int argc, char** argv)
-{
-  int opt = 0;
-  while ((opt = getopt(argc, argv, "F:R:sh")) != -1) {
-    switch (opt) {
-      case 'F':
-        preferred_type = std::string(optarg);
-        break;
-      case 'h':
-      default:
-        usage(argv[0]);
-        std::exit(0);
+  std::vector<test_parameters> out;
+
+  // Types of CRC calculators.
+  for (std::string factory_type : {"generic", "lut", "clmul", "neon"}) {
+    // Skip factory types that are not supported by the CPU.
+#ifdef __x86_64__
+    if ((factory_type == "neon") || ((factory_type == "clmul") && !cpu_supports_feature(cpu_feature::pclmul))) {
+      continue;
+    }
+#elif defined(__aarch64__)
+    if ((factory_type == "clmul") || ((factory_type == "neon") && !cpu_supports_feature(cpu_feature::pmull))) {
+      continue;
+    }
+#endif
+
+    // 5G NR CRC polynomials and some arbitrary polynomials for verifying non 5G NR standard polynomial sizes.
+    for (crc_generator_poly polynomial : {crc_generator_poly::CRC24A,
+                                          crc_generator_poly::CRC24B,
+                                          crc_generator_poly::CRC24C,
+                                          crc_generator_poly::CRC16,
+                                          crc_generator_poly::CRC11,
+                                          crc_generator_poly::CRC6,
+                                          crc_polynomial_from_uint(0x1fff),
+                                          crc_polynomial_from_uint(0x1ff),
+                                          crc_polynomial_from_uint(0xf)}) {
+      // Message length in bytes. Selected arbitrary values that execute all execution branches in the different
+      // implementations that have SIMD.
+      for (units::bytes nbytes : {1_bytes, 8_bytes, 16_bytes, 32_bytes, 257_bytes, 997_bytes, 6012_bytes}) {
+        out.emplace_back(test_parameters{.factory_type = factory_type, .polynomial = polynomial, .nbytes = nbytes});
+      }
     }
   }
+  return out;
 }
 
-int main(int argc, char** argv)
-{
-  parse_args(argc, argv);
+static std::vector<test_parameters> all_tests = generate_cases();
 
-  std::shared_ptr<crc_calculator_factory> factory = create_crc_calculator_factory_sw(preferred_type);
-  TESTASSERT(factory);
-
-  std::vector<std::size_t> sizes = {8, 16, 32, 257, 997, 6012};
-
-  for (std::size_t N : sizes) {
-    test_crc_byte(*factory, N, crc_generator_poly::CRC24A, 0x1864cfb, 24);
-    test_crc_byte(*factory, N, crc_generator_poly::CRC24B, 0X1800063, 24);
-    test_crc_byte(*factory, N, crc_generator_poly::CRC24C, 0X1B2B117, 24);
-    test_crc_byte(*factory, N, crc_generator_poly::CRC16, 0x11021, 16);
-    test_crc_byte(*factory, N, crc_generator_poly::CRC11, 0xe21, 11);
-    test_crc_byte(*factory, N, crc_generator_poly::CRC6, 0x61, 6);
-
-    test_crc_bit(*factory, N, crc_generator_poly::CRC24A, 0x1864cfb, 24);
-    test_crc_bit(*factory, N, crc_generator_poly::CRC24B, 0X1800063, 24);
-    test_crc_bit(*factory, N, crc_generator_poly::CRC24C, 0X1B2B117, 24);
-    test_crc_bit(*factory, N, crc_generator_poly::CRC16, 0x11021, 16);
-    test_crc_bit(*factory, N, crc_generator_poly::CRC11, 0xe21, 11);
-    test_crc_bit(*factory, N, crc_generator_poly::CRC6, 0x61, 6);
-
-    test_crc_bit_buffer(*factory, N, crc_generator_poly::CRC24A, 0x1864cfb, 24);
-    test_crc_bit_buffer(*factory, N, crc_generator_poly::CRC24B, 0X1800063, 24);
-    test_crc_bit_buffer(*factory, N, crc_generator_poly::CRC24C, 0X1B2B117, 24);
-    test_crc_bit_buffer(*factory, N, crc_generator_poly::CRC16, 0x11021, 16);
-    test_crc_bit_buffer(*factory, N, crc_generator_poly::CRC11, 0xe21, 11);
-    test_crc_bit_buffer(*factory, N, crc_generator_poly::CRC6, 0x61, 6);
-  }
-}
+INSTANTIATE_TEST_SUITE_P(CRC, CRCCalculatorFixture, ::testing::ValuesIn(all_tests));

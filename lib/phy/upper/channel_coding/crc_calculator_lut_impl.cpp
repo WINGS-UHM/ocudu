@@ -12,15 +12,8 @@
 
 using namespace ocudu;
 
-const std::map<crc_generator_poly, crc_calculator_lut_impl::crc_table_s> crc_calculator_lut_impl::crc_tables = {
-    {crc_generator_poly::CRC24A, crc_calculator_lut_impl::crc_table_s(0x1864cfb, 24)},
-    {crc_generator_poly::CRC24B, crc_calculator_lut_impl::crc_table_s(0X1800063, 24)},
-    {crc_generator_poly::CRC24C, crc_calculator_lut_impl::crc_table_s(0X1B2B117, 24)},
-    {crc_generator_poly::CRC16, crc_calculator_lut_impl::crc_table_s(0x11021, 16)},
-    {crc_generator_poly::CRC11, crc_calculator_lut_impl::crc_table_s(0xe21, 11)}};
-
 crc_calculator_lut_impl::crc_table_s::crc_table_s(unsigned polynom_, unsigned order_) :
-  order(order_), crcmask(((((uint64_t)1UL << (order - 1UL)) - 1UL) << 1UL) | 1UL), polynom(polynom_)
+  order(order_), crcmask((((1UL << (order - 1UL)) - 1UL) << 1UL) | 1UL), polynom(polynom_)
 {
   unsigned pad        = (order < 8) ? (8 - order) : 0;
   unsigned ord        = order + pad - 8;
@@ -39,8 +32,20 @@ crc_calculator_lut_impl::crc_table_s::crc_table_s(unsigned polynom_, unsigned or
   }
 }
 
+const crc_calculator_lut_impl::crc_table_s& crc_calculator_lut_impl::get_crc_table(crc_generator_poly polynomial)
+{
+  static std::map<crc_generator_poly, crc_table_s> crc_tables;
+
+  // Create a new table if the given polynomial has not been created earlier.
+  if (crc_tables.count(polynomial) == 0) {
+    crc_tables.emplace(polynomial, crc_table_s(to_uint(polynomial), get_crc_size(polynomial)));
+  }
+
+  return crc_tables.at(polynomial);
+}
+
 crc_calculator_lut_impl::crc_calculator_lut_impl(crc_generator_poly poly_) :
-  table(crc_tables.at(poly_)), order(table.order), crcmask(table.crcmask), poly(poly_)
+  table(get_crc_table(poly_)), order(table.order), crcmask(table.crcmask), poly(poly_)
 {
   // Do nothing
 }

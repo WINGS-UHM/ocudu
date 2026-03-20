@@ -49,8 +49,8 @@ public:
 
   std::unique_ptr<crc_calculator> create(crc_generator_poly poly) override
   {
-    // Use generic factory if the order is 6 bits or explicitly set to generic.
-    if ((poly == crc_generator_poly::CRC6) || (type == "generic")) {
+    // Use generic factory if the order is lower than 8 bits or explicitly set to generic.
+    if ((get_crc_size(poly) < 8) || (type == "generic")) {
       return std::make_unique<crc_calculator_generic_impl>(poly);
     }
 

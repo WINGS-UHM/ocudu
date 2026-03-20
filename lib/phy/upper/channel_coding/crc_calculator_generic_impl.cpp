@@ -10,32 +10,8 @@ using namespace ocudu;
 
 crc_calculator_generic_impl::crc_calculator_generic_impl(crc_generator_poly poly_) : poly(poly_)
 {
-  switch (poly) {
-    case crc_generator_poly::CRC24A:
-      order   = 24;
-      polynom = 0x1864cfb;
-      break;
-    case crc_generator_poly::CRC24B:
-      order   = 24;
-      polynom = 0X1800063;
-      break;
-    case crc_generator_poly::CRC24C:
-      order   = 24;
-      polynom = 0X1B2B117;
-      break;
-    case crc_generator_poly::CRC16:
-      order   = 16;
-      polynom = 0x11021;
-      break;
-    case crc_generator_poly::CRC11:
-      order   = 11;
-      polynom = 0xe21;
-      break;
-    case crc_generator_poly::CRC6:
-      order   = 6;
-      polynom = 0x61;
-      break;
-  }
+  order   = get_crc_size(poly);
+  polynom = to_uint(poly);
 }
 
 crc_calculator_checksum_t ocudu::crc_calculator_generic_impl::calculate_byte(span<const uint8_t> input) const

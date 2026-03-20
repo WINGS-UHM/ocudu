@@ -32,8 +32,10 @@ private:
     crc_table_s(unsigned poly, unsigned order_);
   };
 
-  /// Map of CRC tables for the different polynomials.
-  static const std::map<crc_generator_poly, crc_table_s> crc_tables;
+  /// \brief Gets a CRC calculator table.
+  ///
+  /// New tables are generated if no table is found for the given polynomial.
+  static const crc_table_s& get_crc_table(crc_generator_poly);
 
   /// Current CRC table.
   const crc_table_s& table;

@@ -19,7 +19,7 @@ void ocudu::ocucp::generate_valid_f1_setup_request(du_setup_request& setup_reque
                                                    unsigned          tac)
 {
   f1ap_message f1setup_msg = test_helpers::generate_f1_setup_request(gnb_du_id, {{.nci = nci, .pci = pci, .tac = tac}});
-  setup_request            = create_du_setup_request(f1setup_msg.pdu.init_msg().value.f1_setup_request());
+  setup_request            = create_du_setup_request(f1setup_msg.pdu.init_msg().value.f1_setup_request()).value();
 }
 
 void ocudu::ocucp::generate_f1_setup_request_base(du_setup_request& setup_request)
@@ -28,7 +28,7 @@ void ocudu::ocucp::generate_f1_setup_request_base(du_setup_request& setup_reques
       int_to_gnb_du_id(0x11), {{.nci = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value(), .pci = 0, .tac = 7}});
   f1setup_msg.pdu.init_msg().value.f1_setup_request()->gnb_du_served_cells_list_present = false;
   f1setup_msg.pdu.init_msg().value.f1_setup_request()->gnb_du_served_cells_list.clear();
-  setup_request = create_du_setup_request(f1setup_msg.pdu.init_msg().value.f1_setup_request());
+  setup_request = create_du_setup_request(f1setup_msg.pdu.init_msg().value.f1_setup_request()).value();
 }
 
 f1ap_message ocudu::ocucp::create_f1_setup_request_with_too_many_cells(const f1ap_message& base)
@@ -67,7 +67,7 @@ void ocudu::ocucp::generate_f1_setup_request_with_too_many_cells(du_setup_reques
              .tac = 7});
   }
 
-  setup_request = create_du_setup_request(f1setup_msg.pdu.init_msg().value.f1_setup_request());
+  setup_request = create_du_setup_request(f1setup_msg.pdu.init_msg().value.f1_setup_request()).value();
 }
 
 ue_rrc_context_creation_request

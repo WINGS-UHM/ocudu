@@ -11,6 +11,7 @@
 #include "ocudu/f1ap/cu_cp/du_setup_notifier.h"
 #include "ocudu/f1ap/cu_cp/f1ap_du_context.h"
 #include "ocudu/f1ap/f1ap_message.h"
+#include "ocudu/ran/cause/common.h"
 #include "ocudu/ran/cause/f1ap_cause.h"
 
 using namespace ocudu;
@@ -27,69 +28,82 @@ validate_f1_setup_request(const asn1::f1ap::f1_setup_request_s& request)
   if (not request->gnb_du_served_cells_list_present or request->gnb_du_served_cells_list.size() == 0) {
     return make_unexpected(std::make_pair(cause, "DU has no served cells"));
   }
+  for (const auto& asn1_served_cell_item : request->gnb_du_served_cells_list) {
+    expected<nr_cell_global_id_t> cgi_result =
+        cgi_from_asn1(asn1_served_cell_item.value().gnb_du_served_cells_item().served_cell_info.nr_cgi);
+    if (!cgi_result.has_value()) {
+      return make_unexpected(std::make_pair(cause, "Invalid NR CGI"));
+    }
+    if (!asn1_served_cell_item.value().gnb_du_served_cells_item().gnb_du_sys_info_present) {
+      return make_unexpected(std::make_pair(cause, "gNB DU system information must be present for NG-RAN"));
+    }
+  }
 
   return {};
 }
 
-du_setup_request ocudu::ocucp::create_du_setup_request(const asn1::f1ap::f1_setup_request_s& asn1_request)
+std::optional<du_setup_request>
+ocudu::ocucp::create_du_setup_request(const asn1::f1ap::f1_setup_request_s& asn1_request)
 {
   du_setup_request request;
 
   // GNB DU ID
   request.gnb_du_id = static_cast<gnb_du_id_t>(asn1_request->gnb_du_id);
 
-  // GNB DU name
-  if (asn1_request->gnb_du_name_present) {
-    request.gnb_du_name = asn1_request->gnb_du_name.to_string();
+  // Fill GNB DU name.
+  if (!asn1_request->gnb_du_name_present) {
+    return std::nullopt;
   }
+  request.gnb_du_name = asn1_request->gnb_du_name.to_string();
 
-  // GNB DU served cells list
-  if (asn1_request->gnb_du_served_cells_list_present) {
-    for (const auto& asn1_served_cell_item : asn1_request->gnb_du_served_cells_list) {
-      const auto& asn1_served_cell = asn1_served_cell_item.value().gnb_du_served_cells_item();
+  // Fill GNB DU served cells list.
+  if (!asn1_request->gnb_du_served_cells_list_present || asn1_request->gnb_du_served_cells_list.size() == 0) {
+    return std::nullopt;
+  }
+  for (const auto& asn1_served_cell_item : asn1_request->gnb_du_served_cells_list) {
+    const auto& asn1_served_cell = asn1_served_cell_item.value().gnb_du_served_cells_item();
 
-      cu_cp_du_served_cells_item served_cell;
+    cu_cp_du_served_cells_item served_cell;
 
-      // served cell info
-      served_cell.served_cell_info.nr_cgi = cgi_from_asn1(asn1_served_cell.served_cell_info.nr_cgi).value();
-      served_cell.served_cell_info.nr_pci = asn1_served_cell.served_cell_info.nr_pci;
-      if (asn1_served_cell.served_cell_info.five_gs_tac_present) {
-        served_cell.served_cell_info.five_gs_tac = asn1_served_cell.served_cell_info.five_gs_tac.to_number();
-      }
-      for (const auto& asn1_plmn : asn1_served_cell.served_cell_info.served_plmns) {
-        auto result = plmn_identity::from_bytes(asn1_plmn.plmn_id.to_bytes());
-        // Note: If the ASN.1 PLMN ID is not valid, it is not considered in the response back to the DU.
-        if (result.has_value()) {
-          served_cell.served_cell_info.served_plmns.push_back(result.value());
-        }
-      }
-      served_cell.served_cell_info.nr_mode_info =
-          f1ap_asn1_to_nr_mode_info(asn1_served_cell.served_cell_info.nr_mode_info);
-      served_cell.served_cell_info.meas_timing_cfg = asn1_served_cell.served_cell_info.meas_timing_cfg.copy();
-
-      if (asn1_served_cell.served_cell_info.ie_exts_present) {
-        if (asn1_served_cell.served_cell_info.ie_exts.ranac_present) {
-          served_cell.served_cell_info.ranac = asn1_served_cell.served_cell_info.ie_exts.ranac;
-        }
-      }
-
-      // GNB DU sys info
-      if (asn1_served_cell.gnb_du_sys_info_present) {
-        cu_cp_gnb_du_sys_info gnb_du_sys_info;
-
-        // MIB msg
-        gnb_du_sys_info.mib_msg = asn1_served_cell.gnb_du_sys_info.mib_msg.copy();
-
-        // SIB1 msg
-        gnb_du_sys_info.sib1_msg = asn1_served_cell.gnb_du_sys_info.sib1_msg.copy();
-
-        served_cell.gnb_du_sys_info = gnb_du_sys_info;
-      } else {
-        ocudulog::fetch_basic_logger("CU-CP-F1").error("gNB DU system information must be present for NG-RAN.");
-      }
-
-      request.gnb_du_served_cells_list.push_back(served_cell);
+    // Fill served cell info.
+    expected<nr_cell_global_id_t> cgi = cgi_from_asn1(asn1_served_cell.served_cell_info.nr_cgi);
+    if (not cgi.has_value()) {
+      return std::nullopt;
     }
+    served_cell.served_cell_info.nr_cgi = cgi.value();
+    served_cell.served_cell_info.nr_pci = asn1_served_cell.served_cell_info.nr_pci;
+    if (asn1_served_cell.served_cell_info.five_gs_tac_present) {
+      served_cell.served_cell_info.five_gs_tac = asn1_served_cell.served_cell_info.five_gs_tac.to_number();
+    }
+    for (const auto& asn1_plmn : asn1_served_cell.served_cell_info.served_plmns) {
+      auto result = plmn_identity::from_bytes(asn1_plmn.plmn_id.to_bytes());
+      // Note: If the ASN.1 PLMN ID is not valid, it is not considered in the response back to the DU.
+      if (result.has_value()) {
+        served_cell.served_cell_info.served_plmns.push_back(result.value());
+      }
+    }
+    served_cell.served_cell_info.nr_mode_info =
+        f1ap_asn1_to_nr_mode_info(asn1_served_cell.served_cell_info.nr_mode_info);
+    served_cell.served_cell_info.meas_timing_cfg = asn1_served_cell.served_cell_info.meas_timing_cfg.copy();
+
+    if (asn1_served_cell.served_cell_info.ie_exts_present) {
+      if (asn1_served_cell.served_cell_info.ie_exts.ranac_present) {
+        served_cell.served_cell_info.ranac = asn1_served_cell.served_cell_info.ie_exts.ranac;
+      }
+    }
+
+    // Fill GNB DU sys info.
+    if (!asn1_served_cell.gnb_du_sys_info_present) {
+      return std::nullopt;
+    }
+    cu_cp_gnb_du_sys_info gnb_du_sys_info;
+    // Fill MIB msg.
+    gnb_du_sys_info.mib_msg = asn1_served_cell.gnb_du_sys_info.mib_msg.copy();
+    // Fill SIB1 msg.
+    gnb_du_sys_info.sib1_msg    = asn1_served_cell.gnb_du_sys_info.sib1_msg.copy();
+    served_cell.gnb_du_sys_info = gnb_du_sys_info;
+
+    request.gnb_du_served_cells_list.push_back(served_cell);
   }
 
   // GNB DU RRC version
@@ -172,8 +186,13 @@ void ocudu::ocucp::handle_f1_setup_procedure(const asn1::f1ap::f1_setup_request_
   du_ctxt.gnb_du_rrc_version = request->gnb_du_rrc_version.latest_rrc_version.to_number();
 
   // Request DU setup to CU-CP.
-  du_setup_request du_req          = create_du_setup_request(request);
-  du_setup_result  request_outcome = du_setup_notif.on_new_du_setup_request(du_req);
+  std::optional<du_setup_request> du_req = create_du_setup_request(request);
+  if (!du_req.has_value()) {
+    logger.warning("Rejecting F1 Setup Request. Cause: Failed to create DU setup request");
+    pdu_notifier.on_new_message(create_f1_setup_reject(request, cause_to_asn1(cause_protocol_t::unspecified)));
+    return;
+  }
+  du_setup_result request_outcome = du_setup_notif.on_new_du_setup_request(du_req.value());
 
   // Handle Result.
   f1ap_message f1ap_msg;

@@ -15,8 +15,8 @@ struct f1ap_du_context;
 
 /// \brief Convert the F1 Setup Request from ASN.1 to a request to be sent to the CU-CP.
 /// \param[in] asn1_request The ASN.1 type F1 Setup Request.
-/// \return Request to setup DU.
-du_setup_request create_du_setup_request(const asn1::f1ap::f1_setup_request_s& asn1_request);
+/// \return Request to setup DU if the ASN.1 request is valid, std::nullopt otherwise.
+std::optional<du_setup_request> create_du_setup_request(const asn1::f1ap::f1_setup_request_s& asn1_request);
 
 /// \brief Handle the F1 Setup Request from the DU as per TS 38.473 section 8.2.
 ///

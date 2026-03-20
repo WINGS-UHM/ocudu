@@ -3,6 +3,8 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_test_helpers.h"
+#include "ocudu/asn1/ngap/ngap_ies.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/ngap/ngap_setup.h"
 #include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
@@ -60,7 +62,35 @@ TEST_F(ngap_test, when_ng_setup_response_received_then_amf_connected)
   ASSERT_EQ(std::get<ngap_ng_setup_response>(t.get()).amf_name, "open5gs-amf0");
 }
 
-/// Test unsuccessful ng setup procedure with time to wait and successful retry
+/// Test unsuccessful NG setup procedure.
+TEST_F(ngap_test, when_invalid_ng_setup_response_received_then_amf_not_connected)
+{
+  // Action 1: Launch NG setup procedure.
+  test_logger.info("Launch NG setup request procedure...");
+  async_task<ngap_ng_setup_result>         t = ngap->handle_ng_setup_request(1);
+  lazy_task_launcher<ngap_ng_setup_result> t_launcher(t);
+
+  // Status: AMF received NG Setup Request.
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.type().value, asn1::ngap::ngap_pdu_c::types_opts::init_msg);
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.type().value,
+            asn1::ngap::ngap_elem_procs_o::init_msg_c::types_opts::ng_setup_request);
+
+  // Status: Procedure not yet ready.
+  ASSERT_FALSE(t.ready());
+
+  // Action 2: NG setup response received.
+  ngap_message ng_setup_response = generate_ng_setup_response();
+  // Set invalid GUAMI in the NG Setup Response to trigger validation failure.
+  ng_setup_response.pdu.successful_outcome().value.ng_setup_resp()->served_guami_list[0].guami.plmn_id.from_string(
+      "ffffff");
+  test_logger.info("Injecting NGSetupResponse");
+  ngap->handle_message(ng_setup_response);
+
+  ASSERT_TRUE(t.ready());
+  ASSERT_TRUE(std::holds_alternative<ngap_ng_setup_failure>(t.get()));
+}
+
+/// Test unsuccessful NG setup procedure with time to wait and successful retry.
 TEST_F(ngap_test, when_ng_setup_failure_with_time_to_wait_received_then_retry_with_success)
 {
   // Action 1: Launch NG setup procedure

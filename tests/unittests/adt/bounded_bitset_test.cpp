@@ -1143,6 +1143,33 @@ TEST(bounded_bitset_test, to_packed_bits_two_byte)
   ASSERT_TRUE(std::equal(expected_packed_bits2.begin(), expected_packed_bits2.end(), packed_bits2.begin()));
 }
 
+TEST(bounded_bitset_test, to_packed_bits_one_word)
+{
+  bounded_bitset<80>       bitset(64);
+  bounded_bitset<80, true> bitset_rev(64);
+  bitset.set(0);
+  bitset.set(1);
+  bitset.set(9);
+  bitset.set(31);
+  bitset.set(48);
+  bitset_rev.set(0);
+  bitset_rev.set(1);
+  bitset_rev.set(9);
+  bitset_rev.set(31);
+  bitset_rev.set(48);
+
+  std::array<uint8_t, 8> packed_bits = {}, packed_bits2 = {};
+  ASSERT_EQ(bitset.to_packed_bits(span<uint8_t>{packed_bits}), 8);
+  std::array<uint8_t, 8> expected_packed_bits = {
+      0b00000011, 0b00000010, 0b00000000, 0b10000000, 0b00000000, 0b00000000, 0b00000001, 0b00000000};
+  ASSERT_TRUE(std::equal(expected_packed_bits.begin(), expected_packed_bits.end(), packed_bits.begin()));
+
+  ASSERT_EQ(bitset_rev.to_packed_bits(span<uint8_t>{packed_bits2}), 8);
+  std::array<uint8_t, 8> expected_packed_bits2 = {
+      0b11000000, 0b01000000, 0b00000000, 0b00000001, 0b00000000, 0b00000000, 0b10000000, 0b00000000};
+  ASSERT_TRUE(std::equal(expected_packed_bits2.begin(), expected_packed_bits2.end(), packed_bits2.begin()));
+}
+
 TEST(bounded_bitset_test, bit_positions_to_bitset)
 {
   std::vector<unsigned> positions = {1, 2, 5};

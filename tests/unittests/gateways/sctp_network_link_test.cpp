@@ -182,7 +182,13 @@ class sctp_network_link_test : public base_sctp_network_link_test, public ::test
 {
 public:
   sctp_network_link_test() : base_sctp_network_link_test(GetParam().nof_clients) {}
-  ~sctp_network_link_test() override { ocudulog::flush(); }
+  ~sctp_network_link_test() override
+  {
+    if (server) {
+      server->stop();
+    }
+    ocudulog::flush();
+  }
 };
 
 static byte_buffer create_data(unsigned start_val, unsigned nof_vals)

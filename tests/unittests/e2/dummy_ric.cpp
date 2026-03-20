@@ -96,6 +96,9 @@ public:
         sctp_network_server_config{params.sctp, params.broker, params.io_rx_executor, params.ctrl_exec, *this});
   }
 
+  // TODO: temporary solution for UT, stop should be exposed and called from the app controller.
+  ~ric_sctp_server() override { sctp_server->stop(); }
+
   void attach_ric(ric_e2_handler& ric_) override
   {
     ric_e2_con_handler = &ric_;

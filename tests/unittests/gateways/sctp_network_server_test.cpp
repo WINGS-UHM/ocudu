@@ -80,6 +80,13 @@ protected:
     server_cfg.sctp.bind_port      = 0;
   }
 
+  ~sctp_network_server_test() override
+  {
+    if (server) {
+      server->stop();
+    }
+  }
+
   bool connect_client(bool broker_trigger_required = true)
   {
     if (not client.connect(
@@ -178,6 +185,7 @@ TEST_F(sctp_network_server_test, when_server_is_shutdown_then_fd_is_deregistered
 
   int fd = server->get_socket_fd();
   ASSERT_EQ(broker.last_unregistered_fd, -1);
+  server->stop();
   server.reset();
   ASSERT_EQ(broker.last_registered_fd.value(), fd);
 }

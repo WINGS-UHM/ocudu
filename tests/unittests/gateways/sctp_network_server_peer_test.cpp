@@ -33,7 +33,19 @@ protected:
     server_cfg3.sctp.bind_port      = 0;
   }
 
-  ~sctp_network_server_peer_test() override { ocudulog::flush(); }
+  ~sctp_network_server_peer_test() override
+  {
+    if (server1) {
+      server1->stop();
+    }
+    if (server2) {
+      server2->stop();
+    }
+    if (server3) {
+      server3->stop();
+    }
+    ocudulog::flush();
+  }
 
   sctp_network_server_config server_cfg1{{}, broker1, io_rx_executor, app_executor, assoc_factory1};
   sctp_network_server_config server_cfg2{{}, broker2, io_rx_executor, app_executor, assoc_factory2};
@@ -142,9 +154,4 @@ TEST_F(sctp_network_server_peer_test, when_association_requested_association_ini
   ASSERT_EQ(2, assoc_factory1.association_count());
   ASSERT_EQ(2, assoc_factory2.association_count());
   ASSERT_EQ(2, assoc_factory3.association_count());
-
-  /// Close servers
-  server1.reset();
-  server2.reset();
-  server3.reset();
 }

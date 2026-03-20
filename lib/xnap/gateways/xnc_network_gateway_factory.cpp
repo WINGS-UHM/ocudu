@@ -156,6 +156,9 @@ public:
     report_error_if_not(sctp_server != nullptr, "Failed to create SCTP server");
   }
 
+  // TODO: temporary solution for UT, stop should be exposed and called from the app controller.
+  ~xnc_sctp_server() override { sctp_server->stop(); }
+
   std::unique_ptr<xnap_message_notifier> get_init_tx_notifier(transport_layer_address peer_addr) override
   {
     return std::make_unique<no_assoc_xnc_to_gw_pdu_notifier>(peer_addr, *sctp_server, params.pcap, logger);

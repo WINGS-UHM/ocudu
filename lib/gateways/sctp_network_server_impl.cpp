@@ -3,7 +3,7 @@
 
 #include "sctp_network_server_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include "ocudu/support/io/sockets.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <netinet/sctp.h>
 
 using namespace ocudu;
@@ -130,17 +130,31 @@ sctp_network_server_impl::sctp_network_server_impl(const ocudu::sctp_network_gat
   broker(broker_),
   io_rx_executor(io_rx_executor_),
   app_exec(app_exec_),
-  assoc_factory(assoc_factory_)
+  assoc_factory(assoc_factory_),
+  keepalive_token(std::make_shared<bool>(true))
 {
 }
 
 sctp_network_server_impl::~sctp_network_server_impl()
 {
-  // Stop handling new SCTP events.
-  io_sub.reset();
+  if (*keepalive_token) {
+    logger.error("stop() must be called before destroying the SCTP server");
+    report_error("stop() must be called before destroying the SCTP server");
+  }
+}
 
-  // Once the IO unsubscription completes, it is safe to remove associations.
-  handle_socket_shutdown(nullptr);
+void sctp_network_server_impl::stop()
+{
+  sync_event ev;
+  while (not app_exec.defer([this, keepalive = keepalive_token, token = ev.get_token()]() {
+    if (*keepalive) {
+      *keepalive = false;
+      handle_socket_shutdown(nullptr);
+    }
+  })) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  ev.wait();
 }
 
 bool sctp_network_server_impl::create_and_bind()
@@ -170,7 +184,12 @@ void sctp_network_server_impl::receive()
   if (rx_bytes == -1) {
     if (errno != EAGAIN) {
       logger.error("Error reading from SCTP socket: {}", ::strerror(errno));
-      while (not app_exec.defer([this]() { handle_socket_shutdown(nullptr); })) {
+      while (not app_exec.defer([this, keepalive = keepalive_token]() {
+        if (*keepalive) {
+          *keepalive = false;
+          handle_socket_shutdown(nullptr);
+        }
+      })) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
       }
     } else {
@@ -183,7 +202,16 @@ void sctp_network_server_impl::receive()
 
   // Defer all processing after sctp_recvmsg to app_exec.
   auto payload = std::vector<uint8_t>(temp_recv_buffer.begin(), temp_recv_buffer.begin() + rx_bytes);
-  while (not app_exec.defer([this, payload = std::move(payload), msg_flags, sri, msg_src_addr, msg_src_addrlen]() {
+  while (not app_exec.defer([this,
+                             keepalive = keepalive_token,
+                             payload   = std::move(payload),
+                             msg_flags,
+                             sri,
+                             msg_src_addr,
+                             msg_src_addrlen]() {
+    if (!*keepalive) {
+      return;
+    }
     if (msg_flags & MSG_NOTIFICATION) {
       handle_notification(payload, sri, reinterpret_cast<const sockaddr&>(msg_src_addr), msg_src_addrlen);
     } else {
@@ -462,7 +490,12 @@ bool sctp_network_server_impl::subscribe_to_broker()
       [this]() { receive(); },
       [this](io_broker::error_code code) {
         logger.info("Connection loss due to IO error code={}.", (int)code);
-        while (not app_exec.defer([this]() { handle_socket_shutdown(nullptr); })) {
+        while (not app_exec.defer([this, keepalive = keepalive_token]() {
+          if (*keepalive) {
+            *keepalive = false;
+            handle_socket_shutdown(nullptr);
+          }
+        })) {
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
       });
@@ -498,6 +531,7 @@ std::unique_ptr<sctp_network_server> sctp_network_server_impl::create(const sctp
 
   // Create a socket and bind it to the provided address.
   if (not server->create_and_bind()) {
+    server->stop();
     return nullptr;
   }
 

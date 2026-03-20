@@ -31,6 +31,9 @@ class sctp_network_server : public sctp_network_gateway_info
 public:
   virtual ~sctp_network_server() = default;
 
+  /// \brief Stop the server, cancelling any pending deferred tasks and cleaning up associations.
+  virtual void stop() = 0;
+
   /// \brief Start listening for new SCTP associations.
   virtual bool listen() = 0;
 

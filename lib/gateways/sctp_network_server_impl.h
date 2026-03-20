@@ -29,6 +29,8 @@ class sctp_network_server_impl : public sctp_network_server, public sctp_network
 public:
   ~sctp_network_server_impl() override;
 
+  void stop() override;
+
   static std::unique_ptr<sctp_network_server> create(const sctp_network_gateway_config& sctp_cfg,
                                                      io_broker&                         broker,
                                                      task_executor&                     io_rx_executor,
@@ -87,6 +89,9 @@ private:
   task_executor&                    io_rx_executor;
   task_executor&                    app_exec;
   sctp_network_association_factory& assoc_factory;
+
+  /// Keep-alive token used to cancel deferred tasks on shutdown. Only accessed from app_exec.
+  std::shared_ptr<bool> keepalive_token;
 
   association_map                                       associations;
   std::map<transport_layer_address, manual_event<bool>> pending_connects;

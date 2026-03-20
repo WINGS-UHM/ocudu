@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_test_helpers.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include <gtest/gtest.h>
 
@@ -220,10 +221,46 @@ TEST_F(ngap_paging_test, when_valid_paging_message_with_optional_values_received
 }
 
 /// Test handling of invalid paging message.
-TEST_F(ngap_paging_test, when_invalid_paging_message_received_message_is_not_forwarded_and_error_indication_is_sent)
+TEST_F(ngap_paging_test,
+       when_paging_message_with_invalid_ue_paging_id_received_message_is_not_forwarded_and_error_indication_is_sent)
 {
   // Inject paging message.
   ngap_message paging_msg = generate_invalid_paging_message();
+  ngap->handle_message(paging_msg);
+
+  // Check that Error Indication has been sent to AMF.
+  ASSERT_TRUE(was_error_indication_sent());
+}
+
+/// Test handling of invalid paging message.
+TEST_F(ngap_paging_test,
+       when_paging_message_with_invalid_tai_list_received_message_is_not_forwarded_and_error_indication_is_sent)
+{
+  // Inject paging message.
+  ngap_message paging_msg = generate_valid_paging_message();
+  // Set invalid PLMN in TAI list for paging.
+  paging_msg.pdu.init_msg().value.paging()->tai_list_for_paging[0].tai.plmn_id.from_string("ffffff");
+
+  ngap->handle_message(paging_msg);
+
+  // Check that Error Indication has been sent to AMF.
+  ASSERT_TRUE(was_error_indication_sent());
+}
+
+/// Test handling of invalid paging message.
+TEST_F(
+    ngap_paging_test,
+    when_paging_message_with_invalid_recommended_cell_list_received_message_is_not_forwarded_and_error_indication_is_sent)
+{
+  // Inject paging message.
+  ngap_message paging_msg = generate_valid_paging_message();
+  // Set invalid PLMN in TAI list for paging.
+  paging_msg.pdu.init_msg()
+      .value.paging()
+      ->assist_data_for_paging.assist_data_for_recommended_cells.recommended_cells_for_paging.recommended_cell_list[0]
+      .ngran_cgi.nr_cgi()
+      .plmn_id.from_string("ffffff");
+
   ngap->handle_message(paging_msg);
 
   // Check that Error Indication has been sent to AMF.

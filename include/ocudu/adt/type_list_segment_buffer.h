@@ -30,9 +30,14 @@ public:
 
   ~type_list_segment_buffer() { destroy_all(); }
 
-  // Move-only. Use copy() for an explicit shallow copy.
-  type_list_segment_buffer(const type_list_segment_buffer&)            = delete;
-  type_list_segment_buffer& operator=(const type_list_segment_buffer&) = delete;
+  type_list_segment_buffer(const type_list_segment_buffer& other) noexcept : buf(other.buf.copy()) {}
+  type_list_segment_buffer& operator=(const type_list_segment_buffer& other) noexcept
+  {
+    if (this != &other) {
+      buf = other.buf.copy();
+    }
+    return *this;
+  }
 
   type_list_segment_buffer(type_list_segment_buffer&& other) noexcept = default;
 
@@ -43,14 +48,6 @@ public:
       buf = std::move(other.buf);
     }
     return *this;
-  }
-
-  /// Returns a shallow copy that shares the same underlying \c byte_buffer segments.
-  type_list_segment_buffer copy() const
-  {
-    type_list_segment_buffer result;
-    result.buf = buf.copy();
-    return result;
   }
 
   /// Returns the total number of stored elements (O(number of segments)).

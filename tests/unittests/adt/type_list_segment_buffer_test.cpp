@@ -31,7 +31,7 @@ struct counted_seg {
 // Compile-time checks
 // ---------------------------------------------------------------------------
 
-static_assert(!std::is_copy_constructible_v<type_list_segment_buffer<int, float>>);
+static_assert(std::is_copy_constructible_v<type_list_segment_buffer<int, float>>);
 static_assert(std::is_move_constructible_v<type_list_segment_buffer<int, float>>);
 static_assert(std::is_default_constructible_v<type_list_segment_buffer<int, float>>);
 
@@ -150,7 +150,7 @@ TEST(type_list_segment_buffer_test, shallow_copy_shares_elements)
   src.push(3.14f);
 
   // Shallow copy: both see the same elements.
-  type_list_segment_buffer<int, float> c = src.copy();
+  type_list_segment_buffer<int, float> c = src;
   ASSERT_EQ(c.size(), 2u);
 
   // Elements pushed after the copy are visible through both handles.

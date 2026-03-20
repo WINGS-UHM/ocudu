@@ -39,6 +39,16 @@ void ngap_metrics_aggregator::aggregate_cn_initiated_paging_request()
   ++aggregated_ngap_metrics.nof_cn_initiated_paging_requests;
 }
 
+void ngap_metrics_aggregator::aggregate_ue_associated_logical_ng_connection_establishment_attempt()
+{
+  ++aggregated_ngap_metrics.nof_ue_associated_logical_ng_connection_establishment_attempts;
+}
+
+void ngap_metrics_aggregator::aggregate_ue_associated_logical_ng_connection_establishment_success()
+{
+  ++aggregated_ngap_metrics.nof_ue_associated_logical_ng_connection_establishment_successes;
+}
+
 ngap_metrics ngap_metrics_aggregator::request_metrics_report() const
 {
   return aggregated_ngap_metrics;

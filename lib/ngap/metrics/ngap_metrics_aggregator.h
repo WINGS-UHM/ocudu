@@ -21,6 +21,10 @@ public:
 
   void aggregate_cn_initiated_paging_request();
 
+  void aggregate_ue_associated_logical_ng_connection_establishment_attempt();
+
+  void aggregate_ue_associated_logical_ng_connection_establishment_success();
+
   ngap_metrics request_metrics_report() const;
 
 private:

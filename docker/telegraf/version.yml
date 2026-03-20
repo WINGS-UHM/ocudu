@@ -2,4 +2,4 @@
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
 
-OCUDU_TELEGRAF_VERSION: "0.16.5"
+OCUDU_TELEGRAF_VERSION: "0.17.0"

@@ -34,6 +34,7 @@ ngap_interface* ngap_repository::add_ngap(amf_index_t amf_index, const cu_cp_con
                                                  cfg.cu_cp.node.ran_node_name,
                                                  amf_index,
                                                  config.supported_tas,
+                                                 cfg.cu_cp.ngap.procedure_timeout,
                                                  cfg.cu_cp.ue.request_pdu_session_timeout};
   std::unique_ptr<ngap_interface> ngap_entity = create_ngap(ngap_cfg,
                                                             ngap_ctxt.ngap_to_cu_cp_notifier,

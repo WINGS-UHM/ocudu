@@ -23,9 +23,10 @@ struct ngap_context_t {
   amf_index_t                          amf_index;
   std::vector<supported_tracking_area> supported_tas;
   std::vector<guami_t>                 served_guami_list;
-  uint16_t                             default_paging_drx = 256;    // default paging drx
-  std::chrono::seconds                 request_pdu_session_timeout; // timeout for requesting a PDU session in seconds
-  byte_buffer                          lmf_routing_id;
+  uint16_t                             default_paging_drx = 256; // default paging drx
+  std::chrono::milliseconds procedure_timeout; // Time that the NGAP waits for a response from the AMF in milliseconds
+  std::chrono::seconds      request_pdu_session_timeout; // timeout for requesting a PDU session in seconds
+  byte_buffer               lmf_routing_id;
 
   std::vector<plmn_identity> get_supported_plmns() const
   {

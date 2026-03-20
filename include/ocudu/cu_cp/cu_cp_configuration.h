@@ -82,6 +82,8 @@ struct cu_cp_configuration {
     std::vector<ngap_config> ngaps;
     /// Time to wait after a failed AMF reconnection attempt in ms.
     std::chrono::milliseconds amf_reconnection_retry_time = std::chrono::milliseconds{1000};
+    /// Time that the NGAP waits for a response from the AMF in milliseconds.
+    std::chrono::milliseconds procedure_timeout = std::chrono::milliseconds{5000};
     /// Option to run CU-CP without a core.
     bool no_core = false;
     /// Optional notifier invoked once after a successful NG Setup.

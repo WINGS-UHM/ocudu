@@ -51,6 +51,7 @@ ngap_impl::ngap_impl(const ngap_configuration& ngap_cfg_,
   context.ran_node_name               = ngap_cfg_.ran_node_name;
   context.amf_index                   = ngap_cfg_.amf_index;
   context.supported_tas               = ngap_cfg_.supported_tas;
+  context.procedure_timeout           = ngap_cfg_.procedure_timeout;
   context.request_pdu_session_timeout = ngap_cfg_.request_pdu_session_timeout;
 }
 
@@ -137,7 +138,7 @@ async_task<void> ngap_impl::handle_ng_reset_message(const cu_cp_reset& msg)
   }
 
   // Schedule NG Reset procedure.
-  return launch_async<ng_reset_procedure>(msg, tx_pdu_notifier, ev_mng, ue_ctxt_list, logger);
+  return launch_async<ng_reset_procedure>(context, msg, tx_pdu_notifier, ev_mng, ue_ctxt_list, logger);
 }
 
 void ngap_impl::handle_initial_ue_message(const cu_cp_initial_ue_message& msg)

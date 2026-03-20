@@ -62,6 +62,8 @@ struct cu_cp_unit_amf_config {
   bool no_core = false;
   /// Time to wait after a failed AMF reconnection attempt in ms.
   unsigned amf_reconnection_retry_time = 1000;
+  /// Time that the NGAP waits for a response from the AMF in milliseconds.
+  unsigned procedure_timeout = 5000;
 };
 
 /// Report configuration for periodical, event-triggered and conditional-trigger report types.

@@ -371,6 +371,7 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
   out_cfg.node.gnb_id        = cu_cfg.gnb_id;
   out_cfg.node.ran_node_name = cu_cfg.ran_node_name;
 
+  out_cfg.ngap.procedure_timeout           = std::chrono::milliseconds{cu_cfg.amf_config.procedure_timeout};
   out_cfg.ngap.amf_reconnection_retry_time = std::chrono::milliseconds{cu_cfg.amf_config.amf_reconnection_retry_time};
   out_cfg.ngap.no_core                     = cu_cfg.amf_config.no_core;
 

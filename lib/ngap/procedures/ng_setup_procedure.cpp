@@ -13,8 +13,6 @@ using namespace ocudu;
 using namespace ocudu::ocucp;
 using namespace asn1::ngap;
 
-static constexpr std::chrono::milliseconds ng_setup_response_timeout{5000};
-
 ng_setup_procedure::ng_setup_procedure(ngap_context_t&           context_,
                                        const ngap_message&       request_,
                                        const unsigned            max_setup_retries_,
@@ -40,7 +38,7 @@ void ng_setup_procedure::operator()(coro_context<async_task<ngap_ng_setup_result
 
   while (true) {
     // Subscribe to respective publisher to receive NG SETUP RESPONSE/FAILURE message.
-    transaction_sink.subscribe_to(ev_mng.ng_setup_outcome, ng_setup_response_timeout);
+    transaction_sink.subscribe_to(ev_mng.ng_setup_outcome, context.procedure_timeout);
 
     // Forward message to AMF.
     if (!amf_notifier.on_new_message(request)) {
@@ -78,8 +76,8 @@ bool ng_setup_procedure::retry_required()
 
   if (transaction_sink.timeout_expired()) {
     // Timeout case.
-    logger.warning("\"{}\" timed out after {}ms", name(), ng_setup_response_timeout.count());
-    fmt::print("\"{}\" timed out after {}ms\n", name(), ng_setup_response_timeout.count());
+    logger.warning("\"{}\" timed out after {}ms", name(), context.procedure_timeout.count());
+    fmt::print("\"{}\" timed out after {}ms\n", name(), context.procedure_timeout.count());
     return false;
   }
 

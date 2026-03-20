@@ -194,6 +194,12 @@ static void configure_cli11_amf_args(CLI::App& app, cu_cp_unit_amf_config& confi
              config.amf_reconnection_retry_time,
              "Time to wait after a failed AMF reconnection attempt in ms")
       ->capture_default_str();
+  add_option(app,
+             "--procedure_timeout",
+             config.procedure_timeout,
+             "Time that the NGAP waits for a response from the AMF in milliseconds")
+      ->capture_default_str();
+
   // AMF parameters.
   configure_cli11_amf_item_args(app, config.amf);
 }

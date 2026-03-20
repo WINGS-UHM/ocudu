@@ -49,6 +49,11 @@ void rrc_du_metrics_aggregator::aggregate_successful_connection_establishment(es
   connection_establishment_metrics.successful_rrc_connection_establishments.increase(cause);
 }
 
+void rrc_du_metrics_aggregator::aggregate_failed_connection_establishment(establishment_fail_cause_t cause)
+{
+  connection_establishment_metrics.failed_rrc_connection_establishments.increase(cause);
+}
+
 void rrc_du_metrics_aggregator::aggregate_attempted_connection_reestablishment()
 {
   ++connection_reestablishment_metrics.attempted_rrc_connection_reestablishments;
@@ -98,6 +103,7 @@ void rrc_du_metrics_aggregator::collect_metrics(rrc_du_metrics& metrics)
       connection_establishment_metrics.attempted_rrc_connection_establishments;
   metrics.successful_rrc_connection_establishments =
       connection_establishment_metrics.successful_rrc_connection_establishments;
+  metrics.failed_rrc_connection_establishments = connection_establishment_metrics.failed_rrc_connection_establishments;
   metrics.attempted_rrc_connection_reestablishments =
       connection_reestablishment_metrics.attempted_rrc_connection_reestablishments;
   metrics.successful_rrc_connection_reestablishments_with_ue_context =

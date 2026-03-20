@@ -19,8 +19,9 @@ inline std::chrono::milliseconds get_current_time()
 }
 
 struct rrc_connection_establishment_metrics {
-  rrc_connection_counter_with_cause attempted_rrc_connection_establishments;
-  rrc_connection_counter_with_cause successful_rrc_connection_establishments;
+  rrc_connection_counter_with_cause      attempted_rrc_connection_establishments;
+  rrc_connection_counter_with_cause      successful_rrc_connection_establishments;
+  rrc_connection_fail_counter_with_cause failed_rrc_connection_establishments;
 };
 
 struct rrc_connection_reestablishment_metrics {
@@ -54,6 +55,8 @@ public:
   void aggregate_attempted_connection_establishment(establishment_cause_t cause);
 
   void aggregate_successful_connection_establishment(establishment_cause_t cause);
+
+  void aggregate_failed_connection_establishment(establishment_fail_cause_t cause);
 
   void aggregate_attempted_connection_reestablishment();
 

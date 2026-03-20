@@ -67,6 +67,7 @@ void rrc_ue_impl::handle_rrc_setup_request(const asn1::rrc_nr::rrc_setup_request
   // Perform various checks to make sure we can serve the RRC Setup Request.
   if (not cu_cp_notifier.on_ue_setup_request()) {
     logger.log_error("Sending Connection Reject. Cause: RRC connections not allowed");
+    metrics_notifier.on_failed_rrc_connection_establishment(establishment_fail_cause_t::network_reject);
     on_ue_release_required(ngap_cause_radio_network_t::unspecified);
     return;
   }
@@ -75,6 +76,7 @@ void rrc_ue_impl::handle_rrc_setup_request(const asn1::rrc_nr::rrc_setup_request
     // If the DU to CU container is missing, assume the DU can't serve the UE, so the CU-CP should reject the UE, see
     // TS 38.473 section 8.4.1.2.
     logger.log_debug("Sending rrcReject. Cause: DU is not able to serve the UE");
+    metrics_notifier.on_failed_rrc_connection_establishment(establishment_fail_cause_t::network_reject);
     on_ue_release_required(ngap_cause_radio_network_t::unspecified);
     return;
   }
@@ -92,6 +94,7 @@ void rrc_ue_impl::handle_rrc_setup_request(const asn1::rrc_nr::rrc_setup_request
       break;
     default:
       logger.log_error("Unsupported RRCSetupRequest");
+      metrics_notifier.on_failed_rrc_connection_establishment(establishment_fail_cause_t::network_reject);
       on_ue_release_required(ngap_cause_radio_network_t::unspecified);
       return;
   }

@@ -39,6 +39,11 @@ public:
     metrics_handler.handle_successful_rrc_setup(cause);
   }
 
+  void on_failed_rrc_connection_establishment(establishment_fail_cause_t cause) override
+  {
+    metrics_handler.handle_failed_rrc_connection_establishment(cause);
+  }
+
   void on_attempted_rrc_connection_reestablishment() override
   {
     metrics_handler.handle_attempted_rrc_reestablishment();
@@ -121,6 +126,7 @@ public:
   void handle_successful_rrc_release(bool is_inactive = false) override;
   void handle_rrc_inactive() override;
   void handle_attempted_rrc_setup(establishment_cause_t cause) override;
+  void handle_failed_rrc_connection_establishment(establishment_fail_cause_t cause) override;
   void handle_attempted_rrc_reestablishment() override;
   void handle_successful_rrc_reestablishment() override;
   void handle_successful_rrc_reestablishment_fallback() override;

@@ -50,6 +50,9 @@ enum class establishment_cause_t : uint8_t {
   unknown
 };
 
+/// RRC connection establishment failure causes per TS 28.552, section 5.1.1.15.3.
+enum class establishment_fail_cause_t : uint8_t { network_reject = 0, no_reply, other };
+
 /// Provides the resume cause for the RRCResumeRequest in accordance with the information
 /// received from upper layers, see TS 38.331 section 6.2.2.
 enum class resume_cause_t : uint8_t {

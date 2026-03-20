@@ -348,6 +348,11 @@ void rrc_du_impl::handle_attempted_rrc_setup(establishment_cause_t cause)
   metrics_aggregator.aggregate_attempted_connection_establishment(cause);
 }
 
+void rrc_du_impl::handle_failed_rrc_connection_establishment(establishment_fail_cause_t cause)
+{
+  metrics_aggregator.aggregate_failed_connection_establishment(cause);
+}
+
 void rrc_du_impl::handle_attempted_rrc_reestablishment()
 {
   metrics_aggregator.aggregate_attempted_connection_reestablishment();

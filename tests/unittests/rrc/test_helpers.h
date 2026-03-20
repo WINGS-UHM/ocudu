@@ -169,6 +169,8 @@ public:
 
   void on_successful_rrc_connection_establishment(establishment_cause_t cause) override {}
 
+  void on_failed_rrc_connection_establishment(establishment_fail_cause_t) override {}
+
   void on_attempted_rrc_connection_reestablishment() override {}
 
   void on_successful_rrc_connection_reestablishment() override {}

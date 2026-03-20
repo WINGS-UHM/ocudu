@@ -47,7 +47,7 @@ ocudu::ocucp::create_du_setup_request(const asn1::f1ap::f1_setup_request_s& asn1
 {
   du_setup_request request;
 
-  // GNB DU ID
+  // Fill GNB DU ID.
   request.gnb_du_id = static_cast<gnb_du_id_t>(asn1_request->gnb_du_id);
 
   // Fill GNB DU name.
@@ -106,14 +106,14 @@ ocudu::ocucp::create_du_setup_request(const asn1::f1ap::f1_setup_request_s& asn1
     request.gnb_du_served_cells_list.push_back(served_cell);
   }
 
-  // GNB DU RRC version
+  // Fill GNB DU RRC version.
   request.gnb_du_rrc_version = asn1_request->gnb_du_rrc_version.latest_rrc_version.to_number();
 
   return request;
 }
 
 /// \brief Create an ASN.1 F1 Setup Response.
-/// \param[in] request ASN.1 F1 Setup Request
+/// \param[in] request ASN.1 F1 Setup Request.
 /// \param[in] cu_response CU response to the F1 Setup Request.
 /// \return ASN.1 F1AP PDU with F1 Setup Response.
 static f1ap_message create_f1_setup_response(const asn1::f1ap::f1_setup_request_s& request,
@@ -126,14 +126,14 @@ static f1ap_message create_f1_setup_response(const asn1::f1ap::f1_setup_request_
 
   resp->transaction_id = request->transaction_id;
 
-  // fill CU common info
+  // Fill CU common info.
   if (not cu_response.gnb_cu_name.empty()) {
     resp->gnb_cu_name_present = true;
     resp->gnb_cu_name.from_string(cu_response.gnb_cu_name);
   }
   resp->gnb_cu_rrc_version.latest_rrc_version.from_number(cu_response.gnb_cu_rrc_version);
 
-  // activate all DU cells
+  // Activate all DU cells.
   if (not cu_response.cells_to_be_activ_list.empty()) {
     resp->cells_to_be_activ_list_present = true;
     for (const auto& du_cell : cu_response.cells_to_be_activ_list) {

@@ -8,6 +8,7 @@
 #include "e2sm_kpm_utils.h"
 #include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/asn1/e2sm/e2sm_kpm_ies.h"
+#include "ocudu/cu_cp/cu_cp_metrics_notifier.h"
 #include "ocudu/e2/e2_cu.h"
 #include "ocudu/e2/e2sm/e2sm.h"
 #include "ocudu/e2/e2sm/e2sm_kpm.h"
@@ -15,7 +16,9 @@
 #include "ocudu/pdcp/pdcp_entity.h"
 #include <deque>
 #include <map>
+#include <mutex>
 #include <numeric>
+#include <optional>
 
 namespace ocudu {
 
@@ -86,10 +89,17 @@ protected:
   // Measurement getter functions.
   metric_meas_getter_func_t get_pdcp_reordering_delay_ul;
   metric_meas_getter_func_t get_packet_success_rate_ul_gnb_uu;
+  metric_meas_getter_func_t get_rrc_conn_estab_att;
+  metric_meas_getter_func_t get_rrc_conn_estab_succ;
+  metric_meas_getter_func_t get_rrc_reestab_att;
+  metric_meas_getter_func_t get_rrc_reestab_succ_with_ue_context;
+  metric_meas_getter_func_t get_rrc_conn_mean;
+  metric_meas_getter_func_t get_rrc_conn_max;
 
   ocudulog::basic_logger& logger;
 
   std::map<std::string, e2sm_kpm_supported_metric_t>           supported_metrics;
+  std::optional<cu_cp_metrics_report>                          cu_cp_metrics;
   std::map<uint32_t, std::deque<pdcp_metrics_container>>       ue_aggr_pdcp_metrics;
   std::map<uint32_t, std::deque<ocuup::f1u_metrics_container>> ue_aggr_f1u_metrics;
   const uint32_t                                               max_pdcp_metrics = 10;

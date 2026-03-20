@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "lib/e2/e2sm/e2sm_kpm/e2sm_kpm_cu_meas_provider_impl.h"
 #include "lib/e2/e2sm/e2sm_kpm/e2sm_kpm_du_meas_provider_impl.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
 #include "ocudu/ran/du_types.h"
+#include <algorithm>
 #include <gtest/gtest.h>
+#include <map>
 
 using namespace ocudu;
 using namespace asn1::e2sm;
@@ -114,6 +117,38 @@ public:
 
 private:
   e2_du_metrics_notifier* e2_meas_provider;
+};
+
+class dummy_e2_cu_metrics_notifier : public e2_cu_metrics_notifier, public e2_cu_metrics_interface
+{
+public:
+  void report_metrics(const pdcp_metrics_container& metrics) override
+  {
+    if (e2_meas_provider) {
+      e2_meas_provider->report_metrics(metrics);
+    }
+  }
+
+  void report_metrics(const ocuup::f1u_metrics_container& metrics) override
+  {
+    if (e2_meas_provider) {
+      e2_meas_provider->report_metrics(metrics);
+    }
+  }
+
+  void report_metrics(const cu_cp_metrics_report& metrics) override
+  {
+    if (e2_meas_provider) {
+      e2_meas_provider->report_metrics(metrics);
+    }
+  }
+
+  void connect_e2_cu_meas_provider(std::unique_ptr<e2_cu_metrics_notifier> meas_provider) override {}
+
+  void connect_e2_cu_meas_provider(e2_cu_metrics_notifier* meas_provider) { e2_meas_provider = meas_provider; }
+
+private:
+  e2_cu_metrics_notifier* e2_meas_provider = nullptr;
 };
 
 class e2sm_kpm_meas_provider_metrics_test : public ::testing::Test
@@ -300,5 +335,118 @@ TEST_F(e2sm_kpm_meas_provider_metrics_test, e2sm_kpm_return_e2_level_metric_with
                            << " returned a record with wrong type.";
         break;
     }
+  }
+}
+
+class e2sm_kpm_cu_cp_meas_provider_metrics_test : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    ocudulog::fetch_basic_logger("TEST").set_level(ocudulog::basic_levels::debug);
+    ocudulog::init();
+    cu_cp_meas_provider = std::make_unique<e2sm_kpm_cu_cp_meas_provider_impl>();
+    metrics             = std::make_unique<dummy_e2_cu_metrics_notifier>();
+    metrics->connect_e2_cu_meas_provider(cu_cp_meas_provider.get());
+  }
+
+  void TearDown() override
+  {
+    // Flush logger after each test.
+    ocudulog::flush();
+  }
+
+  std::unique_ptr<dummy_e2_cu_metrics_notifier>      metrics;
+  std::unique_ptr<e2sm_kpm_cu_cp_meas_provider_impl> cu_cp_meas_provider;
+};
+
+TEST_F(e2sm_kpm_cu_cp_meas_provider_metrics_test, e2sm_kpm_cu_cp_supported_metrics_are_present)
+{
+  std::vector<std::string> expected_metrics = {"RRC.ConnEstabAtt",
+                                               "RRC.ConnEstabSucc",
+                                               "RRC.ReEstabAtt",
+                                               "RRC.ReEstabSuccWithUeContext",
+                                               "RRC.ConnMean",
+                                               "RRC.ConnMax"};
+
+  auto supported_metrics = cu_cp_meas_provider->get_supported_metric_names(E2_NODE_LEVEL);
+  for (const auto& metric : expected_metrics) {
+    auto it = std::find(supported_metrics.begin(), supported_metrics.end(), metric);
+    ASSERT_TRUE(it != supported_metrics.end()) << "Missing supported metric: " << metric;
+  }
+}
+
+TEST_F(e2sm_kpm_cu_cp_meas_provider_metrics_test, e2sm_kpm_cu_cp_returns_zero_without_metrics_report)
+{
+  label_info_list_l label_info_list;
+  label_info_item_s label_info_item           = {};
+  label_info_item.meas_label.no_label_present = true;
+  label_info_item.meas_label.no_label         = meas_label_s::no_label_e_::true_value;
+  label_info_list.push_back(label_info_item);
+
+  meas_type_c                      meas_type;
+  std::vector<meas_record_item_c>  meas_records_items;
+  std::optional<asn1::e2sm::cgi_c> cell_global_id = {};
+
+  auto supported_metrics = cu_cp_meas_provider->get_supported_metric_names(E2_NODE_LEVEL);
+  for (const auto& metric : supported_metrics) {
+    meas_type.set_meas_name().from_string(metric);
+    meas_records_items.clear();
+
+    ASSERT_TRUE(cu_cp_meas_provider->get_meas_data(meas_type, label_info_list, {}, cell_global_id, meas_records_items));
+    ASSERT_EQ(meas_records_items.size(), 1);
+    ASSERT_EQ(meas_records_items[0].type(), meas_record_item_c::types::integer);
+    ASSERT_EQ(meas_records_items[0].integer(), 0);
+  }
+}
+
+TEST_F(e2sm_kpm_cu_cp_meas_provider_metrics_test, e2sm_kpm_cu_cp_returns_expected_rrc_metrics)
+{
+  cu_cp_metrics_report report;
+  report.dus.resize(2);
+
+  report.dus[0].rrc_metrics.mean_nof_rrc_connections = 10;
+  report.dus[0].rrc_metrics.max_nof_rrc_connections  = 12;
+  report.dus[0].rrc_metrics.attempted_rrc_connection_establishments.increase(establishment_cause_t::emergency);
+  report.dus[0].rrc_metrics.attempted_rrc_connection_establishments.increase(establishment_cause_t::high_prio_access);
+  report.dus[0].rrc_metrics.successful_rrc_connection_establishments.increase(establishment_cause_t::emergency);
+  report.dus[0].rrc_metrics.attempted_rrc_connection_reestablishments                  = 4;
+  report.dus[0].rrc_metrics.successful_rrc_connection_reestablishments_with_ue_context = 3;
+
+  report.dus[1].rrc_metrics.mean_nof_rrc_connections = 7;
+  report.dus[1].rrc_metrics.max_nof_rrc_connections  = 20;
+  report.dus[1].rrc_metrics.attempted_rrc_connection_establishments.increase(establishment_cause_t::mt_access);
+  report.dus[1].rrc_metrics.successful_rrc_connection_establishments.increase(establishment_cause_t::mt_access);
+  report.dus[1].rrc_metrics.successful_rrc_connection_establishments.increase(establishment_cause_t::mo_sig);
+  report.dus[1].rrc_metrics.attempted_rrc_connection_reestablishments                  = 6;
+  report.dus[1].rrc_metrics.successful_rrc_connection_reestablishments_with_ue_context = 1;
+
+  metrics->report_metrics(report);
+
+  const std::map<std::string, int64_t> expected_values = {{"RRC.ConnEstabAtt", 3},
+                                                          {"RRC.ConnEstabSucc", 3},
+                                                          {"RRC.ReEstabAtt", 10},
+                                                          {"RRC.ReEstabSuccWithUeContext", 4},
+                                                          {"RRC.ConnMean", 17},
+                                                          {"RRC.ConnMax", 20}};
+
+  label_info_list_l label_info_list;
+  label_info_item_s label_info_item           = {};
+  label_info_item.meas_label.no_label_present = true;
+  label_info_item.meas_label.no_label         = meas_label_s::no_label_e_::true_value;
+  label_info_list.push_back(label_info_item);
+
+  std::vector<meas_record_item_c>  meas_records_items;
+  std::optional<asn1::e2sm::cgi_c> cell_global_id = {};
+  meas_type_c                      meas_type;
+
+  for (const auto& metric : expected_values) {
+    meas_type.set_meas_name().from_string(metric.first);
+    meas_records_items.clear();
+
+    ASSERT_TRUE(cu_cp_meas_provider->get_meas_data(meas_type, label_info_list, {}, cell_global_id, meas_records_items));
+    ASSERT_EQ(meas_records_items.size(), 1);
+    ASSERT_EQ(meas_records_items[0].type(), meas_record_item_c::types::integer);
+    ASSERT_EQ(meas_records_items[0].integer(), metric.second) << "Unexpected value for metric " << metric.first;
   }
 }

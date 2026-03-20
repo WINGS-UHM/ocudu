@@ -24,7 +24,9 @@ static cu_cp_metrics_report_notifier*
 build_cu_cp_metrics_config(std::vector<app_services::metrics_config>&   cu_cp_services_cfg,
                            app_services::metrics_notifier&              metrics_notifier,
                            app_services::remote_server_metrics_gateway* remote_metrics_gateway,
-                           const cu_cp_unit_metrics_config&             cu_cp_metrics_cfg)
+                           const cu_cp_unit_metrics_config&             cu_cp_metrics_cfg,
+                           bool                                         e2_enabled,
+                           e2_cu_metrics_notifier&                      e2_notifier)
 {
   cu_cp_metrics_report_notifier* out = nullptr;
 
@@ -44,6 +46,9 @@ build_cu_cp_metrics_config(std::vector<app_services::metrics_config>&   cu_cp_se
   if (cu_cp_metrics_cfg.common_metrics_cfg.enable_log_metrics) {
     metrics_service_cfg.consumers.push_back(
         std::make_unique<cu_cp_metrics_consumer_log>(app_helpers::fetch_logger_metrics_log_channel()));
+  }
+  if (e2_enabled) {
+    metrics_service_cfg.consumers.push_back(std::make_unique<cu_cp_metrics_consumer_e2>(e2_notifier));
   }
 
   return out;
@@ -66,10 +71,15 @@ o_cu_cp_unit ocudu::build_o_cu_cp(const o_cu_cp_unit_config& unit_cfg, o_cu_cp_u
   cu_cp_cfg.xnap.xnc_gw                     = dependencies.xnc_gw;
 
   o_cu_cp_unit ocucp;
+  auto         e2_metric_connectors = std::make_unique<e2_cu_metrics_connector_manager>();
 
   cu_cp_cfg.metrics.metrics_report_period = std::chrono::milliseconds(unit_cfg.cucp_cfg.metrics.cu_cp_report_period);
-  cu_cp_cfg.metrics_notifier              = build_cu_cp_metrics_config(
-      ocucp.metrics, *dependencies.metrics_notifier, dependencies.remote_metrics_gateway, unit_cfg.cucp_cfg.metrics);
+  cu_cp_cfg.metrics_notifier              = build_cu_cp_metrics_config(ocucp.metrics,
+                                                          *dependencies.metrics_notifier,
+                                                          dependencies.remote_metrics_gateway,
+                                                          unit_cfg.cucp_cfg.metrics,
+                                                          unit_cfg.e2_cfg.base_config.enable_unit_e2,
+                                                          e2_metric_connectors->get_e2_metric_notifier(0));
 
   // Create N2 Client Gateways.
   std::vector<std::unique_ptr<ocucp::n2_connection_client>> n2_clients;
@@ -93,7 +103,6 @@ o_cu_cp_unit ocudu::build_o_cu_cp(const o_cu_cp_unit_config& unit_cfg, o_cu_cp_u
   for (unsigned i = 0, e = n2_clients.size(); i != e; ++i) {
     cu_cp_cfg.ngap.ngaps[i].n2_gw = n2_clients[i].get();
   }
-  auto e2_metric_connectors = std::make_unique<e2_cu_metrics_connector_manager>();
 
   ocucp::o_cu_cp_dependencies ocu_dependencies;
   if (unit_cfg.e2_cfg.base_config.enable_unit_e2) {

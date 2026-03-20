@@ -7,6 +7,7 @@
 #include "apps/helpers/metrics/json_generators/generator_helpers.h"
 #include "apps/services/remote_control/remote_server_metrics_gateway.h"
 #include "cu_cp_metrics.h"
+#include "ocudu/e2/e2_cu.h"
 
 using namespace ocudu;
 
@@ -28,4 +29,9 @@ void cu_cp_metrics_consumer_log::handle_metric(const app_services::metrics_set& 
 
   ngap_consumer.handle_metric(cp_metrics.ngaps, cp_metrics.mobility);
   rrc_consumer.handle_metric(cp_metrics.dus, cp_metrics.mobility);
+}
+
+void cu_cp_metrics_consumer_e2::handle_metric(const app_services::metrics_set& metric)
+{
+  notifier.report_metrics(static_cast<const cu_cp_metrics_impl&>(metric).get_metrics());
 }

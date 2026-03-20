@@ -170,6 +170,11 @@ void e2sm_kpm_cu_meas_provider_impl::report_metrics(const ocuup::f1u_metrics_con
   }
 }
 
+void e2sm_kpm_cu_meas_provider_impl::report_metrics(const cu_cp_metrics_report& metrics)
+{
+  // TODO: implement.
+}
+
 e2sm_kpm_cu_up_meas_provider_impl::e2sm_kpm_cu_up_meas_provider_impl() : e2sm_kpm_cu_meas_provider_impl()
 {
   supported_metrics.emplace(

@@ -31,6 +31,8 @@ public:
 
   void report_metrics(const ocuup::f1u_metrics_container& metrics) override;
 
+  void report_metrics(const cu_cp_metrics_report& metrics) override;
+
   /// e2sm_kpm_meas_provider functions.
   std::vector<std::string> get_supported_metric_names(e2sm_kpm_metric_level_enum level) override;
 

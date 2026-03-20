@@ -73,6 +73,10 @@ xnap_message ocudu::ocucp::generate_handover_request(local_xnap_ue_id_t local_xn
           "00000040000000247001040000259650100400002596500052388008404008010100200400200801052050")
           .value();
 
+  asn1::xnap::last_visited_cell_item_c last_visited_cell;
+  last_visited_cell.set_ng_ran_cell() = make_byte_buffer("0000f11000066c0000800000").value();
+  ho_request->ue_history_info.push_back(last_visited_cell);
+
   return xnap_msg;
 }
 

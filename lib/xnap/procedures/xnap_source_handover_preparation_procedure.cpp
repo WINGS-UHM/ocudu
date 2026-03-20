@@ -4,6 +4,7 @@
 
 #include "xnap_source_handover_preparation_procedure.h"
 #include "../xnap_asn1_converters.h"
+#include "ocudu/adt/byte_buffer.h"
 #include "ocudu/asn1/xnap/common.h"
 #include "ocudu/asn1/xnap/xnap_ies.h"
 #include "ocudu/ocudulog/ocudulog.h"
@@ -161,9 +162,13 @@ bool xnap_source_handover_preparation_procedure::send_handover_request()
   }
 
   // Fill UE history info.
-  // TODO: Add real data.
   asn1::xnap::last_visited_cell_item_c last_visited_cell;
-  last_visited_cell.set_ng_ran_cell();
+  // TODO: Add real data.
+  expected<byte_buffer> last_visited_cell_information = make_byte_buffer("0000f11000066c0000800000");
+  if (!last_visited_cell_information.has_value()) {
+    ue_ctxt->logger.log_warning("Failed to encode last visited cell information");
+  }
+  last_visited_cell.set_ng_ran_cell() = last_visited_cell_information.value().copy();
   ho_request->ue_history_info.push_back(last_visited_cell);
 
   // Forward message to XN-C peer.

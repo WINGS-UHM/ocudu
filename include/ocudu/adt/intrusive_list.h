@@ -5,33 +5,32 @@
 
 #include <iterator>
 #include <type_traits>
+#include <utility>
 
 namespace ocudu {
 
 struct default_intrusive_tag;
 
-/// Base class of each node of an intrusive_forward_list<T>
+/// Base class of each node of an intrusive_forward_stack<T> or intrusive_forward_list<T>.
 /// \tparam Tag type used to differentiate separate intrusive lists stored in a single node
 template <typename Tag = default_intrusive_tag>
 struct intrusive_forward_list_element {
   intrusive_forward_list_element<Tag>* next_node = nullptr;
 };
 
-/// Forward linked list of pointers of type "T" that doesn't rely on allocations.
-/// It leverages each node's internal pointer (thus intrusive) to store the next node of the list.
-/// It supports push_front/pop_front, iteration, clear, etc.
-/// @tparam T node type. It must be a subclass of intrusive_forward_list_element<Tag>
-/// @tparam Tag useful to differentiate multiple intrusive lists in the same node
+/// Intrusive singly-linked stack (push/pop at the front only).
+/// Does not track a tail pointer; supports push_front, pop_front, iteration and clear.
+/// \tparam T node type. It must be a subclass of intrusive_forward_list_element<Tag>
+/// \tparam Tag useful to differentiate multiple intrusive lists in the same node
 template <typename T, typename Tag = default_intrusive_tag>
-class intrusive_forward_list
+class intrusive_forward_stack
 {
   using node_t = intrusive_forward_list_element<Tag>;
 
-  /// Iterator implementation of intrusive forward_list. It is used to define "iterator" and "const_iterator"
   template <typename U>
   class iterator_impl
   {
-    using elem_t = typename std::conditional<std::is_const<U>::value, const node_t, node_t>::type;
+    using elem_t = std::conditional_t<std::is_const_v<U>, const node_t, node_t>;
 
   public:
     using iterator_category = std::forward_iterator_tag;
@@ -60,15 +59,15 @@ public:
   using iterator       = iterator_impl<T>;
   using const_iterator = iterator_impl<const T>;
 
-  intrusive_forward_list()
+  intrusive_forward_stack()
   {
-    static_assert(std::is_base_of<node_t, T>::value,
+    static_assert(std::is_base_of_v<node_t, T>,
                   "Provided template argument T must have intrusive_forward_list_element<Tag> as base class");
   }
-  intrusive_forward_list(const intrusive_forward_list&) = default;
-  intrusive_forward_list(intrusive_forward_list&& other) noexcept : node(other.node) { other.node = nullptr; }
-  intrusive_forward_list& operator=(const intrusive_forward_list&) = default;
-  intrusive_forward_list& operator=(intrusive_forward_list&& other) noexcept
+  intrusive_forward_stack(const intrusive_forward_stack&) = default;
+  intrusive_forward_stack(intrusive_forward_stack&& other) noexcept : node(other.node) { other.node = nullptr; }
+  intrusive_forward_stack& operator=(const intrusive_forward_stack&) = default;
+  intrusive_forward_stack& operator=(intrusive_forward_stack&& other) noexcept
   {
     node       = other.node;
     other.node = nullptr;
@@ -109,6 +108,83 @@ private:
   node_t* node = nullptr;
 };
 
+/// Intrusive singly-linked list with O(1) push_back via a tail pointer.
+/// Supports push_front, push_back, pop_front, front, back, iteration and clear.
+/// \tparam T node type. It must be a subclass of intrusive_forward_list_element<Tag>
+/// \tparam Tag useful to differentiate multiple intrusive lists in the same node
+template <typename T, typename Tag = default_intrusive_tag>
+class intrusive_forward_list
+{
+  using node_t  = intrusive_forward_list_element<Tag>;
+  using stack_t = intrusive_forward_stack<T, Tag>;
+
+public:
+  using iterator       = typename stack_t::iterator;
+  using const_iterator = typename stack_t::const_iterator;
+
+  intrusive_forward_list()                              = default;
+  intrusive_forward_list(const intrusive_forward_list&) = default;
+  intrusive_forward_list(intrusive_forward_list&& other) noexcept :
+    stack(std::move(other.stack)), tail(std::exchange(other.tail, nullptr))
+  {
+  }
+  intrusive_forward_list& operator=(const intrusive_forward_list&) = default;
+  intrusive_forward_list& operator=(intrusive_forward_list&& other) noexcept
+  {
+    stack = std::move(other.stack);
+    tail  = std::exchange(other.tail, nullptr);
+    return *this;
+  }
+
+  T& front() const { return stack.front(); }
+  T& back() const { return *tail; }
+
+  void push_front(T* t)
+  {
+    stack.push_front(t);
+    if (tail == nullptr) {
+      tail = t;
+    }
+  }
+
+  void push_back(T* t)
+  {
+    static_cast<node_t*>(t)->next_node = nullptr;
+    if (tail != nullptr) {
+      static_cast<node_t*>(tail)->next_node = static_cast<node_t*>(t);
+    } else {
+      stack.push_front(t);
+    }
+    tail = t;
+  }
+
+  T* pop_front()
+  {
+    T* front = stack.pop_front();
+    if (stack.empty()) {
+      tail = nullptr;
+    }
+    return front;
+  }
+
+  void clear()
+  {
+    stack.clear();
+    tail = nullptr;
+  }
+
+  bool empty() const { return stack.empty(); }
+
+  iterator       begin() { return stack.begin(); }
+  iterator       end() { return stack.end(); }
+  const_iterator begin() const { return stack.begin(); }
+  const_iterator end() const { return stack.end(); }
+
+private:
+  stack_t stack;
+  T*      tail = nullptr;
+};
+
 /// Base class of each node of an intrusive_double_linked_list<T>
 /// \tparam Tag type used to differentiate separate intrusive lists stored in a single node
 template <typename Tag = default_intrusive_tag>
@@ -126,7 +202,6 @@ class intrusive_double_linked_list
 {
   using node_t = intrusive_double_linked_list_element<Tag>;
 
-  /// Iterator implementation for intrusive_double_linked_list. It is used to define "iterator" and "const_iterator"
   template <typename U>
   class iterator_impl
   {

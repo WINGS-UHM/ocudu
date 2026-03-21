@@ -9,6 +9,7 @@
 #include "ocudu/ofh/ethernet/ethernet_mac_address.h"
 #include "ocudu/ofh/ethernet/ethernet_receiver.h"
 #include "ocudu/ofh/ethernet/ethernet_transmitter.h"
+#include "ocudu/ofh/ethernet/ethernet_vlan_params.h"
 #include "ocudu/ofh/ofh_constants.h"
 #include "ocudu/ofh/ofh_uplane_rx_symbol_notifier.h"
 #include "ocudu/ofh/receiver/ofh_receiver_configuration.h"
@@ -41,10 +42,10 @@ struct sector_configuration {
   ether::mac_address mac_dst_address;
   /// Source MAC address, corresponds to the Distributed Unit MAC address.
   ether::mac_address mac_src_address;
-  /// Tag control information field for C-Plane.
-  std::optional<uint16_t> tci_cp;
-  /// Tag control information field for U-Plane.
-  std::optional<uint16_t> tci_up;
+  /// VLAN configuration for C-Plane.
+  std::optional<ether::vlan_parameters> vlan_cfg_cp;
+  /// VLAN configuration for U-Plane.
+  std::optional<ether::vlan_parameters> vlan_cfg_up;
 
   /// DU transmission window timing parameters.
   tx_window_timing_parameters tx_window_timing_params;

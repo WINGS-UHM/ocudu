@@ -6,8 +6,8 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -17,7 +17,8 @@ class ue_configuration_test : public ::testing::Test
 protected:
   scheduler_expert_config                  sched_cfg = config_helpers::make_default_scheduler_expert_config();
   sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
-  sched_ue_creation_request_message ue_create_msg = sched_config_helper::create_default_sched_ue_creation_request();
+  sched_ue_creation_request_message        ue_create_msg =
+      sched_config_helper::create_default_sched_ue_creation_request(msg.ran);
 
   const cell_configuration& add_cell()
   {
@@ -48,15 +49,15 @@ TEST_F(ue_configuration_test, configuration_valid_on_creation)
   // Test Common Config.
   ASSERT_TRUE(ue_cfg.find_bwp(to_bwp_id(0)) != nullptr);
   ASSERT_TRUE(ue_cfg.bwp(to_bwp_id(0)).dl_common->value().generic_params ==
-              cell_cfg.dl_cfg_common.init_dl_bwp.generic_params);
+              cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params);
   ASSERT_TRUE(ue_cfg.coreset(to_coreset_id(0)).get_id() ==
-              cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->get_id());
+              cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->get_id());
   ASSERT_EQ(0, fmt::underlying(ue_cfg.search_space(to_search_space_id(0)).cfg->get_id()));
   ASSERT_TRUE(*ue_cfg.search_space(to_search_space_id(0)).cfg ==
-              cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[0]);
+              cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[0]);
   ASSERT_EQ(1, fmt::underlying(ue_cfg.search_space(to_search_space_id(1)).cfg->get_id()));
   ASSERT_TRUE(*ue_cfg.search_space(to_search_space_id(1)).cfg ==
-              cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1]);
+              cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1]);
 
   // Test Dedicated Config.
   ASSERT_TRUE(ue_cfg.find_coreset(to_coreset_id(2)) == nullptr);
@@ -150,7 +151,7 @@ TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpa
   params.dl_carrier.band        = nr_band::n41;
   params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz50;
   msg                           = sched_config_helper::make_default_sched_cell_configuration_request(params);
-  ue_create_msg                 = sched_config_helper::create_default_sched_ue_creation_request(params);
+  ue_create_msg                 = sched_config_helper::create_default_sched_ue_creation_request(msg.ran);
 
   auto&                        pdcch_cfg = *(*ue_create_msg.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg;
   const coreset_configuration& cset_cfg  = pdcch_cfg.coresets[0];

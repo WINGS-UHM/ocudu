@@ -19,7 +19,7 @@ class e1ap_connection_manager
 public:
   virtual ~e1ap_connection_manager() = default;
 
-  /// \brief Initiate the E1 Reset procedure as per TS 38.483 section 8.2.1.
+  /// \brief Initiate the E1 Reset procedure as per TS 37.483 section 8.2.1.
   /// \param[in] reset The E1 Reset message to transmit.
   virtual async_task<void> handle_cu_cp_e1_reset_message(const cu_cp_reset& reset) = 0;
 

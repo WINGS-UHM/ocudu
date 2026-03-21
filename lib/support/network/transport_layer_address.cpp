@@ -3,7 +3,6 @@
 
 #include "ocudu/support/io/transport_layer_address.h"
 #include "ocudu/support/ocudu_assert.h"
-#include <netinet/in.h>
 
 using namespace ocudu;
 
@@ -74,6 +73,8 @@ transport_layer_address transport_layer_address::create_from_bitstring(const std
 
 std::string transport_layer_address::to_bitstring() const
 {
+  // TODO: This may fail if getnameinfo() returns abbreviated IPv6 address
+  // Read the binary address bytes directly from sockaddr instead.
   char        ip_addr[NI_MAXHOST];
   const auto* saddr = reinterpret_cast<const sockaddr*>(&addr_storage);
   ::getnameinfo(saddr, addrlen, ip_addr, sizeof(ip_addr), nullptr, 0, NI_NUMERICHOST);
@@ -110,16 +111,13 @@ std::string transport_layer_address::to_bitstring() const
 
 bool transport_layer_address::operator==(const transport_layer_address& other) const
 {
-  if (addrlen != other.addrlen) {
-    return false;
+  if (empty() && other.empty()) {
+    return true;
   }
-  return std::memcmp(&addr_storage, &other.addr_storage, addrlen) == 0;
+  return sockaddr_storage_equal(addr_storage, other.addr_storage);
 }
 
 bool transport_layer_address::operator<(const transport_layer_address& other) const
 {
-  if (addrlen != other.addrlen) {
-    return addrlen < other.addrlen;
-  }
-  return std::memcmp(&addr_storage, &other.addrlen, addrlen) < 0;
+  return sockaddr_storage_less{}(addr_storage, other.addr_storage);
 }

@@ -28,6 +28,10 @@ add_executable(async_task_test async_task_test.cpp)
 target_link_libraries(async_task_test ocudulog)
 add_test(async_task_test async_task_test)
 
+add_executable(when_all_test when_all_test.cpp)
+target_link_libraries(when_all_test ocudulog GTest::gtest ocudu_gtest_main)
+add_test(when_all_test when_all_test)
+
 add_executable(async_exec_test async_exec_test.cpp)
 target_link_libraries(async_exec_test ocudulog ocudu_support)
 add_test(async_exec_test async_exec_test)

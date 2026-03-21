@@ -5,10 +5,8 @@
 #pragma once
 
 #include "du_ue_resource_config.h"
-#include "ocudu/scheduler/config/bwp_builder_params.h"
 #include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
-#include "ocudu/scheduler/config/ue_bwp_config.h"
 #include <optional>
 #include <set>
 
@@ -57,10 +55,8 @@ private:
   };
 
   struct cell_resource_context {
-    // Parameters for PUCCH configuration passed by the user.
-    bwp_builder_params bwp_params;
-    cell_pucch_config  cell_pucch_cfg;
-    pucch_config       default_pucch_cfg;
+    ran_cell_config cell_params;
+    cell_bwp_config cell_bwp_cfg;
     // Default CSI report configuration. Only set if periodic CSI reporting is configured.
     std::optional<csi_report_config> default_csi_report_cfg;
     unsigned                         lcm_csi_sr_period;
@@ -94,7 +90,6 @@ private:
   get_compatible_csi_cfg(const cell_resource_context&              cell_ctx,
                          const periodic_pucch_config&              sr_cfg,
                          const std::vector<periodic_pucch_config>& free_csi_list,
-                         unsigned                                  max_pucch_payload,
                          unsigned                                  csi_report_size) const;
 
   /// Check whether allocating a UE with the given SR or CSI offset will exceed the max PUCCH grants limit in any slot.
@@ -106,15 +101,6 @@ private:
   /// \remark Slot offsets common to SR and CSI are counted only once, as they will be sent together in one PUCCH.
   static std::set<unsigned>
   compute_periodic_uci_slot_offsets(const cell_resource_context& cell_ctx, unsigned sr_offset, unsigned csi_offset = 0);
-
-  /// Check whether the given offsets will result in SR and CSI being scheduled together in some slot.
-  static bool sr_csi_offsets_collide(const cell_resource_context& cell_ctx, unsigned sr_offset, unsigned csi_offset);
-
-  /// \brief Update the serving cell configuration of a UE with the given SR and CSI configurations.
-  static void update_serv_cell_cfg(serving_cell_config&         serv_cell_cfg,
-                                   const cell_resource_context& cell_ctx,
-                                   const ue_uplink_bwp_config&  ul_bwp,
-                                   unsigned                     max_pucch_payload);
 
   /// Called when PUCCH allocation fails for a given UE.
   static void disable_pucch_cfg(serving_cell_config& serv_cell_cfg, const cell_resource_context& cell_ctx);

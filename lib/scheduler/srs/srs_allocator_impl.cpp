@@ -77,13 +77,13 @@ srs_allocator_impl::srs_allocator_impl(const cell_configuration&      cell_cfg_,
     srs_slot_alloc.reset();
   }
 
-  if (not cell_cfg.tdd_cfg_common.has_value()) {
+  if (not cell_cfg.is_tdd()) {
     // With FDD, we consider all the slots can be used for aperiodic SRS; we only use one entry in the bitset.
     srs_slots.resize(1U);
     constexpr unsigned only_fdd_slot_idx = 0U;
     srs_slots.set(only_fdd_slot_idx);
   } else {
-    const auto&    tdd_cfg             = cell_cfg.tdd_cfg_common.value();
+    const auto&    tdd_cfg             = *cell_cfg.params.tdd_cfg;
     const unsigned nof_slot_tdd_period = nof_slots_per_tdd_period(tdd_cfg);
     srs_slots.resize(nof_slot_tdd_period);
     srs_slots.reset();
@@ -168,9 +168,9 @@ aperiodic_srs_alloc_info srs_allocator_impl::allocate_aperiodic_srs(cell_resourc
   // At this point, the SRS allocation has been successful, we proceed with adding the results (SRS PDU and marking the
   // resource grid).
   srs_slot_res_alloc.result.ul.srss.emplace_back(
-      create_srs_pdu(ue_cfg.crnti, ue_cfg.cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params, srs_res));
+      create_srs_pdu(ue_cfg.crnti, ue_cfg.cell_cfg_common.params.ul_cfg_common.init_ul_bwp.generic_params, srs_res));
   srs_slot_res_alloc.ul_res_grid.fill(
-      get_srs_res_grid_grant(ue_cfg.cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params, srs_res));
+      get_srs_res_grid_grant(ue_cfg.cell_cfg_common.params.ul_cfg_common.init_ul_bwp.generic_params, srs_res));
 
   return {.aperiodic_srs_res_trigger = aperiodic_srs_set.aperiodic_srs_res_trigger, .slot_offset = sl_offset};
 }
@@ -193,10 +193,10 @@ bool srs_allocator_impl::alloc_srs_resource(slot_point srs_slot, unsigned cell_r
 
 unsigned srs_allocator_impl::get_slot_idx(slot_point sl) const
 {
-  if (not cell_cfg.tdd_cfg_common.has_value()) {
+  if (not cell_cfg.is_tdd()) {
     return 0U;
   }
 
-  const unsigned tdd_period_slots = nof_slots_per_tdd_period(cell_cfg.tdd_cfg_common.value());
+  const unsigned tdd_period_slots = nof_slots_per_tdd_period(*cell_cfg.params.tdd_cfg);
   return sl.count() % tdd_period_slots;
 }

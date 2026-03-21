@@ -14,9 +14,9 @@ cell_scheduler::cell_scheduler(const scheduler_expert_config&                  s
                                cell_metrics_handler&                           metrics_handler) :
   cell_cfg(cell_cfg_),
   res_grid(cell_cfg),
-  event_logger(cell_cfg.cell_index, cell_cfg.pci),
+  event_logger(cell_cfg.cell_index, cell_cfg.params.pci),
   metrics(metrics_handler),
-  result_logger(sched_cfg.log_broadcast_messages, cell_cfg.pci),
+  result_logger(sched_cfg.log_broadcast_messages, cell_cfg.params.pci),
   logger(ocudulog::fetch_basic_logger("SCHED")),
   ssb_sch(cell_cfg),
   pdcch_sch(cell_cfg),

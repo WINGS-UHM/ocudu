@@ -54,7 +54,7 @@ protected:
              sched_config_helper::make_default_sched_cell_configuration_request()),
     metrics(cell_cfg, sched_cell_configuration_request_message::metrics_config{&metrics_notif})
   {
-    metrics_notif.period_slots = report_period.count() * get_nof_slots_per_subframe(cell_cfg.scs_common);
+    metrics_notif.period_slots = report_period.count() * get_nof_slots_per_subframe(cell_cfg.scs_common());
     metrics.handle_ue_creation(test_ue_index, to_rnti(0x4601), pci_t{0});
   }
 

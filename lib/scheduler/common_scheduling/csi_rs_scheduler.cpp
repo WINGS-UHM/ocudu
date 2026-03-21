@@ -56,11 +56,11 @@ static csi_rs_info build_csi_rs_info(const bwp_configuration& bwp_cfg, const nzp
 csi_rs_scheduler::csi_rs_scheduler(const cell_configuration& cell_cfg_) : cell_cfg(cell_cfg_)
 {
   for (const auto& res : cell_cfg.zp_csi_rs_list) {
-    cached_csi_rs.push_back(build_csi_rs_info(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params, res));
+    cached_csi_rs.push_back(build_csi_rs_info(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params, res));
   }
 
   for (const auto& nzp_csi : cell_cfg.nzp_csi_rs_list) {
-    cached_csi_rs.push_back(build_csi_rs_info(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params, nzp_csi));
+    cached_csi_rs.push_back(build_csi_rs_info(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params, nzp_csi));
   }
 }
 

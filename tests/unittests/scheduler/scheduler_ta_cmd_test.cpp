@@ -7,6 +7,7 @@
 #include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
+#include "ocudu/ran/du_types.h"
 #include "ocudu/ran/duplex_mode.h"
 #include <gtest/gtest.h>
 
@@ -24,7 +25,8 @@ protected:
     this->add_cell(sched_config_helper::make_default_sched_cell_configuration_request(params));
 
     // Add UE
-    this->add_ue(sched_config_helper::create_default_sched_ue_creation_request(params, {ue_drb_lcid}));
+    this->add_ue(sched_config_helper::create_default_sched_ue_creation_request(cell_cfg(to_du_cell_index(0)).params,
+                                                                               {ue_drb_lcid}));
   }
 
   uci_indication create_uci_indication(slot_point        uci_sl,

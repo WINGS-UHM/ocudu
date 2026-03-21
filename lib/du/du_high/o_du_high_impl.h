@@ -6,6 +6,7 @@
 
 #include "o_du_high_metrics_notifier_proxy.h"
 #include "ocudu/du/du_high/du_high.h"
+#include "ocudu/du/du_high/du_manager/du_f1_setup_notifier.h"
 #include "ocudu/du/du_high/o_du_high.h"
 #include "ocudu/du/du_high/o_du_high_config.h"
 #include "ocudu/du/du_operation_controller.h"
@@ -52,8 +53,8 @@ public:
   /// Sets the DU high to the given one.
   void set_du_high(std::unique_ptr<du_high> updated_du_high);
 
-  /// Sets the E2 agent to the given one.
-  void set_e2_agent(std::unique_ptr<e2_agent> agent);
+  /// Sets E2 components and takes ownership of both; keeps the E2 agent alive longer because the adapter depends on it.
+  void set_e2_components(std::unique_ptr<e2_agent> agent, std::unique_ptr<du_f1_setup_complete_notifier> adapter);
 
   /// Returns the MAC result notifier of this O-RAN DU high.
   mac_result_notifier& get_mac_result_notifier() { return *du_high_result_notifier; }
@@ -69,6 +70,7 @@ private:
   std::unique_ptr<mac_result_notifier>                     du_high_result_notifier;
   std::unique_ptr<du_high>                                 du_hi;
   std::unique_ptr<e2_agent>                                e2agent;
+  std::unique_ptr<du_f1_setup_complete_notifier>           f1_setup_e2_adapter;
 };
 
 } // namespace odu

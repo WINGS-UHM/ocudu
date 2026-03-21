@@ -10,7 +10,6 @@
 #include "../support/prbs_calculator.h"
 #include "ocudu/adt/mpmc_queue.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/resource_allocation/rb_bitmap.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/scheduler_feedback_handler.h"
@@ -96,11 +95,14 @@ private:
                                                  concurrent_queue_policy::lockfree_mpmc,
                                                  concurrent_queue_wait_policy::non_blocking>;
 
-  const bwp_configuration&   get_dl_bwp_cfg() const { return cell_cfg.dl_cfg_common.init_dl_bwp.generic_params; }
-  const pdsch_config_common& get_pdsch_cfg() const { return cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common; }
-  const bwp_configuration&   get_ul_bwp_cfg() const { return cell_cfg.ul_cfg_common.init_ul_bwp.generic_params; }
-  const pusch_config_common& get_pusch_cfg() const { return *cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common; }
-  const rach_config_common&  get_rach_cfg() const { return *cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common; }
+  const bwp_configuration&   get_dl_bwp_cfg() const { return cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params; }
+  const pdsch_config_common& get_pdsch_cfg() const { return cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common; }
+  const bwp_configuration&   get_ul_bwp_cfg() const { return cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params; }
+  const pusch_config_common& get_pusch_cfg() const
+  {
+    return *cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common;
+  }
+  const rach_config_common& get_rach_cfg() const { return *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common; }
 
   /// Pre-compute invariant fields of RAR PDUs (PDSCH, DCI, etc.) for faster scheduling.
   void precompute_rar_fields();

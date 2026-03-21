@@ -6,6 +6,7 @@
 #include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/sched_custom_test_bench.h"
 #include "ocudu/ran/power_control/tpc_mapping.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -364,15 +365,15 @@ protected:
         config_helpers::make_default_scheduler_expert_config().ue.ul_power_ctrl.path_loss_for_target_pusch_sinr;
 
     // Set the PUSCH power control parameters.
-    pw_per_prb =
-        static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
-                         static_cast<int>(ue_req.cfg.cells.value()
-                                              .front()
-                                              .serv_cell_cfg.ul_config.value()
-                                              .init_ul_bwp.pusch_cfg.value()
-                                              .pusch_pwr_ctrl.value()
-                                              .p0_alphasets.front()
-                                              .p0.value()));
+    pw_per_prb = static_cast<int>(
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
+        static_cast<int>(ue_req.cfg.cells.value()
+                             .front()
+                             .serv_cell_cfg.ul_config.value()
+                             .init_ul_bwp.pusch_cfg.value()
+                             .pusch_pwr_ctrl.value()
+                             .p0_alphasets.front()
+                             .p0.value()));
 
     actual_path_loss_dB = static_cast<float>(test_rng::uniform_int(60, 100));
 
@@ -565,15 +566,15 @@ protected:
     alpha_fractional_pl = alpha_to_float(pusch_pw_ctrl_alpha);
 
     // Set the PUSCH power control parameters.
-    pw_per_prb =
-        static_cast<int>(cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
-                         static_cast<int>(ue_req.cfg.cells.value()
-                                              .front()
-                                              .serv_cell_cfg.ul_config.value()
-                                              .init_ul_bwp.pusch_cfg.value()
-                                              .pusch_pwr_ctrl.value()
-                                              .p0_alphasets.front()
-                                              .p0.value()));
+    pw_per_prb = static_cast<int>(
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().p0_nominal_with_grant.value() +
+        static_cast<int>(ue_req.cfg.cells.value()
+                             .front()
+                             .serv_cell_cfg.ul_config.value()
+                             .init_ul_bwp.pusch_cfg.value()
+                             .pusch_pwr_ctrl.value()
+                             .p0_alphasets.front()
+                             .p0.value()));
 
     actual_path_loss_dB = actual_path_loss_dB_fixed;
 

@@ -17,17 +17,19 @@
 using namespace ocudu;
 using namespace ocucp;
 
-amf_connection_manager::amf_connection_manager(ngap_repository&                ngaps_,
-                                               cu_cp_amf_reconnection_handler& cu_cp_notifier_,
-                                               timer_manager&                  timers_,
-                                               task_executor&                  cu_cp_exec_,
-                                               common_task_scheduler&          common_task_sched_) :
+amf_connection_manager::amf_connection_manager(ngap_repository&                  ngaps_,
+                                               cu_cp_amf_reconnection_handler&   cu_cp_notifier_,
+                                               timer_manager&                    timers_,
+                                               task_executor&                    cu_cp_exec_,
+                                               common_task_scheduler&            common_task_sched_,
+                                               cu_cp_ng_setup_complete_notifier* ng_setup_notifier_) :
   ngaps(ngaps_),
   cu_cp_notifier(cu_cp_notifier_),
   timers(timers_),
   cu_cp_exec(cu_cp_exec_),
   common_task_sched(common_task_sched_),
-  logger(ocudulog::fetch_basic_logger("CU-CP"))
+  logger(ocudulog::fetch_basic_logger("CU-CP")),
+  ng_setup_notifier(ng_setup_notifier_)
 {
 }
 
@@ -39,7 +41,7 @@ void amf_connection_manager::connect_to_amf(std::promise<bool>* completion_signa
         CORO_BEGIN(ctx);
 
         // Launch procedure to initiate AMF connection.
-        CORO_AWAIT_VALUE(success, start_amf_connection_setup(ngaps, amfs_connected));
+        CORO_AWAIT_VALUE(success, start_amf_connection_setup(ngaps, amfs_connected, ng_setup_notifier));
 
         // Signal through the promise the result of the connection setup.
         if (p != nullptr) {

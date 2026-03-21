@@ -55,6 +55,27 @@ bool ocudu::csi_helper::is_csi_rs_period_valid(csi_resource_periodicity       cs
          csi_opt_msec.end();
 }
 
+[[nodiscard]] bool ocudu::csi_helper::are_sr_and_csi_pucchs_scheduled_together(unsigned sr_period,
+                                                                               unsigned sr_offset,
+                                                                               unsigned csi_period,
+                                                                               unsigned csi_offset)
+{
+  // The CSI and SR offsets collide if there exists a slot index s such that:
+  // - s = sr_offset mod sr_period
+  // - s = csi_offset mod csi_period
+  // We use the Chinese Remainder Theorem to check whether a solution for s exists.
+  const unsigned g = std::gcd(sr_period, csi_period);
+  if (g == 1) {
+    // If both periods are coprime, CRT states there is always a solution for s for any choice of offsets.
+    return true;
+  }
+
+  // Else, generalized CRT states there is a solution if and only if: i mod gcd(X, Y) = j mod gcd(X, Y), where:
+  //  - i and j are the offsets for SR and CSI, respectively.
+  //  - X and Y are the periods for SR and CSI, respectively.
+  return (sr_offset % g) == (csi_offset % g);
+}
+
 std::optional<csi_resource_periodicity>
 ocudu::csi_helper::find_valid_csi_rs_period(const tdd_ul_dl_config_common& tdd_cfg)
 {
@@ -175,7 +196,7 @@ static zp_csi_rs_resource make_default_zp_csi_rs_resource(const csi_meas_config_
 
   zp_csi_rs_resource res{};
   res.id = static_cast<zp_csi_rs_res_id_t>(0);
-  // [Implementation-defined] The reason for using row 4 of Table 7.4.1.5.3-1 in TS 38.221 even in case of nof. ports <
+  // [Implementation-defined] The reason for using row 4 of Table 7.4.1.5.3-1 in TS 38.211 even in case of nof. ports <
   // 4 is due to some RUs not supporting more than 1 ZP CSI-RS resource per symbol. Also, the specification does not
   // restrict from using row 4 even in case of nof. ports < 4.
   // Freq Alloc -> Row4.

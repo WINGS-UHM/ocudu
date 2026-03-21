@@ -8,13 +8,14 @@
 #include "ocudu/ran/csi_rs/csi_rs_config_helpers.h"
 #include "ocudu/ran/pdcch/pdcch_candidates.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/sr_configuration.h"
 #include "ocudu/ran/srs/srs_bandwidth_configuration.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
+#include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/sched_consts.h"
 #include "ocudu/support/config/validator_helpers.h"
-#include <numeric>
 
 using namespace ocudu;
 
@@ -22,21 +23,6 @@ using namespace ocudu;
   if (std::find_if(id_list.begin(), id_list.end(), cond_lambda) == id_list.end()) {                                    \
     return make_unexpected(fmt::format(__VA_ARGS__));                                                                  \
   }
-
-static bool
-csi_offset_colliding_with_sr(unsigned sr_offset, unsigned csi_offset, unsigned sr_period, unsigned csi_period)
-{
-  unsigned lcm_csi_sr_period = std::lcm(sr_period, csi_period);
-  for (unsigned csi_off = csi_offset; csi_off < lcm_csi_sr_period; csi_off += csi_period) {
-    for (unsigned sr_off = sr_offset; sr_off < lcm_csi_sr_period; sr_off += sr_period) {
-      if (csi_off == sr_off) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
 
 validator_result config_validators::validate_pdcch_cfg(const serving_cell_config& ue_cell_cfg,
                                                        const dl_config_common&    dl_cfg_common)
@@ -144,7 +130,8 @@ validator_result config_validators::validate_pdsch_cfg(const serving_cell_config
 validator_result config_validators::validate_pucch_cfg(const serving_cell_config&         ue_cell_cfg,
                                                        const std::vector<pucch_resource>& cell_pucch_res_list,
                                                        const pucch_config_common&         pucch_cfg_common,
-                                                       unsigned                           nof_dl_antennas)
+                                                       unsigned                           nof_dl_antennas,
+                                                       unsigned                           max_pucch_payload)
 {
   VERIFY(ue_cell_cfg.ul_config.has_value() and ue_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value(),
          "Missing configuration for uplinkConfig or pucch-Config in spCellConfig");
@@ -365,15 +352,13 @@ validator_result config_validators::validate_pucch_cfg(const serving_cell_config
            "PUCCH resource used for CSI is expected to be Format 2, Format 3 or Format 4");
 
     // Verify the CSI/SR bits do not exceed the PUCCH F2/F3/F4 payload.
-    unsigned       pucch_f2_f3_f4_max_payload = pucch_cfg.get_max_payload(csi_pucch_res->format);
-    const auto     csi_report_cfg             = create_csi_report_configuration(ue_cell_cfg.csi_meas_cfg.value());
-    const unsigned csi_report_size            = get_csi_report_pucch_size(csi_report_cfg).part1_size.value();
-    unsigned       sr_offset                  = pucch_cfg.sr_res_list.front().offset;
-    const bool     csi_sr_collision =
-        csi_offset_colliding_with_sr(sr_offset,
-                                     csi.report_slot_offset,
-                                     sr_periodicity_to_slot(pucch_cfg.sr_res_list.front().period),
-                                     csi_report_periodicity_to_uint(csi.report_slot_period));
+    const auto     csi_report_cfg   = create_csi_report_configuration(ue_cell_cfg.csi_meas_cfg.value());
+    const unsigned csi_report_size  = get_csi_report_pucch_size(csi_report_cfg).part1_size.value();
+    const bool     csi_sr_collision = csi_helper::are_sr_and_csi_pucchs_scheduled_together(
+        sr_periodicity_to_slot(pucch_cfg.sr_res_list.front().period),
+        pucch_cfg.sr_res_list.front().offset,
+        csi_report_periodicity_to_uint(csi.report_slot_period),
+        csi.report_slot_offset);
 
     // Verify that, with Format 0 and Format 2, the CSI and SR don't fall on the same slot(s).
     if (pucch_res_sr->format == pucch_format::FORMAT_0 and csi_pucch_res->format == pucch_format::FORMAT_2) {
@@ -387,10 +372,10 @@ validator_result config_validators::validate_pucch_cfg(const serving_cell_config
     // In the PUCCH resource for CSI, there are no HARQ-ACK bits being reported; therefore we only need to check where
     // the CSI + SR bits fit into the max payload.
     const unsigned uci_bits_pucch_resource = csi_report_size + sr_bits_mplexed_with_csi;
-    VERIFY(pucch_f2_f3_f4_max_payload >= uci_bits_pucch_resource,
+    VERIFY(max_pucch_payload >= uci_bits_pucch_resource,
            "UCI num. of bits ({}) exceeds the maximum CSI's PUCCH Format 2/3/4 payload ({})",
            uci_bits_pucch_resource,
-           pucch_f2_f3_f4_max_payload);
+           max_pucch_payload);
 
     // TODO: handle the cases of F0+F3 and F0+F4.
     if (has_format_0 and has_format_2) {

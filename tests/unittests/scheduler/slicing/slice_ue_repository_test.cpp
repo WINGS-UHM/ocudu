@@ -143,7 +143,7 @@ TEST_F(slice_ue_repository_test, if_sr_detected_and_no_pending_bsr_data_then_pen
   du_ue_index_t ue_idx = to_du_ue_index(0);
   add_ue(ue_idx);
 
-  ue_db[ue_idx].handle_sr_indication();
+  ue_db[ue_idx].handle_sr_indication(next_slot);
   ASSERT_GT((*slices[SRB_RAN_SLICE_ID.value()])[ue_idx].pending_ul_newtx_bytes(), 0);
   ASSERT_EQ((*slices[DEFAULT_DRB_RAN_SLICE_ID.value()])[ue_idx].pending_ul_newtx_bytes(), 0);
   ASSERT_EQ((*slices[ran_slice_id_t{2}.value()])[ue_idx].pending_ul_newtx_bytes(), 0);
@@ -157,7 +157,7 @@ TEST_F(slice_ue_repository_test,
   const unsigned bsr_val = 1000;
   ue_db[ue_idx].handle_bsr_indication(create_short_bsr(ue_idx, ul_bsr_lcg_report_list{{lcg_id_t{1}, bsr_val}}));
 
-  ue_db[ue_idx].handle_sr_indication();
+  ue_db[ue_idx].handle_sr_indication(next_slot);
   ASSERT_EQ((*slices[SRB_RAN_SLICE_ID.value()])[ue_idx].pending_ul_newtx_bytes(), 0);
   ASSERT_GE((*slices[DEFAULT_DRB_RAN_SLICE_ID.value()])[ue_idx].pending_ul_newtx_bytes(), bsr_val);
   ASSERT_EQ((*slices[ran_slice_id_t{2}.value()])[ue_idx].pending_ul_newtx_bytes(), 0);
@@ -182,7 +182,7 @@ TEST_F(
   pusch.tb_size_bytes = units::bytes{2000};
   h_ul->save_grant_params(ctxt, pusch);
 
-  ue_db[ue_idx].handle_sr_indication();
+  ue_db[ue_idx].handle_sr_indication(next_slot);
   ASSERT_GT((*slices[SRB_RAN_SLICE_ID.value()])[ue_idx].pending_ul_newtx_bytes(), 0);
   ASSERT_EQ((*slices[DEFAULT_DRB_RAN_SLICE_ID.value()])[ue_idx].pending_ul_newtx_bytes(), 0);
   ASSERT_EQ((*slices[ran_slice_id_t{2}.value()])[ue_idx].pending_ul_newtx_bytes(), 0);

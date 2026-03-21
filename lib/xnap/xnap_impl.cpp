@@ -4,7 +4,9 @@
 
 #include "xnap_impl.h"
 #include "log_helpers.h"
+#include "procedures/sn_status_transfer_asn1_helpers.h"
 #include "procedures/xn_handover_asn1_helpers.h"
+#include "procedures/xn_setup_asn1_helpers.h"
 #include "procedures/xn_setup_procedure.h"
 #include "procedures/xn_setup_procedure_asn1_helpers.h"
 #include "procedures/xnap_sn_status_transfer_procedure.h"
@@ -23,13 +25,15 @@ using namespace ocudu;
 using namespace asn1::xnap;
 using namespace ocucp;
 
-xnap_impl::xnap_impl(const xnap_configuration&              xnap_cfg_,
+xnap_impl::xnap_impl(xnc_peer_index_t                       xnc_index_,
+                     const xnap_configuration&              xnap_cfg_,
                      xnap_cu_cp_notifier&                   cu_cp_notifier_,
                      std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
                      timer_manager&                         timers_,
                      task_executor&                         ctrl_exec_) :
   logger(ocudulog::fetch_basic_logger("XNAP")),
   ue_ctxt_list(timers_, ctrl_exec_, logger),
+  xnc_index(xnc_index_),
   xnap_cfg(xnap_cfg_),
   cu_cp_notifier(cu_cp_notifier_),
   timers(timers_),
@@ -70,6 +74,16 @@ void xnap_impl::handle_message(const xnap_message& msg)
   }
 }
 
+void xnap_impl::remove_ue_context(ue_index_t ue_index)
+{
+  if (!ue_ctxt_list.contains(ue_index)) {
+    logger.debug("ue={}: UE context not found", ue_index);
+    return;
+  }
+
+  ue_ctxt_list.remove_ue_context(ue_index);
+}
+
 void xnap_impl::handle_initiating_message(const init_msg_s& msg)
 {
   switch (msg.value.type().value) {
@@ -84,6 +98,9 @@ void xnap_impl::handle_initiating_message(const init_msg_s& msg)
       break;
     case xnap_elem_procs_o::init_msg_c::types_opts::sn_status_transfer:
       handle_sn_status_transfer(msg.value.sn_status_transfer());
+      break;
+    case xnap_elem_procs_o::init_msg_c::types_opts::ue_context_release:
+      handle_ue_context_release(msg.value.ue_context_release());
       break;
     default:
       logger.error("Initiating message of type {} is not supported", msg.value.type().to_string());
@@ -125,16 +142,27 @@ void xnap_impl::handle_unsuccessful_outcome(const unsuccessful_outcome_s& outcom
 async_task<bool> xnap_impl::handle_xn_setup_request_required()
 {
   return launch_async<xn_setup_procedure>(
-      xnap_cfg, tx_notifier, xn_setup_outcome, timer_factory{timers, ctrl_exec}, logger);
+      xnap_cfg, peer_ctxt, tx_notifier, xn_setup_outcome, timer_factory{timers, ctrl_exec}, logger);
 }
 
-void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
+void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& request)
 {
-  // TODO check XN setup request is a valid message.
+  xnap_message xn_setup_result;
 
-  xnap_message xn_setup_resp = generate_asn1_xn_setup_response(xnap_cfg);
+  // Message content validation.
+  auto msgerr = validate_xn_setup_request_response(request);
+  if (not msgerr.has_value()) {
+    logger.warning("Rejecting XN Setup Request. Cause: {}", msgerr.error().second);
+    xn_setup_result = generate_asn1_xn_setup_failure(asn1_to_cause(msgerr.error().first));
+  } else {
+    // Store peer context information.
+    peer_ctxt = create_peer_xnap_context(request);
+    // Generate XN Setup Response.
+    xn_setup_result = generate_asn1_xn_setup_response(xnap_cfg);
+  }
 
-  if (not tx_notifier.on_new_message(xn_setup_resp)) {
+  // Transmit XN Setup Response/Failure.
+  if (not tx_notifier.on_new_message(xn_setup_result)) {
     logger.error("Failed to send XN Setup Response. Cause: no SCTP association available");
   }
 }
@@ -142,12 +170,13 @@ void xnap_impl::handle_xn_setup_request(const xn_setup_request_s& msg)
 void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
 {
   // Add lambda that generates and transmits Handover Preparation Failure message.
-  auto send_handover_failure = [this](uint64_t local_xnap_ue_id, xnap_cause_t cause) {
+  auto send_handover_failure = [this](uint64_t peer_xnap_ue_id, xnap_cause_t cause) {
     xnap_message xnap_msg;
     xnap_msg.pdu.set_unsuccessful_outcome();
     xnap_msg.pdu.unsuccessful_outcome().load_info_obj(ASN1_XNAP_ID_HO_PREP);
-    auto& ho_fail                           = xnap_msg.pdu.unsuccessful_outcome().value.ho_prep_fail();
-    ho_fail->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id;
+    auto& ho_fail = xnap_msg.pdu.unsuccessful_outcome().value.ho_prep_fail();
+    // This is sent from the target to the source, so the peer XNAP UE ID is the source UE ID.
+    ho_fail->source_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id;
     ho_fail->cause                          = cause_to_asn1(cause);
 
     if (!tx_notifier.on_new_message(xnap_msg)) {
@@ -167,7 +196,7 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
     return;
   }
 
-  logger.info("HandoverRequest - extracted target cell. plmn={}, target cell_id={}",
+  logger.info("HandoverRequest - extracted target cell. plmn={}, target cell_id=0x{:x}",
               ho_request.nr_cgi.plmn_id,
               ho_request.nr_cgi.nci);
 
@@ -191,6 +220,7 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
   if (!cu_cp_notifier.schedule_async_task(ho_request.ue_index,
                                           launch_async<xnap_target_handover_preparation_procedure>(
                                               ho_request,
+                                              xnc_index,
                                               uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id),
                                               ue_ctxt_list,
                                               cu_cp_notifier,
@@ -204,12 +234,14 @@ void xnap_impl::handle_handover_request(const asn1::xnap::ho_request_s& msg)
 
 void xnap_impl::handle_handover_cancel(const asn1::xnap::ho_cancel_s& msg)
 {
-  if (!ue_ctxt_list.contains(uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id))) {
+  // This is sent from the source to the target, so the source XNAP UE ID is the peer UE ID.
+  peer_xnap_ue_id_t peer_xnap_ue_id = uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id);
+  if (!ue_ctxt_list.contains(peer_xnap_ue_id)) {
     logger.info("Received HandoverCancel for unknown UE. peer_xnap_ue_id={}", msg->source_ng_ra_nnode_ue_xn_ap_id);
     return;
   }
 
-  ue_index_t ue_index = ue_ctxt_list[uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id)].ue_ids.ue_index;
+  ue_index_t ue_index = ue_ctxt_list[peer_xnap_ue_id].ue_ids.ue_index;
 
   // Request CU-CP to release the UE context.
   cu_cp_notifier.on_handover_cancel_received(ue_index);
@@ -220,16 +252,39 @@ void xnap_impl::handle_handover_cancel(const asn1::xnap::ho_cancel_s& msg)
 
 void xnap_impl::handle_sn_status_transfer(const asn1::xnap::sn_status_transfer_s& msg)
 {
-  if (!ue_ctxt_list.contains(uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id))) {
+  // This is sent from the source to the target, so the source XNAP UE ID is the peer UE ID and the target XNAP UE ID is
+  // the local UE ID.
+  peer_xnap_ue_id_t peer_xnap_ue_id = uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id);
+
+  if (!ue_ctxt_list.contains(peer_xnap_ue_id)) {
     logger.warning("peer_xnap_ue={} local_xnap_ue={}: Dropping SNStatusTransfer. UE context does not exist",
                    msg->source_ng_ra_nnode_ue_xn_ap_id,
                    msg->target_ng_ra_nnode_ue_xn_ap_id);
     return;
   }
 
-  xnap_ue_context& ue_ctxt = ue_ctxt_list[uint_to_peer_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id)];
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[peer_xnap_ue_id];
 
   ue_ctxt.sn_status_transfer_outcome.set(msg);
+}
+
+void xnap_impl::handle_ue_context_release(const asn1::xnap::ue_context_release_s& msg)
+{
+  // This is sent from the target to the source, so the source XNAP UE ID is the local UE ID and the target XNAP UE ID
+  // is the peer UE ID.
+  local_xnap_ue_id_t local_xnap_ue_id = uint_to_local_xnap_ue_id(msg->source_ng_ra_nnode_ue_xn_ap_id);
+
+  if (!ue_ctxt_list.contains(local_xnap_ue_id)) {
+    logger.warning("local_xnap_ue={} peer_xnap_ue={}: Dropping UEContextRelease. UE context does not exist",
+                   msg->source_ng_ra_nnode_ue_xn_ap_id,
+                   msg->target_ng_ra_nnode_ue_xn_ap_id);
+    return;
+  }
+
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[local_xnap_ue_id];
+
+  // Request CU-CP to release the UE context.
+  cu_cp_notifier.on_ue_context_release_received(ue_ctxt.ue_ids.ue_index);
 }
 
 async_task<xnap_handover_preparation_response>
@@ -239,27 +294,49 @@ xnap_impl::handle_handover_request_required(const xnap_handover_request& request
     // Allocate new local XNAP UE context if it doesn't exist.
     local_xnap_ue_id_t local_xnap_ue_id = ue_ctxt_list.allocate_local_xnap_ue_id();
     if (local_xnap_ue_id == local_xnap_ue_id_t::invalid) {
-      logger.error("Failed to allocate XNAP UE ID for ue={}. Cannot handle HandoverPreparationRequest",
+      logger.error("Failed to allocate XNAP UE ID for ue={}. Cannot transmit HandoverPreparationRequest",
                    request.ue_index);
       return launch_no_op_task(xnap_handover_preparation_response{false});
     }
     ue_ctxt_list.add_ue(request.ue_index, local_xnap_ue_id);
   }
 
-  xnap_ue_context& ue_ctxt = ue_ctxt_list[request.ue_index];
+  ue_ctxt_list[request.ue_index].logger.log_debug("Starting HO source preparation");
 
-  ue_ctxt.logger.log_debug("Starting HO source preparation");
-
-  return launch_async<xnap_source_handover_preparation_procedure>(request,
-                                                                  ue_ctxt.ue_ids.local_xnap_ue_id,
-                                                                  tx_notifier,
-                                                                  cu_cp_notifier,
-                                                                  ue_ctxt.xn_handover_outcome,
-                                                                  timer_factory{timers, ctrl_exec},
-                                                                  ue_ctxt.logger);
+  return launch_async<xnap_source_handover_preparation_procedure>(
+      request, ue_ctxt_list, tx_notifier, cu_cp_notifier, timer_factory{timers, ctrl_exec});
 }
 
-async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer_required(ue_index_t ue_index)
+void xnap_impl::handle_sn_status_transfer_required(const cu_cp_status_transfer& sn_status_transfer)
+{
+  const ue_index_t ue_index = sn_status_transfer.ue_index;
+  if (!ue_ctxt_list.contains(ue_index)) {
+    logger.warning("ue={}: Cannot transmit SNStatusTransfer. UE context does not exist", ue_index);
+    return;
+  }
+
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
+
+  xnap_message xnap_msg = {};
+  xnap_msg.pdu.set_init_msg();
+  xnap_msg.pdu.init_msg().load_info_obj(ASN1_XNAP_ID_S_N_STATUS_TRANSFER);
+
+  sn_status_transfer_s& asn1_sn_status = xnap_msg.pdu.init_msg().value.sn_status_transfer();
+  // This is sent from the source to the target, so the source XNAP UE ID is the local UE ID and the target XNAP UE ID
+  // is the peer UE ID.
+  asn1_sn_status->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(ue_ctxt.ue_ids.local_xnap_ue_id);
+  asn1_sn_status->target_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(ue_ctxt.ue_ids.peer_xnap_ue_id);
+
+  sn_status_transfer_to_asn1(asn1_sn_status, sn_status_transfer.drbs_subject_to_status_transfer_list);
+
+  // Forward message to XN-C peer CU-CP.
+  if (!tx_notifier.on_new_message(xnap_msg)) {
+    ue_ctxt.logger.log_warning("XN-C association is not set. Cannot send SNStatusTransfer");
+    return;
+  }
+}
+
+async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer_expected(ue_index_t ue_index)
 {
   if (!ue_ctxt_list.contains(ue_index)) {
     logger.warning("ue={}: Cannot await SNStatusTransfer. UE context does not exist", ue_index);
@@ -269,4 +346,35 @@ async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer
 
   xnap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
   return launch_async<xnap_sn_status_transfer_procedure>(ue_ctxt.sn_status_transfer_outcome, ue_ctxt.logger);
+}
+
+bool xnap_impl::handle_ue_context_release_required(ue_index_t ue_index)
+{
+  if (!ue_ctxt_list.contains(ue_index)) {
+    logger.warning("ue={}: Cannot transmit UEContextReleaseRequest. UE context does not exist", ue_index);
+    return false;
+  }
+
+  xnap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
+
+  xnap_message xnap_msg = {};
+  xnap_msg.pdu.set_init_msg();
+  xnap_msg.pdu.init_msg().load_info_obj(ASN1_XNAP_ID_U_E_CONTEXT_RELEASE);
+
+  ue_context_release_s& ue_ctxt_release = xnap_msg.pdu.init_msg().value.ue_context_release();
+  // This is sent from the target to the source, so the local XNAP UE ID is the target and the peer XNAP UE ID is the
+  // source.
+  ue_ctxt_release->source_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(ue_ctxt.ue_ids.peer_xnap_ue_id);
+  ue_ctxt_release->target_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(ue_ctxt.ue_ids.local_xnap_ue_id);
+
+  // Forward message to XN-C peer CU-CP.
+  if (!tx_notifier.on_new_message(xnap_msg)) {
+    ue_ctxt.logger.log_warning("XN-C association is not set. Cannot send UEContextReleaseRequest");
+    return false;
+  }
+
+  // Remove UE context locally as well, as no further messages for this UE are expected.
+  ue_ctxt_list.remove_ue_context(ue_index);
+
+  return true;
 }

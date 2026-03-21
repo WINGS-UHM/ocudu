@@ -314,12 +314,23 @@ static void configure_cli11_ru_ofh_cells_args(CLI::App& app, ru_ofh_unit_cell_co
       ->check(CLI::Range(1500, 9600));
   add_option(app, "--ru_mac_addr", config.ru_mac_address, "Radio Unit MAC address")->capture_default_str();
   add_option(app, "--du_mac_addr", config.du_mac_address, "Distributed Unit MAC address")->capture_default_str();
-  add_option(app, "--vlan_tag_cp", config.vlan_tag_cp, "C-Plane V-LAN identifier")
+
+  auto* vlan_tag_cp_opt = add_option(app, "--vlan_tag_cp", config.vlan_tag_cp, "C-Plane VLAN identifier")
+                              ->capture_default_str()
+                              ->check(CLI::Range(1, 4094));
+  auto* vlan_tag_up_opt = add_option(app, "--vlan_tag_up", config.vlan_tag_up, "U-Plane VLAN identifier")
+                              ->capture_default_str()
+                              ->check(CLI::Range(1, 4094));
+
+  add_option(app, "--vlan_pcp_cp", config.vlan_pcp_cp, "C-Plane VLAN PCP")
       ->capture_default_str()
-      ->check(CLI::Range(1, 4094));
-  add_option(app, "--vlan_tag_up", config.vlan_tag_up, "U-Plane V-LAN identifier")
+      ->check(CLI::Range(0, 7))
+      ->needs(vlan_tag_cp_opt);
+  add_option(app, "--vlan_pcp_up", config.vlan_pcp_up, "U-Plane VLAN PCP")
       ->capture_default_str()
-      ->check(CLI::Range(1, 4094));
+      ->check(CLI::Range(0, 7))
+      ->needs(vlan_tag_up_opt);
+
   add_option(app, "--prach_port_id", config.ru_prach_port_id, "RU PRACH port identifier")->capture_default_str();
   add_option(app, "--dl_port_id", config.ru_dl_port_id, "RU downlink port identifier")->capture_default_str();
   add_option(app, "--ul_port_id", config.ru_ul_port_id, "RU uplink port identifier")->capture_default_str();

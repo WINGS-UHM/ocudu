@@ -21,6 +21,7 @@
 #include "procedures/ngap_ue_context_release_procedure.h"
 #include "ocudu/asn1/ngap/common.h"
 #include "ocudu/asn1/ngap/ngap.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ngap/ngap_setup.h"
 #include "ocudu/ngap/ngap_types.h"
@@ -235,7 +236,7 @@ void ngap_impl::handle_ul_nas_transport_message(const cu_cp_ul_nas_transport& ms
   }));
 }
 
-void ngap_impl::handle_location_report_transmission(const ngap_location_report& msg)
+void ngap_impl::handle_location_report_transmission(const location_report& msg)
 {
   if (!ue_ctxt_list.contains(msg.ue_index)) {
     logger.warning("ue={}: Dropping Location Report message. UE context does not exist", msg.ue_index);
@@ -281,8 +282,7 @@ void ngap_impl::handle_location_report_transmission(const ngap_location_report& 
   }
 }
 
-void ngap_impl::handle_location_reporting_failure_indication_transmission(
-    const ngap_location_report_failure_indication& msg)
+void ngap_impl::handle_location_reporting_failure_indication_transmission(const location_report_failure_indication& msg)
 {
   if (!ue_ctxt_list.contains(msg.ue_index)) {
     logger.warning("ue={}: Dropping Location Reporting Failure Indication. UE context does not exist", msg.ue_index);
@@ -1053,8 +1053,8 @@ void ngap_impl::handle_location_reporting_control_message(const asn1::ngap::loca
     handle_inconsistent_ue_id_pair(uint_to_ran_ue_id(msg->ran_ue_ngap_id), uint_to_amf_ue_id(msg->amf_ue_ngap_id));
     return;
   }
-  ue_index_t                   ue_index = ue_ctxt_list[uint_to_ran_ue_id(msg->ran_ue_ngap_id)].ue_ids.ue_index;
-  ngap_location_report_request location_reporting_ctrl;
+  ue_index_t              ue_index = ue_ctxt_list[uint_to_ran_ue_id(msg->ran_ue_ngap_id)].ue_ids.ue_index;
+  location_report_request location_reporting_ctrl;
 
   fill_ngap_location_report_request(location_reporting_ctrl, msg);
   cu_cp_notifier.on_location_reporting_control_message(ue_index, location_reporting_ctrl);

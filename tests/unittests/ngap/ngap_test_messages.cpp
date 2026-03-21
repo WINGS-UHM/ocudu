@@ -249,7 +249,7 @@ ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message(
     amf_ue_id_t                                               amf_ue_id,
     ran_ue_id_t                                               ran_ue_id,
     std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
-    std::optional<ngap_location_report_request>               location_reporting_request)
+    std::optional<location_report_request>                    location_reporting_request)
 {
   ngap_message ngap_msg = generate_initial_context_setup_request_base(amf_ue_id, ran_ue_id);
 

@@ -23,12 +23,13 @@ namespace ocudu::ocucp {
 
 /// \brief Context of a CU-CP UE.
 struct cu_cp_ue_context {
-  du_index_t                       du_idx    = du_index_t::invalid;
-  cu_up_index_t                    cu_up_idx = cu_up_index_t::invalid;
-  plmn_identity                    plmn      = plmn_identity::test_value();
-  gnb_du_id_t                      du_id     = gnb_du_id_t::invalid;
-  ue_index_t                       ue_index  = ue_index_t::invalid;
-  rnti_t                           crnti     = rnti_t::INVALID_RNTI;
+  du_index_t                       du_idx       = du_index_t::invalid;
+  cu_up_index_t                    cu_up_idx    = cu_up_index_t::invalid;
+  xnc_peer_index_t                 xnc_peer_idx = xnc_peer_index_t::invalid;
+  plmn_identity                    plmn         = plmn_identity::test_value();
+  gnb_du_id_t                      du_id        = gnb_du_id_t::invalid;
+  ue_index_t                       ue_index     = ue_index_t::invalid;
+  rnti_t                           crnti        = rnti_t::INVALID_RNTI;
   cu_cp_aggregate_maximum_bit_rate ue_ambr;
   /// \brief Flag to disable new UE reconfigurations. This can be used, for instance, to reconfigure UE contexts
   /// that are in the process of handover.
@@ -151,6 +152,9 @@ public:
   /// \brief Get the CU-UP index of the UE.
   [[nodiscard]] cu_up_index_t get_cu_up_index() const override { return ue_ctxt.cu_up_idx; }
 
+  /// \brief Get the XN-C peer index of the UE.
+  [[nodiscard]] xnc_peer_index_t get_xnc_peer_index() const override { return ue_ctxt.xnc_peer_idx; }
+
   /// \brief Get the PCell index of the UE.
   du_cell_index_t get_pcell_index() { return pcell_index; }
 
@@ -196,6 +200,9 @@ public:
 
   /// \brief Set the CU-UP index of the UE.
   void set_cu_up_index(cu_up_index_t cu_up_idx) { ue_ctxt.cu_up_idx = cu_up_idx; }
+
+  /// \brief Set the XN-C peer index of the UE.
+  void set_xnc_peer_index(xnc_peer_index_t xnc_peer_idx) { ue_ctxt.xnc_peer_idx = xnc_peer_idx; }
 
   /// \brief Get the NGAP RRC UE notifier of the UE.
   ngap_rrc_ue_notifier& get_ngap_rrc_ue_notifier() override { return ngap_rrc_ue_ev_notifier; }

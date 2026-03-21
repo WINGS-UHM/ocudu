@@ -14,7 +14,14 @@ class cu_cp_xnap_repository_test : public cu_cp_test_environment, public ::testi
 {
 public:
   cu_cp_xnap_repository_test() :
-    cu_cp_test_environment(cu_cp_test_env_params{}),
+    cu_cp_test_environment({/* max nof cu-ups */ 8,
+                            /* max nof dus */ 8,
+                            /* max nof ues */ 8192,
+                            /* max nof drbs per ue */ 8,
+                            /* amf config */ {{default_supported_tracking_area}},
+                            /* trigger ho from measurements */ true,
+                            /* enable rrc inactive */ false,
+                            /* enable xnc peer */ true}),
     xnap_db(xnap_repository_config{get_cu_cp_cfg(), cu_cp_xnap_handler, test_logger})
   {
   }

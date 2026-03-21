@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ocudu/cu_up/cu_up_e1_setup_notifier.h"
 #include "ocudu/cu_up/cu_up_executor_mapper.h"
 #include "ocudu/e1ap/cu_up/e1ap_configuration.h"
 #include "ocudu/e1ap/cu_up/e1ap_cu_up.h"
@@ -89,6 +90,8 @@ struct cu_up_dependencies {
   e1_connection_client* e1_conn_client = nullptr;
   /// NG-U gateways
   std::vector<gtpu_gateway*> ngu_gws;
+  /// Optional notifier invoked once after a successful E1 Setup.
+  cu_up_e1_setup_complete_notifier* e1_setup_notifier = nullptr;
 };
 
 } // namespace ocuup

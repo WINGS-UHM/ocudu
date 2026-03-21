@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ocudu/cu_cp/cu_cp.h"
+#include "ocudu/cu_cp/cu_cp_ng_setup_notifier.h"
 #include "ocudu/cu_cp/cu_cp_operation_controller.h"
 #include "ocudu/cu_cp/o_cu_cp.h"
 #include "ocudu/e2/e2.h"
@@ -39,7 +40,9 @@ private:
 class o_cu_cp_with_e2_impl : public o_cu_cp_impl
 {
 public:
-  o_cu_cp_with_e2_impl(std::unique_ptr<e2_agent> e2agent_, std::unique_ptr<cu_cp> cu_cp_);
+  o_cu_cp_with_e2_impl(std::unique_ptr<e2_agent>                         e2agent_,
+                       std::unique_ptr<cu_cp>                            cu_cp_,
+                       std::unique_ptr<cu_cp_ng_setup_complete_notifier> ng_setup_adapter_);
 
   // See interface for documentation.
   void start() override;
@@ -48,7 +51,8 @@ public:
   void stop() override;
 
 private:
-  std::unique_ptr<e2_agent> e2agent;
+  std::unique_ptr<cu_cp_ng_setup_complete_notifier> ng_setup_e2_adapter;
+  std::unique_ptr<e2_agent>                         e2agent;
 };
 
 } // namespace ocucp

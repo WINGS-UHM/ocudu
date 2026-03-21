@@ -45,7 +45,7 @@ pusch_config_params ocudu::get_pusch_config_f0_0_tc_rnti(const cell_configuratio
 
   pusch_config_params pusch;
 
-  pusch.dmrs = make_dmrs_info_common(pusch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos);
+  pusch.dmrs = make_dmrs_info_common(pusch_td_cfg, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos);
 
   pusch.symbols = pusch_td_cfg.symbols;
 
@@ -78,7 +78,7 @@ pusch_config_params ocudu::get_pusch_config_f0_0_c_rnti(const cell_configuration
 
   pusch_config_params pusch;
 
-  pusch.dmrs = make_dmrs_info_common(pusch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos);
+  pusch.dmrs = make_dmrs_info_common(pusch_td_cfg, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos);
 
   pusch.symbols = pusch_td_cfg.symbols;
 
@@ -134,11 +134,11 @@ pusch_config_params ocudu::get_pusch_config_f0_1_c_rnti(const ue_cell_configurat
   ocudu_assert(ue_cell_cfg.init_bwp().ul_ded->pusch_cfg->pusch_mapping_type_a_dmrs.has_value(),
                "No DMRS configured in PUSCH configuration");
   pusch.dmrs = make_dmrs_info_dedicated(pusch_td_cfg,
-                                        ue_cell_cfg.cell_cfg_common.pci,
-                                        ue_cell_cfg.cell_cfg_common.dmrs_typeA_pos,
+                                        ue_cell_cfg.cell_cfg_common.params.pci,
+                                        ue_cell_cfg.cell_cfg_common.params.dmrs_typeA_pos,
                                         ue_cell_cfg.init_bwp().ul_ded->pusch_cfg->pusch_mapping_type_a_dmrs.value(),
                                         nof_layers,
-                                        ue_cell_cfg.cell_cfg_common.ul_carrier.nof_ant,
+                                        ue_cell_cfg.cell_cfg_common.params.ul_carrier.nof_ant,
                                         are_both_cws_enabled);
 
   pusch.symbols = pusch_td_cfg.symbols;
@@ -183,7 +183,7 @@ void ocudu::build_pdsch_f1_0_si_rnti(pdsch_information&                   pdsch,
                                      const ofdm_symbol_range&             symbols,
                                      const dmrs_information&              dmrs_info)
 {
-  const bwp_downlink_common& bwp_dl = cell_cfg.dl_cfg_common.init_dl_bwp;
+  const bwp_downlink_common& bwp_dl = cell_cfg.params.dl_cfg_common.init_dl_bwp;
   const vrb_interval         vrbs =
       crb_to_vrb_f1_0_common_ss_non_interleaved(crbs, bwp_dl.pdcch_common.coreset0->get_coreset_start_crb());
 
@@ -193,7 +193,7 @@ void ocudu::build_pdsch_f1_0_si_rnti(pdsch_information&                   pdsch,
   pdsch.symbols     = symbols;
   pdsch.rbs         = vrbs;
   // As per TS 38.211, Section 7.3.1.1, n_ID is set to Physical Cell ID for SIB1.
-  pdsch.n_id       = cell_cfg.pci;
+  pdsch.n_id       = cell_cfg.params.pci;
   pdsch.nof_layers = 1;
 
   pdsch_codeword& cw    = pdsch.codewords.emplace_back();
@@ -227,7 +227,7 @@ void ocudu::build_pdsch_f1_0_p_rnti(pdsch_information&                  pdsch,
                                     const ofdm_symbol_range&            symbols,
                                     const dmrs_information&             dmrs_info)
 {
-  const bwp_downlink_common&        bwp_dl = cell_cfg.dl_cfg_common.init_dl_bwp;
+  const bwp_downlink_common&        bwp_dl = cell_cfg.params.dl_cfg_common.init_dl_bwp;
   const search_space_configuration& ss_cfg =
       bwp_dl.pdcch_common.search_spaces[*bwp_dl.pdcch_common.paging_search_space_id];
   const coreset_configuration& cs_cfg =
@@ -241,7 +241,7 @@ void ocudu::build_pdsch_f1_0_p_rnti(pdsch_information&                  pdsch,
   pdsch.symbols     = symbols;
   pdsch.rbs         = vrbs;
   // As per TS 38.211, Section 7.3.1.1, n_ID is set to Physical Cell ID.
-  pdsch.n_id       = cell_cfg.pci;
+  pdsch.n_id       = cell_cfg.params.pci;
   pdsch.nof_layers = 1;
 
   pdsch_codeword& cw    = pdsch.codewords.emplace_back();
@@ -273,16 +273,16 @@ void ocudu::build_pdsch_f1_0_ra_rnti(pdsch_information&                   pdsch,
                                      const crb_interval&                  crbs,
                                      const dmrs_information&              dmrs_info)
 {
-  const bwp_downlink_common&        bwp_dl = cell_cfg.dl_cfg_common.init_dl_bwp;
+  const bwp_downlink_common&        bwp_dl = cell_cfg.params.dl_cfg_common.init_dl_bwp;
   const search_space_configuration& ss_cfg = bwp_dl.pdcch_common.search_spaces[bwp_dl.pdcch_common.ra_search_space_id];
   const coreset_configuration&      cs_cfg =
       ss_cfg.get_coreset_id() == to_coreset_id(0) ? *bwp_dl.pdcch_common.coreset0 : *bwp_dl.pdcch_common.common_coreset;
   const vrb_interval vrbs = crb_to_vrb_f1_0_common_ss_non_interleaved(
-      crbs, cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->get_coreset_start_crb());
+      crbs, cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->get_coreset_start_crb());
   const auto& pdsch_td_res_alloc_list =
-      get_ra_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common,
-                                         cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp,
-                                         cell_cfg.dmrs_typeA_pos);
+      get_ra_rnti_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common,
+                                         cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                                         cell_cfg.params.dmrs_typeA_pos);
 
   pdsch.rnti        = rnti;
   pdsch.bwp_cfg     = &bwp_dl.generic_params;
@@ -299,7 +299,7 @@ void ocudu::build_pdsch_f1_0_ra_rnti(pdsch_information&                   pdsch,
 
   pdsch.dmrs = dmrs_info;
   // As per TS 38.211, Section 7.3.1.1, n_ID is set to Physical Cell ID for RA-RNTI.
-  pdsch.n_id            = cell_cfg.pci;
+  pdsch.n_id            = cell_cfg.params.pci;
   pdsch.nof_layers      = 1;
   pdsch.vrb_prb_mapping = vrb_to_prb::mapping_type::non_interleaved;
   pdsch.ss_set_type     = search_space_set_type::type1;
@@ -325,7 +325,7 @@ void ocudu::build_pdsch_f1_0_tc_rnti(pdsch_information&                   pdsch,
                                      const vrb_interval&                  vrbs,
                                      bool                                 is_new_data)
 {
-  const bwp_downlink_common& bwp_dl = cell_cfg.dl_cfg_common.init_dl_bwp;
+  const bwp_downlink_common& bwp_dl = cell_cfg.params.dl_cfg_common.init_dl_bwp;
 
   pdsch.rnti = rnti;
 
@@ -343,7 +343,7 @@ void ocudu::build_pdsch_f1_0_tc_rnti(pdsch_information&                   pdsch,
 
   pdsch.dmrs = pdsch_cfg.dmrs;
   // See TS 38.211, 7.3.1.1. - Scrambling.
-  pdsch.n_id            = cell_cfg.pci;
+  pdsch.n_id            = cell_cfg.params.pci;
   pdsch.vrb_prb_mapping = vrb_to_prb::mapping_type::non_interleaved;
   // See TS38.213, 10.1. - Type1-PDCCH CSS set for CRC scrambled by a TC-RNTI on the PCell.
   pdsch.ss_set_type = search_space_set_type::type1;
@@ -400,7 +400,8 @@ void ocudu::build_pdsch_f1_0_c_rnti(pdsch_information&                  pdsch,
   pdsch.harq_id = to_harq_id(dci_cfg.harq_process_number);
   // See TS 38.211, 7.3.1.1. - Scrambling.
   const bwp_downlink_dedicated* bwp_dl_ded = active_bwp.dl_ded.has_value() ? &*active_bwp.dl_ded.value() : nullptr;
-  pdsch.n_id = get_pdsch_n_id(cell_cfg.pci, bwp_dl_ded, dci_dl_format::f1_0, ss_info.cfg->is_common_search_space());
+  pdsch.n_id =
+      get_pdsch_n_id(cell_cfg.params.pci, bwp_dl_ded, dci_dl_format::f1_0, ss_info.cfg->is_common_search_space());
   pdsch.nof_layers = 1;
 
   // Populate power offsets.
@@ -455,7 +456,7 @@ void ocudu::build_pdsch_f1_1_c_rnti(pdsch_information&              pdsch,
   pdsch.dci_fmt     = dci_dl_format::f1_1;
   pdsch.harq_id     = to_harq_id(dci_cfg.harq_process_number);
   // See TS 38.211, 7.3.1.1. - Scrambling.
-  pdsch.n_id       = get_pdsch_n_id(cell_cfg.pci,
+  pdsch.n_id       = get_pdsch_n_id(cell_cfg.params.pci,
                               active_bwp.dl_ded.has_value() ? &*active_bwp.dl_ded.value() : nullptr,
                               dci_dl_format::f1_1,
                               ss_info.cfg->is_common_search_space());
@@ -505,7 +506,7 @@ void ocudu::build_pusch_f0_0_tc_rnti(pusch_information&                   pusch,
   pusch.rnti = rnti;
 
   // PUSCH resources.
-  pusch.bwp_cfg = &cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+  pusch.bwp_cfg = &cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
   pusch.rbs     = vrbs;
   pusch.symbols = pusch_cfg.symbols;
 
@@ -518,11 +519,11 @@ void ocudu::build_pusch_f0_0_tc_rnti(pusch_information&                   pusch,
   pusch.mcs_descr = pusch_mcs_get_config(pusch.mcs_table, pusch.mcs_index, pusch.transform_precoding, false);
 
   // As per TS 38.211, Section 6.3.1.1, n_ID is set to Physical Cell ID for TC-RNTI.
-  pusch.n_id       = cell_cfg.pci;
+  pusch.n_id       = cell_cfg.params.pci;
   pusch.nof_layers = pusch_cfg.nof_layers;
   pusch.dmrs       = pusch_cfg.dmrs;
   // TS 38.211, Section 6.4.1.1.1.2, n^RS_ID is set to to Physical Cell ID for TC-RNTI.
-  pusch.pusch_dmrs_id = cell_cfg.pci;
+  pusch.pusch_dmrs_id = cell_cfg.params.pci;
   pusch.rv_index      = dci_cfg.redundancy_version;
   // TS 38.321, 5.4.2.1 - "For UL transmission with UL grant in RA Response, HARQ process identifier 0 is used".
   pusch.harq_id  = to_harq_id(0);
@@ -568,9 +569,9 @@ void ocudu::build_pusch_f0_0_c_rnti(pusch_information&                  pusch,
   pusch.mcs_descr =
       pusch_mcs_get_config(pusch.mcs_table, pusch.mcs_index, pusch.transform_precoding, pusch_cfg.tp_pi2bpsk_present);
 
-  pusch.n_id          = cell_cfg.pci;
+  pusch.n_id          = cell_cfg.params.pci;
   pusch.dmrs          = pusch_cfg.dmrs;
-  pusch.pusch_dmrs_id = cell_cfg.pci;
+  pusch.pusch_dmrs_id = cell_cfg.params.pci;
 
   // TBS.
   pusch.nof_layers    = pusch_cfg.nof_layers;
@@ -624,8 +625,8 @@ void ocudu::build_pusch_f0_1_c_rnti(pusch_information&           pusch,
                                          ue_cell_cfg.use_pusch_transform_precoding_dci_0_1(),
                                          pusch_cfg.tp_pi2bpsk_present);
 
-  pusch.n_id          = cell_cfg.pci;
-  pusch.pusch_dmrs_id = cell_cfg.pci;
+  pusch.n_id          = cell_cfg.params.pci;
+  pusch.pusch_dmrs_id = cell_cfg.params.pci;
   if (opt_rach_cfg.has_value()) {
     pusch.transform_precoding = opt_rach_cfg.value().msg3_transform_precoder;
   }

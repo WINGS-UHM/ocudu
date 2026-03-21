@@ -8,6 +8,7 @@
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -77,7 +78,7 @@ public:
     if (bin.count() == 0) {
       return std::nullopt;
     }
-    unsigned draw_pos = test_rng::uniform_int<unsigned>(0, bin.count() - 1);
+    auto draw_pos = test_rng::uniform_int<unsigned>(0, bin.count() - 1);
     for (unsigned i = 0; i != N; ++i) {
       if (bin.test(i)) {
         if (draw_pos == 0) {
@@ -97,7 +98,7 @@ public:
     if (bin.count() == N) {
       return std::nullopt;
     }
-    unsigned readd_pos = test_rng::uniform_int<unsigned>(0, N - bin.count() - 1);
+    auto readd_pos = test_rng::uniform_int<unsigned>(0, N - bin.count() - 1);
     for (unsigned i = 0; i != N; ++i) {
       if (not bin.test(i)) {
         if (readd_pos == 0) {
@@ -140,7 +141,7 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
 {
   // This function generates a configuration which potentially allows for a very large number of SRS resources.
   du_cell_config du_cfg  = config_helpers::make_default_du_cell_config(params);
-  auto&          srs_cfg = du_cfg.ran.init_bwp_builder.srs_cfg;
+  auto&          srs_cfg = du_cfg.ran.init_bwp.srs_cfg;
 
   srs_cfg.srs_type_enabled = srs_type::aperiodic;
 
@@ -150,10 +151,8 @@ static du_cell_config make_srs_base_du_cell_config(const cell_config_builder_par
   constexpr std::array<srs_nof_symbols, 3> nof_symb_values = {
       srs_nof_symbols::n1, srs_nof_symbols::n2, srs_nof_symbols::n4};
   unsigned max_nof_symbols = srs_cfg.max_nof_symbols.value();
-  if (du_cfg.ran.tdd_ul_dl_cfg_common.has_value() and
-      du_cfg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0) {
-    max_nof_symbols =
-        std::min(du_cfg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols, srs_cfg.max_nof_symbols.value());
+  if (du_cfg.ran.tdd_cfg.has_value() and du_cfg.ran.tdd_cfg.value().pattern1.nof_ul_symbols != 0) {
+    max_nof_symbols = std::min(du_cfg.ran.tdd_cfg.value().pattern1.nof_ul_symbols, srs_cfg.max_nof_symbols.value());
   }
   srs_cfg.nof_symbols = nof_symb_values[test_rng::uniform_int<unsigned>(0, nof_symb_values.size() - 1)];
   while (srs_cfg.nof_symbols > max_nof_symbols) {
@@ -192,13 +191,13 @@ protected:
   explicit du_periodic_srs_res_mng_base_tester(const cell_config_builder_params& params_) :
     params(params_),
     cell_cfg_list({make_srs_base_du_cell_config(params_)}),
-    srs_params(cell_cfg_list[0].ran.init_bwp_builder.srs_cfg),
+    srs_params(cell_cfg_list[0].ran.init_bwp.srs_cfg),
     du_srs_res_mng(cell_cfg_list)
   {
     // We only run the test for 1 cell.
-    const auto& cell_cfg              = cell_cfg_list.front();
-    const bool  use_special_slot_only = cell_cfg.ran.tdd_ul_dl_cfg_common.has_value() and
-                                       (cell_cfg.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0);
+    const auto& cell_cfg = cell_cfg_list.front();
+    const bool  use_special_slot_only =
+        cell_cfg.ran.tdd_cfg.has_value() and (cell_cfg.ran.tdd_cfg.value().pattern1.nof_ul_symbols != 0);
     max_nof_cell_srs_res = generate_cell_srs_list(cell_cfg, use_special_slot_only).size();
   }
 
@@ -210,7 +209,8 @@ protected:
 
     cell_group_config                  cell_grp_cfg;
     std::unique_ptr<cell_group_config> cell_grp_cfg_ptr = std::make_unique<cell_group_config>();
-    cell_grp_cfg.cells.emplace(SERVING_PCELL_IDX, config_helpers::create_default_initial_ue_cell_config(params));
+    cell_grp_cfg.cells.emplace(SERVING_PCELL_IDX,
+                               config_helpers::make_default_ue_cell_config(cell_cfg_list.front().ran));
     ues.insert(ue_idx, cell_grp_cfg);
     auto& ue = ues[ue_idx];
     ues_bin.add_ue_to_repo(static_cast<unsigned>(ue_idx));
@@ -460,10 +460,9 @@ TEST_P(du_aperiodic_srs_res_mng_param_tester, when_ue_is_added_srs_resources_par
 
     // Verify the symbols, depending on whether it's FDD, or TDD.
     ASSERT_EQ(srs_res.res_mapping.nof_symb, srs_params.nof_symbols);
-    if (cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.has_value() and
-        cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols != 0) {
-      ASSERT_LT(srs_res.res_mapping.start_pos,
-                cell_cfg_list[0].ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_symbols);
+    if (cell_cfg_list[0].ran.tdd_cfg.has_value() and
+        cell_cfg_list[0].ran.tdd_cfg.value().pattern1.nof_ul_symbols != 0) {
+      ASSERT_LT(srs_res.res_mapping.start_pos, cell_cfg_list[0].ran.tdd_cfg.value().pattern1.nof_ul_symbols);
     } else {
       ASSERT_LT(srs_res.res_mapping.start_pos, srs_params.max_nof_symbols.value());
     }

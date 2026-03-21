@@ -54,7 +54,7 @@ void search_space_info::update_pdsch_time_domain_list(const ue_cell_configuratio
   pdsch_time_domain_list = get_c_rnti_pdsch_time_domain_list(*cfg,
                                                              *bwp->dl_common.value(),
                                                              bwp->dl_ded.has_value() ? &*bwp->dl_ded.value() : nullptr,
-                                                             ue_cell_cfg.cell_cfg_common.dmrs_typeA_pos);
+                                                             ue_cell_cfg.cell_cfg_common.params.dmrs_typeA_pos);
 
   pdsch_cfg_list.resize(pdsch_time_domain_list.size());
   for (unsigned i = 0; i != pdsch_time_domain_list.size(); ++i) {
@@ -654,7 +654,7 @@ void ue_cell_configuration::reconfigure(const ue_cell_config_ptr&             ue
   search_spaces = {};
 
   // Recompute DL param lookup tables.
-  configure_bwp_common_cfg(to_bwp_id(0), cell_cfg_common.dl_cfg_common.init_dl_bwp);
+  configure_bwp_common_cfg(to_bwp_id(0), cell_cfg_common.params.dl_cfg_common.init_dl_bwp);
   configure_bwp_ded_cfg(to_bwp_id(0), *cell_ded->bwps[to_bwp_id(0)]->dl_ded.value());
   for (const bwp_config_ptr& bwp : cell_ded->bwps) {
     if (bwp->dl_common.has_value()) {
@@ -666,7 +666,7 @@ void ue_cell_configuration::reconfigure(const ue_cell_config_ptr&             ue
   }
 
   // Recompute UL param lookup tables.
-  configure_bwp_common_cfg(to_bwp_id(0), cell_cfg_common.ul_cfg_common.init_ul_bwp);
+  configure_bwp_common_cfg(to_bwp_id(0), cell_cfg_common.params.ul_cfg_common.init_ul_bwp);
   if (cell_ded->bwps[to_bwp_id(0)]->ul_ded.has_value()) {
     configure_bwp_ded_cfg(to_bwp_id(0), *cell_ded->bwps[to_bwp_id(0)]->ul_ded);
   }
@@ -706,7 +706,7 @@ void ue_cell_configuration::configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_d
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),
-                                                     cell_cfg_common.dl_cfg_common.init_dl_bwp,
+                                                     cell_cfg_common.params.dl_cfg_common.init_dl_bwp,
                                                      *ss.bwp->dl_common.value(),
                                                      *ss.cfg,
                                                      ss.coreset->cfg());
@@ -725,7 +725,7 @@ void ue_cell_configuration::configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_u
                                                        ? dci_ul_rnti_config_type::c_rnti_f0_0
                                                        : dci_ul_rnti_config_type::c_rnti_f0_1;
     ss.ul_crb_lims                               = pusch_helper::get_ra_crb_limits(crnti_dci_type,
-                                                     cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params,
+                                                     cell_cfg_common.params.ul_cfg_common.init_ul_bwp.generic_params,
                                                      bwp_ul_common.generic_params,
                                                      ss.cfg->is_common_search_space());
   }
@@ -748,7 +748,7 @@ void ue_cell_configuration::configure_bwp_ded_cfg(bwp_id_t bwpid, const bwp_down
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),
-                                                     cell_cfg_common.dl_cfg_common.init_dl_bwp,
+                                                     cell_cfg_common.params.dl_cfg_common.init_dl_bwp,
                                                      *ss.bwp->dl_common.value(),
                                                      *ss.cfg,
                                                      ss.coreset->cfg());
@@ -767,7 +767,7 @@ void ue_cell_configuration::configure_bwp_ded_cfg(bwp_id_t bwpid, const bwp_upli
                                                        ? dci_ul_rnti_config_type::c_rnti_f0_0
                                                        : dci_ul_rnti_config_type::c_rnti_f0_1;
     ss.ul_crb_lims                               = pusch_helper::get_ra_crb_limits(crnti_dci_type,
-                                                     cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params,
+                                                     cell_cfg_common.params.ul_cfg_common.init_ul_bwp.generic_params,
                                                      ss.bwp->ul_common->value().generic_params,
                                                      ss.cfg->is_common_search_space());
   }

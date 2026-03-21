@@ -28,17 +28,19 @@
 #include "routines/ue_resume_routine.h"
 #include "routines/ue_suspend_routine.h"
 #include "routines/ue_transaction_info_release_routine.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/f1ap/cu_cp/f1ap_cu.h"
-#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/nrppa/nrppa.h"
 #include "ocudu/nrppa/nrppa_factory.h"
 #include "ocudu/ran/cause/common.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/time/radio_frame.h"
+#include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/async/coroutine.h"
 #include "ocudu/support/synchronization/sync_event.h"
+#include "ocudu/xnap/xnap.h"
 #include <chrono>
 #include <dlfcn.h>
 #include <future>
@@ -80,7 +82,13 @@ cu_cp_impl::cu_cp_impl(const cu_cp_configuration& config_) :
   paging_handler(du_db),
   ngap_db(ngap_repository_config{cfg, get_cu_cp_ngap_handler(), paging_handler, ocudulog::fetch_basic_logger("CU-CP")}),
   xnap_db(xnap_repository_config{cfg, get_cu_cp_xnap_handler(), ocudulog::fetch_basic_logger("CU-CP")}),
-  mobility_mng(cfg.mobility.mobility_manager_config, mobility_manager_ev_notifier, ngap_db, du_db, ue_mng),
+  mobility_mng(cfg.mobility.mobility_manager_config,
+               mobility_manager_ev_notifier,
+               ngap_db,
+               du_db,
+               xnap_db,
+               ue_mng,
+               cell_meas_mng),
   controller(cfg,
              get_cu_cp_amf_reconnection_handler(),
              common_task_sched,
@@ -872,7 +880,9 @@ cu_cp_impl::handle_ngap_handover_request(const ngap_handover_request& request)
   return handle_inter_cu_handover_request(inter_cu_handover_request);
 }
 
-void cu_cp_impl::handle_inter_cu_target_handover_execution(ue_index_t ue_index)
+void cu_cp_impl::handle_inter_cu_target_handover_execution(
+    ue_index_t                                                   ue_index,
+    const std::optional<xnap_handover_target_execution_context>& xnap_ho_target_execution_ctxt)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
   ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", ue_index);
@@ -894,8 +904,17 @@ void cu_cp_impl::handle_inter_cu_target_handover_execution(ue_index_t ue_index)
   }
   e1ap_bearer_context_manager& e1ap = cu_up->get_e1ap_bearer_context_manager();
 
-  ue->get_task_sched().schedule_async_task(
-      launch_async<inter_cu_handover_execution_target_routine>(ue, e1ap, *ngap, logger));
+  xnap_interface* xnap = nullptr;
+  if (xnap_ho_target_execution_ctxt.has_value()) {
+    xnap = xnap_db.find_xnap(xnap_ho_target_execution_ctxt->xnc_index);
+    if (xnap == nullptr) {
+      logger.warning("ue={}: XNAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
+      return;
+    }
+  }
+
+  ue->get_task_sched().schedule_async_task(launch_async<inter_cu_handover_execution_target_routine>(
+      ue, xnap_ho_target_execution_ctxt, e1ap, *ngap, xnap, logger));
 }
 
 void cu_cp_impl::handle_transmission_of_handover_required()
@@ -904,7 +923,9 @@ void cu_cp_impl::handle_transmission_of_handover_required()
   mobility_mng.get_metrics_handler().aggregate_requested_handover_preparation();
 }
 
-async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command)
+async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t                      ue_index,
+                                                             byte_buffer                     command,
+                                                             std::optional<xnc_peer_index_t> xnc_index)
 {
   // Notify mobility manager metrics handler about the successful handover preparation.
   mobility_mng.get_metrics_handler().aggregate_successful_handover_preparation();
@@ -912,45 +933,46 @@ async_task<bool> cu_cp_impl::handle_new_rrc_handover_command(ue_index_t ue_index
   cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
   if (ue == nullptr) {
     logger.warning("ue={}: UE not found for handover command handling", ue_index);
-    return launch_async([](coro_context<async_task<bool>>& ctx) {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(false);
-    });
+    return launch_no_op_task(false);
   }
   ngap_interface* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
   if (ngap == nullptr) {
     logger.warning("ue={}: NGAP not found for PLMN={}", ue_index, ue->get_ue_context().plmn);
-    return launch_async([](coro_context<async_task<bool>>& ctx) {
-      CORO_BEGIN(ctx);
-      CORO_RETURN(false);
-    });
+    return launch_no_op_task(false);
   }
-  return launch_async<inter_cu_handover_source_routine>(
-      ue_index, std::move(command), ue_mng, du_db, cu_up_db, ngap->get_ngap_control_message_handler(), logger);
-}
 
-byte_buffer cu_cp_impl::handle_handover_preparation_message_required(ue_index_t ue_index)
-{
-  cu_cp_ue* ue = ue_mng.find_du_ue(ue_index);
-  if (ue == nullptr) {
-    logger.warning("ue={}: UE not found for handover preparation message handling", ue_index);
-    return {};
+  xnap_interface* xnap = nullptr;
+  if (xnc_index.has_value()) {
+    xnap = xnap_db.find_xnap(xnc_index.value());
+    if (xnap == nullptr) {
+      logger.warning("ue={}: XNC with index {} not found for handover command handling", ue_index, xnc_index.value());
+      return launch_no_op_task(false);
+    }
+    // Set XNC peer index in UE context.
+    ue->set_xnc_peer_index(xnc_index.value());
   }
-  return ue->get_rrc_ue()->get_rrc_ue_control_message_handler().get_packed_handover_preparation_message();
+
+  return launch_async<inter_cu_handover_source_routine>(
+      ue_index, std::move(command), ue_mng, du_db, cu_up_db, ngap->get_ngap_control_message_handler(), xnap, logger);
 }
 
 async_task<cu_cp_handover_resource_allocation_response>
 cu_cp_impl::handle_xnap_handover_request(const xnap_handover_request& request)
 {
+  cu_cp_ue* ue = ue_mng.find_ue(request.ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for handover request handling", request.ue_index);
+    return launch_no_op_task(cu_cp_handover_resource_allocation_response{cu_cp_handover_request_failure{
+        .ue_index = request.ue_index, .cause = xnap_cause_radio_network_t::unspecified}});
+  }
+  // Store UE AMBR in UE context.
+  ue->set_ue_ambr(request.ue_context_info_ho_request.ue_ambr);
+
   // Convert the XNAP handover request to an intra-CU handover target request.
   cu_cp_inter_cu_handover_request inter_cu_handover_request;
   inter_cu_handover_request.from_xnap_handover_request(request);
 
-  // TODO: Implement handling of XNAP handover request in inter_cu_handover_routine.
-  return launch_async([request](coro_context<async_task<cu_cp_handover_resource_allocation_response>>& ctx) {
-    CORO_BEGIN(ctx);
-    CORO_RETURN(cu_cp_handover_request_failure{.ue_index = request.ue_index, .cause = xnap_cause_misc_t::unspecified});
-  });
+  return handle_inter_cu_handover_request(inter_cu_handover_request);
 }
 
 void cu_cp_impl::handle_handover_cancel_received(ue_index_t ue_index)
@@ -966,6 +988,27 @@ void cu_cp_impl::handle_handover_cancel_received(ue_index_t ue_index)
   release_request.ue_index = ue_index;
   release_request.cause    = ngap_cause_radio_network_t::ho_cancelled;
   ue->get_task_sched().schedule_async_task(handle_ue_context_release(release_request));
+}
+
+void cu_cp_impl::handle_xnap_ue_context_release_received(ue_index_t ue_index)
+{
+  cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: UE not found for XNAP UE context release handling", ue_index);
+    return;
+  }
+
+  cu_cp_ue_context_release_command command;
+  command.ue_index             = ue_index;
+  command.cause                = ngap_cause_radio_network_t::release_due_to_ngran_generated_reason;
+  command.requires_rrc_release = false;
+
+  // Schedule UE release.
+  ue->get_task_sched().schedule_async_task(launch_async([this, command](coro_context<async_task<void>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_AWAIT(handle_ue_context_release_command(command));
+    CORO_RETURN();
+  }));
 }
 
 ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn)
@@ -1001,7 +1044,7 @@ void cu_cp_impl::handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf
   nrppa_entity->get_nrppa_message_handler().handle_new_nrppa_pdu(nrppa_pdu, amf_index);
 }
 
-void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg)
+void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, const location_report_request& msg)
 {
   auto* ue = ue_mng.find_du_ue(ue_index);
   if (ue == nullptr) {
@@ -1009,7 +1052,7 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
     return;
   }
 
-  using event_type = ngap_location_report_request::event_type;
+  using event_type = location_report_request::event_type;
 
   // Reject events with "nulltype" and send Location Reporting Failure Indication.
   if (msg.location_reporting_type == event_type::nulltype) {
@@ -1251,10 +1294,11 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
       CORO_RETURN();
     });
   }
-  auto* ue = ue_mng.find_ue(ue_index);
+  cu_cp_ue* ue = ue_mng.find_ue(ue_index);
 
-  du_index_t    du_index    = ue->get_du_index();
-  cu_up_index_t cu_up_index = ue->get_cu_up_index();
+  du_index_t       du_index    = ue->get_du_index();
+  cu_up_index_t    cu_up_index = ue->get_cu_up_index();
+  xnc_peer_index_t xnc_index   = ue->get_xnc_peer_index();
 
   e1ap_bearer_context_removal_handler* e1ap_removal_handler = nullptr;
   if (cu_up_index != cu_up_index_t::invalid) {
@@ -1271,7 +1315,7 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
     }
   }
 
-  auto*                            ngap                 = ngap_db.find_ngap(ue->get_ue_context().plmn);
+  ngap_interface*                  ngap                 = ngap_db.find_ngap(ue->get_ue_context().plmn);
   ngap_ue_context_removal_handler* ngap_removal_handler = nullptr;
   if (ngap != nullptr) {
     ngap_removal_handler = &ngap->get_ngap_ue_context_removal_handler();
@@ -1280,12 +1324,19 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
   nrppa_ue_context_removal_handler* nrppa_removal_handler = nullptr;
   nrppa_removal_handler                                   = &nrppa_entity->get_nrppa_ue_context_removal_handler();
 
+  xnap_interface*                  xnap                 = xnap_db.find_xnap(xnc_index);
+  xnap_ue_context_removal_handler* xnap_removal_handler = nullptr;
+  if (xnap != nullptr) {
+    xnap_removal_handler = &xnap->get_xnap_ue_context_removal_handler();
+  }
+
   return launch_async<ue_removal_routine>(ue_index,
                                           rrc_ue_removal_handler,
                                           e1ap_removal_handler,
                                           f1ap_removal_handler,
                                           ngap_removal_handler,
                                           nrppa_removal_handler,
+                                          xnap_removal_handler,
                                           ue_mng,
                                           logger);
 }

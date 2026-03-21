@@ -5,6 +5,9 @@
 add_subdirectory(versioning)
 add_subdirectory(math)
 
+add_library(ocudu_yaml_util STATIC config_yaml.cpp)
+target_link_libraries(ocudu_yaml_util PRIVATE ocudu::yaml-cpp)
+
 set(SOURCES
         executors/metrics/executor_metrics_backend.cpp
         executors/metrics/executor_metrics_channel.cpp
@@ -28,7 +31,6 @@ set(SOURCES
         bit_encoding.cpp
         byte_buffer.cpp
         byte_buffer_chain.cpp
-        config_yaml.cpp
         cpu_architecture_info.cpp
         resource_usage/powercap_energy_reader_impl.cpp
         resource_usage/rapl_msr_energy_reader_impl.cpp
@@ -42,7 +44,7 @@ set(SOURCES
 
 add_library(ocudu_support STATIC ${SOURCES})
 target_link_libraries(ocudu_support
-        PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${NUMA_LIBRARIES} ocudulog ocudu::yaml-cpp
+        PRIVATE ${CMAKE_THREAD_LIBS_INIT} ${NUMA_LIBRARIES} ocudulog
         INTERFACE ocudu_support_math)
 add_backward(ocudu_support)
 

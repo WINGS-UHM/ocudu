@@ -61,12 +61,6 @@ public:
 
   void set_xnap_handover_request_outcome(bool success) { ho_request_outcome = success; }
 
-  byte_buffer on_handover_preparation_message_required(ue_index_t ue_index) override
-  {
-    logger.info("Handover preparation message requested for UE index {}", ue_index);
-    return byte_buffer{};
-  }
-
   async_task<bool> on_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
   {
     logger.info("Received a new RRC Handover Command for UE index {}", ue_index);
@@ -148,7 +142,8 @@ public:
     });
   }
 
-  void on_xn_handover_execution(ue_index_t ue_index) override
+  void on_xn_handover_execution(ue_index_t                                    ue_index,
+                                const xnap_handover_target_execution_context& xnap_ho_target_execution_ctxt) override
   {
     logger.info("Requested XN handover execution for UE index {}", ue_index);
   }
@@ -156,6 +151,11 @@ public:
   void on_handover_cancel_received(ue_index_t ue_index) override
   {
     logger.info("Received a handover cancel for UE index {}", ue_index);
+  }
+
+  void on_ue_context_release_received(ue_index_t ue_index) override
+  {
+    logger.info("Received a UE context release for UE index {}", ue_index);
   }
 
   byte_buffer last_handover_command;

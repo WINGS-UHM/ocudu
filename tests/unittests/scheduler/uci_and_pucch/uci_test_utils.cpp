@@ -54,8 +54,9 @@ pucch_info test_helpers::make_ded_pucch_info(const cell_configuration& cell_cfg,
                                              pucch_uci_bits            uci_bits,
                                              max_pucch_code_rate       max_code_rate)
 {
-  pucch_info info{
-      .crnti = to_rnti(0x4601), .bwp_cfg = &cell_cfg.ul_cfg_common.init_ul_bwp.generic_params, .uci_bits = uci_bits};
+  pucch_info info{.crnti    = to_rnti(0x4601),
+                  .bwp_cfg  = &cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params,
+                  .uci_bits = uci_bits};
 
   unsigned nof_prbs = 1;
   if (const auto* format_2_3 = std::get_if<pucch_format_2_3_cfg>(&res.format_params)) {
@@ -74,7 +75,7 @@ pucch_info test_helpers::make_ded_pucch_info(const cell_configuration& cell_cfg,
       const auto& f0 = std::get<pucch_format_0_cfg>(res.format_params);
       info.format_params.emplace<pucch_format_0>(pucch_format_0{
           .group_hopping        = pucch_group_hopping::NEITHER,
-          .n_id_hopping         = cell_cfg.pci,
+          .n_id_hopping         = cell_cfg.params.pci,
           .initial_cyclic_shift = f0.initial_cyclic_shift,
       });
     } break;
@@ -82,7 +83,7 @@ pucch_info test_helpers::make_ded_pucch_info(const cell_configuration& cell_cfg,
       const auto& f1 = std::get<pucch_format_1_cfg>(res.format_params);
       info.format_params.emplace<pucch_format_1>(pucch_format_1{
           .group_hopping        = pucch_group_hopping::NEITHER,
-          .n_id_hopping         = cell_cfg.pci,
+          .n_id_hopping         = cell_cfg.params.pci,
           .initial_cyclic_shift = f1.initial_cyclic_shift,
           .time_domain_occ      = f1.time_domain_occ,
           .slot_repetition      = pucch_repetition_tx_slot::no_multi_slot,
@@ -90,36 +91,36 @@ pucch_info test_helpers::make_ded_pucch_info(const cell_configuration& cell_cfg,
     } break;
     case pucch_format::FORMAT_2: {
       info.format_params.emplace<pucch_format_2>(pucch_format_2{
-          .n_id_scrambling   = cell_cfg.pci,
-          .n_id_0_scrambling = cell_cfg.pci,
+          .n_id_scrambling   = cell_cfg.params.pci,
+          .n_id_0_scrambling = cell_cfg.params.pci,
           .max_code_rate     = max_code_rate,
       });
     } break;
     case pucch_format::FORMAT_3: {
       info.format_params.emplace<pucch_format_3>(pucch_format_3{
           .group_hopping     = pucch_group_hopping::NEITHER,
-          .n_id_hopping      = cell_cfg.pci,
+          .n_id_hopping      = cell_cfg.params.pci,
           .slot_repetition   = pucch_repetition_tx_slot::no_multi_slot,
-          .n_id_scrambling   = cell_cfg.pci,
+          .n_id_scrambling   = cell_cfg.params.pci,
           .pi_2_bpsk         = false,
           .max_code_rate     = max_code_rate,
           .additional_dmrs   = false,
-          .n_id_0_scrambling = cell_cfg.pci,
+          .n_id_0_scrambling = cell_cfg.params.pci,
       });
     } break;
     case pucch_format::FORMAT_4: {
       const auto& f4 = std::get<pucch_format_4_cfg>(res.format_params);
       info.format_params.emplace<pucch_format_4>(pucch_format_4{
           .group_hopping     = pucch_group_hopping::NEITHER,
-          .n_id_hopping      = cell_cfg.pci,
+          .n_id_hopping      = cell_cfg.params.pci,
           .slot_repetition   = pucch_repetition_tx_slot::no_multi_slot,
-          .n_id_scrambling   = cell_cfg.pci,
+          .n_id_scrambling   = cell_cfg.params.pci,
           .pi_2_bpsk         = false,
           .max_code_rate     = max_code_rate,
           .orthog_seq_idx    = static_cast<uint8_t>(f4.occ_index),
           .n_sf_pucch_f4     = static_cast<pucch_format_4_sf>(f4.occ_length),
           .additional_dmrs   = false,
-          .n_id_0_scrambling = cell_cfg.pci,
+          .n_id_0_scrambling = cell_cfg.params.pci,
       });
     } break;
     default:
@@ -243,7 +244,14 @@ make_custom_sched_cell_configuration_request(const test_bench_params& params)
       req.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 11U;
     }
   }
-  req.ran.init_bwp_builder.pucch.resources = params.pucch_ded_params;
+  req.ran.init_bwp.pucch.resources = params.pucch_ded_params;
+  req.ran.init_bwp.pucch.sr_period = params.sr_period;
+  if (params.csi_period.has_value()) {
+    req.ran.init_bwp.csi.value().csi_rs_period          = params.csi_period.value();
+    req.ran.init_bwp.csi.value().csi_report_slot_offset = params.csi_offset;
+  } else {
+    req.ran.init_bwp.csi = std::nullopt;
+  }
 
   return req;
 }
@@ -268,15 +276,17 @@ test_bench::test_bench(const test_bench_params& params_) :
   cell_cfg(*cfg_mng.add_cell(make_custom_sched_cell_configuration_request(params))),
   ues(expert_cfg.ue),
   cell_ues(ues.add_cell(cell_cfg, nullptr)),
-  pucch_builder(cell_cfg, params.pucch_ded_params),
+  pucch_builder(cell_cfg.expert_cfg.ue.max_pucchs_per_slot),
   res_grid(cell_cfg),
-  k0(cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[0].k0),
-  dci_info{make_default_dci(params.n_cces, &cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value())},
+  k0(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[0].k0),
+  dci_info{make_default_dci(params.n_cces, &cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value())},
   pucch_alloc{cell_cfg, params.max_pucchs_per_slot, params.max_ul_grants_per_slot},
   uci_alloc(cell_cfg, pucch_alloc),
   uci_sched{cell_cfg, uci_alloc, ues},
-  sl_tx{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
+  sl_tx{to_numerology_value(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs), 0}
 {
+  pucch_builder.setup(cell_cfg.params);
+
   // Add main UE.
   add_ue();
 
@@ -297,7 +307,7 @@ const ue& test_bench::get_ue(du_ue_index_t ue_idx) const
 void test_bench::add_ue()
 {
   sched_ue_creation_request_message ue_req =
-      sched_config_helper::create_default_sched_ue_creation_request(make_custom_cell_config_builder_params(params));
+      sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
   if (ue_ded_cfgs.empty()) {
     ue_req.ue_index = main_ue_idx;
@@ -308,27 +318,16 @@ void test_bench::add_ue()
     ue_req.crnti = to_rnti(static_cast<std::underlying_type_t<rnti_t>>(ue_ded_cfgs.back()->crnti) + 1);
   }
 
-  // Configure SR and CSI periodicities.
-  auto& serv_cell_cfg                                                   = ue_req.cfg.cells->back().serv_cell_cfg;
-  serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].period = params.sr_period;
-  if (params.csi_period.has_value()) {
-    auto& csi_report = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
-    csi_report.report_slot_period = *params.csi_period;
-  } else {
-    ue_req.cfg.cells->back().serv_cell_cfg.csi_meas_cfg.reset();
-    ue_req.cfg.cells->back().serv_cell_cfg.init_dl_bwp.pdsch_cfg->zp_csi_rs_res_list.clear();
-    ue_req.cfg.cells->back().serv_cell_cfg.init_dl_bwp.pdsch_cfg->p_zp_csi_rs_res.reset();
-  }
-
   const bool success = pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back());
   ocudu_assert(success, "UE PUCCH configuration couldn't be built");
 
-  // Configure SR and CSI offsets.
+  // TODO: rewrite this test, we should never modify the UE cell config like this in unittests.
+  ue_req.cfg.cells->back().init_bwp().ul.pucch.sr_offset                                         = params.sr_offset;
   ue_req.cfg.cells->back().serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].offset = params.sr_offset;
   if (params.csi_period.has_value()) {
+    ue_req.cfg.cells->back().init_bwp().ul.periodic_csi_report.value().offset = params.csi_offset;
     auto& csi_report = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
+        ue_req.cfg.cells->back().serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
     csi_report.report_slot_offset = params.csi_offset;
   }
 
@@ -353,7 +352,7 @@ void test_bench::slot_indication(slot_point slot_tx)
 void test_bench::fill_all_grid(slot_point slot_tx)
 {
   cell_slot_resource_allocator& pucch_slot_alloc = res_grid[slot_tx];
-  pucch_slot_alloc.ul_res_grid.fill(grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs,
+  pucch_slot_alloc.ul_res_grid.fill(grant_info{cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs,
                                                ofdm_symbol_range{0, 14},
-                                               cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs});
+                                               cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs});
 }

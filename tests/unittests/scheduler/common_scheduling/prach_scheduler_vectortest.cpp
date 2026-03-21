@@ -113,8 +113,8 @@ make_custom_sched_cell_configuration_request(subcarrier_spacing scs_common,
 
   // NOTE: For this test we modify the TDD pattern so that we can test several PRACH configuration indices.
   if (not band_helper::is_paired_spectrum(band)) {
-    sched_req.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots = 0;
-    sched_req.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots = 10;
+    sched_req.ran.tdd_cfg.value().pattern1.nof_dl_slots = 0;
+    sched_req.ran.tdd_cfg.value().pattern1.nof_ul_slots = 10;
   }
 
   return sched_req;
@@ -188,7 +188,7 @@ protected:
 
     // Calculate PRACH number of cyclic shifts.
     uint16_t nof_cs = prach_cyclic_shifts_get(
-        prach_info.scs, cell_cfg->ul_cfg_common.init_ul_bwp.rach_cfg_common->restricted_set, zcz);
+        prach_info.scs, cell_cfg->params.ul_cfg_common.init_ul_bwp.rach_cfg_common->restricted_set, zcz);
 
     // Select the number of time-domain occasions within a slot.
     uint8_t nof_prach_occasions = prach_cfg.nof_occasions_within_slot;

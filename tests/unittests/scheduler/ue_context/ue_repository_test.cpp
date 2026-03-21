@@ -8,6 +8,8 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -21,13 +23,13 @@ protected:
     cfg_mng(scheduler_config{expert_cfg, metric_notif}, metrics_handler),
     sched_cfg(sched_config_helper::make_default_sched_cell_configuration_request(builder_params)),
     cell_cfg(*cfg_mng.add_cell(sched_cfg)),
-    serv_cell_cfg(config_helpers::create_default_initial_ue_serving_cell_config()),
+    serv_cell_cfg(config_helpers::make_default_ue_cell_config(cell_cfg.params).serv_cell_cfg),
     ue_db(expert_cfg.ue)
   {
     ue_db.add_cell(cell_cfg, nullptr);
 
     sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request(
-        builder_params, std::array<lcid_t, 3>{lcid_t::LCID_SRB1, lcid_t::LCID_SRB2, lcid_t::LCID_MIN_DRB});
+        cell_cfg.params, std::array<lcid_t, 3>{lcid_t::LCID_SRB1, lcid_t::LCID_SRB2, lcid_t::LCID_MIN_DRB});
     ue_config_update_event  ev     = cfg_mng.add_ue(ue_req);
     const ue_configuration& ue_cfg = ev.next_config();
     ue_db.add_ue(ue_cfg, ue_req.starts_in_fallback, ue_req.ul_ccch_slot_rx);
@@ -106,7 +108,7 @@ TEST_F(sched_ue_test, when_dl_nof_prb_allocated_increases_estimated_dl_rate_incr
 
   for (unsigned nof_prbs = 0; nof_prbs < MAX_NOF_PRBS; ++nof_prbs) {
     for (const auto& pdsch_td_cfg :
-         ue_cc.cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
+         ue_cc.cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
       const pdsch_config_params pdsch_cfg      = get_pdsch_cfg_params(ue_cc, pdsch_td_cfg, dci_type);
       const double              estimated_rate = ue_cc.get_estimated_dl_rate(pdsch_cfg, ue_mcs, nof_prbs);
       ASSERT_GE(estimated_rate, current_rate);
@@ -131,7 +133,7 @@ TEST_F(sched_ue_test, when_mcs_increases_estimated_dl_rate_increases)
 
   for (sch_mcs_index ue_mcs = 1; ue_mcs < max_mcs; ++ue_mcs) {
     for (const auto& pdsch_td_cfg :
-         ue_cc.cfg().cell_cfg_common.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
+         ue_cc.cfg().cell_cfg_common.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
       const pdsch_config_params pdsch_cfg      = get_pdsch_cfg_params(ue_cc, pdsch_td_cfg, dci_type);
       const double              estimated_rate = ue_cc.get_estimated_dl_rate(pdsch_cfg, ue_mcs, nof_prbs);
       // NOTE: In case of 64QAM MCS table MCS 17 has lower spectral density than MCS 16 but the estimated bitrate will
@@ -154,7 +156,7 @@ TEST_F(sched_ue_test, when_ul_nof_prb_allocated_increases_estimated_ul_rate_incr
 
   for (unsigned nof_prbs = 0; nof_prbs < MAX_NOF_PRBS; ++nof_prbs) {
     for (const auto& pusch_td_cfg :
-         ue_cc.cfg().cell_cfg_common.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
+         ue_cc.cfg().cell_cfg_common.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
       const pusch_config_params pusch_cfg      = get_pusch_cfg_params(ue_cc, pusch_td_cfg, dci_type);
       const double              estimated_rate = ue_cc.get_estimated_ul_rate(pusch_cfg, ue_mcs, nof_prbs);
       ASSERT_GE(estimated_rate, current_rate);
@@ -179,7 +181,7 @@ TEST_F(sched_ue_test, when_mcs_increases_estimated_ul_rate_increases)
 
   for (sch_mcs_index ue_mcs = 1; ue_mcs < max_mcs; ++ue_mcs) {
     for (const auto& pusch_td_cfg :
-         ue_cc.cfg().cell_cfg_common.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
+         ue_cc.cfg().cell_cfg_common.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
       const pusch_config_params pusch_cfg      = get_pusch_cfg_params(ue_cc, pusch_td_cfg, dci_type);
       const double              estimated_rate = ue_cc.get_estimated_ul_rate(pusch_cfg, ue_mcs, nof_prbs);
       // NOTE: In case of 64QAM MCS table MCS 17 has lower spectral density than MCS 16 but the estimated bitrate will

@@ -6,6 +6,7 @@
 
 #include "ocudu/du/du_cell_config.h"
 #include "ocudu/du/du_high/du_high_executor_mapper.h"
+#include "ocudu/du/du_high/du_manager/du_f1_setup_notifier.h"
 #include "ocudu/du/du_high/du_qos_config.h"
 #include "ocudu/du/du_high/du_srb_config.h"
 #include "ocudu/du/du_high/du_test_mode_config.h"
@@ -68,6 +69,8 @@ struct du_high_dependencies {
   rlc_metrics_notifier*    rlc_metrics_notif = nullptr;
   mac_pcap*                mac_p             = nullptr;
   rlc_pcap*                rlc_p             = nullptr;
+  /// Optional notifier invoked once after a successful F1 Setup.
+  du_f1_setup_complete_notifier* f1_setup_notifier = nullptr;
 };
 
 } // namespace odu

@@ -14,6 +14,8 @@
 #include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/async/async_timer.h"
 #include "ocudu/support/async/coroutine.h"
+#include <string>
+#include <vector>
 
 using namespace ocudu;
 using namespace odu;
@@ -40,10 +42,46 @@ static mac_cell_creation_request make_mac_cell_config(du_cell_index_t           
   for (auto& msg : si_messages) {
     mac_cfg.sys_info.si_messages.push_back(msg);
   }
-  mac_cfg.sys_info.sib1_contains_hypersfn = du_cfg.ran.init_bwp_builder.paging.edrx_enabled;
+  mac_cfg.sys_info.sib1_contains_hypersfn = du_cfg.ran.init_bwp.paging.edrx_enabled;
   mac_cfg.sched_req                       = sched_cell_cfg;
 
   return mac_cfg;
+}
+
+static std::string make_sib_mapping_info_str(span<const sib_type> sib_mapping)
+{
+  std::string out;
+  for (sib_type sib : sib_mapping) {
+    if (!out.empty()) {
+      out += ",";
+    }
+    out += std::to_string(static_cast<unsigned>(sib));
+  }
+  return out;
+}
+
+static void log_cell_si_messages(ocudulog::log_channel&                    info_logger,
+                                 du_cell_index_t                           cell_index,
+                                 span<const byte_buffer>                   packed_si_msgs,
+                                 const std::vector<si_message_sched_info>* si_sched_info,
+                                 span<const std::string>                   si_json_strs)
+{
+  for (unsigned msg_idx = 0; msg_idx != packed_si_msgs.size(); ++msg_idx) {
+    std::string sib_mapping = "unknown";
+    if (si_sched_info != nullptr && msg_idx < si_sched_info->size()) {
+      sib_mapping = make_sib_mapping_info_str((*si_sched_info)[msg_idx].sib_mapping_info);
+    }
+
+    info_logger(packed_si_msgs[msg_idx].begin(),
+                packed_si_msgs[msg_idx].end(),
+                "SI message #{} cell={}: si_msg_idx={} len={}B sib_mapping=[{}]: {}",
+                msg_idx + 1,
+                fmt::underlying(cell_index),
+                msg_idx,
+                packed_si_msgs[msg_idx].length(),
+                sib_mapping,
+                msg_idx < si_json_strs.size() ? si_json_strs[msg_idx] : "si-json-unavailable");
+  }
 }
 
 du_setup_procedure::du_setup_procedure(const du_proc_context_view& ctxt_, const du_start_request& request_) :
@@ -86,6 +124,14 @@ void du_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
 
   // Handle F1 setup result and activate cells.
   CORO_AWAIT(handle_f1_setup_response(response_msg));
+
+  // Notify successful setup and deliver packed F1 setup PDU bytes via notifier.
+  if (ctxt.params.f1ap.f1_setup_complete_notifier != nullptr) {
+    ctxt.params.f1ap.f1_setup_complete_notifier->on_f1_setup_complete(
+        std::move(response_msg.value().packed_f1_setup_request),
+        std::move(response_msg.value().packed_f1_setup_response),
+        ctxt.params.ran.gnb_du_id);
+  }
 
   proc_logger.log_proc_completed();
 
@@ -133,7 +179,8 @@ async_task<f1_setup_result> du_setup_procedure::start_f1_setup_request()
   req.gnb_du_name = ctxt.params.ran.gnb_du_name;
   req.rrc_version = ctxt.params.ran.rrc_version;
 
-  bool log_si_info = ctxt.logger.info.enabled();
+  const bool log_si_info = ctxt.logger.info.enabled();
+
   req.served_cells.reserve(ctxt.cell_mng.nof_cells());
   for (unsigned i = 0, e = ctxt.cell_mng.nof_cells(); i != e; ++i) {
     du_cell_index_t       cell_index  = to_du_cell_index(i);
@@ -152,8 +199,13 @@ async_task<f1_setup_result> du_setup_procedure::start_f1_setup_request()
     }
 
     // Pack RRC ASN.1 Serving Cell system info.
-    std::string js_str;
-    serv_cell.du_sys_info = make_f1ap_du_sys_info(du_cell_cfg, log_si_info ? &js_str : nullptr);
+    std::string              js_str;
+    std::vector<std::string> si_json_strs;
+    serv_cell.du_sys_info =
+        make_f1ap_du_sys_info(du_cell_cfg, log_si_info ? &js_str : nullptr, log_si_info ? &si_json_strs : nullptr);
+
+    const auto* si_sched_info =
+        du_cell_cfg.si.si_config.has_value() ? &du_cell_cfg.si.si_config->si_sched_info : nullptr;
 
     // Log RRC ASN.1 SIB1 json.
     if (log_si_info) {
@@ -162,6 +214,9 @@ async_task<f1_setup_result> du_setup_procedure::start_f1_setup_request()
                        "SIB1 cell={}: {}",
                        fmt::underlying(to_du_cell_index(i)),
                        js_str);
+
+      log_cell_si_messages(
+          ctxt.logger.info, cell_index, serv_cell.du_sys_info.packed_si_msgs, si_sched_info, si_json_strs);
     }
   }
 

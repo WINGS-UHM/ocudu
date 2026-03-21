@@ -4,6 +4,8 @@
 
 #include "ng_setup_procedure.h"
 #include "../ngap_asn1_helpers.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/ngap/common.h"
 #include "ocudu/ngap/ngap_setup.h"
 #include "ocudu/support/async/async_timer.h"
 #include <variant>
@@ -134,6 +136,31 @@ ngap_ng_setup_result ng_setup_procedure::create_ng_setup_result()
       context.served_guami_list.push_back(guami_item.guami);
     }
     context.amf_name = ng_setup_response.amf_name;
+
+    // Capture packed request bytes.
+    {
+      byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
+      asn1::bit_ref bref(packed);
+      if (request.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
+        ng_setup_response.packed_ng_setup_request = std::move(packed);
+      } else {
+        logger.warning("\"{}\": failed to pack NGSetupRequest", name());
+      }
+    }
+
+    // Capture packed response bytes.
+    {
+      ngap_pdu_c resp_pdu;
+      resp_pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_NG_SETUP);
+      resp_pdu.successful_outcome().value.ng_setup_resp() = transaction_sink.response();
+      byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
+      asn1::bit_ref bref(packed);
+      if (resp_pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
+        ng_setup_response.packed_ng_setup_response = std::move(packed);
+      } else {
+        logger.warning("\"{}\": failed to pack NGSetupResponse", name());
+      }
+    }
   } else if (transaction_sink.failed()) {
     fill_ngap_ng_setup_result(res, transaction_sink.failure());
   } else {

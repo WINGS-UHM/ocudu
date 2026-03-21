@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "common/e2ap_asn1_packer.h"
+#include "lib/e2/common/e2ap_asn1_helpers.h"
 #include "lib/e2/common/e2ap_asn1_utils.h"
 #include "tests/unittests/e2/common/e2_test_helpers.h"
 #include "ocudu/support/async/async_test_utils.h"
@@ -14,6 +15,9 @@ using namespace ocudu;
 TEST_F(e2_entity_test, on_start_send_e2ap_setup_request)
 {
   test_logger.info("Launch e2 setup request procedure with task worker...");
+  // Deliver a minimal F1 component config so the setup coroutine proceeds without suspending.
+  node_component_config_collector->deliver(e2_node_component_interface_type::f1, byte_buffer{}, byte_buffer{});
+  task_worker.run_pending_tasks();
   e2agent->start();
 
   // Status: received E2 Setup Request.
@@ -228,4 +232,83 @@ TEST_F(e2_test, correctly_unpack_e2_response)
 
   ASSERT_TRUE(t.ready());
   ASSERT_TRUE(t.get().success);
+}
+
+/// When deliver() is called with real bytes before start(), the E2 Setup Request
+/// must include those bytes in the e2nodeComponentCfg request part.
+TEST_F(e2_entity_test, when_node_component_config_delivered_then_real_bytes_in_e2_setup_request)
+{
+  uint8_t req_bytes[]  = {0x01, 0x02, 0x03, 0x04, 0x05};
+  uint8_t resp_bytes[] = {0x06, 0x07, 0x08};
+
+  byte_buffer req  = byte_buffer::create(req_bytes, req_bytes + sizeof(req_bytes)).value();
+  byte_buffer resp = byte_buffer::create(resp_bytes, resp_bytes + sizeof(resp_bytes)).value();
+
+  // Deliver real bytes before start() so the coroutine proceeds without suspending.
+  node_component_config_collector->deliver(e2_node_component_interface_type::f1, std::move(req), std::move(resp));
+  task_worker.run_pending_tasks();
+  e2agent->start();
+
+  ASSERT_EQ(e2_client->last_tx_e2_pdu.pdu.type().value, asn1::e2ap::e2ap_pdu_c::types_opts::init_msg);
+  ASSERT_EQ(e2_client->last_tx_e2_pdu.pdu.init_msg().value.type().value,
+            asn1::e2ap::e2ap_elem_procs_o::init_msg_c::types_opts::e2setup_request);
+
+  const auto& comp_list =
+      e2_client->last_tx_e2_pdu.pdu.init_msg().value.e2setup_request()->e2node_component_cfg_addition;
+  ASSERT_FALSE(!comp_list.size());
+  const auto& comp_cfg = comp_list[0].value().e2node_component_cfg_addition_item().e2node_component_cfg;
+  ASSERT_EQ(comp_cfg.e2node_component_request_part.size(), sizeof(req_bytes));
+  ASSERT_EQ(comp_cfg.e2node_component_resp_part.size(), sizeof(resp_bytes));
+}
+
+/// When the timeout fires before any deliver(), the aggregator fires with an empty vector
+/// and the E2 setup must be aborted (no E2 Setup Request sent).
+TEST_F(e2_entity_test, when_node_cfg_timeout_fires_with_empty_collection_then_no_e2_setup_request)
+{
+  e2agent->start();
+
+  // Advance the timer past the 5-second node-component-config timeout.
+  for (unsigned i = 0; i <= 5000; ++i) {
+    tick();
+  }
+
+  // No E2 Setup Request must have been sent: the PDU type should still be its default (nulltype).
+  ASSERT_NE(e2_client->last_tx_e2_pdu.pdu.type().value, asn1::e2ap::e2ap_pdu_c::types_opts::init_msg);
+}
+
+/// fill_asn1_e2ap_setup_request: with a vector containing a real node_cfg entry the component
+/// bytes in the ASN.1 struct equal those provided; with an empty vector no entries are created.
+TEST_F(e2_test, fill_e2ap_setup_request_uses_real_bytes_when_node_cfg_vector_provided)
+{
+  using namespace asn1::e2ap;
+
+  cfg = config_helpers::make_default_e2ap_config();
+
+  uint8_t req_bytes[]  = {0xaa, 0xbb, 0xee};
+  uint8_t resp_bytes[] = {0xdd, 0xee};
+
+  e2_node_component_config node_cfg;
+  node_cfg.interface_type = e2_node_component_interface_type::f1;
+  node_cfg.request_part   = byte_buffer::create(req_bytes, req_bytes + sizeof(req_bytes)).value();
+  node_cfg.response_part  = byte_buffer::create(resp_bytes, resp_bytes + sizeof(resp_bytes)).value();
+
+  std::vector<e2_node_component_config> cfgs_real;
+  cfgs_real.push_back(std::move(node_cfg));
+
+  e2setup_request_s setup_real{};
+  fill_asn1_e2ap_setup_request(test_logger, setup_real, cfg, *e2sm_mngr, cfgs_real);
+
+  e2setup_request_s setup_empty{};
+  fill_asn1_e2ap_setup_request(test_logger, setup_empty, cfg, *e2sm_mngr, {});
+
+  ASSERT_FALSE(!setup_real->e2node_component_cfg_addition.size());
+  // Empty vector: no component entries.
+  ASSERT_TRUE(!setup_empty->e2node_component_cfg_addition.size());
+
+  const auto& real_comp =
+      setup_real->e2node_component_cfg_addition[0].value().e2node_component_cfg_addition_item().e2node_component_cfg;
+
+  // Real-bytes path must reproduce the exact sizes supplied.
+  ASSERT_EQ(real_comp.e2node_component_request_part.size(), sizeof(req_bytes));
+  ASSERT_EQ(real_comp.e2node_component_resp_part.size(), sizeof(resp_bytes));
 }

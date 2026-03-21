@@ -829,15 +829,12 @@ struct dummy_cu_cp_xnap_handler : public cu_cp_xnap_handler {
 public:
   dummy_cu_cp_xnap_handler(ue_manager& ue_mng_) : ue_mng(ue_mng_), logger(ocudulog::fetch_basic_logger("TEST")) {}
 
-  byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) override
+  async_task<bool> handle_new_rrc_handover_command(ue_index_t                      ue_index,
+                                                   byte_buffer                     command,
+                                                   std::optional<xnc_peer_index_t> xnc_index) override
   {
-    logger.info("ue={}: Received a new request to handle XNAP handover preparation message", ue_index);
-    return byte_buffer{};
-  }
-
-  async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override
-  {
-    logger.info("ue={}: Received a new RRC Handover Command", ue_index);
+    logger.info(
+        "ue={}: Received a new RRC Handover Command for {} handover", ue_index, xnc_index.has_value() ? "XN" : "NG");
     last_handover_command = std::move(command);
     return launch_no_op_task(true);
   }
@@ -874,14 +871,23 @@ public:
     return launch_no_op_task(cu_cp_handover_resource_allocation_response{});
   }
 
-  void handle_inter_cu_target_handover_execution(ue_index_t ue_index) override
+  void handle_inter_cu_target_handover_execution(
+      ue_index_t                                                   ue_index,
+      const std::optional<xnap_handover_target_execution_context>& xnap_ho_target_execution_ctxt) override
   {
-    logger.info("ue={}: Received a new request to handle inter-CU target handover execution", ue_index);
+    logger.info("ue={}: Received a new {} request to handle inter-CU target handover execution",
+                ue_index,
+                xnap_ho_target_execution_ctxt.has_value() ? "XN-C" : "NG");
   }
 
   void handle_handover_cancel_received(ue_index_t ue_index) override
   {
     logger.info("ue={}: Received a handover cancel message", ue_index);
+  }
+
+  void handle_xnap_ue_context_release_received(ue_index_t ue_index) override
+  {
+    logger.info("ue={}: Received a XNAP UE context release message", ue_index);
   }
 
   byte_buffer last_handover_command;

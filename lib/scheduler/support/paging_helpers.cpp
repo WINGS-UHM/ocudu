@@ -9,9 +9,9 @@ using namespace ocudu;
 
 paging_slot_helper::paging_slot_helper(const cell_configuration& cell_cfg_) : cell_cfg(cell_cfg_)
 {
-  if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value()) {
-    for (const auto& cfg : cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
-      if (cfg.get_id() != cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value()) {
+  if (cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value()) {
+    for (const auto& cfg : cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
+      if (cfg.get_id() != cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value()) {
         continue;
       }
       ss_cfg = &cfg;
@@ -22,13 +22,13 @@ paging_slot_helper::paging_slot_helper(const cell_configuration& cell_cfg_) : ce
       ocudu_assertion_failure("Paging Search Space not configured in DL BWP.");
     }
 
-    if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value() == 0) {
-      const auto coreset0 = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+    if (cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value() == 0) {
+      const auto coreset0 = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
       ocudu_assert(coreset0.has_value(), "CORESET#0 configuration for Paging Search Space not configured in DL BWP.");
 
       // PDCCH monitoring occasions for paging are same as for RMSI. See TS 38.304, clause 7.1.
       // NOTE: We currently support only SS/PBCH and CORESET multiplexing patter 1.
-      if (cell_cfg.dl_cfg_common.pcch_cfg.nof_pf == pcch_config::nof_pf_per_drx_cycle::oneT) {
+      if (cell_cfg.params.dl_cfg_common.pcch_cfg.nof_pf == pcch_config::nof_pf_per_drx_cycle::oneT) {
         ocudu_assertion_failure(
             "Invalid nof. Paging frames per DRX Cycle for SS/PBCH and CORESET multiplexing patter 1.");
       }
@@ -36,29 +36,29 @@ paging_slot_helper::paging_slot_helper(const cell_configuration& cell_cfg_) : ce
       // frame (i_s = 1) of the PF.  This is possible only when using ssb periodicity of 5ms which is in turn possible
       // only when using SS/PBCH and CORESET multiplexing patter 2 or 3.
       ocudu_assert(
-          cell_cfg.dl_cfg_common.pcch_cfg.ns == pcch_config::nof_po_per_pf::one,
+          cell_cfg.params.dl_cfg_common.pcch_cfg.ns == pcch_config::nof_po_per_pf::one,
           "Number of Paging Occasions per Paging Frame must be 1 for SS/PBCH and CORESET multiplexing patter 1.");
-      for (size_t i_ssb = 0; i_ssb != cell_cfg.ssb_cfg.ssb_bitmap.get_L_max(); ++i_ssb) {
-        if (not cell_cfg.ssb_cfg.ssb_bitmap.test(i_ssb)) {
+      for (size_t i_ssb = 0; i_ssb != cell_cfg.params.ssb_cfg.ssb_bitmap.get_L_max(); ++i_ssb) {
+        if (not cell_cfg.params.ssb_cfg.ssb_bitmap.test(i_ssb)) {
           continue;
         }
         // For Ns = 1, there is only one PO which starts from the first PDCCH monitoring occasion for paging in the PF.
         // TS 38.304, clause 7.1. Hence, n0 slot must be use and not n0 + 1 slot.
         type0_pdcch_css_slots[i_ssb] = precompute_type0_pdcch_css_n0(
-            ss_cfg->get_ss0_index(), coreset0->value(), cell_cfg, cell_cfg.scs_common, i_ssb);
+            ss_cfg->get_ss0_index(), coreset0->value(), cell_cfg, cell_cfg.scs_common(), i_ssb);
       }
     } else {
       if (ss_cfg->get_coreset_id() != to_coreset_id(0) and
-          ((not cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value()) or
-           (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value().get_id() !=
+          ((not cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value()) or
+           (cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value().get_id() !=
             ss_cfg->get_coreset_id()))) {
         ocudu_assertion_failure("CORESET configuration for Paging Search Space not configured in DL BWP.");
       }
       if (ss_cfg->get_coreset_id() == to_coreset_id(0) and
-          (not cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value())) {
+          (not cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value())) {
         ocudu_assertion_failure("CORESET0 configuration for Paging Search Space not configured in DL BWP.");
       }
-      precompute_type2_pdcch_slots(cell_cfg.scs_common);
+      precompute_type2_pdcch_slots(cell_cfg.scs_common());
     }
   } else {
     ocudu_assertion_failure("Paging Search Space not configured in DL BWP.");
@@ -67,7 +67,8 @@ paging_slot_helper::paging_slot_helper(const cell_configuration& cell_cfg_) : ce
 
 bool paging_slot_helper::is_paging_slot(slot_point pdcch_slot, unsigned i_s) const
 {
-  const auto paging_search_space = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
+  const auto paging_search_space =
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
 
   if (paging_search_space > 0) {
     return is_paging_slot_in_search_space_id_gt_0(pdcch_slot, i_s);
@@ -91,9 +92,9 @@ bool paging_slot_helper::is_paging_slot_in_search_space_id_gt_0(slot_point pdcch
       std::max(ss_cfg->get_monitoring_slot_periodicity(), pdcch_slot.nof_slots_per_frame());
 
   // For each beam, check if the paging needs to be allocated in this slot.
-  for (unsigned ssb_idx = 0; ssb_idx != cell_cfg.ssb_cfg.ssb_bitmap.get_L_max(); ++ssb_idx) {
+  for (unsigned ssb_idx = 0; ssb_idx != cell_cfg.params.ssb_cfg.ssb_bitmap.get_L_max(); ++ssb_idx) {
     // Do not schedule the paging for the SSB indices that are not used.
-    if (not cell_cfg.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
+    if (not cell_cfg.params.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
       continue;
     }
 
@@ -132,10 +133,10 @@ bool paging_slot_helper::is_paging_slot_in_search_space0(slot_point pdcch_slot, 
       ss0_periodicity_in_ms * static_cast<unsigned>(pdcch_slot.nof_slots_per_subframe());
 
   // For each beam, check if the paging needs to be allocated in this slot.
-  const unsigned L_max = cell_cfg.ssb_cfg.ssb_bitmap.get_L_max();
+  const unsigned L_max = cell_cfg.params.ssb_cfg.ssb_bitmap.get_L_max();
   for (unsigned ssb_idx = 0; ssb_idx != L_max; ++ssb_idx) {
     // Do not schedule the paging for the SSB indices that are not used.
-    if (not cell_cfg.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
+    if (not cell_cfg.params.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
       continue;
     }
 
@@ -180,8 +181,8 @@ void paging_slot_helper::precompute_type2_pdcch_slots(subcarrier_spacing scs_com
   }
 
   unsigned nof_ssb_transmitted{};
-  for (size_t i_ssb = 0; i_ssb != cell_cfg.ssb_cfg.ssb_bitmap.get_L_max(); ++i_ssb) {
-    if (not cell_cfg.ssb_cfg.ssb_bitmap.test(i_ssb)) {
+  for (size_t i_ssb = 0; i_ssb != cell_cfg.params.ssb_cfg.ssb_bitmap.get_L_max(); ++i_ssb) {
+    if (not cell_cfg.params.ssb_cfg.ssb_bitmap.test(i_ssb)) {
       continue;
     }
     nof_ssb_transmitted++;
@@ -189,12 +190,12 @@ void paging_slot_helper::precompute_type2_pdcch_slots(subcarrier_spacing scs_com
 
   // NOTE: For active BWP not equal to Initial DL BWP, the value of firstPDCCH-MonitoringOccasionOfPO must be taken from
   // PDCCH-ConfigCommon IE of the active BWP.
-  const auto&   first_pmo_of_po = cell_cfg.dl_cfg_common.pcch_cfg.first_pdcch_monitoring_occasion_of_po_value;
-  const auto    nof_po_per_pf   = static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.ns);
-  const uint8_t L_max           = cell_cfg.ssb_cfg.ssb_bitmap.get_L_max();
+  const auto&   first_pmo_of_po = cell_cfg.params.dl_cfg_common.pcch_cfg.first_pdcch_monitoring_occasion_of_po_value;
+  const auto    nof_po_per_pf   = static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.ns);
+  const uint8_t L_max           = cell_cfg.params.ssb_cfg.ssb_bitmap.get_L_max();
   for (unsigned po_idx = 0; po_idx < nof_po_per_pf; po_idx++) {
     for (uint8_t i_ssb = 0; i_ssb != L_max; ++i_ssb) {
-      if (not cell_cfg.ssb_cfg.ssb_bitmap.test(i_ssb)) {
+      if (not cell_cfg.params.ssb_cfg.ssb_bitmap.test(i_ssb)) {
         continue;
       }
       // See TS 38.304, clause 7.1.

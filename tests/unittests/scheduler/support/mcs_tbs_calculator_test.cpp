@@ -47,7 +47,7 @@ public:
     pdsch_cfg(sched_helper::get_pdsch_config_f1_0_c_rnti(
         cell_cfg,
         ue_cell_cfg.pdsch_serving_cell_cfg(),
-        cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[time_resource]))
+        cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[time_resource]))
   {
   }
 
@@ -93,7 +93,7 @@ public:
   ul_mcs_tbs_prbs_calculator_test_bench() :
     pusch_cfg(get_pusch_config_f0_0_tc_rnti(
         cell_cfg,
-        cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource]))
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource]))
   {
   }
 
@@ -138,7 +138,7 @@ public:
   ul_mcs_tbs_prbs_calculator_dci_0_1_test_bench() :
     pusch_cfg(get_pusch_config_f0_1_c_rnti(
         ue_cell_cfg,
-        cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource],
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource],
         1,
         7,
         true))
@@ -185,7 +185,7 @@ public:
   ul_mcs_tbs_prbs_calculator_low_mcs_test_bench() :
     pusch_cfg(get_pusch_config_f0_1_c_rnti(
         ue_cell_cfg,
-        cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource],
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource],
         1,
         7,
         true))
@@ -249,7 +249,7 @@ public:
   ul_mcs_tbs_prbs_calculator_with_harq_ack() :
     pusch_cfg(get_pusch_config_f0_1_c_rnti(
         ue_cell_cfg,
-        cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource],
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource],
         1,
         2,
         false))
@@ -280,7 +280,7 @@ public:
   ul_mcs_tbs_prbs_calculator_error() :
     pusch_cfg(get_pusch_config_f0_1_c_rnti(
         ue_cell_cfg,
-        cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource],
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value().pusch_td_alloc_list[time_resource],
         1,
         0,
         false))

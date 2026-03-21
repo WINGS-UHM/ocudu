@@ -9,6 +9,7 @@
 #include "ocudu/ran/frame_types.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
+#include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
 #include <optional>
 #include <variant>
@@ -181,6 +182,18 @@ struct pucch_resource_builder_params {
     return pucch_format::FORMAT_4;
   }
 
+  /// Get the maximum effective code rate that can be achieved with the PUCCH Format 2, 3 or 4 resources.
+  max_pucch_code_rate max_code_rate_234() const
+  {
+    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f2_params>(f2_or_f3_or_f4_params).max_code_rate;
+    }
+    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f3_params>(f2_or_f3_or_f4_params).max_code_rate;
+    }
+    return std::get<pucch_f4_params>(f2_or_f3_or_f4_params).max_code_rate;
+  }
+
   // \brief Get the position of a given Resource Set ID 0/1 resource in the cell PUCCH resource list.
   //
   // \param res_set_id The Resource Set ID (0 or 1).
@@ -293,6 +306,32 @@ struct pucch_resource_builder_params {
       return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value() + 1U;
     }
     return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value();
+  }
+
+  /// Get the maximum number of UCI bits that can be carried by the PUCCH Format 2, 3 or 4 resources.
+  unsigned max_payload_234() const
+  {
+    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
+      const auto& f2_params = std::get<pucch_f2_params>(f2_or_f3_or_f4_params);
+      return get_pucch_format2_max_payload(
+          f2_params.max_nof_rbs.value(), f2_params.nof_syms.value(), to_max_code_rate_float(f2_params.max_code_rate));
+    }
+    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
+      const auto& f3_params = std::get<pucch_f3_params>(f2_or_f3_or_f4_params);
+      return get_pucch_format3_max_payload(f3_params.max_nof_rbs.value(),
+                                           f3_params.nof_syms.value(),
+                                           to_max_code_rate_float(f3_params.max_code_rate),
+                                           f3_params.intraslot_freq_hopping,
+                                           f3_params.additional_dmrs,
+                                           f3_params.pi2_bpsk);
+    }
+    const auto& f4_params = std::get<pucch_f4_params>(f2_or_f3_or_f4_params);
+    return get_pucch_format4_max_payload(f4_params.nof_syms.value(),
+                                         to_max_code_rate_float(f4_params.max_code_rate),
+                                         f4_params.intraslot_freq_hopping,
+                                         f4_params.additional_dmrs,
+                                         f4_params.pi2_bpsk,
+                                         f4_params.occ_length);
   }
 };
 

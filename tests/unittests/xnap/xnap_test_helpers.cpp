@@ -26,7 +26,8 @@ xnap_test::xnap_test() :
   ocudulog::fetch_basic_logger("XNAP", false).set_hex_dump_max_size(100);
 
   xnap =
-      std::make_unique<xnap_impl>(xnap_local_cfg,
+      std::make_unique<xnap_impl>(xnc_peer_index_t::min,
+                                  xnap_local_cfg,
                                   cu_cp_notifier,
                                   xnc_gw.get_init_tx_notifier(transport_layer_address::create_from_string("127.0.0.1")),
                                   timers,

@@ -1,0 +1,211 @@
+// SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
+// SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
+
+#include "ocudu/scheduler/config/serving_cell_config_builder.h"
+#include "ocudu/scheduler/config/time_domain_resource_helper.h"
+
+using namespace ocudu;
+
+/// Build the default PUCCH-PowerControl configuration.
+static pucch_power_control build_pucch_power_control()
+{
+  pucch_power_control pw_ctrl;
+  pw_ctrl.delta_pucch_f0 = 0;
+  pw_ctrl.delta_pucch_f1 = 0;
+  pw_ctrl.delta_pucch_f2 = 0;
+  pw_ctrl.delta_pucch_f3 = 0;
+  pw_ctrl.delta_pucch_f4 = 0;
+
+  auto& pucch_pw_set = pw_ctrl.p0_set.emplace_back();
+  pucch_pw_set.id    = 0U;
+  pucch_pw_set.value = 0;
+
+  return pw_ctrl;
+}
+
+pucch_config config_helpers::build_pucch_config(const ran_cell_config& cell_cfg,
+                                                const cell_bwp_config& cell_bwp_cfg,
+                                                const ue_bwp_config&   ue_bwp_cfg)
+{
+  const pucch_resource_builder_params& res_params                 = cell_cfg.init_bwp.pucch.resources;
+  const auto&                          cell_res_list              = cell_bwp_cfg.ul.pucch.resources;
+  const auto&                          ue_pucch_cfg               = ue_bwp_cfg.ul.pucch;
+  const auto&                          ue_periodic_csi_report_cfg = ue_bwp_cfg.ul.periodic_csi_report;
+
+  const auto   max_code_rate = res_params.max_code_rate_234();
+  pucch_config cfg{
+      .format_1_common_param = pucch_common_all_formats{},
+      .format_2_common_param = pucch_common_all_formats{.max_c_rate = max_code_rate, .simultaneous_harq_ack_csi = true},
+      .format_3_common_param = pucch_common_all_formats{.max_c_rate = max_code_rate, .simultaneous_harq_ack_csi = true},
+      .format_4_common_param = pucch_common_all_formats{.max_c_rate = max_code_rate, .simultaneous_harq_ack_csi = true},
+      .dl_data_to_ul_ack =
+          time_domain_resource_helper::generate_k1_candidates(cell_cfg.tdd_cfg, cell_cfg.init_bwp.pucch.min_k1),
+      .pucch_pw_control = build_pucch_power_control(),
+  };
+
+  auto& res_list             = cfg.pucch_res_list;
+  auto& res_set_0            = cfg.pucch_res_set.emplace_back();
+  res_set_0.pucch_res_set_id = pucch_res_set_idx::set_0;
+  auto& res_set_1            = cfg.pucch_res_set.emplace_back();
+  res_set_1.pucch_res_set_id = pucch_res_set_idx::set_1;
+  auto& sr_res_list          = cfg.sr_res_list;
+
+  // [Implementation-defined] We build the PUCCH-Config of all UEs in a way that will prevent the scheduling of
+  // multiple PUCCH transmissions per UE per slot, since not all UEs are capable of that. To achieve this, we make
+  // sure that there is always an option to schedule different UCI types on overlapping symbols, so that the UE will
+  // multiplex the different UCI types on a single PUCCH.
+  //
+  // This is done differently depending on the configured PUCCH formats:
+  // - F1 and F2/F3/F4: since we configure F1 resources to always take all available symbols in the slot, all F2/F3/F4
+  //   resources will overlap in symbols with F1 resources.
+  // - F0 and F3/F4: for now we do not allow this combination. TODO: figure out this case.
+  // - F0 and F2: we reserve two resources in each Resource Set to be used for HARQ-ACK when CSI or SR is scheduled.
+  //
+  // The diagram below illustrates the configuration of the Resource Sets for this last case:
+  //
+  //  +--------+--------+--------+--------+--------+--------+    +--------+--------+--------+--------+--------+--------+
+  //  | R_0    | R_1    | ...    | R_N-1  | CSI_F0 | SR_F0  |    | R_0    | R_1    | ...    | R_N-1  | CSI_F2 | SR_F2  |
+  //  +--------+--------+--------+--------+--------+--------+    +--------+--------+--------+--------+--------+--------+
+  //    PUCCH Resource Set ID 0 (F0 resources for HARQ-ACK)        PUCCH Resource Set ID 1 (F2 resources for HARQ-ACK)
+  //
+  // Where:
+  // - R_i are regular PUCCH resources for HARQ-ACK.
+  // - CSI_F0 is a F0 resource in Resource Set ID 0 that overlaps in symbols with the CSI (F2) resource.
+  // - SR_F0 is the same F0 resource in the PUCCH resource list as the SR resource.
+  // - CSI_F2 is the same F2 resource in the PUCCH resource list as the CSI resource.
+  // - SR_F2 is a F2 resource in Resource Set ID 1 that overlaps in symbols with the SR (F0) resource.
+  const bool is_f0_and_f2 = cell_cfg.init_bwp.pucch.resources.format_01() == pucch_format::FORMAT_0 and
+                            cell_cfg.init_bwp.pucch.resources.format_234() == pucch_format::FORMAT_2;
+
+  // Used to represent the cell resource ID of resources that do not exist in the gNB cell resource list.
+  static constexpr unsigned invalid_cell_res_id = std::numeric_limits<unsigned>::max();
+
+  // PUCCH resource ID corresponding to \c pucch-ResourceId, as part of \c PUCCH-Resource, in \c PUCCH-Config,
+  // TS 38.331. By default, we index the PUCCH resource ID for ASN1 message from 0 to pucch_res_list.size() - 1.
+  unsigned current_ue_res_id = 0;
+
+  // Add Resource Set ID 0 resources for HARQ-ACK.
+  for (unsigned r_pucch = 0; r_pucch != res_params.res_set_0_size.value(); ++r_pucch) {
+    const auto& cell_res = cell_res_list[res_params.get_res_set_cell_res_idx<0>(ue_pucch_cfg.res_set_cfg_id, r_pucch)];
+
+    // Add resource to both the PUCCH resource list and Resource Set ID 0.
+    res_list.emplace_back(pucch_resource{.res_id           = {cell_res.res_id.cell_res_id, current_ue_res_id},
+                                         .starting_prb     = cell_res.starting_prb,
+                                         .second_hop_prb   = cell_res.second_hop_prb,
+                                         .nof_symbols      = cell_res.nof_symbols,
+                                         .starting_sym_idx = cell_res.starting_sym_idx,
+                                         .format           = cell_res.format,
+                                         .format_params    = cell_res.format_params});
+    res_set_0.pucch_res_id_list.emplace_back(pucch_res_id_t{cell_res.res_id.cell_res_id, current_ue_res_id});
+
+    // Increment the PUCCH resource ID for ASN1 message.
+    ++current_ue_res_id;
+  }
+
+  if (is_f0_and_f2 and ue_periodic_csi_report_cfg.has_value()) {
+    // Add CSI_F0 resource to both the PUCCH resource list and Resource Set ID 0.
+    const unsigned csi_cell_res_idx = res_params.get_csi_cell_res_idx(ue_periodic_csi_report_cfg->pucch_res_id);
+    const auto&    csi_cell_res     = cell_res_list[csi_cell_res_idx];
+
+    // Note: this resource does not exist in the cell resource list.
+    const pucch_res_id_t res_id = {invalid_cell_res_id, current_ue_res_id};
+    res_list.emplace_back(pucch_resource{.res_id         = res_id,
+                                         .starting_prb   = csi_cell_res.starting_prb,
+                                         .second_hop_prb = csi_cell_res.second_hop_prb,
+                                         // The symbols must be the same as the CSI resource.
+                                         .nof_symbols      = csi_cell_res.nof_symbols,
+                                         .starting_sym_idx = csi_cell_res.starting_sym_idx,
+                                         .format           = pucch_format::FORMAT_0,
+                                         .format_params    = pucch_format_0_cfg{.initial_cyclic_shift = 0U}});
+    res_set_0.pucch_res_id_list.emplace_back(res_id);
+
+    // Increment the PUCCH resource ID for ASN1 message.
+    ++current_ue_res_id;
+  }
+
+  // Add SR resource to both the PUCCH resource list and the SR resource list.
+  const unsigned       sr_cell_res_idx = res_params.get_sr_cell_res_idx(ue_pucch_cfg.sr_res_id);
+  const auto&          sr_cell_res     = cell_res_list[sr_cell_res_idx];
+  const pucch_res_id_t sr_pucch_res_id{sr_cell_res.res_id.cell_res_id, current_ue_res_id};
+  res_list.emplace_back(pucch_resource{.res_id           = sr_pucch_res_id,
+                                       .starting_prb     = sr_cell_res.starting_prb,
+                                       .second_hop_prb   = sr_cell_res.second_hop_prb,
+                                       .nof_symbols      = sr_cell_res.nof_symbols,
+                                       .starting_sym_idx = sr_cell_res.starting_sym_idx,
+                                       .format           = sr_cell_res.format,
+                                       .format_params    = sr_cell_res.format_params});
+  sr_res_list.emplace_back(scheduling_request_resource_config{.sr_res_id    = 1,
+                                                              .sr_id        = uint_to_sched_req_id(0),
+                                                              .period       = cell_cfg.init_bwp.pucch.sr_period,
+                                                              .offset       = ue_pucch_cfg.sr_offset,
+                                                              .pucch_res_id = sr_pucch_res_id});
+
+  // Increment the PUCCH resource ID for ASN1 message.
+  ++current_ue_res_id;
+
+  if (is_f0_and_f2) {
+    // Map the last resource of Resource Set ID 0 (SR_F0) to the SR resource.
+    res_set_0.pucch_res_id_list.emplace_back(sr_pucch_res_id);
+  }
+
+  // Add Resource Set ID 1 resources for HARQ-ACK.
+  for (unsigned r_pucch = 0; r_pucch != res_params.res_set_1_size.value(); ++r_pucch) {
+    const auto& cell_res = cell_res_list[res_params.get_res_set_cell_res_idx<1>(ue_pucch_cfg.res_set_cfg_id, r_pucch)];
+
+    // Add resource to both the PUCCH resource list and Resource Set ID 1.
+    res_list.emplace_back(pucch_resource{.res_id           = {cell_res.res_id.cell_res_id, current_ue_res_id},
+                                         .starting_prb     = cell_res.starting_prb,
+                                         .second_hop_prb   = cell_res.second_hop_prb,
+                                         .nof_symbols      = cell_res.nof_symbols,
+                                         .starting_sym_idx = cell_res.starting_sym_idx,
+                                         .format           = cell_res.format,
+                                         .format_params    = cell_res.format_params});
+    res_set_1.pucch_res_id_list.emplace_back(pucch_res_id_t{cell_res.res_id.cell_res_id, current_ue_res_id});
+
+    // Increment the PUCCH resource ID for ASN1 message.
+    ++current_ue_res_id;
+  }
+
+  if (ue_periodic_csi_report_cfg.has_value()) {
+    // Add CSI resource to both the PUCCH resource list and the CSI resource list.
+    const unsigned       csi_cell_res_idx = res_params.get_csi_cell_res_idx(ue_periodic_csi_report_cfg->pucch_res_id);
+    const auto&          csi_cell_res     = cell_res_list[csi_cell_res_idx];
+    const pucch_res_id_t csi_pucch_res_id{csi_cell_res.res_id.cell_res_id, current_ue_res_id};
+    res_list.emplace_back(pucch_resource{.res_id           = csi_pucch_res_id,
+                                         .starting_prb     = csi_cell_res.starting_prb,
+                                         .second_hop_prb   = csi_cell_res.second_hop_prb,
+                                         .nof_symbols      = csi_cell_res.nof_symbols,
+                                         .starting_sym_idx = csi_cell_res.starting_sym_idx,
+                                         .format           = csi_cell_res.format,
+                                         .format_params    = csi_cell_res.format_params});
+
+    // Increment the PUCCH resource ID for ASN1 message.
+    ++current_ue_res_id;
+
+    if (is_f0_and_f2) {
+      // Map the second to last resource of Resource Set ID 1 (CSI_F2) to the CSI resource.
+      res_set_1.pucch_res_id_list.emplace_back(csi_pucch_res_id);
+    }
+  }
+
+  if (is_f0_and_f2) {
+    // Add SR_F2 resource to both the PUCCH resource list and Resource Set ID 1.
+    // Note: this resource does not exist in the cell resource list.
+    const pucch_res_id_t res_id = {invalid_cell_res_id, current_ue_res_id};
+    res_list.emplace_back(pucch_resource{.res_id         = res_id,
+                                         .starting_prb   = sr_cell_res.starting_prb,
+                                         .second_hop_prb = sr_cell_res.second_hop_prb,
+                                         // The symbols must be the same as the SR resource.
+                                         .nof_symbols      = sr_cell_res.nof_symbols,
+                                         .starting_sym_idx = sr_cell_res.starting_sym_idx,
+                                         .format           = pucch_format::FORMAT_2,
+                                         .format_params    = pucch_format_2_3_cfg{.nof_prbs = 1U}});
+    res_set_1.pucch_res_id_list.emplace_back(res_id);
+
+    // Increment the PUCCH resource ID for ASN1 message.
+    ++current_ue_res_id;
+  }
+
+  return cfg;
+}

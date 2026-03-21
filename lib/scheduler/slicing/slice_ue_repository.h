@@ -73,6 +73,9 @@ public:
   /// \brief Returns whether a SR indication handling is pending.
   bool has_pending_sr() const { return u.logical_channels().has_pending_sr(); }
 
+  /// Slot at which the SR was received or invalid slot if no SR is pending.
+  slot_point pending_sr_slot_rx() const { return u.logical_channels().pending_sr_slot_rx(); }
+
   /// Get QoS information of DRBs configured for the UE.
   logical_channel_config_list_ptr logical_channels() const { return u.ue_cfg_dedicated()->logical_channels(); }
 

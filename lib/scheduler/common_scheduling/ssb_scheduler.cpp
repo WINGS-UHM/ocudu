@@ -5,7 +5,6 @@
 #include "ssb_scheduler.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/frame_types.h"
-#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
 
 using namespace ocudu;
@@ -13,7 +12,7 @@ using namespace ocudu;
 ssb_scheduler::ssb_scheduler(const cell_configuration& cfg_) :
   cell_cfg(cfg_), logger(ocudulog::fetch_basic_logger("SCHED"))
 {
-  ssb_period = ssb_periodicity_to_value(cell_cfg.ssb_cfg.ssb_period);
+  ssb_period = ssb_periodicity_to_value(cell_cfg.params.ssb_cfg.ssb_period);
 }
 
 void ssb_scheduler::run_slot(cell_resource_allocator& res_alloc, slot_point sl_point)
@@ -57,7 +56,7 @@ void ssb_scheduler::schedule_ssb(cell_slot_resource_allocator& res_grid) const
       break;
     case ssb_pattern_case::C: {
       const arfcn_t ssb_cut_off_freq =
-          cell_cfg.paired_spectrum ? CUTOFF_FREQ_ARFCN_CASE_A_B_C : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
+          cell_cfg.paired_spectrum() ? CUTOFF_FREQ_ARFCN_CASE_A_B_C : CUTOFF_FREQ_ARFCN_CASE_C_UNPAIRED;
       ssb_alloc_case_A_C(ssb_list, ssb_cut_off_freq, sl_point_mod);
       break;
     }
@@ -75,7 +74,7 @@ void ssb_scheduler::schedule_ssb(cell_slot_resource_allocator& res_grid) const
   for (const auto& ssb : ssb_list) {
     // TODO: In case, SSB SCS != init DL BWP SCS, we should do an adaptation of symbols and CRBs to the numerology
     // of the latter.
-    const grant_info grant{cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs, ssb.symbols, ssb.crbs};
+    const grant_info grant{cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs, ssb.symbols, ssb.crbs};
     res_grid.dl_res_grid.fill(grant);
   }
 }
@@ -89,7 +88,7 @@ void ssb_scheduler::ssb_alloc_case_A_C(ssb_information_list& ssb_list,
   // The OFDM symbols allocations for Case A and case C are identical; the only difference is the cutoff frequency,
   // which is 3GHz for case A and C paired, but 1.88GHz for case C unpaired.
   // For frequency lower than cutoff, SSB is allocated in slot 0 and 1 only.
-  if (cell_cfg.dl_carrier.arfcn_f_ref <= freq_arfcn_cut_off and slot_idx > 1) {
+  if (cell_cfg.params.dl_carrier.arfcn_f_ref <= freq_arfcn_cut_off and slot_idx > 1) {
     return;
   }
 
@@ -101,13 +100,13 @@ void ssb_scheduler::ssb_alloc_case_A_C(ssb_information_list& ssb_list,
     constexpr std::array<uint8_t, 2U> ssb_burst_ofdm_symb = {2, 8};
     for (uint32_t n = 0, sz = ssb_burst_ofdm_symb.size(); n != sz; ++n) {
       const uint32_t ssb_idx = n + slot_idx * 2U;
-      ocudu_assert(ssb_idx < cell_cfg.ssb_cfg.ssb_bitmap.size(), "SSB index exceeds SSB bitmap size");
-      if (cell_cfg.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
+      ocudu_assert(ssb_idx < cell_cfg.params.ssb_cfg.ssb_bitmap.size(), "SSB index exceeds SSB bitmap size");
+      if (cell_cfg.params.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
         fill_ssb_parameters(ssb_list,
-                            cell_cfg.ssb_cfg.offset_to_point_A,
-                            cell_cfg.ssb_cfg.k_ssb,
-                            cell_cfg.ssb_cfg.scs,
-                            cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
+                            cell_cfg.params.ssb_cfg.offset_to_point_A,
+                            cell_cfg.params.ssb_cfg.k_ssb,
+                            cell_cfg.params.ssb_cfg.scs,
+                            cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs,
                             ssb_burst_ofdm_symb[n] + slot_idx * NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
                             ssb_idx);
       }
@@ -121,7 +120,7 @@ void ssb_scheduler::ssb_alloc_case_B(ssb_information_list& ssb_list, slot_point 
 
   // For frequency lower than cutoff, SSB occasions are on slot 0 and 1 only, while for frequencies higher than the
   // cutoff, the SSB occasions are on slot 0, 1, 2, and 3.
-  const arfcn_t max_slot_idx_case_B = cell_cfg.dl_carrier.arfcn_f_ref <= CUTOFF_FREQ_ARFCN_CASE_A_B_C ? 1U : 3U;
+  const arfcn_t max_slot_idx_case_B = cell_cfg.params.dl_carrier.arfcn_f_ref <= CUTOFF_FREQ_ARFCN_CASE_A_B_C ? 1U : 3U;
   if (slot_idx > max_slot_idx_case_B) {
     return;
   }
@@ -136,13 +135,13 @@ void ssb_scheduler::ssb_alloc_case_B(ssb_information_list& ssb_list, slot_point 
 
     for (uint32_t n = 0, sz = ssb_burst_ofdm_symb.size(); n != sz; ++n) {
       const uint32_t ssb_idx = n + slot_idx * 2U;
-      ocudu_assert(ssb_idx < cell_cfg.ssb_cfg.ssb_bitmap.size(), "SSB index exceeds SSB bitmap size");
-      if (cell_cfg.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
+      ocudu_assert(ssb_idx < cell_cfg.params.ssb_cfg.ssb_bitmap.size(), "SSB index exceeds SSB bitmap size");
+      if (cell_cfg.params.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
         fill_ssb_parameters(ssb_list,
-                            cell_cfg.ssb_cfg.offset_to_point_A,
-                            cell_cfg.ssb_cfg.k_ssb,
-                            cell_cfg.ssb_cfg.scs,
-                            cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
+                            cell_cfg.params.ssb_cfg.offset_to_point_A,
+                            cell_cfg.params.ssb_cfg.k_ssb,
+                            cell_cfg.params.ssb_cfg.scs,
+                            cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs,
                             ssb_burst_ofdm_symb[n] + slot_idx * NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
                             ssb_idx);
       }
@@ -155,13 +154,13 @@ void ssb_scheduler::ssb_alloc_case_B(ssb_information_list& ssb_list, slot_point 
 
     for (uint32_t n = 0, sz = ssb_burst_ofdm_symb.size(); n != sz; ++n) {
       const uint32_t ssb_idx = n + slot_idx * 2;
-      ocudu_assert(ssb_idx < cell_cfg.ssb_cfg.ssb_bitmap.size(), "SSB index exceeds SSB bitmap size");
-      if (cell_cfg.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
+      ocudu_assert(ssb_idx < cell_cfg.params.ssb_cfg.ssb_bitmap.size(), "SSB index exceeds SSB bitmap size");
+      if (cell_cfg.params.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
         fill_ssb_parameters(ssb_list,
-                            cell_cfg.ssb_cfg.offset_to_point_A,
-                            cell_cfg.ssb_cfg.k_ssb,
-                            cell_cfg.ssb_cfg.scs,
-                            cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
+                            cell_cfg.params.ssb_cfg.offset_to_point_A,
+                            cell_cfg.params.ssb_cfg.k_ssb,
+                            cell_cfg.params.ssb_cfg.scs,
+                            cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs,
                             ssb_burst_ofdm_symb[n] + (slot_idx - 1) * NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
                             ssb_idx);
       }
@@ -200,26 +199,26 @@ void ssb_scheduler::ssb_alloc_case_D(ssb_information_list& ssb_list, slot_point 
 
   // The starting symbols for the first SSB position in the slot correspond to symbol 4 if the slot index is even,
   // otherwise to symbol 2.
-  if (cell_cfg.ssb_cfg.ssb_bitmap.test(first_ssb_idx)) {
+  if (cell_cfg.params.ssb_cfg.ssb_bitmap.test(first_ssb_idx)) {
     const unsigned start_symbol_idx = (slot_idx % 2 == 0) ? 4 : 2;
     fill_ssb_parameters(ssb_list,
-                        cell_cfg.ssb_cfg.offset_to_point_A,
-                        cell_cfg.ssb_cfg.k_ssb,
-                        cell_cfg.ssb_cfg.scs,
-                        cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
+                        cell_cfg.params.ssb_cfg.offset_to_point_A,
+                        cell_cfg.params.ssb_cfg.k_ssb,
+                        cell_cfg.params.ssb_cfg.scs,
+                        cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs,
                         start_symbol_idx,
                         first_ssb_idx);
   }
 
   // The starting symbols for the first SSB position in the slot correspond to symbol 8 if the slot index is even,
   // otherwise to symbol 6.
-  if (cell_cfg.ssb_cfg.ssb_bitmap.test(first_ssb_idx + 1)) {
+  if (cell_cfg.params.ssb_cfg.ssb_bitmap.test(first_ssb_idx + 1)) {
     const unsigned start_symbol_idx = (slot_idx % 2 == 0) ? 8 : 6;
     fill_ssb_parameters(ssb_list,
-                        cell_cfg.ssb_cfg.offset_to_point_A,
-                        cell_cfg.ssb_cfg.k_ssb,
-                        cell_cfg.ssb_cfg.scs,
-                        cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs,
+                        cell_cfg.params.ssb_cfg.offset_to_point_A,
+                        cell_cfg.params.ssb_cfg.k_ssb,
+                        cell_cfg.params.ssb_cfg.scs,
+                        cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs,
                         start_symbol_idx,
                         first_ssb_idx + 1);
   }

@@ -7,6 +7,7 @@
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "gtest/gtest.h"
 
 using namespace ocudu;
@@ -34,7 +35,7 @@ protected:
     report_fatal_error_if_not(ret.second, "Repeated UE index");
 
     auto& u = ues.at(ue_idx);
-    u.cells.emplace(SERVING_PCELL_IDX, config_helpers::create_default_initial_ue_cell_config(params));
+    u.cells.emplace(SERVING_PCELL_IDX, config_helpers::make_default_ue_cell_config(cell_cfg_list.front().ran));
 
     // On UE creation, handle_ue_creation is always called.
     drx.handle_ue_creation(u);

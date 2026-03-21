@@ -34,7 +34,7 @@ struct ru_emulator_ofh_appconfig {
   std::string ru_mac_address;
   /// Distributed Unit MAC address.
   std::string du_mac_address;
-  /// V-LAN Tag control information field.
+  /// VLAN Tag control information field.
   unsigned vlan_tag;
   /// Promiscuous mode flag.
   bool enable_promiscuous = false;

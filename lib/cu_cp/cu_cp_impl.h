@@ -110,22 +110,26 @@ public:
   void handle_transmission_of_handover_required() override;
   void handle_dl_ue_associated_nrppa_transport_pdu(ue_index_t ue_index, const byte_buffer& nrppa_pdu) override;
   void handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) override;
-  void handle_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg) override;
+  void handle_location_reporting_control_message(ue_index_t ue_index, const location_report_request& msg) override;
   void handle_n2_disconnection(amf_index_t amf_index) override;
 
   // cu_cp_inter_cu_handover_handler.
-  async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) override;
+  async_task<bool> handle_new_rrc_handover_command(ue_index_t                      ue_index,
+                                                   byte_buffer                     command,
+                                                   std::optional<xnc_peer_index_t> xnc_index = std::nullopt) override;
   ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override;
   bool       handle_handover_request(ue_index_t                        ue_index,
                                      const plmn_identity&              selected_plmn,
                                      const security::security_context& sec_ctxt) override;
-  void       handle_inter_cu_target_handover_execution(ue_index_t ue_index) override;
+  void       handle_inter_cu_target_handover_execution(ue_index_t ue_index,
+                                                       const std::optional<xnap_handover_target_execution_context>&
+                                                           xnap_ho_target_execution_ctxt = std::nullopt) override;
 
   // cu_cp_xnap_handler.
-  byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) override;
   async_task<cu_cp_handover_resource_allocation_response>
        handle_xnap_handover_request(const xnap_handover_request& request) override;
   void handle_handover_cancel_received(ue_index_t ue_index) override;
+  void handle_xnap_ue_context_release_received(ue_index_t ue_index) override;
 
   // cu_cp_nrppa_handler.
   nrppa_cu_cp_ue_notifier* handle_new_nrppa_ue(ue_index_t ue_index) override;

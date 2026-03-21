@@ -5,6 +5,7 @@
 #include "ocudu/ran/tdd/tdd_ul_dl_config_formatters.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/csi_helper.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_validator.h"
 #include <gtest/gtest.h>
@@ -71,9 +72,10 @@ TEST_P(csi_rs_slot_derivation_test, csi_rs_slot_offsets_do_not_collide)
 
 TEST_P(csi_rs_slot_derivation_test, generated_csi_meas_config_validation)
 {
-  serving_cell_config cell_cfg = config_helpers::create_default_initial_ue_serving_cell_config();
-  result.nof_rbs               = 52;
-  result.mcs_table             = pdsch_mcs_table::qam64;
+  serving_cell_config cell_cfg =
+      config_helpers::make_default_ue_cell_config(config_helpers::make_default_ran_cell_config()).serv_cell_cfg;
+  result.nof_rbs   = 52;
+  result.mcs_table = pdsch_mcs_table::qam64;
   // Note: Since by default we use periodic CSI, we don't care about pusch_td_alloc_list or ul_config_common.
   cell_cfg.csi_meas_cfg = make_csi_meas_config(result, {});
   ul_config_common ul_cfg_cmn{};

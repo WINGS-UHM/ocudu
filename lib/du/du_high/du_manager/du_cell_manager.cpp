@@ -71,7 +71,7 @@ void du_cell_manager::add_cell(const du_cell_config& cell_cfg)
   cell.si_cfg.sib1      = sib1.copy();
   cell.si_cfg.si_messages.assign(si_messages.begin(), si_messages.end());
   cell.si_cfg.si_sched_cfg           = std::move(si_sched_req);
-  cell.si_cfg.sib1_contains_hypersfn = cell_cfg.ran.init_bwp_builder.paging.edrx_enabled;
+  cell.si_cfg.sib1_contains_hypersfn = cell_cfg.ran.init_bwp.paging.edrx_enabled;
 }
 
 expected<du_cell_reconfig_result>

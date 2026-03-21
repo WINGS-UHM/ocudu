@@ -21,7 +21,12 @@ TEST_F(ngap_test, when_source_gnb_handover_preparation_triggered_then_ho_command
 
   // Manually add existing PDU sessions to UP manager.
   add_pdu_session_to_up_manager(
-      ue_index, uint_to_pdu_session_id(1), pdu_session_type_t::ipv4, uint_to_drb_id(1), uint_to_qos_flow_id(0));
+      ue_index,
+      uint_to_pdu_session_id(1),
+      pdu_session_type_t::ipv4,
+      up_transport_layer_info{transport_layer_address::create_from_string("127.0.0.1"), int_to_gtpu_teid(1)},
+      uint_to_drb_id(1),
+      uint_to_qos_flow_id(0));
 
   auto& ue = test_ues.at(ue_index);
   ue.rrc_ue_handler.set_ho_preparation_message({});

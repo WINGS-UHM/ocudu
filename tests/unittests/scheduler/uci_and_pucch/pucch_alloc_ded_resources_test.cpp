@@ -231,11 +231,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_with_existing_sr_succe
 // TODO: add the same test but with existing CSI/SR grants.
 TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_succeeds_until_max_payload_reached)
 {
-  const unsigned max_payload_f2_f3_f4 = t_bench.get_main_ue()
-                                            .ue_cfg_dedicated()
-                                            ->ue_cell_cfg(to_du_cell_index(0))
-                                            .init_bwp()
-                                            .ul_ded->pucch_cfg->get_max_payload(GetParam());
+  const unsigned max_payload_f2_f3_f4 = t_bench.params.pucch_ded_params.max_payload_234();
 
   // Add HARQ grants to reach the max_payload.
   for (unsigned n = 0; n != max_payload_f2_f3_f4; ++n) {
@@ -267,11 +263,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_succeeds_until_max_pay
 
 TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_with_existing_sr_succeeds_until_max_payload_reached)
 {
-  const unsigned max_payload_f2_f3_f4 = t_bench.get_main_ue()
-                                            .ue_cfg_dedicated()
-                                            ->ue_cell_cfg(to_du_cell_index(0))
-                                            .init_bwp()
-                                            .ul_ded->pucch_cfg->get_max_payload(GetParam());
+  const unsigned max_payload_f2_f3_f4 = t_bench.params.pucch_ded_params.max_payload_234();
 
   // Add HARQ grants to reach the max_payload.
   alloc_sr_opportunity(t_bench.get_main_ue());
@@ -422,11 +414,7 @@ TEST_P(pucch_alloc_ded_resources_test,
 
 TEST_P(pucch_alloc_ded_resources_test, alloc_ded_harq_ack_with_existing_csi_and_sr_fails_when_max_payload_reached)
 {
-  const unsigned max_payload_f2_f3_f4 = t_bench.get_main_ue()
-                                            .ue_cfg_dedicated()
-                                            ->ue_cell_cfg(to_du_cell_index(0))
-                                            .init_bwp()
-                                            .ul_ded->pucch_cfg->get_max_payload(GetParam());
+  const unsigned max_payload_f2_f3_f4 = t_bench.params.pucch_ded_params.max_payload_234();
   ASSERT_TRUE(max_payload_f2_f3_f4 > default_csi_part1_bits + 1U);
 
   alloc_sr_opportunity(t_bench.get_main_ue());

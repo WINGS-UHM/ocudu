@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "config_generators.h"
 #include "dummy_test_components.h"
 #include "lib/scheduler/config/cell_configuration.h"
 #include "result_test_helpers.h"
 #include "tests/test_doubles/scheduler/dummy_scheduler_ue_metric_notifier.h"
-#include "ocudu/scheduler/scheduler_factory.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
+#include "ocudu/scheduler/mac_scheduler.h"
 
 namespace ocudu {
 

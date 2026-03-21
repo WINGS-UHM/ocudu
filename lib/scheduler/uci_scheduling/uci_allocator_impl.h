@@ -80,6 +80,8 @@ private:
 
   // \brief Ring of UCI allocations indexed by slot.
   circular_vector<slot_alloc_list> uci_alloc_grid;
+
+  const unsigned max_pucch_payload;
 };
 
 } // namespace ocudu

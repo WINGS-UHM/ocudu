@@ -10,6 +10,7 @@
 #include "test_utils/result_test_helpers.h"
 #include "test_utils/scheduler_test_simulator.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "ocudu/ran/du_types.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -142,11 +143,12 @@ protected:
 
 TEST_F(scheduler_missing_ack_tester, when_no_harq_ack_arrives_then_harq_eventually_becomes_available)
 {
-  static constexpr unsigned         nof_harqs     = 16;
-  static constexpr rnti_t           rnti          = to_rnti(0x4601);
-  sched_ue_creation_request_message ue_create_req = sched_config_helper::create_default_sched_ue_creation_request();
-  ue_create_req.crnti                             = rnti;
-  ue_create_req.ue_index                          = to_du_ue_index(0);
+  static constexpr unsigned         nof_harqs = 16;
+  static constexpr rnti_t           rnti      = to_rnti(0x4601);
+  sched_ue_creation_request_message ue_create_req =
+      sched_config_helper::create_default_sched_ue_creation_request(bench.cell_cfg(to_du_cell_index(0)).params);
+  ue_create_req.crnti    = rnti;
+  ue_create_req.ue_index = to_du_ue_index(0);
   (*ue_create_req.cfg.cells)[0].serv_cell_cfg.pdsch_serv_cell_cfg->nof_harq_proc =
       (pdsch_serving_cell_config::nof_harq_proc_for_pdsch)nof_harqs;
   bench.add_ue(ue_create_req);
@@ -183,11 +185,12 @@ TEST_F(scheduler_missing_ack_tester, when_no_harq_ack_arrives_then_harq_eventual
 
 TEST_F(scheduler_missing_ack_tester, when_no_crc_arrives_then_ul_harq_eventually_becomes_available)
 {
-  static constexpr unsigned         nof_harqs     = 16;
-  static constexpr rnti_t           rnti          = to_rnti(0x4601);
-  sched_ue_creation_request_message ue_create_req = sched_config_helper::create_default_sched_ue_creation_request();
-  ue_create_req.crnti                             = rnti;
-  ue_create_req.ue_index                          = to_du_ue_index(0);
+  static constexpr unsigned         nof_harqs = 16;
+  static constexpr rnti_t           rnti      = to_rnti(0x4601);
+  sched_ue_creation_request_message ue_create_req =
+      sched_config_helper::create_default_sched_ue_creation_request(bench.cell_cfg(to_du_cell_index(0)).params);
+  ue_create_req.crnti    = rnti;
+  ue_create_req.ue_index = to_du_ue_index(0);
   bench.add_ue(ue_create_req);
 
   // Push enough bytes so that all HARQs get allocated.
@@ -233,10 +236,11 @@ class scheduler_error_indication_tester : public base_scheduler_retx_tester, pub
 
 TEST_F(scheduler_error_indication_tester, when_uci_lost_due_to_error_indication_then_dl_harq_is_retx)
 {
-  static constexpr rnti_t           rnti          = to_rnti(0x4601);
-  sched_ue_creation_request_message ue_create_req = sched_config_helper::create_default_sched_ue_creation_request();
-  ue_create_req.crnti                             = rnti;
-  ue_create_req.ue_index                          = to_du_ue_index(0);
+  static constexpr rnti_t           rnti = to_rnti(0x4601);
+  sched_ue_creation_request_message ue_create_req =
+      sched_config_helper::create_default_sched_ue_creation_request(bench.cell_cfg(to_du_cell_index(0)).params);
+  ue_create_req.crnti    = rnti;
+  ue_create_req.ue_index = to_du_ue_index(0);
   bench.add_ue(ue_create_req);
 
   // Push bytes so that an HARQ gets allocated.
@@ -280,10 +284,11 @@ TEST_F(scheduler_error_indication_tester, when_uci_lost_due_to_error_indication_
 TEST_F(scheduler_error_indication_tester,
        when_pusch_with_new_data_is_lost_due_to_error_indication_then_ul_harq_is_reset)
 {
-  static constexpr rnti_t           rnti          = to_rnti(0x4601);
-  sched_ue_creation_request_message ue_create_req = sched_config_helper::create_default_sched_ue_creation_request();
-  ue_create_req.crnti                             = rnti;
-  ue_create_req.ue_index                          = to_du_ue_index(0);
+  static constexpr rnti_t           rnti = to_rnti(0x4601);
+  sched_ue_creation_request_message ue_create_req =
+      sched_config_helper::create_default_sched_ue_creation_request(bench.cell_cfg(to_du_cell_index(0)).params);
+  ue_create_req.crnti    = rnti;
+  ue_create_req.ue_index = to_du_ue_index(0);
   bench.add_ue(ue_create_req);
 
   // Push bytes so that an UL HARQ gets allocated.

@@ -30,7 +30,7 @@ struct rach_config_generic {
   unsigned msg1_frequency_start;
   /// Zero-correlation zone configuration number as per TS38.331 "zeroCorrelationZoneConfig", used to derive N_{CS}.
   uint16_t zero_correlation_zone_config;
-  /// \brief \c preambleReceivedTargetPower, part of \c RACH-ConfigGeneric, TS 38.311.
+  /// \brief \c preambleReceivedTargetPower, part of \c RACH-ConfigGeneric, TS 38.331.
   /// Target power level at the network receiver side, in dBm. Only values multiple of 2 are valid.
   bounded_integer<int, -202, -60> preamble_rx_target_pw;
   /// Max number of RA preamble transmissions performed before declaring a failure. Values {3, 4, 5, 6, 7, 8, 10, 20,

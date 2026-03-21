@@ -243,7 +243,7 @@ void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   const auto& dmrs_cfg = ss_info.bwp->dl_ded.value()->pdsch_cfg->pdsch_mapping_type_a_dmrs.value();
   f1_1.antenna_ports   = get_pdsch_antenna_port_mapping_row_index(
       nof_layers,
-      ue_cell_cfg.cell_cfg_common.dl_carrier.nof_ant,
+      ue_cell_cfg.cell_cfg_common.params.dl_carrier.nof_ant,
       dmrs_cfg.is_dmrs_type2 ? dmrs_config_type::type2 : dmrs_config_type::type1,
       dmrs_cfg.is_max_length_len2 ? dmrs_max_length::len2 : dmrs_max_length::len1,
       are_both_cws_enabled);

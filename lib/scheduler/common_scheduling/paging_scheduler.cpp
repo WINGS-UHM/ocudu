@@ -25,22 +25,22 @@ paging_scheduler::paging_scheduler(const cell_configuration& cell_cfg_,
   cell_cfg(cell_cfg_),
   pdcch_sch(pdcch_sch_),
   nof_slots_ahead_sched(nof_slots_ahead_sched_),
-  default_paging_cycle(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle)),
-  nof_pf_per_drx_cycle(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.nof_pf)),
-  paging_frame_offset(cell_cfg.dl_cfg_common.pcch_cfg.paging_frame_offset),
-  nof_po_per_pf(static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.ns)),
+  default_paging_cycle(static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.default_paging_cycle)),
+  nof_pf_per_drx_cycle(static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.nof_pf)),
+  paging_frame_offset(cell_cfg.params.dl_cfg_common.pcch_cfg.paging_frame_offset),
+  nof_po_per_pf(static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.ns)),
   slot_helper(cell_cfg_),
   new_paging_notifications(PAGING_INFO_QUEUE_SIZE),
   logger(ocudulog::fetch_basic_logger("SCHED"))
 {
-  ocudu_assert(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value(),
+  ocudu_assert(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.has_value(),
                "Paging Search Space not configured in DL BWP.");
 
   paging_pending_ues.reserve(MAX_NOF_PENDING_PAGINGS);
 
   // Pre-fetch search space config.
-  for (const auto& cfg : cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
-    if (cfg.get_id() != cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value()) {
+  for (const auto& cfg : cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces) {
+    if (cfg.get_id() != cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value()) {
       continue;
     }
     ss_cfg = &cfg;
@@ -51,19 +51,19 @@ paging_scheduler::paging_scheduler(const cell_configuration& cell_cfg_,
   }
 
   // See TS 38.214, 5.1.2.2.2, Downlink resource allocation type 1.
-  bwp_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params;
+  bwp_cfg = cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params;
   if (ss_cfg->is_common_search_space()) {
     // See TS 38.214, 5.1.2.2.2, Downlink resource allocation type 1.
-    if (cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value()) {
-      bwp_cfg.crbs = get_coreset0_crbs(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common);
+    if (cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.has_value()) {
+      bwp_cfg.crbs = get_coreset0_crbs(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common);
     }
   }
 
   // See TS 38.214, Table 5.1.2.1.1-1.
   // TODO: Select PDSCH time domain resource allocation to apply based on SS/PBCH and CORESET mux. pattern.
-  pdsch_td_alloc_list = cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list.empty()
-                            ? pdsch_default_time_allocations_default_A_table(bwp_cfg.cp, cell_cfg.dmrs_typeA_pos)
-                            : cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
+  pdsch_td_alloc_list = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list.empty()
+                            ? pdsch_default_time_allocations_default_A_table(bwp_cfg.cp, cell_cfg.params.dmrs_typeA_pos)
+                            : cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
 
   // Generate an empty vector for each element of pdsch_time_res_idx_to_scheduled_ues_lookup; only then we can reserve
   // the capacity.
@@ -108,7 +108,8 @@ void paging_scheduler::run_slot(cell_resource_allocator& res_grid, uint32_t hype
   }
 
   // Update paging re-tries counter for all successful allocations.
-  const auto paging_search_space = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
+  const auto paging_search_space =
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id.value();
   for (unsigned pdsch_td_res_idx = 0, sz = pdsch_time_res_idx_to_scheduled_ues_lookup.size(); pdsch_td_res_idx != sz;
        ++pdsch_td_res_idx) {
     const auto& group = pdsch_time_res_idx_to_scheduled_ues_lookup[pdsch_td_res_idx];
@@ -344,7 +345,7 @@ bool paging_scheduler::is_there_space_available_for_paging(const cell_resource_a
   // Generate dmrs information to be passed to (i) the fnc that computes number of RE used for DMRS per RB and (ii) to
   // the fnc that fills the DCI.
   const dmrs_information dmrs_info =
-      make_dmrs_info_common(pdsch_td_alloc_list, pdsch_time_res, cell_cfg.pci, cell_cfg.dmrs_typeA_pos);
+      make_dmrs_info_common(pdsch_td_alloc_list, pdsch_time_res, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos);
 
   const sch_mcs_description mcs_descr = pdsch_mcs_get_config(pdsch_mcs_table::qam64, expert_cfg.pg.paging_mcs_index);
   const sch_prbs_tbs        paging_prbs_tbs = get_nof_prbs(prbs_calculator_sch_config{
@@ -402,7 +403,7 @@ bool paging_scheduler::allocate_paging(cell_resource_allocator&         res_grid
   // Generate dmrs information to be passed to (i) the fnc that computes number of RE used for DMRS per RB and (ii) to
   // the fnc that fills the DCI.
   const dmrs_information dmrs_info =
-      make_dmrs_info_common(pdsch_td_alloc_list, pdsch_time_res, cell_cfg.pci, cell_cfg.dmrs_typeA_pos);
+      make_dmrs_info_common(pdsch_td_alloc_list, pdsch_time_res, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos);
 
   const sch_mcs_description mcs_descr = pdsch_mcs_get_config(pdsch_mcs_table::qam64, expert_cfg.pg.paging_mcs_index);
   const sch_prbs_tbs        paging_prbs_tbs =
@@ -443,7 +444,7 @@ bool paging_scheduler::allocate_paging(cell_resource_allocator&         res_grid
 
   // > Now that we are sure there is space in both PDCCH and PDSCH, set Paging CRBs as used.
   pdsch_alloc.dl_res_grid.fill(
-      grant_info{cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs, pdsch_td_cfg.symbols, paging_crbs});
+      grant_info{cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs, pdsch_td_cfg.symbols, paging_crbs});
 
   // > Delegate filling Paging grants to helper function.
   fill_paging_grant(pdsch_alloc.result.dl.paging_grants.emplace_back(),
@@ -467,7 +468,7 @@ void paging_scheduler::fill_paging_grant(dl_paging_allocation&            pg_gra
 {
   // Fill Paging DCI.
   build_dci_f1_0_p_rnti(
-      pdcch.dci, cell_cfg.dl_cfg_common.init_dl_bwp, crbs_grant, time_resource, expert_cfg.pg.paging_mcs_index);
+      pdcch.dci, cell_cfg.params.dl_cfg_common.init_dl_bwp, crbs_grant, time_resource, expert_cfg.pg.paging_mcs_index);
 
   // Add Paging UE info to list of Paging information to pass to lower layers.
   for (ue_paging_id pg_id : ue_paging_ids) {

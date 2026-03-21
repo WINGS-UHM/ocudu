@@ -45,6 +45,11 @@ public:
   /// \return The index of the XN-C peer if the XNAP object was found, xnc_peer_index_t::invalid otherwise.
   xnc_peer_index_t find_xnap(const transport_layer_address& peer_addr);
 
+  /// \brief Find an XNAP object in the repository.
+  /// \param[in] peer_gnb_id GNB ID of the XN-C peer to which the XNAP object is connected.
+  /// \return A pointer to the interface of the added XNAP object if it was successfully found, a nullptr otherwise.
+  xnap_interface* find_xnap(const gnb_id_t& peer_gnb_id);
+
   /// \brief Get the all XNAP interfaces.
   std::map<xnc_peer_index_t, xnap_interface*> get_xnaps();
 

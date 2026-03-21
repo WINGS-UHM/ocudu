@@ -22,7 +22,7 @@ ran_slice_instance::ran_slice_instance(ran_slice_id_t                 id_,
   id(id_),
   cell_cfg(&cell_cfg_),
   cfg(cfg_),
-  min_k2(get_min_k2(cell_cfg->ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list)),
+  min_k2(get_min_k2(cell_cfg->params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list)),
   pusch_rb_count_per_slot(get_allocator_ring_size_gt_min(SCHEDULER_MAX_K2 + cell_cfg->ntn_cs_koffset)),
   slice_ues(id, cell_cfg->cell_index, ues_)
 {

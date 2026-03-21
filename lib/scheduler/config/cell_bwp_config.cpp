@@ -12,6 +12,6 @@ using namespace ocudu;
 cell_bwp_config ocudu::make_cell_bwp_config(const ran_cell_config& cell_cfg)
 {
   return cell_bwp_config{.ul = {.pucch = {.resources = config_helpers::generate_cell_pucch_res_list(
-                                              cell_cfg.init_bwp_builder.pucch.resources,
+                                              cell_cfg.init_bwp.pucch.resources,
                                               cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length())}}};
 }

@@ -391,8 +391,8 @@ static std::optional<ul_sched_context> get_ul_sched_context(const slice_ue&     
     }
 
     // Check whether PUSCH time domain resource fits in UL symbols of the slot.
-    if (cell_cfg.tdd_cfg_common.has_value() and
-        not get_active_tdd_ul_symbols(cell_cfg.tdd_cfg_common.value(), pusch_slot.slot_index(), cyclic_prefix::NORMAL)
+    if (cell_cfg.is_tdd() and
+        not get_active_tdd_ul_symbols(cell_cfg.params.tdd_cfg.value(), pusch_slot.slot_index(), cyclic_prefix::NORMAL)
                 .contains(pusch_td_res.symbols)) {
       continue;
     }

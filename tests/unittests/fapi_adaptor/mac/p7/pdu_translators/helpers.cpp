@@ -202,11 +202,10 @@ static void add_dl_pdcch_pdus_to_result(mac_dl_sched_result_test_helper& helper)
   static constexpr unsigned nof_pdus = 4;
 
   for (unsigned i = 0; i != nof_pdus; ++i) {
-    pdcch_dl_information info{
+    helper.sched_result.dl_pdcchs.push_back(pdcch_dl_information{
         generate_dci_context(helper.bwp_cfg[std::min<unsigned>(i, helper.bwp_cfg.size() - 1U)],
                              helper.coreset_cfg[std::min<unsigned>(i, helper.coreset_cfg.size() - 1U)]),
-        generate_dci_dl_info()};
-    helper.sched_result.dl_pdcchs.push_back(std::move(info));
+        generate_dci_dl_info()});
   }
 
   // Add the DCIs payload.
@@ -218,11 +217,10 @@ static void add_dl_pdcch_pdus_to_result(mac_dl_sched_result_test_helper& helper)
 static void add_all_dl_pdcch_pdus_to_result(mac_dl_sched_result_test_helper& helper)
 {
   for (unsigned i = 0; i != MAX_DL_PDCCH_PDUS_PER_SLOT; ++i) {
-    pdcch_dl_information info{
+    helper.sched_result.dl_pdcchs.push_back(pdcch_dl_information{
         generate_dci_context(helper.bwp_cfg_pdcch[std::min<unsigned>(i, helper.bwp_cfg_pdcch.size() - 1U)],
                              helper.coreset_cfg[std::min<unsigned>(i, helper.coreset_cfg.size() - 1U)]),
-        generate_dci_dl_info()};
-    helper.sched_result.dl_pdcchs.push_back(std::move(info));
+        generate_dci_dl_info()});
   }
 
   // Add the DCIs payload.
@@ -234,11 +232,10 @@ static void add_all_dl_pdcch_pdus_to_result(mac_dl_sched_result_test_helper& hel
 static void add_all_ul_pdcch_pdus_to_result(mac_dl_sched_result_test_helper& helper)
 {
   for (unsigned i = 0; i != MAX_UL_PDCCH_PDUS_PER_SLOT; ++i) {
-    pdcch_ul_information info{
+    helper.sched_result.ul_pdcchs.push_back(pdcch_ul_information{
         generate_dci_context(helper.bwp_cfg_pdcch[std::min<unsigned>(i, helper.bwp_cfg_pdcch.size() - 1U)],
                              helper.coreset_cfg[std::min<unsigned>(i, helper.coreset_cfg.size() - 1U)]),
-        {}};
-    helper.sched_result.ul_pdcchs.push_back(std::move(info));
+        {}});
   }
 
   // Add the DCIs payload.
@@ -260,7 +257,7 @@ static pdsch_information fill_valid_pdsch_information(coreset_configuration& cor
   info.coreset_cfg     = &coreset_cfg;
   info.rbs             = vrb_interval{40, 60};
   info.symbols         = {3, 10};
-  info.dmrs            = {dmrs_symbol_mask(14), dmrs_config_type::type1, 2, 3, false, 0, 2, bounded_bitset<12>(12)};
+  info.dmrs            = {dmrs_symbol_mask(14), dmrs_config_type::type1, 2, 3, false, false, 2, bounded_bitset<12>(12)};
   info.n_id            = generate_nid_pdsch();
   info.nof_layers      = 1U;
   info.vrb_prb_mapping = vrb_to_prb::mapping_type::non_interleaved;
@@ -527,7 +524,7 @@ ul_sched_info_test_helper unittests::build_valid_pusch_pdu()
   pusch.mcs_descr.modulation       = modulation_scheme::QAM256;
   pusch.mcs_index                  = 3;
   pusch.mcs_table                  = pusch_mcs_table::qam256;
-  pusch.dmrs = {dmrs_symbol_mask(14), dmrs_config_type::type1, 2, 3, false, 0, 2, bounded_bitset<12>(12)};
+  pusch.dmrs = {dmrs_symbol_mask(14), dmrs_config_type::type1, 2, 3, false, false, 2, bounded_bitset<12>(12)};
   pusch.intra_slot_freq_hopping    = false;
   pusch.pusch_second_hop_prb       = 3;
   pusch.tx_direct_current_location = 1;

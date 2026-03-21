@@ -7,6 +7,7 @@
 #include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
 #include "ocudu/adt/ranges/transform.h"
+#include "ocudu/ran/du_types.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -42,7 +43,8 @@ protected:
     auto                get_lcid  = [](const auto& e) { return e.first; };
     auto                only_lcid = views::transform(lcid_to_cfg, get_lcid);
     std::vector<lcid_t> lcid_list(only_lcid.begin(), only_lcid.end());
-    auto ue_cfg = sched_config_helper::create_default_sched_ue_creation_request(builder_params, lcid_list);
+    auto                ue_cfg =
+        sched_config_helper::create_default_sched_ue_creation_request(cell_cfg(to_du_cell_index(0)).params, lcid_list);
     for (unsigned i = 0; i < lcid_list.size(); i++) {
       auto it                = std::find_if(ue_cfg.cfg.lc_config_list->begin(),
                              ue_cfg.cfg.lc_config_list->end(),

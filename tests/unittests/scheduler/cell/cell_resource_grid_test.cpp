@@ -5,7 +5,7 @@
 #include "lib/scheduler/cell/resource_grid.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/support/test_utils.h"
+#include "ocudu/support/ocudu_test.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -158,7 +158,7 @@ TEST(pusch_resource_allocation_test, test_all)
   cell_resource_allocator res_grid_alloc{cell_cfg};
   bwp_configuration       bwp_cfg{};
   bwp_cfg.crbs = {0, 52};
-  bwp_cfg.scs  = cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list[0].scs;
+  bwp_cfg.scs  = cell_cfg.params.dl_cfg_common.freq_info_dl.scs_carrier_list[0].scs;
 
   slot_point sl_tx{0, 0};
 

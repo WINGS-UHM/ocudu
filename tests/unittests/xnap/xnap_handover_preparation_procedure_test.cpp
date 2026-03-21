@@ -90,7 +90,7 @@ TEST_F(xnap_handover_preparation_procedure_test, when_handover_preparation_failu
   ASSERT_FALSE(t.ready());
 
   // Inject Handover Preparation Failure.
-  xnap_message ho_prep_fail = test_helpers::generate_handover_preparation_failure(local_xnap_ue_id_t::min);
+  xnap_message ho_prep_fail = ::generate_handover_preparation_failure(peer_xnap_ue_id_t::min);
   xnap->handle_message(ho_prep_fail);
 
   // Procedure should have failed.
@@ -162,8 +162,7 @@ TEST_F(xnap_handover_preparation_procedure_test, when_handover_request_ack_recei
   ASSERT_FALSE(t.ready());
 
   // Inject Handover Request Acknowledge.
-  xnap_message ho_request_ack =
-      test_helpers::generate_handover_request_ack(local_xnap_ue_id_t::min, peer_xnap_ue_id_t::min);
+  xnap_message ho_request_ack = ::generate_handover_request_ack(local_xnap_ue_id_t::min, peer_xnap_ue_id_t::min);
   xnap->handle_message(ho_request_ack);
 
   // Procedure should have succeeded.
@@ -186,7 +185,7 @@ TEST_F(xnap_handover_preparation_procedure_test,
   set_handover_procedure_outcome(false);
 
   // Action 1: Inject Handover Request.
-  xnap_message request = test_helpers::generate_handover_request(local_xnap_ue_id_t::min);
+  xnap_message request = ::generate_handover_request(local_xnap_ue_id_t::min);
   xnap->handle_message(request);
 
   // Check Handover Preparation Failure.
@@ -207,7 +206,7 @@ TEST_F(xnap_handover_preparation_procedure_test,
   set_handover_procedure_outcome(true);
 
   // Action 1: Inject Handover Request.
-  xnap_message request = test_helpers::generate_handover_request(local_xnap_ue_id_t::min);
+  xnap_message request = ::generate_handover_request(local_xnap_ue_id_t::min);
   xnap->handle_message(request);
 
   // Check Handover Request Ack.

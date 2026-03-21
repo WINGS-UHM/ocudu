@@ -4,6 +4,8 @@
 
 #include "pdcch_type0_helpers.h"
 #include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
+#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
 
 using namespace ocudu;
 
@@ -13,14 +15,14 @@ slot_point ocudu::precompute_type0_pdcch_css_n0(search_space0_index       search
                                                 subcarrier_spacing        scs_common,
                                                 unsigned                  ssb_index)
 {
-  bool is_fr2 = band_helper::get_freq_range(cell_cfg.band) == frequency_range::FR2;
+  bool is_fr2 = band_helper::get_freq_range(cell_cfg.band()) == frequency_range::FR2;
 
   const pdcch_type0_css_coreset_description coreset0_param =
-      pdcch_type0_css_coreset_get(cell_cfg.dl_carrier.band,
-                                  cell_cfg.ssb_cfg.scs,
+      pdcch_type0_css_coreset_get(cell_cfg.band(),
+                                  cell_cfg.params.ssb_cfg.scs,
                                   scs_common,
                                   coreset0,
-                                  static_cast<uint8_t>(cell_cfg.ssb_cfg.k_ssb.value()));
+                                  static_cast<uint8_t>(cell_cfg.params.ssb_cfg.k_ssb.value()));
 
   ocudu_assert(coreset0_param.pattern == ssb_coreset0_mplex_pattern::mplx_pattern1,
                "SS/PBCH and CORESET multiplexing pattern not supported.");

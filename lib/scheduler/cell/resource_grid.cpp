@@ -294,8 +294,8 @@ const cell_slot_resource_grid::carrier_resource_grid& cell_slot_resource_grid::g
 
 cell_slot_resource_allocator::cell_slot_resource_allocator(const cell_configuration& cfg_) :
   cfg(cfg_),
-  dl_res_grid(cfg.dl_cfg_common.freq_info_dl.scs_carrier_list),
-  ul_res_grid(cfg.ul_cfg_common.freq_info_ul.scs_carrier_list)
+  dl_res_grid(cfg.params.dl_cfg_common.freq_info_dl.scs_carrier_list),
+  ul_res_grid(cfg.params.ul_cfg_common.freq_info_ul.scs_carrier_list)
 {
 }
 
@@ -349,21 +349,21 @@ cell_resource_allocator::cell_resource_allocator(const cell_configuration& cfg_)
   // Create cell_slot_resource_allocator objects.
   std::vector<scs_specific_carrier> dl_scs_carriers;
   std::vector<scs_specific_carrier> ul_scs_carriers;
-  subcarrier_spacing                max_scs = cfg.dl_cfg_common.freq_info_dl.scs_carrier_list.back().scs;
-  max_scs = std::max(max_scs, cfg.ul_cfg_common.freq_info_ul.scs_carrier_list.back().scs);
+  subcarrier_spacing                max_scs = cfg.params.dl_cfg_common.freq_info_dl.scs_carrier_list.back().scs;
+  max_scs = std::max(max_scs, cfg.params.ul_cfg_common.freq_info_ul.scs_carrier_list.back().scs);
 
   const unsigned ring_size =
       get_allocator_ring_size_gt_min(RING_MAX_HISTORY_SIZE + get_max_slot_ul_alloc_delay(cfg.ntn_cs_koffset));
   slots.reserve(ring_size);
   unsigned nof_slots_per_subframe = get_nof_slots_per_subframe(max_scs);
   for (unsigned i = 0; i != ring_size; ++i) {
-    for (const auto& carrier : cfg.dl_cfg_common.freq_info_dl.scs_carrier_list) {
+    for (const auto& carrier : cfg.params.dl_cfg_common.freq_info_dl.scs_carrier_list) {
       unsigned current_slot_dur = nof_slots_per_subframe / get_nof_slots_per_subframe(carrier.scs);
       if (i % current_slot_dur == 0) {
         dl_scs_carriers.emplace_back(carrier);
       }
     }
-    for (const auto& carrier : cfg.ul_cfg_common.freq_info_ul.scs_carrier_list) {
+    for (const auto& carrier : cfg.params.ul_cfg_common.freq_info_ul.scs_carrier_list) {
       unsigned current_slot_dur = nof_slots_per_subframe / get_nof_slots_per_subframe(carrier.scs);
       if (i % current_slot_dur == 0) {
         ul_scs_carriers.emplace_back(carrier);
@@ -378,7 +378,7 @@ cell_resource_allocator::cell_resource_allocator(const cell_configuration& cfg_)
 void cell_resource_allocator::slot_indication(slot_point sl_tx)
 {
   ocudu_sanity_check(not last_slot_ind.valid() or last_slot_ind + 1 == sl_tx, "Slot indication was skipped");
-  ocudu_sanity_check(sl_tx.numerology() == to_numerology_value(get_max_scs(cfg.dl_cfg_common)),
+  ocudu_sanity_check(sl_tx.numerology() == to_numerology_value(get_max_scs(cfg.params.dl_cfg_common)),
                      "Invalid slot numerology");
 
   if (OCUDU_UNLIKELY(not last_slot_ind.valid())) {

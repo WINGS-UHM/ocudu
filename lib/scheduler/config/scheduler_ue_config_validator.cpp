@@ -38,7 +38,7 @@ ocudu::config_validators::validate_sched_ue_creation_request_message(const sched
 
   for (const ue_cell_config& cell : *msg.cfg.cells) {
     const auto& serv_cell_cfg = cell.serv_cell_cfg;
-    HANDLE_ERROR(validate_pdcch_cfg(serv_cell_cfg, cell_cfg.dl_cfg_common));
+    HANDLE_ERROR(validate_pdcch_cfg(serv_cell_cfg, cell_cfg.params.dl_cfg_common));
     HANDLE_ERROR(validate_bwp_ded_cfg(serv_cell_cfg, cell_cfg));
 
     HANDLE_ERROR(validate_pdsch_cfg(serv_cell_cfg));
@@ -46,17 +46,22 @@ ocudu::config_validators::validate_sched_ue_creation_request_message(const sched
     if (serv_cell_cfg.ul_config.has_value()) {
       if (serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value() and
           serv_cell_cfg.ul_config->init_ul_bwp.srs_cfg.has_value() and
-          cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {
-        const pucch_config_common& pucch_cfg_common = cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value();
-        HANDLE_ERROR(validate_pucch_cfg(
-            serv_cell_cfg, cell_cfg.init_bwp.ul.pucch.resources, pucch_cfg_common, cell_cfg.dl_carrier.nof_ant));
-        HANDLE_ERROR(validate_srs_cfg(serv_cell_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs));
+          cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common.has_value()) {
+        const pucch_config_common& pucch_cfg_common =
+            cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value();
+        const unsigned max_pucch_payload = cell_cfg.params.init_bwp.pucch.resources.max_payload_234();
+        HANDLE_ERROR(validate_pucch_cfg(serv_cell_cfg,
+                                        cell_cfg.init_bwp.ul.pucch.resources,
+                                        pucch_cfg_common,
+                                        cell_cfg.params.dl_carrier.nof_ant,
+                                        max_pucch_payload));
+        HANDLE_ERROR(validate_srs_cfg(serv_cell_cfg, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs));
       }
 
       HANDLE_ERROR(validate_pusch_cfg(serv_cell_cfg.ul_config.value(), serv_cell_cfg.csi_meas_cfg.has_value()));
     }
 
-    HANDLE_ERROR(validate_csi_meas_cfg(serv_cell_cfg, cell_cfg.tdd_cfg_common, cell_cfg.ul_cfg_common));
+    HANDLE_ERROR(validate_csi_meas_cfg(serv_cell_cfg, cell_cfg.params.tdd_cfg, cell_cfg.params.ul_cfg_common));
 
     // At the moment, we only support the situation where all UEs have the same NZP-CSI-RS list.
     if (serv_cell_cfg.csi_meas_cfg.has_value() and not serv_cell_cfg.csi_meas_cfg->nzp_csi_rs_res_list.empty()) {

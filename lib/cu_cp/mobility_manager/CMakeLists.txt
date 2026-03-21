@@ -4,6 +4,7 @@
 
 
 set(SOURCES
+  mobility_manager_helpers.cpp
   mobility_manager_impl.cpp
   metrics/mobility_manager_metrics_aggregator.cpp
 )

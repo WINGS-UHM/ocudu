@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ocudu/cu_up/cu_up.h"
+#include "ocudu/cu_up/cu_up_e1_setup_notifier.h"
 #include "ocudu/cu_up/cu_up_operation_controller.h"
 #include "ocudu/cu_up/o_cu_up.h"
 #include "ocudu/e2/e2.h"
@@ -42,10 +43,13 @@ private:
 class o_cu_up_with_e2_impl : public o_cu_up_impl
 {
 public:
-  o_cu_up_with_e2_impl(std::unique_ptr<cu_up_interface> cu_up_, std::unique_ptr<e2_agent> e2agent_) :
-    o_cu_up_impl(std::move(cu_up_)), e2agent(std::move(e2agent_))
+  o_cu_up_with_e2_impl(std::unique_ptr<cu_up_interface>                  cu_up_,
+                       std::unique_ptr<e2_agent>                         e2agent_,
+                       std::unique_ptr<cu_up_e1_setup_complete_notifier> e1_setup_adapter_) :
+    o_cu_up_impl(std::move(cu_up_)), e1_setup_e2_adapter(std::move(e1_setup_adapter_)), e2agent(std::move(e2agent_))
   {
     ocudu_assert(e2agent, "Invalid E2 agent");
+    ocudu_assert(e1_setup_e2_adapter, "Invalid E1 setup E2 adapter");
   }
 
   // See interface for documentation.
@@ -55,7 +59,8 @@ public:
   void stop() override;
 
 private:
-  std::unique_ptr<e2_agent> e2agent;
+  std::unique_ptr<cu_up_e1_setup_complete_notifier> e1_setup_e2_adapter;
+  std::unique_ptr<e2_agent>                         e2agent;
 };
 
 } // namespace ocuup

@@ -134,10 +134,15 @@ struct ru_ofh_unit_cell_config {
   std::string ru_mac_address = "70:b3:d5:e1:5b:06";
   /// Distributed Unit MAC address.
   std::string du_mac_address = "00:11:22:33:00:77";
-  /// V-LAN Tag control information field for C-Plane.
+  /// VLAN Tag control information VLAN identifier field for C-Plane.
   std::optional<uint16_t> vlan_tag_cp;
-  /// V-LAN Tag control information field for U-Plane.
+  /// VLAN Tag control information VLAN identifier field for U-Plane.
   std::optional<uint16_t> vlan_tag_up;
+  /// VLAN Tag control information Priority code point (PCP) field for C-Plane.
+  std::optional<uint8_t> vlan_pcp_cp;
+  /// VLAN Tag control information Priority code point (PCP) field for U-Plane.
+  std::optional<uint8_t> vlan_pcp_up;
+
   /// RU PRACH port.
   std::vector<unsigned> ru_prach_port_id = {4};
   /// RU Downlink port.

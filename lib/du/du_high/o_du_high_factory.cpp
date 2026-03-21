@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/du/du_high/o_du_high_factory.h"
+#include "adapters/f1_setup_e2_adapter.h"
 #include "o_du_high_impl.h"
 #include "ocudu/du/du_high/du_high_clock_controller.h"
 #include "ocudu/du/du_high/du_high_factory.h"
@@ -13,6 +14,7 @@
 #include "ocudu/fapi_adaptor/uci_part2_correspondence_generator.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/ssb/ssb_mapping.h"
+#include "ocudu/support/ocudu_assert.h"
 
 using namespace ocudu;
 using namespace odu;
@@ -36,7 +38,7 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.scs_common = scs_common;
   cell_cfg.cp         = du_cell.ran.dl_cfg_common.init_dl_bwp.generic_params.cp;
 
-  cell_cfg.duplex = (du_cell.ran.tdd_ul_dl_cfg_common) ? duplex_mode::TDD : duplex_mode::FDD;
+  cell_cfg.duplex = (du_cell.ran.tdd_cfg) ? duplex_mode::TDD : duplex_mode::FDD;
   cell_cfg.pci    = du_cell.ran.pci;
 
   unsigned grid_size_bw_prb = band_helper::get_n_rbs_from_bw(
@@ -59,7 +61,7 @@ generate_fapi_p5_cell_config(const du_cell_config& du_cell)
   cell_cfg.carrier_cfg.dmrs_typeA_pos = du_cell.ran.dmrs_typeA_pos;
 
   cell_cfg.ssb_cfg              = du_cell.ran.ssb_cfg;
-  cell_cfg.tdd_ul_dl_cfg_common = du_cell.ran.tdd_ul_dl_cfg_common;
+  cell_cfg.tdd_ul_dl_cfg_common = du_cell.ran.tdd_cfg;
   report_error_if_not(du_cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common, "RACH configuration not present");
 
   cell_cfg.prach_cfg = *du_cell.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common;
@@ -144,6 +146,11 @@ std::unique_ptr<o_du_high> ocudu::odu::make_o_du_high(const o_du_high_config&  c
     return odu;
   }
 
+  auto collector =
+      std::make_unique<e2_node_component_config_collector>(odu_dependencies.du_hi.exec_mapper->du_e2_executor(), 1);
+  auto adapter                             = std::make_unique<f1_setup_e2_adapter>(*collector);
+  odu_dependencies.du_hi.f1_setup_notifier = adapter.get();
+
   auto du_hi = make_du_high(du_hi_cfg, odu_dependencies.du_hi);
 
   auto e2agent = create_e2_du_agent(config.e2ap_config,
@@ -153,9 +160,10 @@ std::unique_ptr<o_du_high> ocudu::odu::make_o_du_high(const o_du_high_config&  c
                                     &du_hi->get_du_configurator(),
                                     timer_factory{odu_dependencies.du_hi.timer_ctrl->get_timer_manager(),
                                                   odu_dependencies.du_hi.exec_mapper->du_e2_executor()},
-                                    odu_dependencies.du_hi.exec_mapper->du_e2_executor());
+                                    odu_dependencies.du_hi.exec_mapper->du_e2_executor(),
+                                    std::move(collector));
 
-  odu->set_e2_agent(std::move(e2agent));
+  odu->set_e2_components(std::move(e2agent), std::move(adapter));
   odu->set_du_high(std::move(du_hi));
   logger->info("DU created successfully");
 

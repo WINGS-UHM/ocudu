@@ -6,7 +6,7 @@
 #include "lib/scheduler/ue_context/ue_link_adaptation_controller.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
-#include "tests/unittests/scheduler/test_utils/config_generators.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;

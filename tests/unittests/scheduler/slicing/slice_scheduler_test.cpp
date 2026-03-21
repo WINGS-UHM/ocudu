@@ -40,11 +40,11 @@ protected:
     }()),
     ues(cell_cfg.expert_cfg.ue)
   {
-    pusch_td_list_per_slot =
-        get_fairly_distributed_pusch_td_resource_indices(cell_cfg.scs_common,
-                                                         cell_cfg.tdd_cfg_common,
-                                                         cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
-                                                         cell_cfg.dl_data_to_ul_ack);
+    pusch_td_list_per_slot = get_fairly_distributed_pusch_td_resource_indices(
+        cell_cfg.scs_common(),
+        cell_cfg.params.tdd_cfg,
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.value(),
+        cell_cfg.dl_data_to_ul_ack);
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();
 
@@ -79,7 +79,7 @@ protected:
   std::vector<static_vector<unsigned, pusch_constants::MAX_NOF_PUSCH_TD_RES_ALLOCS>> pusch_td_list_per_slot;
 
 public:
-  slot_point next_slot{to_numerology_value(cell_cfg.dl_cfg_common.freq_info_dl.scs_carrier_list.back().scs), 0};
+  slot_point next_slot{to_numerology_value(cell_cfg.params.dl_cfg_common.freq_info_dl.scs_carrier_list.back().scs), 0};
 };
 
 class default_slice_scheduler_test : public slice_scheduler_test, public ::testing::Test
@@ -122,7 +122,7 @@ TEST_F(default_slice_scheduler_test, when_lcid_is_part_of_default_slice_then_def
   ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
-    const bool is_dl_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool is_dl_active = has_active_tdd_dl_symbols(cell_cfg.params.tdd_cfg.value(), next_slot.slot_index());
     const bool dl_slot_has_k2_values = not pusch_td_list_per_slot[count].empty();
     run_slot();
 
@@ -540,7 +540,7 @@ TEST_F(prioritised_slice_scheduler_test,
   ASSERT_NE(this->add_ue(to_du_ue_index(0)), nullptr);
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
-    const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.params.tdd_cfg.value(), next_slot.slot_index());
     const bool dl_slot_has_k2_values = not pusch_td_list_per_slot[count].empty();
     run_slot();
 
@@ -624,7 +624,7 @@ TEST_F(dedicated_slice_scheduler_test, when_dedicated_resources_not_filled_then_
   const unsigned     max_prbs       = slice_sched.slice_config(static_cast<ran_slice_id_t>(0U)).rbs.max();
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
-    const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.params.tdd_cfg.value(), next_slot.slot_index());
     const bool dl_slot_has_k2_values = not pusch_td_list_per_slot[count].empty();
     run_slot();
 
@@ -739,7 +739,7 @@ TEST_F(dedicated_slice_scheduler_test_2nd, with_candidates_with_min_lim_remainin
   const unsigned     max_prbs         = slice_sched.slice_config(static_cast<ran_slice_id_t>(0U)).rbs.max();
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
-    const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.params.tdd_cfg.value(), next_slot.slot_index());
     const bool dl_slot_has_k2_values = not pusch_td_list_per_slot[count].empty();
     run_slot();
 
@@ -843,7 +843,7 @@ TEST_F(dedicated_empty_slice_scheduler_test, when_slice_has_no_ues_its_rbs_will_
   constexpr unsigned drb3_grant_rbs = 40;
 
   for (unsigned count = 0, e = 10; count != e; ++count) {
-    const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.tdd_cfg_common.value(), next_slot.slot_index());
+    const bool is_pdcch_active = has_active_tdd_dl_symbols(cell_cfg.params.tdd_cfg.value(), next_slot.slot_index());
     const bool dl_slot_has_k2_values = not pusch_td_list_per_slot[count].empty();
     run_slot();
 

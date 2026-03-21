@@ -84,15 +84,15 @@ private:
   /// \param[in] msg The received initiating message.
   void handle_initiating_message(const asn1::e1ap::init_msg_s& msg);
 
-  /// \brief Handle a Bearer Context Release Request as per TS 38.483 section 8.3.5.
+  /// \brief Handle a Bearer Context Release Request as per TS 37.483 section 8.3.5.
   /// \param[in] msg The received Bearer Context Release Request message.
   void handle_bearer_context_release_request(const asn1::e1ap::bearer_context_release_request_s& msg);
 
-  /// \brief Handle a Bearer Context Inactivity notification as per TS 38.483 section 8.3.6.
+  /// \brief Handle a Bearer Context Inactivity notification as per TS 37.483 section 8.3.6.
   /// \param[in] msg The received Bearer Context Inactivity notification message.
   void handle_bearer_context_inactivity_notification(const asn1::e1ap::bearer_context_inactivity_notif_s& msg);
 
-  /// \brief Handle a DL Data Notification as per TS 38.483 section 8.3.7.
+  /// \brief Handle a DL Data Notification as per TS 37.483 section 8.3.7.
   /// \param[in] msg The received DL Data Notification message.
   void handle_dl_data_notification(const asn1::e1ap::dl_data_notif_s& msg);
 

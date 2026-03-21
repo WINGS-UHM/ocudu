@@ -297,7 +297,8 @@ ocudu::ocucp::calculate_update(const slotted_id_vector<pdu_session_id_t, cu_cp_p
     ocudu_assert(context.pdu_sessions.find(pdu_session.pdu_session_id) == context.pdu_sessions.end(),
                  "PDU session already exists");
     // Create new PDU session context.
-    up_pdu_session_context_update new_ctxt(pdu_session.pdu_session_id, pdu_session.pdu_session_type);
+    up_pdu_session_context_update new_ctxt(
+        pdu_session.pdu_session_id, pdu_session.pdu_session_type, pdu_session.ul_ngu_up_tnl_info);
     for (const auto& flow_item : pdu_session.qos_flow_setup_request_items) {
       auto drb_id = allocate_qos_flow(new_ctxt, flow_item, config, context, cfg, logger);
       if (drb_id == drb_id_t::invalid) {
@@ -356,7 +357,8 @@ up_config_update ocudu::ocucp::calculate_update(const cu_cp_pdu_session_resource
 
     const up_pdu_session_context& old_ctxt = context.pdu_sessions.at(modify_item.pdu_session_id);
     up_pdu_session_context_update ctxt_update(modify_item.pdu_session_id,
-                                              context.pdu_sessions.at(modify_item.pdu_session_id).type);
+                                              context.pdu_sessions.at(modify_item.pdu_session_id).type,
+                                              context.pdu_sessions.at(modify_item.pdu_session_id).ul_ngu_up_tnl_info);
 
     ctxt_update.integrity_protection_result       = old_ctxt.integrity_protection_result;
     ctxt_update.confidentiality_protection_result = old_ctxt.confidentiality_protection_result;
@@ -469,7 +471,8 @@ up_config_update ocudu::ocucp::to_config_update(const up_context& old_context)
 
   for (const auto& pdu_session : old_context.pdu_sessions) {
     // Create new PDU session context.
-    up_pdu_session_context_update new_ctxt(pdu_session.first, pdu_session.second.type);
+    up_pdu_session_context_update new_ctxt(
+        pdu_session.first, pdu_session.second.type, pdu_session.second.ul_ngu_up_tnl_info);
     for (const auto& drb : pdu_session.second.drbs) {
       // Add all existing DRBs.
       new_ctxt.drb_to_add.emplace(drb.first, drb.second);

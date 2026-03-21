@@ -9,7 +9,7 @@
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator.h"
 #include "lib/scheduler/uci_scheduling/uci_allocator.h"
 #include "ocudu/scheduler/scheduler_metrics.h"
-#include "ocudu/support/test_utils.h"
+#include "ocudu/support/ocudu_test.h"
 
 namespace ocudu {
 
@@ -27,15 +27,15 @@ public:
                                               aggregation_level             aggr_lvl) override
   {
     TESTASSERT_EQ(fmt::underlying(ss_id),
-                  fmt::underlying(slot_alloc.cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id));
+                  fmt::underlying(slot_alloc.cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id));
     if (fail_pdcch_alloc_cond and fail_pdcch_alloc_cond(slot_alloc.slot)) {
       return nullptr;
     }
     slot_alloc.result.dl.dl_pdcchs.emplace_back();
     slot_alloc.result.dl.dl_pdcchs.back().ctx.rnti    = rnti;
-    slot_alloc.result.dl.dl_pdcchs.back().ctx.bwp_cfg = &slot_alloc.cfg.dl_cfg_common.init_dl_bwp.generic_params;
+    slot_alloc.result.dl.dl_pdcchs.back().ctx.bwp_cfg = &slot_alloc.cfg.params.dl_cfg_common.init_dl_bwp.generic_params;
     slot_alloc.result.dl.dl_pdcchs.back().ctx.coreset_cfg =
-        &*slot_alloc.cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;
+        &*slot_alloc.cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;
     slot_alloc.result.dl.dl_pdcchs.back().ctx.cces = {get_ncce(slot_alloc.slot), ocudu::aggregation_level::n4};
     return &slot_alloc.result.dl.dl_pdcchs[0];
   }

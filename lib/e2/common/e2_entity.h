@@ -5,10 +5,13 @@
 #pragma once
 
 #include "ocudu/e2/e2_agent_dependencies.h"
+#include "ocudu/e2/e2_node_component_config_provider.h"
 #include "ocudu/e2/e2ap_configuration.h"
 #include "ocudu/e2/e2sm/e2sm_manager.h"
 #include "ocudu/e2/subscription/e2_subscription.h"
 #include "ocudu/support/async/fifo_async_task_scheduler.h"
+#include "ocudu/support/async/manual_event.h"
+#include "ocudu/support/timers.h"
 
 namespace ocudu {
 
@@ -32,6 +35,11 @@ private:
   // Handler for E2AP tasks.
   task_executor&            task_exec;
   fifo_async_task_scheduler main_ctrl_loop;
+
+  // Timeout timer that triggers on_timeout() on the aggregator, ensuring the setup coroutine does not block
+  // indefinitely if interface-setup bytes are delayed or missing.
+  unique_timer                                       node_cfg_timeout;
+  std::unique_ptr<e2_node_component_config_provider> node_component_config_provider;
 
   std::unique_ptr<e2sm_manager>              e2sm_mngr         = nullptr;
   std::unique_ptr<e2_subscription_manager>   subscription_mngr = nullptr;

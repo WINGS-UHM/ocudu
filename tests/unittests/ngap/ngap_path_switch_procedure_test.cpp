@@ -36,6 +36,8 @@ protected:
 
     cu_cp_pdu_session_res_to_be_switched_dl_item item;
     item.pdu_session_id = pdu_session_id_t::min;
+    item.dl_ngu_up_tnl_info =
+        up_transport_layer_info{transport_layer_address::create_from_string("127.0.0.1"), int_to_gtpu_teid(1)};
     item.qos_flow_accepted_list.push_back(qos_flow_id_t::min);
     request.pdu_session_res_to_be_switched_dl_list.push_back(item);
 

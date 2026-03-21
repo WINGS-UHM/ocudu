@@ -14,17 +14,19 @@ using namespace ocudu;
 using namespace asn1::e2ap;
 using namespace asn1;
 
-e2_impl::e2_impl(ocudulog::basic_logger&   logger_,
-                 const e2ap_configuration& cfg_,
-                 e2ap_e2agent_notifier&    agent_notifier_,
-                 timer_factory             timers_,
-                 e2_connection_client&     e2_client_,
-                 e2_subscription_manager&  subscription_mngr_,
-                 e2sm_manager&             e2sm_mngr_,
-                 task_executor&            task_exec_) :
+e2_impl::e2_impl(ocudulog::basic_logger&            logger_,
+                 const e2ap_configuration&          cfg_,
+                 e2ap_e2agent_notifier&             agent_notifier_,
+                 timer_factory                      timers_,
+                 e2_connection_client&              e2_client_,
+                 e2_subscription_manager&           subscription_mngr_,
+                 e2sm_manager&                      e2sm_mngr_,
+                 task_executor&                     task_exec_,
+                 e2_node_component_config_provider& node_component_config_provider_) :
   logger(logger_),
   cfg(cfg_),
   timers(timers_),
+  node_component_config_provider(node_component_config_provider_),
   subscription_proc(subscription_mngr_),
   e2sm_mngr(e2sm_mngr_),
   events(std::make_unique<e2_event_manager>(timers)),
@@ -71,19 +73,35 @@ async_task<e2_setup_response_message> e2_impl::handle_e2_setup_request(e2_setup_
 
 async_task<e2_setup_response_message> e2_impl::start_initial_e2_setup_routine()
 {
-  e2_setup_request_message request;
-  fill_asn1_e2ap_setup_request(logger, request.request, cfg, e2sm_mngr);
+  return launch_async([this,
+                       response  = e2_setup_response_message{},
+                       request   = e2_setup_request_message{},
+                       node_cfgs = std::vector<e2_node_component_config>{}](
+                          coro_context<async_task<e2_setup_response_message>>& ctx) mutable {
+    CORO_BEGIN(ctx);
 
-  for (const auto& ran_function : request.request->ran_functions_added) {
-    auto&    ran_function_item = ran_function.value().ran_function_item();
-    uint16_t id                = ran_function_item.ran_function_id;
-    logger.info("Added RAN function OID {} to candidate list under RAN Function ID {}",
-                ran_function_item.ran_function_o_id.to_string().c_str(),
-                id);
-    candidate_ran_functions[id] = ran_function_item;
-  }
+    // Wait for the interface-setup PDU bytes (from F1/NG/E1 setup) or timeout.
+    CORO_AWAIT_VALUE(node_cfgs, node_component_config_provider.get_configs());
 
-  return launch_async<e2_setup_procedure>(request, *tx_pdu_notifier, *events, timers, logger);
+    if (node_cfgs.empty()) {
+      logger.warning("No node component configs received; aborting E2 Setup");
+      CORO_EARLY_RETURN(response);
+    }
+    fill_asn1_e2ap_setup_request(logger, request.request, cfg, e2sm_mngr, node_cfgs);
+
+    for (const auto& ran_function : request.request->ran_functions_added) {
+      auto&    ran_function_item = ran_function.value().ran_function_item();
+      uint16_t id                = ran_function_item.ran_function_id;
+      logger.info("Added RAN function OID {} to candidate list under RAN Function ID {}",
+                  ran_function_item.ran_function_o_id.to_string().c_str(),
+                  id);
+      candidate_ran_functions[id] = ran_function_item;
+    }
+
+    CORO_AWAIT_VALUE(response, launch_async<e2_setup_procedure>(request, *tx_pdu_notifier, *events, timers, logger));
+
+    CORO_RETURN(response);
+  });
 }
 
 void e2_impl::handle_e2_setup_response(const e2_setup_response_message& msg)

@@ -146,7 +146,7 @@ class ofh_message_receiver_fixture : public ::testing::Test
 protected:
   ether::vlan_frame_params                        vlan_params   = {{0x00, 0x00, 0x00, 0x00, 0x00, 0x01},
                                                                    {0x00, 0x00, 0x00, 0x00, 0x00, 0x02},
-                                                                   4,
+                                                                   ether::vlan_parameters{.tci_vid = 4},
                                                                    0xaefe};
   static_vector<unsigned, MAX_NOF_SUPPORTED_EAXC> ul_prach_eaxc = {0, 1};
   static_vector<unsigned, MAX_NOF_SUPPORTED_EAXC> ul_eaxc       = {4, 5};

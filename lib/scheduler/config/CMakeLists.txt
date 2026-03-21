@@ -3,7 +3,11 @@
 # Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 
-set(SOURCES serving_cell_config_factory.cpp
+add_library(sched_config STATIC
+        builder/pucch_config.cpp
+        builder/csi_meas_config.cpp
+        ran_cell_config_helper.cpp
+        serving_cell_config_factory.cpp
         sched_cell_config_helpers.cpp
         scheduler_cell_config_validator.cpp
         scheduler_ue_config_validator.cpp
@@ -12,7 +16,6 @@ set(SOURCES serving_cell_config_factory.cpp
         pucch_resource_generator.cpp
         time_domain_resource_helper.cpp
         rlm_helper.cpp)
-add_library(sched_config STATIC ${SOURCES})
 target_link_libraries(sched_config ocudu_ran du_resource_manager)
 
 add_library(sched_config_manager OBJECT

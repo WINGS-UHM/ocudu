@@ -18,20 +18,18 @@
 
 using namespace ocudu;
 
-std::unique_ptr<e2_agent> ocudu::create_e2_cu_cp_agent(const e2ap_configuration& e2ap_cfg_,
-                                                       e2_connection_client&     e2_client_,
-                                                       e2_cu_metrics_interface*  e2_metrics_,
-                                                       cu_configurator*          cu_configurator_,
-                                                       timer_factory             timers_,
-                                                       task_executor&            e2_exec_)
+std::unique_ptr<e2_agent>
+ocudu::create_e2_cu_cp_agent(const e2ap_configuration&                          e2ap_cfg_,
+                             e2_connection_client&                              e2_client_,
+                             e2_cu_metrics_interface*                           e2_metrics_,
+                             cu_configurator*                                   cu_configurator_,
+                             timer_factory                                      timers_,
+                             task_executor&                                     e2_exec_,
+                             std::unique_ptr<e2_node_component_config_provider> node_component_config_provider_)
 {
   ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("E2-CU-CP");
-  e2_agent_dependencies   dependencies;
-  dependencies.logger    = &logger;
-  dependencies.cfg       = e2ap_cfg_;
-  dependencies.e2_client = &e2_client_;
-  dependencies.timers    = &timers_;
-  dependencies.task_exec = &e2_exec_;
+  e2_agent_dependencies   dependencies{
+      &logger, e2ap_cfg_, &e2_client_, &timers_, &e2_exec_, std::move(node_component_config_provider_)};
 
   // E2SM-KPM
   auto                                  e2sm_kpm_meas_provider = std::make_unique<e2sm_kpm_cu_cp_meas_provider_impl>();

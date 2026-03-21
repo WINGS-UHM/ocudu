@@ -5,8 +5,10 @@
 #pragma once
 
 #include "sched_bwp_config.h"
-#include "ocudu/scheduler/config/bwp_builder_params.h"
+#include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/scheduler/config/cell_bwp_config.h"
+#include "ocudu/scheduler/config/ran_cell_config.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 #include <variant>
@@ -24,64 +26,55 @@ public:
   cell_configuration(const cell_configuration&) = delete;
   cell_configuration(cell_configuration&&)      = delete;
 
+  /// Expert parameters used to generate the cell configuration.
   const scheduler_expert_config& expert_cfg;
 
-  const du_cell_index_t                        cell_index;
-  const du_cell_group_index_t                  cell_group_index;
-  const pci_t                                  pci;
-  const subcarrier_spacing                     scs_common;
-  const unsigned                               nof_dl_prbs;
-  const unsigned                               nof_ul_prbs;
-  const unsigned                               nof_slots_per_frame;
-  const dl_config_common                       dl_cfg_common;
-  const ul_config_common                       ul_cfg_common;
-  const std::optional<tdd_ul_dl_config_common> tdd_cfg_common;
+  /// Meta parameters used to generate the cell configuration.
+  const ran_cell_config params;
 
-  /// Imported from mac_cell_configuration.
-  carrier_configuration   dl_carrier;
-  const ssb_configuration ssb_cfg;
-  dmrs_typeA_position     dmrs_typeA_pos;
-  carrier_configuration   ul_carrier;
-
-  /// BWP config resources used when UEs have no dedicated config.
-  sched_bwp_config init_bwp_res;
-
-  /// List of BWP config resources handled by this cell.
-  slotted_id_vector<bwp_id_t, sched_bwp_config> ded_bwp_res;
-
-  cell_bwp_config init_bwp;
-
-  /// List of zp-CSI-RS resources.
-  std::vector<zp_csi_rs_resource> zp_csi_rs_list;
-
-  /// List of nzp-CSI-RS resources.
-  std::vector<nzp_csi_rs_resource> nzp_csi_rs_list;
-
-  /// List of dl-DataToUL-ACK values sent to UE in its dedicated configuration.
-  static_vector<uint8_t, 8> dl_data_to_ul_ack;
-
-  /// Meta parameters used to generate the initial BWP configuration.
-  bwp_builder_params init_bwp_builder;
-
+  const du_cell_index_t       cell_index;
+  const du_cell_group_index_t cell_group_index;
   /// List of RRM Policy members configured for this cell.
   std::vector<slice_rrm_policy_config> rrm_policy_members;
 
-  const bool cfra_enabled;
+  /// @name Derived parameters.
+  /// Parameters derived from \ref ran_cell_config.
+  ///@{
 
-  // Derived Parameters.
-  ssb_pattern_case ssb_case;
-  bool             paired_spectrum;
-  const nr_band    band;
-  uint8_t          L_max;
+  const unsigned nof_dl_prbs;
+  const unsigned nof_ul_prbs;
+  const unsigned nof_slots_per_frame;
+  /// List of zp-CSI-RS resources.
+  const std::vector<zp_csi_rs_resource> zp_csi_rs_list;
+  /// List of nzp-CSI-RS resources.
+  const std::vector<nzp_csi_rs_resource> nzp_csi_rs_list;
+  /// List of dl-DataToUL-ACK values sent to UE in its dedicated configuration.
+  const static_vector<uint8_t, 8> dl_data_to_ul_ack;
+  const ssb_pattern_case          ssb_case;
+  const uint8_t                   L_max;
+  /// Parameters for the initial BWP that are common for all UEs.
+  const cell_bwp_config init_bwp;
+  /// BWP config resources used when UEs have no dedicated config.
+  const sched_bwp_config init_bwp_res;
+  /// List of BWP config resources handled by this cell.
+  slotted_id_vector<bwp_id_t, sched_bwp_config> ded_bwp_res;
 
-  /// NTN parameters.
+  ///@}
+
+  /// @name NTN parameters.
+  ///@{
+
   /// Cell-specific K-offset in slots defined by the cell subcarrier spacing.
   unsigned ntn_cs_koffset;
   /// UL HARQ Mode B.
   bool ul_harq_mode_b;
 
+  ///@}
+
+  subcarrier_spacing scs_common() const { return params.dl_cfg_common.init_dl_bwp.generic_params.scs; }
+
   /// Checks if the cell is configured in TDD mode.
-  bool is_tdd() const { return tdd_cfg_common.has_value(); }
+  bool is_tdd() const { return params.tdd_cfg.has_value(); }
 
   /// Checks if DL is active for all symbols in the given slot.
   bool is_fully_dl_enabled(slot_point sl) const
@@ -90,12 +83,12 @@ public:
       // Note: dl_enabled_slot_lst is empty in the FDD case.
       return true;
     }
-    if (sl.numerology() != to_numerology_value(tdd_cfg_common->ref_scs)) {
+    if (sl.numerology() != to_numerology_value(params.tdd_cfg->ref_scs)) {
       // Convert slot into equivalent reference SCS.
-      sl = set_slot_numerology(sl, to_numerology_value(tdd_cfg_common->ref_scs));
+      sl = set_slot_numerology(sl, to_numerology_value(params.tdd_cfg->ref_scs));
     }
     return dl_symbols_per_slot_lst[sl.to_uint() % dl_symbols_per_slot_lst.size()] ==
-           get_nsymb_per_slot(dl_cfg_common.init_dl_bwp.generic_params.cp);
+           get_nsymb_per_slot(params.dl_cfg_common.init_dl_bwp.generic_params.cp);
   }
 
   /// Checks if UL is active for all symbols in the given slot.
@@ -105,12 +98,12 @@ public:
       // Note: ul_enabled_slot_lst is empty in the FDD case.
       return true;
     }
-    if (sl.numerology() != to_numerology_value(tdd_cfg_common->ref_scs)) {
+    if (sl.numerology() != to_numerology_value(params.tdd_cfg->ref_scs)) {
       // Convert slot into equivalent reference SCS.
-      sl = set_slot_numerology(sl, to_numerology_value(tdd_cfg_common->ref_scs));
+      sl = set_slot_numerology(sl, to_numerology_value(params.tdd_cfg->ref_scs));
     }
     return ul_symbols_per_slot_lst[sl.to_uint() % ul_symbols_per_slot_lst.size()] ==
-           get_nsymb_per_slot(ul_cfg_common.init_ul_bwp.generic_params.cp);
+           get_nsymb_per_slot(params.ul_cfg_common.init_ul_bwp.generic_params.cp);
   }
 
   /// Checks if DL is active for at least one symbol in the given slot.
@@ -120,9 +113,9 @@ public:
       // Note: dl_enabled_slot_lst is empty in the FDD case.
       return true;
     }
-    if (sl.numerology() != to_numerology_value(tdd_cfg_common->ref_scs)) {
+    if (sl.numerology() != to_numerology_value(params.tdd_cfg->ref_scs)) {
       // Convert slot into equivalent reference SCS.
-      sl = set_slot_numerology(sl, to_numerology_value(tdd_cfg_common->ref_scs));
+      sl = set_slot_numerology(sl, to_numerology_value(params.tdd_cfg->ref_scs));
     }
     return dl_symbols_per_slot_lst[sl.to_uint() % dl_symbols_per_slot_lst.size()] > 0;
   }
@@ -134,23 +127,29 @@ public:
       // Note: ul_enabled_slot_lst is empty in the FDD case.
       return true;
     }
-    if (sl.numerology() != to_numerology_value(tdd_cfg_common->ref_scs)) {
+    if (sl.numerology() != to_numerology_value(params.tdd_cfg->ref_scs)) {
       // Convert slot into equivalent reference SCS.
-      sl = set_slot_numerology(sl, to_numerology_value(tdd_cfg_common->ref_scs));
+      sl = set_slot_numerology(sl, to_numerology_value(params.tdd_cfg->ref_scs));
     }
     return ul_symbols_per_slot_lst[sl.to_uint() % ul_symbols_per_slot_lst.size()] > 0;
   }
+
+  bool cfra_enabled() const { return params.init_bwp.rach.cfra_enabled; }
+
+  bool paired_spectrum() const { return band_helper::is_paired_spectrum(params.dl_carrier.band); }
+
+  nr_band band() const { return params.dl_carrier.band; }
 
   /// Returns the number of active DL symbols in the given slot.
   unsigned get_nof_dl_symbol_per_slot(slot_point sl) const
   {
     if (dl_symbols_per_slot_lst.empty()) {
       // Note: dl_enabled_slot_lst is empty in the FDD case.
-      return get_nsymb_per_slot(dl_cfg_common.init_dl_bwp.generic_params.cp);
+      return get_nsymb_per_slot(params.dl_cfg_common.init_dl_bwp.generic_params.cp);
     }
-    if (sl.numerology() != to_numerology_value(tdd_cfg_common->ref_scs)) {
+    if (sl.numerology() != to_numerology_value(params.tdd_cfg->ref_scs)) {
       // Convert slot into equivalent reference SCS.
-      sl = set_slot_numerology(sl, to_numerology_value(tdd_cfg_common->ref_scs));
+      sl = set_slot_numerology(sl, to_numerology_value(params.tdd_cfg->ref_scs));
     }
     return dl_symbols_per_slot_lst[sl.to_uint() % dl_symbols_per_slot_lst.size()];
   }
@@ -160,11 +159,11 @@ public:
   {
     if (ul_symbols_per_slot_lst.empty()) {
       // Note: ul_enabled_slot_lst is empty in the FDD case.
-      return get_nsymb_per_slot(ul_cfg_common.init_ul_bwp.generic_params.cp);
+      return get_nsymb_per_slot(params.ul_cfg_common.init_ul_bwp.generic_params.cp);
     }
-    if (sl.numerology() != to_numerology_value(tdd_cfg_common->ref_scs)) {
+    if (sl.numerology() != to_numerology_value(params.tdd_cfg->ref_scs)) {
       // Convert slot into equivalent reference SCS.
-      sl = set_slot_numerology(sl, to_numerology_value(tdd_cfg_common->ref_scs));
+      sl = set_slot_numerology(sl, to_numerology_value(params.tdd_cfg->ref_scs));
     }
     return ul_symbols_per_slot_lst[sl.to_uint() % ul_symbols_per_slot_lst.size()];
   }
@@ -173,17 +172,17 @@ public:
   const coreset_configuration& get_common_coreset(coreset_id cs_id) const
   {
     // The existence of the Coreset (either CommonCoreset or Coreset0) has been verified by the validator.
-    return dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value() and
-                   dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value().get_id() == cs_id
-               ? dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value()
-               : dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value();
+    return params.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.has_value() and
+                   params.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value().get_id() == cs_id
+               ? params.dl_cfg_common.init_dl_bwp.pdcch_common.common_coreset.value()
+               : params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0.value();
   }
 
   /// Checks if the cell is configured with PUCCH Format 0 and Format 2 resources.
   bool is_pucch_f0_and_f2() const
   {
-    return std::holds_alternative<pucch_f0_params>(init_bwp_builder.pucch.resources.f0_or_f1_params) and
-           std::holds_alternative<pucch_f2_params>(init_bwp_builder.pucch.resources.f2_or_f3_or_f4_params);
+    return std::holds_alternative<pucch_f0_params>(params.init_bwp.pucch.resources.f0_or_f1_params) and
+           std::holds_alternative<pucch_f2_params>(params.init_bwp.pucch.resources.f2_or_f3_or_f4_params);
   }
 
   /// \brief Determines the use of transform precoding according to the parameter \e msg3-transformPrecoder.
@@ -195,10 +194,10 @@ public:
   /// - DCI Format 0_1 and the parameter \e transformPrecoder in \e pusch-Config is not present.
   bool use_msg3_transform_precoder() const
   {
-    if (!ul_cfg_common.init_ul_bwp.rach_cfg_common) {
+    if (not params.ul_cfg_common.init_ul_bwp.rach_cfg_common) {
       return false;
     }
-    return ul_cfg_common.init_ul_bwp.rach_cfg_common->msg3_transform_precoder;
+    return params.ul_cfg_common.init_ul_bwp.rach_cfg_common->msg3_transform_precoder;
   }
 
 private:

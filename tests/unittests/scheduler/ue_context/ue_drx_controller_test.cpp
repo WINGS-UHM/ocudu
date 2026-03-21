@@ -117,7 +117,7 @@ TEST_F(ue_drx_controller_test, when_pdcch_sent_then_on_duration_extended_by_inac
 
 TEST_F(ue_drx_controller_test, when_sr_is_pending_then_drx_is_in_active_time)
 {
-  ue_lc_chs.handle_sr_indication();
+  ue_lc_chs.handle_sr_indication(cur_slot);
 
   for (unsigned i = 0; i != period_slots; ++i) {
     tick();
@@ -130,7 +130,7 @@ TEST_F(ue_drx_controller_test, when_sr_is_pending_then_drx_is_in_active_time)
   for (unsigned i = 0; i != period_slots; ++i) {
     tick();
 
-    const unsigned slot_mod         = cur_slot.to_uint() % period_slots;
+    const unsigned slot_mod         = cur_slot.count() % period_slots;
     bool           enabled          = drx.is_pdcch_enabled();
     bool           in_active_window = slot_mod >= offset_slot and slot_mod < (offset_slot + on_dur_slots);
 

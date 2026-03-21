@@ -531,7 +531,10 @@ private:
 
     // Set VLAN tag.
     if (test_params.use_loopback_receiver) {
-      frame[15] = vlan_tag;
+      // MSBs containing the PCP + VID.
+      frame[14] = static_cast<uint8_t>(vlan_tag >> 8);
+      // LSBs containing the VID.
+      frame[15] = static_cast<uint8_t>(vlan_tag & 0xff);
     }
 
     // Set correct payload size.
@@ -993,8 +996,8 @@ static void configure_ofh_sector(ofh::sector_configuration& sector_cfg)
   sector_cfg.mac_src_address                 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   sector_cfg.mac_dst_address                 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   sector_cfg.mtu_size                        = test_params.mtu;
-  sector_cfg.tci_cp                          = vlan_tag;
-  sector_cfg.tci_up                          = vlan_tag;
+  sector_cfg.vlan_cfg_cp                     = ether::vlan_parameters{.tci_vid = vlan_tag};
+  sector_cfg.vlan_cfg_up                     = ether::vlan_parameters{.tci_vid = vlan_tag};
   sector_cfg.scs                             = test_params.scs;
   sector_cfg.bw                              = test_params.bw;
   sector_cfg.ru_operating_bw                 = sector_cfg.bw;

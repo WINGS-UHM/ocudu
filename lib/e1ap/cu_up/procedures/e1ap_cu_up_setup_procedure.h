@@ -49,6 +49,7 @@ private:
   e1ap_transaction     transaction;
   unsigned             e1_setup_retry_no = 0;
   std::chrono::seconds time_to_wait{0};
+  byte_buffer          captured_request;
 };
 
 } // namespace ocuup

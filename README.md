@@ -37,7 +37,7 @@ We aim to periodically synchronize with upstream releases while preserving ISAC-
 
 <img src="https://srs.io/wp-content/uploads/ocudu_color.png" alt="image" width="50%"/>
 
-OCUDU is a permissively-licensed, open-source 5G (and beyond) CU/DU project designed for commercial deployment and broad industry adoption, as well as advanced research and development. OCUDU is a complete radio access network (RAN) solution compliant with 3GPP and O-RAN Alliance specifications and includes the full L1/2/3 stack with minimal external dependencies. OCUDU is govorned under the Linux Foundation.
+OCUDU is a permissively-licensed, open-source 5G (and beyond) CU/DU project designed for commercial deployment and broad industry adoption, as well as advanced research and development. OCUDU is a complete radio access network (RAN) solution compliant with 3GPP and O-RAN Alliance specifications and includes the full L1/2/3 stack with minimal external dependencies. OCUDU is governed under the Linux Foundation.
 
 This repository contains the RAN source code, architecture documentation, and tooling.
 

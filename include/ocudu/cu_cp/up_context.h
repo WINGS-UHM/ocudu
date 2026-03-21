@@ -37,9 +37,13 @@ struct up_drb_context {
 };
 
 struct up_pdu_session_context {
-  up_pdu_session_context(pdu_session_id_t id_, pdu_session_type_t type_) : id(id_), type(type_) {}
+  up_pdu_session_context(pdu_session_id_t id_, pdu_session_type_t type_, up_transport_layer_info ul_ngu_up_tnl_info_) :
+    id(id_), type(type_), ul_ngu_up_tnl_info(ul_ngu_up_tnl_info_)
+  {
+  }
   pdu_session_id_t                   id = pdu_session_id_t::invalid;
   pdu_session_type_t                 type;
+  up_transport_layer_info            ul_ngu_up_tnl_info;
   std::map<drb_id_t, up_drb_context> drbs;
 
   integrity_protection_result_t       integrity_protection_result = integrity_protection_result_t::performed;

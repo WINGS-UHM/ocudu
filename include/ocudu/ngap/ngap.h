@@ -4,12 +4,12 @@
 
 #pragma once
 
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ngap/ngap_context.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ngap/ngap_init_context_setup.h"
-#include "ocudu/ngap/ngap_location_reporting.h"
 #include "ocudu/ngap/ngap_metrics.h"
 #include "ocudu/ngap/ngap_rrc_inactive_transition.h"
 #include "ocudu/ngap/ngap_setup.h"
@@ -229,7 +229,7 @@ public:
   virtual void on_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) = 0;
 
   /// \brief Notifies the CU-CP about a Location Reporting Control message.
-  virtual void on_location_reporting_control_message(ue_index_t ue_index, const ngap_location_report_request& msg) = 0;
+  virtual void on_location_reporting_control_message(ue_index_t ue_index, const location_report_request& msg) = 0;
 };
 
 /// Handle NGAP NAS Message procedures as defined in TS 38.413 section 8.6.
@@ -253,10 +253,10 @@ class ngap_location_reporting_handler
 public:
   virtual ~ngap_location_reporting_handler() = default;
   /// \brief Initiates Location Report procedure as per TS 38.413 section 8.12.3.
-  virtual void handle_location_report_transmission(const ngap_location_report& msg) = 0;
+  virtual void handle_location_report_transmission(const location_report& msg) = 0;
   /// \brief Initiates Location Reporting Failure Indication procedure as per TS 38.413 section 8.12.2.
   virtual void
-  handle_location_reporting_failure_indication_transmission(const ngap_location_report_failure_indication& msg) = 0;
+  handle_location_reporting_failure_indication_transmission(const location_report_failure_indication& msg) = 0;
 };
 
 /// Handle NGAP UE Radio Capability Management Messages as per TS 38.413 section 8.14.

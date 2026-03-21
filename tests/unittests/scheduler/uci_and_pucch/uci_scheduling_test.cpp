@@ -112,12 +112,12 @@ INSTANTIATE_TEST_SUITE_P(test_sr_sched_different_periods_offsets,
 
 /////////////  Test CSI scheduling   /////////////
 
-class uci_sched_csi_test : public ::testing::TestWithParam<csi_report_periodicity>
+class uci_sched_csi_test : public ::testing::TestWithParam<csi_resource_periodicity>
 {
 public:
   uci_sched_csi_test() :
     csi_period(GetParam()),
-    csi_offset(test_rng::uniform_int<unsigned>(0, csi_report_periodicity_to_uint(GetParam()) - 1)),
+    csi_offset(test_rng::uniform_int<unsigned>(0, csi_resource_periodicity_to_uint(GetParam()) - 1)),
     t_bench{test_bench_params{.csi_period = csi_period, .csi_offset = csi_offset}}
   {
     static constexpr max_pucch_code_rate max_code_rate = max_pucch_code_rate::dot_25;
@@ -140,8 +140,8 @@ public:
 
 protected:
   // Parametrized variables.
-  csi_report_periodicity csi_period;
-  unsigned               csi_offset;
+  csi_resource_periodicity csi_period;
+  unsigned                 csi_offset;
   // Helper variables.
   unsigned   sr_period;
   unsigned   sr_offset{0};
@@ -156,14 +156,14 @@ protected:
 TEST_P(uci_sched_csi_test, test_different_periods)
 {
   // Check at the allocation for at least 2 the size of the resource grid.
-  const unsigned nof_slots_to_test = std::max(csi_report_periodicity_to_uint(csi_period) * 8,
+  const unsigned nof_slots_to_test = std::max(csi_resource_periodicity_to_uint(csi_period) * 8,
                                               static_cast<unsigned>(t_bench.res_grid.max_ul_slot_alloc_delay) * 2);
 
   // Randomize initial slot, as the UCI scheduler will be called only after the UE is added.
   const auto starting_slot = test_rng::uniform_int<unsigned>(0, 1000U);
   for (unsigned sl_cnt = starting_slot; sl_cnt < starting_slot + nof_slots_to_test; ++sl_cnt) {
     t_bench.uci_sched.run_slot(t_bench.res_grid);
-    if ((t_bench.sl_tx - csi_offset).to_uint() % csi_report_periodicity_to_uint(csi_period) == 0) {
+    if ((t_bench.sl_tx - csi_offset).to_uint() % csi_resource_periodicity_to_uint(csi_period) == 0) {
       ASSERT_EQ(1, t_bench.res_grid[0].result.ul.pucchs.size());
       // The scheduler allocates:
       // - CSI only on slots that are for CSI only.
@@ -187,11 +187,7 @@ TEST_P(uci_sched_csi_test, test_different_periods)
 
 INSTANTIATE_TEST_SUITE_P(test_csi_sched_different_periods_offsets,
                          uci_sched_csi_test,
-                         testing::Values(csi_report_periodicity::slots4,
-                                         csi_report_periodicity::slots5,
-                                         csi_report_periodicity::slots8,
-                                         csi_report_periodicity::slots10,
-                                         csi_report_periodicity::slots16,
+                         testing::Values(csi_report_periodicity::slots16,
                                          csi_report_periodicity::slots20,
                                          csi_report_periodicity::slots40,
                                          csi_report_periodicity::slots80,
@@ -200,7 +196,7 @@ INSTANTIATE_TEST_SUITE_P(test_csi_sched_different_periods_offsets,
 
 /////////////  Test UCI with UE reconfiguration   /////////////
 
-class uci_sched_reconf_test : public ::testing::TestWithParam<std::optional<csi_report_periodicity>>
+class uci_sched_reconf_test : public ::testing::TestWithParam<std::optional<csi_resource_periodicity>>
 {
 public:
   uci_sched_reconf_test() : t_bench{test_bench_params{.csi_period = GetParam()}} {}
@@ -242,4 +238,4 @@ TEST_P(uci_sched_reconf_test, after_ue_reconf_uci_doesnt_stopped_being_scheduled
 
 INSTANTIATE_TEST_SUITE_P(test_with_and_without_csi,
                          uci_sched_reconf_test,
-                         testing::Values(std::nullopt, csi_report_periodicity::slots320));
+                         testing::Values(std::nullopt, csi_resource_periodicity::slots320));

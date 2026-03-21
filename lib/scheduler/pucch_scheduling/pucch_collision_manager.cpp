@@ -20,12 +20,12 @@ namespace ocudu::detail {
 
 cell_resource_list make_cell_resource_list(const cell_configuration& cell_cfg)
 {
-  const auto& init_ul_bwp_cfg = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+  const auto& init_ul_bwp_cfg = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
 
   // Get PUCCH common resource config from Table 9.2.1-1, TS 38.213.
   // N_bwp_size is equal to the Initial UL BWP size in PRBs, as per TS 38.213, Section 9.2.1.
   const pucch_default_resource common_default_res = get_pucch_default_resource(
-      cell_cfg.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common, init_ul_bwp_cfg.crbs.length());
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common, init_ul_bwp_cfg.crbs.length());
 
   // Collect all resources (common + dedicated).
   cell_resource_list all_resources;

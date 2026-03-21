@@ -8,6 +8,7 @@
 #include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/result/sched_result.h"
 #include "ocudu/scheduler/scheduler_factory.h"
 #include "ocudu/support/benchmark_utils.h"

@@ -18,7 +18,7 @@ endif (DPDK_FOUND)
 add_executable(ru_emulator ${SOURCES})
 target_include_directories(ru_emulator PRIVATE ${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/external)
-target_link_libraries(ru_emulator ocudulog ocudu_ofh ocudu_phy_support ocudu_support)
+target_link_libraries(ru_emulator ocudulog ocudu_ofh ocudu_phy_support ocudu_support ocudu_yaml_util)
 
 if (DPDK_FOUND)
     target_compile_options(ru_emulator PRIVATE ${DPDK_CFLAGS})

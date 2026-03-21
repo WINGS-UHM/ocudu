@@ -4,6 +4,7 @@
 #pragma once
 
 #include "ocudu/ofh/ethernet/ethernet_mac_address.h"
+#include "ocudu/ofh/ethernet/ethernet_vlan_params.h"
 #include <optional>
 
 namespace ocudu {
@@ -15,8 +16,8 @@ struct vlan_frame_params {
   mac_address mac_dst_address;
   /// Source MAC address.
   mac_address mac_src_address;
-  /// Tag control information field.
-  std::optional<uint16_t> tci;
+  /// VLAN configuration parameters.
+  std::optional<vlan_parameters> vlan_config;
   /// Ethernet type field.
   uint16_t eth_type;
 };

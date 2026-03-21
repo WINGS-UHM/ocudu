@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "message_builder_helpers.h"
+#include "../message_builder_helpers.h"
 #include "prach.h"
 #include "ocudu/phy/support/prach_buffer_context.h"
 #include "ocudu/ran/prach/rach_config_common.h"

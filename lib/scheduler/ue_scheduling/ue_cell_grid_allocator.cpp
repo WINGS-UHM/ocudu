@@ -61,7 +61,7 @@ ue_cell_grid_allocator::calculate_dl_mcs_tbs(const cell_slot_resource_allocator&
   // the UE assumes the default value of 3300 (i.e. "Outside the carrier")".
   bool                           contains_dc = false;
   const std::optional<unsigned>& tx_dc =
-      cell_alloc.cfg.dl_cfg_common.freq_info_dl.scs_carrier_list.back().tx_direct_current_location;
+      cell_alloc.cfg.params.dl_cfg_common.freq_info_dl.scs_carrier_list.back().tx_direct_current_location;
   if (tx_dc.has_value()) {
     contains_dc = dc_offset_helper::is_contained(tx_dc.value(), crbs.first) ||
                   dc_offset_helper::is_contained(tx_dc.value(), crbs.second);
@@ -315,7 +315,7 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
     case dci_dl_format::f1_0: {
       build_dci_f1_0_c_rnti(grant.pdcch->dci,
                             ss_info,
-                            cell_cfg.dl_cfg_common.init_dl_bwp,
+                            cell_cfg.params.dl_cfg_common.init_dl_bwp,
                             vrbs,
                             pdsch_td_res_index,
                             k1,
@@ -664,7 +664,7 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
           pusch_cfg.nof_csi_part1_bits,
           pusch_cfg.max_nof_csi_part2_bits,
           static_cast<unsigned>(pusch_cfg.mcs_table),
-          ue_cell_cfg.cell_cfg_common.dmrs_typeA_pos == dmrs_typeA_position::pos2 ? "pos2" : "pos3",
+          ue_cell_cfg.cell_cfg_common.params.dmrs_typeA_pos == dmrs_typeA_position::pos2 ? "pos2" : "pos3",
           ue_cell_cfg.init_bwp().ul_ded->pusch_cfg->pusch_mapping_type_a_dmrs.value().is_dmrs_type2 ? "yes" : "no",
           static_cast<unsigned>(
               ue_cell_cfg.init_bwp().ul_ded->pusch_cfg->pusch_mapping_type_a_dmrs.value().additional_positions));
@@ -727,7 +727,7 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
     case dci_ul_rnti_config_type::c_rnti_f0_0:
       build_dci_f0_0_c_rnti(grant.pdcch->dci,
                             ss_info,
-                            cell_cfg.ul_cfg_common.init_ul_bwp,
+                            cell_cfg.params.ul_cfg_common.init_ul_bwp,
                             vrbs,
                             grant.cfg.pusch_td_res_index,
                             mcs_tbs_info.value().mcs,

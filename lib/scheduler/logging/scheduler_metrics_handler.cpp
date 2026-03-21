@@ -40,7 +40,7 @@ cell_metrics_handler::cell_metrics_handler(
     const std::optional<sched_cell_configuration_request_message::metrics_config>& metrics_cfg) :
   notifier(metrics_cfg.has_value() and metrics_cfg->notifier != nullptr ? *metrics_cfg->notifier : null_notifier),
   cell_cfg(cell_cfg_),
-  nof_slots_per_sf(get_nof_slots_per_subframe(cell_cfg.scs_common))
+  nof_slots_per_sf(get_nof_slots_per_subframe(cell_cfg.scs_common()))
 {
   if (not enabled()) {
     return;
@@ -51,8 +51,7 @@ cell_metrics_handler::cell_metrics_handler(
   rnti_to_ue_index_lookup.reserve(MAX_NOF_DU_UES);
   const unsigned pre_reserved_event_capacity = std::min(3U * MAX_NOF_DU_UES, metrics_cfg->max_ue_events_per_report);
   pending_events.reserve(pre_reserved_event_capacity);
-  unsigned tdd_period_slots =
-      cell_cfg.tdd_cfg_common.has_value() ? nof_slots_per_tdd_period(*cell_cfg.tdd_cfg_common) : 0U;
+  unsigned tdd_period_slots = cell_cfg.is_tdd() ? nof_slots_per_tdd_period(*cell_cfg.params.tdd_cfg) : 0U;
   ul_prbs_used_per_tdd_slot_idx.resize(tdd_period_slots);
   dl_prbs_used_per_tdd_slot_idx.resize(tdd_period_slots);
 }
@@ -379,7 +378,7 @@ void cell_metrics_handler::report_metrics()
   }
   next_report->events.swap(pending_events);
 
-  next_report->pci = cell_cfg.pci;
+  next_report->pci = cell_cfg.params.pci;
   // The window of slots for a report should be [start, stop) = [last_slot_tx + 1 - period, last_slot_tx + 1).
   // e.g. if the report period is 10, and we are at slot 0.9 (the last slot of the report), then the start slot is
   // 0.9 + 0.1 - 1.0 == 0.
@@ -411,10 +410,10 @@ void cell_metrics_handler::report_metrics()
   // Note: PUCCH is only allocated on full UL slots.
   next_report->pucch_tot_rb_usage_avg =
       data.nof_ul_slots > 0 ? static_cast<float>(data.pucch_rbs_used) / data.nof_ul_slots : 0;
-  if (cell_cfg.tdd_cfg_common.has_value()) {
+  if (cell_cfg.is_tdd()) {
     const float nof_tdd_periods_per_metric_report =
         static_cast<float>(next_report->nof_slots) /
-        static_cast<float>(nof_slots_per_tdd_period(cell_cfg.tdd_cfg_common.value()));
+        static_cast<float>(nof_slots_per_tdd_period(*cell_cfg.params.tdd_cfg));
 
     for (unsigned rb_count : ul_prbs_used_per_tdd_slot_idx) {
       const auto avg_nof_rbs =

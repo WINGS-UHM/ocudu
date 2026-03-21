@@ -18,7 +18,7 @@ public:
   /// Underlying native type used to store a transport layer address.
   struct native_type {
     struct sockaddr* addr;
-    socklen_t        addrlen;
+    socklen_t        addrlen; // TO-DO: we should not store that, derive it from ss_family instead?
   };
 
   transport_layer_address() = default;
@@ -47,15 +47,12 @@ public:
   /// Sets the port number of the transport layer address.
   bool set_port(uint16_t port)
   {
-    if (((struct sockaddr*)&addr_storage)->sa_family != AF_INET &&
-        ((struct sockaddr*)&addr_storage)->sa_family != AF_INET6) {
-      return false;
-    }
     if (((struct sockaddr*)&addr_storage)->sa_family == AF_INET) {
       ((struct sockaddr_in*)&addr_storage)->sin_port = htons(port);
-    }
-    if (((struct sockaddr*)&addr_storage)->sa_family == AF_INET6) {
+    } else if (((struct sockaddr*)&addr_storage)->sa_family == AF_INET6) {
       ((struct sockaddr_in6*)&addr_storage)->sin6_port = htons(port);
+    } else {
+      return false;
     }
     return true;
   }
@@ -74,8 +71,8 @@ public:
 private:
   explicit transport_layer_address(const struct sockaddr& addr_, socklen_t socklen);
 
-  storage_type addr_storage;
-  socklen_t    addrlen = 0;
+  storage_type addr_storage = {};
+  socklen_t    addrlen      = 0;
 };
 
 } // namespace ocudu

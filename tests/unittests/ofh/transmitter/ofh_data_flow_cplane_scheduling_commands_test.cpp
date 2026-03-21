@@ -70,10 +70,13 @@ public:
 class data_flow_cplane_scheduling_commands_impl_fixture : public ::testing::Test
 {
 protected:
-  unsigned                                          ru_nof_prbs     = 51;
-  ether::vlan_frame_params                          vlan_params     = {{0, 0, 0, 0, 0, 1}, {0, 0, 0, 0, 0, 2}, 4, 8896};
-  ru_compression_params                             dl_compr_params = {compression_type::none, 16};
-  ru_compression_params                             ul_compr_params = {compression_type::BFP, 9};
+  unsigned                                          ru_nof_prbs           = 51;
+  ether::vlan_frame_params                          vlan_params           = {{0, 0, 0, 0, 0, 1},
+                                                                             {0, 0, 0, 0, 0, 2},
+                                                                             ether::vlan_parameters{.tci_vid = 4},
+                                                                             8896};
+  ru_compression_params                             dl_compr_params       = {compression_type::none, 16};
+  ru_compression_params                             ul_compr_params       = {compression_type::BFP, 9};
   ru_compression_params                             prach_compr_params    = {compression_type::BFP, 8};
   cplane_fft_size                                   c_plane_prach_fft_len = cplane_fft_size::fft_4096;
   std::shared_ptr<uplink_cplane_context_repository> ul_cplane_context_repo =
@@ -157,7 +160,7 @@ TEST_F(data_flow_cplane_scheduling_commands_impl_fixture,
   ASSERT_EQ(vlan_params.eth_type, vlan.eth_type);
   ASSERT_EQ(vlan_params.mac_dst_address, vlan.mac_dst_address);
   ASSERT_EQ(vlan_params.mac_src_address, vlan.mac_src_address);
-  ASSERT_EQ(vlan_params.tci, vlan.tci);
+  ASSERT_EQ(vlan_params.vlan_config->tci_vid, vlan.vlan_config->tci_vid);
 
   // Assert eCPRI parameters.
   ASSERT_FALSE(ecpri_builder->has_build_data_packet_method_been_called());
@@ -305,7 +308,7 @@ TEST_F(data_flow_cplane_scheduling_commands_impl_fixture,
   ASSERT_EQ(vlan_params.eth_type, vlan.eth_type);
   ASSERT_EQ(vlan_params.mac_dst_address, vlan.mac_dst_address);
   ASSERT_EQ(vlan_params.mac_src_address, vlan.mac_src_address);
-  ASSERT_EQ(vlan_params.tci, vlan.tci);
+  ASSERT_EQ(vlan_params.vlan_config->tci_vid, vlan.vlan_config->tci_vid);
 
   // Assert eCPRI parameters.
   ASSERT_FALSE(ecpri_builder->has_build_data_packet_method_been_called());

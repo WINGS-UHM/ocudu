@@ -745,6 +745,30 @@ void logical_channel_system::handle_mac_ce_indication(soa::row_id ue_row_id, con
   ues_with_pending_ces.set(u.at<ue_config_context>().ue_index, true);
 }
 
+void logical_channel_system::handle_sr_indication(soa::row_id ue_row_id, slot_point uci_slot)
+{
+  auto  u     = get_ue(ue_row_id);
+  auto& ue_ch = u.at<ue_ul_channel_context>();
+  if (not ue_ch.oldest_sr_sl_rx.valid()) {
+    // This is a transition from SR not pending to SR pending.
+    ue_ch.oldest_sr_sl_rx = uci_slot;
+  }
+}
+
+void logical_channel_system::reset_sr_indication(soa::row_id ue_row_id)
+{
+  auto  u               = get_ue(ue_row_id);
+  auto& ue_ch           = u.at<ue_ul_channel_context>();
+  ue_ch.oldest_sr_sl_rx = {};
+}
+
+slot_point logical_channel_system::pending_sr_slot_rx(soa::row_id ue_row_id) const
+{
+  auto        u     = get_ue(ue_row_id);
+  const auto& ue_ch = u.at<ue_ul_channel_context>();
+  return ue_ch.oldest_sr_sl_rx;
+}
+
 void logical_channel_system::handle_bsr_indication(soa::row_id ue_row_id, const ul_bsr_indication_message& msg)
 {
   // This is the maximum bounded value that can be reported by the BSR, as per TS 38.321, Table 6.1.3.1-1.
@@ -1043,6 +1067,11 @@ void ue_logical_channel_repository::handle_dl_buffer_status_indication(lcid_t   
   parent->handle_dl_buffer_status_indication(ue_row_id, lcid, buffer_status, hol_toa);
 }
 
+slot_point ue_logical_channel_repository_view::pending_sr_slot_rx() const
+{
+  return parent->pending_sr_slot_rx(ue_row_id);
+}
+
 void ue_logical_channel_repository_view::handle_mac_ce_indication(const mac_ce_info& ce)
 {
   parent->handle_mac_ce_indication(ue_row_id, ce);
@@ -1053,9 +1082,13 @@ void ue_logical_channel_repository::handle_bsr_indication(const ul_bsr_indicatio
   parent->handle_bsr_indication(ue_row_id, msg);
 }
 
-void ue_logical_channel_repository::handle_sr_indication()
+void ue_logical_channel_repository::handle_sr_indication(slot_point uci_slot)
 {
-  parent->ues_with_pending_sr.set(ue_index, true);
+  if (not parent->ues_with_pending_sr.test(ue_index)) {
+    // This is a transition from SR not pending to SR pending.
+    parent->handle_sr_indication(ue_row_id, uci_slot);
+    parent->ues_with_pending_sr.set(ue_index, true);
+  }
 }
 
 unsigned ue_logical_channel_repository::allocate_mac_sdu(dl_msg_lc_info& lch_info, unsigned rem_bytes, lcid_t lcid)
@@ -1108,7 +1141,11 @@ void ue_logical_channel_repository::handle_ul_grant(units::bytes grant_size)
 
 void ue_logical_channel_repository::reset_sr_indication()
 {
-  parent->ues_with_pending_sr.set(ue_index, false);
+  if (parent->ues_with_pending_sr.test(ue_index)) {
+    // This is a transition from SR pending to not pending.
+    parent->reset_sr_indication(ue_row_id);
+    parent->ues_with_pending_sr.set(ue_index, false);
+  }
 }
 
 unsigned ocudu::allocate_mac_sdus(dl_msg_tb_info&                tb_info,

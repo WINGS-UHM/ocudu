@@ -59,11 +59,12 @@ protected:
   void run_pdu_session_resource_setup(ue_index_t ue_index, pdu_session_id_t pdu_session_id);
 
   // Manually add existing PDU sessions to UP manager
-  void add_pdu_session_to_up_manager(ue_index_t         ue_index,
-                                     pdu_session_id_t   pdu_session_id,
-                                     pdu_session_type_t pdu_session_type,
-                                     drb_id_t           drb_id,
-                                     qos_flow_id_t      qos_flow_id);
+  void add_pdu_session_to_up_manager(ue_index_t              ue_index,
+                                     pdu_session_id_t        pdu_session_id,
+                                     pdu_session_type_t      pdu_session_type,
+                                     up_transport_layer_info ul_ngu_up_tnl_info,
+                                     drb_id_t                drb_id,
+                                     qos_flow_id_t           qos_flow_id);
 
   /// \brief Manually tick timers.
   void tick();

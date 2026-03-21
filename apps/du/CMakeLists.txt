@@ -20,6 +20,7 @@ target_link_libraries(odu_base PRIVATE
         e2ap_asn1
         ocudu_pcap
         ocudu_support
+        ocudu_yaml_util
         ocudu_versioning
         ocudu_f1c_gateway)
 

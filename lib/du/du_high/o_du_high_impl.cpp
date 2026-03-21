@@ -102,8 +102,12 @@ void o_du_high_impl::set_du_high(std::unique_ptr<du_high> updated_du_high)
   ocudu_assert(du_hi, "Invalid DU high");
 }
 
-void o_du_high_impl::set_e2_agent(std::unique_ptr<e2_agent> agent)
+void o_du_high_impl::set_e2_components(std::unique_ptr<e2_agent>                      agent,
+                                       std::unique_ptr<du_f1_setup_complete_notifier> adapter)
 {
-  e2agent = std::move(agent);
+  e2agent             = std::move(agent);
+  f1_setup_e2_adapter = std::move(adapter);
+
   ocudu_assert(e2agent, "Invalid E2 agent");
+  ocudu_assert(f1_setup_e2_adapter, "Invalid F1 setup E2 adapter");
 }

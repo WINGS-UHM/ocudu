@@ -14,7 +14,7 @@ ra_resource_manager::ra_resource_manager(span<const du_cell_config> cell_cfg_lis
     cells[i].cell_cfg = &cell_cfg_list[i];
     const auto& cfg   = *cells[i].cell_cfg;
 
-    if (cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value() and cfg.ran.init_bwp_builder.rach.cfra_enabled) {
+    if (cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value() and cfg.ran.init_bwp.rach.cfra_enabled) {
       const auto& rach_common = cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
 
       // Store the preambles used for CFRA.

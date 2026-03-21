@@ -11,10 +11,11 @@
 #include "test_doubles/mock_du.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
+#include "tests/unittests/cu_cp/test_doubles/mock_xnc_cu_cp.h"
 #include "tests/unittests/xnap/xnap_test_helpers.h"
 #include "ocudu/cu_cp/cu_cp.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
-#include "ocudu/ngap/ngap_location_reporting.h"
+#include "ocudu/cu_cp/cu_cp_location_reporting_types.h"
 #include "ocudu/ran/plmn_identity.h"
 #include <optional>
 #include <unordered_map>
@@ -39,7 +40,8 @@ struct cu_cp_test_env_params {
       unsigned                                                 max_nof_drbs_per_ue_ = 8,
       const std::vector<std::vector<supported_tracking_area>>& amf_config_ = {{default_supported_tracking_area}},
       bool                                                     trigger_ho_from_measurements_ = true,
-      bool                                                     enable_rrc_inactive_          = false) :
+      bool                                                     enable_rrc_inactive_          = false,
+      bool                                                     enable_xnc_peer_              = false) :
     max_nof_cu_ups(max_nof_cu_ups_),
     max_nof_dus(max_nof_dus_),
     max_nof_ues(max_nof_ues_),
@@ -52,14 +54,20 @@ struct cu_cp_test_env_params {
       amf_configs.emplace(amf_idx, cu_cp_test_amf_config{supported_tas, create_mock_amf()});
       amf_idx++;
     }
+
+    // TODO: support multiple peers.
+    if (enable_xnc_peer_) {
+      peer_xnc_configs.emplace(0, create_mock_xnc_cu_cp());
+    }
   }
-  unsigned                                  max_nof_cu_ups;
-  unsigned                                  max_nof_dus;
-  unsigned                                  max_nof_ues;
-  unsigned                                  max_nof_drbs_per_ue;
-  std::map<unsigned, cu_cp_test_amf_config> amf_configs;
-  bool                                      trigger_ho_from_measurements;
-  bool                                      enable_rrc_inactive;
+  unsigned                                            max_nof_cu_ups;
+  unsigned                                            max_nof_dus;
+  unsigned                                            max_nof_ues;
+  unsigned                                            max_nof_drbs_per_ue;
+  std::map<unsigned, cu_cp_test_amf_config>           amf_configs;
+  bool                                                trigger_ho_from_measurements;
+  bool                                                enable_rrc_inactive;
+  std::map<unsigned, std::unique_ptr<mock_xnc_cu_cp>> peer_xnc_configs;
 };
 
 class cu_cp_test_environment
@@ -81,10 +89,14 @@ public:
   ocudulog::basic_logger& test_logger  = ocudulog::fetch_basic_logger("TEST");
   ocudulog::basic_logger& cu_cp_logger = ocudulog::fetch_basic_logger("CU-CP");
 
-  cu_cp&      get_cu_cp() { return *cu_cp_inst; }
-  mock_amf&   get_amf(size_t amf_index = 0) { return *amf_configs.at(amf_index).amf_stub; }
-  mock_du&    get_du(size_t du_index) { return *dus.at(du_index); }
-  mock_cu_up& get_cu_up(size_t cu_up_index) { return *cu_ups.at(cu_up_index); }
+  cu_cp&          get_cu_cp() { return *cu_cp_inst; }
+  mock_amf&       get_amf(size_t amf_index = 0) { return *amf_configs.at(amf_index).amf_stub; }
+  mock_du&        get_du(size_t du_index) { return *dus.at(du_index); }
+  mock_cu_up&     get_cu_up(size_t cu_up_index) { return *cu_ups.at(cu_up_index); }
+  mock_xnc_cu_cp& get_xnc_cu_cp(size_t xnc_index = 0) { return *xnc_peers.at(xnc_index); }
+
+  /// Enqueue PDUs to automatically respond to NG/XN setup procedures and starts the CU-CP.
+  void enqueue_procedure_outcome_pdus_and_start_cu_cp();
 
   /// Start CU-CP connection to AMF and run NG setup procedure to completion.
   void run_ng_setup();
@@ -93,6 +105,9 @@ public:
   /// Simulate AMF becoming reachable again and complete the NG Setup procedure.
   /// Returns true if the AMF is successfully reconnected.
   bool reconnect_amf(unsigned amf_idx);
+
+  /// Start CU-CP connection to XN-C peer CU-CP and run XN setup procedure to completion.
+  void run_xn_setup();
 
   /// Establish a TNL connection between a DU and the CU-CP.
   std::optional<unsigned> connect_new_du();
@@ -126,7 +141,7 @@ public:
       gnb_du_ue_f1ap_id_t                                       du_ue_id,
       std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
       bool                                                      rrc_inactive_supported      = true,
-      std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt);
+      std::optional<location_report_request>                    location_reporting_request  = std::nullopt);
   /// Finishes the registration for a given UE.
   [[nodiscard]] bool finish_ue_registration(unsigned du_idx, unsigned cu_up_idx, gnb_du_ue_f1ap_id_t du_ue_id);
   /// Requests PDU Session Resource Setup
@@ -161,7 +176,7 @@ public:
             byte_buffer rrc_reconfiguration_complete = make_byte_buffer("00070e00cc6fcda5").value(),
             std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
             bool                                                      rrc_inactive_supported      = true,
-            std::optional<ngap_location_report_request>               location_reporting_request  = std::nullopt,
+            std::optional<location_report_request>                    location_reporting_request  = std::nullopt,
             std::optional<security_indication_t>                      security_indication         = std::nullopt);
   /// Reestablishes a UE connection, including RRC Reestablishment and RRC Reconfiguration procedures.
   /// \return True if the reestablishment was successful, false if RRC Setup/Reject was performed instead.
@@ -183,6 +198,10 @@ public:
   bool wait_for_ngap_tx_pdu(ngap_message&             ngap_pdu,
                             std::chrono::milliseconds timeout = std::chrono::milliseconds{500},
                             unsigned                  amf_idx = 0);
+
+  bool wait_for_xnap_tx_pdu(unsigned                  xnc_peer_idx,
+                            xnap_message&             xnap_pdu,
+                            std::chrono::milliseconds timeout = std::chrono::milliseconds{500});
 
   bool wait_for_e1ap_tx_pdu(unsigned                  cu_up_idx,
                             e1ap_message&             e1ap_pdu,
@@ -266,8 +285,9 @@ private:
   /// Notifiers for the CU-CP interface.
   std::map<unsigned, cu_cp_test_amf_config> amf_configs;
 
-  // Emulated XnC gateway.
-  std::unique_ptr<dummy_xnc_gateway> xnc_gw;
+  // Emulated XN-C peer CU-CP nodes.
+  std::map<unsigned, std::unique_ptr<mock_xnc_cu_cp>> xnc_peers;
+  unsigned                                            next_xnc_peer_idx = 0;
 
   // Emulated CU-UP nodes.
   std::unordered_map<unsigned, std::unique_ptr<mock_cu_up>> cu_ups;

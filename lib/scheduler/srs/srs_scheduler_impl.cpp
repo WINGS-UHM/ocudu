@@ -423,7 +423,7 @@ bool srs_scheduler_impl::allocate_srs_opportunity(cell_slot_resource_allocator& 
     return false;
   }
 
-  const bwp_configuration& ul_bwp_cfg         = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+  const bwp_configuration& ul_bwp_cfg         = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
   const unsigned           nof_symbs_per_slot = get_nsymb_per_slot(ul_bwp_cfg.cp);
   const unsigned           starting_symb      = nof_symbs_per_slot - srs_res->res_mapping.start_pos - 1;
   // Fill all the RBs in UL BW grid, even though the SRS is configured as narrowband; if there are SRS grants allocated,

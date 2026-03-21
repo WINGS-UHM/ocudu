@@ -13,6 +13,7 @@ ue_removal_routine::ue_removal_routine(ue_index_t                           ue_i
                                        f1ap_ue_context_removal_handler*     f1ap_removal_handler_,
                                        ngap_ue_context_removal_handler*     ngap_removal_handler_,
                                        nrppa_ue_context_removal_handler*    nrppa_removal_handler_,
+                                       xnap_ue_context_removal_handler*     xnap_removal_handler_,
                                        ue_manager&                          ue_mng_,
                                        ocudulog::basic_logger&              logger_) :
   ue_index(ue_index_),
@@ -21,6 +22,7 @@ ue_removal_routine::ue_removal_routine(ue_index_t                           ue_i
   f1ap_removal_handler(f1ap_removal_handler_),
   ngap_removal_handler(ngap_removal_handler_),
   nrppa_removal_handler(nrppa_removal_handler_),
+  xnap_removal_handler(xnap_removal_handler_),
   ue_mng(ue_mng_),
   logger(logger_)
 {
@@ -53,6 +55,11 @@ void ue_removal_routine::operator()(coro_context<async_task<void>>& ctx)
   // Remove UE Context from NRPPa if it exists.
   if (nrppa_removal_handler != nullptr) {
     nrppa_removal_handler->remove_ue_context(ue_index);
+  }
+
+  // Remove UE Context from XNAP if it exists.
+  if (xnap_removal_handler != nullptr) {
+    xnap_removal_handler->remove_ue_context(ue_index);
   }
 
   // Remove UE from UE manager.

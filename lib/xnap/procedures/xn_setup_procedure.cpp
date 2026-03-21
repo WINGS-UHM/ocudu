@@ -4,6 +4,7 @@
 
 #include "xn_setup_procedure.h"
 #include "../xnap_asn1_utils.h"
+#include "xn_setup_asn1_helpers.h"
 #include "xn_setup_procedure_asn1_helpers.h"
 #include "ocudu/support/async/async_timer.h"
 
@@ -15,11 +16,13 @@ static constexpr std::chrono::milliseconds xn_setup_response_timeout{5000};
 
 xn_setup_procedure::xn_setup_procedure(
     const xnap_configuration&                                                                    xnap_cfg_,
+    std::optional<xnap_context>&                                                                 peer_ctxt_,
     xnap_tx_pdu_notifier_with_logging&                                                           tx_notifier_,
     protocol_transaction_event_source<asn1::xnap::xn_setup_resp_s, asn1::xnap::xn_setup_fail_s>& xn_setup_outcome_,
     timer_factory                                                                                timers_,
     ocudulog::basic_logger&                                                                      logger_) :
   xnap_cfg(xnap_cfg_),
+  peer_ctxt(peer_ctxt_),
   tx_notifier(tx_notifier_),
   xn_setup_outcome(xn_setup_outcome_),
   logger(logger_),
@@ -55,15 +58,28 @@ void xn_setup_procedure::operator()(coro_context<async_task<bool>>& ctx)
     }
 
     // Await timer.
-    logger.debug("Reinitiating XN setup in {}s. Received XNSetupFailure with Time to Wait IE", time_to_wait.count());
+    logger.debug("Reinitiating XN setup in {}s. Cause: Received XNSetupFailure with Time to Wait IE",
+                 time_to_wait.count());
     CORO_AWAIT(
         async_wait_for(xn_setup_wait_timer, std::chrono::duration_cast<std::chrono::milliseconds>(time_to_wait)));
   }
 
   if (!transaction_sink.successful()) {
-    logger.warning("\"{}\" failed. No successful outcome received", name());
+    logger.warning("\"{}\" failed. Cause: No successful outcome received", name());
     CORO_EARLY_RETURN(false);
   }
+
+  // Handle successful outcome. Validate received message and store peer context information.
+  received_xn_setup_resp = transaction_sink.response();
+
+  validation_error = validate_xn_setup_request_response(received_xn_setup_resp);
+  if (not validation_error.has_value()) {
+    logger.warning("\"{}\" failed.Cause: Received XN Setup Response is invalid", name());
+    CORO_EARLY_RETURN(false);
+  }
+
+  // Store peer context information.
+  peer_ctxt = create_peer_xnap_context(received_xn_setup_resp);
 
   logger.info("\"{}\" finished successfully", name());
 

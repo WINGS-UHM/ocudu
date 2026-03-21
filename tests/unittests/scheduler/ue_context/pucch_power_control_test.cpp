@@ -8,6 +8,7 @@
 #include "tests/unittests/scheduler/test_utils/sched_custom_test_bench.h"
 #include "ocudu/ran/power_control/tpc_mapping.h"
 #include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -135,7 +136,7 @@ class pucch_power_control_test_bench : public ::testing::TestWithParam<pucch_pw_
     auto req = sched_config_helper::make_default_sched_cell_configuration_request(make_cell_config_params());
 
     // Overwrite the default list of dedicated PUCCH resources.
-    req.ran.init_bwp_builder.pucch.resources = make_pucch_builder_params();
+    req.ran.init_bwp.pucch.resources = make_pucch_builder_params();
     if (tparams.format_set_0 == pucch_format::FORMAT_0) {
       req.ran.ul_cfg_common.init_ul_bwp.pucch_cfg_common->pucch_resource_common = 0;
     } else if (tparams.format_set_0 == pucch_format::FORMAT_1) {
@@ -202,7 +203,8 @@ protected:
                  "For PUCCH resources set 1, Format 0 and are not valid");
 
     sched_ue_creation_request_message ue_req = cfg_mng.get_default_ue_config_request();
-    pucch_res_builder_test_helper     pucch_builder(cell_cfg, make_pucch_builder_params());
+    pucch_res_builder_test_helper     pucch_builder(cell_cfg.expert_cfg.ue.max_pucchs_per_slot);
+    pucch_builder.setup(cell_cfg.params);
     pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells.value().front());
     add_ue(ue_req);
   }

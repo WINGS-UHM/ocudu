@@ -1050,9 +1050,9 @@ struct du_high_unit_base_cell_config {
   /// Whether the DU adds this cell to the list of served cells while communicating with the CU-CP or it waits for a
   /// command from the SMO to activate it.
   bool enabled = true;
-  /// \c q-RxLevMin, part of \c cellSelectionInfo, \c SIB1, TS 38.311, in dBm.
+  /// \c q-RxLevMin, part of \c cellSelectionInfo, \c SIB1, TS 38.331, in dBm.
   int q_rx_lev_min = -70;
-  /// \c q-QualMin, part of \c cellSelectionInfo, \c SIB1, TS 38.311, in dB.
+  /// \c q-QualMin, part of \c cellSelectionInfo, \c SIB1, TS 38.331, in dB.
   int q_qual_min = -20;
   /// SSB parameters.
   du_high_unit_ssb_config ssb_cfg;

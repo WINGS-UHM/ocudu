@@ -19,7 +19,6 @@ struct cu_cp_inter_cu_handover_request {
   byte_buffer                                                nasc;
   std::vector<s_nssai_t>                                     allowed_nssai;
   std::optional<uint64_t>                                    masked_imeisv;
-  std::optional<ngap_location_report_request>                location_report_request_type;
   std::optional<ngap_rrc_inactive_transition_report_request> rrc_inactive_transition_report_request;
   std::vector<ngap_pdu_session_res_info_item>                pdu_session_res_info_list;
   std::vector<ngap_erab_info_item>                           erab_info_list;
@@ -41,6 +40,7 @@ struct cu_cp_inter_cu_handover_request {
   cu_cp_aggregate_maximum_bit_rate                                      ue_ambr;
   slotted_id_vector<pdu_session_id_t, cu_cp_pdu_session_res_setup_item> pdu_session_res_setup_list;
   byte_buffer                                                           rrc_handover_preparation_information;
+  std::optional<location_report_request>                                location_report_request_type;
 
   void from_ngap_handover_request(const ngap_handover_request& ng_handover_request)
   {
@@ -56,6 +56,7 @@ struct cu_cp_inter_cu_handover_request {
     }
     rrc_handover_preparation_information =
         ng_handover_request.source_to_target_transparent_container.rrc_container.copy();
+    location_report_request_type = ng_handover_request.location_report_request_type;
 
     // Fill NG handover specific fields.
     handov_type                            = ng_handover_request.handov_type;
@@ -64,7 +65,6 @@ struct cu_cp_inter_cu_handover_request {
     nasc                                   = ng_handover_request.nasc.copy();
     allowed_nssai                          = ng_handover_request.allowed_nssai;
     masked_imeisv                          = ng_handover_request.masked_imeisv;
-    location_report_request_type           = ng_handover_request.location_report_request_type;
     rrc_inactive_transition_report_request = ng_handover_request.rrc_inactive_transition_report_request;
     pdu_session_res_info_list = ng_handover_request.source_to_target_transparent_container.pdu_session_res_info_list;
     erab_info_list            = ng_handover_request.source_to_target_transparent_container.erab_info_list;
@@ -86,6 +86,7 @@ struct cu_cp_inter_cu_handover_request {
     }
     rrc_handover_preparation_information =
         xnap_request.ue_context_info_ho_request.rrc_handover_preparation_information.copy();
+    location_report_request_type = xnap_request.ue_context_info_ho_request.location_report_info;
 
     // Fill XNAP handover specific fields.
     amf_ue_id = xnap_request.ue_context_info_ho_request.amf_ue_id;
@@ -113,6 +114,7 @@ private:
   bool fill_e1ap_bearer_context_setup_request(const security::sec_as_config& sec_info);
   void create_srb(srb_id_t srb_id);
   cu_cp_handover_resource_allocation_response generate_handover_resource_allocation_response(bool success);
+  bool                                        is_xn_handover() const { return request.amf_ue_id.has_value(); }
 
   const cu_cp_inter_cu_handover_request request;
 

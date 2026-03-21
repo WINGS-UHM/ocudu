@@ -55,14 +55,14 @@ uint16_t ocudu::get_ra_rnti(unsigned slot_index, unsigned symbol_index, unsigned
 
 static vrb_interval msg3_crb_to_vrb(const cell_configuration& cell_cfg, crb_interval grant_crbs)
 {
-  return rb_helper::crb_to_vrb_ul_non_interleaved(grant_crbs,
-                                                  cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.start());
+  return rb_helper::crb_to_vrb_ul_non_interleaved(
+      grant_crbs, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.start());
 }
 
 static crb_interval msg3_vrb_to_crb(const cell_configuration& cell_cfg, vrb_interval grant_vrbs)
 {
-  return rb_helper::vrb_to_crb_ul_non_interleaved(grant_vrbs,
-                                                  cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.start());
+  return rb_helper::vrb_to_crb_ul_non_interleaved(
+      grant_vrbs, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.start());
 }
 
 class ra_scheduler::msg3_harq_timeout_notifier final : public harq_timeout_notifier
@@ -105,21 +105,22 @@ ra_scheduler::ra_scheduler(const scheduler_ra_expert_config& sched_cfg_,
   pdcch_sch(pdcch_sch_),
   ev_logger(ev_logger_),
   metrics_hdlr(metrics_hdlr_),
-  ra_win_nof_slots(cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window),
-  ra_crb_lims(
-      pdsch_helper::get_ra_crb_limits_common(cell_cfg.dl_cfg_common.init_dl_bwp,
-                                             cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id)),
+  ra_win_nof_slots(cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window),
+  ra_crb_lims(pdsch_helper::get_ra_crb_limits_common(
+      cell_cfg.params.dl_cfg_common.init_dl_bwp,
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id)),
   prach_format_is_long(is_long_preamble(
-      prach_configuration_get(band_helper::get_freq_range(cell_cfg.band),
-                              band_helper::get_duplex_mode(cell_cfg.band),
-                              cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)
+      prach_configuration_get(
+          band_helper::get_freq_range(cell_cfg.band()),
+          band_helper::get_duplex_mode(cell_cfg.band()),
+          cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)
           .format)),
   msg3_harqs(MAX_NOF_MSG3,
              1,
              std::make_unique<msg3_harq_timeout_notifier>(pending_msg3s),
              std::make_unique<msg3_harq_timeout_notifier>(pending_msg3s),
-             sched_cfg.harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common),
-             sched_cfg.harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common),
+             sched_cfg.harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common()),
+             sched_cfg.harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common()),
              cell_harq_manager::DEFAULT_ACK_TIMEOUT_SLOTS,
              cell_cfg.ntn_cs_koffset,
              cell_cfg.ul_harq_mode_b),
@@ -138,22 +139,24 @@ ra_scheduler::ra_scheduler(const scheduler_ra_expert_config& sched_cfg_,
 void ra_scheduler::precompute_rar_fields()
 {
   // RAR payload size in bytes as per TS38.321, 6.1.5 and 6.2.3.
-  static constexpr unsigned rar_payload_size_bytes = 7, rar_subheader_size_bytes = 1;
+  static constexpr unsigned rar_payload_size_bytes   = 7;
+  static constexpr unsigned rar_subheader_size_bytes = 1;
   // As per TS 38.214, Section 5.1.3.2, nof_oh_prb = 0 if PDSCH is scheduled by PDCCH with a CRC scrambled by RA-RNTI.
   static constexpr unsigned nof_oh_prb = 0;
   static constexpr unsigned nof_layers = 1;
 
   const span<const pdsch_time_domain_resource_allocation> pdsch_td_list =
-      get_ra_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common,
-                                         cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp,
-                                         cell_cfg.dmrs_typeA_pos);
+      get_ra_rnti_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common,
+                                         cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                                         cell_cfg.params.dmrs_typeA_pos);
 
   // Cache PDSCH DM-RS information and RAR required TBS and number of PRBs.
   rar_data.resize(pdsch_td_list.size());
   rar_mcs_config = pdsch_mcs_get_config(pdsch_mcs_table::qam64, sched_cfg.rar_mcs_index);
   for (unsigned td_idx = 0; td_idx != rar_data.size(); ++td_idx) {
     // > Compute and cache DM-RS information for different PDSCH TD indexes.
-    rar_data[td_idx].dmrs_info = make_dmrs_info_common(pdsch_td_list, td_idx, cell_cfg.pci, cell_cfg.dmrs_typeA_pos);
+    rar_data[td_idx].dmrs_info =
+        make_dmrs_info_common(pdsch_td_list, td_idx, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos);
 
     // > Compute and cache #PRBs and TBS information for different PDSCH TD indexes.
     const unsigned             nof_symb_sh = pdsch_td_list[td_idx].symbols.length();
@@ -173,7 +176,8 @@ void ra_scheduler::precompute_rar_fields()
 void ra_scheduler::precompute_msg3_pdus()
 {
   // Msg3 UL CCCH message size is up to 64bits (8 octets), and its subheader has 1 octet as per TS38.321.
-  static constexpr unsigned max_msg3_sdu_payload_size_bytes = 8, msg3_subheader_size_bytes = 1;
+  static constexpr unsigned max_msg3_sdu_payload_size_bytes = 8;
+  static constexpr unsigned msg3_subheader_size_bytes       = 1;
   // As per TS 38.214, Section 5.1.3.2, nof_oh_prb = 0 if PDSCH is scheduled by PDCCH with a CRC scrambled by RA-RNTI.
   static constexpr unsigned nof_oh_prb = 0;
   static constexpr unsigned nof_layers = 1;
@@ -200,8 +204,8 @@ void ra_scheduler::precompute_msg3_pdus()
     // Generate DCI and PUSCH PDUs.
     static constexpr uint8_t msg3_rv = 0;
     build_dci_f0_0_tc_rnti(msg3_data[i].dci,
-                           cell_cfg.dl_cfg_common.init_dl_bwp,
-                           cell_cfg.ul_cfg_common.init_ul_bwp.generic_params,
+                           cell_cfg.params.dl_cfg_common.init_dl_bwp,
+                           cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params,
                            crb_interval{0, prbs_tbs.nof_prbs},
                            i,
                            sched_cfg.msg3_mcs_index,
@@ -269,9 +273,9 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
     }
 
     // Set RAR window. First slot after PRACH with active DL slot represents the start of the RAR window.
-    if (cell_cfg.tdd_cfg_common.has_value()) {
+    if (cell_cfg.is_tdd()) {
       // TDD case.
-      const unsigned period = nof_slots_per_tdd_period(*cell_cfg.tdd_cfg_common);
+      const unsigned period = nof_slots_per_tdd_period(*cell_cfg.params.tdd_cfg);
       for (unsigned sl_idx = 0; sl_idx < period; ++sl_idx) {
         const slot_point sl_start = rar_req->prach_slot_rx + prach_duration + sl_idx;
         if (cell_cfg.is_dl_enabled(sl_start)) {
@@ -425,7 +429,7 @@ void ra_scheduler::stop()
 
 void ra_scheduler::update_pending_rars(slot_point pdcch_slot)
 {
-  for (auto it = pending_rars.begin(); it != pending_rars.end();) {
+  for (auto* it = pending_rars.begin(); it != pending_rars.end();) {
     pending_rar_t& rar_req = *it;
 
     // In case of RAR being outside RAR window:
@@ -483,9 +487,10 @@ bool ra_scheduler::is_slot_candidate_for_rar(const cell_slot_resource_allocator&
 
   // Ensure (i) RA SearchSpace PDCCH monitoring is active for this slot and (ii) there are enough DL symbols to allocate
   // the PDCCH.
-  const search_space_id             ss_id  = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
-  const search_space_configuration& ss_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
-  const coreset_configuration&      cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
+  const search_space_id             ss_id = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
+  const search_space_configuration& ss_cfg =
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
+  const coreset_configuration& cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
   // TODO: Handle the case when ra_search_space_id is set to 0.
   if (not pdcch_helper::is_pdcch_monitoring_active(pdcch_slot, ss_cfg) or
       ss_cfg.get_first_symbol_index() + cs_cfg.duration() > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_slot)) {
@@ -526,7 +531,7 @@ void ra_scheduler::schedule_pending_rars(cell_resource_allocator& res_alloc, slo
     return;
   }
 
-  for (auto it = pending_rars.begin(); it != pending_rars.end();) {
+  for (auto* it = pending_rars.begin(); it != pending_rars.end();) {
     pending_rar_t& rar_req = *it;
     if (not rar_req.rar_window.contains(pdcch_slot)) {
       // RAR window hasn't started yet for this RAR. Given that the RARs are in order of slot, we can stop here.
@@ -575,12 +580,12 @@ unsigned ra_scheduler::schedule_rar(pending_rar_t& rar, cell_resource_allocator&
   cell_slot_resource_allocator& pdcch_alloc = res_alloc[pdcch_slot];
 
   span<const pdsch_time_domain_resource_allocation> pdsch_td_res_alloc_list =
-      get_ra_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common,
-                                         cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp,
-                                         cell_cfg.dmrs_typeA_pos);
+      get_ra_rnti_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common,
+                                         cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                                         cell_cfg.params.dmrs_typeA_pos);
   const search_space_configuration& ss_cfg =
-      cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common
-          .search_spaces[cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id];
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common
+          .search_spaces[cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id];
   const unsigned coreset_duration = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id()).duration();
 
   unsigned     pdsch_time_res_index = pdsch_td_res_alloc_list.size();
@@ -723,7 +728,7 @@ unsigned ra_scheduler::schedule_rar(pending_rar_t& rar, cell_resource_allocator&
 
   // > Find space in PDCCH for RAR.
   static constexpr aggregation_level aggr_lvl = aggregation_level::n4;
-  const search_space_id              ss_id    = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
+  const search_space_id              ss_id = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
   pdcch_dl_information*              pdcch = pdcch_sch.alloc_dl_pdcch_common(pdcch_alloc, rar.ra_rnti, ss_id, aggr_lvl);
   if (pdcch == nullptr) {
     log_postponed_rar(rar, "No PDCCH space for RAR", pdcch_slot);
@@ -747,9 +752,9 @@ void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
                                   span<const msg3_alloc_candidate> msg3_candidates)
 {
   const auto& pdsch_td_res_alloc_list =
-      get_ra_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common,
-                                         cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp,
-                                         cell_cfg.dmrs_typeA_pos);
+      get_ra_rnti_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common,
+                                         cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                                         cell_cfg.params.dmrs_typeA_pos);
 
   cell_slot_resource_allocator& pdcch_alloc = res_alloc[pdcch_slot];
   cell_slot_resource_allocator& rar_alloc   = res_alloc[pdcch_slot + pdsch_td_res_alloc_list[pdsch_time_res_index].k0];
@@ -757,7 +762,7 @@ void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
   // Fill RAR DCI.
   pdcch_dl_information& pdcch = pdcch_alloc.result.dl.dl_pdcchs.back();
   build_dci_f1_0_ra_rnti(
-      pdcch.dci, cell_cfg.dl_cfg_common.init_dl_bwp, rar_crbs, pdsch_time_res_index, sched_cfg.rar_mcs_index);
+      pdcch.dci, cell_cfg.params.dl_cfg_common.init_dl_bwp, rar_crbs, pdsch_time_res_index, sched_cfg.rar_mcs_index);
 
   // Allocate RBs and space for RAR.
   rar_alloc.dl_res_grid.fill(
@@ -802,7 +807,7 @@ void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
     msg3_info.temp_crnti               = pending_msg3.preamble.tc_rnti;
     msg3_info.time_resource_assignment = msg3_candidate.pusch_td_res_index;
     msg3_info.freq_resource_assignment = ra_frequency_type1_get_riv(ra_frequency_type1_configuration{
-        cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), vrbs.start(), vrbs.length()});
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length(), vrbs.start(), vrbs.length()});
     msg3_info.mcs                      = sched_cfg.msg3_mcs_index;
     // Determine TPC command based on Table 8.2-2, TS 38.213.
     msg3_info.tpc     = (get_pusch_cfg().msg3_delta_power.value() + 6) / 2;
@@ -815,7 +820,7 @@ void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
     // Fill PUSCH for Msg3.
     ul_sched_info& pusch     = msg3_alloc.result.ul.puschs.emplace_back();
     pusch.context.ue_index   = INVALID_DU_UE_INDEX;
-    pusch.context.ss_id      = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
+    pusch.context.ss_id      = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
     pusch.context.nof_retxs  = 0;
     pusch.context.msg3_delay = msg3_delay;
     pusch.pusch_cfg          = msg3_data[msg3_candidate.pusch_td_res_index].pusch;
@@ -832,7 +837,7 @@ void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
 void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pending_msg3_t& msg3_ctx) const
 {
   cell_slot_resource_allocator& pdcch_alloc = res_alloc[0];
-  const bwp_configuration&      bwp_ul_cmn  = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params;
+  const bwp_configuration&      bwp_ul_cmn  = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
 
   if (not cell_cfg.is_dl_enabled(pdcch_alloc.slot)) {
     // Not possible to schedule Msg3s in this TDD slot.
@@ -888,7 +893,7 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     // [3GPP TS 38.213, clause 10.1] a UE monitors PDCCH candidates in one or more of the following search spaces sets
     //  - a Type1-PDCCH CSS set configured by ra-SearchSpace in PDCCH-ConfigCommon for a DCI format with
     //    CRC scrambled by a RA-RNTI, a MsgB-RNTI, or a TC-RNTI on the primary cell.
-    const search_space_id ss_id = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
+    const search_space_id ss_id = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
     pdcch_ul_information* pdcch =
         pdcch_sch.alloc_ul_pdcch_common(pdcch_alloc, msg3_ctx.preamble.tc_rnti, ss_id, aggregation_level::n4);
     if (pdcch == nullptr) {
@@ -898,8 +903,9 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     }
 
     // Check if there are enough UL symbols to allocate the PDCCH
-    const search_space_configuration& ss_cfg = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
-    const coreset_configuration&      cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
+    const search_space_configuration& ss_cfg =
+        cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
+    const coreset_configuration& cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
     if (ss_cfg.get_first_symbol_index() + cs_cfg.duration() > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_alloc.slot)) {
       // Early exit. RAR scheduling only possible when PDCCH monitoring is active.
       return;
@@ -917,8 +923,8 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     // Fill DCI.
     static constexpr uint8_t msg3_rv = 0;
     build_dci_f0_0_tc_rnti(pdcch->dci,
-                           cell_cfg.dl_cfg_common.init_dl_bwp,
-                           cell_cfg.ul_cfg_common.init_ul_bwp.generic_params,
+                           cell_cfg.params.dl_cfg_common.init_dl_bwp,
+                           cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params,
                            grant.crbs,
                            pusch_td_res_index,
                            last_harq_params.mcs,
@@ -927,7 +933,7 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     // Fill PUSCH.
     ul_sched_info& ul_info     = pusch_alloc.result.ul.puschs.emplace_back();
     ul_info.context.ue_index   = INVALID_DU_UE_INDEX;
-    ul_info.context.ss_id      = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
+    ul_info.context.ss_id      = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
     ul_info.context.k2         = k2;
     ul_info.context.nof_retxs  = h_ul.nof_retxs();
     ul_info.pusch_cfg          = msg3_data[pusch_td_res_index].pusch;

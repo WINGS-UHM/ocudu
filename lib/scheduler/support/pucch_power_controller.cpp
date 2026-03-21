@@ -4,7 +4,6 @@
 
 #include "pucch_power_controller.h"
 #include "../config/ue_configuration.h"
-#include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/power_control/tpc_mapping.h"
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/support/format/fmt_to_c_str.h"
@@ -20,7 +19,7 @@ pucch_power_controller::pucch_power_controller(const ue_cell_configuration& ue_c
   pucch_f3_sinr_target_dB(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.pucch_f3_sinr_target_dB),
   tpc_adjust_prohibit_time_sl([&ue_cell_cfg]() -> unsigned {
     return tpc_adjust_prohibit_time_ms << to_numerology_value(
-               ue_cell_cfg.cell_cfg_common.ul_cfg_common.init_ul_bwp.generic_params.scs);
+               ue_cell_cfg.cell_cfg_common.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
   }()),
   pucch_f0_f1_sinr_dB(alpha_ema_sinr),
   pucch_f2_f3_f4_sinr_dB(alpha_ema_sinr),
@@ -47,8 +46,8 @@ void pucch_power_controller::reconfigure(const ue_cell_configuration& ue_cell_cf
     // Retrieve the Format of the resources in PUCCH set 0 and 1. NOTE: all resources are expected to be of the same
     // format.
     static constexpr size_t id_pucch_res_set_0 = 0U;
-    unsigned pucch_res_set_0_id = pucch_cfg.pucch_res_set[id_pucch_res_set_0].pucch_res_id_list.front().ue_res_id;
-    auto*    res_set_0          = std::find_if(
+    unsigned    pucch_res_set_0_id = pucch_cfg.pucch_res_set[id_pucch_res_set_0].pucch_res_id_list.front().ue_res_id;
+    const auto* res_set_0          = std::find_if(
         pucch_cfg.pucch_res_list.begin(),
         pucch_cfg.pucch_res_list.end(),
         [pucch_res_set_0_id](const pucch_resource& res) { return res.res_id.ue_res_id == pucch_res_set_0_id; });
@@ -58,8 +57,8 @@ void pucch_power_controller::reconfigure(const ue_cell_configuration& ue_cell_cf
                  pucch_res_set_0_id);
     format_set_0                               = res_set_0->format;
     static constexpr size_t id_pucch_res_set_1 = 1U;
-    unsigned pucch_res_set_1_id = pucch_cfg.pucch_res_set[id_pucch_res_set_1].pucch_res_id_list.front().ue_res_id;
-    auto*    res_set_1          = std::find_if(
+    unsigned    pucch_res_set_1_id = pucch_cfg.pucch_res_set[id_pucch_res_set_1].pucch_res_id_list.front().ue_res_id;
+    const auto* res_set_1          = std::find_if(
         pucch_cfg.pucch_res_list.begin(),
         pucch_cfg.pucch_res_list.end(),
         [pucch_res_set_1_id](const pucch_resource& res) { return res.res_id.ue_res_id == pucch_res_set_1_id; });
@@ -365,7 +364,8 @@ uint8_t pucch_power_controller::compute_tpc_command(slot_point pucch_slot)
     static constexpr int default_f_cl_pw_control = 0;
     latest_pucch_pw_control.emplace(pucch_pw_control{default_f_cl_pw_control, pucch_slot});
     return default_tpc;
-  } else if (pucch_slot <= latest_pucch_pw_control.value().latest_tpc_slot + tpc_adjust_prohibit_time_sl) {
+  }
+  if (pucch_slot <= latest_pucch_pw_control.value().latest_tpc_slot + tpc_adjust_prohibit_time_sl) {
     return default_tpc;
   }
 

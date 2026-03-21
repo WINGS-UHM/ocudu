@@ -144,6 +144,22 @@ public:
     return find(peer_xnap_ue_id_to_local_xnap_ue_id.at(peer_xnap_ue_id));
   }
 
+  xnap_ue_context* find(ue_index_t ue_index)
+  {
+    if (ue_index_to_local_xnap_ue_id.find(ue_index) == ue_index_to_local_xnap_ue_id.end()) {
+      return nullptr;
+    }
+    return find(ue_index_to_local_xnap_ue_id.at(ue_index));
+  }
+
+  const xnap_ue_context* find(ue_index_t ue_index) const
+  {
+    if (ue_index_to_local_xnap_ue_id.find(ue_index) == ue_index_to_local_xnap_ue_id.end()) {
+      return nullptr;
+    }
+    return find(ue_index_to_local_xnap_ue_id.at(ue_index));
+  }
+
   xnap_ue_context& add_ue(ue_index_t ue_index, local_xnap_ue_id_t xnap_ue_id)
   {
     ocudu_assert(ue_index != ue_index_t::invalid, "Invalid ue_index={}", fmt::underlying(ue_index));

@@ -5,20 +5,23 @@
 #pragma once
 
 #include "../ngap_repository.h"
+#include "ocudu/cu_cp/cu_cp_ng_setup_notifier.h"
 #include "ocudu/ngap/ngap.h"
 #include "ocudu/support/async/async_task.h"
 
 namespace ocudu::ocucp {
 
 async_task<bool> start_amf_connection_setup(ngap_repository&                                    ngap_db,
-                                            std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected);
+                                            std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected,
+                                            cu_cp_ng_setup_complete_notifier* ng_setup_notifier = nullptr);
 
 /// \brief Handles the setup of the connection between the CU-CP and AMF, handling in particular the NG Setup procedure.
 class amf_connection_setup_routine
 {
 public:
   amf_connection_setup_routine(ngap_repository&                                    ngap_db_,
-                               std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected_);
+                               std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected_,
+                               cu_cp_ng_setup_complete_notifier*                   ng_setup_notifier_ = nullptr);
 
   void operator()(coro_context<async_task<bool>>& ctx);
 
@@ -27,6 +30,7 @@ private:
 
   ngap_repository&                                    ngap_db;
   std::unordered_map<amf_index_t, std::atomic<bool>>& amfs_connected;
+  cu_cp_ng_setup_complete_notifier*                   ng_setup_notifier;
   std::map<amf_index_t, ngap_interface*>              ngaps;
   ocudulog::basic_logger&                             logger;
 

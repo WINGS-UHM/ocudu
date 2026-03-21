@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
+// Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "message_builder_helpers.h"
 #include <random>
@@ -19,12 +20,6 @@ static unsigned generate_slot()
 {
   std::uniform_int_distribution<unsigned> dist(0, 159);
 
-  return dist(gen);
-}
-
-static unsigned generate_start_symbol_index()
-{
-  std::uniform_int_distribution<unsigned> dist(0, 13);
   return dist(gen);
 }
 
@@ -51,13 +46,6 @@ static unsigned generate_uint16()
   std::uniform_int_distribution<unsigned> dist(0, 65535);
 
   return dist(gen);
-}
-
-static harq_id_t generate_harq()
-{
-  std::uniform_int_distribution<unsigned> dist(0, 15);
-
-  return static_cast<harq_id_t>(dist(gen));
 }
 
 static unsigned generate_handle()
@@ -118,7 +106,7 @@ static cyclic_prefix generate_cyclic_prefix()
 {
   std::uniform_int_distribution<unsigned> dist(0, 1);
 
-  return cyclic_prefix(static_cast<cyclic_prefix::options>(dist(gen)));
+  return static_cast<cyclic_prefix::options>(dist(gen));
 }
 
 static pci_t generate_pci()
@@ -175,8 +163,9 @@ dl_ssb_pdu unittest::build_valid_dl_ssb_pdu()
 
   pdu.phys_cell_id = generate_pci();
 
-  auto& power           = pdu.power_config.emplace<dl_ssb_pdu::power_profile_nr>();
-  power.beta_pss        = ssb_pss_to_sss_epre::dB_0;
+  auto& power    = pdu.power_config.emplace<dl_ssb_pdu::power_profile_nr>();
+  power.beta_pss = ssb_pss_to_sss_epre::dB_0;
+
   pdu.ssb_block_index   = generate_block_index();
   pdu.subcarrier_offset = generate_subcarrier_offset();
   pdu.ssb_offset_pointA = generate_offset_point_A();
@@ -192,10 +181,14 @@ dl_pdcch_pdu unittest::build_valid_dl_pdcch_pdu()
 {
   dl_pdcch_pdu pdu;
 
-  pdu.coreset_bwp             = generate_crb_interval();
-  pdu.scs                     = subcarrier_spacing::kHz240;
-  pdu.cp                      = generate_cyclic_prefix();
-  pdu.symbols                 = generate_symbols();
+  pdu.coreset_bwp = generate_crb_interval();
+  pdu.scs         = subcarrier_spacing::kHz240;
+  pdu.cp          = generate_cyclic_prefix();
+  pdu.symbols     = generate_symbols();
+  pdu.freq_domain_resource.resize(pdu.freq_domain_resource.max_size());
+  for (unsigned i = 0, e = pdu.freq_domain_resource.max_size(); i != e; ++i) {
+    pdu.freq_domain_resource.set(i, generate_bool());
+  }
   uint8_t    reg_bundle_size  = 2;
   uint8_t    interleaver_size = 3;
   uint16_t   shift_index      = 129;
@@ -207,19 +200,16 @@ dl_pdcch_pdu unittest::build_valid_dl_pdcch_pdu()
   }
   pdu.precoder_granularity = static_cast<coreset_configuration::precoder_granularity_type>(generate_bool());
 
-  pdu.freq_domain_resource.resize(pdu.freq_domain_resource.max_size());
-  for (unsigned i = 0, e = pdu.freq_domain_resource.max_size(); i != e; ++i) {
-    pdu.freq_domain_resource.set(i, generate_bool());
-  }
   // Add the DCI.
   pdu.dl_dci.rnti                  = generate_rnti();
   pdu.dl_dci.nid_pdcch_data        = generate_uint16();
+  pdu.dl_dci.nid_pdcch_dmrs        = generate_uint16();
   pdu.dl_dci.nrnti_pdcch_data      = generate_uint16();
+  pdu.dl_dci.cce_index             = 0;
   pdu.dl_dci.dci_aggregation_level = aggregation_level::n2;
   pdu.dl_dci.power_config.emplace<fapi::dl_dci_pdu::power_profile_nr>().power_control_offset_ss_db = 0;
   pdu.dl_dci.payload                   = {1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0};
   pdu.dl_dci.precoding_and_beamforming = build_valid_tx_precoding_and_beamforming_pdu();
-  pdu.dl_dci.nid_pdcch_dmrs            = generate_uint16();
 
   return pdu;
 }
@@ -227,30 +217,37 @@ dl_pdcch_pdu unittest::build_valid_dl_pdcch_pdu()
 dl_pdsch_pdu unittest::build_valid_dl_pdsch_pdu()
 {
   dl_pdsch_pdu pdu;
-  pdu.rnti                     = to_rnti(3);
-  pdu.bwp                      = {3, 4};
-  pdu.scs                      = subcarrier_spacing::kHz15;
-  pdu.cp                       = cyclic_prefix::NORMAL;
-  pdu.cws                      = {{modulation_scheme::QPSK, sch_mcs_index(3), pdsch_mcs_table(1), 3, units::bytes{12}}};
-  pdu.nid_pdsch                = 65;
-  pdu.num_layers               = 6;
-  pdu.ref_point                = pdsch_ref_point_type::point_a;
-  pdu.pdsch_dmrs_scrambling_id = 31;
-  pdu.dmrs_type                = dmrs_config_type::type1;
-  pdu.nscid                    = 0;
-  pdu.num_dmrs_cdm_grps_no_data = 2;
-  pdu.resource_alloc.vrbs       = {42, 89};
-  pdu.vrb_to_prb_mapping        = vrb_to_prb::mapping_type::interleaved_n2;
-  pdu.symbols                   = generate_symbols();
-  auto& power                   = pdu.power_config.emplace<dl_pdsch_pdu::power_profile_nr>();
-  power.pwr_control_offset_db   = 6;
-  power.pwr_control_offset_ss   = fapi::power_control_offset_ss::dB3;
-
+  pdu.rnti             = to_rnti(3);
+  pdu.bwp              = {3, 4};
+  pdu.scs              = subcarrier_spacing::kHz15;
+  pdu.cp               = cyclic_prefix::NORMAL;
+  pdu.cws              = {{modulation_scheme::QPSK, sch_mcs_index(3), pdsch_mcs_table(1), 3, units::bytes{12}}};
+  pdu.nid_pdsch        = 65;
+  pdu.num_layers       = 6;
+  pdu.ref_point        = pdsch_ref_point_type::point_a;
   pdu.dl_dmrs_symb_pos = dmrs_symbol_mask(13);
   pdu.dl_dmrs_symb_pos.from_uint64(0);
-  pdu.precoding_and_beamforming = build_valid_tx_precoding_and_beamforming_pdu();
+  pdu.pdsch_dmrs_scrambling_id  = 31;
+  pdu.dmrs_type                 = dmrs_config_type::type1;
+  pdu.nscid                     = 0;
+  pdu.num_dmrs_cdm_grps_no_data = 2;
+  pdu.dmrs_ports                = dmrs_ports_mask(12);
+  pdu.dmrs_ports.from_uint64(0);
+  pdu.resource_alloc.vrbs = {42, 89};
+  pdu.vrb_to_prb_mapping  = vrb_to_prb::mapping_type::interleaved_n2;
+  pdu.symbols             = generate_symbols();
 
-  pdu.ldpc_base_graph = ocudu::ldpc_base_graph_type::BG1;
+  auto& power                 = pdu.power_config.emplace<dl_pdsch_pdu::power_profile_nr>();
+  power.pwr_control_offset_db = 6;
+  power.pwr_control_offset_ss = fapi::power_control_offset_ss::dB3;
+
+  pdu.precoding_and_beamforming = build_valid_tx_precoding_and_beamforming_pdu();
+  pdu.tb_size_lbrm              = units::bytes(0);
+  pdu.ldpc_base_graph           = ocudu::ldpc_base_graph_type::BG1;
+  pdu.nof_csi_pdus_for_rm       = 0;
+
+  auto& pdu_vrb_to_prb_mapping           = pdu.mapping.emplace<dl_pdsch_pdu::non_interleaved_common_ss>();
+  pdu_vrb_to_prb_mapping.N_start_coreset = 0U;
 
   return pdu;
 }
@@ -328,146 +325,6 @@ dl_tti_request unittest::build_valid_dl_tti_request()
   auto& last_csi_rs_pdu = msg.pdus.emplace_back();
   auto& csi_rs_pdu      = last_csi_rs_pdu.pdu.emplace<dl_csi_rs_pdu>();
   csi_rs_pdu            = build_valid_dl_csi_pdu();
-
-  return msg;
-}
-
-ul_dci_request unittest::build_valid_ul_dci_request()
-{
-  ul_dci_request msg;
-
-  auto     scs        = subcarrier_spacing::kHz240;
-  unsigned sfn        = generate_sfn();
-  auto     slot_index = generate_slot();
-  msg.slot            = slot_point(scs, sfn, slot_index);
-
-  // Manually add the PDCCH PDU to reuse the functions above.
-  msg.pdus.emplace_back();
-  msg.pdus.back().pdu = build_valid_dl_pdcch_pdu();
-
-  return msg;
-}
-
-slot_indication unittest::build_valid_slot_indication()
-{
-  slot_indication msg;
-
-  auto     scs        = subcarrier_spacing::kHz240;
-  unsigned sfn        = generate_sfn();
-  auto     slot_index = generate_slot();
-  msg.slot            = slot_point_extended(scs, 0, sfn, slot_index);
-
-  return msg;
-}
-
-error_indication unittest::build_valid_error_indication()
-{
-  error_indication msg;
-  auto             scs         = subcarrier_spacing::kHz240;
-  unsigned         sfn         = generate_sfn();
-  auto             slot_index  = generate_slot();
-  msg.slot                     = slot_point(scs, sfn, slot_index);
-  msg.message_id               = message_type_id::tx_data_request;
-  msg.error_code               = error_code_id::msg_invalid_config;
-  auto     expected_scs        = subcarrier_spacing::kHz240;
-  unsigned expected_sfn        = generate_sfn();
-  auto     expected_slot_index = generate_slot();
-  msg.expected_slot            = slot_point(expected_scs, expected_sfn, expected_slot_index);
-
-  return msg;
-}
-
-error_indication unittest::build_valid_out_of_sync_error_indication()
-{
-  error_indication msg;
-  auto             scs         = subcarrier_spacing::kHz240;
-  unsigned         sfn         = generate_sfn();
-  auto             slot_index  = generate_slot();
-  msg.slot                     = slot_point(scs, sfn, slot_index);
-  msg.message_id               = message_type_id::tx_data_request;
-  msg.error_code               = error_code_id::out_of_sync;
-  auto     expected_scs        = subcarrier_spacing::kHz240;
-  unsigned expected_sfn        = generate_sfn();
-  auto     expected_slot_index = generate_slot();
-  msg.expected_slot            = slot_point(expected_scs, expected_sfn, expected_slot_index);
-
-  return msg;
-}
-
-error_indication unittest::build_valid_invalid_sfn_error_indication()
-{
-  error_indication msg;
-  auto             scs         = subcarrier_spacing::kHz240;
-  unsigned         sfn         = generate_sfn();
-  auto             slot_index  = generate_slot();
-  msg.slot                     = slot_point(scs, sfn, slot_index);
-  msg.message_id               = message_type_id::ul_dci_request;
-  msg.error_code               = error_code_id::msg_invalid_sfn;
-  auto     expected_scs        = subcarrier_spacing::kHz240;
-  unsigned expected_sfn        = std::numeric_limits<uint16_t>::max();
-  auto     expected_slot_index = std::numeric_limits<uint16_t>::max();
-  msg.expected_slot            = slot_point(expected_scs, expected_sfn, expected_slot_index);
-
-  return msg;
-}
-
-error_indication unittest::build_valid_msg_error_indication()
-{
-  error_indication msg;
-  auto             scs        = subcarrier_spacing::kHz240;
-  unsigned         sfn        = generate_sfn();
-  auto             slot_index = generate_slot();
-  msg.slot                    = slot_point(scs, sfn, slot_index);
-  msg.message_id              = message_type_id::dl_tti_request;
-  msg.error_code              = error_code_id::msg_slot_err;
-
-  return msg;
-}
-
-error_indication unittest::build_valid_tx_err_error_indication()
-{
-  error_indication msg;
-  auto             scs         = subcarrier_spacing::kHz240;
-  unsigned         sfn         = generate_sfn();
-  auto             slot_index  = generate_slot();
-  msg.slot                     = slot_point(scs, sfn, slot_index);
-  msg.message_id               = message_type_id::tx_data_request;
-  msg.error_code               = error_code_id::msg_tx_err;
-  auto     expected_scs        = subcarrier_spacing::kHz240;
-  unsigned expected_sfn        = std::numeric_limits<uint16_t>::max();
-  auto     expected_slot_index = std::numeric_limits<uint16_t>::max();
-  msg.expected_slot            = slot_point(expected_scs, expected_sfn, expected_slot_index);
-
-  return msg;
-}
-
-error_indication unittest::build_valid_ul_dci_err_error_indication()
-{
-  error_indication msg;
-  auto             scs        = subcarrier_spacing::kHz240;
-  unsigned         sfn        = generate_sfn();
-  auto             slot_index = generate_slot();
-  msg.slot                    = slot_point(scs, sfn, slot_index);
-  msg.message_id              = message_type_id::ul_dci_request;
-  msg.error_code              = error_code_id::msg_ul_dci_err;
-
-  return msg;
-}
-
-rx_data_indication unittest::build_valid_rx_data_indication()
-{
-  rx_data_indication msg;
-
-  auto     scs        = subcarrier_spacing::kHz240;
-  unsigned sfn        = generate_sfn();
-  auto     slot_index = generate_slot();
-  msg.slot            = slot_point(scs, sfn, slot_index);
-
-  msg.pdu.handle                                       = generate_handle();
-  msg.pdu.rnti                                         = generate_rnti();
-  msg.pdu.harq_id                                      = generate_harq();
-  static std::array<uint8_t, 10> fixed_transport_block = {};
-  msg.pdu.transport_block                              = fixed_transport_block;
 
   return msg;
 }
@@ -682,57 +539,6 @@ uci_pucch_pdu_format_2_3_4 unittest::build_valid_uci_pucch_format234_pdu()
   pdu.csi_part2 = generate_csi_part2_pdu();
 
   return pdu;
-}
-
-uci_indication unittest::build_valid_uci_indication_with_pusch()
-{
-  std::uniform_int_distribution<unsigned> sfn_dist(0, 1023);
-  std::uniform_int_distribution<unsigned> slot_dist(0, 159);
-
-  uci_indication msg;
-
-  auto     scs        = subcarrier_spacing::kHz240;
-  unsigned sfn        = sfn_dist(gen);
-  auto     slot_index = slot_dist(gen);
-  msg.slot            = slot_point(scs, sfn, slot_index);
-
-  msg.pdu = build_valid_uci_pusch_pdu();
-
-  return msg;
-}
-
-uci_indication unittest::build_valid_uci_indication_with_pucch_format_01()
-{
-  std::uniform_int_distribution<unsigned> sfn_dist(0, 1023);
-  std::uniform_int_distribution<unsigned> slot_dist(0, 159);
-
-  uci_indication msg;
-
-  auto     scs        = subcarrier_spacing::kHz240;
-  unsigned sfn        = sfn_dist(gen);
-  auto     slot_index = slot_dist(gen);
-  msg.slot            = slot_point(scs, sfn, slot_index);
-
-  msg.pdu = build_valid_uci_pucch_format01_pdu();
-
-  return msg;
-}
-
-uci_indication unittest::build_valid_uci_indication_with_pucch_format_234()
-{
-  std::uniform_int_distribution<unsigned> sfn_dist(0, 1023);
-  std::uniform_int_distribution<unsigned> slot_dist(0, 159);
-
-  uci_indication msg;
-
-  auto     scs        = subcarrier_spacing::kHz240;
-  unsigned sfn        = sfn_dist(gen);
-  auto     slot_index = slot_dist(gen);
-  msg.slot            = slot_point(scs, sfn, slot_index);
-
-  msg.pdu = build_valid_uci_pucch_format234_pdu();
-
-  return msg;
 }
 
 static unsigned generate_sr_bit_len(ul_pucch_pdu::ul_pucch_pdu_format format)
@@ -1050,87 +856,6 @@ ul_tti_request unittest::build_valid_ul_tti_request()
   return msg;
 }
 
-static unsigned generate_slot_index()
-{
-  std::uniform_int_distribution<unsigned> dist(0, 79);
-  return dist(gen);
-}
-
-static unsigned generate_ra_index()
-{
-  std::uniform_int_distribution<unsigned> dist(0, 7);
-  return dist(gen);
-}
-
-static unsigned generate_preamble_index()
-{
-  std::uniform_int_distribution<unsigned> dist(0, 63);
-  return dist(gen);
-}
-
-rach_indication unittest::build_valid_rach_indication()
-{
-  rach_indication msg;
-
-  auto     scs        = subcarrier_spacing::kHz240;
-  unsigned sfn        = generate_sfn();
-  auto     slot_index = generate_slot();
-  msg.slot            = slot_point(scs, sfn, slot_index);
-
-  msg.pdu.symbol_index = generate_start_symbol_index();
-  msg.pdu.slot_index   = generate_slot_index();
-  msg.pdu.ra_index     = generate_ra_index();
-  msg.pdu.avg_rssi     = std::numeric_limits<uint32_t>::max();
-  msg.pdu.avg_snr      = std::numeric_limits<uint8_t>::max();
-
-  msg.pdu.preambles.emplace_back();
-  rach_indication_pdu_preamble& preamble = msg.pdu.preambles.back();
-
-  preamble.preamble_index        = generate_preamble_index();
-  preamble.timing_advance_offset = phy_time_unit();
-  preamble.preamble_pwr          = std::numeric_limits<uint32_t>::max();
-  preamble.preamble_snr          = std::numeric_limits<uint8_t>::max();
-
-  return msg;
-}
-
-tx_data_request unittest::build_valid_tx_data_request()
-{
-  tx_data_request msg;
-
-  auto     scs        = subcarrier_spacing::kHz240;
-  unsigned sfn        = generate_sfn();
-  auto     slot_index = generate_slot();
-  msg.slot            = slot_point(scs, sfn, slot_index);
-
-  msg.pdus.emplace_back();
-  tx_data_req_pdu& pdu = msg.pdus.back();
-
-  pdu.cw_index  = generate_bool();
-  pdu.pdu_index = 4231;
-
-  static std::array<uint8_t, 4> data;
-  pdu.pdu = shared_transport_block(data);
-
-  return msg;
-}
-
-ocudu::fapi::crc_indication unittest::build_valid_crc_indication()
-{
-  crc_indication msg;
-
-  msg.slot                      = slot_point(subcarrier_spacing::kHz240, 238, 3);
-  msg.pdu.rnti                  = to_rnti(34);
-  msg.pdu.harq_id               = to_harq_id(2);
-  msg.pdu.tb_crc_status_ok      = true;
-  msg.pdu.ul_sinr_metric        = 0;
-  msg.pdu.timing_advance_offset = phy_time_unit();
-  msg.pdu.rssi                  = 100;
-  msg.pdu.rsrp                  = 10;
-
-  return msg;
-}
-
 ocudu::fapi::tx_precoding_and_beamforming_pdu unittest::build_valid_tx_precoding_and_beamforming_pdu()
 {
   ocudu::fapi::tx_precoding_and_beamforming_pdu pdu;
@@ -1139,20 +864,4 @@ ocudu::fapi::tx_precoding_and_beamforming_pdu unittest::build_valid_tx_precoding
   pdu.prg      = {3U};
 
   return pdu;
-}
-
-srs_indication unittest::build_valid_srs_indication()
-{
-  srs_indication msg;
-
-  auto     scs        = subcarrier_spacing::kHz240;
-  unsigned sfn        = generate_sfn();
-  auto     slot_index = generate_slot();
-  msg.slot            = slot_point(scs, sfn, slot_index);
-
-  msg.pdu.handle                = generate_handle();
-  msg.pdu.rnti                  = generate_rnti();
-  msg.pdu.timing_advance_offset = generate_timing_advance_offset();
-
-  return msg;
 }

@@ -19,7 +19,8 @@ dlt_pcap* g_pcap        = nullptr;
 class e2_agent_test_with_pcap : public e2_test_base_with_pcap
 {
 protected:
-  dlt_pcap* external_pcap_writer;
+  dlt_pcap*                                           external_pcap_writer;
+  std::unique_ptr<e2_node_component_config_collector> node_component_config_collector;
 
   void SetUp() override
   {
@@ -31,20 +32,25 @@ protected:
     cfg                  = config_helpers::make_default_e2ap_config();
     cfg.e2sm_kpm_enabled = true;
 
-    gw                       = std::make_unique<dummy_sctp_association_sdu_notifier>();
-    pcap                     = std::make_unique<dummy_e2ap_pcap>();
-    e2_client                = std::make_unique<dummy_e2_connection_client>();
-    du_metrics               = std::make_unique<dummy_e2_du_metrics>();
-    f1ap_ue_id_mapper        = std::make_unique<dummy_f1ap_ue_id_translator>();
-    factory                  = timer_factory{timers, task_worker};
-    du_rc_param_configurator = std::make_unique<dummy_du_configurator>();
-    e2agent                  = create_e2_du_agent(cfg,
+    gw                              = std::make_unique<dummy_sctp_association_sdu_notifier>();
+    pcap                            = std::make_unique<dummy_e2ap_pcap>();
+    e2_client                       = std::make_unique<dummy_e2_connection_client>();
+    du_metrics                      = std::make_unique<dummy_e2_du_metrics>();
+    f1ap_ue_id_mapper               = std::make_unique<dummy_f1ap_ue_id_translator>();
+    factory                         = timer_factory{timers, task_worker};
+    du_rc_param_configurator        = std::make_unique<dummy_du_configurator>();
+    node_component_config_collector = std::make_unique<e2_node_component_config_collector>(task_worker, 1);
+    // Pre-deliver a dummy F1 config so the setup coroutine is not blocked awaiting it.
+    node_component_config_collector->deliver(e2_node_component_interface_type::f1, {}, {});
+    e2agent = create_e2_du_agent(cfg,
                                  *e2_client,
                                  du_metrics.get(),
                                  f1ap_ue_id_mapper.get(),
                                  du_rc_param_configurator.get(),
                                  factory,
-                                 task_worker);
+                                 task_worker,
+                                 std::move(node_component_config_collector));
+    task_worker.run_pending_tasks();
     if (external_pcap_writer) {
       packer = std::make_unique<e2ap_asn1_packer>(*gw, e2agent->get_e2_interface(), *external_pcap_writer);
     } else {

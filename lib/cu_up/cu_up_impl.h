@@ -46,9 +46,10 @@ private:
   handle_bearer_context_modification_request_impl(ue_context&                                     ue_ctxt,
                                                   const e1ap_bearer_context_modification_request& msg);
 
-  cu_up_config   cfg;
-  task_executor& ctrl_executor;
-  timer_manager& timers;
+  cu_up_config                      cfg;
+  task_executor&                    ctrl_executor;
+  timer_manager&                    timers;
+  cu_up_e1_setup_complete_notifier* e1_setup_notifier;
 
   // logger
   ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("CU-UP", false);

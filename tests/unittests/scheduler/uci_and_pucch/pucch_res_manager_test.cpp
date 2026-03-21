@@ -28,37 +28,32 @@ public:
     builder_params(builder_params_),
     cell_cfg(*cfg_mng.add_cell([this]() {
       // Create cell and save a reference to its configuration.
-      auto req                                 = sched_config_helper::make_default_sched_cell_configuration_request();
-      req.ran.init_bwp_builder.pucch.resources = builder_params;
+      auto req                         = sched_config_helper::make_default_sched_cell_configuration_request();
+      req.ran.init_bwp.pucch.resources = builder_params;
       return req;
     }())),
     ues(config_helpers::make_default_scheduler_expert_config().ue),
     cell_ues(ues.add_cell(cell_cfg, nullptr)),
-    pucch_builder(cell_cfg, builder_params),
+    pucch_builder(cell_cfg.expert_cfg.ue.max_pucchs_per_slot),
     res_manager(cell_cfg),
     slot_alloc(cell_cfg),
     sl_tx(slot_point(0, 0))
   {
+    pucch_builder.setup(cell_cfg.params);
     res_manager.slot_indication(sl_tx);
     slot_alloc.slot_indication(sl_tx);
   }
 
   sched_ue_creation_request_message make_ue_creation_req()
   {
-    sched_ue_creation_request_message ue_req = sched_config_helper::create_default_sched_ue_creation_request();
+    sched_ue_creation_request_message ue_req =
+        sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
 
     if (not ue_ded_cfgs.empty()) {
       ue_req.ue_index =
           to_du_ue_index(static_cast<std::underlying_type_t<du_ue_index_t>>(ue_ded_cfgs.back()->ue_index) + 1);
       ue_req.crnti = to_rnti(static_cast<std::underlying_type_t<rnti_t>>(ue_ded_cfgs.back()->crnti) + 1);
     }
-
-    // Configure SR and CSI periodicities.
-    ue_req.cfg.cells->back().serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg->sr_res_list[0].period =
-        sr_periodicity::sl_40;
-    auto& csi_report = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        ue_req.cfg.cells.value().back().serv_cell_cfg.csi_meas_cfg.value().csi_report_cfg_list[0].report_cfg_type);
-    csi_report.report_slot_period = csi_report_periodicity::slots320;
 
     const bool success = pucch_builder.add_build_new_ue_pucch_cfg(ue_req.cfg.cells->back());
     ocudu_assert(success, "UE PUCCH configuration couldn't be built");

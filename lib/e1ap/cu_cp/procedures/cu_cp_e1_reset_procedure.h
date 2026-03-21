@@ -15,7 +15,7 @@
 namespace ocudu {
 namespace ocucp {
 
-/// \brief Handle the CU-CP initiated E1 Reset Procedure as per TS 38.483 section 8.2.1.
+/// \brief Handle the CU-CP initiated E1 Reset Procedure as per TS 37.483 section 8.2.1.
 class cu_cp_e1_reset_procedure
 {
 public:

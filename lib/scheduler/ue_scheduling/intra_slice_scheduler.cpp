@@ -23,11 +23,11 @@ static unsigned compute_expected_pdschs_per_slot(const cell_configuration& cell_
   const unsigned max_pucchs_per_slot =
       std::min(cell_cfg.expert_cfg.ue.max_pucchs_per_slot, cell_cfg.expert_cfg.ue.max_ul_grants_per_slot - 1);
 
-  if (cell_cfg.tdd_cfg_common.has_value()) {
+  if (cell_cfg.is_tdd()) {
     // TDD.
-    const unsigned nof_dl_slots = nof_dl_slots_per_tdd_period(cell_cfg.tdd_cfg_common.value());
+    const unsigned nof_dl_slots = nof_dl_slots_per_tdd_period(*cell_cfg.params.tdd_cfg);
     // Note: use all UL slots once partial UL slots are used for UCI.
-    const unsigned nof_ul_slots = nof_full_ul_slots_per_tdd_period(cell_cfg.tdd_cfg_common.value());
+    const unsigned nof_ul_slots = nof_full_ul_slots_per_tdd_period(*cell_cfg.params.tdd_cfg);
     const unsigned max_pucchs   = nof_ul_slots * max_pucchs_per_slot;
     pdschs_per_slot             = std::min(pdschs_per_slot, max_pucchs / nof_dl_slots);
   } else {
@@ -838,7 +838,7 @@ void intra_slice_scheduler::update_used_dl_vrbs(const dl_ran_slice_candidate& sl
 
   // [Implementation defined] We use the common PDSCH TD resources as a reference for the computation of RBs
   // unavailable for PDSCH. This assumes that these resources are not colliding with PDCCH.
-  const auto&              init_dl_bwp      = cell_alloc.cfg.dl_cfg_common.init_dl_bwp;
+  const auto&              init_dl_bwp      = cell_alloc.cfg.params.dl_cfg_common.init_dl_bwp;
   const ofdm_symbol_range& symbols_to_check = init_dl_bwp.pdsch_common.pdsch_td_alloc_list[0].symbols;
 
   enable_pdsch_interleaving = ss_info.interleaved_mapping.has_value();
@@ -891,7 +891,7 @@ void intra_slice_scheduler::update_used_ul_vrbs(const ul_ran_slice_candidate& sl
 
   // (Implementation-defined) We use the common PUSCH TD resources as a reference for the computation of RBs unavailable
   // for PDSCH. This assumes that these resources are not colliding with SRS.
-  const auto& init_ul_bwp = cell_alloc.cfg.ul_cfg_common.init_ul_bwp;
+  const auto& init_ul_bwp = cell_alloc.cfg.params.ul_cfg_common.init_ul_bwp;
   ocudu_assert(slice.get_slot_tx() - cell_alloc[0].slot > 0, "PUSCH slot cannot precede its corresponding PDCCH slot");
   // Note: In NTN mode, the slot offset includes ntn_cs_koffset, but td_res.k2 is the base k2.
   const unsigned    slice_candidate_k2 = slice.get_slot_tx() - cell_alloc[0].slot - cell_alloc.cfg.ntn_cs_koffset;

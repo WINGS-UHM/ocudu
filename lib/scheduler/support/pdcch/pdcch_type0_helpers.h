@@ -7,9 +7,6 @@
 #pragma once
 
 #include "../../config/cell_configuration.h"
-#include "ocudu/ran/bs_channel_bandwidth.h"
-#include "ocudu/ran/pdcch/pdcch_type0_css_coreset_config.h"
-#include "ocudu/ran/pdcch/pdcch_type0_css_occasions.h"
 #include "ocudu/ran/slot_point.h"
 
 namespace ocudu {

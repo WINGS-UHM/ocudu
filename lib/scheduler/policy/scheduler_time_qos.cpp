@@ -85,31 +85,31 @@ rate_estimator::rate_estimator(const cell_configuration& cell_cfg) :
   dl_tbs_cfg_ref{.nof_symb_sh      = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
                  .nof_oh_prb       = 0,
                  .tb_scaling_field = 1,
-                 .n_prb            = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()},
+                 .n_prb            = cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs.length()},
   ul_tbs_cfg_ref{.nof_symb_sh      = NOF_OFDM_SYM_PER_SLOT_NORMAL_CP,
                  .nof_oh_prb       = 0,
                  .tb_scaling_field = 1,
-                 .n_prb            = cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()}
+                 .n_prb            = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length()}
 {
-  dl_dmrs_rbs_per_nof_layers.resize(cell_cfg.dl_carrier.nof_ant);
+  dl_dmrs_rbs_per_nof_layers.resize(cell_cfg.params.dl_carrier.nof_ant);
   for (unsigned nof_layers = 1, max_layers = dl_dmrs_rbs_per_nof_layers.size(); nof_layers <= max_layers;
        ++nof_layers) {
     const pdsch_time_domain_resource_allocation pdsch_td_cfg{
         0, sch_mapping_type::typeA, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}};
     const dmrs_downlink_config dmrs_cfg{};
     auto                       dmrs = make_dmrs_info_dedicated(
-        pdsch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
+        pdsch_td_cfg, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
     dl_dmrs_rbs_per_nof_layers[nof_layers - 1] = calculate_nof_dmrs_per_rb(dmrs);
   }
 
-  ul_dmrs_rbs_per_nof_layers.resize(cell_cfg.ul_carrier.nof_ant);
+  ul_dmrs_rbs_per_nof_layers.resize(cell_cfg.params.ul_carrier.nof_ant);
   for (unsigned nof_layers = 1, max_layers = ul_dmrs_rbs_per_nof_layers.size(); nof_layers <= max_layers;
        ++nof_layers) {
     const pusch_time_domain_resource_allocation pusch_td_cfg{
         2, sch_mapping_type::typeA, {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP}};
     const dmrs_uplink_config dmrs_cfg{};
     auto                     dmrs = make_dmrs_info_dedicated(
-        pusch_td_cfg, cell_cfg.pci, cell_cfg.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
+        pusch_td_cfg, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos, dmrs_cfg, nof_layers, max_layers, false);
     ul_dmrs_rbs_per_nof_layers[nof_layers - 1] = calculate_nof_dmrs_per_rb(dmrs);
   }
 }
@@ -324,11 +324,21 @@ static double compute_dl_qos_weights(const slice_ue&                  u,
 static double compute_ul_qos_weights(const slice_ue&                  u,
                                      double                           estim_ul_rate,
                                      double                           avg_ul_rate,
-                                     const time_qos_scheduler_config& policy_params)
+                                     const time_qos_scheduler_config& policy_params,
+                                     slot_point                       pusch_slot)
 {
-  if (u.has_pending_sr() or avg_ul_rate == 0) {
-    // Highest priority to SRs and UEs that have not yet received any allocation.
+  if (avg_ul_rate == 0) {
+    // Highest priority to UEs that have not yet received any allocation.
     return max_sched_priority;
+  }
+
+  if (u.has_pending_sr()) {
+    // High priority given to UEs that have pending SRs, prioritizing those with the oldest SRs.
+    // We subtract to \c max_sched_priority a factor that is a multiple of \c slot_prio_coeff and proportional to the
+    // the slot difference between pusch_slot and the slot at which the SR was received.
+    static constexpr double slot_prio_coeff = max_sched_priority * 1e-6;
+    auto                    slot_diff       = pusch_slot - u.pending_sr_slot_rx();
+    return max_sched_priority - (pusch_slot.nof_slots_per_hyper_system_frame() - slot_diff) * slot_prio_coeff;
   }
 
   static constexpr uint16_t max_combined_prio_level = qos_prio_level_t::max() * arp_prio_level_t::max();
@@ -412,5 +422,5 @@ ue_sched_priority scheduler_time_qos::compute_ul_prio(const slice_ue& u, slot_po
   const double current_avg_rate = ue_history_db[u.ue_index()].ul_avg_rate();
 
   // Compute LC weight function.
-  return compute_ul_qos_weights(u, estimated_max_tbs, current_avg_rate, params);
+  return compute_ul_qos_weights(u, estimated_max_tbs, current_avg_rate, params, pusch_slot);
 }

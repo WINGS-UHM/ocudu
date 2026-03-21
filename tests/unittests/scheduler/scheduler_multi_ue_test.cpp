@@ -60,14 +60,14 @@ public:
                                                      .nof_cell_res_set_configs = 2,
                                                      .nof_cell_sr_resources    = 80,
                                                      .nof_cell_csi_resources   = 80};
-    auto&                         f1_params           = pucch_basic_params.f0_or_f1_params.emplace<pucch_f1_params>();
-    f1_params.nof_cyc_shifts                          = pucch_nof_cyclic_shifts::twelve;
-    f1_params.occ_supported                           = true;
-    cell_cfg_req.ran.init_bwp_builder.pucch.resources = pucch_basic_params;
+    auto&                         f1_params   = pucch_basic_params.f0_or_f1_params.emplace<pucch_f1_params>();
+    f1_params.nof_cyc_shifts                  = pucch_nof_cyclic_shifts::twelve;
+    f1_params.occ_supported                   = true;
+    cell_cfg_req.ran.init_bwp.pucch.resources = pucch_basic_params;
     this->add_cell(cell_cfg_req);
 
     // Create PUCCH builder that will be used to add UEs.
-    pucch_cfg_builder.setup(cell_cfg(), pucch_basic_params);
+    pucch_cfg_builder.setup(cell_cfg().params);
 
     // Add UEs.
     for (unsigned i = 0, sz = test_params.nof_ues; i != sz; ++i) {
@@ -97,7 +97,8 @@ public:
 
   void add_ue(rnti_t rnti)
   {
-    auto ue_cfg     = sched_config_helper::create_default_sched_ue_creation_request(params, {LCID_MIN_DRB});
+    auto ue_cfg = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg(to_du_cell_index(0)).params,
+                                                                                {LCID_MIN_DRB});
     ue_cfg.ue_index = to_du_ue_index((unsigned)rnti - 0x4601);
     ue_cfg.crnti    = rnti;
     report_fatal_error_if_not(pucch_cfg_builder.add_build_new_ue_pucch_cfg(ue_cfg.cfg.cells.value()[0]),
@@ -269,10 +270,10 @@ TEST_P(scheduler_rb_distribution_test, when_equal_ue_cfgs_then_rbs_are_fully_uti
 
   // TEST CASE: The RB usage should be close to the number of cell RBs.
   if (test_params.auto_dl_bs > 0) {
-    EXPECT_GE(pdsch_rbs_per_slot, 0.95 * cell_cfg().dl_cfg_common.init_dl_bwp.generic_params.crbs.length());
+    EXPECT_GE(pdsch_rbs_per_slot, 0.95 * cell_cfg().params.dl_cfg_common.init_dl_bwp.generic_params.crbs.length());
   }
   if (test_params.auto_ul_bs > 0) {
-    EXPECT_GE(pusch_rbs_per_slot, 0.95 * cell_cfg().ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
+    EXPECT_GE(pusch_rbs_per_slot, 0.95 * cell_cfg().params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length());
   }
 
   // TEST CASE: Jain index for PDSCH and PUSCH RBs and bitrates should be very high.

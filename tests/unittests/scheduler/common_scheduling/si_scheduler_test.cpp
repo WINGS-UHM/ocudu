@@ -10,7 +10,6 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/bounded_bitset.h"
-#include "ocudu/asn1/rrc_nr/ue_cap.h"
 #include "ocudu/ran/pdcch/dci_packing.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/result/dci_info.h"
@@ -66,8 +65,8 @@ public:
   si_scheduler                  si_sched;
   ocudulog::basic_logger&       logger;
 
-  slot_point next_slot{to_numerology_value(cell_cfg.scs_common),
-                       test_rng::uniform_int<unsigned>(0, 1024 * get_nof_slots_per_subframe(cell_cfg.scs_common))};
+  slot_point next_slot{to_numerology_value(cell_cfg.scs_common()),
+                       test_rng::uniform_int<unsigned>(0, 1024 * get_nof_slots_per_subframe(cell_cfg.scs_common()))};
 };
 
 TEST(no_si_scheduler_test, when_no_si_is_provided_then_nothing_is_scheduled)
@@ -134,8 +133,9 @@ TEST_F(si_scheduler_test, when_si_is_updated_then_new_version_is_applied_at_si_c
   // Update SI scheduling.
   si_sched.handle_si_update_request(si_scheduling_update_request{to_du_cell_index(0), 1, new_si_sched_cfg});
 
-  const unsigned si_ch_wind_len_rfs = static_cast<unsigned>(cell_cfg.dl_cfg_common.bcch_cfg.mod_period_coeff) *
-                                      static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle);
+  const unsigned si_ch_wind_len_rfs =
+      static_cast<unsigned>(cell_cfg.params.dl_cfg_common.bcch_cfg.mod_period_coeff) *
+      static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.default_paging_cycle);
   const unsigned sfn_mod = (next_slot + res_grid.max_dl_slot_alloc_delay).sfn() % si_ch_wind_len_rfs;
   const unsigned si_change_min_count =
       (si_ch_wind_len_rfs - sfn_mod) * next_slot.nof_slots_per_frame() - next_slot.slot_index();
@@ -196,8 +196,9 @@ TEST_F(si_scheduler_test, when_si_is_updated_all_ues_in_rrc_idle_get_notified_ex
   // Update SI scheduling.
   si_sched.handle_si_update_request(si_scheduling_update_request{to_du_cell_index(0), 1, new_si_sched_cfg});
 
-  const unsigned si_ch_wind_len_rfs = static_cast<unsigned>(cell_cfg.dl_cfg_common.bcch_cfg.mod_period_coeff) *
-                                      static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle);
+  const unsigned si_ch_wind_len_rfs =
+      static_cast<unsigned>(cell_cfg.params.dl_cfg_common.bcch_cfg.mod_period_coeff) *
+      static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.default_paging_cycle);
 
   const unsigned                   nof_test_slots      = 2 * si_ch_wind_len_rfs * next_slot.nof_slots_per_frame();
   bool                             new_version_applied = false;
@@ -227,10 +228,10 @@ TEST_F(si_scheduler_test, when_si_is_updated_all_ues_in_rrc_idle_get_notified_ex
       // Notifications shouldn't be sent after the new version is applied.
       ASSERT_FALSE(new_version_applied);
 
-      const unsigned paging_frame_offset  = cell_cfg.dl_cfg_common.pcch_cfg.paging_frame_offset;
-      const auto     drx_cycle            = static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.default_paging_cycle);
-      const auto     nof_pf_per_drx_cycle = static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.nof_pf);
-      const auto     nof_po_per_pf        = static_cast<unsigned>(cell_cfg.dl_cfg_common.pcch_cfg.ns);
+      const unsigned paging_frame_offset = cell_cfg.params.dl_cfg_common.pcch_cfg.paging_frame_offset;
+      const auto     drx_cycle = static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.default_paging_cycle);
+      const auto     nof_pf_per_drx_cycle = static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.nof_pf);
+      const auto     nof_po_per_pf        = static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.ns);
       const unsigned N                    = drx_cycle / nof_pf_per_drx_cycle;
       const unsigned t_div_n              = drx_cycle / N;
       for (unsigned ue_id = 0; ue_id < total_nof_ue_ids; ++ue_id) {

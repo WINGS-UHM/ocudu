@@ -36,8 +36,9 @@ protected:
 
   void add_ue()
   {
-    sched_ue_creation_request_message ue_cfg_msg = sched_config_helper::create_default_sched_ue_creation_request();
-    ue_cfg_msg.crnti                             = ue_rnti;
+    sched_ue_creation_request_message ue_cfg_msg = sched_config_helper::create_default_sched_ue_creation_request(
+        sched_config_helper::make_default_sched_cell_configuration_request().ran);
+    ue_cfg_msg.crnti = ue_rnti;
     sched->handle_ue_creation_request(ue_cfg_msg);
   }
 

@@ -52,8 +52,12 @@ public:
   /// \brief Handle the reception of a new RRC Handover Command.
   /// \param[in] ue_index The index of the UE that received the RRC Handover Command.
   /// \param[in] command The received RRC container containing the Handover Command.
+  /// \param[in] xnc_index The XN-C index if the handover is a XN-C handover, std::nullopt otherwise.
   /// \returns True if the RRC Handover Command was successfully handled, false otherwise.
-  virtual async_task<bool> handle_new_rrc_handover_command(ue_index_t ue_index, byte_buffer command) = 0;
+  virtual async_task<bool>
+  handle_new_rrc_handover_command(ue_index_t                      ue_index,
+                                  byte_buffer                     command,
+                                  std::optional<xnc_peer_index_t> xnc_index = std::nullopt) = 0;
 
   /// \brief Handles UE index allocation request for N2 handover at target gNB.
   virtual ue_index_t handle_ue_index_allocation_request(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) = 0;
@@ -69,7 +73,11 @@ public:
 
   /// \brief Handle the handover execution phase of the inter-CU handover at target gNB.
   /// \param[in] ue_index The index of the UE that is performing the handover.
-  virtual void handle_inter_cu_target_handover_execution(ue_index_t ue_index) = 0;
+  /// \param[in] xnap_ho_target_execution_ctxt If the handover is a XN-C handover, the information required for the
+  /// target handover execution is included.
+  virtual void handle_inter_cu_target_handover_execution(
+      ue_index_t                                                   ue_index,
+      const std::optional<xnap_handover_target_execution_context>& xnap_ho_target_execution_ctxt = std::nullopt) = 0;
 };
 
 /// Interface for the NGAP notifier to communicate with the CU-CP.
@@ -126,8 +134,7 @@ public:
   virtual void handle_dl_non_ue_associated_nrppa_transport_pdu(amf_index_t amf_index, const byte_buffer& nrppa_pdu) = 0;
 
   /// \brief Handles Location Reporting Control message.
-  virtual void handle_location_reporting_control_message(ue_index_t                          ue_index,
-                                                         const ngap_location_report_request& msg) = 0;
+  virtual void handle_location_reporting_control_message(ue_index_t ue_index, const location_report_request& msg) = 0;
 
   /// \brief Handle N2 AMF connection drop.
   /// \param[in] amf_index The index of the dropped AMF.
@@ -448,11 +455,6 @@ class cu_cp_xnap_handler : public cu_cp_inter_cu_handover_handler, public cu_cp_
 public:
   virtual ~cu_cp_xnap_handler() = default;
 
-  /// \brief Get packed handover preparation message for inter-gNB handover.
-  /// \param[in] ue_index The index of the UE.
-  /// \returns The packed handover preparation message.
-  virtual byte_buffer handle_handover_preparation_message_required(ue_index_t ue_index) = 0;
-
   /// \brief Handle the received XNAP handover request of the handover preparation procedure.
   /// See TS 38.423 section 8.2.1.
   virtual async_task<cu_cp_handover_resource_allocation_response>
@@ -461,6 +463,10 @@ public:
   /// \brief Handle the reception of a Handover Cancel message.
   /// \param[in] ue_index The index of the UE that is the target of the handover cancel.
   virtual void handle_handover_cancel_received(ue_index_t ue_index) = 0;
+
+  /// \brief Handle the reception of an XNAP UE Context Release message.
+  /// \param[in] ue_index The index of the UE to be released.
+  virtual void handle_xnap_ue_context_release_received(ue_index_t ue_index) = 0;
 };
 
 class cu_cp_impl_interface : public cu_cp_e1ap_event_handler,

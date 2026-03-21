@@ -19,7 +19,6 @@
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include <algorithm>
 #include <gtest/gtest.h>
@@ -136,11 +135,11 @@ protected:
 
     bench.emplace(sched_cfg, builder_params, msg);
 
-    const auto& dl_lst = bench->cell_cfg.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
+    const auto& dl_lst = bench->cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
     for (const auto& pdsch : dl_lst) {
       max_k_value = std::max<unsigned>(pdsch.k0, max_k_value);
     }
-    const auto& ul_lst = bench->cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
+    const auto& ul_lst = bench->cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     for (const auto& pusch : ul_lst) {
       max_k_value = std::max(pusch.k2, max_k_value);
     }
@@ -275,9 +274,9 @@ protected:
   add_ue(rnti_t tc_rnti, du_ue_index_t ue_index, bool remove_ded_cfg = false, slot_point msg3_rx_slot = slot_point())
   {
     // Add cell to UE cell grid allocator.
-    auto ue_create_req               = remove_ded_cfg
-                                           ? sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request()
-                                           : sched_config_helper::create_default_sched_ue_creation_request(bench->builder_params);
+    auto ue_create_req =
+        remove_ded_cfg ? sched_config_helper::create_empty_spcell_cfg_sched_ue_creation_request(bench->cell_cfg.params)
+                       : sched_config_helper::create_default_sched_ue_creation_request(bench->cell_cfg.params);
     ue_create_req.crnti              = tc_rnti;
     ue_create_req.ue_index           = ue_index;
     ue_create_req.starts_in_fallback = true;
@@ -328,7 +327,7 @@ protected:
   void generate_sr_for_ue(du_ue_index_t ue_idx, slot_point sl)
   {
     // Notification from upper layers of UL .
-    bench->ue_db[ue_idx].handle_sr_indication();
+    bench->ue_db[ue_idx].handle_sr_indication(current_slot);
 
     // Notify scheduler of SR.
     bench->fallback_sched.handle_sr_indication(ue_idx);
@@ -605,9 +604,9 @@ TEST_P(fallback_scheduler_tester, when_conres_and_msg4_srb1_scheduled_separately
     // PDCCH to be allocated.
     static constexpr unsigned first_dl_allocable_slot = 1U;
     bench->res_grid[first_dl_allocable_slot].dl_res_grid.fill(
-        grant_info(bench->cell_cfg.scs_common,
+        grant_info(bench->cell_cfg.scs_common(),
                    ofdm_symbol_range{3, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP},
-                   crb_interval{3, bench->cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.stop()}));
+                   crb_interval{3, bench->cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs.stop()}));
     run_slot();
 
     const pdcch_dl_information* pdcch_it = get_ue_allocated_pdcch(test_ue);
@@ -668,10 +667,10 @@ TEST_P(fallback_scheduler_tester, when_ra_conres_timer_expires_ue_doesnt_get_all
       if (divide_ceil<uint32_t, uint32_t>(static_cast<uint32_t>(elapsed_time_since_msg3_rx),
                                           current_slot.nof_slots_per_subframe()) <= ra_conres_timer_subframes) {
         bench->res_grid[next_allocation_slot].dl_res_grid.fill(
-            grant_info(bench->cell_cfg.scs_common,
+            grant_info(bench->cell_cfg.scs_common(),
                        ofdm_symbol_range{3, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP},
-                       crb_interval{bench->cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.start(),
-                                    bench->cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs.stop()}));
+                       crb_interval{bench->cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs.start(),
+                                    bench->cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs.stop()}));
       }
     }
 
@@ -834,7 +833,7 @@ TEST_F(fallback_scheduler_tdd_tester, test_allocation_in_partial_slots_tdd)
   // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
   cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
       time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
-          cell_cfg.ran.tdd_ul_dl_cfg_common,
+          cell_cfg.ran.tdd_cfg,
           cell_cfg.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
           time_domain_resource_helper::calculate_minimum_pdsch_symbol(
               cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt));
@@ -842,8 +841,8 @@ TEST_F(fallback_scheduler_tdd_tester, test_allocation_in_partial_slots_tdd)
   scheduler_expert_config expert_cfg = create_expert_config(max_msg4_mcs_index);
   setup_sched(expert_cfg, cell_cfg);
 
-  const unsigned MAX_TEST_RUN_SLOTS = 40;
-  const unsigned MAC_SRB0_SDU_SIZE  = 129;
+  static constexpr unsigned MAX_TEST_RUN_SLOTS = 40;
+  static constexpr unsigned MAC_SRB0_SDU_SIZE  = 129;
 
   // Add a single UE.
   add_ue(to_rnti(0x4601), to_du_ue_index(0));
@@ -875,10 +874,10 @@ class fallback_scheduler_head_scheduling : public base_fallback_tester,
                                            public ::testing::TestWithParam<fallback_sched_test_params>
 {
 protected:
-  const unsigned MAX_NOF_SLOTS_GRID_IS_BUSY = 4;
-  const unsigned MAX_TEST_RUN_SLOTS         = 2100;
+  static constexpr unsigned MAX_NOF_SLOTS_GRID_IS_BUSY = 4;
+  static constexpr unsigned MAX_TEST_RUN_SLOTS         = 2100;
   // NOTE: Ensure that the SDU size is small enough so that there is no segmentation when tested for SRB1.
-  const unsigned MAC_SRB_SDU_SIZE = 101;
+  static constexpr unsigned MAC_SRB_SDU_SIZE = 101;
 
   fallback_scheduler_head_scheduling() : base_fallback_tester(GetParam().duplx_mode, false)
   {
@@ -944,7 +943,8 @@ protected:
     for (unsigned sl_inc = 0; sl_inc < nof_slots; ++sl_inc) {
       if (bench->cell_cfg.is_dl_enabled(sl + sl_inc)) {
         unsigned   nof_dl_symbols = bench->cell_cfg.get_nof_dl_symbol_per_slot(sl + sl_inc);
-        grant_info grant{bench->cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs, {0, nof_dl_symbols}, crbs};
+        grant_info grant{
+            bench->cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs, {0, nof_dl_symbols}, crbs};
         bench->res_grid[sl + sl_inc].dl_res_grid.fill(grant);
       }
     }
@@ -998,7 +998,7 @@ TEST_P(fallback_scheduler_head_scheduling, test_ahead_scheduling_for_srb_allocat
       // Mark resource grid as occupied.
       fill_resource_grid(current_slot,
                          check_alloc_slot.to_uint() - current_slot.to_uint(),
-                         bench->cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.crbs);
+                         bench->cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs);
     }
 
     // Ack the HARQ processes that are waiting for ACK, otherwise the scheduler runs out of empty HARQs.
@@ -1154,11 +1154,11 @@ protected:
     unsigned missed_srb_cnt = 0;
   };
 
-  const unsigned SRB_PACKETS_TOT_TX = 20;
-  const unsigned MAX_UES            = 1;
-  const unsigned MAX_TEST_RUN_SLOTS = 2100;
+  static constexpr unsigned SRB_PACKETS_TOT_TX = 20;
+  static constexpr unsigned MAX_UES            = 1;
+  static constexpr unsigned MAX_TEST_RUN_SLOTS = 2100;
   // NOTE: Ensure that the SDU size is small enough so that there is no segmentation when tested for SRB1.
-  const unsigned MAC_SRB0_SDU_SIZE = 101;
+  static constexpr unsigned MAC_SRB0_SDU_SIZE = 101;
 
   std::vector<ue_retx_tester> ues_testers;
 };
@@ -1369,10 +1369,10 @@ protected:
     std::vector<h_state> latest_harq_states;
   };
 
-  const unsigned SRB_PACKETS_TOT_TX    = 10;
-  const unsigned MAX_UES               = 10;
-  const unsigned MAX_TEST_RUN_SLOTS    = 200;
-  const unsigned MAX_MAC_SRB0_SDU_SIZE = 1600;
+  static constexpr unsigned SRB_PACKETS_TOT_TX    = 10;
+  static constexpr unsigned MAX_UES               = 10;
+  static constexpr unsigned MAX_TEST_RUN_SLOTS    = 200;
+  static constexpr unsigned MAX_MAC_SRB0_SDU_SIZE = 1600;
 
   std::vector<ue_retx_tester> ues_testers;
 };
@@ -1437,8 +1437,9 @@ protected:
     explicit ue_ul_tester(const cell_configuration& cell_cfg_, ue& test_ue_, ul_fallback_scheduler_tester* parent_) :
       cell_cfg(cell_cfg_), test_ue(test_ue_), parent(parent_)
     {
-      slot_generate_srb_traffic = slot_point{to_numerology_value(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs),
-                                             test_rng::uniform_int(20U, 40U)};
+      slot_generate_srb_traffic =
+          slot_point{to_numerology_value(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs),
+                     test_rng::uniform_int(20U, 40U)};
     }
 
     void slot_indication(slot_point sl)
@@ -1491,9 +1492,9 @@ protected:
   };
 
   ul_fallback_sched_test_params params;
-  const unsigned                MAX_UES                  = 10;
-  const unsigned                MAX_TEST_RUN_SLOTS       = 100;
-  const unsigned                MAX_MAC_UL_SRB1_SDU_SIZE = 3000;
+  static constexpr unsigned     MAX_UES                  = 10;
+  static constexpr unsigned     MAX_TEST_RUN_SLOTS       = 100;
+  static constexpr unsigned     MAX_MAC_UL_SRB1_SDU_SIZE = 3000;
 
   std::vector<ue_ul_tester> ues_testers;
 };
@@ -1545,7 +1546,7 @@ protected:
     msg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->msg3_transform_precoder = enable_pusch_transform_precoding;
     setup_sched(config_helpers::make_default_scheduler_expert_config(), msg);
     slot_generate_srb_traffic =
-        slot_point{to_numerology_value(bench->cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs),
+        slot_point{to_numerology_value(bench->cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs),
                    test_rng::uniform_int(20U, 40U)};
   }
 
@@ -1662,7 +1663,7 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_reconf_is_after_reest_both_common
   ASSERT_TRUE(u.get_pcell().cfg().init_bwp().ul_ded.has_value());
 
   // Signal a UE reconfiguration that happens after re-establishment.
-  auto ue_cfg              = sched_config_helper::create_default_sched_ue_creation_request(bench->builder_params);
+  auto ue_cfg              = sched_config_helper::create_default_sched_ue_creation_request(bench->cell_cfg.params);
   ue_cfg.cfg.reestablished = true;
   sched_ue_reconfiguration_message reconf_msg{.ue_index = du_ue_index, .crnti = rnti, .cfg = ue_cfg.cfg};
   auto                             ev = bench->cfg_mng.update_ue(reconf_msg);

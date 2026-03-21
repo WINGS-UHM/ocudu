@@ -45,7 +45,7 @@ test_sched_config_manager::test_sched_config_manager(const cell_config_builder_p
 {
   default_cell_req = sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
   default_ue_req =
-      sched_config_helper::create_default_sched_ue_creation_request(builder_params, {lcid_t::LCID_MIN_DRB});
+      sched_config_helper::create_default_sched_ue_creation_request(default_cell_req.ran, {lcid_t::LCID_MIN_DRB});
 }
 
 test_sched_config_manager::~test_sched_config_manager() {}

@@ -4,9 +4,10 @@
 
 #include "scheduler_test_simulator.h"
 #include "../test_utils/indication_generators.h"
-#include "config_generators.h"
 #include "sched_random_utils.h"
 #include "scheduler_test_suite.h"
+#include "ocudu/scheduler/config/scheduler_config.h"
+#include "ocudu/scheduler/scheduler_factory.h"
 
 using namespace ocudu;
 

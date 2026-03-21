@@ -28,32 +28,32 @@ sib1_scheduler::sib1_scheduler(const cell_configuration& cfg_,
   cell_cfg{cfg_},
   pdcch_sched{pdcch_sch},
   sib1_payload_size{sib1_payload_size_},
-  L_max(cfg_.ssb_cfg.ssb_bitmap.get_L_max())
+  L_max(cfg_.params.ssb_cfg.ssb_bitmap.get_L_max())
 {
-  const auto coreset0 = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
+  const auto coreset0 = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.get_coreset0();
   ocudu_assert(coreset0.has_value(), "CORESET#0 not configured");
 
-  const auto searchspace0 = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
+  const auto searchspace0 = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.get_searchspace0();
   ocudu_assert(searchspace0.has_value(), "SearchSpace#0 not found in common SearchSpace list");
 
   // Compute derived SIB1 parameters.
-  sib1_rtx_period = std::chrono::milliseconds{std::max(ssb_periodicity_to_value(cfg_.ssb_cfg.ssb_period),
+  sib1_rtx_period = std::chrono::milliseconds{std::max(ssb_periodicity_to_value(cfg_.params.ssb_cfg.ssb_period),
                                                        sib1_rtx_periodicity_to_value(expert_cfg.sib1_retx_period))};
 
   // Only the first L_max SSB beams can be used.
   for (size_t i_ssb = 0; i_ssb != L_max; ++i_ssb) {
-    if (not cell_cfg.ssb_cfg.ssb_bitmap.test(i_ssb)) {
+    if (not cell_cfg.params.ssb_cfg.ssb_bitmap.test(i_ssb)) {
       continue;
     }
     // NOTE:
     // - [Implementation defined] Use (n0 + 1) slot to avoid collisions between SSB and SIB1.
     sib1_type0_pdcch_css_slots[i_ssb] = precompute_type0_pdcch_css_n0_plus_1(
-        searchspace0.value(), coreset0->value(), cell_cfg, cell_cfg.scs_common, i_ssb);
+        searchspace0.value(), coreset0->value(), cell_cfg, cell_cfg.scs_common(), i_ssb);
   }
 
   // Define a BWP configuration limited by CORESET#0 RBs.
-  coreset0_bwp_cfg      = cell_cfg.dl_cfg_common.init_dl_bwp.generic_params;
-  coreset0_bwp_cfg.crbs = get_coreset0_crbs(cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common);
+  coreset0_bwp_cfg      = cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params;
+  coreset0_bwp_cfg.crbs = get_coreset0_crbs(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common);
 }
 
 void sib1_scheduler::handle_sib1_update_indication(unsigned version, units::bytes new_sib1_payload_size)
@@ -88,7 +88,7 @@ void sib1_scheduler::run_slot(cell_slot_resource_allocator& res_grid)
   // For each beam, check if the SIB1 needs to be allocated in this slot.
   for (unsigned ssb_idx = 0; ssb_idx != L_max; ++ssb_idx) {
     // Do not schedule the SIB1 for the SSB indices that are not used.
-    if (not cell_cfg.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
+    if (not cell_cfg.params.ssb_cfg.ssb_bitmap.test(ssb_idx)) {
       continue;
     }
 
@@ -106,11 +106,11 @@ void sib1_scheduler::run_slot(cell_slot_resource_allocator& res_grid)
 
       unsigned                          time_resource = 0;
       const search_space_configuration& ss_cfg =
-          cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common
-              .search_spaces[cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id];
+          cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common
+              .search_spaces[cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id];
       const unsigned coreset_duration        = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id()).duration();
       const auto&    pdsch_td_res_alloc_list = get_si_rnti_pdsch_time_domain_list(
-          cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.dmrs_typeA_pos);
+          cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.params.dmrs_typeA_pos);
       bool is_sib1_scheduled = false;
       for (const auto& pdsch_td_res : pdsch_td_res_alloc_list) {
         // Check whether PDSCH time domain resource fits in DL symbols of the slot.
@@ -146,8 +146,8 @@ void sib1_scheduler::stop()
 
 bool sib1_scheduler::allocate_sib1(cell_slot_resource_allocator& res_grid, unsigned beam_idx, unsigned time_resource)
 {
-  const auto& pdsch_td_res_alloc_list =
-      get_si_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.dmrs_typeA_pos);
+  const auto& pdsch_td_res_alloc_list = get_si_rnti_pdsch_time_domain_list(
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.params.dmrs_typeA_pos);
   const ofdm_symbol_range   sib1_ofdm_symbols = pdsch_td_res_alloc_list[time_resource].symbols;
   const unsigned            nof_symb_sh       = sib1_ofdm_symbols.length();
   static constexpr unsigned nof_layers        = 1;
@@ -156,8 +156,8 @@ bool sib1_scheduler::allocate_sib1(cell_slot_resource_allocator& res_grid, unsig
 
   // Generate dmrs information to be passed to (i) the fnc that computes number of RE used for DMRS per RB and (ii) to
   // the fnc that fills the DCI.
-  const dmrs_information dmrs_info =
-      make_dmrs_info_common(pdsch_td_res_alloc_list, time_resource, cell_cfg.pci, cell_cfg.dmrs_typeA_pos);
+  const dmrs_information dmrs_info = make_dmrs_info_common(
+      pdsch_td_res_alloc_list, time_resource, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos);
 
   const sch_mcs_description mcs_descr     = pdsch_mcs_get_config(pdsch_mcs_table::qam64, expert_cfg.sib1_mcs_index);
   const sch_prbs_tbs        sib1_prbs_tbs = get_nof_prbs(prbs_calculator_sch_config{
@@ -167,10 +167,10 @@ bool sib1_scheduler::allocate_sib1(cell_slot_resource_allocator& res_grid, unsig
   crb_interval sib1_crbs;
   {
     const crb_interval crb_lims =
-        pdsch_helper::get_ra_crb_limits_common(cell_cfg.dl_cfg_common.init_dl_bwp, to_search_space_id(0));
+        pdsch_helper::get_ra_crb_limits_common(cell_cfg.params.dl_cfg_common.init_dl_bwp, to_search_space_id(0));
     const unsigned    nof_sib1_rbs = sib1_prbs_tbs.nof_prbs;
     const crb_bitmap& used_crbs    = res_grid.dl_res_grid.used_crbs(
-        cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs, crb_lims, sib1_ofdm_symbols);
+        cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs, crb_lims, sib1_ofdm_symbols);
     sib1_crbs = rb_helper::find_empty_interval_of_length(used_crbs, nof_sib1_rbs);
     if (sib1_crbs.length() < nof_sib1_rbs) {
       // early exit
@@ -183,7 +183,7 @@ bool sib1_scheduler::allocate_sib1(cell_slot_resource_allocator& res_grid, unsig
   pdcch_dl_information* pdcch =
       pdcch_sched.alloc_dl_pdcch_common(res_grid,
                                         rnti_t::SI_RNTI,
-                                        cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id,
+                                        cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.sib1_search_space_id,
                                         expert_cfg.sib1_dci_aggr_lev);
   if (pdcch == nullptr) {
     logger.warning("Could not allocated SIB1's DCI in PDCCH for beam idx: {}", beam_idx);
@@ -195,7 +195,7 @@ bool sib1_scheduler::allocate_sib1(cell_slot_resource_allocator& res_grid, unsig
   // - ofdm_symbol_range{2, 14} is a temporary hack. The OFDM symbols should be derived from the SIB1 size and
   //   frequency allocation.
   res_grid.dl_res_grid.fill(
-      grant_info{cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs, sib1_ofdm_symbols, sib1_crbs});
+      grant_info{cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs, sib1_ofdm_symbols, sib1_crbs});
 
   // 4. Delegate filling SIB1 grants to helper function.
   fill_sib1_grant(res_grid, sib1_crbs, time_resource, dmrs_info, sib1_prbs_tbs.tbs_bytes);
@@ -214,13 +214,13 @@ void sib1_scheduler::fill_sib1_grant(cell_slot_resource_allocator& res_grid,
   // Add DCI to list to dl_pdcch.
   ocudu_assert(res_grid.result.dl.dl_pdcchs.size() > 0, "No DL PDCCH grant found in the DL sched results.");
 
-  const auto& pdsch_td_res_alloc_list =
-      get_si_rnti_pdsch_time_domain_list(cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.dmrs_typeA_pos);
+  const auto& pdsch_td_res_alloc_list = get_si_rnti_pdsch_time_domain_list(
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.params.dmrs_typeA_pos);
 
   // Fill SIB1 DCI.
   auto& sib1_pdcch = res_grid.result.dl.dl_pdcchs.back();
   build_dci_f1_0_si_rnti(sib1_pdcch.dci,
-                         cell_cfg.dl_cfg_common.init_dl_bwp,
+                         cell_cfg.params.dl_cfg_common.init_dl_bwp,
                          sib1_crbs_grant,
                          time_resource,
                          expert_cfg.sib1_mcs_index,

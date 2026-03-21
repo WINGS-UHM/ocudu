@@ -57,14 +57,15 @@ public:
                                      : std::variant<pucch_f1_params, pucch_f0_params>{pucch_f1_params{}}},
         .pucch_res_common = params.input.pucch_res_common,
         .n_cces           = params.input.n_cces}),
-    expected_info(test_helpers::make_common_pucch_info(&t_bench.cell_cfg.ul_cfg_common.init_ul_bwp.generic_params,
-                                                       t_bench.cell_cfg.pci,
-                                                       params.output.format,
-                                                       params.output.prbs,
-                                                       params.output.second_hop_prbs,
-                                                       params.output.symbols,
-                                                       params.output.initial_cyclic_shift,
-                                                       params.output.time_domain_occ))
+    expected_info(
+        test_helpers::make_common_pucch_info(&t_bench.cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params,
+                                             t_bench.cell_cfg.params.pci,
+                                             params.output.format,
+                                             params.output.prbs,
+                                             params.output.second_hop_prbs,
+                                             params.output.symbols,
+                                             params.output.initial_cyclic_shift,
+                                             params.output.time_domain_occ))
   {
   }
 

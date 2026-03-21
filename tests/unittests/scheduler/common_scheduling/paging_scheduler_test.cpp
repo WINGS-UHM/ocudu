@@ -348,12 +348,12 @@ TEST_F(paging_sched_partial_slot_tester, successfully_allocated_paging_grant_ss_
                                                      .nof_ul_slots              = 2,
                                                      .nof_ul_symbols            = 0}};
 
-  auto cell_cfg_request                     = create_custom_cell_config_request(duplex_mode::TDD);
-  cell_cfg_request.ran.tdd_ul_dl_cfg_common = tdd_cfg;
+  auto cell_cfg_request        = create_custom_cell_config_request(duplex_mode::TDD);
+  cell_cfg_request.ran.tdd_cfg = tdd_cfg;
   // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
   cell_cfg_request.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
       time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
-          cell_cfg_request.ran.tdd_ul_dl_cfg_common,
+          cell_cfg_request.ran.tdd_cfg,
           cell_cfg_request.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
           time_domain_resource_helper::calculate_minimum_pdsch_symbol(
               cell_cfg_request.ran.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt));

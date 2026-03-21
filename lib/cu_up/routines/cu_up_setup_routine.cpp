@@ -10,14 +10,16 @@
 using namespace ocudu;
 using namespace ocuup;
 
-cu_up_setup_routine::cu_up_setup_routine(gnb_cu_up_id_t           cu_up_id_,
-                                         std::string              cu_up_name_,
-                                         std::string              plmn_,
-                                         e1ap_connection_manager& e1ap_conn_mng_) :
+cu_up_setup_routine::cu_up_setup_routine(gnb_cu_up_id_t                    cu_up_id_,
+                                         std::string                       cu_up_name_,
+                                         std::string                       plmn_,
+                                         e1ap_connection_manager&          e1ap_conn_mng_,
+                                         cu_up_e1_setup_complete_notifier* e1_setup_notifier_) :
   cu_up_id(cu_up_id_),
   cu_up_name(std::move(cu_up_name_)),
   plmn(std::move(plmn_)),
   e1ap_conn_mng(e1ap_conn_mng_),
+  e1_setup_notifier(e1_setup_notifier_),
   logger(ocudulog::fetch_basic_logger("CU-UP"))
 {
 }
@@ -38,6 +40,12 @@ void cu_up_setup_routine::operator()(coro_context<async_task<bool>>& ctx)
 
   // Handle E1 setup result.
   handle_cu_up_e1_setup_response(response_msg);
+
+  // Notify successful setup and deliver packed E1 setup PDU bytes via notifier.
+  if (e1_setup_notifier != nullptr) {
+    e1_setup_notifier->on_e1_setup_complete(
+        std::move(response_msg.packed_e1_setup_request), std::move(response_msg.packed_e1_setup_response), cu_up_id);
+  }
 
   CORO_RETURN(true);
 }

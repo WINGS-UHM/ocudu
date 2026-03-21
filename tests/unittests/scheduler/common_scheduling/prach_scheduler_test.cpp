@@ -58,8 +58,8 @@ make_custom_sched_cell_configuration_request(const prach_test_params test_params
 
   // NOTE: For this test we modify the TDD pattern so that we can test several PRACH configuration indices.
   if (not band_helper::is_paired_spectrum(test_params.band)) {
-    sched_req.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_dl_slots = 2;
-    sched_req.ran.tdd_ul_dl_cfg_common.value().pattern1.nof_ul_slots = 8;
+    sched_req.ran.tdd_cfg.value().pattern1.nof_dl_slots = 2;
+    sched_req.ran.tdd_cfg.value().pattern1.nof_ul_slots = 8;
   }
 
   return sched_req;
@@ -76,13 +76,13 @@ protected:
     prach_sch(cell_cfg),
     sl(to_numerology_value(GetParam().scs), 0),
     prach_cfg(prach_configuration_get(
-        band_helper::get_freq_range(cell_cfg.band),
-        cell_cfg.paired_spectrum ? duplex_mode::FDD : duplex_mode::TDD,
-        cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)),
+        band_helper::get_freq_range(cell_cfg.band()),
+        cell_cfg.paired_spectrum() ? duplex_mode::FDD : duplex_mode::TDD,
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)),
     res_grid(cell_cfg)
   {
     prach_symbols_slots_duration prach_duration_info =
-        get_prach_duration_info(prach_cfg, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs);
+        get_prach_duration_info(prach_cfg, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
     nof_symbols        = prach_duration_info.nof_symbols;
     prach_length_slots = prach_duration_info.prach_length_slots;
   }
@@ -103,11 +103,11 @@ protected:
       return false;
     }
 
-    const subcarrier_spacing scs_ref = band_helper::get_freq_range(cell_cfg.band) == frequency_range::FR2
+    const subcarrier_spacing scs_ref = band_helper::get_freq_range(cell_cfg.band()) == frequency_range::FR2
                                            ? subcarrier_spacing::kHz60
                                            : subcarrier_spacing::kHz15;
-    const unsigned           scs_ratio =
-        pow2(to_numerology_value(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs) - to_numerology_value(scs_ref));
+    const unsigned scs_ratio = pow2(to_numerology_value(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs) -
+                                    to_numerology_value(scs_ref));
 
     if (std::find(prach_cfg.slots.begin(), prach_cfg.slots.end(), sl.slot_index() / scs_ratio) ==
         prach_cfg.slots.end()) {
@@ -118,8 +118,8 @@ protected:
       // With long Format PRACH, the starting_symbol refers to the SCS 15kHz. We need to map this starting symbol into
       // the slot of the SCS used by the system to know whether this is the slot with the PRACH opportunity.
       const unsigned start_slot_offset =
-          prach_cfg.starting_symbol * pow2(to_numerology_value(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs)) /
-          NOF_SYM_PER_SLOT;
+          prach_cfg.starting_symbol *
+          pow2(to_numerology_value(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs)) / NOF_SYM_PER_SLOT;
       if (sl.subframe_slot_index() != start_slot_offset) {
         return false;
       }
@@ -152,35 +152,36 @@ protected:
             ? get_prach_preamble_long_info(prach_cfg.format)
             : get_prach_preamble_short_info(
                   prach_cfg.format,
-                  to_ra_subcarrier_spacing(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs),
+                  to_ra_subcarrier_spacing(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs),
                   is_last_prach_occasion);
     // Compute the grant PRBs
     const unsigned prach_nof_prbs =
-        prach_frequency_mapping_get(info.scs, cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs).nof_rb_ra;
+        prach_frequency_mapping_get(info.scs, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs).nof_rb_ra;
     const uint8_t prb_start =
-        cell_cfg.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start +
+        cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.msg1_frequency_start +
         occasion.index_fd_ra * prach_nof_prbs;
     const prb_interval prach_prbs{prb_start, prb_start + prach_nof_prbs};
-    const crb_interval crbs = prb_to_crb(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params, prach_prbs);
+    const crb_interval crbs = prb_to_crb(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params, prach_prbs);
 
     if (is_long_preamble(prach_cfg.format)) {
       // Compute the grant symbols.
       const unsigned starting_symbol_pusch_scs =
-          (occasion.start_symbol * (1U << to_numerology_value(cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs))) %
+          (occasion.start_symbol *
+           (1U << to_numerology_value(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs))) %
           NOF_SYM_PER_SLOT;
       const ofdm_symbol_range prach_symbols{prach_slot_idx == 0 ? starting_symbol_pusch_scs : 0,
                                             prach_slot_idx < prach_length_slots - 1
                                                 ? NOF_SYM_PER_SLOT
                                                 : (starting_symbol_pusch_scs + nof_symbols) % NOF_SYM_PER_SLOT};
 
-      return grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
+      return grant_info{cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
     }
     const unsigned          starting_symbol_pusch_scs = occasion.start_symbol;
     const ofdm_symbol_range prach_symbols{starting_symbol_pusch_scs,
                                           starting_symbol_pusch_scs +
                                               prach_cfg.duration * prach_cfg.nof_occasions_within_slot};
 
-    return grant_info{cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
+    return grant_info{cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
   }
 
   static constexpr unsigned nof_slots_run = 1000;

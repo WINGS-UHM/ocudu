@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ocudu/adt/byte_buffer.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 #include "ocudu/ran/crit_diagnostics.h"
 #include "ocudu/ran/cu_types.h"
@@ -44,6 +45,9 @@ struct ngap_ng_setup_response {
   // TODO: Add optional ue_retention_info;
   // TODO: Add optional iab_supported;
   // TODO: Add optional extended_amf_name;
+  /// Packed NGAP PDUs captured during the setup exchange.
+  byte_buffer packed_ng_setup_request;
+  byte_buffer packed_ng_setup_response;
 };
 
 struct ngap_ng_setup_failure {

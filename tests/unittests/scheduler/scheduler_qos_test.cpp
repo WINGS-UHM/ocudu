@@ -6,6 +6,7 @@
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "ocudu/ran/du_types.h"
 #include "ocudu/scheduler/config/sched_cell_config_helpers.h"
 #include <gtest/gtest.h>
 
@@ -65,22 +66,23 @@ public:
     // Create PUCCH builder that will be used to add UEs.
     pucch_resource_builder_params pucch_basic_params{
         .res_set_0_size = 8, .res_set_1_size = 8, .nof_cell_sr_resources = 8, .nof_cell_csi_resources = 8};
-    auto& f1_params                                   = pucch_basic_params.f0_or_f1_params.emplace<pucch_f1_params>();
-    f1_params.nof_cyc_shifts                          = pucch_nof_cyclic_shifts::twelve;
-    f1_params.occ_supported                           = true;
-    cell_cfg_req.ran.init_bwp_builder.pucch.resources = pucch_basic_params;
+    auto& f1_params                           = pucch_basic_params.f0_or_f1_params.emplace<pucch_f1_params>();
+    f1_params.nof_cyc_shifts                  = pucch_nof_cyclic_shifts::twelve;
+    f1_params.occ_supported                   = true;
+    cell_cfg_req.ran.init_bwp.pucch.resources = pucch_basic_params;
     this->add_cell(cell_cfg_req);
 
-    pucch_cfg_builder.setup(cell_cfg(), pucch_basic_params);
+    pucch_cfg_builder.setup(cell_cfg().params);
   }
 
   void add_ue_with_drb_qos(logical_channel_config::qos_info drb_qos)
   {
     // Add UE to scheduler.
     du_ue_index_t next_ue_idx = to_du_ue_index(ue_stats_map.size());
-    auto          ue_cfg      = sched_config_helper::create_default_sched_ue_creation_request(params, {LCID_MIN_DRB});
-    ue_cfg.ue_index           = next_ue_idx;
-    ue_cfg.crnti              = to_rnti(0x4601 + (unsigned)next_ue_idx);
+    auto ue_cfg = sched_config_helper::create_default_sched_ue_creation_request(cell_cfg(to_du_cell_index(0)).params,
+                                                                                {LCID_MIN_DRB});
+    ue_cfg.ue_index                                             = next_ue_idx;
+    ue_cfg.crnti                                                = to_rnti(0x4601 + (unsigned)next_ue_idx);
     ue_cfg.cfg.lc_config_list.value()[2].rrm_policy.s_nssai.sst = slice_service_type{1};
     ue_cfg.cfg.lc_config_list.value()[2].qos                    = drb_qos;
     report_fatal_error_if_not(pucch_cfg_builder.add_build_new_ue_pucch_cfg(ue_cfg.cfg.cells.value()[0]),

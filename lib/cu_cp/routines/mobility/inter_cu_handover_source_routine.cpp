@@ -13,6 +13,7 @@ inter_cu_handover_source_routine::inter_cu_handover_source_routine(ue_index_t   
                                                                    du_processor_repository&      du_db_,
                                                                    cu_up_processor_repository&   cu_up_db_,
                                                                    ngap_control_message_handler& ngap_,
+                                                                   xnap_interface*               xnap_,
                                                                    ocudulog::basic_logger&       logger_) :
   ue_index(ue_index_),
   command(std::move(command_)),
@@ -20,6 +21,7 @@ inter_cu_handover_source_routine::inter_cu_handover_source_routine(ue_index_t   
   du_db(du_db_),
   cu_up_db(cu_up_db_),
   ngap(ngap_),
+  xnap(xnap_),
   logger(logger_)
 {
 }
@@ -66,11 +68,17 @@ void inter_cu_handover_source_routine::operator()(coro_context<async_task<bool>>
     CORO_EARLY_RETURN(false);
   }
 
-  // Send PDCP state to AMF.
-  if (not fill_ngap_ul_ran_status_transfer()) {
+  if (not fill_status_transfer()) {
     CORO_EARLY_RETURN(false);
   }
-  ngap.handle_ul_ran_status_transfer(ul_ran_status_transfer);
+
+  if (xnap == nullptr) {
+    // Send PDCP state to AMF.
+    ngap.handle_ul_ran_status_transfer(status_transfer);
+  } else {
+    // Send PDCP state to XN-C peer CU-CP.
+    xnap->handle_sn_status_transfer_required(status_transfer);
+  }
 
   CORO_RETURN(true);
 }
@@ -98,9 +106,9 @@ void inter_cu_handover_source_routine::fill_e1ap_bearer_modification_request_pdc
   }
 }
 
-bool inter_cu_handover_source_routine::fill_ngap_ul_ran_status_transfer()
+bool inter_cu_handover_source_routine::fill_status_transfer()
 {
-  ul_ran_status_transfer.ue_index = ue_index;
+  status_transfer.ue_index = ue_index;
 
   for (const auto& pdu_session_modified : bearer_mod_resp.pdu_session_resource_modified_list) {
     const up_pdu_session_context& pdu_session_ctx =
@@ -121,7 +129,7 @@ bool inter_cu_handover_source_routine::fill_ngap_ul_ran_status_transfer()
         drb_item.drb_status_ul.ul_count.hfn = drb_modified.pdcp_sn_status_info->pdcp_status_transfer_ul.count_value.hfn;
         drb_item.drb_status_ul.ul_count.sn =
             drb_modified.pdcp_sn_status_info->pdcp_status_transfer_ul.count_value.pdcp_sn;
-        ul_ran_status_transfer.drbs_subject_to_status_transfer_list.emplace(drb_modified.drb_id, drb_item);
+        status_transfer.drbs_subject_to_status_transfer_list.emplace(drb_modified.drb_id, drb_item);
       }
     }
   }

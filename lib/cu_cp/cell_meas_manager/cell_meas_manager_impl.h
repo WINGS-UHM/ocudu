@@ -47,6 +47,8 @@ public:
   bool update_cell_config(nr_cell_identity nci, const serving_cell_meas_config& serv_cell_cfg);
   void report_measurement(ue_index_t ue_index, const rrc_meas_results& meas_results);
 
+  expected<std::pair<unsigned, nr_cell_identity>> find_neighbour_nci(pci_t pci);
+
 private:
   /// \brief Generate measurement objects for the given cell configuration.
   void generate_measurement_objects_for_serving_cells();

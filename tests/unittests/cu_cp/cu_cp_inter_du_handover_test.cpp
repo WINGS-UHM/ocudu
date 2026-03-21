@@ -25,7 +25,7 @@ class cu_cp_inter_du_handover_test : public cu_cp_test_environment, public ::tes
 {
 public:
   explicit cu_cp_inter_du_handover_test(
-      const std::optional<ngap_location_report_request>& location_reporting_request = std::nullopt) :
+      const std::optional<location_report_request>& location_reporting_request = std::nullopt) :
     cu_cp_test_environment(cu_cp_test_env_params{})
   {
     // Run NG setup to completion.
@@ -510,9 +510,9 @@ class cu_cp_inter_du_handover_initial_context_setup_location_reporting_test : pu
 public:
   cu_cp_inter_du_handover_initial_context_setup_location_reporting_test() :
     cu_cp_inter_du_handover_test([] {
-      ngap_location_report_request req;
-      req.location_report_area    = ngap_location_report_request::report_area::cell;
-      req.location_reporting_type = ngap_location_report_request::event_type::change_of_serve_cell;
+      location_report_request req;
+      req.location_report_area    = location_report_request::report_area::cell;
+      req.location_reporting_type = location_report_request::event_type::change_of_serve_cell;
       return req;
     }())
   {

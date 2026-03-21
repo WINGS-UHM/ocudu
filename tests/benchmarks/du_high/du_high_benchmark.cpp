@@ -611,7 +611,7 @@ public:
     dependencies.rlc_p       = &rlc_pcap;
 
     // Increase nof. PUCCH resources to accommodate more UEs.
-    auto& pucch_resources                       = cfg.ran.cells[0].ran.init_bwp_builder.pucch.resources;
+    auto& pucch_resources                       = cfg.ran.cells[0].ran.init_bwp.pucch.resources;
     pucch_resources.nof_cell_sr_resources       = 80;
     pucch_resources.nof_cell_csi_resources      = 80;
     pucch_resources.res_set_1_size              = 8;
@@ -746,8 +746,8 @@ public:
       // Synchronization point to avoid that the upper layer executors get starved.
       this->workers->wait_pending_tasks();
 
-      return not cfg.ran.cells[to_du_cell_index(0)].ran.tdd_ul_dl_cfg_common.has_value() or
-             not is_tdd_full_ul_slot(cfg.ran.cells[to_du_cell_index(0)].ran.tdd_ul_dl_cfg_common.value(),
+      return not cfg.ran.cells[to_du_cell_index(0)].ran.tdd_cfg.has_value() or
+             not is_tdd_full_ul_slot(cfg.ran.cells[to_du_cell_index(0)].ran.tdd_cfg.value(),
                                      slot_point(next_sl_tx.without_hyper_sfn() - tx_rx_delay - 1).slot_index());
     };
     report_fatal_error_if_not(run_slot_until(next_ul_slot), "No slot for Msg3 was detected");

@@ -8,6 +8,7 @@
 #include "ocudu/asn1/xnap/common.h"
 #include "ocudu/asn1/xnap/xnap_ies.h"
 #include "ocudu/asn1/xnap/xnap_pdu_contents.h"
+#include "ocudu/ran/plmn_identity.h"
 #include "ocudu/xnap/xnap_message.h"
 #include "ocudu/xnap/xnap_types.h"
 
@@ -15,7 +16,7 @@ using namespace ocudu;
 using namespace ocucp;
 using namespace asn1::xnap;
 
-xnap_message ocudu::ocucp::test_helpers::generate_handover_request(local_xnap_ue_id_t local_xnap_ue_id)
+xnap_message ocudu::ocucp::generate_handover_request(local_xnap_ue_id_t local_xnap_ue_id)
 {
   xnap_message xnap_msg;
 
@@ -28,7 +29,7 @@ xnap_message ocudu::ocucp::test_helpers::generate_handover_request(local_xnap_ue
   ho_request->cause.set_radio_network() =
       asn1::xnap::cause_radio_network_layer_opts::options::ho_desirable_for_radio_reasons;
   ho_request->target_cell_global_id.set_nr() =
-      cgi_to_asn1(nr_cell_global_id_t{plmn_identity::test_value(), nr_cell_identity::create({1, 22}, 1).value()});
+      cgi_to_asn1(nr_cell_global_id_t{plmn_identity::test_value(), nr_cell_identity::create({411, 22}, 0).value()});
   ho_request->guami = guami_to_asn1(
       guami_t{.plmn = plmn_identity::test_value(), .amf_set_id = 1, .amf_pointer = 1, .amf_region_id = 1});
   ho_request->ue_context_info_ho_request.ng_c_ue_ref = 1;
@@ -39,9 +40,9 @@ xnap_message ocudu::ocucp::test_helpers::generate_handover_request(local_xnap_ue
   ho_request->ue_context_info_ho_request.ue_security_cap.nr_encyption_algorithms.from_number(49152);
   ho_request->ue_context_info_ho_request.ue_security_cap.nr_integrity_protection_algorithms.from_number(49152);
   ho_request->ue_context_info_ho_request.security_info.key_ng_ran_star.from_string(
-      "101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101"
-      "0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101"
-      "010101010101010101010101010101010");
+      "1111111000001101100111110001011010001110110010111010001100110111100111011000110110011010000110000011000010111000"
+      "0010001100001010000001111111100000100111101011000011110000110101110010001010001010101000101100101100100000001110"
+      "00010001000110001101110101100110");
   ho_request->ue_context_info_ho_request.ue_ambr.dl_ue_ambr = 1000000000;
   ho_request->ue_context_info_ho_request.ue_ambr.ul_ue_ambr = 1000000000;
 
@@ -57,6 +58,7 @@ xnap_message ocudu::ocucp::test_helpers::generate_handover_request(local_xnap_ue
   qos_flows_to_be_setup_item_s qos_flow_item;
   qos_flow_item.qfi = 1;
   qos_flow_item.qos_flow_level_qos_params.qos_characteristics.set_non_dyn();
+  qos_flow_item.qos_flow_level_qos_params.qos_characteristics.non_dyn().five_qi = 9;
   qos_flow_item.qos_flow_level_qos_params.alloc_and_retention_prio.pre_emption_cap =
       asn1::xnap::allocand_retention_prio_s::pre_emption_cap_opts::options::shall_not_trigger_preemption;
   qos_flow_item.qos_flow_level_qos_params.alloc_and_retention_prio.pre_emption_vulnerability =
@@ -65,10 +67,20 @@ xnap_message ocudu::ocucp::test_helpers::generate_handover_request(local_xnap_ue
   pdu_session_item.qos_flows_to_be_setup_list.push_back(qos_flow_item);
   ho_request->ue_context_info_ho_request.pdu_session_res_to_be_setup_list.push_back(pdu_session_item);
 
+  ho_request->ue_context_info_ho_request.rrc_context =
+      make_byte_buffer(
+          "00217b8680ce811d1960097e360e1317000183f1300098a09a00000020400f13400389a00000000e268208010010134a0f0040000000"
+          "00000040000000247001040000259650100400002596500052388008404008010100200400200801052050")
+          .value();
+
+  asn1::xnap::last_visited_cell_item_c last_visited_cell;
+  last_visited_cell.set_ng_ran_cell() = make_byte_buffer("0000f11000066c0000800000").value();
+  ho_request->ue_history_info.push_back(last_visited_cell);
+
   return xnap_msg;
 }
 
-xnap_message ocudu::ocucp::test_helpers::generate_handover_preparation_failure(local_xnap_ue_id_t local_xnap_ue_id)
+xnap_message ocudu::ocucp::generate_handover_preparation_failure(peer_xnap_ue_id_t peer_xnap_ue_id)
 {
   xnap_message xnap_msg;
 
@@ -77,7 +89,7 @@ xnap_message ocudu::ocucp::test_helpers::generate_handover_preparation_failure(l
 
   auto& ho_prep_fail = xnap_msg.pdu.unsuccessful_outcome().value.ho_prep_fail();
 
-  ho_prep_fail->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
+  ho_prep_fail->source_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(peer_xnap_ue_id);
 
   // Fill cause.
   ho_prep_fail->cause.set_radio_network() = asn1::xnap::cause_radio_network_layer_opts::options::unspecified;
@@ -85,8 +97,8 @@ xnap_message ocudu::ocucp::test_helpers::generate_handover_preparation_failure(l
   return xnap_msg;
 }
 
-xnap_message ocudu::ocucp::test_helpers::generate_handover_request_ack(local_xnap_ue_id_t local_xnap_ue_id,
-                                                                       peer_xnap_ue_id_t  peer_xnap_ue_id)
+xnap_message ocudu::ocucp::generate_handover_request_ack(local_xnap_ue_id_t local_xnap_ue_id,
+                                                         peer_xnap_ue_id_t  peer_xnap_ue_id)
 {
   xnap_message xnap_msg;
 
@@ -95,8 +107,8 @@ xnap_message ocudu::ocucp::test_helpers::generate_handover_request_ack(local_xna
 
   auto& ho_request_ack = xnap_msg.pdu.successful_outcome().value.ho_request_ack();
 
-  ho_request_ack->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
-  ho_request_ack->target_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(peer_xnap_ue_id);
+  ho_request_ack->source_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(peer_xnap_ue_id);
+  ho_request_ack->target_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
 
   // Fill target to source ng ran node transparent container.
   // Create RRC container.
@@ -112,6 +124,45 @@ xnap_message ocudu::ocucp::test_helpers::generate_handover_request_ack(local_xna
           "020000002086020406080706800071c40000002004000806000809002200a60000231002271c00600040")
           .value();
   ho_request_ack->target2_source_ng_ra_nnode_transp_container = std::move(rrc_container);
+
+  return xnap_msg;
+}
+
+xnap_message ocudu::ocucp::generate_sn_status_transfer(local_xnap_ue_id_t local_xnap_ue_id,
+                                                       peer_xnap_ue_id_t  peer_xnap_ue_id)
+{
+  xnap_message xnap_msg;
+
+  xnap_msg.pdu.set_init_msg();
+  xnap_msg.pdu.init_msg().load_info_obj(ASN1_XNAP_ID_S_N_STATUS_TRANSFER);
+
+  auto& sn_status_transfer = xnap_msg.pdu.init_msg().value.sn_status_transfer();
+
+  sn_status_transfer->source_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
+  sn_status_transfer->target_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(peer_xnap_ue_id);
+
+  drbs_subject_to_status_transfer_item_s drb_item;
+  drb_item.drb_id = 1;
+  drb_item.pdcp_status_transfer_ul.set_pdcp_sn_12bits();
+  drb_item.pdcp_status_transfer_dl.set_pdcp_sn_12bits();
+
+  sn_status_transfer->drbs_subject_to_status_transfer_list.push_back(drb_item);
+
+  return xnap_msg;
+}
+
+xnap_message ocudu::ocucp::generate_ue_context_release(local_xnap_ue_id_t local_xnap_ue_id,
+                                                       peer_xnap_ue_id_t  peer_xnap_ue_id)
+{
+  xnap_message xnap_msg;
+
+  xnap_msg.pdu.set_init_msg();
+  xnap_msg.pdu.init_msg().load_info_obj(ASN1_XNAP_ID_U_E_CONTEXT_RELEASE);
+
+  auto& ue_context_release = xnap_msg.pdu.init_msg().value.ue_context_release();
+
+  ue_context_release->source_ng_ra_nnode_ue_xn_ap_id = peer_xnap_ue_id_to_uint(peer_xnap_ue_id);
+  ue_context_release->target_ng_ra_nnode_ue_xn_ap_id = local_xnap_ue_id_to_uint(local_xnap_ue_id);
 
   return xnap_msg;
 }

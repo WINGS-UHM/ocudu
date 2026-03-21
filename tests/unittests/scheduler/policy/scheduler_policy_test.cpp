@@ -19,6 +19,8 @@
 #include "ocudu/adt/unique_function.h"
 #include "ocudu/ran/qos/five_qi_qos_mapping.h"
 #include "ocudu/scheduler/config/logical_channel_config_factory.h"
+#include "ocudu/scheduler/config/ran_cell_config_helper.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -124,9 +126,10 @@ protected:
                                                        const std::initializer_list<lcid_t>& lcids_to_activate,
                                                        lcg_id_t                             lcg_id)
   {
-    sched_ue_creation_request_message req = sched_config_helper::create_default_sched_ue_creation_request(params);
-    req.ue_index                          = ue_index;
-    req.crnti                             = rnti;
+    sched_ue_creation_request_message req =
+        sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
+    req.ue_index = ue_index;
+    req.crnti    = rnti;
     // Set LCG ID for SRBs provided in the LCIDs to activate list.
     for (auto& lc_cfg : *req.cfg.lc_config_list) {
       if (lc_cfg.lcid < lcid_t::LCID_SRB2 and
@@ -199,8 +202,7 @@ protected:
     base_scheduler_policy_test(test_params{.policy = GetParam(), .cell_cfg_req = []() {
                                              auto cell_req =
                                                  sched_config_helper::make_default_sched_cell_configuration_request();
-                                             cell_req.ran.init_bwp_builder.pdcch_cfg->search_spaces =
-                                                 make_search_spaces();
+                                             cell_req.ran.init_bwp.pdcch_cfg->search_spaces = make_search_spaces();
                                              return cell_req;
                                            }()})
   {
@@ -232,7 +234,7 @@ TEST_P(scheduler_policy_css_test, when_coreset0_used_then_dl_grant_is_within_bou
 
   ASSERT_FALSE(this->res_grid[0].result.dl.ue_grants.empty());
   ASSERT_EQ(this->res_grid[0].result.dl.ue_grants.back().context.ue_index, u.ue_index);
-  crb_interval crbs         = cell_cfg.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs();
+  crb_interval crbs         = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->coreset0_crbs();
   prb_interval alloced_prbs = prb_interval{this->res_grid[0].result.dl.ue_grants.back().pdsch_cfg.rbs.type1().start(),
                                            this->res_grid[0].result.dl.ue_grants.back().pdsch_cfg.rbs.type1().stop()};
   ASSERT_EQ(prb_to_crb(crbs, alloced_prbs), crbs);
@@ -277,7 +279,7 @@ TEST_P(scheduler_policy_test, scheduler_allocates_more_than_one_ue_in_case_their
   ASSERT_NE(this->res_grid[0].result.dl.ul_pdcchs[0].ctx.rnti, this->res_grid[0].result.dl.ul_pdcchs[1].ctx.rnti);
   // NOTE: Both UEs have same PUSCH time domain resources configured.
   span<const pusch_time_domain_resource_allocation> pusch_td_res_list =
-      u1.get_pcell().cfg().cell_cfg_common.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
+      u1.get_pcell().cfg().cell_cfg_common.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
   // In default UE dedicated configuration, SearchSpace#2 is configured to use DCI format 1_1/0_1.
   if (this->res_grid[0].result.dl.ul_pdcchs[0].dci.c_rnti_f0_1.time_resource ==
       this->res_grid[0].result.dl.ul_pdcchs[1].dci.c_rnti_f0_1.time_resource) {
@@ -314,7 +316,7 @@ TEST_P(scheduler_policy_test, scheduler_allocates_ues_with_sr_opportunity_first_
   ue&       u2     = add_ue(make_ue_create_req(to_du_ue_index(1), to_rnti(0x4602), {uint_to_lcid(5)}, lcg_id));
 
   notify_ul_bsr(u1.ue_index, lcg_id, 200);
-  u2.handle_sr_indication();
+  u2.handle_sr_indication(next_slot);
 
   run_slot();
 
@@ -529,7 +531,7 @@ TEST_F(scheduler_round_robin_test, round_robin_must_not_attempt_to_allocate_twic
   // Action: Push buffer status notification for DL + Ul and a SR indication.
   push_dl_bs(u1.ue_index, uint_to_lcid(5), 20000000);
   notify_ul_bsr(u1.ue_index, lcg_id, 2000000);
-  u1.handle_sr_indication();
+  u1.handle_sr_indication(next_slot);
 
   // Action: Run for at least 256 slots or more so that there are some HARQs with pending reTx.
   // Status: Policy scheduler should not allocate reTx and new Tx for the same UE at the same time.
@@ -733,7 +735,7 @@ TEST_P(scheduler_pf_qos_test, pf_upholds_qos_in_dl_gbr_flows)
   // Add UE with no GBR bearer.
   ue& ue_with_no_gbr = add_ue(make_ue_create_req(to_du_ue_index(1), to_rnti(0x4602), {non_gbr_bearer_lcid}, lcg_id));
 
-  const double expected_rate = to_bytes_per_slot(brate, cell_cfg.dl_cfg_common.init_dl_bwp.generic_params.scs);
+  const double expected_rate = to_bytes_per_slot(brate, cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs);
 
   push_dl_bs(ue_with_gbr.ue_index, gbr_bearer_lcid, expected_rate);
   push_dl_bs(ue_with_no_gbr.ue_index, non_gbr_bearer_lcid, 1000000);

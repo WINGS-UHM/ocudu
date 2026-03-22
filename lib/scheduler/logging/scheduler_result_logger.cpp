@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "scheduler_result_logger.h"
+#include "ocudu/adt/type_list_buffer.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/csi_report/csi_report_formatters.h"
 #include "ocudu/scheduler/result/sched_result.h"
@@ -155,19 +156,6 @@ static auto make_dl_pdcch_log_entry(const pdcch_dl_information& pdcch)
   });
 }
 
-static auto make_dl_pdcch_log_list(const pdcch_dl_info_list& pdcchs, bool log_broadcast)
-{
-  using pdcch_entry_type = decltype(make_dl_pdcch_log_entry(std::declval<pdcch_dl_information>()));
-  static_vector<pdcch_entry_type, MAX_DL_PDCCH_PDUS_PER_SLOT> list;
-  for (const pdcch_dl_information& pdcch : pdcchs) {
-    if (not log_broadcast and pdcch.ctx.rnti == rnti_t::SI_RNTI) {
-      continue;
-    }
-    list.push_back(make_dl_pdcch_log_entry(pdcch));
-  }
-  return list;
-}
-
 static auto make_ul_pdcch_log_entry(const pdcch_ul_information& pdcch)
 {
   return make_formattable([rnti     = pdcch.ctx.rnti,
@@ -207,20 +195,6 @@ static auto make_sib_info_log_entry(const sib_information& sib_info)
   });
 }
 
-static auto make_sib_info_log_list(const static_vector<sib_information, MAX_SI_PDUS_PER_SLOT>& sibs, bool log_broadcast)
-{
-  using sib_entry_type = decltype(make_sib_info_log_entry(std::declval<sib_information>()));
-
-  static_vector<sib_entry_type, MAX_SI_PDUS_PER_SLOT> list;
-  if (log_broadcast) {
-    for (const sib_information& sib : sibs) {
-      list.push_back(make_sib_info_log_entry(sib));
-    }
-  }
-
-  return list;
-}
-
 static auto make_rar_info_log_entry(const rar_information& rar_info)
 {
   return make_formattable([rnti = rar_info.pdsch_cfg.rnti,
@@ -228,18 +202,6 @@ static auto make_rar_info_log_entry(const rar_information& rar_info)
                            tbs  = rar_info.pdsch_cfg.codewords[0].tb_size_bytes](auto& ctx) {
     return fmt::format_to(ctx.out(), "RAR: ra-rnti={} rb={} tbs={}", rnti, rb, tbs);
   });
-}
-
-static auto make_rar_info_log_list(const static_vector<rar_information, MAX_RAR_PDUS_PER_SLOT>& rars)
-{
-  using rar_entry_type = decltype(make_rar_info_log_entry(std::declval<rar_information>()));
-
-  static_vector<rar_entry_type, MAX_RAR_PDUS_PER_SLOT> list;
-  for (const rar_information& rar : rars) {
-    list.push_back(make_rar_info_log_entry(rar));
-  }
-
-  return list;
 }
 
 static auto make_ue_dl_msg_info_log_entry(const dl_msg_alloc& ue_msg)
@@ -271,18 +233,6 @@ static auto make_ue_dl_msg_info_log_entry(const dl_msg_alloc& ue_msg)
     }
     return ctx.out();
   });
-}
-
-static auto make_ue_dl_msg_info_log_list(const static_vector<dl_msg_alloc, MAX_UE_PDUS_PER_SLOT>& ue_msgs)
-{
-  using entry_type = decltype(make_ue_dl_msg_info_log_entry(std::declval<dl_msg_alloc>()));
-
-  static_vector<entry_type, MAX_UE_PDUS_PER_SLOT> list;
-  for (const dl_msg_alloc& ue_msg : ue_msgs) {
-    list.push_back(make_ue_dl_msg_info_log_entry(ue_msg));
-  }
-
-  return list;
 }
 
 static auto make_ue_ul_msg_info_log_entry(const ul_sched_info& ue_msg)
@@ -317,18 +267,6 @@ static auto make_ue_ul_msg_info_log_entry(const ul_sched_info& ue_msg)
   });
 }
 
-static auto make_ue_ul_msg_info_log_list(const static_vector<ul_sched_info, MAX_UE_PDUS_PER_SLOT>& ue_msgs)
-{
-  using entry_type = decltype(make_ue_ul_msg_info_log_entry(std::declval<ul_sched_info>()));
-
-  static_vector<entry_type, MAX_UE_PDUS_PER_SLOT> list;
-  for (const ul_sched_info& ue_msg : ue_msgs) {
-    list.push_back(make_ue_ul_msg_info_log_entry(ue_msg));
-  }
-
-  return list;
-}
-
 static auto make_paging_info_log_entry(const dl_paging_allocation& pg_info)
 {
   return make_formattable([rb             = pg_info.pdsch_cfg.rbs,
@@ -347,34 +285,43 @@ static auto make_paging_info_log_entry(const dl_paging_allocation& pg_info)
   });
 }
 
-static auto make_paging_info_log_list(const static_vector<dl_paging_allocation, MAX_PAGING_PDUS_PER_SLOT>& pg_list)
-{
-  using entry_type = decltype(make_paging_info_log_entry(std::declval<dl_paging_allocation>()));
-
-  static_vector<entry_type, MAX_UE_PDUS_PER_SLOT> list;
-  for (const dl_paging_allocation& pg_alloc : pg_list) {
-    list.push_back(make_paging_info_log_entry(pg_alloc));
-  }
-
-  return list;
-}
-
 static auto make_info_log_entry(const sched_result& result, bool log_broadcast)
 {
-  return make_formattable([sibs    = make_sib_info_log_list(result.dl.bc.sibs, log_broadcast),
-                           rars    = make_rar_info_log_list(result.dl.rar_grants),
-                           ue_msgs = make_ue_dl_msg_info_log_list(result.dl.ue_grants),
-                           puschs  = make_ue_ul_msg_info_log_list(result.ul.puschs),
-                           pgs     = make_paging_info_log_list(result.dl.paging_grants)](auto& ctx) {
-    fmt::format_to(ctx.out(), "{}", fmt::join(sibs.begin(), sibs.end(), ", "));
-    const char* sep = sibs.empty() ? "" : ", ";
-    fmt::format_to(ctx.out(), "{}{}", rars.empty() ? "" : sep, fmt::join(rars.begin(), rars.end(), ", "));
-    sep = rars.empty() ? sep : ", ";
-    fmt::format_to(ctx.out(), "{}{}", ue_msgs.empty() ? "" : sep, fmt::join(ue_msgs.begin(), ue_msgs.end(), ", "));
-    sep = ue_msgs.empty() ? sep : ", ";
-    fmt::format_to(ctx.out(), "{}{}", puschs.empty() ? "" : sep, fmt::join(puschs.begin(), puschs.end(), ", "));
-    sep = puschs.empty() ? sep : ", ";
-    fmt::format_to(ctx.out(), "{}{}", pgs.empty() ? "" : sep, fmt::join(pgs.begin(), pgs.end(), ", "));
+  using sib_entry_t    = decltype(make_sib_info_log_entry(std::declval<sib_information>()));
+  using rar_entry_t    = decltype(make_rar_info_log_entry(std::declval<rar_information>()));
+  using ue_dl_entry_t  = decltype(make_ue_dl_msg_info_log_entry(std::declval<dl_msg_alloc>()));
+  using ue_ul_entry_t  = decltype(make_ue_ul_msg_info_log_entry(std::declval<ul_sched_info>()));
+  using paging_entry_t = decltype(make_paging_info_log_entry(std::declval<dl_paging_allocation>()));
+
+  type_list_buffer_stream<sib_entry_t, rar_entry_t, ue_dl_entry_t, ue_ul_entry_t, paging_entry_t> entries;
+
+  if (log_broadcast) {
+    for (const auto& sib : result.dl.bc.sibs) {
+      entries.push(make_sib_info_log_entry(sib));
+    }
+  }
+  for (const auto& rar : result.dl.rar_grants) {
+    entries.push(make_rar_info_log_entry(rar));
+  }
+  for (const auto& ue_msg : result.dl.ue_grants) {
+    entries.push(make_ue_dl_msg_info_log_entry(ue_msg));
+  }
+  for (const auto& ue_msg : result.ul.puschs) {
+    entries.push(make_ue_ul_msg_info_log_entry(ue_msg));
+  }
+  for (const auto& pg : result.dl.paging_grants) {
+    entries.push(make_paging_info_log_entry(pg));
+  }
+
+  return make_formattable([entries = std::move(entries)](auto& ctx) {
+    bool first = true;
+    entries.for_each([&ctx, &first](const auto& entry) {
+      if (!first) {
+        fmt::format_to(ctx.out(), ", ");
+      }
+      fmt::format_to(ctx.out(), "{}", entry);
+      first = false;
+    });
     return ctx.out();
   });
 }
@@ -695,33 +642,80 @@ static auto make_prach_debug_log_entry(const prach_occasion_info& prach)
 
 static auto make_debug_log_entry(const sched_result& result, bool log_broadcast)
 {
-  return make_formattable(
-      [ssbs      = format_each(result.dl.bc.ssb_info, make_ssb_debug_log_entry, log_broadcast),
-       dl_pdcchs = make_dl_pdcch_log_list(result.dl.dl_pdcchs, log_broadcast),
-       ul_pdcchs = format_each(result.dl.ul_pdcchs, make_ul_pdcch_log_entry),
-       csi_rs    = format_each(result.dl.csi_rs, make_csi_rs_log_entry, log_broadcast),
-       sibs      = format_each(result.dl.bc.sibs, make_sib_debug_log_entry, log_broadcast),
-       rars      = format_each(result.dl.rar_grants, make_rar_debug_log_entry),
-       ue_grants = format_each(result.dl.ue_grants, make_ue_dl_msg_debug_log_entry),
-       paging    = format_each(result.dl.paging_grants, make_paging_debug_log_entry),
-       puschs    = format_each(result.ul.puschs, make_pusch_debug_log_entry),
-       pucchs    = format_each(result.ul.pucchs, make_pucch_debug_log_entry),
-       srss      = format_each(result.ul.srss, make_srs_debug_log_entry),
-       prachs    = format_each(result.ul.prachs, make_prach_debug_log_entry, log_broadcast)](auto& ctx) {
-        fmt::format_to(ctx.out(), "{}", fmt::join(ssbs.begin(), ssbs.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(dl_pdcchs.begin(), dl_pdcchs.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(ul_pdcchs.begin(), ul_pdcchs.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(csi_rs.begin(), csi_rs.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(sibs.begin(), sibs.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(rars.begin(), rars.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(ue_grants.begin(), ue_grants.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(paging.begin(), paging.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(puschs.begin(), puschs.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(pucchs.begin(), pucchs.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(srss.begin(), srss.end(), ""));
-        fmt::format_to(ctx.out(), "{}", fmt::join(prachs.begin(), prachs.end(), ""));
-        return ctx.out();
-      });
+  using ssb_entry_t      = decltype(make_ssb_debug_log_entry(std::declval<ssb_information>()));
+  using dl_pdcch_entry_t = decltype(make_dl_pdcch_log_entry(std::declval<pdcch_dl_information>()));
+  using ul_pdcch_entry_t = decltype(make_ul_pdcch_log_entry(std::declval<pdcch_ul_information>()));
+  using csi_rs_entry_t   = decltype(make_csi_rs_log_entry(std::declval<csi_rs_info>()));
+  using sib_entry_t      = decltype(make_sib_debug_log_entry(std::declval<sib_information>()));
+  using rar_entry_t      = decltype(make_rar_debug_log_entry(std::declval<rar_information>()));
+  using ue_grant_entry_t = decltype(make_ue_dl_msg_debug_log_entry(std::declval<dl_msg_alloc>()));
+  using paging_entry_t   = decltype(make_paging_debug_log_entry(std::declval<dl_paging_allocation>()));
+  using pusch_entry_t    = decltype(make_pusch_debug_log_entry(std::declval<ul_sched_info>()));
+  using pucch_entry_t    = decltype(make_pucch_debug_log_entry(std::declval<pucch_info>()));
+  using srs_entry_t      = decltype(make_srs_debug_log_entry(std::declval<srs_info>()));
+  using prach_entry_t    = decltype(make_prach_debug_log_entry(std::declval<prach_occasion_info>()));
+
+  type_list_buffer_stream<ssb_entry_t,
+                          dl_pdcch_entry_t,
+                          ul_pdcch_entry_t,
+                          csi_rs_entry_t,
+                          sib_entry_t,
+                          rar_entry_t,
+                          ue_grant_entry_t,
+                          paging_entry_t,
+                          pusch_entry_t,
+                          pucch_entry_t,
+                          srs_entry_t,
+                          prach_entry_t>
+      entries;
+
+  if (log_broadcast) {
+    for (const auto& ssb : result.dl.bc.ssb_info) {
+      entries.push(make_ssb_debug_log_entry(ssb));
+    }
+    for (const auto& csi : result.dl.csi_rs) {
+      entries.push(make_csi_rs_log_entry(csi));
+    }
+    for (const auto& sib : result.dl.bc.sibs) {
+      entries.push(make_sib_debug_log_entry(sib));
+    }
+  }
+  for (const auto& pdcch : result.dl.dl_pdcchs) {
+    if (log_broadcast or pdcch.ctx.rnti != rnti_t::SI_RNTI) {
+      entries.push(make_dl_pdcch_log_entry(pdcch));
+    }
+  }
+  for (const auto& pdcch : result.dl.ul_pdcchs) {
+    entries.push(make_ul_pdcch_log_entry(pdcch));
+  }
+  for (const auto& rar : result.dl.rar_grants) {
+    entries.push(make_rar_debug_log_entry(rar));
+  }
+  for (const auto& grant : result.dl.ue_grants) {
+    entries.push(make_ue_dl_msg_debug_log_entry(grant));
+  }
+  for (const auto& pg : result.dl.paging_grants) {
+    entries.push(make_paging_debug_log_entry(pg));
+  }
+  for (const auto& pusch : result.ul.puschs) {
+    entries.push(make_pusch_debug_log_entry(pusch));
+  }
+  for (const auto& pucch : result.ul.pucchs) {
+    entries.push(make_pucch_debug_log_entry(pucch));
+  }
+  for (const auto& srs : result.ul.srss) {
+    entries.push(make_srs_debug_log_entry(srs));
+  }
+  if (log_broadcast) {
+    for (const auto& prach : result.ul.prachs) {
+      entries.push(make_prach_debug_log_entry(prach));
+    }
+  }
+
+  return make_formattable([entries = std::move(entries)](auto& ctx) {
+    entries.for_each([&ctx](const auto& entry) { fmt::format_to(ctx.out(), "{}", entry); });
+    return ctx.out();
+  });
 }
 
 scheduler_result_logger::scheduler_result_logger(bool log_broadcast_, pci_t pci_) :

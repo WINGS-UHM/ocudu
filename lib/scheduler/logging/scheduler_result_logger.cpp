@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "scheduler_result_logger.h"
+#include "ocudu/adt/byte_buffer.h"
 #include "ocudu/adt/type_list_buffer.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/csi_report/csi_report_formatters.h"
@@ -293,7 +294,9 @@ static auto make_info_log_entry(const sched_result& result, bool log_broadcast)
   using ue_ul_entry_t  = decltype(make_ue_ul_msg_info_log_entry(std::declval<ul_sched_info>()));
   using paging_entry_t = decltype(make_paging_info_log_entry(std::declval<dl_paging_allocation>()));
 
-  type_list_buffer_stream<sib_entry_t, rar_entry_t, ue_dl_entry_t, ue_ul_entry_t, paging_entry_t> entries;
+  auto entries = type_list_buffer_stream<sib_entry_t, rar_entry_t, ue_dl_entry_t, ue_ul_entry_t, paging_entry_t>::make(
+                     get_default_fallback_byte_buffer_segment_pool())
+                     .value();
 
   if (log_broadcast) {
     for (const auto& sib : result.dl.bc.sibs) {
@@ -655,19 +658,19 @@ static auto make_debug_log_entry(const sched_result& result, bool log_broadcast)
   using srs_entry_t      = decltype(make_srs_debug_log_entry(std::declval<srs_info>()));
   using prach_entry_t    = decltype(make_prach_debug_log_entry(std::declval<prach_occasion_info>()));
 
-  type_list_buffer_stream<ssb_entry_t,
-                          dl_pdcch_entry_t,
-                          ul_pdcch_entry_t,
-                          csi_rs_entry_t,
-                          sib_entry_t,
-                          rar_entry_t,
-                          ue_grant_entry_t,
-                          paging_entry_t,
-                          pusch_entry_t,
-                          pucch_entry_t,
-                          srs_entry_t,
-                          prach_entry_t>
-      entries;
+  auto entries = type_list_buffer_stream<ssb_entry_t,
+                                         dl_pdcch_entry_t,
+                                         ul_pdcch_entry_t,
+                                         csi_rs_entry_t,
+                                         sib_entry_t,
+                                         rar_entry_t,
+                                         ue_grant_entry_t,
+                                         paging_entry_t,
+                                         pusch_entry_t,
+                                         pucch_entry_t,
+                                         srs_entry_t,
+                                         prach_entry_t>::make(get_default_fallback_byte_buffer_segment_pool())
+                     .value();
 
   if (log_broadcast) {
     for (const auto& ssb : result.dl.bc.ssb_info) {

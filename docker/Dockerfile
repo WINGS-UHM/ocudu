@@ -78,22 +78,24 @@ RUN if [ -z "$NUM_JOBS" ]; then NUM_JOBS=$(nproc); fi \
     /src/docker/scripts/builder.sh -c ${COMPILER} -m "-j${NUM_JOBS} ocu odu odu_split_8 odu_split_7_2 gnb gnb_split_8 gnb_split_7_2 ru_emulator" \
     -DBUILD_TESTING=False -DENABLE_UHD=On -DENABLE_DPDK=On ${ARCH_FLAG} -DCMAKE_INSTALL_PREFIX=/opt/ocudu \
     ${EXTRA_CMAKE_ARGS} /src
-RUN cp /src/build/apps/cu/ocu             /tmp/ocu                     && \
-    cp /src/build/apps/du/odu             /tmp/odu                     && \
-    cp /src/build/apps/du_split_8/odu     /tmp/odu_split_8             && \
-    cp /src/build/apps/du_split_7_2/odu   /tmp/odu_split_7_2           && \
-    cp /src/build/apps/gnb/gnb            /tmp/gnb                     && \
-    cp /src/build/apps/gnb_split_8/gnb    /tmp/gnb_split_8             && \
-    cp /src/build/apps/gnb_split_7_2/gnb  /tmp/gnb_split_7_2           && \
-    cd /src/build                                                      && \
-    make install                                                       && \
-    mv /tmp/ocu                           /opt/ocudu/bin/ocu           && \
-    mv /tmp/odu                           /opt/ocudu/bin/odu           && \
-    mv /tmp/odu_split_8                   /opt/ocudu/bin/odu_split_8   && \
-    mv /tmp/odu_split_7_2                 /opt/ocudu/bin/odu_split_7_2 && \
-    mv /tmp/gnb                           /opt/ocudu/bin/gnb           && \
-    mv /tmp/gnb_split_8                   /opt/ocudu/bin/gnb_split_8   && \
-    mv /tmp/gnb_split_7_2                 /opt/ocudu/bin/gnb_split_7_2 && \
+RUN cp /src/build/apps/cu/ocu                     /tmp/ocu                     && \
+    cp /src/build/apps/du/odu                     /tmp/odu                     && \
+    cp /src/build/apps/du_split_8/odu             /tmp/odu_split_8             && \
+    cp /src/build/apps/du_split_7_2/odu           /tmp/odu_split_7_2           && \
+    cp /src/build/apps/gnb/gnb                    /tmp/gnb                     && \
+    cp /src/build/apps/gnb_split_8/gnb            /tmp/gnb_split_8             && \
+    cp /src/build/apps/gnb_split_7_2/gnb          /tmp/gnb_split_7_2           && \
+    cp /src/build/apps/examples/ofh/ru_emulator   /tmp/ru_emulator             && \
+    cd /src/build                                                              && \
+    make install                                                               && \
+    mv /tmp/ocu                                   /opt/ocudu/bin/ocu           && \
+    mv /tmp/odu                                   /opt/ocudu/bin/odu           && \
+    mv /tmp/odu_split_8                           /opt/ocudu/bin/odu_split_8   && \
+    mv /tmp/odu_split_7_2                         /opt/ocudu/bin/odu_split_7_2 && \
+    mv /tmp/gnb                                   /opt/ocudu/bin/gnb           && \
+    mv /tmp/gnb_split_8                           /opt/ocudu/bin/gnb_split_8   && \
+    mv /tmp/gnb_split_7_2                         /opt/ocudu/bin/gnb_split_7_2 && \
+    mv /tmp/ru_emulator                           /opt/ocudu/bin/ru_emulator   && \
     rm -rf /src
 
 ################

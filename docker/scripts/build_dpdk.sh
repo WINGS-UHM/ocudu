@@ -15,13 +15,14 @@ main() {
     fi
 
     local dpdk_version=$1
-    local arch="${2:--march=native}"
+    local arch="${2:--Dcpu_instruction_set=native}"
     local ncores="${3:-$(nproc)}"
 
     cd /tmp
     curl -L "https://fast.dpdk.org/rel/dpdk-${dpdk_version}.tar.xz" | tar xJf -
     cd dpdk*"${dpdk_version}"
-    meson setup build --prefix "/opt/dpdk/${dpdk_version}" -Dc_args="${arch}" -Dcpp_args="${arch}"
+    read -ra arch_args <<< "${arch}"
+    meson setup build --prefix "/opt/dpdk/${dpdk_version}" "${arch_args[@]}"
     meson compile -j "${ncores}" -C build
     meson install -C build
 

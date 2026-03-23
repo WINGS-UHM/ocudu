@@ -393,10 +393,17 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
 
   logger.info("{} assoc={}: New client SCTP association (client_addr={})", node_cfg.if_name, assoc_id, assoc_ctxt.addr);
 
-  // If this was a pending outgoing connection, signal success.
-  auto pending_it = pending_connects.find(assoc_ctxt.addr);
-  if (pending_it != pending_connects.end()) {
-    pending_it->second.set(true);
+  // If this was a pending outgoing connection, defer to enqueue the success signal so that any tasks enqueued by the
+  // assoc_factory.create() callback can run before the awaiting coroutine resumes.
+  // Signaling inline here would resume the coroutine within this task, before the enqueued tasks that connect the
+  // notifiers have a chance to finish.
+  while (not app_exec.defer([this, addr = assoc_ctxt.addr]() {
+    auto pending_it = pending_connects.find(addr);
+    if (pending_it != pending_connects.end()) {
+      pending_it->second.set(true);
+    }
+  })) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
 

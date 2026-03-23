@@ -825,3 +825,24 @@ TEST(type_list_buffer_stream_test, shallow_copy_shares_elements)
   ASSERT_EQ(src.size(), 3u);
   ASSERT_EQ(c.size(), 3u);
 }
+
+TEST(type_list_buffer_stream_test, shallow_copy_defers_destruction_until_last_owner)
+{
+  counted::reset();
+
+  {
+    type_list_buffer_stream<counted, int> src;
+    src.emplace<counted>(11);
+    ASSERT_EQ(counted::constructions, 1);
+    ASSERT_EQ(counted::destructions, 0);
+
+    {
+      type_list_buffer_stream<counted, int> copy = src;
+      ASSERT_EQ(copy.size(), 1u);
+    }
+
+    ASSERT_EQ(counted::destructions, 0);
+  }
+
+  ASSERT_EQ(counted::destructions, counted::constructions);
+}

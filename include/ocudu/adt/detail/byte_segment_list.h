@@ -165,6 +165,9 @@ public:
     return total;
   }
 
+  /// Returns true if this is the last owner of the shared segment list.
+  bool unique() const noexcept { return ctrl_blk_ptr == nullptr || ctrl_blk_ptr.unique(); }
+
   /// Allocates a new segment and appends it to the list.
   /// \param size_hint Desired payload size; actual size depends on the pool block size.
   /// \returns True on success, false on allocation failure.

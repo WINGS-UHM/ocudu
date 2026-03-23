@@ -756,6 +756,9 @@ private:
   /// Calls the destructor of every \c view_t (which in turn destroys all stored objects).
   void destroy_all() noexcept
   {
+    if (!buf.unique()) {
+      return;
+    }
     for (auto seg : buf) {
       seg_to_view(seg)->~view_t();
     }

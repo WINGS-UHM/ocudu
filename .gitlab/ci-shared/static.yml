@@ -23,7 +23,6 @@ include:
   extends: .static
   rules:
     - if: $ON_MR
-      allow_failure: true
   script:
     - |
       check_headers() {

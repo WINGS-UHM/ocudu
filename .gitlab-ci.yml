@@ -153,9 +153,6 @@ warning about unapplied changes:
 ################################################################################
 headers:
   extends: .headers
-  rules:
-    - if: $ON_MR
-      allow_failure: false
   needs:
     - job: trigger static
       optional: true

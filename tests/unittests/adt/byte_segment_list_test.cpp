@@ -129,7 +129,7 @@ TEST_F(shared_byte_segment_list_test, shallow_copy_shares_control_block)
   auto list = make_list();
 
   span<uint8_t> seg = list.tail();
-  std::fill(seg.begin(), seg.end(), uint8_t{0xAB});
+  std::fill(seg.begin(), seg.end(), uint8_t{0xab});
 
   shared_byte_segment_list copy = list;
   ASSERT_FALSE(copy.empty());
@@ -139,7 +139,7 @@ TEST_F(shared_byte_segment_list_test, shallow_copy_shares_control_block)
   size_t total = 0;
   for (span<const uint8_t> cseg : copy) {
     for (uint8_t byte : cseg) {
-      ASSERT_EQ(byte, uint8_t{0xAB});
+      ASSERT_EQ(byte, uint8_t{0xab});
       ++total;
     }
   }
@@ -150,7 +150,7 @@ TEST_F(shared_byte_segment_list_test, original_still_valid_after_copy_destroyed)
 {
   auto          list = make_list();
   span<uint8_t> seg  = list.tail();
-  std::fill(seg.begin(), seg.end(), uint8_t{0xCD});
+  std::fill(seg.begin(), seg.end(), uint8_t{0xcd});
 
   {
     const shared_byte_segment_list copy = list;
@@ -160,7 +160,7 @@ TEST_F(shared_byte_segment_list_test, original_still_valid_after_copy_destroyed)
   ASSERT_FALSE(list.empty());
   for (span<const uint8_t> cseg : list) {
     for (uint8_t byte : cseg) {
-      ASSERT_EQ(byte, uint8_t{0xCD});
+      ASSERT_EQ(byte, uint8_t{0xcd});
     }
   }
 }

@@ -95,8 +95,8 @@ void format_debug_level(FormatContext& ctx, const Event& ev)
   } else if constexpr (std::is_same_v<Event, rach_indication_message>) {
     fmt::format_to(ctx.out(), "\n- RACH ind: slot_rx={} PRACHs: ", ev.slot_rx);
     unsigned count = 0;
-    for (unsigned i = 0; i != ev.occasions.size(); ++i) {
-      for (unsigned j = 0; j != ev.occasions[i].preambles.size(); ++j) {
+    for (unsigned i = 0, sz = ev.occasions.size(); i != sz; ++i) {
+      for (unsigned j = 0, e = ev.occasions[i].preambles.size(); j != e; ++j) {
         const auto& preamble = ev.occasions[i].preambles[j];
         fmt::format_to(ctx.out(),
                        "{}{}: preamble={} tc-rnti={} freq_idx={} start_symbol={} TA={}s",
@@ -153,7 +153,7 @@ void format_debug_level(FormatContext& ctx, const Event& ev)
     if (ev.type == bsr_format::LONG_BSR or ev.type == bsr_format::LONG_TRUNC_BSR or ev.reported_lcgs.full()) {
       std::array<int, MAX_NOF_LCGS> report;
       std::fill(report.begin(), report.end(), -1);
-      for (unsigned i = 0; i != ev.reported_lcgs.size(); ++i) {
+      for (unsigned i = 0, sz = ev.reported_lcgs.size(); i != sz; ++i) {
         report[ev.reported_lcgs[i].lcg_id] = ev.reported_lcgs[i].nof_bytes;
       }
       for (unsigned i = 0; i != MAX_NOF_LCGS; ++i) {
@@ -165,7 +165,7 @@ void format_debug_level(FormatContext& ctx, const Event& ev)
         }
       }
     } else {
-      for (unsigned i = 0; i != ev.reported_lcgs.size(); ++i) {
+      for (unsigned i = 0, sz = ev.reported_lcgs.size(); i != sz; ++i) {
         fmt::format_to(ctx.out(),
                        "{}{}: {}",
                        i == 0 ? "" : " ",
@@ -225,7 +225,7 @@ void format_debug_level(FormatContext& ctx, const Event& ev)
   } else if constexpr (std::is_same_v<Event, sel::slice_reconfiguration_event>) {
     fmt::format_to(ctx.out(), "\n- Slice Reconfig: cell={}", fmt::underlying(ev.cell_index));
   } else {
-    static_assert(false, "Detected event with no formatter");
+    report_fatal_error("Detected event with no formatter");
   }
 }
 

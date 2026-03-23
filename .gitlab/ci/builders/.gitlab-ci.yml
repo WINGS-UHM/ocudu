@@ -214,7 +214,7 @@ ubuntu-rohc-builder arm64:
       - os_version: "25.10"
         uhd_version: [] # "4.8.0.0" default
       - os_version: "26.04"
-        uhd_version: [] # "4.9.0.0" default
+        uhd_version: [] # "4.9.0.1" default
 
 ubuntu-uhd-builder avx2:
   extends: .ubuntu-uhd-builder
@@ -729,7 +729,7 @@ image-build-publish [ubuntu, 26.04, amd64]:
       parallel:
         matrix:
           - os_version: "26.04"
-            uhd_version: [] # "4.9.0.0" default
+            uhd_version: [] # "4.9.0.1" default
     - job: ubuntu-dpdk-builder avx2
       parallel:
         matrix:
@@ -758,7 +758,7 @@ image-build-publish [ubuntu, 26.04, arm64]:
       parallel:
         matrix:
           - os_version: "26.04"
-            uhd_version: [] # "4.9.0.0" default
+            uhd_version: [] # "4.9.0.1" default
     - job: ubuntu-dpdk-builder arm64
       parallel:
         matrix:

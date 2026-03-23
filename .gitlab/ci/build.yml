@@ -953,7 +953,7 @@ build uhd alt:
         UHD_VERSION: ["4.8.0.0"]
       - OS: [ubuntu-26.04]
         COMPILER: [gcc, clang]
-        UHD_VERSION: ["4.9.0.0"]
+        UHD_VERSION: ["4.9.0.1"]
 
 # Validate test gdb pretty printers
 

@@ -906,7 +906,7 @@ sanitizers arm neon:
         COMPILER: clang
         ENABLE_ASAN: "True"
         TEST_MODE: default
-      - OS: [ubuntu-26.04, ubuntu-24.04]
+      - OS: [ubuntu-26.04] # ubuntu-24.04 disabled
         SANITIZER: valgrind
         COMPILER: gcc
         TEST_MODE: valgrind

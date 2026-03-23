@@ -249,21 +249,6 @@ public:
   const_iterator end() const { return const_iterator{nullptr, 0}; }
   const_iterator cend() const { return const_iterator{nullptr, 0}; }
 
-  /// Returns the number of free bytes remaining in the last segment.
-  size_t tailroom_capacity() const { return empty() ? 0 : ctrl_blk_ptr->segments.tail->tailroom(); }
-
-  /// Returns a span over the bytes in the last segment.
-  span<uint8_t> tail_segment() noexcept
-  {
-    return empty() ? span<uint8_t>{}
-                   : span<uint8_t>{ctrl_blk_ptr->segments.tail->data(), ctrl_blk_ptr->segments.tail->length()};
-  }
-  span<const uint8_t> tail_segment() const noexcept
-  {
-    return empty() ? span<const uint8_t>{}
-                   : span<const uint8_t>{ctrl_blk_ptr->segments.tail->data(), ctrl_blk_ptr->segments.tail->length()};
-  }
-
   /// Test if byte buffer is contiguous in memory, i.e. it has only one segment.
   bool is_contiguous() const { return empty() or ctrl_blk_ptr->segments.head == ctrl_blk_ptr->segments.tail; }
 

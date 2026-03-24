@@ -112,7 +112,7 @@ static YAML::Node build_cu_cp_xnap_section(const cu_cp_unit_xnap_config& xnap_co
   node["procedure_timeout"] = xnap_config.procedure_timeout;
 
   for (const auto& xnap : xnap_config.connections) {
-    node.push_back(build_cu_cp_xnap_item_section(xnap));
+    node["connections"].push_back(build_cu_cp_xnap_item_section(xnap));
   }
 
   return node;

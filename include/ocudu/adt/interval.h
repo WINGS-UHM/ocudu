@@ -42,7 +42,7 @@ public:
   template <typename U, typename V>
   static constexpr interval start_and_len(U start_point, V dur)
   {
-    return interval(start_point, start_point + dur);
+    return interval(start_point, RightClosed ? start_point + dur - 1 : start_point + dur);
   }
 
   constexpr T start() const noexcept { return start_; }

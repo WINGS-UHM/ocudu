@@ -249,6 +249,9 @@ void xnc_connection_manager::handle_xnc_gw_connection_closed(xnc_peer_index_t xn
           CORO_EARLY_RETURN();
         }
 
+        // Clear any pending reconnection tasks for this peer before removing it.
+        xnaps.get_xnap_task_scheduler().clear_pending_tasks(xnc_idx);
+
         // Await for clean removal of the XNAP from the repository.
         CORO_AWAIT(xnaps.remove_xnap(xnc_idx));
 

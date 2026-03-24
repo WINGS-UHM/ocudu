@@ -11,7 +11,10 @@
 using namespace ocudu;
 using namespace ocucp;
 
-xnap_repository::xnap_repository(xnap_repository_config cfg_) : cfg(cfg_), logger(cfg.logger) {}
+xnap_repository::xnap_repository(xnap_repository_config cfg_) :
+  cfg(cfg_), logger(cfg.logger), xnc_task_sched(cfg.cu_cp.xnap.xnaps.size(), logger)
+{
+}
 
 std::map<xnc_peer_index_t, xnap_interface*> xnap_repository::get_xnaps()
 {

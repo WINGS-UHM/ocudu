@@ -61,6 +61,7 @@ set(SOURCES
         routines/mobility/conditional_handover_target_routine.cpp
         routines/positioning/trp_information_exchange_routine.cpp
         task_schedulers/ngap_task_scheduler.cpp
+        task_schedulers/xnap_task_scheduler.cpp
         ue_manager/cu_cp_ue_impl.cpp
         ue_manager/ue_manager_impl.cpp
         ue_manager/ue_task_scheduler_impl.cpp

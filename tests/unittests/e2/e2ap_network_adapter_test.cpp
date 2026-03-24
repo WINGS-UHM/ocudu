@@ -15,6 +15,7 @@
 #include "ocudu/support/async/async_test_utils.h"
 #include "ocudu/support/executors/inline_task_executor.h"
 #include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/task_worker.h"
 #include "ocudu/support/io/io_broker_factory.h"
 #include "ocudu/support/timers.h"
 #include <chrono>
@@ -207,7 +208,8 @@ protected:
   };
 
   inline_task_executor                              rx_executor;
-  inline_task_executor                              ctrl_executor;
+  task_worker                                       ctrl_worker{"sctp server", 1024};
+  task_worker_executor                              ctrl_executor{ctrl_worker};
   std::unique_ptr<io_broker>                        ric_broker;
   std::unique_ptr<io_broker>                        agent_broker;
   std::unique_ptr<sctp_network_association_factory> assoc_factory;

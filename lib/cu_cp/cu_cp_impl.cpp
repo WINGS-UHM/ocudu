@@ -117,16 +117,6 @@ cu_cp_impl::cu_cp_impl(const cu_cp_configuration& config_) :
   cell_meas_mobility_notifier.connect_mobility_manager(mobility_mng);
 
   conn_notifier.connect_node_connection_handler(controller);
-
-  // Start statistics report timer.
-  statistics_report_timer = cfg.services.timers->create_unique_timer(*cfg.services.cu_cp_executor);
-  statistics_report_timer.set(cfg.metrics.statistics_report_period,
-                              [this](timer_id_t /*tid*/) { on_statistics_report_timer_expired(); });
-  statistics_report_timer.run();
-  if (cfg.metrics_notifier != nullptr and cfg.metrics.metrics_report_period.count() != 0) {
-    periodic_metric_report_request metric_cfg{cfg.metrics.metrics_report_period, cfg.metrics_notifier};
-    metrics_session = metrics_hdlr->create_periodic_report_session(metric_cfg);
-  }
 }
 
 cu_cp_impl::~cu_cp_impl()
@@ -140,6 +130,16 @@ bool cu_cp_impl::start()
   std::future<bool>  fut = p.get_future();
 
   if (not cfg.services.cu_cp_executor->execute([this, &p]() {
+        // Start statistics report timer.
+        statistics_report_timer = cfg.services.timers->create_unique_timer(*cfg.services.cu_cp_executor);
+        statistics_report_timer.set(cfg.metrics.statistics_report_period,
+                                    [this](timer_id_t /*tid*/) { on_statistics_report_timer_expired(); });
+        statistics_report_timer.run();
+        if (cfg.metrics_notifier != nullptr and cfg.metrics.metrics_report_period.count() != 0) {
+          periodic_metric_report_request metric_cfg{cfg.metrics.metrics_report_period, cfg.metrics_notifier};
+          metrics_session = metrics_hdlr->create_periodic_report_session(metric_cfg);
+        }
+
         // Start AMF connection procedure.
         controller.amf_connection_handler().connect_to_amf(&p);
       })) {

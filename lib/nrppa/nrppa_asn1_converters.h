@@ -1194,9 +1194,11 @@ inline srs_configuration_t asn1_to_srs_configuration(const asn1::nrppa::srs_conf
       srs_res.id.ue_res_id = (srs_config::srs_res_id)asn1_srs_res.srs_res_id;
       srs_res.nof_ports    = (srs_config::srs_resource::nof_srs_ports)asn1_srs_res.nrof_srs_ports.to_number();
       if (asn1_srs_res.tx_comb.type() == asn1::nrppa::tx_comb_c::types_opts::options::n2) {
+        srs_res.tx_comb.size                 = tx_comb_size::n2;
         srs_res.tx_comb.tx_comb_offset       = asn1_srs_res.tx_comb.n2().comb_offset_n2;
         srs_res.tx_comb.tx_comb_cyclic_shift = asn1_srs_res.tx_comb.n2().cyclic_shift_n2;
       } else {
+        srs_res.tx_comb.size                 = tx_comb_size::n4;
         srs_res.tx_comb.tx_comb_offset       = asn1_srs_res.tx_comb.n4().comb_offset_n4;
         srs_res.tx_comb.tx_comb_cyclic_shift = asn1_srs_res.tx_comb.n4().cyclic_shift_n4;
       }

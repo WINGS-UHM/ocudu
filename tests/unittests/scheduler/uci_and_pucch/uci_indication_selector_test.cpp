@@ -226,6 +226,57 @@ TEST_F(uci_indication_selector_test, triggers_timeout_when_no_uci_indication_arr
   ASSERT_TRUE(ev.action.harq_ack_bits.none());
 }
 
+TEST_F(uci_indication_selector_test, large_slot_jump_beyond_timeout_wheel_forces_timeout_and_clears_state)
+{
+  const slot_point uci_slot = next_sl_tx;
+  selector.handle_result(next_sl_tx, make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 1)}));
+
+  next_sl_tx = next_sl_tx + timeout_slots + 1;
+  selector.handle_result(next_sl_tx, make_sched_result({}));
+
+  ASSERT_EQ(timeout_notifier.events.size(), 1U);
+  const auto& ev = timeout_notifier.events.front();
+  ASSERT_EQ(ev.sl_rx, uci_slot);
+  ASSERT_EQ(ev.crnti, first_rnti);
+  ASSERT_FALSE(ev.action.uci_valid);
+  ASSERT_EQ(ev.action.harq_ack_bits.size(), 1U);
+  ASSERT_TRUE(ev.action.harq_ack_bits.none());
+
+  auto late_action =
+      selector.handle_uci_ind_pdu(uci_slot, make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::ack}));
+  ASSERT_FALSE(late_action.has_value());
+
+  timeout_notifier.events.clear();
+  selector.handle_result(++next_sl_tx, make_sched_result({}));
+  ASSERT_TRUE(timeout_notifier.events.empty());
+}
+
+TEST_F(uci_indication_selector_test, large_slot_jump_beyond_timeout_wheel_preserves_partial_uci_action)
+{
+  const slot_point uci_slot = next_sl_tx;
+  selector.handle_result(next_sl_tx,
+                         make_sched_result({make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 2),
+                                            make_pucch_grant(first_rnti, pucch_format::FORMAT_1, 2, true)}));
+
+  auto first_action = selector.handle_uci_ind_pdu(
+      uci_slot,
+      make_f0_or_f1_pdu(first_rnti, {mac_harq_ack_report_status::ack, mac_harq_ack_report_status::nack}, true, 10.0F));
+  ASSERT_FALSE(first_action.has_value());
+
+  next_sl_tx = next_sl_tx + timeout_slots + 1;
+  selector.handle_result(next_sl_tx, make_sched_result({}));
+
+  ASSERT_EQ(timeout_notifier.events.size(), 1U);
+  const auto& ev = timeout_notifier.events.front();
+  ASSERT_EQ(ev.sl_rx, uci_slot);
+  ASSERT_EQ(ev.crnti, first_rnti);
+  ASSERT_TRUE(ev.action.uci_valid);
+  ASSERT_EQ(ev.action.harq_ack_bits.size(), 2U);
+  ASSERT_TRUE(ev.action.harq_ack_bits.test(0));
+  ASSERT_FALSE(ev.action.harq_ack_bits.test(1));
+  ASSERT_TRUE(ev.action.sr_detected);
+}
+
 TEST_F(uci_indication_selector_test, selects_pucch_with_highest_snr_for_multiple_expected_pucch_indications)
 {
   auto uci_slot = next_sl_tx;

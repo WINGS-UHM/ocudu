@@ -22,6 +22,7 @@ class xnc_connection_manager : public cu_cp_xnc_handler
 public:
   xnc_connection_manager(xnap_repository&        xnaps_,
                          xnc_connection_gateway* xnc_gw_,
+                         timer_manager&          timers_,
                          task_executor&          cu_cp_exec_,
                          common_task_scheduler&  common_task_sched_);
 
@@ -36,11 +37,14 @@ public:
   void stop();
 
 private:
+  void reconnect_peer(xnc_peer_index_t xnc_idx, const transport_layer_address& peer_addr);
+
   class shared_xnc_connection_context;
   class xnc_gw_to_cu_cp_pdu_adapter;
 
   xnap_repository&        xnaps;
   xnc_connection_gateway* xnc_gw;
+  timer_manager&          timers;
   task_executor&          cu_cp_exec;
   common_task_scheduler&  common_task_sched;
   ocudulog::basic_logger& logger;

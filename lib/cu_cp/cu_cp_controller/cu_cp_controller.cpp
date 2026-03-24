@@ -24,7 +24,7 @@ cu_cp_controller::cu_cp_controller(const cu_cp_configuration&      config_,
   amf_mng(ngaps_, cu_cp_notifier, *cfg.services.timers, ctrl_exec_, common_task_sched_, cfg.ngap.ng_setup_notifier),
   du_mng(cfg.admission.max_nof_dus, dus_, ctrl_exec, common_task_sched_),
   cu_up_mng(cfg.admission.max_nof_cu_ups, cu_ups_, ctrl_exec, common_task_sched_),
-  xnc_mng(xncs_, config_.xnap.xnc_gw, ctrl_exec_, common_task_sched_)
+  xnc_mng(xncs_, config_.xnap.xnc_gw, *config_.services.timers, ctrl_exec_, common_task_sched_)
 {
 }
 

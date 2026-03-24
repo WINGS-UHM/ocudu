@@ -846,7 +846,12 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
 
   // Verify there is space in PDCCH result lists for new allocations.
   if (pdcch_alloc.result.dl.ul_pdcchs.full()) {
-    logger.warning("Failed to allocate PUSCH. Cause: No space available in scheduler output list");
+    logger.warning(
+        "cell={} tc-rnti={}: Failed to allocate PUSCH Msg3 reTx grant. Cause: No space available in scheduler "
+        "PDCCH output list (used={})",
+        res_alloc.cfg.cell_index,
+        msg3_ctx.preamble.tc_rnti,
+        pdcch_alloc.result.dl.ul_pdcchs.size());
     return;
   }
 
@@ -873,7 +878,12 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
 
     // Verify there is space in PUSCH and PDCCH result lists for new allocations.
     if (pusch_alloc.result.ul.puschs.full()) {
-      logger.warning("Failed to allocate PUSCH. Cause: No space available in scheduler output list");
+      logger.warning("cell={} tc-rnti={}: Failed to allocate PUSCH Msg3 retx grant in slot={}. Cause: No space "
+                     "available in scheduler PUSCH output list (used={})",
+                     res_alloc.cfg.cell_index,
+                     msg3_ctx.preamble.tc_rnti,
+                     pusch_alloc.slot,
+                     pusch_alloc.result.ul.puschs.size());
       continue;
     }
 

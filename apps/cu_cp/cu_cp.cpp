@@ -384,6 +384,16 @@ int main(int argc, char** argv)
     metrics_configs.push_back(std::move(metric));
   }
 
+  app_services::metrics_manager metrics_mngr(
+      ocudulog::fetch_basic_logger("CU"),
+      workers.get_metrics_executor(),
+      metrics_configs,
+      app_timers,
+      std::chrono::milliseconds(cu_cp_cfg.metrics_cfg.metrics_service_cfg.app_usage_report_period));
+
+  // Connect the forwarder to the metrics manager.
+  metrics_notifier_forwarder.connect(metrics_mngr);
+
   // Connect E1AP to O-CU-CP.
   e1_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_e1_handler());
 
@@ -408,16 +418,6 @@ int main(int argc, char** argv)
 
   // Connect F1-C to O-CU-CP and start listening for new F1-C connection requests.
   cu_f1c_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_f1c_handler());
-
-  app_services::metrics_manager metrics_mngr(
-      ocudulog::fetch_basic_logger("CU"),
-      workers.get_metrics_executor(),
-      metrics_configs,
-      app_timers,
-      std::chrono::milliseconds(cu_cp_cfg.metrics_cfg.metrics_service_cfg.app_usage_report_period));
-
-  // Connect the forwarder to the metrics manager.
-  metrics_notifier_forwarder.connect(metrics_mngr);
 
   metrics_mngr.start();
 

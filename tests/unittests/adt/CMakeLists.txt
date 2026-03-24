@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
-
 set_directory_properties(PROPERTIES LABELS "adt")
 
 include_directories(../../..)
@@ -82,7 +81,7 @@ add_executable(soa_table_test soa_table_test.cpp stable_id_map_test.cpp)
 target_link_libraries(soa_table_test ocudulog ocudulog GTest::gtest  GTest::gtest_main)
 add_test(soa_table_test soa_table_test)
 
-add_executable(type_list_buffer_test type_list_buffer_test.cpp byte_segment_list_test.cpp)
+add_executable(type_list_buffer_test type_list_buffer_test.cpp segment_list_test.cpp)
 target_link_libraries(type_list_buffer_test ocudulog ocudu_support GTest::gtest GTest::gtest_main)
 add_test(type_list_buffer_test type_list_buffer_test)
 gtest_discover_tests(type_list_buffer_test)

@@ -877,7 +877,10 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     }
 
     // Verify there is space in PUSCH and PDCCH result lists for new allocations.
-    if (pusch_alloc.result.ul.puschs.full()) {
+    const auto max_puschs = std::min<unsigned>(pusch_alloc.result.ul.puschs.capacity(),
+                                               res_alloc.cfg.expert_cfg.ue.max_ul_grants_per_slot -
+                                                   static_cast<unsigned>(pusch_alloc.result.ul.pucchs.size()));
+    if (pusch_alloc.result.ul.puschs.size() >= max_puschs) {
       logger.warning("cell={} tc-rnti={}: Failed to allocate PUSCH Msg3 retx grant in slot={}. Cause: No space "
                      "available in scheduler PUSCH output list (used={})",
                      res_alloc.cfg.cell_index,

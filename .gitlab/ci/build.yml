@@ -147,16 +147,19 @@ variables:
     - launch_tests
   timeout: 3 hours
   after_script:
-    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_1.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_1.xml   || true
-    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_2.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_2.xml   || true
+    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_1.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_1.xml  || true
+    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_2.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_2.xml  || true
+    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/xunit.xml        ${CI_PROJECT_DIR}/${CI_JOB_ID}_xunit.xml       || true
   artifacts:
     when: always
     reports:
       coverage_report:
         coverage_format: cobertura
         path: ${CI_JOB_ID}_coverage*.xml
+      junit: ${CI_JOB_ID}_xunit.xml
     paths:
       - ${CI_JOB_ID}_coverage*.xml
+      - ${CI_JOB_ID}_xunit.xml
       - ${OCUDU_BUILD_DIR}/Testing/Temporary/MemoryChecker.*.log
     expire_in: 5 days
 

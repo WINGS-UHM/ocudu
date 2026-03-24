@@ -411,7 +411,8 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
   }
 
   // XNAP.
-  for (const auto& xnap : cu_cfg.xnap_configs) {
+  out_cfg.xnap.procedure_timeout = std::chrono::milliseconds{cu_cfg.xnap_config.procedure_timeout};
+  for (const auto& xnap : cu_cfg.xnap_config.connections) {
     ocucp::cu_cp_configuration::xnap_config xn_config{};
     // TODO: support multiple XNAP peer addresses configuration for SCTP multihoming.
     xn_config.peer_addr = transport_layer_address::create_from_string(xnap.peer_addrs.front());

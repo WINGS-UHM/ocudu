@@ -178,9 +178,16 @@ struct cu_cp_unit_e1ap_config {
 };
 
 /// XNAP-CU-CP configuration parameters.
-struct cu_cp_unit_xnap_config {
+struct cu_cp_unit_xnap_config_item {
   std::vector<std::string> bind_addrs = {"127.0.30.1"};
   std::vector<std::string> peer_addrs;
+};
+
+struct cu_cp_unit_xnap_config {
+  /// Timeout for the XNAP procedures in milliseconds.
+  unsigned procedure_timeout = 5000;
+
+  std::vector<cu_cp_unit_xnap_config_item> connections;
 };
 
 /// RLC UM TX configuration
@@ -379,7 +386,7 @@ struct cu_cp_unit_config {
   // List of all AMFs the CU-CP should connect to.
   std::vector<cu_cp_unit_amf_config_item> extra_amfs;
   /// XNAP configurations.
-  std::vector<cu_cp_unit_xnap_config> xnap_configs;
+  cu_cp_unit_xnap_config xnap_config;
   /// Mobility configuration.
   cu_cp_unit_mobility_config mobility_config;
   /// RRC configuration.

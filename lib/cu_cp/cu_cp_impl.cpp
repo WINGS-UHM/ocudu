@@ -154,9 +154,10 @@ bool cu_cp_impl::start()
   if (not cfg.services.cu_cp_executor->execute([this]() {
         uint32_t xnc_idx = 0;
         for (const auto& xnap : cfg.xnap.xnaps) {
-          xnap_configuration xnc_cfg{.gnb_id           = cfg.node.gnb_id,
-                                     .tai_support_list = ngap_db.get_supported_tracking_areas(),
-                                     .guami_list       = ngap_db.get_served_guamis()};
+          xnap_configuration xnc_cfg{.procedure_timeout = cfg.xnap.procedure_timeout,
+                                     .gnb_id            = cfg.node.gnb_id,
+                                     .tai_support_list  = ngap_db.get_supported_tracking_areas(),
+                                     .guami_list        = ngap_db.get_served_guamis()};
 
           // TODO: pass init tx notifier.
           xnap_interface* xnap_entity = xnap_db.add_xnap(uint_to_xnc_peer_index(xnc_idx), xnap.peer_addr, xnc_cfg);

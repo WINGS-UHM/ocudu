@@ -343,7 +343,8 @@ async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer
   }
 
   xnap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
-  return launch_async<xnap_sn_status_transfer_procedure>(ue_ctxt.sn_status_transfer_outcome, ue_ctxt.logger);
+  return launch_async<xnap_sn_status_transfer_procedure>(
+      xnap_cfg.procedure_timeout, ue_ctxt.sn_status_transfer_outcome, ue_ctxt.logger);
 }
 
 bool xnap_impl::handle_ue_context_release_required(ue_index_t ue_index)

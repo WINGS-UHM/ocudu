@@ -390,11 +390,11 @@ int main(int argc, char** argv)
   // Create XN-C GW (TODO cleanup port and PPID args with factory)
   cu_cp_unit_config                              cp_unit_cfg = o_cu_cp_app_unit->get_o_cu_cp_unit_config().cucp_cfg;
   std::unique_ptr<ocucp::xnc_connection_gateway> xnc_gw;
-  if (!cp_unit_cfg.xnap_configs.empty()) {
+  if (!cp_unit_cfg.xnap_config.connections.empty()) {
     sctp_network_gateway_config xnc_sctp_cfg = {};
     xnc_sctp_cfg.if_name                     = "XN-C";
     xnc_sctp_cfg.non_blocking_mode           = true;
-    for (const auto& xnap_cfg : cp_unit_cfg.xnap_configs) {
+    for (const auto& xnap_cfg : cp_unit_cfg.xnap_config.connections) {
       xnc_sctp_cfg.bind_addresses.insert(
           xnc_sctp_cfg.bind_addresses.end(), xnap_cfg.bind_addrs.begin(), xnap_cfg.bind_addrs.end());
     }

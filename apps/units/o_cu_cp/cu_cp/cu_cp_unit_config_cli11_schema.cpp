@@ -198,7 +198,7 @@ static void configure_cli11_amf_args(CLI::App& app, cu_cp_unit_amf_config& confi
   configure_cli11_amf_item_args(app, config.amf);
 }
 
-static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& config)
+static void configure_cli11_xnap_item_args(CLI::App& app, cu_cp_unit_xnap_config_item& config)
 {
   add_option(app,
              "--bind_addrs",
@@ -206,6 +206,30 @@ static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& con
              "Local IP addresses to bind for XNAP interface. Multiple addresses can be specified for SCTP "
              "multi-homing. If left empty, implicit bind is performed");
   add_option(app, "--peer_addrs", config.peer_addrs, "Peer IP addresses to connect for XNAP interface");
+}
+
+static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& config)
+{
+  add_option(
+      app, "--procedure_timeout", config.procedure_timeout, "Time that the XNAP waits for a response in milliseconds")
+      ->capture_default_str();
+
+  // XN-C parameters.
+  app.add_option_function<std::vector<std::string>>(
+      "--connections",
+      [&config](const std::vector<std::string>& values) {
+        config.connections.resize(values.size());
+
+        for (unsigned i = 0, e = values.size(); i != e; ++i) {
+          CLI::App subapp("XNAP parameters list");
+          subapp.config_formatter(create_yaml_config_parser());
+          subapp.allow_config_extras(CLI::config_extras_mode::error);
+          configure_cli11_xnap_item_args(subapp, config.connections[i]);
+          std::istringstream ss(values[i]);
+          subapp.parse_from_stream(ss);
+        }
+      },
+      "Sets the list of XN-C peer CU-CPs for the CU-CP to connect to");
 }
 
 static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config& report_params)
@@ -581,21 +605,8 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
       "Sets the list of extra AMFs for the CU-CP to connect to");
 
   // XN-C parameters.
-  app.add_option_function<std::vector<std::string>>(
-      "--xnap_connections",
-      [&cu_cp_params](const std::vector<std::string>& values) {
-        cu_cp_params.xnap_configs.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("XNAP parameters list");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_xnap_args(subapp, cu_cp_params.xnap_configs[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "Sets the list of XN-C peer CU-CPs for the CU-CP to connect to");
+  CLI::App* xnap_subcmd = app.add_subcommand("xnap", "XNAP configuration");
+  configure_cli11_xnap_args(*xnap_subcmd, cu_cp_params.xnap_config);
 
   CLI::App* mobility_subcmd = app.add_subcommand("mobility", "Mobility configuration");
   configure_cli11_mobility_args(*mobility_subcmd, cu_cp_params.mobility_config);

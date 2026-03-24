@@ -94,7 +94,7 @@ static YAML::Node build_cu_cp_amf_section(const cu_cp_unit_amf_config& config)
   return node;
 }
 
-static YAML::Node build_cu_cp_xnap_item_section(const cu_cp_unit_xnap_config& config)
+static YAML::Node build_cu_cp_xnap_item_section(const cu_cp_unit_xnap_config_item& config)
 {
   YAML::Node node;
 
@@ -104,11 +104,13 @@ static YAML::Node build_cu_cp_xnap_item_section(const cu_cp_unit_xnap_config& co
   return node;
 }
 
-static YAML::Node build_cu_cp_xnap_section(const std::vector<cu_cp_unit_xnap_config>& xnap_configs)
+static YAML::Node build_cu_cp_xnap_section(const cu_cp_unit_xnap_config& xnap_config)
 {
   YAML::Node node;
 
-  for (const auto& xnap : xnap_configs) {
+  node["procedure_timeout"] = xnap_config.procedure_timeout;
+
+  for (const auto& xnap : xnap_config.connections) {
     node.push_back(build_cu_cp_xnap_item_section(xnap));
   }
 
@@ -341,8 +343,8 @@ static YAML::Node build_cu_cp_section(const cu_cp_unit_config& config)
   if (!config.extra_amfs.empty()) {
     node["extra_amfs"] = build_cu_cp_extra_amfs_section(config.extra_amfs);
   }
-  if (!config.xnap_configs.empty()) {
-    node["xnaps"] = build_cu_cp_xnap_section(config.xnap_configs);
+  if (!config.xnap_config.connections.empty()) {
+    node["xnap"] = build_cu_cp_xnap_section(config.xnap_config);
   }
   node["mobility"] = build_cu_cp_mobility_section(config.mobility_config);
   node["rrc"]      = build_cu_cp_rrc_section(config.rrc_config);

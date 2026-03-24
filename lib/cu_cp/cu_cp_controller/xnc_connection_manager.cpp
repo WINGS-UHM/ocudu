@@ -113,8 +113,10 @@ xnc_connection_manager::xnc_connection_manager(xnap_repository&        xnaps_,
 {
 }
 
-void xnc_connection_manager::start()
+void xnc_connection_manager::start(const xnap_configuration& xnap_cfg_)
 {
+  xnap_cfg = xnap_cfg_;
+
   auto xnaps_map = xnaps.get_xnaps();
   for (auto& xnap : xnaps_map) {
     std::optional<transport_layer_address> peer_addr = xnaps.get_peer_addr(xnap.first);
@@ -199,8 +201,13 @@ xnc_connection_manager::handle_new_xnc_cu_cp_connection(std::unique_ptr<xnap_mes
         // Find XNAP based on address of peer.
         xnc_peer_index_t xnc_index = xnaps.find_xnap(addr);
         if (xnc_index == xnc_peer_index_t::invalid) {
-          logger.warning("Rejecting new CU-CP connection. Cause: Failed to create a new XNAP for peer address {}",
-                         addr);
+          logger.warning("Rejecting new CU-CP connection. Cause: Failed to find XNAP for peer address {}", addr);
+          return;
+        }
+
+        // Reject if there is already an active connection for this peer.
+        if (xnc_connections.find(xnc_index) != xnc_connections.end()) {
+          logger.warning("Rejecting new CU-CP connection. Cause: XN-C peer {} is already connected", xnc_index);
           return;
         }
 
@@ -226,26 +233,43 @@ xnc_connection_manager::handle_new_xnc_cu_cp_connection(std::unique_ptr<xnap_mes
 void xnc_connection_manager::handle_xnc_gw_connection_closed(xnc_peer_index_t xnc_idx)
 {
   // Note: Called from within CU-CP execution context.
-  common_task_sched.schedule_async_task(launch_async([this, xnc_idx](coro_context<async_task<void>>& ctx) {
-    CORO_BEGIN(ctx);
-    if (xnaps.find_xnap(xnc_idx) == nullptr) {
-      // XN-C was already removed.
-      CORO_EARLY_RETURN();
-    }
 
-    // Await for clean removal of the DU from the DU repository.
-    CORO_AWAIT(xnaps.remove_xnap(xnc_idx));
+  // Save peer address before removal so we can recreate the XNAP.
+  std::optional<transport_layer_address> peer_addr = xnaps.get_peer_addr(xnc_idx);
 
-    // Mark the connection as closed.
-    xnc_connections.erase(xnc_idx);
+  common_task_sched.schedule_async_task(
+      launch_async([this, xnc_idx, peer_addr = std::move(peer_addr)](coro_context<async_task<void>>& ctx) {
+        CORO_BEGIN(ctx);
+        if (xnaps.find_xnap(xnc_idx) == nullptr) {
+          // XN-C was already removed.
+          CORO_EARLY_RETURN();
+        }
 
-    // Flag that all DUs got removed.
-    if (stopped and xnc_connections.empty()) {
-      std::unique_lock<std::mutex> lock(stop_mutex);
-      stop_completed = true;
-      stop_cvar.notify_one();
-    }
+        // Await for clean removal of the XNAP from the repository.
+        CORO_AWAIT(xnaps.remove_xnap(xnc_idx));
 
-    CORO_RETURN();
-  }));
+        // Mark the connection as closed.
+        xnc_connections.erase(xnc_idx);
+
+        if (stopped) {
+          // Do not recreate the XNAP instance on shutdown, return early instead.
+          if (xnc_connections.empty()) {
+            std::unique_lock<std::mutex> lock(stop_mutex);
+            stop_completed = true;
+            stop_cvar.notify_one();
+          }
+          CORO_EARLY_RETURN();
+        }
+
+        // Recreate a fresh XNAP instance so that the peer can reconnect.
+        if (peer_addr.has_value()) {
+          if (xnaps.add_xnap(xnc_idx, peer_addr.value(), xnap_cfg) == nullptr) {
+            logger.error("Failed to recreate XNAP instance for peer address {}", peer_addr.value());
+          } else {
+            logger.info("XN-C peer {} disconnected. Recreated XNAP, awaiting reconnection", xnc_idx);
+          }
+        }
+
+        CORO_RETURN();
+      }));
 }

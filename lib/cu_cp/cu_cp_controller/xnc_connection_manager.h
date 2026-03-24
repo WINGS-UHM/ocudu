@@ -8,6 +8,7 @@
 #include "ocudu/cu_cp/common_task_scheduler.h"
 #include "ocudu/cu_cp/cu_cp_xnc_handler.h"
 #include "ocudu/xnap/gateways/xnc_connection_gateway.h"
+#include "ocudu/xnap/xnap_configuration.h"
 #include <condition_variable>
 #include <mutex>
 
@@ -24,7 +25,7 @@ public:
                          task_executor&          cu_cp_exec_,
                          common_task_scheduler&  common_task_sched_);
 
-  void start();
+  void start(const xnap_configuration& xnap_cfg);
 
   std::unique_ptr<xnap_message_notifier>
   handle_new_xnc_cu_cp_connection(std::unique_ptr<xnap_message_notifier> xnap_tx_pdu_notifier,
@@ -43,6 +44,9 @@ private:
   task_executor&          cu_cp_exec;
   common_task_scheduler&  common_task_sched;
   ocudulog::basic_logger& logger;
+
+  /// XNAP configuration used to recreate XNAP instances after connection loss.
+  xnap_configuration xnap_cfg;
 
   std::map<xnc_peer_index_t, std::shared_ptr<shared_xnc_connection_context>> xnc_connections;
 

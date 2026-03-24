@@ -792,12 +792,12 @@ bool cu_cp_test_environment::send_pdu_session_resource_setup_request_and_await_b
 }
 
 bool cu_cp_test_environment::send_bearer_context_setup_response_and_await_ue_context_modification_request(
-    unsigned               du_idx,
-    unsigned               cu_up_idx,
-    gnb_du_ue_f1ap_id_t    du_ue_id,
-    gnb_cu_up_ue_e1ap_id_t cu_up_e1ap_id,
-    pdu_session_id_t       psi,
-    qos_flow_id_t          qfi)
+    unsigned                                                        du_idx,
+    unsigned                                                        cu_up_idx,
+    gnb_du_ue_f1ap_id_t                                             du_ue_id,
+    gnb_cu_up_ue_e1ap_id_t                                          cu_up_e1ap_id,
+    const std::map<pdu_session_id_t, std::vector<drb_test_params>>& pdu_sessions_to_add,
+    const std::vector<pdu_session_id_t>&                            pdu_sessions_to_fail)
 {
   f1ap_message f1ap_pdu;
   ocudu_assert(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu), "there are still F1AP DL messages to pop from DU");
@@ -807,7 +807,7 @@ bool cu_cp_test_environment::send_bearer_context_setup_response_and_await_ue_con
 
   // Inject Bearer Context Setup Response and wait for UE Context Modification Request.
   get_cu_up(cu_up_idx).push_tx_pdu(generate_bearer_context_setup_response(
-      ue_ctx.cu_cp_e1ap_id.value(), ue_ctx.cu_up_e1ap_id.value(), {{psi, drb_test_params{drb_id_t::drb1, qfi}}}));
+      ue_ctx.cu_cp_e1ap_id.value(), ue_ctx.cu_up_e1ap_id.value(), pdu_sessions_to_add, pdu_sessions_to_fail));
   bool result = this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu);
   report_fatal_error_if_not(result, "Failed to receive UE Context Modification Request");
   report_fatal_error_if_not(test_helpers::is_valid_ue_context_modification_request(f1ap_pdu),
@@ -831,7 +831,7 @@ bool cu_cp_test_environment::send_bearer_context_modification_response_and_await
 
   // Inject Bearer Context Modification Response and wait for UE Context Modification Request.
   get_cu_up(cu_up_idx).push_tx_pdu(generate_bearer_context_modification_response(
-      ue_ctx.cu_cp_e1ap_id.value(), ue_ctx.cu_up_e1ap_id.value(), {{psi, drb_test_params{drb_id, qfi}}}, {}));
+      ue_ctx.cu_cp_e1ap_id.value(), ue_ctx.cu_up_e1ap_id.value(), {{psi, {drb_test_params{drb_id, qfi}}}}, {}));
   bool result = this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu);
   report_fatal_error_if_not(result, "Failed to receive UE Context Modification Request");
   report_fatal_error_if_not(test_helpers::is_valid_ue_context_modification_request(f1ap_pdu),
@@ -962,7 +962,7 @@ bool cu_cp_test_environment::setup_pdu_session(unsigned                         
 
     // Inject Bearer Context Setup Response and wait for F1AP UE Context Modification Request.
     if (not send_bearer_context_setup_response_and_await_ue_context_modification_request(
-            du_idx, cu_up_idx, du_ue_id, cu_up_e1ap_id, psi, qfi)) {
+            du_idx, cu_up_idx, du_ue_id, cu_up_e1ap_id, {{psi, {drb_test_params{drb_id_t::drb1, qfi}}}}, {})) {
       return false;
     }
   } else {

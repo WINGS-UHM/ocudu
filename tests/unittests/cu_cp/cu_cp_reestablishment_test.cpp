@@ -209,7 +209,7 @@ public:
 
     // Inject Bearer Context Setup Response and wait for UE Context Modification Request.
     get_cu_up(cu_up_idx).push_tx_pdu(generate_bearer_context_setup_response(
-        cu_cp_e1ap_id, cu_up_e1ap_id, {{psi, drb_test_params{drb_id_t::drb1, qfi}}}));
+        cu_cp_e1ap_id, cu_up_e1ap_id, {{psi, {drb_test_params{drb_id_t::drb1, qfi}}}}));
     result = this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu);
     report_fatal_error_if_not(result, "Failed to receive UE Context Modification Request");
     report_fatal_error_if_not(test_helpers::is_valid_ue_context_modification_request(f1ap_pdu),

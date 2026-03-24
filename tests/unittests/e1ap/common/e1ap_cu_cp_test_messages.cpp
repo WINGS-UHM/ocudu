@@ -160,10 +160,10 @@ e1ap_bearer_context_setup_request ocudu::ocucp::generate_bearer_context_setup_re
 }
 
 e1ap_message ocudu::ocucp::generate_bearer_context_setup_response(
-    gnb_cu_cp_ue_e1ap_id_t                             cu_cp_ue_e1ap_id,
-    gnb_cu_up_ue_e1ap_id_t                             cu_up_ue_e1ap_id,
-    const std::map<pdu_session_id_t, drb_test_params>& pdu_sessions_to_add,
-    const std::vector<pdu_session_id_t>&               pdu_sessions_to_fail)
+    gnb_cu_cp_ue_e1ap_id_t                                          cu_cp_ue_e1ap_id,
+    gnb_cu_up_ue_e1ap_id_t                                          cu_up_ue_e1ap_id,
+    const std::map<pdu_session_id_t, std::vector<drb_test_params>>& pdu_sessions_to_add,
+    const std::vector<pdu_session_id_t>&                            pdu_sessions_to_fail)
 {
   e1ap_message bearer_context_setup_response = {};
 
@@ -188,27 +188,29 @@ e1ap_message ocudu::ocucp::generate_bearer_context_setup_response(
     gtp_tunnel.transport_layer_address.from_number(2887058953);
     gtp_tunnel.gtp_teid.from_string("00000283");
 
-    asn1::e1ap::drb_setup_item_ng_ran_s drb_setup_item_ng_ran = {};
-    {
-      drb_setup_item_ng_ran.drb_id = drb_id_to_uint(drb_params.drb_id);
-
-      asn1::e1ap::up_params_item_s up_params_item = {};
+    for (const auto& drb_param : drb_params) {
+      asn1::e1ap::drb_setup_item_ng_ran_s drb_setup_item_ng_ran = {};
       {
-        up_params_item.up_tnl_info.set_gtp_tunnel();
-        auto& gtp_tunnel2 = up_params_item.up_tnl_info.gtp_tunnel();
-        gtp_tunnel2.transport_layer_address.from_number(2887058953);
-        gtp_tunnel2.gtp_teid.from_string("80000283");
-        up_params_item.cell_group_id = 0;
-      }
-      drb_setup_item_ng_ran.ul_up_transport_params.push_back(up_params_item);
+        drb_setup_item_ng_ran.drb_id = drb_id_to_uint(drb_param.drb_id);
 
-      asn1::e1ap::qos_flow_item_s qo_s_flow_item = {};
-      {
-        qo_s_flow_item.qos_flow_id = qos_flow_id_to_uint(drb_params.qos_flow_id);
+        asn1::e1ap::up_params_item_s up_params_item = {};
+        {
+          up_params_item.up_tnl_info.set_gtp_tunnel();
+          auto& gtp_tunnel2 = up_params_item.up_tnl_info.gtp_tunnel();
+          gtp_tunnel2.transport_layer_address.from_number(2887058953);
+          gtp_tunnel2.gtp_teid.from_string("80000283");
+          up_params_item.cell_group_id = 0;
+        }
+        drb_setup_item_ng_ran.ul_up_transport_params.push_back(up_params_item);
+
+        asn1::e1ap::qos_flow_item_s qo_s_flow_item = {};
+        {
+          qo_s_flow_item.qos_flow_id = qos_flow_id_to_uint(drb_param.qos_flow_id);
+        }
+        drb_setup_item_ng_ran.flow_setup_list.push_back(qo_s_flow_item);
       }
-      drb_setup_item_ng_ran.flow_setup_list.push_back(qo_s_flow_item);
+      pdu_session_res_setup_item.drb_setup_list_ng_ran.push_back(drb_setup_item_ng_ran);
     }
-    pdu_session_res_setup_item.drb_setup_list_ng_ran.push_back(drb_setup_item_ng_ran);
 
     ng_ran_bearer_context_setup_resp.pdu_session_res_setup_list.push_back(pdu_session_res_setup_item);
   }

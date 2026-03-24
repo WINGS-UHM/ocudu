@@ -466,6 +466,16 @@ int main(int argc, char** argv)
     metrics_configs.push_back(std::move(metric));
   }
 
+  app_services::metrics_manager metrics_mngr(
+      ocudulog::fetch_basic_logger("CU"),
+      workers.get_metrics_executor(),
+      metrics_configs,
+      app_timers,
+      std::chrono::milliseconds(cu_cfg.metrics_cfg.metrics_service_cfg.app_usage_report_period));
+
+  // Connect the forwarder to the metrics manager.
+  metrics_notifier_forwarder.connect(metrics_mngr);
+
   // Connect E1AP to O-CU-CP.
   e1_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_e1_handler());
 
@@ -502,15 +512,6 @@ int main(int argc, char** argv)
   for (auto& metric : o_cuup_unit.metrics) {
     metrics_configs.push_back(std::move(metric));
   }
-  app_services::metrics_manager metrics_mngr(
-      ocudulog::fetch_basic_logger("CU"),
-      workers.get_metrics_executor(),
-      metrics_configs,
-      app_timers,
-      std::chrono::milliseconds(cu_cfg.metrics_cfg.metrics_service_cfg.app_usage_report_period));
-
-  // Connect the forwarder to the metrics manager.
-  metrics_notifier_forwarder.connect(metrics_mngr);
 
   // Configure the remote commands and start the service.
   if (remote_control_server) {

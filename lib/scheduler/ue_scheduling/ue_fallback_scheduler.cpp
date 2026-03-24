@@ -947,12 +947,22 @@ ue_fallback_scheduler::ul_srb_sched_outcome ue_fallback_scheduler::schedule_ul_u
   const bool                            is_retx       = h_ul_retx.has_value();
   const unsigned                        pending_bytes = u.pending_ul_newtx_bytes().value();
   if (not is_retx and pending_bytes == 0) {
+    // Early exit. UE has no pending bytes to Tx or reTx.
     return ul_srb_sched_outcome::next_ue;
   }
 
   // The caller ensures the slot is UL enabled.
   const cell_slot_resource_allocator& pdcch_alloc = res_alloc[0];
   slot_point                          pdcch_slot  = pdcch_alloc.slot;
+
+  if (pdcch_alloc.result.dl.ul_pdcchs.full()) {
+    // Early exit. No space for new PDCCH grants in the scheduler output.
+    logger.info("ue={} rnti={}: Failed to allocate fallback PUSCH grant. Cause: Max PDCCH grants reached for slot={}",
+                u.ue_index,
+                u.crnti,
+                pdcch_alloc.slot);
+    return ul_srb_sched_outcome::stop_ul_scheduling;
+  }
 
   // Fetch applicable PUSCH Time Domain resource index list.
   // NOTE: We run cell_cfg.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value() sanity check in the constructor.
@@ -993,24 +1003,19 @@ ue_fallback_scheduler::ul_srb_sched_outcome ue_fallback_scheduler::schedule_ul_u
         continue;
       }
 
-      if (pusch_alloc.result.ul.puschs.full() or pdcch_alloc.result.dl.ul_pdcchs.full()) {
-        logger.warning("ue={} rnti={}: Failed to allocate fallback PUSCH grant in slot={}. Cause: No space available "
-                       "in scheduler output list",
-                       fmt::underlying(u.ue_index),
-                       u.crnti,
-                       pusch_alloc.slot);
-        continue;
-      }
-
       // When checking the number of remaining grants for PUSCH, take into account that the PUCCH grants for this UE
       // will be removed when multiplexing the UCI on PUSCH.
-      if (pusch_alloc.result.ul.puschs.size() >=
-          expert_cfg.max_ul_grants_per_slot - static_cast<unsigned>(pusch_alloc.result.ul.pucchs.size())) {
-        logger.info("ue={} rnti={}: Failed to allocate fallback PUSCH grant. Cause: Max number of UL grants per slot "
-                    "{} was reached.",
-                    fmt::underlying(u.ue_index),
+      const auto max_puschs = std::min<unsigned>(
+          {static_cast<unsigned>(pusch_alloc.result.ul.puschs.capacity()),
+           expert_cfg.max_puschs_per_slot,
+           expert_cfg.max_ul_grants_per_slot - static_cast<unsigned>(pusch_alloc.result.ul.pucchs.size())});
+      if (pusch_alloc.result.ul.puschs.size() >= max_puschs) {
+        logger.info("ue={} rnti={}: Failed to allocate fallback PUSCH grant in slot={}. Cause: Max number of UL "
+                    "grants per slot {} was reached.",
+                    u.ue_index,
                     u.crnti,
-                    expert_cfg.max_puschs_per_slot);
+                    pusch_alloc.slot,
+                    max_puschs);
         continue;
       }
 

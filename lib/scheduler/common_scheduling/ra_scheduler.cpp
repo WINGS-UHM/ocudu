@@ -68,21 +68,41 @@ static crb_interval msg3_vrb_to_crb(const cell_configuration& cell_cfg, vrb_inte
 class ra_scheduler::msg3_harq_timeout_notifier final : public harq_timeout_notifier
 {
 public:
-  msg3_harq_timeout_notifier(std::vector<pending_msg3_t>& pending_msg3s_) : pending_msg3s(pending_msg3s_) {}
+  msg3_harq_timeout_notifier(std::vector<pending_msg3_t>& pending_msg3s_, pci_t pci_, ocudulog::basic_logger& logger_) :
+    pending_msg3s(pending_msg3s_), pci(pci_), logger(logger_)
+  {
+  }
 
   void on_harq_timeout(du_ue_index_t ue_idx, bool is_dl, bool ack) override
   {
-    ocudu_sanity_check(pending_msg3s[ue_idx].busy(), "timeout called but HARQ entity does not exist");
+    ocudu_sanity_check(not is_dl, "Only UL HARQs are managed in the RA scheduler");
+    auto& msg3 = pending_msg3s[ue_idx];
+    ocudu_sanity_check(msg3.busy(), "timeout called but HARQ entity does not exist");
+
+    logger.warning(
+        "pci={} tc-rnti={}: Discarding Msg3 retransmission HARQ process. Cause: Retransmission period timed out.",
+        pci,
+        msg3.preamble.tc_rnti);
 
     // Delete Msg3 HARQ entity to make it available again.
-    pending_msg3s[ue_idx].msg3_harq_ent.reset();
+    msg3.msg3_harq_ent.reset();
   }
 
   void on_feedback_disabled_harq_timeout(du_ue_index_t ue_idx, bool is_dl, units::bytes tbs) override {}
 
 private:
   std::vector<pending_msg3_t>& pending_msg3s;
+  const pci_t                  pci;
+  ocudulog::basic_logger&      logger;
 };
+
+/// Compute max Msg3 reTx timeout period, based on the fact that it should not be longer than the ConRes timer.
+static unsigned get_harq_retx_timeout_slots(const cell_configuration& cell_cfg)
+{
+  const auto conres_timer       = cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->ra_con_res_timer;
+  const auto conres_timer_slots = conres_timer.count() * get_nof_slots_per_subframe(cell_cfg.scs_common());
+  return conres_timer_slots;
+}
 
 // (Implementation-defined) limit for maximum number of concurrent Msg3s.
 static constexpr size_t MAX_NOF_MSG3 = 1024;
@@ -117,10 +137,10 @@ ra_scheduler::ra_scheduler(const scheduler_ra_expert_config& sched_cfg_,
           .format)),
   msg3_harqs(MAX_NOF_MSG3,
              1,
-             std::make_unique<msg3_harq_timeout_notifier>(pending_msg3s),
-             std::make_unique<msg3_harq_timeout_notifier>(pending_msg3s),
-             sched_cfg.harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common()),
-             sched_cfg.harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common()),
+             std::make_unique<msg3_harq_timeout_notifier>(pending_msg3s, cell_cfg.params.pci, logger),
+             std::make_unique<msg3_harq_timeout_notifier>(pending_msg3s, cell_cfg.params.pci, logger),
+             get_harq_retx_timeout_slots(cell_cfg),
+             get_harq_retx_timeout_slots(cell_cfg),
              cell_harq_manager::DEFAULT_ACK_TIMEOUT_SLOTS,
              cell_cfg.ntn_cs_koffset,
              cell_cfg.ul_harq_mode_b),
@@ -834,6 +854,29 @@ void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
   }
 }
 
+/// Helper function to log a failure to allocate a Msg3 grant.
+/// Note: Debug log level is used. We only warn once the HARQ process retransmission period times out.
+static void log_failed_msg3_retx(ocudulog::basic_logger& logger,
+                                 pci_t                   pci,
+                                 rnti_t                  tcrnti,
+                                 slot_point              pusch_slot,
+                                 const char*             cause_str)
+{
+  if (not pusch_slot.valid()) {
+    logger.debug("pci={} tc-rnti={}: Failed to allocate PUSCH Msg3 reTx grant. Retrying it in a later slot. Cause: {}",
+                 pci,
+                 tcrnti,
+                 cause_str);
+  } else {
+    logger.debug("pci={} tc-rnti={}: Failed to allocate PUSCH Msg3 reTx grant in slot {}. Retrying it in a later slot. "
+                 "Cause: {}",
+                 pci,
+                 tcrnti,
+                 pusch_slot,
+                 cause_str);
+  }
+}
+
 void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pending_msg3_t& msg3_ctx) const
 {
   cell_slot_resource_allocator& pdcch_alloc = res_alloc[0];
@@ -846,15 +889,33 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
 
   // Verify there is space in PDCCH result lists for new allocations.
   if (pdcch_alloc.result.dl.ul_pdcchs.full()) {
-    logger.warning(
-        "cell={} tc-rnti={}: Failed to allocate PUSCH Msg3 reTx grant. Cause: No space available in scheduler "
-        "PDCCH output list (used={})",
-        res_alloc.cfg.cell_index,
-        msg3_ctx.preamble.tc_rnti,
-        pdcch_alloc.result.dl.ul_pdcchs.size());
+    // Early exit. No space for new PDCCHs.
+    log_failed_msg3_retx(logger,
+                         cell_cfg.params.pci,
+                         msg3_ctx.preamble.tc_rnti,
+                         {},
+                         "No space available in scheduler PDCCH output list");
     return;
   }
 
+  // Select RA searchSpace.
+  // [3GPP TS 38.213, clause 10.1] a UE monitors PDCCH candidates in one or more of the following search spaces sets
+  //  - a Type1-PDCCH CSS set configured by ra-SearchSpace in PDCCH-ConfigCommon for a DCI format with
+  //    CRC scrambled by a RA-RNTI, a MsgB-RNTI, or a TC-RNTI on the primary cell.
+  const search_space_id             ss_id = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
+  const search_space_configuration& ss_cfg =
+      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
+
+  // Check if there are enough DL symbols to allocate the UL PDCCH
+  const coreset_configuration& cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
+  if (ss_cfg.get_first_symbol_index() + cs_cfg.duration() > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_alloc.slot)) {
+    // Early exit. RAR scheduling only possible when PDCCH monitoring is active.
+    log_failed_msg3_retx(
+        logger, cell_cfg.params.pci, msg3_ctx.preamble.tc_rnti, {}, "Not enough DL symbols to fit UL PDCCH");
+    return;
+  }
+
+  // Fetch UL HARQ.
   ul_harq_process_handle h_ul = msg3_ctx.msg3_harq_ent.ul_harq(to_harq_id(0)).value();
   ocudu_sanity_check(h_ul.has_pending_retx(), "schedule_msg3_retx called when HARQ has no pending reTx");
   const ul_harq_process_handle::grant_params& last_harq_params = h_ul.get_grant_params();
@@ -872,7 +933,7 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     const bool sym_length_match_prev_grant_for_retx = pusch_td_cfg.symbols.length() == last_harq_params.nof_symbols;
     if (not cell_cfg.is_ul_enabled(pusch_alloc.slot) or pusch_td_cfg.symbols.start() < start_ul_symbols or
         !sym_length_match_prev_grant_for_retx) {
-      // Not possible to schedule Msg3s in this TDD slot.
+      // Not possible to schedule Msg3s in this TDD slot due to lack of PUSCH symbols.
       continue;
     }
 
@@ -881,12 +942,12 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
                                                res_alloc.cfg.expert_cfg.ue.max_ul_grants_per_slot -
                                                    static_cast<unsigned>(pusch_alloc.result.ul.pucchs.size()));
     if (pusch_alloc.result.ul.puschs.size() >= max_puschs) {
-      logger.warning("cell={} tc-rnti={}: Failed to allocate PUSCH Msg3 retx grant in slot={}. Cause: No space "
-                     "available in scheduler PUSCH output list (used={})",
-                     res_alloc.cfg.cell_index,
-                     msg3_ctx.preamble.tc_rnti,
-                     pusch_alloc.slot,
-                     pusch_alloc.result.ul.puschs.size());
+      // Early continue. Maximum limit of PUSCH grants was reached for this slot.
+      log_failed_msg3_retx(logger,
+                           cell_cfg.params.pci,
+                           msg3_ctx.preamble.tc_rnti,
+                           pusch_alloc.slot,
+                           "No space available in scheduler PUSCH output list");
       continue;
     }
 
@@ -898,7 +959,8 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     grant.crbs    = msg3_vrb_to_crb(cell_cfg, msg3_vrbs);
     if (pusch_alloc.ul_res_grid.collides(grant)) {
       // Find available symbol x RB resources.
-      // TODO
+      log_failed_msg3_retx(
+          logger, cell_cfg.params.pci, msg3_ctx.preamble.tc_rnti, pusch_alloc.slot, "Not enough available RBs");
       continue;
     }
 
@@ -906,22 +968,13 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     // [3GPP TS 38.213, clause 10.1] a UE monitors PDCCH candidates in one or more of the following search spaces sets
     //  - a Type1-PDCCH CSS set configured by ra-SearchSpace in PDCCH-ConfigCommon for a DCI format with
     //    CRC scrambled by a RA-RNTI, a MsgB-RNTI, or a TC-RNTI on the primary cell.
-    const search_space_id ss_id = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id;
     pdcch_ul_information* pdcch =
         pdcch_sch.alloc_ul_pdcch_common(pdcch_alloc, msg3_ctx.preamble.tc_rnti, ss_id, aggregation_level::n4);
     if (pdcch == nullptr) {
-      logger.debug("tc-rnti={}: Failed to schedule PDCCH for Msg3 retx. Retrying it in a later slot",
-                   msg3_ctx.preamble.tc_rnti);
-      continue;
-    }
-
-    // Check if there are enough UL symbols to allocate the PDCCH
-    const search_space_configuration& ss_cfg =
-        cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
-    const coreset_configuration& cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
-    if (ss_cfg.get_first_symbol_index() + cs_cfg.duration() > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_alloc.slot)) {
-      // Early exit. RAR scheduling only possible when PDCCH monitoring is active.
-      return;
+      // Early exit. No point in continuing iteration if PDCCH fails to allocate.
+      log_failed_msg3_retx(
+          logger, cell_cfg.params.pci, msg3_ctx.preamble.tc_rnti, pusch_alloc.slot, "Failed to allocate UL PDCCH");
+      break;
     }
 
     // Mark resources as occupied in the ResourceGrid.
@@ -929,7 +982,9 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
 
     // Allocate new retx in the HARQ.
     if (not h_ul.new_retx(pusch_alloc.slot)) {
-      logger.warning("tc-rnti={}: Failed to allocate reTx for Msg3", msg3_ctx.preamble.tc_rnti);
+      logger.error(
+          "pci={}: tc-rnti={}: Failed to allocate reTx for Msg3", cell_cfg.params.pci, msg3_ctx.preamble.tc_rnti);
+      pdcch_sch.cancel_last_pdcch(pdcch_alloc);
       continue;
     }
 

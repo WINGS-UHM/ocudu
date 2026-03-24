@@ -1381,8 +1381,6 @@ static bool handle_conres_expiry(ue& u, slot_point sl_tx, ocudulog::basic_logger
   const auto conres_timer = ue_pcell.cfg().init_bwp().ul_common.value()->rach_cfg_common->ra_con_res_timer.count();
   const auto conres_timer_slots = conres_timer * sl_tx.nof_slots_per_subframe() + ntn_cs_koffset;
   const auto sl_conres          = ue_pcell.get_pcell_state().msg3_rx_slot + conres_timer_slots;
-  const auto ntn_cs_koffset_ms =
-      ntn_cs_koffset ? divide_ceil<uint32_t, uint32_t>(ntn_cs_koffset, sl_tx.nof_slots_per_subframe()) : 0;
   if (sl_conres > sl_tx) {
     // ConRes window has not yet elapsed.
     return false;
@@ -1390,6 +1388,8 @@ static bool handle_conres_expiry(ue& u, slot_point sl_tx, ocudulog::basic_logger
 
   // If the ConRes CE was never scheduled, then we deactivate the UE right away.
   if (u.logical_channels().is_con_res_id_pending()) {
+    const auto ntn_cs_koffset_ms =
+        ntn_cs_koffset ? divide_ceil<uint32_t, uint32_t>(ntn_cs_koffset, sl_tx.nof_slots_per_subframe()) : 0;
     logger.warning("ue={} rnti={}: ra-ContentionResolutionTimer ({}ms{}) expired before ConRes CE was scheduled. UE "
                    "will stop being scheduled",
                    fmt::underlying(u.ue_index),

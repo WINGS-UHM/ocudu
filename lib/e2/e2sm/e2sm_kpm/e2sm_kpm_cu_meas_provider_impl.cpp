@@ -22,6 +22,20 @@ e2sm_kpm_cu_cp_meas_provider_impl::e2sm_kpm_cu_cp_meas_provider_impl() : e2sm_kp
       e2sm_kpm_supported_metric_t{
           NO_LABEL, E2_NODE_LEVEL, false, &e2sm_kpm_cu_cp_meas_provider_impl::get_rrc_conn_estab_succ});
   supported_metrics.emplace(
+      "RRC.ConnEstabFailCause.NetworkReject",
+      e2sm_kpm_supported_metric_t{NO_LABEL,
+                                  E2_NODE_LEVEL,
+                                  false,
+                                  &e2sm_kpm_cu_cp_meas_provider_impl::get_rrc_conn_estab_fail_cause_network_reject});
+  supported_metrics.emplace(
+      "UECNTX.ConnEstabAtt",
+      e2sm_kpm_supported_metric_t{
+          NO_LABEL, E2_NODE_LEVEL, false, &e2sm_kpm_cu_cp_meas_provider_impl::get_uecntx_conn_estab_att});
+  supported_metrics.emplace(
+      "UECNTX.ConnEstabSucc",
+      e2sm_kpm_supported_metric_t{
+          NO_LABEL, E2_NODE_LEVEL, false, &e2sm_kpm_cu_cp_meas_provider_impl::get_uecntx_conn_estab_succ});
+  supported_metrics.emplace(
       "RRC.ReEstabAtt",
       e2sm_kpm_supported_metric_t{
           NO_LABEL, E2_NODE_LEVEL, false, &e2sm_kpm_cu_cp_meas_provider_impl::get_rrc_reestab_att});
@@ -223,7 +237,7 @@ bool e2sm_kpm_cu_meas_provider_impl::get_pdcp_reordering_delay_ul(const asn1::e2
   }
   if ((label_info_list.size() > 1 or
        (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
-    logger.debug("Metric: DRB.PDCP supports only NO_LABEL label.");
+    logger.debug("Metric: DRB.PDCP supports only NO_LABEL label");
     return meas_collected;
   }
   if (ues.empty()) {
@@ -251,7 +265,7 @@ bool e2sm_kpm_cu_meas_provider_impl::get_pdcp_reordering_delay_ul(const asn1::e2
       items.push_back(meas_record_item);
       meas_collected = true;
     } else {
-      logger.warning("Invalid PDCP reordering delay value.");
+      logger.warning("Invalid PDCP reordering delay value");
       return meas_collected;
     }
   }
@@ -269,11 +283,11 @@ bool e2sm_kpm_cu_meas_provider_impl::get_packet_success_rate_ul_gnb_uu(const lab
   }
   if ((label_info_list.size() > 1 or
        (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
-    logger.debug("Metric: DRB.PacketSuccessRateUlgNBUu supports only NO_LABEL label.");
+    logger.debug("Metric: DRB.PacketSuccessRateUlgNBUu supports only NO_LABEL label");
     return meas_collected;
   }
   if (cell_global_id.has_value()) {
-    logger.debug("Metric: DRB.PacketSuccessRateUlgNBUu currently does not support cell_global_id filter.");
+    logger.debug("Metric: DRB.PacketSuccessRateUlgNBUu currently does not support cell_global_id filter");
   }
   if (ues.empty()) {
     // E2 level measurements.
@@ -314,11 +328,11 @@ bool e2sm_kpm_cu_meas_provider_impl::get_rrc_conn_estab_att(const label_info_lis
   }
   if ((label_info_list.size() > 1 or
        (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
-    logger.debug("Metric: RRC.ConnEstabAtt supports only NO_LABEL label.");
+    logger.debug("Metric: RRC.ConnEstabAtt supports only NO_LABEL label");
     return meas_collected;
   }
   if (cell_global_id.has_value()) {
-    logger.debug("Metric: RRC.ConnEstabAtt currently does not support cell_global_id filter.");
+    logger.debug("Metric: RRC.ConnEstabAtt currently does not support cell_global_id filter");
   }
   if (ues.empty()) {
     meas_record_item_c meas_record_item;
@@ -346,11 +360,11 @@ bool e2sm_kpm_cu_meas_provider_impl::get_rrc_conn_estab_succ(const label_info_li
   }
   if ((label_info_list.size() > 1 or
        (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
-    logger.debug("Metric: RRC.ConnEstabSucc supports only NO_LABEL label.");
+    logger.debug("Metric: RRC.ConnEstabSucc supports only NO_LABEL label");
     return meas_collected;
   }
   if (cell_global_id.has_value()) {
-    logger.debug("Metric: RRC.ConnEstabSucc currently does not support cell_global_id filter.");
+    logger.debug("Metric: RRC.ConnEstabSucc currently does not support cell_global_id filter");
   }
   if (ues.empty()) {
     meas_record_item_c meas_record_item;
@@ -361,6 +375,98 @@ bool e2sm_kpm_cu_meas_provider_impl::get_rrc_conn_estab_succ(const label_info_li
                                          static_cast<uint64_t>(0));
     }
     meas_record_item.set_integer() = static_cast<int64_t>(conn_estab_succ);
+    items.push_back(meas_record_item);
+    meas_collected = true;
+  }
+  return meas_collected;
+}
+
+bool e2sm_kpm_cu_meas_provider_impl::get_rrc_conn_estab_fail_cause_network_reject(
+    const label_info_list_l          label_info_list,
+    const std::vector<ue_id_c>&      ues,
+    const std::optional<cgi_c>       cell_global_id,
+    std::vector<meas_record_item_c>& items)
+{
+  bool meas_collected = false;
+  if (!cu_cp_metrics.has_value() || cu_cp_metrics->dus.empty()) {
+    return handle_no_meas_data_available(ues, items, meas_record_item_c::types::options::integer);
+  }
+  if ((label_info_list.size() > 1 or
+       (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
+    logger.debug("Metric: RRC.ConnEstabFailCause.NetworkReject supports only NO_LABEL label");
+    return meas_collected;
+  }
+  if (cell_global_id.has_value()) {
+    logger.debug("Metric: RRC.ConnEstabFailCause.NetworkReject currently does not support cell_global_id filter");
+  }
+  if (ues.empty()) {
+    meas_record_item_c meas_record_item;
+    uint64_t           conn_estab_fail_network_reject = 0;
+    for (const auto& du_metric : cu_cp_metrics->dus) {
+      conn_estab_fail_network_reject += du_metric.rrc_metrics.failed_rrc_connection_establishments.get_count(
+          establishment_fail_cause_t::network_reject);
+    }
+    meas_record_item.set_integer() = static_cast<int64_t>(conn_estab_fail_network_reject);
+    items.push_back(meas_record_item);
+    meas_collected = true;
+  }
+  return meas_collected;
+}
+
+bool e2sm_kpm_cu_meas_provider_impl::get_uecntx_conn_estab_att(const label_info_list_l          label_info_list,
+                                                               const std::vector<ue_id_c>&      ues,
+                                                               const std::optional<cgi_c>       cell_global_id,
+                                                               std::vector<meas_record_item_c>& items)
+{
+  bool meas_collected = false;
+  if (!cu_cp_metrics.has_value() || cu_cp_metrics->ngaps.empty()) {
+    return handle_no_meas_data_available(ues, items, meas_record_item_c::types::options::integer);
+  }
+  if ((label_info_list.size() > 1 or
+       (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
+    logger.debug("Metric: UECNTX.ConnEstabAtt supports only NO_LABEL label");
+    return meas_collected;
+  }
+  if (cell_global_id.has_value()) {
+    logger.debug("Metric: UECNTX.ConnEstabAtt currently does not support cell_global_id filter");
+  }
+  if (ues.empty()) {
+    meas_record_item_c meas_record_item;
+    uint64_t           uecntx_conn_estab_att = 0;
+    for (const auto& ngap_metric : cu_cp_metrics->ngaps) {
+      uecntx_conn_estab_att += ngap_metric.metrics.nof_ue_associated_logical_ng_connection_establishment_attempts;
+    }
+    meas_record_item.set_integer() = static_cast<int64_t>(uecntx_conn_estab_att);
+    items.push_back(meas_record_item);
+    meas_collected = true;
+  }
+  return meas_collected;
+}
+
+bool e2sm_kpm_cu_meas_provider_impl::get_uecntx_conn_estab_succ(const label_info_list_l          label_info_list,
+                                                                const std::vector<ue_id_c>&      ues,
+                                                                const std::optional<cgi_c>       cell_global_id,
+                                                                std::vector<meas_record_item_c>& items)
+{
+  bool meas_collected = false;
+  if (!cu_cp_metrics.has_value() || cu_cp_metrics->ngaps.empty()) {
+    return handle_no_meas_data_available(ues, items, meas_record_item_c::types::options::integer);
+  }
+  if ((label_info_list.size() > 1 or
+       (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
+    logger.debug("Metric: UECNTX.ConnEstabSucc supports only NO_LABEL label");
+    return meas_collected;
+  }
+  if (cell_global_id.has_value()) {
+    logger.debug("Metric: UECNTX.ConnEstabSucc currently does not support cell_global_id filter");
+  }
+  if (ues.empty()) {
+    meas_record_item_c meas_record_item;
+    uint64_t           uecntx_conn_estab_succ = 0;
+    for (const auto& ngap_metric : cu_cp_metrics->ngaps) {
+      uecntx_conn_estab_succ += ngap_metric.metrics.nof_ue_associated_logical_ng_connection_establishment_successes;
+    }
+    meas_record_item.set_integer() = static_cast<int64_t>(uecntx_conn_estab_succ);
     items.push_back(meas_record_item);
     meas_collected = true;
   }
@@ -378,11 +484,11 @@ bool e2sm_kpm_cu_meas_provider_impl::get_rrc_reestab_att(const label_info_list_l
   }
   if ((label_info_list.size() > 1 or
        (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
-    logger.debug("Metric: RRC.ReEstabAtt supports only NO_LABEL label.");
+    logger.debug("Metric: RRC.ReEstabAtt supports only NO_LABEL label");
     return meas_collected;
   }
   if (cell_global_id.has_value()) {
-    logger.debug("Metric: RRC.ReEstabAtt currently does not support cell_global_id filter.");
+    logger.debug("Metric: RRC.ReEstabAtt currently does not support cell_global_id filter");
   }
   if (ues.empty()) {
     meas_record_item_c meas_record_item;
@@ -408,11 +514,11 @@ bool e2sm_kpm_cu_meas_provider_impl::get_rrc_reestab_succ_with_ue_context(const 
   }
   if ((label_info_list.size() > 1 or
        (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
-    logger.debug("Metric: RRC.ReEstabSuccWithUeContext supports only NO_LABEL label.");
+    logger.debug("Metric: RRC.ReEstabSuccWithUeContext supports only NO_LABEL label");
     return meas_collected;
   }
   if (cell_global_id.has_value()) {
-    logger.debug("Metric: RRC.ReEstabSuccWithUeContext currently does not support cell_global_id filter.");
+    logger.debug("Metric: RRC.ReEstabSuccWithUeContext currently does not support cell_global_id filter");
   }
   if (ues.empty()) {
     meas_record_item_c meas_record_item;
@@ -438,11 +544,11 @@ bool e2sm_kpm_cu_meas_provider_impl::get_rrc_conn_mean(const label_info_list_l  
   }
   if ((label_info_list.size() > 1 or
        (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
-    logger.debug("Metric: RRC.ConnMean supports only NO_LABEL label.");
+    logger.debug("Metric: RRC.ConnMean supports only NO_LABEL label");
     return meas_collected;
   }
   if (cell_global_id.has_value()) {
-    logger.debug("Metric: RRC.ConnMean currently does not support cell_global_id filter.");
+    logger.debug("Metric: RRC.ConnMean currently does not support cell_global_id filter");
   }
   if (ues.empty()) {
     meas_record_item_c meas_record_item;
@@ -468,11 +574,11 @@ bool e2sm_kpm_cu_meas_provider_impl::get_rrc_conn_max(const label_info_list_l   
   }
   if ((label_info_list.size() > 1 or
        (label_info_list.size() == 1 and not label_info_list[0].meas_label.no_label_present))) {
-    logger.debug("Metric: RRC.ConnMax supports only NO_LABEL label.");
+    logger.debug("Metric: RRC.ConnMax supports only NO_LABEL label");
     return meas_collected;
   }
   if (cell_global_id.has_value()) {
-    logger.debug("Metric: RRC.ConnMax currently does not support cell_global_id filter.");
+    logger.debug("Metric: RRC.ConnMax currently does not support cell_global_id filter");
   }
   if (ues.empty()) {
     meas_record_item_c meas_record_item;

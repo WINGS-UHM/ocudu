@@ -91,6 +91,9 @@ protected:
   metric_meas_getter_func_t get_packet_success_rate_ul_gnb_uu;
   metric_meas_getter_func_t get_rrc_conn_estab_att;
   metric_meas_getter_func_t get_rrc_conn_estab_succ;
+  metric_meas_getter_func_t get_rrc_conn_estab_fail_cause_network_reject;
+  metric_meas_getter_func_t get_uecntx_conn_estab_att;
+  metric_meas_getter_func_t get_uecntx_conn_estab_succ;
   metric_meas_getter_func_t get_rrc_reestab_att;
   metric_meas_getter_func_t get_rrc_reestab_succ_with_ue_context;
   metric_meas_getter_func_t get_rrc_conn_mean;

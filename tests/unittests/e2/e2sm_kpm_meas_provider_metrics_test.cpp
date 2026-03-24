@@ -364,6 +364,9 @@ TEST_F(e2sm_kpm_cu_cp_meas_provider_metrics_test, e2sm_kpm_cu_cp_supported_metri
 {
   std::vector<std::string> expected_metrics = {"RRC.ConnEstabAtt",
                                                "RRC.ConnEstabSucc",
+                                               "RRC.ConnEstabFailCause.NetworkReject",
+                                               "UECNTX.ConnEstabAtt",
+                                               "UECNTX.ConnEstabSucc",
                                                "RRC.ReEstabAtt",
                                                "RRC.ReEstabSuccWithUeContext",
                                                "RRC.ConnMean",
@@ -418,13 +421,25 @@ TEST_F(e2sm_kpm_cu_cp_meas_provider_metrics_test, e2sm_kpm_cu_cp_returns_expecte
   report.dus[1].rrc_metrics.attempted_rrc_connection_establishments.increase(establishment_cause_t::mt_access);
   report.dus[1].rrc_metrics.successful_rrc_connection_establishments.increase(establishment_cause_t::mt_access);
   report.dus[1].rrc_metrics.successful_rrc_connection_establishments.increase(establishment_cause_t::mo_sig);
+  for (unsigned i = 0; i != 5; ++i) {
+    report.dus[1].rrc_metrics.failed_rrc_connection_establishments.increase(establishment_fail_cause_t::network_reject);
+  }
   report.dus[1].rrc_metrics.attempted_rrc_connection_reestablishments                  = 6;
   report.dus[1].rrc_metrics.successful_rrc_connection_reestablishments_with_ue_context = 1;
+
+  report.ngaps.resize(2);
+  report.ngaps[0].metrics.nof_ue_associated_logical_ng_connection_establishment_attempts  = 4;
+  report.ngaps[0].metrics.nof_ue_associated_logical_ng_connection_establishment_successes = 3;
+  report.ngaps[1].metrics.nof_ue_associated_logical_ng_connection_establishment_attempts  = 2;
+  report.ngaps[1].metrics.nof_ue_associated_logical_ng_connection_establishment_successes = 1;
 
   metrics->report_metrics(report);
 
   const std::map<std::string, int64_t> expected_values = {{"RRC.ConnEstabAtt", 3},
                                                           {"RRC.ConnEstabSucc", 3},
+                                                          {"RRC.ConnEstabFailCause.NetworkReject", 5},
+                                                          {"UECNTX.ConnEstabAtt", 6},
+                                                          {"UECNTX.ConnEstabSucc", 4},
                                                           {"RRC.ReEstabAtt", 10},
                                                           {"RRC.ReEstabSuccWithUeContext", 4},
                                                           {"RRC.ConnMean", 17},

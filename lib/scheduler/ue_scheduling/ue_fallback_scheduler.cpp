@@ -994,11 +994,11 @@ ue_fallback_scheduler::ul_srb_sched_outcome ue_fallback_scheduler::schedule_ul_u
       }
 
       if (pusch_alloc.result.ul.puschs.full() or pdcch_alloc.result.dl.ul_pdcchs.full()) {
-        logger.warning(
-            "ue={} rnti={}: Failed to allocate PUSCH in slot={}. Cause: No space available in scheduler output list",
-            fmt::underlying(u.ue_index),
-            u.crnti,
-            pusch_alloc.slot);
+        logger.warning("ue={} rnti={}: Failed to allocate fallback PUSCH grant in slot={}. Cause: No space available "
+                       "in scheduler output list",
+                       fmt::underlying(u.ue_index),
+                       u.crnti,
+                       pusch_alloc.slot);
         continue;
       }
 
@@ -1006,7 +1006,8 @@ ue_fallback_scheduler::ul_srb_sched_outcome ue_fallback_scheduler::schedule_ul_u
       // will be removed when multiplexing the UCI on PUSCH.
       if (pusch_alloc.result.ul.puschs.size() >=
           expert_cfg.max_ul_grants_per_slot - static_cast<unsigned>(pusch_alloc.result.ul.pucchs.size())) {
-        logger.info("ue={} rnti={}: Failed to allocate PUSCH. Cause: Max number of UL grants per slot {} was reached.",
+        logger.info("ue={} rnti={}: Failed to allocate fallback PUSCH grant. Cause: Max number of UL grants per slot "
+                    "{} was reached.",
                     fmt::underlying(u.ue_index),
                     u.crnti,
                     expert_cfg.max_puschs_per_slot);

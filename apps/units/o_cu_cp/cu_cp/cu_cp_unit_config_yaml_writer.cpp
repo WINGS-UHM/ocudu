@@ -111,6 +111,15 @@ static YAML::Node build_cu_cp_xnap_section(const cu_cp_unit_xnap_config& xnap_co
 
   node["procedure_timeout"] = xnap_config.procedure_timeout;
 
+  node["sctp_rto_initial"]       = xnap_config.sctp_rto_initial_ms;
+  node["sctp_rto_min"]           = xnap_config.sctp_rto_min_ms;
+  node["sctp_rto_max"]           = xnap_config.sctp_rto_max_ms;
+  node["sctp_init_max_attempts"] = xnap_config.sctp_init_max_attempts;
+  node["sctp_max_init_timeo"]    = xnap_config.sctp_max_init_timeo_ms;
+  node["sctp_hb_interval"]       = xnap_config.sctp_hb_interval_ms;
+  node["sctp_assoc_max_retx"]    = xnap_config.sctp_assoc_max_retx;
+  node["sctp_nodelay"]           = xnap_config.sctp_nodelay;
+
   for (const auto& xnap : xnap_config.connections) {
     node["connections"].push_back(build_cu_cp_xnap_item_section(xnap));
   }

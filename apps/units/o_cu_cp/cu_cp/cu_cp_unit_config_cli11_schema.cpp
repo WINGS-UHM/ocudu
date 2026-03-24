@@ -220,6 +220,36 @@ static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& con
       app, "--procedure_timeout", config.procedure_timeout, "Time that the XNAP waits for a response in milliseconds")
       ->capture_default_str();
 
+  // SCTP parameters.
+  add_option(app,
+             "--sctp_rto_initial",
+             config.sctp_rto_initial_ms,
+             "SCTP initial RTO value in milliseconds (-1 to use system default)");
+  add_option(app, "--sctp_rto_min", config.sctp_rto_min_ms, "SCTP RTO min in milliseconds (-1 to use system default)");
+  add_option(app, "--sctp_rto_max", config.sctp_rto_max_ms, "SCTP RTO max in milliseconds (-1 to use system default)");
+  add_option(app,
+             "--sctp_init_max_attempts",
+             config.sctp_init_max_attempts,
+             "SCTP init max attempts (-1 to use system default)");
+  add_option(app,
+             "--sctp_max_init_timeo",
+             config.sctp_max_init_timeo_ms,
+             "SCTP max init timeout in milliseconds (-1 to use system default)");
+  add_option(app,
+             "--sctp_hb_interval",
+             config.sctp_hb_interval_ms,
+             "SCTP heartbeat interval in milliseconds (-1 to use system default)")
+      ->capture_default_str();
+  add_option(app,
+             "--sctp_assoc_max_retx",
+             config.sctp_assoc_max_retx,
+             "SCTP assocination max retransmissions (-1 to use system default)")
+      ->capture_default_str();
+  add_option(app,
+             "--sctp_nodelay",
+             config.sctp_nodelay,
+             "Send SCTP messages as soon as possible without any Nagle-like algorithm");
+
   // XN-C parameters.
   app.add_option_function<std::vector<std::string>>(
       "--connections",

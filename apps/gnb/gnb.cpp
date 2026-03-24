@@ -398,8 +398,15 @@ int main(int argc, char** argv)
       xnc_sctp_cfg.bind_addresses.insert(
           xnc_sctp_cfg.bind_addresses.end(), xnap_cfg.bind_addrs.begin(), xnap_cfg.bind_addrs.end());
     }
-    xnc_sctp_cfg.bind_port = XNAP_PORT;
-    xnc_sctp_cfg.ppid      = XNAP_PPID;
+    xnc_sctp_cfg.rto_initial       = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_rto_initial_ms);
+    xnc_sctp_cfg.rto_min           = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_rto_min_ms);
+    xnc_sctp_cfg.rto_max           = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_rto_max_ms);
+    xnc_sctp_cfg.init_max_attempts = cp_unit_cfg.xnap_config.sctp_init_max_attempts;
+    xnc_sctp_cfg.max_init_timeo    = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_rto_max_ms);
+    xnc_sctp_cfg.hb_interval       = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_hb_interval_ms);
+    xnc_sctp_cfg.assoc_max_rxt     = cp_unit_cfg.xnap_config.sctp_assoc_max_retx;
+    xnc_sctp_cfg.bind_port         = XNAP_PORT;
+    xnc_sctp_cfg.ppid              = XNAP_PPID;
     xnc_sctp_gateway_config xnc_server_cfg({xnc_sctp_cfg,
                                             *epoll_broker,
                                             workers.get_cu_cp_executor_mapper().xnc_rx_executor(),

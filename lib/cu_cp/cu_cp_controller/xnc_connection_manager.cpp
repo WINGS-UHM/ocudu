@@ -120,6 +120,11 @@ void xnc_connection_manager::start(const xnap_configuration& xnap_cfg_)
 {
   xnap_cfg = xnap_cfg_;
 
+  if (xnap_cfg.no_connection_init) {
+    logger.info("XNAP no_connection_init mode: skipping outbound connections, accepting inbound only");
+    return;
+  }
+
   auto xnaps_map = xnaps.get_xnaps();
   for (auto& xnap : xnaps_map) {
     std::optional<transport_layer_address> peer_addr = xnaps.get_peer_addr(xnap.first);
@@ -276,6 +281,10 @@ void xnc_connection_manager::handle_xnc_gw_connection_closed(xnc_peer_index_t xn
         if (peer_addr.has_value()) {
           if (xnaps.add_xnap(xnc_idx, peer_addr.value(), xnap_cfg) == nullptr) {
             logger.error("Failed to recreate XNAP instance for peer address {}", peer_addr.value());
+          } else if (xnap_cfg.no_connection_init) {
+            logger.info(
+                "XN-C peer {} disconnected. Recreated XNAP, waiting for inbound reconnection (no_connection_init mode)",
+                xnc_idx);
           } else {
             logger.info("XN-C peer {} disconnected. Recreated XNAP, awaiting reconnection", xnc_idx);
             // Schedule outbound reconnection attempt.

@@ -109,7 +109,8 @@ static YAML::Node build_cu_cp_xnap_section(const cu_cp_unit_xnap_config& xnap_co
 {
   YAML::Node node;
 
-  node["procedure_timeout"] = xnap_config.procedure_timeout;
+  node["procedure_timeout"]  = xnap_config.procedure_timeout;
+  node["no_connection_init"] = xnap_config.no_connection_init;
 
   node["sctp_rto_initial"]       = xnap_config.sctp_rto_initial_ms;
   node["sctp_rto_min"]           = xnap_config.sctp_rto_min_ms;

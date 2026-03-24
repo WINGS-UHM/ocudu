@@ -97,6 +97,8 @@ struct cu_cp_configuration {
   struct xnap_params {
     /// Time that the XNAP waits for a response in milliseconds (Implementation-defined).
     std::chrono::milliseconds procedure_timeout{1000};
+    /// When true, the CU-CP will not initiate outbound XNAP connections but will accept inbound ones.
+    bool no_connection_init = false;
     /// XNAP configuration.
     std::vector<xnap_config> xnaps;
     xnc_connection_gateway*  xnc_gw = nullptr;

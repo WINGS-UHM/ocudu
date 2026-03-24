@@ -16,6 +16,8 @@ struct xnap_configuration {
   gnb_id_t                             gnb_id;
   std::vector<supported_tracking_area> tai_support_list;
   std::vector<guami_t>                 guami_list;
+  /// When true, the CU-CP will not initiate outbound XNAP connections but will accept inbound ones.
+  bool no_connection_init = false;
 };
 
 } // namespace ocudu::ocucp

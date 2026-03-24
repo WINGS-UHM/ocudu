@@ -188,6 +188,8 @@ struct cu_cp_unit_xnap_config_item {
 struct cu_cp_unit_xnap_config {
   /// Timeout for the XNAP procedures in milliseconds.
   unsigned procedure_timeout = 5000;
+  /// When true, the CU-CP will not initiate outbound XNAP connections but will accept inbound ones.
+  bool no_connection_init = false;
 
   /// SCTP socket options.
   int  sctp_rto_initial_ms    = 120;

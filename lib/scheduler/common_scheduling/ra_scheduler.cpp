@@ -15,44 +15,13 @@
 #include "../support/rb_helper.h"
 #include "../support/sch_pdu_builder.h"
 #include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
 #include "ocudu/support/compiler.h"
 
 using namespace ocudu;
 
-unsigned ocudu::get_msg3_delay(const pusch_time_domain_resource_allocation& pusch_td_res_alloc,
-                               subcarrier_spacing                           pusch_scs)
-{
-  // In TS 38.214, Table 6.1.2.1.1-5, Delta is only defined for PUSCH SCS within [kHz15, kHz120kHz].
-  ocudu_sanity_check(to_numerology_value(pusch_scs) <= to_numerology_value(subcarrier_spacing::kHz120),
-                     "PUSCH subcarrier spacing not supported for MSG3 delay");
-
-  // The array represents Table 6.1.2.1.1-5, in TS 38.214.
-  static constexpr std::array<uint8_t, 4> DELTAS{2, 3, 4, 6};
-
-  // The MSG3 slot is defined as MSG3_slot = floor( n * (2^*(mu_PUSCH) ) / (2^*(mu_PDCCH) ) ) + k2 + Delta.
-  // Given the assumption mu_PUSCH == mu_PDCCH, MSG3_delay simplifies to MSG3_delay =  k2 + Delta
-  // [TS 38.214, Section 6.1.2.1 and 6.1.2.1.1].
-
-  return static_cast<int>(pusch_td_res_alloc.k2 + DELTAS[to_numerology_value(pusch_scs)]);
-}
-
-uint16_t ocudu::get_ra_rnti(unsigned slot_index, unsigned symbol_index, unsigned frequency_index, bool is_sul)
-{
-  // See 38.321, 5.1.3 - Random Access Preamble transmission.
-  // RA-RNTI = 1 + s_id + 14 × t_id + 14 × 80 × f_id + 14 × 80 × 8 × ul_carrier_id.
-  // s_id = index of the first OFDM symbol of the (first, for short formats) PRACH occasion (0 <= s_id < 14).
-  // t_id = index of the first slot of the PRACH occasion in a system frame (0 <= t_id < 80); the numerology of
-  // reference for t_id is 15kHz for long PRACH Formats, regardless of the SCS common; whereas, for short PRACH formats,
-  // it coincides with SCS common (this can be inferred from Section 5.1.3, TS 38.321, and from Section 5.3.2,
-  // TS 38.211).
-  // f_id = index of the PRACH occation in the freq domain (0 <= f_id < 8).
-  // ul_carrier_id = 0 for NUL and 1 for SUL carrier.
-  const uint16_t ra_rnti =
-      1U + symbol_index + 14U * slot_index + 14U * 80U * frequency_index + (14U * 80U * 8U * (is_sul ? 1U : 0U));
-  return ra_rnti;
-}
-
+/// Convert CRBs to VRBs.
 static vrb_interval msg3_crb_to_vrb(const cell_configuration& cell_cfg, crb_interval grant_crbs)
 {
   return rb_helper::crb_to_vrb_ul_non_interleaved(
@@ -149,6 +118,19 @@ ra_scheduler::ra_scheduler(const scheduler_ra_expert_config& sched_cfg_,
   pending_msg3s(MAX_NOF_MSG3),
   pucch_crbs(ocudu::compute_pucch_crbs(cell_cfg))
 {
+  // The maximum number of pending RARs is given by the maximum number of PRACH occasions that can accumulate from a
+  // given UL slot (at which the PRACH is received) until the expiration of the RAR window. The worst case is when:
+  // (i) the PRACH is received instantaneously by the scheduler, and the PRACH slot is the farthest possible from the
+  //     beginning of the start of the RAR window.
+  // (ii) RAR window is min(80 slots, 10 ms).
+  // (iii) there are PRACHs occasions in every UL slot.
+  // (iv) there are no suitable DL slots for scheduling the RARs (pending RARs will be in the vector until the RAR
+  //      window expires).
+  // [Implementation-defined] Assume 80 slots RAR window + TDD 2D1S7D with 30kHz SCS slots and
+  // MAX_PRACH_OCCASIONS_PER_SLOT (the actual number would depend on the PRACH configuration index).
+  static constexpr size_t MAX_PENDING_RARS_SLOTS = 90U;
+  pending_rars.reserve(MAX_PRACH_OCCASIONS_PER_SLOT * MAX_PENDING_RARS_SLOTS);
+
   // Precompute RAR PDSCH and DCI PDUs.
   precompute_rar_fields();
 
@@ -263,7 +245,7 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
     // 15kHz for long PRACH Formats (i.e, slot_idx = subframe index); whereas, for short PRACH formats, it uses the same
     // numerology as the SCS common (i.e, slot_idx = actual slot index within the frame).
     const unsigned slot_idx = prach_format_is_long ? msg.slot_rx.subframe_index() : msg.slot_rx.slot_index();
-    const uint16_t ra_rnti  = get_ra_rnti(slot_idx, prach_occ.start_symbol, prach_occ.frequency_index);
+    const rnti_t   ra_rnti  = ra_helper::get_ra_rnti(slot_idx, prach_occ.start_symbol, prach_occ.frequency_index);
 
     if (prach_occ.preambles.empty()) {
       // As per FAPI, this should not occur.
@@ -275,20 +257,16 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
 
     pending_rar_t* rar_req = nullptr;
     for (pending_rar_t& rar : pending_rars) {
-      if (to_value(rar.ra_rnti) == ra_rnti and rar.prach_slot_rx == msg.slot_rx) {
+      if (rar.ra_rnti == ra_rnti and rar.prach_slot_rx == msg.slot_rx) {
         rar_req = &rar;
         break;
       }
     }
     if (rar_req == nullptr) {
       // Create new pending RAR
-      if (pending_rars.full()) {
-        logger.warning("ra-rnti={}: Discarding PRACH occasion. Cause: Pending RARs queue is full", ra_rnti);
-        continue;
-      }
       pending_rars.emplace_back();
       rar_req                = &pending_rars.back();
-      rar_req->ra_rnti       = to_rnti(ra_rnti);
+      rar_req->ra_rnti       = ra_rnti;
       rar_req->prach_slot_rx = msg.slot_rx;
     }
 
@@ -315,7 +293,7 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
       ev_logger.enqueue(scheduler_event_logger::prach_event{msg.slot_rx,
                                                             msg.cell_index,
                                                             prach_preamble.preamble_id,
-                                                            to_rnti(ra_rnti),
+                                                            ra_rnti,
                                                             prach_preamble.tc_rnti,
                                                             prach_preamble.time_advance.to_Ta(get_ul_bwp_cfg().scs)});
 
@@ -449,7 +427,7 @@ void ra_scheduler::stop()
 
 void ra_scheduler::update_pending_rars(slot_point pdcch_slot)
 {
-  for (auto* it = pending_rars.begin(); it != pending_rars.end();) {
+  for (auto it = pending_rars.begin(); it != pending_rars.end();) {
     pending_rar_t& rar_req = *it;
 
     // In case of RAR being outside RAR window:
@@ -523,7 +501,8 @@ bool ra_scheduler::is_slot_candidate_for_rar(const cell_slot_resource_allocator&
   // Ensure there are UL slots where Msg3s can be allocated.
   bool pusch_slots_available = false;
   for (const auto& pusch_td_alloc : get_pusch_time_domain_resource_table(get_pusch_cfg())) {
-    const unsigned msg3_delay = get_msg3_delay(pusch_td_alloc, get_ul_bwp_cfg().scs) + cell_cfg.ntn_cs_koffset;
+    const unsigned msg3_delay =
+        ra_helper::get_msg3_delay(get_ul_bwp_cfg().scs, pusch_td_alloc.k2) + cell_cfg.ntn_cs_koffset;
     const unsigned start_ul_symbols =
         NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - cell_cfg.get_nof_ul_symbol_per_slot(pdcch_slot + msg3_delay);
     if (cell_cfg.is_ul_enabled(pdcch_slot + msg3_delay) and pusch_td_alloc.symbols.start() >= start_ul_symbols) {
@@ -551,7 +530,7 @@ void ra_scheduler::schedule_pending_rars(cell_resource_allocator& res_alloc, slo
     return;
   }
 
-  for (auto* it = pending_rars.begin(); it != pending_rars.end();) {
+  for (auto it = pending_rars.begin(); it != pending_rars.end();) {
     pending_rar_t& rar_req = *it;
     if (not rar_req.rar_window.contains(pdcch_slot)) {
       // RAR window hasn't started yet for this RAR. Given that the RARs are in order of slot, we can stop here.
@@ -694,7 +673,8 @@ unsigned ra_scheduler::schedule_rar(pending_rar_t& rar, cell_resource_allocator&
         std::min(msg3_candidates.capacity() - msg3_candidates.size(), max_nof_allocs - msg3_candidates.size());
 
     // >> Verify if Msg3 delay provided by current PUSCH-TimeDomainResourceAllocation corresponds to an UL slot.
-    const unsigned msg3_delay = get_msg3_delay(pusch_list[pusch_idx], get_ul_bwp_cfg().scs) + cell_cfg.ntn_cs_koffset;
+    const unsigned msg3_delay =
+        ra_helper::get_msg3_delay(get_ul_bwp_cfg().scs, pusch_list[pusch_idx].k2) + cell_cfg.ntn_cs_koffset;
     const cell_slot_resource_allocator& msg3_alloc = res_alloc[pdcch_slot + msg3_delay];
     const unsigned                      start_ul_symbols =
         NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - cell_cfg.get_nof_ul_symbol_per_slot(msg3_alloc.slot);
@@ -802,7 +782,7 @@ void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
   for (unsigned i = 0; i < msg3_candidates.size(); ++i) {
     const auto&    msg3_candidate = msg3_candidates[i];
     const auto&    pusch_res      = pusch_td_alloc_list[msg3_candidate.pusch_td_res_index];
-    const unsigned msg3_delay     = get_msg3_delay(pusch_res, get_ul_bwp_cfg().scs) + cell_cfg.ntn_cs_koffset;
+    const unsigned msg3_delay = ra_helper::get_msg3_delay(get_ul_bwp_cfg().scs, pusch_res.k2) + cell_cfg.ntn_cs_koffset;
     cell_slot_resource_allocator& msg3_alloc = res_alloc[pdcch_slot + msg3_delay];
     const vrb_interval            vrbs       = msg3_crb_to_vrb(cell_cfg, msg3_candidate.crbs);
 

@@ -12,6 +12,7 @@
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/adt/noop_functor.h"
+#include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
@@ -244,8 +245,8 @@ protected:
 
   span<const ul_sched_info> scheduled_msg3_newtxs(uint8_t time_resource) const
   {
-    return res_grid[get_msg3_delay(get_pusch_td_resource(time_resource),
-                                   cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs)]
+    return res_grid[ra_helper::get_msg3_delay(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs,
+                                              get_pusch_td_resource(time_resource).k2)]
         .result.ul.puschs;
   }
 
@@ -293,7 +294,7 @@ protected:
                   .format)
               ? rach_ind.slot_rx.subframe_index()
               : rach_ind.slot_rx.slot_index();
-      rnti_t                 ra_rnti = to_rnti(get_ra_rnti(slot_idx, occ.start_symbol, occ.frequency_index));
+      rnti_t                 ra_rnti = ra_helper::get_ra_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
       const rar_information* rar     = find_rar(rars, ra_rnti);
       if (rar == nullptr) {
         continue;
@@ -344,7 +345,8 @@ protected:
     const auto& pusch_list = cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
     return not std::none_of(pusch_list.begin(), pusch_list.end(), [this, &pdcch_slot](const auto& pusch) {
       return cell_cfg.is_fully_ul_enabled(
-          pdcch_slot + get_msg3_delay(pusch, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs));
+          pdcch_slot +
+          ra_helper::get_msg3_delay(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, pusch.k2));
     });
   }
 

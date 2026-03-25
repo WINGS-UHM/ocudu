@@ -14,6 +14,7 @@
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/pdcch/dci_packing.h"
 #include "ocudu/ran/prach/prach_configuration.h"
+#include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
@@ -506,8 +507,8 @@ static void assert_rar_grant_msg3_pusch_consistency(const cell_configuration&   
     // For all RAR grants within the same RAR, check that they are consistent with the respective Msg3 PUSCHs.
     for (const rar_ul_grant& rar_grant : rar.grants) {
       ASSERT_TRUE(rar_grant.time_resource_assignment < pusch_td_list.size());
-      uint8_t k2 = get_msg3_delay(pusch_td_list[rar_grant.time_resource_assignment],
-                                  cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
+      uint8_t k2 = ra_helper::get_msg3_delay(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs,
+                                             pusch_td_list[rar_grant.time_resource_assignment].k2);
 
       span<const ul_sched_info> ul_grants = res_grid[k2].result.ul.puschs;
       const auto* it = std::find_if(ul_grants.begin(), ul_grants.end(), [&rar_grant](const auto& ulgrant) {

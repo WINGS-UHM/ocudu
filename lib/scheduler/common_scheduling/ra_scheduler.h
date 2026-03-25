@@ -21,21 +21,7 @@ class scheduler_event_logger;
 class cell_metrics_handler;
 struct ul_crc_indication;
 
-/// Get MSG3 Delay.
-/// \param[in] pusch_td_res_alloc PUSCH-TimeDomainResourceAllocation.
-/// \param[in] pusch_scs SCS used by initial UL BWP.
-/// \return Msg3 delay in number of slots.
-unsigned get_msg3_delay(const pusch_time_domain_resource_allocation& pusch_td_res_alloc, subcarrier_spacing pusch_scs);
-
-/// \brief Computes the RA-RNTI based on PRACH parameters, as per TS 38.321, Section 5.1.3.
-/// \param[in] slot_index Index of the first slot of the PRACH occasion in a system frame. Values {0,...,79}.
-/// \param[in] symbol_index Index of the first OFDM symbol of the first PRACH occasion. Values {0,...,13}.
-/// \param[in] frequency_index Index of the PRACH occation in the frequency domain. Values {0,...,7}.
-/// \param[in] is_sul true is this is SUL carrier, false otherwise.
-/// \return the RA-RNRI, as per , as per TS 38.321, Section 5.1.3.
-uint16_t get_ra_rnti(unsigned slot_index, unsigned symbol_index, unsigned frequency_index, bool is_sul = false);
-
-/// Scheduler for PRACH occasions, RAR PDSCHs and Msg3 PUSCH grants.
+/// Scheduler for RAR PDSCHs and Msg3 PUSCH grants and handler of RACH indications.
 class ra_scheduler
 {
 public:
@@ -45,16 +31,16 @@ public:
                         scheduler_event_logger&           ev_logger_,
                         cell_metrics_handler&             metrics_handler_);
 
-  /// Enqueue RACH indication
-  /// \remark See TS 38.321, 5.1.3 - RAP transmission.
+  /// Enqueue RACH indication coming from lower layers.
   void handle_rach_indication(const rach_indication_message& msg);
 
-  /// Handle UL CRC directed at Msg3 HARQ.
+  /// Handle UL CRC ACKing/NACKing a Msg3 HARQ process.
   void handle_crc_indication(const ul_crc_indication& crc_ind);
 
   /// Allocate pending RARs + Msg3s
   void run_slot(cell_resource_allocator& res_alloc);
 
+  /// Halt any pending allocations and stop RA scheduler activity.
   void stop();
 
 private:
@@ -66,12 +52,17 @@ private:
     unsigned pusch = 0;
   };
   struct pending_rar_t {
-    rnti_t                                                  ra_rnti = rnti_t::INVALID_RNTI;
-    slot_point                                              prach_slot_rx;
-    slot_point                                              last_sched_try_slot;
-    slot_interval                                           rar_window;
+    /// RA-RNTI generated for a given group of detected RACH preambles.
+    rnti_t ra_rnti = rnti_t::INVALID_RNTI;
+    /// Slot at which PRACH preambles were detected.
+    slot_point prach_slot_rx;
+    slot_point last_sched_try_slot;
+    /// Range of slots valid for RAR transmission.
+    slot_interval rar_window;
+    /// List of generated TC-RNTIs for each of the detected PRACH preambles.
     static_vector<rnti_t, MAX_PREAMBLES_PER_PRACH_OCCASION> tc_rntis;
-    pending_rar_failed_attempts_t                           failed_attempts;
+    /// Attempts at scheduling a RAR and associated Msg3 grants.
+    pending_rar_failed_attempts_t failed_attempts;
   };
   /// Msg3 grant pending to be scheduled.
   struct pending_msg3_t {
@@ -192,19 +183,11 @@ private:
   rach_indication_queue pending_rachs;
   crc_indication_queue  pending_crcs;
 
-  /// The maximum number of pending RARs is given by the maximum number of PRACH occasions that can accumulate from a
-  /// given UL slot (at which the PRACH is received) until the expiration of the RAR window. The worst case is when:
-  /// (i) the PRACH is received instantaneously by the scheduler, and the PRACH slot is the farthest possible from the
-  ///     beginning of the start of the RAR window.
-  /// (ii) RAR window is min(80 slots, 10 ms).
-  /// (iii) there are PRACHs occasions in every UL slot.
-  /// (iv) there are no suitable DL slots for scheduling the RARs (pending RARs will be in the vector until the RAR
-  ///      window expires).
-  /// [Implementation-defined] Assume 80 slots RAR window + TDD 2D1S7D with 30kHz SCS slots and
-  /// MAX_PRACH_OCCASIONS_PER_SLOT (the actual number would depend on the PRACH configuration index).
-  static constexpr size_t                                                             MAX_PENDING_RARS_SLOTS = 90U;
-  static_vector<pending_rar_t, MAX_PRACH_OCCASIONS_PER_SLOT * MAX_PENDING_RARS_SLOTS> pending_rars;
-  std::vector<pending_msg3_t>                                                         pending_msg3s;
+  // List of pending RARs to be scheduled.
+  std::vector<pending_rar_t> pending_rars;
+
+  // List of pending Msg3 grants to be scheduled or waiting for a positive HARQ-ACK.
+  std::vector<pending_msg3_t> pending_msg3s;
 
   // Bitmap of CRBs that might be used for PUCCH transmissions, to avoid scheduling MSG3-PUSCH over them.
   crb_bitmap pucch_crbs;

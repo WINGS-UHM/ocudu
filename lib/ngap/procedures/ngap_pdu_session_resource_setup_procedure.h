@@ -10,19 +10,17 @@
 #include "ocudu/ngap/ngap.h"
 #include "ocudu/support/async/async_task.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class ngap_pdu_session_resource_setup_procedure
 {
 public:
   ngap_pdu_session_resource_setup_procedure(const cu_cp_pdu_session_resource_setup_request&    request_,
                                             const asn1::ngap::pdu_session_res_setup_request_s& asn1_request_,
-                                            const ngap_ue_ids&                                 ue_ids_,
+                                            ngap_ue_context_list&                              ue_ctxt_list_,
                                             ngap_cu_cp_notifier&                               cu_cp_notifier_,
                                             ngap_metrics_aggregator&                           metrics_handler_,
-                                            ngap_message_notifier&                             amf_notif_,
-                                            ngap_ue_logger&                                    logger_);
+                                            ngap_message_notifier&                             amf_notifier_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -38,12 +36,13 @@ private:
   const asn1::ngap::pdu_session_res_setup_request_s asn1_request;
   cu_cp_pdu_session_resource_setup_response         validation_response;
   byte_buffer                                       nas_pdu;
-  const ngap_ue_ids                                 ue_ids;
+  ngap_ue_context_list&                             ue_ctxt_list;
   cu_cp_pdu_session_resource_setup_response         response;
   ngap_cu_cp_notifier&                              cu_cp_notifier;
   ngap_metrics_aggregator&                          metrics_handler;
   ngap_message_notifier&                            amf_notifier;
-  ngap_ue_logger&                                   logger;
+
+  ngap_ue_context* ue_ctxt = nullptr;
 
   cu_cp_ue_context_release_request ue_context_release_request;
 
@@ -54,5 +53,4 @@ private:
   pdu_session_resource_setup_validation_outcome verification_outcome;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

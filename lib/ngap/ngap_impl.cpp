@@ -642,12 +642,6 @@ void ngap_impl::handle_pdu_session_resource_setup_request(const asn1::ngap::pdu_
   // Stop PDU session setup timer.
   ue_ctxt.request_pdu_session_timer.stop();
 
-  if (!ue->is_security_enabled()) {
-    ue_ctxt.logger.log_warning("Dropping PDUSessionResourceSetupRequest. Security context does not exist");
-    send_error_indication(tx_pdu_notifier, logger, ue_ctxt.ue_ids.ran_ue_id, ue_ctxt.ue_ids.amf_ue_id, {});
-    return;
-  }
-
   // Store information in UE context.
   if (request->ue_aggr_max_bit_rate_present) {
     ue->set_ue_ambr(cu_cp_aggregate_maximum_bit_rate{request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl,
@@ -667,7 +661,7 @@ void ngap_impl::handle_pdu_session_resource_setup_request(const asn1::ngap::pdu_
 
   // Start routine.
   ue->schedule_async_task(launch_async<ngap_pdu_session_resource_setup_procedure>(
-      msg, request, ue_ctxt.ue_ids, cu_cp_notifier, metrics_handler, tx_pdu_notifier, ue_ctxt.logger));
+      msg, request, ue_ctxt_list, cu_cp_notifier, metrics_handler, tx_pdu_notifier));
 }
 
 void ngap_impl::handle_pdu_session_resource_modify_request(const asn1::ngap::pdu_session_res_modify_request_s& request)

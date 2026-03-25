@@ -82,16 +82,11 @@ private:
     crb_interval crbs;
   };
 
+  /// Queue type used to store pending RACH indications.
   using rach_indication_queue = concurrent_queue<rach_indication_message, concurrent_queue_policy::lockfree_mpmc>;
-  using crc_indication_queue  = concurrent_queue<ul_crc_indication, concurrent_queue_policy::lockfree_mpmc>;
 
-  const bwp_configuration&   get_dl_bwp_cfg() const { return cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params; }
-  const pdsch_config_common& get_pdsch_cfg() const { return cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common; }
-  const bwp_configuration&   get_ul_bwp_cfg() const { return cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params; }
-  const pusch_config_common& get_pusch_cfg() const
-  {
-    return *cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common;
-  }
+  /// Queue type used to store pending CRC indications.
+  using crc_indication_queue = concurrent_queue<ul_crc_indication, concurrent_queue_policy::lockfree_mpmc>;
 
   /// Pre-compute invariant fields of RAR PDUs (PDSCH, DCI, etc.) for faster scheduling.
   void precompute_rar_fields();
@@ -150,13 +145,16 @@ private:
   cell_metrics_handler&             metrics_hdlr;
   ocudulog::basic_logger&           logger = ocudulog::fetch_basic_logger("SCHED");
 
-  // Derived from args.
+  // -- Derived from args.
+
   /// RA window size in number of slots.
   const unsigned ra_win_nof_slots;
   crb_interval   ra_crb_lims;
   const bool     prach_format_is_long;
   /// Duration of a single PRACH occasion in slots.
   const unsigned prach_occasion_duration_slots;
+  /// Bitmap of CRBs that might be used for PUCCH transmissions, to avoid scheduling MSG3-PUSCH over them.
+  crb_bitmap pucch_crbs;
 
   /// Pre-cached information related to RAR for a given PDSCH time resource.
   struct rar_param_cached_data {
@@ -192,9 +190,6 @@ private:
   // Map of pending Msg3 grants to be scheduled or waiting for a positive HARQ-ACK.
   // Keyed by ring_idx = to_value(tc_rnti) % SIZE.
   circular_map<uint16_t, pending_msg3_t> pending_msg3s;
-
-  // Bitmap of CRBs that might be used for PUCCH transmissions, to avoid scheduling MSG3-PUSCH over them.
-  crb_bitmap pucch_crbs;
 };
 
 } // namespace ocudu

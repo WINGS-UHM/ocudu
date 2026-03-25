@@ -313,7 +313,10 @@ static bool validate_pdsch_cell_unit_config(const du_high_unit_pdsch_config& con
 }
 
 /// Validates the given CSI cell application configuration. Returns true on success, otherwise false.
-static bool validate_csi_cell_unit_config(const du_high_unit_csi_config& config, unsigned cell_bw_crbs)
+static bool validate_csi_cell_unit_config(const du_high_unit_csi_config&                      config,
+                                          subcarrier_spacing                                  scs_common,
+                                          unsigned                                            cell_bw_crbs,
+                                          const std::optional<du_high_unit_tdd_ul_dl_config>& tdd_cfg)
 {
   // CSI RS period limitation due to TS 38.214 Section 5.1.6.1.1:
   // "- the UE is not expected to be configured with the periodicity of 2 μ × 10 slots if the bandwidth of CSI-RS
@@ -322,6 +325,21 @@ static bool validate_csi_cell_unit_config(const du_high_unit_csi_config& config,
     fmt::print("Invalid CSI-RS period. UEs are not expected to be configured with CSI-RS period of 10ms when the "
                "bandwidth exceeds 52 resource blocks.\n");
     return false;
+  }
+
+  const auto csi_period_slots = get_nof_slots_per_subframe(scs_common) * config.csi_rs_period_msec;
+  if (tdd_cfg.has_value()) {
+    const unsigned tdd_period_slots =
+        tdd_cfg.value().pattern1.dl_ul_period_slots +
+        (tdd_cfg.value().pattern2.has_value() ? tdd_cfg.value().pattern2.value().dl_ul_period_slots : 0U);
+    if (csi_period_slots < tdd_period_slots) {
+      fmt::print(
+          "In TDD mode, the CSI-RS period in slots (i.e., {}ms equivalent to {} slots) must be larger than or equal "
+          "to the TDD period measured in slots\n",
+          config.csi_rs_period_msec,
+          csi_period_slots);
+      return false;
+    }
   }
 
   return true;
@@ -423,9 +441,10 @@ static bool validate_ntn_config(const du_high_unit_cell_ntn_config& ntn_cfg)
 }
 
 /// Validates the given PUCCH cell application configuration. Returns true on success, otherwise false.
-static bool validate_pucch_cell_unit_config(const du_high_unit_base_cell_config& config,
-                                            subcarrier_spacing                   scs_common,
-                                            unsigned                             nof_crbs)
+static bool validate_pucch_cell_unit_config(const du_high_unit_base_cell_config&                config,
+                                            subcarrier_spacing                                  scs_common,
+                                            unsigned                                            nof_crbs,
+                                            const std::optional<du_high_unit_tdd_ul_dl_config>& tdd_cfg)
 {
   const du_high_unit_pucch_config& pucch_cfg = config.pucch_cfg;
   const du_high_unit_csi_config&   csi_cfg   = config.csi_cfg;
@@ -463,6 +482,18 @@ static bool validate_pucch_cell_unit_config(const du_high_unit_base_cell_config&
                pucch_cfg.sr_period_msec,
                get_nof_slots_per_subframe(scs_common));
     return false;
+  }
+  if (tdd_cfg.has_value()) {
+    const unsigned tdd_period_slots =
+        tdd_cfg.value().pattern1.dl_ul_period_slots +
+        (tdd_cfg.value().pattern2.has_value() ? tdd_cfg.value().pattern2.value().dl_ul_period_slots : 0U);
+    if (sr_period_slots < tdd_period_slots) {
+      fmt::print("In TDD mode, the SR period in slots (i.e., {}ms equivalent to {} slots) must be larger than or equal "
+                 "to the TDD period measured in slots\n",
+                 pucch_cfg.sr_period_msec,
+                 sr_period_slots);
+      return false;
+    }
   }
   if (!config.ntn_cfg.has_value()) {
     span<const unsigned> valid_sr_period_slots = mu_to_valid_sr_period_slots_lookup.at(to_numerology_value(scs_common));
@@ -660,10 +691,11 @@ static bool validate_pucch_cell_unit_config(const du_high_unit_base_cell_config&
   return true;
 }
 
-static bool validate_srs_cell_unit_config(const du_high_unit_srs_config& config,
-                                          subcarrier_spacing             scs_common,
-                                          unsigned                       nof_crbs,
-                                          unsigned                       nof_ul_ports)
+static bool validate_srs_cell_unit_config(const du_high_unit_srs_config&                      config,
+                                          subcarrier_spacing                                  scs_common,
+                                          unsigned                                            nof_crbs,
+                                          unsigned                                            nof_ul_ports,
+                                          const std::optional<du_high_unit_tdd_ul_dl_config>& tdd_cfg)
 {
   if (config.srs_type_enabled == "periodic" or config.srs_type_enabled == "aperiodic") {
     const auto srs_period_slots =
@@ -678,6 +710,19 @@ static bool validate_srs_cell_unit_config(const du_high_unit_srs_config& config,
           config.srs_period_prohibit_time_ms,
           get_nof_slots_per_subframe(scs_common));
       return false;
+    }
+
+    if (tdd_cfg.has_value()) {
+      const unsigned tdd_period_slots =
+          tdd_cfg.value().pattern1.dl_ul_period_slots +
+          (tdd_cfg.value().pattern2.has_value() ? tdd_cfg.value().pattern2.value().dl_ul_period_slots : 0U);
+      if (srs_period_slots < tdd_period_slots) {
+        fmt::print("In TDD mode, the SRS period/prohibit time in slots (i.e., {}ms equivalent to {} slots) must be "
+                   "larger than or equal to the TDD period measured in slots\n",
+                   config.srs_period_prohibit_time_ms,
+                   srs_period_slots);
+        return false;
+      }
     }
 
     if (scs_common == ocudu::subcarrier_spacing::kHz30 and config.srs_period_prohibit_time_ms > 1280) {
@@ -1086,7 +1131,7 @@ static bool validate_cell_sib_config(const du_high_unit_base_cell_config& cell_c
     if (si_msg.si_window_position.has_value()) {
       si_window_positions.push_back(si_msg.si_window_position.value());
     } else {
-      if (si_window_positions.size() > 0) {
+      if (not si_window_positions.empty()) {
         fmt::print(
             "Invalid SIB ordering in si_sched_info: SIBs using schedulingInfoList (SIB IDs < 15) must precede SIBs "
             "using schedulingInfoList2 (SIB IDs >= 15).\n");
@@ -1126,7 +1171,7 @@ static bool validate_cell_sib_config(const du_high_unit_base_cell_config& cell_c
 
   // SI messages scheduled by schedulingInfoList and/or posSchedulingInfoList do not overlap
   // with SI messages scheduled by schedulingInfoList2. See TS38.331 \c si-WindowPosition.
-  if (si_window_positions.size() > 0 && (si_window_positions[0] <= n_sched_info_list_messages)) {
+  if (!si_window_positions.empty() && (si_window_positions[0] <= n_sched_info_list_messages)) {
     fmt::print("Any SI element in schedulingInfoList2 must be scheduled after any SI "
                "in schedulingInfoList ({}<={})\n",
                si_window_positions[0],
@@ -1259,7 +1304,7 @@ static bool validate_base_cell_unit_config(const du_high_unit_base_cell_config& 
     return false;
   }
 
-  if (!validate_csi_cell_unit_config(config.csi_cfg, nof_crbs)) {
+  if (!validate_csi_cell_unit_config(config.csi_cfg, config.common_scs, nof_crbs, config.tdd_ul_dl_cfg)) {
     return false;
   }
 
@@ -1267,11 +1312,12 @@ static bool validate_base_cell_unit_config(const du_high_unit_base_cell_config& 
     return false;
   }
 
-  if (!validate_pucch_cell_unit_config(config, config.common_scs, nof_crbs)) {
+  if (!validate_pucch_cell_unit_config(config, config.common_scs, nof_crbs, config.tdd_ul_dl_cfg)) {
     return false;
   }
 
-  if (!validate_srs_cell_unit_config(config.srs_cfg, config.common_scs, nof_crbs, config.nof_antennas_ul)) {
+  if (!validate_srs_cell_unit_config(
+          config.srs_cfg, config.common_scs, nof_crbs, config.nof_antennas_ul, config.tdd_ul_dl_cfg)) {
     return false;
   }
 

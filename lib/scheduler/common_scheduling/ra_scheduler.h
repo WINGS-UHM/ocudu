@@ -26,11 +26,10 @@ struct ul_crc_indication;
 class ra_scheduler
 {
 public:
-  explicit ra_scheduler(const scheduler_ra_expert_config& sched_cfg_,
-                        const cell_configuration&         cfg_,
-                        pdcch_resource_allocator&         pdcch_sched_,
-                        scheduler_event_logger&           ev_logger_,
-                        cell_metrics_handler&             metrics_handler_);
+  explicit ra_scheduler(const cell_configuration& cfg_,
+                        pdcch_resource_allocator& pdcch_sched_,
+                        scheduler_event_logger&   ev_logger_,
+                        cell_metrics_handler&     metrics_handler_);
 
   /// Enqueue RACH indication coming from lower layers.
   /// \note Potentially called from a different executor than the cell scheduler executor.
@@ -54,7 +53,8 @@ private:
     unsigned pdsch = 0;
     unsigned pusch = 0;
   };
-  struct pending_rar_t {
+  /// RAR grant pending to be scheduled.
+  struct pending_rar_alloc {
     /// RA-RNTI generated for a given group of detected RACH preambles.
     rnti_t ra_rnti = rnti_t::INVALID_RNTI;
     /// Slot at which PRACH preambles were detected.
@@ -69,7 +69,7 @@ private:
     pending_rar_failed_attempts_t failed_attempts;
   };
   /// Msg3 grant pending to be scheduled.
-  struct pending_msg3_t {
+  struct pending_msg3_alloc {
     /// Detected PRACH Preamble associated to this Msg3 being scheduled.
     rach_indication_message::preamble preamble{};
     /// UL Harq used to schedule Msg3.
@@ -98,8 +98,9 @@ private:
 
   void handle_pending_crc_indications_impl(cell_resource_allocator& res_alloc);
 
-  void
-  log_postponed_rar(const pending_rar_t& rar, const char* cause_str, std::optional<slot_point> sl = std::nullopt) const;
+  void log_postponed_rar(const pending_rar_alloc&  rar,
+                         const char*               cause_str,
+                         std::optional<slot_point> sl = std::nullopt) const;
 
   /// Delete RARs that are out of the RAR window.
   void update_pending_rars(slot_point pdcch_slot);
@@ -112,7 +113,7 @@ private:
 
   /// Find and allocate DL and UL resources for pending RAR and associated Msg3 grants.
   /// \return The number of allocated Msg3 grants.
-  unsigned schedule_rar(pending_rar_t& rar, cell_resource_allocator& res_alloc, slot_point pdcch_slot);
+  unsigned schedule_rar(pending_rar_alloc& rar, cell_resource_allocator& res_alloc, slot_point pdcch_slot);
 
   /// Schedule RAR grant and associated Msg3 grants in the provided scheduling resources.
   /// \param res_alloc Cell Resource Allocator.
@@ -122,14 +123,14 @@ private:
   /// \param pdsch_time_res_index Index of PDSCH time domain resource.
   /// \param msg3_candidates List of Msg3s with respective resource information (e.g. RBs and symbols) to allocate.
   void fill_rar_grant(cell_resource_allocator&         res_alloc,
-                      const pending_rar_t&             pending_rar,
+                      const pending_rar_alloc&         pending_rar,
                       slot_point                       pdcch_slot,
                       crb_interval                     rar_crbs,
                       unsigned                         pdsch_time_res_index,
                       span<const msg3_alloc_candidate> msg3_candidates);
 
   /// Schedule retransmission of Msg3.
-  void schedule_msg3_retx(cell_resource_allocator& res_alloc, pending_msg3_t& msg3_ctx) const;
+  void schedule_msg3_retx(cell_resource_allocator& res_alloc, pending_msg3_alloc& msg3_ctx) const;
 
   sch_prbs_tbs get_nof_pdsch_prbs_required(unsigned time_res_idx, unsigned nof_ul_grants) const;
 
@@ -137,7 +138,8 @@ private:
   // find PDSCH space for RAR.
   static constexpr unsigned max_dl_slots_ahead_sched = 8U;
 
-  // Args.
+  // -- args.
+
   const scheduler_ra_expert_config& sched_cfg;
   const cell_configuration&         cell_cfg;
   pdcch_resource_allocator&         pdcch_sch;
@@ -175,6 +177,8 @@ private:
   std::vector<msg3_param_cached_data> msg3_data;
   sch_mcs_description                 msg3_mcs_config;
 
+  // -- State.
+
   // Currently managed HARQ processes for Random Access in this cell.
   cell_harq_manager msg3_harqs;
 
@@ -185,11 +189,11 @@ private:
   crc_indication_queue pending_crcs;
 
   // List of pending RARs to be scheduled.
-  std::vector<pending_rar_t> pending_rars;
+  std::vector<pending_rar_alloc> pending_rars;
 
   // Map of pending Msg3 grants to be scheduled or waiting for a positive HARQ-ACK.
   // Keyed by ring_idx = to_value(tc_rnti) % SIZE.
-  circular_map<uint16_t, pending_msg3_t> pending_msg3s;
+  circular_map<uint16_t, pending_msg3_alloc> pending_msg3s;
 };
 
 } // namespace ocudu

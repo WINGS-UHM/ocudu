@@ -22,7 +22,7 @@ cell_scheduler::cell_scheduler(const scheduler_expert_config&                  s
   pdcch_sch(cell_cfg),
   si_sch(cell_cfg, pdcch_sch, msg),
   csi_sch(cell_cfg),
-  ra_sch(sched_cfg.ra, cell_cfg, pdcch_sch, event_logger, metrics),
+  ra_sch(cell_cfg, pdcch_sch, event_logger, metrics),
   prach_sch(cell_cfg),
   pucch_alloc(cell_cfg, sched_cfg.ue.max_pucchs_per_slot, sched_cfg.ue.max_ul_grants_per_slot),
   uci_alloc(cell_cfg, pucch_alloc),

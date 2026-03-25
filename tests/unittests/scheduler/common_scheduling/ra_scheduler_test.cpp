@@ -437,7 +437,7 @@ protected:
   cell_metrics_handler                metrics_hdlr;
   cell_resource_allocator             res_grid{cell_cfg};
   dummy_pdcch_resource_allocator      pdcch_sch;
-  ra_scheduler                        ra_sch{sched_cfg.ra, cell_cfg, pdcch_sch, ev_logger, metrics_hdlr};
+  ra_scheduler                        ra_sch{cell_cfg, pdcch_sch, ev_logger, metrics_hdlr};
   scheduler_result_logger             result_logger{false, cell_cfg.params.pci};
 
   slot_point next_slot{to_numerology_value(params.scs),

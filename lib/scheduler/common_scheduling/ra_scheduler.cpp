@@ -38,9 +38,9 @@ static crb_interval msg3_vrb_to_crb(const cell_configuration& cell_cfg, vrb_inte
 class ra_scheduler::msg3_harq_timeout_notifier final : public harq_timeout_notifier
 {
 public:
-  msg3_harq_timeout_notifier(circular_map<uint16_t, pending_msg3_t>& pending_msg3s_,
-                             pci_t                                   pci_,
-                             ocudulog::basic_logger&                 logger_) :
+  msg3_harq_timeout_notifier(circular_map<uint16_t, pending_msg3_alloc>& pending_msg3s_,
+                             pci_t                                       pci_,
+                             ocudulog::basic_logger&                     logger_) :
     pending_msg3s(pending_msg3s_), pci(pci_), logger(logger_)
   {
   }
@@ -63,9 +63,9 @@ public:
   void on_feedback_disabled_harq_timeout(du_ue_index_t ue_idx, bool is_dl, units::bytes tbs) override {}
 
 private:
-  circular_map<uint16_t, pending_msg3_t>& pending_msg3s;
-  const pci_t                             pci;
-  ocudulog::basic_logger&                 logger;
+  circular_map<uint16_t, pending_msg3_alloc>& pending_msg3s;
+  const pci_t                                 pci;
+  ocudulog::basic_logger&                     logger;
 };
 
 /// Compute max Msg3 reTx timeout period, based on the fact that it should not be longer than the ConRes timer.
@@ -134,12 +134,11 @@ static span<const pusch_time_domain_resource_allocation> get_pusch_td_list(const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ra_scheduler::ra_scheduler(const scheduler_ra_expert_config& sched_cfg_,
-                           const cell_configuration&         cellcfg_,
-                           pdcch_resource_allocator&         pdcch_sch_,
-                           scheduler_event_logger&           ev_logger_,
-                           cell_metrics_handler&             metrics_hdlr_) :
-  sched_cfg(sched_cfg_),
+ra_scheduler::ra_scheduler(const cell_configuration& cellcfg_,
+                           pdcch_resource_allocator& pdcch_sch_,
+                           scheduler_event_logger&   ev_logger_,
+                           cell_metrics_handler&     metrics_hdlr_) :
+  sched_cfg(cellcfg_.expert_cfg.ra),
   cell_cfg(cellcfg_),
   pdcch_sch(pdcch_sch_),
   ev_logger(ev_logger_),
@@ -155,7 +154,7 @@ ra_scheduler::ra_scheduler(const scheduler_ra_expert_config& sched_cfg_,
           cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)
           .format)),
   prach_occasion_duration_slots(compute_prach_occasion_duration_slots(cell_cfg)),
-  pucch_crbs(ocudu::compute_pucch_crbs(cell_cfg)),
+  pucch_crbs(compute_pucch_crbs(cell_cfg)),
   msg3_harqs(MAX_NOF_DU_UES,
              1,
              std::make_unique<msg3_harq_timeout_notifier>(pending_msg3s, cell_cfg.params.pci, logger),
@@ -303,10 +302,10 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
     }
 
     // Search for pending RAR with matching RA-RNTI and Rx Slot.
-    auto           rar_it  = std::find_if(pending_rars.begin(), pending_rars.end(), [&](const pending_rar_t& rar) {
+    auto rar_it = std::find_if(pending_rars.begin(), pending_rars.end(), [&](const pending_rar_alloc& rar) {
       return rar.ra_rnti == ra_rnti and rar.prach_slot_rx == msg.slot_rx;
     });
-    pending_rar_t* rar_req = rar_it != pending_rars.end() ? &*rar_it : nullptr;
+    pending_rar_alloc* rar_req = rar_it != pending_rars.end() ? &*rar_it : nullptr;
     if (rar_req == nullptr) {
       // No match was found. Create new pending RAR.
       if (pending_rars.capacity() == pending_rars.size()) {
@@ -462,7 +461,7 @@ void ra_scheduler::run_slot(cell_resource_allocator& res_alloc)
 
     // For the RARs that were not scheduled, save the last slot when an allocation was attempted. This avoids redundant
     // scheduling attempts.
-    for (pending_rar_t& rar : pending_rars) {
+    for (pending_rar_alloc& rar : pending_rars) {
       rar.last_sched_try_slot = res_alloc.slot_tx() + max_dl_slots_ahead_sched;
     }
   }
@@ -483,7 +482,7 @@ void ra_scheduler::stop()
 void ra_scheduler::update_pending_rars(slot_point pdcch_slot)
 {
   for (auto it = pending_rars.begin(); it != pending_rars.end();) {
-    pending_rar_t& rar_req = *it;
+    pending_rar_alloc& rar_req = *it;
 
     // In case of RAR being outside RAR window:
     // - if window has passed, discard RAR
@@ -585,7 +584,7 @@ void ra_scheduler::schedule_pending_rars(cell_resource_allocator& res_alloc, slo
   }
 
   for (auto it = pending_rars.begin(); it != pending_rars.end();) {
-    pending_rar_t& rar_req = *it;
+    pending_rar_alloc& rar_req = *it;
     if (not rar_req.rar_window.contains(pdcch_slot)) {
       // RAR window hasn't started yet for this RAR. Given that the RARs are in order of slot, we can stop here.
       break;
@@ -624,7 +623,7 @@ void ra_scheduler::schedule_pending_rars(cell_resource_allocator& res_alloc, slo
   }
 }
 
-unsigned ra_scheduler::schedule_rar(pending_rar_t& rar, cell_resource_allocator& res_alloc, slot_point pdcch_slot)
+unsigned ra_scheduler::schedule_rar(pending_rar_alloc& rar, cell_resource_allocator& res_alloc, slot_point pdcch_slot)
 {
   cell_slot_resource_allocator& pdcch_alloc = res_alloc[pdcch_slot];
 
@@ -791,7 +790,7 @@ unsigned ra_scheduler::schedule_rar(pending_rar_t& rar, cell_resource_allocator&
 }
 
 void ra_scheduler::fill_rar_grant(cell_resource_allocator&         res_alloc,
-                                  const pending_rar_t&             rar_request,
+                                  const pending_rar_alloc&         rar_request,
                                   slot_point                       pdcch_slot,
                                   crb_interval                     rar_crbs,
                                   unsigned                         pdsch_time_res_index,
@@ -905,7 +904,7 @@ static void log_failed_msg3_retx(ocudulog::basic_logger& logger,
   }
 }
 
-void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pending_msg3_t& msg3_ctx) const
+void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pending_msg3_alloc& msg3_ctx) const
 {
   cell_slot_resource_allocator& pdcch_alloc = res_alloc[0];
   const bwp_configuration&      bwp_ul_cmn  = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
@@ -926,10 +925,9 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
     return;
   }
 
-  const search_space_configuration& ss_cfg = get_ra_ss_cfg(cell_cfg);
-
   // Check if there are enough DL symbols to allocate the UL PDCCH
-  const coreset_configuration& cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
+  const search_space_configuration& ss_cfg = get_ra_ss_cfg(cell_cfg);
+  const coreset_configuration&      cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
   if (ss_cfg.get_first_symbol_index() + cs_cfg.duration() > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_alloc.slot)) {
     // Early exit. RAR scheduling only possible when PDCCH monitoring is active.
     log_failed_msg3_retx(
@@ -1047,7 +1045,7 @@ sch_prbs_tbs ra_scheduler::get_nof_pdsch_prbs_required(unsigned time_res_idx, un
       [std::min(nof_ul_grants, static_cast<unsigned>(rar_data[time_res_idx].prbs_tbs_per_nof_grants.size())) - 1];
 }
 
-void ra_scheduler::log_postponed_rar(const pending_rar_t&      rar,
+void ra_scheduler::log_postponed_rar(const pending_rar_alloc&  rar,
                                      const char*               cause_str,
                                      std::optional<slot_point> sl) const
 {

@@ -298,8 +298,6 @@ void xnc_connection_manager::handle_xnc_gw_connection_closed(xnc_peer_index_t xn
 
 void xnc_connection_manager::reconnect_peer(xnc_peer_index_t xnc_idx, const transport_layer_address& peer_addr)
 {
-  static constexpr std::chrono::milliseconds reconnection_retry_time{60000};
-
   // Schedule on the per-peer task scheduler so the reconnect coroutine does not block the common task queue.
   xnaps.get_xnap_task_scheduler().handle_xnc_async_task(
       xnc_idx,
@@ -311,8 +309,8 @@ void xnc_connection_manager::reconnect_peer(xnc_peer_index_t xnc_idx, const tran
                     xnap_if = static_cast<xnap_interface*>(nullptr)](coro_context<async_task<void>>& ctx) mutable {
         CORO_BEGIN(ctx);
 
-        logger.info("XN-C peer {}: Scheduling reconnection in {}...", xnc_idx, reconnection_retry_time);
-        CORO_AWAIT(async_wait_for(retry_timer, reconnection_retry_time));
+        logger.info("XN-C peer {}: Scheduling reconnection in {}...", xnc_idx, xnap_cfg.reconnect_timer);
+        CORO_AWAIT(async_wait_for(retry_timer, xnap_cfg.reconnect_timer));
 
         // Skip if shutting down or peer was already reconnected (e.g. by an inbound connection).
         if (stopped or xnc_connections.count(xnc_idx) > 0) {

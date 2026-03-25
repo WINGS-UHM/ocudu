@@ -413,6 +413,7 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
 
   // XNAP.
   out_cfg.xnap.procedure_timeout  = std::chrono::milliseconds{cu_cfg.xnap_config.procedure_timeout};
+  out_cfg.xnap.reconnect_timer    = std::chrono::milliseconds{cu_cfg.xnap_config.reconnect_timer};
   out_cfg.xnap.no_connection_init = cu_cfg.xnap_config.no_connection_init;
   for (const auto& xnap : cu_cfg.xnap_config.connections) {
     ocucp::cu_cp_configuration::xnap_config xn_config{};

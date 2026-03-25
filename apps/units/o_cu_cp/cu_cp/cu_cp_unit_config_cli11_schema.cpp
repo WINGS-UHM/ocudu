@@ -220,6 +220,11 @@ static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& con
       app, "--procedure_timeout", config.procedure_timeout, "Time that the XNAP waits for a response in milliseconds")
       ->capture_default_str();
   add_option(app,
+             "--reconnect_timer",
+             config.reconnect_timer,
+             "Time that the XNAP waits before trying to reconnect in milliseconds")
+      ->capture_default_str();
+  add_option(app,
              "--no_connection_init",
              config.no_connection_init,
              "When true, the CU-CP will not initiate XNAP connections, but will only accept inbound ones")

@@ -211,6 +211,7 @@ protected:
   std::vector<s_nssai_t> local_slice_support_list = {local_slice};
   xnap_configuration     xnap_local_cfg           = {
       std::chrono::milliseconds{5000},
+      std::chrono::milliseconds{10000},
       local_gnb_id,
       std::vector<supported_tracking_area>{{local_tac, std::vector<plmn_item>{{local_plmn, local_slice_support_list}}}},
       std::vector<guami_t>{{.plmn = local_plmn, .amf_set_id = 0, .amf_pointer = 0, .amf_region_id = 1}}};
@@ -224,6 +225,7 @@ protected:
 
   xnap_configuration xnap_peer_cfg = {
       std::chrono::milliseconds{5000},
+      std::chrono::milliseconds{10000},
       peer_gnb_id,
       std::vector<supported_tracking_area>{{peer_tac, std::vector<plmn_item>{{peer_plmn, peer_slice_support_list}}}},
       std::vector<guami_t>{{peer_plmn, 1}},

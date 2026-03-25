@@ -13,6 +13,7 @@ namespace ocudu::ocucp {
 
 struct xnap_configuration {
   std::chrono::milliseconds            procedure_timeout{5000};
+  std::chrono::milliseconds            reconnect_timer{10000};
   gnb_id_t                             gnb_id;
   std::vector<supported_tracking_area> tai_support_list;
   std::vector<guami_t>                 guami_list;

@@ -153,6 +153,7 @@ bool cu_cp_impl::start()
   // Setup succeeded, add XNAPs and try to connect to peers.
   if (not cfg.services.cu_cp_executor->execute([this]() {
         xnap_configuration xnc_cfg{.procedure_timeout  = cfg.xnap.procedure_timeout,
+                                   .reconnect_timer    = cfg.xnap.reconnect_timer,
                                    .gnb_id             = cfg.node.gnb_id,
                                    .tai_support_list   = ngap_db.get_supported_tracking_areas(),
                                    .guami_list         = ngap_db.get_served_guamis(),

@@ -95,7 +95,7 @@ void io_broker_epoll::thread_loop()
     // Process any pending file descriptor removals.
     for (auto it = pending_fds_to_remove.begin(); it != pending_fds_to_remove.end();) {
       if (auto event_it = event_handler.find(it->first); event_it != event_handler.end()) {
-        if (not event_it->second.is_executing_recv_callback.load(std::memory_order_acquire)) {
+        if (event_it->second.job_count.load(std::memory_order_acquire) == 0) {
           handle_fd_epoll_removal(it->first, true, std::nullopt, it->second);
           it = pending_fds_to_remove.erase(it);
           continue;
@@ -173,23 +173,24 @@ void io_broker_epoll::thread_loop()
         continue;
       }
 
-      it->second.is_executing_recv_callback.store(true, std::memory_order_release);
-      if (not it->second.executor->defer([this,
-                                          fd,
-                                          callback       = &it->second.read_callback,
-                                          is_in_callback = &it->second.is_executing_recv_callback]() {
-            // Track the current FD that is being read by this executor.
-            fd_read_in_callback = fd;
-            (*callback)();
-            is_in_callback->store(false, std::memory_order_release);
-            // Avoid rearming this FD if the callback unregistered it.
-            if (fd_read_in_callback != AVOID_FD_REARMING) {
-              rearm_fd(fd);
-            }
-            fd_read_in_callback = -1;
-          })) {
+      // Increment fd_handler job count before deferring the task.
+      it->second.job_count.fetch_add(1, std::memory_order_release);
+      if (not it->second.executor->defer(
+              [this, fd, callback = &it->second.read_callback, job_count = &it->second.job_count]() {
+                // Track the current FD that is being read by this thread.
+                fd_read_in_callback = fd;
+                (*callback)();
+                // Avoid rearming this FD if the callback unregistered it.
+                if (fd_read_in_callback != AVOID_FD_REARMING) {
+                  rearm_fd(fd);
+                }
+                fd_read_in_callback = -1;
+                // Decrement fd_handler job count after deferred task finished.
+                job_count->fetch_sub(1, std::memory_order_release);
+              })) {
         rearm_fd(fd);
-        it->second.is_executing_recv_callback.store(false, std::memory_order_release);
+        // Decrement fd_handler job count after task deferring failed.
+        it->second.job_count.fetch_sub(1, std::memory_order_release);
         logger.error("Could not enqueue task for processing file descriptor: {}", fd);
       }
     }
@@ -228,8 +229,8 @@ void io_broker_epoll::handle_enqueued_events()
         break;
       case control_event::event_type::deregister_fd:
         if (auto it = event_handler.find(ev.raw_fd); it != event_handler.end()) {
-          // It is safe to directly deregister the FD if we are not reading from it.
-          if (not it->second.is_executing_recv_callback.load(std::memory_order_acquire)) {
+          // It is safe to directly deregister the FD if there are no tasks reading from it.
+          if (it->second.job_count.load(std::memory_order_acquire) == 0) {
             handle_fd_epoll_removal(ev.raw_fd, false, std::nullopt, ev.completed);
             break;
           }
@@ -430,7 +431,8 @@ void io_broker_epoll::stop_impl()
   // Process any pending file descriptor removals.
   for (auto it = pending_fds_to_remove.begin(); it != pending_fds_to_remove.end();) {
     if (auto event_it = event_handler.find(it->first); event_it != event_handler.end()) {
-      while (event_it->second.is_executing_recv_callback.load(std::memory_order_acquire)) {
+      while (event_it->second.job_count.load(std::memory_order_acquire) != 0) {
+        // Postpone file descriptor removal until all tasks using it finish.
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
       }
       handle_fd_epoll_removal(it->first, true, std::nullopt, it->second);
@@ -447,7 +449,7 @@ void io_broker_epoll::stop_impl()
 
   // Deregistering all existing file descriptors.
   for (auto it = event_handler.begin(); it != event_handler.end();) {
-    while (it->second.is_executing_recv_callback.load(std::memory_order_acquire)) {
+    while (it->second.job_count.load(std::memory_order_acquire) != 0) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     struct epoll_event epoll_ev = {};

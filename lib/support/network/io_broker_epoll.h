@@ -47,11 +47,11 @@ private:
     {
     }
 
-    task_executor*    executor;
-    recv_callback_t   read_callback;
-    error_callback_t  error_callback;
-    std::atomic<bool> is_executing_recv_callback{false};
-    unique_fd         fd;
+    task_executor*        executor;
+    recv_callback_t       read_callback;
+    error_callback_t      error_callback;
+    std::atomic<unsigned> job_count = 0;
+    unique_fd             fd;
 
     // Determines whether the io_broker has deregistered the event handler from the epoll.
     bool registed_in_epoll() const { return static_cast<bool>(read_callback); }

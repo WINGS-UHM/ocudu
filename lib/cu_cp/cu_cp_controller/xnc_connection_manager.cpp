@@ -127,21 +127,27 @@ void xnc_connection_manager::start(const xnap_configuration& xnap_cfg_)
 
   auto xnaps_map = xnaps.get_xnaps();
   for (auto& xnap : xnaps_map) {
-    std::optional<transport_layer_address> peer_addr = xnaps.get_peer_addr(xnap.first);
+    auto  xnc_idx = xnap.first;
+    auto* xnap_if = xnap.second;
+
+    std::optional<transport_layer_address> peer_addr = xnaps.get_peer_addr(xnc_idx);
     if (!peer_addr.has_value()) {
-      logger.warning("No peer address for XN-C peer {}", xnap.first);
+      logger.warning("No peer address for XN-C peer {}", xnc_idx);
       continue;
     }
 
     xnaps.get_xnap_task_scheduler().handle_xnc_async_task(
-        xnap.first,
-        launch_async([this, xnap_if = xnap.second, peer_addr = peer_addr.value(), connect_result = false](
+        xnc_idx,
+        launch_async([this, xnc_idx, xnap_if, peer_addr = peer_addr.value(), connect_result = false](
                          coro_context<async_task<void>>& ctx) mutable {
           CORO_BEGIN(ctx);
           // Establish the SCTP association first.
           CORO_AWAIT_VALUE(connect_result, xnc_gw->connect_to_peer(peer_addr));
           if (!connect_result) {
-            logger.warning("Failed to connect to XN-C peer at {}", peer_addr);
+            logger.warning("Failed to connect to XN-C peer at {}. Scheduling reconnection in {}...",
+                           peer_addr,
+                           std::chrono::duration_cast<std::chrono::seconds>(xnap_cfg.reconnect_timer));
+            reconnect_peer(xnc_idx, peer_addr);
             CORO_EARLY_RETURN();
           }
           // Trigger XN Setup on the established association.
@@ -286,7 +292,9 @@ void xnc_connection_manager::handle_xnc_gw_connection_closed(xnc_peer_index_t xn
                 "XN-C peer {} disconnected. Recreated XNAP, waiting for inbound reconnection (no_connection_init mode)",
                 xnc_idx);
           } else {
-            logger.info("XN-C peer {} disconnected. Recreated XNAP, awaiting reconnection", xnc_idx);
+            logger.info("XN-C peer {} disconnected. Recreated XNAP, scheduling reconnection in {}...",
+                        xnc_idx,
+                        std::chrono::duration_cast<std::chrono::seconds>(xnap_cfg.reconnect_timer));
             // Schedule outbound reconnection attempt.
             reconnect_peer(xnc_idx, peer_addr.value());
           }

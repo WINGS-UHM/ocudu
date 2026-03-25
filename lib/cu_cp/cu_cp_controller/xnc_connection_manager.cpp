@@ -125,7 +125,8 @@ void xnc_connection_manager::start(const xnap_configuration& xnap_cfg_)
       continue;
     }
 
-    common_task_sched.schedule_async_task(
+    xnaps.get_xnap_task_scheduler().handle_xnc_async_task(
+        xnap.first,
         launch_async([this, xnap_if = xnap.second, peer_addr = peer_addr.value(), connect_result = false](
                          coro_context<async_task<void>>& ctx) mutable {
           CORO_BEGIN(ctx);

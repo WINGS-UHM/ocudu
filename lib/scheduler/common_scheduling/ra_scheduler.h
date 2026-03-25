@@ -8,6 +8,7 @@
 #include "../cell/resource_grid.h"
 #include "../pdcch_scheduling/pdcch_resource_allocator.h"
 #include "../support/prbs_calculator.h"
+#include "ocudu/adt/circular_map.h"
 #include "ocudu/adt/mpmc_queue.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/resource_allocation/rb_bitmap.h"
@@ -32,9 +33,11 @@ public:
                         cell_metrics_handler&             metrics_handler_);
 
   /// Enqueue RACH indication coming from lower layers.
+  /// \note Potentially called from a different executor than the cell scheduler executor.
   void handle_rach_indication(const rach_indication_message& msg);
 
   /// Handle UL CRC ACKing/NACKing a Msg3 HARQ process.
+  /// \note Potentially called from a different executor than the cell scheduler executor.
   void handle_crc_indication(const ul_crc_indication& crc_ind);
 
   /// Allocate pending RARs + Msg3s
@@ -56,6 +59,7 @@ private:
     rnti_t ra_rnti = rnti_t::INVALID_RNTI;
     /// Slot at which PRACH preambles were detected.
     slot_point prach_slot_rx;
+    /// Last slot at which the scheduler attempted to allocated this RAR grant.
     slot_point last_sched_try_slot;
     /// Range of slots valid for RAR transmission.
     slot_interval rar_window;
@@ -72,20 +76,14 @@ private:
     /// Note: [TS 38.321, 5.4.2.1] "For UL transmission with UL grant in RA Response, HARQ process identifier 0 is
     /// used".
     unique_ue_harq_entity msg3_harq_ent;
-
-    bool busy() const { return not msg3_harq_ent.empty(); }
   };
   struct msg3_alloc_candidate {
     unsigned     pusch_td_res_index;
     crb_interval crbs;
   };
 
-  using rach_indication_queue = concurrent_queue<rach_indication_message,
-                                                 concurrent_queue_policy::lockfree_mpmc,
-                                                 concurrent_queue_wait_policy::non_blocking>;
-  using crc_indication_queue  = concurrent_queue<ul_crc_indication,
-                                                 concurrent_queue_policy::lockfree_mpmc,
-                                                 concurrent_queue_wait_policy::non_blocking>;
+  using rach_indication_queue = concurrent_queue<rach_indication_message, concurrent_queue_policy::lockfree_mpmc>;
+  using crc_indication_queue  = concurrent_queue<ul_crc_indication, concurrent_queue_policy::lockfree_mpmc>;
 
   const bwp_configuration&   get_dl_bwp_cfg() const { return cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params; }
   const pdsch_config_common& get_pdsch_cfg() const { return cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common; }
@@ -94,7 +92,6 @@ private:
   {
     return *cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common;
   }
-  const rach_config_common& get_rach_cfg() const { return *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common; }
 
   /// Pre-compute invariant fields of RAR PDUs (PDSCH, DCI, etc.) for faster scheduling.
   void precompute_rar_fields();
@@ -151,9 +148,9 @@ private:
   pdcch_resource_allocator&         pdcch_sch;
   scheduler_event_logger&           ev_logger;
   cell_metrics_handler&             metrics_hdlr;
+  ocudulog::basic_logger&           logger = ocudulog::fetch_basic_logger("SCHED");
 
   // Derived from args.
-  ocudulog::basic_logger& logger = ocudulog::fetch_basic_logger("SCHED");
   /// RA window size in number of slots.
   const unsigned ra_win_nof_slots;
   crb_interval   ra_crb_lims;
@@ -186,8 +183,9 @@ private:
   // List of pending RARs to be scheduled.
   std::vector<pending_rar_t> pending_rars;
 
-  // List of pending Msg3 grants to be scheduled or waiting for a positive HARQ-ACK.
-  std::vector<pending_msg3_t> pending_msg3s;
+  // Map of pending Msg3 grants to be scheduled or waiting for a positive HARQ-ACK.
+  // Keyed by ring_idx = to_value(tc_rnti) % SIZE.
+  circular_map<uint16_t, pending_msg3_t> pending_msg3s;
 
   // Bitmap of CRBs that might be used for PUCCH transmissions, to avoid scheduling MSG3-PUSCH over them.
   crb_bitmap pucch_crbs;

@@ -85,6 +85,20 @@ static constexpr size_t RACH_IND_QUEUE_SIZE = MAX_PRACH_OCCASIONS_PER_SLOT * 2;
 // (Implementation-defined) limit for maximum number of pending CRC indications.
 static constexpr size_t CRC_IND_QUEUE_SIZE = MAX_PUCCH_PDUS_PER_SLOT * 2;
 
+/// Compute the PRACH occasion duration in slots from cell configuration.
+/// Short preamble formats span 1 slot; long formats may span multiple slots within a subframe.
+static unsigned compute_prach_occasion_duration_slots(const cell_configuration& cell_cfg)
+{
+  const prach_configuration prach_cfg = prach_configuration_get(
+      band_helper::get_freq_range(cell_cfg.band()),
+      band_helper::get_duplex_mode(cell_cfg.band()),
+      cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index);
+  if (not is_long_preamble(prach_cfg.format)) {
+    return 1U;
+  }
+  return prach_cfg.nof_prach_slots_within_subframe * get_nof_slots_per_subframe(cell_cfg.scs_common());
+}
+
 /// Generate circular map key of Msg3 grant based on its TC-RNTI.
 /// \note the returned key can be larger than the circular_map size. This helps with disambiguation. However,
 /// it cannot be higher than MAX_NOF_DU_UES, because the key is translated into a ue_index_t by the cell_harq_manager.
@@ -115,6 +129,7 @@ ra_scheduler::ra_scheduler(const scheduler_ra_expert_config& sched_cfg_,
           band_helper::get_duplex_mode(cell_cfg.band()),
           cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)
           .format)),
+  prach_occasion_duration_slots(compute_prach_occasion_duration_slots(cell_cfg)),
   msg3_harqs(MAX_NOF_DU_UES,
              1,
              std::make_unique<msg3_harq_timeout_notifier>(pending_msg3s, cell_cfg.params.pci, logger),
@@ -248,8 +263,6 @@ void ra_scheduler::handle_rach_indication(const rach_indication_message& msg)
 
 void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& msg, slot_point sl_tx)
 {
-  static constexpr unsigned prach_duration = 1; // TODO: Take from config
-
   // Handle all PRACH occasions in the received RACH indication and convert them into pending RARs and Msg3s.
   for (const auto& prach_occ : msg.occasions) {
     // As per Section 5.1.3, TS 38.321, and from Section 5.3.2, TS 38.211, slot_idx uses as the numerology of reference
@@ -291,7 +304,7 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
       // TDD case.
       const unsigned period = nof_slots_per_tdd_period(*cell_cfg.params.tdd_cfg);
       for (unsigned sl_idx = 0; sl_idx < period; ++sl_idx) {
-        const slot_point sl_start = rar_req->prach_slot_rx + prach_duration + sl_idx;
+        const slot_point sl_start = rar_req->prach_slot_rx + prach_occasion_duration_slots + sl_idx;
         if (cell_cfg.is_dl_enabled(sl_start)) {
           rar_req->rar_window = {sl_start, sl_start + ra_win_nof_slots};
           break;
@@ -300,8 +313,8 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
       ocudu_sanity_check(rar_req->rar_window.length() != 0, "Invalid configuration");
     } else {
       // FDD case.
-      rar_req->rar_window = {rar_req->prach_slot_rx + prach_duration,
-                             rar_req->prach_slot_rx + prach_duration + ra_win_nof_slots};
+      rar_req->rar_window = {rar_req->prach_slot_rx + prach_occasion_duration_slots,
+                             rar_req->prach_slot_rx + prach_occasion_duration_slots + ra_win_nof_slots};
     }
 
     // Convert each detected preamble into a pending Msg3.
@@ -508,7 +521,6 @@ bool ra_scheduler::is_slot_candidate_for_rar(const cell_slot_resource_allocator&
   const search_space_configuration& ss_cfg =
       cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[ss_id];
   const coreset_configuration& cs_cfg = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
-  // TODO: Handle the case when ra_search_space_id is set to 0.
   if (not pdcch_helper::is_pdcch_monitoring_active(pdcch_slot, ss_cfg) or
       ss_cfg.get_first_symbol_index() + cs_cfg.duration() > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_slot)) {
     // RAR scheduling only possible when PDCCH monitoring is active.
@@ -636,8 +648,7 @@ unsigned ra_scheduler::schedule_rar(pending_rar_t& rar, cell_resource_allocator&
     }
 
     if (csi_helper::is_csi_rs_slot(cell_cfg, pdsch_alloc.slot)) {
-      // TODO: Remove this once multiplexing is possible.
-      // At the moment, we do not multiplex PDSCH and CSI-RS.
+      // We cannot multiplex RAR PDSCH and CSI-RS, because at this point the UE has no access to the CSI-RS config.
       log_postponed_rar(rar, "RAR can not be in CSI-RS slot", pdcch_slot);
       ++rar.failed_attempts.pdsch;
       return 0;

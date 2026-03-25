@@ -155,6 +155,8 @@ private:
   const unsigned ra_win_nof_slots;
   crb_interval   ra_crb_lims;
   const bool     prach_format_is_long;
+  /// Duration of a single PRACH occasion in slots.
+  const unsigned prach_occasion_duration_slots;
 
   /// Pre-cached information related to RAR for a given PDSCH time resource.
   struct rar_param_cached_data {
@@ -175,10 +177,14 @@ private:
   std::vector<msg3_param_cached_data> msg3_data;
   sch_mcs_description                 msg3_mcs_config;
 
-  // Variables.
-  cell_harq_manager     msg3_harqs;
+  // Currently managed HARQ processes for Random Access in this cell.
+  cell_harq_manager msg3_harqs;
+
+  // RACH indications pending to be processed.
   rach_indication_queue pending_rachs;
-  crc_indication_queue  pending_crcs;
+
+  // CRC indications pending to be processed.
+  crc_indication_queue pending_crcs;
 
   // List of pending RARs to be scheduled.
   std::vector<pending_rar_t> pending_rars;

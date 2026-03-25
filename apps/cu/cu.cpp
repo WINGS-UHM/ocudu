@@ -550,9 +550,7 @@ int main(int argc, char** argv)
   // Stop gateway SCTP servers.
   cu_f1c_gw->stop();
   e1_gw->stop();
-  if (xnc_gw) {
-    xnc_gw->stop();
-  }
+  // Xn-C gateway is stopped by Xn-C connection manager.
 
   return 0;
 }

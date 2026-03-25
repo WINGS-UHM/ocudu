@@ -21,7 +21,7 @@ class xnc_connection_manager : public cu_cp_xnc_handler
 {
 public:
   xnc_connection_manager(xnap_repository&        xnaps_,
-                         xnc_connection_gateway& xnc_gw_,
+                         xnc_connection_gateway* xnc_gw_,
                          task_executor&          cu_cp_exec_,
                          common_task_scheduler&  common_task_sched_);
 
@@ -40,7 +40,7 @@ private:
   class xnc_gw_to_cu_cp_pdu_adapter;
 
   xnap_repository&        xnaps;
-  xnc_connection_gateway& xnc_gw;
+  xnc_connection_gateway* xnc_gw;
   task_executor&          cu_cp_exec;
   common_task_scheduler&  common_task_sched;
   ocudulog::basic_logger& logger;

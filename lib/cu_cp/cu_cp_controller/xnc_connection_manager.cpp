@@ -102,7 +102,7 @@ private:
 };
 
 xnc_connection_manager::xnc_connection_manager(xnap_repository&        xnaps_,
-                                               xnc_connection_gateway& xnc_gw_,
+                                               xnc_connection_gateway* xnc_gw_,
                                                task_executor&          cu_cp_exec_,
                                                common_task_scheduler&  common_task_sched_) :
   xnaps(xnaps_),
@@ -130,7 +130,7 @@ void xnc_connection_manager::start(const xnap_configuration& xnap_cfg_)
                          coro_context<async_task<void>>& ctx) mutable {
           CORO_BEGIN(ctx);
           // Establish the SCTP association first.
-          CORO_AWAIT_VALUE(connect_result, xnc_gw.connect_to_peer(peer_addr));
+          CORO_AWAIT_VALUE(connect_result, xnc_gw->connect_to_peer(peer_addr));
           if (!connect_result) {
             logger.warning("Failed to connect to XN-C peer at {}", peer_addr);
             CORO_EARLY_RETURN();
@@ -177,6 +177,10 @@ void xnc_connection_manager::stop()
   {
     std::unique_lock<std::mutex> lock(stop_mutex);
     stop_cvar.wait(lock, [this] { return stop_completed; });
+  }
+
+  if (xnc_gw != nullptr) {
+    xnc_gw->stop();
   }
 }
 

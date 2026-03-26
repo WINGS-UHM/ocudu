@@ -54,24 +54,6 @@ error_type<std::string> ocudu::prach_helper::zero_correlation_zone_is_valid(uint
     return make_unexpected(fmt::format("Invalid PRACH configuration index: {}\n", prach_cfg_idx));
   }
 
-  if (dplx_mode == duplex_mode::FDD) {
-    // Paired spectrum case.
-    if ((prach_config.format == prach_format_type::B4) && (zero_correlation_zone != 0) &&
-        (zero_correlation_zone != 11)) {
-      return make_unexpected(fmt::format(
-          "PRACH Zero Correlation Zone index (i.e., {}) with Format B4 is not supported for FDD. Use 0 or 11.\n",
-          zero_correlation_zone));
-    }
-  } else {
-    // Unpaired spectrum case.
-    if ((prach_config.format == prach_format_type::B4) && (zero_correlation_zone != 0) &&
-        (zero_correlation_zone != 14)) {
-      return make_unexpected(fmt::format(
-          "PRACH Zero Correlation Zone index (i.e., {}) with Format B4 is not supported for TDD. Use 0 or 14.\n",
-          zero_correlation_zone));
-    }
-  }
-
   return {};
 }
 

@@ -6,6 +6,20 @@ SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 Change Log for Releases
 =======================
 
+## 26.04 (initial OCUDU release)
+- UL MIMO
+- NRPPa using RSRP and Sounding Reference Signals (SRS)
+- Xn and Conditional HO
+- FR2 120 KHz
+- PRACH formats A3, C0 and C2
+- Robust Header Compression (RoHC)
+- Support for RRC_INACTIVE
+- Support for aperiodic and narrowband SRS
+- CSI-RS based RL monitoring
+- M-plane (through O1 helper elements)
+- Hardware accelerator support through DPDK BBDEV
+- Other bug-fixes and improved stability and performance in all parts
+
 ## 25.10
 - Reworked threading and execution model to support more deployment use-cases
 - Added separate applications for CU-CP and CU-UP

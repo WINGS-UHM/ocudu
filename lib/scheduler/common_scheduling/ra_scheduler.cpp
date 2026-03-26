@@ -15,6 +15,7 @@
 #include "../support/rb_helper.h"
 #include "../support/sch_pdu_builder.h"
 #include "ocudu/ran/band_helper.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 #include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
 #include "ocudu/support/compiler.h"
@@ -86,18 +87,16 @@ static constexpr size_t RACH_IND_QUEUE_SIZE = MAX_PRACH_OCCASIONS_PER_SLOT * 2;
 static constexpr size_t CRC_IND_QUEUE_SIZE = MAX_PUCCH_PDUS_PER_SLOT * 2;
 
 /// \brief Compute the PRACH occasion duration in slots from cell configuration.
-/// Short preamble formats get rounded up to 1 slot
-/// Long formats may span multiple slots within a subframe.
+///
+/// Returns the number of slots from the PRACH start slot to its end slot (inclusive), using the PUSCH SCS as
+/// reference. Accounts for the starting symbol offset within the slot.
 static unsigned compute_prach_occasion_duration_slots(const cell_configuration& cell_cfg)
 {
   const prach_configuration prach_cfg = prach_configuration_get(
       band_helper::get_freq_range(cell_cfg.band()),
       band_helper::get_duplex_mode(cell_cfg.band()),
       cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index);
-  if (not is_long_preamble(prach_cfg.format)) {
-    return 1U;
-  }
-  return prach_cfg.nof_prach_slots_within_subframe * get_nof_slots_per_subframe(cell_cfg.scs_common());
+  return get_prach_duration_info(prach_cfg, cell_cfg.scs_common()).prach_length_slots;
 }
 
 /// Generate circular map key of Msg3 grant based on its TC-RNTI.

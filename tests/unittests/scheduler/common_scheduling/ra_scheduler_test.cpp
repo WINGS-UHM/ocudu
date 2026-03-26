@@ -3,18 +3,15 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/common_scheduling/ra_scheduler.h"
-#include "lib/scheduler/logging/scheduler_event_logger.h"
-#include "lib/scheduler/logging/scheduler_metrics_handler.h"
-#include "lib/scheduler/logging/scheduler_result_logger.h"
 #include "lib/scheduler/support/csi_rs_helpers.h"
+#include "sub_scheduler_test_environment.h"
+#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
-#include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/adt/noop_functor.h"
 #include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
-#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include <algorithm>
 #include <gtest/gtest.h>
@@ -27,124 +24,58 @@ namespace {
 /// Parameters used by FDD and TDD tests.
 struct test_params {
   subcarrier_spacing                     scs;
-  uint8_t                                k0;
-  std::vector<uint8_t>                   k2s;
+  uint8_t                                min_k2;
   std::optional<tdd_ul_dl_config_common> tdd_config;
 };
 
 std::ostream& operator<<(std::ostream& out, const test_params& params)
 {
-  out << fmt::format("scs={}kHz, k0={}, k2s=[{}]", scs_to_khz(params.scs), params.k0, fmt::join(params.k2s, ", "));
+  out << fmt::format("scs={}kHz, min_k2=", scs_to_khz(params.scs), params.min_k2);
   return out;
 }
 
 /// Common tester class used by FDD and TDD unit tests for the RA scheduler.
-class base_ra_scheduler_test
+class base_ra_scheduler_test : public sub_scheduler_test_environment
 {
 protected:
   static constexpr unsigned tx_rx_delay = 2U;
 
   base_ra_scheduler_test(duplex_mode dplx_mode, const test_params& params_) :
-    params(params_),
-    cell_cfg(sched_cfg, get_sched_req(dplx_mode, params)),
-    ev_logger(to_du_cell_index(0), cell_cfg.params.pci),
-    metrics_hdlr(cell_cfg, std::nullopt)
+    sub_scheduler_test_environment(get_sched_req(dplx_mode, params_)), params(params_)
   {
-    mac_logger.set_level(ocudulog::basic_levels::debug);
-    test_logger.set_level(ocudulog::basic_levels::info);
-    ocudulog::init();
-
-    const auto& dl_lst = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
-    for (const auto& pdsch : dl_lst) {
-      max_k_value = std::max<unsigned int>(pdsch.k0, max_k_value);
-    }
-    const auto& ul_lst = cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
-    for (const auto& pusch : ul_lst) {
-      if (pusch.k2 > max_k_value) {
-        constexpr unsigned max_msg3_delta = 6;
-        max_k_value                       = pusch.k2 + max_msg3_delta;
-      }
-    }
-
     // Run slot once so that the resource grid gets initialized with the initial slot.
-    run_slot();
+    this->run_slot();
   }
 
-  ~base_ra_scheduler_test()
+  ~base_ra_scheduler_test() override { this->flush_events(); }
+
+  void do_run_slot() final
   {
-    // Log pending allocations before finishing test.
-    for (unsigned i = 0; i != max_k_value; ++i) {
-      run_slot();
-    }
-    ocudulog::flush();
-  }
-
-  void run_slot()
-  {
-    mac_logger.set_context(next_slot.sfn(), next_slot.slot_index());
-    test_logger.set_context(next_slot.sfn(), next_slot.slot_index());
-
-    res_grid.slot_indication(next_slot);
-    next_slot++;
-
     ra_sch.run_slot(res_grid);
-
-    result_logger.on_scheduler_result(res_grid[0].result);
-
-    // Check sched result consistency.
-    ASSERT_NO_FATAL_FAILURE(test_result_consistency());
+    test_result_consistency();
   }
 
   static sched_cell_configuration_request_message get_sched_req(duplex_mode dplx_mode, const test_params& t_params)
   {
-    cell_config_builder_params builder_params{};
+    cell_config_builder_params builder_params = cell_config_builder_profiles::create(
+        dplx_mode,
+        frequency_range::FR1,
+        t_params.scs == subcarrier_spacing::kHz30 ? bs_channel_bandwidth::MHz20 : bs_channel_bandwidth::MHz10);
     builder_params.scs_common = t_params.scs;
-    if (dplx_mode == ocudu::duplex_mode::TDD) {
-      builder_params.dl_carrier.arfcn_f_ref = 520002;
-      builder_params.dl_carrier.band        = nr_band::n41;
-    }
-    if (t_params.scs == ocudu::subcarrier_spacing::kHz30) {
-      builder_params.dl_carrier.carrier_bw = ocudu::bs_channel_bandwidth::MHz20;
+    builder_params.min_k2     = t_params.min_k2;
+    builder_params.min_k1     = builder_params.min_k2;
+    if (dplx_mode == duplex_mode::TDD) {
+      builder_params.tdd_ul_dl_cfg_common = t_params.tdd_config;
     }
 
-    sched_cell_configuration_request_message req =
-        sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
-
-    if (dplx_mode == ocudu::duplex_mode::TDD and t_params.tdd_config.has_value()) {
-      req.ran.tdd_cfg = t_params.tdd_config;
-    }
-
-    req.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
-        time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
-            t_params.tdd_config,
-            req.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
-            time_domain_resource_helper::calculate_minimum_pdsch_symbol(req.ran.dl_cfg_common.init_dl_bwp.pdcch_common,
-                                                                        std::nullopt));
-
-    for (auto& pdsch_td_alloc : req.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list) {
-      pdsch_td_alloc.k0 = t_params.k0;
-    }
-
-    auto& pusch_list = req.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
-    if (t_params.k2s.empty()) {
-      pusch_list[0].k2 = test_rng::uniform_int<unsigned>(2, 4);
-    } else {
-      pusch_list.resize(t_params.k2s.size(), pusch_list[0]);
-      for (unsigned i = 0; i != t_params.k2s.size(); ++i) {
-        pusch_list[i].k2 = t_params.k2s[i];
-      }
-    }
-
-    return req;
+    return sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
   }
 
   /// \brief consistency checks that can be common to all test cases.
   void test_result_consistency()
   {
-    test_scheduler_result_consistency(cell_cfg, res_grid);
-
-    // Check all RARs have an associated PDCCH (the previous test already checks if all PDCCHs have an associated PDSCH,
-    // but not the other way around).
+    // Check all RARs have an associated PDCCH (the sched test suite already checks if all PDCCHs have an associated
+    // PDSCH, but not the other way around).
     for (const rar_information& rar : scheduled_rars(0)) {
       ASSERT_TRUE(std::any_of(scheduled_dl_pdcchs().begin(), scheduled_dl_pdcchs().end(), [&rar](const auto& pdcch) {
         return pdcch.ctx.rnti == rar.pdsch_cfg.rnti;
@@ -426,25 +357,10 @@ protected:
 
   slot_point result_slot_tx() const { return res_grid[0].slot; }
 
-  test_params             params;
-  ocudulog::basic_logger& mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
-  ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST");
+  test_params params;
 
-  scheduler_expert_config             sched_cfg{config_helpers::make_default_scheduler_expert_config()};
-  cell_configuration                  cell_cfg;
-  scheduler_event_logger              ev_logger;
-  scheduler_ue_metrics_dummy_notifier metrics_notifier;
-  cell_metrics_handler                metrics_hdlr;
-  cell_resource_allocator             res_grid{cell_cfg};
-  dummy_pdcch_resource_allocator      pdcch_sch;
-  ra_scheduler                        ra_sch{cell_cfg, pdcch_sch, ev_logger, metrics_hdlr};
-  scheduler_result_logger             result_logger{false, cell_cfg.params.pci};
-
-  slot_point next_slot{to_numerology_value(params.scs),
-                       test_rng::uniform_int<unsigned>(0, (10240 << to_numerology_value(params.scs)) - 1)};
-
-  // We use this value to account for the case when the PDSCH or PUSCH is allocated several slots in advance.
-  unsigned max_k_value = 0;
+  dummy_pdcch_resource_allocator pdcch_sch;
+  ra_scheduler                   ra_sch{cell_cfg, pdcch_sch, ev_logger, metrics_hdlr};
 };
 
 class ra_scheduler_fdd_test : public base_ra_scheduler_test, public ::testing::TestWithParam<test_params>
@@ -702,19 +618,20 @@ TEST_P(ra_scheduler_tdd_test, when_no_rbs_are_available_then_rar_is_scheduled_in
 
 INSTANTIATE_TEST_SUITE_P(ra_scheduler,
                          ra_scheduler_fdd_test,
-                         ::testing::Values(test_params{.scs = subcarrier_spacing::kHz15, .k0 = 0, .k2s = {2}},
-                                           test_params{.scs = subcarrier_spacing::kHz30, .k0 = 0, .k2s = {2}}));
+                         ::testing::Values(test_params{.scs = subcarrier_spacing::kHz15, .min_k2 = 2},
+                                           test_params{.scs = subcarrier_spacing::kHz15, .min_k2 = 4},
+                                           test_params{.scs = subcarrier_spacing::kHz30, .min_k2 = 2}));
 
 INSTANTIATE_TEST_SUITE_P(ra_scheduler,
                          ra_scheduler_tdd_test,
-                         ::testing::Values(test_params{.scs = subcarrier_spacing::kHz15, .k0 = 0, .k2s = {2, 4}},
-                                           test_params{.scs = subcarrier_spacing::kHz30, .k0 = 0, .k2s = {2, 4}}));
+                         ::testing::Values(test_params{.scs = subcarrier_spacing::kHz15, .min_k2 = 2},
+                                           test_params{.scs = subcarrier_spacing::kHz30, .min_k2 = 2}));
 
 class failed_rar_scheduler_test : public base_ra_scheduler_test, public ::testing::Test
 {
 protected:
   failed_rar_scheduler_test() :
-    base_ra_scheduler_test(duplex_mode::TDD, test_params{.scs = subcarrier_spacing::kHz30, .k0 = 0, .k2s = {2, 4}})
+    base_ra_scheduler_test(duplex_mode::TDD, test_params{.scs = subcarrier_spacing::kHz30, .min_k2 = 2})
   {
   }
 };

@@ -25,7 +25,8 @@ class sub_scheduler_test_environment
     return [this](slot_point sl_tx) { static_cast<PdcchAllocType&>(*pdcch_alloc).slot_indication(sl_tx); };
   }
 
-  sub_scheduler_test_environment(const sched_cell_configuration_request_message& cell_req,
+  sub_scheduler_test_environment(scheduler_expert_config                         sched_cfg_,
+                                 const sched_cell_configuration_request_message& cell_req,
                                  std::unique_ptr<pdcch_resource_allocator>       pdcch_alloc,
                                  std::function<void(slot_point)>                 pdcch_alloc_sl_ind_task,
                                  unsigned                                        delay_tx_rx_slots_);
@@ -33,11 +34,15 @@ class sub_scheduler_test_environment
 public:
   sub_scheduler_test_environment(const sched_cell_configuration_request_message& cell_req,
                                  unsigned                                        delay_tx_rx_slots_ = 2);
+  sub_scheduler_test_environment(scheduler_expert_config                         sched_cfg_,
+                                 const sched_cell_configuration_request_message& cell_req,
+                                 unsigned                                        delay_tx_rx_slots_ = 2);
   template <typename PdcchAllocType>
   sub_scheduler_test_environment(const sched_cell_configuration_request_message& cell_req,
                                  std::unique_ptr<PdcchAllocType>                 custom_pdcch_alloc,
                                  unsigned                                        delay_tx_rx_slots_ = 2) :
-    sub_scheduler_test_environment(cell_req,
+    sub_scheduler_test_environment(config_helpers::make_default_scheduler_expert_config(),
+                                   cell_req,
                                    std::move(custom_pdcch_alloc),
                                    create_pdcch_slot_ind_task<PdcchAllocType>(),
                                    delay_tx_rx_slots_)

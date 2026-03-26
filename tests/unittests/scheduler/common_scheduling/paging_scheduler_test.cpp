@@ -2,124 +2,77 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "lib/scheduler/logging/scheduler_result_logger.h"
-#include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
-#include "lib/scheduler/scheduler_impl.h"
-#include "lib/scheduler/ue_scheduling/ue_cell_grid_allocator.h"
-#include "lib/scheduler/ue_scheduling/ue_fallback_scheduler.h"
+#include "lib/scheduler/common_scheduling/paging_scheduler.h"
+#include "sub_scheduler_test_environment.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
+#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/ran/pcch/pcch_configuration.h"
-#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
-#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include <gtest/gtest.h>
-#include <random>
 
 using namespace ocudu;
 
-std::random_device rd;
-std::mt19937       g(rd());
-
-uint64_t get_random_uint(uint64_t min, uint64_t max)
+static pcch_config::nof_po_per_pf get_random_nof_po_per_pf()
 {
-  ocudu_assert(min <= max, "Minimum value is greater than maximum value");
-  return std::uniform_int_distribution<uint64_t>{min, max}(g);
+  constexpr static std::array<pcch_config::nof_po_per_pf, 3> possible_ns_values = {
+      pcch_config::nof_po_per_pf::one, pcch_config::nof_po_per_pf::two, pcch_config::nof_po_per_pf::four};
+  return possible_ns_values[test_rng::uniform_int<unsigned>(0, possible_ns_values.size() - 1)];
 }
 
-// Helper class to initialize and store relevant objects for the test and provide helper methods.
-struct paging_sched_test_bench {
-  // Approximation of PCCH-PCH Paging message size in Bytes.
-  static constexpr unsigned pcch_pch_paging_msg_size = 11;
+static pcch_config::nof_pf_per_drx_cycle get_random_nof_pf_per_drx_cycle()
+{
+  constexpr static std::array<pcch_config::nof_pf_per_drx_cycle, 5> possible_nof_pf_per_drx_values = {
+      pcch_config::nof_pf_per_drx_cycle::oneT,
+      pcch_config::nof_pf_per_drx_cycle::halfT,
+      pcch_config::nof_pf_per_drx_cycle::quarterT,
+      pcch_config::nof_pf_per_drx_cycle::oneEighthT,
+      pcch_config::nof_pf_per_drx_cycle::oneSixteethT};
+  return possible_nof_pf_per_drx_values[test_rng::uniform_int<unsigned>(0, possible_nof_pf_per_drx_values.size() - 1)];
+}
 
-  scheduler_expert_config       expert_cfg;
-  cell_configuration            cell_cfg;
-  cell_resource_allocator       res_grid;
-  pdcch_resource_allocator_impl pdcch_sch;
-  paging_scheduler              pg_sch;
-
-  explicit paging_sched_test_bench(const scheduler_expert_config&                  expert_cfg_,
-                                   const sched_cell_configuration_request_message& cell_req =
-                                       sched_config_helper::make_default_sched_cell_configuration_request()) :
-    expert_cfg{expert_cfg_},
-    cell_cfg{expert_cfg, cell_req},
-    res_grid{cell_cfg},
-    pdcch_sch{cell_cfg},
-    pg_sch{cell_cfg, pdcch_sch, 0}
-  {
-  }
-};
-
-class base_paging_sched_tester
+class base_paging_scheduler_test : public sub_scheduler_test_environment
 {
 public:
   using five_g_s_tmsi = uint64_t;
 
-  slot_point_extended                    current_slot{subcarrier_spacing::kHz15, 0};
-  ocudulog::basic_logger&                mac_logger  = ocudulog::fetch_basic_logger("SCHED", true);
-  ocudulog::basic_logger&                test_logger = ocudulog::fetch_basic_logger("TEST", true);
-  std::optional<paging_sched_test_bench> bench;
-  // We use this value to account for the case when the PDSCH or PUSCH is allocated several slots in advance.
-  unsigned                max_k_value = 0;
-  scheduler_result_logger sched_res_logger{false, 0};
-
-  base_paging_sched_tester() = default;
-
-  ~base_paging_sched_tester()
+  base_paging_scheduler_test(const scheduler_expert_config&                  expert_cfg,
+                             const sched_cell_configuration_request_message& cell_req) :
+    sub_scheduler_test_environment(expert_cfg, cell_req), pg_sch(cell_cfg, *pdcch_alloc, 0)
   {
-    // Log pending allocations before finishing test.
-    for (unsigned i = 0; i != max_k_value; ++i) {
-      run_slot();
-    }
-    ocudulog::flush();
+  }
+  ~base_paging_scheduler_test() override { flush_events(); }
+
+  void push_paging_information(five_g_s_tmsi s_tmsi, unsigned paging_drx_)
+  {
+    // UE_ID: 5G-S-TMSI mod 1024. See TS 38.304, clause 7.1.
+    const unsigned ue_id = s_tmsi % 1024;
+
+    const sched_paging_information info{.paging_type_indicator = paging_identity_type::cn_ue_paging_identity,
+                                        .paging_identity       = s_tmsi,
+                                        .ue_identity           = ue_id,
+                                        .paging_drx            = radio_frames{paging_drx_}};
+    pg_sch.handle_paging_information(info);
   }
 
-  void setup_sched(const scheduler_expert_config&                  expert_cfg,
-                   const sched_cell_configuration_request_message& msg =
-                       sched_config_helper::make_default_sched_cell_configuration_request())
+  bool is_ue_allocated_paging_grant(five_g_s_tmsi s_tmsi)
   {
-    current_slot = slot_point_extended{msg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs, 0};
-
-    const auto& dl_lst = msg.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
-    for (const auto& pdsch : dl_lst) {
-      if (pdsch.k0 > max_k_value) {
-        max_k_value = pdsch.k0;
-      }
-    }
-    const auto& ul_lst = msg.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
-    for (const auto& pusch : ul_lst) {
-      if (pusch.k2 > max_k_value) {
-        max_k_value = pusch.k2;
-      }
-    }
-
-    bench.emplace(expert_cfg, msg);
-
-    // Initialize.
-    mac_logger.set_context(current_slot.sfn(), current_slot.slot_index());
-    test_logger.set_context(current_slot.sfn(), current_slot.slot_index());
-    bench->res_grid.slot_indication(current_slot.without_hyper_sfn());
-    bench->pdcch_sch.slot_indication(current_slot.without_hyper_sfn());
+    return std::any_of(res_grid[0].result.dl.paging_grants.begin(),
+                       res_grid[0].result.dl.paging_grants.end(),
+                       [&s_tmsi](const auto& grant) {
+                         return std::any_of(grant.paging_ue_list.begin(),
+                                            grant.paging_ue_list.end(),
+                                            [&s_tmsi](const auto& ue) { return ue.paging_identity == s_tmsi; });
+                       });
   }
 
-  void run_slot()
+  static five_g_s_tmsi generate_five_g_s_tmsi()
   {
-    current_slot++;
-
-    mac_logger.set_context(current_slot.sfn(), current_slot.slot_index());
-    test_logger.set_context(current_slot.sfn(), current_slot.slot_index());
-
-    bench->res_grid.slot_indication(current_slot.without_hyper_sfn());
-    bench->pdcch_sch.slot_indication(current_slot.without_hyper_sfn());
-    bench->pg_sch.run_slot(bench->res_grid, current_slot.hyper_sfn());
-
-    // Log scheduling results.
-    sched_res_logger.on_scheduler_result(bench->res_grid[0].result);
-
-    // Check sched result consistency.
-    test_scheduler_result_consistency(bench->cell_cfg, bench->res_grid);
+    // 5G-S-TMSI: Concatenation of the AMF Set Identity (10 bits), the AMF Pointer (6 bits) and the 5G-TMSI (32 bits).
+    // Values of AMF Set Id and AMF pointer are assumed. Lower 32-bits are masked to fill randomly generated 5G-TMSI.
+    static const uint64_t five_g_s_tmsi_with_5g_tmsi_masked = 0x010100000000;
+    return five_g_s_tmsi_with_5g_tmsi_masked | test_rng::uniform_int<uint64_t>(0, 0xfffffffe);
   }
 
   static scheduler_expert_config create_expert_config(sch_mcs_index paging_mcs_index_, unsigned max_paging_retries_)
@@ -139,38 +92,11 @@ public:
     return sched_config_helper::make_default_sched_cell_configuration_request(cell_cfg);
   }
 
-  uint64_t generate_five_g_s_tmsi()
-  {
-    // 5G-S-TMSI: Concatenation of the AMF Set Identity (10 bits), the AMF Pointer (6 bits) and the 5G-TMSI (32 bits).
+protected:
+  paging_scheduler pg_sch;
 
-    // Values of AMF Set Id and AMF pointer are assumed. Lower 32-bits are masked to fill randomly generated 5G-TMSI.
-    static const uint64_t five_g_s_tmsi_with_5g_tmsi_masked = 0x010100000000;
-    return five_g_s_tmsi_with_5g_tmsi_masked | get_random_uint(0, 0xfffffffe);
-  }
-
-  void push_paging_information(five_g_s_tmsi s_tmsi, unsigned paging_drx_)
-  {
-    // UE_ID: 5G-S-TMSI mod 1024. See TS 38.304, clause 7.1.
-    const unsigned ue_id = s_tmsi % 1024;
-
-    const sched_paging_information info{.paging_type_indicator = paging_identity_type::cn_ue_paging_identity,
-                                        .paging_identity       = s_tmsi,
-                                        .ue_identity           = ue_id,
-                                        .paging_drx            = radio_frames{paging_drx_}};
-
-    bench->pg_sch.handle_paging_information(info);
-  }
-
-  bool is_ue_allocated_paging_grant(five_g_s_tmsi s_tmsi)
-  {
-    return std::any_of(bench->res_grid[0].result.dl.paging_grants.begin(),
-                       bench->res_grid[0].result.dl.paging_grants.end(),
-                       [&s_tmsi](const auto& grant) {
-                         return std::any_of(grant.paging_ue_list.begin(),
-                                            grant.paging_ue_list.end(),
-                                            [&s_tmsi](const auto& ue) { return ue.paging_identity == s_tmsi; });
-                       });
-  }
+private:
+  void do_run_slot() override { pg_sch.run_slot(res_grid, 0); }
 };
 
 // Parameters to be passed to test.
@@ -181,45 +107,32 @@ struct paging_scheduler_test_params {
   duplex_mode duplx_mode;
 };
 
-class paging_sched_tester : public base_paging_sched_tester,
-                            public ::testing::TestWithParam<paging_scheduler_test_params>
+class paging_scheduler_test : public ::testing::TestWithParam<paging_scheduler_test_params>
 {
 protected:
-  paging_sched_tester() : params{GetParam()} {}
-
-  paging_scheduler_test_params params;
+  paging_scheduler_test_params params{GetParam()};
 };
 
-TEST_P(paging_sched_tester, successfully_allocated_paging_grant_ss_gt_0)
+TEST_P(paging_scheduler_test, successfully_allocated_paging_grant_ss_gt_0)
 {
-  const std::vector<ocudu::pcch_config::nof_po_per_pf> possible_ns_values = {ocudu::pcch_config::nof_po_per_pf::one,
-                                                                             ocudu::pcch_config::nof_po_per_pf::two,
-                                                                             ocudu::pcch_config::nof_po_per_pf::four};
-  const std::vector<ocudu::pcch_config::nof_pf_per_drx_cycle> possible_nof_pf_per_drx_values = {
-      ocudu::pcch_config::nof_pf_per_drx_cycle::oneT,
-      ocudu::pcch_config::nof_pf_per_drx_cycle::halfT,
-      ocudu::pcch_config::nof_pf_per_drx_cycle::quarterT,
-      ocudu::pcch_config::nof_pf_per_drx_cycle::oneEighthT,
-      ocudu::pcch_config::nof_pf_per_drx_cycle::oneSixteethT};
-
-  auto cell_cfg_request = create_custom_cell_config_request(params.duplx_mode);
+  auto cell_cfg_request = base_paging_scheduler_test::create_custom_cell_config_request(params.duplx_mode);
   // Modify to have more than one Paging occasion per PF.
-  cell_cfg_request.ran.dl_cfg_common.pcch_cfg.ns =
-      possible_ns_values[get_random_uint(0, possible_ns_values.size() - 1)];
-  cell_cfg_request.ran.dl_cfg_common.pcch_cfg.nof_pf =
-      possible_nof_pf_per_drx_values[get_random_uint(0, possible_nof_pf_per_drx_values.size() - 1)];
-  setup_sched(create_expert_config(params.max_paging_mcs, params.max_paging_retries), cell_cfg_request);
+  cell_cfg_request.ran.dl_cfg_common.pcch_cfg.ns     = get_random_nof_po_per_pf();
+  cell_cfg_request.ran.dl_cfg_common.pcch_cfg.nof_pf = get_random_nof_pf_per_drx_cycle();
+  base_paging_scheduler_test bench{
+      base_paging_scheduler_test::create_expert_config(params.max_paging_mcs, params.max_paging_retries),
+      cell_cfg_request};
 
   // Notify scheduler of paging message.
-  const uint64_t fiveg_s_tmsi = generate_five_g_s_tmsi();
-  push_paging_information(fiveg_s_tmsi, params.drx_cycle_in_nof_rf);
+  const uint64_t fiveg_s_tmsi = bench.generate_five_g_s_tmsi();
+  bench.push_paging_information(fiveg_s_tmsi, params.drx_cycle_in_nof_rf);
 
   unsigned paging_attempts = 0;
-  for (unsigned i = 0; i != (params.max_paging_retries + 1) * params.drx_cycle_in_nof_rf *
-                                bench->res_grid.slot_tx().nof_slots_per_frame();
+  for (unsigned i = 0;
+       i != (params.max_paging_retries + 1) * params.drx_cycle_in_nof_rf * bench.next_slot.nof_slots_per_frame();
        ++i) {
-    run_slot();
-    if (is_ue_allocated_paging_grant(fiveg_s_tmsi)) {
+    bench.run_slot();
+    if (bench.is_ue_allocated_paging_grant(fiveg_s_tmsi)) {
       paging_attempts++;
     }
   }
@@ -227,33 +140,28 @@ TEST_P(paging_sched_tester, successfully_allocated_paging_grant_ss_gt_0)
   ASSERT_EQ(paging_attempts, params.max_paging_retries);
 }
 
-TEST_P(paging_sched_tester, successfully_allocated_paging_grant_ss_eq_0)
+TEST_P(paging_scheduler_test, successfully_allocated_paging_grant_ss_eq_0)
 {
-  const std::vector<ocudu::pcch_config::nof_pf_per_drx_cycle> possible_nof_pf_per_drx_values = {
-      ocudu::pcch_config::nof_pf_per_drx_cycle::halfT,
-      ocudu::pcch_config::nof_pf_per_drx_cycle::quarterT,
-      ocudu::pcch_config::nof_pf_per_drx_cycle::oneEighthT,
-      ocudu::pcch_config::nof_pf_per_drx_cycle::oneSixteethT};
-  auto sched_cell_cfg = create_custom_cell_config_request(params.duplx_mode);
+  auto sched_cell_cfg = base_paging_scheduler_test::create_custom_cell_config_request(params.duplx_mode);
   // In default config Paging Search Space is set to 1. Therefore, modify it to be equal to 0 for this test case.
   sched_cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id = to_search_space_id(0);
   // Since we support CORESET multiplexing pattern 1. The value of N (Number of Paging Frames per DRX Cycle) can be 2,
   // 4, 8, 16).
-  sched_cell_cfg.ran.dl_cfg_common.pcch_cfg.nof_pf =
-      possible_nof_pf_per_drx_values[get_random_uint(0, possible_nof_pf_per_drx_values.size() - 1)];
-
-  setup_sched(create_expert_config(params.max_paging_mcs, params.max_paging_retries), sched_cell_cfg);
+  sched_cell_cfg.ran.dl_cfg_common.pcch_cfg.nof_pf = get_random_nof_pf_per_drx_cycle();
+  base_paging_scheduler_test bench{
+      base_paging_scheduler_test::create_expert_config(params.max_paging_mcs, params.max_paging_retries),
+      sched_cell_cfg};
 
   // Notify scheduler of paging message.
-  const five_g_s_tmsi s_tmsi = generate_five_g_s_tmsi();
-  push_paging_information(s_tmsi, params.drx_cycle_in_nof_rf);
+  const auto s_tmsi = bench.generate_five_g_s_tmsi();
+  bench.push_paging_information(s_tmsi, params.drx_cycle_in_nof_rf);
 
   unsigned paging_attempts = 0;
-  for (unsigned i = 0; i != (params.max_paging_retries + 1) * params.drx_cycle_in_nof_rf *
-                                bench->res_grid.slot_tx().nof_slots_per_frame();
+  for (unsigned i = 0;
+       i != (params.max_paging_retries + 1) * params.drx_cycle_in_nof_rf * bench.next_slot.nof_slots_per_frame();
        ++i) {
-    run_slot();
-    if (is_ue_allocated_paging_grant(s_tmsi)) {
+    bench.run_slot();
+    if (bench.is_ue_allocated_paging_grant(s_tmsi)) {
       paging_attempts++;
     }
   }
@@ -261,28 +169,29 @@ TEST_P(paging_sched_tester, successfully_allocated_paging_grant_ss_eq_0)
   ASSERT_EQ(paging_attempts, params.max_paging_retries);
 }
 
-TEST_P(paging_sched_tester, successfully_paging_multiple_ues)
+TEST_P(paging_scheduler_test, successfully_paging_multiple_ues)
 {
-  setup_sched(create_expert_config(params.max_paging_mcs, params.max_paging_retries),
-              create_custom_cell_config_request(params.duplx_mode));
+  base_paging_scheduler_test bench{
+      base_paging_scheduler_test::create_expert_config(params.max_paging_mcs, params.max_paging_retries),
+      base_paging_scheduler_test::create_custom_cell_config_request(params.duplx_mode)};
 
-  std::map<five_g_s_tmsi, unsigned> fiveg_s_tmsi_to_paging_attempts_lookup;
+  std::map<base_paging_scheduler_test::five_g_s_tmsi, unsigned> fiveg_s_tmsi_to_paging_attempts_lookup;
 
   static constexpr unsigned nof_ues = 5;
 
   // Notify scheduler of paging message.
   for (unsigned ue_num = 0; ue_num < nof_ues; ue_num++) {
-    const uint64_t fiveg_s_tmsi_ue = generate_five_g_s_tmsi();
-    push_paging_information(fiveg_s_tmsi_ue, params.drx_cycle_in_nof_rf);
+    const uint64_t fiveg_s_tmsi_ue = bench.generate_five_g_s_tmsi();
+    bench.push_paging_information(fiveg_s_tmsi_ue, params.drx_cycle_in_nof_rf);
     fiveg_s_tmsi_to_paging_attempts_lookup[fiveg_s_tmsi_ue] = 0;
   }
 
   for (unsigned i = 0; i != nof_ues * (params.max_paging_retries + 1) * params.drx_cycle_in_nof_rf *
-                                bench->res_grid.slot_tx().nof_slots_per_frame();
+                                bench.next_slot.nof_slots_per_frame();
        ++i) {
-    run_slot();
+    bench.run_slot();
     for (auto& it : fiveg_s_tmsi_to_paging_attempts_lookup) {
-      if (is_ue_allocated_paging_grant(it.first)) {
+      if (bench.is_ue_allocated_paging_grant(it.first)) {
         it.second++;
       }
     }
@@ -293,37 +202,39 @@ TEST_P(paging_sched_tester, successfully_paging_multiple_ues)
   }
 }
 
-class paging_sched_special_case_tester : public base_paging_sched_tester, public ::testing::Test
-{};
+class paging_sched_special_case_tester : public base_paging_scheduler_test, public ::testing::Test
+{
+protected:
+  paging_sched_special_case_tester() : base_paging_scheduler_test(create_expert_config(3, 3), build_cell_req()) {}
+
+private:
+  static sched_cell_configuration_request_message build_cell_req()
+  {
+    auto cfg = create_custom_cell_config_request(duplex_mode::FDD, bs_channel_bandwidth::MHz5);
+    // Shuffle between SearchSpace#0 and SearchSpace#1.
+    const auto ss_id = to_search_space_id(test_rng::uniform_int<unsigned>(0, 1));
+    if (ss_id == to_search_space_id(0)) {
+      // In default config Paging Search Space is set to 1. Therefore, modify it to be equal to 0 for this test case.
+      cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id = to_search_space_id(0);
+      // Since we support CORESET multiplexing pattern 1. The value of N (Number of Paging Frames per DRX Cycle) can
+      // be 2, 4, 8, 16).
+      cfg.ran.dl_cfg_common.pcch_cfg.nof_pf = pcch_config::nof_pf_per_drx_cycle::halfT;
+    }
+    return cfg;
+  }
+};
 
 TEST_F(paging_sched_special_case_tester, successfully_allocated_paging_grant_5mhz_carrier_bw)
 {
-  const unsigned max_paging_mcs      = 3;
-  const unsigned max_paging_retries  = 3;
-  const uint16_t drx_cycle_in_nof_rf = 128;
-
-  auto sched_cell_cfg = create_custom_cell_config_request(duplex_mode::FDD, bs_channel_bandwidth::MHz5);
-
-  // Shuffle between SearchSpace#0 and SearchSpace#1.
-  const auto ss_id = to_search_space_id(get_random_uint(0, 1));
-  if (ss_id == to_search_space_id(0)) {
-    // In default config Paging Search Space is set to 1. Therefore, modify it to be equal to 0 for this test case.
-    sched_cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id = to_search_space_id(0);
-    // Since we support CORESET multiplexing pattern 1. The value of N (Number of Paging Frames per DRX Cycle) can be 2,
-    // 4, 8, 16).
-    sched_cell_cfg.ran.dl_cfg_common.pcch_cfg.nof_pf = ocudu::pcch_config::nof_pf_per_drx_cycle::halfT;
-  }
-
-  setup_sched(create_expert_config(max_paging_mcs, max_paging_retries), sched_cell_cfg);
+  static constexpr unsigned max_paging_retries  = 3;
+  static constexpr uint16_t drx_cycle_in_nof_rf = 128;
 
   // Notify scheduler of paging message.
   const five_g_s_tmsi s_tmsi = generate_five_g_s_tmsi();
   push_paging_information(s_tmsi, drx_cycle_in_nof_rf);
 
   unsigned paging_attempts = 0;
-  for (unsigned i = 0;
-       i != (max_paging_retries + 1) * drx_cycle_in_nof_rf * bench->res_grid.slot_tx().nof_slots_per_frame();
-       ++i) {
+  for (unsigned i = 0; i != (max_paging_retries + 1) * drx_cycle_in_nof_rf * next_slot.nof_slots_per_frame(); ++i) {
     run_slot();
     if (is_ue_allocated_paging_grant(s_tmsi)) {
       paging_attempts++;
@@ -333,46 +244,54 @@ TEST_F(paging_sched_special_case_tester, successfully_allocated_paging_grant_5mh
   ASSERT_EQ(paging_attempts, max_paging_retries);
 }
 
-class paging_sched_partial_slot_tester : public base_paging_sched_tester, public ::testing::Test
-{};
+class paging_sched_partial_slot_tester : public base_paging_scheduler_test, public ::testing::Test
+{
+protected:
+  paging_sched_partial_slot_tester() : base_paging_scheduler_test(create_expert_config(3, 3), build_cell_req()) {}
+
+private:
+  static sched_cell_configuration_request_message build_cell_req()
+  {
+    static const tdd_ul_dl_config_common tdd_cfg{.ref_scs  = subcarrier_spacing::kHz30,
+                                                 .pattern1 = {.dl_ul_tx_period_nof_slots = 5,
+                                                              .nof_dl_slots              = 2,
+                                                              .nof_dl_symbols            = 8,
+                                                              .nof_ul_slots              = 2,
+                                                              .nof_ul_symbols            = 0}};
+
+    auto req        = create_custom_cell_config_request(duplex_mode::TDD);
+    req.ran.tdd_cfg = tdd_cfg;
+    // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
+    req.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
+        time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
+            req.ran.tdd_cfg,
+            req.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
+            time_domain_resource_helper::calculate_minimum_pdsch_symbol(req.ran.dl_cfg_common.init_dl_bwp.pdcch_common,
+                                                                        std::nullopt));
+
+    // Set Paging configuration to a particular value in order to derive the 5G-S-TMSI, such that Paging Occasion
+    // of UE fall in partial slot of above set TDD configuration. i.e. we would like to force Paging Occasion index of
+    // UE to be 3rd PDCCH Monitoring Occasion which corresponds to 3rd in SearchSpace#1 used for Paging (SS#1 is
+    // monitored in every DL slot).
+    req.ran.dl_cfg_common.pcch_cfg.ns     = pcch_config::nof_po_per_pf::four;
+    req.ran.dl_cfg_common.pcch_cfg.nof_pf = pcch_config::nof_pf_per_drx_cycle::oneT;
+    return req;
+  }
+};
 
 TEST_F(paging_sched_partial_slot_tester, successfully_allocated_paging_grant_ss_gt_0_in_partial_slot_tdd)
 {
-  const unsigned                max_paging_mcs      = 3;
-  const unsigned                max_paging_retries  = 3;
-  const uint16_t                drx_cycle_in_nof_rf = 128;
-  const tdd_ul_dl_config_common tdd_cfg{.ref_scs  = subcarrier_spacing::kHz30,
-                                        .pattern1 = {.dl_ul_tx_period_nof_slots = 5,
-                                                     .nof_dl_slots              = 2,
-                                                     .nof_dl_symbols            = 8,
-                                                     .nof_ul_slots              = 2,
-                                                     .nof_ul_symbols            = 0}};
-
-  auto cell_cfg_request        = create_custom_cell_config_request(duplex_mode::TDD);
-  cell_cfg_request.ran.tdd_cfg = tdd_cfg;
-  // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
-  cell_cfg_request.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
-      time_domain_resource_helper::generate_dedicated_pdsch_td_res_list(
-          cell_cfg_request.ran.tdd_cfg,
-          cell_cfg_request.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
-          time_domain_resource_helper::calculate_minimum_pdsch_symbol(
-              cell_cfg_request.ran.dl_cfg_common.init_dl_bwp.pdcch_common, std::nullopt));
-
-  // Set Paging configuration to a particular value in order to derive the 5G-S-TMSI, such that Paging Occasion
-  // of UE fall in partial slot of above set TDD configuration. i.e. we would like to force Paging Occasion index of UE
-  // to be 3rd PDCCH Monitoring Occasion which corresponds to 3rd in SearchSpace#1 used for Paging (SS#1 is monitored in
-  // every DL slot).
-  cell_cfg_request.ran.dl_cfg_common.pcch_cfg.ns     = ocudu::pcch_config::nof_po_per_pf::four;
-  cell_cfg_request.ran.dl_cfg_common.pcch_cfg.nof_pf = ocudu::pcch_config::nof_pf_per_drx_cycle::oneT;
-  setup_sched(create_expert_config(max_paging_mcs, max_paging_retries), cell_cfg_request);
+  static constexpr unsigned max_paging_retries  = 3;
+  static constexpr uint16_t drx_cycle_in_nof_rf = 128;
 
   // N value used in equation found at TS 38.304, clause 7.1.
-  const unsigned N = static_cast<unsigned>(cell_cfg_request.ran.dl_cfg_common.pcch_cfg.default_paging_cycle) /
-                     static_cast<unsigned>(cell_cfg_request.ran.dl_cfg_common.pcch_cfg.nof_pf);
+  const unsigned nof_paging_frames =
+      static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.default_paging_cycle) /
+      static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.nof_pf);
 
   unsigned i_s          = 0;
   uint64_t fiveg_s_tmsi = 0;
-  while (i_s != tdd_cfg.pattern1.nof_dl_slots) {
+  while (i_s != cell_cfg.params.tdd_cfg->pattern1.nof_dl_slots) {
     fiveg_s_tmsi = generate_five_g_s_tmsi();
 
     // UE_ID: 5G-S-TMSI mod 1024. See TS 38.304, clause 7.1.
@@ -380,17 +299,14 @@ TEST_F(paging_sched_partial_slot_tester, successfully_allocated_paging_grant_ss_
 
     // Index (i_s), indicating the index of the PO.
     // i_s = floor (UE_ID/N) mod Ns.
-    i_s = static_cast<unsigned>(std::floor(static_cast<double>(ue_id) / static_cast<double>(N))) %
-          static_cast<unsigned>(cell_cfg_request.ran.dl_cfg_common.pcch_cfg.ns);
+    i_s = (ue_id / nof_paging_frames) % static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.ns);
   }
 
   // Notify scheduler of paging message.
   push_paging_information(fiveg_s_tmsi, drx_cycle_in_nof_rf);
 
   unsigned paging_attempts = 0;
-  for (unsigned i = 0;
-       i != (max_paging_retries + 1) * drx_cycle_in_nof_rf * bench->res_grid.slot_tx().nof_slots_per_frame();
-       ++i) {
+  for (unsigned i = 0; i != (max_paging_retries + 1) * drx_cycle_in_nof_rf * next_slot.nof_slots_per_frame(); ++i) {
     run_slot();
     if (is_ue_allocated_paging_grant(fiveg_s_tmsi)) {
       paging_attempts++;
@@ -401,7 +317,7 @@ TEST_F(paging_sched_partial_slot_tester, successfully_allocated_paging_grant_ss_
 }
 
 INSTANTIATE_TEST_SUITE_P(paging_sched_tester,
-                         paging_sched_tester,
+                         paging_scheduler_test,
                          testing::Values(paging_scheduler_test_params{.max_paging_mcs      = 3,
                                                                       .max_paging_retries  = 3,
                                                                       .drx_cycle_in_nof_rf = 128,

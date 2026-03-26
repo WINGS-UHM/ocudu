@@ -475,14 +475,14 @@ int main(int argc, char** argv)
   o_cucp_deps.e2_gw                  = e2_gw_cu_cp.get();
   o_cucp_deps.remote_metrics_gateway = remote_server_gateway;
 
-  // create O-CU-CP.
+  // Create O-CU-CP.
   auto            o_cucp_unit = o_cu_cp_app_unit->create_o_cu_cp(o_cucp_deps);
   ocucp::o_cu_cp& o_cucp_obj  = *o_cucp_unit.unit;
   for (auto& metric : o_cucp_unit.metrics) {
     metrics_configs.push_back(std::move(metric));
   }
 
-  // Create CU-UP
+  // Create O-CU-UP dependencies.
   o_cu_up_unit_dependencies o_cuup_unit_deps;
   o_cuup_unit_deps.workers                = &workers;
   o_cuup_unit_deps.e1ap_conn_client       = e1_gw.get();
@@ -494,11 +494,13 @@ int main(int argc, char** argv)
   o_cuup_unit_deps.metrics_notifier       = &metrics_notifier_forwarder;
   o_cuup_unit_deps.remote_metrics_gateway = remote_server_gateway;
 
-  auto o_cuup_obj = o_cu_up_app_unit->create_o_cu_up_unit(o_cuup_unit_deps);
-  for (auto& metric : o_cuup_obj.metrics) {
+  // Create O-CU-UP.
+  auto            o_cuup_unit = o_cu_up_app_unit->create_o_cu_up_unit(o_cuup_unit_deps);
+  ocuup::o_cu_up& o_cuup_obj  = *o_cuup_unit.unit;
+  for (auto& metric : o_cuup_unit.metrics) {
     metrics_configs.push_back(std::move(metric));
   }
-  // Instantiate DU.
+  // Create O-DU dependencies.
   o_du_unit_dependencies odu_dependencies;
   odu_dependencies.workers                = &workers;
   odu_dependencies.f1c_client_handler     = f1c_gw.get();
@@ -511,14 +513,14 @@ int main(int argc, char** argv)
   odu_dependencies.remote_metrics_gateway = remote_server_gateway;
   odu_dependencies.fapi_logger            = &ocudulog::fetch_basic_logger("FAPI");
 
-  auto du_inst_and_cmds = o_du_app_unit->create_flexible_o_du_unit(odu_dependencies);
-
-  odu::du& du_inst = *du_inst_and_cmds.unit;
-
-  for (auto& metric : du_inst_and_cmds.metrics) {
+  // Create O-DU.
+  auto     o_du_unit = o_du_app_unit->create_flexible_o_du_unit(odu_dependencies);
+  odu::du& o_du_obj  = *o_du_unit.unit;
+  for (auto& metric : o_du_unit.metrics) {
     metrics_configs.push_back(std::move(metric));
   }
 
+  // Create metrics manager.
   app_services::metrics_manager metrics_mngr(
       ocudulog::fetch_basic_logger("GNB"),
       workers.get_metrics_executor(),
@@ -533,17 +535,18 @@ int main(int argc, char** argv)
   for (auto& cmd : o_cucp_unit.commands.cmdline.commands) {
     commands.push_back(std::move(cmd));
   }
-  for (auto& cmd : du_inst_and_cmds.commands.cmdline.commands) {
+  for (auto& cmd : o_du_unit.commands.cmdline.commands) {
     commands.push_back(std::move(cmd));
   }
 
   // Add the metrics STDOUT command.
   if (std::unique_ptr<app_services::cmdline_command> cmd = app_services::create_stdout_metrics_app_command(
-          {{du_inst_and_cmds.commands.cmdline.metrics_subcommands}, {o_cucp_unit.commands.cmdline.metrics_subcommands}},
+          {{o_du_unit.commands.cmdline.metrics_subcommands}, {o_cucp_unit.commands.cmdline.metrics_subcommands}},
           gnb_cfg.metrics_cfg.autostart_stdout_metrics)) {
     commands.push_back(std::move(cmd));
   }
 
+  // Create console helper object for commands and metrics printing.
   app_services::cmdline_command_dispatcher command_parser(*epoll_broker, workers.get_cmd_line_executor(), commands);
 
   // Connect E1AP to O-CU-CP.
@@ -559,23 +562,27 @@ int main(int argc, char** argv)
   o_cucp_obj.get_operation_controller().start();
   gnb_logger.info("CU-CP started successfully");
 
+  // Check connection to AMF.
   if (not o_cucp_obj.get_cu_cp().get_ng_handler().amfs_are_connected()) {
     report_error("CU-CP failed to connect to AMF");
   }
 
   // Configure the remote commands and start the service.
   if (remote_control_server) {
-    remote_control_server->add_commands(du_inst_and_cmds.commands.remote);
+    remote_control_server->add_commands(o_du_unit.commands.remote);
     remote_control_server->get_operation_controller().start();
   }
 
   // Connect F1-C to O-CU-CP and start listening for new F1-C connection requests.
   f1c_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_f1c_handler());
 
-  o_cuup_obj.unit->get_operation_controller().start();
+  // Start O-CU-UP.
+  o_cuup_obj.get_operation_controller().start();
 
   // Start processing.
-  du_inst.get_operation_controller().start();
+  o_du_obj.get_operation_controller().start();
+
+  // Start metrics manager.
   metrics_mngr.start();
 
   {
@@ -591,17 +598,19 @@ int main(int argc, char** argv)
     }
   }
 
+  // Stop metrics manager.
   metrics_mngr.stop();
 
+  // Stop remote control server.
   if (remote_control_server) {
     remote_control_server->get_operation_controller().stop();
   }
 
   // Stop DU activity.
-  du_inst.get_operation_controller().stop();
+  o_du_obj.get_operation_controller().stop();
 
   // Stop O-CU-UP activity.
-  o_cuup_obj.unit->get_operation_controller().stop();
+  o_cuup_obj.get_operation_controller().stop();
 
   // Stop O-CU-CP activity.
   o_cucp_obj.get_operation_controller().stop();

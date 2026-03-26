@@ -532,6 +532,7 @@ int main(int argc, char** argv)
   metrics_notifier_forwarder.connect(metrics_mngr);
 
   std::vector<std::unique_ptr<app_services::cmdline_command>> commands;
+  commands.reserve(o_cucp_unit.commands.cmdline.commands.size() + o_du_unit.commands.cmdline.commands.size());
   for (auto& cmd : o_cucp_unit.commands.cmdline.commands) {
     commands.push_back(std::move(cmd));
   }

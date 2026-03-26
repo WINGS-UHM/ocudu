@@ -35,7 +35,6 @@
 #include "ocudu/f1u/cu_up/split_connector/f1u_split_connector_factory.h"
 #include "ocudu/f1u/split_connector/f1u_five_qi_gw_maps.h"
 #include "ocudu/gateways/udp_network_gateway.h"
-#include "ocudu/gtpu/gtpu_config.h"
 #include "ocudu/gtpu/gtpu_demux_factory.h"
 #include "ocudu/gtpu/gtpu_gateway.h"
 #include "ocudu/support/backtrace.h"
@@ -525,6 +524,7 @@ int main(int argc, char** argv)
   // Start O-CU-UP.
   o_cuup_obj.get_operation_controller().start();
 
+  // Start metrics manager.
   metrics_mngr.start();
 
   {
@@ -540,8 +540,10 @@ int main(int argc, char** argv)
     }
   }
 
+  // Stop metrics manager.
   metrics_mngr.stop();
 
+  // Stop remote control server.
   if (remote_control_server) {
     remote_control_server->get_operation_controller().stop();
   }

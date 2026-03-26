@@ -21,6 +21,11 @@ public:
   pdcch_ul_information            next_ue_ul_pdcch_alloc;
   std::function<bool(slot_point)> fail_pdcch_alloc_cond;
 
+  void slot_indication(slot_point sl_tx)
+  {
+    // do nothing.
+  }
+
   pdcch_dl_information* alloc_dl_pdcch_common(cell_slot_resource_allocator& slot_alloc,
                                               rnti_t                        rnti,
                                               search_space_id               ss_id,

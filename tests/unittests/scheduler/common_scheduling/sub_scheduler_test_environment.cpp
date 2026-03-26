@@ -5,6 +5,8 @@
 #include "sub_scheduler_test_environment.h"
 #include "lib/scheduler/logging/scheduler_metrics_handler.h"
 #include "lib/scheduler/logging/scheduler_result_logger.h"
+#include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
+#include "sub_scheduler_test_environment.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include <gtest/gtest.h>
 
@@ -12,7 +14,23 @@ using namespace ocudu;
 
 sub_scheduler_test_environment::sub_scheduler_test_environment(const sched_cell_configuration_request_message& cell_req,
                                                                unsigned delay_tx_rx_slots_) :
-  cell_cfg(sched_cfg, cell_req), delay_tx_rx_slots(delay_tx_rx_slots_)
+  sub_scheduler_test_environment(cell_req,
+                                 nullptr,
+                                 create_pdcch_slot_ind_task<pdcch_resource_allocator_impl>(),
+                                 delay_tx_rx_slots_)
+{
+}
+
+sub_scheduler_test_environment::sub_scheduler_test_environment(
+    const sched_cell_configuration_request_message& cell_req,
+    std::unique_ptr<pdcch_resource_allocator>       custom_pdcch_alloc,
+    std::function<void(slot_point)>                 pdcch_alloc_sl_ind_task,
+    unsigned                                        delay_tx_rx_slots_) :
+  cell_cfg(sched_cfg, cell_req),
+  pdcch_alloc(custom_pdcch_alloc == nullptr ? std::make_unique<pdcch_resource_allocator_impl>(cell_cfg)
+                                            : std::move(custom_pdcch_alloc)),
+  delay_tx_rx_slots(delay_tx_rx_slots_),
+  pdcch_alloc_slot_ind_fn(pdcch_alloc_sl_ind_task)
 {
   mac_logger.set_level(ocudulog::basic_levels::debug);
   test_logger.set_level(ocudulog::basic_levels::info);
@@ -36,6 +54,9 @@ void sub_scheduler_test_environment::run_slot()
   test_logger.set_context(next_slot.sfn(), next_slot.slot_index());
 
   res_grid.slot_indication(next_slot);
+
+  // pdcch allocator slot indication.
+  pdcch_alloc_slot_ind_fn(next_slot);
 
   // Run slot for the derived class.
   do_run_slot();

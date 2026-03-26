@@ -2,16 +2,14 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "../test_utils/scheduler_test_suite.h"
 #include "lib/scheduler/common_scheduling/si_scheduler.h"
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "lib/scheduler/support/paging_helpers.h"
+#include "sub_scheduler_test_environment.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
-#include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/ran/pdcch/dci_packing.h"
-#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/result/dci_info.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 #include <gtest/gtest.h>
@@ -26,52 +24,26 @@ make_sched_configuration_request(const si_scheduling_config& si_sched_cfg)
   return msg;
 }
 
-class si_scheduler_setup
+class si_scheduler_test_environment : public sub_scheduler_test_environment
 {
 public:
-  si_scheduler_setup(const sched_cell_configuration_request_message& msg) :
-    expert_cfg(config_helpers::make_default_scheduler_expert_config()),
-    cell_cfg(expert_cfg,
-             sched_config_helper::make_default_sched_cell_configuration_request(
-                 cell_config_builder_profiles::create(duplex_mode::TDD))),
-    pdcch_sch(cell_cfg),
-    res_grid(cell_cfg),
-    si_sched(cell_cfg, pdcch_sch, msg),
-    logger(ocudulog::fetch_basic_logger("SCHED"))
+  si_scheduler_test_environment(const sched_cell_configuration_request_message& msg) :
+    sub_scheduler_test_environment(sched_config_helper::make_default_sched_cell_configuration_request(
+        cell_config_builder_profiles::create(duplex_mode::TDD))),
+    si_sched(cell_cfg, *pdcch_alloc, msg)
   {
-    logger.set_level(ocudulog::basic_levels::debug);
-    ocudulog::init();
-
-    // Sets the first slot.
     run_slot();
   }
+  ~si_scheduler_test_environment() override { flush_events(); }
 
-  void run_slot()
-  {
-    logger.set_context(next_slot.sfn(), next_slot.slot_index());
-    res_grid.slot_indication(next_slot);
-    pdcch_sch.slot_indication(next_slot);
-    si_sched.run_slot(res_grid);
+  void do_run_slot() override { si_sched.run_slot(res_grid); }
 
-    test_scheduler_result_consistency(cell_cfg, res_grid);
-
-    ++next_slot;
-  }
-
-  const scheduler_expert_config expert_cfg;
-  const cell_configuration      cell_cfg;
-  pdcch_resource_allocator_impl pdcch_sch;
-  cell_resource_allocator       res_grid;
-  si_scheduler                  si_sched;
-  ocudulog::basic_logger&       logger;
-
-  slot_point next_slot{to_numerology_value(cell_cfg.scs_common()),
-                       test_rng::uniform_int<unsigned>(0, 1024 * get_nof_slots_per_subframe(cell_cfg.scs_common()))};
+  si_scheduler si_sched;
 };
 
 TEST(no_si_scheduler_test, when_no_si_is_provided_then_nothing_is_scheduled)
 {
-  si_scheduler_setup setup{make_sched_configuration_request(si_scheduling_config{units::bytes{0}, {}, 0})};
+  si_scheduler_test_environment setup{make_sched_configuration_request(si_scheduling_config{units::bytes{0}, {}, 0})};
 
   const unsigned nof_slots = 100;
 
@@ -83,10 +55,10 @@ TEST(no_si_scheduler_test, when_no_si_is_provided_then_nothing_is_scheduled)
   }
 }
 
-class si_scheduler_test : public si_scheduler_setup, public testing::Test
+class si_scheduler_test : public si_scheduler_test_environment, public testing::Test
 {
 protected:
-  si_scheduler_test() : si_scheduler_setup(make_sched_configuration_request(DEFAULT_SI_SCHED_CFG)) {}
+  si_scheduler_test() : si_scheduler_test_environment(make_sched_configuration_request(DEFAULT_SI_SCHED_CFG)) {}
 
   static constexpr units::bytes     DEFAULT_SIB1_PAYLOAD_SIZE{128};
   static const si_scheduling_config DEFAULT_SI_SCHED_CFG;
@@ -150,7 +122,7 @@ TEST_F(si_scheduler_test, when_si_is_updated_then_new_version_is_applied_at_si_c
     if (current_slot.sfn() % si_ch_wind_len_rfs == 0 and current_slot.slot_index() == 0) {
       // Detected SI change window start.
       window_version = std::nullopt;
-      logger.info("TEST: New window starting at {}", current_slot);
+      test_logger.info("New window starting at {}", current_slot);
     }
 
     for (const auto& sib : res_grid[0].result.dl.bc.sibs) {
@@ -248,7 +220,7 @@ TEST_F(si_scheduler_test, when_si_is_updated_all_ues_in_rrc_idle_get_notified_ex
         if (slot_helper.is_paging_slot(current_slot, i_s)) {
           ASSERT_FALSE(notified_ue_ids.test(ue_id));
           notified_ue_ids.set(ue_id);
-          logger.debug("TEST: UE ID {} notified at {}", ue_id, current_slot);
+          test_logger.debug("UE ID {} notified at {}", ue_id, current_slot);
         }
       }
     }

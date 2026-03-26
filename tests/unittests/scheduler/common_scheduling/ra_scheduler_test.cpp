@@ -39,10 +39,11 @@ std::ostream& operator<<(std::ostream& out, const test_params& params)
 class base_ra_scheduler_test : public sub_scheduler_test_environment
 {
 protected:
-  static constexpr unsigned tx_rx_delay = 2U;
-
   base_ra_scheduler_test(duplex_mode dplx_mode, const test_params& params_) :
-    sub_scheduler_test_environment(get_sched_req(dplx_mode, params_)), params(params_)
+    sub_scheduler_test_environment(get_sched_req(dplx_mode, params_),
+                                   std::make_unique<dummy_pdcch_resource_allocator>()),
+    params(params_),
+    dummy_pdcch_sch(static_cast<dummy_pdcch_resource_allocator&>(*this->pdcch_alloc))
   {
     // Run slot once so that the resource grid gets initialized with the initial slot.
     this->run_slot();
@@ -102,8 +103,6 @@ protected:
     ASSERT_TRUE(res_grid[0].result.dl.bc.sibs.empty());
   }
 
-  slot_point next_slot_rx() const { return next_slot - tx_rx_delay; }
-
   template <typename Func = noop_operation>
   void run_slot_until_next_rach_opportunity(const Func& func = {})
   {
@@ -120,11 +119,10 @@ protected:
     static auto next_rnti = test_rng::uniform_int<unsigned>(to_value(rnti_t::MIN_CRNTI), to_value(rnti_t::MAX_CRNTI));
     static const auto rnti_inc = test_rng::uniform_int<unsigned>(1, 5);
 
-    rach_indication_message::preamble preamble{};
-    preamble.preamble_id = test_rng::uniform_int<unsigned>(0, 63);
+    rach_indication_message::preamble preamble =
+        test_helper::create_preamble(test_rng::uniform_int<unsigned>(0, 63), to_rnti(next_rnti));
     preamble.time_advance =
         phy_time_unit::from_seconds(std::uniform_real_distribution<double>{0, 2005e-6}(test_rng::tls_gen()));
-    preamble.tc_rnti = to_rnti(next_rnti);
     next_rnti += rnti_inc;
     return preamble;
   }
@@ -341,8 +339,8 @@ protected:
 
   test_params params;
 
-  dummy_pdcch_resource_allocator pdcch_sch;
-  ra_scheduler                   ra_sch{cell_cfg, pdcch_sch, ev_logger, metrics_hdlr};
+  dummy_pdcch_resource_allocator& dummy_pdcch_sch;
+  ra_scheduler                    ra_sch{cell_cfg, dummy_pdcch_sch, ev_logger, metrics_hdlr};
 };
 
 class ra_scheduler_fdd_test : public base_ra_scheduler_test, public ::testing::TestWithParam<test_params>
@@ -552,7 +550,7 @@ TEST_P(ra_scheduler_tdd_test, when_no_rbs_are_available_then_rar_is_scheduled_in
   slot_interval rar_win = get_rar_window(rach_ind.slot_rx);
 
   // Forbid PDCCH alloc in the next slot.
-  this->pdcch_sch.fail_pdcch_alloc_cond = [next_sl = res_grid[1].slot](slot_point pdcch_slot) {
+  this->dummy_pdcch_sch.fail_pdcch_alloc_cond = [next_sl = res_grid[1].slot](slot_point pdcch_slot) {
     return pdcch_slot == next_sl;
   };
 
@@ -632,7 +630,7 @@ TEST_F(failed_rar_scheduler_test, when_rar_grants_not_scheduled_within_window_th
     slot_interval rar_win = get_rar_window(rach_ind.slot_rx);
 
     // Forbid PDCCH alloc within the RAR window to force failure.
-    this->pdcch_sch.fail_pdcch_alloc_cond = [](slot_point pdcch_slot) { return true; };
+    this->dummy_pdcch_sch.fail_pdcch_alloc_cond = [](slot_point pdcch_slot) { return true; };
     while (this->res_grid[1].slot < rar_win.stop()) {
       run_slot();
 
@@ -643,8 +641,8 @@ TEST_F(failed_rar_scheduler_test, when_rar_grants_not_scheduled_within_window_th
   }
 
   // Now, we should be able to schedule RARs again.
-  this->pdcch_sch.fail_pdcch_alloc_cond = [](slot_point) { return false; };
-  auto ack_msg3s                        = [this]() {
+  this->dummy_pdcch_sch.fail_pdcch_alloc_cond = [](slot_point) { return false; };
+  auto ack_msg3s                              = [this]() {
     if (not this->res_grid[0].result.ul.puschs.empty()) {
       // Forward CRC=OK for Msg3s.
       ul_crc_indication crc_ind = create_crc_indication(res_grid[0].result.ul.puschs, true);

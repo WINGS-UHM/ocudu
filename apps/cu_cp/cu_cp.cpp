@@ -374,6 +374,7 @@ int main(int argc, char** argv)
     metrics_configs.push_back(std::move(metric));
   }
 
+  // Create metrics manager.
   app_services::metrics_manager metrics_mngr(
       ocudulog::fetch_basic_logger("CU"),
       workers.get_metrics_executor(),
@@ -420,6 +421,7 @@ int main(int argc, char** argv)
   // Connect F1-C to O-CU-CP and start listening for new F1-C connection requests.
   cu_f1c_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_f1c_handler());
 
+  // Start metrics manager.
   metrics_mngr.start();
 
   {
@@ -435,8 +437,10 @@ int main(int argc, char** argv)
     }
   }
 
+  // Stop metrics manager.
   metrics_mngr.stop();
 
+  // Stop remote control server.
   if (remote_control_server) {
     remote_control_server->get_operation_controller().stop();
   }

@@ -697,8 +697,9 @@ struct du_high_unit_sib_config {
       unsigned thresh_x_high_p = 0;
       /// Rx level threshold in dB used when reselecting to a lower priority RAT/frequency. Values: {0, 2, 4, ..., 62}.
       unsigned thresh_x_low_p = 0;
-      // Frequency specific offset in dB for equal priority NR frequencies.
-      unsigned q_offset_freq = 0;
+      /// Frequency specific offset in dB for equal priority NR frequencies. Values: {-24, ... , 24}.
+      /// \remark Not all values in that range are allowed, see \ref q_offset_range_t.
+      int q_offset_freq = 0;
     };
     /// List of neighbouring carrier frequencies and frequency specific cell reselection information.
     std::vector<inter_freq_carrier_freq_config> inter_freq_carrier_freq_list;

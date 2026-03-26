@@ -27,6 +27,7 @@
 #include "cu_appconfig_yaml_writer.h"
 #include "ocudu/adt/scope_exit.h"
 #include "ocudu/cu_cp/cu_cp_operation_controller.h"
+#include "ocudu/cu_up/o_cu_up.h"
 #include "ocudu/e1ap/gateways/e1_local_connector_factory.h"
 #include "ocudu/e2/e2ap_config_translators.h"
 #include "ocudu/f1ap/gateways/f1c_network_server_factory.h"
@@ -452,20 +453,29 @@ int main(int argc, char** argv)
   // Create O-CU-CP.
   auto            o_cucp_unit = o_cu_cp_app_unit->create_o_cu_cp(o_cucp_deps);
   ocucp::o_cu_cp& o_cucp_obj  = *o_cucp_unit.unit;
-
-  if (std::unique_ptr<app_services::cmdline_command> cmd = app_services::create_stdout_metrics_app_command(
-          {{o_cucp_unit.commands.cmdline.metrics_subcommands}}, false)) {
-    o_cucp_unit.commands.cmdline.commands.push_back(std::move(cmd));
-  }
-
-  // Create console helper object for commands and metrics printing.
-  app_services::cmdline_command_dispatcher command_parser(
-      *epoll_broker, workers.get_cmd_line_executor(), o_cucp_unit.commands.cmdline.commands);
-
   for (auto& metric : o_cucp_unit.metrics) {
     metrics_configs.push_back(std::move(metric));
   }
 
+  // Create O-CU-UP dependencies.
+  o_cu_up_unit_dependencies o_cuup_unit_deps;
+  o_cuup_unit_deps.workers          = &workers;
+  o_cuup_unit_deps.e1ap_conn_client = e1_gw.get();
+  o_cuup_unit_deps.f1u_gateway      = cu_f1u_conn.get();
+  o_cuup_unit_deps.gtpu_pcap        = cu_up_dlt_pcaps.n3.get();
+  o_cuup_unit_deps.timers           = cu_timers;
+  o_cuup_unit_deps.io_brk           = epoll_broker.get();
+  o_cuup_unit_deps.e2_gw            = e2_gw_cu_up.get();
+  o_cuup_unit_deps.metrics_notifier = &metrics_notifier_forwarder;
+
+  // Create O-CU-UP.
+  auto            o_cuup_unit = o_cu_up_app_unit->create_o_cu_up_unit(o_cuup_unit_deps);
+  ocuup::o_cu_up& o_cuup_obj  = *o_cuup_unit.unit;
+  for (auto& metric : o_cuup_unit.metrics) {
+    metrics_configs.push_back(std::move(metric));
+  }
+
+  // Create metrics manager.
   app_services::metrics_manager metrics_mngr(
       ocudulog::fetch_basic_logger("CU"),
       workers.get_metrics_executor(),
@@ -475,6 +485,16 @@ int main(int argc, char** argv)
 
   // Connect the forwarder to the metrics manager.
   metrics_notifier_forwarder.connect(metrics_mngr);
+
+  // Add the metrics STDOUT command.
+  if (std::unique_ptr<app_services::cmdline_command> cmd = app_services::create_stdout_metrics_app_command(
+          {{o_cucp_unit.commands.cmdline.metrics_subcommands}}, false)) {
+    o_cucp_unit.commands.cmdline.commands.push_back(std::move(cmd));
+  }
+
+  // Create console helper object for commands and metrics printing.
+  app_services::cmdline_command_dispatcher command_parser(
+      *epoll_broker, workers.get_cmd_line_executor(), o_cucp_unit.commands.cmdline.commands);
 
   // Connect E1AP to O-CU-CP.
   e1_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_e1_handler());
@@ -494,31 +514,16 @@ int main(int argc, char** argv)
     report_error("CU-CP failed to connect to AMF");
   }
 
-  // Connect F1-C to O-CU-CP and start listening for new F1-C connection requests.
-  cu_f1c_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_f1c_handler());
-
-  // Create and start O-CU-UP.
-  o_cu_up_unit_dependencies o_cuup_unit_deps;
-  o_cuup_unit_deps.workers          = &workers;
-  o_cuup_unit_deps.e1ap_conn_client = e1_gw.get();
-  o_cuup_unit_deps.f1u_gateway      = cu_f1u_conn.get();
-  o_cuup_unit_deps.gtpu_pcap        = cu_up_dlt_pcaps.n3.get();
-  o_cuup_unit_deps.timers           = cu_timers;
-  o_cuup_unit_deps.io_brk           = epoll_broker.get();
-  o_cuup_unit_deps.e2_gw            = e2_gw_cu_up.get();
-  o_cuup_unit_deps.metrics_notifier = &metrics_notifier_forwarder;
-
-  auto o_cuup_unit = o_cu_up_app_unit->create_o_cu_up_unit(o_cuup_unit_deps);
-  for (auto& metric : o_cuup_unit.metrics) {
-    metrics_configs.push_back(std::move(metric));
-  }
-
   // Configure the remote commands and start the service.
   if (remote_control_server) {
     remote_control_server->get_operation_controller().start();
   }
 
-  o_cuup_unit.unit->get_operation_controller().start();
+  // Connect F1-C to O-CU-CP and start listening for new F1-C connection requests.
+  cu_f1c_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_f1c_handler());
+
+  // Start O-CU-UP.
+  o_cuup_obj.get_operation_controller().start();
 
   metrics_mngr.start();
 
@@ -542,7 +547,7 @@ int main(int argc, char** argv)
   }
 
   // Stop O-CU-UP activity.
-  o_cuup_unit.unit->get_operation_controller().stop();
+  o_cuup_obj.get_operation_controller().stop();
 
   // Stop O-CU-CP activity.
   o_cucp_obj.get_operation_controller().stop();

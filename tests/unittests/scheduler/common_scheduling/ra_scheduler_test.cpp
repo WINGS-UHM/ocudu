@@ -9,6 +9,7 @@
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
+#include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "ocudu/adt/noop_functor.h"
 #include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
@@ -30,7 +31,7 @@ struct test_params {
 
 std::ostream& operator<<(std::ostream& out, const test_params& params)
 {
-  out << fmt::format("scs={}kHz, min_k2=", scs_to_khz(params.scs), params.min_k2);
+  out << fmt::format("scs={}kHz, min_k2={}", scs_to_khz(params.scs), params.min_k2);
   return out;
 }
 
@@ -130,35 +131,16 @@ protected:
 
   rach_indication_message create_rach_indication(unsigned nof_preambles)
   {
-    rach_indication_message rach_ind{};
-    rach_ind.cell_index = to_du_cell_index(0);
-    rach_ind.slot_rx    = next_slot_rx() - 1;
-    if (nof_preambles == 0) {
-      return rach_ind;
-    }
-    rach_ind.occasions.emplace_back();
-    rach_ind.occasions.back().start_symbol    = 0;
-    rach_ind.occasions.back().frequency_index = 0;
-
+    std::vector<rach_indication_message::preamble> preambles;
     for (unsigned i = 0; i != nof_preambles; ++i) {
-      rach_ind.occasions.back().preambles.emplace_back(create_preamble());
+      preambles.push_back(create_preamble());
     }
-    return rach_ind;
+    return test_helper::create_rach_indication(next_slot_rx() - 1, preambles);
   }
 
   ul_crc_indication create_crc_indication(span<const ul_sched_info> puschs, bool ack)
   {
-    ul_crc_indication crc_ind;
-    crc_ind.cell_index = to_du_cell_index(0);
-    crc_ind.sl_rx      = this->next_slot_rx() - 1;
-    for (const ul_sched_info& ul : puschs) {
-      crc_ind.crcs.emplace_back();
-      crc_ind.crcs.back().ue_index       = ul.context.ue_index;
-      crc_ind.crcs.back().rnti           = ul.pusch_cfg.rnti;
-      crc_ind.crcs.back().harq_id        = to_harq_id(0);
-      crc_ind.crcs.back().tb_crc_success = ack;
-    }
-    return crc_ind;
+    return test_helper::create_crc_indication(next_slot_rx() - 1, puschs, ack);
   }
 
   const pusch_time_domain_resource_allocation& get_pusch_td_resource(uint8_t time_resource) const
@@ -406,6 +388,9 @@ TEST_P(ra_scheduler_fdd_test, schedules_one_rar_per_slot_when_multi_preambles_wi
 
     slot_point last_alloc_slot = res_grid[0].slot;
 
+    if (not is_in_rar_window(one_rach.slot_rx)) {
+      break;
+    }
     if (csi_helper::is_csi_rs_slot(cell_cfg, last_alloc_slot)) {
       // CSI-RS slot, skip it.
       continue;

@@ -113,3 +113,17 @@ ul_crc_pdu_indication ocudu::test_helper::create_crc_pdu_indication(const ul_sch
 
   return pdu;
 }
+
+ul_crc_indication
+ocudu::test_helper::create_crc_indication(slot_point sl_rx, span<const ul_sched_info> puschs, bool ack)
+{
+  ul_crc_indication crc_ind;
+  crc_ind.cell_index = to_du_cell_index(0);
+  crc_ind.sl_rx      = sl_rx;
+  for (const ul_sched_info& ul : puschs) {
+    ul_crc_pdu_indication pdu = create_crc_pdu_indication(ul);
+    pdu.tb_crc_success        = ack;
+    crc_ind.crcs.push_back(pdu);
+  }
+  return crc_ind;
+}

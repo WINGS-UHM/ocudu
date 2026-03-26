@@ -21,10 +21,28 @@ private:
   virtual void do_run_slot() = 0;
 
 protected:
-  sub_scheduler_test_environment(const sched_cell_configuration_request_message& cell_req);
+  sub_scheduler_test_environment(const sched_cell_configuration_request_message& cell_req,
+                                 unsigned                                        delay_tx_rx_slots_ = 2);
   virtual ~sub_scheduler_test_environment() = default;
 
+  slot_point next_slot_rx() const { return next_slot - delay_tx_rx_slots; }
+
   void run_slot();
+
+  template <typename Func>
+  bool run_slot_until(const Func& func = {}, unsigned max_slots = 1000)
+  {
+    if (func()) {
+      return true;
+    }
+    for (unsigned i = 0; i < max_slots; ++i) {
+      run_slot();
+      if (func()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /// Helper function to flush pending events and logs.
   void flush_events();
@@ -38,6 +56,7 @@ protected:
   cell_metrics_handler    metrics_hdlr{cell_cfg, std::nullopt};
   cell_resource_allocator res_grid{cell_cfg};
   scheduler_result_logger result_logger{true, cell_cfg.params.pci};
+  const unsigned          delay_tx_rx_slots;
 
   // -- Derived
   /// Maximum of all k values.

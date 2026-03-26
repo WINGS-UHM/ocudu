@@ -41,6 +41,9 @@ uci_indication::uci_pdu create_uci_indication_pdu(rnti_t rnti, du_ue_index_t ue_
 /// Create dummy CRC PDU indication based on a PUSCH PDU.
 ul_crc_pdu_indication create_crc_pdu_indication(const ul_sched_info& ul_grant);
 
+/// Create a CRC indication for multiple UL grants.
+ul_crc_indication create_crc_indication(slot_point sl_rx, span<const ul_sched_info> puschs, bool ack);
+
 } // namespace test_helper
 
 } // namespace ocudu

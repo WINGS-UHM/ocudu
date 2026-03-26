@@ -10,9 +10,9 @@
 
 using namespace ocudu;
 
-sub_scheduler_test_environment::sub_scheduler_test_environment(
-    const sched_cell_configuration_request_message& cell_req) :
-  cell_cfg(sched_cfg, cell_req)
+sub_scheduler_test_environment::sub_scheduler_test_environment(const sched_cell_configuration_request_message& cell_req,
+                                                               unsigned delay_tx_rx_slots_) :
+  cell_cfg(sched_cfg, cell_req), delay_tx_rx_slots(delay_tx_rx_slots_)
 {
   mac_logger.set_level(ocudulog::basic_levels::debug);
   test_logger.set_level(ocudulog::basic_levels::info);

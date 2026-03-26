@@ -119,10 +119,11 @@ protected:
   test_timeout_notifier   timeout_notifier;
   uci_indication_selector selector{timeout_notifier, timeout_slots, MAX_PUCCH_PDUS_PER_SLOT};
 
-  slot_point next_sl_tx{subcarrier_spacing::kHz30,
-                        test_rng::uniform_int<unsigned>(
-                            0,
-                            NOF_SFNS* NOF_SUBFRAMES_PER_FRAME* get_nof_slots_per_subframe(subcarrier_spacing::kHz30))};
+  slot_point next_sl_tx{
+      subcarrier_spacing::kHz30,
+      test_rng::uniform_int<unsigned>(
+          0,
+          NOF_SFNS* NOF_SUBFRAMES_PER_FRAME* get_nof_slots_per_subframe(subcarrier_spacing::kHz30) - 1)};
 };
 
 TEST_F(uci_indication_selector_test, returns_selected_action_for_matching_pdu_without_harq_bits)

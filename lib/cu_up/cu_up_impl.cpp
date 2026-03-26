@@ -123,12 +123,12 @@ cu_up::cu_up(const cu_up_config& config_, const cu_up_dependencies& dependencies
 
   // Create N3 TEID allocator
   gtpu_allocator_creation_request n3_alloc_msg = {};
-  n3_alloc_msg.max_nof_teids                   = MAX_NOF_CU_UP_UES * MAX_NOF_PDU_SESSIONS;
+  n3_alloc_msg.max_nof_teids                   = cfg.max_nof_ues * MAX_NOF_PDU_SESSIONS;
   n3_teid_allocator                            = create_gtpu_allocator(n3_alloc_msg);
 
   // Create F1-U TEID allocator
   gtpu_allocator_creation_request f1u_alloc_msg = {};
-  f1u_alloc_msg.max_nof_teids                   = MAX_NOF_CU_UP_UES * MAX_NOF_PDU_SESSIONS;
+  f1u_alloc_msg.max_nof_teids                   = cfg.max_nof_ues * MAX_NOF_PDU_SESSIONS;
   f1u_teid_allocator                            = create_gtpu_allocator(f1u_alloc_msg);
 
   /// > Create e1ap

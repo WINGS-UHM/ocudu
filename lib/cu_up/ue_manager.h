@@ -20,6 +20,7 @@ namespace ocuup {
 
 /// UE manager configuration.
 struct ue_manager_config {
+  uint32_t                      max_nof_ues;
   const n3_interface_config&    n3_config;
   const cu_up_test_mode_config& test_mode_config;
 };
@@ -45,7 +46,7 @@ public:
   explicit ue_manager(const ue_manager_config& config, const ue_manager_dependencies& dependencies);
 
   using ue_db_t              = std::unordered_map<cu_up_ue_index_t, std::unique_ptr<ue_context>>;
-  using ue_task_schedulers_t = slotted_array<fifo_async_task_scheduler, MAX_NOF_CU_UP_UES>;
+  using ue_task_schedulers_t = std::vector<std::unique_ptr<fifo_async_task_scheduler>>;
   const ue_db_t& get_ues() const { return ue_db; }
 
   async_task<void> stop() override;
@@ -72,6 +73,7 @@ private:
 
   async_task<expected<>> schedule_and_wait_ue_removal(cu_up_ue_index_t ue_index);
 
+  uint32_t                      max_nof_ues;
   const n3_interface_config&    n3_config;
   const cu_up_test_mode_config& test_mode_config;
   e1ap_interface&               e1ap;

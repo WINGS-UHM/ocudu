@@ -37,7 +37,7 @@ protected:
     ue_cfg = {security::sec_as_config{}, activity_notification_level_t::ue, std::chrono::seconds(0), {}, 1000000000};
 
     // create DUT object
-    ue_mng = std::make_unique<ue_manager>(ue_manager_config{n3_config, test_mode_config},
+    ue_mng = std::make_unique<ue_manager>(ue_manager_config{max_nof_ues, n3_config, test_mode_config},
                                           ue_manager_dependencies{*e1ap,
                                                                   timers,
                                                                   *f1u_gw,
@@ -76,6 +76,7 @@ protected:
   ocudulog::basic_logger&                                     test_logger = ocudulog::fetch_basic_logger("TEST", false);
   manual_task_worker                                          worker{64};
 
+  const uint32_t                          max_nof_ues = 16384;
   async_task<void>                        t;
   std::optional<lazy_task_launcher<void>> t_launcher;
 };
@@ -92,11 +93,11 @@ TEST_F(ue_manager_test, when_ue_db_not_full_new_ue_can_be_added)
 TEST_F(ue_manager_test, when_ue_db_is_full_new_ue_cannot_be_added)
 {
   // add maximum number of UE objects
-  for (uint32_t i = 0; i < MAX_NOF_CU_UP_UES; i++) {
+  for (uint32_t i = 0; i < max_nof_ues; i++) {
     ue_context* ue = ue_mng->add_ue(ue_cfg);
     ASSERT_NE(ue, nullptr);
   }
-  ASSERT_EQ(ue_mng->get_nof_ues(), MAX_NOF_CU_UP_UES);
+  ASSERT_EQ(ue_mng->get_nof_ues(), max_nof_ues);
 
   // try to add one more
   ue_context* ue = ue_mng->add_ue(ue_cfg);
@@ -106,14 +107,14 @@ TEST_F(ue_manager_test, when_ue_db_is_full_new_ue_cannot_be_added)
 TEST_F(ue_manager_test, when_ue_are_deleted_ue_db_is_empty)
 {
   // add maximum number of UE objects
-  for (uint32_t i = 0; i < MAX_NOF_CU_UP_UES; i++) {
+  for (uint32_t i = 0; i < max_nof_ues; i++) {
     ue_context* ue = ue_mng->add_ue(ue_cfg);
     ASSERT_NE(ue, nullptr);
   }
-  ASSERT_EQ(ue_mng->get_nof_ues(), MAX_NOF_CU_UP_UES);
+  ASSERT_EQ(ue_mng->get_nof_ues(), max_nof_ues);
 
   // delete all UE objects
-  for (uint32_t i = 0; i < MAX_NOF_CU_UP_UES; i++) {
+  for (uint32_t i = 0; i < max_nof_ues; i++) {
     t = ue_mng->remove_ue(int_to_ue_index(i));
     t_launcher.emplace(t);
   }

@@ -9,6 +9,7 @@ using namespace ocudu;
 using namespace ocuup;
 
 ue_manager::ue_manager(const ue_manager_config& config, const ue_manager_dependencies& dependencies) :
+  max_nof_ues(config.max_nof_ues),
   n3_config(config.n3_config),
   test_mode_config(config.test_mode_config),
   e1ap(dependencies.e1ap),
@@ -25,8 +26,9 @@ ue_manager::ue_manager(const ue_manager_config& config, const ue_manager_depende
   logger(dependencies.logger)
 {
   // Initialize a ue task schedulers for all UE indexes.
-  for (size_t i = 0; i < MAX_NOF_CU_UP_UES; ++i) {
-    ue_task_schedulers.emplace(i, UE_TASK_QUEUE_SIZE);
+  ue_task_schedulers.reserve(config.max_nof_ues);
+  for (size_t i = 0; i < config.max_nof_ues; ++i) {
+    ue_task_schedulers.emplace_back(std::make_unique<fifo_async_task_scheduler>(UE_TASK_QUEUE_SIZE));
   }
 }
 
@@ -57,13 +59,13 @@ async_task<void> ue_manager::remove_all_ues()
 
 ue_context* ue_manager::find_ue(cu_up_ue_index_t ue_index)
 {
-  ocudu_assert(ue_index < MAX_NOF_CU_UP_UES, "Invalid ue_index={}", fmt::underlying(ue_index));
+  ocudu_assert(ue_index < max_nof_ues, "Invalid ue_index={}", fmt::underlying(ue_index));
   return ue_db.find(ue_index) != ue_db.end() ? ue_db[ue_index].get() : nullptr;
 }
 
 ue_context* ue_manager::add_ue(const ue_context_cfg& ue_cfg)
 {
-  if (ue_db.size() >= MAX_NOF_CU_UP_UES) {
+  if (ue_db.size() >= max_nof_ues) {
     logger.error("Can't add new UE. Max number of UEs reached.");
     return nullptr;
   }
@@ -92,7 +94,7 @@ ue_context* ue_manager::add_ue(const ue_context_cfg& ue_cfg)
                                    test_mode_config,
                                    ue_context_dependencies{e1ap,
                                                            std::move(ue_exec_mapper),
-                                                           ue_task_schedulers[new_idx],
+                                                           *ue_task_schedulers[new_idx],
                                                            ue_dl_timer_factory,
                                                            ue_ul_timer_factory,
                                                            ue_ctrl_timer_factory,
@@ -132,7 +134,7 @@ async_task<void> ue_manager::remove_ue(cu_up_ue_index_t ue_index)
 cu_up_ue_index_t ue_manager::get_next_ue_index()
 {
   // Search unallocated UE index
-  for (unsigned i = 0; i < MAX_NOF_CU_UP_UES; i++) {
+  for (unsigned i = 0; i < max_nof_ues; i++) {
     if (ue_db.find(static_cast<cu_up_ue_index_t>(i)) == ue_db.end()) {
       return int_to_ue_index(i);
       break;

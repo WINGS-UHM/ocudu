@@ -19,6 +19,7 @@ namespace ocudu::ocuup {
 struct cu_up_manager_impl_config {
   gnb_cu_up_id_t                        cu_up_id;
   std::string                           cu_up_name;
+  uint32_t                              max_nof_ues;
   std::string                           plmn;
   std::map<five_qi_t, cu_up_qos_config> qos;
   n3_interface_config                   n3_cfg;

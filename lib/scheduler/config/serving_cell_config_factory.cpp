@@ -338,9 +338,9 @@ static ue_bwp_config make_default_ue_bwp_cfg(const ran_cell_config& cell_cfg)
                   },
           },
   };
-  if (cell_cfg.init_bwp.csi.has_value()) {
+  if (cell_cfg.init_bwp.csi.has_value() and cell_cfg.init_bwp.csi->csi_report_slot_offset.has_value()) {
     cfg.ul.periodic_csi_report.emplace(ue_periodic_csi_config{
-        .pucch_res_id = pucch_csi_resource_id(0), .offset = cell_cfg.init_bwp.csi->csi_report_slot_offset.value()});
+        .pucch_res_id = pucch_csi_resource_id(0), .offset = *cell_cfg.init_bwp.csi->csi_report_slot_offset});
   }
 
   return cfg;

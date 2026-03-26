@@ -10,6 +10,7 @@ namespace ocudu::ocuup {
 
 /// Configuration for E1AP CU-UP.
 struct e1ap_configuration {
+  uint32_t max_nof_ues;
   /// Whether to enable JSON logging of E1AP Tx and Rx messages.
   bool           json_log_enabled = false;
   timer_duration metrics_period{0};

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "ocudu/ran/gnb_constants.h"
 #include "fmt/format.h"
 #include <cstdint>
 #include <type_traits>

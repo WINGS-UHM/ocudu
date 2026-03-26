@@ -38,7 +38,10 @@ struct e1ap_ue_context {
 class e1ap_ue_context_list
 {
 public:
-  e1ap_ue_context_list(ocudulog::basic_logger& logger_) : logger(logger_) {}
+  e1ap_ue_context_list(uint32_t max_nof_ues_, ocudulog::basic_logger& logger_) :
+    max_nof_ues(max_nof_ues_), logger(logger_)
+  {
+  }
 
   bool contains(gnb_cu_up_ue_e1ap_id_t cu_up_ue_e1ap_id) const { return ues.find(cu_up_ue_e1ap_id) != ues.end(); }
 
@@ -137,7 +140,7 @@ public:
   /// \brief Get the next available GNB-CU-UP-E1AP-UE-ID.
   gnb_cu_up_ue_e1ap_id_t next_gnb_cu_up_ue_e1ap_id()
   {
-    if (ue_index_to_ue_e1ap_id.size() == MAX_NOF_CU_UP_UES) {
+    if (ue_index_to_ue_e1ap_id.size() == max_nof_ues) {
       return gnb_cu_up_ue_e1ap_id_t::invalid;
     }
 
@@ -177,9 +180,7 @@ protected:
   gnb_cu_up_ue_e1ap_id_t next_cu_up_ue_e1ap_id = gnb_cu_up_ue_e1ap_id_t::min;
 
 private:
-  ocudulog::basic_logger& logger;
-
-  inline void increase_next_cu_up_ue_e1ap_id()
+  void increase_next_cu_up_ue_e1ap_id()
   {
     if (next_cu_up_ue_e1ap_id == gnb_cu_up_ue_e1ap_id_t::max) {
       // reset cu-up ue e1ap id counter
@@ -190,8 +191,10 @@ private:
     }
   }
 
+  const uint32_t                                               max_nof_ues;
   std::unordered_map<gnb_cu_up_ue_e1ap_id_t, e1ap_ue_context>  ues; // indexed by gnb_cu_up_ue_e1ap_id
   std::unordered_map<cu_up_ue_index_t, gnb_cu_up_ue_e1ap_id_t> ue_index_to_ue_e1ap_id; // indexed by ue_index
+  ocudulog::basic_logger&                                      logger;
 };
 
 } // namespace ocuup

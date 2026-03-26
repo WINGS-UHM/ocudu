@@ -12,9 +12,10 @@ using namespace ocudu;
 ocuup::cu_up_config ocudu::generate_cu_up_config(const cu_up_unit_config& config)
 {
   ocuup::cu_up_config out_cfg;
-  out_cfg.gnb_id     = config.gnb_id;
-  out_cfg.cu_up_id   = config.gnb_cu_up_id;
-  out_cfg.cu_up_name = fmt::format("ocuup_{}", fmt::underlying(config.gnb_cu_up_id));
+  out_cfg.gnb_id      = config.gnb_id;
+  out_cfg.cu_up_id    = config.gnb_cu_up_id;
+  out_cfg.cu_up_name  = fmt::format("ocuup_{}", fmt::underlying(config.gnb_cu_up_id));
+  out_cfg.max_nof_ues = config.max_nof_ues;
 
   out_cfg.statistics_report_period = std::chrono::seconds{config.metrics.cu_up_report_period};
 

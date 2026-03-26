@@ -64,6 +64,8 @@ struct cu_up_config {
   gnb_id_t gnb_id = {411, 22};
   /// CU-UP identifier.
   gnb_cu_up_id_t cu_up_id = gnb_cu_up_id_t::min;
+  /// CU-UP maximum number of allowed Bearer Contexts.
+  uint32_t max_nof_ues = 16384;
   /// CU-UP name.
   std::string cu_up_name = "ocuup_01";
   /// E1AP configuration.

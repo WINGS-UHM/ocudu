@@ -97,6 +97,8 @@ struct cu_up_unit_config {
   gnb_id_t gnb_id = {411, 22};
   /// CU-UP identifier.
   gnb_cu_up_id_t gnb_cu_up_id = gnb_cu_up_id_t::min;
+  /// CU-UP maximum number of bearer contexts allowed by the CU-UP.
+  uint32_t max_nof_ues = 16384;
   /// CU-UP warn if PDUs are dropped.
   bool warn_on_drop = false;
   /// NG-U configuration.

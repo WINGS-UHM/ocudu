@@ -61,7 +61,7 @@ public:
   virtual void handle_ul_ccch_pdu(byte_buffer pdu, rnti_t c_rnti) = 0;
 
   /// Handle the incoming SRB PDCP PDU on the UL-DCCH logical channel.
-  virtual void handle_ul_dcch_pdu(const srb_id_t srb_id, byte_buffer pdu) = 0;
+  virtual void handle_ul_dcch_pdu(srb_id_t srb_id, byte_buffer pdu) = 0;
 };
 
 /// This interface represents the data entry point for the RRC receiving NAS and control messages from the NGAP.
@@ -92,7 +92,7 @@ public:
   /// \brief Notify the PDCP about a new RRC PDU that needs ciphering and integrity protection.
   /// \param[in] pdu The RRC PDU.
   /// \param[in] srb_id The SRB ID of the PDU.
-  virtual void on_new_rrc_pdu(const srb_id_t srb_id, const byte_buffer& pdu) = 0;
+  virtual void on_new_rrc_pdu(srb_id_t srb_id, const byte_buffer& pdu) = 0;
 };
 
 /// Interface used by the RRC Setup procedure to notify the RRC UE.

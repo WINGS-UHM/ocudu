@@ -265,32 +265,29 @@ constexpr void zero_tailing_bits(uint8_t& tail_byte, uint8_t length_bits)
 /// Ref: TS 33.220 Sec. B.2.
 void generic_kdf(sec_key&                   key_out,
                  const sec_key&             key_in,
-                 const fc_value             fc,
+                 fc_value                   fc,
                  const span<const uint8_t>& p0,
                  const span<const uint8_t>& p1);
 
 /// Algorithm key derivation function (RRC).
 /// Ref: TS 33.501 Sec. A.8.
-void generate_k_rrc(sec_key&                  k_rrc_enc,
-                    sec_key&                  k_rrc_int,
-                    const sec_key&            k_gnb,
-                    const ciphering_algorithm enc_alg_id,
-                    const integrity_algorithm int_alg_id);
+void generate_k_rrc(sec_key&            k_rrc_enc,
+                    sec_key&            k_rrc_int,
+                    const sec_key&      k_gnb,
+                    ciphering_algorithm enc_alg_id,
+                    integrity_algorithm int_alg_id);
 
 /// Algorithm key derivation function (UP).
 /// Ref: TS 33.501 Sec. A.8.
-void generate_k_up(sec_key&                  k_up_enc,
-                   sec_key&                  k_up_int,
-                   const sec_key&            k_gnb,
-                   const ciphering_algorithm enc_alg_id,
-                   const integrity_algorithm int_alg_id);
+void generate_k_up(sec_key&            k_up_enc,
+                   sec_key&            k_up_int,
+                   const sec_key&      k_gnb,
+                   ciphering_algorithm enc_alg_id,
+                   integrity_algorithm int_alg_id);
 
 /// K_NG-RAN* derivation function for target gNB.
 /// Ref: TS 33.501 Sec. A.11.
-void generate_k_ng_ran_star(sec_key&       k_star,
-                            const sec_key& k,
-                            const pci_t&   target_pci_,
-                            const uint32_t target_ssb_arfcn_);
+void generate_k_ng_ran_star(sec_key& k_star, const sec_key& k, const pci_t& target_pci_, uint32_t target_ssb_arfcn_);
 
 /// Truncate 256-bit key to 128-bit key using the least significant bits.
 /// Ref: TS 33.501 Sec. A.8.

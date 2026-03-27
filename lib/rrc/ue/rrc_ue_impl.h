@@ -26,11 +26,11 @@ public:
               rrc_ue_measurement_notifier&           measurement_notifier_,
               rrc_ue_cu_cp_ue_notifier&              cu_cp_ue_notifier_,
               rrc_ue_event_notifier&                 metrics_notifier_,
-              const ue_index_t                       ue_index_,
-              const rnti_t                           c_rnti_,
-              const rrc_cell_context                 cell_,
+              ue_index_t                             ue_index_,
+              rnti_t                                 c_rnti_,
+              const rrc_cell_context&                cell_,
               const rrc_ue_cfg_t&                    cfg_,
-              const byte_buffer                      du_to_cu_container,
+              const byte_buffer&                     du_to_cu_container_,
               std::optional<rrc_ue_transfer_context> rrc_context);
   ~rrc_ue_impl();
 
@@ -120,7 +120,7 @@ private:
   void stop() override;
 
   // message handlers
-  void handle_pdu(const srb_id_t srb_id, byte_buffer rrc_pdu);
+  void handle_pdu(srb_id_t srb_id, byte_buffer rrc_pdu);
   void handle_rrc_setup_request(const asn1::rrc_nr::rrc_setup_request_s& msg);
   void handle_rrc_reest_request(const asn1::rrc_nr::rrc_reest_request_s& msg);
   void handle_rrc_resume_request(const asn1::rrc_nr::rrc_resume_request_s& msg, rnti_t c_rnti);

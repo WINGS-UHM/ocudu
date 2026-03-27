@@ -20,9 +20,9 @@ rrc_ue_impl::rrc_ue_impl(rrc_pdu_f1ap_notifier&                 f1ap_pdu_notifie
                          rrc_ue_event_notifier&                 metrics_notifier_,
                          const ue_index_t                       ue_index_,
                          const rnti_t                           c_rnti_,
-                         rrc_cell_context                       cell_,
+                         const rrc_cell_context&                cell_,
                          const rrc_ue_cfg_t&                    cfg_,
-                         const byte_buffer                      du_to_cu_container_,
+                         const byte_buffer&                     du_to_cu_container_,
                          std::optional<rrc_ue_transfer_context> rrc_context) :
   logger("RRC", {ue_index_, c_rnti_}),
   context(ue_index_, c_rnti_, cell_, cfg_, rrc_context, logger),

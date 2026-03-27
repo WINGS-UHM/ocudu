@@ -8,6 +8,7 @@
 #include "apps/helpers/network/udp_cli11_schema.h"
 #include "apps/units/o_cu_up/cu_up/cu_up_unit_config.h"
 #include "apps/units/o_cu_up/cu_up/cu_up_unit_pcap_config.h"
+#include "ocudu/ran/cu_up_constants.h"
 #include "ocudu/support/cli11_utils.h"
 #include "ocudu/support/config_parsers.h"
 
@@ -132,7 +133,8 @@ static void configure_cli11_cu_up_args(CLI::App& app, cu_up_unit_config& cu_up_p
       ->capture_default_str();
 
   add_option(app, "--max_nof_ues", cu_up_params.max_nof_ues, "Maximum number of Bearer Contexts allowed by the CU-UP")
-      ->capture_default_str();
+      ->capture_default_str()
+      ->check(CLI::Range(static_cast<uint32_t>(1), MAX_NOF_CU_UP_UES));
 }
 
 static void configure_cli11_log_args(CLI::App& app, cu_up_unit_logger_config& log_params)

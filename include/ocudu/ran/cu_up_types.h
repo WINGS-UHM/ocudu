@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ocudu/ran/cu_up_constants.h"
 #include "fmt/format.h"
 #include <cstdint>
 #include <type_traits>
@@ -13,8 +14,8 @@ namespace ocudu {
 /// Maximum number of UEs supported by CU-UP (implementation-defined).
 enum cu_up_ue_index_t : uint32_t {
   MIN_CU_UP_UE_INDEX       = 0,
-  MAX_CU_UP_UE_INDEX       = std::numeric_limits<uint32_t>::max() - 1,
-  MAX_NOF_CU_UP_UE_INDEXES = std::numeric_limits<uint32_t>::max(),
+  MAX_CU_UP_UE_INDEX       = MAX_NOF_CU_UP_UES - 1,
+  MAX_NOF_CU_UP_UE_INDEXES = MAX_NOF_CU_UP_UES,
   INVALID_CU_UP_UE_INDEX   = MAX_NOF_CU_UP_UE_INDEXES
 };
 

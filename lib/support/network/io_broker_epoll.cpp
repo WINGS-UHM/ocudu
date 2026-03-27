@@ -181,13 +181,12 @@ void io_broker_epoll::thread_loop()
             // Track the current FD that is being read by this executor.
             fd_read_in_callback = fd;
             (*callback)();
+            is_in_callback->store(false, std::memory_order_release);
             // Avoid rearming this FD if the callback unregistered it.
             if (fd_read_in_callback != AVOID_FD_REARMING) {
               rearm_fd(fd);
             }
             fd_read_in_callback = -1;
-            // Signal completion after fd rearming finished.
-            is_in_callback->store(false, std::memory_order_release);
           })) {
         rearm_fd(fd);
         it->second.is_executing_recv_callback.store(false, std::memory_order_release);

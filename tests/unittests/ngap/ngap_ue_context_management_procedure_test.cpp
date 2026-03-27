@@ -96,6 +96,18 @@ protected:
     return n2_gw.last_ngap_msgs.back().pdu.init_msg().value.type() ==
            asn1::ngap::ngap_elem_procs_o::init_msg_c::types_opts::rrc_inactive_transition_report;
   }
+
+  bool was_ue_context_modification_response_sent() const
+  {
+    return n2_gw.last_ngap_msgs.back().pdu.successful_outcome().value.type() ==
+           asn1::ngap::ngap_elem_procs_o::successful_outcome_c::types_opts::ue_context_mod_resp;
+  }
+
+  bool was_ue_context_modification_failure_sent() const
+  {
+    return n2_gw.last_ngap_msgs.back().pdu.unsuccessful_outcome().value.type() ==
+           asn1::ngap::ngap_elem_procs_o::unsuccessful_outcome_c::types_opts::ue_context_mod_fail;
+  }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -515,6 +527,119 @@ TEST_F(ngap_ue_context_management_procedure_test,
 
   // Check that release of old UE has been requested.
   ASSERT_TRUE(was_ue_release_requested(ue1));
+
+  // Check that error indication has been sent to AMF.
+  ASSERT_TRUE(was_error_indication_sent());
+  ASSERT_EQ(n2_gw.last_ngap_msgs.back().pdu.init_msg().value.error_ind()->cause.radio_network(),
+            asn1::ngap::cause_radio_network_e::options::inconsistent_remote_ue_ngap_id);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//                             UE Context Modification
+///////////////////////////////////////////////////////////////////////////////
+
+/// Test successful UE Context Modification Request.
+TEST_F(ngap_ue_context_management_procedure_test,
+       when_valid_ue_context_modification_request_received_then_response_send)
+{
+  // Test preamble
+  ue_index_t ue_index = this->start_procedure();
+
+  auto& ue = test_ues.at(ue_index);
+
+  // Inject Initial Context Setup Request.
+  ngap_message init_context_setup_request =
+      generate_valid_initial_context_setup_request_message(ue.amf_ue_id.value(), ue.ran_ue_id.value());
+  ngap->handle_message(init_context_setup_request);
+
+  ASSERT_TRUE(was_ue_added());
+
+  // Inject UE Context Modification Request
+  ngap_message ue_context_mod_request = generate_valid_ue_context_modification_request_message(
+      ue.amf_ue_id.value(),
+      ue.ran_ue_id.value(),
+      cu_cp_aggregate_maximum_bit_rate{.dl = 100000, .ul = 100000},
+      ngap_core_network_assist_info_for_inactive{.ue_id_idx_value = 0x64c0},
+      guami_t{.plmn = plmn_identity::test_value(), .amf_set_id = 1, .amf_pointer = 1, .amf_region_id = 1});
+  ngap->handle_message(ue_context_mod_request);
+
+  // Check that AMF notifier was called with right type
+  ASSERT_TRUE(was_ue_context_modification_response_sent());
+}
+
+/// Test invalid UE Context Modification Request.
+TEST_F(ngap_ue_context_management_procedure_test,
+       when_invalid_ue_context_modification_request_received_then_error_indication_is_sent)
+{
+  // Test preamble
+  ue_index_t ue_index = this->start_procedure();
+
+  auto& ue = test_ues.at(ue_index);
+
+  // Inject Initial Context Setup Request.
+  ngap_message init_context_setup_request =
+      generate_valid_initial_context_setup_request_message(ue.amf_ue_id.value(), ue.ran_ue_id.value());
+  ngap->handle_message(init_context_setup_request);
+
+  ASSERT_TRUE(was_ue_added());
+
+  // Inject UE Context Modification Request.
+  ngap_message ue_context_mod_request =
+      generate_invalid_ue_context_modification_request_message(ue.amf_ue_id.value(), ue.ran_ue_id.value());
+  ngap->handle_message(ue_context_mod_request);
+
+  // Check that error indication has been sent to AMF.
+  ASSERT_TRUE(was_error_indication_sent());
+}
+
+/// Test UE context modification for unknown UE.
+TEST_F(ngap_ue_context_management_procedure_test,
+       when_ue_context_modification_request_for_unknown_ue_received_then_failure_is_sent)
+{
+  // Test preamble
+  ue_index_t ue_index = this->start_procedure();
+
+  auto& ue = test_ues.at(ue_index);
+
+  // Inject Initial Context Setup Request.
+  ngap_message init_context_setup_request =
+      generate_valid_initial_context_setup_request_message(ue.amf_ue_id.value(), ue.ran_ue_id.value());
+  ngap->handle_message(init_context_setup_request);
+
+  ASSERT_TRUE(was_ue_added());
+
+  // Inject UE Context Modification Request for unknown UE.
+  amf_ue_id_t unknown_amf_ue_id = uint_to_amf_ue_id(amf_ue_id_to_uint(ue.amf_ue_id.value()) + 1);
+  ran_ue_id_t unknown_ran_ue_id = uint_to_ran_ue_id(ran_ue_id_to_uint(ue.ran_ue_id.value()) + 1);
+
+  ngap_message ue_context_mod_request = generate_valid_ue_context_modification_request_message(
+      unknown_amf_ue_id,
+      unknown_ran_ue_id,
+      cu_cp_aggregate_maximum_bit_rate{.dl = 100000, .ul = 100000},
+      ngap_core_network_assist_info_for_inactive{.ue_id_idx_value = 0x64c0},
+      guami_t{.plmn = plmn_identity::test_value(), .amf_set_id = 1, .amf_pointer = 1, .amf_region_id = 1});
+  ngap->handle_message(ue_context_mod_request);
+
+  // Check that error indication has been sent to AMF.
+  ASSERT_TRUE(was_error_indication_sent());
+}
+
+/// Test when UE Context Modification Request with inconsistent NGAP ID pair is received,
+/// an error indication is sent.
+TEST_F(ngap_ue_context_management_procedure_test,
+       when_ue_context_modification_request_has_inconsistent_id_pair_then_error_indication_is_sent)
+{
+  // Test preamble.
+  ue_index_t ue_index1 = this->start_procedure();
+  ue_index_t ue_index2 = this->start_procedure();
+
+  auto& ue1 = test_ues.at(ue_index1);
+  auto& ue2 = test_ues.at(ue_index2);
+
+  // Inject UE Context Modification Request with inconsistent NGAP ID pair.
+  ngap_message ue_context_mod_request =
+      generate_valid_ue_context_modification_request_message(ue1.amf_ue_id.value(), ue2.ran_ue_id.value());
+  ngap->handle_message(ue_context_mod_request);
 
   // Check that error indication has been sent to AMF.
   ASSERT_TRUE(was_error_indication_sent());

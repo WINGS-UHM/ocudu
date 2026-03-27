@@ -8,6 +8,7 @@
 #include "ocudu/asn1/ngap/common.h"
 #include "ocudu/asn1/ngap/ngap_ies.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ngap/ngap_handover.h"
 #include "ocudu/ngap/ngap_message.h"
 #include "ocudu/ngap/ngap_types.h"
@@ -312,39 +313,6 @@ ngap_message ocudu::ocucp::generate_valid_initial_context_setup_request_message_
   return ngap_msg;
 }
 
-ngap_message ocudu::ocucp::generate_valid_ue_context_release_command_with_amf_ue_ngap_id(amf_ue_id_t amf_ue_id)
-{
-  ngap_message ngap_msg = {};
-
-  ngap_msg.pdu.set_init_msg();
-  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_UE_CONTEXT_RELEASE);
-
-  auto& ue_context_release_cmd                             = ngap_msg.pdu.init_msg().value.ue_context_release_cmd();
-  ue_context_release_cmd->ue_ngap_ids.set_amf_ue_ngap_id() = amf_ue_id_to_uint(amf_ue_id);
-  auto& cause                                              = ue_context_release_cmd->cause.set_radio_network();
-  cause = asn1::ngap::cause_radio_network_opts::options::radio_conn_with_ue_lost;
-
-  return ngap_msg;
-}
-
-ngap_message ocudu::ocucp::generate_valid_ue_context_release_command_with_ue_ngap_id_pair(amf_ue_id_t amf_ue_id,
-                                                                                          ran_ue_id_t ran_ue_id)
-{
-  ngap_message ngap_msg = {};
-
-  ngap_msg.pdu.set_init_msg();
-  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_UE_CONTEXT_RELEASE);
-
-  auto& ue_context_release_cmd = ngap_msg.pdu.init_msg().value.ue_context_release_cmd();
-  auto& ue_id_pair             = ue_context_release_cmd->ue_ngap_ids.set_ue_ngap_id_pair();
-  ue_id_pair.amf_ue_ngap_id    = amf_ue_id_to_uint(amf_ue_id);
-  ue_id_pair.ran_ue_ngap_id    = ran_ue_id_to_uint(ran_ue_id);
-  auto& cause                  = ue_context_release_cmd->cause.set_radio_network();
-  cause                        = asn1::ngap::cause_radio_network_opts::options::radio_conn_with_ue_lost;
-
-  return ngap_msg;
-}
-
 ngap_message ocudu::ocucp::generate_invalid_initial_context_setup_request_message(amf_ue_id_t amf_ue_id,
                                                                                   ran_ue_id_t ran_ue_id)
 {
@@ -377,6 +345,114 @@ ocudu::ocucp::generate_invalid_initial_context_setup_request_message_with_pdu_se
           .value();
 
   init_context_setup_req->pdu_session_res_setup_list_cxt_req.push_back(pdu_session_item);
+
+  return ngap_msg;
+}
+
+ngap_message ocudu::ocucp::generate_ue_context_modification_request_base(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id)
+{
+  ngap_message ngap_msg = {};
+
+  ngap_msg.pdu.set_init_msg();
+  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_UE_CONTEXT_MOD);
+
+  auto& ue_ctxt_mod           = ngap_msg.pdu.init_msg().value.ue_context_mod_request();
+  ue_ctxt_mod->amf_ue_ngap_id = amf_ue_id_to_uint(amf_ue_id);
+  ue_ctxt_mod->ran_ue_ngap_id = ran_ue_id_to_uint(ran_ue_id);
+
+  return ngap_msg;
+}
+
+ngap_message ocudu::ocucp::generate_valid_ue_context_modification_request_message(
+    amf_ue_id_t                                               amf_ue_id,
+    ran_ue_id_t                                               ran_ue_id,
+    std::optional<cu_cp_aggregate_maximum_bit_rate>           ue_ambr,
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive,
+    std::optional<guami_t>                                    new_guami)
+{
+  ngap_message ngap_msg = generate_ue_context_modification_request_base(amf_ue_id, ran_ue_id);
+
+  if (ue_ambr.has_value()) {
+    auto& ue_ctxt_mod                                         = ngap_msg.pdu.init_msg().value.ue_context_mod_request();
+    ue_ctxt_mod->ue_aggr_max_bit_rate_present                 = true;
+    ue_ctxt_mod->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl = ue_ambr->dl;
+    ue_ctxt_mod->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul = ue_ambr->ul;
+  }
+
+  if (cn_assist_info_for_inactive.has_value()) {
+    auto& ue_ctxt_mod                                          = ngap_msg.pdu.init_msg().value.ue_context_mod_request();
+    ue_ctxt_mod->core_network_assist_info_for_inactive_present = true;
+    ue_ctxt_mod->core_network_assist_info_for_inactive.ue_id_idx_value.set_idx_len10().from_number(
+        cn_assist_info_for_inactive->ue_id_idx_value);
+    if (cn_assist_info_for_inactive->ue_specific_drx.has_value()) {
+      ue_ctxt_mod->core_network_assist_info_for_inactive.ue_specific_drx_present = true;
+      asn1::number_to_enum(ue_ctxt_mod->core_network_assist_info_for_inactive.ue_specific_drx,
+                           cn_assist_info_for_inactive->ue_specific_drx.value());
+    }
+    ue_ctxt_mod->core_network_assist_info_for_inactive.periodic_regist_upd_timer.from_number(190);
+    ue_ctxt_mod->core_network_assist_info_for_inactive.mico_mode_ind_present = false;
+    for (const auto& tai : cn_assist_info_for_inactive->tai_list_for_inactive) {
+      tai_list_for_inactive_item_s asn1_tai;
+      asn1_tai.tai.plmn_id = tai.plmn_id.to_bytes();
+      asn1_tai.tai.tac.from_number(tai.tac);
+      ue_ctxt_mod->core_network_assist_info_for_inactive.tai_list_for_inactive.push_back(asn1_tai);
+    }
+  }
+
+  if (new_guami.has_value()) {
+    auto& ue_ctxt_mod              = ngap_msg.pdu.init_msg().value.ue_context_mod_request();
+    ue_ctxt_mod->new_guami_present = true;
+    ue_ctxt_mod->new_guami.plmn_id.from_string("00f110");
+    ue_ctxt_mod->new_guami.amf_region_id.from_number(4);
+    ue_ctxt_mod->new_guami.amf_set_id.from_number(1);
+    ue_ctxt_mod->new_guami.amf_pointer.from_number(0);
+  }
+
+  return ngap_msg;
+}
+
+ngap_message ocudu::ocucp::generate_invalid_ue_context_modification_request_message(amf_ue_id_t amf_ue_id,
+                                                                                    ran_ue_id_t ran_ue_id)
+{
+  ngap_message ngap_msg = generate_ue_context_modification_request_base(amf_ue_id, ran_ue_id);
+
+  // Set invalid PLMN in GUAMI.
+  auto& ue_context_mod_req              = ngap_msg.pdu.init_msg().value.ue_context_mod_request();
+  ue_context_mod_req->new_guami_present = true;
+  ue_context_mod_req->new_guami.plmn_id.from_string("ffffff"); // Invalid PLMN.
+
+  return ngap_msg;
+}
+
+ngap_message ocudu::ocucp::generate_valid_ue_context_release_command_with_amf_ue_ngap_id(amf_ue_id_t amf_ue_id)
+{
+  ngap_message ngap_msg = {};
+
+  ngap_msg.pdu.set_init_msg();
+  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_UE_CONTEXT_RELEASE);
+
+  auto& ue_context_release_cmd                             = ngap_msg.pdu.init_msg().value.ue_context_release_cmd();
+  ue_context_release_cmd->ue_ngap_ids.set_amf_ue_ngap_id() = amf_ue_id_to_uint(amf_ue_id);
+  auto& cause                                              = ue_context_release_cmd->cause.set_radio_network();
+  cause = asn1::ngap::cause_radio_network_opts::options::radio_conn_with_ue_lost;
+
+  return ngap_msg;
+}
+
+ngap_message ocudu::ocucp::generate_valid_ue_context_release_command_with_ue_ngap_id_pair(amf_ue_id_t amf_ue_id,
+                                                                                          ran_ue_id_t ran_ue_id)
+{
+  ngap_message ngap_msg = {};
+
+  ngap_msg.pdu.set_init_msg();
+  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_UE_CONTEXT_RELEASE);
+
+  auto& ue_context_release_cmd = ngap_msg.pdu.init_msg().value.ue_context_release_cmd();
+  auto& ue_id_pair             = ue_context_release_cmd->ue_ngap_ids.set_ue_ngap_id_pair();
+  ue_id_pair.amf_ue_ngap_id    = amf_ue_id_to_uint(amf_ue_id);
+  ue_id_pair.ran_ue_ngap_id    = ran_ue_id_to_uint(ran_ue_id);
+  auto& cause                  = ue_context_release_cmd->cause.set_radio_network();
+  cause                        = asn1::ngap::cause_radio_network_opts::options::radio_conn_with_ue_lost;
 
   return ngap_msg;
 }

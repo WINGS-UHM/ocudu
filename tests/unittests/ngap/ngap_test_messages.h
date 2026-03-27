@@ -126,9 +126,23 @@ ngap_message generate_valid_initial_context_setup_request_message_with_pdu_sessi
 /// \brief Generate an invalid dummy Initial Context Setup Request Message.
 ngap_message generate_invalid_initial_context_setup_request_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);
 
-/// \brief Generate an ivalid dummy Initial Context Setup Request Message with a PDUSessionResourceSetupListCxtReq.
+/// \brief Generate an invalid dummy Initial Context Setup Request Message with a PDUSessionResourceSetupListCxtReq.
 ngap_message generate_invalid_initial_context_setup_request_message_with_pdu_session(amf_ue_id_t amf_ue_id,
                                                                                      ran_ue_id_t ran_ue_id);
+
+/// \brief Generate a dummy UE Context Modification Request base.
+ngap_message generate_ue_context_modification_request_base(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);
+
+/// \brief Generate a valid dummy UE Context Modification Request Message.
+ngap_message generate_valid_ue_context_modification_request_message(
+    amf_ue_id_t                                               amf_ue_id,
+    ran_ue_id_t                                               ran_ue_id,
+    std::optional<cu_cp_aggregate_maximum_bit_rate>           ue_ambr                     = std::nullopt,
+    std::optional<ngap_core_network_assist_info_for_inactive> cn_assist_info_for_inactive = std::nullopt,
+    std::optional<guami_t>                                    new_guami                   = std::nullopt);
+
+/// \brief Generate an invalid dummy UE Context Modification Request Message.
+ngap_message generate_invalid_ue_context_modification_request_message(amf_ue_id_t amf_ue_id, ran_ue_id_t ran_ue_id);
 
 /// \brief Generate an valid dummy UE Context Release Command Message with AMF UE NGAP ID.
 ngap_message generate_valid_ue_context_release_command_with_amf_ue_ngap_id(amf_ue_id_t amf_ue_id);

@@ -36,12 +36,13 @@ make_custom_sched_cell_configuration_request(const prach_test_params test_params
   params.csi_rs_enabled = false;
   params.scs_common     = test_params.scs;
   if (band_helper::get_duplex_mode(test_params.band) == duplex_mode::TDD) {
-    auto& tdd_cfg = params.tdd_ul_dl_cfg_common.emplace();
-    tdd_cfg       = cell_config_builder_profiles::create_tdd_pattern(
-        cell_config_builder_profiles::tdd_pattern_profile_fr1_30khz::DDDDDDDSUU);
-    tdd_cfg.pattern1.nof_dl_slots = 2;
-    tdd_cfg.pattern1.nof_ul_slots = 8;
-    tdd_cfg.ref_scs               = params.scs_common;
+    auto& tdd_cfg                              = params.tdd_ul_dl_cfg_common.emplace();
+    tdd_cfg.pattern1.dl_ul_tx_period_nof_slots = 10;
+    tdd_cfg.ref_scs                            = params.scs_common;
+    tdd_cfg.pattern1.nof_dl_slots              = 2;
+    tdd_cfg.pattern1.nof_dl_symbols            = 6;
+    tdd_cfg.pattern1.nof_ul_slots              = 8;
+    tdd_cfg.pattern1.nof_ul_symbols            = 0;
   }
 
   sched_cell_configuration_request_message sched_req =

@@ -68,10 +68,14 @@ void test_pusch_ue_consistency(const cell_configuration& cell_cfg, span<const ul
 void test_pucch_consistency(const cell_configuration& cell_cfg, span<const pucch_info> pucchs);
 
 /// \brief Current checks:
+/// - If sl_tx is not a valid PRACH SFN (n_SFN mod x != y), asserts no PRACH was allocated.
 /// - PRACH occasions parameters match RACH-ConfigCommon present in cell_cfg.
 /// \param cell_cfg Cell configuration.
+/// \param sl_tx Slot being validated.
 /// \param prachs Scheduled PRACH opportunities in a given slot.
-void test_prach_opportunity_validity(const cell_configuration& cell_cfg, span<const prach_occasion_info> prachs);
+void test_prach_opportunity_validity(const cell_configuration&       cell_cfg,
+                                     slot_point                      sl_tx,
+                                     span<const prach_occasion_info> prachs);
 
 /// \brief Detects collisions in the "RB x symbol" DL resource grid.
 void test_dl_resource_grid_collisions(const cell_configuration& cell_cfg, const dl_sched_result& result);
@@ -81,7 +85,7 @@ void test_ul_resource_grid_collisions(const cell_configuration& cell_cfg, const 
 
 /// \brief Detects inconsistencies in the whole UL scheduling result. This function calls other more specific UL
 /// validity checks.
-void test_ul_consistency(const cell_configuration& cell_cfg, const ul_sched_result& result);
+void test_ul_consistency(const cell_configuration& cell_cfg, slot_point sl_tx, const ul_sched_result& result);
 
 /// \brief Detects inconsistencies in the whole DL scheduling result. This function calls other more specific DL
 /// validity checks.

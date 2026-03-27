@@ -106,15 +106,18 @@ void ocudu::assert_pdcch_pdsch_common_consistency(const cell_configuration&   ce
   }
   const crb_interval cs_zero_crbs = get_coreset0_crbs(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common);
 
-  unsigned time_assignment = 0;
-  unsigned freq_assignment = 0;
-  unsigned N_rb_dl_bwp     = 0;
+  unsigned                                          time_assignment = 0;
+  unsigned                                          freq_assignment = 0;
+  unsigned                                          N_rb_dl_bwp     = 0;
+  span<const pdsch_time_domain_resource_allocation> td_list;
   switch (pdcch.dci.type) {
     case dci_dl_rnti_config_type::si_f1_0: {
       ASSERT_EQ(pdcch.ctx.rnti, rnti_t::SI_RNTI);
       time_assignment = pdcch.dci.si_f1_0.time_resource;
       freq_assignment = pdcch.dci.si_f1_0.frequency_resource;
       N_rb_dl_bwp     = pdcch.dci.si_f1_0.N_rb_dl_bwp;
+      td_list         = get_si_rnti_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                                                   cell_cfg.params.dmrs_typeA_pos);
       ASSERT_EQ(N_rb_dl_bwp, cs_zero_crbs.length());
       break;
     }
@@ -123,30 +126,36 @@ void ocudu::assert_pdcch_pdsch_common_consistency(const cell_configuration&   ce
       ASSERT_TRUE(time_assignment < cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list.size());
       freq_assignment = pdcch.dci.ra_f1_0.frequency_resource;
       N_rb_dl_bwp     = pdcch.dci.ra_f1_0.N_rb_dl_bwp;
+      td_list         = get_ra_rnti_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common,
+                                                   cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                                                   cell_cfg.params.dmrs_typeA_pos);
       ASSERT_EQ(N_rb_dl_bwp, bwp_cfg.crbs.length());
     } break;
     case dci_dl_rnti_config_type::tc_rnti_f1_0: {
       time_assignment = pdcch.dci.tc_rnti_f1_0.time_resource;
       freq_assignment = pdcch.dci.tc_rnti_f1_0.frequency_resource;
       N_rb_dl_bwp     = pdcch.dci.tc_rnti_f1_0.N_rb_dl_bwp;
+      td_list         = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
       ASSERT_EQ(N_rb_dl_bwp, cs_zero_crbs.length());
     } break;
     case dci_dl_rnti_config_type::c_rnti_f1_0: {
       time_assignment = pdcch.dci.c_rnti_f1_0.time_resource;
       freq_assignment = pdcch.dci.c_rnti_f1_0.frequency_resource;
       N_rb_dl_bwp     = cs_zero_crbs.length();
+      td_list         = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
     } break;
     case dci_dl_rnti_config_type::p_rnti_f1_0: {
       time_assignment = pdcch.dci.p_rnti_f1_0.time_resource;
       freq_assignment = pdcch.dci.p_rnti_f1_0.frequency_resource;
       N_rb_dl_bwp     = pdcch.dci.p_rnti_f1_0.N_rb_dl_bwp;
+      td_list         = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
       ASSERT_EQ(N_rb_dl_bwp, cs_zero_crbs.length());
     } break;
     default:
       ocudu_terminate("DCI type not supported");
   }
-  ofdm_symbol_range symbols =
-      cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list[time_assignment].symbols;
+  ASSERT_LT(time_assignment, td_list.size());
+  ofdm_symbol_range symbols = td_list[time_assignment].symbols;
   ASSERT_EQ(symbols, pdsch.symbols) << "Mismatch of time-domain resource assignment and PDSCH symbols";
 
   unsigned pdsch_freq_resource = ra_frequency_type1_get_riv(

@@ -48,6 +48,18 @@ public:
                                    delay_tx_rx_slots_)
   {
   }
+  template <typename PdcchAllocType>
+  sub_scheduler_test_environment(scheduler_expert_config                         sched_cfg_,
+                                 const sched_cell_configuration_request_message& cell_req,
+                                 std::unique_ptr<PdcchAllocType>                 custom_pdcch_alloc,
+                                 unsigned                                        delay_tx_rx_slots_ = 2) :
+    sub_scheduler_test_environment(std::move(sched_cfg_),
+                                   cell_req,
+                                   std::move(custom_pdcch_alloc),
+                                   create_pdcch_slot_ind_task<PdcchAllocType>(),
+                                   delay_tx_rx_slots_)
+  {
+  }
   virtual ~sub_scheduler_test_environment() = default;
 
   slot_point next_slot_rx() const { return next_slot - delay_tx_rx_slots; }

@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "../test_utils/sched_custom_test_bench.h"
-#include "lib/scheduler/cell/resource_grid.h"
 #include "lib/scheduler/common_scheduling/ssb_scheduler.h"
+#include "sub_scheduler_test_environment.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/ran/frame_types.h"
-#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "fmt/ostream.h"
 #include <gtest/gtest.h>
 
@@ -19,7 +17,7 @@ namespace {
 struct ssb_params {
   ssb_periodicity    periodicity = ssb_periodicity::ms5;
   nr_band            band        = nr_band::n3;
-  arfcn_t            freq_arfcn  = 536020;
+  arfcn_t            freq_arfcn  = 361000;
   uint8_t            L_max       = 4U;
   subcarrier_spacing ssb_scs     = subcarrier_spacing::kHz15;
 };
@@ -101,19 +99,17 @@ static sched_cell_configuration_request_message make_cell_cfg_req_msg(const ssb_
   msg.ran.dl_cfg_common.freq_info_dl.offset_to_point_a = offset_to_point_A;
   msg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs = params.ssb_scs;
   msg.ran.ssb_cfg.scs                                  = params.ssb_scs;
-
-  // Generate a random
   msg.ran.ssb_cfg.ssb_bitmap        = ssb_bitmap_t(test_rng::uniform_int<uint8_t>(1, params.L_max - 1), params.L_max);
   msg.ran.ssb_cfg.ssb_period        = params.periodicity;
   msg.ran.ssb_cfg.offset_to_point_A = offset_to_point_A;
   msg.ran.ssb_cfg.k_ssb             = k_ssb;
-  // Change Carrier parameters when SCS is 15kHz.
+  // Change carrier parameters when SCS is 15kHz.
   if (params.ssb_scs == subcarrier_spacing::kHz15) {
     msg.ran.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth = 106;
     msg.ran.dl_cfg_common.init_dl_bwp.generic_params.crbs =
         crb_interval{0, msg.ran.dl_cfg_common.freq_info_dl.scs_carrier_list.front().carrier_bandwidth};
   }
-  // Change Carrier parameters when SCS is 30kHz.
+  // Change carrier parameters when SCS is 30kHz.
   else if (params.ssb_scs == subcarrier_spacing::kHz30) {
     msg.ran.dl_cfg_common.freq_info_dl.scs_carrier_list.emplace_back(
         scs_specific_carrier{0, subcarrier_spacing::kHz30, 52});
@@ -126,19 +122,20 @@ static sched_cell_configuration_request_message make_cell_cfg_req_msg(const ssb_
   return msg;
 }
 
-class ssb_sched_test_bench : public sched_basic_custom_test_bench
+class ssb_scheduler_setup : public sub_scheduler_test_environment
 {
 protected:
-  ssb_sched_test_bench(const sched_cell_configuration_request_message& sched_cell_cfg_req) :
-    sched_basic_custom_test_bench(config_helpers::make_default_scheduler_expert_config(), sched_cell_cfg_req),
+  ssb_scheduler_setup(const sched_cell_configuration_request_message& sched_cell_cfg_req) :
+    sub_scheduler_test_environment(sched_cell_cfg_req),
     cutoff_freq(
         compute_cutoff_freq(band_helper::get_ssb_pattern(cell_cfg.params.dl_carrier.band, cell_cfg.params.ssb_cfg.scs),
                             cell_cfg.params.dl_carrier.band)),
     sl_idx_with_ssb_case_A_B_C{0, 1, 2, 3},
     ssb_sched(cell_cfg)
   {
-    ocudulog::init();
   }
+
+  void do_run_slot() override { ssb_sched.run_slot(res_grid, next_slot); }
 
   static arfcn_t compute_cutoff_freq(ssb_pattern_case ssb_case, nr_band band)
   {
@@ -148,10 +145,6 @@ protected:
     }
     return CUTOFF_FREQ_ARFCN_CASE_A_B_C;
   }
-
-  void run_slot() { ssb_sched.run_slot(res_grid, current_sl_tx); }
-
-  void slot_indication() { sched_basic_custom_test_bench::slot_indication(++current_sl_tx); }
 
   // Returns the possible starting OFDM symbols for SSB.
   std::array<uint8_t, 2> get_starting_ofdm_symbols(slot_point sl) const
@@ -216,58 +209,58 @@ private:
   ssb_scheduler ssb_sched;
 };
 
-class ssb_sched_tester : public ssb_sched_test_bench, public ::testing::TestWithParam<ssb_params>
+class ssb_scheduler_test : public ssb_scheduler_setup, public ::testing::TestWithParam<ssb_params>
 {
 protected:
-  ssb_sched_tester() : ssb_sched_test_bench(make_cell_cfg_req_msg(GetParam())) {}
+  ssb_scheduler_test() : ssb_scheduler_setup(make_cell_cfg_req_msg(GetParam())) {}
 };
 
-TEST_P(ssb_sched_tester, test_time_dom_allocation)
+TEST_P(ssb_scheduler_test, test_time_dom_allocation)
 {
   test_logger.info("{}", GetParam());
 
   // Get the SSB period in half radio frames
   const unsigned ssb_period_half_sfn = ssb_periodicity_to_value(cell_cfg.params.ssb_cfg.ssb_period) * 2U / 10U;
 
-  for (; current_sl_tx.count() != 1000U; slot_indication()) {
+  for (unsigned i = 0; i != 1000; ++i) {
     run_slot();
+    const slot_point sl = res_grid[0].slot;
 
-    if (const bool is_ssb_half_sfn = current_sl_tx.half_sfn() % ssb_period_half_sfn == 0U; is_ssb_half_sfn) {
+    if (const bool is_ssb_half_sfn = sl.half_sfn() % ssb_period_half_sfn == 0U; is_ssb_half_sfn) {
       // Check whether the L_max matches the ssb_bitmap length.
       const uint8_t expected_l_max = cell_cfg.params.dl_carrier.arfcn_f_ref <= cutoff_freq ? 4U : 8U;
       ASSERT_EQ(cell_cfg.params.ssb_cfg.ssb_bitmap.get_L_max(), expected_l_max);
 
-      const bool is_ssb_slot = cell_cfg.params.dl_carrier.arfcn_f_ref <= cutoff_freq
-                                   ? current_sl_tx.hrf_slot_index() <= 1U
-                                   : current_sl_tx.hrf_slot_index() <= 3U;
+      const bool is_ssb_slot =
+          cell_cfg.params.dl_carrier.arfcn_f_ref <= cutoff_freq ? sl.hrf_slot_index() <= 1U : sl.hrf_slot_index() <= 3U;
       if (is_ssb_slot) {
         static constexpr unsigned NOF_SSB_BEAMS_PER_SLOT_FR1 = 2U;
         const auto                slot_bitmap = cell_cfg.params.ssb_cfg.ssb_bitmap.slice<NOF_SSB_BEAMS_PER_SLOT_FR1>(
-            current_sl_tx.hrf_slot_index() * NOF_SSB_BEAMS_PER_SLOT_FR1,
-            current_sl_tx.hrf_slot_index() * NOF_SSB_BEAMS_PER_SLOT_FR1 + NOF_SSB_BEAMS_PER_SLOT_FR1);
+            sl.hrf_slot_index() * NOF_SSB_BEAMS_PER_SLOT_FR1,
+            sl.hrf_slot_index() * NOF_SSB_BEAMS_PER_SLOT_FR1 + NOF_SSB_BEAMS_PER_SLOT_FR1);
 
         ASSERT_EQ(res_grid[0].result.dl.bc.ssb_info.size(), slot_bitmap.count())
-            << fmt::format("Number of SSB PDUs not as expected at slot={}", current_sl_tx);
+            << fmt::format("Number of SSB PDUs not as expected at slot={}", sl);
 
-        const auto starting_symbs = get_starting_ofdm_symbols(current_sl_tx);
+        const auto starting_symbs = get_starting_ofdm_symbols(sl);
         auto*      ssb_pdu_it     = res_grid[0].result.dl.bc.ssb_info.begin();
-        for (unsigned i = 0, sz = slot_bitmap.size(); i != sz; ++i) {
-          if (not slot_bitmap.test(i)) {
+        for (unsigned j = 0, sz = slot_bitmap.size(); j != sz; ++j) {
+          if (not slot_bitmap.test(j)) {
             continue;
           }
           // Test the correctness of SSB PDU fields.
           const ssb_information ssb_info = *ssb_pdu_it;
-          ASSERT_EQ(ssb_info.ssb_index, current_sl_tx.hrf_slot_index() * NOF_SSB_BEAMS_PER_SLOT_FR1 + i);
+          ASSERT_EQ(ssb_info.ssb_index, sl.hrf_slot_index() * NOF_SSB_BEAMS_PER_SLOT_FR1 + j);
           const crb_interval expected_ssb_crbs = get_ssb_crbs();
           ASSERT_EQ(expected_ssb_crbs, ssb_info.crbs);
-          ASSERT_EQ(ofdm_symbol_range(starting_symbs[i], starting_symbs[i] + NOF_SYMB_PER_SSB), ssb_info.symbols);
+          ASSERT_EQ(ofdm_symbol_range(starting_symbs[j], starting_symbs[j] + NOF_SYMB_PER_SSB), ssb_info.symbols);
           // Test whether the DL grid allocation matches the information in the SSB PDU.
           test_ssb_grid_allocation(res_grid[0].dl_res_grid, ssb_info);
           ++ssb_pdu_it;
         }
       } else {
         ASSERT_TRUE(res_grid[0].result.dl.bc.ssb_info.empty())
-            << fmt::format("At slot={} the SSB info list is expected to be empty", current_sl_tx);
+            << fmt::format("At slot={} the SSB info list is expected to be empty", sl);
 
         grant_info empty_space{cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.scs,
                                {0, NOF_OFDM_SYM_PER_SLOT_NORMAL_CP},
@@ -282,7 +275,7 @@ TEST_P(ssb_sched_tester, test_time_dom_allocation)
 // In this macro, we pass some basic parameters and we use gen_ssb_params_with_rnd_bitmap() to generate a full set of
 // test parameters with a random SSB bitmap.
 INSTANTIATE_TEST_SUITE_P(test_ssb_allocation_time_domain_allocation,
-                         ssb_sched_tester,
+                         ssb_scheduler_test,
                          ::testing::Values(
                              // clang-format off
     // FDD.
@@ -325,7 +318,7 @@ INSTANTIATE_TEST_SUITE_P(test_ssb_allocation_time_domain_allocation,
 // In this macro, we pass some basic parameters and we use gen_random_ssb_freq_params() to generate a full set of
 // test parameters with a random SSB bitmap, random offset_to_pointA and k_SSB.
 INSTANTIATE_TEST_SUITE_P(test_freq_domain_allocation_for_ssb,
-                         ssb_sched_tester,
+                         ssb_scheduler_test,
                          ::testing::Values(
                              // clang-format off
     // Test case A.

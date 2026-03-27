@@ -142,6 +142,10 @@ private:
   /// \param[in] msg The received Initial Context Setup Request.
   void handle_initial_context_setup_request(const asn1::ngap::init_context_setup_request_s& request);
 
+  /// \brief Notify about the reception of an UE Context Modification Request.
+  /// \param[in] msg The received UE Context Modification Request.
+  void handle_ue_context_modification_request(const asn1::ngap::ue_context_mod_request_s& request);
+
   /// \brief Notify about the reception of an PDU Session Resource Setup Request.
   /// \param[in] msg The received PDU Session Resource Setup Request.
   void handle_pdu_session_resource_setup_request(const asn1::ngap::pdu_session_res_setup_request_s& request);

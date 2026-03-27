@@ -97,6 +97,8 @@ public:
   // cu_cp_ngap_handler.
   async_task<expected<ngap_init_context_setup_response, ngap_init_context_setup_failure>>
   handle_new_initial_context_setup_request(const ngap_init_context_setup_request& request) override;
+  async_task<expected<ngap_ue_context_modification_response, ngap_ue_context_modification_failure>>
+  handle_new_ue_context_modification_request(const ngap_ue_context_modification_request& request) override;
   async_task<cu_cp_pdu_session_resource_setup_response>
   handle_new_pdu_session_resource_setup_request(cu_cp_pdu_session_resource_setup_request& request) override;
   async_task<cu_cp_pdu_session_resource_modify_response>

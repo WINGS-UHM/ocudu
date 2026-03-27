@@ -785,6 +785,58 @@ cu_cp_impl::handle_new_initial_context_setup_request(const ngap_init_context_set
                                                      logger);
 }
 
+async_task<expected<ngap_ue_context_modification_response, ngap_ue_context_modification_failure>>
+cu_cp_impl::handle_new_ue_context_modification_request(const ngap_ue_context_modification_request& request)
+{
+  cu_cp_ue* ue = ue_mng.find_du_ue(request.ue_index);
+  ocudu_assert(ue != nullptr, "ue={}: Could not find UE", request.ue_index);
+  rrc_ue_interface* rrc_ue = ue->get_rrc_ue();
+  ocudu_assert(rrc_ue != nullptr, "ue={}: Could not find RRC UE", request.ue_index);
+
+  auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
+  if (ngap == nullptr) {
+    logger.warning("ue={}: UE context modification failed. Cause: NGAP not found for plmn={}",
+                   request.ue_index,
+                   ue->get_ue_context().plmn);
+    return launch_async(
+        [](coro_context<
+            async_task<expected<ngap_ue_context_modification_response, ngap_ue_context_modification_failure>>>& ctx) {
+          CORO_BEGIN(ctx);
+          CORO_RETURN(make_unexpected(ngap_ue_context_modification_failure{}));
+        });
+  }
+
+  // Create UE context modification response.
+  ngap_ue_context_modification_response mod_response;
+
+  // Fill RRC state. Note: The NGAP RRC state only differentiates between inactive and connected.
+  rrc_state state = ue->get_rrc_ue()->get_rrc_state();
+  if (state != rrc_state::idle) {
+    mod_response.rrc_state.emplace();
+    if (state == rrc_state::inactive) {
+      mod_response.rrc_state = ngap_rrc_state::inactive;
+    } else {
+      mod_response.rrc_state = ngap_rrc_state::connected;
+    }
+  }
+
+  // Fill user location information if cell information is available.
+  const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
+  if (cell != nullptr) {
+    mod_response.user_location_info.emplace();
+    mod_response.user_location_info->nr_cgi = cell->cgi;
+    mod_response.user_location_info->tai    = {cell->cgi.plmn_id, cell->tac};
+  }
+
+  return launch_async(
+      [mod_response](coro_context<
+                     async_task<expected<ngap_ue_context_modification_response, ngap_ue_context_modification_failure>>>&
+                         ctx) mutable {
+        CORO_BEGIN(ctx);
+        CORO_RETURN(mod_response);
+      });
+}
+
 async_task<cu_cp_pdu_session_resource_setup_response>
 cu_cp_impl::handle_new_pdu_session_resource_setup_request(cu_cp_pdu_session_resource_setup_request& request)
 {

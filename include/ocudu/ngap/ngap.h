@@ -13,6 +13,7 @@
 #include "ocudu/ngap/ngap_metrics.h"
 #include "ocudu/ngap/ngap_rrc_inactive_transition.h"
 #include "ocudu/ngap/ngap_setup.h"
+#include "ocudu/ngap/ngap_ue_context_mod.h"
 #include "ocudu/ngap/ngap_ue_radio_capability_management.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/support/async/async_task.h"
@@ -168,6 +169,12 @@ public:
   /// \returns The Initial Context Setup Response or the Initial Context Setup Failure.
   virtual async_task<expected<ngap_init_context_setup_response, ngap_init_context_setup_failure>>
   on_new_initial_context_setup_request(ngap_init_context_setup_request& request) = 0;
+
+  /// \brief Notify about the reception of a new UE Context Modification Request.
+  /// \param[in] request The received UE Context Modification Request.
+  /// \returns The UE Context Modification Response or the UE Context Modification Failure.
+  virtual async_task<expected<ngap_ue_context_modification_response, ngap_ue_context_modification_failure>>
+  on_new_ue_context_modification_request(ngap_ue_context_modification_request& request) = 0;
 
   /// \brief Notify about the reception of a new PDU Session Resource Setup Request.
   /// \param[in] request The received PDU Session Resource Setup Request.

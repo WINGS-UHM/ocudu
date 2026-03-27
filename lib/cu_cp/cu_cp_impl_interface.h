@@ -99,6 +99,12 @@ public:
   virtual async_task<expected<ngap_init_context_setup_response, ngap_init_context_setup_failure>>
   handle_new_initial_context_setup_request(const ngap_init_context_setup_request& request) = 0;
 
+  /// \brief Handle the reception of a new UE Context Modification Request.
+  /// \param[in] request The received UE Context Modification Request.
+  /// \returns The UE Context Modification Response or the UE Context Modification Failure.
+  virtual async_task<expected<ngap_ue_context_modification_response, ngap_ue_context_modification_failure>>
+  handle_new_ue_context_modification_request(const ngap_ue_context_modification_request& request) = 0;
+
   /// \brief Handle the reception of a new PDU Session Resource Setup Request.
   /// \param[in] request The received PDU Session Resource Setup Request.
   /// \returns The PDU Session Resource Setup Response.

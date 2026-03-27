@@ -19,6 +19,7 @@
 #include "procedures/ngap_pdu_session_resource_modify_procedure.h"
 #include "procedures/ngap_pdu_session_resource_release_procedure.h"
 #include "procedures/ngap_pdu_session_resource_setup_procedure.h"
+#include "procedures/ngap_ue_context_modification_procedure.h"
 #include "procedures/ngap_ue_context_release_procedure.h"
 #include "ocudu/asn1/ngap/common.h"
 #include "ocudu/asn1/ngap/ngap.h"
@@ -403,6 +404,9 @@ void ngap_impl::handle_initiating_message(const init_msg_s& msg)
     case ngap_elem_procs_o::init_msg_c::types_opts::init_context_setup_request:
       handle_initial_context_setup_request(msg.value.init_context_setup_request());
       break;
+    case ngap_elem_procs_o::init_msg_c::types_opts::ue_context_mod_request:
+      handle_ue_context_modification_request(msg.value.ue_context_mod_request());
+      break;
     case ngap_elem_procs_o::init_msg_c::types_opts::pdu_session_res_setup_request:
       handle_pdu_session_resource_setup_request(msg.value.pdu_session_res_setup_request());
       break;
@@ -604,6 +608,73 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
   // Start routine.
   ue->schedule_async_task(launch_async<ngap_initial_context_setup_procedure>(
       init_ctxt_setup_req, ue_ctxt.ue_ids, cu_cp_notifier, metrics_handler, tx_pdu_notifier, ue_ctxt.logger));
+}
+
+void ngap_impl::handle_ue_context_modification_request(const asn1::ngap::ue_context_mod_request_s& request)
+{
+  if (!ue_ctxt_list.contains(uint_to_ran_ue_id(request->ran_ue_ngap_id))) {
+    logger.warning("ran_ue={} amf_ue={}: Dropping UEContextModificationRequest. UE context doesn't exist",
+                   request->ran_ue_ngap_id,
+                   request->amf_ue_ngap_id);
+    send_error_indication(tx_pdu_notifier, logger, {}, {}, ngap_cause_radio_network_t::unknown_local_ue_ngap_id);
+    return;
+  }
+
+  // Check whether another context doesn't exist already for the same AMF UE ID with mismatched RAN UE ID.
+  if (not validate_consistent_ue_id_pair(uint_to_ran_ue_id(request->ran_ue_ngap_id),
+                                         uint_to_amf_ue_id(request->amf_ue_ngap_id))) {
+    // Release old UE context and send error indication with the received UE IDs to the AMF.
+    handle_inconsistent_ue_id_pair(uint_to_ran_ue_id(request->ran_ue_ngap_id),
+                                   uint_to_amf_ue_id(request->amf_ue_ngap_id));
+    return;
+  }
+
+  ngap_ue_context& ue_ctxt = ue_ctxt_list[uint_to_ran_ue_id(request->ran_ue_ngap_id)];
+
+  if (ue_ctxt.release_scheduled) {
+    ue_ctxt.logger.log_info("Dropping UEContextModificationRequest. UE is already scheduled for release");
+    stored_error_indications.emplace(ue_ctxt.ue_ids.ue_index,
+                                     error_indication_request_t{ngap_cause_radio_network_t::interaction_with_other_proc,
+                                                                ue_ctxt.ue_ids.ran_ue_id,
+                                                                uint_to_amf_ue_id(request->amf_ue_ngap_id)});
+    return;
+  }
+
+  auto* ue = ue_ctxt.get_cu_cp_ue();
+  ocudu_assert(ue != nullptr,
+               "ue={} ran_ue={} amf_ue={}: UE for UE context modification doesn't exist",
+               fmt::underlying(ue_ctxt.ue_ids.ue_index),
+               fmt::underlying(ue_ctxt.ue_ids.ran_ue_id),
+               fmt::underlying(ue_ctxt.ue_ids.amf_ue_id));
+
+  // Convert to common type.
+  ngap_ue_context_modification_request ue_context_mod_request;
+  ue_context_mod_request.ue_index = ue_ctxt.ue_ids.ue_index;
+  if (!ue_context_modification_request_from_asn1(ue_context_mod_request, request)) {
+    ue_ctxt.logger.log_warning("Conversion of UEContextModificationRequest failed");
+    send_error_indication(tx_pdu_notifier, logger, ue_ctxt.ue_ids.ran_ue_id, ue_ctxt.ue_ids.amf_ue_id);
+    return;
+  }
+
+  // Store Core Network Assist Info for Inactive if present.
+  if (ue_context_mod_request.core_network_assist_info_for_inactive.has_value()) {
+    ue_ctxt.core_network_assist_info_for_inactive =
+        ue_context_mod_request.core_network_assist_info_for_inactive.value();
+  }
+
+  // Store serving PLMN if it is set.
+  if (ue_context_mod_request.new_guami.has_value()) {
+    ue_ctxt.serving_guami = ue_context_mod_request.new_guami.value();
+  }
+
+  // Store UE Aggregate Maximum Bitrate if it is set.
+  if (ue_context_mod_request.ue_aggr_max_bit_rate.has_value()) {
+    ue->set_ue_ambr(ue_context_mod_request.ue_aggr_max_bit_rate.value());
+  }
+
+  // Start routine.
+  ue->schedule_async_task(launch_async<ngap_ue_context_modification_procedure>(
+      ue_context_mod_request, ue_ctxt.ue_ids, cu_cp_notifier, tx_pdu_notifier, ue_ctxt.logger));
 }
 
 void ngap_impl::handle_pdu_session_resource_setup_request(const asn1::ngap::pdu_session_res_setup_request_s& request)

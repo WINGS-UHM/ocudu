@@ -230,6 +230,21 @@ public:
         });
   }
 
+  async_task<expected<ngap_ue_context_modification_response, ngap_ue_context_modification_failure>>
+  on_new_ue_context_modification_request(ngap_ue_context_modification_request& request) override
+  {
+    logger.info("Received a new UE context modification request");
+
+    last_ue_ctxt_modification_request = std::move(request);
+
+    return launch_async(
+        [](coro_context<async_task<
+               expected<ngap_ue_context_modification_response, ngap_ue_context_modification_failure>>>& ctx) mutable {
+          CORO_BEGIN(ctx);
+          CORO_RETURN(ngap_ue_context_modification_response{});
+        });
+  }
+
   async_task<cu_cp_pdu_session_resource_setup_response>
   on_new_pdu_session_resource_setup_request(cu_cp_pdu_session_resource_setup_request& request) override
   {
@@ -387,6 +402,7 @@ public:
 
   ue_index_t                                 last_ue = ue_index_t::invalid;
   ngap_init_context_setup_request            last_init_ctxt_setup_request;
+  ngap_ue_context_modification_request       last_ue_ctxt_modification_request;
   cu_cp_pdu_session_resource_setup_request   last_request;
   cu_cp_pdu_session_resource_modify_request  last_modify_request;
   cu_cp_pdu_session_resource_release_command last_release_command;

@@ -203,17 +203,6 @@ static bool validate_mobility_appconfig(gnb_id_t gnb_id, const cu_cp_unit_mobili
                    cell.periodic_report_cfg_id.value());
         return false;
       }
-      // Check that for the serving cell only periodic reports are configured.
-      auto it = report_cfg_ids_to_report_type.find(*cell.periodic_report_cfg_id);
-      if (it == report_cfg_ids_to_report_type.end()) {
-        fmt::print("cell={:#x}: Report configuration with id {} does not exist in the report configuration list.\n",
-                   cell.nr_cell_id,
-                   *cell.periodic_report_cfg_id);
-        return false;
-      } else if (it->second != "periodical") {
-        fmt::print("For the serving cell only periodic reports are allowed\n");
-        return false;
-      }
     }
 
     // Check if cell is an external managed cell.

@@ -17,6 +17,7 @@
 #include "ocudu/ngap/ngap_init_context_setup.h"
 #include "ocudu/ngap/ngap_nas.h"
 #include "ocudu/ngap/ngap_rrc_inactive_transition.h"
+#include "ocudu/ngap/ngap_ue_context_mod.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/tac.h"
 #include <string>
@@ -1142,6 +1143,36 @@ inline void fill_asn1_location_report(asn1::ngap::location_report_ies_container&
       asn1_msg.ue_presence_in_area_of_interest_list.push_back(asn1_item);
     }
   }
+}
+
+inline bool ue_context_modification_request_from_asn1(ngap_ue_context_modification_request&       request,
+                                                      const asn1::ngap::ue_context_mod_request_s& asn1_request)
+{
+  // Fill UE aggregated max bit rate.
+  if (asn1_request->ue_aggr_max_bit_rate_present) {
+    request.ue_aggr_max_bit_rate.emplace();
+    request.ue_aggr_max_bit_rate->dl = asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_dl;
+    request.ue_aggr_max_bit_rate->ul = asn1_request->ue_aggr_max_bit_rate.ue_aggr_max_bit_rate_ul;
+  }
+
+  // Fill core network assist info for inactive.
+  if (asn1_request->core_network_assist_info_for_inactive_present) {
+    request.core_network_assist_info_for_inactive =
+        asn1_to_core_network_assist_info_for_inactive(asn1_request->core_network_assist_info_for_inactive);
+  }
+
+  // Fill new GUAMI.
+  if (asn1_request->new_guami_present) {
+    expected<guami_t, std::string> guami = asn1_to_guami(asn1_request->new_guami);
+    if (!guami.has_value()) {
+      return false;
+    }
+    request.new_guami = guami.value();
+  }
+
+  /// TODO: Fill missing optional values.
+
+  return true;
 }
 
 } // namespace ocudu::ocucp

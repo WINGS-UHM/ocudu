@@ -5,7 +5,6 @@
 #pragma once
 
 #include "ocudu/cu_cp/security_manager_config.h"
-#include <map>
 
 namespace ocudu::ocucp {
 
@@ -23,11 +22,11 @@ public:
   [[nodiscard]] uint8_t                     get_ncc() const;
 
   // ngap_ue_security_manager
-  bool               init_security_context(const security::security_context& sec_ctxt);
+  [[nodiscard]] bool init_security_context(const security::security_context& sec_ctxt);
+  [[nodiscard]] bool finalize_security_context();
   [[nodiscard]] bool is_security_enabled() const;
 
   // rrc_ue_security_manager
-  void                                       enable_security();
   [[nodiscard]] security::security_context   get_security_context() const;
   [[nodiscard]] security::sec_selected_algos get_security_algos() const;
   [[nodiscard]] security::sec_as_config      get_rrc_as_config() const;
@@ -38,7 +37,6 @@ public:
 private:
   security_manager_config    cfg;
   security::security_context sec_context;
-  bool                       security_enabled = false;
 
   ocudulog::basic_logger& logger;
 };

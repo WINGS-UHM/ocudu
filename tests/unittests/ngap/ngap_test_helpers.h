@@ -14,7 +14,7 @@
 
 namespace ocudu::ocucp {
 
-/// Fixture class for NGAP
+/// Fixture class for NGAP.
 class ngap_test : public ::testing::Test
 {
 protected:
@@ -50,6 +50,9 @@ protected:
 
   /// \brief Helper method to successfully run Initial Context Setup in NGAP.
   void run_initial_context_setup(ue_index_t ue_index);
+
+  /// \brief Helper method to enable security for a UE in NGAP.
+  bool enable_ue_security(ue_index_t ue_index);
 
   /// \brief Helper method to successfully run PDU Session Resource Setup in NGAP
   void run_pdu_session_resource_setup(ue_index_t ue_index, pdu_session_id_t pdu_session_id);

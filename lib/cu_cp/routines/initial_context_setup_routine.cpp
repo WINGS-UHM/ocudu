@@ -89,6 +89,12 @@ void initial_context_setup_routine::operator()(
       handle_failure(ngap_cause_radio_network_t::radio_conn_with_ue_lost);
       CORO_EARLY_RETURN(make_unexpected(fail_msg));
     }
+
+    // Finalize security context.
+    if (!security_mng.finalize_security_context()) {
+      handle_failure(ngap_cause_radio_network_t::unspecified);
+      CORO_EARLY_RETURN(make_unexpected(fail_msg));
+    }
   }
 
   // Start UE Capability Enquiry Procedure.

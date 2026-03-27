@@ -30,8 +30,9 @@ protected:
     run_pdu_session_resource_setup(ue_index, pdu_session_id);
 
     if (enable_security) {
-      // Mark security as enabled
-      ue_mng.find_ue(ue_index)->get_security_manager().enable_security();
+      if (!enable_ue_security(ue_index)) {
+        return ue_index_t::invalid;
+      }
     }
 
     return ue_index;

@@ -57,10 +57,9 @@ protected:
     init_sec_ctx.k                          = sk_gnb;
     std::fill(init_sec_ctx.supported_int_algos.begin(), init_sec_ctx.supported_int_algos.end(), true);
     std::fill(init_sec_ctx.supported_enc_algos.begin(), init_sec_ctx.supported_enc_algos.end(), true);
-    ue_mng.find_ue(allocated_ue_index)->get_security_manager().init_security_context(init_sec_ctx);
 
     // Initialize security context.
-    init_security_context();
+    ASSERT_TRUE(init_security_context());
 
     // Enable security
     enable_security();

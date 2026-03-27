@@ -13,13 +13,11 @@
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
 #include "ocudu/ran/subcarrier_spacing.h"
-#include "ocudu/rrc/rrc_config.h"
 #include "ocudu/rrc/rrc_du.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include <gtest/gtest.h>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 // Free-function to generate dummy security context (used by e.g. Mobility tests)
 static security::security_context generate_security_context(ue_security_manager& sec_mng)
@@ -171,7 +169,7 @@ protected:
     return &rrc_ue->get_rrc_ue_control_message_handler();
   }
 
-  void init_security_context()
+  bool init_security_context()
   {
     // Setup security.
     const char* sk_gnb_cstr = "45cbc3f8a81193fd5c5229300d59edf812e998a115ec4e0ce903ba89367e2628";
@@ -185,10 +183,18 @@ protected:
     std::fill(init_sec_ctx.supported_int_algos.begin(), init_sec_ctx.supported_int_algos.end(), true);
     std::fill(init_sec_ctx.supported_enc_algos.begin(), init_sec_ctx.supported_enc_algos.end(), true);
 
-    ue_mng.find_ue(allocated_ue_index)->get_security_manager().init_security_context(init_sec_ctx);
+    if (!ue_mng.find_ue(allocated_ue_index)->get_security_manager().init_security_context(init_sec_ctx)) {
+      return false;
+    }
+
+    if (!ue_mng.find_ue(allocated_ue_index)->get_security_manager().finalize_security_context()) {
+      return false;
+    }
 
     // Configure PDCP entity security on SRB1.
     rrc_ue->on_new_as_security_context();
+
+    return true;
   }
 
   void enable_security()
@@ -199,7 +205,7 @@ protected:
 
   void create_srb2()
   {
-    init_security_context();
+    ASSERT_TRUE(init_security_context());
     srb_creation_message msg;
     msg.ue_index = allocated_ue_index;
     msg.srb_id   = srb_id_t::srb2;
@@ -540,5 +546,4 @@ protected:
   std::array<uint8_t, 8> rrc_reest_complete_pdu = {0x0, 0x0, 0x18, 0x00, 0xae, 0x09, 0xf9, 0x1a};
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

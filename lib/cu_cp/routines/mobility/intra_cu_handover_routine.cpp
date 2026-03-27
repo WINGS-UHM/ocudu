@@ -157,13 +157,6 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
     for (const auto& srb_id : source_rrc_context.srbs) {
       create_srb(target_ue, srb_id);
     }
-    // Mark security context as active on the target UE if it was active on the source UE.
-    if (source_ue->get_security_manager().is_security_enabled()) {
-      target_ue->get_security_manager().enable_security();
-    } else {
-      logger.warning("ue={}: \"{}\" failed. Cause: UE security was not enabled", request.source_ue_index, name());
-      CORO_EARLY_RETURN(response_msg);
-    }
   }
 
   {

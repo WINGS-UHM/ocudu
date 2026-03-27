@@ -356,9 +356,6 @@ public:
   /// \brief Get the AS configuration for the RRC domain with 128-bit keys
   virtual security::sec_128_as_config get_rrc_128_as_config() = 0;
 
-  /// \brief Enable security
-  virtual void enable_security() = 0;
-
   /// \brief Get the current security context
   virtual security::security_context get_security_context() = 0;
 

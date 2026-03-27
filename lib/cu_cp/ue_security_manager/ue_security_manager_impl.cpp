@@ -3,7 +3,6 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_security_manager_impl.h"
-#include "fmt/ranges.h"
 
 using namespace ocudu;
 using namespace ocucp;
@@ -56,20 +55,30 @@ bool ue_security_manager::init_security_context(const security::security_context
   // Generate K_rrc_enc and K_rrc_int
   sec_context.generate_as_keys();
 
+  // Set security state to partially enabled. It will be set to fully enabled when the UE confirms the security
+  // configuration.
+  sec_context.state = security::security_state::partially_enabled;
+
+  return true;
+}
+
+bool ue_security_manager::finalize_security_context()
+{
+  if (sec_context.state != security::security_state::partially_enabled) {
+    logger.error("Attempted to finalize security context, but it is not in partially enabled state");
+    return false;
+  }
+
+  sec_context.state = security::security_state::fully_enabled;
   return true;
 }
 
 bool ue_security_manager::is_security_enabled() const
 {
-  return security_enabled;
+  return sec_context.state == security::security_state::fully_enabled;
 }
 
 // rrc_ue_security_manager
-
-void ue_security_manager::enable_security()
-{
-  security_enabled = true;
-}
 
 security::security_context ue_security_manager::get_security_context() const
 {

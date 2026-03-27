@@ -154,8 +154,6 @@ void rrc_ue_impl::on_new_as_security_context()
   context.srbs.at(srb_id_t::srb1)
       .enable_tx_security(
           security::integrity_enabled::on, security::ciphering_enabled::off, cu_cp_ue_notifier.get_rrc_128_as_config());
-
-  cu_cp_ue_notifier.enable_security();
 }
 
 byte_buffer rrc_ue_impl::get_packed_handover_preparation_message()

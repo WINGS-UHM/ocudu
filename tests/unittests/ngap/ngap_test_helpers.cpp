@@ -7,13 +7,13 @@
 #include "tests/unittests/ngap/test_helpers.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/ngap/ngap_configuration.h"
 #include "ocudu/ngap/ngap_factory.h"
 #include "ocudu/ran/cu_types.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/rb_id.h"
 #include "ocudu/support/async/async_test_utils.h"
-#include <chrono>
 
 using namespace ocudu;
 using namespace ocucp;
@@ -155,6 +155,31 @@ void ngap_test::run_initial_context_setup(ue_index_t ue_index)
   ngap_message init_context_setup_request =
       generate_valid_initial_context_setup_request_message(ue.amf_ue_id.value(), ue.ran_ue_id.value());
   ngap->handle_message(init_context_setup_request);
+}
+
+bool ngap_test::enable_ue_security(ue_index_t ue_index)
+{
+  // Setup security.
+  byte_buffer key_buf = make_byte_buffer("45cbc3f8a81193fd5c5229300d59edf812e998a115ec4e0ce903ba89367e2628").value();
+  security::sec_key sk_gnb = {};
+  std::copy(key_buf.begin(), key_buf.end(), sk_gnb.begin());
+
+  // Initialize security context and capabilities.
+  security::security_context init_sec_ctx = {};
+  init_sec_ctx.k                          = sk_gnb;
+  std::fill(init_sec_ctx.supported_int_algos.begin(), init_sec_ctx.supported_int_algos.end(), true);
+  std::fill(init_sec_ctx.supported_enc_algos.begin(), init_sec_ctx.supported_enc_algos.end(), true);
+
+  // Mark security as enabled.
+  if (!ue_mng.find_ue(ue_index)->get_security_manager().init_security_context(init_sec_ctx)) {
+    return false;
+  }
+
+  if (!ue_mng.find_ue(ue_index)->get_security_manager().finalize_security_context()) {
+    return false;
+  }
+
+  return true;
 }
 
 void ngap_test::run_pdu_session_resource_setup(ue_index_t ue_index, pdu_session_id_t pdu_session_id)

@@ -105,13 +105,6 @@ public:
     return ue->get_security_manager().get_rrc_128_as_config();
   }
 
-  /// \brief Enable security.
-  void enable_security() override
-  {
-    ocudu_assert(ue != nullptr, "CU-CP UE must not be nullptr");
-    ue->get_security_manager().enable_security();
-  }
-
   /// \brief Get the current security context.
   security::security_context get_security_context() override
   {

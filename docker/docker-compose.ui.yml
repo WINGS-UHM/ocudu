@@ -13,7 +13,6 @@ services:
         condition: service_healthy
     env_file:
       - .env
-    # Enable host.docker.internal on Linux (works by default on Docker Desktop for Mac/Windows)
     extra_hosts:
       - "host.docker.internal:host-gateway"
     # volumes:

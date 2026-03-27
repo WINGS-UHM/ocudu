@@ -1,0 +1,87 @@
+name: Update upstream base badge
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "upstream-dev"]
+
+permissions:
+  contents: write
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add upstream remote and fetch
+        run: |
+          git remote add upstream https://gitlab.com/ocudu/ocudu.git || true
+          git fetch upstream --prune
+
+      - name: Compute upstream base commit and write badge JSON
+        run: |
+          UPSTREAM_BRANCH="dev"
+
+          BASE_SHA="$(git merge-base HEAD upstream/${UPSTREAM_BRANCH})"
+          SHORT_SHA="$(git rev-parse --short ${BASE_SHA})"
+
+          # ISO style date of that commit
+          MERGE_DATE="$(git show -s --format=%cs ${BASE_SHA})"
+          LAG_COUNT="$(git rev-list --count HEAD..upstream/${UPSTREAM_BRANCH})"
+
+
+          mkdir -p .github/badges
+
+          # SHA badge
+          cat > .github/badges/upstream-base.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "Upstream Base",
+            "message": "${SHORT_SHA}",
+            "color": "blue"
+          }
+          EOF
+
+          # DATE badge
+          cat > .github/badges/upstream-date.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "Last Synced With Upstream",
+            "message": "${MERGE_DATE}",
+            "color": "brightgreen"
+          }
+          EOF
+
+          # LAG badge
+          if [ "${LAG_COUNT}" -eq 0 ]; then
+            LAG_COLOR="brightgreen"
+          elif [ "${LAG_COUNT}" -le 10 ]; then
+            LAG_COLOR="yellow"
+          else
+            LAG_COLOR="red"
+          fi
+
+          cat > .github/badges/upstream-lag.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "Upstream Lag",
+            "message": "${LAG_COUNT} commits",
+            "color": "${LAG_COLOR}"
+          }
+          EOF
+
+      - name: Commit & push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .github/badges/*.json
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "[update] upstream badges"
+            git push
+          fi

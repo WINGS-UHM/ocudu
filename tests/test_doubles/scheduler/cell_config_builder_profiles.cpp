@@ -53,6 +53,45 @@ cell_config_builder_profiles::create(duplex_mode mode, frequency_range fr, bs_ch
   return fdd(bw);
 }
 
+cell_config_builder_params cell_config_builder_profiles::create(nr_band band)
+{
+  cell_config_builder_params params;
+  params.dl_carrier.band = band;
+  switch (band) {
+    case nr_band::n3:
+      params.scs_common             = subcarrier_spacing::kHz30;
+      params.dl_carrier.arfcn_f_ref = 361000;
+      params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz20;
+      break;
+    case nr_band::n7:
+      params.scs_common             = subcarrier_spacing::kHz15;
+      params.dl_carrier.arfcn_f_ref = 530000;
+      params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz20;
+      break;
+    case nr_band::n41:
+      // TDD FR1, 2496–2690 MHz.
+      params.scs_common             = subcarrier_spacing::kHz30;
+      params.dl_carrier.arfcn_f_ref = 520002;
+      params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz20;
+      break;
+    case nr_band::n261:
+      // TDD FR2, 27500–28350 MHz.
+      params.scs_common             = subcarrier_spacing::kHz120;
+      params.dl_carrier.arfcn_f_ref = 2074171;
+      params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz100;
+      break;
+    default:
+      report_fatal_error("Band {} to test NR-AFCN lookup not yet supported. Add a new entry",
+                         static_cast<unsigned>(band));
+  }
+  ocudu_assert(
+      band_helper::is_dl_arfcn_valid_given_band(
+          params.dl_carrier.band, params.dl_carrier.arfcn_f_ref, params.scs_common, params.dl_carrier.carrier_bw),
+      "Invalid cell config profile for band={}",
+      static_cast<unsigned>(params.dl_carrier.band));
+  return params;
+}
+
 tdd_ul_dl_config_common cell_config_builder_profiles::create_tdd_pattern(tdd_pattern_profile_fr1_30khz pattern)
 {
   tdd_ul_dl_config_common cfg;

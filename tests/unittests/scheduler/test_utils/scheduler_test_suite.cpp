@@ -32,7 +32,7 @@ void ocudu::assert_tdd_pattern_consistency(const cell_configuration& cell_cfg,
     return;
   }
   ofdm_symbol_range dl_symbols = get_active_tdd_dl_symbols(
-      *cell_cfg.params.tdd_cfg, sl_tx.to_uint(), cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp);
+      *cell_cfg.params.tdd_cfg, sl_tx.slot_index(), cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp);
   ASSERT_EQ(dl_symbols.length(), result.dl.nof_dl_symbols);
 
   if (dl_symbols.empty()) {
@@ -552,10 +552,9 @@ void ocudu::test_prach_opportunity_validity(const cell_configuration& cell_cfg, 
     return;
   }
   const rach_config_common& rach_cfg_common = *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
-  const prach_configuration prach_cfg =
-      prach_configuration_get(band_helper::get_freq_range(cell_cfg.band()),
-                              cell_cfg.paired_spectrum() ? duplex_mode::FDD : duplex_mode::TDD,
-                              rach_cfg_common.rach_cfg_generic.prach_config_index);
+  const prach_configuration prach_cfg       = prach_configuration_get(band_helper::get_freq_range(cell_cfg.band()),
+                                                                cell_cfg.is_tdd() ? duplex_mode::TDD : duplex_mode::FDD,
+                                                                rach_cfg_common.rach_cfg_generic.prach_config_index);
 
   for (const prach_occasion_info& prach : prachs) {
     // Check if the PRACH matches cell configuration.

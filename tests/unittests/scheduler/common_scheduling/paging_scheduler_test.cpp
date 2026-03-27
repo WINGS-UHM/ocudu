@@ -21,7 +21,8 @@ static pcch_config::nof_po_per_pf get_random_nof_po_per_pf()
   return possible_ns_values[test_rng::uniform_int<unsigned>(0, possible_ns_values.size() - 1)];
 }
 
-static pcch_config::nof_pf_per_drx_cycle get_random_nof_pf_per_drx_cycle()
+static pcch_config::nof_pf_per_drx_cycle
+get_random_nof_pf_per_drx_cycle(const sched_cell_configuration_request_message& cell_cfg)
 {
   constexpr static std::array<pcch_config::nof_pf_per_drx_cycle, 5> possible_nof_pf_per_drx_values = {
       pcch_config::nof_pf_per_drx_cycle::oneT,
@@ -29,7 +30,11 @@ static pcch_config::nof_pf_per_drx_cycle get_random_nof_pf_per_drx_cycle()
       pcch_config::nof_pf_per_drx_cycle::quarterT,
       pcch_config::nof_pf_per_drx_cycle::oneEighthT,
       pcch_config::nof_pf_per_drx_cycle::oneSixteethT};
-  return possible_nof_pf_per_drx_values[test_rng::uniform_int<unsigned>(0, possible_nof_pf_per_drx_values.size() - 1)];
+  // oneT is invalid for SS/PBCH and CORESET multiplexing pattern 1 (paging_search_space_id == 0).
+  const unsigned start_idx =
+      cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id == to_search_space_id(0) ? 1U : 0U;
+  return possible_nof_pf_per_drx_values[test_rng::uniform_int<unsigned>(start_idx,
+                                                                        possible_nof_pf_per_drx_values.size() - 1)];
 }
 
 class base_paging_scheduler_test : public sub_scheduler_test_environment
@@ -118,7 +123,7 @@ TEST_P(paging_scheduler_test, successfully_allocated_paging_grant_ss_gt_0)
   auto cell_cfg_request = base_paging_scheduler_test::create_custom_cell_config_request(params.duplx_mode);
   // Modify to have more than one Paging occasion per PF.
   cell_cfg_request.ran.dl_cfg_common.pcch_cfg.ns     = get_random_nof_po_per_pf();
-  cell_cfg_request.ran.dl_cfg_common.pcch_cfg.nof_pf = get_random_nof_pf_per_drx_cycle();
+  cell_cfg_request.ran.dl_cfg_common.pcch_cfg.nof_pf = get_random_nof_pf_per_drx_cycle(cell_cfg_request);
   base_paging_scheduler_test bench{
       base_paging_scheduler_test::create_expert_config(params.max_paging_mcs, params.max_paging_retries),
       cell_cfg_request};
@@ -145,9 +150,7 @@ TEST_P(paging_scheduler_test, successfully_allocated_paging_grant_ss_eq_0)
   auto sched_cell_cfg = base_paging_scheduler_test::create_custom_cell_config_request(params.duplx_mode);
   // In default config Paging Search Space is set to 1. Therefore, modify it to be equal to 0 for this test case.
   sched_cell_cfg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.paging_search_space_id = to_search_space_id(0);
-  // Since we support CORESET multiplexing pattern 1. The value of N (Number of Paging Frames per DRX Cycle) can be 2,
-  // 4, 8, 16).
-  sched_cell_cfg.ran.dl_cfg_common.pcch_cfg.nof_pf = get_random_nof_pf_per_drx_cycle();
+  sched_cell_cfg.ran.dl_cfg_common.pcch_cfg.nof_pf = get_random_nof_pf_per_drx_cycle(sched_cell_cfg);
   base_paging_scheduler_test bench{
       base_paging_scheduler_test::create_expert_config(params.max_paging_mcs, params.max_paging_retries),
       sched_cell_cfg};

@@ -3,18 +3,15 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/common_scheduling/prach_scheduler.h"
+#include "sub_scheduler_test_environment.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/prach/prach_frequency_mapping.h"
 #include "ocudu/ran/prach/prach_preamble_information.h"
-#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
-
-// We assume normal cyclic prefix here.
-constexpr unsigned NOF_SYM_PER_SLOT = 14;
 
 namespace prach_test {
 
@@ -34,21 +31,18 @@ void PrintTo(const prach_test_params& value, ::std::ostream* os)
 static sched_cell_configuration_request_message
 make_custom_sched_cell_configuration_request(const prach_test_params test_params)
 {
-  cell_config_builder_params params = {
-      .scs_common = test_params.scs,
-      .dl_carrier = {.carrier_bw = band_helper::get_freq_range(test_params.band) == frequency_range::FR2
-                                       ? bs_channel_bandwidth::MHz100
-                                       : bs_channel_bandwidth::MHz20,
-                     .band       = test_params.band}};
-  // For TDD, set DL ARFCN according to the band.
-  if (not band_helper::is_paired_spectrum(test_params.band)) {
-    if (band_helper::get_freq_range(test_params.band) == frequency_range::FR1) {
-      params.dl_carrier.arfcn_f_ref = 520002;
-    } else {
-      params.dl_carrier.arfcn_f_ref = 2074171;
-    }
+  cell_config_builder_params params = cell_config_builder_profiles::create(test_params.band);
+  // We disable CSI-RS so it is simpler to enable more UL slots to test different PRACH configs.
+  params.csi_rs_enabled = false;
+  params.scs_common     = test_params.scs;
+  if (band_helper::get_duplex_mode(test_params.band) == duplex_mode::TDD) {
+    auto& tdd_cfg = params.tdd_ul_dl_cfg_common.emplace();
+    tdd_cfg       = cell_config_builder_profiles::create_tdd_pattern(
+        cell_config_builder_profiles::tdd_pattern_profile_fr1_30khz::DDDDDDDSUU);
+    tdd_cfg.pattern1.nof_dl_slots = 2;
+    tdd_cfg.pattern1.nof_ul_slots = 8;
+    tdd_cfg.ref_scs               = params.scs_common;
   }
-  params.auto_derive_params();
 
   sched_cell_configuration_request_message sched_req =
       sched_config_helper::make_default_sched_cell_configuration_request(params);
@@ -56,30 +50,23 @@ make_custom_sched_cell_configuration_request(const prach_test_params test_params
   sched_req.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value().rach_cfg_generic.prach_config_index =
       test_params.prach_cfg_index;
 
-  // NOTE: For this test we modify the TDD pattern so that we can test several PRACH configuration indices.
-  if (not band_helper::is_paired_spectrum(test_params.band)) {
-    sched_req.ran.tdd_cfg.value().pattern1.nof_dl_slots = 2;
-    sched_req.ran.tdd_cfg.value().pattern1.nof_ul_slots = 8;
-  }
-
   return sched_req;
 }
 } // namespace prach_test
 
 using namespace prach_test;
 
-class prach_tester : public ::testing::TestWithParam<prach_test_params>
+class prach_scheduler_test : public sub_scheduler_test_environment, public ::testing::TestWithParam<prach_test_params>
 {
 protected:
-  prach_tester() :
-    cell_cfg(sched_cfg, make_custom_sched_cell_configuration_request(GetParam())),
+  prach_scheduler_test() :
+    sub_scheduler_test_environment(make_custom_sched_cell_configuration_request(GetParam())),
     prach_sch(cell_cfg),
-    sl(to_numerology_value(GetParam().scs), 0),
     prach_cfg(prach_configuration_get(
         band_helper::get_freq_range(cell_cfg.band()),
         cell_cfg.paired_spectrum() ? duplex_mode::FDD : duplex_mode::TDD,
         cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)),
-    res_grid(cell_cfg)
+    prach_repetition_period(prach_cfg.x * NOF_SUBFRAMES_PER_FRAME * get_nof_slots_per_subframe(cell_cfg.scs_common()))
   {
     prach_symbols_slots_duration prach_duration_info =
         get_prach_duration_info(prach_cfg, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
@@ -87,18 +74,13 @@ protected:
     prach_length_slots = prach_duration_info.prach_length_slots;
   }
 
-  void slot_indication()
-  {
-    ++sl;
-    res_grid.slot_indication(sl);
-    prach_sch.run_slot(res_grid);
-    prach_counter += res_grid[0].result.ul.prachs.size();
-  }
+  void do_run_slot() override { prach_sch.run_slot(res_grid); }
 
   bool is_prach_slot() const
   {
-    bool prach_occasion_sfn =
-        std::any_of(prach_cfg.y.begin(), prach_cfg.y.end(), [this](uint8_t y) { return sl.sfn() % prach_cfg.x == y; });
+    const slot_point sl = res_grid[0].slot;
+    bool             prach_occasion_sfn =
+        std::any_of(prach_cfg.y.begin(), prach_cfg.y.end(), [&](uint8_t y) { return sl.sfn() % prach_cfg.x == y; });
     if (!prach_occasion_sfn) {
       return false;
     }
@@ -119,7 +101,8 @@ protected:
       // the slot of the SCS used by the system to know whether this is the slot with the PRACH opportunity.
       const unsigned start_slot_offset =
           prach_cfg.starting_symbol *
-          pow2(to_numerology_value(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs)) / NOF_SYM_PER_SLOT;
+          pow2(to_numerology_value(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs)) /
+          NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
       if (sl.subframe_slot_index() != start_slot_offset) {
         return false;
       }
@@ -140,8 +123,6 @@ protected:
 
     return true;
   }
-
-  unsigned nof_prach_occasions_allocated() const { return res_grid[0].result.ul.prachs.size(); }
 
   grant_info get_prach_grant(const prach_occasion_info& occasion, unsigned prach_slot_idx) const
   {
@@ -168,11 +149,12 @@ protected:
       const unsigned starting_symbol_pusch_scs =
           (occasion.start_symbol *
            (1U << to_numerology_value(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs))) %
-          NOF_SYM_PER_SLOT;
+          NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
       const ofdm_symbol_range prach_symbols{prach_slot_idx == 0 ? starting_symbol_pusch_scs : 0,
                                             prach_slot_idx < prach_length_slots - 1
-                                                ? NOF_SYM_PER_SLOT
-                                                : (starting_symbol_pusch_scs + nof_symbols) % NOF_SYM_PER_SLOT};
+                                                ? NOF_OFDM_SYM_PER_SLOT_NORMAL_CP
+                                                : (starting_symbol_pusch_scs + nof_symbols) %
+                                                      NOF_OFDM_SYM_PER_SLOT_NORMAL_CP};
 
       return grant_info{cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
     }
@@ -184,47 +166,43 @@ protected:
     return grant_info{cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
   }
 
-  static constexpr unsigned nof_slots_run = 1000;
-
-  const scheduler_expert_config sched_cfg{config_helpers::make_default_scheduler_expert_config()};
-  cell_configuration            cell_cfg;
-  prach_scheduler               prach_sch;
-  slot_point                    sl;
-  const prach_configuration     prach_cfg;
-  cell_resource_allocator       res_grid;
+  prach_scheduler           prach_sch;
+  const prach_configuration prach_cfg;
+  const unsigned            prach_repetition_period;
   // Helper variables.
   unsigned prach_length_slots{1};
   unsigned nof_symbols{0};
-
-  unsigned prach_counter = 0;
 };
 
-TEST_P(prach_tester, prach_sched_allocates_in_prach_configured_slots)
+TEST_P(prach_scheduler_test, prach_sched_allocates_in_prach_configured_slots)
 {
-  for (unsigned i = 0; i != nof_slots_run; ++i) {
-    slot_indication();
+  unsigned prach_counter = 0;
+  for (unsigned i = 0; i != prach_repetition_period; ++i) {
+    run_slot();
+    unsigned nof_prachs = res_grid[0].result.ul.prachs.size();
     if (is_prach_slot()) {
-      ASSERT_GE(1, nof_prach_occasions_allocated());
+      ASSERT_GE(1, nof_prachs);
     } else {
-      ASSERT_EQ(0, nof_prach_occasions_allocated());
+      ASSERT_EQ(0, nof_prachs);
     }
+    prach_counter += nof_prachs;
   }
   ASSERT_GT(prach_counter, 0);
 }
 
-TEST_P(prach_tester, prach_sched_allocates_in_sched_grid)
+TEST_P(prach_scheduler_test, prach_sched_allocates_in_sched_grid)
 {
-  for (unsigned i = 0; i != nof_slots_run; ++i) {
-    slot_indication();
+  for (unsigned i = 0; i != prach_repetition_period * 2; ++i) {
+    run_slot();
     if (is_prach_slot()) {
-      ASSERT_GE(1, nof_prach_occasions_allocated());
+      ASSERT_GE(1, res_grid[0].result.ul.prachs.size());
       for (const auto& prach_pdu : res_grid[0].result.ul.prachs) {
         // For long PRACHs, we have 1 PRACH PDU and up to 8 grid grants allocated per PRACH occasion; these are
         // allocated by the scheduler at the slot where the PRACH pramble starts.
         // For short PRACHs, we have 1 or 2 PRACH PDU and grid grant allocated per burst of PRACH occasions; the
         // occasion extents over 1 or 2 slots, each slot containing 1 PRACH PDU and 1 grid grant.
         for (unsigned prach_slot_idx = 0; prach_slot_idx < prach_length_slots; ++prach_slot_idx) {
-          // Note that prach_slot_idx is only used for long PRACH. For short PRACHs, the function below return t  he
+          // Note that prach_slot_idx is only used for long PRACH. For short PRACHs, the function below return the
           // same grant regardless of the prach_slot_idx; this means the operation gets repeated twice.
           const grant_info grant = get_prach_grant(prach_pdu, prach_slot_idx);
           test_res_grid_has_re_set(res_grid, grant, 0);
@@ -234,17 +212,9 @@ TEST_P(prach_tester, prach_sched_allocates_in_sched_grid)
   }
 }
 
-TEST_P(prach_tester, prach_sched_results_matches_config)
-{
-  for (unsigned i = 0; i != nof_slots_run; ++i) {
-    slot_indication();
-    test_scheduler_result_consistency(cell_cfg, res_grid[0].slot, res_grid[0].result);
-  }
-}
-
 INSTANTIATE_TEST_SUITE_P(
     prach_scheduler_fdd_15kHz,
-    prach_tester,
+    prach_scheduler_test,
     testing::Values(
         // Format 0.
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 0},
@@ -290,13 +260,13 @@ INSTANTIATE_TEST_SUITE_P(
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 236},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 242},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n3, .prach_cfg_index = 253}),
-    [](const testing::TestParamInfo<prach_tester::ParamType>& info_) {
+    [](const testing::TestParamInfo<prach_scheduler_test::ParamType>& info_) {
       return fmt::format("fdd_scs_{}_prach_cfg_idx_{}", to_string(info_.param.scs), info_.param.prach_cfg_index);
     });
 
 INSTANTIATE_TEST_SUITE_P(
     prach_scheduler_fdd_30kHz,
-    prach_tester,
+    prach_scheduler_test,
     testing::Values(
         // Format 0.
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 0},
@@ -342,13 +312,13 @@ INSTANTIATE_TEST_SUITE_P(
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 236},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 242},
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n3, .prach_cfg_index = 253}),
-    [](const testing::TestParamInfo<prach_tester::ParamType>& info_) {
+    [](const testing::TestParamInfo<prach_scheduler_test::ParamType>& info_) {
       return fmt::format("fdd_scs_{}_prach_cfg_idx_{}", to_string(info_.param.scs), info_.param.prach_cfg_index);
     });
 
 INSTANTIATE_TEST_SUITE_P(
     prach_scheduler_tdd_15kHz,
-    prach_tester,
+    prach_scheduler_test,
     testing::Values(
         // Format 0.
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz15, .band = ocudu::nr_band::n41, .prach_cfg_index = 0},
@@ -399,13 +369,13 @@ INSTANTIATE_TEST_SUITE_P(
         prach_test_params{.scs             = ocudu::subcarrier_spacing::kHz15,
                           .band            = ocudu::nr_band::n41,
                           .prach_cfg_index = 210}),
-    [](const testing::TestParamInfo<prach_tester::ParamType>& info_) {
+    [](const testing::TestParamInfo<prach_scheduler_test::ParamType>& info_) {
       return fmt::format("tdd_scs_{}_prach_cfg_idx_{}", to_string(info_.param.scs), info_.param.prach_cfg_index);
     });
 
 INSTANTIATE_TEST_SUITE_P(
     prach_scheduler_tdd_30kHz,
-    prach_tester,
+    prach_scheduler_test,
     testing::Values(
         // Format 0.
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz30, .band = ocudu::nr_band::n41, .prach_cfg_index = 0},
@@ -458,13 +428,13 @@ INSTANTIATE_TEST_SUITE_P(
         prach_test_params{.scs             = ocudu::subcarrier_spacing::kHz30,
                           .band            = ocudu::nr_band::n41,
                           .prach_cfg_index = 210}),
-    [](const testing::TestParamInfo<prach_tester::ParamType>& info_) {
+    [](const testing::TestParamInfo<prach_scheduler_test::ParamType>& info_) {
       return fmt::format("tdd_scs_{}_prach_cfg_idx_{}", to_string(info_.param.scs), info_.param.prach_cfg_index);
     });
 
 INSTANTIATE_TEST_SUITE_P(
     prach_scheduler_tdd_120kHz_fr2,
-    prach_tester,
+    prach_scheduler_test,
     testing::Values(
         // Format A1.
         prach_test_params{.scs = ocudu::subcarrier_spacing::kHz120, .band = ocudu::nr_band::n261, .prach_cfg_index = 1},
@@ -510,6 +480,6 @@ INSTANTIATE_TEST_SUITE_P(
         prach_test_params{.scs             = ocudu::subcarrier_spacing::kHz120,
                           .band            = ocudu::nr_band::n261,
                           .prach_cfg_index = 143}),
-    [](const testing::TestParamInfo<prach_tester::ParamType>& info_) {
+    [](const testing::TestParamInfo<prach_scheduler_test::ParamType>& info_) {
       return fmt::format("tdd_fr2_scs_{}_prach_cfg_idx_{}", to_string(info_.param.scs), info_.param.prach_cfg_index);
     });

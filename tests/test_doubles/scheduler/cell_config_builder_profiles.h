@@ -15,6 +15,9 @@ cell_config_builder_params create(duplex_mode          mode = duplex_mode::TDD,
                                   frequency_range      fr   = frequency_range::FR1,
                                   bs_channel_bandwidth bw   = bs_channel_bandwidth::MHz20);
 
+/// Create basic cell build parameters with given band and bandwidth.
+cell_config_builder_params create(nr_band band);
+
 /// List of TDD UL-DL configurations for FR1, specified in TS 38.101-4, Table A.1.2-2.
 enum class tdd_pattern_profile_fr1_30khz {
   DDDDDDDSUU, ///< FR1.30-1.

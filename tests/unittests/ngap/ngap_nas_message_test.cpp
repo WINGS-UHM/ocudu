@@ -151,6 +151,60 @@ TEST_F(ngap_nas_message_routine_test,
   ASSERT_TRUE(was_ue_radio_capability_info_indication_sent());
 }
 
+/// Test DL NAS transport after transfering UE IDs/context.
+TEST_F(ngap_nas_message_routine_test, when_ue_context_is_tranfered_amf_ue_id_is_updated)
+{
+  // Test preamble to get UE created.
+  ue_index_t ue_index = this->start_procedure();
+  // Inject DL NAS transport message from AMF.
+  run_dl_nas_transport(ue_index);
+  // Inject UL NAS transport message from RRC.
+  run_ul_nas_transport(ue_index);
+
+  auto& ue = test_ues.at(ue_index);
+  ASSERT_NE(ue.ue_index, ue_index_t::invalid);
+
+  // Get AMF UE ID
+  amf_ue_id_t amf_id = ue.amf_ue_id.value();
+  ASSERT_NE(amf_id, amf_ue_id_t::invalid);
+
+  ran_ue_id_t ran_id = ue.ran_ue_id.value();
+  ASSERT_NE(ran_id, ran_ue_id_t::invalid);
+
+  // Clear NAS PDU.
+  ue.rrc_ue_handler.last_nas_pdu.clear();
+  ASSERT_TRUE(ue.rrc_ue_handler.last_nas_pdu.empty());
+
+  // Inject new DL NAS transport from core.
+  ngap_message dl_nas_transport = generate_downlink_nas_transport_message(amf_id, ue.ran_ue_id.value());
+  ngap->handle_message(dl_nas_transport);
+
+  // Check NAS PDU has been passed to RRC.
+  ASSERT_FALSE(ue.rrc_ue_handler.last_nas_pdu.empty());
+
+  // Clear PDU again.
+  ue.rrc_ue_handler.last_nas_pdu.clear();
+
+  // Create new UE object (with own RRC UE notifier).
+  ue_index_t target_ue_index = create_ue_without_init_ue_message(rnti_t::MAX_CRNTI);
+  ASSERT_NE(target_ue_index, ue_index_t::invalid);
+  ASSERT_NE(target_ue_index, ue_index);
+  auto& target_ue = test_ues.at(target_ue_index);
+  ASSERT_TRUE(target_ue.rrc_ue_handler.last_nas_pdu.empty());
+
+  // Transfer NGAP UE context to new target UE.
+  ngap->update_ue_index(target_ue_index, ue_index, ue_mng.find_ue(target_ue_index)->get_ngap_cu_cp_ue_notifier());
+
+  // Inject NAS message again.
+  ngap->handle_message(dl_nas_transport);
+
+  // Check that RRC notifier of initial UE has not been called.
+  ASSERT_TRUE(ue.rrc_ue_handler.last_nas_pdu.empty());
+
+  // Verify that RRC notifier of target UE has indeed benn called.
+  ASSERT_FALSE(target_ue.rrc_ue_handler.last_nas_pdu.empty());
+}
+
 /// Test UL NAS transport handling.
 TEST_F(ngap_nas_message_routine_test, when_ue_present_and_amf_set_ul_nas_transport_is_forwared)
 {

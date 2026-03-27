@@ -1180,7 +1180,6 @@ static scheduler_expert_config generate_scheduler_expert_config(const du_high_un
   out_cfg.ra.rar_mcs_index            = pdsch.fixed_rar_mcs;
   out_cfg.ra.max_nof_msg3_harq_retxs  = prach.max_msg3_harq_retx;
   out_cfg.ra.msg3_mcs_index           = prach.fixed_msg3_mcs;
-  out_cfg.ra.harq_retx_timeout        = std::chrono::milliseconds{pusch.harq_retx_timeout};
   out_cfg.ra.nof_prach_guardbands_rbs = prach.nof_prach_guardbands_rbs;
 
   // SI parameters.

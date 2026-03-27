@@ -24,6 +24,14 @@ void e2_cu_metrics_connector::report_metrics(const ocuup::f1u_metrics_container&
   }
 }
 
+void e2_cu_metrics_connector::report_metrics(const cu_cp_metrics_report& metrics)
+{
+  if (e2_meas_provider) {
+    // Pass metrics to the E2 Measurement Provider.
+    e2_meas_provider->report_metrics(metrics);
+  }
+}
+
 void e2_cu_metrics_connector::connect_e2_cu_meas_provider(std::unique_ptr<e2_cu_metrics_notifier> meas_provider)
 {
   e2_meas_provider = std::move(meas_provider);

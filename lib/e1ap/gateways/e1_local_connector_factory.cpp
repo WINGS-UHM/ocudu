@@ -53,6 +53,8 @@ public:
 
   void attach_cu_cp(ocucp::cu_cp_e1_handler& cu_cp_e1_mng_) override { cu_cp_e1_mng = &cu_cp_e1_mng_; }
 
+  void stop() override {}
+
   std::optional<uint16_t> get_listen_port() const override { return std::nullopt; }
 
   std::unique_ptr<e1ap_message_notifier>
@@ -99,8 +101,11 @@ public:
     sctp.bind_addresses = {"127.0.0.1"};
     // Use any bind port available.
     sctp.bind_port = cfg.bind_port;
-    server = create_e1_gateway_server(e1_cu_cp_sctp_gateway_config{sctp, broker, cfg.io_rx_executor, pcap_writer});
+    server         = create_e1_gateway_server(
+        e1_cu_cp_sctp_gateway_config{sctp, broker, cfg.io_rx_executor, cfg.ctrl_exec, pcap_writer});
   }
+
+  void stop() override { server->stop(); }
 
   void attach_cu_cp(ocucp::cu_cp_e1_handler& cu_e1_handler_) override
   {

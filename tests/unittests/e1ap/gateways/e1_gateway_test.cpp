@@ -56,13 +56,15 @@ public:
     ocudulog::basic_logger&       logger = ocudulog::fetch_basic_logger("TEST");
   };
 
+  ~e1_link() { connector->stop(); }
+
   e1_link(bool use_sctp, bool pcap_enabled)
   {
     pcap.enabled = pcap_enabled;
 
     if (use_sctp) {
       broker    = create_io_broker(io_broker_type::epoll);
-      connector = create_e1_local_connector(e1_local_sctp_connector_config{pcap, *broker, rx_executor});
+      connector = create_e1_local_connector(e1_local_sctp_connector_config{pcap, *broker, rx_executor, ctrl_executor});
     } else {
       connector = create_e1_local_connector(e1_local_connector_config{pcap});
     }
@@ -88,6 +90,7 @@ public:
   }
 
   inline_task_executor                rx_executor;
+  inline_task_executor                ctrl_executor;
   std::unique_ptr<io_broker>          broker;
   dummy_dlt_pcap                      pcap;
   std::unique_ptr<e1_local_connector> connector;

@@ -71,9 +71,14 @@ public:
 class cho_app_command : public app_services::cmdline_command
 {
   ocucp::cu_cp_command_handler& cu_cp;
+  std::chrono::milliseconds     default_timeout;
 
 public:
-  explicit cho_app_command(ocucp::cu_cp_command_handler& cu_cp_) : cu_cp(cu_cp_) {}
+  explicit cho_app_command(ocucp::cu_cp_command_handler& cu_cp_,
+                           std::chrono::milliseconds     default_timeout_ = std::chrono::milliseconds{10000}) :
+    cu_cp(cu_cp_), default_timeout(default_timeout_)
+  {
+  }
 
   // See interface for documentation.
   std::string_view get_name() const override { return "cho"; }
@@ -114,12 +119,12 @@ public:
     ++arg;
 
     // Parse target PCIs and optional keywords (timeout, t1).
-    // Examples: "cho 1 0x4601 100 200" -> 2 PCIs, default timeout
+    // Examples: "cho 1 0x4601 100 200" -> 2 PCIs, default timeout from config
     //           "cho 1 0x4601 100 200 timeout 30" -> 2 PCIs, 30s timeout
     //           "cho 1 0x4601 100 t1 2026-03-01T10:00:00" -> 1 PCI, T1 override
     //           "cho 1 0x4601 100 timeout 30 t1 2026-03-01T10:00:00" -> 1 PCI, both
     std::vector<pci_t>                                   target_pcis;
-    std::chrono::milliseconds                            timeout{10000}; // default 10 seconds
+    std::chrono::milliseconds                            timeout = default_timeout;
     std::optional<std::chrono::system_clock::time_point> t1_thres_override;
 
     while (arg != args.end()) {

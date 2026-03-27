@@ -91,7 +91,7 @@ std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point
 
   auto uci_r = uci_wheel[sl_rx.count()].get_list(uci_pool);
   for (auto prev = uci_r.before_begin(), it = uci_r.begin(); it != uci_r.end(); prev = it, ++it) {
-    if (pdu.crnti != it->crnti) {
+    if (pdu.crnti != it->crnti or it->uci_slot != sl_rx) {
       continue;
     }
     // RNTIs match. The grant was found.
@@ -127,6 +127,45 @@ std::optional<uci_action> uci_indication_selector::handle_uci_ind_pdu(slot_point
   return std::nullopt;
 }
 
+void uci_indication_selector::handle_timeout_pending_uci_entry(stable_id_t id, slot_point sl_rx)
+{
+  const uci_entry& entry = uci_pool[id];
+
+  // Signal timeout to notifier.
+  timeout_notifier.on_timeout(sl_rx, entry.crnti, entry.chosen_action);
+
+  // Remove from short timeout wheel if present, then erase from pool.
+  if (entry.short_timeout_slot.valid()) {
+    short_timeout_wheel[entry.short_timeout_slot.count()].get_list(uci_pool).erase(id);
+  }
+  uci_pool.erase(id);
+}
+
+void uci_indication_selector::handle_large_slot_jump(unsigned slot_jump)
+{
+  if (uci_pool.empty()) {
+    return;
+  }
+
+  logger.warning("Forcing timeout for {} pending UCI entries. Cause: Slot jump of {} exceeds UCI timeout wheel size "
+                 "of {} slots",
+                 uci_pool.size(),
+                 slot_jump,
+                 uci_wheel.size());
+
+  for (const uci_entry& entry : uci_pool) {
+    timeout_notifier.on_timeout(entry.uci_slot, entry.crnti, entry.chosen_action);
+  }
+
+  uci_pool.clear();
+  for (auto& list_head : uci_wheel) {
+    list_head = {};
+  }
+  for (auto& list_head : short_timeout_wheel) {
+    list_head = {};
+  }
+}
+
 std::optional<uci_action> uci_indication_selector::handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry)
 {
   // Retrieve info from different PUCCH/PUSCH formats.
@@ -160,7 +199,14 @@ void uci_indication_selector::handle_timeouts(slot_point sl_tx)
     while (not uci_r.empty()) {
       stable_id_t id    = uci_r.pop_front();
       uci_entry&  entry = uci_pool[id];
-      ocudu_sanity_check(entry.uci_slot == sl_rx, "Invalid wheel state");
+      if (OCUDU_UNLIKELY(entry.uci_slot != sl_rx)) {
+        logger.warning("rnti={}: Forcing timeout for stale UCI entry. Cause: expected UCI slot={} but found slot={}",
+                       entry.crnti,
+                       sl_rx,
+                       entry.uci_slot);
+        handle_timeout_pending_uci_entry(id, entry.uci_slot);
+        continue;
+      }
 
       logger.warning("rnti={}: Forcing \"NACK\" for {} DL HARQ processes. Cause: Timeout was reached ({} slots) "
                      "but no UCI indication feedback has been received yet from lower layers (UCI slot={})",
@@ -170,13 +216,7 @@ void uci_indication_selector::handle_timeouts(slot_point sl_tx)
                      entry.uci_slot);
 
       // Handle UCI timeout if there were still pending UCI indications.
-      timeout_notifier.on_timeout(sl_rx, entry.crnti, entry.chosen_action);
-
-      // Remove from short timeout wheel if present, then erase from pool.
-      if (entry.short_timeout_slot.valid()) {
-        short_timeout_wheel[entry.short_timeout_slot.count()].get_list(uci_pool).erase(id);
-      }
-      uci_pool.erase(id);
+      handle_timeout_pending_uci_entry(id, sl_rx);
     }
   }
   ocudu_sanity_check(uci_wheel[sl_rx.count()].empty(), "Unexpected state for UCI time wheel");
@@ -212,7 +252,7 @@ void uci_indication_selector::handle_timeouts(slot_point sl_tx)
       // Propagate timeout.
       timeout_notifier.on_timeout(entry.uci_slot, entry.crnti, entry.chosen_action);
 
-      // Remove from main wheel and erase from pool.
+      // Remove from main wheel and erase from pool. The short-timeout list entry was already popped above.
       uci_wheel[entry.uci_slot.count()].get_list(uci_pool).erase(id);
       uci_pool.erase(id);
     }
@@ -225,12 +265,19 @@ void uci_indication_selector::handle_result(slot_point sl_tx, const sched_result
   // Handle UCI grant timeouts accounting for potential slot indication skips.
   unsigned skipped_slots = 1;
   if (OCUDU_LIKELY(last_sl_tx.valid())) {
-    skipped_slots = std::min<unsigned>(sl_tx - last_sl_tx, uci_wheel.size());
+    const unsigned slot_jump = sl_tx - last_sl_tx;
+    if (OCUDU_UNLIKELY(slot_jump > uci_wheel.size())) {
+      handle_large_slot_jump(slot_jump);
+    } else {
+      skipped_slots = slot_jump;
+    }
   }
+  last_sl_tx = sl_tx;
+
+  // Handle timeouts of past allocated UCIs.
   for (unsigned i = 0; i != skipped_slots; ++i) {
     handle_timeouts(sl_tx + 1 - skipped_slots + i);
   }
-  last_sl_tx = sl_tx;
 
   // Handle new PUCCH grants scheduled in this slot.
   ocudu_sanity_check(uci_wheel[sl_tx.count()].empty(), "The wheel should be empty for slot tx");

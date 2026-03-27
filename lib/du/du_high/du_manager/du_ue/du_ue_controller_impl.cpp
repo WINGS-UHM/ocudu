@@ -182,8 +182,8 @@ public:
 private:
   bool is_handling_new_rlfs() const
   {
-    return release_timer.is_valid() and current_cause != rlf_cause::rlc_protocol_failure and
-           current_cause != rlf_cause::max_rlc_retxs_reached;
+    return release_timer.is_valid() and not ue_ctx.cond_mobility.is_success_access_required() and
+           current_cause != rlf_cause::rlc_protocol_failure and current_cause != rlf_cause::max_rlc_retxs_reached;
   }
 
   std::chrono::milliseconds get_release_timeout() const

@@ -7,6 +7,8 @@
 #include "../xnap_repository.h"
 #include "ocudu/cu_cp/common_task_scheduler.h"
 #include "ocudu/cu_cp/cu_cp_xnc_handler.h"
+#include "ocudu/xnap/gateways/xnc_connection_gateway.h"
+#include "ocudu/xnap/xnap_configuration.h"
 #include <condition_variable>
 #include <mutex>
 
@@ -18,11 +20,13 @@ struct cu_cp_configuration;
 class xnc_connection_manager : public cu_cp_xnc_handler
 {
 public:
-  xnc_connection_manager(xnap_repository&       xnaps_,
-                         task_executor&         cu_cp_exec_,
-                         common_task_scheduler& common_task_sched_);
+  xnc_connection_manager(xnap_repository&        xnaps_,
+                         xnc_connection_gateway* xnc_gw_,
+                         timer_manager&          timers_,
+                         task_executor&          cu_cp_exec_,
+                         common_task_scheduler&  common_task_sched_);
 
-  void start();
+  void start(const xnap_configuration& xnap_cfg);
 
   std::unique_ptr<xnap_message_notifier>
   handle_new_xnc_cu_cp_connection(std::unique_ptr<xnap_message_notifier> xnap_tx_pdu_notifier,
@@ -33,15 +37,20 @@ public:
   void stop();
 
 private:
+  void reconnect_peer(xnc_peer_index_t xnc_idx, const transport_layer_address& peer_addr);
+
   class shared_xnc_connection_context;
   class xnc_gw_to_cu_cp_pdu_adapter;
 
-  void connect_to_neighbours();
-
   xnap_repository&        xnaps;
+  xnc_connection_gateway* xnc_gw;
+  timer_manager&          timers;
   task_executor&          cu_cp_exec;
   common_task_scheduler&  common_task_sched;
   ocudulog::basic_logger& logger;
+
+  /// XNAP configuration used to recreate XNAP instances after connection loss.
+  xnap_configuration xnap_cfg;
 
   std::map<xnc_peer_index_t, std::shared_ptr<shared_xnc_connection_context>> xnc_connections;
 

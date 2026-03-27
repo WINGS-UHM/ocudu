@@ -93,7 +93,14 @@ private:
   /// Handle UCI grant timeouts.
   void handle_timeouts(slot_point sl_tx);
 
+  /// Handle a received UCI indication PDU and generate an action.
   std::optional<uci_action> handle_uci_pdu(const uci_indication::uci_pdu& pdu, uci_entry& entry);
+
+  /// Called when a timeout occurs for a given pending UCI.
+  void handle_timeout_pending_uci_entry(stable_id_t id, slot_point sl_rx);
+
+  /// Called when the number of skipped slots is larger than the size of the UCI wheel.
+  void handle_large_slot_jump(unsigned slot_jump);
 
   /// Timeout to receive HARQ-ACK feedback.
   const unsigned                   ack_timeout_slots;

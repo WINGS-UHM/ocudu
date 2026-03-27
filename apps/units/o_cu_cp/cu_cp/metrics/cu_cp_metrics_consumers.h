@@ -16,6 +16,8 @@ namespace app_services {
 class remote_server_metrics_gateway;
 } // namespace app_services
 
+class e2_cu_metrics_notifier;
+
 /// Consumer for the json CU-CP metrics.
 class cu_cp_metrics_consumer_json : public app_services::metrics_consumer
 {
@@ -44,6 +46,19 @@ public:
 private:
   ngap_metrics_consumer_log ngap_consumer;
   rrc_metrics_consumer_log  rrc_consumer;
+};
+
+/// E2 Consumer for the CU-CP metrics.
+class cu_cp_metrics_consumer_e2 : public app_services::metrics_consumer
+{
+public:
+  explicit cu_cp_metrics_consumer_e2(e2_cu_metrics_notifier& notifier_) : notifier(notifier_) {}
+
+  // See interface for documentation.
+  void handle_metric(const app_services::metrics_set& metric) override;
+
+private:
+  e2_cu_metrics_notifier& notifier;
 };
 
 } // namespace ocudu

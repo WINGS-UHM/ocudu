@@ -62,6 +62,8 @@ struct cu_cp_unit_amf_config {
   bool no_core = false;
   /// Time to wait after a failed AMF reconnection attempt in ms.
   unsigned amf_reconnection_retry_time = 1000;
+  /// Time that the NGAP waits for a response from the AMF in milliseconds.
+  unsigned procedure_timeout = 5000;
 };
 
 /// Report configuration for periodical, event-triggered and conditional-trigger report types.
@@ -141,6 +143,10 @@ struct cu_cp_unit_mobility_config {
   std::vector<cu_cp_unit_report_config> report_configs;
   /// Whether to start HO if neighbor cell measurements arrive.
   bool trigger_handover_from_measurements = false;
+  /// Whether to auto-trigger CHO after UE setup/capability phase when readiness checks pass.
+  bool trigger_cho_on_ue_setup = false;
+  /// Timeout used for auto-triggered CHO and as default timeout for manual CHO command in milliseconds.
+  unsigned cho_timeout_ms = 10000;
 };
 
 /// RRC specific configuration parameters.
@@ -174,9 +180,31 @@ struct cu_cp_unit_e1ap_config {
 };
 
 /// XNAP-CU-CP configuration parameters.
-struct cu_cp_unit_xnap_config {
+struct cu_cp_unit_xnap_config_item {
   std::vector<std::string> bind_addrs = {"127.0.30.1"};
   std::vector<std::string> peer_addrs;
+};
+
+struct cu_cp_unit_xnap_config {
+  /// Timeout for the XNAP procedures in milliseconds.
+  unsigned procedure_timeout = 5000;
+  /// Timer for the XNAP reconnect in milliseconds.
+  unsigned reconnect_timer = 10000;
+  /// When true, the CU-CP will not initiate outbound XNAP connections but will accept inbound ones.
+  bool no_connection_init = false;
+
+  /// SCTP socket options.
+  int  sctp_rto_initial_ms    = 120;
+  int  sctp_rto_min_ms        = 120;
+  int  sctp_rto_max_ms        = 500;
+  int  sctp_init_max_attempts = 3;
+  int  sctp_max_init_timeo_ms = 500;
+  int  sctp_hb_interval_ms    = 30000;
+  int  sctp_assoc_max_retx    = 10;
+  bool sctp_nodelay           = false;
+
+  /// Peer configuration.
+  std::vector<cu_cp_unit_xnap_config_item> connections;
 };
 
 /// RLC UM TX configuration
@@ -375,7 +403,7 @@ struct cu_cp_unit_config {
   // List of all AMFs the CU-CP should connect to.
   std::vector<cu_cp_unit_amf_config_item> extra_amfs;
   /// XNAP configurations.
-  std::vector<cu_cp_unit_xnap_config> xnap_configs;
+  cu_cp_unit_xnap_config xnap_config;
   /// Mobility configuration.
   cu_cp_unit_mobility_config mobility_config;
   /// RRC configuration.

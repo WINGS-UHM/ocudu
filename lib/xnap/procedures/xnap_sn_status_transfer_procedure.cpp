@@ -4,15 +4,17 @@
 
 #include "xnap_sn_status_transfer_procedure.h"
 #include "sn_status_transfer_asn1_helpers.h"
+#include <chrono>
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
 using namespace asn1::xnap;
 
 xnap_sn_status_transfer_procedure::xnap_sn_status_transfer_procedure(
+    std::chrono::milliseconds                                            procedure_timeout_,
     protocol_transaction_event_source<asn1::xnap::sn_status_transfer_s>& sn_status_transfer_outcome_,
     xnap_ue_logger&                                                      logger_) :
-  sn_status_transfer_outcome(sn_status_transfer_outcome_), logger(logger_)
+  procedure_timeout(procedure_timeout_), sn_status_transfer_outcome(sn_status_transfer_outcome_), logger(logger_)
 {
 }
 
@@ -20,12 +22,12 @@ void xnap_sn_status_transfer_procedure::operator()(coro_context<async_task<expec
 {
   CORO_BEGIN(ctx);
   logger.log_debug("\"{}\" started...", name());
-  transaction_sink.subscribe_to(sn_status_transfer_outcome, std::chrono::milliseconds{5000});
+  transaction_sink.subscribe_to(sn_status_transfer_outcome, procedure_timeout);
 
   CORO_AWAIT(transaction_sink);
 
   if (transaction_sink.timeout_expired()) {
-    logger.log_warning("\"{}\" timed out after {}ms", name(), 5000);
+    logger.log_warning("\"{}\" timed out after {}ms", name(), procedure_timeout.count());
     CORO_EARLY_RETURN(make_unexpected(default_error_t{}));
   }
 

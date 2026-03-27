@@ -5,6 +5,8 @@
 
 #include "sctp_network_gateway_common_impl.h"
 #include "ocudu/gateways/sctp_network_server.h"
+#include "ocudu/support/async/manual_event.h"
+#include <map>
 #include <unordered_map>
 
 struct sctp_sndrcvinfo;
@@ -14,20 +16,25 @@ namespace ocudu {
 
 /// Implements an SCTP server, capable of handling multiple SCTP associations.
 ///
-/// The server handles Rx data and SCTP association updates in the same thread of the io_broker.
+/// The io_broker thread only performs the raw sctp_recvmsg.
+//  All data and notification handling is deferred back to app_exec.
 class sctp_network_server_impl : public sctp_network_server, public sctp_network_gateway_common_impl
 {
   explicit sctp_network_server_impl(const sctp_network_gateway_config& sctp_cfg,
                                     io_broker&                         broker,
                                     task_executor&                     io_rx_executor,
+                                    task_executor&                     app_exec,
                                     sctp_network_association_factory&  assoc_factory);
 
 public:
   ~sctp_network_server_impl() override;
 
+  void stop() override;
+
   static std::unique_ptr<sctp_network_server> create(const sctp_network_gateway_config& sctp_cfg,
                                                      io_broker&                         broker,
                                                      task_executor&                     io_rx_executor,
+                                                     task_executor&                     app_exec,
                                                      sctp_network_association_factory&  assoc_factory);
 
   int get_socket_fd() const override { return socket.fd().value(); }
@@ -38,7 +45,7 @@ public:
 
   std::optional<uint16_t> get_listen_port() override;
 
-  bool init_association_with_msg(transport_layer_address dest_addr, byte_buffer payload) override;
+  async_task<bool> connect(transport_layer_address dest_addr) override;
 
 private:
   class sctp_send_notifier;
@@ -72,16 +79,24 @@ private:
                            socklen_t                     src_addr_len);
   void handle_association_shutdown(int assoc_id, const char* cause);
   void handle_sctp_shutdown_comp(int assoc_id);
-
-  /// Handle SCTP COMM UP event.
+  void handle_sctp_comm_lost(int assoc_id);
   void
   handle_sctp_comm_up(const struct sctp_assoc_change& assoc_change, const sockaddr& src_addr, socklen_t src_addr_len);
+  void handle_cannot_start_association(int assoc_id, const sockaddr& src_addr, socklen_t src_addr_len);
+
+  /// Remove association from the map, triggering recv notifier destruction.
+  void remove_association(int assoc_id);
 
   io_broker&                        broker;
   task_executor&                    io_rx_executor;
+  task_executor&                    app_exec;
   sctp_network_association_factory& assoc_factory;
 
-  association_map associations;
+  /// Keep-alive token used to cancel deferred tasks on shutdown. Only accessed from app_exec.
+  std::shared_ptr<bool> keepalive_token;
+
+  association_map                                       associations;
+  std::map<transport_layer_address, manual_event<bool>> pending_connects;
 };
 
 } // namespace ocudu

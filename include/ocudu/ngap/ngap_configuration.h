@@ -21,6 +21,7 @@ struct ngap_configuration {
   std::string                          ran_node_name;
   amf_index_t                          amf_index;
   std::vector<supported_tracking_area> supported_tas;
+  std::chrono::milliseconds            procedure_timeout{5000};
   std::chrono::seconds                 request_pdu_session_timeout; // timeout for requesting a pdu session in seconds
 };
 

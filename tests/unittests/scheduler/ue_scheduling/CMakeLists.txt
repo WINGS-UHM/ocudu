@@ -17,5 +17,4 @@ target_link_libraries(ue_scheduler_test
         sched_config
         gtest
         ocudu_gtest_main)
-add_test(ue_scheduler_test ue_scheduler_test)
 gtest_discover_tests(ue_scheduler_test)

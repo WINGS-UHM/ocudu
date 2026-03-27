@@ -117,16 +117,6 @@ cu_cp_impl::cu_cp_impl(const cu_cp_configuration& config_) :
   cell_meas_mobility_notifier.connect_mobility_manager(mobility_mng);
 
   conn_notifier.connect_node_connection_handler(controller);
-
-  // Start statistics report timer.
-  statistics_report_timer = cfg.services.timers->create_unique_timer(*cfg.services.cu_cp_executor);
-  statistics_report_timer.set(cfg.metrics.statistics_report_period,
-                              [this](timer_id_t /*tid*/) { on_statistics_report_timer_expired(); });
-  statistics_report_timer.run();
-  if (cfg.metrics_notifier != nullptr and cfg.metrics.metrics_report_period.count() != 0) {
-    periodic_metric_report_request metric_cfg{cfg.metrics.metrics_report_period, cfg.metrics_notifier};
-    metrics_session = metrics_hdlr->create_periodic_report_session(metric_cfg);
-  }
 }
 
 cu_cp_impl::~cu_cp_impl()
@@ -140,6 +130,16 @@ bool cu_cp_impl::start()
   std::future<bool>  fut = p.get_future();
 
   if (not cfg.services.cu_cp_executor->execute([this, &p]() {
+        // Start statistics report timer.
+        statistics_report_timer = cfg.services.timers->create_unique_timer(*cfg.services.cu_cp_executor);
+        statistics_report_timer.set(cfg.metrics.statistics_report_period,
+                                    [this](timer_id_t /*tid*/) { on_statistics_report_timer_expired(); });
+        statistics_report_timer.run();
+        if (cfg.metrics_notifier != nullptr and cfg.metrics.metrics_report_period.count() != 0) {
+          periodic_metric_report_request metric_cfg{cfg.metrics.metrics_report_period, cfg.metrics_notifier};
+          metrics_session = metrics_hdlr->create_periodic_report_session(metric_cfg);
+        }
+
         // Start AMF connection procedure.
         controller.amf_connection_handler().connect_to_amf(&p);
       })) {
@@ -152,13 +152,15 @@ bool cu_cp_impl::start()
 
   // Setup succeeded, add XNAPs and try to connect to peers.
   if (not cfg.services.cu_cp_executor->execute([this]() {
+        xnap_configuration xnc_cfg{.procedure_timeout  = cfg.xnap.procedure_timeout,
+                                   .reconnect_timer    = cfg.xnap.reconnect_timer,
+                                   .gnb_id             = cfg.node.gnb_id,
+                                   .tai_support_list   = ngap_db.get_supported_tracking_areas(),
+                                   .guami_list         = ngap_db.get_served_guamis(),
+                                   .no_connection_init = cfg.xnap.no_connection_init};
+
         uint32_t xnc_idx = 0;
         for (const auto& xnap : cfg.xnap.xnaps) {
-          xnap_configuration xnc_cfg{.gnb_id           = cfg.node.gnb_id,
-                                     .tai_support_list = ngap_db.get_supported_tracking_areas(),
-                                     .guami_list       = ngap_db.get_served_guamis()};
-
-          // TODO: pass init tx notifier.
           xnap_interface* xnap_entity = xnap_db.add_xnap(uint_to_xnc_peer_index(xnc_idx), xnap.peer_addr, xnc_cfg);
           if (xnap_entity == nullptr) {
             report_fatal_error("Failed to create XNAP entity for peer address {}", xnap.peer_addr);
@@ -167,7 +169,7 @@ bool cu_cp_impl::start()
         }
 
         // Initialize CU-CP XNC connection procedures.
-        controller.xnc_connection_handler().start();
+        controller.xnc_connection_handler().start(xnc_cfg);
       })) {
     report_fatal_error("Failed to initiate XNC CU-CP setup");
   }
@@ -796,20 +798,40 @@ cu_cp_impl::handle_new_pdu_session_resource_setup_request(cu_cp_pdu_session_reso
   ocudu_assert(ue->get_cu_up_index() != cu_up_index_t::invalid,
                "ue={}: could not find a CU-UP to serve the UE",
                request.ue_index);
+  const size_t drbs_before = ue->get_up_resource_manager().get_nof_drbs();
 
-  return launch_async<pdu_session_resource_setup_routine>(
-      request,
-      ue_mng.get_ue_config(),
-      ue->get_security_manager().get_up_as_config(),
-      cfg.security.default_security_indication,
-      cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_bearer_context_manager(),
-      du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
-      ue->get_rrc_ue(),
-      get_cu_cp_rrc_ue_interface(),
-      get_cu_cp_mobility_manager_handler(),
-      ue->get_task_sched(),
-      ue->get_up_resource_manager(),
-      logger);
+  auto& bearer_ctxt_mng = cu_up_db.find_cu_up_processor(ue->get_cu_up_index())->get_e1ap_bearer_context_manager();
+  auto& du_f1ap_handler = du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler();
+
+  auto pdu_setup_task = launch_async<pdu_session_resource_setup_routine>(request,
+                                                                         ue_mng.get_ue_config(),
+                                                                         ue->get_security_manager().get_up_as_config(),
+                                                                         cfg.security.default_security_indication,
+                                                                         bearer_ctxt_mng,
+                                                                         du_f1ap_handler,
+                                                                         ue->get_rrc_ue(),
+                                                                         get_cu_cp_rrc_ue_interface(),
+                                                                         get_cu_cp_mobility_manager_handler(),
+                                                                         ue->get_task_sched(),
+                                                                         ue->get_up_resource_manager(),
+                                                                         logger);
+
+  return launch_async([this, ue_index = request.ue_index, drbs_before, setup_task = std::move(pdu_setup_task)](
+                          coro_context<async_task<cu_cp_pdu_session_resource_setup_response>>& ctx) mutable {
+    cu_cp_pdu_session_resource_setup_response setup_response;
+    CORO_BEGIN(ctx);
+    CORO_AWAIT_VALUE(setup_response, std::move(setup_task));
+
+    cu_cp_ue* current_ue = ue_mng.find_du_ue(ue_index);
+    if (current_ue != nullptr) {
+      const size_t drbs_after = current_ue->get_up_resource_manager().get_nof_drbs();
+      if (drbs_before == 0 && drbs_after > 0) {
+        mobility_mng.trigger_auto_conditional_handover(ue_index);
+      }
+    }
+
+    CORO_RETURN(std::move(setup_response));
+  });
 }
 
 async_task<cu_cp_pdu_session_resource_modify_response>

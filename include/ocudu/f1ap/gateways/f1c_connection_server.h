@@ -22,6 +22,9 @@ public:
   /// Attach a CU-CP handler to the F1-C connection server.
   virtual void attach_cu_cp(cu_cp_f1c_handler& cu_f1c_handler_) = 0;
 
+  /// Stop the F1-C connection server.
+  virtual void stop() = 0;
+
   /// Get port on which the F1-C Server is listening for new connections.
   ///
   /// This method is useful in testing, where we don't want to use a specific port.

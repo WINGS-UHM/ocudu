@@ -92,7 +92,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time ,cpu_usage_percent FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time ,cpu_usage_percent FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -174,7 +174,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time ,cpu_usage_percent FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time ,cpu_usage_percent FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -291,7 +291,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time ,cpu_usage_percent FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time ,cpu_usage_percent FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -382,7 +382,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time ,cpu_usage_percent FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time ,cpu_usage_percent FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -477,7 +477,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, \"memory_usage_mb\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time, \"memory_usage_mb\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -559,7 +559,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, \"memory_usage_mb\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time, \"memory_usage_mb\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -676,7 +676,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, \"memory_usage_mb\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time, \"memory_usage_mb\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -767,7 +767,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, \"memory_usage_mb\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time, \"memory_usage_mb\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -862,7 +862,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT time, \"power_consumption_watts\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time, \"power_consumption_watts\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -944,7 +944,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, \"power_consumption_watts\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time, \"power_consumption_watts\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1061,7 +1061,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, \"power_consumption_watts\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time, \"power_consumption_watts\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1152,7 +1152,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, \"power_consumption_watts\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time, \"power_consumption_watts\" FROM app_resource_usage WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1182,7 +1182,28 @@
   "schemaVersion": 41,
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allowCustomValue": false,
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "JOSE3g9KVz"
+        },
+        "definition": "SELECT gnb_id FROM cell GROUP BY gnb_id",
+        "label": "gNB ID",
+        "name": "gnb_id",
+        "options": [],
+        "query": {
+          "query": "SELECT gnb_id FROM cell GROUP BY gnb_id",
+          "refId": "InfluxVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-15m",

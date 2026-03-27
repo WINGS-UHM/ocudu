@@ -229,13 +229,14 @@ public:
       const ngap_message& pdu_session_resource_setup_request,
       unsigned            cu_up_idx);
 
-  [[nodiscard]] bool
-  send_bearer_context_setup_response_and_await_ue_context_modification_request(unsigned               du_idx,
-                                                                               unsigned               cu_up_idx,
-                                                                               gnb_du_ue_f1ap_id_t    du_ue_id,
-                                                                               gnb_cu_up_ue_e1ap_id_t cu_up_e1ap_id,
-                                                                               pdu_session_id_t       psi,
-                                                                               qos_flow_id_t          qfi);
+  [[nodiscard]] bool send_bearer_context_setup_response_and_await_ue_context_modification_request(
+      unsigned                                                        du_idx,
+      unsigned                                                        cu_up_idx,
+      gnb_du_ue_f1ap_id_t                                             du_ue_id,
+      gnb_cu_up_ue_e1ap_id_t                                          cu_up_e1ap_id,
+      const std::map<pdu_session_id_t, std::vector<drb_test_params>>& pdu_sessions_to_add =
+          {{uint_to_pdu_session_id(1), {drb_test_params{drb_id_t::drb1, uint_to_qos_flow_id(1)}}}},
+      const std::vector<pdu_session_id_t>& pdu_sessions_to_fail = {});
 
   [[nodiscard]] bool
   send_bearer_context_modification_response_and_await_ue_context_modification_request(unsigned            du_idx,

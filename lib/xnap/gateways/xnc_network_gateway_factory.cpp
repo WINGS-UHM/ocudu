@@ -7,6 +7,7 @@
 #include "ocudu/cu_cp/cu_cp_xnc_handler.h"
 #include "ocudu/gateways/sctp_network_server_factory.h"
 #include "ocudu/pcap/dlt_pcap.h"
+#include "ocudu/support/async/async_task.h"
 #include "ocudu/support/error_handling.h"
 #include "ocudu/support/io/transport_layer_address.h"
 #include "ocudu/xnap/xnap_message.h"
@@ -16,55 +17,6 @@ using namespace ocudu;
 using namespace ocudu::ocucp;
 
 namespace {
-
-/// Notifier passed to the CU-CP, which the CU-CP will use to initiate the SCTP association.
-class no_assoc_xnc_to_gw_pdu_notifier final : public xnap_message_notifier
-{
-public:
-  no_assoc_xnc_to_gw_pdu_notifier(const transport_layer_address& peer_addr_,
-                                  sctp_network_server&           sctp_server_,
-                                  dlt_pcap&                      pcap_writer_,
-                                  ocudulog::basic_logger&        logger_) :
-    peer_addr(peer_addr_), sctp_server(sctp_server_), pcap_writer(pcap_writer_), logger(logger_)
-  {
-  }
-
-  /// Handle unpacked Tx XNAP PDU by packing and forwarding it into the SCTP GW.
-  bool on_new_message(const xnap_message& msg) override
-  {
-    // Only XN setup request is allowed as the initial Tx PDU, as it is the only one that can be sent before the SCTP
-    // association is established.
-    if (msg.pdu.type() != asn1::xnap::xn_ap_pdu_c::types_opts::init_msg &&
-        msg.pdu.init_msg().value.type() !=
-            asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::options::xn_setup_request) {
-      logger.error("Received non-initiating message as initial Tx PDU. Discarding");
-      return false;
-    }
-
-    // Pack XNAP PDU into SCTP SDU.
-    byte_buffer   tx_sdu{byte_buffer::fallback_allocation_tag{}};
-    asn1::bit_ref bref(tx_sdu);
-    if (msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
-      logger.error("Failed to pack XNAP PDU");
-      return false;
-    }
-
-    // Push Tx PDU to pcap.
-    if (pcap_writer.is_write_enabled()) {
-      pcap_writer.push_pdu(tx_sdu.copy());
-    }
-
-    // Forward packed XNAP Tx PDU to SCTP gateway to init the association.
-    sctp_server.init_association_with_msg(peer_addr, std::move(tx_sdu));
-    return true;
-  }
-
-private:
-  const transport_layer_address peer_addr;
-  sctp_network_server&          sctp_server;
-  dlt_pcap&                     pcap_writer;
-  ocudulog::basic_logger&       logger;
-};
 
 /// Notifier passed to the CU-CP, which the CU-CP will use to send XNAP Tx PDUs.
 class xnc_to_gw_pdu_notifier final : public xnap_message_notifier
@@ -152,14 +104,11 @@ public:
   {
     // Create SCTP server.
     sctp_server = create_sctp_network_server(
-        sctp_network_server_config{params.sctp, params.broker, params.io_rx_executor, *this});
+        sctp_network_server_config{params.sctp, params.broker, params.io_rx_executor, params.ctrl_exec, *this});
     report_error_if_not(sctp_server != nullptr, "Failed to create SCTP server");
   }
 
-  std::unique_ptr<xnap_message_notifier> get_init_tx_notifier(transport_layer_address peer_addr) override
-  {
-    return std::make_unique<no_assoc_xnc_to_gw_pdu_notifier>(peer_addr, *sctp_server, params.pcap, logger);
-  }
+  void stop() override { sctp_server->stop(); }
 
   void attach_cu_cp(ocucp::cu_cp_xnc_handler& xnc_handler_) override
   {
@@ -172,6 +121,15 @@ public:
                params.sctp.if_name,
                fmt::join(params.sctp.bind_addresses, ","),
                params.sctp.bind_port);
+  }
+
+  async_task<bool> connect_to_peer(transport_layer_address peer_addr) override
+  {
+    return launch_async([this, peer_addr, result = false](coro_context<async_task<bool>>& ctx) mutable {
+      CORO_BEGIN(ctx);
+      CORO_AWAIT_VALUE(result, sctp_server->connect(peer_addr));
+      CORO_RETURN(result);
+    });
   }
 
   std::optional<uint16_t> get_listen_port() const override { return sctp_server->get_listen_port(); }

@@ -25,12 +25,11 @@ using namespace ocudu;
 using namespace asn1::xnap;
 using namespace ocucp;
 
-xnap_impl::xnap_impl(xnc_peer_index_t                       xnc_index_,
-                     const xnap_configuration&              xnap_cfg_,
-                     xnap_cu_cp_notifier&                   cu_cp_notifier_,
-                     std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
-                     timer_manager&                         timers_,
-                     task_executor&                         ctrl_exec_) :
+xnap_impl::xnap_impl(xnc_peer_index_t          xnc_index_,
+                     const xnap_configuration& xnap_cfg_,
+                     xnap_cu_cp_notifier&      cu_cp_notifier_,
+                     timer_manager&            timers_,
+                     task_executor&            ctrl_exec_) :
   logger(ocudulog::fetch_basic_logger("XNAP")),
   ue_ctxt_list(timers_, ctrl_exec_, logger),
   xnc_index(xnc_index_),
@@ -38,7 +37,6 @@ xnap_impl::xnap_impl(xnc_peer_index_t                       xnc_index_,
   cu_cp_notifier(cu_cp_notifier_),
   timers(timers_),
   ctrl_exec(ctrl_exec_),
-  tx_notifier(std::move(init_tx_notifier_)),
   xn_setup_outcome(timer_factory{timers, ctrl_exec})
 {
 }
@@ -345,7 +343,8 @@ async_task<expected<cu_cp_status_transfer>> xnap_impl::handle_sn_status_transfer
   }
 
   xnap_ue_context& ue_ctxt = ue_ctxt_list[ue_index];
-  return launch_async<xnap_sn_status_transfer_procedure>(ue_ctxt.sn_status_transfer_outcome, ue_ctxt.logger);
+  return launch_async<xnap_sn_status_transfer_procedure>(
+      xnap_cfg.procedure_timeout, ue_ctxt.sn_status_transfer_outcome, ue_ctxt.logger);
 }
 
 bool xnap_impl::handle_ue_context_release_required(ue_index_t ue_index)

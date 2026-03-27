@@ -7,6 +7,7 @@
 #include "ocudu/cu_cp/cell_meas_manager_config.h"
 #include "ocudu/rrc/meas_types.h"
 #include "ocudu/support/ocudu_assert.h"
+#include <set>
 #include <unordered_set>
 #include <utility>
 
@@ -184,6 +185,28 @@ std::optional<cell_meas_config> cell_meas_manager::get_cell_config(nr_cell_ident
     cell_cfg = cfg.cells.at(nci);
   }
   return cell_cfg;
+}
+
+std::vector<pci_t> cell_meas_manager::get_neighbor_pcis(nr_cell_identity serving_nci) const
+{
+  auto serving_it = cfg.cells.find(serving_nci);
+  if (serving_it == cfg.cells.end()) {
+    return {};
+  }
+
+  std::set<pci_t> neighbor_pcis;
+  for (const auto& ncell : serving_it->second.ncells) {
+    auto neighbor_it = cfg.cells.find(ncell.nci);
+    if (neighbor_it == cfg.cells.end()) {
+      continue;
+    }
+    if (!neighbor_it->second.serving_cell_cfg.pci.has_value()) {
+      continue;
+    }
+    neighbor_pcis.insert(neighbor_it->second.serving_cell_cfg.pci.value());
+  }
+
+  return {neighbor_pcis.begin(), neighbor_pcis.end()};
 }
 
 bool cell_meas_manager::update_cell_config(nr_cell_identity nci, const serving_cell_meas_config& serv_cell_cfg)

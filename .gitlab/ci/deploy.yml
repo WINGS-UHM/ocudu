@@ -10,6 +10,13 @@ ocudu image:
   stage: deploy
   rules:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-docker/
+      when: never
+    - if: $ON_MR
+      changes:
+        paths:
+          - docker/scripts/**/*
+          - docker/Dockerfile
   retry: 2
   variables:
     # Docker
@@ -18,10 +25,13 @@ ocudu image:
     CONTEXT: ${CI_PROJECT_DIR}
     DOCKERFILE: docker
     MODE: publish
-    ATTESTATION_FILE: /usr/local/etc/ocudu_image.spdx
+    ATTESTATION_FILE: /usr/local/share/ocudu.spdx
     # Arguments
     DOCKER_UHD_VERSION: "4.9.0.0"
     DOCKER_DPDK_VERSION: "24.11.2"
+    # CI
+    KUBERNETES_EPHEMERAL_STORAGE_REQUEST: "100G"
+    KUBERNETES_EPHEMERAL_STORAGE_LIMIT: "100G"
   timeout: 3 hours
   tags:
     - $OCUDU_RUNNER_TAG-${PLATFORM}
@@ -63,12 +73,12 @@ ocudu image:
         PLATFORM: amd64
       # ARM
       - SUFFIX: arm64
-        MARCH: neoverse-n1+crc+crypto+ssbs  # keep using MARCH as a job variable here. It's converted to mcpu in the dockerfile
+        MARCH: neoverse-n1+crc+crypto+ssbs # keep using MARCH as a job variable here. It's converted to mcpu in the dockerfile
         TAG: arm64
         PLATFORM: arm64
       - SUFFIX: arm64_debug
         EXTRA_CMAKE_ARGS: -DFORCE_DEBUG_INFO=On
-        MARCH: neoverse-n1+crc+crypto+ssbs  # keep using MARCH as a job variable here. It's converted to mcpu in the dockerfile
+        MARCH: neoverse-n1+crc+crypto+ssbs # keep using MARCH as a job variable here. It's converted to mcpu in the dockerfile
         TAG: arm64
         PLATFORM: arm64
   needs: []

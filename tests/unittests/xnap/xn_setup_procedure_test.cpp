@@ -18,7 +18,6 @@ class xn_setup_procedure_test : public xnap_test
 TEST_F(xn_setup_procedure_test, when_correct_setup_received_from_peer_setup_complete_is_sent)
 {
   // Conect TX notifier to the XNAP instance, so that we can capture the response to the setup request.
-  init_sctp_association();
 
   xnap_message xn_setup_req = generate_asn1_xn_setup_request(xnap_peer_cfg);
   xnap->handle_message(xn_setup_req);
@@ -41,7 +40,7 @@ TEST_F(xnap_test, when_xn_setup_procedure_times_out_then_setup_failure_is_return
   ASSERT_FALSE(t.ready());
 
   // Check XN setup request.
-  xnap_message setup_req = xnc_gw.get_last_tx_message();
+  xnap_message setup_req = get_last_message();
   ASSERT_EQ(setup_req.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::init_msg);
   ASSERT_EQ(setup_req.pdu.init_msg().value.type(),
             asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);
@@ -64,7 +63,7 @@ TEST_F(xn_setup_procedure_test,
   ASSERT_FALSE(t.ready());
 
   // Check XN setup request.
-  xnap_message setup_req = xnc_gw.get_last_tx_message();
+  xnap_message setup_req = get_last_message();
   ASSERT_EQ(setup_req.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::init_msg);
   ASSERT_EQ(setup_req.pdu.init_msg().value.type(),
             asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);
@@ -78,7 +77,7 @@ TEST_F(xn_setup_procedure_test,
   ASSERT_TRUE(this->tick(t, std::chrono::milliseconds(10000)));
 
   // Check XN setup request is sent again.
-  setup_req = xnc_gw.get_last_tx_message();
+  setup_req = get_last_message();
   ASSERT_EQ(setup_req.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::init_msg);
   ASSERT_EQ(setup_req.pdu.init_msg().value.type(),
             asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);
@@ -102,7 +101,7 @@ TEST_F(xn_setup_procedure_test, when_xn_setup_failure_without_time_to_wait_recei
   ASSERT_FALSE(t.ready());
 
   // Check XN setup request.
-  xnap_message setup_req = xnc_gw.get_last_tx_message();
+  xnap_message setup_req = get_last_message();
   ASSERT_EQ(setup_req.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::init_msg);
   ASSERT_EQ(setup_req.pdu.init_msg().value.type(),
             asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);
@@ -126,7 +125,7 @@ TEST_F(xn_setup_procedure_test, when_xn_setup_request_required_then_setup_is_sen
   ASSERT_FALSE(t.ready());
 
   // Check XN setup request.
-  xnap_message setup_req = xnc_gw.get_last_tx_message();
+  xnap_message setup_req = get_last_message();
   ASSERT_EQ(setup_req.pdu.type(), asn1::xnap::xn_ap_pdu_c::types_opts::init_msg);
   ASSERT_EQ(setup_req.pdu.init_msg().value.type(),
             asn1::xnap::xnap_elem_procs_o::init_msg_c::types_opts::xn_setup_request);

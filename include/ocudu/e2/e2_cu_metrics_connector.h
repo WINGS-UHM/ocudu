@@ -26,6 +26,8 @@ public:
 
   void report_metrics(const ocuup::f1u_metrics_container& metrics) override;
 
+  void report_metrics(const cu_cp_metrics_report& metrics) override;
+
   void connect_e2_cu_meas_provider(std::unique_ptr<e2_cu_metrics_notifier> meas_provider) override;
 
 private:

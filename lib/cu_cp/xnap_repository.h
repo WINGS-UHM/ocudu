@@ -5,6 +5,7 @@
 #pragma once
 
 #include "adapters/xnap_adapters.h"
+#include "task_schedulers/xnap_task_scheduler.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/support/io/transport_layer_address.h"
@@ -50,8 +51,15 @@ public:
   /// \return A pointer to the interface of the added XNAP object if it was successfully found, a nullptr otherwise.
   xnap_interface* find_xnap(const gnb_id_t& peer_gnb_id);
 
+  /// \brief Get the peer address of an XNAP connection.
+  /// \param[in] Index of the XN-C peer in the XNAP repository.
+  /// \return Address of the XN-C peer to which the XNAP object should be connected.
+  std::optional<transport_layer_address> get_peer_addr(xnc_peer_index_t xnc_index) const;
+
   /// \brief Get the all XNAP interfaces.
   std::map<xnc_peer_index_t, xnap_interface*> get_xnaps();
+
+  xnap_task_scheduler& get_xnap_task_scheduler() { return xnc_task_sched; }
 
   /// Number of XNAPs managed by the CU-CP.
   size_t get_nof_xnaps() const { return xnap_db.size(); }
@@ -72,6 +80,8 @@ private:
 
   xnap_repository_config  cfg;
   ocudulog::basic_logger& logger;
+
+  xnap_task_scheduler xnc_task_sched;
 
   std::map<xnc_peer_index_t, xnap_context> xnap_db;
 };

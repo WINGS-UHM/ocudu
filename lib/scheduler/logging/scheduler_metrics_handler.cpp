@@ -506,7 +506,7 @@ void cell_metrics_handler::handle_slot_result(slot_point_extended       sl_tx,
       grant_prbs = (ul_grant.pusch_cfg.rbs.type1().length());
     }
     ues[it->second].data.tot_ul_prbs_used += grant_prbs;
-    if (ul_prbs_used_per_tdd_slot_idx.size()) {
+    if (not ul_prbs_used_per_tdd_slot_idx.empty()) {
       ul_prbs_used_per_tdd_slot_idx[last_slot_tx.count() % ul_prbs_used_per_tdd_slot_idx.size()] += grant_prbs;
     }
     ue_metric_context& u = ues[it->second];

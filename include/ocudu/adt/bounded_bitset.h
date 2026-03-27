@@ -846,13 +846,14 @@ public:
   {
     static_assert(sizeof(UnsignedInteger) <= sizeof(word_t), "ERROR: provided array type is too large");
     static_assert(std::is_unsigned_v<UnsignedInteger>, "Only unsigned integers are supported");
-    static constexpr size_t steps_per_word      = sizeof(word_t) / sizeof(UnsignedInteger);
-    static constexpr size_t bits_per_integer    = sizeof(UnsignedInteger) * 8U;
-    static constexpr auto   integer_mask        = mask_lsb_ones<word_t>(bits_per_integer);
-    const word_t            sz                  = size();
-    const unsigned          last_word_steps     = divide_ceil(sz % bits_per_word, bits_per_integer);
-    const unsigned          nof_words           = nof_words_();
-    const unsigned          nof_integers_packed = (nof_words - 1) * steps_per_word + last_word_steps;
+    static constexpr size_t steps_per_word   = sizeof(word_t) / sizeof(UnsignedInteger);
+    static constexpr size_t bits_per_integer = sizeof(UnsignedInteger) * 8U;
+    static constexpr auto   integer_mask     = mask_lsb_ones<word_t>(bits_per_integer);
+    const word_t            sz               = size();
+    const unsigned          last_word_steps =
+        (sz % bits_per_word) ? divide_ceil(sz % bits_per_word, bits_per_integer) : steps_per_word;
+    const unsigned nof_words           = nof_words_();
+    const unsigned nof_integers_packed = (nof_words - 1) * steps_per_word + last_word_steps;
     ocudu_assert(
         packed_bits.size() >= nof_integers_packed, "ERROR: provided array size='{}' is too small", packed_bits.size());
 

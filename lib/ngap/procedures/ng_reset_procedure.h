@@ -16,7 +16,8 @@ namespace ocucp {
 class ng_reset_procedure
 {
 public:
-  ng_reset_procedure(const cu_cp_reset&        msg_,
+  ng_reset_procedure(ngap_context_t&           context_,
+                     const cu_cp_reset&        msg_,
                      ngap_message_notifier&    amf_notif_,
                      ngap_transaction_manager& ev_mng_,
                      ngap_ue_context_list&     ue_ctxt_list_,
@@ -29,6 +30,7 @@ public:
   bool send_ng_reset();
 
 private:
+  ngap_context_t&           context;
   const cu_cp_reset         msg;
   ngap_message_notifier&    amf_notifier;
   ngap_transaction_manager& ev_mng;

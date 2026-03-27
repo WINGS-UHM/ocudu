@@ -22,6 +22,8 @@ struct f1c_cu_sctp_gateway_config {
   io_broker& broker;
   /// Execution context used to process received SCTP packets.
   task_executor& io_rx_executor;
+  /// CU-CP control executor to process SCTP notifications deffered back from io_broker executor.
+  task_executor& ctrl_exec;
   /// PCAP writer for the F1AP messages.
   dlt_pcap& pcap;
 };

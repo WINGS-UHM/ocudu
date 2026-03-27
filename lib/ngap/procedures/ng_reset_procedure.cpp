@@ -11,14 +11,13 @@ using namespace ocudu;
 using namespace ocudu::ocucp;
 using namespace asn1::ngap;
 
-static constexpr std::chrono::milliseconds ng_reset_response_timeout{5000};
-
-ng_reset_procedure::ng_reset_procedure(const cu_cp_reset&        msg_,
+ng_reset_procedure::ng_reset_procedure(ngap_context_t&           context_,
+                                       const cu_cp_reset&        msg_,
                                        ngap_message_notifier&    amf_notif_,
                                        ngap_transaction_manager& ev_mng_,
                                        ngap_ue_context_list&     ue_ctxt_list_,
                                        ocudulog::basic_logger&   logger_) :
-  msg(msg_), amf_notifier(amf_notif_), ev_mng(ev_mng_), ue_ctxt_list(ue_ctxt_list_), logger(logger_)
+  context(context_), msg(msg_), amf_notifier(amf_notif_), ev_mng(ev_mng_), ue_ctxt_list(ue_ctxt_list_), logger(logger_)
 {
 }
 
@@ -29,7 +28,7 @@ void ng_reset_procedure::operator()(coro_context<async_task<void>>& ctx)
   logger.debug("\"{}\" started...", name());
 
   // Subscribe to respective publisher to receive NG RESET ACKNOWLEDGE message.
-  transaction_sink.subscribe_to(ev_mng.ng_reset_outcome, ng_reset_response_timeout);
+  transaction_sink.subscribe_to(ev_mng.ng_reset_outcome, context.procedure_timeout);
 
   // Forward message to AMF.
   if (!send_ng_reset()) {
@@ -60,7 +59,7 @@ bool ng_reset_procedure::send_ng_reset()
   } else {
     // Reset only specific UEs.
     ue_associated_lc_ng_conn_list_l& reset_part_of_ng_interface = ng_reset->reset_type.set_part_of_ng_interface();
-    for (auto& ue : msg.ues_to_reset) {
+    for (const auto& ue : msg.ues_to_reset) {
       if (!ue_ctxt_list.contains(ue)) {
         logger.warning("ue={}: Excluding UE from NG Reset. UE context does not exist", ue);
       } else {

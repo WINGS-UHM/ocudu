@@ -11,10 +11,14 @@
 
 namespace ocudu {
 
+struct cu_cp_metrics_report;
+
 class e2_cu_metrics_notifier : public pdcp_metrics_notifier, public ocuup::f1u_metrics_notifier
 {
 public:
   virtual ~e2_cu_metrics_notifier() = default;
+
+  virtual void report_metrics(const cu_cp_metrics_report& metrics) = 0;
 
   using ocuup::f1u_metrics_notifier::report_metrics;
   using pdcp_metrics_notifier::report_metrics;

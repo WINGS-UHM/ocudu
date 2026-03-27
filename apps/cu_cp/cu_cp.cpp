@@ -284,17 +284,28 @@ int main(int argc, char** argv)
   // Create XN-C GW (TODO cleanup port and PPID args with factory)
   cu_cp_unit_config                              cp_unit_cfg = o_cu_cp_app_unit->get_o_cu_cp_unit_config().cucp_cfg;
   std::unique_ptr<ocucp::xnc_connection_gateway> xnc_gw;
-  if (!cp_unit_cfg.xnap_configs.empty()) {
+  if (!cp_unit_cfg.xnap_config.connections.empty()) {
     sctp_network_gateway_config xnc_sctp_cfg = {};
     xnc_sctp_cfg.if_name                     = "XN-C";
-    for (const auto& xnap_cfg : cp_unit_cfg.xnap_configs) {
+    xnc_sctp_cfg.non_blocking_mode           = true;
+    for (const auto& xnap_cfg : cp_unit_cfg.xnap_config.connections) {
       xnc_sctp_cfg.bind_addresses.insert(
           xnc_sctp_cfg.bind_addresses.end(), xnap_cfg.bind_addrs.begin(), xnap_cfg.bind_addrs.end());
     }
-    xnc_sctp_cfg.bind_port = XNAP_PORT;
-    xnc_sctp_cfg.ppid      = XNAP_PPID;
-    xnc_sctp_gateway_config xnc_server_cfg(
-        {xnc_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().xnc_rx_executor(), *cu_cp_dlt_pcaps.xnap});
+    xnc_sctp_cfg.rto_initial       = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_rto_initial_ms);
+    xnc_sctp_cfg.rto_min           = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_rto_min_ms);
+    xnc_sctp_cfg.rto_max           = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_rto_max_ms);
+    xnc_sctp_cfg.init_max_attempts = cp_unit_cfg.xnap_config.sctp_init_max_attempts;
+    xnc_sctp_cfg.max_init_timeo    = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_rto_max_ms);
+    xnc_sctp_cfg.hb_interval       = std::chrono::milliseconds(cp_unit_cfg.xnap_config.sctp_hb_interval_ms);
+    xnc_sctp_cfg.assoc_max_rxt     = cp_unit_cfg.xnap_config.sctp_assoc_max_retx;
+    xnc_sctp_cfg.bind_port         = XNAP_PORT;
+    xnc_sctp_cfg.ppid              = XNAP_PPID;
+    xnc_sctp_gateway_config xnc_server_cfg({xnc_sctp_cfg,
+                                            *epoll_broker,
+                                            workers.get_cu_cp_executor_mapper().xnc_rx_executor(),
+                                            workers.get_cu_cp_executor_mapper().ctrl_executor(),
+                                            *cu_cp_dlt_pcaps.xnap});
 
     xnc_gw = create_xnc_connection_gateway(xnc_server_cfg);
   }
@@ -305,8 +316,11 @@ int main(int argc, char** argv)
   f1c_sctp_cfg.bind_addresses              = cu_cp_cfg.f1ap_cfg.bind_addrs;
   f1c_sctp_cfg.bind_port                   = F1AP_PORT;
   f1c_sctp_cfg.ppid                        = F1AP_PPID;
-  f1c_cu_sctp_gateway_config f1c_server_cfg(
-      {f1c_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().f1c_rx_executor(), *cu_cp_dlt_pcaps.f1ap});
+  f1c_cu_sctp_gateway_config                    f1c_server_cfg({f1c_sctp_cfg,
+                                                                *epoll_broker,
+                                                                workers.get_cu_cp_executor_mapper().f1c_rx_executor(),
+                                                                workers.get_cu_cp_executor_mapper().ctrl_executor(),
+                                                                *cu_cp_dlt_pcaps.f1ap});
   std::unique_ptr<ocucp::f1c_connection_server> cu_f1c_gw = ocudu::create_f1c_gateway_server(f1c_server_cfg);
 
   // Instantiate E1 GW
@@ -317,8 +331,12 @@ int main(int argc, char** argv)
   e1_sctp_cfg.bind_port      = E1AP_PORT;
   e1_sctp_cfg.ppid           = E1AP_PPID;
   // > Create E1 gateway
-  std::unique_ptr<ocucp::e1_connection_server> e1_gw = create_e1_gateway_server(e1_cu_cp_sctp_gateway_config{
-      e1_sctp_cfg, *epoll_broker, workers.get_cu_cp_executor_mapper().e1_rx_executor(), *cu_cp_dlt_pcaps.e1ap});
+  std::unique_ptr<ocucp::e1_connection_server> e1_gw =
+      create_e1_gateway_server(e1_cu_cp_sctp_gateway_config{e1_sctp_cfg,
+                                                            *epoll_broker,
+                                                            workers.get_cu_cp_executor_mapper().e1_rx_executor(),
+                                                            workers.get_cu_cp_executor_mapper().ctrl_executor(),
+                                                            *cu_cp_dlt_pcaps.e1ap});
 
   // Instantiate E2AP client gateway.
   std::unique_ptr<e2_connection_client> e2_gw_cu_cp = create_e2_gateway_client(
@@ -352,7 +370,22 @@ int main(int argc, char** argv)
   // Create O-CU-CP.
   auto            o_cucp_unit = o_cu_cp_app_unit->create_o_cu_cp(o_cucp_deps);
   ocucp::o_cu_cp& o_cucp_obj  = *o_cucp_unit.unit;
+  for (auto& metric : o_cucp_unit.metrics) {
+    metrics_configs.push_back(std::move(metric));
+  }
 
+  // Create metrics manager.
+  app_services::metrics_manager metrics_mngr(
+      ocudulog::fetch_basic_logger("CU"),
+      workers.get_metrics_executor(),
+      metrics_configs,
+      app_timers,
+      std::chrono::milliseconds(cu_cp_cfg.metrics_cfg.metrics_service_cfg.app_usage_report_period));
+
+  // Connect the forwarder to the metrics manager.
+  metrics_notifier_forwarder.connect(metrics_mngr);
+
+  // Add the metrics STDOUT command.
   if (std::unique_ptr<app_services::cmdline_command> cmd = app_services::create_stdout_metrics_app_command(
           {{o_cucp_unit.commands.cmdline.metrics_subcommands}}, false)) {
     o_cucp_unit.commands.cmdline.commands.push_back(std::move(cmd));
@@ -362,16 +395,8 @@ int main(int argc, char** argv)
   app_services::cmdline_command_dispatcher command_parser(
       *epoll_broker, workers.get_cmd_line_executor(), o_cucp_unit.commands.cmdline.commands);
 
-  for (auto& metric : o_cucp_unit.metrics) {
-    metrics_configs.push_back(std::move(metric));
-  }
-
   // Connect E1AP to O-CU-CP.
   e1_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_e1_handler());
-
-  if (remote_control_server) {
-    remote_control_server->get_operation_controller().start();
-  }
 
   if (xnc_gw != nullptr) {
     // Connect XN-C to O-CU-CP and start listening for new XN-C connection requests.
@@ -388,19 +413,15 @@ int main(int argc, char** argv)
     report_error("CU-CP failed to connect to AMF");
   }
 
+  // Configure the remote commands and start the service.
+  if (remote_control_server) {
+    remote_control_server->get_operation_controller().start();
+  }
+
   // Connect F1-C to O-CU-CP and start listening for new F1-C connection requests.
   cu_f1c_gw->attach_cu_cp(o_cucp_obj.get_cu_cp().get_f1c_handler());
 
-  app_services::metrics_manager metrics_mngr(
-      ocudulog::fetch_basic_logger("CU"),
-      workers.get_metrics_executor(),
-      metrics_configs,
-      app_timers,
-      std::chrono::milliseconds(cu_cp_cfg.metrics_cfg.metrics_service_cfg.app_usage_report_period));
-
-  // Connect the forwarder to the metrics manager.
-  metrics_notifier_forwarder.connect(metrics_mngr);
-
+  // Start metrics manager.
   metrics_mngr.start();
 
   {
@@ -416,14 +437,21 @@ int main(int argc, char** argv)
     }
   }
 
+  // Stop metrics manager.
   metrics_mngr.stop();
 
+  // Stop remote control server.
   if (remote_control_server) {
     remote_control_server->get_operation_controller().stop();
   }
 
   // Stop O-CU-CP activity.
   o_cucp_obj.get_operation_controller().stop();
+
+  // Stop gateway SCTP servers.
+  cu_f1c_gw->stop();
+  e1_gw->stop();
+  // Xn-C gateway is stopped by Xn-C connection manager.
 
   // FIXME: closing the E1 gateway should be part of the E1 Release procedure
   e1_gw.reset();

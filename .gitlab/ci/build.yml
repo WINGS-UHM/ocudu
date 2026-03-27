@@ -147,16 +147,19 @@ variables:
     - launch_tests
   timeout: 3 hours
   after_script:
-    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_1.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_1.xml   || true
-    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_2.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_2.xml   || true
+    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_1.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_1.xml  || true
+    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/coverage_2.xml   ${CI_PROJECT_DIR}/${CI_JOB_ID}_coverage_2.xml  || true
+    - mv ${CI_PROJECT_DIR}/${OCUDU_BUILD_DIR}/xunit.xml        ${CI_PROJECT_DIR}/${CI_JOB_ID}_xunit.xml       || true
   artifacts:
     when: always
     reports:
       coverage_report:
         coverage_format: cobertura
         path: ${CI_JOB_ID}_coverage*.xml
+      junit: ${CI_JOB_ID}_xunit.xml
     paths:
       - ${CI_JOB_ID}_coverage*.xml
+      - ${CI_JOB_ID}_xunit.xml
       - ${OCUDU_BUILD_DIR}/Testing/Temporary/MemoryChecker.*.log
     expire_in: 5 days
 
@@ -494,7 +497,7 @@ package:
       - OS_VERSION: "22.04"
       - OS_VERSION: "24.04"
       # - OS_VERSION: "25.10"             # disabled, see comment below
-      # - OS_VERSION: "26.04"             # disabled, see comment below
+      - OS_VERSION: "26.04"
       # Since version 20251007 of Ubuntu 25.10 a Rust implementation of coreutils (rust-coreutils and coreutils-from-uutils)
       # is used instead of the traditional version from GNU (coreutils-from-gnu). A bug in the Rust coreutils
       # causes a permission error during startup of the container (as the packing is run as unprivileged user).
@@ -517,7 +520,7 @@ install-package:
       - OS_VERSION: "22.04"
       - OS_VERSION: "24.04"
       # - OS_VERSION: "25.10"             # disabled, see comment above
-      # - OS_VERSION: "26.04"             # disabled, see comment above
+      - OS_VERSION: "26.04"
   needs:
     - package
 
@@ -906,7 +909,7 @@ sanitizers arm neon:
         COMPILER: clang
         ENABLE_ASAN: "True"
         TEST_MODE: default
-      - OS: [ubuntu-26.04, ubuntu-24.04]
+      - OS: [ubuntu-26.04] # ubuntu-24.04 disabled
         SANITIZER: valgrind
         COMPILER: gcc
         TEST_MODE: valgrind
@@ -953,7 +956,7 @@ build uhd alt:
         UHD_VERSION: ["4.8.0.0"]
       - OS: [ubuntu-26.04]
         COMPILER: [gcc, clang]
-        UHD_VERSION: ["4.9.0.0"]
+        UHD_VERSION: ["4.9.0.1"]
 
 # Validate test gdb pretty printers
 

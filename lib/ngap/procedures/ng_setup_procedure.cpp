@@ -3,18 +3,15 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ng_setup_procedure.h"
-#include "../ngap_asn1_helpers.h"
+#include "../ngap_asn1_validators.h"
 #include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/asn1/ngap/common.h"
 #include "ocudu/ngap/ngap_setup.h"
 #include "ocudu/support/async/async_timer.h"
-#include <variant>
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
 using namespace asn1::ngap;
-
-static constexpr std::chrono::milliseconds ng_setup_response_timeout{5000};
 
 ng_setup_procedure::ng_setup_procedure(ngap_context_t&           context_,
                                        const ngap_message&       request_,
@@ -41,7 +38,7 @@ void ng_setup_procedure::operator()(coro_context<async_task<ngap_ng_setup_result
 
   while (true) {
     // Subscribe to respective publisher to receive NG SETUP RESPONSE/FAILURE message.
-    transaction_sink.subscribe_to(ev_mng.ng_setup_outcome, ng_setup_response_timeout);
+    transaction_sink.subscribe_to(ev_mng.ng_setup_outcome, context.procedure_timeout);
 
     // Forward message to AMF.
     if (!amf_notifier.on_new_message(request)) {
@@ -79,8 +76,8 @@ bool ng_setup_procedure::retry_required()
 
   if (transaction_sink.timeout_expired()) {
     // Timeout case.
-    logger.warning("\"{}\" timed out after {}ms", name(), ng_setup_response_timeout.count());
-    fmt::print("\"{}\" timed out after {}ms\n", name(), ng_setup_response_timeout.count());
+    logger.warning("\"{}\" timed out after {}ms", name(), context.procedure_timeout.count());
+    fmt::print("\"{}\" timed out after {}ms\n", name(), context.procedure_timeout.count());
     return false;
   }
 
@@ -124,50 +121,56 @@ bool ng_setup_procedure::retry_required()
 
 ngap_ng_setup_result ng_setup_procedure::create_ng_setup_result()
 {
-  ngap_ng_setup_result res{};
-
-  if (transaction_sink.successful()) {
-    logger.debug("\"{}\" finished successfully", name());
-
-    fill_ngap_ng_setup_result(res, transaction_sink.response());
-
-    auto& ng_setup_response = std::get<ngap_ng_setup_response>(res);
-    for (const auto& guami_item : ng_setup_response.served_guami_list) {
-      context.served_guami_list.push_back(guami_item.guami);
+  if (!transaction_sink.successful()) {
+    if (transaction_sink.failed()) {
+      return create_ngap_ng_setup_failure(transaction_sink.failure());
     }
-    context.amf_name = ng_setup_response.amf_name;
-
-    // Capture packed request bytes.
-    {
-      byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
-      asn1::bit_ref bref(packed);
-      if (request.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
-        ng_setup_response.packed_ng_setup_request = std::move(packed);
-      } else {
-        logger.warning("\"{}\": failed to pack NGSetupRequest", name());
-      }
-    }
-
-    // Capture packed response bytes.
-    {
-      ngap_pdu_c resp_pdu;
-      resp_pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_NG_SETUP);
-      resp_pdu.successful_outcome().value.ng_setup_resp() = transaction_sink.response();
-      byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
-      asn1::bit_ref bref(packed);
-      if (resp_pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
-        ng_setup_response.packed_ng_setup_response = std::move(packed);
-      } else {
-        logger.warning("\"{}\": failed to pack NGSetupResponse", name());
-      }
-    }
-  } else if (transaction_sink.failed()) {
-    fill_ngap_ng_setup_result(res, transaction_sink.failure());
-  } else {
-    res = ngap_ng_setup_failure{ngap_cause_misc_t::unspecified};
+    return ngap_ng_setup_failure{ngap_cause_misc_t::unspecified};
   }
 
-  return res;
+  // Validate response content.
+  auto msgerr = validate_ng_setup_response(transaction_sink.response());
+  if (not msgerr.has_value()) {
+    logger.warning("Received invalid NG Setup Response. Cause: {}", msgerr.error().second);
+    logger.debug("\"{}\" failed", name());
+    return ngap_ng_setup_failure{ngap_cause_misc_t::unspecified};
+  }
+
+  ngap_ng_setup_response response = create_ngap_ng_setup_response(transaction_sink.response());
+
+  for (const auto& guami_item : response.served_guami_list) {
+    context.served_guami_list.push_back(guami_item.guami);
+  }
+  context.amf_name = response.amf_name;
+
+  // Capture packed request bytes.
+  {
+    byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
+    asn1::bit_ref bref(packed);
+    if (request.pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
+      response.packed_ng_setup_request = std::move(packed);
+    } else {
+      logger.debug("\"{}\": failed to pack NGSetupRequest", name());
+    }
+  }
+
+  // Capture packed response bytes.
+  {
+    ngap_pdu_c resp_pdu;
+    resp_pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_NG_SETUP);
+    resp_pdu.successful_outcome().value.ng_setup_resp() = transaction_sink.response();
+    byte_buffer   packed{byte_buffer::fallback_allocation_tag{}};
+    asn1::bit_ref bref(packed);
+    if (resp_pdu.pack(bref) == asn1::OCUDUASN_SUCCESS) {
+      response.packed_ng_setup_response = std::move(packed);
+    } else {
+      logger.debug("\"{}\": failed to pack NGSetupResponse", name());
+    }
+  }
+
+  logger.debug("\"{}\" finished successfully", name());
+
+  return response;
 }
 
 bool ng_setup_procedure::is_failure_misconfiguration(const cause_c& cause)
@@ -187,4 +190,60 @@ bool ng_setup_procedure::is_failure_misconfiguration(const cause_c& cause)
       break;
   }
   return false;
+}
+
+ngap_ng_setup_response
+ng_setup_procedure::create_ngap_ng_setup_response(const asn1::ngap::ng_setup_resp_s& asn1_response)
+{
+  ngap_ng_setup_response response;
+
+  // Fill AMF name
+  response.amf_name = asn1_response->amf_name.to_string();
+
+  // Fill served GUAMI list.
+  for (const auto& asn1_served_guami_item : asn1_response->served_guami_list) {
+    ngap_served_guami_item served_guami_item = {};
+    // Note: The GUAMI is checked in the validation function, so it is safe to access it here.
+    served_guami_item.guami = asn1_to_guami(asn1_served_guami_item.guami).value();
+    if (asn1_served_guami_item.backup_amf_name_present) {
+      served_guami_item.backup_amf_name = asn1_served_guami_item.backup_amf_name.to_string();
+    }
+    response.served_guami_list.push_back(served_guami_item);
+  }
+
+  // Fill relative AMF capacity.
+  response.relative_amf_capacity = asn1_response->relative_amf_capacity;
+
+  // Fill PLMN support list.
+  for (const auto& asn1_plmn_support_item : asn1_response->plmn_support_list) {
+    ngap_plmn_support_item plmn_support_item = {};
+    plmn_support_item.plmn_id                = asn1_plmn_support_item.plmn_id.to_string();
+
+    for (const auto& asn1_slice_support_item : asn1_plmn_support_item.slice_support_list) {
+      slice_support_item_t slice_support_item = {};
+      slice_support_item.s_nssai.sst = slice_service_type{(uint8_t)asn1_slice_support_item.s_nssai.sst.to_number()};
+      if (asn1_slice_support_item.s_nssai.sd_present) {
+        // Note: The SD is checked in the validation function, so it is safe to access it here.
+        slice_support_item.s_nssai.sd =
+            slice_differentiator::create(asn1_slice_support_item.s_nssai.sd.to_number()).value();
+      }
+      plmn_support_item.slice_support_list.push_back(slice_support_item);
+    }
+    response.plmn_support_list.push_back(plmn_support_item);
+  }
+
+  // TODO: Add missing optional values.
+
+  return response;
+}
+
+/// \brief Creates the common type \c ngap_ng_setup_failure struct.
+/// \param[in] asn1_fail The ASN.1 type NGSetupFailure.
+/// \return The common type \c ngap_ng_setup_failure struct.
+ngap_ng_setup_failure ng_setup_procedure::create_ngap_ng_setup_failure(const asn1::ngap::ng_setup_fail_s& asn1_fail)
+{
+  ngap_ng_setup_failure fail;
+  fail.cause = asn1_to_cause(asn1_fail->cause);
+
+  return fail;
 }

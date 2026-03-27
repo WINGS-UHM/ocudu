@@ -12,12 +12,12 @@
 using namespace ocudu;
 
 error_type<std::string>
-ocudu::prach_helper::prach_config_index_is_valid(uint8_t prach_cfg_idx, frequency_range fr, duplex_mode mode)
+ocudu::prach_helper::prach_config_index_is_valid(uint16_t prach_cfg_idx, frequency_range fr, duplex_mode mode)
 {
   // Supported PRACH Configuration Index values for FDD in FR1, as per TS38.211 Table 6.3.3.2-2.
-  static constexpr auto fr1_tdd_intervals = to_array<interval<unsigned>>({{0, 87}, {110, 133}, {145, 211}});
-  // Supported PRACH Configuration Index values for TDD in FR1, as per TS38.211 Table 6.3.3.2-3.
   static constexpr auto fr1_fdd_intervals = to_array<interval<unsigned>>({{0, 108}, {147, 167}, {198, 256}});
+  // Supported PRACH Configuration Index values for TDD in FR1, as per TS38.211 Table 6.3.3.2-3.
+  static constexpr auto fr1_tdd_intervals = to_array<interval<unsigned>>({{0, 87}, {110, 133}, {145, 211}});
   // Supported PRACH Configuration Index values for TDD in FR2, as per TS38.211 Table 6.3.3.2-4.
   static constexpr auto fr2_tdd_intervals = to_array<interval<unsigned>>({{112, 144}});
 
@@ -45,7 +45,7 @@ ocudu::prach_helper::prach_config_index_is_valid(uint8_t prach_cfg_idx, frequenc
 }
 
 error_type<std::string> ocudu::prach_helper::zero_correlation_zone_is_valid(uint8_t         zero_correlation_zone,
-                                                                            uint8_t         prach_cfg_idx,
+                                                                            uint16_t        prach_cfg_idx,
                                                                             frequency_range freq_range,
                                                                             duplex_mode     dplx_mode)
 {
@@ -76,7 +76,7 @@ error_type<std::string> ocudu::prach_helper::zero_correlation_zone_is_valid(uint
 }
 
 error_type<interval<uint8_t>> ocudu::prach_helper::prach_fits_in_tdd_pattern(subcarrier_spacing pusch_scs,
-                                                                             uint8_t            prach_cfg_idx,
+                                                                             uint16_t           prach_cfg_idx,
                                                                              const tdd_ul_dl_config_common& tdd_cfg)
 {
   const frequency_range fr = (pusch_scs < subcarrier_spacing::kHz120) ? frequency_range::FR1 : frequency_range::FR2;

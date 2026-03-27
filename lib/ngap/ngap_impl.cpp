@@ -6,6 +6,7 @@
 #include "log_helpers.h"
 #include "ngap_asn1_helpers.h"
 #include "ngap_asn1_utils.h"
+#include "ngap_asn1_validators.h"
 #include "ngap_error_indication_helper.h"
 #include "procedures/ng_reset_procedure.h"
 #include "procedures/ng_setup_procedure.h"
@@ -50,6 +51,7 @@ ngap_impl::ngap_impl(const ngap_configuration& ngap_cfg_,
   context.ran_node_name               = ngap_cfg_.ran_node_name;
   context.amf_index                   = ngap_cfg_.amf_index;
   context.supported_tas               = ngap_cfg_.supported_tas;
+  context.procedure_timeout           = ngap_cfg_.procedure_timeout;
   context.request_pdu_session_timeout = ngap_cfg_.request_pdu_session_timeout;
 }
 
@@ -136,7 +138,7 @@ async_task<void> ngap_impl::handle_ng_reset_message(const cu_cp_reset& msg)
   }
 
   // Schedule NG Reset procedure.
-  return launch_async<ng_reset_procedure>(msg, tx_pdu_notifier, ev_mng, ue_ctxt_list, logger);
+  return launch_async<ng_reset_procedure>(context, msg, tx_pdu_notifier, ev_mng, ue_ctxt_list, logger);
 }
 
 void ngap_impl::handle_initial_ue_message(const cu_cp_initial_ue_message& msg)
@@ -182,6 +184,9 @@ void ngap_impl::handle_initial_ue_message(const cu_cp_initial_ue_message& msg)
     ue_ctxt.logger.log_warning("AMF notifier is not set. Cannot send InitialUEMessage");
     return;
   }
+
+  // InitialUEMessage reached AMF path, so count a connection establishment attempt.
+  metrics_handler.aggregate_ue_associated_logical_ng_connection_establishment_attempt();
 }
 
 void ngap_impl::handle_ul_nas_transport_message(const cu_cp_ul_nas_transport& msg)
@@ -486,6 +491,8 @@ void ngap_impl::handle_dl_nas_transport_message(const asn1::ngap::dl_nas_transpo
   if (ue_ctxt.ue_ids.amf_ue_id == amf_ue_id_t::invalid) {
     // Set AMF UE ID in the UE context and also in the lookup.
     ue_ctxt_list.update_amf_ue_id(ue_ctxt.ue_ids.ran_ue_id, uint_to_amf_ue_id(msg->amf_ue_ngap_id));
+    // AMF UE ID is now associated, so count one establishment success.
+    metrics_handler.aggregate_ue_associated_logical_ng_connection_establishment_success();
   }
 
   ngap_dl_nas_transport_message dl_nas_msg;
@@ -546,6 +553,10 @@ void ngap_impl::handle_initial_context_setup_request(const asn1::ngap::init_cont
   }
 
   // Update AMF ID and use the one from this Context Setup as per 3GPP TS 38.413 section 8.3.1.2.
+  if (ue_ctxt.ue_ids.amf_ue_id == amf_ue_id_t::invalid) {
+    // AMF UE ID update via InitialContextSetupRequest counts as establishment success if was empty.
+    metrics_handler.aggregate_ue_associated_logical_ng_connection_establishment_success();
+  }
   if (ue_ctxt.ue_ids.amf_ue_id != uint_to_amf_ue_id(request->amf_ue_ngap_id)) {
     ue_ctxt_list.update_amf_ue_id(ue_ctxt.ue_ids.ran_ue_id, uint_to_amf_ue_id(request->amf_ue_ngap_id));
   }
@@ -848,8 +859,10 @@ void ngap_impl::handle_paging(const asn1::ngap::paging_s& msg)
   // Notify metrics handler about received paging request.
   metrics_handler.aggregate_cn_initiated_paging_request();
 
-  if (msg->ue_paging_id.type() != asn1::ngap::ue_paging_id_c::types::five_g_s_tmsi) {
-    logger.warning("Dropping PDU. Unsupported UE Paging ID");
+  // Validate Paging message.
+  auto msgerr = validate_paging(msg);
+  if (not msgerr.has_value()) {
+    logger.warning("Dropping invalid Paging message. Cause: {}", msgerr.error());
     send_error_indication(tx_pdu_notifier, logger);
     return;
   }

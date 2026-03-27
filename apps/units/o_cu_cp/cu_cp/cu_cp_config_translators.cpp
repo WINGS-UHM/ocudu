@@ -371,6 +371,7 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
   out_cfg.node.gnb_id        = cu_cfg.gnb_id;
   out_cfg.node.ran_node_name = cu_cfg.ran_node_name;
 
+  out_cfg.ngap.procedure_timeout           = std::chrono::milliseconds{cu_cfg.amf_config.procedure_timeout};
   out_cfg.ngap.amf_reconnection_retry_time = std::chrono::milliseconds{cu_cfg.amf_config.amf_reconnection_retry_time};
   out_cfg.ngap.no_core                     = cu_cfg.amf_config.no_core;
 
@@ -411,7 +412,10 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
   }
 
   // XNAP.
-  for (const auto& xnap : cu_cfg.xnap_configs) {
+  out_cfg.xnap.procedure_timeout  = std::chrono::milliseconds{cu_cfg.xnap_config.procedure_timeout};
+  out_cfg.xnap.reconnect_timer    = std::chrono::milliseconds{cu_cfg.xnap_config.reconnect_timer};
+  out_cfg.xnap.no_connection_init = cu_cfg.xnap_config.no_connection_init;
+  for (const auto& xnap : cu_cfg.xnap_config.connections) {
     ocucp::cu_cp_configuration::xnap_config xn_config{};
     // TODO: support multiple XNAP peer addresses configuration for SCTP multihoming.
     xn_config.peer_addr = transport_layer_address::create_from_string(xnap.peer_addrs.front());
@@ -455,8 +459,11 @@ ocucp::cu_cp_configuration ocudu::generate_cu_cp_config(const cu_cp_unit_config&
   // Mobility.
   out_cfg.mobility.mobility_manager_config.trigger_handover_from_measurements =
       cu_cfg.mobility_config.trigger_handover_from_measurements;
-  out_cfg.mobility.mobility_manager_config.enable_ngap_metrics = cu_cfg.metrics.layers_cfg.enable_ngap;
-  out_cfg.mobility.mobility_manager_config.enable_rrc_metrics  = cu_cfg.metrics.layers_cfg.enable_rrc;
+  out_cfg.mobility.mobility_manager_config.enable_ngap_metrics     = cu_cfg.metrics.layers_cfg.enable_ngap;
+  out_cfg.mobility.mobility_manager_config.enable_rrc_metrics      = cu_cfg.metrics.layers_cfg.enable_rrc;
+  out_cfg.mobility.mobility_manager_config.trigger_cho_on_ue_setup = cu_cfg.mobility_config.trigger_cho_on_ue_setup;
+  out_cfg.mobility.mobility_manager_config.cho_timeout =
+      std::chrono::milliseconds{cu_cfg.mobility_config.cho_timeout_ms};
 
   // F1AP-CU config.
   out_cfg.f1ap.proc_timeout     = std::chrono::milliseconds{cu_cfg.f1ap_config.procedure_timeout};

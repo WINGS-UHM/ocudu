@@ -82,6 +82,8 @@ struct cu_cp_configuration {
     std::vector<ngap_config> ngaps;
     /// Time to wait after a failed AMF reconnection attempt in ms.
     std::chrono::milliseconds amf_reconnection_retry_time = std::chrono::milliseconds{1000};
+    /// Time that the NGAP waits for a response from the AMF in milliseconds.
+    std::chrono::milliseconds procedure_timeout = std::chrono::milliseconds{5000};
     /// Option to run CU-CP without a core.
     bool no_core = false;
     /// Optional notifier invoked once after a successful NG Setup.
@@ -93,6 +95,12 @@ struct cu_cp_configuration {
   };
 
   struct xnap_params {
+    /// Time that the XNAP waits for a response in milliseconds (Implementation-defined).
+    std::chrono::milliseconds procedure_timeout{1000};
+    /// Time that the XNAP waits before retrying the reconnection in milliseconds.
+    std::chrono::milliseconds reconnect_timer{10000};
+    /// When true, the CU-CP will not initiate outbound XNAP connections but will accept inbound ones.
+    bool no_connection_init = false;
     /// XNAP configuration.
     std::vector<xnap_config> xnaps;
     xnc_connection_gateway*  xnc_gw = nullptr;

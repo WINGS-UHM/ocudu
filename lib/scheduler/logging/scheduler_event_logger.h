@@ -94,10 +94,11 @@ public:
   };
 
   scheduler_event_logger(du_cell_index_t cell_index_, pci_t pci_);
+  ~scheduler_event_logger();
 
   void log()
   {
-    if (mode == none or fmtbuf.size() == 0) {
+    if (mode == mode_t::none) {
       return;
     }
     log_impl();
@@ -106,18 +107,19 @@ public:
   template <typename Event>
   void enqueue(Event&& ev)
   {
-    if (mode == none) {
+    if (mode == mode_t::none) {
       return;
     }
     enqueue_impl(std::forward<Event>(ev));
   }
 
-  bool enabled() const { return mode != none; }
+  bool enabled() const { return mode != mode_t::none; }
 
 private:
-  enum mode_t { none, info, debug };
+  /// Level of verbosity of the scheduler event logger.
+  enum class mode_t { none, info, debug };
 
-  const char* separator() const;
+  class event_buffer_writer;
 
   void log_impl();
 
@@ -127,7 +129,7 @@ private:
   void enqueue_impl(const ue_creation_event& ue_request);
   void enqueue_impl(const ue_reconf_event& ue_request);
   void enqueue_impl(const sched_ue_delete_message& ue_request);
-  void enqueue_impl(const ue_cfg_applied_event& ue_cfg_applied);
+  void enqueue_impl(const ue_cfg_applied_event& ev);
   void enqueue_impl(const ue_deactivation_event& req);
 
   void enqueue_impl(const error_indication_event& err_ind);
@@ -146,9 +148,9 @@ private:
   const du_cell_index_t   cell_index;
   const pci_t             pci;
   ocudulog::basic_logger& logger;
-  mode_t                  mode = none;
+  mode_t                  mode = mode_t::none;
 
-  fmt::memory_buffer fmtbuf;
+  std::unique_ptr<event_buffer_writer> slot_buffer_writer;
 };
 
 } // namespace ocudu

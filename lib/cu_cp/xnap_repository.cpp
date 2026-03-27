@@ -11,7 +11,10 @@
 using namespace ocudu;
 using namespace ocucp;
 
-xnap_repository::xnap_repository(xnap_repository_config cfg_) : cfg(cfg_), logger(cfg.logger) {}
+xnap_repository::xnap_repository(xnap_repository_config cfg_) :
+  cfg(cfg_), logger(cfg.logger), xnc_task_sched(cfg.cu_cp.xnap.xnaps.size(), logger)
+{
+}
 
 std::map<xnc_peer_index_t, xnap_interface*> xnap_repository::get_xnaps()
 {
@@ -32,12 +35,9 @@ xnap_interface* xnap_repository::add_xnap(xnc_peer_index_t               xnc_ind
   xnap_ctxt.peer_addr     = peer_addr;
   xnap_ctxt.xnap_to_cu_cp_notifier.connect_cu_cp(cfg.cu_cp_notifier, xnc_index);
 
-  // Create XNAP object with initial Tx notifier. The notifier will be replaced with the one from the association once
-  // the association is established.
   std::unique_ptr<xnap_interface> xnap_entity = create_xnap(xnc_index,
                                                             xnap_cfg,
                                                             xnap_ctxt.xnap_to_cu_cp_notifier,
-                                                            cfg.cu_cp.xnap.xnc_gw->get_init_tx_notifier(peer_addr),
                                                             *cfg.cu_cp.services.timers,
                                                             *cfg.cu_cp.services.cu_cp_executor);
   if (xnap_entity == nullptr) {
@@ -80,6 +80,15 @@ xnap_interface* xnap_repository::find_xnap(const gnb_id_t& peer_gnb_id)
     }
   }
   return nullptr;
+}
+
+std::optional<transport_layer_address> xnap_repository::get_peer_addr(xnc_peer_index_t xnc_index) const
+{
+  auto it = xnap_db.find(xnc_index);
+  if (it == xnap_db.end()) {
+    return std::nullopt;
+  }
+  return it->second.peer_addr;
 }
 
 void xnap_repository::connect_association(xnc_peer_index_t idx, std::unique_ptr<xnap_message_notifier> sender_notifier)

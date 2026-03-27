@@ -403,11 +403,17 @@ inline bool pdu_session_res_setup_failed_item_to_asn1(template_asn1_item&       
 
 /// \brief Convert ASN.1 GUAMI to a common type.
 /// \param[in] asn1_guami The ASN.1 GUAMI.
-/// \return The common type GUAMI.
-inline guami_t asn1_to_guami(const asn1::ngap::guami_s& asn1_guami)
+/// \return The common type GUAMI if the conversion is successful, otherwise an error message.
+inline expected<guami_t, std::string> asn1_to_guami(const asn1::ngap::guami_s& asn1_guami)
 {
+  expected<plmn_identity> plmn_identity = plmn_identity::from_bytes(asn1_guami.plmn_id.to_bytes());
+  if (!plmn_identity.has_value()) {
+    return make_unexpected(
+        fmt::format("Failed to convert GUAMI PLMN ID {} to common type", asn1_guami.plmn_id.to_string()));
+  }
+
   guami_t guami;
-  guami.plmn          = plmn_identity::from_bytes(asn1_guami.plmn_id.to_bytes()).value();
+  guami.plmn          = plmn_identity.value();
   guami.amf_region_id = asn1_guami.amf_region_id.to_number();
   guami.amf_set_id    = asn1_guami.amf_set_id.to_number();
   guami.amf_pointer   = asn1_guami.amf_pointer.to_number();

@@ -194,11 +194,17 @@ static void configure_cli11_amf_args(CLI::App& app, cu_cp_unit_amf_config& confi
              config.amf_reconnection_retry_time,
              "Time to wait after a failed AMF reconnection attempt in ms")
       ->capture_default_str();
+  add_option(app,
+             "--procedure_timeout",
+             config.procedure_timeout,
+             "Time that the NGAP waits for a response from the AMF in milliseconds")
+      ->capture_default_str();
+
   // AMF parameters.
   configure_cli11_amf_item_args(app, config.amf);
 }
 
-static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& config)
+static void configure_cli11_xnap_item_args(CLI::App& app, cu_cp_unit_xnap_config_item& config)
 {
   add_option(app,
              "--bind_addrs",
@@ -206,6 +212,71 @@ static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& con
              "Local IP addresses to bind for XNAP interface. Multiple addresses can be specified for SCTP "
              "multi-homing. If left empty, implicit bind is performed");
   add_option(app, "--peer_addrs", config.peer_addrs, "Peer IP addresses to connect for XNAP interface");
+}
+
+static void configure_cli11_xnap_args(CLI::App& app, cu_cp_unit_xnap_config& config)
+{
+  add_option(
+      app, "--procedure_timeout", config.procedure_timeout, "Time that the XNAP waits for a response in milliseconds")
+      ->capture_default_str();
+  add_option(app,
+             "--reconnect_timer",
+             config.reconnect_timer,
+             "Time that the XNAP waits before trying to reconnect in milliseconds")
+      ->capture_default_str();
+  add_option(app,
+             "--no_connection_init",
+             config.no_connection_init,
+             "When true, the CU-CP will not initiate XNAP connections, but will only accept inbound ones")
+      ->capture_default_str()
+      ->group(""); // hide this parameter from --help
+
+  // SCTP parameters.
+  add_option(app,
+             "--sctp_rto_initial",
+             config.sctp_rto_initial_ms,
+             "SCTP initial RTO value in milliseconds (-1 to use system default)");
+  add_option(app, "--sctp_rto_min", config.sctp_rto_min_ms, "SCTP RTO min in milliseconds (-1 to use system default)");
+  add_option(app, "--sctp_rto_max", config.sctp_rto_max_ms, "SCTP RTO max in milliseconds (-1 to use system default)");
+  add_option(app,
+             "--sctp_init_max_attempts",
+             config.sctp_init_max_attempts,
+             "SCTP init max attempts (-1 to use system default)");
+  add_option(app,
+             "--sctp_max_init_timeo",
+             config.sctp_max_init_timeo_ms,
+             "SCTP max init timeout in milliseconds (-1 to use system default)");
+  add_option(app,
+             "--sctp_hb_interval",
+             config.sctp_hb_interval_ms,
+             "SCTP heartbeat interval in milliseconds (-1 to use system default)")
+      ->capture_default_str();
+  add_option(app,
+             "--sctp_assoc_max_retx",
+             config.sctp_assoc_max_retx,
+             "SCTP assocination max retransmissions (-1 to use system default)")
+      ->capture_default_str();
+  add_option(app,
+             "--sctp_nodelay",
+             config.sctp_nodelay,
+             "Send SCTP messages as soon as possible without any Nagle-like algorithm");
+
+  // XN-C parameters.
+  app.add_option_function<std::vector<std::string>>(
+      "--connections",
+      [&config](const std::vector<std::string>& values) {
+        config.connections.resize(values.size());
+
+        for (unsigned i = 0, e = values.size(); i != e; ++i) {
+          CLI::App subapp("XNAP parameters list");
+          subapp.config_formatter(create_yaml_config_parser());
+          subapp.allow_config_extras(CLI::config_extras_mode::error);
+          configure_cli11_xnap_item_args(subapp, config.connections[i]);
+          std::istringstream ss(values[i]);
+          subapp.parse_from_stream(ss);
+        }
+      },
+      "Sets the list of XN-C peer CU-CPs for the CU-CP to connect to");
 }
 
 static void configure_cli11_report_args(CLI::App& app, cu_cp_unit_report_config& report_params)
@@ -389,6 +460,17 @@ static void configure_cli11_mobility_args(CLI::App& app, cu_cp_unit_mobility_con
              config.trigger_handover_from_measurements,
              "Whether to start HO if neighbor cells become stronger")
       ->capture_default_str();
+  add_option(app,
+             "--trigger_cho_on_ue_setup",
+             config.trigger_cho_on_ue_setup,
+             "Whether to auto-trigger CHO after UE setup when readiness checks pass")
+      ->capture_default_str();
+  add_option(app,
+             "--cho_timeout_ms",
+             config.cho_timeout_ms,
+             "Timeout in milliseconds used for auto-triggered CHO and as default timeout for manual CHO command")
+      ->capture_default_str()
+      ->check(CLI::Range(1, 600000));
 
   // Cell map parameters.
   app.add_option_function<std::vector<std::string>>(
@@ -570,21 +652,8 @@ static void configure_cli11_cu_cp_args(CLI::App& app, cu_cp_unit_config& cu_cp_p
       "Sets the list of extra AMFs for the CU-CP to connect to");
 
   // XN-C parameters.
-  app.add_option_function<std::vector<std::string>>(
-      "--xnap_connections",
-      [&cu_cp_params](const std::vector<std::string>& values) {
-        cu_cp_params.xnap_configs.resize(values.size());
-
-        for (unsigned i = 0, e = values.size(); i != e; ++i) {
-          CLI::App subapp("XNAP parameters list");
-          subapp.config_formatter(create_yaml_config_parser());
-          subapp.allow_config_extras(CLI::config_extras_mode::error);
-          configure_cli11_xnap_args(subapp, cu_cp_params.xnap_configs[i]);
-          std::istringstream ss(values[i]);
-          subapp.parse_from_stream(ss);
-        }
-      },
-      "Sets the list of XN-C peer CU-CPs for the CU-CP to connect to");
+  CLI::App* xnap_subcmd = app.add_subcommand("xnap", "XNAP configuration");
+  configure_cli11_xnap_args(*xnap_subcmd, cu_cp_params.xnap_config);
 
   CLI::App* mobility_subcmd = app.add_subcommand("mobility", "Mobility configuration");
   configure_cli11_mobility_args(*mobility_subcmd, cu_cp_params.mobility_config);

@@ -71,12 +71,12 @@ const prach_configuration PRACH_CONFIG_RESERVED = {prach_format_type::invalid, U
 /// - They are consistent with the TS38.211 Tables 6.3.3.2-2, 6.3.3.2-3 and 6.3.3.2-4, and
 /// - the combination is implemented.
 ///
-/// Currently, only long preamble formats for FR1 in FDD mode are implemented.
+/// Currently, not all configurations are supported.
 ///
 /// \param[in] fr                 Frequency range (see [here](\ref frequency_range) for more information).
 /// \param[in] dm                 Duplex mode (see [here](\ref duplex_mode) for more information).
-/// \param[in] prach_config_index PRACH configuration index with range {0, ..., 255}.
+/// \param[in] prach_config_index PRACH configuration index with range {0, ..., 262}.
 /// \return A valid PRACH configuration if the provided arguments are valid. Otherwise, \ref PRACH_CONFIG_RESERVED.
-prach_configuration prach_configuration_get(frequency_range fr, duplex_mode dm, uint8_t prach_config_index);
+prach_configuration prach_configuration_get(frequency_range fr, duplex_mode dm, uint16_t prach_config_index);
 
 } // namespace ocudu

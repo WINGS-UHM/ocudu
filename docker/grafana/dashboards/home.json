@@ -162,7 +162,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH last_point AS ( SELECT MAX(time) AS last_time FROM ue WHERE time BETWEEN $__timeFrom AND $__timeTo )\nSELECT COUNT(DISTINCT(pci)) as \"Cells with Active UEs\", COUNT(DISTINCT(rnti)) as \"Active UEs\" FROM ue CROSS JOIN last_point WHERE time >= last_point.last_time - INTERVAL '5s' AND time <= last_point.last_time",
+          "rawSql": "WITH last_point AS ( SELECT MAX(time) AS last_time FROM ue WHERE time BETWEEN $__timeFrom AND $__timeTo AND \"gnb_id\" = '$gnb_id' )\nSELECT COUNT(DISTINCT(pci)) as \"Cells with Active UEs\", COUNT(DISTINCT(rnti)) as \"Active UEs\" FROM ue CROSS JOIN last_point WHERE time >= last_point.last_time - INTERVAL '5s' AND time <= last_point.last_time",
           "refId": "Distinct",
           "sql": {
             "columns": [
@@ -245,7 +245,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, SUM(dl_brate) AS total_dl_brate FROM ue WHERE time >= $__timeFrom AND time <= $__timeTo GROUP BY time ORDER BY time",
+          "rawSql": "SELECT time, SUM(dl_brate) AS total_dl_brate FROM ue WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' GROUP BY time ORDER BY time",
           "refId": "TotalDLBrate",
           "sql": {
             "columns": [
@@ -436,7 +436,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT time, pci, to_hex(CAST(rnti AS INT)) as rnti, dl_brate, ul_brate, ((100.0 * dl_nof_nok) / (dl_nof_ok + dl_nof_nok)) AS dl_bler, ((100.0 * ul_nof_nok) / (ul_nof_ok + ul_nof_nok)) AS ul_bler, dl_mcs, ul_mcs, dl_bs, bsr, dl_ri, ul_ri, cqi, pusch_snr_db, ta_ns, pusch_rsrp_db, last_phr FROM ue WHERE time >= $__timeFrom AND time <= $__timeTo ORDER BY time",
+          "rawSql": "SELECT time, pci, to_hex(CAST(rnti AS INT)) as rnti, dl_brate, ul_brate, ((100.0 * dl_nof_nok) / (dl_nof_ok + dl_nof_nok)) AS dl_bler, ((100.0 * ul_nof_nok) / (ul_nof_ok + ul_nof_nok)) AS ul_bler, dl_mcs, ul_mcs, dl_bs, bsr, dl_ri, ul_ri, cqi, pusch_snr_db, ta_ns, pusch_rsrp_db, last_phr FROM ue WHERE time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
           "refId": "AllUEInfo",
           "sql": {
             "columns": [
@@ -2158,7 +2158,28 @@
   "schemaVersion": 40,
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allowCustomValue": false,
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "JOSE3g9KVz"
+        },
+        "definition": "SELECT DISTINCT gnb_id FROM cell",
+        "hide": 0,
+        "includeAll": false,
+        "label": "gNB ID",
+        "multi": false,
+        "name": "gnb_id",
+        "options": [],
+        "query": {
+          "query": "SELECT DISTINCT gnb_id FROM cell"
+        },
+        "refresh": 2,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-5m",

@@ -25,13 +25,9 @@ xnap_test::xnap_test() :
   ocudulog::fetch_basic_logger("XNAP", false).set_level(ocudulog::basic_levels::debug);
   ocudulog::fetch_basic_logger("XNAP", false).set_hex_dump_max_size(100);
 
-  xnap =
-      std::make_unique<xnap_impl>(xnc_peer_index_t::min,
-                                  xnap_local_cfg,
-                                  cu_cp_notifier,
-                                  xnc_gw.get_init_tx_notifier(transport_layer_address::create_from_string("127.0.0.1")),
-                                  timers,
-                                  ctrl_worker);
+  xnap = std::make_unique<xnap_impl>(xnc_peer_index_t::min, xnap_local_cfg, cu_cp_notifier, timers, ctrl_worker);
+
+  xnap->set_tx_association_notifier(std::make_unique<dummy_xnap_message_notifier>(last_tx_msg));
 }
 
 void xnap_test::TearDown()
@@ -56,9 +52,6 @@ bool xnap_test::run_xn_setup(const xnap_configuration& peer_cfg)
     logger.error("XN Setup procedure failed");
     return false;
   }
-
-  // Set TX association notifier.
-  init_sctp_association();
 
   return true;
 }

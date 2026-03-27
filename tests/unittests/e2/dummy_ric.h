@@ -22,6 +22,8 @@ struct ric_sctp_gateway_config {
   io_broker& broker;
   /// Execution context used to process received SCTP packets.
   task_executor& io_rx_executor;
+  /// CU-CP control executor to process SCTP notifications deffered back from io_broker executor.
+  task_executor& ctrl_exec;
   /// PCAP writer for the E2AP messages.
   dlt_pcap& pcap;
   /// Sniffer that receives a copy of a received E2 message.
@@ -44,6 +46,9 @@ public:
 
   /// Attach a RIC handler to the E2 connection server.
   virtual void attach_ric(ric_e2_handler& ric_) = 0;
+
+  /// Stop the E2 connection server.
+  virtual void stop() = 0;
 
   /// Get port on which the E2 Server is listening for new connections.
   ///

@@ -95,7 +95,7 @@ static error_type<std::string> validate_rach_cfg_common(const sched_cell_configu
         return make_unexpected(s + fmt::format(" Cause: PRACH configuration is not valid"));
       } else {
         return make_unexpected(
-            s + fmt::format(" Cause: Slot indexes used for PRACH {} fall outside TDD UL slots", ret.error()));
+            s + fmt::format(" Cause: Slot indices used for PRACH {} fall outside TDD UL slots", ret.error()));
       }
     }
   }

@@ -214,7 +214,7 @@ ubuntu-rohc-builder arm64:
       - os_version: "25.10"
         uhd_version: [] # "4.8.0.0" default
       - os_version: "26.04"
-        uhd_version: [] # "4.9.0.0" default
+        uhd_version: [] # "4.9.0.1" default
 
 ubuntu-uhd-builder avx2:
   extends: .ubuntu-uhd-builder
@@ -325,7 +325,7 @@ ubuntu-dpdk-builder no isa:
     - ${OCUDU_RUNNER_TAG}-amd64
   variables:
     arch_name: amd64
-    target_arch: -march=x86-64
+    target_arch: -Dcpu_instruction_set=x86-64
   parallel:
     matrix:
       - *dpdk_2204_no_isa_matrix
@@ -337,7 +337,7 @@ ubuntu-dpdk-builder avx2:
   variables:
     arch_name: amd64
     extra_arch_name: _avx2
-    target_arch: -march=x86-64-v3
+    target_arch: -Dcpu_instruction_set=x86-64-v3
   parallel:
     matrix:
       - *dpdk_2204_matrix
@@ -352,7 +352,7 @@ ubuntu-dpdk-builder avx512:
   variables:
     arch_name: amd64
     extra_arch_name: _avx512
-    target_arch: -march=x86-64-v4
+    target_arch: -Dcpu_instruction_set=x86-64-v4
   parallel:
     matrix:
       - *dpdk_2204_matrix
@@ -366,7 +366,7 @@ ubuntu-dpdk-builder arm64:
     - ${OCUDU_RUNNER_TAG}-arm64
   variables:
     arch_name: arm64
-    target_arch: -mcpu=neoverse-n1+crc+crypto+ssbs
+    target_arch: -Dplatform=n1sdp
 
 ################################################################################
 # Common
@@ -729,7 +729,7 @@ image-build-publish [ubuntu, 26.04, amd64]:
       parallel:
         matrix:
           - os_version: "26.04"
-            uhd_version: [] # "4.9.0.0" default
+            uhd_version: [] # "4.9.0.1" default
     - job: ubuntu-dpdk-builder avx2
       parallel:
         matrix:
@@ -758,7 +758,7 @@ image-build-publish [ubuntu, 26.04, arm64]:
       parallel:
         matrix:
           - os_version: "26.04"
-            uhd_version: [] # "4.9.0.0" default
+            uhd_version: [] # "4.9.0.1" default
     - job: ubuntu-dpdk-builder arm64
       parallel:
         matrix:

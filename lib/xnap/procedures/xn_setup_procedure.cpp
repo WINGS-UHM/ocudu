@@ -12,8 +12,6 @@ using namespace ocudu;
 using namespace ocudu::ocucp;
 using namespace asn1::xnap;
 
-static constexpr std::chrono::milliseconds xn_setup_response_timeout{5000};
-
 xn_setup_procedure::xn_setup_procedure(
     const xnap_configuration&                                                                    xnap_cfg_,
     std::optional<xnap_context>&                                                                 peer_ctxt_,
@@ -41,10 +39,10 @@ void xn_setup_procedure::operator()(coro_context<async_task<bool>>& ctx)
 
   while (true) {
     // Subscribe to respective publisher to receive XN SETUP RESPONSE/FAILURE message.
-    transaction_sink.subscribe_to(xn_setup_outcome, xn_setup_response_timeout);
+    transaction_sink.subscribe_to(xn_setup_outcome, xnap_cfg.procedure_timeout);
 
     // Forward message to XN-C.
-    if (!tx_notifier.on_xn_setup_request(xn_setup_req)) {
+    if (!tx_notifier.on_new_message(xn_setup_req)) {
       logger.warning("Cannot send XNSetupRequest");
       CORO_EARLY_RETURN(false);
     }
@@ -95,7 +93,7 @@ bool xn_setup_procedure::retry_required()
 
   if (transaction_sink.timeout_expired()) {
     // Timeout case.
-    logger.warning("\"{}\" timed out after {}ms", name(), xn_setup_response_timeout.count());
+    logger.warning("\"{}\" timed out after {}ms", name(), xnap_cfg.procedure_timeout.count());
     return false;
   }
 

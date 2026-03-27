@@ -125,6 +125,9 @@ public:
   /// \brief Add the attempted RRC connection re-establishment to the metrics.
   virtual void handle_attempted_rrc_reestablishment() = 0;
 
+  /// \brief Add the failed RRC connection establishment to the metrics.
+  virtual void handle_failed_rrc_connection_establishment(establishment_fail_cause_t cause) = 0;
+
   /// \brief Add the successful RRC connection re-establishment to the metrics.
   virtual void handle_successful_rrc_reestablishment() = 0;
 

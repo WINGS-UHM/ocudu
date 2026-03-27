@@ -25,7 +25,7 @@ public:
     client_broker(create_io_broker(ocudu::io_broker_type::epoll)),
     assoc_factory(std::make_unique<server_assoc_handler_factory>(*this)),
     server_cfg([this]() {
-      sctp_network_server_config cfg{{}, *server_broker, rx_executor, *assoc_factory};
+      sctp_network_server_config cfg{{}, *server_broker, rx_executor, app_executor, *assoc_factory};
       cfg.sctp.if_name        = "SERVER";
       cfg.sctp.ppid           = NGAP_PPID;
       cfg.sctp.bind_addresses = {"127.0.0.1"};
@@ -150,6 +150,7 @@ protected:
 
   ocudulog::basic_logger&                           logger;
   inline_task_executor                              rx_executor;
+  inline_task_executor                              app_executor;
   std::unique_ptr<io_broker>                        server_broker;
   std::unique_ptr<io_broker>                        client_broker;
   std::unique_ptr<sctp_network_association_factory> assoc_factory;
@@ -181,7 +182,13 @@ class sctp_network_link_test : public base_sctp_network_link_test, public ::test
 {
 public:
   sctp_network_link_test() : base_sctp_network_link_test(GetParam().nof_clients) {}
-  ~sctp_network_link_test() override { ocudulog::flush(); }
+  ~sctp_network_link_test() override
+  {
+    if (server) {
+      server->stop();
+    }
+    ocudulog::flush();
+  }
 };
 
 static byte_buffer create_data(unsigned start_val, unsigned nof_vals)

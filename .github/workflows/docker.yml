@@ -52,7 +52,7 @@ jobs:
             DPDK_VERSION: "24.11.2"
             DOCKERFILE: ./docker/Dockerfile
             CONTEXT: ./
-            ATTESTATION_FILE: /usr/local/etc/ocudu_image.spdx
+            ATTESTATION_FILE: /usr/local/share/ocudu.spdx
           - TAGNAME: release_with_debug_avx2
             REPOSITORY: ocudu
             EXTRA_CMAKE_ARGS: -DFORCE_DEBUG_INFO=On
@@ -62,7 +62,7 @@ jobs:
             DPDK_VERSION: "24.11.2"
             DOCKERFILE: ./docker/Dockerfile
             CONTEXT: ./
-            ATTESTATION_FILE: /usr/local/etc/ocudu_image.spdx
+            ATTESTATION_FILE: /usr/local/share/ocudu.spdx
           # AMD AVX512
           - TAGNAME: release_avx512
             REPOSITORY: ocudu
@@ -72,7 +72,7 @@ jobs:
             DPDK_VERSION: "24.11.2"
             DOCKERFILE: ./docker/Dockerfile
             CONTEXT: ./
-            ATTESTATION_FILE: /usr/local/etc/ocudu_image.spdx
+            ATTESTATION_FILE: /usr/local/share/ocudu.spdx
           - TAGNAME: release_with_debug_avx512
             REPOSITORY: ocudu
             EXTRA_CMAKE_ARGS: -DFORCE_DEBUG_INFO=On
@@ -82,7 +82,7 @@ jobs:
             DPDK_VERSION: "24.11.2"
             DOCKERFILE: ./docker/Dockerfile
             CONTEXT: ./
-            ATTESTATION_FILE: /usr/local/etc/ocudu_image.spdx
+            ATTESTATION_FILE: /usr/local/share/ocudu.spdx
     env:
       PREFIX: softwareradiosystems/${{ matrix.REPOSITORY }}:${{ matrix.TAGNAME }}
     environment: dockerhub

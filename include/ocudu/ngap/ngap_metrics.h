@@ -118,6 +118,11 @@ struct ngap_metrics {
   std::map<s_nssai_t, pdu_session_metrics_t> pdu_session_metrics;
   /// Paging Measurement metrics, see TS 28.552 section 5.1.1.27.
   unsigned nof_cn_initiated_paging_requests = 0;
+  /// UE-associated logical NG-connection metrics, see TS 28.552 section 5.1.1.16.
+  /// Incremented after InitialUEMessage is successfully sent to AMF.
+  unsigned nof_ue_associated_logical_ng_connection_establishment_attempts = 0;
+  /// Incremented when an AMF UE NGAP ID is associated to the UE context.
+  unsigned nof_ue_associated_logical_ng_connection_establishment_successes = 0;
 };
 
 /// \brief NGAP metrics per AMF.

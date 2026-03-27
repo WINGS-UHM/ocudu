@@ -105,3 +105,27 @@ TEST(right_closed_real_interval_test, formatter)
 
   ASSERT_EQ(s, "[5.1, 10.1]");
 }
+
+TEST(right_closed_integer_interval_test, static_ctor)
+{
+  interval<int, true> interv = interval<int, true>::start_and_len(0, 10);
+  EXPECT_EQ(interv.length(), 10);
+  EXPECT_EQ(interv.start(), 0);
+  EXPECT_EQ(interv.stop(), 9);
+  EXPECT_TRUE(interv.contains(0));
+  EXPECT_TRUE(interv.contains(5));
+  EXPECT_TRUE(interv.contains(9));
+  EXPECT_FALSE(interv.contains(10));
+}
+
+TEST(not_right_closed_integer_interval_test, static_ctor)
+{
+  interval<int, false> interv = interval<int, false>::start_and_len(0, 10);
+  EXPECT_EQ(interv.length(), 10);
+  EXPECT_EQ(interv.start(), 0);
+  EXPECT_EQ(interv.stop(), 10);
+  EXPECT_TRUE(interv.contains(0));
+  EXPECT_TRUE(interv.contains(5));
+  EXPECT_TRUE(interv.contains(9));
+  EXPECT_FALSE(interv.contains(10));
+}

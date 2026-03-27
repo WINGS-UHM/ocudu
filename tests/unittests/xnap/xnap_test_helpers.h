@@ -8,10 +8,12 @@
 #include "lib/xnap/xnap_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/ran/cause/xnap_cause.h"
+#include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/executors/manual_task_worker.h"
 #include "ocudu/xnap/gateways/xnc_connection_gateway.h"
 #include "ocudu/xnap/xnap_message.h"
 #include "ocudu/xnap/xnap_message_notifier.h"
+#include <chrono>
 #include <gtest/gtest.h>
 
 namespace ocudu::ocucp {
@@ -38,19 +40,15 @@ class dummy_xnc_gateway : public xnc_connection_gateway
 public:
   dummy_xnc_gateway() : logger(ocudulog::fetch_basic_logger("TEST")) {}
 
-  std::unique_ptr<xnap_message_notifier> get_init_tx_notifier(transport_layer_address peer_addr) override
-  {
-    return std::make_unique<dummy_xnap_message_notifier>(last_tx_msg);
-  }
+  async_task<bool> connect_to_peer(transport_layer_address peer_addr) override { return launch_no_op_task(true); }
 
   void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) override { logger.info("CU-CP attached to XN-C gateway"); }
 
+  void stop() override {}
+
   std::optional<uint16_t> get_listen_port() const override { return std::nullopt; }
 
-  xnap_message get_last_tx_message() const { return last_tx_msg; }
-
 private:
-  xnap_message            last_tx_msg;
   ocudulog::basic_logger& logger;
 };
 
@@ -175,11 +173,6 @@ protected:
 
   void TearDown() override;
 
-  void init_sctp_association()
-  {
-    xnap->set_tx_association_notifier(std::make_unique<dummy_xnap_message_notifier>(last_tx_msg));
-  }
-
   /// \brief Helper method to successfully run XN setup in XNAP.
   bool run_xn_setup(const xnap_configuration& peer_cfg);
 
@@ -217,6 +210,8 @@ protected:
   s_nssai_t              local_slice              = {};
   std::vector<s_nssai_t> local_slice_support_list = {local_slice};
   xnap_configuration     xnap_local_cfg           = {
+      std::chrono::milliseconds{5000},
+      std::chrono::milliseconds{10000},
       local_gnb_id,
       std::vector<supported_tracking_area>{{local_tac, std::vector<plmn_item>{{local_plmn, local_slice_support_list}}}},
       std::vector<guami_t>{{.plmn = local_plmn, .amf_set_id = 0, .amf_pointer = 0, .amf_region_id = 1}}};
@@ -229,6 +224,8 @@ protected:
   std::vector<s_nssai_t> peer_slice_support_list = {peer_slice};
 
   xnap_configuration xnap_peer_cfg = {
+      std::chrono::milliseconds{5000},
+      std::chrono::milliseconds{10000},
       peer_gnb_id,
       std::vector<supported_tracking_area>{{peer_tac, std::vector<plmn_item>{{peer_plmn, peer_slice_support_list}}}},
       std::vector<guami_t>{{peer_plmn, 1}},

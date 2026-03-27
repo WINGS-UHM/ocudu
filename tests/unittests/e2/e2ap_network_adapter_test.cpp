@@ -15,6 +15,7 @@
 #include "ocudu/support/async/async_test_utils.h"
 #include "ocudu/support/executors/inline_task_executor.h"
 #include "ocudu/support/executors/manual_task_worker.h"
+#include "ocudu/support/executors/task_worker.h"
 #include "ocudu/support/io/io_broker_factory.h"
 #include "ocudu/support/timers.h"
 #include <chrono>
@@ -46,7 +47,7 @@ protected:
     // simulate RIC side
     ric_rx_e2_sniffer = std::make_unique<e2_sniffer>(*this);
     ric_pcap          = std::make_unique<dummy_e2ap_pcap>();
-    ric_sctp_gateway_config ric_server_sctp_cfg{{}, *ric_broker, rx_executor, *ric_pcap};
+    ric_sctp_gateway_config ric_server_sctp_cfg{{}, *ric_broker, rx_executor, ctrl_executor, *ric_pcap};
     ric_server_sctp_cfg.sctp.if_name        = "E2";
     ric_server_sctp_cfg.sctp.ppid           = NGAP_PPID;
     ric_server_sctp_cfg.sctp.bind_addresses = {"127.0.0.1"};
@@ -99,6 +100,7 @@ protected:
 
   void TearDown() override
   {
+    ric_net_adapter->stop();
     // flush logger after each test
     ocudulog::flush();
   }
@@ -206,6 +208,8 @@ protected:
   };
 
   inline_task_executor                              rx_executor;
+  task_worker                                       ctrl_worker{"sctp server", 1024};
+  task_worker_executor                              ctrl_executor{ctrl_worker};
   std::unique_ptr<io_broker>                        ric_broker;
   std::unique_ptr<io_broker>                        agent_broker;
   std::unique_ptr<sctp_network_association_factory> assoc_factory;

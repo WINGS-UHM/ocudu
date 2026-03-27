@@ -4,9 +4,8 @@
 
 #pragma once
 
+#include "ocudu/support/async/async_task.h"
 #include "ocudu/support/io/transport_layer_address.h"
-#include "ocudu/xnap/xnap_message_notifier.h"
-#include <memory>
 
 namespace ocudu::ocucp {
 
@@ -19,11 +18,15 @@ class xnc_connection_gateway
 public:
   virtual ~xnc_connection_gateway() = default;
 
-  /// Get the initial XNAP message notifier for initiating the SCTP association with peer.
-  virtual std::unique_ptr<xnap_message_notifier> get_init_tx_notifier(transport_layer_address peer_addr) = 0;
+  /// Initiate a connection to a peer.
+  /// \return async_task that resolves to true when SCTP association is ready, false on failure.
+  virtual async_task<bool> connect_to_peer(transport_layer_address peer_addr) = 0;
 
   /// Attach a CU-CP handler to the XN-C connection server.
   virtual void attach_cu_cp(cu_cp_xnc_handler& xnc_handler_) = 0;
+
+  /// Stop the XN-C connection gateway.
+  virtual void stop() = 0;
 
   /// Get port on which the XN-C Server is listening for new connections.
   ///

@@ -80,6 +80,13 @@ protected:
     server_cfg.sctp.bind_port      = 0;
   }
 
+  ~sctp_network_server_test() override
+  {
+    if (server) {
+      server->stop();
+    }
+  }
+
   bool connect_client(bool broker_trigger_required = true)
   {
     if (not client.connect(
@@ -117,9 +124,10 @@ protected:
 
   void trigger_broker() { broker.handle_receive(); }
 
-  sctp_network_server_config server_cfg{{}, broker, io_rx_executor, assoc_factory};
+  sctp_network_server_config server_cfg{{}, broker, io_rx_executor, app_executor, assoc_factory};
 
   inline_task_executor                 io_rx_executor;
+  inline_task_executor                 app_executor;
   std::unique_ptr<sctp_network_server> server;
   dummy_sctp_client                    client;
 };
@@ -177,6 +185,7 @@ TEST_F(sctp_network_server_test, when_server_is_shutdown_then_fd_is_deregistered
 
   int fd = server->get_socket_fd();
   ASSERT_EQ(broker.last_unregistered_fd, -1);
+  server->stop();
   server.reset();
   ASSERT_EQ(broker.last_registered_fd.value(), fd);
 }

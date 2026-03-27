@@ -89,12 +89,13 @@ static YAML::Node build_cu_cp_amf_section(const cu_cp_unit_amf_config& config)
 
   node["no_core"]                     = config.no_core;
   node["amf_reconnection_retry_time"] = config.amf_reconnection_retry_time;
+  node["procedure_timeout"]           = config.procedure_timeout;
   node["amf"]                         = build_cu_cp_extra_amfs_item_section(config.amf);
 
   return node;
 }
 
-static YAML::Node build_cu_cp_xnap_item_section(const cu_cp_unit_xnap_config& config)
+static YAML::Node build_cu_cp_xnap_item_section(const cu_cp_unit_xnap_config_item& config)
 {
   YAML::Node node;
 
@@ -104,12 +105,24 @@ static YAML::Node build_cu_cp_xnap_item_section(const cu_cp_unit_xnap_config& co
   return node;
 }
 
-static YAML::Node build_cu_cp_xnap_section(const std::vector<cu_cp_unit_xnap_config>& xnap_configs)
+static YAML::Node build_cu_cp_xnap_section(const cu_cp_unit_xnap_config& xnap_config)
 {
   YAML::Node node;
 
-  for (const auto& xnap : xnap_configs) {
-    node.push_back(build_cu_cp_xnap_item_section(xnap));
+  node["procedure_timeout"]  = xnap_config.procedure_timeout;
+  node["no_connection_init"] = xnap_config.no_connection_init;
+
+  node["sctp_rto_initial"]       = xnap_config.sctp_rto_initial_ms;
+  node["sctp_rto_min"]           = xnap_config.sctp_rto_min_ms;
+  node["sctp_rto_max"]           = xnap_config.sctp_rto_max_ms;
+  node["sctp_init_max_attempts"] = xnap_config.sctp_init_max_attempts;
+  node["sctp_max_init_timeo"]    = xnap_config.sctp_max_init_timeo_ms;
+  node["sctp_hb_interval"]       = xnap_config.sctp_hb_interval_ms;
+  node["sctp_assoc_max_retx"]    = xnap_config.sctp_assoc_max_retx;
+  node["sctp_nodelay"]           = xnap_config.sctp_nodelay;
+
+  for (const auto& xnap : xnap_config.connections) {
+    node["connections"].push_back(build_cu_cp_xnap_item_section(xnap));
   }
 
   return node;
@@ -269,6 +282,8 @@ static YAML::Node build_cu_cp_mobility_section(const cu_cp_unit_mobility_config&
   YAML::Node node;
 
   node["trigger_handover_from_measurements"] = config.trigger_handover_from_measurements;
+  node["trigger_cho_on_ue_setup"]            = config.trigger_cho_on_ue_setup;
+  node["cho_timeout_ms"]                     = config.cho_timeout_ms;
   for (const auto& cell : config.cells) {
     node["cells"].push_back(build_cu_cp_mobility_cells_section(cell));
   }
@@ -339,8 +354,8 @@ static YAML::Node build_cu_cp_section(const cu_cp_unit_config& config)
   if (!config.extra_amfs.empty()) {
     node["extra_amfs"] = build_cu_cp_extra_amfs_section(config.extra_amfs);
   }
-  if (!config.xnap_configs.empty()) {
-    node["xnaps"] = build_cu_cp_xnap_section(config.xnap_configs);
+  if (!config.xnap_config.connections.empty()) {
+    node["xnap"] = build_cu_cp_xnap_section(config.xnap_config);
   }
   node["mobility"] = build_cu_cp_mobility_section(config.mobility_config);
   node["rrc"]      = build_cu_cp_rrc_section(config.rrc_config);

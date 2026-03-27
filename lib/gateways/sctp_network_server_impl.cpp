@@ -3,7 +3,7 @@
 
 #include "sctp_network_server_impl.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include "ocudu/support/io/sockets.h"
+#include "ocudu/support/synchronization/sync_event.h"
 #include <netinet/sctp.h>
 
 using namespace ocudu;
@@ -124,21 +124,37 @@ sctp_network_server_impl::sctp_associaton_context::sctp_associaton_context(int a
 sctp_network_server_impl::sctp_network_server_impl(const ocudu::sctp_network_gateway_config& sctp_cfg_,
                                                    io_broker&                                broker_,
                                                    task_executor&                            io_rx_executor_,
+                                                   task_executor&                            app_exec_,
                                                    sctp_network_association_factory&         assoc_factory_) :
   sctp_network_gateway_common_impl(sctp_cfg_),
   broker(broker_),
   io_rx_executor(io_rx_executor_),
-  assoc_factory(assoc_factory_)
+  app_exec(app_exec_),
+  assoc_factory(assoc_factory_),
+  keepalive_token(std::make_shared<bool>(true))
 {
 }
 
 sctp_network_server_impl::~sctp_network_server_impl()
 {
-  // Stop handling new SCTP events.
-  io_sub.reset();
+  if (*keepalive_token) {
+    logger.error("stop() must be called before destroying the SCTP server");
+    report_error("stop() must be called before destroying the SCTP server");
+  }
+}
 
-  // Once the IO unsubscription completes, it is safe to remove associations.
-  handle_socket_shutdown(nullptr);
+void sctp_network_server_impl::stop()
+{
+  sync_event ev;
+  while (not app_exec.defer([this, keepalive = keepalive_token, token = ev.get_token()]() {
+    if (*keepalive) {
+      *keepalive = false;
+      handle_socket_shutdown(nullptr);
+    }
+  })) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  ev.wait();
 }
 
 bool sctp_network_server_impl::create_and_bind()
@@ -168,7 +184,14 @@ void sctp_network_server_impl::receive()
   if (rx_bytes == -1) {
     if (errno != EAGAIN) {
       logger.error("Error reading from SCTP socket: {}", ::strerror(errno));
-      handle_socket_shutdown(nullptr);
+      while (not app_exec.defer([this, keepalive = keepalive_token]() {
+        if (*keepalive) {
+          *keepalive = false;
+          handle_socket_shutdown(nullptr);
+        }
+      })) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
     } else {
       if (!node_cfg.non_blocking_mode) {
         logger.debug("Socket timeout reached");
@@ -177,22 +200,35 @@ void sctp_network_server_impl::receive()
     return;
   }
 
-  span<const uint8_t> payload(temp_recv_buffer.data(), rx_bytes);
-  if (msg_flags & MSG_NOTIFICATION) {
-    handle_notification(payload, sri, (const sockaddr&)msg_src_addr, msg_src_addrlen);
-  } else {
-    handle_data(sri.sinfo_assoc_id, payload);
+  // Defer all processing after sctp_recvmsg to app_exec.
+  auto payload = std::vector<uint8_t>(temp_recv_buffer.begin(), temp_recv_buffer.begin() + rx_bytes);
+  while (not app_exec.defer([this,
+                             keepalive = keepalive_token,
+                             payload   = std::move(payload),
+                             msg_flags,
+                             sri,
+                             msg_src_addr,
+                             msg_src_addrlen]() {
+    if (!*keepalive) {
+      return;
+    }
+    if (msg_flags & MSG_NOTIFICATION) {
+      handle_notification(payload, sri, reinterpret_cast<const sockaddr&>(msg_src_addr), msg_src_addrlen);
+    } else {
+      handle_data(sri.sinfo_assoc_id, payload);
+    }
+  })) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
 
 void sctp_network_server_impl::handle_socket_shutdown(const char* cause)
 {
-  // Signal to senders to all existing senders that the server was deleted, so they don't bother with sending EOF.
-  // Note: This function is called from within the io_broker. So, it safe to delete the associations while the io_broker
-  // subscription is still active.
+  // Clean up all associations.
   while (not associations.empty()) {
+    // TO-DO: send EOF to close association gracefully
     handle_association_shutdown(associations.begin()->first, cause);
-    handle_sctp_shutdown_comp(associations.begin()->first);
+    remove_association(associations.begin()->first);
   }
 
   // Stop handling new SCTP events.
@@ -213,28 +249,46 @@ void sctp_network_server_impl::handle_data(int assoc_id, span<const uint8_t> pay
   assoc_it->second.sctp_data_recv_notifier->on_new_sdu(byte_buffer{byte_buffer::fallback_allocation_tag{}, payload});
 }
 
-bool sctp_network_server_impl::init_association_with_msg(transport_layer_address dest_addr, byte_buffer payload)
+async_task<bool> sctp_network_server_impl::connect(transport_layer_address dest_addr)
 {
-  logger.info("{}: Initializing association to {}", node_cfg.if_name, dest_addr);
+  return launch_async([this, dest_addr, event_ptr = (manual_event<bool>*)nullptr, result = false](
+                          coro_context<async_task<bool>>& ctx) mutable {
+    CORO_BEGIN(ctx);
 
-  std::array<uint8_t, 3000> buffer = {};
-  to_span(payload, buffer);
-  transport_layer_address::native_type native_addr = dest_addr.native();
-  int                                  bytes_sent  = ::sctp_sendmsg(get_socket_fd(),
-                                  buffer.data(),
-                                  payload.length(),
-                                  const_cast<struct sockaddr*>(native_addr.addr),
-                                  native_addr.addrlen,
-                                  htonl(node_cfg.ppid),
-                                  0,
-                                  stream_no,
-                                  0,
-                                  0);
-  if (bytes_sent == -1) {
-    logger.error(": Closing SCTP association. Cause: could not initialize association. errno={}", ::strerror(errno));
-    return false;
-  }
-  return true;
+    logger.info("{}: Initiating SCTP connection to {}", node_cfg.if_name, dest_addr);
+
+    // Try to create pending connect event, fail and return early if duplicated.
+    if (not pending_connects.try_emplace(dest_addr).second) {
+      logger.warning(
+          "{}: Connection to {} already in progress, rejecting duplicate connect", node_cfg.if_name, dest_addr);
+      CORO_EARLY_RETURN(false);
+    }
+
+    {
+      // Initiate the connection via sctp_connectx().
+      transport_layer_address::native_type native_addr = dest_addr.native();
+      int                                  ret         = ::sctp_connectx(get_socket_fd(), native_addr.addr, 1, NULL);
+      if (ret == -1 && errno != EINPROGRESS) {
+        logger.error("{}: sctp_connectx to {} failed. errno={}", node_cfg.if_name, dest_addr, ::strerror(errno));
+      } else {
+        event_ptr = &pending_connects.at(dest_addr);
+      }
+    }
+
+    if (event_ptr == nullptr) {
+      // Clean up the event from pending_connects on sctp_connectx() immediate failure.
+      pending_connects.erase(dest_addr);
+      CORO_EARLY_RETURN(false);
+    }
+
+    // Wait for SCTP_COMM_UP or SCTP_CANT_STR_ASSOC.
+    CORO_AWAIT_VALUE(result, *event_ptr);
+
+    // Clean up the event from pending_connects after awaited SCTP notification received.
+    pending_connects.erase(dest_addr);
+
+    CORO_RETURN(result);
+  });
 }
 
 void sctp_network_server_impl::handle_notification(span<const uint8_t>           payload,
@@ -257,10 +311,10 @@ void sctp_network_server_impl::handle_notification(span<const uint8_t>          
           handle_sctp_comm_up(*n, src_addr, src_addr_len);
           break;
         case SCTP_COMM_LOST:
-          handle_association_shutdown(n->sac_assoc_id, "Communication was lost");
+          handle_sctp_comm_lost(n->sac_assoc_id);
           break;
         case SCTP_CANT_STR_ASSOC:
-          handle_association_shutdown(n->sac_assoc_id, "Can't state association");
+          handle_cannot_start_association(n->sac_assoc_id, src_addr, src_addr_len);
           break;
         case SCTP_SHUTDOWN_COMP:
           handle_sctp_shutdown_comp(n->sac_assoc_id);
@@ -315,6 +369,36 @@ void sctp_network_server_impl::handle_sctp_comm_up(const struct sctp_assoc_chang
   }
 
   logger.info("{} assoc={}: New client SCTP association (client_addr={})", node_cfg.if_name, assoc_id, assoc_ctxt.addr);
+
+  // If this was a pending outgoing connection, defer to enqueue the success signal so that any tasks enqueued by the
+  // assoc_factory.create() callback can run before the awaiting coroutine resumes.
+  // Signaling inline here would resume the coroutine within this task, before the enqueued tasks that connect the
+  // notifiers have a chance to finish.
+  while (not app_exec.defer([this, addr = assoc_ctxt.addr]() {
+    auto pending_it = pending_connects.find(addr);
+    if (pending_it != pending_connects.end()) {
+      pending_it->second.set(true);
+    }
+  })) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+}
+
+void sctp_network_server_impl::handle_cannot_start_association(int             assoc_id,
+                                                               const sockaddr& src_addr,
+                                                               socklen_t       src_addr_len)
+{
+  transport_layer_address addr = transport_layer_address::create_from_sockaddr(src_addr, src_addr_len);
+
+  logger.info("{} assoc={}: SCTP association could not start (peer_addr={})", node_cfg.if_name, assoc_id, addr);
+
+  // Signal pending connect failure.
+  auto pending_it = pending_connects.find(addr);
+  if (pending_it != pending_connects.end()) {
+    pending_it->second.set(false);
+  } else {
+    logger.warning("{}: SCTP_CANT_STR_ASSOC for unknown peer {}", node_cfg.if_name, addr);
+  }
 }
 
 void sctp_network_server_impl::handle_association_shutdown(int assoc_id, const char* cause)
@@ -342,9 +426,20 @@ void sctp_network_server_impl::handle_association_shutdown(int assoc_id, const c
 
 void sctp_network_server_impl::handle_sctp_shutdown_comp(int assoc_id)
 {
+  remove_association(assoc_id);
+}
+
+void sctp_network_server_impl::handle_sctp_comm_lost(int assoc_id)
+{
+  handle_association_shutdown(assoc_id, "SCTP_COMM_LOST");
+  remove_association(assoc_id);
+}
+
+void sctp_network_server_impl::remove_association(int assoc_id)
+{
   auto assoc_it = associations.find(assoc_id);
   if (assoc_it == associations.end()) {
-    logger.error("{} assoc={}: Failed to shutdown SCTP association. Cause: SCTP association Id not found",
+    logger.error("{} assoc={}: Failed to remove SCTP association. Cause: SCTP association Id not found",
                  node_cfg.if_name,
                  assoc_id);
     return;
@@ -390,7 +485,14 @@ bool sctp_network_server_impl::subscribe_to_broker()
       [this]() { receive(); },
       [this](io_broker::error_code code) {
         logger.info("Connection loss due to IO error code={}.", (int)code);
-        handle_socket_shutdown(nullptr);
+        while (not app_exec.defer([this, keepalive = keepalive_token]() {
+          if (*keepalive) {
+            *keepalive = false;
+            handle_socket_shutdown(nullptr);
+          }
+        })) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
       });
   return io_sub.registered();
 }
@@ -398,6 +500,7 @@ bool sctp_network_server_impl::subscribe_to_broker()
 std::unique_ptr<sctp_network_server> sctp_network_server_impl::create(const sctp_network_gateway_config& sctp_cfg,
                                                                       io_broker&                         broker_,
                                                                       task_executor&                    io_rx_executor_,
+                                                                      task_executor&                    app_exec_,
                                                                       sctp_network_association_factory& assoc_factory_)
 {
   // Validate arguments
@@ -419,10 +522,11 @@ std::unique_ptr<sctp_network_server> sctp_network_server_impl::create(const sctp
 
   // Create a SCTP server instance.
   std::unique_ptr<sctp_network_server_impl> server{
-      new sctp_network_server_impl(sctp_cfg, broker_, io_rx_executor_, assoc_factory_)};
+      new sctp_network_server_impl(sctp_cfg, broker_, io_rx_executor_, app_exec_, assoc_factory_)};
 
   // Create a socket and bind it to the provided address.
   if (not server->create_and_bind()) {
+    server->stop();
     return nullptr;
   }
 

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <type_traits>
 
 namespace ocudu {
@@ -75,6 +76,20 @@ using type_at_t = typename detail::type_at<Index, Types...>::type;
 /// Metafunction that concatenates the types of multiple type_lists.
 template <typename... Lists>
 using concat_t = typename detail::concat<Lists...>::type;
+
+/// \brief Finds the index of type \c T in the type pack \c Types.
+///
+/// Uses a fold expression to avoid recursive template instantiation. When T is not found, returns sizeof...(Types).
+template <typename T, typename... Types>
+inline constexpr size_t type_index_v = []() constexpr noexcept {
+  size_t idx = 0;
+  (void)((std::is_same_v<T, Types> ? true : (++idx, false)) || ...);
+  return idx;
+}();
+
+/// \brief Checks whether \c T appears in the type pack \c Types.
+template <typename T, typename... Types>
+inline constexpr bool contains_v = (std::is_same_v<T, Types> || ...);
 
 } // namespace type_list_helper
 

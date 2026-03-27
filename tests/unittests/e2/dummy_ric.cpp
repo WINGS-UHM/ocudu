@@ -93,8 +93,10 @@ public:
   {
     // Create SCTP server.
     sctp_server = create_sctp_network_server(
-        sctp_network_server_config{params.sctp, params.broker, params.io_rx_executor, *this});
+        sctp_network_server_config{params.sctp, params.broker, params.io_rx_executor, params.ctrl_exec, *this});
   }
+
+  void stop() override { sctp_server->stop(); }
 
   void attach_ric(ric_e2_handler& ric_) override
   {

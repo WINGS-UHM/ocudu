@@ -18,12 +18,11 @@ namespace ocudu::ocucp {
 class xnap_impl final : public xnap_interface
 {
 public:
-  xnap_impl(xnc_peer_index_t                       xnc_index_,
-            const xnap_configuration&              xnap_cfg_,
-            xnap_cu_cp_notifier&                   cu_cp_notifier_,
-            std::unique_ptr<xnap_message_notifier> init_tx_notifier_,
-            timer_manager&                         timers_,
-            task_executor&                         ctrl_exec_);
+  xnap_impl(xnc_peer_index_t          xnc_index_,
+            const xnap_configuration& xnap_cfg_,
+            xnap_cu_cp_notifier&      cu_cp_notifier_,
+            timer_manager&            timers_,
+            task_executor&            ctrl_exec_);
   ~xnap_impl() override = default;
 
   // XNAP message handling.

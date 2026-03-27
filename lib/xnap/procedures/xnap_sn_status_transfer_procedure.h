@@ -17,6 +17,7 @@ class xnap_sn_status_transfer_procedure
 {
 public:
   xnap_sn_status_transfer_procedure(
+      std::chrono::milliseconds                                            procedure_timeout_,
       protocol_transaction_event_source<asn1::xnap::sn_status_transfer_s>& sn_status_transfer_outcome_,
       xnap_ue_logger&                                                      logger_);
 
@@ -25,6 +26,7 @@ public:
 private:
   static const char* name() { return "SN Status Transfer Procedure"; }
 
+  std::chrono::milliseconds                                            procedure_timeout;
   protocol_transaction_event_source<asn1::xnap::sn_status_transfer_s>& sn_status_transfer_outcome;
   xnap_ue_logger&                                                      logger;
 

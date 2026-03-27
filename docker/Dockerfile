@@ -62,9 +62,11 @@ ARG TARGETARCH
 COPY --from=builder-rohc /opt/rohc /opt/rohc
 
 # Compile UHD/DPDK
-RUN ARCH_FLAG=$([ "${TARGETARCH}" = "arm64" ] && echo "-mcpu=${MARCH}" || echo "-march=${MARCH}") && \
-    /src/docker/scripts/build_uhd.sh "${UHD_VERSION}" ${ARCH_FLAG} ${NUM_JOBS} && \
-    /src/docker/scripts/build_dpdk.sh "${DPDK_VERSION}" ${ARCH_FLAG} ${NUM_JOBS}
+RUN UHD_ARCH=$([ "${TARGETARCH}" = "arm64" ] && echo "-mcpu=${MARCH}" || echo "-march=${MARCH}") && \
+    DPDK_PLATFORM=$(case "${MARCH}" in *neoverse-n1*) echo n1sdp ;; *) echo "${MARCH}" ;; esac) && \
+    DPDK_ARCH=$([ "${TARGETARCH}" = "arm64" ] && echo "-Dplatform=${DPDK_PLATFORM} -Dmax_numa_nodes=1" || echo "-Dcpu_instruction_set=${MARCH}") && \
+    /src/docker/scripts/build_uhd.sh "${UHD_VERSION}" ${UHD_ARCH} ${NUM_JOBS} && \
+    /src/docker/scripts/build_dpdk.sh "${DPDK_VERSION}" "${DPDK_ARCH}" ${NUM_JOBS}
 
 # Compile OCUDU and install it in the OS
 ARG COMPILER=gcc
@@ -78,22 +80,25 @@ RUN if [ -z "$NUM_JOBS" ]; then NUM_JOBS=$(nproc); fi \
     /src/docker/scripts/builder.sh -c ${COMPILER} -m "-j${NUM_JOBS} ocu odu odu_split_8 odu_split_7_2 gnb gnb_split_8 gnb_split_7_2 ru_emulator" \
     -DBUILD_TESTING=False -DENABLE_UHD=On -DENABLE_DPDK=On ${ARCH_FLAG} -DCMAKE_INSTALL_PREFIX=/opt/ocudu \
     ${EXTRA_CMAKE_ARGS} /src
-RUN cp /src/build/apps/cu/ocu             /tmp/ocu                     && \
-    cp /src/build/apps/du/odu             /tmp/odu                     && \
-    cp /src/build/apps/du_split_8/odu     /tmp/odu_split_8             && \
-    cp /src/build/apps/du_split_7_2/odu   /tmp/odu_split_7_2           && \
-    cp /src/build/apps/gnb/gnb            /tmp/gnb                     && \
-    cp /src/build/apps/gnb_split_8/gnb    /tmp/gnb_split_8             && \
-    cp /src/build/apps/gnb_split_7_2/gnb  /tmp/gnb_split_7_2           && \
-    cd /src/build                                                      && \
-    make install                                                       && \
-    mv /tmp/ocu                           /opt/ocudu/bin/ocu           && \
-    mv /tmp/odu                           /opt/ocudu/bin/odu           && \
-    mv /tmp/odu_split_8                   /opt/ocudu/bin/odu_split_8   && \
-    mv /tmp/odu_split_7_2                 /opt/ocudu/bin/odu_split_7_2 && \
-    mv /tmp/gnb                           /opt/ocudu/bin/gnb           && \
-    mv /tmp/gnb_split_8                   /opt/ocudu/bin/gnb_split_8   && \
-    mv /tmp/gnb_split_7_2                 /opt/ocudu/bin/gnb_split_7_2
+RUN cp /src/build/apps/cu/ocu                     /tmp/ocu                     && \
+    cp /src/build/apps/du/odu                     /tmp/odu                     && \
+    cp /src/build/apps/du_split_8/odu             /tmp/odu_split_8             && \
+    cp /src/build/apps/du_split_7_2/odu           /tmp/odu_split_7_2           && \
+    cp /src/build/apps/gnb/gnb                    /tmp/gnb                     && \
+    cp /src/build/apps/gnb_split_8/gnb            /tmp/gnb_split_8             && \
+    cp /src/build/apps/gnb_split_7_2/gnb          /tmp/gnb_split_7_2           && \
+    cp /src/build/apps/examples/ofh/ru_emulator   /tmp/ru_emulator             && \
+    cd /src/build                                                              && \
+    make install                                                               && \
+    mv /tmp/ocu                                   /opt/ocudu/bin/ocu           && \
+    mv /tmp/odu                                   /opt/ocudu/bin/odu           && \
+    mv /tmp/odu_split_8                           /opt/ocudu/bin/odu_split_8   && \
+    mv /tmp/odu_split_7_2                         /opt/ocudu/bin/odu_split_7_2 && \
+    mv /tmp/gnb                                   /opt/ocudu/bin/gnb           && \
+    mv /tmp/gnb_split_8                           /opt/ocudu/bin/gnb_split_8   && \
+    mv /tmp/gnb_split_7_2                         /opt/ocudu/bin/gnb_split_7_2 && \
+    mv /tmp/ru_emulator                           /opt/ocudu/bin/ru_emulator   && \
+    rm -rf /src
 
 ################
 # Stage 2: Run #
@@ -127,39 +132,3 @@ RUN /usr/local/etc/install_ocudu_dependencies.sh run && \
     /usr/local/etc/install_dpdk_dependencies.sh run && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl ntpdate && \
     apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-#########################################################
-# Stage 3: Generate container SPDX and merge build SPDX #
-#########################################################
-
-FROM anchore/syft:v1.26.1 AS syft-bin
-FROM python:3.11.3-alpine AS spdx-merger
-COPY --from=syft-bin  /syft                       /syft
-COPY --from=runtime   /                           /rootfs
-COPY --from=builder   /opt/ocudu/share/ocudu.spdx /sbom/ocudu.spdx
-
-# Generate SPDX file for the container image
-RUN mkdir -p /sbom /usr/local/etc/ && /syft dir:/rootfs -o spdx > /sbom/container.spdx
-# Merge the container SPDX with the build SPDX
-RUN pip install spdxmerge==0.2.0 && \
-    sed -i -e '/def validate(self/,/return messages/ { /messages.append("ExtractedLicense text can not be None"/ { s#messages.append.*#return messages# } }' /usr/local/lib/python3.11/site-packages/spdx/license.py && \
-    sed -i -e 's|def write_text_value(tag, value, out):|def write_text_value(tag, value, out):\n    if value is None:\n        return|'  /usr/local/lib/python3.11/site-packages/spdx/writers/tagvalue.py && \
-    spdxmerge \
-      --docpath /sbom \
-      --outpath /usr/local/etc/ \
-      --name "ocudu-image" \
-      --mergetype 1 \
-      --author "Software Radio Systems Ltd" \
-      --email "srs@srs.io" \
-      --docnamespace "https://srs.io/spdxdocs/ocudu" \
-      --filetype T >/dev/null && \
-    sed -i 's/^\(FilesAnalyzed:[[:space:]]*\)True/\1true/; s/^\(FilesAnalyzed:[[:space:]]*\)False/\1false/' /usr/local/etc/merged-SBoM-deep.spdx && \
-    sed -i -E 's|^(LicenseID:.*)|\1\nExtractedText: NOASSERTION|' /usr/local/etc/merged-SBoM-deep.spdx && \
-    sed -i '/^Relationship:.*#/d' /usr/local/etc/merged-SBoM-deep.spdx
-
-######################################################
-# Final Stage: Resume run stage with final SPDX file #
-######################################################
-
-FROM runtime
-COPY --from=spdx-merger /usr/local/etc/merged-SBoM-deep.spdx /usr/local/etc/ocudu_image.spdx

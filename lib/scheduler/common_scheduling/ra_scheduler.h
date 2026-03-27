@@ -73,8 +73,9 @@ private:
     static_vector<rnti_t, MAX_PREAMBLES_PER_PRACH_OCCASION> tc_rntis;
     pending_rar_failed_attempts_t                           failed_attempts;
   };
+  /// Msg3 grant pending to be scheduled.
   struct pending_msg3_t {
-    /// Detected PRACH Preamble associated to this Msg3.
+    /// Detected PRACH Preamble associated to this Msg3 being scheduled.
     rach_indication_message::preamble preamble{};
     /// UL Harq used to schedule Msg3.
     /// Note: [TS 38.321, 5.4.2.1] "For UL transmission with UL grant in RA Response, HARQ process identifier 0 is

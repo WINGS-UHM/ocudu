@@ -58,6 +58,57 @@ void mobility_manager::trigger_conditional_handover(
   handle_conditional_handover(source_pci, rnti, target_pcis, timeout, t1_thres_override);
 }
 
+void mobility_manager::trigger_auto_conditional_handover(ue_index_t ue_index)
+{
+  if (!cfg.trigger_cho_on_ue_setup) {
+    return;
+  }
+
+  cu_cp_ue* u = ue_mng.find_du_ue(ue_index);
+  if (u == nullptr) {
+    logger.debug("ue={}: Skipping auto-CHO: UE not found", ue_index);
+    return;
+  }
+
+  if (u->get_rrc_ue() == nullptr) {
+    logger.debug("ue={}: Skipping auto-CHO: RRC UE missing", ue_index);
+    return;
+  }
+
+  if (u->get_rrc_ue()->get_rrc_state() != rrc_state::connected) {
+    logger.debug("ue={}: Skipping auto-CHO: UE is not in RRC Connected state", ue_index);
+    return;
+  }
+
+  if (!u->get_rrc_ue()->is_conditional_handover_supported()) {
+    logger.debug("ue={}: Skipping auto-CHO: UE does not support CHO", ue_index);
+    return;
+  }
+
+  if (u->get_cho_context().has_value()) {
+    logger.debug("ue={}: Skipping auto-CHO: CHO context already initialized", ue_index);
+    return;
+  }
+
+  if (u->get_cu_up_index() == cu_up_index_t::invalid || u->get_up_resource_manager().get_nof_drbs() == 0) {
+    logger.info("ue={}: Auto-CHO deferred: bearer/user-plane context not ready yet", ue_index);
+    return;
+  }
+
+  const pci_t  source_pci  = u->get_pci();
+  const rnti_t source_rnti = u->get_c_rnti();
+  if (source_pci == INVALID_PCI || source_rnti == rnti_t::INVALID_RNTI) {
+    logger.debug(
+        "ue={}: Skipping auto-CHO: source PCI or C-RNTI invalid (pci={}, rnti={})", ue_index, source_pci, source_rnti);
+    return;
+  }
+
+  logger.info("ue={}: Auto-CHO trigger enabled. Starting CHO with default neighbor candidate set, timeout={}ms",
+              ue_index,
+              cfg.cho_timeout.count());
+  handle_conditional_handover(source_pci, source_rnti, span<const pci_t>{}, cfg.cho_timeout, std::nullopt);
+}
+
 void mobility_manager::handle_conditional_handover(
     pci_t                                                source_pci,
     rnti_t                                               rnti,
@@ -85,21 +136,31 @@ void mobility_manager::handle_conditional_handover(
     return;
   }
 
-  // Validate target PCIs.
+  std::vector<pci_t> requested_target_pcis;
   if (target_pcis.empty()) {
-    logger.warning("ue={}: CHO preparation failed. No target PCIs specified", ue_index);
-    return;
+    const nr_cell_identity serving_nci = u->get_rrc_ue()->get_cell_context().cgi.nci;
+    requested_target_pcis              = cell_meas_mng.get_neighbor_pcis(serving_nci);
+    if (requested_target_pcis.empty()) {
+      logger.warning(
+          "ue={}: CHO preparation failed. No neighbor targets configured for serving nci={:#x}", ue_index, serving_nci);
+      return;
+    }
+    logger.debug("ue={}: No CHO targets provided. Using all {} neighbor cells as candidates",
+                 ue_index,
+                 requested_target_pcis.size());
+  } else {
+    requested_target_pcis.assign(target_pcis.begin(), target_pcis.end());
   }
 
   std::set<pci_t>    seen_target_pcis;
   std::vector<pci_t> unique_target_pcis;
-  unique_target_pcis.reserve(target_pcis.size());
-  for (pci_t target_pci : target_pcis) {
+  unique_target_pcis.reserve(requested_target_pcis.size());
+  for (pci_t target_pci : requested_target_pcis) {
     if (seen_target_pcis.insert(target_pci).second) {
       unique_target_pcis.push_back(target_pci);
     }
   }
-  if (unique_target_pcis.size() != target_pcis.size()) {
+  if (unique_target_pcis.size() != requested_target_pcis.size()) {
     logger.warning("ue={}: CHO request contains duplicate target PCIs. Duplicates were ignored", ue_index);
   }
 

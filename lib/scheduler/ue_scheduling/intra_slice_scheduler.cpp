@@ -151,7 +151,11 @@ intra_slice_scheduler::intra_slice_scheduler(const scheduler_ue_expert_config& e
 
 void intra_slice_scheduler::slot_indication(slot_point sl_tx)
 {
-  pdcch_slot        = sl_tx;
+  pdcch_slot = sl_tx;
+  // Reset slots to ensure used RB bitmaps are updated when scheduling the next slot, as allocations could have been
+  // made by other scheduler components in the meantime (e.g., fallback scheduler).
+  pdsch_slot.clear();
+  pusch_slot.clear();
   dl_attempts_count = 0;
   ul_attempts_count = 0;
 }
@@ -897,14 +901,15 @@ void intra_slice_scheduler::update_used_ul_vrbs(const ul_ran_slice_candidate& sl
   const unsigned    slice_candidate_k2 = slice.get_slot_tx() - cell_alloc[0].slot - cell_alloc.cfg.ntn_cs_koffset;
   ofdm_symbol_range symbols_to_check   = {0, 0};
   // Find the max symbols such that symbols.stop() <= min_srs_symbol;
-  for (auto& td_res : init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
+  for (const auto& td_res : init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list) {
     // We can choose only the symbols for the same k2.
     if (td_res.k2 < slice_candidate_k2) {
       continue;
     }
     if (td_res.k2 == slice_candidate_k2) {
-      if (td_res.symbols.stop() <= min_srs_symbol and td_res.symbols.stop() > symbols_to_check.stop())
+      if (td_res.symbols.stop() <= min_srs_symbol and td_res.symbols.stop() > symbols_to_check.stop()) {
         symbols_to_check = td_res.symbols;
+      }
     }
     if (td_res.k2 > slice_candidate_k2) {
       break;

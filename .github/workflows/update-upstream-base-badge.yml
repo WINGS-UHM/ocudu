@@ -57,9 +57,9 @@ jobs:
           EOF
 
           # LAG badge
-          if [ "${LAG_COUNT}" -eq 0 ]; then
+          if [ "${LAG_COUNT}" -le 20 ]; then
             LAG_COLOR="brightgreen"
-          elif [ "${LAG_COUNT}" -le 10 ]; then
+          elif [ "${LAG_COUNT}" -le 100 ]; then
             LAG_COLOR="yellow"
           else
             LAG_COLOR="red"

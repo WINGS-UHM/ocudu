@@ -39,6 +39,7 @@ e1ap_cu_up_test::e1ap_cu_up_test()
   ocudulog::init();
 
   e1ap_configuration e1ap_cfg;
+  e1ap_cfg.max_nof_ues      = 16384;
   e1ap_cfg.json_log_enabled = true;
 
   e1ap = create_e1ap(e1ap_cfg, e1ap_gw, cu_up_notifier, timers, cu_up_worker);

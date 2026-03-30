@@ -153,7 +153,7 @@ static csi_report_data csi_report_unpack_pucch_cri_ri_li_pmi_cqi(const csi_repor
   return data;
 }
 
-/// Gets the CSI report size in function of the RI.
+/// Gets the CSI report size as a function of the RI.
 static units::bits get_csi_report_size_ri(const csi_report_configuration& config, csi_report_data::ri_type ri)
 {
   switch (config.quantities) {
@@ -216,20 +216,21 @@ bool ocudu::validate_pucch_csi_payload(const csi_report_packed& packed, const cs
 
 csi_report_data ocudu::csi_report_unpack_pucch(const csi_report_packed& packed, const csi_report_configuration& config)
 {
-  ocudu_assert(config.pmi_codebook != pmi_codebook_type::other, "Unsupported PMI codebook type.");
+  ocudu_assert(!std::holds_alternative<std::monostate>(config.pmi_codebook), "Unsupported PMI codebook type.");
 
-  ocudu_assert((config.pmi_codebook == pmi_codebook_type::one) ||
-                   (config.ri_restriction.size() >= csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook)),
+  [[maybe_unused]] bool is_pmi_codebook_one_port = std::holds_alternative<pmi_codebook_one_port>(config.pmi_codebook);
+  [[maybe_unused]] unsigned ri_restriction_size  = config.ri_restriction.size();
+  [[maybe_unused]] unsigned nof_csi_rs_antenna_ports = csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook);
+  ocudu_assert(is_pmi_codebook_one_port || (ri_restriction_size >= nof_csi_rs_antenna_ports),
                "The RI restriction set size, i.e., {}, is smaller than the number of CSI-RS ports, i.e., {}.",
-               config.ri_restriction.size(),
-               csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook));
+               ri_restriction_size,
+               nof_csi_rs_antenna_ports);
 
-  ocudu_assert((config.pmi_codebook == pmi_codebook_type::one) ||
-                   (config.ri_restriction.find_highest() <
-                    static_cast<int>(csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook))),
+  ocudu_assert(is_pmi_codebook_one_port ||
+                   (config.ri_restriction.find_highest() < static_cast<int>(nof_csi_rs_antenna_ports)),
                "The RI restriction set, i.e., {}, allows higher rank values than the number of CSI-RS ports, i.e., {}.",
                config.ri_restriction,
-               csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook));
+               nof_csi_rs_antenna_ports);
 
   // Select unpacking depending on the CSI report quantities.
   switch (config.quantities) {

@@ -622,7 +622,7 @@ static void make_asn1_codebook_config(codebook_cfg_s& out, const codebook_config
       }
       out_mp_cfg.ri_restrict.from_number(mp_cfg_val->ri_restriction.to_uint64());
     }
-    out_tp1_cfg.codebook_mode = tp1_cfg_val->codebook_mode;
+    out_tp1_cfg.codebook_mode = static_cast<uint8_t>(tp1_cfg_val->codebook_mode);
   } else if (const auto* tp2_cfg_val = std::get_if<codebook_config::type2>(&cfg.codebook_type)) {
     auto& out_tp2_cfg = out.codebook_type.set_type2();
     if (const auto* typeii = std::get_if<codebook_config::type2::typeii>(&tp2_cfg_val->sub_type)) {

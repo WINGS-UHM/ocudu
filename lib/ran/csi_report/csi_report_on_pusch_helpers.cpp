@@ -228,7 +228,7 @@ bool ocudu::validate_pusch_csi_payload(const csi_report_packed&        csi1_pack
 
   // If the PMI codebook type is for more than a single CSI-RS port and the CSI report quantities include PMI and/or LI,
   // The CSI Part 2 payload must be present.
-  if (((config.pmi_codebook != pmi_codebook_type::one) &&
+  if ((!std::holds_alternative<pmi_codebook_one_port>(config.pmi_codebook) &&
        ((config.quantities == csi_report_quantities::cri_ri_li_pmi_cqi) ||
         (config.quantities == csi_report_quantities::cri_ri_pmi_cqi))) &&
       csi2_packed.empty()) {
@@ -266,25 +266,25 @@ csi_report_data ocudu::csi_report_unpack_pusch(const csi_report_packed&        c
                                                const csi_report_configuration& config)
 {
   ocudu_assert(!config.subband.has_value(), "Subbands CSI reports are not supported on PUSCH.");
-  ocudu_assert(config.pmi_codebook != pmi_codebook_type::other, "Unsupported PMI codebook type.");
+  ocudu_assert(!std::holds_alternative<std::monostate>(config.pmi_codebook), "Unsupported PMI codebook type.");
 
-  ocudu_assert((config.pmi_codebook == pmi_codebook_type::one) ||
-                   (config.ri_restriction.size() >= csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook)),
+  [[maybe_unused]] bool is_pmi_codebook_one_port = std::holds_alternative<pmi_codebook_one_port>(config.pmi_codebook);
+  [[maybe_unused]] unsigned ri_restriction_size  = config.ri_restriction.size();
+  [[maybe_unused]] unsigned nof_csi_rs_antenna_ports = csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook);
+  ocudu_assert(is_pmi_codebook_one_port || (ri_restriction_size >= nof_csi_rs_antenna_ports),
                "The RI restriction set size, i.e., {}, is smaller than the number of CSI-RS ports, i.e., {}.",
-               config.ri_restriction.size(),
-               csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook));
+               ri_restriction_size,
+               nof_csi_rs_antenna_ports);
 
-  ocudu_assert((config.pmi_codebook == pmi_codebook_type::one) ||
-                   (config.ri_restriction.find_highest() <
-                    static_cast<int>(csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook))),
+  ocudu_assert(is_pmi_codebook_one_port ||
+                   (config.ri_restriction.find_highest() < static_cast<int>(nof_csi_rs_antenna_ports)),
                "The RI restriction set, i.e., {}, allows higher rank values than the number of CSI-RS ports, i.e., {}.",
                config.ri_restriction,
-               csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook));
+               nof_csi_rs_antenna_ports);
 
   // Assert that CSI Part 2 payload is present if it is required.
-  ocudu_assert(((config.pmi_codebook == pmi_codebook_type::one) ||
-                ((config.quantities != csi_report_quantities::cri_ri_li_pmi_cqi) &&
-                 (config.quantities != csi_report_quantities::cri_ri_pmi_cqi))) ||
+  ocudu_assert((is_pmi_codebook_one_port || ((config.quantities != csi_report_quantities::cri_ri_li_pmi_cqi) &&
+                                             (config.quantities != csi_report_quantities::cri_ri_pmi_cqi))) ||
                    !csi2_packed.empty(),
                "PUSCH CSI Part 2 is required for more than one CSI-RS port when PMI is reported.");
 

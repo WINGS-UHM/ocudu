@@ -17,7 +17,7 @@ uci_part2_correspondence_mapper::map(const csi_report_configuration& csi_report)
   ocudu_assert(csi_report.ri_restriction.to_uint64() < MAX_NUM_RI_RESTRICTIONS, "Unsupported RI restriction value");
 
   unsigned index = get_uci_part2_correspondence_index(csi_report.nof_csi_rs_resources,
-                                                      static_cast<unsigned>(csi_report.pmi_codebook),
+                                                      to_pmi_codebook_identifier(csi_report.pmi_codebook).value(),
                                                       static_cast<unsigned>(csi_report.ri_restriction.to_uint64()),
                                                       static_cast<unsigned>(csi_report.quantities));
 

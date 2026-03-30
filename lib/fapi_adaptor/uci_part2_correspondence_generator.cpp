@@ -34,12 +34,13 @@ ocudu::fapi_adaptor::generate_uci_part2_correspondence(unsigned nof_csi_rs_resou
   // Skip generating entries with nof_csi_rs_resources set to 0.
   for (unsigned csi_resource_index = 1; csi_resource_index != (nof_csi_rs_resources + 1); ++csi_resource_index) {
     for (unsigned codebook_index = 0; codebook_index != MAX_NUM_CODEBOOKS; ++codebook_index) {
+      const pmi_codebook_config& pmi_codebook = to_pmi_codebook_config(codebook_index);
+
       // The maximum value of the RI restriction field depends on the number of CSI-RS ports which is derived from the
       // used codebook.
-      for (unsigned ri_index = 1,
-                    nof_csi_rs_ports =
-                        csi_report_get_nof_csi_rs_antenna_ports(static_cast<pmi_codebook_type>(codebook_index)),
-                    ri_index_end = pow2(nof_csi_rs_ports);
+      for (unsigned ri_index         = 1,
+                    nof_csi_rs_ports = csi_report_get_nof_csi_rs_antenna_ports(pmi_codebook),
+                    ri_index_end     = pow2(nof_csi_rs_ports);
            ri_index != ri_index_end;
            ++ri_index) {
         for (unsigned quantities_index = 0; quantities_index != MAX_NUM_QUANTITIES; ++quantities_index) {
@@ -48,7 +49,7 @@ ocudu::fapi_adaptor::generate_uci_part2_correspondence(unsigned nof_csi_rs_resou
 
           csi_report_configuration report_cfg;
           report_cfg.nof_csi_rs_resources = csi_resource_index;
-          report_cfg.pmi_codebook         = static_cast<pmi_codebook_type>(codebook_index);
+          report_cfg.pmi_codebook         = pmi_codebook;
           report_cfg.ri_restriction       = ri_restriction;
           report_cfg.quantities           = static_cast<csi_report_quantities>(quantities_index);
 

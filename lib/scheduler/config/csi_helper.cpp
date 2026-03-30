@@ -599,7 +599,7 @@ make_csi_report_configs(const csi_meas_config_builder_params&                   
     single_panel.typei_single_panel_ri_restriction.resize(8);
     single_panel.typei_single_panel_ri_restriction.from_uint64((1U << params.max_nof_layers) - 1U);
     type1.sub_type                      = single_panel;
-    type1.codebook_mode                 = 1;
+    type1.codebook_mode                 = pmi_codebook_typeI_mode::one;
     reps[0].codebook_cfg->codebook_type = type1;
   }
 

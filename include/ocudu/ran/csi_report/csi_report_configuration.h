@@ -6,6 +6,7 @@
 
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/adt/bounded_integer.h"
+#include "ocudu/ran/precoding/precoding_codebook_configuration.h"
 
 namespace ocudu {
 
@@ -16,19 +17,7 @@ enum class csi_report_type { periodic, aperiodic };
 ///
 /// The RI restriction field is described in TS38.331 Section 6.3.2, Information Element \e CodebookConfig. The
 /// bit-width of this field must be equal to the number of CSI-RS transmit number of antennas.
-using ri_restriction_type = bounded_bitset<8>;
-
-/// CSI-RS PMI report codebook configuration.
-enum class pmi_codebook_type {
-  /// One CSI-RS antenna port.
-  one = 0,
-  /// Two CSI-RS antenna ports.
-  two,
-  /// PMI codebook TypeI, single-panel with four CSI-RS antenna ports and mode 1.
-  typeI_single_panel_4ports_mode1,
-  /// Any other configuration.
-  other
-};
+using ri_restriction_type = bounded_bitset<8U>;
 
 /// \brief CSI report quantities.
 ///
@@ -63,7 +52,7 @@ struct csi_report_configuration {
   /// Corresponds to parameter \f$K^\testup{CSI-RS}_\testup{s}\f$ as per TS38.212 Section 6.3.1.1.2.
   unsigned nof_csi_rs_resources;
   /// CSI-RS PMI codebook configuration.
-  pmi_codebook_type pmi_codebook;
+  pmi_codebook_config pmi_codebook;
   /// Set to true the bits in position \f$i\f$ to enable RI reporting for \f$\upsilon + i\f$.
   ri_restriction_type ri_restriction;
   /// Select CSI report quantities.
@@ -72,31 +61,16 @@ struct csi_report_configuration {
   std::optional<csi_report_subband_configuration> subband;
 };
 
-inline const char* to_string(pmi_codebook_type codebook)
-{
-  switch (codebook) {
-    case pmi_codebook_type::one:
-      return "one-port";
-    case pmi_codebook_type::two:
-      return "two-port";
-    case pmi_codebook_type::typeI_single_panel_4ports_mode1:
-      return "TypeI-SinglePanel-FourPorts-Mode1";
-    case pmi_codebook_type::other:
-    default:
-      return "other";
-  }
-}
-
 inline const char* to_string(csi_report_quantities quantities)
 {
   switch (quantities) {
-    case ocudu::csi_report_quantities::cri_ri_pmi_cqi:
+    case csi_report_quantities::cri_ri_pmi_cqi:
       return "cri-ri-pmi-cqi";
-    case ocudu::csi_report_quantities::cri_ri_cqi:
+    case csi_report_quantities::cri_ri_cqi:
       return "cri-ri-cqi";
-    case ocudu::csi_report_quantities::cri_ri_li_pmi_cqi:
+    case csi_report_quantities::cri_ri_li_pmi_cqi:
       return "cri-ri-li-pmi-cqi";
-    case ocudu::csi_report_quantities::other:
+    case csi_report_quantities::other:
     default:
       return "other";
   }

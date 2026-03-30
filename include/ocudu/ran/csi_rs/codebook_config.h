@@ -5,6 +5,7 @@
 #pragma once
 
 #include "ocudu/adt/bounded_bitset.h"
+#include "ocudu/ran/precoding/precoding_codebook_properties.h"
 #include <optional>
 #include <variant>
 
@@ -24,21 +25,7 @@ struct codebook_config {
         /// \brief See TS 38.331, \c n1-n2 in \c CodebookConfig.
         /// \remark Bitset size is based on \c n1_n2_restriction_type_t with maximum bit string length.
         using n1_n2_restriction_value_t = bounded_bitset<256>;
-        enum class n1_n2_restriction_type_t {
-          two_one,
-          two_two,
-          four_one,
-          three_two,
-          six_one,
-          four_two,
-          eight_one,
-          four_three,
-          six_two,
-          twelve_one,
-          four_four,
-          eight_two,
-          sixteen_one
-        };
+        using n1_n2_restriction_type_t  = pmi_codebook_single_panel_config;
 
         n1_n2_restriction_type_t  n1_n2_restriction_type;
         n1_n2_restriction_value_t n1_n2_restriction_value;
@@ -106,7 +93,7 @@ struct codebook_config {
 
     std::variant<single_panel, multi_panel> sub_type;
     /// CodebookMode as specified in TS 38.214, clause 5.2.2.2.2. Value {1,...,2}.
-    unsigned codebook_mode;
+    pmi_codebook_typeI_mode codebook_mode;
 
     bool operator==(const type1& rhs) const { return sub_type == rhs.sub_type && codebook_mode == rhs.codebook_mode; }
     bool operator!=(const type1& rhs) const { return !(rhs == *this); }

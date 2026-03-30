@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "mac_test_mode_helpers.h"
+#include "ocudu/ran/csi_report/csi_report_on_puxch_utils.h"
 #include "ocudu/scheduler/result/pucch_info.h"
 #include "ocudu/scheduler/result/pusch_info.h"
 
@@ -77,27 +78,13 @@ static void fill_csi_bits(bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PAR
   payload.push_back(test_ue_cfg.cqi, CQI_BITLEN);
 }
 
-static unsigned get_nof_ports(const csi_report_configuration& csi_rep_cfg)
-{
-  switch (csi_rep_cfg.pmi_codebook) {
-    case pmi_codebook_type::one:
-      return 1;
-    case pmi_codebook_type::two:
-      return 2;
-    case pmi_codebook_type::typeI_single_panel_4ports_mode1:
-      return 4;
-    default:
-      report_fatal_error("Unsupported CSI report type");
-  }
-  return 1;
-}
-
 static void fill_csi_bits(bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PART2_BITS>& payload,
                           rnti_t                                                          rnti,
                           const pucch_info&                                               pucch,
                           const du_test_mode_config::test_mode_ue_config&                 test_ue_cfg)
 {
-  unsigned nof_ports      = pucch.csi_rep_cfg.has_value() ? get_nof_ports(pucch.csi_rep_cfg.value()) : 1;
+  unsigned nof_ports =
+      pucch.csi_rep_cfg.has_value() ? csi_report_get_nof_csi_rs_antenna_ports(pucch.csi_rep_cfg->pmi_codebook) : 1;
   unsigned nof_allowed_ri = pucch.csi_rep_cfg.has_value() ? pucch.csi_rep_cfg->ri_restriction.count() : nof_ports;
   fill_csi_bits(payload, rnti, nof_ports, nof_allowed_ri, test_ue_cfg);
 }
@@ -111,7 +98,7 @@ static void fill_csi_bits(bounded_bitset<uci_constants::MAX_NOF_CSI_PART1_OR_PAR
     return;
   }
   const auto& csi_rep_cfg    = pusch.uci.value().csi.value().csi_rep_cfg;
-  unsigned    nof_ports      = get_nof_ports(csi_rep_cfg);
+  unsigned    nof_ports      = csi_report_get_nof_csi_rs_antenna_ports(csi_rep_cfg.pmi_codebook);
   unsigned    nof_allowed_ri = csi_rep_cfg.ri_restriction.count();
   fill_csi_bits(payload, rnti, nof_ports, nof_allowed_ri, test_ue_cfg);
 }

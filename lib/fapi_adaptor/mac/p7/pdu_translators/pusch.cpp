@@ -38,7 +38,7 @@ static void fill_optional_uci_parameters(fapi::ul_pusch_pdu_builder&      builde
     beta_offset_csi1              = csi.beta_offset_csi_1;
 
     // No CSI Part2 for a single antenna.
-    if (csi.beta_offset_csi_2 && csi.csi_rep_cfg.pmi_codebook != pmi_codebook_type::one) {
+    if (csi.beta_offset_csi_2 && !std::holds_alternative<pmi_codebook_one_port>(csi.csi_rep_cfg.pmi_codebook)) {
       span<const uci_part2_correspondence_information> uci_correspondence = part2_mapper.map(csi.csi_rep_cfg);
       if (!uci_correspondence.empty()) {
         beta_offset_csi2 = *csi.beta_offset_csi_2;

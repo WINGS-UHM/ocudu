@@ -10,7 +10,7 @@ namespace fapi_adaptor {
 
 constexpr unsigned MAX_NUM_RI_RESTRICTIONS = (1U << 4);
 constexpr unsigned MAX_NUM_CSI_RESOURCES   = 1;
-constexpr unsigned MAX_NUM_CODEBOOKS       = static_cast<unsigned>(pmi_codebook_type::other);
+constexpr unsigned MAX_NUM_CODEBOOKS       = 3;
 constexpr unsigned MAX_NUM_QUANTITIES      = static_cast<unsigned>(csi_report_quantities::other);
 
 /// Returns the UCI Part2 correspondence index using the given parameters.

@@ -19,7 +19,7 @@ const csi_report_configuration base_csi_configuration = {
     // Number of CSI RS resources.
     1,
     // PMI codebook.
-    pmi_codebook_type::one,
+    pmi_codebook_one_port{},
     // RI restriction.
     ~ri_restriction_type(1),
     // CSI report quantities.
@@ -62,7 +62,7 @@ const std::vector<csi_validator_test_case> csi_pucch_validator_test_data = {
     {
         [] {
           csi_validator_test_params entry = {};
-          entry.config.pmi_codebook       = pmi_codebook_type::other;
+          entry.config.pmi_codebook       = std::monostate();
           entry.assert_message            = fmt::format(R"(Unsupported PMI codebook type\.)");
           return entry;
         },
@@ -70,7 +70,7 @@ const std::vector<csi_validator_test_case> csi_pucch_validator_test_data = {
     {
         [] {
           csi_validator_test_params entry = {};
-          entry.config.pmi_codebook       = pmi_codebook_type::two;
+          entry.config.pmi_codebook       = pmi_codebook_two_port{};
           entry.config.ri_restriction.resize(1);
           entry.assert_message = fmt::format(
               R"(The RI restriction set size\, i\.e\.\, {}\, is smaller than the number of CSI-RS ports\, i\.e\.\, 2\.)",
@@ -81,7 +81,7 @@ const std::vector<csi_validator_test_case> csi_pucch_validator_test_data = {
     {
         [] {
           csi_validator_test_params entry = {};
-          entry.config.pmi_codebook       = pmi_codebook_type::two;
+          entry.config.pmi_codebook       = pmi_codebook_two_port{};
           entry.config.ri_restriction.resize(3);
           entry.config.ri_restriction.set(2);
           entry.assert_message = fmt::format(
@@ -116,7 +116,8 @@ const std::vector<csi_validator_test_case> csi_pucch_validator_test_data = {
         [] {
           csi_validator_test_params entry = {};
           // This results in 4 CSI-RS ports and an RI size of 2 bit.
-          entry.config.pmi_codebook = pmi_codebook_type::typeI_single_panel_4ports_mode1;
+          entry.config.pmi_codebook =
+              pmi_codebook_typeI_single_panel{pmi_codebook_single_panel_config::two_one, pmi_codebook_typeI_mode::one};
           entry.csi_packed.resize(6);
 
           // Allow three different ranks, therefore RI can go from 0b00 to 0b10.

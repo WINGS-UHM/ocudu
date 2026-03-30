@@ -10,7 +10,7 @@ using namespace ocudu;
 csi_report_configuration ocudu::create_csi_report_configuration(const csi_meas_config& csi_meas)
 {
   csi_report_configuration csi_rep = {};
-  csi_rep.pmi_codebook             = pmi_codebook_type::one;
+  csi_rep.pmi_codebook             = pmi_codebook_one_port{};
 
   // TODO: support more CSI reports.
   const csi_report_config& csi_rep_cfg = csi_meas.csi_report_cfg_list[0];
@@ -47,11 +47,14 @@ csi_report_configuration ocudu::create_csi_report_configuration(const csi_meas_c
 
         if (std::holds_alternative<single_panel::two_antenna_ports_two_tx_codebook_subset_restriction>(
                 panel->nof_antenna_ports)) {
-          csi_rep.pmi_codebook = pmi_codebook_type::two;
+          csi_rep.pmi_codebook = pmi_codebook_two_port{};
         } else if (std::holds_alternative<single_panel::more_than_two_antenna_ports>(panel->nof_antenna_ports)) {
-          csi_rep.pmi_codebook = pmi_codebook_type::typeI_single_panel_4ports_mode1;
+          const single_panel::more_than_two_antenna_ports& nof_antenna_ports =
+              std::get<single_panel::more_than_two_antenna_ports>(panel->nof_antenna_ports);
+          csi_rep.pmi_codebook =
+              pmi_codebook_typeI_single_panel{nof_antenna_ports.n1_n2_restriction_type, type1->codebook_mode};
         } else {
-          csi_rep.pmi_codebook = pmi_codebook_type::other;
+          csi_rep.pmi_codebook = std::monostate();
         }
 
         csi_rep.ri_restriction = panel->typei_single_panel_ri_restriction;
@@ -76,11 +79,11 @@ bool ocudu::is_valid(const csi_report_configuration& config)
   }
 
   // The PMI codebook type is not supported.
-  if (config.pmi_codebook == pmi_codebook_type::other) {
+  if (std::holds_alternative<std::monostate>(config.pmi_codebook)) {
     return false;
   }
 
-  if (config.pmi_codebook != pmi_codebook_type::one) {
+  if (!std::holds_alternative<pmi_codebook_one_port>(config.pmi_codebook)) {
     unsigned nof_csi_rs_ports = csi_report_get_nof_csi_rs_antenna_ports(config.pmi_codebook);
 
     // The RI restriction set size is too small to cover all possible ranks given the number of CSI-RS ports.

@@ -550,10 +550,11 @@ ul_sched_info_test_helper unittests::build_valid_pusch_pdu()
   csi.csi_part1_nof_bits    = 2;
   csi.beta_offset_csi_1     = 13;
   csi.beta_offset_csi_2.emplace(6);
-  csi.csi_rep_cfg = {1,
-                     pmi_codebook_type::typeI_single_panel_4ports_mode1,
-                     ri_restriction_type({true, true, true, true}),
-                     csi_report_quantities::cri_ri_li_pmi_cqi};
+  csi.csi_rep_cfg = {
+      1,
+      pmi_codebook_typeI_single_panel{pmi_codebook_single_panel_config::two_one, pmi_codebook_typeI_mode::one},
+      ri_restriction_type({true, true, true, true}),
+      csi_report_quantities::cri_ri_li_pmi_cqi};
 
   return helper;
 }

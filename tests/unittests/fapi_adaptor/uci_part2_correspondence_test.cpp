@@ -14,11 +14,11 @@ static constexpr unsigned NUM_CSI_RESOURCES = 1;
 namespace {
 
 class uci_part2_correspondence_generator_test
-  : public ::testing::TestWithParam<std::tuple<pmi_codebook_type, csi_report_quantities>>
+  : public ::testing::TestWithParam<std::tuple<pmi_codebook_config, csi_report_quantities>>
 {
 protected:
   unsigned              nof_csi_rs_resources = NUM_CSI_RESOURCES;
-  pmi_codebook_type     codebook             = std::get<0>(GetParam());
+  pmi_codebook_config   codebook             = std::get<0>(GetParam());
   csi_report_quantities quantities           = std::get<1>(GetParam());
 };
 
@@ -65,9 +65,11 @@ TEST_P(uci_part2_correspondence_generator_test, correct_generation_test)
 
 INSTANTIATE_TEST_SUITE_P(uci_part2,
                          uci_part2_correspondence_generator_test,
-                         testing::Combine(testing::Values(pmi_codebook_type::one,
-                                                          pmi_codebook_type::two,
-                                                          pmi_codebook_type::typeI_single_panel_4ports_mode1),
+                         testing::Combine(testing::Values(pmi_codebook_one_port{},
+                                                          pmi_codebook_two_port{},
+                                                          pmi_codebook_typeI_single_panel{
+                                                              pmi_codebook_single_panel_config::two_one,
+                                                              pmi_codebook_typeI_mode::one}),
                                           testing::Values(csi_report_quantities::cri_ri_cqi,
                                                           csi_report_quantities::cri_ri_pmi_cqi,
                                                           csi_report_quantities::cri_ri_li_pmi_cqi)));

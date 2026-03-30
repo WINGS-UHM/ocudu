@@ -702,7 +702,7 @@ void ue_cell_configuration::configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_d
     search_space_info& ss = search_spaces[ss_cfg.get_id()];
 
     ss.cfg     = &ss_cfg;
-    ss.coreset = &cell_cfg_common.ded_bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
+    ss.coreset = &cell_cfg_common.bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),
@@ -744,7 +744,7 @@ void ue_cell_configuration::configure_bwp_ded_cfg(bwp_id_t bwpid, const bwp_down
     search_space_info& ss = search_spaces[ss_cfg.get_id()];
 
     ss.cfg     = &ss_cfg;
-    ss.coreset = &cell_cfg_common.ded_bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
+    ss.coreset = &cell_cfg_common.bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),

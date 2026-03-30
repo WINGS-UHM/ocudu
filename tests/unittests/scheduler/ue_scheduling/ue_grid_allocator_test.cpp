@@ -132,7 +132,8 @@ protected:
       ue_creation_req.cfg.lc_config_list->push_back(config_helpers::create_default_logical_channel_config(lcid));
     }
     // Set same dedicated PDCCH config.
-    (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg = cell_cfg.init_bwp_res.dl_ded()->pdcch_cfg;
+    (*ue_creation_req.cfg.cells)[0].serv_cell_cfg.init_dl_bwp.pdcch_cfg =
+        cell_cfg.bwp_res[to_bwp_id(0)].dl_ded()->pdcch_cfg;
 
     return add_ue(ue_creation_req);
   }
@@ -269,7 +270,7 @@ TEST_P(ue_grid_allocator_css_test,
   sched_ue_creation_request_message ue_creation_req =
       sched_config_helper::create_default_sched_ue_creation_request(cell_cfg.params);
   ue_creation_req.cfg.cells->front().serv_cell_cfg.init_dl_bwp.pdcch_cfg =
-      cell_cfg.ded_bwp_res[to_bwp_id(0)].dl_ded()->pdcch_cfg;
+      cell_cfg.bwp_res[to_bwp_id(0)].dl_ded()->pdcch_cfg;
   ue_creation_req.ue_index = to_du_ue_index(0);
   ue_creation_req.crnti    = to_rnti(0x4601);
   ue& u                    = add_ue(ue_creation_req);

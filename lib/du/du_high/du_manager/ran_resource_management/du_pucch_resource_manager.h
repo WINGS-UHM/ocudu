@@ -5,7 +5,7 @@
 #pragma once
 
 #include "du_ue_resource_config.h"
-#include "ocudu/scheduler/config/cell_bwp_config.h"
+#include "ocudu/scheduler/config/cell_bwp_res_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include <optional>
 #include <set>
@@ -55,8 +55,8 @@ private:
   };
 
   struct cell_resource_context {
-    ran_cell_config cell_params;
-    cell_bwp_config cell_bwp_cfg;
+    ran_cell_config     cell_params;
+    cell_bwp_res_config cell_bwp_cfg;
     // Default CSI report configuration. Only set if periodic CSI reporting is configured.
     std::optional<csi_report_config> default_csi_report_cfg;
     unsigned                         lcm_csi_sr_period;

@@ -4,6 +4,7 @@
 
 #include "sched_bwp_config.h"
 #include "../support/pdcch/pdcch_mapping.h"
+#include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
 using namespace ocudu;
 
@@ -31,26 +32,31 @@ sched_coreset_config::sched_coreset_config(pci_t                        pci,
   }
 }
 
-sched_bwp_config::sched_bwp_config(pci_t                         pci,
-                                   bwp_id_t                      bwp_id_,
-                                   const bwp_downlink_common&    base_dl_bwp_cmn_,
-                                   const bwp_downlink_dedicated* base_dl_bwp_) :
+static bwp_downlink_dedicated get_bwp_ded(const ran_cell_config& ran_cfg, bwp_id_t bwp_id)
+{
+  ocudu_assert(bwp_id == to_bwp_id(0), "non init BWP not supported");
+  const auto init_dl_bwp = config_helpers::make_default_ue_cell_config(ran_cfg).serv_cell_cfg.init_dl_bwp;
+  return bwp_downlink_dedicated{
+      .pdcch_cfg = ran_cfg.init_bwp.pdcch_cfg, .pdsch_cfg = init_dl_bwp.pdsch_cfg, .rlm_cfg = init_dl_bwp.rlm_cfg};
+}
+
+sched_bwp_config::sched_bwp_config(const ran_cell_config& ran_cfg, bwp_id_t bwp_id_) :
   bwpid(bwp_id_),
-  base_dl_bwp_cmn(base_dl_bwp_cmn_),
-  base_dl_bwp_ded(base_dl_bwp_ != nullptr ? std::optional<bwp_downlink_dedicated>{*base_dl_bwp_}
-                                          : std::optional<bwp_downlink_dedicated>{})
+  base_dl_bwp_cmn(ran_cfg.dl_cfg_common.init_dl_bwp),
+  base_dl_bwp_ded(get_bwp_ded(ran_cfg, bwp_id())),
+  ul_res(make_cell_bwp_res_config(ran_cfg).ul)
 {
   if (base_dl_bwp_cmn.pdcch_common.coreset0.has_value()) {
     cs_list.emplace(to_coreset_id(0),
-                    sched_coreset_config(pci, base_dl_bwp_cmn, *base_dl_bwp_cmn.pdcch_common.coreset0));
+                    sched_coreset_config(ran_cfg.pci, base_dl_bwp_cmn, *base_dl_bwp_cmn.pdcch_common.coreset0));
   }
   if (base_dl_bwp_cmn.pdcch_common.common_coreset.has_value()) {
     cs_list.emplace(base_dl_bwp_cmn.pdcch_common.common_coreset->get_id(),
-                    sched_coreset_config(pci, base_dl_bwp_cmn, *base_dl_bwp_cmn.pdcch_common.common_coreset));
+                    sched_coreset_config(ran_cfg.pci, base_dl_bwp_cmn, *base_dl_bwp_cmn.pdcch_common.common_coreset));
   }
   if (base_dl_bwp_ded.has_value() and base_dl_bwp_ded->pdcch_cfg.has_value()) {
     for (const auto& cs_cfg : base_dl_bwp_ded->pdcch_cfg->coresets) {
-      cs_list.emplace(cs_cfg.get_id(), sched_coreset_config(pci, base_dl_bwp_cmn, cs_cfg));
+      cs_list.emplace(cs_cfg.get_id(), sched_coreset_config(ran_cfg.pci, base_dl_bwp_cmn, cs_cfg));
     }
   }
 }

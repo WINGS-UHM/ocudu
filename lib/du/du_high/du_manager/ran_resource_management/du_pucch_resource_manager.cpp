@@ -9,7 +9,7 @@
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
 #include "ocudu/ran/serv_cell_index.h"
-#include "ocudu/scheduler/config/cell_bwp_config.h"
+#include "ocudu/scheduler/config/cell_bwp_res_config.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
@@ -39,7 +39,7 @@ void du_pucch_resource_manager::add_cell(du_cell_index_t cell_idx, const ran_cel
   cell_resource_context cell_ctx;
 
   cell_ctx.cell_params  = cell_cfg;
-  cell_ctx.cell_bwp_cfg = make_cell_bwp_config(cell_cfg);
+  cell_ctx.cell_bwp_cfg = make_cell_bwp_res_config(cell_cfg);
   // TODO: remove these after we get rid of \c serving_cell_config.
   if (cell_ctx.cell_params.init_bwp.csi.has_value() and
       not cell_ctx.cell_params.init_bwp.csi->enable_aperiodic_report) {

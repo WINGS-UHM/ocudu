@@ -95,9 +95,8 @@ public:
     auto&                 pucch_cfg_1 = ue_req.cfg.cells->back().serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value();
     const unsigned        sr_ue_res_id = pucch_cfg_1.sr_res_list[0].pucch_res_id.ue_res_id;
     const pucch_resource& second_sr_res =
-        t_bench.cell_cfg.init_bwp.ul.pucch
-            .resources[t_bench.builder_params.res_set_0_size.value() * t_bench.builder_params.nof_cell_res_set_configs +
-                       1];
+        t_bench.cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources
+            [t_bench.builder_params.res_set_0_size.value() * t_bench.builder_params.nof_cell_res_set_configs + 1];
     pucch_cfg_1.pucch_res_list[sr_ue_res_id]                  = second_sr_res;
     pucch_cfg_1.pucch_res_list[sr_ue_res_id].res_id.ue_res_id = sr_ue_res_id;
     pucch_cfg_1.sr_res_list[0].pucch_res_id.cell_res_id       = second_sr_res.res_id.cell_res_id;
@@ -567,10 +566,11 @@ protected:
       if (ue_idx % nof_configurations != 0) {
         auto&          pucch_cfg    = ue_req.cfg.cells->back().serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value();
         const unsigned sr_ue_res_id = pucch_cfg.sr_res_list[0].pucch_res_id.ue_res_id;
-        const pucch_resource& cell_sr_res =
-            t_bench->cell_cfg.init_bwp.ul.pucch.resources[t_bench->builder_params.res_set_0_size.value() *
-                                                              t_bench->builder_params.nof_cell_res_set_configs +
-                                                          ue_idx % nof_configurations];
+        const pucch_resource& cell_sr_res = t_bench->cell_cfg.bwp_res[to_bwp_id(0)]
+                                                .ul()
+                                                .pucch.resources[t_bench->builder_params.res_set_0_size.value() *
+                                                                     t_bench->builder_params.nof_cell_res_set_configs +
+                                                                 ue_idx % nof_configurations];
         pucch_cfg.pucch_res_list[sr_ue_res_id]                  = cell_sr_res;
         pucch_cfg.pucch_res_list[sr_ue_res_id].res_id.ue_res_id = sr_ue_res_id;
         pucch_cfg.sr_res_list[0].pucch_res_id.cell_res_id       = cell_sr_res.res_id.cell_res_id;
@@ -579,11 +579,12 @@ protected:
             ue_req.cfg.cells->back().serv_cell_cfg.csi_meas_cfg->csi_report_cfg_list[0].report_cfg_type);
         const unsigned        csi_ue_res_id = csi_report.pucch_csi_res_list[0].pucch_res_id.ue_res_id;
         const pucch_resource& cell_csi_res =
-            t_bench->cell_cfg.init_bwp.ul.pucch
-                .resources[(t_bench->builder_params.res_set_0_size.value() +
-                            t_bench->builder_params.res_set_1_size.value()) *
-                               t_bench->builder_params.nof_cell_res_set_configs +
-                           t_bench->builder_params.nof_cell_sr_resources + ue_idx % nof_configurations];
+            t_bench->cell_cfg.bwp_res[to_bwp_id(0)]
+                .ul()
+                .pucch.resources[(t_bench->builder_params.res_set_0_size.value() +
+                                  t_bench->builder_params.res_set_1_size.value()) *
+                                     t_bench->builder_params.nof_cell_res_set_configs +
+                                 t_bench->builder_params.nof_cell_sr_resources + ue_idx % nof_configurations];
         pucch_cfg.pucch_res_list[csi_ue_res_id]                   = cell_csi_res;
         pucch_cfg.pucch_res_list[csi_ue_res_id].res_id.ue_res_id  = csi_ue_res_id;
         csi_report.pucch_csi_res_list[0].pucch_res_id.cell_res_id = cell_csi_res.res_id.cell_res_id;

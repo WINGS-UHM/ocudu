@@ -30,7 +30,7 @@ crb_bitmap ocudu::compute_pucch_crbs(const cell_configuration& cell_cfg)
   }
 
   // Fill the CRB bitmap with the PRBs used by the dedicated PUCCH resources.
-  for (const auto& res : cell_cfg.init_bwp.ul.pucch.resources) {
+  for (const auto& res : cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources) {
     unsigned nof_rbs = 1;
     if (const auto* params = std::get_if<pucch_format_2_3_cfg>(&res.format_params)) {
       nof_rbs = params->nof_prbs;

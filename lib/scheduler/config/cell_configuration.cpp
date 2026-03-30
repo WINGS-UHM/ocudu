@@ -5,7 +5,6 @@
 #include "cell_configuration.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/resource_block.h"
-#include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
@@ -49,8 +48,6 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   zp_csi_rs_list(make_zp_csi_rs_list(params)),
   nzp_csi_rs_list(make_nzp_csi_rs_list(params)),
   dl_data_to_ul_ack(time_domain_resource_helper::generate_k1_candidates(params.tdd_cfg, params.init_bwp.pucch.min_k1)),
-  init_bwp(make_cell_bwp_config(params)),
-  init_bwp_res(params.pci, to_bwp_id(0), params.dl_cfg_common.init_dl_bwp, nullptr),
   // NTN parameters.
   ntn_cs_koffset(params.ntn_params.has_value()
                      ? params.ntn_params->ntn_cfg.cell_specific_koffset.value_or(std::chrono::milliseconds{0}).count() *
@@ -58,12 +55,7 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
                      : 0)
 {
   // Initiate dedicated sched BWP configs.
-  {
-    const auto init_dl_bwp = config_helpers::make_default_ue_cell_config(params).serv_cell_cfg.init_dl_bwp;
-    const bwp_downlink_dedicated bwp_dl_ded{
-        .pdcch_cfg = msg.ran.init_bwp.pdcch_cfg, .pdsch_cfg = init_dl_bwp.pdsch_cfg, .rlm_cfg = init_dl_bwp.rlm_cfg};
-    ded_bwp_res.emplace(to_bwp_id(0), params.pci, to_bwp_id(0), params.dl_cfg_common.init_dl_bwp, &bwp_dl_ded);
-  }
+  bwp_res.emplace(to_bwp_id(0), params, to_bwp_id(0));
 
   if (is_tdd()) {
     // Cache list of DL and UL slots in case of TDD

@@ -226,7 +226,7 @@ protected:
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- initial BWP: RBs={}",
                    cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs);
-    const auto&                  bwp_res = cell_cfg.ded_bwp_res[to_bwp_id(0)];
+    const auto&                  bwp_res = cell_cfg.bwp_res[to_bwp_id(0)];
     const coreset_configuration& cs0_cfg = bwp_res.coresets()[to_coreset_id(0)].cfg();
     fmt::format_to(
         std::back_inserter(fmtbuf), "\n- CORESET#0: RBs={}, duration={}", cs0_cfg.coreset0_crbs(), cs0_cfg.duration());

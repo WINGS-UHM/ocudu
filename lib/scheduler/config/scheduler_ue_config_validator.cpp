@@ -14,7 +14,7 @@ validator_result validate_bwp_ded_cfg(const serving_cell_config& ue_cell_cfg, co
 {
   VERIFY(ue_cell_cfg.dl_bwps.empty(), "Only init DL BWP is supported");
   const auto& ue_bwp_ded       = ue_cell_cfg.init_dl_bwp;
-  const auto& expected_bwp_ded = cell_cfg.ded_bwp_res[to_bwp_id(0)].dl_ded();
+  const auto& expected_bwp_ded = cell_cfg.bwp_res[to_bwp_id(0)].dl_ded();
   if (ue_bwp_ded.pdcch_cfg.has_value()) {
     // If UE has been provided a dedicated PDCCH config, verify it matches the base one.
     if (ue_bwp_ded.pdcch_cfg != expected_bwp_ded->pdcch_cfg) {
@@ -51,7 +51,7 @@ ocudu::config_validators::validate_sched_ue_creation_request_message(const sched
             cell_cfg.params.ul_cfg_common.init_ul_bwp.pucch_cfg_common.value();
         const unsigned max_pucch_payload = cell_cfg.params.init_bwp.pucch.resources.max_payload_234();
         HANDLE_ERROR(validate_pucch_cfg(serv_cell_cfg,
-                                        cell_cfg.init_bwp.ul.pucch.resources,
+                                        cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources,
                                         pucch_cfg_common,
                                         cell_cfg.params.dl_carrier.nof_ant,
                                         max_pucch_payload));

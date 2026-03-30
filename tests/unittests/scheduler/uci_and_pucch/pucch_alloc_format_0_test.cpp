@@ -55,18 +55,25 @@ public:
     static constexpr max_pucch_code_rate max_code_rate = max_pucch_code_rate::dot_25;
 
     // Set the expected SR grant to the SR resource.
-    pucch_expected_sr = test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
-                                                          t_bench.cell_cfg.init_bwp.ul.pucch.resources[6],
-                                                          {.sr_bits = sr_nof_bits::one},
-                                                          max_code_rate);
+    pucch_expected_sr =
+        test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                          t_bench.cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources[6],
+                                          {.sr_bits = sr_nof_bits::one},
+                                          max_code_rate);
 
     // Set the expected HARQ F1 grant to the first resource in Resource Set ID 0.
-    pucch_expected_res_set_0 = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, t_bench.cell_cfg.init_bwp.ul.pucch.resources[0], {.harq_ack_nof_bits = 1U}, max_code_rate);
+    pucch_expected_res_set_0 =
+        test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                          t_bench.cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources[0],
+                                          {.harq_ack_nof_bits = 1U},
+                                          max_code_rate);
 
     // Set the expected Resource Set ID 1 HARQ grant to the first resource in Resource Set ID 1.
-    pucch_expected_res_set_1 = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, t_bench.cell_cfg.init_bwp.ul.pucch.resources[8], {.harq_ack_nof_bits = 3U}, max_code_rate);
+    pucch_expected_res_set_1 =
+        test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                          t_bench.cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources[8],
+                                          {.harq_ack_nof_bits = 3U},
+                                          max_code_rate);
 
     // This PUCCH resource is located on the same symbols and PRBs as the PUCCH Format 0 resource for SR.
     // Doesn't exist in the list of cell resources.
@@ -84,10 +91,11 @@ public:
         max_code_rate);
 
     // Set the expected HARQ CSI grant to the CSI resource.
-    pucch_expected_csi = test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
-                                                           t_bench.cell_cfg.init_bwp.ul.pucch.resources[14],
-                                                           {.csi_part1_nof_bits = default_csi_part1_bits},
-                                                           max_code_rate);
+    pucch_expected_csi =
+        test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                          t_bench.cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources[14],
+                                          {.csi_part1_nof_bits = default_csi_part1_bits},
+                                          max_code_rate);
   }
 
 protected:

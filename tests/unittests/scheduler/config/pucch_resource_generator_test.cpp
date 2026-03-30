@@ -7,7 +7,7 @@
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
-#include "ocudu/scheduler/config/cell_bwp_config.h"
+#include "ocudu/scheduler/config/cell_bwp_res_config.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/ran_cell_config.h"
@@ -94,7 +94,8 @@ TEST_P(pucch_resource_generator_test, ue_pucch_config_builder_test)
                 },
         };
 
-        const auto pucch_cfg = config_helpers::build_pucch_config(cell_cfg, make_cell_bwp_config(cell_cfg), ue_bwp_cfg);
+        const auto pucch_cfg =
+            config_helpers::build_pucch_config(cell_cfg, make_cell_bwp_res_config(cell_cfg), ue_bwp_cfg);
 
         static constexpr unsigned nof_sr_res_per_ue  = 1;
         static constexpr unsigned nof_csi_res_per_ue = 1;
@@ -125,7 +126,7 @@ TEST_P(pucch_resource_generator_test, ue_pucch_config_builder_test)
         const pucch_res_id_t expected_csi_res_id{params.get_csi_cell_res_idx(csi_res_id), params.get_csi_ue_res_idx()};
 
         const auto csi_meas_cfg =
-            config_helpers::build_csi_meas_config(cell_cfg, make_cell_bwp_config(cell_cfg), ue_bwp_cfg);
+            config_helpers::build_csi_meas_config(cell_cfg, make_cell_bwp_res_config(cell_cfg), ue_bwp_cfg);
 
         ASSERT_TRUE(csi_meas_cfg.has_value());
         ASSERT_EQ(1U, csi_meas_cfg->csi_report_cfg_list.size());

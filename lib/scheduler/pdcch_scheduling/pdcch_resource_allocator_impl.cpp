@@ -54,7 +54,8 @@ pdcch_dl_information* pdcch_resource_allocator_impl::alloc_dl_pdcch_common(cell_
   const bwp_configuration&          bwp_cfg = cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params;
   const search_space_configuration& ss_cfg =
       cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[(size_t)ss_id];
-  const sched_coreset_config& cs_cfg = cell_cfg.init_bwp_res.coresets()[ss_cfg.get_coreset_id()];
+  const sched_coreset_config& cs_cfg = cell_cfg.bwp_res[to_bwp_id(0)].coresets()[ss_cfg.get_coreset_id()];
+  ocudu_sanity_check(ss_cfg.is_common_search_space(), "Invalid searchSpace type");
 
   return alloc_dl_pdcch_helper(slot_alloc,
                                rnti,
@@ -74,7 +75,7 @@ pdcch_ul_information* pdcch_resource_allocator_impl::alloc_ul_pdcch_common(cell_
   const bwp_configuration&          bwp_cfg = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params;
   const search_space_configuration& ss_cfg =
       cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[(size_t)ss_id];
-  const sched_coreset_config& cs_cfg = cell_cfg.init_bwp_res.coresets()[ss_cfg.get_coreset_id()];
+  const sched_coreset_config& cs_cfg = cell_cfg.bwp_res[to_bwp_id(0)].coresets()[ss_cfg.get_coreset_id()];
 
   return alloc_ul_pdcch_helper(slot_alloc,
                                rnti,

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 # Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-
 add_library(sched_config STATIC
         builder/pucch_config.cpp
         builder/csi_meas_config.cpp
@@ -19,7 +18,7 @@ add_library(sched_config STATIC
 target_link_libraries(sched_config ocudu_ran du_resource_manager)
 
 add_library(sched_config_manager OBJECT
-	cell_bwp_config.cpp
+		cell_bwp_res_config.cpp
         cell_configuration.cpp
         sched_bwp_config.cpp
         ue_configuration.cpp

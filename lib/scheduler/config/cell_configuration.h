@@ -7,7 +7,6 @@
 #include "sched_bwp_config.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/subcarrier_spacing.h"
-#include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/ran_cell_config.h"
 #include "ocudu/scheduler/config/scheduler_expert_config.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
@@ -50,12 +49,8 @@ public:
   const std::vector<nzp_csi_rs_resource> nzp_csi_rs_list;
   /// List of dl-DataToUL-ACK values sent to UE in its dedicated configuration.
   const static_vector<uint8_t, 8> dl_data_to_ul_ack;
-  /// Parameters for the initial BWP that are common for all UEs.
-  const cell_bwp_config init_bwp;
-  /// BWP config resources used when UEs have no dedicated config.
-  const sched_bwp_config init_bwp_res;
   /// List of BWP config resources handled by this cell.
-  slotted_id_vector<bwp_id_t, sched_bwp_config> ded_bwp_res;
+  slotted_id_vector<bwp_id_t, sched_bwp_config> bwp_res;
 
   ///@}
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "ocudu/scheduler/config/pucch_resource_generator.h"
 #include "ocudu/scheduler/config/serving_cell_config_builder.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
 
@@ -24,9 +25,9 @@ static pucch_power_control build_pucch_power_control()
   return pw_ctrl;
 }
 
-pucch_config config_helpers::build_pucch_config(const ran_cell_config& cell_cfg,
-                                                const cell_bwp_config& cell_bwp_cfg,
-                                                const ue_bwp_config&   ue_bwp_cfg)
+pucch_config config_helpers::build_pucch_config(const ran_cell_config&     cell_cfg,
+                                                const cell_bwp_res_config& cell_bwp_cfg,
+                                                const ue_bwp_config&       ue_bwp_cfg)
 {
   const pucch_resource_builder_params& res_params                 = cell_cfg.init_bwp.pucch.resources;
   const auto&                          cell_res_list              = cell_bwp_cfg.ul.pucch.resources;

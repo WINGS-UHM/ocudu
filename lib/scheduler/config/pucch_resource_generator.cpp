@@ -6,536 +6,13 @@
 #include "ocudu/adt/expected.h"
 #include "ocudu/ran/pucch/pucch_info.h"
 #include "ocudu/ran/pucch/pucch_mapping.h"
-#include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
-#include "ocudu/ran/resource_allocation/rb_interval.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/support/math/math_utils.h"
 #include "fmt/ranges.h"
-#include "fmt/std.h"
-#include <algorithm>
 #include <variant>
 
 using namespace ocudu;
 using namespace config_helpers;
-
-namespace {
-
-struct pucch_grant {
-  pucch_format                format;
-  ofdm_symbol_range           symbols;
-  prb_interval                prbs;
-  std::optional<prb_interval> freq_hop_grant;
-  std::optional<unsigned>     occ_cs_idx;
-};
-
-} // namespace
-
-/// Given the OCC-CS index (implementation-defined), maps and returns the \c initialCyclicShift, defined as per
-/// PUCCH-format1, in PUCCH-Config, TS 38.331.
-static unsigned occ_cs_index_to_cyclic_shift(unsigned occ_cs_idx, unsigned nof_css)
-{
-  // NOTE: the OCC-CS index -> (CS, OCC) mapping is defined as follows.
-  // i)   Define CS_step = 12 / nof_css. NOTE that 12 is divisible by nof_css.
-  // ii)  occ_cs_idx = 0, 1, 2, ...  => (CS = 0, OCC=0), (CS = CS_step, OCC=0), (CS = 2*CS_step, OCC=0), ...
-  // iii) occ_cs_idx = nof_css, nof_css+1, ...  => (CS = 0, OCC=1), (CS = CS_step, OCC=1), ...
-  // iv)  occ_cs_idx = 2*nof_css, (2*nof_css)+1, ...  => (CS = 0, OCC=2), (CS = CS_step, OCC=2), ...
-  const unsigned max_nof_css = format1_cp_step_to_uint(pucch_nof_cyclic_shifts::twelve);
-  const unsigned cs_step     = max_nof_css / nof_css;
-  return (occ_cs_idx * cs_step) % max_nof_css;
-}
-
-/// Given the OCC-CS index (implementation-defined), maps and returns the \c timeDomainOCC, defined as per
-/// PUCCH-format1, in PUCCH-Config, TS 38.331.
-static unsigned occ_cs_index_to_occ(unsigned occ_cs_idx, unsigned nof_css)
-{
-  // NOTE: the OCC-CS index -> (CS, OCC) mapping is defined as follows.
-  // i)   Define CS_step = 12 / nof_css. NOTE that 12 is divisible by nof_css.
-  // ii)  occ_cs_idx = 0, 1, 2, ...  => (CS = 0, OCC=0), (CS = CS_step, OCC=0), (CS = 2*CS_step, OCC=0), ...
-  // iii) occ_cs_idx = nof_css, nof_css+1, ...  => (CS = 0, OCC=1), (CS = CS_step, OCC=1), ...
-  // iv)  occ_cs_idx = 2*nof_css, (2*nof_css)+1, ...  => (CS = 0, OCC=2), (CS = CS_step, OCC=2), ...
-  return occ_cs_idx / nof_css;
-}
-
-/// Given the OCC-CS index (implementation-defined), maps and returns the \c OCC-Index, defined as per
-/// PUCCH-format4, in PUCCH-Config, TS 38.331.
-static pucch_f4_occ_idx occ_cs_index_to_f4_occ(unsigned occ_cs_idx)
-{
-  return static_cast<pucch_f4_occ_idx>(occ_cs_idx);
-}
-
-static std::vector<pucch_grant> compute_f0_res(unsigned                         nof_res_f0,
-                                               pucch_f0_params                  params,
-                                               unsigned                         bwp_size_rbs,
-                                               bounded_integer<unsigned, 1, 14> max_nof_symbols)
-{
-  // Compute the number of symbols and RBs for F0.
-  std::vector<pucch_grant>  res_list;
-  const unsigned            nof_syms_f0 = params.nof_syms.value();
-  static constexpr unsigned f0_max_rbs  = 1U;
-
-  // With intraslot freq. hopping.
-  if (params.intraslot_freq_hopping) {
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f0_max_rbs; rb_idx != rb_stop; ++rb_idx) {
-      // Generate resource for increasing RB index, until the num. of required resources is reached.
-      const prb_interval prbs{rb_idx, rb_idx + f0_max_rbs};
-      // Pre-compute the second RBs for the frequency hop specularly to the first RBs.
-      const prb_interval freq_hop_prbs{bwp_size_rbs - f0_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + nof_syms_f0 <= max_nof_symbols.value(); sym_idx += nof_syms_f0) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_syms_f0};
-
-        // Allocate resources for first hop.
-        res_list.emplace_back(pucch_grant{
-            .format = pucch_format::FORMAT_0, .symbols = symbols, .prbs = prbs, .freq_hop_grant = freq_hop_prbs});
-        if (res_list.size() == nof_res_f0) {
-          break;
-        }
-
-        // Allocate resources for second hop.
-        res_list.emplace_back(pucch_grant{
-            .format = pucch_format::FORMAT_0, .symbols = symbols, .prbs = freq_hop_prbs, .freq_hop_grant = prbs});
-        if (res_list.size() == nof_res_f0) {
-          break;
-        }
-      }
-      if (res_list.size() == nof_res_f0) {
-        break;
-      }
-    }
-  }
-  // Without intraslot freq. hopping.
-  else {
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f0_max_rbs; rb_idx != rb_stop; ++rb_idx) {
-      const prb_interval prbs_low_spectrum{rb_idx, rb_idx + f0_max_rbs};
-      // Pre-compute the RBs for the resources to be allocated on the upper part of the spectrum. This is to achieve
-      // balancing of the PUCCH resources on both sides of the BWP.
-      const prb_interval prbs_hi_spectrum{bwp_size_rbs - f0_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + nof_syms_f0 <= max_nof_symbols.value(); sym_idx += nof_syms_f0) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_syms_f0};
-        res_list.emplace_back(
-            pucch_grant{.format = pucch_format::FORMAT_0, .symbols = symbols, .prbs = prbs_low_spectrum});
-        if (res_list.size() == nof_res_f0) {
-          break;
-        }
-      }
-      if (res_list.size() == nof_res_f0) {
-        break;
-      }
-
-      // Repeat the resource allocation on the upper part of the spectrum, to spread the PUCCH resource on both sides of
-      // the BWP.
-      for (unsigned sym_idx = 0; sym_idx + nof_syms_f0 <= NOF_OFDM_SYM_PER_SLOT_NORMAL_CP; sym_idx += nof_syms_f0) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_syms_f0};
-        res_list.emplace_back(
-            pucch_grant{.format = pucch_format::FORMAT_0, .symbols = symbols, .prbs = prbs_hi_spectrum});
-        if (res_list.size() == nof_res_f0) {
-          break;
-        }
-      }
-
-      if (res_list.size() == nof_res_f0) {
-        break;
-      }
-    }
-  }
-
-  return res_list;
-}
-
-static std::vector<pucch_grant> compute_f1_res(unsigned                         nof_res_f1,
-                                               pucch_f1_params                  params,
-                                               unsigned                         bwp_size_rbs,
-                                               unsigned                         nof_occ_css,
-                                               bounded_integer<unsigned, 1, 14> max_nof_symbols)
-{
-  std::vector<pucch_grant>  res_list;
-  static constexpr unsigned f1_max_rbs = 1U;
-
-  // With intraslot_freq_hopping.
-  if (params.intraslot_freq_hopping) {
-    // Generate resource for increasing RB index, until the num. of required resources is reached.
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f1_max_rbs; rb_idx != rb_stop; ++rb_idx) {
-      const prb_interval prbs{rb_idx, rb_idx + f1_max_rbs};
-      // Pre-compute the second RBs for the frequency hop specularly to the first RBs.
-      const prb_interval freq_hop_prbs{bwp_size_rbs - f1_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + params.nof_syms.value() <= max_nof_symbols.value();
-           sym_idx += params.nof_syms.value()) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + params.nof_syms.value()};
-
-        // Allocate all OCC and CSS resources for first hop, until the num. of required resources is reached.
-        // NOTE: occ_cs_idx is an index that will be mapped into Initial Cyclic Shift and Orthogonal Cover Code (OCC).
-        // Two PUCCH F1 resources over the same symbols and RBs are orthogonal if they have different CS or different
-        // OCC; this leads to a tot. nof OCCs x tot. nof CSs possible orthogonal F1 resources over the same REs.
-        for (unsigned occ_cs_idx = 0; occ_cs_idx != nof_occ_css; ++occ_cs_idx) {
-          res_list.emplace_back(pucch_grant{.format         = pucch_format::FORMAT_1,
-                                            .symbols        = symbols,
-                                            .prbs           = prbs,
-                                            .freq_hop_grant = freq_hop_prbs,
-                                            .occ_cs_idx     = occ_cs_idx});
-          if (res_list.size() == nof_res_f1) {
-            break;
-          }
-        }
-        if (res_list.size() == nof_res_f1) {
-          break;
-        }
-
-        // Allocate all OCC and CSS resources for second hop, until the num. of required resources is reached.
-        for (unsigned occ_cs_idx = 0; occ_cs_idx != nof_occ_css; ++occ_cs_idx) {
-          res_list.emplace_back(pucch_grant{.format         = pucch_format::FORMAT_1,
-                                            .symbols        = symbols,
-                                            .prbs           = freq_hop_prbs,
-                                            .freq_hop_grant = prbs,
-                                            .occ_cs_idx     = occ_cs_idx});
-          if (res_list.size() == nof_res_f1) {
-            break;
-          }
-        }
-        if (res_list.size() == nof_res_f1) {
-          break;
-        }
-      }
-      if (res_list.size() == nof_res_f1) {
-        break;
-      }
-    }
-  }
-  // Without intraslot freq. hopping.
-  else {
-    // Generate resource for increasing RB index, until the num. of required resources is reached.
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f1_max_rbs; rb_idx != rb_stop; ++rb_idx) {
-      const prb_interval prbs_low_spectrum{rb_idx, rb_idx + f1_max_rbs};
-      // Pre-compute the RBs for the resources to be allocated on the upper part of the spectrum. This is to achieve
-      // balancing of the PUCCH resources on both sides of the BWP.
-      const prb_interval prbs_hi_spectrum{bwp_size_rbs - f1_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + params.nof_syms.value() <= max_nof_symbols.value();
-           sym_idx += params.nof_syms.value()) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + params.nof_syms.value()};
-
-        // Allocate all OCC and CS resources, until the num. of required resources is reached.
-        for (unsigned occ_cs_idx = 0; occ_cs_idx != nof_occ_css; ++occ_cs_idx) {
-          res_list.emplace_back(pucch_grant{.format     = pucch_format::FORMAT_1,
-                                            .symbols    = symbols,
-                                            .prbs       = prbs_low_spectrum,
-                                            .occ_cs_idx = occ_cs_idx});
-          if (res_list.size() == nof_res_f1) {
-            break;
-          }
-        }
-        if (res_list.size() == nof_res_f1) {
-          break;
-        }
-      }
-      if (res_list.size() == nof_res_f1) {
-        break;
-      }
-
-      // Repeat the resource allocation on the upper part of the spectrum, to spread the PUCCH resource on both sides of
-      // the BWP.
-      for (unsigned sym_idx = 0; sym_idx + params.nof_syms.value() <= max_nof_symbols.value();
-           sym_idx += params.nof_syms.value()) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + params.nof_syms.value()};
-
-        for (unsigned occ_cs_idx = 0; occ_cs_idx != nof_occ_css; ++occ_cs_idx) {
-          res_list.emplace_back(pucch_grant{.format     = pucch_format::FORMAT_1,
-                                            .symbols    = symbols,
-                                            .prbs       = prbs_hi_spectrum,
-                                            .occ_cs_idx = occ_cs_idx});
-          if (res_list.size() == nof_res_f1) {
-            break;
-          }
-        }
-        if (res_list.size() == nof_res_f1) {
-          break;
-        }
-      }
-
-      if (res_list.size() == nof_res_f1) {
-        break;
-      }
-    }
-  }
-
-  return res_list;
-}
-
-static std::vector<pucch_grant> compute_f2_res(unsigned                         nof_res_f2,
-                                               const pucch_f2_params&           params,
-                                               unsigned                         bwp_size_rbs,
-                                               bounded_integer<unsigned, 1, 14> max_nof_symbols)
-{
-  // Compute the number of symbols and RBs for F2.
-  std::vector<pucch_grant> res_list;
-  const unsigned           nof_f2_symbols = params.nof_syms.value();
-  const unsigned           f2_max_rbs     = params.max_payload_bits.has_value()
-                                                ? get_pucch_format2_max_nof_prbs(params.max_payload_bits.value(),
-                                                                   nof_f2_symbols,
-                                                                   to_max_code_rate_float(params.max_code_rate))
-                                                : params.max_nof_rbs.value();
-
-  if (f2_max_rbs > pucch_constants::f2::MAX_NOF_RBS) {
-    return {};
-  }
-
-  // With intraslot freq. hopping.
-  if (params.intraslot_freq_hopping) {
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f2_max_rbs; rb_idx < rb_stop; rb_idx += f2_max_rbs) {
-      // Generate resource for increasing RB index, until the num. of required resources is reached.
-      const prb_interval prbs{rb_idx, rb_idx + f2_max_rbs};
-      // Pre-compute the second RBs for the frequency hop specularly to the first RBs.
-      const prb_interval freq_hop_prbs{bwp_size_rbs - f2_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + nof_f2_symbols <= max_nof_symbols.value(); sym_idx += nof_f2_symbols) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_f2_symbols};
-
-        // Allocate resources for first hop.
-        res_list.emplace_back(pucch_grant{
-            .format = pucch_format::FORMAT_2, .symbols = symbols, .prbs = prbs, .freq_hop_grant = freq_hop_prbs});
-        if (res_list.size() == nof_res_f2) {
-          break;
-        }
-
-        // Allocate resources for second hop.
-        res_list.emplace_back(pucch_grant{
-            .format = pucch_format::FORMAT_2, .symbols = symbols, .prbs = freq_hop_prbs, .freq_hop_grant = prbs});
-        if (res_list.size() == nof_res_f2) {
-          break;
-        }
-      }
-      if (res_list.size() == nof_res_f2) {
-        break;
-      }
-    }
-  }
-  // Without intraslot freq. hopping.
-  else {
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f2_max_rbs; rb_idx < rb_stop; rb_idx += f2_max_rbs) {
-      const prb_interval prbs_low_spectrum{rb_idx, rb_idx + f2_max_rbs};
-      // Pre-compute the RBs for the resources to be allocated on the upper part of the spectrum. This is to achieve
-      // balancing of the PUCCH resources on both sides of the BWP.
-      const prb_interval prbs_hi_spectrum{bwp_size_rbs - f2_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + nof_f2_symbols <= max_nof_symbols.value(); sym_idx += nof_f2_symbols) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_f2_symbols};
-        res_list.emplace_back(
-            pucch_grant{.format = pucch_format::FORMAT_2, .symbols = symbols, .prbs = prbs_low_spectrum});
-        if (res_list.size() == nof_res_f2) {
-          break;
-        }
-      }
-      if (res_list.size() == nof_res_f2) {
-        break;
-      }
-
-      // Repeat the resource allocation on the upper part of the spectrum, to spread the PUCCH resource on both sides of
-      // the BWP.
-      for (unsigned sym_idx = 0; sym_idx + nof_f2_symbols <= NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
-           sym_idx += nof_f2_symbols) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_f2_symbols};
-        res_list.emplace_back(
-            pucch_grant{.format = pucch_format::FORMAT_2, .symbols = symbols, .prbs = prbs_hi_spectrum});
-        if (res_list.size() == nof_res_f2) {
-          break;
-        }
-      }
-
-      if (res_list.size() == nof_res_f2) {
-        break;
-      }
-    }
-  }
-
-  return res_list;
-}
-
-static std::vector<pucch_grant> compute_f3_res(unsigned                         nof_res_f3,
-                                               const pucch_f3_params&           params,
-                                               unsigned                         bwp_size_rbs,
-                                               bounded_integer<unsigned, 1, 14> max_nof_symbols)
-{
-  // Compute the number of symbols and RBs for F3.
-  std::vector<pucch_grant> res_list;
-  const unsigned           nof_f3_symbols = params.nof_syms.value();
-  const unsigned           f3_max_rbs     = params.max_payload_bits.has_value()
-                                                ? get_pucch_format3_max_nof_prbs(params.max_payload_bits.value(),
-                                                                   nof_f3_symbols,
-                                                                   to_max_code_rate_float(params.max_code_rate),
-                                                                   params.intraslot_freq_hopping,
-                                                                   params.additional_dmrs,
-                                                                   params.pi2_bpsk)
-                                                : params.max_nof_rbs.value();
-
-  if (f3_max_rbs > pucch_constants::f3::MAX_NOF_RBS) {
-    return {};
-  }
-
-  // With intraslot freq. hopping.
-  if (params.intraslot_freq_hopping) {
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f3_max_rbs; rb_idx < rb_stop; rb_idx += f3_max_rbs) {
-      // Generate resource for increasing RB index, until the num. of required resources is reached.
-      const prb_interval prbs{rb_idx, rb_idx + f3_max_rbs};
-      // Pre-compute the second RBs for the frequency hop specularly to the first RBs.
-      const prb_interval freq_hop_prbs{bwp_size_rbs - f3_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + nof_f3_symbols <= max_nof_symbols.value(); sym_idx += nof_f3_symbols) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_f3_symbols};
-
-        // Allocate resources for first hop.
-        res_list.emplace_back(pucch_grant{
-            .format = pucch_format::FORMAT_3, .symbols = symbols, .prbs = prbs, .freq_hop_grant = freq_hop_prbs});
-        if (res_list.size() == nof_res_f3) {
-          break;
-        }
-
-        // Allocate resources for second hop.
-        res_list.emplace_back(pucch_grant{
-            .format = pucch_format::FORMAT_3, .symbols = symbols, .prbs = freq_hop_prbs, .freq_hop_grant = prbs});
-        if (res_list.size() == nof_res_f3) {
-          break;
-        }
-      }
-      if (res_list.size() == nof_res_f3) {
-        break;
-      }
-    }
-  }
-  // Without intraslot freq. hopping.
-  else {
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f3_max_rbs; rb_idx < rb_stop; rb_idx += f3_max_rbs) {
-      const prb_interval prbs_low_spectrum{rb_idx, rb_idx + f3_max_rbs};
-      // Pre-compute the RBs for the resources to be allocated on the upper part of the spectrum. This is to achieve
-      // balancing of the PUCCH resources on both sides of the BWP.
-      const prb_interval prbs_hi_spectrum{bwp_size_rbs - f3_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + nof_f3_symbols <= max_nof_symbols.value(); sym_idx += nof_f3_symbols) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_f3_symbols};
-        res_list.emplace_back(
-            pucch_grant{.format = pucch_format::FORMAT_3, .symbols = symbols, .prbs = prbs_low_spectrum});
-        if (res_list.size() == nof_res_f3) {
-          break;
-        }
-      }
-      if (res_list.size() == nof_res_f3) {
-        break;
-      }
-
-      // Repeat the resource allocation on the upper part of the spectrum, to spread the PUCCH resource on both sides of
-      // the BWP.
-      for (unsigned sym_idx = 0; sym_idx + nof_f3_symbols <= NOF_OFDM_SYM_PER_SLOT_NORMAL_CP;
-           sym_idx += nof_f3_symbols) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_f3_symbols};
-        res_list.emplace_back(
-            pucch_grant{.format = pucch_format::FORMAT_3, .symbols = symbols, .prbs = prbs_hi_spectrum});
-        if (res_list.size() == nof_res_f3) {
-          break;
-        }
-      }
-
-      if (res_list.size() == nof_res_f3) {
-        break;
-      }
-    }
-  }
-
-  return res_list;
-}
-
-static std::vector<pucch_grant> compute_f4_res(unsigned                         nof_res_f4,
-                                               const pucch_f4_params&           params,
-                                               unsigned                         bwp_size_rbs,
-                                               bounded_integer<unsigned, 1, 14> max_nof_symbols)
-{
-  std::vector<pucch_grant>  res_list;
-  const unsigned            nof_f4_symbols = params.nof_syms.value();
-  const unsigned            nof_occs       = params.occ_supported ? static_cast<unsigned>(params.occ_length) : 1U;
-  static constexpr unsigned f4_max_rbs     = 1U;
-
-  // With intraslot freq. hopping.
-  if (params.intraslot_freq_hopping) {
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f4_max_rbs; rb_idx != rb_stop; ++rb_idx) {
-      // Generate resource for increasing RB index, until the num. of required resources is reached.
-      const prb_interval prbs{rb_idx, rb_idx + f4_max_rbs};
-      // Pre-compute the second RBs for the frequency hop specularly to the first RBs.
-      const prb_interval freq_hop_prbs{bwp_size_rbs - f4_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + nof_f4_symbols <= max_nof_symbols.value(); sym_idx += nof_f4_symbols) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_f4_symbols};
-
-        for (unsigned occ_index = 0; occ_index != nof_occs; ++occ_index) {
-          // Allocate resources for first hop.
-          res_list.emplace_back(pucch_grant{.format         = pucch_format::FORMAT_4,
-                                            .symbols        = symbols,
-                                            .prbs           = prbs,
-                                            .freq_hop_grant = freq_hop_prbs,
-                                            .occ_cs_idx     = occ_index});
-          if (res_list.size() == nof_res_f4) {
-            return res_list;
-          }
-
-          // Allocate resources for second hop.
-          res_list.emplace_back(pucch_grant{.format         = pucch_format::FORMAT_4,
-                                            .symbols        = symbols,
-                                            .prbs           = freq_hop_prbs,
-                                            .freq_hop_grant = prbs,
-                                            .occ_cs_idx     = occ_index});
-          if (res_list.size() == nof_res_f4) {
-            return res_list;
-          }
-        }
-      }
-    }
-  }
-  // Without intraslot freq. hopping.
-  else {
-    for (unsigned rb_idx = 0, rb_stop = bwp_size_rbs / 2 - f4_max_rbs; rb_idx != rb_stop; ++rb_idx) {
-      const prb_interval prbs_low_spectrum{rb_idx, rb_idx + f4_max_rbs};
-      // Pre-compute the RBs for the resources to be allocated on the upper part of the spectrum. This is to achieve
-      // balancing of the PUCCH resources on both sides of the BWP.
-      const prb_interval prbs_hi_spectrum{bwp_size_rbs - f4_max_rbs - rb_idx, bwp_size_rbs - rb_idx};
-
-      // Generate resource for increasing Symbol index, until the num. of required resources is reached.
-      for (unsigned sym_idx = 0; sym_idx + nof_f4_symbols <= max_nof_symbols.value(); sym_idx += nof_f4_symbols) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_f4_symbols};
-        for (unsigned occ_index = 0; occ_index != nof_occs; ++occ_index) {
-          res_list.emplace_back(pucch_grant{.format     = pucch_format::FORMAT_4,
-                                            .symbols    = symbols,
-                                            .prbs       = prbs_low_spectrum,
-                                            .occ_cs_idx = occ_index});
-          if (res_list.size() == nof_res_f4) {
-            return res_list;
-          }
-        }
-      }
-
-      // Repeat the resource allocation on the upper part of the spectrum, to spread the PUCCH resource on both sides of
-      // the BWP.
-      for (unsigned sym_idx = 0; sym_idx + nof_f4_symbols <= max_nof_symbols.value(); sym_idx += nof_f4_symbols) {
-        const ofdm_symbol_range symbols{sym_idx, sym_idx + nof_f4_symbols};
-        for (unsigned occ_index = 0; occ_index != nof_occs; ++occ_index) {
-          res_list.emplace_back(pucch_grant{
-              .format = pucch_format::FORMAT_4, .symbols = symbols, .prbs = prbs_hi_spectrum, .occ_cs_idx = occ_index});
-          if (res_list.size() == nof_res_f4) {
-            return res_list;
-          }
-        }
-      }
-    }
-  }
-
-  return res_list;
-}
 
 error_type<std::string> config_helpers::pucch_parameters_validator(const pucch_resource_builder_params& params,
                                                                    unsigned                             bwp_size_rbs)
@@ -583,7 +60,7 @@ error_type<std::string> config_helpers::pucch_parameters_validator(const pucch_r
     }
 
     const unsigned nof_occ_codes = f1_params.occ_supported ? format1_symb_to_spreading_factor(f1_params.nof_syms) : 1;
-    const unsigned nof_css       = format1_cp_step_to_uint(f1_params.nof_cyc_shifts);
+    const unsigned nof_css       = to_uint(f1_params.nof_cyc_shifts);
     // We define a block as a set of resources of the same format aligned over the same starting PRB.
     const unsigned nof_f1_blocks = nof_occ_codes * nof_css * (max_nof_symbols / f1_params.nof_syms.value());
     nof_rbs_f0_f1                = divide_ceil(nof_res_f0_f1, nof_f1_blocks);
@@ -669,204 +146,6 @@ error_type<std::string> config_helpers::pucch_parameters_validator(const pucch_r
   return {};
 }
 
-static std::vector<pucch_resource>
-merge_f0_f1_f2_f3_f4_resource_lists(const std::vector<pucch_grant>&      pucch_f0_f1_resource_list,
-                                    const std::vector<pucch_grant>&      pucch_f2_f3_f4_resource_list,
-                                    const pucch_resource_builder_params& params,
-                                    unsigned                             bwp_size_rbs)
-{
-  // This function merges the lists of PUCCH F0/F1 and F2/F3/F4 resource. It first allocates the F0/F1 resources on
-  // the sides of the BWP; second, it allocates the F2/F3/F4 resources beside F0/F1 ones.
-  std::vector<pucch_resource> resource_list;
-
-  // NOTE: PUCCH F0/F1 resource are located at the sides of the BWP. PUCCH F2/F3/F4 are located beside the F0/F1
-  // resources, specifically on F0/F1's right (on the frequency axis) for frequencies < BWP/2, and F0/F1's left (on
-  // the frequency axis) for frequencies > BWP/2 and < BWP.
-  unsigned f0_f1_rbs_occupancy_low_freq = 0;
-  unsigned f0_f1_rbs_occupancy_hi_freq  = 0;
-
-  if (std::holds_alternative<pucch_f0_params>(params.f0_or_f1_params)) {
-    for (const auto& res_f0 : pucch_f0_f1_resource_list) {
-      auto res_id = static_cast<unsigned>(resource_list.size());
-      // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the DU
-      // before assigning the resources to the UE.
-      pucch_resource res{.res_id = {res_id, 0}, .starting_prb = res_f0.prbs.start()};
-      if (res_f0.freq_hop_grant.has_value()) {
-        res.second_hop_prb.emplace(res_f0.freq_hop_grant.value().start());
-      }
-      pucch_format_0_cfg format0{.initial_cyclic_shift = 0U};
-
-      // Update the frequency shift for PUCCH F2/F3/F4.
-      if (res_f0.prbs.start() < bwp_size_rbs / 2 - 1U) {
-        // f0_f1_rbs_occupancy_low_freq accounts for the PUCCH F0/F1 resource occupancy on the first half of the BWP;
-        // PUCCH F0/F1 resources are located on the lowest RBs indices.
-        f0_f1_rbs_occupancy_low_freq = std::max(f0_f1_rbs_occupancy_low_freq, res_f0.prbs.start() + 1);
-        if (res_f0.freq_hop_grant.has_value()) {
-          f0_f1_rbs_occupancy_hi_freq =
-              std::max(f0_f1_rbs_occupancy_hi_freq, bwp_size_rbs - res_f0.freq_hop_grant.value().start());
-        }
-      } else if (res_f0.prbs.start() > bwp_size_rbs / 2) {
-        // f0_f1_rbs_occupancy_hi_freq accounts for the PUCCH F0/F1 resource occupancy on the second half of the BWP;
-        // PUCCH F0/F1 resources are located on the highest RBs indices.
-        f0_f1_rbs_occupancy_hi_freq = std::max(f0_f1_rbs_occupancy_hi_freq, bwp_size_rbs - res_f0.prbs.start());
-        if (res_f0.freq_hop_grant.has_value()) {
-          f0_f1_rbs_occupancy_low_freq = std::max(f0_f1_rbs_occupancy_low_freq, res_f0.freq_hop_grant.value().start());
-        }
-      } else {
-        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
-        return {};
-      }
-
-      res.nof_symbols      = res_f0.symbols.length();
-      res.starting_sym_idx = res_f0.symbols.start();
-      res.format_params.emplace<pucch_format_0_cfg>(format0);
-      res.format = pucch_format::FORMAT_0;
-      resource_list.emplace_back(res);
-    }
-  } else {
-    for (const auto& res_f1 : pucch_f0_f1_resource_list) {
-      auto res_id = static_cast<unsigned>(resource_list.size());
-      // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the DU
-      // before assigning the resources to the UE.
-      pucch_resource res{.res_id = {res_id, 0}, .starting_prb = res_f1.prbs.start()};
-      if (res_f1.freq_hop_grant.has_value()) {
-        res.second_hop_prb.emplace(res_f1.freq_hop_grant.value().start());
-      }
-      pucch_format_1_cfg format1;
-
-      // Update the frequency shift for PUCCH F2/F3/F4.
-      if (res_f1.prbs.start() < bwp_size_rbs / 2 - 1) {
-        // f0_f1_rbs_occupancy_low_freq accounts for the PUCCH F0/F1 resource occupancy on the first half of the BWP;
-        // PUCCH F0/F1 resources are located on the lowest RBs indices.
-        f0_f1_rbs_occupancy_low_freq = std::max(f0_f1_rbs_occupancy_low_freq, res_f1.prbs.start() + 1);
-        if (res_f1.freq_hop_grant.has_value()) {
-          f0_f1_rbs_occupancy_hi_freq =
-              std::max(f0_f1_rbs_occupancy_hi_freq, bwp_size_rbs - res_f1.freq_hop_grant.value().start());
-        }
-      } else if (res_f1.prbs.start() > bwp_size_rbs / 2) {
-        // f0_f1_rbs_occupancy_hi_freq accounts for the PUCCH F0/F1 resource occupancy on the second half of the BWP;
-        // PUCCH F0/F1 resources are located on the highest RBs indices.
-        f0_f1_rbs_occupancy_hi_freq = std::max(f0_f1_rbs_occupancy_hi_freq, bwp_size_rbs - res_f1.prbs.start());
-        if (res_f1.freq_hop_grant.has_value()) {
-          f0_f1_rbs_occupancy_low_freq = std::max(f0_f1_rbs_occupancy_low_freq, res_f1.freq_hop_grant.value().start());
-        }
-      } else {
-        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
-        return {};
-      }
-
-      res.nof_symbols      = res_f1.symbols.length();
-      res.starting_sym_idx = res_f1.symbols.start();
-      ocudu_assert(res_f1.occ_cs_idx.has_value(),
-                   "The index needed to compute OCC code and cyclic shift have not been found");
-      const auto&    f1_params     = std::get<pucch_f1_params>(params.f0_or_f1_params);
-      const unsigned nof_css       = format1_cp_step_to_uint(f1_params.nof_cyc_shifts);
-      format1.initial_cyclic_shift = occ_cs_index_to_cyclic_shift(res_f1.occ_cs_idx.value(), nof_css);
-      format1.time_domain_occ      = occ_cs_index_to_occ(res_f1.occ_cs_idx.value(), nof_css);
-      res.format_params.emplace<pucch_format_1_cfg>(format1);
-      res.format = pucch_format::FORMAT_1;
-      resource_list.emplace_back(res);
-    }
-  }
-
-  if (std::holds_alternative<pucch_f2_params>(params.f2_or_f3_or_f4_params)) {
-    for (const auto& res_f2 : pucch_f2_f3_f4_resource_list) {
-      auto res_id = static_cast<unsigned>(resource_list.size());
-      // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the
-      // DU before assigning the resources to the UE.
-      pucch_resource res{.res_id = {res_id, 0}};
-      // Shift F2 RBs depending on previously allocated F0/F1 resources.
-      if (res_f2.prbs.start() < bwp_size_rbs / 2 - res_f2.prbs.length()) {
-        res.starting_prb = res_f2.prbs.start() + f0_f1_rbs_occupancy_low_freq;
-        if (res_f2.freq_hop_grant.has_value()) {
-          res.second_hop_prb.emplace(res_f2.freq_hop_grant.value().start() - f0_f1_rbs_occupancy_hi_freq);
-        }
-      } else if (res_f2.prbs.start() > bwp_size_rbs / 2) {
-        res.starting_prb = res_f2.prbs.start() - f0_f1_rbs_occupancy_hi_freq;
-        if (res_f2.freq_hop_grant.has_value()) {
-          res.second_hop_prb.emplace(res_f2.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
-        }
-      } else {
-        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
-        return {};
-      }
-
-      res.nof_symbols      = res_f2.symbols.length();
-      res.starting_sym_idx = res_f2.symbols.start();
-      pucch_format_2_3_cfg format2;
-      format2.nof_prbs = res_f2.prbs.length();
-      res.format_params.emplace<pucch_format_2_3_cfg>(format2);
-      res.format = pucch_format::FORMAT_2;
-      resource_list.emplace_back(res);
-    }
-  } else if (std::holds_alternative<pucch_f3_params>(params.f2_or_f3_or_f4_params)) {
-    for (const auto& res_f3 : pucch_f2_f3_f4_resource_list) {
-      auto res_id = static_cast<unsigned>(resource_list.size());
-      // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the
-      // DU before assigning the resources to the UE.
-      pucch_resource res{.res_id = {res_id, 0}};
-      // Shift F3 RBs depending on previously allocated F0/F1 resources.
-      if (res_f3.prbs.start() < bwp_size_rbs / 2 - res_f3.prbs.length()) {
-        res.starting_prb = res_f3.prbs.start() + f0_f1_rbs_occupancy_low_freq;
-        if (res_f3.freq_hop_grant.has_value()) {
-          res.second_hop_prb.emplace(res_f3.freq_hop_grant.value().start() - f0_f1_rbs_occupancy_hi_freq);
-        }
-      } else if (res_f3.prbs.start() > bwp_size_rbs / 2) {
-        res.starting_prb = res_f3.prbs.start() - f0_f1_rbs_occupancy_hi_freq;
-        if (res_f3.freq_hop_grant.has_value()) {
-          res.second_hop_prb.emplace(res_f3.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
-        }
-      } else {
-        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
-        return {};
-      }
-
-      res.nof_symbols      = res_f3.symbols.length();
-      res.starting_sym_idx = res_f3.symbols.start();
-      pucch_format_2_3_cfg format3;
-      format3.nof_prbs = res_f3.prbs.length();
-      res.format_params.emplace<pucch_format_2_3_cfg>(format3);
-      res.format = pucch_format::FORMAT_3;
-      resource_list.emplace_back(res);
-    }
-  } else {
-    for (const auto& res_f4 : pucch_f2_f3_f4_resource_list) {
-      auto res_id = static_cast<unsigned>(resource_list.size());
-      // No need to set res_id.second, which is the PUCCH resource ID for the ASN1 message. This will be set by the
-      // DU before assigning the resources to the UE.
-      pucch_resource res{.res_id = {res_id, 0}};
-      // Shift F4 RBs depending on previously allocated F0/F1 resources.
-      if (res_f4.prbs.start() < bwp_size_rbs / 2 - res_f4.prbs.length()) {
-        res.starting_prb = res_f4.prbs.start() + f0_f1_rbs_occupancy_low_freq;
-        if (res_f4.freq_hop_grant.has_value()) {
-          res.second_hop_prb.emplace(res_f4.freq_hop_grant.value().start() - f0_f1_rbs_occupancy_hi_freq);
-        }
-      } else if (res_f4.prbs.start() > bwp_size_rbs / 2) {
-        res.starting_prb = res_f4.prbs.start() - f0_f1_rbs_occupancy_hi_freq;
-        if (res_f4.freq_hop_grant.has_value()) {
-          res.second_hop_prb.emplace(res_f4.freq_hop_grant.value().start() + f0_f1_rbs_occupancy_low_freq);
-        }
-      } else {
-        ocudu_assert(false, "PUCCH resources are not expected to be allocated at the centre of the BWP");
-        return {};
-      }
-
-      res.nof_symbols      = res_f4.symbols.length();
-      res.starting_sym_idx = res_f4.symbols.start();
-
-      const auto&        f4_params = std::get<pucch_f4_params>(params.f2_or_f3_or_f4_params);
-      pucch_format_4_cfg format4;
-      format4.occ_length = f4_params.occ_length;
-      format4.occ_index  = occ_cs_index_to_f4_occ(res_f4.occ_cs_idx.value());
-      res.format_params.emplace<pucch_format_4_cfg>(format4);
-      res.format = pucch_format::FORMAT_4;
-      resource_list.emplace_back(res);
-    }
-  }
-
-  return resource_list;
-}
-
 static bool validate_generated_list(const std::vector<pucch_resource>&   res_list,
                                     const pucch_resource_builder_params& params)
 {
@@ -936,56 +215,250 @@ static bool validate_generated_list(const std::vector<pucch_resource>&   res_lis
   return true;
 }
 
+namespace {
+
+/// Keeps track of the current state of the resource generation.
+struct res_gen_state {
+  unsigned prb_low_off    = 0;
+  unsigned prb_high_off   = 0;
+  unsigned start_sym      = 0;
+  unsigned mux_idx        = 0;
+  bool     high_start_prb = false;
+};
+
+/// Responsible for generating PUCCH resources of a given format according to the current state, and advancing the state
+/// for the next resource.
+class res_gen_cursor
+{
+public:
+  res_gen_cursor(res_gen_state& state_,
+                 unsigned       nof_res_,
+                 unsigned       nof_prbs_,
+                 unsigned       nof_syms_,
+                 unsigned       mux_capacity_,
+                 unsigned       max_nof_syms_,
+                 bool           intraslot_freq_hop_) :
+    nof_prbs(nof_prbs_),
+    nof_syms(nof_syms_),
+    mux_capacity(mux_capacity_),
+    max_nof_syms(max_nof_syms_),
+    intraslot_freq_hop(intraslot_freq_hop_),
+    state(state_)
+  {
+  }
+
+  /// Get the PUCCH resource according to the current state.
+  pucch_resource get(unsigned bwp_size_rbs) const
+  {
+    pucch_resource res;
+    res.starting_sym_idx = state.start_sym;
+    res.nof_symbols      = nof_syms;
+    if (intraslot_freq_hop) {
+      res.starting_prb = state.high_start_prb ? bwp_size_rbs - state.prb_high_off - nof_prbs : state.prb_low_off;
+      res.second_hop_prb.emplace(state.high_start_prb ? state.prb_low_off
+                                                      : bwp_size_rbs - state.prb_high_off - nof_prbs);
+    } else {
+      res.starting_prb = state.high_start_prb ? bwp_size_rbs - state.prb_high_off - nof_prbs : state.prb_low_off;
+    }
+    return res;
+  }
+
+  /// \brief Advance the state for the next resource.
+  ///
+  /// Aiming to:
+  /// - Minimize the time-frequency resources used by PUCCH.
+  /// - Distribute the resources equally on both ends of the BWP.
+  void next()
+  {
+    if (not advance_mux()) {
+      return;
+    }
+
+    // Multiplexing capacity for this time-freq block is reached, move to the next time-freq block.
+    if (intraslot_freq_hop) {
+      advance_time_freq_hop();
+    } else {
+      advance_time_freq_no_hop();
+    }
+  }
+
+  // Prepare the state for the use of a different cursor (from a different PUCCH format).
+  void close()
+  {
+    // Increase the RB offsets to ensure the next cursor starts from a different set of PRBs.
+    // TODO: This leaves a gap of unused symbols in the current PRBs.
+    if (intraslot_freq_hop) {
+      if (state.mux_idx == 0 and state.start_sym == 0 and not state.high_start_prb) {
+        // The current RBs are totally unused, so we can keep the same PRB offsets for the next cursor.
+        return;
+      }
+
+      state.high_start_prb = false;
+      state.prb_low_off += nof_prbs;
+      state.prb_high_off += nof_prbs;
+    } else {
+      if (state.mux_idx == 0 and state.start_sym == 0) {
+        // The current RBs are totally unused, so we can keep the same PRB offsets for the next cursor.
+        return;
+      }
+
+      state.start_sym = 0;
+      if (state.high_start_prb) {
+        state.prb_high_off += nof_prbs;
+      } else {
+        state.prb_low_off += nof_prbs;
+      }
+    }
+    state.mux_idx = 0;
+  }
+
+private:
+  const unsigned nof_prbs;
+  const unsigned nof_syms;
+  const unsigned mux_capacity;
+  const unsigned max_nof_syms;
+  const bool     intraslot_freq_hop;
+
+  res_gen_state& state;
+
+  bool advance_mux()
+  {
+    ++state.mux_idx;
+    if (state.mux_idx != mux_capacity) {
+      return false;
+    }
+    state.mux_idx = 0;
+    return true;
+  }
+
+  void advance_time_freq_hop()
+  {
+    // With intra-slot frequency hopping enabled, each resource uses both the low and high PRBs.
+    // Therefore, we toggle \c high_start_prb before incrementing \c start_sym to minimize symbol usage.
+    state.high_start_prb = not state.high_start_prb;
+    if (state.high_start_prb) {
+      return;
+    }
+
+    state.start_sym += nof_syms;
+    if (state.start_sym + nof_syms <= max_nof_syms) {
+      return;
+    }
+    state.start_sym = 0;
+
+    state.prb_low_off += nof_prbs;
+    state.prb_high_off += nof_prbs;
+  }
+
+  void advance_time_freq_no_hop()
+  {
+    // Without intra-slot frequency hopping, each resource only uses either the low or high PRBs.
+    // Therefore, we increment \c start_sym before toggling \c high_start_prb to minimize PRB usage.
+    state.start_sym += nof_syms;
+    if (state.start_sym + nof_syms <= max_nof_syms) {
+      return;
+    }
+    state.start_sym = 0;
+
+    if (state.high_start_prb) {
+      state.prb_high_off += nof_prbs;
+    } else {
+      state.prb_low_off += nof_prbs;
+    }
+    state.high_start_prb = not state.high_start_prb;
+  }
+};
+
+} // namespace
+
 std::vector<pucch_resource> config_helpers::generate_cell_pucch_res_list(const pucch_resource_builder_params& params,
                                                                          unsigned bwp_size_rbs)
 {
-  const unsigned nof_res_f0_f1 =
-      params.nof_cell_sr_resources + params.nof_cell_res_set_configs * params.res_set_0_size.value();
-  const unsigned nof_res_f2_f3_f4 =
-      params.nof_cell_csi_resources + params.nof_cell_res_set_configs * params.res_set_1_size.value();
-  const unsigned max_nof_symbols = params.max_nof_symbols.value();
-  auto           outcome         = pucch_parameters_validator(params, bwp_size_rbs);
+  auto outcome = pucch_parameters_validator(params, bwp_size_rbs);
   if (not outcome.has_value()) {
     ocudu_assertion_failure("The cell list could not be generated due to: {}", outcome.error());
     return {};
   }
 
-  // Compute the PUCCH F0/F1 and F2/F3/F4 resources separately.
-  std::vector<pucch_grant> f0_f1_res_list;
-  if (std::holds_alternative<pucch_f0_params>(params.f0_or_f1_params)) {
-    const auto& f0_params = std::get<pucch_f0_params>(params.f0_or_f1_params);
-    f0_f1_res_list        = compute_f0_res(nof_res_f0_f1, f0_params, bwp_size_rbs, max_nof_symbols);
-  } else {
-    const auto&    f1_params     = std::get<pucch_f1_params>(params.f0_or_f1_params);
-    const unsigned nof_occ_codes = f1_params.occ_supported ? format1_symb_to_spreading_factor(f1_params.nof_syms) : 1;
-    const unsigned nof_css       = format1_cp_step_to_uint(f1_params.nof_cyc_shifts);
-    f0_f1_res_list = compute_f1_res(nof_res_f0_f1, f1_params, bwp_size_rbs, nof_css * nof_occ_codes, max_nof_symbols);
+  const unsigned nof_res_01 =
+      params.nof_cell_sr_resources + params.nof_cell_res_set_configs * params.res_set_0_size.value();
+  const unsigned nof_res_234 =
+      params.nof_cell_csi_resources + params.nof_cell_res_set_configs * params.res_set_1_size.value();
+  const unsigned nof_res = nof_res_01 + nof_res_234;
+
+  std::vector<pucch_resource> resources;
+  resources.reserve(nof_res);
+  res_gen_state state;
+
+  // Generate F0/F1 resources at the BWP edges.
+  // Note: PUCCH Format 0 and 1 always take one PRB.
+  static constexpr unsigned nof_prbs_01           = 1U;
+  const unsigned            nof_syms_01           = params.nof_syms_01();
+  const unsigned            mux_capacity_01       = params.mux_capacity_01();
+  const bool                intraslot_freq_hop_01 = params.intraslot_freq_hopping_01();
+
+  res_gen_cursor cur01(state,
+                       nof_res_01,
+                       nof_prbs_01,
+                       nof_syms_01,
+                       mux_capacity_01,
+                       params.max_nof_symbols.value(),
+                       intraslot_freq_hop_01);
+  for (unsigned i = 0; i != nof_res_01; ++i, cur01.next()) {
+    pucch_resource res = cur01.get(bwp_size_rbs);
+    res.res_id         = {static_cast<unsigned>(resources.size()), 0};
+    res.format         = params.format_01();
+    if (params.format_01() == pucch_format::FORMAT_0) {
+      res.format_params.emplace<pucch_format_0_cfg>(pucch_format_0_cfg{.initial_cyclic_shift = 0U});
+    } else {
+      // [Implementation-defined] For PUCCH Format 1, the map mux_idx -> (CS, OCC) is defined as follows:
+      // - mux_idx = 0, 1, 2, ...                  => (CS=0, OCC=0), (CS=cs_step, OCC=0), (CS=2*cs_step, OCC=0), ...
+      // - mux_idx = nof_css, nof_css+1, ...       => (CS=0, OCC=1), (CS=cs_step, OCC=1), (CS=2*cs_step, OCC=1), ...
+      // - mux_idx = 2*nof_css, (2*nof_css)+1, ... => (CS=0, OCC=2), (CS=cs_step, OCC=2), (CS=2*cs_step, OCC=2), ...
+      // Where cs_step = 12 / nof_css. Note that 12 is divisible by nof_css.
+      const auto&               f1_params   = std::get<pucch_f1_params>(params.f0_or_f1_params);
+      static constexpr unsigned max_nof_css = to_uint(pucch_nof_cyclic_shifts::twelve);
+      const unsigned            cs_step     = max_nof_css / to_uint(f1_params.nof_cyc_shifts);
+      res.format_params.emplace<pucch_format_1_cfg>(pucch_format_1_cfg{
+          .initial_cyclic_shift = static_cast<uint8_t>((state.mux_idx * cs_step) % max_nof_css),
+          .time_domain_occ      = static_cast<uint8_t>(state.mux_idx / to_uint(f1_params.nof_cyc_shifts)),
+      });
+    }
+    resources.emplace_back(res);
+  }
+  cur01.close();
+
+  const unsigned nof_prbs_234           = params.nof_prbs_234();
+  const unsigned nof_syms_234           = params.nof_syms_234();
+  const unsigned mux_capacity_234       = params.mux_capacity_234();
+  const bool     intraslot_freq_hop_234 = params.intraslot_freq_hopping_234();
+  res_gen_cursor cur234(state,
+                        nof_res_234,
+                        nof_prbs_234,
+                        nof_syms_234,
+                        mux_capacity_234,
+                        params.max_nof_symbols.value(),
+                        intraslot_freq_hop_234);
+  for (unsigned i = 0; i != nof_res_234; ++i, cur234.next()) {
+    pucch_resource res = cur234.get(bwp_size_rbs);
+    res.res_id         = {static_cast<unsigned>(resources.size()), 0};
+    res.format         = params.format_234();
+    if (params.format_234() == pucch_format::FORMAT_2 or params.format_234() == pucch_format::FORMAT_3) {
+      res.format_params.emplace<pucch_format_2_3_cfg>(
+          pucch_format_2_3_cfg{.nof_prbs = static_cast<uint8_t>(nof_prbs_234)});
+    } else {
+      const auto& f4_params = std::get<pucch_f4_params>(params.f2_or_f3_or_f4_params);
+      res.format_params.emplace<pucch_format_4_cfg>(pucch_format_4_cfg{
+          .occ_length = f4_params.occ_length,
+          .occ_index  = static_cast<pucch_f4_occ_idx>(state.mux_idx),
+      });
+    }
+    resources.emplace_back(res);
   }
 
-  std::vector<pucch_grant> f2_f3_f4_res_list;
-  if (std::holds_alternative<pucch_f2_params>(params.f2_or_f3_or_f4_params)) {
-    const auto& f2_params = std::get<pucch_f2_params>(params.f2_or_f3_or_f4_params);
-    f2_f3_f4_res_list     = compute_f2_res(nof_res_f2_f3_f4, f2_params, bwp_size_rbs, max_nof_symbols);
-  } else if (std::holds_alternative<pucch_f3_params>(params.f2_or_f3_or_f4_params)) {
-    const auto& f3_params = std::get<pucch_f3_params>(params.f2_or_f3_or_f4_params);
-    f2_f3_f4_res_list     = compute_f3_res(nof_res_f2_f3_f4, f3_params, bwp_size_rbs, max_nof_symbols);
-  } else {
-    const auto& f4_params = std::get<pucch_f4_params>(params.f2_or_f3_or_f4_params);
-    f2_f3_f4_res_list     = compute_f4_res(nof_res_f2_f3_f4, f4_params, bwp_size_rbs, max_nof_symbols);
-  }
-
-  auto res_list = merge_f0_f1_f2_f3_f4_resource_lists(f0_f1_res_list, f2_f3_f4_res_list, params, bwp_size_rbs);
-
-  if (res_list.size() > pucch_constants::MAX_NOF_CELL_DED_RESOURCES) {
-    ocudu_assertion_failure("With the given parameters, the number of PUCCH resources generated for the "
-                            "cell exceeds maximum supported limit of {}",
-                            pucch_constants::MAX_NOF_CELL_DED_RESOURCES);
+  if (not validate_generated_list(resources, params)) {
     return {};
   }
 
-  if (not validate_generated_list(res_list, params)) {
-    return {};
-  }
-
-  return res_list;
+  return resources;
 }

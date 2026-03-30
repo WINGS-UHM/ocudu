@@ -14,6 +14,7 @@
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_builder.h"
 #include "ocudu/scheduler/config/ue_bwp_config.h"
+#include "fmt/format.h"
 #include <gtest/gtest.h>
 #include <limits>
 
@@ -46,18 +47,33 @@ protected:
   const bwp_configuration             bwp_cfg;
 };
 
-TEST_P(pucch_resource_generator_test, successful_generation_results_in_no_collisions)
+TEST_P(pucch_resource_generator_test, generated_resources_are_consistent_with_parameters)
 {
   std::vector<pucch_resource> res_list = config_helpers::generate_cell_pucch_res_list(params, bwp_cfg.crbs.length());
-  ASSERT_FALSE(res_list.empty());
-
-  const unsigned nof_res_f0_f1 =
+  const unsigned              nof_res_f0_f1 =
       params.nof_cell_sr_resources + params.nof_cell_res_set_configs * params.res_set_0_size.value();
   const unsigned nof_res_f2_f3_f4 =
       params.nof_cell_csi_resources + params.nof_cell_res_set_configs * params.res_set_1_size.value();
   ASSERT_EQ(nof_res_f0_f1 + nof_res_f2_f3_f4, res_list.size());
 
-  // Generated resources should not collide with each other.
+  for (const auto& res : res_list) {
+    if (res.format == params.format_01()) {
+      ASSERT_EQ(params.nof_syms_01(), res.nof_symbols);
+      ASSERT_EQ(params.intraslot_freq_hopping_01(), res.second_hop_prb.has_value());
+    } else if (res.format == params.format_234()) {
+      ASSERT_EQ(params.nof_syms_234(), res.nof_symbols);
+      ASSERT_EQ(params.intraslot_freq_hopping_234(), res.second_hop_prb.has_value());
+    } else {
+      FAIL() << "Unexpected PUCCH format in generated resource list.";
+    }
+  }
+}
+
+TEST_P(pucch_resource_generator_test, successful_generation_results_in_no_collisions)
+{
+  std::vector<pucch_resource> res_list = config_helpers::generate_cell_pucch_res_list(params, bwp_cfg.crbs.length());
+  ASSERT_FALSE(res_list.empty());
+
   // TODO: handle F0+F2 case.
   std::vector<pucch_collision_info> collision_infos;
   collision_infos.reserve(res_list.size());
@@ -241,6 +257,64 @@ static constexpr pucch_f4_params f4_low_density{.nof_syms = 7, .intraslot_freq_h
 static constexpr pucch_f4_params f4_high_density{.nof_syms      = pucch_constants::f3::MIN_NOF_SYMS,
                                                  .occ_supported = true,
                                                  .occ_length    = pucch_f4_occ_len::n4};
+
+namespace ocudu {
+
+void PrintTo(const pucch_resource_builder_params& value, ::std::ostream* os)
+{
+  if (std::holds_alternative<pucch_f0_params>(value.f0_or_f1_params)) {
+    const auto& f0_params = std::get<pucch_f0_params>(value.f0_or_f1_params);
+    if (f0_params == f0_max_density) {
+      *os << "F0 (max density)";
+    } else if (f0_params == f0_freq_hop) {
+      *os << "F0 (freq hop)";
+    } else {
+      *os << "F0 (unknown)";
+    }
+  } else {
+    const auto& f1_params = std::get<pucch_f1_params>(value.f0_or_f1_params);
+    if (f1_params == f1_low_density) {
+      *os << "F1 (low density)";
+    } else if (f1_params == f1_high_density) {
+      *os << "F1 (high density)";
+    } else {
+      *os << "F1 (unknown)";
+    }
+  }
+
+  *os << " + ";
+
+  if (std::holds_alternative<pucch_f2_params>(value.f2_or_f3_or_f4_params)) {
+    const auto& f2_params = std::get<pucch_f2_params>(value.f2_or_f3_or_f4_params);
+    if (f2_params == f2_multiple_rbs) {
+      *os << "F2 (multiple RBs)";
+    } else if (f2_params == f2_freq_hop) {
+      *os << "F2 (freq hop)";
+    } else {
+      *os << "F2 (unknown)";
+    }
+  } else if (std::holds_alternative<pucch_f3_params>(value.f2_or_f3_or_f4_params)) {
+    const auto& f3_params = std::get<pucch_f3_params>(value.f2_or_f3_or_f4_params);
+    if (f3_params == f3_low_density) {
+      *os << "F3 (low density)";
+    } else if (f3_params == f3_high_density) {
+      *os << "F3 (high density)";
+    } else {
+      *os << "F3 (unknown)";
+    }
+  } else {
+    const auto& f4_params = std::get<pucch_f4_params>(value.f2_or_f3_or_f4_params);
+    if (f4_params == f4_low_density) {
+      *os << "F4 (low density)";
+    } else if (f4_params == f4_high_density) {
+      *os << "F4 (high density)";
+    } else {
+      *os << "F4 (unknown)";
+    }
+  }
+}
+
+} // namespace ocudu
 
 // The test cases are designed with the following considerations:
 // - Test different combinations of PUCCH Formats and parameters.

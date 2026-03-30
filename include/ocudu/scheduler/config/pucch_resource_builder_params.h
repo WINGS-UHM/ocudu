@@ -24,6 +24,12 @@ struct pucch_f0_params {
   nof_symbols nof_syms{pucch_constants::f0::MAX_NOF_SYMS};
   /// Whether to configure intraslot frequency hopping.
   bool intraslot_freq_hopping{false};
+
+  bool operator==(const pucch_f0_params& other) const
+  {
+    return nof_syms == other.nof_syms and intraslot_freq_hopping == other.intraslot_freq_hopping;
+  }
+  bool operator!=(const pucch_f0_params& other) const { return not(*this == other); }
 };
 
 /// \brief Options for the number of Initial Cyclic Shifts that can be set for PUCCH Format 1.
@@ -33,7 +39,7 @@ struct pucch_f0_params {
 /// possible cyclic shifts.
 enum class pucch_nof_cyclic_shifts { no_cyclic_shift = 1, two = 2, three = 3, four = 4, six = 6, twelve = 12 };
 
-inline unsigned format1_cp_step_to_uint(pucch_nof_cyclic_shifts opt)
+constexpr unsigned to_uint(pucch_nof_cyclic_shifts opt)
 {
   return static_cast<unsigned>(opt);
 }
@@ -49,6 +55,13 @@ struct pucch_f1_params {
   pucch_nof_cyclic_shifts nof_cyc_shifts{pucch_nof_cyclic_shifts::no_cyclic_shift};
   /// Whether to configure the resources with different OCCs.
   bool occ_supported{false};
+
+  bool operator==(const pucch_f1_params& other) const
+  {
+    return nof_syms == other.nof_syms and intraslot_freq_hopping == other.intraslot_freq_hopping and
+           nof_cyc_shifts == other.nof_cyc_shifts and occ_supported == other.occ_supported;
+  }
+  bool operator!=(const pucch_f1_params& other) const { return not(*this == other); }
 };
 
 /// Parameters for the generation of PUCCH Format 2 resources.
@@ -71,6 +84,14 @@ struct pucch_f2_params {
   std::optional<unsigned> max_payload_bits;
   /// Maximum allowed effective code rate.
   max_pucch_code_rate max_code_rate{max_pucch_code_rate::dot_25};
+
+  bool operator==(const pucch_f2_params& other) const
+  {
+    return nof_syms == other.nof_syms and max_nof_rbs == other.max_nof_rbs and
+           intraslot_freq_hopping == other.intraslot_freq_hopping and max_payload_bits == other.max_payload_bits and
+           max_code_rate == other.max_code_rate;
+  }
+  bool operator!=(const pucch_f2_params& other) const { return not(*this == other); }
 };
 
 /// Collects the parameters for PUCCH Format 3 that can be configured.
@@ -95,6 +116,15 @@ struct pucch_f3_params {
   bool additional_dmrs{false};
   /// Whether to configure the resources with pi/2-BPSK modulation.
   bool pi2_bpsk{false};
+
+  bool operator==(const pucch_f3_params& other) const
+  {
+    return nof_syms == other.nof_syms and max_nof_rbs == other.max_nof_rbs and
+           intraslot_freq_hopping == other.intraslot_freq_hopping and max_payload_bits == other.max_payload_bits and
+           max_code_rate == other.max_code_rate and additional_dmrs == other.additional_dmrs and
+           pi2_bpsk == other.pi2_bpsk;
+  }
+  bool operator!=(const pucch_f3_params& other) const { return not(*this == other); }
 };
 
 /// Collects the parameters for PUCCH Format 4 that can be configured.
@@ -115,6 +145,14 @@ struct pucch_f4_params {
   bool occ_supported{false};
   /// OCC length to use for PUCCH Format 4 resources.
   pucch_f4_occ_len occ_length{pucch_f4_occ_len::n2};
+
+  bool operator==(const pucch_f4_params& other) const
+  {
+    return nof_syms == other.nof_syms and intraslot_freq_hopping == other.intraslot_freq_hopping and
+           max_code_rate == other.max_code_rate and additional_dmrs == other.additional_dmrs and
+           pi2_bpsk == other.pi2_bpsk and occ_supported == other.occ_supported and occ_length == other.occ_length;
+  }
+  bool operator!=(const pucch_f4_params& other) const { return not(*this == other); }
 };
 
 // Strong types for UCI specific PUCCH resource IDs.
@@ -180,18 +218,6 @@ struct pucch_resource_builder_params {
       return pucch_format::FORMAT_3;
     }
     return pucch_format::FORMAT_4;
-  }
-
-  /// Get the maximum effective code rate that can be achieved with the PUCCH Format 2, 3 or 4 resources.
-  max_pucch_code_rate max_code_rate_234() const
-  {
-    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
-      return std::get<pucch_f2_params>(f2_or_f3_or_f4_params).max_code_rate;
-    }
-    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
-      return std::get<pucch_f3_params>(f2_or_f3_or_f4_params).max_code_rate;
-    }
-    return std::get<pucch_f4_params>(f2_or_f3_or_f4_params).max_code_rate;
   }
 
   // \brief Get the position of a given Resource Set ID 0/1 resource in the cell PUCCH resource list.
@@ -306,6 +332,93 @@ struct pucch_resource_builder_params {
       return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value() + 1U;
     }
     return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value();
+  }
+
+  /// Get the number of symbols configured for the Format 0 or 1 resources.
+  unsigned nof_syms_01() const
+  {
+    if (std::holds_alternative<pucch_f0_params>(f0_or_f1_params)) {
+      return std::get<pucch_f0_params>(f0_or_f1_params).nof_syms.value();
+    }
+    return std::get<pucch_f1_params>(f0_or_f1_params).nof_syms.value();
+  }
+  /// Get the number of symbols configured for the Format 2, 3 or 4 resources.
+  unsigned nof_syms_234() const
+  {
+    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f2_params>(f2_or_f3_or_f4_params).nof_syms.value();
+    }
+    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f3_params>(f2_or_f3_or_f4_params).nof_syms.value();
+    }
+    return std::get<pucch_f4_params>(f2_or_f3_or_f4_params).nof_syms.value();
+  }
+
+  /// Get the number of RBs configured for the Format 0 or 1 resources.
+  unsigned nof_prbs_234() const
+  {
+    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f2_params>(f2_or_f3_or_f4_params).max_nof_rbs.value();
+    }
+    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f3_params>(f2_or_f3_or_f4_params).max_nof_rbs.value();
+    }
+    return pucch_constants::f4::NOF_RBS;
+  }
+
+  /// Get the configured maximum number of Format 0 or 1 resources to be multiplexed over the same PRBs and symbols.
+  unsigned mux_capacity_01() const
+  {
+    // [Implementation-defined] We don't use the multiplexing capabilities of PUCCH Format 0.
+    if (std::holds_alternative<pucch_f0_params>(f0_or_f1_params)) {
+      return 1U;
+    }
+
+    const auto& f1_params = std::get<pucch_f1_params>(f0_or_f1_params);
+    return to_uint(f1_params.nof_cyc_shifts) * (f1_params.occ_supported ? pucch_constants::f1::NOF_TD_OCC : 1U);
+  }
+  /// Get the configured maximum number of Format 2, 3 or 4 resources to be multiplexed over the same PRBs and symbols.
+  unsigned mux_capacity_234() const
+  {
+    // PUCCH Formats 2 and 3 do not have multiplexing capabilities.
+    if (not std::holds_alternative<pucch_f4_params>(f2_or_f3_or_f4_params)) {
+      return 1U;
+    }
+
+    const auto& f4_params = std::get<pucch_f4_params>(f2_or_f3_or_f4_params);
+    return f4_params.occ_supported ? static_cast<unsigned>(f4_params.occ_length) : 1U;
+  }
+
+  /// Get whether intraslot frequency hopping is configured for the Format 0 or 1 resources.
+  bool intraslot_freq_hopping_01() const
+  {
+    if (std::holds_alternative<pucch_f0_params>(f0_or_f1_params)) {
+      return std::get<pucch_f0_params>(f0_or_f1_params).intraslot_freq_hopping;
+    }
+    return std::get<pucch_f1_params>(f0_or_f1_params).intraslot_freq_hopping;
+  }
+  /// Get whether intraslot frequency hopping is configured for the Format 2, 3 or 4 resources.
+  bool intraslot_freq_hopping_234() const
+  {
+    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f2_params>(f2_or_f3_or_f4_params).intraslot_freq_hopping;
+    }
+    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f3_params>(f2_or_f3_or_f4_params).intraslot_freq_hopping;
+    }
+    return std::get<pucch_f4_params>(f2_or_f3_or_f4_params).intraslot_freq_hopping;
+  }
+
+  /// Get the maximum effective code rate that can be achieved with the PUCCH Format 2, 3 or 4 resources.
+  max_pucch_code_rate max_code_rate_234() const
+  {
+    if (std::holds_alternative<pucch_f2_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f2_params>(f2_or_f3_or_f4_params).max_code_rate;
+    }
+    if (std::holds_alternative<pucch_f3_params>(f2_or_f3_or_f4_params)) {
+      return std::get<pucch_f3_params>(f2_or_f3_or_f4_params).max_code_rate;
+    }
+    return std::get<pucch_f4_params>(f2_or_f3_or_f4_params).max_code_rate;
   }
 
   /// Get the maximum number of UCI bits that can be carried by the PUCCH Format 2, 3 or 4 resources.

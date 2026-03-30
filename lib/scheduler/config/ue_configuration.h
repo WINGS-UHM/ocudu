@@ -138,9 +138,9 @@ public:
   /// Fetches CORESET configuration based on Coreset-Id.
   const coreset_configuration* find_coreset(coreset_id cs_id) const
   {
-    return cell_ded->coresets.contains(cs_id) ? &cell_ded->coresets[cs_id].value() : nullptr;
+    return cell_ded->coresets.contains(cs_id) ? cell_ded->coresets[cs_id] : nullptr;
   }
-  const coreset_configuration& coreset(coreset_id cs_id) const { return cell_ded->coresets[cs_id].value(); }
+  const coreset_configuration& coreset(coreset_id cs_id) const { return *cell_ded->coresets[cs_id]; }
 
   /// Fetches SearchSpace configuration based on SearchSpace-Id.
   /// Note: The ID space of SearchSpaceIds is common across all the BWPs of a Serving Cell.

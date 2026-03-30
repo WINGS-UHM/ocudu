@@ -269,15 +269,15 @@ error_type<std::string> du_ran_resource_manager_impl::allocate_cell_resources(du
     reset_serv_cell_cfg(ue_res.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg);
 
     if (not srs_res_mng->alloc_resources(ue_res.cell_group)) {
-      // Deallocate dedicated Search Spaces.
-      ue_res.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces.clear();
+      // Clear dedicated PDCCH config so the UE falls back to common search spaces only.
+      ue_res.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.init_dl_bwp.pdcch_cfg.reset();
       return make_unexpected(fmt::format("Unable to allocate SRS resources for cell={}", fmt::underlying(cell_index)));
     }
 
     if (not pucch_res_mng.alloc_resources(ue_res.cell_group)) {
-      // Deallocate previously allocated SRS + dedicated Search Spaces.
+      // Deallocate previously allocated SRS resources and clear dedicated PDCCH config.
       srs_res_mng->dealloc_resources(ue_res.cell_group);
-      ue_res.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.init_dl_bwp.pdcch_cfg->search_spaces.clear();
+      ue_res.cell_group.cells.at(SERVING_PCELL_IDX).serv_cell_cfg.init_dl_bwp.pdcch_cfg.reset();
       return make_unexpected(
           fmt::format("Unable to allocate dedicated PUCCH resources for cell={}", fmt::underlying(cell_index)));
     }

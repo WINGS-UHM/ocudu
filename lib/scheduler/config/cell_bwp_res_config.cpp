@@ -9,9 +9,19 @@
 
 using namespace ocudu;
 
+static cell_dl_bwp_res_config make_cell_dl_bwp_res_config(const ran_cell_config& cell_cfg)
+{
+  cell_dl_bwp_res_config res;
+  if (cell_cfg.init_bwp.pdcch_cfg.has_value()) {
+    res.ded_pdcchs.push_back(*cell_cfg.init_bwp.pdcch_cfg);
+  }
+  return res;
+}
+
 cell_bwp_res_config ocudu::make_cell_bwp_res_config(const ran_cell_config& cell_cfg)
 {
-  return cell_bwp_res_config{.ul = {.pucch = {.resources = config_helpers::generate_cell_pucch_res_list(
+  return cell_bwp_res_config{.dl = make_cell_dl_bwp_res_config(cell_cfg),
+                             .ul = {.pucch = {.resources = config_helpers::generate_cell_pucch_res_list(
                                                   cell_cfg.init_bwp.pucch.resources,
                                                   cell_cfg.ul_cfg_common.init_ul_bwp.generic_params.crbs.length())}}};
 }

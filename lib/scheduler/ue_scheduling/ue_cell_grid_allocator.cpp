@@ -234,7 +234,7 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
   const search_space_info&                     ss_info            = ue_cell_cfg.search_space(grant.cfg.ss_id);
   uint8_t                                      pdsch_td_res_index = grant.cfg.pdsch_td_res_index;
   const pdsch_time_domain_resource_allocation& pdsch_td_cfg       = ss_info.pdsch_time_domain_list[pdsch_td_res_index];
-  const subcarrier_spacing                     scs                = ss_info.bwp->dl_common->value().generic_params.scs;
+  const subcarrier_spacing                     scs                = ss_info.bwp->dl_common->generic_params.scs;
   const cell_configuration&                    cell_cfg           = ue_cell_cfg.cell_cfg_common;
   const bool                                   is_retx            = grant.h_dl.nof_retxs() != 0;
   const unsigned                               nof_layers         = grant.cfg.recommended_ri;

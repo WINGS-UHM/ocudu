@@ -5,6 +5,7 @@
 #pragma once
 
 #include "sched_bwp_config.h"
+#include "ocudu/adt/slotted_vector.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include "ocudu/scheduler/config/ran_cell_config.h"

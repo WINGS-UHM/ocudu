@@ -845,7 +845,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
     } break;
     case dci_dl_rnti_config_type::c_rnti_f1_0: {
       const search_space_info&   ss_info           = u.get_pcell().cfg().search_space(pdcch.ctx.context.ss_id);
-      const bwp_downlink_common& active_dl_bwp_cmn = *ss_info.bwp->dl_common.value();
+      const bwp_downlink_common& active_dl_bwp_cmn = *ss_info.bwp->dl_common;
       const bwp_configuration&   active_dl_bwp     = active_dl_bwp_cmn.generic_params;
       vrbs                                         = rb_helper::crb_to_vrb_dl_non_interleaved(ue_grant_crbs,
                                                       active_dl_bwp.crbs.start(),

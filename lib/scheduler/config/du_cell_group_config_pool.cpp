@@ -12,9 +12,7 @@ using namespace ocudu;
 
 du_cell_config_pool::du_cell_config_pool(const scheduler_expert_config&                  sched_cfg_,
                                          const sched_cell_configuration_request_message& req) :
-  cell_cfg_inst(sched_cfg_, req),
-  init_dl_bwp(cell_cfg_inst.params.dl_cfg_common.init_dl_bwp),
-  init_ul_bwp(cell_cfg_inst.params.ul_cfg_common.init_ul_bwp)
+  cell_cfg_inst(sched_cfg_, req), init_ul_bwp(cell_cfg_inst.params.ul_cfg_common.init_ul_bwp)
 {
 }
 
@@ -40,7 +38,6 @@ ue_cell_config_ptr du_cell_config_pool::update_ue(const ue_cell_config& ue_cell)
       // Initial BWP.
       add_bwp(ret,
               to_bwp_id(bwp_id),
-              init_dl_bwp,
               ue_cell.serv_cell_cfg.init_dl_bwp,
               &init_ul_bwp,
               ue_cell.serv_cell_cfg.ul_config.has_value() ? &ue_cell.serv_cell_cfg.ul_config->init_ul_bwp : nullptr,
@@ -48,7 +45,7 @@ ue_cell_config_ptr du_cell_config_pool::update_ue(const ue_cell_config& ue_cell)
     } else {
       // Non-initial BWPs.
       const auto& bwp = ue_cell.serv_cell_cfg.dl_bwps[bwp_id];
-      add_bwp(ret, bwp.bwp_id, bwp.bwp_dl_common, bwp.bwp_dl_ded, nullptr, nullptr, ue_cell.bwps[bwp_id]);
+      add_bwp(ret, bwp.bwp_id, bwp.bwp_dl_ded, nullptr, nullptr, ue_cell.bwps[bwp_id]);
     }
   }
 
@@ -57,45 +54,50 @@ ue_cell_config_ptr du_cell_config_pool::update_ue(const ue_cell_config& ue_cell)
 
 void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
                                   bwp_id_t                      bwp_id,
-                                  const bwp_downlink_common&    dl_bwp_common,
                                   const bwp_downlink_dedicated& dl_bwp_ded,
                                   const bwp_uplink_common*      ul_bwp_common,
                                   const bwp_uplink_dedicated*   ul_bwp_ded,
                                   const ue_bwp_config&          ue_bwp_cfg)
 {
+  const auto& bwp_res = cell_cfg().bwp_res[bwp_id];
+
   // Create BWP config.
   bwp_config bwp_cfg;
   bwp_cfg.bwp_id = bwp_id;
+
   // BWP DL Common
-  bwp_cfg.dl_common = bwp_dl_common_config_pool.create(dl_bwp_common);
-  if (dl_bwp_common.pdcch_common.coreset0.has_value()) {
-    const auto& coreset0 = dl_bwp_common.pdcch_common.coreset0.value();
-    bwp_cfg.coresets.emplace(coreset0.get_id(), coreset_config_pool.create(coreset0));
-    out.coresets.emplace(coreset0.get_id(), bwp_cfg.coresets[coreset0.get_id()]);
+  bwp_cfg.dl_common = &bwp_res.dl_common();
+  if (bwp_cfg.dl_common->pdcch_common.coreset0.has_value()) {
+    const auto& coreset0 = bwp_cfg.dl_common->pdcch_common.coreset0.value();
+    bwp_cfg.coresets.emplace(coreset0.get_id(), &coreset0);
+    out.coresets.emplace(coreset0.get_id(), &coreset0);
   }
-  if (dl_bwp_common.pdcch_common.common_coreset.has_value()) {
-    const auto& common_coreset = dl_bwp_common.pdcch_common.common_coreset.value();
-    bwp_cfg.coresets.emplace(common_coreset.get_id(), coreset_config_pool.create(common_coreset));
-    out.coresets.emplace(common_coreset.get_id(), bwp_cfg.coresets[common_coreset.get_id()]);
+  if (bwp_cfg.dl_common->pdcch_common.common_coreset.has_value()) {
+    const auto& common_coreset = bwp_cfg.dl_common->pdcch_common.common_coreset.value();
+    bwp_cfg.coresets.emplace(common_coreset.get_id(), &common_coreset);
+    out.coresets.emplace(common_coreset.get_id(), &common_coreset);
   }
-  for (const search_space_configuration& ss : dl_bwp_common.pdcch_common.search_spaces) {
-    bwp_cfg.search_spaces.emplace(ss.get_id(), ss_config_pool.create(ss));
+  for (const search_space_configuration& ss : bwp_cfg.dl_common->pdcch_common.search_spaces) {
+    bwp_cfg.search_spaces.emplace(ss.get_id(), &ss);
   }
 
   // BWP DL Dedicated
   bwp_cfg.dl_ded = bwp_dl_ded_config_pool.create(dl_bwp_ded);
   if (dl_bwp_ded.pdcch_cfg.has_value()) {
-    for (const coreset_configuration& cs : dl_bwp_ded.pdcch_cfg->coresets) {
+    auto pdcch_it = std::find(bwp_res.dl().ded_pdcchs.begin(), bwp_res.dl().ded_pdcchs.end(), dl_bwp_ded.pdcch_cfg);
+    ocudu_assert(pdcch_it != bwp_res.dl().ded_pdcchs.end(), "PDCCH config must be preconfigured in the cell config");
+    const pdcch_config& pdcch_ded_cfg = *pdcch_it;
+    for (const coreset_configuration& cs : pdcch_ded_cfg.coresets) {
       // TS 38.331, "PDCCH-Config" - In case network reconfigures control resource set with the same
       // ControlResourceSetId as used for commonControlResourceSet configured via PDCCH-ConfigCommon,
       // the configuration from PDCCH-Config always takes precedence and should not be updated by the UE based on
       // servingCellConfigCommon.
-      bwp_cfg.coresets.emplace(cs.get_id(), coreset_config_pool.create(cs));
-      out.coresets.emplace(cs.get_id(), bwp_cfg.coresets[cs.get_id()]);
+      bwp_cfg.coresets.emplace(cs.get_id(), &cs);
+      out.coresets.emplace(cs.get_id(), &cs);
     }
-    for (const search_space_configuration& ss : dl_bwp_ded.pdcch_cfg->search_spaces) {
-      bwp_cfg.search_spaces.emplace(ss.get_id(), ss_config_pool.create(ss));
-      out.search_spaces.emplace(ss.get_id(), bwp_cfg.search_spaces[ss.get_id()]);
+    for (const search_space_configuration& ss : pdcch_ded_cfg.search_spaces) {
+      bwp_cfg.search_spaces.emplace(ss.get_id(), &ss);
+      out.search_spaces.emplace(ss.get_id(), &ss);
     }
   }
 

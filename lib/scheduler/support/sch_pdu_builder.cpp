@@ -383,7 +383,7 @@ void ocudu::build_pdsch_f1_0_c_rnti(pdsch_information&                  pdsch,
 {
   const coreset_configuration& cs_cfg     = ss_info.coreset->cfg();
   const bwp_config&            active_bwp = *ss_info.bwp;
-  const bwp_downlink_common&   bwp_dl     = *active_bwp.dl_common.value();
+  const bwp_downlink_common&   bwp_dl     = *active_bwp.dl_common;
 
   pdsch.rnti        = rnti;
   pdsch.bwp_cfg     = &bwp_dl.generic_params;
@@ -439,7 +439,7 @@ void ocudu::build_pdsch_f1_1_c_rnti(pdsch_information&              pdsch,
   const search_space_info&     ss_info        = ue_cell_cfg.search_space(ss_id);
   const coreset_configuration& cs_cfg         = ss_info.coreset->cfg();
   const bwp_config&            active_bwp     = *ss_info.bwp;
-  const bwp_configuration&     active_bwp_cfg = active_bwp.dl_common.value()->generic_params;
+  const bwp_configuration&     active_bwp_cfg = active_bwp.dl_common->generic_params;
 
   pdsch.rnti        = rnti;
   pdsch.bwp_cfg     = &active_bwp_cfg;

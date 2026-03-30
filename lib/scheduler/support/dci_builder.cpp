@@ -166,7 +166,7 @@ void ocudu::build_dci_f1_0_c_rnti(dci_dl_info&                  dci,
                                   uint8_t                       rv,
                                   const dl_harq_process_handle& h_dl)
 {
-  const bwp_downlink_common& active_dl_bwp_cmn = *ss_info.bwp->dl_common.value();
+  const bwp_downlink_common& active_dl_bwp_cmn = *ss_info.bwp->dl_common;
   const bwp_configuration&   active_dl_bwp     = active_dl_bwp_cmn.generic_params;
 
   dci.type                           = dci_dl_rnti_config_type::c_rnti_f1_0;
@@ -227,7 +227,7 @@ void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   // TODO: Update the value based on nof. CWs enabled.
   static constexpr bool are_both_cws_enabled = false;
 
-  const bwp_downlink_common& active_dl_bwp_cmn = *ss_info.bwp->dl_common.value();
+  const bwp_downlink_common& active_dl_bwp_cmn = *ss_info.bwp->dl_common;
   const bwp_configuration&   active_dl_bwp     = active_dl_bwp_cmn.generic_params;
   const auto                 k1_candidates     = ss_info.get_k1_candidates();
 

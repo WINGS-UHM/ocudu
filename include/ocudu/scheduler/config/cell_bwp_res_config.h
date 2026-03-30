@@ -10,9 +10,17 @@
 
 namespace ocudu {
 
+/// List of DL resources supported for a given cell and BWP.
+struct cell_dl_bwp_res_config {
+  /// List of possible UE-dedicated PDCCH configs.
+  std::vector<pdcch_config> ded_pdcchs;
+
+  bool operator==(const cell_dl_bwp_res_config& other) const { return ded_pdcchs == other.ded_pdcchs; }
+};
+
 /// \brief List of PUCCH resources used for a given cell and BWP.
 struct cell_pucch_res_config {
-  /// List of all PUCCH resources that may be used.
+  /// List of all supported PUCCH resources.
   std::vector<pucch_resource> resources;
 
   bool operator==(const cell_pucch_res_config& other) const { return resources == other.resources; }
@@ -31,6 +39,7 @@ struct cell_ul_bwp_res_config {
 ///
 /// This list contains both common and the UE-dedicated resources that UEs may use for a given BWP.
 struct cell_bwp_res_config {
+  cell_dl_bwp_res_config dl;
   cell_ul_bwp_res_config ul;
 
   bool operator==(const cell_bwp_res_config& other) const { return ul == other.ul; }

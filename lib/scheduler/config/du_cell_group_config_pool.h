@@ -35,7 +35,6 @@ public:
 private:
   void add_bwp(ue_cell_res_config&           out,
                bwp_id_t                      bwp_id,
-               const bwp_downlink_common&    dl_bwp_common,
                const bwp_downlink_dedicated& dl_bwp_ded,
                const bwp_uplink_common*      ul_bwp_common,
                const bwp_uplink_dedicated*   ul_bwp_ded,
@@ -45,20 +44,16 @@ private:
   cell_configuration cell_cfg_inst;
 
   // Cell common BWP configurations.
-  const bwp_downlink_common& init_dl_bwp;
-  const bwp_uplink_common&   init_ul_bwp;
+  const bwp_uplink_common& init_ul_bwp;
 
   // Pools of UE-dedicated configurations.
-  config_object_pool<ue_cell_res_config>         cell_cfg_pool;
-  config_object_pool<bwp_config>                 bwp_config_pool;
-  config_object_pool<bwp_downlink_common>        bwp_dl_common_config_pool;
-  config_object_pool<bwp_downlink_dedicated>     bwp_dl_ded_config_pool;
-  config_object_pool<bwp_uplink_common>          bwp_ul_common_config_pool;
-  config_object_pool<coreset_configuration>      coreset_config_pool;
-  config_object_pool<search_space_configuration> ss_config_pool;
-  config_object_pool<pdsch_serving_cell_config>  pdsch_serv_cell_pool;
-  config_object_pool<pusch_serving_cell_config>  pusch_serv_cell_pool;
-  config_object_pool<csi_meas_config>            csi_meas_config_pool;
+  config_object_pool<ue_cell_res_config>        cell_cfg_pool;
+  config_object_pool<bwp_config>                bwp_config_pool;
+  config_object_pool<bwp_downlink_dedicated>    bwp_dl_ded_config_pool;
+  config_object_pool<bwp_uplink_common>         bwp_ul_common_config_pool;
+  config_object_pool<pdsch_serving_cell_config> pdsch_serv_cell_pool;
+  config_object_pool<pusch_serving_cell_config> pusch_serv_cell_pool;
+  config_object_pool<csi_meas_config>           csi_meas_config_pool;
 };
 
 /// Class responsible for managing the configurations of all the entities (cells, UEs, slices) in a cell group.

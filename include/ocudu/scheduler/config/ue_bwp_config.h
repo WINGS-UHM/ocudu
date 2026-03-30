@@ -69,6 +69,7 @@ struct ue_uplink_bwp_config {
   }
 };
 
+/// UE-specific configuration parameters for a given BWP.
 struct ue_bwp_config {
   ue_uplink_bwp_config ul;
 };

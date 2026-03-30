@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "ocudu/adt/slotted_vector.h"
 #include "ocudu/ran/pdcch/aggregation_level.h"
 #include "ocudu/ran/pdcch/pdcch_constants.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
@@ -22,7 +21,7 @@ using crb_index_list_span = span<const uint16_t>;
 class sched_coreset_config
 {
 public:
-  sched_coreset_config(pci_t pci, const bwp_downlink_common& dl_bwp_cmn, const coreset_configuration& cs_cfg);
+  sched_coreset_config(pci_t pci, const bwp_configuration& bwp_cfg, const coreset_configuration& cs_cfg);
 
   /// CORESET identifier.
   coreset_id id() const { return cfg_ptr->get_id(); }
@@ -38,6 +37,8 @@ public:
     const unsigned ncce_idx = start_ncce >> to_aggregation_level_index(aggr_lvl); // ncce / L.
     return ncce_crbs[to_aggregation_level_index(aggr_lvl)][ncce_idx];
   }
+
+  bool operator==(const coreset_configuration& cs_cfg) const { return *cfg_ptr == cs_cfg; }
 
 private:
   /// Pointer to the CORESET configuration.
@@ -58,23 +59,29 @@ public:
 
   bwp_id_t bwp_id() const { return bwpid; }
 
-  const bwp_downlink_common&                   dl_common() const { return base_dl_bwp_cmn; }
-  const std::optional<bwp_downlink_dedicated>& dl_ded() const { return base_dl_bwp_ded; }
+  /// BWP Downlink common config.
+  const bwp_downlink_common& dl_common() const { return base_dl_bwp_cmn; }
 
-  /// List of CORESETs associated with this BWP.
-  const slotted_id_vector<coreset_id, sched_coreset_config>& coresets() const { return cs_list; }
+  /// Fetch CORESET0 config if it exists.
+  const sched_coreset_config* coreset0() const { return cs_list[0].id() == to_coreset_id(0) ? &cs_list[0] : nullptr; }
 
-  /// Uplink resources.
-  const cell_ul_bwp_res_config& ul() const { return ul_res; }
+  /// List of CORESETs configured in the scheduler for this BWP.
+  /// \note The index does not necessarily match the CORESET-ID.
+  span<const sched_coreset_config> coresets() const { return cs_list; }
+
+  /// Dedicated Downlink resources.
+  const cell_dl_bwp_res_config& dl() const { return res.dl; }
+
+  /// Dedicated Uplink resources.
+  const cell_ul_bwp_res_config& ul() const { return res.ul; }
 
 private:
-  bwp_id_t                              bwpid;
-  bwp_downlink_common                   base_dl_bwp_cmn;
-  std::optional<bwp_downlink_dedicated> base_dl_bwp_ded;
+  bwp_id_t            bwpid;
+  bwp_downlink_common base_dl_bwp_cmn;
 
-  cell_ul_bwp_res_config ul_res;
+  cell_bwp_res_config res;
 
-  slotted_id_vector<coreset_id, sched_coreset_config> cs_list;
+  std::vector<sched_coreset_config> cs_list;
 };
 
 } // namespace ocudu

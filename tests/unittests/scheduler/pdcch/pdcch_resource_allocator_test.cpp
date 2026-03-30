@@ -227,7 +227,7 @@ protected:
                    "\n- initial BWP: RBs={}",
                    cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs);
     const auto&                  bwp_res = cell_cfg.bwp_res[to_bwp_id(0)];
-    const coreset_configuration& cs0_cfg = bwp_res.coresets()[to_coreset_id(0)].cfg();
+    const coreset_configuration& cs0_cfg = bwp_res.coreset0()->cfg();
     fmt::format_to(
         std::back_inserter(fmtbuf), "\n- CORESET#0: RBs={}, duration={}", cs0_cfg.coreset0_crbs(), cs0_cfg.duration());
     const auto& cs1_cfg = bwp_res.coresets()[to_coreset_id(1)].cfg();
@@ -243,7 +243,7 @@ protected:
                    fmt::join(bwp_res.dl_common().pdcch_common.search_spaces[1].get_nof_candidates(), ", "));
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- SearchSpace#2: nof_candidates={}",
-                   fmt::join(bwp_res.dl_ded()->pdcch_cfg->search_spaces[0].get_nof_candidates(), ", "));
+                   fmt::join(bwp_res.dl().ded_pdcchs[0].search_spaces[0].get_nof_candidates(), ", "));
     test_logger.info("{}", to_string(fmtbuf));
   }
 

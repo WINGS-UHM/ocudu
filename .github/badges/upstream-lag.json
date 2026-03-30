@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
   "label": "Upstream Lag",
-  "message": "20 commits",
-  "color": "brightgreen"
+  "message": "23 commits",
+  "color": "yellow"
 }

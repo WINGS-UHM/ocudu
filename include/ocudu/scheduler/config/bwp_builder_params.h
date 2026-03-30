@@ -18,17 +18,18 @@
 
 namespace ocudu {
 
-/// PDSCH parameters for a given BWP of a given DU cell.
+/// Parameters used to build the PDSCH config for UEs of a given cell and BWP.
+/// \note These parameters may not represent the actual config values used by the UEs, as the latter may depend
+/// on the UE capabilities.
 struct pdsch_builder_params {
-  /// Number of DL HARQ processes.
+  /// Maximum number of DL HARQ processes available to UEs.
   /// \remark See TS 38.331, \c nrofHARQ-ProcessesForPDSCH.
-  uint8_t nof_harq_procs = 16;
+  uint8_t max_harq_procs = 16;
   /// Optional maximum number of DL layers. If not set, DL antenna ports are used.
   std::optional<unsigned> max_nof_layers;
-  /// MCS table to use for PDSCH.
+  /// Preferred MCS table to use for PDSCH.
   pdsch_mcs_table mcs_table = pdsch_mcs_table::qam256;
-  /// Position for additional DM-RS in DL, see Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 in TS 38.211. If the field is absent,
-  /// the UE applies the value pos2.
+  /// Position for additional DM-RS in DL, see Tables 7.4.1.1.2-3 and 7.4.1.1.2-4 in TS 38.211.
   dmrs_additional_positions additional_positions{dmrs_additional_positions::pos2};
   /// VRB-to-PRB mapping type for PDSCH. The field vrb-ToPRB-Interleaver applies to DCI format 1_1.
   vrb_to_prb::mapping_type interleaving_bundle_size{vrb_to_prb::mapping_type::non_interleaved};
@@ -51,9 +52,9 @@ struct pucch_builder_params {
 
 /// PUSCH parameters for a given BWP of a given DU cell.
 struct pusch_builder_params {
-  /// Number of HARQ processes. Values: {16, 32}.
+  /// Maximum number of HARQ processes. Values: {16, 32}.
   /// \remark See TS 38.331, \c nrofHARQ-ProcessesForPUSCH.
-  uint8_t nof_harq_procs = 16;
+  uint8_t max_harq_procs = 16;
   /// \brief Minimum k2 value used in the generation of the UE PUSCH time-domain resources.
   /// Possible values: {1, ..., 7}.
   /// [Implementation-defined] The value of min_k2 should be equal or lower than min_k1. Otherwise, the scheduler is

@@ -70,6 +70,9 @@ private:
   /// Periodicity of SSB in milliseconds (or in nof. subframes).
   uint8_t ssb_period;
 
+  /// SSB pattern case, derived from the cell band and SSB SCS at construction.
+  ssb_pattern_case ssb_case;
+
   const cell_configuration& cell_cfg;
   ocudulog::basic_logger&   logger;
 };

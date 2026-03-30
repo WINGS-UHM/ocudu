@@ -18,7 +18,7 @@ struct cell_pucch_config {
 
 /// \brief Cell-common information of an UL BWP configuration.
 ///
-/// This structure contains all the UL BWP parameters that are common accross all UEs.
+/// This structure contains all the UL BWP parameters that are common across all UEs.
 struct cell_uplink_bwp_config {
   cell_pucch_config pucch;
 

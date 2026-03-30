@@ -10,7 +10,9 @@
 using namespace ocudu;
 
 ssb_scheduler::ssb_scheduler(const cell_configuration& cfg_) :
-  cell_cfg(cfg_), logger(ocudulog::fetch_basic_logger("SCHED"))
+  ssb_case(band_helper::get_ssb_pattern(cfg_.params.dl_carrier.band, cfg_.params.ssb_cfg.scs)),
+  cell_cfg(cfg_),
+  logger(ocudulog::fetch_basic_logger("SCHED"))
 {
   ssb_period = ssb_periodicity_to_value(cell_cfg.params.ssb_cfg.ssb_period);
 }
@@ -50,7 +52,7 @@ void ssb_scheduler::schedule_ssb(cell_slot_resource_allocator& res_grid) const
                                 sl_point.to_uint() % (ssb_period * sl_point.nof_slots_per_subframe()));
 
   // Select SSB case with reference to TS 38.213, Section 4.1.
-  switch (cell_cfg.ssb_case) {
+  switch (ssb_case) {
     case ssb_pattern_case::A:
       ssb_alloc_case_A_C(ssb_list, CUTOFF_FREQ_ARFCN_CASE_A_B_C, sl_point_mod);
       break;
@@ -67,7 +69,7 @@ void ssb_scheduler::schedule_ssb(cell_slot_resource_allocator& res_grid) const
       ssb_alloc_case_D(ssb_list, sl_point_mod);
       break;
     default:
-      ocudu_assert(cell_cfg.ssb_case < ssb_pattern_case::invalid, "Only SSB case A, B and C are currently supported");
+      ocudu_assert(ssb_case < ssb_pattern_case::invalid, "Only SSB case A, B and C are currently supported");
   }
 
   // Update the used DL PRBs with those allocated to the SSBs.

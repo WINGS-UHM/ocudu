@@ -43,7 +43,7 @@ ue_cell_repository::ue_cell_repository(const cell_configuration& cell_cfg, cell_
              cell_cfg.expert_cfg.ue.ul_harq_retx_timeout.count() * get_nof_slots_per_subframe(cell_cfg.scs_common()),
              cell_harq_manager::DEFAULT_ACK_TIMEOUT_SLOTS,
              cell_cfg.ntn_cs_koffset,
-             cell_cfg.ul_harq_mode_b)
+             cell_cfg.params.ntn_params.has_value() && cell_cfg.params.ntn_params->ul_harq_mode_b)
 {
   rnti_to_ue_index_lookup.reserve(MAX_NOF_DU_UES);
 }

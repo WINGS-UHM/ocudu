@@ -131,7 +131,9 @@ class ssb_sched_test_bench : public sched_basic_custom_test_bench
 protected:
   ssb_sched_test_bench(const sched_cell_configuration_request_message& sched_cell_cfg_req) :
     sched_basic_custom_test_bench(config_helpers::make_default_scheduler_expert_config(), sched_cell_cfg_req),
-    cutoff_freq(compute_cutoff_freq(cell_cfg.ssb_case, cell_cfg.params.dl_carrier.band)),
+    cutoff_freq(
+        compute_cutoff_freq(band_helper::get_ssb_pattern(cell_cfg.params.dl_carrier.band, cell_cfg.params.ssb_cfg.scs),
+                            cell_cfg.params.dl_carrier.band)),
     sl_idx_with_ssb_case_A_B_C{0, 1, 2, 3},
     ssb_sched(cell_cfg)
   {
@@ -154,7 +156,9 @@ protected:
   // Returns the possible starting OFDM symbols for SSB.
   std::array<uint8_t, 2> get_starting_ofdm_symbols(slot_point sl) const
   {
-    if (cell_cfg.ssb_case == ssb_pattern_case::A or cell_cfg.ssb_case == ssb_pattern_case::C) {
+    const ssb_pattern_case ssb_case =
+        band_helper::get_ssb_pattern(cell_cfg.params.dl_carrier.band, cell_cfg.params.ssb_cfg.scs);
+    if (ssb_case == ssb_pattern_case::A or ssb_case == ssb_pattern_case::C) {
       return {2, 8};
     }
     return sl.count() % 2U == 0 ? std::array<uint8_t, 2>{4, 8} : std::array<uint8_t, 2>{2, 6};

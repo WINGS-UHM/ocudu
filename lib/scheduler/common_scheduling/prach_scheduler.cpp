@@ -18,7 +18,7 @@ prach_scheduler::prach_scheduler(const cell_configuration& cfg_) :
 {
   // Obtain the PRACH configuration.
   prach_configuration prach_cfg =
-      prach_configuration_get(to_frequency_range(cell_cfg.ssb_case),
+      prach_configuration_get(band_helper::get_freq_range(cell_cfg.params.dl_carrier.band),
                               cell_cfg.paired_spectrum() ? duplex_mode::FDD : duplex_mode::TDD,
                               rach_cfg_common().rach_cfg_generic.prach_config_index);
 

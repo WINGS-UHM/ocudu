@@ -433,7 +433,7 @@ unsigned ue_capability_manager::select_pusch_max_rank(du_cell_index_t cell_idx) 
 unsigned ue_capability_manager::select_max_dl_nof_harqs(du_cell_index_t cell_idx) const
 {
   // Configured maximum number of DL HARQs.
-  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp.pdsch.nof_harq_procs;
+  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp.pdsch.max_harq_procs;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
@@ -460,7 +460,7 @@ unsigned ue_capability_manager::select_max_dl_nof_harqs(du_cell_index_t cell_idx
 unsigned ue_capability_manager::select_max_ul_nof_harqs(du_cell_index_t cell_idx) const
 {
   // Configured maximum number of UL HARQs.
-  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp.pusch.nof_harq_procs;
+  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp.pusch.max_harq_procs;
 
   if (test_cfg.test_ue.has_value() and test_cfg.test_ue->rnti != rnti_t::INVALID_RNTI) {
     // In case of test mode, we do not need to rely on capabilities.
@@ -494,7 +494,7 @@ unsigned ue_capability_manager::select_dl_dci_harq_num_field_size(du_cell_index_
   }
 
   // Configured maximum number of DL HARQs.
-  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp.pdsch.nof_harq_procs;
+  unsigned cell_max_nof_dl_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp.pdsch.max_harq_procs;
   auto     cell_dci_size             = log2_ceil(cell_max_nof_dl_harq_proc);
 
   nr_band band = base_cell_cfg_list[cell_idx].ran.dl_carrier.band;
@@ -521,7 +521,7 @@ unsigned ue_capability_manager::select_ul_dci_harq_num_field_size(du_cell_index_
   }
 
   // Configured maximum number of UL HARQs.
-  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp.pusch.nof_harq_procs;
+  unsigned cell_max_nof_ul_harq_proc = base_cell_cfg_list[cell_idx].ran.init_bwp.pusch.max_harq_procs;
   auto     cell_dci_size             = log2_ceil(cell_max_nof_ul_harq_proc);
 
   nr_band band = base_cell_cfg_list[cell_idx].ran.ul_carrier.band;

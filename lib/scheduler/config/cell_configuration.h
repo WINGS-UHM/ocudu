@@ -50,8 +50,6 @@ public:
   const std::vector<nzp_csi_rs_resource> nzp_csi_rs_list;
   /// List of dl-DataToUL-ACK values sent to UE in its dedicated configuration.
   const static_vector<uint8_t, 8> dl_data_to_ul_ack;
-  const ssb_pattern_case          ssb_case;
-  const uint8_t                   L_max;
   /// Parameters for the initial BWP that are common for all UEs.
   const cell_bwp_config init_bwp;
   /// BWP config resources used when UEs have no dedicated config.
@@ -61,15 +59,8 @@ public:
 
   ///@}
 
-  /// @name NTN parameters.
-  ///@{
-
   /// Cell-specific K-offset in slots defined by the cell subcarrier spacing.
   unsigned ntn_cs_koffset;
-  /// UL HARQ Mode B.
-  bool ul_harq_mode_b;
-
-  ///@}
 
   subcarrier_spacing scs_common() const { return params.dl_cfg_common.init_dl_bwp.generic_params.scs; }
 

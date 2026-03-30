@@ -162,7 +162,7 @@ ra_scheduler::ra_scheduler(const cell_configuration& cellcfg_,
              get_harq_retx_timeout_slots(cell_cfg),
              cell_harq_manager::DEFAULT_ACK_TIMEOUT_SLOTS,
              cell_cfg.ntn_cs_koffset,
-             cell_cfg.ul_harq_mode_b),
+             cell_cfg.params.ntn_params.has_value() && cell_cfg.params.ntn_params->ul_harq_mode_b),
   pending_rachs(RACH_IND_QUEUE_SIZE),
   pending_crcs(CRC_IND_QUEUE_SIZE),
   pending_msg3s(MAX_CONCURRENT_MSG3)

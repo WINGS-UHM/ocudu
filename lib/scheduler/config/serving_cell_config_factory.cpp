@@ -189,7 +189,7 @@ static pusch_serving_cell_config make_default_pusch_serving_cell_config(const pu
         *pusch_params.cbg_tx);
   }
   cfg.x_ov_head     = pusch_params.x_ov_head;
-  cfg.nof_harq_proc = static_cast<pusch_serving_cell_config::nof_harq_proc_for_pusch>(pusch_params.nof_harq_procs);
+  cfg.nof_harq_proc = static_cast<pusch_serving_cell_config::nof_harq_proc_for_pusch>(pusch_params.max_harq_procs);
   cfg.ul_harq_mode  = pusch_params.ul_harq_mode;
   return cfg;
 }
@@ -278,7 +278,7 @@ static uplink_config make_default_ue_uplink_config(const ran_cell_config& cell_c
 static pdsch_serving_cell_config make_default_pdsch_serving_cell_config(const pdsch_builder_params& pdsch_params)
 {
   pdsch_serving_cell_config cfg;
-  cfg.nof_harq_proc   = static_cast<pdsch_serving_cell_config::nof_harq_proc_for_pdsch>(pdsch_params.nof_harq_procs);
+  cfg.nof_harq_proc   = static_cast<pdsch_serving_cell_config::nof_harq_proc_for_pdsch>(pdsch_params.max_harq_procs);
   cfg.max_mimo_layers = 1;
   cfg.dl_harq_feedback_disabled = pdsch_params.dl_harq_feedback_disabled;
 

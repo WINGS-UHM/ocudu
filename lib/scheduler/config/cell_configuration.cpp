@@ -5,7 +5,6 @@
 #include "cell_configuration.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/resource_block.h"
-#include "ocudu/ran/ssb/ssb_mapping.h"
 #include "ocudu/scheduler/config/cell_bwp_config.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
@@ -50,16 +49,13 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
   zp_csi_rs_list(make_zp_csi_rs_list(params)),
   nzp_csi_rs_list(make_nzp_csi_rs_list(params)),
   dl_data_to_ul_ack(time_domain_resource_helper::generate_k1_candidates(params.tdd_cfg, params.init_bwp.pucch.min_k1)),
-  ssb_case(band_helper::get_ssb_pattern(params.dl_carrier.band, params.ssb_cfg.scs)),
-  L_max(ssb_get_L_max(params.ssb_cfg.scs, params.dl_carrier.arfcn_f_ref, params.dl_carrier.band)),
   init_bwp(make_cell_bwp_config(params)),
   init_bwp_res(params.pci, to_bwp_id(0), params.dl_cfg_common.init_dl_bwp, nullptr),
   // NTN parameters.
   ntn_cs_koffset(params.ntn_params.has_value()
                      ? params.ntn_params->ntn_cfg.cell_specific_koffset.value_or(std::chrono::milliseconds{0}).count() *
                            get_nof_slots_per_subframe(scs_common())
-                     : 0),
-  ul_harq_mode_b(params.ntn_params.has_value() ? params.ntn_params->ul_harq_mode_b : false)
+                     : 0)
 {
   // Initiate dedicated sched BWP configs.
   {

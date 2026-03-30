@@ -38,6 +38,7 @@ private:
   static cu_cp_path_switch_request
        fill_path_switch_request(const xnap_handover_target_execution_context& target_execution_ctxt,
                                 const rrc_cell_context&                       cell_context,
+                                const plmn_identity&                          selected_plmn,
                                 const security::security_context&             security_context);
   bool is_xn_handover() const { return xnap_ho_target_execution_ctxt.has_value(); }
 

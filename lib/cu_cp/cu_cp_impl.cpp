@@ -820,12 +820,12 @@ cu_cp_impl::handle_new_ue_context_modification_request(const ngap_ue_context_mod
     }
   }
 
-  // Fill user location information if cell information is available.
-  const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
-  if (cell != nullptr) {
+  // Fill user location information if RRC UE context is available.
+  if (ue->get_rrc_ue() != nullptr) {
+    const auto& cell_ctx = ue->get_rrc_ue()->get_cell_context();
     mod_response.user_location_info.emplace();
-    mod_response.user_location_info->nr_cgi = cell->cgi;
-    mod_response.user_location_info->tai    = {cell->cgi.plmn_id, cell->tac};
+    mod_response.user_location_info->nr_cgi = {ue->get_ue_context().plmn, cell_ctx.cgi.nci};
+    mod_response.user_location_info->tai    = {ue->get_ue_context().plmn, cell_ctx.tac};
   }
 
   return launch_async(
@@ -1163,15 +1163,15 @@ void cu_cp_impl::handle_location_reporting_control_message(ue_index_t ue_index, 
       msg.location_reporting_type == event_type::change_of_serve_cell ||
       msg.location_reporting_type == event_type::change_of_serving_cell_and_ue_presence_in_the_area_of_interest) {
     // Get cell info and build location report immediately.
-    const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
-    if (cell == nullptr) {
-      logger.warning("ue={}: Cell not found for PCI={}", ue_index, ue->get_pci());
+    if (ue->get_rrc_ue() == nullptr) {
+      logger.warning("ue={}: RRC UE not found for location report", ue_index);
       return;
     }
+    const auto& cell_ctx = ue->get_rrc_ue()->get_cell_context();
 
     cu_cp_user_location_info_nr user_location_info;
-    user_location_info.nr_cgi = cell->cgi;
-    user_location_info.tai    = {cell->cgi.plmn_id, cell->tac};
+    user_location_info.nr_cgi = {ue->get_ue_context().plmn, cell_ctx.cgi.nci};
+    user_location_info.tai    = {ue->get_ue_context().plmn, cell_ctx.tac};
     auto report = ue->get_location_manager().get_direct_location_report(ue_index, user_location_info, msg);
 
     auto* ngap = ngap_db.find_ngap(ue->get_ue_context().plmn);
@@ -1192,15 +1192,15 @@ void cu_cp_impl::handle_location_update(ue_index_t ue_index)
     return;
   }
 
-  const auto* cell = du_db.get_du_processor(ue->get_du_index()).get_context()->find_cell(ue->get_pci());
-  if (cell == nullptr) {
-    logger.warning("ue={}: Cell not found for PCI={}", ue_index, ue->get_pci());
+  if (ue->get_rrc_ue() == nullptr) {
+    logger.warning("ue={}: RRC UE not found for cell change location report", ue_index);
     return;
   }
+  const auto& cell_ctx = ue->get_rrc_ue()->get_cell_context();
 
   cu_cp_user_location_info_nr user_location_info;
-  user_location_info.nr_cgi = cell->cgi;
-  user_location_info.tai    = {cell->cgi.plmn_id, cell->tac};
+  user_location_info.nr_cgi = {ue->get_ue_context().plmn, cell_ctx.cgi.nci};
+  user_location_info.tai    = {ue->get_ue_context().plmn, cell_ctx.tac};
 
   auto opt_report = ue->get_location_manager().get_location_report(ue_index, user_location_info);
   if (!opt_report.has_value()) {

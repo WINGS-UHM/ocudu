@@ -82,13 +82,16 @@ void inter_cu_handover_execution_target_routine::operator()(coro_context<async_t
   }
 
   if (!is_xn_handover()) {
-    // Send handover notify from here.
+    // Send handover notify from here. Use UE selected PLMN in the NR-CGI in case of MOCN.
     ngap.get_ngap_control_message_handler().handle_inter_cu_ho_rrc_recfg_complete(
-        ue->get_ue_index(), ue->get_rrc_ue()->get_cell_context().cgi, ue->get_rrc_ue()->get_cell_context().tac);
+        ue->get_ue_index(),
+        {ue->get_ue_context().plmn, ue->get_rrc_ue()->get_cell_context().cgi.nci},
+        ue->get_rrc_ue()->get_cell_context().tac);
   } else {
     // Prepare Path Switch Request.
     path_switch_request = fill_path_switch_request(xnap_ho_target_execution_ctxt.value(),
                                                    ue->get_rrc_ue()->get_cell_context(),
+                                                   ue->get_ue_context().plmn,
                                                    ue->get_security_manager().get_security_context());
 
     // Send Path Switch Request from here.
@@ -158,14 +161,15 @@ bool inter_cu_handover_execution_target_routine::initialize_reconfiguration_time
 cu_cp_path_switch_request inter_cu_handover_execution_target_routine::fill_path_switch_request(
     const xnap_handover_target_execution_context& target_execution_ctxt,
     const rrc_cell_context&                       cell_context,
+    const plmn_identity&                          selected_plmn,
     const security::security_context&             security_context)
 {
   cu_cp_path_switch_request path_switch_req;
   path_switch_req.ue_index              = target_execution_ctxt.ue_index;
   path_switch_req.source_amf_ue_ngap_id = target_execution_ctxt.amf_ue_id;
 
-  path_switch_req.user_location_info.nr_cgi = cell_context.cgi;
-  path_switch_req.user_location_info.tai    = {cell_context.cgi.plmn_id, cell_context.tac};
+  path_switch_req.user_location_info.nr_cgi = {selected_plmn, cell_context.cgi.nci};
+  path_switch_req.user_location_info.tai    = {selected_plmn, cell_context.tac};
 
   path_switch_req.supported_enc_algos = security_context.supported_enc_algos;
   path_switch_req.supported_int_algos = security_context.supported_int_algos;

@@ -36,15 +36,19 @@ sched_bwp_config::sched_bwp_config(const ran_cell_config& ran_cfg, bwp_id_t bwp_
 {
   // Fill sched_coreset_config list with unique entries.
   if (base_dl_bwp_cmn.pdcch_common.coreset0.has_value()) {
-    cs_list.emplace_back(ran_cfg.pci, base_dl_bwp_cmn.generic_params, *base_dl_bwp_cmn.pdcch_common.coreset0);
+    cs_list.emplace(
+        to_coreset_id(0), ran_cfg.pci, base_dl_bwp_cmn.generic_params, *base_dl_bwp_cmn.pdcch_common.coreset0);
   }
   if (base_dl_bwp_cmn.pdcch_common.common_coreset.has_value()) {
-    cs_list.emplace_back(ran_cfg.pci, base_dl_bwp_cmn.generic_params, *base_dl_bwp_cmn.pdcch_common.common_coreset);
+    cs_list.emplace(base_dl_bwp_cmn.pdcch_common.common_coreset->get_id(),
+                    ran_cfg.pci,
+                    base_dl_bwp_cmn.generic_params,
+                    *base_dl_bwp_cmn.pdcch_common.common_coreset);
   }
   for (auto& ded_pdcch : res.dl.ded_pdcchs) {
     for (const auto& cs : ded_pdcch.coresets) {
       if (std::find(cs_list.begin(), cs_list.end(), cs) == cs_list.end()) {
-        cs_list.emplace_back(ran_cfg.pci, base_dl_bwp_cmn.generic_params, cs);
+        cs_list.emplace(cs.get_id(), ran_cfg.pci, base_dl_bwp_cmn.generic_params, cs);
       }
     }
   }

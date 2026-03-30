@@ -701,13 +701,8 @@ void ue_cell_configuration::configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_d
     search_spaces.emplace(ss_cfg.get_id());
     search_space_info& ss = search_spaces[ss_cfg.get_id()];
 
-    ss.cfg                    = &ss_cfg;
-    const auto& cell_coresets = cell_cfg_common.bwp_res[bwpid].coresets();
-    auto cs_it = std::find_if(cell_coresets.begin(), cell_coresets.end(), [&ss_cfg](const sched_coreset_config& cs) {
-      return cs.id() == ss_cfg.get_coreset_id();
-    });
-    ocudu_assert(cs_it != cell_coresets.end(), "Invalid CORESET-ID");
-    ss.coreset = &*cs_it;
+    ss.cfg     = &ss_cfg;
+    ss.coreset = &cell_cfg_common.bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),
@@ -747,13 +742,8 @@ void ue_cell_configuration::configure_bwp_ded_cfg(bwp_id_t bwpid, const bwp_down
     search_spaces.emplace(ss_cfg.get_id());
     search_space_info& ss = search_spaces[ss_cfg.get_id()];
 
-    ss.cfg                    = &ss_cfg;
-    const auto& cell_coresets = cell_cfg_common.bwp_res[bwpid].coresets();
-    auto cs_it = std::find_if(cell_coresets.begin(), cell_coresets.end(), [&ss_cfg](const sched_coreset_config& cs) {
-      return cs.id() == ss_cfg.get_coreset_id();
-    });
-    ocudu_assert(cs_it != cell_coresets.end(), "Invalid CORESET-ID");
-    ss.coreset = &*cs_it;
+    ss.cfg     = &ss_cfg;
+    ss.coreset = &cell_cfg_common.bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),

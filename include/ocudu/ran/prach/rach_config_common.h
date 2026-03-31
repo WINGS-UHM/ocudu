@@ -66,6 +66,9 @@ struct ra_prioritization_slice_info {
   ra_prioritization    prio;
 };
 
+/// Parameters for 2-step RACH configuration as per TS 38.331, "RACH-ConfigCommonTwoStepRA-r16".
+struct rach_config_common_two_step {};
+
 /// Used to specify the cell-specific random-access parameters as per TS 38.331, "RACH-ConfigCommon".
 struct rach_config_common {
   rach_config_generic rach_cfg_generic;
@@ -95,6 +98,8 @@ struct rach_config_common {
   uint8_t nof_cb_preambles_per_ssb = 4;
   /// List of slice-specific RACH configurations.
   std::vector<ra_prioritization_slice_info> ra_prio_slice_info_list;
+  /// 2-step RACH configuration (Rel-16). Present only when 2-step RACH is enabled.
+  std::optional<rach_config_common_two_step> two_step_rach_cfg;
 
   bool operator==(const rach_config_common& other) const
   {

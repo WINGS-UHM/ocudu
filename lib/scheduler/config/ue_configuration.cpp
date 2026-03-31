@@ -572,14 +572,14 @@ static void generate_crnti_monitored_pdcch_candidates(slotted_array<search_space
         if (ss->is_common_search_space()) {
           ss_candidates[slot_count][i] =
               pdcch_candidates_common_ss_get_lowest_cce(pdcch_candidates_common_ss_configuration{
-                  aggr_lvl, ss->get_nof_candidates()[i], bwp_cfg.coresets[ss->get_coreset_id()]->get_nof_cces()});
+                  aggr_lvl, ss->get_nof_candidates()[i], bwp_cfg.coresets[ss->get_coreset_id()]->cfg().get_nof_cces()});
           continue;
         }
 
         ss_candidates[slot_count][i] = pdcch_candidates_ue_ss_get_lowest_cce(
             pdcch_candidates_ue_ss_configuration{aggr_lvl,
                                                  ss->get_nof_candidates()[i],
-                                                 bwp_cfg.coresets[ss->get_coreset_id()]->get_nof_cces(),
+                                                 bwp_cfg.coresets[ss->get_coreset_id()]->cfg().get_nof_cces(),
                                                  ss->get_coreset_id(),
                                                  crnti,
                                                  slot_mod.slot_index()});

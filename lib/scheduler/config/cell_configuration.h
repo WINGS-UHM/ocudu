@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "sched_bwp_config.h"
+#include "sched_bwp_res_config.h"
 #include "ocudu/adt/slotted_vector.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/subcarrier_spacing.h"
@@ -51,7 +51,7 @@ public:
   /// List of dl-DataToUL-ACK values sent to UE in its dedicated configuration.
   const static_vector<uint8_t, 8> dl_data_to_ul_ack;
   /// List of BWP config resources handled by this cell.
-  slotted_id_vector<bwp_id_t, sched_bwp_config> bwp_res;
+  slotted_id_vector<bwp_id_t, sched_bwp_res_config> bwp_res;
 
   ///@}
 

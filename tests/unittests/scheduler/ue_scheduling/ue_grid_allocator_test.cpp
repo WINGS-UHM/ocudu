@@ -275,7 +275,7 @@ TEST_P(ue_grid_allocator_css_test,
   ue_creation_req.crnti    = to_rnti(0x4601);
   ue& u                    = add_ue(ue_creation_req);
 
-  const auto&        cs1_cfg  = u.ue_cfg_dedicated()->pcell_cfg().coreset(to_coreset_id(1));
+  const auto&        cs1_cfg  = u.ue_cfg_dedicated()->pcell_cfg().coreset(to_coreset_id(1)).cfg();
   const crb_interval cs1_crbs = get_coreset_crbs(cs1_cfg);
   const crb_interval crb_lims = {
       cs1_crbs.start(),

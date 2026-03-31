@@ -15,8 +15,6 @@ namespace ocudu {
 
 struct sched_ue_config_request;
 
-using serving_cell_config_ptr = config_ptr<serving_cell_config>;
-
 /// Configuration of a BWP. It aggregates both the common and dedicated configurations for DL and UL.
 struct bwp_config {
   /// UE-specific BWP Identifier
@@ -30,7 +28,7 @@ struct bwp_config {
   /// BWP Uplink Dedicated Configuration
   std::optional<bwp_uplink_dedicated> ul_ded;
   /// CoreSets associated with this BWP.
-  slotted_id_vector<coreset_id, const coreset_configuration*> coresets;
+  slotted_id_vector<coreset_id, const sched_coreset_config*> coresets;
   /// Search Spaces associated with this BWP.
   slotted_id_vector<search_space_id, const search_space_configuration*> search_spaces;
 
@@ -53,7 +51,7 @@ struct ue_cell_res_config {
   du_cell_index_t cell_index;
   /// Container that maps Coreset-Ids to CORESET configurations for this BWP.
   /// Note: The ID space of CoresetIds is common among the BWPs of a Serving Cell as per TS 38.331.
-  slotted_id_vector<coreset_id, const coreset_configuration*> coresets;
+  slotted_id_vector<coreset_id, const sched_coreset_config*> coresets;
   /// Container that maps searchSpaceIds to searchSpace configurations for this BWP.
   /// Note: The ID space of searchSpaceIds is common among the BWPs of a Serving Cell as per TS 38.331.
   slotted_id_vector<search_space_id, const search_space_configuration*> search_spaces;

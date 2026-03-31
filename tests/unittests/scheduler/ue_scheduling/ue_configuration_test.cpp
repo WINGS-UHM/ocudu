@@ -50,7 +50,7 @@ TEST_F(ue_configuration_test, configuration_valid_on_creation)
   ASSERT_TRUE(ue_cfg.find_bwp(to_bwp_id(0)) != nullptr);
   ASSERT_TRUE(ue_cfg.bwp(to_bwp_id(0)).dl_common->generic_params ==
               cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params);
-  ASSERT_TRUE(ue_cfg.coreset(to_coreset_id(0)).get_id() ==
+  ASSERT_TRUE(ue_cfg.coreset(to_coreset_id(0)).id() ==
               cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->get_id());
   ASSERT_EQ(0, fmt::underlying(ue_cfg.search_space(to_search_space_id(0)).cfg->get_id()));
   ASSERT_TRUE(*ue_cfg.search_space(to_search_space_id(0)).cfg ==

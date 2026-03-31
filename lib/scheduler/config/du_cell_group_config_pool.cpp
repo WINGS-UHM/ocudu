@@ -68,14 +68,14 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
   // BWP DL Common
   bwp_cfg.dl_common = &bwp_res.dl_common();
   if (bwp_cfg.dl_common->pdcch_common.coreset0.has_value()) {
-    const auto& coreset0 = bwp_cfg.dl_common->pdcch_common.coreset0.value();
-    bwp_cfg.coresets.emplace(coreset0.get_id(), &coreset0);
-    out.coresets.emplace(coreset0.get_id(), &coreset0);
+    const auto& coreset0 = bwp_res.coresets()[bwp_cfg.dl_common->pdcch_common.coreset0.value().get_id()];
+    bwp_cfg.coresets.emplace(coreset0.id(), &coreset0);
+    out.coresets.emplace(coreset0.id(), &coreset0);
   }
   if (bwp_cfg.dl_common->pdcch_common.common_coreset.has_value()) {
-    const auto& common_coreset = bwp_cfg.dl_common->pdcch_common.common_coreset.value();
-    bwp_cfg.coresets.emplace(common_coreset.get_id(), &common_coreset);
-    out.coresets.emplace(common_coreset.get_id(), &common_coreset);
+    const auto& common_coreset = bwp_res.coresets()[bwp_cfg.dl_common->pdcch_common.common_coreset->get_id()];
+    bwp_cfg.coresets.emplace(common_coreset.id(), &common_coreset);
+    out.coresets.emplace(common_coreset.id(), &common_coreset);
   }
   for (const search_space_configuration& ss : bwp_cfg.dl_common->pdcch_common.search_spaces) {
     bwp_cfg.search_spaces.emplace(ss.get_id(), &ss);
@@ -92,8 +92,9 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
       // ControlResourceSetId as used for commonControlResourceSet configured via PDCCH-ConfigCommon,
       // the configuration from PDCCH-Config always takes precedence and should not be updated by the UE based on
       // servingCellConfigCommon.
-      bwp_cfg.coresets.emplace(cs.get_id(), &cs);
-      out.coresets.emplace(cs.get_id(), &cs);
+      const auto& sched_cs = bwp_res.coresets()[cs.get_id()];
+      bwp_cfg.coresets.emplace(cs.get_id(), &sched_cs);
+      out.coresets.emplace(cs.get_id(), &sched_cs);
     }
     for (const search_space_configuration& ss : pdcch_ded_cfg.search_spaces) {
       bwp_cfg.search_spaces.emplace(ss.get_id(), &ss);

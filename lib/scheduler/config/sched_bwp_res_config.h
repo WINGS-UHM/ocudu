@@ -16,10 +16,10 @@ namespace ocudu {
 /// perspective.
 ///
 /// This config must represent the superset of all the possible common and UE-dedicated configurations for a given BWP.
-class sched_bwp_config
+class sched_bwp_res_config
 {
 public:
-  sched_bwp_config(const ran_cell_config& ran_cfg, bwp_id_t bwp_id_);
+  sched_bwp_res_config(const ran_cell_config& ran_cfg, bwp_id_t bwp_id_);
 
   bwp_id_t bwp_id() const { return bwpid; }
 

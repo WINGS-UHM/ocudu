@@ -114,7 +114,6 @@ struct pdsch_config {
   /// resources indicated in the rate match patterns. Rate match patterns defined here on cell level apply only to PDSCH
   /// of the same numerology. See 38.214, clause 5.1.4,1.
   static_vector<rate_match_pattern, MAX_NOF_RATE_MATCH_PATTERNS> rate_match_pattrn;
-  // TODO: RateMatchPatternGroup1 and RateMatchPatternGroup2
 
   /// Selection between config 1 and config 2 for RBG size for PDSCH. The UE ignores this field if resourceAllocation is
   /// set to resourceAllocationType1.
@@ -143,8 +142,6 @@ struct pdsch_config {
   /// 0, 1, 2, 3, 4 or 5 bits determined by higher layer parameter harq-ProcessNumberSizeDCI-1-2-v1700 if configured.
   /// otherwise 0, 1, 2, 3 or 4 bits determined by higher layer parameter harq-ProcessNumberSizeDCI-1-2.
   std::optional<harq_process_num_dci_1_2_size> harq_process_num_size_dci_1_2{harq_process_num_dci_1_2_size::n4};
-
-  // TODO: Remaining.
 
   bool operator==(const pdsch_config& rhs) const
   {

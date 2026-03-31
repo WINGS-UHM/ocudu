@@ -107,7 +107,7 @@ protected:
   {
     ASSERT_EQ(pdcch_ctx.rnti, u.rnti);
     const search_space_configuration& ss_cfg = *u.pcell_cfg->search_space(ss_id).cfg;
-    const coreset_configuration&      cs_cfg = u.pcell_cfg->coreset(ss_cfg.get_coreset_id());
+    const coreset_configuration&      cs_cfg = u.pcell_cfg->coreset(ss_cfg.get_coreset_id()).cfg();
     ASSERT_EQ(*pdcch_ctx.coreset_cfg, cs_cfg);
     ASSERT_EQ(pdcch_ctx.n_id_pdcch_dmrs,
               cs_cfg.get_pdcch_dmrs_scrambling_id().has_value() ? *cs_cfg.get_pdcch_dmrs_scrambling_id()

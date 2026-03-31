@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-#include "sched_bwp_config.h"
+#include "sched_bwp_res_config.h"
 #include "../support/pdcch/pdcch_mapping.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 
@@ -31,7 +31,7 @@ sched_coreset_config::sched_coreset_config(pci_t                        pci,
   }
 }
 
-sched_bwp_config::sched_bwp_config(const ran_cell_config& ran_cfg, bwp_id_t bwp_id_) :
+sched_bwp_res_config::sched_bwp_res_config(const ran_cell_config& ran_cfg, bwp_id_t bwp_id_) :
   bwpid(bwp_id_), base_dl_bwp_cmn(ran_cfg.dl_cfg_common.init_dl_bwp), res(make_cell_bwp_res_config(ran_cfg))
 {
   // Fill sched_coreset_config list with unique entries.

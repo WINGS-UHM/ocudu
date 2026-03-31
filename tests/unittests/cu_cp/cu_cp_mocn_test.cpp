@@ -9,6 +9,7 @@
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
 #include "tests/unittests/e1ap/common/e1ap_cu_cp_test_messages.h"
 #include "tests/unittests/ngap/ngap_test_messages.h"
+#include "ocudu/asn1/ngap/ngap_pdu_contents.h"
 #include "ocudu/e1ap/common/e1ap_message.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ngap/ngap_message.h"
@@ -332,6 +333,17 @@ TEST_F(cu_cp_mocn_test, when_ngs_f1_e1_are_setup_and_ue_selects_second_plmn_then
   ASSERT_TRUE(this->wait_for_ngap_tx_pdu(ngap_pdu, std::chrono::milliseconds{1000}, 1))
       << "CU-CP did not send the Initial UE Message to the AMF";
   ASSERT_TRUE(test_helpers::is_valid_init_ue_message(ngap_pdu)) << "Invalid Initial UE Message";
+
+  // Verify that user location info contains the UE-selected PLMN (second PLMN), not the cell's primary PLMN.
+  const auto& init_ue_msg = ngap_pdu.pdu.init_msg().value.init_ue_msg();
+  ASSERT_EQ(init_ue_msg->user_location_info.type(),
+            asn1::ngap::user_location_info_c::types_opts::options::user_location_info_nr);
+  const auto&   user_loc_info = init_ue_msg->user_location_info.user_location_info_nr();
+  plmn_identity second_plmn   = plmn_identity::parse("99902").value();
+  ASSERT_EQ(user_loc_info.nr_cgi.plmn_id.to_number(), second_plmn.to_bcd())
+      << "NR-CGI PLMN should be the UE-selected PLMN, not the cell's primary PLMN";
+  ASSERT_EQ(user_loc_info.tai.plmn_id.to_number(), second_plmn.to_bcd())
+      << "TAI PLMN should be the UE-selected PLMN, not the cell's primary PLMN";
 
   // Check UE is created.
   report = this->get_cu_cp().get_metrics_handler().request_metrics_report();

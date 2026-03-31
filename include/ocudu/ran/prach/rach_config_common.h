@@ -5,8 +5,10 @@
 #pragma once
 
 #include "ocudu/adt/bounded_integer.h"
+#include "ocudu/ran/meas_units.h"
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/restricted_set_config.h"
+#include "ocudu/ran/sch/sch_mcs.h"
 #include "ocudu/ran/subcarrier_spacing.h"
 #include <chrono>
 #include <optional>
@@ -67,7 +69,33 @@ struct ra_prioritization_slice_info {
 };
 
 /// Parameters for 2-step RACH configuration as per TS 38.331, "RACH-ConfigCommonTwoStepRA-r16".
-struct rach_config_common_two_step {};
+/// \note Current version assumes shared RACH occasions between 2-step and 4-step RACH.
+struct rach_config_common_two_step {
+  /// Configuration of MsgA PUSCH parameters which the UE uses for CB MsgA PUSCH transmission. See TS 38.331,
+  /// "MsgA-PUSCH-Config".
+  struct msgA_pusch_config {
+    /// Time-domain offset in number of slots (based on the numerology of the UL BWP), with respect to the start of the
+    /// PRACH slot. See TS 38.213, clause 8.1A. Values: {1, ..., 32}.
+    uint8_t td_offset{1};
+    /// MCS value used for MsgA, taken from Table 6.1.4.1-1 for DFT-s-OFDM and Table 5.1.31.-1 for CP-OFDM in TS 38.214.
+    sch_mcs_index mcs{5};
+    /// Number of PRBs per PUSCH occasion. See TS 38.213, 8.1A. Values: {1, ..., 32}.
+    uint8_t nof_prbs_per_msgA_po{1};
+  };
+
+  /// \brief Number of contention-based (CB) preambles used for 2-step RA from the non-CB RA 4-step type preambles
+  /// associated with each SSB for RO shared with 4-step RA.
+  /// This value should not exceed the number of preambles per SSB minus the number of CB preambles for 4-step RA.
+  /// See TS 38.331, "msgA-CB-PreamblesPerSSB-PerSharedRO". Values: {1, ..., 60}.
+  uint8_t cb_preambles_per_ssb_per_shared_ro{4};
+  /// Value in dB above which the UE selects 2-step RA over 4-step RA. See "msgA-RSRP-Threshold-r16". Values: {
+  rsrp_range msgA_rsrp_thres{0};
+  /// MsgB response window in slots. It cannot represent a duration larger than 40msec.
+  /// See TS 38.331 "msgB-ResponseWindow-r16" and TS 38.321, 5.1.1. Values: {1, 2, 4, 8, 10, 20, 40, 80, 160, 320}.
+  uint16_t msgB_response_window_slots = 10;
+  /// MsgA PUSCH config.
+  msgA_pusch_config pusch;
+};
 
 /// Used to specify the cell-specific random-access parameters as per TS 38.331, "RACH-ConfigCommon".
 struct rach_config_common {
@@ -95,7 +123,7 @@ struct rach_config_common {
   /// Indicates the number of Contention Based preambles per SSB (L1 parameter 'CB-preambles-per-SSB'). See TS 38.331,
   /// \c ssb-perRACH-OccasionAndCB-PreamblesPerSSB.
   /// \remark Values of \c cb_preambles_per_ssb depends on value of \c ssb_per_ro.
-  uint8_t nof_cb_preambles_per_ssb = 4;
+  uint8_t nof_cb_preambles_per_ssb = 64;
   /// List of slice-specific RACH configurations.
   std::vector<ra_prioritization_slice_info> ra_prio_slice_info_list;
   /// 2-step RACH configuration (Rel-16). Present only when 2-step RACH is enabled.

@@ -17,7 +17,7 @@ namespace config_helpers {
 /// \param[in] params PUCCH resource builder parameters.
 /// \param[in] bwp_size_rbs size of the BWP in RBs.
 /// \return An error message if the parameters are not valid. Otherwise, success.
-error_type<std::string> pucch_parameters_validator(const pucch_resource_builder_params& params, unsigned bwp_size_rbs);
+error_type<const char*> pucch_parameters_validator(const pucch_resource_builder_params& params, unsigned bwp_size_rbs);
 
 /// \brief Generates the list of cell PUCCH resources from the PUCCH resource builder parameters.
 ///

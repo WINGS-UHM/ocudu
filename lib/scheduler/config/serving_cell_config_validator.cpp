@@ -127,55 +127,29 @@ validator_result config_validators::validate_pdsch_cfg(const serving_cell_config
   return {};
 }
 
-validator_result config_validators::validate_pucch_cfg(const serving_cell_config&         ue_cell_cfg,
-                                                       const std::vector<pucch_resource>& cell_pucch_res_list,
-                                                       const pucch_config_common&         pucch_cfg_common,
-                                                       unsigned                           nof_dl_antennas,
-                                                       unsigned                           max_pucch_payload)
+validator_result config_validators::validate_pucch_cfg(const serving_cell_config&           ue_cell_cfg,
+                                                       const pucch_resource_builder_params& res_params,
+                                                       const std::vector<pucch_resource>&   cell_pucch_res_list,
+                                                       const pucch_config_common&           pucch_cfg_common,
+                                                       unsigned                             nof_dl_antennas)
 {
-  VERIFY(ue_cell_cfg.ul_config.has_value() and ue_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.has_value(),
+  VERIFY(ue_cell_cfg.ul_config.has_value() and ue_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value(),
          "Missing configuration for uplinkConfig or pucch-Config in spCellConfig");
+
+  // [Implementation defined] The scheduler expects the resources from the common resource set and Resource Set ID 0 to
+  // use the same format. The formats from the common resource sets are expressed in TS 38.213 Table 9.2.1-1.
+  if (res_params.format_01() == pucch_format::FORMAT_0) {
+    VERIFY(pucch_cfg_common.pucch_resource_common <= 2,
+           "When using PUCCH Format 0, the valid values for pucch_resource_common are {{0, 1, 2}}.");
+  } else {
+    VERIFY(pucch_cfg_common.pucch_resource_common > 2,
+           "When using PUCCH Format 1, the valid values for pucch_resource_common are {{3, ..., 15}}.");
+  }
 
   const auto& pucch_cfg = ue_cell_cfg.ul_config.value().init_ul_bwp.pucch_cfg.value();
 
-  // Helper to retrives a given PUCCH resource given its ID from the PUCCH resource list.
-  auto get_pucch_resource_with_cell_id = [&pucch_cfg](unsigned res_id) {
-    return std::find_if(pucch_cfg.pucch_res_list.begin(),
-                        pucch_cfg.pucch_res_list.end(),
-                        [res_id](const pucch_resource& res) { return res.res_id.cell_res_id == res_id; });
-  };
-
-  auto get_pucch_resource_with_ue_id = [&pucch_cfg](unsigned res_id) {
-    return std::find_if(pucch_cfg.pucch_res_list.begin(),
-                        pucch_cfg.pucch_res_list.end(),
-                        [res_id](const pucch_resource& res) { return res.res_id.ue_res_id == res_id; });
-  };
-
-  // Verify that the PUCCH resources IDs of each PUCCH resource set point at a corresponding item in the PUCCH reource
-  // list.
-  VERIFY(pucch_cfg.pucch_res_set.size() >= 2, "At least 2 PUCCH resource sets need to be configured in PUCCH-Config");
-  VERIFY(pucch_cfg.pucch_res_set[0].pucch_res_set_id == pucch_res_set_idx::set_0 and
-             pucch_cfg.pucch_res_set[1].pucch_res_set_id == pucch_res_set_idx::set_1,
-         "PUCCH resource sets 0 and 1 are expected to have PUCCH-ResourceSetId 0 and 1, respectively");
-  VERIFY((not pucch_cfg.pucch_res_set[0].pucch_res_id_list.empty()) and
-             (not pucch_cfg.pucch_res_set[1].pucch_res_id_list.empty()),
-         "PUCCH resource sets 0 and 1 are expected to have a non-empty set of PUCCH resource id");
-  for (size_t pucch_res_set_idx = 0; pucch_res_set_idx != 2; ++pucch_res_set_idx) {
-    for (auto res_idx : pucch_cfg.pucch_res_set[pucch_res_set_idx].pucch_res_id_list) {
-      const auto* pucch_res_it = get_pucch_resource_with_cell_id(res_idx.cell_res_id);
-      VERIFY(pucch_cfg.pucch_res_list.end() != pucch_res_it,
-             "PUCCH cell res. id={} in PUCCH res. set id={} not found in the PUCCH resource list",
-             res_idx.cell_res_id,
-             pucch_res_set_idx);
-    }
-  }
-
-  // Verify that the size of PUCCH resource set 1 is not smaller than the size of PUCCH resource set 0.
-  VERIFY(pucch_cfg.pucch_res_set[0].pucch_res_id_list.size() <= pucch_cfg.pucch_res_set[1].pucch_res_id_list.size(),
-         "PUCCH resource set 1's size should be greater or equal to PUCCH resource set 0's size");
-
+  // Verify the PUCCH resource list.
   for (const auto& res : pucch_cfg.pucch_res_list) {
-    // Verify each resource format matches the corresponding parameters.
     const bool format_match_format_params =
         (res.format == pucch_format::FORMAT_0 and std::holds_alternative<pucch_format_0_cfg>(res.format_params)) or
         (res.format == pucch_format::FORMAT_1 and std::holds_alternative<pucch_format_1_cfg>(res.format_params)) or
@@ -186,170 +160,106 @@ validator_result config_validators::validate_pucch_cfg(const serving_cell_config
            "PUCCH resource with cell_res_id={} format does not match the PUCCH format parameters",
            res.res_id.cell_res_id);
 
-    static constexpr unsigned invalid_cell_res_id = std::numeric_limits<unsigned>::max();
-    if (res.res_id.cell_res_id == invalid_cell_res_id) {
-      // This is a special case for resources that do not exist in the cell resource list, but only in the UE dedicated
-      // configuration (when using PUCCH Formats 0 and 2).
-      continue;
-    }
-
     // Verify that each PUCCH resource matches the corresponding cell resource.
     VERIFY(res.res_id.cell_res_id < cell_pucch_res_list.size(),
            "PUCCH resource with cell_res_id={} does not exist in the cell configuration",
            res.res_id.cell_res_id);
 
     const auto& cell_res = cell_pucch_res_list[res.res_id.cell_res_id];
-    VERIFY(res.starting_prb == cell_res.starting_prb and res.second_hop_prb == cell_res.second_hop_prb and
-               res.nof_symbols == cell_res.nof_symbols and res.starting_sym_idx == cell_res.starting_sym_idx and
-               res.format == cell_res.format and res.format_params == cell_res.format_params,
+    VERIFY(res == cell_res,
            "PUCCH resource with cell_res_id={} does not match the corresponding cell resource",
            res.res_id.cell_res_id);
+    VERIFY(res.format == res_params.format_01() or res.format == res_params.format_234(),
+           "Invalid PUCCH format configured for UE resource ID {}",
+           res.res_id.ue_res_id);
   }
 
-  // Verify that PUCCH Format 0 and Format 1 aren't both present in the UE configuration.
-  bool has_format_0 = false;
-  bool has_format_1 = false;
-  bool has_format_2 = false;
-  bool has_format_3 = false;
-  bool has_format_4 = false;
-  for (auto res : pucch_cfg.pucch_res_list) {
-    has_format_0 = has_format_0 or res.format == pucch_format::FORMAT_0;
-    has_format_1 = has_format_1 or res.format == pucch_format::FORMAT_1;
-    has_format_2 = has_format_2 or res.format == pucch_format::FORMAT_2;
-    has_format_3 = has_format_3 or res.format == pucch_format::FORMAT_3;
-    has_format_4 = has_format_4 or res.format == pucch_format::FORMAT_4;
-  }
-  VERIFY(not(has_format_0 and has_format_1),
-         "Only PUCCH Format 0 or Format 1 can be configured in a UE configuration, not both.");
-  VERIFY(static_cast<unsigned>(has_format_2) + static_cast<unsigned>(has_format_3) +
-                 static_cast<unsigned>(has_format_4) ==
-             1,
-         "Only one of PUCCH Format 2, Format 3 or Format 4 can be configured in a UE configuration.");
+  // Verify the configured Resource Sets.
+  VERIFY(pucch_cfg.pucch_res_set.size() >= 2, "At least 2 PUCCH resource sets need to be configured in PUCCH-Config");
+  const auto& res_set_0 = pucch_cfg.pucch_res_set[0];
+  const auto& res_set_1 = pucch_cfg.pucch_res_set[1];
+  VERIFY(res_set_0.pucch_res_set_id == pucch_res_set_idx::set_0 and
+             res_set_1.pucch_res_set_id == pucch_res_set_idx::set_1,
+         "PUCCH resource sets 0 and 1 are expected to have PUCCH-ResourceSetId 0 and 1, respectively");
+  VERIFY((not res_set_0.pucch_res_id_list.empty()) and (not res_set_1.pucch_res_id_list.empty()),
+         "PUCCH resource sets 0 and 1 are expected to have a non-empty list of PUCCH resource ID");
+  VERIFY(res_set_0.pucch_res_id_list.size() <= res_set_1.pucch_res_id_list.size(),
+         "PUCCH Resource Set ID 1's size should be greater or equal to PUCCH Resource Set ID 0's size");
 
-  // [Implementation defined] The scheduler expects the resources from the common resource set and Resource Set 0 to use
-  // the same format. The formats from the common resource sets are expressed in TS 38.213 Table 9.2.1-1.
-  if (has_format_0) {
-    VERIFY(pucch_cfg_common.pucch_resource_common <= 2,
-           "When using PUCCH Format 0, the valid values for pucch_resource_common are {{0, 1, 2}}.");
-  } else {
-    VERIFY(pucch_cfg_common.pucch_resource_common > 2,
-           "When using PUCCH Format 1, the valid values for pucch_resource_common are {{3, ..., 15}}.");
-  }
-
-  // Verify that each PUCCH resource has a valid cell resource ID.
-  for (auto res_idx : pucch_cfg.pucch_res_list) {
-    // TODO: handle the cases of F0+F3 and F0+F4.
-    if (has_format_0 and has_format_2) {
-      // For Format 0, we use a special cell resources ID to indicate that the resource does not exist in the cell
-      // resource list, but only exists in the UE dedicated configuration.
-      unsigned cell_res_id_special_res = std::numeric_limits<unsigned>::max();
-      VERIFY(res_idx.res_id.cell_res_id < pucch_constants::MAX_NOF_CELL_DED_RESOURCES or
-                 res_idx.res_id.cell_res_id == cell_res_id_special_res,
-             "PUCCH cell res. id={} exceeds the maximum supported PUCCH resource ID",
-             res_idx.res_id.cell_res_id);
-    } else {
-      VERIFY(res_idx.res_id.cell_res_id < pucch_constants::MAX_NOF_CELL_DED_RESOURCES,
-             "PUCCH cell res. id={} exceeds the maximum supported PUCCH resource ID",
-             res_idx.res_id.cell_res_id);
+  // Verify that the resources indicated in the Resource Sets point to the correct resources in the PUCCH resource list.
+  for (size_t pucch_res_set_idx = 0; pucch_res_set_idx != 2; ++pucch_res_set_idx) {
+    for (auto res_id : pucch_cfg.pucch_res_set[pucch_res_set_idx].pucch_res_id_list) {
+      const auto& res = pucch_cfg.pucch_res_list[res_id.ue_res_id];
+      VERIFY(res.res_id == res_id,
+             "PUCCH resource with UE resource ID {} does not match the corresponding resource ID in the resource set",
+             res_id.ue_res_id);
     }
   }
 
-  // NOTE: No need to check this for Format 0, as this struct doesn't exist for F0.
-  if (has_format_1) {
-    VERIFY(pucch_cfg.format_1_common_param.has_value(), "Missing PUCCH-format1 parameters in PUCCH-Config");
+  // Check PUCCH Formats for each Resource Set.
+  for (auto res_id : res_set_0.pucch_res_id_list) {
+    VERIFY(res_id.ue_res_id < pucch_cfg.pucch_res_list.size(), "Invalid UE resource ID");
+    const auto& res = pucch_cfg.pucch_res_list[res_id.ue_res_id];
+    VERIFY(res.res_id == res_id and res.format == res_params.format_01(),
+           "Invalid PUCCH resource in Resource Set ID 0");
   }
-  if (has_format_2) {
-    VERIFY(pucch_cfg.format_2_common_param.has_value(), "Missing PUCCH-format2 parameters in PUCCH-Config");
-  }
-  if (has_format_3) {
-    VERIFY(pucch_cfg.format_3_common_param.has_value(), "Missing PUCCH-format3 parameters in PUCCH-Config");
-  }
-  if (has_format_4) {
-    VERIFY(pucch_cfg.format_4_common_param.has_value(), "Missing PUCCH-format4 parameters in PUCCH-Config");
+  for (auto res_id : res_set_1.pucch_res_id_list) {
+    VERIFY(res_id.ue_res_id < pucch_cfg.pucch_res_list.size(), "Invalid UE resource ID");
+    const auto& res = pucch_cfg.pucch_res_list[res_id.ue_res_id];
+    VERIFY(res.res_id == res_id and res.format == res_params.format_234(),
+           "Invalid PUCCH resource in Resource Set ID 1");
   }
 
-  if (has_format_0) {
-    VERIFY(pucch_cfg.pucch_res_set[0].pucch_res_id_list.size() == pucch_cfg.pucch_res_set[1].pucch_res_id_list.size(),
+  if (res_params.format_01() == pucch_format::FORMAT_0) {
+    VERIFY(res_set_0.pucch_res_id_list.size() == pucch_cfg.pucch_res_set[1].pucch_res_id_list.size(),
            "With Format 0, the PUCCH resource sets 0 and 1 must have the same size");
   }
 
-  // Check PUCCH Formats for each PUCCH Resource Set.
-  for (auto res_idx : pucch_cfg.pucch_res_set[0].pucch_res_id_list) {
-    const auto* pucch_res_it = get_pucch_resource_with_ue_id(res_idx.ue_res_id);
-    VERIFY(pucch_cfg.pucch_res_list.end() != pucch_res_it and
-               (pucch_res_it->format == pucch_format::FORMAT_0 or pucch_res_it->format == pucch_format::FORMAT_1),
-           "Only PUCCH Resource Format 0 or Format 1 expected in PUCCH resource set 0.");
-  }
-  for (auto res_idx : pucch_cfg.pucch_res_set[1].pucch_res_id_list) {
-    const auto* pucch_res_it = get_pucch_resource_with_ue_id(res_idx.ue_res_id);
-    VERIFY(pucch_cfg.pucch_res_list.end() != pucch_res_it and
-               (pucch_res_it->format == pucch_format::FORMAT_2 or pucch_res_it->format == pucch_format::FORMAT_3 or
-                pucch_res_it->format == pucch_format::FORMAT_4),
-           "Only PUCCH Resource Format 2, Format 3 or Format 4 expected in PUCCH resource set 1.");
-  }
+  // NOTE: There is no analogous structure for PUCCH Format 0.
+  VERIFY(res_params.format_01() != pucch_format::FORMAT_1 or pucch_cfg.format_1_common_param.has_value(),
+         "Missing PUCCH-format1 parameters in PUCCH-Config");
+  VERIFY(res_params.format_234() != pucch_format::FORMAT_2 or pucch_cfg.format_2_common_param.has_value(),
+         "Missing PUCCH-format2 parameters in PUCCH-Config");
+  VERIFY(res_params.format_234() != pucch_format::FORMAT_3 or pucch_cfg.format_3_common_param.has_value(),
+         "Missing PUCCH-format3 parameters in PUCCH-Config");
+  VERIFY(res_params.format_234() != pucch_format::FORMAT_4 or pucch_cfg.format_4_common_param.has_value(),
+         "Missing PUCCH-format4 parameters in PUCCH-Config");
 
-  // Verify the PUCCH resource id that indicated in the SR resource config exists in the PUCCH resource list.
+  // Verify the PUCCH resource ID indicated in the SR resource config exists in the PUCCH resource list.
   VERIFY(pucch_cfg.sr_res_list.size() == 1, "Only SchedulingRequestResourceConfig with size 1 supported");
-  VERIFY(pucch_cfg.pucch_res_list.end() !=
-             get_pucch_resource_with_cell_id(pucch_cfg.sr_res_list.front().pucch_res_id.cell_res_id),
-         "PUCCH cell res. id={} given in SR resource config not found in the PUCCH resource list",
-         pucch_cfg.sr_res_list.front().pucch_res_id.cell_res_id);
-
-  const auto* pucch_res_sr = get_pucch_resource_with_cell_id(pucch_cfg.sr_res_list.front().pucch_res_id.cell_res_id);
-  VERIFY(pucch_cfg.pucch_res_list.end() != pucch_res_sr,
-         "PUCCH cell res. id={} for SR could not be found in PUCCH resource list",
-         pucch_cfg.sr_res_list.front().pucch_res_id.cell_res_id);
-  VERIFY(pucch_res_sr->format == pucch_format::FORMAT_0 or pucch_res_sr->format == pucch_format::FORMAT_1,
-         "PUCCH resource used for SR is expected to be Format 0 or Format 1");
+  VERIFY(pucch_cfg.sr_res_list.front().pucch_res_id.ue_res_id < pucch_cfg.pucch_res_list.size(),
+         "Invalid UE resource ID");
+  const auto  sr_res_id = pucch_cfg.sr_res_list.front().pucch_res_id;
+  const auto& sr_res    = pucch_cfg.pucch_res_list[sr_res_id.ue_res_id];
+  VERIFY(sr_res.res_id == sr_res_id and sr_res.format == res_params.format_01(),
+         "Invalid PUCCH resource used for SR reporting");
 
   // With Format 0, the last resource in PUCCH resource set 1 should point at the SR resource. Also, the last (or second
   // last if there is CSI) resource in PUCCH resource set 1 should have symbols and starting PRBs that match those of
   // the SR resource.
-  // TODO: handle the cases of F0+F3 and F0+F4.
-  if (has_format_0 and has_format_2) {
-    const auto* last_res_in_set_0 =
-        get_pucch_resource_with_cell_id(pucch_cfg.pucch_res_set[0].pucch_res_id_list.back().cell_res_id);
-    VERIFY(pucch_cfg.pucch_res_list.end() != last_res_in_set_0 and
-               last_res_in_set_0->res_id == pucch_cfg.sr_res_list.front().pucch_res_id,
-           "With Format 0, the last PUCCH resource in PUCCH resource set 0 should point at the SR resource");
-    // The harq_res_in_set_1_for_sr is only created in the UE, it doesn't exist in the cell list of resources. Use the
-    // ue_res_id to find it.
-    const auto* harq_res_in_set_1_for_sr =
-        get_pucch_resource_with_ue_id(pucch_cfg.pucch_res_set[1].pucch_res_id_list.back().ue_res_id);
-    VERIFY(pucch_cfg.pucch_res_list.end() != harq_res_in_set_1_for_sr and
-               harq_res_in_set_1_for_sr->format == pucch_format::FORMAT_2 and
-               std::holds_alternative<pucch_format_2_3_cfg>(harq_res_in_set_1_for_sr->format_params),
-           "With Format 0, PUCCH resource set 1 should contain a reserved HARQ-ACK resource for SR slots of Format 2");
-    VERIFY(harq_res_in_set_1_for_sr->starting_prb == pucch_res_sr->starting_prb and
-               harq_res_in_set_1_for_sr->second_hop_prb == pucch_res_sr->second_hop_prb and
-               harq_res_in_set_1_for_sr->starting_sym_idx == pucch_res_sr->starting_sym_idx and
-               harq_res_in_set_1_for_sr->nof_symbols == pucch_res_sr->nof_symbols,
-           "With Format 0, PUCCH resource set 1 should contain a resource Format 2 reserved for HARQ-ACK with symbols "
-           " and starting PRBs that match the SR resource");
+  const bool using_02 =
+      res_params.format_01() == pucch_format::FORMAT_0 and res_params.format_234() == pucch_format::FORMAT_2;
+  if (using_02) {
+    VERIFY(res_set_0.pucch_res_id_list[res_params.res_set_0_size.value()] == sr_res_id,
+           "With Format 0, the SR resource must be present in Resource Set ID 0");
+
+    VERIFY(res_set_1.pucch_res_id_list[res_params.res_set_0_size.value()].ue_res_id ==
+               res_params.get_sr_f2_ue_res_idx(),
+           "With Format 0, the SR_F2 resource must be present in Resource Set ID 1");
   }
 
   // Verify that the PUCCH setting used for CSI report have been configured properly.
   if (ue_cell_cfg.csi_meas_cfg.has_value() and not is_pusch_configured(*ue_cell_cfg.csi_meas_cfg)) {
-    const auto& csi_cfg = ue_cell_cfg.csi_meas_cfg.value();
-    VERIFY(not csi_cfg.csi_report_cfg_list.empty() and
-               std::holds_alternative<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-                   csi_cfg.csi_report_cfg_list.front().report_cfg_type) and
-               not std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-                       csi_cfg.csi_report_cfg_list.front().report_cfg_type)
-                       .pucch_csi_res_list.empty(),
+    const auto& csi = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
+        ue_cell_cfg.csi_meas_cfg->csi_report_cfg_list.front().report_cfg_type);
+    VERIFY(not csi.pucch_csi_res_list.empty(),
            "PUCCH-CSI-ResourceList has not been configured in the CSI-reportConfig");
 
-    const auto& csi = std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(
-        csi_cfg.csi_report_cfg_list.front().report_cfg_type);
-    const unsigned csi_res_id = csi.pucch_csi_res_list.front().pucch_res_id.cell_res_id;
     // Verify the PUCCH resource id that indicated in the CSI resource config exists in the PUCCH resource list.
-    const auto* csi_pucch_res = get_pucch_resource_with_cell_id(csi_res_id);
-    VERIFY(csi_pucch_res != pucch_cfg.pucch_res_list.end(),
-           "PUCCH cell res. id={} given in PUCCH-CSI-resourceList not found in the PUCCH resource list",
-           csi_res_id);
-    VERIFY(csi_pucch_res->format == pucch_format::FORMAT_2 or csi_pucch_res->format == pucch_format::FORMAT_3 or
-               csi_pucch_res->format == pucch_format::FORMAT_4,
-           "PUCCH resource used for CSI is expected to be Format 2, Format 3 or Format 4");
+    const auto  csi_res_id = csi.pucch_csi_res_list.front().pucch_res_id;
+    const auto& csi_res    = pucch_cfg.pucch_res_list[csi_res_id.ue_res_id];
+    VERIFY(csi_res.res_id == csi_res_id and csi_res.format == res_params.format_234(),
+           "Invalid PUCCH resource used for CSI reporting");
 
     // Verify the CSI/SR bits do not exceed the PUCCH F2/F3/F4 payload.
     const auto     csi_report_cfg   = create_csi_report_configuration(ue_cell_cfg.csi_meas_cfg.value());
@@ -360,52 +270,24 @@ validator_result config_validators::validate_pucch_cfg(const serving_cell_config
         csi_report_periodicity_to_uint(csi.report_slot_period),
         csi.report_slot_offset);
 
-    // Verify that, with Format 0 and Format 2, the CSI and SR don't fall on the same slot(s).
-    if (pucch_res_sr->format == pucch_format::FORMAT_0 and csi_pucch_res->format == pucch_format::FORMAT_2) {
-      VERIFY(not csi_sr_collision,
-             "With PUCCH Format 0 and Format 2, we don't support SR opportunities falling on a CSI report slot");
-    }
-
     // If SR and CSI are reported within the same slot, 1 SR bit can be multiplexed with CSI within the same PUCCH
     // resource.
     unsigned sr_bits_mplexed_with_csi = csi_sr_collision ? 1U : 0U;
     // In the PUCCH resource for CSI, there are no HARQ-ACK bits being reported; therefore we only need to check where
     // the CSI + SR bits fit into the max payload.
     const unsigned uci_bits_pucch_resource = csi_report_size + sr_bits_mplexed_with_csi;
-    VERIFY(max_pucch_payload >= uci_bits_pucch_resource,
+    VERIFY(res_params.max_payload_234() >= uci_bits_pucch_resource,
            "UCI num. of bits ({}) exceeds the maximum CSI's PUCCH Format 2/3/4 payload ({})",
            uci_bits_pucch_resource,
-           max_pucch_payload);
+           res_params.max_payload_234());
 
-    // TODO: handle the cases of F0+F3 and F0+F4.
-    if (has_format_0 and has_format_2) {
-      // With Format 0 and CSI, the second-last resource in PUCCH resource set 1 should point at the CSI resource.
-      const auto* harq_set_1_res_for_csi =
-          get_pucch_resource_with_ue_id(pucch_cfg.pucch_res_set[1]
-                                            .pucch_res_id_list[pucch_cfg.pucch_res_set[1].pucch_res_id_list.size() - 2U]
-                                            .ue_res_id);
-      VERIFY(pucch_cfg.pucch_res_list.end() != harq_set_1_res_for_csi and
-                 harq_set_1_res_for_csi->res_id == csi_pucch_res->res_id,
-             "With Format 0 and CSI, the last PUCCH resource in PUCCH resource set 1 should point at the CSI resource");
+    if (using_02) {
+      VERIFY(res_set_0.pucch_res_id_list[res_params.res_set_0_size.value() + 1].ue_res_id ==
+                 res_params.get_csi_f0_ue_res_idx(),
+             "With Format 0, the CSI_F0 resource must be present in Resource Set ID 0");
 
-      // The second-last resource in PUCCH resource set 0 should have symbols and starting PRBs that match those of the
-      // CSI resource.
-      // The harq_res_in_set_1_for_sr is only created in the UE, it doesn't exist in the cell list of resources. Use
-      // the ue_res_id to find it.
-      const auto* harq_res_in_set_0_for_csi =
-          get_pucch_resource_with_ue_id(pucch_cfg.pucch_res_set[0]
-                                            .pucch_res_id_list[pucch_cfg.pucch_res_set[0].pucch_res_id_list.size() - 2U]
-                                            .ue_res_id);
-      VERIFY(pucch_cfg.pucch_res_list.end() != harq_res_in_set_0_for_csi and
-                 harq_res_in_set_0_for_csi->format == pucch_format::FORMAT_0 and
-                 std::holds_alternative<pucch_format_0_cfg>(harq_res_in_set_0_for_csi->format_params),
-             "With Format 0, PUCCH resource set 0 should contain a F2 HARQ-ACK resource reserved for CSI slots");
-      VERIFY(harq_res_in_set_0_for_csi->starting_prb == csi_pucch_res->starting_prb and
-                 harq_res_in_set_0_for_csi->second_hop_prb == csi_pucch_res->second_hop_prb and
-                 harq_res_in_set_0_for_csi->starting_sym_idx == csi_pucch_res->starting_sym_idx and
-                 harq_res_in_set_0_for_csi->nof_symbols == csi_pucch_res->nof_symbols,
-             "With Format 0, PUCCH resource set 0 should contain a F0 resource reserved for HARQ-ACK with symbols "
-             " and starting PRBs that match the CSI resource");
+      VERIFY(res_set_1.pucch_res_id_list[res_params.res_set_0_size.value() + 1] == csi_res_id,
+             "With Format 0, the CSI resource must be present in Resource Set ID 1");
     }
   }
 

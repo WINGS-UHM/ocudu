@@ -280,6 +280,23 @@ struct pucch_resource_builder_params {
            nof_cell_res_set_configs * res_set_1_size.value() + csi_res_id.value();
   }
 
+  unsigned get_sr_f2_cell_res_idx(pucch_sr_resource_id sr_res_id) const
+  {
+    ocudu_assert(format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2,
+                 "SR_F2 resource is only present in the F0+F2 case");
+    return nof_cell_res_set_configs * res_set_0_size.value() + nof_cell_sr_resources +
+           nof_cell_res_set_configs * res_set_1_size.value() + nof_cell_csi_resources + sr_res_id.value();
+  }
+
+  unsigned get_csi_f0_cell_res_idx(pucch_csi_resource_id csi_res_id) const
+  {
+    ocudu_assert(format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2,
+                 "CSI_F0 resource is only present in the F0+F2 case");
+    return nof_cell_res_set_configs * res_set_0_size.value() + nof_cell_sr_resources +
+           nof_cell_res_set_configs * res_set_1_size.value() + nof_cell_csi_resources + nof_cell_sr_resources +
+           csi_res_id.value();
+  }
+
   // \brief Get the position of a given Resource Set ID 0/1 resource in the UE PUCCH resource list.
   //
   // \param res_set_id The Resource Set ID (0 or 1).
@@ -301,37 +318,39 @@ struct pucch_resource_builder_params {
                  pri,
                  res_set_1_size.value());
     static constexpr unsigned nof_sr_res_per_ue = 1;
-    if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
-      // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).
-      return res_set_0_size.value() + nof_sr_res_per_ue + pri + 1U;
-    }
     return res_set_0_size.value() + nof_sr_res_per_ue + pri;
   }
 
   // \brief Get the position of the SR resource in the UE PUCCH resource list.
   //
   // \return The index of the PUCCH resource in the UE PUCCH resource list.
-  unsigned get_sr_ue_res_idx() const
-  {
-    if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
-      // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).
-      return res_set_0_size.value() + 1U;
-    }
-    return res_set_0_size.value();
-  }
+  unsigned get_sr_ue_res_idx() const { return res_set_0_size.value(); }
 
   // \brief Get the position of the CSI resource in the UE PUCCH resource list.
   //
   // \return The index of the PUCCH resource in the UE PUCCH resource list.
   unsigned get_csi_ue_res_idx() const
   {
-    static constexpr unsigned nof_sr_res_per_ue = 1;
-
-    if (format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2) {
-      // For F0+F2 case, Resource Set ID 0 has one extra resource (CSI_F0).
-      return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value() + 1U;
-    }
+    static constexpr unsigned nof_sr_res_per_ue = 1U;
     return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value();
+  }
+
+  unsigned get_sr_f2_ue_res_idx() const
+  {
+    ocudu_assert(format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2,
+                 "SR_F2 resource is only present in the F0+F2 case");
+    static constexpr unsigned nof_sr_res_per_ue  = 1U;
+    const unsigned            nof_csi_res_per_ue = nof_cell_csi_resources != 0 ? 1U : 0U;
+    return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value() + nof_csi_res_per_ue;
+  }
+
+  unsigned get_csi_f0_ue_res_idx() const
+  {
+    ocudu_assert(format_01() == pucch_format::FORMAT_0 and format_234() == pucch_format::FORMAT_2,
+                 "CSI_F0 resource is only present in the F0+F2 case");
+    static constexpr unsigned nof_sr_res_per_ue  = 1U;
+    static constexpr unsigned nof_csi_res_per_ue = 1U;
+    return res_set_0_size.value() + nof_sr_res_per_ue + res_set_1_size.value() + nof_csi_res_per_ue + 1U;
   }
 
   /// Get the number of symbols configured for the Format 0 or 1 resources.

@@ -916,12 +916,12 @@ static unsigned get_pucch_resource_ind_f0_sr_csi(pucch_uci_bits bits, const pucc
   if (bits.harq_ack_nof_bits <= 2U) {
     // At position (PUCCH resource set 0 size - 1U) the resource coincides with the SR resource.
     if (bits.sr_bits != sr_nof_bits::no_sr) {
-      return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_0)].pucch_res_id_list.size() - 1U;
+      return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_0)].pucch_res_id_list.size() - 2U;
     }
     // NOTE: Either CSI or SR bits are non-zero, but not both.
     // At position (PUCCH resource set 0 size - 2U) the resource is of Format 0, but set on the same PRBs/symbols as
     // the CSI resource.
-    return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_0)].pucch_res_id_list.size() - 2U;
+    return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_0)].pucch_res_id_list.size() - 1U;
   }
 
   // This if for bits.harq_ack_nof_bits > 2U.
@@ -929,11 +929,11 @@ static unsigned get_pucch_resource_ind_f0_sr_csi(pucch_uci_bits bits, const pucc
   // At position (PUCCH resource set 1 size - 1U) the resource is of Format 2, but set on the same PRBs/symbols as the
   // SR resource.
   if (bits.sr_bits != sr_nof_bits::no_sr) {
-    return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_1)].pucch_res_id_list.size() - 1U;
+    return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_1)].pucch_res_id_list.size() - 2U;
   }
   // NOTE: Either CSI or SR bits are non-zero, but not both.
   // At position (PUCCH resource set 1 size - 2U) the resource coincides with the CSI resource.
-  return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_1)].pucch_res_id_list.size() - 2U;
+  return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_1)].pucch_res_id_list.size() - 1U;
 }
 
 std::optional<pucch_allocator_impl::pucch_grant_list>

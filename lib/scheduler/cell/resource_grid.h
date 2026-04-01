@@ -244,6 +244,18 @@ public:
     return get_carrier(scs).subslot_rbs;
   }
 
+  bool operator==(const cell_slot_resource_grid& other) const
+  {
+    if (active_scs() != other.active_scs()) {
+      return false;
+    }
+    const auto subcarriers = active_scs();
+    return std::all_of(subcarriers.begin(), subcarriers.end(), [&](subcarrier_spacing scs) {
+      return get_carrier_res_grid(scs) == other.get_carrier_res_grid(scs);
+    });
+  }
+  bool operator!=(const cell_slot_resource_grid& other) const { return not(*this == other); }
+
 private:
   friend struct cell_resource_allocator;
 

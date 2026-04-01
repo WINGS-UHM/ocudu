@@ -10,10 +10,18 @@
 
 namespace ocudu {
 
+/// Possible RNTI values.
 /// \remark See TS 38.331 - RNTI-Value and TS 38.321, Table 7.1-1: RNTI Values. Values: (0..65535)
+/// \remark See TS 38.321, 5.1.3 and 5.1.4 to obtain the list of possible RA-RNTIs and MSGB-RNTIs.
 enum class rnti_t : uint16_t {
   INVALID_RNTI = 0x0,
-  MIN_CRNTI    = 0x1,
+  MIN_RA_RNTI  = 0x1,
+  // 0x4600 == 17920 == 14 * 80 * 8 * 2.
+  MAX_RA_RNTI   = 0x4600,
+  MIN_MSGB_RNTI = 0x4601,
+  // 0x8c00 == 35840 == 14 * 80 * 8 * 4.
+  MAX_MSGB_RNTI = 0x8c00,
+  MIN_CRNTI     = 0x1,
   // ...
   MAX_CRNTI         = 0xffef,
   MIN_RESERVED_RNTI = 0xfff0,

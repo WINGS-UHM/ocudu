@@ -52,6 +52,27 @@ inline rnti_t get_ra_rnti(unsigned slot_index, unsigned symbol_index, unsigned f
   return to_rnti(ra_rnti);
 }
 
+/// \brief Computes the RA-RNTI based on PRACH parameters, as per TS 38.321, Section 5.1.4.
+inline rnti_t get_msgb_rnti(unsigned slot_index, unsigned symbol_index, unsigned frequency_index, bool is_sul = false)
+{
+  // MSGB-RNTI = 1 + s_id + 14 × t_id + 14 × 80 × f_id + 14 × 80 × 8 × ul_carrier_id + 14 × 80 × 8 × 2.
+  const uint16_t msgb_rnti = 1U + symbol_index + 14U * slot_index + 14U * 80U * frequency_index +
+                             (14U * 80U * 8U * (is_sul ? 1U : 0U)) + 14 * 80 * 8 * 2;
+  return to_rnti(msgb_rnti);
+}
+
+/// Checks whether the RA-RNTI is within its possible bounds as per TS 38.321, 5.1.3.
+inline bool is_valid_ra_rnti(rnti_t ra_rnti)
+{
+  return ra_rnti >= rnti_t::MIN_RA_RNTI and ra_rnti <= rnti_t::MAX_RA_RNTI;
+}
+
+/// Checks whether the MSGB-RNTI is within its possible bounds as per TS 38.321, 5.1.4.
+inline bool is_valid_msgb_rnti(rnti_t msgb_rnti)
+{
+  return msgb_rnti >= rnti_t::MIN_MSGB_RNTI and msgb_rnti <= rnti_t::MAX_MSGB_RNTI;
+}
+
 } // namespace ra_helper
 
 } // namespace ocudu

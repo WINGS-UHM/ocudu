@@ -129,7 +129,7 @@ static unsigned compute_prach_occasion_duration_slots(const cell_configuration& 
 ///   [0,              nof_cb_preambles_per_ssb)                              → 4-step CB preambles
 ///   [nof_cb_preambles_per_ssb, ... + cb_preambles_per_ssb_per_shared_ro)   → 2-step CB (MsgA) preambles
 ///   [... + cb_preambles_per_ssb_per_shared_ro, preambles_per_ssb)          → non-CB preambles
-static bool is_msgA_preamble(const rach_config_common& rach_cfg, uint8_t preamble_id)
+static bool is_msga_preamble(const rach_config_common& rach_cfg, uint8_t preamble_id)
 {
   if (not rach_cfg.two_step_rach_cfg.has_value()) {
     return false;
@@ -228,6 +228,8 @@ ra_scheduler::ra_scheduler(const cell_configuration& cellcfg_,
   // MAX_PRACH_OCCASIONS_PER_SLOT (the actual number would depend on the PRACH configuration index).
   static constexpr size_t MAX_PENDING_RARS_SLOTS = 90U;
   pending_rars.reserve(MAX_PRACH_OCCASIONS_PER_SLOT * MAX_PENDING_RARS_SLOTS);
+  // MsgB window can be up to 320 slots (msgB-ResponseWindow-r16), so use the same bound.
+  pending_msgbs.reserve(MAX_PRACH_OCCASIONS_PER_SLOT * MAX_PENDING_RARS_SLOTS);
 
   // Precompute RAR PDSCH and DCI PDUs.
   precompute_rar_fields();
@@ -292,7 +294,7 @@ void ra_scheduler::precompute_msg3_pdus()
     const pusch_config_params pusch_cfg = get_pusch_config_f0_0_tc_rnti(cell_cfg, pusch_td_alloc_list[i]);
     const sch_prbs_tbs        prbs_tbs =
         get_nof_prbs(prbs_calculator_sch_config{max_msg3_sdu_payload_size_bytes + msg3_subheader_size_bytes,
-                                                (unsigned)pusch_td_alloc_list[i].symbols.length(),
+                                                pusch_td_alloc_list[i].symbols.length(),
                                                 calculate_nof_dmrs_per_rb(pusch_cfg.dmrs),
                                                 nof_oh_prb,
                                                 msg3_mcs_config,
@@ -332,96 +334,41 @@ void ra_scheduler::handle_rach_indication(const rach_indication_message& msg)
 
 void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& msg, slot_point sl_tx)
 {
-  // Handle all PRACH occasions in the received RACH indication and convert them into pending RARs and Msg3s.
-  for (const auto& prach_occ : msg.occasions) {
-    // As per Section 5.1.3, TS 38.321, and from Section 5.3.2, TS 38.211, slot_idx uses as the numerology of reference
-    // 15kHz for long PRACH Formats (i.e, slot_idx = subframe index); whereas, for short PRACH formats, it uses the same
-    // numerology as the SCS common (i.e, slot_idx = actual slot index within the frame).
-    const unsigned slot_idx = prach_format_is_long ? msg.slot_rx.subframe_index() : msg.slot_rx.slot_index();
-    const rnti_t   ra_rnti  = ra_helper::get_ra_rnti(slot_idx, prach_occ.start_symbol, prach_occ.frequency_index);
+  const rach_config_common& rach_cfg = *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
 
+  for (const auto& prach_occ : msg.occasions) {
     if (prach_occ.preambles.empty()) {
       // As per FAPI, this should not occur.
-      logger.warning("pci={} ra-rnti={}: Discarding PRACH occasion. Cause: There are no preambles detected for this "
-                     "PRACH occasion",
-                     cell_cfg.params.pci,
-                     ra_rnti);
+      logger.warning(
+          "pci={}: Discarding PRACH occasion detected at slot={}. Cause: There are no preambles detected for this "
+          "PRACH occasion",
+          cell_cfg.params.pci,
+          msg.slot_rx);
       continue;
     }
 
-    // Search for pending RAR with matching RA-RNTI and Rx Slot.
-    auto rar_it = std::find_if(pending_rars.begin(), pending_rars.end(), [&](const pending_rar_alloc& rar) {
-      return rar.ra_rnti == ra_rnti and rar.prach_slot_rx == msg.slot_rx;
-    });
-    pending_rar_alloc* rar_req = rar_it != pending_rars.end() ? &*rar_it : nullptr;
-    if (rar_req == nullptr) {
-      // No match was found. Create new pending RAR.
-      if (pending_rars.capacity() == pending_rars.size()) {
-        logger.warning("pci={} ra-rnti={}: Discarding PRACH occasion. Cause: Pending RARs queue is full",
-                       cell_cfg.params.pci,
-                       ra_rnti);
-        continue;
-      }
-      pending_rars.emplace_back();
-      rar_req                = &pending_rars.back();
-      rar_req->ra_rnti       = ra_rnti;
-      rar_req->prach_slot_rx = msg.slot_rx;
-    }
+    span<const rach_indication_message::preamble> msg1_preambles;
+    span<const rach_indication_message::preamble> msga_preambles;
 
-    // Set RAR window. First slot after PRACH with active DL slot represents the start of the RAR window.
-    if (cell_cfg.is_tdd()) {
-      // TDD case.
-      const unsigned period = nof_slots_per_tdd_period(*cell_cfg.params.tdd_cfg);
-      for (unsigned sl_idx = 0; sl_idx < period; ++sl_idx) {
-        const slot_point sl_start = rar_req->prach_slot_rx + prach_occasion_duration_slots + sl_idx;
-        if (cell_cfg.is_dl_enabled(sl_start)) {
-          rar_req->rar_window = {sl_start, sl_start + ra_win_nof_slots};
-          break;
-        }
-      }
-      ocudu_sanity_check(rar_req->rar_window.length() != 0, "Invalid configuration");
+    if (rach_cfg.two_step_rach_cfg.has_value()) {
+      // Split detected preambles into Msg1 (4-step) and MsgA (2-step) spans. Preambles are assumed to be ordered by
+      // preamble_id, so the two groups form contiguous ranges.
+      auto msga_begin = std::partition_point(
+          prach_occ.preambles.begin(), prach_occ.preambles.end(), [&](const rach_indication_message::preamble& p) {
+            return not is_msga_preamble(rach_cfg, p.preamble_id);
+          });
+      msg1_preambles = {prach_occ.preambles.begin(), msga_begin};
+      msga_preambles = {msga_begin, prach_occ.preambles.end()};
     } else {
-      // FDD case.
-      rar_req->rar_window = {rar_req->prach_slot_rx + prach_occasion_duration_slots,
-                             rar_req->prach_slot_rx + prach_occasion_duration_slots + ra_win_nof_slots};
+      // All preambles are 4-step RACH preambles.
+      msg1_preambles = prach_occ.preambles;
     }
 
-    // Convert each detected preamble into a pending Msg3 (4-step) or pending MsgA (2-step).
-    const rach_config_common& rach_cfg = *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
-    for (const auto& prach_preamble : prach_occ.preambles) {
-      // Dispatch to 2-step RACH path for MsgA preambles detected in a shared PRACH occasion.
-      if (is_msgA_preamble(rach_cfg, prach_preamble.preamble_id)) {
-        handle_msga_preamble(prach_occ, prach_preamble, msg.slot_rx);
-        continue;
-      }
-
-      // 4-step RACH path.
-
-      // Log event.
-      ev_logger.enqueue(scheduler_event_logger::prach_event{
-          msg.slot_rx,
-          msg.cell_index,
-          prach_preamble.preamble_id,
-          ra_rnti,
-          prach_preamble.tc_rnti,
-          prach_preamble.time_advance.to_Ta(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs)});
-
-      // Check if TC-RNTI value to be scheduled is already under use
-      const uint16_t msg3_ring_idx = get_msg3_ring_key(prach_preamble.tc_rnti);
-      if (not pending_msg3s.emplace(msg3_ring_idx)) {
-        logger.warning("pci={}: PRACH ignored, as the allocated TC-RNTI={} is already under use",
-                       cell_cfg.params.pci,
-                       prach_preamble.tc_rnti);
-        continue;
-      }
-      auto& msg3_entry = pending_msg3s[msg3_ring_idx];
-
-      // Store TC-RNTI of the preamble.
-      rar_req->tc_rntis.emplace_back(prach_preamble.tc_rnti);
-
-      // Store Msg3 request and create a HARQ entity of 1 UL HARQ.
-      msg3_entry.preamble = prach_preamble;
-      msg3_entry.harq_ent = ra_harqs.add_ue(to_du_ue_index(msg3_ring_idx), prach_preamble.tc_rnti, 1, 1);
+    if (not msg1_preambles.empty()) {
+      handle_msg1_occasion(prach_occ, msg1_preambles, msg.slot_rx);
+    }
+    if (not msga_preambles.empty()) {
+      handle_msga_occasion(prach_occ, msga_preambles, msg.slot_rx);
     }
   }
 
@@ -429,14 +376,140 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
   metrics_hdlr.handle_rach_indication(msg, sl_tx);
 }
 
-void ra_scheduler::handle_msga_preamble(const rach_indication_message::occasion& occ,
-                                        const rach_indication_message::preamble& preamble,
-                                        slot_point                               prach_slot_rx)
+void ra_scheduler::handle_msg1_occasion(const rach_indication_message::occasion&      occ,
+                                        span<const rach_indication_message::preamble> preambles,
+                                        slot_point                                    prach_slot_rx)
 {
-  // TODO: implement MsgB scheduling.
-  logger.debug("pci={} tc-rnti={}: MsgA preamble detected. 2-step RACH scheduling not yet implemented.",
-               cell_cfg.params.pci,
-               preamble.tc_rnti);
+  // As per Section 5.1.3, TS 38.321, and from Section 5.3.2, TS 38.211, slot_idx uses as the numerology of reference
+  // 15kHz for long PRACH Formats (i.e, slot_idx = subframe index); whereas, for short PRACH formats, it uses the same
+  // numerology as the SCS common (i.e, slot_idx = actual slot index within the frame).
+  const unsigned slot_idx = prach_format_is_long ? prach_slot_rx.subframe_index() : prach_slot_rx.slot_index();
+  const rnti_t   ra_rnti  = ra_helper::get_ra_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
+
+  // Search for pending RAR with matching RA-RNTI and Rx Slot.
+  auto               rar_it = std::find_if(pending_rars.begin(), pending_rars.end(), [&](const pending_rar_alloc& rar) {
+    return rar.ra_rnti == ra_rnti and rar.prach_slot_rx == prach_slot_rx;
+  });
+  pending_rar_alloc* rar_req = rar_it != pending_rars.end() ? &*rar_it : nullptr;
+  if (rar_req == nullptr) {
+    // No match was found. Create new pending RAR.
+    if (pending_rars.capacity() == pending_rars.size()) {
+      logger.warning("pci={} ra-rnti={}: Discarding PRACH occasion. Cause: Pending RARs queue is full",
+                     cell_cfg.params.pci,
+                     ra_rnti);
+      return;
+    }
+    pending_rars.emplace_back();
+    rar_req                = &pending_rars.back();
+    rar_req->ra_rnti       = ra_rnti;
+    rar_req->prach_slot_rx = prach_slot_rx;
+  }
+
+  // Set RAR window. First slot after PRACH with active DL slot represents the start of the RAR window.
+  if (cell_cfg.is_tdd()) {
+    // TDD case.
+    const unsigned period = nof_slots_per_tdd_period(*cell_cfg.params.tdd_cfg);
+    for (unsigned sl_idx = 0; sl_idx < period; ++sl_idx) {
+      const slot_point sl_start = rar_req->prach_slot_rx + prach_occasion_duration_slots + sl_idx;
+      if (cell_cfg.is_dl_enabled(sl_start)) {
+        rar_req->rar_window = {sl_start, sl_start + ra_win_nof_slots};
+        break;
+      }
+    }
+    ocudu_sanity_check(rar_req->rar_window.length() != 0, "Invalid configuration");
+  } else {
+    // FDD case.
+    rar_req->rar_window = {rar_req->prach_slot_rx + prach_occasion_duration_slots,
+                           rar_req->prach_slot_rx + prach_occasion_duration_slots + ra_win_nof_slots};
+  }
+
+  for (const auto& preamble : preambles) {
+    // Log event.
+    ev_logger.enqueue(scheduler_event_logger::prach_event{
+        prach_slot_rx,
+        cell_cfg.cell_index,
+        preamble.preamble_id,
+        ra_rnti,
+        preamble.tc_rnti,
+        preamble.time_advance.to_Ta(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs)});
+
+    // Check if TC-RNTI value to be scheduled is already under use.
+    const uint16_t msg3_ring_idx = get_msg3_ring_key(preamble.tc_rnti);
+    if (not pending_msg3s.emplace(msg3_ring_idx)) {
+      logger.warning("pci={}: PRACH ignored, as the allocated TC-RNTI={} is already under use",
+                     cell_cfg.params.pci,
+                     preamble.tc_rnti);
+      continue;
+    }
+    auto& msg3_entry = pending_msg3s[msg3_ring_idx];
+
+    // Store TC-RNTI of the preamble.
+    rar_req->tc_rntis.emplace_back(preamble.tc_rnti);
+
+    // Store Msg3 request and create a HARQ entity of 1 UL HARQ.
+    msg3_entry.preamble = preamble;
+    msg3_entry.harq_ent = ra_harqs.add_ue(to_du_ue_index(msg3_ring_idx), preamble.tc_rnti, 1, 1);
+  }
+}
+
+void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&      occ,
+                                        span<const rach_indication_message::preamble> preambles,
+                                        slot_point                                    prach_slot_rx)
+{
+  const rach_config_common& rach_cfg = *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+  ocudu_sanity_check(rach_cfg.two_step_rach_cfg.has_value(), "MsgA received but 2-step RACH is not configured");
+  const rach_config_common_two_step& two_step_cfg = *rach_cfg.two_step_rach_cfg;
+
+  // As per TS 38.321 Section 5.1.3, the MsgB-RNTI for shared occasions uses the same formula as RA-RNTI.
+  const unsigned slot_idx  = prach_format_is_long ? prach_slot_rx.subframe_index() : prach_slot_rx.slot_index();
+  const rnti_t   msgb_rnti = ra_helper::get_msgb_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
+
+  // Search for a pending MsgB entry matching this (MsgB-RNTI, PRACH slot).
+  auto it = std::find_if(pending_msgbs.begin(), pending_msgbs.end(), [&](const pending_msgb_alloc& msgb) {
+    return msgb.msgb_rnti == msgb_rnti and msgb.prach_slot_rx == prach_slot_rx;
+  });
+  pending_msgb_alloc* msgb_req = it != pending_msgbs.end() ? &*it : nullptr;
+  if (msgb_req == nullptr) {
+    if (pending_msgbs.capacity() == pending_msgbs.size()) {
+      logger.warning("pci={} msgb-rnti={}: Discarding MsgA occasion. Cause: Pending MsgBs queue is full",
+                     cell_cfg.params.pci,
+                     msgb_rnti);
+      return;
+    }
+    pending_msgbs.emplace_back();
+    msgb_req                = &pending_msgbs.back();
+    msgb_req->msgb_rnti     = msgb_rnti;
+    msgb_req->prach_slot_rx = prach_slot_rx;
+
+    // Set MsgB response window. First slot after PRACH with active DL slot is the window start.
+    if (cell_cfg.is_tdd()) {
+      const unsigned period = nof_slots_per_tdd_period(*cell_cfg.params.tdd_cfg);
+      for (unsigned sl_idx = 0; sl_idx < period; ++sl_idx) {
+        const slot_point sl_start = prach_slot_rx + prach_occasion_duration_slots + sl_idx;
+        if (cell_cfg.is_dl_enabled(sl_start)) {
+          msgb_req->msgb_window = {sl_start, sl_start + two_step_cfg.msgB_response_window_slots};
+          break;
+        }
+      }
+      ocudu_sanity_check(msgb_req->msgb_window.length() != 0, "Invalid TDD configuration for MsgB window");
+    } else {
+      msgb_req->msgb_window = {prach_slot_rx + prach_occasion_duration_slots,
+                               prach_slot_rx + prach_occasion_duration_slots + two_step_cfg.msgB_response_window_slots};
+    }
+  }
+
+  for (const auto& preamble : preambles) {
+    ocudu_sanity_check(is_msga_preamble(rach_cfg, preamble.preamble_id),
+                       "Handling preamble that is not for MsgA. Are preamble IDs sorted in the RACH indication?");
+    if (msgb_req->tc_rntis.full()) {
+      logger.warning("pci={} msgb-rnti={}: Discarding MsgA preamble id={}. Cause: MsgB preamble list is full",
+                     cell_cfg.params.pci,
+                     msgb_rnti,
+                     preamble.preamble_id);
+      continue;
+    }
+    msgb_req->tc_rntis.push_back(preamble.tc_rnti);
+  }
 }
 
 void ra_scheduler::handle_crc_indication(const ul_crc_indication& crc_ind)

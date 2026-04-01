@@ -81,9 +81,12 @@ struct rach_config_common_two_step {
     sch_mcs_index mcs{5};
     /// Number of PRBs per PUSCH occasion. See TS 38.213, 8.1A. Values: {1, ..., 32}.
     uint8_t nof_prbs_per_msgA_po{1};
+    /// Offset of lowest PUSCH occasion in frequency domain with respect to PRB 0. See TS 38.331,
+    /// "frequencyStartMsgA-PUSCH" and TS 38.213, 8.1A.
+    uint8_t freq_start{0};
   };
 
-  /// \brief Number of contention-based (CB) preambles used for 2-step RA from the non-CB RA 4-step type preambles
+  /// \brief Number of contention-based (CB) preambles used for 2-step RA from the non-CBRA 4-step type preambles
   /// associated with each SSB for RO shared with 4-step RA.
   /// This value should not exceed the number of preambles per SSB minus the number of CB preambles for 4-step RA.
   /// See TS 38.331, "msgA-CB-PreamblesPerSSB-PerSharedRO". Values: {1, ..., 60}.

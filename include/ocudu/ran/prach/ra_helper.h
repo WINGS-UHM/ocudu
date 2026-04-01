@@ -52,7 +52,7 @@ inline rnti_t get_ra_rnti(unsigned slot_index, unsigned symbol_index, unsigned f
   return to_rnti(ra_rnti);
 }
 
-/// \brief Computes the RA-RNTI based on PRACH parameters, as per TS 38.321, Section 5.1.4.
+/// \brief Computes the MSGB-RNTI based on PRACH parameters, as per TS 38.321, Section 5.1.4.
 inline rnti_t get_msgb_rnti(unsigned slot_index, unsigned symbol_index, unsigned frequency_index, bool is_sul = false)
 {
   // MSGB-RNTI = 1 + s_id + 14 × t_id + 14 × 80 × f_id + 14 × 80 × 8 × ul_carrier_id + 14 × 80 × 8 × 2.

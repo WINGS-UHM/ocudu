@@ -84,12 +84,6 @@ private:
     crb_interval crbs;
   };
 
-  /// State for a pending 2-step RACH (MsgA preamble received, MsgA PUSCH pending to be scheduled).
-  struct pending_msga_alloc {
-    slot_point                        prach_slot_rx;
-    rach_indication_message::preamble preamble{};
-  };
-
   /// State for a pending MsgB PDSCH (pending to be scheduled or waiting for a positive HARQ-ACK).
   struct pending_msgb_alloc {
     rnti_t        msgb_rnti = rnti_t::INVALID_RNTI;
@@ -113,17 +107,18 @@ private:
   /// Pre-compute invariant fields of Msg3 PDUs (PUSCH, DCI, etc.) for faster scheduling.
   void precompute_msg3_pdus();
 
-  void handle_rach_indication_impl(const rach_indication_message& msg, slot_point sl_tx);
+  void handle_rach_indication_impl(const rach_indication_message& msg, cell_resource_allocator& res_alloc);
 
   /// Handle a PRACH occasion carrying Msg1 (4-step RACH) preambles.
   void handle_msg1_occasion(const rach_indication_message::occasion&      occ,
                             span<const rach_indication_message::preamble> preambles,
                             slot_point                                    prach_slot_rx);
 
-  /// Handle a PRACH occasion carrying MsgA (2-step RACH) preambles.
+  /// Handle a PRACH occasion carrying MsgA (2-step RACH) preambles and allocate their PUSCH receptions.
   void handle_msga_occasion(const rach_indication_message::occasion&      occ,
                             span<const rach_indication_message::preamble> preambles,
-                            slot_point                                    prach_slot_rx);
+                            slot_point                                    prach_slot_rx,
+                            cell_resource_allocator&                      res_alloc);
 
   void handle_pending_crc_indications_impl(cell_resource_allocator& res_alloc);
 
@@ -136,6 +131,9 @@ private:
 
   /// Determines whether the resource grid for the provided slot has the conditions for RAR scheduling.
   bool is_slot_candidate_for_rar(const cell_slot_resource_allocator& slot_res_alloc);
+
+  /// Schedule pending RARs in the cell resource grid.
+  void schedule_pending_rars(cell_resource_allocator& res_alloc);
 
   /// Try scheduling pending RARs for the provided slot.
   void schedule_pending_rars(cell_resource_allocator& res_alloc, slot_point pdcch_slot);
@@ -160,6 +158,9 @@ private:
 
   /// Schedule retransmission of Msg3.
   void schedule_msg3_retx(cell_resource_allocator& res_alloc, pending_msg3_alloc& msg3_ctx) const;
+
+  /// Schedule pending MsgB grants in the cell resource grid.
+  void schedule_pending_msgbs(cell_resource_allocator& res_alloc);
 
   sch_prbs_tbs get_nof_pdsch_prbs_required(unsigned time_res_idx, unsigned nof_ul_grants) const;
 

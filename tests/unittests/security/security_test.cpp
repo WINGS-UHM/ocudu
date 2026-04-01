@@ -1939,6 +1939,26 @@ TEST(short_mac, short_mac_valid)
   ASSERT_EQ(true, valid);
 }
 
+TEST(sec_ctxt_copy, copy_constructor)
+{
+  preferred_integrity_algorithms inte_algo_pref_list = {
+      integrity_algorithm::nia2, integrity_algorithm::nia1, integrity_algorithm::nia3, integrity_algorithm::nia0};
+  preferred_ciphering_algorithms ciph_algo_pref_list = {
+      ciphering_algorithm::nea2, ciphering_algorithm::nea0, ciphering_algorithm::nea1, ciphering_algorithm::nea3};
+
+  supported_algorithms supp_inte_list{true, true, true}; // support all algos
+  supported_algorithms supp_ciph_list{true, true, true}; // support all algos
+
+  security_context sec_context    = {};
+  sec_context.supported_int_algos = supp_inte_list;
+  sec_context.supported_enc_algos = supp_ciph_list;
+  sec_context.select_algorithms(inte_algo_pref_list, ciph_algo_pref_list);
+  sec_context.state = security_state::fully_enabled;
+
+  security_context sec_context_copy = sec_context;
+  ASSERT_EQ(sec_context.state, sec_context_copy.state);
+}
+
 int main(int argc, char** argv)
 {
   ocudulog::init();

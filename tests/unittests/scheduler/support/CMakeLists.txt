@@ -14,9 +14,11 @@ add_executable(pdsch_dmrs_symbol_mask_test pdsch/pdsch_dmrs_symbol_mask_test.cpp
 target_link_libraries(pdsch_dmrs_symbol_mask_test ocudu_sched ocudulog gtest gtest_main)
 add_test(pdsch_dmrs_symbol_mask_test pdsch_dmrs_symbol_mask_test)
 
-add_executable(pucch_default_resource_test pucch/pucch_default_resource_test.cpp)
-target_link_libraries(pucch_default_resource_test ocudu_sched ocudulog gtest gtest_main)
-add_test(pucch_default_resource_test pucch_default_resource_test)
+add_executable(pucch_support_test
+        pucch/pucch_collision_info_test.cpp
+        pucch/pucch_default_resource_test.cpp)
+target_link_libraries(pucch_support_test ocudu_sched ocudulog gtest gtest_main)
+gtest_discover_tests(pucch_support_test)
 
 add_executable(pusch_default_time_allocation_test pusch/pusch_default_time_allocation_test.cpp)
 target_link_libraries(pusch_default_time_allocation_test ocudu_sched ocudulog gtest gtest_main)

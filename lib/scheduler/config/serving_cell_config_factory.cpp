@@ -261,7 +261,7 @@ static uplink_config make_default_ue_uplink_config(const ran_cell_config&     ce
   uplink_config ul_config{};
 
   // >> PUCCH.
-  ul_config.init_ul_bwp.pucch_cfg = config_helpers::build_pucch_config(cell_cfg, cell_bwp_cfg, ue_bwp_cfg);
+  ul_config.init_ul_bwp.pucch_cfg = config_helpers::build_pucch_config(cell_cfg, cell_bwp_cfg.ul, ue_bwp_cfg);
 
   // > PUSCH config.
   ul_config.init_ul_bwp.pusch_cfg.emplace(make_default_pusch_config(cell_cfg, ue_bwp_cfg));
@@ -310,7 +310,7 @@ static serving_cell_config make_default_serving_cell_config(const ran_cell_confi
   serv_cell.pdsch_serv_cell_cfg.emplace(make_default_pdsch_serving_cell_config(cell_cfg.init_bwp.pdsch));
 
   // > CSI-MeasConfig.
-  serv_cell.csi_meas_cfg = build_csi_meas_config(cell_cfg, cell_bwp_cfg, ue_bwp_cfg);
+  serv_cell.csi_meas_cfg = build_csi_meas_config(cell_cfg, cell_bwp_cfg.ul, ue_bwp_cfg);
 
   return serv_cell;
 }

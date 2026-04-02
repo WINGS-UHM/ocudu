@@ -3,14 +3,15 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ocudu/ran/csi_rs/csi_meas_config.h"
+#include "ocudu/scheduler/config/cell_bwp_res_config.h"
 #include "ocudu/scheduler/config/csi_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_builder.h"
 
 using namespace ocudu;
 
-std::optional<csi_meas_config> config_helpers::build_csi_meas_config(const ran_cell_config&     cell_cfg,
-                                                                     const cell_bwp_res_config& cell_bwp_cfg,
-                                                                     const ue_bwp_config&       ue_bwp_cfg)
+std::optional<csi_meas_config> config_helpers::build_csi_meas_config(const ran_cell_config&        cell_cfg,
+                                                                     const cell_ul_bwp_res_config& cell_ul_bwp_res,
+                                                                     const ue_bwp_config&          ue_bwp_cfg)
 {
   if (not cell_cfg.init_bwp.csi.has_value()) {
     return std::nullopt;

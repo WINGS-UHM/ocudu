@@ -7,6 +7,7 @@
 #include "ocudu/ran/csi_report/csi_report_config_helpers.h"
 #include "ocudu/ran/csi_report/csi_report_on_pucch_helpers.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/scheduler/result/pucch_format.h"
 #include <gtest/gtest.h>
 
@@ -38,33 +39,56 @@ public:
   {
     static constexpr auto max_code_rate = max_pucch_code_rate::dot_25;
 
-    const auto& pucch_resources = t_bench.cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources;
+    const auto& cell_resources = t_bench.cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources;
+    const auto& res_params     = t_bench.params.pucch_ded_params;
+
+    const auto sr_res_id      = pucch_sr_resource_id(0);
+    const auto res_set_cfg_id = pucch_resource_set_config_id(0);
+    const auto csi_res_id     = pucch_csi_resource_id(0);
 
     // Set the expected SR grant to the SR resource.
-    pucch_expected_sr = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, pucch_resources[3], {.sr_bits = sr_nof_bits::one}, max_code_rate);
+    pucch_expected_sr = test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                                          cell_resources[res_params.get_sr_cell_res_idx(sr_res_id)],
+                                                          {.sr_bits = sr_nof_bits::one},
+                                                          max_code_rate);
 
     // Set the expected Resource Set ID 0 HARQ-ACK grant to the first resource in Resource Set ID 0.
-    pucch_expected_res_set_0 = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, pucch_resources[0], {.harq_ack_nof_bits = 1U}, max_code_rate);
+    pucch_expected_res_set_0 =
+        test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                          cell_resources[res_params.get_res_set_cell_res_idx<0>(res_set_cfg_id, 0)],
+                                          {.harq_ack_nof_bits = 1U},
+                                          max_code_rate);
 
-    pucch_expected_res_set_0_with_common = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, pucch_resources[1], {.harq_ack_nof_bits = 1U}, max_code_rate);
+    pucch_expected_res_set_0_with_common =
+        test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                          cell_resources[res_params.get_res_set_cell_res_idx<0>(res_set_cfg_id, 1)],
+                                          {.harq_ack_nof_bits = 1U},
+                                          max_code_rate);
 
-    pucch_expected_res_set_0_with_common_and_sr = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, pucch_resources[2], {.harq_ack_nof_bits = 1U}, max_code_rate);
+    pucch_expected_res_set_0_with_common_and_sr =
+        test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                          cell_resources[res_params.get_res_set_cell_res_idx<0>(res_set_cfg_id, 2)],
+                                          {.harq_ack_nof_bits = 1U},
+                                          max_code_rate);
 
     // Set the expected Resource Set ID 1 HARQ-ACK grant to the first resource in Resource Set ID 1.
-    pucch_expected_res_set_1 = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, pucch_resources[5], {.harq_ack_nof_bits = 3U}, max_code_rate);
+    pucch_expected_res_set_1 =
+        test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                          cell_resources[res_params.get_res_set_cell_res_idx<1>(res_set_cfg_id, 0)],
+                                          {.harq_ack_nof_bits = 3U},
+                                          max_code_rate);
 
-    // Set the expected Resource Set ID 1 HARQ grant to the first resource in Resource Set ID 1.
-    pucch_expected_res_set_1_with_common = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, pucch_resources[6], {.harq_ack_nof_bits = 3U}, max_code_rate);
+    pucch_expected_res_set_1_with_common =
+        test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                          cell_resources[res_params.get_res_set_cell_res_idx<1>(res_set_cfg_id, 1)],
+                                          {.harq_ack_nof_bits = 3U},
+                                          max_code_rate);
 
     // Set the expected HARQ CSI grant to the CSI resource.
-    pucch_expected_csi = test_helpers::make_ded_pucch_info(
-        t_bench.cell_cfg, pucch_resources[11], {.csi_part1_nof_bits = default_csi_part1_bits}, max_code_rate);
+    pucch_expected_csi = test_helpers::make_ded_pucch_info(t_bench.cell_cfg,
+                                                           cell_resources[res_params.get_csi_cell_res_idx(csi_res_id)],
+                                                           {.csi_part1_nof_bits = default_csi_part1_bits},
+                                                           max_code_rate);
     ocudu_assert(pucch_expected_res_set_1.format() == GetParam(),
                  "PUCCH format mismatch between test parameter and expected grant");
     ocudu_assert(pucch_expected_csi.format() == GetParam(),

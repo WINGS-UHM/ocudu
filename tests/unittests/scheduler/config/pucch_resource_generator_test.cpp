@@ -124,7 +124,7 @@ TEST_P(pucch_resource_generator_test, ue_pucch_config_builder_test)
         };
 
         const auto pucch_cfg =
-            config_helpers::build_pucch_config(cell_cfg, make_cell_bwp_res_config(cell_cfg), ue_bwp_cfg);
+            config_helpers::build_pucch_config(cell_cfg, make_cell_bwp_res_config(cell_cfg).ul, ue_bwp_cfg);
 
         static constexpr unsigned nof_sr_res_per_ue  = 1;
         const unsigned            nof_csi_res_per_ue = params.nof_cell_csi_resources != 0 ? 1 : 0;
@@ -151,7 +151,7 @@ TEST_P(pucch_resource_generator_test, ue_pucch_config_builder_test)
 
         // Check the CSI resource (if configured).
         const auto csi_meas_cfg =
-            config_helpers::build_csi_meas_config(cell_cfg, make_cell_bwp_res_config(cell_cfg), ue_bwp_cfg);
+            config_helpers::build_csi_meas_config(cell_cfg, make_cell_bwp_res_config(cell_cfg).ul, ue_bwp_cfg);
         ASSERT_EQ(params.nof_cell_csi_resources != 0, csi_meas_cfg.has_value());
         if (params.nof_cell_csi_resources != 0) {
           const pucch_res_id_t expected_csi_res_id{params.get_csi_cell_res_idx(csi_res_id),

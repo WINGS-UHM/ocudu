@@ -5,32 +5,14 @@
 #include "pucch_resource_manager.h"
 #include "pucch_collision_manager.h"
 #include "ocudu/adt/static_vector.h"
-#include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/ran/rnti.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
 #include "ocudu/scheduler/resource_grid_util.h"
 #include "ocudu/support/ocudu_assert.h"
 
 using namespace ocudu;
 
 /////////////    RESOURCE MANAGER     /////////////
-
-/////////////   Static function   /////////////
-
-static pucch_res_id_t get_csi_res_id(const ue_cell_configuration& ue_cell_cfg)
-{
-  // We assume we use only 1 CSI report.
-  const unsigned csi_report_cfg_idx = 0;
-  // We assume we use the First BWP.
-  // TODO: extend by passing the BWP id.
-  const bwp_id_t bwp_id         = MIN_BWP_ID;
-  const auto&    csi_report_cfg = ue_cell_cfg.csi_meas_cfg()->csi_report_cfg_list[csi_report_cfg_idx];
-  span<const csi_report_config::pucch_csi_resource> csi_pucch_res_list =
-      std::get<csi_report_config::periodic_or_semi_persistent_report_on_pucch>(csi_report_cfg.report_cfg_type)
-          .pucch_csi_res_list;
-
-  ocudu_assert(csi_pucch_res_list.size() == 1U and csi_pucch_res_list[0].ul_bwp == bwp_id, "Invalid CSI PUCCH config");
-  return csi_pucch_res_list[0].pucch_res_id;
-}
 
 /////////////   Public methods   /////////////
 
@@ -89,7 +71,14 @@ pucch_resource_manager::ue_reservation_guard::ue_reservation_guard(pucch_resourc
                                                                    cell_slot_resource_allocator& slot_alloc,
                                                                    rnti_t                        rnti_,
                                                                    const ue_cell_configuration&  ue_cfg_) :
-  parent(parent_), ul_res_grid(slot_alloc.ul_res_grid), rnti(rnti_), sl(slot_alloc.slot), ue_cfg(ue_cfg_)
+  parent(parent_),
+  ul_res_grid(slot_alloc.ul_res_grid),
+  res_params(parent_->cell_cfg.params.init_bwp.pucch.resources),
+  cell_pucch_cfg(parent_->cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch),
+  rnti(rnti_),
+  sl(slot_alloc.slot),
+  ue_cfg(ue_cfg_),
+  ue_bwp_cfg(*ue_cfg_.bwp(to_bwp_id(0)).ul.ue_cfg())
 {
   ocudu_sanity_check(parent != nullptr, "PUCCH Resource Manager pointer cannot be null");
   ocudu_sanity_check(sl < parent->last_sl_ind + RES_MANAGER_RING_BUFFER_SIZE,
@@ -105,45 +94,38 @@ pucch_resource_manager::ue_reservation_guard::~ue_reservation_guard()
 pucch_harq_resource_alloc_record
 pucch_resource_manager::ue_reservation_guard::reserve_harq_set_0_resource_next_available()
 {
-  return reserve_next_harq_res_available(pucch_res_set_idx::set_0);
+  return reserve_next_harq_res_available<0>();
 }
 
 pucch_harq_resource_alloc_record
 pucch_resource_manager::ue_reservation_guard::reserve_harq_set_1_resource_next_available()
 {
-  return reserve_next_harq_res_available(pucch_res_set_idx::set_1);
+  return reserve_next_harq_res_available<1>();
 }
 
 const pucch_resource*
 pucch_resource_manager::ue_reservation_guard::reserve_harq_set_0_resource_by_res_indicator(unsigned d_pri)
 
 {
-  return reserve_harq_resource_by_res_indicator(d_pri, pucch_res_set_idx::set_0);
+  return reserve_harq_resource_by_res_indicator<0>(d_pri);
 }
 
 const pucch_resource*
 pucch_resource_manager::ue_reservation_guard::reserve_harq_set_1_resource_by_res_indicator(unsigned d_pri)
 {
-  return reserve_harq_resource_by_res_indicator(d_pri, pucch_res_set_idx::set_1);
+  return reserve_harq_resource_by_res_indicator<1>(d_pri);
 }
 
 const pucch_resource* pucch_resource_manager::ue_reservation_guard::reserve_sr_resource()
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul.ded()->pucch_cfg.value();
-
-  // We assume each UE only has 1 SR Resource Config configured.
-  ocudu_sanity_check(pucch_cfg.sr_res_list.size() == 1, "UE SR resource list must have size 1.");
-  const pucch_res_id_t res_id = pucch_cfg.sr_res_list[0].pucch_res_id;
 
   // Get resource list of wanted slot.
   auto& ctx = parent->slots_ctx[sl.count()];
-  ocudu_assert(res_id.cell_res_id < ctx.ues_using_pucch_res.size(),
-               "rnti={}: CSI PUCCH resource index exceeds the size of the cell resource array",
-               rnti);
 
   // Check if the wanted resource is already allocated to another UE in this slot.
-  auto& res_rnti = ctx.ues_using_pucch_res[res_id.cell_res_id];
+  const unsigned sr_cell_res_id = res_params.get_sr_cell_res_idx(ue_bwp_cfg.pucch.sr_res_id);
+  auto&          res_rnti       = ctx.ues_using_pucch_res[sr_cell_res_id];
   if (res_rnti != rnti_t::INVALID_RNTI and res_rnti != rnti) {
     return nullptr;
   }
@@ -152,31 +134,26 @@ const pucch_resource* pucch_resource_manager::ue_reservation_guard::reserve_sr_r
   // the resource had already been allocated, just return it.
   if (res_rnti != rnti) {
     // Check for collisions.
-    if (not parent->collision_manager.alloc_ded(ul_res_grid, sl, res_id.cell_res_id).has_value()) {
+    if (not parent->collision_manager.alloc_ded(ul_res_grid, sl, sr_cell_res_id).has_value()) {
       return nullptr;
     }
     res_rnti                                                     = rnti;
-    reservations[static_cast<unsigned>(resource_usage_type::sr)] = {res_id.cell_res_id};
+    reservations[static_cast<unsigned>(resource_usage_type::sr)] = {sr_cell_res_id};
   }
 
-  return get_res_by_id(res_id);
+  return &cell_pucch_cfg.resources[sr_cell_res_id];
 }
 
 const pucch_resource* pucch_resource_manager::ue_reservation_guard::reserve_csi_resource()
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
 
-  // Get CSI specific PUCCH resource ID from the CSI meas config.
-  const pucch_res_id_t res_id = get_csi_res_id(ue_cfg);
-
   // Get resource list of wanted slot.
   auto& ctx = parent->slots_ctx[sl.count()];
-  ocudu_assert(res_id.cell_res_id < ctx.ues_using_pucch_res.size(),
-               "rnti={}: CSI PUCCH resource index exceeds the size of the cell resource array",
-               rnti);
 
   // Check if the wanted resource is already allocated to another UE in this slot.
-  auto& res_rnti = ctx.ues_using_pucch_res[res_id.cell_res_id];
+  const unsigned csi_cell_res_id = res_params.get_csi_cell_res_idx(ue_bwp_cfg.periodic_csi_report->pucch_res_id);
+  auto&          res_rnti        = ctx.ues_using_pucch_res[csi_cell_res_id];
   if (res_rnti != rnti_t::INVALID_RNTI and res_rnti != rnti) {
     return nullptr;
   }
@@ -185,77 +162,58 @@ const pucch_resource* pucch_resource_manager::ue_reservation_guard::reserve_csi_
   // the resource had already been allocated, just return it.
   if (res_rnti != rnti) {
     // Check for collisions.
-    if (not parent->collision_manager.alloc_ded(ul_res_grid, sl, res_id.cell_res_id).has_value()) {
+    if (not parent->collision_manager.alloc_ded(ul_res_grid, sl, csi_cell_res_id).has_value()) {
       return nullptr;
     }
     res_rnti                                                      = rnti;
-    reservations[static_cast<unsigned>(resource_usage_type::csi)] = {res_id.cell_res_id};
+    reservations[static_cast<unsigned>(resource_usage_type::csi)] = {csi_cell_res_id};
   }
 
-  return get_res_by_id(res_id);
+  return &cell_pucch_cfg.resources[csi_cell_res_id];
 }
 
 const pucch_resource* pucch_resource_manager::ue_reservation_guard::peek_sr_resource() const
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul.ded()->pucch_cfg.value();
 
-  // We assume each UE only has 1 SR Resource Config configured.
-  ocudu_sanity_check(pucch_cfg.sr_res_list.size() == 1, "UE SR resource list must have size 1.");
-  const pucch_res_id_t res_id = pucch_cfg.sr_res_list[0].pucch_res_id;
-  ocudu_assert(res_id.cell_res_id < parent->cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources.size(),
-               "rnti={}: SR PUCCH resource index exceeds the size of the cell resource array",
-               rnti);
-
-  return get_res_by_id(res_id);
+  const unsigned sr_cell_res_id = res_params.get_sr_cell_res_idx(ue_bwp_cfg.pucch.sr_res_id);
+  return &cell_pucch_cfg.resources[sr_cell_res_id];
 }
 
 const pucch_resource* pucch_resource_manager::ue_reservation_guard::peek_csi_resource() const
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
 
-  // Get CSI specific PUCCH resource ID from the CSI meas config.
-  const pucch_res_id_t res_id = get_csi_res_id(ue_cfg);
-  ocudu_assert(res_id.cell_res_id < parent->cell_cfg.bwp_res[to_bwp_id(0)].ul().pucch.resources.size(),
-               "rnti={}: CSI PUCCH resource index exceeds the size of the cell resource array",
-               rnti);
-
-  return get_res_by_id(res_id);
+  const unsigned csi_cell_res_id = res_params.get_csi_cell_res_idx(ue_bwp_cfg.periodic_csi_report->pucch_res_id);
+  return &cell_pucch_cfg.resources[csi_cell_res_id];
 }
 
 bool pucch_resource_manager::ue_reservation_guard::release_harq_set_0_resource()
 {
-  return release_harq_resource(pucch_res_set_idx::set_0);
+  return release_harq_resource<0>();
 }
 
 bool pucch_resource_manager::ue_reservation_guard::release_harq_set_1_resource()
 {
-  return release_harq_resource(pucch_res_set_idx::set_1);
+  return release_harq_resource<1>();
 }
 
 bool pucch_resource_manager::ue_reservation_guard::release_sr_resource()
 {
   ocudu_assert(parent != nullptr, "Trying to release a PUCCH resource after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul.ded()->pucch_cfg.value();
-  ocudu_sanity_check(pucch_cfg.sr_res_list.size() == 1, "UE SR resource list must have size 1.");
-
-  // We assume each UE only has 1 SR Resource Config configured.
-  const unsigned cell_res_id = pucch_cfg.sr_res_list[0].pucch_res_id.cell_res_id;
 
   // Get resource list of wanted slot.
   auto& ctx = parent->slots_ctx[sl.count()];
-  ocudu_assert(cell_res_id < ctx.ues_using_pucch_res.size(),
-               "rnti={}: SR PUCCH resource index exceeds the size of the cell resource array",
-               rnti);
 
   // Check if the resource is allocated to this RNTI.
-  if (ctx.ues_using_pucch_res[cell_res_id] != rnti) {
+  const unsigned sr_cell_res_id = res_params.get_sr_cell_res_idx(ue_bwp_cfg.pucch.sr_res_id);
+  if (ctx.ues_using_pucch_res[sr_cell_res_id] != rnti) {
     return false;
   }
 
   // Release the resource.
-  ctx.ues_using_pucch_res[cell_res_id] = rnti_t::INVALID_RNTI;
-  parent->collision_manager.free_ded(ul_res_grid, sl, cell_res_id);
+  ctx.ues_using_pucch_res[sr_cell_res_id] = rnti_t::INVALID_RNTI;
+  parent->collision_manager.free_ded(ul_res_grid, sl, sr_cell_res_id);
   reservations[static_cast<unsigned>(resource_usage_type::sr)].cell_res_id = std::nullopt;
   return true;
 }
@@ -264,56 +222,39 @@ bool pucch_resource_manager::ue_reservation_guard::release_csi_resource()
 {
   ocudu_assert(parent != nullptr, "Trying to release a PUCCH resource after commit has been called");
 
-  // Get CSI specific PUCCH resource ID from the CSI meas config.
-  const unsigned cell_res_id = get_csi_res_id(ue_cfg).cell_res_id;
-
   // Get resource list of wanted slot.
   auto& ctx = parent->slots_ctx[sl.count()];
-  ocudu_assert(cell_res_id < ctx.ues_using_pucch_res.size(),
-               "rnti={}: CSI PUCCH resource index exceeds the size of the cell resource array",
-               rnti);
 
   // Check if the resource is allocated to this RNTI.
-  if (ctx.ues_using_pucch_res[cell_res_id] != rnti) {
+  const unsigned csi_cell_res_id = res_params.get_csi_cell_res_idx(ue_bwp_cfg.periodic_csi_report->pucch_res_id);
+  if (ctx.ues_using_pucch_res[csi_cell_res_id] != rnti) {
     return false;
   }
 
   // Release the resource.
-  ctx.ues_using_pucch_res[cell_res_id] = rnti_t::INVALID_RNTI;
-  parent->collision_manager.free_ded(ul_res_grid, sl, cell_res_id);
+  ctx.ues_using_pucch_res[csi_cell_res_id] = rnti_t::INVALID_RNTI;
+  parent->collision_manager.free_ded(ul_res_grid, sl, csi_cell_res_id);
   reservations[static_cast<unsigned>(resource_usage_type::csi)].cell_res_id = std::nullopt;
   return true;
 }
 
-pucch_harq_resource_alloc_record
-pucch_resource_manager::ue_reservation_guard::reserve_next_harq_res_available(pucch_res_set_idx res_set_idx)
+template <unsigned ResourceSetId>
+pucch_harq_resource_alloc_record pucch_resource_manager::ue_reservation_guard::reserve_next_harq_res_available()
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul.ded()->pucch_cfg.value();
-
-  // Get the array of resources for the specific UE.
-  const auto& ue_res_set_id_list = pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(res_set_idx)].pucch_res_id_list;
-
-  // For PUCCH F0 and F2, we don't use the last 2 resources of the PUCCH resource set; these are reserved for CSI and SR
-  // slots and should only be picked for through the specific PUCCH resource indicator.
-  const unsigned nof_eligible_resources =
-      parent->cell_cfg.is_pucch_f0_and_f2() ? ue_res_set_id_list.size() - 2U : ue_res_set_id_list.size();
-  ocudu_assert(nof_eligible_resources >= 1U,
-               "rnti={}: Not enough eligible resources from PUCCH resource set={}",
-               rnti,
-               pucch_res_set_idx_to_uint(res_set_idx));
 
   // Get context of wanted slot.
   auto& ctx = parent->slots_ctx[sl.count()];
 
   // If a resource is already allocated to this RNTI, use it.
   std::optional<unsigned> available_res;
-  for (uint8_t r_pucch = 0; r_pucch != nof_eligible_resources; ++r_pucch) {
-    const unsigned cell_res_id = ue_res_set_id_list[r_pucch].cell_res_id;
-    ocudu_assert(cell_res_id < ctx.ues_using_pucch_res.size(),
-                 "PUCCH resource index from PUCCH resource set exceeds the size of the cell resource array");
-    auto& res_rnti = ctx.ues_using_pucch_res[cell_res_id];
+  const auto              res_set_cfg_id = ue_bwp_cfg.pucch.res_set_cfg_id;
+  const unsigned          res_set_size =
+      ResourceSetId == 0 ? res_params.res_set_0_size.value() : res_params.res_set_1_size.value();
+  for (uint8_t r_pucch = 0; r_pucch != res_set_size; ++r_pucch) {
+    unsigned cell_res_id = res_params.get_res_set_cell_res_idx<ResourceSetId>(res_set_cfg_id, r_pucch);
 
+    auto& res_rnti = ctx.ues_using_pucch_res[cell_res_id];
     if (res_rnti == rnti) {
       available_res = r_pucch;
       break;
@@ -322,20 +263,16 @@ pucch_resource_manager::ue_reservation_guard::reserve_next_harq_res_available(pu
 
   if (not available_res.has_value()) {
     // Else, try to allocate the first available resource.
-    for (unsigned r_pucch = 0; r_pucch != nof_eligible_resources; ++r_pucch) {
-      const unsigned cell_res_id = ue_res_set_id_list[r_pucch].cell_res_id;
-      ocudu_assert(cell_res_id < ctx.ues_using_pucch_res.size(),
-                   "PUCCH resource index from PUCCH resource set exceeds the size of the cell resource array");
-      auto& res_rnti = ctx.ues_using_pucch_res[cell_res_id];
-
+    for (unsigned r_pucch = 0; r_pucch != res_set_size; ++r_pucch) {
+      unsigned cell_res_id = res_params.get_res_set_cell_res_idx<ResourceSetId>(res_set_cfg_id, r_pucch);
+      auto&    res_rnti    = ctx.ues_using_pucch_res[cell_res_id];
       if (res_rnti == rnti_t::INVALID_RNTI and
           parent->collision_manager.alloc_ded(ul_res_grid, sl, cell_res_id).has_value()) {
         ctx.ues_using_pucch_res[cell_res_id] = rnti;
-        unsigned usage_type_idx              = res_set_idx == pucch_res_set_idx::set_0
-                                                   ? static_cast<unsigned>(resource_usage_type::harq_set_0)
-                                                   : static_cast<unsigned>(resource_usage_type::harq_set_1);
-        reservations[usage_type_idx]         = {cell_res_id};
-        available_res                        = r_pucch;
+        const unsigned usage_type_idx = ResourceSetId == 0 ? static_cast<unsigned>(resource_usage_type::harq_set_0)
+                                                           : static_cast<unsigned>(resource_usage_type::harq_set_1);
+        reservations[usage_type_idx]  = {cell_res_id};
+        available_res                 = r_pucch;
         break;
       }
     }
@@ -343,49 +280,55 @@ pucch_resource_manager::ue_reservation_guard::reserve_next_harq_res_available(pu
 
   // If an available resource was found, return it.
   if (available_res.has_value()) {
-    const pucch_res_id_t res_id = ue_res_set_id_list[available_res.value()];
-    return pucch_harq_resource_alloc_record{.resource            = get_res_by_id(res_id),
+    const unsigned cell_res_id = res_params.get_res_set_cell_res_idx<ResourceSetId>(res_set_cfg_id, *available_res);
+    return pucch_harq_resource_alloc_record{.resource            = &cell_pucch_cfg.resources[cell_res_id],
                                             .pucch_res_indicator = static_cast<uint8_t>(available_res.value())};
   }
   return pucch_harq_resource_alloc_record{.resource = nullptr};
 }
 
+template <unsigned ResourceSetId>
 const pucch_resource*
-pucch_resource_manager::ue_reservation_guard::reserve_harq_resource_by_res_indicator(unsigned          d_pri,
-                                                                                     pucch_res_set_idx res_set_idx)
+pucch_resource_manager::ue_reservation_guard::reserve_harq_resource_by_res_indicator(unsigned d_pri)
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul.ded()->pucch_cfg.value();
-
-  // Retrieve the PUCCH resource set.
-  const auto& ue_res_set_id_list = pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(res_set_idx)].pucch_res_id_list;
+  const unsigned res_set_size =
+      ResourceSetId == 0 ? res_params.res_set_0_size.value() : res_params.res_set_1_size.value();
+  const unsigned max_pri = parent->cell_cfg.is_pucch_f0_and_f2()
+                               ? res_set_size + (ue_bwp_cfg.periodic_csi_report.has_value() ? 2U : 1U)
+                               : res_set_size;
+  // Make sure the resource indicator points to a valid resource.
+  if (d_pri >= max_pri) {
+    return nullptr;
+  }
 
   // Get resource list of wanted slot.
   slot_context& ctx = parent->slots_ctx[sl.count()];
 
-  // Make sure the resource indicator points to a valid resource.
-  if (d_pri >= ue_res_set_id_list.size()) {
-    return nullptr;
-  }
-
   // Get PUCCH resource ID from the PUCCH resource set.
   // [Implementation-defined] We assume at most 8 resources per resource set. If this is the case, r_pucch = d_pri.
-  const auto pucch_res_id = ue_res_set_id_list[d_pri];
 
-  // For Format 0 and Format 2, the resources indexed by PUCCH res. indicators >= ue_res_id_set_for_harq.size() - 2 are
-  // reserved for CSI and SR slots. In the case, we don't need to reserve these in the PUCCH resource manager, we only
-  // need to return the resources.
-  if (parent->cell_cfg.is_pucch_f0_and_f2() and d_pri >= ue_res_set_id_list.size() - 2U) {
-    return get_res_by_id(pucch_res_id);
+  // For Format 0 and Format 2, the resources indexed by PUCCH res. indicators >= res_set_size are reserved for CSI and
+  // SR slots. In the case, we don't need to reserve these in the PUCCH resource manager, we only need to return the
+  // resources.
+  if (parent->cell_cfg.is_pucch_f0_and_f2() and d_pri >= res_set_size) {
+    if (ResourceSetId == 0) {
+      if (d_pri == res_set_size) {
+        return &cell_pucch_cfg.resources[res_params.get_sr_cell_res_idx(ue_bwp_cfg.pucch.sr_res_id)];
+      }
+      return &cell_pucch_cfg
+                  .resources[res_params.get_csi_f0_cell_res_idx(ue_bwp_cfg.periodic_csi_report->pucch_res_id)];
+    }
+    // Resource Set ID 1.
+    if (d_pri == res_set_size) {
+      return &cell_pucch_cfg.resources[res_params.get_sr_f2_cell_res_idx(ue_bwp_cfg.pucch.sr_res_id)];
+    }
+    return &cell_pucch_cfg.resources[res_params.get_csi_cell_res_idx(ue_bwp_cfg.periodic_csi_report->pucch_res_id)];
   }
 
-  // Get PUCCH resource ID from the PUCCH resource set.
-  const unsigned cell_res_id = pucch_res_id.cell_res_id;
-  ocudu_assert(cell_res_id < ctx.ues_using_pucch_res.size(),
-               "rnti={}: PUCCH resource index from PUCCH resource set exceeds the size of the cell resource array",
-               rnti);
-
   // Check first if the wanted PUCCH resource is available.
+  const unsigned cell_res_id =
+      res_params.get_res_set_cell_res_idx<ResourceSetId>(ue_bwp_cfg.pucch.res_set_cfg_id, d_pri);
   auto& res_rnti = ctx.ues_using_pucch_res[cell_res_id];
   if (res_rnti != rnti_t::INVALID_RNTI and res_rnti != rnti) {
     return nullptr;
@@ -393,74 +336,48 @@ pucch_resource_manager::ue_reservation_guard::reserve_harq_resource_by_res_indic
 
   if (res_rnti == rnti) {
     // If the resource is already allocated to this RNTI, just return it.
-    return get_res_by_id(pucch_res_id);
+    return &cell_pucch_cfg.resources[cell_res_id];
   }
 
   // Allocate the resource to this RNTI.
   if (not parent->collision_manager.alloc_ded(ul_res_grid, sl, cell_res_id).has_value()) {
     return nullptr;
   }
-  res_rnti                     = rnti;
-  unsigned usage_type_idx      = res_set_idx == pucch_res_set_idx::set_0
-                                     ? static_cast<unsigned>(resource_usage_type::harq_set_0)
-                                     : static_cast<unsigned>(resource_usage_type::harq_set_1);
-  reservations[usage_type_idx] = {cell_res_id};
-  return get_res_by_id(pucch_res_id);
+  res_rnti                      = rnti;
+  const unsigned usage_type_idx = ResourceSetId == 0 ? static_cast<unsigned>(resource_usage_type::harq_set_0)
+                                                     : static_cast<unsigned>(resource_usage_type::harq_set_1);
+  reservations[usage_type_idx]  = {cell_res_id};
+  return &cell_pucch_cfg.resources[cell_res_id];
 }
 
-bool pucch_resource_manager::ue_reservation_guard::release_harq_resource(pucch_res_set_idx res_set_idx)
+template <unsigned ResourceSetId>
+bool pucch_resource_manager::ue_reservation_guard::release_harq_resource()
 {
   ocudu_assert(parent != nullptr, "Trying to release a PUCCH resource after commit has been called");
-  // Get the array of resources for the specific UE.
-  const auto& pucch_cfg          = ue_cfg.init_bwp().ul.ded()->pucch_cfg.value();
-  const auto& ue_res_set_id_list = pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(res_set_idx)].pucch_res_id_list;
 
-  // For PUCCH F0 and F2, we don't use the last 2 resources of the PUCCH resource set; these are reserved for CSI and SR
-  // slots and should only be picked for through the specific PUCCH resource indicator.
-  const unsigned nof_eligible_resource =
-      parent->cell_cfg.is_pucch_f0_and_f2() ? ue_res_set_id_list.size() - 2U : ue_res_set_id_list.size();
-  ocudu_assert(nof_eligible_resource >= 1U,
-               "rnti={}: Not enough eligible resources from PUCCH resource set={}",
-               rnti,
-               pucch_res_set_idx_to_uint(res_set_idx));
+  const unsigned res_set_size =
+      ResourceSetId == 0 ? res_params.res_set_0_size.value() : res_params.res_set_1_size.value();
 
   // Get resource list of wanted slot.
   slot_context& ctx = parent->slots_ctx[sl.count()];
 
-  for (unsigned r_pucch = 0; r_pucch != nof_eligible_resource; ++r_pucch) {
-    const unsigned cell_res_id = ue_res_set_id_list[r_pucch].cell_res_id;
-    ocudu_assert(cell_res_id < ctx.ues_using_pucch_res.size(),
-                 "rnti={}: HARQ PUCCH resource index exceeds the size of the cell resource array");
+  for (unsigned r_pucch = 0; r_pucch != res_set_size; ++r_pucch) {
+    const unsigned cell_res_id =
+        res_params.get_res_set_cell_res_idx<ResourceSetId>(ue_bwp_cfg.pucch.res_set_cfg_id, r_pucch);
     auto& res_rnti = ctx.ues_using_pucch_res[cell_res_id];
 
     if (res_rnti == rnti) {
       // Release the resource.
       res_rnti = rnti_t::INVALID_RNTI;
       parent->collision_manager.free_ded(ul_res_grid, sl, cell_res_id);
-      unsigned usage_type_idx                  = res_set_idx == pucch_res_set_idx::set_0
-                                                     ? static_cast<unsigned>(resource_usage_type::harq_set_0)
-                                                     : static_cast<unsigned>(resource_usage_type::harq_set_1);
+      const unsigned usage_type_idx = ResourceSetId == 0 ? static_cast<unsigned>(resource_usage_type::harq_set_0)
+                                                         : static_cast<unsigned>(resource_usage_type::harq_set_1);
       reservations[usage_type_idx].cell_res_id = std::nullopt;
       return true;
     }
   }
 
   return false;
-}
-
-const pucch_resource* pucch_resource_manager::ue_reservation_guard::get_res_by_id(pucch_res_id_t res_id) const
-{
-  // Search for the PUCCH resource with the correct PUCCH resource ID from the PUCCH resource list.
-  const auto& pucch_res_list = ue_cfg.init_bwp().ul.ded()->pucch_cfg->pucch_res_list;
-  const auto* res_cfg = std::find_if(pucch_res_list.begin(), pucch_res_list.end(), [res_id](const pucch_resource& res) {
-    return res.res_id == res_id;
-  });
-  ocudu_assert(res_cfg != pucch_res_list.end(),
-               "rnti={}: PUCCH resource with res_id={{{}, {}}} not found in PUCCH resource list",
-               rnti,
-               res_id.cell_res_id,
-               res_id.ue_res_id);
-  return res_cfg;
 }
 
 void pucch_resource_manager::ue_reservation_guard::commit()

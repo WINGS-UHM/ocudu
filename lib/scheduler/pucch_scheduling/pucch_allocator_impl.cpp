@@ -909,31 +909,29 @@ pucch_allocator_impl::multiplex_and_allocate_pucch(cell_slot_resource_allocator&
 }
 
 // TODO: check how to handle F0+F3/F4.
-static unsigned get_pucch_resource_ind_f0_sr_csi(pucch_uci_bits bits, const pucch_config& pucch_cfg)
+static unsigned get_pucch_resource_ind_f0_sr_csi(pucch_uci_bits bits, const pucch_resource_builder_params& params)
 {
   // With Format 0, with HARQ-ACK bits <= 2, pick a resource from PUCCH resource set 0.
 
   if (bits.harq_ack_nof_bits <= 2U) {
-    // At position (PUCCH resource set 0 size - 1U) the resource coincides with the SR resource.
+    // At position res_set_0_size the resource coincides with the SR resource.
     if (bits.sr_bits != sr_nof_bits::no_sr) {
-      return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_0)].pucch_res_id_list.size() - 2U;
+      return params.res_set_0_size.value();
     }
     // NOTE: Either CSI or SR bits are non-zero, but not both.
-    // At position (PUCCH resource set 0 size - 2U) the resource is of Format 0, but set on the same PRBs/symbols as
-    // the CSI resource.
-    return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_0)].pucch_res_id_list.size() - 1U;
+    // At position res_set_0_size + 1 the resource is of Format 0, but set on the same PRBs/symbols as the CSI resource.
+    return params.res_set_0_size.value() + 1;
   }
 
   // This if for bits.harq_ack_nof_bits > 2U.
 
-  // At position (PUCCH resource set 1 size - 1U) the resource is of Format 2, but set on the same PRBs/symbols as the
-  // SR resource.
+  // At position res_set_1_size the resource is of Format 2, but set on the same PRBs/symbols as the SR resource.
   if (bits.sr_bits != sr_nof_bits::no_sr) {
-    return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_1)].pucch_res_id_list.size() - 2U;
+    return params.res_set_1_size.value();
   }
   // NOTE: Either CSI or SR bits are non-zero, but not both.
-  // At position (PUCCH resource set 1 size - 2U) the resource coincides with the CSI resource.
-  return pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_1)].pucch_res_id_list.size() - 1U;
+  // At position res_set_1_size + 1 the resource coincides with the CSI resource.
+  return params.res_set_1_size.value() + 1U;
 }
 
 std::optional<pucch_allocator_impl::pucch_grant_list>
@@ -942,8 +940,6 @@ pucch_allocator_impl::get_pucch_res_pre_multiplexing(pucch_resource_manager::ue_
                                                      const pucch_uci_bits&                         new_bits)
 {
   pucch_grant_list candidate_resources;
-
-  const pucch_config& pucch_cfg = guard.get_ue_cfg().init_bwp().ul.ded()->pucch_cfg.value();
 
   if (new_bits.sr_bits != sr_nof_bits::no_sr) {
     candidate_resources.sr_resource.emplace(pucch_grant{.type = pucch_grant_type::sr});
@@ -1006,9 +1002,10 @@ pucch_allocator_impl::get_pucch_res_pre_multiplexing(pucch_resource_manager::ue_
       // NOTE: If the UE has Format 0 resources, and it needs to transmit HARQ-ACK bits + SR or CSI in the same slot,
       // use the HARQ-ACK resource that has highest PUCCH resource indicator; the UE's dedicated PUCCH config has been
       // constructed in such a way that this resource overlaps with the SR or CSI resource.
-      const unsigned pucch_res_ind = f0_and_f2_and_ue_with_sr_or_csi
-                                         ? get_pucch_resource_ind_f0_sr_csi(new_bits, pucch_cfg)
-                                         : ue_current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind;
+      const unsigned pucch_res_ind =
+          f0_and_f2_and_ue_with_sr_or_csi
+              ? get_pucch_resource_ind_f0_sr_csi(new_bits, cell_cfg.params.init_bwp.pucch.resources)
+              : ue_current_grants.pucch_grants.harq_resource.value().harq_id.pucch_res_ind;
 
       const pucch_resource* harq_res = pucch_set_idx == pucch_res_set_idx::set_0
                                            ? guard.reserve_harq_set_0_resource_by_res_indicator(pucch_res_ind)

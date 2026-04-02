@@ -12,13 +12,13 @@
 namespace ocudu::config_helpers {
 
 /// Build the PUCCH-Config for a given UE.
-pucch_config build_pucch_config(const ran_cell_config&     cell_cfg,
-                                const cell_bwp_res_config& cell_bwp_cfg,
-                                const ue_bwp_config&       ue_bwp_cfg);
+pucch_config build_pucch_config(const ran_cell_config&        cell_cfg,
+                                const cell_ul_bwp_res_config& cell_ul_bwp_res,
+                                const ue_bwp_config&          ue_bwp_cfg);
 
 /// Build the CSI-MeasConfig for a given UE.
-std::optional<csi_meas_config> build_csi_meas_config(const ran_cell_config&     cell_cfg,
-                                                     const cell_bwp_res_config& cell_bwp_cfg,
-                                                     const ue_bwp_config&       ue_bwp_cfg);
+std::optional<csi_meas_config> build_csi_meas_config(const ran_cell_config&        cell_cfg,
+                                                     const cell_ul_bwp_res_config& cell_ul_bwp_res,
+                                                     const ue_bwp_config&          ue_bwp_cfg);
 
 } // namespace ocudu::config_helpers

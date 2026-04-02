@@ -177,9 +177,9 @@ bool du_pucch_resource_manager::alloc_resources(cell_group_config& cell_grp_cfg)
 
   // Fill the serving cell config with the PUCCH-related configuration.
   serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg =
-      config_helpers::build_pucch_config(cell_ctx.cell_params, cell_ctx.cell_bwp_cfg, cell_cfg.init_bwp());
+      config_helpers::build_pucch_config(cell_ctx.cell_params, cell_ctx.cell_bwp_cfg.ul, cell_cfg.init_bwp());
   serv_cell_cfg.csi_meas_cfg =
-      config_helpers::build_csi_meas_config(cell_ctx.cell_params, cell_ctx.cell_bwp_cfg, cell_cfg.init_bwp());
+      config_helpers::build_csi_meas_config(cell_ctx.cell_params, cell_ctx.cell_bwp_cfg.ul, cell_cfg.init_bwp());
 
   ++cell_ctx.ue_idx;
   return true;

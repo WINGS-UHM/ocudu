@@ -532,11 +532,7 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
     return;
   }
 
-  // Determine MsgA PUSCH CRBs.
-  const unsigned     crb_start = ul_bwp.generic_params.crbs.start() + msga_pusch_cfg.freq_start;
-  const crb_interval msga_crbs{crb_start, crb_start + msga_pusch_cfg.nof_prbs_per_msgA_po};
-
-  // Compute TBS for the given MCS and resource allocation.
+  // Compute DMRS and TBS — shared by all preambles since nof_prbs_per_msgA_po is constant across FDM occasions.
   const dmrs_information    dmrs = make_dmrs_info_common(td_alloc, cell_cfg.params.pci, cell_cfg.params.dmrs_typeA_pos);
   const sch_mcs_description mcs_cfg = pusch_mcs_get_config(pusch_mcs_table::qam64, msga_pusch_cfg.mcs, false, false);
   const units::bytes        tbs     = tbs_calculator_calculate(tbs_calculator_configuration{
@@ -549,7 +545,16 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
                  .n_prb            = msga_pusch_cfg.nof_prbs_per_msgA_po,
   });
 
-  const grant_info grant{ul_bwp.generic_params.scs, td_alloc.symbols, msga_crbs};
+  // Precompute the preamble-to-PUSCH-occasion index mapping. When po_fdm > 1, the CB preambles are divided evenly
+  // across po_fdm FDM occasions. Preamble i (within the MsgA range) maps to occasion floor(i / preambles_per_po).
+  const auto     ssb_per_ro_idx    = static_cast<unsigned>(rach_cfg.nof_ssb_per_ro);
+  const auto     one_idx           = static_cast<unsigned>(ssb_per_rach_occasions::one);
+  const unsigned nof_ssbs_per_ro   = ssb_per_ro_idx >= one_idx ? (1U << (ssb_per_ro_idx - one_idx)) : 1U;
+  const unsigned preambles_per_ssb = rach_cfg.total_nof_ra_preambles / nof_ssbs_per_ro;
+  const unsigned preambles_per_po  = two_step_cfg.cb_preambles_per_ssb_per_shared_ro / msga_pusch_cfg.po_fdm;
+
+  // Track which FDM PUSCH occasions have already had their UL resource grid filled.
+  std::array<bool, 8> po_grid_filled = {};
 
   for (const auto& preamble : preambles) {
     ocudu_sanity_check(is_msga_preamble(rach_cfg, preamble.preamble_id),
@@ -562,6 +567,29 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
       continue;
     }
 
+    // Determine this preamble's PUSCH occasion index and its CRB allocation.
+    const unsigned msga_local_id = (preamble.preamble_id % preambles_per_ssb) - rach_cfg.nof_cb_preambles_per_ssb;
+    const unsigned po_idx        = msga_local_id / preambles_per_po;
+    const unsigned crb_start =
+        ul_bwp.generic_params.crbs.start() + msga_pusch_cfg.prb_start + po_idx * msga_pusch_cfg.nof_prbs_per_msgA_po;
+    const crb_interval preamble_crbs{crb_start, crb_start + msga_pusch_cfg.nof_prbs_per_msgA_po};
+    const grant_info   preamble_grant{ul_bwp.generic_params.scs, td_alloc.symbols, preamble_crbs};
+
+    if (not po_grid_filled[po_idx]) {
+      // First preamble for this FDM occasion: check for conflicts and mark resources.
+      if (pusch_alloc.ul_res_grid.collides(preamble_grant)) {
+        logger.warning(
+            "pci={} msgb-rnti={} tc-rnti={}: Discarding MsgA PUSCH. Cause: UL resources at slot={} are occupied",
+            cell_cfg.params.pci,
+            msgb_rnti,
+            preamble.tc_rnti,
+            pusch_slot);
+        continue;
+      }
+      pusch_alloc.ul_res_grid.fill(preamble_grant);
+      po_grid_filled[po_idx] = true;
+    }
+
     if (pusch_alloc.result.ul.puschs.full()) {
       logger.warning(
           "pci={} msgb-rnti={} tc-rnti={}: Discarding MsgA PUSCH. Cause: PUSCH grant list is full for slot={}",
@@ -571,18 +599,6 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
           pusch_slot);
       continue;
     }
-    if (pusch_alloc.ul_res_grid.collides(grant)) {
-      logger.warning(
-          "pci={} msgb-rnti={} tc-rnti={}: Discarding MsgA PUSCH. Cause: UL resources at slot={} are occupied",
-          cell_cfg.params.pci,
-          msgb_rnti,
-          preamble.tc_rnti,
-          pusch_slot);
-      continue;
-    }
-
-    // Mark UL resources as occupied.
-    pusch_alloc.ul_res_grid.fill(grant);
 
     // Fill scheduling result.
     ul_sched_info& ul_info     = pusch_alloc.result.ul.puschs.emplace_back();
@@ -595,7 +611,7 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
     pusch_information& pusch      = ul_info.pusch_cfg;
     pusch.rnti                    = preamble.tc_rnti;
     pusch.bwp_cfg                 = &ul_bwp.generic_params;
-    pusch.rbs                     = ul_crb_to_vrb(cell_cfg, msga_crbs);
+    pusch.rbs                     = ul_crb_to_vrb(cell_cfg, preamble_crbs);
     pusch.symbols                 = td_alloc.symbols;
     pusch.mcs_table               = pusch_mcs_table::qam64;
     pusch.mcs_index               = msga_pusch_cfg.mcs;

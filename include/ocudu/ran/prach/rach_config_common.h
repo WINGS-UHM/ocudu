@@ -83,10 +83,13 @@ struct rach_config_common_two_step {
     /// MCS value used for MsgA, taken from Table 6.1.4.1-1 for DFT-s-OFDM and Table 5.1.31.-1 for CP-OFDM in TS 38.214.
     sch_mcs_index mcs{5};
     /// Number of PRBs per PUSCH occasion. See TS 38.213, 8.1A. Values: {1, ..., 32}.
-    uint8_t nof_prbs_per_msgA_po{1};
+    uint8_t nof_prbs_per_msgA_po{3};
     /// Offset of lowest PUSCH occasion in frequency domain with respect to PRB 0. See TS 38.331,
     /// "frequencyStartMsgA-PUSCH" and TS 38.213, 8.1A.
-    uint8_t freq_start{0};
+    uint16_t prb_start = 0;
+    /// The number of msgA PUSCH occasions FDMed in one time instance. See TS 38.331 "nrofMsgA-PO-FDM" and
+    /// TS 38.213, 8.1A. Values: {1, 2, 4, 8}.
+    uint8_t po_fdm = 1;
   };
 
   /// \brief Number of contention-based (CB) preambles used for 2-step RA from the non-CBRA 4-step type preambles
@@ -94,11 +97,11 @@ struct rach_config_common_two_step {
   /// This value should not exceed the number of preambles per SSB minus the number of CB preambles for 4-step RA.
   /// See TS 38.331, "msgA-CB-PreamblesPerSSB-PerSharedRO". Values: {1, ..., 60}.
   uint8_t cb_preambles_per_ssb_per_shared_ro{4};
-  /// Value in dB above which the UE selects 2-step RA over 4-step RA. See "msgA-RSRP-Threshold-r16". Values: {
+  /// Value in dBm above which the UE selects 2-step RA over 4-step RA. See "msgA-RSRP-Threshold-r16".
   rsrp_range msgA_rsrp_thres{0};
   /// MsgB response window in slots. It cannot represent a duration larger than 40msec.
   /// See TS 38.331 "msgB-ResponseWindow-r16" and TS 38.321, 5.1.1. Values: {1, 2, 4, 8, 10, 20, 40, 80, 160, 320}.
-  uint16_t msgB_response_window_slots = 10;
+  uint16_t msgB_response_window_slots = 40;
   /// MsgA PUSCH config.
   msgA_pusch_config pusch;
 };

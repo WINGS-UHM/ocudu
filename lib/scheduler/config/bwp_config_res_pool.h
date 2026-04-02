@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "sched_coreset_config.h"
-#include "ocudu/adt/slotted_vector.h"
+#include "pdcch_config_pool.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/cell_bwp_res_config.h"
 #include "ocudu/scheduler/config/ran_cell_config.h"
@@ -16,18 +15,24 @@ namespace ocudu {
 /// perspective.
 ///
 /// This config must represent the superset of all the possible common and UE-dedicated configurations for a given BWP.
-class sched_bwp_res_config
+class bwp_config_res_pool
 {
 public:
-  sched_bwp_res_config(const ran_cell_config& ran_cfg, bwp_id_t bwp_id_);
+  bwp_config_res_pool(const ran_cell_config& ran_cfg, bwp_id_t bwp_id_) :
+    bwpid(bwp_id_),
+    base_dl_bwp_cmn(ran_cfg.dl_cfg_common.init_dl_bwp),
+    res(make_cell_bwp_res_config(ran_cfg)),
+    pdcch_cfg_pool(ran_cfg.pci,
+                   ran_cfg.dl_cfg_common.init_dl_bwp.generic_params,
+                   ran_cfg.dl_cfg_common.init_dl_bwp.pdcch_common,
+                   res.dl)
+  {
+  }
 
   bwp_id_t bwp_id() const { return bwpid; }
 
   /// BWP Downlink common config.
   const bwp_downlink_common& dl_common() const { return base_dl_bwp_cmn; }
-
-  /// List of all possible CORESET configurations supported for this BWP.
-  const slotted_id_vector<coreset_id, sched_coreset_config>& coresets() const { return cs_list; }
 
   /// Dedicated Downlink resources.
   const cell_dl_bwp_res_config& dl() const { return res.dl; }
@@ -35,13 +40,15 @@ public:
   /// Dedicated Uplink resources.
   const cell_ul_bwp_res_config& ul() const { return res.ul; }
 
+  const pdcch_config_pool& pdcchs() const { return pdcch_cfg_pool; }
+
 private:
   bwp_id_t            bwpid;
   bwp_downlink_common base_dl_bwp_cmn;
-
   cell_bwp_res_config res;
 
-  slotted_id_vector<coreset_id, sched_coreset_config> cs_list;
+  /// Pool of possible PDCCH configs.
+  pdcch_config_pool pdcch_cfg_pool;
 };
 
 } // namespace ocudu

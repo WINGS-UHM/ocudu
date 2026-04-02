@@ -227,10 +227,10 @@ protected:
                    "\n- initial BWP: RBs={}",
                    cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs);
     const auto&                  bwp_res = cell_cfg.bwp_res[to_bwp_id(0)];
-    const coreset_configuration& cs0_cfg = bwp_res.coresets()[to_coreset_id(0)].cfg();
+    const coreset_configuration& cs0_cfg = bwp_res.pdcchs().init_cfg().coresets()[to_coreset_id(0)]->cfg();
     fmt::format_to(
         std::back_inserter(fmtbuf), "\n- CORESET#0: RBs={}, duration={}", cs0_cfg.coreset0_crbs(), cs0_cfg.duration());
-    const auto& cs1_cfg = bwp_res.coresets()[to_coreset_id(1)].cfg();
+    const auto& cs1_cfg = bwp_res.pdcchs().ded_cfgs()[0].coresets()[to_coreset_id(1)]->cfg();
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- CORESET#1: RBs={}, duration={}",
                    get_coreset_crbs(cs1_cfg),

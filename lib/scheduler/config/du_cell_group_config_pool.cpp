@@ -5,6 +5,7 @@
 #include "du_cell_group_config_pool.h"
 #include "cell_configuration.h"
 #include "ocudu/ran/bwp/bwp_id.h"
+#include "ocudu/scheduler/config/cell_bwp_res_config.h"
 #include "ocudu/scheduler/config/ue_bwp_config.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 
@@ -68,12 +69,14 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
   // BWP DL Common
   bwp_cfg.dl_common = &bwp_res.dl_common();
   if (bwp_cfg.dl_common->pdcch_common.coreset0.has_value()) {
-    const auto& coreset0 = bwp_res.coresets()[bwp_cfg.dl_common->pdcch_common.coreset0.value().get_id()];
+    const auto& coreset0 =
+        *bwp_res.pdcchs().init_cfg().coresets()[bwp_cfg.dl_common->pdcch_common.coreset0.value().get_id()];
     bwp_cfg.coresets.emplace(coreset0.id(), &coreset0);
     out.coresets.emplace(coreset0.id(), &coreset0);
   }
   if (bwp_cfg.dl_common->pdcch_common.common_coreset.has_value()) {
-    const auto& common_coreset = bwp_res.coresets()[bwp_cfg.dl_common->pdcch_common.common_coreset->get_id()];
+    const auto& common_coreset =
+        *bwp_res.pdcchs().init_cfg().coresets()[bwp_cfg.dl_common->pdcch_common.common_coreset->get_id()];
     bwp_cfg.coresets.emplace(common_coreset.id(), &common_coreset);
     out.coresets.emplace(common_coreset.id(), &common_coreset);
   }
@@ -92,7 +95,7 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
       // ControlResourceSetId as used for commonControlResourceSet configured via PDCCH-ConfigCommon,
       // the configuration from PDCCH-Config always takes precedence and should not be updated by the UE based on
       // servingCellConfigCommon.
-      const auto& sched_cs = bwp_res.coresets()[cs.get_id()];
+      const auto& sched_cs = *bwp_res.pdcchs().ded_cfgs()[0].coresets()[cs.get_id()];
       bwp_cfg.coresets.emplace(cs.get_id(), &sched_cs);
       out.coresets.emplace(cs.get_id(), &sched_cs);
     }

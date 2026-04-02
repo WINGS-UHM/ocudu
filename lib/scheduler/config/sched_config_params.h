@@ -5,9 +5,9 @@
 #pragma once
 
 #include "logical_channel_list_config.h"
-#include "sched_coreset_config.h"
 #include "ocudu/adt/slotted_vector.h"
 #include "ocudu/ran/du_types.h"
+#include "ocudu/scheduler/config/sched_pdcch_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/ue_bwp_config.h"
 

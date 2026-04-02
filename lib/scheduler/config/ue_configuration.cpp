@@ -696,13 +696,15 @@ void ue_cell_configuration::set_rrm_config(const sched_ue_resource_alloc_config&
 
 void ue_cell_configuration::configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_downlink_common& bwp_dl_common)
 {
+  const sched_pdcch_config& pdcch_cfg = cell_cfg_common.bwp_res[bwpid].pdcchs().init_cfg();
+
   // Compute SearchSpace-Id lookup tables.
   for (const search_space_configuration& ss_cfg : bwp_dl_common.pdcch_common.search_spaces) {
     search_spaces.emplace(ss_cfg.get_id());
     search_space_info& ss = search_spaces[ss_cfg.get_id()];
 
     ss.cfg     = &ss_cfg;
-    ss.coreset = &cell_cfg_common.bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
+    ss.coreset = pdcch_cfg.coresets()[ss_cfg.get_coreset_id()];
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),
@@ -737,13 +739,16 @@ void ue_cell_configuration::configure_bwp_ded_cfg(bwp_id_t bwpid, const bwp_down
     return;
   }
 
+  // Note: For now only one dedicated PDCCH config for all the cell is supported.
+  const sched_pdcch_config& pdcch_cfg = cell_cfg_common.bwp_res[bwpid].pdcchs().ded_cfgs()[0];
+
   // Compute SearchSpace-Id lookup tables.
   for (const search_space_configuration& ss_cfg : bwp_dl_ded.pdcch_cfg->search_spaces) {
     search_spaces.emplace(ss_cfg.get_id());
     search_space_info& ss = search_spaces[ss_cfg.get_id()];
 
     ss.cfg     = &ss_cfg;
-    ss.coreset = &cell_cfg_common.bwp_res[bwpid].coresets()[ss_cfg.get_coreset_id()];
+    ss.coreset = pdcch_cfg.coresets()[ss_cfg.get_coreset_id()];
     ss.bwp     = cell_ded->bwps[bwpid];
     ss.update_pdsch_time_domain_list(*this);
     ss.dl_crb_lims = pdsch_helper::get_ra_crb_limits(ss.get_dl_dci_format(),

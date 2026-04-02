@@ -1635,7 +1635,7 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_srb0_is_retx_ed_only_pucch_common
       const auto* pucch_srb0 = std::find_if(
           pucchs.begin(), pucchs.end(), [rnti = u.crnti](const pucch_info& pucch) { return pucch.crnti == rnti; });
       ASSERT_TRUE(pucch_srb0 != pucchs.end());
-      ASSERT_TRUE(pucch_srb0->pdu_context.is_common);
+      ASSERT_TRUE(not pucch_srb0->pdu_context.res_id);
       ASSERT_EQ(1, std::count_if(pucchs.begin(), pucchs.end(), [rnti = u.crnti](const pucch_info& pucch) {
                   return pucch.crnti == rnti;
                 }));
@@ -1690,12 +1690,12 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_reconf_is_after_reest_both_common
                 }));
 
       const auto* pucch_common = std::find_if(pucchs.begin(), pucchs.end(), [rnti = u.crnti](const pucch_info& pucch) {
-        return pucch.crnti == rnti and pucch.pdu_context.is_common;
+        return pucch.crnti == rnti and not pucch.pdu_context.res_id;
       });
       ASSERT_TRUE(pucch_common != pucchs.end());
 
       const auto* pucch_ded = std::find_if(pucchs.begin(), pucchs.end(), [rnti = u.crnti](const pucch_info& pucch) {
-        return pucch.crnti == rnti and not pucch.pdu_context.is_common;
+        return pucch.crnti == rnti and pucch.pdu_context.res_id;
       });
       ASSERT_TRUE(pucch_ded != pucchs.end());
     }
@@ -1743,12 +1743,12 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_srb1_is_scheduled_with_crnti_both
                 }));
 
       const auto* pucch_common = std::find_if(pucchs.begin(), pucchs.end(), [rnti = u.crnti](const pucch_info& pucch) {
-        return pucch.crnti == rnti and pucch.pdu_context.is_common;
+        return pucch.crnti == rnti and not pucch.pdu_context.res_id;
       });
       ASSERT_TRUE(pucch_common != pucchs.end());
 
       const auto* pucch_ded = std::find_if(pucchs.begin(), pucchs.end(), [rnti = u.crnti](const pucch_info& pucch) {
-        return pucch.crnti == rnti and not pucch.pdu_context.is_common;
+        return pucch.crnti == rnti and pucch.pdu_context.res_id;
       });
       ASSERT_TRUE(pucch_ded != pucchs.end());
     }

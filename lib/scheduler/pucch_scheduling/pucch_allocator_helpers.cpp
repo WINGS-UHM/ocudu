@@ -5,101 +5,37 @@
 #include "pucch_allocator_helpers.h"
 #include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_info.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 
 using namespace ocudu;
 
-unsigned ocudu::get_n_id0_scrambling(const ue_cell_configuration& ue_cell_cfg, unsigned cell_pci)
-{
-  // As per TS 38.211, Section 6.4.1.3.2.1, N_{ID}^0 is given by the higher-layer parameter scramblingID0 in the
-  // DMRS-UplinkConfig IE if provided and by N_{ID}^{cell} otherwise. If a UE is configured with both
-  // dmrs-UplinkForPUSCH-MappingTypeA and dmrs-UplinkForPUSCH-MappingTypeB, scramblingID0 is obtained from
-  // dmrs-UplinkForPUSCH-MappingTypeB.
-
-  // Check \c scrambling_id0 in \c dmrs-UplinkForPUSCH-MappingTypeB, first
-  const auto& pusch_cfg = *ue_cell_cfg.init_bwp().ul.ded()->pusch_cfg;
-  if (pusch_cfg.pusch_mapping_type_b_dmrs.has_value() and
-      pusch_cfg.pusch_mapping_type_b_dmrs.value().trans_precoder_disabled.has_value() and
-      pusch_cfg.pusch_mapping_type_b_dmrs.value().trans_precoder_disabled.value().scrambling_id0.has_value()) {
-    return pusch_cfg.pusch_mapping_type_b_dmrs.value().trans_precoder_disabled.value().scrambling_id0.value();
-  }
-  // Else, check \c scrambling_id0 in \c dmrs-UplinkForPUSCH-MappingTypeA.
-  if (pusch_cfg.pusch_mapping_type_a_dmrs.has_value() and
-      pusch_cfg.pusch_mapping_type_a_dmrs.value().trans_precoder_disabled.has_value() and
-      pusch_cfg.pusch_mapping_type_a_dmrs.value().trans_precoder_disabled.value().scrambling_id0.has_value()) {
-    return pusch_cfg.pusch_mapping_type_a_dmrs.value().trans_precoder_disabled.value().scrambling_id0.value();
-  }
-
-  return cell_pci;
-}
-
-// Checks if a PUCCH PDU is for SR.
-static bool sr_id_match(const pucch_resource& pucch_res_cfg_lhs, const pucch_info& rhs)
-{
-  const bool prb_match =
-      pucch_res_cfg_lhs.starting_prb == rhs.resources.prbs.start() and
-      ((not pucch_res_cfg_lhs.second_hop_prb.has_value() and rhs.resources.second_hop_prbs.empty()) or
-       (pucch_res_cfg_lhs.second_hop_prb.has_value() and pucch_res_cfg_lhs.second_hop_prb.value() and
-        pucch_res_cfg_lhs.second_hop_prb == rhs.resources.second_hop_prbs.start()));
-  const bool symb_match = pucch_res_cfg_lhs.starting_sym_idx == rhs.resources.symbols.start() and
-                          pucch_res_cfg_lhs.nof_symbols == rhs.resources.symbols.length();
-  const auto& f1_cfg       = std::get<pucch_format_1_cfg>(pucch_res_cfg_lhs.format_params);
-  const auto& rhs_format_1 = std::get<pucch_format_1>(rhs.format_params);
-  return prb_match && symb_match && f1_cfg.initial_cyclic_shift == rhs_format_1.initial_cyclic_shift &&
-         f1_cfg.time_domain_occ == rhs_format_1.time_domain_occ;
-}
-
-static const pucch_resource* get_sr_pucch_resource(const pucch_config& pucch_cfg)
-{
-  const auto&    pucch_res_list  = pucch_cfg.pucch_res_list;
-  const unsigned sr_pucch_res_id = pucch_cfg.sr_res_list[0].pucch_res_id.cell_res_id;
-  // Search for the PUCCH resource with the correct PUCCH resource ID from the PUCCH resource list.
-  const auto* res_cfg =
-      std::find_if(pucch_res_list.begin(), pucch_res_list.end(), [sr_pucch_res_id](const pucch_resource& res) {
-        return res.res_id.cell_res_id == sr_pucch_res_id;
-      });
-
-  return res_cfg != pucch_res_list.end() ? const_cast<pucch_resource*>(res_cfg) : nullptr;
-}
-
-pucch_existing_pdus_handler::pucch_existing_pdus_handler(rnti_t              crnti,
-                                                         span<pucch_info>    pucchs,
-                                                         const pucch_config& pucch_cfg)
+pucch_existing_pdus_handler::pucch_existing_pdus_handler(rnti_t                               crnti,
+                                                         span<pucch_info>                     pucchs,
+                                                         const pucch_resource_builder_params& res_params)
 {
   pdu_id = 0;
 
   for (auto& pucch : pucchs) {
-    if (pucch.crnti == crnti and not pucch.pdu_context.is_common) {
+    if (pucch.crnti == crnti and pucch.pdu_context.res_id) {
       pucch.pdu_context.id = MAX_PUCCH_PDUS_PER_SLOT;
+      ++pdus_cnt;
 
-      if (pucch.format() == pucch_format::FORMAT_0) {
-        // With Format 0, when there are both HARQ bits and SR bits in the same PDU (this means that the PUCCH HARQ
-        // resource and SR resource have overlapping symbols), we only use the HARQ-ACK resource; the only case when
-        // the SR PUCCH F0 is used is when there are only SR bits.
-        if (pucch.uci_bits.sr_bits != sr_nof_bits::no_sr and pucch.uci_bits.harq_ack_nof_bits == 0U) {
-          sr_pdu = &pucch;
-          ++pdus_cnt;
-        } else if (pucch.uci_bits.harq_ack_nof_bits != 0U and pucch.uci_bits.harq_ack_nof_bits <= 2U) {
-          harq_pdu = &pucch;
-          ++pdus_cnt;
-        } else {
-          ocudu_assertion_failure("Invalid HARQ/SR bits for PUCCH Format 0");
-        }
-      } else if (pucch.format() == pucch_format::FORMAT_1) {
-        const pucch_resource* sr_res = get_sr_pucch_resource(pucch_cfg);
-        if (pucch.uci_bits.sr_bits == sr_nof_bits::one and sr_res != nullptr and sr_id_match(*sr_res, pucch)) {
+      if (pucch.uci_bits.harq_ack_nof_bits != 0U) {
+        if (pucch.format() == pucch_format::FORMAT_1 and
+            pucch.pdu_context.res_id->ue_res_id == res_params.get_sr_ue_res_idx()) {
+          // For Format 1, the SR resource can carry HARQ-ACK.
           sr_pdu = &pucch;
         } else {
           harq_pdu = &pucch;
         }
-        ++pdus_cnt;
       } else {
-        // Formats 2, 3 and 4.
-        if (pucch.uci_bits.csi_part1_nof_bits != 0U and pucch.uci_bits.harq_ack_nof_bits == 0U) {
+        if (pucch.pdu_context.res_id->ue_res_id == res_params.get_sr_ue_res_idx()) {
+          sr_pdu = &pucch;
+        } else if (pucch.pdu_context.res_id->ue_res_id == res_params.get_csi_ue_res_idx()) {
           csi_pdu = &pucch;
         } else {
-          harq_pdu = &pucch;
+          ocudu_assertion_failure("Unexpected PUCCH resource carrying SR/CSI only");
         }
-        ++pdus_cnt;
       }
     }
   }
@@ -139,7 +75,7 @@ void pucch_existing_pdus_handler::remove_unused_pdus(static_vector<pucch_info, M
   }
   auto* it = pucchs.begin();
   while (it != pucchs.end()) {
-    if (it->crnti == rnti and not it->pdu_context.is_common and it->pdu_context.id >= MAX_PUCCH_PDUS_PER_SLOT) {
+    if (it->crnti == rnti and it->pdu_context.res_id and it->pdu_context.id >= MAX_PUCCH_PDUS_PER_SLOT) {
       it = pucchs.erase(it);
     } else {
       ++it;
@@ -179,11 +115,11 @@ void pucch_existing_pdus_handler::update_csi_pdu_bits(unsigned csi_part1_bits, s
   --pdus_cnt;
 }
 
-void pucch_existing_pdus_handler::update_harq_pdu_bits(unsigned                                       harq_ack_bits,
-                                                       sr_nof_bits                                    sr_bits,
-                                                       unsigned                                       csi_part1_bits,
-                                                       const pucch_resource&                          pucch_res_cfg,
-                                                       const std::optional<pucch_common_all_formats>& common_params)
+void pucch_existing_pdus_handler::update_harq_pdu_bits(unsigned                             harq_ack_bits,
+                                                       sr_nof_bits                          sr_bits,
+                                                       unsigned                             csi_part1_bits,
+                                                       const pucch_resource_builder_params& res_params,
+                                                       const pucch_resource&                pucch_res_cfg)
 {
   switch (harq_pdu->format()) {
     case pucch_format::FORMAT_2: {
@@ -195,7 +131,7 @@ void pucch_existing_pdus_handler::update_harq_pdu_bits(unsigned                 
           get_pucch_format2_nof_prbs(harq_ack_bits + sr_nof_bits_to_uint(sr_bits) + csi_part1_bits,
                                      f2_cfg.nof_prbs,
                                      pucch_res_cfg.nof_symbols,
-                                     to_max_code_rate_float(common_params->max_c_rate));
+                                     to_max_code_rate_float(res_params.max_code_rate_234()));
       harq_pdu->resources.prbs.set(pucch_res_cfg.starting_prb, pucch_res_cfg.starting_prb + nof_prbs);
       if (pucch_res_cfg.second_hop_prb.has_value()) {
         harq_pdu->resources.second_hop_prbs.set(pucch_res_cfg.second_hop_prb.value(),
@@ -206,15 +142,16 @@ void pucch_existing_pdus_handler::update_harq_pdu_bits(unsigned                 
       harq_pdu->uci_bits.csi_part1_nof_bits = csi_part1_bits;
       // After updating the UCI bits, we need to recompute the number of PRBs for PUCCH format 3, as per TS 38.213,
       // Section 9.2.5.2.
-      const auto&    f3_cfg = std::get<pucch_format_2_3_cfg>(pucch_res_cfg.format_params);
+      const auto&    f3_params = std::get<pucch_f3_params>(res_params.f2_or_f3_or_f4_params);
+      const auto&    f3_cfg    = std::get<pucch_format_2_3_cfg>(pucch_res_cfg.format_params);
       const unsigned nof_prbs =
           get_pucch_format3_nof_prbs(harq_ack_bits + sr_nof_bits_to_uint(sr_bits) + csi_part1_bits,
                                      f3_cfg.nof_prbs,
                                      pucch_res_cfg.nof_symbols,
-                                     to_max_code_rate_float(common_params->max_c_rate),
+                                     to_max_code_rate_float(res_params.max_code_rate_234()),
                                      pucch_res_cfg.second_hop_prb.has_value(),
-                                     common_params->additional_dmrs,
-                                     common_params->pi_2_bpsk);
+                                     f3_params.additional_dmrs,
+                                     f3_params.pi2_bpsk);
       harq_pdu->resources.prbs.set(pucch_res_cfg.starting_prb, pucch_res_cfg.starting_prb + nof_prbs);
       if (pucch_res_cfg.second_hop_prb.has_value()) {
         harq_pdu->resources.second_hop_prbs.set(pucch_res_cfg.second_hop_prb.value(),

@@ -55,10 +55,9 @@ protected:
     // Increase PUCCH Format 2 code rate to support TDD configuration of DDDDDDDDSU.
     ocudu_assert((*ue_cfg.cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.has_value(),
                  "The PUCCH config is not set");
-    auto& pucch_cfg = (*ue_cfg.cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value();
-    pucch_cfg.format_2_common_param->max_c_rate = max_pucch_code_rate::dot_35;
-    pucch_res_id_t any_res_f2_id                = pucch_cfg.pucch_res_set[1].pucch_res_id_list.front();
-    auto*          res_f2                       = std::find_if(pucch_cfg.pucch_res_list.begin(),
+    auto&          pucch_cfg     = (*ue_cfg.cfg.cells)[0].serv_cell_cfg.ul_config->init_ul_bwp.pucch_cfg.value();
+    pucch_res_id_t any_res_f2_id = pucch_cfg.pucch_res_set[1].pucch_res_id_list.front();
+    auto*          res_f2        = std::find_if(pucch_cfg.pucch_res_list.begin(),
                                 pucch_cfg.pucch_res_list.end(),
                                 [any_res_f2_id](const auto& res) { return res.res_id == any_res_f2_id; });
     ocudu_assert(res_f2 != pucch_cfg.pucch_res_list.end(), "PUCCH resource F2 not found");

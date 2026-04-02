@@ -267,16 +267,14 @@ private:
   // \param[out] pucch_pdu PUCCH PDU to be filled.
   // \param[in] pucch_res PUCCH resource configuration.
   // \param[in] uci_bits UCI bits to be sent in the PUCCH.
-  // \param[in] ue_cell_cfg UE cell configuration.
   // \param[in] rnti RNTI of the UE.
   // \param[in] adjust_prbs If true, adjusts the number of PRBs based on the number of UCI bits to be carried.
   //            Only applicable for PUCCH resources of Formats 2 or 3.
-  void fill_ded_pdu(pucch_info&                  pucch_pdu,
-                    const pucch_resource&        pucch_res,
-                    const pucch_uci_bits&        uci_bits,
-                    const ue_cell_configuration& ue_cell_cfg,
-                    rnti_t                       rnti,
-                    bool                         adjust_prbs) const;
+  void fill_ded_pdu(pucch_info&           pucch_pdu,
+                    const pucch_resource& pucch_res,
+                    const pucch_uci_bits& uci_bits,
+                    rnti_t                rnti,
+                    bool                  adjust_prbs) const;
 
   void remove_unused_pucch_res(pucch_resource_manager::ue_reservation_guard& guard,
                                const ue_grants&                              existing_pucchs,
@@ -285,12 +283,22 @@ private:
   // \brief Ring of PUCCH allocations indexed by slot.
   circular_vector<slot_context> slots_ctx;
 
-  const cell_configuration& cell_cfg;
-  const unsigned            max_pucch_grants_per_slot;
-  const unsigned            max_ul_grants_per_slot;
-  const unsigned            max_pucch_payload_234;
-  slot_point                last_sl_ind;
-  pucch_resource_manager    resource_manager;
+  const cell_configuration&                     cell_cfg;
+  const unsigned                                max_pucch_grants_per_slot;
+  const unsigned                                max_ul_grants_per_slot;
+  const pucch_resource_builder_params&          res_params;
+  const std::optional<csi_report_configuration> csi_report_cfg;
+  slot_point                                    last_sl_ind;
+  pucch_resource_manager                        resource_manager;
+
+  // \brief Get \f$n_{ID}\f$ as per Sections 6.3.2.5.1 and 6.3.2.6.1, TS 38.211.
+  //
+  // Since we don't set the parameter dataScramblingIdentityPUSCH, it is always set to the cell ID.
+  uint16_t n_id_scrambling() const { return cell_cfg.params.pci; }
+  // \brief Get \f$N_{ID}^0\f$ as per Sections 6.4.1.3.2.1 and 6.4.1.3.3.1, TS 38.211.
+  //
+  // Since we don't set the parameter scramblingID0, it is always set to the cell ID.
+  uint16_t n_id_0_scrambling() const { return cell_cfg.params.pci; }
 
   ocudulog::basic_logger& logger;
 };

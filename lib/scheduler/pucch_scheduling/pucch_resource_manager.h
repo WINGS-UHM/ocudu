@@ -73,9 +73,8 @@ public:
     ue_reservation_guard(ue_reservation_guard&&) noexcept            = delete;
     ue_reservation_guard& operator=(ue_reservation_guard&&) noexcept = delete;
 
-    rnti_t                       get_rnti() const { return rnti; }
-    slot_point                   get_slot() const { return sl; }
-    const ue_cell_configuration& get_ue_cfg() const { return ue_cfg; }
+    rnti_t     get_rnti() const { return rnti; }
+    slot_point get_slot() const { return sl; }
 
     /// \brief Reserve the next available PUCCH resource in PUCCH Resource Set ID 0.
     /// \return If there is any PUCCH resource available, it returns (i) the pointer to the configuration and (ii) the
@@ -152,7 +151,6 @@ public:
     const cell_pucch_res_config&         cell_pucch_cfg;
     const rnti_t                         rnti;
     const slot_point                     sl;
-    const ue_cell_configuration&         ue_cfg;
     const ue_uplink_bwp_config&          ue_bwp_cfg;
 
     // Tracks the reservations made for the UE before commit().

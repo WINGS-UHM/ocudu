@@ -539,7 +539,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_common_and_ded_harq_ack_with_existi
   // PUCCH common resource.
   ASSERT_TRUE(find_pucch_pdu(pucch_pdus, [](const pucch_info& pdu) {
     return pdu.format() == pucch_format::FORMAT_1 and pdu.uci_bits.sr_bits == sr_nof_bits::no_sr and
-           pdu.uci_bits.harq_ack_nof_bits == 1U and pdu.pdu_context.is_common;
+           pdu.uci_bits.harq_ack_nof_bits == 1U and not pdu.pdu_context.res_id;
   }));
 }
 
@@ -562,7 +562,7 @@ TEST_P(pucch_alloc_ded_resources_test, alloc_common_and_ded_harq_ack_with_existi
   // PUCCH common resource.
   ASSERT_TRUE(find_pucch_pdu(pucch_pdus, [](const pucch_info& pdu) {
     return pdu.format() == pucch_format::FORMAT_1 and pdu.uci_bits.sr_bits == sr_nof_bits::no_sr and
-           pdu.uci_bits.harq_ack_nof_bits == 1U and pdu.pdu_context.is_common;
+           pdu.uci_bits.harq_ack_nof_bits == 1U and not pdu.pdu_context.res_id;
   }));
 }
 
@@ -885,7 +885,7 @@ TEST_P(pucch_alloc_ded_resources_test, test_for_private_fnc_retrieving_existing_
   ASSERT_EQ(2U, slot_grid.result.ul.pucchs.size());
   ASSERT_TRUE(find_pucch_pdu(slot_grid.result.ul.pucchs, [rnti = t_bench.get_main_ue().crnti](const pucch_info& pdu) {
     return pdu.format() == pucch_format::FORMAT_1 and pdu.crnti == rnti and pdu.uci_bits.harq_ack_nof_bits == 1U and
-           pdu.pdu_context.is_common;
+           not pdu.pdu_context.res_id;
   }));
 
   auto pri_ue2 = t_bench.pucch_alloc.alloc_ded_harq_ack(
@@ -902,7 +902,7 @@ TEST_P(pucch_alloc_ded_resources_test, test_for_private_fnc_retrieving_existing_
   }));
   ASSERT_TRUE(find_pucch_pdu(slot_grid.result.ul.pucchs, [rnti = t_bench.get_main_ue().crnti](const pucch_info& pdu) {
     return pdu.format() == pucch_format::FORMAT_1 and pdu.crnti == rnti and pdu.uci_bits.harq_ack_nof_bits == 1U and
-           pdu.pdu_context.is_common;
+           not pdu.pdu_context.res_id;
   }));
 
   // Advance by 1 slot. Allocate:
@@ -926,7 +926,7 @@ TEST_P(pucch_alloc_ded_resources_test, test_for_private_fnc_retrieving_existing_
   }));
   ASSERT_TRUE(find_pucch_pdu(slot_grid.result.ul.pucchs, [rnti = t_bench.get_main_ue().crnti](const pucch_info& pdu) {
     return pdu.format() == pucch_format::FORMAT_1 and pdu.crnti == rnti and pdu.uci_bits.harq_ack_nof_bits == 1U and
-           pdu.pdu_context.is_common;
+           not pdu.pdu_context.res_id;
   }));
   ASSERT_TRUE(find_pucch_pdu(slot_grid.result.ul.pucchs, [rnti = t_bench.get_ue(ue2_idx).crnti](const pucch_info& pdu) {
     return pdu.format() == pucch_format::FORMAT_1 and pdu.crnti == rnti and pdu.uci_bits.harq_ack_nof_bits == 1U;
@@ -956,7 +956,7 @@ TEST_P(pucch_alloc_ded_resources_test, test_for_private_fnc_retrieving_existing_
       }));
   ASSERT_TRUE(find_pucch_pdu(slot_grid.result.ul.pucchs, [rnti = t_bench.get_main_ue().crnti](const pucch_info& pdu) {
     return pdu.format() == pucch_format::FORMAT_1 and pdu.crnti == rnti and pdu.uci_bits.harq_ack_nof_bits == 1U and
-           pdu.pdu_context.is_common;
+           not pdu.pdu_context.res_id;
   }));
   ASSERT_TRUE(find_pucch_pdu(slot_grid.result.ul.pucchs, [rnti = t_bench.get_ue(ue2_idx).crnti](const pucch_info& pdu) {
     return pdu.format() == pucch_format::FORMAT_1 and pdu.crnti == rnti and pdu.uci_bits.harq_ack_nof_bits == 1U;

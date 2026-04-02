@@ -77,7 +77,7 @@ TEST_F(ue_configuration_test, configuration_valid_on_reconfiguration)
   recfg_req.ue_index = ue_create_msg.ue_index;
   recfg_req.crnti    = ue_create_msg.crnti;
   recfg_req.cfg.cells.emplace();
-  recfg_req.cfg.cells.value().resize(1);
+  recfg_req.cfg.cells.value().push_back(ue_create_msg.cfg.cells->at(0));
   recfg_req.cfg.cells.value()[0].bwps             = {ue_cfg.bwps()[to_bwp_id(0)]->bwp};
   serving_cell_config& ue_cell_reconf             = recfg_req.cfg.cells.value()[0].serv_cell_cfg;
   ue_cell_reconf.init_dl_bwp.pdsch_cfg->mcs_table = pdsch_mcs_table::qam64;

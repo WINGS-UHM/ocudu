@@ -378,7 +378,7 @@ ue_fallback_scheduler::schedule_dl_srb(cell_resource_allocator&              res
               : 0;
       const auto ra_conres_timer_subframes =
           static_cast<uint32_t>(
-              u.get_pcell().cfg().init_bwp().ul_common.value()->rach_cfg_common.value().ra_con_res_timer.count()) +
+              u.get_pcell().cfg().init_bwp().cfg.ul.ul_common().rach_cfg_common.value().ra_con_res_timer.count()) +
           ntn_cs_koffset_subframes;
       const int conres_msg3_slot_diff = pdsch_alloc.slot - u.get_pcell().get_pcell_state().msg3_rx_slot;
       if (conres_msg3_slot_diff < 0 or
@@ -845,7 +845,7 @@ dl_harq_process_handle ue_fallback_scheduler::fill_dl_srb_grant(ue&             
     } break;
     case dci_dl_rnti_config_type::c_rnti_f1_0: {
       const search_space_info&   ss_info           = u.get_pcell().cfg().search_space(pdcch.ctx.context.ss_id);
-      const bwp_downlink_common& active_dl_bwp_cmn = *ss_info.bwp->dl_common;
+      const bwp_downlink_common& active_dl_bwp_cmn = ss_info.bwp->cfg.dl.dl_common();
       const bwp_configuration&   active_dl_bwp     = active_dl_bwp_cmn.generic_params;
       vrbs                                         = rb_helper::crb_to_vrb_dl_non_interleaved(ue_grant_crbs,
                                                       active_dl_bwp.crbs.start(),
@@ -1283,8 +1283,7 @@ void ue_fallback_scheduler::fill_ul_srb_grant(ue&                               
   uint8_t                  rv                  = u.get_pcell().get_pusch_rv(h_ul->nof_retxs());
   static constexpr uint8_t default_tpc_command = 1U;
   const vrb_interval       vrbs                = rb_helper::crb_to_vrb_ul_non_interleaved(
-      ue_grant_crbs,
-      u.get_pcell().cfg().search_space(pdcch.ctx.context.ss_id).bwp->ul_common->value().generic_params.crbs.start());
+      ue_grant_crbs, u.get_pcell().cfg().search_space(pdcch.ctx.context.ss_id).bwp->cfg.ul.cfg().crbs.start());
   build_dci_f0_0_c_rnti(pdcch.dci,
                         u.get_pcell().cfg().search_space(pdcch.ctx.context.ss_id),
                         cell_cfg.params.ul_cfg_common.init_ul_bwp,
@@ -1383,7 +1382,7 @@ static bool handle_conres_expiry(ue& u, slot_point sl_tx, ocudulog::basic_logger
     return false;
   }
 
-  const auto conres_timer = ue_pcell.cfg().init_bwp().ul_common.value()->rach_cfg_common->ra_con_res_timer.count();
+  const auto conres_timer = ue_pcell.cfg().init_bwp().cfg.ul.ul_common().rach_cfg_common->ra_con_res_timer.count();
   const auto conres_timer_slots = conres_timer * sl_tx.nof_slots_per_subframe() + ntn_cs_koffset;
   const auto sl_conres          = ue_pcell.get_pcell_state().msg3_rx_slot + conres_timer_slots;
   if (sl_conres > sl_tx) {

@@ -72,7 +72,7 @@ static pusch_config_params compute_pusch_config_params(const ue_cell&           
 {
   const ue_cell_configuration& ue_cell_cfg = ue_cc.cfg();
   const cell_configuration&    cell_cfg    = ue_cc.cfg().cell_cfg_common;
-  const bwp_uplink_common&     bwp_ul_cmn  = *ue_cell_cfg.bwp(ue_cc.active_bwp_id()).ul_common.value();
+  const bwp_uplink_common&     bwp_ul_cmn  = ue_cell_cfg.bwp(ue_cc.active_bwp_id()).cfg.ul.ul_common();
 
   pusch_config_params pusch_cfg;
   switch (dci_type) {

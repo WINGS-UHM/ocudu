@@ -182,7 +182,7 @@ public:
 
   expected<bool, std::string> test_srs_pdu(const srs_info& srs_pdu) const
   {
-    const auto& srs_cfg     = ues[to_du_ue_index(0)].get_pcell().cfg().init_bwp().ul_ded->srs_cfg.value();
+    const auto& srs_cfg     = ues[to_du_ue_index(0)].get_pcell().cfg().init_bwp().cfg.ul.ul_ded()->srs_cfg.value();
     const auto& srs_res_cfg = srs_cfg.srs_res_list.front();
 
     if (srs_pdu.crnti != ues[to_du_ue_index(0)].crnti) {
@@ -257,8 +257,8 @@ public:
         .get_pcell()
         .cfg()
         .init_bwp()
-        .ul_ded->srs_cfg.value()
-        .srs_res_list.front()
+        .cfg.ul.srs()
+        ->srs_res_list.front()
         .periodicity_and_offset->offset;
   }
 };
@@ -364,7 +364,8 @@ TEST_F(srs_positioning_scheduler_test, when_connected_ue_positioning_is_requeste
   ASSERT_FALSE(is_positioning_being_requested());
 
   // Positioning requested.
-  const auto& ue_srs_cfg = ues[to_du_ue_index(0)].ue_cfg_dedicated()->pcell_cfg().init_bwp().ul_ded->srs_cfg.value();
+  const auto& ue_srs_cfg =
+      ues[to_du_ue_index(0)].ue_cfg_dedicated()->pcell_cfg().init_bwp().cfg.ul.ul_ded()->srs_cfg.value();
   this->srs_sched.handle_positioning_measurement_request(
       make_positioning_cell_request(rnti, to_du_ue_index(0), to_du_cell_index(0), ue_srs_cfg));
   ASSERT_TRUE(is_positioning_being_requested());

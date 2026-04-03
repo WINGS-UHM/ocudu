@@ -195,13 +195,13 @@ public:
   {
     // If the UE is not configured with the higher layer parameter transformPrecoder in pusch-Config, determine the
     // transform precoder use according to parameter msg3-transformPrecoder.
-    if (not init_bwp().ul_ded.has_value() or not init_bwp().ul_ded->pusch_cfg.has_value() or
-        init_bwp().ul_ded->pusch_cfg->trans_precoder == pusch_config::transform_precoder::not_set) {
+    if (init_bwp().cfg.ul.pusch_ded() == nullptr or
+        init_bwp().cfg.ul.pusch_ded()->trans_precoder == pusch_config::transform_precoder::not_set) {
       return cell_cfg_common.use_msg3_transform_precoder();
     }
 
     // Otherwise, determine the use of transform pecoding according to transformPrecoder in pusch-Config.
-    return init_bwp().ul_ded->pusch_cfg->trans_precoder == pusch_config::transform_precoder::enabled;
+    return init_bwp().cfg.ul.pusch_ded()->trans_precoder == pusch_config::transform_precoder::enabled;
   }
 
   /// \brief Gets the PUSCH transmit scheme codebook configuration.

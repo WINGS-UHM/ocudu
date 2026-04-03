@@ -106,8 +106,8 @@ public:
 
   const ue_cell_configuration& ue_cfg_0() const { return t_bench.ue_ded_cfgs[0]->pcell_cfg(); }
   const ue_cell_configuration& ue_cfg_1() const { return t_bench.ue_ded_cfgs[1]->pcell_cfg(); }
-  const pucch_config&          pucch_cfg_0() const { return ue_cfg_0().init_bwp().ul_ded->pucch_cfg.value(); }
-  const pucch_config&          pucch_cfg_1() const { return ue_cfg_1().init_bwp().ul_ded->pucch_cfg.value(); }
+  const pucch_config&          pucch_cfg_0() const { return ue_cfg_0().init_bwp().cfg.ul.ul_ded()->pucch_cfg.value(); }
+  const pucch_config&          pucch_cfg_1() const { return ue_cfg_1().init_bwp().cfg.ul.ul_ded()->pucch_cfg.value(); }
 
 protected:
   res_manager_test_bench t_bench;
@@ -617,7 +617,7 @@ protected:
 
   static const pucch_config& get_pucch_cfg(const ue_cell_configuration& ue_cfg)
   {
-    return ue_cfg.init_bwp().ul_ded->pucch_cfg.value();
+    return ue_cfg.init_bwp().cfg.ul.ul_ded()->pucch_cfg.value();
   }
 };
 

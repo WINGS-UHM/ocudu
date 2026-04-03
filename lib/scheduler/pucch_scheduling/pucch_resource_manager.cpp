@@ -130,7 +130,7 @@ pucch_resource_manager::ue_reservation_guard::reserve_harq_set_1_resource_by_res
 const pucch_resource* pucch_resource_manager::ue_reservation_guard::reserve_sr_resource()
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul_ded->pucch_cfg.value();
+  const auto& pucch_cfg = ue_cfg.init_bwp().cfg.ul.ul_ded()->pucch_cfg.value();
 
   // We assume each UE only has 1 SR Resource Config configured.
   ocudu_sanity_check(pucch_cfg.sr_res_list.size() == 1, "UE SR resource list must have size 1.");
@@ -198,7 +198,7 @@ const pucch_resource* pucch_resource_manager::ue_reservation_guard::reserve_csi_
 const pucch_resource* pucch_resource_manager::ue_reservation_guard::peek_sr_resource() const
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul_ded->pucch_cfg.value();
+  const auto& pucch_cfg = ue_cfg.init_bwp().cfg.ul.ul_ded()->pucch_cfg.value();
 
   // We assume each UE only has 1 SR Resource Config configured.
   ocudu_sanity_check(pucch_cfg.sr_res_list.size() == 1, "UE SR resource list must have size 1.");
@@ -236,7 +236,7 @@ bool pucch_resource_manager::ue_reservation_guard::release_harq_set_1_resource()
 bool pucch_resource_manager::ue_reservation_guard::release_sr_resource()
 {
   ocudu_assert(parent != nullptr, "Trying to release a PUCCH resource after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul_ded->pucch_cfg.value();
+  const auto& pucch_cfg = ue_cfg.init_bwp().cfg.ul.ul_ded()->pucch_cfg.value();
   ocudu_sanity_check(pucch_cfg.sr_res_list.size() == 1, "UE SR resource list must have size 1.");
 
   // We assume each UE only has 1 SR Resource Config configured.
@@ -289,7 +289,7 @@ pucch_harq_resource_alloc_record
 pucch_resource_manager::ue_reservation_guard::reserve_next_harq_res_available(pucch_res_set_idx res_set_idx)
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul_ded->pucch_cfg.value();
+  const auto& pucch_cfg = ue_cfg.init_bwp().cfg.ul.ul_ded()->pucch_cfg.value();
 
   // Get the array of resources for the specific UE.
   const auto& ue_res_set_id_list = pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(res_set_idx)].pucch_res_id_list;
@@ -355,7 +355,7 @@ pucch_resource_manager::ue_reservation_guard::reserve_harq_resource_by_res_indic
                                                                                      pucch_res_set_idx res_set_idx)
 {
   ocudu_assert(parent != nullptr, "Trying to make a new PUCCH resource reservation after commit has been called");
-  const auto& pucch_cfg = ue_cfg.init_bwp().ul_ded->pucch_cfg.value();
+  const auto& pucch_cfg = ue_cfg.init_bwp().cfg.ul.ul_ded()->pucch_cfg.value();
 
   // Retrieve the PUCCH resource set.
   const auto& ue_res_set_id_list = pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(res_set_idx)].pucch_res_id_list;
@@ -412,7 +412,7 @@ bool pucch_resource_manager::ue_reservation_guard::release_harq_resource(pucch_r
 {
   ocudu_assert(parent != nullptr, "Trying to release a PUCCH resource after commit has been called");
   // Get the array of resources for the specific UE.
-  const auto& pucch_cfg          = ue_cfg.init_bwp().ul_ded->pucch_cfg.value();
+  const auto& pucch_cfg          = ue_cfg.init_bwp().cfg.ul.ul_ded()->pucch_cfg.value();
   const auto& ue_res_set_id_list = pucch_cfg.pucch_res_set[pucch_res_set_idx_to_uint(res_set_idx)].pucch_res_id_list;
 
   // For PUCCH F0 and F2, we don't use the last 2 resources of the PUCCH resource set; these are reserved for CSI and SR
@@ -451,7 +451,7 @@ bool pucch_resource_manager::ue_reservation_guard::release_harq_resource(pucch_r
 const pucch_resource* pucch_resource_manager::ue_reservation_guard::get_res_by_id(pucch_res_id_t res_id) const
 {
   // Search for the PUCCH resource with the correct PUCCH resource ID from the PUCCH resource list.
-  const auto& pucch_res_list = ue_cfg.init_bwp().ul_ded->pucch_cfg->pucch_res_list;
+  const auto& pucch_res_list = ue_cfg.init_bwp().cfg.ul.ul_ded()->pucch_cfg->pucch_res_list;
   const auto* res_cfg = std::find_if(pucch_res_list.begin(), pucch_res_list.end(), [res_id](const pucch_resource& res) {
     return res.res_id == res_id;
   });

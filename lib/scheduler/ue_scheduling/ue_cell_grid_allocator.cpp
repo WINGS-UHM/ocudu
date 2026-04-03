@@ -234,7 +234,7 @@ void ue_cell_grid_allocator::set_pdsch_params(dl_grant_info&                    
   const search_space_info&                     ss_info            = ue_cell_cfg.search_space(grant.cfg.ss_id);
   uint8_t                                      pdsch_td_res_index = grant.cfg.pdsch_td_res_index;
   const pdsch_time_domain_resource_allocation& pdsch_td_cfg       = ss_info.pdsch_time_domain_list[pdsch_td_res_index];
-  const subcarrier_spacing                     scs                = ss_info.bwp->dl_common->generic_params.scs;
+  const subcarrier_spacing                     scs                = ss_info.bwp->cfg.dl.cfg().scs;
   const cell_configuration&                    cell_cfg           = ue_cell_cfg.cell_cfg_common;
   const bool                                   is_retx            = grant.h_dl.nof_retxs() != 0;
   const unsigned                               nof_layers         = grant.cfg.recommended_ri;
@@ -601,7 +601,7 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
   // Derive remaining parameters from \c ul_grant_params.
   const search_space_info&                     ss_info            = ue_cell_cfg.search_space(grant.cfg.ss_id);
   const search_space_configuration&            ss_cfg             = *ss_info.cfg;
-  const bwp_uplink_common&                     bwp_ul_cmn         = *ss_info.bwp->ul_common.value();
+  const bwp_uplink_common&                     bwp_ul_cmn         = ss_info.bwp->cfg.ul.ul_common();
   const subcarrier_spacing                     scs                = bwp_ul_cmn.generic_params.scs;
   const dci_ul_rnti_config_type                dci_type           = ss_info.get_ul_dci_format() == dci_ul_format::f0_0
                                                                         ? dci_ul_rnti_config_type::c_rnti_f0_0
@@ -665,9 +665,12 @@ void ue_cell_grid_allocator::set_pusch_params(ul_grant_info& grant, const vrb_in
           pusch_cfg.max_nof_csi_part2_bits,
           static_cast<unsigned>(pusch_cfg.mcs_table),
           ue_cell_cfg.cell_cfg_common.params.dmrs_typeA_pos == dmrs_typeA_position::pos2 ? "pos2" : "pos3",
-          ue_cell_cfg.init_bwp().ul_ded->pusch_cfg->pusch_mapping_type_a_dmrs.value().is_dmrs_type2 ? "yes" : "no",
-          static_cast<unsigned>(
-              ue_cell_cfg.init_bwp().ul_ded->pusch_cfg->pusch_mapping_type_a_dmrs.value().additional_positions));
+          ue_cell_cfg.init_bwp().cfg.ul.ul_ded()->pusch_cfg->pusch_mapping_type_a_dmrs.value().is_dmrs_type2 ? "yes"
+                                                                                                             : "no",
+          static_cast<unsigned>(ue_cell_cfg.init_bwp()
+                                    .cfg.ul.ul_ded()
+                                    ->pusch_cfg->pusch_mapping_type_a_dmrs.value()
+                                    .additional_positions));
     }
 
   } else {

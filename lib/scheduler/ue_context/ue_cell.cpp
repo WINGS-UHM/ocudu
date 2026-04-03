@@ -212,9 +212,9 @@ get_prioritized_search_spaces(const ue_cell& ue_cc, FilterSearchSpace filter, bo
   static_vector<const search_space_info*, MAX_NOF_SEARCH_SPACE_PER_BWP> active_search_spaces;
 
   // Get all Search Spaces configured in PDCCH-Config for active BWP.
-  const auto& bwp_ss_lst = ue_cc.cfg().bwp(ue_cc.active_bwp_id()).search_spaces;
-  for (const search_space_configuration* ss : bwp_ss_lst) {
-    const search_space_info& ss_info = ue_cc.cfg().search_space(ss->get_id());
+  const auto& bwp_ss_lst = ue_cc.cfg().bwp(ue_cc.active_bwp_id()).cfg.dl.pdcch().search_spaces();
+  for (const sched_search_space_config* ss : bwp_ss_lst) {
+    const search_space_info& ss_info = ue_cc.cfg().search_space(ss->id());
     if (filter(ss_info)) {
       active_search_spaces.push_back(&ss_info);
     }
@@ -273,7 +273,7 @@ ue_cell::get_active_dl_search_spaces(slot_point                             pdcc
     // PDCCH candidates for at least a DCI format 0_0 or a DCI format 1_0 with CRC scrambled by SI-RNTI, RA-RNTI or
     // P-RNTI.
     if (ss.cfg->is_common_search_space()) {
-      const auto& pdcch_config_ss_lst = cfg().bwp(active_bwp_id()).dl_ded.value()->pdcch_cfg->search_spaces;
+      const auto& pdcch_config_ss_lst = cfg().bwp(active_bwp_id()).cfg.dl.dl_ded()->pdcch_cfg->search_spaces;
       const bool  is_type3_css        = std::find_if(pdcch_config_ss_lst.begin(),
                                              pdcch_config_ss_lst.end(),
                                              [&ss](const search_space_configuration& ss_cfg) {
@@ -345,7 +345,7 @@ ue_cell::get_active_ul_search_spaces(slot_point                             pdcc
     // PDCCH candidates for at least a DCI format 0_0 or a DCI format 1_0 with CRC scrambled by SI-RNTI, RA-RNTI or
     // P-RNTI.
     if (ss.cfg->is_common_search_space()) {
-      const auto& pdcch_config_ss_lst = cfg().bwp(active_bwp_id()).dl_ded.value()->pdcch_cfg->search_spaces;
+      const auto& pdcch_config_ss_lst = cfg().bwp(active_bwp_id()).cfg.dl.dl_ded()->pdcch_cfg->search_spaces;
       const bool  is_type3_css        = std::find_if(pdcch_config_ss_lst.begin(),
                                              pdcch_config_ss_lst.end(),
                                              [&ss](const search_space_configuration& ss_cfg) {

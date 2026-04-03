@@ -124,9 +124,10 @@ public:
     static constexpr max_pucch_code_rate max_code_rate = max_pucch_code_rate::dot_25;
 
     sr_period = sr_periodicity_to_slot(
-        t_bench.get_main_ue().get_pcell().cfg().init_bwp().ul_ded->pucch_cfg.value().sr_res_list[0].period);
+        t_bench.get_main_ue().get_pcell().cfg().init_bwp().cfg.ul.ul_ded()->pucch_cfg.value().sr_res_list[0].period);
 
-    sr_offset = t_bench.get_main_ue().get_pcell().cfg().init_bwp().ul_ded->pucch_cfg.value().sr_res_list[0].offset;
+    sr_offset =
+        t_bench.get_main_ue().get_pcell().cfg().init_bwp().cfg.ul.ul_ded()->pucch_cfg.value().sr_res_list[0].offset;
 
     // In the slots with SR + CSI, the expected format is Format 2.
     pucch_csi_and_sr_test =

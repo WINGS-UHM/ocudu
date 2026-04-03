@@ -40,8 +40,8 @@ static ulsch_configuration build_ulsch_info(const pusch_config_params& pusch_cfg
                                  .contains_dc = contains_dc};
 
   const uci_on_pusch* uci_cfg =
-      active_bwp_cfg.ul_ded.has_value() and active_bwp_cfg.ul_ded->pusch_cfg->uci_cfg.has_value()
-          ? &active_bwp_cfg.ul_ded->pusch_cfg->uci_cfg.value()
+      active_bwp_cfg.cfg.ul.ul_ded() != nullptr and active_bwp_cfg.cfg.ul.ul_ded()->pusch_cfg->uci_cfg.has_value()
+          ? &active_bwp_cfg.cfg.ul.ul_ded()->pusch_cfg->uci_cfg.value()
           : nullptr;
   ocudu_assert(uci_cfg != nullptr or (pusch_cfg.nof_harq_ack_bits == 0 and pusch_cfg.nof_csi_part1_bits == 0 and
                                       pusch_cfg.max_nof_csi_part2_bits == 0),

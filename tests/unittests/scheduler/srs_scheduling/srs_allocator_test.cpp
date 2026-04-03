@@ -154,7 +154,7 @@ public:
       return make_unexpected(std::string("DU UE index not found in UEs repo"));
     }
 
-    const auto& srs_cfg     = ues[du_ue_idx].get_pcell().cfg().init_bwp().ul_ded->srs_cfg.value();
+    const auto& srs_cfg     = ues[du_ue_idx].get_pcell().cfg().init_bwp().cfg.ul.ul_ded()->srs_cfg.value();
     const auto& srs_res_cfg = srs_cfg.srs_res_list.front();
 
     if (srs_pdu.crnti != ues[du_ue_idx].crnti) {
@@ -354,10 +354,10 @@ protected:
 
   static unsigned get_ue_srs_cell_id(const ue& u)
   {
-    ocudu_assert(u.get_pcell().cfg().init_bwp().ul_ded->srs_cfg.has_value() and
-                     u.get_pcell().cfg().init_bwp().ul_ded->srs_cfg.value().srs_res_list.size() == 1,
+    ocudu_assert(u.get_pcell().cfg().init_bwp().cfg.ul.ul_ded()->srs_cfg.has_value() and
+                     u.get_pcell().cfg().init_bwp().cfg.ul.ul_ded()->srs_cfg.value().srs_res_list.size() == 1,
                  "UE configuration is wrong");
-    return u.get_pcell().cfg().init_bwp().ul_ded->srs_cfg.value().srs_res_list.front().id.cell_res_id;
+    return u.get_pcell().cfg().init_bwp().cfg.ul.ul_ded()->srs_cfg.value().srs_res_list.front().id.cell_res_id;
   }
 
   struct ue_tracker {

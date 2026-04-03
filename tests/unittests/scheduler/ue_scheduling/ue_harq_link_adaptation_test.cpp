@@ -70,7 +70,7 @@ protected:
                             0,
                             units::bytes{128}};
     const pdsch_information pdsch{ue_ptr->crnti,
-                                  &ss.bwp->dl_common->generic_params,
+                                  &ss.bwp->cfg.dl.cfg(),
                                   &ss.coreset->cfg(),
                                   vrb_alloc{vrb_interval{0, 5}},
                                   ss.pdsch_time_domain_list[0].symbols,

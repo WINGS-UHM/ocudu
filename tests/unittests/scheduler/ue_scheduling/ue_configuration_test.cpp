@@ -48,8 +48,7 @@ TEST_F(ue_configuration_test, configuration_valid_on_creation)
 
   // Test Common Config.
   ASSERT_TRUE(ue_cfg.find_bwp(to_bwp_id(0)) != nullptr);
-  ASSERT_TRUE(ue_cfg.bwp(to_bwp_id(0)).dl_common->generic_params ==
-              cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params);
+  ASSERT_TRUE(ue_cfg.bwp(to_bwp_id(0)).cfg.dl.cfg() == cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params);
   ASSERT_TRUE(ue_cfg.coreset(to_coreset_id(0)).id() ==
               cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0->get_id());
   ASSERT_EQ(0, fmt::underlying(ue_cfg.search_space(to_search_space_id(0)).cfg->get_id()));
@@ -71,7 +70,7 @@ TEST_F(ue_configuration_test, configuration_valid_on_reconfiguration)
 {
   const cell_configuration& cell_cfg = cfg_pool.add_cell(sched_cfg, msg);
   ue_cell_configuration ue_cfg{to_rnti(0x4601), cell_cfg, cfg_pool.add_ue(ue_create_msg).cells[to_du_cell_index(0)]};
-  ASSERT_EQ(ue_cfg.init_bwp().dl_ded->value().pdsch_cfg->mcs_table, pdsch_mcs_table::qam256);
+  ASSERT_EQ(ue_cfg.init_bwp().cfg.dl.pdsch_ded()->mcs_table, pdsch_mcs_table::qam256);
 
   sched_ue_reconfiguration_message recfg_req;
   recfg_req.ue_index = ue_create_msg.ue_index;
@@ -83,7 +82,7 @@ TEST_F(ue_configuration_test, configuration_valid_on_reconfiguration)
   ue_cell_reconf.init_dl_bwp.pdsch_cfg->mcs_table = pdsch_mcs_table::qam64;
   ue_cfg.reconfigure(cfg_pool.reconf_ue(recfg_req).cells[to_du_cell_index(0)]);
 
-  ASSERT_EQ(ue_cfg.init_bwp().dl_ded->value().pdsch_cfg->mcs_table, pdsch_mcs_table::qam64);
+  ASSERT_EQ(ue_cfg.init_bwp().cfg.dl.pdsch_ded()->mcs_table, pdsch_mcs_table::qam64);
 }
 
 TEST_F(ue_configuration_test, when_reconfiguration_is_received_then_ue_updates_logical_channel_states)
@@ -163,7 +162,7 @@ TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpa
   ue_cell_configuration ue_cfg{crnti, cell_cfg, cfg_pool.add_ue(ue_create_msg).cells[cell_cfg.cell_index]};
 
   const bwp_config& bwp            = ue_cfg.bwp(to_bwp_id(0));
-  const unsigned    max_candidates = max_nof_monitored_pdcch_candidates(bwp.dl_common->generic_params.scs);
+  const unsigned    max_candidates = max_nof_monitored_pdcch_candidates(bwp.cfg.dl.cfg().scs);
 
   unsigned       sfn = test_rng::uniform_int<unsigned>(0, 1023);
   const unsigned slots_to_test =
@@ -174,12 +173,12 @@ TEST_F(ue_configuration_test, search_spaces_pdcch_candidate_lists_does_not_surpa
     for (unsigned l = 0; l != NOF_AGGREGATION_LEVELS; ++l) {
       const aggregation_level aggr_lvl = aggregation_index_to_level(l);
 
-      for (const search_space_configuration* ss : bwp.search_spaces) {
-        ASSERT_GE(ss->get_nof_candidates()[l],
-                  ue_cfg.search_space(ss->get_id()).get_pdcch_candidates(aggr_lvl, pdcch_slot).size())
+      for (const sched_search_space_config* ss : bwp.cfg.dl.pdcch().search_spaces()) {
+        ASSERT_GE(ss->cfg().get_nof_candidates()[l],
+                  ue_cfg.search_space(ss->id()).get_pdcch_candidates(aggr_lvl, pdcch_slot).size())
             << "The generated candidates cannot exceed the number of candidates passed in the SearchSpace config";
 
-        pdcch_candidates_count += ue_cfg.search_space(ss->get_id()).get_pdcch_candidates(aggr_lvl, pdcch_slot).size();
+        pdcch_candidates_count += ue_cfg.search_space(ss->id()).get_pdcch_candidates(aggr_lvl, pdcch_slot).size();
       }
     }
 

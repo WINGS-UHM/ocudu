@@ -310,10 +310,11 @@ TEST_F(ul_mcs_tbs_prbs_calculator_error, effective_code_rate_exceeds_maximum)
 
 TEST_F(ul_mcs_tbs_prbs_calculator_error, two_bit_harq_ack_and_dc_overhead)
 {
-  bwp_config active_bwp_cfg = ue_cell_cfg.init_bwp();
-  std::get<uci_on_pusch::beta_offsets_semi_static>(
-      active_bwp_cfg.ul_ded.value().pusch_cfg.value().uci_cfg.value().beta_offsets_cfg.value())
+  bwp_config           active_bwp_cfg = ue_cell_cfg.init_bwp();
+  bwp_uplink_dedicated bwp_ded        = *active_bwp_cfg.cfg.ul.ul_ded();
+  std::get<uci_on_pusch::beta_offsets_semi_static>(bwp_ded.pusch_cfg->uci_cfg->beta_offsets_cfg.value())
       .beta_offset_ack_idx_1 = 15;
+  active_bwp_cfg.cfg.ul      = sched_bwp_ul_config{active_bwp_cfg.cfg.ul.ul_common(), &bwp_ded};
 
   pusch_cfg.nof_csi_part1_bits = 11;
   pusch_cfg.nof_harq_ack_bits  = 2;

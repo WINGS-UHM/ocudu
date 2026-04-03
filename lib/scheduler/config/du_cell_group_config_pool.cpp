@@ -5,7 +5,6 @@
 #include "du_cell_group_config_pool.h"
 #include "cell_configuration.h"
 #include "ocudu/ran/bwp/bwp_id.h"
-#include "ocudu/scheduler/config/cell_bwp_res_config.h"
 #include "ocudu/scheduler/config/ue_bwp_config.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
 
@@ -60,59 +59,28 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
                                   const bwp_uplink_dedicated*   ul_bwp_ded,
                                   const ue_bwp_config&          ue_bwp_cfg)
 {
-  const auto& bwp_res = cell_cfg().bwp_res[bwp_id];
+  const auto&                        bwp_res    = cell_cfg().bwp_res[bwp_id];
+  config_ptr<bwp_downlink_dedicated> bwp_dl_ded = bwp_dl_ded_config_pool.create(dl_bwp_ded);
+  config_ptr<bwp_uplink_common>      bwp_ul_common;
+  if (ul_bwp_common != nullptr) {
+    bwp_ul_common = bwp_ul_common_config_pool.create(*ul_bwp_common);
+  }
+  config_ptr<bwp_uplink_dedicated> bwp_ul_ded;
+  if (ul_bwp_ded != nullptr) {
+    bwp_ul_ded = bwp_ul_ded_config_pool.create(*ul_bwp_ded);
+  }
 
   // Create BWP config.
   bwp_config bwp_cfg;
-  bwp_cfg.bwp_id = bwp_id;
+  bwp_cfg.cfg = sched_bwp_config{bwp_id,
+                                 sched_bwp_dl_config{bwp_res.dl_common(), &*bwp_dl_ded, bwp_res.pdcchs().ded_cfgs()[0]},
+                                 sched_bwp_ul_config{*bwp_ul_common, bwp_ul_ded.get()}};
 
-  // BWP DL Common
-  bwp_cfg.dl_common = &bwp_res.dl_common();
-  if (bwp_cfg.dl_common->pdcch_common.coreset0.has_value()) {
-    const auto& coreset0 =
-        *bwp_res.pdcchs().init_cfg().coresets()[bwp_cfg.dl_common->pdcch_common.coreset0.value().get_id()];
-    bwp_cfg.coresets.emplace(coreset0.id(), &coreset0);
-    out.coresets.emplace(coreset0.id(), &coreset0);
+  for (const auto& cs : bwp_cfg.cfg.dl.pdcch().coresets()) {
+    out.coresets.emplace(cs->id(), cs);
   }
-  if (bwp_cfg.dl_common->pdcch_common.common_coreset.has_value()) {
-    const auto& common_coreset =
-        *bwp_res.pdcchs().init_cfg().coresets()[bwp_cfg.dl_common->pdcch_common.common_coreset->get_id()];
-    bwp_cfg.coresets.emplace(common_coreset.id(), &common_coreset);
-    out.coresets.emplace(common_coreset.id(), &common_coreset);
-  }
-  for (const search_space_configuration& ss : bwp_cfg.dl_common->pdcch_common.search_spaces) {
-    bwp_cfg.search_spaces.emplace(ss.get_id(), &ss);
-  }
-
-  // BWP DL Dedicated
-  bwp_cfg.dl_ded = bwp_dl_ded_config_pool.create(dl_bwp_ded);
-  if (dl_bwp_ded.pdcch_cfg.has_value()) {
-    auto pdcch_it = std::find(bwp_res.dl().ded_pdcchs.begin(), bwp_res.dl().ded_pdcchs.end(), dl_bwp_ded.pdcch_cfg);
-    ocudu_assert(pdcch_it != bwp_res.dl().ded_pdcchs.end(), "PDCCH config must be preconfigured in the cell config");
-    const pdcch_config& pdcch_ded_cfg = *pdcch_it;
-    for (const coreset_configuration& cs : pdcch_ded_cfg.coresets) {
-      // TS 38.331, "PDCCH-Config" - In case network reconfigures control resource set with the same
-      // ControlResourceSetId as used for commonControlResourceSet configured via PDCCH-ConfigCommon,
-      // the configuration from PDCCH-Config always takes precedence and should not be updated by the UE based on
-      // servingCellConfigCommon.
-      const auto& sched_cs = *bwp_res.pdcchs().ded_cfgs()[0].coresets()[cs.get_id()];
-      bwp_cfg.coresets.emplace(cs.get_id(), &sched_cs);
-      out.coresets.emplace(cs.get_id(), &sched_cs);
-    }
-    for (const search_space_configuration& ss : pdcch_ded_cfg.search_spaces) {
-      bwp_cfg.search_spaces.emplace(ss.get_id(), &ss);
-      out.search_spaces.emplace(ss.get_id(), &ss);
-    }
-  }
-
-  // BWP UL Common
-  if (ul_bwp_common != nullptr) {
-    bwp_cfg.ul_common = bwp_ul_common_config_pool.create(*ul_bwp_common);
-  }
-
-  // BWP UL Dedicated
-  if (ul_bwp_ded != nullptr) {
-    bwp_cfg.ul_ded = *ul_bwp_ded;
+  for (const auto& ss : bwp_cfg.cfg.dl.pdcch().search_spaces()) {
+    out.search_spaces.emplace(ss->id(), &ss->cfg());
   }
 
   bwp_cfg.bwp = ue_bwp_cfg;

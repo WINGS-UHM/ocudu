@@ -90,7 +90,7 @@ pdcch_dl_information* pdcch_resource_allocator_impl::alloc_dl_pdcch_ue(cell_slot
 {
   // Find Common or UE-specific BWP and CORESET configurations.
   const search_space_info& ss_cfg     = user.search_space(ss_id);
-  const bwp_configuration& bwp_cfg    = ss_cfg.bwp->dl_common->generic_params;
+  const bwp_configuration& bwp_cfg    = ss_cfg.bwp->cfg.dl.cfg();
   span<const uint8_t>      candidates = ss_cfg.get_pdcch_candidates(aggr_lvl, slot_alloc.slot);
 
   return alloc_dl_pdcch_helper(slot_alloc, rnti, bwp_cfg, *ss_cfg.coreset, *ss_cfg.cfg, aggr_lvl, candidates);
@@ -104,7 +104,7 @@ pdcch_ul_information* pdcch_resource_allocator_impl::alloc_ul_pdcch_ue(cell_slot
 {
   // Find Common or UE-specific BWP and CORESET configurations.
   const search_space_info&         ss_cfg     = user.search_space(ss_id);
-  const bwp_configuration&         bwp_cfg    = ss_cfg.bwp->ul_common->value().generic_params;
+  const bwp_configuration&         bwp_cfg    = ss_cfg.bwp->cfg.ul.cfg();
   span<const pdcch_candidate_type> candidates = ss_cfg.get_pdcch_candidates(aggr_lvl, slot_alloc.slot);
 
   return alloc_ul_pdcch_helper(slot_alloc, rnti, bwp_cfg, *ss_cfg.coreset, *ss_cfg.cfg, aggr_lvl, candidates);

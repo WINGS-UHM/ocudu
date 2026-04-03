@@ -31,6 +31,7 @@ public:
   const T& operator*() const { return *obj; }
   const T& value() const { return *obj; }
   const T* operator->() const { return obj; }
+  const T* get() const { return obj; }
 
   // Note: Comparison made via pointer comparison. The assumption is that the object is unique.
   bool operator==(const config_ptr& rhs) const { return obj == rhs.obj; }

@@ -7,7 +7,7 @@
 #include "logical_channel_list_config.h"
 #include "ocudu/adt/slotted_vector.h"
 #include "ocudu/ran/du_types.h"
-#include "ocudu/scheduler/config/sched_pdcch_config.h"
+#include "ocudu/scheduler/config/sched_bwp_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 #include "ocudu/scheduler/config/ue_bwp_config.h"
 
@@ -17,29 +17,11 @@ struct sched_ue_config_request;
 
 /// Configuration of a BWP. It aggregates both the common and dedicated configurations for DL and UL.
 struct bwp_config {
-  /// UE-specific BWP Identifier
-  bwp_id_t bwp_id;
-  /// BWP Downlink Common Configuration
-  const bwp_downlink_common* dl_common = nullptr;
-  /// BWP Downlink Dedicated Configuration
-  std::optional<config_ptr<bwp_downlink_dedicated>> dl_ded;
-  /// BWP Uplink Common Configuration
-  std::optional<config_ptr<bwp_uplink_common>> ul_common;
-  /// BWP Uplink Dedicated Configuration
-  std::optional<bwp_uplink_dedicated> ul_ded;
-  /// CoreSets associated with this BWP.
-  slotted_id_vector<coreset_id, const sched_coreset_config*> coresets;
-  /// Search Spaces associated with this BWP.
-  slotted_id_vector<search_space_id, const search_space_configuration*> search_spaces;
+  sched_bwp_config cfg;
 
   ue_bwp_config bwp;
 
-  bool operator==(const bwp_config& other) const
-  {
-    return bwp_id == other.bwp_id and dl_common == other.dl_common and dl_ded == other.dl_ded and
-           ul_common == other.ul_common and ul_ded == other.ul_ded and coresets == other.coresets and
-           search_spaces == other.search_spaces;
-  }
+  bool operator==(const bwp_config& other) const { return cfg == other.cfg; }
 };
 
 using bwp_config_ptr  = config_ptr<bwp_config>;

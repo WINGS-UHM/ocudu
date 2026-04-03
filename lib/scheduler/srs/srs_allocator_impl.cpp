@@ -135,7 +135,7 @@ aperiodic_srs_alloc_info srs_allocator_impl::allocate_aperiodic_srs(cell_resourc
     return {};
   }
 
-  const srs_config& srs_cfg     = ue_cfg.init_bwp().ul_ded->srs_cfg.value();
+  const srs_config& srs_cfg     = ue_cfg.init_bwp().cfg.ul.ul_ded()->srs_cfg.value();
   const slot_point  pdcch_slot  = res_alloc[0].slot;
   const auto&       srs_res     = srs_cfg.srs_res_list.front();
   const auto&       srs_set     = srs_cfg.srs_res_set_list.front();

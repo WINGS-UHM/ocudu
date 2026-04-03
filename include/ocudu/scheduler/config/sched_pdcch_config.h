@@ -53,6 +53,7 @@ private:
   std::array<std::vector<crb_index_list>, NOF_AGGREGATION_LEVELS> ncce_crbs;
 };
 
+/// Configuration parameters and derived parameters associated with a SearchSpace.
 class sched_search_space_config
 {
 public:
@@ -109,6 +110,12 @@ public:
   const sched_search_space_config* ra_search_space() const
   {
     return ra_ss_id.has_value() ? ss_list[*ra_ss_id] : nullptr;
+  }
+
+  bool operator==(const sched_pdcch_config& other) const
+  {
+    return cs_list == other.cs_list and ss_list == other.ss_list and sib1_ss_id == other.sib1_ss_id and
+           other_si_ss_id == other.paging_ss_id and paging_ss_id == other.paging_ss_id and ra_ss_id == other.ra_ss_id;
   }
 
 private:

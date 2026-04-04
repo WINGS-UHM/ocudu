@@ -18,7 +18,7 @@ static constexpr unsigned NOF_BITS_PER_BYTE = 8U;
 
 // Helper that generates the ulsch_configuration object necessary to compute the Effective Code Rate.
 static ulsch_configuration build_ulsch_info(const pusch_config_params& pusch_cfg,
-                                            const bwp_config&          active_bwp_cfg,
+                                            const sched_bwp_config&    active_bwp_cfg,
                                             unsigned                   tbs_bytes,
                                             sch_mcs_description        mcs_info,
                                             unsigned                   nof_prbs,
@@ -40,8 +40,8 @@ static ulsch_configuration build_ulsch_info(const pusch_config_params& pusch_cfg
                                  .contains_dc = contains_dc};
 
   const uci_on_pusch* uci_cfg =
-      active_bwp_cfg.cfg.ul.ul_ded() != nullptr and active_bwp_cfg.cfg.ul.ul_ded()->pusch_cfg->uci_cfg.has_value()
-          ? &active_bwp_cfg.cfg.ul.ul_ded()->pusch_cfg->uci_cfg.value()
+      active_bwp_cfg.ul.ded() != nullptr and active_bwp_cfg.ul.ded()->pusch_cfg->uci_cfg.has_value()
+          ? &active_bwp_cfg.ul.ded()->pusch_cfg->uci_cfg.value()
           : nullptr;
   ocudu_assert(uci_cfg != nullptr or (pusch_cfg.nof_harq_ack_bits == 0 and pusch_cfg.nof_csi_part1_bits == 0 and
                                       pusch_cfg.max_nof_csi_part2_bits == 0),
@@ -264,7 +264,7 @@ std::optional<sch_mcs_tbs> ocudu::compute_dl_mcs_tbs(const pdsch_config_params& 
 }
 
 expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const pusch_config_params& pusch_cfg,
-                                                                          const bwp_config&          active_bwp_cfg,
+                                                                          const sched_bwp_config&    active_bwp_cfg,
                                                                           sch_mcs_index              max_mcs,
                                                                           unsigned                   nof_prbs,
                                                                           bool                       contains_dc)
@@ -317,7 +317,7 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> ocudu::compute_ul_mcs_tbs(const 
 }
 
 std::optional<units::bytes> ocudu::compute_ul_tbs(const pusch_config_params& pusch_cfg,
-                                                  const bwp_config&          active_bwp_cfg,
+                                                  const sched_bwp_config&    active_bwp_cfg,
                                                   sch_mcs_index              mcs,
                                                   unsigned                   nof_prbs,
                                                   bool                       contains_dc)
@@ -348,7 +348,7 @@ std::optional<units::bytes> ocudu::compute_ul_tbs(const pusch_config_params& pus
 }
 
 bool ocudu::is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,
-                                          const bwp_config&          active_bwp_cfg,
+                                          const sched_bwp_config&    active_bwp_cfg,
                                           sch_mcs_index              mcs,
                                           unsigned                   nof_prbs,
                                           bool                       contains_dc)

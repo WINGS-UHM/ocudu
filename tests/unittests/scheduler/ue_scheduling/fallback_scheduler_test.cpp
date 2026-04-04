@@ -653,7 +653,7 @@ TEST_P(fallback_scheduler_tester, when_ra_conres_timer_expires_ue_doesnt_get_all
   const auto&               test_ue = get_ue(to_du_ue_index(0));
   std::optional<slot_point> conres_pdcch;
   unsigned                  ra_conres_timer_subframes = static_cast<uint32_t>(
-      test_ue.get_pcell().cfg().init_bwp().cfg.ul.ul_common().rach_cfg_common.value().ra_con_res_timer.count());
+      test_ue.get_pcell().cfg().init_bwp().ul.common().rach_cfg_common.value().ra_con_res_timer.count());
   const unsigned max_test_run_slots = 2 * ra_conres_timer_subframes * (1U << current_slot.numerology());
   unsigned       sl_idx             = 0;
   for (; sl_idx != max_test_run_slots; ++sl_idx) {
@@ -1614,7 +1614,7 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_srb0_is_retx_ed_only_pucch_common
   add_ue(to_rnti(0x4601), to_du_ue_index(0), true);
   auto& u = bench->ue_db[to_du_ue_index(0)];
 
-  ASSERT_FALSE(u.get_pcell().cfg().init_bwp().cfg.ul.ul_ded() != nullptr);
+  ASSERT_FALSE(u.get_pcell().cfg().init_bwp().ul.ded() != nullptr);
 
   slot_point slot_update_srb_traffic{current_slot.numerology(), generate_srb_traffic_slot()};
 
@@ -1660,7 +1660,7 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_reconf_is_after_reest_both_common
   const auto du_ue_index = to_du_ue_index(0);
   ASSERT_TRUE(add_ue(rnti, du_ue_index));
   auto& u = bench->ue_db[to_du_ue_index(0)];
-  ASSERT_TRUE(u.get_pcell().cfg().init_bwp().cfg.ul.ul_ded() != nullptr);
+  ASSERT_TRUE(u.get_pcell().cfg().init_bwp().ul.ded() != nullptr);
 
   // Signal a UE reconfiguration that happens after re-establishment.
   auto ue_cfg              = sched_config_helper::create_default_sched_ue_creation_request(bench->cell_cfg.params);
@@ -1719,7 +1719,7 @@ TEST_F(fallback_sched_ue_w_out_pucch_cfg, when_srb1_is_scheduled_with_crnti_both
   const auto du_ue_index = to_du_ue_index(0);
   ASSERT_TRUE(add_ue(rnti, du_ue_index));
   auto& u = bench->ue_db[to_du_ue_index(0)];
-  ASSERT_TRUE(u.get_pcell().cfg().init_bwp().cfg.ul.ul_ded() != nullptr);
+  ASSERT_TRUE(u.get_pcell().cfg().init_bwp().ul.ded() != nullptr);
 
   slot_point slot_update_srb_traffic{current_slot.numerology(), generate_srb_traffic_slot()};
 

@@ -13,7 +13,7 @@ namespace ocudu {
 
 struct pusch_config_params;
 struct pdsch_config_params;
-struct bwp_config;
+struct sched_bwp_config;
 
 /// Container for MCS and TBS results.
 struct sch_mcs_tbs {
@@ -85,7 +85,7 @@ inline const char* to_string(compute_ul_mcs_tbs_error error)
 /// \param[in] contains_dc Set to true if the transmission overlaps with the position of the DC.
 /// \return The MCS and TBS, if the function converges into a valid code rate, otherwise an error.
 expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> compute_ul_mcs_tbs(const pusch_config_params& pusch_params,
-                                                                   const bwp_config&          active_bwp_cfg,
+                                                                   const sched_bwp_config&    active_bwp_cfg,
                                                                    sch_mcs_index              max_mcs,
                                                                    unsigned                   nof_prbs,
                                                                    bool                       contains_dc);
@@ -98,7 +98,7 @@ expected<sch_mcs_tbs, compute_ul_mcs_tbs_error> compute_ul_mcs_tbs(const pusch_c
 /// \param[in] contains_dc Set to true if the transmission overlaps with the position of the DC.
 /// \return TBS in bytes, in case the PUSCH code rate and paramters are valid; else, std::nullopt.
 std::optional<units::bytes> compute_ul_tbs(const pusch_config_params& pusch_params,
-                                           const bwp_config&          active_bwp_cfg,
+                                           const sched_bwp_config&    active_bwp_cfg,
                                            sch_mcs_index              mcs,
                                            unsigned                   nof_prbs,
                                            bool                       contains_dc);
@@ -112,7 +112,7 @@ units::bytes compute_ul_tbs_unsafe(const pusch_config_params& pusch_params, sch_
 
 /// \brief Determines if the selected MCS, TBS and number of PRBs leads to a valid effective code rate and UCI.
 bool is_pusch_effective_rate_valid(const pusch_config_params& pusch_cfg,
-                                   const bwp_config&          active_bwp_cfg,
+                                   const sched_bwp_config&    active_bwp_cfg,
                                    sch_mcs_index              mcs,
                                    unsigned                   nof_prbs,
                                    bool                       contains_dc);

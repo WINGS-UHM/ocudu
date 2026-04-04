@@ -16,7 +16,7 @@ unsigned ocudu::get_n_id0_scrambling(const ue_cell_configuration& ue_cell_cfg, u
   // dmrs-UplinkForPUSCH-MappingTypeB.
 
   // Check \c scrambling_id0 in \c dmrs-UplinkForPUSCH-MappingTypeB, first
-  const auto& pusch_cfg = *ue_cell_cfg.init_bwp().cfg.ul.ul_ded()->pusch_cfg;
+  const auto& pusch_cfg = *ue_cell_cfg.init_bwp().ul.ded()->pusch_cfg;
   if (pusch_cfg.pusch_mapping_type_b_dmrs.has_value() and
       pusch_cfg.pusch_mapping_type_b_dmrs.value().trans_precoder_disabled.has_value() and
       pusch_cfg.pusch_mapping_type_b_dmrs.value().trans_precoder_disabled.value().scrambling_id0.has_value()) {

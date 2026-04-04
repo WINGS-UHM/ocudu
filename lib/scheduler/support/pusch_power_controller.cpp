@@ -50,10 +50,9 @@ pusch_power_controller::pusch_power_controller(const ue_cell_configuration&    u
 
 void pusch_power_controller::reconfigure(const ue_cell_configuration& ue_cell_cfg)
 {
-  if (ue_cell_cfg.init_bwp().cfg.ul.ul_ded() != nullptr and
-      ue_cell_cfg.init_bwp().cfg.ul.ul_ded()->pusch_cfg.has_value() and
-      ue_cell_cfg.init_bwp().cfg.ul.ul_ded()->pusch_cfg.value().pusch_pwr_ctrl.has_value()) {
-    pusch_pwr_ctrl.emplace(ue_cell_cfg.init_bwp().cfg.ul.ul_ded()->pusch_cfg.value().pusch_pwr_ctrl.value());
+  if (ue_cell_cfg.init_bwp().ul.ded() != nullptr and ue_cell_cfg.init_bwp().ul.ded()->pusch_cfg.has_value() and
+      ue_cell_cfg.init_bwp().ul.ded()->pusch_cfg.value().pusch_pwr_ctrl.has_value()) {
+    pusch_pwr_ctrl.emplace(ue_cell_cfg.init_bwp().ul.ded()->pusch_cfg.value().pusch_pwr_ctrl.value());
   }
 }
 

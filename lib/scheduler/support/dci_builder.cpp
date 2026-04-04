@@ -166,7 +166,7 @@ void ocudu::build_dci_f1_0_c_rnti(dci_dl_info&                  dci,
                                   uint8_t                       rv,
                                   const dl_harq_process_handle& h_dl)
 {
-  const bwp_configuration& active_dl_bwp = ss_info.bwp->cfg.dl.cfg();
+  const bwp_configuration& active_dl_bwp = ss_info.bwp->dl.cfg();
 
   dci.type                           = dci_dl_rnti_config_type::c_rnti_f1_0;
   dci.c_rnti_f1_0                    = {};
@@ -226,7 +226,7 @@ void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   // TODO: Update the value based on nof. CWs enabled.
   static constexpr bool are_both_cws_enabled = false;
 
-  const bwp_configuration& active_dl_bwp = ss_info.bwp->cfg.dl.cfg();
+  const bwp_configuration& active_dl_bwp = ss_info.bwp->dl.cfg();
   const auto               k1_candidates = ss_info.get_k1_candidates();
 
   dci.type                    = dci_dl_rnti_config_type::c_rnti_f1_1;
@@ -236,9 +236,9 @@ void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   f1_1.tpc_command             = static_cast<unsigned>(tpc);
   f1_1.srs_request             = srs_request;
   f1_1.dmrs_seq_initialization = 0;
-  ocudu_assert(ss_info.bwp->cfg.dl.pdsch_ded()->pdsch_mapping_type_a_dmrs.has_value(),
+  ocudu_assert(ss_info.bwp->dl.pdsch_ded()->pdsch_mapping_type_a_dmrs.has_value(),
                "No DMRS configured in PDSCH configuration");
-  const auto& dmrs_cfg = ss_info.bwp->cfg.dl.pdsch_ded()->pdsch_mapping_type_a_dmrs.value();
+  const auto& dmrs_cfg = ss_info.bwp->dl.pdsch_ded()->pdsch_mapping_type_a_dmrs.value();
   f1_1.antenna_ports   = get_pdsch_antenna_port_mapping_row_index(
       nof_layers,
       ue_cell_cfg.cell_cfg_common.params.dl_carrier.nof_ant,
@@ -332,7 +332,7 @@ void ocudu::build_dci_f0_0_c_rnti(dci_ul_info&                  dci,
                                   const ul_harq_process_handle& h_ul,
                                   uint8_t                       tpc_command)
 {
-  const bwp_configuration& active_ul_bwp = ss_info.bwp->cfg.ul.cfg();
+  const bwp_configuration& active_ul_bwp = ss_info.bwp->ul.cfg();
 
   dci.type                           = dci_ul_rnti_config_type::c_rnti_f0_0;
   dci.c_rnti_f0_0                    = {};
@@ -386,7 +386,7 @@ void ocudu::build_dci_f0_1_c_rnti(dci_ul_info&                  dci,
   const search_space_info& ss_info = ue_cell_cfg.search_space(ss_id);
   ocudu_assert(not ss_info.cfg->is_common_search_space(), "SearchSpace must be of type UE-Specific SearchSpace");
 
-  const bwp_configuration& active_ul_bwp = ss_info.bwp->cfg.ul.cfg();
+  const bwp_configuration& active_ul_bwp = ss_info.bwp->ul.cfg();
 
   dci.type                    = dci_ul_rnti_config_type::c_rnti_f0_1;
   dci.c_rnti_f0_1             = {};

@@ -71,20 +71,19 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
   }
 
   // Create BWP config.
-  bwp_config bwp_cfg;
-  bwp_cfg.cfg = sched_bwp_config{bwp_id,
-                                 sched_bwp_dl_config{bwp_res.dl_common(), &*bwp_dl_ded, bwp_res.pdcchs().ded_cfgs()[0]},
-                                 sched_bwp_ul_config{*bwp_ul_common, bwp_ul_ded.get()}};
+  sched_bwp_config bwp_cfg{bwp_id,
+                           sched_bwp_dl_config{bwp_res.dl_common(), &*bwp_dl_ded, bwp_res.pdcchs().ded_cfgs()[0]},
+                           sched_bwp_ul_config{*bwp_ul_common, bwp_ul_ded.get(), ue_bwp_cfg.ul}};
+  out.bwps.emplace(bwp_id, bwp_config_pool.create(bwp_cfg));
+  auto& bwp = out.bwps[bwp_id];
 
-  for (const auto& cs : bwp_cfg.cfg.dl.pdcch().coresets()) {
+  // Generate cell-wide lookups of CORESETs and SearchSpaces for this UE.
+  for (const auto& cs : bwp->dl.pdcch().coresets()) {
     out.coresets.emplace(cs->id(), cs);
   }
-  for (const auto& ss : bwp_cfg.cfg.dl.pdcch().search_spaces()) {
+  for (const auto& ss : bwp->dl.pdcch().search_spaces()) {
     out.search_spaces.emplace(ss->id(), &ss->cfg());
   }
-
-  bwp_cfg.bwp = ue_bwp_cfg;
-  out.bwps.emplace(bwp_id, bwp_config_pool.create(bwp_cfg));
 }
 
 // class du_cell_group_config_pool

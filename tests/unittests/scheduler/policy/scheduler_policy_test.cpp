@@ -822,7 +822,7 @@ TEST_P(scheduler_policy_alloc_bounds_test, scheduler_allocates_pdsch_within_conf
   // Expected CRBs is based on the expert configuration passed to scheduler during class initialization.
   crb_interval expected_crb_allocation{10, 15};
   prb_interval expected_prb_interval =
-      crb_to_prb(u1.get_pcell().cfg().bwp(u1.get_pcell().active_bwp_id()).cfg.dl.cfg().crbs, expected_crb_allocation);
+      crb_to_prb(u1.get_pcell().cfg().bwp(u1.get_pcell().active_bwp_id()).dl.cfg().crbs, expected_crb_allocation);
   vrb_interval expected_vrb_interval{expected_prb_interval.start(), expected_prb_interval.stop()};
 
   ASSERT_EQ(this->res_grid[0].result.dl.ue_grants.size(), 1);
@@ -845,7 +845,7 @@ TEST_P(scheduler_policy_alloc_bounds_test, scheduler_allocates_pusch_within_conf
   // Expected CRBs is based on the expert configuration passed to scheduler during class initialization.
   crb_interval expected_crb_allocation{10, 15};
   prb_interval expected_prb_interval =
-      crb_to_prb(u1.get_pcell().cfg().bwp(u1.get_pcell().active_bwp_id()).cfg.ul.cfg().crbs, expected_crb_allocation);
+      crb_to_prb(u1.get_pcell().cfg().bwp(u1.get_pcell().active_bwp_id()).ul.cfg().crbs, expected_crb_allocation);
   vrb_interval expected_vrb_interval{expected_prb_interval.start(), expected_prb_interval.stop()};
 
   ASSERT_TRUE(this->res_grid[0].result.ul.puschs.back().pusch_cfg.rbs.type1() == expected_vrb_interval);

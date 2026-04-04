@@ -45,7 +45,7 @@ protected:
         return sched_helper::get_pdsch_config_f1_0_c_rnti(cell_cfg, ue_cc.cfg().pdsch_serving_cell_cfg(), pdsch_td_cfg);
       case dci_dl_rnti_config_type::c_rnti_f1_1:
         return sched_helper::get_pdsch_config_f1_1_c_rnti(cell_cfg,
-                                                          *ue_cc.cfg().bwp(to_bwp_id(0)).cfg.dl.pdsch_ded(),
+                                                          *ue_cc.cfg().bwp(to_bwp_id(0)).dl.pdsch_ded(),
                                                           ue_cc.cfg().pdsch_serving_cell_cfg(),
                                                           pdsch_td_cfg,
                                                           ue_cc.channel_state_manager().get_nof_dl_layers());
@@ -68,7 +68,7 @@ protected:
       case dci_ul_rnti_config_type::c_rnti_f0_0:
         return get_pusch_config_f0_0_c_rnti(cell_cfg,
                                             &ue_cc.cfg(),
-                                            ue_cc.cfg().bwp(ue_cc.active_bwp_id()).cfg.ul.ul_common(),
+                                            ue_cc.cfg().bwp(ue_cc.active_bwp_id()).ul.common(),
                                             pusch_td_cfg,
                                             uci_bits_overallocation,
                                             is_csi_report_slot);

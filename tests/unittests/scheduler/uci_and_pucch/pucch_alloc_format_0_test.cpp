@@ -23,7 +23,7 @@ public:
                                 .get_pcell()
                                 .cfg()
                                 .init_bwp()
-                                .cfg.ul.ul_ded()
+                                .ul.ded()
                                 ->pucch_cfg.value()
                                 .pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_0)]
                                 .pucch_res_id_list.size() -
@@ -32,7 +32,7 @@ public:
                                  .get_pcell()
                                  .cfg()
                                  .init_bwp()
-                                 .cfg.ul.ul_ded()
+                                 .ul.ded()
                                  ->pucch_cfg.value()
                                  .pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_0)]
                                  .pucch_res_id_list.size() -
@@ -41,7 +41,7 @@ public:
                                 .get_pcell()
                                 .cfg()
                                 .init_bwp()
-                                .cfg.ul.ul_ded()
+                                .ul.ded()
                                 ->pucch_cfg.value()
                                 .pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_1)]
                                 .pucch_res_id_list.size() -
@@ -50,7 +50,7 @@ public:
                                  .get_pcell()
                                  .cfg()
                                  .init_bwp()
-                                 .cfg.ul.ul_ded()
+                                 .ul.ded()
                                  ->pucch_cfg.value()
                                  .pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_1)]
                                  .pucch_res_id_list.size() -
@@ -85,13 +85,12 @@ public:
                                       .get_pcell()
                                       .cfg()
                                       .init_bwp()
-                                      .cfg.ul.pucch_ded()
+                                      .ul.pucch_ded()
                                       ->pucch_res_set[pucch_res_set_idx_to_uint(pucch_res_set_idx::set_1)]
                                       .pucch_res_id_list[pucch_res_idx_f2_for_sr];
     pucch_expected_sr_f2 = test_helpers::make_ded_pucch_info(
         t_bench.cell_cfg,
-        t_bench.get_main_ue().get_pcell().cfg().init_bwp().cfg.ul.ul_ded()->pucch_cfg->pucch_res_list[sr_f2_res_id
-                                                                                                          .ue_res_id],
+        t_bench.get_main_ue().get_pcell().cfg().init_bwp().ul.ded()->pucch_cfg->pucch_res_list[sr_f2_res_id.ue_res_id],
         {.harq_ack_nof_bits = 3U},
         max_code_rate);
 

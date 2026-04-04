@@ -15,16 +15,7 @@ namespace ocudu {
 
 struct sched_ue_config_request;
 
-/// Configuration of a BWP. It aggregates both the common and dedicated configurations for DL and UL.
-struct bwp_config {
-  sched_bwp_config cfg;
-
-  ue_bwp_config bwp;
-
-  bool operator==(const bwp_config& other) const { return cfg == other.cfg; }
-};
-
-using bwp_config_ptr  = config_ptr<bwp_config>;
+using bwp_config_ptr  = config_ptr<sched_bwp_config>;
 using bwp_config_list = slotted_id_vector<bwp_id_t, bwp_config_ptr>;
 
 /// UE-dedicated resources for a given cell.

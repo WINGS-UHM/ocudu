@@ -3,41 +3,123 @@ name: Weekly mirror of GitLab dev -> upstream-dev
 on:
   workflow_dispatch:
   schedule:
-    - cron: "20 10 * * 1,5" 
+    - cron: "20 10 * * 1,5"
 
 permissions:
   contents: write
   actions: read
- 
+
 jobs:
-  sync:
+  mirror:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (full history)
+      - name: Checkout upstream-dev
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: upstream-dev
           token: ${{ secrets.UPSTREAM_MIRROR_PAT }}
+
       - name: Configure git identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Add/fetch upstream (GitLab)
         run: |
           git remote add upstream https://gitlab.com/ocudu/ocudu.git || true
           git fetch upstream --prune
           git fetch origin upstream-dev || true
-      - name: Update upstream-dev on GitHub if upstream/dev has new commits
+
+      - name: Update upstream-dev if upstream/dev changed
         run: |
-          UPSTREAM=$(git rev-parse upstream/dev)
-          CURRENT=$(git rev-parse origin/upstream-dev 2>/dev/null || echo "none")
+          UPSTREAM="$(git rev-parse upstream/dev)"
+          CURRENT="$(git rev-parse HEAD)"
 
           echo "Upstream commit: $UPSTREAM"
           echo "Current upstream-dev: $CURRENT"
 
           if [ "$UPSTREAM" != "$CURRENT" ]; then
-            echo "New upstream commit detected. Updating upstream-dev."
+            echo "Updating upstream-dev to match upstream/dev"
             git push origin refs/remotes/upstream/dev:refs/heads/upstream-dev --force
           else
             echo "No updates in upstream/dev. Skipping push."
+          fi
+
+  badges:
+    runs-on: ubuntu-latest
+    needs: mirror
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+          token: ${{ secrets.UPSTREAM_MIRROR_PAT }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add/fetch upstream (GitLab)
+        run: |
+          git remote add upstream https://gitlab.com/ocudu/ocudu.git || true
+          git fetch upstream --prune
+
+      - name: Compute upstream comparison badges
+        run: |
+          UPSTREAM_BRANCH="dev"
+
+          BASE_SHA="$(git merge-base HEAD upstream/${UPSTREAM_BRANCH})"
+          SHORT_SHA="$(git rev-parse --short "${BASE_SHA}")"
+          BASE_DATE="$(git show -s --format=%cs "${BASE_SHA}")"
+          LAG_COUNT="$(git rev-list --count HEAD..upstream/${UPSTREAM_BRANCH})"
+
+          mkdir -p .github/badges
+
+          cat > .github/badges/upstream-base.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "Upstream Base",
+            "message": "${SHORT_SHA}",
+            "color": "blue"
+          }
+          EOF
+
+          cat > .github/badges/upstream-date.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "Upstream Base Date",
+            "message": "${BASE_DATE}",
+            "color": "brightgreen"
+          }
+          EOF
+
+          if [ "${LAG_COUNT}" -le 20 ]; then
+            LAG_COLOR="brightgreen"
+          elif [ "${LAG_COUNT}" -le 100 ]; then
+            LAG_COLOR="yellow"
+          else
+            LAG_COLOR="red"
+          fi
+
+          cat > .github/badges/upstream-lag.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "Upstream Lag",
+            "message": "${LAG_COUNT} commits",
+            "color": "${LAG_COLOR}"
+          }
+          EOF
+
+      - name: Commit and push badge updates to main
+        run: |
+          git add .github/badges/*.json
+
+          if git diff --cached --quiet; then
+            echo "No badge changes."
+          else
+            git commit -m "[update] upstream badges"
+            git push origin HEAD:main
           fi

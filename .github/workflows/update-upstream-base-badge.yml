@@ -3,7 +3,7 @@ name: Update upstream base badge
 on:
   workflow_dispatch:
   push:
-    branches: ["main", "upstream-dev"]
+    branches: ["main"]
 
 permissions:
   contents: write

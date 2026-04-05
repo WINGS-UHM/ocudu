@@ -54,8 +54,14 @@ cell_configuration::cell_configuration(const scheduler_expert_config&           
                            get_nof_slots_per_subframe(scs_common())
                      : 0)
 {
-  // Initiate dedicated sched BWP configs.
+  // Initialize BWP resources.
   bwp_res.emplace(to_bwp_id(0), params, to_bwp_id(0));
+
+  // Setup initial BWP.
+  init_bwp.id = to_bwp_id(0);
+  init_bwp.dl =
+      sched_bwp_dl_config{params.dl_cfg_common.init_dl_bwp, nullptr, bwp_res[to_bwp_id(0)].pdcchs().init_cfg()};
+  init_bwp.ul = sched_bwp_ul_config{params.ul_cfg_common.init_ul_bwp, nullptr};
 
   if (is_tdd()) {
     // Cache list of DL and UL slots in case of TDD

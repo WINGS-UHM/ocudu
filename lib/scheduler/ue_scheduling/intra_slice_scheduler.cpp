@@ -239,7 +239,7 @@ static std::pair<unsigned, unsigned> get_max_grants_and_rb_grant_size(span<const
 
   // [Implementation-defined] We use the same searchSpace config to determine the number of RBs available.
   const ue_cell_configuration& ue_cfg  = ue_candidates[0].ue->get_cc().cfg();
-  const search_space_id        ss_id   = ue_cfg.init_bwp().dl.ded()->pdcch_cfg->search_spaces.back().get_id();
+  const search_space_id        ss_id   = ue_cfg.init_bwp().dl.pdcch().search_spaces()[to_search_space_id(2)]->id();
   const auto*                  ss_info = ue_cfg.find_search_space(ss_id);
   if (ss_info == nullptr) {
     return std::make_pair(0, 0);

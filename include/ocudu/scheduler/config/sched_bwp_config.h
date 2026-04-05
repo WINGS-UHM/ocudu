@@ -7,8 +7,27 @@
 #include "bwp_configuration.h"
 #include "sched_pdcch_config.h"
 #include "serving_cell_config.h"
+#include "ue_bwp_config.h"
 
 namespace ocudu {
+
+/// PDSCH configuration of a BWP.
+class sched_pdsch_config
+{
+public:
+  sched_pdsch_config() = default;
+  sched_pdsch_config(const pdsch_config_common& cfg_common, const pdsch_config* cfg_ded) :
+    cmn(&cfg_common), ded_ptr(cfg_ded)
+  {
+  }
+
+  const pdsch_config_common& common() const { return *cmn; }
+  const pdsch_config*        ded() const { return ded_ptr; }
+
+private:
+  const pdsch_config_common* cmn     = nullptr;
+  const pdsch_config*        ded_ptr = nullptr;
+};
 
 /// Configuration of a Downlink Bandwidth Part (BWP) including the common config and optionally the dedicated config.
 class sched_bwp_dl_config
@@ -18,21 +37,20 @@ public:
   sched_bwp_dl_config(const bwp_downlink_common&    common,
                       const bwp_downlink_dedicated* ded,
                       const sched_pdcch_config&     pdcch_cfg_) :
-    bwp_dl_common(&common), bwp_dl_ded(ded), pdcch_cfg(&pdcch_cfg_)
+    bwp_dl_common(&common),
+    bwp_dl_ded(ded),
+    pdcch_cfg(&pdcch_cfg_),
+    pdsch_cfg(common.pdsch_common, ded != nullptr and ded->pdsch_cfg.has_value() ? &*ded->pdsch_cfg : nullptr)
   {
   }
 
-  const bwp_configuration&      cfg() const { return bwp_dl_common->generic_params; }
-  const bwp_downlink_common&    common() const { return *bwp_dl_common; }
-  const bwp_downlink_dedicated* ded() const { return bwp_dl_ded; }
+  const bwp_configuration&   cfg() const { return bwp_dl_common->generic_params; }
+  const bwp_downlink_common& common() const { return *bwp_dl_common; }
+  bool                       has_ded_cfg() const { return bwp_dl_ded != nullptr and bwp_dl_ded->pdcch_cfg.has_value(); }
 
   const sched_pdcch_config& pdcch() const { return *pdcch_cfg; }
+  const sched_pdsch_config& pdsch() const { return pdsch_cfg; }
 
-  const pdsch_config_common& pdsch_common() const { return bwp_dl_common->pdsch_common; }
-  const pdsch_config*        pdsch_ded() const
-  {
-    return bwp_dl_ded != nullptr and bwp_dl_ded->pdsch_cfg.has_value() ? &*bwp_dl_ded->pdsch_cfg : nullptr;
-  }
   const radio_link_monitoring_config* rlm() const
   {
     return bwp_dl_ded != nullptr and bwp_dl_ded->rlm_cfg.has_value() ? &*bwp_dl_ded->rlm_cfg : nullptr;
@@ -48,6 +66,7 @@ private:
   const bwp_downlink_common*    bwp_dl_common = nullptr;
   const bwp_downlink_dedicated* bwp_dl_ded    = nullptr;
   const sched_pdcch_config*     pdcch_cfg     = nullptr;
+  sched_pdsch_config            pdsch_cfg;
 };
 
 /// Configuration of a Uplink Bandwidth Part (BWP) including the common config and optionally the dedicated config.

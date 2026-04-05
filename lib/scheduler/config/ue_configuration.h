@@ -213,10 +213,7 @@ public:
   const auto& get_srs_nof_ports() const { return init_bwp().ul.ue_cfg()->srs.nof_ports; }
 
 private:
-  void configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_downlink_common& bwp_dl_common);
-  void configure_bwp_common_cfg(bwp_id_t bwpid, const bwp_uplink_common& bwp_ul_common);
-  void configure_bwp_ded_cfg(bwp_id_t bwpid, const bwp_downlink_dedicated& bwp_dl_ded);
-  void configure_bwp_ded_cfg(bwp_id_t bwpid, const bwp_uplink_dedicated& bwp_ul_ded);
+  void configure_bwp_cfg(bwp_id_t bwpid, const sched_bwp_config& bwp);
 
   /// Dedicated cell configuration.
   ue_cell_config_ptr             cell_ded;

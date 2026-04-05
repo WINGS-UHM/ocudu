@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "pusch_default_time_allocation.h"
+#include "ocudu/scheduler/config/sched_bwp_config.h"
 #include "ocudu/scheduler/config/serving_cell_config.h"
 
 using namespace ocudu;
@@ -105,39 +106,30 @@ ocudu::pusch_default_time_allocation_default_A_get(cyclic_prefix cp, unsigned ro
 }
 
 span<const pusch_time_domain_resource_allocation>
-ocudu::get_c_rnti_pusch_time_domain_list(bool                        is_common_ss,
-                                         coreset_id                  cs_id,
-                                         const bwp_uplink_common&    active_bwp_ul_common,
-                                         const bwp_uplink_dedicated* active_bwp_ul_ded)
+ocudu::get_c_rnti_pusch_time_domain_list(bool is_common_ss, coreset_id cs_id, const sched_bwp_config& active_bwp)
 {
-  bool fallback     = is_common_ss and cs_id == to_coreset_id(0);
-  active_bwp_ul_ded = fallback ? nullptr : active_bwp_ul_ded;
+  bool fallback = is_common_ss and cs_id == to_coreset_id(0);
 
   // See TS 38.214, Table 6.1.2.1.1-1.
-  if (active_bwp_ul_ded != nullptr and active_bwp_ul_ded->pusch_cfg.has_value() and
-      not active_bwp_ul_ded->pusch_cfg.value().pusch_td_alloc_list.empty()) {
+  if (not fallback and active_bwp.ul.pusch_ded() != nullptr and
+      not active_bwp.ul.pusch_ded()->pusch_td_alloc_list.empty()) {
     // Cases:
     // - Any common search space not associated with CORESET 0, pusch-Config includes pusch-TimeDomainAllocationList
     // - UE specific search space, pusch-Config includes pusch-TimeDomainAllocationList
-    return active_bwp_ul_ded->pusch_cfg.value().pusch_td_alloc_list;
+    return active_bwp.ul.pusch_ded()->pusch_td_alloc_list;
   }
 
-  if (active_bwp_ul_common.pusch_cfg_common.has_value() and
-      (not active_bwp_ul_common.pusch_cfg_common.value().pusch_td_alloc_list.empty())) {
+  if (not active_bwp.ul.pusch_common()->pusch_td_alloc_list.empty()) {
     // Case in which pusch-ConfigCommon includes puschTimeDomainAllocationList
-    return active_bwp_ul_common.pusch_cfg_common.value().pusch_td_alloc_list;
+    return active_bwp.ul.pusch_common()->pusch_td_alloc_list;
   }
 
   // default A table case.
-  return pusch_default_time_allocations_default_A_table(active_bwp_ul_common.generic_params.cp,
-                                                        active_bwp_ul_common.generic_params.scs);
+  return pusch_default_time_allocations_default_A_table(active_bwp.ul.cfg().cp, active_bwp.ul.cfg().scs);
 }
 
 span<const pusch_time_domain_resource_allocation>
-ocudu::get_c_rnti_pusch_time_domain_list(const search_space_configuration& ss_cfg,
-                                         const bwp_uplink_common&          active_bwp_ul_common,
-                                         const bwp_uplink_dedicated*       active_bwp_ul_ded)
+ocudu::get_c_rnti_pusch_time_domain_list(const search_space_configuration& ss_cfg, const sched_bwp_config& active_bwp)
 {
-  return get_c_rnti_pusch_time_domain_list(
-      ss_cfg.is_common_search_space(), ss_cfg.get_coreset_id(), active_bwp_ul_common, active_bwp_ul_ded);
+  return get_c_rnti_pusch_time_domain_list(ss_cfg.is_common_search_space(), ss_cfg.get_coreset_id(), active_bwp);
 }

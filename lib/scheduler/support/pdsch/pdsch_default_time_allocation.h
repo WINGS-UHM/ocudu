@@ -8,6 +8,7 @@
 #include "ocudu/ran/cyclic_prefix.h"
 #include "ocudu/ran/dmrs/dmrs.h"
 #include "ocudu/ran/pdsch/pdsch_time_domain_resource.h"
+#include "ocudu/scheduler/config/sched_bwp_config.h"
 
 namespace ocudu {
 
@@ -46,8 +47,7 @@ pdsch_default_time_allocations_default_A_table(cyclic_prefix cp, dmrs_typeA_posi
 /// \return A list of valid PDSCH time-domain allocation configurations to choose from.
 span<const pdsch_time_domain_resource_allocation>
 get_c_rnti_pdsch_time_domain_list(const search_space_configuration& ss_cfg,
-                                  const bwp_downlink_common&        active_bwp_dl_common,
-                                  const bwp_downlink_dedicated*     active_bwp_dl_ded,
+                                  const sched_bwp_config&           active_bwp,
                                   dmrs_typeA_position               dmrs_typeA_pos);
 
 /// \brief Determines the time domain resource allocation table to be used for PDSCH scheduled with SI-RNTI Type0 common

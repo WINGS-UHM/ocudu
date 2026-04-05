@@ -86,7 +86,7 @@ TEST_P(pusch_td_resource_indices_test, all_ul_slots_have_one_pdcch_slot_to_sched
 {
   // Fetch the relevant PUSCH time domain resource list.
   span<const pusch_time_domain_resource_allocation> pusch_time_domain_list =
-      get_c_rnti_pusch_time_domain_list(true, to_coreset_id(0), cell_cfg->params.ul_cfg_common.init_ul_bwp, nullptr);
+      get_c_rnti_pusch_time_domain_list(true, to_coreset_id(0), cell_cfg->init_bwp);
 
   unsigned slot_mod = cell_cfg->is_tdd() ? nof_slots_per_tdd_period(*cell_cfg->params.tdd_cfg) : SCHEDULER_MAX_K2;
 

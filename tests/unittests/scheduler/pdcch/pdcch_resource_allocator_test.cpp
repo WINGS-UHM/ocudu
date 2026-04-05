@@ -226,24 +226,27 @@ protected:
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- initial BWP: RBs={}",
                    cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.crbs);
-    const auto&                  bwp_res = cell_cfg.bwp_res[to_bwp_id(0)];
-    const coreset_configuration& cs0_cfg = bwp_res.pdcchs().init_cfg().coresets()[to_coreset_id(0)]->cfg();
+    const sched_bwp_config&      init_bwp = cell_cfg.init_bwp;
+    const coreset_configuration& cs0_cfg  = init_bwp.dl.pdcch().coresets()[to_coreset_id(0)]->cfg();
     fmt::format_to(
         std::back_inserter(fmtbuf), "\n- CORESET#0: RBs={}, duration={}", cs0_cfg.coreset0_crbs(), cs0_cfg.duration());
-    const auto& cs1_cfg = bwp_res.pdcchs().ded_cfgs()[0].coresets()[to_coreset_id(1)]->cfg();
+    const auto& ue_ded_pdcch = *default_ue_cell_req.serv_cell_cfg.init_dl_bwp.pdcch_cfg;
+    const auto& cs1_cfg      = ue_ded_pdcch.coresets.front();
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- CORESET#1: RBs={}, duration={}",
                    get_coreset_crbs(cs1_cfg),
                    cs1_cfg.duration());
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- SearchSpace#0: nof_candidates={}",
-                   fmt::join(bwp_res.dl_common().pdcch_common.search_spaces[0].get_nof_candidates(), ", "));
-    fmt::format_to(std::back_inserter(fmtbuf),
-                   "\n- SearchSpace#1: nof_candidates={}",
-                   fmt::join(bwp_res.dl_common().pdcch_common.search_spaces[1].get_nof_candidates(), ", "));
+    fmt::format_to(
+        std::back_inserter(fmtbuf),
+        "\n- SearchSpace#0: nof_candidates={}",
+        fmt::join(init_bwp.dl.pdcch().search_spaces()[to_search_space_id(0)]->cfg().get_nof_candidates(), ", "));
+    fmt::format_to(
+        std::back_inserter(fmtbuf),
+        "\n- SearchSpace#1: nof_candidates={}",
+        fmt::join(init_bwp.dl.pdcch().search_spaces()[to_search_space_id(1)]->cfg().get_nof_candidates(), ", "));
     fmt::format_to(std::back_inserter(fmtbuf),
                    "\n- SearchSpace#2: nof_candidates={}",
-                   fmt::join(bwp_res.dl().ded_pdcchs[0].search_spaces[0].get_nof_candidates(), ", "));
+                   fmt::join(ue_ded_pdcch.search_spaces[0].get_nof_candidates(), ", "));
     test_logger.info("{}", to_string(fmtbuf));
   }
 

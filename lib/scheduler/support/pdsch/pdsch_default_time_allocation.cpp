@@ -105,28 +105,27 @@ ocudu::pdsch_default_time_allocation_default_A_get(cyclic_prefix cp, unsigned ro
 
 span<const pdsch_time_domain_resource_allocation>
 ocudu::get_c_rnti_pdsch_time_domain_list(const search_space_configuration& ss_cfg,
-                                         const bwp_downlink_common&        active_bwp_dl_common,
-                                         const bwp_downlink_dedicated*     active_bwp_dl_ded,
+                                         const sched_bwp_config&           active_bwp,
                                          dmrs_typeA_position               dmrs_typeA_pos)
 {
   const bool is_fallback_ss = ss_cfg.is_common_search_space() and ss_cfg.get_coreset_id() == to_coreset_id(0);
-  ocudu_assert(is_fallback_ss or active_bwp_dl_ded != nullptr, "Invalid BWP DL dedicated configuration");
+  ocudu_assert(is_fallback_ss or active_bwp.dl.pdsch().ded() != nullptr, "Invalid BWP DL dedicated configuration");
 
   // See TS 38.214, Table 5.1.2.1.1-1: Applicable PDSCH time domain resource allocation for DCI formats 1_0 and 1_1.
   if (not is_fallback_ss) {
-    if (not active_bwp_dl_ded->pdsch_cfg->pdsch_td_alloc_list.empty()) {
+    if (not active_bwp.dl.pdsch().ded()->pdsch_td_alloc_list.empty()) {
       // UE dedicated pdsch-TimeDomain list.
-      return active_bwp_dl_ded->pdsch_cfg->pdsch_td_alloc_list;
+      return active_bwp.dl.pdsch().ded()->pdsch_td_alloc_list;
     }
   }
 
-  if (not active_bwp_dl_common.pdsch_common.pdsch_td_alloc_list.empty()) {
+  if (not active_bwp.dl.pdsch().common().pdsch_td_alloc_list.empty()) {
     // common pdsch-TimeDomain list.
-    return active_bwp_dl_common.pdsch_common.pdsch_td_alloc_list;
+    return active_bwp.dl.pdsch().common().pdsch_td_alloc_list;
   }
 
   // default A table case.
-  return pdsch_default_time_allocations_default_A_table(active_bwp_dl_common.generic_params.cp, dmrs_typeA_pos);
+  return pdsch_default_time_allocations_default_A_table(active_bwp.dl.cfg().cp, dmrs_typeA_pos);
 }
 
 span<const pdsch_time_domain_resource_allocation>

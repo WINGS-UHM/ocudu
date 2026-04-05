@@ -273,11 +273,11 @@ ue_cell::get_active_dl_search_spaces(slot_point                             pdcc
     // PDCCH candidates for at least a DCI format 0_0 or a DCI format 1_0 with CRC scrambled by SI-RNTI, RA-RNTI or
     // P-RNTI.
     if (ss.cfg->is_common_search_space()) {
-      const auto& pdcch_config_ss_lst = cfg().bwp(active_bwp_id()).dl.ded()->pdcch_cfg->search_spaces;
+      const auto& pdcch_config_ss_lst = cfg().bwp(active_bwp_id()).dl.pdcch().search_spaces();
       const bool  is_type3_css        = std::find_if(pdcch_config_ss_lst.begin(),
                                              pdcch_config_ss_lst.end(),
-                                             [&ss](const search_space_configuration& ss_cfg) {
-                                               return ss.cfg->get_id() == ss_cfg.get_id();
+                                             [&ss](const sched_search_space_config* ss_cfg) {
+                                               return ss.cfg->get_id() == ss_cfg->id();
                                              }) != pdcch_config_ss_lst.end();
 
       const bool is_ss_for_ra =
@@ -345,11 +345,11 @@ ue_cell::get_active_ul_search_spaces(slot_point                             pdcc
     // PDCCH candidates for at least a DCI format 0_0 or a DCI format 1_0 with CRC scrambled by SI-RNTI, RA-RNTI or
     // P-RNTI.
     if (ss.cfg->is_common_search_space()) {
-      const auto& pdcch_config_ss_lst = cfg().bwp(active_bwp_id()).dl.ded()->pdcch_cfg->search_spaces;
+      const auto& pdcch_config_ss_lst = cfg().bwp(active_bwp_id()).dl.pdcch().search_spaces();
       const bool  is_type3_css        = std::find_if(pdcch_config_ss_lst.begin(),
                                              pdcch_config_ss_lst.end(),
-                                             [&ss](const search_space_configuration& ss_cfg) {
-                                               return ss.cfg->get_id() == ss_cfg.get_id();
+                                             [&ss](const sched_search_space_config* ss_cfg) {
+                                               return ss.cfg->get_id() == ss_cfg->id();
                                              }) != pdcch_config_ss_lst.end();
 
       const bool is_ss_for_ra =

@@ -8,6 +8,7 @@
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/cell_bwp_res_config.h"
 #include "ocudu/scheduler/config/ran_cell_config.h"
+#include "ocudu/scheduler/config/sched_bwp_config.h"
 
 namespace ocudu {
 

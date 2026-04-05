@@ -59,7 +59,6 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
                                   const bwp_uplink_dedicated*   ul_bwp_ded,
                                   const ue_bwp_config&          ue_bwp_cfg)
 {
-  const auto&                        bwp_res    = cell_cfg().bwp_res[bwp_id];
   config_ptr<bwp_downlink_dedicated> bwp_dl_ded = bwp_dl_ded_config_pool.create(dl_bwp_ded);
   config_ptr<bwp_uplink_common>      bwp_ul_common;
   if (ul_bwp_common != nullptr) {
@@ -72,7 +71,11 @@ void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
 
   // Create BWP config.
   sched_bwp_config bwp_cfg{bwp_id,
-                           sched_bwp_dl_config{bwp_res.dl_common(), &*bwp_dl_ded, bwp_res.pdcchs().ded_cfgs()[0]},
+                           sched_bwp_dl_config{cell_cfg().init_bwp.dl.common(),
+                                               &*bwp_dl_ded,
+                                               dl_bwp_ded.pdcch_cfg.has_value()
+                                                   ? cell_cfg().bwp_res[bwp_id].pdcchs().ded_cfgs()[0]
+                                                   : cell_cfg().bwp_res[bwp_id].pdcchs().init_cfg()},
                            sched_bwp_ul_config{*bwp_ul_common, bwp_ul_ded.get(), ue_bwp_cfg.ul}};
   out.bwps.emplace(bwp_id, bwp_config_pool.create(bwp_cfg));
   auto& bwp = out.bwps[bwp_id];

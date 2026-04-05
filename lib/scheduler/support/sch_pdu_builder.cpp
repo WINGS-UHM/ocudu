@@ -14,13 +14,11 @@
 using namespace ocudu;
 
 // See TS 38.211, 7.3.1.1. - Scrambling.
-static unsigned
-get_pdsch_n_id(pci_t pci, const bwp_downlink_dedicated* bwp_dl_ded, dci_dl_format dci_fmt, bool is_common_ss)
+static unsigned get_pdsch_n_id(pci_t pci, const sched_bwp_config& bwp, dci_dl_format dci_fmt, bool is_common_ss)
 {
-  if (bwp_dl_ded != nullptr and bwp_dl_ded->pdsch_cfg.has_value() and
-      bwp_dl_ded->pdsch_cfg->data_scrambling_id_pdsch.has_value() and
+  if (bwp.dl.pdsch().ded() != nullptr and bwp.dl.pdsch().ded()->data_scrambling_id_pdsch.has_value() and
       (dci_fmt != dci_dl_format::f1_0 or not is_common_ss)) {
-    return *bwp_dl_ded->pdsch_cfg->data_scrambling_id_pdsch;
+    return *bwp.dl.pdsch().ded()->data_scrambling_id_pdsch;
   }
   return pci;
 }
@@ -383,10 +381,9 @@ void ocudu::build_pdsch_f1_0_c_rnti(pdsch_information&                  pdsch,
 {
   const coreset_configuration& cs_cfg     = ss_info.coreset->cfg();
   const sched_bwp_config&      active_bwp = *ss_info.bwp;
-  const bwp_downlink_common&   bwp_dl     = active_bwp.dl.common();
 
   pdsch.rnti        = rnti;
-  pdsch.bwp_cfg     = &bwp_dl.generic_params;
+  pdsch.bwp_cfg     = &active_bwp.dl.cfg();
   pdsch.coreset_cfg = &cs_cfg;
 
   pdsch.rbs             = vrbs;
@@ -399,8 +396,8 @@ void ocudu::build_pdsch_f1_0_c_rnti(pdsch_information&                  pdsch,
   pdsch.dci_fmt = dci_dl_format::f1_0;
   pdsch.harq_id = to_harq_id(dci_cfg.harq_process_number);
   // See TS 38.211, 7.3.1.1. - Scrambling.
-  pdsch.n_id = get_pdsch_n_id(
-      cell_cfg.params.pci, active_bwp.dl.ded(), dci_dl_format::f1_0, ss_info.cfg->is_common_search_space());
+  pdsch.n_id =
+      get_pdsch_n_id(cell_cfg.params.pci, active_bwp, dci_dl_format::f1_0, ss_info.cfg->is_common_search_space());
   pdsch.nof_layers = 1;
 
   // Populate power offsets.
@@ -448,15 +445,15 @@ void ocudu::build_pdsch_f1_1_c_rnti(pdsch_information&              pdsch,
   pdsch.symbols         = pdsch_cfg.symbols;
   pdsch.dmrs            = pdsch_cfg.dmrs;
   pdsch.vrb_prb_mapping = dci_cfg.vrb_prb_mapping.has_value() and dci_cfg.vrb_prb_mapping.value()
-                              ? ue_cell_cfg.init_bwp().dl.pdsch_ded()->vrb_to_prb_interleaving
+                              ? ue_cell_cfg.init_bwp().dl.pdsch().ded()->vrb_to_prb_interleaving
                               : vrb_to_prb::mapping_type::non_interleaved;
   // See TS38.213, 10.1.
   pdsch.ss_set_type = search_space_set_type::ue_specific;
   pdsch.dci_fmt     = dci_dl_format::f1_1;
   pdsch.harq_id     = to_harq_id(dci_cfg.harq_process_number);
   // See TS 38.211, 7.3.1.1. - Scrambling.
-  pdsch.n_id = get_pdsch_n_id(
-      cell_cfg.params.pci, active_bwp.dl.ded(), dci_dl_format::f1_1, ss_info.cfg->is_common_search_space());
+  pdsch.n_id =
+      get_pdsch_n_id(cell_cfg.params.pci, active_bwp, dci_dl_format::f1_1, ss_info.cfg->is_common_search_space());
   pdsch.nof_layers = pdsch_cfg.nof_layers;
 
   // TODO: Add second Codeword when supported.

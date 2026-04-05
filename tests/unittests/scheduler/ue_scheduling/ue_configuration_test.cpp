@@ -70,7 +70,7 @@ TEST_F(ue_configuration_test, configuration_valid_on_reconfiguration)
 {
   const cell_configuration& cell_cfg = cfg_pool.add_cell(sched_cfg, msg);
   ue_cell_configuration ue_cfg{to_rnti(0x4601), cell_cfg, cfg_pool.add_ue(ue_create_msg).cells[to_du_cell_index(0)]};
-  ASSERT_EQ(ue_cfg.init_bwp().dl.pdsch_ded()->mcs_table, pdsch_mcs_table::qam256);
+  ASSERT_EQ(ue_cfg.init_bwp().dl.pdsch().ded()->mcs_table, pdsch_mcs_table::qam256);
 
   sched_ue_reconfiguration_message recfg_req;
   recfg_req.ue_index = ue_create_msg.ue_index;
@@ -82,7 +82,7 @@ TEST_F(ue_configuration_test, configuration_valid_on_reconfiguration)
   ue_cell_reconf.init_dl_bwp.pdsch_cfg->mcs_table = pdsch_mcs_table::qam64;
   ue_cfg.reconfigure(cfg_pool.reconf_ue(recfg_req).cells[to_du_cell_index(0)]);
 
-  ASSERT_EQ(ue_cfg.init_bwp().dl.pdsch_ded()->mcs_table, pdsch_mcs_table::qam64);
+  ASSERT_EQ(ue_cfg.init_bwp().dl.pdsch().ded()->mcs_table, pdsch_mcs_table::qam64);
 }
 
 TEST_F(ue_configuration_test, when_reconfiguration_is_received_then_ue_updates_logical_channel_states)

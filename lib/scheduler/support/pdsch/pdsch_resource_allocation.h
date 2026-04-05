@@ -21,11 +21,11 @@ namespace ocudu::pdsch_helper {
 /// \return Calculated CRB limits.
 inline crb_interval get_ra_crb_limits(dci_dl_format                     dci_fmt,
                                       const bwp_downlink_common&        init_dl_bwp,
-                                      const bwp_downlink_common&        active_dl_bwp,
+                                      const bwp_configuration&          active_dl_bwp,
                                       const search_space_configuration& ss_cfg,
                                       const coreset_configuration&      cs_cfg)
 {
-  crb_interval crbs = active_dl_bwp.generic_params.crbs;
+  crb_interval crbs = active_dl_bwp.crbs;
 
   if (dci_fmt == dci_dl_format::f1_0 and ss_cfg.is_common_search_space()) {
     // See TS 38.211, 7.3.1.6 Mapping from virtual to physical resource blocks and TS38.214, 5.1.2.2. Resource
@@ -59,7 +59,7 @@ inline crb_interval get_ra_crb_limits_common(const bwp_downlink_common& init_dl_
           std::get<search_space_configuration::common_dci_format>(ss_cfg.get_monitored_dci_formats()).f0_0_and_f1_0,
       "Invalid SearchSpace type");
 
-  return get_ra_crb_limits(dci_dl_format::f1_0, init_dl_bwp, init_dl_bwp, ss_cfg, cs_cfg);
+  return get_ra_crb_limits(dci_dl_format::f1_0, init_dl_bwp, init_dl_bwp.generic_params, ss_cfg, cs_cfg);
 }
 
 } // namespace ocudu::pdsch_helper

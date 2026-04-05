@@ -236,9 +236,9 @@ void ocudu::build_dci_f1_1_c_rnti(dci_dl_info&                  dci,
   f1_1.tpc_command             = static_cast<unsigned>(tpc);
   f1_1.srs_request             = srs_request;
   f1_1.dmrs_seq_initialization = 0;
-  ocudu_assert(ss_info.bwp->dl.pdsch_ded()->pdsch_mapping_type_a_dmrs.has_value(),
+  ocudu_assert(ss_info.bwp->dl.pdsch().ded()->pdsch_mapping_type_a_dmrs.has_value(),
                "No DMRS configured in PDSCH configuration");
-  const auto& dmrs_cfg = ss_info.bwp->dl.pdsch_ded()->pdsch_mapping_type_a_dmrs.value();
+  const auto& dmrs_cfg = ss_info.bwp->dl.pdsch().ded()->pdsch_mapping_type_a_dmrs.value();
   f1_1.antenna_ports   = get_pdsch_antenna_port_mapping_row_index(
       nof_layers,
       ue_cell_cfg.cell_cfg_common.params.dl_carrier.nof_ant,

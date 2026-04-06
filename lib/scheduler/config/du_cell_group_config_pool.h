@@ -20,6 +20,34 @@ struct sched_ue_creation_request_message;
 struct sched_ue_reconfiguration_message;
 struct serving_cell_config;
 
+/// Pool of resources associated with a BWP config.
+class bwp_config_pool
+{
+public:
+  bwp_config_pool(pci_t                      pci,
+                  bwp_id_t                   bwpid,
+                  const bwp_downlink_common& bwp_dl,
+                  const bwp_uplink_common&   bwp_ul,
+                  const cell_bwp_res_config& bwp_ded_res);
+  bwp_config_pool(const bwp_config_pool&)            = delete;
+  bwp_config_pool& operator=(const bwp_config_pool&) = delete;
+
+  const bwp_downlink_common& dl_common() const { return bwp_dl_cmn; }
+
+  config_ptr<sched_bwp_config> add_ded_cfg(const bwp_downlink_dedicated* dl_ded,
+                                           const bwp_uplink_dedicated*   ul_ded,
+                                           const ue_bwp_config&          ue_bwp_cfg);
+
+private:
+  const bwp_id_t                             bwp_id;
+  const bwp_downlink_common                  bwp_dl_cmn;
+  const bwp_uplink_common                    bwp_ul_cmn;
+  pdcch_config_pool                          pdcch_pool;
+  config_object_pool<bwp_downlink_dedicated> dl_ded_config_pool;
+  config_object_pool<bwp_uplink_dedicated>   ul_ded_config_pool;
+  config_object_pool<sched_bwp_config>       sched_bwp_config_pool;
+};
+
 class du_cell_config_pool
 {
 public:
@@ -34,24 +62,18 @@ public:
 
 private:
   void add_bwp(ue_cell_res_config&           out,
-               bwp_id_t                      bwp_id,
                const bwp_downlink_dedicated& dl_bwp_ded,
-               const bwp_uplink_common*      ul_bwp_common,
                const bwp_uplink_dedicated*   ul_bwp_ded,
                const ue_bwp_config&          ue_bwp_cfg);
 
   /// Cell common configuration.
   cell_configuration cell_cfg_inst;
 
-  // Cell common BWP configurations.
-  const bwp_uplink_common& init_ul_bwp;
+  /// BWPs managed in this cell.
+  std::vector<std::unique_ptr<bwp_config_pool>> cell_bwps;
 
   // Pools of UE-dedicated configurations.
   config_object_pool<ue_cell_res_config>        cell_cfg_pool;
-  config_object_pool<sched_bwp_config>          bwp_config_pool;
-  config_object_pool<bwp_downlink_dedicated>    bwp_dl_ded_config_pool;
-  config_object_pool<bwp_uplink_common>         bwp_ul_common_config_pool;
-  config_object_pool<bwp_uplink_dedicated>      bwp_ul_ded_config_pool;
   config_object_pool<pdsch_serving_cell_config> pdsch_serv_cell_pool;
   config_object_pool<pusch_serving_cell_config> pusch_serv_cell_pool;
   config_object_pool<csi_meas_config>           csi_meas_config_pool;

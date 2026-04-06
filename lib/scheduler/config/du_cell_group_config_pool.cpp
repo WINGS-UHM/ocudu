@@ -10,10 +10,51 @@
 
 using namespace ocudu;
 
+bwp_config_pool::bwp_config_pool(pci_t                      pci,
+                                 bwp_id_t                   bwpid,
+                                 const bwp_downlink_common& bwp_dl,
+                                 const bwp_uplink_common&   bwp_ul,
+                                 const cell_bwp_res_config& bwp_ded_res) :
+  bwp_id(bwpid),
+  bwp_dl_cmn(bwp_dl),
+  bwp_ul_cmn(bwp_ul),
+  pdcch_pool(pci, bwp_dl_cmn.generic_params, bwp_dl_cmn.pdcch_common, bwp_ded_res.dl)
+{
+}
+
+config_ptr<sched_bwp_config> bwp_config_pool::add_ded_cfg(const bwp_downlink_dedicated* dl_ded,
+                                                          const bwp_uplink_dedicated*   ul_ded,
+                                                          const ue_bwp_config&          ue_bwp_cfg)
+{
+  config_ptr<bwp_downlink_dedicated> dl_ptr;
+  if (dl_ded != nullptr) {
+    dl_ptr = dl_ded_config_pool.create(*dl_ded);
+  }
+  config_ptr<bwp_uplink_dedicated> ul_ptr;
+  if (ul_ded != nullptr) {
+    ul_ptr = ul_ded_config_pool.create(*ul_ded);
+  }
+
+  sched_bwp_config bwp_cfg{bwp_id,
+                           sched_bwp_dl_config{bwp_dl_cmn,
+                                               dl_ptr.get(),
+                                               dl_ptr.has_value() and dl_ptr->pdcch_cfg.has_value()
+                                                   ? pdcch_pool.ded_cfgs()[0]
+                                                   : pdcch_pool.init_cfg()},
+                           sched_bwp_ul_config{bwp_ul_cmn, ul_ptr.get(), ue_bwp_cfg.ul}};
+  return sched_bwp_config_pool.create(bwp_cfg);
+}
+
 du_cell_config_pool::du_cell_config_pool(const scheduler_expert_config&                  sched_cfg_,
                                          const sched_cell_configuration_request_message& req) :
-  cell_cfg_inst(sched_cfg_, req), init_ul_bwp(cell_cfg_inst.params.ul_cfg_common.init_ul_bwp)
+  cell_cfg_inst(sched_cfg_, req)
 {
+  // Note: Create a pool for a single BWP for now.
+  cell_bwps.push_back(std::make_unique<bwp_config_pool>(req.ran.pci,
+                                                        to_bwp_id(0),
+                                                        req.ran.dl_cfg_common.init_dl_bwp,
+                                                        req.ran.ul_cfg_common.init_ul_bwp,
+                                                        make_cell_bwp_res_config(req.ran)));
 }
 
 ue_cell_config_ptr du_cell_config_pool::update_ue(const ue_cell_config& ue_cell)
@@ -33,58 +74,28 @@ ue_cell_config_ptr du_cell_config_pool::update_ue(const ue_cell_config& ue_cell)
   }
   ret.tag_id = ue_cell.serv_cell_cfg.tag_id;
 
-  for (unsigned bwp_id = 0, nof_bwps = ue_cell.bwps.size(); bwp_id != nof_bwps; ++bwp_id) {
-    if (bwp_id == 0) {
-      // Initial BWP.
-      add_bwp(ret,
-              to_bwp_id(bwp_id),
-              ue_cell.serv_cell_cfg.init_dl_bwp,
-              &init_ul_bwp,
-              ue_cell.serv_cell_cfg.ul_config.has_value() ? &ue_cell.serv_cell_cfg.ul_config->init_ul_bwp : nullptr,
-              ue_cell.bwps[bwp_id]);
-    } else {
-      // Non-initial BWPs.
-      const auto& bwp = ue_cell.serv_cell_cfg.dl_bwps[bwp_id];
-      add_bwp(ret, bwp.bwp_id, bwp.bwp_dl_ded, nullptr, nullptr, ue_cell.bwps[bwp_id]);
-    }
-  }
+  // TODO: Support more than one BWP.
+  add_bwp(ret,
+          ue_cell.serv_cell_cfg.init_dl_bwp,
+          ue_cell.serv_cell_cfg.ul_config.has_value() ? &ue_cell.serv_cell_cfg.ul_config->init_ul_bwp : nullptr,
+          ue_cell.bwps[0]);
 
   return cell_cfg_pool.create(ret);
 }
 
 void du_cell_config_pool::add_bwp(ue_cell_res_config&           out,
-                                  bwp_id_t                      bwp_id,
                                   const bwp_downlink_dedicated& dl_bwp_ded,
-                                  const bwp_uplink_common*      ul_bwp_common,
                                   const bwp_uplink_dedicated*   ul_bwp_ded,
                                   const ue_bwp_config&          ue_bwp_cfg)
 {
-  config_ptr<bwp_downlink_dedicated> bwp_dl_ded = bwp_dl_ded_config_pool.create(dl_bwp_ded);
-  config_ptr<bwp_uplink_common>      bwp_ul_common;
-  if (ul_bwp_common != nullptr) {
-    bwp_ul_common = bwp_ul_common_config_pool.create(*ul_bwp_common);
-  }
-  config_ptr<bwp_uplink_dedicated> bwp_ul_ded;
-  if (ul_bwp_ded != nullptr) {
-    bwp_ul_ded = bwp_ul_ded_config_pool.create(*ul_bwp_ded);
-  }
-
-  // Create BWP config.
-  sched_bwp_config bwp_cfg{bwp_id,
-                           sched_bwp_dl_config{cell_cfg().init_bwp.dl.common(),
-                                               &*bwp_dl_ded,
-                                               dl_bwp_ded.pdcch_cfg.has_value()
-                                                   ? cell_cfg().bwp_res[bwp_id].pdcchs().ded_cfgs()[0]
-                                                   : cell_cfg().bwp_res[bwp_id].pdcchs().init_cfg()},
-                           sched_bwp_ul_config{*bwp_ul_common, bwp_ul_ded.get(), ue_bwp_cfg.ul}};
-  out.bwps.emplace(bwp_id, bwp_config_pool.create(bwp_cfg));
-  auto& bwp = out.bwps[bwp_id];
+  auto bwp_cfg = cell_bwps[0]->add_ded_cfg(&dl_bwp_ded, ul_bwp_ded, ue_bwp_cfg);
+  out.bwps.emplace(bwp_cfg->id, bwp_cfg);
 
   // Generate cell-wide lookups of CORESETs and SearchSpaces for this UE.
-  for (const auto& cs : bwp->dl.pdcch().coresets()) {
+  for (const auto& cs : bwp_cfg->dl.pdcch().coresets()) {
     out.coresets.emplace(cs->id(), cs);
   }
-  for (const auto& ss : bwp->dl.pdcch().search_spaces()) {
+  for (const auto& ss : bwp_cfg->dl.pdcch().search_spaces()) {
     out.search_spaces.emplace(ss->id(), &ss->cfg());
   }
 }

@@ -24,6 +24,13 @@ inline const pdcch_ul_information* find_ue_ul_pdcch(rnti_t rnti, const dl_sched_
   return it != res.ul_pdcchs.end() ? &*it : nullptr;
 }
 
+inline const rar_information* find_rar_pdsch(rnti_t ra_rnti, span<const rar_information> rars)
+{
+  auto it = std::find_if(
+      rars.begin(), rars.end(), [ra_rnti](const rar_information& grant) { return grant.pdsch_cfg.rnti == ra_rnti; });
+  return it != rars.end() ? &*it : nullptr;
+}
+
 inline const dl_msg_alloc* find_ue_pdsch(rnti_t rnti, span<const dl_msg_alloc> dlgrants)
 {
   auto it = std::find_if(

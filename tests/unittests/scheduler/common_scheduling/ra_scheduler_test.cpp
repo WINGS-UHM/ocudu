@@ -3,10 +3,12 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/common_scheduling/ra_scheduler.h"
+#include "lib/scheduler/support/config_helpers.h"
 #include "lib/scheduler/support/csi_rs_helpers.h"
 #include "sub_scheduler_test_environment.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/test_doubles/scheduler/scheduler_result_finder.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
@@ -19,8 +21,148 @@
 #include <ostream>
 
 using namespace ocudu;
+using namespace cell_config_builder_profiles;
 
 namespace {
+
+/// Helper to determine slot index associated with a RACH indication.
+unsigned get_ra_slot_index(const cell_configuration& cell_cfg, slot_point rach_slot_rx)
+{
+  // As per Section 5.1.3, TS 38.321, and from Section 5.3.2, TS 38.211, slot_idx uses as the numerology of
+  // reference 15kHz for long PRACH Formats (i.e, slot_idx = subframe index); whereas, for short PRACH formats, it
+  // uses the same numerology as the SCS common (i.e, slot_idx = actual slot index within the frame).
+  return is_long_preamble(
+             prach_configuration_get(
+                 band_helper::get_freq_range(cell_cfg.band()),
+                 band_helper::get_duplex_mode(cell_cfg.band()),
+                 cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.prach_config_index)
+                 .format)
+             ? rach_slot_rx.subframe_index()
+             : rach_slot_rx.slot_index();
+}
+
+/// Helper to determine the RA-RNTI of a given RACH occasion.
+rnti_t
+get_ra_rnti(const cell_configuration& cell_cfg, slot_point rach_slot_rx, const rach_indication_message::occasion& occ)
+{
+  const unsigned slot_idx = get_ra_slot_index(cell_cfg, rach_slot_rx);
+  return ra_helper::get_ra_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
+}
+
+slot_interval get_rar_window(const cell_configuration& cell_cfg, slot_point rach_slot_rx)
+{
+  slot_point rar_win_start;
+  for (unsigned i = 1; i != rach_slot_rx.nof_slots_per_frame(); ++i) {
+    if (cell_cfg.is_dl_enabled(rach_slot_rx + i)) {
+      rar_win_start = rach_slot_rx + i;
+      break;
+    }
+  }
+  return {rar_win_start,
+          rar_win_start + cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window};
+}
+
+ul_crc_indication create_crc_indication(slot_point sl_rx, span<const ul_sched_info> puschs, bool ack)
+{
+  return test_helper::create_crc_indication(sl_rx, puschs, ack);
+}
+
+bool rar_ul_grant_consistent_with_rach_preamble(const cell_configuration&                cell_cfg,
+                                                const rar_ul_grant&                      rar_grant,
+                                                const rach_indication_message::preamble& preamb)
+{
+  return rar_grant.temp_crnti == preamb.tc_rnti and rar_grant.rapid == preamb.preamble_id and
+         rar_grant.ta == preamb.time_advance.to_Ta(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
+}
+
+/// \brief Count number of RAR grants that were a product of the provided RACH indication. Return error if an error
+/// in the scheduler result is detected.
+/// \return Number of matching preambles or error if there is an inconsistency between RACH indication and RARs.
+expected<unsigned, std::string> count_rar_grants_matching_rach_indication(const cell_configuration&      cell_cfg,
+                                                                          span<const rar_information>    rars,
+                                                                          const rach_indication_message& rach_ind)
+{
+  if (rars.empty()) {
+    return {};
+  }
+  unsigned nof_grants_matched = 0;
+  for (const rach_indication_message::occasion& occ : rach_ind.occasions) {
+    rnti_t                 ra_rnti = get_ra_rnti(cell_cfg, rach_ind.slot_rx, occ);
+    const rar_information* rar     = find_rar_pdsch(ra_rnti, rars);
+    if (rar == nullptr) {
+      continue;
+    }
+
+    if (occ.preambles.size() < rar->grants.size()) {
+      return make_unexpected("Cannot allocate more RAR grants than the number of detected preambles");
+    }
+
+    for (const rar_ul_grant& grant : rar->grants) {
+      const auto* it =
+          std::find_if(occ.preambles.begin(), occ.preambles.end(), [crnti = grant.temp_crnti](const auto& preamble) {
+            return preamble.tc_rnti == crnti;
+          });
+      if (it == occ.preambles.end()) {
+        return make_unexpected("RAR grant with no associated preamble was allocated");
+      }
+      const rach_indication_message::preamble& preamble = *it;
+
+      if (not rar_ul_grant_consistent_with_rach_preamble(cell_cfg, grant, preamble)) {
+        return make_unexpected("Invalid RAR grant");
+      }
+      nof_grants_matched++;
+    }
+  }
+  return nof_grants_matched;
+}
+
+class ra_scheduler_setup : public sub_scheduler_test_environment
+{
+  static constexpr unsigned CRNTI_RANGE = to_value(rnti_t::MAX_CRNTI) - to_value(rnti_t::MIN_CRNTI);
+
+public:
+  ra_scheduler_setup(const sched_cell_configuration_request_message& req) : ra_scheduler_setup({}, req) {}
+  ra_scheduler_setup(const scheduler_expert_config& sched_cfg_, const sched_cell_configuration_request_message& req) :
+    sub_scheduler_test_environment(sched_cfg_, req)
+  {
+    rnti_count = test_rng::uniform_int<unsigned>(0, CRNTI_RANGE);
+    rnti_inc   = test_rng::uniform_int<unsigned>(1, 5);
+
+    // Run slot once so that the resource grid gets initialized with the initial slot.
+    this->run_slot();
+  }
+  ~ra_scheduler_setup() override { this->flush_events(); }
+
+  void do_run_slot() override { ra_sch.run_slot(res_grid); }
+
+  void handle_rach_indication(const rach_indication_message& ind) { ra_sch.handle_rach_indication(ind); }
+
+  rach_indication_message::preamble create_random_preamble()
+  {
+    static auto next_rnti = rnti_count + to_value(rnti_t::MIN_CRNTI);
+
+    rach_indication_message::preamble preamble =
+        test_helper::create_preamble(test_rng::uniform_int<unsigned>(0, 63), to_rnti(next_rnti));
+    preamble.time_advance =
+        phy_time_unit::from_seconds(std::uniform_real_distribution<double>{0, 2005e-6}(test_rng::tls_gen()));
+
+    rnti_count = (rnti_count + rnti_inc) % CRNTI_RANGE;
+    return preamble;
+  }
+
+  rach_indication_message create_rach_indication(unsigned nof_preambles)
+  {
+    std::vector<rach_indication_message::preamble> preambles;
+    for (unsigned i = 0; i != nof_preambles; ++i) {
+      preambles.push_back(create_random_preamble());
+    }
+    return test_helper::create_rach_indication(next_slot_rx(), preambles);
+  }
+
+  ra_scheduler ra_sch{cell_cfg, *pdcch_alloc, ev_logger, metrics_hdlr};
+  unsigned     rnti_count = 0;
+  unsigned     rnti_inc   = 1;
+};
 
 /// Parameters used by FDD and TDD tests.
 struct test_params {
@@ -59,10 +201,10 @@ protected:
 
   static sched_cell_configuration_request_message get_sched_req(duplex_mode dplx_mode, const test_params& t_params)
   {
-    cell_config_builder_params builder_params = cell_config_builder_profiles::create(
-        dplx_mode,
-        frequency_range::FR1,
-        t_params.scs == subcarrier_spacing::kHz30 ? bs_channel_bandwidth::MHz20 : bs_channel_bandwidth::MHz10);
+    cell_config_builder_params builder_params =
+        create(dplx_mode,
+               frequency_range::FR1,
+               t_params.scs == subcarrier_spacing::kHz30 ? bs_channel_bandwidth::MHz20 : bs_channel_bandwidth::MHz10);
     builder_params.scs_common = t_params.scs;
     builder_params.min_k2     = t_params.min_k2;
     builder_params.min_k1     = builder_params.min_k2;
@@ -159,18 +301,6 @@ protected:
     return res_grid[ra_helper::get_msg3_delay(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs,
                                               get_pusch_td_resource(time_resource).k2)]
         .result.ul.puschs;
-  }
-
-  bool no_rar_grants_scheduled() const
-  {
-    for (unsigned i = 0; i != max_k_value; ++i) {
-      const auto& result = res_grid[i].result;
-      if (not(result.dl.dl_pdcchs.empty() and result.dl.rar_grants.empty() and result.dl.ul_pdcchs.empty() and
-              result.ul.puschs.empty())) {
-        return false;
-      }
-    }
-    return true;
   }
 
   bool rar_ul_grant_consistent_with_rach_preamble(const rar_ul_grant&                      rar_grant,
@@ -354,18 +484,6 @@ class ra_scheduler_tdd_test : public base_ra_scheduler_test, public ::testing::T
 protected:
   ra_scheduler_tdd_test() : base_ra_scheduler_test(duplex_mode::TDD, GetParam()) {}
 };
-
-/// This test verifies that the cell resource grid remains empty when no RACH indications arrive to the RA scheduler.
-TEST_P(ra_scheduler_fdd_test, when_no_rach_indication_received_then_no_rar_allocated)
-{
-  run_slot();
-  ASSERT_TRUE(no_rar_grants_scheduled());
-}
-TEST_P(ra_scheduler_tdd_test, when_no_rach_indication_received_then_no_rar_allocated)
-{
-  run_slot();
-  ASSERT_TRUE(no_rar_grants_scheduled());
-}
 
 /// This test verifies the correct scheduling of a RAR and Msg3s in an FDD frame, when multiple RACH preambles
 /// are received for the same PRACH occasion.
@@ -688,5 +806,133 @@ TEST_F(failed_rar_scheduler_test, when_rar_grants_not_scheduled_within_window_th
     grant_count += rach_ind.occasions[0].preambles.size();
   }
 }
+
+struct test_params2 {
+  frequency_range                        fr;
+  unsigned                               min_k;
+  std::optional<tdd_ul_dl_config_common> tdd_cfg;
+};
+
+/// Test suite common to different FRs, duplex modes, k values.
+class ra_scheduler_common_test : public ra_scheduler_setup, public ::testing::TestWithParam<test_params2>
+{
+public:
+  ra_scheduler_common_test() : ra_scheduler_setup(get_sched_req(GetParam())) {}
+
+  static sched_cell_configuration_request_message get_sched_req(const test_params2& t_params)
+  {
+    cell_config_builder_params builder_params =
+        create(t_params.tdd_cfg.has_value() ? duplex_mode::TDD : duplex_mode::FDD, t_params.fr);
+    builder_params.min_k2               = t_params.min_k;
+    builder_params.min_k1               = t_params.min_k;
+    builder_params.tdd_ul_dl_cfg_common = t_params.tdd_cfg;
+    return sched_config_helper::make_default_sched_cell_configuration_request(builder_params);
+  }
+
+  /// Check if the grid contains any PDCCH, RAR PDSCH or PUSCH, indicating RA scheduler scheduled activity.
+  bool no_grants_scheduled() const
+  {
+    for (unsigned i = 0; i != max_k_value; ++i) {
+      const auto& result = res_grid[i].result;
+      if (not(result.dl.dl_pdcchs.empty() and result.dl.rar_grants.empty() and result.dl.ul_pdcchs.empty() and
+              result.ul.puschs.empty())) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
+/// This test verifies that the cell resource grid remains empty when no RACH indications arrive to the RA scheduler.
+TEST_P(ra_scheduler_common_test, when_no_rach_indication_received_then_no_rar_allocated)
+{
+  for (unsigned i = 0, nof_slots = 10; i < nof_slots; ++i) {
+    run_slot();
+    ASSERT_TRUE(no_grants_scheduled());
+  }
+}
+
+TEST_P(ra_scheduler_common_test,
+       when_rach_indication_with_single_preamble_received_then_one_rar_and_one_msg3_are_allocated)
+{
+  // Forward single RACH occasion with multiple preambles.
+  rach_indication_message one_rach = create_rach_indication(1);
+  handle_rach_indication(one_rach);
+
+  // Determine RAR window last slot.
+  const slot_interval rar_win_slots = get_rar_window(cell_cfg, one_rach.slot_rx);
+
+  slot_point                  dl_pdcch_sl_tx;
+  slot_point                  rar_sl_tx;
+  slot_point                  msg3_sl_tx;
+  std::optional<rar_ul_grant> msg3_grant;
+  unsigned                    test_slots_after_msg3 = 10;
+  for (; not msg3_sl_tx.valid() or next_slot < msg3_sl_tx + test_slots_after_msg3;) {
+    run_slot();
+
+    const auto& dl_pdcchs = this->res_grid[0].result.dl.dl_pdcchs;
+    const auto& rars      = this->res_grid[0].result.dl.rar_grants;
+    const auto& puschs    = this->res_grid[0].result.ul.puschs;
+
+    if (not dl_pdcchs.empty()) {
+      // Test case: DL PDCCH is only one and comes before RAR.
+      ASSERT_FALSE(dl_pdcch_sl_tx.valid());
+      dl_pdcch_sl_tx = last_slot_tx();
+      ASSERT_FALSE(rar_sl_tx.valid());
+      ASSERT_EQ(dl_pdcchs.size(), 1);
+
+      // Test case: DL PDCCH content is valid.
+      ASSERT_EQ(dl_pdcchs[0].ctx.rnti, get_ra_rnti(cell_cfg, one_rach.slot_rx, one_rach.occasions[0]));
+    }
+
+    if (not rars.empty()) {
+      // Test Case: Only one RAR PDSCH allocated.
+      ASSERT_FALSE(rar_sl_tx.valid()) << "Only one RAR was expected";
+      rar_sl_tx = last_slot_tx();
+      ASSERT_TRUE(rar_win_slots.contains(last_slot_tx())) << "RAR outside window";
+      ASSERT_EQ(rars.size(), 1);
+
+      // Test Case: Check RAR content matches expected.
+      ASSERT_EQ(rars[0].grants.size(), 1) << "More RARs than detected preambles";
+      auto ret = count_rar_grants_matching_rach_indication(cell_cfg, rars, one_rach);
+      ASSERT_TRUE(ret.has_value());
+      ASSERT_EQ(ret.value(), 1) << "More RAR UL grants than preambles";
+      msg3_grant = rars[0].grants[0];
+    }
+
+    if (not puschs.empty()) {
+      // Test Case: Only one RAR UL grant allocated and expected after RAR.
+      ASSERT_FALSE(msg3_sl_tx.valid()) << "Only one RAR UL grant was expected";
+      ASSERT_TRUE(msg3_grant.has_value());
+      msg3_sl_tx = last_slot_tx();
+      ASSERT_EQ(puschs.size(), 1);
+      auto td_list = get_pusch_time_domain_resource_table(*cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common);
+      ASSERT_EQ(msg3_sl_tx - rar_sl_tx,
+                ra_helper::get_msg3_delay(cell_cfg.scs_common(), td_list[msg3_grant->time_resource_assignment].k2));
+
+      // Test Case: Contents of Msg3 PUSCH are valid.
+      ASSERT_EQ(puschs[0].pusch_cfg.rnti, one_rach.occasions[0].preambles[0].tc_rnti);
+
+      // Event: Positive CRC is sent.
+      ra_sch.handle_crc_indication(create_crc_indication(next_slot_rx(), puschs, true));
+    }
+  }
+
+  ASSERT_TRUE(msg3_sl_tx.valid()) << "Msg3 was not scheduled";
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ra_scheduler,
+    ra_scheduler_common_test,
+    ::testing::Values(
+        // FR1, FDD.
+        test_params2{frequency_range::FR1, 2},
+        test_params2{frequency_range::FR1, 4},
+        // FR1, TDD.
+        test_params2{frequency_range::FR1, 2, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDDDDDSUU)},
+        test_params2{frequency_range::FR1, 4, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDDDDDSUU)},
+        test_params2{frequency_range::FR1, 2, create_tdd_pattern(tdd_pattern_profile_fr1_30khz::DDDSU)},
+        // FR2, TDD.
+        test_params2{frequency_range::FR2, 1, create_tdd_pattern(tdd_pattern_profile_fr2_120khz::DDDSU)}));
 
 } // namespace

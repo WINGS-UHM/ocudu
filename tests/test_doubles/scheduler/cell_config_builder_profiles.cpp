@@ -8,40 +8,41 @@
 using namespace ocudu;
 
 /// Create cell build parameters for a TDD band.
-static cell_config_builder_params tdd(bs_channel_bandwidth bw)
+static cell_config_builder_params tdd(const std::optional<bs_channel_bandwidth>& bw)
 {
   cell_config_builder_params params{};
   params.scs_common             = subcarrier_spacing::kHz30;
   params.dl_carrier.arfcn_f_ref = 520002;
   params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(params.dl_carrier.arfcn_f_ref);
-  params.dl_carrier.carrier_bw  = bw;
+  params.dl_carrier.carrier_bw  = bw.value_or(bs_channel_bandwidth::MHz20);
   return params;
 }
 
 /// Create cell build parameters for a FDD band.
-static cell_config_builder_params fdd(bs_channel_bandwidth bw)
+static cell_config_builder_params fdd(const std::optional<bs_channel_bandwidth>& bw)
 {
   cell_config_builder_params params{};
   params.scs_common             = subcarrier_spacing::kHz15;
   params.dl_carrier.arfcn_f_ref = 530000;
   params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(params.dl_carrier.arfcn_f_ref);
-  params.dl_carrier.carrier_bw  = bw;
+  params.dl_carrier.carrier_bw  = bw.value_or(bs_channel_bandwidth::MHz20);
   return params;
 }
 
 /// Create cell build parameters for a TDD FR2 band.
-static cell_config_builder_params tdd_fr2(bs_channel_bandwidth bw)
+static cell_config_builder_params tdd_fr2(const std::optional<bs_channel_bandwidth>& bw)
 {
   cell_config_builder_params params{};
   params.scs_common             = subcarrier_spacing::kHz120;
   params.dl_carrier.arfcn_f_ref = 2074171;
   params.dl_carrier.band        = band_helper::get_band_from_dl_arfcn(params.dl_carrier.arfcn_f_ref);
-  params.dl_carrier.carrier_bw  = bw;
+  params.dl_carrier.carrier_bw  = bw.value_or(bs_channel_bandwidth::MHz100);
   return params;
 }
 
-cell_config_builder_params
-cell_config_builder_profiles::create(duplex_mode mode, frequency_range fr, bs_channel_bandwidth bw)
+cell_config_builder_params cell_config_builder_profiles::create(duplex_mode                                mode,
+                                                                frequency_range                            fr,
+                                                                const std::optional<bs_channel_bandwidth>& bw)
 {
   if (mode == duplex_mode::TDD) {
     if (fr == frequency_range::FR1) {
@@ -124,6 +125,37 @@ tdd_ul_dl_config_common cell_config_builder_profiles::create_tdd_pattern(tdd_pat
       // FR1.30-6.
       cfg.pattern1 = {2, 1, 10, 0, 2};
       cfg.pattern2 = {2, 0, 12, 1, 0};
+      break;
+    default:
+      report_fatal_error("Unrecognized pattern profile");
+  }
+  return cfg;
+}
+
+tdd_ul_dl_config_common cell_config_builder_profiles::create_tdd_pattern(tdd_pattern_profile_fr2_60khz pattern)
+{
+  tdd_ul_dl_config_common cfg;
+  cfg.ref_scs = subcarrier_spacing::kHz60;
+  switch (pattern) {
+    case tdd_pattern_profile_fr2_60khz::DDSU:
+      cfg.pattern1 = {4, 2, 11, 1, 0};
+      break;
+    default:
+      report_fatal_error("Unrecognized pattern profile");
+  }
+  return cfg;
+}
+
+tdd_ul_dl_config_common cell_config_builder_profiles::create_tdd_pattern(tdd_pattern_profile_fr2_120khz pattern)
+{
+  tdd_ul_dl_config_common cfg;
+  cfg.ref_scs = subcarrier_spacing::kHz120;
+  switch (pattern) {
+    case tdd_pattern_profile_fr2_120khz::DDDSU:
+      cfg.pattern1 = {5, 3, 10, 1, 2};
+      break;
+    case tdd_pattern_profile_fr2_120khz::DDSU:
+      cfg.pattern1 = {4, 2, 11, 1, 0};
       break;
     default:
       report_fatal_error("Unrecognized pattern profile");

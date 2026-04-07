@@ -89,6 +89,7 @@ struct cell_config_builder_params {
       }
       const unsigned nof_crbs = band_helper::get_n_rbs_from_bw(
           dl_carrier.carrier_bw, scs_common, band_helper::get_freq_range(dl_carrier.band));
+      ocudu_assert(nof_crbs > 0, "Invalid builder params");
 
       std::optional<band_helper::ssb_coreset0_freq_location> ssb_freq_loc;
       if (cs0_index.has_value()) {

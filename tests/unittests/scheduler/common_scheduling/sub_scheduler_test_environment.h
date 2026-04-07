@@ -63,6 +63,7 @@ public:
   }
   virtual ~sub_scheduler_test_environment() = default;
 
+  slot_point last_slot_tx() const { return next_slot - 1; }
   slot_point next_slot_rx() const { return next_slot - delay_tx_rx_slots; }
 
   void run_slot();

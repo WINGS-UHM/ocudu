@@ -11,9 +11,9 @@ namespace ocudu {
 namespace cell_config_builder_profiles {
 
 /// Create basic cell build parameters with given duplex mode, frequency range and bandwidth.
-cell_config_builder_params create(duplex_mode          mode = duplex_mode::TDD,
-                                  frequency_range      fr   = frequency_range::FR1,
-                                  bs_channel_bandwidth bw   = bs_channel_bandwidth::MHz20);
+cell_config_builder_params create(duplex_mode                                mode = duplex_mode::TDD,
+                                  frequency_range                            fr   = frequency_range::FR1,
+                                  const std::optional<bs_channel_bandwidth>& bw   = std::nullopt);
 
 /// Create basic cell build parameters with given band and bandwidth.
 cell_config_builder_params create(nr_band band);
@@ -28,7 +28,20 @@ enum class tdd_pattern_profile_fr1_30khz {
   DSSU        ///< FR1.30-6.
 };
 
+/// List of TDD UL-DL configurations for FR2, SCS 60kHz, specified in TS 38.101-4, Table A.1.3-1.
+enum class tdd_pattern_profile_fr2_60khz {
+  DDSU /// < FR2.60-1.
+};
+
+/// List of TDD UL-DL configurations for FR2, SCS 120kHz, specified in TS 38.101-4, Table A.1.3-2.
+enum class tdd_pattern_profile_fr2_120khz {
+  DDDSU, /// < FR2.120-1.
+  DDSU   /// < FR2.120-2.
+};
+
 tdd_ul_dl_config_common create_tdd_pattern(tdd_pattern_profile_fr1_30khz pattern);
+tdd_ul_dl_config_common create_tdd_pattern(tdd_pattern_profile_fr2_60khz pattern);
+tdd_ul_dl_config_common create_tdd_pattern(tdd_pattern_profile_fr2_120khz pattern);
 
 } // namespace cell_config_builder_profiles
 } // namespace ocudu

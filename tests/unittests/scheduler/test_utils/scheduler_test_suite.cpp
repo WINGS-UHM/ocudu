@@ -308,6 +308,17 @@ void ocudu::test_pdsch_ue_consistency(const cell_configuration& cell_cfg, span<c
       test_helper::is_valid_dl_msg_alloc_list(grants, cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0));
 }
 
+static void
+test_pdsch_cross_consistency(const cell_configuration& cell_cfg, slot_point sl_tx, const dl_sched_result& result)
+{
+  if (not result.csi_rs.empty()) {
+    // If CSI-RS is scheduled, it should not collide with common grants.
+    ASSERT_TRUE(result.bc.sibs.empty());
+    ASSERT_TRUE(result.rar_grants.empty());
+    ASSERT_TRUE(result.paging_grants.empty());
+  }
+}
+
 void ocudu::test_pusch_ue_consistency(const cell_configuration& cell_cfg, span<const ul_sched_info> grants)
 {
   ASSERT_LE(grants.size(), cell_cfg.expert_cfg.ue.max_puschs_per_slot);
@@ -637,6 +648,7 @@ void ocudu::test_dl_consistency(const cell_configuration& cell_cfg, slot_point s
   ASSERT_NO_FATAL_FAILURE(test_pdsch_sib_consistency(cell_cfg, result.bc.sibs));
   ASSERT_NO_FATAL_FAILURE(test_pdsch_rar_consistency(cell_cfg, result.rar_grants));
   ASSERT_NO_FATAL_FAILURE(test_pdsch_ue_consistency(cell_cfg, result.ue_grants));
+  ASSERT_NO_FATAL_FAILURE(test_pdsch_cross_consistency(cell_cfg, sl_tx, result));
   ASSERT_NO_FATAL_FAILURE(test_pdcch_common_consistency(cell_cfg, sl_tx, result.dl_pdcchs));
   ASSERT_NO_FATAL_FAILURE(test_dl_resource_grid_collisions(cell_cfg, result));
 }

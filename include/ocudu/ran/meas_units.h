@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ocudu/adt/bounded_integer.h"
+#include <cstdint>
 
 namespace ocudu {
 
@@ -13,17 +13,28 @@ namespace ocudu {
 /// For measurements, the value -156 means "<-156", the value -155 means between [-156, -155), and so on, until -30
 /// which means >=-31. Value -29 is not used for measurements.
 /// For RSRP thresholds, the value -29 represents infinity.
-struct rsrp_range : public strong_type<uint8_t, strong_equality, strong_comparison> {
-  using base_type = strong_type<uint8_t, strong_equality, strong_comparison>;
-
+struct rsrp_range {
   rsrp_range() = default;
-  explicit rsrp_range(int dBm) : base_type(dBm) { ocudu_assert(dBm >= -156 and dBm <= -29, "Invalid RSRP dBm value"); }
+  explicit rsrp_range(int dBm) : val(dBm + 156) { ocudu_assert(dBm >= -156 and dBm <= -29, "Invalid RSRP dBm value"); }
 
+  /// RSRP in dBm, ranging between [-156, -29].
   int16_t dBm() const { return static_cast<int16_t>(val) - 156; }
 
+  /// Representation of RSRP with an index ranging between [0, 29] for the Table 10.1.6.1-1, TS 38.133.
   uint8_t count() const { return val; }
 
-  static rsrp_range infinity() { return rsrp_range{127}; }
+  /// Infinity RSRP value.
+  static rsrp_range infinity() { return rsrp_range{-29}; }
+
+  static rsrp_range min() { return rsrp_range{-156}; }
+  static rsrp_range max() { return rsrp_range{-28}; }
+
+  bool operator==(const rsrp_range& other) const { return val == other.val; }
+  bool operator!=(const rsrp_range& other) const { return val != other.val; }
+  bool operator<(const rsrp_range& other) const { return val < other.val; }
+  bool operator>(const rsrp_range& other) const { return val > other.val; }
+  bool operator<=(const rsrp_range& other) const { return val <= other.val; }
+  bool operator>=(const rsrp_range& other) const { return val >= other.val; }
 
 private:
   uint8_t val{0};

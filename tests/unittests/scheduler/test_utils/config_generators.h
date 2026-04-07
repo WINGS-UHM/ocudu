@@ -18,6 +18,7 @@ namespace test_helpers {
 class test_sched_config_manager
 {
 public:
+  test_sched_config_manager(const scheduler_expert_config& expert_cfg_ = {});
   test_sched_config_manager(const cell_config_builder_params& builder_params = {},
                             const scheduler_expert_config&    expert_cfg_    = {});
   ~test_sched_config_manager();
@@ -36,7 +37,6 @@ public:
   const cell_common_configuration_list& common_cell_list() const { return cfg_mng.common_cell_list(); }
 
 private:
-  const cell_config_builder_params               builder_params;
   scheduler_expert_config                        expert_cfg;
   std::unique_ptr<sched_configuration_notifier>  cfg_notifier;
   std::unique_ptr<scheduler_metrics_notifier>    metric_notifier;

@@ -52,8 +52,9 @@ static error_type<std::string> validate_pdcch_cfg_common(const sched_cell_config
 static error_type<std::string> validate_rach_cfg_common(const sched_cell_configuration_request_message& msg,
                                                         const scheduler_expert_config&                  expert_cfg)
 {
-  VERIFY(msg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value(),
-         "Cells without RACH-ConfigCommon are not supported");
+  if (not msg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.has_value()) {
+    return {};
+  }
   const rach_config_common& rach_cfg_cmn = msg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common.value();
 
   static constexpr pdsch_mcs_table mcs_table = ocudu::pdsch_mcs_table::qam64;

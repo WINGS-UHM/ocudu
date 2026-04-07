@@ -34,9 +34,13 @@ public:
 
 } // namespace
 
-test_sched_config_manager::test_sched_config_manager(const cell_config_builder_params& builder_params_,
+test_sched_config_manager::test_sched_config_manager(const scheduler_expert_config& expert_cfg_) :
+  test_sched_config_manager({}, expert_cfg_)
+{
+}
+
+test_sched_config_manager::test_sched_config_manager(const cell_config_builder_params& builder_params,
                                                      const scheduler_expert_config&    expert_cfg_) :
-  builder_params(builder_params_),
   expert_cfg(expert_cfg_),
   cfg_notifier(std::make_unique<dummy_sched_configuration_notifier>()),
   metric_notifier(std::make_unique<dummy_scheduler_ue_metrics_notifier>()),
@@ -52,6 +56,9 @@ test_sched_config_manager::~test_sched_config_manager() {}
 
 const cell_configuration* test_sched_config_manager::add_cell(const sched_cell_configuration_request_message& msg)
 {
+  default_cell_req = msg;
+  default_ue_req =
+      sched_config_helper::create_default_sched_ue_creation_request(default_cell_req.ran, {lcid_t::LCID_MIN_DRB});
   return cfg_mng.add_cell(msg);
 }
 

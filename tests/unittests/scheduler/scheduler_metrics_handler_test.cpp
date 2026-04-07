@@ -6,6 +6,7 @@
 #include "lib/scheduler/logging/scheduler_metrics_handler.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
+#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/result/sched_result.h"
 #include <gtest/gtest.h>
@@ -50,8 +51,8 @@ protected:
   scheduler_metrics_handler_tester(
       std::chrono::milliseconds period = std::chrono::milliseconds{test_rng::uniform_int<unsigned>(2, 100)}) :
     report_period(period),
-    cell_cfg(config_helpers::make_default_scheduler_expert_config(),
-             sched_config_helper::make_default_sched_cell_configuration_request()),
+    cfg_mng{config_helpers::make_default_scheduler_expert_config()},
+    cell_cfg(*cfg_mng.add_cell(sched_config_helper::make_default_sched_cell_configuration_request())),
     metrics(cell_cfg, sched_cell_configuration_request_message::metrics_config{&metrics_notif})
   {
     metrics_notif.period_slots = report_period.count() * get_nof_slots_per_subframe(cell_cfg.scs_common());
@@ -76,10 +77,11 @@ protected:
     }
   }
 
-  std::chrono::milliseconds            report_period;
-  test_scheduler_cell_metrics_notifier metrics_notif;
-  cell_configuration                   cell_cfg;
-  cell_metrics_handler                 metrics;
+  std::chrono::milliseconds               report_period;
+  test_scheduler_cell_metrics_notifier    metrics_notif;
+  test_helpers::test_sched_config_manager cfg_mng;
+  const cell_configuration&               cell_cfg;
+  cell_metrics_handler                    metrics;
   du_ue_index_t test_ue_index = to_du_ue_index(test_rng::uniform_int<unsigned>(0, MAX_NOF_DU_UES - 1));
 
   slot_point_extended next_sl_tx{

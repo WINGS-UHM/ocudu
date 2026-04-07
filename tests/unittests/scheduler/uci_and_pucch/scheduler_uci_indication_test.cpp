@@ -6,8 +6,8 @@
 /// \brief In this file, we verify the correct operation of the MAC scheduler, as a whole, at handling UCI indications.
 /// The objective here is to mainly cover and verify the correct integration of the scheduler building blocks.
 
-#include "lib/scheduler/config/cell_configuration.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_simulator.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/scheduler/scheduler_factory.h"
@@ -30,7 +30,7 @@ protected:
   {
     sched_cell_configuration_request_message cell_cfg_msg =
         sched_config_helper::make_default_sched_cell_configuration_request();
-    cell_cfg.emplace(sched_cfg, cell_cfg_msg);
+    cell_cfg = cfg_mng.add_cell(cell_cfg_msg);
     sched->handle_cell_configuration_request(cell_cfg_msg);
   }
 
@@ -118,12 +118,13 @@ protected:
   static constexpr du_ue_index_t ue_id   = to_du_ue_index(0);
   static constexpr rnti_t        ue_rnti = to_rnti(0x4601);
 
-  ocudulog::basic_logger&             logger = ocudulog::fetch_basic_logger("SCHED", true);
-  sched_cfg_dummy_notifier            notif;
-  scheduler_ue_metrics_dummy_notifier metric_notif;
-  const scheduler_expert_config       sched_cfg = config_helpers::make_default_scheduler_expert_config();
-  std::optional<cell_configuration>   cell_cfg;
-  std::unique_ptr<mac_scheduler>      sched;
+  ocudulog::basic_logger&                 logger = ocudulog::fetch_basic_logger("SCHED", true);
+  sched_cfg_dummy_notifier                notif;
+  scheduler_ue_metrics_dummy_notifier     metric_notif;
+  const scheduler_expert_config           sched_cfg = config_helpers::make_default_scheduler_expert_config();
+  test_helpers::test_sched_config_manager cfg_mng{sched_cfg};
+  const cell_configuration*               cell_cfg = nullptr;
+  std::unique_ptr<mac_scheduler>          sched;
 
   slot_point_extended next_slot;
   const sched_result* last_sched_res = nullptr;

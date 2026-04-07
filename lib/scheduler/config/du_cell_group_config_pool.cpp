@@ -18,7 +18,10 @@ bwp_config_pool::bwp_config_pool(pci_t                      pci,
   bwp_id(bwpid),
   bwp_dl_cmn(bwp_dl),
   bwp_ul_cmn(bwp_ul),
-  pdcch_pool(pci, bwp_dl_cmn.generic_params, bwp_dl_cmn.pdcch_common, bwp_ded_res.dl)
+  pdcch_pool(pci, bwp_dl_cmn.generic_params, bwp_dl_cmn.pdcch_common, bwp_ded_res.dl),
+  common_bwp_cfg{bwp_id,
+                 sched_bwp_dl_config{bwp_dl_cmn, nullptr, pdcch_pool.init_cfg()},
+                 sched_bwp_ul_config{bwp_ul_cmn, nullptr}}
 {
 }
 
@@ -45,16 +48,23 @@ config_ptr<sched_bwp_config> bwp_config_pool::add_ded_cfg(const bwp_downlink_ded
   return sched_bwp_config_pool.create(bwp_cfg);
 }
 
+static std::vector<std::unique_ptr<bwp_config_pool>>
+make_cell_bwp_pools(const sched_cell_configuration_request_message& req)
+{
+  std::vector<std::unique_ptr<bwp_config_pool>> bwps;
+  // Note: Create a pool for a single BWP for now.
+  bwps.push_back(std::make_unique<bwp_config_pool>(req.ran.pci,
+                                                   to_bwp_id(0),
+                                                   req.ran.dl_cfg_common.init_dl_bwp,
+                                                   req.ran.ul_cfg_common.init_ul_bwp,
+                                                   make_cell_bwp_res_config(req.ran)));
+  return bwps;
+}
+
 du_cell_config_pool::du_cell_config_pool(const scheduler_expert_config&                  sched_cfg_,
                                          const sched_cell_configuration_request_message& req) :
-  cell_cfg_inst(sched_cfg_, req)
+  cell_bwps(make_cell_bwp_pools(req)), cell_cfg_inst(sched_cfg_, req, cell_bwps[0]->cell_cfg())
 {
-  // Note: Create a pool for a single BWP for now.
-  cell_bwps.push_back(std::make_unique<bwp_config_pool>(req.ran.pci,
-                                                        to_bwp_id(0),
-                                                        req.ran.dl_cfg_common.init_dl_bwp,
-                                                        req.ran.ul_cfg_common.init_ul_bwp,
-                                                        make_cell_bwp_res_config(req.ran)));
 }
 
 ue_cell_config_ptr du_cell_config_pool::update_ue(const ue_cell_config& ue_cell)

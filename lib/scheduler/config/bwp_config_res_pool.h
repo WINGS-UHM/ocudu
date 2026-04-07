@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "pdcch_config_pool.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
 #include "ocudu/scheduler/config/cell_bwp_res_config.h"
 #include "ocudu/scheduler/config/ran_cell_config.h"
@@ -20,13 +19,7 @@ class bwp_config_res_pool
 {
 public:
   bwp_config_res_pool(const ran_cell_config& ran_cfg, bwp_id_t bwp_id_) :
-    bwpid(bwp_id_),
-    base_dl_bwp_cmn(ran_cfg.dl_cfg_common.init_dl_bwp),
-    res(make_cell_bwp_res_config(ran_cfg)),
-    pdcch_cfg_pool(ran_cfg.pci,
-                   ran_cfg.dl_cfg_common.init_dl_bwp.generic_params,
-                   ran_cfg.dl_cfg_common.init_dl_bwp.pdcch_common,
-                   res.dl)
+    bwpid(bwp_id_), base_dl_bwp_cmn(ran_cfg.dl_cfg_common.init_dl_bwp), res(make_cell_bwp_res_config(ran_cfg))
   {
   }
 
@@ -41,15 +34,10 @@ public:
   /// Dedicated Uplink resources.
   const cell_ul_bwp_res_config& ul() const { return res.ul; }
 
-  const pdcch_config_pool& pdcchs() const { return pdcch_cfg_pool; }
-
 private:
   bwp_id_t            bwpid;
   bwp_downlink_common base_dl_bwp_cmn;
   cell_bwp_res_config res;
-
-  /// Pool of possible PDCCH configs.
-  pdcch_config_pool pdcch_cfg_pool;
 };
 
 } // namespace ocudu

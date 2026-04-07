@@ -7,6 +7,7 @@
 #include "lib/scheduler/support/pusch/pusch_default_time_allocation.h"
 #include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/ran/tdd/tdd_ul_dl_config_formatters.h"
 #include "ocudu/scheduler/config/cell_config_builder_params.h"
 #include "ocudu/support/format/custom_formattable.h"
@@ -27,7 +28,7 @@ struct test_params {
 class pusch_td_resource_indices_test : public ::testing::TestWithParam<test_params>
 {
 protected:
-  pusch_td_resource_indices_test()
+  pusch_td_resource_indices_test() : cfg_mng(expert_cfg)
   {
     test_params testparams = GetParam();
     params = cell_config_builder_profiles::create(testparams.tdd_cfg.has_value() ? duplex_mode::TDD : duplex_mode::FDD);
@@ -40,7 +41,7 @@ protected:
         sched_config_helper::make_default_sched_cell_configuration_request(params);
 
     // Generate cell configuration.
-    cell_cfg = std::make_unique<cell_configuration>(expert_cfg, sched_cell_cfg_req);
+    cell_cfg = cfg_mng.add_cell(sched_cell_cfg_req);
 
     // Generate the list to verify.
     ocudu_assert(cell_cfg->params.ul_cfg_common.init_ul_bwp.pusch_cfg_common.has_value(),
@@ -72,7 +73,8 @@ protected:
   scheduler_expert_config    expert_cfg;
   cell_config_builder_params params{};
 
-  std::unique_ptr<cell_configuration> cell_cfg;
+  test_helpers::test_sched_config_manager cfg_mng;
+  const cell_configuration*               cell_cfg = nullptr;
   // Contains slot indexes of the DL enabled slots.
   std::vector<unsigned> dl_slot_indexes;
   // Contains slot indexes of fully UL enabled slots.

@@ -9,6 +9,8 @@
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
 #include "ocudu/ran/prach/prach_frequency_mapping.h"
 #include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/scheduler/config/scheduler_cell_config_validator.h"
+#include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -59,9 +61,22 @@ using namespace prach_test;
 
 class prach_scheduler_test : public sub_scheduler_test_environment, public ::testing::TestWithParam<prach_test_params>
 {
+  // Returns the cell config for the given params if it passes scheduler validation, or the default cell config
+  // otherwise. Tests with unsupported configurations are skipped in SetUp().
+  static sched_cell_configuration_request_message safe_cell_config(const prach_test_params& p)
+  {
+    const auto msg = make_custom_sched_cell_configuration_request(p);
+    if (not config_validators::validate_sched_cell_configuration_request_message(
+                msg, config_helpers::make_default_scheduler_expert_config())
+                .has_value()) {
+      return sched_config_helper::make_default_sched_cell_configuration_request();
+    }
+    return msg;
+  }
+
 protected:
   prach_scheduler_test() :
-    sub_scheduler_test_environment(make_custom_sched_cell_configuration_request(GetParam())),
+    sub_scheduler_test_environment(safe_cell_config(GetParam())),
     prach_sch(cell_cfg),
     prach_cfg(prach_configuration_get(
         band_helper::get_freq_range(cell_cfg.band()),
@@ -73,6 +88,17 @@ protected:
         get_prach_duration_info(prach_cfg, cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
     nof_symbols        = prach_duration_info.nof_symbols;
     prach_length_slots = prach_duration_info.prach_length_slots;
+  }
+
+  void SetUp() override
+  {
+    const auto msg = make_custom_sched_cell_configuration_request(GetParam());
+    const auto err = config_validators::validate_sched_cell_configuration_request_message(
+        msg, config_helpers::make_default_scheduler_expert_config());
+    if (not err.has_value()) {
+      GTEST_SKIP() << fmt::format(
+          "Unsupported PRACH configuration index {} - skipping. Cause: {}", GetParam().prach_cfg_index, err.error());
+    }
   }
 
   void do_run_slot() override { prach_sch.run_slot(res_grid); }

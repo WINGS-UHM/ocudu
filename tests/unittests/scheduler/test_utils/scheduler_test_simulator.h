@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "config_generators.h"
 #include "dummy_test_components.h"
-#include "lib/scheduler/config/cell_configuration.h"
 #include "result_test_helpers.h"
 #include "tests/test_doubles/scheduler/dummy_scheduler_ue_metric_notifier.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
@@ -77,16 +77,17 @@ public:
 
   const std::unordered_map<rnti_t, du_ue_index_t>& rnti_to_ue_index_mapping() const { return rnti_to_ue_index; }
 
-  const unsigned                      tx_rx_delay;
-  bool                                auto_uci       = false;
-  bool                                auto_crc       = false;
-  std::chrono::milliseconds           ntn_cs_koffset = std::chrono::milliseconds(0);
-  ocudulog::basic_logger&             logger;
-  ocudulog::basic_logger&             test_logger;
-  const scheduler_expert_config       sched_cfg;
-  sched_cfg_dummy_notifier            notif;
-  scheduler_ue_metrics_dummy_notifier metric_notif;
-  std::unique_ptr<mac_scheduler>      sched;
+  const unsigned                          tx_rx_delay;
+  bool                                    auto_uci       = false;
+  bool                                    auto_crc       = false;
+  std::chrono::milliseconds               ntn_cs_koffset = std::chrono::milliseconds(0);
+  ocudulog::basic_logger&                 logger;
+  ocudulog::basic_logger&                 test_logger;
+  const scheduler_expert_config           sched_cfg;
+  test_helpers::test_sched_config_manager cfg_mng;
+  sched_cfg_dummy_notifier                notif;
+  scheduler_ue_metrics_dummy_notifier     metric_notif;
+  std::unique_ptr<mac_scheduler>          sched;
 
   slot_point_extended next_slot;
 
@@ -96,7 +97,7 @@ public:
   }
   const cell_configuration& cell_cfg(du_cell_index_t cell_idx = to_du_cell_index(0)) const
   {
-    return sim_cells.at(cell_idx)->cfg;
+    return *sim_cells.at(cell_idx)->cfg;
   }
   const sched_result* last_sched_result(du_cell_index_t cell_idx = to_du_cell_index(0)) const
   {
@@ -118,14 +119,10 @@ public:
 private:
   struct sim_cell_context {
     dummy_scheduler_cell_metrics_notifier cell_metrics;
-    cell_configuration                    cfg;
+    const cell_configuration*             cfg      = nullptr;
     const sched_result*                   last_res = nullptr;
 
-    sim_cell_context(const scheduler_expert_config&                  sched_cfg,
-                     const sched_cell_configuration_request_message& cell_cfg_req) :
-      cfg(sched_cfg, cell_cfg_req)
-    {
-    }
+    explicit sim_cell_context(const cell_configuration* cfg_) : cfg(cfg_) {}
   };
 
   /// Handle automatic feedback (UCI/CRC) if enabled.

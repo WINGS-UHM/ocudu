@@ -271,6 +271,10 @@ private:
             req.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
             time_domain_resource_helper::calculate_minimum_pdsch_symbol(req.ran.dl_cfg_common.init_dl_bwp.pdcch_common,
                                                                         std::nullopt));
+    req.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list =
+        time_domain_resource_helper::generate_dedicated_pusch_td_res_list(
+            req.ran.tdd_cfg, req.ran.ul_cfg_common.init_ul_bwp.generic_params.cp, req.ran.init_bwp.pusch.min_k2);
+    req.ran.init_bwp.csi = std::nullopt;
 
     // Set Paging configuration to a particular value in order to derive the 5G-S-TMSI, such that Paging Occasion
     // of UE fall in partial slot of above set TDD configuration. i.e. we would like to force Paging Occasion index of

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 # Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-
 set_directory_properties(PROPERTIES LABELS "sched")
 
 include_directories(../../..)
@@ -67,6 +66,7 @@ target_link_libraries(scheduler_metrics_handler_test
         ocudu_sched
         sched_config
         sched_test_doubles
+        scheduler_test_utils
         gtest
         ocudu_gtest_main)
 add_test(scheduler_metrics_handler_test scheduler_metrics_handler_test)

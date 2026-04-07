@@ -11,6 +11,7 @@
 #include "lib/scheduler/logging/scheduler_result_logger.h"
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator.h"
 #include "tests/test_doubles/utils/test_rng.h"
+#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 
 namespace ocudu {
@@ -91,7 +92,8 @@ public:
   ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST", true);
 
   scheduler_expert_config                   sched_cfg{config_helpers::make_default_scheduler_expert_config()};
-  const cell_configuration                  cell_cfg;
+  test_helpers::test_sched_config_manager   cfg_mng;
+  const cell_configuration&                 cell_cfg;
   scheduler_event_logger                    ev_logger{cell_cfg.cell_index, cell_cfg.params.pci};
   cell_metrics_handler                      metrics_hdlr{cell_cfg, std::nullopt};
   cell_resource_allocator                   res_grid{cell_cfg};

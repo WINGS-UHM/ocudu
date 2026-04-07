@@ -12,6 +12,7 @@
 #include "lib/scheduler/scheduler_impl.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
+#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
@@ -39,7 +40,8 @@ TEST_F(sched_no_ue_tester, test_no_ues)
   // Action 1: Add Cell.
   sched_cell_configuration_request_message cell_cfg_msg =
       sched_config_helper::make_default_sched_cell_configuration_request();
-  cell_configuration cell_cfg{sched_cfg, cell_cfg_msg};
+  test_helpers::test_sched_config_manager cfg_mng{sched_cfg};
+  const cell_configuration&               cell_cfg = *cfg_mng.add_cell(cell_cfg_msg);
   sch.handle_cell_configuration_request(cell_cfg_msg);
 
   slot_point_extended sl_tx{subcarrier_spacing::kHz15,
@@ -63,8 +65,9 @@ TEST_F(sched_no_ue_tester, test_rach_indication)
   // Action 1: Add Cell.
   sched_cell_configuration_request_message cell_cfg_msg =
       sched_config_helper::make_default_sched_cell_configuration_request();
-  cell_configuration cell_cfg{sched_cfg, cell_cfg_msg};
-  sch.handle_cell_configuration_request(sched_config_helper::make_default_sched_cell_configuration_request());
+  test_helpers::test_sched_config_manager cfg_mng{sched_cfg};
+  const cell_configuration&               cell_cfg = *cfg_mng.add_cell(cell_cfg_msg);
+  sch.handle_cell_configuration_request(cell_cfg_msg);
 
   // Action 2: Add RACH indication.
   // Note: RACH is added in a slot different than the SIB1 to avoid PDCCH conflicts.

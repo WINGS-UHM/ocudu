@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 # Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-
 add_executable(pdcch_type0_css_occassions_test pdcch/pdcch_type0_css_occassions_test.cpp)
 target_link_libraries(pdcch_type0_css_occassions_test ocudu_sched ocudulog gtest gtest_main)
 add_test(pdcch_type0_css_occassions_test pdcch_type0_css_occassions_test)
@@ -24,7 +23,7 @@ target_link_libraries(pusch_default_time_allocation_test ocudu_sched ocudulog gt
 add_test(pusch_default_time_allocation_test pusch_default_time_allocation_test)
 
 add_executable(pusch_td_resource_indices_test pusch/pusch_td_resource_indices_test.cpp)
-target_link_libraries(pusch_td_resource_indices_test ocudu_sched sched_test_doubles ocudulog gtest gtest_main)
+target_link_libraries(pusch_td_resource_indices_test ocudu_sched sched_test_doubles scheduler_test_utils ocudulog gtest gtest_main)
 add_test(pusch_td_resource_indices_test pusch_td_resource_indices_test)
 
 add_executable(pusch_dmrs_symbol_mask_test pusch/pusch_dmrs_symbol_mask_test.cpp)

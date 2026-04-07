@@ -22,7 +22,8 @@ class cell_configuration
 {
 public:
   explicit cell_configuration(const scheduler_expert_config&                  expert_cfg,
-                              const sched_cell_configuration_request_message& msg);
+                              const sched_cell_configuration_request_message& msg,
+                              const sched_bwp_config&                         init_bwp);
   cell_configuration(const cell_configuration&) = delete;
   cell_configuration(cell_configuration&&)      = delete;
 
@@ -51,7 +52,7 @@ public:
   /// List of dl-DataToUL-ACK values sent to UE in its dedicated configuration.
   const static_vector<uint8_t, 8> dl_data_to_ul_ack;
   /// Initial BWP configuration for this cell.
-  sched_bwp_config init_bwp;
+  const sched_bwp_config& init_bwp;
   /// List of BWP config resources handled by this cell.
   slotted_id_vector<bwp_id_t, bwp_config_res_pool> bwp_res;
 

@@ -6,7 +6,6 @@
 #include "lib/scheduler/pdcch_scheduling/pdcch_resource_allocator_impl.h"
 #include "lib/scheduler/support/paging_helpers.h"
 #include "sub_scheduler_test_environment.h"
-#include "tests/test_doubles/scheduler/cell_config_builder_profiles.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "ocudu/adt/bounded_bitset.h"
 #include "ocudu/ran/pdcch/dci_packing.h"
@@ -28,9 +27,7 @@ class si_scheduler_test_environment : public sub_scheduler_test_environment
 {
 public:
   si_scheduler_test_environment(const sched_cell_configuration_request_message& msg) :
-    sub_scheduler_test_environment(sched_config_helper::make_default_sched_cell_configuration_request(
-        cell_config_builder_profiles::create(duplex_mode::TDD))),
-    si_sched(cell_cfg, *pdcch_alloc, msg)
+    sub_scheduler_test_environment(msg), si_sched(cell_cfg, *pdcch_alloc, msg)
   {
     run_slot();
   }
@@ -102,15 +99,15 @@ TEST_F(si_scheduler_test, when_si_is_updated_then_new_version_is_applied_at_si_c
   new_si_sched_cfg.sib1_payload_size    = new_sib1_len;
   new_si_sched_cfg.si_messages[0].msg_len += units::bytes{64U};
 
-  // Update SI scheduling.
-  si_sched.handle_si_update_request(si_scheduling_update_request{to_du_cell_index(0), 1, new_si_sched_cfg});
-
   const unsigned si_ch_wind_len_rfs =
       static_cast<unsigned>(cell_cfg.params.dl_cfg_common.bcch_cfg.mod_period_coeff) *
       static_cast<unsigned>(cell_cfg.params.dl_cfg_common.pcch_cfg.default_paging_cycle);
   const unsigned sfn_mod = (next_slot + res_grid.max_dl_slot_alloc_delay).sfn() % si_ch_wind_len_rfs;
   const unsigned si_change_min_count =
       (si_ch_wind_len_rfs - sfn_mod) * next_slot.nof_slots_per_frame() - next_slot.slot_index();
+
+  // Update SI scheduling.
+  si_sched.handle_si_update_request(si_scheduling_update_request{to_du_cell_index(0), 1, new_si_sched_cfg});
 
   const unsigned          nof_test_slots = 2 * si_ch_wind_len_rfs * next_slot.nof_slots_per_frame();
   unsigned                last_version   = 0;

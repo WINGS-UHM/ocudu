@@ -54,7 +54,8 @@ sub_scheduler_test_environment::sub_scheduler_test_environment(
     std::function<void(slot_point)>                 pdcch_alloc_sl_ind_task,
     unsigned                                        delay_tx_rx_slots_) :
   sched_cfg(std::move(sched_cfg_)),
-  cell_cfg(sched_cfg, cell_req),
+  cfg_mng(sched_cfg),
+  cell_cfg(*cfg_mng.add_cell(cell_req)),
   pdcch_alloc(custom_pdcch_alloc == nullptr ? std::make_unique<pdcch_resource_allocator_impl>(cell_cfg)
                                             : std::move(custom_pdcch_alloc)),
   delay_tx_rx_slots(delay_tx_rx_slots_),

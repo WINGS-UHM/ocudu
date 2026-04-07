@@ -587,7 +587,7 @@ build_sib1_partial_slot_cell_req(const sib1_tdd_partial_slot_test_params& params
                                                             params.l_max,
                                                             params.ssb_period,
                                                             params.carrier_bw_mhz,
-                                                            ocudu::duplex_mode::TDD);
+                                                            duplex_mode::TDD);
   msg.ran.tdd_cfg = params.tdd_config;
   // Generate PDSCH Time domain allocation based on the partial slot TDD configuration.
   msg.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list =
@@ -596,6 +596,9 @@ build_sib1_partial_slot_cell_req(const sib1_tdd_partial_slot_test_params& params
           msg.ran.dl_cfg_common.init_dl_bwp.generic_params.cp,
           time_domain_resource_helper::calculate_minimum_pdsch_symbol(msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common,
                                                                       std::nullopt));
+  msg.ran.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list =
+      time_domain_resource_helper::generate_dedicated_pusch_td_res_list(
+          params.tdd_config, msg.ran.ul_cfg_common.init_ul_bwp.generic_params.cp, msg.ran.init_bwp.pusch.min_k2);
   return msg;
 }
 

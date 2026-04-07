@@ -6,6 +6,7 @@
 
 #include "cell_configuration.h"
 #include "logical_channel_config_pool.h"
+#include "pdcch_config_pool.h"
 #include "sched_config_params.h"
 #include "ocudu/ran/du_types.h"
 #include "ocudu/scheduler/config/bwp_configuration.h"
@@ -38,11 +39,14 @@ public:
                                            const bwp_uplink_dedicated*   ul_ded,
                                            const ue_bwp_config&          ue_bwp_cfg);
 
+  const sched_bwp_config& cell_cfg() const { return common_bwp_cfg; }
+
 private:
   const bwp_id_t                             bwp_id;
   const bwp_downlink_common                  bwp_dl_cmn;
   const bwp_uplink_common                    bwp_ul_cmn;
   pdcch_config_pool                          pdcch_pool;
+  sched_bwp_config                           common_bwp_cfg;
   config_object_pool<bwp_downlink_dedicated> dl_ded_config_pool;
   config_object_pool<bwp_uplink_dedicated>   ul_ded_config_pool;
   config_object_pool<sched_bwp_config>       sched_bwp_config_pool;
@@ -66,11 +70,11 @@ private:
                const bwp_uplink_dedicated*   ul_bwp_ded,
                const ue_bwp_config&          ue_bwp_cfg);
 
-  /// Cell common configuration.
-  cell_configuration cell_cfg_inst;
-
   /// BWPs managed in this cell.
   std::vector<std::unique_ptr<bwp_config_pool>> cell_bwps;
+
+  /// Cell common configuration.
+  cell_configuration cell_cfg_inst;
 
   // Pools of UE-dedicated configurations.
   config_object_pool<ue_cell_res_config>        cell_cfg_pool;

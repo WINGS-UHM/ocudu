@@ -308,7 +308,7 @@ TEST_F(common_pdcch_allocator_tester, single_pdcch_sib1_allocation)
   ASSERT_EQ(res_grid[0].result.dl.dl_pdcchs.size(), 1);
   ASSERT_EQ(pdcch, &res_grid[0].result.dl.dl_pdcchs[0]) << "Returned PDCCH ptr does not match allocated ptr";
   ASSERT_EQ(rnti_t::SI_RNTI, pdcch->ctx.rnti);
-  ASSERT_EQ(pdcch->ctx.bwp_cfg, &cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params);
+  ASSERT_EQ(pdcch->ctx.bwp_cfg, &cell_cfg.init_bwp.dl.cfg());
   ASSERT_EQ(*pdcch->ctx.coreset_cfg, *cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0);
   ASSERT_EQ(pdcch->ctx.n_id_pdcch_dmrs, cell_cfg.params.pci) << "Invalid N_{ID} (see TS38.211, 7.4.1.3.1)";
   ASSERT_EQ(pdcch->ctx.n_rnti_pdcch_data, 0) << "Invalid n_{RNTI} (see TS38.211, 7.3.2.3)";
@@ -328,7 +328,7 @@ TEST_F(common_pdcch_allocator_tester, single_pdcch_rar_allocation)
   ASSERT_EQ(res_grid[0].result.dl.dl_pdcchs.size(), 1);
   ASSERT_EQ(pdcch, &res_grid[0].result.dl.dl_pdcchs[0]) << "Returned PDCCH ptr does not match allocated ptr";
   ASSERT_EQ(ra_rnti, pdcch->ctx.rnti);
-  ASSERT_EQ(pdcch->ctx.bwp_cfg, &cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params);
+  ASSERT_EQ(pdcch->ctx.bwp_cfg, &cell_cfg.init_bwp.dl.cfg());
   ASSERT_EQ(*pdcch->ctx.coreset_cfg, *cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0);
   ASSERT_EQ(pdcch->ctx.n_id_pdcch_dmrs, cell_cfg.params.pci) << "Invalid N_{ID} (see TS38.211, 7.4.1.3.1)";
   ASSERT_EQ(pdcch->ctx.n_rnti_pdcch_data, 0) << "Invalid n_{RNTI} (see TS38.211, 7.3.2.3)";
@@ -485,8 +485,9 @@ TEST(pdcch_resource_allocator_test, monitoring_period)
             offset, msg.ran.dl_cfg_common.init_dl_bwp.generic_params.scs);
         msg.ran.dl_cfg_common.init_dl_bwp.pdcch_common.search_spaces[1].set_non_ss0_duration(duration);
 
-        cell_configuration      cfg{sched_cfg, msg};
-        cell_resource_allocator res_grid{cfg};
+        test_helpers::test_sched_config_manager cfg_mng{sched_cfg};
+        const cell_configuration&               cfg = *cfg_mng.add_cell(msg);
+        cell_resource_allocator                 res_grid{cfg};
 
         pdcch_resource_allocator_impl pdcch_sch(cfg);
 

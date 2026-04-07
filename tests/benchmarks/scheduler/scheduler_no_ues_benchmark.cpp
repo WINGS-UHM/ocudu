@@ -56,7 +56,8 @@ void benchmark_sib_scheduling()
   scheduler_expert_config                  sched_cfg = config_helpers::make_default_scheduler_expert_config();
   sched_cell_configuration_request_message cell_cfg_msg =
       sched_config_helper::make_default_sched_cell_configuration_request();
-  cell_configuration cell_cfg{sched_cfg, cell_cfg_msg};
+  test_helpers::test_sched_config_manager cfg_mng{sched_cfg};
+  cfg_mng.add_cell(cell_cfg_msg);
   sch->handle_cell_configuration_request(cell_cfg_msg);
 
   auto& logger = ocudulog::fetch_basic_logger("SCHED", true);
@@ -81,7 +82,8 @@ void benchmark_rach_scheduling()
   scheduler_expert_config                  sched_cfg = config_helpers::make_default_scheduler_expert_config();
   sched_cell_configuration_request_message cell_cfg_msg =
       sched_config_helper::make_default_sched_cell_configuration_request();
-  cell_configuration cell_cfg{sched_cfg, cell_cfg_msg};
+  test_helpers::test_sched_config_manager cfg_mng{sched_cfg};
+  cfg_mng.add_cell(cell_cfg_msg);
   sch->handle_cell_configuration_request(cell_cfg_msg);
 
   auto&                   logger = ocudulog::fetch_basic_logger("SCHED", true);

@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "lib/scheduler/common_scheduling/prach_scheduler.h"
+#include "lib/scheduler/config/du_cell_group_config_pool.h"
 #include "prach_scheduler_test_data.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
 #include "tests/test_doubles/utils/test_rng.h"
@@ -166,9 +167,10 @@ protected:
     }
 
     // Make cell configuration.
-    cell_cfg = std::make_unique<cell_configuration>(
+    cell_pool = std::make_unique<du_cell_config_pool>(
         sched_cfg,
         make_custom_sched_cell_configuration_request(scs_common, band, prach_config_index, pci, zcz, nof_fd_ra));
+    cell_cfg = &cell_pool->cell_cfg();
 
     // Make PRACH scheduler.
     prach_sch = std::make_unique<prach_scheduler>(*cell_cfg);
@@ -230,7 +232,8 @@ protected:
 
   prach_configuration                      prach_cfg;
   const scheduler_expert_config            sched_cfg{config_helpers::make_default_scheduler_expert_config()};
-  std::unique_ptr<cell_configuration>      cell_cfg;
+  std::unique_ptr<du_cell_config_pool>     cell_pool;
+  const cell_configuration*                cell_cfg = nullptr;
   std::unique_ptr<prach_scheduler>         prach_sch;
   std::unique_ptr<cell_resource_allocator> res_grid;
   unsigned                                 nof_slots_period;

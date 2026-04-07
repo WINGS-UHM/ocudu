@@ -5,6 +5,7 @@
 #include "../tests/test_doubles/scheduler/pucch_res_test_builder_helper.h"
 #include "lib/scheduler/config/cell_configuration.h"
 #include "tests/test_doubles/scheduler/scheduler_config_helper.h"
+#include "tests/unittests/scheduler/test_utils/config_generators.h"
 #include "ocudu/scheduler/config/scheduler_expert_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/scheduler_configurator.h"
@@ -16,8 +17,8 @@ class sched_pucch_res_builder_tester : public ::testing::Test
 {
 protected:
   sched_pucch_res_builder_tester() :
-    cell_cfg(config_helpers::make_default_scheduler_expert_config(),
-             sched_config_helper::make_default_sched_cell_configuration_request()),
+    cfg_mng{config_helpers::make_default_scheduler_expert_config()},
+    cell_cfg(*cfg_mng.add_cell(sched_config_helper::make_default_sched_cell_configuration_request())),
     cell_cfg_dedicated(ocudu::config_helpers::make_default_ue_cell_config(cell_cfg.params))
   {
     pucch_builder.setup(cell_cfg.params);
@@ -35,12 +36,13 @@ protected:
     return &ues.back();
   }
 
-  cell_configuration            cell_cfg;
-  ue_cell_config                cell_cfg_dedicated;
-  pucch_resource_builder_params pucch_params;
-  std::vector<ue_info>          ues;
-  unsigned                      ue_cnt = 0;
-  pucch_res_builder_test_helper pucch_builder;
+  test_helpers::test_sched_config_manager cfg_mng;
+  const cell_configuration&               cell_cfg;
+  ue_cell_config                          cell_cfg_dedicated;
+  pucch_resource_builder_params           pucch_params;
+  std::vector<ue_info>                    ues;
+  unsigned                                ue_cnt = 0;
+  pucch_res_builder_test_helper           pucch_builder;
 };
 
 TEST_F(sched_pucch_res_builder_tester, when_ues_are_added_their_cfg_have_different_csi_and_sr)

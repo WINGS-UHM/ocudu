@@ -30,6 +30,7 @@ scheduler_test_simulator::scheduler_test_simulator(const scheduler_expert_config
   }()),
   test_logger(ocudulog::fetch_basic_logger("TEST", true)),
   sched_cfg(sched_cfg_),
+  cfg_mng(sched_cfg_),
   sched(create_scheduler(scheduler_config{sched_cfg, notif})),
   next_slot(test_helper::generate_random_slot_point(max_scs))
 {
@@ -68,7 +69,8 @@ scheduler_test_simulator::~scheduler_test_simulator()
 
 void scheduler_test_simulator::add_cell(const sched_cell_configuration_request_message& cell_cfg_req)
 {
-  sim_cells.push_back(std::make_unique<sim_cell_context>(sched_cfg, cell_cfg_req));
+  const cell_configuration* cell_cfg_ptr = cfg_mng.add_cell(cell_cfg_req);
+  sim_cells.push_back(std::make_unique<sim_cell_context>(cell_cfg_ptr));
   auto cpy             = cell_cfg_req;
   cpy.metrics.notifier = &sim_cells.back()->cell_metrics;
   sched->handle_cell_configuration_request(cpy);

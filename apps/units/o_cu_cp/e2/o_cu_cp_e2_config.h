@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ocudu/e2/e2ap_configuration.h"
+#include "apps/helpers/e2/e2_appconfig.h"
 
 namespace ocudu {
 

@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "adapters/f1_gateways.h"
+#include "apps/helpers/e2/e2_config_translators.h"
 #include "apps/helpers/metrics/metrics_helpers.h"
 #include "apps/services/app_execution_metrics/executor_metrics_manager.h"
 #include "apps/services/app_resource_usage/app_resource_usage.h"
@@ -25,7 +26,6 @@
 #include "ocudu/adt/scope_exit.h"
 #include "ocudu/du/du_high/du_high_clock_controller.h"
 #include "ocudu/du/du_operation_controller.h"
-#include "ocudu/e2/e2ap_config_translators.h"
 #include "ocudu/e2/gateways/e2_connection_client.h"
 #include "ocudu/e2/gateways/e2_network_client_factory.h"
 #include "ocudu/f1u/du/split_connector/f1u_split_connector_factory.h"

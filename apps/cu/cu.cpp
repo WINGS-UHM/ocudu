@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "apps/cu/cu_appconfig_cli11_schema.h"
+#include "apps/helpers/e2/e2_config_translators.h"
 #include "apps/helpers/f1u/f1u_appconfig.h"
 #include "apps/helpers/metrics/metrics_helpers.h"
 #include "apps/helpers/network/sctp_config_translators.h"
@@ -30,7 +31,6 @@
 #include "ocudu/cu_cp/cu_cp_operation_controller.h"
 #include "ocudu/cu_up/o_cu_up.h"
 #include "ocudu/e1ap/gateways/e1_local_connector_factory.h"
-#include "ocudu/e2/e2ap_config_translators.h"
 #include "ocudu/f1ap/gateways/f1c_network_server_factory.h"
 #include "ocudu/f1u/cu_up/f1u_gateway.h"
 #include "ocudu/f1u/cu_up/split_connector/f1u_split_connector_factory.h"

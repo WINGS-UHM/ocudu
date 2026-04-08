@@ -3,7 +3,8 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "e2_cli11_schema.h"
-#include "ocudu/e2/e2ap_configuration.h"
+#include "apps/helpers/e2/e2_appconfig.h"
+#include "apps/helpers/network/sctp_cli11_schema.h"
 #include "ocudu/support/cli11_utils.h"
 
 using namespace ocudu;
@@ -27,13 +28,7 @@ static void configure_cli11_e2_args(CLI::App&          app,
       "Local bind addresses to be used for E2 interface. Multiple addresses can be specified for SCTP "
       "multi-homing. If left empty, implicit bind is performed")
       ->capture_default_str();
-  add_option(app, "--sctp_rto_initial", e2_params.sctp_rto_initial, "SCTP initial RTO value")->capture_default_str();
-  add_option(app, "--sctp_rto_min", e2_params.sctp_rto_min, "SCTP RTO min")->capture_default_str();
-  add_option(app, "--sctp_rto_max", e2_params.sctp_rto_max, "SCTP RTO max")->capture_default_str();
-  add_option(app, "--sctp_init_max_attempts", e2_params.sctp_init_max_attempts, "SCTP init max attempts")
-      ->capture_default_str();
-  add_option(app, "--sctp_max_init_timeo", e2_params.sctp_max_init_timeo, "SCTP max init timeout")
-      ->capture_default_str();
+  configure_cli11_sctp_socket_args(app, e2_params.sctp);
   add_option(app, "--e2sm_kpm_enabled", e2_params.e2sm_kpm_enabled, "Enable KPM service module")->capture_default_str();
   add_option(app, "--e2sm_rc_enabled", e2_params.e2sm_rc_enabled, "Enable RC service module")->capture_default_str();
   add_option(app, "--e2sm_ccc_enabled", e2_params.e2sm_ccc_enabled, "Enable CCC service module")->capture_default_str();

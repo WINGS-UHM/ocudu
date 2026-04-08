@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "apps/helpers/e2/e2_config_translators.h"
 #include "apps/helpers/metrics/metrics_helpers.h"
 #include "apps/helpers/network/sctp_config_translators.h"
 #include "apps/services/app_execution_metrics/executor_metrics_manager.h"
@@ -34,7 +35,6 @@
 #include "ocudu/du/du_high/du_high_clock_controller.h"
 #include "ocudu/du/du_operation_controller.h"
 #include "ocudu/e1ap/gateways/e1_local_connector_factory.h"
-#include "ocudu/e2/e2ap_config_translators.h"
 #include "ocudu/e2/gateways/e2_network_client_factory.h"
 #include "ocudu/f1ap/gateways/f1c_local_connector_factory.h"
 #include "ocudu/f1u/local_connector/f1u_local_connector.h"

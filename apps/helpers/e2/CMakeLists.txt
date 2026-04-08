@@ -9,4 +9,4 @@ set(SOURCES
 
 add_library(ocudu_e2_app_helpers STATIC ${SOURCES})
 target_include_directories(ocudu_e2_app_helpers PRIVATE ${CMAKE_SOURCE_DIR})
-target_link_libraries(ocudu_e2_app_helpers PRIVATE ocudu::yaml-cpp)
+target_link_libraries(ocudu_e2_app_helpers PRIVATE ocudu_network_app_helpers ocudu::yaml-cpp)

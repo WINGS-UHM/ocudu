@@ -37,6 +37,10 @@ async_task<void> ue_manager::stop()
   // Stopping all UE's. Stop GTP-U demux first.
   gtpu_rx_demux.stop();
 
+  // Stop F1-U gateway. This will internallly stop the GTP-U demux
+  // and UDP TX batched queues, if in split CU/DU scenarios.
+  f1u_gw.stop();
+
   // Routine to stop all UEs
   return remove_all_ues();
 }

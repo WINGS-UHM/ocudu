@@ -57,6 +57,8 @@ public:
 
   virtual void attach_dl_teid(const up_transport_layer_info& ul_up_tnl_info,
                               const up_transport_layer_info& dl_up_tnl_info) = 0;
+
+  virtual void stop() = 0;
 };
 
 /// This class will be used to provide the interfaces to

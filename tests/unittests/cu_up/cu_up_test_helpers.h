@@ -255,6 +255,8 @@ public:
     return std::make_unique<dummy_f1u_gateway_bearer>(bearer, *this, ul_up_tnl_info);
   }
 
+  void stop() override {}
+
   void attach_dl_teid(const up_transport_layer_info& ul_up_tnl_info,
                       const up_transport_layer_info& dl_up_tnl_info) override
   {
@@ -290,6 +292,8 @@ private:
   void on_new_pdu(byte_buffer pdu, const sockaddr_storage& src_addr) override {}
 
   std::string ip_addr = "127.0.0.2";
+
+  void stop() override {}
 };
 
 class dummy_ngu_session_manager final : public ocuup::ngu_session_manager

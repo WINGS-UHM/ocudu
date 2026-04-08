@@ -69,6 +69,8 @@ public:
 
   /// \brief Register the UDP gateway in the IO broker for automatic handling of notifications.
   virtual bool subscribe_to(io_broker& broker) = 0;
+
+  virtual void stop() = 0;
 };
 
 class udp_network_gateway : public udp_network_gateway_data_handler, public udp_network_gateway_controller

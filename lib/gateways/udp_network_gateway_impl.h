@@ -45,6 +45,8 @@ public:
                                     task_executor&                               io_rx_executor_);
   ~udp_network_gateway_impl() override { io_subcriber.reset(); }
 
+  void stop() override;
+
   bool subscribe_to(io_broker& broker) override;
 
 private:

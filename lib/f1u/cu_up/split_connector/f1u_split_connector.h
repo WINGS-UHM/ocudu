@@ -108,6 +108,8 @@ public:
                       std::string              ext_addr_  = "auto");
   ~f1u_split_connector() override;
 
+  void stop() override;
+
   f1u_cu_up_udp_gateway* get_f1u_cu_up_gateway() { return this; }
 
   /// TODO this interface should be removed.

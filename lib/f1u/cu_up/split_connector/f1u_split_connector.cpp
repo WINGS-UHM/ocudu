@@ -151,6 +151,24 @@ f1u_split_connector::f1u_split_connector(const gtpu_gateway_maps& udp_gw_maps,
 
 f1u_split_connector::~f1u_split_connector() = default;
 
+void f1u_split_connector::stop()
+{
+  // Stop RX of further incoming packets.
+  demux.stop();
+
+  // Stop TX batched queue to all UDP gateways.
+  for (const std::unique_ptr<gtpu_tnl_pdu_session>& f1u_session : f1u_sessions.default_gw_sessions) {
+    f1u_session->stop();
+  }
+  for (const auto& [s_nssai, s_nssai_sessions] : f1u_sessions.session_maps) {
+    for (const auto& [five_qi, five_qi_sessions] : s_nssai_sessions) {
+      for (const auto& f1u_session : five_qi_sessions) {
+        f1u_session->stop();
+      }
+    }
+  }
+}
+
 std::unique_ptr<f1u_cu_up_gateway_bearer>
 f1u_split_connector::create_cu_bearer(uint32_t                              ue_index,
                                       s_nssai_t                             s_nssai,

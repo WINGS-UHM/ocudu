@@ -33,6 +33,8 @@ public:
   /// \return If a UDP link is being used, returns the respective bind port. If the connection is local, it returns
   /// std::nullopt.
   virtual std::optional<uint16_t> get_bind_port() const = 0;
+
+  virtual void stop() = 0;
 };
 
 /// \brief This class is called by the CU-UP to instantiate new GTP-U TNL PDU sessions.

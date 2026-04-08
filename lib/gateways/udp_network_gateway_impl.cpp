@@ -40,6 +40,11 @@ udp_network_gateway_impl::udp_network_gateway_impl(udp_network_gateway_config   
               config.reuse_addr);
 }
 
+void udp_network_gateway_impl::stop()
+{
+  batched_queue.stop();
+}
+
 bool udp_network_gateway_impl::subscribe_to(io_broker& broker)
 {
   io_subcriber = broker.register_fd(

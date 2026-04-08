@@ -68,6 +68,13 @@ public:
 
   std::optional<uint16_t> get_bind_port() const override { return udp_gw->get_bind_port(); }
 
+  void stop() override
+  {
+    if (udp_gw != nullptr) {
+      udp_gw->stop();
+    }
+  }
+
 private:
   network_gateway_data_notifier_with_src_addr& data_notifier;
   ocudulog::basic_logger&                      logger = ocudulog::fetch_basic_logger("CU-UP");
@@ -130,6 +137,11 @@ public:
   std::optional<uint16_t> get_bind_port() const override { return std::nullopt; }
 
   bool get_bind_address(std::string& ip_address) const override { return false; }
+
+  void stop() override
+  {
+    // Do nothing.
+  }
 };
 
 /// Implementation of the NG-U gateway for the case a local UPF stub is used.

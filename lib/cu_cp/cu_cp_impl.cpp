@@ -910,9 +910,21 @@ async_task<cu_cp_pdu_session_resource_release_response>
 cu_cp_impl::handle_new_pdu_session_resource_release_command(const cu_cp_pdu_session_resource_release_command& command)
 {
   cu_cp_ue* ue = ue_mng.find_du_ue(command.ue_index);
-  ocudu_assert(ue != nullptr, "ue={}: Could not find DU UE", command.ue_index);
-  ocudu_assert(
-      ue->get_cu_up_index() != cu_up_index_t::invalid, "ue={}: could not find CU-UP of the UE", command.ue_index);
+  if (ue == nullptr) {
+    logger.warning("ue={}: Dropping PDUSessionResourceReleaseCommand. Could not find DU UE", command.ue_index);
+    return launch_async([](coro_context<async_task<cu_cp_pdu_session_resource_release_response>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(cu_cp_pdu_session_resource_release_response{});
+    });
+  }
+  if (ue->get_cu_up_index() == cu_up_index_t::invalid) {
+    logger.warning("ue={}: Dropping PDUSessionResourceReleaseCommand. Could not find CU-UP of the UE",
+                   command.ue_index);
+    return launch_async([](coro_context<async_task<cu_cp_pdu_session_resource_release_response>>& ctx) {
+      CORO_BEGIN(ctx);
+      CORO_RETURN(cu_cp_pdu_session_resource_release_response{});
+    });
+  }
 
   return launch_async<pdu_session_resource_release_routine>(
       command,

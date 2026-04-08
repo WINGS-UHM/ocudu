@@ -188,14 +188,7 @@ struct cu_cp_unit_xnap_config {
   bool no_connection_init = false;
 
   /// SCTP socket options.
-  int  sctp_rto_initial_ms    = 120;
-  int  sctp_rto_min_ms        = 120;
-  int  sctp_rto_max_ms        = 500;
-  int  sctp_init_max_attempts = 3;
-  int  sctp_max_init_timeo_ms = 500;
-  int  sctp_hb_interval_ms    = 30000;
-  int  sctp_assoc_max_retx    = 10;
-  bool sctp_nodelay           = false;
+  sctp_appconfig sctp;
 
   /// Peer configuration.
   std::vector<cu_cp_unit_xnap_config_item> connections;

@@ -32,6 +32,21 @@ sub_scheduler_test_environment::sub_scheduler_test_environment(scheduler_expert_
 {
 }
 
+static uint8_t derive_max_k_value(const cell_configuration& cell_cfg)
+{
+  uint8_t     max_k_value = 0;
+  const auto& dl_lst      = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
+  for (const auto& pdsch : dl_lst) {
+    max_k_value = std::max<uint8_t>(pdsch.k0, max_k_value);
+  }
+  const auto&        ul_lst         = cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
+  constexpr unsigned max_msg3_delta = 6;
+  for (const auto& pusch : ul_lst) {
+    max_k_value = std::max<uint8_t>(max_k_value, pusch.k2 + max_msg3_delta);
+  }
+  return max_k_value;
+}
+
 sub_scheduler_test_environment::sub_scheduler_test_environment(
     scheduler_expert_config                         sched_cfg_,
     const sched_cell_configuration_request_message& cell_req,
@@ -43,22 +58,12 @@ sub_scheduler_test_environment::sub_scheduler_test_environment(
   pdcch_alloc(custom_pdcch_alloc == nullptr ? std::make_unique<pdcch_resource_allocator_impl>(cell_cfg)
                                             : std::move(custom_pdcch_alloc)),
   delay_tx_rx_slots(delay_tx_rx_slots_),
+  max_k_value(derive_max_k_value(cell_cfg)),
   pdcch_alloc_slot_ind_fn(std::move(pdcch_alloc_sl_ind_task))
 {
   mac_logger.set_level(ocudulog::basic_levels::debug);
   test_logger.set_level(ocudulog::basic_levels::info);
   ocudulog::init();
-
-  // Derive max_k_value.
-  const auto& dl_lst = cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list;
-  for (const auto& pdsch : dl_lst) {
-    max_k_value = std::max<unsigned>(pdsch.k0, max_k_value);
-  }
-  const auto&        ul_lst         = cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common->pusch_td_alloc_list;
-  constexpr unsigned max_msg3_delta = 6;
-  for (const auto& pusch : ul_lst) {
-    max_k_value = std::max<unsigned>(max_k_value, pusch.k2 + max_msg3_delta);
-  }
 }
 
 void sub_scheduler_test_environment::run_slot()

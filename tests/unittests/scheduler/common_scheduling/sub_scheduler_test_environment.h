@@ -72,7 +72,7 @@ public:
     if (func()) {
       return true;
     }
-    for (unsigned i = 0; i < max_slots; ++i) {
+    for (unsigned i = 0; i != max_slots; ++i) {
       run_slot();
       if (func()) {
         return true;
@@ -91,7 +91,7 @@ public:
   ocudulog::basic_logger& test_logger = ocudulog::fetch_basic_logger("TEST", true);
 
   scheduler_expert_config                   sched_cfg{config_helpers::make_default_scheduler_expert_config()};
-  cell_configuration                        cell_cfg;
+  const cell_configuration                  cell_cfg;
   scheduler_event_logger                    ev_logger{cell_cfg.cell_index, cell_cfg.params.pci};
   cell_metrics_handler                      metrics_hdlr{cell_cfg, std::nullopt};
   cell_resource_allocator                   res_grid{cell_cfg};
@@ -102,7 +102,7 @@ public:
   // -- Derived
   /// Maximum of all k values.
   /// \note We use this value to account for the case when the PDSCH or PUSCH is allocated several slots in advance.
-  uint8_t max_k_value = 0;
+  const uint8_t max_k_value;
 
   // -- State
 

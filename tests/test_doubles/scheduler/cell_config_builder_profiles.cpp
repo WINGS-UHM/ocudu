@@ -81,7 +81,7 @@ cell_config_builder_params cell_config_builder_profiles::create(nr_band band)
       params.dl_carrier.carrier_bw  = bs_channel_bandwidth::MHz100;
       break;
     default:
-      report_fatal_error("Band {} to test NR-AFCN lookup not yet supported. Add a new entry",
+      report_fatal_error("Band {} to test NR-ARFCN lookup not yet supported. Add a new entry",
                          static_cast<unsigned>(band));
   }
   ocudu_assert(

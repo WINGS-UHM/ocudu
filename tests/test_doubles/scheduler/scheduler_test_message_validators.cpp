@@ -195,6 +195,9 @@ bool test_helper::is_valid_ul_sched_info(const ul_sched_info& grant)
     TRUE_OR_RETURN(grant.pusch_cfg.nof_layers == 1);
     TRUE_OR_RETURN(grant.pusch_cfg.mcs_table == pusch_mcs_table::qam64);
     TRUE_OR_RETURN(grant.pusch_cfg.rbs.is_type1());
+    if (grant.context.nof_retxs == 0) {
+      TRUE_OR_RETURN(grant.context.msg3_delay.has_value(), "Msg3 delay should be specified for first newTx");
+    }
   }
 
   return true;

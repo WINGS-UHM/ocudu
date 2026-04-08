@@ -20,7 +20,7 @@ class cell_configuration;
 struct cell_resource_allocator;
 
 /// \brief Current checks:
-/// - PDCCHs and PDSCHs are only allocated in DL slots.
+/// - CSI-RS, SSBs, PDCCHs and PDSCHs are only allocated in DL slots.
 /// - PUCCHs, PUSCHs and PRACHs are only allocated in UL slots.
 /// - In partial DL/UL slots, verifies that allocations are within the respective DL/UL symbols.
 void assert_tdd_pattern_consistency(const cell_configuration& cell_cfg, slot_point sl_tx, const sched_result& result);
@@ -142,11 +142,10 @@ public:
 
 private:
   struct rar_context {
-    rnti_t            ra_rnti;
-    slot_point        pdcch_slot;
-    slot_point        rar_slot;
-    ofdm_symbol_range symbols;
-    bool              scheduled = false;
+    pdcch_dl_information pdcch;
+    slot_point           pdcch_slot;
+    slot_point           rar_slot;
+    bool                 scheduled = false;
   };
   struct preamble_context {
     rnti_t                            ra_rnti;
@@ -155,18 +154,13 @@ private:
     slot_point                        rar_slot;
     slot_point                        first_msg3_slot;
     slot_point                        last_msg3_slot;
+    rar_ul_grant                      first_grant;
     bool                              acked = false;
   };
   struct msg3_retx_context {
-    rnti_t            tc_rnti;
-    slot_point        pdcch_slot;
-    slot_point        pusch_slot;
-    search_space_id   ss_id;
-    ofdm_symbol_range symbols;
-    unsigned          k2;
-    unsigned          freq_resource;
-    unsigned          mcs;
-    unsigned          rv;
+    pdcch_ul_information pdcch;
+    slot_point           pdcch_slot;
+    slot_point           pusch_slot;
   };
 
   bool is_expired(const preamble_context& ctxt, slot_point sl_tx) const;

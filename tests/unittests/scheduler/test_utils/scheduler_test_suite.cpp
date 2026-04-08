@@ -125,12 +125,11 @@ void ocudu::assert_pdcch_pdsch_common_consistency(const cell_configuration&   ce
     }
     case dci_dl_rnti_config_type::ra_f1_0: {
       time_assignment = pdcch.dci.ra_f1_0.time_resource;
-      ASSERT_TRUE(time_assignment < cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list.size());
-      freq_assignment = pdcch.dci.ra_f1_0.frequency_resource;
-      N_rb_dl_bwp     = pdcch.dci.ra_f1_0.N_rb_dl_bwp;
       td_list         = get_ra_rnti_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common,
                                                    cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
                                                    cell_cfg.params.dmrs_typeA_pos);
+      freq_assignment = pdcch.dci.ra_f1_0.frequency_resource;
+      N_rb_dl_bwp     = pdcch.dci.ra_f1_0.N_rb_dl_bwp;
       ASSERT_EQ(N_rb_dl_bwp, bwp_cfg.crbs.length());
       ASSERT_EQ(pdcch.ctx.context.ss_id, cell_cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.ra_search_space_id);
     } break;
@@ -775,6 +774,93 @@ static slot_interval get_rar_window(const cell_configuration& cell_cfg, slot_poi
           rar_win_start + cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common->rach_cfg_generic.ra_resp_window};
 }
 
+/// Helper to check if Msg3 grant is consistent with the RACH preamble.
+static bool is_rar_ul_grant_consistent_with_rach_preamble(const cell_configuration&                cell_cfg,
+                                                          const rar_ul_grant&                      rar_grant,
+                                                          const rach_indication_message::preamble& preamb)
+{
+  return rar_grant.temp_crnti == preamb.tc_rnti and rar_grant.rapid == preamb.preamble_id and
+         rar_grant.ta == preamb.time_advance.to_Ta(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
+}
+
+/// Helper to check if Msg3 newTx PUSCH grant is consistent with the RAR UL grant.
+static bool is_msg3_newtx_consistent_with_rar_ul_grant(const cell_configuration& cell_cfg,
+                                                       const ul_sched_info&      ulgrant,
+                                                       const rar_ul_grant&       rargrant)
+{
+  if (ulgrant.context.ue_index != INVALID_DU_UE_INDEX or ulgrant.context.nof_retxs != 0) {
+    // Not Msg3 newTx.
+    return false;
+  }
+  if (ulgrant.pusch_cfg.rnti != rargrant.temp_crnti) {
+    return false;
+  }
+
+  const auto& td_list =
+      get_pusch_time_domain_resource_table(*cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common);
+  if (rargrant.time_resource_assignment >= td_list.size()) {
+    return false;
+  }
+  const auto&    td_res = td_list[rargrant.time_resource_assignment];
+  const unsigned expected_delay =
+      ra_helper::get_msg3_delay(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, td_res.k2) +
+      cell_cfg.ntn_cs_koffset;
+  if (*ulgrant.context.msg3_delay != expected_delay or ulgrant.pusch_cfg.symbols != td_res.symbols) {
+    return false;
+  }
+
+  if (ulgrant.pusch_cfg.mcs_index.value() != rargrant.mcs or ulgrant.pusch_cfg.rv_index != 0) {
+    return false;
+  }
+
+  if (not ulgrant.pusch_cfg.rbs.is_type1() or not ulgrant.pusch_cfg.rbs.any()) {
+    return false;
+  }
+  const unsigned N_rb_ul_bwp = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+  const auto     vrbs        = ulgrant.pusch_cfg.rbs.type1();
+  const uint8_t  freq_res =
+      ra_frequency_type1_get_riv(ra_frequency_type1_configuration{N_rb_ul_bwp, vrbs.start(), vrbs.length()});
+
+  return rargrant.freq_resource_assignment == freq_res;
+}
+
+/// Helper to check if RAR UL grant reTx is consistent with respective UL-PDCCH.
+static bool is_msg3_retx_consistent_with_ul_pdcch(const cell_configuration&   cell_cfg,
+                                                  const ul_sched_info&        ulgrant,
+                                                  const pdcch_ul_information& ul_pdcch)
+{
+  if (ul_pdcch.dci.type != dci_ul_rnti_config_type::tc_rnti_f0_0) {
+    // Not Msg3 PDCCH.
+    return false;
+  }
+  if (ulgrant.context.ue_index != INVALID_DU_UE_INDEX or ulgrant.context.nof_retxs == 0) {
+    // Not Msg3 reTx.
+    return false;
+  }
+  if (ulgrant.pusch_cfg.rnti != ul_pdcch.ctx.rnti or ulgrant.context.ss_id != ul_pdcch.ctx.context.ss_id) {
+    return false;
+  }
+
+  const auto& dci = ul_pdcch.dci.tc_rnti_f0_0;
+  const auto& td_list =
+      get_pusch_time_domain_resource_table(*cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common);
+  if (dci.time_resource >= td_list.size()) {
+    return false;
+  }
+  const auto& td_res = td_list[dci.time_resource];
+  if (ulgrant.context.k2 != td_res.k2 or ulgrant.pusch_cfg.symbols != td_res.symbols) {
+    return false;
+  }
+
+  const unsigned N_rb_ul_bwp = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
+  const auto     vrbs        = ulgrant.pusch_cfg.rbs.type1();
+  const uint8_t  freq_res =
+      ra_frequency_type1_get_riv(ra_frequency_type1_configuration{N_rb_ul_bwp, vrbs.start(), vrbs.length()});
+
+  return dci.frequency_resource == freq_res and dci.modulation_coding_scheme == ulgrant.pusch_cfg.mcs_index.value() and
+         dci.redundancy_version == ulgrant.pusch_cfg.rv_index;
+}
+
 test_helper::ra_scheduler_tracker::ra_scheduler_tracker(const cell_configuration& cell_cfg_) : cell_cfg(cell_cfg_) {}
 
 void test_helper::ra_scheduler_tracker::on_new_rach_ind(const rach_indication_message& ind)
@@ -828,23 +914,23 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
                                            cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
                                            cell_cfg.params.dmrs_typeA_pos)[dl_pdcch.dci.ra_f1_0.time_resource];
     auto& expected_rar      = pending_rars.emplace_back();
-    expected_rar.ra_rnti    = dl_pdcch.ctx.rnti;
+    expected_rar.pdcch      = dl_pdcch;
     expected_rar.pdcch_slot = sl_tx;
     expected_rar.rar_slot   = sl_tx + td_res.k0;
-    expected_rar.symbols    = td_res.symbols;
   }
 
   for (auto& rar : result.dl.rar_grants) {
     // Check if the DL PDCCH matches the RAR content.
-    auto expected_rar_it = std::find_if(pending_rars.begin(), pending_rars.end(), [&sl_tx, &rar](const auto& pending) {
-      return pending.rar_slot == sl_tx and pending.ra_rnti == rar.pdsch_cfg.rnti;
-    });
+    auto expected_rar_it =
+        std::find_if(pending_rars.begin(), pending_rars.end(), [&sl_tx, &rar](const rar_context& pending) {
+          return pending.rar_slot == sl_tx and pending.pdcch.ctx.rnti == rar.pdsch_cfg.rnti;
+        });
     ASSERT_NE(expected_rar_it, pending_rars.end()) << "RAR scheduled with no associated PDCCH";
-    ASSERT_EQ(expected_rar_it->symbols, rar.pdsch_cfg.symbols);
+    ASSERT_NO_FATAL_FAILURE(assert_pdcch_pdsch_common_consistency(cell_cfg, expected_rar_it->pdcch, rar.pdsch_cfg));
     expected_rar_it->scheduled = true;
     ++rar_counter;
 
-    for (auto& ul_grant : rar.grants) {
+    for (const auto& ul_grant : rar.grants) {
       // Find RAR UL grant with matching and RA-RNTI and TC-RNTI.
       auto it = std::find_if(
           pending_preambles.begin(), pending_preambles.end(), [&rar, &ul_grant](const preamble_context& preamb) {
@@ -857,10 +943,11 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
       ASSERT_FALSE(ctxt.rar_slot.valid()) << "Duplicate RAR per RACH preamble";
       ctxt.rar_slot = sl_tx;
       ASSERT_TRUE(ctxt.rar_win.contains(sl_tx)) << "RAR outside of RAR window";
-      ASSERT_EQ(ctxt.preamble.preamble_id, ul_grant.rapid);
+      ASSERT_TRUE(is_rar_ul_grant_consistent_with_rach_preamble(cell_cfg, ul_grant, ctxt.preamble));
       auto td_list = get_pusch_time_domain_resource_table(*cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common);
       ctxt.first_msg3_slot = ctxt.rar_slot + ra_helper::get_msg3_delay(cell_cfg.scs_common(),
                                                                        td_list[ul_grant.time_resource_assignment].k2);
+      ctxt.first_grant     = ul_grant;
     }
   }
 
@@ -882,25 +969,19 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
     const auto& dci    = ul_pdcch.dci.tc_rnti_f0_0;
     const auto& td_res = pusch_td_list[dci.time_resource];
 
-    const slot_point pusch_slot = sl_tx + td_res.k2;
-    auto             pending_msg3_it =
-        std::find_if(pending_msg3_retxs.begin(),
-                     pending_msg3_retxs.end(),
-                     [&ul_pdcch, pusch_slot](const msg3_retx_context& pending_msg3) {
-                       return pending_msg3.tc_rnti == ul_pdcch.ctx.rnti and pending_msg3.pusch_slot == pusch_slot;
-                     });
+    const slot_point pusch_slot      = sl_tx + td_res.k2;
+    auto             pending_msg3_it = std::find_if(pending_msg3_retxs.begin(),
+                                        pending_msg3_retxs.end(),
+                                        [&ul_pdcch, pusch_slot](const msg3_retx_context& pending_msg3) {
+                                          return pending_msg3.pdcch.ctx.rnti == ul_pdcch.ctx.rnti and
+                                                 pending_msg3.pusch_slot == pusch_slot;
+                                        });
     ASSERT_EQ(pending_msg3_it, pending_msg3_retxs.end()) << "Duplicate Msg3 reTx UL PDCCH";
 
-    auto& pending_msg3         = pending_msg3_retxs.emplace_back();
-    pending_msg3.tc_rnti       = ul_pdcch.ctx.rnti;
-    pending_msg3.pdcch_slot    = sl_tx;
-    pending_msg3.pusch_slot    = pusch_slot;
-    pending_msg3.ss_id         = ul_pdcch.ctx.context.ss_id;
-    pending_msg3.symbols       = td_res.symbols;
-    pending_msg3.k2            = td_res.k2;
-    pending_msg3.freq_resource = dci.frequency_resource;
-    pending_msg3.mcs           = dci.modulation_coding_scheme;
-    pending_msg3.rv            = dci.redundancy_version;
+    auto& pending_msg3      = pending_msg3_retxs.emplace_back();
+    pending_msg3.pdcch      = ul_pdcch;
+    pending_msg3.pdcch_slot = sl_tx;
+    pending_msg3.pusch_slot = pusch_slot;
   }
 
   for (auto& pusch : result.ul.puschs) {
@@ -923,32 +1004,21 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
       // It is the first Msg3 tx.
       ++msg3_newtx_counter;
       ASSERT_EQ(ctxt.first_msg3_slot, sl_tx);
-      ASSERT_TRUE(pusch.context.msg3_delay.has_value());
       ASSERT_EQ(ctxt.first_msg3_slot - ctxt.rar_slot, *pusch.context.msg3_delay);
+      ASSERT_TRUE(is_msg3_newtx_consistent_with_rar_ul_grant(cell_cfg, pusch, ctxt.first_grant));
     } else {
       ++msg3_retx_counter;
       ASSERT_GT(sl_tx, ctxt.first_msg3_slot);
-      ASSERT_FALSE(pusch.pusch_cfg.new_data);
 
       // PDCCH and Msg3 PUSCH match in content.
       auto expected_msg3_it = std::find_if(
           pending_msg3_retxs.begin(), pending_msg3_retxs.end(), [&pusch, sl_tx](const msg3_retx_context& pending_msg3) {
-            return pending_msg3.tc_rnti == pusch.pusch_cfg.rnti and pending_msg3.pusch_slot == sl_tx;
+            return pending_msg3.pdcch.ctx.rnti == pusch.pusch_cfg.rnti and pending_msg3.pusch_slot == sl_tx;
           });
       ASSERT_NE(expected_msg3_it, pending_msg3_retxs.end()) << "Msg3 reTx PUSCH has no associated UL PDCCH";
-      ASSERT_EQ(expected_msg3_it->ss_id, pusch.context.ss_id);
-      ASSERT_EQ(expected_msg3_it->k2, pusch.context.k2);
-      ASSERT_EQ(expected_msg3_it->symbols, pusch.pusch_cfg.symbols);
+      ASSERT_TRUE(is_msg3_retx_consistent_with_ul_pdcch(cell_cfg, pusch, expected_msg3_it->pdcch));
 
-      const unsigned N_rb_ul_bwp = cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.crbs.length();
-      const auto     vrbs        = pusch.pusch_cfg.rbs.type1();
-      const uint8_t  freq_res =
-          ra_frequency_type1_get_riv(ra_frequency_type1_configuration{N_rb_ul_bwp, vrbs.start(), vrbs.length()});
-      ASSERT_EQ(expected_msg3_it->freq_resource, freq_res)
-          << "Mismatch between Msg3 reTx UL PDCCH frequency assignment and corresponding PUSCH PRBs";
-      ASSERT_EQ(expected_msg3_it->mcs, pusch.pusch_cfg.mcs_index.value());
-      ASSERT_EQ(expected_msg3_it->rv, pusch.pusch_cfg.rv_index);
-
+      // We can now erase this pending Msg3 reTx entry.
       pending_msg3_retxs.erase(expected_msg3_it);
     }
   }
@@ -964,7 +1034,7 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
         "UL PDCCH in slot {} did not lead to a Msg3 reTx PUSCH in slot {} for tc-rnti={}",
         it->pdcch_slot,
         it->pusch_slot,
-        it->tc_rnti);
+        it->pdcch.ctx.rnti);
   }
 
   // Pop expired RACH preambles.

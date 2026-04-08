@@ -4,6 +4,7 @@
 
 #include "cu_cp_unit_config_yaml_writer.h"
 #include "apps/helpers/metrics/metrics_config_yaml_writer.h"
+#include "apps/helpers/network/sctp_config_yaml_writer.h"
 #include "cu_cp_unit_config.h"
 #include "ocudu/adt/span.h"
 
@@ -51,18 +52,11 @@ static YAML::Node build_cu_cp_extra_amfs_item_section(const cu_cp_unit_amf_confi
 {
   YAML::Node node;
 
-  node["addrs"]                  = config.ip_addrs;
-  node["port"]                   = config.port;
-  node["bind_addrs"]             = config.bind_addrs;
-  node["bind_interface"]         = config.bind_interface;
-  node["sctp_rto_initial"]       = config.sctp_rto_initial_ms;
-  node["sctp_rto_min"]           = config.sctp_rto_min_ms;
-  node["sctp_rto_max"]           = config.sctp_rto_max_ms;
-  node["sctp_init_max_attempts"] = config.sctp_init_max_attempts;
-  node["sctp_max_init_timeo"]    = config.sctp_max_init_timeo_ms;
-  node["sctp_hb_interval"]       = config.sctp_hb_interval_ms;
-  node["sctp_assoc_max_retx"]    = config.sctp_assoc_max_retx;
-  node["sctp_nodelay"]           = config.sctp_nodelay;
+  node["addrs"]          = config.ip_addrs;
+  node["port"]           = config.port;
+  node["bind_addrs"]     = config.bind_addrs;
+  node["bind_interface"] = config.bind_interface;
+  fill_sctp_config_in_yaml_schema(node, config.sctp);
 
   auto sta_node = node["supported_tracking_areas"];
   for (const auto& ta : config.supported_tas) {

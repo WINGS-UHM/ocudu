@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "cu_cp_config_translators.h"
+#include "apps/helpers/network/sctp_config_translators.h"
 #include "apps/services/worker_manager/worker_manager_config.h"
 #include "cu_cp_unit_config.h"
 #include "ocudu/cu_cp/cu_cp_configuration_helpers.h"
@@ -545,33 +546,15 @@ ocucp::n2_connection_client_config ocudu::generate_n2_client_config(bool        
 
   ngap_mode_t mode = no_core ? ngap_mode_t{no_core_mode_t{}} : ngap_mode_t{network_mode_t{broker, io_rx_executor}};
   if (not no_core) {
-    network_mode_t& nw_mode = std::get<network_mode_t>(mode);
-    nw_mode.amf_addresses   = amf_cfg.ip_addrs;
-    nw_mode.amf_port        = amf_cfg.port;
-    nw_mode.bind_addresses  = amf_cfg.bind_addrs;
-    nw_mode.bind_interface  = amf_cfg.bind_interface;
-    if (amf_cfg.sctp_rto_initial_ms >= 0) {
-      nw_mode.rto_initial = std::chrono::milliseconds{amf_cfg.sctp_rto_initial_ms};
-    }
-    if (amf_cfg.sctp_rto_min_ms >= 0) {
-      nw_mode.rto_min = std::chrono::milliseconds{amf_cfg.sctp_rto_min_ms};
-    }
-    if (amf_cfg.sctp_rto_max_ms >= 0) {
-      nw_mode.rto_max = std::chrono::milliseconds{amf_cfg.sctp_rto_max_ms};
-    }
-    if (amf_cfg.sctp_init_max_attempts >= 0) {
-      nw_mode.init_max_attempts = amf_cfg.sctp_init_max_attempts;
-    }
-    if (amf_cfg.sctp_max_init_timeo_ms >= 0) {
-      nw_mode.max_init_timeo = std::chrono::milliseconds{amf_cfg.sctp_max_init_timeo_ms};
-    }
-    if (amf_cfg.sctp_hb_interval_ms >= 0) {
-      nw_mode.hb_interval = std::chrono::milliseconds{amf_cfg.sctp_hb_interval_ms};
-    }
-    if (amf_cfg.sctp_assoc_max_retx >= 0) {
-      nw_mode.assoc_max_rxt = amf_cfg.sctp_assoc_max_retx;
-    }
-    nw_mode.nodelay = amf_cfg.sctp_nodelay;
+    auto& nw_mode                  = std::get<network_mode_t>(mode);
+    nw_mode.sctp.if_name           = "N2";
+    nw_mode.sctp.dest_name         = "AMF";
+    nw_mode.sctp.connect_addresses = amf_cfg.ip_addrs;
+    nw_mode.sctp.connect_port      = amf_cfg.port;
+    nw_mode.sctp.bind_addresses    = amf_cfg.bind_addrs;
+    nw_mode.sctp.bind_interface    = amf_cfg.bind_interface;
+    nw_mode.sctp.ppid              = NGAP_PPID;
+    fill_sctp_network_gateway_config_socket_params(nw_mode.sctp, amf_cfg.sctp);
   }
 
   return ocucp::n2_connection_client_config{pcap_writer, mode};

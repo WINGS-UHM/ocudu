@@ -6,7 +6,6 @@
 
 #include "ocudu/gateways/sctp_network_gateway.h"
 #include "ocudu/ngap/gateways/n2_connection_client.h"
-#include <chrono>
 #include <variant>
 
 namespace ocudu {
@@ -23,20 +22,9 @@ struct n2_connection_client_config {
 
   /// Parameters specific to an SCTP network gateway.
   struct network {
-    io_broker&                               broker;
-    task_executor&                           io_rx_executor;
-    std::vector<std::string>                 bind_addresses;
-    std::string                              bind_interface;
-    std::vector<std::string>                 amf_addresses;
-    int                                      amf_port = NGAP_PORT;
-    std::optional<std::chrono::milliseconds> rto_initial;
-    std::optional<std::chrono::milliseconds> rto_min;
-    std::optional<std::chrono::milliseconds> rto_max;
-    std::optional<int32_t>                   init_max_attempts;
-    std::optional<std::chrono::milliseconds> max_init_timeo;
-    std::optional<std::chrono::milliseconds> hb_interval;
-    std::optional<int32_t>                   assoc_max_rxt;
-    std::optional<bool>                      nodelay;
+    io_broker&                    broker;
+    task_executor&                io_rx_executor;
+    sctp_network_connector_config sctp;
   };
 
   /// PCAP writer for the NGAP messages.

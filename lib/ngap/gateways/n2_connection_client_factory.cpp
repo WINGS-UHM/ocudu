@@ -273,21 +273,6 @@ ocudu::ocucp::create_n2_connection_client(const n2_connection_client_config& par
   }
 
   // Connection to AMF through SCTP.
-  const auto&                          nw_mode = std::get<n2_connection_client_config::network>(params.mode);
-  ocudu::sctp_network_connector_config sctp_cfg;
-  sctp_cfg.dest_name         = "AMF";
-  sctp_cfg.if_name           = "N2";
-  sctp_cfg.connect_addresses = nw_mode.amf_addresses;
-  sctp_cfg.connect_port      = nw_mode.amf_port;
-  sctp_cfg.bind_addresses    = nw_mode.bind_addresses;
-  sctp_cfg.bind_interface    = nw_mode.bind_interface;
-  sctp_cfg.rto_initial       = nw_mode.rto_initial;
-  sctp_cfg.rto_min           = nw_mode.rto_min;
-  sctp_cfg.rto_max           = nw_mode.rto_max;
-  sctp_cfg.init_max_attempts = nw_mode.init_max_attempts;
-  sctp_cfg.max_init_timeo    = nw_mode.max_init_timeo;
-  sctp_cfg.hb_interval       = nw_mode.hb_interval;
-  sctp_cfg.assoc_max_rxt     = nw_mode.assoc_max_rxt;
-  sctp_cfg.ppid              = NGAP_PPID;
-  return std::make_unique<n2_sctp_gateway_client>(nw_mode.broker, nw_mode.io_rx_executor, sctp_cfg, params.pcap);
+  const auto& nw_mode = std::get<n2_connection_client_config::network>(params.mode);
+  return std::make_unique<n2_sctp_gateway_client>(nw_mode.broker, nw_mode.io_rx_executor, nw_mode.sctp, params.pcap);
 }

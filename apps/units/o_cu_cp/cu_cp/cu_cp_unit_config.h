@@ -5,6 +5,7 @@
 #pragma once
 
 #include "apps/helpers/metrics/metrics_config.h"
+#include "apps/helpers/network/sctp_appconfig.h"
 #include "apps/units/o_cu_cp/cu_cp/cu_cp_unit_pcap_config.h"
 #include "cu_cp_unit_logger_config.h"
 #include "ocudu/ran/arfcn.h"
@@ -38,18 +39,11 @@ struct cu_cp_unit_supported_ta_item {
 };
 
 struct cu_cp_unit_amf_config_item {
-  std::vector<std::string> ip_addrs               = {"127.0.1.100"};
-  uint16_t                 port                   = 38412;
-  std::vector<std::string> bind_addrs             = {"127.0.0.1"};
-  std::string              bind_interface         = "auto";
-  int                      sctp_rto_initial_ms    = 120;
-  int                      sctp_rto_min_ms        = 120;
-  int                      sctp_rto_max_ms        = 500;
-  int                      sctp_init_max_attempts = 3;
-  int                      sctp_max_init_timeo_ms = 500;
-  int                      sctp_hb_interval_ms    = 30000;
-  int                      sctp_assoc_max_retx    = 10;
-  bool                     sctp_nodelay           = false;
+  std::vector<std::string> ip_addrs       = {"127.0.1.100"};
+  uint16_t                 port           = 38412;
+  std::vector<std::string> bind_addrs     = {"127.0.0.1"};
+  std::string              bind_interface = "auto";
+  sctp_appconfig           sctp;
 
   /// List of all tracking areas supported by the AMF.
   std::vector<cu_cp_unit_supported_ta_item> supported_tas = {{7, {{"00101", {cu_cp_unit_plmn_item::tai_slice_t{1}}}}}};

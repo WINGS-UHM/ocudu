@@ -41,7 +41,8 @@ public:
     slot_alloc.result.dl.dl_pdcchs.back().ctx.bwp_cfg = &slot_alloc.cfg.params.dl_cfg_common.init_dl_bwp.generic_params;
     slot_alloc.result.dl.dl_pdcchs.back().ctx.coreset_cfg =
         &*slot_alloc.cfg.params.dl_cfg_common.init_dl_bwp.pdcch_common.coreset0;
-    slot_alloc.result.dl.dl_pdcchs.back().ctx.cces = {get_ncce(slot_alloc.slot), ocudu::aggregation_level::n4};
+    slot_alloc.result.dl.dl_pdcchs.back().ctx.cces          = {get_ncce(slot_alloc.slot), ocudu::aggregation_level::n4};
+    slot_alloc.result.dl.dl_pdcchs.back().ctx.context.ss_id = ss_id;
     return &slot_alloc.result.dl.dl_pdcchs[0];
   }
 

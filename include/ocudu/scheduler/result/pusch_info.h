@@ -117,7 +117,7 @@ struct ul_sched_info {
     unsigned k2;
     /// Number of times the HARQ process has been retransmitted.
     unsigned nof_retxs;
-    /// Delay between PDSCH message with RAR and its corresponding PUSCH.
+    /// Delay between PDSCH message with RAR and its corresponding PUSCH. Only set for the Msg3 first tx.
     std::optional<unsigned> msg3_delay;
     /// Offset that the OLLA algorithm applied to derive the UL MCS.
     std::optional<float> olla_offset;

@@ -161,6 +161,7 @@ static unsigned is_ulsch_tbs_valid(const ul_sched_info& grant)
 bool test_helper::is_valid_ul_sched_info(const ul_sched_info& grant)
 {
   TRUE_OR_RETURN(grant.pusch_cfg.nof_layers > 0);
+  TRUE_OR_RETURN((grant.context.nof_retxs == 0) == grant.pusch_cfg.new_data);
 
   // Check code rate.
   const float               max_code_rate       = 0.95;
@@ -186,6 +187,14 @@ bool test_helper::is_valid_ul_sched_info(const ul_sched_info& grant)
     }
     const crb_interval crbs = prb_to_crb(grant.pusch_cfg.bwp_cfg->crbs, prb_interval{vrbs.start(), vrbs.stop()});
     TRUE_OR_RETURN(grant.pusch_cfg.bwp_cfg->crbs.contains(crbs), "PUSCH outside of BWP boundaries");
+  }
+
+  if (grant.context.ue_index == INVALID_DU_UE_INDEX) {
+    // It is a Msg3.
+    TRUE_OR_RETURN(grant.pusch_cfg.harq_id == to_harq_id(0));
+    TRUE_OR_RETURN(grant.pusch_cfg.nof_layers == 1);
+    TRUE_OR_RETURN(grant.pusch_cfg.mcs_table == pusch_mcs_table::qam64);
+    TRUE_OR_RETURN(grant.pusch_cfg.rbs.is_type1());
   }
 
   return true;

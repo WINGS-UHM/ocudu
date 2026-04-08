@@ -355,7 +355,7 @@ void ra_scheduler::handle_rach_indication_impl(const rach_indication_message& ms
     if (rach_cfg.two_step_rach_cfg.has_value()) {
       // Split detected preambles into Msg1 (4-step) and MsgA (2-step) spans. Preambles are assumed to be ordered by
       // preamble_id, so the two groups form contiguous ranges.
-      auto msga_begin = std::partition_point(
+      const auto msga_begin = std::partition_point(
           prach_occ.preambles.begin(), prach_occ.preambles.end(), [&](const rach_indication_message::preamble& p) {
             return not is_msga_preamble(rach_cfg, p.preamble_id);
           });
@@ -411,7 +411,7 @@ void ra_scheduler::handle_msg1_occasion(const rach_indication_message::occasion&
   if (cell_cfg.is_tdd()) {
     // TDD case.
     const unsigned period = nof_slots_per_tdd_period(*cell_cfg.params.tdd_cfg);
-    for (unsigned sl_idx = 0; sl_idx < period; ++sl_idx) {
+    for (unsigned sl_idx = 0; sl_idx != period; ++sl_idx) {
       const slot_point sl_start = rar_req->prach_slot_rx + prach_occasion_duration_slots + sl_idx;
       if (cell_cfg.is_dl_enabled(sl_start)) {
         rar_req->rar_window = {sl_start, sl_start + ra_win_nof_slots};
@@ -554,7 +554,8 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
   const unsigned preambles_per_po  = two_step_cfg.cb_preambles_per_ssb_per_shared_ro / msga_pusch_cfg.po_fdm;
 
   // Track which FDM PUSCH occasions have already had their UL resource grid filled.
-  std::array<bool, 8> po_grid_filled = {};
+  static constexpr size_t                   MAX_FDM_PUSCH_OCCASIONS = 8;
+  std::array<bool, MAX_FDM_PUSCH_OCCASIONS> po_grid_filled          = {};
 
   for (const auto& preamble : preambles) {
     ocudu_sanity_check(is_msga_preamble(rach_cfg, preamble.preamble_id),

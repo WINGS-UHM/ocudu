@@ -33,8 +33,7 @@ ADD . /src
 # Install OCUDU build dependencies
 RUN /src/docker/scripts/install_dependencies.sh build && \
     /src/docker/scripts/install_uhd_dependencies.sh build && \
-    /src/docker/scripts/install_dpdk_dependencies.sh build && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends git clang
+    /src/docker/scripts/install_dpdk_dependencies.sh build
 
 
 
@@ -115,20 +114,18 @@ COPY --from=builder /opt/uhd/${UHD_VERSION}   /opt/uhd/${UHD_VERSION}
 COPY --from=builder /opt/dpdk/${DPDK_VERSION} /opt/dpdk/${DPDK_VERSION}
 COPY --from=builder /opt/ocudu                /usr/local
 
-# Copy the install dependencies scripts
-ADD docker/scripts/install_rohc_dependencies.sh /usr/local/etc/install_rohc_dependencies.sh
-ADD docker/scripts/install_uhd_dependencies.sh  /usr/local/etc/install_uhd_dependencies.sh
-ADD docker/scripts/install_dpdk_dependencies.sh /usr/local/etc/install_dpdk_dependencies.sh
-ADD docker/scripts/install_dependencies.sh      /usr/local/etc/install_ocudu_dependencies.sh
+# Copy the install dependencies scripts (top-level dispatchers and per-OS implementations)
+ADD docker/scripts/install_*.sh /usr/local/etc/
+RUN chmod +x /usr/local/etc/install_*.sh && \
+    ln -sf /usr/local/etc/install_dependencies.sh /usr/local/etc/install_ocudu_dependencies.sh
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rohc/lib/
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/uhd/${UHD_VERSION}/lib/:/opt/uhd/${UHD_VERSION}/lib/x86_64-linux-gnu/:/opt/uhd/${UHD_VERSION}/lib/aarch64-linux-gnu/
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/dpdk/${DPDK_VERSION}/lib/:/opt/dpdk/${DPDK_VERSION}/lib/x86_64-linux-gnu/:/opt/dpdk/${DPDK_VERSION}/lib/aarch64-linux-gnu/
 ENV PATH=$PATH:/opt/uhd/${UHD_VERSION}/bin/:/opt/dpdk/${DPDK_VERSION}/bin/
 
-# Install ocudu and lib runtime dependencies
+# Install ocudu and lib runtime dependencies (curl / NTP helpers: install_docker_dependencies.sh)
 RUN /usr/local/etc/install_ocudu_dependencies.sh run && \
     /usr/local/etc/install_rohc_dependencies.sh run && \
     /usr/local/etc/install_uhd_dependencies.sh run && \
     /usr/local/etc/install_dpdk_dependencies.sh run && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl ntpdate && \
-    apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
+    /usr/local/etc/install_docker_dependencies.sh

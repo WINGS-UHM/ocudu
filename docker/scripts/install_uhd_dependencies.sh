@@ -3,12 +3,56 @@
 # SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
+set -e
 
-set -e # stop executing after error
+install_uhd_dependencies_debian_ubuntu() {
+    local mode="${1:?}"
+    local -a pkgs=()
+
+    local -a build_pkgs=(
+        curl apt-transport-https ca-certificates xz-utils
+        cmake build-essential pkg-config
+        libboost-all-dev libusb-1.0-0-dev
+        python3-mako python3-numpy python3-setuptools python3-requests
+    )
+    local -a run_pkgs=(
+        cpufrequtils inetutils-tools libboost-all-dev libncurses5-dev libusb-1.0-0 libusb-1.0-0-dev
+        libusb-dev python3-dev python3-requests
+    )
+    local -a extra_pkgs=(
+        cpufrequtils inetutils-tools libncurses5-dev libusb-1.0-0 libusb-1.0-0-dev
+        libusb-dev python3-dev
+    )
+
+    case "$mode" in
+        all)
+            pkgs+=( "${build_pkgs[@]}" "${extra_pkgs[@]}" )
+            ;;
+        build)
+            pkgs+=( "${build_pkgs[@]}" )
+            ;;
+        run)
+            pkgs+=( "${run_pkgs[@]}" )
+            ;;
+        *)
+            echo >&2 "Unsupported mode: $mode"
+            exit 1
+            ;;
+    esac
+
+    if ((${#pkgs[@]})); then
+        DEBIAN_FRONTEND=noninteractive apt-get update
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${pkgs[@]}"
+        apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
+    fi
+
+    if [[ "$mode" == "all" || "$mode" == "run" ]]; then
+        uhd_images_downloader
+    fi
+}
 
 main() {
 
-    # Check number of args
     if [ $# != 0 ] && [ $# != 1 ]; then
         echo >&2 "Illegal number of parameters"
         echo >&2 "Run like this: \"./install_uhd_dependencies.sh [<mode>]\" where mode could be: build, run and all"
@@ -21,26 +65,15 @@ main() {
     # shellcheck source=/dev/null
     . /etc/os-release
 
-    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        if [[ "$mode" == "all" || "$mode" == "build" ]]; then
-            DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
-                curl apt-transport-https ca-certificates xz-utils \
-                cmake build-essential pkg-config \
-                libboost-all-dev libusb-1.0-0-dev \
-                python3-mako python3-numpy python3-setuptools python3-requests
-
-        fi
-        if [[ "$mode" == "all" || "$mode" == "run" ]]; then
-            DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
-                cpufrequtils inetutils-tools libboost-all-dev libncurses5-dev libusb-1.0-0 libusb-1.0-0-dev \
-                libusb-dev python3-dev python3-requests &&
-                apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
-            uhd_images_downloader
-        fi
-    else
-        echo "OS $ID not supported"
-        exit 1
-    fi
+    case "$ID" in
+        debian|ubuntu)
+            install_uhd_dependencies_debian_ubuntu "$mode"
+            ;;
+        *)
+            echo "OS $ID not supported"
+            exit 1
+            ;;
+    esac
 
 }
 

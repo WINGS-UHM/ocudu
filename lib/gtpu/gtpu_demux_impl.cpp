@@ -20,72 +20,6 @@ void gtpu_demux_impl::stop()
   stopped.store(true, std::memory_order_relaxed);
 }
 
-void gtpu_demux_impl::set_error_indication_tx(gtpu_tunnel_common_tx_upper_layer_notifier& tx_upper_,
-                                              const std::string&                          local_addr_)
-{
-  tx_upper = &tx_upper_;
-
-  // Pre-compute the peer address IE from the local address string.
-  struct in_addr  addr4 = {};
-  struct in6_addr addr6 = {};
-  if (inet_pton(AF_INET, local_addr_.c_str(), &addr4) == 1) {
-    gtpu_ie_gtpu_peer_address::ipv4_addr_t ipv4 = {};
-    std::memcpy(ipv4.data(), &addr4, 4);
-    ei_peer_addr.gtpu_peer_address = ipv4;
-  } else if (inet_pton(AF_INET6, local_addr_.c_str(), &addr6) == 1) {
-    gtpu_ie_gtpu_peer_address::ipv6_addr_t ipv6 = {};
-    std::memcpy(ipv6.data(), &addr6, 16);
-    ei_peer_addr.gtpu_peer_address = ipv6;
-  } else {
-    logger.error("Invalid local address for error indication. addr={}", local_addr_);
-    tx_upper = nullptr;
-    return;
-  }
-  logger.debug("Error indication TX configured. local_addr={}", local_addr_);
-}
-
-void gtpu_demux_impl::send_error_indication(uint32_t teid, const sockaddr_storage& src_addr)
-{
-  if (stopped.load(std::memory_order_relaxed)) {
-    return;
-  }
-
-  byte_buffer buf;
-
-  // Write mandatory IEs: TEID-I and GTP-U Peer Address
-  gtpu_ie_teid_i ie_teid = {};
-  ie_teid.teid_i         = teid;
-  if (!gtpu_write_ie_teid_i(buf, ie_teid, ei_logger)) {
-    logger.error("Failed to write IE TEID-I for error indication. teid={:#x}", teid);
-    return;
-  }
-
-  if (!gtpu_write_ie_gtpu_peer_address(buf, ei_peer_addr, ei_logger)) {
-    logger.error("Failed to write IE GTP-U peer address for error indication.");
-    return;
-  }
-
-  // Build GTP-U header
-  gtpu_header hdr         = {};
-  hdr.flags.version       = GTPU_FLAGS_VERSION_V1;
-  hdr.flags.protocol_type = GTPU_FLAGS_GTP_PROTOCOL;
-  hdr.flags.ext_hdr       = false;
-  hdr.flags.seq_number    = true;
-  hdr.message_type        = GTPU_MSG_ERROR_INDICATION;
-  hdr.length              = 0;
-  hdr.teid                = GTPU_PATH_MANAGEMENT_TEID;
-  hdr.seq_number          = ei_sn_next++;
-
-  if (!gtpu_write_header(buf, hdr, ei_logger)) {
-    logger.error("Failed to write GTP-U header for error indication. teid={:#x}", teid);
-    return;
-  }
-
-  logger.info("TX error indication. teid={:#x} pdu_len={}", teid, buf.length());
-  write_pcap(buf);
-  tx_upper->on_new_pdu(std::move(buf), src_addr);
-}
-
 expected<std::unique_ptr<gtpu_demux_dispatch_queue>>
 gtpu_demux_impl::add_tunnel(gtpu_teid_t                                  teid,
                             task_executor&                               tunnel_exec,
@@ -96,8 +30,8 @@ gtpu_demux_impl::add_tunnel(gtpu_teid_t                                  teid,
       handle_pdu_impl(teid, pdu_ctx);
     }
   };
-  auto batched_queue =
-      std::make_unique<gtpu_demux_dispatch_queue>(cfg.queue_size, tunnel_exec, logger, dispacth_fn, cfg.batch_size);
+  auto batched_queue = std::make_unique<gtpu_demux_dispatch_queue>(
+      cfg.name, cfg.queue_size, tunnel_exec, logger, dispacth_fn, cfg.batch_size);
 
   std::lock_guard<std::mutex> guard(map_mutex);
   auto                        it = teid_to_tunnel.try_emplace(teid, gtpu_demux_tunnel_ctx_t{*batched_queue, tunnel});
@@ -208,4 +142,70 @@ void gtpu_demux_impl::handle_pdu_impl(gtpu_teid_t teid, gtpu_demux_pdu_ctx_t pdu
   // Forward entire PDU to the tunnel.
   // As removal happens in the same thread as handling the PDU, we no longer need the lock.
   tunnel->handle_pdu(std::move(pdu_ctx.pdu), pdu_ctx.src_addr);
+}
+
+void gtpu_demux_impl::set_error_indication_tx(gtpu_tunnel_common_tx_upper_layer_notifier& tx_upper_,
+                                              const std::string&                          local_addr_)
+{
+  tx_upper = &tx_upper_;
+
+  // Pre-compute the peer address IE from the local address string.
+  struct in_addr  addr4 = {};
+  struct in6_addr addr6 = {};
+  if (inet_pton(AF_INET, local_addr_.c_str(), &addr4) == 1) {
+    gtpu_ie_gtpu_peer_address::ipv4_addr_t ipv4 = {};
+    std::memcpy(ipv4.data(), &addr4, 4);
+    ei_peer_addr.gtpu_peer_address = ipv4;
+  } else if (inet_pton(AF_INET6, local_addr_.c_str(), &addr6) == 1) {
+    gtpu_ie_gtpu_peer_address::ipv6_addr_t ipv6 = {};
+    std::memcpy(ipv6.data(), &addr6, 16);
+    ei_peer_addr.gtpu_peer_address = ipv6;
+  } else {
+    logger.error("Invalid local address for error indication. addr={}", local_addr_);
+    tx_upper = nullptr;
+    return;
+  }
+  logger.debug("Error indication TX configured. local_addr={}", local_addr_);
+}
+
+void gtpu_demux_impl::send_error_indication(uint32_t teid, const sockaddr_storage& src_addr)
+{
+  if (stopped.load(std::memory_order_relaxed)) {
+    return;
+  }
+
+  byte_buffer buf;
+
+  // Write mandatory IEs: TEID-I and GTP-U Peer Address
+  gtpu_ie_teid_i ie_teid = {};
+  ie_teid.teid_i         = teid;
+  if (!gtpu_write_ie_teid_i(buf, ie_teid, ei_logger)) {
+    logger.error("Failed to write IE TEID-I for error indication. teid={:#x}", teid);
+    return;
+  }
+
+  if (!gtpu_write_ie_gtpu_peer_address(buf, ei_peer_addr, ei_logger)) {
+    logger.error("Failed to write IE GTP-U peer address for error indication.");
+    return;
+  }
+
+  // Build GTP-U header
+  gtpu_header hdr         = {};
+  hdr.flags.version       = GTPU_FLAGS_VERSION_V1;
+  hdr.flags.protocol_type = GTPU_FLAGS_GTP_PROTOCOL;
+  hdr.flags.ext_hdr       = false;
+  hdr.flags.seq_number    = true;
+  hdr.message_type        = GTPU_MSG_ERROR_INDICATION;
+  hdr.length              = 0;
+  hdr.teid                = GTPU_PATH_MANAGEMENT_TEID;
+  hdr.seq_number          = ei_sn_next++;
+
+  if (!gtpu_write_header(buf, hdr, ei_logger)) {
+    logger.error("Failed to write GTP-U header for error indication. teid={:#x}", teid);
+    return;
+  }
+
+  logger.info("TX error indication. teid={:#x} pdu_len={}", teid, buf.length());
+  write_pcap(buf);
+  tx_upper->on_new_pdu(std::move(buf), src_addr);
 }

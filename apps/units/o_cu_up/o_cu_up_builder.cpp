@@ -123,6 +123,7 @@ o_cu_up_unit ocudu::build_o_cu_up(const o_cu_up_unit_config& unit_cfg, const o_c
   if (not unit_cfg.cu_up_cfg.ngu_cfg.no_core) {
     for (const cu_up_unit_ngu_socket_config& sock_cfg : unit_cfg.cu_up_cfg.ngu_cfg.ngu_socket_cfg) {
       udp_network_gateway_config n3_udp_cfg = {};
+      n3_udp_cfg.if_name                    = "N3";
       n3_udp_cfg.bind_address               = sock_cfg.bind_addr;
       n3_udp_cfg.bind_interface             = sock_cfg.bind_interface;
       n3_udp_cfg.ext_bind_addr              = sock_cfg.ext_addr;

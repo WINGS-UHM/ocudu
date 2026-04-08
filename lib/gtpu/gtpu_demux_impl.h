@@ -95,7 +95,8 @@ struct formatter<ocudu::gtpu_demux_cfg_t> {
   auto format(ocudu::gtpu_demux_cfg_t cfg, FormatContext& ctx) const
   {
     return format_to(ctx.out(),
-                     "queue_size={} batch_size={} warn_on_drop={} test_mode={}",
+                     "name={} queue_size={} batch_size={} warn_on_drop={} test_mode={}",
+                     cfg.name,
                      cfg.queue_size,
                      cfg.batch_size,
                      cfg.warn_on_drop,

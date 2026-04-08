@@ -320,6 +320,7 @@ int main(int argc, char** argv)
   // Create F1-U GW.
   // > Create GTP-U Demux.
   gtpu_demux_creation_request cu_f1u_gtpu_msg   = {};
+  cu_f1u_gtpu_msg.cfg.name                      = "CU-NR-U-DEMUX";
   cu_f1u_gtpu_msg.cfg.warn_on_drop              = true;
   cu_f1u_gtpu_msg.gtpu_pcap                     = cu_up_dlt_pcaps.f1u.get();
   std::unique_ptr<gtpu_demux> cu_f1u_gtpu_demux = create_gtpu_demux(cu_f1u_gtpu_msg);
@@ -327,6 +328,7 @@ int main(int argc, char** argv)
   gtpu_gateway_maps f1u_gw_maps;
   for (const f1u_socket_appconfig& sock_cfg : cu_up_cfg.f1u_cfg.f1u_socket_cfg) {
     udp_network_gateway_config cu_f1u_gw_config = {};
+    cu_f1u_gw_config.if_name                    = "CU-F1-U";
     cu_f1u_gw_config.bind_address               = sock_cfg.bind_addr;
     cu_f1u_gw_config.ext_bind_addr              = sock_cfg.udp_config.ext_addr;
     cu_f1u_gw_config.bind_port                  = cu_up_cfg.f1u_cfg.bind_port;

@@ -13,6 +13,8 @@ struct sockaddr_storage;
 namespace ocudu {
 
 struct udp_network_gateway_config : common_network_gateway_config {
+  /// Name provided to the interface node.
+  std::string if_name;
   /// Bind address to use for the socket. If left empty, the socket can only be used with an implicit `bind()` using
   /// `connect()`.
   std::string            bind_address;

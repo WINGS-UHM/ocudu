@@ -58,7 +58,7 @@ f1u_bearer_impl::f1u_bearer_impl(uint32_t                       ue_index,
     }
   };
   ul_batched_queue = std::make_unique<nru_ul_batched_queue>(
-      config.queue_size, ul_exec, logger.get_basic_logger(), dispatch_fn, config.batch_size);
+      "CU-NRU-UL", config.queue_size, ul_exec, logger.get_basic_logger(), dispatch_fn, config.batch_size);
 
   logger.log_info("F1-U bearer configured. {}", cfg);
 }

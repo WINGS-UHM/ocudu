@@ -307,6 +307,7 @@ int main(int argc, char** argv)
   // Create F1-U GW.
   // > Create GTP-U Demux.
   gtpu_demux_creation_request du_f1u_gtpu_msg   = {};
+  du_f1u_gtpu_msg.cfg.name                      = "DU-NR-U-DEMUX";
   du_f1u_gtpu_msg.cfg.warn_on_drop              = true;
   du_f1u_gtpu_msg.cfg.queue_size                = du_cfg.f1u_cfg.pdu_queue_size;
   du_f1u_gtpu_msg.gtpu_pcap                     = du_pcaps.f1u.get();
@@ -316,6 +317,7 @@ int main(int argc, char** argv)
   gtpu_gateway_maps f1u_gw_maps;
   for (const f1u_socket_appconfig& sock_cfg : du_cfg.f1u_cfg.f1u_sockets.f1u_socket_cfg) {
     udp_network_gateway_config f1u_gw_config = {};
+    f1u_gw_config.if_name                    = "DU-F1-U";
     f1u_gw_config.bind_address               = sock_cfg.bind_addr;
     f1u_gw_config.ext_bind_addr              = sock_cfg.udp_config.ext_addr;
     f1u_gw_config.bind_port                  = du_cfg.f1u_cfg.f1u_sockets.bind_port;

@@ -74,14 +74,14 @@ class dummy_gtpu_demux_ctrl final : public gtpu_demux_ctrl
 {
 public:
   dummy_gtpu_demux_ctrl() : logger(ocudulog::fetch_basic_logger("GTPU")) {}
-  ~dummy_gtpu_demux_ctrl() = default;
+  ~dummy_gtpu_demux_ctrl() override = default;
 
   expected<std::unique_ptr<gtpu_demux_dispatch_queue>>
   add_tunnel(gtpu_teid_t teid, task_executor& tunnel_exec, gtpu_tunnel_common_rx_upper_layer_interface* tunnel) override
   {
     created_teid_list.push_back(teid);
     return std::make_unique<gtpu_demux_dispatch_queue>(
-        8192, tunnel_exec, logger, [](span<gtpu_demux_pdu_ctx_t>) {}, 256);
+        "ul-rx-test", 8192, tunnel_exec, logger, [](span<gtpu_demux_pdu_ctx_t>) {}, 256);
   }
 
   bool remove_tunnel(gtpu_teid_t teid) override
@@ -99,8 +99,8 @@ public:
   {
   }
 
-  std::list<gtpu_teid_t> created_teid_list = {};
-  std::list<gtpu_teid_t> removed_teid_list = {};
+  std::list<gtpu_teid_t> created_teid_list;
+  std::list<gtpu_teid_t> removed_teid_list;
 
 private:
   ocudulog::basic_logger& logger;

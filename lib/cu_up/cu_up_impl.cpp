@@ -75,6 +75,7 @@ cu_up::cu_up(const cu_up_config& config_, const cu_up_dependencies& dependencies
 
   // Create GTP-U demux
   gtpu_demux_creation_request demux_msg = {};
+  demux_msg.cfg.name                    = "NG-U-DEMUX";
   demux_msg.cfg.warn_on_drop            = cfg.n3_cfg.warn_on_drop;
   demux_msg.cfg.queue_size              = cfg.n3_cfg.gtpu_queue_size;
   demux_msg.cfg.batch_size              = cfg.n3_cfg.gtpu_batch_size;

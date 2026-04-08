@@ -11,7 +11,7 @@ class base_batched_dispatch_queue_test
 {
 protected:
   base_batched_dispatch_queue_test(unsigned qsize, const std::function<void(span<const int>)>& func) :
-    worker(qsize), queue(qsize, worker, logger, func)
+    worker(qsize), queue("test-q", qsize, worker, logger, func)
   {
     logger.set_level(ocudulog::basic_levels::debug);
     ocudulog::init();

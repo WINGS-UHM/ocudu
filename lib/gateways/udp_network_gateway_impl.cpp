@@ -26,6 +26,7 @@ udp_network_gateway_impl::udp_network_gateway_impl(udp_network_gateway_config   
   io_rx_executor(io_rx_executor_),
   tx_ctx(config.tx_max_mmsg, config.tx_max_segments),
   batched_queue(
+      config.bind_address,
       config.tx_qsize,
       io_tx_executor,
       logger,

@@ -7,6 +7,7 @@
 #include "ocudu/adt/span.h"
 #include "ocudu/ocudulog/ocudulog.h"
 #include "ocudu/support/executors/task_executor.h"
+#include <string>
 #include <vector>
 
 namespace ocudu {
@@ -21,7 +22,8 @@ class batched_dispatch_queue
 public:
   using value_type = ValueType;
 
-  batched_dispatch_queue(unsigned                                    queue_size,
+  batched_dispatch_queue(std::string                                 name_,
+                         unsigned                                    queue_size,
                          task_executor&                              serialized_exec_,
                          ocudulog::basic_logger&                     logger_,
                          const std::function<void(span<ValueType>)>& callback_,
@@ -31,7 +33,8 @@ public:
     callback(callback_),
     batch_max_size(batch_max_size_),
     queue(queue_size),
-    stopped(std::make_shared<std::atomic<bool>>(false))
+    stopped(std::make_shared<std::atomic<bool>>(false)),
+    name(std::move(name_))
   {
     batched_values.reserve(queue_size);
   }
@@ -40,6 +43,7 @@ public:
   /// Must be called from the same task execution context as the consumer side, where the batch of values is handled.
   void stop()
   {
+    logger.debug("Stopping batched_queue. name={}", name);
     if (stopped != nullptr && not stopped->exchange(true, std::memory_order_relaxed)) {
       drain_queue();
     }
@@ -183,6 +187,9 @@ private:
 
   // Flag used to signal that the queue has been stopped and to cancel any pending task.
   std::shared_ptr<std::atomic<bool>> stopped;
+
+  // Name of batched queue for better logging.
+  const std::string name;
 };
 
 } // namespace ocudu

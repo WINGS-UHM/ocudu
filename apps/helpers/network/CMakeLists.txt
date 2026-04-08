@@ -3,7 +3,9 @@
 # Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 
-set(SOURCES udp_cli11_schema.cpp
+set(SOURCES sctp_cli11_schema.cpp
+	sctp_config_yaml_writer.cpp
+	udp_cli11_schema.cpp
 	udp_config_yaml_writer.cpp
 )
 

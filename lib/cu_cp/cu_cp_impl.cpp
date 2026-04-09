@@ -941,7 +941,7 @@ cu_cp_impl::handle_ue_context_release_command(const cu_cp_ue_context_release_com
 
   return launch_async<ue_context_release_routine>(command,
                                                   e1ap_bearer_ctxt_mng,
-                                                  du_db.get_du_processor(ue->get_du_index()).get_f1ap_handler(),
+                                                  du_db.get_du_processor(ue->get_du_index()),
                                                   get_cu_cp_ue_removal_handler(),
                                                   ue_mng,
                                                   logger);

@@ -15,8 +15,7 @@
 #include <gtest/gtest.h>
 #include <unordered_map>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Generate a random gnb_cu_ue_f1ap_id
 gnb_cu_ue_f1ap_id_t generate_random_gnb_cu_ue_f1ap_id();
@@ -117,6 +116,8 @@ public:
   {
   }
 
+  void connect_f1ap(f1ap_cu* f1ap_) { f1ap = f1ap_; }
+
   du_setup_result on_new_du_setup_request(const du_setup_request& msg) override
   {
     logger.info("Received F1SetupRequest");
@@ -124,10 +125,35 @@ public:
     return next_du_setup_resp;
   }
 
+  ue_index_t request_new_ue_creation() override
+  {
+    logger.info("Received request to create new UE");
+    return on_new_cu_cp_ue_required();
+  }
+
   ocucp::ue_rrc_context_creation_outcome
   on_ue_rrc_context_creation_request(const ue_rrc_context_creation_request& msg) override
   {
     logger.info("Received {}", __FUNCTION__);
+    f1ap_ue_context_release_command release_cmd = {.ue_index = msg.ue_index,
+                                                   .cause    = f1ap_cause_radio_network_t::no_radio_res_available,
+                                                   .rrc_pdu  = byte_buffer::create({0x0, 0x0}).value(),
+                                                   .srb_id   = srb_id_t::srb0};
+
+    if (ue_index_to_uint(msg.ue_index) >= max_nof_supported_ues) {
+      logger.warning("UE creation failed. Maximum number of supported UEs ({}) exceeded", max_nof_supported_ues);
+
+      if (f1ap != nullptr) {
+        task_sched.schedule(launch_async([this, release_cmd](coro_context<async_task<void>>& ctx) {
+          CORO_BEGIN(ctx);
+          CORO_AWAIT(f1ap->handle_ue_context_release_command(release_cmd));
+          f1ap->remove_ue_context(release_cmd.ue_index);
+          CORO_RETURN();
+        }));
+      }
+      return make_unexpected(default_error_t{});
+    }
+
     last_ue_creation_msg.ue_index               = msg.ue_index;
     last_ue_creation_msg.cgi                    = msg.cgi;
     last_ue_creation_msg.du_to_cu_rrc_container = msg.du_to_cu_rrc_container.copy();
@@ -141,7 +167,15 @@ public:
 
     // Return failure if no UE index is available.
     if (response.ue_index == ue_index_t::invalid) {
-      return make_unexpected(byte_buffer::create({0x0, 0x0}).value());
+      if (f1ap != nullptr) {
+        task_sched.schedule(launch_async([this, release_cmd](coro_context<async_task<void>>& ctx) {
+          CORO_BEGIN(ctx);
+          CORO_AWAIT(f1ap->handle_ue_context_release_command(release_cmd));
+          f1ap->remove_ue_context(release_cmd.ue_index);
+          CORO_RETURN();
+        }));
+      }
+      return make_unexpected(default_error_t{});
     }
 
     return response;
@@ -150,7 +184,7 @@ public:
   ue_index_t on_new_cu_cp_ue_required()
   {
     ue_index_t ue_index = ocucp::ue_index_t::invalid;
-    if (ue_id < max_nof_supported_ues) {
+    if (ue_id < static_cast<unsigned>(ocucp::ue_index_t::invalid)) {
       ue_index              = ocucp::uint_to_ue_index(ue_id);
       last_created_ue_index = ue_index;
       ue_id++;
@@ -198,8 +232,9 @@ public:
 
 private:
   const unsigned            max_nof_supported_ues;
+  f1ap_cu*                  f1ap = nullptr;
   ocudulog::basic_logger&   logger;
-  uint16_t                  ue_id = ue_index_to_uint(ocucp::ue_index_t::min);
+  unsigned                  ue_id = ue_index_to_uint(ocucp::ue_index_t::min);
   fifo_async_task_scheduler task_sched{16};
 };
 
@@ -246,5 +281,4 @@ protected:
   std::unique_ptr<f1ap_cu>         f1ap;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

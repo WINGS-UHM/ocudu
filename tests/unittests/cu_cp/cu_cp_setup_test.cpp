@@ -10,6 +10,7 @@
 #include "ocudu/adt/byte_buffer.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
+#include "ocudu/asn1/rrc_nr/dl_dcch_msg.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ngap/ngap_message.h"
 #include "ocudu/ran/plmn_identity.h"
@@ -329,16 +330,16 @@ TEST_F(cu_cp_setup_test, when_initial_ul_rrc_message_has_no_rrc_container_then_u
   // Inject Initial UL RRC Message without RRC container and await UE Context Release Command containing RRC Reject.
   ASSERT_TRUE(send_initial_ul_rrc_message_without_rrc_container_and_await_ue_context_release_command());
 
-  // TEST: UE is not created in CU-CP.
-  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_EQ(report.ues.size(), 0);
-
   const auto& ue_rel = f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd();
 
   // Inject F1AP UE Context Release Complete.
   auto rel_complete = test_helpers::generate_ue_context_release_complete(
       int_to_gnb_cu_ue_f1ap_id(ue_rel->gnb_cu_ue_f1ap_id), du_ue_f1ap_id);
   get_du(du_idx).push_ul_pdu(rel_complete);
+
+  // TEST: UE is removed in CU-CP.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.ues.size(), 0);
 }
 
 TEST_F(cu_cp_setup_test, when_du_sends_initial_ul_rrc_message_without_du_to_cu_container_then_ue_is_rejected)
@@ -450,8 +451,11 @@ TEST_F(cu_cp_setup_admission_limit_test, when_initial_ul_rrc_message_is_rejected
 {
   ASSERT_TRUE(send_initial_ul_rrc_message_and_await_ue_context_release_command());
 
+  // Admission rejection must not progress into NGAP Initial UE Message flow.
+  ASSERT_FALSE(this->get_amf().try_pop_rx_pdu(ngap_pdu));
+
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-  ASSERT_TRUE(report.ues.empty());
+  ASSERT_EQ(report.ues.size(), 1);
 
   auto rel_complete = test_helpers::generate_ue_context_release_complete(cu_ue_id.value(), du_ue_f1ap_id);
   get_du(du_idx).push_ul_pdu(rel_complete);

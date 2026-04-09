@@ -894,7 +894,7 @@ TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_unknown_ue_is_receiv
       report.dus[0].rrc_metrics.successful_rrc_connection_resumes_with_fallback.get_count(resume_cause_t::mo_data), 1);
 }
 
-TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_for_with_invalid_resume_mac_is_received_then_release_is_sent)
+TEST_F(cu_cp_rrc_inactive_test, when_rrc_resume_request_with_invalid_resume_mac_is_received_then_release_is_sent)
 {
   // Connect UE with RRC Inactive support.
   connect_ue_with_rrc_inactive_support();

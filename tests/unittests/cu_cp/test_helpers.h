@@ -11,6 +11,7 @@
 #include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "ocudu/asn1/f1ap/f1ap.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/ran/cause/f1ap_cause.h"
 #include "ocudu/support/async/async_no_op_task.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/support/async/fifo_async_task_scheduler.h"
@@ -36,10 +37,13 @@ struct dummy_du_processor_cu_cp_notifier : public du_processor_cu_cp_notifier {
 public:
   explicit dummy_du_processor_cu_cp_notifier(ue_manager* ue_mng_ = nullptr) : ue_mng(ue_mng_) {}
 
-  void attach_handler(cu_cp_du_event_handler* cu_cp_handler_, cu_cp_ue_removal_handler* ue_removal_handler_)
+  void attach_handler(cu_cp_du_event_handler*   cu_cp_handler_,
+                      cu_cp_ue_removal_handler* ue_removal_handler_,
+                      du_processor*             du_proc_)
   {
     cu_cp_handler      = cu_cp_handler_;
     ue_removal_handler = ue_removal_handler_;
+    du_proc            = du_proc_;
   }
 
   bool on_cell_config_update_request(nr_cell_identity nci, const serving_cell_meas_config& serv_cell_cfg) override
@@ -86,7 +90,24 @@ public:
 
   async_task<void> on_ue_release_required(const cu_cp_ue_context_release_request& request) override
   {
-    logger.info("ue={}: Received UE release request", request.ue_index);
+    logger.info("ue={}: Received UE release required", request.ue_index);
+
+    if (du_proc != nullptr) {
+      return launch_async([this, request](coro_context<async_task<void>>& ctx) mutable {
+        CORO_BEGIN(ctx);
+        CORO_AWAIT(du_proc->get_f1ap_handler().handle_ue_context_release_command(
+            {.ue_index = request.ue_index,
+             .cause    = f1ap_cause_radio_network_t::no_radio_res_available,
+             .rrc_pdu  = byte_buffer::create({0x0, 0x0}).value(),
+             .srb_id   = srb_id_t::srb0}));
+
+        if (ue_mng != nullptr) {
+          ue_mng->remove_ue(request.ue_index);
+        }
+        du_proc->get_f1ap_handler().get_f1ap_ue_context_removal_handler().remove_ue_context(request.ue_index);
+        CORO_RETURN();
+      });
+    }
 
     return launch_no_op_task();
   }
@@ -107,6 +128,7 @@ private:
   cu_cp_du_event_handler*   cu_cp_handler       = nullptr;
   cu_cp_ue_removal_handler* ue_removal_handler  = nullptr;
   rrc_ue_handler*           rrc_removal_handler = nullptr;
+  du_processor*             du_proc             = nullptr;
 };
 
 struct dummy_cu_cp_ue_context_manipulation_handler : public cu_cp_ue_context_manipulation_handler {

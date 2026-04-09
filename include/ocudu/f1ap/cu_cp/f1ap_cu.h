@@ -90,7 +90,7 @@ struct ue_rrc_context_creation_response {
   f1ap_ul_dcch_notifier* f1ap_srb2_notifier = nullptr;
 };
 
-using ue_rrc_context_creation_outcome = expected<ue_rrc_context_creation_response, byte_buffer>;
+using ue_rrc_context_creation_outcome = expected<ue_rrc_context_creation_response>;
 
 /// Scheduler of F1AP async tasks using common signalling.
 class f1ap_common_du_task_notifier
@@ -107,6 +107,10 @@ class f1ap_du_processor_notifier : public du_setup_notifier, public f1ap_common_
 {
 public:
   virtual ~f1ap_du_processor_notifier() = default;
+
+  /// \brief Request UE creation.
+  /// \return The outcome of the UE creation request.
+  virtual ue_index_t request_new_ue_creation() = 0;
 
   /// \brief Notifies the CU-CP that an RRC context has been created for an existing CU-CP UE.
   virtual ue_rrc_context_creation_outcome

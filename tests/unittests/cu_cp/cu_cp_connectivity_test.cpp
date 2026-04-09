@@ -171,14 +171,14 @@ TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_then_connected_ues_a
     }
     ASSERT_EQ(ccch.msg.c1().type().value, asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject);
 
-    // TEST: Verify UE is removed in CU-CP.
-    auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
-    ASSERT_TRUE(report.ues.empty());
-
     // DU sends F1AP UE Context Release Complete.
     auto rel_complete = test_helpers::generate_ue_context_release_complete(
         int_to_gnb_cu_ue_f1ap_id(ue_rel->gnb_cu_ue_f1ap_id), du_ue_f1ap_id);
     get_du(du_idx).push_ul_pdu(rel_complete);
+
+    // TEST: Verify UE is removed in CU-CP.
+    auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+    ASSERT_TRUE(report.ues.empty());
   }
 }
 

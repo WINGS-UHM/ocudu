@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "du_processor_impl.h"
+#include "ocudu/adt/expected.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/f1ap/cu_cp/f1ap_cu_factory.h"
 #include "ocudu/ran/cause/f1ap_cause.h"
@@ -39,6 +40,8 @@ public:
   {
     return parent.handle_du_setup_request(msg);
   }
+
+  ue_index_t request_new_ue_creation() override { return parent.ue_mng.add_ue(parent.cfg.du_index); }
 
   ue_rrc_context_creation_outcome
   on_ue_rrc_context_creation_request(const ue_rrc_context_creation_request& req) override
@@ -216,131 +219,138 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
 {
   ocudu_assert(req.c_rnti != rnti_t::INVALID_RNTI, "ue={} c-rnti={}: Invalid C-RNTI", req.ue_index, req.c_rnti);
 
-  // Check that creation message is valid.
-  const du_cell_configuration* pcell = cfg.du_cfg_hdlr->get_context().find_cell(req.cgi);
-  if (pcell == nullptr) {
-    logger.warning("ue={} c-rnti={}: Could not find cell with nci={}", req.ue_index, req.c_rnti, req.cgi.nci);
-    // Return the RRCReject container.
-    return make_unexpected(rrc->get_rrc_reject());
-  }
-  const pci_t pci = pcell->pci;
+  // Lambda to release the UE context in case of any failure during the creation procedure.
+  auto release_ue = [this](ue_index_t ue_index) {
+    cu_cp_ue_context_release_request release_request;
+    release_request.ue_index = ue_index;
+    release_request.cause    = ngap_cause_radio_network_t::radio_res_not_available;
 
-  ue_index_t ue_index = req.ue_index;
-  cu_cp_ue*  ue       = nullptr;
+    cu_cp_ue* ue = ue_mng.find_ue(ue_index);
+    if (ue == nullptr) {
+      logger.warning("ue={}: UE to release not found", ue_index);
+      return;
+    }
+
+    // Schedule on UE task scheduler.
+    ue->get_task_sched().schedule_async_task(
+        launch_async([this, release_request](coro_context<async_task<void>>& ctx) mutable {
+          CORO_BEGIN(ctx);
+          CORO_AWAIT(cu_cp_notifier.on_ue_release_required(release_request));
+          CORO_RETURN();
+        }));
+  };
 
   bool is_resume_request = false;
 
-  if (ue_index == ue_index_t::invalid) {
-    // Check if this is a RRC Resume request for an existing UE.
+  cu_cp_ue* ue = nullptr;
+
+  // Check if this is a RRC Resume request for an existing UE.
+  if (not req.rrc_container.empty()) {
     std::optional<rrc_resume_context_t> resume_context =
         rrc->get_rrc_resume_context(req.rrc_container.copy(), cfg.cu_cp_cfg.ue.nof_i_rnti_ue_bits);
     if (!resume_context.has_value()) {
       logger.warning("ue={}: Could not extract RRC Resume context from UL CCCH Message", req.ue_index);
-      // Return the RRCReject container.
-      return make_unexpected(rrc->get_rrc_reject());
+      // Schedule UE context release and return error response.
+      release_ue(req.ue_index);
+      return make_unexpected(default_error_t{});
     }
 
     if (resume_context->is_resume && resume_context->rrc_resume_id.has_value()) {
+      ue_index_t resume_ue_index = ue_index_t::invalid;
       if (std::holds_alternative<short_i_rnti_t>(resume_context->rrc_resume_id.value())) {
-        ue_index = ue_mng.get_ue_index(std::get<short_i_rnti_t>(resume_context->rrc_resume_id.value()));
+        resume_ue_index = ue_mng.get_ue_index(std::get<short_i_rnti_t>(resume_context->rrc_resume_id.value()));
         logger.debug("ue={}: RRC Resume Request with {}",
-                     ue_index,
+                     resume_ue_index,
                      std::get<short_i_rnti_t>(resume_context->rrc_resume_id.value()));
       } else {
-        ue_index = ue_mng.get_ue_index(std::get<full_i_rnti_t>(resume_context->rrc_resume_id.value()));
+        resume_ue_index = ue_mng.get_ue_index(std::get<full_i_rnti_t>(resume_context->rrc_resume_id.value()));
         logger.debug("ue={}: RRC Resume Request with {}",
-                     ue_index,
+                     resume_ue_index,
                      std::get<full_i_rnti_t>(resume_context->rrc_resume_id.value()));
       }
 
-      if (ue_index != ue_index_t::invalid) {
+      if (resume_ue_index != ue_index_t::invalid) {
         if (cfg.cu_cp_cfg.rrc.force_resume_fallback) {
           // RRC Resume fallback forced - do not resume. The DU doesn't have a F1AP UE context, so we also remove it
           // here.
-          logger.info("ue={}: RRC Resume fallback forced. Removing F1AP UE context", ue_index);
-          f1ap->get_f1ap_ue_context_removal_handler().remove_ue_context(ue_index);
-          ue_index = ue_index_t::invalid;
+          logger.info("ue={}: RRC Resume fallback forced. Removing F1AP UE context", resume_ue_index);
+          f1ap->get_f1ap_ue_context_removal_handler().remove_ue_context(resume_ue_index);
         } else {
-          ue_mng.set_active(ue_index);
+          ue = ue_mng.find_du_ue(resume_ue_index);
+          ue_mng.set_active(resume_ue_index);
           is_resume_request = true;
+
+          // Remove the new UE context that was created for this request since it's a resume request and we should reuse
+          // the existing context.
+          logger.debug("ue={}: RRC Resume detected, removing newly created UE context", req.ue_index);
+          ue_mng.remove_ue(req.ue_index);
+          f1ap->get_f1ap_ue_context_removal_handler().remove_ue_context(req.ue_index);
         }
       }
     }
-
-    if (ue_index == ue_index_t::invalid) {
-      // RRC Resume not requested or failed - create a new UE.
-
-      // Add new CU-CP UE.
-      ue_index = ue_mng.add_ue(cfg.du_index);
-      if (ue_index == ue_index_t::invalid) {
-        logger.warning("CU-CP UE creation failed");
-        // Return the RRCReject container.
-        return make_unexpected(rrc->get_rrc_reject());
-      }
-
-      // Check if UE can be served.
-      if (ue_mng.ue_admission_limit_reached()) {
-        logger.warning("ue={}: CU-CP UE creation failed. UE not servable", ue_index);
-        ue_mng.remove_ue(ue_index);
-        // Return the RRCReject container.
-        return make_unexpected(rrc->get_rrc_reject());
-      }
-
-      if (not ue_mng.update_ue_context(
-              ue_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index)) {
-        logger.warning("ue={}: Could not update UE context", ue_index);
-        // Remove the UE from the UE manager.
-        ue_mng.remove_ue(ue_index);
-        // Return the RRCReject container.
-        return make_unexpected(rrc->get_rrc_reject());
-      }
-    }
-
-  } else {
-    if (not ue_mng.update_ue_context(ue_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index)) {
-      logger.warning("ue={}: Could not update UE context", ue_index);
-      // A UE with the same PCI and RNTI already exists, so we don't remove it and only reject the new UE.
-      return make_unexpected(rrc->get_rrc_reject());
-    }
   }
 
-  ue = ue_mng.find_ue(ue_index);
+  if (ue == nullptr) {
+    // RRC Resume not requested or failed - update UE context.
 
-  /// NOTE: From this point on the UE exists in the UE manager and must be removed if any error occurs.
+    // Check that UE can be served by this CU.
+    if (ue_mng.ue_admission_limit_reached()) {
+      logger.warning("ue={}: UE admission limit reached", req.ue_index);
+      // Schedule UE context release and return error response.
+      release_ue(req.ue_index);
+      return make_unexpected(default_error_t{});
+    }
+
+    // Check that creation message is valid.
+    const du_cell_configuration* pcell = cfg.du_cfg_hdlr->get_context().find_cell(req.cgi);
+    if (pcell == nullptr) {
+      logger.warning("ue={} c-rnti={}: Could not find cell with nci={}", req.ue_index, req.c_rnti, req.cgi.nci);
+      // Schedule UE context release and return error response.
+      release_ue(req.ue_index);
+      return make_unexpected(default_error_t{});
+    }
+    const pci_t pci = pcell->pci;
+
+    if (!ue_mng.update_ue_context(
+            req.ue_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index)) {
+      logger.warning("ue={}: Could not update UE context", req.ue_index);
+      // Schedule UE context release and return error response.
+      release_ue(req.ue_index);
+      return make_unexpected(default_error_t{});
+    }
+
+    ue = ue_mng.find_ue(req.ue_index);
+  }
 
   // If this is not a RRCResume, create an RRC UE. If the DU-to-CU-RRC-Container is empty, the UE will be rejected.
   if (not is_resume_request) {
     if (ue == nullptr) {
-      logger.warning("ue={}: Could not find UE after updating context", ue_index);
-      // Remove the UE from the UE manager.
-      ue_mng.remove_ue(ue_index);
-      // Return the RRCReject container.
-      return make_unexpected(rrc->get_rrc_reject());
+      logger.warning("ue={}: Could not find UE after updating context", req.ue_index);
+      return make_unexpected(default_error_t{});
     }
 
     if (not create_rrc_ue(*ue, req.c_rnti, req.cgi, req.du_to_cu_rrc_container.copy(), req.prev_context)) {
-      logger.warning("ue={}: Could not create RRC UE object", ue_index);
-      // Remove the UE from the UE manager.
-      ue_mng.remove_ue(ue_index);
-      // Return the RRCReject container.
-      return make_unexpected(rrc->get_rrc_reject());
+      logger.warning("ue={}: Could not create RRC UE object", ue->get_ue_index());
+      // Schedule UE context release and return error response.
+      release_ue(ue->get_ue_index());
+      return make_unexpected(default_error_t{});
     }
 
-    rrc_ue_interface* rrc_ue         = rrc->find_ue(ue_index);
-    f1ap_rrc_dcch_adapters[ue_index] = {};
-    f1ap_rrc_ccch_adapters[ue_index] = {};
-    f1ap_rrc_ccch_adapters.at(ue_index).connect_rrc_ue(rrc_ue->get_ul_pdu_handler());
-    f1ap_rrc_dcch_adapters.at(ue_index).connect_rrc_ue(rrc_ue->get_ul_pdu_handler());
+    rrc_ue_interface* rrc_ue                   = rrc->find_ue(ue->get_ue_index());
+    f1ap_rrc_dcch_adapters[ue->get_ue_index()] = {};
+    f1ap_rrc_ccch_adapters[ue->get_ue_index()] = {};
+    f1ap_rrc_ccch_adapters.at(ue->get_ue_index()).connect_rrc_ue(rrc_ue->get_ul_pdu_handler());
+    f1ap_rrc_dcch_adapters.at(ue->get_ue_index()).connect_rrc_ue(rrc_ue->get_ul_pdu_handler());
   }
 
   // Signal back that the UE was successfully created.
   logger.info(
       "ue={} c-rnti={}: UE created{}", ue->get_ue_index(), req.c_rnti, is_resume_request ? " (RRC Resume)" : "");
 
-  return ue_rrc_context_creation_response{ue_index,
-                                          &f1ap_rrc_ccch_adapters.at(ue_index),
-                                          &f1ap_rrc_dcch_adapters.at(ue_index).get_srb1_notifier(),
-                                          &f1ap_rrc_dcch_adapters.at(ue_index).get_srb2_notifier()};
+  return ue_rrc_context_creation_response{ue->get_ue_index(),
+                                          &f1ap_rrc_ccch_adapters.at(ue->get_ue_index()),
+                                          &f1ap_rrc_dcch_adapters.at(ue->get_ue_index()).get_srb1_notifier(),
+                                          &f1ap_rrc_dcch_adapters.at(ue->get_ue_index()).get_srb2_notifier()};
 }
 
 void du_processor_impl::handle_du_initiated_ue_context_release_request(const f1ap_ue_context_release_request& request)

@@ -130,7 +130,7 @@ du_processor_test::du_processor_test() :
       create_du_processor(std::move(du_cfg), cu_cp_notifier, f1ap_pdu_notifier, *common_task_sched, ue_mng);
 
   cu_cp_event_handler = std::make_unique<dummy_cu_cp_du_event_handler>(ue_mng);
-  cu_cp_notifier.attach_handler(&*cu_cp_event_handler, nullptr);
+  cu_cp_notifier.attach_handler(&*cu_cp_event_handler, nullptr, du_processor_obj.get());
 }
 
 du_processor_test::~du_processor_test()

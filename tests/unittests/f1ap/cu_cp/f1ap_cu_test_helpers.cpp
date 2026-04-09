@@ -35,6 +35,7 @@ f1ap_cu_test::f1ap_cu_test(const f1ap_configuration& f1ap_cfg)
   tmp.json_log_enabled   = true;
 
   f1ap = create_f1ap(tmp, f1ap_pdu_notifier, du_processor_notifier, timers, ctrl_worker);
+  du_processor_notifier.connect_f1ap(f1ap.get());
 }
 
 f1ap_cu_test::~f1ap_cu_test()
@@ -87,7 +88,7 @@ f1ap_cu_test::test_ue& f1ap_cu_test::run_ue_context_setup()
 
 bool f1ap_cu_test::was_rrc_reject_sent()
 {
-  // Make sure that the last message was a UEContextReleaseCommand.
+  // Make sure that the last message was an UEContextReleaseCommand.
   if (f1ap_pdu_notifier.last_f1ap_msg.pdu.type().value != asn1::f1ap::f1ap_pdu_c::types::init_msg) {
     return false;
   }

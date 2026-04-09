@@ -4,20 +4,20 @@
 
 #pragma once
 
+#include "../du_processor/du_processor.h"
 #include "../ue_manager/ue_manager_impl.h"
 #include "ocudu/support/async/async_task.h"
 #include "ocudu/support/async/eager_async_task.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
-/// \brief Handles the setup of PDU session resources from the RRC viewpoint.
+/// \brief Handles the release of UE context resources from the CU-CP.
 class ue_context_release_routine
 {
 public:
   ue_context_release_routine(const cu_cp_ue_context_release_command& command_,
                              e1ap_bearer_context_manager*            e1ap_bearer_ctxt_mng_,
-                             f1ap_ue_context_manager&                f1ap_ue_ctxt_mng_,
+                             du_processor&                           du_proc_,
                              cu_cp_ue_removal_handler&               ue_removal_handler_,
                              ue_manager&                             ue_mng_,
                              ocudulog::basic_logger&                 logger_);
@@ -30,20 +30,19 @@ private:
   const cu_cp_ue_context_release_command command;
 
   e1ap_bearer_context_manager* e1ap_bearer_ctxt_mng = nullptr; // to trigger bearer context setup at CU-UP
-  f1ap_ue_context_manager&     f1ap_ue_ctxt_mng;               // to trigger UE context modification at DU
-  cu_cp_ue_removal_handler&    ue_removal_handler;             // to remove UE
+  du_processor&                du_proc;            // to get RRC Reject and to trigger UE context modification at DU
+  cu_cp_ue_removal_handler&    ue_removal_handler; // to remove UE
   ue_manager&                  ue_mng;
   ocudulog::basic_logger&      logger;
 
-  // (sub-)routine requests
+  // (Sub-)routine requests.
   rrc_ue_release_context              release_context;
   f1ap_ue_context_release_command     f1ap_ue_context_release_cmd;
   e1ap_bearer_context_release_command bearer_context_release_command;
 
-  // (sub-)routine results
+  // (Sub-)routine results.
   ue_index_t                        f1ap_ue_context_release_result;
   cu_cp_ue_context_release_complete release_complete;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

@@ -13,8 +13,7 @@
 #include "ocudu/support/async/manual_event.h"
 #include <unordered_map>
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 struct f1ap_ue_context {
   f1ap_ue_ids ue_ids;
@@ -216,36 +215,36 @@ public:
   /// \brief Get the next available GNB-CU-F1AP-UE-ID.
   gnb_cu_ue_f1ap_id_t allocate_gnb_cu_ue_f1ap_id()
   {
-    // return invalid when no cu ue f1ap id is available
+    // Return invalid when no CU UE F1AP ID is available.
     if (ue_index_to_ue_f1ap_id.size() == MAX_NOF_CU_F1AP_UES) {
       return gnb_cu_ue_f1ap_id_t::invalid;
     }
 
-    // Check if the next_cu_ue_f1ap_id is available
+    // Check if the next_cu_ue_f1ap_id is available.
     if (ues.find(next_cu_ue_f1ap_id) == ues.end()) {
       gnb_cu_ue_f1ap_id_t ret = next_cu_ue_f1ap_id;
-      // increase the next cu ue f1ap id
+      // Increase the next CU UE F1AP ID.
       increase_next_cu_ue_f1ap_id();
       return ret;
     }
 
-    // Find holes in the allocated IDs by iterating over all ids starting with the next_cu_ue_f1ap_id to find the
-    // available id
+    // Find holes in the allocated IDs by iterating over all IDs starting with the next_cu_ue_f1ap_id to find the
+    // available ID.
     while (true) {
-      // Iterate over ue_index_to_ue_f1ap_id
+      // Iterate over ue_index_to_ue_f1ap_id.
       auto it = std::find_if(ue_index_to_ue_f1ap_id.begin(), ue_index_to_ue_f1ap_id.end(), [this](auto& u) {
         return u.second == next_cu_ue_f1ap_id;
       });
 
-      // return the id if it is not already used
+      // Return the id if it is not already used.
       if (it == ue_index_to_ue_f1ap_id.end()) {
         gnb_cu_ue_f1ap_id_t ret = next_cu_ue_f1ap_id;
-        // increase the next cu ue f1ap id
+        // Increase the next CU UE F1AP ID.
         increase_next_cu_ue_f1ap_id();
         return ret;
       }
 
-      // increase the next cu ue f1ap id and try again
+      // Increase the next CU UE F1AP ID and try again.
       increase_next_cu_ue_f1ap_id();
     }
 
@@ -280,5 +279,4 @@ private:
   std::unordered_map<gnb_cu_ue_f1ap_id_t, f1ap_ue_context> ues;                    // indexed by gnb_cu_ue_f1ap_id
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

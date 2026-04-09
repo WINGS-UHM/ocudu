@@ -41,16 +41,17 @@ const uint16_t MAX_NOF_DUS = 65535;
 const uint16_t MAX_NOF_DU_CELLS = MAX_CELLS_PER_DU;
 /// Maximum number of CU-UPs supported by CU-CP (implementation-defined).
 const uint16_t MAX_NOF_CU_UPS = 65535;
-/// Maximum number of UEs supported by CU-CP (implementation-defined).
-const uint64_t MAX_NOF_CU_UES = 4294967295; // 2^32 - 1
 /// Maximum number of AMFs supported by CU-CP (implementation-defined).
 const uint16_t MAX_NOF_AMFS = 65535;
 /// Maximum number of XN-C peers supported by CU-CP (implementation-defined).
 const uint16_t MAX_NOF_XNC_PEERS = 65535;
 
 /// \brief ue_index internally used to identify the UE CU-CP-wide.
-/// \remark The ue_index is derived from the maximum number of DUs and the maximum number of UEs per DU.
-enum class ue_index_t : uint64_t { min = 0, max = MAX_NOF_CU_UES - 1, invalid = MAX_NOF_CU_UES };
+enum class ue_index_t : uint64_t {
+  min     = 0,
+  max     = std::numeric_limits<uint64_t>::max() - 1,
+  invalid = std::numeric_limits<uint64_t>::max()
+};
 
 /// Convert ue_index  type to integer.
 inline uint64_t ue_index_to_uint(ue_index_t index)

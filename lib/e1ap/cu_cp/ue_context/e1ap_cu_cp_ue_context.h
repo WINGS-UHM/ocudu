@@ -134,7 +134,7 @@ private:
   gnb_cu_cp_ue_e1ap_id_t next_cu_cp_ue_e1ap_id = gnb_cu_cp_ue_e1ap_id_t::min;
 
   timer_factory           timers;
-  unsigned                max_nof_supported_ues = MAX_NOF_CU_UES;
+  unsigned                max_nof_supported_ues;
   ocudulog::basic_logger& logger;
 
   void increase_next_cu_cp_ue_e1ap_id();

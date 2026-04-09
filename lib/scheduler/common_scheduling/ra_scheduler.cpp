@@ -641,7 +641,7 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
     pusch.dmrs_hopping_mode    = pusch_information::dmrs_hopping_mode::no_hopping;
 
     // MsgA PUSCH successfully allocated. We will register it in the pending MsgB.
-    msgb_req->preambles.push_back({preamble, false});
+    msgb_req->preambles.emplace_back(preamble);
   }
 }
 
@@ -660,7 +660,7 @@ void ra_scheduler::handle_pending_crc_indications_impl(cell_resource_allocator& 
     for (auto& msgb : pending_msgbs) {
       for (auto& p : msgb.preambles) {
         if (p.info.tc_rnti == tc_rnti) {
-          p.pusch_decoded = success;
+          p.crc_result = success;
           return true;
         }
       }
@@ -1408,13 +1408,25 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
       continue;
     }
 
+    // If any preamble's CRC hasn't arrived yet, postpone it, unless this is the last slot in the MsgB window, in which
+    // case, we proceed and treat pending CRCs as FallbackRAR.
+    const bool any_crc_pending = std::any_of(
+        msgb.preambles.begin(), msgb.preambles.end(), [](const auto& p) { return not p.crc_result.has_value(); });
+    const bool last_slot_in_window = (pdcch_slot + 1 >= msgb.msgb_window.stop());
+    if (any_crc_pending and not last_slot_in_window) {
+      // Postpone MsgB.
+      ++msgb_it;
+      continue;
+    }
+
     const unsigned nof_preambles = msgb.preambles.size();
 
-    // Count SuccessRAR (pusch_decoded) and FallbackRAR (!pusch_decoded) preambles.
+    // Count SuccessRAR (crc_result == true) and FallbackRAR (crc_result != true) preambles.
+    // Pending CRCs (nullopt) are treated as FallbackRAR at this point.
     unsigned nof_success  = 0;
     unsigned nof_fallback = 0;
     for (const auto& p : msgb.preambles) {
-      if (p.pusch_decoded) {
+      if (p.crc_result.has_value() and *p.crc_result) {
         ++nof_success;
       } else {
         ++nof_fallback;
@@ -1433,13 +1445,10 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
       if (pdsch_alloc.result.dl.rar_grants.full()) {
         break;
       }
-      if (not cell_cfg.is_dl_enabled(pdsch_alloc.slot)) {
-        continue;
-      }
-      if (pdsch_td_res.symbols.stop() > cell_cfg.get_nof_dl_symbol_per_slot(pdsch_alloc.slot)) {
-        continue;
-      }
-      if (pdsch_td_res.symbols.start() < ss_cfg.get_first_symbol_index() + coreset_duration) {
+      if (not cell_cfg.is_dl_enabled(pdsch_alloc.slot) or
+          pdsch_td_res.symbols.stop() > cell_cfg.get_nof_dl_symbol_per_slot(pdsch_alloc.slot) or
+          pdsch_td_res.symbols.start() < ss_cfg.get_first_symbol_index() + coreset_duration) {
+        // Not enough PDSCH symbols available.
         continue;
       }
       if (csi_helper::is_csi_rs_slot(cell_cfg, pdsch_alloc.slot)) {
@@ -1565,7 +1574,7 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
     for (unsigned i = 0; i < nof_preambles; ++i) {
       const pending_msgb_alloc::preamble_ctx& pctx = msgb.preambles[i];
 
-      if (pctx.pusch_decoded and success_count < nof_success_to_sched) {
+      if (pctx.crc_result == true and success_count < nof_success_to_sched) {
         // SuccessRAR: UE's MsgA PUSCH decoded — 2-step RACH completes, no Msg3 needed.
         if (msgb_rar.grants.full()) {
           logger.error("msgb-rnti={}: SuccessRAR grant for tc-rnti={} dropped. Cause: No space in grant list",
@@ -1585,8 +1594,8 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
         scheduled_indices.push_back(i);
         ++success_count;
 
-      } else if (not pctx.pusch_decoded and fallback_count < nof_fallback_to_sched) {
-        // FallbackRAR: MsgA PUSCH not decoded — UE falls back to Msg3 (4-step completion).
+      } else if (pctx.crc_result != true and fallback_count < nof_fallback_to_sched) {
+        // FallbackRAR: MsgA PUSCH not decoded (or CRC pending at window boundary) — UE falls back to Msg3.
         if (msgb_rar.grants.full()) {
           logger.error("msgb-rnti={}: FallbackRAR grant for tc-rnti={} dropped. Cause: No space in grant list",
                        msgb.msgb_rnti,

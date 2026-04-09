@@ -89,8 +89,11 @@ private:
     /// Per-preamble state carried into MsgB scheduling.
     struct preamble_ctx {
       rach_indication_message::preamble info;
-      /// Set to true when the MsgA PUSCH CRC for this preamble is positively ACKed.
-      bool pusch_decoded = false;
+      /// CRC outcome for the MsgA PUSCH.
+      /// nullopt = indication not yet received; true = CRC OK (SuccessRAR); false = CRC KO (FallbackRAR).
+      std::optional<bool> crc_result;
+
+      preamble_ctx(const rach_indication_message::preamble& info_) : info(info_) {}
     };
 
     rnti_t        msgb_rnti = rnti_t::INVALID_RNTI;

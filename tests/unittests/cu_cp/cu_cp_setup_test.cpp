@@ -73,7 +73,7 @@ public:
     return true;
   }
 
-  [[nodiscard]] bool send_initial_ul_rrc_message_without_rrc_container_and_await_dl_rrc_message_transfer()
+  [[nodiscard]] bool send_initial_ul_rrc_message_without_rrc_container_and_await_ue_context_release_command()
   {
     report_fatal_error_if_not(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu),
                               "there are still F1AP DL messages to pop from DU");
@@ -88,16 +88,16 @@ public:
     report_fatal_error_if_not(f1ap_pdu.pdu.type() == asn1::f1ap::f1ap_pdu_c::types_opts::options::init_msg,
                               "Received unexpected F1AP PDU type");
     report_fatal_error_if_not(f1ap_pdu.pdu.init_msg().value.type().value ==
-                                  asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::dl_rrc_msg_transfer,
+                                  asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types_opts::ue_context_release_cmd,
                               "Received unexpected F1AP Init Msg type");
 
-    const auto& ue_rel = f1ap_pdu.pdu.init_msg().value.dl_rrc_msg_transfer();
+    const auto& ue_rel = f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd();
     report_fatal_error_if_not(ue_rel->srb_id == 0, "Unexpected SRB ID");
 
-    // Check that the DL RRC Message Transfer contains an RRC Reject.
+    // Check that the UE Context Release command contains an RRC Reject.
     asn1::rrc_nr::dl_ccch_msg_s ccch;
     {
-      asn1::cbit_ref bref{f1ap_pdu.pdu.init_msg().value.dl_rrc_msg_transfer()->rrc_container};
+      asn1::cbit_ref bref{f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd()->rrc_container};
       report_fatal_error_if_not(ccch.unpack(bref) == asn1::OCUDUASN_SUCCESS, "Failed to unpack RRC container");
     }
     report_fatal_error_if_not(ccch.msg.c1().type().value ==
@@ -268,12 +268,19 @@ TEST_F(cu_cp_setup_test, when_du_hangs_up_then_rrc_setup_procedure_is_cancelled)
 
 TEST_F(cu_cp_setup_test, when_initial_ul_rrc_message_has_no_rrc_container_then_ue_is_rejected)
 {
-  // Inject Initial UL RRC Message without RRC container and await DL RRC Message Transfer containing RRC Reject.
-  ASSERT_TRUE(send_initial_ul_rrc_message_without_rrc_container_and_await_dl_rrc_message_transfer());
+  // Inject Initial UL RRC Message without RRC container and await UE Context Release Command containing RRC Reject.
+  ASSERT_TRUE(send_initial_ul_rrc_message_without_rrc_container_and_await_ue_context_release_command());
 
   // TEST: UE is not created in CU-CP.
   auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.ues.size(), 0);
+
+  const auto& ue_rel = f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd();
+
+  // Inject F1AP UE Context Release Complete.
+  auto rel_complete = test_helpers::generate_ue_context_release_complete(
+      int_to_gnb_cu_ue_f1ap_id(ue_rel->gnb_cu_ue_f1ap_id), du_ue_f1ap_id);
+  get_du(du_idx).push_ul_pdu(rel_complete);
 }
 
 TEST_F(cu_cp_setup_test, when_du_sends_initial_ul_rrc_message_without_du_to_cu_container_then_ue_is_rejected)

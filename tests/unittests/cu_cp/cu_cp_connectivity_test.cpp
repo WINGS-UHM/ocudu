@@ -157,15 +157,16 @@ TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_then_connected_ues_a
     rnti_t              crnti_2         = to_rnti(0x4602);
     get_du(du_idx).push_ul_pdu(test_helpers::generate_init_ul_rrc_message_transfer(du_ue_f1ap_id_2, crnti_2));
 
-    // TEST: DL RRC Message Transfer is sent to DU.
+    // TEST: UE Context Release Command is sent to DU.
     f1ap_message f1ap_pdu;
     ASSERT_TRUE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu));
-    ASSERT_TRUE(test_helpers::is_valid_dl_rrc_message_transfer(f1ap_pdu));
+    ASSERT_TRUE(test_helpers::is_valid_ue_context_release_command(f1ap_pdu));
 
-    // TEST: RRC Reject is sent to UE.
+    // TEST: RRC Reject is sent to the UE within F1AP UE Context Release Command message.
+    const auto&                 ue_rel = f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd();
     asn1::rrc_nr::dl_ccch_msg_s ccch;
     {
-      asn1::cbit_ref bref{f1ap_pdu.pdu.init_msg().value.dl_rrc_msg_transfer()->rrc_container};
+      asn1::cbit_ref bref{ue_rel->rrc_container};
       ASSERT_EQ(ccch.unpack(bref), asn1::OCUDUASN_SUCCESS);
     }
     ASSERT_EQ(ccch.msg.c1().type().value, asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject);
@@ -173,6 +174,11 @@ TEST_F(cu_cp_connectivity_test, when_amf_connection_is_lost_then_connected_ues_a
     // TEST: Verify UE is removed in CU-CP.
     auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
     ASSERT_TRUE(report.ues.empty());
+
+    // DU sends F1AP UE Context Release Complete.
+    auto rel_complete = test_helpers::generate_ue_context_release_complete(
+        int_to_gnb_cu_ue_f1ap_id(ue_rel->gnb_cu_ue_f1ap_id), du_ue_f1ap_id);
+    get_du(du_idx).push_ul_pdu(rel_complete);
   }
 }
 

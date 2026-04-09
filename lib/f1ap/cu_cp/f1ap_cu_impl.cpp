@@ -21,6 +21,7 @@
 #include "ocudu/adt/expected.h"
 #include "ocudu/asn1/f1ap/common.h"
 #include "ocudu/asn1/f1ap/f1ap.h"
+#include "ocudu/asn1/f1ap/f1ap_ies.h"
 #include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/f1ap/f1ap_message.h"
 
@@ -357,20 +358,23 @@ void f1ap_cu_impl::handle_initial_ul_rrc_message(const asn1::f1ap::init_ul_rrc_m
 
   // Reject the UE if the creation was not successful.
   if (not resp.has_value()) {
-    asn1::f1ap::dl_rrc_msg_transfer_s dl_rrc_msg = {};
-    dl_rrc_msg->gnb_cu_ue_f1ap_id                = gnb_cu_ue_f1ap_id_to_uint(cu_ue_f1ap_id);
-    dl_rrc_msg->gnb_du_ue_f1ap_id                = gnb_du_ue_f1ap_id_to_uint(du_ue_id);
-    dl_rrc_msg->srb_id                           = srb_id_to_uint(srb_id_t::srb0);
-    dl_rrc_msg->rrc_container                    = resp.error().copy();
+    asn1::f1ap::ue_context_release_cmd_s release_cmd = {};
+    release_cmd->gnb_cu_ue_f1ap_id                   = gnb_cu_ue_f1ap_id_to_uint(cu_ue_f1ap_id);
+    release_cmd->gnb_du_ue_f1ap_id                   = gnb_du_ue_f1ap_id_to_uint(du_ue_id);
+    release_cmd->cause.set_radio_network() = asn1::f1ap::cause_radio_network_opts::options::no_radio_res_available;
+    release_cmd->srb_id_present            = true;
+    release_cmd->srb_id                    = srb_id_to_uint(srb_id_t::srb0);
+    release_cmd->rrc_container_present     = true;
+    release_cmd->rrc_container             = resp.error().copy();
 
     // Pack message into PDU.
-    f1ap_message f1ap_dl_rrc_msg;
-    f1ap_dl_rrc_msg.pdu.set_init_msg();
-    f1ap_dl_rrc_msg.pdu.init_msg().load_info_obj(ASN1_F1AP_ID_DL_RRC_MSG_TRANSFER);
-    f1ap_dl_rrc_msg.pdu.init_msg().value.dl_rrc_msg_transfer() = std::move(dl_rrc_msg);
+    f1ap_message f1ap_release_cmd;
+    f1ap_release_cmd.pdu.set_init_msg();
+    f1ap_release_cmd.pdu.init_msg().load_info_obj(ASN1_F1AP_ID_UE_CONTEXT_RELEASE);
+    f1ap_release_cmd.pdu.init_msg().value.ue_context_release_cmd() = std::move(release_cmd);
 
     // Send DL RRC message.
-    tx_pdu_notifier.on_new_message(f1ap_dl_rrc_msg);
+    tx_pdu_notifier.on_new_message(f1ap_release_cmd);
     return;
   }
 
@@ -470,13 +474,15 @@ void f1ap_cu_impl::handle_successful_outcome(const asn1::f1ap::successful_outcom
   auto get_ue_ctxt_in_ue_assoc_msg = [this](const asn1::f1ap::successful_outcome_s& outcome_) -> f1ap_ue_context* {
     std::optional<gnb_cu_ue_f1ap_id_t> cu_ue_id = get_gnb_cu_ue_f1ap_id(outcome_);
     // The GNB-CU-UE-F1AP-ID field is mandatory in all UE associated successful messages.
-    ocudu_assert(cu_ue_id,
-                 "Discarding received \"{}\". Cause: GNB-CU-UE-F1AP-ID field is mandatory",
-                 outcome_.value.type().to_string());
+    if (!cu_ue_id.has_value()) {
+      logger.warning("Discarding received \"{}\". Cause: Missing mandatory GNB-CU-UE-F1AP-ID field",
+                     outcome_.value.type().to_string());
+      return nullptr;
+    }
 
     f1ap_ue_context* ue_ctxt = ue_ctxt_list.find(*cu_ue_id);
     if (ue_ctxt == nullptr) {
-      logger.warning("cu_ue={}: Discarding received \"{}\". Cause: UE was not found.",
+      logger.warning("cu_ue={}: Discarding received \"{}\". Cause: UE was not found",
                      fmt::underlying(*cu_ue_id),
                      outcome_.value.type().to_string());
       return nullptr;

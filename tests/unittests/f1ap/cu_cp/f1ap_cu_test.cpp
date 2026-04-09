@@ -219,10 +219,20 @@ TEST_F(f1ap_cu_test, when_max_nof_ues_exceeded_then_ue_not_added)
   // Add one more UE to F1AP.
   // Generate ue_creation message.
   f1ap_message init_ul_rrc_msg =
-      test_helpers::generate_init_ul_rrc_message_transfer(int_to_gnb_du_ue_f1ap_id(max_nof_ues + 1));
+      test_helpers::generate_init_ul_rrc_message_transfer(int_to_gnb_du_ue_f1ap_id(max_nof_ues));
 
   // Pass message to F1AP.
   f1ap->handle_message(init_ul_rrc_msg);
+
+  // Make sure UE Context Release Command is sent for the last UE.
+  ASSERT_EQ(f1ap_pdu_notifier.last_f1ap_msg.pdu.type().value, asn1::f1ap::f1ap_pdu_c::types::init_msg);
+  ASSERT_EQ(f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.type().value,
+            asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types::ue_context_release_cmd);
+
+  // Create UE Context Release Complete and inject it.
+  f1ap_message ue_ctxt_release_cmplt =
+      test_helpers::generate_ue_context_release_complete(f1ap_pdu_notifier.last_f1ap_msg);
+  f1ap->handle_message(ue_ctxt_release_cmplt);
 
   EXPECT_EQ(f1ap->get_nof_ues(), max_nof_ues);
 }
@@ -238,6 +248,16 @@ TEST_F(f1ap_cu_test, when_ue_creation_fails_then_ue_not_added)
 
   // Pass message to F1AP.
   f1ap->handle_message(init_ul_rrc_msg);
+
+  // Make sure UE Context Release Command is sent.
+  ASSERT_EQ(f1ap_pdu_notifier.last_f1ap_msg.pdu.type().value, asn1::f1ap::f1ap_pdu_c::types::init_msg);
+  ASSERT_EQ(f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.type().value,
+            asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types::ue_context_release_cmd);
+
+  // Create UE Context Release Complete and inject it.
+  f1ap_message ue_ctxt_release_cmplt =
+      test_helpers::generate_ue_context_release_complete(f1ap_pdu_notifier.last_f1ap_msg);
+  f1ap->handle_message(ue_ctxt_release_cmplt);
 
   EXPECT_TRUE(was_rrc_reject_sent());
   EXPECT_EQ(f1ap->get_nof_ues(), 0);

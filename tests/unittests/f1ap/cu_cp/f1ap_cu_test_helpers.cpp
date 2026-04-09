@@ -13,7 +13,6 @@
 #include "ocudu/f1ap/cu_cp/f1ap_cu_factory.h"
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/plmn_identity.h"
-#include "ocudu/ran/qos/five_qi.h"
 #include "ocudu/support/async/async_test_utils.h"
 
 using namespace ocudu;
@@ -40,7 +39,7 @@ f1ap_cu_test::f1ap_cu_test(const f1ap_configuration& f1ap_cfg)
 
 f1ap_cu_test::~f1ap_cu_test()
 {
-  // flush logger after each test
+  // Flush logger after each test.
   ocudulog::flush();
 }
 
@@ -68,7 +67,7 @@ f1ap_cu_test::test_ue& f1ap_cu_test::run_ue_context_setup()
   gnb_cu_ue_f1ap_id_t cu_ue_id = int_to_gnb_cu_ue_f1ap_id(
       this->f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.ue_context_setup_request()->gnb_cu_ue_f1ap_id);
 
-  // Generate random DU ID
+  // Generate random DU ID.
   gnb_du_ue_f1ap_id_t du_ue_id = int_to_gnb_du_ue_f1ap_id(test_rng::uniform_int<uint32_t>());
 
   // Handle response from DU.
@@ -88,19 +87,19 @@ f1ap_cu_test::test_ue& f1ap_cu_test::run_ue_context_setup()
 
 bool f1ap_cu_test::was_rrc_reject_sent()
 {
-  // Make sure that the last message was a DLRRCMessageTransfer
+  // Make sure that the last message was a UEContextReleaseCommand.
   if (f1ap_pdu_notifier.last_f1ap_msg.pdu.type().value != asn1::f1ap::f1ap_pdu_c::types::init_msg) {
     return false;
   }
   if (f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.type().value !=
-      asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types::dl_rrc_msg_transfer) {
+      asn1::f1ap::f1ap_elem_procs_o::init_msg_c::types::ue_context_release_cmd) {
     return false;
   }
 
-  // Make sure that the DLRRCMessageTransfer contains an RRC Reject.
+  // Make sure that the UEContextReleaseCommand contains an RRC Reject.
   asn1::rrc_nr::dl_ccch_msg_s ccch;
   {
-    asn1::cbit_ref bref{f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.dl_rrc_msg_transfer()->rrc_container};
+    asn1::cbit_ref bref{f1ap_pdu_notifier.last_f1ap_msg.pdu.init_msg().value.ue_context_release_cmd()->rrc_container};
     if (ccch.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
       return false;
     }
@@ -121,19 +120,19 @@ ocudu::ocucp::create_ue_context_setup_request(const std::initializer_list<drb_id
 
   req.ue_index = uint_to_ue_index(19);
 
-  // sp cell id
+  // Fill sp cell ID.
   req.sp_cell_id.nci     = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
   req.sp_cell_id.plmn_id = plmn_identity::test_value();
 
-  // serv cell idx
+  // Fill serv cell idx.
   req.serv_cell_idx = 1;
 
-  // cu to du to rrc info
+  // Fill CU to DU RRC info.
   req.cu_to_du_rrc_info.cg_cfg_info               = make_byte_buffer("deadbeef").value();
   req.cu_to_du_rrc_info.ue_cap_rat_container_list = make_byte_buffer("deadbeef").value();
   req.cu_to_du_rrc_info.meas_cfg                  = make_byte_buffer("deadbeef").value();
 
-  // drx cycle
+  // Fill DRX cycle.
   f1ap_drx_cycle drx_cycle;
   drx_cycle.long_drx_cycle_len    = 5;
   drx_cycle.short_drx_cycle_len   = 1;

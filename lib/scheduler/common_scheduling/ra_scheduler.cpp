@@ -513,7 +513,14 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
   });
 
   // Determine MsgA PUSCH slot.
-  const slot_point              pusch_slot  = prach_slot_rx + msga_pusch_cfg.td_offset;
+  const slot_point pusch_slot = prach_slot_rx + msga_pusch_cfg.td_offset;
+  if (pusch_slot < res_alloc.slot_tx()) {
+    logger.warning("pci={} msgb-rnti={}: Discarding MsgA PUSCH. Cause: The PUSCH slot={} has already passed",
+                   cell_cfg.params.pci,
+                   msgb_rnti,
+                   pusch_slot);
+    return;
+  }
   cell_slot_resource_allocator& pusch_alloc = res_alloc[pusch_slot];
 
   // Look up the PUSCH time-domain allocation to derive symbol range and mapping type for DMRS computation.
@@ -574,10 +581,10 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
     const unsigned crb_start =
         ul_bwp.generic_params.crbs.start() + msga_pusch_cfg.prb_start + po_idx * msga_pusch_cfg.nof_prbs_per_msgA_po;
     const crb_interval preamble_crbs{crb_start, crb_start + msga_pusch_cfg.nof_prbs_per_msgA_po};
-    const grant_info   preamble_grant{ul_bwp.generic_params.scs, td_alloc.symbols, preamble_crbs};
 
     if (not po_grid_filled[po_idx]) {
       // First preamble for this FDM occasion: check for conflicts and mark resources.
+      const grant_info preamble_grant{ul_bwp.generic_params.scs, td_alloc.symbols, preamble_crbs};
       if (pusch_alloc.ul_res_grid.collides(preamble_grant)) {
         logger.warning(
             "pci={} msgb-rnti={} tc-rnti={}: Discarding MsgA PUSCH. Cause: UL resources at slot={} are occupied",

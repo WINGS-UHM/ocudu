@@ -392,15 +392,15 @@ using frame_pdcch_candidate_list =
 /// m^{(L)}_{s_j,n_{CI}} is counted for monitoring."
 /// \param[in/out] candidates List of PDCCH candidates for each SearchSpace, slot index and aggregation level.
 /// \param[in] bwp BWP configuration.
-static void remove_ambiguous_pdcch_candidates(slotted_array<search_space_info, MAX_NOF_SEARCH_SPACES>& ss_list,
-                                              frame_pdcch_candidate_list&                              candidates,
-                                              const sched_bwp_config&                                  bwp)
+static void remove_ambiguous_pdcch_candidates(const slotted_array<search_space_info, MAX_NOF_SEARCH_SPACES>& ss_list,
+                                              frame_pdcch_candidate_list&                                    candidates,
+                                              const sched_bwp_config&                                        bwp)
 {
   const unsigned ss_period_lcm = candidates.begin()->size();
   for (unsigned slot_index = 0; slot_index != ss_period_lcm; ++slot_index) {
     // Conditions only apply to candidates with same set of CCES, thus, same aggregation level.
     for (unsigned i = 0; i != NOF_AGGREGATION_LEVELS; ++i) {
-      for (auto ss_it = ss_list.begin(); ss_it != ss_list.end(); ++ss_it) {
+      for (auto ss_it = ss_list.begin(), ss_end = ss_list.end(); ss_it != ss_end; ++ss_it) {
         const search_space_info& ss1            = *ss_it;
         pdcch_candidate_list&    ss_candidates1 = candidates[ss1.cfg->get_id()][slot_index][i];
         if (ss_candidates1.empty()) {

@@ -69,7 +69,7 @@ private:
   sched_pdsch_config            pdsch_cfg;
 };
 
-/// Configuration of a Uplink Bandwidth Part (BWP) including the common config and optionally the dedicated config.
+/// Configuration of an Uplink Bandwidth Part (BWP) including the common config and optionally the dedicated config.
 class sched_bwp_ul_config
 {
 public:

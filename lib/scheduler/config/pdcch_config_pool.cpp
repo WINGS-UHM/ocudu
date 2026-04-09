@@ -98,7 +98,7 @@ pdcch_config_pool::make_coreset(pci_t pci, const bwp_configuration& bwp_cfg, con
 
     // Get PRBs for each candidate.
     // Note: Start CCE is always a multiple of L.
-    unsigned L = to_nof_cces(aggr_lvl);
+    const unsigned L = to_nof_cces(aggr_lvl);
     for (unsigned start_ncce = 0, nof_cces = cs_cfg.get_nof_cces(); start_ncce < nof_cces; start_ncce += L) {
       al_crb_lists.push_back(pdcch_helper::cce_to_prb_mapping(bwp_cfg, cs_cfg, pci, aggr_lvl, start_ncce));
 

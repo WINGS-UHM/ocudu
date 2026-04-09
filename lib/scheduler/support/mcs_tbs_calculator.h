@@ -13,7 +13,7 @@ namespace ocudu {
 
 struct pusch_config_params;
 struct pdsch_config_params;
-struct sched_bwp_config;
+class sched_bwp_config;
 
 /// Container for MCS and TBS results.
 struct sch_mcs_tbs {

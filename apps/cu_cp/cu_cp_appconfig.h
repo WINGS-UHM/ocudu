@@ -30,6 +30,8 @@ struct e1ap_appconfig {
 struct f1ap_appconfig {
   /// F1-C bind addresses.
   std::vector<std::string> bind_addrs = {"127.0.10.1"};
+  /// SCTP socket options.
+  sctp_appconfig sctp;
 };
 
 /// Metrics report configuration.

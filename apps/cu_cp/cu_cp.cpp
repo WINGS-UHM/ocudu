@@ -312,6 +312,7 @@ int main(int argc, char** argv)
   f1c_sctp_cfg.bind_addresses              = cu_cp_cfg.f1ap_cfg.bind_addrs;
   f1c_sctp_cfg.bind_port                   = F1AP_PORT;
   f1c_sctp_cfg.ppid                        = F1AP_PPID;
+  fill_sctp_network_gateway_config_socket_params(f1c_sctp_cfg, cu_cp_cfg.f1ap_cfg.sctp);
   f1c_cu_sctp_gateway_config                    f1c_server_cfg({f1c_sctp_cfg,
                                                                 *epoll_broker,
                                                                 workers.get_cu_cp_executor_mapper().f1c_rx_executor(),

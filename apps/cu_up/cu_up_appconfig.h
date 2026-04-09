@@ -6,6 +6,7 @@
 
 #include "apps/helpers/f1u/f1u_appconfig.h"
 #include "apps/helpers/logger/logger_appconfig.h"
+#include "apps/helpers/network/sctp_appconfig.h"
 #include "apps/helpers/tracing/tracer_appconfig.h"
 #include "apps/services/app_execution_metrics/executor_metrics_config.h"
 #include "apps/services/app_resource_usage/app_resource_usage_config.h"
@@ -24,6 +25,8 @@ struct e1ap_appconfig {
   std::vector<std::string> cu_cp_addresses = {"127.0.20.1"};
   /// CU-UP E1 bind addresses.
   std::vector<std::string> bind_addresses = {"127.0.20.2"};
+  /// SCTP socket options.
+  sctp_appconfig sctp;
 };
 
 /// Metrics report configuration.

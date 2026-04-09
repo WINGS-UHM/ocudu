@@ -7,6 +7,7 @@
 #include "apps/helpers/e2/e2_config_translators.h"
 #include "apps/helpers/f1u/f1u_appconfig.h"
 #include "apps/helpers/metrics/metrics_helpers.h"
+#include "apps/helpers/network/sctp_config_translators.h"
 #include "apps/services/app_execution_metrics/executor_metrics_manager.h"
 #include "apps/services/app_resource_usage/app_resource_usage.h"
 #include "apps/services/application_message_banners.h"
@@ -344,6 +345,7 @@ int main(int argc, char** argv)
   e1_sctp.connect_port      = E1AP_PORT;
   e1_sctp.ppid              = E1AP_PPID;
   e1_sctp.bind_addresses    = cu_up_cfg.e1ap_cfg.bind_addresses;
+  fill_sctp_network_gateway_config_socket_params(e1_sctp, cu_up_cfg.e1ap_cfg.sctp);
   // > Create E1 gateway
   std::unique_ptr<ocuup::e1_connection_client> e1_gw = create_e1_gateway_client(e1_cu_up_sctp_gateway_config{
       e1_sctp, *epoll_broker, workers.get_cu_up_executor_mapper().e1_rx_executor(), *cu_up_dlt_pcaps.e1ap});

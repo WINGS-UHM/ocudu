@@ -6,6 +6,7 @@
 #include "apps/helpers/f1u/f1u_cli11_schema.h"
 #include "apps/helpers/hal/hal_cli11_schema.h"
 #include "apps/helpers/logger/logger_appconfig_cli11_schema.h"
+#include "apps/helpers/network/sctp_cli11_schema.h"
 #include "apps/helpers/tracing/tracer_appconfig_cli11_schema.h"
 #include "apps/services/app_resource_usage/app_resource_usage_config_cli11_schema.h"
 #include "apps/services/buffer_pool/buffer_pool_appconfig_cli11_schema.h"
@@ -37,6 +38,7 @@ static void configure_cli11_f1ap_args(CLI::App& app, odu::f1ap_appconfig& f1c_pa
          "DU F1-C bind addresses. Multiple addresses can be specified for SCTP "
          "multi-homing. If left empty, implicit bind is performed")
       ->capture_default_str();
+  configure_cli11_sctp_socket_args(app, f1c_params.sctp);
 }
 
 static void configure_cli11_f1u_args(CLI::App& app, odu::f1u_appconfig& f1u_params)

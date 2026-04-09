@@ -299,6 +299,7 @@ int main(int argc, char** argv)
   std::unique_ptr<odu::f1c_connection_client> f1c_gw =
       create_f1c_client_gateway(du_cfg.f1ap_cfg.cu_cp_addresses,
                                 du_cfg.f1ap_cfg.bind_addresses,
+                                du_cfg.f1ap_cfg.sctp,
                                 *epoll_broker,
                                 workers.get_du_high_executor_mapper().f1c_rx_executor(),
                                 *du_pcaps.f1ap);

@@ -185,6 +185,8 @@ public:
   {
   }
 
+  // The local connector does not need to stop the UDP gateway or the GTP-U Demux,
+  // so this function is a NO-OP.
   void stop() override {}
 
   odu::f1u_du_gateway* get_f1u_du_gateway() { return this; }

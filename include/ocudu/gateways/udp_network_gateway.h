@@ -70,6 +70,9 @@ public:
   /// \brief Register the UDP gateway in the IO broker for automatic handling of notifications.
   virtual bool subscribe_to(io_broker& broker) = 0;
 
+  /// \brief Stop the UDP gateway.
+  ///
+  /// This will make sure that no more packets will be enqueued for transmission to ensure safe destruction.
   virtual void stop() = 0;
 };
 

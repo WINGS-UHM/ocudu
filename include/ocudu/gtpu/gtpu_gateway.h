@@ -34,6 +34,7 @@ public:
   /// std::nullopt.
   virtual std::optional<uint16_t> get_bind_port() const = 0;
 
+  /// \brief Stop the GTP-U gateway session, so that no more packets are enqueued for transmission.
   virtual void stop() = 0;
 };
 

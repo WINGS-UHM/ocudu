@@ -6,6 +6,7 @@
 
 #include "apps/helpers/f1u/f1u_appconfig.h"
 #include "apps/helpers/logger/logger_appconfig.h"
+#include "apps/helpers/network/sctp_appconfig.h"
 #include "apps/helpers/tracing/tracer_appconfig.h"
 #include "apps/services/app_execution_metrics/executor_metrics_config.h"
 #include "apps/services/app_resource_usage/app_resource_usage_config.h"
@@ -22,6 +23,8 @@ namespace ocu {
 struct cu_f1ap_appconfig {
   /// F1-C bind addresses.
   std::vector<std::string> bind_addrs = {"127.0.10.1"};
+  /// SCTP socket options.
+  sctp_appconfig sctp;
 };
 
 /// Metrics report configuration.

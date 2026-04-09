@@ -5,6 +5,7 @@
 #include "cu_appconfig_cli11_schema.h"
 #include "apps/helpers/f1u/f1u_cli11_schema.h"
 #include "apps/helpers/logger/logger_appconfig_cli11_schema.h"
+#include "apps/helpers/network/sctp_cli11_schema.h"
 #include "apps/services/app_resource_usage/app_resource_usage_config_cli11_schema.h"
 #include "apps/services/buffer_pool/buffer_pool_appconfig_cli11_schema.h"
 #include "apps/services/metrics/metrics_config_cli11_schema.h"
@@ -23,6 +24,7 @@ static void configure_cli11_f1ap_args(CLI::App& app, ocu::cu_f1ap_appconfig& f1a
       f1ap_params.bind_addrs,
       "CU F1-C bind addresses. Multiple addresses can be specified for SCTP multi-homing")
       ->capture_default_str();
+  configure_cli11_sctp_socket_args(app, f1ap_params.sctp);
 }
 
 void ocudu::configure_cli11_with_cu_appconfig_schema(CLI::App& app, cu_appconfig& cu_cfg)

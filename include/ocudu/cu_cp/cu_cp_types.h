@@ -502,13 +502,17 @@ struct cu_cp_pdu_session_resource_modify_response {
   // id-CriticalityDiagnostics
 };
 
+/// Command sent from the CU-CP to the lower layers to release the UE context.
 struct cu_cp_ue_context_release_command {
-  ue_index_t                          ue_index = ue_index_t::invalid;
-  ngap_cause_t                        cause;
+  ue_index_t   ue_index = ue_index_t::invalid;
+  ngap_cause_t cause;
+  // If true, the lower layers will send an RRC message e.g. RRCReject or RRCRelease to the UE as part of the context
+  // release procedure.
   bool                                requires_rrc_message = true;
   std::optional<std::chrono::seconds> release_wait_time    = std::nullopt;
 };
 
+/// Request sent from the lower layers to the CU-CP to request the release of an UE context.
 struct cu_cp_ue_context_release_request {
   ue_index_t                    ue_index = ue_index_t::invalid;
   std::vector<pdu_session_id_t> pdu_session_res_list_cxt_rel_req;

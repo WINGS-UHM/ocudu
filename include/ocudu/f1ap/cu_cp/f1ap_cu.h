@@ -21,8 +21,9 @@
 namespace ocudu::ocucp {
 
 struct f1ap_ue_context_release_command {
-  ue_index_t              ue_index = ue_index_t::invalid;
-  f1ap_cause_t            cause;
+  ue_index_t   ue_index = ue_index_t::invalid;
+  f1ap_cause_t cause;
+  // RRC message e.g. RRCReject or RRCRelease to be contained as part of the context release message sent to the UE.
   byte_buffer             rrc_pdu;
   std::optional<srb_id_t> srb_id;
 };

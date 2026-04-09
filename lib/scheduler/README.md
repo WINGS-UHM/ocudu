@@ -47,16 +47,16 @@ A `ue_scheduler` is shared across all cells in a cell group (Carrier Aggregation
 6. **RA** — schedule random access (RA) grants (e.g. RAR and Msg3) for detected RACH preambles.
 7. **Paging** — schedule paging PDCCH and PDSCH.
 8. **UE scheduling** (`ue_cell_scheduler::run_slot`):
-   a. Process pending UE config/removal events (`ue_event_manager`).
-   b. Advance UE state machines (DRX, timing advance, HARQ timers).
-   c. Schedule SR and CSI PUCCH opportunities (`uci_scheduler`).
-   d. Schedule periodic SRS (`srs_scheduler`).
-   e. Schedule SRB0 / fallback grants (`ue_fallback_scheduler`).
-   f. Prioritize slices for this slot (`inter_slice_scheduler::slot_indication`).
-   g. For each slice in priority order:
+   1. Process pending UE events, such as CRC and UCI indications or UE reconfigurations (`ue_event_manager`).
+   2. Advance UE state machines (DRX, timing advance, HARQ timers).
+   3. Schedule SR and CSI PUCCH opportunities (`uci_scheduler`).
+   4. Schedule periodic and aperiodic SRS (`srs_scheduler`).
+   5. Schedule SRB0 / fallback grants (`ue_fallback_scheduler`).
+   6. Prioritize slices for this slot (`inter_slice_scheduler::slot_indication`).
+   7. For each slice in priority order:
       - Schedule PDSCH retransmissions, then new transmissions.
       - Schedule PUSCH retransmissions, then new transmissions.
-   h. Post-process allocations (finalize PUCCH/UCI state).
+   8. Post-process allocations (finalize PUCCH/UCI state).
 
 ## Resource Grid
 

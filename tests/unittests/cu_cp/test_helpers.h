@@ -485,10 +485,10 @@ public:
   {
     logger.info("Received a new UE context release command");
 
-    last_release_command.ue_index        = msg.ue_index;
-    last_release_command.cause           = msg.cause;
-    last_release_command.rrc_release_pdu = msg.rrc_release_pdu.copy();
-    last_release_command.srb_id          = msg.srb_id;
+    last_release_command.ue_index = msg.ue_index;
+    last_release_command.cause    = msg.cause;
+    last_release_command.rrc_pdu  = msg.rrc_pdu.copy();
+    last_release_command.srb_id   = msg.srb_id;
     return launch_no_op_task(msg.ue_index);
   }
 

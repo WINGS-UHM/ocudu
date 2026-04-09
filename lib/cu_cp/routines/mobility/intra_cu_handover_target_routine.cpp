@@ -161,7 +161,7 @@ void intra_cu_handover_target_routine::schedule_source_release_on_source_task_sc
   ue_context_release_command                      = {};
   ue_context_release_command.ue_index             = source_ue_index;
   ue_context_release_command.cause                = ngap_cause_radio_network_t::unspecified;
-  ue_context_release_command.requires_rrc_release = false;
+  ue_context_release_command.requires_rrc_message = false;
   src_ue->get_task_sched().schedule_async_task(launch_async([this](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);
     CORO_AWAIT(ue_context_release_handler.handle_ue_context_release_command(ue_context_release_command));

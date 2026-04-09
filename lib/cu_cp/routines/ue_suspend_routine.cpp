@@ -62,10 +62,10 @@ void ue_suspend_routine::operator()(coro_context<async_task<void>>& ctx)
   // Release UE at DU.
   {
     // Prepare UE Context Release Command and call F1.
-    du_ue_context_release_command.ue_index        = ue_index;
-    du_ue_context_release_command.cause           = f1ap_cause_radio_network_t::normal_release;
-    du_ue_context_release_command.rrc_release_pdu = release_context.rrc_release_pdu.copy();
-    du_ue_context_release_command.srb_id          = release_context.srb_id;
+    du_ue_context_release_command.ue_index = ue_index;
+    du_ue_context_release_command.cause    = f1ap_cause_radio_network_t::normal_release;
+    du_ue_context_release_command.rrc_pdu  = release_context.rrc_pdu.copy();
+    du_ue_context_release_command.srb_id   = release_context.srb_id;
 
     CORO_AWAIT_VALUE(released_ue_index,
                      f1ap_ue_ctxt_mng.handle_ue_context_release_command(du_ue_context_release_command));

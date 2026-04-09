@@ -59,7 +59,7 @@ void conditional_handover_target_routine::operator()(coro_context<async_task<voi
     release_cmd                      = {};
     release_cmd.ue_index             = request.target_ue_index;
     release_cmd.cause                = ngap_cause_radio_network_t::unspecified;
-    release_cmd.requires_rrc_release = false;
+    release_cmd.requires_rrc_message = false;
     CORO_AWAIT_VALUE(release_complete, ue_context_release_handler.handle_ue_context_release_command(release_cmd));
     CORO_EARLY_RETURN();
   }
@@ -158,7 +158,7 @@ void conditional_handover_target_routine::schedule_source_release_on_source_task
   release_cmd                      = {};
   release_cmd.ue_index             = source_ue_index;
   release_cmd.cause                = ngap_cause_radio_network_t::unspecified;
-  release_cmd.requires_rrc_release = false;
+  release_cmd.requires_rrc_message = false;
   src_ue->get_task_sched().schedule_async_task(launch_async([this](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);
     CORO_AWAIT(ue_context_release_handler.handle_ue_context_release_command(release_cmd));

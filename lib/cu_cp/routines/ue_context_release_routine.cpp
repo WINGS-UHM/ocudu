@@ -41,7 +41,7 @@ void ue_context_release_routine::operator()(coro_context<async_task<cu_cp_ue_con
     // complete message
     release_context = ue_mng.find_du_ue(command.ue_index)
                           ->get_rrc_ue()
-                          ->get_rrc_ue_release_context(command.requires_rrc_release, command.release_wait_time);
+                          ->get_rrc_ue_release_context(command.requires_rrc_message, command.release_wait_time);
     release_complete.user_location_info = release_context.user_location_info;
   }
 
@@ -59,9 +59,9 @@ void ue_context_release_routine::operator()(coro_context<async_task<cu_cp_ue_con
     // prepare F1AP UE Context Release Command and call F1AP notifier
     f1ap_ue_context_release_cmd.ue_index = command.ue_index;
     f1ap_ue_context_release_cmd.cause    = ngap_to_f1ap_cause(command.cause);
-    if (command.requires_rrc_release) {
-      f1ap_ue_context_release_cmd.rrc_release_pdu = release_context.rrc_release_pdu.copy();
-      f1ap_ue_context_release_cmd.srb_id          = release_context.srb_id;
+    if (command.requires_rrc_message) {
+      f1ap_ue_context_release_cmd.rrc_pdu = release_context.rrc_pdu.copy();
+      f1ap_ue_context_release_cmd.srb_id  = release_context.srb_id;
     }
 
     CORO_AWAIT_VALUE(f1ap_ue_context_release_result,

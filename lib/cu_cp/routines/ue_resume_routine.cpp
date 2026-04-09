@@ -206,10 +206,10 @@ f1ap_ue_context_release_command ue_resume_routine::fill_du_ue_context_release_co
 
   // Prepare UE Context Release Command and call F1.
   f1ap_ue_context_release_command du_ue_context_release_command;
-  du_ue_context_release_command.ue_index        = request.ue_index;
-  du_ue_context_release_command.cause           = f1ap_cause_radio_network_t::normal_release;
-  du_ue_context_release_command.rrc_release_pdu = release_context.rrc_release_pdu.copy();
-  du_ue_context_release_command.srb_id          = release_context.srb_id;
+  du_ue_context_release_command.ue_index = request.ue_index;
+  du_ue_context_release_command.cause    = f1ap_cause_radio_network_t::normal_release;
+  du_ue_context_release_command.rrc_pdu  = release_context.rrc_pdu.copy();
+  du_ue_context_release_command.srb_id   = release_context.srb_id;
 
   return du_ue_context_release_command;
 }

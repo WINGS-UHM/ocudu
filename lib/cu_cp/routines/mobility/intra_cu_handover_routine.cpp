@@ -209,7 +209,7 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
 
         ue_context_release_command.ue_index             = target_ue->get_ue_index();
         ue_context_release_command.cause                = ngap_cause_radio_network_t::unspecified;
-        ue_context_release_command.requires_rrc_release = false;
+        ue_context_release_command.requires_rrc_message = false;
         CORO_AWAIT(cu_cp_handler.handle_ue_context_release_command(ue_context_release_command));
         logger.debug("ue={}: \"{}\" removed target UE context", ue_context_release_command.ue_index, name());
 

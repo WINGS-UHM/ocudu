@@ -37,7 +37,7 @@ async_task<void> conditional_handover_coordinator_routine::release_prepared_targ
           cmd                      = {};
           cmd.ue_index             = prepared_cho_targets[idx].target_ue_index;
           cmd.cause                = ngap_cause_radio_network_t::unspecified;
-          cmd.requires_rrc_release = false;
+          cmd.requires_rrc_message = false;
           CORO_AWAIT_VALUE(result, cu_cp_handler.handle_ue_context_release_command(cmd));
         }
         CORO_RETURN();

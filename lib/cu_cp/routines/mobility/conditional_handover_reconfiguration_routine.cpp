@@ -260,7 +260,7 @@ async_task<void> conditional_handover_reconfiguration_routine::cleanup_targets()
     while (release_idx < candidates_to_release.size()) {
       candidate_release_command.ue_index             = candidates_to_release[release_idx];
       candidate_release_command.cause                = ngap_cause_radio_network_t::unspecified;
-      candidate_release_command.requires_rrc_release = false;
+      candidate_release_command.requires_rrc_message = false;
       CORO_AWAIT_VALUE(candidate_release_complete,
                        ue_context_release_handler.handle_ue_context_release_command(candidate_release_command));
       ++release_idx;

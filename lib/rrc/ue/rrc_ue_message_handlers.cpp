@@ -790,11 +790,11 @@ rrc_ue_release_context rrc_ue_impl::get_rrc_ue_release_context(bool             
       reject.wait_time         = rrc_reject_max_wait_time_s;
 
       // Pack DL CCCH msg.
-      release_context.rrc_release_pdu = pack_into_pdu(dl_ccch_msg, "RRCReject");
-      release_context.srb_id          = srb_id_t::srb0;
+      release_context.rrc_pdu = pack_into_pdu(dl_ccch_msg, "RRCReject");
+      release_context.srb_id  = srb_id_t::srb0;
 
       // Log Tx message.
-      log_rrc_message(logger, Tx, release_context.rrc_release_pdu, dl_ccch_msg, srb_id_t::srb0, "CCCH DL");
+      log_rrc_message(logger, Tx, release_context.rrc_pdu, dl_ccch_msg, srb_id_t::srb0, "CCCH DL");
     } else {
       // Prepare SRB1 RRC Release PDU to return.
       if (context.srbs.find(srb_id_t::srb1) == context.srbs.end()) {
@@ -844,18 +844,16 @@ rrc_ue_release_context rrc_ue_impl::get_rrc_ue_release_context(bool             
         return release_context;
       }
 
-      release_context.rrc_release_pdu = pdcp_packing_result.pop_pdu();
-      release_context.srb_id          = srb_id_t::srb1;
+      release_context.rrc_pdu = pdcp_packing_result.pop_pdu();
+      release_context.srb_id  = srb_id_t::srb1;
 
       // Log Tx message.
-      log_rrc_message(logger, Tx, release_context.rrc_release_pdu, dl_dcch_msg, srb_id_t::srb1, "DCCH DL");
+      log_rrc_message(logger, Tx, release_context.rrc_pdu, dl_dcch_msg, srb_id_t::srb1, "DCCH DL");
     }
 
     // Log Tx message.
-    logger.log_debug(release_context.rrc_release_pdu.begin(),
-                     release_context.rrc_release_pdu.end(),
-                     "Tx {} PDU",
-                     release_context.srb_id);
+    logger.log_debug(
+        release_context.rrc_pdu.begin(), release_context.rrc_pdu.end(), "Tx {} PDU", release_context.srb_id);
   }
 
   return release_context;

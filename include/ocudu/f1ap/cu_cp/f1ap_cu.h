@@ -23,7 +23,7 @@ namespace ocudu::ocucp {
 struct f1ap_ue_context_release_command {
   ue_index_t              ue_index = ue_index_t::invalid;
   f1ap_cause_t            cause;
-  byte_buffer             rrc_release_pdu;
+  byte_buffer             rrc_pdu;
   std::optional<srb_id_t> srb_id;
 };
 

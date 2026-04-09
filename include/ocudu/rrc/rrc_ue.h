@@ -192,7 +192,7 @@ struct rrc_ue_security_mode_command_context {
 
 struct rrc_ue_release_context {
   cu_cp_user_location_info_nr user_location_info;
-  byte_buffer                 rrc_release_pdu;
+  byte_buffer                 rrc_pdu;
   srb_id_t                    srb_id = srb_id_t::nulltype;
 };
 

@@ -16,13 +16,14 @@ namespace ocudu {
 /// Contains a pool of requests. A request consist of a slot point and a templated resource. Requests are indexed by
 /// slots. The pool access is thread-safe and it is done by exchange requests.
 ///
-/// \tparam ResourceType Resource type.
-template <typename ResourceType>
+/// \tparam ResourceType     Resource type.
+/// \tparam requestArraySize Maximum number of requests contained in the array.
+template <typename ResourceType, unsigned requestArraySize = 16>
 class resource_request_pool
 {
 public:
-  /// Maximum number of requests contained in the array.
-  static constexpr unsigned request_array_size = 16;
+  /// Get the maximum number of requests that can be held by the array.
+  static constexpr unsigned get_request_array_size() { return requestArraySize; }
 
   /// Internal storage type.
   struct request_type {
@@ -31,8 +32,8 @@ public:
   };
 
   /// \brief Exchanges a request from the pool by the given one.
-  /// \param[in] request The given request, it is copied into <tt>request.slot.system_slot() % REQUEST_ARRAY_SIZE</tt>.
-  /// \return The previous request at position <tt> request.slot.system_slot() % REQUEST_ARRAY_SIZE </tt>.
+  /// \param[in] request The given request, it is copied into <tt>request.slot.system_slot() % requestArraySize</tt>.
+  /// \return The previous request at position <tt> request.slot.system_slot() % requestArraySize </tt>.
   request_type exchange(request_type request)
   {
     return requests[request.slot.system_slot()].exchange(std::move(request));
@@ -63,7 +64,7 @@ private:
   };
 
   /// Request storage, indexed by slots.
-  circular_array<request_wrapper, request_array_size> requests;
+  circular_array<request_wrapper, requestArraySize> requests;
 };
 
 } // namespace ocudu

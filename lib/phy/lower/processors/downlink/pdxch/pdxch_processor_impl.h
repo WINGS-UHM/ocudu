@@ -49,7 +49,7 @@ public:
                        task_executor&                         executor,
                        const configuration&                   config) :
     logger(ocudulog::fetch_basic_logger("PHY")),
-    bb_buffers(buffer_request_pool::request_array_size + max_slot_modulation_concurrency + 1,
+    bb_buffers(buffer_request_pool::get_request_array_size() + max_slot_modulation_concurrency + 1,
                config.nof_tx_ports,
                config.srate.to_kHz()),
     common_ofdm_modulator(std::move(modulator)),

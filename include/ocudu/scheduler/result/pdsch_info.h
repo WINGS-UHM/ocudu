@@ -154,6 +154,16 @@ struct rar_ul_grant {
   sch_mcs_index mcs;
   int8_t        tpc;
   bool          csi_req;
+
+  /// Grant type discriminator.
+  /// four_step_info — standard 4-step RAR UL grant (MAC RAR subPDU).
+  /// two_step_info — 2-step MsgB grant; is_success selects SuccessRAR (LCID=1) vs FallbackRAR (LCID=0).
+  struct four_step_info {};
+  struct two_step_info {
+    /// Whether the MsgA PUSCH was successfully decoded or the UE should fallback to 4-step RAR.
+    bool is_success;
+  };
+  std::variant<four_step_info, two_step_info> type = four_step_info{};
 };
 
 /// Stores the information associated with a RAR.

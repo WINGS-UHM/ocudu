@@ -86,11 +86,20 @@ private:
 
   /// State for a pending MsgB PDSCH (pending to be scheduled or waiting for a positive HARQ-ACK).
   struct pending_msgb_alloc {
+    /// Per-preamble state carried into MsgB scheduling.
+    struct preamble_ctx {
+      rach_indication_message::preamble info;
+      /// Set to true when the MsgA PUSCH CRC for this preamble is positively ACKed.
+      bool pusch_decoded = false;
+    };
+
     rnti_t        msgb_rnti = rnti_t::INVALID_RNTI;
     slot_point    prach_slot_rx;
     slot_interval msgb_window;
+    /// Last slot at which the scheduler attempted to allocate this MsgB grant.
+    slot_point last_sched_try_slot;
     /// List of detected MsgA preambles multiplexed into this MsgB response.
-    static_vector<rnti_t, MAX_PREAMBLES_PER_PRACH_OCCASION> tc_rntis;
+    static_vector<preamble_ctx, MAX_PREAMBLES_PER_PRACH_OCCASION> preambles;
     /// DL HARQ entity used for MsgB PDSCH retransmissions. Allocated when MsgB is first scheduled.
     unique_ue_harq_entity msgb_harq_ent;
   };
@@ -161,6 +170,9 @@ private:
 
   /// Schedule pending MsgB grants in the cell resource grid.
   void schedule_pending_msgbs(cell_resource_allocator& res_alloc);
+
+  /// Try scheduling pending MsgBs for the provided slot.
+  void schedule_pending_msgbs(cell_resource_allocator& res_alloc, slot_point pdcch_slot);
 
   sch_prbs_tbs get_nof_pdsch_prbs_required(unsigned time_res_idx, unsigned nof_ul_grants) const;
 

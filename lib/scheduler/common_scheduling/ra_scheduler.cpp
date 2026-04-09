@@ -506,7 +506,7 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
 
   // If by the end of this function, no MsgA PUSCHs were allocated, we remove the respective MsgB entry.
   auto erase_msgb_if_empty = make_scope_exit([this, &msgb_it]() {
-    if (msgb_it->tc_rntis.empty()) {
+    if (msgb_it->preambles.empty()) {
       // No MsgA PUSCHs were successfully allocated. Drop the MsgB altogether.
       pending_msgbs.erase(msgb_it);
     }
@@ -567,7 +567,7 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
   for (const auto& preamble : preambles) {
     ocudu_sanity_check(is_msga_preamble(rach_cfg, preamble.preamble_id),
                        "Handling preamble that is not for MsgA. Are preamble IDs sorted in the RACH indication?");
-    if (msgb_req->tc_rntis.full()) {
+    if (msgb_req->preambles.full()) {
       logger.warning("pci={} msgb-rnti={}: Discarding MsgA preamble id={}. Cause: MsgB preamble list is full",
                      cell_cfg.params.pci,
                      msgb_rnti,
@@ -641,7 +641,7 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
     pusch.dmrs_hopping_mode    = pusch_information::dmrs_hopping_mode::no_hopping;
 
     // MsgA PUSCH successfully allocated. We will register it in the pending MsgB.
-    msgb_req->tc_rntis.push_back(preamble.tc_rnti);
+    msgb_req->preambles.push_back({preamble, false});
   }
 }
 
@@ -655,6 +655,19 @@ void ra_scheduler::handle_crc_indication(const ul_crc_indication& crc_ind)
 
 void ra_scheduler::handle_pending_crc_indications_impl(cell_resource_allocator& res_alloc)
 {
+  // Helper to mark MsgA PUSCH CRC outcome in pending_msgbs.
+  auto mark_msga_crc = [this](rnti_t tc_rnti, bool success) {
+    for (auto& msgb : pending_msgbs) {
+      for (auto& p : msgb.preambles) {
+        if (p.info.tc_rnti == tc_rnti) {
+          p.pusch_decoded = success;
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   // Pop pending CRCs and process them.
   ul_crc_indication crc_ind;
   while (pending_crcs.try_pop(crc_ind)) {
@@ -662,10 +675,11 @@ void ra_scheduler::handle_pending_crc_indications_impl(cell_resource_allocator& 
       ocudu_assert(crc.ue_index == INVALID_DU_UE_INDEX, "Msg3 HARQ CRCs cannot have a ue index assigned yet");
       auto crc_it = pending_msg3s.find(get_msg3_ring_key(crc.rnti));
       if (crc_it == pending_msg3s.end()) {
-        logger.warning("pci={} rnti={}: Invalid UL CRC PDU indication for HARQ h_id={}. Cause: Nonexistent tc-rnti",
-                       cell_cfg.params.pci,
-                       crc.rnti,
-                       fmt::underlying(crc.harq_id));
+        if (not mark_msga_crc(crc.rnti, crc.tb_crc_success)) {
+          logger.warning("pci={} rnti={}: Invalid UL CRC PDU indication. Cause: Nonexistent tc-rnti",
+                         cell_cfg.params.pci,
+                         crc.rnti);
+        }
         continue;
       }
       auto& pending_msg3 = crc_it->second;
@@ -1325,7 +1339,333 @@ void ra_scheduler::schedule_msg3_retx(cell_resource_allocator& res_alloc, pendin
 
 void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc)
 {
-  // TODO
+  if (pending_msgbs.empty()) {
+    // Early exit: No pending MsgBs to schedule.
+    return;
+  }
+
+  const unsigned sched_start_delay = pending_msgbs.front().last_sched_try_slot.valid()
+                                         ? pending_msgbs.front().last_sched_try_slot + 1 - res_alloc.slot_tx()
+                                         : 0U;
+
+  for (unsigned n = sched_start_delay; n <= max_dl_slots_ahead_sched and not pending_msgbs.empty(); ++n) {
+    schedule_pending_msgbs(res_alloc, res_alloc.slot_tx() + n);
+  }
+
+  for (pending_msgb_alloc& msgb : pending_msgbs) {
+    msgb.last_sched_try_slot = res_alloc.slot_tx() + max_dl_slots_ahead_sched;
+  }
+}
+
+void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, slot_point pdcch_slot)
+{
+  // Expire MsgB entries whose window has passed.
+  for (auto it = pending_msgbs.begin(); it != pending_msgbs.end();) {
+    if (pdcch_slot >= it->msgb_window.stop()) {
+      logger.warning("msgb-rnti={}: Could not transmit MsgB within the window={}, prach_slot={}",
+                     it->msgb_rnti,
+                     it->msgb_window,
+                     it->prach_slot_rx);
+      it = pending_msgbs.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  if (pending_msgbs.empty()) {
+    return;
+  }
+
+  // Check common PDCCH slot conditions.
+  if (not cell_cfg.is_dl_enabled(pdcch_slot)) {
+    return;
+  }
+  const cell_slot_resource_allocator& pdcch_slot_alloc = res_alloc[pdcch_slot];
+  if (pdcch_slot_alloc.result.dl.dl_pdcchs.full()) {
+    return;
+  }
+  const search_space_configuration& ss_cfg           = get_ra_ss_cfg(cell_cfg);
+  const coreset_configuration&      cs_cfg           = cell_cfg.get_common_coreset(ss_cfg.get_coreset_id());
+  const unsigned                    coreset_duration = cs_cfg.duration();
+  if (not pdcch_helper::is_pdcch_monitoring_active(pdcch_slot, ss_cfg) or
+      ss_cfg.get_first_symbol_index() + coreset_duration > cell_cfg.get_nof_dl_symbol_per_slot(pdcch_slot)) {
+    return;
+  }
+
+  const auto&                                             init_dl_bwp   = cell_cfg.params.dl_cfg_common.init_dl_bwp;
+  const auto&                                             init_ul_bwp   = cell_cfg.params.ul_cfg_common.init_ul_bwp;
+  const subcarrier_spacing                                dl_scs        = init_dl_bwp.generic_params.scs;
+  const span<const pdsch_time_domain_resource_allocation> pdsch_td_list = get_ra_pdsch_td_list(cell_cfg);
+  const span<const pusch_time_domain_resource_allocation> pusch_td_list = get_pusch_td_list(cell_cfg);
+  static constexpr aggregation_level                      aggr_lvl      = aggregation_level::n4;
+  const search_space_id                                   ss_id         = init_dl_bwp.pdcch_common.ra_search_space_id;
+
+  for (auto msgb_it = pending_msgbs.begin(); msgb_it != pending_msgbs.end();) {
+    pending_msgb_alloc& msgb = *msgb_it;
+
+    if (not msgb.msgb_window.contains(pdcch_slot)) {
+      // MsgB window has not yet started.
+      ++msgb_it;
+      continue;
+    }
+
+    const unsigned nof_preambles = msgb.preambles.size();
+
+    // Count SuccessRAR (pusch_decoded) and FallbackRAR (!pusch_decoded) preambles.
+    unsigned nof_success  = 0;
+    unsigned nof_fallback = 0;
+    for (const auto& p : msgb.preambles) {
+      if (p.pusch_decoded) {
+        ++nof_success;
+      } else {
+        ++nof_fallback;
+      }
+    }
+
+    // -- Find PDSCH time domain resource and available CRBs --
+    unsigned     pdsch_time_res_index = pdsch_td_list.size();
+    unsigned     max_nof_allocs       = 0;
+    crb_interval msgb_crbs{};
+
+    for (unsigned time_resource = 0; time_resource != pdsch_td_list.size(); ++time_resource) {
+      const auto&                         pdsch_td_res = pdsch_td_list[time_resource];
+      const cell_slot_resource_allocator& pdsch_alloc  = res_alloc[pdcch_slot + pdsch_td_res.k0];
+
+      if (pdsch_alloc.result.dl.rar_grants.full()) {
+        break;
+      }
+      if (not cell_cfg.is_dl_enabled(pdsch_alloc.slot)) {
+        continue;
+      }
+      if (pdsch_td_res.symbols.stop() > cell_cfg.get_nof_dl_symbol_per_slot(pdsch_alloc.slot)) {
+        continue;
+      }
+      if (pdsch_td_res.symbols.start() < ss_cfg.get_first_symbol_index() + coreset_duration) {
+        continue;
+      }
+      if (csi_helper::is_csi_rs_slot(cell_cfg, pdsch_alloc.slot)) {
+        // CSI-RS and MsgB cannot be multiplexed.
+        continue;
+      }
+
+      const crb_bitmap used_crbs      = pdsch_alloc.dl_res_grid.used_crbs(dl_scs, ra_crb_lims, pdsch_td_res.symbols);
+      const auto       available_crbs = rb_helper::find_empty_interval_of_length(
+          used_crbs, get_nof_pdsch_prbs_required(time_resource, nof_preambles).nof_prbs);
+
+      unsigned nof_allocs = nof_preambles;
+      while (nof_allocs != 0 and
+             get_nof_pdsch_prbs_required(time_resource, nof_allocs).nof_prbs > available_crbs.length()) {
+        --nof_allocs;
+      }
+
+      if (nof_allocs > max_nof_allocs) {
+        max_nof_allocs       = nof_allocs;
+        msgb_crbs            = available_crbs;
+        pdsch_time_res_index = time_resource;
+      }
+    }
+
+    if (max_nof_allocs == 0 or pdsch_time_res_index == pdsch_td_list.size()) {
+      logger.debug("msgb-rnti={}: MsgB postponed. Cause: No PDSCH resources available", msgb.msgb_rnti);
+      ++msgb_it;
+      continue;
+    }
+
+    // Determine how many FallbackRAR preambles we need Msg3 resources for, within the PDSCH capacity.
+    // FallbackRAR preambles that cannot get Msg3 resources are dropped from this scheduling round.
+    // SuccessRAR preambles are always included if PDSCH space allows.
+    const unsigned nof_fallback_candidates = std::min(nof_fallback, max_nof_allocs);
+
+    // -- Find Msg3 PUSCH candidates for FallbackRAR preambles --
+    static_vector<msg3_alloc_candidate, MAX_GRANTS_PER_RAR> msg3_candidates;
+    for (unsigned pusch_idx = 0; pusch_idx < pusch_td_list.size() and msg3_candidates.size() < nof_fallback_candidates;
+         ++pusch_idx) {
+      const unsigned pusch_res_max_allocs = std::min(msg3_candidates.capacity() - msg3_candidates.size(),
+                                                     nof_fallback_candidates - msg3_candidates.size());
+
+      const unsigned msg3_delay =
+          ra_helper::get_msg3_delay(init_ul_bwp.generic_params.scs, pusch_td_list[pusch_idx].k2) +
+          cell_cfg.ntn_cs_koffset;
+      const cell_slot_resource_allocator& msg3_alloc = res_alloc[pdcch_slot + msg3_delay];
+      const unsigned                      start_ul_sym =
+          NOF_OFDM_SYM_PER_SLOT_NORMAL_CP - cell_cfg.get_nof_ul_symbol_per_slot(msg3_alloc.slot);
+      if (not cell_cfg.is_ul_enabled(msg3_alloc.slot) or pusch_td_list[pusch_idx].symbols.start() < start_ul_sym) {
+        continue;
+      }
+
+      const unsigned list_space = msg3_alloc.result.ul.puschs.capacity() - msg3_alloc.result.ul.puschs.size();
+      const unsigned max_allocs = std::min(pusch_res_max_allocs, list_space);
+      if (max_allocs == 0) {
+        continue;
+      }
+
+      const unsigned nof_rbs_per_msg3 = msg3_data[pusch_idx].pusch.rbs.type1().length();
+      crb_bitmap     used_ul_crbs =
+          msg3_alloc.ul_res_grid.used_crbs(init_ul_bwp.generic_params, pusch_td_list[pusch_idx].symbols);
+      used_ul_crbs |= pucch_crbs;
+      const crb_interval msg3_crbs =
+          rb_helper::find_empty_interval_of_length(used_ul_crbs, nof_rbs_per_msg3 * max_allocs);
+      const unsigned max_allocs_on_free_rbs = msg3_crbs.length() / nof_rbs_per_msg3;
+      if (max_allocs_on_free_rbs == 0) {
+        continue;
+      }
+
+      unsigned last_crb = msg3_crbs.start();
+      for (unsigned i = 0; i != std::min(max_allocs, max_allocs_on_free_rbs); ++i) {
+        msg3_alloc_candidate& candidate = msg3_candidates.emplace_back();
+        candidate.crbs                  = {last_crb, last_crb + nof_rbs_per_msg3};
+        candidate.pusch_td_res_index    = pusch_idx;
+        last_crb += nof_rbs_per_msg3;
+      }
+    }
+
+    // Determine the effective number of grants we can schedule.
+    const unsigned nof_fallback_to_sched = msg3_candidates.size();
+    const unsigned nof_success_to_sched =
+        (nof_fallback_to_sched < max_nof_allocs) ? std::min(nof_success, max_nof_allocs - nof_fallback_to_sched) : 0U;
+    const unsigned effective_nof_sched = nof_success_to_sched + nof_fallback_to_sched;
+
+    if (effective_nof_sched == 0) {
+      logger.debug("msgb-rnti={}: MsgB postponed. Cause: No PUSCH resources available for Msg3", msgb.msgb_rnti);
+      ++msgb_it;
+      continue;
+    }
+
+    // -- Allocate PDCCH for MsgB-RNTI --
+    cell_slot_resource_allocator& pdcch_alloc = res_alloc[pdcch_slot];
+    pdcch_dl_information*         pdcch = pdcch_sch.alloc_dl_pdcch_common(pdcch_alloc, msgb.msgb_rnti, ss_id, aggr_lvl);
+    if (pdcch == nullptr) {
+      logger.debug("msgb-rnti={}: MsgB postponed. Cause: No PDCCH space available", msgb.msgb_rnti);
+      ++msgb_it;
+      continue;
+    }
+
+    // -- Fill DCI and PDSCH --
+    msgb_crbs.resize(get_nof_pdsch_prbs_required(pdsch_time_res_index, effective_nof_sched).nof_prbs);
+    cell_slot_resource_allocator& pdsch_alloc = res_alloc[pdcch_slot + pdsch_td_list[pdsch_time_res_index].k0];
+
+    build_dci_f1_0_ra_rnti(pdcch->dci, init_dl_bwp, msgb_crbs, pdsch_time_res_index, sched_cfg.rar_mcs_index);
+    pdsch_alloc.dl_res_grid.fill(grant_info{dl_scs, pdsch_td_list[pdsch_time_res_index].symbols, msgb_crbs});
+
+    rar_information& msgb_rar = pdsch_alloc.result.dl.rar_grants.emplace_back();
+    build_pdsch_f1_0_ra_rnti(msgb_rar.pdsch_cfg,
+                             get_nof_pdsch_prbs_required(pdsch_time_res_index, effective_nof_sched).tbs_bytes,
+                             msgb.msgb_rnti,
+                             cell_cfg,
+                             pdcch->dci.ra_f1_0,
+                             msgb_crbs,
+                             rar_data[pdsch_time_res_index].dmrs_info);
+
+    // -- Fill per-preamble grants --
+    // Iterate preambles in order: schedule SuccessRAR up to nof_success_to_sched,
+    // FallbackRAR up to nof_fallback_to_sched (limited by msg3_candidates).
+    unsigned                                                  success_count  = 0;
+    unsigned                                                  fallback_count = 0;
+    static_vector<unsigned, MAX_PREAMBLES_PER_PRACH_OCCASION> scheduled_indices;
+
+    for (unsigned i = 0; i < nof_preambles; ++i) {
+      const pending_msgb_alloc::preamble_ctx& pctx = msgb.preambles[i];
+
+      if (pctx.pusch_decoded and success_count < nof_success_to_sched) {
+        // SuccessRAR: UE's MsgA PUSCH decoded — 2-step RACH completes, no Msg3 needed.
+        if (msgb_rar.grants.full()) {
+          logger.error("msgb-rnti={}: SuccessRAR grant for tc-rnti={} dropped. Cause: No space in grant list",
+                       msgb.msgb_rnti,
+                       pctx.info.tc_rnti);
+          break;
+        }
+        rar_ul_grant& g = msgb_rar.grants.emplace_back();
+        g.rapid         = pctx.info.preamble_id;
+        g.ta            = pctx.info.time_advance.to_Ta(init_ul_bwp.generic_params.scs);
+        g.temp_crnti    = pctx.info.tc_rnti;
+        g.freq_hop_flag = false;
+        g.mcs           = sched_cfg.msg3_mcs_index;
+        g.tpc           = 0;
+        g.csi_req       = false;
+        g.type          = rar_ul_grant::two_step_info{true};
+        scheduled_indices.push_back(i);
+        ++success_count;
+
+      } else if (not pctx.pusch_decoded and fallback_count < nof_fallback_to_sched) {
+        // FallbackRAR: MsgA PUSCH not decoded — UE falls back to Msg3 (4-step completion).
+        if (msgb_rar.grants.full()) {
+          logger.error("msgb-rnti={}: FallbackRAR grant for tc-rnti={} dropped. Cause: No space in grant list",
+                       msgb.msgb_rnti,
+                       pctx.info.tc_rnti);
+          break;
+        }
+
+        const msg3_alloc_candidate& msg3_candidate = msg3_candidates[fallback_count];
+        const auto&                 pusch_res      = pusch_td_list[msg3_candidate.pusch_td_res_index];
+        const unsigned              msg3_delay =
+            ra_helper::get_msg3_delay(init_ul_bwp.generic_params.scs, pusch_res.k2) + cell_cfg.ntn_cs_koffset;
+        cell_slot_resource_allocator& msg3_alloc = res_alloc[pdcch_slot + msg3_delay];
+        const vrb_interval            vrbs       = ul_crb_to_vrb(cell_cfg, msg3_candidate.crbs);
+
+        // Create pending Msg3 entry (HARQ entity + preamble info).
+        const uint16_t msg3_ring_idx = get_msg3_ring_key(pctx.info.tc_rnti);
+        if (not pending_msg3s.emplace(msg3_ring_idx)) {
+          logger.warning("pci={} tc-rnti={}: Cannot create Msg3 entry for FallbackRAR. Cause: TC-RNTI already in use",
+                         cell_cfg.params.pci,
+                         pctx.info.tc_rnti);
+          scheduled_indices.push_back(i);
+          ++fallback_count;
+          continue;
+        }
+        auto& pending_msg3    = pending_msg3s[msg3_ring_idx];
+        pending_msg3.preamble = pctx.info;
+        pending_msg3.harq_ent = ra_harqs.add_ue(to_du_ue_index(msg3_ring_idx), pctx.info.tc_rnti, 1, 1);
+        std::optional<ul_harq_process_handle> h_ul =
+            pending_msg3.harq_ent.alloc_ul_harq(msg3_alloc.slot, sched_cfg.max_nof_msg3_harq_retxs);
+        ocudu_sanity_check(h_ul.has_value(), "Pending Msg3 HARQ must be available for FallbackRAR");
+
+        // Fill rar_ul_grant.
+        rar_ul_grant& g            = msgb_rar.grants.emplace_back();
+        g.rapid                    = pctx.info.preamble_id;
+        g.ta                       = pctx.info.time_advance.to_Ta(init_ul_bwp.generic_params.scs);
+        g.temp_crnti               = pctx.info.tc_rnti;
+        g.freq_hop_flag            = false;
+        g.time_resource_assignment = msg3_candidate.pusch_td_res_index;
+        g.freq_resource_assignment = ra_frequency_type1_get_riv(
+            ra_frequency_type1_configuration{init_ul_bwp.generic_params.crbs.length(), vrbs.start(), vrbs.length()});
+        g.mcs     = sched_cfg.msg3_mcs_index;
+        g.tpc     = (init_ul_bwp.pusch_cfg_common->msg3_delta_power.value() + 6) / 2;
+        g.csi_req = false;
+        g.type    = rar_ul_grant::two_step_info{false};
+
+        // Allocate Msg3 RBs.
+        msg3_alloc.ul_res_grid.fill(grant_info{init_ul_bwp.generic_params.scs,
+                                               pusch_td_list[msg3_candidate.pusch_td_res_index].symbols,
+                                               msg3_candidate.crbs});
+
+        // Fill Msg3 PUSCH.
+        ul_sched_info& ul_info     = msg3_alloc.result.ul.puschs.emplace_back();
+        ul_info.context.ue_index   = INVALID_DU_UE_INDEX;
+        ul_info.context.ss_id      = init_dl_bwp.pdcch_common.ra_search_space_id;
+        ul_info.context.nof_retxs  = 0;
+        ul_info.context.msg3_delay = msg3_delay;
+        ul_info.pusch_cfg          = msg3_data[msg3_candidate.pusch_td_res_index].pusch;
+        ul_info.pusch_cfg.rnti     = pctx.info.tc_rnti;
+        ul_info.pusch_cfg.rbs      = vrbs;
+        ul_info.pusch_cfg.rv_index = 0;
+        ul_info.pusch_cfg.new_data = true;
+        h_ul->save_grant_params(ul_harq_alloc_context{dci_ul_rnti_config_type::tc_rnti_f0_0}, ul_info.pusch_cfg);
+
+        scheduled_indices.push_back(i);
+        ++fallback_count;
+      }
+    }
+
+    // Erase scheduled preambles (from back to front to preserve lower indices).
+    for (unsigned k = scheduled_indices.size(); k > 0; --k) {
+      msgb.preambles.erase(msgb.preambles.begin() + scheduled_indices[k - 1]);
+    }
+
+    if (msgb.preambles.empty()) {
+      msgb_it = pending_msgbs.erase(msgb_it);
+    } else {
+      ++msgb_it;
+    }
+  }
 }
 
 sch_prbs_tbs ra_scheduler::get_nof_pdsch_prbs_required(unsigned time_res_idx, unsigned nof_ul_grants) const

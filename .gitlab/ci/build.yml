@@ -484,11 +484,15 @@ package:
     PROJECT_NAME: ocudu
     RELEASE_VERSION: "99.9"
     extraopts: -DMARCH=x86-64-v3
+    GIT_STRATEGY: fetch
   tags:
     - ${OCUDU_RUNNER_TAG}-amd64
   before_script:
     - |
-      CPU_JOBS="${KUBERNETES_CPU_LIMIT:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)}"
+      CPU_JOBS="$(/usr/local/bin/get_available_cores.sh 2>/dev/null || ${CI_PROJECT_DIR}/.gitlab/ci/builders/get_available_cores.sh)"
+      if [ -z "${CPU_JOBS}" ] || [ "${CPU_JOBS}" -lt 1 ]; then
+        CPU_JOBS=1
+      fi
       export CPU_JOBS
       export MAKEFLAGS="-j${CPU_JOBS}"
       export DEB_BUILD_OPTIONS="parallel=${CPU_JOBS}"

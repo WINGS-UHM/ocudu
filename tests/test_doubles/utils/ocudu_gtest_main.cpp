@@ -12,7 +12,7 @@ namespace {
 void setup_default_log_level(int argc, char** argv)
 {
   // Parse logging level passed via command line arguments.
-  ocudulog::basic_levels chosen_level = ocudulog::basic_levels::debug;
+  ocudulog::basic_levels chosen_level = ocudulog::basic_levels::warning;
 
   for (int i = 1; i < argc; ++i) {
     std::string cmd_arg = argv[i];
@@ -99,13 +99,15 @@ private:
       // Note: We cast to int32_t for printing, because that's the type that gtest_random_seed uses.
       const int iter_seed = static_cast<int32_t>(ocudu::test_rng::seed());
       fmt::print(stderr,
-                 "[  FAILED  ] OCUDU Random Seed: base_seed={}, iteration={}, iter_seed={}.\n",
+                 "\033[0;31m[  FAILED  ]\033[0m \033[0;33mOCUDU Random Seed: base_seed={}, iteration={}, "
+                 "iter_seed={}.\033[0m\n",
                  static_cast<int32_t>(ocudu::test_rng::base_seed()),
                  last_iteration,
                  iter_seed);
       if (last_iteration > 0) {
         fmt::print(stderr,
-                   "[  FAILED  ] Note: To reproduce iter_seed={} at iteration=0, use base_seed={}.\n",
+                   "\033[0;31m[  FAILED  ]\033[0m \033[0;33mNote: To reproduce iter_seed={} at iteration=0, use "
+                   "base_seed={}.\033[0m\n",
                    iter_seed,
                    static_cast<int32_t>(ocudu::test_rng::compute_base_seed_at_iter0(last_iteration)));
       }

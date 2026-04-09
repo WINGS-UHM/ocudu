@@ -12,68 +12,32 @@ using namespace ocudu;
 
 pucch_power_controller::pucch_power_controller(const ue_cell_configuration& ue_cell_cfg,
                                                ocudulog::basic_logger&      logger_) :
+  enable_cl_pw_control(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.enable_pucch_cl_pw_control),
   rnti(ue_cell_cfg.crnti),
-  cl_pw_control_enabled(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.enable_pucch_cl_pw_control),
-  pucch_f0_sinr_target_dB(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.pucch_f0_sinr_target_dB),
-  pucch_f2_sinr_target_dB(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.pucch_f2_sinr_target_dB),
-  pucch_f3_sinr_target_dB(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.pucch_f3_sinr_target_dB),
+  res_params(ue_cell_cfg.cell_cfg_common.params.init_bwp.pucch.resources),
+  ue_pucch_cfg(ue_cell_cfg.init_bwp().ul.ue_cfg()->pucch),
+  target_sinr_dB_01(ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.pucch_f0_sinr_target_dB),
+  target_sinr_dB_234(res_params.format_234() == pucch_format::FORMAT_2
+                         ? ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.pucch_f2_sinr_target_dB
+                         : ue_cell_cfg.cell_cfg_common.expert_cfg.ue.ul_power_ctrl.pucch_f3_sinr_target_dB),
   tpc_adjust_prohibit_time_sl([&ue_cell_cfg]() -> unsigned {
     return tpc_adjust_prohibit_time_ms << to_numerology_value(
                ue_cell_cfg.cell_cfg_common.params.ul_cfg_common.init_ul_bwp.generic_params.scs);
   }()),
-  pucch_f0_f1_sinr_dB(alpha_ema_sinr),
-  pucch_f2_f3_f4_sinr_dB(alpha_ema_sinr),
+  sinr_dB_01(alpha_ema_sinr),
+  sinr_dB_234(alpha_ema_sinr),
   logger(logger_)
 {
-  // Save the PUCCH power control configuration.
-  reconfigure(ue_cell_cfg);
-
   // Initialize PUCCH PRB grid.
   std::fill(pucch_pw_ctrl_grid.begin(), pucch_pw_ctrl_grid.end(), pucch_grants_pw_ctrl{});
 
   // Dummy casts only needed to prevent Clang from complaining about unused variables.
   static_cast<void>(rnti);
-  static_cast<void>(cl_pw_control_enabled);
-  static_cast<void>(pucch_f0_sinr_target_dB);
-  static_cast<void>(pucch_f2_sinr_target_dB);
-  static_cast<void>(pucch_f3_sinr_target_dB);
+  static_cast<void>(target_sinr_dB_01);
+  static_cast<void>(target_sinr_dB_234);
 }
 
-void pucch_power_controller::reconfigure(const ue_cell_configuration& ue_cell_cfg)
-{
-  if (ue_cell_cfg.init_bwp().ul.ded() != nullptr and ue_cell_cfg.init_bwp().ul.ded()->pucch_cfg.has_value()) {
-    const auto& pucch_cfg = ue_cell_cfg.init_bwp().ul.ded()->pucch_cfg.value();
-    // Retrieve the Format of the resources in PUCCH set 0 and 1. NOTE: all resources are expected to be of the same
-    // format.
-    static constexpr size_t id_pucch_res_set_0 = 0U;
-    unsigned    pucch_res_set_0_id = pucch_cfg.pucch_res_set[id_pucch_res_set_0].pucch_res_id_list.front().ue_res_id;
-    const auto* res_set_0          = std::find_if(
-        pucch_cfg.pucch_res_list.begin(),
-        pucch_cfg.pucch_res_list.end(),
-        [pucch_res_set_0_id](const pucch_resource& res) { return res.res_id.ue_res_id == pucch_res_set_0_id; });
-    ocudu_assert(res_set_0 != pucch_cfg.pucch_res_list.end(),
-                 "rnti={}: PUCCH resource id={} not found in PUCCH resource set 0",
-                 rnti,
-                 pucch_res_set_0_id);
-    format_set_0                               = res_set_0->format;
-    static constexpr size_t id_pucch_res_set_1 = 1U;
-    unsigned    pucch_res_set_1_id = pucch_cfg.pucch_res_set[id_pucch_res_set_1].pucch_res_id_list.front().ue_res_id;
-    const auto* res_set_1          = std::find_if(
-        pucch_cfg.pucch_res_list.begin(),
-        pucch_cfg.pucch_res_list.end(),
-        [pucch_res_set_1_id](const pucch_resource& res) { return res.res_id.ue_res_id == pucch_res_set_1_id; });
-    ocudu_assert(res_set_1 != pucch_cfg.pucch_res_list.end(),
-                 "rnti={}: PUCCH resource id={} not found in PUCCH resource set 1",
-                 rnti,
-                 pucch_res_set_1_id);
-    format_set_1 = res_set_1->format;
-    if (ue_cell_cfg.init_bwp().ul.ded()->pucch_cfg.value().pucch_pw_control.has_value()) {
-      pucch_pwr_ctrl.emplace(ue_cell_cfg.init_bwp().ul.ded()->pucch_cfg.value().pucch_pw_control.value());
-    }
-  }
-}
-
-static float compute_delta_tf_format_2_3_4(unsigned nof_uci_bits, unsigned payload_plus_crc_bits, unsigned n_res)
+static float compute_delta_tf_234(unsigned nof_uci_bits, unsigned payload_plus_crc_bits, unsigned n_res)
 {
   static constexpr unsigned max_uci_payload_no_crc = 11U;
   // Number of bits per RE.
@@ -120,7 +84,7 @@ static float compute_delta_tf(pucch_format   format,
       const unsigned n_re = nof_prbs * nof_symb * pucch_constants::f2::NOF_DATA_SUBC_PER_RB;
 
       // For the following computation, refer to the relevant section for the used formula.
-      delta_tf = compute_delta_tf_format_2_3_4(nof_uci_bits, payload_plus_crc_bits, n_re);
+      delta_tf = compute_delta_tf_234(nof_uci_bits, payload_plus_crc_bits, n_re);
       break;
     }
     case pucch_format::FORMAT_3:
@@ -137,7 +101,7 @@ static float compute_delta_tf(pucch_format   format,
           (nof_symb - get_pucch_format3_4_nof_dmrs_symbols(nof_symb, intraslot_freq_hopping, additional_dmrs)) *
           NOF_SUBCARRIERS_PER_RB;
 
-      delta_tf = compute_delta_tf_format_2_3_4(nof_uci_bits, payload_plus_crc_bits, n_re);
+      delta_tf = compute_delta_tf_234(nof_uci_bits, payload_plus_crc_bits, n_re);
       break;
     }
     default:
@@ -190,16 +154,15 @@ uint8_t pucch_power_controller::get_tpc(float sinr_to_target_diff)
 
 void pucch_power_controller::update_pucch_sinr_f0_f1(slot_point slor_rx, float sinr_db)
 {
-  if (not cl_pw_control_enabled) {
+  if (not enable_cl_pw_control or res_params.format_01() == pucch_format::FORMAT_1) {
     return;
   }
-
-  const auto& pucchs_pw_ctrl = pucch_pw_ctrl_grid[slor_rx.to_uint()];
 
   // For PUCCH format 1, there can be up to 2 PUCCH power control data, in case of PUCCH with HARQ-ACK and SR. However,
   // either PUCCH report the same delta TF value.
   // NOTE: The UE only transmit one of these PUCCHs.
-  const auto& pucch_pw = std::find_if(pucchs_pw_ctrl.begin(), pucchs_pw_ctrl.end(), [](const auto& pucch) {
+  const auto& pucchs_pw_ctrl = pucch_pw_ctrl_grid[slor_rx.to_uint()];
+  const auto& pucch_pw       = std::find_if(pucchs_pw_ctrl.begin(), pucchs_pw_ctrl.end(), [](const auto& pucch) {
     return pucch.format == pucch_format::FORMAT_0 || pucch.format == pucch_format::FORMAT_1;
   });
 
@@ -237,7 +200,7 @@ void pucch_power_controller::update_pucch_sinr_f0_f1(slot_point slor_rx, float s
 
   // The SINR value is adjusted by the delta TF value. This is to avoid the SINR to oscillate based on deterministic
   // parameters known by the GNB, such as UCI bits and number of symbols.
-  pucch_f0_f1_sinr_dB.push(static_cast<float>(sinr_db - pucch_pw->delta_tf));
+  sinr_dB_01.push(static_cast<float>(sinr_db - pucch_pw->delta_tf));
 }
 
 void pucch_power_controller::update_pucch_sinr_f2_f3_f4(slot_point slor_rx,
@@ -245,14 +208,13 @@ void pucch_power_controller::update_pucch_sinr_f2_f3_f4(slot_point slor_rx,
                                                         bool       has_harq_bits,
                                                         bool       has_csi_bits)
 {
-  if (not cl_pw_control_enabled) {
+  if (not enable_cl_pw_control or res_params.format_234() == pucch_format::FORMAT_4) {
     return;
   }
 
   const auto& pucchs_pw_ctrl = pucch_pw_ctrl_grid[slor_rx.to_uint()];
 
-  // For PUCCH format 2-3-4, there can be up to 2 PUCCH power control data. Can tell them apart depending on the UCI
-  // bits.
+  // For Formats 2, 3 and 4, there can be up to 2 PUCCH power control data. We can tell them apart from the UCI bits.
   const auto& pucch_pw =
       std::find_if(pucchs_pw_ctrl.begin(), pucchs_pw_ctrl.end(), [has_harq_bits, has_csi_bits](const auto& pucch) {
         return (pucch.format == pucch_format::FORMAT_2 || pucch.format == pucch_format::FORMAT_3 ||
@@ -296,7 +258,7 @@ void pucch_power_controller::update_pucch_sinr_f2_f3_f4(slot_point slor_rx,
 
   // The SINR value is adjusted by the delta TF value. This is to avoid the SINR to oscillate based on deterministic
   // parameters known by the GNB, such as UCI bits, number of PRBs and symbols.
-  pucch_f2_f3_f4_sinr_dB.push(static_cast<float>(sinr_db - pucch_pw->delta_tf));
+  sinr_dB_234.push(static_cast<float>(sinr_db - pucch_pw->delta_tf));
 }
 
 void pucch_power_controller::update_pucch_pw_ctrl_state(slot_point      slot,
@@ -308,7 +270,7 @@ void pucch_power_controller::update_pucch_pw_ctrl_state(slot_point      slot,
                                                         bool            pi_2_bpsk,
                                                         bool            additional_dmrs)
 {
-  if (not cl_pw_control_enabled) {
+  if (not enable_cl_pw_control) {
     return;
   }
 
@@ -346,17 +308,14 @@ void pucch_power_controller::update_pucch_pw_ctrl_state(slot_point      slot,
 
 uint8_t pucch_power_controller::compute_tpc_command(slot_point pucch_slot)
 {
-  // The goal of the closed-loop power control for PUCCH is to adjust the transmit power to reach the target SINR.
-  // However, we only do this for PUCCH format 0, 2 and 3. As Format 1 and Format 4 use Cyclic-shift and/or OCC, the
-  // change in received power would not be reflected (or only marginally) in the SINR.
-  // If PUCCH Format 1 is used, closed-loop power control only considers the SINR target for PUCCH Format 2 or 3.
-  // If PUCCH Format 0 is used with Format 4, closed-loop power control only considers the SINR target for PUCCH Format
-  // 0.
-  // If PUCCH Format 0 is used with Format 2 or 3, then closed-loop power control should ensure that both SINR are above
-  // the threshold.
-
+  // [Implementation-defined]
+  // - The SINR is tracked individually for each considered Format (0, 2 and 3).
+  // - Formats 1 and 4 are not considered because of their use of CS and/or OCC (multiplexing). For multiple PUCCHs over
+  //   the same time-frequency resources, the SINR might be determined by the interference, so in that case all UEs
+  //   would end up increasing their power without improving the SINR.
   static constexpr uint8_t default_tpc = 1;
-  if (not cl_pw_control_enabled or not pucch_pwr_ctrl.has_value()) {
+  if (not enable_cl_pw_control or
+      (res_params.format_01() == pucch_format::FORMAT_1 and res_params.format_234() == pucch_format::FORMAT_4)) {
     return default_tpc;
   }
 
@@ -369,33 +328,16 @@ uint8_t pucch_power_controller::compute_tpc_command(slot_point pucch_slot)
     return default_tpc;
   }
 
-  if (format_set_0 == pucch_format::NOF_FORMATS or format_set_1 == pucch_format::NOF_FORMATS or
-      (format_set_0 == pucch_format::FORMAT_1 and format_set_1 == pucch_format::FORMAT_4)) {
-    return default_tpc;
+  // The TPC command should be computed based on the largest SINR-to-target difference among the considered Formats.
+  // This should ensure that both SINRs aren't below their respective targets.
+  float max_sinr_to_target_diff = std::numeric_limits<float>::lowest();
+  if (res_params.format_01() != pucch_format::FORMAT_1) {
+    max_sinr_to_target_diff = std::max(max_sinr_to_target_diff, target_sinr_dB_01 - sinr_dB_01.average());
   }
-
-  // This is only used for Format 2 and 3.
-  const float pucch_f2_f3_target_sinr_dB =
-      format_set_1 == pucch_format::FORMAT_2 ? pucch_f2_sinr_target_dB : pucch_f3_sinr_target_dB;
-  const float sinr_to_target_f2_f3_diff = pucch_f2_f3_target_sinr_dB - pucch_f2_f3_f4_sinr_dB.average();
-
-  // The PUCCH power control only considers the PUCCH formats 0, 2 and 3. As Format 1 and Format 4 use Cyclic-shift
-  // and/or OCC, the change in received power would not be reflected (or only marginally) in the SINR.
-  uint8_t tpc = default_tpc;
-  if (format_set_0 == pucch_format::FORMAT_0) {
-    const float sinr_to_target_f0_diff = pucch_f0_sinr_target_dB - pucch_f0_f1_sinr_dB.average();
-    // If PUCCH Format 0 is used with Format 2 or 3, always considers the maximum of SINR differences; this should
-    // ensure that both SINRs aren't below their respective targets and; if the SINR difference is negative for both
-    // PUCCH Format 0 and Format 2/3 (both SINRs are above their SINR targets), then considering the maximum should
-    // ensure that none of the SINRs will end up below their SINR targets.
-    tpc = format_set_1 == pucch_format::FORMAT_4 ? get_tpc(sinr_to_target_f0_diff)
-                                                 : get_tpc(std::max(sinr_to_target_f0_diff, sinr_to_target_f2_f3_diff));
+  if (res_params.format_234() != pucch_format::FORMAT_4) {
+    max_sinr_to_target_diff = std::max(max_sinr_to_target_diff, target_sinr_dB_234 - sinr_dB_234.average());
   }
-
-  if (format_set_0 == pucch_format::FORMAT_1 and
-      (format_set_1 == pucch_format::FORMAT_2 or format_set_1 == pucch_format::FORMAT_3)) {
-    tpc = get_tpc(sinr_to_target_f2_f3_diff);
-  }
+  uint8_t tpc = get_tpc(max_sinr_to_target_diff);
 
   latest_pucch_pw_control.value().g_cl_pw_control += tpc_mapping(tpc);
   latest_pucch_pw_control.value().latest_tpc_slot = pucch_slot;

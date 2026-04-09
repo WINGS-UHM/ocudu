@@ -6,10 +6,11 @@
 
 #include "ocudu/adt/circular_array.h"
 #include "ocudu/ocudulog/logger.h"
-#include "ocudu/ran/pucch/pucch_configuration.h"
 #include "ocudu/ran/pucch/pucch_uci_bits.h"
 #include "ocudu/ran/rnti.h"
 #include "ocudu/ran/slot_point.h"
+#include "ocudu/scheduler/config/pucch_resource_builder_params.h"
+#include "ocudu/scheduler/config/ue_bwp_config.h"
 #include "ocudu/scheduler/resource_grid_util.h"
 #include "ocudu/support/math/exponential_averager.h"
 #include <optional>
@@ -18,13 +19,13 @@ namespace ocudu {
 
 class ue_cell_configuration;
 
+/// \brief Closed-loop PUCCH power controller for a given UE.
+///
+/// Helps the UE adjust the PUCCH transmit power to reach a target SINR.
 class pucch_power_controller
 {
 public:
   pucch_power_controller(const ue_cell_configuration& ue_cell_cfg_, ocudulog::basic_logger& logger_);
-
-  /// Save the PUCCH power control configuration.
-  void reconfigure(const ue_cell_configuration& ue_cell_cfg);
 
   /// Update the PUCCH SINR, only for Format 0 or 1.
   void update_pucch_sinr_f0_f1(slot_point slor_rx, float sinr_db);
@@ -67,23 +68,19 @@ private:
 
   uint8_t get_tpc(float sinr_to_target_diff);
 
-  const rnti_t rnti;
-  const bool   cl_pw_control_enabled;
-  const float  pucch_f0_sinr_target_dB;
-  const float  pucch_f2_sinr_target_dB;
-  const float  pucch_f3_sinr_target_dB;
-  /// PUCCH power control configuration; this is required to enable PUCCH power control.
-  std::optional<pucch_power_control> pucch_pwr_ctrl;
+  const bool                           enable_cl_pw_control;
+  const rnti_t                         rnti;
+  const pucch_resource_builder_params& res_params;
+  const ue_pucch_config&               ue_pucch_cfg;
+  const float                          target_sinr_dB_01;
+  const float                          target_sinr_dB_234;
 
   const unsigned tpc_adjust_prohibit_time_sl;
 
   /// Time-averaged PUCCH SINR, in dB, for PUCCH Format 0/1.
-  exp_average_fast_start<float> pucch_f0_f1_sinr_dB;
+  exp_average_fast_start<float> sinr_dB_01;
   /// Time-averaged PUCCH SINR, in dB, for PUCCH Format 2/3/4.
-  exp_average_fast_start<float> pucch_f2_f3_f4_sinr_dB;
-
-  pucch_format format_set_0 = pucch_format::NOF_FORMATS;
-  pucch_format format_set_1 = pucch_format::NOF_FORMATS;
+  exp_average_fast_start<float> sinr_dB_234;
 
   /// \brief Latest Power control adjustment value used for PUCCH for this UE.
   /// With reference to TS 38.213, Section 7.2.1, this is the value of \f$g_{b, f, c}(i, l)\f$ for the only BWP,

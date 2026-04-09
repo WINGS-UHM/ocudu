@@ -19,6 +19,7 @@ variables:
     MULTI_ARCH_BUILD: ""
     PLATFORM_OS: "linux"
     CACHE: "false"
+    CACHE_MODE: "min" # min or max
     OVERWRITE: "false"
     ATTESTATION_FILE: ""
     COSIGN_YES: "true" # Used by Cosign to skip confirmation prompts for non-destructive operations
@@ -83,7 +84,7 @@ variables:
     # Use and generate build cache
     - |
       if [[ "${CACHE}" == "true" ]]; then
-        BUILD_ARGS="--import-cache type=registry,ref=${IMAGE_NAME}:cache-${PLATFORM} --export-cache type=registry,ref=${IMAGE_NAME}:cache-${PLATFORM} ${BUILD_ARGS}"
+        BUILD_ARGS="--import-cache type=registry,ref=${IMAGE_NAME}:cache-${PLATFORM} --export-cache type=registry,ref=${IMAGE_NAME}:cache-${PLATFORM},mode=${CACHE_MODE} ${BUILD_ARGS}"
       fi
 
     # Build & publish

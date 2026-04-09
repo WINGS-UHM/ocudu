@@ -5,6 +5,7 @@
 #pragma once
 
 #include "apps/helpers/logger/logger_appconfig.h"
+#include "apps/helpers/network/sctp_appconfig.h"
 #include "apps/helpers/tracing/tracer_appconfig.h"
 #include "apps/services/app_execution_metrics/executor_metrics_config.h"
 #include "apps/services/app_resource_usage/app_resource_usage_config.h"
@@ -21,6 +22,8 @@ namespace ocucp {
 struct e1ap_appconfig {
   /// CU-CP E1 bind addresses.
   std::vector<std::string> bind_addrs = {"127.0.20.1"};
+  /// SCTP socket options.
+  sctp_appconfig sctp;
 };
 
 /// F1AP configuration.

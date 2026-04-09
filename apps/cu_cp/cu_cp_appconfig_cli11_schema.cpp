@@ -4,6 +4,7 @@
 
 #include "cu_cp_appconfig_cli11_schema.h"
 #include "apps/helpers/logger/logger_appconfig_cli11_schema.h"
+#include "apps/helpers/network/sctp_cli11_schema.h"
 #include "apps/helpers/tracing/tracer_appconfig_cli11_schema.h"
 #include "apps/services/app_resource_usage/app_resource_usage_config_cli11_schema.h"
 #include "apps/services/buffer_pool/buffer_pool_appconfig_cli11_schema.h"
@@ -23,6 +24,7 @@ static void configure_cli11_e1ap_args(CLI::App& app, ocucp::e1ap_appconfig& e1ap
       e1ap_params.bind_addrs,
       "E1 bind addresses")
       ->capture_default_str();
+  configure_cli11_sctp_socket_args(app, e1ap_params.sctp);
 }
 
 static void configure_cli11_f1ap_args(CLI::App& app, ocucp::f1ap_appconfig& f1ap_params)

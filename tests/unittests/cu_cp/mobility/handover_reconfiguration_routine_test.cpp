@@ -21,16 +21,22 @@ protected:
 
   void create_ues(bool procedure_outcome, unsigned transaction_id_)
   {
-    ue_index_t source_ue_index = get_ue_manager()->add_ue(
-        source_du_index, int_to_gnb_du_id(0), source_pci, source_rnti, ocucp::du_cell_index_t::min);
+    ue_creation_result_t source_result = get_ue_manager()->add_ue(source_du_index);
+    ASSERT_TRUE(source_result.servable);
+    ue_index_t source_ue_index = source_result.ue_index;
+    ASSERT_TRUE(get_ue_manager()->update_ue_context(
+        source_ue_index, int_to_gnb_du_id(0), source_pci, source_rnti, ocucp::du_cell_index_t::min));
     get_ue_manager()->set_plmn(source_ue_index, plmn_identity::test_value());
     source_ue = get_ue_manager()->find_ue(source_ue_index);
     ASSERT_NE(source_ue, nullptr);
     source_rrc_ue.set_transaction_id(transaction_id_);
     source_ue->set_rrc_ue(source_rrc_ue);
 
-    ue_index_t target_ue_index = get_ue_manager()->add_ue(
-        target_du_index, int_to_gnb_du_id(0), target_pci, target_rnti, ocucp::du_cell_index_t::min);
+    ue_creation_result_t target_result = get_ue_manager()->add_ue(target_du_index);
+    ASSERT_TRUE(target_result.servable);
+    ue_index_t target_ue_index = target_result.ue_index;
+    ASSERT_TRUE(get_ue_manager()->update_ue_context(
+        target_ue_index, int_to_gnb_du_id(0), target_pci, target_rnti, ocucp::du_cell_index_t::min));
     get_ue_manager()->set_plmn(target_ue_index, plmn_identity::test_value());
     target_ue = get_ue_manager()->find_ue(target_ue_index);
     ASSERT_NE(target_ue, nullptr);

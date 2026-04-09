@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_manager_impl.h"
+#include "ocudu/adt/expected.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/cu_cp/security_manager_config.h"
 
@@ -31,86 +32,95 @@ void ue_manager::stop()
   ue_task_scheds.stop();
 }
 
-ue_index_t ue_manager::add_ue(du_index_t                     du_index,
-                              std::optional<gnb_du_id_t>     du_id,
-                              std::optional<pci_t>           pci,
-                              std::optional<rnti_t>          rnti,
-                              std::optional<du_cell_index_t> pcell_index)
+ue_creation_result_t ue_manager::add_ue(du_index_t du_index)
 {
   if (du_index == du_index_t::invalid) {
-    logger.warning("CU-CP UE creation Failed. Cause: Invalid DU index={}", du_index);
-    return ue_index_t::invalid;
+    logger.warning("Invalid du_index={}", du_index);
+    return {false, ue_index_t::invalid};
   }
 
-  if (du_id.has_value() && du_id.value() == gnb_du_id_t::invalid) {
-    logger.warning("CU-CP UE creation Failed. Cause: Invalid gNB-DU ID={}", fmt::underlying(du_id.value()));
-    return ue_index_t::invalid;
+  ue_index_t ue_index = allocate_ue_index();
+  if (ue_index == ue_index_t::invalid) {
+    logger.warning("Failed to add UE. Cause: No available UE index");
+    return {false, ue_index_t::invalid};
   }
 
-  if (pci.has_value() && pci.value() == INVALID_PCI) {
-    logger.warning("CU-CP UE creation Failed. Cause: Invalid pci={}", pci.value());
-    return ue_index_t::invalid;
-  }
-
-  if (rnti.has_value() && rnti.value() == rnti_t::INVALID_RNTI) {
-    logger.warning("CU-CP UE creation Failed. Cause: Invalid rnti={}", rnti.value());
-    return ue_index_t::invalid;
-  }
-
-  if (pcell_index.has_value() && pcell_index.value() == du_cell_index_t::invalid) {
-    logger.warning("CU-CP UE creation Failed. Cause: Invalid pcell_index={}", pcell_index.value());
-    return ue_index_t::invalid;
-  }
-
-  if (ues.size() == max_nof_ues) {
-    logger.warning(
-        "CU-CP UE creation Failed. Cause: Maximum number of UEs supported by the CU-CP ({}) has been reached",
-        max_nof_ues);
-    fmt::print("CU-CP UE creation failed. Cause: Maximum number of UEs supported by the CU-CP ({}) has been reached. "
-               "To increase the number of supported "
-               "UEs change the \"--max_nof_ues\" in the CU-CP configuration\n",
-               max_nof_ues);
-    return ue_index_t::invalid;
-  }
-
-  ue_index_t new_ue_index = allocate_ue_index();
-  if (new_ue_index == ue_index_t::invalid) {
-    logger.warning("CU-CP UE creation Failed. Cause: No free UE index available");
-    return ue_index_t::invalid;
+  if (ues.size() >= max_nof_ues) {
+    logger.debug("ue={}: Maximum number of servable UEs reached {}, UE must be rejected", ue_index, max_nof_ues);
+    return {false, ue_index};
   }
 
   // Create a dedicated task scheduler for the UE.
-  ue_task_scheduler_impl ue_sched = ue_task_scheds.create_ue_task_sched(new_ue_index);
+  ue_task_scheduler_impl ue_sched = ue_task_scheds.create_ue_task_sched(ue_index);
 
   // Create UE object.
   ues.emplace(std::piecewise_construct,
-              std::forward_as_tuple(new_ue_index),
-              std::forward_as_tuple(new_ue_index,
+              std::forward_as_tuple(ue_index),
+              std::forward_as_tuple(ue_index,
                                     du_index,
                                     *cu_cp_config.services.timers,
                                     *cu_cp_config.services.cu_cp_executor,
                                     up_config,
                                     sec_config,
-                                    std::move(ue_sched),
-                                    du_id,
-                                    pci,
-                                    rnti,
-                                    pcell_index));
+                                    std::move(ue_sched)));
 
-  // Add PCI and RNTI to lookup.
-  if (pci.has_value() && rnti.has_value()) {
-    pci_rnti_to_ue_index.emplace(std::make_tuple(pci.value(), rnti.value()), new_ue_index);
+  logger.info("ue={} du_index={}: Created new CU-CP UE", ue_index, du_index);
+
+  return {true, ue_index};
+}
+
+bool ue_manager::update_ue_context(ue_index_t      ue_index,
+                                   gnb_du_id_t     du_id,
+                                   pci_t           pci,
+                                   rnti_t          rnti,
+                                   du_cell_index_t pcell_index)
+{
+  if (ue_index == ue_index_t::invalid or ues.find(ue_index) == ues.end()) {
+    logger.warning("{}",
+                   ue_index == ue_index_t::invalid ? "Can't update UE with invalid UE index"
+                                                   : "ue={}: Update UE called for inexistent UE",
+                   ue_index);
+    return false;
   }
 
-  logger.info("ue={} du_index={}{}{}{}{}: Created new CU-CP UE",
-              new_ue_index,
-              du_index,
-              du_id.has_value() ? fmt::format(" gnb_du_id={}", fmt::underlying(du_id.value())) : "",
-              pci.has_value() ? fmt::format(" pci={}", pci.value()) : "",
-              rnti.has_value() ? fmt::format(" rnti={}", rnti.value()) : "",
-              pcell_index.has_value() ? fmt::format(" pcell_index={}", pcell_index.value()) : "");
+  if (du_id == gnb_du_id_t::invalid) {
+    logger.warning("Invalid du_id={}", fmt::underlying(du_id));
+    return false;
+  }
 
-  return new_ue_index;
+  if (pci == INVALID_PCI) {
+    logger.warning("Invalid pci={}", pci);
+    return false;
+  }
+  if (rnti == rnti_t::INVALID_RNTI) {
+    logger.warning("Invalid rnti={}", rnti);
+    return false;
+  }
+  if (pcell_index == du_cell_index_t::invalid) {
+    logger.warning("Invalid pcell_index={}", fmt::underlying(pcell_index));
+    return false;
+  }
+
+  // Check if the UE is already present.
+  if (get_ue_index(pci, rnti) != ue_index_t::invalid) {
+    logger.warning("UE with pci={} and rnti={} already exists", pci, rnti);
+    return false;
+  }
+
+  auto& ue = ues.at(ue_index);
+  ue.update_du_ue(du_id, pci, rnti, pcell_index);
+
+  // Add PCI and RNTI to lookup.
+  pci_rnti_to_ue_index.emplace(std::make_tuple(pci, rnti), ue_index);
+
+  logger.debug("ue={}: Updated UE with gnb_du_id={} pci={} rnti={} pcell_index={}",
+               ue_index,
+               fmt::underlying(du_id),
+               pci,
+               rnti,
+               fmt::underlying(pcell_index));
+
+  return true;
 }
 
 void ue_manager::remove_ue(ue_index_t ue_index)
@@ -328,58 +338,6 @@ ue_task_scheduler* ue_manager::find_ue_task_scheduler(ue_index_t ue_index)
 }
 
 // DU processor.
-
-cu_cp_ue* ue_manager::set_ue_du_context(ue_index_t      ue_index,
-                                        gnb_du_id_t     du_id,
-                                        pci_t           pci,
-                                        rnti_t          rnti,
-                                        du_cell_index_t pcell_index)
-{
-  if (ue_index == ue_index_t::invalid) {
-    logger.warning("Invalid ue_index={}", ue_index);
-    return nullptr;
-  }
-  if (pci == INVALID_PCI) {
-    logger.warning("Invalid pci={}", pci);
-    return nullptr;
-  }
-  if (rnti == rnti_t::INVALID_RNTI) {
-    logger.warning("Invalid rnti={}", rnti);
-    return nullptr;
-  }
-  if (pcell_index == du_cell_index_t::invalid) {
-    logger.warning("Invalid pcell_index={}", pcell_index);
-    return nullptr;
-  }
-
-  // Check if ue_index is in db.
-  if (ues.find(ue_index) == ues.end()) {
-    logger.warning("ue={}: UE not found", ue_index);
-    return nullptr;
-  }
-
-  // Check if the UE is already present.
-  if (get_ue_index(pci, rnti) != ue_index_t::invalid) {
-    logger.warning("UE with pci={} and rnti={} already exists", pci, rnti);
-    return nullptr;
-  }
-
-  auto& ue = ues.at(ue_index);
-  ue.update_du_ue(du_id, pci, rnti, pcell_index);
-
-  // Add PCI and RNTI to lookup.
-  pci_rnti_to_ue_index.emplace(std::make_tuple(pci, rnti), ue_index);
-
-  logger.debug("ue={}: Updated UE with gnb_du_id={} pci={} rnti={} pcell_index={}",
-               fmt::underlying(ue_index),
-               fmt::underlying(du_id),
-               pci,
-               rnti,
-               fmt::underlying(pcell_index));
-
-  return &ue;
-}
-
 cu_cp_ue* ue_manager::find_du_ue(ue_index_t ue_index)
 {
   if (ues.find(ue_index) != ues.end() && ues.at(ue_index).du_ue_created()) {

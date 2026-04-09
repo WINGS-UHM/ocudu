@@ -78,26 +78,36 @@ bool ngap_test::run_ng_setup()
 
 ue_index_t ngap_test::create_ue(rnti_t rnti)
 {
-  // Create UE in UE manager
-  ue_index_t ue_index = ue_mng.add_ue(du_index_t::min, int_to_gnb_du_id(0), MIN_PCI, rnti, du_cell_index_t::min);
-  if (ue_index == ue_index_t::invalid) {
-    test_logger.error(
-        "Failed to create UE with pci={} rnti={} pcell_index={}", MIN_PCI, rnti_t::MIN_CRNTI, du_cell_index_t::min);
+  // Create UE in UE manager.
+  ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
+  if (!result.servable) {
+    test_logger.error("Failed to create UE");
     return ue_index_t::invalid;
   }
+  ue_index_t ue_index = result.ue_index;
+
+  if (not ue_mng.update_ue_context(ue_index, int_to_gnb_du_id(0), MIN_PCI, rnti, du_cell_index_t::min)) {
+    test_logger.error("ue={}: Failed to update UE context with pci={} rnti={} pcell_index={}",
+                      ue_index,
+                      MIN_PCI,
+                      rnti_t::MIN_CRNTI,
+                      du_cell_index_t::min);
+    return ue_index_t::invalid;
+  }
+
   if (!ue_mng.set_plmn(ue_index, plmn_identity::test_value())) {
     test_logger.error("ue={}: Failed to set PLMN", ue_index);
     ue_mng.remove_ue(ue_index);
     return ue_index_t::invalid;
   }
 
-  // Inject UE creation at NGAP
+  // Inject UE creation at NGAP.
   test_ues.emplace(ue_index, test_ue(ue_index));
   test_ue& new_test_ue = test_ues.at(ue_index);
 
   ue_mng.get_ngap_rrc_ue_adapter(ue_index).connect_rrc_ue(new_test_ue.rrc_ue_handler);
 
-  // generate and inject valid initial ue message
+  // Generate and inject valid initial UE message.
   cu_cp_initial_ue_message msg = generate_initial_ue_message(ue_index);
   ngap->handle_initial_ue_message(msg);
 
@@ -109,11 +119,20 @@ ue_index_t ngap_test::create_ue(rnti_t rnti)
 
 ue_index_t ngap_test::create_ue_without_init_ue_message(rnti_t rnti)
 {
-  // Create UE in UE manager
-  ue_index_t ue_index = ue_mng.add_ue(du_index_t::min, int_to_gnb_du_id(0), MIN_PCI, rnti, du_cell_index_t::min);
-  if (ue_index == ue_index_t::invalid) {
-    test_logger.error(
-        "Failed to create UE with pci={} rnti={} pcell_index={}", MIN_PCI, rnti_t::MIN_CRNTI, du_cell_index_t::min);
+  // Create UE in UE manager.
+  ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
+  if (not result.servable) {
+    test_logger.error("Failed to create UE");
+    return ue_index_t::invalid;
+  }
+  ue_index_t ue_index = result.ue_index;
+
+  if (not ue_mng.update_ue_context(ue_index, int_to_gnb_du_id(0), MIN_PCI, rnti, du_cell_index_t::min)) {
+    test_logger.error("ue={}: Failed to update UE context with pci={} rnti={} pcell_index={}",
+                      ue_index,
+                      MIN_PCI,
+                      rnti_t::MIN_CRNTI,
+                      du_cell_index_t::min);
     return ue_index_t::invalid;
   }
   if (!ue_mng.set_plmn(ue_index, plmn_identity::test_value())) {

@@ -72,7 +72,13 @@ public:
   ue_index_t request_new_ue_index_allocation(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override
   {
     if (ho_request_outcome) {
-      return ue_mng.add_ue(du_index_t::min);
+      ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
+      if (!result.servable) {
+        logger.error("Failed to create UE");
+        return ue_index_t::invalid;
+      }
+
+      return result.ue_index;
     }
     return ue_index_t::invalid;
   }

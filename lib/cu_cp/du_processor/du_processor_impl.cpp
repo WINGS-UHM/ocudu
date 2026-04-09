@@ -271,28 +271,48 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
       // RRC Resume not requested or failed - create a new UE.
 
       // Add new CU-CP UE.
-      ue_index = ue_mng.add_ue(cfg.du_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index);
-      if (ue_index == ue_index_t::invalid) {
+      ue_creation_result_t result = ue_mng.add_ue(cfg.du_index);
+      if (not result.servable) {
         logger.warning("CU-CP UE creation failed");
+        // Remove the UE from the UE manager.
+        ue_mng.remove_ue(ue_index);
+        // Return the RRCReject container.
+        return make_unexpected(rrc->get_rrc_reject());
+      }
+      ue_index = result.ue_index;
+
+      if (not ue_mng.update_ue_context(
+              ue_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index)) {
+        logger.warning("ue={}: Could not update UE context", ue_index);
+        // Remove the UE from the UE manager.
+        ue_mng.remove_ue(ue_index);
+        // Return the RRCReject container.
         return make_unexpected(rrc->get_rrc_reject());
       }
     }
 
-    ue = ue_mng.find_ue(ue_index);
-
-    /// NOTE: From this point on the UE exists in the UE manager and must be removed if any error occurs.
-
   } else {
-    ue = ue_mng.set_ue_du_context(ue_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index);
-    if (ue == nullptr) {
-      logger.warning("ue={}: Could not create UE context", ue_index);
+    if (not ue_mng.update_ue_context(ue_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index)) {
+      logger.warning("ue={}: Could not update UE context", ue_index);
       // A UE with the same PCI and RNTI already exists, so we don't remove it and only reject the new UE.
       return make_unexpected(rrc->get_rrc_reject());
     }
   }
 
+  ue = ue_mng.find_ue(ue_index);
+
+  /// NOTE: From this point on the UE exists in the UE manager and must be removed if any error occurs.
+
   // If this is not a RRCResume, create an RRC UE. If the DU-to-CU-RRC-Container is empty, the UE will be rejected.
   if (not is_resume_request) {
+    if (ue == nullptr) {
+      logger.warning("ue={}: Could not find UE after updating context", ue_index);
+      // Remove the UE from the UE manager.
+      ue_mng.remove_ue(ue_index);
+      // Return the RRCReject container.
+      return make_unexpected(rrc->get_rrc_reject());
+    }
+
     if (not create_rrc_ue(*ue, req.c_rnti, req.cgi, req.du_to_cu_rrc_container.copy(), req.prev_context)) {
       logger.warning("ue={}: Could not create RRC UE object", ue_index);
       // Remove the UE from the UE manager.

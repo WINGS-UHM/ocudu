@@ -89,11 +89,18 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
 
   {
     // Allocate UE index at target DU.
-    target_ue_context_setup_request.ue_index = ue_mng.add_ue(request.target_du_index);
-    if (target_ue_context_setup_request.ue_index == ue_index_t::invalid) {
+    target_ue_creation_result = ue_mng.add_ue(request.target_du_index);
+    if (target_ue_creation_result.ue_index == ue_index_t::invalid) {
       logger.warning("ue={}: \"{}\" failed to allocate UE index at target DU", request.source_ue_index, name());
       CORO_EARLY_RETURN(response_msg);
     }
+
+    if (not target_ue_creation_result.servable) {
+      logger.warning(
+          "ue={}: \"{}\" failed to allocate UE index at target DU. UE not servable", request.source_ue_index, name());
+      CORO_EARLY_RETURN(response_msg);
+    }
+    target_ue_context_setup_request.ue_index = target_ue_creation_result.ue_index;
     if (!cu_cp_handler.handle_ue_plmn_selected(target_ue_context_setup_request.ue_index,
                                                source_ue->get_ue_context().plmn)) {
       logger.warning("ue={}: \"{}\" failed to set PLMN for target UE", request.source_ue_index, name());

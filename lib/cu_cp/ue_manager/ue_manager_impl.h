@@ -21,6 +21,19 @@
 
 namespace ocudu::ocucp {
 
+// Outcome of the UE creation. The outcomes of the UE creation are as follows:
+// - {false, ue_index_t::invalid}: If the provided DU index is invalid or no UE index is available, the UE context will
+//                                 not be created, the returned UE index will be invalid and the servable flag will be
+//                                 false.
+// - {false, ue_index_t}: If the admission limit for the CU-CP has been reached, the UE context will be created, but the
+//                        servable flag will be false.
+// - {true, ue_index_t}: If the UE context is successfully created and the UE can be served, the returned UE index will
+//                       be valid and the servable flag will be true.
+struct ue_creation_result_t {
+  bool       servable;
+  ue_index_t ue_index;
+};
+
 class ue_manager : public ue_metrics_handler
 {
 public:
@@ -97,28 +110,20 @@ public:
 
   // du processor
 
-  /// \brief Allocate resources for the UE in the CU-CP.
+  /// \brief Add UE context for the UE in the CU-CP.
+  /// \param[in] du_index Index of the DU the UE is connected to.
+  /// \return The result of the UE creation, including whether the UE can be served and the allocated UE index.
+  ue_creation_result_t add_ue(du_index_t du_index);
+
+  /// \brief Update the context of the UE.
+  /// \param[in] ue_index Index of the UE.
   /// \param[in] du_index Index of the DU the UE is connected to.
   /// \param[in] du_id The gNB-DU ID of the DU the UE is connected to.
   /// \param[in] pci The PCI of the cell the UE is connected to.
   /// \param[in] rnti The RNTI of the UE.
   /// \param[in] pcell_index The index of the PCell the UE is connected to.
-  /// \return ue_index of the created UE or ue_index_t::invalid in case of failure.
-  ue_index_t add_ue(du_index_t                     du_index,
-                    std::optional<gnb_du_id_t>     du_id       = std::nullopt,
-                    std::optional<pci_t>           pci         = std::nullopt,
-                    std::optional<rnti_t>          rnti        = std::nullopt,
-                    std::optional<du_cell_index_t> pcell_index = std::nullopt);
-
-  /// \brief Set the DU context of the UE.
-  /// \param[in] ue_index Index of the UE.
-  /// \param[in] du_id The gNB-DU ID of the DU the UE is connected to.
-  /// \param[in] pci The PCI of the cell the UE is connected to.
-  /// \param[in] rnti The RNTI of the UE.
-  /// \param[in] pcell_index The index of the PCell the UE is connected to.
-  /// \return Pointer to the DU UE if found, nullptr otherwise.
-  cu_cp_ue*
-  set_ue_du_context(ue_index_t ue_index, gnb_du_id_t du_id, pci_t pci, rnti_t rnti, du_cell_index_t pcell_index);
+  /// \return True if the update was successful, false otherwise.
+  bool update_ue_context(ue_index_t ue_index, gnb_du_id_t du_id, pci_t pci, rnti_t rnti, du_cell_index_t pcell_index);
 
   /// \brief Find the UE with the given UE index, thats DU context is set up.
   /// \param[in] ue_index Index of the UE to be found.

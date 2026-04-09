@@ -5,6 +5,7 @@
 #include "ngap_test_helpers.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "ocudu/asn1/ngap/ngap_pdu_contents.h"
+#include "ocudu/ran/rnti.h"
 #include "ocudu/support/async/async_test_utils.h"
 #include <gtest/gtest.h>
 
@@ -14,9 +15,9 @@ using namespace ocucp;
 class ngap_ue_context_management_procedure_test : public ngap_test
 {
 protected:
-  ue_index_t start_procedure()
+  ue_index_t start_procedure(rnti_t rnti = rnti_t::MIN_CRNTI)
   {
-    ue_index_t ue_index = create_ue();
+    ue_index_t ue_index = create_ue(rnti);
 
     // Inject DL NAS transport message from AMF.
     run_dl_nas_transport(ue_index);
@@ -230,7 +231,7 @@ TEST_F(ngap_ue_context_management_procedure_test,
 {
   // Test preamble.
   ue_index_t ue_index1 = this->start_procedure();
-  ue_index_t ue_index2 = this->start_procedure();
+  ue_index_t ue_index2 = this->start_procedure(to_rnti(0x2));
 
   auto& ue1 = test_ues.at(ue_index1);
   auto& ue2 = test_ues.at(ue_index2);
@@ -515,7 +516,7 @@ TEST_F(ngap_ue_context_management_procedure_test,
 {
   // Test preamble.
   ue_index_t ue_index1 = this->start_procedure();
-  ue_index_t ue_index2 = this->start_procedure();
+  ue_index_t ue_index2 = this->start_procedure(to_rnti(0x2));
 
   auto& ue1 = test_ues.at(ue_index1);
   auto& ue2 = test_ues.at(ue_index2);
@@ -631,7 +632,7 @@ TEST_F(ngap_ue_context_management_procedure_test,
 {
   // Test preamble.
   ue_index_t ue_index1 = this->start_procedure();
-  ue_index_t ue_index2 = this->start_procedure();
+  ue_index_t ue_index2 = this->start_procedure(to_rnti(0x2));
 
   auto& ue1 = test_ues.at(ue_index1);
   auto& ue2 = test_ues.at(ue_index2);

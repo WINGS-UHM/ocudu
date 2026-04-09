@@ -1098,11 +1098,12 @@ ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_i
     return ue_index_t::invalid;
   }
 
-  ue_index_t ue_index = ue_mng.add_ue(du_index);
-  if (ue_index == ue_index_t::invalid) {
-    logger.warning("Could not allocate new UE index for CGI={}", cgi.nci);
+  ue_creation_result_t result = ue_mng.add_ue(du_index);
+  if (not result.servable) {
+    logger.warning("Could not add new UE context for CGI={}", cgi.nci);
     return ue_index_t::invalid;
   }
+  ue_index_t ue_index = result.ue_index;
 
   if (!handle_ue_plmn_selected(ue_index, plmn)) {
     logger.warning("ue={}: PLMN selection failed", ue_index);

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
+#include "lib/cu_cp/ue_manager/ue_manager_impl.h"
 #include "ngap_test_helpers.h"
 #include "ocudu/cu_cp/inter_cu_handover_messages.h"
 #include "ocudu/ran/cause/ngap_cause.h"
@@ -18,8 +19,22 @@ class ngap_path_switch_procedure_test : public ngap_test
 protected:
   ue_index_t create_ue()
   {
-    return ue_mng.add_ue(
-        du_index_t::min, int_to_gnb_du_id(0), MIN_PCI, rnti_t::MIN_CRNTI, ocudu::ocucp::du_cell_index_t::min);
+    ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
+    if (not result.servable) {
+      test_logger.error("Failed to create UE");
+      return ue_index_t::invalid;
+    }
+    ue_index_t ue_index = result.ue_index;
+    if (not ue_mng.update_ue_context(
+            ue_index, int_to_gnb_du_id(0), MIN_PCI, rnti_t::MIN_CRNTI, ocudu::ocucp::du_cell_index_t::min)) {
+      test_logger.error("Failed to update UE context with pci={} rnti={} pcell_index={}",
+                        MIN_PCI,
+                        rnti_t::MIN_CRNTI,
+                        ocucp::du_cell_index_t::min);
+      return ue_index_t::invalid;
+    }
+
+    return ue_index;
   }
 
   static cu_cp_path_switch_request generate_path_switch_request(ue_index_t ue_index)

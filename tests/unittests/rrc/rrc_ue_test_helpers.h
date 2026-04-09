@@ -72,7 +72,10 @@ protected:
   void init()
   {
     // Add UE to UE manager.
-    allocated_ue_index = ue_mng.add_ue(du_index_t::min);
+    ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
+    ASSERT_TRUE(result.servable);
+    allocated_ue_index = result.ue_index;
+
     ue_mng.set_plmn(allocated_ue_index, plmn_identity::test_value());
 
     // Create RRC UE.

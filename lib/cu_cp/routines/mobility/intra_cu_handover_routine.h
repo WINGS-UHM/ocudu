@@ -10,8 +10,7 @@
 #include "ocudu/cu_cp/cu_cp_intra_cu_ho_types.h"
 #include "ocudu/support/async/async_task.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 /// \brief Handles the handover of a UE between two different cells managed by the same CU.
 /// TODO Add seqdiag
@@ -66,6 +65,7 @@ private:
 
   // (sub-)routine results
   cu_cp_intra_cu_handover_response      response_msg;
+  ue_creation_result_t                  target_ue_creation_result;
   f1ap_ue_context_setup_response        target_ue_context_setup_response;
   f1ap_ue_context_modification_response source_ue_context_modification_response;
   bool                                  rrc_reconfig_sent = false;
@@ -75,5 +75,4 @@ private:
   rrc_ue_handover_reconfiguration_context cho_cand_ctxt;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

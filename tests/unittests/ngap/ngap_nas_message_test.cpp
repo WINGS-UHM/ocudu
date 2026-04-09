@@ -15,7 +15,7 @@ using namespace ocucp;
 class ngap_nas_message_routine_test : public ngap_test
 {
 protected:
-  ue_index_t start_procedure() { return create_ue(); }
+  ue_index_t start_procedure(rnti_t rnti = rnti_t::MIN_CRNTI) { return create_ue(rnti); }
 
   ue_index_t start_dl_nas_procedure()
   {
@@ -250,7 +250,7 @@ TEST_F(ngap_nas_message_routine_test,
 {
   // Test preamble.
   ue_index_t ue_index1 = this->start_procedure();
-  ue_index_t ue_index2 = this->start_procedure();
+  ue_index_t ue_index2 = this->start_procedure(to_rnti(0x2));
 
   auto&    ue1 = test_ues.at(ue_index1);
   auto&    ue2 = test_ues.at(ue_index2);

@@ -15,8 +15,9 @@
 
 using namespace ocudu;
 
-static sched_cell_configuration_request_message
-make_sched_configuration_request(const si_scheduling_config& si_sched_cfg)
+namespace {
+
+sched_cell_configuration_request_message make_sched_configuration_request(const si_scheduling_config& si_sched_cfg)
 {
   sched_cell_configuration_request_message msg = sched_config_helper::make_default_sched_cell_configuration_request();
   msg.si_scheduling                            = si_sched_cfg;
@@ -65,6 +66,8 @@ const si_scheduling_config si_scheduler_test::DEFAULT_SI_SCHED_CFG{
     DEFAULT_SIB1_PAYLOAD_SIZE,
     {{si_message_scheduling_config{units::bytes{64}, 16}}},
     10};
+
+} // namespace
 
 TEST_F(si_scheduler_test, when_sib1_is_cfg_then_sib1_gets_scheduled)
 {

@@ -62,8 +62,6 @@ sub_scheduler_test_environment::sub_scheduler_test_environment(
   max_k_value(derive_max_k_value(cell_cfg)),
   pdcch_alloc_slot_ind_fn(std::move(pdcch_alloc_sl_ind_task))
 {
-  mac_logger.set_level(ocudulog::basic_levels::debug);
-  test_logger.set_level(ocudulog::basic_levels::info);
   ocudulog::init();
 }
 

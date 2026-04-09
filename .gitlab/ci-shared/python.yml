@@ -33,7 +33,14 @@
       export PIP_EXTRA_INDEX_URL="https://${TWINE_USERNAME}:${TWINE_PASSWORD}@${TWINE_REPO#https://}/simple"
     - pip install 'tox<5'
     - cd $PY_DIR
-    - tox -r
+    - tox -p auto
+  variables:
+    PIP_CACHE_DIR: $CI_PROJECT_DIR/.pip-cache
+  cache:
+    key: tox-${PYTHON_VERSION}
+    paths:
+      - "**/.tox/"
+      - .pip-cache/
   parallel: *matrix-python-version
 
 .publish deps:

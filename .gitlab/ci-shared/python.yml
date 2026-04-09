@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: Copyright (C) 2021-2026 Software Radio Systems Limited
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 
-
 .parallel-python-versions:
   parallel: &matrix-python-version
     matrix:
-      - PYTHON_VERSION: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+      - PYTHON_VERSION: ["3.9", "3.14"] # Minimum supported and latest
 
 .python_base:
   image: python:${PYTHON_VERSION}-alpine # sh entrypoint

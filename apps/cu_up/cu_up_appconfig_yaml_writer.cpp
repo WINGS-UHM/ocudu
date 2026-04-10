@@ -70,6 +70,7 @@ void ocudu::fill_cu_up_appconfig_in_yaml_schema(YAML::Node& node, const cu_up_ap
   app_services::fill_buffer_pool_config_in_yaml_schema(node, config.buffer_pool_config);
   fill_logger_appconfig_in_yaml_schema(node, config.log_cfg);
   fill_tracer_appconfig_in_yaml_schema(node, config.trace_cfg);
+  // TODO: move duplicated cu/cu_cp/cu_up/du YAML writers to helpers/app_services
   fill_cu_up_appconfig_expert_execution_section(node["expert_execution"], config.expert_execution_cfg);
   fill_cu_up_appconfig_remote_control_section(node["remote_control"], config.remote_control_config);
   fill_cu_up_appconfig_e1ap_section(node, config.e1ap_cfg);

@@ -79,6 +79,7 @@ void ocudu::fill_du_appconfig_in_yaml_schema(YAML::Node& node, const du_appconfi
   fill_logger_appconfig_in_yaml_schema(node, config.log_cfg);
   fill_tracer_appconfig_in_yaml_schema(node, config.trace_cfg);
   fill_du_appconfig_hal_section(node, config.hal_config);
+  // TODO: move duplicated cu/cu_cp/cu_up/du YAML writers to helpers/app_services
   fill_du_appconfig_expert_execution_section(node["expert_execution"], config.expert_execution_cfg);
   fill_du_appconfig_remote_control_section(node["remote_control"], config.remote_control_config);
   fill_du_appconfig_f1u_section(node["f1u"], config.f1u_cfg);

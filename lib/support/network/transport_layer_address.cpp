@@ -73,40 +73,32 @@ transport_layer_address transport_layer_address::create_from_bitstring(const std
 
 std::string transport_layer_address::to_bitstring() const
 {
-  // TODO: This may fail if getnameinfo() returns abbreviated IPv6 address
-  // Read the binary address bytes directly from sockaddr instead.
-  char        ip_addr[NI_MAXHOST];
   const auto* saddr = reinterpret_cast<const sockaddr*>(&addr_storage);
-  ::getnameinfo(saddr, addrlen, ip_addr, sizeof(ip_addr), nullptr, 0, NI_NUMERICHOST);
-  std::string ip_str = ip_addr;
+
+  std::string bitstr;
 
   if (saddr->sa_family == AF_INET) {
-    std::string bitstr;
-    char        delim = '.';
-    auto        start = 0U;
-    auto        end   = ip_str.find(delim);
-    while (end != std::string::npos) {
-      bitstr += fmt::format("{:08b}", std::stoul(ip_str.substr(start, end - start)));
-      start = end + sizeof(delim);
-      end   = ip_str.find(delim, start);
-    }
-    bitstr += fmt::format("{:08b}", std::stoul(ip_str.substr(start, end)));
+    const auto* addr  = reinterpret_cast<const sockaddr_in*>(saddr);
+    const auto* bytes = reinterpret_cast<const uint8_t*>(&addr->sin_addr);
 
+    for (size_t i = 0; i < 4; ++i) {
+      bitstr += fmt::format("{:08b}", bytes[i]);
+    }
     return bitstr;
   }
 
-  std::string bitstr;
-  char        delim = ':';
-  auto        start = 0U;
-  auto        end   = ip_str.find(delim);
-  while (end != std::string::npos) {
-    bitstr += fmt::format("{:016b}", std::stoul(ip_str.substr(start, end - start), nullptr, 16));
-    start = end + sizeof(delim);
-    end   = ip_str.find(delim, start);
-  }
-  bitstr += fmt::format("{:016b}", std::stoul(ip_str.substr(start, end), nullptr, 16));
+  if (saddr->sa_family == AF_INET6) {
+    const auto* addr  = reinterpret_cast<const sockaddr_in6*>(saddr);
+    const auto* bytes = reinterpret_cast<const uint8_t*>(&addr->sin6_addr);
 
-  return bitstr;
+    for (size_t i = 0; i < 16; ++i) {
+      bitstr += fmt::format("{:08b}", bytes[i]);
+    }
+    return bitstr;
+  }
+
+  ocudu_assertion_failure("Wrong address family");
+  return {};
 }
 
 bool transport_layer_address::operator==(const transport_layer_address& other) const

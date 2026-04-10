@@ -105,3 +105,83 @@ TEST(transport_layer_address_test, ipv4_is_always_different_from_ipv6)
   auto        addr2    = transport_layer_address::create_from_string(ipv6_str);
   ASSERT_NE(addr1, addr2);
 }
+
+TEST(transport_layer_address_test, ipv6_bitstring_with_compressed_address)
+{
+  // This IPv6 address contains '::' compression
+  std::string ipv6_str = "2001:db8::1";
+
+  auto addr = transport_layer_address::create_from_string(ipv6_str);
+
+  // This should NOT throw and should produce a valid 128-bit string
+  std::string bitstr;
+  ASSERT_NO_THROW(bitstr = addr.to_bitstring());
+
+  ASSERT_EQ(bitstr.size(), 128);
+  ASSERT_EQ(bitstr,
+            "0010000000000001" // 2001
+            "0000110110111000" // 0db8
+            "0000000000000000" // 0000
+            "0000000000000000" // 0000
+            "0000000000000000" // 0000
+            "0000000000000000" // 0000
+            "0000000000000000" // 0000
+            "0000000000000001" // 0001
+  );
+}
+
+TEST(transport_layer_address_test, ipv6_bitstring_with_compressable_address)
+{
+  // This IPv6 address can/will be compressed with '::'
+  std::string ipv6_str = "2001:0db8:0000:0000:0000:0000:0000:0001";
+
+  auto addr = transport_layer_address::create_from_string(ipv6_str);
+
+  // This should NOT throw and should produce a valid 128-bit string
+  std::string bitstr;
+  ASSERT_NO_THROW(bitstr = addr.to_bitstring());
+
+  ASSERT_EQ(bitstr.size(), 128);
+  ASSERT_EQ(bitstr,
+            "0010000000000001" // 2001
+            "0000110110111000" // 0db8
+            "0000000000000000" // 0000
+            "0000000000000000" // 0000
+            "0000000000000000" // 0000
+            "0000000000000000" // 0000
+            "0000000000000000" // 0000
+            "0000000000000001" // 0001
+  );
+}
+
+TEST(transport_layer_address_test, ipv6_bitstring_with_localhost)
+{
+  std::string ipv6_str = "::1";
+
+  auto addr = transport_layer_address::create_from_string(ipv6_str);
+
+  // This should NOT throw and should produce a valid 128-bit string
+  std::string bitstr;
+  ASSERT_NO_THROW(bitstr = addr.to_bitstring());
+
+  ASSERT_EQ(bitstr.size(), 128);
+  ASSERT_EQ(bitstr,
+            "0000000000000000000000000000000000000000000000000000000000000000"
+            "0000000000000000000000000000000000000000000000000000000000000001");
+}
+
+TEST(transport_layer_address_test, ipv6_bitstring_with_all_networks)
+{
+  std::string ipv6_str = "::";
+
+  auto addr = transport_layer_address::create_from_string(ipv6_str);
+
+  // This should NOT throw and should produce a valid 128-bit string
+  std::string bitstr;
+  ASSERT_NO_THROW(bitstr = addr.to_bitstring());
+
+  ASSERT_EQ(bitstr.size(), 128);
+  ASSERT_EQ(bitstr,
+            "0000000000000000000000000000000000000000000000000000000000000000"
+            "0000000000000000000000000000000000000000000000000000000000000000");
+}

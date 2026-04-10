@@ -10,6 +10,7 @@
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/du/du_cell_config_helpers.h"
 #include "ocudu/ran/pdcp_sn_util.h"
+#include "ocudu/ran/up_transport_layer_info.h"
 #include "ocudu/support/async/async_test_utils.h"
 
 using namespace ocudu;
@@ -60,7 +61,7 @@ asn1::f1ap::drbs_to_be_setup_item_s ocudu::odu::generate_drb_am_setup_item(drb_i
   drb.ul_up_tnl_info_to_be_setup_list.resize(1);
   auto& gtp_tun = drb.ul_up_tnl_info_to_be_setup_list[0].ul_up_tnl_info.set_gtp_tunnel();
   auto  addr    = transport_layer_address::create_from_string("127.0.0.1");
-  gtp_tun.transport_layer_address.from_string(addr.to_bitstring());
+  tla_to_asn1_bitstring(gtp_tun.transport_layer_address, addr);
   gtp_tun.gtp_teid.from_number(1);
 
   return drb;
@@ -91,7 +92,7 @@ asn1::f1ap::drbs_to_be_setup_mod_item_s ocudu::odu::generate_drb_am_mod_item(drb
   drb.ul_up_tnl_info_to_be_setup_list.resize(1);
   auto& gtp_tun = drb.ul_up_tnl_info_to_be_setup_list[0].ul_up_tnl_info.set_gtp_tunnel();
   auto  addr    = transport_layer_address::create_from_string("127.0.0.1");
-  gtp_tun.transport_layer_address.from_string(addr.to_bitstring());
+  tla_to_asn1_bitstring(gtp_tun.transport_layer_address, addr);
   gtp_tun.gtp_teid.from_number(1);
   return drb;
 }

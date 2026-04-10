@@ -5,9 +5,38 @@
 #pragma once
 
 #include "ocudu/ran/gtpu/gtpu_teid.h"
+#include "ocudu/support/error_handling.h"
 #include "ocudu/support/io/transport_layer_address.h"
+#include <algorithm>
+#include <array>
 
 namespace ocudu {
+
+/// \brief Creates a transport_layer_address from an ASN.1 TransportLayerAddress bitstring field.
+/// The ASN.1 bitstring stores bytes in reverse of network byte order (octets_[0] holds the lowest-index bits), so the
+/// bytes are reversed into the network-order layout expected by transport_layer_address.
+template <typename Asn1Bitstring>
+transport_layer_address tla_from_asn1_bitstring(const Asn1Bitstring& bs)
+{
+  std::array<uint8_t, 20> ip_bytes{};
+  report_fatal_error_if_not(bs.nof_octets() <= ip_bytes.size(),
+                            "Bitstring octet count {} exceeds maximum supported size {}",
+                            bs.nof_octets(),
+                            ip_bytes.size());
+  std::reverse_copy(bs.data(), bs.data() + bs.nof_octets(), ip_bytes.begin());
+  return transport_layer_address::create_from_bytes({ip_bytes.data(), bs.nof_octets()});
+}
+
+/// \brief Stores a transport_layer_address into an ASN.1 TransportLayerAddress bitstring field.
+/// The ASN.1 bitstring stores bytes in reverse of network byte order (octets_[0] holds the lowest-index bits), so the
+/// bytes are reversed from the network-order layout used by transport_layer_address.
+template <typename Asn1Bitstring>
+void tla_to_asn1_bitstring(Asn1Bitstring& bs, const transport_layer_address& tla)
+{
+  auto ip_bytes = tla.to_bytes();
+  bs.resize(ip_bytes.size() * 8);
+  std::reverse_copy(ip_bytes.begin(), ip_bytes.end(), bs.data());
+}
 
 /// \brief Identifier for F1-U transport layer associated to a DRB.
 struct up_transport_layer_info {
@@ -42,7 +71,7 @@ void up_transport_layer_info_to_asn1(Asn1Type& asn1obj, const up_transport_layer
 {
   asn1obj.set_gtp_tunnel();
   asn1obj.gtp_tunnel().gtp_teid.from_number(up_tp_layer_info.gtp_teid.value());
-  asn1obj.gtp_tunnel().transport_layer_address.from_string(up_tp_layer_info.tp_address.to_bitstring());
+  tla_to_asn1_bitstring(asn1obj.gtp_tunnel().transport_layer_address, up_tp_layer_info.tp_address);
 }
 
 /// \brief Converts ASN.1 type into \c up_transport_layer_info.
@@ -51,7 +80,7 @@ void up_transport_layer_info_to_asn1(Asn1Type& asn1obj, const up_transport_layer
 template <typename Asn1Type>
 up_transport_layer_info asn1_to_up_transport_layer_info(const Asn1Type& asn1obj)
 {
-  return {transport_layer_address::create_from_bitstring(asn1obj.gtp_tunnel().transport_layer_address.to_string()),
+  return {tla_from_asn1_bitstring(asn1obj.gtp_tunnel().transport_layer_address),
           int_to_gtpu_teid(asn1obj.gtp_tunnel().gtp_teid.to_number())};
 }
 

@@ -19,8 +19,7 @@ inline bool asn1_to_ue_context_info_ho_request(xnap_ue_context_info_ho_request& 
   // > Fill NG-C UE associated signalling reference (AMF UE NGAP ID).
   request.amf_ue_id = asn1_request.ng_c_ue_ref;
   // > Fill CP TNL info source (AMF SCTP IP address).
-  request.amf_addr =
-      transport_layer_address::create_from_bitstring(asn1_request.cp_tnl_info_source.endpoint_ip_address().to_string());
+  request.amf_addr = tla_from_asn1_bitstring(asn1_request.cp_tnl_info_source.endpoint_ip_address());
   // > Fill security context.
   asn1_to_security_context(request.security_context, asn1_request.ue_security_cap, asn1_request.security_info);
   // > Fill UE aggregated max bit rate.

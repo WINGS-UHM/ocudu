@@ -93,7 +93,7 @@ public:
 
     asn1_setup_req_transfer->ul_ngu_up_tnl_info.set_gtp_tunnel();
     auto addr = transport_layer_address::create_from_string("127.0.0.1");
-    asn1_setup_req_transfer->ul_ngu_up_tnl_info.gtp_tunnel().transport_layer_address.from_string(addr.to_bitstring());
+    tla_to_asn1_bitstring(asn1_setup_req_transfer->ul_ngu_up_tnl_info.gtp_tunnel().transport_layer_address, addr);
     asn1_setup_req_transfer->ul_ngu_up_tnl_info.gtp_tunnel().gtp_teid.from_number(1);
 
     asn1_setup_req_transfer->pdu_session_type = asn1::ngap::pdu_session_type_opts::options::ipv4v6;

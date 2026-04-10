@@ -36,68 +36,42 @@ transport_layer_address transport_layer_address::create_from_string(const std::s
   return res;
 }
 
-transport_layer_address transport_layer_address::create_from_bitstring(const std::string& bit_str)
+transport_layer_address transport_layer_address::create_from_bytes(span<const uint8_t> ip_bytes)
 {
-  ocudu_assert(bit_str.length() < 160, "Combined IPv4 and IPv6 addresses are currently not supported");
+  // See TS 38.414: 4 bytes (32 bits) for IPv4 (RFC 791), 16 bytes (128 bits) for IPv6 (RFC 8200), 20 bytes (160 bits)
+  // for combined IPv4+IPv6 where the IPv4 address is contained in the first 4 bytes.
+  // TODO: Support 20-byte transport layer addresses.
+  ocudu_assert(ip_bytes.size() == 4 || ip_bytes.size() == 16,
+               "Unsupported TransportLayerAddress byte length: {} (expected 4 or 16)",
+               ip_bytes.size());
 
-  // See TS 38.414: 32 bits in case of IPv4 address according to IETF RFC 791.
-  if (bit_str.length() == 32) {
-    std::string ip_str = fmt::format("{}.{}.{}.{}",
-                                     std::stoi(bit_str.substr(0, 8), nullptr, 2),
-                                     std::stoi(bit_str.substr(8, 8), nullptr, 2),
-                                     std::stoi(bit_str.substr(16, 8), nullptr, 2),
-                                     std::stoi(bit_str.substr(24, 8), nullptr, 2));
-    return create_from_string(ip_str);
+  if (ip_bytes.size() == 4) {
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    std::memcpy(&addr.sin_addr, ip_bytes.data(), 4);
+    return create_from_sockaddr(reinterpret_cast<const sockaddr&>(addr), sizeof(addr));
   }
 
-  // See TS 38.414: 128 bits in case of IPv6 address according to IETF RFC 8200.
-  if (bit_str.length() == 128) {
-    std::string ip_str = fmt::format("{:x}:{:x}:{:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
-                                     std::stoi(bit_str.substr(0, 16), nullptr, 2),
-                                     std::stoi(bit_str.substr(16, 16), nullptr, 2),
-                                     std::stoi(bit_str.substr(32, 16), nullptr, 2),
-                                     std::stoi(bit_str.substr(48, 16), nullptr, 2),
-                                     std::stoi(bit_str.substr(64, 16), nullptr, 2),
-                                     std::stoi(bit_str.substr(80, 16), nullptr, 2),
-                                     std::stoi(bit_str.substr(96, 16), nullptr, 2),
-                                     std::stoi(bit_str.substr(112, 16), nullptr, 2));
-    return create_from_string(ip_str);
-  }
-
-  // See TS 38.414: 160 bits if both IPv4 and IPv6 addresses are signalled, in which case the IPv4 address is contained
-  // in the first 32 bits.
-  // TODO: Support 160 bit transport layer addresses
-
-  return create_from_string("");
+  sockaddr_in6 addr{};
+  addr.sin6_family = AF_INET6;
+  std::memcpy(&addr.sin6_addr, ip_bytes.data(), 16);
+  return create_from_sockaddr(reinterpret_cast<const sockaddr&>(addr), sizeof(addr));
 }
 
-std::string transport_layer_address::to_bitstring() const
+span<const uint8_t> transport_layer_address::to_bytes() const
 {
   const auto* saddr = reinterpret_cast<const sockaddr*>(&addr_storage);
 
-  std::string bitstr;
-
   if (saddr->sa_family == AF_INET) {
-    const auto* addr  = reinterpret_cast<const sockaddr_in*>(saddr);
-    const auto* bytes = reinterpret_cast<const uint8_t*>(&addr->sin_addr);
-
-    for (size_t i = 0; i < 4; ++i) {
-      bitstr += fmt::format("{:08b}", bytes[i]);
-    }
-    return bitstr;
+    const auto* addr = reinterpret_cast<const sockaddr_in*>(saddr);
+    return {reinterpret_cast<const uint8_t*>(&addr->sin_addr), 4};
   }
 
   if (saddr->sa_family == AF_INET6) {
-    const auto* addr  = reinterpret_cast<const sockaddr_in6*>(saddr);
-    const auto* bytes = reinterpret_cast<const uint8_t*>(&addr->sin6_addr);
-
-    for (size_t i = 0; i < 16; ++i) {
-      bitstr += fmt::format("{:08b}", bytes[i]);
-    }
-    return bitstr;
+    const auto* addr = reinterpret_cast<const sockaddr_in6*>(saddr);
+    return {reinterpret_cast<const uint8_t*>(&addr->sin6_addr), 16};
   }
 
-  ocudu_assertion_failure("Wrong address family");
   return {};
 }
 

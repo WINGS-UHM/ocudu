@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "ocudu/adt/span.h"
 #include "ocudu/support/io/sockets.h"
 #include "fmt/format.h"
 #include <string>
@@ -27,8 +28,9 @@ public:
   /// Supports standard IPv6 notation, including compressed forms (e.g. "2001:db8::1").
   static transport_layer_address create_from_string(const std::string& ip_str);
 
-  /// Creates a transport_layer_address object from a string of bits (each character is base 2).
-  static transport_layer_address create_from_bitstring(const std::string& bit_str);
+  /// Creates a transport_layer_address from raw IPv4 or IPv6 bytes in network byte order (4 bytes for IPv4, 16 for
+  /// IPv6, as per 3GPP TS 38.414). 160-bit combined IPv4+IPv6 is not yet supported.
+  static transport_layer_address create_from_bytes(span<const uint8_t> ip_bytes);
 
   static transport_layer_address create_from_sockaddr(const struct sockaddr& sockaddr, socklen_t addr_len);
   static transport_layer_address create_from_sockaddr(native_type addr);
@@ -38,8 +40,9 @@ public:
   /// Converts the transport_layer_address to an IPv4 or IPv6 string.
   std::string to_string() const { return fmt::format("{}", *this); }
 
-  /// Converts the transport layer address to a string of bits (each character is base 2).
-  std::string to_bitstring() const;
+  /// Returns a view of the IPv4 or IPv6 bytes in network byte order (4 bytes for IPv4, 16 for IPv6). Returns an empty
+  /// span for uninitialized addresses or unsupported address families.
+  span<const uint8_t> to_bytes() const;
 
   /// Extracts the POSIX representation of the transport layer address.
   native_type native() const { return {(struct sockaddr*)&addr_storage, addrlen}; }

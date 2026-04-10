@@ -106,82 +106,42 @@ TEST(transport_layer_address_test, ipv4_is_always_different_from_ipv6)
   ASSERT_NE(addr1, addr2);
 }
 
-TEST(transport_layer_address_test, ipv6_bitstring_with_compressed_address)
+TEST(transport_layer_address_test, ipv6_bytes_with_compressed_address)
 {
-  // This IPv6 address contains '::' compression
-  std::string ipv6_str = "2001:db8::1";
+  auto addr = transport_layer_address::create_from_string("2001:db8::1");
 
-  auto addr = transport_layer_address::create_from_string(ipv6_str);
-
-  // This should NOT throw and should produce a valid 128-bit string
-  std::string bitstr;
-  ASSERT_NO_THROW(bitstr = addr.to_bitstring());
-
-  ASSERT_EQ(bitstr.size(), 128);
-  ASSERT_EQ(bitstr,
-            "0010000000000001" // 2001
-            "0000110110111000" // 0db8
-            "0000000000000000" // 0000
-            "0000000000000000" // 0000
-            "0000000000000000" // 0000
-            "0000000000000000" // 0000
-            "0000000000000000" // 0000
-            "0000000000000001" // 0001
-  );
+  const std::array<uint8_t, 16> expected = {0x20, 0x01, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01};
+  auto                          bytes    = addr.to_bytes();
+  ASSERT_EQ(bytes.size(), expected.size());
+  ASSERT_TRUE(std::equal(bytes.begin(), bytes.end(), expected.begin()));
 }
 
-TEST(transport_layer_address_test, ipv6_bitstring_with_compressable_address)
+TEST(transport_layer_address_test, ipv6_bytes_with_compressable_address)
 {
-  // This IPv6 address can/will be compressed with '::'
-  std::string ipv6_str = "2001:0db8:0000:0000:0000:0000:0000:0001";
+  auto addr = transport_layer_address::create_from_string("2001:0db8:0000:0000:0000:0000:0000:0001");
 
-  auto addr = transport_layer_address::create_from_string(ipv6_str);
-
-  // This should NOT throw and should produce a valid 128-bit string
-  std::string bitstr;
-  ASSERT_NO_THROW(bitstr = addr.to_bitstring());
-
-  ASSERT_EQ(bitstr.size(), 128);
-  ASSERT_EQ(bitstr,
-            "0010000000000001" // 2001
-            "0000110110111000" // 0db8
-            "0000000000000000" // 0000
-            "0000000000000000" // 0000
-            "0000000000000000" // 0000
-            "0000000000000000" // 0000
-            "0000000000000000" // 0000
-            "0000000000000001" // 0001
-  );
+  const std::array<uint8_t, 16> expected = {0x20, 0x01, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01};
+  auto                          bytes    = addr.to_bytes();
+  ASSERT_EQ(bytes.size(), expected.size());
+  ASSERT_TRUE(std::equal(bytes.begin(), bytes.end(), expected.begin()));
 }
 
-TEST(transport_layer_address_test, ipv6_bitstring_with_localhost)
+TEST(transport_layer_address_test, ipv6_bytes_with_localhost)
 {
-  std::string ipv6_str = "::1";
+  auto addr = transport_layer_address::create_from_string("::1");
 
-  auto addr = transport_layer_address::create_from_string(ipv6_str);
-
-  // This should NOT throw and should produce a valid 128-bit string
-  std::string bitstr;
-  ASSERT_NO_THROW(bitstr = addr.to_bitstring());
-
-  ASSERT_EQ(bitstr.size(), 128);
-  ASSERT_EQ(bitstr,
-            "0000000000000000000000000000000000000000000000000000000000000000"
-            "0000000000000000000000000000000000000000000000000000000000000001");
+  const std::array<uint8_t, 16> expected = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01};
+  auto                          bytes    = addr.to_bytes();
+  ASSERT_EQ(bytes.size(), expected.size());
+  ASSERT_TRUE(std::equal(bytes.begin(), bytes.end(), expected.begin()));
 }
 
-TEST(transport_layer_address_test, ipv6_bitstring_with_all_networks)
+TEST(transport_layer_address_test, ipv6_bytes_with_all_networks)
 {
-  std::string ipv6_str = "::";
+  auto addr = transport_layer_address::create_from_string("::");
 
-  auto addr = transport_layer_address::create_from_string(ipv6_str);
-
-  // This should NOT throw and should produce a valid 128-bit string
-  std::string bitstr;
-  ASSERT_NO_THROW(bitstr = addr.to_bitstring());
-
-  ASSERT_EQ(bitstr.size(), 128);
-  ASSERT_EQ(bitstr,
-            "0000000000000000000000000000000000000000000000000000000000000000"
-            "0000000000000000000000000000000000000000000000000000000000000000");
+  const std::array<uint8_t, 16> expected = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  auto                          bytes    = addr.to_bytes();
+  ASSERT_EQ(bytes.size(), expected.size());
+  ASSERT_TRUE(std::equal(bytes.begin(), bytes.end(), expected.begin()));
 }

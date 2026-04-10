@@ -140,11 +140,9 @@ TEST_F(f1ap_du_ue_context_modification_test,
   ASSERT_EQ(
       int_to_gtpu_teid(drb_setup.dl_up_tnl_info_to_be_setup_list[0].dl_up_tnl_info.gtp_tunnel().gtp_teid.to_number()),
       this->f1ap_du_cfg_handler.next_ue_context_update_response.drbs_setup[0].dluptnl_info_list[0].gtp_teid);
-  ASSERT_EQ(
-      drb_setup.dl_up_tnl_info_to_be_setup_list[0].dl_up_tnl_info.gtp_tunnel().transport_layer_address.to_string(),
-      this->f1ap_du_cfg_handler.next_ue_context_update_response.drbs_setup[0]
-          .dluptnl_info_list[0]
-          .tp_address.to_bitstring());
+  ASSERT_EQ(tla_from_asn1_bitstring(
+                drb_setup.dl_up_tnl_info_to_be_setup_list[0].dl_up_tnl_info.gtp_tunnel().transport_layer_address),
+            this->f1ap_du_cfg_handler.next_ue_context_update_response.drbs_setup[0].dluptnl_info_list[0].tp_address);
   ASSERT_EQ(resp->du_to_cu_rrc_info.cell_group_cfg,
             this->f1ap_du_cfg_handler.next_ue_context_update_response.cell_group_cfg);
 }

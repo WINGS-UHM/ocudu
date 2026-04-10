@@ -14,6 +14,7 @@
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ran/plmn_identity.h"
 #include "ocudu/ran/positioning/positioning_ids.h"
+#include "ocudu/ran/up_transport_layer_info.h"
 
 using namespace ocudu;
 using namespace asn1::f1ap;
@@ -318,7 +319,7 @@ static drbs_to_be_setup_item_s generate_drb_am_setup_item(drb_id_t drbid)
   drb.ul_up_tnl_info_to_be_setup_list.resize(1);
   auto& gtp_tun = drb.ul_up_tnl_info_to_be_setup_list[0].ul_up_tnl_info.set_gtp_tunnel();
   auto  addr    = transport_layer_address::create_from_string("127.0.0.1");
-  gtp_tun.transport_layer_address.from_string(addr.to_bitstring());
+  tla_to_asn1_bitstring(gtp_tun.transport_layer_address, addr);
   gtp_tun.gtp_teid.from_number(1);
 
   return drb;
@@ -496,7 +497,7 @@ static asn1::f1ap::ul_up_tnl_info_to_be_setup_list_l generate_ul_up_tnl_info_to_
   list.resize(1);
   auto& gtp_tun = list[0].ul_up_tnl_info.set_gtp_tunnel();
   auto  addr    = transport_layer_address::create_from_string("127.0.0.1");
-  gtp_tun.transport_layer_address.from_string(addr.to_bitstring());
+  tla_to_asn1_bitstring(gtp_tun.transport_layer_address, addr);
   gtp_tun.gtp_teid.from_number(1);
 
   return list;

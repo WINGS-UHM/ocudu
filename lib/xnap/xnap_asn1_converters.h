@@ -13,6 +13,7 @@
 #include "ocudu/ran/nr_cgi.h"
 #include "ocudu/ran/qos/qos_parameters.h"
 #include "ocudu/ran/s_nssai.h"
+#include "ocudu/ran/up_transport_layer_info.h"
 #include "ocudu/security/security_asn1_utils.h"
 
 namespace ocudu::ocucp {
@@ -426,7 +427,7 @@ inline void up_transport_layer_info_to_asn1(asn1::xnap::up_transport_layer_info_
 {
   asn1_up_tp_layer_info.set_gtp_tunnel();
   asn1_up_tp_layer_info.gtp_tunnel().gtp_teid.from_number(up_tp_layer_info.gtp_teid.value());
-  asn1_up_tp_layer_info.gtp_tunnel().tnl_address.from_string(up_tp_layer_info.tp_address.to_bitstring());
+  tla_to_asn1_bitstring(asn1_up_tp_layer_info.gtp_tunnel().tnl_address, up_tp_layer_info.tp_address);
 }
 
 /// \brief Converts type \c up_transport_layer_info to an ASN.1 type.
@@ -436,9 +437,8 @@ inline up_transport_layer_info
 asn1_to_up_transport_layer_info(const asn1::xnap::up_transport_layer_info_c& asn1_up_tp_layer_info)
 {
   up_transport_layer_info up_tp_layer_info;
-  up_tp_layer_info.tp_address =
-      transport_layer_address::create_from_bitstring(asn1_up_tp_layer_info.gtp_tunnel().tnl_address.to_string());
-  up_tp_layer_info.gtp_teid = gtpu_teid_t(asn1_up_tp_layer_info.gtp_tunnel().gtp_teid.to_number());
+  up_tp_layer_info.tp_address = tla_from_asn1_bitstring(asn1_up_tp_layer_info.gtp_tunnel().tnl_address);
+  up_tp_layer_info.gtp_teid   = gtpu_teid_t(asn1_up_tp_layer_info.gtp_tunnel().gtp_teid.to_number());
   return up_tp_layer_info;
 }
 

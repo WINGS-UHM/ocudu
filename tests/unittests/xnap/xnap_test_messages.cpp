@@ -35,8 +35,8 @@ xnap_message ocudu::ocucp::generate_handover_request(local_xnap_ue_id_t local_xn
   ho_request->ue_context_info_ho_request.ng_c_ue_ref = 1;
 
   ho_request->ue_context_info_ho_request.cp_tnl_info_source.set_endpoint_ip_address();
-  ho_request->ue_context_info_ho_request.cp_tnl_info_source.endpoint_ip_address().from_string(
-      transport_layer_address::create_from_string("127.0.0.1").to_bitstring());
+  tla_to_asn1_bitstring(ho_request->ue_context_info_ho_request.cp_tnl_info_source.endpoint_ip_address(),
+                        transport_layer_address::create_from_string("127.0.0.1"));
   ho_request->ue_context_info_ho_request.ue_security_cap.nr_encyption_algorithms.from_number(49152);
   ho_request->ue_context_info_ho_request.ue_security_cap.nr_integrity_protection_algorithms.from_number(49152);
   ho_request->ue_context_info_ho_request.security_info.key_ng_ran_star.from_string(

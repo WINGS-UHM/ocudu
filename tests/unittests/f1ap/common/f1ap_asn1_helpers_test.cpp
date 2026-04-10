@@ -91,8 +91,8 @@ TEST(f1ap_asn1_helpers_test, test_up_transport_layer_converter)
   up_transport_layer_info_to_asn1(asn1_transport_layer_info, up_tp_layer_info);
 
   ASSERT_EQ(up_tp_layer_info.gtp_teid, int_to_gtpu_teid(asn1_transport_layer_info.gtp_tunnel().gtp_teid.to_number()));
-  ASSERT_EQ(up_tp_layer_info.tp_address.to_bitstring(),
-            asn1_transport_layer_info.gtp_tunnel().transport_layer_address.to_string());
+  ASSERT_EQ(up_tp_layer_info.tp_address,
+            tla_from_asn1_bitstring(asn1_transport_layer_info.gtp_tunnel().transport_layer_address));
 }
 
 TEST(transport_layer_address_test, ipv6_transport_layer_address_to_asn1)
@@ -105,8 +105,8 @@ TEST(transport_layer_address_test, ipv6_transport_layer_address_to_asn1)
   up_transport_layer_info_to_asn1(asn1_transport_layer_info, up_tp_layer_info);
 
   ASSERT_EQ(up_tp_layer_info.gtp_teid, int_to_gtpu_teid(asn1_transport_layer_info.gtp_tunnel().gtp_teid.to_number()));
-  ASSERT_EQ(up_tp_layer_info.tp_address.to_bitstring(),
-            asn1_transport_layer_info.gtp_tunnel().transport_layer_address.to_string());
+  ASSERT_EQ(up_tp_layer_info.tp_address,
+            tla_from_asn1_bitstring(asn1_transport_layer_info.gtp_tunnel().transport_layer_address));
 }
 
 TEST(transport_layer_address_test, asn1_to_ipv4_transport_layer_address)
@@ -119,8 +119,8 @@ TEST(transport_layer_address_test, asn1_to_ipv4_transport_layer_address)
   up_transport_layer_info up_tp_layer_info = asn1_to_up_transport_layer_info(asn1_transport_layer_info);
 
   ASSERT_EQ(up_tp_layer_info.gtp_teid, int_to_gtpu_teid(asn1_transport_layer_info.gtp_tunnel().gtp_teid.to_number()));
-  ASSERT_EQ(up_tp_layer_info.tp_address.to_bitstring(),
-            asn1_transport_layer_info.gtp_tunnel().transport_layer_address.to_string());
+  ASSERT_EQ(up_tp_layer_info.tp_address,
+            tla_from_asn1_bitstring(asn1_transport_layer_info.gtp_tunnel().transport_layer_address));
 }
 
 TEST(transport_layer_address_test, asn1_to_ipv6_transport_layer_address)
@@ -132,6 +132,6 @@ TEST(transport_layer_address_test, asn1_to_ipv6_transport_layer_address)
   up_transport_layer_info up_tp_layer_info = asn1_to_up_transport_layer_info(asn1_transport_layer_info);
 
   ASSERT_EQ(up_tp_layer_info.gtp_teid, int_to_gtpu_teid(asn1_transport_layer_info.gtp_tunnel().gtp_teid.to_number()));
-  ASSERT_EQ(up_tp_layer_info.tp_address.to_bitstring(),
-            asn1_transport_layer_info.gtp_tunnel().transport_layer_address.to_string());
+  ASSERT_EQ(up_tp_layer_info.tp_address,
+            tla_from_asn1_bitstring(asn1_transport_layer_info.gtp_tunnel().transport_layer_address));
 }

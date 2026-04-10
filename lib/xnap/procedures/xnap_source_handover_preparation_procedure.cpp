@@ -135,8 +135,8 @@ bool xnap_source_handover_preparation_procedure::send_handover_request()
   asn1_ue_context_info.ng_c_ue_ref = request.ue_context_info_ho_request.amf_ue_id;
   // > Fill AMF address.
   asn1_ue_context_info.cp_tnl_info_source.set_endpoint_ip_address();
-  asn1_ue_context_info.cp_tnl_info_source.endpoint_ip_address().from_string(
-      request.ue_context_info_ho_request.amf_addr.to_bitstring());
+  tla_to_asn1_bitstring(asn1_ue_context_info.cp_tnl_info_source.endpoint_ip_address(),
+                        request.ue_context_info_ho_request.amf_addr);
   // > Fill UE security capabilities.
   auto& sec_cap = asn1_ue_context_info.ue_security_cap;
   sec_cap.nr_encyption_algorithms =
@@ -218,8 +218,8 @@ void xnap_source_handover_preparation_procedure::fill_asn1_pdu_session_res_list(
     asn1_pdu_session_item.ul_ng_u_tnl_at_up_f.set_gtp_tunnel();
     asn1_pdu_session_item.ul_ng_u_tnl_at_up_f.gtp_tunnel().gtp_teid.from_number(
         pdu_session_item.ul_ngu_up_tnl_info.gtp_teid.value());
-    asn1_pdu_session_item.ul_ng_u_tnl_at_up_f.gtp_tunnel().tnl_address.from_string(
-        pdu_session_item.ul_ngu_up_tnl_info.tp_address.to_bitstring());
+    tla_to_asn1_bitstring(asn1_pdu_session_item.ul_ng_u_tnl_at_up_f.gtp_tunnel().tnl_address,
+                          pdu_session_item.ul_ngu_up_tnl_info.tp_address);
     // Fill PDU session type.
     asn1_pdu_session_item.pdu_session_type = pdu_session_type_to_asn1(pdu_session_item.pdu_session_type);
 

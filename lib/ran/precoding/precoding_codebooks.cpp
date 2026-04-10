@@ -111,7 +111,7 @@ precoding_weight_matrix ocudu::make_two_layer_two_ports(unsigned i_codebook)
   static constexpr cf_t                               minus_j_dot_five = {0.0F, -0.5F};
   static constexpr std::array<std::array<cf_t, 2>, 2> codebook0 = {{{dot_five, dot_five}, {dot_five, minus_dot_five}}};
   static constexpr std::array<std::array<cf_t, 2>, 2> codebook1 = {
-      {{dot_five, dot_five}, {j_dot_five, minus_j_dot_five}}};
+      {{dot_five, j_dot_five}, {dot_five, minus_j_dot_five}}};
 
   ocudu_assert(i_codebook_range.contains(i_codebook),
                "The given codebook identifier (i.e., {}) is out of the range {}",

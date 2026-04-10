@@ -179,8 +179,10 @@ std::vector<test_grant_info> ocudu::get_ul_grants(const cell_configuration& cell
 
   // Fill PUSCHs.
   for (const ul_sched_info& pusch : ul_res.puschs) {
+    const bool is_msga_pusch = pusch.context.ue_index == INVALID_DU_UE_INDEX and
+                               not pusch.context.msg3_delay.has_value() and pusch.context.nof_retxs == 0;
     grants.emplace_back();
-    grants.back().type  = test_grant_info::UE_UL;
+    grants.back().type  = is_msga_pusch ? test_grant_info::MSGA_PUSCH : test_grant_info::UE_UL;
     grants.back().rnti  = pusch.pusch_cfg.rnti;
     grants.back().grant = get_pusch_grant_info(pusch);
   }

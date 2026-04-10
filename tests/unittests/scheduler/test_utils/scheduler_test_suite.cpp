@@ -556,6 +556,17 @@ static void assert_rar_grant_msg3_pusch_consistency(const cell_configuration&   
 
     // For all RAR grants within the same RAR, check that they are consistent with the respective Msg3 PUSCHs.
     for (const rar_ul_grant& rar_grant : rar.grants) {
+      ASSERT_EQ(tc_rntis.count(rar_grant.temp_crnti), 0) << fmt::format("Repeated TC-RNTI detected");
+      tc_rntis.emplace(rar_grant.temp_crnti);
+
+      // 2-step RACH SuccessRAR: UE's MsgA PUSCH was decoded; no Msg3 is required.
+      if (const auto* two_step = std::get_if<rar_ul_grant::two_step_info>(&rar_grant.type)) {
+        if (two_step->is_success) {
+          continue;
+        }
+      }
+
+      // 4-step RAR and 2-step FallbackRAR: a Msg3 PUSCH must be scheduled.
       ASSERT_LT(rar_grant.time_resource_assignment, pusch_td_list.size());
       uint8_t k2 = ra_helper::get_msg3_delay(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs,
                                              pusch_td_list[rar_grant.time_resource_assignment].k2);
@@ -567,9 +578,6 @@ static void assert_rar_grant_msg3_pusch_consistency(const cell_configuration&   
       ASSERT_NE(it, ul_grants.end()) << fmt::format("Msg3 was not found for the scheduled RAR grant with tc-rnti={}",
                                                     rar_grant.temp_crnti);
       assert_rar_grant_msg3_pusch_consistency(cell_cfg, rar_grant, it->pusch_cfg);
-
-      ASSERT_EQ(tc_rntis.count(rar_grant.temp_crnti), 0) << fmt::format("Repeated TC-RNTI detected");
-      tc_rntis.emplace(rar_grant.temp_crnti);
     }
   }
 }
@@ -647,6 +655,14 @@ void ocudu::test_ul_resource_grid_collisions(const cell_configuration& cell_cfg,
 
   for (const test_grant_info& test_grant : ul_grants) {
     if (test_grant.type == test_grant_info::PUCCH) {
+      continue;
+    }
+    if (test_grant.type == test_grant_info::MSGA_PUSCH) {
+      // Multiple preambles sharing the same MsgA PUSCH occasion produce duplicate ul_sched_info entries
+      // with identical resources. Fill the grid only if not already occupied (idempotent, no assert).
+      if (not grid.collides(test_grant.grant)) {
+        grid.fill(test_grant.grant);
+      }
       continue;
     }
     ASSERT_FALSE(grid.collides(test_grant.grant))

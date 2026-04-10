@@ -190,13 +190,16 @@ bool test_helper::is_valid_ul_sched_info(const ul_sched_info& grant)
   }
 
   if (grant.context.ue_index == INVALID_DU_UE_INDEX) {
-    // It is a Msg3.
+    // It is either a Msg3 (4-step RACH) or a MsgA PUSCH (2-step RACH).
+    // Msg3 first tx:  msg3_delay set,     nof_retxs == 0.
+    // Msg3 retx:      msg3_delay not set, nof_retxs > 0.
+    // MsgA PUSCH:     msg3_delay not set, nof_retxs == 0.
     TRUE_OR_RETURN(grant.pusch_cfg.harq_id == to_harq_id(0));
     TRUE_OR_RETURN(grant.pusch_cfg.nof_layers == 1);
     TRUE_OR_RETURN(grant.pusch_cfg.mcs_table == pusch_mcs_table::qam64);
     TRUE_OR_RETURN(grant.pusch_cfg.rbs.is_type1());
-    if (grant.context.nof_retxs == 0) {
-      TRUE_OR_RETURN(grant.context.msg3_delay.has_value(), "Msg3 delay should be specified for first newTx");
+    if (grant.context.nof_retxs > 0) {
+      TRUE_OR_RETURN(not grant.context.msg3_delay.has_value(), "Msg3 retx must not carry msg3_delay");
     }
   }
 

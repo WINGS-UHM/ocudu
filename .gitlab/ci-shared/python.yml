@@ -59,23 +59,29 @@
   # Doc: https://cibuildwheel.readthedocs.io/en/stable/
   # Gitlab Integration: https://cibuildwheel.readthedocs.io/en/stable/setup/#gitlab-ci
   extends: .python_publish
-  image: ubuntu:22.04
+  image: docker:24.0.7-dind
   variables:
     CIBW_ENVIRONMENT_PASS_LINUX: ""
-    # See https://github.com/docker-library/docker/pull/166
-    DOCKER_HOST: tcp://docker:2375/
-    DOCKER_DRIVER: overlay2
-    DOCKER_TLS_CERTDIR: ""
-  services:
-    - name: docker:20.10.15-dind
-      alias: docker
-      entrypoint: ["env", "-u", "DOCKER_HOST"]
-      command: ["dockerd-entrypoint.sh"]
+  before_script:
+    - |
+      export DOCKER_HOST=unix:///var/run/docker.sock
+      export DOCKER_TLS_CERTDIR=""
+      dockerd-entrypoint.sh --host=${DOCKER_HOST} --tls=false 2>&1 &
+    - |
+      i=0
+      while ! docker info >/dev/null 2>&1; do
+        i=$((i+1))
+        if [ "$i" -ge 60 ]; then
+          echo "ERROR: dockerd not ready after 60s"
+          exit 1
+        fi
+        sleep 1
+      done
   script:
     - *setup_env_variables
     # Install tools
-    - DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends curl apt-transport-https ca-certificates python3-pip python3-venv
-    - pip install cibuildwheel build twine
+    - apk add --no-cache python3 py3-pip py3-virtualenv curl ca-certificates bash
+    - python3 -m pip install --no-cache-dir cibuildwheel build twine
     # Build sdist and check if already uploaded to the repo
     - cd $PY_DIR
     - python3 -m build --sdist
@@ -88,7 +94,6 @@
     # Exit 0 if already exists
     - (pip index versions ${PY_LIB_NAME} --extra-index-url ${PIP_EXTRA_INDEX_URL} | grep "$VERSION") && exit 0 || true
     # If it's a new package/version, setup cibuildwheel and run it. If it's a pure python wheel, run build instead.
-    - curl -sSL https://get.docker.com/ | sh
     - cibuildwheel --platform linux --output-dir dist || python3 -m build --wheel
     # Upload generated wheels & sdist
     - twine upload --verbose --disable-progress-bar --repository-url ${TWINE_REPO} dist/*

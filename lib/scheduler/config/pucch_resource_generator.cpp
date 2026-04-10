@@ -8,6 +8,7 @@
 #include "ocudu/ran/pucch/pucch_mapping.h"
 #include "ocudu/scheduler/config/pucch_resource_builder_params.h"
 #include "ocudu/support/math/math_utils.h"
+#include "ocudu/support/ocudu_assert.h"
 #include "fmt/ranges.h"
 #include <variant>
 
@@ -170,6 +171,11 @@ static bool validate_generated_list(const std::vector<pucch_resource>&   res_lis
 
   std::array<unsigned, 5> res_count_by_format{0, 0, 0, 0, 0};
   for (const auto& res : res_list) {
+    if (res.res_id.cell_res_id >= res_list.size()) {
+      ocudu_assertion_failure("Invalid cell resource ID {} in the generated resource list", res.res_id.cell_res_id);
+      return false;
+    }
+
     switch (res.format) {
       case pucch_format::FORMAT_0:
         ++res_count_by_format[0];
@@ -187,6 +193,8 @@ static bool validate_generated_list(const std::vector<pucch_resource>&   res_lis
         ++res_count_by_format[4];
         break;
       default:
+        ocudu_assertion_failure("Invalid PUCCH Format in the generated resource list");
+        return false;
         break;
     }
   }
@@ -235,8 +243,12 @@ public:
   pucch_resource get(unsigned bwp_size_rbs) const
   {
     pucch_resource res;
-    res.starting_sym_idx = state.start_sym;
-    res.nof_symbols      = nof_syms;
+    // Format and resource ID will be set later, assign invalid values to avoid uninitialized variable warnings.
+    res.format                               = pucch_format::NOF_FORMATS;
+    static constexpr unsigned invalid_res_id = std::numeric_limits<unsigned>::max();
+    res.res_id                               = {invalid_res_id, invalid_res_id};
+    res.starting_sym_idx                     = state.start_sym;
+    res.nof_symbols                          = nof_syms;
     if (intraslot_freq_hop) {
       res.starting_prb = state.high_start_prb ? bwp_size_rbs - state.prb_high_off - nof_prbs : state.prb_low_off;
       res.second_hop_prb.emplace(state.high_start_prb ? state.prb_low_off

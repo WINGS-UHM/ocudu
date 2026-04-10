@@ -92,6 +92,8 @@ private:
       /// CRC outcome for the MsgA PUSCH.
       /// nullopt = indication not yet received; true = CRC OK (SuccessRAR); false = CRC KO (FallbackRAR).
       std::optional<bool> crc_result;
+      /// Set to true once the MsgB grant for this preamble has been scheduled.
+      bool msgb_scheduled = false;
 
       preamble_ctx(const rach_indication_message::preamble& info_) : info(info_) {}
     };

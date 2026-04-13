@@ -160,6 +160,12 @@ struct test_params {
   bool                                   sched_sib1   = false;
 };
 
+void PrintTo(const test_params& p, std::ostream* os)
+{
+  *os << "fr=" << to_string(p.fr) << " min_k=" << p.min_k << " tdd=" << (p.tdd_cfg.has_value() ? "yes" : "no")
+      << " csi_rs=" << p.sched_csi_rs << " sib1=" << p.sched_sib1;
+}
+
 /// Test suite common to different FRs, duplex modes, k values.
 class ra_scheduler_common_test : public ra_scheduler_setup, public ::testing::TestWithParam<test_params>
 {

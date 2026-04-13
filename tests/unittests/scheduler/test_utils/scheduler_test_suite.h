@@ -105,15 +105,6 @@ void test_scheduler_result_consistency(const cell_configuration&      cell_cfg,
 /// \brief Verifies that the cell resource grid PRBs and symbols was filled with the allocated PDSCHs.
 void assert_dl_resource_grid_filled(const cell_configuration& cell_cfg, const cell_resource_allocator& cell_res_grid);
 
-/// \brief Verifies that the cell resource grid PRBs and symbols was filled with the allocated PUCCHs.
-// TODO: Replace this function with a more thorough check.
-bool assert_ul_resource_grid_filled(const cell_configuration&      cell_cfg,
-                                    const cell_resource_allocator& cell_res_grid,
-                                    unsigned                       tx_delay,
-                                    bool                           expect_grants = false);
-
-bool test_res_grid_has_re_set(const cell_resource_allocator& cell_res_grid, grant_info grant, unsigned tx_delay);
-
 struct ul_crc_indication;
 
 namespace test_helper {
@@ -134,10 +125,14 @@ public:
   unsigned nof_msg3_newtxs() const { return msg3_newtx_counter; }
   unsigned nof_msg3_retxs() const { return msg3_retx_counter; }
   unsigned nof_msg3_acked() const { return msg3_ack_counter; }
+  unsigned nof_msga_puschs() const { return msga_pusch_counter; }
+  unsigned nof_success_rars() const { return success_rar_counter; }
+  unsigned nof_fallback_rars() const { return fallback_rar_counter; }
 
   bool has_pending_ra() const
   {
-    return not pending_rars.empty() or not pending_preambles.empty() or not pending_msg3_retxs.empty();
+    return not pending_rars.empty() or not pending_preambles.empty() or not pending_msg3_retxs.empty() or
+           not pending_msga_preambles.empty();
   }
 
 private:
@@ -162,20 +157,38 @@ private:
     slot_point           pdcch_slot;
     slot_point           pusch_slot;
   };
+  /// Tracks a 2-step RACH preamble from PRACH detection through MsgA PUSCH and MsgB scheduling.
+  struct msga_preamble_context {
+    rnti_t msgb_rnti;
+    rnti_t tc_rnti;
+    /// Expected MsgA PUSCH slot (prach_slot + td_offset).
+    slot_point pusch_slot;
+    /// End of the MsgB response window.
+    slot_point msgb_window_stop;
+    /// Whether the MsgA PUSCH was scheduled.
+    bool pusch_sched = false;
+    bool msgb_sched  = false;
+  };
 
   bool is_expired(const preamble_context& ctxt, slot_point sl_tx) const;
+  bool is_msga_preamble(uint8_t preamble_id) const;
 
   const cell_configuration& cell_cfg;
+  unsigned                  prach_duration_slots = 0;
 
   unsigned ra_dl_pdcch_ack_counter = 0;
   unsigned rar_counter             = 0;
   unsigned msg3_newtx_counter      = 0;
   unsigned msg3_retx_counter       = 0;
   unsigned msg3_ack_counter        = 0;
+  unsigned msga_pusch_counter      = 0;
+  unsigned success_rar_counter     = 0;
+  unsigned fallback_rar_counter    = 0;
 
-  std::deque<rar_context>       pending_rars;
-  std::deque<preamble_context>  pending_preambles;
-  std::deque<msg3_retx_context> pending_msg3_retxs;
+  std::deque<rar_context>           pending_rars;
+  std::deque<preamble_context>      pending_preambles;
+  std::deque<msg3_retx_context>     pending_msg3_retxs;
+  std::deque<msga_preamble_context> pending_msga_preambles;
 };
 
 } // namespace test_helper

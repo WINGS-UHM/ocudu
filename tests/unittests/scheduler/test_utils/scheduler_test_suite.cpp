@@ -15,6 +15,7 @@
 #include "ocudu/ran/pdcch/dci_packing.h"
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_cyclic_shifts.h"
+#include "ocudu/ran/prach/prach_preamble_information.h"
 #include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/ran/pucch/pucch_constants.h"
 #include "ocudu/ran/resource_allocation/ofdm_symbol_range.h"
@@ -725,32 +726,6 @@ void ocudu::assert_dl_resource_grid_filled(const cell_configuration&      cell_c
   }
 }
 
-/// \brief Verifies that the cell resource grid PRBs and symbols was filled with the allocated PUCCHs.
-bool ocudu::assert_ul_resource_grid_filled(const cell_configuration&      cell_cfg,
-                                           const cell_resource_allocator& cell_res_grid,
-                                           unsigned                       tx_delay,
-                                           bool                           expect_grants)
-{
-  // The function get_ul_grants() returns 2 test_grant_info per pucch_info if intra_slot_freq_hopping is enabled.
-  std::vector<test_grant_info> ul_grants = get_ul_grants(cell_cfg, cell_res_grid[tx_delay].result.ul);
-  if (expect_grants and ul_grants.empty()) {
-    return false;
-  }
-  for (const test_grant_info& test_grant : ul_grants) {
-    if (test_grant.type == ocudu::test_grant_info::UE_UL || test_grant.type == ocudu::test_grant_info::PUCCH) {
-      if (not cell_res_grid[tx_delay].ul_res_grid.all_set(test_grant.grant)) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool ocudu::test_res_grid_has_re_set(const cell_resource_allocator& cell_res_grid, grant_info grant, unsigned tx_delay)
-{
-  return cell_res_grid[tx_delay].ul_res_grid.all_set(grant);
-}
-
 void ocudu::test_scheduler_result_consistency(const cell_configuration&      cell_cfg,
                                               const cell_resource_allocator& cell_res_grid)
 {
@@ -774,14 +749,6 @@ static unsigned get_ra_slot_index(const cell_configuration& cell_cfg, slot_point
                  .format)
              ? rach_slot_rx.subframe_index()
              : rach_slot_rx.slot_index();
-}
-
-/// Helper to determine the RA-RNTI of a given RACH occasion.
-static rnti_t
-get_ra_rnti(const cell_configuration& cell_cfg, slot_point rach_slot_rx, const rach_indication_message::occasion& occ)
-{
-  const unsigned slot_idx = get_ra_slot_index(cell_cfg, rach_slot_rx);
-  return ra_helper::get_ra_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
 }
 
 static slot_interval get_rar_window(const cell_configuration& cell_cfg, slot_point rach_slot_rx)
@@ -884,19 +851,37 @@ static bool is_msg3_retx_consistent_with_ul_pdcch(const cell_configuration&   ce
          dci.redundancy_version == ulgrant.pusch_cfg.rv_index;
 }
 
-test_helper::ra_scheduler_tracker::ra_scheduler_tracker(const cell_configuration& cell_cfg_) : cell_cfg(cell_cfg_) {}
+test_helper::ra_scheduler_tracker::ra_scheduler_tracker(const cell_configuration& cell_cfg_) : cell_cfg(cell_cfg_)
+{
+  const rach_config_common& rach_cfg  = *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+  const prach_configuration prach_cfg = prach_configuration_get(band_helper::get_freq_range(cell_cfg.band()),
+                                                                band_helper::get_duplex_mode(cell_cfg.band()),
+                                                                rach_cfg.rach_cfg_generic.prach_config_index);
+  prach_duration_slots                = get_prach_duration_info(prach_cfg, cell_cfg.scs_common()).prach_length_slots;
+}
 
 void test_helper::ra_scheduler_tracker::on_new_rach_ind(const rach_indication_message& ind)
 {
+  const rach_config_common& rach_cfg = *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
   for (const auto& occ : ind.occasions) {
-    const rnti_t        ra_rnti    = get_ra_rnti(cell_cfg, ind.slot_rx, occ);
     const slot_interval rar_window = get_rar_window(cell_cfg, ind.slot_rx);
+    const unsigned      slot_idx   = get_ra_slot_index(cell_cfg, ind.slot_rx);
     for (const auto& preamb : occ.preambles) {
-      preamble_context ctxt;
-      ctxt.ra_rnti  = ra_rnti;
-      ctxt.preamble = preamb;
-      ctxt.rar_win  = rar_window;
-      pending_preambles.push_back(ctxt);
+      if (is_msga_preamble(preamb.preamble_id)) {
+        const rach_config_common_two_step& two_step_cfg = *rach_cfg.two_step_rach_cfg;
+        msga_preamble_context              ctxt;
+        ctxt.msgb_rnti        = ra_helper::get_msgb_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
+        ctxt.tc_rnti          = preamb.tc_rnti;
+        ctxt.pusch_slot       = ind.slot_rx + two_step_cfg.pusch.td_offset;
+        ctxt.msgb_window_stop = ind.slot_rx + prach_duration_slots + two_step_cfg.msgB_response_window_slots;
+        pending_msga_preambles.push_back(ctxt);
+      } else {
+        preamble_context ctxt;
+        ctxt.ra_rnti  = ra_helper::get_ra_rnti(slot_idx, occ.start_symbol, occ.frequency_index);
+        ctxt.preamble = preamb;
+        ctxt.rar_win  = rar_window;
+        pending_preambles.push_back(ctxt);
+      }
     }
   }
 }
@@ -923,13 +908,21 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
 {
   for (auto& dl_pdcch : result.dl.dl_pdcchs) {
     if (dl_pdcch.dci.type != dci_dl_rnti_config_type::ra_f1_0) {
-      // Skip PDCCHs that are not for RAR.
+      // Skip PDCCHs that are not for RAR or MsgB.
       continue;
     }
-    auto it = std::find_if(pending_preambles.begin(),
-                           pending_preambles.end(),
-                           [&dl_pdcch](const preamble_context& preamb) { return preamb.ra_rnti == dl_pdcch.ctx.rnti; });
-    ASSERT_NE(it, pending_preambles.end()) << "RA-RNTI scheduled with no associated RACH preamble";
+    // Determine whether this is a MsgB PDCCH (2-step) or a regular RAR PDCCH (4-step).
+    const bool is_msgb =
+        std::any_of(pending_msga_preambles.begin(),
+                    pending_msga_preambles.end(),
+                    [&dl_pdcch](const msga_preamble_context& p) { return p.msgb_rnti == dl_pdcch.ctx.rnti; });
+    if (not is_msgb) {
+      auto it =
+          std::find_if(pending_preambles.begin(), pending_preambles.end(), [&dl_pdcch](const preamble_context& preamb) {
+            return preamb.ra_rnti == dl_pdcch.ctx.rnti;
+          });
+      ASSERT_NE(it, pending_preambles.end()) << "RA-RNTI scheduled with no associated RACH preamble";
+    }
     ++ra_dl_pdcch_ack_counter;
 
     const auto& td_res =
@@ -943,7 +936,7 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
   }
 
   for (auto& rar : result.dl.rar_grants) {
-    // Check if the DL PDCCH matches the RAR content.
+    // Check if the DL PDCCH matches the RAR/MsgB content.
     auto expected_rar_it =
         std::find_if(pending_rars.begin(), pending_rars.end(), [&sl_tx, &rar](const rar_context& pending) {
           return pending.rar_slot == sl_tx and pending.pdcch.ctx.rnti == rar.pdsch_cfg.rnti;
@@ -953,24 +946,51 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
     expected_rar_it->scheduled = true;
     ++rar_counter;
 
+    const auto pusch_td_list =
+        get_pusch_time_domain_resource_table(*cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common);
     for (const auto& ul_grant : rar.grants) {
-      // Find RAR UL grant with matching and RA-RNTI and TC-RNTI.
-      auto it = std::find_if(
-          pending_preambles.begin(), pending_preambles.end(), [&rar, &ul_grant](const preamble_context& preamb) {
-            return preamb.ra_rnti == rar.pdsch_cfg.rnti and preamb.preamble.tc_rnti == ul_grant.temp_crnti;
-          });
-      ASSERT_NE(it, pending_preambles.end()) << "RAR scheduled with an RAR UL grant with no associated RACH preamble";
+      if (const auto* two_step = std::get_if<rar_ul_grant::two_step_info>(&ul_grant.type)) {
+        // 2-step RACH MsgB grant (SuccessRAR or FallbackRAR).
+        auto msga_it =
+            std::find_if(pending_msga_preambles.begin(),
+                         pending_msga_preambles.end(),
+                         [&ul_grant](const msga_preamble_context& p) { return p.tc_rnti == ul_grant.temp_crnti; });
+        ASSERT_NE(msga_it, pending_msga_preambles.end()) << "MsgB grant has no associated MsgA preamble";
+        ASSERT_TRUE(msga_it->pusch_sched) << "MsgB cannot be scheduled before MsgA PUSCH";
+        ASSERT_FALSE(msga_it->msgb_sched) << "Duplicate MsgB grant for the same MsgA preamble";
+        ASSERT_LE(sl_tx, msga_it->msgb_window_stop) << "MsgB scheduled outside of MsgB window";
+        msga_it->msgb_sched = true;
 
-      // RAR UL grant is scheduled for newTx.
-      auto& ctxt = *it;
-      ASSERT_FALSE(ctxt.rar_slot.valid()) << "Duplicate RAR per RACH preamble";
-      ctxt.rar_slot = sl_tx;
-      ASSERT_TRUE(ctxt.rar_win.contains(sl_tx)) << "RAR outside of RAR window";
-      ASSERT_TRUE(is_rar_ul_grant_consistent_with_rach_preamble(cell_cfg, ul_grant, ctxt.preamble));
-      auto td_list = get_pusch_time_domain_resource_table(*cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common);
-      ctxt.first_msg3_slot = ctxt.rar_slot + ra_helper::get_msg3_delay(cell_cfg.scs_common(),
-                                                                       td_list[ul_grant.time_resource_assignment].k2);
-      ctxt.first_grant     = ul_grant;
+        if (two_step->is_success) {
+          ++success_rar_counter;
+        } else {
+          // FallbackRAR: set up Msg3 tracking in pending_preambles so the rest of the Msg3 logic applies.
+          ++fallback_rar_counter;
+          preamble_context& p = pending_preambles.emplace_back();
+          p.preamble.tc_rnti  = ul_grant.temp_crnti;
+          p.rar_slot          = sl_tx;
+          p.first_msg3_slot   = sl_tx + ra_helper::get_msg3_delay(cell_cfg.scs_common(),
+                                                                pusch_td_list[ul_grant.time_resource_assignment].k2);
+          p.first_grant       = ul_grant;
+        }
+      } else {
+        // 4-step RAR UL grant: find matching RACH preamble.
+        auto it = std::find_if(
+            pending_preambles.begin(), pending_preambles.end(), [&rar, &ul_grant](const preamble_context& preamb) {
+              return preamb.ra_rnti == rar.pdsch_cfg.rnti and preamb.preamble.tc_rnti == ul_grant.temp_crnti;
+            });
+        ASSERT_NE(it, pending_preambles.end()) << "RAR scheduled with an RAR UL grant with no associated RACH preamble";
+
+        auto& ctxt = *it;
+        ASSERT_FALSE(ctxt.rar_slot.valid()) << "Duplicate RAR per RACH preamble";
+        ctxt.rar_slot = sl_tx;
+        ASSERT_TRUE(ctxt.rar_win.contains(sl_tx)) << "RAR outside of RAR window";
+        ASSERT_TRUE(is_rar_ul_grant_consistent_with_rach_preamble(cell_cfg, ul_grant, ctxt.preamble));
+        ctxt.first_msg3_slot =
+            ctxt.rar_slot +
+            ra_helper::get_msg3_delay(cell_cfg.scs_common(), pusch_td_list[ul_grant.time_resource_assignment].k2);
+        ctxt.first_grant = ul_grant;
+      }
     }
   }
 
@@ -1008,41 +1028,51 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
   }
 
   for (auto& pusch : result.ul.puschs) {
-    const bool is_msg3 = pusch.context.ue_index == INVALID_DU_UE_INDEX;
-    if (not is_msg3) {
+    if (pusch.context.ue_index != INVALID_DU_UE_INDEX) {
       continue;
     }
 
-    // Search respective RACH preamble.
-    auto it =
-        std::find_if(pending_preambles.begin(), pending_preambles.end(), [&pusch](const preamble_context& preamb) {
-          return pusch.pusch_cfg.rnti == preamb.preamble.tc_rnti;
-        });
-    ASSERT_NE(it, pending_preambles.end()) << "RAR UL grant has no associated RACH preamble";
-    auto& ctxt = *it;
-    ASSERT_TRUE(ctxt.rar_slot.valid()) << "RAR UL grant before RAR";
-    ctxt.last_msg3_slot = sl_tx;
-
-    if (pusch.context.nof_retxs == 0) {
-      // It is the first Msg3 tx.
-      ++msg3_newtx_counter;
-      ASSERT_EQ(ctxt.first_msg3_slot, sl_tx);
-      ASSERT_EQ(ctxt.first_msg3_slot - ctxt.rar_slot, *pusch.context.msg3_delay);
-      ASSERT_TRUE(is_msg3_newtx_consistent_with_rar_ul_grant(cell_cfg, pusch, ctxt.first_grant));
+    if (not pusch.context.msg3_delay.has_value() and pusch.context.nof_retxs == 0) {
+      // MsgA PUSCH (2-step RACH): find in pending_msga_preambles.
+      auto it = std::find_if(pending_msga_preambles.begin(),
+                             pending_msga_preambles.end(),
+                             [&pusch](const msga_preamble_context& p) { return p.tc_rnti == pusch.pusch_cfg.rnti; });
+      ASSERT_NE(it, pending_msga_preambles.end()) << "MsgA PUSCH has no associated MsgA preamble";
+      ASSERT_EQ(it->pusch_slot, sl_tx) << "MsgA PUSCH scheduled in unexpected slot";
+      it->pusch_sched = true;
+      ++msga_pusch_counter;
     } else {
-      ++msg3_retx_counter;
-      ASSERT_GT(sl_tx, ctxt.first_msg3_slot);
-
-      // PDCCH and Msg3 PUSCH match in content.
-      auto expected_msg3_it = std::find_if(
-          pending_msg3_retxs.begin(), pending_msg3_retxs.end(), [&pusch, sl_tx](const msg3_retx_context& pending_msg3) {
-            return pending_msg3.pdcch.ctx.rnti == pusch.pusch_cfg.rnti and pending_msg3.pusch_slot == sl_tx;
+      // Msg3 PUSCH (4-step RACH or FallbackRAR): find in pending_preambles.
+      auto it =
+          std::find_if(pending_preambles.begin(), pending_preambles.end(), [&pusch](const preamble_context& preamb) {
+            return pusch.pusch_cfg.rnti == preamb.preamble.tc_rnti;
           });
-      ASSERT_NE(expected_msg3_it, pending_msg3_retxs.end()) << "Msg3 reTx PUSCH has no associated UL PDCCH";
-      ASSERT_TRUE(is_msg3_retx_consistent_with_ul_pdcch(cell_cfg, pusch, expected_msg3_it->pdcch));
+      ASSERT_NE(it, pending_preambles.end()) << "Msg3 PUSCH has no associated RACH preamble";
+      auto& ctxt          = *it;
+      ctxt.last_msg3_slot = sl_tx;
 
-      // We can now erase this pending Msg3 reTx entry.
-      pending_msg3_retxs.erase(expected_msg3_it);
+      if (pusch.context.nof_retxs == 0) {
+        // First Msg3 tx.
+        ASSERT_TRUE(ctxt.rar_slot.valid()) << "Msg3 PUSCH before RAR";
+        ++msg3_newtx_counter;
+        ASSERT_EQ(ctxt.first_msg3_slot, sl_tx);
+        ASSERT_EQ(ctxt.first_msg3_slot - ctxt.rar_slot, *pusch.context.msg3_delay);
+        ASSERT_TRUE(is_msg3_newtx_consistent_with_rar_ul_grant(cell_cfg, pusch, ctxt.first_grant));
+      } else {
+        ++msg3_retx_counter;
+        ASSERT_GT(sl_tx, ctxt.first_msg3_slot);
+
+        // PDCCH and Msg3 PUSCH match in content.
+        auto expected_msg3_it = std::find_if(pending_msg3_retxs.begin(),
+                                             pending_msg3_retxs.end(),
+                                             [&pusch, sl_tx](const msg3_retx_context& pending_msg3) {
+                                               return pending_msg3.pdcch.ctx.rnti == pusch.pusch_cfg.rnti and
+                                                      pending_msg3.pusch_slot == sl_tx;
+                                             });
+        ASSERT_NE(expected_msg3_it, pending_msg3_retxs.end()) << "Msg3 reTx PUSCH has no associated UL PDCCH";
+        ASSERT_TRUE(is_msg3_retx_consistent_with_ul_pdcch(cell_cfg, pusch, expected_msg3_it->pdcch));
+        pending_msg3_retxs.erase(expected_msg3_it);
+      }
     }
   }
 
@@ -1052,6 +1082,7 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
     pending_rars.pop_front();
   }
 
+  // Look for pending Msg3 reTxs, whose PUSCH was not scheduled.
   for (auto it = pending_msg3_retxs.begin(); it != pending_msg3_retxs.end(); ++it) {
     ASSERT_GT(it->pusch_slot, sl_tx) << fmt::format(
         "UL PDCCH in slot {} did not lead to a Msg3 reTx PUSCH in slot {} for tc-rnti={}",
@@ -1064,6 +1095,29 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
   while (not pending_preambles.empty() and is_expired(pending_preambles.front(), sl_tx)) {
     pending_preambles.pop_front();
   }
+
+  // Pop expired MsgA preambles (MsgB window passed without scheduling or MsgB was scheduled).
+  auto new_end =
+      std::remove_if(pending_msga_preambles.begin(),
+                     pending_msga_preambles.end(),
+                     [sl_tx](const msga_preamble_context& p) { return p.msgb_sched or p.msgb_window_stop < sl_tx; });
+  pending_msga_preambles.erase(new_end, pending_msga_preambles.end());
+}
+
+bool test_helper::ra_scheduler_tracker::is_msga_preamble(uint8_t preamble_id) const
+{
+  const rach_config_common& rach_cfg = *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+  if (not rach_cfg.two_step_rach_cfg.has_value()) {
+    return false;
+  }
+  const auto     ssb_per_ro_idx    = static_cast<unsigned>(rach_cfg.nof_ssb_per_ro);
+  const auto     one_idx           = static_cast<unsigned>(ssb_per_rach_occasions::one);
+  const unsigned nof_ssbs_per_ro   = ssb_per_ro_idx >= one_idx ? (1U << (ssb_per_ro_idx - one_idx)) : 1U;
+  const unsigned preambles_per_ssb = rach_cfg.total_nof_ra_preambles / nof_ssbs_per_ro;
+  const unsigned local_id          = preamble_id % preambles_per_ssb;
+  return local_id >= rach_cfg.nof_cb_preambles_per_ssb and
+         local_id < static_cast<unsigned>(rach_cfg.nof_cb_preambles_per_ssb) +
+                        rach_cfg.two_step_rach_cfg->cb_preambles_per_ssb_per_shared_ro;
 }
 
 bool test_helper::ra_scheduler_tracker::is_expired(const preamble_context& ctxt, slot_point sl_tx) const

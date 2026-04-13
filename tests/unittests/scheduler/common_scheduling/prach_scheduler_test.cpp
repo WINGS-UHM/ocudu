@@ -193,6 +193,12 @@ protected:
     return grant_info{cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs, prach_symbols, crbs};
   }
 
+  static bool
+  test_res_grid_has_re_set(const cell_resource_allocator& cell_res_grid, grant_info grant, unsigned tx_delay)
+  {
+    return cell_res_grid[tx_delay].ul_res_grid.all_set(grant);
+  }
+
   prach_scheduler           prach_sch;
   const prach_configuration prach_cfg;
   const unsigned            prach_repetition_period;

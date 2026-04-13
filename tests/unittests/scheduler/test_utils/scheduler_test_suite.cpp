@@ -1038,7 +1038,7 @@ void test_helper::ra_scheduler_tracker::on_new_result(slot_point sl_tx, const sc
                              pending_msga_preambles.end(),
                              [&pusch](const msga_preamble_context& p) { return p.tc_rnti == pusch.pusch_cfg.rnti; });
       ASSERT_NE(it, pending_msga_preambles.end()) << "MsgA PUSCH has no associated MsgA preamble";
-      ASSERT_EQ(it->pusch_slot, sl_tx) << "MsgA PUSCH scheduled in unexpected slot";
+      ASSERT_EQ(it->pusch_slot, sl_tx) << "MsgA PUSCH scheduled in slot not matching the TD offset";
       it->pusch_sched = true;
       ++msga_pusch_counter;
     } else {

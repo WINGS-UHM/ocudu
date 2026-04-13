@@ -227,7 +227,7 @@ private:
   const ue_configuration        ue_config;
   const up_resource_manager_cfg up_config;
   const security_manager_config sec_config;
-  const unsigned                max_nof_ues;
+  const uint32_t                max_nof_ues;
 
   // Manager of UE task schedulers.
   ue_task_scheduler_manager ue_task_scheds;

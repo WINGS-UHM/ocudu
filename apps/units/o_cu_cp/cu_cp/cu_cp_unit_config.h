@@ -364,7 +364,7 @@ struct cu_cp_unit_config {
   /// Maximum number of CU-UPs.
   uint16_t max_nof_cu_ups = 6;
   /// Maximum number of UEs.
-  uint64_t max_nof_ues = 8192;
+  uint32_t max_nof_ues = 8192;
   /// Maximum number of DRBs per UE.
   uint8_t max_nof_drbs_per_ue = 8;
   /// Inactivity timer in seconds.

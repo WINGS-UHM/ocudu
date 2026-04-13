@@ -60,7 +60,7 @@ struct cu_cp_configuration {
     /// Maximum number of CU-UP connections that the CU-CP may accept.
     unsigned max_nof_cu_ups = 6;
     /// Maximum number of UEs that the CU-CP may accept.
-    unsigned max_nof_ues = 8192;
+    uint32_t max_nof_ues = 8192;
     /// Maximum number of DRBs per UE that the CU-CP will configure.
     uint8_t max_nof_drbs_per_ue = 8;
   };

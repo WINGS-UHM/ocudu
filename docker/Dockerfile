@@ -4,13 +4,15 @@
 
 # Build args
 ################
-# OS_VERSION            Ubuntu OS version
+# OS                    Base image (Docker Hub name), e.g. ubuntu or debian
+# OS_VERSION            Image tag, e.g. 24.04 or bookworm (must match OS)
 # UHD_VERSION           UHD version number
 # DPDK_VERSION          DPDK version number
 # MARCH                 gcc/clang compatible arch
 # NUM_JOBS              Number or empty for all
 # EXTRA_CMAKE_ARGS      Extra flags for OCUDU
 
+ARG OS=ubuntu
 ARG OS_VERSION=24.04
 ARG UHD_VERSION=4.7.0.0
 ARG DPDK_VERSION=24.11.2
@@ -22,7 +24,7 @@ ARG TARGETARCH
 # Stage 1: Build #
 ##################
 
-FROM ubuntu:$OS_VERSION AS builder-base
+FROM ${OS}:${OS_VERSION} AS builder-base
 
 # Adding the complete repo to the context, in /src folder
 ADD . /src
@@ -103,7 +105,7 @@ RUN cp /src/build/apps/cu/ocu                     /tmp/ocu                     &
 # Stage 2: Run #
 ################
 
-FROM ubuntu:$OS_VERSION AS runtime
+FROM ${OS}:${OS_VERSION} AS runtime
 
 ARG UHD_VERSION
 ARG DPDK_VERSION

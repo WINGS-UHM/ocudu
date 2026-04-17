@@ -98,6 +98,40 @@ remote_control:
 
 `gnb` and `du` services already have those options configured in their respective docker-compose.yml files.
 
+### Base image: `OS` and `OS_VERSION`
+
+The gNB image (`docker/Dockerfile`) is built from `${OS}:${OS_VERSION}`. Defaults are **ubuntu** and **24.04**. Override them when you run Compose so the build matches another Debian-based image (for example **debian:bookworm**).
+
+**Using environment variables** (recommended; works with any `docker compose` command that builds `gnb`):
+
+```bash
+# Debian bookworm instead of Ubuntu
+OS=debian OS_VERSION=bookworm docker compose -f docker/docker-compose.yml build gnb
+
+# Another Ubuntu LTS tag
+OS=ubuntu OS_VERSION=22.04 docker compose -f docker/docker-compose.yml up --build
+```
+
+**Using a `.env` file** in the `docker/` directory (or project root, depending on where you run Compose from): add lines such as:
+
+```dotenv
+OS=debian
+OS_VERSION=bookworm
+```
+
+Then run `docker compose` as usual; Compose substitutes these into `docker-compose.yml` / `docker-compose.split.yml` build args.
+
+**Using `docker build` directly** (from the repository root):
+
+```bash
+docker build -f docker/Dockerfile \
+  --build-arg OS=debian \
+  --build-arg OS_VERSION=bookworm \
+  ..
+```
+
+The install scripts under `docker/scripts/` dispatch on `/etc/os-release` (`ID=debian` vs `ID=ubuntu`, etc.). Choosing `OS`/`OS_VERSION` only selects the base image; the same script logic applies as long as the distribution is one of the supported families.
+
 ### Customizations
 
 - Default docker compose uses `configs/gnb_rf_b200_tdd_n78_20mhz.yml` config file. You can change it by setting the variable `${GNB_CONFIG_PATH}` in the shell, in the `docker compose up` command line or using the existing env-file `.env`. More info about how to do it in docker documentation here: [https://docs.docker.com/compose/environment-variables/set-environment-variables/](https://docs.docker.com/compose/environment-variables/set-environment-variables/)

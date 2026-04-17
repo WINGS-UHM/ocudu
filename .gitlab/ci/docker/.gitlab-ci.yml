@@ -106,9 +106,12 @@ telegraf version changed:
       fi
       export CPU_JOBS
 
+# docker/Dockerfile ARG OS / OS_VERSION are forwarded via docker-compose.yml (${OS}, ${OS_VERSION}). CI pins ubuntu:24.04.
 gnb docker compose:
   extends: .docker compose
   variables:
+    OS: ubuntu
+    OS_VERSION: "24.04"
     DOCKER_UHD_VERSION: "4.7.0.0"
     DOCKER_DPDK_VERSION: "24.11.2"
   rules:

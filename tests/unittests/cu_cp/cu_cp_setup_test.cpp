@@ -7,11 +7,13 @@
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/f1ap/f1ap_test_messages.h"
 #include "tests/test_doubles/ngap/ngap_test_message_validators.h"
+#include "ocudu/adt/byte_buffer.h"
 #include "ocudu/asn1/f1ap/f1ap_pdu_contents_ue.h"
 #include "ocudu/asn1/rrc_nr/dl_ccch_msg.h"
 #include "ocudu/f1ap/f1ap_message.h"
 #include "ocudu/ngap/ngap_message.h"
 #include "ocudu/ran/plmn_identity.h"
+#include "ocudu/support/error_handling.h"
 #include <gtest/gtest.h>
 
 using namespace ocudu;
@@ -201,6 +203,30 @@ public:
     return true;
   }
 
+  [[nodiscard]] bool send_rrc_setup_complete_and_await_f1ap_ue_context_release_command()
+  {
+    report_fatal_error_if_not(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu),
+                              "there are still F1AP DL messages to pop from DU");
+    report_fatal_error_if_not(not this->get_amf().try_pop_rx_pdu(ngap_pdu),
+                              "there are still NGAP messages to pop from AMF");
+
+    // Inject UL RRC Message with RRC Setup Complete and wait for F1AP UE Context Release Command.
+    f1ap_message ul_rrc_msg = test_helpers::generate_ul_rrc_message_transfer(
+        du_ue_f1ap_id,
+        cu_ue_id.value(),
+        srb_id_t::srb1,
+        make_byte_buffer("00001000465f80105e400340667e483c3fc00000001826160b813c1c3c3c0000000000").value());
+    test_logger.info("Injecting UL RRC message (RRC Setup Complete)");
+    get_du(du_idx).push_ul_pdu(ul_rrc_msg);
+
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
+                              "Failed to receive F1AP UE Context Release Command");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_command(f1ap_pdu),
+                              "Invalid F1AP UE Context Release Command");
+
+    return true;
+  }
+
 protected:
   unsigned du_idx    = 0;
   unsigned cu_up_idx = 0;
@@ -316,6 +342,31 @@ TEST_F(cu_cp_setup_test, when_unexpected_ul_nas_transport_message_is_received_du
 
   // Verify AMF is not notified of NAS Transport Message.
   ASSERT_FALSE(this->wait_for_ngap_tx_pdu(ngap_pdu));
+
+  // Injects F1AP UE Context Release Complete.
+  auto rel_complete = test_helpers::generate_ue_context_release_complete(cu_ue_id.value(), du_ue_f1ap_id);
+  get_du(du_idx).push_ul_pdu(rel_complete);
+
+  // TEST: UE context removed from CU-CP.
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_TRUE(report.ues.empty());
+}
+
+TEST_F(cu_cp_setup_test, when_ue_selects_unsupported_plmn_during_rrc_setup_then_ue_is_released)
+{
+  // Check no UEs.
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_TRUE(report.ues.empty());
+
+  // Create UE by sending Initial UL RRC Message and await DL RRC Message Transfer.
+  ASSERT_TRUE(send_initial_ul_rrc_message_and_await_dl_rrc_message_transfer());
+
+  // AMF still not notified of UE attach.
+  ASSERT_FALSE(this->get_amf().try_pop_rx_pdu(ngap_pdu));
+
+  // Inject UL RRC Message with RRC Setup Complete (UE selects unsupported PLMN) and await F1AP UE Context Release
+  // Command.
+  ASSERT_TRUE(send_rrc_setup_complete_and_await_f1ap_ue_context_release_command());
 
   // Injects F1AP UE Context Release Complete.
   auto rel_complete = test_helpers::generate_ue_context_release_complete(cu_ue_id.value(), du_ue_f1ap_id);

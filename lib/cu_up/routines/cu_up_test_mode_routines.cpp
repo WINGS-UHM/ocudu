@@ -36,7 +36,7 @@ void cu_up_enable_test_mode_routine::operator()(coro_context<async_task<void>>& 
 
   //  Modify bearer
   st            = ue_mngr.get_up_state();
-  bearer_modify = fill_test_mode_bearer_context_modification_request(st);
+  bearer_modify = fill_test_mode_bearer_context_modification_request(test_mode_cfg, st);
 
   CORO_AWAIT(cu_up_mngr.handle_bearer_context_modification_request(bearer_modify));
 
@@ -77,7 +77,7 @@ void cu_up_reestablish_test_mode_routine::operator()(coro_context<async_task<voi
 {
   CORO_BEGIN(ctx);
 
-  bearer_modify               = fill_test_mode_bearer_context_modification_request(st);
+  bearer_modify               = fill_test_mode_bearer_context_modification_request(test_mode_cfg, st);
   bearer_modify.security_info = fill_test_mode_security_info(test_mode_cfg);
   CORO_AWAIT(cu_up_mngr.handle_bearer_context_modification_request(bearer_modify));
   cu_up_mngr.trigger_reestablish_test_mode();

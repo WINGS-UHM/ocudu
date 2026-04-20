@@ -50,6 +50,7 @@ struct cu_up_test_mode_config {
   uint64_t                  ue_ambr           = 40000000000;
   std::chrono::milliseconds attach_detach_period{0};
   std::chrono::milliseconds reestablish_period{0};
+  std::string               f1u_peer_address = "127.0.10.2";
 };
 
 /// CU-UP configuration.

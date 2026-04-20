@@ -43,6 +43,7 @@ ocuup::cu_up_config ocudu::generate_cu_up_config(const cu_up_unit_config& config
   out_cfg.test_mode_cfg.ue_ambr              = config.test_mode_cfg.ue_ambr;
   out_cfg.test_mode_cfg.attach_detach_period = config.test_mode_cfg.attach_detach_period;
   out_cfg.test_mode_cfg.reestablish_period   = config.test_mode_cfg.reestablish_period;
+  out_cfg.test_mode_cfg.f1u_peer_address     = config.test_mode_cfg.f1u_peer_address;
   return out_cfg;
 }
 

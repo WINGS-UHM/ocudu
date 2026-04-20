@@ -212,7 +212,8 @@ fill_test_mode_bearer_context_setup_request(cu_up_test_mode_config test_mode_cfg
   return bearer_context_setup;
 }
 
-inline e1ap_bearer_context_modification_request fill_test_mode_bearer_context_modification_request(const up_state_t& st)
+inline e1ap_bearer_context_modification_request
+fill_test_mode_bearer_context_modification_request(const cu_up_test_mode_config& test_mode_cfg, const up_state_t& st)
 {
   report_error_if_not(st.size() == 1, "CU-UP test mode only supports one UE. ues={}", st.size());
 
@@ -234,9 +235,10 @@ inline e1ap_bearer_context_modification_request fill_test_mode_bearer_context_mo
 
   e1ap_drb_to_modify_item_ng_ran drb_to_mod = {};
   drb_to_mod.dl_up_params.resize(1);
-  drb_to_mod.drb_id                                 = drb_state.begin()->first;
-  drb_to_mod.dl_up_params[0].up_tnl_info.tp_address = transport_layer_address::create_from_string("127.0.10.2");
-  drb_to_mod.dl_up_params[0].up_tnl_info.gtp_teid   = int_to_gtpu_teid(0x02);
+  drb_to_mod.drb_id = drb_state.begin()->first;
+  drb_to_mod.dl_up_params[0].up_tnl_info.tp_address =
+      transport_layer_address::create_from_string(test_mode_cfg.f1u_peer_address);
+  drb_to_mod.dl_up_params[0].up_tnl_info.gtp_teid = int_to_gtpu_teid(0x02);
 
   pdu_session_to_mod.drb_to_modify_list_ng_ran.emplace(drb_to_mod.drb_id, drb_to_mod);
   bearer_mod_item.pdu_session_res_to_modify_list.emplace(pdu_session_to_mod.pdu_session_id, pdu_session_to_mod);

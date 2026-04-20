@@ -82,6 +82,7 @@ struct cu_up_unit_test_mode_config {
   uint64_t                  ue_ambr           = 40000000000; // 40 gbps
   std::chrono::milliseconds attach_detach_period{0}; // Period for attaching detaching tests. 0 means always attached.
   std::chrono::milliseconds reestablish_period{0};   // Period for reestablishment tests. 0 means no re-establishments.
+  std::string               f1u_peer_address = "127.0.10.2";
 };
 
 struct cu_up_unit_execution_config {

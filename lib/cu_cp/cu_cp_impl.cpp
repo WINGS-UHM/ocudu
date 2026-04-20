@@ -918,7 +918,7 @@ cu_cp_impl::handle_new_pdu_session_resource_release_command(const cu_cp_pdu_sess
     });
   }
   if (ue->get_cu_up_index() == cu_up_index_t::invalid) {
-    logger.warning("ue={}: Dropping PDUSessionResourceReleaseCommand. Could not find CU-UP of the UE",
+    logger.error("ue={}: Dropping PDUSessionResourceReleaseCommand. Could not find CU-UP of the UE",
                    command.ue_index);
     return launch_async([](coro_context<async_task<cu_cp_pdu_session_resource_release_response>>& ctx) {
       CORO_BEGIN(ctx);

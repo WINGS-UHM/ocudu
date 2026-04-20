@@ -65,7 +65,7 @@ void rrc_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
     }
     CORO_EARLY_RETURN();
   }
-  auto& resp = transaction.response();
+  const auto& resp = transaction.response();
   if (resp.msg.type().value != ul_dcch_msg_type_c::types_opts::c1 or
       resp.msg.c1().type().value != ul_dcch_msg_type_c::c1_c_::types_opts::rrc_setup_complete) {
     logger.log_warning("Unexpected UL-DCCH message type {} in RRC Setup Procedure",
@@ -78,9 +78,10 @@ void rrc_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
 
   // Store selected PLMN in the RRC UE context and in the CU-CP UE.
   // Note: The selected PLMN starts at 1.
-  if (context.cell.plmn_identity_list.size() < rrc_setup_complete_msg.crit_exts.rrc_setup_complete().sel_plmn_id - 1U) {
+  if (context.cell.plmn_identity_list.size() < rrc_setup_complete_msg.crit_exts.rrc_setup_complete().sel_plmn_id) {
     logger.log_warning("Invalid selected PLMN id {} in RRC Setup Complete",
                        rrc_setup_complete_msg.crit_exts.rrc_setup_complete().sel_plmn_id);
+    rrc_ue.on_ue_release_required(cause_protocol_t::unspecified);
     CORO_EARLY_RETURN();
   }
 
@@ -90,6 +91,7 @@ void rrc_setup_procedure::operator()(coro_context<async_task<void>>& ctx)
   // Notify the CU-CP about the selected PLMN.
   if (!cu_cp_notifier.on_ue_setup_complete_received(selected_plmn)) {
     logger.log_warning("PLMN {} not supported, rejecting UE", selected_plmn);
+    rrc_ue.on_ue_release_required(cause_protocol_t::unspecified);
     CORO_EARLY_RETURN();
   }
   // Store the selected PLMN in the RRC UE context.

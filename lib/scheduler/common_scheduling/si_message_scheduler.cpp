@@ -221,8 +221,10 @@ void si_message_scheduler::fill_si_grant(cell_slot_resource_allocator& res_grid,
 {
   // System information indicator for SI message as per TS 38.212, Section 7.3.1.2.1 and Table 7.3.1.2.1-2.
 
-  const auto& pdsch_td_res_alloc_list = get_si_rnti_pdsch_time_domain_list(
-      cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp, cell_cfg.params.dmrs_typeA_pos);
+  const auto& pdsch_td_res_alloc_list =
+      get_si_rnti_type0A_common_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common,
+                                                       cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                                                       cell_cfg.params.dmrs_typeA_pos);
 
   // Fill SI-message DCI.
   static constexpr unsigned si_indicator = 1;

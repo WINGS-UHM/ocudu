@@ -53,21 +53,16 @@ TEST(no_si_scheduler_test, when_no_si_is_provided_then_nothing_is_scheduled)
   }
 }
 
+constexpr units::bytes     DEFAULT_SIB1_PAYLOAD_SIZE{128};
+const si_scheduling_config DEFAULT_SI_SCHED_CFG{DEFAULT_SIB1_PAYLOAD_SIZE,
+                                                {{si_message_scheduling_config{units::bytes{64}, 16}}},
+                                                10};
+
 class si_scheduler_test : public si_scheduler_test_environment, public testing::Test
 {
 protected:
   si_scheduler_test() : si_scheduler_test_environment(make_sched_configuration_request(DEFAULT_SI_SCHED_CFG)) {}
-
-  static constexpr units::bytes     DEFAULT_SIB1_PAYLOAD_SIZE{128};
-  static const si_scheduling_config DEFAULT_SI_SCHED_CFG;
 };
-
-const si_scheduling_config si_scheduler_test::DEFAULT_SI_SCHED_CFG{
-    DEFAULT_SIB1_PAYLOAD_SIZE,
-    {{si_message_scheduling_config{units::bytes{64}, 16}}},
-    10};
-
-} // namespace
 
 TEST_F(si_scheduler_test, when_sib1_is_cfg_then_sib1_gets_scheduled)
 {
@@ -228,3 +223,41 @@ TEST_F(si_scheduler_test, when_si_is_updated_all_ues_in_rrc_idle_get_notified_ex
 
   ASSERT_TRUE(notified_ue_ids.all());
 }
+
+class si_msg_scheduler_tdra_test : public si_scheduler_test_environment, public testing::Test
+{
+protected:
+  static constexpr ofdm_symbol_range expected_symbols{ofdm_symbol_range::start_and_len(2, 9)};
+
+  si_msg_scheduler_tdra_test() :
+    si_scheduler_test_environment([]() {
+      // Default A table entry 0: {k0=0, typeA, symbols=[2,14)} i.e. S=2, L=12.
+      // Custom entry 0:          {k0=0, typeA, symbols=[2,11)} i.e. S=2, L=9.
+      // Custom PDSCH resource TD list should be used when configured.
+      auto req = make_sched_configuration_request(DEFAULT_SI_SCHED_CFG);
+      req.ran.dl_cfg_common.init_dl_bwp.pdsch_common.pdsch_td_alloc_list = {
+          {0, sch_mapping_type::typeA, ofdm_symbol_range::start_and_len(2, 9)}};
+      return req;
+    }())
+  {
+  }
+};
+
+TEST_F(si_msg_scheduler_tdra_test, when_custom_pdsch_td_alloc_list_configured_then_si_msg_pdsch_uses_configured_symbols)
+{
+  bool           other_si_found = false;
+  const unsigned nof_test_slots =
+      2 * DEFAULT_SI_SCHED_CFG.si_messages[0].period_radio_frames * next_slot.nof_slots_per_frame();
+  for (unsigned i = 0; i != nof_test_slots; ++i) {
+    run_slot();
+    for (const auto& sib : last_sched_result().dl.bc.sibs) {
+      if (sib.si_indicator == sib_information::other_si) {
+        EXPECT_EQ(sib.pdsch_cfg.symbols, expected_symbols);
+        other_si_found = true;
+      }
+    }
+  }
+  ASSERT_TRUE(other_si_found) << "SI message was not scheduled within the expected window";
+}
+
+} // namespace

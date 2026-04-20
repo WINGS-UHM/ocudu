@@ -118,8 +118,15 @@ void ocudu::assert_pdcch_pdsch_common_consistency(const cell_configuration&   ce
       time_assignment = pdcch.dci.si_f1_0.time_resource;
       freq_assignment = pdcch.dci.si_f1_0.frequency_resource;
       N_rb_dl_bwp     = pdcch.dci.si_f1_0.N_rb_dl_bwp;
-      td_list         = get_si_rnti_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
-                                                   cell_cfg.params.dmrs_typeA_pos);
+      if (pdcch.dci.si_f1_0.system_information_indicator == 1) {
+        td_list = get_si_rnti_type0A_common_pdsch_time_domain_list(
+            cell_cfg.params.dl_cfg_common.init_dl_bwp.pdsch_common,
+            cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+            cell_cfg.params.dmrs_typeA_pos);
+      } else {
+        td_list = get_si_rnti_pdsch_time_domain_list(cell_cfg.params.dl_cfg_common.init_dl_bwp.generic_params.cp,
+                                                     cell_cfg.params.dmrs_typeA_pos);
+      }
       ASSERT_EQ(N_rb_dl_bwp, cs_zero_crbs.length());
       break;
     }

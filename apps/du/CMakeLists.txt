@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 # Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-
 set(SOURCES
+        adapters/f1c_test_mode_adapter.cpp
         du_appconfig_cli11_schema.cpp
         du_appconfig_validators.cpp
         du_appconfig_translators.cpp

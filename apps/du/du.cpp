@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "adapters/f1_gateways.h"
+#include "adapters/f1c_test_mode_adapter.h"
 #include "apps/helpers/e2/e2_config_translators.h"
 #include "apps/helpers/metrics/metrics_helpers.h"
 #include "apps/services/app_execution_metrics/executor_metrics_manager.h"
@@ -296,13 +297,18 @@ int main(int argc, char** argv)
   auto on_pcap_close_init = make_scope_exit([&gnb_logger]() { gnb_logger.info("Closing PCAP files..."); });
 
   // Instantiate F1-C client gateway.
-  std::unique_ptr<odu::f1c_connection_client> f1c_gw =
-      create_f1c_client_gateway(du_cfg.f1ap_cfg.cu_cp_addresses,
-                                du_cfg.f1ap_cfg.bind_addresses,
-                                du_cfg.f1ap_cfg.sctp,
-                                *epoll_broker,
-                                workers.get_du_high_executor_mapper().f1c_rx_executor(),
-                                *du_pcaps.f1ap);
+  // In test mode, bypass the SCTP connection and use a stub CU-CP that auto-responds to F1AP procedures.
+  std::unique_ptr<odu::f1c_connection_client> f1c_gw;
+  if (o_du_app_unit->get_o_du_high_unit_config().du_high_cfg.config.is_testmode_enabled()) {
+    f1c_gw = make_test_mode_f1c_connection_client();
+  } else {
+    f1c_gw = create_f1c_client_gateway(du_cfg.f1ap_cfg.cu_cp_addresses,
+                                       du_cfg.f1ap_cfg.bind_addresses,
+                                       du_cfg.f1ap_cfg.sctp,
+                                       *epoll_broker,
+                                       workers.get_du_high_executor_mapper().f1c_rx_executor(),
+                                       *du_pcaps.f1ap);
+  }
 
   // Create F1-U GW.
   // > Create GTP-U Demux.

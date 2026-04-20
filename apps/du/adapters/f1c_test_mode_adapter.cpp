@@ -16,7 +16,10 @@ namespace {
 class stub_cu_cp
 {
 public:
-  void handle_new_connection(f1ap_message_notifier& du_rx_notifier_) { du_rx_notifier = &du_rx_notifier_; }
+  void handle_new_connection(std::unique_ptr<f1ap_message_notifier> du_rx_notifier_)
+  {
+    du_rx_notifier = std::move(du_rx_notifier_);
+  }
 
   void handle_connection_removal() { du_rx_notifier = nullptr; }
 
@@ -97,7 +100,7 @@ private:
     return resp;
   }
 
-  f1ap_message_notifier* du_rx_notifier = nullptr;
+  std::unique_ptr<f1ap_message_notifier> du_rx_notifier;
 };
 
 /// Stub CU-CP F1-C client that auto-responds to DU-initiated F1AP procedures.
@@ -121,7 +124,7 @@ public:
   std::unique_ptr<f1ap_message_notifier>
   handle_du_connection_request(std::unique_ptr<f1ap_message_notifier> du_rx_pdu_notifier) override
   {
-    cu_cp.handle_new_connection(*du_rx_pdu_notifier);
+    cu_cp.handle_new_connection(std::move(du_rx_pdu_notifier));
     return std::make_unique<cu_rx_notifier>(cu_cp);
   }
 

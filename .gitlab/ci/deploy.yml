@@ -12,11 +12,19 @@ ocudu image:
     - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-docker/
       when: never
-    - if: $ON_MR
-      changes:
+    - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
+      when: never
+    - if: $ON_MR_FORK
+      changes: &docker_changes
         paths:
           - docker/scripts/**/*
           - docker/Dockerfile
+          - .gitlab/ci/deploy.yml
+      variables:
+        MODE: build
+    - if: $ON_MR
+      changes:
+        <<: *docker_changes
   retry: 2
   variables:
     # Docker

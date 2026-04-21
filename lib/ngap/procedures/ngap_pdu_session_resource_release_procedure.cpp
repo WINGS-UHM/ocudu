@@ -3,9 +3,11 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ngap_pdu_session_resource_release_procedure.h"
-#include "../ngap_asn1_helpers.h"
+#include "ngap_error_indication_helper.h"
 #include "ocudu/asn1/ngap/common.h"
 #include "ocudu/ngap/ngap_message.h"
+#include "ocudu/ran/cause/common.h"
+#include "ocudu/ran/cause/ngap_cause.h"
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
@@ -15,9 +17,9 @@ ngap_pdu_session_resource_release_procedure::ngap_pdu_session_resource_release_p
     const cu_cp_pdu_session_resource_release_command& command_,
     const ngap_ue_ids&                                ue_ids_,
     ngap_cu_cp_notifier&                              cu_cp_notifier_,
-    ngap_message_notifier&                            amf_notif_,
+    ngap_message_notifier&                            amf_notifier_,
     ngap_ue_logger&                                   logger_) :
-  command(command_), ue_ids(ue_ids_), cu_cp_notifier(cu_cp_notifier_), amf_notifier(amf_notif_), logger(logger_)
+  command(command_), ue_ids(ue_ids_), cu_cp_notifier(cu_cp_notifier_), amf_notifier(amf_notifier_), logger(logger_)
 {
 }
 
@@ -32,7 +34,7 @@ void ngap_pdu_session_resource_release_procedure::operator()(coro_context<async_
 
   // TODO: Handle optional IEs.
 
-  if (send_pdu_session_resource_release_response()) {
+  if (validate_and_send_response()) {
     logger.log_debug("\"{}\" finished successfully", name());
   } else {
     logger.log_debug("\"{}\" failed", name());
@@ -67,8 +69,9 @@ fill_asn1_pdu_session_resource_release_response(asn1::ngap::pdu_session_res_rele
       if (ocudu_rat_usage.pdu_session_usage_report.has_value()) {
         const auto& ocudu_pdu_ses                      = *ocudu_rat_usage.pdu_session_usage_report;
         asn1_rat_resp.pdu_session_usage_report_present = true;
-        bool ret = asn1::string_to_enum(asn1_rat_resp.pdu_session_usage_report.rat_type, ocudu_pdu_ses.rat_type);
-        ocudu_assert(ret, "Invalid RAT type");
+        if (!asn1::string_to_enum(asn1_rat_resp.pdu_session_usage_report.rat_type, ocudu_pdu_ses.rat_type)) {
+          return false;
+        }
 
         for (const auto& pdu_session_usage_timed_item : ocudu_pdu_ses.pdu_session_timed_report_list) {
           asn1::ngap::volume_timed_report_item_s asn1_pdu_session_usage_timed_item;
@@ -89,7 +92,9 @@ fill_asn1_pdu_session_resource_release_response(asn1::ngap::pdu_session_res_rele
         asn1::ngap::qos_flows_usage_report_item_s asn1_qos_flows_usage_report_item;
         asn1_qos_flows_usage_report_item.qos_flow_id = qos_flow_id_to_uint(qos_flows_usage_report_item.qos_flow_id);
 
-        asn1::string_to_enum(asn1_qos_flows_usage_report_item.rat_type, qos_flows_usage_report_item.rat_type);
+        if (!asn1::string_to_enum(asn1_qos_flows_usage_report_item.rat_type, qos_flows_usage_report_item.rat_type)) {
+          return false;
+        }
 
         for (const auto& qos_flow_timed_report_item : qos_flows_usage_report_item.qos_flows_timed_report_list) {
           asn1::ngap::volume_timed_report_item_s asn1_qos_flow_timed_report_item;
@@ -128,7 +133,7 @@ fill_asn1_pdu_session_resource_release_response(asn1::ngap::pdu_session_res_rele
   return true;
 }
 
-bool ngap_pdu_session_resource_release_procedure::send_pdu_session_resource_release_response()
+bool ngap_pdu_session_resource_release_procedure::validate_and_send_response()
 {
   ngap_message ngap_msg = {};
   ngap_msg.pdu.set_successful_outcome().load_info_obj(ASN1_NGAP_ID_PDU_SESSION_RES_RELEASE);
@@ -137,9 +142,19 @@ bool ngap_pdu_session_resource_release_procedure::send_pdu_session_resource_rele
   pdu_session_res_release_resp->amf_ue_ngap_id = amf_ue_id_to_uint(ue_ids.amf_ue_id);
   pdu_session_res_release_resp->ran_ue_ngap_id = ran_ue_id_to_uint(ue_ids.ran_ue_id);
 
-  // TODO: needs more handling in the coro above?
+  if (response.released_pdu_sessions.empty()) {
+    send_error_indication(amf_notifier,
+                          logger.get_basic_logger(),
+                          ue_ids.ran_ue_id,
+                          ue_ids.amf_ue_id,
+                          ngap_cause_radio_network_t::unknown_pdu_session_id);
+    return false;
+  }
+
   if (not fill_asn1_pdu_session_resource_release_response(pdu_session_res_release_resp, response)) {
     logger.log_warning("Cannot fill ASN1 PDUSessionResourceReleaseResponse");
+    send_error_indication(
+        amf_notifier, logger.get_basic_logger(), ue_ids.ran_ue_id, ue_ids.amf_ue_id, cause_protocol_t::semantic_error);
     return false;
   }
 

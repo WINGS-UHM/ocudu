@@ -8,8 +8,7 @@
 #include "ocudu/ngap/ngap.h"
 #include "ocudu/support/async/async_task.h"
 
-namespace ocudu {
-namespace ocucp {
+namespace ocudu::ocucp {
 
 class ngap_pdu_session_resource_release_procedure
 {
@@ -17,7 +16,7 @@ public:
   ngap_pdu_session_resource_release_procedure(const cu_cp_pdu_session_resource_release_command& command_,
                                               const ngap_ue_ids&                                ue_ids_,
                                               ngap_cu_cp_notifier&                              cu_cp_notifier_,
-                                              ngap_message_notifier&                            amf_notif_,
+                                              ngap_message_notifier&                            amf_notifier_,
                                               ngap_ue_logger&                                   logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
@@ -26,7 +25,7 @@ public:
 
 private:
   // Result senders.
-  bool send_pdu_session_resource_release_response();
+  bool validate_and_send_response();
 
   cu_cp_pdu_session_resource_release_command  command;
   const ngap_ue_ids                           ue_ids;
@@ -36,5 +35,4 @@ private:
   ngap_ue_logger&                             logger;
 };
 
-} // namespace ocucp
-} // namespace ocudu
+} // namespace ocudu::ocucp

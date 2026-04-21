@@ -155,14 +155,6 @@ void pdu_session_resource_release_routine::operator()(
 cu_cp_pdu_session_resource_release_response
 pdu_session_resource_release_routine::handle_pdu_session_resource_release_response(bool success)
 {
-  // Fill PDUSessionResponse with the released PDU sessions even in case of failure.
-  for (const auto& setup_item : release_cmd.pdu_session_res_to_release_list_rel_cmd) {
-    cu_cp_pdu_session_res_released_item_rel_res item;
-    item.pdu_session_id = setup_item.pdu_session_id;
-
-    response_msg.released_pdu_sessions.emplace(setup_item.pdu_session_id, item);
-  }
-
   // Prepare update for UP resource manager.
   up_config_update_result result;
   for (const auto& pdu_session_to_remove : next_config.pdu_sessions_to_remove_list) {
@@ -171,6 +163,14 @@ pdu_session_resource_release_routine::handle_pdu_session_resource_release_respon
   up_resource_mng.apply_config_update(result);
 
   if (success) {
+    // Fill PDUSessionResponse with the released PDU sessions.
+    for (const auto& setup_item : release_cmd.pdu_session_res_to_release_list_rel_cmd) {
+      cu_cp_pdu_session_res_released_item_rel_res item;
+      item.pdu_session_id = setup_item.pdu_session_id;
+
+      response_msg.released_pdu_sessions.emplace(setup_item.pdu_session_id, item);
+    }
+
     logger.debug("ue={}: \"{}\" finalized", release_cmd.ue_index, name());
   } else {
     logger.info("ue={}: \"{}\" failed", release_cmd.ue_index, name());

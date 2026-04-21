@@ -6,6 +6,7 @@
 #include "tests/test_doubles/e1ap/e1ap_test_message_validators.h"
 #include "tests/test_doubles/f1ap/f1ap_test_message_validators.h"
 #include "tests/test_doubles/ngap/ngap_test_message_validators.h"
+#include "tests/test_doubles/rrc/rrc_test_message_validators.h"
 #include "tests/test_doubles/rrc/rrc_test_messages.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/cu_cp/test_helpers.h"
@@ -26,8 +27,9 @@ class cu_cp_intra_du_handover_test : public cu_cp_test_environment, public ::tes
 {
 public:
   explicit cu_cp_intra_du_handover_test(
+      cu_cp_test_env_params                         prms,
       const std::optional<location_report_request>& location_reporting_request = std::nullopt) :
-    cu_cp_test_environment(cu_cp_test_env_params{})
+    cu_cp_test_environment(std::move(prms))
   {
     // Run NG setup to completion.
     run_ng_setup();
@@ -67,6 +69,12 @@ public:
     ue_ctx = this->find_ue_context(du_idx, du_ue_id);
 
     EXPECT_NE(ue_ctx, nullptr);
+  }
+
+  explicit cu_cp_intra_du_handover_test(
+      const std::optional<location_report_request>& location_reporting_request = std::nullopt) :
+    cu_cp_intra_du_handover_test(cu_cp_test_env_params{}, location_reporting_request)
+  {
   }
 
   [[nodiscard]] bool send_rrc_measurement_report_and_await_ue_context_setup_request()
@@ -936,4 +944,33 @@ TEST_F(cu_cp_intra_cell_handover_after_drb_id_wraparound_test,
 
   // report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
   ASSERT_EQ(report.mobility.nof_successful_handover_executions, 1U);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//                             Admission Rejection
+///////////////////////////////////////////////////////////////////////////////
+class cu_cp_intra_du_handover_admission_limit_test : public cu_cp_intra_du_handover_test
+{
+public:
+  cu_cp_intra_du_handover_admission_limit_test() :
+    cu_cp_intra_du_handover_test(cu_cp_test_env_params{/*max_nof_cu_ups*/ 8,
+                                                       /*max_nof_dus*/ 8,
+                                                       /*max_nof_ues*/ 1})
+  {
+  }
+};
+
+TEST_F(cu_cp_intra_du_handover_admission_limit_test, when_target_ue_is_not_servable_then_handover_fails)
+{
+  get_du(du_idx).push_ul_pdu(test_helpers::generate_ul_rrc_message_transfer(
+      ue_ctx->du_ue_id.value(),
+      ue_ctx->cu_ue_id.value(),
+      srb_id_t::srb1,
+      make_byte_buffer("000800410004015f741fe0804bf183fcaa6e9699").value()));
+
+  ASSERT_FALSE(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu, std::chrono::milliseconds{100}));
+
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_EQ(report.ues.size(), 1) << "Target UE should be cleaned up on admission rejection";
+  ASSERT_EQ(report.ues[0].rnti, crnti);
 }

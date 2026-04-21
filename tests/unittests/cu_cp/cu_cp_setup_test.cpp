@@ -22,7 +22,7 @@ using namespace ocucp;
 class cu_cp_setup_test : public cu_cp_test_environment, public ::testing::Test
 {
 public:
-  cu_cp_setup_test() : cu_cp_test_environment(cu_cp_test_env_params{})
+  explicit cu_cp_setup_test(cu_cp_test_env_params prms = {}) : cu_cp_test_environment(std::move(prms))
   {
     // Run NG setup to completion.
     run_ng_setup();
@@ -100,6 +100,38 @@ public:
     asn1::rrc_nr::dl_ccch_msg_s ccch;
     {
       asn1::cbit_ref bref{f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd()->rrc_container};
+      report_fatal_error_if_not(ccch.unpack(bref) == asn1::OCUDUASN_SUCCESS, "Failed to unpack RRC container");
+    }
+    report_fatal_error_if_not(ccch.msg.c1().type().value ==
+                                  asn1::rrc_nr::dl_ccch_msg_type_c::c1_c_::types_opts::rrc_reject,
+                              "Unexpected RRC message type");
+
+    return true;
+  }
+
+  [[nodiscard]] bool send_initial_ul_rrc_message_and_await_ue_context_release_command()
+  {
+    report_fatal_error_if_not(not this->get_du(du_idx).try_pop_dl_pdu(f1ap_pdu),
+                              "there are still F1AP DL messages to pop from DU");
+
+    // Inject Initial UL RRC Message and wait for F1AP UE Context Release Command containing RRC Reject.
+    get_du(du_idx).push_ul_pdu(
+        test_helpers::generate_init_ul_rrc_message_transfer(du_ue_f1ap_id, crnti, plmn_identity::test_value()));
+
+    report_fatal_error_if_not(this->wait_for_f1ap_tx_pdu(du_idx, f1ap_pdu),
+                              "Failed to receive F1AP UE Context Release Command");
+    report_fatal_error_if_not(test_helpers::is_valid_ue_context_release_command(f1ap_pdu),
+                              "Invalid F1AP UE Context Release Command");
+
+    const auto& ue_rel = f1ap_pdu.pdu.init_msg().value.ue_context_release_cmd();
+    cu_ue_id           = int_to_gnb_cu_ue_f1ap_id(ue_rel->gnb_cu_ue_f1ap_id);
+    report_fatal_error_if_not(ue_rel->rrc_container_present, "RRC container not present");
+    report_fatal_error_if_not(ue_rel->srb_id_present, "SRB ID not present");
+    report_fatal_error_if_not(ue_rel->srb_id == 0, "Unexpected SRB ID");
+
+    asn1::rrc_nr::dl_ccch_msg_s ccch;
+    {
+      asn1::cbit_ref bref{ue_rel->rrc_container};
       report_fatal_error_if_not(ccch.unpack(bref) == asn1::OCUDUASN_SUCCESS, "Failed to unpack RRC container");
     }
     report_fatal_error_if_not(ccch.msg.c1().type().value ==
@@ -398,4 +430,32 @@ TEST_F(cu_cp_setup_test, when_rrc_setup_completes_then_initial_message_sent_to_a
   ASSERT_FALSE(report.ues.empty());
   ASSERT_EQ(report.dus[0].rrc_metrics.mean_nof_rrc_connections, 1);
   ASSERT_EQ(report.dus[0].rrc_metrics.max_nof_rrc_connections, 1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//                                 Admission
+///////////////////////////////////////////////////////////////////////////////
+class cu_cp_setup_admission_limit_test : public cu_cp_setup_test
+{
+public:
+  cu_cp_setup_admission_limit_test() :
+    cu_cp_setup_test(cu_cp_test_env_params{/*max_nof_cu_ups*/ 8,
+                                           /*max_nof_dus*/ 8,
+                                           /*max_nof_ues*/ 0})
+  {
+  }
+};
+
+TEST_F(cu_cp_setup_admission_limit_test, when_initial_ul_rrc_message_is_rejected_by_admission_then_ue_is_released)
+{
+  ASSERT_TRUE(send_initial_ul_rrc_message_and_await_ue_context_release_command());
+
+  auto report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_TRUE(report.ues.empty());
+
+  auto rel_complete = test_helpers::generate_ue_context_release_complete(cu_ue_id.value(), du_ue_f1ap_id);
+  get_du(du_idx).push_ul_pdu(rel_complete);
+
+  report = this->get_cu_cp().get_metrics_handler().request_metrics_report();
+  ASSERT_TRUE(report.ues.empty());
 }

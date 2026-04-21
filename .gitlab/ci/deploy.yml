@@ -9,28 +9,30 @@ ocudu image:
   extends: .docker-builder
   stage: deploy
   rules:
-    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-docker/
-      when: never
+    # General
     - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
       when: never
-    - if: $ON_MR_FORK
-      changes: &docker_changes
-        paths:
-          - docker/scripts/**/*
-          - docker/Dockerfile
-          - .gitlab/ci/deploy.yml
-      variables:
-        MODE: build
-    - if: $ON_MR
-      changes:
-        <<: *docker_changes
+    # Scheduled and manual pipelines
+    - if: $CI_PIPELINE_SCHEDULE_DESCRIPTION =~ /Nightly/
     - if: $ON_WEB
       when: manual
       allow_failure: true
     - if: $ON_API
       when: manual
       allow_failure: true
+    # MRs
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-docker/
+      when: never
+    - if: $ON_MR_FORK
+      when: never
+    - if: $ON_MR
+      changes:
+        paths:
+          - docker/scripts/**/*
+          - docker/Dockerfile
+          - .gitlab/ci/deploy.yml
+      variables:
+        MODE: build
   retry: 2
   variables:
     # Docker

@@ -10,8 +10,7 @@ target_include_directories(ngap_listener PRIVATE
 )
 
 target_link_libraries(ngap_listener PRIVATE
-    ocudu_ngap
-    ocudu_pcap
+    asn1_utils
     ocudu_support
     ocudulog
     ngap_asn1

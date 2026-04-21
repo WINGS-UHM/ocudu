@@ -25,6 +25,12 @@ ocudu image:
     - if: $ON_MR
       changes:
         <<: *docker_changes
+    - if: $ON_WEB
+      when: manual
+      allow_failure: true
+    - if: $ON_API
+      when: manual
+      allow_failure: true
   retry: 2
   variables:
     # Docker

@@ -109,7 +109,7 @@ private:
   ocudulog::basic_logger& logger;
 };
 
-/// Dummy NGAP to RRC UE notifier
+/// Dummy NGAP to RRC UE notifier.
 class dummy_ngap_rrc_ue_notifier : public ngap_rrc_ue_notifier
 {
 public:
@@ -196,7 +196,7 @@ public:
           if (!ue_mng.find_ue(last_init_ctxt_setup_request.ue_index)
                    ->get_security_manager()
                    .init_security_context(last_init_ctxt_setup_request.security_context)) {
-            // Add failed PDU session setup responses
+            // Add failed PDU session setup responses.
             if (last_init_ctxt_setup_request.pdu_session_res_setup_list_cxt_req.has_value()) {
               for (const auto& session : last_init_ctxt_setup_request.pdu_session_res_setup_list_cxt_req.value()
                                              .pdu_session_res_setup_items) {
@@ -210,7 +210,7 @@ public:
             CORO_EARLY_RETURN(make_unexpected(fail));
           }
 
-          // Add successful PDU session setup responses
+          // Add successful PDU session setup responses.
           if (last_init_ctxt_setup_request.pdu_session_res_setup_list_cxt_req.has_value()) {
             for (const auto& session :
                  last_init_ctxt_setup_request.pdu_session_res_setup_list_cxt_req.value().pdu_session_res_setup_items) {
@@ -290,6 +290,11 @@ public:
     });
   }
 
+  void set_pdu_session_resource_release_outcome(const cu_cp_pdu_session_resource_release_response& outcome)
+  {
+    release_command_outcome = outcome;
+  }
+
   async_task<cu_cp_pdu_session_resource_release_response>
   on_new_pdu_session_resource_release_command(cu_cp_pdu_session_resource_release_command& command) override
   {
@@ -297,13 +302,14 @@ public:
 
     last_release_command = std::move(command);
 
-    return launch_async([res = cu_cp_pdu_session_resource_release_response{}](
-                            coro_context<async_task<cu_cp_pdu_session_resource_release_response>>& ctx) mutable {
+    return launch_async([this](coro_context<async_task<cu_cp_pdu_session_resource_release_response>>& ctx) mutable {
       CORO_BEGIN(ctx);
 
-      res = generate_cu_cp_pdu_session_resource_release_response(uint_to_pdu_session_id(1));
+      if (release_command_outcome.has_value()) {
+        CORO_EARLY_RETURN(release_command_outcome.value());
+      }
 
-      CORO_RETURN(res);
+      CORO_RETURN(generate_cu_cp_pdu_session_resource_release_response(uint_to_pdu_session_id(1)));
     });
   }
 
@@ -400,16 +406,17 @@ public:
     last_location_reporting_ctrl          = msg;
   }
 
-  ue_index_t                                 last_ue = ue_index_t::invalid;
-  ngap_init_context_setup_request            last_init_ctxt_setup_request;
-  ngap_ue_context_modification_request       last_ue_ctxt_modification_request;
-  cu_cp_pdu_session_resource_setup_request   last_request;
-  cu_cp_pdu_session_resource_modify_request  last_modify_request;
-  cu_cp_pdu_session_resource_release_command last_release_command;
-  std::optional<ue_index_t>                  last_created_ue_index;
-  cu_cp_paging_message                       last_paging_msg;
-  std::optional<ue_index_t>                  last_location_reporting_ctrl_ue_index;
-  std::optional<location_report_request>     last_location_reporting_ctrl;
+  ue_index_t                                                 last_ue = ue_index_t::invalid;
+  ngap_init_context_setup_request                            last_init_ctxt_setup_request;
+  ngap_ue_context_modification_request                       last_ue_ctxt_modification_request;
+  cu_cp_pdu_session_resource_setup_request                   last_request;
+  cu_cp_pdu_session_resource_modify_request                  last_modify_request;
+  std::optional<cu_cp_pdu_session_resource_release_response> release_command_outcome;
+  cu_cp_pdu_session_resource_release_command                 last_release_command;
+  std::optional<ue_index_t>                                  last_created_ue_index;
+  cu_cp_paging_message                                       last_paging_msg;
+  std::optional<ue_index_t>                                  last_location_reporting_ctrl_ue_index;
+  std::optional<location_report_request>                     last_location_reporting_ctrl;
 
 private:
   ue_manager&             ue_mng;
@@ -477,7 +484,7 @@ public:
   /// \return True if the security context was successfully initialized, false otherwise
   bool init_security_context(const security::security_context& sec_ctxt) override { return true; }
 
-  /// \brief Check if security is enabled
+  /// \brief Check if security is enabled.
   [[nodiscard]] bool is_security_enabled() const override { return true; }
 
   /// \brief Set UE AMBR.

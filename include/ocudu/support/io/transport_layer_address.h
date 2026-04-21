@@ -23,8 +23,8 @@ public:
 
   transport_layer_address() = default;
 
-  /// Creates a transport_layer_address object from a string with an IPv4 address with format X.X.X.X or with an IPv6
-  /// address with format X:X:X:X:X:X:X:X.
+  /// Creates a transport_layer_address from a numeric IPv4 or IPv6 address or hostname string.
+  /// Supports standard IPv6 notation, including compressed forms (e.g. "2001:db8::1").
   static transport_layer_address create_from_string(const std::string& ip_str);
 
   /// Creates a transport_layer_address object from a string of bits (each character is base 2).

@@ -482,6 +482,26 @@ TEST_F(single_ue_dl_logical_channel_system_test, assign_leftover_bytes_to_sdu_if
   ASSERT_EQ(allocated_bytes, tb_size);
 }
 
+TEST_F(single_ue_dl_logical_channel_system_test, srb0_is_scheduled_when_remaining_bytes_exactly_fit_after_conres_ce)
+{
+  ue_lchs.set_fallback_state(true);
+  ue_lchs.handle_mac_ce_indication({.ce_lcid = lcid_dl_sch_t::UE_CON_RES_ID});
+  // 1-byte rrcReject; SRB0 uses RLC TM (no RLC header), so needs only 3 bytes (2-byte MAC subheader + 1 payload).
+  ue_lchs.handle_dl_buffer_status_indication(LCID_SRB0, 1);
+
+  // ConRes CE = 7 bytes (6-byte payload + 1-byte fixed subheader). With TBS=10, exactly 3 bytes remain for SRB0.
+  const unsigned tbs = lcid_dl_sch_t{lcid_dl_sch_t::UE_CON_RES_ID}.sizeof_ce() + FIXED_SIZED_MAC_CE_SUBHEADER_SIZE +
+                       get_mac_sdu_required_bytes(1); // 7 + 3 = 10
+
+  dl_msg_tb_info tb_info;
+  build_dl_fallback_transport_block_info(tb_info, ue_lchs, units::bytes{tbs});
+
+  ASSERT_EQ(tb_info.lc_chs_to_sched.size(), 2U);
+  EXPECT_EQ(tb_info.lc_chs_to_sched[0].lcid, lcid_dl_sch_t::UE_CON_RES_ID);
+  EXPECT_EQ(tb_info.lc_chs_to_sched[1].lcid, lcid_dl_sch_t{lcid_dl_sch_t::CCCH});
+  EXPECT_EQ(tb_info.lc_chs_to_sched[1].sched_bytes, 1U);
+}
+
 TEST_F(single_ue_dl_logical_channel_system_test,
        when_buffer_occupancy_is_very_low_then_enough_space_is_still_considered_to_fit_rlc_ovh)
 {

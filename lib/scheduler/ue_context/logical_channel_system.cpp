@@ -1153,12 +1153,13 @@ unsigned ocudu::allocate_mac_sdus(dl_msg_tb_info&                tb_info,
                                   units::bytes                   total_tbs,
                                   lcid_t                         lcid)
 {
-  static constexpr unsigned min_mac_sdu_space = 4; // Needs to fit at least MAC SDU subheader and RLC header.
-  unsigned                  rem_tbs           = total_tbs.value();
+  // Minimum bytes needed for one MAC SDU: MAC subheader + 1 byte payload + RLC header (0 for SRB0 TM).
+  const unsigned min_mac_sdu_space = get_mac_sdu_with_subhdr_and_rlc_hdr_estim(lcid, 1);
+  unsigned       rem_tbs           = total_tbs.value();
 
   // If we do not have enough bytes to fit MAC subheader, skip MAC SDU allocation.
   // Note: We assume upper layer accounts for its own subheaders when updating the buffer state.
-  while (rem_tbs > min_mac_sdu_space and not tb_info.lc_chs_to_sched.full()) {
+  while (rem_tbs >= min_mac_sdu_space and not tb_info.lc_chs_to_sched.full()) {
     dl_msg_lc_info subpdu;
     unsigned       alloc_bytes = lch_mng.allocate_mac_sdu(subpdu, rem_tbs, lcid);
     if (alloc_bytes == 0) {

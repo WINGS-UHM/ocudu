@@ -51,6 +51,7 @@ struct cu_up_test_mode_config {
   std::chrono::milliseconds attach_detach_period{0};
   std::chrono::milliseconds reestablish_period{0};
   std::string               f1u_peer_address = "127.0.10.2";
+  uint32_t                  nof_ues          = 1;
 };
 
 /// CU-UP configuration.

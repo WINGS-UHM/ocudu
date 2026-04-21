@@ -212,12 +212,11 @@ fill_test_mode_bearer_context_setup_request(cu_up_test_mode_config test_mode_cfg
   return bearer_context_setup;
 }
 
-inline e1ap_bearer_context_modification_request
-fill_test_mode_bearer_context_modification_request(const cu_up_test_mode_config& test_mode_cfg, const up_state_t& st)
+inline e1ap_bearer_context_modification_request fill_test_mode_bearer_context_modification_request(
+    const cu_up_test_mode_config&                                                  test_mode_cfg,
+    cu_up_ue_index_t                                                               ue_index,
+    const std::map<pdu_session_id_t, std::map<drb_id_t, std::set<qos_flow_id_t>>>& ps_state)
 {
-  report_error_if_not(st.size() == 1, "CU-UP test mode only supports one UE. ues={}", st.size());
-
-  const std::map<pdu_session_id_t, std::map<drb_id_t, std::set<qos_flow_id_t>>>& ps_state = st.begin()->second;
   report_error_if_not(
       ps_state.size() == 1, "CU-UP test mode only supports one PDU session per UE. pdu_sessions={}", ps_state.size());
 
@@ -226,7 +225,7 @@ fill_test_mode_bearer_context_modification_request(const cu_up_test_mode_config&
 
   // Modifiy bearer
   e1ap_bearer_context_modification_request bearer_modify = {};
-  bearer_modify.ue_index                                 = st.begin()->first;
+  bearer_modify.ue_index                                 = ue_index;
 
   e1ap_ng_ran_bearer_context_mod_request bearer_mod_item = {};
 
@@ -238,7 +237,7 @@ fill_test_mode_bearer_context_modification_request(const cu_up_test_mode_config&
   drb_to_mod.drb_id = drb_state.begin()->first;
   drb_to_mod.dl_up_params[0].up_tnl_info.tp_address =
       transport_layer_address::create_from_string(test_mode_cfg.f1u_peer_address);
-  drb_to_mod.dl_up_params[0].up_tnl_info.gtp_teid = int_to_gtpu_teid(0x02);
+  drb_to_mod.dl_up_params[0].up_tnl_info.gtp_teid = int_to_gtpu_teid(static_cast<uint32_t>(ue_index) + 1);
 
   pdu_session_to_mod.drb_to_modify_list_ng_ran.emplace(drb_to_mod.drb_id, drb_to_mod);
   bearer_mod_item.pdu_session_res_to_modify_list.emplace(pdu_session_to_mod.pdu_session_id, pdu_session_to_mod);

@@ -4,6 +4,7 @@
 
 #include "cu_up_test_mode_routines.h"
 #include "../cu_up_manager_helpers.h"
+#include <utility>
 
 using namespace ocudu;
 using namespace ocuup;
@@ -13,7 +14,7 @@ cu_up_enable_test_mode_routine::cu_up_enable_test_mode_routine(cu_up_test_mode_c
                                                                cu_up_manager_impl&    cu_up_mngr_,
                                                                ue_manager&            ue_mngr_,
                                                                gtpu_demux_ctrl&       ngu_demux_) :
-  test_mode_cfg(test_mode_cfg_),
+  test_mode_cfg(std::move(test_mode_cfg_)),
   cu_up_mngr(cu_up_mngr_),
   ue_mngr(ue_mngr_),
   ngu_demux(ngu_demux_),
@@ -25,20 +26,23 @@ void cu_up_enable_test_mode_routine::operator()(coro_context<async_task<void>>& 
 {
   CORO_BEGIN(ctx);
 
-  bearer_context_setup = fill_test_mode_bearer_context_setup_request(test_mode_cfg);
-
-  // Setup bearer context and PDU session.
-  setup_resp = cu_up_mngr.handle_bearer_context_setup_request(bearer_context_setup);
+  // Setup bearer context(s) and a PDU session for each context.
+  for (uint32_t i = 0; i < test_mode_cfg.nof_ues; i++) {
+    bearer_context_setup = fill_test_mode_bearer_context_setup_request(test_mode_cfg);
+    setup_resp           = cu_up_mngr.handle_bearer_context_setup_request(bearer_context_setup);
+    // TODO store list of TEIDs.
+    teid = setup_resp.pdu_session_resource_setup_list.begin()->ng_dl_up_tnl_info.gtp_teid;
+  }
 
   // Apply test TEID to demux.
-  teid = setup_resp.pdu_session_resource_setup_list.begin()->ng_dl_up_tnl_info.gtp_teid;
-  ngu_demux.apply_test_teid(teid);
+  ngu_demux.apply_test_teid(teid); // TODO, apply list to all UEs.
 
-  //  Modify bearer
-  st            = ue_mngr.get_up_state();
-  bearer_modify = fill_test_mode_bearer_context_modification_request(test_mode_cfg, st);
-
-  CORO_AWAIT(cu_up_mngr.handle_bearer_context_modification_request(bearer_modify));
+  // Modify bearer context(s).
+  st = ue_mngr.get_up_state();
+  for (st_it = st.begin(); st_it != st.end(); ++st_it) {
+    bearer_modify = fill_test_mode_bearer_context_modification_request(test_mode_cfg, st_it->first, st_it->second);
+    CORO_AWAIT(cu_up_mngr.handle_bearer_context_modification_request(bearer_modify));
+  }
 
   cu_up_mngr.trigger_disable_test_mode();
   cu_up_mngr.trigger_reestablish_test_mode();
@@ -51,15 +55,18 @@ cu_up_disable_test_mode_routine::cu_up_disable_test_mode_routine(cu_up_manager_i
                                                                  ue_manager&         ue_mngr_) :
   cu_up_mngr(cu_up_mngr_), ue_mngr(ue_mngr_), logger(ocudulog::fetch_basic_logger("CU-UP"))
 {
-  for (const auto& ue : ue_mngr.get_ues()) {
-    release_command.ue_index = ue.first;
-  }
 }
 
 void cu_up_disable_test_mode_routine::operator()(coro_context<async_task<void>>& ctx)
 {
   CORO_BEGIN(ctx);
-  CORO_AWAIT(cu_up_mngr.handle_bearer_context_release_command(release_command));
+
+  // Remove bearer context(s).
+  st = ue_mngr.get_up_state();
+  for (st_it = st.begin(); st_it != st.end(); ++st_it) {
+    CORO_AWAIT(cu_up_mngr.handle_bearer_context_release_command(release_command));
+  }
+
   cu_up_mngr.trigger_enable_test_mode();
   CORO_RETURN();
 }
@@ -68,18 +75,21 @@ void cu_up_disable_test_mode_routine::operator()(coro_context<async_task<void>>&
 cu_up_reestablish_test_mode_routine::cu_up_reestablish_test_mode_routine(cu_up_test_mode_config test_mode_cfg_,
                                                                          cu_up_manager_impl&    cu_up_mngr_,
                                                                          ue_manager&            ue_mngr_) :
-  test_mode_cfg(test_mode_cfg_), cu_up_mngr(cu_up_mngr_), ue_mngr(ue_mngr_)
+  test_mode_cfg(std::move(test_mode_cfg_)), cu_up_mngr(cu_up_mngr_), ue_mngr(ue_mngr_)
 {
-  st = ue_mngr.get_up_state();
 }
 
 void cu_up_reestablish_test_mode_routine::operator()(coro_context<async_task<void>>& ctx)
 {
   CORO_BEGIN(ctx);
 
-  bearer_modify               = fill_test_mode_bearer_context_modification_request(test_mode_cfg, st);
-  bearer_modify.security_info = fill_test_mode_security_info(test_mode_cfg);
-  CORO_AWAIT(cu_up_mngr.handle_bearer_context_modification_request(bearer_modify));
+  st = ue_mngr.get_up_state();
+  for (st_it = st.begin(); st_it != st.end(); ++st_it) {
+    bearer_modify = fill_test_mode_bearer_context_modification_request(test_mode_cfg, st_it->first, st_it->second);
+    bearer_modify.security_info = fill_test_mode_security_info(test_mode_cfg);
+    CORO_AWAIT(cu_up_mngr.handle_bearer_context_modification_request(bearer_modify));
+  }
+
   cu_up_mngr.trigger_reestablish_test_mode();
   CORO_RETURN();
 }

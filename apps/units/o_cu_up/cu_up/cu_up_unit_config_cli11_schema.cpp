@@ -116,6 +116,8 @@ static void configure_cli11_test_mode_args(CLI::App& app, cu_up_unit_test_mode_c
       ->capture_default_str();
   add_option(app, "--f1u_peer_address", test_mode_params.f1u_peer_address, "Address for DL F1-U packets for test mode")
       ->capture_default_str();
+  add_option(app, "--nof_ues", test_mode_params.nof_ues, "Address for DL F1-U packets for test mode")
+      ->capture_default_str();
 }
 
 static void configure_cli11_cu_up_args(CLI::App& app, cu_up_unit_config& cu_up_params)

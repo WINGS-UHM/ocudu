@@ -39,6 +39,7 @@ private:
   e1ap_bearer_context_setup_response       setup_resp;
   gtpu_teid_t                              teid;
   up_state_t                               st;
+  up_state_t::iterator                     st_it;
   e1ap_bearer_context_modification_request bearer_modify;
 };
 
@@ -56,6 +57,8 @@ private:
   ue_manager&             ue_mngr;
   ocudulog::basic_logger& logger;
 
+  up_state_t                          st;
+  up_state_t::iterator                st_it;
   e1ap_bearer_context_release_command release_command;
 };
 
@@ -76,6 +79,7 @@ private:
   ue_manager&            ue_mngr;
 
   up_state_t                               st;
+  up_state_t::iterator                     st_it;
   e1ap_bearer_context_modification_request bearer_modify;
 };
 

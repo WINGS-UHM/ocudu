@@ -24,7 +24,7 @@ TEST_F(ue_manager_test, when_multiple_ue_indexes_allocated_then_ue_indexes_valid
 
   for (unsigned it = 0; it < cu_cp_cfg.admission.max_nof_ues; it++) {
     // Check that the ue index is valid.
-    ASSERT_TRUE(ue_mng.add_ue(du_index).servable);
+    ASSERT_TRUE(ue_mng.add_ue(du_index).servable());
   }
 }
 
@@ -40,7 +40,7 @@ TEST_F(ue_manager_test, when_more_than_max_ue_created_then_ue_is_not_servable)
   for (unsigned it = 0; it < cu_cp_cfg.admission.max_nof_ues; it++) {
     // Check that the ue index is valid
     ue_creation_result_t result = ue_mng.add_ue(du_index);
-    ASSERT_TRUE(result.servable);
+    ASSERT_TRUE(result.servable());
   }
 
   // reset log level
@@ -49,7 +49,7 @@ TEST_F(ue_manager_test, when_more_than_max_ue_created_then_ue_is_not_servable)
 
   // Allocate additional ue index
   ue_creation_result_t result = ue_mng.add_ue(du_index);
-  ASSERT_FALSE(result.servable);
+  ASSERT_FALSE(result.servable());
 }
 
 /// Test successful creation of a DU UE.
@@ -59,7 +59,7 @@ TEST_F(ue_manager_test, when_valid_du_context_added_at_creation_then_ue_added)
   rnti_t                 rnti        = to_rnti(0x4601);
   ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
   ue_creation_result_t   result      = ue_mng.add_ue(du_index);
-  ASSERT_TRUE(result.servable);
+  ASSERT_TRUE(result.servable());
   ue_index_t ue_index = result.ue_index;
   ASSERT_TRUE(ue_mng.update_ue_context(ue_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
@@ -97,7 +97,7 @@ TEST_F(ue_manager_test, when_du_context_valid_then_ue_updated)
   du_index_t du_index = du_index_t::min;
 
   ue_creation_result_t result = ue_mng.add_ue(du_index);
-  ASSERT_TRUE(result.servable);
+  ASSERT_TRUE(result.servable());
   ue_index_t ue_index = result.ue_index;
 
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
@@ -140,7 +140,7 @@ TEST_F(ue_manager_test, when_ue_index_invalid_then_ue_not_found)
   rnti_t                 rnti        = to_rnti(0x4601);
   ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
   ue_creation_result_t   result      = ue_mng.add_ue(du_index);
-  ASSERT_TRUE(result.servable);
+  ASSERT_TRUE(result.servable());
   ue_index_t ue_index = result.ue_index;
   ASSERT_TRUE(ue_mng.update_ue_context(ue_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
@@ -160,7 +160,7 @@ TEST_F(ue_manager_test, when_rnti_already_exits_then_ue_not_added)
   rnti_t                 rnti        = to_rnti(0x4601);
   ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
   ue_creation_result_t   result      = ue_mng.add_ue(du_index);
-  ASSERT_TRUE(result.servable);
+  ASSERT_TRUE(result.servable());
   ue_index_t ue_index = result.ue_index;
   ASSERT_TRUE(ue_mng.update_ue_context(ue_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
@@ -182,7 +182,7 @@ TEST_F(ue_manager_test, when_ue_exists_then_removal_successful)
   rnti_t                 rnti        = to_rnti(0x4601);
   ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
   ue_creation_result_t   result      = ue_mng.add_ue(du_index);
-  ASSERT_TRUE(result.servable);
+  ASSERT_TRUE(result.servable());
   ue_index_t ue_index = result.ue_index;
   ASSERT_TRUE(ue_mng.update_ue_context(ue_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
@@ -209,7 +209,7 @@ TEST_F(ue_manager_test, when_multiple_ues_added_then_ues_exist)
        it++) {
     rnti_t               rnti   = to_rnti(it);
     ue_creation_result_t result = ue_mng.add_ue(du_index);
-    ASSERT_TRUE(result.servable);
+    ASSERT_TRUE(result.servable());
     ue_index_t ue_index = result.ue_index;
     ASSERT_TRUE(ue_mng.update_ue_context(ue_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index));
     ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
@@ -242,8 +242,8 @@ TEST_F(ue_manager_test, when_multiple_ues_added_then_ues_exist)
   ASSERT_EQ(ue_mng.get_nof_du_ues(du_index), cu_cp_cfg.admission.max_nof_ues);
 }
 
-/// Test creation of unsupported number of DU UEs.
-TEST_F(ue_manager_test, when_more_than_max_ues_added_then_ue_not_created)
+/// Test creation of an unservable UE once the admission limit is reached.
+TEST_F(ue_manager_test, when_more_than_max_ues_added_then_ue_created_but_not_servable)
 {
   du_index_t             du_index    = du_index_t::min;
   ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
@@ -257,7 +257,7 @@ TEST_F(ue_manager_test, when_more_than_max_ues_added_then_ue_not_created)
        it++) {
     rnti_t               rnti   = to_rnti(it);
     ue_creation_result_t result = ue_mng.add_ue(du_index);
-    ASSERT_TRUE(result.servable);
+    ASSERT_TRUE(result.servable());
     ue_index_t ue_index = result.ue_index;
     ASSERT_TRUE(ue_mng.update_ue_context(ue_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index));
     ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
@@ -291,10 +291,11 @@ TEST_F(ue_manager_test, when_more_than_max_ues_added_then_ue_not_created)
   ASSERT_EQ(ue_mng.get_nof_du_ues(du_index), cu_cp_cfg.admission.max_nof_ues);
 
   ue_creation_result_t result = ue_mng.add_ue(du_index);
-  ASSERT_FALSE(result.servable);
+  ASSERT_EQ(result.state, ue_creation_state::created_unservable);
+  ASSERT_FALSE(result.servable());
 
-  // Check that the UE has not been added.
-  ASSERT_EQ(ue_mng.get_nof_du_ues(du_index), cu_cp_cfg.admission.max_nof_ues);
+  // Check that the UE context has been created even though the UE is not servable.
+  ASSERT_EQ(ue_mng.get_nof_du_ues(du_index), cu_cp_cfg.admission.max_nof_ues + 1);
 }
 
 /// Test inactive and i-rnti handling.
@@ -304,7 +305,7 @@ TEST_F(ue_manager_test, when_ue_is_set_inactive_then_i_rnti_returned)
   rnti_t                 rnti        = to_rnti(0x4601);
   ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
   ue_creation_result_t   result      = ue_mng.add_ue(du_index);
-  ASSERT_TRUE(result.servable);
+  ASSERT_TRUE(result.servable());
   ue_index_t ue_index = result.ue_index;
   ASSERT_TRUE(ue_mng.update_ue_context(ue_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));
@@ -326,7 +327,7 @@ TEST_F(ue_manager_test, when_ue_is_set_inactive_then_its_found_by_i_rnti)
   rnti_t                 rnti        = to_rnti(0x4601);
   ocucp::du_cell_index_t pcell_index = ocucp::du_cell_index_t::min;
   ue_creation_result_t   result      = ue_mng.add_ue(du_index);
-  ASSERT_TRUE(result.servable);
+  ASSERT_TRUE(result.servable());
   ue_index_t ue_index = result.ue_index;
   ASSERT_TRUE(ue_mng.update_ue_context(ue_index, gnb_du_id_t::min, MIN_PCI, rnti, pcell_index));
   ASSERT_TRUE(ue_mng.set_plmn(ue_index, plmn_identity::test_value()));

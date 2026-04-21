@@ -73,7 +73,7 @@ public:
   {
     if (ho_request_outcome) {
       ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-      if (!result.servable) {
+      if (!result.servable()) {
         logger.error("Failed to create UE");
         return ue_index_t::invalid;
       }

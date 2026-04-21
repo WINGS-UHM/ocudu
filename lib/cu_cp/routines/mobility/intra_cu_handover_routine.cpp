@@ -95,9 +95,10 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
       CORO_EARLY_RETURN(response_msg);
     }
 
-    if (not target_ue_creation_result.servable) {
+    if (not target_ue_creation_result.servable()) {
       logger.warning(
           "ue={}: \"{}\" failed to allocate UE index at target DU. UE not servable", request.source_ue_index, name());
+      ue_mng.remove_ue(target_ue_creation_result.ue_index);
       CORO_EARLY_RETURN(response_msg);
     }
     target_ue_context_setup_request.ue_index = target_ue_creation_result.ue_index;
@@ -116,6 +117,7 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
                                            source_rrc_context,
                                            is_cho_preparation)) {
       logger.warning("ue={}: \"{}\" failed to generate UeContextSetupRequest", request.source_ue_index, name());
+      ue_mng.remove_ue(target_ue_context_setup_request.ue_index);
       CORO_EARLY_RETURN(response_msg);
     }
     target_ue_context_setup_request.cu_to_du_rrc_info.meas_cfg = source_ue->get_rrc_ue()->get_packed_meas_config();
@@ -185,6 +187,7 @@ void intra_cu_handover_routine::operator()(coro_context<async_task<cu_cp_intra_c
                                   std::nullopt,
                                   logger)) {
         logger.warning("ue={}: \"{}\" Failed to fill RrcReconfiguration", request.source_ue_index, name());
+        CORO_AWAIT(cu_cp_handler.handle_ue_removal_request(target_ue_context_setup_request.ue_index));
         CORO_EARLY_RETURN(response_msg);
       }
     }

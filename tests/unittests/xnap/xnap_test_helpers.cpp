@@ -60,7 +60,7 @@ ue_index_t xnap_test::create_ue(rnti_t rnti)
 {
   // Create UE in UE manager
   ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-  if (not result.servable) {
+  if (not result.servable()) {
     return ue_index_t::invalid;
   }
   ue_index_t ue_index = result.ue_index;

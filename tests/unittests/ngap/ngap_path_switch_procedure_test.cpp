@@ -20,7 +20,7 @@ protected:
   ue_index_t create_ue()
   {
     ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-    if (not result.servable) {
+    if (not result.servable()) {
       test_logger.error("Failed to create UE");
       return ue_index_t::invalid;
     }

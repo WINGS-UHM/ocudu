@@ -272,10 +272,12 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
 
       // Add new CU-CP UE.
       ue_creation_result_t result = ue_mng.add_ue(cfg.du_index);
-      if (not result.servable) {
+      if (not result.servable()) {
         logger.warning("CU-CP UE creation failed");
         // Remove the UE from the UE manager.
-        ue_mng.remove_ue(ue_index);
+        if (result.created()) {
+          ue_mng.remove_ue(result.ue_index);
+        }
         // Return the RRCReject container.
         return make_unexpected(rrc->get_rrc_reject());
       }

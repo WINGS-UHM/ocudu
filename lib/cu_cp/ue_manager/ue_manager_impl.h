@@ -11,6 +11,7 @@
 #include "ue_metrics_handler.h"
 #include "ue_task_scheduler_impl.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
 #include "ocudu/cu_cp/security_manager_config.h"
 #include "ocudu/cu_cp/ue_configuration.h"
 #include "ocudu/ran/i_rnti.h"
@@ -21,17 +22,29 @@
 
 namespace ocudu::ocucp {
 
-// Outcome of the UE creation. The outcomes of the UE creation are as follows:
-// - {false, ue_index_t::invalid}: If the provided DU index is invalid or no UE index is available, the UE context will
-//                                 not be created, the returned UE index will be invalid and the servable flag will be
-//                                 false.
-// - {false, ue_index_t}: If the admission limit for the CU-CP has been reached, the UE context will be created, but the
-//                        servable flag will be false.
-// - {true, ue_index_t}: If the UE context is successfully created and the UE can be served, the returned UE index will
-//                       be valid and the servable flag will be true.
+/// \brief State of a UE creation request.
+enum class ue_creation_state {
+  /// The UE context was not created. The UE index is invalid.
+  not_created,
+  /// The UE context was created, but the UE cannot be served.
+  created_unservable,
+  /// The UE context was created and the UE can be served.
+  created_servable
+};
+
+/// \brief Outcome of a UE creation request.
+///
+/// The result differentiates between three valid outcomes explicitly:
+/// - ue_creation_state::not_created: No UE context was created and ue_index is ue_index_t::invalid.
+/// - ue_creation_state::created_unservable: A UE context was created, but the UE must be rejected.
+/// - ue_creation_state::created_servable: A UE context was created and the UE can be served.
 struct ue_creation_result_t {
-  bool       servable;
-  ue_index_t ue_index;
+  ue_creation_state state;
+  ue_index_t        ue_index = ue_index_t::invalid;
+
+  [[nodiscard]] bool created() const { return state != ue_creation_state::not_created; }
+
+  [[nodiscard]] bool servable() const { return state == ue_creation_state::created_servable; }
 };
 
 class ue_manager : public ue_metrics_handler
@@ -110,9 +123,9 @@ public:
 
   // du processor
 
-  /// \brief Add UE context for the UE in the CU-CP.
+  /// \brief Add a UE context to the CU-CP.
   /// \param[in] du_index Index of the DU the UE is connected to.
-  /// \return The result of the UE creation, including whether the UE can be served and the allocated UE index.
+  /// \return Explicit UE creation result state and the allocated UE index if a UE context was created.
   ue_creation_result_t add_ue(du_index_t du_index);
 
   /// \brief Update the context of the UE.

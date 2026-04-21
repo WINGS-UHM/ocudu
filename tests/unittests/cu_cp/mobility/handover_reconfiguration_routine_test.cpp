@@ -22,7 +22,7 @@ protected:
   void create_ues(bool procedure_outcome, unsigned transaction_id_)
   {
     ue_creation_result_t source_result = get_ue_manager()->add_ue(source_du_index);
-    ASSERT_TRUE(source_result.servable);
+    ASSERT_TRUE(source_result.servable());
     ue_index_t source_ue_index = source_result.ue_index;
     ASSERT_TRUE(get_ue_manager()->update_ue_context(
         source_ue_index, int_to_gnb_du_id(0), source_pci, source_rnti, ocucp::du_cell_index_t::min));
@@ -33,7 +33,7 @@ protected:
     source_ue->set_rrc_ue(source_rrc_ue);
 
     ue_creation_result_t target_result = get_ue_manager()->add_ue(target_du_index);
-    ASSERT_TRUE(target_result.servable);
+    ASSERT_TRUE(target_result.servable());
     ue_index_t target_ue_index = target_result.ue_index;
     ASSERT_TRUE(get_ue_manager()->update_ue_context(
         target_ue_index, int_to_gnb_du_id(0), target_pci, target_rnti, ocucp::du_cell_index_t::min));

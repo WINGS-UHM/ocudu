@@ -36,18 +36,13 @@ ue_creation_result_t ue_manager::add_ue(du_index_t du_index)
 {
   if (du_index == du_index_t::invalid) {
     logger.warning("Invalid du_index={}", du_index);
-    return {false, ue_index_t::invalid};
+    return {ue_creation_state::not_created, ue_index_t::invalid};
   }
 
   ue_index_t ue_index = allocate_ue_index();
   if (ue_index == ue_index_t::invalid) {
     logger.warning("Failed to add UE. Cause: No available UE index");
-    return {false, ue_index_t::invalid};
-  }
-
-  if (ues.size() >= max_nof_ues) {
-    logger.debug("ue={}: Maximum number of servable UEs reached {}, UE must be rejected", ue_index, max_nof_ues);
-    return {false, ue_index};
+    return {ue_creation_state::not_created, ue_index_t::invalid};
   }
 
   // Create a dedicated task scheduler for the UE.
@@ -64,9 +59,14 @@ ue_creation_result_t ue_manager::add_ue(du_index_t du_index)
                                     sec_config,
                                     std::move(ue_sched)));
 
+  if (ues.size() > max_nof_ues) {
+    logger.debug("ue={}: Maximum number of servable UEs reached {}, UE must be rejected", ue_index, max_nof_ues);
+    return {ue_creation_state::created_unservable, ue_index};
+  }
+
   logger.info("ue={} du_index={}: Created new CU-CP UE", ue_index, du_index);
 
-  return {true, ue_index};
+  return {ue_creation_state::created_servable, ue_index};
 }
 
 bool ue_manager::update_ue_context(ue_index_t      ue_index,

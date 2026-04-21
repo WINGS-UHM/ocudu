@@ -1099,8 +1099,11 @@ ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_i
   }
 
   ue_creation_result_t result = ue_mng.add_ue(du_index);
-  if (not result.servable) {
+  if (not result.servable()) {
     logger.warning("Could not add new UE context for CGI={}", cgi.nci);
+    if (result.created()) {
+      ue_mng.remove_ue(result.ue_index);
+    }
     return ue_index_t::invalid;
   }
   ue_index_t ue_index = result.ue_index;

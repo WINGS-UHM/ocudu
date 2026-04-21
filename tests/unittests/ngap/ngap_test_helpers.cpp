@@ -80,7 +80,7 @@ ue_index_t ngap_test::create_ue(rnti_t rnti)
 {
   // Create UE in UE manager.
   ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-  if (!result.servable) {
+  if (!result.servable()) {
     test_logger.error("Failed to create UE");
     return ue_index_t::invalid;
   }
@@ -121,7 +121,7 @@ ue_index_t ngap_test::create_ue_without_init_ue_message(rnti_t rnti)
 {
   // Create UE in UE manager.
   ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-  if (not result.servable) {
+  if (not result.servable()) {
     test_logger.error("Failed to create UE");
     return ue_index_t::invalid;
   }

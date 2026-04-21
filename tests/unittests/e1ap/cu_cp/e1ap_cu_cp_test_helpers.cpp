@@ -75,7 +75,7 @@ void e1ap_cu_cp_test::run_bearer_context_setup(ue_index_t ue_index, gnb_cu_up_ue
 e1ap_cu_cp_test::test_ue& e1ap_cu_cp_test::create_ue()
 {
   ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-  report_fatal_error_if_not(result.servable, "Failed to create UE");
+  report_fatal_error_if_not(result.servable(), "Failed to create UE");
   ue_index_t ue_index = result.ue_index;
   ue_mng.set_plmn(ue_index, plmn_identity::test_value());
   auto request = generate_bearer_context_setup_request(ue_index);

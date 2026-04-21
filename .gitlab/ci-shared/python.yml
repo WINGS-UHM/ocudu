@@ -81,6 +81,9 @@
     - *setup_env_variables
     # Install tools
     - apk add --no-cache python3 py3-pip py3-virtualenv curl ca-certificates bash
+    - python3 -m venv /tmp/publish-venv
+    - . /tmp/publish-venv/bin/activate
+    - python3 -m pip install --no-cache-dir --upgrade pip
     - python3 -m pip install --no-cache-dir cibuildwheel build twine
     # Build sdist and check if already uploaded to the repo
     - cd $PY_DIR

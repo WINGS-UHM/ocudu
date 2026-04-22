@@ -819,7 +819,7 @@ unsigned intra_slice_scheduler::max_puschs_to_alloc(const ul_ran_slice_candidate
 
   // Determine how many PDCCHs can be allocated in this slot.
   const auto& pdcch_res  = cell_alloc[pdcch_slot].result;
-  const auto  max_pdcchs = std::min(static_cast<int>(MAX_UL_PDCCH_PDUS_PER_SLOT - pdcch_res.ul.puschs.size()),
+  const auto  max_pdcchs = std::min(static_cast<int>(MAX_UL_PDCCH_PDUS_PER_SLOT - pdcch_res.dl.ul_pdcchs.size()),
                                    static_cast<int>(expert_cfg.max_pdcch_alloc_attempts_per_slot - ul_attempts_count));
   puschs_to_alloc        = std::min(puschs_to_alloc, max_pdcchs);
   if (puschs_to_alloc <= 0) {

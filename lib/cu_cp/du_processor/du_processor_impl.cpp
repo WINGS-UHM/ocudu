@@ -391,11 +391,24 @@ void du_processor_impl::handle_access_success(const f1ap_access_success& msg)
   ind.ue_index = msg.ue_index;
   ind.cgi      = msg.cgi;
 
-  ue->get_task_sched().schedule_async_task(launch_async([this, ind](coro_context<async_task<void>>& ctx) mutable {
-    CORO_BEGIN(ctx);
-    CORO_AWAIT(cu_cp_notifier.on_access_success(ind));
-    CORO_RETURN();
-  }));
+  // Resolve source UE via CHO backlink so the caller can schedule the source routine on the source UE's scheduler.
+  if (ue->get_cho_context().has_value() && ue->get_cho_context()->role == cu_cp_ue_cho_context::role_t::target &&
+      ue->get_cho_context()->source_ue_index != ue_index_t::invalid) {
+    ind.source_ue_index = ue->get_cho_context()->source_ue_index;
+  }
+
+  cu_cp_ue* source_ue = ue_mng.find_du_ue(ind.source_ue_index);
+  if (source_ue == nullptr) {
+    logger.warning("ue={}: Dropping Access Success notification. Source UE does not exist", msg.ue_index);
+    return;
+  }
+
+  source_ue->get_task_sched().schedule_async_task(
+      launch_async([this, ind](coro_context<async_task<void>>& ctx) mutable {
+        CORO_BEGIN(ctx);
+        CORO_AWAIT(cu_cp_notifier.on_access_success(ind));
+        CORO_RETURN();
+      }));
 }
 
 bool du_processor_impl::has_cell(pci_t pci)

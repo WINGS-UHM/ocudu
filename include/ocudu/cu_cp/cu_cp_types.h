@@ -517,7 +517,8 @@ struct cu_cp_ue_context_release_request {
 
 /// \brief Indication from a DU that a UE has successfully accessed a target cell (CHO execution).
 struct cu_cp_access_success_indication {
-  ue_index_t          ue_index = ue_index_t::invalid;
+  ue_index_t          ue_index        = ue_index_t::invalid; ///< Target UE index (sender of Access Success).
+  ue_index_t          source_ue_index = ue_index_t::invalid; ///< Resolved CHO source UE index.
   nr_cell_global_id_t cgi;
 };
 

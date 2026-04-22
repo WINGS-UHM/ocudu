@@ -12,35 +12,53 @@
 namespace ocudu {
 namespace ocucp {
 
-/// \brief Only observes target-side RRCReconfigurationComplete for this CHO candidate.
+class du_processor_repository;
+class cu_up_processor_repository;
+
+/// \brief Completes CHO execution on the target side upon RRCReconfigurationComplete.
 ///
-/// This routine is started on each prepared CHO target UE when the conditional
-/// reconfiguration is sent to the source UE. It waits for target-side
-/// RRCReconfigurationComplete or timeout.
-///
+/// This routine runs on the target UE's task scheduler for each CHO candidate. It waits for target-side
+/// RRCReconfigurationComplete (or timeout). On success, it owns the full CHO winner finalization (NGAP/E1AP context
+/// transfer, bearer context modification, F1AP UE context modification, CHO context cleanup, metrics).
 class conditional_handover_target_routine
 {
 public:
-  conditional_handover_target_routine(const cu_cp_cho_target_request& request_,
-                                      ue_manager&                     ue_mng_,
-                                      ocudulog::basic_logger&         logger_);
+  conditional_handover_target_routine(const cu_cp_cho_target_request&        request_,
+                                      ue_manager&                            ue_mng_,
+                                      du_processor_repository&               du_db_,
+                                      cu_up_processor_repository&            cu_up_db_,
+                                      cu_cp_ue_context_manipulation_handler& cu_cp_handler_,
+                                      cu_cp_ue_context_release_handler&      ue_context_release_handler_,
+                                      mobility_manager&                      mobility_mng_,
+                                      ocudulog::basic_logger&                logger_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
   static const char* name() { return "CHO Target Routine"; }
 
 private:
+  bool fill_bearer_context_security_info(e1ap_bearer_context_modification_request& bearer_mod_request,
+                                         const security::sec_as_config&            sec_cfg);
   const cu_cp_cho_target_request request;
 
-  // Pointer to UE in the target DU.
   cu_cp_ue* target_ue = nullptr;
 
-  ue_manager& ue_mng;
+  ue_manager&                            ue_mng;
+  du_processor_repository&               du_db;
+  cu_up_processor_repository&            cu_up_db;
+  cu_cp_ue_context_manipulation_handler& cu_cp_handler;
+  cu_cp_ue_context_release_handler&      ue_context_release_handler;
+  mobility_manager&                      mobility_mng;
 
   ocudulog::basic_logger& logger;
 
-  // (Sub-)routine result.
   bool reconf_result = false;
+
+  e1ap_bearer_context_modification_request  bearer_ctx_mod_request;
+  e1ap_bearer_context_modification_response bearer_ctx_mod_response;
+  f1ap_ue_context_modification_request      target_du_context_mod_request;
+  cu_cp_ue_context_release_command          release_cmd;
+  cu_cp_ue_context_release_complete         release_complete;
 };
 
 } // namespace ocucp

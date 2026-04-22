@@ -1484,7 +1484,8 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
 
     // -- Find Msg3 PUSCH candidates for FallbackRAR preambles --
     static_vector<msg3_alloc_candidate, MAX_GRANTS_PER_RAR> msg3_candidates;
-    for (unsigned pusch_idx = 0; pusch_idx < pusch_td_list.size() and msg3_candidates.size() < nof_fallback_candidates;
+    for (unsigned pusch_idx = 0, sz = pusch_td_list.size();
+         pusch_idx != sz and msg3_candidates.size() < nof_fallback_candidates;
          ++pusch_idx) {
       const unsigned pusch_res_max_allocs = std::min(msg3_candidates.capacity() - msg3_candidates.size(),
                                                      nof_fallback_candidates - msg3_candidates.size());
@@ -1568,10 +1569,10 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
     unsigned success_count  = 0;
     unsigned fallback_count = 0;
 
-    for (unsigned i = 0; i < nof_preambles; ++i) {
+    for (unsigned i = 0; i != nof_preambles; ++i) {
       pending_msgb_alloc::preamble_ctx& pctx = msgb.preambles[i];
 
-      if (pctx.crc_result == true and success_count < nof_success_to_sched) {
+      if (pctx.crc_result.has_value() and *pctx.crc_result and success_count < nof_success_to_sched) {
         // SuccessRAR: UE's MsgA PUSCH decoded — 2-step RACH completes, no Msg3 needed.
         if (msgb_rar.grants.full()) {
           logger.error("msgb-rnti={}: SuccessRAR grant for tc-rnti={} dropped. Cause: No space in grant list",
@@ -1591,7 +1592,7 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
         pctx.msgb_scheduled = true;
         ++success_count;
 
-      } else if (pctx.crc_result != true and fallback_count < nof_fallback_to_sched) {
+      } else if (pctx.crc_result.has_value() and not *pctx.crc_result and fallback_count < nof_fallback_to_sched) {
         // FallbackRAR: MsgA PUSCH not decoded (or CRC pending at window boundary) — UE falls back to Msg3.
         if (msgb_rar.grants.full()) {
           logger.error("msgb-rnti={}: FallbackRAR grant for tc-rnti={} dropped. Cause: No space in grant list",
@@ -1633,7 +1634,8 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
         g.time_resource_assignment = msg3_candidate.pusch_td_res_index;
         g.freq_resource_assignment = ra_frequency_type1_get_riv(
             ra_frequency_type1_configuration{init_ul_bwp.generic_params.crbs.length(), vrbs.start(), vrbs.length()});
-        g.mcs     = sched_cfg.msg3_mcs_index;
+        g.mcs = sched_cfg.msg3_mcs_index;
+        // Determine TPC command based on Table 8.2-2, TS 38.213.
         g.tpc     = (init_ul_bwp.pusch_cfg_common->msg3_delta_power.value() + 6) / 2;
         g.csi_req = false;
         g.type    = rar_ul_grant::two_step_info{false};

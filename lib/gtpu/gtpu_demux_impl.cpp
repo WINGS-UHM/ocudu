@@ -6,11 +6,12 @@
 #include "gtpu_pdu.h"
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <utility>
 
 using namespace ocudu;
 
 gtpu_demux_impl::gtpu_demux_impl(gtpu_demux_cfg_t cfg_, dlt_pcap& gtpu_pcap_) :
-  cfg(cfg_), gtpu_pcap(gtpu_pcap_), logger(ocudulog::fetch_basic_logger("GTPU"))
+  cfg(std::move(cfg_)), gtpu_pcap(gtpu_pcap_), gen(rd()), logger(ocudulog::fetch_basic_logger("GTPU"))
 {
   logger.info("GTP-U demux. {}", cfg);
 }
@@ -58,10 +59,12 @@ bool gtpu_demux_impl::remove_tunnel(gtpu_teid_t teid)
   return true;
 }
 
-void gtpu_demux_impl::apply_test_teid(gtpu_teid_t teid)
+void gtpu_demux_impl::apply_test_teids(std::vector<gtpu_teid_t> teids)
 {
   std::lock_guard<std::mutex> guard(map_mutex);
-  test_teid = teid;
+  test_teids = teids;
+  report_error_if_not(not teids.empty(), "Configuring GTP-U demux test mode without TEIDs");
+  dist = std::uniform_int_distribution<>{0, static_cast<int>(teids.size() - 1)};
 }
 
 void gtpu_demux_impl::handle_pdu(byte_buffer pdu, const sockaddr_storage& src_addr)
@@ -83,7 +86,7 @@ void gtpu_demux_impl::handle_pdu(byte_buffer pdu, const sockaddr_storage& src_ad
   gtpu_teid_t teid{read_teid};
 
   if (cfg.test_mode) {
-    teid = test_teid;
+    teid = test_teids[dist(gen)];
   }
 
   auto it = teid_to_tunnel.find(teid);

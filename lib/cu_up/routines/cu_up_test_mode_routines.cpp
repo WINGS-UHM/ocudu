@@ -30,12 +30,12 @@ void cu_up_enable_test_mode_routine::operator()(coro_context<async_task<void>>& 
   for (uint32_t i = 0; i < test_mode_cfg.nof_ues; i++) {
     bearer_context_setup = fill_test_mode_bearer_context_setup_request(test_mode_cfg);
     setup_resp           = cu_up_mngr.handle_bearer_context_setup_request(bearer_context_setup);
-    // TODO store list of TEIDs.
-    teid = setup_resp.pdu_session_resource_setup_list.begin()->ng_dl_up_tnl_info.gtp_teid;
+    // Store list of NG-U test TEID(s).
+    teids.push_back(setup_resp.pdu_session_resource_setup_list.begin()->ng_dl_up_tnl_info.gtp_teid);
   }
 
-  // Apply test TEID to demux.
-  ngu_demux.apply_test_teid(teid); // TODO, apply list to all UEs.
+  // Apply test TEID(s) to demux.
+  ngu_demux.apply_test_teids(teids);
 
   // Modify bearer context(s).
   st = ue_mngr.get_up_state();
@@ -64,6 +64,7 @@ void cu_up_disable_test_mode_routine::operator()(coro_context<async_task<void>>&
   // Remove bearer context(s).
   st = ue_mngr.get_up_state();
   for (st_it = st.begin(); st_it != st.end(); ++st_it) {
+    release_command.ue_index = st_it->first;
     CORO_AWAIT(cu_up_mngr.handle_bearer_context_release_command(release_command));
   }
 

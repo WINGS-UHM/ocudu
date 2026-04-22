@@ -90,7 +90,7 @@ public:
     return true;
   }
 
-  void apply_test_teid(gtpu_teid_t teid) override {}
+  void apply_test_teids(std::vector<gtpu_teid_t> teid) override {}
 
   void stop() override {}
 

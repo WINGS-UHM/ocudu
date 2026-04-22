@@ -83,7 +83,7 @@ struct cu_up_unit_test_mode_config {
   std::chrono::milliseconds attach_detach_period{0}; // Period for attaching detaching tests. 0 means always attached.
   std::chrono::milliseconds reestablish_period{0};   // Period for reestablishment tests. 0 means no re-establishments.
   std::string               f1u_peer_address = "127.0.10.2";
-  uint16_t                  nof_ues          = 1;
+  uint32_t                  nof_ues          = 1;
 };
 
 struct cu_up_unit_execution_config {

@@ -12,6 +12,7 @@
 #include "ocudu/support/executors/task_executor.h"
 #include "fmt/format.h"
 #include <mutex>
+#include <random>
 #include <unordered_map>
 
 namespace ocudu {
@@ -37,7 +38,7 @@ public:
                   gtpu_tunnel_common_rx_upper_layer_interface* tunnel) override;
   bool remove_tunnel(gtpu_teid_t teid) override;
 
-  void apply_test_teid(gtpu_teid_t teid) override;
+  void apply_test_teids(std::vector<gtpu_teid_t> teids) override;
 
   void stop() override;
 
@@ -67,8 +68,12 @@ private:
   std::mutex                                                                   map_mutex;
   std::unordered_map<gtpu_teid_t, gtpu_demux_tunnel_ctx_t, gtpu_teid_hasher_t> teid_to_tunnel;
 
-  // TEID used for test mode operation.
-  gtpu_teid_t test_teid{0x01};
+  // TEID(s) used for test mode operation and helpers
+  // to randomly pick TEIDs from the available values.
+  std::vector<gtpu_teid_t>        test_teids;
+  std::random_device              rd;
+  std::default_random_engine      gen;
+  std::uniform_int_distribution<> dist;
 
   ocudulog::basic_logger& logger;
 

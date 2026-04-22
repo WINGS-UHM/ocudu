@@ -237,6 +237,7 @@ inline e1ap_bearer_context_modification_request fill_test_mode_bearer_context_mo
   drb_to_mod.drb_id = drb_state.begin()->first;
   drb_to_mod.dl_up_params[0].up_tnl_info.tp_address =
       transport_layer_address::create_from_string(test_mode_cfg.f1u_peer_address);
+  // TEID 0 is the control TEID, so we emulate TEID by adding one to the UE index.
   drb_to_mod.dl_up_params[0].up_tnl_info.gtp_teid = int_to_gtpu_teid(static_cast<uint32_t>(ue_index) + 1);
 
   pdu_session_to_mod.drb_to_modify_list_ng_ran.emplace(drb_to_mod.drb_id, drb_to_mod);

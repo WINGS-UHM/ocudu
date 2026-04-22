@@ -31,6 +31,11 @@ struct du_cell_config {
   /// Note: If set to false, the DU won't add this cell to the list of served cells in the F1 Setup Request.
   bool enabled = true;
 
+  /// MIB cellBarred field (TS 38.331): true=barred, false=notBarred.
+  bool cell_barred = false;
+  /// MIB intraFreqReselection field (TS 38.331): true=allowed, false=notAllowed.
+  bool intra_freq_reselection = true;
+
   /// Information for UE cell access and SI scheduling.
   si_acquisition_info si;
 

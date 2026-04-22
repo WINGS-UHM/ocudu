@@ -44,6 +44,8 @@ static mac_cell_creation_request make_mac_cell_config(du_cell_index_t           
   }
   mac_cfg.sys_info.sib1_contains_hypersfn = du_cfg.ran.init_bwp.paging.edrx_enabled;
   mac_cfg.sched_req                       = sched_cell_cfg;
+  mac_cfg.cell_barred                     = du_cfg.cell_barred;
+  mac_cfg.intra_freq_reselection          = du_cfg.intra_freq_reselection;
 
   return mac_cfg;
 }

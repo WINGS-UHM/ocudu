@@ -37,6 +37,11 @@ struct mac_cell_creation_request {
   du_cell_index_t cell_index;
   pci_t           pci;
 
+  /// MIB cellBarred field (TS 38.331): true=barred, false=notBarred.
+  bool cell_barred = false;
+  /// MIB intraFreqReselection field (TS 38.331): true=allowed, false=notAllowed.
+  bool intra_freq_reselection = true;
+
   /// subcarrierSpacing for common, used for initial access and broadcast message.
   subcarrier_spacing scs_common;
 

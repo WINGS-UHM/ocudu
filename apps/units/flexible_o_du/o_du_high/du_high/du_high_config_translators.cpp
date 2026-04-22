@@ -541,15 +541,21 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
     odu::du_cell_config& out_cell = out_cfg.back();
 
     // Overwrite the parameters that the cell config builder set as default.
+    // > MIB
+    out_cell.cell_barred            = base_cell.cell_barred;
+    out_cell.intra_freq_reselection = base_cell.intra_freq_reselection;
+
     // > PLMN/TAC/NCI.
     out_cell.nr_cgi.plmn_id = plmn_identity::parse(base_cell.plmn).value();
     out_cell.nr_cgi.nci     = nr_cell_identity::create(config.gnb_id, base_cell.sector_id.value()).value();
     out_cell.tac            = base_cell.tac;
     out_cell.enabled        = base_cell.enabled;
+
     // > SSB.
     out_cell.ran.ssb_cfg.ssb_period      = static_cast<ssb_periodicity>(base_cell.ssb_cfg.ssb_period_msec);
     out_cell.ran.ssb_cfg.ssb_block_power = base_cell.ssb_cfg.ssb_block_power;
     out_cell.ran.ssb_cfg.pss_to_sss_epre = base_cell.ssb_cfg.pss_to_sss_epre;
+
     // > Carrier config.
     out_cell.ran.dl_carrier.nof_ant = base_cell.nof_antennas_dl;
     out_cell.ran.ul_carrier.nof_ant = base_cell.nof_antennas_ul;

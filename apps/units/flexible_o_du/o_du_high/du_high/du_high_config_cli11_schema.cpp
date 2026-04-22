@@ -2240,6 +2240,13 @@ static void configure_cli11_common_cell_args(CLI::App& app, du_high_unit_base_ce
   });
   add_option(app, "--enabled", cell_params.enabled, "Automatically activate the cell on startup")
       ->capture_default_str();
+  add_option(app, "--cell_barred", cell_params.cell_barred, "MIB cellBarred: if true, UEs cannot camp on this cell")
+      ->capture_default_str();
+  add_option(app,
+             "--intra_freq_reselection",
+             cell_params.intra_freq_reselection,
+             "MIB intraFreqReselection: if true, intra-frequency cell reselection is allowed when cell is barred")
+      ->capture_default_str();
   add_option(app,
              "--q_rx_lev_min",
              cell_params.q_rx_lev_min,

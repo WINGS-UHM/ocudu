@@ -1050,6 +1050,10 @@ struct du_high_unit_base_cell_config {
   /// Whether the DU adds this cell to the list of served cells while communicating with the CU-CP or it waits for a
   /// command from the SMO to activate it.
   bool enabled = true;
+  /// MIB cellBarred field (TS 38.331): if true, UEs cannot camp on this cell.
+  bool cell_barred = false;
+  /// MIB intraFreqReselection field (TS 38.331): if true, intra-frequency cell reselection is allowed when barred.
+  bool intra_freq_reselection = true;
   /// \c q-RxLevMin, part of \c cellSelectionInfo, \c SIB1, TS 38.331, in dBm.
   int q_rx_lev_min = -70;
   /// \c q-QualMin, part of \c cellSelectionInfo, \c SIB1, TS 38.331, in dB.

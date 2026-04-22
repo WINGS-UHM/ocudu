@@ -32,7 +32,6 @@ static void check_inputs_rx(span<const log_likelihood_ratio> codeword_llrs, cons
 
 void ldpc_segmenter_rx_impl::segment(static_vector<described_rx_codeblock, MAX_NOF_SEGMENTS>& described_codeblocks,
                                      span<const log_likelihood_ratio>                         codeword_llrs,
-                                     unsigned                                                 tbs,
                                      const segmenter_config&                                  cfg)
 {
   check_inputs_rx(codeword_llrs, cfg);
@@ -41,7 +40,7 @@ void ldpc_segmenter_rx_impl::segment(static_vector<described_rx_codeblock, MAX_N
 
   params.base_graph = cfg.base_graph;
 
-  units::bits tbs_bits(tbs);
+  units::bits tbs_bits(cfg.transport_block_size.to_bits());
   params.nof_tb_crc_bits = compute_tb_crc_size(tbs_bits);
 
   params.nof_tb_bits_in = tbs_bits + params.nof_tb_crc_bits;

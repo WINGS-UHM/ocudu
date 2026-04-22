@@ -97,11 +97,12 @@ pusch_decoder_buffer& pusch_decoder_impl::new_data(span<uint8_t>                
   nof_ulsch_softbits.reset();
 
   // Compute segmentation configuration.
-  segmentation_config.base_graph = current_config.base_graph;
-  segmentation_config.rv         = current_config.rv;
-  segmentation_config.mod        = current_config.mod;
-  segmentation_config.Nref       = current_config.Nref;
-  segmentation_config.nof_layers = current_config.nof_layers;
+  segmentation_config.transport_block_size = units::bytes(transport_block.size());
+  segmentation_config.base_graph           = current_config.base_graph;
+  segmentation_config.rv                   = current_config.rv;
+  segmentation_config.mod                  = current_config.mod;
+  segmentation_config.Nref                 = current_config.Nref;
+  segmentation_config.nof_layers           = current_config.nof_layers;
 
   // Set the CB counters.
   unsigned tb_size     = transport_block.size() * BITS_PER_BYTE;
@@ -168,11 +169,8 @@ void pusch_decoder_impl::set_nof_softbits(units::bits nof_softbits)
   span<const log_likelihood_ratio> llrs =
       span<const log_likelihood_ratio>(softbits_buffer).first(nof_ulsch_softbits->value());
 
-  // Recall that the TB is in packed format.
-  unsigned tb_size = transport_block.size() * BITS_PER_BYTE;
-
   // Generate segmentation information and CB views.
-  segmenter->segment(codeblock_llrs, llrs, tb_size, segmentation_config);
+  segmenter->segment(codeblock_llrs, llrs, segmentation_config);
 
   // All information about the CW segments should be available.
   ocudu_assert(
@@ -278,9 +276,8 @@ void pusch_decoder_impl::on_end_softbits()
   span<const log_likelihood_ratio> llrs = span<const log_likelihood_ratio>(softbits_buffer).first(softbits_count);
 
   // Recall that the TB is in packed format.
-  unsigned tb_size                   = transport_block.size() * BITS_PER_BYTE;
   segmentation_config.nof_ch_symbols = softbits_count / modulation_order;
-  segmenter->segment(codeblock_llrs, llrs, tb_size, segmentation_config);
+  segmenter->segment(codeblock_llrs, llrs, segmentation_config);
 
   // All information about the CW segments should be available.
   ocudu_assert(

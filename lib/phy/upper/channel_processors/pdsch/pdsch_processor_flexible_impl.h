@@ -96,10 +96,11 @@ private:
   /// Pointer to an LDPC segmenter output buffer interface.
   const ldpc_segmenter_buffer* segment_buffer;
 
-  resource_grid_writer*     grid;
-  pdsch_processor_notifier* notifier;
-  shared_transport_block    data;
-  pdsch_processor::pdu_t    config;
+  resource_grid_writer*                grid;
+  pdsch_processor_notifier*            notifier;
+  shared_transport_block               data;
+  pdsch_processor::pdu_t               config;
+  pdsch_block_processor::configuration block_config;
 
   /// Number of codeblocks of the current transmission.
   unsigned nof_cb = 0;

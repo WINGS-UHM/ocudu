@@ -23,7 +23,6 @@ public:
   // See interface for the documentation.
   void segment(static_vector<described_rx_codeblock, MAX_NOF_SEGMENTS>& described_codeblocks,
                span<const log_likelihood_ratio>                         codeword_llrs,
-               unsigned                                                 tbs,
                const segmenter_config&                                  cfg) override;
 
 private:

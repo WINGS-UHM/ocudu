@@ -11,16 +11,16 @@ void pdsch_encoder_impl::encode(span<uint8_t>        codeword,
                                 span<const uint8_t>  transport_block,
                                 const configuration& config)
 {
-  segmenter_config segmenter_cfg;
-  segmenter_cfg.base_graph     = config.base_graph;
-  segmenter_cfg.rv             = config.rv;
-  segmenter_cfg.mod            = config.mod;
-  segmenter_cfg.Nref           = config.Nref;
-  segmenter_cfg.nof_layers     = config.nof_layers;
-  segmenter_cfg.nof_ch_symbols = config.nof_ch_symbols;
+  segmenter_config segmenter_cfg = {.transport_block_size = units::bytes(transport_block.size()),
+                                    .base_graph           = config.base_graph,
+                                    .rv                   = config.rv,
+                                    .mod                  = config.mod,
+                                    .Nref                 = config.Nref,
+                                    .nof_layers           = config.nof_layers,
+                                    .nof_ch_symbols       = config.nof_ch_symbols};
 
   // Initialize the segmenter.
-  const ldpc_segmenter_buffer& segment_buffer = segmenter->new_transmission(transport_block, segmenter_cfg);
+  const ldpc_segmenter_buffer& segment_buffer = segmenter->new_transmission(segmenter_cfg);
 
   // Prepare codeblock data.
   units::bits cb_size = segment_buffer.get_segment_length();

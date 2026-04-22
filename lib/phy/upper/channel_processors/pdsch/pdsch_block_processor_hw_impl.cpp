@@ -8,23 +8,25 @@
 using namespace ocudu;
 
 resource_grid_mapper::symbol_buffer&
-pdsch_block_processor_hw_impl::configure_new_transmission(span<const uint8_t>           data,
-                                                          unsigned                      i_cw,
-                                                          const pdsch_processor::pdu_t& pdu,
-                                                          const ldpc_segmenter_buffer&  segment_buffer_,
-                                                          unsigned                      start_i_cb_,
-                                                          unsigned                      cb_batch_len)
+pdsch_block_processor_hw_impl::configure_new_transmission(span<const uint8_t>          data,
+                                                          unsigned                     i_cw,
+                                                          const configuration&         config,
+                                                          const ldpc_segmenter_buffer& segment_buffer_,
+                                                          unsigned                     start_i_cb_,
+                                                          unsigned                     cb_batch_len)
 {
-  // Init scrambling initial state.
-  scrambler->init((static_cast<unsigned>(pdu.rnti) << 15U) + (i_cw << 14U) + pdu.n_id);
+  // Save reference of the segmenter buffer.
+  segment_buffer = &segment_buffer_;
 
-  // Advance scrambling sequence to the specific offset of the starting CB.
-  scrambler->advance(segment_buffer_.get_cb_metadata(start_i_cb_).cb_specific.cw_offset);
+  // Initialize the scrambling state.
+  scrambler->init((static_cast<unsigned>(config.rnti) << 15U) + (i_cw << 14U) + config.n_id);
 
-  // Select codeword specific parameters.
-  modulation = pdu.codewords[i_cw].modulation;
+  // Advance the scrambling sequence to the specific offset of the starting CB.
+  scrambler->advance(segment_buffer->get_cb_metadata(start_i_cb_).cb_specific.cw_offset);
 
-  cb_size = segment_buffer_.get_segment_length();
+  // Store the codeword-specific parameters.
+  modulation = config.modulation;
+  cb_size    = segment_buffer->get_segment_length();
 
   // Initialize the codeblock processing control variables.
   next_i_cb_enq = start_i_cb_;
@@ -37,9 +39,6 @@ pdsch_block_processor_hw_impl::configure_new_transmission(span<const uint8_t>   
 
   // Save the pointer to the input data.
   transport_block = data;
-
-  // Save the pointer to the segment buffer.
-  segment_buffer = &segment_buffer_;
 
   return *this;
 }

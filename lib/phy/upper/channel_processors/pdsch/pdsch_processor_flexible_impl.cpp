@@ -128,7 +128,7 @@ void pdsch_processor_flexible_impl::initialize_new_transmission(
   data     = std::move(data_.front());
   config   = pdu;
 
-  // The number of layers is equal to the number of ports.
+  // Get the number of layers from the precoding configuration.
   unsigned nof_layers = config.precoding.get_nof_layers();
 
   // Calculate the number of resource elements used to map PDSCH on the grid. Common for all codewords.
@@ -145,17 +145,26 @@ void pdsch_processor_flexible_impl::initialize_new_transmission(
   // Calculate rate match buffer size.
   units::bits Nref = ldpc::compute_N_ref(config.tbs_lbrm, nof_cb);
 
-  // Initialize the segmenter.
-  segmenter_config segmenter_cfg;
-  segmenter_cfg.base_graph     = config.ldpc_base_graph;
-  segmenter_cfg.rv             = config.codewords.front().rv;
-  segmenter_cfg.mod            = modulation;
-  segmenter_cfg.Nref           = Nref.value();
-  segmenter_cfg.nof_layers     = nof_layers;
-  segmenter_cfg.nof_ch_symbols = nof_layers * nof_re_pdsch;
+  // Derive block processor configuration.
+  block_config = pdsch_block_processor::configuration{.rnti            = config.rnti,
+                                                      .modulation      = config.codewords.front().modulation,
+                                                      .rv              = config.codewords.front().rv,
+                                                      .n_id            = config.n_id,
+                                                      .scrambling_id   = config.scrambling_id,
+                                                      .ldpc_base_graph = config.ldpc_base_graph,
+                                                      .nof_re_pdsch    = nof_re_pdsch,
+                                                      .Nref            = Nref,
+                                                      .nof_layers      = nof_layers};
 
   // Initialize the segmenter.
-  segment_buffer = &segmenter->new_transmission(data.get_buffer(), segmenter_cfg);
+  segmenter_config segmenter_cfg = {.transport_block_size = units::bytes(data.get_buffer().size()),
+                                    .base_graph           = config.ldpc_base_graph,
+                                    .rv                   = config.codewords.front().rv,
+                                    .mod                  = modulation,
+                                    .Nref                 = Nref.value(),
+                                    .nof_layers           = nof_layers,
+                                    .nof_ch_symbols       = nof_layers * nof_re_pdsch};
+  segment_buffer                 = &segmenter->new_transmission(segmenter_cfg);
 
   // The processing of this transmission is synchronous if the number of codeblocks is smaller than the batch size.
   async_proc = (nof_cb > max_nof_codeblocks_per_batch);
@@ -248,9 +257,9 @@ void pdsch_processor_flexible_impl::sync_pdsch_cb_processing()
   precoding = config.precoding;
   precoding *= scaling;
 
-  // Configure new transmission. Codeword index, start CB index and CB batch length are fixed.
+  // Configure the new transmission. Codeword index, start CB index and CB batch length are fixed.
   resource_grid_mapper::symbol_buffer& grid_buffer =
-      block_processor->configure_new_transmission(data.get_buffer(), 0, config, *segment_buffer, 0, nof_cb);
+      block_processor->configure_new_transmission(data.get_buffer(), 0, block_config, *segment_buffer, 0, nof_cb);
 
   // Map PDSCH.
   mapper->map(*grid, grid_buffer, allocation, reserved, precoding);
@@ -330,7 +339,7 @@ void pdsch_processor_flexible_impl::fork_cb_batches()
 
       // Configure new transmission.
       resource_grid_mapper::symbol_buffer& grid_buffer = block_processor->configure_new_transmission(
-          data.get_buffer(), i_cw, config, *segment_buffer, first_cb_index, next_cb_batch_length);
+          data.get_buffer(), i_cw, block_config, *segment_buffer, first_cb_index, next_cb_batch_length);
 
       // Map PDSCH.
       mapper->map(*grid, grid_buffer, allocation, reserved, precoding, re_offset[first_cb_index]);

@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include "ocudu/adt/bit_buffer.h"
 #include "ocudu/adt/span.h"
-#include "ocudu/adt/static_vector.h"
 #include "ocudu/phy/upper/codeblock_metadata.h"
+#include "ocudu/support/units.h"
 
 namespace ocudu {
 

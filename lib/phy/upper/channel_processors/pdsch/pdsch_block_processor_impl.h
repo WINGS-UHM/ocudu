@@ -8,6 +8,7 @@
 #include "ocudu/phy/upper/channel_coding/ldpc/ldpc_encoder.h"
 #include "ocudu/phy/upper/channel_coding/ldpc/ldpc_rate_matcher.h"
 #include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_buffer.h"
+#include "ocudu/phy/upper/channel_coding/ldpc/ldpc_segmenter_tx.h"
 #include "ocudu/phy/upper/channel_modulation/modulation_mapper.h"
 #include "ocudu/phy/upper/channel_processors/pdsch/pdsch_block_processor.h"
 #include "ocudu/phy/upper/channel_processors/pdsch/pdsch_processor.h"
@@ -43,15 +44,19 @@ public:
     scrambler(std::move(scrambler_)),
     modulator(std::move(modulator_))
   {
+    ocudu_assert(encoder, "Invalid LDPC encoder.");
+    ocudu_assert(rate_matcher, "Invalid LDPC rate matcher.");
+    ocudu_assert(scrambler, "Invalid scrambler.");
+    ocudu_assert(modulator, "Invalid modulator.");
   }
 
   // See the pdsch_block_processor interface for documentation.
-  resource_grid_mapper::symbol_buffer& configure_new_transmission(span<const uint8_t>           data,
-                                                                  unsigned                      i_cw,
-                                                                  const pdsch_processor::pdu_t& pdu,
-                                                                  const ldpc_segmenter_buffer&  segment_buffer,
-                                                                  unsigned                      start_i_cb,
-                                                                  unsigned                      cb_batch_len) override;
+  resource_grid_mapper::symbol_buffer& configure_new_transmission(span<const uint8_t>          data,
+                                                                  unsigned                     i_cw,
+                                                                  const configuration&         config,
+                                                                  const ldpc_segmenter_buffer& segment_buffer,
+                                                                  unsigned                     start_i_cb,
+                                                                  unsigned                     cb_batch_len) override;
 
   // See the resource_grid_mapper::symbol_buffer interface for documentation.
   unsigned get_max_block_size() const override;

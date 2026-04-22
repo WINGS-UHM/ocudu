@@ -126,6 +126,8 @@ using described_rx_codeblock = std::pair<span<const log_likelihood_ratio>, codeb
 
 /// Gathers all segmentation configuration parameters.
 struct segmenter_config {
+  /// Message transport block size.
+  units::bytes transport_block_size;
   /// Code base graph.
   ldpc_base_graph_type base_graph = ldpc_base_graph_type::BG1;
   /// Redundancy version, values in {0, 1, 2, 3}.

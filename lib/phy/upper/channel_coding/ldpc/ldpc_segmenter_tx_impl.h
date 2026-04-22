@@ -45,7 +45,7 @@ public:
   }
 
   // See interface for the documentation.
-  ldpc_segmenter_buffer& new_transmission(span<const uint8_t> transport_block, const segmenter_config& cfg) override;
+  ldpc_segmenter_buffer& new_transmission(const segmenter_config& cfg) override;
 
 private:
   /// Segmentation parameters.

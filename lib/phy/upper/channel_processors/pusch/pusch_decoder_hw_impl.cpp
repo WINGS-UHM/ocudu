@@ -12,9 +12,6 @@
 
 using namespace ocudu;
 
-// Number of bits in one byte.
-static constexpr unsigned BITS_PER_BYTE = 8;
-
 // Maximum TBS that implies a 16-bit CRC.
 static constexpr unsigned MAX_BITS_CRC16 = 3824;
 
@@ -147,21 +144,21 @@ void pusch_decoder_hw_impl::run_asynch_hw_decoder()
   // Reserve a hardware-queue for the current decoding operation.
   decoder->reserve_queue();
 
-  segmenter_config segmentation_config;
-  segmentation_config.base_graph     = current_config.base_graph;
-  segmentation_config.rv             = current_config.rv;
-  segmentation_config.mod            = current_config.mod;
-  segmentation_config.Nref           = current_config.Nref;
-  segmentation_config.nof_layers     = current_config.nof_layers;
-  segmentation_config.nof_ch_symbols = softbits_count / modulation_order;
+  units::bytes tb_size(transport_block.size());
+
+  segmenter_config segmentation_config = {.transport_block_size = tb_size,
+                                          .base_graph           = current_config.base_graph,
+                                          .rv                   = current_config.rv,
+                                          .mod                  = current_config.mod,
+                                          .Nref                 = current_config.Nref,
+                                          .nof_layers           = current_config.nof_layers,
+                                          .nof_ch_symbols       = softbits_count / modulation_order};
 
   // Select view of LLRs.
   span<const log_likelihood_ratio> llrs = span<const log_likelihood_ratio>(softbits_buffer).first(softbits_count);
 
-  // Recall that the TB is in packed format.
-  unsigned tb_size = transport_block.size() * BITS_PER_BYTE;
   codeblock_llrs.clear();
-  segmenter->segment(codeblock_llrs, llrs, tb_size, segmentation_config);
+  segmenter->segment(codeblock_llrs, llrs, segmentation_config);
 
   unsigned nof_cbs = codeblock_llrs.size();
   ocudu_assert(nof_cbs == softbuffer->get_nof_codeblocks(),
@@ -169,13 +166,13 @@ void pusch_decoder_hw_impl::run_asynch_hw_decoder()
                softbuffer->get_nof_codeblocks(),
                nof_cbs);
 
-  unsigned tb_and_crc_size = get_tb_and_crc_size(tb_size, nof_cbs);
+  unsigned tb_and_crc_size = get_tb_and_crc_size(tb_size.to_bits().value(), nof_cbs);
   tmp_tb_bits.resize(tb_and_crc_size);
 
   // Set the CB CRC type to handle it correctly.
   unsigned                crc_len;
   hal::hw_dec_cb_crc_type crc_type;
-  std::tie(crc_len, crc_type) = set_crc_type(nof_cbs, tb_size);
+  std::tie(crc_len, crc_type) = set_crc_type(nof_cbs, tb_size.to_bits().value());
 
   // Reset CRCs if new data is flagged.
   span<bool> cb_crcs = softbuffer->get_codeblocks_crc();

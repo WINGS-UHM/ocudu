@@ -1071,11 +1071,11 @@ ocudu::create_downlink_processor_factory_sw(const downlink_processor_factory_sw_
 
     ldpc_rm_factory = create_ldpc_rate_matcher_metric_decorator_factory(
         std::move(ldpc_rm_factory), dependencies.metric_notifier->get_ldpc_rate_matcher_notifier());
-    report_fatal_error_if_not(ldpc_enc_factory, "Invalid LDPC rate matcher factory.");
+    report_fatal_error_if_not(ldpc_rm_factory, "Invalid LDPC rate matcher factory.");
 
     pdsch_scrambling_factory = create_pseudo_random_generator_metric_decorator_factory(
         std::move(pdsch_scrambling_factory), dependencies.metric_notifier->get_pdsch_scrambling_notifier());
-    report_fatal_error_if_not(ldpc_enc_factory, "Invalid PDSCH scrambling factory.");
+    report_fatal_error_if_not(pdsch_scrambling_factory, "Invalid PDSCH scrambling factory.");
 
     pdsch_crc_calc_factory = create_crc_calculator_metric_decorator_factory(
         std::move(pdsch_crc_calc_factory), dependencies.metric_notifier->get_pdsch_crc_calculator_notifier());

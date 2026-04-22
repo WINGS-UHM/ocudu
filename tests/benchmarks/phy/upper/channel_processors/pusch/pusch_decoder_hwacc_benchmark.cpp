@@ -288,13 +288,14 @@ static std::vector<test_case_type> generate_test_cases(const test_profile& profi
       units::bytes tbs        = tbs_calculator_calculate(tbs_config);
 
       // Build the LDPC segmenter configuration.
-      segmenter_config config = {};
-      config.Nref             = 0;
-      config.base_graph       = get_ldpc_base_graph(mcs.get_normalised_target_code_rate(), tbs.to_bits());
-      config.mod              = mcs.modulation;
-      config.nof_ch_symbols   = profile.nof_symbols * nof_prb * NOF_SUBCARRIERS_PER_RB;
-      config.nof_layers       = profile.nof_tx_layers;
-      config.rv               = 0;
+      segmenter_config config = {
+          .transport_block_size = tbs,
+          .base_graph           = get_ldpc_base_graph(mcs.get_normalised_target_code_rate(), tbs.to_bits()),
+          .rv                   = 0,
+          .mod                  = mcs.modulation,
+          .Nref                 = 0,
+          .nof_layers           = profile.nof_tx_layers,
+          .nof_ch_symbols       = static_cast<unsigned>(profile.nof_symbols * nof_prb * NOF_SUBCARRIERS_PER_RB)};
 
       // Number of input LLRs to the decoder.
       unsigned bits_per_symbol = get_bits_per_symbol(mcs.modulation);

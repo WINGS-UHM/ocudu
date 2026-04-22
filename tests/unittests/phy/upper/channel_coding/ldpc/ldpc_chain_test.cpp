@@ -279,8 +279,12 @@ TEST_P(LDPCChainFixture, LDPCChainTest)
   }
 
   // Configure the segmenters.
-  segmenter_config cfg_seg = {
-      .base_graph = bg, .rv = 0, .mod = tp.modulation, .nof_layers = tp.nof_layers, .nof_ch_symbols = nof_res};
+  segmenter_config cfg_seg = {.transport_block_size = units::bytes(tbs_bytes),
+                              .base_graph           = bg,
+                              .rv                   = 0,
+                              .mod                  = tp.modulation,
+                              .nof_layers           = tp.nof_layers,
+                              .nof_ch_symbols       = nof_res};
 
   constexpr unsigned   nof_tbs = 1;
   std::vector<uint8_t> transport_block(tbs_bytes);
@@ -290,7 +294,7 @@ TEST_P(LDPCChainFixture, LDPCChainTest)
     std::generate(transport_block.begin(), transport_block.end(), []() { return byte_gen(rgen); });
 
     // Initialize the segmenter.
-    const ldpc_segmenter_buffer& segment_buffer = segmenter_tx->new_transmission(transport_block, cfg_seg);
+    const ldpc_segmenter_buffer& segment_buffer = segmenter_tx->new_transmission(cfg_seg);
 
     unsigned             cw_length = segment_buffer.get_cw_length().value();
     std::vector<uint8_t> codeword_tx(cw_length);
@@ -328,7 +332,7 @@ TEST_P(LDPCChainFixture, LDPCChainTest)
 
     // Segment the received codeword.
     static_vector<described_rx_codeblock, MAX_NOF_SEGMENTS> codeblocks;
-    segmenter_rx->segment(codeblocks, llr, tbs_bytes * 8, cfg_seg);
+    segmenter_rx->segment(codeblocks, llr, cfg_seg);
 
     dynamic_bit_buffer decoded_tbs_packed(tbs_bytes * 8);
     unsigned           offset           = 0;

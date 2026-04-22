@@ -19,12 +19,12 @@ static constexpr units::bits SEG_CRC_LENGTH{24};
 static constexpr units::bits MAX_TBS{1277992};
 static_assert(MAX_TBS.is_byte_exact(), "Value is not a multiple of 8");
 
-static void check_inputs_tx(span<const uint8_t> transport_block, const segmenter_config& cfg)
+static void check_inputs_tx(const segmenter_config& cfg)
 {
   using namespace units::literals;
-  ocudu_assert(!transport_block.empty(), "Argument transport_block should not be empty.");
-  ocudu_assert(units::bytes(transport_block.size()).to_bits() + 24_bits <= MAX_TBS,
-               "Transport block too long. The admissible size, including CRC, is {}.",
+  ocudu_assert(cfg.transport_block_size > 0_bytes, "Argument transport_block should not be empty.");
+  ocudu_assert(cfg.transport_block_size.to_bits() + 24_bits <= MAX_TBS,
+               "Transport block too long. The maximum size, including CRC, is {}.",
                MAX_TBS.truncate_to_bytes());
 
   ocudu_assert((cfg.rv >= 0) && (cfg.rv <= 3), "Invalid redundancy version.");
@@ -36,17 +36,16 @@ static void check_inputs_tx(span<const uint8_t> transport_block, const segmenter
 }
 
 // For the Tx-chain segmenter without using an intermediate buffer.
-ldpc_segmenter_buffer& ldpc_segmenter_tx_impl::new_transmission(span<const uint8_t>     transport_block,
-                                                                const segmenter_config& cfg)
+ldpc_segmenter_buffer& ldpc_segmenter_tx_impl::new_transmission(const segmenter_config& cfg)
 {
-  check_inputs_tx(transport_block, cfg);
+  check_inputs_tx(cfg);
 
   using namespace units::literals;
 
   params.base_graph = cfg.base_graph;
   // Each transport_block entry is a byte, and TBS can always be expressed as an integer number of bytes (see, e.g.,
   // TS38.214 Section 5.1.3.2).
-  units::bits nof_tb_bits_tmp = units::bytes(transport_block.size()).to_bits();
+  units::bits nof_tb_bits_tmp = cfg.transport_block_size.to_bits();
 
   params.nof_tb_crc_bits = compute_tb_crc_size(nof_tb_bits_tmp);
 

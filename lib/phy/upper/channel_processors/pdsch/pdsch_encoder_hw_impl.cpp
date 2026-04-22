@@ -33,16 +33,15 @@ void pdsch_encoder_hw_impl::encode(span<uint8_t>        codeword,
   // Segmentation is only required in CB mode.
   unsigned nof_ops = 1;
 
-  segmenter_config segmenter_cfg;
-  segmenter_cfg.base_graph     = config.base_graph;
-  segmenter_cfg.rv             = config.rv;
-  segmenter_cfg.mod            = config.mod;
-  segmenter_cfg.Nref           = config.Nref;
-  segmenter_cfg.nof_layers     = config.nof_layers;
-  segmenter_cfg.nof_ch_symbols = config.nof_ch_symbols;
-
   // Initialize the segmenter.
-  segment_buffer = &segmenter->new_transmission(transport_block, segmenter_cfg);
+  segmenter_config segmenter_cfg = {.transport_block_size = units::bytes(transport_block.size()),
+                                    .base_graph           = config.base_graph,
+                                    .rv                   = config.rv,
+                                    .mod                  = config.mod,
+                                    .Nref                 = config.Nref,
+                                    .nof_layers           = config.nof_layers,
+                                    .nof_ch_symbols       = config.nof_ch_symbols};
+  segment_buffer                 = &segmenter->new_transmission(segmenter_cfg);
 
   units::bits cb_size = segment_buffer->get_segment_length();
   if (cb_mode) {
@@ -54,7 +53,7 @@ void pdsch_encoder_hw_impl::encode(span<uint8_t>        codeword,
     nof_ops = hw_cfg.nof_segments;
   }
 
-  // Validate that all CBs have been succesfully enqueued and dequeued.
+  // Validate that all CBs have been successfully enqueued and dequeued.
   unsigned last_enqueued_cb_id = 0, last_dequeued_cb_id = 0, offset = 0;
   bool     all_enqueued = false, all_dequeued = false;
   while (!all_enqueued || !all_dequeued) {

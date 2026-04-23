@@ -73,6 +73,11 @@ void ta_management_system::rem_ue(soa::row_id ue_id)
 
 void ta_management_system::slot_indication(slot_point sl_tx)
 {
+  if (ta_cfg.ta_cmd_offset_threshold < 0) {
+    // TA management disabled.
+    return;
+  }
+
   // Select a time wheel position based on the current index.
   auto& wheel_head = time_wheel[next_wheel_index].head;
   ++next_wheel_index;

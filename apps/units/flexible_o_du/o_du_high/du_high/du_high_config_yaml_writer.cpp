@@ -12,9 +12,10 @@ using namespace ocudu;
 
 static void fill_du_high_metrics_layers_section(YAML::Node node, const du_high_unit_metrics_layer_config& config)
 {
-  node["enable_sched"] = config.enable_scheduler;
-  node["enable_rlc"]   = config.enable_rlc;
-  node["enable_mac"]   = config.enable_mac;
+  node["enable_sched"]   = config.enable_scheduler;
+  node["enable_rlc"]     = config.enable_rlc;
+  node["enable_mac"]     = config.enable_mac;
+  node["enable_du_proc"] = config.enable_du_proc;
 }
 
 static void fill_du_high_metrics_section(YAML::Node node, const du_high_unit_metrics_config& config)

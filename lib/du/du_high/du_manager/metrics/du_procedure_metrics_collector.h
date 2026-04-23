@@ -27,7 +27,9 @@ public:
 
   void collect_metric_report(du_procedure_metrics_report& report)
   {
-    report.average_ue_creation_latency = data.sum_ue_creation_latency / data.ue_create_count;
+    report.average_ue_creation_latency = data.ue_create_count > 0
+                                             ? (data.sum_ue_creation_latency / data.ue_create_count)
+                                             : std::chrono::nanoseconds::zero();
     report.max_ue_creation_latency     = data.max_ue_creation_latency;
     report.nof_ue_creations            = data.ue_create_count;
 

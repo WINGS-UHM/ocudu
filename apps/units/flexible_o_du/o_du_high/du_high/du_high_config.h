@@ -1144,9 +1144,11 @@ struct du_high_unit_metrics_layer_config {
   bool enable_scheduler = true;
   bool enable_rlc       = false;
   bool enable_mac       = false;
+  /// Enable DU management and control procedure metrics.
+  bool enable_du_proc = false;
 
   /// Returns true if one or more layers are enabled, otherwise false.
-  bool are_metrics_enabled() const { return enable_scheduler || enable_rlc || enable_mac; }
+  bool are_metrics_enabled() const { return enable_scheduler || enable_rlc || enable_mac || enable_du_proc; }
 };
 
 /// Metrics report configuration.

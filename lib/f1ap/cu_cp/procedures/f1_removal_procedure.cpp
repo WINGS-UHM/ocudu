@@ -46,12 +46,15 @@ async_task<void> f1_removal_procedure::handle_ue_transaction_info_loss()
     ev.ues_lost.push_back(ue.second.ue_ids.ue_index);
   }
 
-  // After receiving an F1 Removal Request, no more F1AP Rx PDUs are expected. Cancel running UE F1AP transactions.
+  // After receiving an F1 Removal Request, no more F1AP Rx PDUs are expected. Cancel running UE F1AP transactions and
+  // mark each UE so that subsequent UE Context Release Procedures skip the F1 round trip (the DU will drop the context
+  // locally as part of F1 removal).
   // Note: size of ue_list may change during this operation (e.g. if a concurrent UE context release was being
   // processed and got cancelled). Therefore, we leverage the list ev.ues_lost for the iteration.
   for (ue_index_t ue_idx : ev.ues_lost) {
     auto* u = ue_list.find(ue_idx);
     if (u != nullptr) {
+      u->f1_removal_in_progress = true;
       u->ev_mng.cancel_all();
     }
   }

@@ -20,6 +20,10 @@ struct f1ap_ue_context {
   f1ap_ue_ids ue_ids;
   /// Whether the release procedure has been started for this UE context.
   bool marked_for_release = false;
+  /// Whether the F1 TNL is being torn down for this UE (no more F1AP Tx/Rx expected). When set, the F1AP UE Context
+  /// Release Procedure skips sending the UEContextReleaseCommand and returns success immediately. The DU will drop
+  /// the context locally as part of the F1 removal.
+  bool f1_removal_in_progress = false;
   /// Event to notify all pending release callers when release completes. Stores the result.
   manual_event<ue_index_t> release_complete_event;
   /// Whether the old gNB-DU UE F1AP UE ID IE needs to be notified back to the DU, due to reestablishment.

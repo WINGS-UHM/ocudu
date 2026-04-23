@@ -43,6 +43,16 @@ void ue_context_release_procedure::operator()(coro_context<async_task<ue_index_t
     CORO_EARLY_RETURN(ue_ctxt.release_complete_event.get());
   }
 
+  if (ue_ctxt.f1_removal_in_progress) {
+    // F1 TNL is being torn down. The DU will drop the UE context locally; skip the F1 round trip to avoid a
+    // guaranteed-to-fail transaction and the resulting noisy warning.
+    logger.debug("{}: Skipping F1 UEContextReleaseCommand. Cause: F1 removal in progress",
+                 f1ap_ue_log_prefix{ue_ctxt.ue_ids, name()});
+    release_result = ue_ctxt.ue_ids.ue_index;
+    ue_ctxt.release_complete_event.set(release_result);
+    CORO_EARLY_RETURN(release_result);
+  }
+
   if (ue_ctxt.marked_for_release) {
     // In progress, wait for completion.
     logger.debug("{}: Waiting for existing release to complete", f1ap_ue_log_prefix{ue_ctxt.ue_ids, name()});

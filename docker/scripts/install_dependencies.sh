@@ -25,7 +25,7 @@ install_dependencies_debian_ubuntu() {
         libfftw3-dev libmbedtls-dev libsctp-dev libyaml-cpp-dev libgtest-dev
     )
     local -a run_pkgs=(
-        libfftw3-dev libmbedtls-dev libsctp-dev libyaml-cpp-dev libgtest-dev
+        libfftw3-dev libmbedtls-dev libsctp-dev libyaml-cpp-dev libgtest-dev libcap2-bin
     )
     local -a extra_pkgs=(
         libzmq3-dev libuhd-dev uhd-host libboost-program-options-dev libdpdk-dev libelf-dev libdwarf-dev libdw-dev
@@ -100,7 +100,7 @@ install_dependencies_fedora() {
         cmake fftw-devel lksctp-tools-devel yaml-cpp-devel mbedtls-devel gtest-devel
     )
     local -a run_pkgs=(
-        fftw-devel lksctp-tools-devel yaml-cpp-devel mbedtls-devel gtest-devel
+        fftw-devel lksctp-tools-devel yaml-cpp-devel mbedtls-devel gtest-devel libcap
     )
     local -a extra_pkgs=(
         cppzmq-devel libusb1-devel boost-devel numactl-devel
@@ -140,7 +140,7 @@ install_dependencies_arch() {
         cmake make base-devel fftw mbedtls yaml-cpp lksctp-tools gtest pkgconf
     )
     local -a run_pkgs=(
-        fftw mbedtls yaml-cpp lksctp-tools gtest
+        fftw mbedtls yaml-cpp lksctp-tools gtest libcap
     )
     local -a extra_pkgs=(
         zeromq libuhd boost dpdk libelf libdwarf elfutils
@@ -181,7 +181,7 @@ install_dependencies_rhel() {
         gcc-toolset-11 gcc-toolset-11-gcc-c++ gcc-toolset-12-libatomic-devel
     )
     local -a run_pkgs=(
-        fftw-devel lksctp-tools-devel yaml-cpp-devel mbedtls-devel gcc-toolset-12-libatomic-devel
+        fftw-devel lksctp-tools-devel yaml-cpp-devel mbedtls-devel gcc-toolset-12-libatomic-devel libcap
     )
     local -a extra_pkgs=(
         cppzmq-devel libusb1-devel boost-devel numactl-devel

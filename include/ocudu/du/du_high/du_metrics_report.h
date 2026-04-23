@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ocudu/du/du_high/du_manager/du_procedure_metrics_report.h"
 #include "ocudu/f1ap/du/f1ap_du_metrics_collector.h"
 #include "ocudu/mac/mac_metrics.h"
 #include "ocudu/scheduler/scheduler_metrics.h"
@@ -19,6 +20,7 @@ struct du_metrics_report {
   std::chrono::milliseconds                          period;
   std::optional<f1ap_metrics_report>                 f1ap;
   std::optional<mac_metric_report>                   mac;
+  std::optional<du_procedure_metrics_report>         du_proc;
 };
 
 } // namespace odu

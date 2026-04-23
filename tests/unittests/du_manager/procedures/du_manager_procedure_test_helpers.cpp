@@ -43,7 +43,8 @@ du_ue& du_manager_proc_tester::create_ue(du_ue_index_t ue_index)
       du_ue_creation_request{ue_index, ul_ccch_msg.cell_index, ul_ccch_msg.tc_rnti, ul_ccch_msg.subpdu.copy()},
       ue_mng,
       params,
-      cell_res_alloc);
+      cell_res_alloc,
+      proc_metrics);
 
   lazy_task_launcher<void> launcher{t};
 

@@ -46,7 +46,8 @@ protected:
         du_ue_creation_request{ue_index, ul_ccch_msg.cell_index, rnti, std::move(ul_ccch_msg.subpdu)},
         ue_mng,
         params,
-        cell_res_alloc);
+        cell_res_alloc,
+        proc_metrics);
     proc_launcher.emplace(proc);
   }
 

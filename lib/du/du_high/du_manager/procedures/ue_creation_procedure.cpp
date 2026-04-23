@@ -6,6 +6,7 @@
 #include "../converters/asn1_rrc_config_helpers.h"
 #include "../converters/rlc_config_helpers.h"
 #include "../converters/scheduler_configuration_helpers.h"
+#include "../metrics/du_procedure_metrics_collector.h"
 #include "ocudu/du/du_high/du_manager/du_manager_params.h"
 #include "ocudu/rlc/rlc_factory.h"
 #include "ocudu/rlc/rlc_srb_config_factory.h"
@@ -13,16 +14,21 @@
 using namespace ocudu;
 using namespace odu;
 
-ue_creation_procedure::ue_creation_procedure(const du_ue_creation_request& req_,
-                                             du_ue_manager_repository&     ue_mng_,
-                                             const du_manager_params&      du_params_,
-                                             du_ran_resource_manager&      cell_res_alloc_) :
+ue_creation_procedure::ue_creation_procedure(const du_ue_creation_request&   req_,
+                                             du_ue_manager_repository&       ue_mng_,
+                                             const du_manager_params&        du_params_,
+                                             du_ran_resource_manager&        cell_res_alloc_,
+                                             du_procedure_metrics_collector& metrics_) :
   req(req_),
   ue_mng(ue_mng_),
   du_params(du_params_),
   du_res_alloc(cell_res_alloc_),
+  metrics(metrics_),
   proc_logger(ocudulog::fetch_basic_logger("DU-MNG"), name(), req.ue_index, req.tc_rnti)
 {
+  if (metrics.enabled()) {
+    start_tp = std::chrono::steady_clock::now();
+  }
 }
 
 void ue_creation_procedure::operator()(coro_context<async_task<void>>& ctx)
@@ -82,6 +88,9 @@ void ue_creation_procedure::operator()(coro_context<async_task<void>>& ctx)
   }
 
   proc_logger.log_proc_completed();
+  if (metrics.enabled()) {
+    metrics.on_ue_creation_completion(std::chrono::steady_clock::now() - start_tp);
+  }
   CORO_RETURN();
 }
 

@@ -4,8 +4,8 @@
 
 #include "cu_configuration_procedure.h"
 #include "../du_cell_manager.h"
-#include "../du_metrics_aggregator_impl.h"
 #include "../du_ue/du_ue_manager.h"
+#include "../metrics/du_metrics_aggregator_impl.h"
 #include "du_cell_stop_procedure.h"
 #include "du_ue_reset_procedure.h"
 #include "ocudu/support/async/async_no_op_task.h"

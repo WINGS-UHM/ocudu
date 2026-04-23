@@ -14,6 +14,8 @@
 namespace ocudu {
 namespace odu {
 
+class du_procedure_metrics_collector;
+
 struct du_ue_creation_request {
   du_ue_index_t   ue_index;
   du_cell_index_t pcell_index;
@@ -48,10 +50,11 @@ struct du_ue_creation_request {
 class ue_creation_procedure
 {
 public:
-  ue_creation_procedure(const du_ue_creation_request& req_,
-                        du_ue_manager_repository&     ue_mng_,
-                        const du_manager_params&      du_params_,
-                        du_ran_resource_manager&      cell_res_alloc_);
+  ue_creation_procedure(const du_ue_creation_request&   req_,
+                        du_ue_manager_repository&       ue_mng_,
+                        const du_manager_params&        du_params_,
+                        du_ran_resource_manager&        cell_res_alloc_,
+                        du_procedure_metrics_collector& metrics_);
 
   void operator()(coro_context<async_task<void>>& ctx);
 
@@ -77,16 +80,19 @@ private:
 
   void connect_layer_bearers();
 
-  const du_ue_creation_request req;
-  du_ue_manager_repository&    ue_mng;
-  const du_manager_params&     du_params;
-  du_ran_resource_manager&     du_res_alloc;
-  ue_procedure_logger          proc_logger;
+  const du_ue_creation_request    req;
+  du_ue_manager_repository&       ue_mng;
+  const du_manager_params&        du_params;
+  du_ran_resource_manager&        du_res_alloc;
+  du_procedure_metrics_collector& metrics;
+  ue_procedure_logger             proc_logger;
 
   du_ue*                        ue_ctx                  = nullptr;
   expected<du_ue*, std::string> ue_ctx_creation_outcome = nullptr;
   mac_ue_create_response        mac_resp{};
   f1ap_ue_creation_response     f1ap_resp{};
+
+  std::chrono::steady_clock::time_point start_tp;
 };
 
 } // namespace odu

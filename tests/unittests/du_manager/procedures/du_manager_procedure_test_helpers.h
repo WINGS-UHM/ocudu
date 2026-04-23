@@ -7,6 +7,7 @@
 #include "../du_manager_test_helpers.h"
 #include "lib/du/du_high/du_manager/du_ue/du_ue.h"
 #include "lib/du/du_high/du_manager/du_ue/du_ue_manager_repository.h"
+#include "lib/du/du_high/du_manager/metrics/du_procedure_metrics_collector.h"
 #include "ocudu/mac/mac_pdu_handler.h"
 #include "ocudu/support/async/fifo_async_task_scheduler.h"
 
@@ -109,7 +110,8 @@ public:
   /// \brief Run DU UE configuration procedure to completion.
   f1ap_ue_context_update_response configure_ue(const f1ap_ue_context_update_request& req);
 
-  ue_manager_dummy ue_mng;
+  ue_manager_dummy               ue_mng;
+  du_procedure_metrics_collector proc_metrics{false};
 };
 
 } // namespace odu

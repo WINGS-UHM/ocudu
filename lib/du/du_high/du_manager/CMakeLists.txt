@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: BSD-3-Clause-Open-MPI
 # Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
-
 add_subdirectory(cbs)
 add_subdirectory(converters)
 add_subdirectory(du_ue)
@@ -14,7 +13,7 @@ set(SOURCES
         du_manager_factory.cpp
         du_manager_impl.cpp
         du_positioning_handler_factory.cpp
-        du_metrics_aggregator_impl.cpp
+        metrics/du_metrics_aggregator_impl.cpp
         du_positioning_manager_impl.cpp
         du_manager_controller_impl.cpp
 )

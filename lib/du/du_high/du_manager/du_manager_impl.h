@@ -7,8 +7,8 @@
 #include "du_cell_manager.h"
 #include "du_manager_context.h"
 #include "du_manager_controller_impl.h"
-#include "du_metrics_aggregator_impl.h"
 #include "du_ue/du_ue_manager.h"
+#include "metrics/du_metrics_aggregator_impl.h"
 #include "procedures/du_proc_context_view.h"
 #include "ran_resource_management/du_ran_resource_manager_impl.h"
 #include "ocudu/du/du_high/du_manager/du_manager.h"
@@ -90,9 +90,9 @@ private:
   du_manager_context                           ctxt;
   du_cell_manager                              cell_mng;
   du_ran_resource_manager_impl                 cell_res_alloc;
+  du_manager_metrics_aggregator_impl           metrics;
   du_ue_manager                                ue_mng;
   std::unique_ptr<f1ap_du_positioning_handler> positioning_handler;
-  du_manager_metrics_aggregator_impl           metrics;
   du_proc_context_view                         proc_ctxt;
   /// Handle to control the start and stop of the DU activity.
   du_manager_controller_impl controller;

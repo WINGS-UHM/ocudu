@@ -15,12 +15,14 @@
 using namespace ocudu;
 using namespace odu;
 
-du_ue_manager::du_ue_manager(du_manager_params&       cfg_,
-                             du_ran_resource_manager& cell_res_alloc_,
-                             const du_cell_manager&   cell_mng_) :
+du_ue_manager::du_ue_manager(du_manager_params&              cfg_,
+                             du_ran_resource_manager&        cell_res_alloc_,
+                             const du_cell_manager&          cell_mng_,
+                             du_procedure_metrics_collector& metrics_) :
   cfg(cfg_),
   cell_res_alloc(cell_res_alloc_),
   cell_mng(cell_mng_),
+  metrics(metrics_),
   logger(ocudulog::fetch_basic_logger("DU-MNG")),
   f1u_teid_pool(create_gtpu_allocator({MAX_NOF_DU_UES * MAX_NOF_DRBS}))
 {
@@ -60,7 +62,8 @@ void du_ue_manager::handle_ue_create_request(const ul_ccch_indication_message& m
       du_ue_creation_request{ue_idx_candidate, msg.cell_index, msg.tc_rnti, msg.subpdu.copy(), msg.slot_rx},
       *this,
       cfg,
-      cell_res_alloc);
+      cell_res_alloc,
+      metrics);
 }
 
 async_task<f1ap_ue_context_creation_response>
@@ -80,7 +83,11 @@ du_ue_manager::handle_ue_create_request(const f1ap_ue_context_creation_request& 
     CORO_BEGIN(ctx);
 
     CORO_AWAIT(launch_async<ue_creation_procedure>(
-        du_ue_creation_request{req.ue_index, req.pcell_index, rnti_t::INVALID_RNTI, {}}, *this, cfg, cell_res_alloc));
+        du_ue_creation_request{req.ue_index, req.pcell_index, rnti_t::INVALID_RNTI, {}},
+        *this,
+        cfg,
+        cell_res_alloc,
+        metrics));
 
     bool result = ue_db.contains(req.ue_index);
     CORO_RETURN(f1ap_ue_context_creation_response{result, result ? find_ue(req.ue_index)->rnti : rnti_t::INVALID_RNTI});

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../du_metrics_aggregator_impl.h"
+#include "../metrics/du_metrics_aggregator_impl.h"
 #include "du_proc_context_view.h"
 #include "procedure_logger.h"
 #include "ocudu/f1ap/du/f1ap_du_connection_manager.h"

@@ -78,6 +78,7 @@ struct du_manager_params {
     bool                      f1ap_enabled  = false;
     bool                      mac_enabled   = false;
     bool                      sched_enabled = false;
+    bool                      proc_enabled  = false;
   };
 
   ran_params            ran;

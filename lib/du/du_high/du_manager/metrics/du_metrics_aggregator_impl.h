@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "du_procedure_metrics_collector.h"
 #include "ocudu/du/du_high/du_manager/du_manager.h"
 #include "ocudu/du/du_high/du_manager/du_manager_params.h"
 #include "ocudu/du/du_high/du_metrics_notifier.h"
@@ -28,6 +29,9 @@ public:
   // DU metrics collector interface
   void aggregate_mac_metrics_report(const mac_metric_report& report) override;
 
+  /// Get collector of DU control-plane procedure metrics.
+  du_procedure_metrics_collector& get_proc_collector() { return du_mng_collector; }
+
   void handle_cell_start(du_cell_index_t cell_index);
   void handle_cell_stop(du_cell_index_t cell_index);
 
@@ -38,6 +42,7 @@ private:
   task_executor&                                 du_mng_exec;
   timer_manager&                                 timers;
   f1ap_metrics_collector&                        f1ap_collector;
+  du_procedure_metrics_collector                 du_mng_collector;
 
   unsigned          next_version = 0;
   du_metrics_report next_report{};

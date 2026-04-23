@@ -4,7 +4,6 @@
 
 #include "du_metrics_aggregator_impl.h"
 #include "ocudu/mac/mac_metrics.h"
-#include "ocudu/mac/mac_metrics_notifier.h"
 #include "ocudu/scheduler/scheduler_metrics.h"
 #include "ocudu/support/executors/execute_until_success.h"
 
@@ -18,7 +17,11 @@ du_manager_metrics_aggregator_impl::du_manager_metrics_aggregator_impl(
     task_executor&                                  du_mng_exec_,
     timer_manager&                                  timers_,
     f1ap_metrics_collector&                         f1ap_collector_) :
-  params(params_), du_mng_exec(du_mng_exec_), timers(timers_), f1ap_collector(f1ap_collector_)
+  params(params_),
+  du_mng_exec(du_mng_exec_),
+  timers(timers_),
+  f1ap_collector(f1ap_collector_),
+  du_mng_collector(params.proc_enabled)
 {
   (void)du_mng_exec;
   (void)timers;
@@ -30,6 +33,9 @@ du_manager_metrics_aggregator_impl::du_manager_metrics_aggregator_impl(
     if (params.mac_enabled or params.sched_enabled) {
       next_report.mac.emplace();
     }
+    if (params.proc_enabled) {
+      next_report.du_proc.emplace();
+    }
   }
 }
 
@@ -39,7 +45,9 @@ void du_manager_metrics_aggregator_impl::aggregate_mac_metrics_report(const mac_
 {
   // In case the DU metrics notifier was specified, report the DU metrics.
   if (params.du_metrics != nullptr) {
+    // Save MAC metrics.
     next_report.mac = report;
+
     trigger_report();
   }
 }
@@ -49,6 +57,11 @@ void du_manager_metrics_aggregator_impl::trigger_report()
   next_report.start_time = std::chrono::steady_clock::now() - params.period;
   next_report.period     = params.period;
   next_report.version    = next_version++;
+
+  if (next_report.du_proc.has_value()) {
+    // Generate DU procedure report.
+    du_mng_collector.collect_metric_report(*next_report.du_proc);
+  }
 
   if (next_report.f1ap.has_value()) {
     // Generate F1AP metrics report.

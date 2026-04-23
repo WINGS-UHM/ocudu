@@ -4,6 +4,7 @@
 
 #include "lib/du/du_high/du_manager/du_cell_manager.h"
 #include "lib/du/du_high/du_manager/du_ue/du_ue_manager.h"
+#include "lib/du/du_high/du_manager/metrics/du_procedure_metrics_collector.h"
 #include "tests/test_doubles/utils/test_rng.h"
 #include "tests/unittests/du_manager/du_manager_test_helpers.h"
 #include "ocudu/du/du_cell_config_helpers.h"
@@ -105,8 +106,9 @@ protected:
                            {mac_dummy, f1ap_dummy, f1ap_dummy, rlc_pcap},
                            {mac_dummy}};
 
-  du_cell_manager cell_mng{params};
-  du_ue_manager   ue_mng{params, cell_res_alloc, cell_mng};
+  du_cell_manager                cell_mng{params};
+  du_procedure_metrics_collector proc_metrics{false};
+  du_ue_manager                  ue_mng{params, cell_res_alloc, cell_mng, proc_metrics};
 };
 
 TEST_F(du_ue_manager_tester, when_ue_create_request_is_received_du_manager_requests_f1ap_and_mac_to_create_ue)

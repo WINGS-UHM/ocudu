@@ -17,13 +17,16 @@
 namespace ocudu {
 namespace odu {
 
+class du_procedure_metrics_collector;
+
 /// \brief This entity orchestrates the addition/reconfiguration/removal of UE contexts in the DU.
 class du_ue_manager final : public du_ue_manager_repository
 {
 public:
-  explicit du_ue_manager(du_manager_params&       cfg_,
-                         du_ran_resource_manager& cell_res_alloc,
-                         const du_cell_manager&   cell_mng);
+  explicit du_ue_manager(du_manager_params&              cfg_,
+                         du_ran_resource_manager&        cell_res_alloc,
+                         const du_cell_manager&          cell_mng,
+                         du_procedure_metrics_collector& metrics);
 
   du_ue_index_t find_unused_du_ue_index();
 
@@ -76,10 +79,11 @@ private:
   du_ue*                        find_f1ap_ue_id(gnb_du_ue_f1ap_id_t f1ap_ue_id) override;
   void                          remove_ue(du_ue_index_t ue_index) override;
 
-  du_manager_params&       cfg;
-  du_ran_resource_manager& cell_res_alloc;
-  const du_cell_manager&   cell_mng;
-  ocudulog::basic_logger&  logger;
+  du_manager_params&              cfg;
+  du_ran_resource_manager&        cell_res_alloc;
+  const du_cell_manager&          cell_mng;
+  du_procedure_metrics_collector& metrics;
+  ocudulog::basic_logger&         logger;
 
   // Pool of available TEIDs for F1-U.
   std::unique_ptr<gtpu_teid_pool> f1u_teid_pool;

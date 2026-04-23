@@ -129,3 +129,18 @@ RUN /usr/local/etc/install_ocudu_dependencies.sh run && \
     /usr/local/etc/install_uhd_dependencies.sh run && \
     /usr/local/etc/install_dpdk_dependencies.sh run && \
     /usr/local/etc/install_docker_dependencies.sh
+
+# Register DPDK/UHD/ROHC library paths system-wide.
+# When the gnb binary has file capabilities (see next RUN), ld.so enters
+# secure-execution mode on execve() and STRIPS LD_LIBRARY_PATH. The runtime
+# libs must therefore be findable via /etc/ld.so.cache instead.
+RUN printf '%s\n' \
+      "/opt/rohc/lib" \
+      "/opt/uhd/${UHD_VERSION}/lib" \
+      "/opt/uhd/${UHD_VERSION}/lib/x86_64-linux-gnu" \
+      "/opt/uhd/${UHD_VERSION}/lib/aarch64-linux-gnu" \
+      "/opt/dpdk/${DPDK_VERSION}/lib" \
+      "/opt/dpdk/${DPDK_VERSION}/lib/x86_64-linux-gnu" \
+      "/opt/dpdk/${DPDK_VERSION}/lib/aarch64-linux-gnu" \
+      > /etc/ld.so.conf.d/ocudu.conf && \
+    ldconfig

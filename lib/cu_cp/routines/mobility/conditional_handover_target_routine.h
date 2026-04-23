@@ -39,10 +39,13 @@ public:
 private:
   bool fill_bearer_context_security_info(e1ap_bearer_context_modification_request& bearer_mod_request,
                                          const security::sec_as_config&            sec_cfg);
-  const cu_cp_cho_target_request request;
 
-  cu_cp_ue* target_ue = nullptr;
+  /// Schedule the source UE release onto the source UE's own task scheduler. Kept out of the coroutine body because
+  /// CORO_BEGIN cannot be nested (macro-local name collision).
+  void schedule_source_release_on_source_task_sched(ue_index_t source_ue_index);
 
+  const cu_cp_cho_target_request         request;
+  cu_cp_ue*                              target_ue = nullptr;
   ue_manager&                            ue_mng;
   du_processor_repository&               du_db;
   cu_up_processor_repository&            cu_up_db;

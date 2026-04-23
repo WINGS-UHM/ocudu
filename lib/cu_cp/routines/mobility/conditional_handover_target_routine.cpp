@@ -98,16 +98,7 @@ void conditional_handover_target_routine::operator()(coro_context<async_task<voi
                  .handle_ue_context_modification_request(target_du_context_mod_request));
 
   // Release source UE context. Must happen after context push so NGAP/E1AP state has been transferred.
-  if (ue_mng.find_du_ue(request.source_ue_index) == nullptr) {
-    logger.warning("target_ue={}: source_ue={} already removed", request.target_ue_index, request.source_ue_index);
-  } else {
-    release_cmd                      = {};
-    release_cmd.ue_index             = request.source_ue_index;
-    release_cmd.cause                = ngap_cause_radio_network_t::unspecified;
-    release_cmd.requires_rrc_release = false;
-    CORO_AWAIT_VALUE(release_complete, ue_context_release_handler.handle_ue_context_release_command(release_cmd));
-    logger.debug("target_ue={}: source_ue={} context released", request.target_ue_index, request.source_ue_index);
-  }
+  schedule_source_release_on_source_task_sched(request.source_ue_index);
 
   // Clear winning target UE's CHO context.
   target_ue = ue_mng.find_du_ue(request.target_ue_index);
@@ -150,4 +141,23 @@ bool conditional_handover_target_routine::fill_bearer_context_security_info(
   }
 
   return true;
+}
+
+void conditional_handover_target_routine::schedule_source_release_on_source_task_sched(ue_index_t source_ue_index)
+{
+  auto* src_ue = ue_mng.find_du_ue(source_ue_index);
+  if (src_ue == nullptr) {
+    logger.warning("target_ue={}: source_ue={} already removed", request.target_ue_index, source_ue_index);
+    return;
+  }
+  release_cmd                      = {};
+  release_cmd.ue_index             = source_ue_index;
+  release_cmd.cause                = ngap_cause_radio_network_t::unspecified;
+  release_cmd.requires_rrc_release = false;
+  src_ue->get_task_sched().schedule_async_task(launch_async([this](coro_context<async_task<void>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_AWAIT(ue_context_release_handler.handle_ue_context_release_command(release_cmd));
+    CORO_RETURN();
+  }));
+  logger.debug("target_ue={}: scheduled source_ue={} context release", request.target_ue_index, source_ue_index);
 }

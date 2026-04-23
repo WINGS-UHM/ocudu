@@ -7,12 +7,10 @@
 using namespace ocudu;
 using namespace ocudu::ocucp;
 
-conditional_handover_source_routine::conditional_handover_source_routine(
-    const cu_cp_access_success_indication& msg_,
-    ue_manager&                            ue_mng_,
-    cu_cp_ue_context_release_handler&      ue_context_release_handler_,
-    ocudulog::basic_logger&                logger_) :
-  msg(msg_), ue_mng(ue_mng_), ue_context_release_handler(ue_context_release_handler_), logger(logger_)
+conditional_handover_source_routine::conditional_handover_source_routine(const cu_cp_access_success_indication& msg_,
+                                                                         ue_manager&                            ue_mng_,
+                                                                         ocudulog::basic_logger& logger_) :
+  msg(msg_), ue_mng(ue_mng_), logger(logger_)
 {
 }
 
@@ -53,39 +51,31 @@ void conditional_handover_source_routine::operator()(coro_context<async_task<voi
               winner->target_ue_index,
               winner->target_cgi.nci);
 
-  // Collect non-winning candidates for release.
+  // Cancel each non-winning candidate's RRC reconfiguration transaction. Each non-winner's target routine observes the
+  // cancellation and self-releases.
+  unsigned cancelled = 0;
   for (const auto& candidate : source_ue->get_cho_context()->candidates) {
-    if (candidate.target_ue_index != ue_index_t::invalid && candidate.target_ue_index != source_ue->get_ue_index() &&
-        candidate.target_ue_index != winner->target_ue_index) {
-      if (std::find(inter_du_targets_to_release.begin(),
-                    inter_du_targets_to_release.end(),
-                    candidate.target_ue_index) == inter_du_targets_to_release.end()) {
-        inter_du_targets_to_release.push_back(candidate.target_ue_index);
-      }
+    if (candidate.target_ue_index == ue_index_t::invalid || candidate.target_ue_index == source_ue->get_ue_index() ||
+        candidate.target_ue_index == winner->target_ue_index) {
+      continue;
     }
+    auto* loser_ue = ue_mng.find_du_ue(candidate.target_ue_index);
+    if (loser_ue == nullptr) {
+      logger.debug("source_ue={}: Skipping cancel for already-removed CHO candidate target_ue={}",
+                   msg.source_ue_index,
+                   candidate.target_ue_index);
+      continue;
+    }
+    loser_ue->get_rrc_ue()->cancel_handover_reconfiguration_transaction(
+        static_cast<uint8_t>(candidate.rrc_reconfig_transaction_id));
+    ++cancelled;
   }
 
   // Clear source CHO context. The winning target UE's CHO context is cleared by the target routine.
   source_ue->get_cho_context()->clear();
 
-  release_idx = 0;
-  while (release_idx < inter_du_targets_to_release.size()) {
-    if (ue_mng.find_du_ue(inter_du_targets_to_release[release_idx]) == nullptr) {
-      logger.debug("source_ue={}: Skipping release for already-removed CHO candidate target_ue={}",
-                   msg.source_ue_index,
-                   inter_du_targets_to_release[release_idx]);
-      ++release_idx;
-      continue;
-    }
-    release_cmd                      = {};
-    release_cmd.ue_index             = inter_du_targets_to_release[release_idx];
-    release_cmd.cause                = ngap_cause_radio_network_t::unspecified;
-    release_cmd.requires_rrc_release = false;
-    CORO_AWAIT_VALUE(release_complete, ue_context_release_handler.handle_ue_context_release_command(release_cmd));
-    ++release_idx;
-  }
-
-  logger.info("source_ue={}: CHO source released non-winning candidates on Access Success", msg.source_ue_index);
+  logger.info(
+      "source_ue={}: CHO source cancelled {} non-winning candidates on Access Success", msg.source_ue_index, cancelled);
 
   CORO_RETURN();
 }

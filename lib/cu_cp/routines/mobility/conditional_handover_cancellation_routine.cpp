@@ -9,15 +9,10 @@
 using namespace ocudu;
 using namespace ocudu::ocucp;
 
-conditional_handover_cancellation_routine::conditional_handover_cancellation_routine(
-    ue_index_t                        source_ue_index_,
-    cu_cp_ue_context_release_handler& ue_context_release_handler_,
-    ue_manager&                       ue_mng_,
-    ocudulog::basic_logger&           logger_) :
-  source_ue_index(source_ue_index_),
-  ue_context_release_handler(ue_context_release_handler_),
-  ue_mng(ue_mng_),
-  logger(logger_)
+conditional_handover_cancellation_routine::conditional_handover_cancellation_routine(ue_index_t  source_ue_index_,
+                                                                                     ue_manager& ue_mng_,
+                                                                                     ocudulog::basic_logger& logger_) :
+  source_ue_index(source_ue_index_), ue_mng(ue_mng_), logger(logger_)
 {
 }
 
@@ -63,32 +58,25 @@ void conditional_handover_cancellation_routine::operator()(coro_context<async_ta
     CORO_EARLY_RETURN();
   }
 
-  // Collect all inter-DU target UE indices to release.
+  // Cancel each candidate's RRC reconfiguration transaction.
+  unsigned cancelled = 0;
   for (const auto& candidate : source_ue->get_cho_context()->candidates) {
-    if (candidate.target_ue_index != ue_index_t::invalid && candidate.target_ue_index != source_ue_index) {
-      targets_to_release.push_back(candidate.target_ue_index);
+    if (candidate.target_ue_index == ue_index_t::invalid || candidate.target_ue_index == source_ue_index) {
+      continue;
     }
+    auto* candidate_ue = ue_mng.find_du_ue(candidate.target_ue_index);
+    if (candidate_ue == nullptr) {
+      continue;
+    }
+    candidate_ue->get_rrc_ue()->cancel_handover_reconfiguration_transaction(
+        static_cast<uint8_t>(candidate.rrc_reconfig_transaction_id));
+    ++cancelled;
   }
 
   // clear() stops the timer defensively and resets state to idle.
   source_ue->get_cho_context()->clear();
 
-  // Release all target UE contexts.
-  release_idx = 0;
-  while (release_idx < targets_to_release.size()) {
-    if (ue_mng.find_du_ue(targets_to_release[release_idx]) == nullptr) {
-      ++release_idx;
-      continue;
-    }
-    release_cmd                      = {};
-    release_cmd.ue_index             = targets_to_release[release_idx];
-    release_cmd.cause                = ngap_cause_radio_network_t::unspecified;
-    release_cmd.requires_rrc_release = false;
-    CORO_AWAIT_VALUE(release_complete, ue_context_release_handler.handle_ue_context_release_command(release_cmd));
-    ++release_idx;
-  }
-
-  logger.info("ue={}: CHO cancellation complete.", source_ue_index);
+  logger.info("ue={}: CHO cancellation complete. {} candidates cancelled.", source_ue_index, cancelled);
 
   CORO_RETURN();
 }

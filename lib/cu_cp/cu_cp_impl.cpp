@@ -686,7 +686,7 @@ async_task<void> cu_cp_impl::handle_ue_context_release(const cu_cp_ue_context_re
 
 async_task<void> cu_cp_impl::handle_access_success(const cu_cp_access_success_indication& msg)
 {
-  return launch_async<conditional_handover_source_routine>(msg, ue_mng, *this, logger);
+  return launch_async<conditional_handover_source_routine>(msg, ue_mng, logger);
 }
 
 async_task<rrc_resume_request_response> cu_cp_impl::handle_rrc_resume_request(const cu_cp_rrc_resume_request& request)
@@ -1528,7 +1528,7 @@ void cu_cp_impl::initialize_cho_execution_timer(ue_index_t ue_index, std::chrono
       return;
     }
     ue2->get_task_sched().schedule_async_task(
-        launch_async<conditional_handover_cancellation_routine>(ue_index, *this, ue_mng, logger));
+        launch_async<conditional_handover_cancellation_routine>(ue_index, ue_mng, logger));
   });
   ue->get_cho_context()->cho_execution_timer.run();
   logger.debug("ue={}: CHO execution timer started ({}ms)", ue_index, timeout.count());

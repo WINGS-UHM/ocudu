@@ -29,6 +29,8 @@ trigger builder:
       when: never
     - if: $ON_MR_FORK
       when: never
+    - if: $ON_MR_TRAIN
+      when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-builder/
       when: never
     - if: $ON_MR
@@ -51,6 +53,8 @@ trigger buildkit:
       when: never
     - if: $ON_MR_FORK
       when: never
+    - if: $ON_MR_TRAIN
+      when: never
     - if: $ON_MR
       changes:
         paths:
@@ -63,6 +67,8 @@ trigger docker:
   stage: ci
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-docker/
+      when: never
+    - if: $ON_MR_FORK
       when: never
     - if: $ON_MR
       changes:
@@ -92,6 +98,8 @@ trigger doxygen:
       when: never
     - if: $ON_MR_FORK
       when: never
+    - if: $ON_MR_TRAIN
+      when: never
     - if: $ON_MR
       changes:
         paths:
@@ -110,6 +118,8 @@ trigger static:
     - if: $SKIP_OCUDU_BUILDING_CONTAINERS_CI
       when: never
     - if: $ON_MR_FORK
+      when: never
+    - if: $ON_MR_TRAIN
       when: never
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-no-static/
       when: never

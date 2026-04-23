@@ -385,14 +385,15 @@ int main(int argc, char** argv)
 
   // Create and start O-CU-UP
   o_cu_up_unit_dependencies o_cuup_unit_deps;
-  o_cuup_unit_deps.workers          = &workers;
-  o_cuup_unit_deps.e1ap_conn_client = e1_gw.get();
-  o_cuup_unit_deps.f1u_gateway      = cu_f1u_conn.get();
-  o_cuup_unit_deps.gtpu_pcap        = cu_up_dlt_pcaps.n3.get();
-  o_cuup_unit_deps.timers           = cu_up_timers;
-  o_cuup_unit_deps.io_brk           = epoll_broker.get();
-  o_cuup_unit_deps.e2_gw            = e2_gw_cu_up.get();
-  o_cuup_unit_deps.metrics_notifier = &metrics_notifier_forwarder;
+  o_cuup_unit_deps.workers                = &workers;
+  o_cuup_unit_deps.e1ap_conn_client       = e1_gw.get();
+  o_cuup_unit_deps.f1u_gateway            = cu_f1u_conn.get();
+  o_cuup_unit_deps.gtpu_pcap              = cu_up_dlt_pcaps.n3.get();
+  o_cuup_unit_deps.timers                 = cu_up_timers;
+  o_cuup_unit_deps.io_brk                 = epoll_broker.get();
+  o_cuup_unit_deps.e2_gw                  = e2_gw_cu_up.get();
+  o_cuup_unit_deps.metrics_notifier       = &metrics_notifier_forwarder;
+  o_cuup_unit_deps.remote_metrics_gateway = remote_server_gateway;
 
   auto o_cuup_unit = o_cu_up_app_unit->create_o_cu_up_unit(o_cuup_unit_deps);
   for (auto& metric : o_cuup_unit.metrics) {

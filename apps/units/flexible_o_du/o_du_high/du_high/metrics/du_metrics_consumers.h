@@ -5,6 +5,7 @@
 #pragma once
 
 #include "apps/services/metrics/metrics_consumer.h"
+#include "consumers/du_procedure_metrics_consumers.h"
 #include "consumers/mac_metrics_consumers.h"
 #include "consumers/scheduler_metrics_consumers.h"
 #include "ocudu/ocudulog/log_channel.h"
@@ -52,7 +53,8 @@ private:
 class du_metrics_consumer_log : public app_services::metrics_consumer
 {
 public:
-  explicit du_metrics_consumer_log(ocudulog::log_channel& log_chan) : mac_consumer(log_chan), sched_consumer(log_chan)
+  explicit du_metrics_consumer_log(ocudulog::log_channel& log_chan) :
+    mac_consumer(log_chan), sched_consumer(log_chan), proc_consumer(log_chan)
   {
   }
 
@@ -62,6 +64,7 @@ public:
 private:
   mac_metrics_consumer_log            mac_consumer;
   scheduler_cell_metrics_consumer_log sched_consumer;
+  du_procedure_metrics_consumer_log   proc_consumer;
 };
 
 /// Consumer for the E2 DU metrics.

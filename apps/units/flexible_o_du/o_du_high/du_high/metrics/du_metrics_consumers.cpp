@@ -44,11 +44,11 @@ void du_metrics_consumer_log::handle_metric(const app_services::metrics_set& met
 {
   const odu::du_metrics_report& report = static_cast<const du_metrics_impl&>(metric).get_report();
 
-  if (!report.mac) {
-    return;
+  proc_consumer.handle_metric(report.du_proc);
+  if (report.mac) {
+    mac_consumer.handle_metric(report.mac->dl);
+    sched_consumer.handle_metric(report.mac->sched);
   }
-  mac_consumer.handle_metric(report.mac->dl);
-  sched_consumer.handle_metric(report.mac->sched);
 }
 
 void du_metrics_consumer_e2::handle_metric(const app_services::metrics_set& metric)

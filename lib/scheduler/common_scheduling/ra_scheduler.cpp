@@ -478,7 +478,8 @@ void ra_scheduler::handle_msg1_occasion(const rach_indication_message::occasion&
         preamble.preamble_id,
         ra_rnti,
         preamble.tc_rnti,
-        preamble.time_advance.to_Ta(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs)});
+        preamble.time_advance.to_Ta(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs),
+        false});
 
     // Check if TC-RNTI value to be scheduled is already under use.
     const uint16_t msg3_ring_idx = get_msg3_ring_key(preamble.tc_rnti);
@@ -608,6 +609,14 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
   for (const auto& preamble : preambles) {
     ocudu_sanity_check(is_msga_preamble(rach_cfg, preamble.preamble_id),
                        "Handling preamble that is not for MsgA. Are preamble IDs sorted in the RACH indication?");
+    ev_logger.enqueue(scheduler_event_logger::prach_event{
+        prach_slot_rx,
+        cell_cfg.cell_index,
+        preamble.preamble_id,
+        msgb_rnti,
+        preamble.tc_rnti,
+        preamble.time_advance.to_Ta(cell_cfg.params.ul_cfg_common.init_ul_bwp.generic_params.scs),
+        true});
     if (msgb_req->preambles.full()) {
       logger.warning("pci={} msgb-rnti={}: Discarding MsgA preamble id={}. Cause: MsgB preamble list is full",
                      cell_cfg.params.pci,
@@ -1599,10 +1608,7 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
     // -- Fill per-preamble grants --
     // Iterate preambles in order: schedule SuccessRAR up to nof_success_to_sched,
     // FallbackRAR up to nof_fallback_to_sched (limited by msg3_candidates).
-    unsigned success_count  = 0;
-    unsigned fallback_count = 0;
-
-    for (unsigned i = 0; i != nof_preambles; ++i) {
+    for (unsigned i = 0, success_count = 0, fallback_count = 0; i != nof_preambles; ++i) {
       pending_msgb_alloc::preamble_ctx& pctx = msgb.preambles[i];
 
       if (pctx.crc_result.has_value() and *pctx.crc_result and success_count < nof_success_to_sched) {

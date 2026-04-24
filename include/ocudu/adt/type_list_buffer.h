@@ -673,7 +673,7 @@ public:
     return total;
   }
 
-  bool empty() const noexcept { return buf.empty(); }
+  bool empty() const noexcept { return buf.empty() or buf.front()->empty(); }
 
   /// Returns the total number of record bytes used across all segments.
   size_t byte_size() const noexcept

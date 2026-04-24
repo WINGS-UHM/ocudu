@@ -52,8 +52,13 @@ auto format_info_level(FormatContext& ctx, const Event& ev, bool first)
   if constexpr (std::is_same_v<Event, cell_creation_event>) {
     fmt::format_to(ctx.out(), "{}Cell creation idx={}", separator, fmt::underlying(ev.cell_index));
   } else if constexpr (std::is_same_v<Event, sel::prach_event>) {
-    fmt::format_to(
-        ctx.out(), "{}prach(ra-rnti={} preamble={} tc-rnti={})", separator, ev.ra_rnti, ev.preamble_id, ev.tc_rnti);
+    fmt::format_to(ctx.out(),
+                   "{}prach({}={} preamble={} tc-rnti={})",
+                   separator,
+                   ev.is_msga ? "msgb-rnti" : "ra-rnti",
+                   ev.ra_rnti,
+                   ev.preamble_id,
+                   ev.tc_rnti);
   } else if constexpr (std::is_same_v<Event, rach_indication_message>) {
     fmt::format_to(ctx.out(), "{}RACH Ind slot_rx={}", separator, ev.slot_rx);
   } else if constexpr (std::is_same_v<Event, sel::error_indication_event>) {
@@ -81,9 +86,10 @@ void format_debug_level(FormatContext& ctx, const Event& ev)
     fmt::format_to(ctx.out(), "\n- Cell creation: idx={}", fmt::underlying(ev.cell_index));
   } else if constexpr (std::is_same_v<Event, sel::prach_event>) {
     fmt::format_to(ctx.out(),
-                   "\n- PRACH: slot={} preamble={} ra-rnti={} temp_crnti={} ta_cmd={}",
+                   "\n- PRACH: slot={} preamble={} {}={} temp_crnti={} ta_cmd={}",
                    ev.slot_rx,
                    ev.preamble_id,
+                   ev.is_msga ? "msgb-rnti" : "ra-rnti",
                    ev.ra_rnti,
                    ev.tc_rnti,
                    ev.ta);
@@ -288,12 +294,13 @@ public:
   /// Extract a formattable event list.
   slot_event_buffer pop_event_list()
   {
-    if (mode == mode_t::none) {
+    if (empty()) {
       return slot_event_buffer();
     }
 
     // Start a new current buffer.
-    auto ret = std::move(cur_buffer);
+    auto ret   = std::move(cur_buffer);
+    cur_buffer = *slot_event_buffer::make(get_default_fallback_byte_buffer_segment_pool());
     return ret;
   }
 

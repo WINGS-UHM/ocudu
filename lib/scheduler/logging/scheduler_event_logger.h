@@ -20,6 +20,7 @@ public:
     rnti_t          ra_rnti;
     rnti_t          tc_rnti;
     unsigned        ta;
+    bool            is_msga;
   };
   struct ue_creation_event {
     du_ue_index_t   ue_index;

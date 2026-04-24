@@ -954,7 +954,7 @@ struct du_high_unit_rach_config {
     /// Index into the PUSCH-TimeDomainAllocationResource table for MsgA PUSCH scheduling.
     uint8_t pusch_td_res_index = 0;
     /// MCS index for MsgA PUSCH transmission. Values: {0, ..., 28}.
-    uint8_t mcs = 5;
+    uint8_t mcs = 0;
     /// Number of PRBs per MsgA PUSCH occasion. Values: {1, ..., 32}.
     uint8_t nof_prbs_per_msga_po = 3;
     /// Frequency offset in PRBs of the lowest MsgA PUSCH occasion from PRB 0.

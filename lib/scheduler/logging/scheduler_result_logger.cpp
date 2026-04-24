@@ -405,10 +405,16 @@ static auto make_sib_debug_log_entry(const sib_information& sib_info)
 static auto make_rar_debug_log_entry(const rar_information& rar_info)
 {
   auto make_rar_grant_debug_entry = [](const rar_ul_grant& grant) {
+    const auto* ts     = std::get_if<rar_ul_grant::two_step_info>(&grant.type);
+    const auto  result = ts != nullptr ? std::optional<bool>{ts->is_success} : std::nullopt;
     return make_formattable(
-        [tcrnti = grant.temp_crnti, rapid = grant.rapid, ta = grant.ta, td = grant.time_resource_assignment](
+        [tcrnti = grant.temp_crnti, rapid = grant.rapid, ta = grant.ta, td = grant.time_resource_assignment, result](
             auto& ctx) {
-          return fmt::format_to(ctx.out(), "tc-rnti={}: rapid={} ta={} time_res={}", tcrnti, rapid, ta, td);
+          fmt::format_to(ctx.out(), "tc-rnti={}: rapid={} ta={} time_res={}", tcrnti, rapid, ta, td);
+          if (result.has_value()) {
+            fmt::format_to(ctx.out(), " result={}", *result ? "successRAR" : "fallbackRAR");
+          }
+          return ctx.out();
         });
   };
 

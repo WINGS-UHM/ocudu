@@ -873,10 +873,10 @@ asn1::rrc_nr::bwp_ul_common_s ocudu::odu::make_asn1_rrc_initial_up_bwp(const ul_
     pusch_res.freq_start_msg_a_pusch_r16                = two_step.pusch.prb_start;
     two_step_success = asn1::number_to_enum(pusch_res.nrof_msg_a_po_fdm_r16, two_step.pusch.po_fdm);
     ocudu_assert(two_step_success, "Invalid nrofMsgA-PO-FDM value");
-    // Constrain DMRS to 1 CDM group (value=0) and 1 antenna port (value=0) so the UE does not
-    // infer more ports than the msgA-MaxLength=len1 default allows.
+    // Use 2 CDM groups (value=1) to match Msg3 DCI 0_0 behavior (TS 38.214 6.2.2), and 1 antenna port (value=0)
+    // to avoid the UE inferring more ports than msgA-MaxLength=len1 allows.
     pusch_res.msg_a_dmrs_cfg_r16.msg_a_pusch_dmrs_cdm_group_r16_present = true;
-    pusch_res.msg_a_dmrs_cfg_r16.msg_a_pusch_dmrs_cdm_group_r16         = 0;
+    pusch_res.msg_a_dmrs_cfg_r16.msg_a_pusch_dmrs_cdm_group_r16         = 1;
     pusch_res.msg_a_dmrs_cfg_r16.msg_a_pusch_nrof_ports_r16_present     = true;
     pusch_res.msg_a_dmrs_cfg_r16.msg_a_pusch_nrof_ports_r16             = 0;
   }

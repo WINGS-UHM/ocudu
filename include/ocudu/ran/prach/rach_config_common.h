@@ -81,7 +81,7 @@ struct rach_config_common_two_step {
     /// in the default Table 6.1.2.1.1-2 in 38.214. The parameter k2 is ignored.
     uint8_t pusch_td_res_index{0};
     /// MCS value used for MsgA, taken from Table 6.1.4.1-1 for DFT-s-OFDM and Table 5.1.31.-1 for CP-OFDM in TS 38.214.
-    sch_mcs_index mcs{5};
+    sch_mcs_index mcs{0};
     /// Number of PRBs per PUSCH occasion. See TS 38.213, 8.1A. Values: {1, ..., 32}.
     uint8_t nof_prbs_per_msgA_po{3};
     /// Offset of lowest PUSCH occasion in frequency domain with respect to PRB 0. See TS 38.331,

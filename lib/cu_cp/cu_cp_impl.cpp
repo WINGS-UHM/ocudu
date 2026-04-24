@@ -17,6 +17,7 @@
 #include "routines/mobility/inter_cu_handover_target_routine.h"
 #include "routines/mobility/intra_cu_handover_routine.h"
 #include "routines/mobility/intra_cu_handover_target_routine.h"
+#include "routines/mobility/mobility_helpers.h"
 #include "routines/pdu_session_resource_modification_routine.h"
 #include "routines/pdu_session_resource_release_routine.h"
 #include "routines/pdu_session_resource_setup_routine.h"
@@ -388,6 +389,16 @@ cu_cp_impl::handle_rrc_reestablishment_request(pci_t old_pci, rnti_t old_c_rnti,
       target_ue->get_rrc_ue()->cancel_handover_reconfiguration_transaction(
           old_ue->get_ho_context().value().rrc_reconfig_transaction_id);
     }
+  }
+
+  // Cancel any ongoing CHO on this UE (as source). Each candidate's target routine observes the cancellation and
+  // self-releases.
+  if (old_ue->get_cho_context().has_value() &&
+      old_ue->get_cho_context()->role == cu_cp_ue_cho_context::role_t::source &&
+      !old_ue->get_cho_context()->candidates.empty()) {
+    logger.debug("ue={}: Cancelling CHO on reestablishment", old_ue_index);
+    cancel_cho_candidates(*old_ue, ue_mng);
+    old_ue->get_cho_context()->clear();
   }
 
   // Check if a DRB and SRB2 were setup.

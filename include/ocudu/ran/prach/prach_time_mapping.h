@@ -14,6 +14,11 @@ namespace ocudu::prach_helper {
 /// Time-domain information related with the PRACH preamble positioning in slots, in a system frame.
 class preamble_slot_mapping
 {
+  /// Maximum number of slots that are contained in a system frame.
+  /// \note Computed considering a maximum number of slots per subframe of 16 (SCS = 240kHz). The maximum subcarrier
+  /// spacing is limited by the maximum SS/PBCH block subcarrier spacing for FR2 given in the TS 38.104 Table 5.4.3.3-2.
+  static constexpr unsigned MAX_NOF_PRACH_SLOTS_PER_FRAME = radio_frame_constants::NOF_SUBFRAMES_PER_FRAME * 16;
+
 public:
   preamble_slot_mapping(nr_band band, subcarrier_spacing ul_scs, uint16_t prach_config_index);
 
@@ -49,7 +54,7 @@ private:
   /// is the PRACH system frame (SFN) period. Parameter \f$x\f$ in TS 38.211 Section 6.3.3.2.
   bounded_bitset<prach_constants::MAX_PRACH_SFN_PERIOD> sfn_occasions;
   /// Set of the slots that contain PRACH occasions within a system frame.
-  bounded_bitset<prach_constants::MAX_NOF_PRACH_SLOTS_PER_FRAME> slot_occasions;
+  bounded_bitset<MAX_NOF_PRACH_SLOTS_PER_FRAME> slot_occasions;
 };
 
 } // namespace ocudu::prach_helper

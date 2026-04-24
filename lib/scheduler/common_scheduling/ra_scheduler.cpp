@@ -17,6 +17,7 @@
 #include "ocudu/adt/scope_exit.h"
 #include "ocudu/ran/band_helper.h"
 #include "ocudu/ran/prach/prach_preamble_information.h"
+#include "ocudu/ran/prach/prach_time_mapping.h"
 #include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/ran/resource_allocation/resource_allocation_frequency.h"
 #include "ocudu/ran/sch/tbs_calculator.h"
@@ -182,6 +183,44 @@ static span<const pusch_time_domain_resource_allocation> get_pusch_td_list(const
   return get_pusch_time_domain_resource_table(*cell_cfg.params.ul_cfg_common.init_ul_bwp.pusch_cfg_common);
 }
 
+class ra_scheduler::cached_bwp_info
+{
+public:
+  cached_bwp_info(const cell_configuration& cfg) :
+    preamble_td_mapper(cfg.band(),
+                       cfg.init_bwp.ul.cfg().scs,
+                       cfg.init_bwp.ul.rach_common()->rach_cfg_generic.prach_config_index)
+  {
+    fill_msga_pusch_info(cfg);
+  }
+
+  /// Whether a MsgA PUSCH can be scheduled in this slot.
+  bool is_msga_pusch_slot(slot_point sl) const { return preamble_td_mapper.has_prach_occasion(sl - msga_td_offset); }
+
+  /// Pre-reserved space in the resource grid for MsgA PUSCH.
+  /// \note This space needs to pre-reserved in advance so that other PUSCH/PUCCH grants occupy it.
+  grant_info reserved_msga_pusch_space;
+
+private:
+  prach_helper::preamble_slot_mapping preamble_td_mapper;
+  unsigned                            msga_td_offset = 0;
+
+  void fill_msga_pusch_info(const cell_configuration& cfg)
+  {
+    const auto&                                  ul_bwp         = cfg.init_bwp.ul;
+    const auto&                                  msga_pusch_cfg = ul_bwp.rach_common()->two_step_rach_cfg->pusch;
+    const pusch_time_domain_resource_allocation& td_alloc = get_pusch_td_list(cfg)[msga_pusch_cfg.pusch_td_res_index];
+    // For MsgA, the PUSCH slot is at prach_slot + td_offset; k2 of PUSCH TD resource is irrelevant as per spec.
+    msga_td_offset = msga_pusch_cfg.td_offset;
+
+    const unsigned crb_start = ul_bwp.cfg().crbs.start() + msga_pusch_cfg.prb_start;
+    reserved_msga_pusch_space =
+        grant_info{ul_bwp.cfg().scs,
+                   td_alloc.symbols,
+                   crb_interval{crb_start, crb_start + msga_pusch_cfg.po_fdm * msga_pusch_cfg.nof_prbs_per_msgA_po}};
+  }
+};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ra_scheduler::ra_scheduler(const cell_configuration& cellcfg_,
@@ -205,6 +244,7 @@ ra_scheduler::ra_scheduler(const cell_configuration& cellcfg_,
           .format)),
   prach_occasion_duration_slots(compute_prach_occasion_duration_slots(cell_cfg)),
   pucch_crbs(compute_pucch_crbs(cell_cfg)),
+  cached_init_bwp_info(std::make_unique<cached_bwp_info>(cell_cfg)),
   ra_harqs(MAX_NOF_DU_UES,
            1,
            std::make_unique<msgb_harq_timeout_notifier>(pending_msg3s, cell_cfg.params.pci, logger),
@@ -239,6 +279,8 @@ ra_scheduler::ra_scheduler(const cell_configuration& cellcfg_,
   // Precompute Msg3 PUSCH and DCI PDUs.
   precompute_msg3_pdus();
 }
+
+ra_scheduler::~ra_scheduler() = default;
 
 void ra_scheduler::precompute_rar_fields()
 {
@@ -560,10 +602,6 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
   const unsigned preambles_per_ssb = rach_cfg.total_nof_ra_preambles / nof_ssbs_per_ro;
   const unsigned preambles_per_po  = two_step_cfg.cb_preambles_per_ssb_per_shared_ro / msga_pusch_cfg.po_fdm;
 
-  // Track which FDM PUSCH occasions have already had their UL resource grid filled.
-  static constexpr size_t                   MAX_FDM_PUSCH_OCCASIONS = 8;
-  std::array<bool, MAX_FDM_PUSCH_OCCASIONS> po_grid_filled          = {};
-
   for (const auto& preamble : preambles) {
     ocudu_sanity_check(is_msga_preamble(rach_cfg, preamble.preamble_id),
                        "Handling preamble that is not for MsgA. Are preamble IDs sorted in the RACH indication?");
@@ -582,21 +620,10 @@ void ra_scheduler::handle_msga_occasion(const rach_indication_message::occasion&
         ul_bwp.generic_params.crbs.start() + msga_pusch_cfg.prb_start + po_idx * msga_pusch_cfg.nof_prbs_per_msgA_po;
     const crb_interval preamble_crbs{crb_start, crb_start + msga_pusch_cfg.nof_prbs_per_msgA_po};
 
-    if (not po_grid_filled[po_idx]) {
-      // First preamble for this FDM occasion: check for conflicts and mark resources.
-      const grant_info preamble_grant{ul_bwp.generic_params.scs, td_alloc.symbols, preamble_crbs};
-      if (pusch_alloc.ul_res_grid.collides(preamble_grant)) {
-        logger.warning(
-            "pci={} msgb-rnti={} tc-rnti={}: Discarding MsgA PUSCH. Cause: UL resources at slot={} are occupied",
-            cell_cfg.params.pci,
-            msgb_rnti,
-            preamble.tc_rnti,
-            pusch_slot);
-        continue;
-      }
-      pusch_alloc.ul_res_grid.fill(preamble_grant);
-      po_grid_filled[po_idx] = true;
-    }
+    // Note: PUSCH resources have been pre-reserved.
+    ocudu_sanity_check(
+        pusch_alloc.ul_res_grid.all_set(grant_info{ul_bwp.generic_params.scs, td_alloc.symbols, preamble_crbs}),
+        "Invalid prereservation of MsgA PUSCH resources");
 
     if (pusch_alloc.result.ul.puschs.full()) {
       logger.warning(
@@ -721,6 +748,9 @@ void ra_scheduler::handle_pending_crc_indications_impl(cell_resource_allocator& 
 
 void ra_scheduler::run_slot(cell_resource_allocator& res_alloc)
 {
+  // Reserve MsgA PUSCH space.
+  reserve_msga_pusch_rbs(res_alloc);
+
   // Update Msg3 HARQ state.
   ra_harqs.slot_indication(res_alloc.slot_tx());
 
@@ -1674,6 +1704,36 @@ void ra_scheduler::schedule_pending_msgbs(cell_resource_allocator& res_alloc, sl
       ++msgb_it;
     }
   }
+}
+
+void ra_scheduler::reserve_msga_pusch_rbs(cell_resource_allocator& res_alloc)
+{
+  if (not cell_cfg.init_bwp.ul.rach_common()->two_step_rach_cfg.has_value()) {
+    // Two-step RACH is not active.
+    return;
+  }
+
+  // Helper function to fill grid resources.
+  auto fill_grid_in_slot = [this, &res_alloc](unsigned ul_lookahead_slots) {
+    auto& pusch_alloc = res_alloc[ul_lookahead_slots];
+
+    if (not cached_init_bwp_info->is_msga_pusch_slot(pusch_alloc.slot)) {
+      // MsgA PUSCH does not fall in this slot.
+      return;
+    }
+
+    // Fill resource grid.
+    pusch_alloc.ul_res_grid.fill(cached_init_bwp_info->reserved_msga_pusch_space);
+  };
+
+  if (OCUDU_UNLIKELY(first_slot_flag)) {
+    first_slot_flag = false;
+    for (unsigned lookahead_slots = 1; lookahead_slots != res_alloc.max_ul_slot_alloc_delay; ++lookahead_slots) {
+      fill_grid_in_slot(lookahead_slots);
+    }
+  }
+
+  fill_grid_in_slot(res_alloc.max_ul_slot_alloc_delay);
 }
 
 sch_prbs_tbs ra_scheduler::get_nof_pdsch_prbs_required(unsigned time_res_idx, unsigned nof_ul_grants) const

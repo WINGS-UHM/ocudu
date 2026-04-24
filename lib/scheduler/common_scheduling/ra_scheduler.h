@@ -30,6 +30,7 @@ public:
                         pdcch_resource_allocator& pdcch_sched_,
                         scheduler_event_logger&   ev_logger_,
                         cell_metrics_handler&     metrics_handler_);
+  ~ra_scheduler();
 
   /// Enqueue RACH indication coming from lower layers.
   /// \note Potentially called from a different executor than the cell scheduler executor.
@@ -48,6 +49,7 @@ public:
 private:
   class msg3_harq_timeout_notifier;
   class msgb_harq_timeout_notifier;
+  class cached_bwp_info;
 
   struct pending_rar_failed_attempts_t {
     unsigned pdcch = 0;
@@ -181,6 +183,9 @@ private:
 
   sch_prbs_tbs get_nof_pdsch_prbs_required(unsigned time_res_idx, unsigned nof_ul_grants) const;
 
+  /// Reserve space in the resource grid for the MsgA PUSCH so it is not taken by other UL grants.
+  void reserve_msga_pusch_rbs(cell_resource_allocator& res_alloc);
+
   // Set the max number of slots the scheduler can look ahead in the resource grid (with respect to the current slot) to
   // find PDSCH space for RAR.
   static constexpr unsigned max_dl_slots_ahead_sched = 8U;
@@ -224,6 +229,9 @@ private:
   std::vector<msg3_param_cached_data> msg3_data;
   sch_mcs_description                 msg3_mcs_config;
 
+  /// Pre-cached information for the initial BWP.
+  std::unique_ptr<cached_bwp_info> cached_init_bwp_info;
+
   // -- State.
 
   // Currently managed HARQ processes for Random Access in this cell (Msg3 UL retx + MsgB DL retx).
@@ -244,6 +252,9 @@ private:
 
   // List of pending MsgBs (2-step RACH responses) to be scheduled.
   std::vector<pending_msgb_alloc> pending_msgbs;
+
+  // Marks whether the next slot indication is the first.
+  bool first_slot_flag = true;
 };
 
 } // namespace ocudu

@@ -47,11 +47,6 @@ constexpr size_t MAX_NOF_PRACH_OCCASIONS_PER_SLOT = MAX_NOF_PRACH_TD_OCCASIONS *
 /// 38.211 Tables 6.3.3.2-2, 6.3.3.2-3, and 6.3.3.2-4.
 static constexpr unsigned MAX_PRACH_SFN_PERIOD = 16;
 
-/// Maximum number of slots that are contained in a system frame.
-/// \note Computed considering a maximum number of slots per subframe of 16 (SCS = 240kHz). The maximum subcarrier
-/// spacing is limited by the maximum SS/PBCH block subcarrier spacing for FR2 given in the TS 38.104 Table 5.4.3.3-2.
-static constexpr unsigned MAX_NOF_PRACH_SLOTS_PER_FRAME = radio_frame_constants::NOF_SUBFRAMES_PER_FRAME * 16;
-
 } // namespace prach_constants
 
 } // namespace ocudu

@@ -549,6 +549,30 @@ public:
     }
     return false;
   }
+
+  /// Returns the pre-reserved MsgA PUSCH grant spanning all FDM occasions.
+  grant_info get_msga_pusch_grant() const
+  {
+    const auto&    rach_cfg  = *cell_cfg.params.ul_cfg_common.init_ul_bwp.rach_cfg_common;
+    const auto&    msga      = rach_cfg.two_step_rach_cfg->pusch;
+    const auto&    ul_bwp    = cell_cfg.params.ul_cfg_common.init_ul_bwp;
+    const auto&    td_alloc  = ul_bwp.pusch_cfg_common->pusch_td_alloc_list[msga.pusch_td_res_index];
+    const unsigned crb_start = ul_bwp.generic_params.crbs.start() + msga.prb_start;
+    return grant_info{ul_bwp.generic_params.scs,
+                      td_alloc.symbols,
+                      crb_interval{crb_start, crb_start + msga.po_fdm * msga.nof_prbs_per_msgA_po}};
+  }
+
+  /// Scans the lookahead grid and returns the nearest slot where the MsgA PUSCH grant is pre-reserved.
+  std::optional<slot_point> find_msga_preresv_slot(const grant_info& grant) const
+  {
+    for (unsigned i = 1; i <= res_grid.max_ul_slot_alloc_delay; ++i) {
+      if (res_grid[i].ul_res_grid.collides(grant)) {
+        return res_grid[i].slot;
+      }
+    }
+    return std::nullopt;
+  }
 };
 
 TEST_P(ra_scheduler_two_step_rach_test, when_two_step_rach_enqueued_then_msga_pusch_is_scheduled)
@@ -643,6 +667,17 @@ TEST_P(ra_scheduler_two_step_rach_test, when_mixed_crc_outcomes_both_rar_types_s
   ASSERT_EQ(res_grid[0].result.ul.puschs.size(), 1);
   ASSERT_EQ(res_grid[0].result.ul.puschs[0].pusch_cfg.rnti, tc_rnti_ko);
   ASSERT_EQ(tracker.nof_msg3_newtxs(), 1) << "FallbackRAR preamble must have a Msg3 PUSCH";
+}
+
+/// The MsgA PUSCH resources must be blocked in the UL resource grid before any PRACH preamble is detected,
+/// so that the UE PUSCH scheduler cannot steal them.
+TEST_P(ra_scheduler_two_step_rach_test, msga_pusch_rbs_are_pre_reserved_before_preamble_detection)
+{
+  const grant_info grant = get_msga_pusch_grant();
+
+  // No RACH indication has been sent. The scheduler must still pre-reserve the MsgA PUSCH resources.
+  ASSERT_TRUE(run_slot_until([&]() { return find_msga_preresv_slot(grant).has_value(); }, 400))
+      << "MsgA PUSCH pre-reservation not found within lookahead grid";
 }
 
 INSTANTIATE_TEST_SUITE_P(two_step_rach,

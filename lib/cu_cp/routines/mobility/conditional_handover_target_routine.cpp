@@ -49,13 +49,18 @@ void conditional_handover_target_routine::operator()(coro_context<async_task<voi
   // Wait for RRCReconfigurationComplete on this target UE.
   // The UE sends this after evaluating the CHO condition and attaching to this cell.
   CORO_AWAIT_VALUE(reconf_result,
-                   target_ue->get_rrc_ue()->handle_handover_reconfiguration_complete_expected(request.transaction_id,
-                                                                                              request.timeout));
+                   target_ue->get_rrc_ue()->handle_handover_reconfiguration_complete_expected(
+                       request.transaction_id, request.timeout, /*release_on_cancel=*/false));
 
   if (!reconf_result) {
     logger.debug("target_ue={}: \"{}\" did not receive RRCReconfigurationComplete. CHO to this target failed/canceled",
                  request.target_ue_index,
                  name());
+    release_cmd                      = {};
+    release_cmd.ue_index             = request.target_ue_index;
+    release_cmd.cause                = ngap_cause_radio_network_t::unspecified;
+    release_cmd.requires_rrc_release = false;
+    CORO_AWAIT_VALUE(release_complete, ue_context_release_handler.handle_ue_context_release_command(release_cmd));
     CORO_EARLY_RETURN();
   }
 

@@ -662,7 +662,8 @@ public:
   }
 
   async_task<bool> handle_handover_reconfiguration_complete_expected(uint8_t                   transaction_id_,
-                                                                     std::chrono::milliseconds timeout_ms) override
+                                                                     std::chrono::milliseconds timeout_ms,
+                                                                     bool release_on_cancel = true) override
   {
     logger.info("Awaiting a RRC Reconfiguration Complete (transaction_id={})", transaction_id_);
     last_transaction_id = transaction_id_;

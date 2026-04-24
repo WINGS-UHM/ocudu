@@ -685,9 +685,10 @@ rrc_ue_impl::get_rrc_ue_cond_reconfiguration_context(const rrc_reconfiguration_p
 }
 
 async_task<bool> rrc_ue_impl::handle_handover_reconfiguration_complete_expected(uint8_t transaction_id,
-                                                                                std::chrono::milliseconds timeout_ms)
+                                                                                std::chrono::milliseconds timeout_ms,
+                                                                                bool release_on_failure)
 {
-  return launch_async([this, timeout_ms, transaction_id, transaction = rrc_transaction{}](
+  return launch_async([this, timeout_ms, transaction_id, release_on_failure, transaction = rrc_transaction{}](
                           coro_context<async_task<bool>>& ctx) mutable {
     CORO_BEGIN(ctx);
 
@@ -709,9 +710,18 @@ async_task<bool> rrc_ue_impl::handle_handover_reconfiguration_complete_expected(
       metrics_notifier.on_new_rrc_connection();
 
     } else {
-      logger.log_debug("Did not receive RRC Reconfiguration Complete after HO. Cause: {}. Requesting target UE release",
-                       transaction.failure_cause() == protocol_transaction_failure::timeout ? "timeout" : "canceled");
-      on_ue_release_required(ngap_cause_radio_network_t::ho_fail_in_target_5_gc_ngran_node_or_target_sys);
+      const char* cause_str =
+          transaction.failure_cause() == protocol_transaction_failure::timeout ? "timeout" : "canceled";
+      if (release_on_failure) {
+        logger.log_debug(
+            "Did not receive RRC Reconfiguration Complete after HO. Cause: {}. Requesting target UE release",
+            cause_str);
+        on_ue_release_required(ngap_cause_radio_network_t::ho_fail_in_target_5_gc_ngran_node_or_target_sys);
+      } else {
+        logger.log_debug(
+            "Did not receive RRC Reconfiguration Complete after HO. Cause: {}. UE release handled externally",
+            cause_str);
+      }
     }
 
     CORO_RETURN(procedure_result);

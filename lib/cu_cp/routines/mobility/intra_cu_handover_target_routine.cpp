@@ -117,18 +117,7 @@ void intra_cu_handover_target_routine::operator()(coro_context<async_task<void>>
   // Send a location report if needed.
   loc_mng_handler.handle_location_update(request.target_ue_index);
 
-  // Remove source UE context.
-  if (ue_mng.find_du_ue(request.source_ue_index) == nullptr) {
-    logger.warning("Source UE={} already got removed", request.source_ue_index);
-  } else {
-    source_ue = ue_mng.find_du_ue(request.source_ue_index);
-
-    ue_context_release_command.ue_index             = source_ue->get_ue_index();
-    ue_context_release_command.cause                = ngap_cause_radio_network_t::unspecified;
-    ue_context_release_command.requires_rrc_release = false;
-    CORO_AWAIT(ue_context_release_handler.handle_ue_context_release_command(ue_context_release_command));
-    logger.debug("ue={}: \"{}\" removed source UE context", ue_context_release_command.ue_index, name());
-  }
+  schedule_source_release_on_source_task_sched(request.source_ue_index);
 
   logger.debug("ue={}: \"{}\" finished successfully", request.target_ue_index, name());
 
@@ -160,4 +149,23 @@ bool intra_cu_handover_target_routine::add_security_context_to_bearer_context_mo
   }
 
   return true;
+}
+
+void intra_cu_handover_target_routine::schedule_source_release_on_source_task_sched(ue_index_t source_ue_index)
+{
+  auto* src_ue = ue_mng.find_du_ue(source_ue_index);
+  if (src_ue == nullptr) {
+    logger.warning("target_ue={}: source_ue={} already removed", request.target_ue_index, source_ue_index);
+    return;
+  }
+  ue_context_release_command                      = {};
+  ue_context_release_command.ue_index             = source_ue_index;
+  ue_context_release_command.cause                = ngap_cause_radio_network_t::unspecified;
+  ue_context_release_command.requires_rrc_release = false;
+  src_ue->get_task_sched().schedule_async_task(launch_async([this](coro_context<async_task<void>>& ctx) {
+    CORO_BEGIN(ctx);
+    CORO_AWAIT(ue_context_release_handler.handle_ue_context_release_command(ue_context_release_command));
+    CORO_RETURN();
+  }));
+  logger.debug("target_ue={}: scheduled source_ue={} context release", request.target_ue_index, source_ue_index);
 }

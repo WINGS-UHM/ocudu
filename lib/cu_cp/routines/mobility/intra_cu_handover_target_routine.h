@@ -36,6 +36,10 @@ private:
 
   bool add_security_context_to_bearer_context_modification(const ocudu::security::sec_as_config& security_cfg);
 
+  /// Schedule the source UE release onto the source UE's own task scheduler. Kept out of the coroutine body because
+  /// CORO_BEGIN cannot be nested (macro-local name collision).
+  void schedule_source_release_on_source_task_sched(ue_index_t source_ue_index);
+
   const cu_cp_intra_cu_handover_target_request request;
 
   // Pointer to UE in the source DU.

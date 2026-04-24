@@ -6,18 +6,19 @@
 
 #include "ocudu/adt/interval.h"
 #include "ocudu/ran/subcarrier_spacing.h"
+#include "ocudu/ran/time/radio_frame_constants.h"
 #include "ocudu/support/ocudu_assert.h"
 
 namespace ocudu {
 
-/// Number of subframes per frame. This constant doesn't depend on the numerology used.
-constexpr uint32_t NOF_SUBFRAMES_PER_FRAME = 10;
+/// Number of subframes per frame.
+constexpr uint32_t NOF_SUBFRAMES_PER_FRAME = radio_frame_constants::NOF_SUBFRAMES_PER_FRAME;
 
 /// Number of System Frame Number (SFN) values.
-constexpr size_t NOF_SFNS = 1024;
+constexpr size_t NOF_SFNS = radio_frame_constants::NOF_SFNS;
 
 /// Duration of a subframe in milliseconds.
-constexpr uint32_t SUBFRAME_DURATION_MSEC = 1;
+constexpr uint32_t SUBFRAME_DURATION_MSEC = radio_frame_constants::SUBFRAME_DURATION_MSEC;
 
 /// Represents the difference between two slot points.
 using slot_difference = int;

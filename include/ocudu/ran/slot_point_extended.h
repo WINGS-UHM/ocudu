@@ -8,8 +8,7 @@
 
 namespace ocudu {
 
-/// Number of Hyper System Frame Number (HyperSFN) values. As per TS 38.331, a HyperSFN ranges from 0 to 1023.
-constexpr size_t NOF_HYPER_SFNS = 1024;
+constexpr size_t NOF_HYPER_SFNS = radio_frame_constants::NOF_HYPER_SFNS;
 
 /// Slot point type that represents the numerology, HyperSFN, SFN and slot index of the current slot.
 class slot_point_extended : private slot_point

@@ -6,8 +6,8 @@
 
 #include "../cell/resource_grid.h"
 #include "ocudu/ocudulog/logger.h"
+#include "ocudu/ran/prach/prach_time_mapping.h"
 #include "ocudu/ran/slot_point.h"
-#include <bitset>
 
 namespace ocudu {
 
@@ -26,15 +26,6 @@ private:
   // longest preamble length (which can be derived from Table 6.3.3.1-1, TS 38.211 for Format 2) and the shortest slot
   // duration currently supported by the GNB, which is 0.5ms for SCS 30KHz.
   static constexpr unsigned MAX_SLOTS_PER_PRACH = 7;
-  /// Maximum PRACH SFN opportunity period. Maximum value for the parameter \f$x\f$. This value is deduced from TS
-  /// 38.211 Tables 6.3.3.2-2, 6.3.3.2-3, and 6.3.3.2-4.
-  static constexpr unsigned MAX_PRACH_SFN_PERIOD = 16;
-  /// Maximum subcarrier spacing limited by the maximum SS/PBCH block subcarrier spacing for FR2 given in the TS
-  /// 38.104 Table 5.4.3.3-2).
-  static constexpr subcarrier_spacing MAX_COMMON_SCS = subcarrier_spacing::kHz240;
-  /// Maximum number of slots that are contained in a system frame.
-  static constexpr unsigned MAX_NOF_PRACH_SLOTS_PER_FRAME =
-      NOF_SUBFRAMES_PER_FRAME * pow2(to_numerology_value(MAX_COMMON_SCS));
 
   struct cached_prach_occasion {
     /// RB x symbol resources used for the PRACH.
@@ -59,22 +50,10 @@ private:
   ocudulog::basic_logger&   logger;
 
   bool first_slot_ind = true;
-  /// Set to true if the selected preamble is long.
-  bool use_long_preamble = false;
-  /// Starting slot within the reference slot. Parameter \f$n_{slot}^{RA}\f$; as described in TS 38.211 Section 5.3.2.
-  unsigned start_slot_pusch_scs = 0;
-  /// For long PRACH preamble formats, this is the duration of the PRACH preamble in slots, which can be more than 1.
-  /// For short PRACH preamble formats, this is the duration of the burst of PRACH opportunities, which can be 1 or 2
-  /// slots, as per Section 5.3.2, and Tables 6.3.3.2-2 and 6.3.3.2-3, TS 38.211.
-  unsigned prach_length_slots = 1;
-  /// Set of system frame numbers (SFN) that satisfy the condition \f$n_{SFN} \bmod x = y\f$.
-  std::bitset<MAX_PRACH_SFN_PERIOD> prach_sfn_occasions;
-  /// PRACH system frame (SFN) period. Parameter \f$x\f$ in TS 38.211 Section 6.3.3.2.
-  unsigned prach_sfn_period;
-  /// Set of the slots that contain PRACH occasions within a system frame.
-  std::bitset<MAX_NOF_PRACH_SLOTS_PER_FRAME> prach_slot_occasions;
   /// Pre-generated PRACH occasions.
   static_vector<cached_prach_occasion, MAX_PRACH_OCCASIONS_PER_SLOT> cached_prachs;
+  /// Helper to determine slot positioning of the PRACH preambles.
+  prach_helper::preamble_slot_mapping td_mapper;
 };
 
 } // namespace ocudu

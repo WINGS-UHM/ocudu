@@ -843,6 +843,44 @@ asn1::rrc_nr::bwp_ul_common_s ocudu::odu::make_asn1_rrc_initial_up_bwp(const ul_
   pusch.p0_nominal_with_grant_present = true;
   pusch.p0_nominal_with_grant         = pusch_cfg.p0_nominal_with_grant.value();
 
+  // > msgA-ConfigCommon-r16 OPTIONAL (extension, 2-step RACH)
+  if (rach_cfg.two_step_rach_cfg.has_value()) {
+    const rach_config_common_two_step& two_step = *rach_cfg.two_step_rach_cfg;
+    init_ul_bwp.ext                             = true;
+    init_ul_bwp.msg_a_cfg_common_r16.set_present();
+    msg_a_cfg_common_r16_s& msg_a_cfg = init_ul_bwp.msg_a_cfg_common_r16->set_setup();
+
+    rach_cfg_common_two_step_ra_r16_s& rach_two_step                 = msg_a_cfg.rach_cfg_common_two_step_ra_r16;
+    rach_two_step.msg_a_cb_preambs_per_ssb_per_shared_ro_r16_present = true;
+    rach_two_step.msg_a_cb_preambs_per_ssb_per_shared_ro_r16         = two_step.cb_preambles_per_ssb_per_shared_ro;
+    rach_two_step.msg_a_rsrp_thres_r16_present                       = true;
+    rach_two_step.msg_a_rsrp_thres_r16                               = two_step.msgA_rsrp_thres.count();
+    rach_two_step.rach_cfg_generic_two_step_ra_r16.msg_b_resp_win_r16_present = true;
+    bool two_step_success = asn1::number_to_enum(rach_two_step.rach_cfg_generic_two_step_ra_r16.msg_b_resp_win_r16,
+                                                 two_step.msgB_response_window_slots);
+    ocudu_assert(two_step_success, "Invalid msgB-ResponseWindow value");
+
+    msg_a_cfg.msg_a_pusch_cfg_r16_present               = true;
+    msg_a_pusch_cfg_r16_s& msg_a_pusch_cfg              = msg_a_cfg.msg_a_pusch_cfg_r16;
+    msg_a_pusch_cfg.msg_a_pusch_res_group_a_r16_present = true;
+    msg_a_pusch_res_r16_s& pusch_res                    = msg_a_pusch_cfg.msg_a_pusch_res_group_a_r16;
+    pusch_res.nrof_msg_a_po_per_slot_r16.value          = msg_a_pusch_res_r16_s::nrof_msg_a_po_per_slot_r16_opts::one;
+    pusch_res.msg_a_mcs_r16                             = two_step.pusch.mcs.value();
+    pusch_res.msg_a_pusch_time_domain_offset_r16        = two_step.pusch.td_offset;
+    pusch_res.msg_a_pusch_time_domain_alloc_r16_present = true;
+    pusch_res.msg_a_pusch_time_domain_alloc_r16         = two_step.pusch.pusch_td_res_index + 1;
+    pusch_res.nrof_prbs_per_msg_a_po_r16                = two_step.pusch.nof_prbs_per_msgA_po;
+    pusch_res.freq_start_msg_a_pusch_r16                = two_step.pusch.prb_start;
+    two_step_success = asn1::number_to_enum(pusch_res.nrof_msg_a_po_fdm_r16, two_step.pusch.po_fdm);
+    ocudu_assert(two_step_success, "Invalid nrofMsgA-PO-FDM value");
+    // Constrain DMRS to 1 CDM group (value=0) and 1 antenna port (value=0) so the UE does not
+    // infer more ports than the msgA-MaxLength=len1 default allows.
+    pusch_res.msg_a_dmrs_cfg_r16.msg_a_pusch_dmrs_cdm_group_r16_present = true;
+    pusch_res.msg_a_dmrs_cfg_r16.msg_a_pusch_dmrs_cdm_group_r16         = 0;
+    pusch_res.msg_a_dmrs_cfg_r16.msg_a_pusch_nrof_ports_r16_present     = true;
+    pusch_res.msg_a_dmrs_cfg_r16.msg_a_pusch_nrof_ports_r16             = 0;
+  }
+
   // pucch-ConfigCommon SetupRelease { PUCCH-ConfigCommon } OPTIONAL, -- Need M
   const pucch_config_common& pucch_cfg = cfg.init_ul_bwp.pucch_cfg_common.value();
   init_ul_bwp.pucch_cfg_common_present = true;

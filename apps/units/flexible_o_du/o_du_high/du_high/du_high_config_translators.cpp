@@ -614,8 +614,8 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             static_cast<ra_prioritization::scaling_factor_bi>(clifield.scaling_factor_bi.value());
       }
     }
-    if (base_cell.prach_cfg.two_step_rach.has_value()) {
-      const auto& src = *base_cell.prach_cfg.two_step_rach;
+    if (base_cell.prach_cfg.two_step.has_value()) {
+      const auto& src = *base_cell.prach_cfg.two_step;
       rach_cfg.two_step_rach_cfg.emplace();
       auto& dst                              = *rach_cfg.two_step_rach_cfg;
       dst.cb_preambles_per_ssb_per_shared_ro = src.cb_preambles_per_ssb_per_shared_ro;

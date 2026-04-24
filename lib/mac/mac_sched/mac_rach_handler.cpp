@@ -14,8 +14,13 @@ mac_cell_rach_handler_impl::mac_cell_rach_handler_impl(mac_rach_handler&        
   parent(parent_),
   cell_index(sched_cfg.cell_index),
   nof_cb_preambles(sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->nof_cb_preambles_per_ssb),
-  // For now, we assume all the preambles not used by CBRA are used for CFRA.
-  preambles(sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->total_nof_ra_preambles - nof_cb_preambles)
+  nof_msga_preambles(sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->two_step_rach_cfg.has_value()
+                         ? sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->two_step_rach_cfg
+                               ->cb_preambles_per_ssb_per_shared_ro
+                         : 0U),
+  // Preambles above the CB (4-step) and MsgA (2-step CB) ranges are reserved for CFRA.
+  preambles(sched_cfg.ran.ul_cfg_common.init_ul_bwp.rach_cfg_common->total_nof_ra_preambles - nof_cb_preambles -
+            nof_msga_preambles)
 {
   for (auto& preamble : preambles) {
     preamble.store(rnti_t::INVALID_RNTI, std::memory_order_relaxed);
@@ -24,14 +29,14 @@ mac_cell_rach_handler_impl::mac_cell_rach_handler_impl(mac_rach_handler&        
 
 bool mac_cell_rach_handler_impl::is_cfra_preamble(unsigned ra_preamble_id) const
 {
-  // For now, we use all the preambles not used by CBRA.
-  return ra_preamble_id < (preambles.size() + nof_cb_preambles) and ra_preamble_id >= nof_cb_preambles;
+  const unsigned cfra_start = nof_cb_preambles + nof_msga_preambles;
+  return ra_preamble_id >= cfra_start and ra_preamble_id < cfra_start + preambles.size();
 }
 
 unsigned mac_cell_rach_handler_impl::get_cfra_index(unsigned ra_preamble_id) const
 {
   ocudu_assert(is_cfra_preamble(ra_preamble_id), "Invalid CFRA preamble");
-  return ra_preamble_id - nof_cb_preambles;
+  return ra_preamble_id - nof_cb_preambles - nof_msga_preambles;
 }
 
 void mac_cell_rach_handler_impl::handle_rach_indication(const mac_rach_indication& rach_ind)

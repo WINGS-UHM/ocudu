@@ -909,8 +909,8 @@ validate_prach_cell_unit_config(const du_high_unit_rach_config& config, nr_band 
     }
   }
 
-  if (config.two_step_rach.has_value()) {
-    const auto& ts = *config.two_step_rach;
+  if (config.two_step.has_value()) {
+    const auto& ts = *config.two_step;
     if (ts.cb_preambles_per_ssb_per_shared_ro >= config.nof_cb_preambles_per_ssb) {
       fmt::print(
           "Two-step RACH: cb_preambles_per_ssb_per_shared_ro ({}) must be less than nof_cb_preambles_per_ssb ({}).\n",

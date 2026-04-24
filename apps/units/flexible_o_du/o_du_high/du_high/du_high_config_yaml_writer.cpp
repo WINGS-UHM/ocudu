@@ -446,8 +446,8 @@ static YAML::Node build_du_high_prach_section(const du_high_unit_rach_config& co
     node["ra_resp_window"] = config.ra_resp_window.value();
   }
 
-  if (config.two_step_rach.has_value()) {
-    const auto& ts = *config.two_step_rach;
+  if (config.two_step.has_value()) {
+    const auto& ts = *config.two_step;
     YAML::Node  two_step_node;
     two_step_node["cb_preambles_per_ssb_per_shared_ro"] = static_cast<unsigned>(ts.cb_preambles_per_ssb_per_shared_ro);
     two_step_node["msgA_rsrp_thres_dbm"]                = ts.msga_rsrp_thres_dbm;

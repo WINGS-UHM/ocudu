@@ -942,7 +942,7 @@ struct du_high_unit_rach_config {
     std::optional<float> scaling_factor_bi;
   };
   /// Parameters for two-step RACH. Currently, only shared RACH occasions with 4-step RACH is supported.
-  struct two_step_rach_info {
+  struct two_step_info {
     /// Number of CB preambles per SSB per shared RO for 2-step RA. Values: {1, ..., 60}.
     uint8_t cb_preambles_per_ssb_per_shared_ro = 4;
     /// RSRP threshold in dBm above which the UE selects 2-step RA over 4-step RA. Values: {-156, ..., -29}.
@@ -1007,7 +1007,7 @@ struct du_high_unit_rach_config {
   /// Configuration of slice-specific RACH configurations.
   std::vector<ra_prioritization_slice_info> ra_prio_slice_info_list;
   /// Parameters of two-step RACH, if enabled.
-  std::optional<two_step_rach_info> two_step_rach;
+  std::optional<two_step_info> two_step;
 };
 
 /// Slice scheduling configuration for a cell.

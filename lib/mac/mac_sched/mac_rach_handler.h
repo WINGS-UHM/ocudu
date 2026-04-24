@@ -42,6 +42,7 @@ private:
   mac_rach_handler&     parent;
   const du_cell_index_t cell_index;
   const unsigned        nof_cb_preambles;
+  const unsigned        nof_msga_preambles;
 
   std::vector<std::atomic<rnti_t>> preambles;
 };

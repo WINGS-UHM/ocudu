@@ -1385,8 +1385,7 @@ static void configure_cli11_ra_prioritization_info(CLI::App&                    
   add_option(app, "--nsag_ids", ra_info.nsag_ids, "NSAGs associated with this prioritized RA configuration.");
 }
 
-static void configure_cli11_two_step_rach_args(CLI::App&                                     app,
-                                               du_high_unit_rach_config::two_step_rach_info& two_step_params)
+static void configure_cli11_two_step_rach_args(CLI::App& app, du_high_unit_rach_config::two_step_info& two_step_params)
 {
   add_option(app,
              "--cb_preambles_per_ssb_per_shared_ro",
@@ -1546,12 +1545,15 @@ static void configure_cli11_prach_args(CLI::App& app, du_high_unit_rach_config& 
         }
       },
       "List of configurations for slice-based RA prioritization");
-  auto      two_step_rach_cfg = std::make_shared<du_high_unit_rach_config::two_step_rach_info>();
+  auto      two_step_rach_cfg = std::make_shared<du_high_unit_rach_config::two_step_info>();
   CLI::App* two_step_subcmd =
-      add_subcommand(app, "two_step_rach", "Two-step RACH (MsgA/MsgB) configuration")->configurable();
+      add_subcommand(app, "two_step", "Two-step RACH (MsgA/MsgB) configuration")->configurable();
   configure_cli11_two_step_rach_args(*two_step_subcmd, *two_step_rach_cfg);
-  two_step_subcmd->parse_complete_callback(
-      [&prach_params, cfg = std::move(two_step_rach_cfg)]() { prach_params.two_step_rach.emplace(*cfg); });
+  two_step_subcmd->parse_complete_callback([&prach_params, two_step_subcmd, cfg = std::move(two_step_rach_cfg)]() {
+    if (two_step_subcmd->count() != 0) {
+      prach_params.two_step.emplace(*cfg);
+    }
+  });
 }
 
 static void configure_cli11_sib2_config_args(CLI::App& app, du_high_unit_sib_config::sib2_config& sib2_cfg)

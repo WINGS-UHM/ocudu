@@ -97,3 +97,26 @@ bool ocudu::ocucp::handle_bearer_context_modification_response(
   // TOOD: Add proper handling.
   return bearer_context_modification_response.success;
 }
+
+unsigned ocudu::ocucp::cancel_cho_candidates(cu_cp_ue& source_ue, ue_manager& ue_mng, ue_index_t winner_ue_index)
+{
+  unsigned cancelled = 0;
+  auto&    cho_ctx   = source_ue.get_cho_context();
+  if (!cho_ctx.has_value()) {
+    return 0;
+  }
+  for (const auto& candidate : cho_ctx->candidates) {
+    if (candidate.target_ue_index == ue_index_t::invalid || candidate.target_ue_index == source_ue.get_ue_index() ||
+        candidate.target_ue_index == winner_ue_index) {
+      continue;
+    }
+    auto* cand_ue = ue_mng.find_du_ue(candidate.target_ue_index);
+    if (cand_ue == nullptr) {
+      continue;
+    }
+    cand_ue->get_rrc_ue()->cancel_handover_reconfiguration_transaction(
+        static_cast<uint8_t>(candidate.rrc_reconfig_transaction_id));
+    ++cancelled;
+  }
+  return cancelled;
+}

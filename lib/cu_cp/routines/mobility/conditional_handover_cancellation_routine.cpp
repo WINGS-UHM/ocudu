@@ -4,6 +4,7 @@
 
 #include "conditional_handover_cancellation_routine.h"
 #include "../../ue_manager/ue_manager_impl.h"
+#include "mobility_helpers.h"
 #include "ocudu/ran/cause/ngap_cause.h"
 
 using namespace ocudu;
@@ -58,20 +59,8 @@ void conditional_handover_cancellation_routine::operator()(coro_context<async_ta
     CORO_EARLY_RETURN();
   }
 
-  // Cancel each candidate's RRC reconfiguration transaction.
-  unsigned cancelled = 0;
-  for (const auto& candidate : source_ue->get_cho_context()->candidates) {
-    if (candidate.target_ue_index == ue_index_t::invalid || candidate.target_ue_index == source_ue_index) {
-      continue;
-    }
-    auto* candidate_ue = ue_mng.find_du_ue(candidate.target_ue_index);
-    if (candidate_ue == nullptr) {
-      continue;
-    }
-    candidate_ue->get_rrc_ue()->cancel_handover_reconfiguration_transaction(
-        static_cast<uint8_t>(candidate.rrc_reconfig_transaction_id));
-    ++cancelled;
-  }
+  // Cancel each candidate's RRC reconfiguration transaction. Each target routine self-releases on observing it.
+  const unsigned cancelled = cancel_cho_candidates(*source_ue, ue_mng);
 
   // clear() stops the timer defensively and resets state to idle.
   source_ue->get_cho_context()->clear();

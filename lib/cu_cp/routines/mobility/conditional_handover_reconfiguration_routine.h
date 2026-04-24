@@ -61,7 +61,7 @@ private:
   void generate_ue_context_modification_request();
 
   /// \brief Release prepared CHO candidates and clear CHO context after failures.
-  async_task<void> cleanup_targets();
+  void cleanup_targets();
 
   const cu_cp_cho_reconfiguration_request request;
 
@@ -69,6 +69,7 @@ private:
   f1ap_ue_context_manager&               source_du_f1ap_ue_ctxt_mng;
   cu_cp_ue_context_manipulation_handler& cu_cp_handler;
   cu_cp_ue_context_release_handler&      ue_context_release_handler;
+  ue_manager&                            ue_mng;
   ocudulog::basic_logger&                logger;
 
   // RRC reconfiguration context
@@ -81,12 +82,6 @@ private:
   // (sub-)routine results
   f1ap_ue_context_modification_response ue_context_mod_response;
   bool                                  reconfig_result = false;
-
-  // Cleanup state for failed reconfiguration.
-  cu_cp_ue_context_release_command  candidate_release_command;
-  cu_cp_ue_context_release_complete candidate_release_complete;
-  std::vector<ue_index_t>           candidates_to_release;
-  size_t                            release_idx = 0;
 };
 
 } // namespace ocucp

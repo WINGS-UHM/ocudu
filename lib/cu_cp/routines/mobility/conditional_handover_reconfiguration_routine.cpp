@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "conditional_handover_reconfiguration_routine.h"
+#include "mobility_helpers.h"
 #include <algorithm>
 
 using namespace ocudu;
@@ -23,6 +24,7 @@ conditional_handover_reconfiguration_routine::conditional_handover_reconfigurati
   source_du_f1ap_ue_ctxt_mng(source_du_f1ap_ue_ctxt_mng_),
   cu_cp_handler(cu_cp_handler_),
   ue_context_release_handler(ue_context_release_handler_),
+  ue_mng(ue_mng_),
   logger(logger_)
 {
   ocudu_assert(source_ue.get_ue_index() != ue_index_t::invalid, "Invalid source UE index {}", source_ue.get_ue_index());
@@ -53,7 +55,7 @@ void conditional_handover_reconfiguration_routine::operator()(coro_context<async
   if (rrc_container.empty()) {
     logger.warning(
         "ue={}: \"{}\" failed. Could not build conditional reconfiguration", source_ue.get_ue_index(), name());
-    CORO_AWAIT(cleanup_targets());
+    cleanup_targets();
     CORO_EARLY_RETURN(false);
   }
 
@@ -117,7 +119,7 @@ void conditional_handover_reconfiguration_routine::operator()(coro_context<async
 
   if (!ue_context_mod_response.success) {
     logger.warning("ue={}: \"{}\" failed. UE context modification failed", source_ue.get_ue_index(), name());
-    CORO_AWAIT(cleanup_targets());
+    cleanup_targets();
     CORO_EARLY_RETURN(false);
   }
 
@@ -130,7 +132,12 @@ void conditional_handover_reconfiguration_routine::operator()(coro_context<async
   if (!reconfig_result) {
     logger.warning(
         "ue={}: \"{}\" failed. RRCReconfigurationComplete not received on source", source_ue.get_ue_index(), name());
-    CORO_AWAIT(cleanup_targets());
+    // Target routines are armed by this point (we waited up to request.timeout on the source transaction). Cancel
+    // each target's RRC transaction; each target routine observes the cancellation and self-releases on its own fifo.
+    cancel_cho_candidates(source_ue, ue_mng);
+    if (source_ue.get_cho_context().has_value()) {
+      source_ue.get_cho_context()->clear();
+    }
     CORO_EARLY_RETURN(false);
   }
 
@@ -241,30 +248,36 @@ void conditional_handover_reconfiguration_routine::generate_ue_context_modificat
   // Traffic stop/switch is handled later by CHO completion on Access Success.
 }
 
-async_task<void> conditional_handover_reconfiguration_routine::cleanup_targets()
+void conditional_handover_reconfiguration_routine::cleanup_targets()
 {
-  return launch_async([this](coro_context<async_task<void>>& ctx) {
-    CORO_BEGIN(ctx);
-    candidates_to_release.clear();
-    if (source_ue.get_cho_context().has_value()) {
-      for (const auto& candidate : source_ue.get_cho_context()->candidates) {
-        // Release only externally prepared target UEs.
-        // Intra-DU candidates reuse the source UE and must be kept.
-        if (candidate.target_ue_index != ue_index_t::invalid && candidate.target_ue_index != source_ue.get_ue_index()) {
-          candidates_to_release.push_back(candidate.target_ue_index);
-        }
-      }
-      source_ue.get_cho_context()->clear();
+  if (!source_ue.get_cho_context().has_value()) {
+    return;
+  }
+
+  // Collect externally prepared candidate target UEs. Intra-DU candidates reuse the source UE and must be kept.
+  std::vector<ue_index_t> candidates;
+  for (const auto& candidate : source_ue.get_cho_context()->candidates) {
+    if (candidate.target_ue_index != ue_index_t::invalid && candidate.target_ue_index != source_ue.get_ue_index()) {
+      candidates.push_back(candidate.target_ue_index);
     }
-    release_idx = 0;
-    while (release_idx < candidates_to_release.size()) {
-      candidate_release_command.ue_index             = candidates_to_release[release_idx];
-      candidate_release_command.cause                = ngap_cause_radio_network_t::unspecified;
-      candidate_release_command.requires_rrc_message = false;
-      CORO_AWAIT_VALUE(candidate_release_complete,
-                       ue_context_release_handler.handle_ue_context_release_command(candidate_release_command));
-      ++release_idx;
+  }
+  source_ue.get_cho_context()->clear();
+
+  // Schedule release on each target's own task scheduler.
+  for (ue_index_t ue_idx : candidates) {
+    auto* cand_ue = ue_mng.find_du_ue(ue_idx);
+    if (cand_ue == nullptr) {
+      continue;
     }
-    CORO_RETURN();
-  });
+    cu_cp_ue_context_release_command cmd;
+    cmd.ue_index             = ue_idx;
+    cmd.cause                = ngap_cause_radio_network_t::unspecified;
+    cmd.requires_rrc_message = false;
+    cand_ue->get_task_sched().schedule_async_task(
+        launch_async([&h = ue_context_release_handler, cmd](coro_context<async_task<void>>& ctx) {
+          CORO_BEGIN(ctx);
+          CORO_AWAIT(h.handle_ue_context_release_command(cmd));
+          CORO_RETURN();
+        }));
+  }
 }

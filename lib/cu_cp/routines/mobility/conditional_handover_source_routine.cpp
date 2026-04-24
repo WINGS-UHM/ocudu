@@ -3,6 +3,7 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "conditional_handover_source_routine.h"
+#include "mobility_helpers.h"
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
@@ -51,25 +52,9 @@ void conditional_handover_source_routine::operator()(coro_context<async_task<voi
               winner->target_ue_index,
               winner->target_cgi.nci);
 
-  // Cancel each non-winning candidate's RRC reconfiguration transaction. Each non-winner's target routine observes the
-  // cancellation and self-releases.
-  unsigned cancelled = 0;
-  for (const auto& candidate : source_ue->get_cho_context()->candidates) {
-    if (candidate.target_ue_index == ue_index_t::invalid || candidate.target_ue_index == source_ue->get_ue_index() ||
-        candidate.target_ue_index == winner->target_ue_index) {
-      continue;
-    }
-    auto* loser_ue = ue_mng.find_du_ue(candidate.target_ue_index);
-    if (loser_ue == nullptr) {
-      logger.debug("source_ue={}: Skipping cancel for already-removed CHO candidate target_ue={}",
-                   msg.source_ue_index,
-                   candidate.target_ue_index);
-      continue;
-    }
-    loser_ue->get_rrc_ue()->cancel_handover_reconfiguration_transaction(
-        static_cast<uint8_t>(candidate.rrc_reconfig_transaction_id));
-    ++cancelled;
-  }
+  // Cancel each non-winning candidate's RRC reconfiguration transaction. Each non-winner's target routine observes
+  // the cancellation and self-releases.
+  const unsigned cancelled = cancel_cho_candidates(*source_ue, ue_mng, winner->target_ue_index);
 
   // Clear source CHO context. The winning target UE's CHO context is cleared by the target routine.
   source_ue->get_cho_context()->clear();

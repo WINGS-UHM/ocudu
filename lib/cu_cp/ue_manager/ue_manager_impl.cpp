@@ -3,7 +3,6 @@
 // Portions of this file may implement 3GPP specifications, which may be subject to additional licensing requirements.
 
 #include "ue_manager_impl.h"
-#include "ocudu/adt/expected.h"
 #include "ocudu/cu_cp/cu_cp_configuration.h"
 #include "ocudu/cu_cp/security_manager_config.h"
 
@@ -32,17 +31,17 @@ void ue_manager::stop()
   ue_task_scheds.stop();
 }
 
-ue_creation_result_t ue_manager::add_ue(du_index_t du_index)
+ue_index_t ue_manager::add_ue(du_index_t du_index)
 {
   if (du_index == du_index_t::invalid) {
     logger.warning("Invalid du_index={}", du_index);
-    return {ue_creation_state::not_created, ue_index_t::invalid};
+    return ue_index_t::invalid;
   }
 
   ue_index_t ue_index = allocate_ue_index();
   if (ue_index == ue_index_t::invalid) {
     logger.warning("Failed to add UE. Cause: No available UE index");
-    return {ue_creation_state::not_created, ue_index_t::invalid};
+    return ue_index_t::invalid;
   }
 
   // Create a dedicated task scheduler for the UE.
@@ -59,14 +58,14 @@ ue_creation_result_t ue_manager::add_ue(du_index_t du_index)
                                     sec_config,
                                     std::move(ue_sched)));
 
-  if (ues.size() > max_nof_ues) {
-    logger.debug("ue={}: Maximum number of servable UEs reached {}, UE must be rejected", ue_index, max_nof_ues);
-    return {ue_creation_state::created_unservable, ue_index};
-  }
-
   logger.info("ue={} du_index={}: Created new CU-CP UE", ue_index, du_index);
 
-  return {ue_creation_state::created_servable, ue_index};
+  return ue_index;
+}
+
+bool ue_manager::ue_admission_limit_reached() const
+{
+  return ues.size() > max_nof_ues;
 }
 
 bool ue_manager::update_ue_context(ue_index_t      ue_index,
@@ -75,11 +74,13 @@ bool ue_manager::update_ue_context(ue_index_t      ue_index,
                                    rnti_t          rnti,
                                    du_cell_index_t pcell_index)
 {
-  if (ue_index == ue_index_t::invalid or ues.find(ue_index) == ues.end()) {
-    logger.warning("{}",
-                   ue_index == ue_index_t::invalid ? "Can't update UE with invalid UE index"
-                                                   : "ue={}: Update UE called for inexistent UE",
-                   ue_index);
+  if (ue_index == ue_index_t::invalid) {
+    logger.warning("Can't update UE with invalid UE index");
+    return false;
+  }
+
+  if (ues.find(ue_index) == ues.end()) {
+    logger.warning("ue={}: Update UE called for inexistent UE", ue_index);
     return false;
   }
 
@@ -92,10 +93,12 @@ bool ue_manager::update_ue_context(ue_index_t      ue_index,
     logger.warning("Invalid pci={}", pci);
     return false;
   }
+
   if (rnti == rnti_t::INVALID_RNTI) {
     logger.warning("Invalid rnti={}", rnti);
     return false;
   }
+
   if (pcell_index == du_cell_index_t::invalid) {
     logger.warning("Invalid pcell_index={}", fmt::underlying(pcell_index));
     return false;

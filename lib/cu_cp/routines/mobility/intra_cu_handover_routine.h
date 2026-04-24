@@ -65,7 +65,7 @@ private:
 
   // (sub-)routine results
   cu_cp_intra_cu_handover_response      response_msg;
-  ue_creation_result_t                  target_ue_creation_result;
+  ue_index_t                            target_ue_index = ue_index_t::invalid;
   f1ap_ue_context_setup_response        target_ue_context_setup_response;
   f1ap_ue_context_modification_response source_ue_context_modification_response;
   bool                                  rrc_reconfig_sent = false;

@@ -72,13 +72,18 @@ public:
   ue_index_t request_new_ue_index_allocation(const nr_cell_global_id_t& cgi, const plmn_identity& plmn) override
   {
     if (ho_request_outcome) {
-      ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-      if (!result.servable()) {
+      ue_index_t ue_index = ue_mng.add_ue(du_index_t::min);
+      if (ue_index == ue_index_t::invalid) {
         logger.error("Failed to create UE");
         return ue_index_t::invalid;
       }
+      if (ue_mng.ue_admission_limit_reached()) {
+        ue_mng.remove_ue(ue_index);
+        logger.error("Failed to create UE. UE not servable");
+        return ue_index_t::invalid;
+      }
 
-      return result.ue_index;
+      return ue_index;
     }
     return ue_index_t::invalid;
   }

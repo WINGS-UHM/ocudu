@@ -79,12 +79,16 @@ bool ngap_test::run_ng_setup()
 ue_index_t ngap_test::create_ue(rnti_t rnti)
 {
   // Create UE in UE manager.
-  ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-  if (!result.servable()) {
+  ue_index_t ue_index = ue_mng.add_ue(du_index_t::min);
+  if (ue_index == ue_index_t::invalid) {
     test_logger.error("Failed to create UE");
     return ue_index_t::invalid;
   }
-  ue_index_t ue_index = result.ue_index;
+  if (ue_mng.ue_admission_limit_reached()) {
+    test_logger.error("Failed to create UE. UE not servable");
+    ue_mng.remove_ue(ue_index);
+    return ue_index_t::invalid;
+  }
 
   if (not ue_mng.update_ue_context(ue_index, int_to_gnb_du_id(0), MIN_PCI, rnti, du_cell_index_t::min)) {
     test_logger.error("ue={}: Failed to update UE context with pci={} rnti={} pcell_index={}",
@@ -120,12 +124,16 @@ ue_index_t ngap_test::create_ue(rnti_t rnti)
 ue_index_t ngap_test::create_ue_without_init_ue_message(rnti_t rnti)
 {
   // Create UE in UE manager.
-  ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-  if (not result.servable()) {
+  ue_index_t ue_index = ue_mng.add_ue(du_index_t::min);
+  if (ue_index == ue_index_t::invalid) {
     test_logger.error("Failed to create UE");
     return ue_index_t::invalid;
   }
-  ue_index_t ue_index = result.ue_index;
+  if (ue_mng.ue_admission_limit_reached()) {
+    test_logger.error("Failed to create UE. UE not servable");
+    ue_mng.remove_ue(ue_index);
+    return ue_index_t::invalid;
+  }
 
   if (not ue_mng.update_ue_context(ue_index, int_to_gnb_du_id(0), MIN_PCI, rnti, du_cell_index_t::min)) {
     test_logger.error("ue={}: Failed to update UE context with pci={} rnti={} pcell_index={}",

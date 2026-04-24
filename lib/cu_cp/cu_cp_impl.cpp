@@ -1098,15 +1098,18 @@ ue_index_t cu_cp_impl::handle_ue_index_allocation_request(const nr_cell_global_i
     return ue_index_t::invalid;
   }
 
-  ue_creation_result_t result = ue_mng.add_ue(du_index);
-  if (not result.servable()) {
+  ue_index_t ue_index = ue_mng.add_ue(du_index);
+  if (ue_index == ue_index_t::invalid) {
     logger.warning("Could not add new UE context for CGI={}", cgi.nci);
-    if (result.created()) {
-      ue_mng.remove_ue(result.ue_index);
-    }
     return ue_index_t::invalid;
   }
-  ue_index_t ue_index = result.ue_index;
+
+  // Check if UE can be served.
+  if (ue_mng.ue_admission_limit_reached()) {
+    logger.warning("ue={}: Could not add new UE context for CGI={}. UE not servable", ue_index, cgi.nci);
+    ue_mng.remove_ue(ue_index);
+    return ue_index_t::invalid;
+  }
 
   if (!handle_ue_plmn_selected(ue_index, plmn)) {
     logger.warning("ue={}: PLMN selection failed", ue_index);

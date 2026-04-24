@@ -59,11 +59,14 @@ bool xnap_test::run_xn_setup(const xnap_configuration& peer_cfg)
 ue_index_t xnap_test::create_ue(rnti_t rnti)
 {
   // Create UE in UE manager
-  ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-  if (not result.servable()) {
+  ue_index_t ue_index = ue_mng.add_ue(du_index_t::min);
+  if (ue_index == ue_index_t::invalid) {
     return ue_index_t::invalid;
   }
-  ue_index_t ue_index = result.ue_index;
+  if (ue_mng.ue_admission_limit_reached()) {
+    ue_mng.remove_ue(ue_index);
+    return ue_index_t::invalid;
+  }
 
   if (not ue_mng.update_ue_context(ue_index, int_to_gnb_du_id(0), MIN_PCI, rnti, du_cell_index_t::min)) {
     logger.error(

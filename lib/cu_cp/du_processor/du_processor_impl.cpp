@@ -271,17 +271,20 @@ du_processor_impl::handle_ue_rrc_context_creation_request(const ue_rrc_context_c
       // RRC Resume not requested or failed - create a new UE.
 
       // Add new CU-CP UE.
-      ue_creation_result_t result = ue_mng.add_ue(cfg.du_index);
-      if (not result.servable()) {
+      ue_index = ue_mng.add_ue(cfg.du_index);
+      if (ue_index == ue_index_t::invalid) {
         logger.warning("CU-CP UE creation failed");
-        // Remove the UE from the UE manager.
-        if (result.created()) {
-          ue_mng.remove_ue(result.ue_index);
-        }
         // Return the RRCReject container.
         return make_unexpected(rrc->get_rrc_reject());
       }
-      ue_index = result.ue_index;
+
+      // Check if UE can be served.
+      if (ue_mng.ue_admission_limit_reached()) {
+        logger.warning("ue={}: CU-CP UE creation failed. UE not servable", ue_index);
+        ue_mng.remove_ue(ue_index);
+        // Return the RRCReject container.
+        return make_unexpected(rrc->get_rrc_reject());
+      }
 
       if (not ue_mng.update_ue_context(
               ue_index, cfg.du_cfg_hdlr->get_context().id, pci, req.c_rnti, pcell->cell_index)) {

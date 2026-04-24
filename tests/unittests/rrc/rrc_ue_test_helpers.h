@@ -72,9 +72,9 @@ protected:
   void init()
   {
     // Add UE to UE manager.
-    ue_creation_result_t result = ue_mng.add_ue(du_index_t::min);
-    ASSERT_TRUE(result.servable());
-    allocated_ue_index = result.ue_index;
+    allocated_ue_index = ue_mng.add_ue(du_index_t::min);
+    ASSERT_NE(allocated_ue_index, ue_index_t::invalid);
+    ASSERT_FALSE(ue_mng.ue_admission_limit_reached());
 
     ue_mng.set_plmn(allocated_ue_index, plmn_identity::test_value());
 

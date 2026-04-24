@@ -22,31 +22,6 @@
 
 namespace ocudu::ocucp {
 
-/// \brief State of a UE creation request.
-enum class ue_creation_state {
-  /// The UE context was not created. The UE index is invalid.
-  not_created,
-  /// The UE context was created, but the UE cannot be served.
-  created_unservable,
-  /// The UE context was created and the UE can be served.
-  created_servable
-};
-
-/// \brief Outcome of a UE creation request.
-///
-/// The result differentiates between three valid outcomes explicitly:
-/// - ue_creation_state::not_created: No UE context was created and ue_index is ue_index_t::invalid.
-/// - ue_creation_state::created_unservable: A UE context was created, but the UE must be rejected.
-/// - ue_creation_state::created_servable: A UE context was created and the UE can be served.
-struct ue_creation_result_t {
-  ue_creation_state state;
-  ue_index_t        ue_index = ue_index_t::invalid;
-
-  [[nodiscard]] bool created() const { return state != ue_creation_state::not_created; }
-
-  [[nodiscard]] bool servable() const { return state == ue_creation_state::created_servable; }
-};
-
 class ue_manager : public ue_metrics_handler
 {
 public:
@@ -125,8 +100,16 @@ public:
 
   /// \brief Add a UE context to the CU-CP.
   /// \param[in] du_index Index of the DU the UE is connected to.
-  /// \return Explicit UE creation result state and the allocated UE index if a UE context was created.
-  ue_creation_result_t add_ue(du_index_t du_index);
+  /// \return The UE index of the added UE. If the UE context couldn't be created, ue_index_t::invalid is returned.
+  /// Note: No admission control is performed in this function, so the returned UE index may be valid even if the UE
+  /// cannot be served.
+  ue_index_t add_ue(du_index_t du_index);
+
+  /// \brief Check if the UE admission limit has been reached.
+  /// \note Admission is split from add_ue(). Callers should evaluate this function in conjunction with add_ue(),
+  /// typically before and immediately after add_ue().
+  /// \return True if the UE admission limit has been reached, false otherwise.
+  bool ue_admission_limit_reached() const;
 
   /// \brief Update the context of the UE.
   /// \param[in] ue_index Index of the UE.

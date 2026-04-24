@@ -27,28 +27,10 @@ conditional_handover_coordinator_routine::conditional_handover_coordinator_routi
 {
 }
 
-async_task<void> conditional_handover_coordinator_routine::release_prepared_targets()
-{
-  return launch_async(
-      [this, idx = size_t{0}, result = cu_cp_ue_context_release_complete{}, cmd = cu_cp_ue_context_release_command{}](
-          coro_context<async_task<void>>& ctx) mutable {
-        CORO_BEGIN(ctx);
-        for (idx = 0; idx < prepared_cho_targets.size(); ++idx) {
-          cmd                      = {};
-          cmd.ue_index             = prepared_cho_targets[idx].target_ue_index;
-          cmd.cause                = ngap_cause_radio_network_t::unspecified;
-          cmd.requires_rrc_message = false;
-          CORO_AWAIT_VALUE(result, cu_cp_handler.handle_ue_context_release_command(cmd));
-        }
-        CORO_RETURN();
-      });
-}
-
 std::vector<async_task<cu_cp_intra_cu_handover_response>> conditional_handover_coordinator_routine::build_prep_tasks()
 {
   std::vector<async_task<cu_cp_intra_cu_handover_response>> tasks;
   tasks.reserve(request.targets.size());
-  prep_target_du_indices.reserve(request.targets.size());
 
   for (size_t i = 0; i < request.targets.size(); ++i) {
     const auto& target = request.targets[i];
@@ -64,7 +46,6 @@ std::vector<async_task<cu_cp_intra_cu_handover_response>> conditional_handover_c
     const du_index_t target_du = target.du_index;
     byte_buffer      sib1      = du_db.get_du_processor(target_du).get_mobility_handler().get_packed_sib1(target.cgi);
 
-    prep_target_du_indices.push_back(target_du);
     tasks.push_back(
         launch_async<intra_cu_handover_routine>(req,
                                                 sib1,
@@ -141,10 +122,6 @@ void conditional_handover_coordinator_routine::operator()(coro_context<async_tas
     candidate.rrc_reconfig_transaction_id = prep_response.cho_preparation_result->transaction_id;
     candidate.bearer_context_mod_request.ng_ran_bearer_context_mod_request =
         std::move(prep_response.cho_preparation_result->ng_ran_bearer_context_mod_request);
-
-    if (candidate.target_ue_index != request.source_ue_index) {
-      prepared_cho_targets.push_back({candidate.target_ue_index, prep_target_du_indices[i]});
-    }
 
     if (source_ue->get_cho_context().has_value()) {
       const ue_index_t target_ue_idx = candidate.target_ue_index;

@@ -417,7 +417,7 @@ static YAML::Node build_du_high_pucch_section(const du_high_unit_pucch_config& c
   return node;
 }
 
-static YAML::Node build_du_high_prach_section(const du_high_unit_prach_config& config)
+static YAML::Node build_du_high_prach_section(const du_high_unit_rach_config& config)
 {
   YAML::Node node;
 
@@ -444,6 +444,21 @@ static YAML::Node build_du_high_prach_section(const du_high_unit_prach_config& c
   node["ports"].SetStyle(YAML::EmitterStyle::Flow);
   if (config.ra_resp_window.has_value()) {
     node["ra_resp_window"] = config.ra_resp_window.value();
+  }
+
+  if (config.two_step_rach.has_value()) {
+    const auto& ts = *config.two_step_rach;
+    YAML::Node  two_step_node;
+    two_step_node["cb_preambles_per_ssb_per_shared_ro"] = static_cast<unsigned>(ts.cb_preambles_per_ssb_per_shared_ro);
+    two_step_node["msgA_rsrp_thres_dbm"]                = ts.msga_rsrp_thres_dbm;
+    two_step_node["msgB_response_window_slots"]         = ts.msgb_response_window_slots;
+    two_step_node["td_offset"]                          = static_cast<unsigned>(ts.td_offset);
+    two_step_node["pusch_td_res_index"]                 = static_cast<unsigned>(ts.pusch_td_res_index);
+    two_step_node["mcs"]                                = static_cast<unsigned>(ts.mcs);
+    two_step_node["nof_prbs_per_msgA_po"]               = static_cast<unsigned>(ts.nof_prbs_per_msga_po);
+    two_step_node["prb_start"]                          = ts.prb_start;
+    two_step_node["po_fdm"]                             = static_cast<unsigned>(ts.po_fdm);
+    node["two_step_rach"]                               = two_step_node;
   }
 
   return node;

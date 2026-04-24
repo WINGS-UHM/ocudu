@@ -809,7 +809,7 @@ template <typename T>
 
 /// Validates the given PRACH cell application configuration. Returns true on success, otherwise false.
 static bool
-validate_prach_cell_unit_config(const du_high_unit_prach_config& config, nr_band band, unsigned nof_rx_atennas)
+validate_prach_cell_unit_config(const du_high_unit_rach_config& config, nr_band band, unsigned nof_rx_atennas)
 {
   ocudu_assert(config.prach_config_index.has_value(), "The PRACH configuration index must be set.");
 
@@ -905,6 +905,17 @@ validate_prach_cell_unit_config(const du_high_unit_prach_config& config, nr_band
     if (port_id >= nof_rx_atennas) {
       fmt::print("PRACH port id '{}' out of range. Valid range {}-{}.\n", port_id, 0, nof_rx_atennas - 1);
 
+      return false;
+    }
+  }
+
+  if (config.two_step_rach.has_value()) {
+    const auto& ts = *config.two_step_rach;
+    if (ts.cb_preambles_per_ssb_per_shared_ro >= config.nof_cb_preambles_per_ssb) {
+      fmt::print(
+          "Two-step RACH: cb_preambles_per_ssb_per_shared_ro ({}) must be less than nof_cb_preambles_per_ssb ({}).\n",
+          ts.cb_preambles_per_ssb_per_shared_ro,
+          config.nof_cb_preambles_per_ssb);
       return false;
     }
   }

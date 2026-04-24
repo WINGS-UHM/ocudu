@@ -10,6 +10,8 @@
 #include "ocudu/ran/duplex_mode.h"
 #include "ocudu/ran/prach/prach_configuration.h"
 #include "ocudu/ran/prach/prach_helper.h"
+#include "ocudu/ran/prach/prach_time_mapping.h"
+#include "ocudu/ran/tdd/tdd_ul_dl_config.h"
 #include "ocudu/scheduler/config/ran_cell_config_helper.h"
 #include "ocudu/scheduler/config/serving_cell_config_factory.h"
 #include "ocudu/scheduler/config/serving_cell_config_validator.h"
@@ -108,6 +110,25 @@ static error_type<std::string> validate_rach_cfg_common(const sched_cell_configu
                                                       dplx_mode);
   if (not code.has_value()) {
     return code;
+  }
+
+  // Check that the MsgA PUSCH slot falls in a UL slot for TDD cells.
+  if (rach_cfg_cmn.two_step_rach_cfg.has_value() and msg.ran.tdd_cfg.has_value()) {
+    const uint8_t                             td_offset  = rach_cfg_cmn.two_step_rach_cfg->pusch.td_offset;
+    const unsigned                            tdd_period = nof_slots_per_tdd_period(*msg.ran.tdd_cfg);
+    const prach_helper::preamble_slot_mapping preamble_td_mapper(
+        msg.ran.dl_carrier.band, pusch_scs, rach_cfg_cmn.rach_cfg_generic.prach_config_index);
+    for (unsigned slot_idx = 0; slot_idx != tdd_period; ++slot_idx) {
+      if (not preamble_td_mapper.has_slot_index_prach_occasion(slot_idx)) {
+        continue;
+      }
+      const unsigned pusch_slot = (slot_idx + td_offset) % tdd_period;
+      VERIFY(is_tdd_full_ul_slot(*msg.ran.tdd_cfg, pusch_slot),
+             "Two-step RACH: MsgA PUSCH slot {} (PRACH slot {} + td_offset {}) is not a full UL slot",
+             pusch_slot,
+             slot_idx,
+             td_offset);
+    }
   }
 
   return {};

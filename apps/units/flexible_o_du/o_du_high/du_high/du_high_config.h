@@ -930,8 +930,8 @@ struct du_high_unit_mac_cell_group_config {
   mac_sr_unit_config sr_cfg;
 };
 
-/// PRACH application configuration.
-struct du_high_unit_prach_config {
+/// RACH application configuration.
+struct du_high_unit_rach_config {
   struct ra_prioritization_slice_info {
     /// List of NSAG IDs with the provided RA prioritization slice information.
     std::vector<uint8_t> nsag_ids;
@@ -940,6 +940,27 @@ struct du_high_unit_prach_config {
     /// Scaling factor applied to the number of preamble transmissions for the prioritized RA procedure. Possible
     /// values: {0, 0.25, 0.5, 0.75}.
     std::optional<float> scaling_factor_bi;
+  };
+  /// Parameters for two-step RACH. Currently, only shared RACH occasions with 4-step RACH is supported.
+  struct two_step_rach_info {
+    /// Number of CB preambles per SSB per shared RO for 2-step RA. Values: {1, ..., 60}.
+    uint8_t cb_preambles_per_ssb_per_shared_ro = 4;
+    /// RSRP threshold in dBm above which the UE selects 2-step RA over 4-step RA. Values: {-156, ..., -29}.
+    int msga_rsrp_thres_dbm = -100;
+    /// MsgB response window length in slots. Values: {1, 2, 4, 8, 10, 20, 40, 80, 160, 320}.
+    unsigned msgb_response_window_slots = 40;
+    /// Time-domain offset in slots from the PRACH slot to the MsgA PUSCH slot. Values: {1, ..., 32}.
+    uint8_t td_offset = 1;
+    /// Index into the PUSCH-TimeDomainAllocationResource table for MsgA PUSCH scheduling.
+    uint8_t pusch_td_res_index = 0;
+    /// MCS index for MsgA PUSCH transmission. Values: {0, ..., 28}.
+    uint8_t mcs = 5;
+    /// Number of PRBs per MsgA PUSCH occasion. Values: {1, ..., 32}.
+    uint8_t nof_prbs_per_msga_po = 3;
+    /// Frequency offset in PRBs of the lowest MsgA PUSCH occasion from PRB 0.
+    unsigned prb_start = 0;
+    /// Number of MsgA PUSCH occasions FDMed in one time instance. Values: {1, 2, 4, 8}.
+    uint8_t po_fdm = 1;
   };
 
   /// PRACH configuration index. If not specified, it is automatically derived to fit in an UL slot.
@@ -985,6 +1006,8 @@ struct du_high_unit_prach_config {
   unsigned nof_prach_guardbands_rbs = 3;
   /// Configuration of slice-specific RACH configurations.
   std::vector<ra_prioritization_slice_info> ra_prio_slice_info_list;
+  /// Parameters of two-step RACH, if enabled.
+  std::optional<two_step_rach_info> two_step_rach;
 };
 
 /// Slice scheduling configuration for a cell.
@@ -1069,7 +1092,7 @@ struct du_high_unit_base_cell_config {
   /// PDSCH configuration.
   du_high_unit_pdsch_config pdsch_cfg;
   /// PRACH configuration.
-  du_high_unit_prach_config prach_cfg;
+  du_high_unit_rach_config prach_cfg;
   /// PUSCH configuration.
   du_high_unit_pusch_config pusch_cfg;
   /// PUCCH configuration.

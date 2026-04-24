@@ -614,6 +614,20 @@ std::vector<odu::du_cell_config> ocudu::generate_du_cell_config(const du_high_un
             static_cast<ra_prioritization::scaling_factor_bi>(clifield.scaling_factor_bi.value());
       }
     }
+    if (base_cell.prach_cfg.two_step_rach.has_value()) {
+      const auto& src = *base_cell.prach_cfg.two_step_rach;
+      rach_cfg.two_step_rach_cfg.emplace();
+      auto& dst                              = *rach_cfg.two_step_rach_cfg;
+      dst.cb_preambles_per_ssb_per_shared_ro = src.cb_preambles_per_ssb_per_shared_ro;
+      dst.msgA_rsrp_thres                    = rsrp_range{src.msga_rsrp_thres_dbm};
+      dst.msgB_response_window_slots         = src.msgb_response_window_slots;
+      dst.pusch.td_offset                    = src.td_offset;
+      dst.pusch.pusch_td_res_index           = src.pusch_td_res_index;
+      dst.pusch.mcs                          = sch_mcs_index{src.mcs};
+      dst.pusch.nof_prbs_per_msgA_po         = src.nof_prbs_per_msga_po;
+      dst.pusch.prb_start                    = src.prb_start;
+      dst.pusch.po_fdm                       = src.po_fdm;
+    }
 
     // PhysicalCellGroup Config parameters.
     if (base_cell.pcg_cfg.p_nr_fr1.has_value()) {
@@ -1181,7 +1195,7 @@ static scheduler_expert_config generate_scheduler_expert_config(const du_high_un
   out_cfg.ue.ul_power_ctrl.pucch_f3_sinr_target_dB    = pucch.pucch_f3_sinr_target_dB;
 
   // RA parameters.
-  const du_high_unit_prach_config& prach = cell.prach_cfg;
+  const du_high_unit_rach_config& prach = cell.prach_cfg;
 
   out_cfg.ra.rar_mcs_index            = pdsch.fixed_rar_mcs;
   out_cfg.ra.max_nof_msg3_harq_retxs  = prach.max_msg3_harq_retx;

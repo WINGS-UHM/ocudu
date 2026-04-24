@@ -1367,8 +1367,8 @@ static void configure_cli11_si_sched_info(CLI::App& app, du_high_unit_sib_config
       ->check(CLI::Range(1, 256));
 }
 
-static void configure_cli11_ra_prioritization_info(CLI::App&                                                app,
-                                                   du_high_unit_prach_config::ra_prioritization_slice_info& ra_info)
+static void configure_cli11_ra_prioritization_info(CLI::App&                                               app,
+                                                   du_high_unit_rach_config::ra_prioritization_slice_info& ra_info)
 {
   add_option(app,
              "--power_ramp_step_high_priority",
@@ -1385,7 +1385,56 @@ static void configure_cli11_ra_prioritization_info(CLI::App&                    
   add_option(app, "--nsag_ids", ra_info.nsag_ids, "NSAGs associated with this prioritized RA configuration.");
 }
 
-static void configure_cli11_prach_args(CLI::App& app, du_high_unit_prach_config& prach_params)
+static void configure_cli11_two_step_rach_args(CLI::App&                                     app,
+                                               du_high_unit_rach_config::two_step_rach_info& two_step_params)
+{
+  add_option(app,
+             "--cb_preambles_per_ssb_per_shared_ro",
+             two_step_params.cb_preambles_per_ssb_per_shared_ro,
+             "Number of CB preambles per SSB per shared RACH occasion for 2-step RA")
+      ->capture_default_str()
+      ->check(CLI::Range(1, 60));
+  add_option(app,
+             "--msgA_rsrp_thres_dbm",
+             two_step_params.msga_rsrp_thres_dbm,
+             "RSRP threshold in dBm above which the UE selects 2-step RA over 4-step RA")
+      ->capture_default_str()
+      ->check(CLI::Range(-156, -29));
+  add_option(app,
+             "--msgB_response_window_slots",
+             two_step_params.msgb_response_window_slots,
+             "MsgB response window length in slots")
+      ->capture_default_str()
+      ->check(CLI::IsMember({1, 2, 4, 8, 10, 20, 40, 80, 160, 320}));
+  add_option(app,
+             "--td_offset",
+             two_step_params.td_offset,
+             "Time-domain offset in slots from the PRACH slot to the MsgA PUSCH slot")
+      ->capture_default_str()
+      ->check(CLI::Range(1, 32));
+  add_option(app,
+             "--pusch_td_res_index",
+             two_step_params.pusch_td_res_index,
+             "Index into the PUSCH-TimeDomainAllocationResource table for MsgA PUSCH scheduling")
+      ->capture_default_str();
+  add_option(app, "--mcs", two_step_params.mcs, "MCS index for MsgA PUSCH transmission")
+      ->capture_default_str()
+      ->check(CLI::Range(0, 28));
+  add_option(
+      app, "--nof_prbs_per_msgA_po", two_step_params.nof_prbs_per_msga_po, "Number of PRBs per MsgA PUSCH occasion")
+      ->capture_default_str()
+      ->check(CLI::Range(1, 32));
+  add_option(app,
+             "--prb_start",
+             two_step_params.prb_start,
+             "Frequency offset in PRBs of the lowest MsgA PUSCH occasion from PRB 0")
+      ->capture_default_str();
+  add_option(app, "--po_fdm", two_step_params.po_fdm, "Number of MsgA PUSCH occasions FDMed in one time instance")
+      ->capture_default_str()
+      ->check(CLI::IsMember({1, 2, 4, 8}));
+}
+
+static void configure_cli11_prach_args(CLI::App& app, du_high_unit_rach_config& prach_params)
 {
   add_option(app,
              "--prach_config_index",
@@ -1497,6 +1546,12 @@ static void configure_cli11_prach_args(CLI::App& app, du_high_unit_prach_config&
         }
       },
       "List of configurations for slice-based RA prioritization");
+  auto      two_step_rach_cfg = std::make_shared<du_high_unit_rach_config::two_step_rach_info>();
+  CLI::App* two_step_subcmd =
+      add_subcommand(app, "two_step_rach", "Two-step RACH (MsgA/MsgB) configuration")->configurable();
+  configure_cli11_two_step_rach_args(*two_step_subcmd, *two_step_rach_cfg);
+  two_step_subcmd->parse_complete_callback(
+      [&prach_params, cfg = std::move(two_step_rach_cfg)]() { prach_params.two_step_rach.emplace(*cfg); });
 }
 
 static void configure_cli11_sib2_config_args(CLI::App& app, du_high_unit_sib_config::sib2_config& sib2_cfg)

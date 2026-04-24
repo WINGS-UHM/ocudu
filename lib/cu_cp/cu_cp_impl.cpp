@@ -1391,6 +1391,15 @@ async_task<void> cu_cp_impl::handle_ue_removal_request(ue_index_t ue_index)
   }
   cu_cp_ue* ue = ue_mng.find_ue(ue_index);
 
+  // If the UE is being removed while still the source of an active CHO, cancel each candidate's RRC transaction so
+  // the orphaned candidate target UE contexts self-release before the source UE object is destroyed.
+  if (ue->get_cho_context().has_value() && ue->get_cho_context()->role == cu_cp_ue_cho_context::role_t::source &&
+      !ue->get_cho_context()->candidates.empty()) {
+    logger.debug("ue={}: Cancelling CHO as source UE is being removed", ue_index);
+    cancel_cho_candidates(*ue, ue_mng);
+    ue->get_cho_context()->clear();
+  }
+
   du_index_t       du_index    = ue->get_du_index();
   cu_up_index_t    cu_up_index = ue->get_cu_up_index();
   xnc_peer_index_t xnc_index   = ue->get_xnc_peer_index();

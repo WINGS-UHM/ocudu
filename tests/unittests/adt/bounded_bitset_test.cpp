@@ -678,6 +678,30 @@ TEST(bounded_bitset_test, one_word_bitset_format)
   ASSERT_EQ(fmt::format("{:xr}", bitset), fmt::format("{:x}", bitset_reversed));
 }
 
+TEST(bounded_bitset_test, empty_bitset_format)
+{
+  bounded_bitset<25> bitset;
+
+  ASSERT_EQ(fmt::format("{:b}", bitset), "");
+  ASSERT_EQ(fmt::format("{:br}", bitset), "");
+  ASSERT_EQ(fmt::format("{:x}", bitset), "");
+  ASSERT_EQ(fmt::format("{:xr}", bitset), "");
+  ASSERT_EQ(fmt::format("{:n}", bitset), "empty");
+  ASSERT_EQ(fmt::format("{:i}", bitset), "{}");
+}
+
+TEST(bounded_bitset_test, all_false_bitset_format)
+{
+  bounded_bitset<25> bitset(23);
+
+  ASSERT_EQ(fmt::format("{:b}", bitset), "00000000000000000000000");
+  ASSERT_EQ(fmt::format("{:br}", bitset), "00000000000000000000000");
+  ASSERT_EQ(fmt::format("{:x}", bitset), "000000");
+  ASSERT_EQ(fmt::format("{:xr}", bitset), "000000");
+  ASSERT_EQ(fmt::format("{:n}", bitset), "none");
+  ASSERT_EQ(fmt::format("{:i}", bitset), "{}");
+}
+
 TEST(bounded_bitset_test, contiguous_bitset_format)
 {
   bounded_bitset<25> bitset(9);

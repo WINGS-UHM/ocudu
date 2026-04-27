@@ -1389,7 +1389,11 @@ struct formatter<ocudu::bounded_bitset<N, LowestInfoBitIsMSB, Tag>> {
     }
 
     if (mode == bit_positions) {
-      if (s.is_contiguous()) {
+      if (s.empty()) {
+        fmt::format_to(ctx.out(), "empty");
+      } else if (s.count() == 0) {
+        fmt::format_to(ctx.out(), "none");
+      } else if (s.is_contiguous()) {
         unsigned lowest  = s.find_lowest();
         unsigned highest = s.find_highest();
         if (lowest == highest) {

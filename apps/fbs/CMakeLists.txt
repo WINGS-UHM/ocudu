@@ -1,3 +1,5 @@
 # UHM WINGS Fake Base Station Research
 
-add_subdirectory(ngap_listener)
+if (NOT DISABLE_SCTP)
+    add_subdirectory(ngap_listener)
+endif ()

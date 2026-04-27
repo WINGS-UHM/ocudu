@@ -11,6 +11,7 @@ target_include_directories(ngap_listener PRIVATE
 
 target_link_libraries(ngap_listener PRIVATE
     asn1_utils
+    ocudu_gateway
     ocudu_support
     ocudulog
     ngap_asn1

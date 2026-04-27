@@ -577,6 +577,13 @@ struct sib1_tdd_partial_slot_test_params {
   ssb_periodicity         ssb_period;
 };
 
+void PrintTo(const sib1_tdd_partial_slot_test_params& p, std::ostream* os)
+{
+  *os << "scs=" << to_string(p.scs) << " pdcch_cfg=" << +p.pdcch_config_sib1 << " ssb_bitmap=" << +p.ssb_beam_bitmap
+      << " l_max=" << +p.l_max << " bw=" << p.carrier_bw_mhz << " rtx=" << static_cast<int>(p.sib1_rtx_period)
+      << " ssb_period=" << static_cast<int>(p.ssb_period);
+}
+
 static sched_cell_configuration_request_message
 build_sib1_partial_slot_cell_req(const sib1_tdd_partial_slot_test_params& params)
 {

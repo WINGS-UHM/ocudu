@@ -462,6 +462,11 @@ struct two_step_test_params {
   std::optional<tdd_ul_dl_config_common> tdd_cfg;
 };
 
+void PrintTo(const two_step_test_params& p, std::ostream* os)
+{
+  *os << "td_offset=" << +p.td_offset << " tdd=" << (p.tdd_cfg.has_value() ? "yes" : "no");
+}
+
 /// Test class for 2-step RACH (MsgA/MsgB) procedures.
 ///
 /// The test cell is configured with a mix of 4-step (preamble IDs [0, 60)) and 2-step CB (preamble IDs [60, 64))

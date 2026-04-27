@@ -112,6 +112,12 @@ struct paging_scheduler_test_params {
   duplex_mode duplx_mode;
 };
 
+void PrintTo(const paging_scheduler_test_params& p, std::ostream* os)
+{
+  *os << "max_mcs=" << p.max_paging_mcs << " retries=" << p.max_paging_retries << " drx_rf=" << p.drx_cycle_in_nof_rf
+      << " duplex=" << to_string(p.duplx_mode);
+}
+
 class paging_scheduler_test : public ::testing::TestWithParam<paging_scheduler_test_params>
 {
 protected:

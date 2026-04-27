@@ -77,7 +77,7 @@ bool cu_cp_e1_reset_procedure::send_e1_reset()
       e1_reset->reset_type.set_part_of_e1_interface();
   for (auto& ue : reset.ues_to_reset) {
     if (!ue_ctxt_list.contains(ue)) {
-      logger.warning("ue={}: Excluding UE from E1 Reset. UE context does not exist", ue);
+      logger.debug("ue={}: Excluding UE from E1 Reset. UE context does not exist", ue);
     } else {
       auto& ue_ctxt = ue_ctxt_list[ue];
 

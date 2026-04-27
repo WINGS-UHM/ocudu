@@ -61,7 +61,7 @@ bool ng_reset_procedure::send_ng_reset()
     ue_associated_lc_ng_conn_list_l& reset_part_of_ng_interface = ng_reset->reset_type.set_part_of_ng_interface();
     for (const auto& ue : msg.ues_to_reset) {
       if (!ue_ctxt_list.contains(ue)) {
-        logger.warning("ue={}: Excluding UE from NG Reset. UE context does not exist", ue);
+        logger.debug("ue={}: Excluding UE from NG Reset. UE context does not exist", ue);
       } else {
         auto& ue_ctxt = ue_ctxt_list[ue];
 

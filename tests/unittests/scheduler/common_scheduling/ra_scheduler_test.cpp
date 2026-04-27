@@ -13,6 +13,7 @@
 #include "tests/unittests/scheduler/test_utils/dummy_test_components.h"
 #include "tests/unittests/scheduler/test_utils/indication_generators.h"
 #include "tests/unittests/scheduler/test_utils/scheduler_test_suite.h"
+#include "ocudu/ran/prach/prach_time_mapping.h"
 #include "ocudu/ran/prach/ra_helper.h"
 #include "ocudu/scheduler/config/time_domain_resource_helper.h"
 #include <algorithm>
@@ -75,9 +76,16 @@ public:
 
   void handle_rach_indication(rach_indication_message ind)
   {
-    // For TDD cells, advance the simulator to a fully UL slot so the PRACH slot is valid.
+    // For TDD cells, advance the simulator to a slot that has a valid PRACH occasion. Using
+    // is_fully_ul_enabled alone is insufficient: the PRACH config may cover only a subset of
+    // the full-UL slots, and the ra_scheduler only prereserves MsgA PUSCH for slots whose
+    // corresponding PRACH slot is a valid PRACH occasion.
     if (cell_cfg.is_tdd()) {
-      run_slot_until([this]() { return cell_cfg.is_fully_ul_enabled(next_slot_rx()); });
+      const prach_helper::preamble_slot_mapping prach_mapper{
+          cell_cfg.band(),
+          cell_cfg.init_bwp.ul.cfg().scs,
+          cell_cfg.init_bwp.ul.rach_common()->rach_cfg_generic.prach_config_index};
+      run_slot_until([this, &prach_mapper]() { return prach_mapper.has_prach_occasion(next_slot_rx()); });
       ind.slot_rx = next_slot_rx();
     }
     ra_sch.handle_rach_indication(ind);

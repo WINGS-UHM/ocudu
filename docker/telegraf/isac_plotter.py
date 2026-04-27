@@ -12,7 +12,7 @@ import websocket
 
 # Check for WS_URL
 if os.environ.get("WS_URL") is None:
-    os.environ["WS_URL"] = "localhost:8001"  # Default WebSocket URL 
+    os.environ["WS_URL"] = "localhost:8001"  # Default WebSocket URL
 plt.ion()
 
 # Rolling-window configuration
@@ -31,12 +31,15 @@ const_q_buf = deque(maxlen=CONST_WINDOW)
 time_buf = deque(maxlen=CSI_TIME_WINDOW)
 csi_mag_buf = deque(maxlen=CSI_TIME_WINDOW)
 csi_phase_buf = deque(maxlen=CSI_TIME_WINDOW)
+csi_const_i_buf = deque(maxlen=CSI_TIME_WINDOW)
+csi_const_q_buf = deque(maxlen=CSI_TIME_WINDOW)
 
 sample_counter = 0
 stop_requested = False
 
 
-fig, axs = plt.subplots(3, 1, figsize=(7, 9))
+fig, axs = plt.subplots(2, 2, figsize=(11, 8))
+axs = axs.ravel()
 
 const_scatter = axs[0].scatter([], [], s=12)
 axs[0].set_title("Constellation (rolling window)")
@@ -47,17 +50,27 @@ axs[0].set_aspect("equal", adjustable="box")
 axs[0].set_xlim(-2, 2)
 axs[0].set_ylim(-2, 2)
 
-csi_mag_line, = axs[1].plot([], [])
-axs[1].set_title(f"CSI Magnitude vs Time (RE index {CSI_INDEX})")
-axs[1].set_xlabel("Snapshot")
-axs[1].set_ylabel("|H|")
+csi_const_scatter = axs[3].scatter([], [], s=12, c="tab:orange")
+axs[1].set_title(f"CSI Constellation (RE index {CSI_INDEX})")
+axs[1].set_xlabel("Re{H}")
+axs[1].set_ylabel("Im{H}")
 axs[1].grid(True)
+axs[1].set_aspect("equal", adjustable="box")
+axs[1].set_xlim(-2, 2)
+axs[1].set_ylim(-2, 2)
+
+csi_mag_line, = axs[1].plot([], [])
+axs[2].set_title(f"CSI Magnitude vs Time (RE index {CSI_INDEX})")
+axs[2].set_xlabel("Snapshot")
+axs[2].set_ylabel("|H|")
+axs[2].grid(True)
 
 csi_phase_line, = axs[2].plot([], [])
-axs[2].set_title(f"CSI Phase vs Time (RE index {CSI_INDEX})")
-axs[2].set_xlabel("Snapshot")
-axs[2].set_ylabel("∠H (rad, unwrapped)")
-axs[2].grid(True)
+axs[3].set_title(f"CSI Phase vs Time (RE index {CSI_INDEX})")
+axs[3].set_xlabel("Snapshot")
+axs[3].set_ylabel("∠H (rad, unwrapped)")
+axs[3].grid(True)
+
 
 plt.tight_layout()
 
@@ -81,24 +94,32 @@ def _safe_set_ylim(ax, y):
     ax.set_ylim(ymin - pad, ymax + pad)
 
 
+def _safe_set_square_limits(ax, x, y, floor=1.5):
+    """Set symmetric square limits for scatter plots."""
+    if len(x) == 0 or len(y) == 0:
+        ax.set_xlim(-floor, floor)
+        ax.set_ylim(-floor, floor)
+        return
+
+    lim = max(
+        float(np.max(np.abs(x))) if len(x) > 0 else floor,
+        float(np.max(np.abs(y))) if len(y) > 0 else floor,
+        floor,
+    ) * 1.1
+    ax.set_xlim(-lim, lim)
+    ax.set_ylim(-lim, lim)
+
+
 def redraw_from_buffers():
-    """Draws the plots from the current contents of the rolling buffers."""
+    """Draw the plots from the current contents of the rolling buffers."""
     # --- Constellation ---
     if len(const_i_buf) > 0 and len(const_q_buf) > 0:
         n_const = min(len(const_i_buf), len(const_q_buf))
-        pts = np.column_stack([
-            np.array(list(const_i_buf)[:n_const], dtype=float),
-            np.array(list(const_q_buf)[:n_const], dtype=float),
-        ])
+        const_i = np.array(list(const_i_buf)[:n_const], dtype=float)
+        const_q = np.array(list(const_q_buf)[:n_const], dtype=float)
+        pts = np.column_stack([const_i, const_q])
         const_scatter.set_offsets(pts)
-
-        lim = max(
-            np.max(np.abs(pts[:, 0])) if pts.shape[0] > 0 else 1.5,
-            np.max(np.abs(pts[:, 1])) if pts.shape[0] > 0 else 1.5,
-            1.5,
-        ) * 1.1
-        axs[0].set_xlim(-lim, lim)
-        axs[0].set_ylim(-lim, lim)
+        _safe_set_square_limits(axs[0], const_i, const_q)
         axs[0].set_title(f"Constellation (last {n_const} pts)")
     else:
         const_scatter.set_offsets(np.empty((0, 2)))
@@ -140,13 +161,26 @@ def redraw_from_buffers():
         csi_phase_line.set_data([], [])
         axs[2].set_title("CSI Phase vs Time (no data)")
 
+    # --- CSI constellation over rolling time window ---
+    if len(csi_const_i_buf) > 0 and len(csi_const_q_buf) > 0:
+        n_csi_const = min(len(csi_const_i_buf), len(csi_const_q_buf))
+        csi_i = np.array(list(csi_const_i_buf)[:n_csi_const], dtype=float)
+        csi_q = np.array(list(csi_const_q_buf)[:n_csi_const], dtype=float)
+        csi_pts = np.column_stack([csi_i, csi_q])
+        csi_const_scatter.set_offsets(csi_pts)
+        _safe_set_square_limits(axs[3], csi_i, csi_q)
+        axs[3].set_title(f"CSI Constellation (RE index {CSI_INDEX}, last {n_csi_const} pts)")
+    else:
+        csi_const_scatter.set_offsets(np.empty((0, 2)))
+        axs[3].set_title("CSI Constellation (no data)")
+
     fig.canvas.draw_idle()
     plt.pause(0.001)
 
 
 def update_plot(metric):
     global sample_counter
-    
+
     # Constellation from current snapshot
     const_i = np.asarray(metric.get("constellation", {}).get("i", []), dtype=float)
     const_q = np.asarray(metric.get("constellation", {}).get("q", []), dtype=float)
@@ -158,22 +192,24 @@ def update_plot(metric):
             const_i_buf.append(float(x))
             const_q_buf.append(float(y))
 
-    # Arrange into Real+Imag CSI array
+    # CSI is represented as real and imaginary components in the incoming payload.
     csi_real = np.asarray(metric.get("csi", {}).get("mag", []), dtype=float)
     csi_imag = np.asarray(metric.get("csi", {}).get("phase", []), dtype=float)
 
     n_csi = min(len(csi_real), len(csi_imag))
     if n_csi > 0:
-        H = csi_real[:n_csi] + 1j * csi_imag[:n_csi]
+        h = csi_real[:n_csi] + 1j * csi_imag[:n_csi]
 
         # Guard CSI index
         idx = min(max(CSI_INDEX, 0), n_csi - 1)
+        h_sel = h[idx]
 
-        h_sel = H[idx]
         sample_counter += 1
         time_buf.append(sample_counter)
         csi_mag_buf.append(float(np.abs(h_sel)))
         csi_phase_buf.append(float(np.angle(h_sel)))
+        csi_const_i_buf.append(float(np.real(h_sel)))
+        csi_const_q_buf.append(float(np.imag(h_sel)))
 
     redraw_from_buffers()
 

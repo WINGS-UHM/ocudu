@@ -1728,7 +1728,7 @@ void ra_scheduler::reserve_msga_pusch_rbs(cell_resource_allocator& res_alloc)
 
   if (OCUDU_UNLIKELY(first_slot_flag)) {
     first_slot_flag = false;
-    for (unsigned lookahead_slots = 1; lookahead_slots != res_alloc.max_ul_slot_alloc_delay; ++lookahead_slots) {
+    for (unsigned lookahead_slots = 0; lookahead_slots != res_alloc.max_ul_slot_alloc_delay; ++lookahead_slots) {
       fill_grid_in_slot(lookahead_slots);
     }
   }

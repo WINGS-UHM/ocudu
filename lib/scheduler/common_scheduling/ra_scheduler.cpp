@@ -207,7 +207,10 @@ private:
 
   void fill_msga_pusch_info(const cell_configuration& cfg)
   {
-    const auto&                                  ul_bwp         = cfg.init_bwp.ul;
+    const auto& ul_bwp = cfg.init_bwp.ul;
+    if (not ul_bwp.rach_common()->two_step_rach_cfg.has_value()) {
+      return;
+    }
     const auto&                                  msga_pusch_cfg = ul_bwp.rach_common()->two_step_rach_cfg->pusch;
     const pusch_time_domain_resource_allocation& td_alloc = get_pusch_td_list(cfg)[msga_pusch_cfg.pusch_td_res_index];
     // For MsgA, the PUSCH slot is at prach_slot + td_offset; k2 of PUSCH TD resource is irrelevant as per spec.

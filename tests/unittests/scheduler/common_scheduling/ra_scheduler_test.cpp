@@ -76,18 +76,16 @@ public:
 
   void handle_rach_indication(rach_indication_message ind)
   {
-    // For TDD cells, advance the simulator to a slot that has a valid PRACH occasion. Using
-    // is_fully_ul_enabled alone is insufficient: the PRACH config may cover only a subset of
-    // the full-UL slots, and the ra_scheduler only prereserves MsgA PUSCH for slots whose
-    // corresponding PRACH slot is a valid PRACH occasion.
-    if (cell_cfg.is_tdd()) {
-      const prach_helper::preamble_slot_mapping prach_mapper{
-          cell_cfg.band(),
-          cell_cfg.init_bwp.ul.cfg().scs,
-          cell_cfg.init_bwp.ul.rach_common()->rach_cfg_generic.prach_config_index};
-      run_slot_until([this, &prach_mapper]() { return prach_mapper.has_prach_occasion(next_slot_rx()); });
-      ind.slot_rx = next_slot_rx();
-    }
+    // Advance the simulator to a slot that has a valid PRACH occasion. The ra_scheduler only
+    // prereserves MsgA PUSCH for slots whose corresponding PRACH slot is a valid occasion per
+    // the configured PRACH config index; injecting a PRACH at an arbitrary slot would miss the
+    // prereservation and fail the sanity check in handle_msga_occasion.
+    const prach_helper::preamble_slot_mapping prach_mapper{
+        cell_cfg.band(),
+        cell_cfg.init_bwp.ul.cfg().scs,
+        cell_cfg.init_bwp.ul.rach_common()->rach_cfg_generic.prach_config_index};
+    run_slot_until([this, &prach_mapper]() { return prach_mapper.has_prach_occasion(next_slot_rx()); });
+    ind.slot_rx = next_slot_rx();
     ra_sch.handle_rach_indication(ind);
     tracker.on_new_rach_ind(ind);
   }

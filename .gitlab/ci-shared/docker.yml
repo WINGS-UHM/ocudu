@@ -98,29 +98,55 @@ variables:
         ${BUILD_ARGS} \
         --output ${OUTPUT}"
 
-    # Attestation
+    # Attestation functions
     - |
-      if [ ${MODE} = "publish" ]; then
-        IMAGE_DIGEST="${IMAGE_NAME_VERSION}@$(regctl image digest ${IMAGE_NAME_VERSION})"
-        echo "=== Signing image ==="
-        cosign sign ${IMAGE_DIGEST}
-        echo "=== Generating container SPDX ==="
+      generate_container_spdx() {
+        # Catalog OS packages only (no file metadata or executable classification).
+        # Post-process to strip file-level SPDX entries: without this the output
+        # exceeds 19MB (dpkg package lists inflate it) which breaks cosign attest
+        # because Rekor rejects entries that large.
+        #   awk:    removes FileName: element blocks (File sections from dpkg lists)
+        #   grep 1: removes evident-by RelationshipComment lines paired with file refs
+        #   grep 2: removes CONTAINS/OTHER Relationship lines pointing to SPDXRef-File-
+
         SYFT_REGISTRY_AUTH_USERNAME="${CI_REGISTRY_USER}" \
           SYFT_REGISTRY_AUTH_PASSWORD="${CI_REGISTRY_PASSWORD}" \
           SYFT_REGISTRY_AUTH_AUTHORITY="${CI_REGISTRY}" \
-          syft registry:${IMAGE_NAME_VERSION} -o spdx-json \
-          --select-catalogers "os" > container.spdx
+          syft registry:${IMAGE_NAME_VERSION} -o spdx \
+          --select-catalogers "os,-file-metadata-cataloger,-file-executable-cataloger" \
+          | awk '/^FileName:/{skip=1;next} /^$/{if(skip){skip=0;next}} !skip' \
+          | grep -v "^RelationshipComment: evident-by:" \
+          | grep -v "^Relationship:.*SPDXRef-File-" \
+          > container.spdx
+      }
+
+      attest_spdx() {
+        local predicate=$1
+        echo "Attesting ${predicate} ($(wc -c < ${predicate}) bytes)"
+        cosign attest --predicate "${predicate}" --type spdx ${IMAGE_DIGEST}
+      }
+
+    # Attestation functions
+    - |
+      if [ ${MODE} = "publish" ]; then
+        IMAGE_DIGEST="${IMAGE_NAME_VERSION}@$(regctl image digest ${IMAGE_NAME_VERSION})"
+
+        echo "=== Signing image ==="
+        cosign sign ${IMAGE_DIGEST}
+
+        echo "=== Generating container SPDX ==="
+        generate_container_spdx
         if [ -s container.spdx ]; then
           echo "=== Attesting container SPDX ==="
-          # COSIGN_TLOG_UPLOAD=false: the SPDX payload could be too large for reliable Rekor upload
-          COSIGN_TLOG_UPLOAD=false cosign attest --predicate container.spdx --type spdx ${IMAGE_DIGEST}
+          attest_spdx container.spdx
         else
           echo "WARNING: syft produced an empty container.spdx, skipping container attestation"
         fi
+
         if [ -n "$ATTESTATION_FILE" ]; then
-          echo "=== Attesting $ATTESTATION_FILE ==="
+          echo "=== Attesting ${ATTESTATION_FILE} ==="
           regctl image get-file ${IMAGE_NAME_VERSION} ${ATTESTATION_FILE} > build.spdx
-          cosign attest --predicate build.spdx --type spdx ${IMAGE_DIGEST}
+          attest_spdx build.spdx
         fi
       fi
 

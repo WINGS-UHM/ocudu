@@ -23,12 +23,12 @@ static bool validate_pcap_configs(const du_high_unit_config& config)
     for (const auto& cell : config.cells_cfg) {
       // FIXME don't use just the nof_antennas, but compute MAX PDU size from bandwidth, MCS table, etc.
       if (cell.cell.nof_antennas_dl >= 2 && config.pcaps.mac.type != "dlt") {
-        fmt::print("Using more than two DL antennas might make the MAC PDU larger than what is supported in the UDP "
+        fmt::print("Using more than one DL antenna might make the MAC PDU larger than what is supported in the UDP "
                    "wrapper. Use PCAP DLT type to avoid pcap corruption.\n");
         return false;
       }
       if (cell.cell.nof_antennas_ul >= 2 && config.pcaps.mac.type != "dlt") {
-        fmt::print("Using more than two UL antennas might make the MAC PDU larger than what is supported in the UDP "
+        fmt::print("Using more than one UL antenna might make the MAC PDU larger than what is supported in the UDP "
                    "wrapper. Use PCAP DLT type to avoid pcap corruption.\n");
         return false;
       }
@@ -956,7 +956,8 @@ static bool validate_tdd_ul_dl_pattern_unit_config(const tdd_ul_dl_pattern_unit_
     return false;
   }
 
-  const unsigned period_msec = config.dl_ul_period_slots / get_nof_slots_per_subframe(common_scs);
+  const float period_msec =
+      static_cast<float>(config.dl_ul_period_slots) / static_cast<float>(get_nof_slots_per_subframe(common_scs));
 
   static constexpr std::array<float, 10> valid_periods = {0.5F, 0.625, 1.0, 1.25, 2.0, 2.5, 3.0, 4.0, 5.0, 10.0};
   if (std::none_of(valid_periods.begin(), valid_periods.end(), [period_msec](float v) {
@@ -999,11 +1000,13 @@ static bool validate_tdd_ul_dl_unit_config(const du_high_unit_tdd_ul_dl_config& 
     return false;
   }
 
-  const unsigned period_msec =
-      (config.pattern1.dl_ul_period_slots + (config.pattern2.has_value() ? config.pattern2->dl_ul_period_slots : 0)) /
-      get_nof_slots_per_subframe(common_scs);
+  const unsigned total_period_slots =
+      config.pattern1.dl_ul_period_slots + (config.pattern2.has_value() ? config.pattern2->dl_ul_period_slots : 0);
+  const unsigned slots_per_20ms = 20U * get_nof_slots_per_subframe(common_scs);
   // As per TS 38.213, clause 11.1, "A UE expects that P + P2 divides 20 msec".
-  if (20 % period_msec != 0) {
+  if (slots_per_20ms % total_period_slots != 0) {
+    const float period_msec =
+        static_cast<float>(total_period_slots) / static_cast<float>(get_nof_slots_per_subframe(common_scs));
     fmt::print("Invalid TDD pattern total periodicity={}ms. It must divide 20 msec.\n", period_msec);
     return false;
   }

@@ -406,7 +406,7 @@ function(sbom_finalize)
 		endif()
 		get_filename_component(_dest_dir \"\${_dest}\" DIRECTORY)
 		file(MAKE_DIRECTORY \"\${_dest_dir}\")
-		configure_file(\"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"\${_dest}\" COPYONLY)
+		configure_file(\"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"\${_dest}\")
 		"
 	)
 
@@ -606,6 +606,10 @@ function(sbom_file)
 
 		set(relationship "
 Relationship: ${SBOM_FILE_RELATIONSHIP}"
+		)
+	else()
+		set(relationship "
+Relationship: SPDXRef-${_sbom_project} CONTAINS ${SBOM_FILE_SPDXID}"
 		)
 	endif()
 

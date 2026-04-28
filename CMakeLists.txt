@@ -303,9 +303,9 @@ include(GNUInstallDirs)
 sbom_generate(
     OUTPUT       "${CMAKE_INSTALL_PREFIX}/share/ocudu.spdx"
     PROJECT      "OCUDU 5G CU DU"
-    SUPPLIER     "Software Radio Systems Ltd"
-    SUPPLIER_URL "https://srs.io"
-    DOWNLOAD_URL "https://github.com/ocudu/ocudu.git"
+    SUPPLIER     "OCUDU Project"
+    SUPPLIER_URL "https://ocudu.org"
+    DOWNLOAD_URL "https://gitlab.com/ocudu/ocudu.git"
     LICENSE      "LicenseRef-OCUDU"
 )
 

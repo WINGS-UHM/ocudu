@@ -63,8 +63,6 @@ void conditional_handover_reconfiguration_routine::operator()(coro_context<async
   {
     auto& cho_ctx = source_ue.get_cho_context();
     // Only one target observer per target UE index is required.
-    // In intra-DU CHO all candidates map to source_ue_index, so exactly one conditional_handover_target_routine is
-    // started.
     std::vector<ue_index_t> armed_target_ues;
     for (const auto& candidate : cho_ctx->candidates) {
       if (std::find(armed_target_ues.begin(), armed_target_ues.end(), candidate.target_ue_index) !=
@@ -254,7 +252,7 @@ void conditional_handover_reconfiguration_routine::cleanup_targets()
     return;
   }
 
-  // Collect externally prepared candidate target UEs. Intra-DU candidates reuse the source UE and must be kept.
+  // Collect prepared candidate target UEs.
   std::vector<ue_index_t> candidates;
   for (const auto& candidate : source_ue.get_cho_context()->candidates) {
     if (candidate.target_ue_index != ue_index_t::invalid && candidate.target_ue_index != source_ue.get_ue_index()) {

@@ -196,7 +196,7 @@ int main(int argc, char** argv)
   // Set the application error handler.
   set_error_handler(app_error_report_handler);
 
-  static constexpr std::string_view app_name = "gNB";
+  static constexpr std::string_view app_name = "fake_gNB";
   app_services::application_message_banners::announce_app_and_version(app_name);
 
   // Set interrupt and cleanup signal handlers.
@@ -207,7 +207,7 @@ int main(int argc, char** argv)
   enable_backtrace();
 
   // Setup and configure config parsing.
-  CLI::App app("OCUDU gNB application");
+  CLI::App app("OCUDU Fake gNB application");
   app.config_formatter(create_yaml_config_parser());
   app.allow_config_extras(CLI::config_extras_mode::error);
   // Fill the generic application arguments to parse.

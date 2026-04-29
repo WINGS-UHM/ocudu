@@ -57,21 +57,18 @@ TEST_F(mac_controller_test, ue_procedures)
   mac_ue_create_request ue_create_msg{to_du_cell_index(0), to_du_ue_index(1), to_rnti(0x4601)};
   start_ue_creation(ue_create_msg);
 
-  // Status: UE creation started in MAC UL but not in MAC DL
+  // Status: UE creation started concurrently in MAC UL and DL.
   ASSERT_TRUE(ul_unit.last_ue_create_request.has_value());
   ASSERT_EQ(ue_create_msg.ue_index, ul_unit.last_ue_create_request->ue_index);
   ASSERT_EQ(ue_create_msg.crnti, ul_unit.last_ue_create_request->crnti);
-  ASSERT_FALSE(dl_unit.last_ue_create_request.has_value());
-  ASSERT_FALSE(t.ready());
-
-  // Action 2: MAC UL UE Creation finishes
-  ul_unit.expected_result = true;
-  ul_unit.ue_created_ev.set();
-
-  // Status: MAC DL UE Creation starts
   ASSERT_TRUE(dl_unit.last_ue_create_request.has_value());
   ASSERT_EQ(ue_create_msg.ue_index, dl_unit.last_ue_create_request->ue_index);
   ASSERT_EQ(ue_create_msg.crnti, dl_unit.last_ue_create_request->crnti);
+  ASSERT_FALSE(t.ready());
+
+  // Action 2: MAC UL UE Creation finishes; DL still pending.
+  ul_unit.expected_result = true;
+  ul_unit.ue_created_ev.set();
   ASSERT_FALSE(t.ready());
 
   // Action 3: MAC DL UE Creation finishes

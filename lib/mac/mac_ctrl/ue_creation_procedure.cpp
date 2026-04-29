@@ -4,6 +4,7 @@
 
 #include "ue_creation_procedure.h"
 #include "proc_logger.h"
+#include "ocudu/support/async/when_all.h"
 
 using namespace ocudu;
 
@@ -22,22 +23,13 @@ void mac_ue_create_request_procedure::operator()(coro_context<async_task<mac_ue_
   // > Update C-RNTI of the UE if it changed.
   req.crnti = crnti_assigned;
 
-  // > Create UE UL context and channels.
-  CORO_AWAIT_VALUE(add_ul_ue_result, ul_unit.add_ue(req));
-  if (not add_ul_ue_result) {
+  // > Create UE DL and UL context and channels.
+  CORO_AWAIT_VALUE(add_mac_ue_result, when_all(create_ul_dl_ue_tasks()));
+  if (not add_mac_ue_result[0] or not add_mac_ue_result[1]) {
     CORO_AWAIT(cancel_ue_creation());
     CORO_EARLY_RETURN(handle_mac_ue_create_result(false));
   }
-  logger.debug("{}: UE UL context created successfully", mac_log_prefix(req.ue_index, req.crnti, name()));
-
-  // > Create UE DL context and channels.
-  CORO_AWAIT_VALUE(add_dl_ue_result, dl_unit.add_ue(req));
-  if (not add_dl_ue_result) {
-    // >> Terminate procedure.
-    CORO_AWAIT(cancel_ue_creation());
-    CORO_EARLY_RETURN(handle_mac_ue_create_result(false));
-  }
-  logger.debug("{}: UE DL context created successfully", mac_log_prefix(req.ue_index, req.crnti, name()));
+  logger.debug("{}: UE context created successfully", mac_log_prefix(req.ue_index, req.crnti, name()));
 
   // > Create UE context in Scheduler.
   CORO_AWAIT_VALUE(add_sched_ue_result, sched_configurator.handle_ue_creation_request(req));
@@ -56,12 +48,12 @@ async_task<void> mac_ue_create_request_procedure::cancel_ue_creation()
   return launch_async([this](coro_context<async_task<void>>& ctx) {
     CORO_BEGIN(ctx);
 
-    if (add_dl_ue_result) {
+    if (not add_mac_ue_result.empty() and add_mac_ue_result[1]) {
       // > Revert creation of UE in MAC DL.
       CORO_AWAIT(dl_unit.remove_ue(mac_ue_delete_request{req.cell_index, req.ue_index, req.crnti}));
     }
 
-    if (add_ul_ue_result) {
+    if (not add_mac_ue_result.empty() and add_mac_ue_result[0]) {
       // > Revert creation of UE in MAC UL.
       CORO_AWAIT(ul_unit.remove_ue(mac_ue_delete_request{req.cell_index, req.ue_index, req.crnti}));
     }
@@ -73,6 +65,16 @@ async_task<void> mac_ue_create_request_procedure::cancel_ue_creation()
 
     CORO_RETURN();
   });
+}
+
+std::vector<async_task<bool>> mac_ue_create_request_procedure::create_ul_dl_ue_tasks()
+{
+  // Note: Helper method created because initializer list does not support std::move.
+  std::vector<async_task<bool>> tasks;
+  tasks.reserve(2);
+  tasks.push_back(ul_unit.add_ue(req));
+  tasks.push_back(dl_unit.add_ue(req));
+  return tasks;
 }
 
 mac_ue_create_response mac_ue_create_request_procedure::handle_mac_ue_create_result(bool result)

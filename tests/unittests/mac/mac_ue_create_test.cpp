@@ -88,13 +88,15 @@ protected:
   std::optional<lazy_task_launcher<mac_ue_create_response>> proc_launcher;
 };
 
-TEST_F(mac_ue_create_procedure_test, ue_creation_procedure_requests_and_awaits_mac_ul_configurator_result)
+TEST_F(mac_ue_create_procedure_test, ue_creation_procedure_requests_and_awaits_mac_ul_and_dl_configurator_results)
 {
   start_procedure();
 
+  // UL and DL are requested concurrently.
   EXPECT_TRUE(mac_ul_unit_received_ue_create_command());
   EXPECT_EQ(mac_ul.last_ue_create_request->ue_index, msg.ue_index);
-  EXPECT_FALSE(mac_dl_unit_received_ue_create_command());
+  EXPECT_TRUE(mac_dl_unit_received_ue_create_command());
+  EXPECT_EQ(mac_dl.last_ue_create_request->ue_index, msg.ue_index);
   EXPECT_FALSE(procedure_is_complete());
 }
 
@@ -151,14 +153,22 @@ TEST_F(mac_ue_create_procedure_test, ue_creation_procedure_completes_when_there_
 TEST_F(mac_ue_create_procedure_test, ue_creation_procedure_fails_if_mac_ul_configurator_fails)
 {
   start_procedure();
-  set_mac_ul_unit_result(false);
 
-  EXPECT_TRUE(not mac_dl_unit_received_ue_create_command());
+  // DL is also requested concurrently with UL.
+  EXPECT_TRUE(mac_dl_unit_received_ue_create_command());
+
+  // UL fails; when_all still awaits DL.
+  set_mac_ul_unit_result(false);
+  EXPECT_FALSE(procedure_is_complete());
+
+  // DL completes; when_all resolves and procedure cancels.
+  set_mac_dl_unit_result(true);
   EXPECT_TRUE(procedure_is_complete());
   EXPECT_FALSE(is_procedure_successful());
   EXPECT_EQ(msg.ue_index, proc.get().ue_index);
+  // UL was never created (failed), so no UL delete. DL succeeded and is reverted.
   EXPECT_FALSE(mac_ul.last_ue_delete_request.has_value());
-  EXPECT_FALSE(mac_dl.last_ue_delete_request.has_value());
+  EXPECT_TRUE(mac_dl.last_ue_delete_request.has_value());
 }
 
 TEST_F(mac_ue_create_procedure_test, ue_creation_procedure_fails_if_mac_dl_configurator_fails)

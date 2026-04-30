@@ -809,7 +809,7 @@ template <typename T>
 
 /// Validates the given PRACH cell application configuration. Returns true on success, otherwise false.
 static bool
-validate_prach_cell_unit_config(const du_high_unit_rach_config& config, nr_band band, unsigned nof_rx_atennas)
+validate_prach_cell_unit_config(const du_high_unit_rach_config& config, nr_band band, unsigned nof_rx_antennas)
 {
   ocudu_assert(config.prach_config_index.has_value(), "The PRACH configuration index must be set.");
 
@@ -854,44 +854,52 @@ validate_prach_cell_unit_config(const du_high_unit_rach_config& config, nr_band 
 
   // See TS 38.331, ssb-perRACH-OccasionAndCB-PreamblesPerSSB and totalNumberOfRA-Preambles.
   // totalNumberOfRA-Preambles should be a multiple of the number of SSBs per RACH occasion.
-  bool is_total_nof_ra_preambles_valid = true;
   if (config.nof_ssb_per_ro >= ssb_per_rach_occasions::one) {
     if (config.total_nof_ra_preambles % static_cast<uint8_t>(ssb_per_rach_occ_to_float(config.nof_ssb_per_ro)) != 0) {
-      is_total_nof_ra_preambles_valid = false;
+      fmt::print("Total nof. RA preambles ({}) should be a multiple of the number of SSBs per RACH occasion ({}).\n",
+                 config.total_nof_ra_preambles,
+                 ssb_per_rach_occ_to_float(config.nof_ssb_per_ro));
+      return false;
     }
     // Ensure \c config.total_nof_ra_preambles can accommodate contention based RA preambles.
     // NOTE: \c config.total_nof_ra_preambles nof. RA preambles are shared among \c config.nof_ssb_per_ro nof. SSB
     // beams.
     if (config.nof_cb_preambles_per_ssb * static_cast<unsigned>(ssb_per_rach_occ_to_float(config.nof_ssb_per_ro)) >
         config.total_nof_ra_preambles) {
-      is_total_nof_ra_preambles_valid = false;
+      fmt::print("Total nof. of contention based RA preambles ({} preambles/SSB x {} SSBs/RO = {}) exceeds total nof. "
+                 "RA preambles ({}).\n",
+                 config.nof_cb_preambles_per_ssb,
+                 ssb_per_rach_occ_to_float(config.nof_ssb_per_ro),
+                 config.nof_cb_preambles_per_ssb *
+                     static_cast<unsigned>(ssb_per_rach_occ_to_float(config.nof_ssb_per_ro)),
+                 config.total_nof_ra_preambles);
+      return false;
     }
   } else {
     // Number of SSBs per RACH occasion is 1/8 or 1/4 or 1/2.
     const auto product =
         static_cast<float>(config.total_nof_ra_preambles) * ssb_per_rach_occ_to_float(config.nof_ssb_per_ro);
     if ((product - static_cast<uint8_t>(product)) > 0) {
-      is_total_nof_ra_preambles_valid = false;
+      fmt::print("Total nof. RA preambles ({}) should be a multiple of the number of SSBs per RACH occasion ({}).\n",
+                 config.total_nof_ra_preambles,
+                 ssb_per_rach_occ_to_float(config.nof_ssb_per_ro));
+      return false;
     }
     // Ensure \c config.total_nof_ra_preambles can accommodate contention based RA preambles.
     // NOTE: Each SSB beam has multiple RACH occasions and each occasion has \c config.total_nof_ra_preambles RA
     // preambles.
     if (config.nof_cb_preambles_per_ssb > config.total_nof_ra_preambles) {
-      is_total_nof_ra_preambles_valid = false;
+      fmt::print("Total nof. of contention based RA preambles per SSB ({}) exceeds total nof. RA preambles ({}).\n",
+                 config.nof_cb_preambles_per_ssb,
+                 config.total_nof_ra_preambles);
+      return false;
     }
   }
 
-  if (not is_total_nof_ra_preambles_valid) {
-    fmt::print("Total nof. RA preambles ({}) should be a multiple of the number of SSBs per RACH occasion ({}).\n",
-               config.total_nof_ra_preambles,
-               ssb_per_rach_occ_to_float(config.nof_ssb_per_ro));
-    return false;
-  }
-
-  if (config.ports.size() > nof_rx_atennas) {
+  if (config.ports.size() > nof_rx_antennas) {
     fmt::print("PRACH number of ports ({}) is bigger than the number of reception antennas ({}).\n",
                config.ports.size(),
-               nof_rx_atennas);
+               nof_rx_antennas);
 
     return false;
   }
@@ -902,9 +910,8 @@ validate_prach_cell_unit_config(const du_high_unit_rach_config& config, nr_band 
   }
 
   for (auto port_id : config.ports) {
-    if (port_id >= nof_rx_atennas) {
-      fmt::print("PRACH port id '{}' out of range. Valid range {}-{}.\n", port_id, 0, nof_rx_atennas - 1);
-
+    if (port_id >= nof_rx_antennas) {
+      fmt::print("PRACH port id '{}' out of range. Valid range {}-{}.\n", port_id, 0, nof_rx_antennas - 1);
       return false;
     }
   }

@@ -29,7 +29,7 @@ lower_phy_baseband_processor::lower_phy_baseband_processor(const lower_phy_baseb
   tx_state(config.stop_nof_slots),
   rx_state(config.stop_nof_slots)
 {
-  static constexpr interval<float> system_time_throttling_range(0, 1);
+  static constexpr interval<float> system_time_throttling_range(0, 20);
 
   ocudu_assert(rx_buffer_size, "Invalid buffer size.");
   ocudu_assert(system_time_throttling_range.contains(config.system_time_throttling),

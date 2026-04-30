@@ -120,7 +120,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT dl_transmitter_stats_late_dl_slots AS late_dl_slots, dl_transmitter_stats_late_ul_slot_requests AS late_ul_slot_requests, dl_transmitter_stats_late_cp_dl_messages AS late_cp_dl_messages, dl_transmitter_stats_late_up_dl_messages AS late_up_dl_messages, dl_transmitter_stats_late_cp_ul_messages AS late_cp_ul_messages, time FROM ofh WHERE pci == $pci AND time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
+          "rawSql": "SELECT dl_transmitter_stats_late_dl_slots AS late_dl_slots, dl_transmitter_stats_late_ul_slot_requests AS late_ul_slot_requests, dl_transmitter_stats_late_cp_dl_messages AS late_cp_dl_messages, dl_transmitter_stats_late_up_dl_messages AS late_up_dl_messages, dl_transmitter_stats_late_cp_ul_messages AS late_cp_ul_messages, \"time\" FROM ofh WHERE pci == $pci AND \"time\" >= $__timeFrom AND \"time\" <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY \"time\"",
           "refId": "A",
           "sql": {
             "columns": [
@@ -240,7 +240,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT dl_ethernet_transmitter_average_throughput_mbps AS dl_avg_throughput_mbps, ul_ethernet_receiver_average_throughput_mbps AS ul_avg_throughput_mbps, time FROM ofh WHERE pci == $pci AND time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
+          "rawSql": "SELECT dl_ethernet_transmitter_average_throughput_mbps AS dl_avg_throughput_mbps, ul_ethernet_receiver_average_throughput_mbps AS ul_avg_throughput_mbps, \"time\" FROM ofh WHERE pci == $pci AND \"time\" >= $__timeFrom AND \"time\" <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY \"time\"",
           "refId": "A",
           "sql": {
             "columns": [
@@ -409,7 +409,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT dl_message_encoder_dl_cp_average_latency_us AS dl_cp_avg_latency_us, dl_message_encoder_dl_cp_max_latency_us AS dl_cp_max_latency_us, dl_message_encoder_dl_up_average_latency_us AS dl_up_avg_latency_us, dl_message_encoder_dl_up_max_latency_us AS dl_up_max_latency_us, dl_message_encoder_ul_cp_average_latency_us AS ul_cp_avg_latency_us, dl_message_encoder_ul_cp_max_latency_us AS ul_cp_max_latency_us, dl_message_encoder_dl_cp_cpu_usage_percent AS dl_cp_cpu_usage_percent, dl_message_encoder_dl_up_cpu_usage_percent AS dl_up_cpu_usage_percent, dl_message_encoder_ul_cp_cpu_usage_percent AS ul_cp_cpu_usage_percent, time FROM ofh WHERE pci == $pci AND time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
+          "rawSql": "SELECT dl_message_encoder_dl_cp_average_latency_us AS dl_cp_avg_latency_us, dl_message_encoder_dl_cp_max_latency_us AS dl_cp_max_latency_us, dl_message_encoder_dl_up_average_latency_us AS dl_up_avg_latency_us, dl_message_encoder_dl_up_max_latency_us AS dl_up_max_latency_us, dl_message_encoder_ul_cp_average_latency_us AS ul_cp_avg_latency_us, dl_message_encoder_ul_cp_max_latency_us AS ul_cp_max_latency_us, dl_message_encoder_dl_cp_cpu_usage_percent AS dl_cp_cpu_usage_percent, dl_message_encoder_dl_up_cpu_usage_percent AS dl_up_cpu_usage_percent, dl_message_encoder_ul_cp_cpu_usage_percent AS ul_cp_cpu_usage_percent, \"time\" FROM ofh WHERE pci == $pci AND \"time\" >= $__timeFrom AND \"time\" <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY \"time\"",
           "refId": "A",
           "sql": {
             "columns": [
@@ -529,7 +529,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT dl_message_transmitter_average_latency_us AS avg_latency_us, dl_message_transmitter_max_latency_us AS max_latency_us, dl_message_transmitter_cpu_usage_percent AS cpu_usage_percent, time FROM ofh WHERE pci == $pci AND time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
+          "rawSql": "SELECT dl_message_transmitter_average_latency_us AS avg_latency_us, dl_message_transmitter_max_latency_us AS max_latency_us, dl_message_transmitter_cpu_usage_percent AS cpu_usage_percent, \"time\" FROM ofh WHERE pci == $pci AND \"time\" >= $__timeFrom AND \"time\" <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY \"time\"",
           "refId": "A",
           "sql": {
             "columns": [
@@ -663,7 +663,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT ul_received_packets_total AS total, ul_received_packets_early AS early, ul_received_packets_on_time AS on_time, ul_received_packets_late AS late, ul_rx_window_stats_nof_missed_prach_occasions AS missed_prach, ul_rx_window_stats_nof_missed_uplink_symbols AS missed_uplink, time FROM ofh WHERE pci == $pci AND time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
+          "rawSql": "SELECT ul_received_packets_total AS total, ul_received_packets_early AS early, ul_received_packets_on_time AS on_time, ul_received_packets_late AS late, ul_rx_window_stats_nof_missed_prach_occasions AS missed_prach, ul_rx_window_stats_nof_missed_uplink_symbols AS missed_uplink, \"time\" FROM ofh WHERE pci == $pci AND \"time\" >= $__timeFrom AND \"time\" <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY \"time\"",
           "refId": "A",
           "sql": {
             "columns": [
@@ -865,7 +865,7 @@
           "editorMode": "code",
           "format": "time_series",
           "rawQuery": true,
-          "rawSql": "SELECT ul_message_decoder_data_average_latency_us AS data_avg_latency_us, ul_message_decoder_data_max_latency_us AS data_max_latency_us, ul_message_decoder_prach_average_latency_us AS prach_avg_latency_us, ul_message_decoder_prach_max_latency_us AS prach_max_latency_us, ul_message_decoder_data_cpu_usage_percent AS data_cpu_usage_percent, ul_message_decoder_prach_cpu_usage_percent AS prach_cpu_usage_percent, ul_message_decoder_data_nof_dropped_messages AS data_nof_dropped_messages, ul_message_decoder_prach_nof_dropped_messages AS prach_nof_dropped_messages, ul_message_decoder_ecpri_nof_future_seqid_messages AS ecpri_nof_future_seqid_messages, ul_message_decoder_ecpri_nof_past_seqid_messages AS ecpri_nof_past_seqid_messages, time FROM ofh WHERE pci == $pci AND time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
+          "rawSql": "SELECT ul_message_decoder_data_average_latency_us AS data_avg_latency_us, ul_message_decoder_data_max_latency_us AS data_max_latency_us, ul_message_decoder_prach_average_latency_us AS prach_avg_latency_us, ul_message_decoder_prach_max_latency_us AS prach_max_latency_us, ul_message_decoder_data_cpu_usage_percent AS data_cpu_usage_percent, ul_message_decoder_prach_cpu_usage_percent AS prach_cpu_usage_percent, ul_message_decoder_data_nof_dropped_messages AS data_nof_dropped_messages, ul_message_decoder_prach_nof_dropped_messages AS prach_nof_dropped_messages, ul_message_decoder_ecpri_nof_future_seqid_messages AS ecpri_nof_future_seqid_messages, ul_message_decoder_ecpri_nof_past_seqid_messages AS ecpri_nof_past_seqid_messages, \"time\" FROM ofh WHERE pci == $pci AND \"time\" >= $__timeFrom AND \"time\" <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY \"time\"",
           "refId": "A",
           "sql": {
             "columns": [

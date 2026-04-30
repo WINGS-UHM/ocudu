@@ -82,7 +82,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT * FROM ngaps WHERE amf_name = '$amf_name' AND time >= $__timeFrom AND time <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY time",
+          "rawSql": "SELECT * FROM ngaps WHERE amf_name = '$amf_name' AND \"time\" >= $__timeFrom AND \"time\" <= $__timeTo AND \"gnb_id\" = '$gnb_id' ORDER BY \"time\"",
           "refId": "A",
           "sql": {
             "columns": [

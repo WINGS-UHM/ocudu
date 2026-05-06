@@ -51,7 +51,7 @@ struct probe_config {
 static byte_buffer build_ng_setup_request()
 {
   ngap_context_t ngap_ctxt = {{411, 22},
-                              "tstgnb01",
+                              "ocucp01",
                               "AMF",
                               amf_index_t::min,
                               {{7, {{plmn_identity::test_value(), {{slice_service_type{1}}}}}}},

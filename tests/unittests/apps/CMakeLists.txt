@@ -3,4 +3,6 @@
 
 
 add_subdirectory(units)
-add_subdirectory(fbs)
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/fbs/CMakeLists.txt")
+    add_subdirectory(fbs)
+endif ()

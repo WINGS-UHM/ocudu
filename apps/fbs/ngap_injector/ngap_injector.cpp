@@ -87,7 +87,7 @@ static byte_buffer build_ng_setup_request()
 static byte_buffer build_ue_context_release_request(uint64_t amf_ue_ngap_id, uint64_t ran_ue_ngap_id)
 {
   cu_cp_ue_context_release_request release_request = {};
-  release_request.cause = ngap_cause_radio_network_t::release_due_to_ngran_generated_reason;
+  release_request.cause = ngap_cause_radio_network_t::successful_ho;
 
   ngap_message ngap_msg = {};
   ngap_msg.pdu.set_init_msg();

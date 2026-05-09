@@ -21,12 +21,15 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 #include <netdb.h>
 #include <netinet/sctp.h>
+#include <poll.h>
 #include <stdexcept>
 #include <string>
 #include <sys/socket.h>
 #include <thread>
+#include <unistd.h>
 #include <vector>
 
 using namespace ocudu;
@@ -176,10 +179,103 @@ static void dump_hex(const byte_buffer& pdu)
   std::printf("\n");
 }
 
+static void print_ngap_pdu(const byte_buffer& pdu)
+{
+  std::printf("NGAP listener: received NGAP PDU length=%zu bytes\n", static_cast<size_t>(pdu.length()));
+  std::printf("NGAP listener: received NGAP PDU hex=");
+  dump_hex(pdu);
+
+  asn1::cbit_ref bref(pdu);
+  ngap_message   msg = {};
+  if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
+    std::printf("NGAP listener: failed to decode NGAP PDU\n");
+    return;
+  }
+
+  asn1::json_writer json;
+  msg.pdu.to_json(json);
+  std::printf("NGAP listener: decoded NGAP PDU JSON:\n%s\n", json.to_string().c_str());
+}
+
+static void receive_ngap_loop(sctp_socket& socket)
+{
+  std::printf("NGAP listener: listening for NGAP packets. Enter q and press return to quit.\n");
+
+  std::array<uint8_t, network_gateway_sctp_mtu> recv_buffer = {};
+  while (true) {
+    std::array<pollfd, 2> fds = {};
+    fds[0].fd                 = socket.fd().value();
+    fds[0].events             = POLLIN;
+    fds[1].fd                 = STDIN_FILENO;
+    fds[1].events             = POLLIN;
+
+    const int poll_result = ::poll(fds.data(), fds.size(), -1);
+    if (poll_result < 0) {
+      if (errno == EINTR) {
+        continue;
+      }
+      throw std::runtime_error(std::string("poll failed: ") + std::strerror(errno));
+    }
+
+    if ((fds[1].revents & POLLIN) != 0) {
+      std::string input;
+      if (!std::getline(std::cin, input) || input == "q" || input == "quit" || input == "exit") {
+        return;
+      }
+      std::printf("NGAP listener: enter q to quit; continuing to listen\n");
+    }
+
+    if ((fds[0].revents & (POLLERR | POLLHUP | POLLNVAL)) != 0) {
+      throw std::runtime_error("SCTP socket reported an error or hangup");
+    }
+
+    if ((fds[0].revents & POLLIN) == 0) {
+      continue;
+    }
+
+    struct sctp_sndrcvinfo sri       = {};
+    int                    msg_flags = 0;
+    sockaddr_storage       msg_src   = {};
+    socklen_t              msg_len   = sizeof(msg_src);
+
+    const int rx_bytes = ::sctp_recvmsg(socket.fd().value(),
+                                        recv_buffer.data(),
+                                        recv_buffer.size(),
+                                        reinterpret_cast<sockaddr*>(&msg_src),
+                                        &msg_len,
+                                        &sri,
+                                        &msg_flags);
+    if (rx_bytes < 0) {
+      if (errno == EAGAIN || errno == EINTR) {
+        continue;
+      }
+      throw std::runtime_error(std::string("Error reading from SCTP socket: ") + std::strerror(errno));
+    }
+    if (rx_bytes == 0) {
+      throw std::runtime_error("SCTP peer closed the association");
+    }
+
+    if ((msg_flags & MSG_NOTIFICATION) != 0) {
+      std::printf("NGAP listener: received SCTP notification length=%d bytes\n", rx_bytes);
+      continue;
+    }
+
+    std::printf("NGAP listener: packet source=%s assoc_id=%d stream=%u ppid=%u\n",
+                sockaddr_to_string(*reinterpret_cast<sockaddr*>(&msg_src), msg_len).c_str(),
+                static_cast<int>(sri.sinfo_assoc_id),
+                sri.sinfo_stream,
+                ntohl(sri.sinfo_ppid));
+
+    byte_buffer pdu{byte_buffer::fallback_allocation_tag{},
+                    span<const uint8_t>(recv_buffer.data(), static_cast<size_t>(rx_bytes))};
+    print_ngap_pdu(pdu);
+  }
+}
+
 static probe_config parse_args(int argc, char** argv)
 {
   probe_config cfg;
-  CLI::App     app{"Send one crafted NG Setup Request to a target AMF over SCTP"};
+  CLI::App     app{"Send one crafted NG Setup Request to a target AMF over SCTP and listen for NGAP packets"};
 
   app.add_option("--amf-addr,--target", cfg.amf_addresses, "Target AMF address or hostname")
       ->required()
@@ -191,7 +287,7 @@ static probe_config parse_args(int argc, char** argv)
       ->capture_default_str();
   app.add_option("--sctp-max-init-timeo-ms", cfg.max_init_timeo_ms, "SCTP INIT max timeout in milliseconds")
       ->capture_default_str();
-  app.add_option("--post-send-wait-ms", cfg.post_send_wait_ms, "Delay after send before graceful close")
+  app.add_option("--post-send-wait-ms", cfg.post_send_wait_ms, "Delay after NGSetupRequest before listening")
       ->capture_default_str();
   app.add_flag_function("--no-hex", [&cfg](std::int64_t) { cfg.dump_pdu_hex = false; },
                         "Do not print the packed NGAP PDU hex dump");
@@ -306,6 +402,8 @@ static int run_probe(const probe_config& cfg)
   if (cfg.post_send_wait_ms > 0) {
     std::this_thread::sleep_for(std::chrono::milliseconds{cfg.post_send_wait_ms});
   }
+
+  receive_ngap_loop(socket);
 
   const int eof_result =
       ::sctp_sendmsg(socket.fd().value(),

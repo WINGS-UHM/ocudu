@@ -23,10 +23,13 @@
 #include <cstring>
 #include <iostream>
 #include <netdb.h>
+#include <net/if.h>
 #include <netinet/sctp.h>
+#include <optional>
 #include <poll.h>
 #include <stdexcept>
 #include <string>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
@@ -49,6 +52,96 @@ struct probe_config {
   int                      max_init_timeo_ms     = 1000;
   int                      post_send_wait_ms     = 100;
   bool                     dump_pdu_hex          = true;
+  bool                     promiscuous_mode      = false;
+};
+
+class promiscuous_mode_guard
+{
+public:
+  promiscuous_mode_guard() = default;
+
+  explicit promiscuous_mode_guard(const std::string& if_name) { enable(if_name); }
+
+  ~promiscuous_mode_guard() { reset(); }
+
+  promiscuous_mode_guard(const promiscuous_mode_guard&)            = delete;
+  promiscuous_mode_guard& operator=(const promiscuous_mode_guard&) = delete;
+
+private:
+  void enable(const std::string& if_name)
+  {
+    if (if_name.empty() || if_name == "auto") {
+      throw std::runtime_error("Promiscuous mode requires an explicit --bind-interface");
+    }
+    if (if_name.size() >= IFNAMSIZ) {
+      throw std::runtime_error("Interface name is too long for promiscuous mode");
+    }
+
+    ctl_fd = ::socket(AF_INET, SOCK_DGRAM, 0);
+    if (ctl_fd < 0) {
+      throw std::runtime_error(std::string("Failed to create interface control socket: ") + std::strerror(errno));
+    }
+
+    ifreq ifr = {};
+    std::strncpy(ifr.ifr_name, if_name.c_str(), IFNAMSIZ - 1);
+    if (::ioctl(ctl_fd, SIOCGIFFLAGS, &ifr) < 0) {
+      const std::string error = std::strerror(errno);
+      ::close(ctl_fd);
+      ctl_fd = -1;
+      throw std::runtime_error("Failed to read interface flags for " + if_name + ": " + error);
+    }
+
+    interface_name = if_name;
+    previous_flags = ifr.ifr_flags;
+    active         = true;
+
+    if ((ifr.ifr_flags & IFF_PROMISC) != 0) {
+      std::printf("NGAP listener: interface %s is already in promiscuous mode\n", interface_name.c_str());
+      return;
+    }
+
+    ifr.ifr_flags = static_cast<short>(ifr.ifr_flags | IFF_PROMISC);
+    if (::ioctl(ctl_fd, SIOCSIFFLAGS, &ifr) < 0) {
+      const std::string error = std::strerror(errno);
+      reset();
+      throw std::runtime_error("Failed to enable promiscuous mode for " + if_name + ": " + error);
+    }
+
+    changed = true;
+    std::printf("NGAP listener: enabled promiscuous mode on interface %s\n", interface_name.c_str());
+  }
+
+  void reset()
+  {
+    if (!active) {
+      return;
+    }
+
+    if (changed && ctl_fd >= 0) {
+      ifreq ifr = {};
+      std::strncpy(ifr.ifr_name, interface_name.c_str(), IFNAMSIZ - 1);
+      ifr.ifr_flags = previous_flags;
+      if (::ioctl(ctl_fd, SIOCSIFFLAGS, &ifr) < 0) {
+        std::printf("NGAP listener: warning: failed to restore interface flags for %s: %s\n",
+                    interface_name.c_str(),
+                    std::strerror(errno));
+      } else {
+        std::printf("NGAP listener: restored interface flags for %s\n", interface_name.c_str());
+      }
+    }
+
+    if (ctl_fd >= 0) {
+      ::close(ctl_fd);
+      ctl_fd = -1;
+    }
+    active = false;
+  }
+
+  std::string interface_name;
+  short       previous_flags = 0;
+  int         ctl_fd         = -1;
+  bool        active         = false;
+  bool        changed        = false;
 };
 
 static byte_buffer build_ng_setup_request()
@@ -289,6 +382,9 @@ static probe_config parse_args(int argc, char** argv)
       ->capture_default_str();
   app.add_option("--post-send-wait-ms", cfg.post_send_wait_ms, "Delay after NGSetupRequest before listening")
       ->capture_default_str();
+  app.add_flag("--promiscuous",
+               cfg.promiscuous_mode,
+               "Enable promiscuous mode on --bind-interface while the listener is running");
   app.add_flag_function("--no-hex", [&cfg](std::int64_t) { cfg.dump_pdu_hex = false; },
                         "Do not print the packed NGAP PDU hex dump");
 
@@ -322,6 +418,11 @@ static int run_probe(const probe_config& cfg)
 
   if (ng_setup_request.length() > network_gateway_sctp_mtu) {
     throw std::runtime_error("Packed NGSetupRequest exceeds SCTP gateway maximum PDU length");
+  }
+
+  std::optional<promiscuous_mode_guard> promisc_guard;
+  if (cfg.promiscuous_mode) {
+    promisc_guard.emplace(cfg.bind_interface);
   }
 
   std::vector<sockaddr_storage> dest_addrs = resolve_sctp_addresses(cfg.amf_addresses, cfg.amf_port, logger);

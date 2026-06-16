@@ -43,7 +43,16 @@ def iptables_allow_all(if_name):
               help="IP range of the TUN interface.")
 def main(if_name, ip_range):
 
-    for subnet in range(0,256):
+    ipr = IPRoute()
+    devs = ipr.link_lookup(ifname=if_name)
+    if not devs:
+        ipr.link('add', ifname=if_name, kind='tuntap', mode='tun')
+        devs = ipr.link_lookup(ifname=if_name)
+    dev = devs[0]
+    ipr.link('set', index=dev, state='down')
+    ipr.link('set', index=dev, state='up')
+
+    for subnet in range(0, 256):
         # Get the first IP address in the IP range and netmask prefix length
         first_ip_addr = next(ip_range.hosts(), None) + (subnet * 256)
         if not first_ip_addr:
@@ -53,22 +62,19 @@ def main(if_name, ip_range):
 
         ip_netmask = ip_range.prefixlen
 
-        ipr = IPRoute()
-        # create the tun interface
-        ipr.link('add', ifname=if_name, kind='tuntap', mode='tun')
-        # lookup the index
-        dev = ipr.link_lookup(ifname=if_name)[0]
-        # bring it down
-        ipr.link('set', index=dev, state='down')
-        # add primary IP address
-        ipr.addr('add', index=dev, address=first_ip_addr, mask=ip_netmask)
-        # bring it up
-        ipr.link('set', index=dev, state='up')
-
+        # Add primary IP address, ignoring addresses already created by a prior run.
         try:
-            ipr.route('add', dst=ip_range.with_prefixlen, gateway=first_ip_addr)
-        except NetlinkError:
-            pass
+            ipr.addr('add', index=dev, address=first_ip_addr, mask=ip_netmask)
+        except NetlinkError as e:
+            if e.code != 17:
+                raise
+
+        subnet_route = ipaddress.ip_network(f'{first_ip_addr}/{ip_netmask}', strict=False).with_prefixlen
+        try:
+            ipr.route('add', dst=subnet_route, gateway=first_ip_addr)
+        except NetlinkError as e:
+            if e.code != 17:
+                raise
 
         # setup iptables
         iptables_add_masquerade(if_name, ip_range.with_prefixlen)

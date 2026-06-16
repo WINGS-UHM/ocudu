@@ -2,18 +2,15 @@
 
 #include "CLI/CLI11.hpp"
 #include "lib/gateways/sctp_network_gateway_common_impl.h"
-#include "lib/ngap/ngap_asn1_helpers.h"
 #include "ocudu/asn1/asn1_utils.h"
 #include "ocudu/asn1/ngap/common.h"
+#include "ocudu/asn1/ngap/ngap.h"
 #include "ocudu/gateways/sctp_network_gateway.h"
 #include "ocudu/gateways/sctp_socket.h"
-#include "ocudu/ngap/ngap_context.h"
 #include "ocudu/ngap/ngap_message.h"
 #include "ocudu/ocudulog/ocudulog.h"
-#include "ocudu/ran/plmn_identity.h"
 #include "ocudu/support/io/sockets.h"
 #include <algorithm>
-#include <arpa/inet.h>
 #include <array>
 #include <cerrno>
 #include <chrono>
@@ -21,38 +18,162 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
+#include <deque>
 #include <iostream>
-#include <netdb.h>
+#include <map>
 #include <net/if.h>
+#include <netdb.h>
 #include <netinet/sctp.h>
 #include <optional>
 #include <poll.h>
+#include <regex>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <thread>
 #include <unistd.h>
 #include <vector>
 
 using namespace ocudu;
 using namespace ocudu::ocucp;
+using namespace asn1::ngap;
 
 namespace {
 
-static constexpr unsigned stream_no                 = 0;
-static constexpr size_t   network_gateway_sctp_mtu = 9100;
+static constexpr size_t network_gateway_sctp_mtu = 9100;
 
-struct probe_config {
-  std::vector<std::string> amf_addresses;
-  int                      amf_port              = NGAP_PORT;
-  std::vector<std::string> bind_addresses;
-  std::string              bind_interface        = "auto";
-  int                      init_max_attempts     = 2;
-  int                      max_init_timeo_ms     = 1000;
-  int                      post_send_wait_ms     = 100;
-  bool                     dump_pdu_hex          = true;
-  bool                     promiscuous_mode      = false;
+struct listener_config {
+  std::vector<std::string> listen_addresses = {"0.0.0.0"};
+  int                      listen_port      = NGAP_PORT;
+  std::string              bind_interface   = "auto";
+  bool                     dump_pdu_hex     = true;
+  bool                     promiscuous_mode = false;
+};
+
+struct message_context {
+  std::vector<std::string> amf_ue_ngap_ids;
+  std::vector<std::string> ran_ue_ngap_ids;
+  std::vector<std::string> pdu_session_ids;
+  std::vector<std::string> qfis;
+  std::vector<std::string> teids;
+  std::vector<std::string> transport_layer_addresses;
+  std::vector<std::string> nas_pdus;
+  std::vector<std::string> plmns;
+  std::vector<std::string> tacs;
+};
+
+struct observed_message {
+  size_t          sequence = 0;
+  std::string     source;
+  int             assoc_id = 0;
+  unsigned        stream   = 0;
+  unsigned        ppid     = 0;
+  size_t          length   = 0;
+  std::string     ngap_type;
+  bool            decoded = false;
+  message_context context;
+  std::string     json;
+};
+
+class context_queue
+{
+public:
+  void push(observed_message message)
+  {
+    message.sequence = next_sequence++;
+    add_context(message.context);
+    messages.push_back(std::move(message));
+    print_summary(messages.back());
+  }
+
+private:
+  static void insert_all(std::set<std::string>& target, const std::vector<std::string>& values)
+  {
+    for (const auto& value : values) {
+      if (!value.empty()) {
+        target.insert(value);
+      }
+    }
+  }
+
+  static void print_values(const char* label, const std::set<std::string>& values)
+  {
+    std::printf("  %s: [", label);
+    bool first = true;
+    for (const auto& value : values) {
+      std::printf("%s%s", first ? "" : ", ", value.c_str());
+      first = false;
+    }
+    std::printf("]\n");
+  }
+
+  static void print_latest_values(const char* label, const std::vector<std::string>& values)
+  {
+    std::printf("  %s: [", label);
+    for (size_t i = 0; i != values.size(); ++i) {
+      std::printf("%s%s", i == 0 ? "" : ", ", values[i].c_str());
+    }
+    std::printf("]\n");
+  }
+
+  void add_context(const message_context& context)
+  {
+    insert_all(amf_ue_ngap_ids, context.amf_ue_ngap_ids);
+    insert_all(ran_ue_ngap_ids, context.ran_ue_ngap_ids);
+    insert_all(pdu_session_ids, context.pdu_session_ids);
+    insert_all(qfis, context.qfis);
+    insert_all(teids, context.teids);
+    insert_all(transport_layer_addresses, context.transport_layer_addresses);
+    insert_all(nas_pdus, context.nas_pdus);
+    insert_all(plmns, context.plmns);
+    insert_all(tacs, context.tacs);
+  }
+
+  void print_summary(const observed_message& message) const
+  {
+    std::printf("NGAP listener: queued message #%zu type=%s decoded=%s source=%s assoc_id=%d stream=%u ppid=%u length=%zu\n",
+                message.sequence,
+                message.ngap_type.empty() ? "unknown" : message.ngap_type.c_str(),
+                message.decoded ? "yes" : "no",
+                message.source.c_str(),
+                message.assoc_id,
+                message.stream,
+                message.ppid,
+                message.length);
+    std::printf("NGAP listener: extracted context for latest message:\n");
+    print_latest_values("AMF-UE-NGAP-ID", message.context.amf_ue_ngap_ids);
+    print_latest_values("RAN-UE-NGAP-ID", message.context.ran_ue_ngap_ids);
+    print_latest_values("PDU-Session-ID", message.context.pdu_session_ids);
+    print_latest_values("QFI", message.context.qfis);
+    print_latest_values("TEID", message.context.teids);
+    print_latest_values("TransportLayerAddress", message.context.transport_layer_addresses);
+    print_latest_values("NAS-PDU", message.context.nas_pdus);
+    print_latest_values("PLMN", message.context.plmns);
+    print_latest_values("TAC", message.context.tacs);
+    std::printf("NGAP listener: accumulated context lists, queue_depth=%zu:\n", messages.size());
+    print_values("AMF-UE-NGAP-ID", amf_ue_ngap_ids);
+    print_values("RAN-UE-NGAP-ID", ran_ue_ngap_ids);
+    print_values("PDU-Session-ID", pdu_session_ids);
+    print_values("QFI", qfis);
+    print_values("TEID", teids);
+    print_values("TransportLayerAddress", transport_layer_addresses);
+    print_values("NAS-PDU", nas_pdus);
+    print_values("PLMN", plmns);
+    print_values("TAC", tacs);
+  }
+
+  size_t                       next_sequence = 1;
+  std::deque<observed_message> messages;
+  std::set<std::string>        amf_ue_ngap_ids;
+  std::set<std::string>        ran_ue_ngap_ids;
+  std::set<std::string>        pdu_session_ids;
+  std::set<std::string>        qfis;
+  std::set<std::string>        teids;
+  std::set<std::string>        transport_layer_addresses;
+  std::set<std::string>        nas_pdus;
+  std::set<std::string>        plmns;
+  std::set<std::string>        tacs;
 };
 
 class promiscuous_mode_guard
@@ -144,30 +265,6 @@ private:
   bool        changed        = false;
 };
 
-static byte_buffer build_ng_setup_request()
-{
-  ngap_context_t ngap_ctxt = {{411, 22},
-                              "ocucp01",
-                              "AMF",
-                              amf_index_t::min,
-                              {{7, {{plmn_identity::test_value(), {{slice_service_type{1}}}}}}},
-                              {},
-                              256};
-
-  ngap_message ngap_msg = {};
-  ngap_msg.pdu.set_init_msg();
-  ngap_msg.pdu.init_msg().load_info_obj(ASN1_NGAP_ID_NG_SETUP);
-  fill_asn1_ng_setup_request(ngap_msg.pdu.init_msg().value.ng_setup_request(), ngap_ctxt);
-
-  byte_buffer   packed_pdu{byte_buffer::fallback_allocation_tag{}};
-  asn1::bit_ref bref(packed_pdu);
-  if (ngap_msg.pdu.pack(bref) != asn1::OCUDUASN_SUCCESS) {
-    throw std::runtime_error("Failed to pack NGSetupRequest");
-  }
-
-  return packed_pdu;
-}
-
 static std::string join_strings(const std::vector<std::string>& values, const char* separator)
 {
   std::string result;
@@ -184,11 +281,6 @@ static std::string sockaddr_to_string(const sockaddr& addr, socklen_t addr_len)
 {
   const auto info = get_nameinfo(addr, addr_len);
   return info.address + ":" + std::to_string(info.port);
-}
-
-static socklen_t sockaddr_len(const sockaddr_storage& addr)
-{
-  return reinterpret_cast<const sockaddr*>(&addr)->sa_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
 }
 
 static std::vector<sockaddr_storage>
@@ -217,43 +309,6 @@ static bool has_ipv6_address(const std::vector<sockaddr_storage>& addresses)
   });
 }
 
-static void keep_compatible_destinations(std::vector<sockaddr_storage>& destinations, int socket_family)
-{
-  if (socket_family != AF_INET) {
-    return;
-  }
-  destinations.erase(std::remove_if(destinations.begin(),
-                                    destinations.end(),
-                                    [](const sockaddr_storage& addr) {
-                                      return reinterpret_cast<const sockaddr*>(&addr)->sa_family == AF_INET6;
-                                    }),
-                     destinations.end());
-}
-
-static std::vector<std::string> get_peer_addresses(int fd, sctp_assoc_t assoc_id)
-{
-  std::vector<std::string> peer_addresses;
-  struct sockaddr*        paddrs = nullptr;
-
-  const int paddr_count = ::sctp_getpaddrs(fd, assoc_id, &paddrs);
-  if (paddr_count <= 0 || paddrs == nullptr) {
-    return peer_addresses;
-  }
-
-  const sockaddr* current = paddrs;
-  for (int i = 0; i != paddr_count; ++i) {
-    if (current->sa_family != AF_INET && current->sa_family != AF_INET6) {
-      break;
-    }
-    const socklen_t peer_len = current->sa_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
-    peer_addresses.push_back(sockaddr_to_string(*current, peer_len));
-    current = reinterpret_cast<const sockaddr*>(reinterpret_cast<const uint8_t*>(current) + peer_len);
-  }
-  ::sctp_freepaddrs(paddrs);
-
-  return peer_addresses;
-}
-
 static std::string get_local_endpoint(int fd)
 {
   sockaddr_storage local_addr     = {};
@@ -272,28 +327,127 @@ static void dump_hex(const byte_buffer& pdu)
   std::printf("\n");
 }
 
-static void print_ngap_pdu(const byte_buffer& pdu)
+static std::string escape_regex(const std::string& text)
 {
+  static const std::regex special{R"([.^$|()\[\]{}*+?\\])"};
+  return std::regex_replace(text, special, R"(\$&)" );
+}
+
+static void add_unique(std::vector<std::string>& values, const std::string& value)
+{
+  if (!value.empty() && std::find(values.begin(), values.end(), value) == values.end()) {
+    values.push_back(value);
+  }
+}
+
+static std::vector<std::string> extract_json_key_values(const std::string& json, const std::string& key)
+{
+  std::vector<std::string> values;
+  const std::regex pattern{"\\\"" + escape_regex(key) + "\\\"\\s*:\\s*(?:\\\"([^\\\"]*)\\\"|([0-9]+))"};
+  for (std::sregex_iterator it(json.begin(), json.end(), pattern), end; it != end; ++it) {
+    add_unique(values, (*it)[1].matched ? (*it)[1].str() : (*it)[2].str());
+  }
+  return values;
+}
+
+static std::vector<std::string> extract_ie_values(const std::string& json, const std::string& ie_name)
+{
+  std::vector<std::string> values;
+  const std::regex pattern{"\\\"id\\\"\\s*:\\s*\\\"" + escape_regex(ie_name) +
+                           "\\\"[\\s\\S]*?\\\"Value\\\"\\s*:\\s*(?:\\\"([^\\\"]*)\\\"|([0-9]+))"};
+  for (std::sregex_iterator it(json.begin(), json.end(), pattern), end; it != end; ++it) {
+    add_unique(values, (*it)[1].matched ? (*it)[1].str() : (*it)[2].str());
+  }
+  return values;
+}
+
+static void append_values(std::vector<std::string>& target, const std::vector<std::string>& source)
+{
+  for (const auto& value : source) {
+    add_unique(target, value);
+  }
+}
+
+static message_context extract_context(const std::string& json)
+{
+  message_context context;
+
+  append_values(context.amf_ue_ngap_ids, extract_ie_values(json, "AMF-UE-NGAP-ID"));
+  append_values(context.ran_ue_ngap_ids, extract_ie_values(json, "RAN-UE-NGAP-ID"));
+  append_values(context.pdu_session_ids, extract_ie_values(json, "PDU-Session-ID"));
+  append_values(context.nas_pdus, extract_ie_values(json, "NAS-PDU"));
+
+  append_values(context.pdu_session_ids, extract_json_key_values(json, "pDUSessionID"));
+  append_values(context.qfis, extract_json_key_values(json, "qosFlowIdentifier"));
+  append_values(context.teids, extract_json_key_values(json, "gTP-TEID"));
+  append_values(context.transport_layer_addresses, extract_json_key_values(json, "transportLayerAddress"));
+  append_values(context.nas_pdus, extract_json_key_values(json, "nAS-PDU"));
+  append_values(context.nas_pdus, extract_json_key_values(json, "pDUSessionNAS-PDU"));
+  append_values(context.plmns, extract_json_key_values(json, "pLMNIdentity"));
+  append_values(context.plmns, extract_json_key_values(json, "pLMN-ID"));
+  append_values(context.tacs, extract_json_key_values(json, "tAC"));
+
+  return context;
+}
+
+static std::string get_message_type(const ngap_pdu_c& pdu)
+{
+  switch (pdu.type().value) {
+    case ngap_pdu_c::types_opts::init_msg:
+      return pdu.init_msg().value.type().to_string();
+    case ngap_pdu_c::types_opts::successful_outcome:
+      return pdu.successful_outcome().value.type().to_string();
+    case ngap_pdu_c::types_opts::unsuccessful_outcome:
+      return pdu.unsuccessful_outcome().value.type().to_string();
+    default:
+      return "unknown";
+  }
+}
+
+static observed_message decode_ngap_pdu(const byte_buffer& pdu,
+                                        const std::string& source,
+                                        int                assoc_id,
+                                        unsigned           stream,
+                                        unsigned           ppid,
+                                        bool               dump_pdu_hex)
+{
+  observed_message observed;
+  observed.source   = source;
+  observed.assoc_id = assoc_id;
+  observed.stream   = stream;
+  observed.ppid     = ppid;
+  observed.length   = pdu.length();
+
   std::printf("NGAP listener: received NGAP PDU length=%zu bytes\n", static_cast<size_t>(pdu.length()));
-  std::printf("NGAP listener: received NGAP PDU hex=");
-  dump_hex(pdu);
+  if (dump_pdu_hex) {
+    std::printf("NGAP listener: received NGAP PDU hex=");
+    dump_hex(pdu);
+  }
 
   asn1::cbit_ref bref(pdu);
   ngap_message   msg = {};
   if (msg.pdu.unpack(bref) != asn1::OCUDUASN_SUCCESS) {
     std::printf("NGAP listener: failed to decode NGAP PDU\n");
-    return;
+    observed.ngap_type = "decode-failed";
+    return observed;
   }
 
   asn1::json_writer json;
   msg.pdu.to_json(json);
-  std::printf("NGAP listener: decoded NGAP PDU JSON:\n%s\n", json.to_string().c_str());
+  observed.decoded   = true;
+  observed.ngap_type = get_message_type(msg.pdu);
+  observed.json      = json.to_string();
+  observed.context   = extract_context(observed.json);
+
+  std::printf("NGAP listener: decoded NGAP PDU JSON:\n%s\n", observed.json.c_str());
+  return observed;
 }
 
-static void receive_ngap_loop(sctp_socket& socket)
+static void receive_ngap_loop(sctp_socket& socket, bool dump_pdu_hex)
 {
-  std::printf("NGAP listener: listening for NGAP packets. Enter q and press return to quit.\n");
+  std::printf("NGAP listener: passively listening for NGAP packets. Enter q and press return to quit.\n");
 
+  context_queue                                      queue;
   std::array<uint8_t, network_gateway_sctp_mtu> recv_buffer = {};
   while (true) {
     std::array<pollfd, 2> fds = {};
@@ -345,7 +499,8 @@ static void receive_ngap_loop(sctp_socket& socket)
       throw std::runtime_error(std::string("Error reading from SCTP socket: ") + std::strerror(errno));
     }
     if (rx_bytes == 0) {
-      throw std::runtime_error("SCTP peer closed the association");
+      std::printf("NGAP listener: SCTP peer closed an association\n");
+      continue;
     }
 
     if ((msg_flags & MSG_NOTIFICATION) != 0) {
@@ -353,40 +508,38 @@ static void receive_ngap_loop(sctp_socket& socket)
       continue;
     }
 
+    const std::string source = sockaddr_to_string(*reinterpret_cast<sockaddr*>(&msg_src), msg_len);
     std::printf("NGAP listener: packet source=%s assoc_id=%d stream=%u ppid=%u\n",
-                sockaddr_to_string(*reinterpret_cast<sockaddr*>(&msg_src), msg_len).c_str(),
+                source.c_str(),
                 static_cast<int>(sri.sinfo_assoc_id),
                 sri.sinfo_stream,
                 ntohl(sri.sinfo_ppid));
 
     byte_buffer pdu{byte_buffer::fallback_allocation_tag{},
                     span<const uint8_t>(recv_buffer.data(), static_cast<size_t>(rx_bytes))};
-    print_ngap_pdu(pdu);
+    queue.push(decode_ngap_pdu(pdu,
+                               source,
+                               static_cast<int>(sri.sinfo_assoc_id),
+                               sri.sinfo_stream,
+                               ntohl(sri.sinfo_ppid),
+                               dump_pdu_hex));
   }
 }
 
-static probe_config parse_args(int argc, char** argv)
+static listener_config parse_args(int argc, char** argv)
 {
-  probe_config cfg;
-  CLI::App     app{"Send one crafted NG Setup Request to a target AMF over SCTP and listen for NGAP packets"};
+  listener_config cfg;
+  CLI::App        app{"Passively listen for SCTP/NGAP packets and collect reusable NGAP/NAS context"};
 
-  app.add_option("--amf-addr,--target", cfg.amf_addresses, "Target AMF address or hostname")
-      ->required()
-      ->expected(1, -1);
-  app.add_option("--amf-port,--port", cfg.amf_port, "Target AMF SCTP port")->capture_default_str();
-  app.add_option("--bind-addr", cfg.bind_addresses, "Local SCTP bind address")->expected(1, -1);
+  app.add_option("--listen-addr,--bind-addr", cfg.listen_addresses, "Local SCTP listen address")
+      ->expected(1, -1)
+      ->capture_default_str();
+  app.add_option("--listen-port,--port", cfg.listen_port, "Local SCTP listen port")->capture_default_str();
   app.add_option("--bind-interface", cfg.bind_interface, "Local interface for SO_BINDTODEVICE")->capture_default_str();
-  app.add_option("--sctp-init-max-attempts", cfg.init_max_attempts, "SCTP INIT max attempts")
-      ->capture_default_str();
-  app.add_option("--sctp-max-init-timeo-ms", cfg.max_init_timeo_ms, "SCTP INIT max timeout in milliseconds")
-      ->capture_default_str();
-  app.add_option("--post-send-wait-ms", cfg.post_send_wait_ms, "Delay after NGSetupRequest before listening")
-      ->capture_default_str();
   app.add_flag("--promiscuous",
                cfg.promiscuous_mode,
                "Enable promiscuous mode on --bind-interface while the listener is running");
-  app.add_flag_function("--no-hex", [&cfg](std::int64_t) { cfg.dump_pdu_hex = false; },
-                        "Do not print the packed NGAP PDU hex dump");
+  app.add_flag_function("--no-hex", [&cfg](std::int64_t) { cfg.dump_pdu_hex = false; }, "Do not print NGAP PDU hex dumps");
 
   try {
     app.parse(argc, argv);
@@ -397,60 +550,33 @@ static probe_config parse_args(int argc, char** argv)
   return cfg;
 }
 
-static int run_probe(const probe_config& cfg)
+static int run_listener(const listener_config& cfg)
 {
   auto& logger = ocudulog::fetch_basic_logger("SCTP-GW");
 
-  const byte_buffer ng_setup_request = build_ng_setup_request();
-  std::printf("NGAP probe: target=[%s]:%d bind=[%s] bind_interface=%s ppid=%u stream=%u\n",
-              join_strings(cfg.amf_addresses, ", ").c_str(),
-              cfg.amf_port,
-              cfg.bind_addresses.empty() ? "implicit" : join_strings(cfg.bind_addresses, ", ").c_str(),
+  std::printf("NGAP listener: listen=[%s]:%d bind_interface=%s ppid=%u\n",
+              join_strings(cfg.listen_addresses, ", ").c_str(),
+              cfg.listen_port,
               cfg.bind_interface.c_str(),
-              NGAP_PPID,
-              stream_no);
-  std::printf("NGAP probe: packed NGSetupRequest length=%zu bytes\n",
-              static_cast<size_t>(ng_setup_request.length()));
-  if (cfg.dump_pdu_hex) {
-    std::printf("NGAP probe: packed NGSetupRequest hex=");
-    dump_hex(ng_setup_request);
-  }
-
-  if (ng_setup_request.length() > network_gateway_sctp_mtu) {
-    throw std::runtime_error("Packed NGSetupRequest exceeds SCTP gateway maximum PDU length");
-  }
+              NGAP_PPID);
 
   std::optional<promiscuous_mode_guard> promisc_guard;
   if (cfg.promiscuous_mode) {
     promisc_guard.emplace(cfg.bind_interface);
   }
 
-  std::vector<sockaddr_storage> dest_addrs = resolve_sctp_addresses(cfg.amf_addresses, cfg.amf_port, logger);
-  if (dest_addrs.empty()) {
-    throw std::runtime_error("Failed to resolve any target AMF address");
+  std::vector<sockaddr_storage> bind_addrs = resolve_sctp_addresses(cfg.listen_addresses, cfg.listen_port, logger);
+  if (bind_addrs.empty()) {
+    throw std::runtime_error("Failed to resolve any local listen address");
   }
 
-  std::vector<sockaddr_storage> bind_addrs;
-  if (!cfg.bind_addresses.empty()) {
-    bind_addrs = resolve_sctp_addresses(cfg.bind_addresses, 0, logger);
-    if (bind_addrs.empty()) {
-      throw std::runtime_error("Failed to resolve any local bind address");
-    }
-  }
-
-  const int socket_family = !bind_addrs.empty() ? (has_ipv6_address(bind_addrs) ? AF_INET6 : AF_INET)
-                                                : (has_ipv6_address(dest_addrs) ? AF_INET6 : AF_INET);
-  keep_compatible_destinations(dest_addrs, socket_family);
-  if (dest_addrs.empty()) {
-    throw std::runtime_error("No target AMF address is compatible with the selected SCTP socket family");
-  }
+  const int socket_family = has_ipv6_address(bind_addrs) ? AF_INET6 : AF_INET;
 
   sctp_socket_params params = {};
-  params.if_name           = "N2-PROBE";
+  params.if_name           = "N2-LISTENER";
   params.ai_family         = socket_family;
   params.ai_socktype       = SOCK_SEQPACKET;
-  params.init_max_attempts = cfg.init_max_attempts;
-  params.max_init_timeo    = std::chrono::milliseconds{cfg.max_init_timeo_ms};
+  params.reuse_addr        = true;
   params.nodelay           = true;
 
   expected<sctp_socket> socket_outcome = sctp_socket::create(params);
@@ -459,69 +585,20 @@ static int run_probe(const probe_config& cfg)
   }
   sctp_socket socket = std::move(socket_outcome.value());
 
-  if (!bind_addrs.empty() && !socket.bindx(bind_addrs, cfg.bind_interface)) {
+  if (!socket.bindx(bind_addrs, cfg.bind_interface)) {
     throw std::runtime_error("Failed to bind SCTP socket");
   }
-
-  sctp_assoc_t assoc_id = 0;
-  std::printf("NGAP probe: connecting to %zu resolved AMF address(es)...\n", dest_addrs.size());
-  if (!socket.connectx(dest_addrs, assoc_id) || assoc_id == 0) {
-    throw std::runtime_error(std::string("Failed to connect SCTP association: ") + std::strerror(errno));
+  if (!socket.listen()) {
+    throw std::runtime_error("Failed to listen on SCTP socket");
   }
 
-  const auto bound_port     = socket.get_bound_port();
-  const auto peer_addresses = get_peer_addresses(socket.fd().value(), assoc_id);
-  std::printf("NGAP probe: SCTP connected fd=%d assoc_id=%d local=%s local_port=%s peer=[%s]\n",
+  const auto bound_port = socket.get_bound_port();
+  std::printf("NGAP listener: SCTP passive socket fd=%d local=%s local_port=%s\n",
               socket.fd().value(),
-              static_cast<int>(assoc_id),
               get_local_endpoint(socket.fd().value()).c_str(),
-              bound_port.has_value() ? std::to_string(bound_port.value()).c_str() : "unknown",
-              peer_addresses.empty() ? "unknown" : join_strings(peer_addresses, ", ").c_str());
+              bound_port.has_value() ? std::to_string(bound_port.value()).c_str() : "unknown");
 
-  std::array<uint8_t, network_gateway_sctp_mtu> send_buffer = {};
-  span<const uint8_t> ng_setup_request_span = to_span(ng_setup_request, send_buffer);
-  const int bytes_sent = ::sctp_sendmsg(socket.fd().value(),
-                                        ng_setup_request_span.data(),
-                                        ng_setup_request_span.size(),
-                                        reinterpret_cast<sockaddr*>(&dest_addrs.front()),
-                                        sockaddr_len(dest_addrs.front()),
-                                        htonl(NGAP_PPID),
-                                        0,
-                                        stream_no,
-                                        0,
-                                        0);
-  if (bytes_sent < 0) {
-    throw std::runtime_error(std::string("Failed to send NGSetupRequest: ") + std::strerror(errno));
-  }
-  if (static_cast<size_t>(bytes_sent) != ng_setup_request.length()) {
-    throw std::runtime_error("Partial NGSetupRequest send");
-  }
-  std::printf("NGAP probe: sent NGSetupRequest bytes=%d/%zu\n",
-              bytes_sent,
-              static_cast<size_t>(ng_setup_request.length()));
-
-  if (cfg.post_send_wait_ms > 0) {
-    std::this_thread::sleep_for(std::chrono::milliseconds{cfg.post_send_wait_ms});
-  }
-
-  receive_ngap_loop(socket);
-
-  const int eof_result =
-      ::sctp_sendmsg(socket.fd().value(),
-                     nullptr,
-                     0,
-                     reinterpret_cast<sockaddr*>(&dest_addrs.front()),
-                     sockaddr_len(dest_addrs.front()),
-                     htonl(NGAP_PPID),
-                     SCTP_EOF,
-                     stream_no,
-                     0,
-                     0);
-  if (eof_result < 0) {
-    std::printf("NGAP probe: warning: failed to send SCTP EOF during close: %s\n", std::strerror(errno));
-  } else {
-    std::printf("NGAP probe: sent SCTP EOF and closing socket\n");
-  }
+  receive_ngap_loop(socket, cfg.dump_pdu_hex);
 
   socket.close();
   return 0;
@@ -534,7 +611,7 @@ int main(int argc, char** argv)
   ocudulog::init();
 
   try {
-    return run_probe(parse_args(argc, argv));
+    return run_listener(parse_args(argc, argv));
   } catch (const std::exception& e) {
     std::fprintf(stderr, "ngap_listener error: %s\n", e.what());
     return 1;

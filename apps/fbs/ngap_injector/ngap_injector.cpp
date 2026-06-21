@@ -48,6 +48,14 @@ static constexpr size_t   network_gateway_sctp_mtu = 9100;
 static constexpr uint64_t  max_amf_ue_ngap_id       = 1099511627775ULL;
 static constexpr uint64_t  max_ran_ue_ngap_id       = 4294967295ULL;
 static constexpr uint64_t  max_pdu_session_id       = pdu_session_id_to_uint(pdu_session_id_t::max);
+static constexpr uint32_t  default_gnb_id           = 411;
+static constexpr uint8_t   default_gnb_id_bit_len   = 22;
+static constexpr uint16_t  default_sector_id        = 0;
+static constexpr uint64_t  max_default_gnb_id       = (1ULL << default_gnb_id_bit_len) - 1;
+static constexpr const char* default_ran_node_name   = "cu_cp_01";
+
+static uint32_t    current_gnb_id = default_gnb_id;
+static std::string current_ran_node_name{default_ran_node_name};
 
 struct probe_config {
   std::vector<std::string> amf_addresses;
@@ -100,7 +108,7 @@ static cu_cp_user_location_info_nr default_user_location_info()
 {
   cu_cp_user_location_info_nr user_location_info = {};
   user_location_info.nr_cgi.plmn_id             = plmn_identity::test_value();
-  user_location_info.nr_cgi.nci                 = nr_cell_identity::create(gnb_id_t{411, 22}, 0).value();
+  user_location_info.nr_cgi.nci                 = nr_cell_identity::create(gnb_id_t{current_gnb_id, default_gnb_id_bit_len}, default_sector_id).value();
   user_location_info.tai.plmn_id                = plmn_identity::test_value();
   user_location_info.tai.tac                    = 7;
   return user_location_info;
@@ -114,8 +122,8 @@ static up_transport_layer_info_c build_gtp_tunnel(const std::string& address, ui
 
 static byte_buffer build_ng_setup_request()
 {
-  ngap_context_t ngap_ctxt = {{411, 22},
-                              "ocucp01",
+  ngap_context_t ngap_ctxt = {{current_gnb_id, default_gnb_id_bit_len},
+                              current_ran_node_name,
                               "AMF",
                               amf_index_t::min,
                               {{7, {{plmn_identity::test_value(), {{slice_service_type{1}}}}}}},
@@ -682,6 +690,17 @@ static std::string read_valid_hex_or_default(const std::string& prompt, const st
   }
 }
 
+static std::string read_text_token_or_default(const std::string& prompt, const std::string& default_value)
+{
+  while (true) {
+    const std::string value = get_input_or_default<std::string>(prompt, default_value);
+    if (!value.empty() && std::none_of(value.begin(), value.end(), [](unsigned char c) { return std::isspace(c); })) {
+      return value;
+    }
+    std::printf("Invalid text value. Use a non-empty string without spaces.\n");
+  }
+}
+
 static std::string read_plmn_or_default(const std::string& prompt, const std::string& default_plmn)
 {
   while (true) {
@@ -787,7 +806,7 @@ static asn1::ngap::global_gnb_id_s build_global_gnb_id(const std::string& plmn, 
 {
   asn1::ngap::global_gnb_id_s id = {};
   id.plmn_id.from_string(plmn);
-  id.gnb_id.set_gnb_id().from_number(gnb_id, 32);
+  id.gnb_id.set_gnb_id().from_number(gnb_id, default_gnb_id_bit_len);
   return id;
 }
 
@@ -796,7 +815,8 @@ static user_location_info_c build_user_location_info(const std::string& plmn, co
   user_location_info_c info;
   auto&                nr = info.set_user_location_info_nr();
   nr.nr_cgi.plmn_id.from_string(plmn);
-  nr.nr_cgi.nr_cell_id.from_number(nr_cell_identity::create(gnb_id_t{411, 22}, 0).value().value());
+  nr.nr_cgi.nr_cell_id.from_number(
+      nr_cell_identity::create(gnb_id_t{current_gnb_id, default_gnb_id_bit_len}, default_sector_id).value().value());
   nr.tai.plmn_id.from_string(plmn);
   nr.tai.tac.from_string(tac);
   return info;
@@ -1056,7 +1076,7 @@ static std::optional<injectable_ngap_pdu> read_injectable_ngap_pdu()
       return injectable_ngap_pdu{build_ng_reset(reset_all, ue_ids), "NGReset"};
     }
     case ue_message_type::ran_configuration_update: {
-      const auto        gnb_id = static_cast<uint32_t>(read_uint64_or_default("Global gNB ID", 411, 0xffffffffULL));
+      const auto        gnb_id = static_cast<uint32_t>(read_uint64_or_default("Global gNB ID", current_gnb_id, max_default_gnb_id));
       const std::string plmn   = read_plmn_or_default("PLMN", "00f110");
       const std::string tac    = read_tac_or_default("TAC", "000007");
       const auto        sst    = static_cast<uint8_t>(read_uint64_or_default("S-NSSAI SST", 1, 255));
@@ -1109,7 +1129,8 @@ static std::optional<injectable_ngap_pdu> read_injectable_ngap_pdu()
       const uint64_t    amf_id      = read_amf_id();
       const uint64_t    ran_id      = read_ran_id();
       const std::string cause       = get_input_or_default<std::string>("Cause", "handover-desirable-for-radio-reason");
-      const auto        target_gnb  = static_cast<uint32_t>(read_uint64_or_default("Target gNB ID", 412, 0xffffffffULL));
+      const auto        default_target_gnb = current_gnb_id < max_default_gnb_id ? current_gnb_id + 1 : current_gnb_id;
+      const auto        target_gnb         = static_cast<uint32_t>(read_uint64_or_default("Target gNB ID", default_target_gnb, max_default_gnb_id));
       const std::string ho_type     = get_input_or_default<std::string>("Handover Type", "intra5gs");
       const std::string plmn        = read_plmn_or_default("Target PLMN", "00f110");
       const std::string tac         = read_tac_or_default("Target TAC", "000007");
@@ -1241,6 +1262,14 @@ static probe_config parse_args(int argc, char** argv)
 static int run_probe(const probe_config& cfg)
 {
   auto& logger = ocudulog::fetch_basic_logger("SCTP-GW");
+
+  current_gnb_id = static_cast<uint32_t>(read_uint64_or_default("gNB ID", default_gnb_id, max_default_gnb_id));
+  current_ran_node_name = read_text_token_or_default("RAN node name", default_ran_node_name);
+  std::printf("NGAP injector: using gNB ID=%u gNB ID bit length=%u sector ID=%u RAN node name=%s\n",
+              current_gnb_id,
+              static_cast<unsigned>(default_gnb_id_bit_len),
+              static_cast<unsigned>(default_sector_id),
+              current_ran_node_name.c_str());
 
   const byte_buffer ng_setup_request = build_ng_setup_request();
   std::printf("NGAP injector: target=[%s]:%d bind=[%s] bind_interface=%s ppid=%u stream=%u\n",

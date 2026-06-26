@@ -74,6 +74,7 @@ struct ue_ngap_ids {
 };
 
 enum class ue_message_type {
+  ng_setup_request,
   ue_context_release_request,
   uplink_nas_transport,
   pdu_session_resource_release_response,
@@ -138,10 +139,12 @@ static byte_buffer build_ng_setup_request()
   return pack_ngap_message(ngap_msg, "NGSetupRequest");
 }
 
-static byte_buffer build_ue_context_release_request(uint64_t amf_ue_ngap_id, uint64_t ran_ue_ngap_id)
+static byte_buffer build_ue_context_release_request(uint64_t                  amf_ue_ngap_id,
+                                                    uint64_t                  ran_ue_ngap_id,
+                                                    ngap_cause_radio_network_t cause)
 {
   cu_cp_ue_context_release_request release_request = {};
-  release_request.cause = ngap_cause_radio_network_t::successful_ho;
+  release_request.cause = cause;
 
   ngap_message ngap_msg = {};
   ngap_msg.pdu.set_init_msg();
@@ -600,6 +603,68 @@ static bool is_quit_command(const std::string& line)
   return line == "q" || line == "quit" || line == "exit";
 }
 
+struct radio_network_cause_option {
+  const char*                  label;
+  ngap_cause_radio_network_t   cause;
+};
+
+static const std::vector<radio_network_cause_option>& ue_context_release_cause_options()
+{
+  static const std::vector<radio_network_cause_option> options = {
+      {"successful-handover", ngap_cause_radio_network_t::successful_ho},
+      {"release-due-to-ngran-generated-reason", ngap_cause_radio_network_t::release_due_to_ngran_generated_reason},
+      {"release-due-to-5gc-generated-reason", ngap_cause_radio_network_t::release_due_to_5gc_generated_reason},
+      {"user-inactivity", ngap_cause_radio_network_t::user_inactivity},
+      {"radio-connection-with-ue-lost", ngap_cause_radio_network_t::radio_conn_with_ue_lost},
+      {"radio-resources-not-available", ngap_cause_radio_network_t::radio_res_not_available},
+      {"failure-in-radio-interface-procedure", ngap_cause_radio_network_t::fail_in_radio_interface_proc},
+      {"interaction-with-other-procedure", ngap_cause_radio_network_t::interaction_with_other_proc},
+      {"unknown-local-UE-NGAP-ID", ngap_cause_radio_network_t::unknown_local_ue_ngap_id},
+      {"inconsistent-remote-UE-NGAP-ID", ngap_cause_radio_network_t::inconsistent_remote_ue_ngap_id},
+      {"unspecified", ngap_cause_radio_network_t::unspecified}};
+  return options;
+}
+
+static const char* get_radio_network_cause_label(ngap_cause_radio_network_t cause)
+{
+  for (const auto& option : ue_context_release_cause_options()) {
+    if (option.cause == cause) {
+      return option.label;
+    }
+  }
+  return "unknown";
+}
+
+static std::optional<ngap_cause_radio_network_t> read_ue_context_release_cause()
+{
+  const auto& options = ue_context_release_cause_options();
+  while (true) {
+    std::printf("\nSelect UEContextReleaseRequest cause [default=1]:\n");
+    for (size_t i = 0; i != options.size(); ++i) {
+      std::printf("  %zu) %s\n", i + 1, options[i].label);
+    }
+    std::printf("  q) quit\n");
+
+    std::string line;
+    if (!read_line("Cause selection: ", line)) {
+      return std::nullopt;
+    }
+    line = trim_copy(line);
+    if (line.empty()) {
+      return options.front().cause;
+    }
+    if (is_quit_command(line)) {
+      return std::nullopt;
+    }
+
+    uint64_t value = 0;
+    if (parse_uint64(line, value) && value >= 1 && value <= options.size()) {
+      return options[value - 1].cause;
+    }
+    std::printf("Invalid cause selection. Enter 1..%zu or q.\n", options.size());
+  }
+}
+
 template <typename T>
 static std::string default_to_string(const T& value)
 {
@@ -898,7 +963,7 @@ static void print_confirmation(const std::string& message_name, const std::vecto
 static std::optional<ue_message_type> read_ue_message_type()
 {
   while (true) {
-    std::printf("\nSelect UE-related NGAP packet to inject:\n");
+    std::printf("\nSelect NGAP packet to inject:\n");
     std::printf("  1) UEContextReleaseRequest\n");
     std::printf("  2) UplinkNASTransport\n");
     std::printf("  3) PDUSessionResourceReleaseResponse\n");
@@ -921,6 +986,9 @@ static std::optional<ue_message_type> read_ue_message_type()
 
     if (is_quit_command(line)) {
       return std::nullopt;
+    }
+    if (line == "0") {
+      return ue_message_type::ng_setup_request;
     }
     if (line == "1") {
       return ue_message_type::ue_context_release_request;
@@ -959,7 +1027,7 @@ static std::optional<ue_message_type> read_ue_message_type()
       return ue_message_type::initial_ue_message;
     }
 
-    std::printf("Invalid selection. Enter 1..12 or q.\n");
+    std::printf("Invalid selection. Enter 0..12 or q.\n");
   }
 }
 
@@ -1024,13 +1092,25 @@ static std::optional<injectable_ngap_pdu> read_injectable_ngap_pdu()
   const auto read_ran_id = []() { return read_uint64_or_default("RAN UE NGAP ID", 100, max_ran_ue_ngap_id); };
 
   switch (message_type.value()) {
+    case ue_message_type::ng_setup_request: {
+      print_confirmation("NGSetupRequest", {{"gNB-ID", default_to_string(current_gnb_id)},
+                                             {"gNB-ID-Bit-Length", default_to_string(static_cast<unsigned>(default_gnb_id_bit_len))},
+                                             {"Sector-ID", default_to_string(static_cast<unsigned>(default_sector_id))},
+                                             {"RAN-Node-Name", current_ran_node_name}});
+      return injectable_ngap_pdu{build_ng_setup_request(), "NGSetupRequest"};
+    }
     case ue_message_type::ue_context_release_request: {
       const uint64_t amf_id = read_amf_id();
       const uint64_t ran_id = read_ran_id();
+      const auto     cause  = read_ue_context_release_cause();
+      if (!cause.has_value()) {
+        return std::nullopt;
+      }
       print_confirmation("UEContextReleaseRequest", {{"AMF-UE-NGAP-ID", default_to_string(amf_id)},
                                                       {"RAN-UE-NGAP-ID", default_to_string(ran_id)},
-                                                      {"Cause", "radioNetwork-successful-ho"}});
-      return injectable_ngap_pdu{build_ue_context_release_request(amf_id, ran_id), "UEContextReleaseRequest"};
+                                                      {"Cause", get_radio_network_cause_label(cause.value())}});
+      return injectable_ngap_pdu{build_ue_context_release_request(amf_id, ran_id, cause.value()),
+                                 "UEContextReleaseRequest"};
     }
     case ue_message_type::uplink_nas_transport: {
       const uint64_t    amf_id  = read_amf_id();
@@ -1053,9 +1133,16 @@ static std::optional<injectable_ngap_pdu> read_injectable_ngap_pdu()
                                  "PDUSessionResourceReleaseResponse"};
     }
     case ue_message_type::ng_reset: {
+      const uint32_t original_gnb_id        = current_gnb_id;
+      const std::string original_node_name  = current_ran_node_name;
+      current_gnb_id = static_cast<uint32_t>(read_uint64_or_default("NGReset gNB ID", current_gnb_id, max_default_gnb_id));
+      current_ran_node_name = read_text_token_or_default("NGReset RAN node name", current_ran_node_name);
+
       const bool reset_all = get_input_or_default<bool>("Reset Type NG Interface Reset", true);
       std::vector<ue_ngap_ids> ue_ids;
       std::vector<std::pair<std::string, std::string>> fields = {
+          {"gNB-ID", default_to_string(current_gnb_id)},
+          {"RAN-Node-Name", current_ran_node_name},
           {"Reset-Type", reset_all ? "NG Interface Reset" : "Part of NG Interface"},
           {"Cause", "radio-connection-with-ue-lost"}};
 
@@ -1073,7 +1160,10 @@ static std::optional<injectable_ngap_pdu> read_injectable_ngap_pdu()
       }
 
       print_confirmation("NGReset", fields);
-      return injectable_ngap_pdu{build_ng_reset(reset_all, ue_ids), "NGReset"};
+      auto pdu = injectable_ngap_pdu{build_ng_reset(reset_all, ue_ids), "NGReset"};
+      current_gnb_id = original_gnb_id;
+      current_ran_node_name = original_node_name;
+      return pdu;
     }
     case ue_message_type::ran_configuration_update: {
       const auto        gnb_id = static_cast<uint32_t>(read_uint64_or_default("Global gNB ID", current_gnb_id, max_default_gnb_id));
@@ -1271,7 +1361,6 @@ static int run_probe(const probe_config& cfg)
               static_cast<unsigned>(default_sector_id),
               current_ran_node_name.c_str());
 
-  const byte_buffer ng_setup_request = build_ng_setup_request();
   std::printf("NGAP injector: target=[%s]:%d bind=[%s] bind_interface=%s ppid=%u stream=%u\n",
               join_strings(cfg.amf_addresses, ", ").c_str(),
               cfg.amf_port,
@@ -1333,13 +1422,14 @@ static int run_probe(const probe_config& cfg)
               bound_port.has_value() ? std::to_string(bound_port.value()).c_str() : "unknown",
               peer_addresses.empty() ? "unknown" : join_strings(peer_addresses, ", ").c_str());
 
+  const byte_buffer ng_setup_request = build_ng_setup_request();
   send_ngap_pdu(socket, dest_addrs.front(), ng_setup_request, "NGSetupRequest", cfg);
 
   if (cfg.post_send_wait_ms > 0) {
     std::this_thread::sleep_for(std::chrono::milliseconds{cfg.post_send_wait_ms});
   }
 
-  std::printf("NGAP injector: SCTP association remains open for interactive UE-related packet sends\n");
+  std::printf("NGAP injector: SCTP association remains open for interactive NGAP packet sends\n");
   while (true) {
     const auto injectable_pdu = read_injectable_ngap_pdu();
     if (!injectable_pdu.has_value()) {
@@ -1348,6 +1438,13 @@ static int run_probe(const probe_config& cfg)
 
     send_ngap_pdu(socket, dest_addrs.front(), injectable_pdu->pdu, injectable_pdu->name, cfg);
   }
+
+  std::printf("NGAP injector: sending NGReset before closing SCTP association\n");
+  print_confirmation("NGReset", {{"gNB-ID", default_to_string(current_gnb_id)},
+                                 {"RAN-Node-Name", current_ran_node_name},
+                                 {"Reset-Type", "NG Interface Reset"},
+                                 {"Cause", "radio-connection-with-ue-lost"}});
+  send_ngap_pdu(socket, dest_addrs.front(), build_ng_reset(true, {}), "NGReset", cfg);
 
   const int eof_result =
       ::sctp_sendmsg(socket.fd().value(),

@@ -19,6 +19,8 @@ enum class pdsch_mcs_table : uint8_t {
   qam256 = 1,
   /// Identifies MCS index table 3, TS38.214 Table 5.1.3.1-3.
   qam64LowSe = 2,
+  /// Identifies MCS index table 4, TS38.214 Table 5.1.3.1-4.
+  qam1024 = 3,
 };
 
 /// \brief Gets the Modulation and Coding Scheme configuration for PDSCH.

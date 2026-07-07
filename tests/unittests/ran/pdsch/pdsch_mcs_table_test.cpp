@@ -20,6 +20,9 @@ std::ostream& operator<<(std::ostream& os, const pdsch_mcs_table& mcs_table)
     case pdsch_mcs_table::qam64LowSe:
       fmt::print(os, "qam64LowSe");
       break;
+    case pdsch_mcs_table::qam1024:
+      fmt::print(os, "qam1024");
+      break;
   }
   return os;
 }
@@ -129,6 +132,38 @@ static const std::map<pdsch_mcs_param, std::tuple<unsigned, float, float>> pdsch
     {{pdsch_mcs_table::qam64LowSe, 29}, {2, 0.0F, 0.0F}},
     {{pdsch_mcs_table::qam64LowSe, 30}, {4, 0.0F, 0.0F}},
     {{pdsch_mcs_table::qam64LowSe, 31}, {6, 0.0F, 0.0F}},
+    {{pdsch_mcs_table::qam1024, 0}, {2, 120.0F, 0.2344F}},
+    {{pdsch_mcs_table::qam1024, 1}, {2, 193.0F, 0.3770F}},
+    {{pdsch_mcs_table::qam1024, 2}, {2, 449.0F, 0.8770F}},
+    {{pdsch_mcs_table::qam1024, 3}, {4, 378.0F, 1.4766F}},
+    {{pdsch_mcs_table::qam1024, 4}, {4, 490.0F, 1.9141F}},
+    {{pdsch_mcs_table::qam1024, 5}, {4, 616.0F, 2.4063F}},
+    {{pdsch_mcs_table::qam1024, 6}, {6, 466.0F, 2.7305F}},
+    {{pdsch_mcs_table::qam1024, 7}, {6, 517.0F, 3.0293F}},
+    {{pdsch_mcs_table::qam1024, 8}, {6, 567.0F, 3.3223F}},
+    {{pdsch_mcs_table::qam1024, 9}, {6, 616.0F, 3.6094F}},
+    {{pdsch_mcs_table::qam1024, 10}, {6, 666.0F, 3.9023F}},
+    {{pdsch_mcs_table::qam1024, 11}, {6, 719.0F, 4.2129F}},
+    {{pdsch_mcs_table::qam1024, 12}, {6, 772.0F, 4.5234F}},
+    {{pdsch_mcs_table::qam1024, 13}, {6, 822.0F, 4.8164F}},
+    {{pdsch_mcs_table::qam1024, 14}, {6, 873.0F, 5.1152F}},
+    {{pdsch_mcs_table::qam1024, 15}, {8, 682.5F, 5.3320F}},
+    {{pdsch_mcs_table::qam1024, 16}, {8, 711.0F, 5.5547F}},
+    {{pdsch_mcs_table::qam1024, 17}, {8, 754.0F, 5.8906F}},
+    {{pdsch_mcs_table::qam1024, 18}, {8, 797.0F, 6.2266F}},
+    {{pdsch_mcs_table::qam1024, 19}, {8, 841.0F, 6.5703F}},
+    {{pdsch_mcs_table::qam1024, 20}, {8, 886.0F, 6.9219F}},
+    {{pdsch_mcs_table::qam1024, 21}, {8, 916.5F, 7.1602F}},
+    {{pdsch_mcs_table::qam1024, 22}, {8, 948.0F, 7.4063F}},
+    {{pdsch_mcs_table::qam1024, 23}, {10, 805.5F, 7.8662F}},
+    {{pdsch_mcs_table::qam1024, 24}, {10, 853.0F, 8.3301F}},
+    {{pdsch_mcs_table::qam1024, 25}, {10, 900.5F, 8.7939F}},
+    {{pdsch_mcs_table::qam1024, 26}, {10, 948.0F, 9.2578F}},
+    {{pdsch_mcs_table::qam1024, 27}, {2, 0.0F, 0.0F}},
+    {{pdsch_mcs_table::qam1024, 28}, {4, 0.0F, 0.0F}},
+    {{pdsch_mcs_table::qam1024, 29}, {6, 0.0F, 0.0F}},
+    {{pdsch_mcs_table::qam1024, 30}, {8, 0.0F, 0.0F}},
+    {{pdsch_mcs_table::qam1024, 31}, {10, 0.0F, 0.0F}},
 };
 
 class pdsch_mcs_table_test : public ::testing::TestWithParam<pdsch_mcs_param>
@@ -165,8 +200,10 @@ TEST_P(pdsch_mcs_table_test, check_combinations)
   ASSERT_NEAR(std::get<0>(expected) * std::get<1>(expected) / 1024.0F, std::get<2>(expected), 1e-4);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    pdsch_mcs_table,
-    pdsch_mcs_table_test,
-    ::testing::Combine(::testing::Values(pdsch_mcs_table::qam64, pdsch_mcs_table::qam256, pdsch_mcs_table::qam64LowSe),
-                       ::testing::Range(0U, 32U)));
+INSTANTIATE_TEST_SUITE_P(pdsch_mcs_table,
+                         pdsch_mcs_table_test,
+                         ::testing::Combine(::testing::Values(pdsch_mcs_table::qam64,
+                                                              pdsch_mcs_table::qam256,
+                                                              pdsch_mcs_table::qam64LowSe,
+                                                              pdsch_mcs_table::qam1024),
+                                            ::testing::Range(0U, 32U)));
